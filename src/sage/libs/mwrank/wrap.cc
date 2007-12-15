@@ -4,8 +4,8 @@ using namespace std;
 
 #include "wrap.h"
 
-#include "mwrank/htconst.h"
-#include "mwrank/interface.h"
+#include "cremona/htconst.h"
+#include "cremona/interface.h"
 
 /**************** Miscellaneous functions ****************/
 
@@ -17,7 +17,7 @@ void mwrank_set_precision(long n)
 
 void mwrank_initprimes(char* pfilename, int verb)
 {
-  initprimes(pfilename, verb);
+  initprimes((const char*)pfilename, verb);
 }
 
 

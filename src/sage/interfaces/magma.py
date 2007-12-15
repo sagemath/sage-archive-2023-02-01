@@ -253,6 +253,19 @@ class Magma(Expect):
             raise AttributeError
         return MagmaFunction(self, attrname)
 
+    def chdir(self, dir):
+        """
+        Change the Magma interpreters current working directory.
+
+        EXAMPLES:
+            sage: magma.eval('System("pwd")')   # optional and random
+            '/Users/was/s/devel/sage-main/sage'
+            sage: magma.chdir('..')             # optional
+            sage: magma.eval('System("pwd")')   # optional and random
+            '/Users/was/s/devel/sage-main'
+        """
+        self.eval('ChangeDirectory("%s")'%dir, strip=False)
+
     def eval(self, x, strip=True):
         """
         INPUT:
@@ -348,7 +361,7 @@ class Magma(Expect):
         Attaching a file in MAGMA makes all intrinsics defined in the
         file available to the shell.  Moreover, if the file doesn't
         start with the \code{freeze;} command, then the file is
-        reloaded whenver it is changed.  Note that functions and
+        reloaded whenever it is changed.  Note that functions and
         procedures defined in the file are \emph{not} available.
         For only those, use \code{magma.load(filename)}.
         """

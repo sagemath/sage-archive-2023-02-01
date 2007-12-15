@@ -311,7 +311,7 @@ class GenericGraph(SageObject):
         weighted = ( self._weighted and other._weighted )
         # inputs must be (di)graphs:
         if not isinstance(other, GenericGraph):
-            raise TypeError("Input (%s) must be a graph."%str(other))
+            raise TypeError("Cannot compare graph to non-graph (%s)."%str(other))
         # DiGraphs are "larger" than Graphs:
         g1_is_graph = isinstance(self, Graph)
         g2_is_graph = isinstance(other, Graph)
@@ -2559,33 +2559,38 @@ class GenericGraph(SageObject):
         return edge_colors
 
     def plot(self, pos=None, layout=None, vertex_labels=True,
-             edge_labels=False, vertex_size=200, graph_border=False,
-             vertex_colors=None, partition=None, edge_colors=None,
-             scaling_term=0.05, iterations=50,
-             color_by_label=False, heights=None):
+            edge_labels=False, vertex_size=200, graph_border=False,
+            vertex_colors=None, partition=None, edge_colors=None,
+            scaling_term=0.05, iterations=50,
+            color_by_label=False, heights=None):
         """
         Returns a graphics object representing the (di)graph.
 
         INPUT:
             pos -- an optional positioning dictionary
             layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed on a circle
-                'spring' -- uses the traditional spring layout, ignores the graphs current positions
+                'circular' -- plots the graph with vertices evenly distributed
+                    on a circle
+                'spring' -- uses the traditional spring layout, ignores the
+                    graphs current positions
             vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edge labels. By default, False, but if True, the result
-                of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
+            edge_labels -- whether to print edge labels. By default, False, but
+                if True, the result of str(l) is printed on the edge for each
+                label l. Labels equal to None are not printed.
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
-            vertex_colors -- optional dictionary to specify vertex colors: each key is a color recognizable
-                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
-                it looks invisible on the resulting plot (it doesn't get drawn).
-            edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
-                matplotlib, and each entry is a list of edges.
-            partition -- a partition of the vertex set. if specified, plot will show each cell in a different
-                color. vertex_colors takes precedence.
-            scaling_term -- default is 0.05. if vertices are getting chopped off, increase; if graph
-                is too small, decrease. should be positive, but values much bigger than
-                1/8 won't be useful unless the vertices are huge
+            vertex_colors -- optional dictionary to specify vertex colors: each
+                key is a color recognizable by matplotlib, and each corresponding
+                entry is a list of vertices. If a vertex is not listed, it looks
+                invisible on the resulting plot (it doesn't get drawn).
+            edge_colors -- a dictionary specifying edge colors: each key is a
+                color recognized by matplotlib, and each entry is a list of edges.
+            partition -- a partition of the vertex set. if specified, plot will
+                show each cell in a different color. vertex_colors takes precedence.
+            scaling_term -- default is 0.05. if vertices are getting chopped off,
+                increase; if graph is too small, decrease. should be positive, but
+                values much bigger than 1/8 won't be useful unless the vertices
+                are huge
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
             color_by_label -- if True, color edges by their labels
@@ -2636,8 +2641,13 @@ class GenericGraph(SageObject):
             ...            edge_colors[R[i]].append((u,v,l))
             sage: C.plot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).show()
 
+            sage: D = graphs.DodecahedralGraph()
+            sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
+            sage: D.show(partition=Pi)
+
         """
         from sage.plot.plot import networkx_plot
+        from sage.plot.plot import rainbow
         import networkx
         if vertex_colors is None:
             if partition is not None:
@@ -2714,24 +2724,30 @@ class GenericGraph(SageObject):
         INPUT:
             pos -- an optional positioning dictionary
             layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed on a circle
-                'spring' -- uses the traditional spring layout, ignores the graphs current positions
+                'circular' -- plots the graph with vertices evenly distributed
+                    on a circle
+                'spring' -- uses the traditional spring layout, ignores the
+                    graphs current positions
             vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edgeedge labels. By default, False, but if True, the result
-                of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
+            edge_labels -- whether to print edgeedge labels. By default, False,
+                but if True, the result of str(l) is printed on the edge for
+                each label l. Labels equal to None are not printed.
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
-            vertex_colors -- optional dictionary to specify vertex colors: each key is a color recognizable
-                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
-                it looks invisible on the resulting plot (it doesn't get drawn).
-            edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
-                matplotlib, and each entry is a list of edges.
-            partition -- a partition of the vertex set. if specified, plot will show each cell in a different
-                color. vertex_colors takes precedence.
-            scaling_term -- default is 0.05. if vertices are getting chopped off, increase; if graph
-                is too small, decrease. should be positive, but values much bigger than
-                1/8 won't be useful unless the vertices are huge
-            talk -- if true, prints large vertices with white backgrounds so that labels are legible on slies
+            vertex_colors -- optional dictionary to specify vertex colors: each
+                key is a color recognizable by matplotlib, and each corresponding
+                entry is a list of vertices. If a vertex is not listed, it looks
+                invisible on the resulting plot (it doesn't get drawn).
+            edge_colors -- a dictionary specifying edge colors: each key is a
+                color recognized by matplotlib, and each entry is a list of edges.
+            partition -- a partition of the vertex set. if specified, plot will
+                show each cell in a different color. vertex_colors takes precedence.
+            scaling_term -- default is 0.05. if vertices are getting chopped off,
+                increase; if graph is too small, decrease. should be positive, but
+                values much bigger than 1/8 won't be useful unless the vertices
+                are huge
+            talk -- if true, prints large vertices with white backgrounds so that
+                labels are legible on slies
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
             color_by_label -- if True, color edges by their labels
@@ -2781,6 +2797,10 @@ class GenericGraph(SageObject):
             ...        if u[i] != v[i]:
             ...            edge_colors[R[i]].append((u,v,l))
             sage: C.plot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).show()
+
+            sage: D = graphs.DodecahedralGraph()
+            sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
+            sage: D.show(partition=Pi)
 
         """
         if talk:
@@ -3652,13 +3672,16 @@ class Graph(GenericGraph):
             [(0, 1), (0, 10), (0, 19), (1, 2), (1, 8), (2, 3), (2, 6), (3, 4), (3, 19), (4, 5), (4, 17), (5, 6), (5, 15), (6, 7), (7, 8), (7, 14), (8, 9), (9, 10), (9, 13), (10, 11), (11, 12), (11, 18), (12, 13), (12, 16), (13, 14), (14, 15), (15, 16), (16, 17), (17, 18), (18, 19)]
         """
         L = self._nxg.edges()
-        if sort:
-            L.sort()
         if labels:
-            return L
+            if sort:
+                return sorted(L)
+            else:
+                return L
         else:
-            return [(u,v) for u,v,_ in L]
-
+            if sort:
+                return sorted([tuple(sorted((u,v))) for u,v,_ in L])
+            else:
+                return [(u,v) for u,v,_ in L]
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True):
         """
@@ -4926,6 +4949,8 @@ class Graph(GenericGraph):
             True
 
         """
+        if self.order() == 0:
+            return True
         import networkx
         return networkx.component.is_connected(self._nxg)
 
@@ -6623,6 +6648,8 @@ class DiGraph(GenericGraph):
             True
 
         """
+        if self.order() == 0:
+            return True
         import networkx
         return networkx.component.is_connected(self._nxg.to_undirected())
 

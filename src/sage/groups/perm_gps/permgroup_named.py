@@ -76,6 +76,15 @@ from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even, log
 from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
 
+def permutation_list_to_degree(v):
+    try:
+        v = [Integer(z) for z in v]
+    except TypeError:
+        raise ValueError, "each entry of list must be an integer"
+    if min(v) < 1:
+        raise ValueError, "each element of list must be positive"
+    return max(v), v
+
 
 class SymmetricGroup(PermutationGroup_generic):
     """
@@ -109,38 +118,54 @@ class SymmetricGroup(PermutationGroup_generic):
         [1, 2, 3, 4]
     """
     def __init__(self, n):
-        self._deg = n
-        if isinstance(n, ListType):
+        if isinstance(n, (list, tuple)):
+            self._deg, n = permutation_list_to_degree(n)
             PermutationGroup_generic.__init__(self, 'SymmetricGroup(%s)'%n, from_group = True)
+            self._set = n
         else:
             try:
-                n = Integer(n)
+                self._deg = n = Integer(n)
+                self._set = n
                 if n < 1:
                     raise ValueError, "n (=%s) must be >= 1"%n
                 PermutationGroup_generic.__init__(self, 'SymmetricGroup(%s)'%n, from_group = True)
             except TypeError, msg:
                 raise ValueError, "%s\nn (=%s) must be an integer >= 1 or a list (but n has type %s)"%(msg, n,type(n))
 
+    def _num_symbols(self):
+        try:
+            return self.__num_symbols
+        except AttributeError:
+            self.__num_symbols = len(self._set) if isinstance(self._set,ListType) else self.degree()
+        return self.__num_symbols
+
     def _repr_(self):
-        if isinstance(self._deg,ListType):
-            deg = len(self._deg)
-        else:
-            deg = self.degree()
-        return "Symmetric group of order %s! as a permutation group"%deg
+        return "Symmetric group of order %s! as a permutation group"%self._num_symbols()
 
     def __str__(self):
-        if isinstance(self._deg,ListType):
-            deg = len(self._deg)
+        """
+        EXAMPLES:
+            sage: S = SymmetricGroup([2,3,7]); S
+            Symmetric group of order 3! as a permutation group
+            sage: str(S)
+            'SymmetricGroup([2, 3, 7])'
+            sage: S = SymmetricGroup(5); S
+            Symmetric group of order 5! as a permutation group
+            sage: str(S)
+            'SymmetricGroup(5)'
+        """
+        if isinstance(self._set, ListType):
+            x = self._set
         else:
-            deg = self.degree()
-        return "SymmetricGroup(%s)"%deg
+            x = self.degree()
+        return "SymmetricGroup(%s)"%x
+
 
     def set(self):
-        if isinstance(self._deg,ListType):
-            X = self._deg
+        if isinstance(self._set, list):
+            return self._set
         else:
-            X = range(1,self._deg + 1)
-        return X
+            return range(1, self._deg + 1)
 
 class AlternatingGroup(PermutationGroup_generic):
     """
@@ -165,38 +190,55 @@ class AlternatingGroup(PermutationGroup_generic):
     """
     from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
     def __init__(self, n):
-        self._deg = n
-        if isinstance(n,ListType):
+        if isinstance(n, (list, tuple)):
+            deg, n = permutation_list_to_degree(n)
             PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
+            self._set = n
         else:
             try:
-                n = Integer(n)
+                self._deg = n = Integer(n)
+                self._set = n
                 if n < 1:
                     raise ValueError, "n (=%s) must be >= 1"%n
                 PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
             except TypeError, msg:
                 raise ValueError, "n (=%s) must be an integer >= 1 or a list"%n
 
+    def _num_symbols(self):
+        try:
+            return self.__num_symbols
+        except AttributeError:
+            self.__num_symbols = len(self._set) if isinstance(self._set,ListType) else self.degree()
+        return self.__num_symbols
+
     def _repr_(self):
-        if isinstance(self._deg,ListType):
-            deg = len(self._deg)
-        else:
-            deg = self.degree()
-        return "Alternating group of order %s!/2 as a permutation group"%deg
+        """
+        EXAMPLES:
+            sage: A = AlternatingGroup([2,3,7]); A
+            Alternating group of order 3!/2 as a permutation group
+        """
+        z = self._num_symbols()
+        return "Alternating group of order %s!/2 as a permutation group" % z
 
     def __str__(self):
-        if isinstance(self._deg,ListType):
-            deg = len(self._deg)
+        """
+        EXAMPLES:
+            sage: A = AlternatingGroup([2,3,7]); A
+            Alternating group of order 3!/2 as a permutation group
+            sage: str(A)
+            'AlternatingGroup([2, 3, 7])'
+        """
+        if isinstance(self._set, ListType):
+            x = self._set
         else:
-            deg = self.degree()
-        return "AlternatingGroup(%s)"%deg
+            x = self.degree()
+        return "AlternatingGroup(%s)" % x
 
     def set(self):
-        if isinstance(self._deg,ListType):
-            X = self._deg
+        if isinstance(self._set, list):
+            return self._set
         else:
-            X = range(1,self._deg + 1)
-        return X
+            return range(1, self._deg + 1)
 
 class CyclicPermutationGroup(PermutationGroup_generic):
     """
@@ -625,9 +667,7 @@ class PSp(PermutationGroup_generic):
             sage: G.order()
             12
             sage: G = PSp(4,3); G
-            Permutation Group with generators [(3,4)(6,7)(9,10)(12,13)(17,20)(18,21)(19,22)(23,32)(24,33)(25,34)(26,38)(27,
-            39)(28,40)(29,35)(30,36)(31,37), (1,5,14,17,27,22,19,36,3)(2,6,32)(4,7,23,20,37,13,16,26,40)(8,24,29,30,39,10,
-            33,11,34)(9,15,35)(12,25,38)(21,28,31)]
+            Permutation Group with generators [(3,4)(6,7)(9,10)(12,13)(17,20)(18,21)(19,22)(23,32)(24,33)(25,34)(26,38)(27,39)(28,40)(29,35)(30,36)(31,37), (1,5,14,17,27,22,19,36,3)(2,6,32)(4,7,23,20,37,13,16,26,40)(8,24,29,30,39,10,33,11,34)(9,15,35)(12,25,38)(21,28,31)]
             sage: G.order()
             25920
             sage: print G
@@ -754,11 +794,7 @@ class SuzukiGroup(PermutationGroup_generic):
 
     EXAMPLE:
         sage: SuzukiGroup(8)
-        Permutation Group with generators [(1,28,10,44)(3,50,11,42)(4,43,53,64)(5,9,39,52)(6,36,63,13)(7,51,60,57)(8,33,
-        37,16)(12,24,55,29)(14,30,48,47)(15,19,61,54)(17,59,22,62)(18,23,34,31)(20,38,
-        49,25)(21,26,45,58)(27,32,41,65)(35,46,40,56), (1,2)(3,10)(4,42)(5,18)(6,50)(7,26)(8,58)(9,34)(12,28)(13,45)(14,44)(15,
-        23)(16,31)(17,21)(19,39)(20,38)(22,25)(24,61)(27,60)(29,65)(30,55)(32,33)(35,
-        52)(36,49)(37,59)(40,54)(41,62)(43,53)(46,48)(47,56)(51,63)(57,64)]
+        Permutation Group with generators [(1,28,10,44)(3,50,11,42)(4,43,53,64)(5,9,39,52)(6,36,63,13)(7,51,60,57)(8,33,37,16)(12,24,55,29)(14,30,48,47)(15,19,61,54)(17,59,22,62)(18,23,34,31)(20,38,49,25)(21,26,45,58)(27,32,41,65)(35,46,40,56), (1,2)(3,10)(4,42)(5,18)(6,50)(7,26)(8,58)(9,34)(12,28)(13,45)(14,44)(15,23)(16,31)(17,21)(19,39)(20,38)(22,25)(24,61)(27,60)(29,65)(30,55)(32,33)(35,52)(36,49)(37,59)(40,54)(41,62)(43,53)(46,48)(47,56)(51,63)(57,64)]
         sage: print SuzukiGroup(8)
         The Suzuki group over Finite Field in a of size 2^3
 

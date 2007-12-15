@@ -523,15 +523,19 @@ class SymbolicEquation(SageObject):
         WARNING: In many cases, only one solution is computed.
 
         INPUT:
-            x -- a SymbolicVariable object (if not given, the first in the expression is used)
-            multiplicities -- (default: False) if True, also returns the multiplicities
-                          of each solution, in order.
-            solution_dict -- (default: False) if True, return the solution as a dictionary rather than an equation.
-            explicit_solution -- (default: False); if True, require that all solutions
-                returned be explicit (rather than implicit)
-        OUTPUT:
-            A list of SymbolicEquations with the variable to solve for on the
-            left hand side.
+            x -- a SymbolicVariable object (if not given, the first in
+                 the expression is used)
+
+            multiplicities -- (default: False) if True, also returns
+                          the multiplicities of each solution, in order.
+
+            solution_dict -- (default: False) if True, return the
+                        solution as a dictionary rather than an equation.
+
+            explicit_solution -- (default: False); if True, require
+                that all solutions returned be explicit (rather than
+                implicit) OUTPUT: A list of SymbolicEquations with the
+                variable to solve for on the left hand side.
 
         EXAMPLES:
             sage: S = solve(x^3 - 1 == 0, x)
@@ -583,6 +587,35 @@ class SymbolicEquation(SageObject):
         else:
             return X
 
+
+    def expand(self, side=None):
+        """
+        Expands one or both sides of the equation.
+
+        If side is not specified, then both sides of the equation
+        are expanded by calling expand() on the corresponding
+        SymbolicExpression.
+
+        If side is 'left' (or 'right'), then only the left (or right)
+        side of the equation is expanded.
+
+        EXAMPLES:
+            sage: a = (16*x-13)/6 == (3*x+5)/2 - (4-x)/3
+            sage: a.expand()
+            8*x/3 - 13/6 == 11*x/6 + 7/6
+            sage: a.expand('left')
+            8*x/3 - 13/6 == (3*x + 5)/2 - (4 - x)/3
+            sage: a.expand('right')
+            (16*x - 13)/6 == 11*x/6 + 7/6
+        """
+        if side is None:
+            return SymbolicEquation(self._left.expand(), self._right.expand(), self._op)
+        elif side == 'left':
+            return SymbolicEquation(self._left.expand(), self._right, self._op)
+        elif side == 'right':
+            return SymbolicEquation(self._left, self._right.expand(), self._op)
+        else:
+            raise ValueError, "side must be 'left', 'right', or None"
 
 
 def assume(*args):
@@ -751,3 +784,72 @@ def string_to_list_of_solutions(s):
     v = symbolic_expression_from_maxima_string(s, equals_sub=True)
     return Sequence(v, universe=objs, cr_str=True)
 
+
+############################################################
+# Solving modulo N
+
+def solve_mod(eqns, modulus):
+    """
+    Return all solutions to an equation or lists of equations modulo
+    the given integer modulus.  Each equation must involve only
+    polynomials in 1 or many variables.
+
+    The solutions are returned as n-tuples, where n is the
+    number of variables appearing anywhere in the given equations.
+    The variables are in alphabetical order.
+
+
+    INPUT:
+        eqns -- equation or list of equations
+        modulus -- an integer
+
+    EXAMPLES:
+        sage: var('x,y')
+        (x, y)
+        sage: solve_mod([x^2 + 2 == x, x^2 + y == y^2], 14)
+        [(2, 4), (6, 4), (9, 4), (13, 4)]
+        sage: solve_mod([x^2 == 1, 4*x  == 11], 15)
+        [(14,)]
+
+    Fermat's equation modulo 3 with exponent 5:
+        sage: var('x,y,z')
+        (x, y, z)
+        sage: solve_mod([x^5 + y^5 == z^5], 3)
+        [(0, 0, 0), (0, 1, 1), (0, 2, 2), (1, 0, 1), (1, 1, 2), (1, 2, 0), (2, 0, 2), (2, 1, 0), (2, 2, 1)]
+
+    WARNING:
+        Currently this naively enumerates all possible solutions.
+        The interface is good, but the algorithm is horrible if the
+        modulus is at all large!   Sage *does* have the ability to do
+        something much faster in certain cases at least by using
+        the Chinese Remainder Theorem, Groebner basis, linear algebra
+        techniques, etc.  But for a lot of toy problems this function
+        as is might be useful.  At least it establishes an interface.
+    """
+    from sage.rings.all import Integer, Integers, MPolynomialRing
+    from calculus import is_SymbolicExpression
+    from sage.misc.all import cartesian_product_iterator
+
+    if not isinstance(eqns, (list, tuple)):
+        eqns = [eqns]
+    modulus = Integer(modulus)
+    if modulus < 1:
+         raise ValueError, "the modulus must be a positive integer"
+    vars = list(set(sum([list(e.variables()) for e in eqns], [])))
+    vars.sort()
+    n = len(vars)
+    R = Integers(modulus)
+    S = MPolynomialRing(R, len(vars), vars)
+    eqns_mod = [S(eq) if is_SymbolicExpression(eq) else \
+                  S(eq.lhs() - eq.rhs()) for eq in eqns]
+    ans = []
+    for t in cartesian_product_iterator([R]*len(vars)):
+        is_soln = True
+        for e in eqns_mod:
+            if e(t) != 0:
+                is_soln = False
+                break
+        if is_soln:
+            ans.append(t)
+
+    return ans

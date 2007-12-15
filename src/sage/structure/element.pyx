@@ -152,7 +152,7 @@ and classes are similar. There are four relevant functions.
    implementations of either _add_ or _add_c_impl.
 
 
-For speed, there are also {\bf inplace} version of the arithmatic commands.
+For speed, there are also {\bf inplace} version of the arithmetic commands.
 DD NOT call them directly, they may mutate the object and will be called
 when and only when it has been determined that the old object will no longer
 be accessible from the calling function after this operation.
@@ -1215,7 +1215,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         DO NOT CALL THIS FUNCTION DIRECTLY.
         See extensive documentation at the top of element.pyx.
         """
-        return self._parent.fraction_field()(self, right)
+        return self * ~right
 
     def _div_(MultiplicativeGroupElement self, MultiplicativeGroupElement right):
         """
@@ -1616,6 +1616,28 @@ cdef class CommutativeRingElement(RingElement):
         i.e., if $I$ and self together generate the unit ideal.
         """
         raise NotImplementedError
+
+    def divides(self, x):
+        """
+        Return True if self divides x.
+
+        EXAMPLES:
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: x.divides(x^2)
+            True
+            sage: x.divides(x^2+2)
+            False
+            sage: (x^2+2).divides(x)
+            False
+            sage: P.<x> = PolynomialRing(ZZ)
+            sage: x.divides(x^2)
+            True
+            sage: x.divides(x^2+2)
+            False
+            sage: (x^2+2).divides(x)
+            False
+        """
+        return (x % self) == 0
 
     def mod(self, I):
         r"""

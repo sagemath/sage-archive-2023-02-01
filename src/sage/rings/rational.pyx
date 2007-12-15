@@ -510,6 +510,16 @@ cdef class Rational(sage.structure.element.FieldElement):
         return self_d.gcd(other_d) / d
 
     def valuation(self, p):
+        """
+        EXAMPLES:
+            sage: x = -5/9
+            sage: x.valuation(5)
+            1
+            sage: x.valuation(3)
+            -2
+            sage: x.valuation(2)
+            0
+        """
         return self.numerator().valuation(p) - self.denominator().valuation(p)
 
     def is_square(self):
@@ -554,7 +564,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (5/3).sqrt_approx()
             1.29099444873581
             sage: (990829038092384908234098239048230984/4).sqrt_approx()
-            497701978620837137.47374920870362581922510725585130996993055116540856385
+            4.9770197862083713747374920870362581922510725585130996993055116540856385e17
             sage: (5/3).sqrt_approx(prec=200)
             1.2909944487358056283930884665941332036109739017638636088625
             sage: (9/4).sqrt_approx()

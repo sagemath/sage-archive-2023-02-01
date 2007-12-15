@@ -1,4 +1,6 @@
-from equations import SymbolicEquation, forget, assume, assumptions, solve
+from equations import (SymbolicEquation,
+                       forget, assume, assumptions,
+                       solve, solve_mod)
 
 from calculus import (SymbolicExpressionRing,
                       is_SymbolicExpressionRing,

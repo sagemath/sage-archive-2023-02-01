@@ -125,6 +125,8 @@ cdef class NumberFieldElement(FieldElement):
         cdef NumberFieldElement x
         x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
         x._parent = self._parent
+        x.__fld_numerator = self.__fld_numerator
+        x.__fld_denominator = self.__fld_denominator
         return x
 
     cdef number_field(self):
@@ -175,6 +177,10 @@ cdef class NumberFieldElement(FieldElement):
             True
         """
         sage.rings.field_element.FieldElement.__init__(self, parent)
+        if isinstance(parent, number_field.NumberField_relative):
+            self.__fld_numerator, self.__fld_denominator = parent.absolute_polynomial_ntl()
+        else:
+            self.__fld_numerator, self.__fld_denominator = parent.polynomial_ntl()
 
         cdef ZZ_c coeff
         if isinstance(f, (int, long, Integer_sage)):
@@ -276,6 +282,7 @@ cdef class NumberFieldElement(FieldElement):
 
         cdef NumberFieldElement x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
         x._parent = <ParentWithBase>new_parent
+        x.__fld_numerator, x.__fld_denominator = new_parent.polynomial_ntl()
         x.__denominator = self.__denominator
         cdef ZZX_c result
         cdef ZZ_c tmp
@@ -737,25 +744,22 @@ cdef class NumberFieldElement(FieldElement):
         cdef NumberFieldElement _right = right
         cdef ZZX_c temp
         cdef ZZ_c temp1
-        cdef ZZ_c parent_den
-        cdef ZZX_c parent_num
-        self._parent_poly_c_( &parent_num, &parent_den )
         x = self._new()
         _sig_on
         # MulMod doesn't handle non-monic polynomials.
         # Therefore, we handle the non-monic case entirely separately.
-        if ZZX_is_monic( &parent_num ):
+        if ZZX_is_monic( &self.__fld_numerator.x ):
             ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
-            ZZX_MulMod(x.__numerator, self.__numerator, _right.__numerator, parent_num)
+            ZZX_MulMod(x.__numerator, self.__numerator, _right.__numerator, self.__fld_numerator.x)
         else:
             ZZ_mul(x.__denominator, self.__denominator, _right.__denominator)
             ZZX_mul(x.__numerator, self.__numerator, _right.__numerator)
-            if ZZX_deg(x.__numerator) >= ZZX_deg(parent_num):
-                ZZX_mul_ZZ( x.__numerator, x.__numerator, parent_den )
-                ZZX_mul_ZZ( temp, parent_num, x.__denominator )
-                ZZ_power(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
+            if ZZX_deg(x.__numerator) >= ZZX_deg(self.__fld_numerator.x):
+                ZZX_mul_ZZ( x.__numerator, x.__numerator, self.__fld_denominator.x )
+                ZZX_mul_ZZ( temp, self.__fld_numerator.x, x.__denominator )
+                ZZ_power(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(self.__fld_numerator.x)+1)
                 ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
-                ZZ_mul(x.__denominator, x.__denominator, parent_den)
+                ZZ_mul(x.__denominator, x.__denominator, self.__fld_denominator.x)
                 ZZ_mul(x.__denominator, x.__denominator, temp1)
         _sig_off
         x._reduce_c_()
@@ -795,28 +799,25 @@ cdef class NumberFieldElement(FieldElement):
         cdef NumberFieldElement _right = right
         cdef ZZX_c inv_num
         cdef ZZ_c inv_den
-        cdef ZZ_c parent_den
-        cdef ZZX_c parent_num
         cdef ZZX_c temp
         cdef ZZ_c temp1
         if not _right:
             raise ZeroDivisionError, "Number field element division by zero"
-        self._parent_poly_c_( &parent_num, &parent_den )
         x = self._new()
         _sig_on
         _right._invert_c_(&inv_num, &inv_den)
-        if ZZX_is_monic( &parent_num ):
+        if ZZX_is_monic( &self.__fld_numerator.x ):
             ZZ_mul(x.__denominator, self.__denominator, inv_den)
-            ZZX_MulMod(x.__numerator, self.__numerator, inv_num, parent_num)
+            ZZX_MulMod(x.__numerator, self.__numerator, inv_num, self.__fld_numerator.x)
         else:
             ZZ_mul(x.__denominator, self.__denominator, inv_den)
             ZZX_mul(x.__numerator, self.__numerator, inv_num)
-            if ZZX_deg(x.__numerator) >= ZZX_deg(parent_num):
-                ZZX_mul_ZZ( x.__numerator, x.__numerator, parent_den )
-                ZZX_mul_ZZ( temp, parent_num, x.__denominator )
-                ZZ_power(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(parent_num)+1)
+            if ZZX_deg(x.__numerator) >= ZZX_deg(self.__fld_numerator.x):
+                ZZX_mul_ZZ( x.__numerator, x.__numerator, self.__fld_denominator.x )
+                ZZX_mul_ZZ( temp, self.__fld_numerator.x, x.__denominator )
+                ZZ_power(temp1,ZZX_LeadCoeff(temp),ZZX_deg(x.__numerator)-ZZX_deg(self.__fld_numerator.x)+1)
                 ZZX_PseudoRem(x.__numerator, x.__numerator, temp)
-                ZZ_mul(x.__denominator, x.__denominator, parent_den)
+                ZZ_mul(x.__denominator, x.__denominator, self.__fld_denominator.x)
                 ZZ_mul(x.__denominator, x.__denominator, temp1)
         x._reduce_c_()
         _sig_off
@@ -922,6 +923,12 @@ cdef class NumberFieldElement(FieldElement):
         return long(self.polynomial())
 
     cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den):
+        """
+        I believe this function should be removed since I've put the pointer
+        __fld_numerator and __fld_denominator in the element class.  I'm not
+        going to remove it quite yet, but feel free to remove it if you agree
+        with me that it should go.
+        """
         raise NotImplementedError, "NumberFieldElement subclasses must override _parent_poly_c_()"
 
     cdef void _invert_c_(self, ZZX_c *num, ZZ_c *den):
@@ -938,16 +945,12 @@ cdef class NumberFieldElement(FieldElement):
             I'd love to, but since we are dealing with c-types, I can't at this level.
             Check __invert__ for doc-tests that rely on this functionality.
         """
-        cdef ZZ_c parent_den
-        cdef ZZX_c parent_num
-        self._parent_poly_c_( &parent_num, &parent_den )
-
         cdef ZZX_c t # unneeded except to be there
         cdef ZZX_c a, b
-        ZZX_mul_ZZ( a, self.__numerator, parent_den )
-        ZZX_mul_ZZ( b, parent_num, self.__denominator )
+        ZZX_mul_ZZ( a, self.__numerator, self.__fld_denominator.x )
+        ZZX_mul_ZZ( b, self.__fld_numerator.x, self.__denominator )
         ZZX_XGCD( den[0], num[0],  t, a, b, 1 )
-        ZZX_mul_ZZ( num[0], num[0], parent_den )
+        ZZX_mul_ZZ( num[0], num[0], self.__fld_denominator.x )
         ZZX_mul_ZZ( num[0], num[0], self.__denominator )
 
     def __invert__(self):
@@ -1628,6 +1631,12 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
         return h
 
     cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den):
+        """
+        I believe this function should be removed since I've put the pointer
+        __fld_numerator and __fld_denominator in the element class.  I'm not
+        going to remove it quite yet, but feel free to remove it if you agree
+        with me that it should go.
+        """
         cdef ntl_ZZX _num
         cdef ntl_ZZ _den
         _num, _den = self.number_field().polynomial_ntl()
@@ -1742,6 +1751,12 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         return h
 
     cdef void _parent_poly_c_(self, ZZX_c *num, ZZ_c *den):
+        """
+        I believe this function should be removed since I've put the pointer
+        __fld_numerator and __fld_denominator in the element class.  I'm not
+        going to remove it quite yet, but feel free to remove it if you agree
+        with me that it should go.
+        """
         f = self.number_field().absolute_polynomial()
         _ntl_poly(f, num, den)
 
@@ -1839,9 +1854,11 @@ cdef class OrderElement_absolute(NumberFieldElement_absolute):
             -18
         """
         cdef OrderElement_absolute x
-        x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
+        x = <OrderElement_absolute>PY_NEW_SAME_TYPE(self)
         x._parent = self._parent
         x._number_field = self._parent.number_field()
+        x.__fld_numerator = self.__fld_numerator
+        x.__fld_denominator = self.__fld_denominator
         return x
 
     cdef number_field(self):
@@ -1882,9 +1899,11 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
             True
         """
         cdef OrderElement_relative x
-        x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
+        x = <OrderElement_relative>PY_NEW_SAME_TYPE(self)
         x._parent = self._parent
         x._number_field = self._parent.number_field()
+        x.__fld_numerator = self.__fld_numerator
+        x.__fld_denominator = self.__fld_denominator
         return x
 
 class CoordinateFunction:

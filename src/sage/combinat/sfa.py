@@ -1230,7 +1230,7 @@ class SymmetricFunctionAlgebraElement_schur(SymmetricFunctionAlgebraElement_gene
             sage: a = s([2,1]) + 1; a
             s[] + s[2, 1]
             sage: a^2
-            2*s[2, 1] + s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
+            s[] + 2*s[2, 1] + s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
 
             sage: QQx.<x> = QQ[]
             sage: s = SFASchur(QQx)
@@ -1239,7 +1239,10 @@ class SymmetricFunctionAlgebraElement_schur(SymmetricFunctionAlgebraElement_gene
             sage: a^2
             4*x^2*s[] + 4*x^3*s[2, 1] + x^4*s[2, 2, 1, 1] + x^4*s[2, 2, 2] + x^4*s[3, 1, 1, 1] + 2*x^4*s[3, 2, 1] + x^4*s[3, 3] + x^4*s[4, 1, 1] + x^4*s[4, 2]
 
-
+            sage: len(s([2,1])^8) #long
+            1485
+            sage: len(s([2,1])^9) #long
+            2876
         """
         #Use symmetrica to do the multiplication
         A = left.parent()

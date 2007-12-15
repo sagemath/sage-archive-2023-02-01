@@ -928,7 +928,7 @@ cdef class PowerSeries(AlgebraElement):
         $y^2 = \code{self}$.
 
         ALGORITHM:
-            If the basering is a field, this is true whenver the power
+            If the basering is a field, this is true whenever the power
             series has even valuation and the leading coefficent is a
             perfect square.
 

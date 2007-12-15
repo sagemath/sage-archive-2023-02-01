@@ -409,10 +409,26 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         raise NotImplementedError
 
     def _repr_(self):
+        """
+        String representation of a vector.
+
+        EXAMPLES:
+            sage: vector(QQ, [])._repr_()
+            '()'
+            sage: vector(QQ, range(5))._repr_()
+            '(0, 1, 2, 3, 4)'
+
+        Symbolic are not displayed using ASCII art.
+            sage: x = var('x')
+            sage: v = vector([x/(2*x)+sqrt(2)+var('theta')^3,x/(2*x)]); v
+            (theta^3 + sqrt(2) + 1/2, 1/2)
+            sage: v._repr_()
+            '(theta^3 + sqrt(2) + 1/2, 1/2)'
+        """
         d = self.degree()
         if d == 0: return "()"
         # compute column widths
-        S = [str(x) for x in self.list(copy=False)]
+        S = [repr(x) for x in self.list(copy=False)]
         #width = max([len(x) for x in S])
         s = "("
         for i in xrange(d):

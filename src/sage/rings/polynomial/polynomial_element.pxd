@@ -13,6 +13,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef char _is_gen
     cdef CompiledPolynomialFunction _compiled
     cdef truncate_c(self, long n)
+    cdef long _hash_c(self)
 
     # UNSAFE, only call from an inplace operator
     # may return a new element if not possible to modify inplace

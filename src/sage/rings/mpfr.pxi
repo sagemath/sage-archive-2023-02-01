@@ -113,8 +113,8 @@ cdef extern from "mpfr.h":
     #int mpfr_ui_pow _PROTO ((mpfr_ptr, unsigned long int, mpfr_srcptr, mp_rnd_t));
     #int mpfr_pow_si _PROTO ((mpfr_ptr, mpfr_srcptr, long int, mp_rnd_t));
 
-    #int mpfr_min _PROTO ((mpfr_ptr, mpfr_srcptr, mpfr_srcptr, mp_rnd_t));
-    #int mpfr_max _PROTO ((mpfr_ptr, mpfr_srcptr, mpfr_srcptr, mp_rnd_t));
+    int mpfr_min (mpfr_ptr, mpfr_srcptr, mpfr_srcptr, mp_rnd_t)
+    int mpfr_max (mpfr_ptr, mpfr_srcptr, mpfr_srcptr, mp_rnd_t)
 
     int mpfr_fac_ui (mpfr_t rop, unsigned long int op, mp_rnd_t rnd)
 
@@ -122,6 +122,7 @@ cdef extern from "mpfr.h":
     int mpfr_sgn(mpfr_t op)
     #define mpfr_abs(a,b,r) mpfr_set4(a,b,r,1)
     #define mpfr_sgn(x) mpfr_cmp_ui(x,0)
+    int mpfr_cmp_ui(mpfr_t, unsigned int n)
 
     int mpfr_round (mpfr_ptr rop, mpfr_srcptr op)
     int mpfr_trunc (mpfr_ptr rop, mpfr_srcptr op)
@@ -149,7 +150,11 @@ cdef extern from "mpfr.h":
 
     int mpfr_neg (mpfr_ptr rop, mpfr_srcptr op, mp_rnd_t rnd)
     # int mpfr_eq (mpfr_srcptr rop, mpfr_srcptr op, unsigned long i)
+    int mpfr_cmp (mpfr_t op1, mpfr_t op2)
+    bint mpfr_greater_p (mpfr_t op1, mpfr_t op2)
+    bint mpfr_greaterequal_p (mpfr_t op1, mpfr_t op2)
     bint mpfr_less_p (mpfr_t op1, mpfr_t op2)
     bint mpfr_lessequal_p (mpfr_t op1, mpfr_t op2)
-    int mpfr_cmp (mpfr_t op1, mpfr_t op2)
+    bint mpfr_lessgreater_p (mpfr_t op1, mpfr_t op2)
     bint mpfr_equal_p (mpfr_t op1, mpfr_t op2)
+    bint mpfr_unordered_p (mpfr_t op1, mpfr_t op2)

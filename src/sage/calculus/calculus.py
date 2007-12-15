@@ -3805,7 +3805,7 @@ class SymbolicArithmetic(SymbolicOperation):
         """
         TESTS:
             sage: f=x*sin(0)
-            sage: float(f(1))
+            sage: float(f(x=1))
             0.0
             sage: w = I - I
             sage: float(w)

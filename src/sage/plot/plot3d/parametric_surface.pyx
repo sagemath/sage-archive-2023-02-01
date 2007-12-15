@@ -67,6 +67,17 @@ cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
 
 cdef class ParametricSurface(IndexFaceSet):
 
+    """
+    EXAMPLES:
+        sage: from sage.plot.plot3d.parametric_surface import ParametricSurface
+        sage: def f(x,y): return cos(x)*sin(y), sin(x)*sin(y), cos(y)+log(tan(y/2))+0.2*x
+        sage: S = ParametricSurface(f, (srange(0,12.4,0.1), srange(0.1,2,0.1)))
+        sage: show(S)
+
+        sage: len(S.face_list())
+        2214
+    """
+
     def __init__(self, f=None, domain=None, **kwds):
         self.f = f
         self.render_grid = domain
@@ -129,7 +140,8 @@ cdef class ParametricSurface(IndexFaceSet):
         urange, vrange = self.get_grid(ds)
         urange = [float(u) for u in urange]
         vrange = [float(v) for v in vrange]
-        if self.render_grid == (urange, vrange):
+        if self.render_grid == (urange, vrange) and self.fcount != 0:
+            # Already triangulated at on this grid.
             return
 
         cdef Py_ssize_t i, j

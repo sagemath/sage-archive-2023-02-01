@@ -28,8 +28,8 @@ Test introspection of modules defined in Python and Cython files:
         sage: sage_getfile(sage.misc.sageinspect)
         '.../sageinspect.py'
 
-        sage: sage_getdoc(sage.misc.sageinspect).lstrip()
-        'Inspect Python, Sage, and Cython objects...
+        sage: print sage_getdoc(sage.misc.sageinspect).lstrip()[:40]
+        Inspect Python, Sage, and Cython objects
 
         sage: sage_getsource(sage.misc.sageinspect).lstrip()[5:-1]
         'Inspect Python, Sage, and Cython objects...'

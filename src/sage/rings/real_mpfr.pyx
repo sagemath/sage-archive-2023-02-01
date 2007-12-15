@@ -664,8 +664,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif PY_TYPE_CHECK(x, QuadDoubleElement):
             qd = x
             self._set_from_qd(qd)
-        elif hasattr(x, '_mpfr_'):
-            return x._mpfr_(self)
         else:
             s = str(x).replace(' ','')
             if mpfr_set_str(self.value, s, base, parent.rnd):

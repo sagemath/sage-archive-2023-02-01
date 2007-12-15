@@ -242,10 +242,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Return the PARI curve corresponding to this elliptic curve.
 
         INPUT:
-        prec -- The precision of quantities calculated for the returned curve (in decimal digits).
-                if None, defaults to factor * the precision of the largest cached curve (or 10 if none yet computed)
-        factor -- the factor to increase the precision over the maximum previously computed precision.  Only used if
-                  prec (which gives an explicit precision) is None.
+            prec -- The precision of quantities calculated for the
+                    returned curve (in decimal digits).  if None, defaults
+                    to factor * the precision of the largest cached curve
+                    (or 10 if none yet computed)
+            factor -- the factor to increase the precision over the
+                      maximum previously computed precision.  Only used if
+                      prec (which gives an explicit precision) is None.
 
         EXAMPLES:
             sage: E = EllipticCurve([0, 0,1,-1,0])
@@ -292,8 +295,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         for this elliptic curve.
 
         INPUT:
-        prec -- The precision of quantities calculated for the returned curve (in decimal digits).
-                if None, defaults to the precision of the largest cached curve (or 10 if none yet computed)
+        prec -- The precision of quantities calculated for the
+                returned curve (in decimal digits).  if None, defaults
+                to the precision of the largest cached curve (or 10 if
+                none yet computed)
 
         EXAMPLES:
             sage: E = EllipticCurve(RationalField(), ['1/3', '2/3'])

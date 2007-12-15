@@ -33,7 +33,7 @@ def cblas():
 # In case of ATLAS we need to link against cblas as well as atlas
 # In the other cases we just return the same library name as cblas()
 # which is fine for the linker
-Def atlas():
+def atlas():
     if os.environ.has_key('SAGE_CBLAS'):
         return os.environ['SAGE_CBLAS']
     elif os.path.exists('/usr/lib/libatlas.dylib') or \

@@ -300,7 +300,16 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             10076
             sage: EllipticCurve(GF(next_prime(10**20)),[1,2,3,4,5]).cardinality(algorithm='sea')
             100000000011093199520
+
+        The cardinality is cached:
+            sage: E = EllipticCurve(GF(3^100,'a'),[1,2,3,4,5])
+            sage: E.cardinality() is E.cardinality()
+            True
         """
+        try:
+            return self.__order
+        except AttributeError:
+            pass
         N = 0
         if self.base_ring().degree() == 1:
             p = self.base_ring().cardinality()
@@ -357,6 +366,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             p = self.base_field().cardinality()
             N = len(self.points())
 
+        self.__order = N
         return N
 
     order = cardinality # alias

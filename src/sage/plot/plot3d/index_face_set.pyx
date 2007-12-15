@@ -127,7 +127,15 @@ cdef inline format_pmesh_face(face_c face):
                                                      face.vertices[3],
                                                      face.vertices[0])
     else:
-        raise NotImplementedError, "pmesh doesn't support larger than quadrilaterals" # return join([str(face.vertices[i] + off) for i from 0 <= i < face.n] + [])
+        # Naive triangulation
+        all = []
+        for i from 1 <= i < face.n-1:
+            r = sprintf_4i(ss, "4\n%d\n%d\n%d\n%d", face.vertices[0],
+                                                    face.vertices[i],
+                                                    face.vertices[i+1],
+                                                    face.vertices[0])
+            PyList_Append(all, PyString_FromStringAndSize(ss, r))
+        return "\n".join(all)
     # PyString_FromFormat is almost twice as slow
     return PyString_FromStringAndSize(ss, r)
 
@@ -503,11 +511,18 @@ cdef class IndexFaceSet(PrimativeObject):
                 PyList_Append(points, format_pmesh_vertex(res))
 
         faces = [format_pmesh_face(self._faces[i]) for i from 0 <= i < self.fcount]
+
+        # If a face has more than 4 vertices, it gets chopped up in format_pmesh_face
+        cdef Py_ssize_t extra_faces = 0
+        for i from 0 <= i < self.fcount:
+            if self._faces[i].n >= 5:
+                extra_faces += self._faces[i].n-3
+
         _sig_off
 
         all = [str(self.vcount),
                points,
-               str(self.fcount),
+               str(self.fcount + extra_faces),
                faces]
 
         from base import flatten_list

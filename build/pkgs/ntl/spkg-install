@@ -103,6 +103,10 @@ build()
    	    $LN -s "$SAGE_LOCAL/lib/libgmp.a" .
         fi
 	$MAKE libntl.dll
+        if [ ! -f libntl.dll ]; then
+            echo "Error creating ntl shared library."
+            exit 1
+        fi
 	$CP libntl.dll "$SAGE_LOCAL/lib/"
 	$CP libntl.dll "$SAGE_LOCAL/bin/"
         if [ ! -f "$SAGE_LOCAL/bin/libntl.dll" ]; then
@@ -111,6 +115,11 @@ build()
     else
         # Linux or other .so system.
         $MAKE lib
+        if [ ! -f libntl.so ]; then
+            echo "Error creating ntl shared library."
+            exit 1
+        fi
+        $CP libntl.so "$SAGE_LOCAL/lib/"
     fi
 
     do_make ntl.a

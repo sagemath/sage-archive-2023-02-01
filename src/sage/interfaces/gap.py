@@ -67,7 +67,7 @@ generators of a polynomial ring, so the eval command works.
 Next we create a polynomial ring in GAP and obtain its indeterminates:
 
     sage: R = gap.PolynomialRing('Rationals', 2); R
-    PolynomialRing(..., [ x_1, x_2 ])
+    PolynomialRing( Rationals, ["x_1", "x_2"] )
     sage: I = R.IndeterminatesOfPolynomialRing(); I
     [ x_1, x_2 ]
 
@@ -363,7 +363,7 @@ class Gap(Expect):
             os.unlink(tmp)
             return r
         else:
-            return self.eval('%s;'%var, newlines=False)
+            return self.eval('Print(%s);'%var, newlines=False)
 
     def __getattr__(self, attrname):
         if attrname[:1] == "_":
@@ -600,8 +600,8 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
 # if the modification time of the gap link has changed (which signals
 # that gap has been somehow upgraded).
 if not os.path.exists(WORKSPACE) or os.path.getmtime(WORKSPACE) < os.path.getmtime(GAP_STAMP):
-    print "Automatically updating the cached Gap workspace:"
-    print WORKSPACE
+    #print "Automatically updating the cached Gap workspace:"
+    #print WORKSPACE
     gap_reset_workspace(verbose=False)
 
 class GapElement(ExpectElement):

@@ -10,8 +10,8 @@ AUTHORS:
    -- Gonzalo Tornaria (2007-06): recursive base extend for coercion -- lots of tests
 
 
-\subsection{The Abstract Element Class Heierarchy}
-This is the abstract class heierchary, i.e., these are all
+\subsection{The Abstract Element Class Hierarchy}
+This is the abstract class hierarchy, i.e., these are all
 abstract base classes.
 \begin{verbatim}
 SageObject
@@ -152,7 +152,7 @@ and classes are similar. There are four relevant functions.
    implementations of either _add_ or _add_c_impl.
 
 
-For speed, there are also {\bf inplace} version of the arithmatic commands.
+For speed, there are also {\bf inplace} version of the arithmetic commands.
 DD NOT call them directly, they may mutate the object and will be called
 when and only when it has been determined that the old object will no longer
 be accessible from the calling function after this operation.
@@ -1139,10 +1139,6 @@ cdef class MonoidElement(Element):
 
     def __nonzero__(self):
         return True
-    def nonzero(self):
-        return True
-    def is_zero(self):
-        return False
 
 def is_AdditiveGroupElement(x):
     """
@@ -1219,7 +1215,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         DO NOT CALL THIS FUNCTION DIRECTLY.
         See extensive documentation at the top of element.pyx.
         """
-        return self._parent.fraction_field()(self, right)
+        return self * ~right
 
     def _div_(MultiplicativeGroupElement self, MultiplicativeGroupElement right):
         """
@@ -1620,6 +1616,28 @@ cdef class CommutativeRingElement(RingElement):
         i.e., if $I$ and self together generate the unit ideal.
         """
         raise NotImplementedError
+
+    def divides(self, x):
+        """
+        Return True if self divides x.
+
+        EXAMPLES:
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: x.divides(x^2)
+            True
+            sage: x.divides(x^2+2)
+            False
+            sage: (x^2+2).divides(x)
+            False
+            sage: P.<x> = PolynomialRing(ZZ)
+            sage: x.divides(x^2)
+            True
+            sage: x.divides(x^2+2)
+            False
+            sage: (x^2+2).divides(x)
+            False
+        """
+        return (x % self) == 0
 
     def mod(self, I):
         r"""
@@ -2377,7 +2395,7 @@ cdef class FiniteFieldElement(FieldElement):
         """
         Return the matrix of right multiplication by the element on
         the power basis $1, x, x^2, \ldots, x^{d-1}$ for the field
-        extension.  Thus the {\em rows} of this matrix give the images
+        extension.  Thus the \emph{rows} of this matrix give the images
         of each of the $x^i$.
 
         INPUT:

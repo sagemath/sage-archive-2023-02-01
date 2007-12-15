@@ -72,6 +72,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_init2(self.__im, self._prec)
 
         if imag is None:
+            if real is None: return
+
             if PY_TYPE_CHECK(real, ComplexNumber):
                 real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
             elif isinstance(real, sage.libs.pari.all.pari_gen):
@@ -900,7 +902,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: p.factor()
             (x + 1) * x^2 * (x^2 - x + 1)
             sage: z^2 - z + 1
-            0.000000000000000111022302462516
+            1.11022302462516e-16
         """
         import sage.rings.arith
         return sage.rings.arith.algdep(self,n, **kwds)

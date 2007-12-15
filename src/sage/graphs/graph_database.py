@@ -1294,7 +1294,7 @@ class GraphDatabase(GenericSQLDatabase):
             ...             FROM graph_data INNER JOIN misc on \
             ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
-            sage: G.display_all(query=S)
+            sage: G.display_all(query=S)             # long time
             <html>...
         """
         from sage.plot.plot import plot
@@ -1340,7 +1340,6 @@ class GraphDatabase(GenericSQLDatabase):
         from sage.misc.multireplace import multiple_replace
         to_bool = {'0':"False", '1':"True"}
 
-        print b
         for i in range(len(b)):
             eul = multiple_replace(to_bool,'%s'%b[i][13])
             reg = multiple_replace(to_bool,'%s'%b[i][2])
@@ -1593,8 +1592,7 @@ class GraphDatabase(GenericSQLDatabase):
             ...             FROM graph_data INNER JOIN misc on \
             ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
-            sage: G.display_tables(query=S, \
-            ...             tables=['graph_data','misc','spectrum','degrees','aut_grp'])
+            sage: G.display_tables(query=S, tables=['graph_data','misc','spectrum','degrees','aut_grp'])  # long time
             <html>...
         """
         from sage.plot.plot import plot
@@ -1918,8 +1916,7 @@ class GraphDatabase(GenericSQLDatabase):
             ...             FROM graph_data INNER JOIN misc on \
             ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
-            sage: graphs_query.display_properties(query=S, \
-            ...             properties=['induced_subgraphs'])
+            sage: graphs_query.display_properties(query=S, properties=['induced_subgraphs']) # long time
             <html>...
         """
         from sage.plot.plot import plot
@@ -2725,3 +2722,55 @@ def format(b, j):
         return multiple_replace(to_bool, str(b[13]))
     except IndexError:
         return "?"
+
+# A Full display_all query, for thorough doctesting
+"""
+EXAMPLE:
+    sage: G = GraphDatabase()
+    sage: G.display_all(num_vertices=5,lovasz_number=3.0,\
+    ...                             girth=4,radius=2,diameter=3)
+    <html>
+    <table bgcolor=lightgrey cellpadding=0>
+    <tr><td bgcolor=white align=center rowspan="7"><img src="cell://0.png"><br>DIk</td>
+    <td bgcolor=white align=left><font color=black> Vertices: 5 </font></td>
+    <td bgcolor=white align=left><font color=black> Regular: False </font></td>
+    <td bgcolor=white align=left><font color=black> Aut Group Size: 2 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Edges: 5 </font></td>
+    <td bgcolor=white align=left><font color=black> Min Degree: 1 </font></td>
+    <td bgcolor=white align=left><font color=black> Orbits: 4 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Cycles: 1 </font></td>
+    <td bgcolor=white align=left><font color=black> Max Degree: 3 </font></td>
+    <td bgcolor=white align=left><font color=black> Fixed Points: 3 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Hamiltonian Cycles: 0 </font></td>
+    <td bgcolor=white align=left><font color=black> Average Degree: 2.0 </font></td>
+    <td bgcolor=white align=left><font color=black> Vertex Transitive: False </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Eulerian: False </font></td>
+    <td bgcolor=white align=left><font color=black> Degree SD: 0.632456 </font></td>
+    <td bgcolor=white align=left><font color=black> Edge Transitive: False </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Planar: True </font></td>
+    <td bgcolor=white align=left><font color=black> Degree Sequence: 32221 </font></td>
+    <td bgcolor=white align=left><font color=black> Vertex Connectivity: 1 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Perfect: True </font></td>
+    <td bgcolor=white align=left><font color=black> Min Eigenvalue: -2.13578 </font></td>
+    <td bgcolor=white align=left><font color=black> Edge Connectivity: 1 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Lovasz Number: 3.0 </font></td>
+    <td bgcolor=white align=left><font color=black> Girth: 4 </font></td>
+    <td bgcolor=white align=left><font color=black> Max Eigenvalue: 2.13578 </font></td>
+    <td bgcolor=white align=left><font color=black> Cut Vertices: 1 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Independence Number: 3 </font></td>
+    <td bgcolor=white align=left><font color=black> Radius: 2 </font></td>
+    <td bgcolor=white align=left><font color=black> Eigenvalues SD: 1.41421 </font></td>
+    <td bgcolor=white align=left><font color=black> Min Vertex Cover Size: 2 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Clique Number: 2 </font></td>
+    <td bgcolor=white align=left><font color=black> Diameter: 3 </font></td>
+    <td bgcolor=white align=left><font color=black> Energy: 5.59587 </font></td>
+    <td bgcolor=white align=left><font color=black> Spanning Trees: 4 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Components: 1 </font></td>
+    <td bgcolor=white align=left><font color=black> Complement: DK[ </font></td>
+    <td bgcolor=white align=left colspan="2"><font color=black> Spectrum: 2.13578, 0.662153, 0, -0.662153, -2.13578 </font></td>
+    </tr><tr><td bgcolor=white align=left colspan="4"><font color=black> Induced Subgraphs: DIk, C], CL, CF, CB, BW, BG, B?, A_, A?, @ </font></td></tr>
+    </table></html>
+
+"""
+
+

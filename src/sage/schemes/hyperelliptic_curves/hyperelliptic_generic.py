@@ -55,7 +55,7 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         self._hyperelliptic_polynomials = (f,h)
         self._genus = genus
 
-    def chage_ring(self, R):
+    def change_ring(self, R):
         from constructor import HyperellipticCurve
         f, h = self._hyperelliptic_polynomials
         y = self._printing_ring.gen()

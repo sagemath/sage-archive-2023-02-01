@@ -311,7 +311,7 @@ class GenericGraph(SageObject):
         weighted = ( self._weighted and other._weighted )
         # inputs must be (di)graphs:
         if not isinstance(other, GenericGraph):
-            raise TypeError("Input (%s) must be a graph."%str(other))
+            raise TypeError("Cannot compare graph to non-graph (%s)."%str(other))
         # DiGraphs are "larger" than Graphs:
         g1_is_graph = isinstance(self, Graph)
         g2_is_graph = isinstance(other, Graph)
@@ -975,7 +975,7 @@ class GenericGraph(SageObject):
         for v in self:
             if random() < p:
                 vertices.append(v)
-        return self.subgraph(vertices, inplace, create_using)
+        return self.subgraph(vertices=vertices, inplace=inplace, create_using=create_using)
 
     def vertex_iterator(self, vertices=None):
         """
@@ -2559,33 +2559,38 @@ class GenericGraph(SageObject):
         return edge_colors
 
     def plot(self, pos=None, layout=None, vertex_labels=True,
-             edge_labels=False, vertex_size=200, graph_border=False,
-             vertex_colors=None, partition=None, edge_colors=None,
-             scaling_term=0.05, iterations=50,
-             color_by_label=False, heights=None):
+            edge_labels=False, vertex_size=200, graph_border=False,
+            vertex_colors=None, partition=None, edge_colors=None,
+            scaling_term=0.05, iterations=50,
+            color_by_label=False, heights=None):
         """
         Returns a graphics object representing the (di)graph.
 
         INPUT:
             pos -- an optional positioning dictionary
             layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed on a circle
-                'spring' -- uses the traditional spring layout, ignores the graphs current positions
+                'circular' -- plots the graph with vertices evenly distributed
+                    on a circle
+                'spring' -- uses the traditional spring layout, ignores the
+                    graphs current positions
             vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edge labels. By default, False, but if True, the result
-                of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
+            edge_labels -- whether to print edge labels. By default, False, but
+                if True, the result of str(l) is printed on the edge for each
+                label l. Labels equal to None are not printed.
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
-            vertex_colors -- optional dictionary to specify vertex colors: each key is a color recognizable
-                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
-                it looks invisible on the resulting plot (it doesn't get drawn).
-            edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
-                matplotlib, and each entry is a list of edges.
-            partition -- a partition of the vertex set. if specified, plot will show each cell in a different
-                color. vertex_colors takes precedence.
-            scaling_term -- default is 0.05. if vertices are getting chopped off, increase; if graph
-                is too small, decrease. should be positive, but values much bigger than
-                1/8 won't be useful unless the vertices are huge
+            vertex_colors -- optional dictionary to specify vertex colors: each
+                key is a color recognizable by matplotlib, and each corresponding
+                entry is a list of vertices. If a vertex is not listed, it looks
+                invisible on the resulting plot (it doesn't get drawn).
+            edge_colors -- a dictionary specifying edge colors: each key is a
+                color recognized by matplotlib, and each entry is a list of edges.
+            partition -- a partition of the vertex set. if specified, plot will
+                show each cell in a different color. vertex_colors takes precedence.
+            scaling_term -- default is 0.05. if vertices are getting chopped off,
+                increase; if graph is too small, decrease. should be positive, but
+                values much bigger than 1/8 won't be useful unless the vertices
+                are huge
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
             color_by_label -- if True, color edges by their labels
@@ -2636,8 +2641,13 @@ class GenericGraph(SageObject):
             ...            edge_colors[R[i]].append((u,v,l))
             sage: C.plot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).show()
 
+            sage: D = graphs.DodecahedralGraph()
+            sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
+            sage: D.show(partition=Pi)
+
         """
         from sage.plot.plot import networkx_plot
+        from sage.plot.plot import rainbow
         import networkx
         if vertex_colors is None:
             if partition is not None:
@@ -2714,24 +2724,30 @@ class GenericGraph(SageObject):
         INPUT:
             pos -- an optional positioning dictionary
             layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed on a circle
-                'spring' -- uses the traditional spring layout, ignores the graphs current positions
+                'circular' -- plots the graph with vertices evenly distributed
+                    on a circle
+                'spring' -- uses the traditional spring layout, ignores the
+                    graphs current positions
             vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edgeedge labels. By default, False, but if True, the result
-                of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
+            edge_labels -- whether to print edgeedge labels. By default, False,
+                but if True, the result of str(l) is printed on the edge for
+                each label l. Labels equal to None are not printed.
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
-            vertex_colors -- optional dictionary to specify vertex colors: each key is a color recognizable
-                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
-                it looks invisible on the resulting plot (it doesn't get drawn).
-            edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
-                matplotlib, and each entry is a list of edges.
-            partition -- a partition of the vertex set. if specified, plot will show each cell in a different
-                color. vertex_colors takes precedence.
-            scaling_term -- default is 0.05. if vertices are getting chopped off, increase; if graph
-                is too small, decrease. should be positive, but values much bigger than
-                1/8 won't be useful unless the vertices are huge
-            talk -- if true, prints large vertices with white backgrounds so that labels are legible on slies
+            vertex_colors -- optional dictionary to specify vertex colors: each
+                key is a color recognizable by matplotlib, and each corresponding
+                entry is a list of vertices. If a vertex is not listed, it looks
+                invisible on the resulting plot (it doesn't get drawn).
+            edge_colors -- a dictionary specifying edge colors: each key is a
+                color recognized by matplotlib, and each entry is a list of edges.
+            partition -- a partition of the vertex set. if specified, plot will
+                show each cell in a different color. vertex_colors takes precedence.
+            scaling_term -- default is 0.05. if vertices are getting chopped off,
+                increase; if graph is too small, decrease. should be positive, but
+                values much bigger than 1/8 won't be useful unless the vertices
+                are huge
+            talk -- if true, prints large vertices with white backgrounds so that
+                labels are legible on slies
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
             color_by_label -- if True, color edges by their labels
@@ -2781,6 +2797,10 @@ class GenericGraph(SageObject):
             ...        if u[i] != v[i]:
             ...            edge_colors[R[i]].append((u,v,l))
             sage: C.plot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).show()
+
+            sage: D = graphs.DodecahedralGraph()
+            sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
+            sage: D.show(partition=Pi)
 
         """
         if talk:
@@ -3652,13 +3672,16 @@ class Graph(GenericGraph):
             [(0, 1), (0, 10), (0, 19), (1, 2), (1, 8), (2, 3), (2, 6), (3, 4), (3, 19), (4, 5), (4, 17), (5, 6), (5, 15), (6, 7), (7, 8), (7, 14), (8, 9), (9, 10), (9, 13), (10, 11), (11, 12), (11, 18), (12, 13), (12, 16), (13, 14), (14, 15), (15, 16), (16, 17), (17, 18), (18, 19)]
         """
         L = self._nxg.edges()
-        if sort:
-            L.sort()
         if labels:
-            return L
+            if sort:
+                return sorted(L)
+            else:
+                return L
         else:
-            return [(u,v) for u,v,_ in L]
-
+            if sort:
+                return sorted([tuple(sorted((u,v))) for u,v,_ in L])
+            else:
+                return [(u,v) for u,v,_ in L]
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True):
         """
@@ -4071,7 +4094,7 @@ class Graph(GenericGraph):
         else:
             M = self.am()
         M = matrix(RDF, M.rows())
-        E = M.eigen_left()[0]
+        E = M.right_eigenvectors()[0]
         v = [e.real() for e in E]
 	v.sort()
 	return v
@@ -4674,18 +4697,27 @@ class Graph(GenericGraph):
         """
         self._nxg.add_path(vertices)
 
-    def subgraph(self, vertices=None, inplace=False, create_using=None):
+    def subgraph(self, vertices=None, edges=None, inplace=False, create_using=None):
         """
-        Returns the subgraph induced by the given vertices.
+        Returns the subgraph containing the given vertices and edges.
+        If either vertices or edges are not specified, they are
+        assumed to be all vertices or edges.  If edges are not
+        specified, returns the subgraph induced by the vertices.
 
         INPUT:
         inplace -- Using inplace is True will simply delete the extra vertices
-        and edges from the current graph. This will modify the graph, and re-
-        turn itself.
+           and edges from the current graph. This will modify the graph.
         vertices -- Vertices can be a single vertex or an iterable container
-        of vertices, e.g. a list, set, graph, file or numeric array.  If not passed, defaults to the entire graph.
+           of vertices, e.g. a list, set, graph, file or numeric array.
+           If not passed, defaults to the entire graph.
         create_using -- Can be an existing graph object or a call to a graph
-        object, such as create_using=DiGraph(). Must be a NetworkX object.
+           object, such as create_using=DiGraph(). Must be a NetworkX object.
+        edges -- As with vertices, edges can be a single edge or an iterable
+           container of edges (e.g., a list, set, file, numeric array,
+           etc.).  If not edges are not specified, then all edges are
+           assumed and the returned graph is an induced subgraph.  In
+           the case of multiple edges, specifying an edge as (u,v)
+           means to keep all edges (u,v), regardless of the label.
 
         EXAMPLES:
             sage: G = graphs.CompleteGraph(9)
@@ -4693,16 +4725,45 @@ class Graph(GenericGraph):
             Subgraph of (Complete graph): Graph on 3 vertices
             sage: G
             Complete graph: Graph on 9 vertices
+            sage: J = G.subgraph(edges=[(0,1)])
+            sage: J.edges(labels=False)
+            [(0, 1)]
+            sage: J.vertices()==G.vertices()
+            True
             sage: G.subgraph([0,1,2], inplace=True); G
             Subgraph of (Complete graph): Graph on 3 vertices
             sage: G.subgraph()==G
             True
 
+            A more complicated example involving multiple edges and labels.
+
+            sage: G = Graph(multiedges=True)
+            sage: G.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
+            sage: G.subgraph(edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            [(0, 1, 'a'), (0, 1, 'b'), (0, 1, 'c'), (0, 2, 'd')]
+            sage: J = G.subgraph(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: J.edges()
+            [(0, 1, 'a')]
+            sage: J.vertices()
+            [0, 1]
+
+
         """
-        if inplace:
-            self._nxg = self._nxg.subgraph(vertices, inplace, create_using)
+        NXG = self._nxg.subgraph(vertices, inplace, create_using)
+        if edges is not None:
+            edges_graph = [sorted(e[0:2])+[e[2]] for e in self.edges()]
+            edges_to_keep_labeled = [sorted(e[0:2])+[e[2]] for e in edges if len(e)==3]
+            edges_to_keep_unlabeled = [sorted(e) for e in edges if len(e)==2]
+            edges_to_delete=[]
+            for e in edges_graph:
+                if e not in edges_to_keep_labeled and e[0:2] not in edges_to_keep_unlabeled:
+                    edges_to_delete.append(tuple(e))
+
+            NXG.delete_edges_from(edges_to_delete)
+
+	if inplace:
+            self._nxg = NXG
         else:
-            NXG = self._nxg.subgraph(vertices, inplace, create_using)
             return Graph(NXG)
 
     ### Visualization
@@ -4888,6 +4949,8 @@ class Graph(GenericGraph):
             True
 
         """
+        if self.order() == 0:
+            return True
         import networkx
         return networkx.component.is_connected(self._nxg)
 
@@ -6374,33 +6437,78 @@ class DiGraph(GenericGraph):
         G = DiGraph(NXG)
         return G
 
-    def subgraph(self, vertices=None, inplace=False, create_using=None):
+    def subgraph(self, vertices=None, edges=None, inplace=False, create_using=None):
         """
-        Returns the subgraph induced by the given vertices.
+        Returns the subgraph containing the given vertices and edges.
+        If either vertices or edges are not specified, they are
+        assumed to be all vertices or edges.  If edges are not
+        specified, returns the subgraph induced by the vertices.
 
         INPUT:
         inplace -- Using inplace is True will simply delete the extra vertices
-        and edges from the current graph.
+           and edges from the current graph. This will modify the graph.
         vertices -- Vertices can be a single vertex or an iterable container
-        of vertices, e.g. a list, set, graph, file or numeric array.  If not passed, defaults to the entire graph.
+           of vertices, e.g. a list, set, graph, file or numeric array.
+           If not passed, defaults to the entire graph.
         create_using -- Can be an existing graph object or a call to a graph
-        object, such as create_using=DiGraph().
+           object, such as create_using=Graph(). Must be a NetworkX object.
+        edges -- As with vertices, edges can be a single edge or an iterable
+           container of edges (e.g., a list, set, file, numeric array,
+           etc.).  If not edges are not specified, then all edges are
+           assumed and the returned graph is an induced subgraph.  In
+           the case of multiple edges, specifying an edge as (u,v)
+           means to keep all edges (u,v), regardless of the label.
 
         EXAMPLES:
             sage: D = graphs.CompleteGraph(9).to_directed()
             sage: H = D.subgraph([0,1,2]); H
             Subgraph of (Complete graph): Digraph on 3 vertices
+            sage: H = D.subgraph(edges=[(0,1), (0,2)])
+            sage: H.edges(labels=False)
+            [(0, 1), (0, 2)]
+            sage: H.vertices()==D.vertices()
+            True
             sage: D
             Complete graph: Digraph on 9 vertices
             sage: D.subgraph([0,1,2], inplace=True); D
             Subgraph of (Complete graph): Digraph on 3 vertices
+            sage: D.subgraph()==D
+            True
+
+            A more complicated example involving multiple edges and labels.
+
+            sage: D = DiGraph(multiedges=True)
+            sage: D.add_edges([(0,1,'a'), (0,1,'b'), (1,0,'c'), (0,2,'d'), (0,2,'e'), (2,0,'f'), (1,2,'g')])
+            sage: D.subgraph(edges=[(0,1), (0,2,'d'), (0,2,'not in graph')]).edges()
+            [(0, 1, 'a'), (0, 1, 'b'), (0, 2, 'd')]
+            sage: H = D.subgraph(vertices=[0,1], edges=[(0,1,'a'), (0,2,'c')])
+            sage: H.edges()
+            [(0, 1, 'a')]
+            sage: H.vertices()
+            [0, 1]
+
+
 
         """
-        if inplace:
-            self._nxg = self._nxg.subgraph(vertices, inplace, create_using)
+        NXG = self._nxg.subgraph(vertices, inplace, create_using)
+        if edges is not None:
+            edges_graph = self.edges()
+            edges_to_keep_labeled = [e for e in edges if len(e)==3]
+            edges_to_keep_unlabeled = [e for e in edges if len(e)==2]
+            edges_to_delete=[]
+            for e in edges_graph:
+                if e not in edges_to_keep_labeled and e[0:2] not in edges_to_keep_unlabeled:
+                    edges_to_delete.append(tuple(e))
+
+            NXG.delete_edges_from(edges_to_delete)
+
+	if inplace:
+            self._nxg = NXG
         else:
-            NXG = self._nxg.subgraph(vertices, inplace, create_using)
             return DiGraph(NXG)
+
+
+
 
     ### Visualization
 
@@ -6540,6 +6648,8 @@ class DiGraph(GenericGraph):
             True
 
         """
+        if self.order() == 0:
+            return True
         import networkx
         return networkx.component.is_connected(self._nxg.to_undirected())
 

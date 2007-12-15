@@ -799,8 +799,8 @@ sxrange = xsrange
 
 def ellipsis_range(*args, **kwds):
     """
-    Return arithmatic sequence determined by the numeric arguments and
-    ellipsis. Best illistrated by examples.
+    Return arithmetic sequence determined by the numeric arguments and
+    ellipsis. Best illustrated by examples.
 
     Use [1,2,..,n] notation.
 
@@ -825,7 +825,7 @@ def ellipsis_range(*args, **kwds):
         sage: ellipsis_range(0,Ellipsis,10,Ellipsis,20,step=2)
         [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
 
-      Sometimes one or more ranges is emtpy.
+      Sometimes one or more ranges is empty.
         sage: ellipsis_range(100,Ellipsis,10,Ellipsis,20,step=2)
         [10, 12, 14, 16, 18, 20]
         sage: ellipsis_range(0,Ellipsis,10,Ellipsis,-20,step=2)
@@ -1232,7 +1232,7 @@ def exists(S, P):
         (True, 5)
 
     The following example is similar to one in the MAGMA handbook.  We
-    check whether certain integers are a some of two (small) cubes:
+    check whether certain integers are a sum of two (small) cubes:
 
         sage: cubes = [t**3 for t in range(-10,11)]
         sage: exists([(x,y) for x in cubes for y in cubes], lambda v : v[0]+v[1] == 218)
@@ -1432,7 +1432,7 @@ def getitem(v, n):
     EXAMPLES:
         sage: v = [1,2,3]
 
-    The following use to fail in SAGE <= 1.3.7.  Now it works fine:
+    The following used to fail in SAGE <= 1.3.7.  Now it works fine:
         sage: v[ZZ(1)]
         2
 

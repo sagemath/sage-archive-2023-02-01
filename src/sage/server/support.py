@@ -255,7 +255,7 @@ def syseval(system, cmd, dir=None):
         except (AttributeError, TypeError):
             pass
     try:
-        return system.eval(cmd, locals = sage_globals)
+        return system.eval(cmd, globals=sage_globals, locals = sage_globals)
     except TypeError:
         return system.eval(cmd)
 

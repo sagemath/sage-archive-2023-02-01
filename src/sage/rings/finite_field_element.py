@@ -99,7 +99,6 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             Finite Field in a of size 3^2
         """
         field_element.FieldElement.__init__(self, parent)
-        self.__parent = parent
         if isinstance(value, str):
             raise TypeError, "value must not be a string"
         if not check:
@@ -376,7 +375,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: a is a
             True
         """
-        return FiniteField_ext_pariElement(self.__parent, self.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), self.__value, check=False)
 
     def _pari_(self, var=None):
         """
@@ -485,18 +484,18 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             raise TypeError, "Parents of finite field elements must be equal."
 
     def _add_(self, right):
-        return FiniteField_ext_pariElement(self.__parent, self.__value + right.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), self.__value + right.__value, check=False)
 
     def _sub_(self, right):
-        return FiniteField_ext_pariElement(self.__parent, self.__value - right.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), self.__value - right.__value, check=False)
 
     def _mul_(self, right):
-        return FiniteField_ext_pariElement(self.__parent, self.__value * right.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), self.__value * right.__value, check=False)
 
     def _div_(self, right):
         if right.__value == 0:
             raise ZeroDivisionError
-        return FiniteField_ext_pariElement(self.__parent, self.__value / right.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), self.__value / right.__value, check=False)
 
     def __int__(self):
         try:
@@ -527,10 +526,10 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
     #    right = int(_right)
     #    if right != _right:
     #         raise ValueError
-    #    return FiniteField_ext_pariElement(self.__parent, self.__value**right, check=False)
+    #    return FiniteField_ext_pariElement(self.parent(), self.__value**right, check=False)
 
     def __neg__(self):
-        return FiniteField_ext_pariElement(self.__parent, -self.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), -self.__value, check=False)
 
     def __pos__(self):
         return self
@@ -551,7 +550,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
         if self.__value == 0:
             raise ZeroDivisionError, "Cannot invert 0"
-        return FiniteField_ext_pariElement(self.__parent, ~self.__value, check=False)
+        return FiniteField_ext_pariElement(self.parent(), ~self.__value, check=False)
 
     def lift(self):
         """

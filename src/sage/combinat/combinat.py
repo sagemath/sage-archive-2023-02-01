@@ -7,6 +7,7 @@ AUTHORS:
                       refinements, and bug fixes in corner cases
         -- DJ (2006-09): bug fix for combinations, added permutations_iterator,
                       combinations_iterator from Python Cookbook, edited docs.
+        -- DJ (2007-11): changed permutations, added hadamard_matrix
 
 This module implements some combinatorial functions, as listed
 below. For a more detailed description, see the relevant docstrings.
@@ -158,7 +159,6 @@ combinatorial functions:
 TODO:
    GUAVA commands:
     * MOLS returns a list of n Mutually Orthogonal Latin Squares (MOLS).
-    * HadamardMat returns a Hadamard matrix of order n.
     * VandermondeMat
     * GrayMat returns a list of all different vectors of length n over
       the field F, using Gray ordering.
@@ -192,7 +192,7 @@ REFERENCES:
 import os
 
 from sage.interfaces.all import gap, maxima
-from sage.rings.all import QQ, RR, ZZ
+from sage.rings.all import QQ, RR, ZZ, RealField
 from sage.rings.arith import binomial
 from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari
@@ -207,6 +207,30 @@ import sage.structure.parent_base
 import partitions as partitions_ext
 
 ######### combinatorial sequences
+
+def hadamard_matrix(n):
+    """
+    Returns an n x n Hadamard matrix of order $n$, if possible.
+
+    If the construction of this matrix is not implemented in GUAVA or there is
+    no such matrix, raises a NotImplementedError.
+
+    EXAMPLES:
+        sage: hadamard_matrix(4)
+        [ 1  1  1  1]
+        [ 1 -1  1 -1]
+        [ 1  1 -1 -1]
+        [ 1 -1 -1  1]
+        sage: hadamard_matrix(6)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Hadamard matrix of order 6 does not exist or is not implemented yet.
+    """
+    try:
+        ans = gap("HadamardMat(%s)"%ZZ(n))
+        return ans._matrix_(ZZ)
+    except:
+        raise NotImplementedError, "Hadamard matrix of order %s does not exist or is not implemented yet."%n
 
 def bell_number(n):
     r"""
@@ -1528,13 +1552,7 @@ def permutations(mset):
     which is sometimes called a {\it multinomial coefficient}.
 
     permutations returns the set of all permutations of a multiset.
-    Wraps GAP's PermutationsList.
-
-    WARNING: Wraps GAP -- hence mset must be a list of objects that
-    have string representations that can be interpreted by the GAP
-    intepreter.  If mset consists of at all complicated SAGE objects,
-    this function does *not* do what you expect.  A proper function
-    should be written! (TODO!)
+    Calls a function written by Mike Hansen, not GAP.
 
     EXAMPLES:
         sage: mset = [1,1,2,2,2]
@@ -1549,10 +1567,15 @@ def permutations(mset):
          [2, 2, 1, 1, 2],
          [2, 2, 1, 2, 1],
          [2, 2, 2, 1, 1]]
+        sage: MS = MatrixSpace(GF(2),2,2)
+        sage: A = MS([1,0,1,1])
+        sage: permutations(A.rows())
+        [[(1, 0), (1, 1)], [(1, 1), (1, 0)]]
 
     """
-    ans=gap.eval("PermutationsList(%s)"%mset)
-    return eval(ans)
+    from sage.combinat.permutation import Permutations
+    ans = Permutations(mset)
+    return ans.list()
 
 def permutations_iterator(mset,n=None):
     """
@@ -2398,3 +2421,154 @@ def partition_associated(pi):
     """
     ans=gap.eval("AssociatedPartition(%s)"%(pi))
     return eval(ans)
+
+
+def fibonacci_sequence(start, stop=None, algorithm=None):
+    r"""
+    Returns an iterator over the Fibonacci sequence, for all fibonacci numbers
+    $f_n$ from \code{n = start} up to (but not including) \code{n = stop}
+
+    INPUT:
+        start -- starting value
+        stop -- stopping value
+        algorithm -- default (None) -- passed on to fibonacci function (or
+                     not passed on if None, i.e., use the default).
+
+
+    EXAMPLES:
+        sage: fibs = [i for i in fibonacci_sequence(10, 20)]
+        sage: fibs
+        [55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181]
+
+        sage: sum([i for i in fibonacci_sequence(100, 110)])
+        69919376923075308730013
+
+    SEE ALSO: fibonacci_xrange
+
+    AUTHOR:
+        Bobby Moretti
+    """
+    from sage.rings.integer_ring import ZZ
+    if stop is None:
+        stop = ZZ(start)
+        start = ZZ(0)
+    else:
+        start = ZZ(start)
+        stop = ZZ(stop)
+
+    if algorithm:
+        for n in xrange(start, stop):
+            yield fibonacci(n, algorithm=algorithm)
+    else:
+        for n in xrange(start, stop):
+            yield fibonacci(n)
+
+def fibonacci_xrange(start, stop=None, algorithm='pari'):
+    r"""
+    Returns an iterator over all of the Fibonacci numbers in the given range,
+    including \code{f_n = start} up to, but not including, \code{f_n = stop}.
+
+    EXAMPLES:
+        sage: fibs_in_some_range =  [i for i in fibonacci_xrange(10^7, 10^8)]
+        sage: len(fibs_in_some_range)
+        4
+        sage: fibs_in_some_range
+        [14930352, 24157817, 39088169, 63245986]
+
+        sage: fibs = [i for i in fibonacci_xrange(10, 100)]
+        sage: fibs
+        [13, 21, 34, 55, 89]
+
+        sage: list(fibonacci_xrange(13, 34))
+        [13, 21]
+
+    A solution to the second Project Euler problem:
+        sage: sum([i for i in fibonacci_xrange(10^6) if is_even(i)])
+        1089154
+
+    SEE ALSO: fibonacci_sequence
+
+    AUTHOR:
+        Bobby Moretti
+    """
+    from sage.rings.integer_ring import ZZ
+    if stop is None:
+        stop = ZZ(start)
+        start = ZZ(0)
+    else:
+        start = ZZ(start)
+        stop = ZZ(stop)
+
+    # iterate until we've gotten high enough
+    fn = 0
+    n = 0
+    while fn < start:
+        n += 1
+        fn = fibonacci(n)
+
+    while True:
+        fn = fibonacci(n)
+        n += 1
+        if fn < stop:
+            yield fn
+        else:
+            return
+
+
+def bernoulli_polynomial(x,n):
+    r"""
+    The generating function for the Bernoulli polynomials is
+    \[
+     \frac{t e^{xt}}{e^t-1}= \sum_{n=0}^\infty B_n(x) \frac{t^n}{n!}.
+    \]
+
+    One has $B_n(x) = - n\zeta(1 - n,x)$, where $\zeta(s,x)$ is the
+    Hurwitz zeta function.  Thus, in a certain sense, the Hurwitz zeta
+    generalizes the Bernoulli polynomials to non-integer values of n.
+
+    EXAMPLES:
+        sage: y = QQ['y'].0
+        sage: bernoulli_polynomial(y,5)
+        y^5 - 5/2*y^4 + 5/3*y^3 - 1/6*y
+
+    REFERENCES:
+        http://en.wikipedia.org/wiki/Bernoulli_polynomials
+    """
+    return sage_eval(maxima.eval("bernpoly(x,%s)"%n), {'x':x})
+
+
+def rencontres_number(n, k):
+    r"""
+    Returns the Rencontres number D(n,k), the number of permutations of
+    {1, 2,..., n} with k fixed points.
+
+    EXAMPLES:
+    Because 312 and 231 are the two permutations of {1, 2, 3} with 0
+    fixed points, we have:
+
+        sage: rencontres_number(3,0)
+        2
+
+    More examples:
+        sage: rencontres_number(6,1)
+        264
+
+
+    REFERENCES:
+        http://en.wikipedia.org/wiki/Rencontres_number
+
+        Sequence A008290 in the OEIS.
+
+    AUTHORS:
+        -- Dan Drake, 2007-11-27: post to sage-devel
+        -- William Stein, 2007-11-27: referee and clean up for inclusion in sage
+    """
+    F = factorial(n - k)
+    # Sufficient precision needed to guarantee the correct result (this is overkill somewhat)
+    R = RealField(10*F.bits() + 53)
+    e = R(1).exp()
+    if (n - k) % 2 == 0:
+        return binomial(n, k) * (F/e).ceil()
+    else:
+        return binomial(n, k) * (F/e).floor()
+

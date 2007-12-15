@@ -66,9 +66,9 @@ class MonitorDatabase(object):
             self.log_file = log_file
             self.log_level = log_level
             if not os.path.exists(self.db_file):
-                dir, file = os.path.split(self.db_file)
-                if not os.path.isdir(dir):
-                    os.mkdir(dir)
+                dir_, file_ = os.path.split(self.db_file)
+                if not os.path.isdir(dir_):
+                    os.mkdir(dir_)
         self.con = sqlite3.connect(self.db_file,
                 isolation_level=None,
                 detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
@@ -114,7 +114,7 @@ class MonitorDatabase(object):
         ip = host_info['ip']
         workers = host_info['workers']
         sage_version = host_info['sage_version']
-        os = host_info['os']
+        os_ = host_info['os']
         kernel_version = host_info['kernel_version']
         cpus = host_info['cpus']
         cpu_speed = host_info['cpu_speed']
@@ -123,13 +123,12 @@ class MonitorDatabase(object):
         mem_free = host_info['mem_free']
 
         cur = self.con.cursor()
-        cur.execute(query, (uuid, hostname, ip, workers, sage_version, os,
+        cur.execute(query, (uuid, hostname, ip, workers, sage_version, os_,
                             kernel_version, cpus, cpu_speed, cpu_model,
                             mem_total, mem_free))
         self.con.commit()
 
     def update_monitor(self, host_info):
-        import pdb; pdb.set_trace()
         query = """UPDATE monitors
         SET hostname = ?, ip = ?, workers = ?, sage_version = ?, os = ?,
         kernel_version = ?, cpus = ?, cpu_speed = ?, cpu_model = ?, mem_total
@@ -142,7 +141,7 @@ class MonitorDatabase(object):
         ip = host_info['ip']
         workers = host_info['workers']
         sage_version = host_info['sage_version']
-        os = host_info['os']
+        os_ = host_info['os']
         kernel_version = host_info['kernel_version']
         cpus = host_info['cpus']
         cpu_speed = host_info['cpu_speed']
@@ -151,7 +150,7 @@ class MonitorDatabase(object):
         mem_free = host_info['mem_free']
 
         cur = self.con.cursor()
-        cur.execute(query, (hostname, ip, workers, sage_version, os,
+        cur.execute(query, (hostname, ip, workers, sage_version, os_,
                             kernel_version, cpus, cpu_speed, cpu_model,
                             mem_total, mem_free, uuid))
 
@@ -250,7 +249,7 @@ class MonitorDatabase(object):
         cur.execute(query, (uuid,))
         self.con.commit()
 
-    def get_worker_count(self, connected, busy):
+    def get_worker_count(self, connected, busy=False):
         """
         Returns the number of workers.
 
@@ -261,13 +260,22 @@ class MonitorDatabase(object):
         """
 
         if connected and not busy:
-            query = """SELECT workers FROM monitors WHERE connected AND NOT busy"""
+            query = """
+            SELECT workers FROM monitors WHERE connected AND NOT busy
+            """
         elif connected and busy:
-            query = """SELECT workers FROM monitors WHERE connected AND busy"""
+            query = """
+            SELECT workers FROM monitors WHERE connected AND busy
+            """
         elif not connected and not busy:
-            query = """SELECT workers FROM monitors WHERE NOT connected AND NOT busy"""
+            query = """
+            SELECT workers FROM monitors WHERE NOT connected AND NOT busy
+            """
         elif not connected and busy:
-            query = """SELECT workers FROM monitors WHERE NOT connected AND busy"""
+            query = """
+            SELECT workers FROM monitors WHERE NOT connected AND busy
+            """
+
         cur = self.con.cursor()
         cur.execute(query)
 
@@ -275,7 +283,7 @@ class MonitorDatabase(object):
 
         return sum(w[0] for w in result)
 
-    def get_cpu_speed(self, connected=True, busy=True):
+    def get_cpu_speed(self, connected=True, busy=False):
         """
         Returns the aggregate cpu speed in Mhz.
 
@@ -284,9 +292,12 @@ class MonitorDatabase(object):
 
         """
 
-        if connected:
+        if connected and busy:
             query = """SELECT cpu_speed, workers FROM monitors
             WHERE connected AND busy"""
+        elif connected:
+            query = """SELECT cpu_speed, workers FROM monitors
+            WHERE connected"""
         else:
             query = """SELECT cpu_speed, workers FROM monitors"""
 

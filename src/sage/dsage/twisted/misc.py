@@ -16,7 +16,7 @@
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-import threading, sys
+import threading
 
 # This code is from
 # http://twistedmatrix.com/trac/ticket/1042

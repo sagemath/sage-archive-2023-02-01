@@ -31,18 +31,22 @@ def random_str(length=500):
     length -- the length of the string
 
     """
-    s = [chr(i) for i in [random.randint(65, 123) for n in range(length)]]
 
-    return ''.join(s)
+    r_str = [chr(i) for i in [random.randint(65, 123) for n in range(length)]]
 
-def timedelta_to_seconds(d):
+    return ''.join(r_str)
+
+def timedelta_to_seconds(time_delta):
     """
     Converts a timedelta object into seconds.
 
     """
-    days, seconds, microseconds = (d.days, d.seconds, d.microseconds)
 
-    seconds = float(days*24*60*60 + d.seconds + (d.microseconds/10.0**6))
+    days, seconds, microseconds = (time_delta.days,
+                                   time_delta.seconds,
+                                   time_delta.microseconds)
+
+    seconds = float(days*24*60*60 + seconds + (microseconds/10.0**6))
 
     return seconds
 

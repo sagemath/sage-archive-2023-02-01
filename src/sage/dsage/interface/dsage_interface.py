@@ -32,6 +32,10 @@ from sage.dsage.misc.misc import random_str
 from sage.dsage.misc.constants import DSAGE_DIR
 
 class DSageThread(threading.Thread):
+    """
+    DSage thread
+
+    """
     def run(self):
         from twisted.internet import reactor
         if not reactor.running:
@@ -42,7 +46,6 @@ class DSageThread(threading.Thread):
                 # This is a temporary workaround for a weird bug in reactor
                 # during shutdown that one sees doing doctests (on some
                 # systems?).
-
 
 
 class DSage(object):
@@ -82,6 +85,8 @@ class DSage(object):
         self.privkey_file = privkey_file
         self.remoteobj = None
         self.result = None
+        self.jobs = []
+        self.info_str = 'Connected to: %s:%s'
 
         # public key authentication information
         self.pubkey_str = keys.getPublicKeyString(filename=self.pubkey_file)
@@ -104,18 +109,15 @@ class DSage(object):
                                                self.blob,
                                                self.data,
                                                self.signature)
-
-        self.jobs = []
-
         self.connect()
+
 
     def __repr__(self):
         return self.__str__()
 
     def __str__(self):
         self.check_connected()
-        self.info_str = 'Connected to: %s:%s' % (self.server, self.port)
-        return self.info_str + '\r'
+        return self.info_str % (self.server, self.port)
 
     def __call__(self, cmd, globals_=None, job_name=None):
         cmd = ['ans = %s\n' % (cmd),
@@ -178,7 +180,7 @@ class DSage(object):
         from sage.dsage.twisted.pb import PBClientFactory
         factory = PBClientFactory()
 
-        if self.SSL == 1:
+        if self.ssl == 1:
             # Old, uses OpenSSL, SAGE uses GNUTLS now
             # from twisted.internet import ssl
             # contextFactory = ssl.ClientContextFactory()
@@ -277,16 +279,16 @@ class DSage(object):
 
         return JobWrapper(self.remoteobj, job)
 
-    def eval_dir(self, dir, job_name):
+    def eval_dir(self, dir_, job_name):
         from twisted.internet import defer
         self.check_connected()
-        os.chdir(dir)
+        os.chdir(dir_)
         files = glob.glob('*.spyx')
         deferreds = []
-        for file in files:
-            sage_cmd = open(file).readlines()
+        for file_ in files:
+            sage_cmd = open(file_).readlines()
             d = self.remoteobj.callRemote('get_next_job_id')
-            d.addCallback(self._got_id, sage_cmd, job_name, file=True,
+            d.addCallback(self._got_job_id, sage_cmd, job_name, file=True,
                           type_='spyx')
             d.addErrback(self._catch_failure)
             deferreds.append(d)
@@ -364,50 +366,13 @@ class BlockingDSage(DSage):
                  privkey_file=os.path.join(DSAGE_DIR, 'dsage_key'),
                  log_level=0,
                  ssl=True):
-
-        from twisted.cred import credentials
-        from twisted.conch.ssh import keys
-        from twisted.spread import banana
-        banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
-
-        self.server = server
-        self.port = port
-        self.username = username
-        self.data = random_str(500)
-        self.ssl = ssl
-        self.log_level = log_level
-        self.privkey_file = privkey_file
-        self.pubkey_file = pubkey_file
-        self.remoteobj = None
-        self.result = None
-
-        # public key authentication information
-        self.pubkey_str = keys.getPublicKeyString(filename=self.pubkey_file)
-
-        # try getting the private key object without a passphrase first
-        try:
-            self.priv_key = keys.getPrivateKeyObject(
-                                filename=self.privkey_file)
-        except keys.BadKeyError:
-            passphrase = self._getpassphrase()
-            self.priv_key = keys.getPrivateKeyObject(
-                            filename=self.privkey_file,
-                            passphrase=passphrase)
-
-        self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
-        self.algorithm = 'rsa'
-        self.blob = keys.makePublicKeyBlob(self.pub_key)
-        self.signature = keys.signData(self.priv_key, self.data)
-        self.creds = credentials.SSHPrivateKey(self.username,
-                                               self.algorithm,
-                                               self.blob,
-                                               self.data,
-                                               self.signature)
-
         self.dsage_thread = DSageThread()
         self.dsage_thread.setDaemon(False)
         self.dsage_thread.start()
-        self.connect()
+
+        DSage.__init__(self, server=server, port=port, username=username,
+                       pubkey_file=pubkey_file, privkey_file=privkey_file,
+                       log_level=log_level, ssl=ssl)
 
     def connect(self):
         """
@@ -743,12 +708,12 @@ class JobWrapper(object):
     def sync_job(self):
         from twisted.spread import pb
         if self.remoteobj == None:
-            if self.LOG_LEVEL > 2:
-                print 'self.remoteobj is None'
+            # if self.LOG_LEVEL > 2:
+            #     print 'self.remoteobj is None'
             return
         if self.status == 'completed':
-            if self.LOG_LEVEL > 2:
-                print 'Stopping sync_job'
+            # if self.LOG_LEVEL > 2:
+            #     print 'Stopping sync_job'
             if self.sync_job_task:
                 if self.sync_job_task.running:
                     self.sync_job_task.stop()
@@ -830,7 +795,7 @@ class BlockingJobWrapper(JobWrapper):
         from sage.dsage.errors.exceptions import NotConnectedException
 
         if self.remoteobj == None:
-           raise NotConnectedException
+            raise NotConnectedException
         if self.status == 'completed':
             return
 

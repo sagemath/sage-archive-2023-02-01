@@ -797,8 +797,8 @@ cdef class FiniteField_givaro(FiniteField):
 
         EXAMPLES:
             sage: hash(GF(3^4, 'a'))
-            695660592                 # 32-bit
-            -4281682415996964816      # 64-bit
+            -417021630                # 32-bit
+            1006006598732398914       # 64-bit
         """
         if self._hash is None:
             pass

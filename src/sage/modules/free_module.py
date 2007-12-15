@@ -164,7 +164,7 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
     OUTPUT:
         a free module
 
-    \note{In \sage it is {\em not} the case that there is only one
+    \note{In \sage it is \emph{not} the case that there is only one
     free ambient module of rank $n$ over $R$.  If you create $R^n$ twice
     \sage creates two separate objects.  This is because one can
     change the inner product on an ambient free module at any time.}
@@ -1494,7 +1494,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             return sage.rings.infinity.infinity
 
         A = sage.matrix.matrix_space.MatrixSpace(self.base_field(), self.rank())(C)
-        return A.determinant()
+        return abs(A.determinant())
 
 
     def intersection(self, other):
@@ -2336,28 +2336,208 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         return FreeModule_submodule_field(self.ambient_vector_space(),[], check=False)
 
-    def quotient(self,sub):
-        r"""
-        Returns the quotient space of self modulo sub, together with a
-        map sub must be a subspace of self.
+    # This has to wait until we have non-abstract quotients.
+    def __div__(self, sub, check=True):
+        """
+        Return the quotient of self by the given subspace sub.
+
+        This just calls self.quotient(sub, check)
 
         EXAMPLES:
-            sage: A=matrix(QQ,4,4,[0,1,0,0, 0,0,1,0, 0,0,0,1, 0,0,0,0])
-            sage: V=(A^3).kernel()
-            sage: W=A.kernel()
-            sage: U,m=V.quotient(W)
-            sage: [m(v) == 0 for v in W.gens()]
-            [True]
-
-        TODO:
-            * produce a convenient section map back from the quotient space
-            * install appropriate coercions
+            sage: V = RDF^3; W = V.span([[1,0,-1], [1,-1,0]])
+            sage: Q = V/W; Q
+            Vector space quotient V/W of dimension 1 over Real Double Field where
+            V: Vector space of dimension 3 over Real Double Field
+            W: Vector space of degree 3 and dimension 2 over Real Double Field
+            Basis matrix:
+            [ 1.0  0.0 -1.0]
+            [ 0.0  1.0 -1.0]
+            sage: type(Q)
+            <class 'sage.modules.quotient_module.FreeModule_ambient_field_quotient'>
+            sage: V([1,2,3])
+            (1.0, 2.0, 3.0)
+            sage: Q == V.quotient(W)
+            True
+            sage: Q(W.0)
+            (0.0)
         """
-        if not sub.is_subspace(self):
-            raise ArithmeticError, "sub must be a subspace of self"
-        M = sub.basis_matrix().transpose().restrict_domain(self).kernel().basis_matrix().transpose()
-        quomap = self.hom(M)
-	return quomap.codomain(),quomap
+        return self.quotient(sub, check)
+
+    def quotient(self, sub, check=True):
+        """
+        Return the quotient of self by the given subspace sub.
+
+        INPUT:
+            sub -- a submodule of self, or something that can be turned into
+                   one via self.submodule(sub).
+            check -- (default: True) whether or not to check that sub is
+                   a submodule.
+
+        EXAMPLES:
+            sage: A = QQ^3; V = A.span([[1,2,3], [4,5,6]])
+            sage: Q = V.quotient( [V.0 + V.1] ); Q
+            Vector space quotient V/W of dimension 1 over Rational Field where
+            V: Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1]
+            [ 0  1  2]
+            W: Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 1 1]
+            sage: Q(V.0 + V.1)
+            (0)
+        """
+        # Calling is_subspace may be way too slow and repeat work done below.
+        # It will be very desirable to somehow do this step better.
+        if check and (not is_FreeModule(sub) or not sub.is_subspace(self)):
+            try:
+                sub = self.subspace(sub)
+            except (TypeError, ArithmeticError):
+                raise ArithmeticError, "sub must be a subspace of self"
+        A, L = self.__quotient_matrices(sub)
+        import quotient_module
+        return quotient_module.FreeModule_ambient_field_quotient(self, sub, A, L)
+
+    def __quotient_matrices(self, sub):
+        r"""
+        This internal function is used by \code{self.quotient(...)}.
+
+        EXAMPLES:
+            sage: V = QQ^3; W = V.span([[1,0,-1], [1,-1,0]])
+            sage: A, L = V._FreeModule_generic_field__quotient_matrices(W)
+            sage: A
+            [1]
+            [1]
+            [1]
+            sage: L
+            [1 0 0]
+
+        The quotient and lift maps are used to compute in the quotient
+        and to lift:
+            sage: Q = V/W
+            sage: Q(W.0)
+            (0)
+            sage: Q.lift_map()(Q.0)
+            (1, 0, 0)
+            sage: Q(Q.lift_map()(Q.0))
+            (1)
+
+        An example in characteristic 5:
+            sage: A = GF(5)^2; B = A.span([[1,3]]); A / B
+            Vector space quotient V/W of dimension 1 over Finite Field of size 5 where
+            V: Vector space of dimension 2 over Finite Field of size 5
+            W: Vector space of degree 2 and dimension 1 over Finite Field of size 5
+            Basis matrix:
+            [1 3]
+        """
+        # 2. Find a basis C for a another submodule of self, so that
+        #    B + C is a basis for self.
+        # 3. Then the quotient map is:
+        #     x |---> 'write in terms of basis for C and take the last m = #C-#B components.
+        # 4. And a section of this map is:
+        #     x |---> corresponding linear combination of entries of last m entries
+        #    of the basis C.
+
+        # Step 1: Find bases for spaces
+        B = sub.basis_matrix()
+        S = self.basis_matrix()
+
+        n = self.dimension()
+        m = n - sub.dimension()
+
+        # Step 2: Extend basis B to a basis for self.
+        # We do this by simply finding the pivot rows of the matrix
+        # whose rows are a basis for sub concatenated with a basis for
+        # self.
+        C = B.stack(S).transpose()
+        A = C.matrix_from_columns(C.pivots()).transpose()
+
+        # Step 3: Compute quotient map
+        # The quotient map is given by writing in terms of the above basis,
+        # then taking the last #C columns
+
+        # Compute the matrix D "change of basis from S to A"
+        # that writes each element of the basis
+        # for self in terms of the basis of rows of A, i.e.,
+        # want to find D such that
+        #                D * A = S
+        # where D is a square n x n matrix.
+        # Our algorithm is to note that D is determined if we just
+        # replace both A and S by the submatrix got from their pivot
+        # columns.
+        P  = A.pivots()
+        AA = A.matrix_from_columns(P)
+        SS = S.matrix_from_columns(P)
+        D  = SS * AA**(-1)
+
+        # Compute the image of each basis vector for self under the
+        # map "write an element of self in terms of the basis A" then
+        # take the last n-m components.
+        Q = D.matrix_from_columns(range(n - m, n))
+
+        # Step 4. Section map
+        # The lifting or section map
+        Dinv = D**(-1)
+        L = Dinv.matrix_from_rows(range(n - m, n))
+
+        return Q, L
+
+    def quotient_abstract(self, sub, check=True):
+        r"""
+        Returns an ambient free module isomorphic to the quotient
+        space of self modulo sub, together with maps from self to the
+        quotient, and a lifting map in the other direction.
+
+        Use \code{self.quotient(sub)} to obtain the quotient module
+        as an object equipped with natural maps in both directions,
+        and a canonical coercion.
+
+        INPUT:
+            sub -- a submodule of self, or something that can be turned into
+                   one via self.submodule(sub).
+            check -- (default: True) whether or not to check that sub is
+                   a submodule.
+
+        OUTPUT:
+            U -- the quotient as an abstract *ambient* free module
+            pi -- projection map to the quotient
+            lift -- lifting map back from quotient
+
+        EXAMPLES:
+            sage: V = GF(19)^3
+            sage: W = V.span_of_basis([ [1,2,3], [1,0,1] ])
+            sage: U,pi,lift = V.quotient_abstract(W)
+            sage: pi(V.2)
+            (18)
+            sage: pi(V.0)
+            (1)
+            sage: pi(V.0 + V.2)
+            (0)
+
+        Another example involving a quotient of one subspace by another.
+            sage: A = matrix(QQ,4,4,[0,1,0,0, 0,0,1,0, 0,0,0,1, 0,0,0,0])
+            sage: V = (A^3).kernel()
+            sage: W = A.kernel()
+            sage: U, pi, lift = V.quotient_abstract(W)
+            sage: [pi(v) == 0 for v in W.gens()]
+            [True]
+            sage: [pi(lift(b)) == b for b in U.basis()]
+            [True, True]
+        """
+        # Calling is_subspace may be way too slow and repeat work done below.
+        # It will be very desirable to somehow do this step better.
+        if check and (not is_FreeModule(sub) or not sub.is_subspace(self)):
+            try:
+                sub = self.subspace(sub)
+            except (TypeError, ArithmeticError):
+                raise ArithmeticError, "sub must be a subspace of self"
+
+        A, L = self.__quotient_matrices(sub)
+        quomap = self.hom(A)
+        quo = quomap.codomain()
+        liftmap = quo.Hom(self)(L)
+
+	return quomap.codomain(), quomap, liftmap
 
 ###############################################################################
 #
@@ -2818,6 +2998,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         except AttributeError:
             pass
         return FreeModule_generic_field.__call__(self,e)
+
 
 
 ###############################################################################
@@ -3444,7 +3625,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: V.linear_combination_of_basis([1,1])
             (1, 5, 9)
         """
-        return self.basis_matrix().linear_combination_of_rows(v)
+        return self(self.basis_matrix().linear_combination_of_rows(v))
 
 
 class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
@@ -3467,8 +3648,6 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
         sage: v = W.0 + W.1
         sage: loads(v.dumps()) == v
         True
-
-
     """
     def __init__(self, ambient, gens, check=True, inner_product_matrix=None,
                  already_echelonized=False):

@@ -607,6 +607,24 @@ class NumberFieldIdeal(Ideal_fractional):
                 self.__reduced_generators = tuple([g])
             return self.__is_principal
 
+    def is_trivial(self, proof=None):
+        """
+        Returns True if this is a trivial ideal.
+
+        EXAMPLES:
+            sage: F.<a> = QuadraticField(-5)
+            sage: I = F.ideal(3)
+            sage: I.is_trivial()
+            False
+            sage: J = F.ideal(5)
+            sage: J.is_trivial()
+            False
+            sage: (I+J).is_trivial()
+            True
+        """
+        return self.is_zero() or \
+            self == self.number_field().ideal(1)
+
     def is_zero(self):
         """
         Return True if this is the zero ideal.
@@ -676,10 +694,45 @@ class NumberFieldIdeal(Ideal_fractional):
             ValueError: the ideal (= Fractional ideal (17)) is not prime
         """
         if self.is_zero():
-            raise ValueError, "The ideal (=%s) is zero"%self
+            raise ValueError, "The input ideal must be nonzero"
         if self.is_prime():
             return ZZ(self._pari_prime.getattr('e'))
         raise ValueError, "the ideal (= %s) is not prime"%self
+
+    def residue_field(self, names=None):
+        """
+        Return the residue class field of this ideal, which must
+        be prime.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3-7)
+            sage: P = K.ideal(29).factor()[0][0]
+            sage: P.residue_field()
+            Residue field in abar of Fractional ideal (2*a^2 + 3*a - 10)
+            sage: P.residue_field('z')
+            Residue field in z of Fractional ideal (2*a^2 + 3*a - 10)
+
+        Another example:
+            sage: K.<a> = NumberField(x^3-7)
+            sage: P = K.ideal(389).factor()[0][0]; P
+            Fractional ideal (389, a^2 - 44*a - 9)
+            sage: P.residue_class_degree()
+            2
+            sage: P.residue_field()
+            Residue field in abar of Fractional ideal (389, a^2 - 44*a - 9)
+            sage: P.residue_field('z')
+            Residue field in z of Fractional ideal (389, a^2 - 44*a - 9)
+            sage: FF.<w> = P.residue_field()
+            sage: FF
+            Residue field in w of Fractional ideal (389, a^2 - 44*a - 9)
+            sage: FF((a+1)^390)
+            36
+            sage: FF(a)
+            w
+        """
+        if not self.is_prime():
+            raise ValueError, "The ideal must be prime"
+        return self.number_field().residue_field(self, names = names)
 
     def residue_class_degree(self):
         r"""

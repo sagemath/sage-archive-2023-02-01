@@ -76,7 +76,7 @@ def Ideal(R, gens=[], coerce=True):
         sage: R.<t> = ZZ['t']
         sage: i = ideal(1,t,t^2)
         sage: i
-        Ideal (t, 1, t^2) of Univariate Polynomial Ring in t over Integer Ring
+        Ideal (t^2, 1, t) of Univariate Polynomial Ring in t over Integer Ring
         sage: ideal(1/2,t,t^2)
         Principal ideal (1) of Univariate Polynomial Ring in t over Rational Field
 
@@ -186,7 +186,30 @@ class Ideal_generic(MonoidElement):
         raise NotImplementedError
 
     def __nonzero__(self):
-        return self.gens() != [self.ring()(0)]
+        r"""Return True if this ideal is not (0).
+
+        TESTS:
+
+            sage: I = ZZ.ideal(5)
+            sage: bool(I)
+            True
+
+            sage: I = ZZ['x'].ideal(0)
+            sage: bool(I)
+            False
+
+            sage: I = ZZ['x'].ideal(ZZ['x'].gen()^2)
+            sage: bool(I)
+            True
+
+            sage: I = QQ['x', 'y'].ideal(0)
+            sage: bool(I)
+            False
+        """
+        for g in self.gens():
+            if not g.is_zero():
+                return True
+        return False
 
     def base_ring(self):
         return self.ring().base_ring()
@@ -259,10 +282,39 @@ class Ideal_generic(MonoidElement):
         raise NotImplementedError
 
     def is_trivial(self):
+        r"""Return True if this ideal is (0) or (1).
+
+        TESTS:
+
+            sage: I = ZZ.ideal(5)
+            sage: I.is_trivial()
+            False
+
+            sage: I = ZZ['x'].ideal(-1)
+            sage: I.is_trivial()
+            True
+
+            sage: I = ZZ['x'].ideal(ZZ['x'].gen()^2)
+            sage: I.is_trivial()
+            False
+
+            sage: I = QQ['x', 'y'].ideal(-5)
+            sage: I.is_trivial()
+            True
+
+            sage: I = CC['x'].ideal(0)
+            sage: I.is_trivial()
+            True
+        """
         if self.is_zero():
             return True
-        elif self.is_principal():
-            return self.gen().is_unit()
+        # If self is principal, can give a complete answer
+        if self.is_principal():
+            return self.gens()[0].is_unit()
+        # If self is not principal, can only give an affirmative answer
+        for g in self.gens():
+            if g.is_unit():
+                return True
         raise NotImplementedError
 
     def category(self):
@@ -312,6 +364,19 @@ class Ideal_principal(Ideal_generic):
         return self.gens()[0]
 
     def __contains__(self, x):
+        """
+        Returns True if x is in the ideal self.
+
+        EXAMPLES:
+            sage: P.<x> = PolynomialRing(ZZ)
+            sage: I = P.ideal(x^2-2)
+            sage: x^2 in I
+            False
+            sage: x^2-2 in I
+            True
+            sage: x^2-3 in I
+            False
+        """
         if self.gen().is_zero():
             return x.is_zero()
         return self.gen().divides(x)
@@ -338,6 +403,15 @@ class Ideal_principal(Ideal_generic):
     def divides(self, other):
         """
         Returns True if self divides other.
+
+        EXAMPLES:
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: I = P.ideal(x)
+            sage: J = P.ideal(x^2)
+            sage: I.divides(J)
+            True
+            sage: J.divides(I)
+            False
         """
         if isinstance(other, Ideal_principal):
             return self.gen().divides(other.gen())

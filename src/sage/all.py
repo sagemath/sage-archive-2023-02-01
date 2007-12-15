@@ -103,6 +103,8 @@ from sage.media.all      import *
 
 from sage.logic.all      import *
 
+from sage.numerical.all  import *
+
 from copy import copy
 
 
@@ -247,6 +249,9 @@ def quit_sage(verbose=True):
 
     import sage.matrix.matrix_mod2_dense
     sage.matrix.matrix_mod2_dense.free_m4ri()
+
+    import sage.rings.polynomial.pbori
+    sage.rings.polynomial.pbori.free_m4ri()
 
     pari._unsafe_deallocate_pari_stack()
 

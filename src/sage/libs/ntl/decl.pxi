@@ -173,6 +173,7 @@ cdef extern from "ntl_wrap.h":
     ZZX_c* ZZX_new "New<ZZX>"()
     ZZX_c* ZZX_construct "Construct<ZZX>"(void *mem)
     void ZZX_destruct "Destruct<ZZX>"(ZZX_c *mem)
+    void ZZX_swap "swap"(ZZX_c x, ZZX_c y)
     void ZZX_delete "Delete<ZZX>"(ZZX_c *mem)
     void ZZX_from_str "_from_str<ZZX>"(ZZX_c* dest, char* s)
     object ZZX_to_PyString "_to_PyString<ZZX>"(ZZX_c *x)

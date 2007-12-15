@@ -307,6 +307,91 @@ class GraphGenerators():
         return graph.Graph(G, pos=pos_dict, name="Bull Graph")
 
 
+    def ButterflyGraph(self, n, vertices='strings'):
+        """
+        Returns a n-dimensional butterfly graph.  The vertices consist
+        of pairs (v,i), where v is an n-dimensional tuple (vector)
+        with binary entries (or a string representation of such)
+        and i is an integer in [0..n].  A directed
+        edge goes from (v,i) to (w,i+1) if v and w are identical
+        except for possibly v[i] != w[i].
+
+        A butterfly graph has $(2^n)(n+1)$ vertices and $n2^{n+1}$ edges.
+
+        INPUT:
+            vertices -- 'strings' (default) or 'vectors', specifying
+            whether the vertices are zero-one strings or actually
+            tuples over GF(2).
+
+        EXAMPLES:
+        sage: graphs.ButterflyGraph(2).edges(labels=False)
+        [(('00', 0), ('00', 1)),
+        (('00', 0), ('10', 1)),
+        (('00', 1), ('00', 2)),
+        (('00', 1), ('01', 2)),
+        (('01', 0), ('01', 1)),
+        (('01', 0), ('11', 1)),
+        (('01', 1), ('00', 2)),
+        (('01', 1), ('01', 2)),
+        (('10', 0), ('00', 1)),
+        (('10', 0), ('10', 1)),
+        (('10', 1), ('10', 2)),
+        (('10', 1), ('11', 2)),
+        (('11', 0), ('01', 1)),
+        (('11', 0), ('11', 1)),
+        (('11', 1), ('10', 2)),
+        (('11', 1), ('11', 2))]
+        sage: graphs.ButterflyGraph(2,vertices='vectors').edges(labels=False)
+        [(((0, 0), 0), ((0, 0), 1)),
+        (((0, 0), 0), ((1, 0), 1)),
+        (((0, 0), 1), ((0, 0), 2)),
+        (((0, 0), 1), ((0, 1), 2)),
+        (((0, 1), 0), ((0, 1), 1)),
+        (((0, 1), 0), ((1, 1), 1)),
+        (((0, 1), 1), ((0, 0), 2)),
+        (((0, 1), 1), ((0, 1), 2)),
+        (((1, 0), 0), ((0, 0), 1)),
+        (((1, 0), 0), ((1, 0), 1)),
+        (((1, 0), 1), ((1, 0), 2)),
+        (((1, 0), 1), ((1, 1), 2)),
+        (((1, 1), 0), ((0, 1), 1)),
+        (((1, 1), 0), ((1, 1), 1)),
+        (((1, 1), 1), ((1, 0), 2)),
+        (((1, 1), 1), ((1, 1), 2))]
+
+        """
+        # We could switch to Sage integers to handle arbitrary n.
+        if vertices=='strings':
+            if n>=31:
+                raise NotImplementedError, "vertices='strings' is only valid for n<=30."
+            from sage.graphs.graph_fast import binary
+            butterfly = {}
+            for v in xrange(2**n):
+                for i in range(n):
+                    w = v
+                    w ^= (1 << i)   # push 1 to the left by i and xor with w
+                    bv = binary(v)
+                    bw = binary(w)
+                    # pad and reverse the strings
+                    padded_bv = ('0'*(n-len(bv))+bv)[::-1]
+                    padded_bw = ('0'*(n-len(bw))+bw)[::-1]
+                    butterfly[(padded_bv,i)]=[(padded_bv,i+1), (padded_bw,i+1)]
+        elif vertices=='vectors':
+            from sage.modules.free_module import VectorSpace
+            from sage.rings.finite_field import FiniteField
+            from copy import copy
+            butterfly = {}
+            for v in VectorSpace(FiniteField(2),n):
+                for i in xrange(n):
+                    w=copy(v)
+                    w[i] += 1 # Flip the ith bit
+                    # We must call tuple since vectors are mutable.  To obtain
+                    # a vector from the tuple t, just call vector(t).
+                    butterfly[(tuple(v),i)]=[(tuple(v),i+1), (tuple(w),i+1)]
+        else:
+            raise NotImplementedError, "vertices must be 'strings' or 'vectors'."
+        return graph.DiGraph(butterfly)
+
     def CircularLadderGraph(self, n):
         """
         Returns a circular ladder graph with 2*n nodes.
@@ -1812,8 +1897,8 @@ class GraphGenerators():
         Two ways of constructing the complete bipartite graph, using different
         layout algorithms:
             sage: import networkx
-            sage: n = networkx.complete_bipartite_graph(389,157); spring_big = Graph(n)
-            sage: posdict_big = graphs.CompleteBipartiteGraph(389,157)
+            sage: n = networkx.complete_bipartite_graph(389,157); spring_big = Graph(n)   # long time
+            sage: posdict_big = graphs.CompleteBipartiteGraph(389,157)                    # long time
 
         Compare the plotting:
             sage: n = networkx.complete_bipartite_graph(11,17)
@@ -2112,11 +2197,11 @@ class GraphGenerators():
             sage: cputime(t)     # slightly random
             0.22401400000000038
 
-            sage: t=cputime(); regular_dense = graphs.RandomGNP(389,.88)
+            sage: t=cputime(); regular_dense = graphs.RandomGNP(389,.88)    # long time
             sage: cputime(t)     # slightly random
             0.87205499999999958
 
-            sage: t=cputime(); fast_dense = graphs.RandomGNP(389,.88,fast=True)
+            sage: t=cputime(); fast_dense = graphs.RandomGNP(389,.88,fast=True)    # long time
             sage: cputime(t)     # slightly random
             0.90005700000000033
 
@@ -2576,34 +2661,40 @@ class GraphGenerators():
         return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence]))
 
 ################################################################################
-#   Graphs that are representatives of distinct isomorphism classes
+#   Graph Iterators
 ################################################################################
 
-    def __call__(self, vertices, property=lambda x: True):
+    def __call__(self, vertices, property=lambda x: True, augment='edges'):
         """
-        Accesses the generator of isomorphism class representatives.
+        Accesses the generator of isomorphism class representatives. Iterates
+        over distinct, exhaustive representatives.
 
         INPUT:
-            vertices -- the maximum number of vertices in the graphs to be
-                generated.
+            vertices -- natural number
             property -- any property to be tested on graphs before generation.
-                If for any graph G satisfying the property, every subgraph,
-                obtained from G by deleting one vertex and only edges incident
-                to that vertex satisfies the property, then this will generate
-                all graphs with that property. If this does not hold, then all
-                the graphs generated will satisfy the property, but there will
-                be some missing.
-
-        NOTE:
-            There could be other implementations of the algorithm so that the
-            restriction on 'property' was also different- the restriction is
-            specific to this particular implementation.
+            augment -- choices:
+                'vertices' -- augments by adding a vertex, and edges incident
+                    to that vertex.
+                    In this case, all graphs on up to n=vertices are generated.
+                    If for any graph G satisfying the property, every subgraph,
+                    obtained from G by deleting one vertex and only edges incident
+                    to that vertex, satisfies the property, then this will generate
+                    all graphs with that property. If this does not hold, then all
+                    the graphs generated will satisfy the property, but there will
+                    be some missing.
+                'edges' -- augments a fixed number of vertices by adding one edge
+                    In this case, all graphs on exactly n=vertices are generated.
+                    If for any graph G satisfying the property, every subgraph,
+                    obtained from G by deleting one edge but not the vertices
+                    incident to that edge, satisfies the property, then this will
+                    generate all graphs with that property. If this does not hold,
+                    then all the graphs generated will satisfy the property, but
+                    there will be some missing.
 
         EXAMPLES:
         Print graphs on 3 or less vertices.
-            sage: for G in graphs(3):
+            sage: for G in graphs(3, augment='vertices'):
             ...    print G
-            ...
             Graph on 0 vertices
             Graph on 1 vertex
             Graph on 2 vertices
@@ -2613,37 +2704,105 @@ class GraphGenerators():
             Graph on 2 vertices
             Graph on 3 vertices
 
-        Generate all graphs with up to 5 vertices and up to 4 edges.
+        Print graphs on 3 vertices.
+            sage: for G in graphs(3):
+            ...    print G
+            Graph on 3 vertices
+            Graph on 3 vertices
+            Graph on 3 vertices
+            Graph on 3 vertices
+
+        Generate all graphs with 5 vertices and up to 4 edges.
             sage: L = list(graphs(5, lambda G: G.size() <= 4))
             sage: len(L)
-            31
-            sage: graphs_list.show_graphs(L)
+            14
+            sage: graphs_list.show_graphs(L)    # long time
 
         Generate all graphs with degree at most 2, up to 6 vertices.
             sage: property = lambda G: ( max([G.degree(v) for v in G] + [0]) <= 2 )
-            sage: L = list(graphs(6, property))
+            sage: L = list(graphs(6, property, augment='vertices'))
             sage: len(L)
             45
 
-        Generate all bipartite graphs on up to 7, 8 vertices:
-            sage: L = list( graphs(7, lambda G: G.is_bipartite()) )
+        Generate all bipartite graphs on up to 7 vertices:
+            sage: L = list( graphs(7, lambda G: G.is_bipartite(), augment='vertices') )
             sage: len(L)
             133
-            sage: L = list( graphs(8, lambda G: G.is_bipartite()) ) # long time (30 secs)
-            sage: len(L)                                            # long time
-            354
+
+        Generate all bipartite graphs on exactly 8 vertices:
+            sage: L = list( graphs(8, lambda G: G.is_bipartite()) )
+            sage: len(L)
+            142
+
+        Sloane A000088:
+            sage: for i in range(0, 7):
+            ...    print len(list(graphs(i)))
+            1
+            1
+            2
+            4
+            11
+            34
+            156
 
         REFERENCE:
             Brendan D. McKay, Isomorph-Free Exhaustive generation. Journal of
             Algorithms Volume 26, Issue 2, February 1998, pages 306-324.
         """
-        from sage.graphs.graph_fast import binary
         from sage.graphs.graph import Graph
         g = Graph()
-        for gg in canaug_traverse(g, [], vertices, property):
-            yield gg
+        if augment == 'vertices':
+            for gg in canaug_traverse_vert(g, [], vertices, property):
+                yield gg
+        elif augment == 'edges':
+            g.add_vertices(range(vertices))
+            gens = []
+            for i in range(vertices-1):
+                gen = range(i)
+                gen.append(i+1); gen.append(i)
+                gen += range(i+2, vertices)
+                gens.append(gen)
+            for gg in canaug_traverse_edge(g, gens, property):
+                yield gg
+        else:
+            raise NotImplementedError()
 
-def canaug_traverse(g, aut_gens, max_verts, property):
+    def trees(self, vertices, augment='edges'):
+        """
+        Accesses the generator of trees (graphs without cycles). Iterates over
+        distinct, exhaustive representatives.
+
+        INPUT:
+            vertices -- natural number
+            augment -- choices:
+                'vertices' -- augments by adding a vertex, and edges incident
+                    to that vertex.
+                    In this case, all trees on up to n=vertices are generated.
+                'edges' -- augments a fixed number of vertices by adding one edge
+                    In this case, all trees on exactly n=vertices are generated.
+
+        EXAMPLES:
+        Sloane A000055:
+            sage: for i in range(0, 10):
+            ...    print len(list(graphs.trees(i)))
+            1
+            1
+            1
+            1
+            2
+            3
+            6
+            11
+            23
+            47
+
+        """
+        is_tree = lambda g: g.transitive_reduction() == g
+        for g in self(vertices=vertices, property=is_tree, augment=augment):
+            if g.is_connected():
+                yield g
+
+def canaug_traverse_vert(g, aut_gens, max_verts, property):
     """
     Main function for exhaustive generation. Recursive traversal of a
     canonically generated tree of isomorph free graphs satisfying a given
@@ -2656,14 +2815,14 @@ def canaug_traverse(g, aut_gens, max_verts, property):
         property -- check before traversing below g.
 
     EXAMPLES:
-        sage: from sage.graphs.graph_generators import canaug_traverse
-        sage: list(canaug_traverse(Graph(), [], 3, lambda x: True))
+        sage: from sage.graphs.graph_generators import canaug_traverse_vert
+        sage: list(canaug_traverse_vert(Graph(), [], 3, lambda x: True))
         [Graph on 0 vertices, ... Graph on 3 vertices]
 
     The best way to access this function is through the graphs() iterator:
 
     Print graphs on 3 or less vertices.
-        sage: for G in graphs(3):
+        sage: for G in graphs(3, augment='vertices'):
         ...    print G
         ...
         Graph on 0 vertices
@@ -2676,13 +2835,13 @@ def canaug_traverse(g, aut_gens, max_verts, property):
         Graph on 3 vertices
 
     Generate all graphs with up to 5 vertices and up to 4 edges.
-        sage: L = list(graphs(5, lambda G: G.size() <= 4))
+        sage: L = list(graphs(5, lambda G: G.size() <= 4, augment='vertices'))
         sage: len(L)
         31
-        sage: graphs_list.show_graphs(L)
+        sage: graphs_list.show_graphs(L)              # long time
 
     Generate all bipartite graphs on up to 7 vertices:
-        sage: L = list( graphs(7, lambda G: G.is_bipartite()) )
+        sage: L = list( graphs(7, lambda G: G.is_bipartite(), augment='vertices') )
         sage: len(L)
         133
 
@@ -2730,7 +2889,8 @@ def canaug_traverse(g, aut_gens, max_verts, property):
             # construct a z for each number in roots...
             z = g.copy()
             z.add_vertex(n)
-
+            if not property(z):
+                continue
             index = 0
             while (1 << index) <= i:
                 if (1 << index)&i:
@@ -2744,15 +2904,13 @@ def canaug_traverse(g, aut_gens, max_verts, property):
             sub_verts = [v for v in z if v != cut_vert]
             m_z = z.subgraph(sub_verts)
 
-            perm = range(n+1)
-            seen_perms = [perm]
             if m_z == g:
-                for a in canaug_traverse(z, z_aut_gens, max_verts, property):
+                for a in canaug_traverse_vert(z, z_aut_gens, max_verts, property):
                     yield a
             else:
                 for possibility in check_aut(z_aut_gens, cut_vert, n):
                     if m_z.relabel(possibility, inplace=False) == g:
-                        for a in canaug_traverse(z, z_aut_gens, max_verts, property):
+                        for a in canaug_traverse_vert(z, z_aut_gens, max_verts, property):
                             yield a
                         break
 
@@ -2788,6 +2946,163 @@ def check_aut(aut_gens, cut_vert, n):
                 seen_perms.append(new_perm)
                 unchecked_perms.append(new_perm)
                 if new_perm[cut_vert] == n:
+                    yield new_perm
+
+def canaug_traverse_edge(g, aut_gens, property):
+    """
+    Main function for exhaustive generation. Recursive traversal of a
+    canonically generated tree of isomorph free graphs satisfying a given
+    property.
+
+    INPUT:
+        g -- current position on the tree.
+        aut_gens -- list of generators of Aut(g), in list notation.
+        property -- check before traversing below g.
+
+    EXAMPLES:
+        sage: from sage.graphs.graph_generators import canaug_traverse_edge
+        sage: G = Graph(); G.add_vertices(range(3))
+        sage: list(canaug_traverse_edge(G, [], lambda x: True))
+        [Graph on 3 vertices, ... Graph on 3 vertices]
+
+    The best way to access this function is through the graphs() iterator:
+
+    Print graphs on 3 or less vertices.
+        sage: for G in graphs(3):
+        ...    print G
+        ...
+        Graph on 3 vertices
+        Graph on 3 vertices
+        Graph on 3 vertices
+        Graph on 3 vertices
+
+    Generate all graphs with 5 vertices and up to 4 edges.
+        sage: L = list(graphs(5, lambda G: G.size() <= 4))
+        sage: len(L)
+        14
+        sage: graphs_list.show_graphs(L)              # long time
+
+    Generate all bipartite graphs on 7 vertices:
+        sage: L = list( graphs(7, lambda G: G.is_bipartite()) )
+        sage: len(L)
+        29
+
+    """
+    from sage.graphs.graph_fast import binary
+    from sage.graphs.graph_isom import search_tree
+    if not property(g):
+        return
+    yield g
+    n = g.order()
+    n_choose_2 = (n*(n-1))>>1 # >> 1 is just / 2
+    if g.size() < n_choose_2:
+        # build a list representing C(g) - the edge to be added
+        # is one of n*(n-1)/2 choices
+        num_roots = n_choose_2
+        children = [[(j-1,i) for i in range(j-1)] for j in range(1,n+1)]
+
+        # union-find C(g) under Aut(g)
+        for gen in aut_gens:
+            for iii in xrange(n):
+                for jjj in xrange(iii): # iii > jjj
+                    i, j = iii, jjj
+                    y, x = sorted([gen[i], gen[j]])
+                    if children[i][j] != children[x][y]:
+                        x_val, y_val = x, y
+                        i_val, j_val = i, j
+                        while (x_val, y_val) != children[x_val][y_val]:
+                            y_val, x_val = sorted(children[x_val][y_val])
+                        while (i_val, j_val) != children[i_val][j_val]:
+                            j_val, i_val = sorted(children[i_val][j_val])
+                        while (x, y) != (x_val, y_val):
+                            xx, yy = x, y
+                            x, y = children[x][y]
+                            children[xx][yy] = (x_val, y_val)
+                        while (i, j) != (i_val, j_val):
+                            ii, jj = i, j
+                            i, j = children[i][j]
+                            children[ii][jj] = (i_val, j_val)
+                        if x < i:
+                            children[i][j] = (x, y)
+                        elif x > i:
+                            children[x][y] = (i, j)
+                        elif y < j:
+                            children[i][j] = (x, y)
+                        elif y > j:
+                            children[x][y] = (i, j)
+                        else:
+                            continue
+                        num_roots -= 1
+
+        # find representatives of orbits of C(g)
+        roots = []
+        for i in range(n):
+            for j in range(i):
+                if children[i][j] == (i, j):
+                    roots.append((i,j))
+        for i, j in roots:
+            if g.has_edge(i, j):
+                continue
+            # construct a z for each edge in roots...
+            z = g.copy()
+            z.add_edge(i, j)
+            if not property(z):
+                continue
+            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True)
+            relabel_inverse = [0]*n
+            for ii in xrange(n):
+                relabel_inverse[canonical_relabeling[ii]] = ii
+            z_can = z.relabel(canonical_relabeling, inplace=False)
+            cut_edge_can = z_can.edges(labels=False, sort=True)[-1]
+            cut_edge = [relabel_inverse[cut_edge_can[0]], relabel_inverse[cut_edge_can[1]]]
+            cut_edge = tuple(sorted(cut_edge))
+
+            m_z = z.copy()
+            m_z.delete_edge(cut_edge)
+            if m_z == g:
+                for a in canaug_traverse_edge(z, z_aut_gens, property):
+                    yield a
+            else:
+                for possibility in check_aut_edge(z_aut_gens, cut_edge, i, j, n):
+                    if m_z.relabel(possibility, inplace=False) == g:
+                        for a in canaug_traverse_edge(z, z_aut_gens, property):
+                            yield a
+                        break
+
+def check_aut_edge(aut_gens, cut_edge, i, j, n):
+    """
+    Helper function for exhaustive generation.
+
+    At the start, check_aut_edge is given a set of generators for the automorphism
+    group, aut_gens. We already know we are looking for an element of the auto-
+    morphism group that sends cut_edge to \{i, j\}, and check_aut generates
+    these for the canaug_traverse function.
+
+    EXAMPLE:
+    Note that the last two entries indicate that none of the automorphism group
+    has yet been searched - we are starting at the identity [0, 1, 2, 3] and so
+    far that is all we have seen. We return automorphisms mapping 2 to 3.
+        sage: from sage.graphs.graph_generators import check_aut
+        sage: list( check_aut( [ [0, 3, 2, 1], [1, 0, 3, 2], [2, 1, 0, 3] ], 2, 3))
+        [[1, 0, 3, 2], [1, 2, 3, 0]]
+
+    """
+    from copy import copy
+    perm = range(n)
+    seen_perms = [perm]
+    unchecked_perms = [perm]
+    while len(unchecked_perms) != 0:
+        perm = unchecked_perms.pop(0)
+        for gen in aut_gens:
+            new_perm = copy(perm)
+            for ii in xrange(n):
+                new_perm[ii] = gen[perm[ii]]
+            if new_perm not in seen_perms:
+                seen_perms.append(new_perm)
+                unchecked_perms.append(new_perm)
+                if new_perm[cut_edge[0]] == i and new_perm[cut_edge[1]] == j:
+                    yield new_perm
+                if new_perm[cut_edge[0]] == j and new_perm[cut_edge[1]] == i:
                     yield new_perm
 
 # Easy access to the graph generators from the command line:

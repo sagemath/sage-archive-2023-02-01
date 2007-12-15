@@ -253,7 +253,7 @@ class Set_object(Set_generic):
         If right is not a Set compare types.  If right is also a Set,
         returns comparison on the underlying objects.
 
-        \note{If $X < Y$ is true this does {\em not} necessarily mean
+        \note{If $X < Y$ is true this does \emph{not} necessarily mean
         that $X$ is a subset of $Y$.  Also, any two sets can be
         compared, which is a general Python philosophy.}
 

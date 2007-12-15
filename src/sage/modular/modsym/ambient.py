@@ -76,6 +76,7 @@ import space
 import subspace
 
 QQ = rings.Rational
+ZZ = rings.Integers
 
 
 class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule):
@@ -917,6 +918,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         modular symbols and self is isomorphic to the direct sum of
         the $S^e$ as a module over the \emph{anemic} Hecke algebra
         adjoin the star involution.
+
+        EXAMPLES:
+            sage: ModularSymbols(Gamma0(22), 2).factorization()
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 1 for Gamma_0(2) of weight 2 with sign 0 over Rational Field)^3 *
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field)^2 *
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field)^2
+
+            sage: ModularSymbols(1,6,0,GF(2)).factorization()
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(1) of weight 6 with sign 0 over Finite Field of size 2) *
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(1) of weight 6 with sign 0 over Finite Field of size 2)
         """
 
 ##         EXAMPLES:
@@ -1004,6 +1015,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             P = [p for p in arith.prime_range(2, self.hecke_bound() + 1) if self.level() % p != 0]
         # The above was all for dealing with e2 in the weight 2 case.
 
+        ## If the characteristic of the base ring is 2,
+        ## the star involution is the identity, so we
+        ## want to avoid adding each cuspidal submodule
+        ## twice.
+        if self.base_ring().characteristic() == 2:
+            skip_minus = True
+        else:
+            skip_minus = False
+
+
         for d in reversed(arith.divisors(self.level())):
             n = arith.number_of_divisors(self.level() // d)
             M = self.modular_symbols_of_level(d)
@@ -1014,6 +1035,8 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                         V = A.plus_submodule()
                         V._is_simple = True
                         D.append((V,n))
+                        if skip_minus:
+                            continue
                         V = A.minus_submodule()
                         V._is_simple = True
                         D.append((V,n))
@@ -1156,8 +1179,12 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                             This are useful for many algorithms.
         OUTPUT:
             subspace of modular symbols
+
+        EXAMPLES:
+            sage: ModularSymbols(1,12,0,GF(5)).minus_submodule() ## indirect doctest
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Finite Field of size 5
         """
-        S = self.star_involution().matrix() - sign
+        S = self.star_involution().matrix() - self.base_ring()(sign)
         V = S.kernel()
         if compute_dual:
             Vdual = S.transpose().kernel()

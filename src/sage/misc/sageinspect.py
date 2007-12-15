@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 Inspect Python, Sage, and Cython objects.
 
 This module extends parts of Python's inspect module to Cython objects.
@@ -28,8 +28,8 @@ Test introspection of modules defined in Python and Cython files:
         sage: sage_getfile(sage.misc.sageinspect)
         '.../sageinspect.py'
 
-        sage: sage_getdoc(sage.misc.sageinspect).lstrip()
-        'Inspect Python, Sage, and Cython objects...'
+        sage: print sage_getdoc(sage.misc.sageinspect).lstrip()[:40]
+        Inspect Python, Sage, and Cython objects
 
         sage: sage_getsource(sage.misc.sageinspect).lstrip()[5:-1]
         'Inspect Python, Sage, and Cython objects...'
@@ -121,7 +121,8 @@ def _extract_embedded_position(docstring):
         return None
     res = __embedded_position_re.match(docstring)
     if res is not None:
-        filename = '%s/local/lib/python/site-packages/%s' % (SAGE_ROOT, res.group('FILENAME'))
+        #filename = '%s/local/lib/python/site-packages/%s' % (SAGE_ROOT, res.group('FILENAME'))
+        filename = '%s/devel/sage/%s' % (SAGE_ROOT, res.group('FILENAME'))
         lineno = int(res.group('LINENO'))
         original = res.group('ORIGINAL')
         return (original, filename, lineno)
@@ -250,8 +251,15 @@ def sage_getargspec(obj):
             func_obj = obj
 
     # Otherwise we're (hopefully!) plain Python, so use inspect
-    args, varargs, varkw = inspect.getargs(func_obj.func_code)
-    return args, varargs, varkw, func_obj.func_defaults
+    try:
+        args, varargs, varkw = inspect.getargs(func_obj.func_code)
+    except AttributeError:
+        args, varargs, varkw = inspect.getargs(func_obj)
+    try:
+        defaults = func_obj.func_defaults
+    except AttributeError:
+        defaults = tuple([])
+    return args, varargs, varkw,
 
 def sage_getdef(obj, obj_name=''):
     r"""
@@ -326,7 +334,8 @@ def sage_getsource(obj, is_binary=False):
 
 def sage_getsourcelines(obj, is_binary=False):
     r"""
-    Return a pair ([source_lines], starting line number) of the source code associated to obj, or None.
+    Return a pair ([source_lines], starting line number) of the source
+    code associated to obj, or None.
 
     At this time we ignore is_binary in favour of a 'do our best' strategy.
 
@@ -381,7 +390,7 @@ def __internal_tests():
 
     A cython function with default arguments:
         sage: sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
-        "factor(algorithm='pari')"
+        "factor(algorithm='pari', proof='True')"
 
     A cython method without an embedded position can lead to surprising errors:
         sage: sage_getsource(sage.rings.integer.Integer.__init__, is_binary=True)

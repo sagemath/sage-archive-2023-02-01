@@ -900,7 +900,7 @@ function search_worksheets(typ) {
 function go_system_select(theform, original_system) {
    with(theform) {
       var system = options[selectedIndex].value;
-      if (confirm("Are you sure you wish to change the evaluation system to " + system + "? All cells will be evaluted using " + system + " until you change the system back.")) {
+      if (confirm("All cells will be evaluted using " + system + " until you change the system back.")) {
           system_select(system);
       } else {
           options[original_system].selected = 1;
@@ -1771,7 +1771,7 @@ function cell_set_running(id) {
 
 function cell_set_done(id) {
     var cell_div = get_element('cell_div_output_' + id)
-    cell_div.className = 'cell_output_wrap';
+    cell_div.className = 'cell_div_output_wrap';
     var cell_number = get_element('cell_number_' + id);
     cell_number.className = 'cell_number';
 }

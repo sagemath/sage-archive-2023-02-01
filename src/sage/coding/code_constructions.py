@@ -132,18 +132,22 @@ def ExtendedBinaryGolayCode():
         sage: C = ExtendedBinaryGolayCode()
         sage: C
         Linear code of length 24, dimension 12 over Finite Field of size 2
-        sage: C.minimum_distance()               # long time
+        sage: C.minimum_distance()
         8
 
     AUTHOR: David Joyner (2007-05)
     """
-    C = BinaryGolayCode()
-    return C.extended_code()
+    v = [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1], [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1], [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1], [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1]]
+    V = span(GF(2), v)
+    return LinearCodeFromVectorSpace(V)
+    #C = BinaryGolayCode()
+    #return C.extended_code()
 
 def TernaryGolayCode():
     """
-    TernaryGolayCode returns a ternary Golay code. This is a perfect [11,6,5] code.
-    It is also equivalenet to a cyclic code, with generator polynomial $g(x)=2+x^2+2x^3+x^4+x^5$.
+    TernaryGolayCode returns a ternary Golay code. This is a perfect
+    [11,6,5] code.  It is also equivalenet to a cyclic code, with
+    generator polynomial $g(x)=2+x^2+2x^3+x^4+x^5$.
 
     EXAMPLES:
         sage: C = TernaryGolayCode()
@@ -177,8 +181,11 @@ def ExtendedTernaryGolayCode():
 
     AUTHOR: David Joyner (11-2005)
     """
-    C = TernaryGolayCode()
-    return C.extended_code()
+    v = [[1, 0, 0, 0, 0, 0, 2, 0, 1, 2, 1, 2], [0, 1, 0, 0, 0, 0, 1, 2, 2, 2, 1, 0], [0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1], [0, 0, 0, 1, 0, 0, 1, 1, 0, 2, 2, 2], [0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 0, 1], [0, 0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 1]]
+    V = span(GF(3), v)
+    return LinearCodeFromVectorSpace(V)
+    #C = TernaryGolayCode()
+    #return C.extended_code()
 
 def RandomLinearCode(n,k,F):
     """

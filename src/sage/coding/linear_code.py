@@ -349,7 +349,7 @@ def best_known_linear_code(n,k,F):
     EXAMPLES:
         sage: best_known_linear_code(10,5,GF(2))    # long time
         Linear code of length 10, dimension 5 over Finite Field of size 2
-        sage: gap.eval("C:=BestKnownLinearCode(10,5,GF(2))")
+        sage: gap.eval("C:=BestKnownLinearCode(10,5,GF(2))")     # long time
         'a linear [10,5,4]2..4 shortened code'
 
     This means that best possible binary linear code of length 10 and dimension 5
@@ -766,19 +766,18 @@ class LinearCode(module.Module):
             sage: Cx = C.extended_code()
             sage: Cx
             Linear code of length 22, dimension 18 over Finite Field in a of size 2^2
-
         """
         G = self.gen_mat()
         F = self.base_ring()
         q = F.order()
         n = len(G.columns())
         k = len(G.rows())
-        Gstr = str(gap(G))
-        gap.eval( "G:="+Gstr )
+        g = gap(G)
+        gap.eval( "G:="+g.name())
         C = gap("GeneratorMatCode(G,GF("+str(q)+"))")
         Cx = C.ExtendedCode()
         Gx = Cx.GeneratorMat()
-        Gxs = Gx._matrix_(F)
+        Gxs = Gx._matrix_(F)           # this is the killer
         MS = MatrixSpace(F,k,n+1)
         return LinearCode(MS(Gxs))
 
@@ -1059,7 +1058,7 @@ class LinearCode(module.Module):
             sage: MS = MatrixSpace(GF(2),4,8)
             sage: G  = MS([[1,0,0,0,1,1,1,0],[0,1,1,1,0,0,0,0],[0,0,0,0,0,0,0,1],[0,0,0,0,0,1,0,0]])
             sage: C  = LinearCode(G)
-            sage: gp = C.permutation_automorphism_group()
+            sage: gp = C.permutation_automorphism_group()    # long time
 
         Now type "C.module_composition_factors(gp)" to get the record printed.
 
@@ -1277,10 +1276,10 @@ class LinearCode(module.Module):
             sage: C = HammingCode(3,GF(2))
             sage: C.zeta_polynomial()
             2/5*T^2 + 2/5*T + 1/5
-            sage: C = best_known_linear_code(6,3,GF(2))
-            sage: C.minimum_distance()
+            sage: C = best_known_linear_code(6,3,GF(2))  # long time
+            sage: C.minimum_distance()                   # long time (because of above)
             3
-            sage: C.zeta_polynomial()
+            sage: C.zeta_polynomial()                    # long time (because of above)
             2/5*T^2 + 2/5*T + 1/5
             sage: C = HammingCode(4,GF(2))
             sage: C.zeta_polynomial()
@@ -1330,10 +1329,10 @@ class LinearCode(module.Module):
 
         EXAMPLES:
             sage: C = HammingCode(3,GF(2))
-            sage: C.chinen_polynomial()
+            sage: C.chinen_polynomial()       # long time
             (2*sqrt(2)*t^3/5 + 2*sqrt(2)*t^2/5 + 2*t^2/5 + sqrt(2)*t/5 + 2*t/5 + 1/5)/(sqrt(2) + 1)
             sage: C = TernaryGolayCode()
-            sage: C.chinen_polynomial()
+            sage: C.chinen_polynomial()       # long time
             (6*sqrt(3)*t^3/7 + 6*sqrt(3)*t^2/7 + 6*t^2/7 + 2*sqrt(3)*t/7 + 6*t/7 + 2/7)/(2*sqrt(3) + 2)
 
         This last output agrees with the corresponding example given in Chinen's paper below.
@@ -1392,7 +1391,9 @@ class LinearCode(module.Module):
         Returns the Duursma zeta function of the code.
 
         EXAMPLES:
-
+            sage: C = HammingCode(3,GF(2))
+            sage: C.zeta_function()
+            (2/5*T^2 + 2/5*T + 1/5)/(2*T^2 - 3*T + 1)
         """
         P =  self.zeta_polynomial()
         q = (self.base_ring()).characteristic()

@@ -4191,7 +4191,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: O = K.maximal_order()
             sage: K(O.1)
             z
-            sage: sage: K(O.1^2 + O.1 - 2)
+            sage: K(O.1^2 + O.1 - 2)
             z^2 + z - 2
         """
         if isinstance(x, number_field_element.NumberFieldElement):

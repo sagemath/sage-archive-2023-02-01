@@ -418,6 +418,20 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         return self.__char
 
     def gen(self, n=0):
+        """
+        Return generator of this finite field.
+
+        EXAMPLES:
+            sage: k = GF(13)
+            sage: k.gen()
+            1
+            sage: k.gen(1)
+            Traceback (most recent call last):
+            ...
+            IndexError: only one generator
+        """
+        if n != 0:
+            raise IndexError, "only one generator"
         return self.__gen
 
     def __iter__(self):

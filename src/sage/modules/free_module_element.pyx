@@ -1018,7 +1018,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                 raise TypeError, "entries (=%s) must be a list"%(entries, )
 
             if len(entries) != self.degree():
-                raise ArithmeticError, "entries must be a list of length %s"%\
+                raise TypeError, "entries must be a list of length %s"%\
                             self.degree()
             if coerce:
                 try:

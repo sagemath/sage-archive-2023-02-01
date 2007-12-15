@@ -596,6 +596,10 @@ cdef class FiniteField_givaro(FiniteField):
         EXAMPLES:
             sage: k = GF(3^4, 'b'); k.gen()
             b
+            sage: k.gen(1)
+            Traceback (most recent call last):
+            ...
+            IndexError: only one generator
         """
         cdef int r
         from sage.rings.arith import primitive_root

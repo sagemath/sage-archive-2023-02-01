@@ -2732,7 +2732,7 @@ class GraphGenerators():
         Generate all bipartite graphs on exactly 8 vertices:
             sage: L = list( graphs(8, lambda G: G.is_bipartite()) )
             sage: len(L)
-            142
+            143
 
         Sloane A000088:
             sage: for i in range(0, 7):

@@ -1765,11 +1765,11 @@ cdef class PartitionStack:
             sage: P._split_vertex(1, 3)
             1
             sage: P._refine(3, [[0,1]], B)
-            558
+            583
             sage: P._split_vertex(2, 4)
             2
             sage: P._refine(4, [[0,2]], B)
-            1713
+            1754
             sage: P._split_vertex(3, 5)
             3
             sage: P._refine(5, [[0,3]], B)
@@ -1847,7 +1847,7 @@ cdef class PartitionStack:
                             q += 1
                         r = j
                         while True:
-                            if r == 0 or self.col_lvls[r-1] == k:
+                            if r == j or self.col_lvls[r-1] == k:
                                 if r != t:
                                     alpha[alpha_length] = r
                                     alpha_length += 1
@@ -1887,7 +1887,7 @@ cdef class PartitionStack:
                         j ^= flag
                         r = j
                         while True:
-                            if r == 0 or self.wd_lvls[r-1] == k:
+                            if r == j or self.wd_lvls[r-1] == k:
                                 if r != t_w:
                                     alpha[alpha_length] = r^flag
                                     alpha_length += 1
@@ -1966,11 +1966,11 @@ cdef class PartitionStack:
             sage: P._split_vertex(1, 2)
             1
             sage: P._refine(2, [[0,1]], B)
-            558
+            583
             sage: P._split_vertex(2, 3)
             2
             sage: P._refine(3, [[0,2]], B)
-            1713
+            1754
             sage: P._split_vertex(4, 4)
             4
             sage: P._refine(4, [[0,4]], B)
@@ -2101,11 +2101,11 @@ cdef class PartitionStack:
             sage: P._split_vertex(1, 2)
             1
             sage: P._refine(2, [[0,1]], B)
-            558
+            583
             sage: P._split_vertex(2, 3)
             2
             sage: P._refine(3, [[0,2]], B)
-            1713
+            1754
             sage: P._split_vertex(4, 4)
             4
             sage: P._refine(4, [[0,4]], B)
@@ -2244,21 +2244,34 @@ cdef class BinaryCodeClassifier:
                 where the basis is sent.
 
         EXAMPLES:
+            sage: import sage.coding.binary_code
+            sage: from sage.coding.binary_code import *
+            sage: BC = BinaryCodeClassifier()
+
             sage: M = Matrix(GF(2),[\
             ... [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],\
             ... [0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],\
             ... [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1],\
             ... [0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],\
             ... [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]])
-            sage: import sage.coding.binary_code
-            sage: from sage.coding.binary_code import *
             sage: B = BinaryCode(M)
-            sage: BC = BinaryCodeClassifier()
             sage: gens, labeling = BC._aut_gp_and_can_label(B)
-            sage: S = SymmetricGroup(16)
+            sage: S = SymmetricGroup(M.ncols())
             sage: L = [S([x+1 for x in g]) for g in gens]
             sage: PermutationGroup(L).order()
             322560
+
+            sage: M = Matrix(GF(2),[\
+            ... [1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],\
+            ... [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0],\
+            ... [0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,1,1],\
+            ... [0,0,0,1,1,0,0,0,0,1,1,0,1,1,0,1,1]])
+            sage: B = BinaryCode(M)
+            sage: gens, labeling = BC._aut_gp_and_can_label(B)
+            sage: S = SymmetricGroup(M.ncols())
+            sage: L = [S([x+1 for x in g]) for g in gens]
+            sage: PermutationGroup(L).order()
+            2304
 
         """
         cdef int i, j

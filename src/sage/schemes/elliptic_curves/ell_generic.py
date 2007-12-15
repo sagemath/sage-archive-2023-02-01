@@ -1382,7 +1382,22 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         c4, c6 = self.c_invariants()
         return constructor.EllipticCurve([-c4/(2**4*3), -c6/(2**5*3**3)])
 
+    def integral_weierstrass_model(self):
+        raise NotImplementedError
+
     def integral_model(self):
+        """
+        Return an integral model for this elliptic curve along
+        with an isomorphism from self to this integral model.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([1,2,3,4,5]); E
+            Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field
+            sage: E.integral_model()
+            (Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field, Generic morphism:
+              From: Abelian group of points on Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field
+              To:   Abelian group of points on Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field)
+        """
         denom = lcm([a.denominator() for a in self.ainvs()])
         if denom != 1:
             F = self.integral_weierstrass_model()

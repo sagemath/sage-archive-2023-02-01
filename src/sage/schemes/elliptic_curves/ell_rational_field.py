@@ -1586,8 +1586,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Return a model of self which is integral at all primes
 
         EXAMPLES:
-            sage: E=EllipticCurve([0, 0, 1/216, -7/1296, 1/7776])
-            sage: E.global_integral_model() == EllipticCurve('5077a1')
+            sage: E = EllipticCurve([0, 0, 1/216, -7/1296, 1/7776])
+            sage: F = E.global_integral_model(); F
+            ??
+            sage: F == EllipticCurve('5077a1')
             True
         """
         ai = self.a_invariants()
@@ -1596,6 +1598,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                for p, _ in a.denom().factor():
                   e  = min([(ai[i].valuation(p)/[1,2,3,4,6][i]) for i in range(5)]).floor()
                   ai = [ai[i]/p**(e*[1,2,3,4,6][i]) for i in range(5)]
+            for z in ai:
+                assert z.denominator() == 1, "bug in global_integral_model"
             return constructor.EllipticCurve(ai)
 
     integral_model = global_integral_model
@@ -1625,6 +1629,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         while arith.valuation(A,3)>3 and arith.valuation(B,3)>5:
             A = A/Integer(3**4)
             B = B/Integer(3**6)
+        assert A.denominator() == 1 and B.denominator() == 1, 'bug in integral_weierstrass_model'
         return constructor.EllipticCurve([A,B])
 
     def modular_degree(self, algorithm='sympow'):

@@ -22,7 +22,7 @@ from sage.categories.homset import Hom
 class WeierstrassIsomorphism(Morphism):
 
     def __init__(self, E, F):
-        """
+        r"""
         Given two Weierstrass models $E$ and $F$ of the same elliptic curve,
         construct an isomorphism from $E$ to $F$.
 

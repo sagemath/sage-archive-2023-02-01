@@ -3863,7 +3863,7 @@ class NumberField_relative(NumberField_generic):
                   of smaller rank, instead of raising an error, return
                   an order in a smaller number field.
 
-        The base, check_is_integral, and check_rank inputs must be given as
+        The check_is_integral and check_rank inputs must be given as
         explicit keyword arguments.
 
         EXAMPLES:

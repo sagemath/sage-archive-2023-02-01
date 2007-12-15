@@ -26,10 +26,10 @@ from sage.structure.sequence import Sequence
 
 def monomials(v, n):
     """
-    Given a list v of numbers and an integer n, return
-    all monomials in the elements of v, where variable
-    i (i.e., v[i]) appears in the monomial appears to
-    degree strictly less than n[i].
+    Given two lists v and n, of exactly the same length,
+    return all monomials in the elements of v, where
+    variable i (i.e., v[i]) appears in the monomial
+    appears to degree strictly less than n[i].
 
     INPUT:
         v -- list of ring elements
@@ -44,6 +44,11 @@ def monomials(v, n):
         sage: monomials([x,y,z], [2,3,2])
         [1, z, y, y*z, y^2, y^2*z, x, x*z, x*y, x*y*z, x*y^2, x*y^2*z]
     """
+
+    if (len(v) != len(n)):
+        raise ValueError, "inputs must be of the same length."
+    if len(v) == 0:
+        return []
     v = Sequence(v)
     R = v.universe()
     return _monomials(v, R, n, 0)

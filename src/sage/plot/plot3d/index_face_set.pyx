@@ -37,6 +37,8 @@ cdef extern from *:
      int sprintf_3d "sprintf" (char*, char*, double, double, double)
      int sprintf_3i "sprintf" (char*, char*, int, int, int)
      int sprintf_4i "sprintf" (char*, char*, int, int, int, int)
+     int sprintf_5i "sprintf" (char*, char*, int, int, int, int, int)
+     int sprintf_6i "sprintf" (char*, char*, int, int, int, int, int, int)
      int sprintf_9d "sprintf" (char*, char*, double, double, double, double, double, double, double, double, double)
 
 include "../../ext/python_list.pxi"
@@ -100,6 +102,43 @@ cdef inline format_obj_face_back(face_c face, int off):
     else:
         return "f " + " ".join([str(face.vertices[i] + off) for i from face.n > i >= 0])
     return PyString_FromStringAndSize(ss, r)
+
+
+cdef inline format_pmesh_vertex(point_c P):
+    cdef char ss[100]
+    # PyString_FromFormat doesn't do floats?
+    cdef Py_ssize_t r = sprintf_3d(ss, "%g %g %g", P.x, P.y, P.z)
+    return PyString_FromStringAndSize(ss, r)
+
+cdef inline format_pmesh_face(face_c face):
+    cdef char ss[100]
+    cdef Py_ssize_t r, i
+    if face.n == 3:
+        r = sprintf_5i(ss, "%d\n%d\n%d\n%d\n%d", face.n+1,
+                                                 face.vertices[0],
+                                                 face.vertices[1],
+                                                 face.vertices[2],
+                                                 face.vertices[0])
+    elif face.n == 4:
+        r = sprintf_6i(ss, "%d\n%d\n%d\n%d\n%d\n%d", face.n+1,
+                                                     face.vertices[0],
+                                                     face.vertices[1],
+                                                     face.vertices[2],
+                                                     face.vertices[3],
+                                                     face.vertices[0])
+    else:
+        # Naive triangulation
+        all = []
+        for i from 1 <= i < face.n-1:
+            r = sprintf_4i(ss, "4\n%d\n%d\n%d\n%d", face.vertices[0],
+                                                    face.vertices[i],
+                                                    face.vertices[i+1],
+                                                    face.vertices[0])
+            PyList_Append(all, PyString_FromStringAndSize(ss, r))
+        return "\n".join(all)
+    # PyString_FromFormat is almost twice as slow
+    return PyString_FromStringAndSize(ss, r)
+
 
 
 
@@ -451,6 +490,51 @@ cdef class IndexFaceSet(PrimativeObject):
                 faces,
                 back_faces]
 
+    def jmol_repr(self, render_params):
+        """
+        TESTS:
+            sage: from sage.plot.plot3d.shapes import *
+            sage: S = Cylinder(1,1)
+            sage: s = S.pmesh(S.default_render_params())
+        """
+        cdef Transformation transform = render_params.transform
+        cdef Py_ssize_t i
+        cdef point_c res
+
+        _sig_on
+        if transform is None:
+            points = [format_pmesh_vertex(self.vs[i]) for i from 0 <= i < self.vcount]
+        else:
+            points = []
+            for i from 0 <= i < self.vcount:
+                transform.transform_point_c(&res, self.vs[i])
+                PyList_Append(points, format_pmesh_vertex(res))
+
+        faces = [format_pmesh_face(self._faces[i]) for i from 0 <= i < self.fcount]
+
+        # If a face has more than 4 vertices, it gets chopped up in format_pmesh_face
+        cdef Py_ssize_t extra_faces = 0
+        for i from 0 <= i < self.fcount:
+            if self._faces[i].n >= 5:
+                extra_faces += self._faces[i].n-3
+
+        _sig_off
+
+        all = [str(self.vcount),
+               points,
+               str(self.fcount + extra_faces),
+               faces]
+
+        from base import flatten_list
+        name = render_params.unique_name('obj')
+        filename = "%s-%s.pmesh" % (render_params.output_file, name)
+        f = open(filename, 'w')
+        all = flatten_list(all)
+        for line in all:
+            f.write(line)
+            f.write('\n')
+        f.close()
+        return ['pmesh %s "%s"\n%s' % (name, filename, self.texture.jmol_str("pmesh"))]
 
     def dual(self, **kwds):
 

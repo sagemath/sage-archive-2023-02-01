@@ -1868,21 +1868,33 @@ function set_attached_files_list(objects) {
     objlist.innerHTML = objects;
 }
 
+function CellWriter() {
+    function write(s) {
+        this.buffer += s;
+    }
+    this.write = write;
+    this.buffer = "";
+}
+
+var cell_writer = new CellWriter();
 
 function eval_script_tags(text) {
-   var s = text.replaceAll('\n','');
+   var s = text; //text.replaceAll('\n','');
    var i = s.indexOf('<'+'script>');
    while (i != -1) {
        var j = s.indexOf('<'+'/script>');
        var code = s.slice(8+i,j);
        try {
+           cell_writer.buffer = "";
            window.eval(code);
        } catch(e) {
            alert(e);
        }
-       s = s.slice(j+1);
+       s = s.slice(0,i) + cell_writer.buffer + s.slice(j+9);
        i = s.indexOf('<'+'script>');
+       if (confirm(s)) return s;
    }
+   return s;
 }
 
 function check_for_cell_update_callback(status, response_text) {
@@ -1931,12 +1943,15 @@ function check_for_cell_update_callback(status, response_text) {
     var D = response_text.slice(i+1).split(SEP);
     var output_text = D[0] + ' ';
     var output_text_wrapped = D[1] + ' ';
-    eval_script_tags(output_text)
     var output_html = D[2];
     var new_cell_input = D[3];
     var interrupted = D[4];
     var introspect_html = D[5];
     var j = id_of_cell_delta(id,1);
+
+
+    output_text = output_text.replace(/<script.*?>(.|\n|\r)*?<\/script>/gim, '&lt;script&gt;');
+    output_text_wrapped = eval_script_tags(output_text_wrapped);
 
     set_output_text(id, output_text, output_text_wrapped,
                     output_html, stat, introspect_html);

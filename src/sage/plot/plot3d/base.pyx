@@ -210,7 +210,7 @@ end_scene""" % (
             tachyon_rt(self.tachyon(**kwds), filename+".png", verbosity, True, opts)
             ext = "png"
             import sage.misc.viewer
-            viewer = sage.misc.viewer.browser()
+            viewer_app = sage.misc.viewer.browser()
         if DOCTEST_MODE or viewer=='java3d':
             f = open(filename+".obj", "w")
             f.write("mtllib %s.mtl\n" % filename)
@@ -220,12 +220,10 @@ end_scene""" % (
             f.write(self.mtl_str())
             f.close()
             ext = "obj"
-            viewer = sage.misc.misc.SAGE_LOCAL + "/java/java3d/start_viewer"
+            viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/java3d/start_viewer"
         if DOCTEST_MODE or viewer=='jmol':
             self.export_jmol(filename + ".jmol")
-            jmol_path = sage.misc.misc.SAGE_LOCAL + "/java/jmol/"
-            viewer = 'JMOL_HOME="%s"; echo $JMOL_HOME; export JMOL_HOME; %s/jmol' % (jmol_path, jmol_path)
-            viewer = sage.misc.misc.SAGE_LOCAL + "/java/jmol/jmol"
+            viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/jmol/jmol"
             ext = "jmol"
 
         if ext is None:
@@ -235,7 +233,7 @@ end_scene""" % (
                 pipes = "2>&1"
             else:
                 pipes = "2>/dev/null 1>/dev/null &"
-            os.system('%s "%s.%s" %s' % (viewer, filename, ext, pipes))
+            os.system('%s "%s.%s" %s' % (viewer_app, filename, ext, pipes))
 
 class Graphics3dGroup(Graphics3d):
     def __init__(self, all=[]):

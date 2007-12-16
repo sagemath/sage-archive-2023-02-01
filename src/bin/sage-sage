@@ -352,6 +352,13 @@ if [ $1 = '-python'  -o $1 = '--python' ]; then
     exit $?
 fi
 
+if [ $1 = '-R'  -o $1 = '--R' ]; then
+    cd "$CUR"
+    shift
+    R "$@"
+    exit $?
+fi
+
 if [ $1 = '-ipython'  -o $1 = '--ipython' ]; then
     cd "$CUR"
     shift

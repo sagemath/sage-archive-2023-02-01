@@ -2846,8 +2846,9 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLE:
             sage: M = random_matrix(CC, 4)
-            sage: M.visualize_structure()
+            sage: M.visualize_structure()           # not tested
 
+        WARNING -- the above *may* fail on some OSX systems due to some libpng.dylib issues.
         """
         import gd
         import os

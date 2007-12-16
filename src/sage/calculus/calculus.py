@@ -6142,7 +6142,7 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
             sage: f._maxima_init_()
             "'Gamma(w, theta)"
             sage: maxima(f(sqrt(2), theta+3))
-            'Gamma(theta+3,sqrt(2))
+            'Gamma(sqrt(2),theta+3)
         """
         try:
             return self.__maxima_init

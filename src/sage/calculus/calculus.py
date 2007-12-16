@@ -6162,13 +6162,13 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
 
         EXAMPLES:
             sage: f = function('Gamma', var('z'))
-            sage: mathematica(f)
+            sage: mathematica(f) # optional
             Gamma[z]
             sage: f = function('Gamma', var('w'), var('z')); f
             Gamma(w, z)
             sage: f._mathematica_init_()
             'Gamma[w, z]'
-            sage: mathematica(f(sqrt(2), z+1))
+            sage: mathematica(f(sqrt(2), z+1)) # optional
             Gamma[Sqrt[2], 1 + z]
         """
         n = self._f._name

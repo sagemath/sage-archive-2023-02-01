@@ -1210,6 +1210,8 @@ code = setup(name        = 'sage',
 
                      'sage.sets',
 
+                     'sage.stats',
+
                      'sage.schemes',
                      'sage.schemes.generic',
                      'sage.schemes.jacobians',

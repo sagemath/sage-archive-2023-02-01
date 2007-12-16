@@ -42,7 +42,7 @@ export FLINT_LINK_OPTIONS
 
 cd src
 
-make -Bj test
+make test
 ./mpn_extras-test
 ./ZmodF-test
 ./ZmodF_mul-test

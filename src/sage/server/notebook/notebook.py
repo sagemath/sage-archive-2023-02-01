@@ -1417,6 +1417,7 @@ class Notebook(SageObject):
 
         head +=' <script type="text/javascript" src="/javascript/sage3d.js"></script>\n'
         head +=' <script type="text/javascript" src="/java/jmol/appletweb/Jmol.js"></script>\n'
+        head +=' <script>jmolInitialize("/java/jmol");</script>\n' # this must stay in the <body>
         return head
 
     def html_worksheet_topbar(self, worksheet, select=None, username='guest'):

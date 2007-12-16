@@ -1892,7 +1892,6 @@ function eval_script_tags(text) {
        }
        s = s.slice(0,i) + cell_writer.buffer + s.slice(j+9);
        i = s.indexOf('<'+'script>');
-       if (confirm(s)) return s;
    }
    return s;
 }
@@ -1949,9 +1948,10 @@ function check_for_cell_update_callback(status, response_text) {
     var introspect_html = D[5];
     var j = id_of_cell_delta(id,1);
 
-
+    /* Evaluate javascript */
     output_text = output_text.replace(/<script.*?>(.|\n|\r)*?<\/script>/gim, '&lt;script&gt;');
     output_text_wrapped = eval_script_tags(output_text_wrapped);
+    output_html = eval_script_tags(output_html);
 
     set_output_text(id, output_text, output_text_wrapped,
                     output_html, stat, introspect_html);

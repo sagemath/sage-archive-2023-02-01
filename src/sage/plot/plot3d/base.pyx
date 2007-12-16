@@ -45,6 +45,7 @@ include "../../ext/python_list.pxi"
 
 import os
 from math import atan2
+from random import randint
 
 import sage.misc.misc
 
@@ -174,9 +175,10 @@ end_scene""" % (
         """
         return "\n".join(flatten_list([self.obj_repr(render_params), ""]))
 
-    def export_jmol(self, filename='jmol_shape.script'):
+    def export_jmol(self, filename='jmol_shape.script', force_reload=False):
         render_params = self.default_render_params()
         render_params.output_file = filename
+        render_params.force_reload = render_params.randomize_counter = force_reload
         f = open(filename, 'w')
         f.write("\n".join(flatten_list([self.jmol_repr(render_params), ""])))
         f.close()
@@ -222,7 +224,7 @@ end_scene""" % (
             ext = "obj"
             viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/java3d/start_viewer"
         if DOCTEST_MODE or viewer=='jmol':
-            self.export_jmol(filename + ".jmol")
+            self.export_jmol(filename + ".jmol", force_reload=EMBEDDED_MODE)
             viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/jmol/jmol"
             ext = "jmol"
 
@@ -415,6 +417,7 @@ class RenderParams(SageObject):
     """
     def __init__(self, **kwds):
         self._uniq_counter = 0
+        self.randomize_counter = 0
         self.obj_vertex_offset = 1
         self.transform_list = []
         self.transform = None
@@ -432,7 +435,10 @@ class RenderParams(SageObject):
         self.transform = self.transform_list.pop()
 
     def unique_name(self, desc="name"):
-        self._uniq_counter += 1
+        if self.randomize_counter:
+            self._uniq_counter = randint(1,1000000)
+        else:
+            self._uniq_counter += 1
         return "%s_%s" % (desc, self._uniq_counter)
 
 def flatten_list(L):

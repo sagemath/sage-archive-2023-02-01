@@ -212,7 +212,7 @@ end_scene""" % (
         f.write(self.mtl_str())
         f.close()
         if not DOCTEST_MODE and not EMBEDDED_MODE:
-            viewer = sage.misc.misc.SAGE_EXTCODE + "/notebook/java/3d/start_viewer"
+            viewer = sage.misc.misc.SAGE_LOCAL + "/java/java3d/start_viewer"
             os.system("%s %s.obj 2>/dev/null 1>/dev/null &"%(viewer, filename))
 
 

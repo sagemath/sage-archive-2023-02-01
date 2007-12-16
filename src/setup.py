@@ -310,12 +310,8 @@ matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
                               libraries = ['gmp'])
 
 matrix_mod2_dense = Extension('sage.matrix.matrix_mod2_dense',
-                              ['sage/matrix/matrix_mod2_dense.pyx',
-                               'sage/libs/m4ri/packedmatrix.c',
-                               'sage/libs/m4ri/matrix.c',
-                               'sage/libs/m4ri/brilliantrussian.c',
-                               'sage/libs/m4ri/grayflex.c',],
-                              libraries = ['gmp'])
+                              ['sage/matrix/matrix_mod2_dense.pyx'],
+                              libraries = ['gmp','m4ri'])
 
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])

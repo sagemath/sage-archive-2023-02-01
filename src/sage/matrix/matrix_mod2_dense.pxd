@@ -1,6 +1,6 @@
 # choose: dense or sparse
 
-cdef extern from "../libs/m4ri/m4ri.h":
+cdef extern from "m4ri/m4ri.h":
     ctypedef struct packedmatrix:
         void *values
         int rows

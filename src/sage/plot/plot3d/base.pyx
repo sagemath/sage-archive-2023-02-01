@@ -396,6 +396,7 @@ class RenderParams(SageObject):
     """
     def __init__(self, **kwds):
         self._uniq_counter = 0
+        self.output_file = sage.misc.misc.tmp_filename()
         self.obj_vertex_offset = 1
         self.transform_list = []
         self.transform = None

@@ -493,9 +493,10 @@ cdef class IndexFaceSet(PrimativeObject):
     def jmol_repr(self, render_params):
         """
         TESTS:
-            sage: from sage.plot.plot3d.shapes import *
-            sage: S = Cylinder(1,1)
-            sage: s = S.pmesh(S.default_render_params())
+          sage: from sage.plot.plot3d.shapes import *
+          sage: S = Cylinder(1,1)
+          sage: S.jmol_repr(S.default_render_params())
+          ['pmesh obj_1 ...]
         """
         cdef Transformation transform = render_params.transform
         cdef Py_ssize_t i

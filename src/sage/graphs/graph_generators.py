@@ -2726,13 +2726,13 @@ class GraphGenerators():
 
         Generate all bipartite graphs on up to 7 vertices:
             sage: L = list( graphs(7, lambda G: G.is_bipartite(), augment='vertices') )
-            sage: len(L)
+            sage: len(L)        #   random, due to NetworkX bug: see https://networkx.lanl.gov/ticket/132
             133
 
         Generate all bipartite graphs on exactly 8 vertices:
             sage: L = list( graphs(8, lambda G: G.is_bipartite()) )
-            sage: len(L)
-            142
+            sage: len(L)        #   random, due to NetworkX bug: see https://networkx.lanl.gov/ticket/132
+            143
 
         Sloane A000088:
             sage: for i in range(0, 7):
@@ -2842,7 +2842,7 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property):
 
     Generate all bipartite graphs on up to 7 vertices:
         sage: L = list( graphs(7, lambda G: G.is_bipartite(), augment='vertices') )
-        sage: len(L)
+        sage: len(L)        #   random, due to NetworkX bug: see https://networkx.lanl.gov/ticket/132
         133
 
     """
@@ -2984,7 +2984,7 @@ def canaug_traverse_edge(g, aut_gens, property):
 
     Generate all bipartite graphs on 7 vertices:
         sage: L = list( graphs(7, lambda G: G.is_bipartite()) )
-        sage: len(L)
+        sage: len(L)        #   random, due to NetworkX bug: see https://networkx.lanl.gov/ticket/132
         29
 
     """

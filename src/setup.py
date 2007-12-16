@@ -871,6 +871,10 @@ ext_modules = [ \
               ['sage/graphs/bruhat_sn.pyx']
               ), \
 
+    Extension('sage.coding.binary_code',
+              ['sage/coding/binary_code.pyx']
+              ), \
+
 
     Extension('sage.plot.plot3d.base',
               ['sage/plot/plot3d/base.pyx']

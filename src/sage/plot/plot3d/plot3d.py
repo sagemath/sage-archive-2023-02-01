@@ -50,6 +50,7 @@ from sage.plot.tri_plot import TrianglePlot
 from index_face_set import IndexFaceSet
 from shapes import Arrow
 from base import Graphics3dGroup
+from sage.plot.plot import rainbow
 
 class TrivialTriangleFactory:
     def triangle(self, a, b, c, color = None):
@@ -58,9 +59,22 @@ class TrivialTriangleFactory:
         return [a,b,c]
 
 
-def plot3d(f,(xmin,xmax),(ymin,ymax),texture,grad_f=None,
-              max_bend=.7,max_depth=5,initial_depth=3, num_colors=None):
+def plot3d(f,(xmin,xmax),(ymin,ymax),texture=None,grad_f=None,
+           max_bend=.7,max_depth=5,initial_depth=3, num_colors=None):
+    """
+    EXAMPLES:
 
+
+    """
+    # Check if f has a fast float evaluation
+    try:
+        f = f.fast_float_function()
+    except AttributeError:
+        # Nope -- no prob.
+        pass
+
+    if texture is None:
+        texture = rainbow(100, 'rgbtuple')
     factory = TrivialTriangleFactory()
     plot = TrianglePlot(factory, f, (xmin, xmax), (ymin, ymax), g = grad_f,
                          min_depth=initial_depth, max_depth=max_depth, max_bend=max_bend, num_colors = num_colors)

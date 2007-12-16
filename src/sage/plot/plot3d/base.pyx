@@ -68,9 +68,10 @@ cdef class Graphics3d(SageObject):
 
 
     def __add__(self, other):
-        if other is 0 or other is None:
+        # Use == not "other is 0" here, since e.g., Sage integer zero is not 0.
+        if other == 0 or other is None:
             return self
-        elif self is 0 or self is None:
+        elif self == 0 or self is None:
             return other
         return Graphics3dGroup([self, other])
 
@@ -175,16 +176,33 @@ end_scene""" % (
         """
         return "\n".join(flatten_list([self.obj_repr(render_params), ""]))
 
-    def export_jmol(self, filename='jmol_shape.script', force_reload=False):
+    def export_jmol(self, filename='jmol_shape.jmol', force_reload=False, zoom=100, spin=False):
         render_params = self.default_render_params()
         render_params.output_file = filename
         render_params.force_reload = render_params.randomize_counter = force_reload
         f = open(filename, 'w')
+        # Set the scene background color
+        f.write('background [%s,%s,%s]\n'%tuple([int(a*255) for a in self.background_color()]))
+        if spin:
+            f.write('spin ON\n')
+        else:
+            f.write('spin OFF\n')
+        f.write('zoom %s\n'%zoom)
+
+        # Put the rest of the object in
         f.write("\n".join(flatten_list([self.jmol_repr(render_params), ""])))
         f.close()
 
     def jmol_repr(self, render_params):
         raise NotImplementedError
+
+    def background_color(self):
+        if self.__background is None:
+            self.__background = (1,1,1)
+        return self.__background
+
+    def set_background_color(self, rgb):
+        self.__background = rgb
 
     def texture_set(self):
         return set()
@@ -198,7 +216,15 @@ end_scene""" % (
         else:
             return self.transform(T=T)
 
-    def show(self, viewer="java3d", filename="shape", verbosity=0, **kwds):
+    def show(self, viewer="jmol", filename="shape", verbosity=0, figsize=4, **kwds):
+        """
+        INPUT:
+            figsize -- (default: 4); x or pair [x,y] for numbers, e.g., [4,4]; controls
+                       the size of the output figure
+
+        """
+        if not isinstance(figsize, (list,tuple)):
+            figsize = [figsize, figsize]
         from sage.plot.plot import EMBEDDED_MODE, DOCTEST_MODE
         import sage.misc.misc
         ext = None
@@ -223,8 +249,12 @@ end_scene""" % (
             f.close()
             ext = "obj"
             viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/java3d/start_viewer"
+
         if DOCTEST_MODE or viewer=='jmol':
-            self.export_jmol(filename + ".jmol", force_reload=EMBEDDED_MODE)
+            # Encode the desired applet size in the end of the filename:
+            base, ext = os.path.splitext(filename)
+            filename = '%s-size%s%s'%(base, figsize[0]*100, ext)
+            self.export_jmol(filename + ".jmol", force_reload=EMBEDDED_MODE, **kwds)
             viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/jmol/jmol"
             ext = "jmol"
 
@@ -398,6 +428,11 @@ class BoundingSphere(SageObject):
     def __repr__(self):
         return "Center %s radius %s" % (self.cen, self.r)
     def __add__(self, other):
+        # Use == not "other is 0" here, since e.g., Sage integer zero is not 0.
+        if other == 0 or other is None:
+            return self
+        elif self == 0 or self is None:
+            return other
         if self.cen == other.cen:
             return self if self.r > other.r else other
         diff = other.cen - self.cen

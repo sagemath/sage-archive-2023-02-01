@@ -1,14 +1,17 @@
-*2007-11-13: (mabshoff)
- * Apply Clement Pernet's charpoly leak fix, i.e. the dreaded BLAS:MatrixHom
+* 2007-12-16 (mabshoff)
+ + detect internal ATLAS and link against it per default on non-OSX
+
+* 2007-11-13: (mabshoff)
+ + Apply Clement Pernet's charpoly leak fix, i.e. the dreaded BLAS:MatrixHom
 
 *2007-10-29: (mabshoff)
 
-  * added fix for #1026
-  * add "-g" to CXXFLAGS and CFLAGS for better valgrind output
-  * add .hgignore
-  * add all under patches and linbox_wrap to hg repo
+  + added fix for #1026
+  + add "-g" to CXXFLAGS and CFLAGS for better valgrind output
+  + add .hgignore
+  + add all under patches and linbox_wrap to hg repo
 
-*2007-09-03: merged LinBox ChangeSet 2803, which fixes #498 without the
+* 2007-09-03: merged LinBox ChangeSet 2803, which fixes #498 without the
              performance regression of the initial workaround
              (mabshoff)
 

@@ -32,23 +32,23 @@ elif [ $UNAME = "Darwin" -a -f "/usr/lib/libcblas.dylib" ]; then
 
     LINBOX_BLAS=/usr/lib/libcblas.dylib
 
-elif [ $UNAME = "Linux" -a -f "/usr/lib/libcblas.so" ]; then
+elif [ $UNAME = "Linux" -a -f "${SAGE_LOCAL}/lib/libcblas.so" ]; then
 
     echo "Linux cblas"
 
-    LINBOX_BLAS=/usr/lib/libcblas.so
+    LINBOX_BLAS="-lcblas -latlas"
 
-elif [ $UNAME = "Linux" -a -f "/usr/lib/libcblas.so.3" ]; then
+elif [ $UNAME = "Linux" -a -f "${SAGE_LCOAL}/lib/libcblas.so.3" ]; then
 
     echo "Linux cblas"
 
     LINBOX_BLAS=/usr/lib/libcblas.so.3
 
-elif [ $UNAME = "SunOS" -a -f "/usr/lib/libcblas.so" ]; then
+elif [ $UNAME = "SunOS" -a -f "${SAGE_LOCAL}/lib/libcblas.so" ]; then
 
     echo "Solaris cblas"
 
-    LINBOX_BLAS=/usr/lib/libcblas.so
+    LINBOX_BLAS="-lcblas -latlas"
 
 else
     echo "WARNING WARNING"
@@ -69,6 +69,10 @@ else
     fi
 
 fi
+
+echo "*************************************************"
+echo " Using LINBOX_BLAS=$LINBOX_BLAS"
+echo "*************************************************"
 
 if [ $UNAME = "SunOS" ]; then
    OPT="--enable-optimization=false"

@@ -196,25 +196,46 @@ end_scene""" % (
         else:
             return self.transform(T=T)
 
-    def show(self, filename="shape", verbosity=0, **kwds):
+    def show(self, viewer="java3d", filename="shape", verbosity=0, **kwds):
         from sage.plot.plot import EMBEDDED_MODE, DOCTEST_MODE
+        import sage.misc.misc
+        ext = None
         if DOCTEST_MODE:
             opts = '-res 10 10'
             filename = sage.misc.misc.SAGE_TMP + "/tmp"
         else:
             opts = ''
-        tachyon_rt(self.tachyon(**kwds), filename+".png", verbosity, True, opts)
-        f = open(filename+".obj", "w")
-        f.write("mtllib %s.mtl\n" % filename)
-        f.write(self.obj())
-        f.close()
-        f = open(filename+".mtl", "w")
-        f.write(self.mtl_str())
-        f.close()
-        if not DOCTEST_MODE and not EMBEDDED_MODE:
-            viewer = sage.misc.misc.SAGE_LOCAL + "/java/java3d/start_viewer"
-            os.system("%s %s.obj 2>/dev/null 1>/dev/null &"%(viewer, filename))
 
+        if DOCTEST_MODE or viewer=='tachyon' or (viewer=='java3d' and EMBEDDED_MODE):
+            tachyon_rt(self.tachyon(**kwds), filename+".png", verbosity, True, opts)
+            ext = "png"
+            import sage.misc.viewer
+            viewer = sage.misc.viewer.browser()
+        if DOCTEST_MODE or viewer=='java3d':
+            f = open(filename+".obj", "w")
+            f.write("mtllib %s.mtl\n" % filename)
+            f.write(self.obj())
+            f.close()
+            f = open(filename+".mtl", "w")
+            f.write(self.mtl_str())
+            f.close()
+            ext = "obj"
+            viewer = sage.misc.misc.SAGE_LOCAL + "/java/java3d/start_viewer"
+        if DOCTEST_MODE or viewer=='jmol':
+            self.export_jmol(filename + ".jmol")
+            jmol_path = sage.misc.misc.SAGE_LOCAL + "/java/jmol/"
+            viewer = 'JMOL_HOME="%s"; echo $JMOL_HOME; export JMOL_HOME; %s/jmol' % (jmol_path, jmol_path)
+            viewer = sage.misc.misc.SAGE_LOCAL + "/java/jmol/jmol"
+            ext = "jmol"
+
+        if ext is None:
+            raise ValueError, "Unknown 3d plot type: %s" % viewer
+        if not DOCTEST_MODE and not EMBEDDED_MODE:
+            if verbosity:
+                pipes = "2>&1"
+            else:
+                pipes = "2>/dev/null 1>/dev/null &"
+            os.system('%s "%s.%s" %s' % (viewer, filename, ext, pipes))
 
 class Graphics3dGroup(Graphics3d):
     def __init__(self, all=[]):

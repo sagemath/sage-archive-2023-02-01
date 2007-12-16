@@ -16,6 +16,9 @@ from Cython.Distutils import build_ext
 if os.environ.has_key('SAGE_BLAS'):
     BLAS=os.environ['SAGE_BLAS']
     BLAS2=os.environ['SAGE_BLAS']
+elif os.path.exists('%s/lib/libatlas.so'%os.environ['SAGE_LOCAL']):
+    BLAS='cblas'
+    BLAS2='atlas'
 elif os.path.exists('/usr/lib/libcblas.dylib') or \
      os.path.exists('/usr/lib/libcblas.so'):
     BLAS='cblas'
@@ -341,7 +344,7 @@ matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                   libraries = ['iml', 'gmp', 'm', BLAS, BLAS2])  # order matters for cygwin!!
 
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
-   ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl', BLAS, BLAS2],
+   ['sage/matrix/matrix_real_double_dense.pyx'],libraries=[BLAS, BLAS2, 'gsl'],
    define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 matrix_complex_double_dense=Extension('sage.matrix.matrix_complex_double_dense',

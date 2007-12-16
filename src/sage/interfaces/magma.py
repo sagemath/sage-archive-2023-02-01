@@ -253,6 +253,19 @@ class Magma(Expect):
             raise AttributeError
         return MagmaFunction(self, attrname)
 
+    def chdir(self, dir):
+        """
+        Change the Magma interpreters current working directory.
+
+        EXAMPLES:
+            sage: magma.eval('System("pwd")')   # optional and random
+            '/Users/was/s/devel/sage-main/sage'
+            sage: magma.chdir('..')             # optional
+            sage: magma.eval('System("pwd")')   # optional and random
+            '/Users/was/s/devel/sage-main'
+        """
+        self.eval('ChangeDirectory("%s")'%dir, strip=False)
+
     def eval(self, x, strip=True):
         """
         INPUT:
@@ -316,6 +329,8 @@ class Magma(Expect):
             Variables: x, y, z
         """
         if gens is None:
+            if isinstance(x, bool):
+                return Expect.__call__(self, str(x).lower())
             return Expect.__call__(self, x)
         return self.objgens(x, gens)
 
@@ -346,7 +361,7 @@ class Magma(Expect):
         Attaching a file in MAGMA makes all intrinsics defined in the
         file available to the shell.  Moreover, if the file doesn't
         start with the \code{freeze;} command, then the file is
-        reloaded whenver it is changed.  Note that functions and
+        reloaded whenever it is changed.  Note that functions and
         procedures defined in the file are \emph{not} available.
         For only those, use \code{magma.load(filename)}.
         """
@@ -399,7 +414,7 @@ class Magma(Expect):
         if len(params) == 0:
             par = ''
         else:
-            par = ' : ' + ','.join(['%s:=%s'%(a,b) for a,b in params.items()])
+            par = ' : ' + ','.join(['%s:=%s'%(a,self(b)) for a,b in params.items()])
 
         fun = "%s(%s%s)"%(function, ",".join([s.name() for s in args]), par)
         if nvals <= 0:
@@ -899,6 +914,11 @@ class MagmaElement(ExpectElement):
             Y = [x for x in X if tt in x]
         return Y
 
+    def __nonzero__(self):
+        try:
+            return not self.parent()("%s eq 0"%self.name()).bool()
+        except TypeError:
+            return self.bool()
 
 magma = Magma()
 

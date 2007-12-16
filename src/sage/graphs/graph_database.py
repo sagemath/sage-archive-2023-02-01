@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 Graph Database Module
 
 INFO:
@@ -1294,7 +1294,7 @@ class GraphDatabase(GenericSQLDatabase):
             ...             FROM graph_data INNER JOIN misc on \
             ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
-            sage: G.display_all(query=S)
+            sage: G.display_all(query=S)             # long time
             <html>...
         """
         from sage.plot.plot import plot
@@ -1309,6 +1309,9 @@ class GraphDatabase(GenericSQLDatabase):
             # Deal only with the string:
             param = query.__param_tuple__
             query = query.__query_string__
+            query = re.sub('INNER JOIN .* WHERE','INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('FROM .* WHERE','FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('SELECT .* FROM', 'SELECT graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs FROM',query)
 
         cur = (self.__connection__).cursor()
         if param is None:
@@ -1334,18 +1337,16 @@ class GraphDatabase(GenericSQLDatabase):
         print "<html>"
         print '<table bgcolor=lightgrey cellpadding=0>'
 
-        for i in range(len(b)):
-            # TODO: this line is a HACK to get around something
-            # being broken with the database/query system.
-            b[i] = tuple(list(b[i]) + ['?']*100)
+        from sage.misc.multireplace import multiple_replace
+        to_bool = {'0':"False", '1':"True"}
 
-            c = b[i]
-            eul = format(c, 13)
-            reg = format(c, 2)
-            plan = format(c, 16)
-            perf = format(c, 19)
-            vtran = format(c, 12)
-            etran = format(c, 15)
+        for i in range(len(b)):
+            eul = multiple_replace(to_bool,'%s'%b[i][13])
+            reg = multiple_replace(to_bool,'%s'%b[i][2])
+            plan = multiple_replace(to_bool,'%s'%b[i][16])
+            perf = multiple_replace(to_bool,'%s'%b[i][19])
+            vtran = multiple_replace(to_bool,'%s'%b[i][12])
+            etran = multiple_replace(to_bool,'%s'%b[i][15])
 
             print '<tr><td bgcolor=white align=center rowspan="7"><img src="cell://%s.png"><br>%s</td>'%(i,graph6list[i])
             print '<td bgcolor=white align=left><font color=black> Vertices: %s </font></td>'%(b[i][1])
@@ -1591,8 +1592,7 @@ class GraphDatabase(GenericSQLDatabase):
             ...             FROM graph_data INNER JOIN misc on \
             ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
-            sage: G.display_tables(query=S, \
-            ...             tables=['graph_data','misc','spectrum','degrees','aut_grp'])
+            sage: G.display_tables(query=S, tables=['graph_data','misc','spectrum','degrees','aut_grp'])  # long time
             <html>...
         """
         from sage.plot.plot import plot
@@ -1607,6 +1607,9 @@ class GraphDatabase(GenericSQLDatabase):
             # Deal only with the string:
             param = query.__param_tuple__
             query = query.__query_string__
+            query = re.sub('INNER JOIN .* WHERE','INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('FROM .* WHERE','FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('SELECT .* FROM','SELECT graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs FROM',query)
 
         cur = (self.__connection__).cursor()
         if param is None:
@@ -1638,19 +1641,16 @@ class GraphDatabase(GenericSQLDatabase):
             elif ( tables[j] == 'graph_data' ): rows += 3
             elif ( tables[j] == 'aut_grp' or tables[j] == 'degrees' or tables[j] == 'spectrum' ): rows += 2
 
-        for i in range(len(b)):
-            # TODO: this line is a HACK to get around something
-            # being broken with the database/query system.
-            b[i] = tuple(list(b[i]) + ['?']*100)
+        from sage.misc.multireplace import multiple_replace
+        to_bool = {'0':"False", '1':"True"}
 
-            # do normal thing
-            c = b[i]
-            eul = format(c, 13)
-            reg = format(c, 2)
-            plan = format(c, 16)
-            perf = format(c, 19)
-            vtran = format(c, 12)
-            etran = format(c, 15)
+        for i in range(len(b)):
+            eul = multiple_replace(to_bool,'%s'%b[i][13])
+            reg = multiple_replace(to_bool,'%s'%b[i][2])
+            plan = multiple_replace(to_bool,'%s'%b[i][16])
+            perf = multiple_replace(to_bool,'%s'%b[i][19])
+            vtran = multiple_replace(to_bool,'%s'%b[i][12])
+            etran = multiple_replace(to_bool,'%s'%b[i][15])
 
             print '<tr><td bgcolor=white align=center rowspan="%d"><img src="cell://%s.png"><br>%s</td>'%(rows,i,graph6list[i])
             top_row = True
@@ -1916,8 +1916,7 @@ class GraphDatabase(GenericSQLDatabase):
             ...             FROM graph_data INNER JOIN misc on \
             ...             misc.graph_id=graph_data.graph_id WHERE \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
-            sage: graphs_query.display_properties(query=S, \
-            ...             properties=['induced_subgraphs'])
+            sage: graphs_query.display_properties(query=S, properties=['induced_subgraphs']) # long time
             <html>...
         """
         from sage.plot.plot import plot
@@ -1932,6 +1931,9 @@ class GraphDatabase(GenericSQLDatabase):
             # Deal only with the string:
             param = query.__param_tuple__
             query = query.__query_string__
+            query = re.sub('INNER JOIN .* WHERE','INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('FROM .* WHERE','FROM graph_data INNER JOIN aut_grp on aut_grp.graph_id=graph_data.graph_id INNER JOIN degrees on degrees.graph_id=graph_data.graph_id INNER JOIN misc on misc.graph_id=graph_data.graph_id INNER JOIN spectrum on spectrum.graph_id=graph_data.graph_id WHERE',query)
+            query = re.sub('SELECT .* FROM','SELECT graph_data.graph6,graph_data.num_vertices,degrees.regular,aut_grp.aut_grp_size,graph_data.num_edges,degrees.min_degree,aut_grp.num_orbits,graph_data.num_cycles,degrees.max_degree,aut_grp.num_fixed_points,graph_data.num_hamiltonian_cycles,degrees.average_degree,aut_grp.vertex_transitive,graph_data.eulerian,degrees.degrees_sd,aut_grp.edge_transitive,graph_data.planar,degrees.degree_sequence,misc.vertex_connectivity,graph_data.perfect,spectrum.min_eigenvalue,misc.edge_connectivity,graph_data.lovasz_number,misc.girth,spectrum.max_eigenvalue,misc.num_cut_vertices,misc.independence_number,misc.radius,spectrum.eigenvalues_sd,misc.min_vertex_cover_size,misc.clique_number,misc.diameter,spectrum.energy,misc.num_spanning_trees,misc.num_components,graph_data.complement_graph6,spectrum.spectrum,misc.induced_subgraphs FROM',query)
 
         cur = (self.__connection__).cursor()
         if param is None:
@@ -1974,20 +1976,16 @@ class GraphDatabase(GenericSQLDatabase):
         print "<html>"
         print '<table bgcolor=lightgrey cellpadding=0>'
 
+        from sage.misc.multireplace import multiple_replace
         to_bool = {'0':"False", '1':"True"}
 
         for i in range(len(b)):
-            # TODO: this line is a HACK to get around something
-            # being broken with the database/query system.
-            b[i] = tuple(list(b[i]) + ['?']*100)
-
-            c = b[i]
-            eul = format(c, 13)
-            reg = format(c, 2)
-            plan = format(c, 16)
-            perf = format(c, 19)
-            vtran = format(c, 12)
-            etran = format(c, 15)
+            eul = multiple_replace(to_bool,'%s'%b[i][13])
+            reg = multiple_replace(to_bool,'%s'%b[i][2])
+            plan = multiple_replace(to_bool,'%s'%b[i][16])
+            perf = multiple_replace(to_bool,'%s'%b[i][19])
+            vtran = multiple_replace(to_bool,'%s'%b[i][12])
+            etran = multiple_replace(to_bool,'%s'%b[i][15])
 
             print '<tr><td bgcolor=white align=center rowspan="%d"><img src="cell://%s.png"><br>%s</td>'%(rows,i,graph6list[i])
 
@@ -2724,3 +2722,55 @@ def format(b, j):
         return multiple_replace(to_bool, str(b[13]))
     except IndexError:
         return "?"
+
+# A Full display_all query, for thorough doctesting
+"""
+EXAMPLE:
+    sage: G = GraphDatabase()
+    sage: G.display_all(num_vertices=5,lovasz_number=3.0,\
+    ...                             girth=4,radius=2,diameter=3)
+    <html>
+    <table bgcolor=lightgrey cellpadding=0>
+    <tr><td bgcolor=white align=center rowspan="7"><img src="cell://0.png"><br>DIk</td>
+    <td bgcolor=white align=left><font color=black> Vertices: 5 </font></td>
+    <td bgcolor=white align=left><font color=black> Regular: False </font></td>
+    <td bgcolor=white align=left><font color=black> Aut Group Size: 2 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Edges: 5 </font></td>
+    <td bgcolor=white align=left><font color=black> Min Degree: 1 </font></td>
+    <td bgcolor=white align=left><font color=black> Orbits: 4 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Cycles: 1 </font></td>
+    <td bgcolor=white align=left><font color=black> Max Degree: 3 </font></td>
+    <td bgcolor=white align=left><font color=black> Fixed Points: 3 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Hamiltonian Cycles: 0 </font></td>
+    <td bgcolor=white align=left><font color=black> Average Degree: 2.0 </font></td>
+    <td bgcolor=white align=left><font color=black> Vertex Transitive: False </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Eulerian: False </font></td>
+    <td bgcolor=white align=left><font color=black> Degree SD: 0.632456 </font></td>
+    <td bgcolor=white align=left><font color=black> Edge Transitive: False </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Planar: True </font></td>
+    <td bgcolor=white align=left><font color=black> Degree Sequence: 32221 </font></td>
+    <td bgcolor=white align=left><font color=black> Vertex Connectivity: 1 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Perfect: True </font></td>
+    <td bgcolor=white align=left><font color=black> Min Eigenvalue: -2.13578 </font></td>
+    <td bgcolor=white align=left><font color=black> Edge Connectivity: 1 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Lovasz Number: 3.0 </font></td>
+    <td bgcolor=white align=left><font color=black> Girth: 4 </font></td>
+    <td bgcolor=white align=left><font color=black> Max Eigenvalue: 2.13578 </font></td>
+    <td bgcolor=white align=left><font color=black> Cut Vertices: 1 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Independence Number: 3 </font></td>
+    <td bgcolor=white align=left><font color=black> Radius: 2 </font></td>
+    <td bgcolor=white align=left><font color=black> Eigenvalues SD: 1.41421 </font></td>
+    <td bgcolor=white align=left><font color=black> Min Vertex Cover Size: 2 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Clique Number: 2 </font></td>
+    <td bgcolor=white align=left><font color=black> Diameter: 3 </font></td>
+    <td bgcolor=white align=left><font color=black> Energy: 5.59587 </font></td>
+    <td bgcolor=white align=left><font color=black> Spanning Trees: 4 </font></td>
+    </tr><tr><td bgcolor=white align=left><font color=black> Components: 1 </font></td>
+    <td bgcolor=white align=left><font color=black> Complement: DK[ </font></td>
+    <td bgcolor=white align=left colspan="2"><font color=black> Spectrum: 2.13578, 0.662153, 0, -0.662153, -2.13578 </font></td>
+    </tr><tr><td bgcolor=white align=left colspan="4"><font color=black> Induced Subgraphs: DIk, C], CL, CF, CB, BW, BG, B?, A_, A?, @ </font></td></tr>
+    </table></html>
+
+"""
+
+

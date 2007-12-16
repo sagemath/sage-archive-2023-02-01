@@ -1,11 +1,11 @@
 #ifdef __cplusplus
 /* The order here is very important. */
-#include "mwrank/curve.h"
-#include "mwrank/egr.h"
-#include "mwrank/descent.h"
-#include "mwrank/points.h"
-#include "mwrank/isogs.h"
-#include "mwrank/marith.h"
+#include "cremona/curve.h"
+#include "cremona/egr.h"
+#include "cremona/descent.h"
+#include "cremona/points.h"
+#include "cremona/isogs.h"
+#include "cremona/marith.h"
 #endif
 
 #ifdef __cplusplus

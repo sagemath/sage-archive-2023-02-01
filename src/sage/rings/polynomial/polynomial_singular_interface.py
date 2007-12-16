@@ -6,7 +6,7 @@ AUTHORS:
      -- Robert Bradshaw: Re-factor to avoid multiple inheritance vs. Cython (2007-09)
 
 TESTS:
-    sage: R = MPolynomialRing(GF(2**8,'a'),10,'x', order='revlex')
+    sage: R = MPolynomialRing(GF(2**8,'a'),10,'x', order='invlex')
     sage: R == loads(dumps(R))
     True
     sage: P.<a,b> = PolynomialRing(GF(7), 2)
@@ -71,7 +71,7 @@ class PolynomialRing_singular_repr:
             singular ring matching this ring
 
         EXAMPLES:
-            sage: r = MPolynomialRing(GF(2**8,'a'),10,'x', order='revlex')
+            sage: r = MPolynomialRing(GF(2**8,'a'),10,'x', order='invlex')
             sage: r._singular_()
             //   characteristic : 2
             //   1 parameter    : a
@@ -80,14 +80,14 @@ class PolynomialRing_singular_repr:
             //        block   1 : ordering rp
             //                  : names    x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
             //        block   2 : ordering C
-            sage: r = MPolynomialRing(GF(127),2,'x', order='revlex')
+            sage: r = MPolynomialRing(GF(127),2,'x', order='invlex')
             sage: r._singular_()
             //   characteristic : 127
             //   number of vars : 2
             //        block   1 : ordering rp
             //                  : names    x0 x1
             //        block   2 : ordering C
-            sage: r = MPolynomialRing(QQ,2,'x', order='revlex')
+            sage: r = MPolynomialRing(QQ,2,'x', order='invlex')
             sage: r._singular_()
             //   characteristic : 0
             //   number of vars : 2
@@ -164,8 +164,10 @@ class PolynomialRing_singular_repr:
             if sage.rings.ring.is_FiniteField(self.base_ring()) or\
                     number_field.all.is_NumberField(self.base_ring()):
                 R.set_ring() #sorry for that, but needed for minpoly
-                if  singular.eval('minpoly') != self.__minpoly:
+                if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
                     singular.eval("minpoly=%s"%(self.__minpoly))
+                    self.__minpoly = singular.eval('minpoly')[1:-1]
+
             return R
         except (AttributeError, ValueError):
             return self._singular_init_(singular, force)
@@ -217,10 +219,13 @@ class PolynomialRing_singular_repr:
             # not the prime field!
             gen = str(self.base_ring().gen())
             r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
-            self.__minpoly = "("+(str(self.base_ring().modulus()).replace("x",gen)).replace(" ","")+")"
-            singular.eval("minpoly=%s"%(self.__minpoly) )
+            self.__minpoly = (str(self.base_ring().modulus()).replace("x",gen)).replace(" ","")
+            if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
+                singular.eval("minpoly=%s"%(self.__minpoly) )
+                self.__minpoly = singular.eval('minpoly')[1:-1]
 
             self.__singular = r
+
         elif number_field.all.is_NumberField(self.base_ring()):
             # not the rationals!
             gen = str(self.base_ring().gen())
@@ -228,11 +233,12 @@ class PolynomialRing_singular_repr:
             poly_gen=str(poly.parent().gen())
             poly_str=str(poly).replace(poly_gen,gen)
             r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
-            self.__minpoly = "("+(poly_str).replace(" ","")+")"
-            singular.eval("minpoly=%s"%(self.__minpoly) )
+            self.__minpoly = (poly_str).replace(" ","")
+            if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
+                singular.eval("minpoly=%s"%(self.__minpoly) )
+                self.__minpoly = singular.eval('minpoly')[1:-1]
 
             self.__singular = r
-
 
         else:
             raise TypeError, "no conversion to a Singular ring defined"

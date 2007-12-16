@@ -1154,7 +1154,7 @@ div.cell_div_output_running:hover {
 
 
 div.cell_div_output_hidden {
-  */ width: 100%;*/
+  width: 100%;
   height: 3px;
   margin:0px;
   border-left: 4em solid #aaaaaa;

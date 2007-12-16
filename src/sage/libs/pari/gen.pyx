@@ -43,6 +43,14 @@ include 'pari_err.pxi'
 include 'setlvalue.pxi'
 include '../../ext/stdsage.pxi'
 
+cdef extern from "convert.h":
+    cdef void ZZ_to_t_INT( GEN *g, mpz_t value )
+
+# Make sure we don't use mpz_t_offset before initializing it by
+# putting in a value that's likely to provoke a segmentation fault,
+# rather than silently corrupting memory.
+cdef long mpz_t_offset = 1000000000
+
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
 #pari_instance = PariInstance(200000000, 500000)
@@ -91,6 +99,20 @@ cdef t3GEN(x):
 cdef t4GEN(x):
     global t4
     t4 = P.toGEN(x, 4)
+
+cdef object Integer
+
+cdef void late_import():
+    global Integer
+
+    if Integer is not None:
+        return
+
+    import sage.rings.integer
+    Integer = sage.rings.integer.Integer
+
+    global mpz_t_offset
+    mpz_t_offset = sage.rings.integer.mpz_t_offset_python
 
 cdef class gen(sage.structure.element.RingElement):
     """
@@ -484,15 +506,15 @@ cdef class gen(sage.structure.element.RingElement):
                         \code{tmp = v[i]; tmp[j] = x    }
 
             \item The indexing is 0-based, like everywhere else in Python, but
-               {\em unlike} in GP/PARI.
+               \emph{unlike} in GP/PARI.
 
             \item Assignment sets the nth entry to a reference to y,
                assuming y is an object of type gen.  This is the same
-               as in Python, but {\em different} than what happens in the
+               as in Python, but \emph{different} than what happens in the
                gp interpreter, where assignment makes a copy of y.
 
-            \item Because setting creates references it is {\em possible} to
-               make circular references, unlike in GP.  Do {\em not} do
+            \item Because setting creates references it is \emph{possible} to
+               make circular references, unlike in GP.  Do \emph{not} do
                this (see the example below).  If you need circular
                references, work at the Python level (where they work
                well), not the PARI object level.
@@ -3772,7 +3794,7 @@ cdef class gen(sage.structure.element.RingElement):
         weight 2 newform.
 
         \begin{notice}
-        The curve $e$ {\em must} be a medium or long vector of the type given
+        The curve $e$ \emph{must} be a medium or long vector of the type given
         by ellinit. For this function to work for every n and not just
         those prime to the conductor, e must be a minimal Weierstrass
         equation. If this is not the case, use the function
@@ -5562,12 +5584,11 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         initialized = 1
         stack_avma = avma
         num_primes = maxprime
-        self.ZERO = self(0)    # todo: gen_0
-        self.ONE = self(1)
-        self.TWO = self(2)
+        self.ZERO = self.new_gen(gen_0)
+        self.ONE = self.new_gen(gen_1)
+        self.TWO = self.new_gen(gen_2)
 
     #def __dealloc__(self):
-
 
     def _unsafe_deallocate_pari_stack(self):
         if bot:
@@ -5698,8 +5719,36 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         don't call _sig_off.
         """
         z = _new_gen(x)
-        _sig_off
         return z
+
+    cdef gen new_gen_from_mpz_t(self, mpz_t value):
+        cdef GEN z
+        cdef long limbs = 0
+
+        limbs = mpz_size(value)
+
+        if (limbs > 500):
+            _sig_on
+        z = cgetg( limbs+2, t_INT )
+        setlgefint( z, limbs+2 )
+        setsigne( z, mpz_sgn(value) )
+        mpz_export( int_LSW(z), NULL, -1, sizeof(long), 0, 0, value )
+        return self.new_gen(z)
+
+    cdef gen new_gen_from_int(self, int value):
+        cdef GEN z
+        cdef long sign = 0
+
+        z = cgetg( 3, t_INT )
+        setlgefint( z, 3 )
+        if (value > 0):
+            sign = 1
+            z[2] = value
+        elif (value < 0):
+            sign = -1
+            z[2] = -value
+        setsigne( z, sign )
+        return _new_gen(z)
 
     def double_to_gen(self, x):
         cdef double dx
@@ -5781,13 +5830,14 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         Create the PARI object obtained by evaluating s using PARI.
         """
-        cdef pari_sp prev_avma
-        global avma
 
-        prev_avma = avma
+        late_import()
 
         if isinstance(s, gen):
             return s
+        elif PY_TYPE_CHECK(s, Integer):
+            return self.new_gen_from_mpz_t(<mpz_t>(<void *>s + mpz_t_offset))
+
         try:
             return s._pari_()
         except AttributeError:
@@ -6219,7 +6269,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 # Used in integer factorization -- must be done
 # after the pari_instance creation above:
 
-cdef gen _tmp = pari('1000000000000000')
+cdef gen _tmp = P.new_gen(gp_read_str('1000000000000000'))
 cdef GEN ten_to_15 = _tmp.g
 
 ##############################################

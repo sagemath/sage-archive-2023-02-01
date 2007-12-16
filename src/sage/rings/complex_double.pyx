@@ -69,6 +69,8 @@ from sage.misc.sage_eval import sage_eval
 
 cimport sage.rings.ring
 
+cimport sage.rings.integer
+
 from sage.structure.element cimport RingElement, Element, ModuleElement, FieldElement
 from sage.structure.parent  cimport Parent
 
@@ -274,9 +276,24 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             1.00000000000000*I + pi
             sage: parent(a)
             Symbolic Ring
+
+        sage: CDF(1) + RR(1)
+        2.0
         """
         return self._coerce_try(x, [self.real_double_field(),
                                     CC, RR])
+
+    def prec(self):
+        """
+        Return the precision of this complex double field (to be more
+        similar to ComplexField).  Always returns 53.
+
+        EXAMPLES:
+            sage: CDF.prec()
+            53
+        """
+
+        return 53
 
 
     def gen(self, n=0):
@@ -325,6 +342,19 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         return self(3.1415926535897932384626433832)
 
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely,
+        algebraic closure of the real double field.
+
+        EXAMPLES:
+            sage: c, S = CDF.construction(); S
+            Real Double Field
+            sage: CDF == c(S)
+            True
+        """
+        from sage.categories.pushout import AlgebraicClosureFunctor
+        return (AlgebraicClosureFunctor(), self.real_double_field())
 
 def new_ComplexDoubleElement():
     cdef ComplexDoubleElement z
@@ -445,6 +475,18 @@ cdef class ComplexDoubleElement(FieldElement):
         if n >= 0 and n <= 1:
             return self._complex.dat[n]
         raise IndexError, "index n must be 0 or 1"
+
+    def prec(self):
+        """
+        Returns the precision of this number (to be more similar to
+        ComplexNumber).  Always returns 53.
+
+        EXAMPLES:
+            sage: CDF(0).prec()
+            53
+        """
+
+        return 53
 
     #######################################################################
     # Coercions
@@ -1468,7 +1510,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: p.factor()
             (x + 1) * x^2 * (x^2 - x + 1)
             sage: z^2 - z + 1
-            2.22044604925e-16 + 1.11022302463e-16*I
+            2.22044604925e-16 + ...e-16*I
 
             sage: CDF(0,2).algdep(10)
             x^2 + 4

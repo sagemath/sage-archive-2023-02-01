@@ -117,6 +117,9 @@ cdef class ntl_ZZ:
         """
         return unpickle_class_value, (ntl_ZZ, self.get_as_sage_int())
 
+    def __hash__(self):
+        return hash(self.get_as_sage_int())
+
     def __cmp__(self, other):
         """
         Compare self to other.

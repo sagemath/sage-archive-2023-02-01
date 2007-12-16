@@ -1,3 +1,6 @@
+r"""
+Skew Partitions
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -153,6 +156,11 @@ class SkewPartition_class(CombinatorialObject):
         icorners += [[nn, 0]]
         return icorners
 
+    def to_list(self):
+        """
+        EXAMPLES:
+        """
+        return map(list, list(self))
 
 
     def to_dag(self):

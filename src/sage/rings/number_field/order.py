@@ -145,7 +145,7 @@ class Order(IntegralDomain):
         """
         self._K = K
         self._is_maximal = is_maximal
-        DedekindDomain.__init__(self, base = K.base(), names = K.variable_names(), normalize = False) # base should probably change
+        DedekindDomain.__init__(self, base = K.base_ring().ring_of_integers(), names = K.variable_names(), normalize = False)
 
     def fractional_ideal(self, *args, **kwds):
         """
@@ -191,18 +191,6 @@ class Order(IntegralDomain):
         if not I.is_integral():
             raise ValueError, "ideal must be integral; use fractional_ideal to create a non-integral ideal."
         return I
-
-    def base(self):
-        r"""
-        Return the base order of this absolute order, which is always the ring $\ZZ$ of integers.
-
-        EXAMPLES:
-            sage: R = EquationOrder(x^5 + 17838*x + 1, 'a'); R
-            Order in Number Field in a with defining polynomial x^5 + 17838*x + 1
-            sage: R.base()
-            Integer Ring
-        """
-        return ZZ
 
     def __mul__(self, right):
         """
@@ -467,7 +455,7 @@ class Order(IntegralDomain):
             sage: P = K.ideal(61).factor()[0][0]
             sage: OK = K.maximal_order()
             sage: OK.residue_field(P)
-            Residue field of Fractional ideal (-2*a^2 + 1)
+            Residue field in abar of Fractional ideal (-2*a^2 + 1)
         """
         import sage.rings.residue_field
         return sage.rings.residue_field.ResidueField(prime)
@@ -1122,7 +1110,7 @@ class RelativeOrder(Order):
         elif isinstance(left, RelativeOrder) and isinstance(right, RelativeOrder):
             if left._K != right._K:
                 raise TypeError, "Number fields don't match."
-            if left._base != right._base:
+            if left.base() != right.base():
                 raise TypeError, "Bases don't match."
             return RelativeOrder(left._K, left._absolute_order + right._absolute_order,
                                  left._base, check=False)
@@ -1141,7 +1129,7 @@ class RelativeOrder(Order):
         elif isinstance(left, RelativeOrder) and isinstance(right, RelativeOrder):
             if left._K != right._K:
                 raise TypeError, "Number fields don't match."
-            if left._base != right._base:
+            if left.base() != right.base():
                 raise TypeError, "Bases don't match."
             return RelativeOrder(left._K, left._absolute_order & right._absolute_order,
                                  left._base, check=False)

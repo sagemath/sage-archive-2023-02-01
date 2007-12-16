@@ -187,12 +187,19 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
     """
     def __init__(self, x, universe=None, check=True,
-                 immutable=False, cr=False):
+                 immutable=False, cr=False, cr_str=None):
         if not isinstance(x, (list, tuple)):
             x = list(x)
             #raise TypeError, "x must be a list or tuple"
         self.__hash = None
+
+
         self.__cr = cr
+        if cr_str is None:
+            self.__cr_str = cr
+        else:
+            self.__cr_str = cr_str
+
         if isinstance(x, Sequence):
             if universe is None or universe == x.__universe:
                 list.__init__(self, x)
@@ -354,18 +361,26 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         self._require_mutable()
         list.remove(self, value)
 
-    def sort(self):
+    def sort(self, cmp=None, key=None, reverse=False):
         """
-        Sort this list.
+        Sort this list *IN PLACE*.
+
+        cmp(x, y) -> -1, 0, 1
 
         EXAMPLES:
             sage: B = Sequence([3,2,1/5])
             sage: B.sort()
             sage: B
             [1/5, 2, 3]
+            sage: B.sort(reverse=True); B
+            [3, 2, 1/5]
+            sage: B.sort(cmp = lambda x,y: cmp(y,x)); B
+            [3, 2, 1/5]
+            sage: B.sort(cmp = lambda x,y: cmp(y,x), reverse=True); B
+            [1/5, 2, 3]
         """
         self._require_mutable()
-        list.sort(self)
+        list.sort(self, cmp=cmp, key=key, reverse=reverse)
 
     def __hash__(self):
         if self.__hash is None:
@@ -379,7 +394,23 @@ class Sequence(sage.structure.sage_object.SageObject, list):
             return list.__repr__(self)
 
     def __str__(self):
-        return '[\n' + ',\n'.join([str(x) for x in self]) + '\n]'
+        """
+        EXAMPLES:
+            sage: s = Sequence([1,2,3], cr=False)
+            sage: str(s)
+            '[1, 2, 3]'
+            sage: repr(s)
+            '[1, 2, 3]'
+            sage: print s
+            [1, 2, 3]
+            sage: s = Sequence([1,2,3], cr=True)
+            sage: str(s)
+            '[\n1,\n2,\n3\n]'
+        """
+        if self.__cr_str:
+            return '[\n' + ',\n'.join([str(x) for x in self]) + '\n]'
+        else:
+            return list.__str__(self)
 
     def category(self):
         import sage.categories.all
@@ -445,27 +476,3 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
 seq = Sequence
 
-
-def _combinations(sequence, number):
-    """
-    Generate all combinations of \code{number} elements from list
-    \code{sequence}.
-
-    Based on code from \code{test/test_generators.py}.
-
-    AUTHOR:
-        -- Jaap Spies (2006-02-18)
-    """
-    if number > len(sequence):
-	return
-    if number == 0:
-	yield []
-    else:
-	first, rest = sequence[0], sequence[1:]
-        # first in combination
-	for result in _combinations(rest, number-1):
-	    result.insert(0, first)
-	    yield result
-        # first not in combination
-	for result in _combinations(rest, number):
-	    yield result

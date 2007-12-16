@@ -116,7 +116,7 @@ cdef qd *qd_from_mpfr(mpfr_t rr):
     cdef double d[4]
     cdef int i
     cdef mpfr_t cur, res
-    cdef bint isnan
+    cdef int isnan
     isnan = 0
     # The most significant double
     d[0] = mpfr_get_d(rr, GMP_RNDZ)
@@ -133,7 +133,7 @@ cdef qd *qd_from_mpfr(mpfr_t rr):
     mpfr_clear(res)
     # check if result is nan
     if 0 == d[0]: return qd_from_qd(0.0, 0.0, 0.0, 0.0)
-    for i from 0 <= i < 4:
+    for i from 0 <= i < 3:
         if d[i] == d[i+1]: isnan += 1
 
     if 3 == isnan:
@@ -996,6 +996,20 @@ cdef class QuadDoubleElement(FieldElement):
         d = qd_to_double(qd_deref(self.initptr))
         fpu_fix_end(&cw)
         return d
+
+    def _rpy_(self):
+        """
+        Returns self.__float__() for rpy to convert into the
+        appropriate R object.
+
+        EXAMPLES:
+            sage: n = RQDF(2.0)
+            sage: n._rpy_()
+            2.0
+            sage: type(n._rpy_())
+            <type 'float'>
+        """
+        return self.__float__()
 
     def __int__(self):
         """

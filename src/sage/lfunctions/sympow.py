@@ -82,7 +82,7 @@ class Sympow(SageObject):
     def L(self, E, n, prec):
         r"""
         Return $L(\Sym^{(n)}(E, \text{edge}))$ to prec digits
-        of precision, where edge is the {\em right} edge.
+        of precision, where edge is the \emph{right} edge.
         Here $n$ must be even.
 
         INPUT:

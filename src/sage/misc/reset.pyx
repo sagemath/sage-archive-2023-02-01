@@ -12,6 +12,12 @@ def reset(vars=None):
     INPUT:
         vars -- (default: None), a list, or space or comma separated
         string.
+
+    EXAMPLES:
+        sage: x = 5
+        sage: reset()
+        sage: x
+        x
     """
     if not vars is None:
         restore(vars)
@@ -19,7 +25,7 @@ def reset(vars=None):
     G = globals()  # this is the reason the code must be in SageX.
     T = type(sys)
     for k in G.keys():
-        if k[0] != '_' and type(k) != T:
+        if k[0] != '_' and type(k) != T and k != 'sage_mode':
             try:
                 del G[k]
             except KeyError:

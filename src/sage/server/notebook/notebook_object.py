@@ -21,8 +21,8 @@ class NotebookObject:
     Start the SAGE Notebook server.
 
     INPUT:
-        directory  -- (default: 'sage_notebook') directory that contains
-                      the SAGE notebook files
+        directory  -- directory that contains the SAGE notebook files;
+                      The default is .sage/sage_notebook, in your home directory.
         port       -- (default: 8000), port to serve the notebook on
         address    -- (default: 'localhost'), address to listen on
         port_tries -- (default: 0), number of additional ports to try if the
@@ -43,7 +43,11 @@ class NotebookObject:
                           nb.set_accounts(True)
                           nb.add_user("username", "password", "email@place", "user")
                           nb.save()
-        open_viewer -- (default: True) whether to pop up a web browser
+        open_viewer -- (default: True) whether to pop up a web browser.
+                      You can override the default browser by setting
+                      the SAGE_BROWSER environment variable, e.g., by putting
+                         export SAGE_BROWSER="firefox"
+                      in the file .bashrc in your home directory.
         timeout    -- (default: 0) seconds until idle worksheet sessions
                       automatically timeout, i.e., the corresponding
                       Sage session terminates.  0 means 'never timeout'.
@@ -136,3 +140,11 @@ class NotebookObject:
     setup    = run_notebook.notebook_setup
 
 notebook = NotebookObject()
+
+
+def inotebook(*args, **kwds):
+    """
+    Exactly the same as notebook(...) but with secure=False.
+    """
+    kwds['secure'] = False
+    notebook(*args, **kwds)

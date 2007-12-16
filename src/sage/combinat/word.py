@@ -1,3 +1,6 @@
+r"""
+Words
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -14,16 +17,14 @@
 #*****************************************************************************
 
 import sage.combinat.generator as generator
-from sage.rings.arith import binomial
-from sage.rings.integer import Integer
 from sage.misc.mrange import xmrange
 import sage.combinat.permutation
 import itertools
 import __builtin__
 from combinat import CombinatorialClass, CombinatorialObject
+from sage.rings.all import binomial, Integer, infinity
 
-
-def Words(alphabet, k):
+def Words(*args):
     """
     Returns the combinatorial class of words of length k
     from alphabet.
@@ -36,10 +37,76 @@ def Words(alphabet, k):
         sage: w.list()
         [[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]]
     """
-    if isinstance(alphabet, (int, Integer)):
-        alphabet = range(1,alphabet+1)
+    if len(args) == 0:
+        return Words_all()
+    elif len(args) == 1:
+        if isinstance(args[0], (int, Integer)):
+            return Words_n(args[0])
+        elif isinstance(args[0], list):
+            return Words_alphabet(args[0])
+    elif len(args) == 2:
+        if isinstance(args[0], (int, Integer)):
+            alphabet = range(1,args[0]+1)
+        else:
+            alphabet = args[0]
+        k = args[1]
+        return Words_alphabetk(alphabet, k)
 
-    return Words_alphabetk(alphabet, k)
+    raise ValueError, "do not know how to make a combinatorial class of words from %s"%args
+
+class Words_all(CombinatorialClass):
+    def __repr__(self):
+        return "Words"
+
+    def count(self):
+        return infinity
+
+    def __contains__(self, x):
+        return isinstance(x, list)
+
+    def list(self):
+        raise NotImplementedError
+
+    def iterator(self):
+        raise NotImplementedError
+
+class Words_n(CombinatorialClass):
+    def __init__(self, n):
+        self.n = n
+
+    def __repr__(self):
+        return "Words of length %s"%self.n
+
+    def count(self):
+        return infinity
+
+    def __contains__(self, x):
+        return isinstance(x, list) and len(x) == self.n
+
+    def list(self):
+        raise NotImplementedError
+
+    def iterator(self):
+        raise NotImplementedError
+
+class Words_alphabet(CombinatorialClass):
+    def __init__(self, alphabet):
+        self.alphabet = alphabet
+
+    def __repr__(self):
+        return "Words of from the alphabet %s"%self.alphabet
+
+    def count(self):
+        return infinity
+
+    def __contains__(self, x):
+        return isinstance(x, list) and all(map(lambda i: i in alphabet, x))
+
+    def list(self):
+        raise NotImplementedError
+
+    def iterator(self):
+        raise NotImplementedError
 
 class Words_alphabetk(CombinatorialClass):
     def __init__(self, alphabet, k):

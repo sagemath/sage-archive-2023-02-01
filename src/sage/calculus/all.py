@@ -1,4 +1,6 @@
-from equations import SymbolicEquation, forget, assume, assumptions, solve
+from equations import (SymbolicEquation,
+                       forget, assume, assumptions,
+                       solve, solve_mod)
 
 from calculus import (SymbolicExpressionRing,
                       is_SymbolicExpressionRing,
@@ -8,8 +10,9 @@ from calculus import (SymbolicExpressionRing,
                       is_CallableSymbolicExpressionRing,
                       is_CallableSymbolicExpression,
                       SR,
-                      sin, cos, sec, tan, log, erf, sqrt, asin, acos, atan,
+                      sin, cos, sec, csc, cot, tan, log, erf, sqrt, asin, acos, atan,
                       tanh, sinh, cosh, coth, sech, csch, ln,
+                      asinh, acosh, atanh,
                       ceil, floor,
                       polylog,
                       abs_symbolic, exp,

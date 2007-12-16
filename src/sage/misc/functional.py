@@ -689,7 +689,8 @@ def numerical_approx(x, prec=None, digits=None):
     Return a numerical approximation of x with at least prec bits of
     precision.
 
-    NOTE: N is an alias for numerical_approx.
+    NOTE: Both upper case N and lower case n are aliases
+    for numerical_approx.
 
     INPUT:
         x -- an object that has a numerical_approx method, or can
@@ -709,8 +710,10 @@ def numerical_approx(x, prec=None, digits=None):
         12.587886229548403854
         sage: n(pi^2 + e)
         12.5878862295484
+        sage: N(pi^2 + e)
+        12.5878862295484
         sage: n(pi^2 + e, digits=50)
-        12.5878862295484038541947784712288136330709465009407
+        12.587886229548403854194778471228813633070946500941
 
     You can also usually use method notation:
         sage: (pi^2 + e).n()
@@ -720,7 +723,7 @@ def numerical_approx(x, prec=None, digits=None):
         if digits is None:
             prec = 53
         else:
-            prec = int(digits * 3.4) + 2
+            prec = int((digits+1) * 3.32192) + 1
     try:
         return x.numerical_approx(prec)
     except AttributeError:
@@ -730,6 +733,7 @@ def numerical_approx(x, prec=None, digits=None):
             return sage.rings.complex_field.ComplexField(prec)(x)
 
 n = numerical_approx
+N = numerical_approx
 
 def objgens(x):
     """

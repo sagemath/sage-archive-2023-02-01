@@ -67,7 +67,7 @@ generators of a polynomial ring, so the eval command works.
 Next we create a polynomial ring in GAP and obtain its indeterminates:
 
     sage: R = gap.PolynomialRing('Rationals', 2); R
-    PolynomialRing(..., [ x_1, x_2 ])
+    PolynomialRing( Rationals, ["x_1", "x_2"] )
     sage: I = R.IndeterminatesOfPolynomialRing(); I
     [ x_1, x_2 ]
 
@@ -152,8 +152,14 @@ from IPython.genutils import page
 import re
 import os
 import pexpect
+
 DB_HOME = "%s/data/"%SAGE_ROOT
 WORKSPACE = "%s/gap/workspace-%s"%(DOT_SAGE, abs(hash(SAGE_ROOT)))
+
+GAP_STAMP = '%s/local/bin/gap_stamp'%SAGE_ROOT
+if not os.path.exists(GAP_STAMP):
+    open(GAP_STAMP,'w').close()
+
 first_try = True
 
 if not os.path.exists('%s/gap/'%DOT_SAGE):
@@ -357,7 +363,7 @@ class Gap(Expect):
             os.unlink(tmp)
             return r
         else:
-            return self.eval('%s;'%var, newlines=False)
+            return self.eval('Print(%s);'%var, newlines=False)
 
     def __getattr__(self, attrname):
         if attrname[:1] == "_":
@@ -389,7 +395,7 @@ class Gap(Expect):
             error_outputs = []
             current_outputs = normal_outputs
             while True:
-                x = E.expect(['@p\d+\.','@@','@[A-Z]','@[123456!"#$%&].*\+',
+                x = E.expect(['@p\d+\.','@@','@[A-Z]','@[123456!"#$%&][^+]*\+',
                               '@e','@c','@f','@h','@i','@m','@n','@r','@s\d','@w.*\+',
                               '@x','@z'])
                 current_outputs.append(E.before)
@@ -575,6 +581,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     """
     if os.path.exists(WORKSPACE):
         os.unlink(WORKSPACE)
+
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
     for pkg in ['ctbllib', 'sonata', 'guava', 'factint', \
                 'gapdoc', 'grape', 'design', \
@@ -588,6 +595,14 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     # end for
     g.eval('SaveWorkspace("%s");'%WORKSPACE)
 
+
+# Check to see if we need to auto-regenerate the gap workspace, i.e.,
+# if the modification time of the gap link has changed (which signals
+# that gap has been somehow upgraded).
+if not os.path.exists(WORKSPACE) or os.path.getmtime(WORKSPACE) < os.path.getmtime(GAP_STAMP):
+    #print "Automatically updating the cached Gap workspace:"
+    #print WORKSPACE
+    gap_reset_workspace(verbose=False)
 
 class GapElement(ExpectElement):
     def __getattr__(self, attrname):

@@ -145,6 +145,18 @@ cdef class RealDoubleField_class(Field):
                                   {'type': 'RDF'}),
                sage.rings.rational_field.QQ)
 
+    def algebraic_closure(self):
+        """
+        Returns the algebraic closure of self,
+        ie, the complex double field.
+
+        EXAMPLES:
+        sage: RDF.algebraic_closure()
+        Complex Double Field
+        """
+        from sage.rings.complex_double import CDF
+        return CDF
+
     cdef coerce_map_from_c(self, S):
         from integer_ring import ZZ
         from rational_field import QQ
@@ -182,6 +194,18 @@ cdef class RealDoubleField_class(Field):
             return self(x)
         import real_mpfr
         return self._coerce_try(x, [real_mpfr.RR])
+
+    def prec(self):
+        """
+        Return the precision of this real double field (to be more
+        similar to RealField).  Always returns 53.
+
+        EXAMPLES:
+            sage: RDF.prec()
+            53
+        """
+
+        return 53
 
 
     def gen(self, n=0):
@@ -352,6 +376,18 @@ cdef class RealDoubleElement(FieldElement):
         x = PY_NEW(RealDoubleElement)
         x._value = value
         return x
+
+    def prec(self):
+        """
+        Returns the precision of this number (to be more similar to
+        RealNumber).  Always returns 53.
+
+        EXAMPLES:
+            sage: RDF(0).prec()
+            53
+        """
+
+        return 53
 
     def real(self):
         """
@@ -730,6 +766,20 @@ cdef class RealDoubleElement(FieldElement):
 
     def __float__(self):
         return self._value
+
+    def _rpy_(self):
+        """
+        Returns self.__float__() for rpy to convert into the
+        appropriate R object.
+
+        EXAMPLES:
+            sage: n = RDF(2.0)
+            sage: n._rpy_()
+            2.0
+            sage: type(n._rpy_())
+            <type 'float'>
+        """
+        return self.__float__()
 
     def __int__(self):
         """

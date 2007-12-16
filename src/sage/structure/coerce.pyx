@@ -22,6 +22,7 @@ import operator
 import re
 import time
 
+from sage_object cimport SageObject
 import sage.categories.morphism
 from sage.categories.action import InverseAction
 
@@ -327,6 +328,14 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
                 return x, y
             return _verify_canonical_coercion_c(x,y)
 
+        try:
+            if not PY_TYPE_CHECK(x, SageObject) or not PY_TYPE_CHECK(y, SageObject):
+                x = x._sage_()
+                y = y._sage_()
+                return self.canonical_coercion_c(x, y)
+        except AttributeError:
+            pass
+
         raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp)
 
 
@@ -518,7 +527,7 @@ cdef class CoercionModel_profile(CoercionModel_cache_maps):
 
     We can read of this data that the most expensive operation was the creation
     of the action of $\Q$ on $\Z[x]$ (whose result lies in $\Q[x]$. This has
-    been cached as illistrated below.
+    been cached as illustrated below.
 
         sage: coerce.flush()
         sage: z = 1/2 * x + .5
@@ -758,9 +767,12 @@ cdef class LeftModuleAction(Action):
         if not isinstance(G, Parent):
             # only let Parents act
             raise TypeError
+        if S.base() is S:
+            # The right thing to do is a normal multiplication
+            raise TypeError
         # Objects are implemented with the assumption that
         # _rmul_ is given an element of the basering
-        if G is not S.base() and S.base() is not S:
+        if G is not S.base():
             # first we try the easy case of coercing G to the basering of S
             self.connecting = S.base().coerce_map_from(G)
             if self.connecting is None:
@@ -778,8 +790,11 @@ cdef class LeftModuleAction(Action):
                         # TODO: let python types be valid actions
                         raise TypeError
 
-        # TODO: detect this better
-        # if this is bad it will raise a type error in the subsequent lines, which we propagate
+        # At this point, we can assert it is safe to call _rmul_c
+        the_ring = G if self.connecting is None else self.connecting.codomain()
+        the_set = S if self.extended_base is None else self.extended_base
+        assert the_ring is the_set.base(), "BUG in coersion model"
+
         cdef RingElement g = G._an_element()
         cdef ModuleElement a = S._an_element()
         res = self._call_c(g, a)
@@ -810,6 +825,9 @@ cdef class RightModuleAction(Action):
         if not isinstance(G, Parent):
             # only let Parents act
             raise TypeError
+        if S.base() is S:
+            # The right thing to do is a normal multiplication
+            raise TypeError
         # Objects are implemented with the assumption that
         # _lmul_ is given an element of the basering
         if G is not S.base() and S.base() is not S:
@@ -826,8 +844,11 @@ cdef class RightModuleAction(Action):
                 else:
                     self.connecting = self.extended_base.base().coerce_map_from(G)
 
-        # TODO: detect this better
-        # if this is bad it will raise a type error in the subsequent lines, which we propagate
+        # At this point, we can assert it is safe to call _lmul_c
+        the_ring = G if self.connecting is None else self.connecting.codomain()
+        the_set = S if self.extended_base is None else self.extended_base
+        assert the_ring is the_set.base(), "BUG in coersion model"
+
         cdef RingElement g = G._an_element()
         cdef ModuleElement a = S._an_element()
         res = self._call_c(a, g)

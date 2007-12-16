@@ -253,7 +253,7 @@ class Set_object(Set_generic):
         If right is not a Set compare types.  If right is also a Set,
         returns comparison on the underlying objects.
 
-        \note{If $X < Y$ is true this does {\em not} necessarily mean
+        \note{If $X < Y$ is true this does \emph{not} necessarily mean
         that $X$ is a subset of $Y$.  Also, any two sets can be
         compared, which is a general Python philosophy.}
 
@@ -471,6 +471,23 @@ class Set_object(Set_generic):
             Set of all prime numbers: 2, 3, 5, 7, ...
         """
         return self.__object
+
+
+    def subsets(self,size=None):
+        """
+        Return the Subset object representing the subsets of a set.  If size
+        is specified, return the subsets of that size.
+
+        EXAMPLES:
+            sage: X = Set([1,2,3])
+            sage: list(X.subsets())
+            [{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
+            sage: list(X.subsets(2))
+            [{1, 2}, {1, 3}, {2, 3}]
+
+        """
+        from sage.combinat.subset import Subsets
+        return Subsets(self,size)
 
 class Set_object_enumerated(Set_object):
     """

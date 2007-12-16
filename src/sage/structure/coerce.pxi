@@ -71,7 +71,7 @@ cdef inline arith_error_message(x, y, op):
         return "unsupported operand parent(s) for '%s': '%s' and '%s'"%(n, parent_c(x), parent_c(y))
 
 #################################################################################
-# Inline arithmatic dispatchers for ModuleElements and RingElements
+# Inline arithmetic dispatchers for ModuleElements and RingElements
 #################################################################################
 
 cdef inline ModuleElement _add_c(ModuleElement left, ModuleElement right):
@@ -144,8 +144,8 @@ cdef inline RingElement _idiv_c(RingElement left, RingElement right):
         return left._idiv_c_impl(right)
 
 cdef enum:
-    # 3 references: handle, scope container, and arithmatic call stack
-    inplace_threshold = 3
+    # 3 references: handle, scope container, and arithmetic call stack
+    inplace_threshold = 0
 
 
 

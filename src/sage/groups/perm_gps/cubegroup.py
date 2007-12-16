@@ -818,7 +818,7 @@ class CubeGroup(PermutationGroup_generic):
 	    sage: rubik.move("R")[0]
 	    (3,38,43,19)(5,36,45,21)(8,33,48,24)(25,27,32,30)(26,29,31,28)
 	    sage: rubik.R()
-	    (25,27,32,30)(26,29,31,28)(3,38,43,19)(5,36,45,21)(8,33,48,24)
+	    (3,38,43,19)(5,36,45,21)(8,33,48,24)(25,27,32,30)(26,29,31,28)
 
 	"""
 	g = self.parse(mv)
@@ -1189,7 +1189,7 @@ class RubiksCube(SageObject):
         """
         sage: C = RubiksCube().move("R*U")
         sage: C.plot3d()
-        <class 'base.TransformGroup'>
+        <class 'sage.plot.plot3d.base.TransformGroup'>
         sage: C.plot()
         Graphics object consisting of 55 graphics primitives
         """

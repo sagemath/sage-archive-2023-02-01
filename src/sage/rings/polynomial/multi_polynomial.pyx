@@ -254,8 +254,59 @@ cdef class MPolynomial(CommutativeRingElement):
                 D[ETuple(tmp)] = a
             return D
 
+    cdef long _hash_c(self):
+        """
+        This hash incorporates the variable name in an effort to respect the obvious inclusions
+        into multi-variable polynomial rings.
 
+        The tuple algorithm is borrowed from http://effbot.org/zone/python-hash.htm.
 
+        EXAMPLES:
+            sage: T.<y>=QQ[]
+            sage: R.<x>=ZZ[]
+            sage: S.<x,y>=ZZ[]
+            sage: hash(S.0)==hash(R.0)  # respect inclusions into mpoly rings (with matching base rings)
+            True
+            sage: hash(S.1)==hash(T.0)  # respect inclusions into mpoly rings (with unmatched base rings)
+            True
+            sage: hash(S(12))==hash(12)  # respect inclusions of the integers into an mpoly ring
+            True
+            sage: # the point is to make for more flexible dictionary look ups
+            sage: d={S.0:12}
+            sage: d[R.0]
+            12
+            sage: # or, more to the point, make subs in fraction field elements work
+            sage: f=x/y
+            sage: f.subs({x:1})
+            1/y
+        """
+        cdef long result = 0 # store it in a c-int and just let the overflowing additions wrap
+        cdef long result_mon
+        var_name_hash = [hash(v) for v in self._parent.variable_names()]
+        cdef long c_hash
+        for m,c in self.dict().iteritems():
+            #  I'm assuming (incorrectly) that hashes of zero indicate that the element is 0.
+            # This assumption is not true, but I think it is true enough for the purposes and it
+            # it allows us to write fast code that omits terms with 0 coefficients.  This is
+            # important if we want to maintain the '==' relationship with sparse polys.
+            c_hash = hash(c)
+            if c_hash != 0: # this is always going to be true, because we are sparse (correct?)
+                # Hash (self[i], gen_a, exp_a, gen_b, exp_b, gen_c, exp_c, ...) as a tuple according to the algorithm.
+                # I omit gen,exp pairs where the exponent is zero.
+                result_mon = c_hash
+                for p in m.nonzero_positions():
+                    result_mon = (1000003 * result_mon) ^ var_name_hash[p]
+                    result_mon = (1000003 * result_mon) ^ m[p]
+                result += result_mon
+        if result == -1:
+            return -2
+        return result
+
+    # you may have to replicate this boilerplate code in derived classes if you override
+    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
+    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
+    def __hash__(self):
+        return self._hash_c()
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

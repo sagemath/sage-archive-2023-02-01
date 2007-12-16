@@ -128,10 +128,45 @@ class MonitorDatabase(object):
                             mem_total, mem_free))
         self.con.commit()
 
+    def update_monitor(self, host_info):
+        import pdb; pdb.set_trace()
+        query = """UPDATE monitors
+        SET hostname = ?, ip = ?, workers = ?, sage_version = ?, os = ?,
+        kernel_version = ?, cpus = ?, cpu_speed = ?, cpu_model = ?, mem_total
+        = ?, mem_free = ?
+        WHERE uuid = ?
+        """
+
+        uuid = host_info['uuid']
+        hostname = host_info['hostname']
+        ip = host_info['ip']
+        workers = host_info['workers']
+        sage_version = host_info['sage_version']
+        os = host_info['os']
+        kernel_version = host_info['kernel_version']
+        cpus = host_info['cpus']
+        cpu_speed = host_info['cpu_speed']
+        cpu_model = host_info['cpu_model']
+        mem_total = host_info['mem_total']
+        mem_free = host_info['mem_free']
+
+        cur = self.con.cursor()
+        cur.execute(query, (hostname, ip, workers, sage_version, os,
+                            kernel_version, cpus, cpu_speed, cpu_model,
+                            mem_total, mem_free, uuid))
+
     def get_monitor(self, uuid):
-        query = """SELECT uuid, hostname, ip, anonymous, sage_version, os
-                   FROM monitors
-                   WHERE uuid=?"""
+        query = """SELECT
+        uuid,
+        workers,
+        hostname,
+        ip,
+        anonymous,
+        sage_version,
+        os
+        FROM monitors
+        WHERE uuid = ?"""
+
         cur = self.con.cursor()
         cur.execute(query, (uuid,))
         result = cur.fetchone()
@@ -168,7 +203,7 @@ class MonitorDatabase(object):
 
     def set_connected(self, uuid, connected=True):
         """
-        Sets the connected status of a worker.
+        Sets the connected status of a monitor.
 
         Parameters:
         uuid -- string
@@ -186,6 +221,19 @@ class MonitorDatabase(object):
             cur.execute(query, (uuid,))
 
         self.con.commit()
+
+    def is_connected(self, uuid):
+        """
+        Returns whether the monitor is connected.
+
+        """
+
+        query = """SELECT connected FROM monitors WHERE uuid = ?"""
+        cur = self.con.cursor()
+        cur.execute(query, (uuid,))
+        result = cur.fetchone()[0]
+
+        return result
 
     def set_busy(self, uuid, busy):
         """
@@ -216,13 +264,13 @@ class MonitorDatabase(object):
             query = """SELECT workers FROM monitors WHERE connected AND NOT busy"""
         elif connected and busy:
             query = """SELECT workers FROM monitors WHERE connected AND busy"""
-        elif connected:
-            query = """SELECT workers FROM monitors WHERE connected"""
-        else:
-            query = "SELECT workers FROM monitors WHERE NOT connected"
-
+        elif not connected and not busy:
+            query = """SELECT workers FROM monitors WHERE NOT connected AND NOT busy"""
+        elif not connected and busy:
+            query = """SELECT workers FROM monitors WHERE NOT connected AND busy"""
         cur = self.con.cursor()
         cur.execute(query)
+
         result = cur.fetchall()
 
         return sum(w[0] for w in result)

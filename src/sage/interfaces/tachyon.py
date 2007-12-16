@@ -104,7 +104,7 @@ At the present time, scene description files are very simple.
 The parser can't handle multiple file scene descriptions, although they
 may be added in the future.  Most of the objects and their scene description
 are closely related to the RAY API
-{\em (See the API docs for additional info.)}
+\emph{(See the API docs for additional info.)}
 
 \subsection{Basic Scene Requirements}
   Unlike some other ray tracers out there, RAY requires that you
@@ -209,7 +209,7 @@ objects (they'll be black).
   The remaining three camera parameters are the most important, because
 they define the coordinate system of the camera, and its position in the
 scene.  The {\bf CENTER} parameter is an X, Y, Z coordinate defining the
-center of the camera {\em (also known as the Center of Projection)}.
+center of the camera \emph{(also known as the Center of Projection)}.
 Once you have determined where the camera will be placed in the scene, you
 need to tell RAY what the camera should be looking at.  The
 {\bf VIEWDIR} parameter is a vector indicating the direction the camera
@@ -324,7 +324,7 @@ SPOTLIGHT
 
 The lighting system implemented by RAY provides various levels of
 distance-based lighting attenuation.  By default, a light is not attenuated
-by distance.  If the {\em attenuation} keywords is present immediately
+by distance.  If the \emph{attenuation} keywords is present immediately
 prior to the light's color, RAY will accept coefficients which are used
 to calculate distance-based attenuation, which is applied the light by
 multiplying with the resulting value.  The attenuation factor is calculated

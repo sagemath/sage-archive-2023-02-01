@@ -374,53 +374,19 @@ class MPolynomialIdeal_singular_repr:
             sage: I = sage.rings.ideal.Cyclic(P)
             sage: GB = Ideal(I.groebner_basis('singular:stdfglm'))
             sage: GB.triangular_decomposition('singular:triangLfak')
-            [Ideal (a - 1, b - 1, c - 1, d^2 + 3*d + 1, e + d + 3) of
-            Multivariate Polynomial Ring in e, d, c, b, a over
-            Rational Field,
-            Ideal (a - 1, b - 1, c^2 + 3*c + 1, d + c + 3, e - 1) of
-            Multivariate Polynomial Ring in e, d, c, b, a over
-            Rational Field,
-            Ideal (a - 1, b^4 + b^3 + b^2 + b + 1, c - b^2, d - b^3, e
-            + b^3 + b^2 + b + 1) of Multivariate Polynomial Ring in e,
-            d, c, b, a over Rational Field,
-            Ideal (a - 1, b^2 + 3*b + 1, c + b + 3, d - 1, e - 1) of
-            Multivariate Polynomial Ring in e, d, c, b, a over
-            Rational Field,
-            Ideal (a^4 + a^3 + a^2 + a + 1, b - 1, c + a^3 + a^2 + a +
-            1, d - a^3, e - a^2) of Multivariate Polynomial Ring in e,
-            d, c, b, a over Rational Field, Ideal (a^4 + a^3 + a^2 + a
-            + 1, b - a, c - a, d^2 + 3*d*a + a^2, e + d + 3*a) of
-            Multivariate Polynomial Ring in e, d, c, b, a over
-            Rational Field,
-            Ideal (a^4 + a^3 + a^2 + a + 1, b - a, c^2 + 3*c*a + a^2,
-            d + c + 3*a, e - a) of Multivariate Polynomial Ring in e,
-            d, c, b, a over Rational Field,
-            Ideal (a^4 + a^3 + a^2 + a + 1, b^3 + b^2*a + b^2 + b*a^2
-            + b*a + b + a^3 + a^2 + a + 1, c + b^2*a^3 + b^2*a^2 +
-            b^2*a + b^2, d - b^2*a^2 - b^2*a - b^2 - b*a^2 - b*a -
-            a^2, e - b^2*a^3 + b*a^2 + b*a + b + a^2 + a) of
-            Multivariate Polynomial Ring in e, d, c, b, a over
-            Rational Field,
-            Ideal (a^4 + a^3 + a^2 + a + 1, b^2 + 3*b*a + a^2, c + b +
-            3*a, d - a, e - a) of Multivariate Polynomial Ring in e,
-            d, c, b, a over Rational Field,
-            Ideal (a^4 + a^3 + 6*a^2 - 4*a + 1, 11*b^2 - 6*b*a^3 -
-            10*b*a^2 - 39*b*a - 2*b - 16*a^3 - 23*a^2 - 104*a + 24,
-            11*c + 3*a^3 + 5*a^2 + 25*a + 1, 11*d + 3*a^3 + 5*a^2 +
-            25*a + 1, 11*e + 11*b - 6*a^3 - 10*a^2 - 39*a - 2) of
-            Multivariate Polynomial Ring in e, d, c, b, a over
-            Rational Field,
-            Ideal (a^4 - 4*a^3 + 6*a^2 + a + 1, 11*b^2 - 6*b*a^3 +
-            26*b*a^2 - 41*b*a + 4*b + 8*a^3 - 31*a^2 + 40*a + 24, 11*c
-            + 3*a^3 - 13*a^2 + 26*a - 2, 11*d + 3*a^3 - 13*a^2 + 26*a
-            - 2, 11*e + 11*b - 6*a^3 + 26*a^2 - 41*a + 4) of
-            Multivariate Polynomial Ring in e, d, c, b, a over
-            Rational Field,
-            Ideal (a^2 + 3*a + 1, b - 1, c - 1, d - 1, e + a + 3) of
-            Multivariate Polynomial Ring in e, d, c, b, a over
-            Rational Field, Ideal (a^2 + 3*a + 1, b + a + 3, c - 1, d
-            - 1, e - 1) of Multivariate Polynomial Ring in e, d, c, b,
-            a over Rational Field]
+	    [Ideal (a - 1, b - 1, c - 1, d^2 + 3*d + 1, e + d + 3) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+	    Ideal (a - 1, b - 1, c^2 + 3*c + 1, d + c + 3, e - 1) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+	    Ideal (a - 1, b^2 + 3*b + 1, c + b + 3, d - 1, e - 1) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+	    Ideal (a - 1, b^4 + b^3 + b^2 + b + 1, c - b^2, d - b^3, e + b^3 + b^2 + b + 1) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+	    Ideal (a^2 + 3*a + 1, b - 1, c - 1, d - 1, e + a + 3) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+	    Ideal (a^2 + 3*a + 1, b + a + 3, c - 1, d - 1, e - 1) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+	    Ideal (a^4 - 4*a^3 + 6*a^2 + a + 1, 11*b^2 - 6*b*a^3 + 26*b*a^2 - 41*b*a + 4*b + 8*a^3 - 31*a^2 + 40*a + 24, 11*c + 3*a^3 - 13*a^2 + 26*a - 2, 11*d + 3*a^3 - 13*a^2 + 26*a - 2, 11*e + 11*b - 6*a^3 + 26*a^2 - 41*a + 4) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+	    Ideal (a^4 + a^3 + a^2 + a + 1, b - 1, c + a^3 + a^2 + a + 1, d - a^3, e - a^2) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+	    Ideal (a^4 + a^3 + a^2 + a + 1, b - a, c - a, d^2 + 3*d*a + a^2, e + d + 3*a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+	    Ideal (a^4 + a^3 + a^2 + a + 1, b - a, c^2 + 3*c*a + a^2, d + c + 3*a, e - a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+	    Ideal (a^4 + a^3 + a^2 + a + 1, b^2 + 3*b*a + a^2, c + b + 3*a, d - a, e - a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+	    Ideal (a^4 + a^3 + a^2 + a + 1, b^3 + b^2*a + b^2 + b*a^2 + b*a + b + a^3 + a^2 + a + 1, c + b^2*a^3 + b^2*a^2 + b^2*a + b^2, d - b^2*a^2 - b^2*a - b^2 - b*a^2 - b*a - a^2, e - b^2*a^3 + b*a^2 + b*a + b + a^2 + a) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field,
+	    Ideal (a^4 + a^3 + 6*a^2 - 4*a + 1, 11*b^2 - 6*b*a^3 - 10*b*a^2 - 39*b*a - 2*b - 16*a^3 - 23*a^2 - 104*a + 24, 11*c + 3*a^3 + 5*a^2 + 25*a + 1, 11*d + 3*a^3 + 5*a^2 + 25*a + 1, 11*e + 11*b - 6*a^3 - 10*a^2 - 39*a - 2) of Multivariate Polynomial Ring in e, d, c, b, a over Rational Field]
             """
 
         P = self.ring()
@@ -453,7 +419,7 @@ class MPolynomialIdeal_singular_repr:
             raise TypeError, "dimension must be zero"
 
         Ibar = I._singular_()
-        Ibar.attrib('"isSB"',1)
+        Ibar.attrib('isSB',1)
 
         singular = Ibar.parent()
         singular.lib("triang")
@@ -471,6 +437,9 @@ class MPolynomialIdeal_singular_repr:
             raise TypeError, "algorithm '%s' unknown"%algorithm
 
         T = Sequence([ MPolynomialIdeal(Q,[f._sage_(Q) for f in t]) for t in Tbar ])
+
+        def f(x,y): return cmp(x.gens(), y.gens())
+        T.sort(f)
 
         return T
 
@@ -917,6 +886,8 @@ class MPolynomialIdeal_singular_repr:
         for i in range(M.nrows()):
             if int(singular.eval("%s[1][%s+1]!=0"%(M.name(),i))):
                 return False
+
+        self._singular_().attrib('isSB',1)
         return True
 
     def transformed_basis(self,algorithm="gwalk", other_ring=None):
@@ -1074,7 +1045,7 @@ class MPolynomialIdeal_singular_repr:
             Multivariate Polynomial Ring in x, y over Finite Field in w of size 3^3
 
             sage: V = I.variety(); V
-            [{y: w^2 + 2, x: 2*w}, {y: w^2 + 2*w, x: 2*w + 2}, {y: w^2 + w, x: 2*w + 1}]
+            [{y: w^2 + 2, x: 2*w}, {y: w^2 + w, x: 2*w + 1}, {y: w^2 + 2*w, x: 2*w + 2}]
 
             sage: [f.subs(v) for f in I.gens() for v in V] # check that all polynomials vanish
             [0, 0, 0, 0, 0, 0]
@@ -1084,6 +1055,17 @@ class MPolynomialIdeal_singular_repr:
 
             sage: I.vector_space_dimension()
             48
+
+        TESTS:
+            sage: K.<w> = GF(27)
+            sage: P.<x, y> = PolynomialRing(K, 2, order='lex')
+            sage: I = Ideal([ x^8 + y + 2, y^6 + x*y^5 + x^2 ])
+
+            Testing the robustness of the Singular interface
+
+            sage: T = I.triangular_decomposition('singular:triangLfak')
+            sage: I.variety()
+            [{y: w^2 + 2, x: 2*w}, {y: w^2 + w, x: 2*w + 1}, {y: w^2 + 2*w, x: 2*w + 2}]
 
         ALGORITHM: Uses triangular decomposition.
         """
@@ -1118,6 +1100,7 @@ class MPolynomialIdeal_singular_repr:
 
             for v in Vbar:
                 V.append(dict([(P(var),val) for var,val in v.iteritems()]))
+        V.sort()
         return Sequence(V)
 
 class MPolynomialIdeal_macaulay2_repr:
@@ -1304,13 +1287,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('toy:buchberger')
-            [-30*c^4 + 100/7*c^3 - 5/14*c^2 - 5/14*c, -2*b^2 - b*c + 1/2*b, -7/125*b - 42/25*c^3 + 79/125*c^2 - 3/125*c,
-            a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, -5*b*c + 1/2*b - 6*c^2 + 2*c, 2*a*b + 2*b*c - b]
+            [a + 2*b + 2*c - 1, -6*b^2 - 8*b*c + 2*b - 6*c^2 + 2*c, 2*a*b + 2*b*c - b, 7/250*b + 21/25*c^3 - 79/250*c^2 + 3/250*c, a^2 - a + 2*b^2 + 2*c^2, -5/3*b*c + 1/6*b - 2*c^2 + 2/3*c, -30*c^4 + 100/7*c^3 - 5/14*c^2 - 5/14*c]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('toy:buchberger2')
-            [30*c^4 - 100/7*c^3 + 5/14*c^2 + 5/14*c, a + 2*b + 2*c - 1,
-             7/125*b + 42/25*c^3 - 79/125*c^2 + 3/125*c, a^2 - a + 2*b^2 + 2*c^2]
+            [a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 30*c^4 - 100/7*c^3 + 5/14*c^2 + 5/14*c, -7/250*b - 21/25*c^3 + 79/250*c^2 - 3/250*c]
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('macaulay2:gb') # optional requires Macaulay2

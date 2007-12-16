@@ -1,7 +1,3 @@
-cdef extern from "Python.h":
-    object PyString_FromStringAndSize(char *s, int len)
-    int PyObject_TypeCheck(object o, object type)
-
 cdef extern from 'symmetrica/macro.h':
     pass
 
@@ -255,8 +251,6 @@ cdef extern from 'symmetrica/def.h':
     void* c_o_k(OP a, OBJECTKIND k)
 
 
-    void* println(OP a)
-
     #Integers
     void* m_i_i(INT n, OP a)
     void* M_I_I(INT n, OP a)
@@ -459,7 +453,7 @@ cdef object _py(OP a):
     cdef OBJECTKIND objk
     objk = s_o_k(a)
     #print objk
-    if objk == INTEGER:
+    if objk == INTEGER or objk == LONGINT:
         return _py_integer(a)
     elif objk == PARTITION:
         return _py_partition(a)
@@ -710,14 +704,18 @@ cdef object _py_polynom_alphabet(OP a, object alphabet):
     if pointer == NULL:
         return 0
 
-    l = _py(s_po_sl(a))
     parent_ring = _py(s_po_k(pointer)).parent()
+    if isinstance(alphabet, (builtinlist, tuple)):
+        l = len(alphabet)
+    else:
+        l = _py(s_po_sl(a))
+
     P = PolynomialRing(parent_ring, l, alphabet)
     x = P.gens()
     res = P(0)
     while pointer != NULL:
         exps = _py_vector(s_po_s(pointer))
-        res += _py(s_po_k(pointer)) *prod([ x[i]**exps[i] for i in range(len(exps))])
+        res += _py(s_po_k(pointer)) *prod([ x[i]**exps[i] for i in range(min(len(exps),l))])
         pointer = s_po_n(pointer)
     return res
 
@@ -971,7 +969,7 @@ cdef object _py_schubert(OP a):
         return SchubertPolynomialRing(ZZ)(0)
 
     while pointer != NULL:
-        z_elt[ _py_permutation(s_s_s(pointer)) ] = _py(s_sch_k(pointer))
+        z_elt[ _py(s_s_s(pointer)).remove_extra_fixed_points() ] = _py(s_sch_k(pointer))
         pointer = s_sch_n(pointer)
 
     if len(z_elt) == 0:

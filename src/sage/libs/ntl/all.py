@@ -2,7 +2,7 @@ r"""
 Victor Shoup's NTL C++ Library
 
 SAGE provides an interface to Victor Shoup's C++ library NTL.
-Features of this library include {\em incredibly fast} arithmetic with
+Features of this library include \emph{incredibly fast} arithmetic with
 polynomials and assymptotically fast factorization of polynomials.
 """
 
@@ -55,18 +55,19 @@ from sage.libs.ntl.ntl_lzz_pX import ntl_zz_pX as zz_pX
 
 from sage.libs.ntl.ntl_mat_ZZ import ntl_mat_ZZ as mat_ZZ
 
+from sage.libs.ntl.ntl_GF2 import ntl_GF2 as GF2
+
 from sage.libs.ntl.ntl_GF2X import (
-                 ntl_GF2X as GF2X
+                 ntl_GF2X as GF2X,
+                 GF2XHexOutput,
                   )
 
+from sage.libs.ntl.ntl_GF2EContext import ntl_GF2EContext as GF2EContext
 
 from sage.libs.ntl.ntl_GF2E import (
                  ntl_GF2E as GF2E, \
                  ntl_GF2E_random as GF2E_random, \
-                 ntl_GF2E_modulus as GF2E_modulus, \
-                 ntl_GF2E_modulus_degree as GF2E_degree, \
-                 ntl_GF2E_sage as GF2E_sage,
-                 GF2X_hex_repr as hex_output )
+                 )
 
 from sage.libs.ntl.ntl_GF2EX import ntl_GF2EX as GF2EX
 

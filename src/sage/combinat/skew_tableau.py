@@ -1,3 +1,6 @@
+r"""
+Skew Tableaux
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -28,7 +31,8 @@ import copy
 from combinat import CombinatorialObject, CombinatorialClass
 from sage.graphs.graph import DiGraph
 
-def SkewTableau(st):
+
+def SkewTableau(st=None, expr=None):
     """
     Returns the skew tableau object corresponding to st.
 
@@ -39,7 +43,13 @@ def SkewTableau(st):
         [1]
         sage: st.outer_shape()
         [2, 2]
+
+        sage: SkewTableau(expr=[[1,1],[[5],[3,4],[1,2]]])
+        [[None, 1, 2], [None, 3, 4], [5]]
     """
+    if expr is not None:
+        return from_expr(expr)
+
     for row in st:
         if not isinstance(row, list):
             raise TypeError, "each element of the skew tableau must be a list"
@@ -127,6 +137,7 @@ class SkewTableau_class(CombinatorialObject):
         return self.outer_shape().size()
 
 
+
     def inner_size(self):
         """
         Returns the size of the inner shape of the skew tableau.
@@ -173,6 +184,32 @@ class SkewTableau_class(CombinatorialObject):
 
 
         return SkewTableau(conj)
+
+    def to_expr_list(self):
+        """
+        The first list in a result corresponds to the inner partition of the
+        skew shape.  The second list is a list of the rows in the skew
+        tableau read from the bottom up.
+
+        Provided for compatability with MuPAD-Combinat.  In MuPAD-Combinat, if
+        t is a skew tableau, then to_expr_list gives the same result as
+        expr(t) would give in MuPAD-Combinat.
+
+
+        EXAMPLES:
+            sage: st = SkewTableau([[None,1,2],[None,3,4],[5]])
+            sage: st.to_expr_list()
+            [[1, 1], [[5], [3, 4], [1, 2]]]
+        """
+        is_none = lambda x: x is None
+        inner = []
+        outer = []
+        for row in self:
+            inner.append( len( filter(is_none, row) ) )
+            outer.append( row[ inner[-1] : ] )
+        outer.reverse()
+        inner = filter(lambda x: x != 0, inner)
+        return [inner, outer]
 
     def to_word_by_row(self):
         """
@@ -405,37 +442,6 @@ class SkewTableau_class(CombinatorialObject):
 
 
 class SkewTableauWithContent(SkewTableau_class):
-    def _setmin(self, y, x, initial=None):
-        #Compute t which is the "minimum" skew tableau with
-        #the given content
-        #t = [ [0]*self.outer[i] for i in range(len(self.outer)) ]
-        if initial is None:
-            t = self.list
-        else:
-            t = initial
-
-        #this algorithm comes from st_setmin
-        #print "Call: (%d, %d)"%(y,x)
-        while ( y < self.rows ):
-            while x >= self.inner[y]:
-                if y == 0 or x < self.inner[y-1]:
-                    e = 0
-                else:
-                    e = t[y-1][x] + 1
-
-                t[y][x] = e
-                try:
-                    self.conts[e] += 1
-                except:
-                    raise IndexError, "(%d,%d): %d, %s"%(y,x, e, str(self.conts))
-
-                x -= 1
-            y += 1
-
-            if y < self.rows:
-                x = self.outer[y] - 1
-        return t
-
     def __init__(self, outer, inner, conts=None, maxrows=0):
         self.rows = len(outer)
 
@@ -476,6 +482,37 @@ class SkewTableauWithContent(SkewTableau_class):
             raise ValueError, " self.conts[self.maxrows] != 0 "
 
         self.outer_conj = Partition(self.outer).conjugate()
+
+    def _setmin(self, y, x, initial=None):
+        #Compute t which is the "minimum" skew tableau with
+        #the given content
+        #t = [ [0]*self.outer[i] for i in range(len(self.outer)) ]
+        if initial is None:
+            t = self.list
+        else:
+            t = initial
+
+        #this algorithm comes from st_setmin
+        #print "Call: (%d, %d)"%(y,x)
+        while ( y < self.rows ):
+            while x >= self.inner[y]:
+                if y == 0 or x < self.inner[y-1]:
+                    e = 0
+                else:
+                    e = t[y-1][x] + 1
+
+                t[y][x] = e
+                try:
+                    self.conts[e] += 1
+                except:
+                    raise IndexError, "(%d,%d): %d, %s"%(y,x, e, str(self.conts))
+
+                x -= 1
+            y += 1
+
+            if y < self.rows:
+                x = self.outer[y] - 1
+        return t
 
     def next(self):
         """
@@ -644,6 +681,30 @@ class StandardSkewTableaux_skewpartition(CombinatorialClass):
 
 
 
+def from_expr(expr):
+    """
+    Returns a SkewTableau from a MuPAD-Combinat expr for a
+    skew tableau.  The first list in expr is the inner shape
+    of the skew tableau.  The second list are the entries
+    in the rows of the skew tableau from bottom to top.
+
+    Provided primarily for compatability with MuPAD-Combinat.
+
+    EXAMPLES:
+        sage: sage.combinat.skew_tableau.from_expr([[1,1],[[5],[3,4],[1,2]]])
+        [[None, 1, 2], [None, 3, 4], [5]]
+    """
+    skp = []
+    outer = expr[1]
+    inner = expr[0]+[0]*(len(outer)-len(expr[0]))
+
+    for i in range(len(outer)):
+        skp.append( [None]*(inner[i]) + outer[-(i+1)] )
+
+    return SkewTableau(skp)
+
+
+
 def from_shape_and_word(shape, word):
     """
     Returns the skew tableau correspnding to the skew partition
@@ -666,3 +727,19 @@ def from_shape_and_word(shape, word):
                 w_count += 1
     return SkewTableau(st)
 
+
+#####################
+# Under development #
+#####################
+
+def SemistandardSkewTableaux(shape, weight):
+    return SemistandardSkewTableaux_shapeweight(shape, weight)
+
+class SemistandardSkewTableaux_shapeweight(CombinatorialClass):
+    def __init__(self, shape, weight):
+        self.shape = shape
+        self.weight = weight
+
+    def iterator(self):
+        for skt in RibbonTableaux(self.shape, self.weight, 1):
+            yield SkewTableau_class(skt)

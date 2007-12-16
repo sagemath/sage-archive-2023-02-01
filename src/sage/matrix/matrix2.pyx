@@ -1,8 +1,13 @@
 """
 Base class for matrices, part 2
 
-For design documentation see matrix/docs.py.
+TESTS:
+    sage: m = matrix(ZZ['x'], 2, 3, [1..6])
+    sage: loads(dumps(m)) == m
+    True
 """
+
+# For design documentation see matrix/docs.py.
 
 ################################################################################
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
@@ -16,7 +21,8 @@ For design documentation see matrix/docs.py.
 include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
-from sage.structure.sequence import _combinations, Sequence
+from sage.structure.sequence import Sequence
+from sage.combinat.combinat import combinations_iterator
 from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose, graphics_filename
 from sage.rings.number_field.all import is_NumberField
@@ -33,6 +39,23 @@ from random import randint
 
 cdef class Matrix(matrix1.Matrix):
     def _backslash_(self, B):
+        """
+        Used to compute $A \\ B$, i.e., the backslash solver operator.
+
+        EXAMPLES:
+            sage: A = matrix(QQ, 3, [1,2,4,2,3,1,0,1,2])
+            sage: B = matrix(QQ, 3, 2, [1,7,5, 2,1,3])
+            sage: C = A._backslash_(B); C
+            [  -1    1]
+            [13/5 -3/5]
+            [-4/5  9/5]
+            sage: A*C == B
+            True
+            sage: A._backslash_(B) == A \ B
+            True
+            sage: A._backslash_(B) == A.solve_right(B)
+            True
+        """
         return self.solve_right(B)
 
     def subs(self, in_dict=None, **kwds):
@@ -175,8 +198,8 @@ cdef class Matrix(matrix1.Matrix):
         for row from 0 <= row < self._nrows:
             tmp = []
             for c in cols:
-                if c<0 or c >= self._ncols:
-                    raise IndexError, "matrix column index out of range"
+#               if c<0 or c >= self._ncols:
+#                   raise IndexError, "matrix column index out of range"
                 tmp.append(self.get_unsafe(row, c))
             pr = pr * sum(tmp)
         return pr
@@ -260,8 +283,6 @@ cdef class Matrix(matrix1.Matrix):
                 Copyright (C) 2006 William Stein <wstein@gmail.com>
             -- Jaap Spies (2006-02-21): added definition of permanent
 
-        NOTES:
-            -- Currently optimized for dense matrices over QQ.
         """
         cdef Py_ssize_t m, n, r
         cdef int sn
@@ -272,9 +293,8 @@ cdef class Matrix(matrix1.Matrix):
         if not m <= n:
             raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
 
-        from sage.rings.arith import binomial
         for r from 1 <= r < m+1:
-            lst = _combinations(range(n), r)
+            lst = _choose(n, r)
             tmp = []
             for cols in lst:
                 tmp.append(self.prod_of_row_sums(cols))
@@ -284,7 +304,7 @@ cdef class Matrix(matrix1.Matrix):
                 sn = 1
             else:
                 sn = -1
-            perm = perm + sn * binomial(n-r, m-r) * s
+            perm = perm + sn * _binomial(n-r, m-r) * s
         return perm
 
 
@@ -360,12 +380,12 @@ cdef class Matrix(matrix1.Matrix):
         if k > m:
             return R(0)
 
-        k = int(k)
         pm = 0
-        for cols in _combinations(range(n),k):
-            for rows in _combinations(range(m),k):
+        for cols in _choose(n,k):
+            for rows in _choose(m,k):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
         return pm
+
 
     def rook_vector(self, check = False):
         r"""
@@ -948,18 +968,26 @@ cdef class Matrix(matrix1.Matrix):
         ALGORITHM: See Henri Cohen's first book.
 
         EXAMPLES:
-            sage: A = MatrixSpace(QQ,3)([2, 1, 1, -2, 2, 2, -1, -1, -1])
-            sage: A.hessenberg_form()
+            sage: A = matrix(QQ,3, [2, 1, 1, -2, 2, 2, -1, -1, -1])
+            sage: A.hessenbergize(); A
             [  2 3/2   1]
             [ -2   3   2]
             [  0  -3  -2]
 
-            sage: A = MatrixSpace(QQ,4)([2, 1, 1, -2, 2, 2, -1, -1, -1,1,2,3,4,5,6,7])
-            sage: A.hessenberg_form()
+            sage: A = matrix(QQ,4, [2, 1, 1, -2, 2, 2, -1, -1, -1,1,2,3,4,5,6,7])
+            sage: A.hessenbergize(); A
             [    2  -7/2 -19/5    -2]
             [    2   1/2 -17/5    -1]
             [    0  25/4  15/2   5/2]
             [    0     0  58/5     3]
+
+        You can't Hessenbergize an immutable matrix:
+            sage: A = matrix(QQ, 3, [1..9])
+            sage: A.set_immutable()
+            sage: A.hessenbergize()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (use self.copy()).
         """
         cdef Py_ssize_t i, j, m, n, r
         n = self._nrows
@@ -2662,11 +2690,51 @@ cdef class Matrix(matrix1.Matrix):
         Randomize density proportion of the entries of this matrix,
         leaving the rest unchanged.
 
+        NOTE: We actually choos at random density proportion of
+        entries of the matrix and set them to random elements.  It's
+        possible that the same position can be chosen multiple times,
+        especially for a very small matrix.
+
         INPUT:
-            density -- integer (default: 1) rough measure of the proportion of nonzero
-                       entries in the random matrix
-            *args, **kwds -- rest of parameters may be passed to the random_element function
-                   of the base ring.
+            density -- integer (default: 1) rough measure of the
+                       proportion of nonzero entries in the random
+                       matrix
+            *args, **kwds -- rest of parameters may be passed to the
+                       random_element function of the base ring.
+
+        EXAMPLES:
+        We construct the zero matrix over a polynomial ring.
+            sage: a = matrix(QQ['x'], 3); a
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+
+        We then randomize roughly half the entries:
+            sage: a.randomize(0.5)
+            sage: a     # random output
+            [-1/3*x^2 + 1/2*x + 1  1/5*x^2 + 2*x - 2/3                    0]
+            [                   0                    0                    0]
+            [     x^2 + 1/3*x + 1                    0                    0]
+
+        Now we randomize all the entries of the resulting matrix:
+            sage: a.randomize()
+            sage: a  # random output
+            [        x^2 + 3*x + 2    -2/3*x^2 - 4*x - 6        x^2 + 11*x + 1]
+            [   -x^2 + 1/4*x - 1/4         -x^2 - x - 22    -x^2 + 1/6*x - 1/2]
+            [ -6*x^2 - 1/3*x - 2/3 2*x^2 - 1/12*x + 1/20       2*x^2 + x - 3/2]
+
+        We create the zero matrix over the integers:
+            sage: a = matrix(ZZ, 2); a
+            [0 0]
+            [0 0]
+
+        Then we randomize it; the x and y parameters, which determine
+        the size of the random elements, are passed onto the ZZ
+        random_element method.
+            sage: a.randomize(x=-2^64, y=2^64)
+            sage: a           # random output
+            [  4478398010554264318  -1173319677607058552]
+            [ 11400122422515230170 -18056143553837283799]
         """
         density = float(density)
         if density == 0:
@@ -2675,20 +2743,19 @@ cdef class Matrix(matrix1.Matrix):
         self.clear_cache()
 
         R = self.base_ring()
-        zero = R(0)
 
-        cdef Py_ssize_t i, j, nc, num_per_row
+        cdef Py_ssize_t i, j, num
 
-        if density == 1:
+        if density >= 1:
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < self._ncols:
                     self.set_unsafe(i, j, R.random_element(*args, **kwds))
         else:
-            nc = self._ncols
-            num_per_row = int(density * nc) + 1
-            for i from 0 <= i < self._nrows:
-                for j from 0 <= j < num_per_row:
-                    self.set_unsafe(i, randint(0,nc-1), R.random_element(*args, **kwds))
+            num = int(self._nrows * self._ncols * density)
+            for i from 0 <= i < num:
+                self.set_unsafe(randint(0, self._nrows - 1),
+                                randint(0, self._ncols - 1),
+                                R.random_element(*args, **kwds))
 
     def is_one(self):
         """
@@ -2866,10 +2933,109 @@ cdef class Matrix(matrix1.Matrix):
         return QQ(k)/QQ(nr*nc)
 
 
+    def inverse(self):
+        """
+        Returns the inverse of self, without changing self.
+
+        Note that one can use the Python inverse operator ~
+        to obtain the inverse as well.
+
+        EXAMPLES:
+            sage: m = matrix([[1,2],[3,4]])
+            sage: m^(-1)
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: m.inverse()
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: ~m
+            [  -2    1]
+            [ 3/2 -1/2]
+
+            sage: m = matrix([[1,2],[3,4]], sparse=True)
+            sage: m^(-1)
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: m.inverse()
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: ~m
+            [  -2    1]
+            [ 3/2 -1/2]
+
+        """
+        return self.__invert__()
+
+    def gramm_schmidt(self):
+        r"""
+        Return the matrix G whose rows are obtained from the rows of self (=A) by
+        applying the Gramm-Schmidt orthogonalization process.  Also return
+        the coefficients mu ij, i.e., a matrix mu such that \code{(mu + 1)*G == A}.
+
+        OUTPUT:
+            G -- a matrix whose rows are orthogonal
+            mu -- a matrix that gives the transformation, via the relation
+                  (mu + 1)*G == self
+
+        EXAMPLES:
+            sage: A = matrix(ZZ, 3, [-1, 2, 5, -11, 1, 1, 1, -1, -3]); A
+            [ -1   2   5]
+            [-11   1   1]
+            [  1  -1  -3]
+            sage: G, mu = A.gramm_schmidt()
+            sage: G
+            [     -1       2       5]
+            [  -52/5    -1/5      -2]
+            [  2/187  36/187 -14/187]
+            sage: mu
+            [     0      0      0]
+            [   3/5      0      0]
+            [  -3/5 -7/187      0]
+            sage: G[0] * G[1]
+            0
+            sage: G[0] * G[2]
+            0
+            sage: G[1] * G[2]
+            0
+
+        The relation between mu and A is as follows:
+            sage: (mu + 1)*G == A
+            True
+        """
+        from sage.modules.misc import gramm_schmidt
+        from constructor import matrix
+        Bstar, mu = gramm_schmidt(self.rows())
+        return matrix(Bstar), mu
+
+
 def _dim_cmp(x,y):
+    """
+    Used internally by matrix functions.  Given 2-tuples (x,y),
+    returns their comparision based on the first component.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix2 import _dim_cmp
+        sage: V = [(QQ^3, 2), (QQ^2, 1)]
+        sage: _dim_cmp(V[0], V[1])
+        1
+    """
     return cmp(x[0].dimension(), y[0].dimension())
 
 def decomp_seq(v):
+    """
+    This function is used internally be the decomposition matrix
+    method.  It takes a list of tuples and produces a sequence
+    that is correctly sorted and prints with carriage returns.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix2 import decomp_seq
+        sage: V = [(QQ^3, 2), (QQ^2, 1)]
+        sage: decomp_seq(V)
+        [
+        (Vector space of dimension 2 over Rational Field, 1),
+        (Vector space of dimension 3 over Rational Field, 2)
+        ]
+    """
     list.sort(v, _dim_cmp)
     return Sequence(v, universe=tuple, check=False, cr=True)
 
@@ -2893,3 +3059,97 @@ def cmp_pivots(x,y):
         return 0
     else:
         return -1
+
+
+def _choose(Py_ssize_t n, Py_ssize_t t):
+    """
+    Returns all possible sublists of length t from range(n)
+
+    Based on algoritm T from Knuth's taocp part 4: 7.2.1.3 p.5
+    This fuction replaces the one base on algorithm L because it is faster.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix2 import _choose
+        sage: _choose(1,1)
+        [[0]]
+        sage: _choose(4,1)
+        [[0], [1], [2], [3]]
+        sage: _choose(4,4)
+        [[0, 1, 2, 3]]
+
+    AUTHOR:
+        -- Jaap Spies (2007-11-14)
+    """
+    cdef Py_ssize_t j, temp
+
+    x = []               # initialize T1
+    c = range(t)
+    if t == n:
+        x.append(c)
+        return x
+    c.append(n)
+    c.append(0)
+    j = t-1
+
+    while True:
+        x.append(c[:t])    # visit T2
+        if j >= 0:
+            c[j] = j+1
+            j = j-1
+            continue       # goto T2
+
+        if c[0]+1 < c[1]:  # T3 easy case!
+            c[0] = c[0]+1
+            continue
+        else:
+            j = 1
+
+        while True:
+            c[j-1] = j-1      # T4 find j
+            temp = c[j]+1
+            if temp == c[j+1]:
+                j = j+1
+            else:
+                break
+
+
+        if j >= t:     # T5 stop?
+            break
+
+        c[j] = temp    # T6
+        j = j-1
+
+    return x
+
+
+def _binomial(Py_ssize_t n, Py_ssize_t k):
+    """
+    Fast and unchecked implementation of binomial(n,k)
+    This is only for internal use.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix2 import _binomial
+        sage: _binomial(10,2)
+        45
+        sage: _binomial(10,5)
+        252
+
+    AUTHOR:
+        -- Jaap Spies (2007-10-26)
+
+    """
+    cdef Py_ssize_t i
+
+    if k > (n/2):
+        k = n-k
+    if k == 0:
+        return 1
+
+    result = n
+    n, k = n-1, k-1
+    i = 2
+    while k > 0:
+        result = (result*n)/i
+        i, n, k = i+1, n-1, k-1
+    return result
+

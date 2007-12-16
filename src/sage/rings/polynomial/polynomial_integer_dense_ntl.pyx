@@ -18,7 +18,6 @@ AUTHORS:
 
 include "../../ext/stdsage.pxi"
 
-
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, RingElement
 
@@ -217,7 +216,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return Polynomial_integer_dense_ntl, \
                (self.parent(), self.list(), False, self.is_gen())
 
-
     def __getitem__(self, long n):
         r"""
         Returns coefficient of x^n, or zero if n is negative.
@@ -316,11 +314,14 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
     def quo_rem(self, right):
         r"""
-        Returns a tuple (quotient, remainder) where
-            self = quotient*other + remainder.
+        Attempts to divide self by right, and return a quotient and remainder.
 
-        If the quotient and remainder are not integral,
-        an exception is raised.
+        If right is monic, then it returns (q, r) where
+            self = q * right + r
+        and deg(r) < deg(right).
+
+        If right is not monic, then it returns (q, 0) where q = self/right
+        if right exactly divides self, otherwise it raises an exception.
 
         EXAMPLES:
             sage: R.<x> = PolynomialRing(ZZ)
@@ -330,22 +331,60 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             (9*x^7 + 8*x^6 + 16*x^5 + 14*x^4 + 21*x^3 + 18*x^2 + 24*x + 20, 25*x + 20)
             sage: q*g + r == f
             True
+
+            sage: f = x^2
+            sage: f.quo_rem(0)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: division by zero polynomial
+
+            sage: f = (x^2 + 3) * (2*x - 1)
+            sage: f.quo_rem(2*x - 1)
+            (x^2 + 3, 0)
+
+            sage: f = x^2
+            sage: f.quo_rem(2*x - 1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: division not exact in Z[x] (consider coercing to Q[x] first)
+
         """
         if not isinstance(right, Polynomial_integer_dense_ntl):
             right = self.parent()(right)
         elif self.parent() is not right.parent():
             raise TypeError
 
-        # ugggh this isn't pretty. Lots of unnecessary copies.
-        cdef ZZX_c *r, *q
-        ZZX_quo_rem(&self.__poly, &(<Polynomial_integer_dense_ntl>right).__poly, &r, &q)
-        cdef Polynomial_integer_dense_ntl rr = self._new()
+        cdef Polynomial_integer_dense_ntl _right = <Polynomial_integer_dense_ntl> right
+
+        if ZZX_IsZero(_right.__poly):
+            raise ArithmeticError, "division by zero polynomial"
+
+        cdef ZZX_c *q, *r
         cdef Polynomial_integer_dense_ntl qq = self._new()
-        rr.__poly = r[0]
-        qq.__poly = q[0]
-        ZZX_delete(&r[0])
-        ZZX_delete(&q[0])
-        return (qq, rr)
+        cdef Polynomial_integer_dense_ntl rr = self._new()
+        cdef int divisible
+
+        if ZZ_IsOne(ZZX_LeadCoeff(_right.__poly)):
+            # divisor is monic. Just do the division and remainder
+            ZZX_quo_rem(&self.__poly, &_right.__poly, &r, &q)
+            ZZX_swap(qq.__poly, q[0])
+            ZZX_swap(rr.__poly, r[0])
+            ZZX_delete(q)
+            ZZX_delete(r)
+        else:
+            # Non-monic divisor. Check whether it divides exactly.
+            q = ZZX_div(&self.__poly, &_right.__poly, &divisible)
+            if divisible:
+                # exactly divisible
+                ZZX_swap(q[0], qq.__poly)
+                ZZX_delete(q)
+            else:
+                # division failed: clean up and raise exception
+                ZZX_delete(q)
+                raise ArithmeticError, "division not exact in Z[x] (consider coercing to Q[x] first)"
+
+        return qq, rr
+
 
 
     def gcd(self, right):
@@ -542,30 +581,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         mpz_to_ZZ(&y, &(<Integer>value).value)
         ZZX_SetCoeff(self.__poly, n, y)
 
-
-    def complex_roots(self, flag=0):
-        """
-        Returns the complex roots of this polynomial.
-        INPUT:
-            flag -- optional, and can be
-                    0: (default), uses Schonhage's method modified by Gourdon,
-                    1: uses a modified Newton method.
-        OUTPUT:
-            list of complex roots of this polynomial, counted with multiplicities.
-
-        NOTE: Calls the pari function polroots.
-
-        EXAMPLE:
-        We compute the roots of the characteristic polynomial of some Salem numbers:
-            sage: R.<x> = PolynomialRing(ZZ)
-            sage: f = 1 - x^2 - x^3 - x^4 + x^6
-            sage: alpha = f.complex_roots()[0]; alpha
-            0.713639173536901
-            sage: f(alpha)
-            0
-        """
-        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(QQ, 'x')
-        return R(self.list()).complex_roots()
 
     def real_root_intervals(self):
         """

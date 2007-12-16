@@ -204,7 +204,9 @@ class Gp(Expect):
                               wait_for_prompt=wait_for_prompt)
         if a.find("the PARI stack overflows") != -1:
             verbose("automatically doubling the PARI stack and re-executing current input line")
-            self.eval("allocatemem()")
+            b = self.eval("allocatemem()")
+            if b.find("Warning: not enough memory") != -1:
+                raise RuntimeError, a
             return self._eval_line(line)
         else:
             return a
@@ -363,7 +365,7 @@ class GpElement(ExpectElement):
             sage: CC(gp(11243.9812+15*I))
              11243.9812000000 + 15.0000000000000*I
             sage: ComplexField(10)(gp(11243.9812+15*I))
-             1.1e4 + 15*I
+             11000. + 15.*I
         """
         GP = self.parent()
         orig = GP.get_real_precision()

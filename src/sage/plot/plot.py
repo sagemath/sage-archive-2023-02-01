@@ -1735,8 +1735,9 @@ class CircleFactory(GraphicPrimitiveFactory_circle):
 
     sage: g = Graphics()
     sage: step=6; ocur=1/5; paths=16;
+    sage: PI = math.pi    # numerical for speed -- fine for graphics
     sage: for r in range(1,paths+1):
-    ...       for x,y in [((r+ocur)*cos(n), (r+ocur)*sin(n)) for n in srange(0, 2*pi+pi/step, pi/step)]:
+    ...       for x,y in [((r+ocur)*math.cos(n), (r+ocur)*math.sin(n)) for n in srange(0, 2*PI+PI/step, PI/step)]:
     ...           g += circle((x,y), ocur, rgbcolor=hue(r/paths))
     ...       rnext = (r+1)^2
     ...       ocur = (rnext-r)-ocur
@@ -1894,20 +1895,21 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
 
     A red plot of the Jacobi elliptic function $\text{sn}(x,2)$, $-3<x<3$:
 
-        sage: L = [(i/100.0, maxima.eval('jacobi_sn (%s/100.0,2.0)'%i)) for i in range(-300,300)]
+        sage: L = [(i/100.0, jacobi('sn', i/100.0 ,2.0)) for i in range(-300,300,30)]
         sage: p = line(L, rgbcolor=(3/4,1/4,1/8))
         sage: p.show()
 
     A red plot of $J$-Bessel function $J_2(x)$, $0<x<10$:
 
-        sage: L = [(i/10.0, maxima.eval('bessel_j (2,%s/10.0)'%i)) for i in range(100)]
+        sage: L = [(i/10.0, bessel_J(2,i/10.0)) for i in range(100)]
         sage: p = line(L, rgbcolor=(3/4,1/4,5/8))
         sage: p.show()
 
 
     A purple plot of the Riemann zeta function $\zeta(1/2 + it)$, $0<t<30$:
 
-        sage: v = [zeta(0.5 + i/10 * I) for i in range(300)]
+        sage: i = CDF.gen()
+        sage: v = [zeta(0.5 + n/10 * i) for n in range(300)]
         sage: L = [(z.real(), z.imag()) for z in v]
         sage: p = line(L, rgbcolor=(3/4,1/2,5/8))
         sage: p.show()

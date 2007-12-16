@@ -9,7 +9,7 @@
 include "../ext/stdsage.pxi"
 
 # TODO: Unpickled parents with base sometimes have thier base set to None.
-# This causes a segfault in the module arithmatic architecture.
+# This causes a segfault in the module arithmetic architecture.
 #
 # sage: H = HomsetWithBase(QQ, RR, base=ZZ); H
 # sage: H0 = loads(dumps(H))

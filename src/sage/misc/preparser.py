@@ -301,9 +301,175 @@ def parse_ellipsis(code, preparse_step=True):
         ix = code.find('..')
     return code
 
+def strip_prompts(line):
+    r"""Get rid of leading sage: and >>> prompts so that pasting of examples from
+    the documentation works.
+
+    sage: from sage.misc.preparser import strip_prompts
+    sage: strip_prompts("sage: 2 + 2")
+    '2 + 2'
+    sage: strip_prompts(">>>   3 + 2")
+    '3 + 2'
+    sage: strip_prompts("  2 + 4")
+    '  2 + 4'
+    """
+    for prompt in ['sage:', '>>>']:
+        if line.startswith(prompt):
+            line = line[len(prompt):].lstrip()
+            break
+    return line
+
+def parse_generators(line, start_index):
+    r"""Parse R.<a, b> in line[start_index:].
+
+    Returns (modified_line, continue_index); you should resume parsing
+    modified_line[continue_index:].
+
+    Support for generator construction syntax:
+    "obj.<gen0,gen1,...,genN> = objConstructor(...)"
+    is converted into
+    "obj = objConstructor(..., names=("gen0", "gen1", ..., "genN")); \
+     (gen0, gen1, ..., genN,) = obj.gens()"
+
+    Also, obj.<gen0,gen1,...,genN> = R[interior] is converted into
+    "obj = R[interior]; (gen0, gen1, ..., genN,) = obj.gens()"
+
+    LIMITATIONS:
+       - The entire constructor *must* be on one line.
+
+    AUTHORS:
+        -- 2006-04-14: Joe Wetherell (jlwether@alum.mit.edu)
+        -- 2006-04-17: William Stein - improvements to allow multiple statements.
+        -- 2006-05-01: William -- fix bug that Joe found
+        -- 2006-10-31: William -- fix so obj doesn't have to be mutated
+
+    TESTS:
+        sage: from sage.misc.preparser import preparse
+
+        Vanilla:
+
+        sage: preparse("R.<x> = ZZ['x']")
+        "R = ZZ['x']; (x,) = R._first_ngens(Integer(1))"
+        sage: preparse("R.<x,y> = ZZ['x,y']")
+        "R = ZZ['x,y']; (x, y,) = R._first_ngens(Integer(2))"
+
+        No square brackets:
+
+        sage: preparse("R.<x> = PolynomialRing(ZZ, 'x')")
+        "R = PolynomialRing(ZZ, 'x',names=('x',)); (x,) = R._first_ngens(Integer(1))"
+        sage: preparse("R.<x,y> = PolynomialRing(ZZ, 'x,y')")
+        "R = PolynomialRing(ZZ, 'x,y',names=('x', 'y')); (x, y,) = R._first_ngens(Integer(2))"
+
+        Names filled in:
+
+        sage: preparse("R.<x> = ZZ[]")
+        "R = ZZ['x']; (x,) = R._first_ngens(Integer(1))"
+        sage: preparse("R.<x,y> = ZZ[]")
+        "R = ZZ['x, y']; (x, y,) = R._first_ngens(Integer(2))"
+
+        Names given not the same as generator names:
+
+        sage: preparse("R.<x> = ZZ['y']")
+        "R = ZZ['y']; (x,) = R._first_ngens(Integer(1))"
+        sage: preparse("R.<x,y> = ZZ['u,v']")
+        "R = ZZ['u,v']; (x, y,) = R._first_ngens(Integer(2))"
+
+        Number fields:
+
+        sage: preparse("K.<a> = QQ[2^(1/3)]")
+        'K = QQ[Integer(2)**(Integer(1)/Integer(3))]; (a,) = K._first_ngens(Integer(1))'
+        sage: preparse("K.<a, b> = QQ[2^(1/3), 2^(1/2)]")
+        'K = QQ[Integer(2)**(Integer(1)/Integer(3)), Integer(2)**(Integer(1)/Integer(2))]; (a, b,) = K._first_ngens(Integer(2))'
+
+        Just the .<> notation:
+
+        sage: preparse("R.<x> = ZZx")
+        'R = ZZx; (x,) = R._first_ngens(Integer(1))'
+        sage: preparse("R.<x, y> = a+b")
+        'R = a+b; (x, y,) = R._first_ngens(Integer(2))'
+
+        Ensure we don't eat too much:
+
+        sage: preparse("R.<x, y> = ZZ;2")
+        'R = ZZ; (x, y,) = R._first_ngens(Integer(2));Integer(2)'
+        sage: preparse("R.<x, y> = ZZ['x,y'];2")
+        "R = ZZ['x,y']; (x, y,) = R._first_ngens(Integer(2));Integer(2)"
+    """
+    i = start_index
+    if not line.startswith(".<", i):
+        return (line, i)
+    try:
+        gen_end = line.index(">", i+2)
+    except ValueError:
+        # Syntax Error -- let Python notice and raise the error
+        i += 2
+        return (line, i)
+
+    gen_begin = i
+    while gen_begin > 0 and line[gen_begin-1] != ';':
+        gen_begin -= 1
+
+    # parse out the object name and the list of generator names
+    gen_obj = line[gen_begin:i].strip()
+    gen_list = [s.strip() for s in line[i+2:gen_end].split(',')]
+    for g in gen_list:
+        if (not g.isalnum() and not g.replace("_","").isalnum()) or len(g) == 0 or not g[0].isalpha():
+            raise SyntaxError, "variable name (='%s') must be alpha-numeric and begin with a letter"%g
+
+    # format names as a list of strings and a list of variables
+    gen_names = tuple(gen_list)
+    gen_vars  = ", ".join(gen_list)
+
+    # find end of constructor:
+    #    either end of line, next semicolon, or next #.
+    line_after = line[gen_end:]
+    c = line_after.find('#')
+    if c==-1: c = len(line_after)
+    s = line_after.find(';')
+    if s==-1: s = len(line_after)
+    c = min(c,s) + gen_end
+
+    gens_assignment = '; (%s,) = %s._first_ngens(%s)' % (gen_vars, gen_obj, gen_vars.count(',')+1)
+    ring_assignment = ""
+    # Find where the parenthesis of the constructor ends
+    if line[:c].rstrip()[-1] == ']':
+        # brackets constructor
+        c0 = line[:c].find(']')
+        d0 = line[:c0].rfind('[')
+        if c0 == -1:
+            raise SyntaxError, 'constructor must end with ) or ]'
+
+        in_square_brackets = line[d0+1:c0]
+        if in_square_brackets.strip() == '':
+            # as a convenience to the user, 'K.<a> = ZZ[]' -> 'K.<a> = ZZ["a"]'
+            in_square_brackets = "'%s'" % gen_vars
+
+        ring_assignment = '%s%s%s' % (line[:i] + line[gen_end+1:d0+1], in_square_brackets, line[c0:c])
+    elif line[:c].rstrip()[-1] == ')':
+        c0 = line[:c].rfind(')')
+        # General constructor -- rewrite the input line as two commands
+        # We have to determine whether or not to put a comma before
+        # the list of names.  We do this only if there are already
+        # arguments to the constructor.  Some constructors have no
+        # arguments, e.g., "K.<a> = f.root_field(  )"
+        c1 = line[:c0].rfind('(')
+        in_parentheses = line[c1+1:c0].strip()
+        if len(in_parentheses) > 0:
+            sep = ','
+        else:
+            sep = ''
+        ring_assignment = '%s%snames=%s)' % (line[:i] + line[gen_end+1:c0], sep, gen_names)
+    else:
+        ring_assignment = line[:i] + line[gen_end+1:c]
+
+    line = ring_assignment + gens_assignment + line[c:]
+    i += 1
+
+    return (line, i)
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False):
-
+    r"""
+    """
     try:
         # [1,2,..,n] notation
         L, literals = strip_string_literals(line)
@@ -362,21 +528,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
 
     if ignore_prompts:
-        # Get rid of leading sage: so that pasting of examples from
+        # Get rid of leading sage: and >>> so that pasting of examples from
         # the documentation works.
-        for prompt in ['sage:', '>>>']:
-            while True:
-                strip = False
-                if line[:3] == prompt:
-                    line = line[3:].lstrip()
-                    strip = True
-                elif line[:5] == prompt:
-                    line = line[5:].lstrip()
-                    strip = True
-                if not strip:
-                    break
-                else:
-                    line = line.lstrip()
+        line = strip_prompts(line)
 
     while i < len(line):
         # Update quote parsing
@@ -458,70 +612,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         #     -- 2006-04-17: William Stein - improvements to allow multiple statements.
         #     -- 2006-05-01: William -- fix bug that Joe found
         #     -- 2006-10-31: William -- fix so obj doesn't have to be mutated
-        elif (line[i:i+2] == ".<") and not in_quote():
-            try:
-                gen_end = line.index(">", i+2)
-            except ValueError:
-                # Syntax Error -- let Python notice and raise the error
-                i += 2
-                continue
-
-            gen_begin = i
-            while gen_begin > 0 and line[gen_begin-1] != ';':
-                gen_begin -= 1
-
-            # parse out the object name and the list of generator names
-            gen_obj = line[gen_begin:i].strip()
-            gen_list = [s.strip() for s in line[i+2:gen_end].split(',')]
-            for g in gen_list:
-                if not g.isalnum() or len(g) == 0 or not g[0].isalpha():
-                    raise SyntaxError, "variable name (='%s') must be alpha-numeric and begin with a letter"%g
-
-            # format names as a list of strings and a list of variables
-            gen_names = tuple(gen_list)
-            gen_vars  = ", ".join(gen_list)
-
-            # find end of constructor:
-            #    either end of line, next semicolon, or next #.
-            line_after = line[gen_end:]
-            c = line_after.find('#')
-            if c==-1: c = len(line_after)
-            s = line_after.find(';')
-            if s==-1: s = len(line_after)
-            c = min(c,s) + gen_end
-
-            # Find where the parenthesis of the constructor ends
-            if line[:c].rstrip()[-1] == ']':
-                # brackets constructor
-                c0 = line[:c].find(']')
-                d0 = line[:c0].rfind('[')
-                if c0 == -1:
-                    raise SyntaxError, 'constructor must end with ) or ]'
-                line_new = '%s"%s"%s; (%s,) = %s._first_ngens(%s)'%(
-                    line[:i] + line[gen_end+1:d0+1], gen_vars,
-                    line[c0:c], gen_vars, gen_obj, gen_vars.count(',')+1)
-            else:
-                c0 = line[:c].rfind(')')
-                # General constructor -- rewrite the input line as two commands
-                # We have to determine whether or not to put a comma before
-                # the list of names.  We do this only if there are already
-                # arguments to the constructor.  Some constructors have no
-                # arguments, e.g., "K.<a> = f.root_field(  )"
-                c1 = line[:c0].rfind('(')
-                if len(line[c1+1:c0].strip()) > 0:
-                    sep = ','
-                else:
-                    sep = ''
-
-                line_new = '%s%snames=%s); (%s,) = %s._first_ngens(%s)'%(
-                    line[:i] + line[gen_end+1:c0], sep, gen_names,
-                    gen_vars, gen_obj, gen_vars.count(',')+1)
-
-            line = line_new + line[c:]
-            #i = len(line_new)
-            i += 1
-
-            continue
+        elif not in_quote() and (line[i:i+2] == ".<"):
+            line, i = parse_generators(line, i)
 
         # Support for calculus-like function assignment, the line
         # "f(x,y,z) = sin(x^3 - 4*y) + y^x"
@@ -675,8 +767,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         "Time: CPU %%.2f s, Wall: %%.2f s"%%(misc.cputime(__time__), misc.walltime(__wall__))'%L[4:]
 
     return line
-
-
 
 ######################################################
 ## Apply the preparser to an entire file

@@ -68,7 +68,7 @@ COERCIONS:
     sage: n = 9390823
     sage: RR = RealField(200)
     sage: RR(n)
-    9390823.0000000000000000000000000000000000000000000000000000
+    9.3908230000000000000000000000000000000000000000000000000000e6
 
 """
 
@@ -112,11 +112,11 @@ cdef extern from "mpz_pylong.h":
 
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
-    cdef void ZZ_to_t_INT( long **g, mpz_t value )
 
 from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement)
+
 
 import sage.rings.infinity
 import sage.libs.pari.all
@@ -135,6 +135,14 @@ cdef set_from_int(Integer self, int other):
 
 cdef public mpz_t* get_value(Integer self):
     return &self.value
+
+arith = None
+cdef void late_import():
+    global arith
+    if arith is None:
+        import sage.rings.arith
+        arith = sage.rings.arith
+
 
 MAX_UNSIGNED_LONG = 2 * sys.maxint
 
@@ -879,7 +887,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return bin_op(x, y, operator.floordiv)
 
 
-    def __pow__(self, n, dummy):
+    def __pow__(self, n, modulus):
         r"""
         Computes $\text{self}^n$
 
@@ -939,8 +947,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 2^(-1/2)
             1/sqrt(2)
         """
-        if dummy is not None:
-            raise RuntimeError, "__pow__ dummy argument ignored"
+        if modulus is not None:
+            #raise RuntimeError, "__pow__ dummy argument ignored"
+            from sage.rings.integer_mod import Mod
+            return Mod(self, modulus) ** n
+
+
         cdef long nn
         cdef _n
         cdef unsigned int _nval
@@ -1133,6 +1145,71 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             return guess - 1
 
+
+    def prime_to_m_part(self, m):
+        """
+        Returns the prime-to-m part of self, i.e., the largest divisor
+        of self that is coprime to m.
+
+        INPUT:
+            m -- Integer
+        OUTPUT:
+            Integer
+
+        EXAMPLES:
+            sage: z = 43434
+            sage: z.prime_to_m_part(20)
+            21717
+        """
+        late_import()
+        return sage.rings.arith.prime_to_m_part(self, m)
+
+    def prime_divisors(self):
+        """
+        The prime divisors of self, sorted in increasing order.  If n
+        is negative, we do *not* include -1 among the prime divisors, since -1 is
+        not a prime number.
+
+        EXAMPLES:
+            sage: a = 1; a.prime_divisors()
+            []
+            sage: a = 100; a.prime_divisors()
+            [2, 5]
+            sage: a = -100; a.prime_divisors()
+            [2, 5]
+            sage: a = 2004; a.prime_divisors()
+            [2, 3, 167]
+        """
+        late_import()
+        return sage.rings.arith.prime_divisors(self)
+
+    def divisors(self):
+        """
+        Returns a list of all positive integer divisors
+        of the integer self.
+
+        EXAMPLES:
+            sage: a = -3; a.divisors()
+            [1, 3]
+            sage: a = 6; a.divisors()
+            [1, 2, 3, 6]
+            sage: a = 28; a.divisors()
+            [1, 2, 4, 7, 14, 28]
+            sage: a = 2^5; a.divisors()
+            [1, 2, 4, 8, 16, 32]
+            sage: a = 100; a.divisors()
+            [1, 2, 4, 5, 10, 20, 25, 50, 100]
+            sage: a = 1; a.divisors()
+            [1]
+            sage: a = 0; a.divisors()
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be nonzero
+            sage: a = 2^3 * 3^2 * 17; a.divisors()
+            [1, 2, 3, 4, 6, 8, 9, 12, 17, 18, 24, 34, 36, 51, 68, 72, 102, 136, 153, 204, 306, 408, 612, 1224]
+        """
+        late_import()
+        return sage.rings.arith.divisors(self)
 
     def __pos__(self):
         """
@@ -1411,6 +1488,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             <type 'float'>
         """
         return mpz_get_d(self.value)
+
+    def _rpy_(self):
+        """
+        Returns int(self) so that rpy can convert self into an object it
+        knows how to work with.
+
+        EXAMPLES:
+            sage: n = 100
+            sage: n._rpy_()
+            100
+            sage: type(n._rpy_())
+            <type 'int'>
+        """
+        return self.__int__()
 
     def __hash__(self):
         """
@@ -2384,36 +2475,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: type(m)
             <type 'sage.libs.pari.gen.gen'>
 
-        ALGORITHM: Use base 10 Python string conversion, hence very
-        very slow for large integers. If you can figure out how to
-        input a number into PARI in hex, or otherwise optimize this,
-        please implement it and send me a patch.
+        TESTS:
+            sage: n = 10^10000000
+            sage: m = n._pari_() ## crash from trac 875
+            sage: m % 1234567
+            1041334
         """
-        #if self._pari is None:
-            # better to do in hex, but I can't figure out
-            # how to input/output a number in hex in PARI!!
-            # TODO: (I could just think carefully about raw bytes and make this all much faster...)
-            #self._pari = sage.libs.pari.all.pari(str(self))
-        #return self._pari
-##        return sage.libs.pari.all.pari(str(self))
-
         return self._pari_c()
 
     cdef _pari_c(self):
 
-        cdef GEN z
-        cdef pari_sp sp
-        global avma
         cdef PariInstance P
-
-        sp = avma
         P = sage.libs.pari.gen.pari
-
-        ZZ_to_t_INT(&z, self.value)
-        x = P.new_gen_noclear(z)
-        avma = sp
-
-        return x
+        return P.new_gen_from_mpz_t(self.value)
 
     def _interface_init_(self):
         """
@@ -3035,7 +3109,7 @@ cdef class int_to_Z(Morphism):
     cdef Element _call_c(self, a):
         # Override this _call_c rather than _call_c_impl because a is not an element
         cdef Integer r
-        r = PY_NEW(Integer)
+        r = <Integer>PY_NEW(Integer)
         mpz_set_si(r.value, PyInt_AS_LONG(a))
         return r
     def _repr_type(self):
@@ -3133,6 +3207,7 @@ global_dummy_Integer = Integer()
 # Eventually this may be rendered obsolete by a change in SageX allowing
 # non-reference counted extension types.
 cdef long mpz_t_offset
+mpz_t_offset_python = None
 
 
 # stores the GMP alloc function
@@ -3322,6 +3397,8 @@ cdef hook_fast_tp_functions():
     # Eventually this may be rendered obsolete by a change in SageX allowing
     # non-reference counted extension types.
     mpz_t_offset = <char *>(&global_dummy_Integer.value) - <char *>o
+    global mpz_t_offset_python
+    mpz_t_offset_python = mpz_t_offset
 
     # store how much memory needs to be allocated for an Integer.
     sizeof_Integer = o.ob_type.tp_basicsize

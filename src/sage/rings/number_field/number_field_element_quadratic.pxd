@@ -9,9 +9,9 @@ from sage.structure.element cimport Element, FieldElement, RingElement, ModuleEl
 from number_field_element cimport NumberFieldElement, NumberFieldElement_absolute
 
 cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
-    # (a + b sqrt(disc)) / denom
+    # (a + b sqrt(D)) / denom
     cdef mpz_t a, b, denom
-    cdef Integer disc
+    cdef Integer D
     cdef NumberFieldElement conjugate_c(self)
     cdef bint is_sqrt_disc(self)
 

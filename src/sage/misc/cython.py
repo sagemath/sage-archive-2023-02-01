@@ -39,8 +39,8 @@ include_dirs = ['%s/local/include/csage/'%SAGE_ROOT,
                 '%s/devel/sage/sage/gsl/'%SAGE_ROOT]
 
 
-standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
-                 'mwrank', 'gsl', cblas(), 'ntl', 'csage']
+standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'curvesntl', \
+                 'g0nntl', 'jcntl', 'rankntl', 'gsl', cblas(), 'ntl', 'csage']
 
 offset = 0
 
@@ -202,15 +202,15 @@ setup(ext_modules = ext_modules,
     """%(name, name, extension, additional_source_files, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
 
-    cython_include = ' '.join(['-I %s'%x for x in includes if len(x.strip()) > 0 ])
+    cython_include = ' '.join(["-I '%s'"%x for x in includes if len(x.strip()) > 0 ])
 
-    cmd = 'cd %s && cython -p --incref-local-binop %s %s.pyx 1>log 2>err '%(build_dir, cython_include, name)
+    cmd = "cd '%s' && cython -p --incref-local-binop %s '%s.pyx' 1>log 2>err " % (build_dir, cython_include, name)
 
     if create_local_c_file:
         target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
         if language == 'c++':
             target_c = target_c + "pp"
-        cmd += ' && cp %s.c %s'%(name, target_c)
+        cmd += " && cp '%s.c' '%s'"%(name, target_c)
 
     if verbose:
         print cmd
@@ -220,7 +220,7 @@ setup(ext_modules = ext_modules,
         raise RuntimeError, "Error converting %s to C:\n%s\n%s"%(filename, log, err)
 
     if language=='c++':
-        os.system("cd %s && mv %s.c %s.cpp"%(build_dir,name,name))
+        os.system("cd '%s' && mv '%s.c' '%s.cpp'"%(build_dir,name,name))
 
 ##     if make_c_file_nice and os.path.exists(target_c):
 ##         R = open(target_c).read()

@@ -25,12 +25,11 @@ sage: # Evaluate  e^(Pi*Sqrt(163)) to 50 decimal digits
 sage: a = e^(pi*sqrt(163)); a
 e^(sqrt(163)*pi)
 sage: print RealField(150)(a)
-262537412640768743.99999999999925007259719819
+2.6253741264076874399999999999925007259719819e17
 
 sage: # Evaluate the Bessel function J[2] numerically at z=1+I.
-sage: # NOTE -- we get a different answer than yacas
-sage: bessel_J(1.0+I, 2.0)
-0.874211097673326 - 0.222469792478650*I
+sage: bessel_J (2, 1+I)
+0.0415798869439621 + 0.247397641513306*I
 
 sage: # Obtain period of decimal fraction 1/7=0.(142857).
 sage: a = 1/7
@@ -86,7 +85,8 @@ sage: (x^2-4)/(x^2+4*x+4) == (x-2)/(x+2)
 True
 sage: restore('x')
 
-sage: # (NO -- Maxima doesn't consider them equal.)
+sage: # (YES -- Maxima doesn't consider them equal,
+sage: # but SAGE does additional testing to show that they are)
 sage: # (Exp(x)-1)/(Exp(x/2)+1)=Exp(x/2)-1.
 sage: f = (exp(x)-1)/(exp(x/2)+1)
 sage: g = exp(x/2)-1
@@ -97,7 +97,7 @@ e^(x/2) - 1
 sage: print f(10.0), g(10.0)
 147.4131591025766 147.4131591025766
 sage: print bool(f == g)
-False
+True
 
 sage: # (YES) Expand (1+x)^20, take derivative and factorize.
 sage: # first do it is using algebraic polys
@@ -220,13 +220,12 @@ sage: print a
 sage: print bool(a == 0)
 True
 
-sage: # (NO) Sqrt(99983)-99983^3^(1/6)=0
-sage: # For some reason Maxima decides its not zero because of the factorization.
+sage: # (YES) Sqrt(99983)-99983^3^(1/6)=0
 sage: a = sqrt(99983) - (99983^3)^(1/6)
 sage: print a
                        sqrt(99983) - sqrt(13) sqrt(7691)
 sage: print bool(a==0)
-False
+True
 sage: float(a)    # random low order bits
 1.13686837722e-13
 sage: print 13*7691
@@ -239,7 +238,7 @@ sage: print a
 		       1/3    1/3 3	  1/3	 1/3
         	     (4	   + 2	 )  - 6 (4    + 2   ) - 6
 sage: print bool(a==0)
-False
+True
 sage: print float(a)
 3.5527136788e-15
 sage: ## but we can do it using number fields.
@@ -398,7 +397,7 @@ sage: print d
 a^3*b^2*c - a^2*b^3*c - a^3*b*c^2 + a*b^3*c^2 + a^2*b*c^3 - a*b^2*c^3 - a^3*b^2*d + a^2*b^3*d + a^3*c^2*d - b^3*c^2*d - a^2*c^3*d + b^2*c^3*d + a^3*b*d^2 - a*b^3*d^2 - a^3*c*d^2 + b^3*c*d^2 + a*c^3*d^2 - b*c^3*d^2 - a^2*b*d^3 + a*b^2*d^3 + a^2*c*d^3 - b^2*c*d^3 - a*c^2*d^3 + b*c^2*d^3
 
 sage: print d.factor()
-(-1) * (a - d) * (-a + b) * (b - d) * (a - c) * (b - c) * (c - d)
+(-1) * (c - d) * (b - d) * (b - c) * (-a + b) * (a - d) * (a - c)
 
 sage: # Find the eigenvalues of a 3x3 integer matrix.
 sage: m = matrix(QQ, 3, [5,-3,-7, -2,1,2, 2,-3,-4])

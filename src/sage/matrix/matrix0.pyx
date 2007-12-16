@@ -27,7 +27,7 @@ import sage.misc.latex
 import sage.rings.integer
 
 from   sage.misc.misc import verbose, get_verbose
-from   sage.structure.sequence import _combinations, Sequence
+from   sage.structure.sequence import Sequence
 
 cimport sage.structure.element
 from   sage.structure.element    cimport ModuleElement, Element, RingElement, Vector
@@ -2011,7 +2011,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: v*a
             (9, 10, 11)
 
-        This is not allowed, since v is a {\em row} vector:
+        This is not allowed, since v is a \emph{row} vector:
             sage: a*v
             Traceback (most recent call last):
             ...

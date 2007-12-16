@@ -765,7 +765,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             B = self.boundary_space()
             I = [B(b) for b in self.basis()]
             W = matrix_space.MatrixSpace(self.base_ring(), len(I), B.rank(), sparse=True)
-            A = W([x.element() for x in I])
+
+            # Note -- the underlying elements have degree the number of distinct
+            # cusps known when the element was computed.  This isn't constant,
+            # so we pad the elements.
+            E = [x.element() for x in I]
+            zero = self.base_ring()(0)
+            n = int(B.dimension())
+            E = sum([ list(x) + [zero]*(n - len(x)) for x in E ], [])
+
+            A = W( E )
             H = cat.Hom(self, B)
             self.__boundary_map = H(A, "boundary map")
             return self.__boundary_map
@@ -1147,8 +1156,12 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                             This are useful for many algorithms.
         OUTPUT:
             subspace of modular symbols
+
+        EXAMPLES:
+            sage: ModularSymbols(1,12,0,GF(5)).minus_submodule() ## indirect doctest
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Finite Field of size 5
         """
-        S = self.star_involution().matrix() - sign
+        S = self.star_involution().matrix() - self.base_ring()(sign)
         V = S.kernel()
         if compute_dual:
             Vdual = S.transpose().kernel()

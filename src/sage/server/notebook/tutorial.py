@@ -211,7 +211,7 @@ the objects subdirectory.)
 \subsubsection{Pasting in Examples}
 Code is evaluated by exec'ing (after preparsing). Only the output
 of the last line of the cell is implicitly printed. If any line
-starts with "sage:" or ">>>" the {\em entire block} is assumed to
+starts with "sage:" or ">>>" the \emph{entire block} is assumed to
 contain text and examples, and only lines that begin with a
 prompt are executed. Thus you can paste in *complete examples*
 from the docs without any editing, and you can write input
@@ -359,6 +359,7 @@ notebook_help = [
                 ('Interrupt running calculations',
                  'Click <u>Interrupt</u> or press escape in any input cell. This will (attempt) to interrupt SAGE by sending many interrupt signals.'),
                 ('Tab Completion', 'Press tab while the cursor is on an identifier. On some web browsers (e.g., Opera) you must use control-space instead of tab.'),
+                ('Typesetting All Output', 'Type lprint() in an input cell and press shift-enter.  All future output will be typeset automatically.'),
                 ('Help About',
                  'Type ? immediately after the object or function and press tab.'),
                 ('Source Code',

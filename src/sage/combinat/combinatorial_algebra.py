@@ -1,3 +1,6 @@
+r"""
+Combinatorial Algebras
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -27,7 +30,8 @@ from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
 import sage.structure.parent_base
 import sage.combinat.partition
-
+from sage.modules.free_module_element import vector
+from sage.matrix.all import matrix, MatrixSpace
 
 class CombinatorialAlgebraElement(AlgebraElement):
     def __init__(self, A, x):
@@ -146,6 +150,17 @@ class CombinatorialAlgebraElement(AlgebraElement):
     def _mul_(self, y):
         return self.parent().multiply(self, y)
 
+    def _div_(self, y):
+        return self.parent().multiply(self, ~y)
+
+    def __invert__(self):
+        mcs = self._monomial_coefficients
+        one = self.parent()._one
+        if len(mcs) == 1 and one in mcs:
+            return self.parent()( ~mcs[ one ] )
+        else:
+            raise ValueError, "cannot invert self (= %s)"%self
+
     def __pow__(self, n):
         """
 
@@ -196,6 +211,41 @@ class CombinatorialAlgebraElement(AlgebraElement):
         cffs = [ x for (_, x) in v ]
         return [mons, cffs]
 
+    def _vector_(self, new_BR=None):
+        parent = self.parent()
+        if parent.get_order() is None:
+            cc = parent._combinatorial_class
+        else:
+            cc = parent.get_order()
+
+        if new_BR is None:
+            new_BR = parent.base_ring()
+
+        return vector(new_BR, [new_BR(self._monomial_coefficients.get(m, 0)) for m in cc])
+
+    def to_vector(self):
+        return self._vector_()
+
+    def _matrix_(self, new_BR = None):
+        parent = self.parent()
+
+        if parent.get_order() is None:
+            cc = parent._combinatorial_class
+        else:
+            cc = parent.get_order()
+
+        BR = parent.base_ring()
+        if new_BR is None:
+            new_BR = BR
+
+        MS = MatrixSpace(new_BR, parent._dim, parent._dim)
+        l = [ (self*parent(m)).to_vector() for m in cc ]
+        return MS(l).transpose()
+
+    def to_matrix(self):
+        return self._matrix_()
+
+
 class CombinatorialAlgebra(Algebra):
     """
     """
@@ -232,6 +282,14 @@ class CombinatorialAlgebra(Algebra):
                 self._element_class = CAElement
         else:
             self._element_class = element_class
+
+        #Set the dimension
+        try:
+            self._dim = self._combinatorial_class.count()
+        except:
+            self._dim = None
+
+        self._order = None
 
         #Initialize the base structure
         sage.structure.parent_base.ParentWithBase.__init__(self, R)
@@ -276,7 +334,7 @@ class CombinatorialAlgebra(Algebra):
         elif x in self._combinatorial_class:
             return eclass(self, {self._combinatorial_class.object_class(x):R(1)})
         #Coerce elements of the base ring
-        elif x.parent() is R:
+        elif hasattr(x, 'parent') and x.parent() is R:
             if x == R(0):
                 return eclass(self, {})
             else:
@@ -320,8 +378,53 @@ class CombinatorialAlgebra(Algebra):
         # any ring that coerces to the base ring
         return self._coerce_try(x, [self.base_ring()])
 
+    def dimension(self):
+        """
+        Returns the dimension of the combinatorial algebra (which is given
+        by the number of elements in the associated combinatorial class).
+        """
+        return self._dim
+
+    def set_order(self, order):
+        """
+        Sets the order of the elements of the combinatorial class.
+        If .set_order() has not been called, then the ordering is
+        the one used in the generation of the elements of self's
+        associated combinatorial class.
+        """
+
+        #TODO: add checks
+
+        self._order = order
+
+    def get_order(self):
+        return self._order
+
     def prefix(self):
         return self._prefix
+
+
+    def _linearize(self, f, a):
+        """
+        This takes in a function from the basis elements
+        to the elements of self.
+        """
+        mcs = a.monomial_coefficients()
+        base_ring = self.base_ring()
+        zero = base_ring(0)
+
+        z_elt = {}
+        for basis_element in mcs:
+            f_mcs = f(basis_element).monomial_coefficients()
+            print f_mcs
+            for f_basis_element in f_mcs:
+                z_elt[ f_basis_element ] = z_elt.get(f_basis_element, zero) + mcs[basis_element]*f_mcs[f_basis_element]
+
+        res = self(0)
+        print z_elt
+        res._monomial_coefficients = z_elt
+        print res.monomial_coefficients()
+        return res
 
     def multiply(self,left,right):
         A = left.parent()
@@ -336,21 +439,19 @@ class CombinatorialAlgebra(Algebra):
                     res = self._multiply_basis(left_m, right_m)
                     #Handle the case where the user returns a dictionary
                     #where the keys are the monomials and the values are
-                    #the coefficients
-                    if isinstance(res, dict):
-                        for m in res:
-                            if m in z_elt:
-                                z_elt[ m ] = z_elt[m] + left_c * right_c * res[m]
-                            else:
-                                z_elt[ m ] = left_c * right_c * res[m]
-                    #Otherwise, res is assumed to be an element of the
-                    #object class
-                    else:
-                        m = res
-                        if m  in z_elt:
-                            z_elt[ m ] = z_elt[m] + left_c * right_c
+                    #the coefficients.  If res is not a dictionary, then
+                    #it is assumed to be an element of self
+                    if not isinstance(res, dict):
+                        if isinstance(res, self._element_class):
+                            res = res._monomial_coefficients
                         else:
-                            z_elt[ m ] = left_c * right_c
+                            res = {res: BR(1)}
+                    for m in res:
+                        if m in z_elt:
+                            z_elt[ m ] = z_elt[m] + left_c * right_c * res[m]
+                        else:
+                            z_elt[ m ] = left_c * right_c * res[m]
+
         #We assume that the user handles the multiplication correctly on
         #his or her own, and returns a dict with monomials as keys and
         #coefficients as values

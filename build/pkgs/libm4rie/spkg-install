@@ -1,0 +1,32 @@
+#!/bin/sh
+
+cd src
+
+INCLUDES="-I$SAGE_LOCAL/include/"
+
+CFLAGS="$CFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib"
+CXXFLAGS="$CXXFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib"
+CPPFLAGS="$INCLUDES"
+export CFLAGS
+export CXXFLAGS
+export CPPFLAGS
+
+./configure --prefix=$SAGE_LOCAL --includedir=$SAGE_LOCAL/include/m4ri
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring libm4ri"
+    exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo "Error building libm4ri"
+    exit 1
+fi
+
+$MAKE install
+if [ $? -ne 0 ]; then
+    echo "Error installing libm4ri"
+    exit 1
+fi
+

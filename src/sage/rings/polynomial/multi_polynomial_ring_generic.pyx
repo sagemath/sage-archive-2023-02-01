@@ -406,26 +406,28 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             d -- degree
 
         EXAMPLE:
-        sage: C,t = _precomp_counts(10,2)
-        sage: C[0]
-        1
-        sage: C[1]
-        10
-        sage: C[2]
-        55
-        sage: t
-        66
+            sage: P.<x,y> = PolynomialRing(ZZ)
+            sage: C,t = P._precomp_counts(10,2)
+            sage: C[0]
+            1
+            sage: C[1]
+            10
+            sage: C[2]
+            55
+            sage: t
+            66
 
         TESTS:
-        sage: C,t = _precomp_counts(1,2)
-        sage: C[0]
-        1
-        sage: C[1]
-        1
-        sage: C[2]
-        1
-        sage: t
-        3
+            sage: P.<x,y> = PolynomialRing(ZZ)
+            sage: C,t = P._precomp_counts(1,2)
+            sage: C[0]
+            1
+            sage: C[1]
+            1
+            sage: C[2]
+            1
+            sage: t
+            3
 
         """
         from sage.rings.arith import binomial
@@ -446,11 +448,12 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             d -- degree
 
         EXAMPLE:
-        sage: _to_monomial(0,10,2)
+	sage: P.<x,y> = PolynomialRing(QQ)
+        sage: P._to_monomial(0,10,2)
         (0, 0, 0, 0, 0, 0, 0, 0, 0, 2)
-        sage: _to_monomial(8,10,2)
+        sage: P._to_monomial(8,10,2)
         (0, 0, 0, 0, 0, 0, 1, 1, 0, 0)
-        sage: _to_monomial(54,10,2)
+        sage: P._to_monomial(54,10,2)
         (2, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
         NOTE: We do not check if the provided index/rank is within the
@@ -542,23 +545,17 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             **kwargs -- passed to the random element generator of the base ring
 
         EXAMPLES:
-        sage: P.<x,y,z> = PolynomialRing(QQ)
-        sage: random_element(P, 2, 5)
-        1/2*y^2 + x*z - x + 2*y + 19/2*z
+            sage: P.<x,y,z> = PolynomialRing(QQ)
+            sage: P.random_element(2, 5)
+            1/2*y^2 + x*z - x + 2*y + 19/2*z
 
-        sage: random_element(P, 2, 5, choose_degree=True)
-        28*x*z + y*z - z^2 - 1/2*x - 44/39
+            sage: P.random_element(2, 5, choose_degree=True)
+            28*x*z + y*z - z^2 - 1/2*x - 44/39
+            sage: P.random_element(0, 1)
+            1
 
-        sage: random_element(P, 2, 15)
-        Traceback (most recent call last):
-        ...
-        Cannot compute polynomial with more terms than exist.
-
-        sage: random_element(P, 0, 1)
-        1
-
-        sage: random_element(P, 2, 0)
-        0
+            sage: P.random_element(2, 0)
+            0
 
         """
         from sage.combinat.integer_vector import IntegerVectors

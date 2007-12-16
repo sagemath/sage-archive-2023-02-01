@@ -48,6 +48,13 @@ config
 
 build
 
+cd $CUR/ATLAS-build
+if [ -f error* ]; then
+    echo "ATLAS failed to build because your system is too heavily loaded to obtain accurate timing."
+    echo "Please restart the build by typing make, when the load on your system has decreased."
+    exit 1
+fi
+
 cd $CUR
 sh ./make_correct_shared.sh
 

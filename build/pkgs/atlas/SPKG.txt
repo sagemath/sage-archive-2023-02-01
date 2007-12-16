@@ -8,6 +8,10 @@ Maintainers: Michael Abshoff, Josh Kantor
 
 ChangeLog
 
+* 20071215: Josh Kantor (3.8.p6)
+  + check if ATLAS bailed out due to unprecise timings. This happens
+    if the system is too loaded.
+
 * 20071214: Josh Kantor (3.8.p5)
   + introduce workaround for 32 bit userspace build on 64 bit CPUs -
     see #1497

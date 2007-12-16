@@ -1028,7 +1028,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: float(1.2)**(1/2)
             1.0954451150103321
             sage: complex(1,2)**(1/2)
-            (1.272019649514069+0.78615137775742328j)
+            (1.272019649514069+0.786151377757423...j)
             sage: int(2)^(1/2)
             sqrt(2)
             sage: a = int(2)^(3/1); a

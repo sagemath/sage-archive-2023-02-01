@@ -2997,6 +2997,22 @@ class GenericGraph(SageObject):
 
         return self.subgraph(vertices).to_simple().size()==0
 
+    def is_subgraph(self, other):
+        """
+        Tests whether self is a subgraph of other.
+
+        EXAMPLE:
+            sage: P = graphs.PetersenGraph()
+            sage: G = P.subgraph(range(6))
+            sage: G.is_subgraph(P)
+            True
+
+        """
+        self_verts = self.vertices()
+        for v in self_verts:
+            if v not in other:
+                return False
+        return other.subgraph(self_verts) == self
 
 
 class Graph(GenericGraph):
@@ -6487,8 +6503,6 @@ class DiGraph(GenericGraph):
             sage: H.vertices()
             [0, 1]
 
-
-
         """
         NXG = self._nxg.subgraph(vertices, inplace, create_using)
         if edges is not None:
@@ -6501,14 +6515,10 @@ class DiGraph(GenericGraph):
                     edges_to_delete.append(tuple(e))
 
             NXG.delete_edges_from(edges_to_delete)
-
-	if inplace:
+        if inplace:
             self._nxg = NXG
         else:
             return DiGraph(NXG)
-
-
-
 
     ### Visualization
 

@@ -4098,9 +4098,9 @@ class Graph(GenericGraph):
         EXAMPLE:
             sage: P = graphs.PetersenGraph()
             sage: P.spectrum()
-	    [-2.0, -2.0, -2.0, -2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.0]
+            [-2.0, -2.0, -2.0, -2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.0]
             sage: P.spectrum(laplacian=True)   # random low-order bits (at least for first eigenvalue)
-	    [-1.41325497305e-16, 2.0, 2.0, 2.0, 2.0, 2.0, 5.0, 5.0, 5.0, 5.0]
+            [-1.41325497305e-16, 2.0, 2.0, 2.0, 2.0, 2.0, 5.0, 5.0, 5.0, 5.0]
 
         """
         from sage.matrix.constructor import matrix
@@ -4112,8 +4112,32 @@ class Graph(GenericGraph):
         M = matrix(RDF, M.rows())
         E = M.right_eigenvectors()[0]
         v = [e.real() for e in E]
-	v.sort()
-	return v
+        v.sort()
+        return v
+
+    def eigenspaces(self, laplacian=False):
+        """
+        Returns the eigenspaces of the adjacency matrix of the graph.
+
+        EXAMPLE:
+            sage: C = graphs.CycleGraph(5)
+            sage: E = C.eigenspaces()
+            sage: E[0][0]
+            -1.61803398875
+            sage: E[1][0]
+            Vector space of degree 5 and dimension 1 over Real Double Field
+            User basis matrix:
+            [ 0.632455532034 -0.632455532034   -0.4472135955 -0.013900198608 0.0738411279702]
+
+        """
+        if laplacian:
+            M = self.kirchhoff_matrix()
+        else:
+            M = self.am()
+        from sage.matrix.constructor import matrix
+        from sage.rings.real_double import RDF
+        M = matrix(RDF, M.rows())
+        return M.eigenspaces()
 
     ### Representations
 
@@ -4777,7 +4801,7 @@ class Graph(GenericGraph):
 
             NXG.delete_edges_from(edges_to_delete)
 
-	if inplace:
+        if inplace:
             self._nxg = NXG
         else:
             return Graph(NXG)

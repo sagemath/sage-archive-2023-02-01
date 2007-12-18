@@ -31,21 +31,25 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
 
     INPUT:
     Supported formats
-        1. matrix([sparse=True]):
-               the 0x0 matrix over ZZ
-        2. matrix(list_of_rows, [sparse=True]):
-               matrix with each row constructed from the list_of_rows
-        3. matrix(nrows, entries, [sparse=True]):
-               matrix with given number of rows and flat list of entries
-        4. matrix(nrows, ncols, entries, [sparse=True]):
-               matrix with given number of rows and columns with flat list of entries
-        5. matrix(ring, list_of_row, [sparse=True]):
-               matrix over ring with rows the elements of the list_of_rows
-        6. matrix(ring, nrows, entries, [sparse=True]):
-               matrix over ring with given number of rows and entries from the flat list
-        7. matrix(ring, nrows, ncols, entries, [sparse=True]):
-               matrix over the given ring with given number of rows and columns and entries.
-        8. matrix(numpy_array)
+        1.  matrix([sparse=True]):
+                the 0x0 matrix over ZZ
+        2.  matrix(list_of_rows, [sparse=True]):
+                matrix with each row constructed from the list_of_rows
+        3.  matrix(nrows, entries, [sparse=True]):
+                matrix with given number of rows and flat list of entries
+        4.  matrix(nrows, ncols, entries, [sparse=True]):
+                matrix with given number of rows and columns with flat list of entries
+        5.  matrix(ring, list_of_row, [sparse=True]):
+                matrix over ring with rows the elements of the list_of_rows
+        6.  matrix(ring, nrows, entries, [sparse=True]):
+                matrix over ring with given number of rows and entries from the flat list
+        7.  matrix(ring, nrows, ncols, entries, [sparse=True]):
+                matrix over the given ring with given number of rows and columns and entries.
+        8.  matrix(numpy_array)
+        9.  matrix(object)
+        10. matrix(ring, object)
+        11. matrix(object, ring)
+
     The sparse option is optional, must be explicitly named (i.e.,
     sparse=True), and may be either True or False.
 
@@ -221,6 +225,17 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
         sage: matrix(a)
         [1 2]
         [3 4]
+
+    9.  Creating a matrix from Sage objects.
+        sage: v = vector(ZZ, [1, 10, 100])
+        sage: matrix(v)
+        [  1  10 100]
+
+        sage: matrix(GF(7), v)
+        [1 3 2]
+
+        sage: matrix(ZZ['x'], v)
+        [  1  10 100]
 
     TESTS:
         sage: import numpy

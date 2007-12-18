@@ -265,7 +265,57 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         self._is_mutable = 1
 
     def _vector_(self, R):
+        r"""Return self as a vector.
+
+        EXAMPLES:
+            sage: v = vector(ZZ, [2, 12, 22])
+            sage: vector(v)
+            (2, 12, 22)
+            sage: vector(GF(7), v)
+            (2, 5, 1)
+            sage: vector(v, ZZ['x', 'y'])
+            (2, 12, 22)
+        """
         return self.change_ring(R)
+
+    def _matrix_(self, R=None):
+        r"""Return self as a row matrix.
+
+        EXAMPLES:
+            sage: v = vector(ZZ, [2, 12, 22])
+            sage: vector(v)
+            (2, 12, 22)
+            sage: vector(GF(7), v)
+            (2, 5, 1)
+            sage: vector(v, ZZ['x', 'y'])
+            (2, 12, 22)
+        """
+        if R is None:
+            R = self.base_ring()
+        from sage.matrix.constructor import matrix
+        return matrix(R, [list(self)])
+
+    def transpose(self):
+        r"""Return self as a column matrix.
+
+        EXAMPLES:
+            sage: v = vector(ZZ, [2, 12, 22])
+            sage: transpose(vector(v))
+            [ 2]
+            [12]
+            [22]
+
+            sage: transpose(vector(GF(7), v))
+            [2]
+            [5]
+            [1]
+
+            sage: transpose(vector(v, ZZ['x', 'y']))
+            [ 2]
+            [12]
+            [22]
+        """
+        return self._matrix_().transpose()
 
     def _hash(self):
         return hash(tuple(list(self)))

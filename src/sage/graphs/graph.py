@@ -3014,6 +3014,28 @@ class GenericGraph(SageObject):
                 return False
         return other.subgraph(self_verts) == self
 
+    def characteristic_polynomial(self, var='x', laplacian=False):
+        """
+        Returns the characteristic polynomial of the adjacency matrix
+        of the (di)graph.
+
+        INPUT:
+            laplacian -- if True, use the Laplacian matrix instead (see
+                self.kirchhoff_matrix())
+
+        EXAMPLE:
+            sage: P = graphs.PetersenGraph()
+            sage: P.characteristic_polynomial()
+            x^10 + x^8 + x^6 + x^4
+            sage: P.characteristic_polynomial(laplacian=True)
+            x^10 - 30*x^9 + 390*x^8 - 2880*x^7 + 13305*x^6 - 39882*x^5 + 77640*x^4 - 94800*x^3 + 66000*x^2 - 20000*x
+
+        """
+        if laplacian:
+            return self.kirchhoff_matrix().charpoly(var=var)
+        else:
+            return self.am().charpoly(var=var)
+
 
 class Graph(GenericGraph):
     r"""
@@ -3099,20 +3121,6 @@ class Graph(GenericGraph):
         sage: H = Graph(g)
         sage: G._nxg is H._nxg
         False
-
-    def characteristic_polynomial(self, var='x'):
-        """
-        Returns the characteristic polynomial of the adjacency matrix
-        of the (di)graph.
-
-        EXAMPLE:
-            sage: P = graphs.PetersenGraph()
-            sage: P.characteristic_polynomial()
-            x^10 + x^8 + x^6 + x^4
-
-        """
-        return self.am().charpoly(var=var)
-
 
     3. A dictionary of dictionaries:
         sage: g = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
@@ -4129,6 +4137,10 @@ class Graph(GenericGraph):
     def eigenspaces(self, laplacian=False):
         """
         Returns the eigenspaces of the adjacency matrix of the graph.
+
+        INPUT:
+            laplacian -- if True, use the Laplacian matrix instead (see
+                self.kirchhoff_matrix())
 
         EXAMPLE:
             sage: C = graphs.CycleGraph(5)

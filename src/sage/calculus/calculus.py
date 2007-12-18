@@ -2474,7 +2474,7 @@ class SymbolicExpression(RingElement):
             sage: t = var('t')
             sage: v = 0.004*(9600*e^(-(1200*t)) - 2400*e^(-(300*t)))
             sage: v.find_root(0, 0.002)
-            0.0015403270679114178
+            0.001540327067911417...
 
              sage: a = .004*(8*e^(-(300*t)) - 8*e^(-(1200*t)))*(720000*e^(-(300*t)) - 11520000*e^(-(1200*t))) +.004*(9600*e^(-(1200*t)) - 2400*e^(-(300*t)))^2
 
@@ -2487,7 +2487,7 @@ class SymbolicExpression(RingElement):
 
         However \code{find_root} works beautifully:
             sage: a.find_root(0,0.002)
-            0.00041105140493493411
+            0.0004110514049349341...
         """
         a = float(a); b = float(b)
         if var is None:

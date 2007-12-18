@@ -184,7 +184,7 @@ class ECM:
         else:
            if not method == "ECM":
               err = "unexpected method: " + method
-              raise ValueError, method
+              raise ValueError, err
         self.__cmd = self._ECM__startup_cmd(B1, None, kwds)
         child = pexpect.spawn(self.__cmd)
         cleaner.cleaner(child.pid, self.__cmd)

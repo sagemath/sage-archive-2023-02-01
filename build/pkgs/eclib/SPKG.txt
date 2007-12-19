@@ -7,6 +7,15 @@ MAINTAINTERS:
    * John Cremona
    * Ralph Philip Weinmann
 
+* 20071219.p0 (John Cremona)
+   * fix main Makefile mismerge (Michael Abshoff)
+   * add missing export to g0n/Makefile (John Cremona)
+   * fix permission issue (Michael Abshoff)
+
+* 20071219 (John Cremona)
+   * update to latest source
+   * fix mwrank error on non-minimal curves (#1233)
+
 * 20071124.p4 (Michael Abshoff)
    * apply John Cremoan's second patch for #1403
    * delete $SAGE_LOCAL/include/mwrank (#1410)

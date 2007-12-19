@@ -215,7 +215,9 @@ def LineSegment(start, end, thickness=1, radius=None, **kwds):
         theta = -acos(diff[2]/height)
         return cyl.rotate(axis, theta).translate(start)
 
-def Arrow(start, end, radius, head_radius=None, head_len=None, **kwds):
+def Arrow(start, end, thickness=1, radius=None, head_radius=None, head_len=None, **kwds):
+    if radius is None:
+        radius = thickness/50.0
     if head_radius == None:
         head_radius = 3*radius
     if head_len == None:

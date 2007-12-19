@@ -2807,10 +2807,10 @@ class GenericGraph(SageObject):
 
     def plot3d_new(self, bgcolor=(1,1,1),
                          vertex_colors=None, vertex_size=0.06,
-                         edge_colors=None, edge_size=0.02,
+                         edge_colors=None, edge_size=0.015,
                          pos3d=None,
                          iterations=50, color_by_label=False, **kwds):
-        from sage.plot.plot3d.all import Sphere, Line, Arrow
+        from sage.plot.plot3d.all import Sphere, LineSegment, Arrow
         line = Arrow if self.is_directed() else Line
 
         verts = self.vertices()
@@ -2835,7 +2835,7 @@ class GenericGraph(SageObject):
 
             for color in edge_colors:
                 for u, v, l in edge_colors[color]:
-                    graphic += line(pos3d[u], pos3d[v], edge_size, color=color, closed=False)
+                    graphic += line(pos3d[u], pos3d[v], radius=edge_size, color=color, closed=False)
 
             return graphic
 

@@ -1,0 +1,29 @@
+#!/bin/sh
+
+
+CUR=`pwd`
+
+if [ ! -f "$SAGE_LOCAL/lib/python" ]; then
+     cd "$SAGE_LOCAL/lib"
+     ln -s  python* python
+fi
+
+cd "$CUR"
+
+# I do not like the default style.css -- its hard
+# to read and ugly.
+$CP patches/style.css src/templates/static/
+$CP patches/changelog.tmpl src/templates/
+
+$CP patches/util.py src/mercurial/util.py
+
+perl -p -i -e 's/>manifest</>browse all files</g' src/templates/*.tmpl
+
+cd src
+
+python setup.py install --home="$SAGE_LOCAL" --force
+
+echo "Deleting dead links"
+cd $SAGE_LOCAL/lib
+rm -rf python/python2.5 python/python
+

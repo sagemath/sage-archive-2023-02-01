@@ -1,0 +1,28 @@
+syntax: glob
+src
+*.elc
+*.orig
+*.rej
+*~
+*.o
+*.so
+*.pyc
+*.swp
+*.prof
+tests/.coverage*
+tests/annotated
+tests/*.err
+build
+contrib/hgsh/hgsh
+dist
+doc/*.[0-9]
+doc/*.[0-9].gendoc.txt
+doc/*.[0-9].{x,ht}ml
+MANIFEST
+patches
+mercurial/__version__.py
+.DS_Store
+
+syntax: regexp
+^\.pc/
+Output/Mercurial-[0-9.]*.exe

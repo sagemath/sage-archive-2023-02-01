@@ -4811,6 +4811,66 @@ class Graph(GenericGraph):
         f.write( print_graph_eps(self.vertices(), self.edge_iterator(), pos) )
         f.close()
 
+    def plot3d_new(self, bgcolor=(1,1,1),
+                         vertex_colors=None, vertex_size=0.06,
+                         edge_colors=None, edge_size=0.02,
+                         pos3d=None,
+                         iterations=50, color_by_label=False, **kwds):
+        from math import sqrt
+        from sage.plot.plot3d.all import Sphere, Line
+
+        c = [0,0,0]
+        r = []
+
+        verts = self.vertices()
+
+        if vertex_colors is None:
+            vertex_colors = { (1,0,0) : verts }
+        if pos3d is None:
+            pos3d = graph_fast.spring_layout_fast(self, dim=3, iterations=iterations)
+        try:
+            for v in verts:
+                c[0] += pos3d[v][0]
+                c[1] += pos3d[v][1]
+                c[2] += pos3d[v][2]
+        except KeyError:
+            raise KeyError, "Oops! You haven't specified positions for all the vertices."
+
+        order = self.order()
+        c[0] = c[0]/order
+        c[1] = c[1]/order
+        c[2] = c[2]/order
+        for v in verts:
+            pos3d[v][0] = pos3d[v][0] - c[0]
+            pos3d[v][1] = pos3d[v][1] - c[1]
+            pos3d[v][2] = pos3d[v][2] - c[2]
+            r.append(abs(sqrt((pos3d[v][0])**2 + (pos3d[v][1])**2 + (pos3d[v][2])**2)))
+        r = max(r)
+        if r == 0:
+            r = 1
+        for v in verts:
+            pos3d[v][0] = pos3d[v][0]/r
+            pos3d[v][1] = pos3d[v][1]/r
+            pos3d[v][2] = pos3d[v][2]/r
+
+        graphic = 0
+        for color in vertex_colors:
+            for v in vertex_colors[color]:
+                graphic += Sphere(vertex_size, color=color).translate(*pos3d[v])
+
+        if color_by_label:
+            if edge_colors is  None:
+                    # do the coloring
+                    edge_colors = self._color_by_label(format='rgbtuple')
+        elif edge_colors is None:
+            edge_colors = { (0,0,0) : self.edges() }
+
+        for color in edge_colors:
+            for u, v, l in edge_colors[color]:
+                graphic += Line(pos3d[u], pos3d[v], edge_size, color=color)
+
+        return graphic
+
     def plot3d(self, bgcolor=(1,1,1),
                vertex_colors=None, vertex_size=0.06,
                edge_colors=None, edge_size=0.02,

@@ -387,6 +387,16 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             [1, 2, 0, 4, 3]
             sage: g(('who','what','when','where','why'))
             ('what', 'when', 'who', 'why', 'where')
+
+            sage: g(x)
+            Traceback (most recent call last):
+            ...
+            ValueError: Must be an integer, list, tuple or string.
+            sage: g(3/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Must be an integer, list, tuple or string.
+
         """
         cdef int j
         if isinstance(i,(list,tuple,str)):
@@ -398,6 +408,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             permuted += i[self.n:]
             return permuted
         else:
+            if not isinstance(i, (int, Integer)):
+                raise ValueError("Must be an integer, list, tuple or string.")
             j = i
             if 1 <= j <= self.n:
                 return self.perm[j-1]+1

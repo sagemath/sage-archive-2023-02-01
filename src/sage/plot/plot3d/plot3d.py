@@ -67,11 +67,11 @@ def plot3d(f,(xmin,xmax),(ymin,ymax),texture=None,grad_f=None,
 
     """
     # Check if f has a fast float evaluation
-    try:
-        f = f.fast_float_function()
-    except AttributeError:
-        # Nope -- no prob.
-        pass
+    #try:
+    #    f = f.fast_float_function()
+    #except AttributeError:
+    #    # Nope -- no prob.
+    #    pass
 
     if texture is None:
         texture = rainbow(100, 'rgbtuple')

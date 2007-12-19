@@ -591,6 +591,7 @@ class SymbolicExpression(RingElement):
                 else:
                     param = A[0]
                 f = lambda x: self(x)
+                #f = self.fast_float_function()
             else:
                 A = self.variables()
                 if len(A) == 0:
@@ -2766,7 +2767,14 @@ class SymbolicExpression(RingElement):
             var = self._first_variable()
         return self.parent()(self._maxima_().partfrac(var))
 
+    ###################################################################
+    # Fast Evaluation
+    ###################################################################
+    def fast_float_function(self):
+        return self._fast_float_()
 
+    def _fast_float_(self):
+        return   lambda x: float(self(x))
 
 
 class Symbolic_object(SymbolicExpression):
@@ -2909,6 +2917,10 @@ class SymbolicConstant(Symbolic_object):
             except AttributeError:
                 if isinstance(self._obj, int):
                     return True
+
+    def _fast_float_(self):
+        z = float(self)
+        return lambda x: z
 
     def _recursive_sub(self, kwds):
         """
@@ -3729,6 +3741,9 @@ class SymbolicVariable(SymbolicExpression):
     def __hash__(self):
         return hash(self._name)
 
+    def _fast_float_(self):
+        return lambda x: x
+
     def _recursive_sub(self, kwds):
         # do the replacement if needed
         if kwds.has_key(self):
@@ -4348,6 +4363,11 @@ class SymbolicComposition(SymbolicOperation):
         g = self._operands[1]
         return float(f._approx_(float(g)))
 
+    def _fast_float_(self):
+        f = self._operands[0]._fast_float_()
+        g = self._operands[1]._fast_float_()
+        return lambda x: f(g(x))
+
     def __complex__(self):
         """
         Convert this symbolic composition to a Python complex number.
@@ -4738,6 +4758,9 @@ class Function_sin(PrimitiveFunction):
                 return math.sin(x)
         return SymbolicComposition(self, SR(x))
 
+    def _fast_float_(self):
+        return math.sin
+
 sin = Function_sin()
 _syms['sin'] = sin
 
@@ -4760,6 +4783,9 @@ class Function_cos(PrimitiveFunction):
             if isinstance(x, float):
                 return math.cos(x)
         return SymbolicComposition(self, SR(x))
+
+    def _fast_float_(self):
+        return math.cos
 
 
 cos = Function_cos()

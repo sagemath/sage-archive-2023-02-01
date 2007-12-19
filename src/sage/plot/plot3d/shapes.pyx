@@ -179,26 +179,29 @@ cdef class Cylinder(ParametricSurface):
             res.x, res.y, res.z = 0, 0, self.height
 
 
-def Line(start, end, radius, **kwds):
+def LineSegment(start, end, thickness=1, radius=None, **kwds):
     """
-    Create a cylindar from start to end with radius radius.
+    Create a line segment, which is drawn as a cylinder from start to
+    end with radius radius.
 
     EXAMPLES:
-        sage: from sage.plot.plot3d.shapes import Line, Sphere
+        sage: from sage.plot.plot3d.shapes import LineSegment, Sphere
         sage: P = (0,0,0.1)
         sage: Q = (0.5,0.6,0.7)
         sage: S = Sphere(.2, color='red').translate(P) + \
                   Sphere(.2, color='blue').translate(Q) + \
-                  Line(P, Q, .05, color='black')
+                  LineSegment(P, Q, .05, color='black')
         sage: S.show()
         sage: S = Sphere(.1, color='red').translate(P) + \
                   Sphere(.1, color='blue').translate(Q) + \
-                  Line(P, Q, .15, color='black')
+                  LineSegment(P, Q, .15, color='black')
         sage: S.show()
 
     AUTHOR:
         -- Robert Bradshaw
     """
+    if radius is None:
+        radius = thickness/50.0
     start = vector(RDF, start, sparse=False)
     end = vector(RDF, end, sparse=False)
     zaxis = vector(RDF, (0,0,1), sparse=False)

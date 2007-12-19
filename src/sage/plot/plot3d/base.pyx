@@ -215,9 +215,16 @@ end_scene""" % (
     def show(self, viewer="jmol", filename="shape", verbosity=0, figsize=4, **kwds):
         """
         INPUT:
+            viewer -- string (default: 'jmol') which viewing system to use.
+                      'jmol': an embedded non-OpenGL 3d java applet
+                      'tachyon': an embedded ray tracer
+                      'java3d': a popup OpenGL 3d java applet
+            filename -- string (default: 'shape'); file to save the image to
+            verbosity -- display information about rendering the figure
             figsize -- (default: 4); x or pair [x,y] for numbers, e.g., [4,4]; controls
-                       the size of the output figure
-
+                       the size of the output figure.  E.g., with jmol the number of
+                       pixels in each direction is 100 times figsize[0].
+            **kwds -- other options, which make sense for particular rendering engines
         """
         if not isinstance(figsize, (list,tuple)):
             figsize = [figsize, figsize]

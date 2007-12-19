@@ -520,6 +520,22 @@ if [ $1 = '-br' -o $1 = "--br" ]; then
    exit $?
 fi
 
+if [ $1 = '-r' ]; then
+   shift
+   if [ "$1" != "" ]; then
+      cd "$SAGE_ROOT/devel/"
+      if [ ! -d "sage-$1" ]; then
+         echo "No such branch '$SAGE_ROOT/devel/sage-$1'"
+         echo "Use 'sage -clone' to create a new branch."
+         exit 1
+      fi
+      ln -snf "sage-$1" sage
+      cd "$SAGE_ROOT"
+   fi
+   sage
+   exit $?
+fi
+
 if [ $1 = '-ba' ]; then
    shift
    echo " *** WARNING *** "

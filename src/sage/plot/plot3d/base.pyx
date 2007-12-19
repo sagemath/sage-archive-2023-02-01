@@ -176,17 +176,21 @@ end_scene""" % (
         """
         return "\n".join(flatten_list([self.obj_repr(render_params), ""]))
 
-    def export_jmol(self, filename='jmol_shape.jmol', force_reload=False, zoom=100, spin=False):
+    def export_jmol(self, filename='jmol_shape.jmol', force_reload=False, zoom=100, spin=False, background=(1,1,1), stereo=False):
         render_params = self.default_render_params()
         render_params.output_file = filename
         render_params.force_reload = render_params.randomize_counter = force_reload
         f = open(filename, 'w')
         # Set the scene background color
-        f.write('background [%s,%s,%s]\n'%tuple([int(a*255) for a in self.background_color()]))
+        f.write('background [%s,%s,%s]\n'%tuple([int(a*255) for a in background]))
         if spin:
             f.write('spin ON\n')
         else:
             f.write('spin OFF\n')
+        if stereo:
+            if stereo is True: stereo = "redblue"
+            f.write('stereo %s\n' % stereo)
+
         f.write('zoom %s\n'%zoom)
 
         # Put the rest of the object in
@@ -195,14 +199,6 @@ end_scene""" % (
 
     def jmol_repr(self, render_params):
         raise NotImplementedError
-
-    def background_color(self):
-        if self.__background is None:
-            self.__background = (1,1,1)
-        return self.__background
-
-    def set_background_color(self, rgb):
-        self.__background = rgb
 
     def texture_set(self):
         return set()

@@ -1,6 +1,10 @@
 Upstream maintainer: Bill Heart
 Website: www.flintlib.org
 
+2007-12-19 (Michael Abshoff):
+  + update to FLINT 1.03
+  + reenable mandatory "make check"
+
 2007-12-16 (Michael Abshoff):
   + disable mandatory "make check"
   + remove -B flag in make check since it breaks make 2.79 and earlier

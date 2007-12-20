@@ -719,6 +719,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: MS2._get_matrix_class()
             <type 'sage.matrix.matrix_integer_sparse.Matrix_integer_sparse'>
+            sage: type(matrix(SR, 2, 2, 0))
+            <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
         """
         R = self.base_ring()
         if self.is_dense():
@@ -741,7 +743,12 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
             #    return padics.matrix_padic_capped_relative_dense
             # the default
-            return matrix_generic_dense.Matrix_generic_dense
+            else:
+                from sage.calculus.calculus import SR   # causes circular imports
+                if R == SR:
+                    import matrix_symbolic_dense
+                    return matrix_symbolic_dense.Matrix_symbolic_dense
+                return matrix_generic_dense.Matrix_generic_dense
 
         else:
             if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_sparse.MAX_MODULUS:

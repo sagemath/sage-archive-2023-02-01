@@ -372,6 +372,9 @@ matrix_mpolynomial_dense = Extension('sage.matrix.matrix_mpolynomial_dense',
                                      language="c++",
                                      include_dirs=[SAGE_ROOT +'/local/include/singular'])
 
+matrix_symbolic_dense = Extension('sage.matrix.matrix_symbolic_dense',
+                                   ['sage/matrix/matrix_symbolic_dense.pyx'])
+
 #matrix_padic_capped_relative_dense = Extension('sage.matrix.padics.matrix_padic_capped_relative_dense',
 #                                               ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx'])
 
@@ -526,6 +529,7 @@ ext_modules = [ \
      matrix_modn_sparse,
      matrix_mod2_dense,
      matrix_mpolynomial_dense, \
+     matrix_symbolic_dense, \
 
      cremona_mat, \
      cremona_homspace, \

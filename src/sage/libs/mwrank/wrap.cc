@@ -23,7 +23,7 @@ void mwrank_initprimes(char* pfilename, int verb)
 
 char* stringstream_to_char(ostringstream& instore) {
   int n = strlen(instore.str().data());
-  char* buf = new char[n+1];
+  char* buf = (char*)malloc(n+1);
   strcpy(buf, instore.str().data());
   return buf;
 }

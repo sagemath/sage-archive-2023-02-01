@@ -726,13 +726,14 @@ def forget_all():
     _assumptions = []
 
 def solve(f, *args, **kwds):
-    """
+    r"""
     Algebraically solve an equation of system of equations for given variables.
 
     INPUT:
         f -- equation or system of equations (given by a list or tuple)
         *args -- variables to solve for.
 	solution_dict = True -- return a list of dictionaries containing the solutions.
+
     EXAMPLES:
         sage: x, y = var('x, y')
         sage: solve([x+y==6, x-y==4], x, y)
@@ -759,9 +760,27 @@ def solve(f, *args, **kwds):
         0.000 , -1.00
         0.000 , 1.00
 
+    If True appears in the list of equations it is ignored, and if
+    False appears in the list then no solutions are returned.  E.g.,
+    note that the first \code{3==3} evaluates to True, not to a symbolic
+    equation.
+
+        sage: solve([3==3, 1.00000000000000*x^3 == 0], x)
+        [x == 0]
+        sage: solve([1.00000000000000*x^3 == 0], x)
+        [x == 0]
+
+    Here, the first evaluates to False, so there are no solutions:
+        sage: solve([1==3, 1.00000000000000*x^3 == 0], x)
+        []
 
     """
     if isinstance(f, (list, tuple)):
+        f = [s for s in f if s is not True]
+        for s in f:
+            if s is False:
+                return []
+
         m = maxima(list(f))
         try:
             s = m.solve(args)

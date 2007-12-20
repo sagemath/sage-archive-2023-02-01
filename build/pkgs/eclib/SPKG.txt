@@ -7,6 +7,10 @@ MAINTAINTERS:
    * John Cremona
    * Ralph Philip Weinmann
 
+* 20071219.p1 (Michael Abshoff)
+   * patch to fix "Internal error: can't free this _ntl_gbigint"
+     (John Cremona)
+
 * 20071219.p0 (John Cremona)
    * fix main Makefile mismerge (Michael Abshoff)
    * add missing export to g0n/Makefile (John Cremona)

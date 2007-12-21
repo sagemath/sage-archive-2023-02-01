@@ -361,7 +361,7 @@ class Magma(Expect):
         Attaching a file in MAGMA makes all intrinsics defined in the
         file available to the shell.  Moreover, if the file doesn't
         start with the \code{freeze;} command, then the file is
-        reloaded whenver it is changed.  Note that functions and
+        reloaded whenever it is changed.  Note that functions and
         procedures defined in the file are \emph{not} available.
         For only those, use \code{magma.load(filename)}.
         """

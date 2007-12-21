@@ -58,14 +58,17 @@ class ClientDatabase(object):
         """
 
         self.tablename = self.TABLENAME
+        self.log_level = log_level
+        self.log_file=log_file
+
         if test:
             self.db_file = 'clientdb_test.db'
         else:
             self.db_file = db_file
             if not os.path.exists(self.db_file):
-                dir, file = os.path.split(self.db_file)
-                if not os.path.isdir(dir):
-                    os.mkdir(dir)
+                dir_, file_ = os.path.split(self.db_file)
+                if not os.path.isdir(dir_):
+                    os.mkdir(dir_)
         self.con = sqlite3.connect(self.db_file,
                 isolation_level=None,
                 detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)

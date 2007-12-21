@@ -913,7 +913,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return generic_power(self, right)
 
     def _pow(self, right):
-        # TODO: fit __pow__ into the arithmatic structure
+        # TODO: fit __pow__ into the arithmetic structure
         if self.degree() <= 0:
             return self.parent()(self[0]**right)
         if right < 0:
@@ -2318,7 +2318,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             'y^3 - 17*y + 5'
             sage: R.<z> = ZZ[]
             sage: gap(R)
-            PolynomialRing(..., [ z ])
+            PolynomialRing( Integers, ["z"] )
             sage: g
             y^3-17*y+5
             sage: gap(z^2 + z)

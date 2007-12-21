@@ -43,7 +43,10 @@ TODO:
 include "../../ext/python_list.pxi"
 
 
+import os
 from math import atan2
+
+import sage.misc.misc
 
 from sage.modules.free_module_element import vector
 
@@ -64,6 +67,10 @@ cdef class Graphics3d(SageObject):
 
 
     def __add__(self, other):
+        if other is 0 or other is None:
+            return self
+        elif self is 0 or self is None:
+            return other
         return Graphics3dGroup([self, other])
 
     def transform(self, **kwds):
@@ -167,6 +174,16 @@ end_scene""" % (
         """
         return "\n".join(flatten_list([self.obj_repr(render_params), ""]))
 
+    def export_jmol(self, filename='jmol_shape.script'):
+        render_params = self.default_render_params()
+        render_params.output_file = filename
+        f = open(filename, 'w')
+        f.write("\n".join(flatten_list([self.jmol_repr(render_params), ""])))
+        f.close()
+
+    def jmol_repr(self, render_params):
+        raise NotImplementedError
+
     def texture_set(self):
         return set()
 
@@ -179,16 +196,24 @@ end_scene""" % (
         else:
             return self.transform(T=T)
 
-    def show(self, interactive=True, filename="shape", verbosity=0):
-        tachyon_rt(self.tachyon(), filename+".png", verbosity, True, '')
-        if interactive:
-            f = open(filename+".obj", "w")
-            f.write("mtllib %s.mtl\n" % filename)
-            f.write(self.obj())
-            f.close()
-            f = open(filename+".mtl", "w")
-            f.write(self.mtl_str())
-            f.close()
+    def show(self, filename="shape", verbosity=0, **kwds):
+        from sage.plot.plot import EMBEDDED_MODE, DOCTEST_MODE
+        if DOCTEST_MODE:
+            opts = '-res 10 10'
+            filename = sage.misc.misc.SAGE_TMP + "/tmp"
+        else:
+            opts = ''
+        tachyon_rt(self.tachyon(**kwds), filename+".png", verbosity, True, opts)
+        f = open(filename+".obj", "w")
+        f.write("mtllib %s.mtl\n" % filename)
+        f.write(self.obj())
+        f.close()
+        f = open(filename+".mtl", "w")
+        f.write(self.mtl_str())
+        f.close()
+        if not DOCTEST_MODE and not EMBEDDED_MODE:
+            viewer = sage.misc.misc.SAGE_EXTCODE + "/notebook/java/3d/start_viewer"
+            os.system("%s %s.obj 2>/dev/null 1>/dev/null &"%(viewer, filename))
 
 
 class Graphics3dGroup(Graphics3d):
@@ -206,6 +231,9 @@ class Graphics3dGroup(Graphics3d):
 
     def obj_repr(self, render_params):
         return [g.obj_repr(render_params) for g in self.all]
+
+    def jmol_repr(self, render_params):
+        return [g.jmol_repr(render_params) for g in self.all]
 
     def texture_set(self):
         return reduce(set.union, [g.texture_set() for g in self.all])
@@ -264,6 +292,12 @@ class TransformGroup(Graphics3dGroup):
     def obj_repr(self, render_params):
         render_params.push_transform(self.get_transformation())
         rep = [g.obj_repr(render_params) for g in self.all]
+        render_params.pop_transform()
+        return rep
+
+    def jmol_repr(self, render_params):
+        render_params.push_transform(self.get_transformation())
+        rep = [g.jmol_repr(render_params) for g in self.all]
         render_params.pop_transform()
         return rep
 
@@ -328,6 +362,9 @@ cdef class PrimativeObject(Graphics3d):
     def obj_repr(self, render_params):
         return self.triangulation().obj_repr(render_params)
 
+    def jmol_repr(self, render_params):
+        return self.triangulation().obj_repr(render_params)
+
     def texture_set(self):
         return set([self.texture])
 
@@ -359,6 +396,7 @@ class RenderParams(SageObject):
     """
     def __init__(self, **kwds):
         self._uniq_counter = 0
+        self.output_file = sage.misc.misc.tmp_filename()
         self.obj_vertex_offset = 1
         self.transform_list = []
         self.transform = None

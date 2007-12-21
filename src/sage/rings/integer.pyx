@@ -117,6 +117,7 @@ from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement)
 
+
 import sage.rings.infinity
 import sage.libs.pari.all
 
@@ -134,6 +135,14 @@ cdef set_from_int(Integer self, int other):
 
 cdef public mpz_t* get_value(Integer self):
     return &self.value
+
+arith = None
+cdef void late_import():
+    global arith
+    if arith is None:
+        import sage.rings.arith
+        arith = sage.rings.arith
+
 
 MAX_UNSIGNED_LONG = 2 * sys.maxint
 
@@ -892,7 +901,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 2^-0
             1
             sage: (-1)^(1/3)
-            -1
+            (-1)^(1/3)
             sage: 0^0
             Traceback (most recent call last):
             ...
@@ -1136,6 +1145,71 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             return guess - 1
 
+
+    def prime_to_m_part(self, m):
+        """
+        Returns the prime-to-m part of self, i.e., the largest divisor
+        of self that is coprime to m.
+
+        INPUT:
+            m -- Integer
+        OUTPUT:
+            Integer
+
+        EXAMPLES:
+            sage: z = 43434
+            sage: z.prime_to_m_part(20)
+            21717
+        """
+        late_import()
+        return sage.rings.arith.prime_to_m_part(self, m)
+
+    def prime_divisors(self):
+        """
+        The prime divisors of self, sorted in increasing order.  If n
+        is negative, we do *not* include -1 among the prime divisors, since -1 is
+        not a prime number.
+
+        EXAMPLES:
+            sage: a = 1; a.prime_divisors()
+            []
+            sage: a = 100; a.prime_divisors()
+            [2, 5]
+            sage: a = -100; a.prime_divisors()
+            [2, 5]
+            sage: a = 2004; a.prime_divisors()
+            [2, 3, 167]
+        """
+        late_import()
+        return sage.rings.arith.prime_divisors(self)
+
+    def divisors(self):
+        """
+        Returns a list of all positive integer divisors
+        of the integer self.
+
+        EXAMPLES:
+            sage: a = -3; a.divisors()
+            [1, 3]
+            sage: a = 6; a.divisors()
+            [1, 2, 3, 6]
+            sage: a = 28; a.divisors()
+            [1, 2, 4, 7, 14, 28]
+            sage: a = 2^5; a.divisors()
+            [1, 2, 4, 8, 16, 32]
+            sage: a = 100; a.divisors()
+            [1, 2, 4, 5, 10, 20, 25, 50, 100]
+            sage: a = 1; a.divisors()
+            [1]
+            sage: a = 0; a.divisors()
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be nonzero
+            sage: a = 2^3 * 3^2 * 17; a.divisors()
+            [1, 2, 3, 4, 6, 8, 9, 12, 17, 18, 24, 34, 36, 51, 68, 72, 102, 136, 153, 204, 306, 408, 612, 1224]
+        """
+        late_import()
+        return sage.rings.arith.divisors(self)
 
     def __pos__(self):
         """

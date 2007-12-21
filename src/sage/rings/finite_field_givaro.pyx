@@ -587,7 +587,7 @@ cdef class FiniteField_givaro(FiniteField):
                     raise TypeError, 'no canonical coercion defined'
         raise TypeError, 'no canonical coercion defined'
 
-    def gen(FiniteField_givaro self, ignored=None):
+    def gen(FiniteField_givaro self, int n=0):
         r"""
         Return a generator of self. All elements x of self are
         expressed as $\log_{self.gen()}(p)$ internally. If self is
@@ -596,7 +596,13 @@ cdef class FiniteField_givaro(FiniteField):
         EXAMPLES:
             sage: k = GF(3^4, 'b'); k.gen()
             b
+            sage: k.gen(1)
+            Traceback (most recent call last):
+            ...
+            IndexError: only one generator
         """
+        if n > 0:
+            raise IndexError, "only one generator"
         cdef int r
         from sage.rings.arith import primitive_root
 

@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 
 Interface to two Rubik's cube solvers.
 
@@ -11,15 +11,16 @@ solve the cube one level at a time. It is extremly fast, but often
 returns a far from optimal solution.
 See http://wrongway.org/?rubiksource
 
+The third is by Dik Winter and implements Kociemba's algorithm which
+finds reasonable solutions relatively quickly, and if it is kept running
+will eventually find the optimal solution.
 
-TODO:
-    I'm sure there's algorithms and/or implementations that provide
-    a happy medium between the above two. Find or implement and interface.
 
 
 AUTHOR:
    -- Optimal was written by Michael Reid <reid@math.ucf.edu> (2004)
    -- Cubex was written by Eric Dietz <root@wrongway.org> (2003)
+   -- Kociemba was written by Dik T. Winter <dik.winter@cwi.nl> (1993)
    -- Initial interface by Robert Bradshaw (2007-08)
 """
 
@@ -33,7 +34,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-import os, pexpect
+import os, pexpect, time
 import cleaner
 
 from sage.groups.perm_gps.cubegroup import *
@@ -64,6 +65,7 @@ class SingNot:
     Case is ignored, and the second and third letters may be swapped.
 
     EXAMPLE:
+        sage: from sage.interfaces.rubik import SingNot
         sage: SingNot("acb") == SingNot("ACB")
         True
         sage: SingNot("acb") == SingNot("bca")
@@ -120,11 +122,29 @@ class OptimalSolver:
 
     def solve(self, facets):
         """
+        The initial startup and precomputation are substantial...
+
         TODO: Let it keep searching once it found a solution?
+
+        EXAMPLES:
+            sage: from sage.interfaces.rubik import *
+            sage: solver = DikSolver()
+            sage: solver = OptimalSolver() # long time
+            Initializing tables...
+            Done.
+            sage: C = RubiksCube("R U")
+            sage: solver.solve(C.facets())
+            'R  U'
+            sage: C = RubiksCube("R U F L B D")
+            sage: solver.solve(C.facets())
+            'R  U  F  L  B  D'
+            sage: C = RubiksCube("R2 D2")
+            sage: solver.solve(C.facets())
+            'R2 D2'
         """
         self.ready()
         self.child.sendline(self.format_cube(facets))
-        self.child.expect(r"([LRUDBF' ]+)\s+\((\d+)q\*?, (\d+)f\*?\)")
+        self.child.expect(r"([LRUDBF'2 ]+)\s+\((\d+)q\*?, (\d+)f\*?\)")
         self.child.sendline(chr(3)) # send ctrl-c
         return self.child.match.groups()[0].strip()
 
@@ -162,6 +182,25 @@ class CubexSolver:
         return self.solve(facets)
 
     def solve(self, facets):
+        """
+        EXAMPLES:
+            sage: from sage.interfaces.rubik import *
+            sage: C = RubiksCube("R U")
+            sage: CubexSolver().solve(C.facets())
+            'R U'
+            sage: C = RubiksCube("R U F L B D")
+            sage: sol = CubexSolver().solve(C.facets()); sol
+            "U' L' L' U L U' L U D L L D' L' D L' D' L D L' U' L D' L' U L' B' U' L' U B L D L D' U' L' U L B L B' L' U L U' L' F' L' F L' F L F' L' D' L' D D L D' B L B' L B' L B F' L F F B' L F' B D' D' L D B' B' L' D' B U' U' L' B' D' F' F' L D F'"
+            sage: RubiksCube(sol) == C
+            True
+            sage: C = RubiksCube("R2 F'")
+            sage: CubexSolver().solve(C.facets())
+            "R' R' F'"
+            sage: C = RubiksCube().scramble()
+            sage: sol = CubexSolver().solve(C.facets())
+            sage: C == RubiksCube(sol)
+            True
+        """
         s = self.format_cube(facets)
         child = pexpect.spawn(self.__cmd+" "+s)
         ix = child.expect(['210.*?:', '^5\d+(.*)'])
@@ -187,4 +226,95 @@ class CubexSolver:
         return "".join(str(c) for c in facet_colors)
 
 
+
+
+class DikSolver:
+
+    __cmd = "cube"
+
+    def __call__(self, facets):
+        return self.solve(facets)
+
+    def solve(self, facets, timeout=10, extra_time=2):
+        """
+        EXAMPLES:
+            sage: from sage.interfaces.rubik import *
+            sage: C = RubiksCube().move("R U")
+            sage: DikSolver().solve(C.facets())
+            'R U'
+            sage: C = RubiksCube().move("R U F L B D")
+            sage: DikSolver().solve(C.facets())
+            'R U F L B D'
+            sage: C = RubiksCube().move("R2 F'")
+            sage: DikSolver().solve(C.facets())
+            "R2 F'"
+        """
+        cube_str = self.format_cube(facets)
+        child = pexpect.spawn(self.__cmd+" -p")
+        child.expect('Initialization done!')
+        child.sendline(cube_str)
+        child.sendeof()
+        ix = child.expect(['Solution[^\n]*:', pexpect.EOF, pexpect.TIMEOUT], timeout=timeout)
+        if ix == 0:
+            child.expect(['[^\n]+'])
+            sol = child.after.strip()
+            start_time = time.time()
+            while extra_time > time.time() - start_time:
+                ix = child.expect(['Solution[^\n]*:', pexpect.EOF, pexpect.TIMEOUT], timeout=extra_time - int(time.time() - start_time))
+                if ix == 0:
+                    child.expect(['[^\n]+'])
+                    sol = child.after.strip()
+                else:
+                    extra_time = 0
+            # format the string into our notation
+            child.close(True)
+            return ' '.join([self.rot_map[m[0]]+str(4-int(m[1])) for m in reversed(sol.split(' '))]).replace('1', '').replace('3',"'")
+        elif ix == 1:
+            # invalid format
+            child.close(True)
+            raise ValueError, child.before
+        else:
+            child.close(True)
+            raise RuntimeError, "timeout"
+
+    def format_cube(self, facets):
+        colors = sum([[i]*8 for i in range(1,7)], [])
+        facet_colors = [0] * 54
+        for i in range(48):
+            f = self.facet_map.index(facets[i])
+            facet_colors[f] = colors[i]
+        # now do the centers
+        facet_colors[4] = 1
+        facet_colors[49] = 6
+        for i in range(2,6):
+            facet_colors[16+i*3] = i
+        return "".join(str(c) for c in facet_colors)
+
+    facet_map = [      1,  2,  3,                                \
+                       4,  0,  5,                                \
+                       6,  7,  8,                                \
+           9, 10, 11, 17, 18, 19, 25, 26, 27, 33, 34, 35,        \
+          12,  0, 13, 20,  0, 21, 28,  0, 29, 36,  0, 37,        \
+          14, 15, 16, 22, 23, 24, 30, 31, 32, 38, 39, 40,        \
+                      41, 42, 43,                                \
+                      44,  0, 45,                                \
+                      46, 47, 48,                                \
+            ]
+
+
+    # to compensate for different face naming
+    rot_map = dict(zip("BLURDF", "ULFRBD"))
+
+
+#    facet_map = [
+#                      1,  2,  3,
+#                      4,      6,
+#                      7,  8,  9,
+#          10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+#          23,     25, 26,     28,     29, 30, 31,     33,
+#          34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
+#                      46, 47, 48,
+#                      49,     51,
+#                      52, 53, 54,
+#    ]
 

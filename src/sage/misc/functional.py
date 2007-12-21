@@ -28,6 +28,7 @@ import math
 import sage.misc.latex
 import sage.server.support
 import sage.interfaces.expect
+import sage.interfaces.mathematica
 
 
 from sage.rings.complex_double import CDF
@@ -874,6 +875,8 @@ def show(x, *args, **kwds):
 
     OPTIONAL INPUT:
         filename -- (default: None) string
+
+    SOME OF THESE MAY APPLY:
         dpi -- dots per inch
         figsize -- [width, height] (same for square aspect)
         axes -- (default: True)
@@ -885,6 +888,9 @@ def show(x, *args, **kwds):
             return x.show(*args, **kwds)
         except AttributeError:
             pass
+    if isinstance(x, sage.interfaces.mathematica.MathematicaElement):
+        return x.show(*args, **kwds)
+
     _do_show(x)
 
 def _do_show(x):

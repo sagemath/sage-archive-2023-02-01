@@ -832,6 +832,35 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
                 return [z, -z]
         return z
 
+    def nth_root(self, n, all=False):
+        """
+        The n-th root function.
+
+        INPUT:
+            all -- bool (default: False); if True, return a list
+                of all n-th roots.
+
+        EXAMPLES:
+            sage: a = CC(27)
+            sage: a.nth_root(3)
+            3.00000000000000
+            sage: a.nth_root(3, all=True)
+            [3.00000000000000, -1.50000000000000 + 2.59807621135332*I, -1.50000000000000 - 2.59807621135332*I]
+            sage: a = ComplexField(20)(2,1)
+            sage: [r^7 for r in a.nth_root(7, all=True)]
+            [2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I]
+        """
+        if not self:
+            return [self] if all else self
+        arg = self.argument() / n
+        abs = self.abs().nth_root(n)
+        z = ComplexNumber(self._parent, abs * arg.cos(), abs*arg.sin())
+        if all:
+            zeta = self._parent.zeta(n)
+            return [z * zeta**k for k in range(n)]
+        else:
+            return z
+
     def is_square(self):
         """
         This function always returns true as $\C$ is algebraically closed.

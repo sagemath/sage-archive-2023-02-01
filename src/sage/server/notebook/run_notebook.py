@@ -61,6 +61,10 @@ def notebook_twisted(self,
              start_path = ""):
     if directory is None:
         directory = '%s/sage_notebook'%DOT_SAGE
+    else:
+        if isinstance(directory, basestring) and len(directory) > 0 and directory[-1] == "/":
+            directory = directory[:-1]
+
     if not os.path.exists(directory):
         os.makedirs(directory)
 

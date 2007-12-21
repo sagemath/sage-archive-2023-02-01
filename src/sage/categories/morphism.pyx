@@ -213,6 +213,9 @@ cdef class IdentityMorphism(Morphism):
     def __pow__(self, n, dummy):
         return self
 
+    def __invert__(self):
+        return self
+
 
 cdef class FormalCompositeMorphism(Morphism):
     def __init__(self, parent, first, second):

@@ -1656,6 +1656,11 @@ def prime_to_m_part(n,m):
         m -- Integer
     OUTPUT:
         Integer
+
+    EXAMPLES:
+        sage: z = 43434
+        sage: z.prime_to_m_part(20)
+        21717
     """
     if n == 0:
         raise ValueError, "n must be nonzero."

@@ -3211,7 +3211,7 @@ class NumberField_relative(NumberField_generic):
             x^2 + (-1)*x + 1
             sage: O2 = K.order([3*a, 2*b])
             sage: O2.index_in(OK)
-            36
+            144
         """
         try:
             return self.__maximal_order
@@ -3854,10 +3854,6 @@ class NumberField_relative(NumberField_generic):
             gens -- list of elements of self; if no generators are
                     given, just returns the cardinality of this number
                     field (oo) for consistency.
-            base -- base of the order, which must be an order in the base
-                    field of the relative number field self. If not specified,
-                    then the base defaults to the ring of integers of the
-                    base field.
             check_is_integral -- bool (default: True), whether to check
                   that each generator is integral.
             check_rank -- bool (default: True), whether to check that
@@ -3867,11 +3863,24 @@ class NumberField_relative(NumberField_generic):
                   of smaller rank, instead of raising an error, return
                   an order in a smaller number field.
 
-        The base, check_is_integral, and check_rank inputs must be given as
+        The check_is_integral and check_rank inputs must be given as
         explicit keyword arguments.
 
         EXAMPLES:
+            sage: P.<a,b,c> = QQ[2^(1/2), 2^(1/3), 3^(1/2)]
+            sage: R = P.order([a,b,c]); R
+            Relative Order in Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
 
+        The base ring of an order in a relative extension is still ZZ.
+            sage: R.base_ring()
+            Integer Ring
+
+        One must give enough generators to generate a ring of finite index
+        in the maximal order:
+            sage: P.order([a,b])
+            Traceback (most recent call last):
+            ...
+            ValueError: the rank of the span of gens is wrong
         """
         import sage.rings.number_field.order as order
         if len(gens) == 0:
@@ -3879,16 +3888,7 @@ class NumberField_relative(NumberField_generic):
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
         gens = [self(x) for x in gens]
-        if kwds.has_key('base'):
-            base = kwds['base']
-            del kwds['base']
-            if not order.is_NumberFieldOrder(base):
-                raise TypeError, "base must be a number field order"
-            if base.number_field() != self.base_field():
-                raise ValueError, "base must be an order in the base field"
-        else:
-            base = self.base_field().maximal_order()
-        return order.relative_order_from_ring_generators(gens, base, **kwds)
+        return order.relative_order_from_ring_generators(gens, **kwds)
 
 
     def galois_group(self, pari_group = True, use_kash=False):
@@ -4185,12 +4185,20 @@ class NumberField_cyclotomic(NumberField_absolute):
             zeta6 - 1
 
         Coercion of GAP cyclotomic elements is also supported.
+
+        EXAMPLE:
+            sage: K.<z> = CyclotomicField(7)
+            sage: O = K.maximal_order()
+            sage: K(O.1)
+            z
+            sage: K(O.1^2 + O.1 - 2)
+            z^2 + z - 2
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             if isinstance(x.parent(), NumberField_cyclotomic):
                 return self._coerce_from_other_cyclotomic_field(x)
             else:
-                return self._coerce_from_other_number_field(x)
+                return NumberField_absolute.__call__(self, x)
         elif sage.interfaces.gap.is_GapElement(x):
             return self._coerce_from_gap(x)
         elif isinstance(x,str):

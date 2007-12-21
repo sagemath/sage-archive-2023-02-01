@@ -236,6 +236,12 @@ cdef class RealField(sage.rings.ring.Field):
             1.5625
             sage: a.str(2)
             '1.1001000000000000000'
+            sage: w = RQDF('2.345001').sqrt(); w
+            1.531339609622894852128128425884749978483262262653204338472911277
+            sage: RealField(212)(w)
+            1.53133960962289485212812842588474997848326226265320433847291128
+            sage: RR(w)
+            1.53133960962289
         """
         if hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
@@ -658,8 +664,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif PY_TYPE_CHECK(x, QuadDoubleElement):
             qd = x
             self._set_from_qd(qd)
-        elif hasattr(x, '_mpfr_'):
-            return x._mpfr_(self)
         else:
             s = str(x).replace(' ','')
             if mpfr_set_str(self.value, s, base, parent.rnd):
@@ -685,6 +689,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR = RealField (200)
             sage: RR(RQDF('324324.0098736633445565765349760000276353865'))
             324324.00987366334455657653497600002763538650000000000000000
+
+            sage: w = RQDF('2.345001').sqrt(); w
+            1.531339609622894852128128425884749978483262262653204338472911277
+            sage: RealField(212)(w)
+            1.53133960962289485212812842588474997848326226265320433847291128
+            sage: RealField(250)(w)
+            1.5313396096228948521281284258847499784832622626532043384729112767048720070
         """
         cdef int i
         cdef double d

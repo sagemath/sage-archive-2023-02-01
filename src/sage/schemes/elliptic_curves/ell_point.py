@@ -640,7 +640,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
 def make_point(X, v):
     # TODO: Unpickled parents with base sometimes have thier base set to None.
-    # This causes a segfault in the module arithmatic architecture.
+    # This causes a segfault in the module arithmetic architecture.
     #
     # sage: H = HomsetWithBase(QQ, RR, base=ZZ); H
     # sage: H0 = loads(dumps(H))

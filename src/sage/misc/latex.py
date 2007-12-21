@@ -203,7 +203,7 @@ class Latex:
         if self.__slide:
             O.write('\n\n\\end{document}')
         else:
-            O.write('\\end{document}\n')
+            O.write('\n\n\\end{document}\n')
 
         O.close()
         if not debug:

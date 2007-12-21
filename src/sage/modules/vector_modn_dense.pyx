@@ -111,6 +111,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
 
     def __new__(self, parent=None, x=None, coerce=True, copy=True):
         self._entries = NULL
+        self._is_mutable = 1
         if not parent is None:
             self._init(parent.degree(), parent, parent.base_ring().order())
 
@@ -172,6 +173,8 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         return self._degree
 
     def __setitem__(self, Py_ssize_t i, x):
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         cdef IntegerMod_int n
         n = self.base_ring()(x)
         if i < 0 or i >= self._degree:

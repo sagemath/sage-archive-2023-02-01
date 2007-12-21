@@ -1076,7 +1076,7 @@ class ExpectElement(RingElement):
 
     def _sage_(self):
         #TO DO: this could use file transfers when self.is_remote()
-        return sage.misc.sage_eval.sage_eval(repr(self))
+        return sage.misc.sage_eval.sage_eval(repr(self).replace('\n',''))
 
 
     def sage(self):

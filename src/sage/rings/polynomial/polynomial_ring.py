@@ -1,3 +1,4 @@
+
 """
 Univariate Polynomial Rings
 
@@ -338,7 +339,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES:
             sage: R.<z> = ZZ[]
             sage: gap(R)
-            PolynomialRing(..., [ z ])
+            PolynomialRing( Integers, ["z"] )
             sage: gap(z^2 + z)
             z^2+z
         """

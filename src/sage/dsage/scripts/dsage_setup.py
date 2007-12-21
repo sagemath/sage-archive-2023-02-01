@@ -55,6 +55,33 @@ def get_config(type):
         config.add_section('db_log')
     return config
 
+def add_default_user():
+    """
+    Adds the default user.
+
+    """
+
+    from twisted.conch.ssh import keys
+    import base64
+    from getpass import getuser
+
+    username = getuser()
+    pubkey_file = os.path.join(DSAGE_DIR, 'dsage_key.pub')
+    clientdb = ClientDatabase()
+    pubkey = base64.encodestring(
+                    keys.getPublicKeyString(filename=pubkey_file).strip())
+    if clientdb.get_user(username) is None:
+        clientdb.add_user(username, pubkey)
+        print 'Added user %s.\n' % (username)
+    else:
+        user, key = clientdb.get_user_and_key(username)
+        if key != pubkey:
+            clientdb.del_user(username)
+            clientdb.add_user(username, pubkey)
+            print "User %s's pubkey changed, setting to new one." % (username)
+        else:
+            print 'User %s already exists.' % (username)
+
 def setup_client(testing=False):
     check_dsage_dir()
     key_file = os.path.join(DSAGE_DIR, 'dsage_key')
@@ -62,11 +89,18 @@ def setup_client(testing=False):
         cmd = ["ssh-keygen", "-q", "-trsa", "-P ''", "-f%s" % key_file]
         return
 
+    if not cmd_exists('ssh-keygen'):
+        print DELIMITER
+        print "Could NOT find ssh-keygen."
+        print "Aborting."
+        return
+
     print DELIMITER
     print "Generating public/private key pair for authentication..."
-    print "Your key will be stored in %s/dsage_key"%DSAGE_DIR
+    print "Your key will be stored in %s/dsage_key" % DSAGE_DIR
     print "Just hit enter when prompted for a passphrase"
     print DELIMITER
+
     cmd = ["ssh-keygen", "-q", "-trsa", "-f%s" % key_file]
     ld = os.environ['LD_LIBRARY_PATH']
     try:
@@ -74,6 +108,7 @@ def setup_client(testing=False):
         p = subprocess.call(cmd)
     finally:
         os.environ['LD_LIBRARY_PATH'] = ld
+
     print "\n"
     print "Client configuration finished.\n"
 
@@ -84,13 +119,13 @@ def setup_worker():
 def setup_server(template=None):
     check_dsage_dir()
     print "Choose a domain name for your SAGE notebook server,"
-    print "for example, localhost (personal use) or %s (to allow outside connections)."%socket.getfqdn()
+    print "for example, localhost (personal use) or %s (to allow outside connections)." % socket.getfqdn()
     dn = raw_input("Domain name [localhost]: ").strip()
     if dn == '':
         print "Using default localhost"
         dn = 'localhost'
 
-    template_dict = {'organization': 'SAGE (at %s)'%(dn),
+    template_dict = {'organization': 'SAGE (at %s)' % (dn),
                 'unit': '389',
                 'locality': None,
                 'state': 'Washington',
@@ -121,20 +156,23 @@ def setup_server(template=None):
         if val == True:
             w = ''
         elif isinstance(val, list):
-            w = ' '.join(['"%s"'%x for x in val])
+            w = ' '.join(['"%s"' % x for x in val])
         else:
-            w = '"%s"'%val
-        s += '%s = %s \n'%(key, w)
+            w = '"%s"' % val
+        s += '%s = %s \n' % (key, w)
 
     template_file = os.path.join(DSAGE_DIR, 'cert.cfg')
     f = open(template_file, 'w')
     f.write(s)
     f.close()
+
     # Disable certificate generation -- not used right now anyways
     privkey_file = os.path.join(DSAGE_DIR, 'cacert.pem')
     pubkey_file = os.path.join(DSAGE_DIR, 'pubcert.pem')
+
     print DELIMITER
     print "Generating SSL certificate for server..."
+
     if os.uname()[0] != 'Darwin' and cmd_exists('openssl'):
         # We use openssl by default if it exists, since it is *vastly*
         # faster on Linux.
@@ -156,34 +194,12 @@ def setup_server(template=None):
            --outfile %s' % (template_file, privkey_file, pubkey_file)]
     subprocess.call(cmd, shell=True)
     print DELIMITER
+
+    # Set read only permissions on cert
     os.chmod(os.path.join(DSAGE_DIR, 'cacert.pem'), 0600)
 
-    # conf_file = os.path.join(DSAGE_DIR, 'server.conf')
-    # config.write(open(conf_file, 'w'))
-
     # add default user
-    from twisted.conch.ssh import keys
-    import base64
-
-    # c = ConfigParser.ConfigParser()
-    # c.read(os.path.join(DSAGE_DIR, 'client.conf'))
-    from getpass import getuser
-    username = getuser()
-    pubkey_file = os.path.join(DSAGE_DIR, 'dsage_key.pub')
-    clientdb = ClientDatabase()
-    pubkey = base64.encodestring(
-                    keys.getPublicKeyString(filename=pubkey_file).strip())
-    if clientdb.get_user(username) is None:
-        clientdb.add_user(username, pubkey)
-        print 'Added user %s.\n' % (username)
-    else:
-        user, key = clientdb.get_user_and_key(username)
-        if key != pubkey:
-            clientdb.del_user(username)
-            clientdb.add_user(username, pubkey)
-            print "User %s's pubkey changed, setting to new one." % (username)
-        else:
-            print 'User %s already exists.' % (username)
+    add_default_user()
 
     print "Server configuration finished.\n\n"
 

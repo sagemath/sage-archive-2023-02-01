@@ -51,7 +51,10 @@ class Notebook(SageObject):
                  port=8000,
                  secure=True,
                  server_pool = []):
+        if isinstance(dir, basestring) and len(dir) > 0 and dir[-1] == "/":
+            dir = dir[:-1]
         self.__dir = dir
+
         self.__server_pool = server_pool
         self.set_system(system)
         self.__worksheets = {}
@@ -417,6 +420,8 @@ class Notebook(SageObject):
     def set_directory(self, dir):
         if dir == self.__dir:
             return
+        if isinstance(dir, basestring) and len(dir) > 0 and dir[-1] == "/":
+            dir = dir[:-1]
         self.__dir = dir
         self.__filename = '%s/nb.sobj'%dir
         self.__worksheet_dir = '%s/worksheets'%dir

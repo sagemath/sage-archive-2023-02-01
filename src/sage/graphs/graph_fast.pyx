@@ -243,7 +243,11 @@ def binary(n, length=None):
     cdef mpz_t i
     mpz_init(i)
     mpz_set_ui(i,n)
-    return mpz_get_str(NULL, 2, i)
+    cdef char* s=mpz_get_str(NULL, 2, i)
+    t=str(s)
+    free(s)
+    mpz_clear(i)
+    return t
 
 def R(x):
     """

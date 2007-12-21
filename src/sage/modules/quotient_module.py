@@ -173,7 +173,6 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         An element coerces in if it can be coerced into V, or if not at least if
         if it can be made sense of as a list of length the dimension of self.
 
-
         EXAMPLES:
         We create a 2-dimensional quotient of a 3-dimension ambient vector space.
             sage: M = QQ^3 / [[1,2,3]]
@@ -192,8 +191,9 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             (1, 2)
         """
         try:
-            return self._coerce_impl(x)
-        except TypeError:
+            if x.parent() is self:
+                return x
+        except AttributeError:
             pass
         try:
             return FreeModule_ambient_field.__call__(self, x)

@@ -377,7 +377,8 @@ class Maxima(Expect):
         import sage.rings.all
         return Expect.__call__(self, x)
 
-    def __init__(self, script_subdirectory=None, logfile=None, server=None):
+    def __init__(self, script_subdirectory=None, logfile=None, server=None,
+                 init_code = None):
         """
         Create an instance of the Maxima interpreter.
         """
@@ -388,6 +389,8 @@ class Maxima(Expect):
         STARTUP = '%s/local/bin/sage-maxima.lisp'%SAGE_ROOT
         if not os.path.exists(STARTUP):
             raise RuntimeError, 'You must get the file local/bin/sage-maxima.lisp'
+        if init_code is None:
+            init_code = ['display2d : false'] # no ascii art output
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',
@@ -396,9 +399,7 @@ class Maxima(Expect):
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,
-                        init_code = ['display2d : false',  # no ascii art output
-                                     #'load("mactex-utilities")'   # latex instead of plain tex from tex command (broken in maxima-5.11.0!)
-                                     ],
+                        init_code = init_code,
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
         self._display_prompt = '<sage-display>'  # must match what is in the file local/ibn/sage-maxima.lisp!!

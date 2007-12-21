@@ -24,12 +24,7 @@ import string
 import sqlite3
 
 from twisted.python import log
-from twisted.enterprise import adbapi
 
-from BTrees import OOBTree
-import transaction
-
-from sage.dsage.database.job import Job
 import sage.dsage.database.sql_functions as sql_functions
 from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.misc.constants import DELIMITER
@@ -56,11 +51,11 @@ class JobDatabase(object):
         else:
             self.db_file = db_file
             if not os.path.exists(self.db_file):
-                dir, file = os.path.split(self.db_file)
-                if dir == '':
-                  pass
-                elif not os.path.isdir(dir):
-                    os.mkdir(dir)
+                dir_, file_ = os.path.split(self.db_file)
+                if dir_ == '':
+                    pass
+                elif not os.path.isdir(dir_):
+                    os.mkdir(dir_)
             self.job_failure_threshold = job_failure_threshold
             self.log_file = log_file
             self.log_level = log_level
@@ -273,7 +268,8 @@ class JobDatabaseSQLite(JobDatabase):
             if k == 'worker_info':
                 v = str(v)
             try:
-                sql_functions.update_value(self.con, 'jobs', 'job_id', job_id, k, v)
+                sql_functions.update_value(self.con, 'jobs', 'job_id',
+                                           job_id, k, v)
             except (sqlite3.InterfaceError,
                     sqlite3.OperationalError,
                     sqlite3.IntegrityError), msg:
@@ -312,11 +308,11 @@ class JobDatabaseSQLite(JobDatabase):
         # Convert buffer objects back to string
         try:
             jdict['data'] = str(jdict['data'])
-        except Exception, msg:
+        except KeyError, msg:
             pass
         try:
             jdict['result'] = str(jdict['result'])
-        except Exception, msg:
+        except KeyError, msg:
             pass
 
         return jdict
@@ -380,7 +376,8 @@ class JobDatabaseSQLite(JobDatabase):
 
         """
 
-        return sql_functions.update_value(self.con, 'jobs', 'job_id', job_id, 'killed', killed)
+        return sql_functions.update_value(self.con, 'jobs', 'job_id',
+                                          job_id, 'killed', killed)
 
     def get_active_jobs(self):
         """

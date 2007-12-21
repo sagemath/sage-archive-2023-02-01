@@ -369,7 +369,7 @@ def elias_bound_asymp(delta,q):
 
     EXAMPLES:
         sage: elias_bound_asymp(1/4,2)
-        0.399123963308
+        0.39912396330...
     """
     r = 1-1/q
     return RDF((1-entropy(r-sqrt(r*(r-delta)), q)))

@@ -395,6 +395,15 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def __pow__(self, right, modulus):
         """
+        Compute $x^y$.  If y is an integer, uses multiplication;
+        otherwise, uses the standard definition exp(log(x)*y).
+        WARNING: If the interval x crosses the negative real axis,
+        then we use a non-standard definition of log() (see
+        the docstring for argument() for more details).  This means
+        that we will not select the principal value of the power,
+        for part of the input interval (and that we violate the
+        interval guarantees).
+
         EXAMPLES:
             sage: C.<i> = ComplexIntervalField(20)
             sage: a = i^2; a
@@ -404,17 +413,23 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: a = (1+i)^7; a
             [8.0000000 .. 8.0000000] - [8.0000000 .. 8.0000000]*I
             sage: (1+i)^(1+i)
-            Traceback (most recent call last):
-            ...
-            TypeError: Can only raise ComplexIntervalField to integral powers
+            [0.27395439 .. 0.27396012] + [0.58369827 .. 0.58370495]*I
             sage: a.parent()
             Complex Interval Field with 20 bits of precision
             sage: (2+i)^(-39)
             [1.6873519e-14 .. 1.6879375e-14] + [1.6273278e-14 .. 1.6279215e-14]*I
+
+        If the interval crosses the negative real axis, then we don't
+        use the standard branch cut (and we violate the interval
+        guarantees):
+            sage: CIF(-7, RIF(-1, 1)) ^ CIF(0.3)
+            [0.99109735947126309 .. 1.1179269966896264] + [1.4042388462787560 .. 1.4984624123369835]*I
+            sage: CIF(-7, -1) ^ CIF(0.3)
+            [1.1179269966896254 .. 1.1179269966896264] - [1.4085007145753596 .. 1.4085007145753606]*I
         """
         if isinstance(right, (int, long, integer.Integer)):
             return sage.rings.ring_element.RingElement.__pow__(self, right)
-        raise TypeError, "Can only raise ComplexIntervalField to integral powers"
+        return (self.log() * right).exp()
 
     def prec(self):
         """
@@ -599,6 +614,14 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             [0.00000000000000000 .. 0.00000000000000000]
             sage: CIF(-2).argument()
             [3.1415926535897931 .. 3.1415926535897936]
+
+        Here we see that if the interval crosses the negative real
+        axis, then the argument() can exceed $\pi$, and we
+        we violate the standard interval guarantees in the process:
+            sage: CIF(-2, RIF(-0.1, 0.1)).argument()
+            [3.0916342578678501 .. 3.1915510493117365]
+            sage: CIF(-2, -0.1).argument()
+            [-3.0916342578678511 .. -3.0916342578678501]
         """
         if mpfi_has_zero(self.__re) and mpfi_has_zero(self.__im):
 
@@ -734,10 +757,61 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             [2.7954667135098274 .. 4.2819545928390213] + [12.751682453911920 .. 14.237018048974635]*I
             sage: a in a.log().exp()
             True
+
+        If the interval crosses the negative real axis, then we don't
+        use the standard branch cut (and we violate the interval guarantees):
+            sage: CIF(-3, RIF(-1/4, 1/4)).log()
+            [1.0986122886681095 .. 1.1020725100903968] + [3.0584514217013518 .. 3.2247338854782349]*I
+            sage: CIF(-3, -1/4).log()
+            [1.1020725100903963 .. 1.1020725100903968] - [3.0584514217013518 .. 3.0584514217013524]*I
         """
         theta = self.argument()
         rho = abs(self)
         return ComplexIntervalFieldElement(self._parent, rho.log(), theta)
+
+    def sqrt(self, bint all=False, **kwds):
+        """
+        The square root function.
+
+        WARNING: We approximate the standard branch cut along the
+        negative real axis, with sqrt(-r^2) = i*r for positive real r;
+        but if the interval crosses the negative real axis, we pick
+        the root with positive imaginary component for the entire
+        interval.
+
+        INPUT:
+            all -- bool (default: False); if True, return a list
+                of all square roots.
+
+        EXAMPLES:
+            sage: a = CIF(-1).sqrt()^2; a
+            [-1.0000000000000003 .. -0.99999999999999966] + [-3.2162452993532733e-16 .. 1.2246467991473533e-16]*I
+            sage: sqrt(CIF(2))
+            [1.4142135623730949 .. 1.4142135623730952]
+            sage: sqrt(CIF(-1))
+            [-1.6081226496766367e-16 .. 6.1232339957367661e-17] + [0.99999999999999988 .. 1.0000000000000000]*I
+            sage: sqrt(CIF(2-I))^2
+            [1.9999999999999980 .. 2.0000000000000014] - [0.99999999999999877 .. 1.0000000000000012]*I
+            sage: CC(-2-I).sqrt()^2
+            -2.00000000000000 - 1.00000000000000*I
+
+        Here, we select a non-principal root for part of the interval, and
+        violate the standard interval guarantees:
+            sage: CIF(-5, RIF(-1, 1)).sqrt()
+            [-0.22250788030178321 .. 0.22250788030178296] + [2.2251857651053086 .. 2.2581008643532262]*I
+            sage: CIF(-5, -1).sqrt()
+            [0.22250788030178228 .. 0.22250788030178296] - [2.2471114250958694 .. 2.2471114250958709]*I
+        """
+        if self.is_zero():
+            return [self] if all else self
+        theta = self.argument()/2
+        rho = abs(self).sqrt()
+        x = ComplexIntervalFieldElement(self._parent, rho*theta.cos(), rho*theta.sin())
+        if all:
+            return [x, -x]
+        else:
+            return x
+
 
     def is_square(self):
         """

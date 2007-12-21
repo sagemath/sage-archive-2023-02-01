@@ -13,6 +13,8 @@ from edit_module import edit
 
 from flatten import flatten
 
+from map_threaded import map_threaded
+
 from remote_file import get_remote_file
 
 from attach import attach

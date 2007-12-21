@@ -2062,7 +2062,7 @@ class SymbolicExpression(RingElement):
                                       a, b, desired_relative_error,
                                       maximum_num_subintervals)
         except TypeError, err:
-            if "ERROR NUMBER = 6" in str(err):
+            if "ERROR" in str(err):
                 raise ValueError, "Maxima (via quadpack) cannot compute the integral to that precision"
             else:
                 raise TypeError, err

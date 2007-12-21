@@ -5536,7 +5536,7 @@ _syms['acosh'] = acosh
 
 class Function_atanh(PrimitiveFunction):
     """
-    The inverse of the hyperbolic tane function.
+    The inverse of the hyperbolic tangent function.
 
     EXAMPLES:
         sage: atanh(0.5)
@@ -5557,6 +5557,78 @@ class Function_atanh(PrimitiveFunction):
 
 atanh = Function_atanh()
 _syms['atanh'] = atanh
+
+class Function_acoth(PrimitiveFunction):
+    """
+    The inverse of the hyperbolic cotangent function.
+
+    EXAMPLES:
+        sage: acoth(2.)
+        0.549306144334055
+        sage: acoth(2)
+        acoth(2)
+        sage: acoth(1 + I*1.0)
+        0.402359478108525 - 0.553574358897045*I
+    """
+    def _repr_(self, simplify=True):
+        return "acoth"
+
+    def _latex_(self):
+        return "\\coth^{-1}"
+
+    def _approx_(self, x):
+        return float(pari(float(1/x)).atanh())
+
+acoth = Function_acoth()
+_syms['acoth'] = acoth
+
+class Function_asech(PrimitiveFunction):
+    """
+    The inverse of the hyperbolic secant function.
+
+    EXAMPLES:
+        sage: asech(.5)
+        1.316957896924817
+        sage: asech(1/2)
+        asech(1/2)
+        sage: asech(1 + I*1.0)
+        0.530637530952518 - 1.118517879643706*I
+    """
+    def _repr_(self, simplify=True):
+        return "asech"
+
+    def _latex_(self):
+        return "\\sech^{-1}"
+
+    def _approx_(self, x):
+        return float(pari(float(1/x)).acosh())
+
+asech = Function_asech()
+_syms['asech'] = asech
+
+class Function_acsch(PrimitiveFunction):
+    """
+    The inverse of the hyperbolic cosecant function.
+
+    EXAMPLES:
+        sage: acsch(2.)
+        0.481211825059603
+        sage: acsch(2)
+        acsch(2)
+        sage: acsch(1 + I*1.0)
+        0.530637530952518 - 0.452278447151191*I
+    """
+    def _repr_(self, simplify=True):
+        return "acsch"
+
+    def _latex_(self):
+        return "\\csch^{-1}"
+
+    def _approx_(self, x):
+        return float(pari(float(1/x)).asinh())
+
+acsch = Function_acsch()
+_syms['acsch'] = acsch
 
 class Function_acos(PrimitiveFunction):
     """
@@ -5606,6 +5678,78 @@ class Function_atan(PrimitiveFunction):
 
 atan = Function_atan()
 _syms['atan'] = atan
+
+class Function_acot(PrimitiveFunction):
+    """
+    The arccotangent function.
+
+    EXAMPLES:
+        sage: acot(1/2)
+        acot(1/2)
+        sage: RDF(acot(1/2))
+        1.10714871779
+        sage: acot(1 + I)
+        acot(I + 1)
+    """
+    def _repr_(self, simplify=True):
+        return "acot"
+
+    def _latex_(self):
+        return "\\cot^{-1}"
+
+    def _approx_(self, x):
+        return math.pi/2 - math.atan(x)
+
+acot = Function_acot()
+_syms['acot'] = acot
+
+class Function_acsc(PrimitiveFunction):
+    """
+    The arccosecant function.
+
+    EXAMPLES:
+        sage: acsc(2)
+        acsc(2)
+        sage: RDF(acsc(2))
+        0.523598775598
+        sage: acsc(1 + I)
+        acsc(I + 1)
+    """
+    def _repr_(self, simplify=True):
+        return "acsc"
+
+    def _latex_(self):
+        return "\\csc^{-1}"
+
+    def _approx_(self, x):
+        return math.asin(1/x)
+
+acsc = Function_acsc()
+_syms['acsc'] = acsc
+
+class Function_asec(PrimitiveFunction):
+    """
+    The arcsecant function.
+
+    EXAMPLES:
+        sage: asec(2)
+        asec(2)
+        sage: RDF(asec(2))
+        1.0471975512
+        sage: asec(1 + I)
+        asec(I + 1)
+    """
+    def _repr_(self, simplify=True):
+        return "asec"
+
+    def _latex_(self):
+        return "\\sec^{-1}"
+
+    def _approx_(self, x):
+        return math.acos(1/x)
+
+asec = Function_asec()
+_syms['asec'] = asec
 
 
 #######

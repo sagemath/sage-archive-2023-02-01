@@ -295,7 +295,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         if currRing != self._ring:
             oldRing = currRing
             rChangeCurrRing(self._ring)
-        rDelete(self._ring)
+            rDelete(self._ring)
+        else:
+            (&currRing)[0] = NULL
+            rDelete(self._ring)
         if oldRing != NULL:
             rChangeCurrRing(oldRing)
 

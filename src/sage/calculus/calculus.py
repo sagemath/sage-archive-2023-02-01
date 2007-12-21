@@ -2010,7 +2010,7 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: f(x) = exp(-sqrt(x))
             sage: f.nintegral(x, 0, 1)
-            (0.52848223531423055, 4.1633141378838452e-11, 231, 0)
+            (0.52848223531423055, 4.163...e-11, 231, 0)
 
         We can also use the \code{numerical_integral} function, which calls
         the GSL C library.

@@ -4147,7 +4147,7 @@ class Graph(GenericGraph):
             sage: E = C.eigenspaces()
             sage: E[0][0]
             -1.61803398875
-            sage: E[1][0]
+            sage: E[1][0]  # eigenspace computation is somewhat random
             Vector space of degree 5 and dimension 1 over Real Double Field
             User basis matrix:
             [ 0.632455532034 -0.632455532034   -0.4472135955 -0.013900198608 0.0738411279702]

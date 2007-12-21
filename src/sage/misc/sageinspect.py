@@ -58,10 +58,10 @@ Test introspection of classes defined in Python and Cython files:
 
     Python classes with no docstring, but an __init__ docstring:
         sage: class Foo:
-        ....:     def __init__(self):
-        ....:         'docstring'
-        ....:         pass
-        ....:
+        ...     def __init__(self):
+        ...         'docstring'
+        ...         pass
+        ...
         sage: sage_getdoc(Foo)
         'docstring'
 

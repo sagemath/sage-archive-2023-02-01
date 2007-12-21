@@ -987,7 +987,12 @@ class GraphicPrimitive_BarChart(GraphicPrimitive):
         options = self.options()
         color = options['rgbcolor']
         width = float(options['width'])
-        subplot.bar(self.ind, self.datalist, color=color, width=width)
+        # it is critical to make numpy arrays of type float below,
+        # or bar will go boom:
+        import numpy
+        ind = numpy.array(self.ind, dtype=float)
+        datalist = numpy.array(self.datalist, dtype=float)
+        subplot.bar(ind, datalist, color=color, width=width)
 
 
 class GraphicPrimitive_Line(GraphicPrimitive):
@@ -1031,7 +1036,7 @@ class GraphicPrimitive_Line(GraphicPrimitive):
         del options['alpha']
         del options['thickness']
         del options['rgbcolor']
-        p = patches.Line2D(self.xdata, self.ydata, **options)
+        p = patches.lines.Line2D(self.xdata, self.ydata, **options)
         options = self.options()
         a = float(options['alpha'])
         p.set_alpha(a)
@@ -1159,7 +1164,8 @@ class GraphicPrimitive_MatrixPlot(GraphicPrimitive):
                                        isinstance(cm.__dict__[x], C)])
             print "The possible color maps include: %s"%possibilities
             raise RuntimeError, "Color map %s not known"%cmap
-        subplot.imshow(self.xy_data_array, cmap=cmap, interpolation='nearest')
+
+        subplot.imshow(self.xy_data_array, cmap=cmap, interpolation='nearest', extent=(0,self.xrange[1],0,self.yrange[1]))
 
 # Below is the base class that is used to make 'field plots'.
 # Its implementation is motivated by Mathematica's 'PlotField'.
@@ -1420,6 +1426,11 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: G.range(xmin=-1.1, xmax=2.2, ymin=0, ymax=3.25)
         sage: G.axes(False)
         sage: G.show()
+
+    We color the edges and vertices of a Dodecahedral graph:
+        sage: g = graphs.DodecahedralGraph()
+        sage: g.show(edge_colors={(1.0, 0.8571428571428571, 0.0): g.edges()})
+
     """
     def __init__(self, graph, pos=None, vertex_labels=True, vertex_size=300, vertex_colors=None, edge_colors=None, scaling_term=0.05):
         self.__nxg = graph
@@ -1484,13 +1495,18 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
             if self.__vertex_colors is None:
                 NX.draw_networkx_nodes(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=vertex_size)
             else:
+                from numpy import array
                 for i in self.__vertex_colors:
-                    NX.draw_networkx_nodes(G=self.__nxg, nodelist=self.__vertex_colors[i], node_color=i, pos=self.__pos, ax=subplot, node_size=vertex_size)
+                    NX.draw_networkx_nodes(G=self.__nxg, nodelist=self.__vertex_colors[i],
+                                           node_color=i if isinstance(i, str) else [float(z) for z in i],
+                                           pos=self.__pos, ax=subplot, node_size=vertex_size)
             if self.__edge_colors is None:
                 NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=vertex_size)
             else:
                 for i in self.__edge_colors:
-                    NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, edgelist=self.__edge_colors[i], edge_color=i, ax=subplot, node_size=vertex_size)
+                    NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, edgelist=self.__edge_colors[i],
+                                           edge_color=i if isinstance(i, str) else [float(z) for z in i],
+                                           ax=subplot, node_size=vertex_size)
             if self.__vertex_labels:
                 labels = {}
                 for v in self.__nxg:
@@ -1588,7 +1604,7 @@ class GraphicPrimitiveFactory_contour_plot(GraphicPrimitiveFactory):
 class GraphicPrimitiveFactory_matrix_plot(GraphicPrimitiveFactory):
     def __call__(self, mat, **kwds):
         from sage.matrix.all import is_Matrix
-        from matplotlib.numerix import array #is this needed?
+        from matplotlib.numerix import array
         if not is_Matrix(mat) or (isinstance(mat, (list, tuple)) and isinstance(mat[0], (list, tuple))):
             raise TypeError, "mat must be of type Matrix or a two dimensional array"
         options = dict(self.options)
@@ -1600,7 +1616,7 @@ class GraphicPrimitiveFactory_matrix_plot(GraphicPrimitiveFactory):
         else:
             xrange = (0, len(mat[0]))
             yrange = (0, len(mat))
-        xy_data_array = [array(r) for r in mat]
+        xy_data_array = [array(r, dtype=float) for r in mat]
         return self._from_xdata_ydata(xy_data_array, xrange, yrange, options=options)
 
 
@@ -2023,18 +2039,15 @@ class MatrixPlotFactory(GraphicPrimitiveFactory_matrix_plot):
 
     A matrix over ZZ colored with different grey levels:
 
-        sage: M1 = Matrix(ZZ,3,4,[[1,3,5,1],[2,4,5,6],[1,3,5,7]])
-        sage: MP1 = matrix_plot(M1)
-        sage: MP1.show()
+        sage: show(matrix_plot(matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]])))
 
     Here we make a random matrix over RR and use cmap='hsv'
     to color the matrix elements different RGB colors:
 
-        sage: n = 22
-        sage: L = [n*random() for i in range(n*n)]
-        sage: M2 = Matrix(RR, n, n, L)
-        sage: MP2 = matrix_plot(M2, cmap='hsv')
-        sage: MP2.show()
+        sage: show(matrix_plot(random_matrix(RDF, 50), cmap='hsv'))
+
+    Another random plot, but over GF(389):
+        sage: show(matrix_plot(random_matrix(GF(389), 10), cmap='Oranges'))
     """
     def _reset(self):
         self.options={'cmap':'gray'}

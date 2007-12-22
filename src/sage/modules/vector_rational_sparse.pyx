@@ -5,6 +5,7 @@ include 'vector_rational_sparse_c.pxi'
 
 from sage.rings.rational cimport Rational
 cimport free_module_element
+from free_module_element import vector
 
 
 cdef class Vector_mpq

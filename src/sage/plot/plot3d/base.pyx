@@ -234,6 +234,9 @@ end_scene""" % (
         if DOCTEST_MODE:
             opts = '-res 10 10'
             filename = sage.misc.misc.SAGE_TMP + "/tmp"
+        elif EMBEDDED_MODE:
+            opts = ''
+            filename = sage.misc.misc.graphics_filename()[:-4]
         else:
             opts = ''
 

@@ -1692,7 +1692,6 @@ class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
         for k, v in kwds.iteritems():
             options[k] = v
 
-        done = False
         if not isinstance(points, (list,tuple)) or \
            (isinstance(points,(list,tuple)) and len(points) <= 3 and not
             isinstance(points[0], (list,tuple))):
@@ -1701,21 +1700,20 @@ class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
             except TypeError:
                 pass
 
-        if not done:
-            if coerce:
-                xdata = []
-                ydata = []
-                for z in points:
-                    if len(z) == 3:
-                        return self._graphic3d()(points, coerce=coerce, **kwds)
-                    xdata.append(float(z[0]))
-                    ydata.append(float(z[1]))
-            else:
-                for z in points:
-                    if len(z) == 3:
-                        return self._graphic3d()(points, coerce=coerce, **kwds)
-                    xdata.append(z[0])
-                    ydata.append(z[1])
+        xdata = []
+        ydata = []
+        if coerce:
+            for z in points:
+                if len(z) == 3:
+                    return self._graphic3d()(points, coerce=coerce, **kwds)
+                xdata.append(float(z[0]))
+                ydata.append(float(z[1]))
+        else:
+            for z in points:
+                if len(z) == 3:
+                    return self._graphic3d()(points, coerce=coerce, **kwds)
+                xdata.append(z[0])
+                ydata.append(z[1])
 
         return self._from_xdata_ydata(xdata, ydata, True, options=options)
 

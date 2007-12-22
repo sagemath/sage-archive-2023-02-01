@@ -46,7 +46,7 @@ cdef extern from "math.h":
     double acos(double)
     double atan(double)
 
-from sage.rings.all import RDF
+from sage.rings.real_double  import RDF
 from sage.modules.free_module_element import vector
 
 from base import Graphics3dGroup
@@ -179,26 +179,29 @@ cdef class Cylinder(ParametricSurface):
             res.x, res.y, res.z = 0, 0, self.height
 
 
-def Line(start, end, radius, **kwds):
+def LineSegment(start, end, thickness=1, radius=None, **kwds):
     """
-    Create a cylindar from start to end with radius radius.
+    Create a line segment, which is drawn as a cylinder from start to
+    end with radius radius.
 
     EXAMPLES:
-        sage: from sage.plot.plot3d.shapes import Line, Sphere
+        sage: from sage.plot.plot3d.shapes import LineSegment, Sphere
         sage: P = (0,0,0.1)
         sage: Q = (0.5,0.6,0.7)
         sage: S = Sphere(.2, color='red').translate(P) + \
                   Sphere(.2, color='blue').translate(Q) + \
-                  Line(P, Q, .05, color='black')
+                  LineSegment(P, Q, .05, color='black')
         sage: S.show()
         sage: S = Sphere(.1, color='red').translate(P) + \
                   Sphere(.1, color='blue').translate(Q) + \
-                  Line(P, Q, .15, color='black')
+                  LineSegment(P, Q, .15, color='black')
         sage: S.show()
 
     AUTHOR:
         -- Robert Bradshaw
     """
+    if radius is None:
+        radius = thickness/50.0
     start = vector(RDF, start, sparse=False)
     end = vector(RDF, end, sparse=False)
     zaxis = vector(RDF, (0,0,1), sparse=False)
@@ -212,7 +215,9 @@ def Line(start, end, radius, **kwds):
         theta = -acos(diff[2]/height)
         return cyl.rotate(axis, theta).translate(start)
 
-def Arrow(start, end, radius, head_radius=None, head_len=None, **kwds):
+def Arrow(start, end, thickness=1, radius=None, head_radius=None, head_len=None, **kwds):
+    if radius is None:
+        radius = thickness/50.0
     if head_radius == None:
         head_radius = 3*radius
     if head_len == None:
@@ -293,6 +298,14 @@ cdef class Sphere(ParametricSurface):
 
 cdef class Torus(ParametricSurface):
 # e.g  show(sum([Torus(1,.03,20,20, color=[1, float(t/30), 0]).rotate((1,1,1),t) for t in range(30)], Sphere(.3)))
+    """
+    INPUT:
+        R -- (default: 1) outer radius
+        r -- (default: .3) inner radius
+
+    OUTPUT:
+        a 3d torus
+    """
     def __init__(self, R=1, r=.3, **kwds):
         ParametricSurface.__init__(self, None, **kwds)
         self.R = R

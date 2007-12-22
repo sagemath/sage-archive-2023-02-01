@@ -590,9 +590,20 @@ class Cell(Cell_generic):
             elif F.endswith('.obj'):
                 images.append("""<a href="javascript:sage3d_show('%s', '%s_%s', '%s');">Click for interactive view.</a>"""%(url, self.__id, F, F[:-4]))
             elif F.endswith('.mtl') or F.endswith(".objmeta"):
-                pass
+                pass # obj data
             elif F.endswith('.svg'):
                 images.append('<embed src="%s" type="image/svg+xml" name="emap">'%url)
+            elif F.endswith('.jmol'):
+                # If F ends in -size500.jmol then we make the viewer applet with size 500.
+                i = F.rfind('-size')
+                if i != -1:
+                    size = F[i+5:-5]
+                else:
+                    size = 400
+                script = 'jmolSetDocument(cell_writer); jmolApplet(%s, "script %s?");' % (size, url)
+                images.append('<script>%s</script>' % script)
+            elif F.endswith('.pmesh'):
+                pass # jmol data
             else:
                 files.append('<a href="%s" class="file_link">%s</a>'%(url, F))
         if len(images) == 0:

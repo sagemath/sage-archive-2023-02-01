@@ -1544,6 +1544,15 @@ class GraphicPrimitiveFactory:
     def _coerce(self, xdata, ydata):
         return to_float_list(xdata), to_float_list(ydata)
 
+    def _graphic3d(self, *args, **kwds):
+        """
+        Return 3d version of this graphics primitive.
+
+        We call this if the user tries to create a graphic but gives
+        points (etc) in 3-space instead of in the plane.
+        """
+        raise NotImplementedError, "3d plotting of this primitive not yet implemented"
+
 class GraphicPrimitiveFactory_arrow(GraphicPrimitiveFactory):
     def __call__(self, minpoint, maxpoint, **kwds):
         options = dict(self.options)
@@ -1685,11 +1694,10 @@ class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
 
         done = False
         if not isinstance(points, (list,tuple)) or \
-           (isinstance(points,(list,tuple)) and len(points) == 2):
+           (isinstance(points,(list,tuple)) and len(points) <= 3 and not
+            isinstance(points[0], (list,tuple))):
             try:
-                xdata = [float(points[0])]
-                ydata = [float(points[1])]
-                done = True
+                points = [[float(z) for z in points]]
             except TypeError:
                 pass
 
@@ -1698,11 +1706,16 @@ class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
                 xdata = []
                 ydata = []
                 for z in points:
+                    if len(z) == 3:
+                        return self._graphic3d()(points, coerce=coerce, **kwds)
                     xdata.append(float(z[0]))
                     ydata.append(float(z[1]))
             else:
-                xdata = [z[0] for z in points]
-                ydata = [z[1] for z in points]
+                for z in points:
+                    if len(z) == 3:
+                        return self._graphic3d()(points, coerce=coerce, **kwds)
+                    xdata.append(z[0])
+                    ydata.append(z[1])
 
         return self._from_xdata_ydata(xdata, ydata, True, options=options)
 
@@ -2020,6 +2033,10 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
         except ValueError:
             pass
         return g
+
+    def _graphic3d(self):
+        from sage.plot.plot3d.shapes2 import line3d
+        return line3d
 
 # unique line instance
 line = LineFactory()

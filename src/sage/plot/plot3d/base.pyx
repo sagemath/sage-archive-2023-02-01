@@ -45,6 +45,7 @@ include "../../ext/python_list.pxi"
 
 import os
 from math import atan2
+from random import randint
 
 import sage.misc.misc
 
@@ -67,9 +68,10 @@ cdef class Graphics3d(SageObject):
 
 
     def __add__(self, other):
-        if other is 0 or other is None:
+        # Use == not "other is 0" here, since e.g., Sage integer zero is not 0.
+        if other == 0 or other is None:
             return self
-        elif self is 0 or self is None:
+        elif self == 0 or self is None:
             return other
         return Graphics3dGroup([self, other])
 
@@ -174,10 +176,24 @@ end_scene""" % (
         """
         return "\n".join(flatten_list([self.obj_repr(render_params), ""]))
 
-    def export_jmol(self, filename='jmol_shape.script'):
+    def export_jmol(self, filename='jmol_shape.jmol', force_reload=False, zoom=100, spin=False, background=(1,1,1), stereo=False):
         render_params = self.default_render_params()
         render_params.output_file = filename
+        render_params.force_reload = render_params.randomize_counter = force_reload
         f = open(filename, 'w')
+        # Set the scene background color
+        f.write('background [%s,%s,%s]\n'%tuple([int(a*255) for a in background]))
+        if spin:
+            f.write('spin ON\n')
+        else:
+            f.write('spin OFF\n')
+        if stereo:
+            if stereo is True: stereo = "redblue"
+            f.write('stereo %s\n' % stereo)
+
+        f.write('zoom %s\n'%zoom)
+
+        # Put the rest of the object in
         f.write("\n".join(flatten_list([self.jmol_repr(render_params), ""])))
         f.close()
 
@@ -196,25 +212,63 @@ end_scene""" % (
         else:
             return self.transform(T=T)
 
-    def show(self, filename="shape", verbosity=0, **kwds):
+    def show(self, viewer="jmol", filename="shape", verbosity=0, figsize=4, **kwds):
+        """
+        INPUT:
+            viewer -- string (default: 'jmol') which viewing system to use.
+                      'jmol': an embedded non-OpenGL 3d java applet
+                      'tachyon': an embedded ray tracer
+                      'java3d': a popup OpenGL 3d java applet
+            filename -- string (default: 'shape'); file to save the image to
+            verbosity -- display information about rendering the figure
+            figsize -- (default: 4); x or pair [x,y] for numbers, e.g., [4,4]; controls
+                       the size of the output figure.  E.g., with jmol the number of
+                       pixels in each direction is 100 times figsize[0].
+            **kwds -- other options, which make sense for particular rendering engines
+        """
+        if not isinstance(figsize, (list,tuple)):
+            figsize = [figsize, figsize]
         from sage.plot.plot import EMBEDDED_MODE, DOCTEST_MODE
+        import sage.misc.misc
+        ext = None
         if DOCTEST_MODE:
             opts = '-res 10 10'
             filename = sage.misc.misc.SAGE_TMP + "/tmp"
         else:
             opts = ''
-        tachyon_rt(self.tachyon(**kwds), filename+".png", verbosity, True, opts)
-        f = open(filename+".obj", "w")
-        f.write("mtllib %s.mtl\n" % filename)
-        f.write(self.obj())
-        f.close()
-        f = open(filename+".mtl", "w")
-        f.write(self.mtl_str())
-        f.close()
-        if not DOCTEST_MODE and not EMBEDDED_MODE:
-            viewer = sage.misc.misc.SAGE_EXTCODE + "/notebook/java/3d/start_viewer"
-            os.system("%s %s.obj 2>/dev/null 1>/dev/null &"%(viewer, filename))
 
+        if DOCTEST_MODE or viewer=='tachyon' or (viewer=='java3d' and EMBEDDED_MODE):
+            tachyon_rt(self.tachyon(**kwds), filename+".png", verbosity, True, opts)
+            ext = "png"
+            import sage.misc.viewer
+            viewer_app = sage.misc.viewer.browser()
+        if DOCTEST_MODE or viewer=='java3d':
+            f = open(filename+".obj", "w")
+            f.write("mtllib %s.mtl\n" % filename)
+            f.write(self.obj())
+            f.close()
+            f = open(filename+".mtl", "w")
+            f.write(self.mtl_str())
+            f.close()
+            ext = "obj"
+            viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/java3d/start_viewer"
+
+        if DOCTEST_MODE or viewer=='jmol':
+            # Encode the desired applet size in the end of the filename:
+            base, ext = os.path.splitext(filename)
+            filename = '%s-size%s%s'%(base, figsize[0]*100, ext)
+            self.export_jmol(filename + ".jmol", force_reload=EMBEDDED_MODE, **kwds)
+            viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/jmol/jmol"
+            ext = "jmol"
+
+        if ext is None:
+            raise ValueError, "Unknown 3d plot type: %s" % viewer
+        if not DOCTEST_MODE and not EMBEDDED_MODE:
+            if verbosity:
+                pipes = "2>&1"
+            else:
+                pipes = "2>/dev/null 1>/dev/null &"
+            os.system('%s "%s.%s" %s' % (viewer_app, filename, ext, pipes))
 
 class Graphics3dGroup(Graphics3d):
     def __init__(self, all=[]):
@@ -377,6 +431,11 @@ class BoundingSphere(SageObject):
     def __repr__(self):
         return "Center %s radius %s" % (self.cen, self.r)
     def __add__(self, other):
+        # Use == not "other is 0" here, since e.g., Sage integer zero is not 0.
+        if other == 0 or other is None:
+            return self
+        elif self == 0 or self is None:
+            return other
         if self.cen == other.cen:
             return self if self.r > other.r else other
         diff = other.cen - self.cen
@@ -396,6 +455,7 @@ class RenderParams(SageObject):
     """
     def __init__(self, **kwds):
         self._uniq_counter = 0
+        self.randomize_counter = 0
         self.output_file = sage.misc.misc.tmp_filename()
         self.obj_vertex_offset = 1
         self.transform_list = []
@@ -414,7 +474,10 @@ class RenderParams(SageObject):
         self.transform = self.transform_list.pop()
 
     def unique_name(self, desc="name"):
-        self._uniq_counter += 1
+        if self.randomize_counter:
+            self._uniq_counter = randint(1,1000000)
+        else:
+            self._uniq_counter += 1
         return "%s_%s" % (desc, self._uniq_counter)
 
 def flatten_list(L):

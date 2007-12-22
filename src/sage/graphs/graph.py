@@ -2815,6 +2815,46 @@ class GenericGraph(SageObject):
                   color_by_label=color_by_label,
                   heights=heights).show(**kwds)
 
+
+    def plot3d_new(self, bgcolor=(1,1,1),
+                         vertex_colors=None, vertex_size=0.06,
+                         edge_colors=None, edge_size=0.015,
+                         pos3d=None,
+                         iterations=50, color_by_label=False, **kwds):
+        from sage.plot.plot3d.all import Sphere, LineSegment, Arrow
+        line = Arrow if self.is_directed() else Line
+
+        verts = self.vertices()
+
+        if vertex_colors is None:
+            vertex_colors = { (1,0,0) : verts }
+        if pos3d is None:
+            pos3d = graph_fast.spring_layout_fast(self, dim=3, iterations=iterations)
+
+        if color_by_label:
+            if edge_colors is  None:
+                    # do the coloring
+                    edge_colors = self._color_by_label(format='rgbtuple')
+        elif edge_colors is None:
+            edge_colors = { (0,0,0) : self.edges() }
+
+        try:
+            graphic = 0
+            for color in vertex_colors:
+                for v in vertex_colors[color]:
+                    graphic += Sphere(vertex_size, color=color).translate(*pos3d[v])
+
+            for color in edge_colors:
+                for u, v, l in edge_colors[color]:
+                    graphic += line(pos3d[u], pos3d[v], radius=edge_size, color=color, closed=False)
+
+            return graphic
+
+        except KeyError:
+            raise KeyError, "Oops! You haven't specified positions for all the vertices."
+
+
+
     def transitive_closure(self):
         r"""
         Computes the transitive closure of a graph and returns it.
@@ -4884,6 +4924,7 @@ class Graph(GenericGraph):
         f = open(filename, 'w')
         f.write( print_graph_eps(self.vertices(), self.edge_iterator(), pos) )
         f.close()
+
 
     def plot3d(self, bgcolor=(1,1,1),
                vertex_colors=None, vertex_size=0.06,

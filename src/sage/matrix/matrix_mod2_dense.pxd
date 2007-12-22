@@ -1,6 +1,6 @@
 # choose: dense or sparse
-
-cdef extern from "m4ri/m4ri.h":
+from sage.misc.misc import SAGE_LOCAL
+cdef extern from SAGE_LOCAL + "include/m4ri.h":
     ctypedef struct packedmatrix:
         void *values
         int rows

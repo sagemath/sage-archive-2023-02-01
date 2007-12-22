@@ -305,6 +305,7 @@ def sage_getdoc(obj, obj_name=''):
         -- William Stein
         -- Extensions by Nick Alexander
     """
+    if obj is None: return ''
     import sage.misc.sagedoc
     r = None
     try:

@@ -3552,7 +3552,7 @@ class SymbolicOperation(SymbolicExpression):
 
     def number_of_arguments(self):
         """
-        Returns the number of arguements this object can take.
+        Returns the number of arguments this object can take.
 
         EXAMPLES:
             sage: x,y,z = var('x,y,z')
@@ -4848,6 +4848,66 @@ class SymbolicComposition(SymbolicOperation):
             f, g -- both must be in the symbolic expression ring.
         """
         SymbolicOperation.__init__(self, [f,g])
+
+    def _polynomial_(self, R):
+        """
+        Symbolic compositions cannot be converted to polynomials unless
+        they are constants.
+
+        EXAMPLES:
+            sage: sqrt(2).polynomial(RR)
+            1.41421356237310
+
+            sage: sqrt(2).polynomial(CC)
+            1.41421356237310
+
+            sage: cos(x).polynomial(QQ)
+            Traceback (most recent call last):
+            ....
+            TypeError: cannot convert self (= cos(x)) to a polynomial
+
+            sage: sqrt(x).polynomial(QQ)
+            Traceback (most recent call last):
+            ....
+            TypeError: cannot convert self (= sqrt(x)) to a polynomial
+
+            sage: K3.<a> = NumberField(sqrt(x))
+            Traceback (most recent call last):
+            ....
+            TypeError: polynomial (=sqrt(x)) must be a polynomial.
+        """
+        if self.number_of_arguments() == 0:
+            #Convert self into R's base ring and then into R since
+            #self must be a constant.
+            return R( R.base_ring()(self) )
+        else:
+            raise TypeError, "cannot convert self (= %s) to a polynomial"%str(self).strip()
+
+
+    def number_of_arguments(self):
+        """
+        Returns the number of arguments that self can take.
+
+        EXAMPLES:
+            sage: sqrt(x).number_of_arguments()
+            1
+            sage: sqrt(2).number_of_arguments()
+            0
+        """
+        try:
+            return self.__number_of_args
+        except AttributeError:
+            pass
+        variables = self.variables()
+        if not self.is_simplified():
+            n = self.simplify().number_of_arguments()
+        else:
+            # Note that we use self._operands[1:] so we don't include the
+            # number of arguments that the function takes since it is
+            # already being "called"
+            n = max( max(map(lambda i: i.number_of_arguments(), self._operands[1:])+[0]), len(variables) )
+        self.__number_of_args = n
+        return n
 
     def _recursive_sub(self, kwds):
         ops = self._operands

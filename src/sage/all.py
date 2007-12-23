@@ -86,7 +86,7 @@ from sage.crypto.all     import *
 import sage.crypto.mq as mq
 
 from sage.plot.all       import *
-#from sage.plot.plot3d.all     import *
+from sage.plot.plot3d.all     import *
 
 from sage.coding.all     import *
 from sage.combinat.all   import *

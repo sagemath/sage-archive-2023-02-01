@@ -79,10 +79,9 @@ import sage.rings.polynomial.multi_polynomial_ring_generic
 import sage.rings.padics.padic_ring_capped_relative
 import sage.misc.latex as latex
 #import sage.rings.real_double as real_double
-
+import sage.misc.mrange
 import sage.modules.free_module_element
 import sage.modules.free_module
-
 from sage.structure.sequence import Sequence
 
 def is_MatrixSpace(x):
@@ -507,6 +506,208 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         return "\\mbox{\\rm Mat}_{%s\\times %s}(%s)"%(self.nrows(), self.ncols(),
                                                       latex.latex(self.base_ring()))
 
+    def __iter__(self):
+        """
+        Returns a generator object which iterates through the elements
+        of self.  The order in which the elements are generated is
+        based on a 'weight' of a matrix which is the number of
+        iterations on the base ring that are required to reach that
+        matrix.
+
+        The ordering is similar to a degree negative lexicographic
+        order in monomials in a multivariate polynomial ring.
+
+        EXAMPLES:
+          Consider the case of 2 x 2 matrices over GF(5).
+
+            sage: list( GF(5) )
+            [0, 1, 2, 3, 4]
+            sage: MS = MatrixSpace(GF(5), 2, 2)
+            sage: l = list(MS)
+
+          Then, consider the following matrices:
+
+            sage: A = MS([2,1,0,1]); A
+            [2 1]
+            [0 1]
+            sage: B = MS([1,2,1,0]); B
+            [1 2]
+            [1 0]
+            sage: C = MS([1,2,0,0]); C
+            [1 2]
+            [0 0]
+
+          A appears before B since the weight of one of A's entries
+          exceeds the weight of the corresponding entry in B earliest
+          in the list.
+
+            sage: l.index(A)
+            41
+            sage: l.index(B)
+            46
+
+          However, A would come after the matrix C since C has a lower
+          weight than A.
+
+            sage: l.index(A)
+            41
+            sage: l.index(C)
+            19
+
+
+          The weights of matrices over other base rings are not as
+          obvious.  For example, the weight of
+
+            sage: MS = MatrixSpace(ZZ, 2, 2)
+            sage: MS([-1,0,0,0])
+            [-1  0]
+            [ 0  0]
+
+          is 2 since
+
+            sage: i = iter(ZZ)
+            sage: i.next()
+            0
+            sage: i.next()
+            1
+            sage: i.next()
+            -1
+
+
+          Some more examples:
+
+            sage: MS = MatrixSpace(GF(2),2)
+            sage: a = list(MS)
+            sage: len(a)
+            16
+            sage: for m in a: print m, '\n-'
+            [0 0]
+            [0 0]
+            -
+            [1 0]
+            [0 0]
+            -
+            [0 1]
+            [0 0]
+            -
+            [0 0]
+            [1 0]
+            -
+            [0 0]
+            [0 1]
+            -
+            [1 1]
+            [0 0]
+            -
+            [1 0]
+            [1 0]
+            -
+            [1 0]
+            [0 1]
+            -
+            [0 1]
+            [1 0]
+            -
+            [0 1]
+            [0 1]
+            -
+            [0 0]
+            [1 1]
+            -
+            [1 1]
+            [1 0]
+            -
+            [1 1]
+            [0 1]
+            -
+            [1 0]
+            [1 1]
+            -
+            [0 1]
+            [1 1]
+            -
+            [1 1]
+            [1 1]
+            -
+
+            sage: MS = MatrixSpace(GF(2),2, 3)
+            sage: a = list(MS)
+            sage: len(a)
+            64
+            sage: a[0]
+            [0 0 0]
+            [0 0 0]
+
+            sage: MS = MatrixSpace(ZZ, 2, 3)
+            sage: i = iter(MS)
+            sage: a = [ i.next() for _ in range(6) ]
+            sage: a[0]
+            [0 0 0]
+            [0 0 0]
+            sage: a[4]
+            [0 0 0]
+            [1 0 0]
+
+          For degenerate cases, where either the number of rows or columns (or
+          both) are zero, then the single element of the space is returned.
+
+            sage: list( MatrixSpace(GF(2), 2, 0) )
+            [[]
+            []]
+            sage: list( MatrixSpace(GF(2), 0, 2) )
+            [[]]
+            sage: list( MatrixSpace(GF(2), 0, 0) )
+            [[]]
+
+          If the base ring does not support iteration (for example, with the
+          reals), then the matrix space over that ring does not support
+          iteration either.
+
+            sage: MS = MatrixSpace(RR, 2)
+            sage: a = list(MS)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: object does not support iteration
+        """
+        #Make sure that we can interate over the base ring
+        base_ring = self.base_ring()
+        base_iter = iter(base_ring)
+
+        number_of_entries = (self.__nrows*self.__ncols)
+
+        #If the number of entries is zero, then just
+        #yield the empty matrix in that case and return
+        if number_of_entries == 0:
+            yield self(0)
+            raise StopIteration
+
+        import sage.combinat.integer_vector
+
+        if not base_ring.is_finite():
+            #When the base ring is not finite, then we should go
+            #through and yield the matrices by "weight", which is
+            #the total number of iterations that need to be done
+            #on the base ring to reach the matrix.
+            base_elements = [ base_iter.next() ]
+            weight = 0
+            while True:
+                for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries):
+                    yield self(entries=[base_elements[i] for i in iv], rows=True)
+
+                weight += 1
+                base_elements.append( base_iter.next() )
+        else:
+            #In the finite case, we do a similar thing except that
+            #the the "weight" of each entry is bounded by the number
+            #of elements in the base ring
+            order = base_ring.order()
+            done = False
+            base_elements = list(base_ring)
+            for weight in range((order-1)*number_of_entries+1):
+                for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries, max_part=(order-1)):
+                   yield self(entries=[base_elements[i] for i in iv], rows=True)
+
+
     def _get_matrix_class(self):
         """
         Returns the class of self
@@ -518,6 +719,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: MS2._get_matrix_class()
             <type 'sage.matrix.matrix_integer_sparse.Matrix_integer_sparse'>
+            sage: type(matrix(SR, 2, 2, 0))
+            <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
         """
         R = self.base_ring()
         if self.is_dense():
@@ -540,7 +743,12 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
             #    return padics.matrix_padic_capped_relative_dense
             # the default
-            return matrix_generic_dense.Matrix_generic_dense
+            else:
+                from sage.calculus.calculus import SR   # causes circular imports
+                if R == SR:
+                    import matrix_symbolic_dense
+                    return matrix_symbolic_dense.Matrix_symbolic_dense
+                return matrix_generic_dense.Matrix_generic_dense
 
         else:
             if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_sparse.MAX_MODULUS:

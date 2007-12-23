@@ -264,6 +264,8 @@ end_scene""" % (
         if ext is None:
             raise ValueError, "Unknown 3d plot type: %s" % viewer
         if not DOCTEST_MODE and not EMBEDDED_MODE:
+            viewer = sage.misc.misc.SAGE_LOCAL + "/java/java3d/start_viewer"
+            os.system("%s %s.obj 2>/dev/null 1>/dev/null &"%(viewer, filename))
             if verbosity:
                 pipes = "2>&1"
             else:

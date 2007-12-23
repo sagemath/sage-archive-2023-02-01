@@ -1700,20 +1700,19 @@ class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
             except TypeError:
                 pass
 
+        try:
+            if len(points) > 0 and len(points[0]) == 3:
+                return self._graphic3d()(points, coerce=coerce, **kwds)
+        except (AttributeError, TypeError):
+            pass
         xdata = []
         ydata = []
         if coerce:
-            for z in points:
-                if len(z) == 3:
-                    return self._graphic3d()(points, coerce=coerce, **kwds)
-                xdata.append(float(z[0]))
-                ydata.append(float(z[1]))
+            xdata = [float(z[0]) for z in points]
+            ydata = [float(z[1]) for z in points]
         else:
-            for z in points:
-                if len(z) == 3:
-                    return self._graphic3d()(points, coerce=coerce, **kwds)
-                xdata.append(z[0])
-                ydata.append(z[1])
+            xdata = [z[0] for z in points]
+            ydata = [z[1] for z in points]
 
         return self._from_xdata_ydata(xdata, ydata, True, options=options)
 
@@ -1945,8 +1944,11 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
         sage: p = line(L, rgbcolor=(1/4,1/8,3/4))
         sage: p.show()
 
-    A blue hypotrochoid (3 leaves):
+    A line with 2 complex points:
+        sage: i = CC.0
+        sage: show(line([1+i, 2+3*i]))
 
+    A blue hypotrochoid (3 leaves):
         sage: n = 4; h = 3; b = 2
         sage: L = [[n*cos(pi*i/100)+h*cos((n/b)*pi*i/100),n*sin(pi*i/100)-h*sin((n/b)*pi*i/100)] for i in range(200)]
         sage: p = line(L, rgbcolor=(1/4,1/4,3/4))

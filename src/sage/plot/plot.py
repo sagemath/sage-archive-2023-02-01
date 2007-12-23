@@ -1704,13 +1704,13 @@ class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
         ydata = []
         if coerce:
             for z in points:
-                if len(z) == 3:
+                if isinstance(z, (list,tuple)) and len(z) == 3:
                     return self._graphic3d()(points, coerce=coerce, **kwds)
                 xdata.append(float(z[0]))
                 ydata.append(float(z[1]))
         else:
             for z in points:
-                if len(z) == 3:
+                if isinstance(z, (list,tuple)) and len(z) == 3:
                     return self._graphic3d()(points, coerce=coerce, **kwds)
                 xdata.append(z[0])
                 ydata.append(z[1])

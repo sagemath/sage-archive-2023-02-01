@@ -2282,9 +2282,9 @@ class PlotFactory(GraphicPrimitiveFactory):
 
         plot(X, ...)
 
-    where X is a SAGE object that either is callable and returns
-    numbers that can be coerced to floats, or has a plot method
-    that returns a GraphicPrimitive object.
+    where X is a Sage object (or list of Sage objects) that either is
+    callable and returns numbers that can be coerced to floats, or has
+    a plot method that returns a GraphicPrimitive object.
 
     Type plot.options for a dictionary of the default
     options for plots.  You can change this to change
@@ -2350,6 +2350,23 @@ class PlotFactory(GraphicPrimitiveFactory):
         sage: len(P[0])  # random output
         80
         sage: P.show()   # render
+
+    We plot several functions together by passing a list
+    of functions as input:
+       sage: show(plot([sin(n*x) for n in [1..4]], 0, pi))
+
+
+    The function $\sin(1/x)$ wiggles wildtly near $0$, so the
+    first plot below won't look perfect.  Sage adapts to this
+    and plots extra points near the origin.
+       sage: show(plot(sin(1/x), -1, 1))
+
+    The \code{plot_points} option, you can increase the number
+    of sample points, to obtain a more accurate plot.
+       sage: show(plot(sin(1/x), -1, 1, plot_points=1000))
+
+    The actual sample points are slightly randomized, so the above
+    plots may look slightly different each time you draw them.
 
     Use \code{show(plot(sin, 0,10))} or \code{plot(sin,0,10).show()}
     to show the corresponding graphics object.
@@ -2418,7 +2435,16 @@ class PlotFactory(GraphicPrimitiveFactory):
         #parametric_plot will be a list or tuple of two functions (f,g)
         #and will plotted as (f(x), g(x)) for all x in the given range
         if parametric:
-            f,g = funcs
+            if len(funcs) == 3:
+                # 3d
+                from plot3d.shapes import parametric_plot_3d
+                return parametric_plot_3d(funcs, xmin, xmax, polar=polar, label=label, show=show, **kwds)
+            elif len(funcs) == 2:
+                # 2d
+                f,g = funcs
+            else:
+                raise ValueError, "parametric plots only implemented in 2 and 3 dimensions."
+
         #or we have only a single function to be plotted:
         else:
             f = funcs
@@ -2541,14 +2567,14 @@ text = TextFactory()
 
 ########## misc functions ###################
 
-def parametric_plot((f,g), tmin, tmax, show=None, **kwargs):
+def parametric_plot(funcs, tmin, tmax, show=None, **kwargs):
     """
     parametric_plot takes two functions as a list or a tuple and make
     a plot with the first function giving the x coordinates and the
     second function giving the y coordinates.
 
     INPUT:
-        (f,g) -- tuple of functions
+        funcs -- 2 or 3-tuple of functions
         tmin -- start value of t
         tmax -- end value of t
         show -- bool or None
@@ -2557,13 +2583,17 @@ def parametric_plot((f,g), tmin, tmax, show=None, **kwargs):
         other options -- passed to plot.
 
     EXAMPLE:
+    We draw a 2d parametric plot:
         sage: t = var('t')
         sage: G = parametric_plot( (sin(t), sin(2*t)), 0, 2*pi, rgbcolor=hue(0.6) )
         sage: G.show()
+
+    We draw a 3d parametric plot:
+        sage: show(parametric_plot( (5*cos(x), 5*sin(x), x), -12, 12, plot_points=150, color="red"))
     """
     if show is None:
         show = SHOW_DEFAULT
-    return plot((f,g), tmin, tmax, parametric=True, show=show, **kwargs)
+    return plot(funcs, tmin, tmax, parametric=True, show=show, **kwargs)
 
 def polar_plot(funcs, xmin, xmax, show=None, **kwargs):
     """

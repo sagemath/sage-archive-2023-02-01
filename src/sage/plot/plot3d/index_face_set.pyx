@@ -177,7 +177,7 @@ cdef class IndexFaceSet(PrimativeObject):
         sage: S.show()
     """
 
-    def __new__(self, faces, point_list=None, enclosde=False, **kwds):
+    def __new__(self, faces, point_list=None, enclosed=False, **kwds):
         self.vs = <point_c *>NULL
         self.face_indices = <int *>NULL
         self._faces = <face_c *>NULL

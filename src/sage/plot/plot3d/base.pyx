@@ -242,6 +242,7 @@ end_scene""" % (
             ext = "png"
             import sage.misc.viewer
             viewer_app = sage.misc.viewer.browser()
+
         if DOCTEST_MODE or viewer=='java3d':
             f = open(filename+".obj", "w")
             f.write("mtllib %s.mtl\n" % filename)
@@ -263,6 +264,7 @@ end_scene""" % (
 
         if ext is None:
             raise ValueError, "Unknown 3d plot type: %s" % viewer
+
         if not DOCTEST_MODE and not EMBEDDED_MODE:
             if verbosity:
                 pipes = "2>&1"

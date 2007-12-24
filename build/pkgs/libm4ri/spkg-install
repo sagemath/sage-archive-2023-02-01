@@ -1,5 +1,7 @@
 #!/bin/sh
 
+cp patches/*.c src/src/
+
 cd src
 
 INCLUDES="-I$SAGE_LOCAL/include/"

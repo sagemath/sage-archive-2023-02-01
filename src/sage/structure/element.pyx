@@ -2184,6 +2184,10 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
         $$
            r = s \cdot self + t \cdot other.
         $$
+
+        Note: there is no guarantee on minimality of the cofactors.
+        In the integer case, see documentation for Integer._xgcd() to
+        obtain minimal cofactors.
         """
         if not PY_TYPE_CHECK(right, Element) or not ((<Element>right)._parent is self._parent):
             return coercion_model.bin_op_c(self, right, xgcd)

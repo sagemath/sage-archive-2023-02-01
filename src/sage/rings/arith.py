@@ -1137,6 +1137,11 @@ def xgcd(a, b):
     OUTPUT:
         g, s, t -- such that g = s*a + t*b
 
+    NOTE:
+        There is no guarantee that the returned cofactors (s and t)
+        are minimal. In the integer case, see Integer._xgcd() for
+        minimal cofactors.
+
     EXAMPLES:
         sage: xgcd(56, 44)
         (4, 4, -5)

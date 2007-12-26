@@ -17,6 +17,7 @@ AUTHORS:
 ################################################################################
 
 include "../../ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, RingElement
@@ -234,14 +235,14 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f[-1]
             0
         """
-        # todo: this is performing an unnecessary copy. We need
-        # a function that returns a (const!) pointer to the coefficient
-        # of the NTL polynomial.
-        cdef ZZ_c temp = ZZX_coeff(self.__poly, n)
         cdef Integer z = PY_NEW(Integer)
-        ZZ_to_mpz(&z.value, &temp)
-        return z
-
+        if n < 0 or n > ZZX_deg(self.__poly):
+            return z
+        else:
+            # Note that the NTL documentation blesses this direct access of the "rep" member in ZZX.txt.
+            #  Check the "Miscellany" section.
+            ZZ_to_mpz(&z.value, &self.__poly.rep.elts()[n])
+            return z
 
     def __getslice__(self, long i, long j):
         r"""
@@ -696,6 +697,64 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         free(e)
         return Factorization(F, unit=c, sort=False)
 
+    def _factor_pari(self):
+        return Polynomial.factor(self) # uses pari for integers over ZZ
+
+    def _factor_ntl(self):
+        """
+        There are ample doc-tests elsewhere that test this functionality.
+        AUTHOR:
+            -- Joel B. Mohler
+        """
+        cdef Polynomial_integer_dense_ntl fac_py
+        cdef ZZ_c content
+        cdef vec_pair_ZZX_long_c factors
+        cdef long i
+        cdef int sig_me = ZZX_deg(self.__poly)
+        if sig_me > 10:
+            _sig_on
+        ZZX_factor(content, factors, self.__poly, 0, 0)
+        if sig_me > 10:
+            _sig_off
+        results = []
+        unit = None
+        if not ZZ_IsOne(content):
+            fac_py = self._new()
+            ZZX_SetCoeff(fac_py.__poly, 0, content)
+            if ZZX_deg(fac_py.__poly) == 0 and ZZ_to_int(fac_py.__poly.rep.elts())==-1:
+                unit = fac_py
+            else:
+                results.append( (fac_py,1) )
+        for i from 0 <= i < factors.length():
+            fac_py = self._new()
+            fac_py.__poly = factors.RawGet(i).a
+            results.append( (fac_py,factors.RawGet(i).b) )
+        return Factorization(results, unit = unit)
+
+    def factor(self):
+        """
+        This function overrides the generic polynomial factorization to
+        make a somewhat intelligent decision to use Pari or NTL based on
+        some benchmarking.
+
+        EXAMPLES:
+            sage: R.<x>=ZZ[]
+            sage: f=x^4-1
+            sage: f.factor()
+            (x - 1) * (x + 1) * (x^2 + 1)
+            sage: f=1-x
+            sage: f.factor()
+            (-1) * (x - 1)
+            sage: f.factor().unit()
+            -1
+        """
+        cdef int i
+        cdef int deg = ZZX_deg(self.__poly)
+        # it appears that pari has a window from about degrees 30 and 300 in which it beats NTL.
+        if deg < 30 or deg > 300:
+            return self._factor_ntl()
+        else:
+            return self._factor_pari()
 
     def factor_mod(self, p):
         """

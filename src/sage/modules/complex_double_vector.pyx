@@ -119,9 +119,9 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             self.v = NULL
             return
 
-        self.v = gsl_vector_complex_calloc(n)
+        self.v = <gsl_vector_complex *>gsl_vector_complex_calloc(n)
         if self.v == NULL:
-            raise MemoryError, "error allocating vector"
+            raise MemoryError, "error allocating memory"
 
         try:
             length=len(x)
@@ -132,12 +132,9 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
                 else:
                     raise MemoryError, "error allocating memory"
             else:
+                gsl_vector_complex_free(self.v)
                 self.v = NULL
                 raise TypeError, "must be a list, tuple, vector or 0"
-
-        _sig_on
-        self.v = <gsl_vector_complex *> gsl_vector_complex_calloc(n)
-        _sig_off
 
         if self.v is not NULL and length == n:
             _sig_on

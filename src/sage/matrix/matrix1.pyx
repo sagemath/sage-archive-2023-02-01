@@ -747,6 +747,69 @@ cdef class Matrix(matrix0.Matrix):
 
 
 
+    def set_row(self, row, v):
+        """
+        Sets the entries of row row in self to be the entries of v.
+
+        EXAMPLES:
+            sage: A = matrix([[1,2],[3,4]]); A
+            [1 2]
+            [3 4]
+            sage: A.set_row(0, [0,0]); A
+            [0 0]
+            [3 4]
+            sage: A.set_row(1, [0,0]); A
+            [0 0]
+            [0 0]
+            sage: A.set_row(2, [0,0]); A
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix index out of range
+
+            sage: A.set_row(0, [0,0,0])
+            Traceback (most recent call last):
+            ...
+            ValueError: v must be of length 2
+
+        """
+        if len(v) != self._ncols:
+            raise ValueError, "v must be of length %s"%self._ncols
+
+        for j in range(self._ncols):
+            self[row,j] = v[j]
+
+    def set_column(self, col, v):
+        """
+        Sets the entries of column col in self to be the entries of v.
+
+        EXAMPLES:
+            sage: A = matrix([[1,2],[3,4]]); A
+            [1 2]
+            [3 4]
+            sage: A.set_column(0, [0,0]); A
+            [0 2]
+            [0 4]
+            sage: A.set_column(1, [0,0]); A
+            [0 0]
+            [0 0]
+            sage: A.set_column(2, [0,0]); A
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix index out of range
+
+            sage: A.set_column(0, [0,0,0])
+            Traceback (most recent call last):
+            ...
+            ValueError: v must be of length 2
+
+        """
+        if len(v) != self._nrows:
+            raise ValueError, "v must be of length %s"%self._nrows
+
+        for i in range(self._nrows):
+            self[i,col] = v[i]
+
+
     ####################################################################################
     # Change of representation between dense and sparse.
     ####################################################################################

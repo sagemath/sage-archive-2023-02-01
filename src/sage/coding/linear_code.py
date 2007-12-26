@@ -1270,7 +1270,7 @@ class LinearCode(module.Module):
         r"""
         Returns the Duursma zeta polynomial of the code.
 
-        Assumes minimum_distance(C) > 1 and minimum_distance(C^\perp) > 1.
+        Assumes minimum_distance(C) > 1 and minimum_distance$(C^\perp) > 1$.
 
         EXAMPLES:
             sage: C = HammingCode(3,GF(2))
@@ -1287,7 +1287,7 @@ class LinearCode(module.Module):
 
         REFERENCES:
 
-             I. Duursma, "From weight enumerators to zeta functions},
+             I. Duursma, "From weight enumerators to zeta functions",
              in {\bf Discrete Applied Mathematics}, vol. 111, no. 1-2,
              pp. 55-73, 2001.
         """

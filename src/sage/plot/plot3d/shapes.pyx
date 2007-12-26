@@ -1,4 +1,4 @@
-"""
+""" #nodoctest
 Basic objects such as Sphere, Box, Cone, etc.
 
 AUTHORS:

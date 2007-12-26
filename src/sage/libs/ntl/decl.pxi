@@ -10,6 +10,11 @@ cdef extern from "ntl_wrap.h":
     ctypedef struct ZZ_c "struct ZZ":
         pass
 
+    ctypedef struct vec_ZZ_c "vec_ZZ":
+        ZZ_c RawGet(long i)
+        ZZ_c *elts()
+        long length()
+
     void del_charstar(char*)
 
     # Some boiler-plate
@@ -167,7 +172,15 @@ cdef extern from "ntl_wrap.h":
 
     # really, this is from NTL/ZZX.h
     ctypedef struct ZZX_c "struct ZZX":
-        pass
+        vec_ZZ_c rep
+
+    ctypedef struct pair_ZZX_long_c "pair_ZZX_long":
+        ZZX_c a
+        long b
+
+    ctypedef struct vec_pair_ZZX_long_c "vec_pair_ZZX_long":
+        pair_ZZX_long_c RawGet(long i)
+        long length()
 
     # Some boiler-plate
     ZZX_c* ZZX_new "New<ZZX>"()
@@ -198,6 +211,7 @@ cdef extern from "ntl_wrap.h":
     void ZZX_rem "rem"(ZZX_c r, ZZX_c a, ZZX_c b)
     void ZZX_XGCD "XGCD"(ZZ_c r, ZZX_c s, ZZX_c t, ZZX_c a, ZZX_c b, long deterministic)
     void ZZX_content "content"(ZZ_c d, ZZX_c f)
+    void ZZX_factor "factor"(ZZ_c c, vec_pair_ZZX_long_c factors, ZZX_c f, long verbose, long bnd)
 
     void ZZX_squarefree_decomposition(ZZX_c*** v, long** e, long* n, ZZX_c* x)
 

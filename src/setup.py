@@ -310,12 +310,8 @@ matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
                               libraries = ['gmp'])
 
 matrix_mod2_dense = Extension('sage.matrix.matrix_mod2_dense',
-                              ['sage/matrix/matrix_mod2_dense.pyx',
-                               'sage/libs/m4ri/packedmatrix.c',
-                               'sage/libs/m4ri/matrix.c',
-                               'sage/libs/m4ri/brilliantrussian.c',
-                               'sage/libs/m4ri/grayflex.c',],
-                              libraries = ['gmp'])
+                              ['sage/matrix/matrix_mod2_dense.pyx'],
+                              libraries = ['gmp','m4ri'])
 
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])
@@ -371,6 +367,9 @@ matrix_mpolynomial_dense = Extension('sage.matrix.matrix_mpolynomial_dense',
                                      libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
                                      language="c++",
                                      include_dirs=[SAGE_ROOT +'/local/include/singular'])
+
+matrix_symbolic_dense = Extension('sage.matrix.matrix_symbolic_dense',
+                                   ['sage/matrix/matrix_symbolic_dense.pyx'])
 
 #matrix_padic_capped_relative_dense = Extension('sage.matrix.padics.matrix_padic_capped_relative_dense',
 #                                               ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx'])
@@ -526,6 +525,7 @@ ext_modules = [ \
      matrix_modn_sparse,
      matrix_mod2_dense,
      matrix_mpolynomial_dense, \
+     matrix_symbolic_dense, \
 
      cremona_mat, \
      cremona_homspace, \

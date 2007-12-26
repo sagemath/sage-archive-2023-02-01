@@ -746,7 +746,7 @@ cdef class ComplexDoubleElement(FieldElement):
     def argument(self):
         r"""
         This function returns the argument of the self, in the interval
-        $-\pi < \Arg(self) \le \pi$.
+        $-\pi < arg(self) \le \pi$.
 
         EXAMPLES:
             sage: CDF(6).argument()

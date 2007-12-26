@@ -563,7 +563,7 @@ class PiecewisePolynomial:
             sage: f(0.5)
             1
             sage: f(2.5)
-            12.18249396070347
+            12.1824939607034...
             sage: f(1)
             1/2
         """

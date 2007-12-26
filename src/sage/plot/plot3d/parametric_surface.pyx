@@ -76,6 +76,21 @@ cdef class ParametricSurface(IndexFaceSet):
 
         sage: len(S.face_list())
         2214
+
+    The Hessenberg surface:
+        sage: def f(u,v):
+        ...       a = 1
+        ...       from math import cos, sin, sinh, cosh
+        ...       x = cos(a)*(cos(u)*sinh(v)-cos(3*u)*sinh(3*v)/3)+ \
+        ...            sin(a)*(sin(u)*cosh(v)-sin(3*u)*cosh(3*v)/3)
+        ...       y = cos(a)*(sin(u)*sinh(v)+sin(3*u)*sinh(3*v)/3)+\
+        ...           sin(a)*(-cos(u)*cosh(v)-cos(3*u)*cosh(3*v)/3)
+        ...       z = cos(a)*cos(2*u)*cosh(2*v)+sin(a)*sin(2*u)*sinh(2*v)
+        ...       return (x,y,z)
+        sage: v = srange(float(0),float((3/2)*pi),float(0.1))
+        sage: S = ParametricSurface(f, (srange(float(0),float(pi),float(0.1)), \
+        ...                  srange(float(-1),float(1),float(0.1))), color="blue")
+        sage: show(S)
     """
 
     def __init__(self, f=None, domain=None, **kwds):

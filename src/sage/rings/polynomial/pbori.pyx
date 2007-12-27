@@ -1372,32 +1372,35 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return self._P.length()
 
-    def __getattr__(self, name):
-        # this provides compatibility with the boost-python wrappers
-        # of PolyBoRi and prevents us from polluting the sage namespace
-        # i.e., these don't show up in tab completion lists
-        if name == 'set':
-            return new_BS_from_PBSet(self._P.set())
-        elif name == 'deg':
-            return self.total_degree
-        elif name == 'elength':
-            return self.elimination_length
-        elif name == 'lead':
-            return self.lm
-        elif name == 'lexLead':
-            return self.lm_lex
-        elif name == 'constant':
-            return self.is_constant
-        elif name == 'lmDeg':
-            return self.lm_degree
-        elif name == 'isZero':
-            return self.is_zero
-        elif name == 'isOne':
-            return self.is_one
-        elif name == 'navigation':
-            return new_CN_from_PBNavigator(self._P.navigation())
-        else:
-            raise AttributeError, name
+    def set(self):
+        return new_BS_from_PBSet(self._P.set())
+
+    def deg(self):
+        return self._P.deg()
+
+    def elength(self):
+        return self._P.eliminationLength()
+
+    def lead(self):
+        return new_BM_from_PBMonom(self._parent._monom_monoid, self._P.lead())
+
+    def lexLead(self):
+        return new_BM_from_PBMonom(self._parent._monom_monoid,
+                                                self._P.lexLead())
+    def constant(self):
+        return self._P.isConstant()
+
+    def lmDeg(self):
+        return self._P.lmDeg()
+
+    def isZero(self):
+        return self._P.isZero()
+
+    def isOne(self):
+        return self._P.isOne()
+
+    def navigation(self):
+        return new_CN_from_PBNavigator(self._P.navigation())
 
 cdef class BooleanPolynomialIterator:
     def __iter__(self):

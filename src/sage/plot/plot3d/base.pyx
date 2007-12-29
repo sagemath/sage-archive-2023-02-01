@@ -176,7 +176,9 @@ end_scene""" % (
         """
         return "\n".join(flatten_list([self.obj_repr(render_params), ""]))
 
-    def export_jmol(self, filename='jmol_shape.jmol', force_reload=False, zoom=100, spin=False, background=(1,1,1), stereo=False):
+    def export_jmol(self, filename='jmol_shape.jmol', force_reload=False,
+                    zoom=100, spin=False, background=(1,1,1), stereo=False,
+                    perspective_depth = False):
         render_params = self.default_render_params()
         render_params.output_file = filename
         render_params.force_reload = render_params.randomize_counter = force_reload
@@ -192,6 +194,11 @@ end_scene""" % (
             f.write('stereo %s\n' % stereo)
 
         f.write('zoom %s\n'%zoom)
+
+        if perspective_depth:
+            f.write('set perspectivedepth ON\n')
+        else:
+            f.write('set perspectivedepth OFF\n')
 
         # Put the rest of the object in
         f.write("\n".join(flatten_list([self.jmol_repr(render_params), ""])))
@@ -212,24 +219,26 @@ end_scene""" % (
         else:
             return self.transform(T=T)
 
-    def show(self, viewer="jmol", filename="shape", verbosity=0, figsize=4, **kwds):
+    def show(self, viewer="jmol", filename=None, verbosity=0, figsize=4, **kwds):
         """
         INPUT:
             viewer -- string (default: 'jmol') which viewing system to use.
                       'jmol': an embedded non-OpenGL 3d java applet
                       'tachyon': an embedded ray tracer
                       'java3d': a popup OpenGL 3d java applet
-            filename -- string (default: 'shape'); file to save the image to
+            filename -- string (default: a temp file); file to save the image to
             verbosity -- display information about rendering the figure
             figsize -- (default: 4); x or pair [x,y] for numbers, e.g., [4,4]; controls
                        the size of the output figure.  E.g., with jmol the number of
                        pixels in each direction is 100 times figsize[0].
             **kwds -- other options, which make sense for particular rendering engines
         """
+        import sage.misc.misc
+        if filename is None:
+            filename = sage.misc.misc.tmp_filename()
         if not isinstance(figsize, (list,tuple)):
             figsize = [figsize, figsize]
         from sage.plot.plot import EMBEDDED_MODE, DOCTEST_MODE
-        import sage.misc.misc
         ext = None
         if DOCTEST_MODE:
             opts = '-res 10 10'

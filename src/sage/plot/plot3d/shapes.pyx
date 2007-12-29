@@ -74,7 +74,8 @@ class Box(IndexFaceSet):
 
     def __init__(self, *size, **kwds):
         if isinstance(size[0], (tuple, list)):
-            size = size[0]
+            from shapes2 import validate_frame_size
+            size = validate_frame_size(size[0])
         self.size = size
         x, y, z = self.size
         faces = [[(x, y, z), (-x, y, z), (-x,-y, z), ( x,-y, z)],
@@ -221,14 +222,17 @@ def LineSegment(start, end, thickness=1, radius=None, **kwds):
     if radius is None:
         radius = thickness/50.0
     start = vector(RDF, start, sparse=False)
-    end = vector(RDF, end, sparse=False)
+    end   = vector(RDF, end, sparse=False)
     zaxis = vector(RDF, (0,0,1), sparse=False)
-    diff = end - start
-    height = sqrt(diff.dot_product(diff))
-    cyl = Cylinder(radius, height, **kwds)
-    axis = zaxis.cross_product(diff)
+    diff  = end - start
+    height= sqrt(diff.dot_product(diff))
+    cyl   = Cylinder(radius, height, **kwds)
+    axis  = zaxis.cross_product(diff)
     if axis == 0:
-        return cyl.translate(start)
+        if diff[2] < 0:
+            return cyl.translate(end)
+        else:
+            return cyl.translate(start)
     else:
         theta = -acos(diff[2]/height)
         return cyl.rotate(axis, theta).translate(start)
@@ -378,4 +382,5 @@ def parametric_plot_3d(funcs, tmin, tmax, plot_points=50, show=None, thickness=0
         G.show(**kwargs)
 
     return G
+
 

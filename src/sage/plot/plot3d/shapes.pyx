@@ -1,4 +1,4 @@
-""" #nodoctest
+"""
 Basic objects such as Sphere, Box, Cone, etc.
 
 AUTHORS:
@@ -351,6 +351,7 @@ class Text(PrimitiveObject):
     def __init__(self, string, **kwds):
         PrimitiveObject.__init__(self, **kwds)
         self.string = string
+
     def x3d_geometry(self):
         return "<Text string='%s' solid='true'/>"%self.string
 

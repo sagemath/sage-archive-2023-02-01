@@ -1,0 +1,7 @@
+Jmol bugs:
+
+* Sphere(0.3,color="red").translate([1,1,-1]) has *holes* in it!!
+
+* showing anyting from the command line also pops up a "red window".
+
+

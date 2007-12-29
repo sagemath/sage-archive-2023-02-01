@@ -143,7 +143,7 @@ cdef inline format_pmesh_face(face_c face):
 
 
 
-cdef class IndexFaceSet(PrimativeObject):
+cdef class IndexFaceSet(PrimitiveObject):
 
     """
     Graphics3D object that consists of a list of polygons, also used for
@@ -184,7 +184,7 @@ cdef class IndexFaceSet(PrimativeObject):
 
 
     def __init__(self, faces, point_list=None, enclosed=False, **kwds):
-        PrimativeObject.__init__(self, **kwds)
+        PrimitiveObject.__init__(self, **kwds)
 
         self.enclosed = enclosed
 

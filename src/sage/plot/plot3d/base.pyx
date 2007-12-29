@@ -404,7 +404,7 @@ class Viewpoint(Graphics3d):
 
 
 
-cdef class PrimativeObject(Graphics3d):
+cdef class PrimitiveObject(Graphics3d):
     def __init__(self, **kwds):
         try:
             self.texture = kwds['texture']

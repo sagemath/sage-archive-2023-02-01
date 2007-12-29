@@ -110,7 +110,10 @@ class Texture_class(SageObject):
                    "d %s" % self.opacity, ])
 
     def jmol_str(self, obj):
-        return "color %s [%s,%s,%s]" % (obj, int(255*self.color[0]), int(255*self.color[1]), int(255*self.color[2]))
+        # With jmol translucent is any opacity < 1.
+        translucent = "translucent" if self.opacity < 1 else ""
+        return "color %s %s [%s,%s,%s]" % (obj, translucent,
+                int(255*self.color[0]), int(255*self.color[1]), int(255*self.color[2]))
 
 
 

@@ -414,7 +414,10 @@ cdef class PrimitiveObject(Graphics3d):
             try:
                 self.texture = kwds['color']
                 if not is_Texture(self.texture):
-                    self.texture = Texture(self.texture)
+                    if kwds.has_key('opacity'):
+                        self.texture = Texture(self.texture, opacity=kwds['opacity'])
+                    else:
+                        self.texture = Texture(self.texture)
             except KeyError:
                 self.texture = default_texture
 

@@ -309,6 +309,7 @@ cdef class IndexFaceSet(PrimativeObject):
         if point_faces == NULL:
             sage_free(point_counts)
             raise MemoryError, "Out of memory in _seperate_creases for %s" % type(self)
+        _sig_on
         memset(point_counts, 0, sizeof(int) * self.vcount)
         for i from 0 <= i < self.fcount:
             face = &self._faces[i]
@@ -331,7 +332,7 @@ cdef class IndexFaceSet(PrimativeObject):
                 faces = &point_faces[running_point_counts[i]]
                 any = 0
                 for j from point_counts[i] > j >= 1:
-                    if cos_face_angle(faces[0][0], faces[j][0], self.vs) <= threshold:
+                    if cos_face_angle(faces[0][0], faces[j][0], self.vs) < threshold:
                         any = 1
                         face = faces[j]
                         point_counts[i] -= 1
@@ -347,6 +348,7 @@ cdef class IndexFaceSet(PrimativeObject):
                     sage_free(point_counts)
                     sage_free(point_faces)
                     self.vcount = self.fcount = self.icount = 0 # so we don't get segfaults on bad points
+                    _sig_off
                     raise MemoryError, "Out of memory in _seperate_creases for %s, CORRUPTED" % type(self)
                 ix = self.vcount
                 running = 0
@@ -373,6 +375,7 @@ cdef class IndexFaceSet(PrimativeObject):
 
         sage_free(point_counts)
         sage_free(point_faces)
+        _sig_off
 
 
 
@@ -607,6 +610,8 @@ cdef class IndexFaceSet(PrimativeObject):
         cdef Transformation transform = render_params.transform
         cdef Py_ssize_t i
         cdef point_c res
+
+        self._seperate_creases(render_params.crease_threshold)
 
         _sig_on
         if transform is None:

@@ -60,7 +60,7 @@ class TrivialTriangleFactory:
 
 
 def plot3d(f,(xmin,xmax),(ymin,ymax),texture=None,grad_f=None,
-           max_bend=.7,max_depth=5,initial_depth=3, num_colors=None):
+           max_bend=.7,max_depth=6,initial_depth=4, num_colors=None):
     """
     EXAMPLES:
 

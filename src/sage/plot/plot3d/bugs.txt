@@ -16,5 +16,7 @@ Jmol todo:
  * Javascript controls in the notebook
 
 
+Tachyon bugs:
+
 
 

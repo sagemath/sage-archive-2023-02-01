@@ -75,6 +75,9 @@ cdef class Graphics3d(SageObject):
             return other
         return Graphics3dGroup([self, other])
 
+    def bounding_box(self):
+        raise NotImplementedError
+
     def transform(self, **kwds):
         return TransformGroup([self], **kwds)
 
@@ -129,14 +132,13 @@ cdef class Graphics3d(SageObject):
 begin_scene
 resolution 400 400
 
-
          camera
             zoom 1.0
             aspectratio 1.0
             antialiasing 1
             raydepth 8
-            center  2.0 1.0 0.75
-            viewdir  -2.0 -1.0 -0.5
+            center  2.3 2.4 2.0
+            viewdir  -2.3 -2.4 -2.0
             updir  0.0 0.0 1.0
          end_camera
 
@@ -147,7 +149,7 @@ resolution 400 400
 
       plane
         center -2000 -1000 -500
-        normal -2.0 -1.0 -0.5
+        normal 2.3 2.4 2.0
         TEXTURE
             AMBIENT 1.0 DIFFUSE 1.0 SPECULAR 1.0 OPACITY 1.0
             COLOR 1.0 1.0 1.0
@@ -178,7 +180,9 @@ end_scene""" % (
 
     def export_jmol(self, filename='jmol_shape.jmol', force_reload=False,
                     zoom=100, spin=False, background=(1,1,1), stereo=False,
-                    perspective_depth = False):
+                    perspective_depth = True,
+                    orientation = (-764,-346,-545,76.39)):
+                    # orientation chosen to look same as tachyon
         render_params = self.default_render_params()
         render_params.output_file = filename
         render_params.force_reload = render_params.randomize_counter = force_reload
@@ -192,6 +196,8 @@ end_scene""" % (
         if stereo:
             if stereo is True: stereo = "redblue"
             f.write('stereo %s\n' % stereo)
+        if orientation:
+            f.write('moveto 0 %s %s %s %s\n'%tuple(orientation))
 
         f.write('zoom %s\n'%zoom)
 
@@ -219,7 +225,55 @@ end_scene""" % (
         else:
             return self.transform(T=T)
 
-    def show(self, viewer="jmol", filename=None, verbosity=0, figsize=4, **kwds):
+    def _prepare_for_jmol(self, frame, axes, aspect_ratio):
+        b = 6.0
+        if aspect_ratio is not None:
+            w = 1/float(aspect_ratio)
+        else:
+            w = 4.0
+        return self._transform_to_bounding_box((-b,-b,-b/w), (b,b,b/w), frame=frame,
+                                               axes=axes, thickness=1)
+
+    def _prepare_for_tachyon(self, frame, axes, aspect_ratio):
+        b = 1
+        if aspect_ratio is not None:
+            w = 1/float(aspect_ratio)
+        else:
+            w = 4.0
+        A = self._transform_to_bounding_box((-b,-b,-b/w), (b,b,b/w),
+                                            frame=frame, axes=axes, thickness=0.5)
+
+        # Fix that Tachyon is left-handed
+        return A
+
+    def _transform_to_bounding_box(self, xyz_min, xyz_max, frame, axes, thickness):
+        a_min, a_max = self.bounding_box()
+        # Rescale in each direction
+        scale = [(xyz_max[i] - xyz_min[i]) / max(0.001, a_max[i] - a_min[i]) for i in range(3)]
+        X = self.scale(scale)
+        # Translate so lower left corner of original bounding box
+        # is in the right spot
+        a_min, a_max = X.bounding_box()
+        if axes:
+            from shapes import LineSegment
+            X += LineSegment((min(0, a_min[0]*1.1), 0, 0), (max(0,a_max[0]*1.1), 0,0),
+                             thickness, color="blue")
+            X += LineSegment((0,min(0,a_min[1]*1.1), 0), (0, max(0,a_max[1]*1.1), 0),
+                             thickness, color="blue")
+            X += LineSegment((0, 0, min(0,a_min[2]*1.1)), (0, 0, max(0,a_max[2]*1.1)),
+                             thickness, color="blue")
+        Y = X.translate([xyz_min[i] - a_min[i] for i in range(3)])
+        a_min, a_max = Y.bounding_box()
+        if frame:
+            from shapes2 import frame3d
+            F = frame3d(a_min, a_max, opacity=0.5, color=(0,0,0), thickness=thickness)
+            return Y + F
+        return Y
+
+
+    def show(self, viewer="jmol", filename=None, verbosity=0, figsize=5,
+             aspect_ratio = None,
+             frame=True, axes = True, **kwds):
         """
         INPUT:
             viewer -- string (default: 'jmol') which viewing system to use.
@@ -233,6 +287,7 @@ end_scene""" % (
                        pixels in each direction is 100 times figsize[0].
             **kwds -- other options, which make sense for particular rendering engines
         """
+
         import sage.misc.misc
         if filename is None:
             filename = sage.misc.misc.tmp_filename()
@@ -240,17 +295,20 @@ end_scene""" % (
             figsize = [figsize, figsize]
         from sage.plot.plot import EMBEDDED_MODE, DOCTEST_MODE
         ext = None
+
+        # Tachyon resolution options
         if DOCTEST_MODE:
             opts = '-res 10 10'
             filename = sage.misc.misc.SAGE_TMP + "/tmp"
         elif EMBEDDED_MODE:
-            opts = ''
+            opts = '-res %s %s'%(figsize[0]*100, figsize[1]*100)
             filename = sage.misc.misc.graphics_filename()[:-4]
         else:
-            opts = ''
+            opts = '-res %s %s'%(figsize[0]*100, figsize[1]*100)
 
         if DOCTEST_MODE or viewer=='tachyon' or (viewer=='java3d' and EMBEDDED_MODE):
-            tachyon_rt(self.tachyon(**kwds), filename+".png", verbosity, True, opts)
+            T = self._prepare_for_tachyon(frame, axes, aspect_ratio)
+            tachyon_rt(T.tachyon(**kwds), filename+".png", verbosity, True, opts)
             ext = "png"
             import sage.misc.viewer
             viewer_app = sage.misc.viewer.browser()
@@ -267,10 +325,13 @@ end_scene""" % (
             viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/java3d/start_viewer"
 
         if DOCTEST_MODE or viewer=='jmol':
-            # Encode the desired applet size in the end of the filename:
+            # Temporary hack: encode the desired applet size in the end of the filename:
+            # (This will be removed once we have dynamic resizing of applets in the browser.)
             base, ext = os.path.splitext(filename)
             filename = '%s-size%s%s'%(base, figsize[0]*100, ext)
-            self.export_jmol(filename + ".jmol", force_reload=EMBEDDED_MODE, **kwds)
+
+            T = self._prepare_for_jmol(frame, axes, aspect_ratio)
+            T.export_jmol(filename + ".jmol", force_reload=EMBEDDED_MODE, **kwds)
             viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/jmol/jmol"
             ext = "jmol"
 
@@ -278,8 +339,6 @@ end_scene""" % (
             raise ValueError, "Unknown 3d plot type: %s" % viewer
 
         if not DOCTEST_MODE and not EMBEDDED_MODE:
-            viewer = sage.misc.misc.SAGE_LOCAL + "/java/java3d/start_viewer"
-            os.system("%s %s.obj 2>/dev/null 1>/dev/null &"%(viewer, filename))
             if verbosity:
                 pipes = "2>&1"
             else:
@@ -289,6 +348,12 @@ end_scene""" % (
 class Graphics3dGroup(Graphics3d):
     def __init__(self, all=[]):
         self.all = all
+
+    def bounding_box(self):
+        # Box that contains the bounding boxes of
+        # all the objects that make up self.
+        v = [obj.bounding_box() for obj in self.all]
+        return min3([a[0] for a in v]), max3([a[1] for a in v])
 
     def transform(self, **kwds):
         return TransformGroup(self.all, **kwds)
@@ -335,6 +400,27 @@ class TransformGroup(Graphics3dGroup):
         self._scale = scale
         if T is not None:
             self.T = T
+
+    def bounding_box(self):
+        try:
+            return self._bounding_box
+        except AttributeError:
+            pass
+        # Get the box before transformation
+        a = Graphics3dGroup.bounding_box(self)
+        # The corners of the box
+        import sage.misc.mrange
+        corners = []
+        for f in sage.misc.mrange.cartesian_product_iterator([[0,1]]*3):
+            corners.append([a[f[i]][i] for i in range(3)])
+        # Transform the corners of the box
+        T = self.get_transformation()
+        w = [T.transform_point(p) for p in corners]
+        # Figure out what the new bounding box is
+        a_min = [min([z[i] for z in w]) for i in range(3)]
+        a_max = [max([z[i] for z in w]) for i in range(3)]
+        self._bounding_box = a_min, a_max
+        return self._bounding_box
 
     def transform(self, **kwds):
         # TODO: flatten right here
@@ -421,9 +507,9 @@ cdef class PrimitiveObject(Graphics3d):
             except KeyError:
                 self.texture = default_texture
 
-    def set_texture(self, texture):
+    def set_texture(self, texture, **kwds):
         if not is_Texture(texture):
-            texture = Texture(texture)
+            texture = Texture(texture, **kwds)
         self.texture = texture
 
     def x3d_str(self):
@@ -531,3 +617,26 @@ def flatten_list(L):
             i = i_pop()
             i += 1
     return flat
+
+
+def min3(v):
+    """
+    Return the componentwise minimum of a list of 3-tuples.
+
+    EXAMPLES:
+        sage: from sage.plot.plot3d.base import min3, max3
+        sage: min3([(-1,2,5), (-3, 4, 2)])
+        (-3, 2, 2)
+    """
+    return tuple([min([a[i] for a in v]) for i in range(3)])
+
+def max3(v):
+    """
+    Return the componentwise maximum of a list of 3-tuples.
+
+    EXAMPLES:
+        sage: from sage.plot.plot3d.base import min3, max3
+        sage: max3([(-1,2,5), (-3, 4, 2)])
+        (-1, 4, 5)
+    """
+    return tuple([max([a[i] for a in v]) for i in range(3)])

@@ -33,7 +33,8 @@ def Texture(id=None, **kwds):
         kwds = id
         id = None
     elif isinstance(id, str) and colors.has_key(id):
-        kwds = {"color": id}
+        kwds['color'] = id
+        #kwds = {"color": id}
         id = None
     elif isinstance(id, tuple):
         kwds['color'] = id

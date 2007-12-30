@@ -7,15 +7,16 @@ def line3d(points, coerce=True, **kwds):
     return sum(v)
 
 
-def frame3d(size, **kwds):
-    x,y,z = validate_frame_size(size)
-    L1 = line3d([(x,y,z), (x,-y,z), (-x,-y,z), (-x,y,z),  (x,y,z), # top square
-                 (x,y,-z), (x,-y,-z), (-x,-y,-z), (-x,y,-z),  (x,y,-z)],  # bottom square
-                coerce=False, **kwds)
+def frame3d(lower_left, upper_right, **kwds):
+    x0,y0,z0 = lower_left
+    x1,y1,z1 = upper_right
+    L1 = line3d([(x0,y0,z0), (x0,y1,z0), (x1,y1,z0), (x1,y0,z0),  (x0,y0,z0), # top square
+                 (x0,y0,z1), (x0,y1,z1), (x1,y1,z1), (x1,y0,z1),  (x0,y0,z1)],  # bottom square
+                **kwds)
     # 3 additional lines joining top to bottom
-    v2 = line3d([(x,-y,z), (x,-y,-z)], coerce=False, **kwds)
-    v3 = line3d([(-x,y,z), (-x,y,-z)], coerce=False, **kwds)
-    v4 = line3d([(-x,-y,z), (-x,-y,-z)], coerce=False, **kwds)
+    v2 = line3d([(x0,y1,z0), (x0,y1,z1)], **kwds)
+    v3 = line3d([(x1,y0,z0), (x1,y0,z1)], **kwds)
+    v4 = line3d([(x1,y1,z0), (x1,y1,z1)], **kwds)
     return L1 + v2 + v3 + v4
 
 

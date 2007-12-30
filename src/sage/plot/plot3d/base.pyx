@@ -248,28 +248,35 @@ end_scene""" % (
 
     def _transform_to_bounding_box(self, xyz_min, xyz_max, frame, axes, thickness):
         a_min, a_max = self.bounding_box()
+
         # Rescale in each direction
-        scale = [(xyz_max[i] - xyz_min[i]) / max(0.001, a_max[i] - a_min[i]) for i in range(3)]
+        scale = [(xyz_max[i] - xyz_min[i]) / max(0.0001, a_max[i] - a_min[i]) for i in range(3)]
         X = self.scale(scale)
+        a_min, a_max = X.bounding_box()
+
+
         # Translate so lower left corner of original bounding box
         # is in the right spot
-        a_min, a_max = X.bounding_box()
-        if axes:
-            from shapes import LineSegment
-            X += LineSegment((min(0, a_min[0]*1.1), 0, 0), (max(0,a_max[0]*1.1), 0,0),
-                             thickness, color="blue")
-            X += LineSegment((0,min(0,a_min[1]*1.1), 0), (0, max(0,a_max[1]*1.1), 0),
-                             thickness, color="blue")
-            X += LineSegment((0, 0, min(0,a_min[2]*1.1)), (0, 0, max(0,a_max[2]*1.1)),
-                             thickness, color="blue")
-        Y = X.translate([xyz_min[i] - a_min[i] for i in range(3)])
-        a_min, a_max = Y.bounding_box()
+        T = [xyz_min[i] - a_min[i] for i in range(3)]
+        X = X.translate(T)
         if frame:
+            a_min, a_max = X.bounding_box()
             from shapes2 import frame3d
             F = frame3d(a_min, a_max, opacity=0.5, color=(0,0,0), thickness=thickness)
-            return Y + F
-        return Y
+            X += F
 
+        if axes:
+            # draw axes
+            from shapes import Arrow
+            A = (Arrow((min(0,a_min[0]),0, 0), (max(0,a_max[0]), 0,0),
+                             thickness, color="blue"),
+                 Arrow((0,min(0,a_min[1]), 0), (0, max(0,a_max[1]), 0),
+                             thickness, color="blue"),
+                 Arrow((0, 0, min(0,a_min[2])), (0, 0, max(0,a_max[2])),
+                             thickness, color="blue"))
+            X += sum(A).translate([-z for z in T])
+
+        return X
 
     def show(self, viewer="jmol", filename=None, verbosity=0, figsize=5,
              aspect_ratio = None,

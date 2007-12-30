@@ -8,6 +8,8 @@ Jmol bugs:
    Basically we have to figure out the true range of the 3d plot in each direction,
    then rescale everything into a 10x10x10 square.
    We should draw axis and allow for aspect ratios.
+ * Invalid color doesn't yield an error message, e.g., Icosahedron(texture="yello")
+ * color --> rgbcolor
 
 Jmol todo:
 

@@ -79,9 +79,9 @@ def plot3d(f,(xmin,xmax),(ymin,ymax),texture=None, opacity=1, grad_f=None,
     #except AttributeError:
     #    # Nope -- no prob.
     #    pass
-
     if texture is None:
-        texture = rainbow(100, 'rgbtuple')
+        texture = rainbow(128, 'rgbtuple')
+
     factory = TrivialTriangleFactory()
     plot = TrianglePlot(factory, f, (xmin, xmax), (ymin, ymax), g = grad_f,
                         min_depth=initial_depth, max_depth=max_depth,
@@ -99,7 +99,10 @@ def plot3d(f,(xmin,xmax),(ymin,ymax),texture=None, opacity=1, grad_f=None,
             bounds = P.bounding_box()
             min_z = bounds[0][2]
             max_z = bounds[1][2]
-            span = len(texture) / (max_z - min_z)
+            if max_z == min_z:
+                span = 0
+            else:
+                span = len(texture) / (max_z - min_z)    # max to avoid dividing by 0
             parts = P.partition(lambda x,y,z: int((z-min_z)*span))
         all = []
         for k, G in parts.iteritems():

@@ -225,44 +225,48 @@ end_scene""" % (
         else:
             return self.transform(T=T)
 
-    def _prepare_for_jmol(self, frame, axes, aspect_ratio):
-        b = 6.0
-        if aspect_ratio is not None:
-            w = 1/float(aspect_ratio)
-        else:
-            w = 4.0
-        return self._transform_to_bounding_box((-b,-b,-b/w), (b,b,b/w), frame=frame,
+    def _rescale_for_aspect_ratio_and_zoom(self, b, aspect_ratio, zoom):
+        if aspect_ratio is None:
+            return (b*zoom,b*zoom,b*zoom), (-b*zoom,-b*zoom,-b*zoom)
+        box = [b*w for w in aspect_ratio]
+        # Now take the maximum length in box and rescale to b.
+        s = b / max(box)
+        box_max = tuple([s*w*zoom for w in box])
+        box_min = tuple([-w*zoom for w in box_max])
+        return box_min, box_max
+
+    def _prepare_for_jmol(self, frame, axes, aspect_ratio, zoom):
+        box_min, box_max = self._rescale_for_aspect_ratio_and_zoom(6.0, aspect_ratio, zoom)
+        return self._transform_to_bounding_box(box_min, box_max, frame=frame,
                                                axes=axes, thickness=1)
 
-    def _prepare_for_tachyon(self, frame, axes, aspect_ratio):
-        b = 1
-        if aspect_ratio is not None:
-            w = 1/float(aspect_ratio)
-        else:
-            w = 4.0
-        A = self._transform_to_bounding_box((-b,-b,-b/w), (b,b,b/w),
+    def _prepare_for_tachyon(self, frame, axes, aspect_ratio, zoom):
+        box_min, box_max = self._rescale_for_aspect_ratio_and_zoom(1.0, aspect_ratio, zoom)
+        A = self._transform_to_bounding_box(box_min, box_max,
                                             frame=frame, axes=axes, thickness=0.5)
-
-        # Fix that Tachyon is left-handed
         return A
 
     def _transform_to_bounding_box(self, xyz_min, xyz_max, frame, axes, thickness):
         a_min, a_max = self.bounding_box()
+        a_min = list(a_min); a_max = list(a_max)
+        for i in range(3):
+            if a_min[i] == a_max[i]:
+                a_min[i] = -1
+                a_max[i] = 1
 
         # Rescale in each direction
-        scale = [(xyz_max[i] - xyz_min[i]) / max(0.0001, a_max[i] - a_min[i]) for i in range(3)]
+        scale = [(xyz_max[i] - xyz_min[i]) / (a_max[i] - a_min[i]) for i in range(3)]
         X = self.scale(scale)
-        a_min, a_max = X.bounding_box()
-
+        a_min = [scale[i]*a_min[i] for i in range(3)]
+        a_max = [scale[i]*a_max[i] for i in range(3)]
 
         # Translate so lower left corner of original bounding box
         # is in the right spot
         T = [xyz_min[i] - a_min[i] for i in range(3)]
         X = X.translate(T)
         if frame:
-            a_min, a_max = X.bounding_box()
             from shapes2 import frame3d
-            F = frame3d(a_min, a_max, opacity=0.5, color=(0,0,0), thickness=thickness)
+            F = frame3d(xyz_min, xyz_max, opacity=0.5, color=(0,0,0), thickness=thickness)
             X += F
 
         if axes:
@@ -279,8 +283,8 @@ end_scene""" % (
         return X
 
     def show(self, viewer="jmol", filename=None, verbosity=0, figsize=5,
-             aspect_ratio = None,
-             frame=True, axes = True, **kwds):
+             aspect_ratio = None, zoom=1,
+             frame=True, axes = False, **kwds):
         """
         INPUT:
             viewer -- string (default: 'jmol') which viewing system to use.
@@ -294,7 +298,6 @@ end_scene""" % (
                        pixels in each direction is 100 times figsize[0].
             **kwds -- other options, which make sense for particular rendering engines
         """
-
         import sage.misc.misc
         if filename is None:
             filename = sage.misc.misc.tmp_filename()
@@ -314,7 +317,7 @@ end_scene""" % (
             opts = '-res %s %s'%(figsize[0]*100, figsize[1]*100)
 
         if DOCTEST_MODE or viewer=='tachyon' or (viewer=='java3d' and EMBEDDED_MODE):
-            T = self._prepare_for_tachyon(frame, axes, aspect_ratio)
+            T = self._prepare_for_tachyon(frame, axes, aspect_ratio, zoom)
             tachyon_rt(T.tachyon(**kwds), filename+".png", verbosity, True, opts)
             ext = "png"
             import sage.misc.viewer
@@ -337,7 +340,7 @@ end_scene""" % (
             base, ext = os.path.splitext(filename)
             filename = '%s-size%s%s'%(base, figsize[0]*100, ext)
 
-            T = self._prepare_for_jmol(frame, axes, aspect_ratio)
+            T = self._prepare_for_jmol(frame, axes, aspect_ratio, zoom)
             T.export_jmol(filename + ".jmol", force_reload=EMBEDDED_MODE, **kwds)
             viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/jmol/jmol"
             ext = "jmol"

@@ -20,7 +20,8 @@ colors = {
     "purple": (.5,0,1),
     "white" : (1,1,1),
     "black" : (0,0,0),
-    "grey"  : (.5,.5,.5)
+    "grey"  : (.5,.5,.5),
+    "lightblue" : (0.4,0.4,1)
 }
 
 def is_Texture(x):

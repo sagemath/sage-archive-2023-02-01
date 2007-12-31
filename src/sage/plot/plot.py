@@ -2436,9 +2436,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         #and will plotted as (f(x), g(x)) for all x in the given range
         if parametric:
             if len(funcs) == 3:
-                # 3d
-                from plot3d.shapes import parametric_plot_3d
-                return parametric_plot_3d(funcs, xmin, xmax, polar=polar, label=label, show=show, **kwds)
+                raise ValueError, "use parametric_plot3d for parametric plots in 3d dimensions."
             elif len(funcs) == 2:
                 # 2d
                 f,g = funcs

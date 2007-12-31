@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 Graphics3D object that consists of a list of polygons, also used for
 triangulations of other objects.
 
@@ -355,6 +355,9 @@ cdef class IndexFaceSet(PrimitiveObject):
 """%(coordIndex, points)
 
     def bounding_box(self):
+        if self.vcount == 0:
+            return ((0,0,0),(0,0,0))
+
         cdef Py_ssize_t i
         cdef point_c low = self.vs[0], high = self.vs[0]
         for i from 1 <= i < self.vcount:
@@ -536,9 +539,17 @@ cdef class IndexFaceSet(PrimitiveObject):
             f.write(line)
             f.write('\n')
         f.close()
-        if render_params.force_reload:
-            filename += "?%s" % randint(1,1000000)
-        return ['pmesh %s "%s"\n%s' % (name, filename, self.texture.jmol_str("pmesh"))]
+        #if render_params.force_reload:
+        #    filename += "?%s" % randint(1,1000000)
+
+        s = 'pmesh %s "%s"\n%s' % (name, filename, self.texture.jmol_str("pmesh"))
+
+        # If we wanted to turn on display of the mesh lines or dots
+        # we would uncomment thse.  This should be determined by
+        # render_params, probably.
+        #s += '\npmesh %s mesh\n'%name
+        #s += '\npmesh %s dots\n'%name
+        return [s]
 
     def dual(self, **kwds):
 

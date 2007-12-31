@@ -1535,7 +1535,12 @@ class Notebook(SageObject):
             body += '<script type="text/javascript"> active_cell_list = %r; \n'%worksheet.queue_id_list()
             body += 'for(var i = 0; i < active_cell_list.length; i++)'
             body += '    cell_set_running(active_cell_list[i]); \n'
-            body += 'start_update_check(); </script>\n'
+            body += 'start_update_check();\n'
+            body +=' </script>\n'
+
+
+        body += '<script>use_cell_writer = true;</script>\n'   # for jmol 3d graphics
+
 
         return body
 

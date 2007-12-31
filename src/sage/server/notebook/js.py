@@ -28,10 +28,24 @@ import keyboards
 def javascript():
     s = async_lib()
     s += notebook_lib()
+    s += jmol_lib()
 
     return s
 
 
+def jmol_lib():
+    s = r"""
+function jmol_applet(size, url) {
+    if(use_cell_writer) {
+        /* It is very important to *only* use the cell writer
+           after the page has been completely loaded. */
+        jmolSetDocument(cell_writer);
+    }
+    jmolApplet(size, "script " + url);
+}
+    """
+
+    return s
 
 def async_lib():
     s = r"""
@@ -1876,7 +1890,8 @@ function CellWriter() {
     this.buffer = "";
 }
 
-var cell_writer = new CellWriter();
+use_cell_writer = false;
+cell_writer = new CellWriter();
 
 function eval_script_tags(text) {
    var s = text; //text.replaceAll('\n','');

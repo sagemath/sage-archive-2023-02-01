@@ -28,6 +28,9 @@ fi
 
 if [ `uname` = "Darwin" ]; then
     make dylib
+fi
+if [ "$UNAME" = "CYGWIN" ]; then
+    make dll
 else
     make so
 fi
@@ -39,6 +42,9 @@ fi
 
 if [ `uname` = "Darwin" ]; then
     cp lib/*.dylib "$SAGE_LOCAL"/lib/
+fi
+if [ "$UNAME" = "CYGWIN" ]; then
+    cp lib/*.dll "$SAGE_LOCAL"/lib/
 else
     cp lib/*.so "$SAGE_LOCAL"/lib/
 fi
@@ -47,29 +53,33 @@ INC_TARGET="$SAGE_LOCAL"/include/cremona
 rm -rf "$INC_TARGET"
 cp -r include "$INC_TARGET"
 
+if [ "$UNAME" = "CYGWIN" ]; then
+   EXE_NAME=".exe"
+fi
+
 #delete some leftovers from mwrank
-rm -rf "$SAGE_LOCAL"/include/mwrank
-rm -rf "$SAGE_LOCAL"/bin/tmwrank
+rm -rf "$SAGE_LOCAL"/include/mwrank"$EXE_NAME"
+rm -rf "$SAGE_LOCAL"/bin/tmwrank"$EXE_NAME"
 
 # copy new binaries
-cp qrank/mwrank "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/mwrank
-cp qrank/ratpoint "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/ratpoint
-cp qcurves/findinf "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/findinf
-cp qcurves/tate "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/tate
-cp qcurves/conductor "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/conductor
-cp qcurves/torsion "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/torsion
-cp qcurves/twist "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/twist
-cp qcurves/allisog "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/allisog
-cp qcurves/indep "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/indep
-cp procs/tconic "$SAGE_LOCAL"/bin
-strip "$SAGE_LOCAL"/bin/tconic
+cp qrank/mwrank"$EXE_NAME" "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/mwrank"$EXE_NAME"
+cp qrank/ratpoint"$EXE_NAME" "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/ratpoint"$EXE_NAME"
+cp qcurves/findinf"$EXE_NAME" "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/findinf"$EXE_NAME"
+cp qcurves/tate"$EXE_NAME" "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/tate"$EXE_NAME"
+cp qcurves/conductor"$EXE_NAME" "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/conductor"$EXE_NAME"
+cp qcurves/torsion"$EXE_NAME" "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/torsion"$EXE_NAME"
+cp qcurves/twist"$EXE_NAME" "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/twist"$EXE_NAME"
+cp qcurves/allisog"$EXE_NAME" "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/allisog"$EXE_NAME"
+cp qcurves/indep"$EXE_NAME" "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/indep"$EXE_NAME"
+cp procs/tconic"$EXE_NAME" "$SAGE_LOCAL"/bin
+strip "$SAGE_LOCAL"/bin/tconic"$EXE_NAME"
 

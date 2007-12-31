@@ -4,7 +4,7 @@
 
 John Cremona's programs for enumerating and computating with elliptic
 curves defined over the rational numbers. This is the culmination of
-over 30 years of hard work and careful polish.
+over 25 years of hard work.
 
 == Maintainers ==
 
@@ -18,6 +18,12 @@ over 30 years of hard work and careful polish.
  * Author: John Cremona
  * Email: john.cremona@gmail.com
  * Website: http://www.warwick.ac.uk/~masgaj/mwrank/index.html
+
+== Dependencies ==
+
+ * gmp
+ * pari
+ * NTL
 
 == Distribution ==
 

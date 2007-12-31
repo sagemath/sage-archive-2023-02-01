@@ -34,6 +34,14 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20071231.p0 (Michael Abshoff) ===
+
+ * added Cygwin support
+ * add spkg-check
+ * install headers into $SAGE_LOCAL/eclib
+ * delete $SAGE_LOCAL/include/cremona
+ * chown $SAGE_LOCAL/include/eclib and files underneath
+
 === eclib-20071231 (John Cremona) ===
 
  * renamed to eclib

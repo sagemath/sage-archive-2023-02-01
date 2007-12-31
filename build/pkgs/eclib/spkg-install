@@ -6,6 +6,9 @@ echo "Deleting old versions of cremona libraries, which"
 echo "would interfere with new builds."
 cd "$SAGE_LOCAL"/lib/
 rm libcurvesntl.* libg0nntl.* libjcntl.* librankntl.* libmwrank.*
+echo "Deleting old include directory"
+cd "$SAGE_LOCAL"/include
+rm -rf cremona eclib
 
 cd "$CUR"/src
 
@@ -17,7 +20,7 @@ export PARI_PREFIX
 if [ `uname` = "Darwin" -o "$UNAME" = "CYGWIN" ]; then
     PICFLAG=""
 else
-    PICFLAG=-fPIP
+    PICFLAG=-fPIC
 fi
 export PICFLAG
 
@@ -51,7 +54,7 @@ else
     cp lib/*.so "$SAGE_LOCAL"/lib/
 fi
 
-INC_TARGET="$SAGE_LOCAL"/include/cremona
+INC_TARGET="$SAGE_LOCAL"/include/eclib
 rm -rf "$INC_TARGET"
 cp -r include "$INC_TARGET"
 
@@ -85,3 +88,6 @@ strip "$SAGE_LOCAL"/bin/indep"$EXE_NAME"
 cp procs/tconic"$EXE_NAME" "$SAGE_LOCAL"/bin
 strip "$SAGE_LOCAL"/bin/tconic"$EXE_NAME"
 
+cd "$SAGE_LOCAL"/include
+chown 755 eclib
+chmod 644 eclib/*

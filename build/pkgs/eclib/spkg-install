@@ -14,10 +14,12 @@ export NTL_PREFIX
 
 PARI_PREFIX="$SAGE_LOCAL"
 export PARI_PREFIX
-if [ `uname` != "Darwin" ]; then
-    PICFLAG=-fPIC
-    export PICFLAG
+if [ `uname` = "Darwin" -o "$UNAME" = "CYGWIN" ]; then
+    PICFLAG=""
+else
+    PICFLAG=-fPIP
 fi
+export PICFLAG
 
 make
 

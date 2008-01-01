@@ -1,11 +1,12 @@
 import shapes
 
 def line3d(points, coerce=True, color="lightblue", **kwds):
+    if len(points) < 2:
+        raise ValueError, "there must be at least 2 points"
     v = []
     for i in range(len(points) - 1):
         v.append(shapes.LineSegment(points[i], points[i+1], color=color, **kwds))
     return sum(v)
-
 
 def frame3d(lower_left, upper_right, **kwds):
     x0,y0,z0 = lower_left

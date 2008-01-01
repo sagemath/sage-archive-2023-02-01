@@ -45,9 +45,13 @@ function jmol_applet(size, url) {
 }
 
 function jmol_popup(url) {
-    win = window.open ("", url, "width=400,height=400,resizable=1");
+    win = window.open ("", "jmol viewer", "width=400,height=400,resizable=1,statusbar=0");
+    win.document.body.innerHTML = "";
+    win.document.title = "Sage 3d Viewer";
+    win.document.writeln("<h1 align=center>Sage 3d Viewer</h1>");
     jmolSetDocument(win.document);
     jmolApplet("100%", "script" + url);
+    win.focus();
 }
     """
 
@@ -820,7 +824,6 @@ function archive_button() {
 function history_window() {
     window.open ("/history",
       "", "menubar=1,scrollbars=1,width=800,height=600, toolbar=1,resizable=1");
-
 }
 
 function upload_worksheet_button() {

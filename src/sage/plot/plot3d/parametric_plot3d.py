@@ -44,23 +44,46 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", texture="
     EXAMPLES:
     We demonstrate each of the four ways to call this function.
 
-    1. A space curve defined by three functions of 1 variable:
-        sage: show(parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20)))
+        1. A space curve defined by three functions of 1 variable:
+            sage: show(parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20)))
 
-    Note above the lambda function, which creates a callable Python function
-    that sends u to u/10.
+        Note above the lambda function, which creates a callable Python function
+        that sends u to u/10.
 
-    2. Next we draw the same plot as above, but using symbolic functions:
-        sage: var('u')
-        sage: show(parametric_plot3d( (sin(u), cos(u), u/10), (u, 0, 20)))
+        2. Next we draw the same plot as above, but using symbolic functions:
+            sage: var('u')
+            sage: show(parametric_plot3d( (sin(u), cos(u), u/10), (u, 0, 20)))
 
-    3. We draw a parametric surface using 3 Python functions (defined using
-       lambda):
+        3. We draw a parametric surface using 3 Python functions (defined using
+           lambda):
+            sage: f = (lambda u,v: cos(u), lambda u,v: sin(u)+cos(v), lambda u,v: sin(v))
+            sage: show(parametric_plot3d(f, (0, 2*pi), (-pi, pi)))
 
+        4. The same surface, but where the defining functions are symbolic:
+            sage: var('u,v')
+            sage: show(parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi)))
 
-    4. The same surface, but where the defining functions are symbolic:
-        sage: var('u,v')
-        sage: show(parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi)))
+    We call the space curve function but with polynomials instead of
+    symbolic variables.
+
+        sage: R.<t> = RDF[]
+        sage: show(parametric_plot3d( (t, t^2, t^3), (t, 0, 3) ) )
+
+    Next we plot the same curve, but because we use (0, 3) instead of (t, 0, 3),
+    each polynomial is viewed as a callable function of one variable:
+
+        sage: show(parametric_plot3d( (t, t^2, t^3), (0, 3) ) )
+
+    We do a plot but mix a symbolic input, and an integer:
+        sage: var('t')
+        sage: show(parametric_plot3d( (1, sin(t), cos(t)), (t, 0, 3) ) )
+
+    We plot two interlinked tori:
+        sage: f1 = (4+(3+cos(v))*sin(u), 4+(3+cos(v))*cos(u), 4+sin(v))
+        sage: f2 = (8+(3+cos(v))*cos(u), 3+sin(v), 4+(3+cos(v))*sin(u))
+        sage: p1 = parametric_plot3d(f1, (u,0,2*pi), (v,0,2*pi), texture="red")
+        sage: p2 = parametric_plot3d(f2, (u,0,2*pi), (v,0,2*pi), texture="blue")
+        sage: show(p1 + p2)
     """
     # TODO:
     #   * Surface -- behavior of functions not defined everywhere -- see note above
@@ -101,20 +124,22 @@ def parametric_plot3d_curve(f, urange, plot_points, **kwds):
     w = []
     fail = 0
 
-    f_x, f_y, f_z = f
     if u is None:
+        f_x, f_y, f_z = f
         for t in vals:
             try:
                 w.append((float(f_x(t)), float(f_y(t)), float(f_z(t))))
             except TypeError:
                 fail += 1
     else:
+        f_x, f_y, f_z = [ensure_subs(m) for m in f]
         for t in vals:
             try:
-                w.append((float(f_x.substitute({u:t})), float(f_y.substitute({u:t})),
-                          float(f_z.substitute({u:t}))))
+                w.append((float(f_x.subs({u:t})), float(f_y.subs({u:t})),
+                          float(f_z.subs({u:t}))))
             except TypeError:
                 fail += 1
+
     if fail > 0:
         print "WARNING: Failed to evaluate parametric plot at %s points"%fail
     return line3d(w, **kwds)
@@ -135,13 +160,13 @@ def parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds):
     else:
         if v is None:
             raise ValueError, "both ranges must specify a variable or neither must"
-        f0, f1, f2 = f
+        f0, f1, f2 = [ensure_subs(w) for w in f]
         def f_x(uu,vv):
-            return float(f0.substitute({u:uu, v:vv}))
+            return float(f0.subs({u:uu, v:vv}))
         def f_y(uu,vv):
-            return float(f1.substitute({u:uu, v:vv}))
+            return float(f1.subs({u:uu, v:vv}))
         def f_z(uu,vv):
-            return float(f2.substitute({u:uu, v:vv}))
+            return float(f2.subs({u:uu, v:vv}))
 
     def g(x,y):
         # Change to use fast callable float symbolic expressions later
@@ -190,3 +215,10 @@ def float_range(a, b, step):
     if w < b:
         v.append(b)
     return v
+
+
+def ensure_subs(f):
+    if not hasattr(f, 'subs'):
+        from sage.calculus.all import SR
+        return SR(f)
+    return f

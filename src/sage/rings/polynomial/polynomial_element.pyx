@@ -259,7 +259,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
             127
             sage: f.subs(5)
             127
+            sage: f.subs({x:2})
+            7
+            sage: f.subs({})
+            x^3 + x - 3
+            sage: f.subs({'x':2})
+            Traceback (most recent call last):
+            ...
+            TypeError: keys do not match self's parent
         """
+        if len(x) == 1 and isinstance(x[0], dict):
+            g = self.parent().gen()
+            if x[0].has_key(g):
+                return self(x[0][g])
+            elif len(x[0]) > 0:
+                raise TypeError, "keys do not match self's parent"
+            return self
         return self.__call__(*x, **kwds)
 
     def __call__(self, *x, **kwds):

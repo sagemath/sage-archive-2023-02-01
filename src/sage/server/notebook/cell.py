@@ -600,7 +600,7 @@ class Cell(Cell_generic):
                     size = F[i+5:-5]
                 else:
                     size = 200
-                popup  = """<br><a href="javascript:jmol_popup('%s');">Enlarge 3d View</a>"""%url
+                popup  = """<br><a href="javascript:jmol_popup('%s');">Enlarge</a>"""%url
                 script = '<script>jmol_applet(%s, "%s");</script>%s' % (size, url, popup)
                 images.append(script)
             elif F.endswith('.pmesh'):

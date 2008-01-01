@@ -293,9 +293,10 @@ end_scene""" % (
                       'java3d': a popup OpenGL 3d java applet
             filename -- string (default: a temp file); file to save the image to
             verbosity -- display information about rendering the figure
-            figsize -- (default: 4); x or pair [x,y] for numbers, e.g., [4,4]; controls
-                       the size of the output figure.  E.g., with jmol the number of
+            figsize -- (default: 5); x or pair [x,y] for numbers, e.g., [5,5]; controls
+                       the size of the output figure.  E.g., with Tachyon the number of
                        pixels in each direction is 100 times figsize[0].
+                       This is ignored for the jmol embedded renderer.
             **kwds -- other options, which make sense for particular rendering engines
         """
         import sage.misc.misc
@@ -338,7 +339,10 @@ end_scene""" % (
             # Temporary hack: encode the desired applet size in the end of the filename:
             # (This will be removed once we have dynamic resizing of applets in the browser.)
             base, ext = os.path.splitext(filename)
-            filename = '%s-size%s%s'%(base, figsize[0]*100, ext)
+            fg = figsize[0]
+            if fg >= 2:
+                fg = 2
+            filename = '%s-size%s%s'%(base, fg*100, ext)
 
             T = self._prepare_for_jmol(frame, axes, aspect_ratio, zoom)
             T.export_jmol(filename + ".jmol", force_reload=EMBEDDED_MODE, **kwds)

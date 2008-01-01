@@ -43,6 +43,12 @@ function jmol_applet(size, url) {
     }
     jmolApplet(size, "script " + url);
 }
+
+function jmol_popup(url) {
+    win = window.open ("", url, "width=400,height=400,resizable=1");
+    jmolSetDocument(win.document);
+    jmolApplet("100%", "script" + url);
+}
     """
 
     return s

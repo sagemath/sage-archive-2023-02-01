@@ -1584,7 +1584,6 @@ span.pingdown {
    color:white;
    background-color: #990000;
 }
-
 """
     if color == 'gmail':
         color1 = '#c3d9ff'

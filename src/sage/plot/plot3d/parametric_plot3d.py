@@ -5,7 +5,7 @@
 from parametric_surface import ParametricSurface
 from shapes2 import line3d
 
-def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
+def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", texture="automatic", **kwds):
     """
     Return a parametric three-dimensional space curve or surface.
 
@@ -33,6 +33,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
                        [15,15] for surfaces) initial number of sample
                        points in each parameter; an integer for a curve,
                        and a pair of integers for a surface.
+        texture -- (default: "automatic"), solid light blue
 
     NOTES:
       * By default for a curve any points where f_x, f_y, or f_z do
@@ -82,14 +83,17 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
     if not isinstance(f, (tuple, list)) or len(f) != 3:
         raise ValueError, "f must be a list or tuple of length 3"
 
+    if texture == "automatic":
+        texture = "lightblue"
+
     if vrange is None:
         if plot_points == "automatic":
             plot_points = 75
-        return parametric_plot3d_curve(f, urange, plot_points, **kwds)
+        return parametric_plot3d_curve(f, urange, plot_points, texture=texture, **kwds)
     else:
         if plot_points == "automatic":
             plot_points = [15,15]
-        return parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds)
+        return parametric_plot3d_surface(f, urange, vrange, plot_points, texture=texture, **kwds)
 
 def parametric_plot3d_curve(f, urange, plot_points, **kwds):
     plot_points = int(plot_points)
@@ -133,11 +137,11 @@ def parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds):
             raise ValueError, "both ranges must specify a variable or neither must"
         f0, f1, f2 = f
         def f_x(uu,vv):
-            return float(f0.substitute(u=uu, v=vv))
+            return float(f0.substitute({u:uu, v:vv}))
         def f_y(uu,vv):
-            return float(f1.substitute(u=uu, v=vv))
+            return float(f1.substitute({u:uu, v:vv}))
         def f_z(uu,vv):
-            return float(f2.substitute(u=uu, v=vv))
+            return float(f2.substitute({u:uu, v:vv}))
 
     def g(x,y):
         # Change to use fast callable float symbolic expressions later

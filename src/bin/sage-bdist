@@ -37,21 +37,24 @@ if [ -d "$TMP" ]; then
    rm -rf "$TMP"
 fi
 
-mkdir $TMP
+mkdir "$TMP"
 
-cd $SAGE_ROOT
-cp -$OPT examples local makefile *.txt *.sage sage ipython matplotlibrc data $TMP/
-cp -L$OPT devel/doc/html $TMP/doc
+cd "$SAGE_ROOT"
+
+echo "Copying files over to tmp directory"
+cp -$OPT examples local makefile *.txt *.sage sage ipython matplotlibrc data "$TMP"/
+cp -L$OPT devel/doc/html "$TMP"/doc
 
 if [ -d devel/sage-main ]; then
-   mkdir $TMP/devel/
-   cp -L$OPT devel/sage-main $TMP/devel/sage-main
+   echo "Copying Sage library over"
+   mkdir "$TMP"/devel/
+   cp -L$OPT devel/sage-main "$TMP"/devel/sage-main
    cd $TMP/devel
    ln -s sage-main sage
    cd sage
    rm -rf build/lib.*
    rm -rf build/temp.*
-   cd $TMP/local/lib/python/site-packages
+   cd "$TMP"/local/lib/python/site-packages
    rm -rf sage
    ln -sf ../../../../devel/sage/build/sage .
 fi
@@ -65,8 +68,10 @@ fi
 #   ln -s doc-main doc
 #fi
 
-cd $SAGE_ROOT
+cd "$SAGE_ROOT"
+
 if [ -d $PKGDIR ]; then
+   echo "Making empty spkg's"
    cd $PKGDIR
    mkdir $TMP/$PKGDIR
    mkdir $TMP/$PKGDIR/build
@@ -80,8 +85,21 @@ if [ -d $PKGDIR ]; then
    done
 fi
 
-cd $CUR/tmp/
-tar zcvf $TARGET.tar.gz $TARGET
+cd "$CUR"/tmp/
+if [ "$UNAME" = "Darwin" ]; then
+    cd "$TARGET"
+    mkdir x
+    echo "There will be an error about x below that you can safely ignore."
+    mv * x
+    mv x sage
+    cp sage/local/bin/sage-README-osx.txt README.txt
+    cd "$CUR"/tmp/
+    echo "Creating dmg"
+    hdiutil create -srcfolder "$TARGET" -format UDBZ "$TARGET".dmg
+else
+    echo "Creating tar.gz"
+    tar zcvf "$TARGET".tar.gz "$TARGET"
+fi
 
 if [ ! -d $SAGE_ROOT/dist ]; then
     mkdir $SAGE_ROOT/dist
@@ -91,5 +109,7 @@ if [ -d $SAGE_ROOT/dist/$TARGET ]; then
     rm -rf "$SAGE_ROOT/dist/$TARGET"
 fi
 
+echo "Moving final distribution file to $SAGE_ROOT/dist"
+
 mv $TARGET $SAGE_ROOT/dist/
-mv $TARGET.tar.gz $SAGE_ROOT/dist/
+mv $TARGET.* $SAGE_ROOT/dist/

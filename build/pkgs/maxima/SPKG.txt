@@ -1,3 +1,15 @@
+= maxima =
+
+== maxima-5.13.0.p2 (Michael Abshoff) ==
+ * due to fixing #1471 we need to tell maxima to use clisp.bin as
+   clisp executable
+
+ToDo:
+
+Add history from hg
+
+=============================================================
+
 How to make a new version of the Maxima SAGE spkg.
 
   1. Go to http://sourceforge.net/project/showfiles.php?group_id=4933

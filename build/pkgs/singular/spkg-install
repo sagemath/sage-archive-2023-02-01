@@ -113,7 +113,9 @@ build_singular()
         echo "skipping since filenames not case sensitive."
     else
         $RM -f LIB
-        $LN -sf lib LIB
+        if [ "$UNAME" != "Darwin" ]; then
+            $LN -sf lib LIB
+        fi
     fi
 
     cd $SRC

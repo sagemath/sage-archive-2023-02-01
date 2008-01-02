@@ -535,10 +535,13 @@ class Cell(Cell_generic):
               onKeyDown  = 'return input_keydown(%s,event);'
               onInput    = 'cell_input_resize(this); return true;'
               onBlur     = 'cell_blur(%s); return true;'
-              onFocus    = 'this.className = "cell_input_active"; return true;'
+              onFocus    = 'this.className = "cell_input_active"; set_class("eval_button%s","eval_button_active"); return true;'
               %s
            >%s</textarea>
-        """%(cls, r, ncols, id, id, id, id,'readonly=1' if do_print else '', t)
+        """%(cls, r, ncols, id, id, id, id, id, 'readonly=1' if do_print else '', t)
+
+        if not do_print:
+           s+= '<a href="javascript:evaluate_cell(%s,0)" class="eval_button" id="eval_button%s">evaluate</a>'%(id,id)
 
         t = t.replace("<","&lt;")+" "
 

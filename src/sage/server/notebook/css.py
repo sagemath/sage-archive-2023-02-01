@@ -1049,12 +1049,16 @@ textarea.cell_input:hover{
   cursor:text;
 }
 
-
-
-span.cell_evaluate {
+a.eval_button {
+  display:none;
+}
+a.eval_button_active {
+  display: block;
   position: relative;
   top: 2px;
-  cursor:pointer;
+  margin:0px;
+  padding:0px;
+  font-size:8pt;
 }
 
 

@@ -1201,11 +1201,12 @@ function cell_blur(id) {
     var cell = get_cell(id);
     if(cell == null) return;
 
+    setTimeout("set_class('eval_button"+id+"','eval_button')", 100); //this is unclickable if we don't add a little delay.
+
     /* Disable coloring and change to div for now */
     cell.className="cell_input";
     cell_input_minimize_size(cell);
     return true;  /* disable for now */
-
 
     cell.className="hidden";
 

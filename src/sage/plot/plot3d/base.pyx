@@ -340,8 +340,8 @@ end_scene""" % (
             # (This will be removed once we have dynamic resizing of applets in the browser.)
             base, ext = os.path.splitext(filename)
             fg = figsize[0]
-            if fg >= 2:
-                fg = 2
+            #if fg >= 2:
+            #    fg = 2
             filename = '%s-size%s%s'%(base, fg*100, ext)
 
             T = self._prepare_for_jmol(frame, axes, aspect_ratio, zoom)

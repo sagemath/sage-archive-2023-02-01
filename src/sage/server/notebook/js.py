@@ -45,7 +45,7 @@ function jmol_applet(size, url) {
 }
 
 function jmol_popup(url) {
-    win = window.open ("", "jmol viewer", "width=400,height=400,resizable=1,statusbar=0");
+    win = window.open ("", "jmol viewer", "width=600,height=600,resizable=1,statusbar=0");
     win.document.body.innerHTML = "";
     win.document.title = "Sage 3d Viewer";
     win.document.writeln("<h1 align=center>Sage 3d Viewer</h1>");

@@ -599,9 +599,13 @@ class Cell(Cell_generic):
                 if i != -1:
                     size = F[i+5:-5]
                 else:
-                    size = 200
-                popup  = """<br><a href="javascript:jmol_popup('%s');">Enlarge</a>"""%url
-                script = '<script>jmol_applet(%s, "%s");</script>%s' % (size, url, popup)
+                    size = 500
+
+                #popup  = """<br><a href="javascript:jmol_popup('%s');">Enlarge</a>"""%url
+                #script = '<script>jmol_applet(%s, "%s");</script>%s' % (size, url, popup)
+                #script = '<script>jmol_popup("%s");</script>' % (url)
+
+                script = '<div><script>jmol_applet(%s, "%s");</script></div>' % (size, url)
                 images.append(script)
             elif F.endswith('.pmesh'):
                 pass # jmol data

@@ -183,15 +183,8 @@ cdef class Cylinder(ParametricSurface):
             # Tachyon can't do sqashed
             return ParametricSurface.tachyon_repr(self, render_params)
 
-        if transform is None:
-            base = (0,0,0)
-            top = (0,0,self.height)
-            rad = self.radius
-        else:
-            base = transform.transform_point((0,0,0))
-            top = transform.transform_point((0,0,self.height))
-            radv = transform.transform_vector((self.radius,0,0))
-            rad = sqrt(sum([x*x for x in radv]))
+        base, top = self.get_endpoints(transform)
+        rad = self.get_radius(transform)
         cyl = """FCylinder
    Base %s %s %s
    Apex %s %s %s
@@ -206,6 +199,42 @@ cdef class Cylinder(ParametricSurface):
             return [base_cap, cyl, top_cap]
         else:
             return cyl
+
+    def jmol_repr(self, render_params):
+        transform = render_params.transform
+        base, top = self.get_endpoints(transform)
+        rad = self.get_radius(transform)
+
+        cdef double ratio = sqrt(rad*rad / ((base[0]-top[0])**2 + (base[1]-top[1])**2 + (base[2]-top[2])**2))
+        print ratio
+
+        if ratio > .02:
+            if not (transform is None or transform.is_uniform_on([(1,0,0),(0,1,0)])) or ratio > .05:
+                # Jmol can't do sqashed
+                return ParametricSurface.jmol_repr(self, render_params)
+
+        name = render_params.unique_name('line')
+        return ["""
+draw %s width %s {%s %s %s} {%s %s %s}\n%s
+""" % (name,
+       rad,
+       base[0], base[1], base[2],
+       top [0], top [1], top [2],
+       self.texture.jmol_str("$" + name)) ]
+
+    def get_endpoints(self, transform=None):
+        if transform is None:
+            return (0,0,0), (0,0,self.height)
+        else:
+            return transform.transform_point((0,0,0)), transform.transform_point((0,0,self.height))
+
+    def get_radius(self, transform=None):
+        if transform is None:
+            return self.radius
+        else:
+            radv = transform.transform_vector((self.radius,0,0))
+            return sqrt(sum([x*x for x in radv]))
+
 
     def get_grid(self, ds):
         twoPi = 2*RDF.pi()

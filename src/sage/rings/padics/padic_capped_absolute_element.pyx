@@ -213,7 +213,6 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         if not self and not right:
             raise ArithmeticError, "0^0 is undefined."
         cdef Integer new, val, absprec
-        cdef mpz_t tmp
         new = Integer(right) #Need to make sure that this works for p-adic exponents
         val = self.valuation_c()
         if (val > 0) and isinstance(right, pAdicBaseGenericElement):
@@ -678,6 +677,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         if mpz_cmp(self.value, tmp) == 0:
             ans = PY_NEW(Integer)
             mpz_set_ui(ans.value, 2)
+            mpz_clear(tmp)
             return ans
         # check if self is an approximation to a teichmuller lift:
         mpz_powm(tmp, self.value, self.prime_pow.prime.value, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])

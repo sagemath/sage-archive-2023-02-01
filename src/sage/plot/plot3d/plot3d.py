@@ -62,25 +62,35 @@ import parametric_plot3d
 def plot3d(f, urange, vrange, **kwds):
     """
     EXAMPLES:
+    We plot a 3d function defined as a Python function:
         sage: show(plot3d(lambda x, y: x^2 + y^2, (-2,2), (-2,2)))
+
+    We plot some 3d symbolic functions:
         sage: var('x,y')
         sage: show(plot3d(x^2 + y^2, (x,-2,2), (y,-2,2)))
-    ""'
+        sage: show(plot3d(sin(x*y), (x, -pi, pi), (y, -pi, pi)))
+
+    We draw two parametric surfaces and a transparent plane:
+        sage: L = plot3d(lambda x,y: 0, (-5,5), (-5,5), texture=Texture("lightblue", opacity=0.8))
+        sage: P = plot3d(lambda x,y: 4 - x^3 - y^2, (-2,2), (-2,2), texture=Texture('green'))
+        sage: Q = plot3d(lambda x,y: x^3 + y^2 - 4, (-2,2), (-2,2), texture=Texture('orange'))
+        sage: show(L + P + Q)
+    """
     if len(urange) == 2:
         w = (lambda u,v: u, lambda u,v: v, f)
     else:
         u = urange[0]
         v = vrange[0]
         w = (u, v, f)
-    return parametric_plot3d.parametric_plot3d(w, urange, vrange, **kwds)
+    P = parametric_plot3d.parametric_plot3d(w, urange, vrange, **kwds)
+    P.frame_aspect_ratio([1.0,1.0,0.5])
+    return P
 
 # This sucks.  It looks like crap.  Simple grid sampling looks way better?!
 def plot3d_old(f,(xmin,xmax),(ymin,ymax),texture=None, opacity=1, grad_f=None,
            max_bend=.5, max_depth=5, initial_depth=4, num_colors=None):
     """
     EXAMPLES:
-
-
     """
     if initial_depth >= max_depth:
         max_depth = initial_depth

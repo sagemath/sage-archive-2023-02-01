@@ -75,6 +75,24 @@ cdef class Graphics3d(SageObject):
             return other
         return Graphics3dGroup([self, other])
 
+    def aspect_ratio(self, v=None):
+        if not v is None:
+            if not isinstance(v, (tuple, list)):
+                raise TypeError, "v must be a list or tuple of length 3"
+            self._aspect_ratio = [float(a) for a in v]
+        else:
+            if self._aspect_ratio is None:
+                self._aspect_ratio = [1.0,1.0,1.0]
+            return self._aspect_ratio
+
+    def frame_aspect_ratio(self, v=None):
+        if not v is None:
+            self._frame_aspect_ratio = v
+        else:
+            if self._frame_aspect_ratio is None:
+                self._frame_aspect_ratio = [1,1,1]
+            return self._frame_aspect_ratio
+
     def bounding_box(self):
         raise NotImplementedError
 
@@ -225,34 +243,87 @@ end_scene""" % (
         else:
             return self.transform(T=T)
 
-    def _rescale_for_aspect_ratio_and_zoom(self, b, aspect_ratio, zoom):
-        if aspect_ratio is None:
+    def _rescale_for_frame_aspect_ratio_and_zoom(self, b, frame_aspect_ratio, zoom):
+        if frame_aspect_ratio is None:
             return (b*zoom,b*zoom,b*zoom), (-b*zoom,-b*zoom,-b*zoom)
-        box = [b*w for w in aspect_ratio]
+        box = [b*w for w in frame_aspect_ratio]
         # Now take the maximum length in box and rescale to b.
         s = b / max(box)
         box_max = tuple([s*w*zoom for w in box])
         box_min = tuple([-w*zoom for w in box_max])
         return box_min, box_max
 
-    def _prepare_for_jmol(self, frame, axes, aspect_ratio, zoom):
-        box_min, box_max = self._rescale_for_aspect_ratio_and_zoom(6.0, aspect_ratio, zoom)
-        return self._transform_to_bounding_box(box_min, box_max, frame=frame,
-                                               axes=axes, thickness=1)
+    def _prepare_for_jmol(self, frame, axes, frame_aspect_ratio, aspect_ratio, zoom):
+        box_min, box_max = self._rescale_for_frame_aspect_ratio_and_zoom(6.0, frame_aspect_ratio, zoom)
+        a_min, a_max = self._box_for_aspect_ratio(aspect_ratio, box_min, box_max)
+        return self._transform_to_bounding_box(box_min, box_max, a_min, a_max, frame=frame,
+                                            axes=axes, thickness=1)
 
-    def _prepare_for_tachyon(self, frame, axes, aspect_ratio, zoom):
-        box_min, box_max = self._rescale_for_aspect_ratio_and_zoom(1.0, aspect_ratio, zoom)
-        A = self._transform_to_bounding_box(box_min, box_max,
+    def _prepare_for_tachyon(self, frame, axes, frame_aspect_ratio, aspect_ratio, zoom):
+        box_min, box_max = self._rescale_for_frame_aspect_ratio_and_zoom(1.0, frame_aspect_ratio, zoom)
+        a_min, a_max = self._box_for_aspect_ratio(aspect_ratio, box_min, box_max)
+        return self._transform_to_bounding_box(box_min, box_max, a_min, a_max,
                                             frame=frame, axes=axes, thickness=0.5)
-        return A
 
-    def _transform_to_bounding_box(self, xyz_min, xyz_max, frame, axes, thickness):
+    def _box_for_aspect_ratio(self, aspect_ratio, box_min, box_max):
+        # Lengths of new box
+        new_box = [box_max[i] - box_min[i] for i in range(3)]
+
+        # Find a box around self so that when self gets rescaled into the
+        # box defined by box_min, box_max, it has the right aspect ratio
+        if aspect_ratio == "automatic":
+            return self.bounding_box()
         a_min, a_max = self.bounding_box()
         a_min = list(a_min); a_max = list(a_max)
         for i in range(3):
             if a_min[i] == a_max[i]:
                 a_min[i] = -1
                 a_max[i] = 1
+
+        # 1.
+        longest_side = 0; longest_length = 0
+        shortest_side = 0; shortest_length = a_max[0] - a_min[0]
+
+        for i in range(3):
+            s = a_max[i] - a_min[i]
+            if s > longest_length:
+                longest_length = s
+                longest_side = i
+            if s < shortest_length:
+                shortest_length = s
+                shortest_side = i
+
+        # 2. Rescale aspect_ratio so the shortest side is 1.
+        r = float(aspect_ratio[shortest_side])
+        aspect_ratio = [a/r for a in aspect_ratio]
+
+        # 3. Extend the bounding box of self by rescaling so the sides
+        # have the same ratio as aspect_ratio, and without changing
+        # the longest side.
+        long_box_side = box_max[longest_side] - box_min[longest_side]
+        sc = [1.0,1.0,1.0]
+        for i in range(3):
+            if i != longest_side:
+                # compute the length we want:
+                new_length = longest_length / aspect_ratio[i]
+                # change the side length by a_min and a_max so
+                # that a_max[i] - a_min[i] = new_length
+
+                # We have to take into account the ratio of the sides after transforming
+                # to the bounding box.
+                z = long_box_side / (box_max[i] - box_min[i])
+                w = new_length / ((a_max[i] - a_min[i]) * z)
+                sc[i] = w
+
+        w = min(sc)
+        sc = [z/w for z in sc]
+        for i in range(3):
+            a_min[i] *= sc[i]
+            a_max[i] *= sc[i]
+
+        return a_min, a_max
+
+    def _transform_to_bounding_box(self, xyz_min, xyz_max, a_min, a_max, frame, axes, thickness):
 
         # Rescale in each direction
         scale = [(xyz_max[i] - xyz_min[i]) / (a_max[i] - a_min[i]) for i in range(3)]
@@ -283,7 +354,9 @@ end_scene""" % (
         return X
 
     def show(self, viewer="jmol", filename=None, verbosity=0, figsize=5,
-             aspect_ratio = None, zoom=1,
+             aspect_ratio = "automatic",
+             frame_aspect_ratio = "automatic",
+             zoom=1,
              frame=True, axes = False, **kwds):
         """
         INPUT:
@@ -298,7 +371,24 @@ end_scene""" % (
                        pixels in each direction is 100 times figsize[0].
                        This is ignored for the jmol embedded renderer.
             **kwds -- other options, which make sense for particular rendering engines
+
+        EXAMPLES:
+
+        We illustrate use of the aspect_ratio option:
+           sage: var('x,y')
+           sage: p = plot3d(2*sin(x*y), (x, -pi, pi), (y, -pi, pi))
+           sage: p.show(aspect_ratio=[1,1,1])
+
+        This looks flattened, but filled with the plot:
+           sage: p.show(frame_aspect_ratio=[1,1,1/16])
+
+        This looks flattened, but the plot is square and smaller:
+           sage: p.show(aspect_ratio=[1,1,1], frame_aspect_ratio=[1,1,1/8])
+
         """
+        if frame_aspect_ratio == "automatic":
+            frame_aspect_ratio = self.frame_aspect_ratio()
+
         import sage.misc.misc
         if filename is None:
             filename = sage.misc.misc.tmp_filename()
@@ -318,7 +408,7 @@ end_scene""" % (
             opts = '-res %s %s'%(figsize[0]*100, figsize[1]*100)
 
         if DOCTEST_MODE or viewer=='tachyon' or (viewer=='java3d' and EMBEDDED_MODE):
-            T = self._prepare_for_tachyon(frame, axes, aspect_ratio, zoom)
+            T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
             tachyon_rt(T.tachyon(**kwds), filename+".png", verbosity, True, opts)
             ext = "png"
             import sage.misc.viewer
@@ -344,7 +434,7 @@ end_scene""" % (
             #    fg = 2
             filename = '%s-size%s%s'%(base, fg*100, ext)
 
-            T = self._prepare_for_jmol(frame, axes, aspect_ratio, zoom)
+            T = self._prepare_for_jmol(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
             T.export_jmol(filename + ".jmol", force_reload=EMBEDDED_MODE, **kwds)
             viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/jmol/jmol"
             ext = "jmol"
@@ -362,6 +452,8 @@ end_scene""" % (
 class Graphics3dGroup(Graphics3d):
     def __init__(self, all=[]):
         self.all = all
+        self.frame_aspect_ratio(optimal_aspect_ratios([a.frame_aspect_ratio() for a in all]))
+        self.aspect_ratio(optimal_aspect_ratios([a.aspect_ratio() for a in all]))
 
     def bounding_box(self):
         # Box that contains the bounding boxes of
@@ -414,6 +506,8 @@ class TransformGroup(Graphics3dGroup):
         self._scale = scale
         if T is not None:
             self.T = T
+        self.frame_aspect_ratio(optimal_aspect_ratios([a.frame_aspect_ratio() for a in all]))
+        self.aspect_ratio(optimal_aspect_ratios([a.aspect_ratio() for a in all]))
 
     def bounding_box(self):
         try:
@@ -654,3 +748,13 @@ def max3(v):
         (-1, 4, 5)
     """
     return tuple([max([a[i] for a in v]) for i in range(3)])
+
+
+def optimal_aspect_ratios(ratios):
+    # average the aspect ratios
+    n = len(ratios)
+    if n > 0:
+        return [max([z[i] for z in ratios]) for i in range(3)]
+    else:
+        return [1.0,1.0,1.0]
+

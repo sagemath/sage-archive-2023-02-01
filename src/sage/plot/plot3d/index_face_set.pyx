@@ -642,15 +642,17 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         from base import flatten_list
         name = render_params.unique_name('obj')
-        filename = "%s-%s.pmesh" % (render_params.output_file, name)
-        f = open(filename, 'w')
         all = flatten_list(all)
-        for line in all:
-            f.write(line)
-            f.write('\n')
-        f.close()
-        #if render_params.force_reload:
-        #    filename += "?%s" % randint(1,1000000)
+        if render_params.output_archive:
+            filename = "%s.pmesh" % (name)
+            render_params.output_archive.writestr(filename, '\n'.join(all))
+        else:
+            filename = "%s-%s.pmesh" % (render_params.output_file, name)
+            f = open(filename, 'w')
+            for line in all:
+                f.write(line)
+                f.write('\n')
+            f.close()
 
         s = 'pmesh %s "%s"\n%s' % (name, filename, self.texture.jmol_str("pmesh"))
 

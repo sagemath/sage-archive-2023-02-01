@@ -55,6 +55,8 @@ include "point_c.pxi"
 from math import cos, sin
 from sage.rings.all import RDF
 
+from base import RenderParams
+
 
 
 cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
@@ -97,6 +99,9 @@ cdef class ParametricSurface(IndexFaceSet):
         self.f = f
         self.render_grid = domain
         IndexFaceSet.__init__(self, [], [], **kwds)
+
+    def default_render_params(self):
+        return RenderParams(ds=.075, crease_threshold=.35)
 
     def tachyon_repr(self, render_params):
         self.triangulate(render_params)

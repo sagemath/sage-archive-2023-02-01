@@ -149,7 +149,7 @@ class MySessionWrapper(object):
         Inital logic occurs here to decide the
         authentication status of a given user.
         """
-        #log.msg("request: %s, segments: %s" % (str(request.args), segments))
+        log.msg("request: %s, segments: %s" % (str(request.args), segments))
         #see if the user already has a session going
         if segments and segments[0] == "login":
             #log.msg("Login")
@@ -162,14 +162,14 @@ class MySessionWrapper(object):
 
         session = self.getSession(request)
         if session is None:
-            #log.msg("unknown session")
+            # log.msg("unknown session")
             return self.requestAnonymousAuthentication(request, segments)
         else:
             if segments and segments[0] == "logout":
                 #log.msg("Logout")
                 return self.logout(session, request, segments)
             else:
-                #log.msg("session found ... locateResource")
+                log.msg("session found ... locateResource")
                 creds = session.get_authCreds()
                 return self.locateResource(request, segments, session, creds)
 

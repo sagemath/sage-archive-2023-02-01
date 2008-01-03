@@ -59,25 +59,33 @@ class TrivialTriangleFactory:
         return [a,b,c]
 
 
-def plot3d(f,(xmin,xmax),(ymin,ymax),texture=None,grad_f=None,
-           max_bend=.7,max_depth=5,initial_depth=3, num_colors=None):
+def plot3d(f,(xmin,xmax),(ymin,ymax),texture=None, opacity=1, grad_f=None,
+           max_bend=.5, max_depth=5, initial_depth=4, num_colors=None):
     """
     EXAMPLES:
 
 
     """
+    if initial_depth >= max_depth:
+        max_depth = initial_depth
+    xmin = float(xmin)
+    xmax = float(xmax)
+    ymin = float(ymin)
+    ymax = float(ymax)
+
     # Check if f has a fast float evaluation
     #try:
     #    f = f.fast_float_function()
     #except AttributeError:
     #    # Nope -- no prob.
     #    pass
-
     if texture is None:
-        texture = rainbow(100, 'rgbtuple')
+        texture = rainbow(128, 'rgbtuple')
+
     factory = TrivialTriangleFactory()
     plot = TrianglePlot(factory, f, (xmin, xmax), (ymin, ymax), g = grad_f,
-                         min_depth=initial_depth, max_depth=max_depth, max_bend=max_bend, num_colors = num_colors)
+                        min_depth=initial_depth, max_depth=max_depth,
+                        max_bend=max_bend, num_colors = num_colors)
 
     P = IndexFaceSet(plot._objects)
     if isinstance(texture, (list, tuple)):
@@ -91,11 +99,14 @@ def plot3d(f,(xmin,xmax),(ymin,ymax),texture=None,grad_f=None,
             bounds = P.bounding_box()
             min_z = bounds[0][2]
             max_z = bounds[1][2]
-            span = len(texture) / (max_z - min_z)
+            if max_z == min_z:
+                span = 0
+            else:
+                span = len(texture) / (max_z - min_z)    # max to avoid dividing by 0
             parts = P.partition(lambda x,y,z: int((z-min_z)*span))
         all = []
         for k, G in parts.iteritems():
-            G.set_texture(texture[k])
+            G.set_texture(texture[k], opacity=opacity)
             all.append(G)
         return Graphics3dGroup(all)
     else:

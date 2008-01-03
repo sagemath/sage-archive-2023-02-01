@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 Graphics3D object that consists of a list of polygons, also used for
 triangulations of other objects.
 
@@ -143,7 +143,7 @@ cdef inline format_pmesh_face(face_c face):
 
 
 
-cdef class IndexFaceSet(PrimativeObject):
+cdef class IndexFaceSet(PrimitiveObject):
 
     """
     Graphics3D object that consists of a list of polygons, also used for
@@ -177,14 +177,14 @@ cdef class IndexFaceSet(PrimativeObject):
         sage: S.show()
     """
 
-    def __new__(self, faces, point_list=None, enclosde=False, **kwds):
+    def __new__(self, faces, point_list=None, enclosed=False, **kwds):
         self.vs = <point_c *>NULL
         self.face_indices = <int *>NULL
         self._faces = <face_c *>NULL
 
 
     def __init__(self, faces, point_list=None, enclosed=False, **kwds):
-        PrimativeObject.__init__(self, **kwds)
+        PrimitiveObject.__init__(self, **kwds)
 
         self.enclosed = enclosed
 
@@ -271,6 +271,114 @@ cdef class IndexFaceSet(PrimativeObject):
             self.vcount = ix
         sage_free(point_map)
 
+    def _seperate_creases(self, threshold):
+        """
+        Some rendering engines Gouraud shading, which is great for smooth
+        surfaces but looks bad if one actually has a polyhedron.
+
+        INPUT:
+            threshold -- the minimum cosine of the angle between adjacent faces
+                         a higher threshold seperates more, all faces if >= 1,
+                         no faces if <= -1
+        """
+        cdef Py_ssize_t i, j, k
+        cdef face_c *face
+        cdef int v, count, total = 0
+        cdef int* point_counts = <int *>sage_malloc(sizeof(int) * (self.vcount * 2 + 1))
+        # For each vertex, get number of faces
+        if point_counts == NULL:
+            raise MemoryError, "Out of memory in _seperate_creases for %s" % type(self)
+        cdef int* running_point_counts = &point_counts[self.vcount]
+        memset(point_counts, 0, sizeof(int) * self.vcount)
+        for i from 0 <= i < self.fcount:
+            face = &self._faces[i]
+            total += face.n
+            for j from 0 <= j < face.n:
+                point_counts[face.vertices[j]] += 1
+        # Running used as index into face list
+        cdef int running = 0
+        cdef int max = 0
+        for i from 0 <= i < self.vcount:
+            running_point_counts[i] = running
+            running += point_counts[i]
+            if point_counts[i] > max:
+               max = point_counts[i]
+        running_point_counts[self.vcount] = running
+        # Create an array, indexed by running_point_counts[v], to the list of faces containing that vertex.
+        cdef face_c** point_faces = <face_c **>sage_malloc(sizeof(face_c*) * total)
+        if point_faces == NULL:
+            sage_free(point_counts)
+            raise MemoryError, "Out of memory in _seperate_creases for %s" % type(self)
+        _sig_on
+        memset(point_counts, 0, sizeof(int) * self.vcount)
+        for i from 0 <= i < self.fcount:
+            face = &self._faces[i]
+            for j from 0 <= j < face.n:
+                v = face.vertices[j]
+                point_faces[running_point_counts[v]+point_counts[v]] = face
+                point_counts[v] += 1
+        # Now, for each vertex, see if all faces are close enough,
+        # or if it is a crease.
+        cdef face_c** faces
+        cdef int start = 0
+        cdef bint any
+        # We compare against face 0, and if it's not flat enough we push it to the end.
+        # Then we come around again to compare everything that was put at the end, possibly
+        # pushing stuff to the end again (until no further changes are needed).
+        while start < self.vcount:
+            ix = self.vcount
+            # Find creases
+            for i from 0 <= i < self.vcount - start:
+                faces = &point_faces[running_point_counts[i]]
+                any = 0
+                for j from point_counts[i] > j >= 1:
+                    if cos_face_angle(faces[0][0], faces[j][0], self.vs) < threshold:
+                        any = 1
+                        face = faces[j]
+                        point_counts[i] -= 1
+                        if j != point_counts[i]:
+                            faces[j] = faces[point_counts[i]] # swap
+                            faces[point_counts[i]] = face
+                if any:
+                    ix += 1
+            # Reallocate room for vertices at end
+            if ix > self.vcount:
+                self.vs = <point_c *>sage_realloc(self.vs, sizeof(point_c) * ix)
+                if self.vs == NULL:
+                    sage_free(point_counts)
+                    sage_free(point_faces)
+                    self.vcount = self.fcount = self.icount = 0 # so we don't get segfaults on bad points
+                    _sig_off
+                    raise MemoryError, "Out of memory in _seperate_creases for %s, CORRUPTED" % type(self)
+                ix = self.vcount
+                running = 0
+                for i from 0 <= i < self.vcount - start:
+                    if point_counts[i] != running_point_counts[i+1] - running_point_counts[i]:
+                        # We have a new vertex
+                        self.vs[ix] = self.vs[i+start]
+                        # Update the point_counts and point_faces arrays for the next time around.
+                        count = running_point_counts[i+1] - running_point_counts[i] - point_counts[i]
+                        faces = &point_faces[running]
+                        for j from 0 <= j < count:
+                            faces[j] = point_faces[running_point_counts[i] + point_counts[i] + j]
+                            face = faces[j]
+                            for k from 0 <= k < face.n:
+                                if face.vertices[k] == i + start:
+                                    face.vertices[k] = ix
+                        point_counts[ix-self.vcount] = count
+                        running_point_counts[ix-self.vcount] = running
+                        running += count
+                        ix += 1
+                running_point_counts[ix-self.vcount] = running
+            start = self.vcount
+            self.vcount = ix
+
+        sage_free(point_counts)
+        sage_free(point_faces)
+        _sig_off
+
+
+
     def _mem_stats(self):
         return self.vcount, self.fcount, self.icount
 
@@ -355,6 +463,9 @@ cdef class IndexFaceSet(PrimativeObject):
 """%(coordIndex, points)
 
     def bounding_box(self):
+        if self.vcount == 0:
+            return ((0,0,0),(0,0,0))
+
         cdef Py_ssize_t i
         cdef point_c low = self.vs[0], high = self.vs[0]
         for i from 1 <= i < self.vcount:
@@ -503,6 +614,8 @@ cdef class IndexFaceSet(PrimativeObject):
         cdef Py_ssize_t i
         cdef point_c res
 
+        self._seperate_creases(render_params.crease_threshold)
+
         _sig_on
         if transform is None:
             points = [format_pmesh_vertex(self.vs[i]) for i from 0 <= i < self.vcount]
@@ -529,16 +642,26 @@ cdef class IndexFaceSet(PrimativeObject):
 
         from base import flatten_list
         name = render_params.unique_name('obj')
-        filename = "%s-%s.pmesh" % (render_params.output_file, name)
-        f = open(filename, 'w')
         all = flatten_list(all)
-        for line in all:
-            f.write(line)
-            f.write('\n')
-        f.close()
-        if render_params.force_reload:
-            filename += "?%s" % randint(1,1000000)
-        return ['pmesh %s "%s"\n%s' % (name, filename, self.texture.jmol_str("pmesh"))]
+        if render_params.output_archive:
+            filename = "%s.pmesh" % (name)
+            render_params.output_archive.writestr(filename, '\n'.join(all))
+        else:
+            filename = "%s-%s.pmesh" % (render_params.output_file, name)
+            f = open(filename, 'w')
+            for line in all:
+                f.write(line)
+                f.write('\n')
+            f.close()
+
+        s = 'pmesh %s "%s"\n%s' % (name, filename, self.texture.jmol_str("pmesh"))
+
+        # If we wanted to turn on display of the mesh lines or dots
+        # we would uncomment thse.  This should be determined by
+        # render_params, probably.
+        #s += '\npmesh %s mesh\n'%name
+        #s += '\npmesh %s dots\n'%name
+        return [s]
 
     def dual(self, **kwds):
 

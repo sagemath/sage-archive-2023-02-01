@@ -2822,7 +2822,7 @@ class GenericGraph(SageObject):
                          pos3d=None,
                          iterations=50, color_by_label=False, **kwds):
         from sage.plot.plot3d.all import Sphere, LineSegment, Arrow
-        line = Arrow if self.is_directed() else Line
+        line = Arrow if self.is_directed() else LineSegment
 
         verts = self.vertices()
 

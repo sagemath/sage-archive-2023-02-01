@@ -1,0 +1,34 @@
+Jmol bugs:
+
+ * reloading a worksheet kills all jmol applets!  -- note if we get
+   rid of jmolSetDocument(cell_writer) this doesn't happen; but then
+   other things break.  Probably need to save the javascript and
+   execute it each time we releoad.
+ * Sphere(0.3,color="red").translate([1,1,-1]) has *holes* in it!!
+ * showing anything from the command line also pops up a "red window".
+ * Text3d doesn't work at all
+ * applet itself should be white
+ * (done) Default zoom is useless -- we will have to rescale the whole scene I think.
+   Basically we have to figure out the true range of the 3d plot in each direction,
+   then rescale everything into a 10x10x10 square.
+   We should draw axis and allow for aspect ratios.
+ * Invalid color doesn't yield an error message, e.g., Icosahedron(texture="yello")
+ * color --> rgbcolor
+ * In parametricsurface:
+        except:       # TODO -- this would catch control-C,etc. -- FIX THIS TO CATCH WHAT IS RAISED!!!!
+ * Observation:
+      jmol embedded applets *crash* when more than 10 or so appear in
+      a page... unless I make them all small (e.g. 50 pixels) in which
+      case they DO NOT crash.
+
+Jmol todo:
+
+ * names should make sense (basically like in mathematica) and be lower case
+ * Dynamic resizing in the notebook
+ * Javascript controls in the notebook
+
+
+Tachyon bugs:
+
+
+

@@ -1,8 +1,8 @@
-from sage.plot.plot3d.base cimport PrimativeObject
+from sage.plot.plot3d.base cimport PrimitiveObject
 
 from transform cimport point_c, face_c
 
-cdef class IndexFaceSet(PrimativeObject):
+cdef class IndexFaceSet(PrimitiveObject):
     cdef bint enclosed
     cdef Py_ssize_t vcount, fcount, icount
     cdef realloc(self, vcount, fcount, icount)

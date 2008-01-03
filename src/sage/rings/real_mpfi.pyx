@@ -808,20 +808,34 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def _interface_init_(self):
         """
-        Return string representation of self in base 10 with
-        no scientific notation.
+        Raise a TypeError.
 
-        This function is the default for exporting to other
-        computer algebra systems.  It probably does not match
-        the syntax of any other computer algebra system, and should
-        be changed if other computer algebra systems do support intervals.
+        This function would return the string representation of self
+        that makes sense as a default representation of a real
+        interval in other computer algebra systems.  But, most
+        other computer algebra systems do not support interval
+        arithmetic, so instead we just raise a TypeError.
+
+        Define the appropriate _cas_init_ function if there is a
+        computer algebra system you would like to support.
 
         EXAMPLES:
             sage: n = RIF(1.3939494594)
             sage: n._interface_init_()
-            '[1.3939494593999999 .. 1.3939494594000000]'
+            Traceback (most recent call last):
+            ...
+            TypeError
+
+        Here a conversion to Maxima happens implicitly, which
+        results in a type error:
+            sage: a = RealInterval('2.3')
+            sage: erf(a)
+            Traceback (most recent call last):
+            ...
+            TypeError
         """
-        return self.str(10, no_sci=True)
+        raise TypeError
+        #return self.str(10, no_sci=True)
 
     def __hash__(self):
         return hash(self.str(16))

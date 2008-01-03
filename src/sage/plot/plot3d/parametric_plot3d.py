@@ -1,0 +1,224 @@
+"""
+3d Parametric Plots
+"""
+
+from parametric_surface import ParametricSurface
+from shapes2 import line3d
+
+def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", texture="automatic", **kwds):
+    """
+    Return a parametric three-dimensional space curve or surface.
+
+    INPUTS:
+    There are four ways to call this function:
+        * parametric_plot3d([f_x, f_y, f_z], (u_min, u_max)):
+          f_x, f_y, f_z are three functions and u_min and u_max
+          are real numbers
+
+        * parametric_plot3d([f_x, f_y, f_z], (u, u_min, u_max))
+          f_x, f_y, f_z can be viewed as functions of u
+
+        * parametric_plot3d([f_x, f_y, f_z], (u_min, u_max), (v_min, v_max))
+          f_x, f_y, f_z are each functions of two variables
+
+        * parametric_plot3d([f_x, f_y, f_z], (u, u_min, u_max), (v, v_min, v_max))
+          f_x, f_y, f_z can be viewed as functions of u and v
+
+    The INPUTS are as follows:
+        f -- a 3-tuple of functions or expressions
+        urange -- a 2-tuple (u_min, u_max) or a 3-tuple (u, u_min, u_max)
+        vrange -- (optional -- only used for surfaces) a 2-tuple (u_min, u_max)
+                  or a 3-tuple (u, u_min, u_max)
+        plot_points -- (default: "automatic", which is 75 for curves and
+                       [15,15] for surfaces) initial number of sample
+                       points in each parameter; an integer for a curve,
+                       and a pair of integers for a surface.
+        texture -- (default: "automatic"), solid light blue
+
+    NOTES:
+      * By default for a curve any points where f_x, f_y, or f_z do
+        not evaluate to a real number are skipped.
+      * Currently for a surface f_x, f_y, and f_z have to be defined
+        everywhere. This will change.
+
+    EXAMPLES:
+    We demonstrate each of the four ways to call this function.
+
+        1. A space curve defined by three functions of 1 variable:
+            sage: show(parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20)))
+
+        Note above the lambda function, which creates a callable Python function
+        that sends u to u/10.
+
+        2. Next we draw the same plot as above, but using symbolic functions:
+            sage: var('u')
+            sage: show(parametric_plot3d( (sin(u), cos(u), u/10), (u, 0, 20)))
+
+        3. We draw a parametric surface using 3 Python functions (defined using
+           lambda):
+            sage: f = (lambda u,v: cos(u), lambda u,v: sin(u)+cos(v), lambda u,v: sin(v))
+            sage: show(parametric_plot3d(f, (0, 2*pi), (-pi, pi)))
+
+        4. The same surface, but where the defining functions are symbolic:
+            sage: var('u,v')
+            sage: show(parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi)))
+
+    We call the space curve function but with polynomials instead of
+    symbolic variables.
+
+        sage: R.<t> = RDF[]
+        sage: show(parametric_plot3d( (t, t^2, t^3), (t, 0, 3) ) )
+
+    Next we plot the same curve, but because we use (0, 3) instead of (t, 0, 3),
+    each polynomial is viewed as a callable function of one variable:
+
+        sage: show(parametric_plot3d( (t, t^2, t^3), (0, 3) ) )
+
+    We do a plot but mix a symbolic input, and an integer:
+        sage: var('t')
+        sage: show(parametric_plot3d( (1, sin(t), cos(t)), (t, 0, 3) ) )
+
+    We plot two interlinked tori:
+        sage: f1 = (4+(3+cos(v))*sin(u), 4+(3+cos(v))*cos(u), 4+sin(v))
+        sage: f2 = (8+(3+cos(v))*cos(u), 3+sin(v), 4+(3+cos(v))*sin(u))
+        sage: p1 = parametric_plot3d(f1, (u,0,2*pi), (v,0,2*pi), texture="red")
+        sage: p2 = parametric_plot3d(f2, (u,0,2*pi), (v,0,2*pi), texture="blue")
+        sage: show(p1 + p2)
+    """
+    # TODO:
+    #   * Surface -- behavior of functions not defined everywhere -- see note above
+    #   * Iterative refinement
+
+
+    # boundary_style -- (default: None) how boundary lines are drawn for a surface
+    # color_function -- (default: "automatic") how to determine the color of curves and surfaces
+    # color_function_scaling -- (default: True) whether to scale the input to color_function
+    # exclusions -- (default: "automatic") u points or (u,v) conditions to exclude.
+    #         (E.g., exclusions could be a function e = lambda u, v: False if u < v else True
+    # exclusions_style -- (default: None) what to draw at excluded points
+    # max_recursion -- (default: "automatic") maximum number of recursive subdivisions,
+    #                   when ...
+    # mesh -- (default: "automatic") how many mesh divisions in each direction to draw
+    # mesh_functions -- (default: "automatic") how to determine the placement of mesh divisions
+    # mesh_shading -- (default: None) how to shade regions between mesh divisions
+    # plot_range -- (default: "automatic") range of values to include
+
+    if not isinstance(f, (tuple, list)) or len(f) != 3:
+        raise ValueError, "f must be a list or tuple of length 3"
+
+    if texture == "automatic":
+        texture = "lightblue"
+
+    if vrange is None:
+        if plot_points == "automatic":
+            plot_points = 75
+        return parametric_plot3d_curve(f, urange, plot_points, texture=texture, **kwds)
+    else:
+        if plot_points == "automatic":
+            plot_points = [15,15]
+        return parametric_plot3d_surface(f, urange, vrange, plot_points, texture=texture, **kwds)
+
+def parametric_plot3d_curve(f, urange, plot_points, **kwds):
+    plot_points = int(plot_points)
+    u, vals = var_and_list_of_values(urange, plot_points)
+    w = []
+    fail = 0
+
+    if u is None:
+        f_x, f_y, f_z = f
+        for t in vals:
+            try:
+                w.append((float(f_x(t)), float(f_y(t)), float(f_z(t))))
+            except TypeError:
+                fail += 1
+    else:
+        f_x, f_y, f_z = [ensure_subs(m) for m in f]
+        for t in vals:
+            try:
+                w.append((float(f_x.subs({u:t})), float(f_y.subs({u:t})),
+                          float(f_z.subs({u:t}))))
+            except TypeError:
+                fail += 1
+
+    if fail > 0:
+        print "WARNING: Failed to evaluate parametric plot at %s points"%fail
+    return line3d(w, **kwds)
+
+def parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds):
+    if not isinstance(plot_points, (list, tuple)) or len(plot_points) != 2:
+        raise ValueError, "plot_points must be a tuple of length 2"
+    points0, points1 = plot_points
+
+    u, u_vals = var_and_list_of_values(urange, int(points0))
+    v, v_vals = var_and_list_of_values(vrange, int(points1))
+
+    if u is None:
+        if not v is None:
+            raise ValueError, "both ranges must specify a variable or neither must"
+        # nothing to do
+        f_x, f_y, f_z = f
+    else:
+        if v is None:
+            raise ValueError, "both ranges must specify a variable or neither must"
+        f0, f1, f2 = [ensure_subs(w) for w in f]
+        def f_x(uu,vv):
+            return float(f0.subs({u:uu, v:vv}))
+        def f_y(uu,vv):
+            return float(f1.subs({u:uu, v:vv}))
+        def f_z(uu,vv):
+            return float(f2.subs({u:uu, v:vv}))
+
+    def g(x,y):
+        # Change to use fast callable float symbolic expressions later
+        return (float(f_x(x,y)), float(f_y(x,y)), float(f_z(x,y)))
+
+    return ParametricSurface(g, (u_vals, v_vals), **kwds)
+
+# Move this to plot.py -- it's generally useful.
+def var_and_list_of_values(v, plot_points):
+    """
+    INPUT:
+        plot_points -- integer >= 2 (the endpoints)
+        v -- (v0, v1) or (var, v0, v1); if the former return
+             the range of values between v0 and v1 taking
+             plot_points steps; if var is given, also return var.
+
+    OUTPUT:
+        var -- a variable or None
+        list -- a list of floats
+    """
+    plot_points = int(plot_points)
+    if plot_points < 2:
+        raise ValueError, "plot_points must be positive"
+    if not isinstance(v, (tuple, list)):
+        raise TypeError, "v must be a tuple or list"
+    if len(v) == 3:
+        var = v[0]
+        a, b = v[1], v[2]
+    elif len(v) == 2:
+        var = None
+        a, b = v
+    else:
+        raise ValueError, "parametric value range must be a list of 2 or 3-tuple."
+    if plot_points == 2:
+        return var, [a, b]
+    else:
+        return var, float_range(a,b, float(b-a)/(plot_points-2))
+
+def float_range(a, b, step):
+    (a,b,step) = (float(a),float(b),float(step))
+    v = [a]
+    w = a + step
+    while w <= b:
+        v.append(w)
+        w += step
+    if w < b:
+        v.append(b)
+    return v
+
+
+def ensure_subs(f):
+    if not hasattr(f, 'subs'):
+        from sage.calculus.all import SR
+        return SR(f)
+    return f

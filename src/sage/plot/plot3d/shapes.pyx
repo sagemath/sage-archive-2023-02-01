@@ -1,4 +1,4 @@
-""" #nodoctest
+"""
 Basic objects such as Sphere, Box, Cone, etc.
 
 AUTHORS:
@@ -49,14 +49,31 @@ cdef extern from "math.h":
 from sage.rings.real_double  import RDF
 from sage.modules.free_module_element import vector
 
-from base import Graphics3dGroup
+from sage.misc.all import srange
+
+from base import Graphics3dGroup, Graphics3d
 
 
 class Box(IndexFaceSet):
+    """
+    EXAMPLES:
+    A square black box:
+        sage: show(Box([1,1,1]))
 
+    A red rectangular box.
+        sage: show(Box([2,3,4], color="red"))
+
+    A stack of boxes:
+        sage: show(sum([Box([2,3,1], color="red").translate((0,0,6*i)) for i in [0..3]]))
+
+    A sinusoidal stack of multicolored boxes:
+        sage: B = sum([Box([2,4,1/4], color=(i/4,i/5,1)).translate((sin(i),0,5-i)) for i in [0..20]])
+        sage: show(B, figsize=6)
+    """
     def __init__(self, *size, **kwds):
         if isinstance(size[0], (tuple, list)):
-            size = size[0]
+            from shapes2 import validate_frame_size
+            size = validate_frame_size(size[0])
         self.size = size
         x, y, z = self.size
         faces = [[(x, y, z), (-x, y, z), (-x,-y, z), ( x,-y, z)],
@@ -65,11 +82,40 @@ class Box(IndexFaceSet):
         faces += [list(reversed([(-x,-y,-z) for x,y,z in face])) for face in faces]
         IndexFaceSet.__init__(self, faces, enclosed=True, **kwds)
 
+    def bounding_box(self):
+        """
+        EXAMPLES:
+            sage: Box([1,2,3]).bounding_box()
+            ((-1.0, -2.0, -3.0), (1.0, 2.0, 3.0))
+        """
+        return tuple([-a for a in self.size]), tuple(self.size)
+
     def x3d_geometry(self):
         return "<Box size='%s %s %s'/>"%self.size
 
+def ColorCube(size, colors, opacity=1, **kwds):
+    """
+    Return a cube with given size and sides with given colors.
 
-def ColorCube(size, colors):
+    INPUT:
+        size -- 3-tuple of sizes (same as for box and frame)
+        colors -- a list of either 3 or 6 color
+        opacity -- (default: 1) opacity of cube sides
+        **kwds -- passed to the face constructor
+
+    OUTPUT:
+        -- a 3d graphics object
+
+    EXAMPLES:
+    A color cube with translucent sides:
+        sage: c = ColorCube([1,2,3], ['red', 'blue', 'green', 'black', 'white', 'orange'], opacity=0.5)
+        sage: c.show()
+        sage: list(c.texture_set())[0].opacity
+        0.500000000000000
+
+    If you omit the last 3 colors then the first three are repeated.
+        sage: c = ColorCube([0.5,0.5,0.5], ['red', 'blue', 'green'])
+    """
     if not isinstance(size, (tuple, list)):
         size = (size, size, size)
     box = Box(size)
@@ -77,8 +123,12 @@ def ColorCube(size, colors):
     if len(colors) == 3:
         colors = colors * 2
     all = []
+
+    from texture import Texture
     for k in range(6):
-        all.append(IndexFaceSet([faces[k]], enclosed=True, texture=colors[k]))
+        all.append(IndexFaceSet([faces[k]], enclosed=True,
+             texture=Texture(colors[k], opacity=opacity),
+             **kwds))
     return Graphics3dGroup(all)
 
 cdef class Cone(ParametricSurface):
@@ -120,6 +170,9 @@ cdef class Cylinder(ParametricSurface):
         self.radius = radius
         self.height = height
         self.closed = closed
+
+    def bounding_box(self):
+        return (-self.radius, -self.radius, 0), (self.radius, self.radius, self.height)
 
     def x3d_geometry(self):
         return "<Cylinder radius='%s' height='%s'/>"%(self.radius, self.height)
@@ -203,14 +256,17 @@ def LineSegment(start, end, thickness=1, radius=None, **kwds):
     if radius is None:
         radius = thickness/50.0
     start = vector(RDF, start, sparse=False)
-    end = vector(RDF, end, sparse=False)
+    end   = vector(RDF, end, sparse=False)
     zaxis = vector(RDF, (0,0,1), sparse=False)
-    diff = end - start
-    height = sqrt(diff.dot_product(diff))
-    cyl = Cylinder(radius, height, **kwds)
-    axis = zaxis.cross_product(diff)
+    diff  = end - start
+    height= sqrt(diff.dot_product(diff))
+    cyl   = Cylinder(radius, height, **kwds)
+    axis  = zaxis.cross_product(diff)
     if axis == 0:
-        return cyl.translate(start)
+        if diff[2] < 0:
+            return cyl.translate(end)
+        else:
+            return cyl.translate(start)
     else:
         theta = -acos(diff[2]/height)
         return cyl.rotate(axis, theta).translate(start)
@@ -243,6 +299,17 @@ cdef class Sphere(ParametricSurface):
     def __init__(self, radius, **kwds):
         ParametricSurface.__init__(self, **kwds)
         self.radius = radius
+
+    def bounding_box(self):
+        """
+        Return the bounding box that contains this sphere.
+
+        EXAMPLES:
+            sage: Sphere(3).bounding_box()
+            ((-3.0, -3.0, -3.0), (3.0, 3.0, 3.0))
+        """
+        return ((-self.radius, -self.radius, -self.radius),
+                (self.radius, self.radius, self.radius))
 
     def x3d_geometry(self):
         return "<Sphere radius='%s'/>"%(self.radius)
@@ -325,11 +392,41 @@ cdef class Torus(ParametricSurface):
         res.z = self.r*cos(v)
 
 
-class Text(PrimativeObject):
+class Text(PrimitiveObject):
     def __init__(self, string, **kwds):
-        PrimativeObject.__init__(self, **kwds)
+        PrimitiveObject.__init__(self, **kwds)
         self.string = string
+
     def x3d_geometry(self):
         return "<Text string='%s' solid='true'/>"%self.string
+
+
+def parametric_plot_3d(funcs, tmin, tmax, plot_points=50, show=None, thickness=0.2, polar=False, **kwargs):
+
+    if polar:
+        raise NotImplementedError, "3d parametric polar plots not implemented"
+
+    f,g,h = funcs
+
+    # normalize number of points to an integer
+    plot_points = int(plot_points)
+    if plot_points <= 1:
+        plot_points = 1
+
+
+    v = srange(tmin, tmax, (tmax-tmin)/plot_points, include_endpoint=True)
+    t0 = v[0]
+    P =  (f(t0), g(t0), h(t0))
+    G = 0
+    for i in range(1, len(v)):
+        t1 = v[i]
+        Q = (f(t1), g(t1), h(t1))
+        G += LineSegment(P, Q, **kwargs)
+        P = Q
+
+    if show:
+        G.show(**kwargs)
+
+    return G
 
 

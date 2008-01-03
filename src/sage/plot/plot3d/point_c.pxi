@@ -76,6 +76,11 @@ cdef inline void point_c_mul(point_c* res, point_c P, double a):
 cdef inline double point_c_dot(point_c P, point_c Q):
     return P.x*Q.x + P.y*Q.y + P.z*Q.z
 
+cdef inline void point_c_cross(point_c* res, point_c P, point_c Q):
+    res.x = P.y * Q.z - P.z * Q.y
+    res.y = P.z * Q.x - P.x * Q.z
+    res.z = P.x * Q.y - P.y * Q.x
+
 cdef inline double point_c_len(point_c P):
     return stdmath_sqrt(point_c_dot(P, P))
 
@@ -96,4 +101,24 @@ cdef inline void point_c_stretch(point_c* res, double* M, point_c P):
     res.x = M[0]*P.x + M[1]*P.y + M[2]*P.z
     res.y = M[4]*P.x + M[5]*P.y + M[6]*P.z
     res.z = M[8]*P.x + M[9]*P.y + M[10]*P.z
+
+cdef inline void face_c_normal(point_c* res, face_c face, point_c* vlist):
+    cdef point_c e1, e2
+    point_c_sub(&e1, vlist[face.vertices[0]], vlist[face.vertices[1]])
+    point_c_sub(&e2, vlist[face.vertices[2]], vlist[face.vertices[1]])
+    point_c_cross(res, e1, e2)
+
+cdef inline double cos_face_angle(face_c F, face_c E, point_c* vlist):
+    cdef point_c nF, nE
+    face_c_normal(&nF, F, vlist)
+    face_c_normal(&nE, E, vlist)
+    cdef double dot = point_c_dot(nF, nE)
+    return dot / stdmath_sqrt(point_c_dot(nF, nF)*point_c_dot(nE, nE))
+
+cdef inline double sin_face_angle(face_c F, face_c E, point_c* vlist):
+    cdef point_c nF, nE
+    face_c_normal(&nF, F, vlist)
+    face_c_normal(&nE, E, vlist)
+    cdef double dot = point_c_dot(nF, nE)
+    return stdmath_sqrt(1-(dot*dot)/(point_c_dot(nF, nF)*point_c_dot(nE, nE)))
 

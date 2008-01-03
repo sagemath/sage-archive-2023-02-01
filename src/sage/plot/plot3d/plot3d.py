@@ -58,8 +58,24 @@ class TrivialTriangleFactory:
     def smooth_triangle(self, a, b, c, da, db, dc, color = None):
         return [a,b,c]
 
+import parametric_plot3d
+def plot3d(f, urange, vrange, **kwds):
+    """
+    EXAMPLES:
+        sage: show(plot3d(lambda x, y: x^2 + y^2, (-2,2), (-2,2)))
+        sage: var('x,y')
+        sage: show(plot3d(x^2 + y^2, (x,-2,2), (y,-2,2)))
+    ""'
+    if len(urange) == 2:
+        w = (lambda u,v: u, lambda u,v: v, f)
+    else:
+        u = urange[0]
+        v = vrange[0]
+        w = (u, v, f)
+    return parametric_plot3d.parametric_plot3d(w, urange, vrange, **kwds)
 
-def plot3d(f,(xmin,xmax),(ymin,ymax),texture=None, opacity=1, grad_f=None,
+# This sucks.  It looks like crap.  Simple grid sampling looks way better?!
+def plot3d_old(f,(xmin,xmax),(ymin,ymax),texture=None, opacity=1, grad_f=None,
            max_bend=.5, max_depth=5, initial_depth=4, num_colors=None):
     """
     EXAMPLES:

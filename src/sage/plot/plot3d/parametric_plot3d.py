@@ -103,11 +103,14 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", texture="
     # mesh_shading -- (default: None) how to shade regions between mesh divisions
     # plot_range -- (default: "automatic") range of values to include
 
-    if not isinstance(f, (tuple, list)) or len(f) != 3:
-        raise ValueError, "f must be a list or tuple of length 3"
-
     if texture == "automatic":
         texture = "lightblue"
+
+    if isinstance(f, (list,tuple)) and len(f) > 0 and isinstance(f[0], (list,tuple)):
+        return sum([parametric_plot3d(v, urange, vrange, plot_points, texture, **kwds) for v in f])
+
+    if not isinstance(f, (tuple, list)) or len(f) != 3:
+        raise ValueError, "f must be a list or tuple of length 3"
 
     if vrange is None:
         if plot_points == "automatic":

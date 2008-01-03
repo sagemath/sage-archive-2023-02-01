@@ -206,7 +206,7 @@ cdef class Cylinder(ParametricSurface):
         rad = self.get_radius(transform)
 
         cdef double ratio = sqrt(rad*rad / ((base[0]-top[0])**2 + (base[1]-top[1])**2 + (base[2]-top[2])**2))
-        print ratio
+        #print ratio
 
         if ratio > .02:
             if not (transform is None or transform.is_uniform_on([(1,0,0),(0,1,0)])) or ratio > .05:

@@ -176,6 +176,10 @@ def my_sigint(x, n):
 
 signal.signal(signal.SIGINT, my_sigint)
 
+## Disable client-side certificate request for gnutls
+import gnutls.connection
+gnutls.connection.CERT_REQUEST = 0
+
 ## Authentication framework (ported from Knooboo)
 from twisted.web2 import log, server, channel
 from twisted.cred import portal, checkers, credentials

@@ -46,6 +46,8 @@ include "../../ext/python_list.pxi"
 import os
 from math import atan2
 from random import randint
+import zipfile
+from cStringIO import StringIO
 
 import sage.misc.misc
 
@@ -204,7 +206,10 @@ end_scene""" % (
         render_params = self.default_render_params()
         render_params.output_file = filename
         render_params.force_reload = render_params.randomize_counter = force_reload
-        f = open(filename, 'w')
+        render_params.output_archive = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED, True)
+
+        f = StringIO()
+
         # Set the scene background color
         f.write('background [%s,%s,%s]\n'%tuple([int(a*255) for a in background]))
         if spin:
@@ -226,7 +231,9 @@ end_scene""" % (
 
         # Put the rest of the object in
         f.write("\n".join(flatten_list([self.jmol_repr(render_params), ""])))
-        f.close()
+
+        render_params.output_archive.writestr('SCRIPT', f.getvalue())
+        render_params.output_archive.close()
 
     def jmol_repr(self, render_params):
         raise NotImplementedError
@@ -433,11 +440,18 @@ end_scene""" % (
             #if fg >= 2:
             #    fg = 2
             filename = '%s-size%s%s'%(base, fg*100, ext)
+            ext = "jmol"
+            archive_name = "%s.%s.zip" % (filename, ext)
 
             T = self._prepare_for_jmol(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-            T.export_jmol(filename + ".jmol", force_reload=EMBEDDED_MODE, **kwds)
+            T.export_jmol(archive_name, force_reload=EMBEDDED_MODE, **kwds)
             viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/jmol/jmol"
-            ext = "jmol"
+
+            # We need a script to load the file
+            f = open(filename + '.jmol', 'w')
+            f.write('set defaultdirectory "%s"\n' % archive_name)
+            f.write('script SCRIPT\n')
+            f.close()
 
         if ext is None:
             raise ValueError, "Unknown 3d plot type: %s" % viewer
@@ -674,6 +688,7 @@ class RenderParams(SageObject):
         self.transform_list = []
         self.transform = None
         self.ds = 1
+        self.crease_threshold = .8
         self.__dict__.update(kwds)
 
     def push_transform(self, T):

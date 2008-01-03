@@ -507,6 +507,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             if mpz_fits_slong_p(tmp) == 0:
                 raise ValueError, "Valuation too large"
             ans.ordp = mpz_get_si(tmp)
+            mpz_clear(tmp)
             _sig_on
             mpz_powm(ans.unit, (<pAdicCappedRelativeElement>self).unit, (<Integer>right).value, ans.prime_pow.pow_mpz_t_tmp(ans.relprec)[0])
             _sig_off

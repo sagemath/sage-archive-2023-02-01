@@ -981,7 +981,6 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
     respectively.
     """
     def render(self, ctx):
-        newcell = int(ctx.args['newcell'][0])  # whether to insert a new cell or not
         id = self.id(ctx)
         if not ctx.args.has_key('input'):
             input_text = ''
@@ -997,6 +996,13 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
         cell = W.get_cell_with_id(id)
 
         cell.set_input_text(input_text)
+
+        if ctx.args.has_key('save_only') and ctx.args['save_only'][0] == '1':
+            notebook_updates()
+            return http.Response(stream='')
+        else:
+            newcell = int(ctx.args['newcell'][0])  # whether to insert a new cell or not
+
         cell.evaluate(username = self.username)
 
         if cell.is_last():

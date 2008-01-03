@@ -1244,6 +1244,10 @@ function cell_blur(id) {
     /* Disable coloring and change to div for now */
     cell.className="cell_input";
     cell_input_minimize_size(cell);
+
+    if(cell_has_changed)
+        send_cell_input(id);
+
     return true;  /* disable for now */
 
     cell.className="hidden";
@@ -1253,8 +1257,6 @@ function cell_blur(id) {
 
     var t = cell.value.replaceAll("<","&lt;");
 
-    if(cell_has_changed)
-        send_cell_input(id);
     return true;
 }
 
@@ -1262,7 +1264,7 @@ function send_cell_input(id) {
     cell = get_cell(id)
     if(cell == null) return;
 
-    async_request("/set_cell_input", generic_callback, "cell_id="+id+"&input="+cell.value);
+    async_request(worksheet_command('eval'), generic_callback, "save_only=1&id="+id+"&input="+cell.value);
 }
 
 function debug_focus() {

@@ -95,5 +95,5 @@ class SymmetricFunctionAlgebraElement_elementary(classical.SymmetricFunctionAlge
         for part in self_mc:
             if max(part) > n:
                 continue
-            res += self_mc[part] * resPR(e(part, n, alphabet))
+            res += self_mc[part] * e(part, n, alphabet)
         return res

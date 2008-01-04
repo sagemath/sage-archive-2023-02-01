@@ -192,7 +192,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
                 n = sum(m)
                 P._s_cache(n)
                 for part in P._p_to_s_cache[n][m]:
-                    z_elt[part] = z_elt.get(part, zero) + BR(c*P._p_to_s_cache[n][m][part].substitute(t=P.t))
+                    z_elt[part] = z_elt.get(part, zero) + BR(c*P._p_to_s_cache[n][m][part].subs(t=P.t))
 
             z = s(0)
             z._monomial_coefficients = z_elt

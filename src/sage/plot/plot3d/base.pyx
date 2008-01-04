@@ -207,8 +207,23 @@ end_scene""" % (
         render_params.output_file = filename
         render_params.force_reload = render_params.randomize_counter = force_reload
         render_params.output_archive = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED, True)
+        render_params.atom_list = [] # some things (such as labels) must be attached to atoms
+
+        # Render the data
+        all = flatten_list([self.jmol_repr(render_params), ""])
 
         f = StringIO()
+
+        if len(render_params.atom_list):
+            # Load the atom model
+            f.write('data "model list"\n')
+            f.write('%s\nempty\n' % (len(render_params.atom_list) + 1))
+            for atom in render_params.atom_list:
+                f.write('Xx %s %s %s\n' % atom)
+            f.write('Xx 5.5 5.5 5.5') # so the zoom fits the box
+            f.write('end "model list"; show data\n')
+
+            f.write('select *; wireframe off; spacefill off\n')
 
         # Set the scene background color
         f.write('background [%s,%s,%s]\n'%tuple([int(a*255) for a in background]))
@@ -222,6 +237,7 @@ end_scene""" % (
         if orientation:
             f.write('moveto 0 %s %s %s %s\n'%tuple(orientation))
 
+        f.write('centerAt absolute {0 0 0}\n')
         f.write('zoom %s\n'%zoom)
 
         if perspective_depth:
@@ -230,7 +246,7 @@ end_scene""" % (
             f.write('set perspectivedepth OFF\n')
 
         # Put the rest of the object in
-        f.write("\n".join(flatten_list([self.jmol_repr(render_params), ""])))
+        f.write("\n".join(all))
 
         render_params.output_archive.writestr('SCRIPT', f.getvalue())
         render_params.output_archive.close()
@@ -633,6 +649,9 @@ cdef class PrimitiveObject(Graphics3d):
         if not is_Texture(texture):
             texture = Texture(texture, **kwds)
         self.texture = texture
+
+    def get_texture(self):
+        return self.texture
 
     def x3d_str(self):
         return "<Shape>" + self.x3d_geometry() + self.texture.x3d_str() + "</Shape>\n"

@@ -946,6 +946,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sqrt(2)
             sage: 2^(-1/2)
             1/sqrt(2)
+
+        TESTS:
+            sage: complex(0,1)^2
+            (-1+0j)
         """
         if modulus is not None:
             #raise RuntimeError, "__pow__ dummy argument ignored"
@@ -960,7 +964,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if isinstance(self, str):
                 return self * n
             else:
-                return self.__pow__(int(n))
+                return self ** int(n)
 
         cdef Integer _self = <Integer>self
 

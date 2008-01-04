@@ -138,6 +138,15 @@ import pdb
 def isalphadigit_(s):
     return s.isalpha() or s.isdigit() or s=="_"
 
+keywords = """
+and       del       from      not       while
+as        elif      global    or        with
+assert    else      if        pass      yield
+break     except    import    print
+class     exec      in        raise
+continue  finally   is        return
+def       for       lambda    try
+""".split()
 
 in_single_quote = False
 in_double_quote = False
@@ -162,6 +171,8 @@ def strip_string_literals(code):
         {'L4': '"d\\""', 'L2': '"b"', 'L3': "'c'", 'L1': "'a'"}
         sage: print s % literals
         ['a', "b", 'c', "d\""]
+        sage: print strip_string_literals(r'-"\\\""-"\\"-')[0]
+        -%(L1)s-%(L2)s-
 
     Triple-quotes are handled as well.
         sage: s, literals = strip_string_literals("[a, '''b''', c, '']")
@@ -169,6 +180,12 @@ def strip_string_literals(code):
         '[a, %(L1)s, c, %(L2)s]'
         sage: print s % literals
         [a, '''b''', c, '']
+
+    Comments are subsituted too:
+        sage: s, literals = strip_string_literals("code '#' # ccc 't'"); s
+        'code %(L1)s #%(L2)s'
+        sage: s % literals
+        "code '#' # ccc 't'"
     """
     new_code = []
     literals = {}
@@ -179,14 +196,29 @@ def strip_string_literals(code):
     while True:
         sig_q = code.find("'", q)
         dbl_q = code.find('"', q)
+        hash_q = code.find('#', q)
         q = min(sig_q, dbl_q)
         if q == -1: q = max(sig_q, dbl_q)
-        if q == -1:
+        if not in_quote and hash_q != -1 and (q == -1 or hash_q < q):
+            # it's a comment
+            newline = code.find('\n', hash_q)
+            if newline == -1: newline = len(code)
+            counter += 1
+            label = "L%s" % counter
+            literals[label] = code[hash_q+1:newline]
+            new_code.append(code[start:hash_q].replace('%','%%'))
+            new_code.append("#%%(%s)s" % label)
+            start = q = newline
+        elif q == -1:
             new_code.append(code[start:].replace('%','%%'))
-            return "".join(new_code), literals
-        if in_quote:
+            break
+        elif in_quote:
             if not raw and code[q-1] == '\\':
-                q += 1
+                k = 2
+                while code[q-k] == '\\':
+                    k += 1
+                if k % 2 == 0:
+                    q += 1
             if code[q:q+len(in_quote)] == in_quote:
                 counter += 1
                 label = "L%s" % counter
@@ -206,6 +238,8 @@ def strip_string_literals(code):
             new_code.append(code[start:q].replace('%', '%%'))
             start = q
             q += len(in_quote)
+
+    return "".join(new_code), literals
 
 
 def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
@@ -846,3 +880,52 @@ def preparse_file(contents, attached={}, magic=True,
 
     return '\n'.join(F)
 
+def implicit_mul(code, level=5):
+    """
+    Insert explicit *'s for implicit multiplication.
+
+    INPUT:
+        code  -- the code with missing *'s
+        level -- how agressive to be in placing *'s
+                   0) Do nothing
+                   1) numeric followed by alphanumeric
+                   2) closing parentheses followed by alphanumeric
+                   3) Spaces between alphanumeric
+                  10) Adjacent parentheses (may mangle call statements)
+
+    EXAMPLES:
+        sage: from sage.misc.preparser import implicit_mul
+        sage: implicit_mul('(2x^2-4x+3)a0')
+        '(2*x^2-4*x+3)*a0'
+        sage: implicit_mul('a b c in L')
+        'a*b*c in L'
+        sage: implicit_mul('1r + 1e3 + 5exp(2)')
+        '1r + 1e3 + 5*exp(2)'
+        sage: implicit_mul('f(a)(b)', level=10)
+        'f(a)*(b)'
+    """
+    def re_no_keyword(pattern, code):
+        for _ in range(2): # do it twice in because matches don't overlap
+            for m in reversed(list(re.finditer(pattern, code))):
+                left, right = m.groups()
+                if left not in keywords and right not in keywords:
+                    code = "%s%s*%s%s" % (code[:m.start()],
+                                          left,
+                                          right,
+                                          code[m.end():])
+        return code
+
+    code, literals = strip_string_literals(code)
+    if level >= 1:
+        no_mul_token = " '''_no_mult_token_''' "
+        code = re.sub(r'\b(\d+\.?\d*)((r\b)|(e[-\d]))', r'\1%s\2' % no_mul_token, code)  # exclude such things as 1e5 and 10r
+        code = re_no_keyword(r'\b(\d+\.?\d*) *([a-zA-Z_(]\w*)\b', code)
+    if level >= 2:
+        code = re.sub(r'(\%\(L\d+\))s', r'\1%ss%s' % (no_mul_token, no_mul_token), code) # literal strings
+        code = re_no_keyword(r'(\)) *(\w+)', code)
+    if level >= 3:
+        code = re_no_keyword(r'(\w+) +(\w+)', code)
+    if level >= 10:
+        code = re.sub(r'\) *\(', ')*(', code)
+    code = code.replace(no_mul_token, '')
+    return code % literals

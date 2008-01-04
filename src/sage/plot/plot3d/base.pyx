@@ -220,8 +220,10 @@ end_scene""" % (
                 f.write('Xx %s %s %s\n' % atom)
             f.write('Xx 5.5 5.5 5.5') # so the zoom fits the box
             f.write('end "model list"; show data\n')
+            f.write('select *\n')
+            f.write('wireframe off; spacefill off\n')
+            f.write('set labelOffset 0 0\n')
 
-            f.write('select *; wireframe off; spacefill off\n')
 
         # Set the scene background color
         f.write('background [%s,%s,%s]\n'%tuple([int(a*255) for a in background]))
@@ -237,6 +239,7 @@ end_scene""" % (
 
         f.write('centerAt absolute {0 0 0}\n')
         f.write('zoom %s\n'%zoom)
+        f.write('frank OFF\n') # jmol logo
 
         if perspective_depth:
             f.write('set perspectivedepth ON\n')

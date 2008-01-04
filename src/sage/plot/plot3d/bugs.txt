@@ -1,3 +1,10 @@
+General TODO:
+  * Make it so all extra parameters to any ploting commands (in 2d or 3d)
+    are saved and passed through to show -- or at least those that
+    are relevant, e.g., xmin, xmax, etc.
+  * Fix all doctests now that show is not needed by default.
+  * aspect_ratio for 2d plots.
+
 Jmol bugs:
 
  * reloading a worksheet kills all jmol applets!  -- note if we get

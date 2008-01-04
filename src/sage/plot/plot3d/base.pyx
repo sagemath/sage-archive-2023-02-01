@@ -60,12 +60,23 @@ pi = RDF.pi()
 
 from sage.interfaces.tachyon import tachyon_rt
 
+from sage.plot.plot import show_default
+
 
 default_texture = Texture()
 
 
 cdef class Graphics3d(SageObject):
 
+    def __repr__(self):
+        if show_default():
+            self.show()
+            return ''
+        else:
+            return self.__str__()
+
+    def __str__(self):
+        return "Graphics3d Object"
 
     def __add__(self, other):
         # Use == not "other is 0" here, since e.g., Sage integer zero is not 0.

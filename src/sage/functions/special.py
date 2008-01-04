@@ -560,15 +560,11 @@ class Bessel():
     A class implementing all Bessel functions.
 
     EXAMPLES:
-        sage: g = Bessel(2)
-        sage: g
+        sage: g = Bessel(2); g
         J_{2}
         sage: print g
         J-Bessel function of order 2
         sage: g.plot(0,10)
-        Graphics object consisting of 1 graphics primitive
-
-    Now type show(g.plot(0,10)) to view this.
     """
     def __init__(self, nu, type = "J", alg = "pari", prec = 53):
         self._order = nu

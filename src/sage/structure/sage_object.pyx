@@ -471,7 +471,7 @@ def save(obj, filename=None, compress=True, **kwds):
         sage: P = plot(E)
         sage: save(P, 'test.sobj')
         sage: save(P, filename="sage.png", xmin=-2)
-        sage: load('test.sobj')
+        sage: print  load('test.sobj')
         Graphics object consisting of 2 graphics primitives
     """
     if not '.' in filename:

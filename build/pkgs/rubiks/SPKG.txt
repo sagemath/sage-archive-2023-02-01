@@ -1,3 +1,7 @@
+= rubiks.spkg =
+
+== Description ==
+
 There are several programs for working with Rubik's cubes, by three
 different people. Look inside the directories under /src to see
 specific info and licensing. In summary the three contributers are:
@@ -18,4 +22,15 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
     cu2   - A fast, non-optimal 2x2x2 solver
     cubex - A fast, non-optimal 3x3x3 solver
     mcube - A fast, non-optimal 4x4x4 solver
+
+== Changelog ==
+
+=== rubiks-20070912.p0 (Michael Abshoff) ===
+ * clean up SPKG.txt
+ * remove *DS*Store and various prebuild binaries from tree
+ * remove global hg repo (that included src!)
+
+=== rubiks-20070912 ===
+ * initial version
+
 

@@ -607,7 +607,7 @@ class Cell(Cell_generic):
 
                 script = '<div><script>jmol_applet(%s, "%s");</script></div>' % (size, url)
                 images.append(script)
-            elif F.endswith('.pmesh'):
+            elif F.endswith('.jmol.zip'):
                 pass # jmol data
             else:
                 files.append('<a href="%s" class="file_link">%s</a>'%(url, F))

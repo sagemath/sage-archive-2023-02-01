@@ -42,10 +42,11 @@ TODO:
 
 include "../../ext/python_list.pxi"
 
-
 import os
 from math import atan2
 from random import randint
+import zipfile
+from cStringIO import StringIO
 
 import sage.misc.misc
 
@@ -53,10 +54,10 @@ from sage.modules.free_module_element import vector
 
 from sage.rings.real_double import RDF
 from sage.misc.functional import sqrt, atan, acos
-#from sage.functions.all import *
+
 from texture import Texture, is_Texture
-from transform import Transformation
-pi = RDF.pi()
+from transform cimport Transformation, point_c, face_c
+include "point_c.pxi"
 
 from sage.interfaces.tachyon import tachyon_rt
 
@@ -64,7 +65,7 @@ from sage.plot.plot import show_default
 
 
 default_texture = Texture()
-
+pi = RDF.pi()
 
 cdef class Graphics3d(SageObject):
 
@@ -215,7 +216,27 @@ end_scene""" % (
         render_params = self.default_render_params()
         render_params.output_file = filename
         render_params.force_reload = render_params.randomize_counter = force_reload
-        f = open(filename, 'w')
+        render_params.output_archive = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED, True)
+        render_params.atom_list = [] # some things (such as labels) must be attached to atoms
+
+        # Render the data
+        all = flatten_list([self.jmol_repr(render_params), ""])
+
+        f = StringIO()
+
+        if len(render_params.atom_list):
+            # Load the atom model
+            f.write('data "model list"\n')
+            f.write('%s\nempty\n' % (len(render_params.atom_list) + 1))
+            for atom in render_params.atom_list:
+                f.write('Xx %s %s %s\n' % atom)
+            f.write('Xx 5.5 5.5 5.5') # so the zoom fits the box
+            f.write('end "model list"; show data\n')
+            f.write('select *\n')
+            f.write('wireframe off; spacefill off\n')
+            f.write('set labelOffset 0 0\n')
+
+
         # Set the scene background color
         f.write('background [%s,%s,%s]\n'%tuple([int(a*255) for a in background]))
         if spin:
@@ -228,7 +249,9 @@ end_scene""" % (
         if orientation:
             f.write('moveto 0 %s %s %s %s\n'%tuple(orientation))
 
+        f.write('centerAt absolute {0 0 0}\n')
         f.write('zoom %s\n'%zoom)
+        f.write('frank OFF\n') # jmol logo
 
         if perspective_depth:
             f.write('set perspectivedepth ON\n')
@@ -236,8 +259,10 @@ end_scene""" % (
             f.write('set perspectivedepth OFF\n')
 
         # Put the rest of the object in
-        f.write("\n".join(flatten_list([self.jmol_repr(render_params), ""])))
-        f.close()
+        f.write("\n".join(all))
+
+        render_params.output_archive.writestr('SCRIPT', f.getvalue())
+        render_params.output_archive.close()
 
     def jmol_repr(self, render_params):
         raise NotImplementedError
@@ -444,11 +469,21 @@ end_scene""" % (
             #if fg >= 2:
             #    fg = 2
             filename = '%s-size%s%s'%(base, fg*100, ext)
+            ext = "jmol"
+            archive_name = "%s.%s.zip" % (filename, ext)
+            if EMBEDDED_MODE:
+                # jmol doesn't seem to correctly parse the ?params part of a URL
+                archive_name = "%s-%s.%s.zip" % (filename, randint(0, 1 << 30), ext)
 
             T = self._prepare_for_jmol(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-            T.export_jmol(filename + ".jmol", force_reload=EMBEDDED_MODE, **kwds)
+            T.export_jmol(archive_name, force_reload=EMBEDDED_MODE, **kwds)
             viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/jmol/jmol"
-            ext = "jmol"
+
+            # We need a script to load the file
+            f = open(filename + '.jmol', 'w')
+            f.write('set defaultdirectory "%s"\n' % archive_name)
+            f.write('script SCRIPT\n')
+            f.close()
 
         if ext is None:
             raise ValueError, "Unknown 3d plot type: %s" % viewer
@@ -525,20 +560,10 @@ class TransformGroup(Graphics3dGroup):
             return self._bounding_box
         except AttributeError:
             pass
-        # Get the box before transformation
-        a = Graphics3dGroup.bounding_box(self)
-        # The corners of the box
-        import sage.misc.mrange
-        corners = []
-        for f in sage.misc.mrange.cartesian_product_iterator([[0,1]]*3):
-            corners.append([a[f[i]][i] for i in range(3)])
-        # Transform the corners of the box
-        T = self.get_transformation()
-        w = [T.transform_point(p) for p in corners]
-        # Figure out what the new bounding box is
-        a_min = [min([z[i] for z in w]) for i in range(3)]
-        a_max = [max([z[i] for z in w]) for i in range(3)]
-        self._bounding_box = a_min, a_max
+
+        cdef Transformation T = self.get_transformation()
+        w = sum([T.transform_bounding_box(obj.bounding_box()) for obj in self.all], ())
+        self._bounding_box = point_list_bounding_box(w)
         return self._bounding_box
 
     def transform(self, **kwds):
@@ -631,6 +656,9 @@ cdef class PrimitiveObject(Graphics3d):
             texture = Texture(texture, **kwds)
         self.texture = texture
 
+    def get_texture(self):
+        return self.texture
+
     def x3d_str(self):
         return "<Shape>" + self.x3d_geometry() + self.texture.x3d_str() + "</Shape>\n"
 
@@ -685,6 +713,7 @@ class RenderParams(SageObject):
         self.transform_list = []
         self.transform = None
         self.ds = 1
+        self.crease_threshold = .8
         self.__dict__.update(kwds)
 
     def push_transform(self, T):
@@ -760,6 +789,21 @@ def max3(v):
     """
     return tuple([max([a[i] for a in v]) for i in range(3)])
 
+def point_list_bounding_box(v):
+    """
+    EXAMPLES:
+        sage: from sage.plot.plot3d.base import point_list_bounding_box
+        sage: point_list_bounding_box([(1,2,3),(4,5,6),(-10,0,10)])
+        ((-10.0, 0.0, 3.0), (4.0, 5.0, 10.0))
+    """
+    cdef point_c lower, upper, cur
+    cur.x, cur.y, cur.z = v[0]
+    upper = lower = cur
+    for P in v:
+        cur.x, cur.y, cur.z = P
+        point_c_lower_bound(&lower, lower, cur)
+        point_c_upper_bound(&upper, upper, cur)
+    return (lower.x, lower.y, lower.z), (upper.x, upper.y, upper.z)
 
 def optimal_aspect_ratios(ratios):
     # average the aspect ratios

@@ -315,7 +315,9 @@ def parse_ellipsis(code, preparse_step=True):
     """
     ix = code.find('..')
     while ix != -1:
-        if code[ix-1]=='.':
+        if ix == 0:
+            raise SyntaxError, "Cannot start line with ellipsis."
+        elif code[ix-1]=='.':
             # '...' be valid Python in index slices
             code = code[:ix-1] + "Ellipsis" + code[ix+2:]
         elif len(code) >= ix+3 and code[ix+2]=='.':

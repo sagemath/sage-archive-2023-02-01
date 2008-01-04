@@ -429,6 +429,18 @@ class Text(PrimitiveObject):
     def x3d_geometry(self):
         return "<Text string='%s' solid='true'/>"%self.string
 
+    def jmol_repr(self, render_params):
+        cen = render_params.transform.transform_point((0,0,0))
+        render_params.atom_list.append(cen)
+        atom_no = len(render_params.atom_list)
+        return ['select atomno = %s' % atom_no,
+                self.get_texture().jmol_str("atom"),
+                'label "%s"' % self.string] #.replace('\n', '|')]
+
+    def bounding_box(self):
+        return (0,0,0), (0,0,0)
+
+
 
 def parametric_plot_3d(funcs, tmin, tmax, plot_points=50, show=None, thickness=0.2, polar=False, **kwargs):
 

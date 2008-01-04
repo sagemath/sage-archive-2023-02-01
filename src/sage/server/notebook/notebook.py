@@ -1537,11 +1537,6 @@ class Notebook(SageObject):
             body += '    cell_set_running(active_cell_list[i]); \n'
             body += 'start_update_check();\n'
             body +=' </script>\n'
-
-
-        body += '<script>use_cell_writer = true;</script>\n'   # for jmol 3d graphics
-
-
         return body
 
     def html_plain_text_window(self, worksheet, username):

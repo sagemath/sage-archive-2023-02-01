@@ -541,6 +541,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     except SyntaxError:
         pass
 
+    line = implicit_mul(line)
+
     # find where the parens are for function assignment notation
     oparen_index = -1
     cparen_index = -1

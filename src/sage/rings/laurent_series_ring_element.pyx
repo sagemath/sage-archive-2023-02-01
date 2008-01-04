@@ -878,7 +878,7 @@ cdef class LaurentSeries(AlgebraElement):
                   "The integral of is not a Laurent series, since t^-1 has nonzero coefficient."
 
         if n < 0:
-            v = [a[i]/(n+i+1) for i in range(-1-n)] + [0]
+            v = [a[i]/(n+i+1) for i in range(min(-1-n,len(a)))] + [0]
         else:
             v = []
         v += [a[i]/(n+i+1) for i in range(max(-n,0), len(a))]

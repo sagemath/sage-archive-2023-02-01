@@ -1,6 +1,19 @@
+= mpfi.spkg=
+
+== Description ==
+
+
 This is MPFI from http://gforge.inria.fr/projects/mpfi/
 
 PACKAGE MAINTAINER: Carl Witty (cwitty@newtonlabs.com)
+
+
+== Changelog==
+
+=== mpfi-1.3.4-cvs20071125.p3 (Michael Abshoff)  ===
+  * change configure.ac to check and link against a dynmamic gmp.so, mpfr.so
+
+Clean up the test of the changelog
 
 1. I have changed two functions:
 

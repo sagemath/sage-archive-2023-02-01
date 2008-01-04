@@ -1,5 +1,38 @@
 r"""
 Set Partitions
+
+A set partition  s of a set set is a partition of set, into subsets called parts and represented as a set of sets. By extension, a set partition of a nonnegative integer n is the set partition of the integers from 1 to n. The number of set partitions of n is called the n-th Bell number.
+
+There is a natural integer partition associated with a set partition, that is the non-decreasing sequence of sizes of all its parts.
+
+There is a classical lattice associated with all set partitions of n. The infimum of two set partitions is the set partition obtained by intersecting all the parts of both set partitions. The supremum is obtained by transitive closure of the relation i related to j iff they are in the same part in at least one of the set partitions.
+
+EXAMPLES:
+  There are 5 set partitions of the set {1,2,3}.
+
+    sage: SetPartitions(3).count()
+    5
+
+  Here is the list of them:
+
+    sage: SetPartitions(3).list() #random due to the sets
+    [{{1, 2, 3}}, {{2, 3}, {1}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{2}, {3}, {1}}]
+
+  There are 6 set partitions of {1,2,3,4} whose underlying partition
+  is [2, 1, 1]:
+
+    sage: SetPartitions(4, [2,1,1]).list() #random due to the sets
+    [{{3, 4}, {2}, {1}},
+     {{2, 4}, {3}, {1}},
+     {{4}, {2, 3}, {1}},
+     {{1, 4}, {2}, {3}},
+     {{1, 3}, {4}, {2}},
+     {{1, 2}, {4}, {3}}]
+
+AUTHORS:
+    --Mike Hansen
+    --MuPAD-Combinat developers (for algorithms and design inspiration).
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,

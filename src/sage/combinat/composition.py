@@ -1,5 +1,139 @@
 r"""
 Compositions
+
+A composition c of a nonnegative integer n is a list of positive integers with total sum n.
+
+
+EXAMPLES:
+  There are 8 compositions of 4.
+
+    sage: Compositions(4).count()
+    8
+
+  Here is the list of them:
+
+    sage: Compositions(4).list()
+    [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
+
+  You can use the .first() method to get the 'first' composition of a number.
+
+    sage: Compositions(4).first()
+    [1, 1, 1, 1]
+
+  You can also calculate the 'next' composition given the current one.
+
+    sage: Compositions(4).next([1,1,2])
+    [1, 2, 1]
+
+  The following examples shows how to test whether or not an object
+  is a composition.
+
+    sage: [3,4] in Compositions()
+    True
+    sage: [3,4] in Compositions(7)
+    True
+    sage: [3,4] in Compositions(5)
+    False
+
+  Similarly, one can check whether or not an object is a composition
+  which satisfies further constraints.
+
+    sage: [4,2] in Compositions(6, inner=[2,2], min_part=2)
+    True
+    sage: [4,2] in Compositions(6, inner=[2,2], min_part=2)
+    True
+    sage: [4,2] in Compositions(6, inner=[2,2], min_part=3)
+    False
+
+  Note that the given constraints should compatible.
+
+    sage: [4,1] in Compositions(5, inner=[2,1], min_part=1)
+    True
+
+
+  The options length, min_length, and max_length can be used to set
+  length constraints on the compositions.  For example, the
+  compositions of 4 of length equal to, at least, and at most
+  2 are given by:
+
+    sage: Compositions(4, length=2).list()
+    [[1, 3], [2, 2], [3, 1]]
+    sage: Compositions(4, min_length=2).list()
+    [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1]]
+    sage: Compositions(4, max_length=2).list()
+    [[1, 3], [2, 2], [3, 1], [4]]
+
+  Setting both min_length and max_length to the same value is
+  equaivalent to setting length to this value.
+
+    sage: Compositions(4, min_length=2, max_length=2).list()
+    [[1, 3], [2, 2], [3, 1]]
+
+
+  The options inner and outer can be used to set part-by-part
+  containment constaints.  The list of compositions of 4 bounded
+  above by [3,1,2] is given by:
+
+    sage: Compositions(4, outer=[3,1,2]).list()
+    [[1, 1, 2], [2, 1, 1], [3, 1]]
+
+  Outer sets max_length to the length of its argument.  Moreover,
+  the parts of outer may be infinite to clear the constraint
+  on specific parts.  This is the list of compositions
+  of 4 of length at most 3 such that the first and third
+  parts are at most 1:
+
+    sage: Compositions(4, outer=[1,oo,1]).list()
+    [[1, 2, 1], [1, 3]]
+
+  This is the list of compositions of 4 bounded below by [1,1,1].
+
+    sage: Compositions(4, inner=[1,1,1]).list()
+    [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1]]
+
+  The options min_slope and max_slope can be used to set
+  constraints on the slope, that is the difference p[i+1]-p[i] of
+  two consecutive parts.  The following is the list of weakly
+  increasing compositions of 4.
+
+    sage: Compositions(4, min_slope=0).list()
+    [[1, 1, 1, 1], [1, 1, 2], [1, 3], [2, 2], [4]]
+
+  The following is the list of compositions of 4 such that two
+  consecutive parts differ by at most one unit:
+
+    sage: Compositions(4, min_slope=-1, max_slope=1).list()
+    [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [2, 1, 1], [2, 2], [4]]
+
+  The constraints can be combinat together in all reasonable
+  ways.  This is the list of compositions of 5 of length
+  between 2 and 4 such that the differnce between consecutive
+  parts is between -2 and 1.
+
+    sage: Compositions(5, max_slope=1, min_slope=-2, min_length=2, max_length=4).list()
+    [[1, 1, 1, 2],
+     [1, 1, 2, 1],
+     [1, 2, 1, 1],
+     [1, 2, 2],
+     [2, 1, 1, 1],
+     [2, 1, 2],
+     [2, 2, 1],
+     [2, 3],
+     [3, 1, 1],
+     [3, 2]]
+
+  We can do the same thing with an outer constraint:
+
+    sage: Compositions(5, max_slope=1, min_slope=-2, min_length=2, max_length=4, outer=[2,5,2]).list()
+    [[1, 2, 2], [2, 1, 2], [2, 2, 1], [2, 3]]
+
+  However, providing incoherent constraints may yield strange results.
+  It is up to the user to ensure that the inner and outer compositions
+  themselves satisfy the parts and slope constraints.
+
+AUTHORS:
+    --Mike Hansen
+    --MuPAD-Combinat developers (for algorithms and design inspiration)
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,

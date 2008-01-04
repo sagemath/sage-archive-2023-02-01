@@ -4924,6 +4924,29 @@ class SymbolicComposition(SymbolicOperation):
         self.__number_of_args = n
         return n
 
+    def _polynomial_(self, R):
+        """
+        Symbolic compositions cannot be converted to polynomials.
+
+        EXAMPLES:
+            sage: cos(x).polynomial(QQ)
+            Traceback (most recent call last):
+            ....
+            TypeError: cannot convert self (= cos(x)) to a polynomial
+
+            sage: sqrt(x).polynomial(QQ)
+            Traceback (most recent call last):
+            ....
+            TypeError: cannot convert self (= sqrt(x)) to a polynomial
+
+            sage: K3.<a> = NumberField(sqrt(x))
+            Traceback (most recent call last):
+            ....
+            TypeError: polynomial (=sqrt(x)) must be a polynomial.
+        """
+        raise TypeError, "cannot convert self (= %s) to a polynomial"%str(self).strip()
+
+
     def _recursive_sub(self, kwds):
         ops = self._operands
         return ops[0](ops[1]._recursive_sub(kwds))

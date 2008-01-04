@@ -35,10 +35,10 @@ def SchubertPolynomialRing(R):
         sage: X([2,1,3])*X([2,1,3])
         X[3, 1, 2]
         sage: X([2,1,3])+X([3,1,2,4])
-        X[3, 1, 2] + X[2, 1]
+        X[2, 1] + X[3, 1, 2]
         sage: a = X([2,1,3])+X([3,1,2,4])
         sage: a^2
-        X[3, 1, 2] + X[5, 1, 2, 3, 4] + 2*X[4, 1, 2, 3]
+        X[3, 1, 2] + 2*X[4, 1, 2, 3] + X[5, 1, 2, 3, 4]
     """
     return SchubertPolynomialRing_xbasis(R)
 
@@ -142,7 +142,7 @@ class SchubertPolynomial_class(CombinatorialAlgebraElement):
             sage: a.multiply_variable(1)
             X[3, 4, 2, 1]
             sage: a.multiply_variable(2)
-            -X[3, 4, 2, 1] + X[3, 2, 5, 1, 4] - X[4, 2, 3, 1]
+            X[3, 2, 5, 1, 4] - X[3, 4, 2, 1] - X[4, 2, 3, 1]
             sage: a.multiply_variable(3)
             X[3, 2, 4, 5, 1]
 
@@ -168,7 +168,7 @@ class SchubertPolynomialRing_xbasis(CombinatorialAlgebra):
             res._monomial_coefficients = { perm: self.base_ring()(1) }
             return res
         elif isinstance(x, permutation.Permutation_class):
-            permu = x.remove_extra_fixed_points()
+            perm = x.remove_extra_fixed_points()
             res = self(0)
             res._monomial_coefficients = { perm: self.base_ring()(1) }
             return res

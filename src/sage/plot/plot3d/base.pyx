@@ -42,7 +42,6 @@ TODO:
 
 include "../../ext/python_list.pxi"
 
-
 import os
 from math import atan2
 from random import randint
@@ -55,16 +54,15 @@ from sage.modules.free_module_element import vector
 
 from sage.rings.real_double import RDF
 from sage.misc.functional import sqrt, atan, acos
-#from sage.functions.all import *
+
 from texture import Texture, is_Texture
-from transform import Transformation
-pi = RDF.pi()
+from transform cimport Transformation, point_c, face_c
+include "point_c.pxi"
 
 from sage.interfaces.tachyon import tachyon_rt
 
-
 default_texture = Texture()
-
+pi = RDF.pi()
 
 cdef class Graphics3d(SageObject):
 
@@ -544,20 +542,11 @@ class TransformGroup(Graphics3dGroup):
             return self._bounding_box
         except AttributeError:
             pass
-        # Get the box before transformation
-        a = Graphics3dGroup.bounding_box(self)
-        # The corners of the box
-        import sage.misc.mrange
-        corners = []
-        for f in sage.misc.mrange.cartesian_product_iterator([[0,1]]*3):
-            corners.append([a[f[i]][i] for i in range(3)])
-        # Transform the corners of the box
-        T = self.get_transformation()
-        w = [T.transform_point(p) for p in corners]
-        # Figure out what the new bounding box is
-        a_min = [min([z[i] for z in w]) for i in range(3)]
-        a_max = [max([z[i] for z in w]) for i in range(3)]
-        self._bounding_box = a_min, a_max
+
+        cdef Transformation T = self.get_transformation()
+        v = [obj.bounding_box() for obj in self.all]
+        w = [T.transform_point(box[0]) for box in v] + [T.transform_point(box[1]) for box in v]
+        self._bounding_box = point_list_bounding_box(w)
         return self._bounding_box
 
     def transform(self, **kwds):
@@ -783,6 +772,21 @@ def max3(v):
     """
     return tuple([max([a[i] for a in v]) for i in range(3)])
 
+def point_list_bounding_box(v):
+    """
+    EXAMPLES:
+        sage: from sage.plot.plot3d.base import point_list_bounding_box
+        sage: point_list_bounding_box([(1,2,3),(4,5,6),(-10,0,10)])
+        ((-10.0, 0.0, 3.0), (4.0, 5.0, 10.0))
+    """
+    cdef point_c lower, upper, cur
+    cur.x, cur.y, cur.z = v[0]
+    upper = lower = cur
+    for P in v:
+        cur.x, cur.y, cur.z = P
+        point_c_lower_bound(&lower, lower, cur)
+        point_c_upper_bound(&upper, upper, cur)
+    return (lower.x, lower.y, lower.z), (upper.x, upper.y, upper.z)
 
 def optimal_aspect_ratios(ratios):
     # average the aspect ratios

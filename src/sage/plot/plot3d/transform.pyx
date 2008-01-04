@@ -68,13 +68,17 @@ cdef class Transformation:
         len_a = a.dot_product(a)
         return max([abs(len_a - b.dot_product(b)) for b in basis]) < eps
 
-    def transform_point(self, x):
-        Tx = self.matrix * vector(RDF, [x[0], x[1], x[2], 1])
-        return (Tx[0], Tx[1], Tx[2])
+    cpdef transform_point(self, x):
+        cdef point_c res, P
+        P.x, P.y, P.z = x
+        point_c_transform(&res, self._matrix_data, P)
+        return res.x, res.y, res.z
 
-    def transform_vector(self, x):
-        Tx = self.matrix * vector(RDF, [x[0], x[1], x[2], 0])
-        return (Tx[0], Tx[1], Tx[2])
+    cpdef transform_vector(self, x):
+        cdef point_c res, P
+        P.x, P.y, P.z = x
+        point_c_stretch(&res, self._matrix_data, P)
+        return res.x, res.y, res.z
 
     cdef void transform_point_c(self, point_c* res, point_c P):
         point_c_transform(res, self._matrix_data, P)

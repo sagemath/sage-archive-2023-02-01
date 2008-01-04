@@ -253,7 +253,16 @@ class DikSolver:
         child = pexpect.spawn(self.__cmd+" -p")
         child.expect('Initialization done!')
         child.sendline(cube_str)
-        child.sendeof()
+
+        # We use send(chr(4)) instead of sendeof in this case, since
+        # child.sendoef() when run in the background with the Dik solver
+        # sends a SIGTTOU which suspends the process -- this is very bad.
+        # This is only a temporary workaround, and does not fix the problem
+        # on OS X.  The Dik C program itself will need to be fixed.
+        # See trac #1683. (TODO)      -- willem jp, wstein, mabshoff
+        child.send(chr(4))
+        #child.sendeof()
+
         ix = child.expect(['Solution[^\n]*:', pexpect.EOF, pexpect.TIMEOUT], timeout=timeout)
         if ix == 0:
             child.expect(['[^\n]+'])

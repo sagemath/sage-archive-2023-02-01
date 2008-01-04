@@ -74,11 +74,29 @@ cdef class Transformation:
         point_c_transform(&res, self._matrix_data, P)
         return res.x, res.y, res.z
 
-    cpdef transform_vector(self, x):
+    cpdef transform_vector(self, v):
         cdef point_c res, P
-        P.x, P.y, P.z = x
+        P.x, P.y, P.z = v
         point_c_stretch(&res, self._matrix_data, P)
         return res.x, res.y, res.z
+
+    cpdef transform_bounding_box(self, box):
+        cdef point_c lower, upper, res, temp
+        cdef point_c bounds[2]
+        bounds[0].x, bounds[0].y, bounds[0].z = box[0]
+        bounds[1].x, bounds[1].y, bounds[1].z = box[1]
+        point_c_transform(&lower, self._matrix_data, bounds[0])
+        point_c_transform(&upper, self._matrix_data, bounds[0])
+        cdef int i
+        for i from 1 <= i < 8:
+            temp.x = bounds[ i & 1      ].x
+            temp.y = bounds[(i & 2) >> 1].y
+            temp.z = bounds[(i & 4) >> 2].z
+            point_c_transform(&res, self._matrix_data, temp)
+            point_c_lower_bound(&lower, lower, res)
+            point_c_upper_bound(&upper, upper, res)
+        return (lower.x, lower.y, lower.z), (upper.x, upper.y, upper.z)
+
 
     cdef void transform_point_c(self, point_c* res, point_c P):
         point_c_transform(res, self._matrix_data, P)

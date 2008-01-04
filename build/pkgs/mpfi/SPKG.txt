@@ -10,8 +10,53 @@ PACKAGE MAINTAINER: Carl Witty (cwitty@newtonlabs.com)
 
 == Changelog==
 
+=== mpfi-1.3.4-cvs20071125.p4 (Michael Abshoff)  ===
+  * change configure.ac to detect dylibs on OSX, too. Changed the macros in
+    configure.ac to:
+
+# Checks for MPFR lib (Before GMP!)
+if ` test "$with_mpfr_lib" `
+then
+  AC_MSG_CHECKING(MPFR library)
+        if test -r "$with_mpfr_lib/libmpfr.so"
+        then
+          LDADD="$LDADD -L$with_gmp_lib -lmpfr"
+        else
+           if test -r "$with_mpfr_lib/libmpfr.dylib"
+           then
+             LDADD="$LDADD -L$with_gmp_lib -lmpfr"
+           else
+             AC_MSG_ERROR([$with_mpfr_lib/libmpfr.so or libmpfr.dylib not found])
+           fi
+        fi
+  AC_MSG_RESULT(yes)
+else
+  AC_CHECK_LIB(mpfr, main, , AC_MSG_ERROR([Library MPFR not found]))
+fi
+
+# Checks for GMP lib
+if ` test "$with_gmp_lib" `
+then
+  AC_MSG_CHECKING(GMP library)
+        if test -r "$with_gmp_lib/libgmp.so"
+        then
+          LDADD="$LDADD -L$with_gmp_lib -lgmp"
+        else
+          if test -r "$with_gmp_lib/libgmp.dylib"
+          then
+            LDADD="$LDADD -L$with_gmp_lib -lgmp"
+          else
+            AC_MSG_ERROR([$with_gmp_lib/libgmp.so or libgmp.dylib not found])
+          fi
+        fi
+  AC_MSG_RESULT(yes)
+else
+  AC_CHECK_LIB(gmp, main, , AC_MSG_ERROR([Library GMP not found]))
+fi
+
+
 === mpfi-1.3.4-cvs20071125.p3 (Michael Abshoff)  ===
-  * change configure.ac to check and link against a dynmamic gmp.so, mpfr.so
+  * change configure.ac to check and link against a dynamic gmp.so, mpfr.so
 
 Clean up the test of the changelog
 

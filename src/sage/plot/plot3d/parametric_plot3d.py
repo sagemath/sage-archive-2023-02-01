@@ -84,6 +84,12 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", texture="
         sage: p1 = parametric_plot3d(f1, (u,0,2*pi), (v,0,2*pi), texture="red")
         sage: p2 = parametric_plot3d(f2, (u,0,2*pi), (v,0,2*pi), texture="blue")
         sage: show(p1 + p2)
+
+    A Conchoid:
+        sage: var('u,v')
+        sage: k = 1.2; k_2 = 1.2; a = 1.5
+        sage: f = (k^u*(1+cos(v))*cos(u), k^u*(1+cos(v))*sin(u), k^u*sin(v)-a*k_2^u)
+        sage: parametric_plot3d(f, (u,0,6*pi), (v,0,2*pi), plot_points=[40,40], texture=(0,0.5,0))
     """
     # TODO:
     #   * Surface -- behavior of functions not defined everywhere -- see note above
@@ -103,11 +109,14 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", texture="
     # mesh_shading -- (default: None) how to shade regions between mesh divisions
     # plot_range -- (default: "automatic") range of values to include
 
-    if not isinstance(f, (tuple, list)) or len(f) != 3:
-        raise ValueError, "f must be a list or tuple of length 3"
-
     if texture == "automatic":
         texture = "lightblue"
+
+    if isinstance(f, (list,tuple)) and len(f) > 0 and isinstance(f[0], (list,tuple)):
+        return sum([parametric_plot3d(v, urange, vrange, plot_points, texture, **kwds) for v in f])
+
+    if not isinstance(f, (tuple, list)) or len(f) != 3:
+        raise ValueError, "f must be a list or tuple of length 3"
 
     if vrange is None:
         if plot_points == "automatic":

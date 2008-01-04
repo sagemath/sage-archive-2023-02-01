@@ -194,32 +194,33 @@ DEFAULT_FIGSIZE=[6, 5]
 DEFAULT_DPI = 100
 EMBEDDED_MODE = False
 DOCTEST_MODE = False
-SHOW_DEFAULT = False
+SHOW_DEFAULT = True
 
 def show_default(default=None):
     """
-    Set the default for showing plots using the following commands:
-        plot, parametric_plot, polar_plot, and list_plot.
-
+    Set the default for showing plots using any plot commands.
     If called with no arguments, returns the current default.
 
+    If this is True (the default) then any plot object when displayed
+    will be displayed as an actual plot instead of text, i.e., the
+    show command is not needed.
+
     EXAMPLES:
-    The default starts out as False:
-        sage: show_default()
-        False
-
-    We set it to True.
-        sage: show_default(True)
-
-    We see that it is True.
+    The default starts out as True:
         sage: show_default()
         True
 
-    Now certain plot commands will display their plots by default.
-
-    Turn of default display.
+    We set it to False.
         sage: show_default(False)
 
+    We see that it is False.
+        sage: show_default()
+        False
+
+    Now plot commands will not display their plots by default.
+
+    Turn back on default display.
+        sage: show_default(True)
     """
     global SHOW_DEFAULT
     if default is None:
@@ -468,6 +469,13 @@ class Graphics(SageObject):
         self.__ymin = new
 
     def _repr_(self):
+        if SHOW_DEFAULT:
+            self.show()
+            return ''
+        else:
+            return self.__str__()
+
+    def __str__(self):
         pr, i = '', 0
         for x in self:
             pr += '\n\t%s -- %s'%(i, x)
@@ -2413,9 +2421,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         return G
 
     def _call(self, funcs, xmin=None, xmax=None, parametric=False,
-              polar=False, label='', show=None, **kwds):
-        if show is None:
-            show = SHOW_DEFAULT
+              polar=False, label='', **kwds):
         if xmin is None:
             xmin = -1
         if xmax is None:
@@ -2429,8 +2435,6 @@ class PlotFactory(GraphicPrimitiveFactory):
             G = Graphics()
             for i in range(0, len(funcs)):
                 G += plot(funcs[i], xmin=xmin, xmax=xmax, polar=polar, **kwds)
-            if show:
-                G.show(**kwds)
             return G
         #parametric_plot will be a list or tuple of two functions (f,g)
         #and will plotted as (f(x), g(x)) for all x in the given range
@@ -2507,8 +2511,6 @@ class PlotFactory(GraphicPrimitiveFactory):
             G += text(label, data[-1], horizontal_alignment='left',
                       vertical_alignment='center')
 
-        if show:
-            G.show(**kwds)
         return G
 
 # unique plot instance
@@ -2589,8 +2591,6 @@ def parametric_plot(funcs, tmin, tmax, show=None, **kwargs):
     We draw a 3d parametric plot:
         sage: show(parametric_plot( (5*cos(x), 5*sin(x), x), -12, 12, plot_points=150, color="red"))
     """
-    if show is None:
-        show = SHOW_DEFAULT
     return plot(funcs, tmin, tmax, parametric=True, show=show, **kwargs)
 
 def polar_plot(funcs, xmin, xmax, show=None, **kwargs):
@@ -2612,8 +2612,6 @@ def polar_plot(funcs, xmin, xmax, show=None, **kwargs):
         sage: p3.show()
 
     """
-    if show is None:
-        show = SHOW_DEFAULT
     return plot(funcs, xmin, xmax, polar=True, **kwargs)
 
 def list_plot(data, plotjoined=False, show=None, **kwargs):
@@ -2640,16 +2638,12 @@ def list_plot(data, plotjoined=False, show=None, **kwargs):
         sage: L = list_plot(r, plotjoined=True, rgbcolor=(1,0,1))
         sage: L.show()
     """
-    if show is None:
-        show = SHOW_DEFAULT
     if not isinstance(data[0], (list, tuple)):
         data = zip(range(len(data)),data)
     if plotjoined:
         P = line(data, **kwargs)
     else:
         P = point(data, **kwargs)
-    if show:
-        P.show(**kwargs)
     return P
 
 def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_colors=None,

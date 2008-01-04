@@ -36,11 +36,7 @@ def javascript():
 def jmol_lib():
     s = r"""
 function jmol_applet(size, url) {
-    if(use_cell_writer) {
-        /* It is very important to *only* use the cell writer
-           after the page has been completely loaded. */
-        jmolSetDocument(cell_writer);
-    }
+    jmolSetDocument(cell_writer);
     jmolApplet(size, "script " + url);
 }
 
@@ -1891,6 +1887,10 @@ function set_attached_files_list(objects) {
     objlist.innerHTML = objects;
 }
 
+/* When the page is loaded, let javascript write
+ * directly to the document. After that, make sure
+ * javascript writes to a CellWriter object. */
+
 function CellWriter() {
     function write(s) {
         this.buffer += s;
@@ -1899,8 +1899,7 @@ function CellWriter() {
     this.buffer = "";
 }
 
-use_cell_writer = false;
-cell_writer = new CellWriter();
+cell_writer = document;
 
 function eval_script_tags(text) {
    var s = text; //text.replaceAll('\n','');
@@ -1909,7 +1908,7 @@ function eval_script_tags(text) {
        var j = s.indexOf('<'+'/script>');
        var code = s.slice(8+i,j);
        try {
-           cell_writer.buffer = "";
+           cell_writer = new CellWriter();
            window.eval(code);
        } catch(e) {
            alert(e);

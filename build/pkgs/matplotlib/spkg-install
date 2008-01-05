@@ -4,6 +4,12 @@
 # Used patched versions.  See SAGE.txt for why and what.
 $CP patches/setupext.py src
 
+if [ `uname -m` = "ia64" ]; then
+    echo "Work around a problem building tkgui on some Itanium Linux machines."
+    echo "This is a 1-line fix that just turns off checking for that GUI frontend."
+    $CP patches/setup.py-ia64 src/setup.py
+fi
+
 cd src
 
 # Now build

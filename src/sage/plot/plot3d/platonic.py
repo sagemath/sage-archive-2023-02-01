@@ -38,7 +38,7 @@ from shapes import Box
 from index_face_set import IndexFaceSet
 
 
-def tetrahedron(center=(0,0,0), **kwds):
+def tetrahedron(center=(0,0,0), size=1, **kwds):
     """
     A 3d tetrahedron.
 
@@ -61,10 +61,11 @@ def tetrahedron(center=(0,0,0), **kwds):
                   ( -sqrt2/3, -sqrt6/3, -one/3)]
     face_list = [[0,1,2],[1,3,2],[0,2,3],[0,3,1]]
     g = IndexFaceSet(face_list, point_list, enclosed=True, **kwds)
-    if g != (0,0,0):
+    if center != (0,0,0):
         g = g.translate(center)
     if size != 1:
         g = g.scale(1)
+    return g
 
 
 def cube(**kwds):

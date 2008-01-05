@@ -10,14 +10,14 @@ checklist -- each option is documented
 
        (done) - parametric_plot3d
        - list_plot3d: implement algorithm from plane.
-       - line3d
+    (needs tachyon)   - line3d
        - frame3d
        - plot3d
        (done) - text3d
-       - arrow
+    (parameter to line3d)   - arrow
        - torus
 
-       - point
+    (done)   - point
     (done)   - sphere
 
        - tetrahedron

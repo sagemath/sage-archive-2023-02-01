@@ -233,7 +233,7 @@ end_scene""" % (
             f.write('%s\nempty\n' % (len(render_params.atom_list) + 1))
             for atom in render_params.atom_list:
                 f.write('Xx %s %s %s\n' % atom)
-            f.write('Xx 5.5 5.5 5.5') # so the zoom fits the box
+            f.write('Xx 5.5 5.5 5.5\n') # so the zoom fits the box
             f.write('end "model list"; show data\n')
             f.write('select *\n')
             f.write('wireframe off; spacefill off\n')
@@ -374,7 +374,7 @@ end_scene""" % (
         a_min_orig = a_min; a_max_orig = a_max
 
         # Rescale in each direction
-        scale = [(xyz_max[i] - xyz_min[i]) / (a_max[i] - a_min[i]) for i in range(3)]
+        scale = [float(xyz_max[i] - xyz_min[i]) / (a_max[i] - a_min[i]) for i in range(3)]
         X = self.scale(scale)
         a_min = [scale[i]*a_min[i] for i in range(3)]
         a_max = [scale[i]*a_max[i] for i in range(3)]

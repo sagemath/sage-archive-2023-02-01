@@ -108,8 +108,7 @@ cdef class Transformation:
         return Transformation(m = self.matrix * other.matrix)
 
     def __call__(self, p):
-        res = self.matrix * vector(RDF, [p[0], p[1], p[2], 1])
-        return tuple(res[:3])
+        return self.transform_point(p)
 
     def max_scale(self):
         if self._svd is None:

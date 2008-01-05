@@ -429,6 +429,20 @@ class Text(PrimitiveObject):
     def x3d_geometry(self):
         return "<Text string='%s' solid='true'/>"%self.string
 
+    def tachyon_repr(self, render_params):
+        transform = render_params.transform
+        if not (transform is None or transform.is_uniform()):
+            return ParametricSurface.tachyon_repr(self, render_params)
+
+        if transform is None:
+            cen = (0,0,0)
+            rad = self.radius
+        else:
+            cen = transform.transform_point((0,0,0))
+            radv = transform.transform_vector((self.radius,0,0))
+            rad = sqrt(sum([x*x for x in radv]))
+        return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], rad, self.texture.id)
+
     def jmol_repr(self, render_params):
         cen = render_params.transform.transform_point((0,0,0))
         render_params.atom_list.append(cen)

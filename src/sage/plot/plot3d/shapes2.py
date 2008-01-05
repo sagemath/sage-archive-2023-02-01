@@ -1,6 +1,8 @@
 import math
 import shapes
 
+from base import PrimitiveObject, point_list_bounding_box
+
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.misc.misc import srange
@@ -9,19 +11,33 @@ from texture import Texture
 
 from shapes import Text, Sphere
 
-def line3d(points, **kwds):
+def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     """
     Draw a 3d line joining a sequence of points.
+
+    One may specify either a thickness or radius. If a thickness
+    is specified, this line will have a constant diameter regardless
+    of scaling and zooming. If a radius is specified, it will
+    behave as a series of cylinders.
+
+    EXAMPLES:
+        sage: line3d([(i*math.sin(i), i*math.cos(i), i/3) for i in range(30)], thickness=5, arrow_head=True)
+        sage: line3d([(i*math.sin(i), i*math.cos(i), i/3) for i in range(30)], radius=1, arrow_head=True)
     """
     if len(points) < 2:
         raise ValueError, "there must be at least 2 points"
-    v = []
-    texture = Texture(kwds)
-    for i in range(len(points) - 1):
-        v.append(shapes.LineSegment(points[i], points[i+1], texture=texture, **kwds))
-    w = sum(v)
-    w._set_extra_kwds(kwds)
-    return w
+    if radius is None:
+        # make a zoom-invariant line
+        return Line(points, thickness=thickness, **kwds)
+    else:
+        v = []
+        texture = Texture(kwds)
+        for i in range(len(points) - 1):
+            line = shapes.Arrow if i == len(points)-2 and arrow_head else shapes.LineSegment
+            v.append(line(points[i], points[i+1], texture=texture, radius=radius, **kwds))
+        w = sum(v)
+        w._set_extra_kwds(kwds)
+        return w
 
 
 def frame3d(lower_left, upper_right, **kwds):
@@ -203,3 +219,155 @@ def text3d(txt, (x,y,z), **kwds):
     G._set_extra_kwds(kwds)
 
     return G
+
+
+class Point(PrimitiveObject):
+    """
+    Create a position in 3-space, represented by a sphere of fixed size.
+
+    EXAMPLES:
+        sage: sum([point3d((i,i^2,i^3), size=5) for i in range(10)])
+    """
+    def __init__(self, (x,y,z), size=1, **kwds):
+        PrimitiveObject.__init__(self, **kwds)
+        self.loc = x, y, z
+        self.size = size
+
+    def bounding_box(self):
+        return self.loc, self.loc
+
+    def tachyon_repr(self, render_params):
+        transform = render_params.transform
+        if transform is None:
+            cen = self.loc
+        else:
+            cen = transform.transform_point(self.loc)
+        return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], self.size, self.texture.id)
+
+    def jmol_repr(self, render_params):
+        name = render_params.unique_name('point')
+        transform = render_params.transform
+        cen = self.loc if transform is None else transform(self.loc)
+        return ["draw %s DIAMETER %s {%s %s %s}\n%s" % (name, int(self.size), cen[0], cen[1], cen[2], self.texture.jmol_str('$' + name))]
+
+
+class Line(PrimitiveObject):
+    """
+    Draw a 3d line joining a sequence of points.
+
+    This line has a fixed diameter unaffected by transformations and zooming.
+    It may be smoothed if corner_cutoff < 1.
+
+    INPUT:
+        points        -- list of points to pass through
+        thickness     -- diameter of the line
+        corner_cutoff -- threshold for smoothing (see the corners() method)
+                         this is the minimum cosine between adjacent segments to smooth
+        arrow_head    -- if True make this curve into an arrow
+
+    EXAMPLES:
+        sage: from sage.plot.plot3d.shapes2 import Line
+        sage: Line([(i*math.sin(i), i*math.cos(i), i/3) for i in range(30)], arrow_head=True)
+
+        Smooth angles less than 90 degrees:
+        sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=0)
+    """
+    def __init__(self, points, thickness=5, corner_cutoff=.5, arrow_head=False, **kwds):
+        if len(points) < 2:
+            raise ValueError, "there must be at least 2 points"
+        PrimitiveObject.__init__(self, **kwds)
+        self.points = points
+        self.thickness = thickness
+        self.corner_cutoff = corner_cutoff
+        self.arrow_head = arrow_head
+
+    def bounding_box(self):
+        try:
+            return self.__bounding_box
+        except AttributeError:
+            self.__bounding_box = point_list_bounding_box(self.points)
+        return self.__bounding_box
+
+    def jmol_repr(self, render_params):
+        T = render_params.transform
+        corners = self.corners()
+        cmds = []
+        cmd = None
+        for P in self.points:
+            TP = P if T is None else T(P)
+            if P in corners:
+                if cmd:
+                    cmds.append(cmd + " {%s %s %s} " % TP)
+                    cmds.append(self.texture.jmol_str('$'+name))
+                type = 'arrow' if self.arrow_head and P is corners[-1] else 'curve'
+                name = render_params.unique_name('line')
+                cmd = "draw %s diameter %s %s {%s %s %s} " % (name, int(self.thickness), type, TP[0], TP[1], TP[2])
+            else:
+                cmd += " {%s %s %s} " % TP
+        cmds.append(cmd)
+        cmds.append(self.texture.jmol_str('$'+name))
+        return cmds
+
+    def corners(self, corner_cutoff=None):
+        """
+        Figures out where the curve turns to sharply to pretend its smooth.
+
+        INPUT:
+            Maximum cosine of angle between adjacent line segments
+            before adding a corner
+
+        OUTPUT:
+            List of points at which to start a new line.
+            This always includes the first point, and never the last.
+
+        EXAMPLES:
+
+              Every point:
+              sage: from sage.plot.plot3d.shapes2 import Line
+              sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=1).corners()
+              [(0, 0, 0), (1, 0, 0), (2, 1, 0)]
+
+              Greater than 90 degrees:
+              sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=0).corners()
+              [(0, 0, 0), (2, 1, 0)]
+
+              No corners:
+              sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=-1).corners()
+              (0, 0, 0)
+
+              An intermediate value:
+              sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=.5).corners()
+              [(0, 0, 0), (2, 1, 0)]
+        """
+        if corner_cutoff is None:
+            corner_cutoff = self.corner_cutoff
+        if corner_cutoff >= 1:
+            return self.points[:-1]
+        elif corner_cutoff <= -1:
+            return self.points[0]
+        else:
+            # ... -- prev -- cur -- next -- ...
+            cur  = self.points[0]
+            next = self.points[1]
+            next_dir = [next[i] - cur[i] for i in range(3)]
+            corners = [cur]
+            cur, prev_dir = next, next_dir
+            for next in self.points[2:]:
+                if next == cur:
+                    corners.append(cur)
+                    cur = next
+                    continue
+                next_dir = [next[i] - cur[i] for i in range(3)]
+                cos_angle = dot(prev_dir, next_dir) / math.sqrt(dot(prev_dir, prev_dir) * dot(next_dir, next_dir))
+                if cos_angle <= corner_cutoff:
+                    corners.append(cur)
+                cur, prev_dir = next, next_dir
+            return corners
+
+
+
+point3d = Point
+
+
+def dot((x0,y0,z0), (x1,y1,z1)):
+    return x0*x1 + y0*y1 + z0*z1

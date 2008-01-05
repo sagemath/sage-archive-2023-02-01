@@ -727,7 +727,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         INPUT:
             colors  - list of colors/textures to use (in cyclic order)
-            width   - offset perpendicular into the face (to creat a border)
+            width   - offset perpendicular into the edge (to creat a border)
                       may also be negative
             hover   - offset normal to the face (usually have to float above
                       the original surface so it shows, typically this value

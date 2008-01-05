@@ -293,13 +293,15 @@ end_scene""" % (
         box_min, box_max = self._rescale_for_frame_aspect_ratio_and_zoom(6.0, frame_aspect_ratio, zoom)
         a_min, a_max = self._box_for_aspect_ratio(aspect_ratio, box_min, box_max)
         return self._transform_to_bounding_box(box_min, box_max, a_min, a_max, frame=frame,
-                                            axes=axes, thickness=1)
+                                               axes=axes, thickness=1,
+                                               labels = True)   # jmol labels are implemented
 
     def _prepare_for_tachyon(self, frame, axes, frame_aspect_ratio, aspect_ratio, zoom):
         box_min, box_max = self._rescale_for_frame_aspect_ratio_and_zoom(1.0, frame_aspect_ratio, zoom)
         a_min, a_max = self._box_for_aspect_ratio(aspect_ratio, box_min, box_max)
         return self._transform_to_bounding_box(box_min, box_max, a_min, a_max,
-                                            frame=frame, axes=axes, thickness=0.5)
+                                               frame=frame, axes=axes, thickness=0.5,
+                                               labels = False)  # no tachyon text implemented yet
 
     def _box_for_aspect_ratio(self, aspect_ratio, box_min, box_max):
         # Lengths of new box
@@ -359,7 +361,9 @@ end_scene""" % (
 
         return a_min, a_max
 
-    def _transform_to_bounding_box(self, xyz_min, xyz_max, a_min, a_max, frame, axes, thickness):
+    def _transform_to_bounding_box(self, xyz_min, xyz_max, a_min, a_max, frame, axes, thickness, labels):
+
+        a_min_orig = a_min; a_max_orig = a_max
 
         # Rescale in each direction
         scale = [(xyz_max[i] - xyz_min[i]) / (a_max[i] - a_min[i]) for i in range(3)]
@@ -372,9 +376,12 @@ end_scene""" % (
         T = [xyz_min[i] - a_min[i] for i in range(3)]
         X = X.translate(T)
         if frame:
-            from shapes2 import frame3d
+            from shapes2 import frame3d, frame_labels
             F = frame3d(xyz_min, xyz_max, opacity=0.5, color=(0,0,0), thickness=thickness)
-            X += F
+            if labels:
+                F_text = frame_labels(xyz_min, xyz_max, a_min_orig, a_max_orig)
+
+            X += F + F_text
 
         if axes:
             # draw axes
@@ -396,10 +403,9 @@ end_scene""" % (
              frame=True, axes = False, **kwds):
         """
         INPUT:
-            viewer -- string (default: 'jmol') which viewing system to use.
-                      'jmol': an embedded non-OpenGL 3d java applet
-                      'tachyon': an embedded ray tracer
-                      'java3d': a popup OpenGL 3d java applet
+            viewer -- string (default: 'jmol'), how to view the plot
+                      'jmol': interactive 3d (java)
+                      'tachyon': a static png image (ray traced)
             filename -- string (default: a temp file); file to save the image to
             verbosity -- display information about rendering the figure
             figsize -- (default: 5); x or pair [x,y] for numbers, e.g., [5,5]; controls

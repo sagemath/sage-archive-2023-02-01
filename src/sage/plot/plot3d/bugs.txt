@@ -1,3 +1,33 @@
+Final todo push for 2.9.2:
+
+  * axes labels (but don't break tachyon!)
+  * more doctests
+  * the following commands:
+       - parametric_plot3d
+       - list_plot3d: implement algorithm from plane.
+       - line3d
+       - frame3d
+       - plot3d
+       - text3d
+       - arrow
+       - torus
+
+       - sphere
+
+       - tetrahedron
+       - cube
+       - octahedron
+       - dodecahedron
+       - icosahedron
+
+ * make sure rgbcolor, color, opacity, rainbow work for all plots
+
+ * make sure options to plot commands get passed through to show
+
+ * clean up all doctests
+
+=====================================================================
+
 General TODO:
   * Make it so all extra parameters to any ploting commands (in 2d or 3d)
     are saved and passed through to show -- or at least those that

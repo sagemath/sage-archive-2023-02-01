@@ -2659,9 +2659,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 (1, -4, 3)
                 sage: 5*-4 + 7*3
                 1
-                sage: Integer(58526524056)._xgcd(101294172798)
-                (22544886, -25323543177, 14631631001)
-                sage: 58526524056 * -25323543177 + 101294172798 * 14631631001
+                sage: g,s,t = Integer(58526524056)._xgcd(101294172798)
+                sage: g
+                22544886
+                sage: 58526524056 * s + 101294172798 * t
                 22544886
 
             Without minimality guarantees, weird things can happen:

@@ -38,12 +38,18 @@ from shapes import Box
 from index_face_set import IndexFaceSet
 
 
-def Tetrahedron(**kwds):
+def tetrahedron(center=(0,0,0), **kwds):
     """
-    sage: from sage.plot.plot3d.platonic import *
-    sage: from sage.plot.plot3d.shapes import Sphere
-    sage: S = Tetrahedron(color='yellow') + Sphere(.7, color='red')
-    sage: S.show()
+    A 3d tetrahedron.
+
+    EXAMPLES:
+    A default colored tetrahedron at the origin:
+        sage: tetrahedron()
+
+    A transparent green tetrahedron:
+        sage:
+
+        sage: tetrahedron(color='yellow') + sphere(r=.7, color='red')
     """
     RR = RDF
     one = RR(1)
@@ -54,20 +60,24 @@ def Tetrahedron(**kwds):
                   ( -sqrt2/3,  sqrt6/3, -one/3),
                   ( -sqrt2/3, -sqrt6/3, -one/3)]
     face_list = [[0,1,2],[1,3,2],[0,2,3],[0,3,1]]
-    return IndexFaceSet(face_list, point_list, enclosed=True, **kwds)
+    g = IndexFaceSet(face_list, point_list, enclosed=True, **kwds)
+    if g != (0,0,0):
+        g = g.translate(center)
+    if size != 1:
+        g = g.scale(1)
 
 
-def Cube(**kwds):
+def cube(**kwds):
     RR = RDF
     sqrt3 = RR(3).sqrt()
-    return Box(1/sqrt3, 1/sqrt3, 1/sqrt3, **kwds)
+    return box(1/sqrt3, 1/sqrt3, 1/sqrt3, **kwds)
 
 
-def Octahedron(**kwds):
-    return Box(1,1,1).dual(**kwds)
+def octahedron(**kwds):
+    return box(1,1,1).dual(**kwds)
 
 
-def Dodecahedron(**kwds):
+def dodecahedron(**kwds):
     """
     CONSTRUCTION:
         We let one point be $Q = (0,1,1)$.
@@ -139,5 +149,8 @@ def Dodecahedron(**kwds):
 #        return Graphics3dGroup(vertex_spheres)
 
 
-def Icosahedron(**kwds):
-    return Dodecahedron().dual(**kwds)
+def icosahedron(**kwds):
+    """
+    Return an icosahedron.
+    """
+    return dodecahedron().dual(**kwds)

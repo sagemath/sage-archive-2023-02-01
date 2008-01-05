@@ -13,10 +13,11 @@ checklist -- each option is documented
        - line3d
        - frame3d
        - plot3d
-       - text3d
+       (done) - text3d
        - arrow
        - torus
 
+       - point
     (done)   - sphere
 
        - tetrahedron

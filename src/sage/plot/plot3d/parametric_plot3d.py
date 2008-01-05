@@ -114,10 +114,8 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
     # mesh_shading -- (default: None) how to shade regions between mesh divisions
     # plot_range -- (default: "automatic") range of values to include
 
-    texture = Texture(kwds)
-
     if isinstance(f, (list,tuple)) and len(f) > 0 and isinstance(f[0], (list,tuple)):
-        return sum([parametric_plot3d(v, urange, vrange, plot_points, texture, **kwds) for v in f])
+        return sum([parametric_plot3d(v, urange, vrange, plot_points, **kwds) for v in f])
 
     if not isinstance(f, (tuple, list)) or len(f) != 3:
         raise ValueError, "f must be a list or tuple of length 3"
@@ -125,11 +123,11 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
     if vrange is None:
         if plot_points == "automatic":
             plot_points = 75
-        G = parametric_plot3d_curve(f, urange, plot_points, texture=texture, **kwds)
+        G = parametric_plot3d_curve(f, urange, plot_points, **kwds)
     else:
         if plot_points == "automatic":
             plot_points = [15,15]
-        G = parametric_plot3d_surface(f, urange, vrange, plot_points, texture=texture, **kwds)
+        G = parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds)
     G._set_extra_kwds(kwds)
     return G
 

@@ -1665,6 +1665,9 @@ class GraphicPrimitiveFactory_disk(GraphicPrimitiveFactory):
 
 class GraphicPrimitiveFactory_text(GraphicPrimitiveFactory):
     def __call__(self, string, point, **kwds):
+        if len(point) == 3:
+            from sage.plot.plot3d.shapes2 import text3d
+            return text3d(string, point, **kwds)
         options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
@@ -2480,34 +2483,40 @@ plot = PlotFactory()
 
 class TextFactory(GraphicPrimitiveFactory_text):
     """
-    Text at the point (x,y)
-    Type text.options for a dictionary of options.
+    text(txt, point, **kwds):
 
-    text(string, position, options...)
+    Returns a 2d or 3d text graphics object at the point (x,y)
 
-    OPTIONS:
+    Type text.options for a dictionary of options for 2d text.  The 3d options
+    are as for other 3d graphics objects (i.e., mainly just rgbcolor at present).
+
+    2D OPTIONS:
         fontsize -- How big the text is
         rgbcolor -- The color as an rgb tuple
         hue -- The color given as a hue
         vertical_alignment -- how to align vertically: top, center, bottom
         horizontal_alignment -- how to align horizontally: left, center, right
 
+    3D OPTIONS:
+        rgbcolor -- the color of the text
+
     EXAMPLES:
-        Type this to see some text in top right plane:
+    Some 2d text:
+        sage: text("SAGE is really neat!!",(2,12))
 
-        sage: t = text("SAGE is really neat!!",(2,12))
+    The same text, but in 3d:
+        sage: text("SAGE is really neat!!",(2,12,1))
 
-        Type this to see the same text in larger font and colored red:
+    The same text in larger font and colored red:
+        sage: text("SAGE is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
 
-        sage: t = text("SAGE is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
+    And in 3d in two places:
+        sage: text("SAGE is...",(2,12,1), rgbcolor=(1,0,0)) + text("quite powerful!!",(4,10,0), rgbcolor=(0,0,1))
 
-        You can also center text differently:
-
+    You can also align 2d text differently:
         sage: t1 = text("Hello",(1,1), vertical_alignment="top")
         sage: t2 = text("World", (1,0.5), horizontal_alignment="left")
-
         sage: t1 + t2   # render the sume
-
     """
     def _reset(self):
         self.options = {'fontsize':10, 'rgbcolor':(0,0,1),

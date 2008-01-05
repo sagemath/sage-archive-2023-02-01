@@ -440,34 +440,3 @@ class Text(PrimitiveObject):
     def bounding_box(self):
         return (0,0,0), (0,0,0)
 
-
-
-def parametric_plot_3d(funcs, tmin, tmax, plot_points=50, show=None, thickness=0.2, polar=False, **kwargs):
-
-    if polar:
-        raise NotImplementedError, "3d parametric polar plots not implemented"
-
-    f,g,h = funcs
-
-    # normalize number of points to an integer
-    plot_points = int(plot_points)
-    if plot_points <= 1:
-        plot_points = 1
-
-
-    v = srange(tmin, tmax, (tmax-tmin)/plot_points, include_endpoint=True)
-    t0 = v[0]
-    P =  (f(t0), g(t0), h(t0))
-    G = 0
-    for i in range(1, len(v)):
-        t1 = v[i]
-        Q = (f(t1), g(t1), h(t1))
-        G += LineSegment(P, Q, **kwargs)
-        P = Q
-
-    if show:
-        G.show(**kwargs)
-
-    return G
-
-

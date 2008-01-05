@@ -86,9 +86,8 @@ def plot3d(f, urange, vrange, **kwds):
     P.frame_aspect_ratio([1.0,1.0,0.5])
     return P
 
-# This sucks.  It looks like crap.  Simple grid sampling looks way better?!
-def plot3d_old(f,(xmin,xmax),(ymin,ymax),texture=None, opacity=1, grad_f=None,
-           max_bend=.5, max_depth=5, initial_depth=4, num_colors=None):
+def plot3d_rainbow(f,(xmin,xmax),(ymin,ymax), texture=None, opacity=1, grad_f=None,
+                   max_bend=.5, max_depth=5, initial_depth=4, num_colors=None):
     """
     EXAMPLES:
     """

@@ -317,16 +317,16 @@ end_scene""" % (
 
         # Find a box around self so that when self gets rescaled into the
         # box defined by box_min, box_max, it has the right aspect ratio
-        if aspect_ratio == "automatic":
-            return self.bounding_box()
         a_min, a_max = self.bounding_box()
         a_min = list(a_min); a_max = list(a_max)
         for i in range(3):
             if a_min[i] == a_max[i]:
-                a_min[i] = -1
-                a_max[i] = 1
+                a_min[i] = a_min[i] - 1
+                a_max[i] = a_max[i] + 1
 
-        # 1.
+        if aspect_ratio == "automatic":
+            return a_min, a_max
+
         longest_side = 0; longest_length = 0
         shortest_side = 0; shortest_length = a_max[0] - a_min[0]
 
@@ -670,20 +670,12 @@ class Viewpoint(Graphics3d):
 
 cdef class PrimitiveObject(Graphics3d):
     def __init__(self, **kwds):
-        try:
+        if kwds.has_key('texture'):
             self.texture = kwds['texture']
             if not is_Texture(self.texture):
                 self.texture = Texture(self.texture)
-        except KeyError:
-            try:
-                self.texture = kwds['color']
-                if not is_Texture(self.texture):
-                    if kwds.has_key('opacity'):
-                        self.texture = Texture(self.texture, opacity=kwds['opacity'])
-                    else:
-                        self.texture = Texture(self.texture)
-            except KeyError:
-                self.texture = default_texture
+        else:
+            self.texture = Texture(kwds)
 
     def set_texture(self, texture, **kwds):
         if not is_Texture(texture):

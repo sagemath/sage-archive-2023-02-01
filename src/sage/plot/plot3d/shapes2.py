@@ -176,3 +176,30 @@ def sphere((x,y,z)=(0,0,0), r=1, **kwds):
     H = G.translate((x,y,z))
     H._set_extra_kwds(kwds)
     return H
+
+def text3d(txt, (x,y,z), **kwds):
+    """
+    Display 3d text.
+
+    INPUT:
+        txt -- some text
+        (x,y,z) -- position
+        **kwds -- standard 3d graphics options
+
+    This function called implicitly when you use the text command with a 3d position.
+
+    NOTE: There is no way to change the font size or opacity yet.
+
+    EXAMPLES:
+    We write the word SAGE in red at position (1,2,3):
+        sage: text("SAGE", (1,2,3), color=(0.5,0,0))
+
+    We draw a multicolore spiral of numbers:
+        sage: sum([text('%.1f'%n, (cos(n),sin(n),n), color=(n/2,1-n/2,0)) for n in [0,0.2,..,8]])
+    """
+    if not kwds.has_key('color') and not kwds.has_key('rgbcolor'):
+        kwds['color'] = (0,0,0)
+    G = Text(txt, **kwds).translate((x,y,z))
+    G._set_extra_kwds(kwds)
+
+    return G

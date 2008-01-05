@@ -48,7 +48,7 @@ TODO:
 
 from sage.plot.tri_plot import TrianglePlot
 from index_face_set import IndexFaceSet
-from shapes import Arrow
+from shapes import arrow3d
 from base import Graphics3dGroup
 from sage.plot.plot import rainbow
 
@@ -86,10 +86,21 @@ def plot3d(f, urange, vrange, **kwds):
     P.frame_aspect_ratio([1.0,1.0,0.5])
     return P
 
-def plot3d_rainbow(f,(xmin,xmax),(ymin,ymax), texture=None, opacity=1, grad_f=None,
-                   max_bend=.5, max_depth=5, initial_depth=4, num_colors=None):
+def plot3d_adaptive(f,(xmin,xmax),(ymin,ymax), texture=None, opacity=1, grad_f=None,
+                    max_bend=.5, max_depth=5, initial_depth=4, num_colors=None):
     """
     EXAMPLES:
+        sage: from sage.plot.plot3d.shapes import *
+        sage: from sage.plot.plot3d.plot3d import plot3d_tri as plot3d
+        sage: S = Sphere(.5, color='yellow')
+        sage: S += Cone(.5, .5, color='red').translate(0,0,.3)
+        sage: S += Sphere(.1, color='white').translate(.45,-.1,.15) + Sphere(.05, color='black').translate(.51,-.1,.17)
+        sage: S += Sphere(.1, color='white').translate(.45, .1,.15) + Sphere(.05, color='black').translate(.51, .1,.17)
+        sage: S += Sphere(.1, color='yellow').translate(.5, 0, -.2)
+        sage: def f(x,y): return math.exp(x/5)*math.cos(y)
+        sage: P = plot3d(f,(-5,5),(-5,5), ['red','yellow'], max_depth=10)
+        sage: cape_man = P.scale(.2)+S.translate(1,0,0)
+        sage: cape_man.show()
     """
     if initial_depth >= max_depth:
         max_depth = initial_depth
@@ -141,6 +152,6 @@ def plot3d_rainbow(f,(xmin,xmax),(ymin,ymax), texture=None, opacity=1, grad_f=No
 def axes(scale=1, radius=None, **kwds):
     if radius is None:
         radius = scale/100.0
-    return Graphics3dGroup([Arrow((0,0,0),(scale,0,0), radius, **kwds),
-                            Arrow((0,0,0),(0,scale,0), radius, **kwds),
-                            Arrow((0,0,0),(0,0,scale), radius, **kwds)])
+    return Graphics3dGroup([arrow3d((0,0,0),(scale,0,0), radius, **kwds),
+                            arrow3d((0,0,0),(0,scale,0), radius, **kwds),
+                            arrow3d((0,0,0),(0,0,scale), radius, **kwds)])

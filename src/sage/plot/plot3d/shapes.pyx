@@ -300,7 +300,34 @@ def LineSegment(start, end, thickness=1, radius=None, **kwds):
         theta = -acos(diff[2]/height)
         return cyl.rotate(axis, theta).translate(start)
 
-def Arrow(start, end, thickness=1, radius=None, head_radius=None, head_len=None, **kwds):
+def arrow3d(start, end, thickness=1, radius=None, head_radius=None, head_len=None, **kwds):
+    """
+    Create a 3d arrow.
+
+    INPUT:
+        start -- (x,y,z) point; the starting point of the arrow
+        end -- (x,y,z) point; the end point
+        thickness -- (default: 1); how thick the arrow is
+        radius -- (default: thickness/50.0) the radius of the arrow
+        head_radius -- (default: 3*radius); radius of arrow head
+        head_len -- (default: 3*head_radius); len of arrow head
+
+    EXAMPLES:
+    The default arrow:
+        sage: arrow((0,0,0), (1,1,1), 1)
+
+    A fat arrow:
+        sage: arrow((0,0,0), (1,1,1), radius=0.1)
+
+    A green arrow:
+        sage: arrow((0,0,0), (1,1,1), color='green')
+
+    A fat arrow head:
+        sage: arrow((2,1,0), (1,1,1), color='green', head_radius=0.3, aspect_ratio=[1,1,1])
+
+    Many arrow arranged in a circle (flying spears?):
+        sage: sum([arrow((cos(t),sin(t),0),(cos(t),sin(t),1)) for t in [0,0.3,..,2*pi]])
+    """
     if radius is None:
         radius = thickness/50.0
     if head_radius == None:

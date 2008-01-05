@@ -57,7 +57,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
             kwds = kwds.copy()
             del kwds['texture']
         for i in range(len(points) - 1):
-            line = shapes.Arrow if i == len(points)-2 and arrow_head else shapes.LineSegment
+            line = shapes.arrow3d if i == len(points)-2 and arrow_head else shapes.LineSegment
             v.append(line(points[i], points[i+1], texture=texture, radius=radius, **kwds))
         w = sum(v)
         w._set_extra_kwds(kwds)
@@ -290,7 +290,7 @@ class Point(PrimitiveObject):
             import transform
             T = transform.Transformation()
         render_params.push_transform(~T)
-        cmds = shapes.Sphere(radius=self.size / 200.0).translate(T(P)).obj_repr(render_params)
+        cmds = shapes.Sphere(radius=self.size / 200.0).translate(T(self.loc)).obj_repr(render_params)
         render_params.pop_transform()
         return cmds
 
@@ -347,7 +347,7 @@ class Line(PrimitiveObject):
         for P in self.points[1:]:
             x, y, z = P if T is None else T(P)
             if self.arrow_head and P is self.points[-1]:
-                A = shapes.Arrow((px, py, pz), (x, y, z), radius = radius, texture = self.texture)
+                A = shapes.arrow3d((px, py, pz), (x, y, z), radius = radius, texture = self.texture)
                 render_params.push_transform(~T)
                 cmds.append(A.tachyon_repr(render_params))
                 render_params.pop_transform()

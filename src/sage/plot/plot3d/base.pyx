@@ -390,12 +390,12 @@ end_scene""" % (
 
         if axes:
             # draw axes
-            from shapes import Arrow
-            A = (Arrow((min(0,a_min[0]),0, 0), (max(0,a_max[0]), 0,0),
+            from shapes import arrow3d
+            A = (arrow3d((min(0,a_min[0]),0, 0), (max(0,a_max[0]), 0,0),
                              thickness, color="blue"),
-                 Arrow((0,min(0,a_min[1]), 0), (0, max(0,a_max[1]), 0),
+                 arrow3d((0,min(0,a_min[1]), 0), (0, max(0,a_max[1]), 0),
                              thickness, color="blue"),
-                 Arrow((0, 0, min(0,a_min[2])), (0, 0, max(0,a_max[2])),
+                 arrow3d((0, 0, min(0,a_min[2])), (0, 0, max(0,a_max[2])),
                              thickness, color="blue"))
             X += sum(A).translate([-z for z in T])
 

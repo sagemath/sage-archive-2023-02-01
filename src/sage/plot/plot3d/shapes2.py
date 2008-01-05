@@ -37,6 +37,9 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     else:
         v = []
         texture = Texture(kwds)
+        if kwds.has_key('texture'):
+            kwds = kwds.copy()
+            del kwds['texture']
         for i in range(len(points) - 1):
             line = shapes.Arrow if i == len(points)-2 and arrow_head else shapes.LineSegment
             v.append(line(points[i], points[i+1], texture=texture, radius=radius, **kwds))
@@ -249,6 +252,16 @@ class Point(PrimitiveObject):
             cen = transform.transform_point(self.loc)
         return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], self.size * TACHYON_PIXEL, self.texture.id)
 
+    def obj_repr(self, render_params):
+        T = render_params.transform
+        if T is None:
+            import transform
+            T = transform.Transformation()
+        render_params.push_transform(~T)
+        cmds = shapes.Sphere(radius=self.size / 200.0).translate(T(P)).obj_repr(render_params)
+        render_params.pop_transform()
+        return cmds
+
     def jmol_repr(self, render_params):
         name = render_params.unique_name('point')
         transform = render_params.transform
@@ -311,6 +324,17 @@ class Line(PrimitiveObject):
                                                                                  radius,
                                                                                  self.texture.id))
             px, py, pz = x, y, z
+        return cmds
+
+    def obj_repr(self, render_params):
+        T = render_params.transform
+        if T is None:
+            import transform
+            T = transform.Transformation()
+        render_params.push_transform(~T)
+        L = line3d([T(P) for P in self.points], radius=self.thickness / 200.0, arrow_head=self.arrow_head, texture=self.texture)
+        cmds = L.obj_repr(render_params)
+        render_params.pop_transform()
         return cmds
 
     def jmol_repr(self, render_params):

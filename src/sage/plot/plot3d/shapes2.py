@@ -47,7 +47,9 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         x, y, z = points[i]
         points[i] = float(x), float(y), float(z)
     if radius is None:
-        return Line(points, thickness=thickness, arrow_head=arrow_head, **kwds)
+        L = Line(points, thickness=thickness, arrow_head=arrow_head, **kwds)
+        L._set_extra_kwds(kwds)
+        return L
     else:
         v = []
         texture = Texture(kwds)
@@ -335,6 +337,38 @@ class Line(PrimitiveObject):
         except AttributeError:
             self.__bounding_box = point_list_bounding_box(self.points)
         return self.__bounding_box
+
+
+    def tachyon_repr(self, render_params):
+        T = render_params.transform
+        cmds = []
+        px, py, pz = self.points[0] if T is None else T(self.points[0])
+        radius = self.thickness * TACHYON_PIXEL
+        for P in self.points[1:]:
+            x, y, z = P if T is None else T(P)
+            if self.arrow_head and P is self.points[-1]:
+                A = shapes.Arrow((px, py, pz), (x, y, z), radius = radius, texture = self.texture)
+                render_params.push_transform(~T)
+                cmds.append(A.tachyon_repr(render_params))
+                render_params.pop_transform()
+            else:
+                cmds.append("FCylinder base %s %s %s apex %s %s %s rad %s %s" % (px, py, pz,
+                                                                                 x, y, z,
+                                                                                 radius,
+                                                                                 self.texture.id))
+            px, py, pz = x, y, z
+        return cmds
+
+    def obj_repr(self, render_params):
+        T = render_params.transform
+        if T is None:
+            import transform
+            T = transform.Transformation()
+        render_params.push_transform(~T)
+        L = line3d([T(P) for P in self.points], radius=self.thickness / 200.0, arrow_head=self.arrow_head, texture=self.texture)
+        cmds = L.obj_repr(render_params)
+        render_params.pop_transform()
+        return cmds
 
     def jmol_repr(self, render_params):
         T = render_params.transform

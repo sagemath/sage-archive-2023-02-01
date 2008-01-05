@@ -1,11 +1,11 @@
 
-from plot3d            import plot3d
+from plot3d            import plot3d, plot3d_adaptive
 from parametric_plot3d import parametric_plot3d
 from list_plot3d       import list_plot3d
 
 from platonic          import tetrahedron, cube, octahedron, dodecahedron, icosahedron
 
-from shapes2           import sphere, line3d
+from shapes2           import sphere, line3d, point3d
 
 from shapes            import arrow3d
 

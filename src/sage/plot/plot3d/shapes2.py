@@ -41,7 +41,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     """
     if len(points) < 2:
         raise ValueError, "there must be at least 2 points"
-    if radius is None:
+    if False and radius is None:
         # make a zoom-invariant line
         return Line(points, thickness=thickness, **kwds)
     else:
@@ -254,13 +254,15 @@ class Point(PrimitiveObject):
     """
     Create a position in 3-space, represented by a sphere of fixed size.
 
-    EXAMPLES:
-        sage: sum([point3d((i,i^2,i^3), size=5) for i in range(10)])
+    INPUT:
+        center -- point (3-tuple)
+        size -- (default: 1)
     """
-    def __init__(self, (x,y,z), size=1, **kwds):
+    def __init__(self, center, size=1, **kwds):
         PrimitiveObject.__init__(self, **kwds)
-        self.loc = x, y, z
+        self.loc = center
         self.size = size
+        self._set_extra_kwds(kwds)
 
     def bounding_box(self):
         return self.loc, self.loc
@@ -395,7 +397,26 @@ class Line(PrimitiveObject):
 
 
 
-point3d = Point
+def point3d(v, size=1, **kwds):
+    """
+    Plot a point or list of points in 3d space.
+
+    INPUTS:
+        v -- a point or list of points
+        size -- (default: 1) size of the point (or points)
+        color -- a word that describes a color
+        rgbcolor -- (r,g,b) with r, g, b between 0 and 1 that describes a color
+        opacity -- (default: 1) if less than 1 then is transparent
+
+    EXAMPLES:
+        sage: sum([point3d((i,i^2,i^3), size=5) for i in range(10)])
+    """
+    if isinstance(v,(list,tuple)) and len(v) == 3 and not isinstance(v[0],(list,tuple)):
+        return Point(v, size, **kwds)
+    else:
+        A = sum([Point(z, size, **kwds) for z in v])
+        A._set_extra_kwds(kwds)
+        return A
 
 
 def dot((x0,y0,z0), (x1,y1,z1)):

@@ -1,3 +1,10 @@
+  * Only the last jmol 3d image is displayed, e..g., in one notebook cell
+        sage: x, y = var('x,y')
+        sage: plot3d(x^2 + y^2, (x,-2,2), (y,-2,2))
+        sage: plot3d(sin(x*y), (x, -pi, pi), (y, -pi, pi))
+    only shows the second plot.
+
+
 Final todo push for 2.9.2:
 
  (done)  * axes labels (but don't break tachyon!)
@@ -16,6 +23,7 @@ checklist -- each option is documented
        (done) - text3d
     (parameter to line3d)   - arrow
        - torus
+       - cone
 
     (done)   - point
     (done)   - sphere

@@ -57,6 +57,8 @@ from base import Graphics3dGroup, Graphics3d
 class Box(IndexFaceSet):
     """
     EXAMPLES:
+        sage: from sage.plot.plot3d.shapes import Box
+
     A square black box:
         sage: show(Box([1,1,1]))
 
@@ -85,6 +87,7 @@ class Box(IndexFaceSet):
     def bounding_box(self):
         """
         EXAMPLES:
+            sage: from sage.plot.plot3d.shapes import Box
             sage: Box([1,2,3]).bounding_box()
             ((-1.0, -2.0, -3.0), (1.0, 2.0, 3.0))
         """
@@ -108,6 +111,7 @@ def ColorCube(size, colors, opacity=1, **kwds):
 
     EXAMPLES:
     A color cube with translucent sides:
+        sage: from sage.plot.plot3d.shapes import ColorCube
         sage: c = ColorCube([1,2,3], ['red', 'blue', 'green', 'black', 'white', 'orange'], opacity=0.5)
         sage: c.show()
         sage: list(c.texture_set())[0].opacity
@@ -314,19 +318,19 @@ def arrow3d(start, end, thickness=1, radius=None, head_radius=None, head_len=Non
 
     EXAMPLES:
     The default arrow:
-        sage: arrow((0,0,0), (1,1,1), 1)
+        sage: arrow3d((0,0,0), (1,1,1), 1)
 
     A fat arrow:
-        sage: arrow((0,0,0), (1,1,1), radius=0.1)
+        sage: arrow3d((0,0,0), (1,1,1), radius=0.1)
 
     A green arrow:
-        sage: arrow((0,0,0), (1,1,1), color='green')
+        sage: arrow3d((0,0,0), (1,1,1), color='green')
 
     A fat arrow head:
-        sage: arrow((2,1,0), (1,1,1), color='green', head_radius=0.3, aspect_ratio=[1,1,1])
+        sage: arrow3d((2,1,0), (1,1,1), color='green', head_radius=0.3, aspect_ratio=[1,1,1])
 
     Many arrow arranged in a circle (flying spears?):
-        sage: sum([arrow((cos(t),sin(t),0),(cos(t),sin(t),1)) for t in [0,0.3,..,2*pi]])
+        sage: sum([arrow3d((cos(t),sin(t),0),(cos(t),sin(t),1)) for t in [0,0.3,..,2*pi]])
     """
     if radius is None:
         radius = thickness/50.0
@@ -361,6 +365,7 @@ cdef class Sphere(ParametricSurface):
         Return the bounding box that contains this sphere.
 
         EXAMPLES:
+            sage: from sage.plot.plot3d.shapes import Sphere
             sage: Sphere(3).bounding_box()
             ((-3.0, -3.0, -3.0), (3.0, 3.0, 3.0))
         """
@@ -457,6 +462,9 @@ class Text(PrimitiveObject):
         return "<Text string='%s' solid='true'/>"%self.string
 
     def tachyon_repr(self, render_params):
+        return ''
+        # Text in Tachyon not implemented yet.
+        # I have no idea what the code below is supposed to do.
         transform = render_params.transform
         if not (transform is None or transform.is_uniform()):
             return ParametricSurface.tachyon_repr(self, render_params)

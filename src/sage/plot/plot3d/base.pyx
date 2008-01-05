@@ -698,7 +698,7 @@ cdef class PrimitiveObject(Graphics3d):
         return self.triangulation().obj_repr(render_params)
 
     def jmol_repr(self, render_params):
-        return self.triangulation().obj_repr(render_params)
+        return self.triangulation().jmol_repr(render_params)
 
     def texture_set(self):
         return set([self.texture])

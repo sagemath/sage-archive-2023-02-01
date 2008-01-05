@@ -91,7 +91,6 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
 
     A Conchoid:
         sage: u, v = var('u,v')
-        (u, v)
         sage: k = 1.2; k_2 = 1.2; a = 1.5
         sage: f = (k^u*(1+cos(v))*cos(u), k^u*(1+cos(v))*sin(u), k^u*sin(v)-a*k_2^u)
         sage: parametric_plot3d(f, (u,0,6*pi), (v,0,2*pi), plot_points=[40,40], texture=(0,0.5,0))

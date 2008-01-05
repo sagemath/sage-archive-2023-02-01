@@ -107,6 +107,9 @@ cdef class Transformation:
     def __mul__(Transformation self, Transformation other):
         return Transformation(m = self.matrix * other.matrix)
 
+    def __invert__(Transformation self):
+        return Transformation(m=~self.matrix)
+
     def __call__(self, p):
         return self.transform_point(p)
 
@@ -114,6 +117,11 @@ cdef class Transformation:
         if self._svd is None:
             self._svd = self.matrix.submatrix(0,0,3,3).SVD()
         return self._svd[1][0,0]
+
+    def avg_scale(self):
+        if self._svd is None:
+            self._svd = self.matrix.submatrix(0,0,3,3).SVD()
+        return (self._svd[1][0,0] * self._svd[1][1,1] * self._svd[1][2,2]) ** (1/3.0)
 
 
 def rotate_arbitrary(v, double theta):

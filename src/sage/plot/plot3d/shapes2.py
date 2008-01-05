@@ -9,6 +9,8 @@ from sage.misc.misc import srange
 
 from texture import Texture
 
+TACHYON_PIXEL = 1/200.0
+
 from shapes import Text, Sphere
 
 def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
@@ -26,9 +28,12 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     """
     if len(points) < 2:
         raise ValueError, "there must be at least 2 points"
+    for i in range(len(points)):
+        x, y, z = points[i]
+        points[i] = float(x), float(y), float(z)
     if radius is None:
         # make a zoom-invariant line
-        return Line(points, thickness=thickness, **kwds)
+        return Line(points, thickness=thickness, arrow_head=arrow_head, **kwds)
     else:
         v = []
         texture = Texture(kwds)
@@ -230,7 +235,7 @@ class Point(PrimitiveObject):
     """
     def __init__(self, (x,y,z), size=1, **kwds):
         PrimitiveObject.__init__(self, **kwds)
-        self.loc = x, y, z
+        self.loc = float(x), float(y), float(z)
         self.size = size
 
     def bounding_box(self):
@@ -242,7 +247,7 @@ class Point(PrimitiveObject):
             cen = self.loc
         else:
             cen = transform.transform_point(self.loc)
-        return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], self.size, self.texture.id)
+        return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], self.size * TACHYON_PIXEL, self.texture.id)
 
     def jmol_repr(self, render_params):
         name = render_params.unique_name('point')
@@ -292,14 +297,20 @@ class Line(PrimitiveObject):
         T = render_params.transform
         cmds = []
         px, py, pz = self.points[0] if T is None else T(self.points[0])
+        radius = self.thickness * TACHYON_PIXEL
         for P in self.points[1:]:
             x, y, z = P if T is None else T(P)
-            cmds.append("FCylinder base %s %s %s apex %s %s %s rad %s %s" % (px, py, pz,
-                                                                             x, y, z,
-                                                                             self.thickness,
-                                                                             self.texture.id))
+            if self.arrow_head and P is self.points[-1]:
+                A = shapes.Arrow((px, py, pz), (x, y, z), radius = radius, texture = self.texture)
+                render_params.push_transform(~T)
+                cmds.append(A.tachyon_repr(render_params))
+                render_params.pop_transform()
+            else:
+                cmds.append("FCylinder base %s %s %s apex %s %s %s rad %s %s" % (px, py, pz,
+                                                                                 x, y, z,
+                                                                                 radius,
+                                                                                 self.texture.id))
             px, py, pz = x, y, z
-        print cmds
         return cmds
 
     def jmol_repr(self, render_params):

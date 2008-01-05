@@ -288,6 +288,20 @@ class Line(PrimitiveObject):
             self.__bounding_box = point_list_bounding_box(self.points)
         return self.__bounding_box
 
+    def tachyon_repr(self, render_params):
+        T = render_params.transform
+        cmds = []
+        px, py, pz = self.points[0] if T is None else T(self.points[0])
+        for P in self.points[1:]:
+            x, y, z = P if T is None else T(P)
+            cmds.append("FCylinder base %s %s %s apex %s %s %s rad %s %s" % (px, py, pz,
+                                                                             x, y, z,
+                                                                             self.thickness,
+                                                                             self.texture.id))
+            px, py, pz = x, y, z
+        print cmds
+        return cmds
+
     def jmol_repr(self, render_params):
         T = render_params.transform
         corners = self.corners()

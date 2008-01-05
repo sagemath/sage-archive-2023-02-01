@@ -12,6 +12,22 @@ from shapes import Text, Sphere
 def line3d(points, **kwds):
     """
     Draw a 3d line joining a sequence of points.
+
+    INPUT:
+        points -- a list of at least 2 points
+        color -- a word that describes a color
+        rgbcolor -- (r,g,b) with r, g, b between 0 and 1 that describes a color
+        opacity -- (default: 1) if less than 1 then is transparent
+
+    EXAMPLES:
+    A line in 3-space:
+        sage: line3d([(1,2,3), (1,0,-2), (3,1,4), (2,1,-2)])
+
+    The same line but red:
+        sage: line3d([(1,2,3), (1,0,-2), (3,1,4), (2,1,-2)], color='red')
+
+    A transparent thick green line and a little blue line:
+        sage: line3d([(0,0,0), (1,1,1), (1,0,2)], opacity=0.5, radius=0.1, color='green') + line3d([(0,1,0), (1,0,2)])
     """
     if len(points) < 2:
         raise ValueError, "there must be at least 2 points"
@@ -25,6 +41,9 @@ def line3d(points, **kwds):
 
 
 def frame3d(lower_left, upper_right, **kwds):
+    """
+    Draw a frame in 3d.
+    """
     x0,y0,z0 = lower_left
     x1,y1,z1 = upper_right
     L1 = line3d([(x0,y0,z0), (x0,y1,z0), (x1,y1,z0), (x1,y0,z0),  (x0,y0,z0), # top square
@@ -35,6 +54,7 @@ def frame3d(lower_left, upper_right, **kwds):
     v3 = line3d([(x1,y0,z0), (x1,y0,z1)], **kwds)
     v4 = line3d([(x1,y1,z0), (x1,y1,z1)], **kwds)
     F  = L1 + v2 + v3 + v4
+    F._set_extra_kwds(kwds)
     return F
 
 def frame_labels(lower_left, upper_right,
@@ -52,7 +72,7 @@ def frame_labels(lower_left, upper_right,
         b = a/2.0
         if b >= 1:
             return "%.0f"
-        n = max(0, 1 - nd(a/2.0))
+        n = max(0, 2 - nd(a/2.0))
         return "%%.%sf"%n
 
     fmt = fmt_string(lx1 - lx0)
@@ -159,21 +179,31 @@ def avg(a,b):
 ###########################
 
 
-def sphere((x,y,z)=(0,0,0), r=1, **kwds):
+def sphere(center=(0,0,0), size=1, **kwds):
     """
-    Return a plot of a sphere of radius $r$ centered at $(x,y,z)$.
+    Return a plot of a sphere of radius size centered at $(x,y,z)$.
 
     INPUT:
        (x,y,z) -- center (default: (0,0,0)
-       r -- radius (default: 1)
+       size -- the radius (default: 1)
 
     EXAMPLES:
+    A simple sphere:
+       sage: sphere()
+
+    Two sphere's touching:
+       sphere(center=(-1,0,0)) + sphere(center=(1,0,0), aspect_ratio=[1,1,1])
+
+    Spheres of radii 1 and 2 one stuck into the other:
+       sage: sphere(color='orange') + sphere(color=(0,0,0.3),center=(0,0,-2),size=2,opacity=0.9)
+
     We draw a transparent sphere on a saddle.
        sage: u,v = var('u v')
-       sage: sphere((0,0,1), color='red', opacity=0.5, aspect_ratio=[1,1,1]) + plot3d(u^2 - v^2, (u,-2,2), (v,-2,2))
+       sage: saddle = plot3d(u^2 - v^2, (u,-2,2), (v,-2,2))
+       sage: sphere((0,0,1), color='red', opacity=0.5, aspect_ratio=[1,1,1]) + saddle
     """
-    G = Sphere(r, texture=Texture(kwds), **kwds)
-    H = G.translate((x,y,z))
+    G = Sphere(size, texture=Texture(kwds), **kwds)
+    H = G.translate(center)
     H._set_extra_kwds(kwds)
     return H
 

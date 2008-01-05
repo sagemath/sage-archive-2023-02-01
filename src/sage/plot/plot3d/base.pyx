@@ -1,23 +1,10 @@
 r"""
 Base classes for 3D Graphics objects and plotting.
 
-EXAMPLES:
-    sage: from sage.plot.plot3d.shapes import *
-    sage: from sage.plot.plot3d.plot3d import plot3d
-    sage: S = Sphere(.5, color='yellow')
-    sage: S += Cone(.5, .5, color='red').translate(0,0,.3)
-    sage: S += Sphere(.1, color='white').translate(.45,-.1,.15) + Sphere(.05, color='black').translate(.51,-.1,.17)
-    sage: S += Sphere(.1, color='white').translate(.45, .1,.15) + Sphere(.05, color='black').translate(.51, .1,.17)
-    sage: S += Sphere(.1, color='yellow').translate(.5, 0, -.2)
-    sage: def f(x,y): return math.exp(x/5)*math.cos(y)
-    sage: P = plot3d(f,(-5,5),(-5,5), ['red','yellow'], max_depth=10)
-    sage: cape_man = P.scale(.2)+S.translate(1,0,0)
-    sage: cape_man.show()
-
-
 AUTHOR:
     -- Robert Bradshaw 2007-02: inital version
     -- Robert Bradshaw 2007-08: cythonization, much optimization
+    -- William Stein 2008
 
 TODO:
     -- finish integrating tachyon
@@ -107,6 +94,21 @@ cdef class Graphics3d(SageObject):
             if self._frame_aspect_ratio is None:
                 self._frame_aspect_ratio = [1,1,1]
             return self._frame_aspect_ratio
+
+    def _determine_frame_aspect_ratio(self, aspect_ratio):
+        a_min, a_max = self._safe_bounding_box()
+        return [(a_max[i] - a_min[i])*aspect_ratio[i] for i in range(3)]
+
+    def _safe_bounding_box(self):
+        # bounding box but where no side length is 0
+        a_min, a_max = self.bounding_box()
+        a_min = list(a_min); a_max = list(a_max)
+        for i in range(3):
+            if a_min[i] == a_max[i]:
+                a_min[i] = a_min[i] - 1
+                a_max[i] = a_max[i] + 1
+        return a_min, a_max
+
 
     def bounding_box(self):
         raise NotImplementedError
@@ -317,12 +319,7 @@ end_scene""" % (
 
         # Find a box around self so that when self gets rescaled into the
         # box defined by box_min, box_max, it has the right aspect ratio
-        a_min, a_max = self.bounding_box()
-        a_min = list(a_min); a_max = list(a_max)
-        for i in range(3):
-            if a_min[i] == a_max[i]:
-                a_min[i] = a_min[i] - 1
-                a_max[i] = a_max[i] + 1
+        a_min, a_max = self._safe_bounding_box()
 
         if aspect_ratio == "automatic":
             return a_min, a_max
@@ -423,9 +420,8 @@ end_scene""" % (
             **kwds -- other options, which make sense for particular rendering engines
 
         EXAMPLES:
-
         We illustrate use of the aspect_ratio option:
-           sage: var('x,y')
+           sage: x, y = var('x,y')
            sage: p = plot3d(2*sin(x*y), (x, -pi, pi), (y, -pi, pi))
            sage: p.show(aspect_ratio=[1,1,1])
 
@@ -436,10 +432,11 @@ end_scene""" % (
            sage: p.show(aspect_ratio=[1,1,1], frame_aspect_ratio=[1,1,1/8])
 
         """
-        if self._extra_kwds is not None:
-            for key in self._extra_kwds.keys():
+        ek = self._extra_kwds
+        if ek is not None:
+            for key in ek.keys():
                 if not kwds.has_key(key):
-                    kwds[key] = self._extra_kwds[key]
+                    kwds[key] = ek[key]
 
         # must have one line for every named argument:
         if kwds.has_key('viewer'): viewer = kwds['viewer']; del kwds['viewer']
@@ -452,8 +449,12 @@ end_scene""" % (
         if kwds.has_key('frame'): frame = kwds['frame']; del kwds['frame']
         if kwds.has_key('axes'): axes = kwds['axes']; del kwds['axes']
 
+        if not isinstance(aspect_ratio, (str, list, tuple)):
+            raise TypeError, "aspect ratio must be a string, list, or tuple"
         if aspect_ratio != "automatic" and frame_aspect_ratio == "automatic":
-            frame_aspect_ratio = aspect_ratio
+            # set the aspect_ratio of the frame to be the same as that of the
+            # object we are rendering given the aspect_ratio we'll use for it.
+            frame_aspect_ratio = self._determine_frame_aspect_ratio(aspect_ratio)
         elif frame_aspect_ratio == "automatic":
             frame_aspect_ratio = self.frame_aspect_ratio()
 
@@ -541,7 +542,9 @@ class Graphics3dGroup(Graphics3d):
         return min3([a[0] for a in v]), max3([a[1] for a in v])
 
     def transform(self, **kwds):
-        return TransformGroup(self.all, **kwds)
+        T = TransformGroup(self.all, **kwds)
+        T._set_extra_kwds(self._extra_kwds)
+        return T
 
     def tachyon_repr(self, render_params):
         return [g.tachyon_repr(render_params) for g in self.all]

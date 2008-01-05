@@ -20,19 +20,21 @@ checklist -- each option is documented
        - point
     (done)   - sphere
 
-       - tetrahedron
+    (done)   - tetrahedron
        - cube
        - octahedron
        - dodecahedron
        - icosahedron
 
- * make sure rgbcolor, color and opacity work for all plots.
+ (done) * make sure rgbcolor, color and opacity work for all plots.
 
- * clean up all doctests
+ (done) * clean up all doctests
 
 =====================================================================
 
 General TODO:
+  * implement frame_thickness and frame_color for everything in platonic.py, not just for cube.
+
   * Make it so all extra parameters to any ploting commands (in 2d or 3d)
     are saved and passed through to show -- or at least those that
     are relevant, e.g., xmin, xmax, etc.

@@ -20,7 +20,9 @@ colors = {
     "purple": (.5,0,1),
     "white" : (1,1,1),
     "black" : (0,0,0),
+    'brown': (0.65, 0.165, 0.165),
     "grey"  : (.5,.5,.5),
+    "gray"  : (.5,.5,.5),
     "lightblue" : (0.4,0.4,1),
     "automatic": (0.4,0.4,1)
 }
@@ -54,7 +56,7 @@ def parse_color(info, base=None):
             try:
                 return colors[info]
             except KeyError:
-                raise # TODO: parse hex?
+                raise ValueError, "unknown color '%s'"%info
         else:
             return (float(info*base[0]), float(info*base[1]), float(info*base[2]))
 

@@ -22,9 +22,24 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     of scaling and zooming. If a radius is specified, it will
     behave as a series of cylinders.
 
+    INPUT:
+        points -- a list of at least 2 points
+        thickness -- (default: 1)
+        radius -- (default: None)
+        arrow_head -- (default: False)
+        color -- a word that describes a color
+        rgbcolor -- (r,g,b) with r, g, b between 0 and 1 that describes a color
+        opacity -- (default: 1) if less than 1 then is transparent
+
     EXAMPLES:
-        sage: line3d([(i*math.sin(i), i*math.cos(i), i/3) for i in range(30)], thickness=5, arrow_head=True)
-        sage: line3d([(i*math.sin(i), i*math.cos(i), i/3) for i in range(30)], radius=1, arrow_head=True)
+    A line in 3-space:
+        sage: line3d([(1,2,3), (1,0,-2), (3,1,4), (2,1,-2)])
+
+    The same line but red:
+        sage: line3d([(1,2,3), (1,0,-2), (3,1,4), (2,1,-2)], color='red')
+
+    A transparent thick green line and a little blue line:
+        sage: line3d([(0,0,0), (1,1,1), (1,0,2)], opacity=0.5, radius=0.1, color='green') + line3d([(0,1,0), (1,0,2)])
     """
     if len(points) < 2:
         raise ValueError, "there must be at least 2 points"
@@ -32,7 +47,6 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         x, y, z = points[i]
         points[i] = float(x), float(y), float(z)
     if radius is None:
-        # make a zoom-invariant line
         return Line(points, thickness=thickness, arrow_head=arrow_head, **kwds)
     else:
         v = []
@@ -49,6 +63,9 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
 
 
 def frame3d(lower_left, upper_right, **kwds):
+    """
+    Draw a frame in 3d.
+    """
     x0,y0,z0 = lower_left
     x1,y1,z1 = upper_right
     L1 = line3d([(x0,y0,z0), (x0,y1,z0), (x1,y1,z0), (x1,y0,z0),  (x0,y0,z0), # top square
@@ -59,6 +76,7 @@ def frame3d(lower_left, upper_right, **kwds):
     v3 = line3d([(x1,y0,z0), (x1,y0,z1)], **kwds)
     v4 = line3d([(x1,y1,z0), (x1,y1,z1)], **kwds)
     F  = L1 + v2 + v3 + v4
+    F._set_extra_kwds(kwds)
     return F
 
 def frame_labels(lower_left, upper_right,
@@ -76,7 +94,7 @@ def frame_labels(lower_left, upper_right,
         b = a/2.0
         if b >= 1:
             return "%.0f"
-        n = max(0, 1 - nd(a/2.0))
+        n = max(0, 2 - nd(a/2.0))
         return "%%.%sf"%n
 
     fmt = fmt_string(lx1 - lx0)
@@ -183,21 +201,31 @@ def avg(a,b):
 ###########################
 
 
-def sphere((x,y,z)=(0,0,0), r=1, **kwds):
+def sphere(center=(0,0,0), size=1, **kwds):
     """
-    Return a plot of a sphere of radius $r$ centered at $(x,y,z)$.
+    Return a plot of a sphere of radius size centered at $(x,y,z)$.
 
     INPUT:
        (x,y,z) -- center (default: (0,0,0)
-       r -- radius (default: 1)
+       size -- the radius (default: 1)
 
     EXAMPLES:
+    A simple sphere:
+       sage: sphere()
+
+    Two sphere's touching:
+       sphere(center=(-1,0,0)) + sphere(center=(1,0,0), aspect_ratio=[1,1,1])
+
+    Spheres of radii 1 and 2 one stuck into the other:
+       sage: sphere(color='orange') + sphere(color=(0,0,0.3),center=(0,0,-2),size=2,opacity=0.9)
+
     We draw a transparent sphere on a saddle.
        sage: u,v = var('u v')
-       sage: sphere((0,0,1), color='red', opacity=0.5, aspect_ratio=[1,1,1]) + plot3d(u^2 - v^2, (u,-2,2), (v,-2,2))
+       sage: saddle = plot3d(u^2 - v^2, (u,-2,2), (v,-2,2))
+       sage: sphere((0,0,1), color='red', opacity=0.5, aspect_ratio=[1,1,1]) + saddle
     """
-    G = Sphere(r, texture=Texture(kwds), **kwds)
-    H = G.translate((x,y,z))
+    G = Sphere(size, texture=Texture(kwds), **kwds)
+    H = G.translate(center)
     H._set_extra_kwds(kwds)
     return H
 
@@ -233,13 +261,15 @@ class Point(PrimitiveObject):
     """
     Create a position in 3-space, represented by a sphere of fixed size.
 
-    EXAMPLES:
-        sage: sum([point3d((i,i^2,i^3), size=5) for i in range(10)])
+    INPUT:
+        center -- point (3-tuple)
+        size -- (default: 1)
     """
-    def __init__(self, (x,y,z), size=1, **kwds):
+    def __init__(self, center, size=1, **kwds):
         PrimitiveObject.__init__(self, **kwds)
-        self.loc = float(x), float(y), float(z)
+        self.loc = (float(center[0]), float(center[1]), float(center[2]))
         self.size = size
+        self._set_extra_kwds(kwds)
 
     def bounding_box(self):
         return self.loc, self.loc
@@ -305,37 +335,6 @@ class Line(PrimitiveObject):
         except AttributeError:
             self.__bounding_box = point_list_bounding_box(self.points)
         return self.__bounding_box
-
-    def tachyon_repr(self, render_params):
-        T = render_params.transform
-        cmds = []
-        px, py, pz = self.points[0] if T is None else T(self.points[0])
-        radius = self.thickness * TACHYON_PIXEL
-        for P in self.points[1:]:
-            x, y, z = P if T is None else T(P)
-            if self.arrow_head and P is self.points[-1]:
-                A = shapes.Arrow((px, py, pz), (x, y, z), radius = radius, texture = self.texture)
-                render_params.push_transform(~T)
-                cmds.append(A.tachyon_repr(render_params))
-                render_params.pop_transform()
-            else:
-                cmds.append("FCylinder base %s %s %s apex %s %s %s rad %s %s" % (px, py, pz,
-                                                                                 x, y, z,
-                                                                                 radius,
-                                                                                 self.texture.id))
-            px, py, pz = x, y, z
-        return cmds
-
-    def obj_repr(self, render_params):
-        T = render_params.transform
-        if T is None:
-            import transform
-            T = transform.Transformation()
-        render_params.push_transform(~T)
-        L = line3d([T(P) for P in self.points], radius=self.thickness / 200.0, arrow_head=self.arrow_head, texture=self.texture)
-        cmds = L.obj_repr(render_params)
-        render_params.pop_transform()
-        return cmds
 
     def jmol_repr(self, render_params):
         T = render_params.transform
@@ -415,7 +414,26 @@ class Line(PrimitiveObject):
 
 
 
-point3d = Point
+def point3d(v, size=1, **kwds):
+    """
+    Plot a point or list of points in 3d space.
+
+    INPUTS:
+        v -- a point or list of points
+        size -- (default: 1) size of the point (or points)
+        color -- a word that describes a color
+        rgbcolor -- (r,g,b) with r, g, b between 0 and 1 that describes a color
+        opacity -- (default: 1) if less than 1 then is transparent
+
+    EXAMPLES:
+        sage: sum([point3d((i,i^2,i^3), size=5) for i in range(10)])
+    """
+    if isinstance(v,(list,tuple)) and len(v) == 3 and not isinstance(v[0],(list,tuple)):
+        return Point(v, size, **kwds)
+    else:
+        A = sum([Point(z, size, **kwds) for z in v])
+        A._set_extra_kwds(kwds)
+        return A
 
 
 def dot((x0,y0,z0), (x1,y1,z1)):

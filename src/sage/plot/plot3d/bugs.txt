@@ -1,3 +1,10 @@
+  * Only the last jmol 3d image is displayed, e..g., in one notebook cell
+        sage: x, y = var('x,y')
+        sage: plot3d(x^2 + y^2, (x,-2,2), (y,-2,2))
+        sage: plot3d(sin(x*y), (x, -pi, pi), (y, -pi, pi))
+    only shows the second plot.
+
+
 Final todo push for 2.9.2:
 
  (done)  * axes labels (but don't break tachyon!)
@@ -16,23 +23,26 @@ checklist -- each option is documented
        (done) - text3d
     (parameter to line3d)   - arrow
        - torus
+       - cone
 
     (done)   - point
     (done)   - sphere
 
-       - tetrahedron
+    (done)   - tetrahedron
        - cube
        - octahedron
        - dodecahedron
        - icosahedron
 
- * make sure rgbcolor, color and opacity work for all plots.
+ (done) * make sure rgbcolor, color and opacity work for all plots.
 
- * clean up all doctests
+ (done) * clean up all doctests
 
 =====================================================================
 
 General TODO:
+  * implement frame_thickness and frame_color for everything in platonic.py, not just for cube.
+
   * Make it so all extra parameters to any ploting commands (in 2d or 3d)
     are saved and passed through to show -- or at least those that
     are relevant, e.g., xmin, xmax, etc.

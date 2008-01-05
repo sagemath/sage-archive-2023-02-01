@@ -290,7 +290,8 @@ class Point(PrimitiveObject):
             import transform
             T = transform.Transformation()
         render_params.push_transform(~T)
-        cmds = shapes.Sphere(radius=self.size / 200.0).translate(T(self.loc)).obj_repr(render_params)
+        S = shapes.Sphere(self.size / 200.0).translate(T(self.loc))
+        cmds = S.obj_repr(render_params)
         render_params.pop_transform()
         return cmds
 

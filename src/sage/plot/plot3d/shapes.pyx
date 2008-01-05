@@ -389,9 +389,6 @@ cdef class Sphere(ParametricSurface):
             rad = sqrt(sum([x*x for x in radv]))
         return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], rad, self.texture.id)
 
-    def obj_repr(self, render_params):
-        return ''
-
     def jmol_repr(self, render_params):
         name = render_params.unique_name('sphere')
         transform = render_params.transform

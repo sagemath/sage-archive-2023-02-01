@@ -1058,7 +1058,7 @@ a.eval_button_active {
   top: 2px;
   margin:0px;
   padding:0px;
-  font-size:8pt;
+  font-size:10pt;
 }
 
 

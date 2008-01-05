@@ -541,7 +541,7 @@ class Cell(Cell_generic):
         """%(cls, r, ncols, id, id, id, id, id, 'readonly=1' if do_print else '', t)
 
         if not do_print:
-           s+= '<a href="javascript:evaluate_cell(%s,0)" class="eval_button" id="eval_button%s">evaluate</a>'%(id,id)
+           s+= '<a href="javascript:evaluate_cell(%s,0)" class="eval_button" id="eval_button%s" alt="Click here or press shift-return to evaluate">evaluate</a>'%(id,id)
 
         t = t.replace("<","&lt;")+" "
 

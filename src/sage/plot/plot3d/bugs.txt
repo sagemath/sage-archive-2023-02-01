@@ -1,9 +1,14 @@
 Final todo push for 2.9.2:
 
-  * axes labels (but don't break tachyon!)
-  * more doctests
+ (done)  * axes labels (but don't break tachyon!)
+
+ * make sure options to plot commands get passed through to show
+
   * the following commands:
-       - parametric_plot3d
+checklist -- each option is documented
+       (done)   -- kwds get saved for show
+
+       (done) - parametric_plot3d
        - list_plot3d: implement algorithm from plane.
        - line3d
        - frame3d
@@ -12,7 +17,7 @@ Final todo push for 2.9.2:
        - arrow
        - torus
 
-       - sphere
+    (done)   - sphere
 
        - tetrahedron
        - cube
@@ -20,9 +25,7 @@ Final todo push for 2.9.2:
        - dodecahedron
        - icosahedron
 
- * make sure rgbcolor, color, opacity, rainbow work for all plots
-
- * make sure options to plot commands get passed through to show
+ * make sure rgbcolor, color and opacity work for all plots.
 
  * clean up all doctests
 

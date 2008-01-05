@@ -4,8 +4,9 @@
 
 from parametric_surface import ParametricSurface
 from shapes2 import line3d
+from texture import Texture
 
-def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", texture="automatic", **kwds):
+def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
     """
     Return a parametric three-dimensional space curve or surface.
 
@@ -33,7 +34,6 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", texture="
                        [15,15] for surfaces) initial number of sample
                        points in each parameter; an integer for a curve,
                        and a pair of integers for a surface.
-        texture -- (default: "automatic"), solid light blue
 
     NOTES:
       * By default for a curve any points where f_x, f_y, or f_z do
@@ -45,48 +45,53 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", texture="
     We demonstrate each of the four ways to call this function.
 
         1. A space curve defined by three functions of 1 variable:
-            sage: show(parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20)))
+            sage: parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20))
 
         Note above the lambda function, which creates a callable Python function
         that sends u to u/10.
 
         2. Next we draw the same plot as above, but using symbolic functions:
-            sage: var('u')
-            sage: show(parametric_plot3d( (sin(u), cos(u), u/10), (u, 0, 20)))
+            sage: u = var('u')
+            sage: parametric_plot3d( (sin(u), cos(u), u/10), (u, 0, 20))
 
         3. We draw a parametric surface using 3 Python functions (defined using
            lambda):
             sage: f = (lambda u,v: cos(u), lambda u,v: sin(u)+cos(v), lambda u,v: sin(v))
-            sage: show(parametric_plot3d(f, (0, 2*pi), (-pi, pi)))
+            sage: parametric_plot3d(f, (0, 2*pi), (-pi, pi))
 
         4. The same surface, but where the defining functions are symbolic:
-            sage: var('u,v')
-            sage: show(parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi)))
+            sage: u, v = var('u,v')
+            sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi))
+
+        We increase the number of plot points, and make the surface green and transparent:
+            sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), color='green', opacity=0.1, plot_points=[30,30])
 
     We call the space curve function but with polynomials instead of
     symbolic variables.
 
         sage: R.<t> = RDF[]
-        sage: show(parametric_plot3d( (t, t^2, t^3), (t, 0, 3) ) )
+        sage: parametric_plot3d( (t, t^2, t^3), (t, 0, 3) )
 
     Next we plot the same curve, but because we use (0, 3) instead of (t, 0, 3),
     each polynomial is viewed as a callable function of one variable:
 
-        sage: show(parametric_plot3d( (t, t^2, t^3), (0, 3) ) )
+        sage: parametric_plot3d( (t, t^2, t^3), (0, 3) )
 
     We do a plot but mix a symbolic input, and an integer:
-        sage: var('t')
-        sage: show(parametric_plot3d( (1, sin(t), cos(t)), (t, 0, 3) ) )
+        sage: t = var('t')
+        sage: parametric_plot3d( (1, sin(t), cos(t)), (t, 0, 3) )
 
     We plot two interlinked tori:
+        sage: u, v = var('u,v')
         sage: f1 = (4+(3+cos(v))*sin(u), 4+(3+cos(v))*cos(u), 4+sin(v))
         sage: f2 = (8+(3+cos(v))*cos(u), 3+sin(v), 4+(3+cos(v))*sin(u))
         sage: p1 = parametric_plot3d(f1, (u,0,2*pi), (v,0,2*pi), texture="red")
         sage: p2 = parametric_plot3d(f2, (u,0,2*pi), (v,0,2*pi), texture="blue")
-        sage: show(p1 + p2)
+        sage: p1 + p2
 
     A Conchoid:
-        sage: var('u,v')
+        sage: u, v = var('u,v')
+        (u, v)
         sage: k = 1.2; k_2 = 1.2; a = 1.5
         sage: f = (k^u*(1+cos(v))*cos(u), k^u*(1+cos(v))*sin(u), k^u*sin(v)-a*k_2^u)
         sage: parametric_plot3d(f, (u,0,6*pi), (v,0,2*pi), plot_points=[40,40], texture=(0,0.5,0))
@@ -109,8 +114,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", texture="
     # mesh_shading -- (default: None) how to shade regions between mesh divisions
     # plot_range -- (default: "automatic") range of values to include
 
-    if texture == "automatic":
-        texture = "lightblue"
+    texture = Texture(kwds)
 
     if isinstance(f, (list,tuple)) and len(f) > 0 and isinstance(f[0], (list,tuple)):
         return sum([parametric_plot3d(v, urange, vrange, plot_points, texture, **kwds) for v in f])
@@ -121,11 +125,13 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", texture="
     if vrange is None:
         if plot_points == "automatic":
             plot_points = 75
-        return parametric_plot3d_curve(f, urange, plot_points, texture=texture, **kwds)
+        G = parametric_plot3d_curve(f, urange, plot_points, texture=texture, **kwds)
     else:
         if plot_points == "automatic":
             plot_points = [15,15]
-        return parametric_plot3d_surface(f, urange, vrange, plot_points, texture=texture, **kwds)
+        G = parametric_plot3d_surface(f, urange, vrange, plot_points, texture=texture, **kwds)
+    G._set_extra_kwds(kwds)
+    return G
 
 def parametric_plot3d_curve(f, urange, plot_points, **kwds):
     plot_points = int(plot_points)

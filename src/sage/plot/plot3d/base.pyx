@@ -87,6 +87,9 @@ cdef class Graphics3d(SageObject):
             return other
         return Graphics3dGroup([self, other])
 
+    def _set_extra_kwds(self,kwds):
+        self._extra_kwds = kwds
+
     def aspect_ratio(self, v=None):
         if not v is None:
             if not isinstance(v, (tuple, list)):
@@ -211,7 +214,7 @@ end_scene""" % (
     def export_jmol(self, filename='jmol_shape.jmol', force_reload=False,
                     zoom=100, spin=False, background=(1,1,1), stereo=False,
                     perspective_depth = True,
-                    orientation = (-764,-346,-545,76.39)):
+                    orientation = (-764,-346,-545,76.39), **ignored_kwds):
                     # orientation chosen to look same as tachyon
         render_params = self.default_render_params()
         render_params.output_file = filename
@@ -290,7 +293,12 @@ end_scene""" % (
         return box_min, box_max
 
     def _prepare_for_jmol(self, frame, axes, frame_aspect_ratio, aspect_ratio, zoom):
-        box_min, box_max = self._rescale_for_frame_aspect_ratio_and_zoom(6.0, frame_aspect_ratio, zoom)
+        from sage.plot.plot import EMBEDDED_MODE
+        if EMBEDDED_MODE:
+            s = 6
+        else:
+            s = 3
+        box_min, box_max = self._rescale_for_frame_aspect_ratio_and_zoom(s, frame_aspect_ratio, zoom)
         a_min, a_max = self._box_for_aspect_ratio(aspect_ratio, box_min, box_max)
         return self._transform_to_bounding_box(box_min, box_max, a_min, a_max, frame=frame,
                                                axes=axes, thickness=1,
@@ -400,7 +408,7 @@ end_scene""" % (
              aspect_ratio = "automatic",
              frame_aspect_ratio = "automatic",
              zoom=1,
-             frame=True, axes = False, **kwds):
+             frame=True, axes = False, **kwds):  # if you add any parameters you must update some code below!!!!!!
         """
         INPUT:
             viewer -- string (default: 'jmol'), how to view the plot
@@ -428,7 +436,25 @@ end_scene""" % (
            sage: p.show(aspect_ratio=[1,1,1], frame_aspect_ratio=[1,1,1/8])
 
         """
-        if frame_aspect_ratio == "automatic":
+        if self._extra_kwds is not None:
+            for key in self._extra_kwds.keys():
+                if not kwds.has_key(key):
+                    kwds[key] = self._extra_kwds[key]
+
+        # must have one line for every named argument:
+        if kwds.has_key('viewer'): viewer = kwds['viewer']; del kwds['viewer']
+        if kwds.has_key('filename'): filename = kwds['filename']; del kwds['filename']
+        if kwds.has_key('verbosity'): verbosity = kwds['verbosity']; del kwds['verbosity']
+        if kwds.has_key('figsize'): figsize = kwds['figsize']; del kwds['figsize']
+        if kwds.has_key('aspect_ratio'): aspect_ratio = kwds['aspect_ratio']; del kwds['aspect_ratio']
+        if kwds.has_key('frame_aspect_ratio'): frame_aspect_ratio = kwds['frame_aspect_ratio']; del kwds['frame_aspect_ratio']
+        if kwds.has_key('zoom'): zoom = kwds['zoom']; del kwds['zoom']
+        if kwds.has_key('frame'): frame = kwds['frame']; del kwds['frame']
+        if kwds.has_key('axes'): axes = kwds['axes']; del kwds['axes']
+
+        if aspect_ratio != "automatic" and frame_aspect_ratio == "automatic":
+            frame_aspect_ratio = aspect_ratio
+        elif frame_aspect_ratio == "automatic":
             frame_aspect_ratio = self.frame_aspect_ratio()
 
         import sage.misc.misc
@@ -451,7 +477,7 @@ end_scene""" % (
 
         if DOCTEST_MODE or viewer=='tachyon' or (viewer=='java3d' and EMBEDDED_MODE):
             T = self._prepare_for_tachyon(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-            tachyon_rt(T.tachyon(**kwds), filename+".png", verbosity, True, opts)
+            tachyon_rt(T.tachyon(), filename+".png", verbosity, True, opts)
             ext = "png"
             import sage.misc.viewer
             viewer_app = sage.misc.viewer.browser()
@@ -482,7 +508,7 @@ end_scene""" % (
                 archive_name = "%s-%s.%s.zip" % (filename, randint(0, 1 << 30), ext)
 
             T = self._prepare_for_jmol(frame, axes, frame_aspect_ratio, aspect_ratio, zoom)
-            T.export_jmol(archive_name, force_reload=EMBEDDED_MODE, **kwds)
+            T.export_jmol(archive_name, force_reload=EMBEDDED_MODE, zoom=zoom*100, **kwds)
             viewer_app = sage.misc.misc.SAGE_LOCAL + "/java/jmol/jmol"
 
             # We need a script to load the file
@@ -506,6 +532,7 @@ class Graphics3dGroup(Graphics3d):
         self.all = all
         self.frame_aspect_ratio(optimal_aspect_ratios([a.frame_aspect_ratio() for a in all]))
         self.aspect_ratio(optimal_aspect_ratios([a.aspect_ratio() for a in all]))
+        self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all if a._extra_kwds is not None]))
 
     def bounding_box(self):
         # Box that contains the bounding boxes of
@@ -560,6 +587,7 @@ class TransformGroup(Graphics3dGroup):
             self.T = T
         self.frame_aspect_ratio(optimal_aspect_ratios([a.frame_aspect_ratio() for a in all]))
         self.aspect_ratio(optimal_aspect_ratios([a.aspect_ratio() for a in all]))
+        self._set_extra_kwds(optimal_extra_kwds([a._extra_kwds for a in all if a._extra_kwds is not None]))
 
     def bounding_box(self):
         try:
@@ -818,4 +846,17 @@ def optimal_aspect_ratios(ratios):
         return [max([z[i] for z in ratios]) for i in range(3)]
     else:
         return [1.0,1.0,1.0]
+
+def optimal_extra_kwds(v):
+    """
+    Given a list v of dictionaries, this function merges
+    them such that later dictionaries have precedence.
+    """
+    if len(v) == 0:
+        return {}
+    a = dict(v[0])   # make a copy!
+    for b in v[1:]:
+        for k,w in b.iteritems():
+            a[k] = w
+    return a
 

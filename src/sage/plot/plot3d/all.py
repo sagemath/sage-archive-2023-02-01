@@ -3,6 +3,7 @@ from parametric_plot3d import parametric_plot3d
 from list_plot3d       import list_plot3d
 from plot3d            import plot3d
 from texture           import Texture
+from shapes2           import sphere
 
 #from shapes import Box, ColorCube, Cone, Cylinder, LineSegment, Arrow, Sphere, Torus, Text as Text3D
 #from parametric_surface import ParametricSurface, MobiusStrip

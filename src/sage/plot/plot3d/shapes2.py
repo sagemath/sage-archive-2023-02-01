@@ -5,15 +5,24 @@ from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.misc.misc import srange
 
-from shapes import Text
+from texture import Texture
 
-def line3d(points, coerce=True, color="lightblue", **kwds):
+from shapes import Text, Sphere
+
+def line3d(points, **kwds):
+    """
+    Draw a 3d line joining a sequence of points.
+    """
     if len(points) < 2:
         raise ValueError, "there must be at least 2 points"
     v = []
+    texture = Texture(kwds)
     for i in range(len(points) - 1):
-        v.append(shapes.LineSegment(points[i], points[i+1], color=color, **kwds))
-    return sum(v)
+        v.append(shapes.LineSegment(points[i], points[i+1], texture=texture, **kwds))
+    w = sum(v)
+    w._set_extra_kwds(kwds)
+    return w
+
 
 def frame3d(lower_left, upper_right, **kwds):
     x0,y0,z0 = lower_left
@@ -29,7 +38,8 @@ def frame3d(lower_left, upper_right, **kwds):
     return F
 
 def frame_labels(lower_left, upper_right,
-                 label_lower_left, label_upper_right, eps = 1, **kwds):
+                 label_lower_left, label_upper_right, eps = 1,
+                 **kwds):
     x0,y0,z0 = lower_left
     x1,y1,z1 = upper_right
     lx0,ly0,lz0 = label_lower_left
@@ -47,19 +57,20 @@ def frame_labels(lower_left, upper_right,
 
     fmt = fmt_string(lx1 - lx0)
 
-    T =  Text(fmt%lx0).translate((x0,y0-eps,z0))
-    T += Text(fmt%avg(lx0,lx1)).translate((avg(x0,x1),y0-eps,z0))
-    T += Text(fmt%lx1).translate((x1,y0-eps,z0))
+    color = (0.3,0.3,0.3)
+    T =  Text(fmt%lx0, color=color).translate((x0,y0-eps,z0))
+    T += Text(fmt%avg(lx0,lx1), color=color).translate((avg(x0,x1),y0-eps,z0))
+    T += Text(fmt%lx1, color=color).translate((x1,y0-eps,z0))
 
     fmt = fmt_string(ly1 - ly0)
-    T += Text(fmt%ly0).translate((x1+eps,y0,z0))
-    T += Text(fmt%avg(ly0,ly1)).translate((x1+eps,avg(y0,y1),z0))
-    T += Text(fmt%ly1).translate((x1+eps,y1,z0))
+    T += Text(fmt%ly0, color=color).translate((x1+eps,y0,z0))
+    T += Text(fmt%avg(ly0,ly1), color=color).translate((x1+eps,avg(y0,y1),z0))
+    T += Text(fmt%ly1, color=color).translate((x1+eps,y1,z0))
 
     fmt = fmt_string(lz1 - lz0)
-    T += Text(fmt%lz0).translate((x0-eps,y0,z0))
-    T += Text(fmt%avg(lz0,lz1)).translate((x0-eps,y0,avg(z0,z1)))
-    T += Text(fmt%lz1).translate((x0-eps,y0,z1))
+    T += Text(fmt%lz0, color=color).translate((x0-eps,y0,z0))
+    T += Text(fmt%avg(lz0,lz1), color=color).translate((x0-eps,y0,avg(z0,z1)))
+    T += Text(fmt%lz1, color=color).translate((x0-eps,y0,z1))
     return T
 
 def validate_frame_size(size):
@@ -142,3 +153,26 @@ def ruler_frame(lower_left, upper_right, ticks=4, sub_ticks=4, **kwds):
 
 def avg(a,b):
     return (a+b)/2.0
+
+
+
+###########################
+
+
+def sphere((x,y,z)=(0,0,0), r=1, **kwds):
+    """
+    Return a plot of a sphere of radius $r$ centered at $(x,y,z)$.
+
+    INPUT:
+       (x,y,z) -- center (default: (0,0,0)
+       r -- radius (default: 1)
+
+    EXAMPLES:
+    We draw a transparent sphere on a saddle.
+       sage: u,v = var('u v')
+       sage: sphere((0,0,1), color='red', opacity=0.5, aspect_ratio=[1,1,1]) + plot3d(u^2 - v^2, (u,-2,2), (v,-2,2))
+    """
+    G = Sphere(r, texture=Texture(kwds), **kwds)
+    H = G.translate((x,y,z))
+    H._set_extra_kwds(kwds)
+    return H

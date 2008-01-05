@@ -21,7 +21,8 @@ colors = {
     "white" : (1,1,1),
     "black" : (0,0,0),
     "grey"  : (.5,.5,.5),
-    "lightblue" : (0.4,0.4,1)
+    "lightblue" : (0.4,0.4,1),
+    "automatic": (0.4,0.4,1)
 }
 
 def is_Texture(x):
@@ -32,6 +33,8 @@ def Texture(id=None, **kwds):
         return id
     if isinstance(id, dict):
         kwds = id
+        if kwds.has_key('rgbcolor'):
+            kwds['color'] = kwds['rgbcolor']
         id = None
     elif isinstance(id, str) and colors.has_key(id):
         kwds['color'] = id
@@ -58,7 +61,7 @@ def parse_color(info, base=None):
 
 class Texture_class(SageObject):
 
-    def __init__(self, id, color=(.5, .5, .5), opacity=1, ambient=0.5, diffuse=1, specular=0, shininess=1):
+    def __init__(self, id, color=(.4, .4, 1), opacity=1, ambient=0.5, diffuse=1, specular=0, shininess=1, **kwds):
         self.id = id
 
         if not isinstance(color, tuple):

@@ -8,6 +8,14 @@ This is SAGE -- open source mathematical software.
 
 1) Download the dmg somewhere and double click on it.
 2) Drag the sage folder somewhere, e.g., /Applications
+
+ ** WARNING ** If you get an error copying the folder do the following:
+    Do not drag the the folder out of the dmg image. Use the
+    shell (via Terminal) and do a
+     "cp -R -P /Volumes/sage-2.9.2-OSX10.4-intel-i386-Darwin/sage ."
+    from the location where you want to install to. Adjust the name of the
+    Volume as needed.
+
 3) Use finder to visit the sage folder you just copied it and double click on the "sage" icon.
 4) Select to run it with "Terminal":
      Choose Applications, then select "All Applications" in the

@@ -1,5 +1,9 @@
 deprecated, use 'hg log' instead
 
+* 20080105 William Stein -- Deleted LIB/surfex and modified LIB/all to not have surfex in it.
+We should *not* ship and install precompiled java without thinking it through carefully and
+understanding and testing it.
+
 * 20070823 Juan M. Bello Rivas <jmbr@superadditive.com>
  + dropped dependencies on flex and bison
 

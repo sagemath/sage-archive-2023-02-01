@@ -2272,9 +2272,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: sum(c*m for c,m in f) == f
             True
         """
-        # TODO: re-implement actually using yield when yield added to cython
-        D = self.dict()
-        L = [(c, MPolynomial_polydict(self._parent, {exp: 1})) for exp, c in D.items()]
+        L = zip(self.coefficients(), self.monomials())
         return iter(L)
 
     def __getitem__(self,x):

@@ -562,7 +562,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
            sage: f.exponents()
            [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
         """
-        return self.element().exponents()
+        return [m.element().dict().keys()[0] for m in self.monomials()]
 
     def is_unit(self):
         """
@@ -692,7 +692,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def monomials(self):
         """
         Returns list of all monomials which occure in this
-        multivariate polynomial.
+        multivariate polynomial ordered from largest to smallest.
 
         OUTPUT:
             list of MPolynomials representing Monomials
@@ -701,15 +701,26 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.monomials()
-            [1, x^2*y^2, x^2, y]
+            [x^2*y^2, x^2, y, 1]
+
+            sage: R.<fx,fy,gx,gy> = ZZ[]
+            sage: F = ((fx*gy - fy*gx)^3)
+            sage: F
+            -1*fy^3*gx^3 + 3*fx*fy^2*gx^2*gy - 3*fx^2*fy*gx*gy^2 + fx^3*gy^3
+            sage: F.monomials()
+            [fy^3*gx^3, fx*fy^2*gx^2*gy, fx^2*fy*gx*gy^2, fx^3*gy^3]
+            sage: F.coefficients()
+            [-1, 3, -3, 1]
+            sage: sum(map(mul,zip(F.coefficients(),F.monomials()))) == F
+            True
         """
         try:
             return self.__monomials
         except AttributeError:
             ring = self.parent()
             one = self.parent().base_ring()(1)
-            self.__monomials = [ MPolynomial_polydict(ring, polydict.PolyDict( {m:one}, force_int_exponents=False,  force_etuples=False ) ) \
-                                for m in self._MPolynomial_element__element.dict().keys() ]
+            self.__monomials = sorted([ MPolynomial_polydict(ring, polydict.PolyDict( {m:one}, force_int_exponents=False,  force_etuples=False ) ) \
+                                for m in self._MPolynomial_element__element.dict().keys() ], reverse=True)
             return self.__monomials
 
     def constant_coefficient(self):

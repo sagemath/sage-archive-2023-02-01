@@ -521,7 +521,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         #Generate the corresponding monomial
         return self._to_monomial(random_index, n, d)
 
-    def random_element(self, d, t, choose_degree=False,*args, **kwargs):
+    def random_element(self, degree=2, terms=5, choose_degree=False,*args, **kwargs):
         """
         Return a random polynomial of at most degree $d$ and at most $t$
         terms.
@@ -538,8 +538,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         The returned polynomial is the sum of this list of terms.
 
         INPUT:
-            d -- maximal degree (likely to be reached)
-            t -- number of terms requested
+            degree -- maximal degree (likely to be reached) (default: 2)
+            terms -- number of terms requested (default: 5)
             choose_degree -- choose degrees of monomials randomly first rather
                              than monomials uniformly random.
             **kwargs -- passed to the random element generator of the base ring
@@ -557,19 +557,38 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: P.random_element(2, 0)
             0
 
+            stacked rings:
+
+            sage: R = QQ['x,y']
+            sage: S = R['t,u']
+            sage: S.random_element(degree=2, terms=1)
+            (3*x^2 - x*y - 17*y^2 + y - 2/3)*u
+
+            default values apply if no degree and/or number of terms
+            is provided:
+
+            sage: random_matrix(QQ['x,y,z'], 2, 2)
+            [   4*x^2 + 4*x*y + 1/10*y*z + 1/2*z^2 - 15 4/3*x^2 + 5/2*x*z + 134/3*y*z + 20*z^2 - y]
+            [      -1/2*x^2 - 1/6*x*y - 2*z^2 - 2*z - 1          -x*y - x*z - y*z + 1/15*z^2 - 5*z]
+
+            sage: random_matrix(QQ['x,y,z'], 2, 2, terms=1, degree=1)
+            [-1/2*z   -7/5]
+            [    -y 1/11*z]
+
         """
+        d,t = degree,terms
+
         from sage.combinat.integer_vector import IntegerVectors
         from sage.rings.arith import binomial
 
         k = self.base_ring()
         n = self.ngens()
 
-        #total or d is 0. Just return
-        if 0 == total or 0 == d:
-            return tuple([0]*n)
-
         counts, total = self._precomp_counts(n, d)
 
+        #total or d is 0. Just return
+        if total == 0 or d == 0:
+            return tuple([0]*n)
 
         if t < 0:
             raise TypeError, "Cannot compute polynomial with a negative number of terms."

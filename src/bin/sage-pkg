@@ -14,3 +14,52 @@ fi
 DIR=`basename $1`
 tar -jcf $DIR.spkg $DIR
 
+if [ $? -ne 0 ]; then
+   echo "Package creation failed."
+   exit 1
+fi
+
+FILE="$DIR.spkg"
+NAME=`echo $DIR | sed s/'-[^-]*$'/""/`
+VERSION=`perl -e "@a = split(/-/,\"$DIR\"); print @a[-1] . \"\n\";"`
+SIZE=`du -h $FILE  | sed s/"\s.*$"//`
+
+# check SPKG.txt
+ls $DIR/SPKG.txt 2> /dev/null
+if [ $? -ne 0 ]; then
+  SPKGTXT="File is missing"
+else
+  SPKGTXT="Good"
+fi
+
+#check hp repro
+CUR=`pwd`
+cd $DIR
+DIFF=`sage -hg diff`
+if [ "$DIFF" != "" ]; then
+  HGREPO="Unchecked in changes"
+else
+  HGREPO="Good"
+fi
+cd $CUR
+
+echo
+echo "Created package $FILE"
+echo
+echo "    NAME:" $NAME
+echo " VERSION:" $VERSION
+echo "    SIZE:" $SIZE
+echo " HG REPO:" $HGREPO
+echo "SPKG.txt:" $SPKGTXT
+echo
+echo "Please test this package using"
+echo
+echo "   sage -f $FILE"
+echo
+echo "immediately.   Also, note that you can use "
+echo
+echo "   sage -pkg_nc $DIR"
+echo
+echo "to make an uncompressed version of the package (useful if the"
+echo "package is full of compressed data)."
+echo

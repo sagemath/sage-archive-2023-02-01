@@ -1,5 +1,8 @@
 deprecated, use 'hg log' instead
 
+=== singular-3-0-4-1-20071209.p3 (Michael Abshoff) ===
+ * fix memleak in kernel/longrat.cc
+
 * 20080105 William Stein -- Deleted LIB/surfex and modified LIB/all to not have surfex in it.
 We should *not* ship and install precompiled java without thinking it through carefully and
 understanding and testing it.

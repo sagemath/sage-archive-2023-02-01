@@ -608,7 +608,7 @@ class Cell(Cell_generic):
                 #script = '<script>jmol_applet(%s, "%s");</script>%s' % (size, url, popup)
                 #script = '<script>jmol_popup("%s");</script>' % (url)
 
-                script = '<div><script>jmol_applet(%s, "%s");</script></div>' % (size, url)
+                script = '<div><script>jmol_applet(%s, "%s?%d");</script></div>' % (size, url, self.version())
                 images.append(script)
             elif F.endswith('.jmol.zip'):
                 pass # jmol data

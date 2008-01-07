@@ -82,6 +82,7 @@ cdef extern from "mpfr.h":
     int mpfr_log (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_log2 (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_log10 (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
+    int mpfr_log1p (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
 
     int mpfr_exp (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_exp2 (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)

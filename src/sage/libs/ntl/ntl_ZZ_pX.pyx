@@ -1077,7 +1077,7 @@ cdef class ntl_ZZ_pX:
         _sig_on
         cdef char* t
         t = ZZ_pX_trace_list(&self.x)
-        return eval(string(t).replace(' ', ','))
+        return eval(string_delete(t).replace(' ', ','))
 
     def resultant(self, ntl_ZZ_pX other):
         """

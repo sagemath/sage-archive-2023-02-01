@@ -844,6 +844,8 @@ cdef class ntl_ZZ_pX:
             r.x = v[i][0]
             F.append((r, e[i]))
             #F.append((make_ZZ_pX(v[i], self.c), e[i]))
+        for i from 0 <= i < n:
+            ZZ_pX_delete(v[i])
         free(v)
         free(e)
         return F
@@ -885,6 +887,8 @@ cdef class ntl_ZZ_pX:
             r.x = v[i][0]
             F.append(r)
             #F.append(make_ZZ_p(v[i], self.c))
+        for i from 0 <= i < n:
+            ZZ_p_delete(v[i])
         free(v)
         return F
 

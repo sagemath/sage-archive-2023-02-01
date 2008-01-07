@@ -263,14 +263,23 @@ class SageElement(ExpectElement):
         return SageFunction(self, attrname)
 
     def _sage_(self):
+        """
+        Return local copy of self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: F == sage0(F)._sage_()
+            True
+        """
         P = self.parent()
         if P.is_remote():
             P.eval('save(%s, "%s")'%(self.name(), P._remote_tmpfile()))
             P._get_tmpfile_from_server(self)
             return load(P._local_tmp_file())
         else:
-            P.eval('dumps(%s, "%s")'%(self.name(), P._local_tmpfile()))
-            return loads(open(P._local_tmpfile()).read())
+            P.eval('save(%s, "%s")'%(self.name(), P._local_tmpfile()))
+            return load(P._local_tmpfile())
 
 class SageFunction(FunctionElement):
     def __call__(self, *args):

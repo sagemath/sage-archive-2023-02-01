@@ -170,9 +170,15 @@ class MPolynomialRoundSystem_generic(SageObject):
 
     def __cmp__(self, other):
         """
-        The internal dictionaries are compared.
+        Compare the ring and generators of self and other.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: F == copy(F) # indirect doctest
+            True
         """
-        return cmp(self.__dict__, other.__dict__)
+        return cmp((self._ring, self._gens),(other._ring, other._gens))
 
     def ring(self):
         """
@@ -477,9 +483,15 @@ class MPolynomialSystem_generic(SageObject):
 
     def __cmp__(self, other):
         """
-        The internal dictionaries are compared.
+        Compare the ring and rounds of self and other.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: F == copy(F) # indirect doctest
+            True
         """
-        return cmp(self.__dict__, other.__dict__)
+        return cmp((self._ring, self._rounds),(other._ring, other._rounds))
 
     def ring(self):
         """

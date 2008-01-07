@@ -2821,8 +2821,7 @@ class GenericGraph(SageObject):
                          edge_colors=None, edge_size=0.015,
                          pos3d=None,
                          iterations=50, color_by_label=False, **kwds):
-        from sage.plot.plot3d.all import Sphere, LineSegment, Arrow
-        line = Arrow if self.is_directed() else LineSegment
+        from sage.plot.plot3d.all import sphere, line3d, arrow3d
 
         verts = self.vertices()
 
@@ -2842,11 +2841,16 @@ class GenericGraph(SageObject):
             graphic = 0
             for color in vertex_colors:
                 for v in vertex_colors[color]:
-                    graphic += Sphere(vertex_size, color=color).translate(*pos3d[v])
+                    graphic += sphere(center=pos3d[v], size=vertex_size, color=color)
+            if self.is_directed():
+                for color in edge_colors:
+                    for u, v, l in edge_colors[color]:
+                        graphic += arrow3d(pos3d[u], pos3d[v], radius=edge_size, color=color, closed=False)
 
-            for color in edge_colors:
-                for u, v, l in edge_colors[color]:
-                    graphic += line(pos3d[u], pos3d[v], radius=edge_size, color=color, closed=False)
+            else:
+                for color in edge_colors:
+                    for u, v, l in edge_colors[color]:
+                        graphic += line3d([pos3d[u], pos3d[v]], radius=edge_size, color=color, closed=False)
 
             return graphic
 

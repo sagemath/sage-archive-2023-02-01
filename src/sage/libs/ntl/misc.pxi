@@ -12,7 +12,7 @@ cdef object string(char* s):
     _sig_off
     # Makes a python string and deletes what is pointed to by s.
     t = str(s)
-    del_charstar(s)
+    free(s)
     return t
 
 cdef object string_delete(char* s):

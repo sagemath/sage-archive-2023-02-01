@@ -1,0 +1,70 @@
+#!/bin/sh
+
+cd src
+
+
+################################################
+# If the environment variable SAGE_ATLAS is set
+# we create a site.cfg file, so that numpy will
+# link against the atlas libraries contained in
+# $SAGE_LOCAL/lib and $SAGE_LOCAL/include.
+
+
+echo "[DEFAULT]" > site.cfg
+echo "library_dirs = $SAGE_LOCAL/lib" >> site.cfg
+echo "include_dirs = $SAGE_LOCAL/include" >> site.cfg
+echo "" >> site.cfg
+
+
+if [ `uname` = "Darwin" ]; then
+    unset ATLAS
+    unset BLAS
+    unset LAPACK
+fi
+
+################################################
+
+
+
+cp ../patches/gnu.py numpy/distutils/fcompiler/gnu.py
+
+cp ../patches/__init__.py  numpy/distutils/fcompiler/__init__.py
+
+rm -rf "$SAGE_LOCAL"/lib/python/site-packages/numpy
+
+# Program around a bug in SciPY's distutils.
+#unset CFLAGS
+
+python setup.py install
+
+if [ $? -ne 0 ]; then
+    echo "Error building numpy."
+    exit 1
+fi
+
+#    ATLAS=None BLAS=None LAPACK=None python setup.py install
+#    if [ $? -ne 0 ]; then
+#        echo "Error building numpy."
+#        echo "Try setting SAGE_ATLAS to the directory that contains lib/libatlas.a ?"
+#        exit 1
+#    fi
+#fi
+
+# Now we want to be sure that it actually works, since often
+# it doesn't because of having a very old blas that numpy
+# thinks is good but actually isn't.
+
+#cd .. # to avoid running from the src directory
+#echo "import numpy" | python
+#if [ $? -ne 0 ]; then
+#    cd src
+#    echo "The numpy built just doesn't work (usually because of your system having way too old of BLAS)!"
+#    echo "Doing a complete rebuild with no optimized BLAS."
+#    rm -rf build
+#    ATLAS=None BLAS=None LAPACK=None python setup.py install
+#    if [ $? -ne 0 ]; then
+#        echo "Error building numpy."
+#        echo "Try setting SAGE_ATLAS to the directory that contains lib/libatlas.a ?"
+#        exit 1
+#    fi
+#fi

@@ -1,0 +1,11 @@
+= numpy =
+
+ToDo: This file need to be filled with loads of info!
+
+=== numpy-20080104-1.0.4.p0 (Michael Abshoff) ====
+ * add SPKG.txt
+ * create hg repo
+
+=== numpy-20080104-1.0.4 (Josh Kantor) ====
+ * update to numpy 1.0.4 (Josh Kantor)
+

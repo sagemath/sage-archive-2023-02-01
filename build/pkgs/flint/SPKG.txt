@@ -1,6 +1,9 @@
 Upstream maintainer: Bill Heart
 Website: www.flintlib.org
 
+=== flint-1.05 (Michael Abshoff) ===
+ * update to FLINT 1.05
+
 2007-12-19 (Michael Abshoff):
   + update to FLINT 1.03
   + reenable mandatory "make check"

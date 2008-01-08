@@ -3006,3 +3006,43 @@ def rainbow(n, format='hex'):
                 R.append((1.,0.,1. - r))
     return R
 
+def var_and_list_of_values(v, plot_points):
+    """
+    INPUT:
+        plot_points -- integer >= 2 (the endpoints)
+        v -- (v0, v1) or (var, v0, v1); if the former return
+             the range of values between v0 and v1 taking
+             plot_points steps; if var is given, also return var.
+
+    OUTPUT:
+        var -- a variable or None
+        list -- a list of floats
+    """
+    plot_points = int(plot_points)
+    if plot_points < 2:
+        raise ValueError, "plot_points must be positive"
+    if not isinstance(v, (tuple, list)):
+        raise TypeError, "v must be a tuple or list"
+    if len(v) == 3:
+        var = v[0]
+        a, b = v[1], v[2]
+    elif len(v) == 2:
+        var = None
+        a, b = v
+    else:
+        raise ValueError, "parametric value range must be a list of 2 or 3-tuple."
+    if plot_points == 2:
+        return var, [a, b]
+    else:
+        return var, float_range(a,b, float(b-a)/(plot_points-2))
+
+def float_range(a, b, step):
+    (a,b,step) = (float(a),float(b),float(step))
+    v = [a]
+    w = a + step
+    while w <= b:
+        v.append(w)
+        w += step
+    if w < b:
+        v.append(b)
+    return v

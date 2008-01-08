@@ -2510,11 +2510,36 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return True
 
     def heegner_discriminants(self, bound):
+        """
+        Return the list of self's Heegner discriminants between -1 and -bound.
+
+        INPUT:
+            bound (int) -- upper bound for -discriminant
+
+        OUTPUT:
+            The list of Heegner discriminants between -1 and -bound for the given elliptic curve.
+
+        EXAMPLE:
+            sage: E=EllipticCurve('11a')
+            sage: E.heegner_discriminants(30)
+            [-7, -8, -19, -24]
+        """
         return [-D for D in xrange(1,bound) if self.satisfies_heegner_hypothesis(-D)]
 
     def heegner_discriminants_list(self, n):
         """
-        List of the first n Heegner discriminants for self.
+        Return the list of self's first n Heegner discriminants smaller than -5.
+
+        INPUT:
+            n (int) -- the number of discriminants to compute
+
+        OUTPUT:
+            The list of the first n Heegner discriminants smaller than -5 for the given elliptic curve.
+
+        EXAMPLE:
+            sage: E=EllipticCurve('11a')
+            sage: E.heegner_discriminants_list(4)
+            [-7, -8, -19, -24]
         """
         v = []
         D = -5

@@ -581,6 +581,124 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
 
 
 
+def padic_height_via_multiply(self, p, prec=20, check_hypotheses=True):
+    r"""
+    Computes the cyclotomic p-adic height.
+
+    The equation of the curve must be minimal at $p$.
+
+    INPUT:
+        p -- prime >= 5 for which the curve has good ordinary reduction
+        prec -- integer >= 2, desired precision of result
+        check_hypotheses -- boolean, whether to check that this is a
+             curve for which the p-adic height makes sense
+
+    OUTPUT:
+        A function that accepts two parameters:
+          * a Q-rational point on the curve whose height should be computed
+          * optional boolean flag "check": if False, it skips some
+            input checking,
+        and returns the p-adic height of that point to the desired
+        precision.
+
+    AUTHORS:
+        -- David Harvey (2008-01): based on the padic_height() function,
+        using the algorithm of ``Computing p-adic heights via point
+        multiplication''
+
+    EXAMPLES:
+        sage: E = EllipticCurve("37a")
+        sage: P = E.gens()[0]
+        sage: h = E.padic_height_via_multiply(5, 10)
+        sage: h(P)
+        4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + O(5^10)
+
+    An anomalous case:
+        sage: h = E.padic_height_via_multiply(53, 10)
+        sage: h(P)
+        27*53^-1 + 22 + 32*53 + 5*53^2 + 42*53^3 + 20*53^4 + 43*53^5 + 30*53^6 + 17*53^7 + 22*53^8 + 35*53^9 + O(53^10)
+
+    Boundary case:
+        sage: E.padic_height_via_multiply(5, 3)(P)
+        4*5 + 3*5^2 + O(5^3)
+
+    Check that answers agree over a range of precisions:
+        sage: max_prec = 30    # make sure we get past p^2    # long time
+        sage: full = E.padic_height(5, max_prec)(P)           # long time
+        sage: for prec in range(2, max_prec):                 # long time
+        ...       assert E.padic_height_via_multiply(5, prec)(P) == full   # long time
+
+    """
+    if check_hypotheses:
+        if not p.is_prime():
+            raise ValueError, "p = (%s) must be prime"%p
+        if p == 2:
+            raise ValueError, "p must be odd"   # todo
+        if self.conductor() % p == 0:
+            raise ArithmeticError, "must have good reduction at p"
+        if self.ap(p) % p == 0:
+            raise ArithmeticError, "must be ordinary at p"
+
+    prec = int(prec)
+    if prec < 1:
+        raise ValueError, "prec (=%s) must be at least 1" % prec
+
+    # For notation and definitions, see ``Computing p-adic heights via point
+    # multiplication'' (David Harvey, still in draft form)
+
+    n1 = self.change_ring(rings.GF(p)).cardinality()
+    n2 = arith.LCM(self.tamagawa_numbers())
+    n = arith.LCM(n1, n2)
+    m = int(n / n2)
+
+    lamb = int(math.floor(math.sqrt(prec)))
+
+    adjusted_prec = prec + 2 * arith.valuation(n, p)   # this is M'
+    R = rings.Integers(p ** (adjusted_prec + 2*lamb))
+
+    sigma = self.padic_sigma_truncated(p, N=adjusted_prec, lamb=lamb)
+
+    # K is the field for the final result
+    K = Qp(p, prec=adjusted_prec-1)
+    E = self
+
+    def height(P, check=True):
+        if P.is_finite_order():
+            return K(0)
+
+        if check:
+            assert P.curve() == E, "the point P must lie on the curve " \
+                   "from which the height function was created"
+
+        Q = n2 * P
+        alpha, beta, d = _multiply_point(E, R, Q, m * p**lamb)
+
+        assert beta.lift() % p != 0, "beta should be a unit!"
+        assert d.lift() % p == 0, "d should not be a unit!"
+
+        t = -d * alpha / beta
+
+        total = R(1)
+        t_power = t
+        for k in range(2, sigma.prec()):
+            total = total + t_power * sigma[k].lift()
+            t_power = t_power * t
+        total = (-alpha / beta) * total
+
+        L = Qp(p, prec=adjusted_prec + 2*lamb)
+        total = L(total.lift(), adjusted_prec + 2*lamb)
+        answer = total.log() * 2 / (n * p**lamb)**2
+
+        if check:
+            assert answer.precision_absolute() >= prec, "we should have got an " \
+                   "answer with precision at least prec, but we didn't."
+        return K(answer)
+
+
+    # (man... I love python's local function definitions...)
+    return height
+
+
 def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     r"""
     Computes the p-adic sigma function with respect to the standard

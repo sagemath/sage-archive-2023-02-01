@@ -106,7 +106,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 if order.blocks[0][0] != order.blocks[i][0]:
                     raise ValueError, "Each block should have the same order type (deglex or degrevlex) for block orderings."
 
-        PBRing_construct(&self._R, n, pb_order_code)
+        PBRing_construct(&self._pbring, n, pb_order_code)
 
         MPolynomialRing_generic.__init__(self, GF(2), n, names, order)
 
@@ -117,19 +117,19 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         for i in range(self.ngens()):
             _n = self._names[i]
-            self._R.setRingVariableName(i,_n)
+            self._pbring.setRingVariableName(i,_n)
 
         self._zero_element = new_BP(self)
-        PBPoly_construct_int(&(<BooleanPolynomial>self._zero_element)._P, 0)
+        PBPoly_construct_int(&(<BooleanPolynomial>self._zero_element)._pbpoly, 0)
         self._one_element  = new_BP(self)
-        PBPoly_construct_int(&(<BooleanPolynomial>self._one_element)._P, 1)
+        PBPoly_construct_int(&(<BooleanPolynomial>self._one_element)._pbpoly, 1)
 
         self._monom_monoid = BooleanMonomialMonoid(self)
 
         set_cring(self)
 
     def __dealloc__(self):
-        PBRing_destruct(&self._R)
+        PBRing_destruct(&self._pbring)
 
     def ngens(self):
         """
@@ -144,7 +144,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P.ngens()
             1000
         """
-        return self._R.nVariables()
+        return self._pbring.nVariables()
 
     def gen(self, int n=0):
         """
@@ -157,7 +157,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P.gen(2)
             z
         """
-        return new_BP_from_DD(self, self._R.variable(n))
+        return new_BP_from_DD(self, self._pbring.variable(n))
 
     def gens(self):
         """
@@ -172,7 +172,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P.gens()
             (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
         """
-        return tuple([new_BP_from_DD(self, self._R.variable(i)) \
+        return tuple([new_BP_from_DD(self, self._pbring.variable(i)) \
                 for i in xrange(self.ngens())])
 
     def _repr_(self):
@@ -182,7 +182,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P
             Boolean PolynomialRing in x, y
         """
-        self._R.activate()
+        self._pbring.activate()
         gens = ", ".join(map(str,self.gens()))
         return "Boolean PolynomialRing in %s"%(gens)
 
@@ -281,10 +281,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         cdef BooleanPolynomial p
         if PY_TYPE_CHECK(other, BooleanMonomial):
             if (<BooleanMonomial>other)._parent._ring is self:
-                p = new_BP_from_PBMonom(self, (<BooleanMonomial>other)._M)
+                p = new_BP_from_PBMonom(self, (<BooleanMonomial>other)._pbmonom)
                 return p
             elif (<BooleanMonomial>other)._parent.ngens() <= \
-                    self._R.nVariables():
+                    self._pbring.nVariables():
                 try:
                     var_mapping = get_var_mapping(self, other.parent())
                 except NameError, msg:
@@ -297,7 +297,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 raise ValueError, "cannot coerce monomial %s to %s: %s"%(other,self,msg)
         elif PY_TYPE_CHECK(other,BooleanPolynomial) and \
             ((<BooleanPolynomialRing>(<BooleanPolynomial>other)\
-            ._parent)._R.nVariables() <= self._R.nVariables()):
+            ._parent)._pbring.nVariables() <= self._pbring.nVariables()):
                     try:
                         var_mapping = get_var_mapping(self, other.parent())
                     except NameError, msg:
@@ -312,7 +312,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         elif (PY_TYPE_CHECK(other, MPolynomial) or \
                 PY_TYPE_CHECK(other, Polynomial)) and \
                 self.base_ring().has_coerce_map_from(other.base_ring()) and \
-                (other.parent().ngens() <= self._R.nVariables()):
+                (other.parent().ngens() <= self._pbring.nVariables()):
                     try:
                         var_mapping = get_var_mapping(self, other.parent())
                     except NameError, msg:
@@ -391,9 +391,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         # we check for other PolyBoRi types first since this conversion
         # is used by the PolyBoRi python code often
         if PY_TYPE_CHECK(other, DD):
-            return new_BP_from_DD(self, (<DD>other)._D)
+            return new_BP_from_DD(self, (<DD>other)._pbdd)
         elif PY_TYPE_CHECK(other, BooleSet):
-            return new_BP_from_PBSet(self, (<BooleSet>other)._S)
+            return new_BP_from_PBSet(self, (<BooleSet>other)._pbset)
 
         try:
             return self._coerce_c(other)
@@ -403,7 +403,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             pass
 
         if PY_TYPE_CHECK(other, BooleanMonomial) and \
-            ((<BooleanMonomial>other)._M.deg() <= self._R.nVariables()):
+            ((<BooleanMonomial>other)._pbmonom.deg() <= self._pbring.nVariables()):
                 try:
                     var_mapping = get_var_mapping(self, other)
                 except NameError, msg:
@@ -413,8 +413,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                     p *= var_mapping[i]
                 return p
         elif PY_TYPE_CHECK(other,BooleanPolynomial) and \
-                ((<BooleanPolynomial>other)._P.nUsedVariables() <= \
-                self._R.nVariables()):
+                ((<BooleanPolynomial>other)._pbpoly.nUsedVariables() <= \
+                self._pbring.nVariables()):
                     try:
                         var_mapping = get_var_mapping(self, other)
                     except NameError, msg:
@@ -576,7 +576,7 @@ class BooleanMonomialMonoid(Monoid_class):
         ParentWithGens.__init__(self, GF(2), polring._names)
 
         m = new_BM(self)
-        PBMonom_construct(&m._M)
+        PBMonom_construct(&m._pbmonom)
         self._one_element = m
 
     def _repr_(self):
@@ -618,7 +618,7 @@ class BooleanMonomialMonoid(Monoid_class):
             x50
         """
         return new_BM_from_DD(self,
-                (<BooleanPolynomialRing>self._ring)._R.variable(n))
+                (<BooleanPolynomialRing>self._ring)._pbring.variable(n))
 
     def gens(self):
         """
@@ -631,7 +631,7 @@ class BooleanMonomialMonoid(Monoid_class):
             (x, y, z)
         """
         return tuple([new_BM_from_DD(self,
-            (<BooleanPolynomialRing>self._ring)._R.variable(i)) \
+            (<BooleanPolynomialRing>self._ring)._pbring.variable(i)) \
                 for i in xrange(self.ngens())])
 
     def _coerce_impl(self, other):
@@ -675,7 +675,7 @@ class BooleanMonomialMonoid(Monoid_class):
         """
         if PY_TYPE_CHECK(other, BooleanMonomial) and \
             ((<BooleanMonomial>other)._parent.ngens() <= \
-            (<BooleanPolynomialRing>self._ring)._R.nVariables()):
+            (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                 try:
                     var_mapping = get_var_mapping(self, other.parent())
                 except NameError, msg:
@@ -746,17 +746,17 @@ class BooleanMonomialMonoid(Monoid_class):
             pass
 
         if PY_TYPE_CHECK(other, BooleanPolynomial) and \
-            (<BooleanPolynomial>other)._P.isSingleton():
+            (<BooleanPolynomial>other)._pbpoly.isSingleton():
                 if (<BooleanPolynomial>other)._parent is self._ring:
                     return new_BM_from_PBMonom(self,
-                            (<BooleanPolynomial>other)._P.lead())
-                elif ((<BooleanPolynomial>other)._P.nUsedVariables() <= \
-                    (<BooleanPolynomialRing>self._ring)._R.nVariables()):
+                            (<BooleanPolynomial>other)._pbpoly.lead())
+                elif ((<BooleanPolynomial>other)._pbpoly.nUsedVariables() <= \
+                    (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                         try:
                             var_mapping = get_var_mapping(self, other)
                         except NameError, msg:
                             raise ValueError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
-                        t = (<BooleanPolynomial>other)._P.lead()
+                        t = (<BooleanPolynomial>other)._pbpoly.lead()
 
                         m = self._one_element
                         for i in new_BMI_from_PBMonomIter(t, t.begin()):
@@ -766,8 +766,8 @@ class BooleanMonomialMonoid(Monoid_class):
                     raise ValueError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
 
         elif PY_TYPE_CHECK(other, BooleanMonomial) and \
-            ((<BooleanMonomial>other)._M.deg() <= \
-            (<BooleanPolynomialRing>self._ring)._R.nVariables()):
+            ((<BooleanMonomial>other)._pbmonom.deg() <= \
+            (<BooleanPolynomialRing>self._ring)._pbring.nVariables()):
                 try:
                     var_mapping = get_var_mapping(self, other)
                 except NameError, msg:
@@ -797,11 +797,11 @@ cdef class BooleanMonomial(MonoidElement):
             parent -- parent monoid this element lies in
 
         """
-        PBMonom_construct(&self._M)
+        PBMonom_construct(&self._pbmonom)
         _parent = <ParentWithBase>parent
 
     def __dealloc__(self):
-        PBMonom_destruct(&self._M)
+        PBMonom_destruct(&self._pbmonom)
 
     def __richcmp__(left, right, int op):
         # boilerplate code from sage.structure.parent
@@ -830,7 +830,7 @@ cdef class BooleanMonomial(MonoidElement):
             True
         """
         cdef comparecodes res
-        res = left._M.compare((<BooleanMonomial>right)._M)
+        res = left._pbmonom.compare((<BooleanMonomial>right)._pbmonom)
         return res
 
     def _repr_(self):
@@ -847,14 +847,14 @@ cdef class BooleanMonomial(MonoidElement):
             sage: M(x*y)
             x*y
         """
-        (<BooleanPolynomialRing>self._parent._ring)._R.activate()
-        return PBMonom_to_str(&self._M)
+        (<BooleanPolynomialRing>self._parent._ring)._pbring.activate()
+        return PBMonom_to_str(&self._pbmonom)
 
     def __hash__(self):
         """
         Return a hash of self.
         """
-        return self._M.hash()
+        return self._pbmonom.hash()
 
     def deg(BooleanMonomial self):
         """
@@ -869,7 +869,7 @@ cdef class BooleanMonomial(MonoidElement):
             sage: M(x*x*y*z).deg()
             3
         """
-        return self._M.deg()
+        return self._pbmonom.deg()
 
     def __len__(BooleanMonomial self):
         """
@@ -881,7 +881,7 @@ cdef class BooleanMonomial(MonoidElement):
             sage: len(M(x*y))
             2
         """
-        return self._M.deg()
+        return self._pbmonom.deg()
 
     def __iter__(self):
         """
@@ -893,7 +893,7 @@ cdef class BooleanMonomial(MonoidElement):
             sage: list(iter(M(x*z)))
             [0, 2]
         """
-        return new_BMI_from_PBMonomIter(self._M, self._M.begin())
+        return new_BMI_from_PBMonomIter(self._pbmonom, self._pbmonom.begin())
 
     cdef MonoidElement _mul_c_impl(left, MonoidElement right):
         """
@@ -922,8 +922,8 @@ cdef class BooleanMonomial(MonoidElement):
             x
         """
         cdef BooleanMonomial m = new_BM_from_PBMonom(\
-                (<BooleanMonomial>left)._parent, (<BooleanMonomial>left)._M)
-        m._M.imul( (<BooleanMonomial>right)._M )
+                (<BooleanMonomial>left)._parent, (<BooleanMonomial>left)._pbmonom)
+        m._pbmonom.imul( (<BooleanMonomial>right)._pbmonom )
         return m
 
     def __add__(left, right):
@@ -964,7 +964,7 @@ cdef class BooleanMonomial(MonoidElement):
         else:
             raise TypeError, "BooleanMonomial.__add__ called with not supported types %s and %s" %(type(right),type(left))
 
-        res = new_BP_from_PBMonom(monom._parent._ring, monom._M)
+        res = new_BP_from_PBMonom(monom._parent._ring, monom._pbmonom)
         return res.__iadd__(other)
 
 
@@ -979,17 +979,17 @@ cdef inline BooleanMonomial new_BM(parent):
 
 cdef inline BooleanMonomial new_BM_from_PBMonom(parent, PBMonom juice):
     cdef BooleanMonomial m = new_BM(parent)
-    PBMonom_construct_pbmonom(&m._M,juice)
+    PBMonom_construct_pbmonom(&m._pbmonom,juice)
     return m
 
 cdef inline BooleanMonomial new_BM_from_PBVar(parent, PBVar juice):
     cdef BooleanMonomial m = new_BM(parent)
-    PBMonom_construct_pbvar(&m._M,juice)
+    PBMonom_construct_pbvar(&m._pbmonom,juice)
     return m
 
 cdef inline BooleanMonomial new_BM_from_DD(parent, PBDD juice):
     cdef BooleanMonomial m = new_BM(parent)
-    PBMonom_construct_dd(&m._M,juice)
+    PBMonom_construct_dd(&m._pbmonom,juice)
     return m
 
 cdef class BooleanMonomialIterator:
@@ -1022,23 +1022,23 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         Construct a BooleanPolynomial object in the given BooleanPolynomialRing.
         """
-        PBPoly_construct(&self._P)
+        PBPoly_construct(&self._pbpoly)
         self._parent = <ParentWithBase>parent
 
     def __dealloc__(self):
-        PBPoly_destruct(&self._P)
+        PBPoly_destruct(&self._pbpoly)
 
     def _repr_(self):
         """
         Return a string representing self.
         """
-        (<BooleanPolynomialRing>self._parent)._R.activate()
-        return PBPoly_to_str(&self._P)
+        (<BooleanPolynomialRing>self._parent)._pbring.activate()
+        return PBPoly_to_str(&self._pbpoly)
 
     cdef ModuleElement _add_c_impl(left, ModuleElement right):
         cdef BooleanPolynomial p = new_BP_from_PBPoly(\
-                (<BooleanPolynomial>left)._parent, (<BooleanPolynomial>left)._P)
-        p._P.iadd( (<BooleanPolynomial>right)._P )
+                (<BooleanPolynomial>left)._parent, (<BooleanPolynomial>left)._pbpoly)
+        p._pbpoly.iadd( (<BooleanPolynomial>right)._pbpoly )
         return p
 
     cdef ModuleElement _sub_c_impl(left, ModuleElement right):
@@ -1046,7 +1046,7 @@ cdef class BooleanPolynomial(MPolynomial):
 
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
         if left:
-            return new_BP_from_PBPoly(left._parent, self._P)
+            return new_BP_from_PBPoly(left._parent, self._pbpoly)
         else:
             return 0
 
@@ -1055,12 +1055,12 @@ cdef class BooleanPolynomial(MPolynomial):
 
     cdef RingElement _mul_c_impl(left, RingElement right):
         cdef BooleanPolynomial p = new_BP_from_PBPoly(\
-                (<BooleanPolynomial>left)._parent, (<BooleanPolynomial>left)._P)
-        p._P.imul( (<BooleanPolynomial>right)._P )
+                (<BooleanPolynomial>left)._parent, (<BooleanPolynomial>left)._pbpoly)
+        p._pbpoly.imul( (<BooleanPolynomial>right)._pbpoly )
         return p
 
     def is_equal(self, BooleanPolynomial right):
-        return self._P.is_equal(right._P)
+        return self._pbpoly.is_equal(right._pbpoly)
 
     def __richcmp__(left, right, int op):
         #boilerplate from sage.structure.element
@@ -1120,8 +1120,8 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: R
             Boolean PolynomialRing in y
         """
-        (<BooleanPolynomialRing>self._parent)._R.activate()
-        return new_BPI_from_PBPolyIter(self, self._P.orderedBegin())
+        (<BooleanPolynomialRing>self._parent)._pbring.activate()
+        return new_BPI_from_PBPolyIter(self, self._pbpoly.orderedBegin())
 
     def __pow__(BooleanPolynomial self, int exp, ignored):
         """
@@ -1155,9 +1155,9 @@ cdef class BooleanPolynomial(MPolynomial):
             return self
         elif exp == 0:
             return self._parent._one_element
-        elif self._P.isOne():
+        elif self._pbpoly.isOne():
             return self
-        elif self._P.isZero():
+        elif self._pbpoly.isZero():
             raise ZeroDivisionError
         else:
             raise NotImplementedError, "Negative exponents for non constant boolean polynomials not implemented."
@@ -1183,10 +1183,10 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: (x*y + x + y + 1).total_degree()
             2
         """
-        return self._P.deg()
+        return self._pbpoly.deg()
 
     def degree(self):
-        return self._P.deg()
+        return self._pbpoly.deg()
 
     def lm(BooleanPolynomial self):
         """
@@ -1201,7 +1201,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: (x+y+y*z).lm()
             y*z
         """
-        return new_BM_from_PBMonom(self._parent._monom_monoid, self._P.lead())
+        return new_BM_from_PBMonom(self._parent._monom_monoid, self._pbpoly.lead())
 
     def lm_lex(BooleanPolynomial self):
         """
@@ -1217,7 +1217,7 @@ cdef class BooleanPolynomial(MPolynomial):
             x
         """
         return new_BM_from_PBMonom(self._parent._monom_monoid,
-                                                self._P.lexLead())
+                                                self._pbpoly.lexLead())
 
     def lt(BooleanPolynomial self):
         """
@@ -1251,7 +1251,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: P(1).is_zero()
             False
         """
-        return self._P.isZero()
+        return self._pbpoly.isZero()
 
     def is_one(BooleanPolynomial self):
         """
@@ -1271,7 +1271,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: P(0).is_one()
             False
         """
-        return self._P.isOne()
+        return self._pbpoly.isOne()
 
     def is_unit(BooleanPolynomial self):
         """
@@ -1287,7 +1287,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: x.is_unit()
             False
         """
-        return self._P.isOne()
+        return self._pbpoly.isOne()
 
     def is_constant(BooleanPolynomial self):
         """
@@ -1307,7 +1307,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: (x*y).is_constant()
             False
         """
-        return self._P.isConstant()
+        return self._pbpoly.isConstant()
 
     def lm_degree(BooleanPolynomial self):
         """
@@ -1327,7 +1327,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: P(0).lm_degree()
             0
         """
-        return self._P.lmDeg()
+        return self._pbpoly.lmDeg()
 
     def vars(self):
         """
@@ -1354,11 +1354,11 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: R
             Boolean PolynomialRing in y
         """
-        (<BooleanPolynomialRing>self._parent)._R.activate()
-        return new_BM_from_PBMonom(self._parent._monom_monoid, self._P.usedVariables())
+        (<BooleanPolynomialRing>self._parent)._pbring.activate()
+        return new_BM_from_PBMonom(self._parent._monom_monoid, self._pbpoly.usedVariables())
 
     def elimination_length(self):
-        return self._P.eliminationLength()
+        return self._pbpoly.eliminationLength()
 
     def __len__(self):
         """
@@ -1378,46 +1378,46 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: len(P.zero_element())
             0
         """
-        return self._P.length()
+        return self._pbpoly.length()
 
     def set(self):
-        return new_BS_from_PBSet(self._P.set())
+        return new_BS_from_PBSet(self._pbpoly.set())
 
     def deg(self):
-        return self._P.deg()
+        return self._pbpoly.deg()
 
     def elength(self):
-        return self._P.eliminationLength()
+        return self._pbpoly.eliminationLength()
 
     def lead(self):
-        return new_BM_from_PBMonom(self._parent._monom_monoid, self._P.lead())
+        return new_BM_from_PBMonom(self._parent._monom_monoid, self._pbpoly.lead())
 
     def lexLead(self):
         return new_BM_from_PBMonom(self._parent._monom_monoid,
-                                                self._P.lexLead())
+                                                self._pbpoly.lexLead())
     def constant(self):
-        return self._P.isConstant()
+        return self._pbpoly.isConstant()
 
     def lmDeg(self):
-        return self._P.lmDeg()
+        return self._pbpoly.lmDeg()
 
     def isZero(self):
-        return self._P.isZero()
+        return self._pbpoly.isZero()
 
     def isOne(self):
-        return self._P.isOne()
+        return self._pbpoly.isOne()
 
     def navigation(self):
-        return new_CN_from_PBNavigator(self._P.navigation())
+        return new_CN_from_PBNavigator(self._pbpoly.navigation())
 
 cdef class BooleanPolynomialIterator:
     def __iter__(self):
         return self
 
     def __next__(self):
-        (<BooleanPolynomialRing>self._obj._parent)._R.activate()
+        (<BooleanPolynomialRing>self._obj._parent)._pbring.activate()
         cdef PBMonom val
-        if self._iter.equal(self._obj._P.orderedEnd()):
+        if self._iter.equal(self._obj._pbpoly.orderedEnd()):
             raise StopIteration
         val = self._iter.value()
         self._iter.next()
@@ -1475,31 +1475,31 @@ cdef inline BooleanPolynomial new_BP(BooleanPolynomialRing parent):
 cdef inline BooleanPolynomial new_BP_from_DD(BooleanPolynomialRing parent,
         PBDD juice):
     cdef BooleanPolynomial p = new_BP(parent)
-    PBPoly_construct_dd(&p._P,juice)
+    PBPoly_construct_dd(&p._pbpoly,juice)
     return p
 
 cdef inline BooleanPolynomial new_BP_from_PBPoly(BooleanPolynomialRing parent,
         PBPoly juice):
     cdef BooleanPolynomial p = new_BP(parent)
-    PBPoly_construct_pbpoly(&p._P,juice)
+    PBPoly_construct_pbpoly(&p._pbpoly,juice)
     return p
 
 cdef inline BooleanPolynomial new_BP_from_PBMonom(BooleanPolynomialRing parent,
         PBMonom juice):
     cdef BooleanPolynomial p = new_BP(parent)
-    PBPoly_construct_pbmonom(&p._P,juice)
+    PBPoly_construct_pbmonom(&p._pbpoly,juice)
     return p
 
 cdef inline BooleanPolynomial new_BP_from_PBSet(BooleanPolynomialRing parent,
         PBSet juice):
     cdef BooleanPolynomial p = new_BP(parent)
-    PBPoly_construct_pbset(&p._P,juice)
+    PBPoly_construct_pbset(&p._pbpoly,juice)
     return p
 
 cdef inline BooleanPolynomial new_BP_from_int(BooleanPolynomialRing parent,
         int juice):
     cdef BooleanPolynomial p = new_BP(parent)
-    PBPoly_construct_int(&p._P,juice)
+    PBPoly_construct_int(&p._pbpoly,juice)
     return p
 
 cdef class DD:
@@ -1507,22 +1507,22 @@ cdef class DD:
         return self
 
     def __dealloc__(self):
-        PBDD_destruct(&self._D)
+        PBDD_destruct(&self._pbdd)
 
     def empty(self):
-        return self._D.emptiness()
+        return self._pbdd.emptiness()
 
     def navigation(self):
-        return new_CN_from_PBNavigator(self._D.navigation())
+        return new_CN_from_PBNavigator(self._pbdd.navigation())
 
     def subset0(self, idx):
-        return new_DD_from_PBDD(self._D.subset0(idx))
+        return new_DD_from_PBDD(self._pbdd.subset0(idx))
 
     def subset1(self, idx):
-        return new_DD_from_PBDD(self._D.subset1(idx))
+        return new_DD_from_PBDD(self._pbdd.subset1(idx))
 
     def union(self, rhs):
-        return new_DD_from_PBDD(self._D.unite((<DD>rhs)._D))
+        return new_DD_from_PBDD(self._pbdd.unite((<DD>rhs)._pbdd))
 
 cdef inline DD new_DD_from_PBDD(PBDD juice):
     """
@@ -1530,58 +1530,58 @@ cdef inline DD new_DD_from_PBDD(PBDD juice):
     """
     cdef DD d
     d = <DD>PY_NEW(DD)
-    d._D = juice
+    d._pbdd = juice
     return d
 
 cdef class BooleSet:
     def __init__(self, param = None):
         if PY_TYPE_CHECK(param, DD):
-            PBSet_construct_dd(&self._S, (<DD>param)._D)
+            PBSet_construct_dd(&self._pbset, (<DD>param)._pbdd)
         elif PY_TYPE_CHECK(param, CCuddNavigator):
-            PBSet_construct_pbnav(&self._S, (<CCuddNavigator>param)._N)
+            PBSet_construct_pbnav(&self._pbset, (<CCuddNavigator>param)._pbnav)
         elif PY_TYPE_CHECK(param, BooleSet):
-            PBSet_construct_pbset(&self._S, (<BooleSet>param)._S)
+            PBSet_construct_pbset(&self._pbset, (<BooleSet>param)._pbset)
         else:
-            PBSet_construct(&self._S)
+            PBSet_construct(&self._pbset)
 
     def __dealloc__(self):
-        PBSet_destruct(&self._S)
+        PBSet_destruct(&self._pbset)
 
     def __call__(self):
         return self
 
     def _repr_(self):
-        return PBSet_to_str(&self._S)
+        return PBSet_to_str(&self._pbset)
 
     def empty(self):
-        return self._S.emptiness()
+        return self._pbset.emptiness()
 
     def navigation(self):
-        return new_CN_from_PBNavigator(self._S.navigation())
+        return new_CN_from_PBNavigator(self._pbset.navigation())
 
     def cartesianProduct(self, rhs):
-        return new_BS_from_PBSet(self._S.cartesianProduct((<BooleSet>rhs)._S))
+        return new_BS_from_PBSet(self._pbset.cartesianProduct((<BooleSet>rhs)._pbset))
 
     def diff(self, rhs):
-        return new_BS_from_PBSet(self._S.diff((<BooleSet>rhs)._S))
+        return new_BS_from_PBSet(self._pbset.diff((<BooleSet>rhs)._pbset))
 
     def change(self, ind):
-        return new_BS_from_PBSet(self._S.change(ind))
+        return new_BS_from_PBSet(self._pbset.change(ind))
 
     def usedVariables(self):
         return new_BM_from_PBMonom(get_cring()._monom_monoid,
-                                            self._S.usedVariables())
+                                            self._pbset.usedVariables())
 
     def if_then_else(self, int ind, BooleSet a, BooleSet b):
         cdef PBSet res
         if ind >= a.navigation().value() or ind >= b.navigation().value():
             raise IndexError, "value of ind must be less than the values of roots of the branches."
-        PBSet_construct_indsetset(&res, ind, a._S.navigation(),
-                b._S.navigation());
+        PBSet_construct_indsetset(&res, ind, a._pbset.navigation(),
+                b._pbset.navigation());
         return new_BS_from_PBSet(res)
 
     def union(self, rhs):
-        return new_BS_from_PBSet(self._S.unite((<BooleSet>rhs)._S))
+        return new_BS_from_PBSet(self._pbset.unite((<BooleSet>rhs)._pbset))
 
     def __iter__(self):
         return new_BSI_from_PBSetIter(self, get_cring())
@@ -1593,7 +1593,7 @@ cdef inline BooleSet new_BS_from_PBSet(PBSet juice):
     """
     cdef BooleSet s
     s = <BooleSet>PY_NEW(BooleSet)
-    s._S = juice
+    s._pbset = juice
     return s
 
 cdef inline BooleSet new_BS_from_PBDD(PBDD juice):
@@ -1602,7 +1602,7 @@ cdef inline BooleSet new_BS_from_PBDD(PBDD juice):
     """
     cdef BooleSet s
     s = <BooleSet>PY_NEW(BooleSet)
-    PBSet_construct_dd(&s._S, juice)
+    PBSet_construct_dd(&s._pbset, juice)
     return s
 
 cdef class BooleSetIterator:
@@ -1611,7 +1611,7 @@ cdef class BooleSetIterator:
 
     def __next__(self):
         cdef PBMonom val
-        if self._iter.equal(self._obj._S.end()):
+        if self._iter.equal(self._obj._pbset.end()):
             raise StopIteration
         val = self._iter.value()
         self._iter.next()
@@ -1626,7 +1626,7 @@ cdef inline BooleSetIterator new_BSI_from_PBSetIter(\
     m = <BooleSetIterator>PY_NEW(BooleSetIterator)
     m._obj = parent
     m._ring = cring
-    m._iter = parent._S.begin()
+    m._iter = parent._pbset.begin()
     return m
 
 cdef class CCuddNavigator:
@@ -1634,22 +1634,22 @@ cdef class CCuddNavigator:
         return self
 
     def __dealloc__(self):
-        PBNavigator_destruct(&self._N)
+        PBNavigator_destruct(&self._pbnav)
 
     def value(self):
-        return self._N.value()
+        return self._pbnav.value()
 
     def elseBranch(self):
-        return new_CN_from_PBNavigator(self._N.elseBranch())
+        return new_CN_from_PBNavigator(self._pbnav.elseBranch())
 
     def thenBranch(self):
-        return new_CN_from_PBNavigator(self._N.thenBranch())
+        return new_CN_from_PBNavigator(self._pbnav.thenBranch())
 
     def constant(self):
-        return self._N.isConstant()
+        return self._pbnav.isConstant()
 
     def terminalOne(self):
-        return self._N.isTerminated()
+        return self._pbnav.isTerminated()
 
 cdef class BooleanPolynomialVector:
     def __init__(self):
@@ -1672,7 +1672,7 @@ cdef class BooleanPolynomialVector:
         return new_BP_from_PBPoly(self._parent, self._vec.get(ind))
 
     def append(self, BooleanPolynomial poly):
-        self._vec.push_back(poly._P)
+        self._vec.push_back(poly._pbpoly)
 
 cdef inline BooleanPolynomialVector new_BPV_from_PBPolyVector(\
         BooleanPolynomialRing parent, PBPolyVector juice):
@@ -1718,160 +1718,160 @@ cdef class GroebnerStrategy:
     def __init__(self, param = None):
         self._parent = get_cring()
         if PY_TYPE_CHECK(param, GroebnerStrategy):
-            GBStrategy_construct_gbstrategy(&self._S,
-                    (<GroebnerStrategy>param)._S)
+            GBStrategy_construct_gbstrategy(&self._strat,
+                    (<GroebnerStrategy>param)._strat)
         else:
-            GBStrategy_construct(&self._S)
+            GBStrategy_construct(&self._strat)
 
     def __dealloc__(self):
-        GBStrategy_destruct(&self._S)
+        GBStrategy_destruct(&self._strat)
 
     def addGeneratorDelayed(self, BooleanPolynomial p):
         if p.isZero():
             raise ValueError, "zero generators not allowed."
-        self._S.addGeneratorDelayed(p._P)
+        self._strat.addGeneratorDelayed(p._pbpoly)
 
     def addGenerator(self, BooleanPolynomial p, bint is_impl=False):
         if p.isZero():
             raise ValueError, "zero generators not allowed."
-        if self._S.leadingTerms.owns(p._P.lead()):
+        if self._strat.leadingTerms.owns(p._pbpoly.lead()):
             raise ValueError, "strategy already contains a polynomial with same lead"
-        return self._S.addGenerator(p._P, is_impl)
+        return self._strat.addGenerator(p._pbpoly, is_impl)
 
     def addAsYouWish(self, BooleanPolynomial p):
         if p.isZero():
             raise ValueError, "zero generators not allowed."
-        self._S.addAsYouWish(p._P)
+        self._strat.addAsYouWish(p._pbpoly)
 
     def implications(self, ind):
-        implications(self._S, ind)
+        implications(self._strat, ind)
 
     def cleanTopByChainCriterion(self):
-        self._S.cleanTopByChainCriterion()
+        self._strat.cleanTopByChainCriterion()
 
     def symmGB_F2(self):
-        self._S.symmGB_F2()
+        self._strat.symmGB_F2()
 
     def containsOne(self):
-        return self._S.containsOne()
+        return self._strat.containsOne()
 
     def faugereStepDense(self, BooleanPolynomialVector v):
         return new_BPV_from_PBPolyVector(self._parent,
-                                    self._S.faugereStepDense(v._vec))
+                                    self._strat.faugereStepDense(v._vec))
 
     def minimalize(self):
-        return new_BPV_from_PBPolyVector(self._parent, self._S.minimalize())
+        return new_BPV_from_PBPolyVector(self._parent, self._strat.minimalize())
 
     def minimalizeAndTailReduce(self):
         return new_BPV_from_PBPolyVector(self._parent,
-                                    self._S.minimalizeAndTailReduce())
+                                    self._strat.minimalizeAndTailReduce())
 
     def npairs(self):
-        return self._S.npairs()
+        return self._strat.npairs()
 
     def topSugar(self):
-        return pairs_top_sugar(self._S)
+        return pairs_top_sugar(self._strat)
 
     def someSpolysInNextDegree(self, n):
-        cdef PBPolyVector v = someNextDegreeSpolys(self._S, n)
+        cdef PBPolyVector v = someNextDegreeSpolys(self._strat, n)
         return new_BPV_from_PBPolyVector(self._parent, v)
 
     def __len__(self):
-        return self._S.nGenerators()
+        return self._strat.nGenerators()
 
     def __getitem__(self, int i):
         #FIXME: no index checking
-        return new_BP_from_PBPoly(self._parent, GB_get_ith_gen(self._S, i))
+        return new_BP_from_PBPoly(self._parent, GB_get_ith_gen(self._strat, i))
 
     def __getattr__(self, name):
         if name is 'enabledLog':
-            return self._S.enabledLog
+            return self._strat.enabledLog
         if name is 'reductionSteps':
-            return self._S.reductionSteps
+            return self._strat.reductionSteps
         if name is 'normalForms':
-            return self._S.normalForms
+            return self._strat.normalForms
         if name is 'currentDegree':
-            return self._S.currentDegree
+            return self._strat.currentDegree
         if name is 'chainCriterions':
-            return self._S.chainCriterions
+            return self._strat.chainCriterions
         if name is 'variableChainCriterions':
-            return self._S.variableChainCriterions
+            return self._strat.variableChainCriterions
         if name is 'easyProductCriterions':
-            return self._S.easyProductCriterions
+            return self._strat.easyProductCriterions
         if name is 'extendedProductCriterions':
-            return self._S.extendedProductCriterions
+            return self._strat.extendedProductCriterions
         if name is 'averageLength':
-            return self._S.averageLength
+            return self._strat.averageLength
         if name is 'optRedTail':
-            return self._S.optRedTail
+            return self._strat.optRedTail
         if name is 'optLazy':
-            return self._S.optLazy
+            return self._strat.optLazy
         if name is 'optLL':
-            return self._S.optLL
+            return self._strat.optLL
         if name is 'optDelayNonMinimals':
-            return self._S.optDelayNonMinimals
+            return self._strat.optDelayNonMinimals
         if name is 'optBrutalReductions':
-            return self._S.optBrutalReductions
+            return self._strat.optBrutalReductions
         if name is 'optExchange':
-            return self._S.optExchange
+            return self._strat.optExchange
         if name is 'optAllowRecursion':
-            return self._S.optAllowRecursion
+            return self._strat.optAllowRecursion
         if name is 'optRedTailDegGrowth':
-            return self._S.optRedTailDegGrowth
+            return self._strat.optRedTailDegGrowth
         if name is 'optStepBounded':
-            return self._S.optStepBounded
+            return self._strat.optStepBounded
         if name is 'optLinearAlgebraInLastBlock':
-            return self._S.optLinearAlgebraInLastBlock
+            return self._strat.optLinearAlgebraInLastBlock
         if name is 'optRedTailInLastBlock':
-            return self._S.optRedTailInLastBlock,
+            return self._strat.optRedTailInLastBlock,
         if name is 'redByReduced':
-            return self._S.reduceByTailReduced
+            return self._strat.reduceByTailReduced
         if name is 'monomials':
-            return new_BS_from_PBSet(self._S.monomials)
+            return new_BS_from_PBSet(self._strat.monomials)
         if name is 'minimalLeadingTerms':
-            return new_BS_from_PBSet(self._S.minimalLeadingTerms)
+            return new_BS_from_PBSet(self._strat.minimalLeadingTerms)
         if name is 'leadingTerms':
-            return new_BS_from_PBSet(self._S.leadingTerms)
+            return new_BS_from_PBSet(self._strat.leadingTerms)
         if name is 'llReductor':
-            return new_BS_from_PBSet(self._S.llReductor)
+            return new_BS_from_PBSet(self._strat.llReductor)
         else:
             raise AttributeError, name
 
     def __setattr__(self, name, val):
         if name is 'enabledLog':
-            self._S.enabledLog = val
+            self._strat.enabledLog = val
         elif name is 'reductionSteps':
-            self._S.reductionSteps = val
+            self._strat.reductionSteps = val
         elif name is 'normalForms':
-            self._S.normalForms = val
+            self._strat.normalForms = val
         elif name is 'currentDegree':
-            self._S.currentDegree = val
+            self._strat.currentDegree = val
         elif name is 'averageLength':
-            self._S.averageLength = val
+            self._strat.averageLength = val
         elif name == 'optRedTail':
-            self._S.optRedTail = val
+            self._strat.optRedTail = val
         elif name is 'optLazy':
-            self._S.optLazy = val
+            self._strat.optLazy = val
         elif name is 'optLL':
-            self._S.optLL = val
+            self._strat.optLL = val
         elif name is 'optDelayNonMinimals':
-            self._S.optDelayNonMinimals = val
+            self._strat.optDelayNonMinimals = val
         elif name is 'optBrutalReductions':
-            self._S.optBrutalReductions = val
+            self._strat.optBrutalReductions = val
         elif name is 'optExchange':
-            self._S.optExchange = val
+            self._strat.optExchange = val
         elif name is 'optAllowRecursion':
-            self._S.optAllowRecursion = val
+            self._strat.optAllowRecursion = val
         elif name is 'optRedTailDegGrowth':
-            self._S.optRedTailDegGrowth = val
+            self._strat.optRedTailDegGrowth = val
         elif name is 'optStepBounded':
-            self._S.optStepBounded = val
+            self._strat.optStepBounded = val
         elif name is 'optLinearAlgebraInLastBlock':
-            self._S.optLinearAlgebraInLastBlock = val
+            self._strat.optLinearAlgebraInLastBlock = val
         elif name is 'optRedTailInLastBlock':
-            self._S.optRedTailInLastBlock = val
+            self._strat.optRedTailInLastBlock = val
         elif name is 'redByReduced':
-            self._S.reduceByTailReduced = val
+            self._strat.reduceByTailReduced = val
         else:
             raise AttributeError, name
 
@@ -1881,15 +1881,15 @@ cdef inline CCuddNavigator new_CN_from_PBNavigator(PBNavigator juice):
     """
     cdef CCuddNavigator n
     n = <CCuddNavigator>PY_NEW(CCuddNavigator)
-    n._N = juice
+    n._pbnav = juice
     return n
 
 cdef class BooleVariable:
     def index(self):
-        return self._V.index()
+        return self._pbvar.index()
 
     def is_equal(self, BooleVariable other):
-        return self._V.is_equal(other._V)
+        return self._pbvar.is_equal(other._pbvar)
 
 cdef inline BooleVariable new_BV_from_PBVar(PBVar juice):
     """
@@ -1897,7 +1897,7 @@ cdef inline BooleVariable new_BV_from_PBVar(PBVar juice):
     """
     cdef BooleVariable n
     n = <BooleVariable>PY_NEW(BooleVariable)
-    n._V = juice
+    n._pbvar = juice
     return n
 
 cdef inline BooleVariable new_BV_from_int(int juice):
@@ -1906,7 +1906,7 @@ cdef inline BooleVariable new_BV_from_int(int juice):
     """
     cdef BooleVariable n
     n = <BooleVariable>PY_NEW(BooleVariable)
-    PBVar_construct_int(&n._V, juice)
+    PBVar_construct_int(&n._pbvar, juice)
     return n
 
 cdef class VariableBlock_base:
@@ -1955,42 +1955,42 @@ def free_m4ri():
 
 def recursively_insert(CCuddNavigator n, int ind, CCuddNavigator m):
     cdef PBSet b
-    b = pb_recursively_insert((<CCuddNavigator>n)._N, ind,
-                                                (<CCuddNavigator>m)._N)
+    b = pb_recursively_insert((<CCuddNavigator>n)._pbnav, ind,
+                                                (<CCuddNavigator>m)._pbnav)
     return new_BS_from_PBSet(b)
 
 def ll_red_nf(BooleanPolynomial p, BooleSet reductors):
     cdef PBPoly t
-    t = pb_ll_red_nf(p._P, reductors._S)
+    t = pb_ll_red_nf(p._pbpoly, reductors._pbset)
     return new_BP_from_PBPoly(p._parent, t)
 
 def ll_red_nf_noredsb(BooleanPolynomial p, BooleSet reductors):
     cdef PBPoly t
-    t = pb_ll_red_nf_noredsb(p._P, reductors._S)
+    t = pb_ll_red_nf_noredsb(p._pbpoly, reductors._pbset)
     return new_BP_from_PBPoly(p._parent, t)
 
 def mod_mon_set(BooleSet as, BooleSet vs):
     cdef PBSet b
-    b = pb_mod_mon_set((<BooleSet>as)._S, (<BooleSet>vs)._S)
+    b = pb_mod_mon_set((<BooleSet>as)._pbset, (<BooleSet>vs)._pbset)
     return new_BS_from_PBSet(b)
 
 def get_order_code():
     R = get_cring()
-    return (<BooleanPolynomialRing>R)._R.getOrderCode()
+    return (<BooleanPolynomialRing>R)._pbring.getOrderCode()
 
 def change_ordering(order):
     global cur_ring
     pb_change_ordering(order)
-    cur_ring._R = get_current_ring()
+    cur_ring._pbring = get_current_ring()
 
 def parallel_reduce(BooleanPolynomialVector inp, GroebnerStrategy strat, \
                                     int average_steps, double delay_f):
     return new_BPV_from_PBPolyVector(inp._parent, \
-        pb_parallel_reduce(inp._vec, strat._S, average_steps, delay_f))
+        pb_parallel_reduce(inp._vec, strat._strat, average_steps, delay_f))
 
 def have_degree_order():
     global cur_ring
-    return cur_ring._R.isDegreeOrder()
+    return cur_ring._pbring.isDegreeOrder()
 
 def set_variable_name( i, s):
     pb_set_variable_name(i, s)

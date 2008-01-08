@@ -24,6 +24,7 @@ import sage.rings.arith as arith
 from sage.rings.all import (
     Qp,
     Integers,
+    Integer,
     O,
     PowerSeriesRing,
     LaurentSeriesRing,
@@ -775,6 +776,156 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
         for k in range(N-2):
             assert temp[k].lift().valuation(p) >= N - k - 2, \
                         "sigma correctness check failed!"
+
+    return sigma
+
+
+
+
+def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True):
+    r"""
+    Computes the p-adic sigma function with respect to the standard
+    invariant differential $dx/(2y + a_1 x + a_3)$, as defined by
+    Mazur and Tate, as a power series in the usual uniformiser $t$ at the
+    origin.
+
+    The equation of the curve must be minimal at $p$.
+
+    This function differs from padic_sigma() in the precision profile of
+    the returned power series; see OUTPUT below.
+
+    INPUT:
+        p -- prime >= 5 for which the curve has good ordinary reduction
+        N -- integer >= 2, indicates precision of result; see OUTPUT
+             section for description
+        lamb -- integer >= 0, see OUTPUT section for description
+        E2 -- precomputed value of E2. If not supplied, this function will
+             call padic_E2 to compute it. The value supplied must be
+             correct mod $p^{N-2}$.
+        check_hypotheses -- boolean, whether to check that this is a
+             curve for which the p-adic sigma function makes sense
+
+    OUTPUT:
+        A power series $t + \cdots$ with coefficients in $\Z_p$.
+
+        The coefficient of $t^j$ for $j \geq 1$ will be correct to
+        precision $O(p^{N - 2 + (3 - j)(lamb + 1)})$.
+
+    ALGORITHM:
+       Described in ``Efficient Computation of p-adic Heights''
+       (David Harvey, to appear in LMS JCM), which is basically an optimised
+       version of the algorithm from ``p-adic Heights and Log Convergence''
+       (Mazur, Stein, Tate), and ``Computing p-adic heights via point
+       multiplication'' (David Harvey, still draft form).
+
+       Running time is soft-$O(N^2 \lambda^{-1} \log p)$, plus whatever time is
+       necessary to compute $E_2$.
+
+    AUTHOR:
+        -- David Harvey (2008-01): wrote based on previous padic_sigma function
+
+    EXAMPLES:
+        sage: E = EllipticCurve([-1, 1/4])
+        sage: E.padic_sigma_truncated(5, 10)
+        O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + O(5^7)*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + O(5^5)*t^6 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + O(5^3)*t^8 + (1 + 2*5 + O(5^2))*t^9 + O(5^1)*t^10 + O(t^11)
+
+    Note the precision of the t^3 coefficient depends only on N, not on lamb:
+        sage: E.padic_sigma_truncated(5, 10, lamb=2)
+        O(5^17) + (1 + O(5^14))*t + O(5^11)*t^2 + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + O(5^5)*t^4 + (2 + O(5^2))*t^5 + O(t^6)
+
+    Compare against plain padic_sigma() function over a dense range of N and lamb
+        sage: E = EllipticCurve([1, 2, 3, 4, 7])                            # long time
+        sage: E2 = E.padic_E2(5, 50)                                        # long time
+        sage: for N in range(2, 10):                                        # long time
+        ...      for lamb in range(10):                                     # long time
+        ...         correct = E.padic_sigma(5, N + 3*lamb, E2=E2)           # long time
+        ...         compare = E.padic_sigma_truncated(5, N=N, lamb=lamb, E2=E2)    # long time
+        ...         assert compare == correct                               # long time
+
+    """
+    if check_hypotheses:
+        p = __check_padic_hypotheses(self, p)
+
+    # todo: implement the p == 3 case
+    # NOTE: If we ever implement p == 3, it's necessary to check over
+    # the precision loss estimates (below) vey carefully; I think it
+    # may become necessary to compute E2 to an even higher precision.
+    if p < 5:
+        raise NotImplementedError, "p (=%s) must be at least 5" % p
+
+    N = int(N)
+    lamb = int(lamb)
+
+    if lamb < 0:
+        raise ValueError, "lamb (=%s) must be at least 0" % lamb
+
+    # a few special cases for small N
+    if N <= 1:
+        raise ValueError, "N (=%s) must be at least 2" % N
+
+    if N == 2:
+        # return t + a_1/2 t^2 + O(t^3)
+        K = Qp(p, 3*(lamb+1))
+        return PowerSeriesRing(K, "t")([K(0), K(1, 2*(lamb+1)),
+                                        K(self.a1()/2, lamb+1)], prec=3)
+
+    if self.discriminant().valuation(p) != 0:
+        raise NotImplementedError, "equation of curve must be minimal at p"
+
+    if E2 is None:
+        E2 = self.padic_E2(p, N-2, check_hypotheses=False)
+    elif E2.precision_absolute() < N-2:
+        raise ValueError, "supplied E2 has insufficient precision"
+
+    # The main part of the algorithm is exactly the same as
+    # for padic_sigma(), but we truncate all the series earlier.
+    # Want the answer O(t^(trunc+1)) instead of O(t^(N+1)) like in padic_sigma().
+    trunc = (Integer(N-2) / (lamb + 1)).ceil() + 2
+
+    QQt = LaurentSeriesRing(RationalField(), "x")
+
+    R = rings.Integers(p**(N-2))
+    X = self.change_ring(R)
+    c = (X.a1()**2 + 4*X.a2() - R(E2)) / 12
+
+    f = X.formal_group().differential(trunc+2)   # f = 1 + ... + O(t^{trunc+2})
+    x = X.formal_group().x(trunc)                # x = t^{-2} + ... + O(t^trunc)
+
+    Rt = x.parent()
+
+    A  = (x + c) * f
+    # do integral over QQ, to avoid divisions by p
+    A = Rt(QQt(A).integral())
+    A = (-X.a1()/2 - A) * f
+
+    # Convert to a power series and remove the -1/x term.
+    # Also we artifically bump up the accuracy from N-2 to N-1+lamb digits;
+    # the constant term needs to be known to N-1+lamb digits, so we compute
+    # it directly
+    assert A.valuation() == -1 and A[-1] == 1
+    A = A - A.parent().gen() ** (-1)
+    A = A.power_series().list()
+    R = rings.Integers(p**(N-1+lamb))
+    A = [R(u) for u in A]
+    A[0] = self.change_ring(R).a1()/2     # fix constant term
+    A = PowerSeriesRing(R, "x")(A, len(A))
+
+    theta = _brent(A, p, trunc)
+    sigma = theta * theta.parent().gen()
+
+    # Convert the answer to power series over p-adics; drop the precision
+    # of the $t^j$ coefficient to $p^{N - 2 + (3 - j)(lamb + 1)})$.
+    K = rings.pAdicField(p, N - 2 + 3*(lamb+1))
+
+    sigma = sigma.padded_list(trunc+1)
+
+    sigma[0] = K(0, N - 2 + 3*(lamb+1))
+    sigma[1] = K(1, N - 2 + 2*(lamb+1))
+    for j in range(2, trunc+1):
+        sigma[j] = K(sigma[j].lift(), N - 2 + (3 - j)*(lamb+1))
+
+    S = rings.PowerSeriesRing(K, "t", trunc + 1)
+    sigma = S(sigma, trunc+1)
 
     return sigma
 

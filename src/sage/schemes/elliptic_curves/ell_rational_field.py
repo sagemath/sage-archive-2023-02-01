@@ -2852,6 +2852,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     padic_height = padics.padic_height
 
     padic_sigma = padics.padic_sigma
+    padic_sigma_truncated = padics.padic_sigma_truncated
 
     padic_E2 = padics.padic_E2
 

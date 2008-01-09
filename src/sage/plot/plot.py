@@ -2378,28 +2378,30 @@ class PlotFactory(GraphicPrimitiveFactory):
             del kwds['show']
         if hasattr(funcs, 'plot'):
             G = funcs.plot(*args, **kwds)
+        # if we are using the generic plotting method
         else:
-            G = self._call(funcs, *args, **kwds)
+            n = len(args)
+            # if there is one extra arg, then it had better be a tuple
+            if n == 1:
+                G = self._call(funcs, *args, **kwds)
+            elif n == 2:
+            # if ther eare two extra args, then pull them out and pass them as a tuple
+                xmin = args[0]
+                xmax = args[1]
+                args = args[2:]
+                G = self._call(funcs, (xmin, xmax), *args, **kwds)
+            else:
+                print "there were %s extra arguments (besides %s)" % (n, funcs)
         if do_show:
             G.show()
         return G
 
-    def _call(self, funcs, xmin=None, xmax=None, parametric=False,
+    def _call(self, funcs, xrange, parametric=False,
               polar=False, label='', **kwds):
-        if xmin is None:
-            xmin = -1
-        if xmax is None:
-            xmax = 1  # defaults
         options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
-        #check to see if funcs is a list of functions that will
-        #be all plotted together.
-        if isinstance(funcs, (list, tuple)) and not parametric:
-            G = Graphics()
-            for i in range(0, len(funcs)):
-                G += plot(funcs[i], xmin=xmin, xmax=xmax, polar=polar, **kwds)
-            return G
+
         #parametric_plot will be a list or tuple of two functions (f,g)
         #and will plotted as (f(x), g(x)) for all x in the given range
         if parametric:
@@ -2414,32 +2416,45 @@ class PlotFactory(GraphicPrimitiveFactory):
         #or we have only a single function to be plotted:
         else:
             f = funcs
-        xmin = float(xmin)
-        xmax = float(xmax)
+
         plot_points = int(options['plot_points'])
         del options['plot_points']
+        x, data = var_and_list_of_values(xrange, plot_points)
+        data = list(data)
+        xmin = data[0]
+        xmax = data[-1]
+
+        #check to see if funcs is a list of functions that will
+        #be all plotted together.
+        if isinstance(funcs, (list, tuple)) and not parametric:
+            G = Graphics()
+            for i in range(0, len(funcs)):
+                G += plot(funcs[i], xmin=xmin, xmax=xmax, polar=polar, **kwds)
+            return G
+
         delta = (xmax - xmin) / plot_points
-        data = []
         dd = delta
+
         exceptions = 0; msg=''
-        for i in xrange(plot_points + 1):
-            x = xmin + i*delta
+        for i in range(plot_points):
+            xi = xmin + i*delta
             if i < plot_points:
-                x += delta*random.random()
-                if x > xmax:
-                    x = xmax
+                xi += delta*random.random()
+                if xi > xmax:
+                    xi = xmax
             else:
-                x = xmax  # guarantee that we get the last point.
+                xi = xmax  # guarantee that we get the last point.
 
             try:
-                y = f(x)
-                data.append((x, float(y)))
+                y = f(xi)
+                data[i] = (float (xi), float(y))
             except (ZeroDivisionError, TypeError, ValueError), msg:
                 sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                 exceptions += 1
 
         # adaptive refinement
         i, j = 0, 0
+        print data
         max_bend = float(options['max_bend'])
         del options['max_bend']
         plot_division = int(options['plot_division'])
@@ -3034,15 +3049,20 @@ def var_and_list_of_values(v, plot_points):
     if plot_points == 2:
         return var, [a, b]
     else:
-        return var, float_range(a,b, float(b-a)/(plot_points-2))
+        rng = float_range(a,b, float(b-a)/(plot_points))
+        rng.append(float(b))
+        return var, rng
 
 def float_range(a, b, step):
+    """
+    Returns the
+    """
     (a,b,step) = (float(a),float(b),float(step))
     v = [a]
     w = a + step
-    while w <= b:
+    while w < b:
         v.append(w)
         w += step
-    if w < b:
+    if w <= b:
         v.append(b)
     return v

@@ -117,8 +117,11 @@ class Texture_class(SageObject):
                    "d %s" % self.opacity, ])
 
     def jmol_str(self, obj):
-        # With jmol translucent is any opacity < 1.
-        translucent = "translucent" if self.opacity < 1 else ""
+        """
+        EXAMPLES:
+            sage: sum([dodecahedron(center=[2.5*x, 0, 0], color=(1, 0, 0, x/10)) for x in range(11)]).show(aspect_ratio=[1,1,1], frame=False, zoom=2)
+        """
+        translucent = "translucent %s" % float(1-self.opacity) if self.opacity < 1 else ""
         return "color %s %s [%s,%s,%s]" % (obj, translucent,
                 int(255*self.color[0]), int(255*self.color[1]), int(255*self.color[2]))
 

@@ -208,7 +208,7 @@ def dodecahedron(center=(0,0,0), size=1, **kwds):
         sage: dodecahedron(color='orange', opacity=0.8) + sphere(size=0.5, color='black')
 
     CONSTRUCTION:
-        This is how we construct a dodecahedron.   We let one point be $Q = (0,1,1)$.
+        This is how we construct a dodecahedron.   We let one point be $Q = (0,1,0)$.
 
         Now there are three points spaced equally on a circle
         around the north pole. The other requirement is that

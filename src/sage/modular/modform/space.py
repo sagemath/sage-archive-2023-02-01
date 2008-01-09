@@ -75,6 +75,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             raise TypeError, "character must be a Dirichlet character"
         if not isinstance(base_ring, rings.Ring):
             raise TypeError, "base_ring must be a ring"
+        self.__sturm_bound = None
         self.__weight, self.__group, self.__character = weight, group, character
         hecke.HeckeModule_generic.__init__(self, base_ring, group.level())
 
@@ -881,8 +882,14 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         r"""
         For a space M of modular forms, this function returns an integer B
         such that two modular forms in either self or M are equal if and only
-        if their q-expansions are equal to precision B.  If M is none, then
-        M is set equal to self.
+        if their q-expansions are equal to precision B (note that this is
+        1+ the usual Sturm bound, since O(q^prec) has precision prec).  If M
+        is none, then M is set equal to self.
+
+        EXAMPLES:
+            sage: S37=CuspForms(37,2)
+            sage: S37.sturm_bound()
+            8
 
         NOTES:
         Reference for the Sturm bound that we use in the definition of
@@ -920,8 +927,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             raise NotImplementedError
         if self.__sturm_bound == None:
             # the +1 below is because O(q^prec) has precision prec.
-            self.__sturm_bound = int(\
-                math.ceil(self.weight()*dims.idxG0(self.level())/12.0) + 1)
+            self.__sturm_bound = dims.sturm_bound(self.level(), self.weight())+1
         return self.__sturm_bound
 
     def character(self):

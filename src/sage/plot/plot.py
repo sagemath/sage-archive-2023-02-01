@@ -2319,7 +2319,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         sage: len(P)     # number of graphics primitives
         1
         sage: len(P[0])  # how many points were computed
-        200i
+        200
         sage: P          # render
 
         sage: P = plot(sin, 0,10, plot_points=10); print P

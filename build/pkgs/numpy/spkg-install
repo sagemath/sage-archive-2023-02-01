@@ -33,7 +33,7 @@ cp ../patches/__init__.py  numpy/distutils/fcompiler/__init__.py
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/numpy
 
 # Program around a bug in SciPY's distutils.
-#unset CFLAGS
+unset CFLAGS
 
 python setup.py install
 

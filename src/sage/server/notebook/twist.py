@@ -103,6 +103,7 @@ def notebook_updates():
 # RESOURCES
 ######################################################################################
 
+
 ############################
 # An error message
 ############################
@@ -1685,6 +1686,7 @@ class UserToplevel(Toplevel):
 
     child_upload = Upload()
     child_logout = Logout()
+
 
 
     #child_login = RedirectLogin()

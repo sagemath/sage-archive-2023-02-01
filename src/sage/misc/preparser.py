@@ -12,6 +12,7 @@ AUTHOR:
     -- Robert Bradshaw (2007-09-19): * strip_string_literals, containing_block
                                        utility functions. Arrr!
                                      * Add [1,2,..,n] notation.
+    -- Robert Bradshaw (2008-01-04): * Implicit multiplication
 
 EXAMPLES:
 
@@ -30,6 +31,10 @@ PREPARSE:
     'G.gen(0)'
     sage: preparse('a = 939393R')    # raw
     'a = 939393'
+    sage: preparse('a b c in L')     # implicit multiplication
+    'a*b*c in L'
+    sage: preparse('2e3x + 3exp(y)')
+    "RealNumber('2e3')*x + Integer(3)*exp(y)"
 
 In SAGE methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error).
@@ -936,8 +941,9 @@ def implicit_mul(code, level=5):
     code, literals = strip_string_literals(code)
     if level >= 1:
         no_mul_token = " '''_no_mult_token_''' "
-        code = re.sub(r'\b(\d+\.?\d*)((r\b)|(e[-\d]))', r'\1%s\2' % no_mul_token, code)  # exclude such things as 1e5 and 10r
-        code = re_no_keyword(r'\b(\d+\.?\d*) *([a-zA-Z_(]\w*)\b', code)
+        code = re.sub(r'\b(\d+(?:\.\d+)?(?:e\d+)?)([rR]\b)', r'\1%s\2' % no_mul_token, code)  # exclude such things as 10r
+        code = re.sub(r'\b(\d+(?:\.\d+)?)e([-\d])', r'\1%se%s\2' % (no_mul_token, no_mul_token), code)  # exclude such things as 1e5
+        code = re_no_keyword(r'\b(\d+(?:\.\d+)?) *([a-zA-Z_(]\w*)\b', code)
     if level >= 2:
         code = re.sub(r'(\%\(L\d+\))s', r'\1%ss%s' % (no_mul_token, no_mul_token), code) # literal strings
         code = re_no_keyword(r'(\)) *(\w+)', code)

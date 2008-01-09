@@ -2319,7 +2319,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         sage: len(P)     # number of graphics primitives
         1
         sage: len(P[0])  # how many points were computed
-        201
+        200i
         sage: P          # render
 
         sage: P = plot(sin, 0,10, plot_points=10); print P
@@ -2429,14 +2429,14 @@ class PlotFactory(GraphicPrimitiveFactory):
         if isinstance(funcs, (list, tuple)) and not parametric:
             G = Graphics()
             for i in range(0, len(funcs)):
-                G += plot(funcs[i], xmin=xmin, xmax=xmax, polar=polar, **kwds)
+                G += plot(funcs[i], (xmin, xmax), polar=polar, **kwds)
             return G
 
         delta = (xmax - xmin) / plot_points
         dd = delta
 
         exceptions = 0; msg=''
-        for i in range(plot_points+1):
+        for i in range(plot_points):
             xi = xmin + i*delta
             if i < plot_points:
                 xi += delta*random.random()
@@ -3045,23 +3045,29 @@ def var_and_list_of_values(v, plot_points):
         a, b = v
     else:
         raise ValueError, "parametric value range must be a list of 2 or 3-tuple."
+
+    a = float(a)
+    b = float(b)
     if plot_points == 2:
         return var, [a, b]
     else:
-        rng = float_range(a,b, float(b-a)/(plot_points))
-        rng.append(float(b))
-        return var, rng
+        step = (b-a)/float(plot_points)
+        values = [a + step*i for i in xrange(plot_points)]
+        # want to make sure that we plot exactly as many points as requested
+#         rng.append(b)
+        return var, values
 
-def float_range(a, b, step):
-    """
-    Returns the
-    """
-    (a,b,step) = (float(a),float(b),float(step))
-    v = [a]
-    w = a + step
-    while w < b:
-        v.append(w)
-        w += step
-    if w <= b:
-        v.append(b)
-    return v
+# def float_range(a, b, step):
+#     """
+#     Returns a list of floating point numbers from a to b with the
+#     given step
+#     """
+#     (a,b,step) = (float(a),float(b),float(step))
+#     v = [a]
+#     w = a + step
+#     while w < b:
+#         v.append(w)
+#         w += step
+#     if w < b:
+#         v.append(b)
+#     return v

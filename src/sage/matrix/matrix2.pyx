@@ -2685,6 +2685,38 @@ cdef class Matrix(matrix1.Matrix):
         else:
             return (self.subdivisions[0][1:-1], self.subdivisions[1][1:-1])
 
+    def block_sum(A, B, C, D, bint subdivide=True):
+        """
+        Returns the matrix
+
+            [ A B ]
+            [ C D ]
+
+        INPUT:
+            A, B, C, D -- matrices (must be of the correct size)
+            subdivide  -- boolean, whether or not to add
+                          subdivision information to the matrix
+
+        EXAMPLES:
+            sage: A = matrix(QQ, 2, 2, [1,2,3,4])
+            sage: A.block_sum(-A, 100*A, ~A)
+            [   1    2|  -1   -2]
+            [   3    4|  -3   -4]
+            [---------+---------]
+            [ 100  200|  -2    1]
+            [ 300  400| 3/2 -1/2]
+            sage: B = random_matrix(QQ, 2, 5)
+            sage: B.block_sum(A, -B, A, subdivide=False) # random
+            [   2  1/2    1    1    0    1    2]
+            [   0    0    0    0    2    3    4]
+            [  -2 -1/2   -1   -1    0    1    2]
+            [   0    0    0    0   -2    3    4]
+        """
+        sum = A.augment(B).stack(C.augment(D))
+        if subdivide:
+            sum.subdivide([A.nrows()], [A.ncols()])
+        return sum
+
     def randomize(self, density=1, *args, **kwds):
         """
         Randomize density proportion of the entries of this matrix,

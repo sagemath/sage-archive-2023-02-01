@@ -146,7 +146,7 @@ def notebook_twisted(self,
             if secure:
                 start_path = "'/?startup_token=%s' % startup_token"
             else:
-                start_path = "'" + start_path + "'"
+                start_path = "'/'"
             open_page = "from sage.server.misc import open_page; open_page('%s', %s, %s, %s)"%(address, port, secure, start_path)
         else:
             open_page = ''

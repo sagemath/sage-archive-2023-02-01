@@ -48,8 +48,8 @@ build()
 
      # Run the configure script, setting CC, CXX, CFLAGS etc as need. This
      # ensures that they get written by DoConfig into 'makefile'.
-     CFLAGS="-O2 $CFLAGS"
-     CXXFLAGS="-O2 $CXXFLAGS"
+     CFLAGS="-O2 -g $CFLAGS"
+     CXXFLAGS="-O2 -g $CXXFLAGS"
 
      ./configure PREFIX="$SAGE_LOCAL" CC="$CC" CFLAGS="$CFLAGS $SHAREDFLAGS" CXX="$CXX" \
                  CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" LDFLAGS="$LDFLAGS" \

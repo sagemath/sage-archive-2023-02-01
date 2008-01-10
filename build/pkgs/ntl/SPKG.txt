@@ -1,3 +1,12 @@
+= ntl =
+
+FIXME
+
+=== ntl-5.4.1.p10 (Michael Abshoff) ===
+ * add "-g" to CFLAGS and CXXFLAGS for debugging purposes
+
+=== ntl-5.4.1.p1 ===
+
 5.4.1.p1 is an artificial increment to force a rebuild.
 
 

@@ -788,20 +788,20 @@ cdef class PartitionStack:
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
-            sage: P.print_data() # random - actually "print P.print_data()"
-            nwords: 4
-            nrows: 2
-            ncols: 6
-            radix: 32
+            sage: print P.print_data()
+            nwords:4
+            nrows:2
+            ncols:6
+            radix:32
             wd_ents:
             0
             1
             2
             3
             wd_lvls:
-            4
-            4
-            4
+            12
+            12
+            12
             -1
             col_ents:
             0
@@ -811,48 +811,49 @@ cdef class PartitionStack:
             4
             5
             col_lvls:
-            6
-            6
-            6
-            6
-            6
+            12
+            12
+            12
+            12
+            12
             -1
             col_degs:
-            -1209339024
-            145606688
-            135493408
-            3
-            -1210787264
-            -1210787232
+            0
+            0
+            0
+            0
+            0
+            0
             col_counts:
-            -1209339024
-            145666744
-            40129536
-            21248
+            0
+            0
+            0
+            0
             col_output:
-            -1209339024
-            145654064
+            0
+            0
             0
             0
             0
             0
             wd_degs:
-            -1209339024
-            145166112
-            16
-            3
+            0
+            0
+            0
+            0
             wd_counts:
-            -1209339024
-            146261160
+            0
+            0
+            0
             0
             0
             0
             0
             wd_output:
-            -1209339024
-            146424680
-            135508928
-            3
+            0
+            0
+            0
+            0
 
         """
         cdef int i, j

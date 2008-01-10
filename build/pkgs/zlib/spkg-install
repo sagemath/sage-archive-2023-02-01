@@ -8,7 +8,7 @@ unset AR
 # The -fPIC is needed otherwise builing libpng fails later
 # (at least on a Debian 64-bit opteron).
 
-CFLAGS="$CFLAGS -fPIC -I\"$SAGE_LOCAL/include\""
+CFLAGS="$CFLAGS -fPIC -g -I\"$SAGE_LOCAL/include\""
 export CFLAGS
 
 ./configure --shared --prefix=$SAGE_LOCAL

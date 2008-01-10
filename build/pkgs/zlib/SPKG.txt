@@ -1,0 +1,11 @@
+= zlib =
+
+FIXME!
+
+=== zlib-1.2.3.p3 (Michael Abshoff) ===
+ * add "-g" to CFLAGS to get better backtraces and valgrind
+   stack traces.
+
+=== zlib-1.2.3.p2 ===
+ * first documented version
+

@@ -43,6 +43,9 @@ fi
 
 
 CUR=`pwd`
+echo $CUR
+echo Updating archinfo_x86.c
+cp patches/archinfo_x86.c src/ATLAS/CONFIG/src/backend/
 
 config
 

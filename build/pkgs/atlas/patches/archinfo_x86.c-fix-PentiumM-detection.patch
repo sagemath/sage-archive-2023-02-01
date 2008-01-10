@@ -1,0 +1,10 @@
+--- ATLAS/CONFIG/src/backend/archinfo_x86.c.orig	2008-01-09 20:53:13.000000000 -0800
++++ ATLAS/CONFIG/src/backend/archinfo_x86.c	2007-11-29 04:10:04.000000000 -0800
+@@ -281,7 +281,6 @@
+       case  9:
+       case 13:
+          iret = IntPM;
+-         break;
+       case 14:
+          iret = IntCoreDuo;
+          break;

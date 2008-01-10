@@ -2746,7 +2746,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
     def monomials(self):
         """
         Return the list of monomials in self. The returned list is
-        ordered by the term ordering of self.parent().
+        decreasingly ordered by the term ordering of self.parent().
 
         EXAMPLE:
             sage: P.<x,y,z> = MPolynomialRing(QQ,3)
@@ -3743,8 +3743,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
     def coefficients(self):
         """
         Return the nonzero coefficients of this polynomial in a list.
-        The order the coefficients appear in depends on the ordering used
-        on self's parent.
+        The returned list is decreasingly ordered by the term ordering
+        of self.parent().
 
         EXAMPLES:
             sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='degrevlex')

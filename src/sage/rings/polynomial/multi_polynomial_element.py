@@ -691,8 +691,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
     def monomials(self):
         """
-        Returns list of all monomials which occure in this
-        multivariate polynomial ordered from largest to smallest.
+        Returns the list of monomials in self. The returned list is
+        decreasingly ordered by the term ordering of self.parent().
 
         OUTPUT:
             list of MPolynomials representing Monomials

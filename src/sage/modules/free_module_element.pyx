@@ -87,6 +87,7 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Vector 
 import sage.rings.arith
 
 from sage.rings.ring import is_Ring
+from sage.rings.infinity import Infinity
 import sage.rings.integer_ring
 import sage.rings.integer
 from sage.rings.real_double import RDF
@@ -442,6 +443,45 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             3.87298334621
         """
         return sum(self.list()).sqrt()
+
+    def norm(self, p):
+        """
+        Return the p-norm of this vector, where p can be a real
+        number >= 1, Infinity, or a symbolic expression.
+        If p=2, this is the usual Euclidean norm; if p=Infinity,
+        this is the maximum norm; if p=1, this is the taxicab
+        (Manhattan) norm.
+
+        EXAMPLES:
+            sage: v = vector([1,2,3])
+            sage: v.norm(5)
+            276^(1/5)
+            sage: v.norm(2)
+            sqrt(14)
+            sage: v.norm(Infinity)
+            3
+            sage: v=vector(RDF,[1,2,3])
+            sage: v.norm(5)
+            3.07738488539
+            sage: v.norm(pi/2)
+            4.2165958647
+            sage: var('a b c d p')
+            (a, b, c, d, p)
+            sage: v=vector([a, b, c, d])
+            sage: v.norm(p)
+            (d^p + c^p + b^p + a^p)^(1/p)
+        """
+        if p == Infinity:
+            return max(self)
+        try:
+            pr = RDF(p)
+            if pr < 1:
+                raise ValueError, "%f is not greater than or equal to 1" %(pr)
+        except TypeError:
+            pass
+
+        s = sum([a**p for a in self])
+        return s**(1/p)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         """

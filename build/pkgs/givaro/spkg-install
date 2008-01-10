@@ -5,6 +5,9 @@ cp patches/givgfq.inl src/src/kernel/zpz/
 cp patches/givgfq.h src/src/kernel/zpz/
 cp patches/givpoly1factor.h src/src/library/poly1/
 cp patches/givbasictype.h src/src/kernel/system/
+cp patches/givintrsa.h src/src/kernel/integer/
+cp patches/givintfactor.h src/src/kernel/integer/
+cp patches/givintnumtheo.h src/src/kernel/integer/
 
 cd src
 

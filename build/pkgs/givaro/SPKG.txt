@@ -1,6 +1,12 @@
 MAINTAINER:
    -- Martin Albrecht
 
+
+=== givaro-3.2.6.p5 (Michael Abshoff)
+  * fix #1091. This copies over updated version of givintrsa.h,
+    givintfactor.h and givintnumtheo.h into src/src/kernel/integer.
+    I also keft the patch itself in the patches directory.
+
 -- 2007-12-06:
   * include <cstring> in givaromm.C to fix gcc 4.3 issue
 

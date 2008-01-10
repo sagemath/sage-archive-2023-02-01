@@ -2381,8 +2381,11 @@ class PlotFactory(GraphicPrimitiveFactory):
         # if we are using the generic plotting method
         else:
             n = len(args)
+            # if there are no extra args, pick some silly default
+            if n == 0:
+                G = self._call(funcs, (-1, 1), *args, **kwds)
             # if there is one extra arg, then it had better be a tuple
-            if n == 1:
+            elif n == 1:
                 G = self._call(funcs, *args, **kwds)
             elif n == 2:
             # if ther eare two extra args, then pull them out and pass them as a tuple

@@ -941,6 +941,7 @@ def implicit_mul(code, level=5):
     code, literals = strip_string_literals(code)
     if level >= 1:
         no_mul_token = " '''_no_mult_token_''' "
+        code = re.sub(r'( *)time ', r'\1time %s' % no_mul_token, code)  # first word may be magic 'time'
         code = re.sub(r'\b(\d+(?:\.\d+)?(?:e\d+)?)([rR]\b)', r'\1%s\2' % no_mul_token, code)  # exclude such things as 10r
         code = re.sub(r'\b(\d+(?:\.\d+)?)e([-\d])', r'\1%se%s\2' % (no_mul_token, no_mul_token), code)  # exclude such things as 1e5
         code = re_no_keyword(r'\b(\d+(?:\.\d+)?) *([a-zA-Z_(]\w*)\b', code)

@@ -704,22 +704,21 @@ def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
         if R is not ZZ:
             base = sage.categories.pushout.pushout(base, R)
 
-    new_submatrices = []
+    # finally concatinate
     for i in range(nrows):
-        for j in range(0, ncols):
+        for j in range(ncols):
+            # coerce
             M = sub_matrices[i*ncols+j]
             if is_Matrix(M):
                 if M.base_ring() is not base:
                     M = M.change_ring(base)
-                new_submatrices.append(M)
             else:
-                new_submatrices.append(matrix(base, row_heights[i], col_widths[j], M))
-    sub_matrices = new_submatrices
-
-    for i in range(nrows):
-        row = sub_matrices[i*ncols]
-        for j in range(1, ncols):
-            row = row.augment(sub_matrices[i*ncols+j])
+                M = matrix(base, row_heights[i], col_widths[j], M)
+            # append
+            if j == 0:
+                row = M
+            else:
+                row = row.augment(M)
         if i == 0:
             big = row
         else:

@@ -2543,7 +2543,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: i = CC.0
             sage: f = (x - 1)*(x - i)
             sage: f.roots(multiplicities=False)
-            [...1.00000000000000*I, 1.00000000000000...*I]
+            [...1.00000000000000...*I, 1.00000000000000...*I]
 
         A purely symbolic roots example:
             sage: X = var('X')

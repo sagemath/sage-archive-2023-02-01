@@ -61,7 +61,7 @@ build()
     # shared extension modules, at least in Python 2.5.
     rm -f "$SAGE_LOCAL"/lib/libpython*
 
-    ./configure --prefix="$SAGE_LOCAL" --without-libpng
+    ./configure --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4
 
     if [ $? -ne 0 ]; then
         echo "Error configuring Python."

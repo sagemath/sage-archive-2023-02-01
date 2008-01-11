@@ -1,1 +1,14 @@
+= python =
+
 This is Python from http://www.python.org
+
+FIXME!
+
+=== python-2.5.1.p11 (Michael Abshoff) ===
+ * enable ucs4 per default
+ * add .hgignore
+
+=== python-2.5.1.p10 ===
+
+FIXME: add prior changelog
+

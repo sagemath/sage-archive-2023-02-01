@@ -269,6 +269,14 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             Traceback (most recent call last):
             ...
             TypeError: cannot coerce from <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'> to Boolean PolynomialRing in x, y
+
+        Test coercion from a ring that compares equal.
+            sage: P = BooleanPolynomialRing(2,'x,y')
+            sage: R.<x,y> = BooleanPolynomialRing(2)
+            sage: P == R
+            True
+            sage: P(x)
+            x
         """
         cdef BooleanPolynomial p
         if PY_TYPE_CHECK(other, BooleanMonomial):

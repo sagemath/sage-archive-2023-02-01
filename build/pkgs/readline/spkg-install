@@ -14,13 +14,11 @@ build()
 build
 
 if [ -f $SAGE_LOCAL/lib/libreadline.so -o -f $SAGE_LOCAL/lib/libreadline.a ]; then
-
-    exit 0
-
+  chmod 755 $SAGE_LOCAL/lib/libreadline.so*
+  chmod 755 $SAGE_LOCAL/lib/libhistory.so*
+  exit 0
 else
-
-    echo "Error building readline"
-    exit 1
-
+  echo "Error building readline"
+  exit 1
 fi
 

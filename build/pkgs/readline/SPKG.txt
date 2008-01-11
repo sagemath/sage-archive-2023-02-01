@@ -1,2 +1,14 @@
+= readline =
+
 Deleted some files from the doc directory from the standard distro, since it took tons of space;
 didn't delete anything else.
+
+FIXME
+
+=== readline-5.2.p0 (Michael Abshoff) ===
+ * set correct permissions on libreadline.so* and libhistory.so* (#1752)
+
+=== readline-5.2 ===
+
+FIXME
+

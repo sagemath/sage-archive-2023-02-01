@@ -345,7 +345,7 @@ def pushout(R, S):
     AUTHORS:
        -- Robert Bradshaw
     """
-    if R == S:
+    if R is S or R == S:
         return R
 
     if isinstance(R, type):

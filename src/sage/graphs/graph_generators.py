@@ -2725,16 +2725,19 @@ class GraphGenerators():
             45
 
         Generate all bipartite graphs on up to 7 vertices:
+        (see http://www.research.att.com/~njas/sequences/A033995)
             sage: L = list( graphs(7, lambda G: G.is_bipartite(), augment='vertices') )
-            sage: len(L)        #   random, due to NetworkX bug: see https://networkx.lanl.gov/ticket/132
-            133
+            sage: [len([g for g in L if g.order() == i]) for i in [1..7]]
+            [1, 2, 3, 7, 13, 35, 88]
 
         Generate all bipartite graphs on exactly 8 vertices:
+        (see http://www.research.att.com/~njas/sequences/A033995)
             sage: L = list( graphs(8, lambda G: G.is_bipartite()) )
-            sage: len(L)        #   random, due to NetworkX bug: see https://networkx.lanl.gov/ticket/132
-            143
+            sage: len(L)
+            303
 
-        Sloane A000088:
+        Generate graphs on the fly:
+        (see http://www.research.att.com/~njas/sequences/A000088)
             sage: for i in range(0, 7):
             ...    print len(list(graphs(i)))
             1

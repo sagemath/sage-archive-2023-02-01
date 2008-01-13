@@ -132,7 +132,7 @@ These are some examples of plots similar to some of the plots in the
 PyX (http://pyx.sourceforge.net) documentation:
 
 Symbolline:
-    sage: y(x) = x*sin(x**2)
+    sage: y(x) = x*sin(x^2)
     sage: v = [(x, y(x)) for x in [-3,-2.95,..,3]]
     sage: show(points(v, rgbcolor=(0.2,0.6, 0.1), pointsize=30) + plot(spline(v), -3.1, 3))
 

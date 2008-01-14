@@ -2314,15 +2314,15 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     EXAMPLES:
     We plot the sin function:
-        sage: P = plot(sin, 0,10); print P
+        sage: P = plot(sin, (0,10)); print P
         Graphics object consisting of 1 graphics primitive
         sage: len(P)     # number of graphics primitives
         1
         sage: len(P[0])  # how many points were computed
-        201
+        200
         sage: P          # render
 
-        sage: P = plot(sin, 0,10, plot_points=10); print P
+        sage: P = plot(sin, (0,10), plot_points=10); print P
         Graphics object consisting of 1 graphics primitive
         sage: len(P[0])  # random output
         80
@@ -2330,17 +2330,21 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     We plot several functions together by passing a list
     of functions as input:
-       sage: plot([sin(n*x) for n in [1..4]], 0, pi)
+        sage: plot([sin(n*x) for n in [1..4]], (0, pi))
 
 
     The function $\sin(1/x)$ wiggles wildtly near $0$, so the
     first plot below won't look perfect.  Sage adapts to this
     and plots extra points near the origin.
-       sage: plot(sin(1/x), -1, 1)
+        sage: plot(sin(1/x), (x, -1, 1))
 
     The \code{plot_points} option, you can increase the number
     of sample points, to obtain a more accurate plot.
-       sage: plot(sin(1/x), -1, 1, plot_points=1000)
+        sage: plot(sin(1/x), (x, -1, 1), plot_points=1000)
+
+    Note that the independent variable may be omitted if there is no
+    ambiguity:
+        sage: plot(sin(1/x), (-1, 1), plot_points=1000)
 
     The actual sample points are slightly randomized, so the above
     plots may look slightly different each time you draw them.
@@ -2378,28 +2382,33 @@ class PlotFactory(GraphicPrimitiveFactory):
             del kwds['show']
         if hasattr(funcs, 'plot'):
             G = funcs.plot(*args, **kwds)
+        # if we are using the generic plotting method
         else:
-            G = self._call(funcs, *args, **kwds)
+            n = len(args)
+            # if there are no extra args, pick some silly default
+            if n == 0:
+                G = self._call(funcs, (-1, 1), *args, **kwds)
+            # if there is one extra arg, then it had better be a tuple
+            elif n == 1:
+                G = self._call(funcs, *args, **kwds)
+            elif n == 2:
+            # if ther eare two extra args, then pull them out and pass them as a tuple
+                xmin = args[0]
+                xmax = args[1]
+                args = args[2:]
+                G = self._call(funcs, (xmin, xmax), *args, **kwds)
+            else:
+                print "there were %s extra arguments (besides %s)" % (n, funcs)
         if do_show:
             G.show()
         return G
 
-    def _call(self, funcs, xmin=None, xmax=None, parametric=False,
+    def _call(self, funcs, xrange, parametric=False,
               polar=False, label='', **kwds):
-        if xmin is None:
-            xmin = -1
-        if xmax is None:
-            xmax = 1  # defaults
         options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
-        #check to see if funcs is a list of functions that will
-        #be all plotted together.
-        if isinstance(funcs, (list, tuple)) and not parametric:
-            G = Graphics()
-            for i in range(0, len(funcs)):
-                G += plot(funcs[i], xmin=xmin, xmax=xmax, polar=polar, **kwds)
-            return G
+
         #parametric_plot will be a list or tuple of two functions (f,g)
         #and will plotted as (f(x), g(x)) for all x in the given range
         if parametric:
@@ -2414,26 +2423,38 @@ class PlotFactory(GraphicPrimitiveFactory):
         #or we have only a single function to be plotted:
         else:
             f = funcs
-        xmin = float(xmin)
-        xmax = float(xmax)
+
         plot_points = int(options['plot_points'])
         del options['plot_points']
+        x, data = var_and_list_of_values(xrange, plot_points)
+        data = list(data)
+        xmin = data[0]
+        xmax = data[-1]
+
+        #check to see if funcs is a list of functions that will
+        #be all plotted together.
+        if isinstance(funcs, (list, tuple)) and not parametric:
+            G = Graphics()
+            for i in range(0, len(funcs)):
+                G += plot(funcs[i], (xmin, xmax), polar=polar, **kwds)
+            return G
+
         delta = (xmax - xmin) / plot_points
-        data = []
         dd = delta
+
         exceptions = 0; msg=''
-        for i in xrange(plot_points + 1):
-            x = xmin + i*delta
+        for i in range(plot_points):
+            xi = xmin + i*delta
             if i < plot_points:
-                x += delta*random.random()
-                if x > xmax:
-                    x = xmax
+                xi += delta*random.random()
+                if xi > xmax:
+                    xi = xmax
             else:
-                x = xmax  # guarantee that we get the last point.
+                xi = xmax  # guarantee that we get the last point.
 
             try:
-                y = f(x)
-                data.append((x, float(y)))
+                y = f(xi)
+                data[i] = (float (xi), float(y))
             except (ZeroDivisionError, TypeError, ValueError), msg:
                 sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                 exceptions += 1
@@ -3006,3 +3027,54 @@ def rainbow(n, format='hex'):
                 R.append((1.,0.,1. - r))
     return R
 
+def var_and_list_of_values(v, plot_points):
+    """
+    INPUT:
+        plot_points -- integer >= 2 (the endpoints)
+        v -- (v0, v1) or (var, v0, v1); if the former return
+             the range of values between v0 and v1 taking
+             plot_points steps; if var is given, also return var.
+
+    OUTPUT:
+        var -- a variable or None
+        list -- a list of floats
+    """
+    plot_points = int(plot_points)
+    if plot_points < 2:
+        raise ValueError, "plot_points must be positive"
+    if not isinstance(v, (tuple, list)):
+        raise TypeError, "v must be a tuple or list"
+    if len(v) == 3:
+        var = v[0]
+        a, b = v[1], v[2]
+    elif len(v) == 2:
+        var = None
+        a, b = v
+    else:
+        raise ValueError, "parametric value range must be a list of 2 or 3-tuple."
+
+    a = float(a)
+    b = float(b)
+    if plot_points == 2:
+        return var, [a, b]
+    else:
+        step = (b-a)/float(plot_points)
+        values = [a + step*i for i in xrange(plot_points)]
+        # want to make sure that we plot exactly as many points as requested
+#         rng.append(b)
+        return var, values
+
+# def float_range(a, b, step):
+#     """
+#     Returns a list of floating point numbers from a to b with the
+#     given step
+#     """
+#     (a,b,step) = (float(a),float(b),float(step))
+#     v = [a]
+#     w = a + step
+#     while w < b:
+#         v.append(w)
+#         w += step
+#     if w < b:
+#         v.append(b)
+#     return v

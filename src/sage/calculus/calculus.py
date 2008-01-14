@@ -600,7 +600,7 @@ class SymbolicExpression(RingElement):
         F = self.simplify()
         if isinstance(F, Symbolic_object):
             if hasattr(F._obj, '__call__'):
-                f = lambda x: F._obj(x)
+                f = lambda x: F.subs(x)
             else:
                 y = float(F._obj)
                 f = lambda x: y

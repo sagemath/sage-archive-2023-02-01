@@ -5790,7 +5790,22 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         setlgefint( z, limbs+2 )
         setsigne( z, mpz_sgn(value) )
         mpz_export( int_LSW(z), NULL, -1, sizeof(long), 0, 0, value )
+
         return self.new_gen(z)
+
+    cdef GEN new_GEN_from_mpz_t(self, mpz_t value):
+        ## expects that you _sig_on before entry
+        cdef GEN z
+        cdef long limbs = 0
+
+        limbs = mpz_size(value)
+
+        z = cgetg( limbs+2, t_INT )
+        setlgefint( z, limbs+2 )
+        setsigne( z, mpz_sgn(value) )
+        mpz_export( int_LSW(z), NULL, -1, sizeof(long), 0, 0, value )
+
+        return z
 
     cdef gen new_gen_from_int(self, int value):
         cdef GEN z
@@ -5806,6 +5821,27 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             z[2] = -value
         setsigne( z, sign )
         return _new_gen(z)
+
+    cdef gen new_gen_from_padic(self, long ordp, long relprec,
+                                mpz_t prime, mpz_t p_pow, mpz_t unit):
+        cdef GEN z
+
+        _sig_on
+
+        z = cgetg( 5, t_PADIC )
+
+        ## set z[1]
+        setprecp( z, relprec )
+        setvalp( z, ordp )
+
+        z[2] = <long>self.new_GEN_from_mpz_t(prime)
+
+        z[3] = <long>self.new_GEN_from_mpz_t(p_pow)
+
+        z[4] = <long>self.new_GEN_from_mpz_t(unit)
+
+        return self.new_gen(z)
+
 
     def double_to_gen(self, x):
         cdef double dx

@@ -705,7 +705,7 @@ ext_modules = [ \
     Extension('sage.rings.padics.padic_capped_relative_element',
               sources = ['sage/rings/padics/padic_capped_relative_element.pyx', \
                          'sage/rings/padics/padic_generic_element.c'],
-              libraries=['gmp']),
+              libraries=['gmp', 'csage']),
 
 
     Extension('sage.rings.memory', \

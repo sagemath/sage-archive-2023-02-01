@@ -2314,7 +2314,7 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     EXAMPLES:
     We plot the sin function:
-        sage: P = plot(sin, 0,10); print P
+        sage: P = plot(sin, (0,10)); print P
         Graphics object consisting of 1 graphics primitive
         sage: len(P)     # number of graphics primitives
         1
@@ -2322,7 +2322,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         200
         sage: P          # render
 
-        sage: P = plot(sin, 0,10, plot_points=10); print P
+        sage: P = plot(sin, (0,10), plot_points=10); print P
         Graphics object consisting of 1 graphics primitive
         sage: len(P[0])  # random output
         80
@@ -2330,17 +2330,21 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     We plot several functions together by passing a list
     of functions as input:
-       sage: plot([sin(n*x) for n in [1..4]], 0, pi)
+        sage: plot([sin(n*x) for n in [1..4]], (0, pi))
 
 
     The function $\sin(1/x)$ wiggles wildtly near $0$, so the
     first plot below won't look perfect.  Sage adapts to this
     and plots extra points near the origin.
-       sage: plot(sin(1/x), -1, 1)
+        sage: plot(sin(1/x), (x, -1, 1))
 
     The \code{plot_points} option, you can increase the number
     of sample points, to obtain a more accurate plot.
-       sage: plot(sin(1/x), -1, 1, plot_points=1000)
+        sage: plot(sin(1/x), (x, -1, 1), plot_points=1000)
+
+    Note that the independent variable may be omitted if there is no
+    ambiguity:
+        sage: plot(sin(1/x), (-1, 1), plot_points=1000)
 
     The actual sample points are slightly randomized, so the above
     plots may look slightly different each time you draw them.

@@ -232,6 +232,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                     self.relprec = relprec
                 self.ordp = valp(pari_tmp)
                 t_INT_to_ZZ(self.unit, <GEN>(pari_tmp[4]))
+                self._normalized = 1
                 if mpz_sgn(self.unit) == -1 or mpz_cmp(self.unit, self.prime_pow.pow_mpz_t_tmp(self.relprec)[0]) >= 0:
                     mpz_mod(self.unit, self.unit, self.prime_pow.pow_mpz_t_tmp(self.relprec)[0])
                 if mpz_sgn(self.unit) == 0:

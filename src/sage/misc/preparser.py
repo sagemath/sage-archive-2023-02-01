@@ -68,6 +68,19 @@ SYMBOLIC FUNCTIONAL NOTATION:
     sage: f
     (x, y) |--> sqrt(5)*x*y
 
+This involves an =-, but should still be turned into a symbolic expression:
+    sage: preparse('a(x) =- 5')
+    '_=var("x");a=symbolic_expression(- Integer(5)).function(x)'
+    sage: f(x)=-x
+    sage: f(10)
+    -10
+
+This involves -=, which should not be turned into a symbolic
+expression (of course a(x) isn't an identifier, so this will never be
+valid):
+    sage: preparse('a(x) -= 5')
+    'a(x) -= Integer(5)'
+
 RAW LITERALS:
 
 Raw literals are not preparsed, which can be useful from an efficiency
@@ -230,7 +243,7 @@ def strip_string_literals(code):
             else:
                 q += 1
         else:
-            raw = q>0 and code[q-1] == 'r'
+            raw = q>0 and code[q-1] in ['r', 'R']
             if len(code) >= q+3 and (code[q+1] == code[q] == code[q+2]):
                 in_quote = code[q]*3
             else:
@@ -503,6 +516,8 @@ def parse_generators(line, start_index):
 
     return (line, i)
 
+eq_chars_pre = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
+
 def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     r"""
     sage: preparse("ZZ.<x> = ZZ['x']")
@@ -666,7 +681,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         # Support for calculus-like function assignment, the line
         # "f(x,y,z) = sin(x^3 - 4*y) + y^x"
         # gets turnd into
-        # "f = SR(sin(x^3 - 4*y) + y^x).function(x,y,z)"
+        # '_=var("x,y,z");f=symbolic_expression(sin(x**Integer(3) - Integer(4)*y) + y**x).function(x,y,z)'
         # AUTHORS:
         #   - Bobby Moretti: initial version - 02/2007
         #   - William Stein: make variables become defined if they aren't already defined.
@@ -694,9 +709,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 i += 1
                 continue
 
-            # make sure the '=' sign is on its own, reprsenting assignment
-            eq_chars = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
-            if eq+1 < len(line) and (line[eq-1] in eq_chars or line[eq+1] in eq_chars):
+            # make sure the '=' sign is on its own, representing assignment
+            if eq+1 < len(line) and (line[eq-1] in eq_chars_pre or line[eq+1] == '='):
                 i += 1
                 continue
 

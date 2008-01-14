@@ -1070,7 +1070,7 @@ def hash_of_cython_file_timestamps():
             z = dir + '/' + f
             if os.path.isdir(z):
                 h += hash_of_dir(z)
-            elif f[-4:] in extensions:
+            elif f[-4:] in extensions and f[0] != '.':
                 h += hash(os.path.getmtime(z))
         return h
     return hash_of_dir('sage')

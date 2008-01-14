@@ -198,7 +198,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         R = self.base_ring()
         from sage.plot.plot import plot, point, line
         if R.characteristic() == 0:
-            return plot(self.__call__, xmin=xmin, xmax=xmax, *args, **kwds)
+            if xmin is None and xmax is None:
+                (xmin, xmax) = (-1,1)
+            elif xmin is None or xmax is None:
+                raise AttributeError, "must give both plot endpoints"
+            return plot(self.__call__, (xmin, xmax), *args, **kwds)
         else:
             if R.is_finite():
                 v = list(R)

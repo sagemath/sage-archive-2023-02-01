@@ -14,38 +14,30 @@
 /*                                  TOOLS                                   */
 /****************************************************************************/
 
-read("sea_init.gp");
+\r sea_init.gp
 global(VERBOSE, EARLY_ABORT, BOUND_ONE_ROOT, MAXL = 199);
-/* modular_eqn is a vector of modular equations (canonical or Atkin type).
- *  The file sea_init.gp contains such eqns for all prime ell 2 <= ell <= MAXL
- * modular_eqn_type is a vector of types (canonical or Atkin) of the
- *  corresponding modular equation */
-global(modular_eqn, modular_eqn_type);
 
-\\Returns the elements of w in reverse order
-reverse(w) = vecextract(w, Str(#w,"..",1))
+\\Implement Vecrev for GP 2.3
+vecrev(w) = w=Vec(w);vecextract(w, Str(#w,"..",1));
 
 \\Builds the modular equation corresponding to the vector list
-list_to_pol(list) = Pol( vector(#list, i, Pol(list[i], J)), x )
+list_to_pol(list) = Pol( vector(#list, i, Pol(list[i], 'J)), 'x );
 
 \\Performs the inverse operation
 pol_to_list(T) =
 {local(list, tmp);
   list = [];
   forstep (i = poldegree(T), 0, -1,
-    tmp = Vec(polcoeff(T, i, x));
+    tmp = Vec(polcoeff(T, i, 'x));
     list = concat(list, if (#tmp == 1, tmp[1], [tmp]))
-  ); list}
-
-\\Writes P(x, y) as A(x)y + B(x) replacing y^2 by x^3 + a4x + a6 in P(x, y)
-reduce(P, E, p) = substpol(P, y^2, x^3 + E.a4*x + E.a6) * Mod(1,p)
+  ); list;}
 
 \\Given power series s1 and s2, finds a polynomial P
 \\such that s2 = P(s1)
 find_transformation(s2, s1) =
 { local(vs1, vs2, degP, s1pl, s1i, P, invs1coeff, Pcoeff, d);
-  vs1 = valuation(s1, z);
-  vs2 = valuation(s2, z); degP = vs2 \ vs1;
+  vs1 = valuation(s1, 'z);
+  vs2 = valuation(s2, 'z); degP = vs2 \ vs1;
   if (vs2%vs1 || degP <= 0, error("transformation cannot exist"));
   s1i = 1;
   s1pl = vector(degP, i, s1i *= s1);
@@ -55,14 +47,14 @@ find_transformation(s2, s1) =
 
     Pcoeff = polcoeff(s2, vs2 - i*vs1) * invs1coeff;
     d = degP - i; /* > 0 */
-    P += Pcoeff*x^d;
+    P += Pcoeff*'x^d;
     s2 -= Pcoeff*s1pl[d]; /* * s1^d */
     if (!truncate(s2), error("not enough terms to determine the polynomial"))
   );
   Pcoeff = polcoeff(s2, vs2 - degP*vs1) * invs1coeff;
   s2 -= Pcoeff;
   if (truncate(s2), error("polynomial expression does not match"));
-  P + Pcoeff}
+  P + Pcoeff;}
 
 /****************************************************************************/
 /*                             ELLIPTIC CURVES                              */
@@ -73,6 +65,30 @@ find_pt_aff(E, p) =
 { local(x, y);
   until (#y, x = random(p); y = ellordinate(E, x));
   [Mod(x,p), y[1]];}
+
+\\ E has order o[1], ..., or o[#o], draw random points until all solutions
+\\ but one are eliminated
+choose_card(o, E, p)=
+{ local(P, t, lasto, lastgood, nbo = #o);
+  if (nbo == 1, return (o[1]));
+  o = vecsort(o); \\ minimize max( o[i+1] - o[i] )
+  lastgood = o[#o];
+  while (1,
+    lasto = 0; t = [0];
+    P = find_pt_aff(E, p);
+    for (i = 1, #o, \\ t = ellpow(E, P, lasto)
+      if (!o[i], next);
+      t = elladd(E, t, ellpow(E, P, o[i] - lasto)); /* P^o[i] */
+      lasto = o[i];
+      if (t != [0],
+        nbo--; if (nbo == 1, return (lastgood));
+        o[i] = 0;
+      ,
+        lastgood = o[i];
+      );
+    );
+  );
+}
 
 \\ Returns the double of the point [P[1], P[2]*Y]
 \\ Compute modulo Y^2 - (X^3 + a4X + a6)
@@ -105,83 +121,79 @@ my_elladd(E, P, Q) =
   );
   lambda = (P[2] - Q[2])/(P[1] - Q[1]);
   C = sqr(lambda) * RHS - P[1] - Q[1];
-  [C, lambda*(P[1] - C) - P[2]]}
-
-my_ellsub(E, P, Q) =
-{ local(R);
-  if (Q == [0], return(P));
-  Q[2] = -Q[2]; my_elladd(E, P, R)}
+  [C, lambda*(P[1] - C) - P[2]];}
 
 my_ellpow(E, P, m) =
-{ local(v, nb, Ptmp);
+{ local(v, Ptmp);
 
   v = binary(m); Ptmp = [0];
   for (nb = 1, #v,
     Ptmp = my_elldbl(E, Ptmp);
     if (v[nb], Ptmp = my_elladd(E, Ptmp, P))
-  ); Ptmp}
+  ); Ptmp; }
 
-\\Gives the first prec terms of the Weierstrass series related to
+\\Gives the first precS terms of the Weierstrass series related to
 \\E: y^2 = x^3 + a4x + a6
-find_coeff(a4, a6, prec) =
+find_coeff(a4, a6, precS) =
 { local(res);
 
-  res = vector(prec); if (!prec, return(res));
-  res[1] = -a4/5;     if (prec == 1, return(res));
+  res = vector(precS); if (!precS, return(res));
+  res[1] = -a4/5;     if (precS == 1, return(res));
   res[2] = -a6/7;
-  for (k = 3, prec,
+  for (k = 3, precS,
     res[k] = 3*sum(h=1, k-2, res[h]*res[k-1-h]) / ((k-2)*(2*k+3))
-  ); res}
+  ); res;}
+
+\\Writes P(x, y) as A(x)y + B(x) replacing y^2 by x^3 + a4x + a6 in P(x, y)
+reduce(P, E, h, p) = substpol(lift(P), 'y^2, 'x^3 + E.a4*'x + E.a6) * Mod(1,p)*Mod(1,h);
 
 \\Computes the n-division polynomial modulo the polynomial h \in Fp[x]
 elldivpol(E, n, h, p) =
-{local(f, g, a4, a6, N);
+{local(f, g, a4, a6, N, inv2y2);
   a4 = E.a4;
   a6 = E.a6; N = max(5, n+1);
   f = vector(N);
   g = vector(N);
+  inv2y2 = 1/Mod('x^3+a4*'x+a6,h) * Mod(2,p)^-1;
   f[1] = Mod(1,h);
   g[1] = Mod(1,h);
-  f[2] = 2*y*Mod(1,h);
-  g[2] = reduce(lift(f[2]^2), E, p)*Mod(1,h);
-  f[3] = (3*x^4 + 6*a4*x^2 + 12*a6*x - a4^2)*Mod(1,h);
-  g[3] = reduce(lift(f[3]^2), E, p)*Mod(1,h);
-  f[4] = 4*y*(x^6 + 5*a4*x^4 + 20*a6*x^3 - 5*a4^2*x^2 - 4*a4*a6*x - 8*a6^2 - a4^3)*Mod(1,h);
-  g[4] = reduce(lift(f[4]^2), E, p)*Mod(1,h);
-  f[5] = reduce(lift(f[4]*f[2]^3-f[3]^3*f[1]), E, p)*Mod(1,h);
-  g[5] = reduce(lift(f[5]^2), E, p)*Mod(1,h);
+  f[2] = 2*'y*Mod(1,h);
+  g[2] = reduce(f[2]^2, E, h, p);
+  f[3] = (3*'x^4 + 6*a4*'x^2 + 12*a6*'x - a4^2)*Mod(1,h);
+  g[3] = reduce(f[3]^2, E, h, p);
+  f[4] = 4*'y*('x^6 + 5*a4*'x^4 + 20*a6*'x^3 - 5*a4^2*'x^2 - 4*a4*a6*'x - 8*a6^2 - a4^3)*Mod(1,h);
+  g[4] = reduce(f[4]^2, E, h, p);
+  f[5] = reduce(f[4]*f[2]*g[2]-f[3]*g[3]*f[1], E, h, p);
+  g[5] = reduce(f[5]^2, E, h, p);
   for (m = 3, n\2,
-    f[2*m] = reduce(lift(f[m]/(2*y)*(f[m+2]*g[m-1] - f[m-2]*g[m+1])), E, p)*Mod(1,h);
-    g[2*m] = reduce(lift(f[2*m])^2, E, p)*Mod(1,h);
-    f[2*m + 1] = reduce(lift(f[m+2]*f[m]^3-f[m+1]^3*f[m-1]), E, p)*Mod(1,h);
-    g[2*m+1] = reduce( lift(f[2*m+1])^2, E, p)*Mod(1,h)
+    f[2*m] = reduce(f[m]*('y*inv2y2)*(f[m+2]*g[m-1] - f[m-2]*g[m+1]), E, h, p);
+    g[2*m] = reduce(f[2*m]^2, E, h, p);
+    f[2*m+1] = reduce(f[m+2]*f[m]*g[m]-f[m+1]*g[m+1]*f[m-1], E, h, p);
+    g[2*m+1] = reduce(f[2*m+1]^2, E, h, p);
   );
-  lift(f[n])}
+  lift(f[n]);}
 
 \\ Finds E' q-isogenous to E and the trace term p1 from canonical modular
 \\   equation meqn
 \\ E: elliptic curve, q: a prime, meqn: canonical modular equation
 \\ g: root of meqn defining isogenous curve Eb.
 find_isogenous_from_canonical(E, q, meqn, g, p) =
-{local(j, E4, E6, delta, is, Dx, Dxx, px, pJ, ExJ, dx, dJ, deltal, E4l,
+{local(j, E4, E6, delta, is, Dx, DJ, Dxg, DJg, Dxx, px, pJ, ExJ, dx, dJ, deltal, E4l,
   a4tilde, jl, a6tilde, p1, E2s, gd, jd, E0b, Dgd, Djd, E0bd, f, fd,
   Dgs, Djs, jld, E6l);
 
   E4 = -E.a4/3;
   E6 = -E.a6/2; delta = (E4^3 - E6^2)/1728; j = E.j;
-  Dx = deriv(meqn, x);
-  DJ = deriv(meqn, J);
-  Dxg = subst(Dx, x, g); px = subst(Dxg, J, j); dx = g * px;
-  DJg = subst(DJ, x, g); pJ = subst(DJg, J, j); dJ = j * pJ;
-  Dxx = deriv(Dx, x);
-  ExJ = subst(deriv(Dxg,J), J, j);
-  is = 1;
-  while (1,
-    if (is*(q - 1)%12 == 0, break);
-    is++
-  );
+  Dx = deriv(meqn, 'x);
+  DJ = deriv(meqn, 'J);
+  Dxg = subst(Dx, 'x, g); px = subst(Dxg, 'J, j); dx = g * px;
+  DJg = subst(DJ, 'x, g); pJ = subst(DJg, 'J, j); dJ = j * pJ;
+  Dxx = deriv(Dx, 'x);
+  ExJ = subst(deriv(Dxg,'J), 'J, j);
+  is = 12 / gcd(12,q-1);
   deltal = delta * g^(12/is)/q^12;
-  if (!dJ, print("Division by zero ", lift(E)," "p);
+  if (!dJ,
+    if (VERBOSE, print("Division by zero ", lift(E)," "p));
     E4l = E4/q^2;
     jl = E4l^3/deltal;
     E6l = -sqrt((jl - 1728)*deltal);
@@ -191,61 +203,65 @@ find_isogenous_from_canonical(E, q, meqn, g, p) =
     gd = -(is/12)*E2s*g;
     jd = -E4^2*E6/delta;
     E0b = E6/(E4*E2s);
-    Dgd = gd*px + g * (gd*subst(subst(Dxx, x, g), J, j) + jd*ExJ);
-    Djd = jd*pJ + j * (jd*subst(deriv(DJg,J), J, j) + gd*ExJ);
+    Dgd = gd*px + g * (gd*subst(subst(Dxx, 'x, g), 'J, j) + jd*ExJ);
+    Djd = jd*pJ + j * (jd*subst(deriv(DJg,'J), 'J, j) + gd*ExJ);
     E0bd = ((-is*Dgd)/12 - E0b*Djd)/dJ;
 
     E4l = (E4 - E2s*(12*E0bd/E0b + 6*E4^2/E6 - 4*E6/E4 - E2s))/q^2;
     jl = E4l^3/deltal;
     f = q^is/g;
     fd = is*E2s*f/12;
-    Dgs = subst(subst(Dx, x, f), J, jl);
-    Djs = subst(subst(DJ, x, f), J, jl);
+    Dgs = subst(subst(Dx, 'x, f), 'J, jl);
+    Djs = subst(subst(DJ, 'x, f), 'J, jl);
     jld = -fd*Dgs/(q*Djs);
     E6l = -E4l*jld/jl;
     p1 = -q*E2s/2;
   );
   a4tilde = -3*q^4*E4l;
   a6tilde = -2*q^6*E6l;
-  [ellinit([0, 0, 0, a4tilde, a6tilde]*Mod(1,p)), p1]}
+  [ellinit([0, 0, 0, a4tilde, a6tilde]*Mod(1,p)), p1];}
 
 \\Finds the isogenous EC, and the sum of the x-coordinates of the points in
 \\ the kernel of the isogeny E -> Eb
 \\E: elliptic curve, q: a prime, meqn: Atkin modular equation
 \\g: root of meqn defining isogenous curve Eb.
 find_isogenous_from_Atkin(E, q, meqn, g, p) =
-{ local(Roots, jt, j, dx, E4, E6, dxstar,
-    Dx, DJ, Dxg, DJg, Dxxg, DJJg, Dxjg, gprime, E4t, E6t, a4t, a6t, px, pJ,
-    pxstar, pJstar, u1, u2, p1, Eb, check, u,v);
+{ local(Roots, jt, j, dx, dJ, E4, E6, dxstar,
+    Dx, DJ, Dxg, DJg, Dxxg, DJJg, DxJg, gprime, E4t, E6t, a4t, a6t, px, pJ,
+    pxstar, pJstar, dJstar, u1, u2, p1, Eb, check, u,v);
 
   E4 = -E.a4/3;
   E6 = -E.a6/2; j = E.j;
-  Dx = deriv(meqn, x);
-  DJ = deriv(meqn, J);
-  Dxg = subst(Dx, x, g); px = subst(Dxg, J, j); dx = g * px;
-  DJg = subst(DJ, x, g); pJ = subst(DJg, J, j); dJ = j * pJ;
-  Dxxg = subst(deriv(Dx, x), x, g);
-  DJJg = deriv(DJg, J);
-  DxJg = deriv(Dxg, J);
-  if (!dx || !E4, error("division by zero with prime ", q));
+  Dx = deriv(meqn, 'x);
+  DJ = deriv(meqn, 'J);
+  Dxg = subst(Dx, 'x, g); px = subst(Dxg, 'J, j); dx = g * px;
+  DJg = subst(DJ, 'x, g); pJ = subst(DJg, 'J, j); dJ = j * pJ;
+  Dxxg = subst(deriv(Dx, 'x), 'x, g);
+  DJJg = deriv(DJg, 'J);
+  DxJg = deriv(Dxg, 'J);
+  if (!dx || !E4,
+    if (VERBOSE,
+      print("find_isogenous_from_Atkin: division by zero at prime ", q));
+    return([]);
+  );
   gprime = (g*E6*dJ)/(E4 * dx);
-  u1 = (-gprime*subst(Dxxg, J,j)
-        + 2*j*subst(DxJg, J, j)*E6/E4
-        - (E6^2/(gprime*E4^2))*j*(pJ + j*subst(DJJg, J, j))) / px
+  u1 = (-gprime*subst(Dxxg, 'J,j)
+        + 2*j*subst(DxJg, 'J, j)*E6/E4
+        - (E6^2/(gprime*E4^2))*j*(pJ + j*subst(DJJg, 'J, j))) / px
       + E6/(3*E4) - E4^2/(2 * E6);
 
-  Roots = polrootsmod(subst(meqn, x, g), p);
+  Roots = polrootsmod(subst(meqn, 'x, g), p);
   forstep (k = #Roots, 1, -1,
     jt = Roots[k];
-    pxstar = subst(Dxg, J, jt); dxstar = g * pxstar;
-    pJstar = subst(DJg, J, jt); dJstar = q * jt * pJstar;
+    pxstar = subst(Dxg, 'J, jt); dxstar = g * pxstar;
+    pJstar = subst(DJg, 'J, jt); dJstar = q * jt * pJstar;
     u = dxstar*dJ*E6;
     v = dJstar*dx*E4;
     E4t = (sqr(u)*jt)/(sqr(v)*(jt - 1728));
     E6t = (u * E4t)/v;
-    u2 = (-gprime*subst(Dxxg, J, jt)
-          + 2*q*jt*subst(DxJg, J, jt)*E6t/E4t
-          - q^2*(E6t^2/(gprime*E4t^2))*jt*(pJstar + jt*subst(DJJg, J, jt))
+    u2 = (-gprime*subst(Dxxg, 'J, jt)
+          + 2*q*jt*subst(DxJg, 'J, jt)*E6t/E4t
+          - q^2*(E6t^2/(gprime*E4t^2))*jt*(pJstar + jt*subst(DJJg, 'J, jt))
          ) / pxstar
        + q*(E6t/(3*E4t) - E4t^2/(2*E6t));
     p1 = (u1 - u2)*6*q/2;
@@ -255,7 +271,7 @@ find_isogenous_from_Atkin(E, q, meqn, g, p) =
     check = find_kernel(E, q, Eb, p1, p);
     if (check[2], return([Eb, check[1]]))
   );
-  error(" kernel not found")}
+  error(" kernel not found");}
 
 \\Finds the kernel polynomial h, dividing the ell-division polynomial from the
 \\isogenous curve Eb and trace term pp1.
@@ -272,21 +288,21 @@ find_kernel(E, ell, Eb, pp1, p) =
   a6 = E.a6;
   Coeff      = find_coeff(a4,       a6, dim + 1);
   Coefftilde = find_coeff(Eb.a4, Eb.a6, dim + 1);
-  psi2 = 4*x^3 + 4*a4*x + 4*a6;
-  Dpsi2 = 6*x^2 + 2*a4;
-  list = vector(dim); list[1] = r = 2*a4 + 6*x^2;
+  psi2 = 4*'x^3 + 4*a4*'x + 4*a6;
+  Dpsi2 = 6*'x^2 + 2*a4;
+  list = vector(dim); list[1] = r = Dpsi2;
   for (k = 2, dim,
-    tsil = reverse( Vec(r) );
+    tsil = vecrev(r);
     r = tsil[2]*Dpsi2;
     for (j = 3, #tsil,
       o = j - 1;
-      r += o*tsil[o+1]*(Dpsi2*x + (o-1)*psi2)*x^(o-2)
+      r += o*tsil[o+1]*(Dpsi2*'x + (o-1)*psi2)*'x^(o-2)
     );
     list[k] = r;
   );
   M = matrix(dim, dim + 2);
   for (k = 1, dim,
-    tsil = reverse( Vec(list[k]) ) * 2/(2*k)!;
+    tsil = vecrev(list[k]) * 2/(2*k)!;
     for (i = 1, #tsil, M[k,i] = lift(tsil[i]));
   );
   N = vecextract(M, Str("..",dim));
@@ -306,7 +322,7 @@ find_kernel(E, ell, Eb, pp1, p) =
     tlist[dim-k+1] = tmp/k
   );
   h = Pol(vector(deg+1 , i, tlist[dim+2-i]));
-  [h, !vector(ext, i, tlist[i])]}
+  [h, !vector(ext, i, tlist[i])];}
 
 find_kernel_power(Eb, Ec, ell, meqn, meqntype, mpoly, kpoly, Ib, p) =
 { local(num_iso, mroots, tmp, Etmp, p1c, gtmp, check, Ic, kpoly_new);
@@ -323,25 +339,28 @@ find_kernel_power(Eb, Ec, ell, meqn, meqntype, mpoly, kpoly, Ib, p) =
       check = tmp[2] ,
     if (meqntype == "A",
       tmp = find_isogenous_from_Atkin(Ec, ell, meqn, mroots[i], p);
+      if (!#tmp, return ([]));
       Etmp = tmp[1];
       gtmp = tmp[2];
       check = 1));
     if (check && \\check that the kernel kpoly is the good one
-        elldivpol(Eb, ell, numerator(subst(gtmp, x, num_iso/kpoly^2)), p),
-      Ic = subst(num_iso, x, Ib) / subst(kpoly, x, Ib)^2;
-      kpoly_new = numerator(subst(gtmp, x, Ic));
+        elldivpol(Eb, ell, numerator(subst(gtmp, 'x, num_iso/kpoly^2)), p),
+      Ic = subst(num_iso, 'x, Ib) / subst(kpoly, 'x, Ib)^2;
+      kpoly_new = numerator(subst(gtmp, 'x, Ic));
       return([Etmp, kpoly_new, gtmp, Ic])
     )
   );
-  error("failed to find kernel polynomial")}
+  error("failed to find kernel polynomial");}
+
+compute_W(E, precS)=  1/'z^2 + subst(Polrev(find_coeff(E.a4, E.a6, precS),'z),'z,'z^2)*'z^2 + O('z^(2*precS));
 
 \\Finds numerator phi of the isogeny between Eb and Ec whose denominator is h.
-find_numerator_isogeny(Eb, Ec, h, prec) =
+find_numerator_isogeny(Eb, Ec, h, precS) =
 { local(WEb, WEc, den);
-  WEb = 1/z^2 + subst(Polrev(find_coeff(Eb.a4, Eb.a6, prec),z),z,z^2)*z^2 + O(z^(2*prec));
-  WEc = 1/z^2 + subst(Polrev(find_coeff(Ec.a4, Ec.a6, prec),z),z,z^2)*z^2 + O(z^(2*prec));
-  den = subst(h, x, WEb);
-  find_transformation(den^2*WEc, WEb)}
+  WEb = compute_W(Eb, precS);
+  WEc = compute_W(Ec, precS);
+  den = subst(h, 'x, WEb);
+  find_transformation(den^2*WEc, WEb);}
 
 \\Assume E defined over Fp
 \\Checks that #E(F_p) = ord by computing ord*Pt for N random Pt on E.
@@ -350,22 +369,27 @@ check_order(E, ord, N, p) =
 {
   for (i = 1, N,
     if (ellpow(E, find_pt_aff(E, p), ord) != [0], return (0));
-  ); 1}
+  ); 1;}
 
 /****************************************************************************/
-/*                              EIGEN VALUE                                 */
+/*                              EIGENVALUE                                  */
 /****************************************************************************/
+
+init_eigen(E,h,p)=
+{
+  X = Mod('x*Mod(1,p), h);
+  RHS = Mod('x^3 + E.a4*'x + E.a6, h);
+  DRHS= Mod(3*'x^2 + E.a4, h);
+  Gr = FpXQ_pow('x^3 + lift(E.a4)*'x + lift(E.a6), (p-1)/2, lift(h), p)
+       * Mod(Mod(1,p), h);
+}
 
 \\Finds the eigenvalue of the Frobenius given E, ell, h a factor of the
 \\ell-division polynomial, p and tr the possible values for the trace
 \\(useful for primes with one root less than BOUND_ONE_ROOT)
 find_eigen_value(E, ell, h, p, tr = []) =
-{ local(DRHS, RHS, X, Gr, BP, Dr, bont, inversion);
-  X = Mod(x*Mod(1,p), h);
-  RHS = Mod(x^3 + E.a4*x + E.a6, h);
-  DRHS= Mod(3*x^2 + E.a4, h);
-  Gr = FpXQ_pow(x^3 + lift(E.a4)*x + lift(E.a6), (p-1)/2, lift(h), p)
-       * Mod(Mod(1,p), h);
+{ local(DRHS, RHS, X, Gr, BP, Dr, bont);
+  init_eigen(E,h,p);
   Dr = BP = [X, 1];
   \\[0,Gr], BP, Dr are not points on the curve.
   \\To obtain the corresponding points, multiply the y-coordinates by Y
@@ -379,17 +403,13 @@ find_eigen_value(E, ell, h, p, tr = []) =
     bont = centerlift(Mod(tr[1]/2, ell));
     Dr = my_ellpow(E, BP, bont);
     if (Dr[2] != Gr, bont = ell - bont);
-  ); bont}
+  ); bont;}
 
 \\Finds the eigenvalue of the Frobenius modulo ell^k given E, ell, k, h a factor
 \\of the ell-division polynomial, lambda the previous eigen value and p
 find_eigen_value_power(E, ell, k, h, lambda, p) =
-{ local(DRHS, RHS, X, Gr, Dr, t, bont, Ell);
-  X = Mod(x*Mod(1, p), h);
-  RHS = Mod(x^3 + E.a4*x + E.a6, h);
-  DRHS= Mod(3*x^2 + E.a4, h);
-  Gr = FpXQ_pow(x^3 + lift(E.a4)*x + lift(E.a6), (p-1)/2, lift(h), p)
-       * Mod(Mod(1,p), h);
+{ local(DRHS, RHS, X, Gr, BP, Dr, bont, Ell);
+  init_eigen(E,h,p);
   \\[0,Gr], BP, Dr are not points on the curve.
   \\To obtain the corresponding points, multiply the y-coordinates by Y
   Ell = ell^(k-1);
@@ -399,7 +419,7 @@ find_eigen_value_power(E, ell, k, h, lambda, p) =
     if (Dr[2] ==  Gr, bont = t*Ell+ lambda; break);
     if (Dr[2] == -Gr, bont = Ell*ell - (t*Ell+ lambda); break);
     Dr = my_elladd(E, Dr, BP);
-  ); bont}
+  ); bont;}
 
 /****************************************************************************/
 /*                                  TRACE                                   */
@@ -451,69 +471,68 @@ study_modular_eqn(q, mpoly, p) =
       if (lg == 2, T = "E",
       if (lg == q+1, T = "2",
                      T = "P"))))
-  ); [T, g[1], r]}
+  ); [T, g[1], r];}
 */
 
 \\ Berlekamp variant [override the above]. Faster, simpler, but uses more space.
 study_modular_eqn(q, mpoly, p) =
-{local(r, g, XP, G, lg, L, T);
+{local(r, g, XP, G, lg, L, T, s);
 
   r = 0;
   if (poldegree(FpX_gcd(mpoly, deriv(mpoly), p)) > 0,
-    T = "P"; g = [0];
+    T = "P"; g = 0;
   ,
-    XP = FpXQ_pow(x, p, mpoly, p);
-    G = FpX_gcd(XP - x, mpoly, p);
+    XP = FpXQ_pow('x, p, mpoly, p);
+    G = FpX_gcd(XP - 'x, mpoly, p);
     lg = poldegree(G); \\ # of roots of G = #g below
     if (!lg, \\ compute r = degree of smallest divisor of mpoly ~ CanZass
-      T = "A"; g = [0];
-      L = bkinit(XP, q, mpoly, p); \\ deg(mpoly) = q+1
-      s = #FpM_ker(RgXV_to_RgM(L, q+1) - 1, p); \\ # of irreducible factors
+      T = "A"; g = 0;
+      L = FpXQ_matrix_pow(XP,q+1,q+1,mpoly,p); \\ deg(mpoly) = q+1
+      s = q+1 - FpM_rank(L - 1, p); \\ # of irreducible factors
       r = (q+1) / s \\ equal degree
     ,
-      g = polrootsmod(G, p);
+      g = polrootsmod(G, p)[1];
       if (lg == 1, T = "1",
       if (lg == 2, T = "E",
       if (lg == q+1, T = "2",
                      T = "P"))))
-  ); [T, g[1], r]}
+  ); [T, g, r];}
 
 \\Returns the possible values of the trace when ell is an Atkin prime,
 \\given r the splitting degree of the modular equation at J = E.j
-find_trace_Atkin(E, ell, r, p) =
-{local(val_pos, isorder, tmp, a, T, P, invp, pell);
+find_trace_Atkin(ell, r, p) =
+{local(val_pos, tmp, a, T, P, invp, pell);
   val_pos = []; pell = p % ell;
   P = factor(r)[,1]; invp = 1/pell % ell;
   for (teta = 0, ell - 1,
     if (kronecker(teta^2 - 4*pell, ell) < 0,
-      T = t^2 - teta*t + pell;
-      tmp = invp*teta*t - 1;
+      T = 't^2 - teta*'t + pell;
+      tmp = invp*teta*'t - 1;
       a = FpXQ_pow(tmp, r/P[1], T, ell);
       if (a != 1 && FpXQ_pow(a,P[1], T,ell) == 1,
-        isorder = 1;
         for (i = 2, #P,
-          if (FpXQ_pow(tmp, r/P[i], T,ell) == 1, isorder = 0; break)
+          if (FpXQ_pow(tmp, r/P[i], T,ell) == 1, next(2))
         );
-        if (isorder, val_pos = concat(val_pos, teta));
+        val_pos = concat(val_pos, teta);
       );
     );
   );
-  val_pos}
+  val_pos;}
 
 \\Returns the possible traces when there is only one root
 find_trace_one_root(ell, p) =
-  local(a); a = lift(sqrt(Mod(p, ell))); [2*a, ell - 2*a]
+  local(a); a = 2*Fp_sqrt(p%ell,ell); [a, ell - a];
 
 \\Returns the possible traces when there are l + 1 roots
 find_trace_lp1_roots(ell, p) =
-  local(a); a = lift(sqrt(p + O(ell^2))); [2*a, ell^2 - 2*a]
+  local(a); a = Mod(Fp_sqrt(p%ell,ell),ell^2); a=lift(p/a+a); [a, ell^2 - a];
 
 \\Returns the trace modulo ell^k when ell is an Elkies prime
 find_trace_Elkies_power(E, ell, k, meqn, meqntype, g, tr, p) =
-{ local(Eb, Ib, tmp, Ec, p1, kpoly, cnt, lambda);
+{ local(Eb, Ib, tmp, Ec, p1, kpoly, lambda, mpoly);
 
   Eb = E;
-  Ib = x;
+  Ib = 'x;
   if (VERBOSE, print1("Compute trace mod ", ell));
   if (meqntype == "C",
     tmp = find_isogenous_from_canonical(E, ell, meqn, g, p);
@@ -523,6 +542,7 @@ find_trace_Elkies_power(E, ell, k, meqn, meqntype, g, tr, p) =
     kpoly = tmp[1],
   if (meqntype == "A",
     tmp = find_isogenous_from_Atkin(E, ell, meqn, g, p);
+    if (!#tmp, return ([]));
     Ec = tmp[1];
     kpoly = tmp[2]));
   lambda = find_eigen_value(E, ell, kpoly, p, tr);
@@ -531,14 +551,15 @@ find_trace_Elkies_power(E, ell, k, meqn, meqntype, g, tr, p) =
   );
   for (cnt = 2, k,
     if (VERBOSE, print1(", ", ell^cnt));
-    mpoly = subst(meqn, J, Ec.j);
+    mpoly = subst(meqn, 'J, Ec.j);
     tmp = find_kernel_power(Eb, Ec, ell, meqn, meqntype, mpoly, kpoly, Ib, p);
+    if (!#tmp, return ([]));
     lambda = find_eigen_value_power(E, ell, cnt, tmp[2], lambda, p);
     Eb = Ec;
     Ec    = tmp[1];
     kpoly = tmp[3];
     Ib    = tmp[4]
-  ); [(lambda + p/lambda) % (ell^k)]}
+  ); [(lambda + p/lambda) % (ell^k)];}
 
 \\Returns [ell^k, v] where v is a vector containing the possible values of the
 \\trace modulo ell^k: [], [t] or [t1,...,td]
@@ -548,21 +569,23 @@ find_trace(E, ell, k = 1, nb, p) =
   meqn = list_to_pol(modular_eqn[nb]);
   meqntype = modular_eqn_type[nb];
   kt = k;
-  tmp = study_modular_eqn(ell, lift(subst(meqn, J, E.j)), p);
+  tmp = study_modular_eqn(ell, lift(subst(meqn, 'J, E.j)), p);
   g = tmp[2];
 /* If l is an Elkies prime, search for a factor of the l-division polynomial.
  * Then deduce the trace by looking for eigenvalues of the Frobenius by
  * computing modulo this factor */
   if (tmp[1] == "E",
     if (VERBOSE, print1("Elkies.\t "));
-    tr = find_trace_Elkies_power(E, ell, k, meqn, meqntype, g, [], p)
+    tr = find_trace_Elkies_power(E, ell, k, meqn, meqntype, g, [], p);
+    if (!#tr, return ([]));
   );
   if (tmp[1] == "1",
     if (VERBOSE, print1("One root.\t "));
     tr = find_trace_one_root(ell, p);
     kt = 1;
     if (ell < BOUND_ONE_ROOT,
-      tr = find_trace_Elkies_power(E, ell, 1, meqn, meqntype, g, tr, p)
+      tr = find_trace_Elkies_power(E, ell, 1, meqn, meqntype, g, tr, p);
+      if (!#tr, return ([]));
     ,
       if (VERBOSE, print1("Compute possible values for the trace"));
     );
@@ -574,13 +597,13 @@ find_trace(E, ell, k = 1, nb, p) =
   );
   if (tmp[1] == "A",
     if (VERBOSE, print1("Atkin.\t Compute possible values for the trace"));
-    tr = find_trace_Atkin(E, ell, tmp[3], p);
+    tr = find_trace_Atkin(ell, tmp[3], p);
     kt = 1;
   );
   if (tmp[1] == "P",
     if (VERBOSE, print1("Pathological."));
     tr = []
-  ); [ell^kt, tr]}
+  ); [ell^kt, tr];}
 
 /****************************************************************************/
 /*                              MATCH AND SORT                              */
@@ -596,17 +619,17 @@ cost_without_precomp(ell, compile_atkin) =
       j++; if (j > #compile_atkin, return("inf"))
     );
     res *= #compile_atkin[j][2];
-  ); res}
+  ); res;}
 
 \\ assume cost_vec precomputed
 cost(ell)=
 { local(res, fact, P);
   fact = factor(ell); P = fact[,1];
   res = prod(i = 1, #P, cost_vec[ P[i] ]);
-  if (!res, "inf", res)}
+  if (!res, "inf", res);}
 
 champion(compile_atkin) =
-{ local(k, i, n, B, Bp, j, i1, i2, b, costb, cost_vec, res);
+{ local(k, i, n, B, Bp, i1, i2, b, costb, cost_vec, res);
 
   k = #compile_atkin;
   cost_vec = vector(compile_atkin[k][1]);
@@ -642,7 +665,7 @@ champion(compile_atkin) =
   res = [];
   for (i = 1, 2^k,
     if (B[i] > 1, res = concat(res, [[B[i], cost(B[i])]]))
-  ); res}
+  ); res;}
 
 \\ A partition of compile_atkin in baby and giant is represented as the binary
 \\ developpement of an integer; if the i-th bit is 1, the i-th prime in
@@ -650,7 +673,7 @@ champion(compile_atkin) =
 \\ the number of possibilities for traces modulo giants (p_g) and babies (p_b)
 \\ is near 3/4.
 separation(cnt) =
-{ local(k, best_i, best_r, i, bin, P, p_b, j, r, v);
+{ local(k, best_i, best_r, P, p_b, r, v);
   k = #cnt; P = prod(j=1, k, cnt[j]); \\ p_b * p_g = P is constant
   best_i = 0;
   best_r = 3/4;
@@ -658,16 +681,16 @@ separation(cnt) =
     v = vecextract(cnt, i);
     p_b = prod(j=1,#v, v[j]);
     r = abs(p_b^2/P - 3/4); \\ |p_b/p_g - 3/4|
-    if (!r, return i);
+    if (!r, return(i));
     if (r < best_r, best_i = i; best_r = r);
-  ); best_i}
+  ); best_i;}
 
 \\ chinese(Mod(a,A), Mod(b,B)), A,B coprime
 crt(A, a, B, b) =
 { local(u, v, M);
   u = A * (1/A % B);
   v = B * (1/B % A); M = A * B;
-  [M, (u * b + v * a) % M]
+  [M, (u * b + v * a) % M];
 }
 
 global(global_P);
@@ -675,7 +698,7 @@ global(global_P);
 \\ return the vector mod q P congruent to x (resp. y) mod P (resp. q).
 \\ update global_P ( <-- qP )
 multiple_crt(x, y, q) =
-{ local(t, k, a1, a2, i, j);
+{ local(t, k, a1, a2);
 
   t = vector(#x * #y);
   a1 = global_P * (1/global_P % q);
@@ -683,34 +706,29 @@ multiple_crt(x, y, q) =
   k = 0; global_P *= q;
   for (i = 1, #x,
     for (j = 1, #y, t[k++] = (a1*y[j] + a2*x[i]) % global_P)
-  ); t }
+  ); t; }
 
 \\ update global_P
 possible_traces(C) =
-{ local(v, i);
+{ local(v);
   global_P = C[1][1]; v = C[1][2];
   for (i=2, #C, v = multiple_crt(v, C[i][2], C[i][1]));
-  v }
+  v; }
 
 \\ u = trace_elkies, Mu = prod_elkies
 match_and_sort(compile_atkin, Mu, u, E, p) =
-{ local(coef, Md, tmp, baby, giant, Mb, Mg, den, Sg, dec_inf, div, P, Pu, Pb,
-Pg, point, diff, pre, table, table_ind, r, s, card, best_i, k,
-Sdiff);
-  P = find_pt_aff(E, p);
+{ local(baby, giant, Mb, Mg, den, Sg, dec_inf, div, P, Pb,
+        Pg, point, diff, pre, d, table, table_ind, r, s, card, best_i, k);
   k = #compile_atkin;
   if (!k, \\no Atkin prime: Mu >= 4*sqrt(p).
     card = p + 1 - u;
-    return( if (ellpow(E, P, card) == [0], card,
-                                           card + Mu))
+    return( choose_card([card, card + Mu], E, p))
   );
-  if (k == 1, \\only one Atkin prime, check the cardinality with a random point
+  if (k == 1, \\only one Atkin prime, check the cardinality with random points
     s = Mod(u, Mu);
     r = compile_atkin[1];
-    for (i = 1, #r[2],
-      card = p + 1 - centerlift( chinese(s, Mod(r[2][i], r[1])) );
-      if (ellpow(E, P, card) == [0], return(card));
-    )
+    card = vector(#r[2], i, p + 1 - centerlift(chinese(s, Mod(r[2][i],r[1]))));
+    return ( choose_card(card, E, p) );
   );
   best_i = separation( vector(k, j, #compile_atkin[j][2]) );
   giant= vecextract(compile_atkin, (1<<k)-1-best_i);
@@ -728,6 +746,7 @@ Sdiff);
     baby[i] += div;
     if(baby[i] < dec_inf, baby[i] += Mb)
   );
+  P = find_pt_aff(E, p);
   point = ellpow(E, P, Mu);
   Pb = ellpow(E, point, Mg);
   Pg = ellpow(E, point, Mb);
@@ -774,8 +793,7 @@ Sdiff);
     point = elladd(E, point, pre[ ZV_search(diff, d) ]);
   );
   card = p + 1 - u - Sg * Mu * Mb - Mu * (giant[r] * Mb +  Mg * baby[s]);
-  if (ellpow(E, find_pt_aff(E, p), card) == [0], return (card));
-  card + 2 * Mu * Mb * giant[r];
+  choose_card([card, card + 2 * Mu * Mb * giant[r]], E, p);
 }
 
 /* E is an elliptic curve defined over Z or over Fp in ellinit format, defined
@@ -785,9 +803,9 @@ Sdiff);
  * set EARLY_ABORT to stop whenever a small factor of the order is detected.
  *   Useful when searching for a good curve for cryptographic applications */
 ellsea(E, p, verbose = 0, early_abort = 0) =
-{ local(change, Etmp, NB_TEST_PT, power_max, i, xp, tr, bound, product,
-  l, compile_atkin, nb, trace_mod, res, M, size, bound_bsgs,
-  growth_factor, best_champ, bound_champ, champ, compile_atkin_tmp, j, T, lp);
+{ local(change, Etmp, power_max, i, xp, tr, bound, product,
+  l, compile_atkin, nb, trace_mod, M, bound_bsgs,
+  growth_factor, best_champ, fact, bound_champ, champ, compile_atkin_tmp, j, T, lp);
   local(x, J, y, z);
   VERBOSE     = verbose;
   EARLY_ABORT = early_abort;
@@ -799,7 +817,6 @@ ellsea(E, p, verbose = 0, early_abort = 0) =
     change = 0;
   );
   Etmp = ellinit(Etmp * Mod(1,p));
-  NB_TEST_PT = 10; \\ # of random points used to check the order
   BOUND_ONE_ROOT = 23;
 
   power_max = vector(47, i, 1);
@@ -808,6 +825,8 @@ ellsea(E, p, verbose = 0, early_abort = 0) =
   power_max[primepi(5)] = 2;
   power_max[primepi(7)] = 2;
   lp = #binary(p);
+  \\Uses ellap if p is small
+  if (lp < 63, return(p + 1 - ellap(Etmp, p)));
   if (lp > 160, power_max[primepi(3)] = 4);
   if (lp > 260,
     power_max[primepi(5)]  = 3;
@@ -827,10 +846,7 @@ ellsea(E, p, verbose = 0, early_abort = 0) =
     print("y^2 = x^3 + ", lift(Etmp.a4), "*x + ", lift(Etmp.a6));
     print("defined over the prime field of order ", p, " (", lp, "bits)")
   );
-  if (check_order(Etmp, p + 1, NB_TEST_PT, p), return(p + 1));
   i = CM_CardEFp(Etmp, p); if (i, return(i));
-  \\Uses ellap if p is small
-  if (lp < 63, return(p + 1 - ellap(Etmp, p)));
 
   x = 'x; J = 'J; y = 'y; z = 'z;
 
@@ -857,6 +873,7 @@ ellsea(E, p, verbose = 0, early_abort = 0) =
   while (product <= bound,
     nb = primepi(l);
     trace_mod = find_trace(Etmp, l, power_max[nb], nb, p);
+    if (!#trace_mod, next);
     if (#trace_mod[2] == 1,
       if (EARLY_ABORT && (p+1 - trace_mod[2][1]) % l == 0,
         if (VERBOSE, print("\nAborting: #E(Fp) divisible by ", l));
@@ -870,17 +887,14 @@ ellsea(E, p, verbose = 0, early_abort = 0) =
     if (#trace_mod[2], product *= trace_mod[1]);
     l = nextprime(l+1);
     if (l > MAXL,
-      print();
       if (VERBOSE,
+        print();
         print("Warning: no more modular polynomials available!");
         print("Match and sort may be very long : it remains ",
               prod(i = 1, #compile_atkin, #compile_atkin[i][2]),
               "possibilities for the trace")
       );
-      res = match_and_sort(compile_atkin, tr[1], tr[2], Etmp, p);
-      if (!check_order(Etmp, res, NB_TEST_PT, p),error("wrong order found,
-  please report"));
-      return(res);
+      return( match_and_sort(compile_atkin, tr[1], tr[2], Etmp, p) );
     );
   );
   M = 1000000;
@@ -898,6 +912,7 @@ ellsea(E, p, verbose = 0, early_abort = 0) =
   );
   while (best_champ[2] >= bound_bsgs,
     trace_mod = find_trace(Etmp, l, 1, primepi(l), p);
+    if (!#trace_mod, next);
     if (#trace_mod[2] == 1,
       tr = crt(trace_mod[1], trace_mod[2][1], tr[1], tr[2])
     ,
@@ -911,6 +926,7 @@ ellsea(E, p, verbose = 0, early_abort = 0) =
       l = nextprime(l + 1);
       bound_bsgs *= growth_factor;
       trace_mod = find_trace(Etmp, l, 1, primepi(l), p);
+      if (!#trace_mod, next);
       if (#trace_mod[2] == 1,
         tr = crt(trace_mod[1], trace_mod[2][1], tr[1], tr[2])
       ,
@@ -952,10 +968,7 @@ ellsea(E, p, verbose = 0, early_abort = 0) =
   if (VERBOSE,
     print("\n\nComputation of traces done. Entering match and sort algorithm.")
   );
-  res = match_and_sort(compile_atkin, tr[1], tr[2], Etmp, p);
-  if (!check_order(Etmp, res, NB_TEST_PT, p), error("wrong order found, please
-      report"));
-  res}
+  match_and_sort(compile_atkin, tr[1], tr[2], Etmp, p); }
 
 \\Ensures that E is not supersingular, anomalous and fullfills the MOV condition
 bad_curve(p, res) =
@@ -965,21 +978,24 @@ bad_curve(p, res) =
   d = 1;
   for (i = 0, 30,
     d = (d * p) % res; if (d == 1, return(3)) \\ MOV condition not satisfied
-  ); 0}
+  ); 0; }
+
+is_singular(A, B, p) = (4*A^3 + 27*B^2) % p == 0;
 
 \\Finds a curve whose order is a prime of size approximately lg bits
 ellcrypto(lg) =
-{local(p, nbessai, E, res, a4, a6);
-  p = nextprime(random(2^lg));
+{local(p, nbessai, E, res, a4, a6, t = 1<<(lg-1));
+  p = nextprime(t + random(t));
   nbessai = 0;
   while (1, print1("*"); nbessai++;
     a4 = random(p);
     a6 = random(p);
+    if (is_singular(a4,a6,p), next);
     E = ellinit([0, 0, 0, a4, a6] * Mod(1,p));
     res = ellsea(E,p,0,1);
     if (isprime(res) && !bad_curve(p, res), break)
   );
-  [lift(E.a4), lift(E.a6), res] }
+  [lift(E.a4), lift(E.a6), res]; }
 
 addhelp(ellsea,"ellsea(E,p,{flag1=0},{flag2=0}): returns the cardinality of the group of rational points E(Fp) where E is an elliptic curve in ellinit format defined over Z or Fp by the equation E: y^2 + a1*x*y + a3*y = x^3 + a2*x^2 + a4*x + a6. If flag1 is equal to 1 the program displays information about the computation process. If flag2 is set to 1 the early abort technique is used and the computation is interrupted as soon as a small divisor of the order is detected.");
 

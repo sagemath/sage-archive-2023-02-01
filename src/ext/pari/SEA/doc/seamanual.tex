@@ -1,0 +1,309 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{xspace}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{url}
+
+\parindent=0pt
+\baselineskip=12.5pt
+\parskip=4pt plus 2pt minus 2pt
+\hoffset=-0.6cm
+\voffset=-1cm
+\setlength{\textwidth}{16cm}
+\setlength{\textheight}{650pt}
+\oddsidemargin = 5.5mm
+\evensidemargin = 5.5mm
+\headsep=35.0pt
+\footskip=1.50cm
+\headheight = 13.6pt
+
+\renewcommand\theenumi{{\arabic{enumi}}}
+\renewcommand\labelenumi{{\rm\theenumi.}}
+\renewcommand\thepage{{\arabic{page}}}
+
+\def\ellsea{\texttt{ellsea}\xspace}
+\def\MIRACL{\texttt{MIRACL}\xspace}
+\def\magma{\texttt{magma}\xspace}
+
+\def \mymod#1{\mkern 6mu\text{mod}\,#1}
+
+\begin{document}
+\thispagestyle{empty}
+\vbox to 21cm {
+\vskip 8.5cm
+\centerline{\bf \Huge \bfseries Manual for the SEA}\par
+\bigskip
+\bigskip
+\centerline{\bf \Huge \bfseries package}\par
+\medskip
+\bigskip
+\vskip 1cm
+\centerline{\Large {\sc Christophe Doche and Sylvain Duquesne}}\par
+\bigskip
+\centerline{\Large April 2005}\vfill
+\centerline{\Large AREHCC Project, \url{http://www.arehcc.com}}\par
+\bigskip
+}
+\vfill\eject
+\setcounter{tocdepth}{3}
+\cleardoublepage
+
+The algorithm SEA is the only practical way to determine the group order of an
+elliptic curve defined over a field of large characteristic $p$. Its name comes
+from the initials of Schoof, who first suggested a polynomial time point
+counting algortihm, Elkies and Atkin who designed important improvements and
+made the algorithm useful in practice.
+
+As we shall see below it is not surprising that performances of the {\tt C}
+version using the {\tt pari} library are very close to the {\tt gp} version. So
+we prefered to deliver the {\tt gp} library which is more convenient to use.
+The range of application of this program is on average up to 400bits. But it
+depends largely on the curve processed and more precisely on the number of
+``good primes'' for this curve, as explained in section \ref{deux}. In section
+\ref{trois} we give timings for random curves of different size from 128bits
+(some seconds) to 388bits (some minutes).
+
+\section{How to use the program?}
+
+First get the latest version of {\tt gp-pari} \cite{bbco00}. The SEA package
+works with version 2.2.10 of {\tt pari} and above, which you can download
+from \url{http://pari.math.u-bordeaux.fr/}.
+
+To use the {\tt sea} package, launch a {\tt gp-pari} session from the directory
+where the package was extracted. Then type
+\begin{verbatim}
+    \r sea.gp
+\end{verbatim}
+The function \ellsea is now available. Its syntax is as follows
+\begin{verbatim}
+    ellsea(E, p, {flag1=0}, {flag2=0})
+\end{verbatim}
+where
+\begin{itemize}
+\item $E$ is an elliptic curve in short Weierstrass form (note that its
+coefficients can be in $\mathbb{Z}$ or in~$\mathbb{F}_p$)
+\item $p$ is a prime number
+\item {\tt flag1} is an optional paramater. If {\tt flag1 = 1 } then
+informations are displayed during the computation. This is useful since the
+computation can take a while for large $p$, see Table~1.
+
+\item {\tt flag2} is another optional paramater. If {\tt flag2 = 1} then the
+early abort technique is used. This means that the computation is interrupted
+as soon as a small factor of the order is detected.
+\end{itemize}
+
+If you intend to use the program frequently you can update your {\tt .gprc}
+file by adding the two lines
+\begin{verbatim}
+    path = "/INSTALL/PATH"
+    read "sea.gp"
+\end{verbatim}
+where {\tt INSTALL/PATH} is the path of the directory containing {\tt sea.gp}
+and its auxiliary files.
+
+The \ellsea packages exports another function useful from the cryptographic
+point of view, namely {\tt ellcrypto}. Its syntax is {\tt ellcrypto(lg)}
+where {\tt lg} is a number of bits. This function returns a curve $E$ defined
+over a prime field of size approximately {\tt lg}bits whose order is a prime
+number. In addition $E$ is not supersingular, anomalous and fulfills the MOV
+condition against pairing attacks.
+
+\section{Technical guide} \label{deux}
+
+The file {\tt sea\_mod.gp} contains the coefficients of the modular equations
+$\Phi_\ell(X, Y)$  for the $46$ primes $\ell$ lying in the interval $[2, 200]$.
+Depending on the prime $\ell$ the canonical or the Atkin form has been chosen
+to minimize the size of this file which is less than 1.5Mb (685Kb in compressed
+format). They are polynomials in $\mathbb{Z}[X,Y]$ and we can obtain the
+corresponding polynomials in $\mathbb{F}_p[X,Y]$ by a simple reduction of the
+coefficients modulo $p$. They are precomputed and stored because it takes a
+long time to determine them for large $\ell$.
+
+The file {\tt sea\_init.gp} contains instructions of the form
+\begin{verbatim}
+    install(FpXQ_pow, "GGGG")
+    install(FpXQ_powers, "GLGG", "bkinit")
+\end{verbatim}
+(about 10 at them altogether) which load functions from the {\tt pari C}
+library.
+
+Indeed the predominant part of the algorithm is the successive computations for
+various  polynomials $h(X)\in \mathbb{F}_p[X]$ of $X^p$ modulo $h(X)$ and the
+determination of $r$ such that the degree of the $\gcd (X^{p^r} - X, h(X))$ is
+greater than $0$.
+
+For this and a few less important technical tasks (e.g searching for an integer
+in a sorted vector), we use fast specialized procedures from the {\tt C}
+library, not available in {\tt gp}. This explains why the {\tt C} version
+is not faster than the {\tt gp} version.
+
+We refer to \cite{ler97} for a complete description of the SEA algorithm. Now
+let us explain briefly the algorithm. For every prime $\ell$ in the interval
+the first work is to determine its \emph{type}. For this we study the
+polynomial $\Phi_\ell(X, j)$ of degree $\ell + 1$ where the  $j$ is the $j$
+invariant of $E$.
+
+There are different possibilities, depending on the roots of $\Phi_\ell(X,j)$
+\begin{itemize}
+\item  no root; in this case the prime is said to be ``Atkin''
+\item  one root
+\item  two roots; in this case the prime is said to be ``Elkies''
+\item  $\ell + 1$ roots
+\end{itemize}
+otherwise it is ``pathological''.
+
+To determine this number of roots we evaluate $\gcd(X^p- X, \Phi_\ell(X, j))$
+and so we begin by computing $X^p$ modulo $\Phi_\ell(X, j)$. The procedure
+{\tt FpXQ\_pow} is useful at this point.
+
+If the prime $\ell$ is \emph{Atkin}, $\Phi_\ell(X, j)$ can be factored in
+polynomials of equal degree $r$. To determine $r$, we divide the degree
+of $\Phi_\ell(X,j)$ by the number of irreducible factors in
+$\mathbb{F}_p[X]$, computed using Berlekamp's algorithm. (Reusing the value
+of $X^p$ just computed.)\footnote{An older version, now obsoleted,
+computed $\gcd (X^{p^r}-X, \Phi_\ell(X,j))$ for increasing values of $r$,
+using Brent and Kung algorithm, and a blocking strategy to compute fewer gcds.
+It used less memory (in this part of the computation, where it is negligible
+compared to what is needed in the final match and sort), but was noticeably
+slower.}
+Knowing $r$ it is easy to determine possible values modulo $\ell$ of the
+trace $t$ of the Frobenius which is related to the order of the group by the
+formula
+$$|E(\mathbb{F}_p)| = p+1-t.$$
+It happens quite often that the number of candidates of the trace modulo
+$\ell$ is very large. In this case it is sometimes better to simply forget
+the information given by this prime number and investigate a new one.
+
+If there is only one root, there are only two possible values for $t\mymod
+\ell$. If $\ell$ is small enough, namely less than {\tt BOUND\_ONE\_ROOT}, it
+is worthwhile to determine which value is the good one.
+
+If the prime $\ell$ is \emph{Elkies}, it is possible to compute exactly a
+factor $h(x)$ of degree $(\ell-1)/2$ of the $\ell$--division polynomial of
+degree $(\ell^2-1)/2$. With this factor it is not hard to find an eigenvalue
+of the Frobenius of the curve i.e. to find $\lambda$ such that $(x^p, y^p) =
+\lambda (x,y)$ modulo the polynomial $h$ in the ring
+$\mathbb{F}_p(x,y)/(y^2-x^3-a_4x-a_6).$ Then the trace $t\mymod \ell $ is
+equal to $(\lambda + p/\lambda)\mod \ell$. For small prime numbers $\ell$ it
+is even possible to determine the trace modulo $\ell^k$ for small $k$. In
+this case we build a factor $h(x)$ of degree $\ell^{k-1}(\ell -1 )/2$ of the
+$\ell^k$--division polynomial beofre computing $t\mymod  \ell^k$  by the
+same method as above. Note that this practical  only if $\ell \leqslant 13$.
+
+If there are $\ell + 1 $ roots, there are only two possible values for $t\mymod
+\ell^2$.
+
+If the prime $\ell$ is \emph{pathological} it is discarded as it gives no
+information.
+
+The final step is to use the chinese remainder algorithm for primes given
+unique values of the trace modulo $\ell^k$ combined with the match and sort
+algorithm of Atkin to handle primes having different candidates for the
+trace.
+
+This determines $t$ completely. It remains to ensure that the order $c =
+p+1-t$ found is the good one by computing $cP$ for various random points $P$
+on $E$. Note that the order returned is the right one with a very high
+probability. To be certain that the answer is correct one  would need to
+factorize $c$ which is impractical for large $c$. Moreover, when the result
+is a prime or near to be a prime (the only interesting curves for
+cryptography) the result is certified to be the correct one.
+
+\section{Performances}\label{trois}
+As far as we know there is only one public library to compute the number of
+points of an elliptic curve with SEA, namely \MIRACL \cite{miracl}.
+There is another implementation availble in \magma \cite{magma}. We ran
+random computations on an {\tt AMD Atlhon@1.2GHz} and we compared the
+behaviour of \ellsea to those of \MIRACL and \magma.
+
+The biggest prime $\ell$ considered during the computation is denoted by
+$\ell_\textrm{max}$. Note that $\ell_\textrm{max}$ is not in general equal to
+the biggest modulus $N_\textrm{max}$ involved in the trace computation.
+Indeed powers of primes can be larger than the biggest prime considered.
+
+The number of primes leading to different possible values for the trace and
+the total number of primes involved in the computation are respectively
+denoted by $U_p$ and $N_p$. Of course these two numbers depend on $p$ and on
+the curve. The distorsion between $U_p$ and $N_p$ for the three
+implementations can be explained by the different strategies chosen. For
+example for small primes \MIRACL performs a simple \emph{\`a la} Schoof
+computation giving always a single value for the trace.  In \magma and
+in \ellsea the improvements of Couveignes and Morain to compute the
+trace modulo powers of small primes are implemented.
+
+\noindent {\bf Important note:} these timings were performed on an earlier
+version of \ellsea, with an older version of PARI than the now mandatory
+2.2.10, and PARI's native kernel instead of the recommanded GMP. They need to
+be redone.
+
+\begin{small}
+\renewcommand{\arraystretch}{1.6}
+$$\begin{array}{ll|ccccccccc }\hline\hline
+\text{Bit size of $p$} & &  128&    160&    192&    224&      256&    288&    320&    352&  384
+\\\hline
+\text{Timing}
+&\MIRACL    &  12.3&  25.03&  41.41&  80.44&   192.88& 241.87& 323.45& 463.76& 751.23\\
+&\magma     &  2.82&   9.51&  18.03&  50.70&   145.54& 111.76& 201.98& 267.27& 429.26\\
+
+&\ellsea    &  2.84&   8.77&  13.36&  49.34&   114.90&  95.96& 191.46& 267.40& 471.98                \\\hline
+\ell_\text{max}
+&\MIRACL    &    43&     83&     83&    107&      151&    157&    149&    157&    179\\
+
+&\magma     &    47&     61&     71&    103&      137&    101&    131&    131&    151\\
+&\ellsea    &    53&     67&     73&    103&      131&    109&    137&    137&    151\\\hline
+
+N_\text{max}
+&\magma     &    49&    125&    125&    121&      137&    243&    131&    243&    243\\
+&\ellsea    &    53&     67&     81&    103&      131&    125&    137&    243&    243\\\hline
+
+\text{$U_p$ / $N_p$}
+&\MIRACL    &  5/14&  11/23&   9/23&  11/28&    18/36&   22/37&  12/35&  11/37&  13/41 \\
+&\magma     &  6/15&   7/18&   8/20&  14/27&    18/33&    8/26&  12/32&  11/32&  12/35 \\
+&\ellsea    &  6/16&   9/19&   9/21&  14/27&    19/32&   13/29&  13/33&  11/33&  12/35 \\
+\hline\hline
+\end{array}
+$$
+\centerline{\normalsize{\sc Table 1.} {Comparison of different implementation of SEA}\label{comparison}}
+\end{small}
+
+The memory requirements depend on the curve, but roughly speaking
+\begin{itemize}
+\item 10Mb is enough for 160bits curves
+\item 30Mb for 192bits
+\item 50Mb for 224bits
+\item 100Mb for 256bits
+\item 200Mb for 288bits
+\item 500Mb for 306bits and more.
+\end{itemize}
+
+\begin{thebibliography}{99}
+
+\def\urlprefix{{Available at }}
+
+\bibitem{bbco00}
+{\sc Pari/Gp}, version {\tt 2.2.10}, Bordeaux, 2005.
+\urlprefix\url{http://pari.math.u-bordeaux.fr/}.
+
+\bibitem{ler97}
+{\sc R.~Lercier}, \emph{{Algorithmique des courbes elliptiques dans les corps
+  finis}}, Ph.D. thesis, \'Ecole polytechnique, 1997.
+\urlprefix\url{http://www.medicis.polytechnique.fr/~lercier/preprints/these.ps.gz}.
+
+\bibitem{magma}
+\emph{{The Magma Computational Algebra System for Algebra, Number Theory and
+  Geometry, ver. 2.9}}.
+\urlprefix\url{http://magma.maths.usyd.edu.au/magma/}.
+
+\bibitem{miracl}
+\emph{Multiprecision Integer and Rational Arithmetic \tt{C/C++} Library, ver.
+4.74}, {Shamus Software Ltd}. \urlprefix\url{http://indigo.ie/~mscott/}.
+
+\bibitem{sta}
+{\sc R.~Avanzi}, {\sc C.~Doche}, {\sc G.~Frey} \& {\sc T.~Lange}, \emph{{State
+  of the art in Elliptic and Hyperelliptic curve cryptography}}.
+{Document prepared for the AREHCC project}.
+\urlprefix\url{http://www.arehcc.com}.
+
+\end{thebibliography}
+\end{document}

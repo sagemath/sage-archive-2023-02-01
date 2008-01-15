@@ -2359,7 +2359,7 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     We can also directly plot the elliptic curve:
         sage: E = EllipticCurve([0,-1])
-        sage: plot(E, 1, 4, rgbcolor=hue(0.6))
+        sage: plot(E, (1, 4), rgbcolor=hue(0.6))
 
     We can change the line style to one of '--' (dashed), '-.' (dash dot),
     '-' (solid), 'steps', ':' (dotted):

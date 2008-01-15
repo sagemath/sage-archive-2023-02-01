@@ -613,7 +613,10 @@ class Cell(Cell_generic):
             elif F.endswith('.jmol.zip'):
                 pass # jmol data
             else:
-                files.append('<a href="%s" class="file_link">%s</a>'%(url, F))
+                link_text = str(F)
+                if len(link_text) > 40:
+                    link_text = link_text[:10] + '...' + link_text[-20:]
+                files.append('<a href="%s" class="file_link">%s</a>'%(url, link_text))
         if len(images) == 0:
             images = ''
         else:

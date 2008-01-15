@@ -132,7 +132,7 @@ include "stdsage.pxi"  # ctrl-c interrupt block support
 sequence_number = {}
 
 def cython(filename, verbose=False, compile_message=False,
-          use_cache=False, create_local_c_file=False):
+          use_cache=False, create_local_c_file=False, annotate=True, sage_namespace=True):
     if not filename.endswith('pyx'):
         print "File (=%s) should have extension .pyx"%filename
 
@@ -218,13 +218,22 @@ setup(ext_modules = ext_modules,
 
     cython_include = ' '.join(["-I '%s'"%x for x in includes if len(x.strip()) > 0 ])
 
-    cmd = "cd '%s' && cython -p --incref-local-binop %s '%s.pyx' 1>log 2>err " % (build_dir, cython_include, name)
+    options = ['-p', '--incref-local-binop']
+    if annotate:
+        options.append('-a')
+    if sage_namespace:
+        options.append('--pre-import sage.all')
+
+    cmd = "cd '%s' && cython %s %s '%s.pyx' 1>log 2>err " % (build_dir, ' '.join(options), cython_include, name)
 
     if create_local_c_file:
         target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
         if language == 'c++':
             target_c = target_c + "pp"
         cmd += " && cp '%s.c' '%s'"%(name, target_c)
+        if annotate:
+            target_html = '%s/_%s.pyx.html'%(os.path.abspath(os.curdir), base)
+            cmd += " && cp '%s.pyx.html' '%s'"%(name, target_html)
 
     if verbose:
         print cmd

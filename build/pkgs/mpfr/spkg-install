@@ -2,6 +2,13 @@
 
 build()
 {
+    if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+         echo "64 bit MacIntel"
+         CFLAGS="-O2 -g -m64 "; export CFLAGS
+         CXXFLAGS="-O2 -g -m64 "; export CXXFLAGS
+         CPPFLAGS="-O2 -g -m64 "; export CPPFLAGS
+    fi
+
     EXTRA=""
 
     if [ ! -f "$SAGE_LOCAL/include/gmp.h" ]; then

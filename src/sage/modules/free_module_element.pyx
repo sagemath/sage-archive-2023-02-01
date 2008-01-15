@@ -716,8 +716,80 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     #############################
     # Plotting
     #############################
-    def plot(self, xmin=0, xmax=1, eps=None, res=None,
-             connect=True, step=False, **kwds):
+    def plot(self, plot_type=None, **kwds):
+        """
+        INPUT:
+
+            plot_type -- (default: 'arrow' if v has 3 or fewer components,
+            otherwise 'step') type of plot.  Options are 'arrow' to an
+            arrow; 'point' to draw a point at the coordinates
+            specified by the vector; 'step' to draw a step function
+            representing the coordinates of the vector.  Both 'arrow'
+            and 'point' raise exceptions if the vector has more than 3
+            dimensions.
+
+        EXAMPLES:
+            sage: v = vector(RDF, (1,2))
+            sage: eps = 0.1
+            sage: plot(v, plot_type='arrow')
+            sage: plot(v, plot_type='point')
+            sage: plot(v, plot_type='step') # calls v.plot_step()
+            sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            sage: v = vector(RDF, (1,2,1))
+            sage: plot(v) # defaults to an arrow plot
+            sage: plot(v, plot_type='arrow')
+            sage: from sage.plot.plot3d.shapes2 import frame3d
+            sage: plot(v, plot_type='point')+frame3d((0,0,0), v.list())
+            sage: plot(v, plot_type='step') # calls v.plot_step()
+            sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            sage: v = vector(RDF, (1,2,3,4))
+            sage: plot(v) # defaults to a step plot
+
+
+        """
+        # Give sensible defaults based on the vector length
+        if plot_type is None:
+            if len(self)<=3:
+                plot_type='arrow'
+            else:
+                plot_type='step'
+
+        if plot_type == 'arrow' or plot_type == 'point':
+            dimension = len(self)
+            if dimension == 3:
+                from sage.plot.plot3d.shapes import arrow3d, Sphere
+                # Sphere complains if the radius is given twice,
+                # so we have to delete it from kwds if it is given.
+                radius = kwds.pop('radius', .02)
+
+                if plot_type == 'arrow':
+                    return arrow3d((0,0,0), self, radius=radius, **kwds)
+                else:
+                    return Sphere(radius, **kwds).translate(self.list())
+            elif dimension < 3:
+                vectorlist = self.list()
+                if dimension < 2:
+                    # pad to make 2-dimensional
+                    vectorlist.extend([0]*(2-dimension))
+
+                from sage.plot.all import arrow, point
+                if plot_type == 'arrow':
+                    return arrow((0,0), vectorlist, **kwds)
+                else:
+                    return point(vectorlist, **kwds)
+            else:
+                raise ValueError, "arrow and point plots require vectors with 3 or fewer components"
+
+        elif plot_type == 'step':
+            return self.plot_step(**kwds)
+        else:
+            raise NotImplementedError, "plot_type was unrecognized"
+
+
+
+
+    def plot_step(self, xmin=0, xmax=1, eps=None, res=None,
+             connect=True, **kwds):
         """
         INPUT:
             xmin -- (default: 0) start x position to start plotting
@@ -729,13 +801,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
                    in the graph
             connect -- (default: True) if True draws a line; otherwise draw
                        a list of points.
-            step -- (default: False) if True draw a step function plot.
 
         EXAMPLES:
             sage: eps=0.1
             sage: v = vector(RDF, [sin(n*eps) for n in range(100)])
-            sage: plot(v, eps=eps, xmax=5, hue=0).show()
-            sage: v.plot(eps=eps, xmax=5, hue=0).show()
+            sage: v.plot_step(eps=eps, xmax=5, hue=0)
         """
         if res is None:
             res = self.degree()

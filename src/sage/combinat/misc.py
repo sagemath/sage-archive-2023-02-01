@@ -15,7 +15,7 @@ Miscellaneous
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from sage.misc.misc import prod
 
 class DoublyLinkedList():
     """
@@ -223,3 +223,44 @@ def check_integer_list_constraints(l, **kwargs):
             return None
     else:
         return result
+
+
+def _monomial_exponent_to_lower_factorial(me, x):
+    r"""
+    Converts a tuple of exponents to the monomial
+    obtained by replacing each me[i] with
+    $x_i*(x_i - 1)*\cdots*(x_i - a_i + 1)$
+    """
+    terms = []
+    for i in range(len(me)):
+        for j in range(me[i]):
+            terms.append( x[i]-j )
+    return prod(terms)
+
+def umbral_operation(poly):
+    r"""
+    Returns the umbral operation $\downarrow$ applied to poly.
+
+    The umbral operation replaces each instance of $x_i^(a_i)$
+    with $x_i*(x_i - 1)*\cdots*(x_i - a_i + 1)$.
+
+
+    EXAMPLES:
+        sage: P = PolynomialRing(QQ, 2, 'x')
+        sage: x = P.gens()
+        sage: from sage.combinat.misc import umbral_operation
+        sage: umbral_operation(x[0]^3) == x[0]*(x[0]-1)*(x[0]-2)
+        True
+        sage: umbral_operation(x[0]*x[1])
+        x0*x1
+        sage: umbral_operation(x[0]+x[1])
+        x0 + x1
+        sage: umbral_operation(x[0]^2*x[1]^2) == x[0]*(x[0]-1)*x[1]*(x[1]-1)
+        True
+
+    """
+    x = poly.parent().gens()
+    exponents = poly.exponents()
+    coefficients = poly.coefficients()
+    length = len(exponents)
+    return sum( [coefficients[i]*_monomial_exponent_to_lower_factorial(exponents[i],x) for i in range(length)] )

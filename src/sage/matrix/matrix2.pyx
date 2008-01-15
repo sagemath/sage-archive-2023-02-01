@@ -27,6 +27,7 @@ from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose, graphics_filename
 from sage.rings.number_field.all import is_NumberField
 from sage.rings.integer_ring import ZZ
+from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 
 import sage.modules.free_module
@@ -2684,6 +2685,7 @@ cdef class Matrix(matrix1.Matrix):
             return ([], [])
         else:
             return (self.subdivisions[0][1:-1], self.subdivisions[1][1:-1])
+
 
     def randomize(self, density=1, *args, **kwds):
         """

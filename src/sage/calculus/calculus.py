@@ -4027,6 +4027,10 @@ class SymbolicArithmetic(SymbolicOperation):
             -1/3
             sage: (-1)^(1/4)
             (-1)^(1/4)
+
+            sage: (-(x-1)/2)._latex_(simplify=False)
+            '\\frac{-\\left( x - 1 \\right)}{2}'
+
         """
         if simplify:
             if hasattr(self, '_simp'):
@@ -4173,6 +4177,8 @@ class SymbolicArithmetic(SymbolicOperation):
                 s[0] = r'\left( %s \right)' % s[0]
             return '{%s}^{%s} ' % (s[0], s[1])
         elif op is operator.neg:
+            if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
+                s[0] = r'\left( %s \right)'%s[0]
             return '-%s' % s[0]
 
     def _maxima_init_(self):

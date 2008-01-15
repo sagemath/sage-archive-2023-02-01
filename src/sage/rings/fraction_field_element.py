@@ -219,7 +219,7 @@ class FractionFieldElement(field_element.FieldElement):
             sage: h(1,2,5)
             -17/7
         """
-        return self.__numerator(x) / self.__denominator(x)
+        return self.__numerator(*x) / self.__denominator(*x)
 
     def _is_atomic(self):
         return self.__numerator._is_atomic() and self.__denominator._is_atomic()

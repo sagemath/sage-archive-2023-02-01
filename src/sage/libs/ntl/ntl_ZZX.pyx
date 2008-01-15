@@ -932,7 +932,7 @@ cdef class ntl_ZZX:
         _sig_on
         cdef char* t
         t = ZZX_trace_list(&self.x)
-        return eval(string(t).replace(' ', ','))
+        return eval(string_delete(t).replace(' ', ','))
 
     def resultant(self, ntl_ZZX other, proof=None):
         """

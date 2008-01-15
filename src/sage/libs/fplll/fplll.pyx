@@ -69,6 +69,7 @@ cdef class FP_LLL:
                 t = Z_NR_new()
                 t.set_mpz_t(A._matrix[i][j])
                 self._lattice.Set(i,j,t[0])
+                Z_NR_delete(t)
 
     def __dealloc__(self):
         """

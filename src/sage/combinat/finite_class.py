@@ -1,5 +1,5 @@
 r"""
-Finite Combinatorial Classes
+Finite combinatorial classes
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -20,6 +20,19 @@ from combinat import CombinatorialClass
 def FiniteCombinatorialClass(l):
     """
     Returns the combinatorial class with elements in l.
+
+    EXAMPLES:
+        sage: F = FiniteCombinatorialClass([1,2,3])
+        sage: F.list()
+        [1, 2, 3]
+        sage: F.count()
+        3
+        sage: F.random() #random
+        2
+        sage: F.first()
+        1
+        sage: F.last()
+        3
     """
     if not isinstance(l, list):
         l = list(l)
@@ -27,17 +40,53 @@ def FiniteCombinatorialClass(l):
 
 class FiniteCombinatorialClass_l(CombinatorialClass):
     def __init__(self, l):
+        """
+        TESTS:
+            sage: F = FiniteCombinatorialClass([1,2,3])
+            sage: F == loads(dumps(F))
+            True
+        """
         self.l = l
 
     def __repr__(self):
+        """
+        TESTS:
+            sage: F = FiniteCombinatorialClass([1,2,3])
+            sage: repr(F)
+            'Combinatorial class with elements in [1, 2, 3]'
+        """
         return "Combinatorial class with elements in %s"%self.l
 
     def __contains__(self, x):
+        """
+        TESTS:
+            sage: F = FiniteCombinatorialClass([1,2,3])
+            sage: 1 in F
+            True
+            sage: 2 in F
+            True
+            sage: 4 in F
+            False
+            sage: ZZ in F
+            False
+        """
         return x in self.l
 
     def list(self):
+        """
+        TESTS:
+            sage: F = FiniteCombinatorialClass([1,2,3])
+            sage: F.list()
+            [1, 2, 3]
+        """
         return self.l
 
     def count(self):
+        """
+        TESTS:
+            sage: F = FiniteCombinatorialClass([1,2,3])
+            sage: F.count()
+            3
+        """
         return len(self.l)
 

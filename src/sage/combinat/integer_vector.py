@@ -1,3 +1,6 @@
+"""
+Integer vectors
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -123,8 +126,8 @@ def IntegerVectors(n=None, k=None, **kwargs):
         if isinstance(k, builtinlist):
             return IntegerVectors_nnondescents(n,k)
         else:
-            if len(kwargs) == 1 and 'min_part' in kwargs and kwargs['min_part'] == 0:
-                return IntegerVectors_nk0(n,k)
+            if len(kwargs) == 0:
+                return IntegerVectors_nk(n,k)
             else:
                 return IntegerVectors_nkconstraints(n,k,kwargs)
 
@@ -158,10 +161,10 @@ class IntegerVectors_all(CombinatorialClass):
     def count(self):
         return infinity
 
-class IntegerVectors_nk0(CombinatorialClass):
+class IntegerVectors_nk(CombinatorialClass):
     """
     TESTS:
-        sage: IV = IntegerVectors(2,3, min_part=0)
+        sage: IV = IntegerVectors(2,3)
         sage: IV == loads(dumps(IV))
         True
 
@@ -184,16 +187,16 @@ class IntegerVectors_nk0(CombinatorialClass):
             k -- length of exponent tuples (must be > 0)
 
         EXAMPLES:
-            sage: IV = IntegerVectors(2,3, min_part=0)
+            sage: IV = IntegerVectors(2,3)
             sage: IV._list_rec(2,3)
-            [(0, 0, 2), (0, 1, 1), (0, 2, 0), (1, 0, 1), (1, 1, 0), (2, 0, 0)]
+            [(2, 0, 0), (1, 1, 0), (1, 0, 1), (0, 2, 0), (0, 1, 1), (0, 0, 2)]
         """
         res = []
 
         if k == 1:
             return [ (n, ) ]
 
-        for nbar in range(n, -1, -1):
+        for nbar in range(n+1):
             n_diff = n-nbar
             for rest in self._list_rec( nbar , k-1):
                 res.append((n_diff,)+rest)
@@ -202,19 +205,19 @@ class IntegerVectors_nk0(CombinatorialClass):
     def list(self):
         """
         EXAMPLE:
-            sage: IV = IntegerVectors(2,3, min_part=0)
+            sage: IV = IntegerVectors(2,3)
             sage: IV.list()
-            [[0, 0, 2], [0, 1, 1], [0, 2, 0], [1, 0, 1], [1, 1, 0], [2, 0, 0]]
-            sage: IntegerVectors(3, 0, min_part=0).list()
+            [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
+            sage: IntegerVectors(3, 0).list()
             []
-            sage: IntegerVectors(3, 1, min_part=0).list()
+            sage: IntegerVectors(3, 1).list()
             [[3]]
-            sage: IntegerVectors(0, 1, min_part=0).list()
+            sage: IntegerVectors(0, 1).list()
             [[0]]
-            sage: IntegerVectors(0, 2, min_part=0).list()
+            sage: IntegerVectors(0, 2).list()
             [[0, 0]]
-            sage: IntegerVectors(2, 2, min_part=0).list()
-            [[0, 2], [1, 1], [2, 0]]
+            sage: IntegerVectors(2, 2).list()
+            [[2, 0], [1, 1], [0, 2]]
         """
         if self.n < 0:
             return []
@@ -234,19 +237,19 @@ class IntegerVectors_nk0(CombinatorialClass):
     def iterator(self):
         """
         EXAMPLE:
-            sage: IV = IntegerVectors(2,3, min_part=0)
+            sage: IV = IntegerVectors(2,3)
             sage: list(IV)
-            [[0, 0, 2], [0, 1, 1], [0, 2, 0], [1, 0, 1], [1, 1, 0], [2, 0, 0]]
-            sage: list(IntegerVectors(3, 0, min_part=0))
+            [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
+            sage: list(IntegerVectors(3, 0))
             []
-            sage: list(IntegerVectors(3, 1, min_part=0))
+            sage: list(IntegerVectors(3, 1))
             [[3]]
-            sage: list(IntegerVectors(0, 1, min_part=0))
+            sage: list(IntegerVectors(0, 1))
             [[0]]
-            sage: list(IntegerVectors(0, 2, min_part=0))
+            sage: list(IntegerVectors(0, 2))
             [[0, 0]]
-            sage: list(IntegerVectors(2, 2, min_part=0))
-            [[0, 2], [1, 1], [2, 0]]
+            sage: list(IntegerVectors(2, 2))
+            [[2, 0], [1, 1], [0, 2]]
         """
         if self.n < 0:
             return
@@ -259,24 +262,24 @@ class IntegerVectors_nk0(CombinatorialClass):
             yield [self.n]
             return
 
-        for nbar in range(self.n, -1, -1):
+        for nbar in range(self.n+1):
             n = self.n-nbar
-            for rest in IntegerVectors_nk0(nbar , self.k-1):
-                yield [n]+rest
+            for rest in IntegerVectors_nk(nbar , self.k-1):
+                yield [n] + rest
 
     def __repr__(self):
         """
         TESTS:
-            sage: IV = IntegerVectors(2,3, min_part=0)
+            sage: IV = IntegerVectors(2,3)
             sage: repr(IV)
-            'Integer vectors of length 3 that sum to 2 with min_part == 0'
+            'Integer vectors of length 3 that sum to 2'
         """
-        return "Integer vectors of length %s that sum to %s with min_part == 0"%(self.k, self.n)
+        return "Integer vectors of length %s that sum to %s"%(self.k, self.n)
 
     def __contains__(self, x):
         """
         TESTS:
-            sage: IV = IntegerVectors(2,3, min_part=0)
+            sage: IV = IntegerVectors(2,3)
             sage: all([i in IV for i in IV])
             True
             sage: [0,1,2] in IV
@@ -299,7 +302,7 @@ class IntegerVectors_nk0(CombinatorialClass):
         if len(x) != self.k:
             return False
 
-        if min(x) < 0:
+        if len(x) > 0 and min(x) < 0:
             return False
 
         return True

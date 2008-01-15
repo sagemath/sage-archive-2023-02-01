@@ -751,7 +751,7 @@ class NumberField_generic(number_field_base.NumberField):
 
         You can also view a number field as having a different
         generator by just chosing the input to generate the
-        whole filed; for that it is better to use
+        whole field; for that it is better to use
         \code{self.change_generator}, which gives isomorphisms
         in both directions.
         """

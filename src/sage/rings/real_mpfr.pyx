@@ -2231,6 +2231,35 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
+    def log1p(self):
+        """
+        Returns log of 1 + self
+
+        EXAMPLES:
+            sage: r = 15.0; r.log1p()
+            2.77258872223978
+            sage: (r+1).log()
+            2.77258872223978
+
+            sage: r = 38.9; r.log1p()
+            3.68637632389582
+
+            sage: r = -1.0
+            sage: r.log1p()
+            -infinity
+
+            sage: r = -2.0
+            sage: r.log1p()
+            NaN
+
+        """
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_log1p(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
+
     def exp(self):
         r"""
         Returns $e^\code{self}$

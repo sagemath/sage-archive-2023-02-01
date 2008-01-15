@@ -2,7 +2,7 @@
  *
  * Author:  Gonzalo Tornaría <tornaria@math.utexas.edu>
  * Date:    March 2006
- * License: GPL v2
+ * License: GPL v2 or later
  *
  * this is free software: if it breaks, you get to keep all the pieces
 

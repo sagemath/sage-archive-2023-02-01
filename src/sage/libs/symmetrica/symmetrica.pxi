@@ -436,8 +436,8 @@ cdef void late_import():
     ZZ = sage.rings.all.ZZ
 
     #Symmetric Function Algebra
-    import sage.combinat.sfa
-    SymmetricFunctionAlgebra = sage.combinat.sfa.SymmetricFunctionAlgebra
+    import sage.combinat.sf.sfa
+    SymmetricFunctionAlgebra = sage.combinat.sf.sfa.SymmetricFunctionAlgebra
 
     import __builtin__
     builtinlist = __builtin__.list

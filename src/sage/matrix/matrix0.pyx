@@ -889,7 +889,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     def ncols(self):
         """
-        Return the number of rows of this matrix.
+        Return the number of columns of this matrix.
 
         EXAMPLES:
             sage: M = MatrixSpace(QQ, 2, 3)

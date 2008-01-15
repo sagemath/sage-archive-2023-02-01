@@ -351,8 +351,6 @@ cdef class Parent(sage_object.SageObject):
             P = x.parent()   # todo -- optimize
             if P is self:
                 return x
-            elif P == self:      # canonically isomorphic parents in same category.
-                return self(x)
         except AttributeError, msg:
             pass
         if HAS_DICTIONARY(self):

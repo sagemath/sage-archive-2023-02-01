@@ -121,9 +121,9 @@ EXAMPLES:
 
     Another example:
         sage: f = integrate(1/sqrt(9+x^2), x); f
-        asinh(x/3)
+        arcsinh(x/3)
         sage: f(3)
-        asinh(1)
+        arcsinh(1)
         sage: f.diff(x)
         1/(3*sqrt(x^2/9 + 1))
 
@@ -133,7 +133,7 @@ EXAMPLES:
         sage: dy = diff(y,x)
         sage: z = integral(sqrt(1 + dy^2), x, 0, 2)
         sage: print z
-                             asinh(4) + 4 sqrt(17)
+                             arcsinh(4) + 4 sqrt(17)
                              ---------------------
                                        4
         sage: n(z,200)
@@ -233,7 +233,6 @@ This simplification is done using maxima (behind the scenes):
 
 Note that x is still x, since the maxima used by the calculus package
 is different than the one in the interactive interpreter.
-
 
 """
 
@@ -5657,24 +5656,33 @@ class Function_tan(PrimitiveFunction):
 tan = Function_tan()
 _syms['tan'] = tan
 
-def atan2(y, x):
-    return atan(y/x)
+def arctan2(y, x):
+    return arctan(y/x)
 
-_syms['atan2'] = atan2
+atan2 = arctan2
+_syms['atan2'] = arctan2
 
-class Function_asin(PrimitiveFunction):
+class Function_arcsin(PrimitiveFunction):
     """
     The arcsine function
 
     EXAMPLES:
-        sage: asin(0.5)
+        sage: arcsin(0.5)
         0.523598775598299
-        sage: asin(1/2)
+        sage: arcsin(1/2)
         pi/6
-        sage: asin(1 + I*1.0)
+        sage: arcsin(1 + I*1.0)
         1.061275061905036*I + 0.666239432492515
     """
     def _repr_(self, simplify=True):
+        return "arcsin"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arcsin._maxima_init_()
+            'asin'
+        """
         return "asin"
 
     def _latex_(self):
@@ -5683,22 +5691,30 @@ class Function_asin(PrimitiveFunction):
     def _approx_(self, x):
         return math.asin(x)
 
-asin = Function_asin()
-_syms['asin'] = asin
+arcsin = Function_arcsin()
+_syms['asin'] = arcsin
 
-class Function_asinh(PrimitiveFunction):
+class Function_arcsinh(PrimitiveFunction):
     """
     The inverse of the hyperbolic sine function.
 
     EXAMPLES:
-        sage: asinh(0.5)
+        sage: arcsinh(0.5)
         0.481211825059603
-        sage: asinh(1/2)
-        asinh(1/2)
-        sage: asinh(1 + I*1.0)
+        sage: arcsinh(1/2)
+        arcsinh(1/2)
+        sage: arcsinh(1 + I*1.0)
         0.666239432492515*I + 1.061275061905036
     """
     def _repr_(self, simplify=True):
+        return "arcsinh"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arcsinh._maxima_init_()
+            'asinh'
+        """
         return "asinh"
 
     def _latex_(self):
@@ -5707,29 +5723,37 @@ class Function_asinh(PrimitiveFunction):
     def _approx_(self, x):
         return float(pari(float(x)).asinh())
 
-asinh = Function_asinh()
-_syms['asinh'] = asinh
+arcsinh = Function_arcsinh()
+_syms['asinh'] = arcsinh
 
-class Function_acosh(PrimitiveFunction):
+class Function_arccosh(PrimitiveFunction):
     """
     The inverse of the hyperbolic cose function.
 
     EXAMPLES:
-        sage: acosh(1/2)
+        sage: arccosh(1/2)
         acosh(1/2)
-        sage: acosh(1 + I*1.0)
+        sage: arccosh(1 + I*1.0)
         0.904556894302381*I + 1.061275061905036
 
     Warning: If the input is real the output will be real or NaN:
-        sage: acosh(0.5)
+        sage: arccosh(0.5)
         NaN
 
     But evaluate where the input is in the complex field yields a complex output:
-        sage: acosh(CC(0.5))
+        sage: arccosh(CC(0.5))
         1.04719755119660*I
 
     """
     def _repr_(self, simplify=True):
+        return "arccosh"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arccosh._maxima_init_()
+            'acosh'
+        """
         return "acosh"
 
     def _latex_(self):
@@ -5738,22 +5762,30 @@ class Function_acosh(PrimitiveFunction):
     def _approx_(self, x):
         return float(pari(float(x)).acosh())
 
-acosh = Function_acosh()
-_syms['acosh'] = acosh
+arccosh = Function_arccosh()
+_syms['acosh'] = arccosh
 
-class Function_atanh(PrimitiveFunction):
+class Function_arctanh(PrimitiveFunction):
     """
     The inverse of the hyperbolic tangent function.
 
     EXAMPLES:
-        sage: atanh(0.5)
+        sage: arctanh(0.5)
         0.549306144334055
-        sage: atanh(1/2)
-        atanh(1/2)
-        sage: atanh(1 + I*1.0)
+        sage: arctanh(1/2)
+        arctanh(1/2)
+        sage: arctanh(1 + I*1.0)
         1.017221967897851*I + 0.402359478108525
     """
     def _repr_(self, simplify=True):
+        return "arctanh"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arctanh._maxima_init_()
+            'atanh'
+        """
         return "atanh"
 
     def _latex_(self):
@@ -5762,22 +5794,31 @@ class Function_atanh(PrimitiveFunction):
     def _approx_(self, x):
         return float(pari(float(x)).atanh())
 
-atanh = Function_atanh()
-_syms['atanh'] = atanh
+arctanh = Function_arctanh()
+atanh = arctanh
+_syms['atanh'] = arctanh
 
-class Function_acoth(PrimitiveFunction):
+class Function_arccoth(PrimitiveFunction):
     """
     The inverse of the hyperbolic cotangent function.
 
     EXAMPLES:
-        sage: acoth(2.)
+        sage: arccoth(2.)
         0.549306144334055
-        sage: acoth(2)
-        acoth(2)
-        sage: acoth(1 + I*1.0)
+        sage: arccoth(2)
+        arccoth(2)
+        sage: arccoth(1 + I*1.0)
         0.402359478108525 - 0.553574358897045*I
     """
     def _repr_(self, simplify=True):
+        return "arccoth"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arccoth._maxima_init_()
+            'acoth'
+        """
         return "acoth"
 
     def _latex_(self):
@@ -5786,22 +5827,31 @@ class Function_acoth(PrimitiveFunction):
     def _approx_(self, x):
         return float(pari(float(1/x)).atanh())
 
-acoth = Function_acoth()
-_syms['acoth'] = acoth
+arccoth = Function_arccoth()
+acoth = arccoth
+_syms['acoth'] = arccoth
 
-class Function_asech(PrimitiveFunction):
+class Function_arcsech(PrimitiveFunction):
     """
     The inverse of the hyperbolic secant function.
 
     EXAMPLES:
-        sage: asech(.5)
+        sage: arcsech(.5)
         1.316957896924817
-        sage: asech(1/2)
-        asech(1/2)
-        sage: asech(1 + I*1.0)
+        sage: arcsech(1/2)
+        arcsech(1/2)
+        sage: arcsech(1 + I*1.0)
         0.530637530952518 - 1.118517879643706*I
     """
     def _repr_(self, simplify=True):
+        return "arcsech"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arcsech._maxima_init_()
+            'asech'
+        """
         return "asech"
 
     def _latex_(self):
@@ -5810,46 +5860,64 @@ class Function_asech(PrimitiveFunction):
     def _approx_(self, x):
         return float(pari(float(1/x)).acosh())
 
-asech = Function_asech()
-_syms['asech'] = asech
+arcsech = Function_arcsech()
+asech = arcsech
+_syms['asech'] = arcsech
 
-class Function_acsch(PrimitiveFunction):
+class Function_arccsch(PrimitiveFunction):
     """
     The inverse of the hyperbolic cosecant function.
 
     EXAMPLES:
-        sage: acsch(2.)
+        sage: arccsch(2.)
         0.481211825059603
-        sage: acsch(2)
-        acsch(2)
-        sage: acsch(1 + I*1.0)
+        sage: arccsch(2)
+        arccsch(2)
+        sage: arccsch(1 + I*1.0)
         0.530637530952518 - 0.452278447151191*I
     """
     def _repr_(self, simplify=True):
+        return "arccsch"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arccsch._maxima_init_()
+            'acsch'
+        """
         return "acsch"
 
     def _latex_(self):
         return "\\csch^{-1}"
 
     def _approx_(self, x):
-        return float(pari(float(1/x)).asinh())
+        return float(pari(float(1/x)).arcsinh())
 
-acsch = Function_acsch()
-_syms['acsch'] = acsch
+arccsch = Function_arccsch()
+acsch = arccsch
+_syms['acsch'] = arccsch
 
-class Function_acos(PrimitiveFunction):
+class Function_arccos(PrimitiveFunction):
     """
     The arccosine function
 
     EXAMPLES:
-        sage: acos(0.5)
+        sage: arccos(0.5)
         1.04719755119660
-        sage: acos(1/2)
+        sage: arccos(1/2)
         pi/3
-        sage: acos(1 + I*1.0)
+        sage: arccos(1 + I*1.0)
         0.904556894302381 - 1.061275061905036*I
     """
     def _repr_(self, simplify=True):
+        return "arccos"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arccos._maxima_init_()
+            'acos'
+        """
         return "acos"
 
     def _latex_(self):
@@ -5858,23 +5926,32 @@ class Function_acos(PrimitiveFunction):
     def _approx_(self, x):
         return math.acos(x)
 
-acos = Function_acos()
+arccos = Function_arccos()
+acos = arccos
 _syms['acos'] = acos
 
 
-class Function_atan(PrimitiveFunction):
+class Function_arctan(PrimitiveFunction):
     """
     The arctangent function.
 
     EXAMPLES:
-        sage: atan(1/2)
-        atan(1/2)
-        sage: RDF(atan(1/2))
+        sage: arctan(1/2)
+        arctan(1/2)
+        sage: RDF(arctan(1/2))
         0.463647609001
-        sage: atan(1 + I)
-        atan(I + 1)
+        sage: arctan(1 + I)
+        arctan(I + 1)
     """
     def _repr_(self, simplify=True):
+        return "arctan"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arctan._maxima_init_()
+            'atan'
+        """
         return "atan"
 
     def _latex_(self):
@@ -5883,22 +5960,31 @@ class Function_atan(PrimitiveFunction):
     def _approx_(self, x):
         return math.atan(x)
 
-atan = Function_atan()
-_syms['atan'] = atan
+arctan = Function_arctan()
+atan = arctan
+_syms['atan'] = arctan
 
-class Function_acot(PrimitiveFunction):
+class Function_arccot(PrimitiveFunction):
     """
     The arccotangent function.
 
     EXAMPLES:
-        sage: acot(1/2)
-        acot(1/2)
-        sage: RDF(acot(1/2))
+        sage: arccot(1/2)
+        arccot(1/2)
+        sage: RDF(arccot(1/2))
         1.10714871779
-        sage: acot(1 + I)
-        acot(I + 1)
+        sage: arccot(1 + I)
+        arccot(I + 1)
     """
     def _repr_(self, simplify=True):
+        return "arccot"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arccot._maxima_init_()
+            'acot'
+        """
         return "acot"
 
     def _latex_(self):
@@ -5907,22 +5993,31 @@ class Function_acot(PrimitiveFunction):
     def _approx_(self, x):
         return math.pi/2 - math.atan(x)
 
-acot = Function_acot()
-_syms['acot'] = acot
+arccot = Function_arccot()
+acot = arccot
+_syms['acot'] = arccot
 
-class Function_acsc(PrimitiveFunction):
+class Function_arccsc(PrimitiveFunction):
     """
     The arccosecant function.
 
     EXAMPLES:
-        sage: acsc(2)
-        acsc(2)
-        sage: RDF(acsc(2))
+        sage: arccsc(2)
+        arccsc(2)
+        sage: RDF(arccsc(2))
         0.523598775598
-        sage: acsc(1 + I)
-        acsc(I + 1)
+        sage: arccsc(1 + I)
+        arccsc(I + 1)
     """
     def _repr_(self, simplify=True):
+        return "arccsc"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arccsc._maxima_init_()
+            'acsc'
+        """
         return "acsc"
 
     def _latex_(self):
@@ -5931,22 +6026,31 @@ class Function_acsc(PrimitiveFunction):
     def _approx_(self, x):
         return math.asin(1/x)
 
-acsc = Function_acsc()
-_syms['acsc'] = acsc
+arccsc = Function_arccsc()
+acsc = arccsc
+_syms['acsc'] = arccsc
 
-class Function_asec(PrimitiveFunction):
+class Function_arcsec(PrimitiveFunction):
     """
     The arcsecant function.
 
     EXAMPLES:
-        sage: asec(2)
-        asec(2)
-        sage: RDF(asec(2))
+        sage: arcsec(2)
+        arcsec(2)
+        sage: RDF(arcsec(2))
         1.0471975512
-        sage: asec(1 + I)
-        asec(I + 1)
+        sage: arcsec(1 + I)
+        arcsec(I + 1)
     """
     def _repr_(self, simplify=True):
+        return "arcsec"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            asec: arcsec._maxima_init_()
+            'acsc'
+        """
         return "asec"
 
     def _latex_(self):
@@ -5955,8 +6059,9 @@ class Function_asec(PrimitiveFunction):
     def _approx_(self, x):
         return math.acos(1/x)
 
-asec = Function_asec()
-_syms['asec'] = asec
+arcsec = Function_arcsec()
+asec = arcsec
+_syms['asec'] = arcsec
 
 
 #######

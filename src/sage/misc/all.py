@@ -52,7 +52,7 @@ from mathml import mathml
 
 from defaults import set_default_variable_name
 
-from preparser import preparse
+from preparser import preparse, implicit_multiplication
 
 from interpreter import preparser
 

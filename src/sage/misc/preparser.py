@@ -12,7 +12,7 @@ AUTHOR:
     -- Robert Bradshaw (2007-09-19): * strip_string_literals, containing_block
                                        utility functions. Arrr!
                                      * Add [1,2,..,n] notation.
-    -- Robert Bradshaw (2008-01-04): * Implicit multiplication
+    -- Robert Bradshaw (2008-01-04): * Implicit multiplication (off by default)
 
 EXAMPLES:
 
@@ -31,6 +31,7 @@ PREPARSE:
     'G.gen(0)'
     sage: preparse('a = 939393R')    # raw
     'a = 939393'
+    sage: implicit_multiplication(True)
     sage: preparse('a b c in L')     # implicit multiplication
     'a*b*c in L'
     sage: preparse('2e3x + 3exp(y)')
@@ -152,6 +153,31 @@ implemented using the GMP C library.
 ###########################################################################
 import os, re
 import pdb
+
+implicit_mul_level = False
+
+def implicit_multiplication(level=None):
+    """
+    Turn implicit multiplication on or off, optionally setting a specific level.
+    Returns the current value if no argument is given.
+
+    EXAMPLES:
+      sage: implicit_multiplication(True)
+      sage: implicit_multiplication()
+      5
+      sage: preparse('2x')
+      'Integer(2)*x'
+      sage: implicit_multiplication(False)
+      sage: preparse('2x')
+      'Integer(2)x'
+    """
+    global implicit_mul_level
+    if level is None:
+        return implicit_mul_level
+    elif level is True:
+        implicit_mul_level = 5
+    else:
+        implicit_mul_level = level
 
 def isalphadigit_(s):
     return s.isalpha() or s.isdigit() or s=="_"
@@ -546,7 +572,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     except SyntaxError:
         pass
 
-    line = implicit_mul(line)
+    if implicit_mul_level:
+        line = implicit_mul(line, level = implicit_mul_level)
 
     # find where the parens are for function assignment notation
     oparen_index = -1

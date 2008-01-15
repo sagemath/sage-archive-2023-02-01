@@ -584,6 +584,26 @@ class SymbolicExpression(RingElement):
         return hash(self._repr_(simplify=False))
 
     def plot(self, *args, **kwds):
+        """
+        Plot a symbolic expression.
+
+        All arguments are passed onto the standard plot command.
+
+        EXAMPLES:
+        This displays a straight line:
+            sage: sin(2).plot((x,0,3))
+
+        This draws a red oscillatory curve:
+            sage: sin(x^2).plot((x,0,2*pi), rgbcolor=(1,0,0))
+
+        Another plot using the variable theta:
+            sage: var('theta')
+            theta
+            sage: (cos(theta) - erf(theta)).plot((theta,-2*pi,2*pi))
+
+        A very thick green plot with a frame:
+            sage: sin(x).plot((x,-4*pi, 4*pi), thickness=20, rgbcolor=(0,0.7,0)).show(frame=True)
+        """
         from sage.plot.plot import plot
 
         # see if the user passed a variable in.
@@ -621,7 +641,7 @@ class SymbolicExpression(RingElement):
                     f = lambda x: y
                 else:
                     param = A[0]
-                f = self.function(param)
+                    f = self.function(param)
         else:
             f = self.function(param)
         return plot(f, *args, **kwds)

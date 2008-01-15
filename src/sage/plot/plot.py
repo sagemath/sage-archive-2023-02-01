@@ -3,27 +3,6 @@ r"""
 
 Sage provides both Mathematica-style and Matlab-style plotting.
 
-MATLAB-LIKE PLOTTING:
-SAGE provides 2D plotting with an interface that is an exact
-clone of Matlab (namely matplotlib).  For example,
-
-    sage: from pylab import *
-    sage: t = arange(0.0, 2.0, 0.01)
-    sage: s = sin(2*pi*t)
-    sage: P = plot(t, s, linewidth=1.0)
-    sage: xl = xlabel('time (s)')
-    sage: yl = ylabel('voltage (mV)')
-    sage: t = title('About as simple as it gets, folks')
-    sage: grid(True)
-    sage: savefig('sage.png')
-
-Since the above overwrites many Sage plotting functions, we
-reset the state of Sage, so that the examples below work!
-    sage: reset()
-
-See \url{http://matplotlib.sourceforge.net} for complete documentation
-about how to use Matplotlib.
-
 MATHEMATICA-LIKE PLOTTING:
 SAGE provides 2D plotting functionality with an interface inspired by
 the interface for plotting in Mathematica.  The underlying rendering
@@ -161,6 +140,28 @@ An illustration of integration:
     sage: P += plot(f, 1, 8.5, thickness=3)
     sage: P    # show the result
 
+MATLAB-LIKE PLOTTING:
+SAGE provides 2D plotting with an interface that is an exact
+clone of Matlab (namely matplotlib).  For example,
+
+    sage: from pylab import *
+    sage: t = arange(0.0, 2.0, 0.01)
+    sage: s = sin(2*pi*t)
+    sage: P = plot(t, s, linewidth=1.0)
+    sage: xl = xlabel('time (s)')
+    sage: yl = ylabel('voltage (mV)')
+    sage: t = title('About as simple as it gets, folks')
+    sage: grid(True)
+    sage: savefig('sage.png')
+
+Since the above overwrites many Sage plotting functions, we
+reset the state of Sage, so that the examples below work!
+    sage: reset()
+
+See \url{http://matplotlib.sourceforge.net} for complete documentation
+about how to use Matplotlib.
+
+
 AUTHORS:
     -- Alex Clemesha and William Stein (2006-04-10): initial version
     -- David Joyner: examples
@@ -171,6 +172,8 @@ AUTHORS:
     -- Robert Miller (2006-10-30): tuning, NetworkX primitive
     -- Alex Clemesha (2006-11-25): added plot_vector_field, matrix_plot, arrow,
                                    bar_chart, Axes class usage (see axes.py)
+    -- Bobby Moretti and William Stein (2008-01): Change plot to specify ranges
+                                   using the (varname, min, max) notation.
 
 TODO:
     [] ability to change all properties of a graph easily, e.g.,
@@ -564,8 +567,8 @@ class Graphics(SageObject):
         G4 = G1 + G2 + G3
 
         EXAMPLES:
-            sage: g1 = plot(abs(sqrt(x^3  - 1)), 1, 5)
-            sage: g2 = plot(-abs(sqrt(x^3  - 1)), 1, 5)
+            sage: g1 = plot(abs(sqrt(x^3-1)), (x,1,5))
+            sage: g2 = plot(-abs(sqrt(x^3-1)), (x,1,5), rgbcolor=(1,0,0))
             sage: g1 + g2  # displays the plot
         """
         if isinstance(other, int) and other == 0:

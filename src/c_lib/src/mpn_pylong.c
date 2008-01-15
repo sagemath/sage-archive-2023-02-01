@@ -2,7 +2,7 @@
  *
  * Author:  Gonzalo Tornaría <tornaria@math.utexas.edu>
  * Date:    March 2006
- * License: GPL v2
+ * License: GPL v2 or later
  *
  * the code to change the base to 2^SHIFT is based on the function
  * mpn_get_str from GNU MP, but the new bugs are mine

@@ -239,7 +239,18 @@ class FractionFieldElement(field_element.FieldElement):
     def _latex_(self):
         """
         Return a latex representation of this rational function.
+
+        EXAMPLES:
+            sage: R = PolynomialRing(QQ, 'x').fraction_field()
+            sage: x = R.gen()
+            sage: a = 1/x
+            sage: a._FractionFieldElement__numerator = R(0)
+            sage: latex(a)
+            0
+
         """
+        if self.is_zero():
+            return "0"
         if self.__denominator == 1:
             return latex.latex(self.__numerator)
         return "\\frac{%s}{%s}"%(latex.latex(self.__numerator),

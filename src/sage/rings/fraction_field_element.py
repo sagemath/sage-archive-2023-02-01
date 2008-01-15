@@ -243,11 +243,15 @@ class FractionFieldElement(field_element.FieldElement):
         EXAMPLES:
             sage: R = PolynomialRing(QQ, 'x').fraction_field()
             sage: x = R.gen()
+            sage: a = x^2 / 1
+            sage: latex(a)
+            x^{2}
+            sage: latex(x^2/(x^2+1))
+            \frac{x^{2}}{x^{2} + 1}
             sage: a = 1/x
             sage: a._FractionFieldElement__numerator = R(0)
             sage: latex(a)
             0
-
         """
         if self.is_zero():
             return "0"

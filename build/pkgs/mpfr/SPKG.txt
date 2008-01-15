@@ -31,18 +31,10 @@ The MPFR team can be contact via the MPFR mailing list: mpfr@loria.fr
 == Changelog ==
 
 === mpfr-2.3.0.p2 - Jan. 15th, 2008 -  Michael Abshoff ===
- * integrate r5186 from trunk at
-   http://gforge.inria.fr/plugins/scmsvn/viewcvs.php/trunk/?root=mpfr
-   This fixes an issue in mpfr where it would use alloca instead
-   of the allocation function provided by GMP (which theses
-   days is anything but alloca() due to limited stack on most
-   system. Against policy I did patch mpfr-gmp.[c|h] directly
-   since we will update to MPFR 2.3.1 once it is out shortly
-   anyway.
+ * integrate r5186 from trunk at http://gforge.inria.fr/plugins/scmsvn/viewcvs.php/trunk/?root=mpfr - This fixes an issue in mpfr where it would use alloca instead of the allocation function provided by GMP (which theses days is anything but alloca() due to limited stack on most system. Against policy I did patch mpfr-gmp.[c|h] directly since we will update to MPFR 2.3.1 once it is out shortly anyway.
 
 === mpfr-2.3.0.p1 - Nov. 15th, 2007 -  Michael Abshoff ===
- * patched sources in place to 2.3.0-p4
-   (see http://www.mpfr.org/mpfr-current/patches)
+ * patched sources in place to 2.3.0-p4 (see http://www.mpfr.org/mpfr-current/patches)
 
 === mpfr-2.3.0 - Sept. 14th, 2007 - Michael Abshoff ===
  * upgrade to mpfr 2.3.0 release

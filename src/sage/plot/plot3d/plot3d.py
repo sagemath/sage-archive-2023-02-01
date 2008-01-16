@@ -81,11 +81,17 @@ def plot3d(f, urange, vrange, **kwds):
         sage: plot3d(x^2 + y^2, (x,-2,2), (y,-2,2))
         sage: plot3d(sin(x*y), (x, -pi, pi), (y, -pi, pi))
 
+    Two wobby translucent planes:
+        sage: x,y = var('x,y')
+        sage: P = plot3d(x+y+sin(x*y), (x,-10,10),(y,-10,10), opacity=0.87)
+        sage: Q = plot3d(x-2*y-cos(x*y),(x,-10,10),(y,-10,10),opacity=0.3,color='red')
+        sage: P + Q
+
     We draw two parametric surfaces and a transparent plane:
         sage: L = plot3d(lambda x,y: 0, (-5,5), (-5,5), color="lightblue", opacity=0.8)
         sage: P = plot3d(lambda x,y: 4 - x^3 - y^2, (-2,2), (-2,2), color='green')
         sage: Q = plot3d(lambda x,y: x^3 + y^2 - 4, (-2,2), (-2,2), color='orange')
-        sage: show(L + P + Q)
+        sage: L + P + Q
     """
     if len(urange) == 2:
         w = (lambda u,v: u, lambda u,v: v, f)

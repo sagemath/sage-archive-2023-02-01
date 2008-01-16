@@ -241,7 +241,7 @@ import weakref
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_MPolynomial, is_MPolynomialRing, is_FractionFieldElement,
                             is_RealNumber, is_ComplexNumber, RR,
-                            Integer, Rational, CC,
+                            Integer, Rational, CC, QQ,
                             QuadDoubleElement,
                             PolynomialRing, ComplexField,
                             algdep, Integer, RealNumber, RealIntervalField)
@@ -2304,15 +2304,15 @@ class SymbolicExpression(RingElement):
             (x, y, z)
             sage: f = x^3-y^3
             sage: f.factor()
-            -(y - x)*(y^2 + x*y + x^2)
+            (x - y)*(y^2 + x*y + x^2)
 
         Notice that the -1 factor is separated out:
             sage: f.factor_list()
-            [(-1, 1), (y - x, 1), (y^2 + x*y + x^2, 1)]
+            [(x - y, 1), (y^2 + x*y + x^2, 1)]
 
         We factor a fairly straightforward expression:
             sage: factor(-8*y - 4*x + z^2*(2*y + x)).factor_list()
-            [(2*y + x, 1), (z - 2, 1), (z + 2, 1)]
+            [(z - 2, 1), (z + 2, 1), (2*y + x, 1)]
 
         This function also works for quotients:
             sage: f = -1 - 2*x - x^2 + y^2 + 2*x*y^2 + x^2*y^2
@@ -2739,7 +2739,7 @@ class SymbolicExpression(RingElement):
             (x, y, z)
 
             sage: (x^3-y^3).factor()
-            -(y - x)*(y^2 + x*y + x^2)
+            (x - y)*(y^2 + x*y + x^2)
             sage: factor(-8*y - 4*x + z^2*(2*y + x))
             (2*y + x)*(z - 2)*(z + 2)
             sage: f = -1 - 2*x - x^2 + y^2 + 2*x*y^2 + x^2*y^2
@@ -2749,6 +2749,15 @@ class SymbolicExpression(RingElement):
                                         (x  + 2 x + 1) (y - 1)
                                         ----------------------
                                               36 (y + 1)
+
+        If you are factoring a polynomial with rational coefficients
+        (and dontfactor is empty) the factorization is done using
+        Singular instead of Maxima, so the following is very fast instead
+        of dreadfully slow:
+            sage: var('x,y')
+            (x, y)
+            sage: (x^99 + y^99).factor()
+            (y + x)*(y^2 - x*y + x^2)*(y^6 - x^3*y^3 + x^6)*...
         """
         if len(dontfactor) > 0:
             m = self._maxima_()
@@ -2756,6 +2765,12 @@ class SymbolicExpression(RingElement):
             cmd = 'block([dontfactor:%s],factor(%s))'%(dontfactor, name)
             return evaled_symbolic_expression_from_maxima_string(cmd)
         else:
+            try:
+                f = self.polynomial(QQ)
+                w = repr(f.factor())
+                return sage_eval(w, _vars)
+            except TypeError:
+                pass
             return self.parent()(self._maxima_().factor())
 
     ###################################################################

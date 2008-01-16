@@ -381,7 +381,7 @@ sage: print m
     [  1   d d^2 d^3]
 sage: d = m.determinant()
 sage: print d.factor()
-                (b - a) (c - a) (c - b) (d - a) (d - b) (d - c)
+                (b - a) (a - c) (b - c) (a - d) (b - d) (d - c)
 
 sage: # (YES) Compute and factor the determinant of the 4x4 Vandermonde matrix in a, b, c, d.
 sage: # Do it instead in a multivariate ring

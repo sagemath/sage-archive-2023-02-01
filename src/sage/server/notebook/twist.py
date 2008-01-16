@@ -103,6 +103,7 @@ def notebook_updates():
 # RESOURCES
 ######################################################################################
 
+
 ############################
 # An error message
 ############################
@@ -1667,7 +1668,8 @@ class FailedToplevel(Toplevel):
         # worksheets and ratings, this gives no new information way.
         # If published pages were disabled, then this should be disabled too.
         if self.problem == 'username':
-            valid_login_names = "Valid login names: " + ', '.join(notebook.valid_login_names())
+            notebook.valid_login_names().sort()
+            valid_login_names = "<strong>Valid login names:</strong><br />" + ', <br />'.join(notebook.valid_login_names())
         else:
             valid_login_names = ''
         return http.Response(stream = failed_login_template(problem=self.problem,
@@ -1684,6 +1686,7 @@ class UserToplevel(Toplevel):
 
     child_upload = Upload()
     child_logout = Logout()
+
 
 
     #child_login = RedirectLogin()

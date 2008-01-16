@@ -977,7 +977,8 @@ class SR_generic(MPolynomialSystemGenerator):
             [x200, x201, x202, x203, x210, x211, x212, x213]
 
         """
-        return [self.R(e) for e in self.varstrs(name,round,rc,e)]
+        gd = self.R.gens_dict()
+        return [gd[e] for e in self.varstrs(name,round,rc,e)]
 
     def block_order(self):
         """

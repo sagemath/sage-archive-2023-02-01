@@ -145,6 +145,18 @@ cdef class RealDoubleField_class(Field):
                                   {'type': 'RDF'}),
                sage.rings.rational_field.QQ)
 
+    def algebraic_closure(self):
+        """
+        Returns the algebraic closure of self,
+        ie, the complex double field.
+
+        EXAMPLES:
+        sage: RDF.algebraic_closure()
+        Complex Double Field
+        """
+        from sage.rings.complex_double import CDF
+        return CDF
+
     cdef coerce_map_from_c(self, S):
         from integer_ring import ZZ
         from rational_field import QQ
@@ -890,7 +902,6 @@ cdef class RealDoubleElement(FieldElement):
         if not extend:
             raise ValueError, "negative number %s does not have a square root in the real field"%self
         return self._complex_double_(sage.rings.complex_double.CDF).sqrt(all=all)
-
 
     def is_square(self):
         """

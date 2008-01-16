@@ -43,7 +43,7 @@ DOC_TIMEOUT = 120
 
 class Notebook(SageObject):
     def __init__(self,
-                 dir='sage_notebook',
+                 dir,
                  system=None,
                  show_debug = False,
                  log_server=False,
@@ -51,7 +51,10 @@ class Notebook(SageObject):
                  port=8000,
                  secure=True,
                  server_pool = []):
+        if isinstance(dir, basestring) and len(dir) > 0 and dir[-1] == "/":
+            dir = dir[:-1]
         self.__dir = dir
+
         self.__server_pool = server_pool
         self.set_system(system)
         self.__worksheets = {}
@@ -417,6 +420,8 @@ class Notebook(SageObject):
     def set_directory(self, dir):
         if dir == self.__dir:
             return
+        if isinstance(dir, basestring) and len(dir) > 0 and dir[-1] == "/":
+            dir = dir[:-1]
         self.__dir = dir
         self.__filename = '%s/nb.sobj'%dir
         self.__worksheet_dir = '%s/worksheets'%dir
@@ -1415,7 +1420,9 @@ class Notebook(SageObject):
 #        head +=' <script type="text/javascript" src="/javascript/highlight/prettify.js"></script>\n'
 #        head += '<link rel=stylesheet href="/css/highlight/prettify.css" type="text/css">\n'
 
-        head +=' <script type="text/javascript" src="/javascript/sage3d/sage3d.js"></script>\n'
+        head +=' <script type="text/javascript" src="/javascript/sage3d.js"></script>\n'
+        head +=' <script type="text/javascript" src="/java/jmol/appletweb/Jmol.js"></script>\n'
+        head +=' <script>jmolInitialize("/java/jmol");</script>\n' # this must stay in the <body>
         return head
 
     def html_worksheet_topbar(self, worksheet, select=None, username='guest'):
@@ -1528,8 +1535,8 @@ class Notebook(SageObject):
             body += '<script type="text/javascript"> active_cell_list = %r; \n'%worksheet.queue_id_list()
             body += 'for(var i = 0; i < active_cell_list.length; i++)'
             body += '    cell_set_running(active_cell_list[i]); \n'
-            body += 'start_update_check(); </script>\n'
-
+            body += 'start_update_check();\n'
+            body +=' </script>\n'
         return body
 
     def html_plain_text_window(self, worksheet, username):

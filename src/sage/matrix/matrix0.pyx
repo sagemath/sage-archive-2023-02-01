@@ -489,12 +489,10 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         INPUT:
             key -- tuple (i,j) with i, j integers
-         or key -- integer
          or key -- slice object, created via [i:j]
 
         USAGE:
             A[i, j] -- the i,j of A, or
-            A[i]    -- the i-th row of A, or
             A[i:j]  -- the i-th through (j-1)-st rows of A.
 
         EXAMPLES:
@@ -504,6 +502,13 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A[0]
             (2005, 2)
 
+        The returned row is immutable (mainly to avoid confusion):
+            sage: A[0][0] = 123
+            Traceback (most recent call last):
+            ...
+            ValueError: vector is immutable; please change a copy instead (use self.copy())
+            sage: A[0].is_immutable()
+            True
             sage: a = MatrixSpace(ZZ,3)(range(9)); a
             [0 1 2]
             [3 4 5]
@@ -533,8 +538,6 @@ cdef class Matrix(sage.structure.element.Matrix):
             [80 81 82 83 84 85 86 87 88 89]
             [90 91 92 93 94 95 96 97 98 99]
 
-            sage: a[9]
-            (90, 91, 92, 93, 94, 95, 96, 97, 98, 99)
             sage: a[-1]
             (90, 91, 92, 93, 94, 95, 96, 97, 98, 99)
 
@@ -542,7 +545,6 @@ cdef class Matrix(sage.structure.element.Matrix):
             Traceback (most recent call last):
             ...
             TypeError: 'sage.rings.real_mpfr.RealNumber' object cannot be interpreted as an index
-
         """
         cdef Py_ssize_t i, j
         cdef object x
@@ -562,7 +564,10 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         else:
             # If key is not a tuple, coerce to an integer and get the row.
-            return self.row(PyNumber_Index(key))
+            r = self.row(key)
+            r.set_immutable()
+            return r
+
 
     def __setitem__(self, ij, x):
         """
@@ -884,7 +889,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     def ncols(self):
         """
-        Return the number of rows of this matrix.
+        Return the number of columns of this matrix.
 
         EXAMPLES:
             sage: M = MatrixSpace(QQ, 2, 3)

@@ -40,8 +40,6 @@ import os.path
 
 import random
 
-import sage.plot.all
-
 from misc import tmp_dir
 import sage_eval
 
@@ -203,7 +201,7 @@ class Latex:
         if self.__slide:
             O.write('\n\n\\end{document}')
         else:
-            O.write('\\end{document}\n')
+            O.write('\n\n\\end{document}\n')
 
         O.close()
         if not debug:
@@ -453,6 +451,7 @@ def png(x, filename, density=150, debug=False, brk=0, do_in_background=True, tin
     Create a png image representation of x and save to the given
     filename.
     """
+    import sage.plot.all
     if sage.plot.all.is_Graphics(x):
         x.save(filename)
         return

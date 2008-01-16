@@ -32,14 +32,36 @@ import os, shutil
 
 from   viewer import browser
 from   misc   import tmp_filename, branch_current_hg
-from   remote_file import get_remote_file
+from   remote_file import get_remote_file as get_remote_file0
 from   sage.server.misc import print_open_msg
+
+def get_remote_file(f, **kwds):
+    """
+    Wrap the get_remote_file method to move the file if it ends in
+    ?stuff, as happens with funny urls from web servers.
+    """
+    g = get_remote_file0(f, **kwds)
+    i = g.find('?')
+    if i >= 0:
+        h = g[:i]
+        os.rename(g,h)
+        return h
+    return g
 
 import sage.server.support
 def embedded():
+    """
+    Return True if this copy of Sage is running embedded in the Sage
+    notebook.
+    """
     return sage.server.support.EMBEDDED_MODE
 
 def pager():
+    """
+    Return a page program, which is either cat or less at present.
+
+    Return cat if embedded in the notebook, and less otherwise.
+    """
     if embedded():
         return 'cat'
     else:

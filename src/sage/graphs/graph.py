@@ -311,7 +311,7 @@ class GenericGraph(SageObject):
         weighted = ( self._weighted and other._weighted )
         # inputs must be (di)graphs:
         if not isinstance(other, GenericGraph):
-            raise TypeError("Input (%s) must be a graph."%str(other))
+            raise TypeError("Cannot compare graph to non-graph (%s)."%str(other))
         # DiGraphs are "larger" than Graphs:
         g1_is_graph = isinstance(self, Graph)
         g2_is_graph = isinstance(other, Graph)
@@ -2559,33 +2559,38 @@ class GenericGraph(SageObject):
         return edge_colors
 
     def plot(self, pos=None, layout=None, vertex_labels=True,
-             edge_labels=False, vertex_size=200, graph_border=False,
-             vertex_colors=None, partition=None, edge_colors=None,
-             scaling_term=0.05, iterations=50,
-             color_by_label=False, heights=None):
+            edge_labels=False, vertex_size=200, graph_border=False,
+            vertex_colors=None, partition=None, edge_colors=None,
+            scaling_term=0.05, iterations=50,
+            color_by_label=False, heights=None):
         """
         Returns a graphics object representing the (di)graph.
 
         INPUT:
             pos -- an optional positioning dictionary
             layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed on a circle
-                'spring' -- uses the traditional spring layout, ignores the graphs current positions
+                'circular' -- plots the graph with vertices evenly distributed
+                    on a circle
+                'spring' -- uses the traditional spring layout, ignores the
+                    graphs current positions
             vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edge labels. By default, False, but if True, the result
-                of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
+            edge_labels -- whether to print edge labels. By default, False, but
+                if True, the result of str(l) is printed on the edge for each
+                label l. Labels equal to None are not printed.
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
-            vertex_colors -- optional dictionary to specify vertex colors: each key is a color recognizable
-                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
-                it looks invisible on the resulting plot (it doesn't get drawn).
-            edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
-                matplotlib, and each entry is a list of edges.
-            partition -- a partition of the vertex set. if specified, plot will show each cell in a different
-                color. vertex_colors takes precedence.
-            scaling_term -- default is 0.05. if vertices are getting chopped off, increase; if graph
-                is too small, decrease. should be positive, but values much bigger than
-                1/8 won't be useful unless the vertices are huge
+            vertex_colors -- optional dictionary to specify vertex colors: each
+                key is a color recognizable by matplotlib, and each corresponding
+                entry is a list of vertices. If a vertex is not listed, it looks
+                invisible on the resulting plot (it doesn't get drawn).
+            edge_colors -- a dictionary specifying edge colors: each key is a
+                color recognized by matplotlib, and each entry is a list of edges.
+            partition -- a partition of the vertex set. if specified, plot will
+                show each cell in a different color. vertex_colors takes precedence.
+            scaling_term -- default is 0.05. if vertices are getting chopped off,
+                increase; if graph is too small, decrease. should be positive, but
+                values much bigger than 1/8 won't be useful unless the vertices
+                are huge
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
             color_by_label -- if True, color edges by their labels
@@ -2636,8 +2641,13 @@ class GenericGraph(SageObject):
             ...            edge_colors[R[i]].append((u,v,l))
             sage: C.plot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).show()
 
+            sage: D = graphs.DodecahedralGraph()
+            sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
+            sage: D.show(partition=Pi)
+
         """
         from sage.plot.plot import networkx_plot
+        from sage.plot.plot import rainbow
         import networkx
         if vertex_colors is None:
             if partition is not None:
@@ -2714,24 +2724,30 @@ class GenericGraph(SageObject):
         INPUT:
             pos -- an optional positioning dictionary
             layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed on a circle
-                'spring' -- uses the traditional spring layout, ignores the graphs current positions
+                'circular' -- plots the graph with vertices evenly distributed
+                    on a circle
+                'spring' -- uses the traditional spring layout, ignores the
+                    graphs current positions
             vertex_labels -- whether to print vertex labels
-            edge_labels -- whether to print edgeedge labels. By default, False, but if True, the result
-                of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
+            edge_labels -- whether to print edgeedge labels. By default, False,
+                but if True, the result of str(l) is printed on the edge for
+                each label l. Labels equal to None are not printed.
             vertex_size -- size of vertices displayed
             graph_border -- whether to include a box around the graph
-            vertex_colors -- optional dictionary to specify vertex colors: each key is a color recognizable
-                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
-                it looks invisible on the resulting plot (it doesn't get drawn).
-            edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
-                matplotlib, and each entry is a list of edges.
-            partition -- a partition of the vertex set. if specified, plot will show each cell in a different
-                color. vertex_colors takes precedence.
-            scaling_term -- default is 0.05. if vertices are getting chopped off, increase; if graph
-                is too small, decrease. should be positive, but values much bigger than
-                1/8 won't be useful unless the vertices are huge
-            talk -- if true, prints large vertices with white backgrounds so that labels are legible on slies
+            vertex_colors -- optional dictionary to specify vertex colors: each
+                key is a color recognizable by matplotlib, and each corresponding
+                entry is a list of vertices. If a vertex is not listed, it looks
+                invisible on the resulting plot (it doesn't get drawn).
+            edge_colors -- a dictionary specifying edge colors: each key is a
+                color recognized by matplotlib, and each entry is a list of edges.
+            partition -- a partition of the vertex set. if specified, plot will
+                show each cell in a different color. vertex_colors takes precedence.
+            scaling_term -- default is 0.05. if vertices are getting chopped off,
+                increase; if graph is too small, decrease. should be positive, but
+                values much bigger than 1/8 won't be useful unless the vertices
+                are huge
+            talk -- if true, prints large vertices with white backgrounds so that
+                labels are legible on slies
             iterations -- how many iterations of the spring layout algorithm to
                 go through, if applicable
             color_by_label -- if True, color edges by their labels
@@ -2782,6 +2798,10 @@ class GenericGraph(SageObject):
             ...            edge_colors[R[i]].append((u,v,l))
             sage: C.plot(vertex_labels=False, vertex_size=0, edge_colors=edge_colors).show()
 
+            sage: D = graphs.DodecahedralGraph()
+            sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
+            sage: D.show(partition=Pi)
+
         """
         if talk:
             vertex_size = 500
@@ -2794,6 +2814,50 @@ class GenericGraph(SageObject):
                   scaling_term=scaling_term, iterations=iterations,
                   color_by_label=color_by_label,
                   heights=heights).show(**kwds)
+
+
+    def plot3d_new(self, bgcolor=(1,1,1),
+                         vertex_colors=None, vertex_size=0.06,
+                         edge_colors=None, edge_size=0.015,
+                         pos3d=None,
+                         iterations=50, color_by_label=False, **kwds):
+        from sage.plot.plot3d.all import sphere, line3d, arrow3d
+
+        verts = self.vertices()
+
+        if vertex_colors is None:
+            vertex_colors = { (1,0,0) : verts }
+        if pos3d is None:
+            pos3d = graph_fast.spring_layout_fast(self, dim=3, iterations=iterations)
+
+        if color_by_label:
+            if edge_colors is  None:
+                    # do the coloring
+                    edge_colors = self._color_by_label(format='rgbtuple')
+        elif edge_colors is None:
+            edge_colors = { (0,0,0) : self.edges() }
+
+        try:
+            graphic = 0
+            for color in vertex_colors:
+                for v in vertex_colors[color]:
+                    graphic += sphere(center=pos3d[v], size=vertex_size, color=color)
+            if self.is_directed():
+                for color in edge_colors:
+                    for u, v, l in edge_colors[color]:
+                        graphic += arrow3d(pos3d[u], pos3d[v], radius=edge_size, color=color, closed=False)
+
+            else:
+                for color in edge_colors:
+                    for u, v, l in edge_colors[color]:
+                        graphic += line3d([pos3d[u], pos3d[v]], radius=edge_size, color=color, closed=False)
+
+            return graphic
+
+        except KeyError:
+            raise KeyError, "Oops! You haven't specified positions for all the vertices."
+
+
 
     def transitive_closure(self):
         r"""
@@ -2977,6 +3041,44 @@ class GenericGraph(SageObject):
 
         return self.subgraph(vertices).to_simple().size()==0
 
+    def is_subgraph(self, other):
+        """
+        Tests whether self is a subgraph of other.
+
+        EXAMPLE:
+            sage: P = graphs.PetersenGraph()
+            sage: G = P.subgraph(range(6))
+            sage: G.is_subgraph(P)
+            True
+
+        """
+        self_verts = self.vertices()
+        for v in self_verts:
+            if v not in other:
+                return False
+        return other.subgraph(self_verts) == self
+
+    def characteristic_polynomial(self, var='x', laplacian=False):
+        """
+        Returns the characteristic polynomial of the adjacency matrix
+        of the (di)graph.
+
+        INPUT:
+            laplacian -- if True, use the Laplacian matrix instead (see
+                self.kirchhoff_matrix())
+
+        EXAMPLE:
+            sage: P = graphs.PetersenGraph()
+            sage: P.characteristic_polynomial()
+            x^10 + x^8 + x^6 + x^4
+            sage: P.characteristic_polynomial(laplacian=True)
+            x^10 - 30*x^9 + 390*x^8 - 2880*x^7 + 13305*x^6 - 39882*x^5 + 77640*x^4 - 94800*x^3 + 66000*x^2 - 20000*x
+
+        """
+        if laplacian:
+            return self.kirchhoff_matrix().charpoly(var=var)
+        else:
+            return self.am().charpoly(var=var)
 
 
 class Graph(GenericGraph):
@@ -3015,9 +3117,9 @@ class Graph(GenericGraph):
                 string has multiple graphs, the first graph is taken)
             'sparse6' -- Brendan McKay's sparse6 format, in a string (if the
                 string has multiple graphs, the first graph is taken)
-            'adjacency_matrix' -- a square SAGE matrix M, with M[i][j] equal
+            'adjacency_matrix' -- a square SAGE matrix M, with M[i,j] equal
                 to the number of edges \{i,j\}
-            'weighted_adjacency_matrix' -- a square SAGE matrix M, with M[i][j]
+            'weighted_adjacency_matrix' -- a square SAGE matrix M, with M[i,j]
                 equal to the weight of the single edge \{i,j\}. Given this
                 format, weighted is ignored (assumed True).
             'incidence_matrix' -- a SAGE matrix, with one column C for each
@@ -3063,9 +3165,6 @@ class Graph(GenericGraph):
         sage: H = Graph(g)
         sage: G._nxg is H._nxg
         False
-
-
-
 
     3. A dictionary of dictionaries:
         sage: g = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
@@ -3289,9 +3388,9 @@ class Graph(GenericGraph):
             e = []
             for i,j in data.nonzero_positions():
                 if i < j:
-                    e.append((i,j,data[i][j]))
+                    e.append((i,j,data[i,j]))
                 elif i == j and loops:
-                    e.append((i,j,data[i][j]))
+                    e.append((i,j,data[i,j]))
             self._nxg.add_edges_from(e)
         elif format == 'incidence_matrix':
             b = True
@@ -3652,13 +3751,16 @@ class Graph(GenericGraph):
             [(0, 1), (0, 10), (0, 19), (1, 2), (1, 8), (2, 3), (2, 6), (3, 4), (3, 19), (4, 5), (4, 17), (5, 6), (5, 15), (6, 7), (7, 8), (7, 14), (8, 9), (9, 10), (9, 13), (10, 11), (11, 12), (11, 18), (12, 13), (12, 16), (13, 14), (14, 15), (15, 16), (16, 17), (17, 18), (18, 19)]
         """
         L = self._nxg.edges()
-        if sort:
-            L.sort()
         if labels:
-            return L
+            if sort:
+                return sorted(L)
+            else:
+                return L
         else:
-            return [(u,v) for u,v,_ in L]
-
+            if sort:
+                return sorted([tuple(sorted((u,v))) for u,v,_ in L])
+            else:
+                return [(u,v) for u,v,_ in L]
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True):
         """
@@ -4059,9 +4161,9 @@ class Graph(GenericGraph):
         EXAMPLE:
             sage: P = graphs.PetersenGraph()
             sage: P.spectrum()
-	    [-2.0, -2.0, -2.0, -2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.0]
+            [-2.0, -2.0, -2.0, -2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 3.0]
             sage: P.spectrum(laplacian=True)   # random low-order bits (at least for first eigenvalue)
-	    [-1.41325497305e-16, 2.0, 2.0, 2.0, 2.0, 2.0, 5.0, 5.0, 5.0, 5.0]
+            [-1.41325497305e-16, 2.0, 2.0, 2.0, 2.0, 2.0, 5.0, 5.0, 5.0, 5.0]
 
         """
         from sage.matrix.constructor import matrix
@@ -4073,8 +4175,36 @@ class Graph(GenericGraph):
         M = matrix(RDF, M.rows())
         E = M.right_eigenvectors()[0]
         v = [e.real() for e in E]
-	v.sort()
-	return v
+        v.sort()
+        return v
+
+    def eigenspaces(self, laplacian=False):
+        """
+        Returns the eigenspaces of the adjacency matrix of the graph.
+
+        INPUT:
+            laplacian -- if True, use the Laplacian matrix instead (see
+                self.kirchhoff_matrix())
+
+        EXAMPLE:
+            sage: C = graphs.CycleGraph(5)
+            sage: E = C.eigenspaces()
+            sage: E[0][0]
+            -1.61803398875
+            sage: E[1][0]  # eigenspace computation is somewhat random
+            Vector space of degree 5 and dimension 1 over Real Double Field
+            User basis matrix:
+            [ 0.632455532034 -0.632455532034   -0.4472135955 -0.013900198608 0.0738411279702]
+
+        """
+        if laplacian:
+            M = self.kirchhoff_matrix()
+        else:
+            M = self.am()
+        from sage.matrix.constructor import matrix
+        from sage.rings.real_double import RDF
+        M = matrix(RDF, M.rows())
+        return M.eigenspaces()
 
     ### Representations
 
@@ -4261,7 +4391,7 @@ class Graph(GenericGraph):
         else:
             M = self.adjacency_matrix(boundary_first=boundary_first, over_integers=True)
         A = list(-M)
-        S = [sum(M[i]) for i in range(M.nrows())]
+        S = [sum(M.row(i)) for i in range(M.nrows())]
         for i in range(len(A)):
             A[i][i] = S[i]
         return M.parent()(A)
@@ -4738,7 +4868,7 @@ class Graph(GenericGraph):
 
             NXG.delete_edges_from(edges_to_delete)
 
-	if inplace:
+        if inplace:
             self._nxg = NXG
         else:
             return Graph(NXG)
@@ -4798,6 +4928,7 @@ class Graph(GenericGraph):
         f = open(filename, 'w')
         f.write( print_graph_eps(self.vertices(), self.edge_iterator(), pos) )
         f.close()
+
 
     def plot3d(self, bgcolor=(1,1,1),
                vertex_colors=None, vertex_size=0.06,
@@ -4926,6 +5057,8 @@ class Graph(GenericGraph):
             True
 
         """
+        if self.order() == 0:
+            return True
         import networkx
         return networkx.component.is_connected(self._nxg)
 
@@ -5394,11 +5527,11 @@ class DiGraph(GenericGraph):
         weighted -- whether digraph thinks of itself as weighted or not. See
             self.weighted()
         format -- if None, DiGraph tries to guess- can be several values, including:
-            'adjacency_matrix' -- a square SAGE matrix M, with M[i][j] equal to the number
+            'adjacency_matrix' -- a square SAGE matrix M, with M[i,j] equal to the number
                                   of edges \{i,j\}
             'incidence_matrix' -- a SAGE matrix, with one column C for each edge, where
                                   if C represents \{i, j\}, C[i] is -1 and C[j] is 1
-            'weighted_adjacency_matrix' -- a square SAGE matrix M, with M[i][j]
+            'weighted_adjacency_matrix' -- a square SAGE matrix M, with M[i,j]
                 equal to the weight of the single edge \{i,j\}. Given this
                 format, weighted is ignored (assumed True).
         boundary -- a list of boundary vertices, if none, digraph is considered as a 'digraph
@@ -6462,8 +6595,6 @@ class DiGraph(GenericGraph):
             sage: H.vertices()
             [0, 1]
 
-
-
         """
         NXG = self._nxg.subgraph(vertices, inplace, create_using)
         if edges is not None:
@@ -6476,14 +6607,10 @@ class DiGraph(GenericGraph):
                     edges_to_delete.append(tuple(e))
 
             NXG.delete_edges_from(edges_to_delete)
-
-	if inplace:
+        if inplace:
             self._nxg = NXG
         else:
             return DiGraph(NXG)
-
-
-
 
     ### Visualization
 
@@ -6623,6 +6750,8 @@ class DiGraph(GenericGraph):
             True
 
         """
+        if self.order() == 0:
+            return True
         import networkx
         return networkx.component.is_connected(self._nxg.to_undirected())
 

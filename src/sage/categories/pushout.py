@@ -39,7 +39,7 @@ class ConstructionFunctor(Functor):
     def commutes(self, other):
         return False
 
-class CompositConstructionFunctor(ConstructionFunctor):
+class CompositeConstructionFunctor(ConstructionFunctor):
     def __init__(self, first, second):
         Functor.__init__(self, first.domain(), second.codomain())
         self._first = first
@@ -254,6 +254,16 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             c = cmp(self.poly, other.poly)
         return c
 
+class AlgebraicClosureFunctor(ConstructionFunctor):
+    def __init__(self):
+        Functor.__init__(self, Rings(), Rings())
+        self.rank = 3
+    def __call__(self, R):
+        return R.algebraic_closure()
+    def merge(self, other):
+        # Algebraic Closure subsumes Algebraic Extension
+        return self
+
 def BlackBoxConstructionFunctor(ConstructionFunctor):
     def __init__(self, box):
         self.box = box
@@ -335,7 +345,7 @@ def pushout(R, S):
     AUTHORS:
        -- Robert Bradshaw
     """
-    if R == S:
+    if R is S or R == S:
         return R
 
     if isinstance(R, type):

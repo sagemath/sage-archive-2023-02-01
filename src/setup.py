@@ -15,15 +15,21 @@ from Cython.Distutils import build_ext
 ## if you change this!!
 if os.environ.has_key('SAGE_BLAS'):
     BLAS=os.environ['SAGE_BLAS']
+    BLAS2=os.environ['SAGE_BLAS']
+elif os.path.exists('%s/lib/libatlas.so'%os.environ['SAGE_LOCAL']):
+    BLAS='cblas'
+    BLAS2='atlas'
 elif os.path.exists('/usr/lib/libcblas.dylib') or \
      os.path.exists('/usr/lib/libcblas.so'):
     BLAS='cblas'
+    BLAS2='atlas'
 elif os.path.exists('/usr/lib/libblas.dll.a'):
     BLAS='gslcblas'
+    BLAS2='gslcblas'
 else:
     # This is very slow  (?), but *guaranteed* to be available.
     BLAS='gslcblas'
-
+    BLAS2='gslcblas'
 if len(sys.argv) > 1 and sys.argv[1] == "sdist":
     sdist = True
 else:
@@ -168,7 +174,7 @@ ntl_lzz_pX = Extension('sage.libs.ntl.ntl_lzz_pX',
 
 ntl_GF2 = Extension('sage.libs.ntl.ntl_GF2',
                  sources = ["sage/libs/ntl/ntl_GF2.pyx"],
-                 libraries = ["csage", "ntl", "stdc++"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "stdc++"],
                  language='c++')
 
 ntl_GF2X = Extension('sage.libs.ntl.ntl_GF2X',
@@ -205,7 +211,7 @@ mwrank =  Extension("sage.libs.mwrank.mwrank",
                     sources = ["sage/libs/mwrank/mwrank.pyx",
                          "sage/libs/mwrank/wrap.cc"],
                     define_macros = [("NTL_ALL",None)],
-                    libraries = ["mwrank", "ntl", "gmp", "gmpxx", "stdc++", "m", "pari"])
+                    libraries = ["curvesntl", "g0nntl", "jcntl", "rankntl", "ntl", "gmp", "gmpxx", "stdc++", "m", "pari"])
 
 pari = Extension('sage.libs.pari.gen',
                  sources = ["sage/libs/pari/gen.pyx"],
@@ -281,12 +287,12 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
 linbox = Extension('sage.libs.linbox.linbox',
                    ['sage/libs/linbox/linbox.pyx'],
                    # For this to work on cygwin, linboxwrap *must* be before ntl.
-                   libraries = ['linboxwrap', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS],
+                   libraries = ['linboxwrap', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS, BLAS2],
                    language = 'c++')
 
 libsingular = Extension('sage.libs.singular.singular',
                         sources = ['sage/libs/singular/singular.pyx'],
-                        libraries = ['gmp', 'm', 'readline', 'singular', 'singfac', 'singcf', 'omalloc', 'givaro', 'gmpxx'],
+                        libraries = ['m', 'readline', 'singular', 'singfac', 'singcf', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
                         language="c++",
                         include_dirs=[SAGE_ROOT +'/local/include/singular']
                         )
@@ -304,12 +310,8 @@ matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
                               libraries = ['gmp'])
 
 matrix_mod2_dense = Extension('sage.matrix.matrix_mod2_dense',
-                              ['sage/matrix/matrix_mod2_dense.pyx',
-                               'sage/libs/m4ri/packedmatrix.c',
-                               'sage/libs/m4ri/matrix.c',
-                               'sage/libs/m4ri/brilliantrussian.c',
-                               'sage/libs/m4ri/grayflex.c',],
-                              libraries = ['gmp'])
+                              ['sage/matrix/matrix_mod2_dense.pyx'],
+                              libraries = ['gmp','m4ri'])
 
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])
@@ -335,18 +337,18 @@ matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
 # TODO -- change to use BLAS at some point.
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx'],
-                                  libraries = ['iml', 'gmp', 'm', BLAS])  # order matters for cygwin!!
+                                  libraries = ['iml', 'gmp', 'm', BLAS, BLAS2])  # order matters for cygwin!!
 
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
-   ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',BLAS],
+   ['sage/matrix/matrix_real_double_dense.pyx'],libraries=[BLAS, BLAS2, 'gsl'],
    define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 matrix_complex_double_dense=Extension('sage.matrix.matrix_complex_double_dense',
-   ['sage/matrix/matrix_complex_double_dense.pyx'],libraries=['gsl',BLAS],
+   ['sage/matrix/matrix_complex_double_dense.pyx'],libraries=['gsl', BLAS, BLAS2],
    define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 
-solve = Extension('sage.matrix.solve',['sage/matrix/solve.pyx'],libraries = ['gsl',BLAS],define_macros =
+solve = Extension('sage.matrix.solve',['sage/matrix/solve.pyx'],libraries = ['gsl', BLAS, BLAS2],define_macros =
    [('GSL_DISABLE_DEPRECATED','1')])
 
 matrix_cyclo_dense = Extension('sage.matrix.matrix_cyclo_dense',
@@ -362,9 +364,12 @@ matrix_cyclo_sparse = Extension('sage.matrix.matrix_cyclo_sparse',
 
 matrix_mpolynomial_dense = Extension('sage.matrix.matrix_mpolynomial_dense',
                                      ['sage/matrix/matrix_mpolynomial_dense.pyx'],
-                                     libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+                                     libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
                                      language="c++",
                                      include_dirs=[SAGE_ROOT +'/local/include/singular'])
+
+matrix_symbolic_dense = Extension('sage.matrix.matrix_symbolic_dense',
+                                   ['sage/matrix/matrix_symbolic_dense.pyx'])
 
 #matrix_padic_capped_relative_dense = Extension('sage.matrix.padics.matrix_padic_capped_relative_dense',
 #                                               ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx'])
@@ -377,38 +382,38 @@ free_module_element = Extension('sage.modules.free_module_element',
                                 ['sage/modules/free_module_element.pyx'])
 
 ################ GSL wrapping ######################
-gsl_probability=Extension('sage.gsl.probability_distribution',['sage/gsl/probability_distribution.pyx'],libraries=['gsl',BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
-gsl_integration=Extension('sage.gsl.integration',['sage/gsl/integration.pyx'],define_macros=[('GSL_DISABLE_DEPRECATED','1')], libraries=['gsl',BLAS])
+gsl_probability=Extension('sage.gsl.probability_distribution',['sage/gsl/probability_distribution.pyx'],libraries=['gsl', BLAS, BLAS2],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+gsl_integration=Extension('sage.gsl.integration',['sage/gsl/integration.pyx'],define_macros=[('GSL_DISABLE_DEPRECATED','1')], libraries=['gsl',BLAS, BLAS2])
 
 gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 gsl_fft = Extension('sage.gsl.fft',
                 ['sage/gsl/fft.pyx'],
-                libraries = ['gsl', BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+                libraries = ['gsl', BLAS, BLAS2],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 gsl_interpolation = Extension('sage.gsl.interpolation',
                 ['sage/gsl/interpolation.pyx'],
-                libraries = ['gsl', BLAS],
+                libraries = ['gsl', BLAS, BLAS2],
 define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 gsl_callback = Extension('sage.gsl.callback',
                 ['sage/gsl/callback.pyx'],
-                libraries = ['gsl', BLAS]
+                libraries = ['gsl', BLAS, BLAS2]
 ,define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 real_double = Extension('sage.rings.real_double',
                 ['sage/rings/real_double.pyx'],
-                libraries = ['gsl', 'gmp', BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+                libraries = ['gsl', 'gmp', BLAS, BLAS2],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 complex_double = Extension('sage.rings.complex_double',
                            ['sage/rings/complex_double.pyx'],
-                           libraries = ['gsl', BLAS, 'pari', 'gmp'])
+                           libraries = ['gsl', BLAS, BLAS2, 'pari', 'gmp'])
 
 real_double_vector = Extension('sage.modules.real_double_vector',['sage/modules/real_double_vector.pyx'],
-                              libraries = ['gsl',BLAS,'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECAED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+                              libraries = ['gsl', BLAS, BLAS2, 'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECAED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 complex_double_vector = Extension('sage.modules.complex_double_vector',['sage/modules/complex_double_vector.pyx'],
-                           libraries = ['gsl', BLAS, 'pari', 'gmp'],define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+                           libraries = ['gsl', BLAS, BLAS2, 'pari', 'gmp'],define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 
 vector_integer_dense = Extension('sage.modules.vector_integer_dense',
@@ -427,7 +432,7 @@ vector_rational_dense = Extension('sage.modules.vector_rational_dense',
                                  libraries = ['gmp'])
 
 gsl_array = Extension('sage.gsl.gsl_array',['sage/gsl/gsl_array.pyx'],
-                libraries=['gsl',BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+                libraries=['gsl', BLAS, BLAS2],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',BLAS],
                 define_macros=[('GSL_DISABLE_DEPRECATED','1')])
@@ -520,6 +525,7 @@ ext_modules = [ \
      matrix_modn_sparse,
      matrix_mod2_dense,
      matrix_mpolynomial_dense, \
+     matrix_symbolic_dense, \
 
      cremona_mat, \
      cremona_homspace, \
@@ -615,18 +621,21 @@ ext_modules = [ \
 
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
-              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+              libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
               include_dirs=[SAGE_ROOT +'/local/include/singular']), \
 
     Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
-              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx'],
+              libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
               include_dirs=[SAGE_ROOT +'/local/include/singular']), \
 
     Extension('sage.groups.group',
               sources = ['sage/groups/group.pyx']), \
+
+    Extension('sage.groups.perm_gps.permgroup_element',
+              sources = ['sage/groups/perm_gps/permgroup_element.pyx']), \
 
     Extension('sage.structure.sage_object',
               sources = ['sage/structure/sage_object.pyx'], libraries=['ntl']), \
@@ -658,6 +667,10 @@ ext_modules = [ \
 
     Extension('sage.rings.real_mpfi',
               sources = ['sage/rings/real_mpfi.pyx'],
+              libraries = ['mpfi', 'mpfr', 'gmp']), \
+
+    Extension('sage.rings.complex_interval',
+              sources = ['sage/rings/complex_interval.pyx'],
               libraries = ['mpfi', 'mpfr', 'gmp']), \
 
     Extension('sage.rings.residue_field',
@@ -692,7 +705,7 @@ ext_modules = [ \
     Extension('sage.rings.padics.padic_capped_relative_element',
               sources = ['sage/rings/padics/padic_capped_relative_element.pyx', \
                          'sage/rings/padics/padic_generic_element.c'],
-              libraries=['gmp']),
+              libraries=['gmp', 'csage']),
 
 
     Extension('sage.rings.memory', \
@@ -861,6 +874,10 @@ ext_modules = [ \
               ['sage/graphs/bruhat_sn.pyx']
               ), \
 
+    Extension('sage.coding.binary_code',
+              ['sage/coding/binary_code.pyx']
+              ), \
+
 
     Extension('sage.plot.plot3d.base',
               ['sage/plot/plot3d/base.pyx']
@@ -878,6 +895,13 @@ ext_modules = [ \
               ['sage/plot/plot3d/shapes.pyx']
               ), \
 
+    Extension('sage.rings.polynomial.pbori',
+              sources = ['sage/rings/polynomial/pbori.pyx'],
+              libraries=['polybori','pboriCudd','groebner'],
+              include_dirs=[SAGE_ROOT+'/local/include/cudd',
+                            SAGE_ROOT+'/local/include/polybori',
+                            SAGE_ROOT+'/local/include/polybori/groebner'],
+              language = 'c++'), \
 
     ]
 
@@ -1037,6 +1061,31 @@ def process_cython_file(f, m):
             sys.exit(1)
     return [outfile]
 
+def hash_of_cython_file_timestamps():
+    h = 0
+    extensions = set(['.pyx', '.pxd', '.pxi'])
+    def hash_of_dir(dir):
+        h = 0
+        for f in os.listdir(dir):
+            z = dir + '/' + f
+            if os.path.isdir(z):
+                h += hash_of_dir(z)
+            elif f[-4:] in extensions and f[0] != '.':
+                h += hash(os.path.getmtime(z))
+        return h
+    return hash_of_dir('sage')
+
+CYTHON_HASH_FILE='.cython_hash'
+H = str(hash_of_cython_file_timestamps())
+if not os.path.exists(CYTHON_HASH_FILE):
+    H_old = H + 'x'
+else:
+    H_old = open(CYTHON_HASH_FILE).read()
+
+if H != H_old:
+    do_cython = True
+else:
+    do_cython = False
 
 def cython(ext_modules):
     for m in ext_modules:
@@ -1054,10 +1103,11 @@ def cython(ext_modules):
 
 
 
-if not sdist:
+if not sdist and do_cython:
     cython(ext_modules)
+    pass
 
-setup(name        = 'sage',
+code = setup(name        = 'sage',
 
       version     =  SAGE_VERSION,
 
@@ -1082,6 +1132,8 @@ setup(name        = 'sage',
                      'sage.coding',
 
                      'sage.combinat',
+
+                     'sage.combinat.sf',
 
                      'sage.crypto',
 
@@ -1142,6 +1194,8 @@ setup(name        = 'sage',
 
                      'sage.monoids',
 
+                     'sage.numerical',
+
                      'sage.plot',
                      'sage.plot.mpl3d',
                      'sage.plot.plot3d',
@@ -1160,6 +1214,8 @@ setup(name        = 'sage',
                      'sage.tests',
 
                      'sage.sets',
+
+                     'sage.stats',
 
                      'sage.schemes',
                      'sage.schemes.generic',
@@ -1204,14 +1260,22 @@ setup(name        = 'sage',
                 ],
 
       data_files = [('dsage/web/static',
-                     ['sage/dsage/web/static/dsage_web.css',
-                      'sage/dsage/web/static/dsage_web.js',
-                      'sage/dsage/web/static/jquery-latest.js',
-                      'sage/dsage/web/static/jquery.tablesorter.pack.js',
-                      'sage/dsage/web/static/index.html'])],
+                    ['sage/dsage/web/static/dsage_web.css',
+                     'sage/dsage/web/static/dsage_web.js',
+                     'sage/dsage/web/static/jquery-latest.js',
+                     'sage/dsage/web/static/jquery.tablesorter.pack.js',
+                     'sage/dsage/web/static/jquery.history.js',
+                     'sage/dsage/web/static/asc.gif',
+                     'sage/dsage/web/static/desc.gif',
+                     'sage/dsage/web/static/bg.gif',
+                     'sage/dsage/README.html']),
+                    ('dsage/web/',
+                    ['sage/dsage/web/index.html'])],
 
       ext_modules = ext_modules,
       include_dirs = include_dirs)
 
 
-
+# *Only* write the hash file out if the build
+# succeeded with no errors.
+open(CYTHON_HASH_FILE,'w').write(H)

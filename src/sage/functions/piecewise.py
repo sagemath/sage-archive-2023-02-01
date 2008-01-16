@@ -98,8 +98,46 @@ def meval(x):
     from sage.calculus.calculus import symbolic_expression_from_maxima_element
     return symbolic_expression_from_maxima_element(maxima(x))
 
+def piecewise(list_of_pairs):
+    """
+    Returns a piecewise function from a list of (interval, function)
+    pairs.
+
+    \code{list_of_pairs} is a list of pairs (I, fcn), where fcn is
+    a SAGE function (such as a polynomial over RR, or functions
+    using the lambda notation), and I is an interval such as I = (1,3).
+    Two consecutive intervals must share a common endpoint.
+
+    We assume that these definitions are consistent (ie, no checking is
+    done).
+
+    EXAMPLES:
+        sage: f1 = lambda x:-1
+        sage: f2 = lambda x:2
+        sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+        sage: f(1)
+        -1
+        sage: f(3)
+        2
+    """
+    return PiecewisePolynomial(list_of_pairs)
+
+Piecewise = piecewise
 
 class PiecewisePolynomial:
+    """
+    Returns a piecewise function from a list of (interval, function)
+    pairs.
+
+    EXAMPLES:
+        sage: f1 = lambda x:-1
+        sage: f2 = lambda x:2
+        sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+        sage: f(1)
+        -1
+        sage: f(3)
+        2
+    """
     def __init__(self, list_of_pairs):
         r"""
         \code{list_of_pairs} is a list of pairs (I, fcn), where fcn is
@@ -180,7 +218,20 @@ class PiecewisePolynomial:
         return self._intervals
 
     def domain(self):
-        return (min(self.intervals()),max(self.intervals()))
+        """
+        Returns the domain of the function.
+
+        EXAMPLES:
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = exp(x)
+            sage: f4(x) = sin(2*x)
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f.domain()
+            (0, 10)
+        """
+        endpoints = sum(self.intervals(), ())
+        return (min(endpoints), max(endpoints))
 
     def functions(self):
         """
@@ -330,13 +381,13 @@ class PiecewisePolynomial:
             sage: rsf = f.riemann_sum(7)
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: Q = rsf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
-            sage: L = add([line([[pf[0][0],0],[pf[0][0],pf[1](pf[0][0])]],rgbcolor=(0.7,0.6,0.6)) for pf in rsf.list()])
+            sage: L = add([line([[pf[0][0],0],[pf[0][0],pf[1](x=pf[0][0])]],rgbcolor=(0.7,0.6,0.6)) for pf in rsf.list()])
             sage: ## To view this, type show(P+Q+L).
             sage: f = Piecewise([[(-1,1),1/2+x-x^3]]) ## example 3
             sage: rsf = f.riemann_sum(8)
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: Q = rsf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
-            sage: L = add([line([[pf[0][0],0],[pf[0][0],pf[1](pf[0][0])]],rgbcolor=(0.7,0.6,0.6)) for pf in rsf.list()])
+            sage: L = add([line([[pf[0][0],0],[pf[0][0],pf[1](x=pf[0][0])]],rgbcolor=(0.7,0.6,0.6)) for pf in rsf.list()])
             sage: ## To view this, type show(P+Q+L).
         """
         x = PolynomialRing(QQ,'x').gen()
@@ -512,7 +563,7 @@ class PiecewisePolynomial:
             sage: f(0.5)
             1
             sage: f(2.5)
-            12.18249396070347
+            12.1824939607034...
             sage: f(1)
             1/2
         """
@@ -1356,7 +1407,3 @@ class PiecewisePolynomial:
         Implements Boolean == operator.
         """
         return self.list()==other.list()
-
-## added so that functions/all.py does not need to be changed
-Piecewise = PiecewisePolynomial
-

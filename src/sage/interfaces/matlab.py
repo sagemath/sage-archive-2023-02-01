@@ -181,7 +181,9 @@ class Matlab(Expect):
         from SAGE.   You can read all about MATLAB at
                   http://www.mathworks.com/
 
-        You might have to buy MATLAB (list price: $1900) or get away with setting up a remote connection to a server running Maple. Do _install_hints_ssh() for hints on how to do that).
+        You might have to buy MATLAB or get away with setting up a remote connection to a server running Maple. Type
+   print matlab._install_hints_ssh()
+for hints on how to do that).
         """
 
     def _start(self):

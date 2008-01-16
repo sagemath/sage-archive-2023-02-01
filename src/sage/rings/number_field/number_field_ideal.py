@@ -41,6 +41,7 @@ import sage.rings.rational as rational
 import sage.rings.integer as integer
 import sage.rings.arith as arith
 import sage.misc.misc as misc
+from sage.rings.finite_field import FiniteField
 
 import number_field
 import number_field_element
@@ -50,6 +51,7 @@ from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
 from sage.misc.misc import prod
 from sage.structure.element import generic_power
 from sage.structure.factorization import Factorization
+from sage.structure.sequence import Sequence
 
 QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
@@ -199,7 +201,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<a> = NumberField(x^3 + 389); K
             Number Field in a with defining polynomial x^3 + 389
             sage: I = K.factor_integer(17)[0][0]; I
-            Fractional ideal (-100*a^2 + 730*a - 5329)
+            Fractional ideal (100*a^2 - 730*a + 5329)
             sage: hnf = I.pari_hnf(); hnf
             [17, 0, 13; 0, 17, 8; 0, 0, 1]
             sage: I._NumberFieldIdeal__elements_from_hnf(hnf)
@@ -326,6 +328,118 @@ class NumberFieldIdeal(Ideal_fractional):
             for ideal in hnflist:
                 self.__pari_hnf = nf.idealadd(self.__pari_hnf, ideal)
             return self.__pari_hnf
+
+    def basis(self):
+        """
+        Return an immutable sequence of elements of this ideal (note:
+        their parent is the number field) that form a basis for this
+        ideal viewed as a ZZ-module.
+
+        OUTPUT:
+            basis -- an immutable sequence.
+
+        EXAMPLES:
+            sage: K.<z> = CyclotomicField(7)
+            sage: I = K.factor_integer(11)[0][0]
+            sage: I.basis()           # warning -- choice of basis can be somewhat random
+            [11, 11*z, 11*z^2, z^3 + 5*z^2 + 4*z + 10, z^4 + z^2 + z + 5, z^5 + z^4 + z^3 + 2*z^2 + 6*z + 5]
+
+        An example of a non-integral ideal.
+            sage: J = 1/I
+            sage: J          # warning -- choice of generators can be somewhat random
+            Fractional ideal (2/11*z^5 + 2/11*z^4 + 3/11*z^3 + 2/11)
+            sage: J.basis()           # warning -- choice of basis can be somewhat random
+            [1, z, z^2, 1/11*z^3 + 7/11*z^2 + 6/11*z + 10/11, 1/11*z^4 + 1/11*z^2 + 1/11*z + 7/11, 1/11*z^5 + 1/11*z^4 + 1/11*z^3 + 2/11*z^2 + 8/11*z + 7/11]
+        """
+        try:
+            return self.__basis
+        except AttributeError:
+            pass
+        hnf = self.pari_hnf()
+        v = self.__elements_from_hnf(hnf)
+        O = self.number_field().maximal_order()
+        self.__basis = Sequence(v, immutable=True)
+        return self.__basis
+
+    def free_module(self):
+        """
+        Return the free ZZ-module contained in the vector space
+        associated to the ambient number field, that corresponds
+        to this ideal.
+
+        EXAMPLES:
+            sage: K.<z> = CyclotomicField(7)
+            sage: I = K.factor_integer(11)[0][0]; I
+            Fractional ideal (-2*z^4 - 2*z^2 - 2*z + 1)
+            sage: A = I.free_module()
+            sage: A              # warning -- choice of basis can be somewhat random
+            Free module of degree 6 and rank 6 over Integer Ring
+            User basis matrix:
+            [11  0  0  0  0  0]
+            [ 0 11  0  0  0  0]
+            [ 0  0 11  0  0  0]
+            [10  4  5  1  0  0]
+            [ 5  1  1  0  1  0]
+            [ 5  6  2  1  1  1]
+
+        However, the actual ZZ-module is not at all random:
+            sage: A.basis_matrix().change_ring(ZZ).echelon_form()
+            [ 1  0  0  5  1  1]
+            [ 0  1  0  1  1  7]
+            [ 0  0  1  7  6 10]
+            [ 0  0  0 11  0  0]
+            [ 0  0  0  0 11  0]
+            [ 0  0  0  0  0 11]
+
+        The ideal doesn't have to be integral:
+            sage: J = I^(-1)
+            sage: B = J.free_module()
+            sage: B.echelonized_basis_matrix()
+            [ 1/11     0     0  7/11  1/11  1/11]
+            [    0  1/11     0  1/11  1/11  5/11]
+            [    0     0  1/11  5/11  4/11 10/11]
+            [    0     0     0     1     0     0]
+            [    0     0     0     0     1     0]
+            [    0     0     0     0     0     1]
+
+        This also works for relative extensions:
+            sage: K.<a,b> = NumberField([x^2 + 1, x^2 + 2])
+            sage: I = K.fractional_ideal(4)
+            sage: I.free_module()
+            Free module of degree 4 and rank 4 over Integer Ring
+            User basis matrix:
+            [  4   0   0   0]
+            [ -3   7  -1   1]
+            [  3   7   1   1]
+            [  0 -10   0  -2]
+            sage: J = I^(-1); J.free_module()
+            Free module of degree 4 and rank 4 over Integer Ring
+            User basis matrix:
+            [  1/4     0     0     0]
+            [-3/16  7/16 -1/16  1/16]
+            [ 3/16  7/16  1/16  1/16]
+            [    0  -5/8     0  -1/8]
+
+        An example of intersecting ideals by intersecting free modules.
+            sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8)
+            sage: I = K.factor_integer(2)
+            sage: p1 = I[0][0]; p2 = I[1][0]
+            sage: N = p1.free_module().intersection(p2.free_module()); N
+            Free module of degree 3 and rank 3 over Integer Ring
+            Echelon basis matrix:
+            [  1 1/2 1/2]
+            [  0   1   1]
+            [  0   0   2]
+            sage: N.index_in(p1.free_module()).abs()
+            2
+        """
+        try:
+            return self.__free_module
+        except AttributeError:
+            pass
+        M = basis_to_module(self.basis(), self.number_field())
+        self.__free_module = M
+        return M
 
     def divides(self, other):
         """
@@ -694,10 +808,94 @@ class NumberFieldIdeal(Ideal_fractional):
             ValueError: the ideal (= Fractional ideal (17)) is not prime
         """
         if self.is_zero():
-            raise ValueError, "The ideal (=%s) is zero"%self
+            raise ValueError, "The input ideal must be nonzero"
         if self.is_prime():
             return ZZ(self._pari_prime.getattr('e'))
         raise ValueError, "the ideal (= %s) is not prime"%self
+
+    def _p_quotient(self, p):
+        """
+        This is an internal technical function that is used for example for
+        computing the quotient of the ring of integers by a prime ideal.
+
+        INPUT:
+            p -- a prime number contained in self.
+
+        OUTPUT:
+            V -- a vector space of characteristic p
+            quo -- a partially defined quotient homomorphism from the
+                   ambient number field to V
+            lift -- a section of quo.
+
+        EXAMPLES:
+            sage: K.<i> = NumberField(x^2 + 1); O = K.maximal_order()
+            sage: I = K.factor_integer(3)[0][0]
+            sage: Q, quo, lift = I._p_quotient(3); Q
+            Vector space quotient V/W of dimension 2 over Finite Field of size 3 where
+            V: Vector space of dimension 2 over Finite Field of size 3
+            W: Vector space of degree 2 and dimension 0 over Finite Field of size 3
+            Basis matrix:
+            []
+
+        We do an example with a split prime and show byother the quo and lift maps:
+            sage: K.<i> = NumberField(x^2 + 1); O = K.maximal_order()
+            sage: I = K.factor_integer(5)[0][0]
+            sage: Q,quo,lift = I._p_quotient(5)
+            sage: lift(quo(i))
+            3
+            sage: lift(quo(i)) - i in I
+            True
+            sage: quo(lift(Q.0))
+            (1)
+            sage: Q.0
+            (1)
+            sage: Q
+            Vector space quotient V/W of dimension 1 over Finite Field of size 5 where
+            V: Vector space of dimension 2 over Finite Field of size 5
+            W: Vector space of degree 2 and dimension 1 over Finite Field of size 5
+            Basis matrix:
+            [1 3]
+            sage: quo
+            Partially defined quotient map from Number Field in i with defining polynomial x^2 + 1 to an explicit vector space representation for the quotient of the ring of integers by (p,I) for the ideal I=Fractional ideal (-i - 2).
+            sage: lift
+            Lifting map to Maximal Order in Number Field in i with defining polynomial x^2 + 1 from quotient of integers by Fractional ideal (-i - 2)
+        """
+        return quotient_char_p(self, p)
+
+    def residue_field(self, names=None):
+        """
+        Return the residue class field of this ideal, which must
+        be prime.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3-7)
+            sage: P = K.ideal(29).factor()[0][0]
+            sage: P.residue_field()
+            Residue field in abar of Fractional ideal (2*a^2 + 3*a - 10)
+            sage: P.residue_field('z')
+            Residue field in z of Fractional ideal (2*a^2 + 3*a - 10)
+
+        Another example:
+            sage: K.<a> = NumberField(x^3-7)
+            sage: P = K.ideal(389).factor()[0][0]; P
+            Fractional ideal (389, a^2 - 44*a - 9)
+            sage: P.residue_class_degree()
+            2
+            sage: P.residue_field()
+            Residue field in abar of Fractional ideal (389, a^2 - 44*a - 9)
+            sage: P.residue_field('z')
+            Residue field in z of Fractional ideal (389, a^2 - 44*a - 9)
+            sage: FF.<w> = P.residue_field()
+            sage: FF
+            Residue field in w of Fractional ideal (389, a^2 - 44*a - 9)
+            sage: FF((a+1)^390)
+            36
+            sage: FF(a)
+            w
+        """
+        if not self.is_prime():
+            raise ValueError, "The ideal must be prime"
+        return self.number_field().residue_field(self, names = names)
 
     def residue_class_degree(self):
         r"""
@@ -813,3 +1011,133 @@ def is_pari_zero_vector(z):
         if a:
             return False
     return True
+
+
+
+def basis_to_module(B, K):
+    """
+    Given a basis B of elements for a ZZ-submodule of a number field K, return
+    the corresponding ZZ-submodule.
+
+    EXAMPLES:
+        sage: K.<w> = NumberField(x^4 + 1)
+        sage: from sage.rings.number_field.number_field_ideal import basis_to_module
+        sage: basis_to_module([K.0, K.0^2 + 3], K)
+        Free module of degree 4 and rank 2 over Integer Ring
+        User basis matrix:
+        [0 1 0 0]
+        [3 0 1 0]
+    """
+    V, from_V, to_V = K.absolute_vector_space()
+    M = ZZ**(V.dimension())
+    C = [to_V(K(b)) for b in B]
+    return M.span_of_basis(C)
+
+
+class QuotientMap:
+    def __init__(self, K, M_OK_change, Q, I):
+        self.__M_OK_change = M_OK_change
+        self.__Q = Q
+        self.__K = K
+        self.__I = I
+        self.__L, self.__from_L, self.__to_L = K.absolute_vector_space()
+
+    def __call__(self, x):
+        v = self.__to_L(x)
+        w = v * self.__M_OK_change
+        return self.__Q( list(w) )
+
+    def __repr__(self):
+        return "Partially defined quotient map from %s to an explicit vector space representation for the quotient of the ring of integers by (p,I) for the ideal I=%s."%(self.__K, self.__I)
+
+class LiftMap:
+    def __init__(self, OK, M_OK_map, Q, I):
+        self.__I = I
+        self.__OK = OK
+        self.__Q = Q
+        self.__M_OK_map = M_OK_map
+
+    def __call__(self, x):
+        # This lifts to OK tensor F_p
+        v = self.__Q.lift(x)
+        # This lifts to ZZ^n (= OK)
+        w = v.lift()
+        # Write back in terms of K
+        z = w * self.__M_OK_map
+        return self.__OK(z.list())
+
+    def __repr__(self):
+        return "Lifting map to %s from quotient of integers by %s"%(self.__OK, self.__I)
+
+def quotient_char_p(I, p):
+    """
+    Given an integral ideal I that contains a prime number p, compute
+    a vector space V = (OK mod p) / (I mod p), along with a
+    homomorphism OK --> V and a section V --> OK.
+
+    EXAMPLES:
+        sage: from sage.rings.number_field.number_field_ideal import quotient_char_p
+
+        sage: K.<i> = NumberField(x^2 + 1); O = K.maximal_order(); I = K.fractional_ideal(15)
+        sage: quotient_char_p(I, 5)[0]
+        Vector space quotient V/W of dimension 2 over Finite Field of size 5 where
+        V: Vector space of dimension 2 over Finite Field of size 5
+        W: Vector space of degree 2 and dimension 0 over Finite Field of size 5
+        Basis matrix:
+        []
+        sage: quotient_char_p(I, 3)[0]
+        Vector space quotient V/W of dimension 2 over Finite Field of size 3 where
+        V: Vector space of dimension 2 over Finite Field of size 3
+        W: Vector space of degree 2 and dimension 0 over Finite Field of size 3
+        Basis matrix:
+        []
+
+        sage: I = K.factor_integer(13)[0][0]; I
+        Fractional ideal (-3*i - 2)
+        sage: I.residue_class_degree()
+        1
+        sage: quotient_char_p(I, 13)[0]
+        Vector space quotient V/W of dimension 1 over Finite Field of size 13 where
+        V: Vector space of dimension 2 over Finite Field of size 13
+        W: Vector space of degree 2 and dimension 1 over Finite Field of size 13
+        Basis matrix:
+        [1 8]
+    """
+    if not I.is_integral():
+        raise ValueError, "I must be an integral ideal."
+
+    K    = I.number_field()
+    OK   = K.maximal_order()  # will in the long run only really need a p-maximal order.
+    M_OK = OK.free_module()
+    M_I  = I.free_module()
+
+    # Now we have to quite explicitly find a way to compute
+    # with OK / I viewed as a quotient of two F_p vector space,
+    # and itself viewed as an F_p vector space.
+
+    # Step 1. Write each basis vector for I (as a ZZ-module)
+    # in terms of the basis for OK.
+    B_I = M_I.basis()
+    M_OK_mat = M_OK.basis_matrix()
+    M_OK_change = M_OK_mat**(-1)
+    B_I_in_terms_of_M = M_I.basis_matrix() * M_OK_change
+
+    # Step 2. Define "M_OK mod p" to just be (F_p)^n and
+    # "M_I mod p" to be the reduction mod p of the elements
+    # compute in step 1.
+    n = K.degree()
+    k = FiniteField(p)
+    M_OK_modp = k**n
+    B_mod = B_I_in_terms_of_M.change_ring(k)
+    M_I_modp = M_OK_modp.span(B_mod.row_space())
+
+    # Step 3. Compute the quotient of these two F_p vector space.
+    Q = M_OK_modp.quotient(M_I_modp)
+
+    # Step 4. Now we get the maps we need from the above data.
+    K_to_Q = QuotientMap(K, M_OK_change, Q, I)
+    Q_to_OK = LiftMap(OK, M_OK_mat, Q, I)
+    return Q, K_to_Q, Q_to_OK
+
+
+

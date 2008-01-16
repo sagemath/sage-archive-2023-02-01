@@ -2,6 +2,7 @@
 PKG-INFO
 push
 pull
+.cython_hash$
 \.hi$
 \.mtl$
 \.obj$

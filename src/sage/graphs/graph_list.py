@@ -228,9 +228,10 @@ def to_graphics_arrays(list, **kwds):
         sage: glist = []
         sage: for _ in range(10):
         ...       glist.append(graphs.RandomLobster(41, .3, .4))
-        sage: graphs_list.to_graphics_arrays(glist, layout='spring', vertex_size=20)
-        [Graphics Array of size 3 x 4]
-
+        sage: w = graphs_list.to_graphics_arrays(glist, layout='spring', vertex_size=20)
+        sage: len(w)
+        1
+        sage: w[0]
     """
     from sage.plot.plot import graphics_array
     from sage.graphs import graph

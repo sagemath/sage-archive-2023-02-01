@@ -61,10 +61,13 @@ cdef class SageObject:
             ...
             NotImplementedError: object does not support renaming: 3.14000000000000
 
-        \note{The reason C-extension types are not supported is if
-        they were then every single one would have to carry around an
-        extra attribute, which would be slower and waste a lot of
-        memory.}
+        \note{The reason C-extension types are not supported by default
+        is if they were then every single one would have to carry around
+        an extra attribute, which would be slower and waste a lot of
+        memory.
+
+        To support them for a specific class, add a \code{cdef public __custom_name}
+        attribute.}
         """
         if x is None:
             if hasattr(self, '__custom_name'):
@@ -82,8 +85,10 @@ cdef class SageObject:
 
     def __repr__(self):
         if hasattr(self, '__custom_name'):
-            return self.__custom_name
-        elif hasattr(self, '_repr_'):
+            name = self.__custom_name
+            if name is not None:
+                return name
+        if hasattr(self, '_repr_'):
             return self._repr_()
         return str(type(self))
 
@@ -238,17 +243,16 @@ cdef class SageObject:
                     pass
             except (KeyError, ValueError):
                 pass
-        try:
+        if hasattr(self, '_%s_init_'%I.name()):
             s = self.__getattribute__('_%s_init_'%I.name())()
-        except AttributeError, msg0:
+        elif hasattr(self, '_system_init_'):
+            s = self._system_init_(I.name())
+        else:
             try:
-                s = self._system_init_(I.name())
-            except AttributeError:
-                try:
-                    s = self._interface_init_()
-                except AttributeError, msg1:
-                    raise NotImplementedError, "coercion of object %s to %s not implemented:\n%s\n%s"%\
-                          (repr(self), I, msg0, msg1)
+              s = self._interface_init_()
+            except:
+                raise NotImplementedError, "coercion of object %s to %s not implemented:\n%s\n%s"%\
+                  (repr(self), I)
         X = I(s)
         if c:
             try:
@@ -467,7 +471,7 @@ def save(obj, filename=None, compress=True, **kwds):
         sage: P = plot(E)
         sage: save(P, 'test.sobj')
         sage: save(P, filename="sage.png", xmin=-2)
-        sage: load('test.sobj')
+        sage: print  load('test.sobj')
         Graphics object consisting of 2 graphics primitives
     """
     if not '.' in filename:
@@ -525,6 +529,7 @@ def loads(s, compress=True):
         try:
             return cPickle.loads(comp.decompress(s))
         except Exception, msg1:
+            raise
             try:
                 return cPickle.loads(comp_other.decompress(s))
             except Exception, msg2:
@@ -532,6 +537,12 @@ def loads(s, compress=True):
                 try:
                     return cPickle.loads(s)
                 except Exception, msg3:
+                    try: msg1 = str(msg1)
+                    except: msg1 = type(msg1)
+                    try: msg2 = str(msg2)
+                    except: msg2 = type(msg2)
+                    try: msg3 = str(msg3)
+                    except: msg3 = type(msg3)
                     raise RuntimeError, "%s\n%s\n%s\nUnable to load pickled data."%(msg1,msg2,msg3)
     else:
         try:

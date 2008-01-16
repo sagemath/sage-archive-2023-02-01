@@ -25,7 +25,7 @@ sage: # Evaluate  e^(Pi*Sqrt(163)) to 50 decimal digits
 sage: a = e^(pi*sqrt(163)); a
 e^(sqrt(163)*pi)
 sage: print RealField(150)(a)
-262537412640768743.99999999999925007259719819
+2.6253741264076874399999999999925007259719819e17
 
 sage: # Evaluate the Bessel function J[2] numerically at z=1+I.
 sage: bessel_J (2, 1+I)
@@ -397,7 +397,7 @@ sage: print d
 a^3*b^2*c - a^2*b^3*c - a^3*b*c^2 + a*b^3*c^2 + a^2*b*c^3 - a*b^2*c^3 - a^3*b^2*d + a^2*b^3*d + a^3*c^2*d - b^3*c^2*d - a^2*c^3*d + b^2*c^3*d + a^3*b*d^2 - a*b^3*d^2 - a^3*c*d^2 + b^3*c*d^2 + a*c^3*d^2 - b*c^3*d^2 - a^2*b*d^3 + a*b^2*d^3 + a^2*c*d^3 - b^2*c*d^3 - a*c^2*d^3 + b*c^2*d^3
 
 sage: print d.factor()
-(-1) * (a - d) * (-a + b) * (b - d) * (a - c) * (b - c) * (c - d)
+(-1) * (c - d) * (b - d) * (b - c) * (-a + b) * (a - d) * (a - c)
 
 sage: # Find the eigenvalues of a 3x3 integer matrix.
 sage: m = matrix(QQ, 3, [5,-3,-7, -2,1,2, 2,-3,-4])

@@ -82,7 +82,7 @@ def drop_table(con, table):
 
     cur = con.cursor()
     query = "DROP TABLE ?"
-    cursor.execute(query, (table,))
+    cur.execute(query, (table,))
 
 def add_trigger(con, trigger):
     con.execute(trigger)

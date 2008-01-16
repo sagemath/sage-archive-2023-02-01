@@ -2,7 +2,42 @@ class Python:
     """
     Allows for evaluating a chunk of code without any preparsing.
     """
-    def eval(self, x, globals={}, locals={}):
+    def eval(self, x, globals, locals=None):
+        """
+        Evaluate x with given globals; locals is completely ignored.
+        This is specifically meant for evaluating code blocks with
+        \code{%python} in the notebook.
+
+        INPUT:
+            x -- a string
+            globals -- a dictionary
+            locals -- completely IGNORED
+
+        EXAMPLES:
+            sage: from sage.misc.python import Python
+            sage: python = Python()
+            sage: python.eval('2+2', globals())
+            4
+            ''
+
+        Any variables that are set during evaluation of the block
+        will propogate to the globals dictionary.
+            sage: python.eval('a=5\nb=7\na+b', globals())
+            12
+            ''
+            sage: b
+            7
+
+        The locals variable is ignored -- it is there only for
+        completeness.  It is ignored since otherwise the following
+        won't work:
+            sage: python.eval("def foo():\n return 'foo'\nprint foo()\ndef mumble():\n print 'mumble',foo()\nmumble()", globals())
+            foo
+            mumble foo
+            ''
+            sage: mumble
+            <function mumble at ...>
+        """
         x = x.strip()
         y = x.split('\n')
         if len(y) == 0:
@@ -14,11 +49,11 @@ class Python:
         except SyntaxError:
             s += '\n' + t
             z = None
-        #else:
-        #    s += '\n' + t
-        eval(compile(s, '', 'exec'), globals, locals)
+
+        eval(compile(s, '', 'exec'), globals, globals)
+
         if not z is None:
-            eval(z, globals, locals)
+            eval(z, globals)
         return ''
 
 python = Python()

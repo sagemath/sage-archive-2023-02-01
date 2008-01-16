@@ -510,6 +510,16 @@ cdef class Rational(sage.structure.element.FieldElement):
         return self_d.gcd(other_d) / d
 
     def valuation(self, p):
+        """
+        EXAMPLES:
+            sage: x = -5/9
+            sage: x.valuation(5)
+            1
+            sage: x.valuation(3)
+            -2
+            sage: x.valuation(2)
+            0
+        """
         return self.numerator().valuation(p) - self.denominator().valuation(p)
 
     def is_square(self):
@@ -554,7 +564,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (5/3).sqrt_approx()
             1.29099444873581
             sage: (990829038092384908234098239048230984/4).sqrt_approx()
-            497701978620837137.47374920870362581922510725585130996993055116540856385
+            4.9770197862083713747374920870362581922510725585130996993055116540856385e17
             sage: (5/3).sqrt_approx(prec=200)
             1.2909944487358056283930884665941332036109739017638636088625
             sage: (9/4).sqrt_approx()
@@ -979,7 +989,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (2/3)^5
             32/243
             sage: (-1/1)^(1/3)
-            -1
+            (-1)^(1/3)
 
         We raise to some interesting powers:
             sage: (2/3)^I
@@ -1013,13 +1023,34 @@ cdef class Rational(sage.structure.element.FieldElement):
             RuntimeError: exponent must be at most 9223372036854775807 # 64-bit
             sage: (-3/3)^(2^100)
             1
+
+        This works even if the base is a float or Python complex or other type:
+            sage: float(1.2)**(1/2)
+            1.0954451150103321
+            sage: complex(1,2)**(1/2)
+            (1.272019649514069+0.786151377757423...j)
+            sage: int(2)^(1/2)
+            sqrt(2)
+            sage: a = int(2)^(3/1); a
+            8
+            sage: type(a)
+            <type 'sage.rings.rational.Rational'>
         """
         if dummy is not None:
             raise ValueError, "__pow__ dummy variable not used"
 
-        if not PY_TYPE_CHECK(self, Rational):  #this is here for no good reason apparent to me... should be removed in the future.
-            assert False, "BUG:  Rational.__pow__ called on a non-Rational"
-            return self.__pow__(float(n)) #whose idea was it to float(n)?
+        if not PY_TYPE_CHECK(self, Rational):
+            # If the base is not a rational, e.g., it is an int, complex, float, user-defined type, etc.
+            try:
+                self_coerced = Rational(self)
+            except TypeError:
+                n_coerced = type(self)(n)
+                if n != n_coerced:
+                    # dangerous coercion -- don't use -- try symbolic result
+                    from sage.calculus.calculus import SR
+                    return SR(self)**SR(n)
+                return self.__pow__(n_coerced)
+            return self_coerced.__pow__(n)
 
         cdef Rational _self = <Rational>self
         cdef long nn

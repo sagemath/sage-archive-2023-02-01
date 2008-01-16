@@ -46,17 +46,36 @@ cdef extern from "math.h":
     double acos(double)
     double atan(double)
 
-from sage.rings.all import RDF
+from sage.rings.real_double  import RDF
 from sage.modules.free_module_element import vector
 
-from base import Graphics3dGroup
+from sage.misc.all import srange
+
+from base import Graphics3dGroup, Graphics3d
 
 
 class Box(IndexFaceSet):
+    """
+    EXAMPLES:
+        sage: from sage.plot.plot3d.shapes import Box
 
+    A square black box:
+        sage: show(Box([1,1,1]))
+
+    A red rectangular box.
+        sage: show(Box([2,3,4], color="red"))
+
+    A stack of boxes:
+        sage: show(sum([Box([2,3,1], color="red").translate((0,0,6*i)) for i in [0..3]]))
+
+    A sinusoidal stack of multicolored boxes:
+        sage: B = sum([Box([2,4,1/4], color=(i/4,i/5,1)).translate((sin(i),0,5-i)) for i in [0..20]])
+        sage: show(B, figsize=6)
+    """
     def __init__(self, *size, **kwds):
         if isinstance(size[0], (tuple, list)):
-            size = size[0]
+            from shapes2 import validate_frame_size
+            size = validate_frame_size(size[0])
         self.size = size
         x, y, z = self.size
         faces = [[(x, y, z), (-x, y, z), (-x,-y, z), ( x,-y, z)],
@@ -65,11 +84,42 @@ class Box(IndexFaceSet):
         faces += [list(reversed([(-x,-y,-z) for x,y,z in face])) for face in faces]
         IndexFaceSet.__init__(self, faces, enclosed=True, **kwds)
 
+    def bounding_box(self):
+        """
+        EXAMPLES:
+            sage: from sage.plot.plot3d.shapes import Box
+            sage: Box([1,2,3]).bounding_box()
+            ((-1.0, -2.0, -3.0), (1.0, 2.0, 3.0))
+        """
+        return tuple([-a for a in self.size]), tuple(self.size)
+
     def x3d_geometry(self):
         return "<Box size='%s %s %s'/>"%self.size
 
+def ColorCube(size, colors, opacity=1, **kwds):
+    """
+    Return a cube with given size and sides with given colors.
 
-def ColorCube(size, colors):
+    INPUT:
+        size -- 3-tuple of sizes (same as for box and frame)
+        colors -- a list of either 3 or 6 color
+        opacity -- (default: 1) opacity of cube sides
+        **kwds -- passed to the face constructor
+
+    OUTPUT:
+        -- a 3d graphics object
+
+    EXAMPLES:
+    A color cube with translucent sides:
+        sage: from sage.plot.plot3d.shapes import ColorCube
+        sage: c = ColorCube([1,2,3], ['red', 'blue', 'green', 'black', 'white', 'orange'], opacity=0.5)
+        sage: c.show()
+        sage: list(c.texture_set())[0].opacity
+        0.500000000000000
+
+    If you omit the last 3 colors then the first three are repeated.
+        sage: c = ColorCube([0.5,0.5,0.5], ['red', 'blue', 'green'])
+    """
     if not isinstance(size, (tuple, list)):
         size = (size, size, size)
     box = Box(size)
@@ -77,8 +127,12 @@ def ColorCube(size, colors):
     if len(colors) == 3:
         colors = colors * 2
     all = []
+
+    from texture import Texture
     for k in range(6):
-        all.append(IndexFaceSet([faces[k]], enclosed=True, texture=colors[k]))
+        all.append(IndexFaceSet([faces[k]], enclosed=True,
+             texture=Texture(colors[k], opacity=opacity),
+             **kwds))
     return Graphics3dGroup(all)
 
 cdef class Cone(ParametricSurface):
@@ -121,6 +175,9 @@ cdef class Cylinder(ParametricSurface):
         self.height = height
         self.closed = closed
 
+    def bounding_box(self):
+        return (-self.radius, -self.radius, 0), (self.radius, self.radius, self.height)
+
     def x3d_geometry(self):
         return "<Cylinder radius='%s' height='%s'/>"%(self.radius, self.height)
 
@@ -130,15 +187,8 @@ cdef class Cylinder(ParametricSurface):
             # Tachyon can't do sqashed
             return ParametricSurface.tachyon_repr(self, render_params)
 
-        if transform is None:
-            base = (0,0,0)
-            top = (0,0,self.height)
-            rad = self.radius
-        else:
-            base = transform.transform_point((0,0,0))
-            top = transform.transform_point((0,0,self.height))
-            radv = transform.transform_vector((self.radius,0,0))
-            rad = sqrt(sum([x*x for x in radv]))
+        base, top = self.get_endpoints(transform)
+        rad = self.get_radius(transform)
         cyl = """FCylinder
    Base %s %s %s
    Apex %s %s %s
@@ -153,6 +203,42 @@ cdef class Cylinder(ParametricSurface):
             return [base_cap, cyl, top_cap]
         else:
             return cyl
+
+    def jmol_repr(self, render_params):
+        transform = render_params.transform
+        base, top = self.get_endpoints(transform)
+        rad = self.get_radius(transform)
+
+        cdef double ratio = sqrt(rad*rad / ((base[0]-top[0])**2 + (base[1]-top[1])**2 + (base[2]-top[2])**2))
+        #print ratio
+
+        if ratio > .02:
+            if not (transform is None or transform.is_uniform_on([(1,0,0),(0,1,0)])) or ratio > .05:
+                # Jmol can't do sqashed
+                return ParametricSurface.jmol_repr(self, render_params)
+
+        name = render_params.unique_name('line')
+        return ["""
+draw %s width %s {%s %s %s} {%s %s %s}\n%s
+""" % (name,
+       rad,
+       base[0], base[1], base[2],
+       top [0], top [1], top [2],
+       self.texture.jmol_str("$" + name)) ]
+
+    def get_endpoints(self, transform=None):
+        if transform is None:
+            return (0,0,0), (0,0,self.height)
+        else:
+            return transform.transform_point((0,0,0)), transform.transform_point((0,0,self.height))
+
+    def get_radius(self, transform=None):
+        if transform is None:
+            return self.radius
+        else:
+            radv = transform.transform_vector((self.radius,0,0))
+            return sqrt(sum([x*x for x in radv]))
+
 
     def get_grid(self, ds):
         twoPi = 2*RDF.pi()
@@ -179,40 +265,75 @@ cdef class Cylinder(ParametricSurface):
             res.x, res.y, res.z = 0, 0, self.height
 
 
-def Line(start, end, radius, **kwds):
+def LineSegment(start, end, thickness=1, radius=None, **kwds):
     """
-    Create a cylindar from start to end with radius radius.
+    Create a line segment, which is drawn as a cylinder from start to
+    end with radius radius.
 
     EXAMPLES:
-        sage: from sage.plot.plot3d.shapes import Line, Sphere
+        sage: from sage.plot.plot3d.shapes import LineSegment, Sphere
         sage: P = (0,0,0.1)
         sage: Q = (0.5,0.6,0.7)
         sage: S = Sphere(.2, color='red').translate(P) + \
                   Sphere(.2, color='blue').translate(Q) + \
-                  Line(P, Q, .05, color='black')
+                  LineSegment(P, Q, .05, color='black')
         sage: S.show()
         sage: S = Sphere(.1, color='red').translate(P) + \
                   Sphere(.1, color='blue').translate(Q) + \
-                  Line(P, Q, .15, color='black')
+                  LineSegment(P, Q, .15, color='black')
         sage: S.show()
 
     AUTHOR:
         -- Robert Bradshaw
     """
+    if radius is None:
+        radius = thickness/50.0
     start = vector(RDF, start, sparse=False)
-    end = vector(RDF, end, sparse=False)
+    end   = vector(RDF, end, sparse=False)
     zaxis = vector(RDF, (0,0,1), sparse=False)
-    diff = end - start
-    height = sqrt(diff.dot_product(diff))
-    cyl = Cylinder(radius, height, **kwds)
-    axis = zaxis.cross_product(diff)
+    diff  = end - start
+    height= sqrt(diff.dot_product(diff))
+    cyl   = Cylinder(radius, height, **kwds)
+    axis  = zaxis.cross_product(diff)
     if axis == 0:
-        return cyl.translate(start)
+        if diff[2] < 0:
+            return cyl.translate(end)
+        else:
+            return cyl.translate(start)
     else:
         theta = -acos(diff[2]/height)
         return cyl.rotate(axis, theta).translate(start)
 
-def Arrow(start, end, radius, head_radius=None, head_len=None, **kwds):
+def arrow3d(start, end, thickness=1, radius=None, head_radius=None, head_len=None, **kwds):
+    """
+    Create a 3d arrow.
+
+    INPUT:
+        start -- (x,y,z) point; the starting point of the arrow
+        end -- (x,y,z) point; the end point
+        thickness -- (default: 1); how thick the arrow is
+        radius -- (default: thickness/50.0) the radius of the arrow
+        head_radius -- (default: 3*radius); radius of arrow head
+        head_len -- (default: 3*head_radius); len of arrow head
+
+    EXAMPLES:
+    The default arrow:
+        sage: arrow3d((0,0,0), (1,1,1), 1)
+
+    A fat arrow:
+        sage: arrow3d((0,0,0), (1,1,1), radius=0.1)
+
+    A green arrow:
+        sage: arrow3d((0,0,0), (1,1,1), color='green')
+
+    A fat arrow head:
+        sage: arrow3d((2,1,0), (1,1,1), color='green', head_radius=0.3, aspect_ratio=[1,1,1])
+
+    Many arrow arranged in a circle (flying spears?):
+        sage: sum([arrow3d((cos(t),sin(t),0),(cos(t),sin(t),1)) for t in [0,0.3,..,2*pi]])
+    """
+    if radius is None:
+        radius = thickness/50.0
     if head_radius == None:
         head_radius = 3*radius
     if head_len == None:
@@ -239,6 +360,18 @@ cdef class Sphere(ParametricSurface):
         ParametricSurface.__init__(self, **kwds)
         self.radius = radius
 
+    def bounding_box(self):
+        """
+        Return the bounding box that contains this sphere.
+
+        EXAMPLES:
+            sage: from sage.plot.plot3d.shapes import Sphere
+            sage: Sphere(3).bounding_box()
+            ((-3.0, -3.0, -3.0), (3.0, 3.0, 3.0))
+        """
+        return ((-self.radius, -self.radius, -self.radius),
+                (self.radius, self.radius, self.radius))
+
     def x3d_geometry(self):
         return "<Sphere radius='%s'/>"%(self.radius)
 
@@ -255,6 +388,21 @@ cdef class Sphere(ParametricSurface):
             radv = transform.transform_vector((self.radius,0,0))
             rad = sqrt(sum([x*x for x in radv]))
         return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], rad, self.texture.id)
+
+    def jmol_repr(self, render_params):
+        name = render_params.unique_name('sphere')
+        transform = render_params.transform
+        if not (transform is None or transform.is_uniform()):
+            return ParametricSurface.jmol_repr(self, render_params)
+
+        if transform is None:
+            cen = (0,0,0)
+            rad = self.radius
+        else:
+            cen = transform.transform_point((0,0,0))
+            radv = transform.transform_vector((self.radius,0,0))
+            rad = sqrt(sum([x*x for x in radv]))
+        return ["isosurface %s center {%s %s %s} sphere %s\n%s" % (name, cen[0], cen[1], cen[2], rad, self.texture.jmol_str("isosurface"))]
 
     def get_grid(self, ds):
         pi = RDF.pi()
@@ -278,6 +426,14 @@ cdef class Sphere(ParametricSurface):
 
 cdef class Torus(ParametricSurface):
 # e.g  show(sum([Torus(1,.03,20,20, color=[1, float(t/30), 0]).rotate((1,1,1),t) for t in range(30)], Sphere(.3)))
+    """
+    INPUT:
+        R -- (default: 1) outer radius
+        r -- (default: .3) inner radius
+
+    OUTPUT:
+        a 3d torus
+    """
     def __init__(self, R=1, r=.3, **kwds):
         ParametricSurface.__init__(self, None, **kwds)
         self.R = R
@@ -297,11 +453,42 @@ cdef class Torus(ParametricSurface):
         res.z = self.r*cos(v)
 
 
-class Text(PrimativeObject):
+class Text(PrimitiveObject):
     def __init__(self, string, **kwds):
-        PrimativeObject.__init__(self, **kwds)
+        PrimitiveObject.__init__(self, **kwds)
         self.string = string
+
     def x3d_geometry(self):
         return "<Text string='%s' solid='true'/>"%self.string
 
+    def obj_repr(self, render_params):
+        return ''
+
+    def tachyon_repr(self, render_params):
+        return ''
+        # Text in Tachyon not implemented yet.
+        # I have no idea what the code below is supposed to do.
+##         transform = render_params.transform
+##         if not (transform is None or transform.is_uniform()):
+##             return ParametricSurface.tachyon_repr(self, render_params)
+
+##         if transform is None:
+##             cen = (0,0,0)
+##             rad = self.radius
+##         else:
+##             cen = transform.transform_point((0,0,0))
+##             radv = transform.transform_vector((self.radius,0,0))
+##             rad = sqrt(sum([x*x for x in radv]))
+##         return "Sphere center %s %s %s Rad %s %s" % (cen[0], cen[1], cen[2], rad, self.texture.id)
+
+    def jmol_repr(self, render_params):
+        cen = render_params.transform.transform_point((0,0,0))
+        render_params.atom_list.append(cen)
+        atom_no = len(render_params.atom_list)
+        return ['select atomno = %s' % atom_no,
+                self.get_texture().jmol_str("atom"),
+                'label "%s"' % self.string] #.replace('\n', '|')]
+
+    def bounding_box(self):
+        return (0,0,0), (0,0,0)
 

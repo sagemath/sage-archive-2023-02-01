@@ -280,9 +280,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: P = E([-1,1])
-            sage: G = P.plot(pointsize=30, rgbcolor=(1,0,0)); G
-            Graphics object consisting of 1 graphics primitive
-            sage: G.save()
+            sage: P.plot(pointsize=30, rgbcolor=(1,0,0))
         """
         if self.is_zero():
             return plot.text("$\\infty$", (-3,3), **args)
@@ -640,7 +638,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
 def make_point(X, v):
     # TODO: Unpickled parents with base sometimes have thier base set to None.
-    # This causes a segfault in the module arithmatic architecture.
+    # This causes a segfault in the module arithmetic architecture.
     #
     # sage: H = HomsetWithBase(QQ, RR, base=ZZ); H
     # sage: H0 = loads(dumps(H))

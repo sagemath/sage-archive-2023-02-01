@@ -870,6 +870,15 @@ cdef class LaurentSeries(AlgebraElement):
             Traceback (most recent call last):
             ...
             ArithmeticError: The integral of is not a Laurent series, since t^-1 has nonzero coefficient.
+
+        Another example with just one negative coefficient:
+            sage: A.<t> = QQ[[]]
+	    sage: f = -2*t^(-4) + O(t^8)
+	    sage: f.integral()
+	    2/3*t^-3 + O(t^9)
+	    sage: f.integral().derivative() == f
+	    True
+
         """
         cdef long i, n = self.__n
         a = self.__u.list()
@@ -878,7 +887,7 @@ cdef class LaurentSeries(AlgebraElement):
                   "The integral of is not a Laurent series, since t^-1 has nonzero coefficient."
 
         if n < 0:
-            v = [a[i]/(n+i+1) for i in range(-1-n)] + [0]
+            v = [a[i]/(n+i+1) for i in range(min(-1-n,len(a)))] + [0]
         else:
             v = []
         v += [a[i]/(n+i+1) for i in range(max(-n,0), len(a))]

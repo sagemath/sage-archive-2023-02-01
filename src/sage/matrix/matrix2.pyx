@@ -27,6 +27,7 @@ from sage.structure.element import is_Vector
 from sage.misc.misc import verbose, get_verbose, graphics_filename
 from sage.rings.number_field.all import is_NumberField
 from sage.rings.integer_ring import ZZ
+from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 
 import sage.modules.free_module
@@ -380,7 +381,6 @@ cdef class Matrix(matrix1.Matrix):
         if k > m:
             return R(0)
 
-        k = int(k)
         pm = 0
         for cols in _choose(n,k):
             for rows in _choose(m,k):
@@ -2686,6 +2686,7 @@ cdef class Matrix(matrix1.Matrix):
         else:
             return (self.subdivisions[0][1:-1], self.subdivisions[1][1:-1])
 
+
     def randomize(self, density=1, *args, **kwds):
         """
         Randomize density proportion of the entries of this matrix,
@@ -2845,11 +2846,16 @@ cdef class Matrix(matrix1.Matrix):
                        max(self.nrows(),self.ncols()) is given the image will have
                        the same pixelsize as the matrix dimensions (default: 512)
 
+        EXAMPLE:
+            sage: M = random_matrix(CC, 4)
+            sage: M.visualize_structure()           # not tested
+
+        WARNING -- the above *may* fail on some OSX systems due to some libpng.dylib issues.
         """
         import gd
         import os
 
-        cdef int x, y, _x, _y, v, bi
+        cdef int x, y, _x, _y, v, bi, bisq
         cdef int ir,ic
         cdef float b, fct
 
@@ -2876,6 +2882,7 @@ cdef class Matrix(matrix1.Matrix):
 
         fct = 255.0/(b*b)
         bi = <int>b
+        bisq = bi*bi
 
         im = gd.image((ir,ic),1)
         white = im.colorExact((255,255,255))
@@ -2887,12 +2894,13 @@ cdef class Matrix(matrix1.Matrix):
 
         for x from 0 <= x < ic:
             for y from 0 <= y < ir:
+                v = bisq
                 for _x from 0 <= _x < bi:
                     for _y from 0 <= _y < bi:
                         if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
                             v-=1 #increase darkness
 
-                v = int(b*b*fct)
+                v = int(v*v*fct)
                 val = colorExact((v,v,v))
                 setPixel((y,x), val)
 
@@ -2967,6 +2975,47 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.__invert__()
 
+    def gramm_schmidt(self):
+        r"""
+        Return the matrix G whose rows are obtained from the rows of self (=A) by
+        applying the Gramm-Schmidt orthogonalization process.  Also return
+        the coefficients mu ij, i.e., a matrix mu such that \code{(mu + 1)*G == A}.
+
+        OUTPUT:
+            G -- a matrix whose rows are orthogonal
+            mu -- a matrix that gives the transformation, via the relation
+                  (mu + 1)*G == self
+
+        EXAMPLES:
+            sage: A = matrix(ZZ, 3, [-1, 2, 5, -11, 1, 1, 1, -1, -3]); A
+            [ -1   2   5]
+            [-11   1   1]
+            [  1  -1  -3]
+            sage: G, mu = A.gramm_schmidt()
+            sage: G
+            [     -1       2       5]
+            [  -52/5    -1/5      -2]
+            [  2/187  36/187 -14/187]
+            sage: mu
+            [     0      0      0]
+            [   3/5      0      0]
+            [  -3/5 -7/187      0]
+            sage: G.row(0) * G.row(1)
+            0
+            sage: G.row(0) * G.row(2)
+            0
+            sage: G.row(1) * G.row(2)
+            0
+
+        The relation between mu and A is as follows:
+            sage: (mu + 1)*G == A
+            True
+        """
+        from sage.modules.misc import gramm_schmidt
+        from constructor import matrix
+        Bstar, mu = gramm_schmidt(self.rows())
+        return matrix(Bstar), mu
+
 
 def _dim_cmp(x,y):
     """
@@ -3020,36 +3069,79 @@ def cmp_pivots(x,y):
     else:
         return -1
 
+
 def _choose(Py_ssize_t n, Py_ssize_t t):
     """
     Returns all possible sublists of length t from range(n)
 
-    Based on algoritm L from Knuth's taocp part 4: 7.2.1.3 p.4
+    Based on algoritm T from Knuth's taocp part 4: 7.2.1.3 p.5
+    This fuction replaces the one base on algorithm L because it is faster.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix2 import _choose
+        sage: _choose(1,1)
+        [[0]]
+        sage: _choose(4,1)
+        [[0], [1], [2], [3]]
+        sage: _choose(4,4)
+        [[0, 1, 2, 3]]
 
     AUTHOR:
-        -- Jaap Spies (2007-10-22)
+        -- Jaap Spies (2007-11-14)
     """
-    cdef Py_ssize_t j
+    cdef Py_ssize_t j, temp
 
-    x = []
+    x = []               # initialize T1
     c = range(t)
+    if t == n:
+        x.append(c)
+        return x
     c.append(n)
     c.append(0)
-    j = 0
+    j = t-1
 
-    while j < t:
-        x.append(c[:t])
-        j = 0
-        while c[j]+1 == c[j+1]:
-           c[j] = j
-           j = j+1
-        c[j] = c[j]+1
+    while True:
+        x.append(c[:t])    # visit T2
+        if j >= 0:
+            c[j] = j+1
+            j = j-1
+            continue       # goto T2
+
+        if c[0]+1 < c[1]:  # T3 easy case!
+            c[0] = c[0]+1
+            continue
+        else:
+            j = 1
+
+        while True:
+            c[j-1] = j-1      # T4 find j
+            temp = c[j]+1
+            if temp == c[j+1]:
+                j = j+1
+            else:
+                break
+
+
+        if j >= t:     # T5 stop?
+            break
+
+        c[j] = temp    # T6
+        j = j-1
 
     return x
+
 
 def _binomial(Py_ssize_t n, Py_ssize_t k):
     """
     Fast and unchecked implementation of binomial(n,k)
+    This is only for internal use.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix2 import _binomial
+        sage: _binomial(10,2)
+        45
+        sage: _binomial(10,5)
+        252
 
     AUTHOR:
         -- Jaap Spies (2007-10-26)
@@ -3069,5 +3161,4 @@ def _binomial(Py_ssize_t n, Py_ssize_t k):
         result = (result*n)/i
         i, n, k = i+1, n-1, k-1
     return result
-
 

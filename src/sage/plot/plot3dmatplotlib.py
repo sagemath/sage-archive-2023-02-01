@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Very rudimentary 3d plotting
 """
 

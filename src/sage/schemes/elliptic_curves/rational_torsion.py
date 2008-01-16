@@ -40,6 +40,11 @@ class EllipticCurveTorsionSubgroup(groups.AbelianGroup_class):
         Torsion Subgroup isomorphic to Trivial Abelian Group associated to the Elliptic Curve defined by y^2 + 17*x*y - 60*y = x^3 - 120*x^2 over Rational Field
         sage: G.gens()
         ()
+        sage: e = EllipticCurve([0, 33076156654533652066609946884,0,\
+        347897536144342179642120321790729023127716119338758604800,\
+        1141128154369274295519023032806804247788154621049857648870032370285851781352816640000])
+        sage: e.torsion_order()
+        16
 
     AUTHOR: Nick Alexander
     """
@@ -51,9 +56,9 @@ class EllipticCurveTorsionSubgroup(groups.AbelianGroup_class):
         while G is None and loop < 3:
             loop += 1
             try:
-                G = self.__E.pari_curve().elltors(flag)
+                G = self.__E.pari_curve().elltors(flag) # pari_curve will return the curve of maximum known precision
             except RuntimeError:
-                self.__E.__pari_double_prec()
+                self.__E.pari_curve(factor = 2) # caches a curve of double the precision
         if G is None:
             raise RuntimeError, "Could not compute torsion subgroup"
 

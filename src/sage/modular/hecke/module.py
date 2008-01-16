@@ -692,7 +692,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             I = t.iterates(v, n)  # iterates v, v*t, v*t^2, ...
             w = V(0)
             for i in range(n):
-                w += c[i]*V(I[i].list())
+                w += c[i]*V(I.row(i).list())
             if w != 0:
                 break
 

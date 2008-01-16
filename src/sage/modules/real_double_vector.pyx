@@ -60,6 +60,7 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
     cdef _new_c(self, gsl_vector* v):
         cdef RealDoubleVectorSpaceElement y
         y = PY_NEW(RealDoubleVectorSpaceElement)
+        y._is_mutable = 1
         y._parent = self._parent
         y._degree = self._degree
         y.v = v
@@ -95,6 +96,7 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
 
     def __init__(self, parent, x, coerce=True, copy=True):
         self._parent = parent
+        self._is_mutable = 1
 
         cdef int i
         cdef int n = parent.degree()
@@ -139,6 +141,8 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         return self.v.size
 
     def __setitem__(self,size_t i,x):
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         if not self.v or i < 0 or i >=self.v.size:
             raise IndexError, "index out of bounds"
         else:

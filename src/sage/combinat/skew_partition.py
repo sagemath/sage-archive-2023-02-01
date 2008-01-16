@@ -26,7 +26,7 @@ from sage.sets.set import Set
 from sage.graphs.graph import DiGraph
 from UserList import UserList
 from combinat import CombinatorialClass, CombinatorialObject
-import sfa
+import sage.combinat.sf.sfa as sfa
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.infinity import PlusInfinity
 infinity = PlusInfinity()
@@ -321,6 +321,8 @@ class SkewPartition_class(CombinatorialObject):
                 v = p[j-1]-q[i-1]-j+i
                 if v < 0:
                     row.append(h(0))
+                elif v == 0:
+                    row.append(h([]))
                 else:
                     row.append(h([v]))
             m.append(row)

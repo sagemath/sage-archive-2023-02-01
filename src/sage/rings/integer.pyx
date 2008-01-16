@@ -68,7 +68,7 @@ COERCIONS:
     sage: n = 9390823
     sage: RR = RealField(200)
     sage: RR(n)
-    9390823.0000000000000000000000000000000000000000000000000000
+    9.3908230000000000000000000000000000000000000000000000000000e6
 
 """
 
@@ -117,6 +117,7 @@ from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement)
 
+
 import sage.rings.infinity
 import sage.libs.pari.all
 
@@ -134,6 +135,14 @@ cdef set_from_int(Integer self, int other):
 
 cdef public mpz_t* get_value(Integer self):
     return &self.value
+
+arith = None
+cdef void late_import():
+    global arith
+    if arith is None:
+        import sage.rings.arith
+        arith = sage.rings.arith
+
 
 MAX_UNSIGNED_LONG = 2 * sys.maxint
 
@@ -892,7 +901,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 2^-0
             1
             sage: (-1)^(1/3)
-            -1
+            (-1)^(1/3)
             sage: 0^0
             Traceback (most recent call last):
             ...
@@ -937,6 +946,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sqrt(2)
             sage: 2^(-1/2)
             1/sqrt(2)
+
+        TESTS:
+            sage: complex(0,1)^2
+            (-1+0j)
         """
         if modulus is not None:
             #raise RuntimeError, "__pow__ dummy argument ignored"
@@ -951,7 +964,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if isinstance(self, str):
                 return self * n
             else:
-                return self.__pow__(int(n))
+                return self ** int(n)
 
         cdef Integer _self = <Integer>self
 
@@ -1136,6 +1149,71 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             return guess - 1
 
+
+    def prime_to_m_part(self, m):
+        """
+        Returns the prime-to-m part of self, i.e., the largest divisor
+        of self that is coprime to m.
+
+        INPUT:
+            m -- Integer
+        OUTPUT:
+            Integer
+
+        EXAMPLES:
+            sage: z = 43434
+            sage: z.prime_to_m_part(20)
+            21717
+        """
+        late_import()
+        return sage.rings.arith.prime_to_m_part(self, m)
+
+    def prime_divisors(self):
+        """
+        The prime divisors of self, sorted in increasing order.  If n
+        is negative, we do *not* include -1 among the prime divisors, since -1 is
+        not a prime number.
+
+        EXAMPLES:
+            sage: a = 1; a.prime_divisors()
+            []
+            sage: a = 100; a.prime_divisors()
+            [2, 5]
+            sage: a = -100; a.prime_divisors()
+            [2, 5]
+            sage: a = 2004; a.prime_divisors()
+            [2, 3, 167]
+        """
+        late_import()
+        return sage.rings.arith.prime_divisors(self)
+
+    def divisors(self):
+        """
+        Returns a list of all positive integer divisors
+        of the integer self.
+
+        EXAMPLES:
+            sage: a = -3; a.divisors()
+            [1, 3]
+            sage: a = 6; a.divisors()
+            [1, 2, 3, 6]
+            sage: a = 28; a.divisors()
+            [1, 2, 4, 7, 14, 28]
+            sage: a = 2^5; a.divisors()
+            [1, 2, 4, 8, 16, 32]
+            sage: a = 100; a.divisors()
+            [1, 2, 4, 5, 10, 20, 25, 50, 100]
+            sage: a = 1; a.divisors()
+            [1]
+            sage: a = 0; a.divisors()
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be nonzero
+            sage: a = 2^3 * 3^2 * 17; a.divisors()
+            [1, 2, 3, 4, 6, 8, 9, 12, 17, 18, 24, 34, 36, 51, 68, 72, 102, 136, 153, 204, 306, 408, 612, 1224]
+        """
+        late_import()
+        return sage.rings.arith.divisors(self)
 
     def __pos__(self):
         """
@@ -2549,42 +2627,141 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            return [z, -z]
         return z
 
-    def _xgcd(self, Integer n):
+    def _xgcd(self, Integer n, bint minimal=0):
         r"""
-        Return a triple $g, s, t \in\Z$ such that
-        $$
-           g = s \cdot \mbox{\rm self} + t \cdot n.
-        $$
+        Computes extended gcd of self and $n$.
+
+        INPUT:
+            self -- integer
+            n -- integer
+            minimal -- boolean (default false), whether to compute minimal
+                       cofactors (see below)
+
+        OUTPUT:
+            A triple (g, s, t), where $g$ is the non-negative gcd of self
+            and $n$, and $s$ and $t$ are cofactors satisfying the Bezout
+            identity
+              $$ g = s \cdot \mbox{\rm self} + t \cdot n. $$
+
+        NOTE:
+            If minimal is False, then there is no guarantee that the returned
+            cofactors will be minimal in any sense; the only guarantee is that
+            the Bezout identity will be satisfied (see examples below).
+
+            If minimal is True, the cofactors will satisfy the following
+            conditions. If either self or $n$ are zero, the trivial solution
+            is returned. If both self and $n$ are nonzero, the function returns
+            the unique solution such that $0 \leq s < |n|/g$ (which then must
+            also satisfy $0 \leq |t| \leq |\mbox{\rm self}|/g$).
 
         EXAMPLES:
-            sage: n = 6
-            sage: g, s, t = n._xgcd(8)
-            sage: s*6 + 8*t
-            2
-            sage: g
-            2
-        """
-        cdef mpz_t g, s, t
-        cdef object g0, s0, t0
+                sage: Integer(5)._xgcd(7)
+                (1, -4, 3)
+                sage: 5*-4 + 7*3
+                1
+                sage: g,s,t = Integer(58526524056)._xgcd(101294172798)
+                sage: g
+                22544886
+                sage: 58526524056 * s + 101294172798 * t
+                22544886
 
-        mpz_init(g)
-        mpz_init(s)
-        mpz_init(t)
+            Without minimality guarantees, weird things can happen:
+                sage: Integer(3)._xgcd(21)
+                (3, -20, 3)
+                sage: Integer(3)._xgcd(24)
+                (3, -15, 2)
+                sage: Integer(3)._xgcd(48)
+                (3, -15, 1)
+
+            Weirdness disappears with minimal option:
+                sage: Integer(3)._xgcd(21, minimal=True)
+                (3, 1, 0)
+                sage: Integer(3)._xgcd(24, minimal=True)
+                (3, 1, 0)
+                sage: Integer(3)._xgcd(48, minimal=True)
+                (3, 1, 0)
+                sage: Integer(21)._xgcd(3, minimal=True)
+                (3, 0, 1)
+
+            Try minimal option with various edge cases:
+                sage: Integer(5)._xgcd(0, minimal=True)
+                (5, 1, 0)
+                sage: Integer(-5)._xgcd(0, minimal=True)
+                (5, -1, 0)
+                sage: Integer(0)._xgcd(5, minimal=True)
+                (5, 0, 1)
+                sage: Integer(0)._xgcd(-5, minimal=True)
+                (5, 0, -1)
+                sage: Integer(0)._xgcd(0, minimal=True)
+                (0, 1, 0)
+
+            Exhaustive tests, checking minimality conditions:
+                sage: for a in srange(-20, 20):
+                ...     for b in srange(-20, 20):
+                ...       if a == 0 or b == 0: continue
+                ...       g, s, t = a._xgcd(b)
+                ...       assert g > 0
+                ...       assert a % g == 0 and b % g == 0
+                ...       assert a*s + b*t == g
+                ...       g, s, t = a._xgcd(b, minimal=True)
+                ...       assert g > 0
+                ...       assert a % g == 0 and b % g == 0
+                ...       assert a*s + b*t == g
+                ...       assert s >= 0 and s < abs(b)/g
+                ...       assert abs(t) <= abs(a)/g
+
+        AUTHORS:
+            -- David Harvey (2007-12-26): added minimality option
+
+        """
+        cdef Integer g = PY_NEW(Integer)
+        cdef Integer s = PY_NEW(Integer)
+        cdef Integer t = PY_NEW(Integer)
 
         _sig_on
-        mpz_gcdext(g, s, t, self.value, n.value)
+        mpz_gcdext(g.value, s.value, t.value, self.value, n.value)
         _sig_off
 
-        g0 = PY_NEW(Integer)
-        s0 = PY_NEW(Integer)
-        t0 = PY_NEW(Integer)
-        set_mpz(g0,g)
-        set_mpz(s0,s)
-        set_mpz(t0,t)
-        mpz_clear(g)
-        mpz_clear(s)
-        mpz_clear(t)
-        return g0, s0, t0
+        # Note: the GMP documentation for mpz_gcdext (or mpn_gcdext for that
+        # matter) makes absolutely no claims about any minimality conditions
+        # satisfied by the returned cofactors. They guarantee a non-negative
+        # gcd, but that's it. So we have to do some work ourselves.
+
+        if not minimal:
+            return g, s, t
+
+        # handle degenerate cases n == 0 and self == 0
+
+        if not mpz_sgn(n.value):
+            mpz_set_ui(t.value, 0)
+            mpz_abs(g.value, self.value)
+            mpz_set_si(s.value, 1 if mpz_sgn(self.value) >= 0 else -1)
+            return g, s, t
+
+        if not mpz_sgn(self.value):
+            mpz_set_ui(s.value, 0)
+            mpz_abs(g.value, n.value)
+            mpz_set_si(t.value, 1 if mpz_sgn(n.value) >= 0 else -1)
+            return g, s, t
+
+        # both n and self are nonzero, so we need to do a division and
+        # make the appropriate adjustment
+
+        cdef mpz_t u1, u2
+        mpz_init(u1)
+        mpz_init(u2)
+        mpz_divexact(u1, n.value, g.value)
+        mpz_divexact(u2, self.value, g.value)
+        if mpz_sgn(u1) > 0:
+            mpz_fdiv_qr(u1, s.value, s.value, u1)
+        else:
+            mpz_cdiv_qr(u1, s.value, s.value, u1)
+        mpz_addmul(t.value, u1, u2)
+        mpz_clear(u2)
+        mpz_clear(u1)
+
+        return g, s, t
+
 
     cdef _lshift(self, long int n):
         """

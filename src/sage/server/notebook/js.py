@@ -28,10 +28,30 @@ import keyboards
 def javascript():
     s = async_lib()
     s += notebook_lib()
+    s += jmol_lib()
 
     return s
 
 
+def jmol_lib():
+    s = r"""
+function jmol_applet(size, url) {
+    jmolSetDocument(cell_writer);
+    jmolApplet(size, "script " + url);
+}
+
+function jmol_popup(url) {
+    win = window.open ("", "jmol viewer", "width=600,height=600,resizable=1,statusbar=0");
+    win.document.body.innerHTML = "";
+    win.document.title = "Sage 3d Viewer";
+    win.document.writeln("<h1 align=center>Sage 3d Viewer</h1>");
+    jmolSetDocument(win.document);
+    jmolApplet("100%", "script" + url);
+    win.focus();
+}
+    """
+
+    return s
 
 def async_lib():
     s = r"""
@@ -800,7 +820,6 @@ function archive_button() {
 function history_window() {
     window.open ("/history",
       "", "menubar=1,scrollbars=1,width=800,height=600, toolbar=1,resizable=1");
-
 }
 
 function upload_worksheet_button() {
@@ -900,7 +919,7 @@ function search_worksheets(typ) {
 function go_system_select(theform, original_system) {
    with(theform) {
       var system = options[selectedIndex].value;
-      if (confirm("Are you sure you wish to change the evaluation system to " + system + "? All cells will be evaluted using " + system + " until you change the system back.")) {
+      if (confirm("All cells will be evaluted using " + system + " until you change the system back.")) {
           system_select(system);
       } else {
           options[original_system].selected = 1;
@@ -1201,11 +1220,12 @@ function cell_blur(id) {
     var cell = get_cell(id);
     if(cell == null) return;
 
+    setTimeout("set_class('eval_button"+id+"','eval_button')", 100); //this is unclickable if we don't add a little delay.
+
     /* Disable coloring and change to div for now */
     cell.className="cell_input";
     cell_input_minimize_size(cell);
     return true;  /* disable for now */
-
 
     cell.className="hidden";
 
@@ -1868,21 +1888,36 @@ function set_attached_files_list(objects) {
     objlist.innerHTML = objects;
 }
 
+/* When the page is loaded, let javascript write
+ * directly to the document. After that, make sure
+ * javascript writes to a CellWriter object. */
+
+function CellWriter() {
+    function write(s) {
+        this.buffer += s;
+    }
+    this.write = write;
+    this.buffer = "";
+}
+
+cell_writer = document;
 
 function eval_script_tags(text) {
-   var s = text.replaceAll('\n','');
+   var s = text; //text.replaceAll('\n','');
    var i = s.indexOf('<'+'script>');
    while (i != -1) {
        var j = s.indexOf('<'+'/script>');
        var code = s.slice(8+i,j);
        try {
+           cell_writer = new CellWriter();
            window.eval(code);
        } catch(e) {
            alert(e);
        }
-       s = s.slice(j+1);
+       s = s.slice(0,i) + cell_writer.buffer + s.slice(j+9);
        i = s.indexOf('<'+'script>');
    }
+   return s;
 }
 
 function check_for_cell_update_callback(status, response_text) {
@@ -1931,12 +1966,16 @@ function check_for_cell_update_callback(status, response_text) {
     var D = response_text.slice(i+1).split(SEP);
     var output_text = D[0] + ' ';
     var output_text_wrapped = D[1] + ' ';
-    eval_script_tags(output_text)
     var output_html = D[2];
     var new_cell_input = D[3];
     var interrupted = D[4];
     var introspect_html = D[5];
     var j = id_of_cell_delta(id,1);
+
+    /* Evaluate javascript */
+    output_text = output_text.replace(/<script.*?>(.|\n|\r)*?<\/script>/gim, '&lt;script&gt;');
+    output_text_wrapped = eval_script_tags(output_text_wrapped);
+    output_html = eval_script_tags(output_html);
 
     set_output_text(id, output_text, output_text_wrapped,
                     output_html, stat, introspect_html);

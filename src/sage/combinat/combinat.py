@@ -192,7 +192,7 @@ REFERENCES:
 import os
 
 from sage.interfaces.all import gap, maxima
-from sage.rings.all import QQ, RR, ZZ
+from sage.rings.all import QQ, RR, ZZ, RealField
 from sage.rings.arith import binomial
 from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari
@@ -548,6 +548,7 @@ def mod_stirling(q,n,k):
 class CombinatorialObject(SageObject):
     def __init__(self, l):
         self.list = l
+        self._hash = None
 
     def __str__(self):
         return str(self.list)
@@ -595,7 +596,9 @@ class CombinatorialObject(SageObject):
         return self.list + other
 
     def __hash__(self):
-        return str(self.list).__hash__()
+        if self._hash is None:
+            self._hash = str(self.list).__hash__()
+        return self._hash
 
     #def __cmp__(self, other):
     #    return self.list.__cmp__(other)
@@ -2535,3 +2538,40 @@ def bernoulli_polynomial(x,n):
         http://en.wikipedia.org/wiki/Bernoulli_polynomials
     """
     return sage_eval(maxima.eval("bernpoly(x,%s)"%n), {'x':x})
+
+
+def rencontres_number(n, k):
+    r"""
+    Returns the Rencontres number D(n,k), the number of permutations of
+    {1, 2,..., n} with k fixed points.
+
+    EXAMPLES:
+    Because 312 and 231 are the two permutations of {1, 2, 3} with 0
+    fixed points, we have:
+
+        sage: rencontres_number(3,0)
+        2
+
+    More examples:
+        sage: rencontres_number(6,1)
+        264
+
+
+    REFERENCES:
+        http://en.wikipedia.org/wiki/Rencontres_number
+
+        Sequence A008290 in the OEIS.
+
+    AUTHORS:
+        -- Dan Drake, 2007-11-27: post to sage-devel
+        -- William Stein, 2007-11-27: referee and clean up for inclusion in sage
+    """
+    F = factorial(n - k)
+    # Sufficient precision needed to guarantee the correct result (this is overkill somewhat)
+    R = RealField(10*F.bits() + 53)
+    e = R(1).exp()
+    if (n - k) % 2 == 0:
+        return binomial(n, k) * (F/e).ceil()
+    else:
+        return binomial(n, k) * (F/e).floor()
+

@@ -77,7 +77,10 @@ cd "$CUR"
 
 
 if [ -d "$DEVEL/sage-main" ]; then
-    cd "$DEVEL/sage-main"
+    cd "$DEVEL"
+    rm -f sage
+    ln -sf sage-main sage
+    cd sage
     # Pull in changes from the archive just downloaded.
     hg pull "$CUR"
     hg merge tip
@@ -90,8 +93,6 @@ if [ -d "$DEVEL/sage-main" ]; then
     # OK if the build takes a little longer, since this is a full
     # upgrade.  So we touch all pyrex code.
 
-    touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx  2> /dev/null
-
     echo "Deleting the scons target."
     cd c_lib
     scons -Q -c install
@@ -102,12 +103,9 @@ if [ -d "$DEVEL/sage-main" ]; then
     # old .py files we don't want anymore.
     rm -rf build
 
-    "$SAGE_ROOT/sage" -b main
+    "$SAGE_ROOT/sage" -ba-force
     if [ $? -ne 0 ]; then
         echo "Error building new version of SAGE."
-    else
-        # repeat -- this makes certain to copy over all the pyx files for inspect.
-        "$SAGE_ROOT/sage" -b main
     fi
     exit $?
 fi
@@ -116,16 +114,12 @@ cd "$CUR"
 mkdir "$DEVEL/sage-main"
 cp -pr * .hg* "$DEVEL/sage-main/"
 
-cd "$DEVEL/sage-main"
+cd "$DEVEL"
+rm -rf sage
+ln -sf sage-main sage
 
-cd "$CUR"
 
-# touch and build everything
-sage -b main
-
-# repeat -- this makes certain to copy over all the pyx files, so they appear when
-# you use inspect.   (TODO: Maybe this is a hack that can be eliminated? -- William Stein, 2007-10-04)
-sage -b main
+sage -ba-force
 
 if [ $? -ne 0 ]; then
     echo "ERROR installing SAGE"

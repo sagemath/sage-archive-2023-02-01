@@ -20,7 +20,11 @@ colors = {
     "purple": (.5,0,1),
     "white" : (1,1,1),
     "black" : (0,0,0),
-    "grey"  : (.5,.5,.5)
+    'brown': (0.65, 0.165, 0.165),
+    "grey"  : (.5,.5,.5),
+    "gray"  : (.5,.5,.5),
+    "lightblue" : (0.4,0.4,1),
+    "automatic": (0.4,0.4,1)
 }
 
 def is_Texture(x):
@@ -31,9 +35,12 @@ def Texture(id=None, **kwds):
         return id
     if isinstance(id, dict):
         kwds = id
+        if kwds.has_key('rgbcolor'):
+            kwds['color'] = kwds['rgbcolor']
         id = None
     elif isinstance(id, str) and colors.has_key(id):
-        kwds = {"color": id}
+        kwds['color'] = id
+        #kwds = {"color": id}
         id = None
     elif isinstance(id, tuple):
         kwds['color'] = id
@@ -49,14 +56,14 @@ def parse_color(info, base=None):
             try:
                 return colors[info]
             except KeyError:
-                raise # TODO: parse hex?
+                raise ValueError, "unknown color '%s'"%info
         else:
             return (float(info*base[0]), float(info*base[1]), float(info*base[2]))
 
 
 class Texture_class(SageObject):
 
-    def __init__(self, id, color=(.5, .5, .5), opacity=1, ambient=0.5, diffuse=1, specular=0, shininess=1):
+    def __init__(self, id, color=(.4, .4, 1), opacity=1, ambient=0.5, diffuse=1, specular=0, shininess=1, **kwds):
         self.id = id
 
         if not isinstance(color, tuple):
@@ -108,4 +115,12 @@ class Texture_class(SageObject):
                    "illum %s" % (2 if sum(self.specular) > 0 else 1),
                    "Ns %s" % self.shininess,
                    "d %s" % self.opacity, ])
+
+    def jmol_str(self, obj):
+        # With jmol translucent is any opacity < 1.
+        translucent = "translucent" if self.opacity < 1 else ""
+        return "color %s %s [%s,%s,%s]" % (obj, translucent,
+                int(255*self.color[0]), int(255*self.color[1]), int(255*self.color[2]))
+
+
 

@@ -237,13 +237,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     #  Access to PARI curves related to this curve.
     ####################################################################
 
-    def pari_curve(self, prec = None):
+    def pari_curve(self, prec = None, factor = 1):
         """
         Return the PARI curve corresponding to this elliptic curve.
 
         INPUT:
-        prec -- The precision of quantities calculated for the returned curve (in decimal digits).
-                if None, defaults to the precision of the largest cached curve (or 10 if none yet computed)
+            prec -- The precision of quantities calculated for the
+                    returned curve (in decimal digits).  if None, defaults
+                    to factor * the precision of the largest cached curve
+                    (or 10 if none yet computed)
+            factor -- the factor to increase the precision over the
+                      maximum previously computed precision.  Only used if
+                      prec (which gives an explicit precision) is None.
 
         EXAMPLES:
             sage: E = EllipticCurve([0, 0,1,-1,0])
@@ -264,20 +269,25 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         if prec is None:
             try:
-                L = self.__pari_curve.keys()
+                L = self._pari_curve.keys()
                 L.sort()
-                return self.__pari_curve[L[len(L) - 1]]
+                if factor == 1:
+                    return self._pari_curve[L[-1]]
+                else:
+                    prec = int(factor * L[-1])
+                    self._pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
+                    return self._pari_curve[prec]
             except AttributeError:
                 pass
         try:
-            return self.__pari_curve[prec]
+            return self._pari_curve[prec]
         except AttributeError:
             prec = 10
-            self.__pari_curve = {}
+            self._pari_curve = {}
         except KeyError:
             pass
-        self.__pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
-        return self.__pari_curve[prec]
+        self._pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
+        return self._pari_curve[prec]
 
     def pari_mincurve(self, prec = None):
         """
@@ -285,8 +295,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         for this elliptic curve.
 
         INPUT:
-        prec -- The precision of quantities calculated for the returned curve (in decimal digits).
-                if None, defaults to the precision of the largest cached curve (or 10 if none yet computed)
+        prec -- The precision of quantities calculated for the
+                returned curve (in decimal digits).  if None, defaults
+                to the precision of the largest cached curve (or 10 if
+                none yet computed)
 
         EXAMPLES:
             sage: E = EllipticCurve(RationalField(), ['1/3', '2/3'])
@@ -300,21 +312,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         if prec is None:
             try:
-                L = self.__pari_mincurve.keys()
+                L = self._pari_mincurve.keys()
                 L.sort()
-                return self.__pari_mincurve[L[len(L) - 1]]
+                return self._pari_mincurve[L[len(L) - 1]]
             except AttributeError:
                 pass
         try:
-            return self.__pari_mincurve[prec]
+            return self._pari_mincurve[prec]
         except AttributeError:
             prec = 10
-            self.__pari_mincurve = {}
+            self._pari_mincurve = {}
         except KeyError:
             pass
         e = self.pari_curve(prec)
         mc, change = e.ellminimalmodel()
-        self.__pari_mincurve[prec] = mc
+        self._pari_mincurve[prec] = mc
         # self.__min_transform = change
         return mc
 
@@ -398,7 +410,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     #def __pari_double_prec(self):
     #    EllipticCurve_number_field._EllipticCurve__pari_double_prec(self)
     #    try:
-    #        del self.__pari_mincurve
+    #        del self._pari_mincurve
     #    except AttributeError:
     #        pass
 
@@ -788,12 +800,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Given a curve with no 2-torsion, computes (probably) the rank
         of the Mordell-Weil group, with certainty the rank of the
-        2-Selmer group, and a list of independent points on
-        some mysterious model of the curve.
-
-        \note{The points are not translated back to self only because
-        nobody has written code to do this yet.  Implement it and send
-        a patch.}
+        2-Selmer group, and a list of independent points on the curve.
 
         INPUT:
             verbose -- integer, 0,1,2,3; (default: 0), the verbosity level
@@ -809,7 +816,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         OUTPUT:
             integer -- "probably" the rank of self
             integer -- the 2-rank of the Selmer group
-            list    -- list of independent points on some (myserious!!) model for the curve.
+            list    -- list of independent points on the curve.
 
         IMPLEMENTATION: Uses {\bf Denis Simon's} GP/PARI scripts from
                          \url{http://www.math.unicaen.fr/~simon/}
@@ -823,13 +830,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             (0, 0, [])
             sage: E = EllipticCurve('37a1')
             sage: E.simon_two_descent()
-            (1, 1, [(0 : 4 : 1)])
+            (1, 1, [(0 : 0 : 1)])
             sage: E = EllipticCurve('389a1')
             sage: E.simon_two_descent()
-            (2, 2, [(57/4 : 621/8 : 1), (57 : 243 : 1)])
+            (2, 2, [(1 : 0 : 1), (-11/9 : -55/27 : 1)])
             sage: E = EllipticCurve('5077a1')
             sage: E.simon_two_descent()
-            (3, 3, [(1 : 17 : 1), (-8 : 28 : 1), (8 : 4 : 1)])
+            (3, 3, [(1 : 0 : 1), (2 : -1 : 1), (0 : 2 : 1)])
 
 
         In this example Simon's program does not find any points, though
@@ -857,15 +864,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: r, s, G = E.simon_two_descent(); r,s       # long time
             (8, 8)
         """
-        if self.torsion_order() % 2 == 0:
-            raise ArithmeticError, "curve must not have rational 2-torsion\nThe *only* reason for this is that I haven't finished implementing the wrapper\nin this case.  It wouldn't be too difficult.\nPerhaps you could do it?!  Email me (wstein@gmail.com)."
-        F = self.integral_weierstrass_model()
-        a1,a2,a3,a4,a6 = F.a_invariants()
-        t = simon_two_descent(a2,a4,a6, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
+        t = simon_two_descent(self, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime)
         prob_rank = rings.Integer(t[0])
         two_selmer_rank = rings.Integer(t[1])
-        prob_gens = [F(P) for P in t[2]]
+        prob_gens = [self(P) for P in t[2]]
         return prob_rank, two_selmer_rank, prob_gens
 
     two_descent_simon = simon_two_descent
@@ -1412,11 +1415,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 return False
         return True
 
-    def is_isomorphic(self, E):
-        if not isinstance(E, EllipticCurve_rational_field):
-            raise TypeError, "E (=%s) must be an elliptic curve over the rational numbers"%E
-        return E.minimal_model() == self.minimal_model()
-
     def kodaira_type(self, p):
         """
         Local Kodaira type of the elliptic curve at $p$.
@@ -1578,6 +1576,67 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         F = self.minimal_model()
         return EllipticCurve_number_field.weierstrass_model(F)
 
+    def local_integral_model(self,p):
+        r"""
+        Return a model of self which is integral at the prime $p$
+
+        EXAMPLES:
+            sage: E=EllipticCurve([0, 0, 1/216, -7/1296, 1/7776])
+            sage: E.local_integral_model(2)
+	     Elliptic Curve defined by y^2 + 1/27*y = x^3 - 7/81*x + 2/243 over Rational Field
+            sage: E.local_integral_model(3)
+             Elliptic Curve defined by y^2 + 1/8*y = x^3 - 7/16*x + 3/32 over Rational Field
+            sage: E.local_integral_model(2).local_integral_model(3) == EllipticCurve('5077a1')
+            True
+        """
+        ai = self.a_invariants()
+        e  = min([(ai[i].valuation(p)/[1,2,3,4,6][i]) for i in range(5)]).floor()
+        return constructor.EllipticCurve([ai[i]/p**(e*[1,2,3,4,6][i]) for i in range(5)])
+
+    def global_integral_model(self):
+        r"""
+        Return a model of self which is integral at all primes
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0, 0, 1/216, -7/1296, 1/7776])
+            sage: F = E.global_integral_model(); F
+            Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
+            sage: F == EllipticCurve('5077a1')
+            True
+        """
+        ai = self.a_invariants()
+        for a in ai:
+            if not a.is_integral():
+               for p, _ in a.denom().factor():
+                  e  = min([(ai[i].valuation(p)/[1,2,3,4,6][i]) for i in range(5)]).floor()
+                  ai = [ai[i]/p**(e*[1,2,3,4,6][i]) for i in range(5)]
+        for z in ai:
+            assert z.denominator() == 1, "bug in global_integral_model: %s" % ai
+        return constructor.EllipticCurve(ai)
+
+    def integral_model(self):
+        r"""
+        Return a weierstrass model, $F$, of self with integral coefficients,
+        along with a morphism $\phi$ of points on self to points on $F$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([1/2,0,0,5,1/3])
+            sage: F, phi = E.integral_model()
+            sage: F
+            Elliptic Curve defined by y^2 + 3*x*y  = x^3 + 6480*x + 15552 over Rational Field
+            sage: phi
+            Generic morphism:
+              From: Abelian group of points on Elliptic Curve defined by y^2 + 1/2*x*y  = x^3 + 5*x + 1/3 over Rational Field
+              To:   Abelian group of points on Elliptic Curve defined by y^2 + 3*x*y  = x^3 + 6480*x + 15552 over Rational Field
+            sage: P = E([4/9,41/27])
+            sage: phi(P)
+            (16 : 328 : 1)
+            sage: phi(P) in F
+            True
+        """
+        F = self.global_integral_model()
+        return F, self.isomorphism_to(F)
+
     def integral_weierstrass_model(self):
         r"""
         Return a model of the form $y^2 = x^3 + a*x + b$ for this curve with $a,b\in\Z$.
@@ -1599,6 +1658,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         while arith.valuation(A,3)>3 and arith.valuation(B,3)>5:
             A = A/Integer(3**4)
             B = B/Integer(3**6)
+        assert A.denominator() == 1 and B.denominator() == 1, 'bug in integral_weierstrass_model'
         return constructor.EllipticCurve([A,B])
 
     def modular_degree(self, algorithm='sympow'):
@@ -2005,7 +2065,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             self.__is_reducible[p] = False
             return False  # definitely not reducible
         isogeny_matrix = self.isogeny_class()[ 1 ]
-        v = isogeny_matrix[0]  # first row
+        v = isogeny_matrix.row(0) # first row
         for a in v:
             if a != 0 and a % p == 0:
                 self.__is_reducible[p] = True
@@ -2419,7 +2479,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
         M = self.isogeny_class()[1]
-        return Integer(misc.prod([x for x in M[0] if x], 1))
+        return Integer(misc.prod([x for x in M.row(0) if x], 1))
 
     ########################################################################
     # Functions related to bounding the order of Sha (provably correctly!)
@@ -2450,11 +2510,36 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return True
 
     def heegner_discriminants(self, bound):
+        """
+        Return the list of self's Heegner discriminants between -1 and -bound.
+
+        INPUT:
+            bound (int) -- upper bound for -discriminant
+
+        OUTPUT:
+            The list of Heegner discriminants between -1 and -bound for the given elliptic curve.
+
+        EXAMPLE:
+            sage: E=EllipticCurve('11a')
+            sage: E.heegner_discriminants(30)
+            [-7, -8, -19, -24]
+        """
         return [-D for D in xrange(1,bound) if self.satisfies_heegner_hypothesis(-D)]
 
     def heegner_discriminants_list(self, n):
         """
-        List of the first n Heegner discriminants for self.
+        Return the list of self's first n Heegner discriminants smaller than -5.
+
+        INPUT:
+            n (int) -- the number of discriminants to compute
+
+        OUTPUT:
+            The list of the first n Heegner discriminants smaller than -5 for the given elliptic curve.
+
+        EXAMPLE:
+            sage: E=EllipticCurve('11a')
+            sage: E.heegner_discriminants_list(4)
+            [-7, -8, -19, -24]
         """
         v = []
         D = -5

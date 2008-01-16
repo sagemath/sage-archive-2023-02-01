@@ -184,27 +184,54 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: P = E.random_element()
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
+            sage: P in E
+            True
 
             sage: k.<a> = GF(7^5)
             sage: E = EllipticCurve(k,[2,4])
             sage: P = E.random_element()
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
+            sage: P in E
+            True
+
+            sage: k.<a> = GF(2^5)
+            sage: E = EllipticCurve(k,[a^2,a,1,a+1,1])
+            sage: P = E.random_element()
+            sage: type(P)
+            <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
+            sage: P in E
+            True
 
         """
         k = self.base_field()
         if random.random() <= 1/float(k.order()+1):
             return self(0)
         a1, a2, a3, a4, a6 = self.ainvs()
-        while True:
-            x = k.random_element()
-            d = 4*x**3 + (a1**2 + 4*a2)*x**2 + (2*a3*a1 + 4*a4)*x + (a3**2 + 4*a6)
-            try:
-                m = d.sqrt(extend=False)
-                y = (-(a1*x + a3) + m) / k(2)
-                return self([x,y])
-            except ValueError:
-                pass
+
+        if k.characteristic() == 2:
+            P = PolynomialRing(k,'y')
+            y = P.gen()
+            while True:
+                x = k.random_element()
+                f = y**2 + a1*x*y + a3*y - x**3 + a2*x**2 + a4*x + a6
+                roots = f.roots()
+                n = len(roots)
+                if n:
+                    y = roots[random.randint(0,n-1)][0]
+                    return self([x,y])
+        else:
+            while True:
+                x = k.random_element()
+                d = 4*x**3 + (a1**2 + 4*a2)*x**2 + (2*a3*a1 + 4*a4)*x + (a3**2 + 4*a6)
+                try:
+                    m = d.sqrt(extend=False)
+                    if random.random() < 0.5:
+                        m = -m
+                    y = (-(a1*x + a3) + m) / k(2)
+                    return self([x,y])
+                except ValueError:
+                    pass
 
     def trace_of_frobenius(self):
         """
@@ -273,7 +300,16 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             10076
             sage: EllipticCurve(GF(next_prime(10**20)),[1,2,3,4,5]).cardinality(algorithm='sea')
             100000000011093199520
+
+        The cardinality is cached:
+            sage: E = EllipticCurve(GF(3^100,'a'),[1,2,3,4,5])
+            sage: E.cardinality() is E.cardinality()
+            True
         """
+        try:
+            return self.__order
+        except AttributeError:
+            pass
         N = 0
         if self.base_ring().degree() == 1:
             p = self.base_ring().cardinality()
@@ -330,6 +366,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             p = self.base_field().cardinality()
             N = len(self.points())
 
+        self.__order = N
         return N
 
     order = cardinality # alias

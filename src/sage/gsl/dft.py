@@ -269,7 +269,7 @@ class IndexedSequence(SageObject):
             ## assumes J is the list of conj class represetatives of a
             ## PermuationGroup(...) or Matrixgroup(...)
             chi = G.character_table()
-            FT = [sum([S[i]*chi[i][j] for i in range(N)]) for j in range(N)]
+            FT = [sum([S[i]*chi[i,j] for i in range(N)]) for j in range(N)]
         else:
             raise ValueError,"list elements must be in QQ(zeta_"+str(N)+")"
         return IndexedSequence(FT,J)
@@ -330,8 +330,9 @@ class IndexedSequence(SageObject):
             sage: I = CC.0; pi = CC(pi)
             sage: A = [exp(-2*pi*i*I/5) for i in J]
             sage: s = IndexedSequence(A,J)
+
             sage: s.dst()        # discrete sine
-            Indexed sequence: [0.000000000000000111022302462516 - 2.50000000000000*I, 0.000000000000000111022302462516 - 2.50000000000000*I, 0.000000000000000111022302462516 - 2.50000000000000*I, 0.000000000000000111022302462516 - 2.50000000000000*I, 0.000000000000000111022302462516 - 2.50000000000000*I]
+            Indexed sequence: [1.11022302462516e-16 - 2.50000000000000*I, 1.11022302462516e-16 - 2.50000000000000*I, 1.11022302462516e-16 - 2.50000000000000*I, 1.11022302462516e-16 - 2.50000000000000*I, 1.11022302462516e-16 - 2.50000000000000*I]
                 indexed by [0, 1, 2, 3, 4]
         """
         F = self.base_ring()   ## elements must be coercible into RR

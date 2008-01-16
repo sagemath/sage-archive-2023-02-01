@@ -1736,7 +1736,7 @@ def positive_integer_relations(points):
     relations = relations.matrix_from_rows(relations.transpose().pivots())
     # Switch to integers
     for i in range(n):
-        relations.rescale_row(i, 1/gcd(relations[i].list()))
+        relations.rescale_row(i, 1/gcd(relations.row(i).list()))
     return relations.change_ring(ZZ)
 
 

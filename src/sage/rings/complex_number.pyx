@@ -72,6 +72,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_init2(self.__im, self._prec)
 
         if imag is None:
+            if real is None: return
+
             if PY_TYPE_CHECK(real, ComplexNumber):
                 real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
             elif isinstance(real, sage.libs.pari.all.pari_gen):
@@ -830,6 +832,35 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
                 return [z, -z]
         return z
 
+    def nth_root(self, n, all=False):
+        """
+        The n-th root function.
+
+        INPUT:
+            all -- bool (default: False); if True, return a list
+                of all n-th roots.
+
+        EXAMPLES:
+            sage: a = CC(27)
+            sage: a.nth_root(3)
+            3.00000000000000
+            sage: a.nth_root(3, all=True)
+            [3.00000000000000, -1.50000000000000 + 2.59807621135332*I, -1.50000000000000 - 2.59807621135332*I]
+            sage: a = ComplexField(20)(2,1)
+            sage: [r^7 for r in a.nth_root(7, all=True)]
+            [2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I, 2.0000 + 1.0000*I]
+        """
+        if not self:
+            return [self] if all else self
+        arg = self.argument() / n
+        abs = self.abs().nth_root(n)
+        z = ComplexNumber(self._parent, abs * arg.cos(), abs*arg.sin())
+        if all:
+            zeta = self._parent.zeta(n)
+            return [z * zeta**k for k in range(n)]
+        else:
+            return z
+
     def is_square(self):
         """
         This function always returns true as $\C$ is algebraically closed.
@@ -871,7 +902,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: p.factor()
             (x + 1) * x^2 * (x^2 - x + 1)
             sage: z^2 - z + 1
-            0.000000000000000111022302462516
+            1.11022302462516e-16
         """
         import sage.rings.arith
         return sage.rings.arith.algdep(self,n, **kwds)

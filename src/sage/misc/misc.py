@@ -333,7 +333,7 @@ def cmp_props(left, right, props):
         if c: return c
     return 0
 
-from sage.misc.misc_c import prod
+from sage.misc.misc_c import prod, running_total
 
 # alternative name for prod
 mul = prod
@@ -825,7 +825,7 @@ def ellipsis_range(*args, **kwds):
         sage: ellipsis_range(0,Ellipsis,10,Ellipsis,20,step=2)
         [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
 
-      Sometimes one or more ranges is emtpy.
+      Sometimes one or more ranges is empty.
         sage: ellipsis_range(100,Ellipsis,10,Ellipsis,20,step=2)
         [10, 12, 14, 16, 18, 20]
         sage: ellipsis_range(0,Ellipsis,10,Ellipsis,-20,step=2)
@@ -888,6 +888,8 @@ def ellipsis_range(*args, **kwds):
         if skip:
             skip = False
         elif args[i] is Ellipsis:
+            if len(args) == i+1:
+                raise IndexError, "Ellipsis range must have an endpoint, use (n..) for infinite sequence."
             start, end = args[i-1], args[i+1]
             if i < 2 or args[i-2] is not Ellipsis:
                 L.pop()
@@ -1232,7 +1234,7 @@ def exists(S, P):
         (True, 5)
 
     The following example is similar to one in the MAGMA handbook.  We
-    check whether certain integers are a some of two (small) cubes:
+    check whether certain integers are a sum of two (small) cubes:
 
         sage: cubes = [t**3 for t in range(-10,11)]
         sage: exists([(x,y) for x in cubes for y in cubes], lambda v : v[0]+v[1] == 218)
@@ -1432,7 +1434,7 @@ def getitem(v, n):
     EXAMPLES:
         sage: v = [1,2,3]
 
-    The following use to fail in SAGE <= 1.3.7.  Now it works fine:
+    The following used to fail in SAGE <= 1.3.7.  Now it works fine:
         sage: v[ZZ(1)]
         2
 

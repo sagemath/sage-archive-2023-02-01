@@ -55,6 +55,8 @@ include "point_c.pxi"
 from math import cos, sin
 from sage.rings.all import RDF
 
+from base import RenderParams
+
 
 
 cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
@@ -67,10 +69,39 @@ cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
 
 cdef class ParametricSurface(IndexFaceSet):
 
+    """
+    EXAMPLES:
+        sage: from sage.plot.plot3d.parametric_surface import ParametricSurface
+        sage: def f(x,y): return cos(x)*sin(y), sin(x)*sin(y), cos(y)+log(tan(y/2))+0.2*x
+        sage: S = ParametricSurface(f, (srange(0,12.4,0.1), srange(0.1,2,0.1)))
+        sage: show(S)
+
+        sage: len(S.face_list())
+        2214
+
+    The Hessenberg surface:
+        sage: def f(u,v):
+        ...       a = 1
+        ...       from math import cos, sin, sinh, cosh
+        ...       x = cos(a)*(cos(u)*sinh(v)-cos(3*u)*sinh(3*v)/3)+ \
+        ...            sin(a)*(sin(u)*cosh(v)-sin(3*u)*cosh(3*v)/3)
+        ...       y = cos(a)*(sin(u)*sinh(v)+sin(3*u)*sinh(3*v)/3)+\
+        ...           sin(a)*(-cos(u)*cosh(v)-cos(3*u)*cosh(3*v)/3)
+        ...       z = cos(a)*cos(2*u)*cosh(2*v)+sin(a)*sin(2*u)*sinh(2*v)
+        ...       return (x,y,z)
+        sage: v = srange(float(0),float((3/2)*pi),float(0.1))
+        sage: S = ParametricSurface(f, (srange(float(0),float(pi),float(0.1)), \
+        ...                  srange(float(-1),float(1),float(0.1))), color="blue")
+        sage: show(S)
+    """
+
     def __init__(self, f=None, domain=None, **kwds):
         self.f = f
         self.render_grid = domain
         IndexFaceSet.__init__(self, [], [], **kwds)
+
+    def default_render_params(self):
+        return RenderParams(ds=.075, crease_threshold=.35)
 
     def tachyon_repr(self, render_params):
         self.triangulate(render_params)
@@ -79,6 +110,10 @@ cdef class ParametricSurface(IndexFaceSet):
     def obj_repr(self, render_params):
         self.triangulate(render_params)
         return IndexFaceSet.obj_repr(self, render_params)
+
+    def jmol_repr(self, render_params):
+        self.triangulate(render_params)
+        return IndexFaceSet.jmol_repr(self, render_params)
 
     def is_enclosed(self):
         """
@@ -107,6 +142,14 @@ cdef class ParametricSurface(IndexFaceSet):
             self.triangulate()
         return IndexFaceSet.dual(self)
 
+    def bounding_box(self):
+        # We must triangulate before computing the bounding box; otherwise
+        # we'll get an empty bounding box, as the bounding box is computed
+        # using the triangulation, and before triangulating the triangulation
+        # is empty.
+        self.triangulate()
+        return IndexFaceSet.bounding_box(self)
+
     def triangulate(self, render_params=None):
         """
         Call self.eval() for all (u,v) in urange \times vrange
@@ -125,7 +168,8 @@ cdef class ParametricSurface(IndexFaceSet):
         urange, vrange = self.get_grid(ds)
         urange = [float(u) for u in urange]
         vrange = [float(v) for v in vrange]
-        if self.render_grid == (urange, vrange):
+        if self.render_grid == (urange, vrange) and self.fcount != 0:
+            # Already triangulated at on this grid.
             return
 
         cdef Py_ssize_t i, j
@@ -141,7 +185,7 @@ cdef class ParametricSurface(IndexFaceSet):
                 for v in vrange:
                     self.eval_c(&self.vs[ix], u, v)
                     ix += 1
-        except:
+        except:       # TODO -- this would catch control-C,etc. -- FIX THIS TO CATCH WHAT IS RAISED!!!!
             _sig_off
             self.fcount = self.vcount = 0
             self.render_grid = None

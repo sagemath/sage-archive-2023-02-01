@@ -1974,7 +1974,7 @@ def precompute_degree_reduction_cache(n):
         # polynomial, and be fairly certain (absolutely certain?) that
         # the error in the reduced polynomial will be no better
         # than this product.
-        expected_err = max([sum([abs(x) for x in bd[k]]) for k in xrange(next+1)])
+        expected_err = max([sum([abs(x) for x in bd.row(k)]) for k in xrange(next+1)])
 
         # bdd = bd.denominator()
         # bdi = MatrixSpace(ZZ, next+1, samps, sparse=False)(bd * bdd)
@@ -2732,7 +2732,7 @@ def split_for_targets(context ctx, interval_bernstein_polynomial bp, target_list
         sage: ctx = mk_context()
         sage: bps = split_for_targets(ctx, bp, [(rr_gap(1/1234567893, 1/1234567892, 1), rr_gap(1/1234567891, 1/1234567890, 1), 12), (rr_gap(1/3, 1/2, -1), rr_gap(2/3, 3/4, -1), 6)])
         sage: str(bps[0])
-        '<IBP: (999992, 999992, 999992) + [0 .. 15) over [8613397477114467984778830327/10633823966279326983230456482242756608 .. 591908168025934394813836527495938294787/730750818665451459101842416358141509827966271488]; level 2; slope_err [-192592590990.49338 .. 192592590990.49338]>'
+        '<IBP: (999992, 999992, 999992) + [0 .. 15) over [8613397477114467984778830327/10633823966279326983230456482242756608 .. 591908168025934394813836527495938294787/730750818665451459101842416358141509827966271488]; level 2; slope_err [-1.9259259099049338e11 .. 1.9259259099049338e11]>'
         sage: str(bps[1])
         '<IBP: (-1562500, -1875001, -2222223, -2592593, -2969137, -3337450) + [0 .. 4) over [1/2 .. 2863311531/4294967296]>'
     """
@@ -3688,7 +3688,7 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     that define a region that includes exactly one root.  If
     retval=='interval', then it is returned as a RealIntervalFieldElement
     that includes exactly one root.  If retval=='algebraic_real', then
-    it is returned as an algebraic_real.  In the former two cases, all
+    it is returned as an AlgebraicReal.  In the former two cases, all
     the intervals are disjoint.
 
     An alternate high-level algorithm can be used by selecting
@@ -3741,8 +3741,8 @@ def real_roots(p, bounds=None, seed=None, skip_squarefree=False, do_logging=Fals
     that do not contain 0, and the absolute diameter for intervals
     containing 0.)  This directly affects the results in rational or
     interval return mode; in algebraic_real mode, it increases the
-    precision of the intervals passed to the algebraic_real package,
-    which may speed up some operations on that algebraic_real.
+    precision of the intervals passed to the algebraic number package,
+    which may speed up some operations on that algebraic real.
 
     Some logging can be enabled with do_logging=True.  If logging is enabled,
     then the normal values are not returned; instead, a pair of

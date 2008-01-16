@@ -276,6 +276,9 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             1.00000000000000*I + pi
             sage: parent(a)
             Symbolic Ring
+
+        sage: CDF(1) + RR(1)
+        2.0
         """
         return self._coerce_try(x, [self.real_double_field(),
                                     CC, RR])
@@ -339,6 +342,19 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         return self(3.1415926535897932384626433832)
 
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely,
+        algebraic closure of the real double field.
+
+        EXAMPLES:
+            sage: c, S = CDF.construction(); S
+            Real Double Field
+            sage: CDF == c(S)
+            True
+        """
+        from sage.categories.pushout import AlgebraicClosureFunctor
+        return (AlgebraicClosureFunctor(), self.real_double_field())
 
 def new_ComplexDoubleElement():
     cdef ComplexDoubleElement z
@@ -727,6 +743,23 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return RealDoubleElement(gsl_complex_abs(self._complex))
 
+    def argument(self):
+        r"""
+        This function returns the argument of the self, in the interval
+        $-\pi < arg(self) \le \pi$.
+
+        EXAMPLES:
+            sage: CDF(6).argument()
+            0.0
+            sage: CDF(i).argument()
+            1.57079632679
+            sage: CDF(-1).argument()
+            3.14159265359
+            sage: CDF(-1 - 0.000001*i).argument()
+            -3.14159165359
+        """
+        return RealDoubleElement(gsl_complex_arg(self._complex))
+
     def abs2(self):
         """
         This function returns the squared magnitude of the complex
@@ -847,6 +880,36 @@ cdef class ComplexDoubleElement(FieldElement):
              else:
                  return [z, -z]
         return z
+
+    def nth_root(self, n, all=False):
+        """
+        The n-th root function.
+
+        INPUT:
+            all -- bool (default: False); if True, return a list
+                of all n-th roots.
+
+        EXAMPLES:
+            sage: a = CDF(125)
+            sage: a.nth_root(3)
+            5.0
+            sage: a = CDF(10, 2)
+            sage: [r^5 for r in a.nth_root(5, all=True)]
+            [10.0 + 2.0*I, 10.0 + 2.0*I, 10.0 + 2.0*I, 10.0 + 2.0*I, 10.0 + 2.0*I]
+            sage: abs(sum(a.nth_root(111, all=True))) # random but close to zero
+            6.00659385991e-14
+        """
+        if not self:
+            return [self] if all else self
+        arg = self.argument() / n
+        abs = self.abs().nth_root(n)
+        z = ComplexDoubleElement(abs * arg.cos(), abs*arg.sin())
+        if all:
+            zeta = self._parent.zeta(n)
+            return [z * zeta**k for k in range(n)]
+        else:
+            return z
+
 
     def is_square(self):
         """
@@ -1494,7 +1557,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: p.factor()
             (x + 1) * x^2 * (x^2 - x + 1)
             sage: z^2 - z + 1
-            2.22044604925e-16 + 1.11022302463e-16*I
+            2.22044604925e-16 + ...e-16*I
 
             sage: CDF(0,2).algdep(10)
             x^2 + 4

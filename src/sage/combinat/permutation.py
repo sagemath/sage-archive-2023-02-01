@@ -28,12 +28,12 @@ import sage.combinat.misc as misc
 import sage.combinat.subword as subword
 import sage.combinat.composition as composition
 from sage.combinat.composition import Composition, Compositions, Composition_class
-from sage.combinat.tableau import Tableau
+import tableau
 import sage.combinat.partition
 import sage.combinat.permutation_nk as permutation_nk
 import sage.rings.integer
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from random import randint
+from random import randint, sample
 from sage.interfaces.all import gap
 from sage.graphs.graph import DiGraph
 import itertools
@@ -41,6 +41,7 @@ import __builtin__
 from combinat import CombinatorialClass, CombinatorialObject, catalan_number
 import copy
 from necklace import Necklaces
+import tableau
 
 permutation_options = {'display':'list', 'mult':'l2r'}
 
@@ -166,6 +167,7 @@ class Permutation_class(CombinatorialObject):
             True
         """
         self.list = l
+        self._hash = None
 
     def __hash__(self):
         """
@@ -176,7 +178,9 @@ class Permutation_class(CombinatorialObject):
             sage: d[p]
             1
         """
-        return str(self).__hash__()
+        if self._hash is None:
+            self._hash = str(self).__hash__()
+        return self._hash
 
     def __str__(self):
         """
@@ -333,6 +337,27 @@ class Permutation_class(CombinatorialObject):
         p = first_half + last_half
 
         return Permutation(p)
+
+
+    def to_tableau_by_shape(self, shape):
+        """
+        Returns a tableau of shape shape with the entries in self.
+
+        EXAMPLES:
+            sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2])
+            [[1, 2, 5], [3, 4]]
+            sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2]).to_permutation_by_reading_order()
+            [3, 4, 1, 2, 5]
+        """
+        if sum(shape) != len(self):
+            raise ValueError, "the size of the partition must be the length of self"
+
+        t = []
+        w = list(self)
+        for i in reversed(shape):
+            t = [ w[:i] ] + t
+            w = w[i:]
+        return tableau.Tableau(t)
 
 
 
@@ -687,6 +712,114 @@ class Permutation_class(CombinatorialObject):
         """
         return Permutation([self.index(i+1)+1 for i in range(len(self))])
 
+    def foata(self):
+        """
+        Returns the image of self under the Foata transformation.
+        """
+        pass
+
+    def _icondition(self, i):
+        """
+        '213'
+        '132'
+        '231'
+        '312'
+        """
+        if i not in range(2, len(self)):
+            raise ValueError, "i (= %s) must between 2 and n-1"%i
+        pos_i   = self.index(i)
+        pos_ip1 = self.index(i+1)
+        pos_im1 = self.index(i-1)
+
+        if pos_i < pos_im1 and pos_im1 < pos_ip1:
+            state = '213'
+        elif pos_im1 < pos_ip1 and pos_ip1 < pos_i:
+            state =  '132'
+        elif pos_i < pos_ip1 and pos_ip1 < pos_im1:
+            state =  '231'
+        elif pos_ip1 < pos_im1 and pos_im1 < pos_i:
+            state = '312'
+        else:
+            state = None
+
+        return (state, pos_im1, pos_i, pos_ip1)
+
+    def ishift(self, i):
+        """
+
+        Preserves self.number_of_inversions()
+        """
+        if i not in range(2, len(self)):
+            raise ValueError, "i (= %s) must between 2 and n-1"%i
+
+        state = self._icondition(i)
+        if state[0] is None:
+            return self
+
+        state, pos_im1, pos_i, pos_ip1 = state
+        l = list(self)
+
+        if state == '213':   #goes to 132
+            l[pos_i]   = i-1
+            l[pos_im1] = i+1
+            l[pos_ip1] = i
+        elif state == '132': #goes to 213
+            l[pos_im1] = i
+            l[pos_ip1] = i-1
+            l[pos_i]   = i+1
+        elif state == '231': #goes to 312
+            l[pos_i]   = i+1
+            l[pos_ip1] = i-1
+            l[pos_im1] = i
+        elif state == '312': #goes to 231
+            l[pos_ip1] = i
+            l[pos_im1] = i+1
+            l[pos_i]   = i-1
+        else:
+            raise ValueError, "invalid state"
+
+
+        return Permutation_class(l)
+
+
+
+    def iswitch(self, i):
+        """
+
+        Presevers self.major_index() ( descent set )
+        """
+        if i not in range(2, len(self)):
+            raise ValueError, "i (= %s) must between 2 and n-1"%i
+
+        state = self._icondition(i)
+        if state[0] is None:
+            return self
+
+        state, pos_im1, pos_i, pos_ip1 = state
+        l = list(self)
+
+        if state == '213':    #goes to 312
+            l[pos_i]   = i+1
+            l[pos_im1] = i-1
+            l[pos_ip1] = i
+        elif state == '132':  #goes to 231
+            l[pos_im1] = i
+            l[pos_ip1] = i+1
+            l[pos_i]   = i-1
+        elif state == '231':  #goes to 132
+            l[pos_i]   = i-1
+            l[pos_ip1] = i+1
+            l[pos_im1] = i
+        elif state == '312':  #goes to 213
+            l[pos_ip1] = i
+            l[pos_im1] = i-1
+            l[pos_i]   = i+1
+        else:
+            raise ValueError, "invalid state"
+
+
+        return Permutation_class(l)
+
     def runs(self):
         r"""
         Returns a list of the runs in the permutation p.
@@ -988,6 +1121,35 @@ class Permutation_class(CombinatorialObject):
 
         return descents
 
+    def idescents(self, final_descent=False):
+        """
+        Returns a list of the idescents of self, that is the list of the
+        descents of self's inverse.
+
+        With the final_descent option, the last position of a non empty permutation
+        is also considered as a descent.
+
+        EXAMPLES:
+            sage: Permutation([1,4,3,2]).idescents()
+            [1, 2]
+            sage: Permutation([1,4,3,2]).idescents(final_descent=True)
+            [1, 2, 3]
+        """
+        return self.inverse().descents(final_descent=final_descent)
+
+    def idescents_signature(self, final_descent=False):
+        """
+        """
+        idescents = self.idescents(final_descent=final_descent)
+        def f(i):
+            """Returns 1 if i in idescents otherwise it returns -1"""
+            if i in idescents:
+                return 1
+            else:
+                return -1
+
+        return [-f(i) for i in range(len(self))]
+
     def number_of_descents(self, final_descent=False):
         r"""
         Returns the number of descents of the permutation p.
@@ -1000,6 +1162,19 @@ class Permutation_class(CombinatorialObject):
         """
         return len(self.descents(final_descent))
 
+    def number_of_idescents(self, final_descent=False):
+        r"""
+        Returns the number of descents of the permutation p.
+
+        EXAMPLES:
+            sage: Permutation([1,4,3,2]).number_of_idescents()
+            2
+            sage: Permutation([1,4,3,2]).number_of_idescents(final_descent=True)
+            3
+        """
+        return len(self.idescents(final_descent))
+
+
     def descents_composition(self):
         """
         Returns the composition corresponding to the descents of
@@ -1011,7 +1186,7 @@ class Permutation_class(CombinatorialObject):
         """
         d = self.descents()
         d = [ -1 ] + d + [len(self)-1]
-        return [ d[i+1]-d[i] for i in range(len(d)-1)]
+        return Composition([ d[i+1]-d[i] for i in range(len(d)-1)])
 
     def descent_polynomial(self):
         r"""
@@ -1066,6 +1241,25 @@ class Permutation_class(CombinatorialObject):
 
         return sum(descents)+len(descents)
 
+    def imajor_index(self, final_descent=False):
+        """
+        Returns the inverse major index of the permutation self, which is the
+        major index of the inverse of self.
+
+        The major index is the sum of the descents of p. Since our permutation
+        indices are 0-based, we need to add one the number of descents.
+
+        EXAMPLES:
+            sage: Permutation([2,1,3]).imajor_index()
+            1
+            sage: Permutation([3,4,1,2]).imajor_index()
+            2
+            sage: Permutation([4,3,2,1]).imajor_index()
+            6
+        """
+        idescents = self.idescents(final_descent)
+
+        return sum(idescents)+len(idescents)
 
     def to_major_code(self, final_descent=False):
         r"""
@@ -1714,10 +1908,19 @@ class Permutation_class(CombinatorialObject):
             q[row_counter].append(i)
 
 
-        return [Tableau(p),Tableau(q)]
+        return [tableau.Tableau(p),tableau.Tableau(q)]
 
+    def left_tableau(self):
+        """
 
+        """
+        return self.robinson_schensted()[0]
 
+    def right_tableau(self):
+        """
+
+        """
+        return self.robinson_schensted()[1]
 
     def remove_extra_fixed_points(self):
         """
@@ -1789,7 +1992,11 @@ def Arrangements(mset, k):
           ['t', 'c', 'a'],
           ['t', 'a', 'c']]
     """
-    return Arrangements_msetk(mset, k)
+    mset = list(mset)
+    if map(mset.index, mset) == range(len(mset)):
+        return Arrangements_setk(mset, k)
+    else:
+        return Arrangements_msetk(mset, k)
 
 
 
@@ -1846,11 +2053,19 @@ class Permutations_nk(CombinatorialClass):
         else:
             return 0
 
+    def random(self):
+        """
+        EXAMPLES:
+            sage: Permutations(3,2).random() #random
+            [1, 3]
+        """
+        return sample(range(self.n), self.k)
+
 class Permutations_mset(CombinatorialClass):
     def __init__(self, mset):
         """
         TESTS:
-            sage: S = Permutations(['c','a','t'])
+            sage: S = Permutations(['c','a','c'])
             sage: S == loads(dumps(S))
             True
         """
@@ -1859,10 +2074,10 @@ class Permutations_mset(CombinatorialClass):
     def __repr__(self):
         """
         TESTS:
-            sage: repr(Permutations(['c','a','t']))
-            "Permutations of the (multi-)set ['c', 'a', 't']"
+            sage: repr(Permutations(['c','a','c']))
+            "Permutations of the multi-set ['c', 'a', 'c']"
         """
-        return "Permutations of the (multi-)set %s"%self.mset
+        return "Permutations of the multi-set %s"%self.mset
 
     def iterator(self):
         """
@@ -1870,13 +2085,6 @@ class Permutations_mset(CombinatorialClass):
         http://marknelson.us/2002/03/01/next-permutation/
 
         EXAMPLES:
-            sage: [ p for p in Permutations(['c','a','t'])]
-            [['c', 'a', 't'],
-             ['c', 't', 'a'],
-             ['a', 'c', 't'],
-             ['a', 't', 'c'],
-             ['t', 'c', 'a'],
-             ['t', 'a', 'c']]
             sage: [ p for p in Permutations(['c','t','t'])]
             [['c', 't', 't'], ['t', 'c', 't'], ['t', 't', 'c']]
         """
@@ -1934,8 +2142,6 @@ class Permutations_mset(CombinatorialClass):
         def count(self):
             """
             EXAMPLES:
-                sage: Permutations([1,2,3]).count()
-                6
                 sage: Permutations([1,2,2]).count()
                 3
             """
@@ -1952,8 +2158,104 @@ class Permutations_mset(CombinatorialClass):
 
             return c
 
+class Permutations_set(CombinatorialClass):
+    def __init__(self, set):
+        """
+        TESTS:
+            sage: S = Permutations(['c','a','t'])
+            sage: S == loads(dumps(S))
+            True
+        """
+        self.set = set
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Permutations(['c','a','t']))
+            "Permutations of the set ['c', 'a', 't']"
+        """
+        return "Permutations of the set %s"%self.set
+
+    def iterator(self):
+        """
+        Algorithm based on:
+        http://marknelson.us/2002/03/01/next-permutation/
+
+        EXAMPLES:
+            sage: [ p for p in Permutations(['c','a','t'])]
+            [['c', 'a', 't'],
+             ['c', 't', 'a'],
+             ['a', 'c', 't'],
+             ['a', 't', 'c'],
+             ['t', 'c', 'a'],
+             ['t', 'a', 'c']]
+        """
+        set = self.set
+        n = len(self.set)
+        lset = __builtin__.list(set)
+        set_list = map(lambda x: lset.index(x), lset)
+        set_list.sort()
+
+        def label(x):
+            return lset[x]
+
+        yield map(label, set_list)
+
+        if n == 1:
+            return
+
+        while True:
+            one = n - 2
+            two = n - 1
+            j   = n - 1
+
+            #starting from the end, find the first o such that
+            #set_list[o] < set_list[o+1]
+            while two > 0 and set_list[one] >= set_list[two]:
+                one -= 1
+                two -= 1
+
+            if two == 0:
+                return
+
+            #starting from the end, find the first j such that
+            #set_list[j] > set_list[one]
+            while set_list[j] <= set_list[one]:
+                j -= 1
+
+            #Swap positions one and j
+            t = set_list[one]
+            set_list[one] = set_list[j]
+            set_list[j] = t
 
 
+            #Reverse the list between two and last
+            i = int((n - two)/2)-1
+            #set_list = set_list[:two] + [x for x in reversed(set_list[two:])]
+            while i >= 0:
+                t = set_list[ i + two ]
+                set_list[ i + two ] = set_list[n-1 - i]
+                set_list[n-1 - i] = t
+                i -= 1
+
+            #Yield the permutation
+            yield map(label, set_list)
+
+    def count(self):
+        """
+        EXAMPLES:
+        sage: Permutations([1,2,3]).count()
+        6
+        """
+        return factorial(len(self.set))
+
+    def random(self):
+        """
+        EXAMPLES:
+        sage: Permutations([1,2,3]).random() #random
+        [2, 3]
+        """
+        return sample(self.set, len(self.set))
 
 class Permutations_msetk(CombinatorialClass):
     def __init__(self, mset, k):
@@ -1970,9 +2272,9 @@ class Permutations_msetk(CombinatorialClass):
         """
         TESTS:
             sage: repr(Permutations([1,2,2],2))
-            'Permutations of the (multi-)set [1, 2, 2] of length 2'
+            'Permutations of the multi-set [1, 2, 2] of length 2'
         """
-        return "Permutations of the (multi-)set %s of length %s"%(self.mset,self.k)
+        return "Permutations of the multi-set %s of length %s"%(self.mset,self.k)
 
     def list(self):
         """
@@ -1981,7 +2283,8 @@ class Permutations_msetk(CombinatorialClass):
             [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
             sage: Permutations([1,2,2],2).list()
             [[1, 2], [2, 1], [2, 2]]
-         """
+        """
+
         mset = self.mset
         n = len(self.mset)
         lmset = __builtin__.list(mset)
@@ -1994,14 +2297,77 @@ class Permutations_msetk(CombinatorialClass):
         return map(lambda ktuple: map(label, ktuple), indices)
 
 
+class Permutations_setk(CombinatorialClass):
+    def __init__(self, set, k):
+        """
+        TESTS:
+            sage: P = Permutations([1,2,2],2)
+            sage: P == loads(dumps(P))
+            True
+        """
+        self.set = set
+        self.k = k
+
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Permutations([1,2,3],2))
+            'Permutations of the set [1, 2, 3] of length 2'
+        """
+        return "Permutations of the set %s of length %s"%(self.set,self.k)
+
+    def _label(self, perm):
+        """
+        Given a permutation of indices, return the corresponding
+        permutation of self.set.
+        """
+        return map(lambda x: self.set[x], perm)
+
+    def list(self):
+        """
+        EXAMPLES:
+            sage: Permutations([1,2,3],2).list()
+            [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
+         """
+
+
+        return map(self._label, permutation_nk.list(len(self.set), self.k))
+
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: [i for i in Permutations([1,2,3],2)]
+            [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
+        """
+        for perm in permutation_nk.iterator(len(self.set), self.k):
+            yield self._label(perm)
+
+    def random(self):
+        """
+        EXAMPLES:
+            sage: Permutations([1,2,3],2).random() #random
+            [1, 3]
+        """
+        return sample(self.set, self.k)
+
+
 class Arrangements_msetk(Permutations_msetk):
     def __repr__(self):
         """
         TESTS:
-            sage: repr(Arrangements([1,2,3],2))
-            'Arrangements of the (multi-)set [1, 2, 3] of length 2'
+            sage: repr(Arrangements([1,2,2],2))
+            'Arrangements of the multi-set [1, 2, 2] of length 2'
         """
-        return "Arrangements of the (multi-)set %s of length %s"%(self.mset,self.k)
+        return "Arrangements of the multi-set %s of length %s"%(self.mset,self.k)
+
+class Arrangements_setk(Permutations_setk):
+    def __repr__(self):
+        """
+        TESTS:
+            sage: repr(Arrangements([1,2,3],2))
+            'Arrangements of the set [1, 2, 3] of length 2'
+        """
+        return "Arrangements of the set %s of length %s"%(self.set,self.k)
 
 
 class StandardPermutations_all(CombinatorialClass):
@@ -2105,7 +2471,7 @@ class StandardPermutations_n(CombinatorialClass):
             sage: [p for p in Permutations(3)]
             [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
-        for p in Permutations_mset(range(1,self.n+1)):
+        for p in Permutations_set(range(1,self.n+1)):
             yield Permutation_class(p)
 
     def count(self):
@@ -3443,7 +3809,7 @@ def Permutations(n=None,k=None, **kwargs):
         [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
 
         sage: p = Permutations(['c', 'a', 't']); p
-        Permutations of the (multi-)set ['c', 'a', 't']
+        Permutations of the set ['c', 'a', 't']
         sage: p.list()
         [['c', 'a', 't'],
          ['c', 't', 'a'],
@@ -3453,19 +3819,19 @@ def Permutations(n=None,k=None, **kwargs):
          ['t', 'a', 'c']]
 
         sage: p = Permutations(['c', 'a', 't'], 2); p
-        Permutations of the (multi-)set ['c', 'a', 't'] of length 2
+        Permutations of the set ['c', 'a', 't'] of length 2
         sage: p.list()
         [['c', 'a'], ['c', 't'], ['a', 'c'], ['a', 't'], ['t', 'c'], ['t', 'a']]
 
 
         sage: p = Permutations([1,1,2]); p
-        Permutations of the (multi-)set [1, 1, 2]
+        Permutations of the multi-set [1, 1, 2]
         sage: p.list()
         [[1, 1, 2], [1, 2, 1], [2, 1, 1]]
 
 
         sage: p = Permutations([1,1,2], 2); p
-        Permutations of the (multi-)set [1, 1, 2] of length 2
+        Permutations of the multi-set [1, 1, 2] of length 2
         sage: p.list()
         [[1, 1], [1, 2], [2, 1]]
 
@@ -3583,10 +3949,17 @@ def Permutations(n=None,k=None, **kwargs):
             else:
                 return Permutations_nk(n,k)
         else:
-            if k is None:
-                return Permutations_mset(n)
+            #In this case, we have that n is a list
+            if map(n.index, n) == range(len(n)):
+                if k is None:
+                    return Permutations_set(n)
+                else:
+                    return Permutations_setk(n,k)
             else:
-                return Permutations_msetk(n,k)
+                if k is None:
+                    return Permutations_mset(n)
+                else:
+                    return Permutations_msetk(n,k)
     elif 'descents' in kwargs:
         if isinstance(kwargs['descents'], tuple):
             return StandardPermutations_descents(*kwargs['descents'])

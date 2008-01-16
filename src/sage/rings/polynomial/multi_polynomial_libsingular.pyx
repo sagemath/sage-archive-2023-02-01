@@ -295,7 +295,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         if currRing != self._ring:
             oldRing = currRing
             rChangeCurrRing(self._ring)
-        rDelete(self._ring)
+            rDelete(self._ring)
+        else:
+            (&currRing)[0] = NULL
+            rDelete(self._ring)
         if oldRing != NULL:
             rChangeCurrRing(oldRing)
 
@@ -464,6 +467,25 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R.<x,y,z> = GF(3)[]
             sage: R(1/2)
             -1
+
+        TESTS:
+        Coerce in a polydict where a coefficient reduces to 0 but isn't 0.
+            sage: R.<x,y> = QQ[]; S.<xx,yy> = GF(5)[]; S( (5*x*y + x + 17*y)._mpoly_dict_recursive() )
+            xx + 2*yy
+
+        Coerce in a polynomial one of whose coefficients reduces to 0.
+            sage: R.<x,y> = QQ[]; S.<xx,yy> = GF(5)[]; S(5*x*y + x + 17*y)
+            xx + 2*yy
+
+        Some other examples that illustrate the same coercion idea:
+            sage: R.<x,y> = ZZ[]
+            sage: S.<xx,yy> = GF(25,'a')[]
+            sage: S(5*x*y + x + 17*y)
+            xx + 2*yy
+
+            sage: S.<xx,yy> = Integers(5)[]
+            sage: S(5*x*y + x + 17*y)
+            xx + 2*yy
         """
         cdef poly *_p, *mon
         cdef ring *_ring = self._ring
@@ -503,6 +525,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 for (m,c) in element.dict().iteritems():
                     try:
                         c = K(c)
+                        if not c: continue
                     except TypeError, msg:
                         p_Delete(&_p, _ring)
                         raise TypeError, msg
@@ -525,6 +548,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 for (m,c) in element.element().dict().iteritems():
                     try:
                         c = K(c)
+                        if not c: continue
                     except TypeError, msg:
                         p_Delete(&_p, _ring)
                         raise TypeError, msg
@@ -542,6 +566,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             for (m,c) in element.iteritems():
                 try:
                     c = K(c)
+                    if not c: continue
                 except TypeError, msg:
                     p_Delete(&_p, _ring)
                     raise TypeError, msg
@@ -1427,6 +1452,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         else:
             return co.new_MP(parent, res)
 
+    # you may have to replicate this boilerplate code in derived classes if you override
+    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
+    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
+    def __hash__(self):
+        return self._hash_c()
+
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
@@ -1485,6 +1516,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef poly *p, *q
         cdef number *h
         cdef int ret = 0
+
+        if left is right:
+            return ret
 
         r = (<MPolynomialRing_libsingular>left._parent)._ring
         if(r != currRing): rChangeCurrRing(r)
@@ -2171,6 +2205,55 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             p = pNext(p)
         return pd
 
+    cdef long _hash_c(self):
+        """
+        This hash incorporates the variable name in an effort to respect the obvious inclusions
+        into multi-variable polynomial rings.
+
+        The tuple algorithm is borrowed from http://effbot.org/zone/python-hash.htm.
+
+        EXAMPLES:
+            sage: R.<x>=QQ[]
+            sage: S.<x,y>=QQ[]
+            sage: hash(S(1/2))==hash(1/2)  # respect inclusions of the rationals
+            True
+            sage: hash(S.0)==hash(R.0)  # respect inclusions into mpoly rings
+            True
+            sage: # the point is to make for more flexible dictionary look ups
+            sage: d={S.0:12}
+            sage: d[R.0]
+            12
+        """
+        cdef poly *p
+        cdef ring *r
+        cdef int n
+        cdef int v
+        r = (<MPolynomialRing_libsingular>self._parent)._ring
+        if r!=currRing: rChangeCurrRing(r)
+        base = (<MPolynomialRing_libsingular>self._parent)._base
+        p = self._poly
+        cdef long result = 0 # store it in a c-int and just let the overflowing additions wrap
+        cdef long result_mon
+        var_name_hash = [hash(vn) for vn in self._parent.variable_names()]
+        cdef long c_hash
+        while p:
+            c_hash = hash(co.si2sa(p_GetCoeff(p, r), r, base))
+            if c_hash != 0: # this is always going to be true, because we are sparse (correct?)
+                # Hash (self[i], gen_a, exp_a, gen_b, exp_b, gen_c, exp_c, ...) as a tuple according to the algorithm.
+                # I omit gen,exp pairs where the exponent is zero.
+                result_mon = c_hash
+                for v from 1 <= v <= r.N:
+                    n = p_GetExp(p,v,r)
+                    if n!=0:
+                        result_mon = (1000003 * result_mon) ^ var_name_hash[v-1]
+                        result_mon = (1000003 * result_mon) ^ n
+                result += result_mon
+
+            p = pNext(p)
+        if result == -1:
+            return -2
+        return result
+
     def __iter__(self):
         """
         Facilitates iterating over the monomials of self,
@@ -2523,6 +2606,11 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f.subs(x=z+1)
             y + z
 
+            sage: f.subs(x=1/y)
+            (y^2 + y + 1)/y
+            sage: f.subs({x:1/y})
+            (y^2 + y + 1)/y
+
         TESTS:
             sage: P.<x,y,z> = QQ[]
             sage: f = y
@@ -2535,7 +2623,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         variables will be replaced by z eventually.
 
         """
-        cdef int mi, i, need_map
+        cdef int mi, i, need_map, try_symbolic
 
         cdef MPolynomialRing_libsingular parent = <MPolynomialRing_libsingular>self._parent
         cdef ring *_ring = parent._ring
@@ -2549,6 +2637,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef ideal *from_id
         cdef ideal *res_id
         need_map = 0
+        try_symbolic = 0
 
         if fixed is not None:
             for m,v in fixed.iteritems():
@@ -2563,7 +2652,11 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                         raise TypeError, "key does not match"
                 else:
                     raise TypeError, "keys do not match self's parent"
-                v = parent._coerce_c(v)
+                try:
+                    v = parent._coerce_c(v)
+                except TypeError:
+                    try_symbolic = 1
+                    break
                 _f = (<MPolynomial_libsingular>v)._poly
                 if _f == NULL or pNext(_f) == NULL:
                     _p = pSubst(_p, mi, _f)
@@ -2571,7 +2664,74 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     need_map = 1
                     to_id.m[mi-1] = p_Copy(_f, _ring)
 
-        gd = parent.gens_dict()
+        if not try_symbolic:
+            gd = parent.gens_dict()
+            for m,v in kw.iteritems():
+                m = gd[m]
+                for i from 0 < i <= _ring.N:
+                    if p_GetExp((<MPolynomial_libsingular>m)._poly, i, _ring) != 0:
+                        mi = i
+                        break
+                if i > _ring.N:
+                    raise TypeError, "key does not match"
+                try:
+                    v = parent._coerce_c(v)
+                except TypeError:
+                    try_symbolic = 1
+                    break
+                _f = (<MPolynomial_libsingular>v)._poly
+                if _f == NULL or pNext(_f) == NULL:
+                    _p = pSubst(_p, mi, _f)
+                else:
+                    if to_id.m[mi-1] != NULL:
+                        p_Delete(&to_id.m[mi-1],_ring)
+                    to_id.m[mi-1] = p_Copy(_f, _ring)
+                    need_map = 1
+
+            if need_map:
+                for mi from 0 <= mi < _ring.N:
+                    if to_id.m[mi] == NULL:
+                        to_id.m[mi] = p_ISet(1,_ring)
+                        p_SetExp(to_id.m[mi], mi+1, 1, _ring)
+                        p_Setm(to_id.m[mi], _ring)
+
+                from_id=idInit(1,1)
+                from_id.m[0] = _p
+
+                res_id = fast_map(from_id, _ring, to_id, _ring)
+                _p = res_id.m[0]
+
+                from_id.m[0] = NULL
+                res_id.m[0] = NULL
+
+                id_Delete(&from_id, _ring)
+                id_Delete(&res_id, _ring)
+
+        id_Delete(&to_id, _ring)
+
+        if not try_symbolic:
+            return co.new_MP(parent,_p)
+
+        # now as everything else failed, try to do it symbolically as in call
+
+        g = list(parent.gens())
+
+        if fixed is not None:
+            for m,v in fixed.iteritems():
+                if PY_TYPE_CHECK(m,int) or PY_TYPE_CHECK(m,Integer):
+                    mi = m+1
+                elif PY_TYPE_CHECK(m,MPolynomial_libsingular) and <MPolynomialRing_libsingular>m.parent() is parent:
+                    for i from 0 < i <= _ring.N:
+                        if p_GetExp((<MPolynomial_libsingular>m)._poly, i, _ring) != 0:
+                            mi = i
+                            break
+                    if i > _ring.N:
+                        raise TypeError, "key does not match"
+                else:
+                    raise TypeError, "keys do not match self's parent"
+
+                g[mi-1] = v
+
         for m,v in kw.iteritems():
             m = gd[m]
             for i from 0 < i <= _ring.N:
@@ -2580,37 +2740,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
                     break
             if i > _ring.N:
                 raise TypeError, "key does not match"
-            v = parent._coerce_c(v)
-            _f = (<MPolynomial_libsingular>v)._poly
-            if _f == NULL or pNext(_f) == NULL:
-                _p = pSubst(_p, mi, _f)
-            else:
-                if to_id.m[mi-1] != NULL:
-                    p_Delete(&to_id.m[mi-1],_ring)
-                to_id.m[mi-1] = p_Copy(_f, _ring)
-                need_map = 1
 
-        if need_map:
-            for mi from 0 <= mi < _ring.N:
-                if to_id.m[mi] == NULL:
-                    to_id.m[mi] = p_ISet(1,_ring)
-                    p_SetExp(to_id.m[mi], mi+1, 1, _ring)
-                    p_Setm(to_id.m[mi], _ring)
+            g[mi-1] = v
 
-            from_id=idInit(1,1)
-            from_id.m[0] = _p
-
-            res_id = fast_map(from_id, _ring, to_id, _ring)
-            _p = res_id.m[0]
-
-            from_id.m[0] = NULL
-            res_id.m[0] = NULL
-
-            id_Delete(&from_id, _ring)
-            id_Delete(&res_id, _ring)
-
-        id_Delete(&to_id, _ring)
-        return co.new_MP(parent,_p)
+        return self(*g)
 
     def monomials(self):
         """
@@ -2844,12 +2977,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
     cdef int is_constant_c(self):
         return p_IsConstant(self._poly, (<MPolynomialRing_libsingular>self._parent)._ring)
-
-    def __hash__(self):
-        """
-        """
-        s = p_String(self._poly, (<MPolynomialRing_libsingular>self._parent)._ring, (<MPolynomialRing_libsingular>self._parent)._ring)
-        return hash(s)
 
     def lm(MPolynomial_libsingular self):
         """

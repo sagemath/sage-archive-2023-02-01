@@ -628,12 +628,13 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             raise ValueError, "Error copy matrix"
         return trans
 
-    def SVD(self):
+    def SVD(self, algorithm='gsl'):
         r"""
         Return the singular value decomposition of this matrix.
 
         INPUT:
             A -- a matrix
+            algorithm -- 'numpy' or 'gsl'
         OUTPUT:
             U, S, V -- matrices such that A = U * S * V^t, where
                        U and V are orthogonal and S is diagonal.
@@ -641,7 +642,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
         EXAMPLES:
             sage: m = matrix(RDF,4,range(16))
-            sage: U,S,V = m.SVD()
+            sage: U,S,V = m.SVD(algorithm='gsl')
             sage: U*S*V.transpose()    # slightly random output (due to computer architecture)
             [3.45569519412e-16               1.0               2.0               3.0]
             [4.0               5.0               6.0               7.0]
@@ -652,6 +653,10 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             sage: m = matrix(RDF, 2, range(6)); m
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
+            sage: U, S, V = m.SVD(algorithm='numpy')
+            sage: U*S*V.transpose()           # random low bits
+            [7.62194127257e-17               1.0               2.0]
+            [              3.0               4.0               5.0]
             sage: U, S, V = m.SVD()
             sage: U
             [-0.274721127897 -0.961523947641]
@@ -670,11 +675,17 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             [0.0 1.0]
             [2.0 3.0]
             [4.0 5.0]
+            sage: U,S,V = m.SVD(algorithm='numpy')
+            sage: U*S*V.transpose()   # random low order bits
+            [-8.13151629364e-19                1.0]
+            [               2.0                3.0]
+            [               4.0                5.0]
             sage: U,S,V = m.SVD()
             sage: U*S*V.transpose()   # random low order bits
             [-8.13151629364e-19                1.0]
             [               2.0                3.0]
             [               4.0                5.0]
+
 
         TESTS:
             sage: m = matrix(RDF, 3, 0, []); m
@@ -686,10 +697,32 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             sage: m.SVD()
             ([], [], [])
         """
+        if algorithm == 'numpy':
+            return self._SVD_numpy()
+        elif algorithm == 'gsl':
+            return self._SVD_gsl()
+        else:
+            raise ValueError, "unknown algorithm"
+
+    def _SVD_gsl(self):
+        """
+        Return the singular value decomposition of this matrix
+        using GSL.  Note that the matrices the dimensions of the
+        matrices that this returns are (m,p), (p,p), and (n, p)
+        where p = min(m,n).
+
+        EXAMPLES:
+            sage: def shape(x): return (x.nrows(), x.ncols())
+            sage: m = matrix(RDF, 2, 3, range(6))
+            sage: map(shape, m._SVD_gsl())
+            [(2, 2), (2, 2), (3, 2)]
+
+        """
         if self._ncols > self._nrows:
             m = self.transpose()
             V_t,S_t,U_t = m.SVD()
             return U_t,S_t,V_t
+
         if self._nrows == 0 or self._ncols == 0:
             U_t = self.new_matrix(self._nrows, self._ncols)
             S_t = self.new_matrix(self._ncols, self._ncols)
@@ -717,6 +750,44 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         gsl_vector_free(S)
         gsl_vector_free(work_space)
         return A,_S,V
+
+    def _SVD_numpy(self):
+        """
+        Return the singular value decomposition of this matrix
+        using GSL.  Note that the matrices the dimensions of the
+        matrices that this returns are (m,m), (m,n), and (n, n).
+
+        EXAMPLES:
+            sage: def shape(x): return (x.nrows(), x.ncols())
+            sage: m = matrix(RDF, 2, 3, range(6))
+            sage: map(shape, m._SVD_numpy())
+            [(2, 2), (2, 3), (3, 3)]
+
+        """
+        if self._nrows == 0 or self._ncols == 0:
+            U_t = self.new_matrix(self._nrows, self._ncols)
+            S_t = self.new_matrix(self._nrows, self._ncols)
+            V_t = self.new_matrix(self._ncols, self._nrows)
+            return U_t, S_t, V_t
+
+        import numpy.linalg
+        cdef int i, s_dim
+        P = self.parent()
+        CDF = P.base_ring()
+
+        U,_S,V = numpy.linalg.svd(self.numpy())
+
+        #Create the inner diagonal matrix
+        s_dim = len(_S)
+        S = matrix(CDF, self._nrows, self._ncols, 0)
+        for i from 0 <= i < s_dim:
+            S[(i,i)] = _S[i]
+
+        return (matrix(U),S,matrix(V).transpose())
+
+
+
+
 
     def QR(self):
         """

@@ -48,6 +48,7 @@ from sage.dsage.errors.exceptions import NoJobException
 from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.misc.constants import DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
+from sage.dsage.misc.constants import TMP_WORKER_FILES
 from sage.dsage.misc.misc import random_str
 
 START_MARKER = '___BEGIN___'
@@ -193,10 +194,9 @@ class Worker(object):
         """
 
         cur_dir = os.getcwd() # keep a reference to the current directory
-        tmp_dir = os.path.join(DSAGE_DIR, 'tmp_worker_files')
-        tmp_job_dir = os.path.join(tmp_dir, job.job_id)
-        if not os.path.isdir(tmp_dir):
-            os.mkdir(tmp_dir)
+        tmp_job_dir = os.path.join(TMP_WORKER_FILES, job.job_id)
+        if not os.path.isdir(TMP_WORKER_FILES):
+            os.mkdir(TMP_WORKER_FILES)
         if not os.path.isdir(tmp_job_dir):
             os.mkdir(tmp_job_dir)
         os.chdir(tmp_job_dir)
@@ -349,8 +349,8 @@ except:
         if self.log_level > 1:
             msg = 'Checking job %s' % self.job.job_id
             log.msg(LOG_PREFIX % self.id + msg)
+        os.chdir(self.tmp_job_dir)
         try:
-            os.chdir(self.tmp_job_dir)
             # foo, output, new = self.sage._so_far()
             # This sucks and is a very bad way to tell when a calculation is
             # finished
@@ -369,12 +369,12 @@ except:
         except IOError, msg: # File does not exist yet
             done = False
         if done:
-			try:
-				cpu_time = cPickle.loads(open('cpu_time.sobj', 'rb').read())
-			except IOError:
-				cpu_time = -1 # This means that we could not get a cpu_time.
-			self.free = True
-			self.reset_checker()
+            try:
+                cpu_time = cPickle.loads(open('cpu_time.sobj', 'rb').read())
+            except IOError:
+                cpu_time = -1 # This means that we could not get a cpu_time.
+            self.free = True
+            self.reset_checker()
         else:
             result = cPickle.dumps('Job not done yet.', 2)
             cpu_time = None
@@ -498,10 +498,13 @@ except:
 
         """
 
+        # Set status to free and delete any current jobs we have
+        self.free = True
+        self.job = None
+
         if hard_reset:
             log.msg(LOG_PREFIX % self.id + 'Performing hard reset.')
             self.kill_sage()
-            self.start()
         else: # try for a soft reset
             INTERRUPT_TRIES = 20
             timeout = 0.3
@@ -526,11 +529,8 @@ except:
 
             if not success:
                 self.kill_sage()
-                self.start()
             else:
                 self.sage.reset()
-        self.free = True
-        self.job = None
 
     def start(self):
         """
@@ -639,7 +639,7 @@ class Monitor(object):
             from twisted.conch.ssh import keys
             self.DATA =  random_str(500)
             # public key authentication information
-            self.pubkey_str =keys.getPublicKeyString(self.pubkey_file)
+            self.pubkey_str = keys.getPublicKeyString(self.pubkey_file)
             # try getting the private key object without a passphrase first
             try:
                 self.priv_key = keys.getPrivateKeyObject(self.privkey_file)
@@ -732,7 +732,6 @@ class Monitor(object):
         if self.connected: # Don't connect multiple times
             return
 
-        factory = pb.PBClientFactory()
         self.factory = PBClientFactory()
         try:
             if self.ssl:

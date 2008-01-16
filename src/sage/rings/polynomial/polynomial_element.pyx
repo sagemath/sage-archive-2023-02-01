@@ -35,7 +35,7 @@ import sage.rings.rational_field
 import sage.rings.integer_mod_ring
 import sage.rings.complex_field
 import sage.rings.fraction_field_element
-from sage.rings.infinity import infinity
+import sage.rings.infinity as infinity
 #import sage.misc.misc as misc
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
@@ -61,6 +61,7 @@ from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 
 from sage.rings.integral_domain import is_IntegralDomain
+from sage.structure.parent_gens cimport ParentWithGens
 
 import polynomial_fateman
 
@@ -73,16 +74,30 @@ from polynomial_compiled cimport CompiledPolynomialFunction
 from polydict import ETuple
 
 cdef object is_AlgebraicRealField
+cdef object is_AlgebraicField
+cdef object is_AlgebraicField_common
+cdef object NumberField_quadratic
+cdef object is_ComplexIntervalField
 
 cdef void late_import():
     # A hack to avoid circular imports.
     global is_AlgebraicRealField
+    global is_AlgebraicField
+    global is_AlgebraicField_common
+    global NumberField_quadratic
+    global is_ComplexIntervalField
 
     if is_AlgebraicRealField is not None:
         return
 
-    import sage.rings.algebraic_real
-    is_AlgebraicRealField = sage.rings.algebraic_real.is_AlgebraicRealField
+    import sage.rings.qqbar
+    is_AlgebraicRealField = sage.rings.qqbar.is_AlgebraicRealField
+    is_AlgebraicField = sage.rings.qqbar.is_AlgebraicField
+    is_AlgebraicField_common = sage.rings.qqbar.is_AlgebraicField_common
+    import sage.rings.number_field.number_field
+    NumberField_quadratic = sage.rings.number_field.number_field.NumberField_quadratic
+    import sage.rings.complex_interval_field
+    is_ComplexIntervalField = sage.rings.complex_interval_field.is_ComplexIntervalField
 
 cdef class Polynomial(CommutativeAlgebraElement):
     """
@@ -183,7 +198,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         R = self.base_ring()
         from sage.plot.plot import plot, point, line
         if R.characteristic() == 0:
-            return plot(self.__call__, xmin=xmin, xmax=xmax, *args, **kwds)
+            if xmin is None and xmax is None:
+                (xmin, xmax) = (-1,1)
+            elif xmin is None or xmax is None:
+                raise AttributeError, "must give both plot endpoints"
+            return plot(self.__call__, (xmin, xmax), *args, **kwds)
         else:
             if R.is_finite():
                 v = list(R)
@@ -244,7 +263,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
             127
             sage: f.subs(5)
             127
+            sage: f.subs({x:2})
+            7
+            sage: f.subs({})
+            x^3 + x - 3
+            sage: f.subs({'x':2})
+            Traceback (most recent call last):
+            ...
+            TypeError: keys do not match self's parent
         """
+        if len(x) == 1 and isinstance(x[0], dict):
+            g = self.parent().gen()
+            if x[0].has_key(g):
+                return self(x[0][g])
+            elif len(x[0]) > 0:
+                raise TypeError, "keys do not match self's parent"
+            return self
         return self.__call__(*x, **kwds)
 
     def __call__(self, *x, **kwds):
@@ -481,11 +515,60 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def __iter__(self):
         return iter(self.list())
 
+    # you may have to replicate this boilerplate code in derived classes if you override
+    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
+    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
     def __hash__(self):
-        if self.degree() >= 1:
-            return hash(tuple(self.list()))
-        else:
-            return hash(self[0])
+        return self._hash_c()
+
+    cdef long _hash_c(self):
+        """
+        This hash incorporates the variable name in an effort to respect the obvious inclusions
+        into multi-variable polynomial rings.
+
+        The tuple algorithm is borrowed from http://effbot.org/zone/python-hash.htm.
+
+        EXAMPLES:
+            sage: R.<x>=ZZ[]
+            sage: hash(R(1))==hash(1)  # respect inclusions of the integers
+            True
+            sage: hash(R.0)==hash(FractionField(R).0)  # respect inclusions into the fraction field
+            True
+            sage: R.<x>=QQ[]
+            sage: hash(R(1/2))==hash(1/2)  # respect inclusions of the rationals
+            True
+            sage: hash(R.0)==hash(FractionField(R).0)  # respect inclusions into the fraction field
+            True
+            sage: R.<x>=IntegerModRing(11)[]
+            sage: hash(R.0)==hash(FractionField(R).0)  # respect inclusions into the fraction field
+            True
+        """
+        cdef long result = 0 # store it in a c-int and just let the overflowing additions wrap
+        cdef long result_mon
+        cdef long c_hash
+        cdef long var_name_hash
+        cdef int i
+        for i from 0<= i <= self.degree():
+            if i == 1:
+                # we delay the hashing until now to not waste it one a constant poly
+                var_name_hash = hash((<ParentWithGens>self._parent)._names[0])
+            #  I'm assuming (incorrectly) that hashes of zero indicate that the element is 0.
+            # This assumption is not true, but I think it is true enough for the purposes and it
+            # it allows us to write fast code that omits terms with 0 coefficients.  This is
+            # important if we want to maintain the '==' relationship with sparse polys.
+            c_hash = hash(self[i])
+            if c_hash != 0:
+                if i == 0:
+                    result += c_hash
+                else:
+                    # Hash (self[i], generator, i) as a tuple according to the algorithm.
+                    result_mon = c_hash
+                    result_mon = (1000003 * result_mon) ^ var_name_hash
+                    result_mon = (1000003 * result_mon) ^ i
+                    result += result_mon
+        if result == -1:
+            return -2
+        return result
 
     def __float__(self):
          if self.degree() > 0:
@@ -524,9 +607,35 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return result
 
     def _integer_(self):
+        r"""
+        EXAMPLES:
+            sage: k = GF(47)
+            sage: R.<x> = PolynomialRing(k)
+            sage: ZZ(R(45))
+            45
+            sage: ZZ(3*x + 45)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce nonconstant polynomial
+        """
         if self.degree() > 0:
             raise TypeError, "cannot coerce nonconstant polynomial"
         return sage.rings.integer.Integer(self[0])
+
+    def _rational_(self):
+        r"""
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: QQ(R(45/4))
+            45/4
+            sage: QQ(3*x + 45)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce nonconstant polynomial
+        """
+        if self.degree() > 0:
+            raise TypeError, "cannot coerce nonconstant polynomial"
+        return sage.rings.rational.Rational(self[0])
 
     def __invert__(self):
         """
@@ -823,7 +932,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return generic_power(self, right)
 
     def _pow(self, right):
-        # TODO: fit __pow__ into the arithmatic structure
+        # TODO: fit __pow__ into the arithmetic structure
         if self.degree() <= 0:
             return self.parent()(self[0]**right)
         if right < 0:
@@ -1041,7 +1150,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: S.<y> = PolynomialRing(RR)
             sage: f = y^10 - 1.393493*y + 0.3
             sage: f._mul_karatsuba(f)
-            1.00000000000000*y^20 - 2.78698600000000*y^11 + 0.600000000000000*y^10 + 0.000000000000000111022302462516*y^8 - 0.000000000000000111022302462516*y^6 - 0.000000000000000111022302462516*y^3 + 1.94182274104900*y^2 - 0.836095800000000*y + 0.0900000000000000
+            1.00000000000000*y^20 - 2.78698600000000*y^11 + 0.600000000000000*y^10 + 1.11022302462516e-16*y^8 - 1.11022302462516e-16*y^6 - 1.11022302462516e-16*y^3 + 1.94182274104900*y^2 - 0.836095800000000*y + 0.0900000000000000
             sage: f._mul_fateman(f)
             1.00000000000000*y^20 - 2.78698600000000*y^11 + 0.600000000000000*y^10 + 1.94182274104900*y^2 - 0.836095800000000*y + 0.0900000000000000
 
@@ -1448,7 +1557,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Arbitrary precision real and complex factorization:
             sage: R.<x> = RealField(100)[]
             sage: F = factor(x^2-3); F
-            (1.0000000000000000000000000000*x + 1.7320508075688772935274463415) * (1.0000000000000000000000000000*x - 1.7320508075688772935274463415)
+            (1.0000000000000000000000000000*x - 1.7320508075688772935274463415) * (1.0000000000000000000000000000*x + 1.7320508075688772935274463415)
             sage: expand(F)
             1.0000000000000000000000000000*x^2 - 3.0000000000000000000000000000
             sage: factor(x^2 + 1)
@@ -1482,6 +1591,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(T - a, 1), (T - 40085763200/924556084127*a^5 - 145475769880/924556084127*a^4 + 527617096480/924556084127*a^3 + 1289745809920/924556084127*a^2 - 3227142391585/924556084127*a - 401502691578/924556084127, 1)]
             sage: expand(F)
             T^6 + 10/7*T^5 + (-867/49)*T^4 + (-76/245)*T^3 + 3148/35*T^2 + (-25944/245)*T + 48771/1225
+
+            sage: f = x^2 - 1/3 ; K.<a> = NumberField(f) ; A.<T> = K[] ; g = A(x^2-1)
+            sage: g.factor()
+            (T - 1) * (T + 1)
+
+            sage: h = A(3*x^2-1) ; h.factor()
+            (3) * (T - a) * (T + a)
+
+            sage: h = A(x^2-1/3) ; h.factor()
+            (T - a) * (T + a)
 
         Over the real double field:
             sage: x = polygen(RDF)
@@ -1552,7 +1671,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             raise ValueError, "factorization of 0 not defined"
         G = None
 
-        from sage.rings.number_field.all import is_NumberField, is_RelativeNumberField
+        from sage.rings.number_field.all import is_NumberField, \
+             is_RelativeNumberField, NumberField
         from sage.rings.finite_field import is_FiniteField
 
         n = None
@@ -1575,11 +1695,62 @@ cdef class Polynomial(CommutativeAlgebraElement):
             v = [(S([from_M(x) for x in f.list()]), e) for f, e in g.factor()]
             return Factorization(v, from_M(F.unit()))
 
-
-        elif is_NumberField(R) or is_FiniteField(R):
+        elif is_FiniteField(R):
             v = [x._pari_("a") for x in self.list()]
             f = pari(v).Polrev()
             G = list(f.factor())
+
+
+        elif is_NumberField(R):
+            if (R.defining_polynomial().denominator() == 1):
+
+                if (self.leading_coefficient() == 1):
+                    unit = None
+                    v = [ x._pari_("a") for x in self.list() ]
+                else:
+                    unit = self.leading_coefficient()
+                    temp_f = self * 1/unit
+                    v = [ x._pari_("a") for x in temp_f.list() ]
+                f = pari(v).Polrev()
+                Rpari = R.pari_nf()
+                if (Rpari.variable() != "a"):
+                    Rpari = Rpari.copy()
+                    Rpari[0] = Rpari[0]("a")
+                    Rpari[6] = [ x("a") for x in Rpari[6] ]
+                G = list(Rpari.nffactor(f))
+                return self._factor_pari_helper(G, unit=unit)
+
+            else:
+
+                Rdenom = R.defining_polynomial().denominator()
+
+                new_Rpoly = (R.defining_polynomial() * Rdenom).change_variable_name("a")
+
+                Rpari, Rdiff = new_Rpoly._pari_().nfinit(3)
+
+                AZ = polynomial_ring.PolynomialRing(QQ,'z')
+                Raux = NumberField(AZ(Rpari[0]),'alpha')
+
+                S, gSRaux, fRauxS = Raux.change_generator(Raux(Rdiff))
+
+                phi_RS = R.Hom(S)([S.gen(0)])
+                phi_SR = S.Hom(R)([R.gen(0)])
+
+                unit = self.leading_coefficient()
+                temp_f = self * 1/unit
+
+                v = [ gSRaux(phi_RS(x))._pari_("a") for x in temp_f.list() ]
+                f = pari(v).Polrev()
+
+                pari_factors = Rpari.nffactor(f)
+
+                factors = [ ( self.parent([ phi_SR(fRauxS(Raux(pari_factors[0][i][j])))
+                                            for j in range(len(pari_factors[0][i])) ]) ,
+                             int(pari_factors[1][i]) )
+                            for i in range(pari_factors.nrows()) ]
+
+                return Factorization(factors, unit)
+
 
         elif is_RealField(R):
             n = pari.set_real_precision(int(3.5*R.prec()) + 1)
@@ -1908,7 +2079,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x.prec()
             +Infinity
         """
-        return infinity
+        return infinity.infinity
 
     def padded_list(self, n=None):
         """
@@ -2166,7 +2337,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             'y^3 - 17*y + 5'
             sage: R.<z> = ZZ[]
             sage: gap(R)
-            PolynomialRing(..., [ z ])
+            PolynomialRing( Integers, ["z"] )
             sage: g
             y^3-17*y+5
             sage: gap(z^2 + z)
@@ -2294,12 +2465,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         multiple roots are always ill-conditioned; there's a footnote
         at the end of the docstring about this.
 
-        If the output ring is a RealIntervalField of a given
-        precision, then the answer will always be correct (or an
-        exception will be raised, if a case is not implemented).  Each
-        root will be contained in one of the returned intervals,
-        and the intervals will be disjoint.  (The returned intervals
-        may be of higher precision than the specified output ring.)
+        If the output ring is a RealIntervalField or
+        ComplexIntervalField of a given precision, then the answer
+        will always be correct (or an exception will be raised, if a
+        case is not implemented).  Each root will be contained in one
+        of the returned intervals, and the intervals will be disjoint.
+        (The returned intervals may be of higher precision than the
+        specified output ring.)
 
         At the end of this docstring (after the examples) is a description
         of all the cases implemented in this function, and the algorithms
@@ -2360,7 +2532,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots()
             [(1, 1), (-1, 1)]
             sage: f.roots(ring=QQ)
-            [(1, 1), (-1, 1), (3/2, 1)]
+            [(3/2, 1), (1, 1), (-1, 1)]
 
         An example involving large numbers:
             sage: x = RR['x'].0
@@ -2369,13 +2541,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(-1.00000000000000e50, 1), (1.00000000000000e50, 1)]
             sage: f = x^10 - 2*(5*x-1)^2
             sage: f.roots(multiplicities=False)
-            [-1.6772670339941..., 0.199954796285..., 0.200045306115..., 1.5763035161844...]
+            [-1.6772670339941..., 0.19995479628..., 0.20004530611..., 1.5763035161844...]
 
             sage: x = CC['x'].0
             sage: i = CC.0
             sage: f = (x - 1)*(x - i)
-            sage: f.roots(multiplicities=False)
-            [1.00000000000000 - ...*I,... 1.00000000000000*I]
+            sage: f.roots(multiplicities=False) #random - this example is numerically rather unstable
+            [2.22044604925031e-16 + 1.00000000000000*I, 1.00000000000000 + 8.32667268468867e-17*I]
+            sage: g=(x-1.33+1.33*i)*(x-2.66-2.66*i)
+            sage: g.roots(multiplicities=False)
+            [2.66000000000000 + 2.66000000000000*I, 1.33000000000000 - 1.33000000000000*I]
 
         A purely symbolic roots example:
             sage: X = var('X')
@@ -2384,9 +2559,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: print f.roots()
             [(I, 3), (-2^(1/4), 1), (2^(1/4), 1), (1, 1)]
 
-        An example where the base ring doesn't have a factorization
-        algorithm (yet).  Note that this is currently done via naive
-        enumeration, so could be very slow:
+        A couple of examples where the base ring doesn't have a
+        factorization algorithm (yet).  Note that this is currently
+        done via naive enumeration, so could be very slow:
             sage: R = Integers(6)
             sage: S.<x> = R['x']
             sage: p = x^2-1
@@ -2396,6 +2571,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             NotImplementedError: root finding with multiplicities for this polynomial not implemented (try the multiplicities=False option)
             sage: p.roots(multiplicities=False)
             [1, 5]
+            sage: R = Integers(9)
+            sage: A = PolynomialRing(R, 'y')
+            sage: y = A.gen()
+            sage: f = 10*y^2 - y^3 - 9
+            sage: f.roots(multiplicities=False)
+            [0, 1, 3, 6]
 
         An example over the complex double field (where root finding
         is fast, thanks to numpy):
@@ -2456,6 +2637,38 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots(ring=RIF, multiplicities=False)
             [[-0.618033988749894848204586834365642 .. -0.618033988749894848204586834365629], [0.999999999999999999999999999999987 .. 1.00000000000000000000000000000003], [1.61803398874989484820458683436561 .. 1.61803398874989484820458683436565]]
 
+        Examples using complex root isolation:
+            sage: x = polygen(ZZ)
+            sage: p = x^5 - x - 1
+            sage: p.roots()
+            []
+            sage: p.roots(ring=CIF)
+            [([1.1673039782614185 .. 1.16730397826141...], 1), ([0.18123244446987518 .. 0.18123244446987558] + [1.0839541013177103 .. 1.0839541013177110]*I, 1), ([0.181232444469875... .. 0.1812324444698755...] - [1.083954101317710... .. 1.0839541013177110]*I, 1), ([-0.76488443360058489 .. -0.76488443360058455] + [0.35247154603172609 .. 0.3524715460317264...]*I, 1), ([-0.76488443360058489 .. -0.76488443360058455] - [0.35247154603172609 .. 0.35247154603172643]*I, 1)]
+            sage: p.roots(ring=ComplexIntervalField(200))
+            [([1.1673039782614186842560458998548421807205603715254890391400816 .. 1.1673039782614186842560458998548421807205603715254890391400829], 1), ([0.18123244446987538390180023778112063996871646618462304743773153 .. 0.18123244446987538390180023778112063996871646618462304743773341] + [1.0839541013177106684303444929807665742736402431551156543011306 .. 1.0839541013177106684303444929807665742736402431551156543011344]*I, 1), ([0.18123244446987538390180023778112063996871646618462304743773153 .. 0.18123244446987538390180023778112063996871646618462304743773341] - [1.0839541013177106684303444929807665742736402431551156543011306 .. 1.0839541013177106684303444929807665742736402431551156543011344]*I, 1), ([-0.76488443360058472602982318770854173032899665194736756700777... .. -0.76488443360058472602982318770854173032899665194736756700777...] + [0.35247154603172624931794709140258105439420648082424733283769... .. 0.35247154603172624931794709140258105439420648082424733283769...]*I, 1), ([-0.76488443360058472602982318770854173032899665194736756700777454 .. -0.764884433600584726029823187708541730328996651947367567007772...] - [0.35247154603172624931794709140258105439420648082424733283769... .. 0.352471546031726249317947091402581054394206480824247332837693...]*I, 1)]
+            sage: rts = p.roots(ring=QQbar); rts
+            [([1.1673039782614185 .. 1.1673039782614188], 1), ([0.18123244446987538 .. 0.18123244446987541] + [1.0839541013177105 .. 1.0839541013177108]*I, 1), ([0.18123244446987538 .. 0.18123244446987541] - [1.0839541013177105 .. 1.0839541013177108]*I, 1), ([-0.76488443360058478 .. -0.76488443360058466] + [0.35247154603172620 .. 0.35247154603172626]*I, 1), ([-0.76488443360058478 .. -0.76488443360058466] - [0.35247154603172620 .. 0.35247154603172626]*I, 1)]
+            sage: p.roots(ring=AA)
+            [([1.1673039782614185 .. 1.1673039782614188], 1)]
+            sage: p = (x - rts[1][0])^2 * (3*x^2 + x + 1)
+            sage: p.roots(ring=QQbar)
+            [([-0.16666666666666669 .. -0.16666666666666665] + [0.55277079839256659 .. 0.55277079839256671]*I, 1), ([-0.16666666666666669 .. -0.16666666666666665] - [0.55277079839256659 .. 0.55277079839256671]*I, 1), ([0.18123244446987538 .. 0.18123244446987541] + [1.0839541013177105 .. 1.0839541013177108]*I, 2)]
+            sage: p.roots(ring=CIF)
+            [([-0.16666666666666672 .. -0.16666666666666662] + [0.55277079839256648 .. 0.55277079839256671]*I, 1), ([-0.16666666666666672 .. -0.16666666666666662] - [0.55277079839256648 .. 0.55277079839256671]*I, 1), ([0.18123244446987538 .. 0.18123244446987541] + [1.0839541013177105 .. 1.0839541013177108]*I, 2)]
+
+        Note that coefficients in a number field with defining polynomial
+        $x^2 + 1$ are considered to be Gaussian rationals (with the generator
+        mapping to +I), if you ask for complex roots.
+
+            sage: K.<im> = NumberField(x^2 + 1)
+            sage: y = polygen(K)
+            sage: p = y^4 - 2 - im
+            sage: p.roots(ring=CC)
+            [(-1.2146389322441... - 0.14142505258239...*I, 1), (-0.14142505258239... + 1.2146389322441...*I, 1), (0.14142505258239... - 1.2146389322441...*I, 1), (1.2146389322441... + 0.14142505258239...*I, 1)]
+            sage: p = p^2 * (y^2 - 2)
+            sage: p.roots(ring=CIF)
+            [([-1.4142135623730952 .. -1.4142135623730949], 1), ([1.4142135623730949 .. 1.4142135623730952], 1), ([-1.2146389322441827 .. -1.2146389322441821] - [0.1414250525823937... .. 0.1414250525823939...]*I, 2), ([-0.141425052582393... .. -0.1414250525823937...] + [1.2146389322441821 .. 1.2146389322441827]*I, 2), ([0.141425052582393... .. 0.141425052582393...] - [1.2146389322441821 .. 1.2146389322441827]*I, 2), ([1.2146389322441821 .. 1.2146389322441827] + [0.14142505258239376 .. 0.14142505258239399]*I, 2)]
+
         There are many combinations of floating-point input and output
         types that work.  (Note that some of them are quite pointless...
         there's no reason to use high-precision input and output, and still
@@ -2486,7 +2699,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Complex Field with 100 bits of precision [1.2599210498948731647672106073, -0.62996052494743658238360530364 + 1.0911236359717214035600726142*I, -0.62996052494743658238360530364 - 1.0911236359717214035600726142*I]
 
         Note that we can find the roots of a polynomial with
-        algebraic real coefficients:
+        algebraic coefficients:
 
             sage: rt2 = sqrt(AA(2))
             sage: rt3 = sqrt(AA(3))
@@ -2502,8 +2715,12 @@ sage: rts[0][0] == rt2
 
         Algorithms used:
 
-        For brevity, we will use RR to mean any RealField of any precision;
-        similarly for CC and CIF.
+        For brevity, we will use RR to mean any RealField of any
+        precision; similarly for RIF, CC, and CIF.  Since Sage has no
+        specific implementation of Gaussian rationals (or of number
+        fields with embedding, at all), when we refer to Gaussian
+        rationals below we will accept any number field with defining
+        polynomial $x^2+1$, mapping the field generator to +I.
 
         We call the base ring of the polynomial K, and the ring given
         by the ring= argument L.  (If ring= is not specified, then L
@@ -2522,21 +2739,33 @@ sage: rts[0][0] == rt2
         (You can call real_roots() directly to get more control than
         this method gives.)
 
-        If L is floating-point and K is not, then we attempt to
-        change the polynomial ring to L (using .change_ring())
-        (or, if L is complex, to the corresponding real field).
-        Then we use either Pari or numpy as specified above.
+        If L is QQbar or CIF, and K is ZZ, QQ, AA, QQbar, or the
+        Gaussian rationals, then the root isolation algorithm
+        sage.rings.polynomial.complex_roots.complex_roots() is used.
+        (You can call complex_roots() directly to get more control
+        than this method gives.)
+
+        If L is AA and K is QQbar or the Gaussian rationals, then
+        complex_roots() is used (as above) to find roots in QQbar,
+        then these roots are filtered to select only the real roots.
+
+        If L is floating-point and K is not, then we attempt to change
+        the polynomial ring to L (using .change_ring()) (or, if L is
+        complex and K is not, to the corresponding real field).  Then
+        we use either Pari or numpy as specified above.
 
         For all other cases where K is different than L, we just use
         .change_ring(L) and proceed as below.
 
-        The next method is to attempt to factor the polynomial.
-        If this succeeds, then for every degree-one factor a*x+b, we
-        add -b/a as a root.
+        The next method, which is used if K is an integral domain, is
+        to attempt to factor the polynomial.  If this succeeds, then
+        for every degree-one factor a*x+b, we add -b/a as a root (as
+        long as this quotient is actually in the desired ring).
 
-        If factoring over K is not implemented, and K is finite, then
-        we find the roots by enumerating all elements of K and checking
-        whether the polynomial evaluates to zero at that value.
+        If factoring over K is not implemented (or K is not an
+        integral domain), and K is finite, then we find the roots by
+        enumerating all elements of K and checking whether the
+        polynomial evaluates to zero at that value.
 
 
         NOTE: We mentioned above that polynomials with multiple roots
@@ -2562,6 +2791,8 @@ sage: rts[0][0] == rt2
         L = ring
         if L is None: L = K
 
+        late_import()
+
         input_fp = (is_RealField(K)
                     or is_ComplexField(K)
                     or is_RealDoubleField(K)
@@ -2574,6 +2805,8 @@ sage: rts[0][0] == rt2
                          or is_ComplexDoubleField(K))
         output_complex = (is_ComplexField(L)
                           or is_ComplexDoubleField(L))
+        input_gaussian = (isinstance(K, NumberField_quadratic)
+                          and list(K.polynomial()) == [1, 0, 1])
 
         if input_fp and output_fp:
             low_prec = L.prec() <= 53
@@ -2633,11 +2866,9 @@ sage: rts[0][0] == rt2
             else:
                 return rts
 
-        late_import()
-
-        if L != K or is_AlgebraicRealField(L):
-            # So far, the only "special" implementation is for K exact
-            # and L either AA or a real interval field.
+        if L != K or is_AlgebraicField_common(L):
+            # So far, the only "special" implementations are for real
+            # and complex root isolation.
             if (is_IntegerRing(K) or is_RationalField(K)
                 or is_AlgebraicRealField(K)) and \
                 (is_AlgebraicRealField(L) or is_RealIntervalField(L)):
@@ -2668,13 +2899,28 @@ sage: rts[0][0] == rt2
                 else:
                     return [rt for (rt, mult) in rts]
 
-            if output_fp and output_complex:
+            if (is_IntegerRing(K) or is_RationalField(K)
+                or is_AlgebraicField_common(K) or input_gaussian) and \
+                (is_ComplexIntervalField(L) or is_AlgebraicField_common(L)):
+
+                from sage.rings.polynomial.complex_roots import complex_roots
+
+                if is_ComplexIntervalField(L):
+                    rts = complex_roots(self, min_prec=L.prec())
+                elif is_AlgebraicField(L):
+                    rts = complex_roots(self, retval='algebraic')
+                else:
+                    rts = complex_roots(self, retval='algebraic_real')
+
+                if multiplicities:
+                    return rts
+                else:
+                    return [rt for (rt, mult) in rts]
+
+            if output_fp and output_complex and not input_gaussian:
                 # If we want the complex roots, and the input is not
-                # floating point, we convert to a real polynomial.
-                # I think this works for now, because there are no
-                # non-floating-point complex types in Sage.  Hopefully
-                # someday we will have Gaussian integers and rationals,
-                # and this will have to change then.
+                # floating point, we convert to a real polynomial
+                # (except when the input coefficients are Gaussian rationals).
                 if is_ComplexDoubleField(L):
                     real_field = RDF
                 else:
@@ -2685,7 +2931,10 @@ sage: rts[0][0] == rt2
                 return self.change_ring(L).roots(multiplicities=multiplicities, algorithm=algorithm)
 
         try:
-            rts = self.factor()
+            if K.is_integral_domain():
+                rts = self.factor()
+            else:
+                raise NotImplementedError
         except NotImplementedError:
             if K.is_finite():
                 if multiplicities:
@@ -2819,9 +3068,9 @@ sage: rts[0][0] == rt2
         cdef int k
 
         if not self:
-            return infinity
+            return infinity.infinity
 
-        if p is infinity:
+        if p is infinity.infinity:
             return -self.degree()
 
         if p is None:
@@ -2914,6 +3163,16 @@ sage: rts[0][0] == rt2
         $4$ is irreducible as a polynomial, since as a polynomial
         it doesn't factor:
             sage: R(4).is_irreducible()
+            True
+
+        TESTS:
+            sage: F.<t> = NumberField(x^2-5)
+            sage: Fx.<xF> = PolynomialRing(F)
+            sage: f = Fx([2*t - 5, 5*t - 10, 3*t - 6, -t, -t + 2, 1])
+            sage: f.is_irreducible()
+            False
+            sage: f = Fx([2*t - 3, 5*t - 10, 3*t - 6, -t, -t + 2, 1])
+            sage: f.is_irreducible()
             True
         """
         if self.is_zero():
@@ -3060,7 +3319,7 @@ sage: rts[0][0] == rt2
             raise ValueError, "The degree of the norm must be positive"
 
         coeffs = self.coeffs()
-        if p == infinity:
+        if p == infinity.infinity:
             return RR(max([abs(i) for i in coeffs]))
 
         p = sage.rings.integer.Integer(p)  # because we'll do 1/p below.
@@ -3198,14 +3457,6 @@ cdef class Polynomial_generic_dense(Polynomial):
     def __nonzero__(self):
         return len(self.__coeffs) > 0
 
-    def __hash__(self):
-        if len(self.__coeffs) > 1:
-            return hash(tuple(self.__coeffs))
-        elif len(self.__coeffs) == 1:
-            return hash(self[0])
-        else:
-            return 0
-
     cdef void __normalize(self):
         x = self.__coeffs
         cdef Py_ssize_t n = len(x) - 1
@@ -3213,6 +3464,12 @@ cdef class Polynomial_generic_dense(Polynomial):
 #        while n > 0 and x[n] == 0:
             del x[n]
             n -= 1
+
+    # you may have to replicate this boilerplate code in derived classes if you override
+    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
+    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
+    def __hash__(self):
+        return self._hash_c()
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)

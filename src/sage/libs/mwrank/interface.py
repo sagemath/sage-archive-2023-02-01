@@ -81,6 +81,7 @@ class mwrank_EllipticCurve(SageObject):
             ArithmeticError: Invariants (= [0, 0, 0, 0, 0]) do not describe an elliptic curve.
         """
         # import here to save time during startup (mwrank takes a while to init)
+
         from sage.libs.mwrank.mwrank import _Curvedata
 
         if not isinstance(ainvs, list) and len(ainvs) <= 5:

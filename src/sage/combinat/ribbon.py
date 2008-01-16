@@ -20,7 +20,16 @@ import sage.combinat.misc as misc
 import sage.combinat.skew_tableau
 import sage.combinat.word as word
 import sage.combinat.permutation as permutation
+import sage.combinat.partition as partition
+import sage.combinat.skew_tableau
+import sage.combinat.skew_partition
+import sage.rings.integer
 from combinat import CombinatorialClass, CombinatorialObject
+
+SkewTableau   = sage.combinat.skew_tableau.SkewTableau
+from_expr     = sage.combinat.skew_tableau.from_expr
+SkewPartition = sage.combinat.skew_partition.SkewPartition
+Integer       = sage.rings.integer.Integer
 
 def Ribbon(r):
     """
@@ -54,6 +63,11 @@ class Ribbon_class(CombinatorialObject):
             2
         """
         return len(self)
+
+    def spin(self):
+        """
+        """
+        return Integer(self.height()-1)/2
 
     def width(self):
         """
@@ -346,6 +360,22 @@ class RibbonTableaux_shapeweightlength(CombinatorialClass):
 
 
 
+def list(skp, weight, length):
+    if skp in partition.Partitions():
+        skp = partition.Partition(skp)
+        skp = SkewPartition([skp, skp.rcore(length)])
+    else:
+        skp = SkewPartition(skp)
+
+    #skp_expr = skp.to_expr()
+
+    if skp.size() != length*sum(weight):
+        raise ValueError
+
+    return map(lambda x: from_expr( [skp[1], x[1]]), graph_implementation_rec(skp, weight, length, list_rec))
+
+
+
 
 
 
@@ -357,11 +387,12 @@ def insertion_tableau(skp, perm, evaluation, tableau, length):
 
     INPUT:
         skp -- skew partitions
-        perm, eval -- non-negative integers
+        perm, evaluation -- non-negative integers
         tableau -- skew tableau
         length -- integer
 
     """
+    print "insertion_tableau(%s, %s, %s, %s, %s)"%(skp, perm, evaluation, tableau, length)
     psave = skp[1]
     partc = skp[1] + [0]*(len(skp[0])-len(skp[1]))
 
@@ -385,6 +416,7 @@ def insertion_tableau(skp, perm, evaluation, tableau, length):
     for k in range(len(perm)):
         if perm[ -(k+1) ] !=0:
             #tableau ... = evaluation
+            tableau[len(tableau)-len(perm)+k-1][ spk[0][len(perm)-k] - skp[1][ len(perm)-k ] ] = evaluation
             pass
 
     return SkewTableau(expr=[psave.conjugate(),tableau]).conjugate()
@@ -400,12 +432,13 @@ def list_rec(nexts, current, part, weight, length):
         weight -- non-negative integer list
         length -- integer
     """
+    print "list_rec(%s, %s, %s, %s, %s)"%(nexts, current, part, weight, length)
     if current == [] and nexts == [] and weight == []:
         return [part[1],[]]
 
     ## Test if the current nodes is not an empty node
     if current == []:
-        return None
+        return []
 
 
     ## Test if the current nodes drive us to new solutions
@@ -437,35 +470,36 @@ def list_rec(nexts, current, part, weight, length):
 
 
 
-def graph_implementation_rec(skp, weight, lenth, function):
+def graph_implementation_rec(skp, weight, length, function):
+    print "graph_implementation_rec(%s, %s, %s, %s)"%(skp, weight, length, function)
 
     if sum(weight) == 0:
         weight = []
 
-    partp = Partition(part[1]).conjugate()
+    partp = partition.Partition(skp[1]).conjugate()
 
     ## Some tests in order to know if the shape and the weight are compatible.
     if weight != [] and weight[-1] <= len(partp):
-        perms = Permutations([0]*(len(partp)-weight[-1]) + [length]*(weight[-1]).list())
+        perms = permutation.Permutations([0]*(len(partp)-weight[-1]) + [length]*(weight[-1])).list()
     else:
         return function([], [], part, weight, length)
 
     selection = []
 
-    for j in range(perms):
-        retire = [(partp[i]+ len(partp) - (i+1) - perms[j][i]) for i in range(partp)]
+    for j in range(len(perms)):
+        retire = [(partp[i]+ len(partp) - (i+1) - perms[j][i]) for i in range(len(partp))]
         retire.sort(reverse=True)
         retire = [ retire[i] - len(partp) + (i+1) for i in range(len(retire))]
 
         if retire[-1] >= 0 and retire == [i for i in reversed(sorted(retire))]:
-            retire = Partition(filter(lambda x: x != 0, retire)).conjugate()
+            retire = partition.Partition(filter(lambda x: x != 0, retire)).conjugate()
 
 
             # Cutting branches if the retired partition has a line strictly included into the inner one
             append = True
-            padded_retire = retire + [0]*(len(part[1])-len(retire))
-            for k in range(len(part[1])):
-                if padded_retire[k] - part[1][k] < 0:
+            padded_retire = retire + [0]*(len(skp[1])-len(retire))
+            for k in range(len(skp[1])):
+                if padded_retire[k] - skp[1][k] < 0:
                     append = False
                     break
             if append:
@@ -481,7 +515,7 @@ def graph_implementation_rec(skp, weight, lenth, function):
         #The recursive calls permit us to construct the list of the sons
         #of all current nodes in selection
         a = [graph_implementation_rec([p[0], part[1]], [weight[i]]*(len(weight)-1), length, function) for p in selection]
-        return function(a, selection, part, weight, length)
+        return function(a, selection, skp, weight, length)
 
 
 

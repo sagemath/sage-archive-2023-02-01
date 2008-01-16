@@ -62,7 +62,24 @@ def parse_color(info, base=None):
 
 
 class Texture_class(SageObject):
+    """
+    We create a translucent texture:
 
+        sage: from sage.plot.plot3d.texture import Texture
+        sage: t = Texture(opacity=0.6)
+        sage: t
+        <class 'sage.plot.plot3d.texture.Texture_class'>
+        sage: t.opacity
+        0.600000000000000
+        sage: t.jmol_str('obj')
+        'color obj translucent 0.4 [102,102,255]'
+        sage: t.mtl_str()
+        'newmtl texture2\nKa 0.2 0.2 0.5\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1\nd 0.600000000000000'
+        sage: t.tachyon_str()
+        'Texdef texture2\n  Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 0.600000000000000\n   Color 0.4 0.4 1.0\n   TexFunc 0'
+        sage: t.x3d_str()
+        "<Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance>"
+    """
     def __init__(self, id, color=(.4, .4, 1), opacity=1, ambient=0.5, diffuse=1, specular=0, shininess=1, **kwds):
         self.id = id
 

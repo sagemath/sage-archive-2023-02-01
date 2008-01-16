@@ -85,7 +85,6 @@ class FractionFieldElement(field_element.FieldElement):
             raise ArithmeticError, "unable to reduce because lack of gcd or quo_rem algorithm"
         except TypeError, s:
             raise ArithmeticError, "unable to reduce because gcd algorithm doesn't work on input"
-
         except NotImplementedError, s:
             raise ArithmeticError, "unable to reduce because gcd algorithm not implemented on input"
 
@@ -345,9 +344,49 @@ class FractionFieldElement(field_element.FieldElement):
             raise TypeError, "denominator must equal 1"
 
     def __pow__(self, right):
-        return FractionFieldElement(self.parent(),
-                                    self.__numerator**right,
-                                    self.__denominator**right, coerce=False, reduce=False)
+        r"""
+        Returns self raise to the right^{th} power.
+
+        Note that we need to check whether or not right is negative so we
+        don't set __numerator or __denominator to an element of the
+        fraction field instead of the underlying ring.
+
+        EXAMPLES:
+            sage: R = QQ['x','y']
+            sage: FR = R.fraction_field()
+            sage: x,y = FR.gens()
+            sage: a = x^2; a
+            x^2
+            sage: type(a.numerator())
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
+            sage: type(a.denominator())
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
+            sage: a = x^(-2); a
+            1/x^2
+            sage: type(a.numerator())
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
+            sage: type(a.denominator())
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
+            sage: x^0
+            1
+            sage: ((x+y)/(x-y))^2
+            (x^2 + 2*x*y + y^2)/(x^2 - 2*x*y + y^2)
+            sage: ((x+y)/(x-y))^-2
+            (x^2 - 2*x*y + y^2)/(x^2 + 2*x*y + y^2)
+            sage: ((x+y)/(x-y))^0
+            1
+        """
+        if right == 0:
+            return FractionFieldElement(self.parent(), 1, 1, reduce=False)
+        elif right > 0:
+            return FractionFieldElement(self.parent(),
+                                        self.__numerator**right,
+                                        self.__denominator**right, coerce=False, reduce=False)
+        else:
+            right = -right
+            return FractionFieldElement(self.parent(),
+                                        self.__denominator**right,
+                                        self.__numerator**right, coerce=False, reduce=False)
 
     def __neg__(self):
         return FractionFieldElement(self.parent(), -self.__numerator, self.__denominator,

@@ -6,7 +6,6 @@ AUTHORS:
    David Joyner  -- degree, base_ring, _contains_, list, random, order
                     methods; examples (2006-03-15)
    William Stein (2006-12) -- rewrite
-   DJ (2007-12) -- Added invariant_generators (with M Albrecht, S King)
 
 This class is designed for computing with matrix groups defined by a
 relatively (small) finite set of generating matrices.
@@ -54,7 +53,6 @@ Loading and saving work:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-
 
 from matrix_group_element import MatrixGroupElement
 from sage.groups.group import Group
@@ -663,80 +661,6 @@ class MatrixGroup_gens(MatrixGroup_gap):
         """
         gens = ', '.join([latex(x) for x in self.gens()])
         return '\\left\\langle %s \\right\\rangle'%gens
-
-    def invariant_generators(self):
-        """
-        Wraps Singular's invariant_algebra_reynolds and invariant_ring
-        in finvar.lib, with help from Simon King and Martin Albrecht.
-        Computes generators for the polynomial ring F[x1,...,xn]^G, where
-        G in GL(n,F) is a finite matrix group.
-
-        In the "good characteristic" case the polynomials returned form a
-        minimal generating set for the algebra of G-invariant polynomials.
-        In the "bad" case, the polynomials returned are primary and
-        secondary invariants, forming a not necessarily minimal generating
-        set for the algebra of G-invariant polynomials.
-
-        EXAMPLES:
-            sage: F = GF(7); MS = MatrixSpace(F,2,2)
-            sage: gens = [MS([[0,1],[-1,0]]),MS([[1,1],[2,3]])]
-            sage: G = MatrixGroup(gens)
-            sage: G.invariant_generators()
-            [x1^7*x2 - x1*x2^7, x1^12 - 2*x1^9*x2^3 - x1^6*x2^6 + 2*x1^3*x2^9 + x2^12, x1^18 + 2*x1^15*x2^3 + 3*x1^12*x2^6 + 3*x1^6*x2^12 - 2*x1^3*x2^15 + x2^18]
-            sage: q = 4; a = 2
-            sage: MS = MatrixSpace(QQ, 2, 2)
-            sage: gen1 = [[1/a,(q-1)/a],[1/a, -1/a]]; gen2 = [[1,0],[0,-1]]; gen3 = [[-1,0],[0,1]]
-            sage: G = MatrixGroup([MS(gen1),MS(gen2),MS(gen3)])
-            sage: G.order()
-            12
-            sage: G.invariant_generators()
-            [x1^2 + 3*x2^2, x1^6 + 15*x1^4*x2^2 + 15*x1^2*x2^4 + 33*x2^6]
-            sage: F = GF(5); MS = MatrixSpace(F,2,2)
-            sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[-1,1]])]
-            sage: G = MatrixGroup(gens)
-            sage: G.invariant_generators()  ## takes a long time (several mins)
-            [x1^20 + x1^16*x2^4 + x1^12*x2^8 + x1^8*x2^12 + x1^4*x2^16 + x2^20,
- x1^20*x2^4 + x1^16*x2^8 + x1^12*x2^12 + x1^8*x2^16 + x1^4*x2^20]
-
-
-        AUTHORS:
-           David Joyner, Simon King and Martin Albrecht.
-
-        REFERENCES:
-          1. Singular reference manual
-          2. B. Sturmfels, "Algorithms in invariant theory", Springer-Verlag,
-             1993.
-          3. S. King, "Minimal Generating Sets of non-modular invariant
-             rings of finite groups", arXiv:math.AC/0703035
-
-        """
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.interfaces.singular import singular
-        gens = self.gens()
-        n = len((gens[0].matrix()).rows())
-        F = self.base_ring()
-        q = F.characteristic()
-        singular.LIB("finvar.lib")
-        VarNames=','.join(('x%s'%(i+1) for i in range(n)))
-        R = singular.ring(q,'(%s)'%VarNames,'dp')
-        A = [singular.matrix(n,n,str((x.matrix()).list())) for x in gens]
-        #print singular(A)
-        Lgens = ','.join((x.name() for x in A))
-        # REMARK: This is simpler than making a loop and cutting of the last ','
-        #print "A: ",A,"\n Lgens: ",Lgens
-        PR = PolynomialRing(F,n,["x%s"%i for i in range(1,n+1)])
-        #singular.eval('matrix P,S,IS=invariant_ring((%s))'%Lgens)
-        if q == 0 or (q > 0 and self.order()%q != 0):
-            ReyName = singular._next_var_name()
-            singular.eval('list %s=group_reynolds((%s))'%(ReyName,Lgens))
-            IRName = singular._next_var_name()
-            singular.eval('matrix %s = invariant_algebra_reynolds(%s[1])'%(IRName,ReyName))
-            return [PR(singular(IRName+'[1,%s]'%n)) for n in range(1,1+singular('ncols('+IRName+')'))]
-        if self.order()%q == 0:
-            PName = singular._next_var_name()
-            SName = singular._next_var_name()
-            singular.eval('matrix %s,%s=invariant_ring(%s)'%(PName,SName,Lgens))
-            return [PR(singular(PName+'[1,%s]'%n)) for n in range(1,1+singular('ncols('+PName+')'))]+[PR(singular(SName+'[1,%s]'%n)) for n in range(2,1+singular('ncols('+SName+')'))]
 
 class MatrixGroup_gens_finite_field(MatrixGroup_gens, MatrixGroup_gap_finite_field):
     pass

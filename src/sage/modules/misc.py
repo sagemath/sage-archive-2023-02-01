@@ -14,18 +14,18 @@ AUTHORS:
 
 from sage.matrix.constructor import matrix
 
-def gramm_schmidt(B):
+def gram_schmidt(B):
     """
-    Return the Gramm-Schmidt orthogonalization of the entries in the list
-    B of vectors, along with the matrix mu of Gramm-Schmidt coefficients.
+    Return the Gram-Schmidt orthogonalization of the entries in the list
+    B of vectors, along with the matrix mu of Gram-Schmidt coefficients.
 
     Note that the output vectors need not have unit length. We do this
     to avoid having to extract square roots.
 
     EXAMPLES:
         sage: B = [vector([1,2,1/5]), vector([1,2,3]), vector([-1,0,0])]
-        sage: from sage.modules.misc import gramm_schmidt
-        sage: G, mu = gramm_schmidt(B)
+        sage: from sage.modules.misc import gram_schmidt
+        sage: G, mu = gram_schmidt(B)
         sage: G
         [(1, 2, 1/5), (-1/9, -2/9, 25/9), (-4/5, 2/5, 0)]
         sage: G[0] * G[1]

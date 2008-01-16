@@ -87,6 +87,8 @@ class SymmetricFunctionAlgebraElement_elementary(classical.SymmetricFunctionAlge
             x0^3 + 3*x0^2*x1 + 3*x0*x1^2 + x1^3
             sage: e([3]).expand(2)
             0
+            sage: e([2]).expand(3)
+            x0*x1 + x0*x2 + x1*x2
         """
         e = eval('symmetrica.compute_' + str(classical.translate[self.parent().basis_name()]).lower() + '_with_alphabet')
         resPR = PolynomialRing(self.parent().base_ring(), n, alphabet)

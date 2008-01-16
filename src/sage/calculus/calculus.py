@@ -294,6 +294,8 @@ infixops = {operator.add: '+',
             operator.div: '/',
             operator.pow: '^'}
 
+arc_functions =  ['asin', 'acos', 'atan', 'asinh', 'acosh', 'atanh', 'acoth', 'asech', 'acsch', 'acot', 'acsc', 'asec']
+
 
 def is_SymbolicExpression(x):
     """
@@ -572,6 +574,12 @@ class SymbolicExpression(RingElement):
             self = self.simplify()
         s = self._maxima_().display2d(onscreen=False)
         s = s.replace('%pi',' pi').replace('%i',' I').replace('%e', ' e')
+
+        #Change asin, etc. to arcsin, etc
+        for arc_function in arc_functions:
+            s = s.replace("  "+arc_function, "arc"+arc_function[1:])
+            s = s.replace(arc_function, "arc"+arc_function[1:])
+
         if onscreen:
             print s
         else:
@@ -2936,7 +2944,7 @@ class SymbolicExpression(RingElement):
                                                 log(5)
             sage: print a.imag()
                                                      4
-                                                atan(-)
+                                              arctan(-)
                                                      3
 
         Now make a and b symbolic and compute the general real part:
@@ -2971,7 +2979,7 @@ class SymbolicExpression(RingElement):
             (a, b)
             sage: f = log(a + b*I)
             sage: f.imag()
-            atan(b/a)
+            arctan(b/a)
         """
         return self.parent()(self._maxima_().imag())
 
@@ -5049,7 +5057,7 @@ class SymbolicComposition(SymbolicOperation):
             1.00374187319732
             sage: RealField(100)(coth(pi))
             1.0037418731973212882015526912
-            sage: RealField(200)(acos(1/10))
+            sage: RealField(200)(arccos(1/10))
             1.4706289056333368228857985121870581235299087274579233690964
         """
         f = self._operands[0]
@@ -5732,7 +5740,7 @@ class Function_arccosh(PrimitiveFunction):
 
     EXAMPLES:
         sage: arccosh(1/2)
-        acosh(1/2)
+        arccosh(1/2)
         sage: arccosh(1 + I*1.0)
         0.904556894302381*I + 1.061275061905036
 

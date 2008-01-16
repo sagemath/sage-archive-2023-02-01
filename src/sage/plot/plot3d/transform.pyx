@@ -190,12 +190,12 @@ def rotate_arbitrary(v, double theta):
             sage: vy = sqrt(1-vx^2-vz^2)
 
         Now we rotate about the $x$-axis so $v$ is in the $xy$-plane.
-            sage: t = atan(vy/vz)+pi/2
+            sage: t = arctan(vy/vz)+pi/2
             sage: m = rotX(t)
             sage: new_y = vy*cos(t) - vz*sin(t)
 
         And rotate about the $z$ axis so $v$ lies on the $x$ axis.
-            sage: s = atan(vx/new_y) + pi/2
+            sage: s = arctan(vx/new_y) + pi/2
             sage: m = rotZ(s) * m
 
         Rotating about $v$ in our old system is the same as rotating

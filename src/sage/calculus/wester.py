@@ -250,7 +250,7 @@ sage: print a
 
 sage: # (YES) Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0
 sage: # Yes, in that the thing is clearly not equal to 0!
-sage: f = log(tan(x/2 + pi/4)) - asin(tan(x))
+sage: f = log(tan(x/2 + pi/4)) - arcsin(tan(x))
 sage: bool(f == 0)
 False
 sage: [float(f(i/10)) for i in range(1,5)]           # random low order bits
@@ -310,7 +310,7 @@ sage: print a.real()
                                     log(5)
 sage: print a.imag()
                                          4
-                                    atan(-)
+                                  arctan(-)
                                          3
 
 sage: # (YES) Obtain real and imaginary parts of Tan(x+I*y)

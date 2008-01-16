@@ -473,50 +473,50 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
 
     # Trig functions
-    def acos(self):
+    def arccos(self):
         """
         EXAMPLES:
-            sage: (1+CC(I)).acos()
+            sage: (1+CC(I)).arccos()
             0.904556894302381 - 1.06127506190504*I
         """
         return self._parent(self._pari_().acos())
 
-    def acosh(self):
+    def arccosh(self):
         """
         EXAMPLES:
-            sage: (1+CC(I)).acosh()
+            sage: (1+CC(I)).arccosh()
             1.06127506190504 + 0.904556894302381*I
         """
         return self._parent(self._pari_().acosh())
 
-    def asin(self):
+    def arcsin(self):
         """
         EXAMPLES:
-            sage: (1+CC(I)).asin()
+            sage: (1+CC(I)).arcsin()
             0.666239432492515 + 1.06127506190504*I
         """
         return self._parent(self._pari_().asin())
 
-    def asinh(self):
+    def arcsinh(self):
         """
         EXAMPLES:
-            sage: (1+CC(I)).asinh()
+            sage: (1+CC(I)).arcsinh()
             1.06127506190504 + 0.666239432492515*I
         """
         return self._parent(self._pari_().asinh())
 
-    def atan(self):
+    def arctan(self):
         """
         EXAMPLES:
-            sage: (1+CC(I)).atan()
+            sage: (1+CC(I)).arctan()
             1.01722196789785 + 0.402359478108525*I
         """
         return self._parent(self._pari_().atan())
 
-    def atanh(self):
+    def arctanh(self):
         """
         EXAMPLES:
-            sage: (1+CC(I)).atanh()
+            sage: (1+CC(I)).arctanh()
             0.402359478108525 + 1.01722196789785*I
         """
         return self._parent(self._pari_().atanh())

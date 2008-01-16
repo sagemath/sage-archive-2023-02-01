@@ -80,7 +80,7 @@ def integral(f, *args, **kwds):
 
         sage: print integral(x/(x^3-1), x)
                                          2 x + 1
-                       2            atan(-------)
+                       2          arctan(-------)
                   log(x  + x + 1)        sqrt(3)    log(x - 1)
                 - --------------- + ------------- + ----------
                          6             sqrt(3)          3

@@ -2416,14 +2416,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     # int mpfr_sin_cos (mpfr_t rop, mpfr_t op, mpfr_t, mp_rnd_t rnd)
 
-    def acos(self):
+    def arccos(self):
         """
         Returns the inverse cosine of this number
 
         EXAMPLES:
             sage: q = RR.pi()/3
             sage: i = q.cos()
-            sage: i.acos() == q
+            sage: i.arccos() == q
             True
         """
         cdef RealNumber x
@@ -2433,16 +2433,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def asin(self):
+    def arcsin(self):
         """
         Returns the inverse sine of this number
 
         EXAMPLES:
             sage: q = RR.pi()/5
             sage: i = q.sin()
-            sage: i.asin() == q
+            sage: i.arcsin() == q
             True
-            sage: i.asin() - q
+            sage: i.arcsin() - q
             0.000000000000000
         """
         cdef RealNumber x
@@ -2452,13 +2452,15 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def atan(self):
+    def arctan(self):
         """
         Returns the inverse tangent of this number
 
         EXAMPLES:
             sage: q = RR.pi()/5
             sage: i = q.tan()
+            sage: i.arctan() == q
+            True
         """
         cdef RealNumber x
         x = self._new()
@@ -2567,7 +2569,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return 1/self.cos()
 
-    def acosh(self):
+    def arccosh(self):
         """
         Returns the hyperbolic inverse cosine of this number
 
@@ -2575,6 +2577,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: q = RR.pi()/2
             sage: i = q.cosh() ; i
             2.50917847865806
+            sage: q == i.arccosh()
+            True
         """
         cdef RealNumber x
         x = self._new()
@@ -2583,7 +2587,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def asinh(self):
+    def arcsinh(self):
         """
         Returns the hyperbolic inverse sine of this number
 
@@ -2591,7 +2595,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: q = RR.pi()/7
             sage: i = q.sinh() ; i
             0.464017630492991
-            sage: i.asinh() - q
+            sage: i.arcsinh() - q
             0.000000000000000
         """
         cdef RealNumber x
@@ -2601,7 +2605,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def atanh(self):
+    def arctanh(self):
         """
         Returns the hyperbolic inverse tangent of this number
 
@@ -2609,7 +2613,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: q = RR.pi()/7
             sage: i = q.tanh() ; i
             0.420911241048535
-            sage: i.atanh() - q
+            sage: i.arctanh() - q
             0.000000000000000
         """
         cdef RealNumber x

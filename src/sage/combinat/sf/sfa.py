@@ -457,7 +457,7 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
     def theta(self,a):
         """
         Returns the image of self under the theta automorphism
-        which sends p[k] to a*p[k].
+        which sends $p[k]$ to $a*p[k]$.
 
         EXAMPLES:
             sage: s = SFASchur(QQ)
@@ -475,7 +475,7 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
     def theta_qt(self,q,t):
         """
         Returns the image of self under the theta automorphism
-        which sends p[k] to (1-q^k)/(1-t^k)*p[k].
+        which sends $p[k]$ to $(1-q^k)/(1-t^k)*p[k]$.
 
         EXAMPLES:
             sage: QQqt = QQ['q,t'].fraction_field()

@@ -345,7 +345,7 @@ class FractionFieldElement(field_element.FieldElement):
 
     def __pow__(self, right):
         r"""
-        Returns self raise to the $right^{th}$ power.
+        Returns self raised to the $right^{th}$ power.
 
         Note that we need to check whether or not right is negative so we
         don't set __numerator or __denominator to an element of the

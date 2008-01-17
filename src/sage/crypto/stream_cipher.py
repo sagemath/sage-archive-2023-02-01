@@ -1,3 +1,6 @@
+"""
+Stream Ciphers
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
@@ -11,14 +14,14 @@ from cipher import SymmetricKeyCipher
 from sage.monoids.string_monoid_element import StringMonoidElement
 
 class LFSRCipher(SymmetricKeyCipher):
-    """
-    LFSR cipher class
-    """
     def __init__(self, parent, poly, IS):
         """
-        Create a LFSR cipher.
+        Create a linear feedback shift register (LFSR) cipher.
 
-        INPUT: Parent, connection polynomial, and initial state
+        INPUT:
+            parent -- parent
+            poly -- connection polynomial
+            IS -- initial state
 
         EXAMPLES:
             sage: FF = FiniteField(2)
@@ -55,6 +58,23 @@ class LFSRCipher(SymmetricKeyCipher):
         SymmetricKeyCipher.__init__(self, parent, key = (poly, IS))
 
     def __call__(self, M, mode = "ECB"):
+        r"""
+        Generate key stream from the binary string \code{M}.
+
+        INPUT:
+            M -- a StringMonoidElement
+            mode -- ignored (default: 'ECB')
+
+        EXAMPLE:
+            sage: k = GF(2)
+            sage: P.<x> = PolynomialRing( k )
+            sage: LFSR = LFSRCryptosystem( k )
+            sage: e = LFSR((x^2+x+1,[k(0), k(1)]))
+            sage: B = e.domain()
+            sage: m = B.encoding('The cat in the hat.')
+            sage: e(m)
+            00111001110111101011111001001101110101011011101000011001100101101011001000000011100101101010111100000101110100111111101100000101110101111010111101000011
+        """
         B = self.domain() # = plaintext_space = ciphertext_space
         if not isinstance(M, StringMonoidElement) and M.parent() == B:
             raise TypeError, "Argument M (= %s) must be a string in the plaintext space." % M
@@ -68,25 +88,40 @@ class LFSRCipher(SymmetricKeyCipher):
     def connection_polynomial(self):
         """
         The connection polynomial defining the LFSR of the cipher.
+
+        EXAMPLE:
+            sage: k = GF(2)
+            sage: P.<x> = PolynomialRing( k )
+            sage: LFSR = LFSRCryptosystem( k )
+            sage: e = LFSR((x^2+x+1,[k(0), k(1)]))
+            sage: e.connection_polynomial()
+            x^2 + x + 1
         """
         return self.key()[0]
 
     def initial_state(self):
         """
         The initial state of the LFSR cipher.
+
+        EXAMPLE:
+            sage: k = GF(2)
+            sage: P.<x> = PolynomialRing( k )
+            sage: LFSR = LFSRCryptosystem( k )
+            sage: e = LFSR((x^2+x+1,[k(0), k(1)]))
+            sage: e.initial_state()
+            [0, 1]
         """
         return self.key()[1]
 
 class ShrinkingGeneratorCipher(SymmetricKeyCipher):
-    """
-    A shrinking generator cipher.
-    """
-
     def __init__(self, parent, e1, e2):
         """
         Create a shrinking generator cipher.
 
-        INPUT: Parent, key stream cipher, decimation cipher
+        INPUT:
+            parent -- parent
+            poly -- connection polynomial
+            IS -- initial state
 
         EXAMPLES:
             sage: FF = FiniteField(2)
@@ -110,17 +145,48 @@ class ShrinkingGeneratorCipher(SymmetricKeyCipher):
     def keystream_cipher(self):
         """
         The LFSR cipher generating the output key stream.
+
+        EXAMPLE:
+            sage: FF = FiniteField(2)
+            sage: P.<x> = PolynomialRing(FF)
+            sage: LFSR = LFSRCryptosystem(FF)
+            sage: IS_1 = [ FF(a) for a in [0,1,0,1,0,0,0] ]
+            sage: e1 = LFSR((x^7 + x + 1,IS_1))
+            sage: IS_2 = [ FF(a) for a in [0,0,1,0,0,0,1,0,1] ]
+            sage: e2 = LFSR((x^9 + x^3 + 1,IS_2))
+            sage: E = ShrinkingGeneratorCryptosystem()
+            sage: e = E((e1,e2))
+	    sage: e.keystream_cipher()
+            (x^7 + x + 1, [0, 1, 0, 1, 0, 0, 0])
         """
         return self.key()[0]
 
     def decimating_cipher(self):
         """
         The LFSR cipher generating the decimating key stream.
+
+        EXAMPLE:
+            sage: FF = FiniteField(2)
+            sage: P.<x> = PolynomialRing(FF)
+            sage: LFSR = LFSRCryptosystem(FF)
+            sage: IS_1 = [ FF(a) for a in [0,1,0,1,0,0,0] ]
+            sage: e1 = LFSR((x^7 + x + 1,IS_1))
+            sage: IS_2 = [ FF(a) for a in [0,0,1,0,0,0,1,0,1] ]
+            sage: e2 = LFSR((x^9 + x^3 + 1,IS_2))
+            sage: E = ShrinkingGeneratorCryptosystem()
+            sage: e = E((e1,e2))
+	    sage: e.decimating_cipher()
+            (x^9 + x^3 + 1, [0, 0, 1, 0, 0, 0, 1, 0, 1])
         """
         return self.key()[1]
 
     def __call__(self, M, mode = "ECB"):
         r"""
+
+        INPUT:
+            M -- a StringMonoidElement
+            mode -- ignored (default: 'ECB')
+
         EXAMPLES:
             sage: FF = FiniteField(2)
             sage: P.<x> = PolynomialRing(FF)

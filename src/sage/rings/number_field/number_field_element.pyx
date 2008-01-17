@@ -601,6 +601,25 @@ cdef class NumberFieldElement(FieldElement):
         """
         return self.number_field().complex_embeddings(prec)[i](self)
 
+    def is_totally_positive(self):
+        """
+        Returns True if self is positive for all real embeddings of
+        its parent number field.  We do nothing at complex places,
+        so e.g. any element of a totally complex number field will return
+        True.
+
+        EXAMPLES:
+            sage: F.<b> = NumberField(x^3-3*x-1)
+            sage: b.is_totally_positive()
+            False
+            sage: (b^2).is_totally_positive()
+            True
+        """
+        for v in self.number_field().real_embeddings():
+            if v(self) <= 0:
+                return False
+        return True
+
     def is_square(self, root=False):
         """
         Return True if self is a square in its parent number field and

@@ -4726,6 +4726,12 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_off
         return n
 
+    def polsturm_full(self):
+        _sig_on
+        n = sturmpart(self.g, NULL, NULL)
+        _sig_off
+        return n
+
     def polsylvestermatrix(self, g):
         t0GEN(g)
         _sig_on

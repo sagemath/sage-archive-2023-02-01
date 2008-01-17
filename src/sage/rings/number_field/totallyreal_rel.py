@@ -33,97 +33,6 @@ from sage.libs.pari.gen import pari
 import math, numpy, bisect, sys
 from numpy.linalg import inv
 
-#***********************************************************************************************
-# Supplementary algorithm to enumerate lattice points
-#***********************************************************************************************
-
-def integral_elements_in_box(F, C):
-    r"""
-    """
-    d = F.degree()
-    Z_F = F.maximal_order()
-    Foo = F.real_embeddings()
-    B = Z_F.reduced_basis
-
-    L = numpy.array([ [v(b) for b in B] for v in Foo])
-    Linv = numpy.linalg.inv(L)
-    Vi = [[C[0][0]],[C[0][1]]]
-    for i in range(1,d):
-        Vi = sum([ [v + [C[i][0]], v + [C[i][1]]] for v in Vi], [])
-    V = numpy.matrix(Linv)*(numpy.matrix(Vi).transpose())
-    j = 0
-    while j < 2**d:
-        for i in range(d):
-            if V[i,j] < V[i,j+1]:
-                V[i,j] = math.floor(V[i,j])
-                V[i,j+1] = math.ceil(V[i,j+1])
-            else:
-                V[i,j] = math.ceil(V[i,j])
-                V[i,j+1] = math.floor(V[i,j+1])
-        j += 2
-    W0 = (Linv*numpy.array([Vi[0]]*d)).transpose()
-    W = (Linv*numpy.array([Vi[2**i] for i in range(d)])).transpose()
-    for j in range(d):
-        for i in range(d):
-            if W[i,j] < W0[i,j]:
-                W[i,j] = math.floor(W[i,j])
-                W0[i,j] = math.ceil(W0[i,j])
-            else:
-                W[i,j] = math.ceil(W[i,j])
-                W0[i,j] = math.floor(W0[i,j])
-    M = [[int(V[i,j]) for i in range(V.shape[0])] for j in range(V.shape[1])]
-    M += [[int(W0[i,j]) for j in range(W0.shape[0])] for i in range(W0.shape[0])]
-    M += [[int(W[i,j]) for j in range(W.shape[1])] for i in range(W.shape[0])]
-
-    from sage.matrix.constructor import matrix
-    M = (matrix(IntegerRing(),len(M),len(M[0]), M).transpose()).columns()
-
-    i = 0
-    while i < len(M):
-        j = i+1
-        while j < len(M):
-            if M[i] == M[j]:
-                M.pop(j)
-            else:
-                j += 1
-        i += 1
-
-    from sage.geometry.lattice_polytope import LatticePolytope
-    P = LatticePolytope(matrix(M).transpose())
-    S = []
-
-    try:
-        pts = P.points().transpose()
-    except ValueError:
-        return []
-
-    for p in pts:
-        theta = sum([ p.list()[i]*B[i] for i in range(d)])
-        inbounds = True
-        for i in range(d):
-            inbounds = inbounds and Foo[i](theta) >= C[i][0] and Foo[i](theta) <= C[i][1]
-        if inbounds:
-            S.append(theta)
-    return S
-
-def integral_elements_with_trace(F, C):
-    r"""
-    """
-    Z_F = F.maximal_order()
-    B = Z_F.reduced_basis
-    T = Z_F.T
-    P = T.qfminim((C[1]**2)*(1./2), 10**6)[2]
-
-    S = []
-    for p in P:
-        theta = sum([ p.list()[i]*B[i] for i in range(F.degree())])
-        if theta.trace() >= C[0] and theta.trace() <= C[1]:
-            inbounds = True
-            for v in F.real_embeddings():
-                inbounds = inbounds and v(theta) > 0
-            if inbounds:
-                S.append(F(theta))
-    return S
 
 r"""
 def integral_elements_with_trace(F, C):
@@ -233,11 +142,12 @@ class tr_data_rel:
         self.trace_elts = []
 
         Z_Fbasis = self.Z_F.basis()
-        from sage.matrix.constructor import matrix
-        M = matrix(IntegerRing(),self.d,self.d, [[(x*y).trace() for x in Z_Fbasis] for y in Z_Fbasis])
-        T = pari(M).qflllgram()
-        self.Z_F.reduced_basis = [sum([T[i][j].__int__()*Z_Fbasis[j] for j in range(self.d)]) for i in range(self.d)]
-        self.Z_F.T = pari(matrix(IntegerRing(),self.d,self.d, [[(x*y).trace() for x in self.Z_F.reduced_basis] for y in self.Z_F.reduced_basis]))
+##        from sage.matrix.constructor import matrix
+##        M = matrix(IntegerRing(),self.d,self.d, [[(x*y).trace() for x in Z_Fbasis] for y in Z_Fbasis])
+##        T = pari(M).qflllgram()
+        T = self.LLL_gram_matrix()
+##        self.Z_F.reduced_basis = [sum([T[i][j].__int__()*Z_Fbasis[j] for j in range(self.d)]) for i in range(self.d)]
+##        self.Z_F.T = pari(matrix(IntegerRing(),self.d,self.d, [[(x*y).trace() for x in self.Z_F.reduced_basis] for y in self.Z_F.reduced_basis]))
 
         # Initialize variables.
         if a == []:
@@ -249,15 +159,15 @@ class tr_data_rel:
                 for j in range(len(anm1s)):
                     anm1s[j] = [ anm1s[j] + [i] for i in range(m)]
                 anm1s = sum(anm1s, [])
-            anm1s = [sum([self.Z_F.basis()[i]*a[i] for i in range(self.d)]) for a in anm1s]
+            anm1s = [sum([Z_Fbasis()[i]*a[i] for i in range(self.d)]) for a in anm1s]
             # Minimize trace in class.
             for i in range(len(anm1s)):
-                Q = [ [ v(m*x) for v in self.Foo] + [0] for x in self.Z_F.basis()] + [[v(anm1s[i]) for v in self.Foo] + [10**6]]
+                Q = [ [ v(m*x) for v in self.Foo] + [0] for x in Z_Fbasis()] + [[v(anm1s[i]) for v in self.Foo] + [10**6]]
                 Q = str(numpy.array(Q).transpose())
                 Q = Q.replace(']\n [',';').replace('\n ', '').replace(' ', ',')
                 Q = Q[1:len(Q)-1]
                 adj = pari(Q).qflll()[self.d]
-                anm1s[i] += sum([m*self.Z_F.basis()[i]*adj[i].__int__()//adj[self.d].__int__() for i in range(self.d)])
+                anm1s[i] += sum([m*Z_Fbasis()[i]*adj[i].__int__()//adj[self.d].__int__() for i in range(self.d)])
 
             self.amaxvals[m-1] = anm1s
             self.a[m-1] = self.amaxvals[m-1].pop()

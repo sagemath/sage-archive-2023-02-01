@@ -55,7 +55,7 @@ def coefficients_to_power_sums(n, m, a):
 import os, math
 from sage.combinat.combinat import partitions_list
 
-def __lagrange_bounds_phc(n, m, a):
+def __lagrange_bounds_phc(n, m, a, tmpfile='/tmp/phc_tr'):
     r"""
     This function determines the bounds on the roots in
     the enumeration of totally real fields via Lagrange multipliers.
@@ -81,6 +81,17 @@ def __lagrange_bounds_phc(n, m, a):
 
     AUTHORS:
     - John Voight (2007-09-19)
+
+    EXAMPLES:
+        sage: __lagrange_bounds_phc(3,5,[8,1,2,0,1],tmpfile='phc') # optional
+        /usr/local/bin/phc
+        []
+        sage: __lagrange_bounds_phc(3,2,[8,1,2,0,1],tmpfile='phc') # optional
+        /usr/local/bin/phc
+        [-1.3333333333333299, 1.72983526722515e-16]
+        sage: __lagrange_bounds_phc(3,1,[8,1,2,0,1],tmpfile='phc') # optional
+        /usr/local/bin/phc
+        []
     """
 
     # Compute power sums.
@@ -92,7 +103,7 @@ def __lagrange_bounds_phc(n, m, a):
         raise RuntimeError, "PHCpack not installed."
 
     # Initialization.
-    f = open('/tmp/phc_tr.phc', 'w')
+    f = open(tmpfile + '.phc', 'w')
     f.close()
     x = [0]*m
 
@@ -104,7 +115,7 @@ def __lagrange_bounds_phc(n, m, a):
     # Therefore we must solve the implied equations for each partition of n-1
     # into m-1 parts.
     for P in partitions_list(n-1,m-1):
-        f = open('/tmp/phc_tr', 'w')
+        f = open(tmpfile, 'w')
         # First line: number of variables/equations
         f.write('%d'%m + '\n')
         # In the next m-1 lines, write the equation S_j(x) = S[j]
@@ -114,9 +125,9 @@ def __lagrange_bounds_phc(n, m, a):
             f.write('xn**%d'%j + ' - (%d'%S[j] + ');\n')
         f.close()
 
-        os.remove('/tmp/phc_tr.phc')
-        os.popen('phc -b /tmp/phc_tr /tmp/phc_tr.phc')
-        f = open('/tmp/phc_tr.phc', 'r')
+        os.remove(tmpfile + '.phc')
+        os.popen('phc -b ' + tmpfile + ' ' + tmpfile + '.phc')
+        f = open(tmpfile + '.phc', 'r')
         f_str = f.read()
         pos = f_str.find('real regular')
         crits = []

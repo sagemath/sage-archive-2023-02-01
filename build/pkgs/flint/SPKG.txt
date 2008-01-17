@@ -1,6 +1,9 @@
 Upstream maintainer: Bill Heart
 Website: www.flintlib.org
 
+=== flint-1.05.p0 (Michael Abshoff, January 17th, 2008) ===
+ * disable mandatory check
+
 === flint-1.05 (Michael Abshoff) ===
  * update to FLINT 1.05
 

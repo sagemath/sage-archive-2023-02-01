@@ -1,1 +1,5 @@
-Updated the rpy package using trac #1427
+=== r-2.6.1.p8 (Michael Abshoff, Jan. 17th. 2008)  ===
+ * bump version due to python now builf with ucs4
+
+=== r-2.6.1.p7 ===
+ * Updated the rpy package using trac #1427

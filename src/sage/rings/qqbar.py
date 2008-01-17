@@ -1827,7 +1827,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         Note that for odd n and negative real numbers, AlgebraicReal
         and AlgebraicNumber values give different answers: AlgebraicReal
         values prefer real results, and AlgebraicNumber values
-        return the principle root.
+        return the principal root.
 
         EXAMPLES:
             sage: AA(-8).nth_root(3)
@@ -2132,10 +2132,10 @@ class AlgebraicNumber(AlgebraicNumber_base):
     def __pow__(self, e):
         """
         self^p returns the p'th power of self (where p can be an arbitrary
-        rational).  If p is (a/b), takes the principle b'th root of self,
+        rational).  If p is (a/b), takes the principal b'th root of self,
         then takes that to the a'th power.  (Note that this differs
         from __pow__ on algebraic reals, where real roots are preferred
-        over principle roots if they exist.)
+        over principal roots if they exist.)
 
         EXAMPLES:
             sage: QQbar(2)^(1/2)
@@ -2456,7 +2456,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         and b is odd, it takes the real b'th root; if self is odd and
         b is even, this takes a complex root.  Note that the behavior
         when self is negative and b is odd differs from the complex
-        case; algebraic numbers select the principle complex b'th
+        case; algebraic numbers select the principal complex b'th
         root, but algebraic reals select the real root.
 
         EXAMPLES:

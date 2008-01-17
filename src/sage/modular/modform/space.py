@@ -883,7 +883,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         For a space M of modular forms, this function returns an integer B
         such that two modular forms in either self or M are equal if and only
         if their q-expansions are equal to precision B (note that this is
-        1+ the usual Sturm bound, since O(q^prec) has precision prec).  If M
+        1+ the usual Sturm bound, since $O(q^{prec})$ has precision prec).  If M
         is none, then M is set equal to self.
 
         EXAMPLES:

@@ -1,3 +1,4 @@
+* upgraded to sympy-0.5.11
 * upgraded to sympy-0.5.7
 * added a script for getting a hg version
 * added a script for downloading the upstream sources, creating the src dir

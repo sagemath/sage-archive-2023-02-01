@@ -1,5 +1,5 @@
 """
-3d list plots
+List Plots
 """
 
 from sage.matrix.all import is_Matrix, matrix

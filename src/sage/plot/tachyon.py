@@ -1,5 +1,29 @@
 r"""
-3D Plotting Using Tachyon
+The Tachyon 3D Ray Tracer
+
+Given any 3D graphics object one can compute a raytraced representation by typing
+\code{show(viewer='tachyon')}.  For example, we draw two translucent spheres that
+contain a red tube, and render the result using Tachyon.
+
+    sage: S = sphere(opacity=0.8, aspect_ratio=[1,1,1])
+    sage: L = line3d([(0,0,0),(2,0,0)], thickness=10, color='red')
+    sage: M = S + S.translate((2,0,0)) + L
+    sage: M.show(viewer='tachyon')
+
+One can also directly control Tachyon, which gives a huge amount of
+flexibility.  For example, here we directly use Tachyon to draw 3 spheres
+on the coordinate axes.  Notice that the result is gorgeous:
+
+    sage: t = Tachyon(xres=500,yres=500, camera_center=(2,0,0))
+    sage: t.light((4,3,2), 0.2, (1,1,1))
+    sage: t.texture('t2', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(1,0,0))
+    sage: t.texture('t3', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(0,1,0))
+    sage: t.texture('t4', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(0,0,1))
+    sage: t.sphere((0,0.5,0), 0.2, 't2')
+    sage: t.sphere((0.5,0,0), 0.2, 't3')
+    sage: t.sphere((0,0,0.5), 0.2, 't4')
+    sage: t.show()
+
 
 AUTHOR:
     -- John E. Stone (johns@megapixel.com): wrote tachyon ray tracer
@@ -52,18 +76,6 @@ class Tachyon(SageObject):
     not oriented according to the right hand rule.
 
     EXAMPLES:
-    Three spheres on the coordinate axes:
-
-        sage: t = Tachyon(xres=500,yres=500, camera_center=(2,0,0))
-        sage: t.light((4,3,2), 0.2, (1,1,1))
-        sage: t.texture('t2', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(1,0,0))
-        sage: t.texture('t3', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(0,1,0))
-        sage: t.texture('t4', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(0,0,1))
-        sage: t.sphere((0,0.5,0), 0.2, 't2')
-        sage: t.sphere((0.5,0,0), 0.2, 't3')
-        sage: t.sphere((0,0,0.5), 0.2, 't4')
-        sage: t.show()
-
     Sphere's along the twisted cubic.
         sage: t = Tachyon(xres=512,yres=512, camera_center=(3,0.3,0))
         sage: t.light((4,3,2), 0.2, (1,1,1))

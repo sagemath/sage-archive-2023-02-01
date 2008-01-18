@@ -1,31 +1,33 @@
 """
-3d Parametric Plots
+Parametric Plots
 """
 
 from parametric_surface import ParametricSurface
 from shapes2 import line3d
 from texture import Texture
+from sage.plot.misc import ensure_subs
 
 def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
-    """
+    r"""
     Return a parametric three-dimensional space curve or surface.
 
-    INPUTS:
     There are four ways to call this function:
-        * parametric_plot3d([f_x, f_y, f_z], (u_min, u_max)):
-          f_x, f_y, f_z are three functions and u_min and u_max
+    \begin{itemize}
+        \item \code{parametric_plot3d([f_x, f_y, f_z], (u_min, u_max))}:\\
+          $f_x, f_y, f_z$ are three functions and $u_{\min}$ and $u_{\max}$
           are real numbers
 
-        * parametric_plot3d([f_x, f_y, f_z], (u, u_min, u_max))
-          f_x, f_y, f_z can be viewed as functions of u
+        \item \code{parametric_plot3d([f_x, f_y, f_z], (u, u_min, u_max))}:\\
+          $f_x, f_y, f_z$ can be viewed as functions of $u$
 
-        * parametric_plot3d([f_x, f_y, f_z], (u_min, u_max), (v_min, v_max))
-          f_x, f_y, f_z are each functions of two variables
+        \item \code{parametric_plot3d([f_x, f_y, f_z], (u_min, u_max), (v_min, v_max))}:\\
+          $f_x, f_y, f_z$ are each functions of two variables
 
-        * parametric_plot3d([f_x, f_y, f_z], (u, u_min, u_max), (v, v_min, v_max))
-          f_x, f_y, f_z can be viewed as functions of u and v
+        \item \code{parametric_plot3d([f_x, f_y, f_z], (u, u_min, u_max), (v, v_min, v_max))}: \\
+          $f_x, f_y, f_z$ can be viewed as functions of $u$ and $v$
+    \end{itemize}
 
-    The INPUTS are as follows:
+    INPUT:
         f -- a 3-tuple of functions or expressions
         urange -- a 2-tuple (u_min, u_max) or a 3-tuple (u, u_min, u_max)
         vrange -- (optional -- only used for surfaces) a 2-tuple (u_min, u_max)
@@ -36,35 +38,39 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
                        and a pair of integers for a surface.
 
     NOTES:
-      * By default for a curve any points where f_x, f_y, or f_z do
+    \begin{enumerate}
+      \item By default for a curve any points where f_x, f_y, or f_z do
         not evaluate to a real number are skipped.
-      * Currently for a surface f_x, f_y, and f_z have to be defined
+      \item Currently for a surface f_x, f_y, and f_z have to be defined
         everywhere. This will change.
+    \end{enumerate}
 
     EXAMPLES:
     We demonstrate each of the four ways to call this function.
-
-        1. A space curve defined by three functions of 1 variable:
+    \begin{enumerate}
+        \item A space curve defined by three functions of 1 variable:
             sage: parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20))
 
         Note above the lambda function, which creates a callable Python function
         that sends u to u/10.
 
-        2. Next we draw the same plot as above, but using symbolic functions:
+        \item Next we draw the same plot as above, but using symbolic functions:
             sage: u = var('u')
             sage: parametric_plot3d( (sin(u), cos(u), u/10), (u, 0, 20))
 
-        3. We draw a parametric surface using 3 Python functions (defined using
+        \item We draw a parametric surface using 3 Python functions (defined using
            lambda):
             sage: f = (lambda u,v: cos(u), lambda u,v: sin(u)+cos(v), lambda u,v: sin(v))
             sage: parametric_plot3d(f, (0, 2*pi), (-pi, pi))
 
-        4. The same surface, but where the defining functions are symbolic:
+        \item The same surface, but where the defining functions are symbolic:
             sage: u, v = var('u,v')
             sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi))
 
         We increase the number of plot points, and make the surface green and transparent:
             sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), color='green', opacity=0.1, plot_points=[30,30])
+
+    \end{enumerate}
 
     We call the space curve function but with polynomials instead of
     symbolic variables.
@@ -131,6 +137,9 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
     return G
 
 def parametric_plot3d_curve(f, urange, plot_points, **kwds):
+    r"""
+    This function is used internally by the \code{parametric_plot3d} command.
+    """
     from sage.plot.plot import var_and_list_of_values
     plot_points = int(plot_points)
     u, vals = var_and_list_of_values(urange, plot_points)
@@ -158,6 +167,9 @@ def parametric_plot3d_curve(f, urange, plot_points, **kwds):
     return line3d(w, **kwds)
 
 def parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds):
+    r"""
+    This function is used internally by the \code{parametric_plot3d} command.
+    """
     if not isinstance(plot_points, (list, tuple)) or len(plot_points) != 2:
         raise ValueError, "plot_points must be a tuple of length 2"
     points0, points1 = plot_points
@@ -187,9 +199,3 @@ def parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds):
         return (float(f_x(x,y)), float(f_y(x,y)), float(f_z(x,y)))
 
     return ParametricSurface(g, (u_vals, v_vals), **kwds)
-
-def ensure_subs(f):
-    if not hasattr(f, 'subs'):
-        from sage.calculus.all import SR
-        return SR(f)
-    return f

@@ -1,5 +1,5 @@
 r"""
-Functions for 3d plotting with the new graphics model.
+Plotting Functions.
 
 EXAMPLES:
     sage: def f(x,y):
@@ -35,10 +35,11 @@ AUTHOR:
     -- Joshua Kantor: adaptive refinement triangles
     -- Robert Bradshaw 2007-08: initial version of this file
     -- William Stein 2007-12, 2008-01: improving 3d plotting
-
-TODO:
-    -- smooth triangles
 """
+
+
+#TODO:
+#    -- smooth triangles
 
 #*****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -109,7 +110,7 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
     """
     Adaptive 3d plotting of a function of two variables.
 
-    INPUTS:
+    INPUT:
         f -- a symbolic function or a Python function of 3 variables.
         x_range -- x range of values: 2-tuple (xmin, xmax) or 3-tuple (x,xmin,xmax)
         y_range -- y range of values: 2-tuple (ymin, ymax) or 3-tuple (y,ymin,ymax)

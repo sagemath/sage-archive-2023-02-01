@@ -1,13 +1,18 @@
 r"""
-Methods for creating the five platonic solids.
+Platonic Solids.
 
 EXAMPLES:
 The five platonic solids in a row;
-    sage: G = tetrahedron((0,-3.5,0), color='blue') + cube((0,-2,0),color=(.25,0,.5)) + octahedron(color='red') + dodecahedron((0,2,0), color='orange') + icosahedron(center=(0,4,0), color='yellow')
+    sage: G = tetrahedron((0,-3.5,0), color='blue') + cube((0,-2,0),color=(.25,0,.5)) +\
+          octahedron(color='red') + dodecahedron((0,2,0), color='orange') +\
+          icosahedron(center=(0,4,0), color='yellow')
     sage: G.show(aspect_ratio=[1,1,1])
 
 All the platonic solids in the same place:
-    sage: G = tetrahedron(color='blue',opacity=0.7) + cube(color=(.25,0,.5), opacity=0.7) + octahedron(color='red', opacity=0.7) + dodecahedron(color='orange', opacity=0.7) + icosahedron(opacity=0.7)
+    sage: G = tetrahedron(color='blue',opacity=0.7) + \
+          cube(color=(.25,0,.5), opacity=0.7) +\
+          octahedron(color='red', opacity=0.7) + \
+          dodecahedron(color='orange', opacity=0.7) + icosahedron(opacity=0.7)
     sage: G.show(aspect_ratio=[1,1,1])
 
 Display nice faces only:
@@ -70,7 +75,7 @@ def tetrahedron(center=(0,0,0), size=1, **kwds):
     """
     A 3d tetrahedron.
 
-    INPUTS:
+    INPUT:
         center -- (default: (0,0,0))
         size -- (default: 1)
         color -- a word that describes a color
@@ -113,16 +118,18 @@ def tetrahedron(center=(0,0,0), size=1, **kwds):
 
 def cube(center=(0,0,0), size=1, color=None, frame_thickness=0, frame_color=None, **kwds):
     """
-    A 3d cube centered at the origin with default side lengths 1.
+    A 3D cube centered at the origin with default side lengths 1.
 
-    INPUTS:
+    INPUT:
         center -- (default: (0,0,0))
         size -- (default: 1) the side lengths of the cube
-        color -- a string that describes a color; this can also be a list of 3-tuples or
-                 strings length 6 or 3, in which case the faces (and oppositive faces)
-                 are colored.
-        frame_thickness -- (default: 0) if positive, then thickness of the frame
-        frame_color -- (default: None) if given, gives the color of the frame
+        color -- a string that describes a color; this can also be a
+                 list of 3-tuples or strings length 6 or 3, in which
+                 case the faces (and oppositive faces) are colored.
+        frame_thickness -- (default: 0) if positive, then thickness of
+                 the frame
+        frame_color -- (default: None) if given, gives the color of
+                 the frame
         opacity -- (default: 1) if less than 1 then is transparent
 
     EXAMPLES:
@@ -139,17 +146,20 @@ def cube(center=(0,0,0), size=1, color=None, frame_thickness=0, frame_color=None
         sage: cube(color=['red', 'green', 'blue'], opacity=0.5)
 
     A bunch of random cubes:
-        sage: sum([cube((10*random(), 10*random(), 10*random()), size=random()/3, color=(random(),random(), random())) for _ in [1..30]])
+        sage: v = [(random(), random(), random()) for _ in [1..30]]
+        sage: sum([cube((10*a,10*b,10*c), size=random()/3, color=(a,b,c)) for a,b,c in v])
 
     Non-square cubes (boxes):
         sage: cube(aspect_ratio=[1,1,1]).scale([1,2,3])
         sage: cube(color=['red', 'blue', 'green'],aspect_ratio=[1,1,1]).scale([1,2,3])
 
     And one that is colored:
-        sage: cube(color=['red', 'blue', 'green', 'black', 'white', 'orange'], aspect_ratio=[1,1,1]).scale([1,2,3])
+        sage: cube(color=['red', 'blue', 'green', 'black', 'white', 'orange'], \
+                  aspect_ratio=[1,1,1]).scale([1,2,3])
 
     A nice translucent color cube with a frame:
-        sage: c = cube(color=['red', 'blue', 'green'], frame=False, frame_thickness=2, frame_color='brown', opacity=0.8)
+        sage: c = cube(color=['red', 'blue', 'green'], frame=False, frame_thickness=2, \
+                       frame_color='brown', opacity=0.8)
         sage: c
 
     A raytraced color cube with frame and transparency:
@@ -172,32 +182,33 @@ def cube(center=(0,0,0), size=1, color=None, frame_thickness=0, frame_color=None
     return prep(B, center, size, kwds)
 
 def octahedron(center=(0,0,0), size=1, **kwds):
-    """
+    r"""
     Return an octahedron.
 
-    INPUTS:
+    INPUT:
         center -- (default: (0,0,0))
         size -- (default: 1)
-        color -- a string that describes a color; this can also be a list of 3-tuples or
-                 strings length 6 or 3, in which case the faces (and oppositive faces)
-                 are colored.
+        color -- a string that describes a color; this can also be a
+                 list of 3-tuples or strings length 6 or 3, in which
+                 case the faces (and oppositive faces) are colored.
         opacity -- (default: 1) if less than 1 then is transparent
 
     EXAMPLES:
-        sage: octahedron((1,4,3), color='orange') + octahedron((0,2,1), size=2, opacity=0.6)
+        sage: octahedron((1,4,3), color='orange') + \
+                     octahedron((0,2,1), size=2, opacity=0.6)
     """
     return prep(Box(1,1,1).dual(**kwds), center, size, kwds)
 
 def dodecahedron(center=(0,0,0), size=1, **kwds):
-    """
+    r"""
     A dodecahedron.
 
-    INPUTS:
+    INPUT:
         center -- (default: (0,0,0))
         size -- (default: 1)
-        color -- a string that describes a color; this can also be a list of 3-tuples or
-                 strings length 6 or 3, in which case the faces (and oppositive faces)
-                 are colored.
+        color -- a string that describes a color; this can also be a
+                 list of 3-tuples or strings length 6 or 3, in which
+                 case the faces (and oppositive faces) are colored.
         opacity -- (default: 1) if less than 1 then is transparent
 
     EXAMPLES:
@@ -205,7 +216,8 @@ def dodecahedron(center=(0,0,0), size=1, **kwds):
         sage: dodecahedron()
 
     A translucent dodecahedron that contains a black sphere:
-        sage: dodecahedron(color='orange', opacity=0.8) + sphere(size=0.5, color='black')
+        sage: dodecahedron(color='orange', opacity=0.8) + \
+              sphere(size=0.5, color='black')
 
     CONSTRUCTION:
         This is how we construct a dodecahedron.   We let one point be $Q = (0,1,0)$.
@@ -222,7 +234,9 @@ def dodecahedron(center=(0,0,0), size=1, **kwds):
 
         $P_3 = \left(-\frac{1}{2}t, \frac{\sqrt{3}}{2}t, \sqrt{1-t^2}\right)$
 
-        $Solving $\frac{(P_1-Q) \cdot (P_2-Q)}{|P_1-Q||P_2-Q|} = \cos(3\pi/5)$ we get $t = 2/3$.
+
+        Solving $\frac{(P_1-Q) \cdot (P_2-Q)}{|P_1-Q||P_2-Q|} =
+        \cos(3\pi/5)$ we get $t = 2/3$.
 
         Now we have 6 points $R_1, ..., R_6$ to close the three top pentagons.
         These can be found by mirroring $P_2$ and $P_3$ by the $yz$-plane and
@@ -278,21 +292,22 @@ def dodecahedron(center=(0,0,0), size=1, **kwds):
 
 
 def icosahedron(center=(0,0,0), size=1, **kwds):
-    """
+    r"""
     An icosahedron.
 
-    INPUTS:
+    INPUT:
         center -- (default: (0,0,0))
         size -- (default: 1)
-        color -- a string that describes a color; this can also be a list of 3-tuples or
-                 strings length 6 or 3, in which case the faces (and oppositive faces)
-                 are colored.
+        color -- a string that describes a color; this can also be a
+                 list of 3-tuples or strings length 6 or 3, in which
+                 case the faces (and oppositive faces) are colored.
         opacity -- (default: 1) if less than 1 then is transparent
 
     EXAMPLES:
         sage: icosahedron()
 
     Two icosahedrons at different positions of different sizes.
-        sage: icosahedron((-1/2,0,1), color='orange') + icosahedron((2,0,1), size=1/2, aspect_ratio=[1,1,1])
+        sage: icosahedron((-1/2,0,1), color='orange') + \
+              icosahedron((2,0,1), size=1/2, aspect_ratio=[1,1,1])
     """
     return prep(dodecahedron().dual(**kwds), center, size, kwds)

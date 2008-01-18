@@ -103,7 +103,19 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         return self.str(10)
 
     def __hash__(self):
-        return hash(self.str())
+        """
+        Returns the hash of self, which coincides with the python
+        complex and float (and often int) types.
+
+        This has the drawback that two very close high precision
+        numbers will have the same hash, but allows them to play
+        nicely with other real types.
+
+        EXAMPLE:
+            sage: hash(CC(1.2, 33)) == hash(complex(1.2, 33))
+            True
+        """
+        return hash(complex(self))
 
     def __getitem__(self, i):
         if i == 0:

@@ -20,14 +20,13 @@ TESTS:
 
 from sage.structure.element cimport ModuleElement, RingElement, Vector, Element
 
-from sage.rings.real_double cimport RealDoubleElement
-from sage.rings.real_double import new_RealDoubleElement
-
 cimport free_module_element
 import  free_module_element
 
 cimport complex_double_vector
 import  complex_double_vector
+
+from sage.rings.real_double cimport RealDoubleElement
 
 import sage.rings.complex_double
 
@@ -168,7 +167,7 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         if not self.v or i < 0 or i >=self.v.size:
             raise IndexError, 'index out of range'
         else:
-            x = new_RealDoubleElement()
+            x = <RealDoubleElement>PY_NEW(RealDoubleElement)
             x._value = gsl_vector_get(self.v,i)
             return x
 
@@ -204,7 +203,7 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
             sage: w*v
             1.0
         """
-        cdef RealDoubleElement y = new_RealDoubleElement()
+        cdef RealDoubleElement y = <RealDoubleElement>PY_NEW(RealDoubleElement)
         y._value = 0
         cdef unsigned int i
         for i from 0 <= i < self.v.size:

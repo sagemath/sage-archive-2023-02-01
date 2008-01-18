@@ -261,6 +261,17 @@ class Constant(Function):
         self._conversions = conversions
         RingElement.__init__(self, parent)
 
+    def number_of_arguments(self):
+        """
+        Returns the number of arguments of this constant, viewed as a function.
+        This is of course always 0.
+
+        EXAMPLES:
+            sage: pi.number_of_arguments()
+            0
+        """
+        return 0
+
     # The maxima one is special:
     def _maxima_(self, session=None):
         """

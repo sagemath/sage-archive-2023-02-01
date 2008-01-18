@@ -100,6 +100,40 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
         sage: k = 1.2; k_2 = 1.2; a = 1.5
         sage: f = (k^u*(1+cos(v))*cos(u), k^u*(1+cos(v))*sin(u), k^u*sin(v)-a*k_2^u)
         sage: parametric_plot3d(f, (u,0,6*pi), (v,0,2*pi), plot_points=[40,40], texture=(0,0.5,0))
+
+    A M\"obius strip:
+        sage: u,v = var("u,v")
+        sage: parametric_plot3d([cos(u)*(1+v*cos(u/2)), sin(u)*(1+v*cos(u/2)), 0.2*v*sin(u/2)], (u,0, 4*pi+0.5), (v,0, 0.3),plot_points=[50,50])
+
+    A Twisted Ribon
+        sage: u, v = var('u,v')
+        sage: parametric_plot3d([3*sin(u)*cos(v), 3*sin(u)*sin(v), cos(v)], (u,0, 2*pi), (v, 0, pi),plot_points=[50,50])
+
+    An Ellipsoid:
+        sage: u, v = var('u,v')
+        sage: parametric_plot3d([3*sin(u)*cos(v), 2*sin(u)*sin(v), cos(u)], (u,0, 2*pi), (v, 0, 2*pi),plot_points=[50,50], aspect_ratio=[1,1,1])
+
+    A Cone:
+        sage: u, v = var('u,v')
+        sage: parametric_plot3d([u*cos(v), u*sin(v), u], (u, -1, 1), (v, 0, 2*pi+0.5), plot_points=[50,50])
+
+    A Paraboloid:
+        sage: u, v = var('u,v')
+        sage: parametric_plot3d([u*cos(v), u*sin(v), u^2], (u, 0, 1), (v, 0, 2*pi+0.4), plot_points=[50,50])
+
+    A Hyperboloid:
+        sage: u, v = var('u,v')
+        sage: plot3d(u^2-v^2, (u, -1, 1), (v, -1, 1), plot_points=[50,50])
+
+    A weird looking surface - like a M\"obius band but also an O:
+        sage: u, v = var('u,v')
+        sage: parametric_plot3d([sin(u)*cos(u)*log(u^2)*sin(v), (u^2)^(1/6)*(cos(u)^2)^(1/4)*cos(v), sin(v)], (u, 0.001, 1), (v, -pi, pi+0.2), plot_points=[50,50])
+
+    A heart, but not a cardioid (for my wife):
+        sage: u, v = var('u,v')
+        sage: p1 = parametric_plot3d([sin(u)*cos(u)*log(u^2)*v*(1-v)/2, ((u^6)^(1/20)*(cos(u)^2)^(1/4)-1/2)*v*(1-v), v^(0.5)], (u, 0.001, 1), (v, 0, 1), plot_points=[70,70], color='red')
+        sage: p2 = parametric_plot3d([-sin(u)*cos(u)*log(u^2)*v*(1-v)/2, ((u^6)^(1/20)*(cos(u)^2)^(1/4)-1/2)*v*(1-v), v^(0.5)], (u, 0.001, 1), (v, 0, 1), plot_points=[70,70], color='red')
+        sage: show(p1+p2, frame=False)
     """
     # TODO:
     #   * Surface -- behavior of functions not defined everywhere -- see note above

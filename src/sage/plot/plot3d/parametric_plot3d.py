@@ -30,8 +30,8 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
     INPUT:
         f -- a 3-tuple of functions or expressions
         urange -- a 2-tuple (u_min, u_max) or a 3-tuple (u, u_min, u_max)
-        vrange -- (optional -- only used for surfaces) a 2-tuple (u_min, u_max)
-                  or a 3-tuple (u, u_min, u_max)
+        vrange -- (optional -- only used for surfaces) a 2-tuple (v_min, v_max)
+                  or a 3-tuple (v, v_min, v_max)
         plot_points -- (default: "automatic", which is 75 for curves and
                        [15,15] for surfaces) initial number of sample
                        points in each parameter; an integer for a curve,
@@ -181,6 +181,12 @@ def parametric_plot3d_curve(f, urange, plot_points, **kwds):
     fail = 0
 
     if u is None:
+        try:
+            f, u, v = adapt_if_symbolic(f)
+        except TypeError:
+            pass
+
+    if u is None:
         f_x, f_y, f_z = f
         for t in vals:
             try:
@@ -212,6 +218,12 @@ def parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds):
     u, u_vals = var_and_list_of_values(urange, int(points0))
     v, v_vals = var_and_list_of_values(vrange, int(points1))
 
+    if u is None and v is None:
+        try:
+            f, u, v = adapt_if_symbolic(f)
+        except TypeError:
+            pass
+
     if u is None:
         if not v is None:
             raise ValueError, "both ranges must specify a variable or neither must"
@@ -233,3 +245,30 @@ def parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds):
         return (float(f_x(x,y)), float(f_y(x,y)), float(f_z(x,y)))
 
     return ParametricSurface(g, (u_vals, v_vals), **kwds)
+
+
+
+def adapt_if_symbolic(f):
+    """
+    If f is symbolic find the variables u, v to substitute into f.
+    Otherwise raise a TypeError.
+
+    This function is used internally by the plot commands for
+    efficiency reasons only.
+    """
+    from sage.calculus.calculus import is_SymbolicExpression, SR
+    if sum([is_SymbolicExpression(a) for a in f]) > 0:
+        g = [SR(a) for a in f]
+        vars = list(set(sum([list(a.variables()) for a in g], [])))
+        vars.sort()
+        if len(vars) > 0:
+            u = vars[0]
+            if len(vars) > 1:
+                v = vars[1]
+            else:
+                v = None
+            return g, u, v
+        else:
+            g = [lambda x: float(a) for a in g]
+            return g, None, None
+

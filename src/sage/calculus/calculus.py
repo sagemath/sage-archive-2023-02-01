@@ -5316,7 +5316,7 @@ class Function_ceil(PrimitiveFunction):
       1) x.ceil() method is called and returned if it is there.
          If it is not, then Sage checks if x is one of Python's
          native numeric data types.  If so, then it calls
-         and returns Integer(math.ceil(x)).
+         and returns Integer(int(math.ceil(x))).
       2) Sage tries to convert x into a RealIntervalField.  The
          ceilings of the endpoints are computed.  If they are the same,
          then that value is returned.  Otherwise, the precision of
@@ -5370,7 +5370,7 @@ class Function_ceil(PrimitiveFunction):
             return x.ceil()
         except AttributeError:
             if isinstance(x, (float, int, long, complex)):
-                return Integer(math.ceil(x))
+                return Integer(int(math.ceil(x)))
 
         #If x can be coerced into a real interval, then we should
         #try increasing the number of bits of precision until
@@ -5410,7 +5410,7 @@ class Function_floor(PrimitiveFunction):
       1) x.floor() method is called and returned if it is there.
          If it is not, then Sage checks if x is one of Python's
          native numeric data types.  If so, then it calls
-         and returns Integer(math.floor(x)).
+         and returns Integer(int(math.floor(x))).
       2) Sage tries to convert x into a RealIntervalField.  The
          floors of the endpoints are computed.  If they are the same,
          then that value is returned.  Otherwise, the precision of
@@ -5453,7 +5453,7 @@ class Function_floor(PrimitiveFunction):
             return x.floor()
         except AttributeError:
             if isinstance(x, (float, int, long, complex)):
-                return Integer(math.floor(x))
+                return Integer(int(math.floor(x)))
 
         #If x can be coerced into a real interval, then we should
         #try increasing the number of bits of precision until

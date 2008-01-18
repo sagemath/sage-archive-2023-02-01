@@ -501,23 +501,30 @@ class Maxima(Expect):
     def _before(self):
         return self._expect.before
 
-    def _batch(self, str, batchload=True):
-        F = open(self._local_tmpfile(), 'w')
-        F.write(str)
+    def _batch(self, s, batchload=True):
+        filename = '%s-%s'%(self._local_tmpfile(),randrange(2147483647))
+        F = open(filename, 'w')
+        F.write(s)
         F.close()
-        tmp_to_use = self._local_tmpfile()
         if self.is_remote():
-            self._send_tmpfile_to_server()
+            self._send_tmpfile_to_server(local_file=filename)
             tmp_to_use = self._remote_tmpfile()
+        tmp_to_use = filename
 
         if batchload:
             cmd = 'batchload("%s");'%tmp_to_use
         else:
             cmd = 'batch("%s");'%tmp_to_use
+
+        r = randrange(2147483647)
+        s = str(r+1)
+        cmd = "%s1+%s;\n"%(cmd,r)
+
         self._sendline(cmd)
-        self._expect_expr()
+        self._expect_expr(s)
         out = self._before()
         self._error_check(str, out)
+        os.unlink(filename)
         return out
 
     def _error_check(self, str, out):
@@ -540,6 +547,9 @@ class Maxima(Expect):
         self._synchronize()
 
         if len(line) > self.__eval_using_file_cutoff:
+	    # This implicitly uses the set method, then displays the result of the thing that was set.
+            # This only works when the input line is an expression.   But this is our only choice, since
+            # batchmode doesn't display expressions to screen.
             a = self(line)
             return repr(a)
         else:

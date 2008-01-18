@@ -440,7 +440,11 @@ class SymbolicExpressionRing_class(CommutativeRing):
         return Integer(0)
 
     def _an_element_impl(self):
-        return SymbolicVariable('_generic_variable_name_')
+        try:
+            return self.__zero
+        except AttributeError:
+            self.__zero = SR(0)
+        return self.__zero
 
     def is_field(self):
         return True

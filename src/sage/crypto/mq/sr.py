@@ -113,10 +113,8 @@ def SR(n=1,r=1,c=1,e=4, star=False, **kwargs):
         postfix -- a string which is appended after the variable name (default: '')
         allow_zero_inversions -- a boolean to controll whether zero inversions raise
                                  an exception (default: False)
-
-    ADDITIONAL INPUT FOR GF(2):
-        correct_only -- only include correct inversion polynomials (default: False)
-        biaffine_only -- only include bilinear and biaffine inversion polynomials (default: True)
+        correct_only -- only include correct inversion polynomials (default: False, GF2 only)
+        biaffine_only -- only include bilinear and biaffine inversion polynomials (default: True, GF2 only)
 
     EXAMPLES:
         sage: sr = mq.SR(1,1,1,4)
@@ -359,7 +357,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
         EXAMPLE:
 
-           The S-Box table for GF(2^4):
+           The S-Box table for $GF(2^4)$:
 
            sage: sr = mq.SR(1,1,1,4, allow_zero_inversions=True)
            sage: for e in sr.base_ring():
@@ -2042,7 +2040,7 @@ class SR_gf2(SR_generic):
     def _square_matrix(self):
         """
         Return a matrix of dimension self.e x self.e which performs
-        the squaring operation over GF(2^n) on vectors of length e.
+        the squaring operation over $GF(2^n)$ on vectors of length e.
 
         EXAMPLE:
             sage: sr = mq.SR(gf2=True)

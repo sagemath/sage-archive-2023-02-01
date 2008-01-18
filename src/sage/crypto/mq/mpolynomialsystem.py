@@ -1,5 +1,5 @@
 """
-Multivariate Polynomial System.
+Multivariate Polynomial Systems.
 
 We call a finite set of multivariate polynomials an MPolynomialSystem.
 
@@ -9,7 +9,7 @@ is the polynomial and the right hand side is equal to zero. Or in
 other terms: The set of multivariate polynomials have common roots. In
 many other computer algebra systems this class could be called Ideal
 but -- strictly speaking -- an ideal is a very distinct object form its
-generators and thus this is not an Ideal in SAGE.
+generators and thus this is not an Ideal in \SAGE.
 
 The main purpose of this class is to manipulate an MPolynomialSystem
 to gather the common solution.
@@ -21,7 +21,7 @@ kind of systems are: SR (AES), Flurry/Curry, and CTC(2).
 
 AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 
-TESTS:
+TEST:
     sage: P.<x,y> = PolynomialRing(QQ)
     sage: I = [[x^2 + y^2], [x^2 - y^2]]
     sage: F = mq.MPolynomialSystem(P,I)
@@ -412,7 +412,6 @@ class MPolynomialRoundSystem_generic(SageObject):
             sage: F,s = sr.polynomial_system()
             sage: R1 = F.round(1)
             sage: R1._magma_() # optional, requires MAGMA
-
             Ideal of Polynomial ring of rank 20 over GF(2)
             Graded Reverse Lexicographical Order
             Variables: k100, k101, k102, k103, x100, x101, x102, x103, w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003
@@ -896,7 +895,7 @@ class MPolynomialSystem_gf2(MPolynomialSystem_generic):
 
 class MPolynomialSystem_gf2e(MPolynomialSystem_generic):
     r"""
-    MPolynomialSystem over GF(2^e).
+    MPolynomialSystem over $GF(2^e)$.
     """
 
     def change_ring(self, k):

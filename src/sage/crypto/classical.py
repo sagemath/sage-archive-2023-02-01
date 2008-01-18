@@ -87,18 +87,23 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
             sage: E = HillCryptosystem(S,3)
             sage: E
             Hill cryptosystem on Free alphabetic string monoid on A-Z of block length 3
+	    sage: M = E.key_space()
             sage: A = M([[1,0,1],[0,1,1],[2,2,3]])
 	    sage: A
 	    [1 0 1]
 	    [0 1 1]
-	    [2 3 1]
+	    [2 2 3]
 	    sage: e = E(A)
             sage: e
 	    [1 0 1]
 	    [0 1 1]
-	    [2 3 1]
-            sage: e(S("LAMAISONBLANCHE"))
-	    JKXKKAQQCLNYKTN
+	    [2 2 3]
+	    sage: m = S("LAMAISONBLANCHE")
+            sage: e(m)
+            JYVKSKQPELAYKPV
+            sage: c = e.inverse()
+            sage: c(e(m))
+	    LAMAISONBLANCHE
         """
         M = self.key_space()
         m = self.block_length()

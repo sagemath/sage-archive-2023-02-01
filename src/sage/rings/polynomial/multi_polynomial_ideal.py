@@ -1336,7 +1336,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         return groebner_fan.GroebnerFan(self, is_groebner_basis=is_groebner_basis,
                                         symmetry=symmetry, verbose=verbose)
 
-    def groebner_basis(self, algorithm=None):
+    def groebner_basis(self, algorithm=None, *args, **kwds):
         """
         Return a Groebner basis of this ideal.
 
@@ -1428,19 +1428,19 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             if self.ring().base_ring() == sage.rings.integer_ring.ZZ:
                 return self._macaulay2_groebner_basis()
             else:
-                return self._groebner_basis_using_singular("groebner")
+                return self._groebner_basis_using_singular("groebner", *args, **kwds)
         elif algorithm.startswith('singular:'):
             return self._groebner_basis_using_singular(algorithm[9:])
         elif algorithm.startswith('libsingular:'):
-            return self._groebner_basis_using_libsingular(algorithm[len('libsingular:'):])
+            return self._groebner_basis_using_libsingular(algorithm[len('libsingular:'):], *args, **kwds)
         elif algorithm == 'macaulay2:gb':
-            return self._macaulay2_groebner_basis()
+            return self._macaulay2_groebner_basis(*args, **kwds)
         elif algorithm == 'magma:GroebnerBasis':
-            return self._magma_groebner_basis()
+            return self._magma_groebner_basis(*args, **kwds)
         elif algorithm == 'toy:buchberger':
-            return toy_buchberger.buchberger(self)
+            return toy_buchberger.buchberger(self, *args, **kwds)
         elif algorithm == 'toy:buchberger2':
-            return toy_buchberger.buchberger_improved(self)
+            return toy_buchberger.buchberger_improved(self, *args, **kwds)
         else:
             raise TypeError, "algorithm '%s' unknown"%algorithm
 

@@ -5,7 +5,7 @@
 from sage.matrix.all import is_Matrix, matrix
 from sage.rings.all  import RDF
 
-def list_plot3d(v, texture="automatic", **kwds):
+def list_plot3d(v,interpolation_type='linear', texture="automatic", **kwds):
     """
     A 3-dimensional plot of a surface defined by the list v of
     points in 3-dimensional space.
@@ -36,25 +36,51 @@ def list_plot3d(v, texture="automatic", **kwds):
         sage: show(list_plot3d([[1, 1, 1, 1], [1, 2, 1, 2], [1, 1, 3, 1], [1, 2, 1, 4]]))
 
     We plot a list of points:
-        NOT IMPLEMENTED YET
+        As a first example  we can extract the (x,y,z) coordinates from the above example and
+        make a list plot out of it. By default we do linear interpolation.
+
+        sage: l=[]
+        sage: for i in range(6):
+        ...      for j in range(6):
+        ...         l.append((float(i*pi/5),float(j*pi/5),m[i,j]))
+        sage: list_plot3d(l,texture='yellow')
+
+        We can do nearest neighbor
+
+        list_plot3d(l,texture='yellow',interpolation_type='nn')
+
+        or spline
+
+        list_plot3d(l,texture='yellow',interpolation_type='spline', smoothing=20)
+
+        Note that the points do not have to be regularly sampled. For example
+
+        sage: l=[]
+        sage: T=Random()
+        sage: for i in range(-5,5)
+        ...    for j in range(-5,5)
+        ...      l.append([T.normalvariate(0,1),T.normalvariate(0,1),T.normalvariate(0,1)]
+        sage: list_plot3d(l,interpolation_type='nn',texture='yellow')
+
 
     """
+    import numpy
     if texture == "automatic":
         texture = "lightblue"
-    if is_Matrix(v):
-        return list_plot3d_matrix(v, texture=texture,  **kwds)
+    if is_Matrix(v) or type(v)=='numpy.ndarray':
+        return list_plot3d_matrix(v, interpolation_type,texture=texture,  **kwds)
     if isinstance(v, list):
         if len(v) == 0:
             # return empty 3d graphic
             from base import Graphics3d
             return Graphics3d()
         elif isinstance(v[0],tuple) and len(v[0]) == 3:
-            return list_plot3d_tuples(v, texture=texture, **kwds)
+            return list_plot3d_tuples(v,interpolation_type,texture=texture, **kwds)
         else:
             return list_plot3d_array_of_arrays(v, texture=texture, **kwds)
     raise TypeError, "v must be a matrix or list"
 
-def list_plot3d_matrix(m, texture, **kwds):
+def list_plot3d_matrix(m, interpolation_type, texture, **kwds):
     from parametric_surface import ParametricSurface
     f = lambda i,j: (i,j,float(m[int(i),int(j)]))
     G = ParametricSurface(f, (range(m.nrows()), range(m.ncols())), texture=texture, **kwds)
@@ -67,5 +93,71 @@ def list_plot3d_array_of_arrays(v, texture, **kwds):
     G._set_extra_kwds(kwds)
     return G
 
-def list_plot3d_tuples(v, texture, **kwds):
-    raise NotImplementedError
+def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
+    import delaunay
+    import numpy
+    import scipy
+    from random import random
+    from scipy import interpolate
+    ep=float(.000001)
+    x=[float(p[0])+random()*ep for p in v]
+    y=[float(p[1])+random()*ep for p in v]
+    z=[float(p[2]) for p in v]
+
+    xmin=float(min(x))
+    xmax=float(max(x))
+    ymin=float(min(y))
+    ymax=float(max(y))
+
+
+    num_points=4*len(x) #arbitrary
+
+    if interpolation_type == 'linear':
+
+        T= delaunay.Triangulation(x,y)
+        f=T.linear_interpolator(z)
+        f.default_value=0.0
+        j=numpy.complex(0,1)
+        vals=f[ymin:ymax:j*num_points,xmin:xmax:j*num_points]
+        from parametric_surface import ParametricSurface
+
+        def g(x,y):
+            i=round( (x-xmin)/(xmax-xmin)*(num_points-1) )
+            j=round( (y-ymin)/(ymax-ymin)*(num_points-1) )
+            z=vals[int(j),int(i)]
+            return (x,y,z)
+
+
+        G = ParametricSurface(g, (list(numpy.r_[xmin:xmax:num_points*j]), list(numpy.r_[ymin:ymax:num_points*j])), texture=texture, **kwds)
+        G._set_extra_kwds(kwds)
+        return G
+
+
+    if interpolation_type == 'nn':
+
+        T=delaunay.Triangulation(x,y)
+        f=T.nn_interpolator(z)
+        f.default_value=0.0
+        j=numpy.complex(0,1)
+        vals=f[ymin:ymax:j*num_points,xmin:xmax:j*num_points]
+        from parametric_surface import ParametricSurface
+        def g(x,y):
+            i=round( (x-xmin)/(xmax-xmin)*(num_points-1) )
+            j=round( (y-ymin)/(ymax-ymin)*(num_points-1) )
+            z=vals[int(j),int(i)]
+            return (x,y,z)
+
+        G = ParametricSurface(g, (list(numpy.r_[xmin:xmax:num_points*j]), list(numpy.r_[ymin:ymax:num_points*j])), texture=texture, **kwds)
+        G._set_extra_kwds(kwds)
+        return G
+
+
+
+    if interpolation_type =='spline':
+        from plot3d import plot3d
+        kx=kwds['kx'] if kwds.has_key('kx') else 3
+        ky=kwds['ky'] if kwds.has_key('ky') else 3
+        s=kwds['smoothing'] if kwds.has_key('smoothing') else len(x)-numpy.sqrt(2*len(x))
+        s=interpolate.bisplrep(x,y,z,[int(1)]*len(x),xmin,xmax,ymin,ymax,kx=kx,ky=ky,s=s)
+        f=lambda x,y: interpolate.bisplev(x,y,s)
+        return plot3d(f,(xmin,xmax),(ymin,ymax),texture=texture,plot_points=[len(x)*2,len(x)*2],**kwds)

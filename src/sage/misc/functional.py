@@ -812,9 +812,32 @@ def real(x):
         sage: z = 1+2*I
         sage: real(z)
         1
+        sage: real(5/3)
+        5/3
+        sage: a = 2.5
+        sage: real(a)
+        2.50000000000000
+        sage: type(real(a))
+        <type 'sage.rings.real_mpfr.RealNumber'>
     """
-    try: return x.real()
-    except AttributeError: return CDF(x).real()
+
+    #Try to all the .real() method
+    try:
+        return x.real()
+    except AttributeError:
+        pass
+
+    #Try to coerce x into RDF.  If that
+    #succeeds, then we can just return x
+    try:
+        rdf_x = RDF(x)
+        return x
+    except TypeError:
+        pass
+
+    #Finall try to coerce x into CDF and call
+    #the .real() method.
+    return CDF(x).real()
 
 def regulator(x):
     """

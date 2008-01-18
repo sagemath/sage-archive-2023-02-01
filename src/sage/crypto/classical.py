@@ -16,9 +16,11 @@ from sage.monoids.string_ops import strip_encoding
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.rings.integer_mod_ring import IntegerModRing
-from sage.matrix.matrix_space import MatrixSpace
+from sage.rings.arith import xgcd
 from random import randint
+from sage.matrix.matrix_space import MatrixSpace
 
 from cryptosystem import SymmetricKeyCryptosystem
 from classical_cipher import (
@@ -118,10 +120,10 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
         M = self.key_space()
 	R = M.base_ring()
         m = M.nrows()
-        N = self.cipher_domain().ngens()
+        N = Integer(self.cipher_domain().ngens())
 	while True:
-	    A = M([ randint(0,N-1) for i in range(m^2) ])
-	    if gcd(A.det(),N) == 1:
+	    A = M([ randint(0,N-1) for i in range(m**2) ])
+	    if N.gcd(A.det()) == 1:
 	        break
         return A
 
@@ -138,9 +140,18 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
             sage: c(e(M))
             LAMAISONBLANCHE
         """
-	if not A in self.key_space():
+	S = self.plaintext_space()
+	M = self.key_space()
+	if not A in M:
 	    raise TypeError, "A (= %s) must be a matrix in the key space of %s." % (A, self)
-        return A.inverse()
+	m = self.block_length()
+	MatZZ = MatrixSpace(ZZ,m)
+	AZ = MatZZ([ [ A[i,j].lift() for j in range(m) ] for i in range(m) ])
+	AZ_adj = AZ.adjoint()
+	u, r, s = xgcd(A.det().lift(),S.ngens())
+	if u != 1:
+	    raise ValueError, "Argument:\n\n%s\n\nis not invertible."%(A)
+        return r * A.parent()(AZ_adj)
 
     def encoding(self,M):
         S = self.cipher_domain()

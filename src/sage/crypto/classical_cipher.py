@@ -75,7 +75,10 @@ class HillCipher(SymmetricKeyCipher):
 
     def inverse(self):
         E = self.parent()
-	B = E.inverse_key(self.key())
+	try:
+	    B = E.inverse_key(self.key())
+	except:
+ 	    raise ValueError, "Argument\n\n%s\n\nmust be an invertible cipher." % self
 	return E(B)
 
 class SubstitutionCipher(SymmetricKeyCipher):

@@ -3134,6 +3134,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef MPolynomialRing_libsingular parent
         cdef int i
 
+        if self.base_ring().is_finite() and not self.base_ring().is_prime_field():
+            raise NotImplementedError
+
         parent = self._parent
         _ring = parent._ring
 

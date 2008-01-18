@@ -869,6 +869,22 @@ cdef class RealDoubleElement(FieldElement):
     # Special Functions
     ############################
 
+    def NaN(self):
+        """
+        EXAMPLES:
+            sage: RDF.NaN()
+            nan
+        """
+        return self(0)/self(0)
+
+    def nan(self):
+        """
+        EXAMPLES:
+            sage: RDF.nan()
+            nan
+        """
+        return self(0)/self(0)
+
     def sqrt(self, extend=True, all=False):
         """
         The square root function.

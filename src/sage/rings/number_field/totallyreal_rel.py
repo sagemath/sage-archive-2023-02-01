@@ -83,9 +83,87 @@ def integral_elements_with_trace(F, C):
     return S
 """
 
-#***********************************************************************************************
+def integral_elements_in_box(self, C):
+    r"""
+    EXAMPLES:
+        sage: K.<alpha> = NumberField(x^2-2)
+        sage: K.integral_elements_in_box([[0,5],[0,10]])
+        [0, 5, -alpha + 2, -alpha + 3, 1, 2, 3, 4, alpha + 2, alpha + 3, alpha + 4, alpha + 5, alpha + 6, 2*alpha + 3, 2*alpha + 4, 2*alpha + 5, 2*alpha + 6, 2*alpha + 7, 3*alpha + 5]
+        sage: K.integral_elements_in_box([[0,5],[0,5]])
+        [0, 5, 3, -alpha + 2, -alpha + 3, 1, 2, 4, alpha + 2, alpha + 3]
+    """
+    d = self.degree()
+    Z_F = self.maximal_order()
+    Foo = self.real_embeddings()
+    B = self.reduced_basis()
+
+    L = numpy.array([ [v(b) for b in B] for v in Foo])
+    Linv = numpy.linalg.inv(L)
+    Vi = [[C[0][0]],[C[0][1]]]
+    for i in range(1,d):
+        Vi = sum([ [v + [C[i][0]], v + [C[i][1]]] for v in Vi], [])
+    V = numpy.matrix(Linv)*(numpy.matrix(Vi).transpose())
+    j = 0
+    while j < 2**d:
+        for i in range(d):
+            if V[i,j] < V[i,j+1]:
+                V[i,j] = math.floor(V[i,j])
+                V[i,j+1] = math.ceil(V[i,j+1])
+            else:
+                V[i,j] = math.ceil(V[i,j])
+                V[i,j+1] = math.floor(V[i,j+1])
+        j += 2
+    W0 = (Linv*numpy.array([Vi[0]]*d)).transpose()
+    W = (Linv*numpy.array([Vi[2**i] for i in range(d)])).transpose()
+    for j in range(d):
+        for i in range(d):
+            if W[i,j] < W0[i,j]:
+                W[i,j] = math.floor(W[i,j])
+                W0[i,j] = math.ceil(W0[i,j])
+            else:
+                W[i,j] = math.ceil(W[i,j])
+                W0[i,j] = math.floor(W0[i,j])
+    M = [[int(V[i,j]) for i in range(V.shape[0])] for j in range(V.shape[1])]
+    M += [[int(W0[i,j]) for j in range(W0.shape[0])] for i in range(W0.shape[0])]
+    M += [[int(W[i,j]) for j in range(W.shape[1])] for i in range(W.shape[0])]
+
+    from sage.matrix.constructor import matrix
+    M = (matrix(IntegerRing(),len(M),len(M[0]), M).transpose()).columns()
+
+    i = 0
+    while i < len(M):
+        j = i+1
+        while j < len(M):
+            if M[i] == M[j]:
+                M.pop(j)
+            else:
+                j += 1
+        i += 1
+
+    from sage.geometry.lattice_polytope import LatticePolytope
+    P = LatticePolytope(matrix(M).transpose())
+    S = []
+
+    try:
+        pts = P.points().transpose()
+    except ValueError:
+        return []
+
+    for p in pts:
+        theta = sum([ p.list()[i]*B[i] for i in range(d)])
+        inbounds = True
+        for i in range(d):
+            inbounds = inbounds and Foo[i](theta) >= C[i][0] and Foo[i](theta) <= C[i][1]
+
+        if inbounds:
+            S.append(theta)
+
+    return S
+
+
+#********************************************************************************
 # Main class
-#***********************************************************************************************
+#********************************************************************************
 
 eps_global = 10**(-6)
 
@@ -117,9 +195,8 @@ class tr_data_rel:
         with coefficients a.
 
         EXAMPLES:
-        sage: ZZx['x']
-        sage: F.<t> = NumberField(x^2-2)
-        sage: T = tr_data_rel(F, 2, 2000)
+            sage: F.<t> = NumberField(x^2-2)
+            sage: T = tr_data_rel(F, 2, 2000)
         """
 
         # Initialize constants.
@@ -142,10 +219,11 @@ class tr_data_rel:
         self.trace_elts = []
 
         Z_Fbasis = self.Z_F.basis()
-##        from sage.matrix.constructor import matrix
-##        M = matrix(IntegerRing(),self.d,self.d, [[(x*y).trace() for x in Z_Fbasis] for y in Z_Fbasis])
-##        T = pari(M).qflllgram()
-        T = self.LLL_gram_matrix()
+
+        from sage.matrix.constructor import matrix
+        M = matrix(IntegerRing(),self.d,self.d, [[(x*y).trace() for x in Z_Fbasis] for y in Z_Fbasis])
+        T = pari(M).qflllgram()
+
 ##        self.Z_F.reduced_basis = [sum([T[i][j].__int__()*Z_Fbasis[j] for j in range(self.d)]) for i in range(self.d)]
 ##        self.Z_F.T = pari(matrix(IntegerRing(),self.d,self.d, [[(x*y).trace() for x in self.Z_F.reduced_basis] for y in self.Z_F.reduced_basis]))
 

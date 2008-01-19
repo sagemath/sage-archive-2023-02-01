@@ -2019,148 +2019,102 @@ class NumberField_generic(number_field_base.NumberField):
         self.__integral_basis[v] = basis
         return basis
 
-    def LLL_reduced_basis(self):
-        """
+    def reduced_basis(self):
+        r"""
+        This function returns an LLL-reduced basis for the Minkowski-embedding
+        of the maximal order of a number field.
+
+        INPUT:
+        self -- number field, the base field
+
+        OUTPUT:
+        An LLL-reduced basis for the Minkowski-embedding of the maximal order
+        of a number field, given by a sequence of (integral) elements from
+        the field.
+
+        EXAMPLES:
+            sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1)
+            sage: F.maximal_order().basis()
+            [1/2*t^5 + 1/2*t^4 + 1/2*t^2 + 1/2, t, t^2, t^3, t^4, t^5]
+            sage: F.reduced_basis()
+            [1,
+            1/2*t^5 - 1/2*t^4 - 3*t^3 + 3/2*t^2 + 4*t - 1/2,
+            t,
+            1/2*t^5 + 1/2*t^4 - 4*t^3 - 5/2*t^2 + 7*t + 1/2,
+            1/2*t^5 - 1/2*t^4 - 2*t^3 + 3/2*t^2 - 1/2,
+            1/2*t^5 - 1/2*t^4 - 3*t^3 + 5/2*t^2 + 4*t - 5/2]
         """
         try:
-            return self.__LLL_reduced_basis
+            return self.__reduced_basis
         except AttributeError:
             pass
 
         d = self.degree()
         Z_basis = self.integral_basis()
 
-        T = self.LLL_gram_matrix()
-        self.__LLL_reduced_basis = [ sum([ T[i][j].__int__() * Z_basis[j]
-                                           for j in range(d)])
-                                     for i in range(d)]
-        return self.__LLL_reduced_basis
+        from sage.matrix.constructor import matrix
+        T = pari(matrix(ZZ, d, d, [[(x*y).trace() for x in Z_basis]
+                                   for y in Z_basis])).qflllgram()
+        self.__reduced_basis = [ sum([ ZZ(T[i][j]) * Z_basis[j]
+                                       for j in range(d)])
+                                 for i in range(d)]
+        return self.__reduced_basis
 
-    def LLL_gram_matrix(self):
-        """
-        """
+    def reduced_gram_matrix(self):
+        r"""
+        This function returns the Gram matrix of an LLL-reduced basis for
+        the Minkowski-embedding of the maximal order of a number field.
 
+        INPUT:
+        self -- number field, the base field
+
+        OUTPUT:
+        The Gram matrix [Tr(x*y)] of an LLL-reduced basis for
+        Minkowski-embedded lattice of the the maximal order of a number field,
+        given as an nxn integer matrix, where n = [F:Q].
+
+        EXAMPLES:
+            sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1) ; F.reduced_gram_matrix()
+            [   6    0   14    3   54   52]
+            [   0   14    3   54   30  133]
+            [  14    3   54   30  233  259]
+            [   3   54   30  233  217  664]
+            [  54   30  233  217 1078 1368]
+            [  52  133  259  664 1368 2550]
+        """
         try:
-            return self.__LLL_gram_matrix
+            return self.__reduced_gram_matrix
         except AttributeError:
             pass
 
         from sage.matrix.constructor import matrix
         d = self.degree()
-        Z_basis = self.integral_basis()
+        B = self.integral_basis()
+        self.__reduced_gram_matrix = matrix(ZZ, d, d,
+                                            [[(x*y).trace() for x in B]
+                                             for y in B])
+        return self.__reduced_gram_matrix
 
-        from sage.matrix.constructor import matrix
-        M = matrix(ZZ, d, d, [[(x*y).trace() for x in Z_basis]
-                                         for y in Z_basis])
-        self.__LLL_gram_matrix = pari(M).qflllgram()
-
-        return self.__LLL_gram_matrix
-
-
-    def LLL_reduced_gram_matrix(self):
-        """
-        """
-        try:
-            return self.__LLL_reduced_gram_matrix
-        except AttributeError:
-            pass
-
-        from sage.matrix.constructor import matrix
-        d = self.degree()
-        B = self.LLL_reduced_basis()
-        M = matrix(ZZ, d, d, [[(x*y).trace() for x in B] for y in B])
-        self.__LLL_reduced_gram_matrix = pari(M)
-        return self.__LLL_reduced_gram_matrix
 
     #******************************************************
     # Supplementary algorithm to enumerate lattice points
     #******************************************************
 
-    def integral_elements_in_box(self, C):
-        r"""
-        EXAMPLES:
-            sage: K.<alpha> = NumberField(x^2-2)
-            sage: K.integral_elements_in_box([[0,5],[0,10]])
-            [0, 5, -alpha + 2, -alpha + 3, 1, 2, 3, 4, alpha + 2, alpha + 3, alpha + 4, alpha + 5, alpha + 6, 2*alpha + 3, 2*alpha + 4, 2*alpha + 5, 2*alpha + 6, 2*alpha + 7, 3*alpha + 5]
-            sage: K.integral_elements_in_box([[0,5],[0,5]])
-            [0, 5, 3, -alpha + 2, -alpha + 3, 1, 2, 4, alpha + 2, alpha + 3]
-        """
-        d = self.degree()
-        Z_F = self.maximal_order()
-        Foo = self.real_embeddings()
-        B = self.LLL_reduced_basis()
-
-        L = numpy.array([ [v(b) for b in B] for v in Foo])
-        Linv = numpy.linalg.inv(L)
-        Vi = [[C[0][0]],[C[0][1]]]
-        for i in range(1,d):
-            Vi = sum([ [v + [C[i][0]], v + [C[i][1]]] for v in Vi], [])
-        V = numpy.matrix(Linv)*(numpy.matrix(Vi).transpose())
-        j = 0
-        while j < 2**d:
-            for i in range(d):
-                if V[i,j] < V[i,j+1]:
-                    V[i,j] = math.floor(V[i,j])
-                    V[i,j+1] = math.ceil(V[i,j+1])
-                else:
-                    V[i,j] = math.ceil(V[i,j])
-                    V[i,j+1] = math.floor(V[i,j+1])
-            j += 2
-        W0 = (Linv*numpy.array([Vi[0]]*d)).transpose()
-        W = (Linv*numpy.array([Vi[2**i] for i in range(d)])).transpose()
-        for j in range(d):
-            for i in range(d):
-                if W[i,j] < W0[i,j]:
-                    W[i,j] = math.floor(W[i,j])
-                    W0[i,j] = math.ceil(W0[i,j])
-                else:
-                    W[i,j] = math.ceil(W[i,j])
-                    W0[i,j] = math.floor(W0[i,j])
-        M = [[int(V[i,j]) for i in range(V.shape[0])] for j in range(V.shape[1])]
-        M += [[int(W0[i,j]) for j in range(W0.shape[0])] for i in range(W0.shape[0])]
-        M += [[int(W[i,j]) for j in range(W.shape[1])] for i in range(W.shape[0])]
-
-        from sage.matrix.constructor import matrix
-        M = (matrix(IntegerRing(),len(M),len(M[0]), M).transpose()).columns()
-
-        i = 0
-        while i < len(M):
-            j = i+1
-            while j < len(M):
-                if M[i] == M[j]:
-                    M.pop(j)
-                else:
-                    j += 1
-            i += 1
-
-        from sage.geometry.lattice_polytope import LatticePolytope
-        P = LatticePolytope(matrix(M).transpose())
-        S = []
-
-        try:
-            pts = P.points().transpose()
-        except ValueError:
-            return []
-
-        for p in pts:
-            theta = sum([ p.list()[i]*B[i] for i in range(d)])
-            inbounds = True
-            for i in range(d):
-                inbounds = inbounds and Foo[i](theta) >= C[i][0] and Foo[i](theta) <= C[i][1]
-            if inbounds:
-                S.append(theta)
-        return S
-
     def integral_elements_with_trace(self, C):
         r"""
+        Find all integral elements in self with trace in the
+        interval C.
+
         EXAMPLES:
             sage: K.<alpha> = NumberField(x^2-2)
             sage: K.integral_elements_with_trace([0,5])
             [alpha + 2, 2, 1]
+            sage: L.<beta> = NumberField(x^2+1)
+            sage: L.integral_elements_with_trace([5,11])
         """
         Z_F = self.maximal_order()
-        B = self.LLL_reduced_basis()
-        T = self.LLL_reduced_gram_matrix()
+        B = self.reduced_basis()
+        T = self.reduced_gram_matrix()
         P = T.qfminim((C[1]**2)*(1./2), 10**6)[2]
 
         S = []

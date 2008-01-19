@@ -1,0 +1,8 @@
+#!/bin/sh
+
+rm -rf "$SAGE_LOCAL"/lib/python/networkx*
+rm -rf "$SAGE_LOCAL"/lib/python/site-packages/networkx*
+
+cd src
+
+python setup.py install --home="$SAGE_LOCAL" --force

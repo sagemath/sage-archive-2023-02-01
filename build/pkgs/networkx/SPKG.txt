@@ -1,0 +1,12 @@
+= networkx-0.36 =
+
+=== networkx-0.36.p0 ===
+ * add hg repo, check in files
+
+=== networkx-0.36 ===
+ * update to the 0.36 release (Robert Miller)
+ * remove src/doc/data directory to cut down the size (Michael Abshoff)
+
+= notes =
+ * remove the src/doc/data directory containing various pngs
+

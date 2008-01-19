@@ -96,6 +96,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             raise TypeError, "character must be a Dirichlet character"
         if not isinstance(base_ring, rings.Ring):
             raise TypeError, "base_ring must be a ring"
+        self.__sturm_bound = None
         self.__weight, self.__group, self.__character = weight, group, character
         hecke.HeckeModule_generic.__init__(self, base_ring, group.level())
 
@@ -1104,25 +1105,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         S = F.span_of_basis(C)
         return submodule.ModularFormsSubmoduleWithBasis(self.ambient(), S)
 
-    def span(self, B):
-        """
-        Alias for span_of_basis.
-
-        EXAMPLES:
-        sage: N = ModularForms(6,4) ; N
-        Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
-
-        sage: N.span( N.basis() )
-        Modular Forms subspace of dimension 5 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
-
-        """
-##        W = self._q_expansion_module()
-##        F = self.free_module()
-##        prec = W.degree()
-##        C = [F.linear_combination_of_basis(W.coordinates(f.padded_list(prec))) for f in B]
-##        S = F.span(C)
-##        return submodule.ModularFormsSubmoduleWithBasis(self.ambient(), S)
-        return self.span_of_basis(B)
+    span = span_of_basis
 
     def __submodule_from_subset_of_basis(self, x):
         """
@@ -1320,12 +1303,9 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             There might be much better bounds over $\Q$, or for
             comparing two eigenforms.
         """
-        if M != None:
+        if M is not None:
             raise NotImplementedError
-
-        try:
-            return self.__sturm_bound
-        except AttributeError:
+        if self.__sturm_bound is None:
             # the +1 below is because O(q^prec) has precision prec.
             self.__sturm_bound = dims.sturm_bound(self.level(), self.weight())+1
         return self.__sturm_bound

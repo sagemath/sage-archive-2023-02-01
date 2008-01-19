@@ -684,6 +684,12 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: RealIntervalField(2)(w).str(2)
             '[10. .. 11.]'
 
+        TESTS:
+            sage: a = RealIntervalField(428)(factorial(100)/exp(2)); a
+            [1.263032980050731959984395050580852040281429201347422414946715021063335485935763831416667583000898603378890023851970081919104068945e157 .. 1.263032980050731959984395050580852040281429201347422414946715021063335485935763831416667583000898603378890023851970081919104068950e157]
+            sage: a.diameter()
+            3.1364249297386517141045969994953263236588371094306826888961103474959002344191899147063056507500286786379396422813182492881735297e-129
+
         Type:
             RealIntervalField?
         for many more examples.
@@ -754,7 +760,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             mpfi_set(self.value, d.value)
 
         else:
-            if isinstance(x, str):
+            import sage.calculus.calculus
+
+            if isinstance(x, sage.calculus.calculus.SymbolicExpression):
+                d = x._mpfr_(self._parent)
+                mpfi_set(self.value, d.value)
+
+            elif isinstance(x, str):
                 # string
                 s = str(x).replace('..', ',').replace(' ','').replace('+infinity', '@inf@').replace('-infinity','-@inf@')
                 if mpfi_set_str(self.value, s, base):

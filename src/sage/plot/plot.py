@@ -3061,7 +3061,7 @@ def var_and_list_of_values(v, plot_points):
     if plot_points == 2:
         return var, [a, b]
     else:
-        step = (b-a)/float(plot_points)
+        step = (b-a)/float(plot_points-1)
         values = [a + step*i for i in xrange(plot_points)]
         # want to make sure that we plot exactly as many points as requested
 #         rng.append(b)

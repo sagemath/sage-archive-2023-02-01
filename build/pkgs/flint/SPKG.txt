@@ -1,6 +1,10 @@
 Upstream maintainer: Bill Heart
 Website: www.flintlib.org
 
+=== flint-1.06 (Michael Abshoff, January 19th, 2008) ===
+ * update to FLINT 1.0.6 release
+ * turn make check on again per default
+
 === flint-1.05.p0 (Michael Abshoff, January 17th, 2008) ===
  * disable mandatory check
 

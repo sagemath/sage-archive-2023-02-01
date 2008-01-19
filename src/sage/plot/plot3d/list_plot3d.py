@@ -230,4 +230,4 @@ def list_plot3d_tuples(v,interpolation_type, texture, **kwds):
         s=kwds['smoothing'] if kwds.has_key('smoothing') else len(x)-numpy.sqrt(2*len(x))
         s=interpolate.bisplrep(x,y,z,[int(1)]*len(x),xmin,xmax,ymin,ymax,kx=kx,ky=ky,s=s)
         f=lambda x,y: interpolate.bisplev(x,y,s)
-        return plot3d(f,(xmin,xmax),(ymin,ymax),texture=texture,plot_points=[len(x)*2,len(x)*2],**kwds)
+        return plot3d(f,(xmin,xmax),(ymin,ymax),texture=texture,plot_points=[num_points,num_points],**kwds)

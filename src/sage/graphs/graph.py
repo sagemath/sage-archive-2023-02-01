@@ -2708,7 +2708,7 @@ class GenericGraph(SageObject):
             for u,v,l in self._nxg.edges():
                 if not l is None:
                     K += text(str(l), [(pos[u][0] + pos[v][0])/2, (pos[u][1] + pos[v][1])/2])
-            K.range(xmin=G.xmin(), xmax=G.xmax(), ymin=G.ymin(), ymax=G.ymax())
+            K.axes_range(xmin=G.xmin(), xmax=G.xmax(), ymin=G.ymin(), ymax=G.ymax())
             G += K
             G.axes(False)
         return G

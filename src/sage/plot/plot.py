@@ -293,7 +293,7 @@ class Graphics(SageObject):
         self.__xmax = 1
         self.__ymin = -1
         self.__ymax = 1
-        self.__fontsize = 8
+        self.__fontsize = 10
         self.__show_axes = True
         self.__axes_color = (0, 0, 0)
         self.__axes_label_color = (0, 0, 0)
@@ -302,7 +302,7 @@ class Graphics(SageObject):
         self.__axes_width = 0.8
         self.__objects = []
 
-    def range(self, xmin=None, xmax=None, ymin=None, ymax=None):
+    def axes_range(self, xmin=None, xmax=None, ymin=None, ymax=None):
         """
         Set the ranges of the x and y axes.
         """
@@ -321,7 +321,7 @@ class Graphics(SageObject):
             try:
                 return self.__fontsize
             except AttributeError:
-                self.__fontsize = 6
+                self.__fontsize = 10
                 return self.__fontsize
         self.__fontsize = s
 
@@ -353,24 +353,45 @@ class Graphics(SageObject):
                 return self.__axes_color
         self.__axes_color = c
 
-    def axes_label(self, l=None):
+    def axes_labels(self, l=None):
         """
         Set the axes labels.
 
-        If called with no input, return the current axes_label setting.
+        INPUT:
+            l -- (default: None) a list of two strings or None
+
+        OUTPUT:
+            a 2-tuple of strings
+
+        If l is None, returns the current \code{axes_labels}, which is
+        itself by default None.  The default
+        labels are both empty.
+
+        EXAMPLES:
+        We create a plot and put x and y axes labels on it.
+            sage: p = plot(sin(x), (x, 0, 10))
+            sage: p.axes_labels(['x','y'])
+            sage: p.axes_labels()
+            ('x', 'y')
+
+        Now when you plot p, you see x and y axes labels:
+            sage: p
         """
         if l is None:
             try:
-                return self.__axes_label
+                return self.__axes_labels
             except AttributeError:
-                self.__axes_label = None
-                return self.__axes_label
-        self.__axes_label = l
-
+                self.__axes_labels = None
+                return self.__axes_labels
+        if not isinstance(l, (list, tuple)):
+            raise TypeError, "l must be a list or tuple"
+        if len(l) != 2:
+            raise ValueError, "l must have length 2"
+        self.__axes_labels = (str(l[0]), str(l[1]))
 
     def axes_label_color(self, c=None):
         """
-        Set the axes label color.
+        Set the axes labels' color.
 
         If called with no input, return the current axes_label_color setting.
         """
@@ -689,9 +710,8 @@ class Graphics(SageObject):
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
-             dpi=DEFAULT_DPI, axes=None, axes_label=None,frame=False,
-             fontsize=None,
-             **args):
+             dpi=DEFAULT_DPI, axes=None, axes_labels=None,frame=False,
+             fontsize=None):
         """
         Show this graphics image with the default image viewer.
 
@@ -700,7 +720,8 @@ class Graphics(SageObject):
             dpi -- dots per inch
             figsize -- [width, height] (same for square aspect)
             axes -- (default: True)
-            fontsize -- positive integer
+            fontsize -- (default: current setting -- 10) positive integer; used for axes labels;
+                        if you make this very large, you may have to increase figsize to see all labels.
             frame -- (default: False) draw a MATLAB-like frame around the image
 
         EXAMPLES:
@@ -724,11 +745,11 @@ class Graphics(SageObject):
         if DOCTEST_MODE:
             self.save(sage.misc.misc.SAGE_TMP + '/test.png',
                       xmin, xmax, ymin, ymax, figsize,
-                    dpi=dpi, axes=axes, axes_label=axes_label,frame=frame)
+                    dpi=dpi, axes=axes, axes_labels=axes_labels,frame=frame)
             return
         if EMBEDDED_MODE:
             self.save(filename, xmin, xmax, ymin, ymax, figsize,
-                    dpi=dpi, axes=axes, axes_label=axes_label,frame=frame)
+                    dpi=dpi, axes=axes, axes_labels=axes_labels,frame=frame)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
@@ -776,7 +797,7 @@ class Graphics(SageObject):
     def save(self, filename=None,
              xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, figure=None, sub=None, savenow=True,
-             dpi=DEFAULT_DPI, axes=None, axes_label=None, fontsize=None,
+             dpi=DEFAULT_DPI, axes=None, axes_labels=None, fontsize=None,
              frame=False, verify=True):
         """
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
@@ -812,6 +833,7 @@ class Graphics(SageObject):
             return
 
         self.fontsize(fontsize)
+        self.axes_labels(l=axes_labels)
 
         if figure is None:
             figure = Figure(figsize)
@@ -850,9 +872,8 @@ class Graphics(SageObject):
         if axes is None:
             axes = self.__show_axes
 
-        self.axes_label(l=axes_label)
         #construct an Axes instance, see 'axes.py' for relevant code
-        sage_axes = Axes(color=self.__axes_color, fontsize=self.__fontsize, axes_label=self.__axes_label,
+        sage_axes = Axes(color=self.__axes_color, fontsize=self.__fontsize, axes_labels=self.__axes_labels,
                          axes_label_color=self.__axes_label_color, tick_color=self.__tick_color,
                          tick_label_color=self.__tick_label_color, linewidth=self.__axes_width)
 
@@ -866,23 +887,30 @@ class Graphics(SageObject):
                 subplot.set_ylim([aymin, aymax])
                 #add a frame to the plot and possibly 'axes_with_no_ticks'
                 sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax,
-                                        axes_with_no_ticks=axes, axes_label=axes_label)
+                                        axes_with_no_ticks=axes)
             elif not frame and axes: #regular plot with regular axes
+
                 xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
+
+                xmin, xmax, ymin, ymax = sage_axes.add_xy_axes(subplot, xmin, xmax, ymin, ymax)
+
                 subplot.set_xlim(xmin, xmax)
                 subplot.set_ylim(ymin, ymax)
-                sage_axes.add_xy_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
+                #return subplot
+
             else: #regular plot with no axes
                 xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
                 subplot.set_xlim(xmin, xmax)
                 subplot.set_ylim(ymin, ymax)
+
         elif (contour or plotfield): #contour or field plot in self.__objects, so adjust axes accordingly
             xmin, xmax = self.__xmin, self.__xmax
             ymin, ymax = self.__ymin, self.__ymax
             subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
             subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
             if axes: #axes=True unless user specifies axes=False
-                sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
+                sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax)
+
         else: #we have a 'matrix_plot' in self.__objects, so adjust axes accordingly
             xmin, xmax = self.__xmin, self.__xmax
             ymin, ymax = self.__ymin, self.__ymax
@@ -1597,7 +1625,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: NGP = GraphicPrimitive_NetworkXGraph(G, pos=pos, vertex_labels=False, vertex_size=0, edge_colors=edge_colors)
         sage: G = Graphics()
         sage: G._Graphics__objects.append(NGP)
-        sage: G.range(xmin=-1.1, xmax=2.2, ymin=0, ymax=3.25)
+        sage: G.axes_range(xmin=-1.1, xmax=2.2, ymin=0, ymax=3.25)
         sage: G.axes(False)
         sage: G.show()
 
@@ -2683,6 +2711,9 @@ class TextFactory(GraphicPrimitiveFactory_text):
         hue -- The color given as a hue
         vertical_alignment -- how to align vertically: top, center, bottom
         horizontal_alignment -- how to align horizontally: left, center, right
+        axis_coords -- (default: False) if True, use axis coordinates, so that
+                       (0,0) is the lower left and (1,1) upper right, irregardless
+                       of the x and y range of plotted values.
 
     3D OPTIONS:
         rgbcolor -- the color of the text
@@ -2690,6 +2721,9 @@ class TextFactory(GraphicPrimitiveFactory_text):
     EXAMPLES:
     Some 2d text:
         sage: text("SAGE is really neat!!",(2,12))
+
+    Some 2d text but guaranteed to be in the lower left no matter what:
+        sage: text("SAGE is really neat!!",(0,0), axis_coords=True, horizontal_alignment='left')
 
     The same text, but in 3d:
         sage: text("SAGE is really neat!!",(2,12,1))
@@ -2708,7 +2742,8 @@ class TextFactory(GraphicPrimitiveFactory_text):
     def _reset(self):
         self.options = {'fontsize':10, 'rgbcolor':(0,0,1),
                         'horizontal_alignment':'center',
-                        'vertical_alignment':'center'}
+                        'vertical_alignment':'center',
+                        'axis_coords':False}
 
     def _repr_(self):
         return "type text? for help and examples"
@@ -2858,13 +2893,13 @@ def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_c
     xmax = NGP._xmax
     ymin = NGP._ymin
     ymax = NGP._ymax
-    g.range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+    g.axes_range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
     if graph_border:
         from sage.plot.plot import line
         dx = (xmax - xmin)/10
         dy = (ymax - ymin)/10
         border = (line([( xmin - dx, ymin - dy), ( xmin - dx, ymax + dy ), ( xmax + dx, ymax + dy ), ( xmax + dx, ymin - dy ), ( xmin - dx, ymin - dy )], thickness=1.3))
-        border.range(xmin = (xmin - dx), xmax = (xmax + dx), ymin = (ymin - dy), ymax = (ymax + dy))
+        border.axes_range(xmin = (xmin - dx), xmax = (xmax + dx), ymin = (ymin - dy), ymax = (ymax + dy))
         g = g + border
     g.axes(False)
     return g

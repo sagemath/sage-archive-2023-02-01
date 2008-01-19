@@ -40,15 +40,20 @@ import defaults
 import element
 
 
-def canonical_parameters(group, weight, base_ring):
+def canonical_parameters(group, level, weight, base_ring):
     """
-    Given a group, weight, and base_ring as input by the user,
-    return a canonicalized version of them, where group really
-    is a group, weight a SAGE integer, and base_ring a SAGE
-    ring.
+    Given a group, level, weight, and base_ring as input by
+    the user, return a canonicalized version of them, where
+    level is a SAGE integer, group really is a group, weight
+    is a SAGE integer, and base_ring a SAGE ring. Note that
+    we can't just get the level from the group, because we
+    have the convention that the character for Gamma1(N) is
+    None (which makes good sense).
 
     INPUT:
-        group -- int, long, SAGE integer, group, dirichlet character
+        group -- int, long, SAGE integer, group, dirichlet character,
+                 or
+        level -- int, long, SAGE integer, or group
         weight -- coercible to SAGE integer
         base_ring -- commutative SAGE ring
 
@@ -60,27 +65,50 @@ def canonical_parameters(group, weight, base_ring):
 
     EXAMPLES:
         sage: from sage.modular.modform.constructor import canonical_parameters
-        sage: v = canonical_parameters(5, int(7), ZZ); v
+        sage: v = canonical_parameters(5, 5, int(7), ZZ); v
         (5, Congruence Subgroup Gamma0(5), 7, Integer Ring)
         sage: type(v[0]), type(v[1]), type(v[2]), type(v[3])
         (<type 'sage.rings.integer.Integer'>,
          <class 'sage.modular.congroup.Gamma0'>,
          <type 'sage.rings.integer.Integer'>,
          <type 'sage.rings.integer_ring.IntegerRing_class'>)
+        sage: canonical_parameters( 5, 7, 7, ZZ )
+        Traceback (most recent call last):
+        ...
+        ValueError: group and level do not match.
     """
     weight = rings.Integer(weight)
     if weight <= 1:
         raise NotImplementedError, "weight must be at least 2"
 
     if isinstance(group, (int, long, rings.Integer)):
+        if ( rings.Integer(group) != rings.Integer(level) ):
+            raise ValueError, "group and level do not match."
         group = congroup.Gamma0(group)
+        level = rings.Integer(level)
 
     elif isinstance(group, dirichlet.DirichletCharacter):
+        if ( group.level() != rings.Integer(level) ):
+            raise ValueError, "group.level() and level do not match."
         group = group.minimize_base_ring()
+        level = rings.Integer(level)
 
-    if isinstance(group, congroup.SL2Z) or \
-       isinstance(group, congroup.Gamma1) and group.level() == 1:
-        group = congroup.Gamma0(1)
+
+    elif isinstance(group, congroup.SL2Z) or \
+       isinstance(group, congroup.Gamma1) and group.level() == rings.Integer(1):
+        if ( rings.Integer(level) != rings.Integer(1) ):
+            raise ValueError, "group.level() and level do not match."
+        group = congroup.Gamma0(rings.Integer(1))
+
+    elif isinstance(group, congroup.CongruenceSubgroup):
+        if ( rings.Integer(level) != group.level() ):
+            raise ValueError, "group.level() and level do not match."
+
+    elif group is None:
+        pass
+
+    else:
+        raise ValueError, "group of unknown type."
 
     if not rings.is_CommutativeRing(base_ring):
         raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
@@ -89,11 +117,23 @@ def canonical_parameters(group, weight, base_ring):
     # that defines the key, since dirichlet characters of different
     # levels can compare equal, but define much different modular
     # forms spaces.
-    return group.level(), group, weight, base_ring
+    return level, group, weight, base_ring
 
 _cache = {}
 
 def ModularForms_clear_cache():
+    """
+    Clear the cache of modular forms.
+
+    EXAMPLES:
+        sage: M = ModularForms(37,2)
+        sage: sage.modular.modform.constructor._cache == {}
+        False
+
+        sage: sage.modular.modform.constructor.ModularForms_clear_cache()
+        sage: sage.modular.modform.constructor._cache
+        {}
+    """
     global _cache
     _cache = {}
 
@@ -111,8 +151,8 @@ def ModularForms(group  = 1,
         base_ring -- the base ring (ignored if group is a Dirichlet character)
 
     Create using the command
-        ModularForms(group, weight, character)
-
+        ModularForms(group, weight, base_ring)
+    where group could be either a congruence subgroup or a Dirichlet character.
 
     EXAMPLES:
     First we create some spaces with trivial character:
@@ -154,6 +194,8 @@ def ModularForms(group  = 1,
         [-1]
         sage: m = ModularForms(e, 2); m
         Modular Forms space of dimension 2, character [-1] and weight 2 over Rational Field
+        sage: m == loads(dumps(m))
+        True
         sage: m.T(2).charpoly('x')
         x^2 - 1
         sage: m = ModularForms(e, 6); m.dimension()
@@ -167,7 +209,12 @@ def ModularForms(group  = 1,
     if base_ring is None:
         base_ring = rings.QQ
 
-    key = canonical_parameters(group, weight, base_ring)
+    if hasattr(group, 'level'):
+        level = group.level()
+    else:
+        level = group
+
+    key = canonical_parameters(group, level, weight, base_ring)
 
     if use_cache and _cache.has_key(key):
          M = _cache[key]()
@@ -228,6 +275,10 @@ def CuspForms(group  = 1,
 
     See the documentation for the ModularForms command for a
     description of the input parameters.
+
+    EXAMPLES:
+        sage: CuspForms(11,2)
+        Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
     """
     return ModularForms(group, weight, base_ring,
                         use_cache=use_cache, prec=prec).cuspidal_submodule()
@@ -243,6 +294,10 @@ def EisensteinForms(group  = 1,
 
     See the documentation for the ModularForms command for a
     description of the input parameters.
+
+    EXAMPLES:
+        sage: EisensteinForms(11,2)
+        Eisenstein subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
     """
     return ModularForms(group, weight, base_ring,
                         use_cache=use_cache, prec=prec).eisenstein_submodule()

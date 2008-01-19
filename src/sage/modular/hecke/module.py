@@ -56,6 +56,7 @@ class HeckeModule_generic(sage.modules.module.Module):
         if level <= 0:
             raise ValueError, "level (=%s) must be positive"%level
         self.__level = level
+        self._hecke_matrices = {}
 
     def __hash__(self):
         return hash((self.base_ring(), self.__level))
@@ -835,10 +836,6 @@ class HeckeModule_free_module(HeckeModule_generic):
         n = int(n)
         if n <= 0:
             raise IndexError, "n must be positive."
-        try:
-            self._hecke_matrices
-        except AttributeError:
-            self._hecke_matrices = {}
         if not self._hecke_matrices.has_key(n):
             T = self._compute_hecke_matrix(n)
             T.set_immutable()

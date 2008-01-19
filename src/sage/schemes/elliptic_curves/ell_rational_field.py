@@ -599,7 +599,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__modular_form
         except AttributeError:
             M = sage.modular.modform.constructor.ModularForms(self.conductor(),weight=2)
-            f = sage.modular.modform.element.ModularFormElement_elliptic_curve(M, self, None)
+            f = sage.modular.modform.element.ModularFormElement_elliptic_curve(M, self)
             self.__modular_form = f
             return f
 

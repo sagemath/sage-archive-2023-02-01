@@ -1,12 +1,8 @@
 r"""
 2D Plotting
 
-Sage provides both Mathematica-style and Matlab-style plotting.
-
-MATHEMATICA-LIKE PLOTTING:
-SAGE provides 2D plotting functionality with an interface inspired by
-the interface for plotting in Mathematica.  The underlying rendering
-is done using the matplotlib Python library.
+SAGE provides extensive 2D plotting functionality.  The underlying
+rendering is done using the matplotlib Python library.
 
 The following graphics primitives are supported:
 \begin{itemize}
@@ -32,7 +28,7 @@ The following plotting functions are supported:
     \item graphics_array
 \end{itemize}
 
-The following misc Graphics functions are included:
+The following miscellaneous Graphics functions are included:
 \begin{itemize}
     \item Graphics
     \item is_Graphics
@@ -48,6 +44,23 @@ We construct a plot involving several graphics objects:
     sage: G = plot(cos, -5, 5, thickness=5, rgbcolor=(0.5,1,0.5))
     sage: P = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,0))
     sage: P   # show it
+
+We draw a circle and a curve:
+    sage: circle((1,1), 1) + plot(x^2, (0,5))
+
+Notice that the above circle is not round, because the aspect ratio of the
+coordinate system is not 1:1.    The \code{aspect_ratio} option to show
+allows us to fix this:
+    sage: show(circle((1,1), 1) + plot(x^2, (0,5)), aspect_ratio=1)
+
+With an aspect ratio of 2 the circle is squashed half way down (it looks twice
+as wide as it does tall):
+    sage: show(circle((1,1), 1) + plot(x^2, (0,5)), aspect_ratio=2)
+
+Use figsize to set the actual aspect ratio of the rendered image
+(i.e., of the frame).  For example, this image is twice as many pixels
+wide as it is tall:
+    sage: show(circle((1,1), 1) + plot(x^2, (0,5)), figsize=[8,4])
 
 Next we construct the reflection of the above polygon about the
 $y$-axis by iterating over the qlist of first-coordinates of the first
@@ -140,9 +153,10 @@ An illustration of integration:
     sage: P += plot(f, 1, 8.5, thickness=3)
     sage: P    # show the result
 
-MATLAB-LIKE PLOTTING:
-SAGE provides 2D plotting with an interface that is an exact
-clone of Matlab (namely matplotlib).  For example,
+NUMERICAL PLOTTING:
+
+SAGE also provides 2D plotting with an interface that is a likely very
+familiar to people doing numerical computation.  For example,
 
     sage: from pylab import *
     sage: t = arange(0.0, 2.0, 0.01)
@@ -193,7 +207,7 @@ from sage.structure.sage_object import SageObject
 ## imported in functions, so it only gets started if it is actually
 ## going to be used.
 
-DEFAULT_FIGSIZE=[6, 5]
+DEFAULT_FIGSIZE=(6, 3.70820393249937)
 DEFAULT_DPI = 100
 EMBEDDED_MODE = False
 DOCTEST_MODE = False
@@ -293,6 +307,7 @@ class Graphics(SageObject):
         self.__xmax = 1
         self.__ymin = -1
         self.__ymax = 1
+        self.__aspect_ratio = None
         self.__fontsize = 10
         self.__show_axes = True
         self.__axes_color = (0, 0, 0)
@@ -301,6 +316,53 @@ class Graphics(SageObject):
         self.__tick_label_color = (0, 0, 0)
         self.__axes_width = 0.8
         self.__objects = []
+
+    def set_aspect_ratio(self, ratio):
+        """
+        Set the aspect ratio.
+
+        INPUT:
+            ratio  -- a positive real number
+
+        EXAMPLES:
+        We create a plot of a circle, and it doesn't look quite round:
+            sage: P = circle((1,1), 1); P
+
+        So we set the aspect ratio and now it is round:
+            sage: P.set_aspect_ratio(1)
+            sage: P
+
+        Note that the aspect ratio is inherited upon addition (which takes the
+        max of aspect ratios of objects whose aspect ratio has been set):
+            sage: P + circle((0,0), 0.5)           # still square
+
+        In the following example, both plots produce a circle that looks twice
+        as wide as tall:
+            sage: Q = circle((0,0), 0.5); Q.set_aspect_ratio(2)
+            sage: P + Q
+            sage: Q + P
+        """
+        ratio = float(ratio)
+        if ratio <= 0:
+            raise ValueError, "the aspect ratio must be positive"
+        self.__aspect_ratio = ratio
+
+    def aspect_ratio(self):
+        """
+        Get the current aspect ratio.
+
+        OUTPUT:
+            either None if the aspect ratio hasn't been set or a positive float
+
+        EXAMPLES:
+            sage: P = circle((1,1), 1)
+            sage: P.aspect_ratio() is None
+            True
+            sage: P.set_aspect_ratio(2)
+            sage: P.aspect_ratio()
+            2.0
+        """
+        return self.__aspect_ratio
 
     def axes_range(self, xmin=None, xmax=None, ymin=None, ymax=None):
         """
@@ -457,7 +519,9 @@ class Graphics(SageObject):
         """
         if new is None:
             return self.__xmax
+        new = float(new)
         self.__xmax = new
+        return new
 
     def xmin(self, new=None):
         """
@@ -468,7 +532,9 @@ class Graphics(SageObject):
         """
         if new is None:
             return self.__xmin
+        new = float(new)
         self.__xmin = new
+        return new
 
     def ymax(self, new=None):
         """
@@ -479,7 +545,9 @@ class Graphics(SageObject):
         """
         if new is None:
             return self.__ymax
+        new = float(new)
         self.__ymax = new
+        return new
 
     def ymin(self, new=None):
         """
@@ -490,7 +558,9 @@ class Graphics(SageObject):
         """
         if new is None:
             return self.__ymin
+        new = float(new)
         self.__ymin = new
+        return new
 
     def _repr_(self):
         if SHOW_DEFAULT:
@@ -582,10 +652,14 @@ class Graphics(SageObject):
 
     def __add__(self, other):
         """
-        If you have any Graphics object G1, you can
-        always add any other amount of Graphics objects G2,G3,...
-        to form a new Graphics object:
-        G4 = G1 + G2 + G3
+        If you have any Graphics object G1, you can always add any
+        other amount of Graphics objects G2,G3,...  to form a new
+        Graphics object: G4 = G1 + G2 + G3.
+
+        The xmin, xmax, ymin, and ymax properties of the graphics objects
+        are expanded to include all objects in both scenes.  If the aspect
+        ratio property of either or both objects are set, then the larger
+        aspect ratio is chosen.
 
         EXAMPLES:
             sage: g1 = plot(abs(sqrt(x^3-1)), (x,1,5))
@@ -605,6 +679,7 @@ class Graphics(SageObject):
         g.__ymin = min(self.__ymin, other.__ymin)
         g.__ymax = max(self.__ymax, other.__ymax)
         g.__objects = self.__objects + other.__objects
+        g.__aspect_ratio = max(self.__aspect_ratio, other.__aspect_ratio)
         return g
 
     def _arrow(self, xmin, ymin, xmax, ymax, options):
@@ -711,18 +786,30 @@ class Graphics(SageObject):
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
              dpi=DEFAULT_DPI, axes=None, axes_labels=None,frame=False,
-             fontsize=None):
+             fontsize=None, aspect_ratio=None):
         """
         Show this graphics image with the default image viewer.
 
         OPTIONAL INPUT:
-            filename -- (default: None) string
-            dpi -- dots per inch
-            figsize -- [width, height] (same for square aspect)
-            axes -- (default: True)
-            fontsize -- (default: current setting -- 10) positive integer; used for axes labels;
-                        if you make this very large, you may have to increase figsize to see all labels.
-            frame -- (default: False) draw a MATLAB-like frame around the image
+            filename     -- (default: None) string
+            dpi          -- dots per inch
+            figsize      -- [width, height]
+            aspect_ratio -- the perceived width divided by the
+                            perceived height.  If the aspect ratio is
+                            set to 1, circles will look round.  If it
+                            is set to 2 they will look twice as wide
+                            as they are tall.  This is the
+                            aspect_ratio of the image, not of the
+                            frame that contains it.  If you want to
+                            set the aspect ratio of the frame, use
+                            figsize.
+            axes         -- (default: True)
+            fontsize     -- (default: current setting -- 10) positive
+                            integer; used for axes labels; if you make
+                            this very large, you may have to increase
+                            figsize to see all labels.
+
+            frame        -- (default: False) draw a frame around the image
 
         EXAMPLES:
             sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
@@ -745,15 +832,19 @@ class Graphics(SageObject):
         if DOCTEST_MODE:
             self.save(sage.misc.misc.SAGE_TMP + '/test.png',
                       xmin, xmax, ymin, ymax, figsize,
-                    dpi=dpi, axes=axes, axes_labels=axes_labels,frame=frame)
+                      dpi=dpi, axes=axes, axes_labels=axes_labels,frame=frame,
+                      aspect_ratio=aspect_ratio)
             return
         if EMBEDDED_MODE:
             self.save(filename, xmin, xmax, ymin, ymax, figsize,
-                    dpi=dpi, axes=axes, axes_labels=axes_labels,frame=frame)
+                      dpi=dpi, axes=axes, axes_labels=axes_labels,frame=frame,
+                      aspect_ratio=aspect_ratio)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes,frame=frame, fontsize=fontsize)
+        self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes,
+                  frame=frame, fontsize=fontsize,
+                  aspect_ratio=aspect_ratio)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
 
     def _prepare_axes(self, xmin, xmax, ymin, ymax):
@@ -798,7 +889,8 @@ class Graphics(SageObject):
              xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, figure=None, sub=None, savenow=True,
              dpi=DEFAULT_DPI, axes=None, axes_labels=None, fontsize=None,
-             frame=False, verify=True):
+             frame=False, verify=True,
+             aspect_ratio = None):
         """
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
         depending on the file extension you give the filename.
@@ -814,6 +906,15 @@ class Graphics(SageObject):
 
             sage: c.show(figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
         """
+        xmin = self.xmin(xmin); xmax = self.xmax(xmax);
+        ymin = self.ymin(ymin); ymax = self.ymax(ymax)
+
+        # adjust the figsize in case the user also specifies an aspect ratio
+        if aspect_ratio is None:
+            aspect_ratio = self.aspect_ratio()
+        figsize = adjust_figsize_for_aspect_ratio(figsize, aspect_ratio, xmin=xmin,
+                                                  xmax=xmax, ymin=ymin, ymax=ymax)
+
         global do_verify
         do_verify = verify
 
@@ -1301,7 +1402,7 @@ class GraphicPrimitive_MatrixPlot(GraphicPrimitive):
         subplot.imshow(self.xy_data_array, cmap=cmap, interpolation='nearest', extent=(0,self.xrange[1],0,self.yrange[1]))
 
 # Below is the base class that is used to make 'field plots'.
-# Its implementation is motivated by Mathematica's 'PlotField'.
+# Its implementation is motivated by 'PlotField'.
 # Currently it is used to make the function 'plot_vector_field'
 # TODO: use this to make these functions:
 # 'plot_gradient_field' and 'plot_hamiltonian_field'
@@ -2117,7 +2218,7 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
         thickness -- How thick the line is
         rgbcolor -- The color as an rgb tuple
         hue -- The color given as a hue
-        Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
+        Any MATPLOTLIB line option may also be passed in.  E.g.,
         linestyle -- The style of the line, which is one of
                   '--' (dashed), '-.' (dash dot), '-' (solid),
                   'steps', ':' (dotted)
@@ -2268,7 +2369,7 @@ matrix_plot = MatrixPlotFactory()
 
 
 # Below is the base class that is used to make 'plot_vector_field'.
-# Its implementation is motivated by Mathematica's 'PlotVectorField'.
+# Its implementation is motivated by 'PlotVectorField'.
 # TODO: make class similiar to this one to implement:
 # 'plot_gradient_field' and 'plot_hamiltonian_field'
 class PlotFieldFactory(GraphicPrimitiveFactory_plot_field):
@@ -2487,7 +2588,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         thickness -- How thick the line is
         rgbcolor -- The color as an rgb tuple
         hue -- The color given as a hue
-        Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
+        Any MATPLOTLIB line option may also be passed in.  E.g.,
         linestyle -- The style of the line, which is one of
                   '--' (dashed), '-.' (dash dot), '-' (solid),
                   'steps', ':' (dotted)
@@ -3067,7 +3168,7 @@ class GraphicsArray(SageObject):
             figsize -- [width, height] (same for square aspect)
             axes -- (default: True)
             fontsize -- positive integer
-            frame -- (default: False) draw a MATLAB-like frame around the image
+            frame -- (default: False) draw a frame around the image
         """
         if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
         if DOCTEST_MODE:
@@ -3282,3 +3383,63 @@ def var_and_list_of_values(v, plot_points):
 #     if w < b:
 #         v.append(b)
 #     return v
+
+
+
+
+def adjust_figsize_for_aspect_ratio(figsize, aspect_ratio, xmin, xmax, ymin, ymax):
+    """
+    Adjust the figsize in case the user also specifies an aspect ratio.
+
+    INPUTS:
+        figsize -- a sequence of two positive real numbers
+        aspect_ratio -- a positive real number
+        xmin, xmax, ymin, ymax -- real numbers
+
+    EXAMPLES:
+    This function is used mainly internally by plotting code so we explicitly import it:
+        sage: from sage.plot.plot import adjust_figsize_for_aspect_ratio
+
+    This returns (5,5), since the requested aspect ratio is 1 and the
+    x and y ranges are the same, so that's the right size rendered
+    image to produce a 1:1 ratio internally.  5 is used instead of 3
+    since the image size is always adjusted to the larger of the
+    figsize dimensions.
+
+        sage: adjust_figsize_for_aspect_ratio([3,5], 1, 0, 2, 0, 2)
+        (5, 5)
+
+    Here we give a scalar figsize, which is automatically converted to
+    the figsize \code{(figsize, figsize/golden_ratio)}.
+        sage: adjust_figsize_for_aspect_ratio(3, 1, 0, 2, 0, 2)
+        (3, 3)
+
+    Here we omit the aspect ratio so the figsize is just returned.
+        sage: adjust_figsize_for_aspect_ratio([5,6], None, 0, 2, 0, 2)
+        [5, 6]
+
+    Here we have an aspect ratio of 2, and since the x and y ranges are
+    the same the returned figsize is twice as wide as tall:
+        sage: adjust_figsize_for_aspect_ratio([3,5], 2, 0, 2, 0, 2)
+        (5, 5/2)
+
+    Here the x range is rather large, so to get an aspect ratio where circles
+    look twice as wide as they are tall, we have to shrink the x size
+    of the image.
+        sage: adjust_figsize_for_aspect_ratio([3,5], 2, 0, 10, 0, 2)
+        (2, 5)
+    """
+    if not isinstance(figsize, (list, tuple)):
+        figsize = [figsize, figsize * 0.618033988749895]   # 1/golden_ratio
+    if aspect_ratio is None:
+        return figsize
+    # We find a number r such that (xmax-xmin)*r / (ymax-ymin) = aspect_ratio:
+    r = max(aspect_ratio * (ymax - ymin)/(xmax-xmin), 0.001)
+    mx = max(figsize)
+    f = (figsize[0]*r, figsize[0])
+    s = min((mx/f[0], mx/f[1]))
+    return f[0]*s, f[1]*s
+
+
+
+

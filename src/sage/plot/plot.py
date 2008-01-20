@@ -465,8 +465,8 @@ class Graphics(SageObject):
         If called with no input, return the current axes_color setting.
 
         INPUT:
-            c -- an rgb color 3-tuple, where each tuple entry is an
-                 integer between 0 and 1
+            c -- an rgb color 3-tuple, where each tuple entry is a
+                 float between 0 and 1
 
         EXAMPLES:
         We create a line, which has like everything a default axes color of black.

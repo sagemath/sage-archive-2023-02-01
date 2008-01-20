@@ -571,6 +571,9 @@ class Graphics(SageObject):
         if isinstance(other, int) and other == 0:
             return self
         if not isinstance(other, Graphics):
+            from sage.plot.plot3d.base import Graphics3d
+            if isinstance(other, Graphics3d):
+                return self.plot3d() + other
             raise TypeError, "other (=%s) must be a Graphics objects"%other
         g = Graphics()
         g.__xmin = min(self.__xmin, other.__xmin)
@@ -673,6 +676,13 @@ class Graphics(SageObject):
 
     def plot(self, *args, **kwds):
         return self
+
+    def plot3d(self, z=0, **kwds):
+        from sage.plot.plot3d.base import Graphics3dGroup
+        g = Graphics3dGroup([g.plot3d(**kwds) for g in self.__objects])
+        if z:
+            g = g.translate(0,0,z)
+        return g
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
@@ -908,6 +918,25 @@ class GraphicPrimitive(SageObject):
     def _allowed_options(self):
         return {}
 
+    def plot3d(self, **kwds):
+        raise NotImplementedError, "3d plotting not implemented for %s" % type(self)
+
+    def _plot3d_options(self, options=None):
+        """
+        Translate 2d plot options into 3d plot options.
+        """
+        if options == None:
+            options = self.options()
+        options_3d = {}
+        if 'rgbcolor' in options:
+            options_3d['rgbcolor'] = options['rgbcolor']
+            del options['rgbcolor']
+        if 'alpha' in options:
+            options_3d['opacity'] = options['alpha']
+            del options['alpha']
+        if len(options) != 0:
+            raise NotImplementedError, "Unknown plot3d equivalent for %s" % ", ".join(options.keys())
+        return options_3d
 
     def options(self):
         O = dict(self.__options)
@@ -958,6 +987,27 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
         return {'width':'How wide the entire arrow is.',
                 'rgbcolor':'The color as an rgb tuple.',
                 'hue':'The color given as a hue.'}
+
+    def _plot3d_options(self, options=None):
+        if options == None:
+            options = self.options()
+        options = dict(self.options())
+        options_3d = {}
+        if 'width' in options:
+            options_3d['thickness'] = options['width']
+            del options['width']
+        options_3d.update(GraphicPrimitive._plot3d_options(self, options))
+        return options_3d
+
+    def plot3d(self, **kwds):
+        """
+        EXAMPLE:
+            sage: arrow((0,0),(1,1)).plot3d()
+        """
+        from sage.plot.plot3d.shapes2 import line3d
+        options = self._plot3d_options()
+        options.update(kwds)
+        return line3d([(self.xmin, self.ymin, 0), (self.xmax, self.ymax, 0)], arrow_head=True, **options)
 
     def _repr_(self):
         return "Arrow from (%s,%s) to (%s,%s) "%(self.xmin, self.ymin, self.xmax, self.ymax)
@@ -1024,6 +1074,30 @@ class GraphicPrimitive_Line(GraphicPrimitive):
                 'markeredgewidth':'the size of the markter edge in points'
                 }
 
+    def _plot3d_options(self, options=None):
+        if options == None:
+            options = dict(self.options())
+        options_3d = {}
+        if 'thickness' in options:
+            options_3d['thickness'] = options['thickness']
+            del options['thickness']
+        if 'linestyle' in options:
+            if options['linestyle'] != '--':
+                raise NotImplementedError, "Invalid 3d line style: %s" % options['linestyle']
+            del options['linestyle']
+        options_3d.update(GraphicPrimitive._plot3d_options(self, options))
+        return options_3d
+
+    def plot3d(self, **kwds):
+        """
+        EXAMPLES:
+            sage: EllipticCurve('37a').plot(thickness=5).plot3d()
+        """
+        from sage.plot.plot3d.shapes2 import line3d
+        options = self._plot3d_options()
+        options.update(kwds)
+        return line3d([(x, y, 0) for x, y in zip(self.xdata, self.ydata)], **options)
+
     def _repr_(self):
         return "Line defined by %s points"%len(self)
 
@@ -1051,6 +1125,7 @@ class GraphicPrimitive_Line(GraphicPrimitive):
         p.set_linewidth(float(options['thickness']))
         p.set_color(to_mpl_color(options['rgbcolor']))
         subplot.add_line(p)
+
 
 class GraphicPrimitive_Circle(GraphicPrimitive):
     """
@@ -1085,6 +1160,25 @@ class GraphicPrimitive_Circle(GraphicPrimitive):
         p.set_edgecolor(c)
         p.set_facecolor(c)
         subplot.add_patch(p)
+
+    def plot3d(self, **kwds):
+        """
+        EXAMPLES:
+            sage: circle((0,0), 1).plot3d()
+            sage: sum([circle((random(),random()), random()).plot3d(z=random()) for _ in range(20)])
+        """
+        options = dict(self.options())
+        fill = options['fill']
+        del options['fill']
+        n = 50
+        dt = float(2*pi/n)
+        x, y, r = self.x, self.y, self.r
+        xdata = [x+r*cos(t*dt) for t in range(n+1)]
+        ydata = [y+r*sin(t*dt) for t in range(n+1)]
+        if fill:
+            return GraphicPrimitive_Polygon(xdata, ydata, options).plot3d()
+        else:
+            return GraphicPrimitive_Line(xdata, ydata, options).plot3d()
 
 class GraphicPrimitive_ContourPlot(GraphicPrimitive):
     """
@@ -1273,6 +1367,38 @@ class GraphicPrimitive_Point(GraphicPrimitive):
                 'rgbcolor':'The color as an rgb tuple.',
                 'hue':'The color given as a hue.'}
 
+    def _plot3d_options(self, options=None):
+        if options == None:
+            options = dict(self.options())
+        options_3d = {}
+        if 'pointsize' in options:
+            options_3d['size'] = options['pointsize']
+            del options['pointsize']
+        if 'faceted' in options:
+            if options['faceted']:
+                raise NotImplementedError, "No 3d faceted points."
+            del options['faceted']
+        options_3d.update(GraphicPrimitive._plot3d_options(self, options))
+        return options_3d
+
+    def plot3d(self, **kwds):
+        """
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: P = E(0,0)
+            sage: def get_points(n): return sum([point(i*P, pointsize=3) for i in range(-n,n) if i != 0 and (i*P)[0] < 3])
+            sage: sum([get_points(15*n).plot3d(z=n) for n in range(1,10)])
+        """
+        from sage.plot.plot3d.base import Graphics3dGroup
+        from sage.plot.plot3d.shapes2 import point3d
+        options = self._plot3d_options()
+        options.update(kwds)
+        all = [point3d([(x, y, 0) for x, y in zip(self.xdata, self.ydata)], **options)]
+        if len(all) == 1:
+            return all[0]
+        else:
+            return Graphics3dGroup(all)
+
     def _repr_(self):
         return "Point set defined by %s point(s)"%len(self.xdata)
 
@@ -1318,6 +1444,23 @@ class GraphicPrimitive_Polygon(GraphicPrimitive):
                 'rgbcolor':'The color as an rgb tuple.',
                 'hue':'The color given as a hue.'}
 
+    def _plot3d_options(self, options=None):
+        if options == None:
+            options = dict(self.options())
+        if 'thickness' in options:
+            del options['thickness']
+        return GraphicPrimitive._plot3d_options(self, options)
+
+    def plot3d(self, **kwds):
+        """
+        EXAMPLES:
+            sage: polygon([(cos(t), sin(t)) for t in srange(0, 2*pi, 2*pi/5)]).plot3d()
+        """
+        from sage.plot.plot3d.index_face_set import IndexFaceSet
+        options = self._plot3d_options()
+        options.update(kwds)
+        return IndexFaceSet([[(x, y, 0) for x, y in zip(self.xdata, self.ydata)]], **options)
+
     def _render_on_subplot(self, subplot):
         import matplotlib.patches as patches
         options = self.options()
@@ -1349,6 +1492,26 @@ class GraphicPrimitive_Text(GraphicPrimitive):
                 'hue':'The color given as a hue.',
                 'vertical_alignment': 'how to align vertically: top, center, bottom',
                 'horizontal_alignment':'how to align horizontally: left, center, right'}
+
+    def _plot3d_options(self, options=None):
+        if options == None:
+            options = dict(self.options())
+        options_3d = {}
+        # TODO: figure out how to implement rather than ignore
+        if 'fontsize' in options:
+            del options['fontsize']
+        if 'vertical_alignment' in options:
+            del options['vertical_alignment']
+        if 'horizontal_alignment' in options:
+            del options['horizontal_alignment']
+        options_3d.update(GraphicPrimitive._plot3d_options(self, options))
+        return options_3d
+
+    def plot3d(self, **kwds):
+        from sage.plot.plot3d.shapes2 import text3d
+        options = self._plot3d_options()
+        options.update(kwds)
+        return text3d(self.string, (self.x, self.y, 0), **options)
 
     def _render_on_subplot(self, subplot):
         options = self.options()

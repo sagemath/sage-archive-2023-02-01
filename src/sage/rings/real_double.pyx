@@ -348,7 +348,21 @@ cdef class RealDoubleField_class(Field):
             return self(-1)
         raise ValueError, "No %sth root of unity in self"%n
 
+    def NaN(self):
+        """
+        EXAMPLES:
+            sage: RDF.NaN()
+            nan
+        """
+        return self(0)/self(0)
 
+    def nan(self):
+        """
+        EXAMPLES:
+            sage: RDF.nan()
+            nan
+        """
+        return self(0)/self(0)
 
 def new_RealDoubleElement():
     cdef RealDoubleElement x

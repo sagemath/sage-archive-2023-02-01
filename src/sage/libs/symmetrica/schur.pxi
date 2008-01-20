@@ -62,6 +62,10 @@ def outerproduct_schur_symmetrica(parta, partb):
     Of course this can also be interpreted as the decomposition of the
     outer tensor product of two irreducibe representations of the
     symmetric group.
+
+    EXAMPLES:
+        sage: symmetrica.outerproduct_schur([2],[2])
+        s[2, 2] + s[3, 1] + s[4]
     """
     cdef OP cparta, cpartb, cresult
 
@@ -108,36 +112,6 @@ def dimension_schur_symmetrica(s):
     return res
 
 
-def part_part_skewschur_symmetrica(big, small):
-    """
-    you enter two PARTITION objects big and small, where big is
-    a partition which contains small, and result becomes a SCHUR
-    object, which represents the decomposition of the corresponding
-    skew partition.
-
-    """
-
-    cdef OP cbig, csmall, cresult
-
-    cbig = callocobject()
-    csmall = callocobject()
-    cresult = callocobject()
-
-    _op_partition(big, cbig)
-    _op_partition(small, csmall)
-    _sig_on
-    part_part_skewschur(cbig, csmall, cresult)
-    _sig_off
-    res = _py(cresult)
-
-    freeall(cbig)
-    freeall(csmall)
-    freeall(cresult)
-
-    return res
-
-
-
 def newtrans_symmetrica(perm):
     """
     computes the decomposition of a schubertpolynomial labeled by
@@ -162,21 +136,40 @@ def newtrans_symmetrica(perm):
 
 def compute_schur_with_alphabet_symmetrica(part, length, alphabet='x'):
     """
-    computes the expansion of a schurfunction labeled by a
+    Computes the expansion of a schurfunction labeled by a
     partition PART as a POLYNOM erg. The INTEGER length specifies the
     length of the alphabet.
+
+    EXAMPLES:
+        sage: symmetrica.compute_schur_with_alphabet(2,2)
+        x0^2 + x0*x1 + x1^2
+        sage: symmetrica.compute_schur_with_alphabet([2],2)
+        x0^2 + x0*x1 + x1^2
+        sage: symmetrica.compute_schur_with_alphabet(Partition([2]),2)
+        x0^2 + x0*x1 + x1^2
+        sage: symmetrica.compute_schur_with_alphabet(Partition([2]),2,'y')
+        y0^2 + y0*y1 + y1^2
+        sage: symmetrica.compute_schur_with_alphabet(Partition([2]),2,'a,b')
+        a^2 + a*b + b^2
+        sage: symmetrica.compute_schur_with_alphabet([2,1],1,'x')
+        0
     """
     late_import()
     cdef OP cpart = callocobject(), cresult = callocobject(), clength = callocobject()
 
-    _op_partition(part, cpart)
+    if isinstance(part, (int, Integer)):
+        _op_partition([part], cpart)
+    elif isinstance(part, (builtinlist, Partition_class)):
+        _op_partition(part, cpart)
+    else:
+        raise NotImplementedError, "n must be an integer or partition"
     _op_integer(length, clength)
 
     _sig_on
     compute_schur_with_alphabet(cpart, clength, cresult)
     _sig_off
 
-    res = _py_polynom_alphabet(cresult, alphabet)
+    res = _py_polynom_alphabet(cresult, alphabet, length)
 
     freeall(cresult)
     freeall(cpart)
@@ -191,6 +184,19 @@ def compute_homsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     The object number may also be a  PARTITION or a HOM_SYM object.
     The INTEGER laenge specifies the length of the alphabet.
     Both routines are the same.
+
+    EXAMPLES:
+        sage: symmetrica.compute_homsym_with_alphabet(3,1,'x')
+        x^3
+        sage: symmetrica.compute_homsym_with_alphabet([2,1],1,'x')
+        x^3
+        sage: symmetrica.compute_homsym_with_alphabet([2,1],2,'x')
+        x0^3 + 2*x0^2*x1 + 2*x0*x1^2 + x1^3
+        sage: symmetrica.compute_homsym_with_alphabet([2,1],2,'a,b')
+        a^3 + 2*a^2*b + 2*a*b^2 + b^3
+        sage: symmetrica.compute_homsym_with_alphabet([2,1],2,'x').parent()
+        Multivariate Polynomial Ring in x0, x1 over Integer Ring
+
     """
     late_import()
     cdef OP cn = callocobject(), clength = callocobject(), cresult = callocobject()
@@ -200,7 +206,7 @@ def compute_homsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     elif isinstance(n, (builtinlist, Partition_class)):
         _op_partition(n, cn)
     else:
-        raise NotImplementedError, "need to write code for HOM_SYM"
+        raise NotImplementedError, "n must be an integer or a partition"
 
     _op_integer(length, clength)
 
@@ -208,7 +214,7 @@ def compute_homsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     compute_homsym_with_alphabet(cn, clength, cresult)
     _sig_off
 
-    res = _py_polynom_alphabet(cresult, alphabet)
+    res = _py_polynom_alphabet(cresult, alphabet, length)
 
     freeall(cresult)
     freeall(cn)
@@ -222,18 +228,35 @@ def compute_elmsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     computes the expansion of a elementary symmetric
     function labeled by a INTEGER number as a POLYNOM erg.
     The object number may also be a  PARTITION or a ELM_SYM object.
-    The INTEGER laenge specifies the length of the alphabet.
+    The INTEGER length specifies the length of the alphabet.
     Both routines are the same.
+
+    EXAMPLES:
+        sage: a = symmetrica.compute_elmsym_with_alphabet(2,2); a
+        x0*x1
+        sage: a.parent()
+        Multivariate Polynomial Ring in x0, x1 over Integer Ring
+        sage: a = symmetrica.compute_elmsym_with_alphabet([2],2); a
+        x0*x1
+        sage: symmetrica.compute_elmsym_with_alphabet(3,2)
+        0
+        sage: symmetrica.compute_elmsym_with_alphabet([3,2,1],2)
+        0
+
     """
     late_import()
     cdef OP cn = callocobject(), clength = callocobject(), cresult = callocobject()
 
     if isinstance(n, (int, Integer)):
+        if n > length:
+            return 0
         _op_integer(n, cn)
     elif isinstance(n, (builtinlist, Partition_class)):
+        if max(n) > length:
+            return 0
         _op_partition(n, cn)
     else:
-        raise NotImplementedError, "need to write code for ELM_SYM"
+        raise NotImplementedError, "n must be an integer or a partition"
 
     _op_integer(length, clength)
 
@@ -241,7 +264,7 @@ def compute_elmsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     compute_elmsym_with_alphabet(cn, clength, cresult)
     _sig_off
 
-    res = _py_polynom_alphabet(cresult, alphabet)
+    res = _py_polynom_alphabet(cresult, alphabet, length)
 
     freeall(cresult)
     freeall(cn)
@@ -256,18 +279,37 @@ def compute_monomial_with_alphabet_symmetrica(n, length, alphabet='x'):
     function labeled by a PARTITION number as a POLYNOM erg.
     The INTEGER laenge specifies the length of the alphabet.
 
+    EXAMPLES:
+        sage: symmetrica.compute_monomial_with_alphabet([2,1],2,'x')
+        x0^2*x1 + x0*x1^2
+        sage: symmetrica.compute_monomial_with_alphabet([1,1,1],2,'x')
+        0
+        sage: symmetrica.compute_monomial_with_alphabet(2,2,'x')
+        x0^2 + x1^2
+        sage: symmetrica.compute_monomial_with_alphabet(2,2,'a,b')
+        a^2 + b^2
+        sage: symmetrica.compute_monomial_with_alphabet(2,2,'x').parent()
+        Multivariate Polynomial Ring in x0, x1 over Integer Ring
+
     """
     late_import()
     cdef OP cn = callocobject(), clength = callocobject(), cresult = callocobject()
+    if isinstance(n, (int, Integer)):
+        _op_integer(n, cn)
+    elif isinstance(n, (builtinlist, Partition_class)):
+        if len(n) > length:
+            return 0
+        _op_partition(n, cn)
+    else:
+        raise NotImplementedError, "n must be an integer or a partition"
 
-    _op_partition(n, cn)
     _op_integer(length, clength)
 
     _sig_on
     compute_monomial_with_alphabet(cn, clength, cresult)
     _sig_off
 
-    res = _py_polynom_alphabet(cresult, alphabet)
+    res = _py_polynom_alphabet(cresult, alphabet, length)
 
     freeall(cresult)
     freeall(cn)
@@ -282,6 +324,19 @@ def compute_powsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     function labeled by a INTEGER label or by a PARTITION label
     or a POW_SYM label as a POLYNOM erg.
     The INTEGER laenge specifies the length of the alphabet.
+
+    EXAMPLES:
+        sage: symmetrica.compute_powsym_with_alphabet(2,2,'x')
+        x0^2 + x1^2
+        sage: symmetrica.compute_powsym_with_alphabet(2,2,'x').parent()
+        Multivariate Polynomial Ring in x0, x1 over Integer Ring
+        sage: symmetrica.compute_powsym_with_alphabet([2],2,'x')
+        x0^2 + x1^2
+        sage: symmetrica.compute_powsym_with_alphabet([2],2,'a,b')
+        a^2 + b^2
+        sage: symmetrica.compute_powsym_with_alphabet([2,1],2,'a,b')
+        a^3 + a^2*b + a*b^2 + b^3
+
     """
     late_import()
     cdef OP cn = callocobject(), clength = callocobject(), cresult = callocobject()
@@ -299,7 +354,7 @@ def compute_powsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     compute_powsym_with_alphabet(cn, clength, cresult)
     _sig_off
 
-    res = _py_polynom_alphabet(cresult, alphabet)
+    res = _py_polynom_alphabet(cresult, alphabet, length)
 
     freeall(cresult)
     freeall(cn)
@@ -310,22 +365,34 @@ def compute_powsym_with_alphabet_symmetrica(n, length, alphabet='x'):
 
 def compute_schur_with_alphabet_det_symmetrica(part, length, alphabet='x'):
     """
-    computes the expansion of a skewschurfunction labeled by the
-    SKEWPARTITION skewpart, using the Jacobi Trudi Identity,
-    the result is the
-    POLYNOM erg, the length of the alphabet is given by INTEGER length.
-
+    EXAMPLES:
+        sage: symmetrica.compute_schur_with_alphabet_det(2,2)
+        x0^2 + x0*x1 + x1^2
+        sage: symmetrica.compute_schur_with_alphabet_det([2],2)
+        x0^2 + x0*x1 + x1^2
+        sage: symmetrica.compute_schur_with_alphabet_det(Partition([2]),2)
+        x0^2 + x0*x1 + x1^2
+        sage: symmetrica.compute_schur_with_alphabet_det(Partition([2]),2,'y')
+        y0^2 + y0*y1 + y1^2
+        sage: symmetrica.compute_schur_with_alphabet_det(Partition([2]),2,'a,b')
+        a^2 + a*b + b^2
     """
     cdef OP cpart = callocobject(), cresult = callocobject(), clength = callocobject()
 
-    _op_partition(part, cpart)
+    if isinstance(part, (int, Integer)):
+        _op_partition([part], cpart)
+    elif isinstance(part, (builtinlist, Partition_class)):
+        _op_partition(part, cpart)
+    else:
+        raise NotImplementedError, "n must be an integer or partition"
+
     _op_integer(length, clength)
 
     _sig_on
     compute_schur_with_alphabet_det(cpart, clength, cresult)
     _sig_off
 
-    res = _py_polynom_alphabet(cresult, alphabet)
+    res = _py_polynom_alphabet(cresult, alphabet, length)
 
     freeall(cresult)
     freeall(cpart)
@@ -333,7 +400,7 @@ def compute_schur_with_alphabet_det_symmetrica(part, length, alphabet='x'):
 
     return res
 
-def part_part_skewschur_symmetric(outer, inner):
+def part_part_skewschur_symmetrica(outer, inner):
     """
     Returns the skew schur function s_{outer/inner}
 

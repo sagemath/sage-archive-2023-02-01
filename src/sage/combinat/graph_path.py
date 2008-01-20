@@ -22,7 +22,7 @@ import sage.graphs.graph as graph
 def GraphPaths(g, source=None, target=None):
     """
     Returns the combinatorial class of paths in the
-    directed graph g.
+    directed acyclic graph g.
 
     EXAMPLES:
         sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
@@ -68,9 +68,20 @@ def GraphPaths(g, source=None, target=None):
         sage: p.list()
         [[1, 2, 3], [1, 2, 3], [1, 3]]
 
+      Note that G must be a directed acyclic graph.
+
+        sage: G = DiGraph({1:[2,2,3,5], 2:[3,4], 3:[4], 4:[2,5,7], 5:[6]}, multiedges=True)
+        sage: GraphPaths(G)
+        Traceback (most recent call last):
+        ...
+        TypeError: g must be a directed acyclic graph
+
     """
     if not isinstance(g, graph.DiGraph):
         raise TypeError, "g must be a DiGraph"
+    elif not g.is_directed_acyclic():
+        raise TypeError, "g must be a directed acyclic graph"
+
     if source is None and target is None:
         return GraphPaths_all(g)
     elif source is not None and target is None:
@@ -116,6 +127,21 @@ class GraphPaths_common:
     def outgoing_paths(self, v):
         """
         Returns a list of the paths that start at v.
+
+        EXAMPLES:
+            sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
+            sage: gp = GraphPaths(G)
+            sage: gp.outgoing_paths(3)
+            [[3], [3, 4], [3, 4, 5], [3, 4, 5]]
+            sage: gp.outgoing_paths(2)
+            [[2],
+             [2, 3],
+             [2, 3, 4],
+             [2, 3, 4, 5],
+             [2, 3, 4, 5],
+             [2, 4],
+             [2, 4, 5],
+             [2, 4, 5]]
         """
         source = v
         source_paths = [ [v] ]
@@ -132,6 +158,12 @@ class GraphPaths_common:
     def incoming_paths(self, v):
         """
         Returns a list of paths that end at v.
+
+        EXAMPLES:
+            sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
+            sage: gp = GraphPaths(G)
+            sage: gp.incoming_paths(2)
+            [[2], [1, 2], [1, 2]]
         """
         target = v
         target_paths = [ [v] ]
@@ -145,6 +177,12 @@ class GraphPaths_common:
     def paths_from_source_to_target(self, source, target):
         """
         Returns a list of paths from source to target.
+
+        EXAMPLES:
+            sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
+            sage: gp = GraphPaths(G)
+            sage: gp.paths_from_source_to_target(2,4)
+            [[2, 3, 4], [2, 4]]
         """
         source_paths = self.outgoing_paths(source)
         paths = []
@@ -154,6 +192,16 @@ class GraphPaths_common:
         return paths
 
     def paths(self):
+        """
+        Returns a list of all the paths of self.
+
+        EXAMPLES:
+            sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
+            sage: gp = GraphPaths(G)
+            sage: len(gp.paths())
+            37
+
+        """
         paths = []
         for source in self.graph.vertices():
             paths += self.outgoing_paths(source)
@@ -188,6 +236,15 @@ class GraphPaths_all(CombinatorialClass, GraphPaths_common):
         return "Paths in %s"%repr(self.graph)
 
     def list(self):
+        """
+        Returns a list of the paths of self.
+
+        EXAMPLES:
+            sage: G = DiGraph({1:[2,2,3], 2:[3,4], 3:[4], 4:[5,5]}, multiedges=True)
+            sage: len(GraphPaths(G).list())
+            37
+
+        """
         return self.paths()
 
 class GraphPaths_t(CombinatorialClass, GraphPaths_common):

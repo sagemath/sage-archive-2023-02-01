@@ -42,9 +42,8 @@ class Axes(SageObject):
 
     """
     def __init__(self, color=(0,0,0), fontsize=8, linewidth=0.6,axes_labels=None,
-                 axes_label_color=(0,0,0), tick_color=(0,0,0), tick_label_color=(0,0,0)):
+                 axes_label_color=(0,0,0), tick_label_color=(0,0,0)):
         self.__color = color
-        self.__tick_color = tick_color
         self.__tick_label_color = tick_label_color
         self.__axes_labels = axes_labels
         self.__axes_label_color = axes_label_color
@@ -339,7 +338,7 @@ class Axes(SageObject):
                 continue
             s = self._format_tick_string(x)
             subplot.text(x, xlabel, s, fontsize=int(self.__fontsize), horizontalalignment="center",
-                        color=self.__tick_color, verticalalignment="top")
+                        color=self.__tick_label_color, verticalalignment="top")
             subplot.add_line(patches.lines.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xltheight],
                         color=self.__color, linewidth=float(self.__linewidth)))
 
@@ -355,7 +354,7 @@ class Axes(SageObject):
                 continue
             s = self._format_tick_string(y)
             subplot.text(ylabel, y, s, fontsize=int(self.__fontsize), verticalalignment="center",
-                        color=self.__tick_color, horizontalalignment="right")
+                        color=self.__tick_label_color, horizontalalignment="right")
             subplot.add_line(patches.lines.Line2D([y_axis_xpos, y_axis_xpos + yltheight], [y, y],
                     color=self.__color, linewidth=float(self.__linewidth)))
 

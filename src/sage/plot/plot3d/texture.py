@@ -11,21 +11,7 @@ from sage.structure.sage_object import SageObject
 
 uniq_c = 0
 
-colors = {
-    "red"   : (1,0,0),
-    "orange": (1,.5,0),
-    "yellow": (1,1,0),
-    "green" : (0,1,0),
-    "blue"  : (0,0,1),
-    "purple": (.5,0,1),
-    "white" : (1,1,1),
-    "black" : (0,0,0),
-    'brown': (0.65, 0.165, 0.165),
-    "grey"  : (.5,.5,.5),
-    "gray"  : (.5,.5,.5),
-    "lightblue" : (0.4,0.4,1),
-    "automatic": (0.4,0.4,1)
-}
+from sage.plot.misc import colors
 
 def is_Texture(x):
     return isinstance(x, Texture_class)

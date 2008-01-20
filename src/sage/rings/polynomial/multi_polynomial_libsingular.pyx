@@ -3102,29 +3102,29 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         quo = singclap_pdivide( _self._poly, _right._poly )
         return co.new_MP(parent, quo)
 
-    def factor(self, param=0):
+    def factor(self):
         """
         Return the factorization of self.
 
-        INPUT:
-            param --  0: returns factors and multiplicities, first factor is a constant.
-                      1: returns non-constant factors (no multiplicities).
-                      2: returns non-constant factors and multiplicities.
         EXAMPLE:
             sage: R.<x,y,z> = PolynomialRing(GF(32003),3)
             sage: R.<x,y,z> = MPolynomialRing(GF(32003),3)
             sage: f = 9*(x-1)^2*(y+z)
-            sage: f.factor(0)
-            9 * (y + z) * (x - 1)^2
-            sage: f.factor(1)
-            (y + z) * (x - 1)
-            sage: f.factor(2)
-            (y + z) * (x - 1)^2
+            sage: f.factor()
+            (9) * (y + z) * (x - 1)^2
 
             sage: R.<x,w,v,u> = QQ['x','w','v','u']
             sage: p = (4*v^4*u^2 - 16*v^2*u^4 + 16*u^6 - 4*v^4*u + 8*v^2*u^3 + v^4)
             sage: p.factor()
             (-2*v^2*u + 4*u^3 + v^2)^2
+            sage: R.<a,b,c,d> = QQ[]
+            sage: f =  (-2) * (a - d) * (-a + b) * (b - d) * (a - c) * (b - c) * (c - d)
+            sage: F = f.factor(); F
+            (-2) * (c - d) * (b - d) * (b - c) * (-a + b) * (a - d) * (a - c)
+            sage: F[0][0]
+            c - d
+            sage: F.unit_part()
+            -2
 
         Factorization of multivariate polynomials over non-prime
         finite fields is only implemented in Singular, and

@@ -3159,19 +3159,15 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         ptemp = p_Copy(self._poly,_ring)
         iv = NULL
         _sig_on
-        I = singclap_factorize ( ptemp, &iv , int(param)) #delete iv at some point
+        I = singclap_factorize ( ptemp, &iv , 0) #delete iv at some point
         _sig_off
 
-        if param==1:
-            v = [(co.new_MP(parent, p_Copy(I.m[i],_ring)) , 1)   for i in range(I.ncols)]
-        else:
-            ivv = iv.ivGetVec()
-            v = [(co.new_MP(parent, p_Copy(I.m[i],_ring)) , ivv[i])   for i in range(I.ncols)]
-            oo = (co.new_MP(parent, p_ISet(1,_ring)),1)
-            if oo in v:
-                v.remove(oo)
+        ivv = iv.ivGetVec()
+        v = [(co.new_MP(parent, p_Copy(I.m[i],_ring)) , ivv[i])   for i in range(1,I.ncols)]
 
-        F = Factorization(v)
+        unit = co.new_MP(parent, p_Copy(I.m[0],_ring))
+
+        F = Factorization(v,unit)
         F.sort()
 
         delete(iv)

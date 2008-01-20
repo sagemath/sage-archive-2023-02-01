@@ -8,6 +8,12 @@ Maintainers: Michael Abshoff, Josh Kantor
 
 ChangeLog
 
+*20080119: Josh Kantor (3.8.p8)
+  + Added optional environment variable SAGE_ATLAS_LIB. This should be a directory that
+    contains liblapack.so,libcblas.so, libf77blas.so, libatlas.so. Instead of building
+    atlas we make symlinks to these libraries in $SAGE_LOCAL/lib
+
+
 * 20071215: Josh Kantor (3.8.p6)
   + check if ATLAS bailed out due to unprecise timings. This happens
     if the system is too loaded.

@@ -520,28 +520,26 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         Return module spanned by coefficients of q-expansions to
         sufficient precision to determine elements of this space.
 
-        NOTE: This module is sometimes larger degree than necessary,
-        since self.q_expansion_basis() may be computed to higher
-        precision than necessary to determine them as elements
-        of the space.
-
         EXAMPLES:
             sage: M = ModularForms(11,2)
             sage: M._q_expansion_module()
-            Vector space of degree 6 and dimension 2 over Rational Field
+            Vector space of degree 3 and dimension 2 over Rational Field
             User basis matrix:
-            [   0    1   -2   -1    2    1]
-            [   1 12/5 36/5 48/5 84/5 72/5]
-
-
+            [   0    1   -2]
+            [   1 12/5 36/5]
+            sage: CuspForms(1,12)._q_expansion_module()
+            Vector space of degree 2 and dimension 1 over Rational Field
+            User basis matrix:
+            [0 1]
         """
         try:
             return self.__q_expansion_module
         except AttributeError:
             pass
 
-        C = self.q_expansion_basis()
-        prec = C[0].prec() if (len(C) > 0) else 0
+        prec = self.sturm_bound()
+        C = self.q_expansion_basis(prec)
+##        prec = C[0].prec() if (len(C) > 0) else 0
         V = self.base_ring()**prec
         W = V.span_of_basis([f.padded_list(prec) for f in C])
         self.__q_expansion_module = W
@@ -587,6 +585,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             prec = -1  # big enough to determine forms
         else:
             prec = rings.Integer(self.__normalize_prec(prec))
+
         if prec == 0:
             z = self._q_expansion_ring()(0,prec)
             return Sequence([z]*int(self.dimension()), immutable=True, cr=True)
@@ -899,15 +898,25 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: M(R([0,1,0,0,0,-2,-4,-2,-12]).add_bigoh(9))
             q - 2*q^5 - 4*q^6 - 2*q^7 - 12*q^8 + O(q^9)
 
+            Note that one only needs coefficients up to self.sturm_bound()
+            to determine the form:
             sage: M(R([0,1,0,0,0,-2,-4,-2,-12]).add_bigoh(8))
-            Traceback (most recent call last):
-            ...
-            TypeError: q-expansion needed to at least precision 9
+            q - 2*q^5 - 4*q^6 - 2*q^7 - 12*q^8 + O(q^9)
 
             sage: M(R([0,1,1,0,0,0,-4,-2,-12]).add_bigoh(9))
             Traceback (most recent call last):
             ...
             ArithmeticError: vector is not in free module
+
+            sage: S = CuspForms(1,12) ; R = PowerSeriesRing(QQ,'q') ; q = R.0
+            sage: f = q+O(q^2) ; S(f)
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+            sage: f = q+2*q^2+O(q^3) ; S(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: q-expansion does not correspond to a form in self
+            sage: f = q-24*q^2+O(q^3) ; S(f)
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
         """
         if isinstance(x, element.ModularFormElement):
             if x.parent() is self:
@@ -929,8 +938,13 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         elif rings.is_PowerSeries(x):
             W = self._q_expansion_module()
             if W.degree() <= x.prec():
-                x = W.coordinates(x.padded_list(W.degree()))
-                x = self.free_module().linear_combination_of_basis(x)
+                x_potential = W.coordinates(x.padded_list(W.degree()))
+                x_potential = self.free_module().linear_combination_of_basis(x_potential)
+                x_potential = element.ModularFormElement(self, x_potential)
+                for i in range(W.degree(), x.prec()):
+                    if x_potential[i] != x[i]:
+                        raise ValueError, "q-expansion does not correspond to a form in self"
+                return x_potential
             else:
                 raise TypeError, "q-expansion needed to at least precision %s"%W.degree()
         if check:
@@ -1257,11 +1271,12 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
     def sturm_bound(self, M=None):
         r"""
-        For a space M of modular forms, this function returns an integer B
-        such that two modular forms in either self or M are equal if and only
-        if their q-expansions are equal to precision B (note that this is
-        1+ the usual Sturm bound, since $O(q^{prec})$ has precision prec).  If M
-        is none, then M is set equal to self.
+        For a space M of modular forms, this function returns an
+        integer B such that two modular forms in either self or M are
+        equal if and only if their q-expansions are equal to precision
+        B (note that this is 1+ the usual Sturm bound, since
+        $O(q^{prec})$ has precision prec).  If M is none, then M is
+        set equal to self.
 
         EXAMPLES:
             sage: S37=CuspForms(37,2)

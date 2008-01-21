@@ -1521,6 +1521,7 @@ class GraphicPrimitive_Text(GraphicPrimitive):
         return {'fontsize': 'How big the text is.',
                 'rgbcolor':'The color as an rgb tuple.',
                 'hue':'The color given as a hue.',
+                'axis_coords':'Uses axis coordinates -- (0,0) lower left and (1,1) upper right',
                 'vertical_alignment': 'how to align vertically: top, center, bottom',
                 'horizontal_alignment':'how to align horizontally: left, center, right'}
 
@@ -1546,12 +1547,14 @@ class GraphicPrimitive_Text(GraphicPrimitive):
 
     def _render_on_subplot(self, subplot):
         options = self.options()
-        c = options['rgbcolor']
-        f = int(options['fontsize'])
-        va = options['vertical_alignment']
-        ha = options['horizontal_alignment']
-        subplot.text(float(self.x), float(self.y), self.string, color=c, fontsize=f,
-                        verticalalignment=va,horizontalalignment=ha)
+        opts = {}
+        opts['color'] = options['rgbcolor']
+        opts['fontsize'] = int(options['fontsize'])
+        opts['verticalalignment'] = options['vertical_alignment']
+        opts['horizontalalignment'] = options['horizontal_alignment']
+        if options['axis_coords']:
+            opts['transform'] = subplot.transAxes
+        subplot.text(float(self.x), float(self.y), self.string, **opts)
 
 class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
     """

@@ -4,6 +4,9 @@ This is Python from http://www.python.org
 
 FIXME!
 
+=== python-2.5.1.p12 (Michael Abshoff, Jan. 21st, 2008) ===
+ * update patches/local.py (fixes #1604, fixed by William Stein)
+
 === python-2.5.1.p11 (Michael Abshoff) ===
  * enable ucs4 per default
  * add .hgignore

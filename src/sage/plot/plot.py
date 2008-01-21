@@ -1460,7 +1460,7 @@ class GraphicPrimitive(SageObject):
 
     EXAMPLES:
     We create an object that derives from GraphicPrimitive:
-        sagef: P = line([(-1,-2), (3,5)])
+        sage: P = line([(-1,-2), (3,5)])
         sage: P[0]
         Line defined by 2 points
         sage: type(P[0])

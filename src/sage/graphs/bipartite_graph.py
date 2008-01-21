@@ -1,0 +1,193 @@
+r"""
+Bipartite Graphs
+
+This module implements bipartite graphs.
+
+AUTHORS:
+    -- Robert L. Miller (2008-01-20): initial version
+
+TESTS:
+
+    sage: B = graphs.CompleteBipartiteGraph(7,9)
+    sage: loads(dumps(B)) == B
+    True
+
+"""
+
+#*****************************************************************************
+#         Copyright (C) 2008 Robert L. Miller <rlmillster@gmail.com>
+#
+# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
+#                         http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from graph import Graph
+
+class BipartiteGraph(Graph):
+
+    def __init__(self, *args, **kwds):
+        r"""
+        Bipartite graph.
+
+        INPUT:
+        1. Empty: creates a zero vertex bipartite graph.
+
+            sage: B = BipartiteGraph()
+            sage: type(B)
+            <class 'sage.graphs.bipartite_graph.BipartiteGraph'>
+            sage: B.order()
+            0
+
+        2. From a graph: without any more information, finds a bipartition.
+
+            sage: B = BipartiteGraph( graphs.CycleGraph(4) )
+            sage: B = BipartiteGraph( graphs.CycleGraph(5) )
+            Traceback (most recent call last):
+            ...
+            TypeError: Input graph is not bipartite!
+
+        3. From a NetworkX bipartite graph.
+
+            sage: import networkx
+            sage: G = graphs.OctahedralGraph()
+            sage: N = networkx.cliques.make_clique_bipartite(G._nxg)
+            sage: B = BipartiteGraph(N)
+
+        """
+        if len(args) == 0:
+            Graph.__init__(self)
+            self.left = []; self.right = []
+            return
+        arg1 = args[0]
+        args = args[1:]
+        if isinstance(arg1, Graph):
+            Graph.__init__(self, arg1, *args, **kwds)
+            try:
+                self.left, self.right = arg1.bipartite_sets()
+                return
+            except:
+                raise TypeError("Input graph is not bipartite!")
+
+        import networkx
+        if isinstance(arg1, (networkx.XGraph, networkx.Graph)):
+            Graph.__init__(self, arg1, *args, **kwds)
+            if hasattr(arg1, 'node_type'):
+                # Assume the graph is bipartite
+                self.left = []
+                self.right = []
+                for v in arg1.nodes_iter():
+                    if arg1.node_type[v] == 'Bottom':
+                        self.left.append(v)
+                    elif arg1.node_type[v] == 'Top':
+                        self.right.append(v)
+                    else:
+                        raise TypeError("NetworkX node_type defies bipartite assumtion (is not 'Top' or 'Bottom')")
+            else:
+                try:
+                    import networkx.generators.bipartite as nx_bip
+                    self.left, self.right = \
+                        nx_bip.bipartite_sets(self._nxg)
+                except:
+                    raise TypeError("Input graph is not bipartite!")
+
+    def _repr_(self):
+        r"""
+        Returns a short string representation of self.
+
+        EXAMPLE:
+            sage: B = BipartiteGraph(graphs.CycleGraph(16))
+            sage: B
+            Bipartite cycle graph: graph on 16 vertices
+
+        """
+        s = Graph._repr_(self).lower()
+        if 'bipartite' in s:
+            return s.capitalize()
+        else:
+            return 'Bipartite ' + s
+
+    def bipartition(self):
+        r"""
+        Returns the underlying bipartition of the bipartite graph.
+
+        EXAMPLE:
+            sage: B = BipartiteGraph( graphs.CycleGraph(4) )
+            sage: B.bipartition()
+            ([0, 2], [1, 3])
+
+        """
+        return (self.left, self.right)
+
+    def project_left(self):
+        r"""
+        Projects self onto left vertices: edges are 2-paths in the original.
+
+        EXAMPLE:
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(20))
+            sage: G = B.project_left()
+            sage: G.order(), G.size()
+            (10, 10)
+
+        """
+        G = Graph()
+        G.add_vertices(self.left)
+        for v in G:
+            for u in self.neighbor_iterator(v):
+                G.add_edges([(v,w) for w in self.neighbor_iterator(u)])
+        return G
+
+    def project_right(self):
+        r"""
+        Projects self onto right vertices: edges are 2-paths in the original.
+
+        EXAMPLE:
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(20))
+            sage: G = B.project_right()
+            sage: G.order(), G.size()
+            (10, 10)
+
+        """
+        G = Graph()
+        G.add_vertices(self.left)
+        for v in G:
+            for u in self.neighbor_iterator(v):
+                G.add_edges([(v,w) for w in self.neighbor_iterator(u)])
+        return G
+
+    def plot(self, *args, **kwds):
+        r"""
+        Overrides Graph's plot function, to illustrate the bipartite nature.
+
+        EXAMPLE:
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(20))
+            sage: B.plot()
+
+        """
+        if 'pos' not in kwds.keys():
+            kwds['pos'] = None
+        if kwds['pos'] is None:
+            pos = {}
+            l_len = len(self.left)
+            r_len = len(self.right)
+            if l_len == 1:
+                pos[self.left[0]] = [-1, 0]
+            elif l_len > 1:
+                i = 0
+                d = 2./(l_len-1)
+                for v in self.left:
+                    pos[v] = [-1, 1-i*d]
+                    i += 1
+            if r_len == 1:
+                pos[self.right[0]] = [1, 0]
+            elif r_len > 1:
+                i = 0
+                d = 2./(r_len-1)
+                for v in self.right:
+                    pos[v] = [1, 1-i*d]
+                    i += 1
+            kwds['pos'] = pos
+        return Graph.plot(self, *args, **kwds)
+

@@ -63,7 +63,7 @@ AUTHORS:
 
             \begin{itemize}
 
-                  \item NetworkX dictionary format:
+                \item NetworkX dictionary format:
 
                 sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], \
                       5: [7, 8], 6: [8,9], 7: [9]}
@@ -71,7 +71,7 @@ AUTHORS:
                 Graph on 10 vertices
                 sage: G.plot().show()    # or G.show()
 
-                    \item A NetworkX graph:
+                \item A NetworkX graph:
 
                 sage: K = networkx.complete_bipartite_graph(12,7)
                 sage: G = Graph(K)
@@ -148,6 +148,15 @@ AUTHORS:
 
         \subsection{Generators}
 
+        If you wish to iterate through all the isomorphism types of graphs,
+        type, for example:
+
+            sage: for g in graphs(4):
+            ...     print g.spectrum()
+            [0.0, 0.0, 0.0, 0.0]
+            ...
+            [-1.0, -1.0, -1.0, 3.0]
+
         For some commonly used graphs to play with, type
 
             sage: graphs.[tab]          # not tested
@@ -180,7 +189,7 @@ AUTHORS:
             sage: L = G.get_list(num_vertices=7, diameter=5)
             sage: graphs_list.show_graphs(L)
 
-            \subsection{Labels}\label{Graph:labels}
+        \subsection{Labels}\label{Graph:labels}
 
         Each vertex can have any hashable object as a label. These are things like
         strings, numbers, and tuples. Each edge is given a default label of \var{None}, but
@@ -1268,7 +1277,6 @@ class GenericGraph(SageObject):
             import networkx.cliques
             return Graph(networkx.cliques.make_max_clique_graph(self._nxg, name=name, create_using=networkx.xgraph.XGraph()))
 
-    # Add fpos (below) when Bipartite class is wrapped.
     def cliques_get_clique_bipartite(self, **kwds):
         """
         Returns a bipartite graph constructed such that cliques are the
@@ -1281,7 +1289,7 @@ class GenericGraph(SageObject):
 
         EXAMPLES:
             sage: (graphs.ChvatalGraph()).cliques_get_clique_bipartite()
-            Graph on 36 vertices
+            Bipartite graph on 36 vertices
             sage: ((graphs.ChvatalGraph()).cliques_get_clique_bipartite()).show(figsize=[2,2], vertex_size=20, vertex_labels=False)
             sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: D.show(figsize=[2,2])
@@ -1292,16 +1300,15 @@ class GenericGraph(SageObject):
             sage: D = D.to_undirected()
             sage: D.show(figsize=[2,2])
             sage: D.cliques_get_clique_bipartite()
-            Graph on 6 vertices
+            Bipartite graph on 6 vertices
             sage: (D.cliques_get_clique_bipartite()).show(figsize=[2,2])
         """
         if (self.is_directed()):
             raise TypeError('Function defined for undirected graphs only.  See documentation.')
         else:
             import networkx.cliques
-            return Graph(networkx.cliques.make_clique_bipartite(self._nxg, **kwds))
-
-    # TODO: Also implement project_down and project_up after Bipartite class.
+            from bipartite_graph import BipartiteGraph
+            return BipartiteGraph(networkx.cliques.make_clique_bipartite(self._nxg, **kwds))
 
     def clique_number(self, cliques=None):
         """
@@ -2355,7 +2362,8 @@ class GenericGraph(SageObject):
 
     def tensor_product(self, other):
         """
-        Returns the tensor product of self and other.
+        Returns the tensor product, also called the categorical product, of self
+        and other.
 
         The tensor product of G and H is the graph L with vertex set
         V(L) equal to the Cartesian product of the vertices V(G) and V(H), and
@@ -2395,6 +2403,8 @@ class GenericGraph(SageObject):
                 if self.has_edge(u, w) and other.has_edge(v, x):
                     G.add_edge((u,v), (w,x))
         return G
+
+    categorical_product = tensor_product
 
     def lexicographic_product(self, other):
         """
@@ -2448,9 +2458,9 @@ class GenericGraph(SageObject):
         ((u,v), (w,x)) is an edge iff either
             - (u, w) is an edge of self and v = x, or
             - (v, x) is an edge of other and u = w, or
-            - (u, w) is an edge of self and (v, x) is an edge of
-        other.
-
+            - (u, w) is an edge of self and (v, x) is an edge of other.
+        In other words, the edges of the strong product is the union of the
+        edges of the tensor and Cartesian products.
 
         EXAMPLES:
             sage: Z = graphs.CompleteGraph(2)

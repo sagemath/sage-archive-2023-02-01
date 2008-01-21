@@ -1967,8 +1967,9 @@ class GraphGenerators():
             y = 0
             pos_dict[i] = [x,y]
         import networkx
+        import sage.graphs.bipartite_graph as bipartite_graph
         G = networkx.complete_bipartite_graph(n1,n2)
-        return graph.Graph(G, pos=pos_dict, name="Complete bipartite graph")
+        return bipartite_graph.BipartiteGraph(G, pos=pos_dict, name="Complete bipartite graph")
 
     def CubeGraph(self, n):
         """

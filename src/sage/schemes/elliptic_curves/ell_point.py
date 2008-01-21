@@ -107,6 +107,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         sage: S = E(QQ); S
         Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
+    TESTS:
         sage: loads(S.dumps()) == S
         True
         sage: P = E(0,0); P
@@ -116,17 +117,17 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         sage: T = 100*P
         sage: loads(T.dumps()) == T
         True
+
+    Test pickling an elliptic curve that has known points on it.
+        sage: e = EllipticCurve([0, 0, 1, -1, 0]); g = e.gens(); loads(dumps(e)) == e
+        True
     """
-
-    def __reduce__(self):
-        return make_point, (self.curve(), self._coords)
-
     def __init__(self, curve, v, check=True):
-        X = curve.point_homset()
-        AdditiveGroupElement.__init__(self, X)
+        point_homset = curve.point_homset()
+        AdditiveGroupElement.__init__(self, point_homset)
         if check:
             # mostly from  SchemeMorphism_projective_coordinates_field
-            d = X.codomain().ambient_space().ngens()
+            d = point_homset.codomain().ambient_space().ngens()
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
             if v == 0:
@@ -136,8 +137,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
                       "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)
             if len(v) != d and len(v) != d-1:
                 raise TypeError, "v (=%s) must have %s components"%(v, d)
-            #v = Sequence(v, X.base_ring())
-            v = Sequence(v, X.value_ring())
+            v = Sequence(v, point_homset.value_ring())
             if len(v) == d-1:     # very common special case
                 v.append(1)
 
@@ -155,7 +155,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             if all_zero:
                 raise ValueError, "%s does not define a valid point since all entries are 0"%repr(v)
 
-            X.codomain()._check_satisfies_equations(v)
+            point_homset.codomain()._check_satisfies_equations(v)
 
         self._coords = v
 
@@ -428,102 +428,6 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             return self[0]/self[2], self[1]/self[2]
 
 
-##########################################################################################
-        ## this is nonsense:
-##     def sigma(self, p):
-##         """
-##         Return the value of the $p$-adic sigma function of
-##         the elliptic curve on this point.
-
-##         EXAMPLES:
-
-##         """
-##         k = rings.Qp(p)
-##         if self.is_zero():
-##             return k(0)
-##         sigma = self.curve().sigma(p)
-##         return sigma(k(-self[0]/self[1]))
-
-
-
-##     def padic_height(self, p):
-##         """Returns the p-adic cyclotomic height of the point.
-
-##         padic_height(p)
-
-##         Input:
-##            p: a prime number
-##         Output:
-##            p-adic cyclotomic height, which is a single p-adic number.
-
-##         Algorithm:
-##         We compute this height using the following formula, which
-##         is valid for points that are in the intersection of the
-##         identity component of the Neron model with the kernel of
-##         reduction modulo $p$:
-## $$
-##      h(P) = 1/2 * sum_{ell!=p} sup(0,-ord_ell(x(P)))  + log_p(sigma_p(-x(P)/y(P)) / e),
-## $$
-##         where $P=(a/e^2, b/e^3)$ with $\gcd(a,e)=1$, and
-##         where the first sum is over primes ell that don't equal $p$.
-##         If $P$ isn't in the subgroup mentioned above, let $n$ be a positive
-##         integer so that $nP$ is in that subgroup.  Then we return
-##         $h(nP)/(n^2)$, which does not depend on the choice of $n$, and
-##         is defined using the above formula.
-
-##         """
-
-##         if not arith.is_prime(p):
-##             raise ArithmeticError, "p must be a prime number."
-##         E = self.curve()
-##         if E.conductor() % p == 0:
-##             raise ArithmeticError, "p must be a prime of good reduction."
-
-##         ap = E.ap(p)
-##         if ap == 0:
-##             raise ArithmeticError, "p must a prime of good ordinary reduction."
-
-##         Np = p+1 - E.ap(p)
-##         c = 1
-##         for q, _ in arith.factor(E.conductor()):
-##             c = arith.lcm(c, E.tamagawa_number(q))
-
-##         n = Np*c
-##         misc.verbose("Multiplying point by %s."%n)
-##         R = n*self
-
-##         x, y = R.xy()
-##         sigma = E.padic_sigma(p)
-##         Qp = rings.pAdicField(p)
-##         print "x = ", x
-##         print "-x/y = ", Qp(-x/y)
-##         d = x.denominator()
-##         e = d.sqrt()
-##         if e*e != d:
-##             raise ArithmeticError, "The denominator is not a perfect square!?"
-##         t = Qp(-x/y)
-##         return (sigma(t)/Qp(e)).log()
-
-
-
-##         w = Qp(0)
-##         for ell, ord in d.factor():
-##             if ell != p:
-##                 w += ord * Qp(ell).log()
-##         # note that there is no 1/2, since we factored the square root.
-##         t = Qp(-x/y)
-##         print "sigm = ", sigma(t)
-##         print "e = ", e
-##         hP = w + (sigma(t)/e).log()
-##         print "w = ", w
-##         print "sigma(t) = ", sigma(t)
-##         print "sigma(t)/e = ", sigma(t)/e
-##         print "(sigma(t)/e).log() = ", (sigma(t)/e).log()
-##         print "sum = ", w + (sigma(t)/e).log()
-
-##         return hP/Qp(n**2)
-
-
 
 class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
     def order(self, disable_warning=False):
@@ -636,17 +540,3 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         x,y = map(lambda x: x._magma_().name(), self.xy())
         return "%s![%s,%s]"%(E,x,y)
 
-def make_point(X, v):
-    # TODO: Unpickled parents with base sometimes have thier base set to None.
-    # This causes a segfault in the module arithmetic architecture.
-    #
-    # sage: H = HomsetWithBase(QQ, RR, base=ZZ); H
-    # sage: H0 = loads(dumps(H))
-    # sage: H.base_ring(), H0.base_ring()
-    # (Integer Ring, None)
-    #
-    # It looks like there's generic code to do this, but it's been commented out.
-    #
-    # Here we create a new (equivalent) parent manually.
-    del X._Scheme__ring_point_homset
-    return EllipticCurvePoint_field(X, v)

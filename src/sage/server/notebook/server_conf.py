@@ -10,9 +10,9 @@ defaults = {'cell_input_color':'#0000000',
             'number_of_backups':3,
 
             'idle_timeout':120,        # 2 minutes
-            'idle_check_interval':30,
+            'idle_check_interval':360,
 
-            'save_interval':30,        # seconds
+            'save_interval':360,        # seconds
 
             'doc_pool_size':128
            }

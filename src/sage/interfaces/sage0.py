@@ -136,6 +136,17 @@ class Sage(Expect):
         self._preparse = preparse
 
     def cputime(self, t=None):
+        """
+        Return cputime since this Sage subprocess was started.
+
+        EXAMPLES:
+            sage: sage0.cputime()     # random output
+            1.3530439999999999
+            sage: sage0('factor(2^157-1)')
+            852133201 * 60726444167 * 1654058017289 * 2134387368610417
+            sage: sage0.cputime()     # random output
+            1.6462939999999999
+        """
         return eval(self.eval('cputime(%s)'%t))
 
     def trait_names(self):

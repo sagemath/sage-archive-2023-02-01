@@ -684,6 +684,10 @@ ext_modules = [ \
               sources = ['sage/rings/integer_ring.pyx'],
               libraries=['ntl', 'gmp']), \
 
+    Extension('sage.interfaces.libecm',
+              sources = ['sage/interfaces/libecm.pyx'],
+              libraries=['ecm', 'gmp']), \
+
     Extension('sage.rings.padics.pow_computer',
               sources = ['sage/rings/padics/pow_computer.pyx'],
               libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],

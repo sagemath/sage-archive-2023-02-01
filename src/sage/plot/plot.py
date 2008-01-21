@@ -1044,10 +1044,44 @@ class Graphics(SageObject):
 ################## Graphics Primitives ################
 
 class GraphicPrimitive(SageObject):
+    """
+    Base class for graphics primitives, e.g., things that knows how to draw
+    themselves in 2d.
+
+    EXAMPLES:
+    We create an object that derives from GraphicPrimitive:
+        sagef: P = line([(-1,-2), (3,5)])
+        sage: P[0]
+        Line defined by 2 points
+        sage: type(P[0])
+        <class 'sage.plot.plot.GraphicPrimitive_Line'>
+    """
     def __init__(self, options):
+        """
+        Create a base class GraphicsPrimitive.  All this does is
+        set the options.
+
+        EXAMPLES:
+        We indirectly test this function.
+            sage: from sage.plot.plot import GraphicPrimitive
+            sage: GraphicPrimitive({})
+            Graphics primitive
+        """
+
         self.__options = options
 
     def _allowed_options(self):
+        """
+        Return the allowed options for a graphics primitive.
+
+        OUTPUT:
+            -- a reference to a dictionary.
+
+        EXAMPLES:
+            sage: from sage.plot.plot import GraphicPrimitive
+            sage: GraphicPrimitive({})._allowed_options()
+            {}
+        """
         return {}
 
     def plot3d(self, **kwds):
@@ -1071,6 +1105,17 @@ class GraphicPrimitive(SageObject):
         return options_3d
 
     def options(self):
+        """
+        Return the dictionary of options for this graphics primitive.
+
+        By default this function verifies that the options are all
+        valid; if any aren't a verbose message is printed with level 0.
+
+        EXAMPLES:
+            sage: from sage.plot.plot import GraphicPrimitive
+            sage: GraphicPrimitive({}).options()
+            {}
+        """
         O = dict(self.__options)
         global do_verify
         if do_verify:
@@ -1116,6 +1161,16 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
         GraphicPrimitive.__init__(self, options)
 
     def _allowed_options(self):
+        """
+        Return the dictionary of allowed options for the arrow graphics primitive.
+
+        EXAMPLES:
+             sage: from sage.plot.plot import GraphicPrimitive_Arrow
+             sage: list(sorted(GraphicPrimitive_Arrow(0,0,2,3,{})._allowed_options().iteritems()))
+             [('hue', 'The color given as a hue.'),
+             ('rgbcolor', 'The color as an rgb tuple.'),
+             ('width', 'How wide the entire arrow is.')]
+        """
         return {'width':'How wide the entire arrow is.',
                 'rgbcolor':'The color as an rgb tuple.',
                 'hue':'The color given as a hue.'}
@@ -1142,9 +1197,26 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
         return line3d([(self.xmin, self.ymin, 0), (self.xmax, self.ymax, 0)], arrow_head=True, **options)
 
     def _repr_(self):
-        return "Arrow from (%s,%s) to (%s,%s) "%(self.xmin, self.ymin, self.xmax, self.ymax)
+        """
+        Text representation of an arrow graphics primitive.
+
+        EXAMPLES:
+            sage: from sage.plot.plot import GraphicPrimitive_Arrow
+            sage: GraphicPrimitive_Arrow(0,0,2,3,{})._repr_()
+            'Arrow from (0,0) to (2,3)'
+        """
+        return "Arrow from (%s,%s) to (%s,%s)"%(self.xmin, self.ymin, self.xmax, self.ymax)
 
     def _render_on_subplot(self, subplot):
+        """
+        Render this arrow in a subplot.  This is the key function that
+        defines how this arrow graphics primitive is rendered in
+        matplotlib's library.
+
+        EXAMPLES:
+        This function implicitly ends up rendering this arrow on a matplotlib subplot:
+            sage: arrow((0,1), (2,-1))
+        """
         options = self.options()
         width = float(options['width'])
         import matplotlib.patches as patches

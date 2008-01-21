@@ -53,6 +53,23 @@ class BipartiteGraph(Graph):
             sage: N = networkx.cliques.make_clique_bipartite(G._nxg)
             sage: B = BipartiteGraph(N)
 
+        4. From a graph and a partition. Note that if the input graph is not
+        bipartite, then Sage will raise an error. However, if one specifies
+        check = False, the offending edges are simply deleted (along with those
+        vertices not appearing in either list).
+
+            sage: P = graphs.PetersenGraph()
+            sage: partition = [range(5), range(5,10)]
+            sage: B = BipartiteGraph(P, partition)
+            Traceback (most recent call last):
+            ...
+            TypeError: Input graph is not bipartite with respect to the given partition!
+
+            sage: B = BipartiteGraph(P, partition, check=False)
+            sage: B.left
+            [0, 1, 2, 3, 4]
+            sage: B.show()
+
         """
         if len(args) == 0:
             Graph.__init__(self)
@@ -61,12 +78,42 @@ class BipartiteGraph(Graph):
         arg1 = args[0]
         args = args[1:]
         if isinstance(arg1, Graph):
-            Graph.__init__(self, arg1, *args, **kwds)
-            try:
-                self.left, self.right = arg1.bipartite_sets()
-                return
-            except:
-                raise TypeError("Input graph is not bipartite!")
+            if len(args) == 0:
+                try:
+                    Graph.__init__(self, arg1, *args, **kwds)
+                    self.left, self.right = arg1.bipartite_sets()
+                    return
+                except:
+                    raise TypeError("Input graph is not bipartite!")
+            if len(args) > 0 and isinstance(args[0], (list,tuple)) and \
+             len(args[0]) == 2 and isinstance(args[0][0], (list,tuple)):
+                # Assume that args[0] is a bipartition
+                from copy import copy
+                left, right = args[0]; left = copy(left); right = copy(right)
+                Graph.__init__(self, arg1.subgraph(list(set(left)|set(right))), *args, **kwds)
+                if not kwds.has_key('check') or kwds['check']:
+                    while len(left) > 0:
+                        a = left.pop(0)
+                        if len( set( arg1.neighbors(a) ) & set(left) ) != 0:
+                            raise TypeError("Input graph is not bipartite with " + \
+                             "respect to the given partition!")
+                    while len(right) > 0:
+                        a = right.pop(0)
+                        if len( set( arg1.neighbors(a) ) & set(right) ) != 0:
+                            raise TypeError("Input graph is not bipartite with " + \
+                             "respect to the given partition!")
+                else:
+                    while len(left) > 0:
+                        a = left.pop(0)
+                        a_nbrs = set( arg1.neighbors(a) ) & set(left)
+                        if len( a_nbrs ) != 0:
+                            self.delete_edges([(a, b) for b in a_nbrs])
+                    while len(right) > 0:
+                        a = right.pop(0)
+                        a_nbrs = set( arg1.neighbors(a) ) & set(right)
+                        if len( a_nbrs ) != 0:
+                            self.delete_edges([(a, b) for b in a_nbrs])
+                self.left, self.right = copy(args[0][0]), copy(args[0][1])
 
         import networkx
         if isinstance(arg1, (networkx.XGraph, networkx.Graph)):

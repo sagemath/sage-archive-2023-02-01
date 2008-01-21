@@ -527,8 +527,18 @@ class SymbolicExpression(RingElement):
                                                  3          3
                                           (y + 1)    (x - 1)
 
+            sage: f = (exp(x)-1)/(exp(x/2)+1)
+            sage: g = exp(x/2)-1
+            sage: print f(10), g(10)
+                                     10
+                                    e   - 1
+                                   --------
+                                     5
+                                    e  + 1
+                                      5
+                                     e  - 1
         """
-        return self.display2d(onscreen=False)
+        return '\n' + self.display2d(onscreen=False)
 
     def show(self):
         from sage.misc.functional import _do_show

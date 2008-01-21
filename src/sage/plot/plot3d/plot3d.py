@@ -106,6 +106,14 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
         sage: P = plot3d(lambda x,y: 4 - x^3 - y^2, (-2,2), (-2,2), color='green')
         sage: Q = plot3d(lambda x,y: x^3 + y^2 - 4, (-2,2), (-2,2), color='orange')
         sage: L + P + Q
+
+    We draw the "Sinus" function (water ripple-like surface):
+        sage: x, y = var('x y')
+        sage: plot3d(sin(pi*((x)^2+(y)^2))/2,(x,-1,1),(y,-1,1))
+
+    Hill and valley (flat surface with a bump and a dent):
+        sage: x, y = var('x y')
+        sage: plot3d( 4*x*exp(-x^2-y^2), (x,-2,2), (y,-2,2))
     """
     if len(urange) == 2:
         from parametric_plot3d import adapt_if_symbolic

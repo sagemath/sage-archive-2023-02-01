@@ -114,7 +114,7 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
                 raise TypeError, "A (= %s) must specify a square matrix of degree %s." % (A, m)
         return HillCipher(self, A)
 
-    def __repr__(self):
+    def _repr_(self):
         return "Hill cryptosystem on %s of block length %s" % (
             self.cipher_domain(), self.block_length())
 
@@ -238,7 +238,7 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
             raise TypeError, "K (= %s) must be a string in the key space."%K
         return SubstitutionCipher(self, K)
 
-    def __repr__(self):
+    def _repr_(self):
         return "Substitution cryptosystem on %s" % self.cipher_domain()
 
     def random_key(self):
@@ -347,7 +347,7 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
             raise TypeError, "K (= %s) must be a permutation or list specifying a permutation."%K
         return TranspositionCipher(self, K)
 
-    def __repr__(self):
+    def _repr_(self):
         return "Transposition cryptosystem on %s of block length %s" % (
             self.cipher_domain(), self.block_length())
 
@@ -449,7 +449,7 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             raise TypeError, "K (= %s) must specify a string of length %s." % (K, m)
         return VigenereCipher(self, K)
 
-    def __repr__(self):
+    def _repr_(self):
         return "Vigenere cryptosystem on %s of period %s" % (
             self.cipher_domain(), self.period())
 

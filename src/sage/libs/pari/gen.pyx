@@ -4783,6 +4783,12 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_off
         return n
 
+    def polsturm_full(self):
+        _sig_on
+        n = sturmpart(self.g, NULL, NULL)
+        _sig_off
+        return n
+
     def polsylvestermatrix(self, g):
         t0GEN(g)
         _sig_on
@@ -4921,9 +4927,9 @@ cdef class gen(sage.structure.element.RingElement):
         polynomial coefficients.
         """
         _sig_on
-        return self.new_gen(qflll0(self.g,flag,prec)).Mat()
+        return self.new_gen(qflll0(self.g,flag,0)).Mat()
 
-    def qflllgram(self, long flag=0):
+    def qflllgram(self, long flag=0, long prec=0):
         """
         qflllgram(x,{flag=0}): LLL reduction of the lattice whose gram
         matrix is x (gives the unimodular transformation matrix). flag

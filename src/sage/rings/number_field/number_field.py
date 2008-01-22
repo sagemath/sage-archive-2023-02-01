@@ -112,6 +112,9 @@ import sage.structure.parent_gens
 from sage.structure.proof.proof import get_flag
 import maps
 
+import math, numpy
+from sage.rings.integer_ring import IntegerRing
+
 def proof_flag(t):
     """
     Used for easily determining the correct proof flag to use.
@@ -2015,6 +2018,116 @@ class NumberField_generic(number_field_base.NumberField):
         basis = [self(R(g).list()) for g in B]
         self.__integral_basis[v] = basis
         return basis
+
+    def reduced_basis(self):
+        r"""
+        This function returns an LLL-reduced basis for the Minkowski-embedding
+        of the maximal order of a number field.
+
+        INPUT:
+        self -- number field, the base field
+
+        OUTPUT:
+        An LLL-reduced basis for the Minkowski-embedding of the maximal order
+        of a number field, given by a sequence of (integral) elements from
+        the field.
+
+        EXAMPLES:
+            sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1)
+            sage: F.maximal_order().basis()
+            [1/2*t^5 + 1/2*t^4 + 1/2*t^2 + 1/2, t, t^2, t^3, t^4, t^5]
+            sage: F.reduced_basis()
+            [1,
+            1/2*t^5 - 1/2*t^4 - 3*t^3 + 3/2*t^2 + 4*t - 1/2,
+            t,
+            1/2*t^5 + 1/2*t^4 - 4*t^3 - 5/2*t^2 + 7*t + 1/2,
+            1/2*t^5 - 1/2*t^4 - 2*t^3 + 3/2*t^2 - 1/2,
+            1/2*t^5 - 1/2*t^4 - 3*t^3 + 5/2*t^2 + 4*t - 5/2]
+        """
+        try:
+            return self.__reduced_basis
+        except AttributeError:
+            pass
+
+        d = self.degree()
+        Z_basis = self.integral_basis()
+
+        from sage.matrix.constructor import matrix
+        T = pari(matrix(ZZ, d, d, [[(x*y).trace() for x in Z_basis]
+                                   for y in Z_basis])).qflllgram()
+        self.__reduced_basis = [ sum([ ZZ(T[i][j]) * Z_basis[j]
+                                       for j in range(d)])
+                                 for i in range(d)]
+        return self.__reduced_basis
+
+    def reduced_gram_matrix(self):
+        r"""
+        This function returns the Gram matrix of an LLL-reduced basis for
+        the Minkowski-embedding of the maximal order of a number field.
+
+        INPUT:
+        self -- number field, the base field
+
+        OUTPUT:
+        The Gram matrix [Tr(x*y)] of an LLL-reduced basis for
+        Minkowski-embedded lattice of the the maximal order of a number field,
+        given as an nxn integer matrix, where n = [F:Q].
+
+        EXAMPLES:
+            sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1) ; F.reduced_gram_matrix()
+            [   6    0   14    3   54   52]
+            [   0   14    3   54   30  133]
+            [  14    3   54   30  233  259]
+            [   3   54   30  233  217  664]
+            [  54   30  233  217 1078 1368]
+            [  52  133  259  664 1368 2550]
+        """
+        try:
+            return self.__reduced_gram_matrix
+        except AttributeError:
+            pass
+
+        from sage.matrix.constructor import matrix
+        d = self.degree()
+        B = self.integral_basis()
+        self.__reduced_gram_matrix = matrix(ZZ, d, d,
+                                            [[(x*y).trace() for x in B]
+                                             for y in B])
+        return self.__reduced_gram_matrix
+
+
+    #******************************************************
+    # Supplementary algorithm to enumerate lattice points
+    #******************************************************
+
+    def integral_elements_with_trace(self, C):
+        r"""
+        Find all integral elements in self with trace in the
+        interval C.
+
+        EXAMPLES:
+            sage: K.<alpha> = NumberField(x^2-2)
+            sage: K.integral_elements_with_trace([0,5])
+            [alpha + 2, 2, 1]
+            sage: L.<beta> = NumberField(x^2+1)
+            sage: L.integral_elements_with_trace([5,11])
+        """
+        Z_F = self.maximal_order()
+        B = self.reduced_basis()
+        T = self.reduced_gram_matrix()
+        P = T.qfminim((C[1]**2)*(1./2), 10**6)[2]
+
+        S = []
+        for p in P:
+            theta = sum([ p.list()[i]*B[i] for i in range(self.degree())])
+            if theta.trace() >= C[0] and theta.trace() <= C[1]:
+                inbounds = True
+                for v in self.real_embeddings():
+                    inbounds = inbounds and v(theta) > 0
+                if inbounds:
+                    S.append(self(theta))
+        return S
+
 
     def zeta_function(self, prec=53,
                       max_imaginary_part=0,

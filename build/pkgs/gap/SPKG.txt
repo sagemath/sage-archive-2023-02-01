@@ -1,3 +1,9 @@
+= gap =
+
+=== gap-4.4.10.p1 (Michael Abshoff, Jan. 22nd, 2008) ===
+ * remove 1500 crap files from the spkg (part of #1883)
+
+=== gap-4.4.10.p0 ===
 
 Upgraded to gap-4.4.10.  Had to change files in the patches directory that
 hard code gap-4.4.9.

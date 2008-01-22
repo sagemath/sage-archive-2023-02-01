@@ -27,3 +27,8 @@ def is_Matrix(x):
 
 cdef class Matrix(matrix2.Matrix):
     pass
+
+# This is pretty nasty low level stuff. The idea is to speed up construction
+# of EuclideanDomainElements (in particular Integers) by skipping some tp_new
+# calls up the inheritance tree.
+PY_SET_TP_NEW(Matrix, matrix2.Matrix)

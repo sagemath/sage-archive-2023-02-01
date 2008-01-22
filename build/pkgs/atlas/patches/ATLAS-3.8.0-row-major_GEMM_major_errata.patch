@@ -1,0 +1,36 @@
+diff -urN ATLAS-orig/interfaces/blas/C/src/cblas_cgemm.c ATLAS/interfaces/blas/C/src/cblas_cgemm.c
+--- ATLAS-orig/interfaces/blas/C/src/cblas_cgemm.c	2008-01-21 22:52:39.000000000 -0800
++++ ATLAS/interfaces/blas/C/src/cblas_cgemm.c	2008-01-21 22:53:28.000000000 -0800
+@@ -148,7 +148,7 @@
+    if (A == B && M == N && TA != TB && lda == ldb && *bet == 0.0 &&
+        bet[1] == 0.0 && TA != CblasConjTrans && TB != CblasConjTrans)
+    {
+-      ATL_csyrk(CblasUpper, TA, N, K, alpha, A, lda, beta, C, ldc);
++      ATL_csyrk(CblasUpper, (Order == CblasColMajor)?TA:TB, N, K, alpha, A, lda, beta, C, ldc);
+       ATL_csyreflect(CblasUpper, N, C, ldc);
+       return;
+    }
+diff -urN ATLAS-orig/interfaces/blas/C/src/cblas_dgemm.c ATLAS/interfaces/blas/C/src/cblas_dgemm.c
+--- ATLAS-orig/interfaces/blas/C/src/cblas_dgemm.c	2008-01-21 22:52:39.000000000 -0800
++++ ATLAS/interfaces/blas/C/src/cblas_dgemm.c	2008-01-21 22:54:05.000000000 -0800
+@@ -146,7 +146,7 @@
+  */
+    if (A == B && M == N && TA != TB && lda == ldb && beta == 0.0)
+    {
+-      ATL_dsyrk(CblasUpper, TA, N, K, alpha, A, lda, beta, C, ldc);
++      ATL_dsyrk(CblasUpper, (Order == CblasColMajor)?TA:TB, N, K, alpha, A, lda, beta, C, ldc);
+       ATL_dsyreflect(CblasUpper, N, C, ldc);
+       return;
+    }
+diff -urN ATLAS-orig/interfaces/blas/C/src/cblas_sgemm.c ATLAS/interfaces/blas/C/src/cblas_sgemm.c
+--- ATLAS-orig/interfaces/blas/C/src/cblas_sgemm.c	2008-01-21 22:52:39.000000000 -0800
++++ ATLAS/interfaces/blas/C/src/cblas_sgemm.c	2008-01-21 22:54:41.000000000 -0800
+@@ -146,7 +146,7 @@
+  */
+    if (A == B && M == N && TA != TB && lda == ldb && beta == 0.0)
+    {
+-      ATL_ssyrk(CblasUpper, TA, N, K, alpha, A, lda, beta, C, ldc);
++      ATL_ssyrk(CblasUpper, (Order == CblasColMajor)?TA:TB, N, K, alpha, A, lda, beta, C, ldc);
+       ATL_ssyreflect(CblasUpper, N, C, ldc);
+       return;
+    }

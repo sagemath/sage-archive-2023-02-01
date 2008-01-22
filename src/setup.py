@@ -568,6 +568,9 @@ ext_modules = [ \
     Extension('sage.ext.sig',
               sources = ['sage/ext/sig.pyx']), \
 
+    Extension('sage.ext.fast_eval',
+              sources = ['sage/ext/fast_eval.pyx']), \
+
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \
 

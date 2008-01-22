@@ -23,10 +23,14 @@ cdef extern from "Python.h":
     void PyTuple_SET_ITEM(PyObject* t, Py_ssize_t index, PyObject* item)
     object PyObject_CallObject(PyObject* func, PyObject* args)
     PyObject* PyFloat_FromDouble(double d)
+    void Py_DECREF(PyObject *)
 
 cdef extern from "math.h":
     double sqrt(double)
     double pow(double, double)
+
+    double ceil(double)
+    double floor(double)
 
     double sin(double)
     double cos(double)
@@ -55,6 +59,7 @@ cdef enum:
     MUL
     DIV
     NEG
+    ABS
     INVERT
 
 # functional
@@ -72,7 +77,9 @@ cdef struct fast_double_op:
     double_op_params params
 
 # This is where we wish we had case statements...
-cdef inline int process_op(fast_double_op op, double* stack, double* argv, int top) except -1:
+cdef inline int process_op(fast_double_op op, double* stack, double* argv, int top) except -2:
+
+#    print [stack[i] for i from 0 <= i <= top], ':', op.type
 
     cdef int i, n
     cdef PyObject* py_args
@@ -115,11 +122,16 @@ cdef inline int process_op(fast_double_op op, double* stack, double* argv, int t
         return top-1
 
     elif op.type == DIV:
-        stack[top-1] += stack[top]
+        stack[top-1] /= stack[top]
         return top-1
 
     elif op.type == NEG:
         stack[top] = -stack[top]
+        return top
+
+    elif op.type == ABS:
+        if stack[top] < 0:
+            stack[top] = -stack[top]
         return top
 
     elif op.type == INVERT:
@@ -138,12 +150,14 @@ cdef inline int process_op(fast_double_op op, double* stack, double* argv, int t
 
     elif op.type == PY_FUNC:
         # Even though it's python, optimize this because it'll be used often...
+        # We also don't want to muddle up the other ops
         n = PyInt_AS_LONG(PyTuple_GET_ITEM(op.params.func, 0))
         top = top - n + 1
         py_args = PyTuple_New(n)
         for i from 0 <= i < n:
             PyTuple_SET_ITEM(py_args, i, PyFloat_FromDouble(stack[top+i]))
         stack[top] = PyObject_CallObject(PyTuple_GET_ITEM(op.params.func, 1), py_args)
+        Py_DECREF(py_args)
         return top
 
 
@@ -180,9 +194,9 @@ cdef class FastDoubleFunc:
     AUTHOR:
         -- Robert Bradshaw
     """
-    cdef int max_height
-    cdef int nargs
-    cdef int nops
+    cdef readonly int max_height
+    cdef readonly int nargs
+    cdef readonly int nops
     cdef fast_double_op* ops
 
     # need to keep this around because structs can't contain (ref-counted) python objects
@@ -245,7 +259,7 @@ cdef class FastDoubleFunc:
 
     def __call__(self, *args):
         if len(args) < self.nargs:
-            raise ValueError, "Wrong number of arguments (need at least %s, got %s)" % (self.nargs, len(args))
+            raise TypeError, "Wrong number of arguments (need at least %s, got %s)" % (self.nargs, len(args))
         cdef double* argv = <double*>sage_malloc(sizeof(double) * self.nargs)
         cdef int i = 0
         for i from 0 <= i < self.nargs:
@@ -254,7 +268,7 @@ cdef class FastDoubleFunc:
         sage_free(argv)
         return res
 
-    cdef double _call_c(self, double* argv) except -1:
+    cdef double _call_c(self, double* argv) except? -2:
         cdef int i, top = -1
         cdef double* stack = <double*>sage_malloc(sizeof(double) * self.max_height)
         for i from 0 <= i < self.nops:
@@ -319,8 +333,20 @@ cdef class FastDoubleFunc:
     def __neg__(FastDoubleFunc self):
         return self.unop(NEG)
 
+    def __abs__(FastDoubleFunc self):
+        return self.unop(ABS)
+
+    def abs(FastDoubleFunc self):
+        return self.unop(ABS)
+
     def __invert__(FastDoubleFunc self):
         return self.unop(INVERT)
+
+    def ceil(self):
+        return self.cfunc(&ceil)
+
+    def floor(self):
+        return self.cfunc(&floor)
 
     def sin(self):
         return self.cfunc(&sin)
@@ -368,19 +394,19 @@ cdef FastDoubleFunc binop(FastDoubleFunc left, FastDoubleFunc right, char type):
     return feval
 
 
-def fast_double_const(x):
+def fast_float_constant(x):
     """
     Return a fast-to-evaluate constant.
 
     EXAMPLES:
-        sage: from sage.ext.fast_eval import fast_double_const
-        sage: f = fast_double_const(-2.75)
+        sage: from sage.ext.fast_eval import fast_float_constant
+        sage: f = fast_float_constant(-2.75)
         sage: f()
         -2.75
     """
     return FastDoubleFunc('const', x)
 
-def fast_double_arg(n):
+def fast_float_arg(n):
     """
     Return a fast-to-evaluate argument selector.
 
@@ -388,17 +414,17 @@ def fast_double_arg(n):
         n -- the (zero-indexed) argument to select
 
     EXAMPLES:
-        sage: from sage.ext.fast_eval import fast_double_arg
-        sage: f = fast_double_arg(0)
+        sage: from sage.ext.fast_eval import fast_float_arg
+        sage: f = fast_float_arg(0)
         sage: f(1,2)
         1.0
-        sage: f = fast_double_arg(1)
+        sage: f = fast_float_arg(1)
         sage: f(1,2)
         2.0
     """
     return FastDoubleFunc('arg', n)
 
-def fast_double_func(f, *args):
+def fast_float_func(f, *args):
     """
     Returns a wraper around a python function.
 
@@ -407,10 +433,10 @@ def fast_double_func(f, *args):
         args -- a list of FastDoubleFunc inputs
 
     EXAMPLES:
-        sage: from sage.ext.fast_eval import fast_double_func, fast_double_arg
-        sage: f = fast_double_arg(0)
-        sage: g = fast_double_arg(1)
-        sage: h = fast_double_func(lambda x,y: x-y, f, g)
+        sage: from sage.ext.fast_eval import fast_float_func, fast_float_arg
+        sage: f = fast_float_arg(0)
+        sage: g = fast_float_arg(1)
+        sage: h = fast_float_func(lambda x,y: x-y, f, g)
         sage: h(5, 10)
         -5.0
     """

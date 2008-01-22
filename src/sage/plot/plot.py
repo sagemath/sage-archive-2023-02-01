@@ -678,6 +678,9 @@ class Graphics(SageObject):
         return self
 
     def plot3d(self, z=0, **kwds):
+        """
+        sage: sum([plot(z*sin(x), 0, 10).plot3d(z) for z in range(6)])
+        """
         from sage.plot.plot3d.base import Graphics3dGroup
         g = Graphics3dGroup([g.plot3d(**kwds) for g in self.__objects])
         if z:
@@ -688,6 +691,7 @@ class Graphics(SageObject):
              figsize=DEFAULT_FIGSIZE, filename=None,
              dpi=DEFAULT_DPI, axes=None, axes_label=None,frame=False,
              fontsize=None,
+             viewer=None,
              **args):
         """
         Show this graphics image with the default image viewer.

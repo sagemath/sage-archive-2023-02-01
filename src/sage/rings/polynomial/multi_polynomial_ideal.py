@@ -568,7 +568,7 @@ class MPolynomialIdeal_singular_repr:
             return vdim
 
     @redSB
-    def _groebner_basis_using_singular(self, algorithm="groebner"):
+    def _groebner_basis_using_singular(self, algorithm="groebner", *args, **kwds):
         """
         Return a Groebner basis of this ideal. If a groebner basis for
         this ideal has been calculated before the cached Groebner

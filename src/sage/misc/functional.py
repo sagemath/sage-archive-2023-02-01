@@ -905,6 +905,11 @@ def show(x, *args, **kwds):
         axes -- (default: True)
         fontsize -- positive integer
         frame -- (default: False) draw a MATLAB-like frame around the image
+
+    EXAMPLES:
+        sage: show(graphs(3))
+        sage: show(list(graphs(3)))
+
     """
     if not isinstance(x, (sage.interfaces.expect.Expect, sage.interfaces.expect.ExpectElement)):
         try:
@@ -914,6 +919,16 @@ def show(x, *args, **kwds):
     if isinstance(x, sage.interfaces.mathematica.MathematicaElement):
         return x.show(*args, **kwds)
 
+    import types
+    if isinstance(x, types.GeneratorType):
+        x = list(x)
+    if isinstance(x, list):
+        if len(x) > 0:
+            from sage.graphs.graph import GenericGraph
+            if isinstance(x[0], GenericGraph):
+                import sage.graphs.graph_list as graphs_list
+                graphs_list.show_graphs(x)
+                return
     _do_show(x)
 
 def _do_show(x):

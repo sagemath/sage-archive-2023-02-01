@@ -355,8 +355,8 @@ class Singular(Expect):
             sage: singular.eval('2 + 2')
             '4'
 
-            if the verbosity level is $> 1$ comments are printed
-            rather than returned.
+            if the verbosity level is $> 1$ comments are also printed
+            and not only returned.
 
             sage: r = singular.ring(0,'(x,y,z)','dp')
             sage: i = singular.ideal(['x^2','y^2','z^2'])
@@ -367,7 +367,7 @@ class Singular(Expect):
             degree (affine) = 8'
 
             sage: set_verbose(1)
-            sage: singular.eval('hilb(%s)'%(s.name()))
+            sage: o = singular.eval('hilb(%s)'%(s.name()))
             //         1 t^0
             //        -3 t^2
             //         3 t^4
@@ -378,7 +378,6 @@ class Singular(Expect):
             //         1 t^3
             // dimension (affine) = 0
             // degree (affine)  = 8
-            ''
 
             This is mainly useful if this method is called
             implicitly. Because then intermediate results, debugging
@@ -424,10 +423,7 @@ class Singular(Expect):
             for line in s.splitlines():
                 if line.startswith("//"):
                     print line
-                else:
-                    ret.append(line)
-
-            return "\n".join(ret)
+            return s
         else:
             return s
 

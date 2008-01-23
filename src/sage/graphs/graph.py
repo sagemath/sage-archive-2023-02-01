@@ -3266,6 +3266,9 @@ class Graph(GenericGraph):
         sage: Graph(M)
         Graph on 10 vertices
 
+        sage: Graph(matrix([[1,2],[3,4]]),loops=True)
+        Looped graph on 2 vertices
+
         B. an incidence matrix:
 
         sage: M = Matrix(6, [-1,0,0,0,1, 1,-1,0,0,0, 0,1,-1,0,0, 0,0,1,-1,0, 0,0,0,1,-1, 0,0,0,0,0]); M
@@ -3384,7 +3387,7 @@ class Graph(GenericGraph):
                     e += [(i,j)]*int(data[i][j])
                 elif i < j:
                     e.append((i,j))
-                elif i == j and loops and kwds.get(multiedges,False):
+                elif i == j and loops and kwds.get('multiedges',False):
                     e += [(i,j)]*int(data[i][j])
                 elif i == j and loops:
                     e.append((i,j))

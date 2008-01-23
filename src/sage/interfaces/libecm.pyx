@@ -13,12 +13,14 @@ EXAMPLE:
 
     sage: import sage.interfaces.libecm
     sage: from sage.interfaces.libecm import ecmfactor
-    sage: ecmfactor(999, 0.00)
-    (True, 27)
-    sage: ecmfactor(999, 0.00, verbose=True)
+    sage: result = ecmfactor(999, 0.00)
+    sage: result in [(True, 27), (True, 999)]
+    True
+    sage: result = ecmfactor(999, 0.00, verbose=True)
     Performing one curve with B1=0
-    Found factor in step 1: 999
-    (True, 999)
+    Found factor in step 1: ...
+    sage: result in [(True, 27), (True, 999)]
+    True
 
 """
 

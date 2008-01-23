@@ -47,7 +47,7 @@ cdef inline int min(int a, int b):
 
 cdef enum:
 # stack
-    PUSH_ARG
+    LOAD_ARG
     PUSH_CONST
     POP
     POP_N
@@ -67,16 +67,41 @@ cdef enum:
     TWO_ARG_FUNC
     PY_FUNC
 
-cdef union double_op_params:
-    void* func
-    double c
-    int n
 
-cdef struct fast_double_op:
-    char type
-    double_op_params params
+op_names = {
+    LOAD_ARG: 'load',
+    PUSH_CONST: 'push',
+    POP: 'pop',
+    POP_N: 'popn',
+    DUP: 'dup',
+
+    ADD: 'add',
+    SUB: 'sub',
+    MUL: 'mul',
+    DIV: 'div',
+    NEG: 'neg',
+    ABS: 'abs',
+    INVERT: 'invert',
+
+    ONE_ARG_FUNC: 'call 1',
+    TWO_ARG_FUNC: 'call 2',
+    PY_FUNC: 'py_call',
+}
+
+cdef op_to_string(fast_double_op op):
+    s = op_names[op.type]
+    if op.type in [LOAD_ARG, POP_N]:
+        s += " %s" % op.params.n
+    elif op.type == PUSH_CONST:
+        s += " %s" % op.params.c
+    elif op.type in [ONE_ARG_FUNC, TWO_ARG_FUNC]:
+        s += " 0x%x" % <unsigned long>op.params.func
+    elif op.type == PY_FUNC:
+        s += " %s %s" % <object>(op.params.func)
+    return s
 
 # This is where we wish we had case statements...
+# It looks like gcc might be smart enough to figure it out.
 cdef inline int process_op(fast_double_op op, double* stack, double* argv, int top) except -2:
 
 #    print [stack[i] for i from 0 <= i <= top], ':', op.type
@@ -91,7 +116,7 @@ cdef inline int process_op(fast_double_op op, double* stack, double* argv, int t
     cdef double (*ff)(double, double)
     cdef void** ffp = <void **>&ff
 
-    if op.type == PUSH_ARG:
+    if op.type == LOAD_ARG:
         stack[top+1] = argv[op.params.n]
         return top+1
 
@@ -150,7 +175,8 @@ cdef inline int process_op(fast_double_op op, double* stack, double* argv, int t
 
     elif op.type == PY_FUNC:
         # Even though it's python, optimize this because it'll be used often...
-        # We also don't want to muddle up the other ops
+        # We also want to avoid cluttering the header and footer
+        # of this function Python variables bring.
         n = PyInt_AS_LONG(PyTuple_GET_ITEM(op.params.func, 0))
         top = top - n + 1
         py_args = PyTuple_New(n)
@@ -159,6 +185,8 @@ cdef inline int process_op(fast_double_op op, double* stack, double* argv, int t
         stack[top] = PyObject_CallObject(PyTuple_GET_ITEM(op.params.func, 1), py_args)
         Py_DECREF(py_args)
         return top
+
+    raise RuntimeError, "Bad op code %s" % op.type
 
 
 cdef class FastDoubleFunc:
@@ -183,6 +211,8 @@ cdef class FastDoubleFunc:
         1.0
         sage: h.is_pure_c()
         True
+        sage: list(h)        # random address
+        ['push 1.5', 'load 0', 'add', 'call(1) 0x9004f462']
 
     We can wrap Python functions too:
         sage: h = FastDoubleFunc('callable', lambda x,y: x*x*x - y, g, f)
@@ -190,18 +220,30 @@ cdef class FastDoubleFunc:
         998.5
         sage: h.is_pure_c()
         False
+        sage: list(h)        # random address
+        ['load 0', 'push 1.5', 'py_call 2 <function <lambda> at 0xb321df0>']
+
+    Here's a more complicated expression:
+        sage: from sage.ext.fast_eval import fast_float_constant, fast_float_arg
+        sage: a = fast_float_constant(1.5)
+        sage: b = fast_float_constant(3.14)
+        sage: c = fast_float_constant(7)
+        sage: x = fast_float_arg(0)
+        sage: y = fast_float_arg(1)
+        sage: f = a*x^2 + b*x + c - y/sqrt(sin(y)^2+a)
+        sage: f(2,3)
+        16.846610528508116
+        sage: f.max_height
+        4
+        sage: f.is_pure_c()
+        True
+        sage: list(f)        # random addresses
+        ['push 1.5', 'load 0', 'dup', 'mul', 'mul', 'push 3.14', 'load 0', 'mul', 'add', 'push 7.0', 'add', 'load 1', 'load 1', 'call 1 0x9004f462', 'dup', 'mul', 'push 1.5', 'add', 'call 1 0x9013e920', 'div', 'sub']
+
 
     AUTHOR:
         -- Robert Bradshaw
     """
-    cdef readonly int max_height
-    cdef readonly int nargs
-    cdef readonly int nops
-    cdef fast_double_op* ops
-
-    # need to keep this around because structs can't contain (ref-counted) python objects
-    cdef py_funcs
-
     def __init__(self, type, param, *args):
 
         cdef FastDoubleFunc arg
@@ -212,7 +254,7 @@ cdef class FastDoubleFunc:
             self.nops = 1
             self.max_height = 1
             self.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op))
-            self.ops[0].type = PUSH_ARG
+            self.ops[0].type = LOAD_ARG
             self.ops[0].params.n = param
 
         elif type == 'const':
@@ -252,30 +294,66 @@ cdef class FastDoubleFunc:
         else:
             raise ValueError, "Unknown operation: %s" % type
 
+        self.allocate_stack()
+
+
+    cdef int allocate_stack(FastDoubleFunc self) except -1:
+        self.argv = <double*>sage_malloc(sizeof(double) * self.nargs)
+        if self.argv == NULL:
+            raise MemoryError
+        self.stack = <double*>sage_malloc(sizeof(double) * self.max_height)
+        if self.stack == NULL:
+            raise MemoryError
 
     def __del__(self):
         if self.ops:
             sage_free(self.ops)
+        if self.stack:
+            sage_free(self.stack)
+        if self.argv:
+            sage_free(self.argv)
 
-    def __call__(self, *args):
+    def __call__(FastDoubleFunc self, *args):
         if len(args) < self.nargs:
             raise TypeError, "Wrong number of arguments (need at least %s, got %s)" % (self.nargs, len(args))
-        cdef double* argv = <double*>sage_malloc(sizeof(double) * self.nargs)
         cdef int i = 0
         for i from 0 <= i < self.nargs:
-            argv[i] = args[i]
-        res = self._call_c(argv)
-        sage_free(argv)
+            self.argv[i] = args[i]
+        res = self._call_c(self.argv)
         return res
 
-    cdef double _call_c(self, double* argv) except? -2:
+    cdef double _call_c(FastDoubleFunc self, double* argv) except? -2:
         cdef int i, top = -1
-        cdef double* stack = <double*>sage_malloc(sizeof(double) * self.max_height)
         for i from 0 <= i < self.nops:
-            top = process_op(self.ops[i], stack, argv, top)
-        cdef double res = stack[0]
-        sage_free(stack)
+            top = process_op(self.ops[i], self.stack, argv, top)
+        cdef double res = self.stack[0]
         return res
+
+    def op_list(self):
+        """
+        Returns a list of string representations of the
+        operations that make up this expression.
+
+        Python and C function calls may be only available by function pointer addresses.
+
+        EXAMPLES:
+            sage: from sage.ext.fast_eval import fast_float_constant, fast_float_arg
+            sage: a = fast_float_constant(17)
+            sage: x = fast_float_arg(0)
+            sage: a.op_list()
+            ['push 17.0']
+            sage: x.op_list()
+            ['load 0']
+            sage: (a*x).op_list()
+            ['push 17.0', 'load 0', 'mul']
+            sage: (a+a*x^2).sqrt().op_list()    # random address
+            ['push 17.0', 'push 17.0', 'load 0', 'dup', 'mul', 'mul', 'add', 'call 1 0x9013e920']
+        """
+        cdef int i
+        return [op_to_string(self.ops[i]) for i from 0 <= i < self.nops]
+
+    def __iter__(self):
+        return iter(self.op_list())
 
     cpdef bint is_pure_c(self):
         cdef int i
@@ -363,6 +441,7 @@ cdef class FastDoubleFunc:
     cdef FastDoubleFunc cfunc(FastDoubleFunc self, void* func):
         cdef FastDoubleFunc feval = self.unop(ONE_ARG_FUNC)
         feval.ops[feval.nops - 1].params.func = func
+        feval.allocate_stack()
         return feval
 
     cdef FastDoubleFunc unop(FastDoubleFunc self, char type):
@@ -370,10 +449,13 @@ cdef class FastDoubleFunc:
         feval.nargs = self.nargs
         feval.nops = self.nops + 1
         feval.max_height = self.max_height
+        if type == DUP:
+            feval.max_height += 1
         feval.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op) * feval.nops)
         memcpy(feval.ops, self.ops, sizeof(fast_double_op) * self.nops)
         feval.ops[feval.nops - 1].type = type
         feval.py_funcs = self.py_funcs
+        feval.allocate_stack()
         return feval
 
 cdef FastDoubleFunc binop(FastDoubleFunc left, FastDoubleFunc right, char type):
@@ -391,6 +473,7 @@ cdef FastDoubleFunc binop(FastDoubleFunc left, FastDoubleFunc right, char type):
         feval.py_funcs = left.py_funcs
     else:
         feval.py_funcs = left.py_funcs + right.py_funcs
+    feval.allocate_stack()
     return feval
 
 
@@ -441,3 +524,21 @@ def fast_float_func(f, *args):
         -5.0
     """
     return FastDoubleFunc('callable', f, *args)
+
+
+def fast_float(f, *vars):
+    try:
+        return f._fast_float_(*vars)
+    except AttributeError:
+        pass
+
+    try:
+        return FastDoubleFunc('const', float(f))
+    except TypeError:
+        pass
+
+    try:
+        from sage.rings.calculus import SR
+        return SR(f)._fast_float_(*vars)
+    except:
+        return f

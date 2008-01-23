@@ -462,6 +462,44 @@ cdef class Polynomial(CommutativeAlgebraElement):
         self._compiled = CompiledPolynomialFunction(self.list())
         return self._compiled
 
+    def _fast_float_(self, *vars):
+        """
+        Returns a quickly-evaluating function on floats.
+
+        EXAMPLE:
+            sage: R.<t> = QQ[]
+            sage: f = t^3-t
+            sage: ff = f._fast_float_()
+            sage: ff(10)
+            990.0
+
+        Horner's method is used:
+            sage: f = (t+10)^3; f
+            t^3 + 30*t^2 + 300*t + 1000
+            sage: list(f._fast_float_())
+            ['load 0', 'push 30.0', 'add', 'load 0', 'mul', 'push 300.0', 'add', 'load 0', 'mul', 'push 1000.0', 'add']
+        """
+        from sage.ext.fast_eval import fast_float_arg, fast_float_constant
+        var = (<ParentWithGens>self._parent)._names[0]
+        if len(vars) == 0:
+            x = fast_float_arg(0)
+        elif var in vars:
+            x = fast_float_arg(list(vars).index(var))
+        else:
+            raise ValueError, "free variable: %s" % self._name
+        cdef int i, d = self.degree()
+        expr = x
+        coeff = self[d]
+        if coeff != 1:
+            expr *= fast_float_constant(coeff)
+        for i from d > i >= 0:
+            coeff = self[i]
+            if coeff:
+                expr += fast_float_constant(coeff)
+            if i > 0:
+                expr *= x
+        return expr
+
     cdef int _cmp_c_impl(self, Element other) except -2:
         """
         Compare the two polynomials self and other.

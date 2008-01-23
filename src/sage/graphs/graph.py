@@ -3262,6 +3262,296 @@ class GenericGraph(SageObject):
             return self.am().charpoly(var=var)
 
 
+    ### Automorphism and isomorphism
+
+    def automorphism_group(self, partition=None, translation=False,
+                           verbosity=0):
+        """
+        Returns the largest subgroup of the automorphism group of the (di)graph
+        whose orbit partition is finer than the partition given. If no
+        partition is given, the unit partition is used and the entire
+        automorphism group is given.
+
+        INPUT:
+            translation -- if True, then output is the tuple (group, dict),
+        where dict is a dictionary translating from keys == vertices to
+        entries == elements of {1,2,...,n} (since permutation groups can
+        currently only act on positive integers).
+
+        EXAMPLES:
+        Graphs:
+            sage: graphs_query = GraphDatabase()
+            sage: L = graphs_query.get_list(num_vertices=4)
+            sage: graphs_list.show_graphs(L)
+            sage: for g in L:
+            ...    G = g.automorphism_group()
+            ...    G.order(), G.gens()
+            (24, ((2,3), (1,2), (1,4)))
+            (4, ((2,3), (1,4)))
+            (2, ((1,2),))
+            (8, ((1,2), (1,4)(2,3)))
+            (6, ((1,2), (1,4)))
+            (6, ((2,3), (1,2)))
+            (2, ((1,4)(2,3),))
+            (2, ((1,2),))
+            (8, ((2,3), (1,4), (1,3)(2,4)))
+            (4, ((2,3), (1,4)))
+            (24, ((2,3), (1,2), (1,4)))
+
+            sage: C = graphs.CubeGraph(4)
+            sage: G = C.automorphism_group()
+            sage: M = G.character_table()
+            sage: M.determinant()
+            -712483534798848
+            sage: G.order()
+            384
+
+            sage: D = graphs.DodecahedralGraph()
+            sage: G = D.automorphism_group()
+            sage: A5 = AlternatingGroup(5)
+            sage: Z2 = CyclicPermutationGroup(2)
+            sage: H = A5.direct_product(Z2)[0] #see documentation for direct_product to explain the [0]
+            sage: G.is_isomorphic(H)
+            True
+
+        Multigraphs:
+            sage: G = Graph(multiedges=True)
+            sage: G.add_edge(('a', 'b'))
+            sage: G.add_edge(('a', 'b'))
+            sage: G.add_edge(('a', 'b'))
+            sage: G.automorphism_group()
+            Permutation Group with generators [(1,2)]
+
+        Digraphs:
+            sage: D = DiGraph( { 0:[1], 1:[2], 2:[3], 3:[4], 4:[0] } )
+            sage: D.automorphism_group()
+            Permutation Group with generators [(1,2,3,4,5)]
+
+        """
+        from sage.graphs.graph_isom import search_tree, perm_group_elt
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+        dig = (self.is_directed() or self.loops())
+        if partition is None:
+            partition = [self.vertices()]
+        if self.multiple_edges():
+            G, partition = happy_non_multi_graph(self, partition)
+            a,b = search_tree(G, partition, lab=False, dict=True, dig=dig, verbosity=verbosity)
+            # b is a translation of the labelings
+            acting_vertices = {}
+            translation_d = {}
+            m = G.order()
+            for v in self:
+                translation_d[v] = b[('o',v)]
+                if b[('o',v)] == m:
+                    acting_vertices[v] = 0
+                else:
+                    acting_vertices[v] = b[('o',v)]
+            real_aut_gp = []
+            n = self.order()
+            for gen in a:
+                gen_restr = [0]*n
+                for v in self.vertex_iterator():
+                    gen_restr[acting_vertices[v]] = gen[acting_vertices[v]]
+                if gen_restr not in real_aut_gp:
+                    real_aut_gp.append(gen_restr)
+            id = range(n)
+            if id in real_aut_gp:
+                real_aut_gp.remove(id)
+            if len(real_aut_gp) != 0:
+                a = PermutationGroup([perm_group_elt(aa) for aa in real_aut_gp])
+            else:
+                a = PermutationGroup([[]])
+            if translation:
+                return a, translation_d
+            else:
+                return a
+        if translation:
+            a,b = search_tree(self, partition, dict=True, lab=False, dig=dig, verbosity=verbosity)
+        else:
+            a = search_tree(self, partition, dict=False, lab=False, dig=dig, verbosity=verbosity)
+        if len(a) != 0:
+            a = PermutationGroup([perm_group_elt(aa) for aa in a])
+        else:
+            a = PermutationGroup([[]])
+        if translation:
+            return a,b
+        else:
+            return a
+
+    def is_isomorphic(self, other, certify=False, verbosity=0):
+        """
+        Tests for isomorphism between self and other.
+
+        INPUT:
+            certify -- if True, then output is (a,b), where a is a boolean and b is either a map or
+        None.
+
+        EXAMPLES:
+        Graphs:
+            sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+            sage: D = graphs.DodecahedralGraph()
+            sage: E = D.copy()
+            sage: gamma = SymmetricGroup(20).random_element()
+            sage: E.relabel(gamma)
+            sage: D.is_isomorphic(E)
+            True
+
+            sage: D = graphs.DodecahedralGraph()
+            sage: S = SymmetricGroup(20)
+            sage: gamma = S.random_element()
+            sage: E = D.copy()
+            sage: E.relabel(gamma)
+            sage: a,b = D.is_isomorphic(E, certify=True); a
+            True
+            sage: import networkx
+            sage: from sage.plot.plot import GraphicsArray
+            sage: position_D = networkx.spring_layout(D._nxg)
+            sage: position_E = {}
+            sage: for vert in position_D:
+            ...    position_E[b[vert]] = position_D[vert]
+            sage: GraphicsArray([D.plot(pos=position_D), E.plot(pos=position_E)]).show()
+
+        Multigraphs:
+            sage: G = Graph(multiedges=True)
+            sage: G.add_edge((0,1))
+            sage: G.add_edge((0,1))
+            sage: G.add_edge((0,1))
+            sage: G.add_edge((0,1))
+            sage: H = Graph(multiedges=True)
+            sage: H.add_edge((3,4))
+            sage: H.add_edge((3,4))
+            sage: H.add_edge((3,4))
+            sage: H.add_edge((3,4))
+            sage: G.is_isomorphic(H)
+            True
+
+        Digraphs:
+            sage: A = DiGraph( { 0 : [1,2] } )
+            sage: B = DiGraph( { 1 : [0,2] } )
+            sage: A.is_isomorphic(B, certify=True)
+            (True, {0: 1, 1: 0, 2: 2})
+
+        """
+        from sage.graphs.graph_isom import search_tree
+        if certify:
+            if self.is_directed() != other.is_directed():
+                return False, None
+            if self.order() != other.order():
+                return False, None
+            if self.size() != other.size():
+                return False, None
+            if self.is_directed():
+                if sorted(list(self.in_degree_iterator())) != sorted(list(other.in_degree_iterator())):
+                    return False, None
+                if sorted(list(self.out_degree_iterator())) != sorted(list(other.out_degree_iterator())):
+                    return False, None
+            else:
+                if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
+                    return False, None
+            b,a = self.canonical_label(certify=True, verbosity=verbosity)
+            d,c = other.canonical_label(certify=True, verbosity=verbosity)
+            map = {}
+            cc = c.items()
+            for vert in self.vertices():
+                for aa,bb in cc:
+                    if bb == a[vert]:
+                        map[vert] = aa
+                        break
+            if b == d:
+                return True, map
+            else:
+                return False, None
+        else:
+            if self.is_directed() != other.is_directed():
+                return False
+            if self.order() != other.order():
+                return False
+            if self.size() != other.size():
+                return False
+            if self.is_directed():
+                if sorted(list(self.in_degree_iterator())) != sorted(list(other.in_degree_iterator())):
+                    return False
+                if sorted(list(self.out_degree_iterator())) != sorted(list(other.out_degree_iterator())):
+                    return False
+            else:
+                if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
+                    return False
+            from sage.graphs.graph_isom import search_tree
+            b = self.canonical_label(verbosity=verbosity)
+            d = other.canonical_label(verbosity=verbosity)
+            return b == d
+
+    def canonical_label(self, partition=None, certify=False, verbosity=0):
+        """
+        Returns the canonical label with respect to the partition. If no
+        partition is given, uses the unit partition.
+
+        INPUT:
+            partition -- if given, the canonical label with respect to this
+                partition will be computed. The default is the unit partition.
+            certify -- if True, a dictionary mapping from the (di)graph to its
+                canonical label will be given.
+            verbosity -- gets passed to nice: prints helpful output.
+
+        EXAMPLE:
+            sage: D = graphs.DodecahedralGraph()
+            sage: E = D.canonical_label(); E
+            Dodecahedron: Graph on 20 vertices
+            sage: D.canonical_label(certify=True)
+            (Dodecahedron: Graph on 20 vertices, {0: 0, 1: 19, 2: 16, 3: 15, 4: 9, 5: 1, 6: 10, 7: 8, 8: 14, 9: 12, 10: 17, 11: 11, 12: 5, 13: 6, 14: 2, 15: 4, 16: 3, 17: 7, 18: 13, 19: 18})
+            sage: D.is_isomorphic(E)
+            True
+
+        Multigraphs:
+            sage: G = Graph(multiedges=True)
+            sage: G.add_edge((0,1))
+            sage: G.add_edge((0,1))
+            sage: G.add_edge((0,1))
+            sage: G.canonical_label()
+            Multi-graph on 2 vertices
+
+        Digraphs:
+            sage: P = graphs.PetersenGraph()
+            sage: DP = P.to_directed()
+            sage: DP.canonical_label().adjacency_matrix()
+            [0 0 0 0 0 0 0 1 1 1]
+            [0 0 0 0 1 0 1 0 0 1]
+            [0 0 0 1 0 0 1 0 1 0]
+            [0 0 1 0 0 1 0 0 0 1]
+            [0 1 0 0 0 1 0 0 1 0]
+            [0 0 0 1 1 0 0 1 0 0]
+            [0 1 1 0 0 0 0 1 0 0]
+            [1 0 0 0 0 1 1 0 0 0]
+            [1 0 1 0 1 0 0 0 0 0]
+            [1 1 0 1 0 0 0 0 0 0]
+
+        """
+        from sage.graphs.graph_isom import search_tree
+        if partition is None:
+            partition = [self.vertices()]
+        if self.multiple_edges():
+            G, partition = happy_non_multi_graph(self, partition)
+            a,b,c = search_tree(G, partition, certify=True, dig=self.loops(), verbosity=verbosity)
+            # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
+            H = self.copy()
+            relabeling = {}
+            for v in H:
+                relabeling[v] = c[('o',v)]
+            H.relabel(relabeling)
+            if certify:
+                return H, relabeling
+            else:
+                return H
+        else:
+            if certify:
+                a,b,c = search_tree(self, partition, certify=True, dig=self.loops(), verbosity=verbosity)
+                return b,c
+            else:
+                a,b = search_tree(self, partition, dig=self.loops(), verbosity=verbosity)
+                return b
+
+
+
 class Graph(GenericGraph):
     r"""
     Undirected graph.
@@ -5292,180 +5582,6 @@ class Graph(GenericGraph):
 
 
 
-    ### Automorphism and isomorphism
-
-    def automorphism_group(self, partition=None, translation=False,
-                           verbosity=0):
-        """
-        Returns the largest subgroup of the automorphism group of the graph
-        whose orbit partition is finer than the partition given. If no
-        partition is given, the unit partition is used and the entire
-        automorphism group is given.
-
-        INPUT:
-            translation -- if True, then output is the tuple (group, dict),
-        where dict is a dictionary translating from keys == vertices to
-        entries == elements of {1,2,...,n} (since permutation groups can
-        currently only act on positive integers).
-
-        EXAMPLES:
-            sage: graphs_query = GraphDatabase()
-            sage: L = graphs_query.get_list(num_vertices=4)
-            sage: graphs_list.show_graphs(L)
-            sage: for g in L:
-            ...    G = g.automorphism_group()
-            ...    G.order(), G.gens()
-            (24, ((2,3), (1,2), (1,4)))
-            (4, ((2,3), (1,4)))
-            (2, ((1,2),))
-            (8, ((1,2), (1,4)(2,3)))
-            (6, ((1,2), (1,4)))
-            (6, ((2,3), (1,2)))
-            (2, ((1,4)(2,3),))
-            (2, ((1,2),))
-            (8, ((2,3), (1,4), (1,3)(2,4)))
-            (4, ((2,3), (1,4)))
-            (24, ((2,3), (1,2), (1,4)))
-
-            sage: C = graphs.CubeGraph(4)
-            sage: G = C.automorphism_group()
-            sage: M = G.character_table()
-            sage: M.determinant()
-            -712483534798848
-            sage: G.order()
-            384
-
-            sage: D = graphs.DodecahedralGraph()
-            sage: G = D.automorphism_group()
-            sage: A5 = AlternatingGroup(5)
-            sage: Z2 = CyclicPermutationGroup(2)
-            sage: H = A5.direct_product(Z2)[0] #see documentation for direct_product to explain the [0]
-            sage: G.is_isomorphic(H)
-            True
-
-        """
-        if self.multiple_edges():
-            raise NotImplementedError, "Search algorithm does not support multiple edges yet."
-        else:
-            from sage.graphs.graph_isom import search_tree, perm_group_elt
-            from sage.groups.perm_gps.permgroup import PermutationGroup
-            if partition is None:
-                partition = [self.vertices()]
-            if translation:
-                a,b = search_tree(self, partition, dict=True, lab=False, dig=self.loops(), verbosity=verbosity)
-            else:
-                a = search_tree(self, partition, dict=False, lab=False, dig=self.loops(), verbosity=verbosity)
-            if len(a) != 0:
-                a = PermutationGroup([perm_group_elt(aa) for aa in a])
-            else:
-                a = PermutationGroup([[]])
-            if translation:
-                return a,b
-            else:
-                return a
-
-    def is_isomorphic(self, other, certify=False, verbosity=0):
-        """
-        Tests for isomorphism between self and other.
-
-        INPUT:
-            certify -- if True, then output is (a,b), where a is a boolean and b is either a map or
-        None.
-
-        EXAMPLES:
-            sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-            sage: D = graphs.DodecahedralGraph()
-            sage: E = D.copy()
-            sage: gamma = SymmetricGroup(20).random_element()
-            sage: E.relabel(gamma)
-            sage: D.is_isomorphic(E)
-            True
-
-            sage: D = graphs.DodecahedralGraph()
-            sage: S = SymmetricGroup(20)
-            sage: gamma = S.random_element()
-            sage: E = D.copy()
-            sage: E.relabel(gamma)
-            sage: a,b = D.is_isomorphic(E, certify=True); a
-            True
-            sage: import networkx
-            sage: from sage.plot.plot import GraphicsArray
-            sage: position_D = networkx.spring_layout(D._nxg)
-            sage: position_E = {}
-            sage: for vert in position_D:
-            ...    position_E[b[vert]] = position_D[vert]
-            sage: GraphicsArray([D.plot(pos=position_D), E.plot(pos=position_E)]).show()
-
-        """
-        if self.multiple_edges():
-            raise NotImplementedError, "Search algorithm does not support multiple edges yet."
-        from sage.graphs.graph_isom import search_tree
-        if certify:
-            if self.order() != other.order():
-                return False, None
-            if self.size() != other.size():
-                return False, None
-            if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
-                return False, None
-            b,a = self.canonical_label(certify=True, verbosity=verbosity)
-            d,c = other.canonical_label(certify=True, verbosity=verbosity)
-            map = {}
-            cc = c.items()
-            for vert in self.vertices():
-                for aa,bb in cc:
-                    if bb == a[vert]:
-                        map[vert] = aa
-                        break
-            if b == d:
-                return True, map
-            else:
-                return False, None
-        else:
-            if self.order() != other.order():
-                return False
-            if self.size() != other.size():
-                return False
-            if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
-                return False
-            from sage.graphs.graph_isom import search_tree
-            b = self.canonical_label(verbosity=verbosity)
-            d = other.canonical_label(verbosity=verbosity)
-            return b == d
-
-    def canonical_label(self, partition=None, certify=False, verbosity=0):
-        """
-        Returns the canonical label with respect to the partition. If no
-        partition is given, uses the unit partition.
-
-        INPUT:
-            partition -- if given, the canonical label with respect to this
-                partition will be computed. The default is the unit partition.
-            certify -- if True, a dictionary mapping from the graph to its
-                canonical label will be given.
-            verbosity -- gets passed to nice: prints helpful output.
-
-        EXAMPLE:
-            sage: D = graphs.DodecahedralGraph()
-            sage: E = D.canonical_label(); E
-            Dodecahedron: Graph on 20 vertices
-            sage: D.canonical_label(certify=True)
-            (Dodecahedron: Graph on 20 vertices, {0: 0, 1: 19, 2: 16, 3: 15, 4: 9, 5: 1, 6: 10, 7: 8, 8: 14, 9: 12, 10: 17, 11: 11, 12: 5, 13: 6, 14: 2, 15: 4, 16: 3, 17: 7, 18: 13, 19: 18})
-            sage: D.is_isomorphic(E)
-            True
-
-        """
-        if self.multiple_edges():
-            raise NotImplementedError, "Search algorithm does not support multiple edges yet."
-        from sage.graphs.graph_isom import search_tree
-        if partition is None:
-            partition = [self.vertices()]
-        if certify:
-            a,b,c = search_tree(self, partition, certify=True, dig=self.loops(), verbosity=verbosity)
-            return b,c
-        else:
-            a,b = search_tree(self, partition, dig=self.loops(), verbosity=verbosity)
-            return b
-
     def min_spanning_tree(self, weight_function=lambda e: 1,
                           algorithm='Kruskal',
                           starting_vertex=None ):
@@ -5605,6 +5721,8 @@ class Graph(GenericGraph):
             return edges
         else:
             raise NotImplementedError, "Minimum Spanning Tree algorithm '%s' is not implemented."%algorithm
+
+
 
 class DiGraph(GenericGraph):
     """
@@ -6864,135 +6982,6 @@ class DiGraph(GenericGraph):
         import networkx
         return networkx.component.node_connected_component(self._nxg.to_undirected(), vertex)
 
-    ### Automorphism and isomorphism
-
-    def automorphism_group(self, partition=None, translation=False, verbosity=0):
-        """
-        Returns the largest subgroup of the automorphism group of the digraph
-        whose orbit partition is finer than the partition given. If no
-        partition is given, the unit partition is used and the entire
-        automorphism group is given.
-
-        INPUT:
-            translation -- if True, then output is the tuple (group, dict),
-        where dict is a dictionary translating from keys == vertices to
-        entries == elements of {1,2,...,n} (since permutation groups can
-        currently only act on positive integers).
-
-        EXAMPLE:
-            sage: D = DiGraph( { 0:[1], 1:[2], 2:[3], 3:[4], 4:[0] } )
-            sage: D.automorphism_group()
-            Permutation Group with generators [(1,2,3,4,5)]
-
-        """
-        if self.multiple_edges():
-            raise NotImplementedError, "Search algorithm does not support multiple edges yet."
-        else:
-            from sage.graphs.graph_isom import search_tree, perm_group_elt
-            from sage.groups.perm_gps.permgroup import PermutationGroup
-            if partition is None:
-                partition = [self.vertices()]
-            if translation:
-                a,b = search_tree(self, partition, dict=True, lab=False, dig=True, verbosity=verbosity)
-            else:
-                a = search_tree(self, partition, dict=False, lab=False, dig=True, verbosity=verbosity)
-            if len(a) != 0:
-                a = PermutationGroup([perm_group_elt(aa) for aa in a])
-            else:
-                a = PermutationGroup([[]])
-            if translation:
-                return a,b
-            else:
-                return a
-
-    def is_isomorphic(self, other, certify=False, verbosity=0):
-        """
-        Tests for isomorphism between self and other.
-
-        INPUT:
-            certify -- if True, then output is (a,b), where a is a boolean and b is either a map or
-        None.
-
-        EXAMPLE:
-            sage: A = DiGraph( { 0 : [1,2] } )
-            sage: B = DiGraph( { 1 : [0,2] } )
-            sage: A.is_isomorphic(B, certify=True)
-            (True, {0: 1, 1: 0, 2: 2})
-
-        """
-        if self.multiple_edges():
-            raise NotImplementedError, "Search algorithm does not support multiple edges yet."
-        from sage.graphs.graph_isom import search_tree
-        if certify:
-            if self.order() != other.order():
-                return False, None
-            if self.size() != other.size():
-                return False, None
-            if sorted(list(self.in_degree_iterator())) != sorted(list(other.in_degree_iterator())):
-                return False, None
-            if sorted(list(self.out_degree_iterator())) != sorted(list(other.out_degree_iterator())):
-                return False, None
-            b,a = self.canonical_label(certify=True, verbosity=verbosity)
-            d,c = other.canonical_label(certify=True, verbosity=verbosity)
-            if b == d:
-                map = {}
-                cc = c.items()
-                for vert in self.vertices():
-                    for aa,bb in cc:
-                        if bb == a[vert]:
-                            map[vert] = aa
-                            break
-                return True, map
-            else:
-                return False, None
-        else:
-            if self.order() != other.order():
-                return False
-            if self.size() != other.size():
-                return False
-            if sorted(list(self.in_degree_iterator())) != sorted(list(other.in_degree_iterator())):
-                return False
-            if sorted(list(self.out_degree_iterator())) != sorted(list(other.out_degree_iterator())):
-                return False
-            from sage.graphs.graph_isom import search_tree
-            b = self.canonical_label(verbosity=verbosity)
-            d = other.canonical_label(verbosity=verbosity)
-            return b == d
-
-    def canonical_label(self, partition=None, certify=False, verbosity=0):
-        """
-        Returns the canonical label with respect to the partition. If no
-        partition is given, uses the unit partition.
-
-        EXAMPLE:
-            sage: P = graphs.PetersenGraph()
-            sage: DP = P.to_directed()
-            sage: DP.canonical_label().adjacency_matrix()
-            [0 0 0 0 0 0 0 1 1 1]
-            [0 0 0 0 1 0 1 0 0 1]
-            [0 0 0 1 0 0 1 0 1 0]
-            [0 0 1 0 0 1 0 0 0 1]
-            [0 1 0 0 0 1 0 0 1 0]
-            [0 0 0 1 1 0 0 1 0 0]
-            [0 1 1 0 0 0 0 1 0 0]
-            [1 0 0 0 0 1 1 0 0 0]
-            [1 0 1 0 1 0 0 0 0 0]
-            [1 1 0 1 0 0 0 0 0 0]
-
-
-        """
-        if self.multiple_edges():
-            raise NotImplementedError, "Search algorithm does not support multiple edges yet."
-        from sage.graphs.graph_isom import search_tree
-        if partition is None:
-            partition = [self.vertices()]
-        if certify:
-            a,b,c = search_tree(self, partition, certify=True, dig=True, verbosity=verbosity)
-            return b,c
-        else:
-            a,b = search_tree(self, partition, dig=True, verbosity=verbosity)
-            return b
-
     ### DIG6 format
 
     def __bit_vector(self):
@@ -7284,4 +7273,41 @@ def paths_helper(start, end, G, all_paths, p=None):
     for p in plist:
         paths_helper(start, end, G, all_paths, p)
 
+
+def happy_non_multi_graph(g, partition):
+    r"""
+    Helper function for canonical labeling of multi-(di)graphs.
+
+    EXAMPLE:
+        sage: from sage.graphs.graph import happy_non_multi_graph
+        sage: G = Graph(multiedges=True)
+        sage: G.add_edge((0,1))
+        sage: G.add_edge((0,1))
+        sage: G.add_edge((0,1))
+        sage: happy_non_multi_graph(G, [[0,1]])
+        (Graph on 5 vertices, [[('o', 0), ('o', 1)], [('x', 0), ('x', 1), ('x', 2)]])
+
+    """
+    if g.is_directed():
+        G = DiGraph(loops=g.loops())
+    else:
+        G = Graph(loops=g.loops())
+    G.add_vertices([('o', v) for v in g.vertices()]) # 'o' for original
+    if g.is_directed():
+        edges_with_multiplicity = [[u,v] for u,v,_ in g.edge_iterator()]
+    else:
+        edges_with_multiplicity = [sorted([u,v]) for u,v,_ in g.edge_iterator()]
+    index = 0
+    while len(edges_with_multiplicity) > 0:
+        [u,v] = edges_with_multiplicity.pop(0)
+        m = edges_with_multiplicity.count([u,v]) + 1
+        if m == 1:
+            G.add_edge((('o',u),('o',v)))
+        else:
+            for _ in xrange(m):
+                G.add_edges([(('o',u), ('x', index)), (('x', index), ('o',v))]) # 'x' for extra
+                index += 1
+            edges_with_multiplicity = [e for e in edges_with_multiplicity if e != [u,v]]
+    new_partition = [[('o',v) for v in cell] for cell in partition] + [[('x',i) for i in xrange(index)]]
+    return G, new_partition
 

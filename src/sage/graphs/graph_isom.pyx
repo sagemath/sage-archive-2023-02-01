@@ -776,7 +776,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     valid for digraphs and graphs with loops.
         dict--      if True, explain which vertices are which elements of the set
     {1,2,...,n} in the representation of the automorphism group.
-        certify--     if True, return the automorphism between G and its canonical
+        certify--     if True, return the relabeling from G to its canonical
     label. Forces lab=True.
         verbosity-- 0 - print nothing
                     1 - display state trace
@@ -1815,8 +1815,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     if certify:
         dd = {}
         for i from 0 <= i < n:
-            dd[rho.entries[i]] = i
-            # NOTE - this should take the relabeling into account!
+            dd[to[rho.entries[i]]] = i
         if dict:
             return output, ddd, H, dd
         else:

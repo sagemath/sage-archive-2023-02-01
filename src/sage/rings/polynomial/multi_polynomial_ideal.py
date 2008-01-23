@@ -606,6 +606,15 @@ class MPolynomialIdeal_singular_repr:
         try:
             return self.__groebner_basis
         except AttributeError:
+
+            # singular options are preserved by @redSB so we don't
+            # need to do that here too
+            for o,v in kwds.iteritems():
+                if v:
+                    singular.option(o)
+                else:
+                    singular.option("no"+o)
+
             if algorithm=="groebner":
                 S = self._singular_().groebner()
             elif algorithm=="std":

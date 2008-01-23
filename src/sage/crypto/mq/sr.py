@@ -1362,7 +1362,7 @@ class SR_generic(MPolynomialSystemGenerator):
             from the Groebner basis of the system.
 
             sage: F.groebner_basis()[:4]
-            [k003 + 1, k001, k000 + k001 + 1, s003 + k002]
+            [k003 + 1, k001, k000 + 1, s003 + k002]
 
             In particular we have two solutions
 
@@ -1497,7 +1497,8 @@ class SR_gf2n(SR_generic):
 
         EXAMPLE:
             sage: sr = mq.SR()
-            sage: A = sr.random_state_array(); A
+            sage: A = sr.random_state_array()
+            sage: A # random result
             [a^3]
             sage: sr.antiphi(sr.phi(A)) == A
             True
@@ -1871,7 +1872,8 @@ class SR_gf2(SR_generic):
 
         EXAMPLE:
             sage: sr = mq.SR(gf2=True)
-            sage: A = sr.random_state_array(); A
+            sage: A = sr.random_state_array()
+            sage: A # random result
             [a^2 + a]
             sage: sr.antiphi(sr.phi(A)) == A
             True

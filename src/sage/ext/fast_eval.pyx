@@ -356,6 +356,19 @@ cdef class FastDoubleFunc:
         return iter(self.op_list())
 
     cpdef bint is_pure_c(self):
+        """
+        Returns True if this function can be evaluated without
+        any python calls (at any level).
+
+        EXAMPLES:
+            sage: from sage.ext.fast_eval import fast_float_constant, fast_float_arg, fast_float_func
+            sage: fast_float_constant(2).is_pure_c()
+            True
+            sage: fast_float_arg(2).sqrt().sin().is_pure_c()
+            True
+            sage: fast_float_func(lambda _: 2).is_pure_c()
+            False
+        """
         cdef int i
         for i from 0 <= i < self.nops:
             if self.ops[i].type == PY_FUNC:
@@ -527,6 +540,12 @@ def fast_float_func(f, *args):
 
 
 def fast_float(f, *vars):
+    """
+    Tries to create a fast float function out of the
+    input, if possible.
+
+    On failure, returns the input unchanged.
+    """
     try:
         return f._fast_float_(*vars)
     except AttributeError:

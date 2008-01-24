@@ -2468,15 +2468,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ans.append(s.python())
         return ans
 
-
-    def L_series(self):
-        try:
-            return self.__lseries
-        except AttributeError:
-            self.__lseries = Lseries_ell(self)
-            return self.__lseries
-
-
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
         M = self.isogeny_class()[1]
         return Integer(misc.prod([x for x in M.row(0) if x], 1))

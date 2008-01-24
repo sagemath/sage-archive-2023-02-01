@@ -2578,9 +2578,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         k_F = prec*sqrt(F.conductor()) + 20
 
         IR = rings.RealIntervalField(20)
-        MIN_ERR = R('1e-6')   # we assume that regulator and
-                            # discriminant, etc., computed to this accuracy.
-                            # this should be made more intelligent / rigorous relative
+        MIN_ERR = R('1e-6')  # we assume that regulator and
+                             # discriminant, etc., computed to this accuracy (which is easily the case).
+                             # this should be made more intelligent / rigorous relative
                              # to the rest of the system.
         if eps == 1:   # E has even rank
             LF1, err_F = F.Lseries().deriv_at1(k_F)
@@ -2597,24 +2597,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)
 
 
-    def heegner_index(self, D,  min_p=3, prec=5, verbose=False):
-        """
-        Return an interval that contains the SQUARE of the index of
-        the Heegner point in the group of K-rational points *modulo
-        torsion* on the twist of the elliptic curve by D, computed
-        using the Gross-Zagier formula and/or a point search.
+    def heegner_index(self, D,  min_p=2, prec=5, verbose=False):
+        r"""
+        Return an interval that contains the index of the Heegner
+        point $y_K$ in the group of K-rational points modulo torsion
+        on this elliptic curve, computed using the Gross-Zagier
+        formula and/or a point search, or the index divided by $2$.
 
-        WARNING: This function uses the Gross-Zagier formula.
-        When E is 681b and D=-8 for some reason the returned index
-        is 9/4 which is off by a factor of 4.   Evidently the
-        GZ formula must be modified when D=-8.
-
-        If 0 is in the interval of the height of the Heegner point
-        computed to the given prec, then this function returns 0.
+        NOTES: If \code{min_p} is bigger than 2 then the index can be
+        off by any prime less than \code{min_p}.   This function
+        returns the index divided by $2$ exactly when $E(\Q)_{/tor}$
+        has index $2$ in $E(K)_{/tor}$.
 
         INPUT:
             D (int) -- Heegner discriminant
-            min_p (int) -- (default: 3) only rule out primes >= min_p
+            min_p (int) -- (default: 2) only rule out primes >= min_p
                            dividing the index.
             verbose (bool) -- (default: False); print lots of mwrank search status
                                                 information when computing regulator
@@ -2623,26 +2620,41 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                           conductor.
 
         OUTPUT:
-            an interval that contains the index
+            an Integer
 
         EXAMPLES:
             sage: E = EllipticCurve('11a')
             sage: E.heegner_discriminants(50)
             [-7, -8, -19, -24, -35, -39, -40, -43]
             sage: E.heegner_index(-7)
-            [0.99998760 ... 1.0000134]
+            [0.99999332 .. 1.0000077]
 
             sage: E = EllipticCurve('37b')
             sage: E.heegner_discriminants(100)
             [-3, -4, -7, -11, -40, -47, -67, -71, -83, -84, -95]
             sage: E.heegner_index(-95)          # long time (1 second)
-            [3.9999771 ... 4.0000229]
+            [1.9999923 .. 2.0000077]
 
         Current discriminants -3 and -4 are not supported:
             sage: E.heegner_index(-3)
             Traceback (most recent call last):
             ...
             ArithmeticError: Discriminant (=-3) must not be -3 or -4.
+
+        The curve 681b returns an interval that contains $3/2$.
+        This is because $E(\Q) is not saturated in $E(K)$.  The
+        true index is $3$:
+            sage: E = EllipticCurve('681b')
+            sage: I = E.heegner_index(-8); I
+            [1.4999942 .. 1.5000058]
+            sage: 2*I
+            [2.9999885 .. 3.0000115]
+
+        In fact, whenever the returned index has a denominator
+        of $2$, the true index is got by multiplying the returned
+        index by $2$.  Unfortunately, this is not an if and only
+        if condition, i.e., sometimes the index must be multiplied
+        by $2$ even though the denominator is not $2$.
         """
         # First compute upper bound on height of Heegner point.
         tm = misc.verbose("computing heegner point height...")
@@ -2668,7 +2680,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if c > _MAX_HEIGHT or F is self:
             misc.verbose("Doing direct computation of MW group.")
             reg = F.regulator(verbose=verbose)
-            return ht/IR(reg)
+            return self.__adjust_heegner_index(ht/IR(reg))
 
         # Do naive search to eliminate possibility that Heegner point
         # is divisible by p<min_p, without finding Heegner point.
@@ -2678,10 +2690,20 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         P = [x for x in P if x.order() == oo]
         if len(P) == 0:
             return IR(1)
+
         misc.verbose("saturating")
         S, I, reg = F.saturation(P, verbose=verbose)
         misc.verbose("done saturating")
-        return ht/IR(reg)
+        return self.__adjust_heegner_index(ht/IR(reg))
+
+    def __adjust_heegner_index(self, a):
+        r"""
+        Take the square root of the interval that contains the Heegner
+        index.
+        """
+        if a.lower() < 0:
+            a = IR((0, a.upper()))
+        return a.sqrt()
 
 
     def heegner_index_bound(self, D=0,  prec=5, verbose=True, max_height=_MAX_HEIGHT):

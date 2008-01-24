@@ -271,6 +271,9 @@ class GenericGraph(SageObject):
 
     """
 
+    # Nice defaults for plotting arrays of graphs
+    graphics_array_defaults =  {'layout': 'circular', 'vertex_size':50, 'vertex_labels':False, 'graph_border':True}
+
     def __cmp__(self, other):
         """
         Comparison of self and other. For equality, must be in the same class,

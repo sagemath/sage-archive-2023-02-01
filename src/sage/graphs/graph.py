@@ -1205,24 +1205,42 @@ class GenericGraph(SageObject):
 
     ### Representations
 
-    def adjacency_matrix(self, sparse=True, boundary_first=False, over_integers=False):
+    def adjacency_matrix(self, sparse=True, boundary_first=False):
         """
         Returns the adjacency matrix of the (di)graph. Each vertex is
         represented by its position in the list returned by the vertices()
         function.
 
-        If the (di)graph allows multiple edges, then the returned matrix is over
-        the integers, otherwise it is over the ring with two elements.
+        The matrix returned is over the integers.  If a different ring
+        is desired, use either the change_ring function or the matrix
+        function.
 
         INPUT:
             sparse -- whether to represent with a sparse matrix
             boundary_first -- whether to represent the boundary vertices in
                 the upper left block
-            over_integers -- overrides checking multiple edges
 
         EXAMPLES:
             sage: G = graphs.CubeGraph(4)
             sage: G.adjacency_matrix()
+            [0 1 1 0 1 0 0 0 1 0 0 0 0 0 0 0]
+            [1 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0]
+            [1 0 0 1 0 0 1 0 0 0 1 0 0 0 0 0]
+            [0 1 1 0 0 0 0 1 0 0 0 1 0 0 0 0]
+            [1 0 0 0 0 1 1 0 0 0 0 0 1 0 0 0]
+            [0 1 0 0 1 0 0 1 0 0 0 0 0 1 0 0]
+            [0 0 1 0 1 0 0 1 0 0 0 0 0 0 1 0]
+            [0 0 0 1 0 1 1 0 0 0 0 0 0 0 0 1]
+            [1 0 0 0 0 0 0 0 0 1 1 0 1 0 0 0]
+            [0 1 0 0 0 0 0 0 1 0 0 1 0 1 0 0]
+            [0 0 1 0 0 0 0 0 1 0 0 1 0 0 1 0]
+            [0 0 0 1 0 0 0 0 0 1 1 0 0 0 0 1]
+            [0 0 0 0 1 0 0 0 1 0 0 0 0 1 1 0]
+            [0 0 0 0 0 1 0 0 0 1 0 0 1 0 0 1]
+            [0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 1]
+            [0 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
+
+            sage: matrix(GF(2),G) # matrix over GF(2)
             [0 1 1 0 1 0 0 0 1 0 0 0 0 0 0 0]
             [1 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0]
             [1 0 0 1 0 0 1 0 0 0 1 0 0 0 0 0]
@@ -1266,14 +1284,9 @@ class GenericGraph(SageObject):
                 D[(i,j)] = 1
                 if not directed:
                     D[(j,i)] = 1
-        if multiple_edges or over_integers:
-            from sage.rings.integer_ring import IntegerRing
-            R = IntegerRing()
-        else:
-            from sage.rings.integer_mod_ring import IntegerModRing
-            R = IntegerModRing(2)
+        from sage.rings.integer_ring import IntegerRing
         from sage.matrix.constructor import matrix
-        M = matrix(R, n, n, D, sparse=sparse)
+        M = matrix(IntegerRing(), n, n, D, sparse=sparse)
         return M
 
     am = adjacency_matrix # shorter call makes life easier
@@ -3148,7 +3161,7 @@ class GenericGraph(SageObject):
         EXAMPLE:
             sage: P = graphs.PetersenGraph()
             sage: P.characteristic_polynomial()
-            x^10 + x^8 + x^6 + x^4
+            x^10 - 15*x^8 + 75*x^6 - 24*x^5 - 165*x^4 + 120*x^3 + 120*x^2 - 160*x + 48
             sage: P.characteristic_polynomial(laplacian=True)
             x^10 - 30*x^9 + 390*x^8 - 2880*x^7 + 13305*x^6 - 39882*x^5 + 77640*x^4 - 94800*x^3 + 66000*x^2 - 20000*x
 
@@ -4409,7 +4422,7 @@ class Graph(GenericGraph):
         if weighted:
             M = self.weighted_adjacency_matrix(boundary_first=boundary_first)
         else:
-            M = self.adjacency_matrix(boundary_first=boundary_first, over_integers=True)
+            M = self.adjacency_matrix(boundary_first=boundary_first)
         A = list(-M)
         S = [sum(M.row(i)) for i in range(M.nrows())]
         for i in range(len(A)):

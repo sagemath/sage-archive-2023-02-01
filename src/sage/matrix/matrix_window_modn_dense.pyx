@@ -125,31 +125,40 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
         gather = ( <Matrix_modn_dense> self._matrix ).gather
         A_ncols = A._ncols
 
+        cdef mod_int A_i_k
+        cdef mod_int* B_row_k
+
         if gather <= 1:
             for i from 0 <= i < A._nrows:
                 self_row = ( <Matrix_modn_dense> self._matrix )._matrix[i + self._row] + self._col
                 A_row    = ( <Matrix_modn_dense>    A._matrix )._matrix[i +    A._row] + A._col
-                for j from 0 <= j < B._ncols:
-                    s = 0
-                    for k from 0 <= k < A._ncols:
-                        s = (s + A_row[k] * B_matrix_off[k][j+B._col]) % p
-                    self_row[j] = s
+                k = 0
+                for j from 1 <= j < B._ncols:
+                    self_row[j] = (A_row[k] * B_matrix_off[k][B._col+j]) % p
+                for k from 1 <= k < A._ncols:
+                    A_i_k = A_row[k]
+                    B_row_k = B_matrix_off[k] + B._col
+                    for j from 1 <= j < B._ncols:
+                        self_row[j] = (self_row[j] + A_i_k * B_row_k[j]) % p
+
         else:
             for i from 0 <= i < A._nrows:
                 self_row = ( <Matrix_modn_dense> self._matrix )._matrix[i + self._row] + self._col
                 A_row    = ( <Matrix_modn_dense>    A._matrix )._matrix[i +    A._row] + A._col
                 for j from 0 <= j < B._ncols:
-                    s = 0
-                    k = 0
-                    while k < A_ncols:
-                        top = k + gather
-                        if top > A_ncols:
-                            top = A_ncols
-                        for k from k <= k < top: # = min(k+gather, A._ncols)
-                            pass
-                            s += A_row[k] * B_matrix_off[k][j+B._col]
-                        s %= p
-                    self_row[j] = s
+                    self_row[j] = 0
+                k = 0
+                while k < A_ncols:
+                    top = k + gather
+                    if top > A_ncols:
+                        top = A_ncols
+                    for k from k <= k < top: # = min(k+gather, A._ncols)
+                        A_i_k = A_row[k]
+                        B_row_k = B_matrix_off[k] + B._col
+                        for j from 0 <= j < B._ncols:
+                            self_row[j] += A_i_k * B_row_k[j]
+                    for j from 0 <= j < B._ncols:
+                        self_row[j] %= p
 
     cdef add_prod(self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j, k, gather, top, A_ncols
@@ -164,31 +173,35 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
         gather = ( <Matrix_modn_dense> self._matrix ).gather
         A_ncols = A._ncols
 
+        cdef mod_int A_i_k
+        cdef mod_int* B_row_k
+
         if gather <= 1:
             for i from 0 <= i < A._nrows:
                 self_row = ( <Matrix_modn_dense> self._matrix )._matrix[i+self._row] + self._col
                 A_row = ( <Matrix_modn_dense> A._matrix )._matrix[i+A._row] + A._col
-                for j from 0 <= j < B._ncols:
-                    s = self_row[j]
-                    for k from 0 <= k < A._ncols:
-                        s = ( s + A_row[k] * B_matrix_off[k][j+B._col] ) % p
-                    self_row[j] = s
+                for k from 0 <= k < A._ncols:
+                    A_i_k = A_row[k]
+                    B_row_k = B_matrix_off[k] + B._col
+                    for j from 0 <= j < B._ncols:
+                        self_row[j] = (self_row[j] + A_i_k * B_row_k[j]) % p
 
         else:
             for i from 0 <= i < A._nrows:
                 self_row = ( <Matrix_modn_dense> self._matrix )._matrix[i+self._row] + self._col
                 A_row = ( <Matrix_modn_dense> A._matrix )._matrix[i+A._row] + A._col
-                for j from 0 <= j < B._ncols:
-                    s = self_row[j]
-                    k = 0
-                    while k < A_ncols:
-                        top = k + gather
-                        if top > A_ncols:
-                            top = A_ncols
-                        for k from k <= k < top: # = min(k+gather, A._ncols)
-                            s += A_row[k] * B_matrix_off[k][j+B._col]
-                        s %= p
-                    self_row[j] = s
+                k = 0
+                while k < A_ncols:
+                    top = k + gather
+                    if top > A_ncols:
+                        top = A_ncols
+                    for k from k <= k < top: # = min(k+gather, A._ncols)
+                        A_i_k = A_row[k]
+                        B_row_k = B_matrix_off[k] + B._col
+                        for j from 0 <= j < B._ncols:
+                            self_row[j] += A_i_k * B_row_k[j]
+                    for j from 0 <= j < B._ncols:
+                        self_row[j] %= p
 
 
     cdef subtract_prod(self, MatrixWindow A, MatrixWindow B):
@@ -205,30 +218,35 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
         A_ncols = A._ncols
         p2 = p*(p-1)
 
+        cdef mod_int A_i_k
+        cdef mod_int* B_row_k
+
         if gather <= 1:
             for i from 0 <= i < A._nrows:
                 self_row = ( <Matrix_modn_dense> self._matrix )._matrix[i+self._row] + self._col
                 A_row = ( <Matrix_modn_dense> A._matrix )._matrix[i+A._row] + A._col
-                for j from 0 <= j < B._ncols:
-                    s = self_row[j]
-                    for k from 0 <= k < A._ncols:
-                        s = ( s + p2 - A_row[k] * B_matrix_off[k][j+B._col] ) % p
-                    self_row[j] = s
+                for k from 0 <= k < A._ncols:
+                    A_i_k = A_row[k]
+                    B_row_k = B_matrix_off[k] + B._col
+                    for j from 0 <= j < B._ncols:
+                        self_row[j] = ( self_row[j] + p2 - A_i_k * B_row_k[j] ) % p
+
         else:
             for i from 0 <= i < A._nrows:
                 self_row = ( <Matrix_modn_dense> self._matrix )._matrix[i+self._row] + self._col
                 A_row = ( <Matrix_modn_dense> A._matrix )._matrix[i+A._row] + A._col
-                for j from 0 <= j < B._ncols:
-                    s = self_row[j] + gather * p2 # using unsigned ints
-                    k = 0
-                    while k < A_ncols:
-                        top = k + gather
-                        if top > A_ncols:
-                            top = A_ncols
-                        for k from k <= k < top: # = min(k+gather, A._ncols)
-                            s -= A_row[k] * B_matrix_off[k][j+B._col]
-                        s = s % p + gather * p2 # using unsigned ints
-                    self_row[j] = s % p
+                k = 0
+                while k < A_ncols:
+                    top = k + gather
+                    if top > A_ncols:
+                        top = A_ncols
+                    for k from k <= k < top: # = min(k+gather, A._ncols)
+                        A_i_k = A_row[k]
+                        B_row_k = B_matrix_off[k] + B._col
+                        for j from 0 <= j < B._ncols:
+                            self_row[j] += p2 - A_i_k * B_row_k[j]
+                    for j from 0 <= j < B._ncols:
+                        self_row[j] %= p
 
 
     cdef bint element_is_zero(self, Py_ssize_t i, Py_ssize_t j):

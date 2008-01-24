@@ -755,8 +755,19 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: i = ComplexField(30).0
             sage: (1+i).gamma()
             0.49801567 - 0.15494983*I
+
+        TESTS:
+            sage: CC(0).gamma()
+            Infinity
+
+            sage: CC(-1).gamma()
+            Infinity
         """
-        return self._parent(self._pari_().gamma())
+        try:
+            return self._parent(self._pari_().gamma())
+        except sage.libs.pari.all.PariError:
+            from sage.rings.infinity import UnsignedInfinityRing
+            return UnsignedInfinityRing.gen()
 
     def gamma_inc(self, t):
         """

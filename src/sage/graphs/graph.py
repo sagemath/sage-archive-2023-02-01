@@ -1203,6 +1203,81 @@ class GenericGraph(SageObject):
                 self._nxg.succ = self._nxg.adj
                 self._nxg.pred = newpred
 
+    ### Representations
+
+    def adjacency_matrix(self, sparse=True, boundary_first=False, over_integers=False):
+        """
+        Returns the adjacency matrix of the (di)graph. Each vertex is
+        represented by its position in the list returned by the vertices()
+        function.
+
+        If the (di)graph allows multiple edges, then the returned matrix is over
+        the integers, otherwise it is over the ring with two elements.
+
+        INPUT:
+            sparse -- whether to represent with a sparse matrix
+            boundary_first -- whether to represent the boundary vertices in
+                the upper left block
+            over_integers -- overrides checking multiple edges
+
+        EXAMPLES:
+            sage: G = graphs.CubeGraph(4)
+            sage: G.adjacency_matrix()
+            [0 1 1 0 1 0 0 0 1 0 0 0 0 0 0 0]
+            [1 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0]
+            [1 0 0 1 0 0 1 0 0 0 1 0 0 0 0 0]
+            [0 1 1 0 0 0 0 1 0 0 0 1 0 0 0 0]
+            [1 0 0 0 0 1 1 0 0 0 0 0 1 0 0 0]
+            [0 1 0 0 1 0 0 1 0 0 0 0 0 1 0 0]
+            [0 0 1 0 1 0 0 1 0 0 0 0 0 0 1 0]
+            [0 0 0 1 0 1 1 0 0 0 0 0 0 0 0 1]
+            [1 0 0 0 0 0 0 0 0 1 1 0 1 0 0 0]
+            [0 1 0 0 0 0 0 0 1 0 0 1 0 1 0 0]
+            [0 0 1 0 0 0 0 0 1 0 0 1 0 0 1 0]
+            [0 0 0 1 0 0 0 0 0 1 1 0 0 0 0 1]
+            [0 0 0 0 1 0 0 0 1 0 0 0 0 1 1 0]
+            [0 0 0 0 0 1 0 0 0 1 0 0 1 0 0 1]
+            [0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 1]
+            [0 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
+
+            sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
+            sage: D.adjacency_matrix()
+            [0 1 1 1 0 0]
+            [1 0 1 0 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 0 1 0]
+            [1 0 0 0 0 1]
+            [0 1 0 0 0 0]
+
+        """
+        n = self.order()
+        verts = self.vertices(boundary_first=boundary_first)
+        D = {}
+        directed = self.is_directed()
+        multiple_edges = self.multiple_edges()
+        for i,j,l in self.edge_iterator():
+            i = verts.index(i)
+            j = verts.index(j)
+            if multiple_edges and (i,j) in D:
+                D[(i,j)] += 1
+                if not directed:
+                    D[(j,i)] += 1
+            else:
+                D[(i,j)] = 1
+                if not directed:
+                    D[(j,i)] = 1
+        if multiple_edges or over_integers:
+            from sage.rings.integer_ring import IntegerRing
+            R = IntegerRing()
+        else:
+            from sage.rings.integer_mod_ring import IntegerModRing
+            R = IntegerModRing(2)
+        from sage.matrix.constructor import matrix
+        M = matrix(R, n, n, D, sparse=sparse)
+        return M
+
+    am = adjacency_matrix # shorter call makes life easier
+
     ### Cliques
 
     def cliques(self):
@@ -2148,13 +2223,6 @@ class GenericGraph(SageObject):
         # return nlist
 
     ### Constructors
-
-    def am(self):
-        """
-        Shorter call for adjacency matrix makes life easier.
-
-        """
-        return self.adjacency_matrix()
 
     def complement(self):
         """
@@ -4220,67 +4288,6 @@ class Graph(GenericGraph):
         return M.eigenspaces()
 
     ### Representations
-
-    def adjacency_matrix(self, sparse=True, boundary_first=False, over_integers=False):
-        """
-        Returns the adjacency matrix of the graph. Each vertex is
-        represented by its position in the list returned by the vertices()
-        function.
-
-        If the graph allows multiple edges, then the returned matrix is over
-        the integers, otherwise it is over the ring with two elements.
-
-        INPUT:
-            sparse -- whether to represent with a sparse matrix
-            boundary_first -- whether to represent the boundary vertices in
-                the upper left block
-            over_integers -- overrides checking multiple edges
-
-        EXAMPLE:
-            sage: G = graphs.CubeGraph(4)
-            sage: G.adjacency_matrix()
-            [0 1 1 0 1 0 0 0 1 0 0 0 0 0 0 0]
-            [1 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0]
-            [1 0 0 1 0 0 1 0 0 0 1 0 0 0 0 0]
-            [0 1 1 0 0 0 0 1 0 0 0 1 0 0 0 0]
-            [1 0 0 0 0 1 1 0 0 0 0 0 1 0 0 0]
-            [0 1 0 0 1 0 0 1 0 0 0 0 0 1 0 0]
-            [0 0 1 0 1 0 0 1 0 0 0 0 0 0 1 0]
-            [0 0 0 1 0 1 1 0 0 0 0 0 0 0 0 1]
-            [1 0 0 0 0 0 0 0 0 1 1 0 1 0 0 0]
-            [0 1 0 0 0 0 0 0 1 0 0 1 0 1 0 0]
-            [0 0 1 0 0 0 0 0 1 0 0 1 0 0 1 0]
-            [0 0 0 1 0 0 0 0 0 1 1 0 0 0 0 1]
-            [0 0 0 0 1 0 0 0 1 0 0 0 0 1 1 0]
-            [0 0 0 0 0 1 0 0 0 1 0 0 1 0 0 1]
-            [0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 1]
-            [0 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
-
-        """
-        n = len(self._nxg.adj)
-        if boundary_first:
-            verts = self.vertices(boundary_first=True)
-        else:
-            verts = self.vertices()
-        D = {}
-        for i,j,l in self.edge_iterator():
-            i = verts.index(i)
-            j = verts.index(j)
-            if D.has_key((i,j)) and self.multiple_edges():
-                D[(i,j)] += 1
-                D[(j,i)] += 1
-            else:
-                D[(i,j)] = 1
-                D[(j,i)] = 1
-        from sage.rings.integer_mod_ring import IntegerModRing
-        from sage.rings.integer_ring import IntegerRing
-        from sage.matrix.constructor import matrix
-        if self.multiple_edges() or over_integers:
-            R = IntegerRing()
-        else:
-            R = IntegerModRing(2)
-        M = matrix(R, n, n, D, sparse=sparse)
-        return M
 
     def incidence_matrix(self, sparse=True):
         """
@@ -6470,46 +6477,6 @@ class DiGraph(GenericGraph):
         return self._nxg.out_degree_iter(vertices, with_labels=labels)
 
     ### Representations
-
-    def adjacency_matrix(self, sparse=True):
-        """
-        Returns the adjacency matrix of the digraph. Each vertex is
-        represented by its position in the list returned by the vertices()
-        function.
-
-        If the graph allows multiple edges, then the returned matrix is over
-        the integers, otherwise it is over the ring with two elements.
-
-        EXAMPLE:
-            sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: D.adjacency_matrix()
-            [0 1 1 1 0 0]
-            [1 0 1 0 0 0]
-            [0 0 0 1 0 0]
-            [0 0 0 0 1 0]
-            [1 0 0 0 0 1]
-            [0 1 0 0 0 0]
-
-        """
-        n = len(self._nxg.adj)
-        verts = self.vertices()
-        D = {}
-        for i,j,l in self.edge_iterator():
-            i = verts.index(i)
-            j = verts.index(j)
-            if D.has_key((i,j)) and self.multiple_edges():
-                D[(i,j)] += 1
-            else:
-                D[(i,j)] = 1
-        from sage.rings.integer_mod_ring import IntegerModRing
-        from sage.rings.integer_ring import IntegerRing
-        from sage.matrix.constructor import matrix
-        if self.multiple_edges():
-            R = IntegerRing()
-        else:
-            R = IntegerModRing(2)
-        M = matrix(R, n, n, D, sparse=sparse)
-        return M
 
     def incidence_matrix(self, sparse=True):
         """

@@ -35,13 +35,15 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
     INPUT:
         k -- even positive integer
         prec -- nonnegative integer
-        K -- a ring in which B_k/(2*k) is invertible
+        K -- a ring in which -(2*k)/B_k is invertible
 
     EXAMPLES:
         sage: eisenstein_series_qexp(2,5)
         -1/24 + q + 3*q^2 + 4*q^3 + 7*q^4 + O(q^5)
         sage: eisenstein_series_qexp(2,0)
         O(q^0)
+        sage: eisenstein_series_qexp(2,5,GF(7))
+        2 + q + 3*q^2 + 4*q^3 + O(q^5)
 
     AUTHORS:
         -- William Stein: original implementation
@@ -61,6 +63,12 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
     val = [one] * prec
     expt = k - one
 
+    try:
+        a0inv = - (2*k) / bernoulli(k)
+        a0 = K(1/a0inv)
+    except ZeroDivisionError:
+        raise ValueError, "-(2*k)/B_k (=%s) must be invertible in the ring K"%a0inv
+
     for p in prime_range(1,prec):
 
         int_p = int(p)
@@ -79,8 +87,8 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
             last = term
             term *= mult
 
-    val[0] = -bernoulli(k) / (2*k)
-    R = QQ[['q']]
+    val[0] = a0
+    R = K[['q']]
     return R(val, prec=prec, check=False)
 
 ######################################################################

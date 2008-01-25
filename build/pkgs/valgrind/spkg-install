@@ -5,6 +5,7 @@ VALGRIND_VERSION="3.3.0"
 if [ `uname` = "Linux" ]; then
     echo "Good - valgrind works on Linux"
 else
+    echo "Valgring does not work on non-Linux yet"
     exit 1
 fi
 

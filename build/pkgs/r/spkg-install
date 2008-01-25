@@ -15,6 +15,11 @@ else
     XSUPPORT=no
 fi
 
+if [ `uname` = "Darwin" ]; then
+    OSXFW="--enable-R-framework=no"; export OSXFW
+else
+    OSXFW=""; export OSXFW
+fi
 
 # let's remove old install, even the wrongly installed ones
 rm -rf "$SAGE_LOCAL"/lib/r
@@ -37,10 +42,10 @@ LDFLAGS="-L$SAGE_LOCAL/lib/ "$LDFLAGS; export LDFLAGS
 
 # do not build recommended packages for now, for speed.
 
-./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas"
+./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas" $OSXFW
 
 if [ $? -ne 0 ]; then
-    ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=no --with-readline="$SAGE_LOCAL"
+    ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=no --with-readline="$SAGE_LOCAL" $OSXFW
 fi
 
 if [ $? -ne 0 ]; then

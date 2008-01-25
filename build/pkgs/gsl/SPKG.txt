@@ -1,6 +1,46 @@
-http://www.gnu.org/software/gsl/
+= gsl =
 
-ftp://mirrors.kernel.org/gnu/gsl/
+== Description ==
 
-We currently make no changes to the standard GSL distribution.
+Website: http://www.gnu.org/software/gsl/
+
+From the website above: The GNU Scientific Library (GSL) is a numerical library for C and C++ programmers. It is free software under the GNU General Public License.
+
+The library provides a wide range of mathematical routines such as random number generators, special functions and least-squares fitting. There are over 1000 functions in total with an extensive test suite.
+
+== License ==
+
+ * GPL V3 or later (1.10 release)
+ * GPL V2 or later (1.9 release)
+
+== SPKG Maintainers ==
+
+ * Michael Abshoff
+ * William Stein
+
+== Upstream Contact ==
+
+GSL mailing lists:
+
+ * Bug-gsl <bug-gsl@gnu.org> mailing list -- bug reports for the GNU Scientific Library should be sent here
+ * Help-gsl <help-gsl@gnu.org> users mailing list -- for questions about installation, how GSL works and how it is used, or general questions concerning GSL.
+ * Info-gsl <info-gsl@gnu.org> mailing list -- announcements of new releases are made here.
+
+== Dependencies ==
+
+ * ATLAS, but it seems to be only required when actually linking the gsl extensions
+
+== Changelog ==
+
+=== gsl-1.10 (Michael Abshoff, Jan. 25, 2008) ===
+ * update to gsl 1.10
+ * add .hgignore
+ * write proper SPKG.txt
+
+=== gsl-1.9 ===
+ * initial release
+
+== Build Notes ==
+ * We currently make no changes to the standard GSL distribution.
+ * Download: ftp://mirrors.kernel.org/gnu/gsl/
 

@@ -944,7 +944,10 @@ def show(x, *args, **kwds):
                 graphic_list.append(item.plot(**plot_kwds))
             except AttributeError:
                 # Apparently we don't have a plot function for an item
-                return
+                from sage.plot.plot import Graphics
+                G = Graphics()
+                G.axes(False)
+                graphic_list.append(G)
 
         from sage.plot.plot import graphics_array
         from math import ceil
@@ -954,7 +957,7 @@ def show(x, *args, **kwds):
             g = graphics_array(page,
                                int(ceil(float(len(page))/columns)),
                                min(len(page),columns))
-            g.__set_figsize__([g.ncols(),g.nrows()])
+            g.__set_figsize__([g.ncols()*2,g.nrows()*2])
             g.show()
         return
 

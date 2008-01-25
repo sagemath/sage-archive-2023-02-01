@@ -271,7 +271,7 @@ class GenericGraph(SageObject):
 
     """
 
-    # Nice defaults for plotting arrays of graphs
+    # Nice defaults for plotting arrays of graphs (see sage.misc.functional.show)
     graphics_array_defaults =  {'layout': 'circular', 'vertex_size':50, 'vertex_labels':False, 'graph_border':True}
 
     def __cmp__(self, other):

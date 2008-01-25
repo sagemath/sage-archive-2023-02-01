@@ -359,7 +359,7 @@ notebook_help = [
                 ('Interrupt running calculations',
                  'Click <u>Interrupt</u> or press escape in any input cell. This will (attempt) to interrupt SAGE by sending many interrupt signals.'),
                 ('Tab Completion', 'Press tab while the cursor is on an identifier. On some web browsers (e.g., Opera) you must use control-space instead of tab.'),
-                ('Typesetting All Output', 'Type lprint() in an input cell and press shift-enter.  All future output will be typeset automatically.'),
+                ('Typesetting All Output', 'Type pretty_print_default() in an input cell and press shift-enter.  All future output will be typeset automatically.'),
                 ('Help About',
                  'Type ? immediately after the object or function and press tab.'),
                 ('Source Code',

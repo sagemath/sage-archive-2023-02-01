@@ -144,6 +144,25 @@ cdef class Matrix(matrix0.Matrix):
             v.append(x._magma_init_())
         return s + '![%s]'%(','.join(v))
 
+    def _maple_init_(self):
+        """
+        EXAMPLES:
+            sage: M = matrix(ZZ,2,range(4))             #optional
+            sage: maple(M)                              #optional
+            Matrix(2, 2, [[0,1],[2,3]])
+
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])    #optional
+            sage: maple(M)                                      #optional
+            Matrix(3, 3, [[1,2,3],[4/3,5/3,3/2],[7,8,9]])
+
+            sage: P.<x> = ZZ[]                          #optional
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5]) #optional
+            sage: maple(M)                             #optional
+            Matrix(2, 2, [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]])
+        """
+        s = str(self.rows()).replace('(','[').replace(')',']')
+        return "Matrix(%s,%s,%s)"%(self.nrows(), self.ncols(), s)
+
     def _singular_(self, singular=None):
         """
         Tries to coerce this matrix to a singular matrix.

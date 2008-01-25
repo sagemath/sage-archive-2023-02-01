@@ -618,6 +618,24 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         s = s + ")"
         return s
 
+    def _maple_init_(self):
+        """
+        EXAMPLES:
+            sage: v = vector(ZZ, 4, range(4))               #optional
+            sage: maple(v)                                  #optional
+            Vector[row](4, [0,1,2,3])
+
+            sage: v = vector(QQ, 3, [2/3, 0, 5/4])          #optional
+            sage: maple(v)                                  #optional
+            Vector[row](3, [2/3,0,5/4])
+
+            sage: P.<x> = ZZ[]                                       #optional
+            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) #optional
+            sage: maple(v)                                           #optional
+            Vector[row](3, [x^2+2,2*x+1,-2*x^2+4*x])
+        """
+        return "Vector[row](%s)"%(str(self.list()))
+
     def __setitem__(self, i, x):
         raise NotImplementedError
 

@@ -83,8 +83,7 @@ integers. So for example,
     (x-1)*(x+1)*(x^2+x+1)*(x^2-x+1)*(x^2+1)*(x^4-x^2+1)
 
     sage: maple('(x^28-1)').factor( )
-    (x-1)*(x^6+x^5+x^4+x^3+x^2+x+1)*(x+1)*(1-x+x^2-x^3+x^4-x^5+x^6)*(x^2+1)*(x^12-
-    x^10+x^8-x^6+x^4-x^2+1)
+    (x-1)*(x^6+x^5+x^4+x^3+x^2+x+1)*(x+1)*(1-x+x^2-x^3+x^4-x^5+x^6)*(x^2+1)*(x^12-x^10+x^8-x^6+x^4-x^2+1)
 
 
 Another important feature of maple is its online help.  We can access
@@ -419,11 +418,8 @@ connection to a server running Maple; for hints, type
         """
         Get the value of the variable var.
         """
-        s = self.eval('%s'%var)
-        if s[0] == '{':
-            return s
-        i = s.find('=')
-        return s[i+1:]
+        s = self.eval('printf("%%q",%s)'%var)
+        return s
 
     def get_using_file(self, var):
         """
@@ -445,7 +441,10 @@ connection to a server running Maple; for hints, type
         return MapleElement
 
     def _equality_symbol(self):
-        return '=='
+        return '='
+
+    def _true_symbol(self):
+        return 'true'
 
     def _assign_symbol(self):
         return ":="
@@ -518,15 +517,7 @@ connection to a server running Maple; for hints, type
             bell(10)
             sage: maple.with_package('combinat')               # optional
             sage: maple('partition(10)')               # optional
-             [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 2], [1, 1, 1, 1, 1,
-             1, 2, 2], [1, 1, 1, 1, 2, 2, 2], [1, 1, 2, 2, 2, 2], [2, 2, 2, 2, 2], [1, 1, 1
-             , 1, 1, 1, 1, 3], [1, 1, 1, 1, 1, 2, 3], [1, 1, 1, 2, 2, 3], [1, 2, 2, 2, 3],
-             [1, 1, 1, 1, 3, 3], [1, 1, 2, 3, 3], [2, 2, 3, 3], [1, 3, 3, 3], [1, 1, 1, 1,
-             1, 1, 4], [1, 1, 1, 1, 2, 4], [1, 1, 2, 2, 4], [2, 2, 2, 4], [1, 1, 1, 3, 4],
-             [1, 2, 3, 4], [3, 3, 4], [1, 1, 4, 4], [2, 4, 4], [1, 1, 1, 1, 1, 5], [1, 1, 1
-             , 2, 5], [1, 2, 2, 5], [1, 1, 3, 5], [2, 3, 5], [1, 4, 5], [5, 5], [1, 1, 1, 1
-             , 6], [1, 1, 2, 6], [2, 2, 6], [1, 3, 6], [4, 6], [1, 1, 1, 7], [1, 2, 7], [3,
-             7], [1, 1, 8], [2, 8], [1, 9], [10]]
+            [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 2], [1, 1, 1, 1, 1, 1, 2, 2], [1, 1, 1, 1, 2, 2, 2], [1, 1, 2, 2, 2, 2], [2, 2, 2, 2, 2], [1, 1, 1, 1, 1, 1, 1, 3], [1, 1, 1, 1, 1, 2, 3], [1, 1, 1, 2, 2, 3], [1, 2, 2, 2, 3], [1, 1, 1, 1, 3, 3], [1, 1, 2, 3, 3], [2, 2, 3, 3], [1, 3, 3, 3], [1, 1, 1, 1, 1, 1, 4], [1, 1, 1, 1, 2, 4], [1, 1, 2, 2, 4], [2, 2, 2, 4], [1, 1, 1, 3, 4], [1, 2, 3, 4], [3, 3, 4], [1, 1, 4, 4], [2, 4, 4], [1, 1, 1, 1, 1, 5], [1, 1, 1, 2, 5], [1, 2, 2, 5], [1, 1, 3, 5], [2, 3, 5], [1, 4, 5], [5, 5], [1, 1, 1, 1, 6], [1, 1, 2, 6], [2, 2, 6], [1, 3, 6], [4, 6], [1, 1, 1, 7], [1, 2, 7], [3, 7], [1, 1, 8], [2, 8], [1, 9], [10]]
             sage: maple('bell(10)')                   # optional
             115975
             sage: maple('fibonacci(10)')              # optional
@@ -597,13 +588,118 @@ class MapleElement(ExpectElement):
         M = self.parent()
         return float(maple.eval('evalf(%s)'%self.name()))
 
-    def _latex_(self):
-        return self.parent().eval('latex(%s)'%self.name())
+    def __cmp__(self, other):
+        """
+        Compare equality between self and other, using maple.
+
+        EXAMPLES:
+            sage: a = maple(5)
+            sage: b = maple(5)
+            sage: a == b
+            True
+            sage: a == 5
+            True
+
+            sage: c = maple(3)
+            sage: a == c
+            False
+            sage: a < c
+            False
+            sage: a < 6
+            True
+            sage: c <= a
+            True
+
+            sage: M = matrix(ZZ, 2, range(1,5))
+            sage: Mm = maple(M)
+            sage: Mm == Mm
+            True
+            sage: Mm < 5
+            True
+            sage: (Mm < 5) == (M < 5)
+            True
+            sage: 5 < Mm
+            False
+
+        TESTS:
+            sage: x = var('x')
+            sage: t = maple((x+1)^2)
+            sage: u = maple(x^2+2*x+1)
+            sage: u == t # todo: not implemented
+            True         # returns False, should use 'testeq' in maple
+            sage: maple.eval('testeq(%s = %s)'%(t.name(),u.name()))
+            'true'
+        """
+        P = self.parent()
+        if P.eval("evalb(%s %s %s)"%(self.name(), P._equality_symbol(),
+                                 other.name())) == P._true_symbol():
+            return 0
+        # Maple does not allow comparing objects of different types and
+        # it raises an error in this case.
+        # We catch the error, and return True for <
+        try:
+            if P.eval("evalb(%s %s %s)"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
+                return -1
+        except RuntimeError, e:
+            msg = str(e)
+            if 'is not valid' in msg and 'to < or <=' in msg:
+                if (hash(str(self)) < hash(str(other))):
+                    return -1
+                else:
+                    return 1
+            else:
+                raise RuntimeError, e
+        if P.eval("evalb(%s %s %s)"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
+            return 1
+        # everything is supposed to be comparable in Python, so we define
+        # the comparison thus when no comparable in interfaced system.
+        if (hash(str(self)) < hash(str(other))):
+            return -1
+        else:
+            return 1
+
+    def _mul_(self, right):
+        """
+        EXAMPLES:
+            sage: t = maple(5); u = maple(3)
+            sage: t*u
+            15
+            sage: M = matrix(ZZ,2,range(4))
+            sage: Mm = maple(M)
+            sage: Mm*Mm
+            Matrix(2, 2, [[2,3],[6,11]])
+
+            sage: v = vector(ZZ,2,[2,3])
+            sage: vm = maple(v)
+            sage: vm*Mm
+            Vector[row](2, [6,11])
+
+            sage: t*Mm
+            Matrix(2, 2, [[0,5],[10,15]])
+        """
+        P = self._check_valid()
+        try:
+            return P.new('%s . %s'%(self._name, right._name))
+        except Exception, msg:
+            raise TypeError,msg
 
     def trait_names(self):
         return self.parent().trait_names()
 
     def __repr__(self):
+        """
+        Return a string representation of self.
+
+        EXAMPLES:
+            sage: x = var('x')
+            sage: maple(x)
+            x
+            sage: maple(5)
+            5
+            sage: M = matrix(QQ,2,range(4))
+            sage: maple(M)
+            Matrix(2, 2, [[0,1],[2,3]])
+        """
         self._check_valid()
         return self.parent().get(self._name)
 

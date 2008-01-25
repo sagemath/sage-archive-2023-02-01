@@ -1026,9 +1026,12 @@ class ExpectElement(RingElement):
         elif P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
                                  other.name())) == P._true_symbol():
             return 0
+        # everything is supposed to be comparable in Python, so we define
+        # the comparison thus when no comparable in interfaced system.
+        if (hash(str(self)) < hash(str(other))):
+            return -1
         else:
-            return -1  # everything is supposed to be comparable in Python, so we define
-                       # the comparison thus when no comparable in interfaced system.
+            return 1
 
     def _matrix_(self, R):
         raise NotImplementedError

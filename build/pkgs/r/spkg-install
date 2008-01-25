@@ -16,22 +16,28 @@ else
 fi
 
 
+# let's remove old install, even the wrongly installed ones
 rm -rf "$SAGE_LOCAL"/lib/r
-mv src "$SAGE_LOCAL"/lib/r
-ln -s "$SAGE_LOCAL"/lib/r src
+rm -rf "$SAGE_LOCAL"/lib/R
+rm -rf "$SAGE_LOCAL"/lib64/R
+rm -rf "$SAGE_LOCAL"/lib64/r
 
-cd "$SAGE_LOCAL"/lib/r/
+cd src
+
+# make sure the prefix is always lib, not lib64 on 64 bit linux
+LIBnn="lib"; export LIBnn
 
 FC=sage_fortran; export FC
 F77=sage_fortran; export F77
 
-# These flags are *critical* so that R will be built against Sage's copy of readline.
+# These flags are *critical* so that R will be built against Sage's
+# copy of readline and ATLAS.
 CFLAGS="-I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib/ "$CFLAGS; export CFLAGS
 LDFLAGS="-L$SAGE_LOCAL/lib/ "$LDFLAGS; export LDFLAGS
 
 # do not build recommended packages for now, for speed.
 
-./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL"
+./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas"
 
 if [ $? -ne 0 ]; then
     ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=no --with-readline="$SAGE_LOCAL"
@@ -48,29 +54,21 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-$MAKE install-libR
+$MAKE install
 if [ $? -ne 0 ]; then
     echo "Error installing R."
     exit 1
 fi
 
-# For some reason make install sucks -- it doesn't copy the libraries or R bin over ??
-
-cp lib/* "$SAGE_LOCAL"/lib/
-cp bin/R "$SAGE_LOCAL"/bin/
-
-
-# Remove the src from the build.
-
-if [ $FORCE = "" ]; then
-   rm -rf src
+$MAKE install-libR
+if [ $? -ne 0 ]; then
+    echo "Error installing libR."
+    exit 1
 fi
-
 
 # Fix hardcoding problems.
 cd "$CUR"/patches
 python fix_hardcode
-
 
 echo "Now install rpy"
 

@@ -9,7 +9,7 @@ fi
 
 # HACK for Sage to avoid hardcoding.  NOthing
 # else has been changed in this file.
-#R_HOME_DIR="${SAGE_LOCAL}/lib/r/"
+#R_HOME_DIR="${SAGE_LOCAL}/lib/R/"
 #SAGEHACK#
 
 R_HOME="${R_HOME_DIR}"

@@ -1,4 +1,9 @@
-=== r-2.6.1.p8 (Michael Abshoff, Jan. 17th. 2008)  ===
+=== r-2.6.1.p9 (Michael Abshoff, Jan. 25th, 2008) ===
+ * fix a shitload of build problems (#1852)
+ * add ATLAS support
+ * clean up, clean up, clean up
+
+=== r-2.6.1.p8 (Michael Abshoff, Jan. 17th. 2008) ===
  * bump version due to python now builf with ucs4
 
 === r-2.6.1.p7 ===

@@ -1,5 +1,44 @@
-Maintainer: Michael Abshoff
+= valgrind =
 
-* 2007-10-08: update to 3.3.0svn-r6959
+== Description ==
 
-* Initial version: 3.3.0svn-r6814
+This is an optional spkg. It is Linux x86, x86-64, ppc and ppc64 only.
+
+Website: http://www.valgrind.org/
+
+From the above website: Valgrind is an award-winning instrumentation framework for building dynamic analysis tools. There are Valgrind tools that can automatically detect many memory management and threading bugs, and profile your programs in detail. You can also use Valgrind to build new tools.
+
+The Valgrind distribution currently includes five production-quality tools: a memory error detector, a thread error detector, a cache and branch-prediction profiler, a call-graph generating cache profiler, and a heap profiler. It also includes two experimental tools: a data race detector, and an instant mem
+
+== License ==
+
+Valgrind is Open Source / Free Software, and is freely available under the GNU General Public License.
+
+== SPKG Maintainers ==
+
+ * Michael Abshoff
+
+== Upstream Contact ==
+
+ * valgrind-user, valgrind-devel mailing lists
+
+== Dependencies ==
+
+ * None
+
+== Changelog ==
+
+=== valgrind_3.3.0 ===
+ * update to 3.3.0 release
+ * create proper SPKG.txt
+ * check for Linux, exit on other platforms
+
+=== valgrind_3.3.0svn_omega-r7025 (Michael Abshoff) ===
+ * update to 3.3.0svb-r7025
+ * merge experimental omega tool
+
+=== valgrind_3.3.0svn-r6959 (Michael Abshoff, Oct. 8th, 2007) ===
+ * update to 3.3.0svn-r6959
+
+=== valgrind_3.3.0svn-r6814 (Michael Abshoff) ===
+ * Initial version: 3.3.0svn-r6814

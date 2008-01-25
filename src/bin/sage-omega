@@ -9,5 +9,5 @@ if [ ! -d "$HOME/.sage/valgrind" ]; then
 fi
 LOG="$HOME"/.sage/valgrind/sage-omega
 echo "Log file is $LOG"
-valgrind --tool=omega --trace-children=yes \
+valgrind --tool=exp-omega --trace-children=yes \
          --log-file="$LOG"  python -i

@@ -10,6 +10,9 @@ Maintainers: Michael Abshoff, Josh Kantor
 
 ChangeLog
 
+=== atlas-3.8.p10 (Michael Abshoff, Jan. 26th, 2008) ===
+ * exit spkg-check on Darwin (fixes #1934)
+
 === atlas-3.8.p9 (Michael Abshoff, Jan. 22nd, 2008) ===
  * fix SAGE_ATLAS_LIB to point to the root of the ATLAS directory
  * also link the headers which is the prime motivation for the change above

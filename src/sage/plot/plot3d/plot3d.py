@@ -63,6 +63,8 @@ from base import Graphics3dGroup
 from sage.plot.plot import rainbow
 from texture import Texture, is_Texture
 
+from sage.ext.fast_eval import fast_float_arg, fast_float
+
 class TrivialTriangleFactory:
     def triangle(self, a, b, c, color = None):
         return [a,b,c]
@@ -88,7 +90,11 @@ def plot3d(f, urange, vrange, **kwds):
         sage: show(L + P + Q)
     """
     if len(urange) == 2:
-        w = (lambda u,v: u, lambda u,v: v, f)
+        try:
+            x, y = f.variables()
+        except (IndexError, AttributeError):
+            x, y = 'x','y'
+        w = (fast_float_arg(0), fast_float_arg(1), fast_float(f, str(x), str(y)))
     else:
         u = urange[0]
         v = vrange[0]

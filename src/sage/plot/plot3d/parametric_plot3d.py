@@ -187,8 +187,7 @@ def parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds):
         if v is None:
             raise ValueError, "both ranges must specify a variable or neither must"
 
-        vars = str(u), str(v)
-        g = fast_float(f, *vars)
+        g = fast_float(f, str(u), str(v))
 
     return ParametricSurface(g, (u_vals, v_vals), **kwds)
 

@@ -3072,6 +3072,40 @@ sage: rts[0][0] == rt2
         """
         return self.parent().variable_name()
 
+    def variables(self):
+        """
+        Returns the list of variables occuring in this polynomial.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: x.variables()
+            (x,)
+
+        A constant polynomial has no variables.
+            sage: R(2).variables()
+            ()
+        """
+        if self.is_constant():
+            return ()
+        else:
+            return self._parent.gens()
+
+    def args(self):
+        """
+        Returns the generator of this polynomial ring, which is the (only)
+        argument used when calling self.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: x.args()
+            (x,)
+
+        A constant polynomial has no variables, but still takes a single argument.
+            sage: R(2).args()
+            (x,)
+        """
+        return self._parent.gens()
+
     def valuation(self, p=None):
         r"""
         If $f = a_r x^r + a_{r+1}x^{r+1} + \cdots$, with $a_r$ nonzero,

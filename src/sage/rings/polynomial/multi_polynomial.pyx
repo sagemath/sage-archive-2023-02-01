@@ -308,6 +308,17 @@ cdef class MPolynomial(CommutativeRingElement):
     def __hash__(self):
         return self._hash_c()
 
+    def args(self):
+        """
+        Returns the named of the arguments of self, in the order they are accepted from call.
+
+        EXAMPLES:
+            sage: R.<x,y> = ZZ[]
+            sage: x.args()
+            (x, y)
+        """
+        return self._parent.gens()
+
 cdef remove_from_tuple(e, int ind):
     w = list(e)
     del w[ind]

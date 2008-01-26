@@ -32,6 +32,11 @@ GSL mailing lists:
 
 == Changelog ==
 
+=== gsl-1.10-p0 (Michael Abshoff, Jan. 26, 2008) ===
+ * fix 64 OSX build
+ * fix spkg-check target
+ * work around isinf bug on OSX
+
 === gsl-1.10 (Michael Abshoff, Jan. 25, 2008) ===
  * update to gsl 1.10
  * add .hgignore
@@ -41,6 +46,6 @@ GSL mailing lists:
  * initial release
 
 == Build Notes ==
- * We currently make no changes to the standard GSL distribution.
+ * On OSX we use a slighly modified isinf method since the system one is buggy. See the patches directory for a patch
  * Download: ftp://mirrors.kernel.org/gnu/gsl/
 

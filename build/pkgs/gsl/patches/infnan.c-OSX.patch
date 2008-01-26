@@ -1,0 +1,24 @@
+--- sys/infnan.c.orig	2008-01-25 15:33:35.000000000 -0800
++++ sys/infnan.c	2008-01-25 15:33:57.000000000 -0800
+@@ -114,14 +114,6 @@
+ }
+ # endif
+ 
+-# if HAVE_DECL_ISINF
+-int
+-gsl_isinf (const double x)
+-{
+-    return isinf(x);
+-}
+-# else
+-
+ int
+ gsl_isinf (const double x)
+ {
+@@ -135,6 +127,5 @@
+     }
+ }
+ 
+-# endif
+ #endif
+ 

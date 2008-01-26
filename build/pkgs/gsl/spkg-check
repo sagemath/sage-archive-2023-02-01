@@ -1,16 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env bash
 
-import os, sys
+cd src
 
-os.system("echo 'cd src; make check > test.err'")
+make check
 
-r = open('test.err').read()
+if [ $? -ne 0 ]; then
+    echo "Error: make check for GSL failed"
+fi
 
-if 'FAIL' in r:
-    open('test.out').read()
-    print r
-    sys.exit(1)
-else:
-    os.unlink('test.err')
-    os.unlink('test.out')
-    sys.exit(0)

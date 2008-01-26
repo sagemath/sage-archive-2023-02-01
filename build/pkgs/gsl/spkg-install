@@ -1,4 +1,15 @@
-#!/bin/sh
+#!/use/bin/env bash
+
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel"
+   CFLAGS="-O2 -g -m64 "; export CFLAGS
+   CPPFLAGS="-O2 -g -m64 "; export CPPFLAGS
+fi
+
+if [ `uname` = "Darwin" ]; then
+  echo "patching infnan to force the use of the gsl's isinf"
+  cp -f patches/infnan.c src/sys/
+fi
 
 cd src/
 

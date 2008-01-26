@@ -7278,6 +7278,23 @@ def happy_non_multi_graph(g, partition):
     r"""
     Helper function for canonical labeling of multi-(di)graphs.
 
+    The idea for this function is that the main algorithm for computing isomorphism
+    of graphs does not allow multiple edges. Instead of making some very difficult
+    changes to that, we can simply modify the multigraph into a non-multi graph
+    that carries essentially the same information. For each pair of vertices
+    $\{u,v\}$, if there is at most one edge between $u$ and $v$, we do nothing,
+    but if there are more than one, we split each edge into two, introducing a new
+    vertex. These vertices really represent edges, so we keep them in their own
+    part of a partition -- to distinguish them from genuine vertices. Then the
+    canonical label and automorphism group is computed, and in the end, we strip
+    off the parts of the generators that describe how these new vertices move,
+    and we have the automorphism group of the original multi-graph. Similarly, by
+    putting the additional vertices in their own cell of the partition, we guarantee
+    that the relabeling leading to a canonical label moves genuine vertices amongst
+    themselves, and hence the canonical label is still well-defined, when we forget
+    about the additional vertices.
+
+
     EXAMPLE:
         sage: from sage.graphs.graph import happy_non_multi_graph
         sage: G = Graph(multiedges=True)

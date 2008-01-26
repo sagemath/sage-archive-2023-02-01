@@ -20,6 +20,11 @@
 
 == Changelog ==
 
+=== r-2.6.1.p11 (Michael Abshoff, Jan. 26th, 2008)
+ * fix rpy to work with ATLAS
+ * fix parallel make since make install is broken with it.
+ * remove various R libraries from SAGE_LOCAL/lib
+
 === r-2.6.1.p10 (Michael Abshoff, Jan. 25th, 2008) ===
  * fix framework issue on OSX
  * flesh out SPKG.txt
@@ -34,3 +39,4 @@
 
 === r-2.6.1.p7 ===
  * Updated the rpy package using trac #1427
+

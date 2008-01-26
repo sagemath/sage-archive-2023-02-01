@@ -26,6 +26,8 @@ rm -rf "$SAGE_LOCAL"/lib/r
 rm -rf "$SAGE_LOCAL"/lib/R
 rm -rf "$SAGE_LOCAL"/lib64/R
 rm -rf "$SAGE_LOCAL"/lib64/r
+# and let's also nuke some leftovers on SAGE_LOCAL/lib
+rm -rf "$SAGE_LOCAL"/lib/libRblas.so "$SAGE_LOCAL"/lib/libRlapack.so "$SAGE_LOCAL"/lib/libR.so
 
 cd src
 
@@ -59,17 +61,19 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+#parallel make install is broken
+export MAKE=make
 $MAKE install
 if [ $? -ne 0 ]; then
     echo "Error installing R."
     exit 1
 fi
 
-$MAKE install-libR
-if [ $? -ne 0 ]; then
-    echo "Error installing libR."
-    exit 1
-fi
+#$MAKE install-libR
+#if [ $? -ne 0 ]; then
+#    echo "Error installing libR."
+#    exit 1
+#fi
 
 # Fix hardcoding problems.
 cd "$CUR"/patches

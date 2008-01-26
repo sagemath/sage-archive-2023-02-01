@@ -3450,14 +3450,14 @@ class GenericGraph(SageObject):
                     return False, None
             b,a = self.canonical_label(certify=True, verbosity=verbosity)
             d,c = other.canonical_label(certify=True, verbosity=verbosity)
-            map = {}
-            cc = c.items()
-            for vert in self.vertices():
-                for aa,bb in cc:
-                    if bb == a[vert]:
-                        map[vert] = aa
-                        break
             if b == d:
+                map = {}
+                cc = c.items()
+                for vert in self.vertices():
+                    for aa,bb in cc:
+                        if bb == a[vert]:
+                            map[vert] = aa
+                            break
                 return True, map
             else:
                 return False, None

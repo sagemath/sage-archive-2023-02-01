@@ -1,0 +1,13 @@
+#!/bin/sh
+
+cp patches/setup.py src/
+cp patches/rpymodule.c src/src/
+
+cd src
+
+python setup.py install
+
+if [ $? -ne 0 ]; then
+   echo "Error building RPY -- Python interface to R."
+   exit 1
+fi

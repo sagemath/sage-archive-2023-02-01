@@ -129,7 +129,7 @@ LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/openmpi:$LD_LIBRARY_PATH" && export LD_LIB
 # Singular install).
 if [ `uname` = "Darwin" ]; then
     SAGE_ORIG_DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
-    DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH" && export DYLD_LIBRARY_PATH
+    DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH:$SAGE_LOCAL/lib/R/lib" && export DYLD_LIBRARY_PATH
 fi
 
 if [ "$1" = "-short" ]; then

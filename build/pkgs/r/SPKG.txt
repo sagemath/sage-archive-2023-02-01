@@ -23,6 +23,9 @@
 
 == Changelog ==
 
+=== r-2.6.1.p13 (Michael Abshoff, Jan. 26th, 2008) ===
+ * remove ATLAS and Lapack flags form configure for Darwin
+
 === r-2.6.1.p12 (Michael Abshoff, Jan. 26th, 2008) ===
  * also delete all dylibs on OSX
  * added SAGE_LOCAL check to spkg-check, spkg-install

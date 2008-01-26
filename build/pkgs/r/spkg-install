@@ -49,9 +49,16 @@ LDFLAGS="-L$SAGE_LOCAL/lib/ "$LDFLAGS; export LDFLAGS
 
 # do not build recommended packages for now, for speed.
 
-./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas" $OSXFW
+if [ `uname` = "Darwin" ]; then
+     echo "Configuring R for OSX"
+    ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" $OSXFW
+else
+     echo "Configuring R with ATLAS"
+    ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=$XSUPPORT --with-readline="$SAGE_LOCAL" --with-blas="-L$SAGE_LOCAL/lib -lf77blas -latlas" --with-lapack="-L$SAGE_LOCAL/lib -llapack -lcblas"
+fi
 
 if [ $? -ne 0 ]; then
+     echo "Configuring R with fallback options"
     ./configure --prefix="$SAGE_LOCAL" --with-recommended-packages=no --enable-R-shlib --with-x=no --with-readline="$SAGE_LOCAL" $OSXFW
 fi
 

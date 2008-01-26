@@ -46,7 +46,7 @@ from sage.rings.padics.factory import Zp, Qp
 
 # Use some interval arithmetic to guarantee correctness.  We assume
 # that alpha is computed to the precision of a float.
-IR = rings.RIF
+# IR = rings.RIF
 #from sage.rings.interval import IntervalRing; IR = IntervalRing()
 
 import sage.matrix.all as matrix
@@ -86,11 +86,12 @@ sqrt = math.sqrt
 exp = math.exp
 mul = misc.mul
 next_prime = arith.next_prime
+kronecker_symbol = arith.kronecker_symbol
 
 Q = RationalField()
 C = ComplexField()
 R = RealField()
-
+IR = rings.RealIntervalField(20)
 
 _MAX_HEIGHT=21
 
@@ -2489,14 +2490,20 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         Returns True precisely when D is a fundamental discriminant
         that satisfies the Heegner hypothesis for this elliptic curve.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a1')
+            sage: E.satisfies_heegner_hypothesis(-7)
+            True
+            sage: E.satisfies_heegner_hypothesis(-11)
+            False
         """
         if not number_field.is_fundamental_discriminant(D):
             return False
         if arith.GCD(D, self.conductor()) != 1:
             return False
-        K = number_field.QuadraticField(D, 'a')
         for p, _ in factor(self.conductor()):
-            if len(K.factor_integer(p)) != 2:
+            if kronecker_symbol(D,p) != 1:
                 return False
         return True
 
@@ -2577,7 +2584,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         k_E = prec*sqrt(E.conductor()) + 20
         k_F = prec*sqrt(F.conductor()) + 20
 
-        IR = rings.RealIntervalField(20)
         MIN_ERR = R('1e-6')  # we assume that regulator and
                              # discriminant, etc., computed to this accuracy (which is easily the case).
                              # this should be made more intelligent / rigorous relative
@@ -2613,14 +2619,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             D (int) -- Heegner discriminant
             min_p (int) -- (default: 2) only rule out primes >= min_p
                            dividing the index.
-            verbose (bool) -- (default: False); print lots of mwrank search status
-                                                information when computing regulator
+            verbose (bool) -- (default: False); print lots of mwrank
+                              search status information when computing
+                              regulator
             prec (int) -- (default: 5), use prec*sqrt(N) + 20 terms
                           of L-series in computations, where N is the
                           conductor.
 
         OUTPUT:
-            an Integer
+            an interval that contains the index
 
         EXAMPLES:
             sage: E = EllipticCurve('11a')
@@ -2700,6 +2707,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Take the square root of the interval that contains the Heegner
         index.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a1')
+            sage: a = RIF(sqrt(2))-1.4142135623730951
+            sage: E._EllipticCurve_rational_field__adjust_heegner_index(a)
+            [0.0000000... .. 1.490116...e-8]
         """
         if a.lower() < 0:
             a = IR((0, a.upper()))
@@ -2725,20 +2738,28 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
             D (int) -- (deault: 0) Heegner discriminant; if 0, use the
-                       first discriminant < -4 that satisfies the Heegner hypothesis
+                       first discriminant < -4 that satisfies the Heegner
+                       hypothesis
             verbose (bool) -- (default: True)
             prec (int) -- (default: 5), use prec*sqrt(N) + 20 terms
                           of L-series in computations, where N is the
                           conductor.
-            max_height (float) -- should be <= 21; bound on logarithmic naive height
-                                  used in point searches.  Make smaller to make this
-                                  function faster, at the expense of possibly obtaining
-                                  a worse answer.  A good range is between 13 and 21.
+            max_height (float) -- should be <= 21; bound on logarithmic
+                                  naive height used in point searches.
+                                  Make smaller to make this function
+                                  faster, at the expense of possibly
+                                  obtaining a worse answer.  A good
+                                  range is between 13 and 21.
 
         OUTPUT:
             v -- list or int (bad primes or 0 or -1)
             D -- the discriminant that was used (this is useful if D was
                  automatically selected).
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a1')
+            sage: E.heegner_index_bound(verbose=False)
+            ([2], -7)
         """
         max_height = min(float(max_height), _MAX_HEIGHT)
         if self.root_number() != 1:

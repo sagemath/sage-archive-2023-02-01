@@ -2188,7 +2188,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_prime(self):
         r"""
-        Retuns \code{True} if self is prime
+        Returns \code{True} if self is prime
 
         EXAMPLES:
             sage: z = 2^31 - 1
@@ -2202,7 +2202,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_pseudoprime(self):
         r"""
-        Retuns \code{True} if self is a pseudoprime
+        Returns \code{True} if self is a pseudoprime
 
         EXAMPLES:
             sage: z = 2^31 - 1
@@ -2216,7 +2216,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_perfect_power(self):
         r"""
-        Retuns \code{True} if self is a perfect power.
+        Returns \code{True} if self is a perfect power.
 
         EXAMPLES:
             sage: z = 8
@@ -2273,7 +2273,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         $\left(\frac{self}{b}\right)$ with the Kronecker extension
         $(self/2)=(2/self)$ when self odd, or $(self/2)=0$ when $self$ even.
 
-        EXAMPLES:
         EXAMPLES:
             sage: z = 5
             sage: z.kronecker(41)

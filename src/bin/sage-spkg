@@ -260,7 +260,7 @@ if [ $? -eq 0 ]; then
            echo "*************************************"
            echo "Error testing package ** $PKG_NAME **"
            echo "*************************************"
-           rm -f "$PKG_NAME"
+           rm -f $SAGE_ROOT/spkg/installed/$PKG_NAME
            echo "sage: An error occurred while testing $PKG_NAME"
            echo "Please email sage-devel http://groups.google.com/group/sage-devel"
            echo "explaining the problem and send the relevant part of"
@@ -273,8 +273,9 @@ if [ $? -eq 0 ]; then
            echo "(When you are done debugging, you can type \"exit\" to leave the"
            echo "subshell.)"
            exit 1
+       else
+           echo "TEST SUITE: passed" >> "$PKG_NAME"
        fi
-       echo "TEST SUITE: passed" >> "$PKG_NAME"
    fi
 
 

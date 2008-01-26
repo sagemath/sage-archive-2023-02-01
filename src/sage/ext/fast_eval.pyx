@@ -329,6 +329,11 @@ cdef class FastDoubleFunc:
         cdef double res = self.stack[0]
         return res
 
+    def _fast_float_(self, *vars):
+        if self.nargs > len(vars):
+            raise ValueError, "Needs at least %s arguments (%s provided)" % (self.nargs, len(vars))
+        return self
+
     def op_list(self):
         """
         Returns a list of string representations of the
@@ -546,6 +551,9 @@ def fast_float(f, *vars):
 
     On failure, returns the input unchanged.
     """
+    if isinstance(f, (tuple, list)):
+        return tuple([fast_float(x, *vars) for x in f])
+
     try:
         return f._fast_float_(*vars)
     except AttributeError:

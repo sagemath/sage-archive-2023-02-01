@@ -2,6 +2,10 @@
 
 CUR=`pwd`
 
+if [ "$SAGE_LOCAL" = "" ]; then
+    echo "SAGE_LOCAL undefined ... exiting";
+    exit 1
+fi
 
 # Hack to get around dumb hardcoding.
 cp patches/R.sh.in src/src/scripts/
@@ -28,6 +32,7 @@ rm -rf "$SAGE_LOCAL"/lib64/R
 rm -rf "$SAGE_LOCAL"/lib64/r
 # and let's also nuke some leftovers on SAGE_LOCAL/lib
 rm -rf "$SAGE_LOCAL"/lib/libRblas.so "$SAGE_LOCAL"/lib/libRlapack.so "$SAGE_LOCAL"/lib/libR.so
+rm -rf "$SAGE_LOCAL"/lib/libRblas.dylib "$SAGE_LOCAL"/lib/libRlapack.dylib "$SAGE_LOCAL"/lib/libR.dylib
 
 cd src
 

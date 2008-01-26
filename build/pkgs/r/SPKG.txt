@@ -18,9 +18,18 @@
 == Dependencies ==
  * ATLAS
 
+== Build Notes ==
+ * in r-2.6.1.p12 we removed the recommneded tar.gzs. If we want to build those we need to add them back in. Until then it is better to save the 3MB compressed.
+
 == Changelog ==
 
-=== r-2.6.1.p11 (Michael Abshoff, Jan. 26th, 2008)
+=== r-2.6.1.p12 (Michael Abshoff, Jan. 26th, 2008) ===
+ * also delete all dylibs on OSX
+ * added SAGE_LOCAL check to spkg-check, spkg-install
+ * verify that rpy builds fine on OSX
+ * remove tar.gzs from recommended directory
+
+=== r-2.6.1.p11 (Michael Abshoff, Jan. 26th, 2008) ===
  * fix rpy to work with ATLAS
  * fix parallel make since make install is broken with it.
  * remove various R libraries from SAGE_LOCAL/lib

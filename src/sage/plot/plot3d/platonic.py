@@ -109,7 +109,9 @@ def tetrahedron(center=(0,0,0), size=1, **kwds):
                   ( -sqrt2/3,  sqrt6/3, -one/3),
                   ( -sqrt2/3, -sqrt6/3, -one/3)]
     face_list = [[0,1,2],[1,3,2],[0,2,3],[0,3,1]]
-    return index_face_set(face_list, point_list, enclosed=True, center=center, size=size, aspect_ratio=[1,1,1], **kwds)
+    if 'aspect_ratio' not in kwds:
+        kwds['aspect_ratio'] = [1,1,1]
+    return index_face_set(face_list, point_list, enclosed=True, center=center, size=size, **kwds)
 
 def cube(center=(0,0,0), size=1, color=None, frame_thickness=0, frame_color=None, **kwds):
     """
@@ -186,7 +188,9 @@ def octahedron(center=(0,0,0), size=1, **kwds):
     EXAMPLES:
         sage: octahedron((1,4,3), color='orange') + octahedron((0,2,1), size=2, opacity=0.6)
     """
-    return prep(Box(1,1,1).dual(aspect_ratio=[1,1,1], **kwds), center, size, kwds)
+    if 'aspect_ratio' not in kwds:
+        kwds['aspect_ratio'] = [1,1,1]
+    return prep(Box(1,1,1).dual(**kwds), center, size, kwds)
 
 def dodecahedron(center=(0,0,0), size=1, **kwds):
     """
@@ -265,7 +269,9 @@ def dodecahedron(center=(0,0,0), size=1, **kwds):
                  [3,7,15,14,8]]
     face_list = top_faces + [reversed([19-p for p in f]) for f in top_faces]
 
-    return index_face_set(face_list, point_list, enclosed=True, center=center, size=size, aspect_ratio=[1,1,1], **kwds)
+    if 'aspect_ratio' not in kwds:
+        kwds['aspect_ratio'] = [1,1,1]
+    return index_face_set(face_list, point_list, enclosed=True, center=center, size=size, **kwds)
 
 #    if style == 'vertices' or style == 'edges':
 #        from sage.plot.plot import rainbow
@@ -295,4 +301,6 @@ def icosahedron(center=(0,0,0), size=1, **kwds):
     Two icosahedrons at different positions of different sizes.
         sage: icosahedron((-1/2,0,1), color='orange') + icosahedron((2,0,1), size=1/2, aspect_ratio=[1,1,1])
     """
-    return prep(dodecahedron().dual(aspect_ratio=[1,1,1], **kwds), center, size, kwds)
+    if 'aspect_ratio' not in kwds:
+        kwds['aspect_ratio'] = [1,1,1]
+    return prep(dodecahedron().dual(**kwds), center, size, kwds)

@@ -554,6 +554,8 @@ def fast_float(f, *vars):
     if isinstance(f, (tuple, list)):
         return tuple([fast_float(x, *vars) for x in f])
 
+    vars = [str(v) for v in vars]
+
     try:
         return f._fast_float_(*vars)
     except AttributeError:

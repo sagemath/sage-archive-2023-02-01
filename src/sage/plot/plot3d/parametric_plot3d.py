@@ -6,6 +6,8 @@ from parametric_surface import ParametricSurface
 from shapes2 import line3d
 from texture import Texture
 
+from sage.ext.fast_eval import fast_float
+
 def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
     """
     Return a parametric three-dimensional space curve or surface.
@@ -167,22 +169,26 @@ def parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds):
     if u is None:
         if not v is None:
             raise ValueError, "both ranges must specify a variable or neither must"
-        # nothing to do
-        f_x, f_y, f_z = f
+        try:
+            # perhaps we can deduce the variable names from f
+            s = sum(f)
+            try:
+                vars = s.args()
+            except AttributeError:
+                vars = s.variables()
+            if len(vars) == 2:
+                f = [s.parent()(f_i) for f_i in f]
+                f = fast_float(f, *vars)
+        except (TypeError, AttributeError), e:
+            pass
+        g = tuple(f)
+
     else:
         if v is None:
             raise ValueError, "both ranges must specify a variable or neither must"
-        f0, f1, f2 = [ensure_subs(w) for w in f]
-        def f_x(uu,vv):
-            return float(f0.subs({u:uu, v:vv}))
-        def f_y(uu,vv):
-            return float(f1.subs({u:uu, v:vv}))
-        def f_z(uu,vv):
-            return float(f2.subs({u:uu, v:vv}))
 
-    def g(x,y):
-        # Change to use fast callable float symbolic expressions later
-        return (float(f_x(x,y)), float(f_y(x,y)), float(f_z(x,y)))
+        vars = str(u), str(v)
+        g = fast_float(f, *vars)
 
     return ParametricSurface(g, (u_vals, v_vals), **kwds)
 

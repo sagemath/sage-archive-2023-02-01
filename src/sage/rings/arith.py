@@ -2022,7 +2022,7 @@ def legendre_symbol(x,p):
         raise ValueError, "p must be a prime"
     if p == 2:
         raise ValueError, "p must be odd"
-    return integer_ring.ZZ(pari(x).kronecker(p).python())
+    return x.kronecker(p)
 
 def primitive_root(n):
     """

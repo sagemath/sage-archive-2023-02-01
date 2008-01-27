@@ -298,7 +298,7 @@ cdef class RealDoubleField_class(Field):
     def __hash__(self):
         """
         TEST:
-            sage: hash(RDF) == hash(str(RDF))
+            sage: hash(RDF) % 2^32 == hash(str(RDF)) % 2^32
             True
         """
         return 1157042230 #return hash(str(self))
@@ -895,7 +895,8 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: int(RDF(10e15))
-            10000000000000000L
+            10000000000000000L                   # 32-bit
+            10000000000000000                    # 64-bit
             sage: long(RDF(2^100)) == 2^100
             True
         """
@@ -1172,7 +1173,6 @@ cdef class RealDoubleElement(FieldElement):
                 return base.__pow_int(exponent)
             try:
                 exp = base._parent(exponent)
-                print "exp", exp
                 return base.__pow_float(exp._value)
             except TypeError:
                 return exponent.parent()(self) ** exponent # neither operand is RealDoubleElement

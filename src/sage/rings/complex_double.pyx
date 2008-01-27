@@ -153,7 +153,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     def __hash__(self):
         """
         TEST:
-            sage: hash(CDF) == hash(str(CDF))
+            sage: hash(CDF) % 2^32 == hash(str(CDF)) % 2^32
             True
         """
         return 561162115
@@ -473,8 +473,8 @@ cdef class ComplexDoubleElement(FieldElement):
             True
             sage: hash(CDF(-1))
             -2
-            sage: hash(CDF(1.2, 1.3))
-            -1596781275
+            sage: hash(CDF(1.2, 1.3)) == hash(complex(1.2r, 1.3r))
+            True
         """
         return hash(complex(self))
 

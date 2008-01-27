@@ -67,7 +67,7 @@ pull
 ^sage/ext/coerce.c$
 ^sage/ext/congroup_pyx.c$
 ^sage/ext/dense_matrix_pyx.c$
-^SAGE/ext/element.c$
+^sage/ext/element.c$
 ^sage/ext/gens.c$
 ^sage/ext/group.c$
 ^sage/ext/heilbronn.c$

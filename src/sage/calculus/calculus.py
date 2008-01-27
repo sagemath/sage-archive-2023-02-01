@@ -5,14 +5,14 @@ AUTHORS:
     Bobby Moretti and William Stein: 2006--2007
 
 The \sage calculus module is loosely based on the \sage Enhancement Proposal
-found at: http://www.sagemath.org:9001/CalculusSEP.
+found at: \url{http://www.sagemath.org:9001/CalculusSEP.}
 
 EXAMPLES:
     The basic units of the calculus package are symbolic expressions
     which are elements of the symbolic expression ring (SR). There are
-    many subclasses of SymbolicExpression. The most basic of these is
-    the formal indeterminate class, SymbolicVariable. To create a
-    SymbolicVariable object in \sage, use the var() method, whose
+    many subclasses of \class{SymbolicExpression}. The most basic of these is
+    the formal indeterminate class, \class{SymbolicVariable}. To create a
+    \class{SymbolicVariable} object in \sage, use the \code{var()} method, whose
     argument is the text of that variable.  Note that \sage is
     intelligent about {\LaTeX}ing variable names.
 

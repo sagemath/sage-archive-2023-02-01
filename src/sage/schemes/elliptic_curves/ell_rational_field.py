@@ -2000,7 +2000,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve('195a')
             sage: G = E.isogeny_graph()
-            sage: for v in G: print v, G.obj(v)
+            sage: for v in G: print v, G.get_vertex(v)
             ...
             0 Elliptic Curve defined by y^2 + x*y  = x^3 - 110*x + 435 over Rational Field
             1 Elliptic Curve defined by y^2 + x*y  = x^3 - 115*x + 392 over Rational Field
@@ -2018,7 +2018,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         d = {}
         for v in G.vertices():
             d[v] = L[v]
-        G.associate(d)
+        G.set_vertices(d)
         return G
 
     ##########################################################

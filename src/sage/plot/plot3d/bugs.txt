@@ -1,3 +1,11 @@
+We draw a spiral of spheres:
+   sage: v = [(sin(i),cos(i),i) for i in [-4,-3.5,..4]]
+   sage: S = sum(sphere(v[i], size=1/2, color=((i-4)/8, 1/2,(4-i)/8)) for i in range(len(v)))
+   sage: S.show(aspect_ratio=[1,1,1])
+
+NOTE: The sphere above have holes in them.  This is a \emph{bug} in jmol.
+
+
   * Only the last jmol 3d image is displayed, e..g., in one notebook cell
         sage: x, y = var('x,y')
         sage: plot3d(x^2 + y^2, (x,-2,2), (y,-2,2))

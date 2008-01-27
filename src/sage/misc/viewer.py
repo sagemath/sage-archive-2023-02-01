@@ -98,16 +98,16 @@ def viewer():
 
 def browser():
     viewer()
-    return BROWSER
+    return "sage-native-execute " + BROWSER
 
 def dvi_viewer():
     viewer()
-    return DVI_VIEWER
+    return "sage-native-execute " + DVI_VIEWER
 
 def pdf_viewer():
     viewer()
-    return PDF_VIEWER
+    return "sage-native-execute " + PDF_VIEWER
 
 def png_viewer():
     viewer()
-    return PNG_VIEWER
+    return "sage-native-execute " + PNG_VIEWER

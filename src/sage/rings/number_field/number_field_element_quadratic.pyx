@@ -26,15 +26,6 @@ TODO:
 
 include '../../ext/interrupt.pxi'
 include "../../ext/stdsage.pxi"
-cdef extern from *:
-    # TODO: move to stdsage.pxi
-    object PY_NEW_SAME_TYPE(object o)
-    bint PY_TYPE_CHECK_EXACT(object o, object type)
-
-cdef extern from *:
-    # TODO: move to cdefs.pxi
-    void mpz_addmul (mpz_t rop, mpz_t op1, mpz_t op2)
-    void mpz_submul (mpz_t rop, mpz_t op1, mpz_t op2)
 
 cdef object QQ, ZZ
 from sage.rings.rational_field import QQ

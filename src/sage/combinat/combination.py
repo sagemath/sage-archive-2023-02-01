@@ -287,7 +287,7 @@ class Combinations_setk(Combinations_msetk):
              [2, 4, 5],
              [3, 4, 5]]
         """
-        return [x for x in self.iterator()]
+        return list(self)
 
 
     def unrank(self, r):

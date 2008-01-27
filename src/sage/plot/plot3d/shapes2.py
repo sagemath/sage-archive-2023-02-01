@@ -1,3 +1,7 @@
+"""
+Lines, Frames, Spheres, Points, Dots, and Text
+"""
+
 import math
 import shapes
 
@@ -14,7 +18,7 @@ TACHYON_PIXEL = 1/200.0
 from shapes import Text, Sphere
 
 def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
-    """
+    r"""
     Draw a 3d line joining a sequence of points.
 
     One may specify either a thickness or radius. If a thickness
@@ -39,7 +43,8 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         sage: line3d([(1,2,3), (1,0,-2), (3,1,4), (2,1,-2)], color='red')
 
     A transparent thick green line and a little blue line:
-        sage: line3d([(0,0,0), (1,1,1), (1,0,2)], opacity=0.5, radius=0.1, color='green') + line3d([(0,1,0), (1,0,2)])
+        sage: line3d([(0,0,0), (1,1,1), (1,0,2)], opacity=0.5, radius=0.1, \
+                     color='green') + line3d([(0,1,0), (1,0,2)])
     """
     if len(points) < 2:
         raise ValueError, "there must be at least 2 points"
@@ -204,7 +209,7 @@ def avg(a,b):
 
 
 def sphere(center=(0,0,0), size=1, **kwds):
-    """
+    r"""
     Return a plot of a sphere of radius size centered at $(x,y,z)$.
 
     INPUT:
@@ -216,10 +221,11 @@ def sphere(center=(0,0,0), size=1, **kwds):
        sage: sphere()
 
     Two sphere's touching:
-       sphere(center=(-1,0,0)) + sphere(center=(1,0,0), aspect_ratio=[1,1,1])
+       sage: sphere(center=(-1,0,0)) + sphere(center=(1,0,0), aspect_ratio=[1,1,1])
 
     Spheres of radii 1 and 2 one stuck into the other:
-       sage: sphere(color='orange') + sphere(color=(0,0,0.3),center=(0,0,-2),size=2,opacity=0.9)
+       sage: sphere(color='orange') + sphere(color=(0,0,0.3), \
+                    center=(0,0,-2),size=2,opacity=0.9)
 
     We draw a transparent sphere on a saddle.
        sage: u,v = var('u v')
@@ -232,7 +238,7 @@ def sphere(center=(0,0,0), size=1, **kwds):
     return H
 
 def text3d(txt, (x,y,z), **kwds):
-    """
+    r"""
     Display 3d text.
 
     INPUT:
@@ -249,7 +255,8 @@ def text3d(txt, (x,y,z), **kwds):
         sage: text("SAGE", (1,2,3), color=(0.5,0,0))
 
     We draw a multicolore spiral of numbers:
-        sage: sum([text('%.1f'%n, (cos(n),sin(n),n), color=(n/2,1-n/2,0)) for n in [0,0.2,..,8]])
+        sage: sum([text('%.1f'%n, (cos(n),sin(n),n), color=(n/2,1-n/2,0)) \
+                    for n in [0,0.2,..,8]])
     """
     if not kwds.has_key('color') and not kwds.has_key('rgbcolor'):
         kwds['color'] = (0,0,0)
@@ -303,24 +310,26 @@ class Point(PrimitiveObject):
 
 
 class Line(PrimitiveObject):
-    """
+    r"""
     Draw a 3d line joining a sequence of points.
 
     This line has a fixed diameter unaffected by transformations and zooming.
-    It may be smoothed if corner_cutoff < 1.
+    It may be smoothed if \code{corner_cutoff < 1}.
 
     INPUT:
         points        -- list of points to pass through
         thickness     -- diameter of the line
-        corner_cutoff -- threshold for smoothing (see the corners() method)
-                         this is the minimum cosine between adjacent segments to smooth
+        corner_cutoff -- threshold for smoothing (see the corners()
+                         method) this is the minimum cosine between
+                         adjacent segments to smooth
         arrow_head    -- if True make this curve into an arrow
 
     EXAMPLES:
         sage: from sage.plot.plot3d.shapes2 import Line
-        sage: Line([(i*math.sin(i), i*math.cos(i), i/3) for i in range(30)], arrow_head=True)
+        sage: Line([(i*math.sin(i), i*math.cos(i), i/3) for i in range(30)], \
+                   arrow_head=True)
 
-        Smooth angles less than 90 degrees:
+    Smooth angles less than 90 degrees:
         sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=0)
     """
     def __init__(self, points, thickness=5, corner_cutoff=.5, arrow_head=False, **kwds):
@@ -373,7 +382,9 @@ class Line(PrimitiveObject):
 
     def jmol_repr(self, render_params):
         T = render_params.transform
-        corners = self.corners()
+        corners = self.corners(max_len=255) # hardcoded limit in jmol
+        last_corner = corners[-1]
+        corners = set(corners)
         cmds = []
         cmd = None
         for P in self.points:
@@ -382,7 +393,7 @@ class Line(PrimitiveObject):
                 if cmd:
                     cmds.append(cmd + " {%s %s %s} " % TP)
                     cmds.append(self.texture.jmol_str('$'+name))
-                type = 'arrow' if self.arrow_head and P is corners[-1] else 'curve'
+                type = 'arrow' if self.arrow_head and P is last_corner else 'curve'
                 name = render_params.unique_name('line')
                 cmd = "draw %s diameter %s %s {%s %s %s} " % (name, int(self.thickness), type, TP[0], TP[1], TP[2])
             else:
@@ -391,7 +402,7 @@ class Line(PrimitiveObject):
         cmds.append(self.texture.jmol_str('$'+name))
         return cmds
 
-    def corners(self, corner_cutoff=None):
+    def corners(self, corner_cutoff=None, max_len=None):
         """
         Figures out where the curve turns to sharply to pretend its smooth.
 
@@ -425,10 +436,16 @@ class Line(PrimitiveObject):
         if corner_cutoff is None:
             corner_cutoff = self.corner_cutoff
         if corner_cutoff >= 1:
-            return self.points[:-1]
+            if max_len:
+                self.points[:-1][::max_len-1]
+            else:
+                return self.points[:-1]
         elif corner_cutoff <= -1:
             return self.points[0]
         else:
+            if not max_len:
+                max_len = len(self.points)+1
+            count = 2
             # ... -- prev -- cur -- next -- ...
             cur  = self.points[0]
             next = self.points[1]
@@ -439,12 +456,15 @@ class Line(PrimitiveObject):
                 if next == cur:
                     corners.append(cur)
                     cur = next
+                    count = 1
                     continue
                 next_dir = [next[i] - cur[i] for i in range(3)]
                 cos_angle = dot(prev_dir, next_dir) / math.sqrt(dot(prev_dir, prev_dir) * dot(next_dir, next_dir))
-                if cos_angle <= corner_cutoff:
+                if cos_angle <= corner_cutoff or count > max_len-1:
                     corners.append(cur)
+                    count = 1
                 cur, prev_dir = next, next_dir
+                count += 1
             return corners
 
 
@@ -453,7 +473,7 @@ def point3d(v, size=1, **kwds):
     """
     Plot a point or list of points in 3d space.
 
-    INPUTS:
+    INPUT:
         v -- a point or list of points
         size -- (default: 1) size of the point (or points)
         color -- a word that describes a color

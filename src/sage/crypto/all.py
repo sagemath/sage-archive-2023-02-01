@@ -1,4 +1,5 @@
 from classical import (
+     HillCryptosystem,
      SubstitutionCryptosystem,
      TranspositionCryptosystem,
      VigenereCryptosystem)

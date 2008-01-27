@@ -448,8 +448,8 @@ class SymbolicEquation(SageObject):
     #    return result in comparisons[self._op]
     def __nonzero__(self):
         """
-        Return True if this equality is definitely true.  Return False
-        if it is false or the algorithm for testing equality is
+        Return True if this (in)equality is definitely true.  Return False
+        if it is false or the algorithm for testing (in)equality is
         inconclusive.
 
         EXAMPLES:
@@ -460,6 +460,19 @@ class SymbolicEquation(SageObject):
             sage: f = sin(x)^2 + cos(x)^2 - 1
             sage: bool(f == 0)
             True
+            sage: bool( x == x )
+            True
+            sage: bool( x != x )
+            False
+            sage: bool( x > x )
+            False
+            sage: bool( x^2 > x )
+            False
+            sage: bool( x + 2 > x )
+            True
+            sage: bool( x - 2 > x )
+            False
+
         """
         m = self._maxima_()
 
@@ -472,11 +485,15 @@ class SymbolicEquation(SageObject):
         try:
             s = m.parent()._eval_line('is (%s)'%m.name())
         except TypeError, msg:
-            #raise ValueError, "unable to evaluate the predicate '%s'"%repr(self)
-            return cmp(self._left._maxima_() , self._right._maxima_()) == 0
+            raise ValueError, "unable to evaluate the predicate '%s'"%repr(self)
 
         if s == 'true':
             return True
+        elif s == 'unknown':
+            return False
+
+        if self.operator() != operator.eq:
+            return False
 
         difference = self._left - self._right
         if repr(difference) == '0':

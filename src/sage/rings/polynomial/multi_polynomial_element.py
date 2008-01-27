@@ -562,7 +562,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
            sage: f.exponents()
            [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
         """
-        return self.element().exponents()
+        return [m.element().dict().keys()[0] for m in self.monomials()]
 
     def is_unit(self):
         """
@@ -691,8 +691,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
     def monomials(self):
         """
-        Returns list of all monomials which occure in this
-        multivariate polynomial.
+        Returns the list of monomials in self. The returned list is
+        decreasingly ordered by the term ordering of self.parent().
 
         OUTPUT:
             list of MPolynomials representing Monomials
@@ -701,15 +701,26 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.monomials()
-            [1, x^2*y^2, x^2, y]
+            [x^2*y^2, x^2, y, 1]
+
+            sage: R.<fx,fy,gx,gy> = ZZ[]
+            sage: F = ((fx*gy - fy*gx)^3)
+            sage: F
+            -1*fy^3*gx^3 + 3*fx*fy^2*gx^2*gy - 3*fx^2*fy*gx*gy^2 + fx^3*gy^3
+            sage: F.monomials()
+            [fy^3*gx^3, fx*fy^2*gx^2*gy, fx^2*fy*gx*gy^2, fx^3*gy^3]
+            sage: F.coefficients()
+            [-1, 3, -3, 1]
+            sage: sum(map(mul,zip(F.coefficients(),F.monomials()))) == F
+            True
         """
         try:
             return self.__monomials
         except AttributeError:
             ring = self.parent()
             one = self.parent().base_ring()(1)
-            self.__monomials = [ MPolynomial_polydict(ring, polydict.PolyDict( {m:one}, force_int_exponents=False,  force_etuples=False ) ) \
-                                for m in self._MPolynomial_element__element.dict().keys() ]
+            self.__monomials = sorted([ MPolynomial_polydict(ring, polydict.PolyDict( {m:one}, force_int_exponents=False,  force_etuples=False ) ) \
+                                for m in self._MPolynomial_element__element.dict().keys() ], reverse=True)
             return self.__monomials
 
     def constant_coefficient(self):
@@ -1186,7 +1197,85 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             self.__magma = magma(f)
             return self.__magma
 
+    def reduce(self, I):
+        """
+        Reduce this polynomial by the the polynomials in I.
 
+        INPUT:
+            I -- a list of polynomials or an ideal
+
+        EXAMPLE:
+            sage: P.<x,y,z> = MPolynomialRing(ZZ,3)
+            sage: f1 = -2 * x^2 + x^3
+            sage: f2 = -2 * y + x* y
+            sage: f3 = -x^2 + y^2
+            sage: F = Ideal([f1,f2,f3])
+            sage: g = x*y - 3*x*y^2
+            sage: g.reduce(F)
+            -6*y^2 + 2*y
+            sage: g.reduce(F.gens())
+            -6*y^2 + 2*y
+
+            sage: f = 3*x
+            sage: f.reduce([2*x,y])
+            3*x
+        """
+        from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
+
+        k = self.base_ring()
+        P = self.parent()
+
+        if isinstance(I, MPolynomialIdeal):
+            I = I.gens()
+
+        if not k.is_field() and not k is ZZ:
+            raise TypeError, "can only reduce polynomials over fields or over ZZ"
+
+        if k.is_field():
+            try:
+                fs = self._singular_()
+                Is = fs.parent().ideal(I)
+                return P(fs.reduce(Is,1))
+            except TypeError:
+                pass
+
+        lI = len(I)
+        I = list(I)
+        a = [0]*lI
+        r = 0
+        p = self
+
+        if k.is_field():
+            while p != 0:
+                for i in xrange(lI):
+                    gi = I[i]
+                    plm = p.lm()
+                    gilm = gi.lm()
+                    if P.monomial_is_divisible_by(plm, gilm):
+                        quot = p.lc()/gi.lc() * P.monomial_quotient(plm, gilm)
+                        a[i] += quot
+                        p -= quot*I[i]
+                        break
+                else:
+                    plt = p.lt()
+                    r += plt
+                    p -= plt
+        else:
+            while p != 0:
+                for i in xrange(lI):
+                    gi = I[i]
+                    plm = p.lm()
+                    gilm = gi.lm()
+                    if P.monomial_is_divisible_by(plm, gilm) and ZZ(gi.lc()).divides(ZZ(p.lc())):
+                        quot = p.lc()//gi.lc() * P.monomial_quotient(plm, gilm)
+                        a[i] += quot
+                        p -= quot*I[i]
+                        break
+                else:
+                    plt = p.lt()
+                    r += plt
+                    p -= plt
+        return r
 
 ###############################################################
 # Useful for some geometry code.

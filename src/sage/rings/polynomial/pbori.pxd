@@ -8,23 +8,23 @@ from sage.rings.polynomial.multi_polynomial cimport MPolynomial
 from sage.structure.element cimport MonoidElement
 
 cdef class BooleanPolynomialRing(MPolynomialRing_generic):
-    cdef PBRing _R
+    cdef PBRing _pbring
     cdef public _monom_monoid
 
 cdef class BooleanPolynomial(MPolynomial):
-    cdef PBPoly _P
+    cdef PBPoly _pbpoly
 
 cdef class BooleSet:
-    cdef PBSet _S
+    cdef PBSet _pbset
 
 cdef class CCuddNavigator:
-    cdef PBNavigator _N
+    cdef PBNavigator _pbnav
 
 cdef class DD:
-    cdef PBDD _D
+    cdef PBDD _pbdd
 
 cdef class BooleanMonomial(MonoidElement):
-    cdef PBMonom _M
+    cdef PBMonom _pbmonom
 
 cdef class BooleanMonomialIterator:
     cdef PBMonom _obj
@@ -40,7 +40,7 @@ cdef class BooleSetIterator:
     cdef BooleanPolynomialRing _ring
 
 cdef class GroebnerStrategy:
-    cdef GBStrategy _S
+    cdef GBStrategy _strat
     cdef BooleanPolynomialRing _parent
 
 cdef class BooleanPolynomialVector:
@@ -59,4 +59,4 @@ cdef class VariableBlock_base:
     cdef public object __name__
 
 cdef class BooleVariable:
-    cdef PBVar _V
+    cdef PBVar _pbvar

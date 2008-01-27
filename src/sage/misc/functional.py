@@ -812,9 +812,32 @@ def real(x):
         sage: z = 1+2*I
         sage: real(z)
         1
+        sage: real(5/3)
+        5/3
+        sage: a = 2.5
+        sage: real(a)
+        2.50000000000000
+        sage: type(real(a))
+        <type 'sage.rings.real_mpfr.RealNumber'>
     """
-    try: return x.real()
-    except AttributeError: return CDF(x).real()
+
+    #Try to all the .real() method
+    try:
+        return x.real()
+    except AttributeError:
+        pass
+
+    #Try to coerce x into RDF.  If that
+    #succeeds, then we can just return x
+    try:
+        rdf_x = RDF(x)
+        return x
+    except TypeError:
+        pass
+
+    #Finall try to coerce x into CDF and call
+    #the .real() method.
+    return CDF(x).real()
 
 def regulator(x):
     """
@@ -882,6 +905,11 @@ def show(x, *args, **kwds):
         axes -- (default: True)
         fontsize -- positive integer
         frame -- (default: False) draw a MATLAB-like frame around the image
+
+    EXAMPLES:
+        sage: show(graphs(3))
+        sage: show(list(graphs(3)))
+
     """
     if not isinstance(x, (sage.interfaces.expect.Expect, sage.interfaces.expect.ExpectElement)):
         try:
@@ -891,6 +919,16 @@ def show(x, *args, **kwds):
     if isinstance(x, sage.interfaces.mathematica.MathematicaElement):
         return x.show(*args, **kwds)
 
+    import types
+    if isinstance(x, types.GeneratorType):
+        x = list(x)
+    if isinstance(x, list):
+        if len(x) > 0:
+            from sage.graphs.graph import GenericGraph
+            if isinstance(x[0], GenericGraph):
+                import sage.graphs.graph_list as graphs_list
+                graphs_list.show_graphs(x)
+                return
     _do_show(x)
 
 def _do_show(x):

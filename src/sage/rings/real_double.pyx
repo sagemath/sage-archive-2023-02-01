@@ -348,7 +348,21 @@ cdef class RealDoubleField_class(Field):
             return self(-1)
         raise ValueError, "No %sth root of unity in self"%n
 
+    def NaN(self):
+        """
+        EXAMPLES:
+            sage: RDF.NaN()
+            nan
+        """
+        return self(0)/self(0)
 
+    def nan(self):
+        """
+        EXAMPLES:
+            sage: RDF.nan()
+            nan
+        """
+        return self(0)/self(0)
 
 def new_RealDoubleElement():
     cdef RealDoubleElement x
@@ -855,6 +869,22 @@ cdef class RealDoubleElement(FieldElement):
     # Special Functions
     ############################
 
+    def NaN(self):
+        """
+        EXAMPLES:
+            sage: RDF.NaN()
+            nan
+        """
+        return self(0)/self(0)
+
+    def nan(self):
+        """
+        EXAMPLES:
+            sage: RDF.nan()
+            nan
+        """
+        return self(0)/self(0)
+
     def sqrt(self, extend=True, all=False):
         """
         The square root function.
@@ -1236,38 +1266,38 @@ cdef class RealDoubleElement(FieldElement):
         _sig_off
         return a
 
-    def acos(self):
+    def arccos(self):
         """
         Returns the inverse cosine of this number
 
         EXAMPLES:
             sage: q = RDF.pi()/3
             sage: i = q.cos()
-            sage: i.acos() == q
+            sage: i.arccos() == q
             True
         """
         return self._new_c(acos(self._value))
 
-    def asin(self):
+    def arcsin(self):
         """
         Returns the inverse sine of this number
 
         EXAMPLES:
             sage: q = RDF.pi()/5
             sage: i = q.sin()
-            sage: i.asin() == q
+            sage: i.arcsin() == q
             True
         """
         return self._new_c(asin(self._value))
 
-    def atan(self):
+    def arctan(self):
         """
         Returns the inverse tangent of this number
 
         EXAMPLES:
             sage: q = RDF.pi()/5
             sage: i = q.tan()
-            sage: i.atan() == q
+            sage: i.arctan() == q
             True
         """
         return self._new_c(atan(self._value))
@@ -1319,7 +1349,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return self._new_c(gsl_acosh(self._value))
 
-    def asinh(self):
+    def arcsinh(self):
         """
         Returns the hyperbolic inverse sine of this number
 
@@ -1327,12 +1357,12 @@ cdef class RealDoubleElement(FieldElement):
             sage: q = RDF.pi()/2
             sage: i = q.sinh() ; i
             2.30129890231
-            sage: abs(i.asinh()-q) < 1e-15
+            sage: abs(i.arcsinh()-q) < 1e-15
             True
         """
         return self._new_c(gsl_asinh(self._value))
 
-    def atanh(self):
+    def arctanh(self):
         """
         Returns the hyperbolic inverse tangent of this number
 
@@ -1340,7 +1370,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: q = RDF.pi()/2
             sage: i = q.tanh() ; i
             0.917152335667
-            sage: i.atanh() - q      # output is random, depending on arch.
+            sage: i.arctanh() - q      # output is random, depending on arch.
             -4.4408920985e-16
         """
         return self._new_c(gsl_atanh(self._value))

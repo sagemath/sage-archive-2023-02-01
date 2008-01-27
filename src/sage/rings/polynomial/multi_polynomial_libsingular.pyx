@@ -122,6 +122,8 @@ cdef init_singular():
 
     dlclose(handle)
 
+    singular_options[0] = singular_options[0] | Sy_bit(OPT_REDSB)
+
  # call it
 init_singular()
 
@@ -295,7 +297,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         if currRing != self._ring:
             oldRing = currRing
             rChangeCurrRing(self._ring)
-        rDelete(self._ring)
+            rDelete(self._ring)
+        else:
+            (&currRing)[0] = NULL
+            rDelete(self._ring)
         if oldRing != NULL:
             rChangeCurrRing(oldRing)
 
@@ -1514,6 +1519,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef number *h
         cdef int ret = 0
 
+        if left is right:
+            return ret
+
         r = (<MPolynomialRing_libsingular>left._parent)._ring
         if(r != currRing): rChangeCurrRing(r)
         p = (<MPolynomial_libsingular>left)._poly
@@ -2266,9 +2274,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: sum(c*m for c,m in f) == f
             True
         """
-        # TODO: re-implement actually using yield when yield added to cython
-        D = self.dict()
-        L = [(c, MPolynomial_polydict(self._parent, {exp: 1})) for exp, c in D.items()]
+        L = zip(self.coefficients(), self.monomials())
         return iter(L)
 
     def __getitem__(self,x):
@@ -2742,7 +2748,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
     def monomials(self):
         """
         Return the list of monomials in self. The returned list is
-        ordered by the term ordering of self.parent().
+        decreasingly ordered by the term ordering of self.parent().
 
         EXAMPLE:
             sage: P.<x,y,z> = MPolynomialRing(QQ,3)
@@ -3096,29 +3102,42 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         quo = singclap_pdivide( _self._poly, _right._poly )
         return co.new_MP(parent, quo)
 
-    def factor(self, param=0):
+    def factor(self):
         """
         Return the factorization of self.
 
-        INPUT:
-            param --  0: returns factors and multiplicities, first factor is a constant.
-                      1: returns non-constant factors (no multiplicities).
-                      2: returns non-constant factors and multiplicities.
         EXAMPLE:
             sage: R.<x,y,z> = PolynomialRing(GF(32003),3)
             sage: R.<x,y,z> = MPolynomialRing(GF(32003),3)
             sage: f = 9*(x-1)^2*(y+z)
-            sage: f.factor(0)
-            9 * (y + z) * (x - 1)^2
-            sage: f.factor(1)
-            (y + z) * (x - 1)
-            sage: f.factor(2)
-            (y + z) * (x - 1)^2
+            sage: f.factor()
+            (9) * (y + z) * (x - 1)^2
 
             sage: R.<x,w,v,u> = QQ['x','w','v','u']
             sage: p = (4*v^4*u^2 - 16*v^2*u^4 + 16*u^6 - 4*v^4*u + 8*v^2*u^3 + v^4)
             sage: p.factor()
             (-2*v^2*u + 4*u^3 + v^2)^2
+            sage: R.<a,b,c,d> = QQ[]
+            sage: f =  (-2) * (a - d) * (-a + b) * (b - d) * (a - c) * (b - c) * (c - d)
+            sage: F = f.factor(); F
+            (-2) * (c - d) * (b - d) * (b - c) * (-a + b) * (a - d) * (a - c)
+            sage: F[0][0]
+            c - d
+            sage: F.unit_part()
+            -2
+
+        Factorization of multivariate polynomials over non-prime
+        finite fields is only implemented in Singular, and
+        unfortunately Singular is currently very buggy at this
+        computation.  So we disable it in Sage:
+
+            sage: k.<a> = GF(9)
+            sage: R.<x,y> = PolynomialRing(k)
+            sage: f = (x-a)*(y-a)
+            sage: f.factor()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: factorization of multivariate polynomials over non-prime fields explicitly disabled due to bugs in Singular
         """
         cdef ring *_ring
         cdef poly *ptemp
@@ -3127,6 +3146,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef ideal *I
         cdef MPolynomialRing_libsingular parent
         cdef int i
+
+        if self.base_ring().is_finite() and not self.base_ring().is_prime_field():
+            raise NotImplementedError, "factorization of multivariate polynomials over non-prime fields explicitly disabled due to bugs in Singular"
 
         parent = self._parent
         _ring = parent._ring
@@ -3137,19 +3159,15 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         ptemp = p_Copy(self._poly,_ring)
         iv = NULL
         _sig_on
-        I = singclap_factorize ( ptemp, &iv , int(param)) #delete iv at some point
+        I = singclap_factorize ( ptemp, &iv , 0) #delete iv at some point
         _sig_off
 
-        if param==1:
-            v = [(co.new_MP(parent, p_Copy(I.m[i],_ring)) , 1)   for i in range(I.ncols)]
-        else:
-            ivv = iv.ivGetVec()
-            v = [(co.new_MP(parent, p_Copy(I.m[i],_ring)) , ivv[i])   for i in range(I.ncols)]
-            oo = (co.new_MP(parent, p_ISet(1,_ring)),1)
-            if oo in v:
-                v.remove(oo)
+        ivv = iv.ivGetVec()
+        v = [(co.new_MP(parent, p_Copy(I.m[i],_ring)) , ivv[i])   for i in range(1,I.ncols)]
 
-        F = Factorization(v)
+        unit = co.new_MP(parent, p_Copy(I.m[0],_ring))
+
+        F = Factorization(v,unit)
         F.sort()
 
         delete(iv)
@@ -3727,8 +3745,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
     def coefficients(self):
         """
         Return the nonzero coefficients of this polynomial in a list.
-        The order the coefficients appear in depends on the ordering used
-        on self's parent.
+        The returned list is decreasingly ordered by the term ordering
+        of self.parent().
 
         EXAMPLES:
             sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='degrevlex')

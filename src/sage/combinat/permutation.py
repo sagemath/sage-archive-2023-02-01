@@ -28,7 +28,7 @@ import sage.combinat.misc as misc
 import sage.combinat.subword as subword
 import sage.combinat.composition as composition
 from sage.combinat.composition import Composition, Compositions, Composition_class
-from sage.combinat.tableau import Tableau
+import tableau
 import sage.combinat.partition
 import sage.combinat.permutation_nk as permutation_nk
 import sage.rings.integer
@@ -41,6 +41,7 @@ import __builtin__
 from combinat import CombinatorialClass, CombinatorialObject, catalan_number
 import copy
 from necklace import Necklaces
+import tableau
 
 permutation_options = {'display':'list', 'mult':'l2r'}
 
@@ -166,6 +167,7 @@ class Permutation_class(CombinatorialObject):
             True
         """
         self.list = l
+        self._hash = None
 
     def __hash__(self):
         """
@@ -176,7 +178,9 @@ class Permutation_class(CombinatorialObject):
             sage: d[p]
             1
         """
-        return str(self).__hash__()
+        if self._hash is None:
+            self._hash = str(self).__hash__()
+        return self._hash
 
     def __str__(self):
         """
@@ -333,6 +337,27 @@ class Permutation_class(CombinatorialObject):
         p = first_half + last_half
 
         return Permutation(p)
+
+
+    def to_tableau_by_shape(self, shape):
+        """
+        Returns a tableau of shape shape with the entries in self.
+
+        EXAMPLES:
+            sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2])
+            [[1, 2, 5], [3, 4]]
+            sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2]).to_permutation_by_reading_order()
+            [3, 4, 1, 2, 5]
+        """
+        if sum(shape) != len(self):
+            raise ValueError, "the size of the partition must be the length of self"
+
+        t = []
+        w = list(self)
+        for i in reversed(shape):
+            t = [ w[:i] ] + t
+            w = w[i:]
+        return tableau.Tableau(t)
 
 
 
@@ -687,6 +712,114 @@ class Permutation_class(CombinatorialObject):
         """
         return Permutation([self.index(i+1)+1 for i in range(len(self))])
 
+    def foata(self):
+        """
+        Returns the image of self under the Foata transformation.
+        """
+        pass
+
+    def _icondition(self, i):
+        """
+        '213'
+        '132'
+        '231'
+        '312'
+        """
+        if i not in range(2, len(self)):
+            raise ValueError, "i (= %s) must between 2 and n-1"%i
+        pos_i   = self.index(i)
+        pos_ip1 = self.index(i+1)
+        pos_im1 = self.index(i-1)
+
+        if pos_i < pos_im1 and pos_im1 < pos_ip1:
+            state = '213'
+        elif pos_im1 < pos_ip1 and pos_ip1 < pos_i:
+            state =  '132'
+        elif pos_i < pos_ip1 and pos_ip1 < pos_im1:
+            state =  '231'
+        elif pos_ip1 < pos_im1 and pos_im1 < pos_i:
+            state = '312'
+        else:
+            state = None
+
+        return (state, pos_im1, pos_i, pos_ip1)
+
+    def ishift(self, i):
+        """
+
+        Preserves self.number_of_inversions()
+        """
+        if i not in range(2, len(self)):
+            raise ValueError, "i (= %s) must between 2 and n-1"%i
+
+        state = self._icondition(i)
+        if state[0] is None:
+            return self
+
+        state, pos_im1, pos_i, pos_ip1 = state
+        l = list(self)
+
+        if state == '213':   #goes to 132
+            l[pos_i]   = i-1
+            l[pos_im1] = i+1
+            l[pos_ip1] = i
+        elif state == '132': #goes to 213
+            l[pos_im1] = i
+            l[pos_ip1] = i-1
+            l[pos_i]   = i+1
+        elif state == '231': #goes to 312
+            l[pos_i]   = i+1
+            l[pos_ip1] = i-1
+            l[pos_im1] = i
+        elif state == '312': #goes to 231
+            l[pos_ip1] = i
+            l[pos_im1] = i+1
+            l[pos_i]   = i-1
+        else:
+            raise ValueError, "invalid state"
+
+
+        return Permutation_class(l)
+
+
+
+    def iswitch(self, i):
+        """
+
+        Presevers self.major_index() ( descent set )
+        """
+        if i not in range(2, len(self)):
+            raise ValueError, "i (= %s) must between 2 and n-1"%i
+
+        state = self._icondition(i)
+        if state[0] is None:
+            return self
+
+        state, pos_im1, pos_i, pos_ip1 = state
+        l = list(self)
+
+        if state == '213':    #goes to 312
+            l[pos_i]   = i+1
+            l[pos_im1] = i-1
+            l[pos_ip1] = i
+        elif state == '132':  #goes to 231
+            l[pos_im1] = i
+            l[pos_ip1] = i+1
+            l[pos_i]   = i-1
+        elif state == '231':  #goes to 132
+            l[pos_i]   = i-1
+            l[pos_ip1] = i+1
+            l[pos_im1] = i
+        elif state == '312':  #goes to 213
+            l[pos_ip1] = i
+            l[pos_im1] = i-1
+            l[pos_i]   = i+1
+        else:
+            raise ValueError, "invalid state"
+
+
+        return Permutation_class(l)
+
     def runs(self):
         r"""
         Returns a list of the runs in the permutation p.
@@ -988,6 +1121,35 @@ class Permutation_class(CombinatorialObject):
 
         return descents
 
+    def idescents(self, final_descent=False):
+        """
+        Returns a list of the idescents of self, that is the list of the
+        descents of self's inverse.
+
+        With the final_descent option, the last position of a non empty permutation
+        is also considered as a descent.
+
+        EXAMPLES:
+            sage: Permutation([1,4,3,2]).idescents()
+            [1, 2]
+            sage: Permutation([1,4,3,2]).idescents(final_descent=True)
+            [1, 2, 3]
+        """
+        return self.inverse().descents(final_descent=final_descent)
+
+    def idescents_signature(self, final_descent=False):
+        """
+        """
+        idescents = self.idescents(final_descent=final_descent)
+        def f(i):
+            """Returns 1 if i in idescents otherwise it returns -1"""
+            if i in idescents:
+                return 1
+            else:
+                return -1
+
+        return [-f(i) for i in range(len(self))]
+
     def number_of_descents(self, final_descent=False):
         r"""
         Returns the number of descents of the permutation p.
@@ -1000,6 +1162,19 @@ class Permutation_class(CombinatorialObject):
         """
         return len(self.descents(final_descent))
 
+    def number_of_idescents(self, final_descent=False):
+        r"""
+        Returns the number of descents of the permutation p.
+
+        EXAMPLES:
+            sage: Permutation([1,4,3,2]).number_of_idescents()
+            2
+            sage: Permutation([1,4,3,2]).number_of_idescents(final_descent=True)
+            3
+        """
+        return len(self.idescents(final_descent))
+
+
     def descents_composition(self):
         """
         Returns the composition corresponding to the descents of
@@ -1011,7 +1186,7 @@ class Permutation_class(CombinatorialObject):
         """
         d = self.descents()
         d = [ -1 ] + d + [len(self)-1]
-        return [ d[i+1]-d[i] for i in range(len(d)-1)]
+        return Composition([ d[i+1]-d[i] for i in range(len(d)-1)])
 
     def descent_polynomial(self):
         r"""
@@ -1066,6 +1241,25 @@ class Permutation_class(CombinatorialObject):
 
         return sum(descents)+len(descents)
 
+    def imajor_index(self, final_descent=False):
+        """
+        Returns the inverse major index of the permutation self, which is the
+        major index of the inverse of self.
+
+        The major index is the sum of the descents of p. Since our permutation
+        indices are 0-based, we need to add one the number of descents.
+
+        EXAMPLES:
+            sage: Permutation([2,1,3]).imajor_index()
+            1
+            sage: Permutation([3,4,1,2]).imajor_index()
+            2
+            sage: Permutation([4,3,2,1]).imajor_index()
+            6
+        """
+        idescents = self.idescents(final_descent)
+
+        return sum(idescents)+len(idescents)
 
     def to_major_code(self, final_descent=False):
         r"""
@@ -1714,10 +1908,19 @@ class Permutation_class(CombinatorialObject):
             q[row_counter].append(i)
 
 
-        return [Tableau(p),Tableau(q)]
+        return [tableau.Tableau(p),tableau.Tableau(q)]
 
+    def left_tableau(self):
+        """
 
+        """
+        return self.robinson_schensted()[0]
 
+    def right_tableau(self):
+        """
+
+        """
+        return self.robinson_schensted()[1]
 
     def remove_extra_fixed_points(self):
         """

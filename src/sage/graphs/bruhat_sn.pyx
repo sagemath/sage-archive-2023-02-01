@@ -31,11 +31,24 @@ class BruhatSn(DiGraph):
     the construction to a neighborhood of the identity.
 
     INPUT:
+        n -- specifies which S_n
         max_length -- optional integer limit to length of permutations constructed
         label -- whether to label arcs by the transpositions they represent
 
     """
     def __init__(self, int n, max_length=None, label=False):
+        """
+        TESTS:
+            sage: from sage.graphs.bruhat_sn import *
+            sage: B = BruhatSn(6)
+            sage: B.order()
+            720
+            sage: B = BruhatSn(6, max_length=4, label=True)
+            sage: B.order()
+            98
+            sage: B.plot(edge_labels=True)
+
+        """
         cdef int i
 
         if max_length is None:
@@ -55,17 +68,32 @@ class BruhatSn(DiGraph):
                   0, label)
         DiGraph.__init__(self, adj_dict)
 
-    def plot(self, pos=None, layout=None, vertex_labels=True,
-             edge_labels=False, vertex_size=200, graph_border=False,
-             vertex_colors=None, partition=None, edge_colors=None,
-             scaling_term=0.05, iterations=50,
-             color_by_label=False, heights=None):
+    def plot(self, **kwds):
         """
         Overrides the normal plot function in GenericGraph, so most arguments
         are ignored.
+
+        INPUT:
+            All the standard arguments for GenericGraph.plot() are taken, but
+            heights is definitely overridden to reflect the partial ordering.
+            Also, arcs are plotted as edges.
+
+        EXAMPLES:
+            sage: from sage.graphs.bruhat_sn import *
+            sage: B = BruhatSn(3, label=True)
+            sage: B.plot(edge_labels=True)
+
+            sage: B = BruhatSn(5, max_length=7)
+            sage: B.plot()
+
         """
+        kwds['heights'] = self.lengths
+        if not kwds.has_key('vertex_labels'):
+            kwds['vertex_labels'] = False
+        if not kwds.has_key('vertex_size'):
+            kwds['vertex_size'] = 5
         G = self.to_undirected()
-        return G.plot(heights=self.lengths, vertex_labels=False, vertex_size=5)
+        return G.plot(**kwds)
 
 class BruhatIntervalSn(DiGraph):
     """
@@ -81,14 +109,37 @@ class BruhatIntervalSn(DiGraph):
     """
 
     def __init__(self, start, end, check=True, label=False):
-        cdef int a, b, n, i, j
-        if check and not leq(start, end):
-                raise TypeError("Must have start (%s) <= end (%s)"%(start, end))
+        """
+        TESTS:
+            sage: from sage.graphs.bruhat_sn import *
+            sage: I = BruhatIntervalSn([1,2,3], [3,2,1])
+            Traceback (most recent call last):
+            ...
+            TypeError: Start ([1, 2, 3]) and end ([3, 2, 1]) must be tuples.
 
+            sage: I = BruhatIntervalSn((1,2,3,4), (3,2,1))
+            Traceback (most recent call last):
+            ...
+            TypeError: Start ((1, 2, 3, 4)) and end ((3, 2, 1)) must have same length.
+
+            sage: I = BruhatIntervalSn((3,2,1),(1,2,3))
+            Traceback (most recent call last):
+            ...
+            TypeError: Must have start ((3, 2, 1)) <= end ((1, 2, 3))
+
+        """
+        cdef int a, b, n, i, j
         n = len(start)
         if check and n != len(end):
             raise TypeError("Start (%s) and end (%s) must have same length."\
                             %(start, end))
+
+        if check and not (isinstance(start,tuple) and isinstance(end,tuple)):
+            raise TypeError("Start (%s) and end (%s) must be tuples."\
+                            %(start, end))
+
+        if check and not leq(start, end):
+                raise TypeError("Must have start (%s) <= end (%s)"%(start, end))
 
         a = permutation_length(start)
         b = permutation_length(end)
@@ -136,6 +187,16 @@ class BruhatIntervalSn(DiGraph):
         """
         Returns True iff interval is isomorphic to its dual, the same
         interval but with the order relation reversed.
+
+        EXAMPLE:
+        Note that even though the interval is rank-symmetric, it is
+        not necessarily self-dual.
+            sage: from sage.graphs.bruhat_sn import *
+            sage: I = BruhatIntervalSn((1,3,2,4,5),(3,5,1,4,2))
+            sage: I.is_self_dual()
+            False
+            sage: I.plot()
+
         """
         return self.is_isomorphic(self.reverse())
 
@@ -147,6 +208,12 @@ class BruhatIntervalSn(DiGraph):
         """
         Overrides the normal plot function in GenericGraph, so most arguments
         are ignored.
+
+        EXAMPLE:
+            sage: from sage.graphs.bruhat_sn import *
+            sage: I = BruhatIntervalSn((1,3,2,4,5),(3,5,1,4,2))
+            sage: I.plot()
+
         """
         G = self.to_undirected()
         return G.plot(heights=self.lengths, vertex_labels=False,

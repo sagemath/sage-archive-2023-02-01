@@ -190,12 +190,12 @@ def rotate_arbitrary(v, double theta):
             sage: vy = sqrt(1-vx^2-vz^2)
 
         Now we rotate about the $x$-axis so $v$ is in the $xy$-plane.
-            sage: t = atan(vy/vz)+pi/2
+            sage: t = arctan(vy/vz)+pi/2
             sage: m = rotX(t)
             sage: new_y = vy*cos(t) - vz*sin(t)
 
         And rotate about the $z$ axis so $v$ lies on the $x$ axis.
-            sage: s = atan(vx/new_y) + pi/2
+            sage: s = arctan(vx/new_y) + pi/2
             sage: m = rotZ(s) * m
 
         Rotating about $v$ in our old system is the same as rotating
@@ -203,17 +203,16 @@ def rotate_arbitrary(v, double theta):
             sage: m = rotX(theta) * m
 
         Do some simplfying here to avoid blow-up.
-            sage: ix = [(i,j) for i in range(3) for j in range(3)]
-            sage: for ij in ix: m[ij] = m[ij].simplify_rational()
+            sage: m = m.simplify_rational()
 
         Now go back to the original coordinate system.
             sage: m = rotZ(-s) * m
             sage: m = rotX(-t) * m
-            sage: for ij in ix: m[ij] = m[ij].simplify_rational()
-            sage: m    # not tested, since broken -- need a special symbolic matrix class
-            [                                       (1 - cos(theta))*x^2 + cos(theta) -(sin(theta)*abs(z)^3 + (cos(theta) - 1)*x*z^2*sqrt(-z^2 - x^2 + 1))/z^2  (sin(theta)*sqrt(-z^2 - x^2 + 1)*abs(z)^3 + (1 - cos(theta))*x*z^4)/z^3]
-            [             sin(theta)*abs(z) + (1 - cos(theta))*x*sqrt(-z^2 - x^2 + 1)                          (cos(theta) - 1)*z^2 + (cos(theta) - 1)*x^2 + 1     -(sin(theta)*x*abs(z) + (cos(theta) - 1)*z^2*sqrt(-z^2 - x^2 + 1))/z]
-            [    -(sin(theta)*sqrt(-z^2 - x^2 + 1)*abs(z) + (cos(theta) - 1)*x*z^2)/z     -((cos(theta) - 1)*z^2*sqrt(-z^2 - x^2 + 1) - sin(theta)*x*abs(z))/z                                        (1 - cos(theta))*z^2 + cos(theta)]
+            sage: m = m.simplify_rational()
+            sage: m
+            [                                       (1 - cos(theta))*x^2 + cos(theta) (-sin(theta)*abs(z)^3 - (cos(theta) - 1)*x*z^2*sqrt(-z^2 - x^2 + 1))/z^2  (sin(theta)*sqrt(-z^2 - x^2 + 1)*abs(z)^3 + (1 - cos(theta))*x*z^4)/z^3]
+            [             sin(theta)*abs(z) + (1 - cos(theta))*x*sqrt(-z^2 - x^2 + 1)                          (cos(theta) - 1)*z^2 + (cos(theta) - 1)*x^2 + 1     (-sin(theta)*x*abs(z) - (cos(theta) - 1)*z^2*sqrt(-z^2 - x^2 + 1))/z]
+            [    (-sin(theta)*sqrt(-z^2 - x^2 + 1)*abs(z) - (cos(theta) - 1)*x*z^2)/z      (sin(theta)*x*abs(z) - (cos(theta) - 1)*z^2*sqrt(-z^2 - x^2 + 1))/z                                        (1 - cos(theta))*z^2 + cos(theta)]
 
         Re-expressing some entries in terms of y and resolving the absolute
         values introduced by eliminating y, we get the desired result.

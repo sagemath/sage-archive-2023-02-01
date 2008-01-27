@@ -448,7 +448,7 @@ class WeierstrassIsomorphism(baseWI,Morphism):
         sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
         sage: E=EllipticCurve('37a1')
         sage: w=WeierstrassIsomorphism(E,(2,3,4,5))
-        sage: P=E.gens()[0]
+        sage: P=E(0,-1)
         sage: w(P)
         (-3/4 : 3/4 : 1)
         sage: w(P).codomain()==E.change_weierstrass_model((2,3,4,5))

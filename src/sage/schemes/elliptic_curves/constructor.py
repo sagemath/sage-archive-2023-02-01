@@ -1,7 +1,7 @@
 """
 Elliptic curve constructor
 
-AUTHOR:
+AUTHORS:
    * William Stein (2005) -- Initial version
    * John Cremona (Jan 2008) -- EllipticCurve(j) fixed for all cases
 """

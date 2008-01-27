@@ -1639,6 +1639,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Generic morphism:
               From: Abelian group of points on Elliptic Curve defined by y^2 + 1/2*x*y  = x^3 + 5*x + 1/3 over Rational Field
               To:   Abelian group of points on Elliptic Curve defined by y^2 + 3*x*y  = x^3 + 6480*x + 15552 over Rational Field
+              Via:  (u,r,s,t) = (1/6, 0, 0, 0)
             sage: P = E([4/9,41/27])
             sage: phi(P)
             (16 : 328 : 1)

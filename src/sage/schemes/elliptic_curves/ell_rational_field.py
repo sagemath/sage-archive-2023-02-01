@@ -862,7 +862,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: r, s, G = E.simon_two_descent(); r,s
             (7, 7)
             sage: E = EllipticCurve([0, 0, 1, -23737, 960366])
-            sage: r, s, G = E.simon_two_descent(); r,s       # long time
+            sage: r, s, G = E.simon_two_descent(); r,s
             (8, 8)
         """
         t = simon_two_descent(self, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,

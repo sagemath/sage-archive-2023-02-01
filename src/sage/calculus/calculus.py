@@ -4,7 +4,7 @@ Symbolic Computation.
 AUTHORS:
     Bobby Moretti and William Stein: 2006--2007
 
-The \sage calculus module is loosely based on the \sage Enhahcement Proposal
+The \sage calculus module is loosely based on the \sage Enhancement Proposal
 found at: http://www.sagemath.org:9001/CalculusSEP.
 
 EXAMPLES:
@@ -3675,7 +3675,7 @@ symbols = {operator.add:' + ', operator.sub:' - ', operator.mul:'*',
 
 class SymbolicArithmetic(SymbolicOperation):
     r"""
-    Represents the result of an arithemtic operation on
+    Represents the result of an arithmetic operation on
     $f$ and $g$.
     """
     def __init__(self, operands, op):
@@ -4219,11 +4219,12 @@ class SymbolicArithmetic(SymbolicOperation):
         elif op is operator.sub:
             return '%s - %s' % (s[0], s[1])
         elif op is operator.mul:
-            if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
+            if isinstance(ops[0], SymbolicArithmetic) and ops[0]._operator in [operator.add, operator.sub]:
                 s[0] = r'\left( %s \right)' %s[0]
-            if ops[1]._has_op(operator.add) or ops[1]._has_op(operator.sub):
+            if isinstance(ops[1], SymbolicArithmetic) and ops[1]._operator in [operator.add, operator.sub]:
                 s[1] = r'\left( %s \right)' %s[1]
-            return '{%s \\cdot %s}' % (s[0], s[1])
+            return '{%s %s}' % (s[0], s[1])
+            # used to be --> return '{%s \\cdot %s}' % (s[0], s[1])
         elif op is operator.div:
             return '\\frac{%s}{%s}' % (s[0], s[1])
         elif op is operator.pow:

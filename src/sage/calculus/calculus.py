@@ -1507,7 +1507,7 @@ class SymbolicExpression(RingElement):
         it differentiates with respect to that variable. If there is more than one
         variable in the expression, then you must explicitly supply a variable.
         If you supply a variable $x$ followed by a number $n$, then it will
-        differentiate $n$ times with respect to $n$.
+        differentiate $n$ times with respect to $x$.
 
         You may supply more than one variable. Each variable may optionally be
         followed by a positive integer. Then \sage will differentiate with
@@ -4435,7 +4435,7 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
     def args(self):
         r"""
         Returns the arguments of \code{self}.  The order that the variables appear
-        in \code{self.arguments()} is the order that is used in evaluating the elements
+        in \code{self.args()} is the order that is used in evaluating the elements
         of \code{self}.
 
         EXAMPLES:
@@ -4449,22 +4449,7 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
         """
         return self._args
 
-    def arguments(self):
-        r"""
-        Returns the arguments of \code{self}.  The order that the variables appear
-        in \code{self.arguments()} is the order that is used in evaluating the elements
-        of \code{self}.
-
-        EXAMPLES:
-            sage: x,y = var('x,y')
-            sage: f(x,y) = 2*x+y
-            sage: f.parent().arguments()
-            (x, y)
-            sage: f(y,x) = 2*x+y
-            sage: f.parent().arguments()
-            (y, x)
-        """
-        return self.args()
+    arguments = args
 
     def zero_element(self):
         try:

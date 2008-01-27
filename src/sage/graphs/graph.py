@@ -454,6 +454,47 @@ class GenericGraph(SageObject):
         """
         raise NotImplementedError('To include a graph in LaTeX document, see function Graph.write_to_eps().')
 
+    def copy(self):
+        """
+        Creates a copy of the graph.
+
+        EXAMPLES:
+            sage: g=Graph({0:[0,1,1,2]},loops=True,multiedges=True)
+            sage: g==g.copy()
+            True
+            sage: g=DiGraph({0:[0,1,1,2],1:[0,1]},loops=True,multiedges=True)
+            sage: g==g.copy()
+            True
+
+        Note that vertex associations are also kept:
+            sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(), 2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
+            sage: T = graphs.TetrahedralGraph()
+            sage: T.set_vertices(d)
+            sage: T2 = T.copy()
+            sage: T2.get_vertex(0)
+            Dodecahedron: Graph on 20 vertices
+
+        Notice that the copy is at least as deep as the objects:
+            sage: T2.get_vertex(0) is T.get_vertex(0)
+            False
+            sage: T2.get_vertex(0)._nxg is T.get_vertex(0)._nxg
+            False
+
+        """
+        if self.is_directed():
+            G = DiGraph(self._nxg.copy(), name=self._nxg.name, pos=self._pos, boundary=self._boundary)
+        else:
+            G = Graph(self._nxg.copy(), name=self._nxg.name, pos=self._pos, boundary=self._boundary)
+        if hasattr(self, '_assoc'):
+            from copy import copy
+            G._assoc = {}
+            for v in self._assoc:
+                try:
+                    G._assoc[v] = self._assoc[v].copy()
+                except:
+                    G._assoc[v] = copy(self._assoc[v])
+        return G
+
     def _matrix_(self, R=None):
         """
 
@@ -3510,41 +3551,6 @@ class Graph(GenericGraph):
             name = self._nxg.name + ": " + name
         return name
 
-    def copy(self):
-        """
-        Creates a copy of the graph.
-
-        EXAMPLES:
-            sage: g=Graph({0:[0,1,1,2]},loops=True,multiedges=True)
-            sage: g==g.copy()
-            True
-
-        Note that vertex associations are also kept:
-            sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(), 2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
-            sage: T = graphs.TetrahedralGraph()
-            sage: T.set_vertices(d)
-            sage: T2 = T.copy()
-            sage: T2.get_vertex(0)
-            Dodecahedron: Graph on 20 vertices
-
-        Notice that the copy is at least as deep as the objects:
-            sage: T2.get_vertex(0) is T.get_vertex(0)
-            False
-            sage: T2.get_vertex(0)._nxg is T.get_vertex(0)._nxg
-            False
-
-        """
-        G = Graph(self._nxg.copy(), name=self._nxg.name, pos=self._pos, boundary=self._boundary)
-        if hasattr(self, '_assoc'):
-            from copy import copy
-            G._assoc = {}
-            for v in self._assoc:
-                try:
-                    G._assoc[v] = self._assoc[v].copy()
-                except:
-                    G._assoc[v] = copy(self._assoc[v])
-        return G
-
     def to_directed(self):
         """
         Returns a directed version of the graph. A single edge becomes two
@@ -5826,19 +5832,6 @@ class DiGraph(GenericGraph):
         if not self._nxg.name is None and not self._nxg.name == "":
             name = self._nxg.name + ": " + name
         return name
-
-    def copy(self):
-        """
-        Creates a copy of the graph.
-
-        EXAMPLE:
-            sage: g=DiGraph({0:[0,1,1,2],1:[0,1]},loops=True,multiedges=True)
-            sage: g==g.copy()
-            True
-
-        """
-        G = DiGraph(self._nxg.copy(), name=self._nxg.name, pos=self._pos, boundary=self._boundary)
-        return G
 
     def to_directed(self):
         """

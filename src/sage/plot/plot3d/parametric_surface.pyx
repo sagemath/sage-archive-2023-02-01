@@ -108,13 +108,6 @@ cdef class ParametricSurface(IndexFaceSet):
         """
         if isinstance(f, list):
             f = tuple(f)
-        if f is not None:
-            from sage.ext.fast_eval import is_fast_float
-            for x in f:
-                if not is_fast_float(x):
-                    print x
-                elif not x.is_pure_c():
-                    print x.python_calls()
         self.f = f
         self.render_grid = domain
         IndexFaceSet.__init__(self, [], [], **kwds)

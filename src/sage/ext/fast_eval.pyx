@@ -35,6 +35,24 @@ cdef extern from "math.h":
     double cos(double)
     double tan(double)
 
+    double asin(double)
+    double acos(double)
+    double atan(double)
+    double atan2(double, double)
+
+    double sinh(double)
+    double cosh(double)
+    double tanh(double)
+
+    double asinh(double)
+    double acosh(double)
+    double atanh(double)
+
+    double exp(double)
+    double log(double)
+    double log2(double)
+    double log10(double)
+
 cdef extern from *:
     void* memcpy(void* dst, void* src, size_t len)
 
@@ -387,6 +405,10 @@ cdef class FastDoubleFunc:
                 L.append((<object>self.ops[i].params.func)[1])
         return L
 
+    ###################################################################
+    #   Basic Arithmatic
+    ###################################################################
+
     def __add__(FastDoubleFunc left, FastDoubleFunc right):
         return binop(left, right, ADD)
 
@@ -445,11 +467,43 @@ cdef class FastDoubleFunc:
     def __invert__(FastDoubleFunc self):
         return self.unop(INVERT)
 
+    def sqrt(self):
+        return self.cfunc(&sqrt)
+
+    ###################################################################
+    #   Exponential and log
+    ###################################################################
+
+    def log(self, base=None):
+        if base is None:
+            return self.cfunc(&log)
+        elif base == 2:
+            return self.cfunc(&log2)
+        elif base == 10:
+            return self.cfunc(&log10)
+        else:
+            try:
+                base = fast_float_constant(log(float(base)))
+            except TypeError, e:
+                base = fast_float(base.log())
+            return binop(self.cfunc(&log), base, DIV)
+
+    def exp(self):
+        return self.cfunc(&exp)
+
+    ###################################################################
+    #   Rounding
+    ###################################################################
+
     def ceil(self):
         return self.cfunc(&ceil)
 
     def floor(self):
         return self.cfunc(&floor)
+
+    ###################################################################
+    #   Trigonometric
+    ###################################################################
 
     def sin(self):
         return self.cfunc(&sin)
@@ -460,14 +514,55 @@ cdef class FastDoubleFunc:
     def tan(self):
         return self.cfunc(&tan)
 
-    def sqrt(self):
-        return self.cfunc(&sqrt)
+    def csc(self):
+        return ~self.sin()
+
+    def sec(self):
+        return ~self.sec()
+
+    def cot(self):
+        return ~self.tan()
+
+    def arcsin(self):
+        return self.cfunc(&asin)
+
+    def arccos(self):
+        return self.cfunc(&acos)
+
+    def arctan(self):
+        return self.cfunc(&atan)
+
+    ###################################################################
+    #   Hyperbolic
+    ###################################################################
+
+    def sinh(self):
+        return self.cfunc(&sinh)
+
+    def cosh(self):
+        return self.cfunc(&cosh)
+
+    def tanh(self):
+        return self.cfunc(&tanh)
+
+    def arcsinh(self):
+        return self.cfunc(&asinh)
+
+    def arccosh(self):
+        return self.cfunc(&acosh)
+
+    def arctanh(self):
+        return self.cfunc(&atanh)
 
     cdef FastDoubleFunc cfunc(FastDoubleFunc self, void* func):
         cdef FastDoubleFunc feval = self.unop(ONE_ARG_FUNC)
         feval.ops[feval.nops - 1].params.func = func
         feval.allocate_stack()
         return feval
+
+    ###################################################################
+    #   Utility functions
+    ###################################################################
 
     cdef FastDoubleFunc unop(FastDoubleFunc self, char type):
         cdef FastDoubleFunc feval = PY_NEW(FastDoubleFunc)
@@ -560,12 +655,6 @@ def fast_float(f, *vars):
     """
     if isinstance(f, (tuple, list)):
         return tuple([fast_float(x, *vars) for x in f])
-
-    if PY_TYPE_CHECK(f, FastDoubleFunc):
-        if (<FastDoubleFunc>f).nargs > len(vars):
-            raise TypeError, "Not enough arguments."
-        else:
-            return f
 
     cdef int i
     for i from 0 <= i < len(vars):

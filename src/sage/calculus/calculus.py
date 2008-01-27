@@ -3741,6 +3741,15 @@ class SymbolicArithmetic(SymbolicOperation):
             3*z + 2
             sage: f(0,0,1)
             3
+
+            sage: (sqrt(2) + 17)(x+2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of arguments must be less than or equal to 0
+            sage: (I*17+3*5)(x+2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of arguments must be less than or equal to 0
         """
         if kwargs and args:
             raise ValueError, "args and kwargs cannot both be specified"

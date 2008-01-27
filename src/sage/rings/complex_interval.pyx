@@ -671,18 +671,18 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             fld = self.parent()._real_field()
 
             if mpfi_is_strictly_pos(self.__im):
-                return (-self.real() / self.imag()).atan() + fld.pi()/2
+                return (-self.real() / self.imag()).arctan() + fld.pi()/2
             if mpfi_is_strictly_neg(self.__im):
-                return (-self.real() / self.imag()).atan() - fld.pi()/2
+                return (-self.real() / self.imag()).arctan() - fld.pi()/2
 
             if mpfi_is_strictly_pos(self.__re):
-                return (self.imag() / self.real()).atan()
+                return (self.imag() / self.real()).arctan()
 
             # The only remaining case is that self.__re is strictly
             # negative and self.__im contains 0.  In that case, we
             # return an interval containing pi.
 
-            return (self.imag() / self.real()).atan() + fld.pi()
+            return (self.imag() / self.real()).arctan() + fld.pi()
 
     def arg(self):
         """

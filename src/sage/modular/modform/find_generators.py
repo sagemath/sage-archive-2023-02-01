@@ -283,6 +283,7 @@ class ModularFormsRing:
         Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(4) of weight 2 over Rational Field
         sage: m.modular_forms_of_weight(10)
         Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(4) of weight 10 over Rational Field
+        sage: m == loads(dumps(m))
         sage: m.generators()
         [(2,
           1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + 144*q^10 + 96*q^12 + 192*q^14 + 24*q^16 + 312*q^18 + 144*q^20 + O(q^22)),

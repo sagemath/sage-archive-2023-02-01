@@ -1,5 +1,6 @@
 include '../../ext/stdsage.pxi'
 
+
 from sage.structure.parent_gens cimport ParentWithGens
 import sage.misc.latex
 import multi_polynomial_ideal
@@ -9,6 +10,7 @@ from sage.rings.polynomial.polydict import PolyDict
 from sage.misc.latex import latex_variable_name
 import multi_polynomial_element
 import polynomial_ring
+
 
 def is_MPolynomialRing(x):
     return bool(PY_TYPE_CHECK(x, MPolynomialRing_generic))
@@ -392,63 +394,248 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         return unpickle_MPolynomialRing_generic_v1,(base_ring, n, names, order)
 
-
-    def random_element(self, degree=2, terms=5, *args, **kwds):
-        r"""
-        Return a random polynomial in this polynomial ring.
+    def _precomp_counts(self,n, d):
+        """
+        Given a number of variable n and a degree d return a tuple (C,t)
+        such that C is a list of the cardinalities of the sets of
+        monomials up to degree d (including) in n variables and t is the
+        sum of these cardinalities.
 
         INPUT:
-            degree -- maximum total degree of resulting polynomial
-            terms  -- maximum number of terms to generate
+            n -- number of variables
+            d -- degree
 
-        OUTPUT: a random polynomial of total degree \code{degree}
-                and with \code{term} terms in it.
+        EXAMPLE:
+            sage: P.<x,y> = PolynomialRing(ZZ)
+            sage: C,t = P._precomp_counts(10,2)
+            sage: C[0]
+            1
+            sage: C[1]
+            10
+            sage: C[2]
+            55
+            sage: t
+            66
+
+        TESTS:
+            sage: P.<x,y> = PolynomialRing(ZZ)
+            sage: C,t = P._precomp_counts(1,2)
+            sage: C[0]
+            1
+            sage: C[1]
+            1
+            sage: C[2]
+            1
+            sage: t
+            3
+
+        """
+        from sage.rings.arith import binomial
+        C = [1]  #d = 0
+        for dbar in xrange(1, d+1):
+            C.append(binomial(n+dbar-1, dbar))
+        t = sum(C)
+        return C, t
+
+    def _to_monomial(self,i, n, d):
+        """
+        Given an index i, a number of variables n and a degree d return
+        the i-th monomial of degree d in n variables.
+
+        INPUT:
+            i -- index: 0 <= i < binom(n+d-1,n-1)
+            n -- number of variables
+            d -- degree
+
+        EXAMPLE:
+	sage: P.<x,y> = PolynomialRing(QQ)
+        sage: P._to_monomial(0,10,2)
+        (0, 0, 0, 0, 0, 0, 0, 0, 0, 2)
+        sage: P._to_monomial(8,10,2)
+        (0, 0, 0, 0, 0, 0, 1, 1, 0, 0)
+        sage: P._to_monomial(54,10,2)
+        (2, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+        NOTE: We do not check if the provided index/rank is within the
+        allowed range. If it is not an infinite loop will occure.
+        """
+        from sage.combinat import choose_nk
+        comb = choose_nk.from_rank(i, n+d-1, n-1)
+        if comb == []:
+            return (d,)
+        monomial = [ comb[0] ]
+        res = []
+        for j in range(n-2):
+            res.append(comb[j+1]-comb[j]-1)
+        monomial += res
+        monomial.append( n+d-1-comb[-1]-1 )
+        return tuple(monomial)
+
+    def _random_monomial_upto_degree_class(self,n, degree, counts=None, total=None):
+        """
+        Choose a random exponent tuple for $n$ variables with a random
+        degree $d$, i.e. choose the degree uniformly at random first
+        before choosing a random monomial.
+
+        INPUT:
+            n -- number of variables
+            degree -- degree of monomials
+            counts -- ignored
+            total -- ignored
+            """
+        # bug: doesn't handle n=1
+        from sage.rings.arith import binomial
+        #Select random degree
+        d = ZZ.random_element(0,degree+1)
+        total = binomial(n+d-1, d)
+
+        #Select random monomial of degree d
+        random_index = ZZ.random_element(0, total-1)
+        #Generate the corresponding monomial
+        return self._to_monomial(random_index, n, d)
+
+    def _random_monomial_upto_degree_uniform(self,n, degree, counts=None, total=None):
+        """
+        Choose a random exponent tuple for $n$ variables with a random
+        degree up to $d$, i.e. choose a random monomial uniformly random
+        from all monomials up to degree $d$. This discriminates against
+        smaller degrees because there are more monomials of bigger
+        degrees.
+
+        INPUT:
+            n -- number of variables
+            degree -- degree of monomials
+            counts -- ignored
+            total -- ignored
+            """
+        if counts is not None or total is not None:
+            counts, total = self._precomp_counts(n, degree)
+
+        #Select a random one
+        random_index = ZZ.random_element(0, total-1)
+        #Figure out which degree it corresponds to
+        d = 0
+        while random_index >= counts[d]:
+            random_index -= counts[d]
+            d += 1
+        #Generate the corresponding monomial
+        return self._to_monomial(random_index, n, d)
+
+    def random_element(self, degree=2, terms=5, choose_degree=False,*args, **kwargs):
+        """
+        Return a random polynomial of at most degree $d$ and at most $t$
+        terms.
+
+        First monomials are chosen uniformly random from the set of all
+        possible monomials of degree up to $d$ (inclusive). This means
+        that it is more likely that a monomial of degree $d$ appears than
+        a monomial of degree $d-1$ because the former class is bigger.
+
+        Exactly $t$ \emph{distinct} monomials are chosen this way and each
+        one gets a random coefficient (possibly zero) from the base ring
+        assigned.
+
+        The returned polynomial is the sum of this list of terms.
+
+        INPUT:
+            degree -- maximal degree (likely to be reached) (default: 2)
+            terms -- number of terms requested (default: 5)
+            choose_degree -- choose degrees of monomials randomly first rather
+                             than monomials uniformly random.
+            **kwargs -- passed to the random element generator of the base ring
 
         EXAMPLES:
-            sage: [QQ['x,y'].random_element() for _ in range(5)]
-            [-1/14*x*y + 1/2*x, x*y + x - y + 1, 3*x*y + x - 1/2, 1/3*x*y - 5*x + 1/2*y + 7/6, 2*x*y + 1/2*x + 1]
-            sage: R = MPolynomialRing(ZZ, 'x,y',2 );
-            sage: R.random_element(2)          # random
-            -1*x*y + x + 15*y - 2
-            sage: R.random_element(12)         # random
-            x^4*y^5 + x^3*y^5 + 6*x^2*y^2 - x^2
-            sage: R.random_element(12,3)       # random
-            -3*x^4*y^2 - x^5 - x^4*y
-            sage: R.random_element(3)          # random
-            2*y*z + 2*x + 2*y
+            sage: P.<x,y,z> = PolynomialRing(QQ)
+            sage: P.random_element(2, 5)
+            1/2*y^2 + x*z - x + 2*y + 19/2*z
 
-            sage: R.<x,y> = MPolynomialRing(RR)
-            sage: R.random_element(2)          # random
-            -0.645358174399450*x*y + 0.572655401740132*x + 0.197478565033010
+            sage: P.random_element(2, 5, choose_degree=True)
+            28*x*z + y*z - z^2 - 1/2*x - 44/39
+            sage: P.random_element(0, 1)
+            1
 
-            sage: R.random_element(41)         # random
-            -4*x^6*y^4*z^4*a^6*b^3*c^6*d^5 + 1/2*x^4*y^3*z^5*a^4*c^5*d^6 - 5*x^3*z^3*a^6*b^4*c*d^5 + 10*x^2*y*z^5*a^4*b^2*c^3*d^4 - 5*x^3*y^5*z*b^2*c^5*d
+            sage: P.random_element(2, 0)
+            0
 
-        AUTHOR:
-            -- didier deshommes
+            stacked rings:
+
+            sage: R = QQ['x,y']
+            sage: S = R['t,u']
+            sage: S.random_element(degree=2, terms=1)
+            (3*x^2 - x*y - 17*y^2 + y - 2/3)*u
+
+            default values apply if no degree and/or number of terms
+            is provided:
+
+            sage: random_matrix(QQ['x,y,z'], 2, 2)
+            [   4*x^2 + 4*x*y + 1/10*y*z + 1/2*z^2 - 15 4/3*x^2 + 5/2*x*z + 134/3*y*z + 20*z^2 - y]
+            [      -1/2*x^2 - 1/6*x*y - 2*z^2 - 2*z - 1          -x*y - x*z - y*z + 1/15*z^2 - 5*z]
+
+            sage: random_matrix(QQ['x,y,z'], 2, 2, terms=1, degree=1)
+            [-1/2*z   -7/5]
+            [    -y 1/11*z]
+
         """
-        # General strategy:
-        # generate n-tuples of numbers with each element in the tuple
-        # not greater than  (degree/n) so that the degree
-        # (ie, the sum of the elements in the tuple) does not exceed
-        # their total degree
+        d,t = degree,terms
 
-        n = self.__ngens         # length of the n-tuple
-        max_deg = int(degree/n)  # max degree for each term
-        R = self.base_ring()
+        from sage.combinat.integer_vector import IntegerVectors
+        from sage.rings.arith import binomial
 
-        # restrict exponents to positive integers only
-        exponents = [ tuple([ZZ.random_element(0,max_deg+1) for _ in range(n)])
-                       for _ in range(terms) ]
-        coeffs = []
-        for _ in range(terms):
-            c = R.random_element(*args,**kwds)
-            while not c:
-                c = R.random_element(*args,**kwds)
-            coeffs.append(c) # allow only nonzero coefficients
+        k = self.base_ring()
+        n = self.ngens()
 
-        d = dict( zip(tuple(exponents), coeffs) )
-        return self(multi_polynomial_element.MPolynomial_polydict(self, PolyDict(d)))
+        counts, total = self._precomp_counts(n, d)
+
+        #total or d is 0. Just return
+        if total == 0 or d == 0:
+            return tuple([0]*n)
+
+        if t < 0:
+            raise TypeError, "Cannot compute polynomial with a negative number of terms."
+
+        elif t < total/2:
+            # we choose random monomials if t < total/2 because then we
+            # expect the algorithm to be faster than generating all
+            # monomials and picking a random index from the list. if t ==
+            # total/2 we expect every second random monomial to be a
+            # double such that our runtime is doubled in the worst case.
+            M = set()
+            if not choose_degree:
+                while t:
+                    m = self._random_monomial_upto_degree_uniform(n, d, counts, total)
+                    if not m in M:
+                        M.add(m)
+                        t -= 1
+            else:
+                while t:
+                    m = self._random_monomial_upto_degree_class(n, d)
+                    if not m in M:
+                        M.add(m)
+                        t -= 1
+        elif t <= total:
+            # generate a list of all monomials and choose among them
+            if not choose_degree:
+                M = sum([list(IntegerVectors(_d,n)) for _d in xrange(d+1)],[])
+                for mi in xrange(total - t): # we throw away those we don't need
+                    M.pop( ZZ.random_element(0,len(M)-1) )
+                M = map(tuple, M)
+            else:
+                M = [list(IntegerVectors(_d,n)) for _d in xrange(d+1)]
+                Mbar = []
+                for mi in xrange(t):
+                    d = ZZ.random_element(0,len(M)) #choose degree at random
+                    m = ZZ.random_element(0,len(M[d])) # choose monomial at random
+                    Mbar.append( M[d].pop(m) ) # remove and insert
+                    if len(M[d]) == 0:
+                        M.pop(d) # bookkeeping
+                M = map(tuple, Mbar)
+
+        else:
+            raise TypeError, "Cannot compute polynomial with more terms than exist."
+
+        C = [k.random_element(*args,**kwargs) for _ in range(len(M))]
+
+        return self(dict(zip(M,C)))
 
     def new_ring(self, names=None, order=None):
         """

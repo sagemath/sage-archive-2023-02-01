@@ -63,7 +63,7 @@ AUTHORS:
 
             \begin{itemize}
 
-                  \item NetworkX dictionary format:
+                \item NetworkX dictionary format:
 
                 sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], \
                       5: [7, 8], 6: [8,9], 7: [9]}
@@ -71,7 +71,7 @@ AUTHORS:
                 Graph on 10 vertices
                 sage: G.plot().show()    # or G.show()
 
-                    \item A NetworkX graph:
+                \item A NetworkX graph:
 
                 sage: K = networkx.complete_bipartite_graph(12,7)
                 sage: G = Graph(K)
@@ -148,6 +148,15 @@ AUTHORS:
 
         \subsection{Generators}
 
+        If you wish to iterate through all the isomorphism types of graphs,
+        type, for example:
+
+            sage: for g in graphs(4):
+            ...     print g.spectrum()
+            [0.0, 0.0, 0.0, 0.0]
+            ...
+            [-1.0, -1.0, -1.0, 3.0]
+
         For some commonly used graphs to play with, type
 
             sage: graphs.[tab]          # not tested
@@ -180,7 +189,7 @@ AUTHORS:
             sage: L = G.get_list(num_vertices=7, diameter=5)
             sage: graphs_list.show_graphs(L)
 
-            \subsection{Labels}\label{Graph:labels}
+        \subsection{Labels}\label{Graph:labels}
 
         Each vertex can have any hashable object as a label. These are things like
         strings, numbers, and tuples. Each edge is given a default label of \var{None}, but
@@ -1284,6 +1293,94 @@ class GenericGraph(SageObject):
                 self._nxg.succ = self._nxg.adj
                 self._nxg.pred = newpred
 
+    ### Representations
+
+    def adjacency_matrix(self, sparse=True, boundary_first=False):
+        """
+        Returns the adjacency matrix of the (di)graph. Each vertex is
+        represented by its position in the list returned by the vertices()
+        function.
+
+        The matrix returned is over the integers.  If a different ring
+        is desired, use either the change_ring function or the matrix
+        function.
+
+        INPUT:
+            sparse -- whether to represent with a sparse matrix
+            boundary_first -- whether to represent the boundary vertices in
+                the upper left block
+
+        EXAMPLES:
+            sage: G = graphs.CubeGraph(4)
+            sage: G.adjacency_matrix()
+            [0 1 1 0 1 0 0 0 1 0 0 0 0 0 0 0]
+            [1 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0]
+            [1 0 0 1 0 0 1 0 0 0 1 0 0 0 0 0]
+            [0 1 1 0 0 0 0 1 0 0 0 1 0 0 0 0]
+            [1 0 0 0 0 1 1 0 0 0 0 0 1 0 0 0]
+            [0 1 0 0 1 0 0 1 0 0 0 0 0 1 0 0]
+            [0 0 1 0 1 0 0 1 0 0 0 0 0 0 1 0]
+            [0 0 0 1 0 1 1 0 0 0 0 0 0 0 0 1]
+            [1 0 0 0 0 0 0 0 0 1 1 0 1 0 0 0]
+            [0 1 0 0 0 0 0 0 1 0 0 1 0 1 0 0]
+            [0 0 1 0 0 0 0 0 1 0 0 1 0 0 1 0]
+            [0 0 0 1 0 0 0 0 0 1 1 0 0 0 0 1]
+            [0 0 0 0 1 0 0 0 1 0 0 0 0 1 1 0]
+            [0 0 0 0 0 1 0 0 0 1 0 0 1 0 0 1]
+            [0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 1]
+            [0 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
+
+            sage: matrix(GF(2),G) # matrix over GF(2)
+            [0 1 1 0 1 0 0 0 1 0 0 0 0 0 0 0]
+            [1 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0]
+            [1 0 0 1 0 0 1 0 0 0 1 0 0 0 0 0]
+            [0 1 1 0 0 0 0 1 0 0 0 1 0 0 0 0]
+            [1 0 0 0 0 1 1 0 0 0 0 0 1 0 0 0]
+            [0 1 0 0 1 0 0 1 0 0 0 0 0 1 0 0]
+            [0 0 1 0 1 0 0 1 0 0 0 0 0 0 1 0]
+            [0 0 0 1 0 1 1 0 0 0 0 0 0 0 0 1]
+            [1 0 0 0 0 0 0 0 0 1 1 0 1 0 0 0]
+            [0 1 0 0 0 0 0 0 1 0 0 1 0 1 0 0]
+            [0 0 1 0 0 0 0 0 1 0 0 1 0 0 1 0]
+            [0 0 0 1 0 0 0 0 0 1 1 0 0 0 0 1]
+            [0 0 0 0 1 0 0 0 1 0 0 0 0 1 1 0]
+            [0 0 0 0 0 1 0 0 0 1 0 0 1 0 0 1]
+            [0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 1]
+            [0 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
+
+            sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
+            sage: D.adjacency_matrix()
+            [0 1 1 1 0 0]
+            [1 0 1 0 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 0 1 0]
+            [1 0 0 0 0 1]
+            [0 1 0 0 0 0]
+
+        """
+        n = self.order()
+        verts = self.vertices(boundary_first=boundary_first)
+        D = {}
+        directed = self.is_directed()
+        multiple_edges = self.multiple_edges()
+        for i,j,l in self.edge_iterator():
+            i = verts.index(i)
+            j = verts.index(j)
+            if multiple_edges and (i,j) in D:
+                D[(i,j)] += 1
+                if not directed:
+                    D[(j,i)] += 1
+            else:
+                D[(i,j)] = 1
+                if not directed:
+                    D[(j,i)] = 1
+        from sage.rings.integer_ring import IntegerRing
+        from sage.matrix.constructor import matrix
+        M = matrix(IntegerRing(), n, n, D, sparse=sparse)
+        return M
+
+    am = adjacency_matrix # shorter call makes life easier
+
     ### Cliques
 
     def cliques(self):
@@ -1358,7 +1455,6 @@ class GenericGraph(SageObject):
             import networkx.cliques
             return Graph(networkx.cliques.make_max_clique_graph(self._nxg, name=name, create_using=networkx.xgraph.XGraph()))
 
-    # Add fpos (below) when Bipartite class is wrapped.
     def cliques_get_clique_bipartite(self, **kwds):
         """
         Returns a bipartite graph constructed such that cliques are the
@@ -1371,7 +1467,7 @@ class GenericGraph(SageObject):
 
         EXAMPLES:
             sage: (graphs.ChvatalGraph()).cliques_get_clique_bipartite()
-            Graph on 36 vertices
+            Bipartite graph on 36 vertices
             sage: ((graphs.ChvatalGraph()).cliques_get_clique_bipartite()).show(figsize=[2,2], vertex_size=20, vertex_labels=False)
             sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
             sage: D.show(figsize=[2,2])
@@ -1382,16 +1478,15 @@ class GenericGraph(SageObject):
             sage: D = D.to_undirected()
             sage: D.show(figsize=[2,2])
             sage: D.cliques_get_clique_bipartite()
-            Graph on 6 vertices
+            Bipartite graph on 6 vertices
             sage: (D.cliques_get_clique_bipartite()).show(figsize=[2,2])
         """
         if (self.is_directed()):
             raise TypeError('Function defined for undirected graphs only.  See documentation.')
         else:
             import networkx.cliques
-            return Graph(networkx.cliques.make_clique_bipartite(self._nxg, **kwds))
-
-    # TODO: Also implement project_down and project_up after Bipartite class.
+            from bipartite_graph import BipartiteGraph
+            return BipartiteGraph(networkx.cliques.make_clique_bipartite(self._nxg, **kwds))
 
     def clique_number(self, cliques=None):
         """
@@ -2232,13 +2327,6 @@ class GenericGraph(SageObject):
 
     ### Constructors
 
-    def am(self):
-        """
-        Shorter call for adjacency matrix makes life easier.
-
-        """
-        return self.adjacency_matrix()
-
     def complement(self):
         """
         Returns the complement of the (di)graph.
@@ -2445,7 +2533,8 @@ class GenericGraph(SageObject):
 
     def tensor_product(self, other):
         """
-        Returns the tensor product of self and other.
+        Returns the tensor product, also called the categorical product, of self
+        and other.
 
         The tensor product of G and H is the graph L with vertex set
         V(L) equal to the Cartesian product of the vertices V(G) and V(H), and
@@ -2485,6 +2574,8 @@ class GenericGraph(SageObject):
                 if self.has_edge(u, w) and other.has_edge(v, x):
                     G.add_edge((u,v), (w,x))
         return G
+
+    categorical_product = tensor_product
 
     def lexicographic_product(self, other):
         """
@@ -2538,9 +2629,9 @@ class GenericGraph(SageObject):
         ((u,v), (w,x)) is an edge iff either
             - (u, w) is an edge of self and v = x, or
             - (v, x) is an edge of other and u = w, or
-            - (u, w) is an edge of self and (v, x) is an edge of
-        other.
-
+            - (u, w) is an edge of self and (v, x) is an edge of other.
+        In other words, the edges of the strong product is the union of the
+        edges of the tensor and Cartesian products.
 
         EXAMPLES:
             sage: Z = graphs.CompleteGraph(2)
@@ -2798,7 +2889,7 @@ class GenericGraph(SageObject):
             for u,v,l in self._nxg.edges():
                 if not l is None:
                     K += text(str(l), [(pos[u][0] + pos[v][0])/2, (pos[u][1] + pos[v][1])/2])
-            K.range(xmin=G.xmin(), xmax=G.xmax(), ymin=G.ymin(), ymax=G.ymax())
+            K.axes_range(xmin=G.xmin(), xmax=G.xmax(), ymin=G.ymin(), ymax=G.ymax())
             G += K
             G.axes(False)
         return G
@@ -3160,7 +3251,7 @@ class GenericGraph(SageObject):
         EXAMPLE:
             sage: P = graphs.PetersenGraph()
             sage: P.characteristic_polynomial()
-            x^10 + x^8 + x^6 + x^4
+            x^10 - 15*x^8 + 75*x^6 - 24*x^5 - 165*x^4 + 120*x^3 + 120*x^2 - 160*x + 48
             sage: P.characteristic_polynomial(laplacian=True)
             x^10 - 30*x^9 + 390*x^8 - 2880*x^7 + 13305*x^6 - 39882*x^5 + 77640*x^4 - 94800*x^3 + 66000*x^2 - 20000*x
 
@@ -3346,6 +3437,9 @@ class Graph(GenericGraph):
         sage: Graph(M)
         Graph on 10 vertices
 
+        sage: Graph(matrix([[1,2],[3,4]]),loops=True)
+        Looped graph on 2 vertices
+
         B. an incidence matrix:
 
         sage: M = Matrix(6, [-1,0,0,0,1, 1,-1,0,0,0, 0,1,-1,0,0, 0,0,1,-1,0, 0,0,0,1,-1, 0,0,0,0,0]); M
@@ -3464,7 +3558,7 @@ class Graph(GenericGraph):
                     e += [(i,j)]*int(data[i][j])
                 elif i < j:
                     e.append((i,j))
-                elif i == j and loops and kwds.get(multiedges,False):
+                elif i == j and loops and kwds.get('multiedges',False):
                     e += [(i,j)]*int(data[i][j])
                 elif i == j and loops:
                     e.append((i,j))
@@ -4284,67 +4378,6 @@ class Graph(GenericGraph):
 
     ### Representations
 
-    def adjacency_matrix(self, sparse=True, boundary_first=False, over_integers=False):
-        """
-        Returns the adjacency matrix of the graph. Each vertex is
-        represented by its position in the list returned by the vertices()
-        function.
-
-        If the graph allows multiple edges, then the returned matrix is over
-        the integers, otherwise it is over the ring with two elements.
-
-        INPUT:
-            sparse -- whether to represent with a sparse matrix
-            boundary_first -- whether to represent the boundary vertices in
-                the upper left block
-            over_integers -- overrides checking multiple edges
-
-        EXAMPLE:
-            sage: G = graphs.CubeGraph(4)
-            sage: G.adjacency_matrix()
-            [0 1 1 0 1 0 0 0 1 0 0 0 0 0 0 0]
-            [1 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0]
-            [1 0 0 1 0 0 1 0 0 0 1 0 0 0 0 0]
-            [0 1 1 0 0 0 0 1 0 0 0 1 0 0 0 0]
-            [1 0 0 0 0 1 1 0 0 0 0 0 1 0 0 0]
-            [0 1 0 0 1 0 0 1 0 0 0 0 0 1 0 0]
-            [0 0 1 0 1 0 0 1 0 0 0 0 0 0 1 0]
-            [0 0 0 1 0 1 1 0 0 0 0 0 0 0 0 1]
-            [1 0 0 0 0 0 0 0 0 1 1 0 1 0 0 0]
-            [0 1 0 0 0 0 0 0 1 0 0 1 0 1 0 0]
-            [0 0 1 0 0 0 0 0 1 0 0 1 0 0 1 0]
-            [0 0 0 1 0 0 0 0 0 1 1 0 0 0 0 1]
-            [0 0 0 0 1 0 0 0 1 0 0 0 0 1 1 0]
-            [0 0 0 0 0 1 0 0 0 1 0 0 1 0 0 1]
-            [0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 1]
-            [0 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
-
-        """
-        n = len(self._nxg.adj)
-        if boundary_first:
-            verts = self.vertices(boundary_first=True)
-        else:
-            verts = self.vertices()
-        D = {}
-        for i,j,l in self.edge_iterator():
-            i = verts.index(i)
-            j = verts.index(j)
-            if D.has_key((i,j)) and self.multiple_edges():
-                D[(i,j)] += 1
-                D[(j,i)] += 1
-            else:
-                D[(i,j)] = 1
-                D[(j,i)] = 1
-        from sage.rings.integer_mod_ring import IntegerModRing
-        from sage.rings.integer_ring import IntegerRing
-        from sage.matrix.constructor import matrix
-        if self.multiple_edges() or over_integers:
-            R = IntegerRing()
-        else:
-            R = IntegerModRing(2)
-        M = matrix(R, n, n, D, sparse=sparse)
-        return M
-
     def incidence_matrix(self, sparse=True):
         """
         Returns an incidence matrix of the graph. Each row is a vertex, and
@@ -4465,7 +4498,7 @@ class Graph(GenericGraph):
         if weighted:
             M = self.weighted_adjacency_matrix(boundary_first=boundary_first)
         else:
-            M = self.adjacency_matrix(boundary_first=boundary_first, over_integers=True)
+            M = self.adjacency_matrix(boundary_first=boundary_first)
         A = list(-M)
         S = [sum(M.row(i)) for i in range(M.nrows())]
         for i in range(len(A)):
@@ -6520,46 +6553,6 @@ class DiGraph(GenericGraph):
         return self._nxg.out_degree_iter(vertices, with_labels=labels)
 
     ### Representations
-
-    def adjacency_matrix(self, sparse=True):
-        """
-        Returns the adjacency matrix of the digraph. Each vertex is
-        represented by its position in the list returned by the vertices()
-        function.
-
-        If the graph allows multiple edges, then the returned matrix is over
-        the integers, otherwise it is over the ring with two elements.
-
-        EXAMPLE:
-            sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: D.adjacency_matrix()
-            [0 1 1 1 0 0]
-            [1 0 1 0 0 0]
-            [0 0 0 1 0 0]
-            [0 0 0 0 1 0]
-            [1 0 0 0 0 1]
-            [0 1 0 0 0 0]
-
-        """
-        n = len(self._nxg.adj)
-        verts = self.vertices()
-        D = {}
-        for i,j,l in self.edge_iterator():
-            i = verts.index(i)
-            j = verts.index(j)
-            if D.has_key((i,j)) and self.multiple_edges():
-                D[(i,j)] += 1
-            else:
-                D[(i,j)] = 1
-        from sage.rings.integer_mod_ring import IntegerModRing
-        from sage.rings.integer_ring import IntegerRing
-        from sage.matrix.constructor import matrix
-        if self.multiple_edges():
-            R = IntegerRing()
-        else:
-            R = IntegerModRing(2)
-        M = matrix(R, n, n, D, sparse=sparse)
-        return M
 
     def incidence_matrix(self, sparse=True):
         """

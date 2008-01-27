@@ -48,6 +48,38 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
     The cuspidal submodule of an ambient space of modular forms.
     """
     def __init__(self, ambient_space):
+        """
+        The cuspidal submodule of an ambient space of modular forms.
+
+        EXAMPLES:
+            sage: S = CuspForms(SL2Z(),12); S
+            Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for
+            Congruence Subgroup Gamma0(1) of weight 12 over Rational Field
+            sage: S.basis()
+            [
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+            ]
+
+            sage: S = CuspForms(Gamma0(33),2); S
+            Cuspidal subspace of dimension 3 of Modular Forms space of dimension 6 for
+            Congruence Subgroup Gamma0(33) of weight 2 over Rational Field
+            sage: S.basis()
+            [
+            q - q^5 + O(q^6),
+            q^2 - q^4 - q^5 + O(q^6),
+            q^3 + O(q^6)
+            ]
+
+            sage: S = CuspForms(Gamma1(3),6); S
+            Cuspidal subspace of dimension 1 of Modular Forms space of dimension 3 for
+            Congruence Subgroup Gamma1(3) of weight 6 over Rational Field
+            sage: S.basis()
+            [
+            q - 6*q^2 + 9*q^3 + 4*q^4 + 6*q^5 + O(q^6)
+            ]
+            sage: S == loads(dumps(S))
+            True
+        """
         verbose('creating cuspidal submodule of %s'%ambient_space)
         d = ambient_space._dim_cuspidal()
         V = ambient_space.module()
@@ -56,6 +88,13 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
         submodule.ModularFormsSubmodule.__init__(self, ambient_space, S)
 
     def _repr_(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: S = CuspForms(Gamma1(3),6); S._repr_()
+            'Cuspidal subspace of dimension 1 of Modular Forms space of dimension 3 for Congruence Subgroup Gamma1(3) of weight 6 over Rational Field'
+        """
         return "Cuspidal subspace of dimension %s of %s"%(self.dimension(), self.ambient_module())
 
     def modular_symbols(self, sign=0):
@@ -109,8 +148,23 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
 # A cuspidal subspace of a space of modular forms
 # that is computed using modular symbols.
 class CuspidalSubmodule_modsym_qexp(CuspidalSubmodule):
-    def _compute_q_expansion_basis(self, prec):
-        prec = Integer(prec)
+    """
+    Cuspidal submodule with q-expansions calculated via modular symbols.
+    """
+    def _compute_q_expansion_basis(self, prec=None):
+        """
+        Compute q-expansions of a basis for self (via modular symbols).
+
+        EXAMPLES:
+            sage: sage.modular.modform.cuspidal_submodule.CuspidalSubmodule_modsym_qexp(ModularForms(11,2))._compute_q_expansion_basis()
+            [
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            ]
+        """
+        if prec == None:
+            prec = self.prec()
+        else:
+            prec = Integer(prec)
         M = self.modular_symbols(sign = 1)
         return M.q_expansion_basis(prec)
 
@@ -118,8 +172,20 @@ class CuspidalSubmodule_level1_Q(CuspidalSubmodule):
     """
     Space of cusp forms of level 1 over Q.
     """
-    def _compute_q_expansion_basis(self, prec):
-        prec = Integer(prec)
+    def _compute_q_expansion_basis(self, prec=None):
+        """
+        Compute q-expansions of a basis for self.
+
+        EXAMPLES:
+            sage: sage.modular.modform.cuspidal_submodule.CuspidalSubmodule_level1_Q(ModularForms(1,12))._compute_q_expansion_basis()
+            [
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+            ]
+        """
+        if prec == None:
+            prec = self.prec()
+        else:
+            prec = Integer(prec)
         return vm_basis.victor_miller_basis(self.weight(), prec,
                                             cusp_only=True, var='q')
 

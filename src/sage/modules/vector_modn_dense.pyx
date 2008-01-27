@@ -77,6 +77,7 @@ from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
 cimport free_module_element
+from free_module_element import vector
 
 from sage.ext.multi_modular import MAX_MODULUS
 
@@ -273,7 +274,23 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
                 z._entries[i] = 0
         return z
 
+    def n(self, *args, **kwargs):
+        """
+        Returns a numerical approximation of self by calling the n()
+        method on all of its entries.
 
+        EXAMPLES:
+            sage: v = vector(Integers(8), [1,2,3])
+            sage: v.n()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 75 bits of precision
+        """
+        return vector( [e.n(*args, **kwargs) for e in self] )
 
 def unpickle_v0(parent, entries, degree, p):
     # If you think you want to change this function, don't.

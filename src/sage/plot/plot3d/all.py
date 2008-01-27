@@ -1,5 +1,5 @@
 
-from plot3d            import plot3d, plot3d_adaptive
+from plot3d            import plot3d
 from parametric_plot3d import parametric_plot3d
 from list_plot3d       import list_plot3d
 

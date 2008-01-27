@@ -17,7 +17,7 @@ the field of algebraic reals has abbreviation AA.
 As with many other implementations of the algebraic numbers, we try
 hard to avoid computing a number field and working in the number
 field; instead, we use floating-point interval arithmetic whenever
-possible (basically whenever we need to prove disequalities), and
+possible (basically whenever we need to prove non-equalities), and
 resort to symbolic computation only as needed (basically to prove
 equalities).
 
@@ -32,7 +32,7 @@ imaginary part, or complex conjugate of an algebraic number
 algebraic coefficients, an isolating interval (given as a
 RealIntervalFieldElement) which encloses exactly one root, and
 the multiplicity of the root
-* a polynomial in a generator, where the generator is an algebraic
+* a polynomial in one generator, where the generator is an algebraic
 number given as the root of an irreducible polynomial with integral
 coefficients and the polynomial is given as a NumberFieldElement
 
@@ -59,7 +59,7 @@ a polynomial also involves an implicit comparison against zero, which
 again may trigger exact computation.
 
 Note that we work fairly hard to avoid computing new number fields;
-to halp, we keep a lattice of already-computed number fields and
+to help, we keep a lattice of already-computed number fields and
 their inclusions.
 
 EXAMPLES:
@@ -136,6 +136,13 @@ We can coerce from symbolic expressions:
     ...
     TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
 
+Note the different behavior in taking roots: for AA we prefer real roots if they exist, but for QQbar we take the principal root:
+
+    sage: AA(-1)^(1/3)
+    -1
+    sage: QQbar(-1)^(1/3)
+    [0.49999999999999994 .. 0.50000000000000012] + [0.86602540378443859 .. 0.86602540378443871]*I
+
 We can explicitly coerce from QQ[I].  (Technically, this is not quite
 kosher, since QQ[I] doesn't come with an embedding; we don't know
 whether the field generator is supposed to map to +I or -I.  We assume
@@ -181,6 +188,15 @@ Some computation with radicals:
     sage: rt35 = sqrt(AA(3/5))
     sage: rt25 = sqrt(AA(2/5))
     sage: rt23 * rt35 == rt25
+    True
+
+The Sage rings AA and QQbar can decide equalities between radical
+expressions (over the reals and complex numbers respectively):
+
+    sage: a = AA((2/(3*sqrt(3)) + 10/27)^(1/3) - 2/(9*(2/(3*sqrt(3)) + 10/27)^(1/3)) + 1/3)
+    sage: a
+    [0.99999999999999988 .. 1.0000000000000003]
+    sage: a == 1
     True
 
 Algebraic numbers which are known to be rational print as rationals;
@@ -3073,7 +3089,7 @@ class AlgebraicPolynomialTracker(SageObject):
             sage: x = polygen(ZZ)
             sage: cp = AA.common_polynomial(x^4 - 2)
             sage: cp.complex_roots(30, 1)
-            [[1.1892071150027208 .. 1.1892071150027213], [-1.1892071150027213 .. -1.18920711500272...], [1.1892071150027208 .. 1.1892071150027213]*I, [-1.1892071150027213 .. -1.1892071150027208]*I]
+            [[1.1892071150027208 .. 1.1892071150027213], [-1.1892071150027213 .. -1.18920711500272...], [1.18920711500272... .. 1.1892071150027213]*I, [-1.1892071150027213 .. -1.1892071150027208]*I]
         """
         if self._roots_cache.has_key(multiplicity):
             roots = self._roots_cache[multiplicity]

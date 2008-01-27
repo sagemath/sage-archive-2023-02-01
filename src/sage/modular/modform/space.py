@@ -46,6 +46,7 @@ from sage.structure.all import Sequence
 import sage.modular.hecke.all as hecke
 import sage.modular.congroup as congroup
 import sage.modular.dirichlet as dirichlet
+
 import sage.rings.all as rings
 
 import defaults
@@ -55,6 +56,8 @@ import submodule
 
 import sage.modular.dims as dims
 
+from math import ceil
+
 WARN=False
 
 class ModularFormsSpace(hecke.HeckeModule_generic):
@@ -62,12 +65,30 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
     A generic space of modular forms.
     """
     def __init__(self, group, weight, character, base_ring):
+        r"""
+        Generic spaces of modular forms. For spaces of modular forms
+        for $\Gamma_0(N)$ or $\Gamma_1(N)$, the default base ring is $\Q$.
+
+        EXAMPLES:
+            sage: ModularForms(11,2)
+            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
+
+            sage: ModularForms(11,2,base_ring=GF(13))
+            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Finite Field of size 13
+
+            sage: ModularForms(DirichletGroup(13).0,3)
+            Modular Forms space of dimension 3, character [zeta12] and weight 3 over Cyclotomic Field of order 12 and degree 4
+
+            sage: M = ModularForms(11,2)
+            sage: M == loads(dumps(M))
+            True
+        """
         global WARN
         if WARN:
             print "Modular forms -- under development -- do not trust yet."
             WARN=False
         if not isinstance(group, congroup.CongruenceSubgroup):
-            raise TypeError, "group (=%s) must be a congruence subroup"%group
+            raise TypeError, "group (=%s) must be a congruence subgroup"%group
         weight = int(weight)
         #if not isinstance(weight, int):
         #    raise TypeError, "weight must be an int"
@@ -159,8 +180,16 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
     def change_ring(self, R):
         """
         Change the base ring of this space of modular forms.
+
+        TODO: Write this function.
+
+        EXAMPLES:
+            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,QQ).change_ring(GF(7))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: This function has not yet been implemented.
         """
-        raise NotImplementedError
+        raise NotImplementedError, "This function has not yet been implemented."
 
     def weight(self):
         """
@@ -268,6 +297,18 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return False   # returning True is defined in the derived AmbientSpace class.
 
     def __normalize_prec(self, prec):
+        """
+        If prec=None, return self.prec(). Otherwise, make sure prec
+        is a sensible choice of precision and return it.
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4)
+            sage: N._ModularFormsSpace__normalize_prec(int(3))
+            3
+
+            sage: type(N._ModularFormsSpace__normalize_prec(int(3)))
+            <type 'sage.rings.integer.Integer'>
+        """
         if prec is None:
             prec = self.prec()
         else:
@@ -480,14 +521,25 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         sufficient precision to determine elements of this space.
 
         EXAMPLES:
+            sage: M = ModularForms(11,2)
+            sage: M._q_expansion_module()
+            Vector space of degree 3 and dimension 2 over Rational Field
+            User basis matrix:
+            [   0    1   -2]
+            [   1 12/5 36/5]
+            sage: CuspForms(1,12)._q_expansion_module()
+            Vector space of degree 2 and dimension 1 over Rational Field
+            User basis matrix:
+            [0 1]
         """
         try:
             return self.__q_expansion_module
         except AttributeError:
             pass
 
-        C = self.q_expansion_basis()
-        prec = C[0].prec() if (len(C) > 0) else 0
+        prec = self.sturm_bound()
+        C = self.q_expansion_basis(prec)
+##        prec = C[0].prec() if (len(C) > 0) else 0
         V = self.base_ring()**prec
         W = V.span_of_basis([f.padded_list(prec) for f in C])
         self.__q_expansion_module = W
@@ -505,17 +557,24 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         enough so that each q-expansion determines the form as an
         element of this space.
 
+        NOTE: In fact, the q-expansion basis is always computed
+        to *at least* self.prec().
+
         EXAMPLES:
             sage: S = ModularForms(11,2).cuspidal_submodule()
+            sage: S.q_expansion_basis()
+            [
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            ]
             sage: S.q_expansion_basis(5)
             [
             q - 2*q^2 - q^3 + 2*q^4 + O(q^5)
             ]
             sage: S = ModularForms(1,24).cuspidal_submodule()
-            sage: S.q_expansion_basis(5)
+            sage: S.q_expansion_basis(8)
             [
-            q + 195660*q^3 + 12080128*q^4 + O(q^5),
-            q^2 - 48*q^3 + 1080*q^4 + O(q^5)
+            q + 195660*q^3 + 12080128*q^4 + 44656110*q^5 - 982499328*q^6 - 147247240*q^7 + O(q^8),
+            q^2 - 48*q^3 + 1080*q^4 - 15040*q^5 + 143820*q^6 - 985824*q^7 + O(q^8)
             ]
         """
         if prec is None:
@@ -526,6 +585,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             prec = -1  # big enough to determine forms
         else:
             prec = rings.Integer(self.__normalize_prec(prec))
+
         if prec == 0:
             z = self._q_expansion_ring()(0,prec)
             return Sequence([z]*int(self.dimension()), immutable=True, cr=True)
@@ -540,7 +600,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 pass
 
         d = self.dimension()
-        current_prec = max(prec, int(1.2*d) + 3)         # +3 for luck.
+        current_prec = max(prec, self.prec(), int(1.2*d) + 3)         # +3 for luck.
         if prec == -1:
             prec = current_prec
         tries = 0
@@ -552,7 +612,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 tries += 1
                 current_prec += d
             if tries > 5:
-                print "WARNING: possibly bug in q_expansion_basis for modular forms space %s"%self
+                print "WARNING: possible bug in q_expansion_basis for modular forms space %s"%self
         B = Sequence(B, immutable=True, cr=True)
         self.__q_expansion_basis = (current_prec, B)
         if current_prec == prec:
@@ -560,6 +620,13 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return Sequence([f.add_bigoh(prec) for f in B], immutable=True, cr=True)
 
     def _compute_q_expansion_basis(self, prec):
+        """
+        EXAMPLES:
+            sage: sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,QQ)._compute_q_expansion_basis(5)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this must be implemented in the derived class
+        """
         raise NotImplementedError, "this must be implemented in the derived class"
 
     def q_echelon_basis(self, prec=None):
@@ -569,6 +636,20 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         The $q$-expansions are power series (not actual modular forms).
         The number of $q$-expansions returned equals the dimension.
+
+        EXAMPLES:
+            sage: M = ModularForms(11,2)
+            sage: M.q_expansion_basis()
+            [
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6),
+            1 + 12/5*q + 36/5*q^2 + 48/5*q^3 + 84/5*q^4 + 72/5*q^5 + O(q^6)
+            ]
+
+            sage: M.q_echelon_basis()
+            [
+            1 + 12*q^2 + 12*q^3 + 12*q^4 + 12*q^5 + O(q^6),
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            ]
         """
         prec = self.__normalize_prec(prec)
         if prec == 0:
@@ -649,6 +730,14 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return S
 
     def _q_expansion_ring(self):
+        """
+        Returns the parent for q-expansions of modular forms in self.
+
+        EXAMPLES:
+            sage: M = ModularForms(11,2)
+            sage: M._q_expansion_ring()
+            Power Series Ring in q over Rational Field
+        """
         try:
             return self.__q_expansion_ring
         except AttributeError:
@@ -657,6 +746,16 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             return R
 
     def _q_expansion_zero(self):
+        """
+        Returns the q-expansion of the modular form 0.
+
+        EXAMPLES:
+            sage: M = ModularForms(11,2)
+            sage: M._q_expansion_zero()
+            0
+            sage: M._q_expansion_zero() == M._q_expansion_ring()(0)
+            True
+        """
         try:
             return self.__q_expansion_zero
         except AttributeError:
@@ -665,12 +764,46 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             return f
 
     def _q_expansion(self, element, prec):
+        """
+        Take an element of self (specified as a list, tuple, or vector), and
+        return the corresponding q-expansion.
+
+        EXAMPLES:
+            sage: m = ModularForms(Gamma0(23),2); m
+            Modular Forms space of dimension 3 for Congruence Subgroup Gamma0(23) of weight 2 over Rational Field
+            sage: m.basis()
+            [
+            q - q^3 - q^4 + O(q^6),
+            q^2 - 2*q^3 - q^4 + 2*q^5 + O(q^6),
+            1 + 12/11*q + 36/11*q^2 + 48/11*q^3 + 84/11*q^4 + 72/11*q^5 + O(q^6)
+            ]
+            sage: m._q_expansion([1,2,0], 5)
+            q + 2*q^2 - 5*q^3 - 3*q^4 + O(q^5)
+
+        """
         return self.ambient_module()._q_expansion(element, prec)
 
     def __add__(self, right):
+        """
+        If self and right live inside the same ambient module, return
+        the sum of the two spaces (as modules).
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4) ; ls = N.newspaces() ; ls
+            [Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field]
+
+            sage: N1 = ls[2] ; N2 = ls[3]
+            sage: N1.__add__(N2)
+            Modular Forms subspace of dimension 2 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+        """
+        from sage.modular.modform.submodule import ModularFormsSubmodule
         if self.ambient_module() != right.ambient_module():
-            raise ArithmeticError, ("Intersection of %s and %s not defined because they " + \
-                                    "do not lie in a common ambient space.")%\
+            raise ArithmeticError, ("Intersection of %s and %s not defined because " + \
+                                    "they do not lie in a common ambient space.")%\
                                    (self, right)
         if self.is_ambient(): return self
         if right.is_ambient(): return right
@@ -679,6 +812,18 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
 
     def __and__(self, right):
+        """
+        Return intersect of self and right.
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4); S = N.cuspidal_subspace()
+
+            sage: N.__and__(S)
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+
+            sage: S.__and__(N)
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+        """
         return self.intersect(right)
 
     def _has_natural_inclusion_map_to(self, right):
@@ -689,17 +834,90 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         INPUT:
             self, right -- spaces of modular forms
+
+        OUTPUT:
+            True if self embeds in right, and False
+            otherwise.
+
+        TODO: Barring a few trivial cases, this only works
+        in the case that right.is_ambient() returns True.
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4) ; S = N.cuspidal_subspace()
+
+            sage: N._has_natural_inclusion_map_to(S)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+            sage: S._has_natural_inclusion_map_to(N)
+            True
+
+            sage: M = ModularForms(11,2)
+            sage: N._has_natural_inclusion_map_to(M)
+            False
         """
         if not right.group().is_subgroup(self.group()):
             return False
         if right.character() is None:
             # It's the full Gamma_1(N).
             return True
-        e = self.character()
-        f = right.character()
-        return f.parent()(e) == f
+        if right.is_ambient():
+            e = self.character()
+            f = right.character()
+            return f.parent()(e) == f
+        raise NotImplementedError
 
     def __call__(self, x, check=True):
+        """
+        Try to coerce x into self. If x is a vector of length
+        self.dimension(), interpret it as a list of coefficients for
+        self.basis() and return that linear combination. If x is a
+        power series, it tries to determine whether or not x lives in
+        self. If so, it returns x as an element of M, and throws an
+        error if not.
+
+        EXAMPLES:
+            sage: M = ModularForms(13,4)
+            sage: M.dimension()
+            5
+
+            sage: M([1,2,3,4,5])
+            4 + 6*q + 47*q^2 + 143*q^3 + 358*q^4 + 630*q^5 + O(q^6)
+
+            sage: M([1,3])
+            Traceback (most recent call last):
+            ...
+            TypeError: entries must be a list of length 5
+
+            sage: R = M._q_expansion_ring()
+            sage: M(R([0,1,0,0,0,-2,-4,-2,-12]).add_bigoh(9))
+            q - 2*q^5 + O(q^6)
+
+            sage: M.set_precision(9)
+            sage: M(R([0,1,0,0,0,-2,-4,-2,-12]).add_bigoh(9))
+            q - 2*q^5 - 4*q^6 - 2*q^7 - 12*q^8 + O(q^9)
+
+            Note that one only needs coefficients up to self.sturm_bound()
+            to determine the form:
+            sage: M(R([0,1,0,0,0,-2,-4,-2,-12]).add_bigoh(8))
+            q - 2*q^5 - 4*q^6 - 2*q^7 - 12*q^8 + O(q^9)
+
+            sage: M(R([0,1,1,0,0,0,-4,-2,-12]).add_bigoh(9))
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: vector is not in free module
+
+            sage: S = CuspForms(1,12) ; R = PowerSeriesRing(QQ,'q') ; q = R.0
+            sage: f = q+O(q^2) ; S(f)
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+            sage: f = q+2*q^2+O(q^3) ; S(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: q-expansion does not correspond to a form in self
+            sage: f = q-24*q^2+O(q^3) ; S(f)
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+        """
         if isinstance(x, element.ModularFormElement):
             if x.parent() is self:
                 return x
@@ -720,8 +938,13 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         elif rings.is_PowerSeries(x):
             W = self._q_expansion_module()
             if W.degree() <= x.prec():
-                x = W.coordinates(x.padded_list(W.degree()))
-                x = self.free_module().linear_combination_of_basis(x)
+                x_potential = W.coordinates(x.padded_list(W.degree()))
+                x_potential = self.free_module().linear_combination_of_basis(x_potential)
+                x_potential = element.ModularFormElement(self, x_potential)
+                for i in range(W.degree(), x.prec()):
+                    if x_potential[i] != x[i]:
+                        raise ValueError, "q-expansion does not correspond to a form in self"
+                return x_potential
             else:
                 raise TypeError, "q-expansion needed to at least precision %s"%W.degree()
         if check:
@@ -729,28 +952,92 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return element.ModularFormElement(self, x)
 
     def __cmp__(self, x):
+        """
+        Compare self and x.
+
+        For spaces of modular forms, we order first by signature,
+        then by dimension, and then by the ordering on the underlying
+        free modules.
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4) ; S = N.cuspidal_subspace()
+            sage: S.__cmp__(N)
+            -1
+            sage: N.__cmp__(S)
+            1
+            sage: N.__cmp__(N)
+            0
+            sage: M = ModularForms(11,2)
+            sage: N.__cmp__(M)
+            -1
+            sage: M.__cmp__(N)
+            -1
+        """
+        from sage.modular.modform.constructor import canonical_parameters as params
+
+        if self is x:
+            return 0
         if not isinstance(x, ModularFormsSpace):
+            return cmp( type(self), type(other) )
+
+        left_ambient = self.ambient()
+        right_ambient = x.ambient()
+        if params(left_ambient.character(), left_ambient.level(),
+                  left_ambient.weight(), left_ambient.base_ring()) != \
+           params(right_ambient.character(), right_ambient.level(),
+                  right_ambient.weight(), right_ambient.base_ring()):
             return -1
         if self.is_ambient() or x.is_ambient():
-            if not (self.is_ambient() and x.is_ambient()): return -1
-            if (self.__group, self.__weight, self.__character, self.base_ring()) == \
-               (x.__group, x.__weight, x.__character, x.base_ring()):
-                return 0
-            else:
-                return -1
-        if self.free_module() != x.free_module():
-            return -1
-        return 0
+            return cmp(self.dimension(), x.dimension())
+        else:
+            return cmp(self.free_module(), x.free_module())
+
 
     def __contains__(self, x):
         """
         True if x is an element or submodule of self.
+
+        TODO: This function is still *quite* rudimentary. If self is
+        ambient, it checks containment. Otherwise, it throws a
+        NotImplementedError.
+
+        EXAMPLES:
+            sage: M = ModularForms(11,2) ; N = ModularForms(6,4)
+            sage: M.__contains__(M)
+            True
+            sage: M.__contains__(N)
+            False
+            sage: N.__contains__(N.cuspidal_submodule())
+            True
+            sage: M.__contains__(N.cuspidal_submodule())
+            False
+            sage: M.cuspidal_submodule().__contains__(N)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
+        from sage.modular.modform.constructor import canonical_parameters as params
         if self.is_ambient() and x.is_ambient():
-            return self.key() == x.key()
+            return params(self.character(), self.level(),
+                          self.weight(), self.base_ring()) == \
+                   params(x.character(), x.level(), x.weight(), x.base_ring())
+        if self.is_ambient():
+            P = x.ambient_module()
+            return params(self.character(), self.level(),
+                          self.weight(), self.base_ring()) == \
+                   params(P.character(), P.level(), P.weight(), P.base_ring())
         raise NotImplementedError
 
     def __create_newspace(self, basis, level, t, is_cuspidal):
+        """
+        Create a newspace as a subspace of self based on the
+        input data.
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4)
+            sage: N._ModularFormsSpace__create_newspace( [(1,0,0,0,0)], N.level(), 1, True)
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+        """
         V = self.free_module().submodule(basis, check=False)
         S = submodule.ModularFormsSubmodule(self.ambient_module(), V)
         S.__newspace_params = {'level':level, 't':t}
@@ -759,6 +1046,18 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return S
 
     def __newspace_bases(self):
+        """
+        Find bases for all new subspaces of self.
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4)
+            sage: N._ModularFormsSpace__newspace_bases()
+            [(6, 1, True, [(1, 0, 0, 0, 0)]),
+            (1, 6, False, [(0, 1, 0, 0, 0)]),
+            (1, 3, False, [(0, 0, 1, 0, 0)]),
+            (1, 2, False, [(0, 0, 0, 1, 0)]),
+            (1, 1, False, [(0, 0, 0, 0, 1)])]
+        """
         if hasattr(self, "__newspace_bases_list"):
             return self.__newspace_bases_list
         assert self.is_ambient()
@@ -796,6 +1095,23 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return self.__newspace_bases_list
 
     def span_of_basis(self, B):
+        """
+        Take a set B of forms, and return the subspace of self with
+        B as a basis.
+
+        EXAMPLES:
+        sage: N = ModularForms(6,4) ; N
+        Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+
+        sage: N.span_of_basis([N.basis()[0]])
+        Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+
+        sage: N.span_of_basis([N.basis()[0], N.basis()[1]])
+        Modular Forms subspace of dimension 2 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+
+        sage: N.span_of_basis( N.basis() )
+        Modular Forms subspace of dimension 5 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+        """
         W = self._q_expansion_module()
         F = self.free_module()
         prec = W.degree()
@@ -803,20 +1119,29 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         S = F.span_of_basis(C)
         return submodule.ModularFormsSubmoduleWithBasis(self.ambient(), S)
 
-    def span(self, B):
-        W = self._q_expansion_module()
-        F = self.free_module()
-        prec = W.degree()
-        C = [F.linear_combination_of_basis(W.coordinates(f.padded_list(prec))) for f in B]
-        S = F.span(C)
-        return submodule.ModularFormsSubmoduleWithBasis(self.ambient(), S)
+    span = span_of_basis
 
     def __submodule_from_subset_of_basis(self, x):
+        """
+        Return the submodule of self generated by the elements of x.
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4)
+            sage: N._ModularFormsSpace__submodule_from_subset_of_basis( [0,2] )
+            Vector space of degree 5 and dimension 2 over Rational Field
+            Basis matrix:
+            [1 0 0 0 0]
+            [0 0 1 0 0]
+
+
+        """
         V = self.free_module()
         return V.submodule([V.gen(i) for i in x], check=False)
 
     def _compute_hecke_matrix_prime(self, p, prec=None):
         """
+        Compute the matrix of the Hecke operator T_p acting on self.
+
         EXAMPLES:
             sage: M = ModularForms(11,2)
             sage: M._compute_hecke_matrix_prime(2)
@@ -855,12 +1180,39 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
 
     def _compute_hecke_matrix(self, n):
+        """
+        Compute the matrix of the Hecke operator T_n acting on self.
+
+        EXAMPLES:
+            sage: M = ModularForms(11,2)
+            sage: M._compute_hecke_matrix(6)
+            [ 2  0]
+            [ 0 12]
+
+            sage: M = ModularForms(11,2)
+            sage: M2 = M.span([M.0 + M.1])
+            sage: M2.hecke_matrix(2)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: vector is not in free module
+        """
         if hasattr(self, '_compute_q_expansion_basis'):
             return hecke.HeckeModule_generic._compute_hecke_matrix(self, n)
         else:
             return hecke.HeckeSubmodule._compute_hecke_matrix(self, n)
 
     def basis(self):
+        """
+        Return a basis for self.
+
+        EXAMPLES:
+            sage: MM = ModularForms(11,2)
+            sage: MM.basis()
+            [
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6),
+            1 + 12/5*q + 36/5*q^2 + 48/5*q^3 + 84/5*q^4 + 72/5*q^5 + O(q^6)
+            ]
+        """
         try:
             return self.__basis
         except AttributeError:
@@ -870,26 +1222,69 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return self.__basis
 
     def gen(self, n):
+        """
+        Return the nth generator of self.
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4)
+            sage: N.basis()
+            [
+            q - 2*q^2 - 3*q^3 + 4*q^4 + 6*q^5 + O(q^6),
+            1 + O(q^6),
+            q - 8*q^4 + 126*q^5 + O(q^6),
+            q^2 + 9*q^4 + O(q^6),
+            q^3 + O(q^6)
+            ]
+
+            sage: N.gen(0)
+            q - 2*q^2 - 3*q^3 + 4*q^4 + 6*q^5 + O(q^6)
+
+            sage: N.gen(4)
+            q^3 + O(q^6)
+
+            sage: N.gen(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Generator 5 not defined
+        """
         try:
             return self.basis()[int(n)]
         except IndexError:
             raise ValueError, "Generator %s not defined"%n
 
     def gens(self):
+        """
+        Return a complete set of generators for self.
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4)
+            sage: N.gens()
+            [
+            q - 2*q^2 - 3*q^3 + 4*q^4 + 6*q^5 + O(q^6),
+            1 + O(q^6),
+            q - 8*q^4 + 126*q^5 + O(q^6),
+            q^2 + 9*q^4 + O(q^6),
+            q^3 + O(q^6)
+            ]
+        """
         return self.basis()
 
     def sturm_bound(self, M=None):
         r"""
-        For a space M of modular forms, this function returns an integer B
-        such that two modular forms in either self or M are equal if and only
-        if their q-expansions are equal to precision B (note that this is
-        1+ the usual Sturm bound, since $O(q^{prec})$ has precision prec).  If M
-        is none, then M is set equal to self.
+        For a space M of modular forms, this function returns an
+        integer B such that two modular forms in either self or M are
+        equal if and only if their q-expansions are equal to precision
+        B (note that this is 1+ the usual Sturm bound, since
+        $O(q^{prec})$ has precision prec).  If M is none, then M is
+        set equal to self.
 
         EXAMPLES:
             sage: S37=CuspForms(37,2)
             sage: S37.sturm_bound()
             8
+            sage: M = ModularForms(11,2)
+            sage: M.sturm_bound()
+            3
 
         NOTES:
         Reference for the Sturm bound that we use in the definition of
@@ -923,9 +1318,9 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             There might be much better bounds over $\Q$, or for
             comparing two eigenforms.
         """
-        if M != None:
+        if M is not None:
             raise NotImplementedError
-        if self.__sturm_bound == None:
+        if self.__sturm_bound is None:
             # the +1 below is because O(q^prec) has precision prec.
             self.__sturm_bound = dims.sturm_bound(self.level(), self.weight())+1
         return self.__sturm_bound
@@ -947,6 +1342,21 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return self.__character
 
     def cuspidal_submodule(self):
+        """
+        Return the cuspidal submodule of self.
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4) ; N
+            Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+            sage: N.eisenstein_subspace().dimension()
+            4
+
+            sage: N.cuspidal_submodule()
+            Cuspidal subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+
+            sage: N.cuspidal_submodule().dimension()
+            1
+        """
         try:
             if self.__is_cuspidal == True:
                 return self
@@ -978,6 +1388,18 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
     def cuspidal_subspace(self):
         """
         Synonym for cuspidal_submodule.
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4) ; N
+            Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+            sage: N.eisenstein_subspace().dimension()
+            4
+
+            sage: N.cuspidal_subspace()
+            Cuspidal subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+
+            sage: N.cuspidal_submodule().dimension()
+            1
         """
         return self.cuspidal_submodule()
 
@@ -999,21 +1421,31 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
     def new_subspace(self, p=None):
         """
         Synonym for new_submodule.
+
+        EXAMPLES:
+            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.new_subspace()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: computation of new submodule not yet implemented
         """
         return self.new_submodule(p)
 
-    def eisenstein_subspace(self):
-        """
-        Synonym for eisenstein_submodule.
-        """
-        return self.eisenstein_submodule()
-
     def eisenstein_series(self):
+        """
+        Compute the Eisenstein series associated to this space.
+
+        NOTE: This function should be overridden by all derived classes.
+
+        EXAMPLES:
+            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.eisenstein_series()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: computation of Eisenstein series in this space not yet implemented
+        """
         raise NotImplementedError, "computation of Eisenstein series in this space not yet implemented"
 
     def decomposition(self):
         """
-
         This function returns a list of submodules $V(f_i,t)$
         corresponding to newforms $f_i$ of some level dividing the
         level of self, such that the direct sum of the submodules
@@ -1022,6 +1454,13 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         $R[[q]]$ of the space spanned by the conjugates of $f_i$,
         where $R$ is the base ring of self.
 
+        TODO: Implement this function.
+
+        EXAMPLES:
+            sage: M = ModularForms(11,2); M.decomposition()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -1039,6 +1478,16 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         Hecke operators of index dividing $N/M$.  (2) Since self can
         be an arbitrary submodule, there's no guarantee any $S(M,t)$ or
         $E(M,t)$ is in self, so the return list could be empty.
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4)
+            sage: N.newspaces()
+            [Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field,
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field]
+
         """
         V = self.embedded_submodule()
         return [self.__create_newspace(basis=B,level=M,t=t,is_cuspidal=is_cuspidal) \
@@ -1047,10 +1496,25 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
 
     def eisenstein_submodule(self):
-        if self.__is_eisenstein == True:
-            return self
-        if self.__eisenstein_submodule != None:
-            return self.__eisenstein_submodule
+        """
+        Return the Eisenstein submodule for this space of modular forms.
+
+        EXAMPLES:
+            sage: M = ModularForms(11,2)
+            sage: M.eisenstein_submodule()
+            Eisenstein subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
+        """
+        try:
+            if self.__is_eisenstein == True:
+                return self
+        except AttributeError:
+            pass
+        try:
+            if self.__eisenstein_submodule != None:
+                return self.__eisenstein_submodule
+        except AttributeError:
+            pass
+
         if self.is_ambient():
             # By definition the eisenstein submodule of the ambient space
             # is spanned by the n+1 through n+d standard basis vectors, where
@@ -1075,26 +1539,86 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             self.__is_eisenstein = True
         E.__is_cuspidal = (E.dimension()==0)
 
+    def eisenstein_subspace(self):
+        """
+        Synonym for eisenstein_submodule.
+
+        EXAMPLES:
+            sage: M = ModularForms(11,2)
+            sage: M.eisenstein_subspace()
+            Eisenstein subspace of dimension 1 of Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
+        """
+        return self.eisenstein_submodule()
+
     def embedded_submodule(self):
+        """
+        Return the underlying module of self.
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4)
+            sage: N.dimension()
+            5
+
+            sage: N.embedded_submodule()
+            Vector space of dimension 5 over Rational Field
+        """
         return self.free_module()
 
     def intersect(self, right):
+        """
+        If self and right live in the same ambient module, return
+        the intersection of self and right (as submodules).
+
+        EXAMPLES:
+            sage: N = ModularForms(6,4); S = N.cuspidal_subspace()
+
+            sage: N.intersect(S)
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+
+            sage: S.intersect(N)
+            Modular Forms subspace of dimension 1 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+
+            sage: S.intersect(N.eisenstein_subspace())
+            Modular Forms subspace of dimension 0 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(6) of weight 4 over Rational Field
+        """
+        from sage.modular.modform.all import ModularForms
         if self.ambient_module() != right.ambient_module():
             raise ArithmeticError, "Intersection of %s and %s not defined."%\
                                    (self, right)
-        V = self.embedded_submodule().intersect(right.embedded_submodule())
-        return ModularForms(self.ambient_module(),V)
+        V = self.embedded_submodule().intersection(right.embedded_submodule())
+##        return ModularForms(self.ambient_module(),V)
+        return self.span([ self(b) for b in V.basis() ])
 
-    def key(self):
-        if self.is_ambient():
-            return self.__key
-        return self.__ambient
+##    def _key(self):
+##        if self.is_ambient():
+##            return self.__key
+##        return self.__ambient
 
     def level(self):
+        """
+        Return the level of self.
+
+        EXAMPLES:
+            sage: M = ModularForms(47,3)
+            sage: M.level()
+            47
+        """
         return self.group().level()
 
     def modular_symbols(self, sign=0):
-        raise NotImplementedError
+        """
+        Return the space of modular symbols corresponding to self
+        with the given sign.
+
+        NOTE: This function should be overridden by all derived classes.
+
+        EXAMPLES:
+            sage: M = sage.modular.modform.space.ModularFormsSpace(Gamma0(11),2,DirichletGroup(1).0,base_ring=QQ) ; M.modular_symbols()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: computation of associated modular symbols space not yet implemented
+        """
+        raise NotImplementedError, "computation of associated modular symbols space not yet implemented"
 
     def find_in_space(self, f, forms=None, prec=None, indep=True):
         """
@@ -1114,8 +1638,23 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         NOTE: If the list of forms is given, they do *not*
         have to be in self.
+
+        EXAMPLES:
+            sage: M = ModularForms(11,2)
+            sage: N = ModularForms(10,2)
+            sage: M.find_in_space( M.basis()[0] )
+            [1, 0]
+
+            sage: M.find_in_space( N.basis()[0], forms=N.basis() )
+            [1, 0, 0]
+
+            sage: M.find_in_space( N.basis()[0] )
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: vector is not in free module
+
         """
-        if forms is None:
+        if forms is None or (forms == []):
             B = self._q_expansion_module()
             V = B.ambient_module()
             n = B.degree()
@@ -1123,7 +1662,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             if not isinstance(forms, (list, tuple)):
                 raise TypeError, "forms must be a list or tuple"
             if prec is None:
-                n = min([g.prec() for g in forms])
+                n = forms[0].parent().prec()
             else:
                 n = prec
             V = self.base_ring()**n
@@ -1139,6 +1678,17 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
 
 def contains_each(V, B):
+    """
+    Determine whether or not V contains every element of B. Used here
+    for linear algebra, but works very generally.
+
+    EXAMPLES:
+        sage: contains_each = sage.modular.modform.space.contains_each
+        sage: contains_each( range(20), prime_range(20) )
+        True
+        sage: contains_each( range(20), range(30) )
+        False
+    """
     for b in B:
         if not (b in V):
             return False

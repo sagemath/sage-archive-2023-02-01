@@ -432,7 +432,7 @@ class TateCurve(SageObject):
 
         p = self._p
 
-        # we will have to do it properly with David Harvey's _DivPolyContext(E, R, Q)
+        # we will have to do it properly with David Harvey's _multiply_point(E, R, Q)
         n = LCM(self._E.tamagawa_numbers()) * (p-1)
 
         def height(P,check=True):

@@ -7,7 +7,7 @@ from shapes2 import line3d
 from texture import Texture
 from sage.plot.misc import ensure_subs
 
-from sage.ext.fast_eval import fast_float
+from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
 
 def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
     r"""
@@ -334,17 +334,21 @@ def parametric_plot3d_curve(f, urange, plot_points, **kwds):
 
     if u is None:
         try:
-            f, u, v = adapt_if_symbolic(f)
+            f, (u,) = adapt_to_callable(f, 1)
         except TypeError:
             pass
 
-    if u is None:
-        f_x, f_y, f_z = f
+    else:
+        f = fast_float(f, u)
+
+    f_x, f_y, f_z = f
+    if u is None or all(is_fast_float(f_i) for f_i in f):
         for t in vals:
             try:
                 w.append((float(f_x(t)), float(f_y(t)), float(f_z(t))))
             except TypeError:
                 fail += 1
+
     else:
         f_x, f_y, f_z = [ensure_subs(m) for m in f]
         for t in vals:
@@ -370,28 +374,14 @@ def parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds):
     u, u_vals = var_and_list_of_values(urange, int(points0))
     v, v_vals = var_and_list_of_values(vrange, int(points1))
 
-    if u is None and v is None:
-        try:
-            f, u, v = adapt_if_symbolic(f)
-        except TypeError:
-            pass
-
     if u is None:
         if not v is None:
             raise ValueError, "both ranges must specify a variable or neither must"
+
         try:
-            # perhaps we can deduce the variable names from f
-            s = sum(f)
-            try:
-                vars = s.args()
-            except AttributeError:
-                vars = s.variables()
-            if len(vars) == 2:
-                f = [s.parent()(f_i) for f_i in f]
-                f = fast_float(f, *vars)
-        except (TypeError, AttributeError), e:
-            pass
-        g = tuple(f)
+            g, (u,v) = adapt_to_callable(f, 2)
+        except TypeError:
+            g = tuple(f)
 
     else:
         if v is None:
@@ -411,8 +401,6 @@ def adapt_if_symbolic(f):
     This function is used internally by the plot commands for
     efficiency reasons only.
     """
-    s = sum(f)
-
     from sage.calculus.calculus import is_SymbolicExpression, SR
     if sum([is_SymbolicExpression(a) for a in f]) > 0:
         g = [SR(a) for a in f]
@@ -429,3 +417,28 @@ def adapt_if_symbolic(f):
             g = [lambda x: float(a) for a in g]
             return g, None, None
 
+def adapt_to_callable(f, nargs=None):
+    """
+    Tries to make f into a (fast) callable function, returning
+    f and the number of expected arguments.
+    """
+    try:
+        s = sum(f) # get common universe
+        try:
+            # If s is callable, will return the arguments in the right order
+            vars = s.args()
+        except AttributeError:
+            # Otherwise any free variable names in any order
+            try:
+                vars = s.variables()
+            except AttributeError:
+                vars = ()
+                f = [fast_float_constant(x) for x in f]
+    except TypeError:
+        vars = ()
+        f = [fast_float_constant(x) for x in f]
+
+    if nargs is not None and len(vars) != nargs:
+        vars = (vars + ('_',)*nargs)[:nargs]
+
+    return fast_float(f, *vars), vars

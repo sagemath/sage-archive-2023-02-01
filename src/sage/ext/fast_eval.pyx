@@ -13,7 +13,6 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 include "stdsage.pxi"
 
 cdef extern from "Python.h":
@@ -380,6 +379,14 @@ cdef class FastDoubleFunc:
                 return 0
         return 1
 
+    def python_calls(self):
+        L = []
+        cdef int i
+        for i from 0 <= i < self.nops:
+            if self.ops[i].type == PY_FUNC:
+                L.append((<object>self.ops[i].params.func)[1])
+        return L
+
     def __add__(FastDoubleFunc left, FastDoubleFunc right):
         return binop(left, right, ADD)
 
@@ -554,7 +561,20 @@ def fast_float(f, *vars):
     if isinstance(f, (tuple, list)):
         return tuple([fast_float(x, *vars) for x in f])
 
-    vars = [str(v) for v in vars]
+    if PY_TYPE_CHECK(f, FastDoubleFunc):
+        if (<FastDoubleFunc>f).nargs > len(vars):
+            raise TypeError, "Not enough arguments."
+        else:
+            return f
+
+    cdef int i
+    for i from 0 <= i < len(vars):
+        if not PY_TYPE_CHECK(vars[i], str):
+            v = str(vars[i])
+            # inexact generators display as 1.00..0*x
+            if '*' in v:
+                v = v[v.index('*')+1:]
+            vars = vars[:i] + (v,) + vars[i+1:]
 
     try:
         return f._fast_float_(*vars)
@@ -567,7 +587,12 @@ def fast_float(f, *vars):
         pass
 
     try:
-        from sage.rings.calculus import SR
+        from sage.calculus.calculus import SR
         return SR(f)._fast_float_(*vars)
-    except:
-        return f
+    except TypeError:
+        pass
+
+    return f
+
+def is_fast_float(x):
+    return PY_TYPE_CHECK(x, FastDoubleFunc)

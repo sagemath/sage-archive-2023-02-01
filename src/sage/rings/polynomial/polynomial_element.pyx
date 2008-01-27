@@ -490,7 +490,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         elif var in vars:
             x = fast_float_arg(list(vars).index(var))
         else:
-            raise ValueError, "free variable: %s" % self._name
+            raise ValueError, "free variable: %s" % var
         cdef int i, d = self.degree()
         expr = x
         coeff = self[d]

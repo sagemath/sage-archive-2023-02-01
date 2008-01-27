@@ -111,28 +111,20 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
 
     We draw the "Sinus" function (water ripple-like surface):
         sage: x, y = var('x y')
-        sage: plot3d(sin(pi*((x)^2+(y)^2))/2,(x,-1,1),(y,-1,1))
+        sage: plot3d(sin(pi*(x^2+y^2))/2,(x,-1,1),(y,-1,1))
 
     Hill and valley (flat surface with a bump and a dent):
         sage: x, y = var('x y')
         sage: plot3d( 4*x*exp(-x^2-y^2), (x,-2,2), (y,-2,2))
     """
     if len(urange) == 2:
-        from parametric_plot3d import adapt_if_symbolic
         try:
-            f, u,v = adapt_if_symbolic((f,1,1))
-            f = f[0]
+            f, (u,v) = parametric_plot3d.adapt_to_callable(f, 2)
             w = (u, v, f)
             urange = (u, urange[0], urange[1])
             vrange = (v, vrange[0], vrange[1])
         except TypeError:
-            w = (lambda u,v: u, lambda u,v: v, f)
-            TOFIX:
-        try:
-            x, y = f.variables()
-        except (IndexError, AttributeError):
-            x, y = 'x','y'
-         w = (fast_float_arg(0), fast_float_arg(1), fast_float(f, str(x), str(y)))
+             w = (fast_float_arg(0), fast_float_arg(1), f)
     else:
         u = urange[0]
         v = vrange[0]

@@ -5093,7 +5093,7 @@ class SymbolicComposition(SymbolicOperation):
         try:
             return f(g)
         except TypeError:
-            if f == abs_symbolic:
+            if f is abs_symbolic:
                 return abs(g) # special case
             else:
                 return fast_float.fast_float_func(f, g)

@@ -364,7 +364,7 @@ class Function_arith(Function):
         r"""
         EXAMPLES:
             sage: latex(log2 * e + pi^2/2)
-            {e \cdot \log \left( 2 \right)} + \frac{{\pi}^{2} }{2}
+            {e \log \left( 2 \right)} + \frac{{\pi}^{2} }{2}
             sage: latex(NaN^3 + 1/golden_ratio)
             {\text{NaN}}^{3}  + \frac{2}{\sqrt{ 5 } + 1}
             sage: latex(log2 + euler_gamma + catalan + khinchin + twinprime + merten + brun)

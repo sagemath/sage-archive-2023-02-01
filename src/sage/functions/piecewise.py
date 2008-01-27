@@ -181,7 +181,7 @@ class PiecewisePolynomial:
             sage: P = Piecewise([[(0,1), f], [(1,3),g], [(3,5), h]])
             sage: latex(P)
             \begin{cases}
-            x \ {\mapsto}\ \sin \left( \frac{{\pi \cdot x}}{2} \right) &\text{on $(0, 1)$}\cr
+            x \ {\mapsto}\ \sin \left( \frac{{\pi x}}{2} \right) &\text{on $(0, 1)$}\cr
             x \ {\mapsto}\ 1 - {\left( x - 1 \right)}^{2}  &\text{on $(1, 3)$}\cr
             x \ {\mapsto}\ -x &\text{on  $(3, 5)$}
             \end{cases}

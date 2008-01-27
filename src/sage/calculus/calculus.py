@@ -4201,6 +4201,16 @@ class SymbolicArithmetic(SymbolicOperation):
             return '%s%s' % (symbols[op], s[0])
 
     def _latex_(self, simplify=True):
+        """
+        EXAMPLES:
+            sage: var('x,y')
+            (x, y)
+            sage: f=(x+y)*(x-y)*(x^2-2)*(y^2-3)
+            sage: latex(f)
+            {{{\left( {x}^{2}  - 2 \right) \left( x - y \right)} \left( y + x \right)} \left( {y}^{2}  - 3 \right)}
+            sage: latex(cos*(x+1))
+            {\left( x + 1 \right) \cos}
+        """
         # if we are not simplified, return the latex of a simplified version
         if simplify and not self.is_simplified():
             return self.simplify()._latex_()
@@ -4219,10 +4229,9 @@ class SymbolicArithmetic(SymbolicOperation):
         elif op is operator.sub:
             return '%s - %s' % (s[0], s[1])
         elif op is operator.mul:
-            if isinstance(ops[0], SymbolicArithmetic) and ops[0]._operator in [operator.add, operator.sub]:
-                s[0] = r'\left( %s \right)' %s[0]
-            if isinstance(ops[1], SymbolicArithmetic) and ops[1]._operator in [operator.add, operator.sub]:
-                s[1] = r'\left( %s \right)' %s[1]
+            for i in [0,1]:
+                if isinstance(ops[i], SymbolicArithmetic) and ops[i]._operator in [operator.add, operator.sub]:
+                    s[i] = r'\left( %s \right)' %s[i]
             return '{%s %s}' % (s[0], s[1])
             # used to be --> return '{%s \\cdot %s}' % (s[0], s[1])
         elif op is operator.div:

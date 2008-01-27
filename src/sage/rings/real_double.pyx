@@ -364,16 +364,18 @@ cdef class RealDoubleField_class(Field):
         """
         return self(0)/self(0)
 
-def new_RealDoubleElement():
-    cdef RealDoubleElement x
-    x = PY_NEW(RealDoubleElement)
-    return x
-
 cdef class RealDoubleElement(FieldElement):
     def __new__(self, x=None):
         (<Element>self)._parent = _RDF
 
     def __init__(self, x):
+        """
+        Create a new RealDoubleElement with value x.
+
+        EXAMPLES:
+            sage: RDF(10^100)
+            1e+100
+        """
         self._value = float(x)
 
     def __reduce__(self):

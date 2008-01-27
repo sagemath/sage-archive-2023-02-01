@@ -39,9 +39,6 @@ import operator
 include '../../ext/interrupt.pxi'
 include '../../ext/python_int.pxi'
 include "../../ext/stdsage.pxi"
-cdef extern from *:
-    # TODO: move to stdsage.pxi
-    object PY_NEW_SAME_TYPE(object o)
 
 import sage.rings.field_element
 import sage.rings.infinity

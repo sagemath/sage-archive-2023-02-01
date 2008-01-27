@@ -595,6 +595,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         INPUT:
             self -- a mutable matrix
             algorithm -- 'm4ri' -- uses M4RI (default)
+                         'classical' -- uses classical Gaussian elimination
             k --  the parameter 'k' of the M4RI algorithm. It MUST be between
                   1 and 16 (inclusive). If it is not specified it will be calculated as
                   3/4 * log_2( min(nrows, ncols) ) as suggested in the M4RI paper.
@@ -621,8 +622,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
              Basis matrix:
              []
 
-        ALGORITHM: Uses Gregory Bard's M4RI algorithm and implementation or
-                   LinBox.
+        ALGORITHM: Uses Gregory Bard's M4RI algorithm and implementation
 
         REFERENCES:
             [Bard06] G. Bard. 'Accelerating Cryptanalysis with the Method of Four Russians'. Cryptography

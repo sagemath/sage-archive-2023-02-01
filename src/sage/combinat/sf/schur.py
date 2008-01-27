@@ -1,0 +1,223 @@
+"""
+Schur symmetric functions
+"""
+#*****************************************************************************
+#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+import sfa, classical, dual
+import sage.libs.symmetrica.all as symmetrica
+from sage.rings.all import ZZ, QQ, Integer, PolynomialRing
+
+class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classical):
+    def __init__(self, R):
+        """
+        TESTS:
+            sage: s = SFASchur(QQ)
+            sage: s == loads(dumps(s))
+            True
+        """
+        classical.SymmetricFunctionAlgebra_classical.__init__(self, R, "schur", SymmetricFunctionAlgebraElement_schur, 's')
+
+    def is_schur_basis(self):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s.is_schur_basis()
+            True
+        """
+        return True
+
+    def dual_basis(self, scalar=None, prefix=None):
+        """
+        The dual basis to the Schur basis with respect to
+        the standard scalar product is the Schur basis since
+        it is self-dual.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: ds = s.dual_basis()
+            sage: s is ds
+            True
+        """
+        if scalar is None:
+            return self
+        else:
+            return dual.SymmetricFunctionAlgebra_dual(self, scalar, prefix=None)
+
+
+    def _multiply(self, left, right):
+        """
+        TESTS:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1]) + 1; a
+            s[] + s[2, 1]
+            sage: a^2
+            s[] + 2*s[2, 1] + s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
+
+            sage: QQx.<x> = QQ[]
+            sage: s = SFASchur(QQx)
+            sage: a = x^2*s([2,1]) + 2*x; a
+            2*x*s[] + x^2*s[2, 1]
+            sage: a^2
+            4*x^2*s[] + 4*x^3*s[2, 1] + x^4*s[2, 2, 1, 1] + x^4*s[2, 2, 2] + x^4*s[3, 1, 1, 1] + 2*x^4*s[3, 2, 1] + x^4*s[3, 3] + x^4*s[4, 1, 1] + x^4*s[4, 2]
+
+            sage: len(s([2,1])^8) #long
+            1485
+            sage: len(s([2,1])^9) #long
+            2876
+        """
+        #Use symmetrica to do the multiplication
+        A = left.parent()
+        R = A.base_ring()
+
+        if  R is ZZ or R is QQ:
+            return symmetrica.mult_schur_schur(left, right)
+
+        z_elt = {}
+        for (left_m, left_c) in left._monomial_coefficients.iteritems():
+            for (right_m, right_c) in right._monomial_coefficients.iteritems():
+                d = symmetrica.mult_schur_schur({left_m:Integer(1)}, {right_m:Integer(1)})._monomial_coefficients
+                for m in d:
+                    if m in z_elt:
+                        z_elt[ m ] = z_elt[m] + left_c * right_c * d[m]
+                    else:
+                        z_elt[ m ] = left_c * right_c * d[m]
+        z = A(Integer(0))
+        z._monomial_coefficients = z_elt
+        return z
+
+class SymmetricFunctionAlgebraElement_schur(classical.SymmetricFunctionAlgebraElement_classical):
+    def frobenius(self):
+        """
+        Returns the image of self under the Frobenius / omega automorphism.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1]); a
+            s[2, 1]
+            sage: a.frobenius()
+            s[2, 1]
+            sage: a.omega()
+            s[2, 1]
+
+            sage: a = s([2,1,1])
+            sage: a.omega()
+            s[3, 1]
+        """
+        parent = self.parent()
+        z = {}
+        mcs = self.monomial_coefficients()
+        for part in mcs:
+            z[part.conjugate()] = mcs[part]
+        res = parent(0)
+        res._monomial_coefficients = z
+        return res
+
+
+    def scalar(self, x):
+        """
+        Returns the standard scalar product between self and x.
+
+        Note that the Schur functions are self-dual with respect
+        to this scalar product. They are also lower-triangularly
+        related to the monomial symmetric functions with respect
+        to this scalar product.
+
+        EXAMPLES:
+            sage: s = SFASchur(ZZ)
+            sage: a = s([2,1])
+            sage: b = s([1,1,1])
+            sage: c = 2*s([1,1,1])
+            sage: d = a + b
+            sage: a.scalar(a)
+            1
+            sage: b.scalar(b)
+            1
+            sage: b.scalar(a)
+            0
+            sage: b.scalar(c)
+            2
+            sage: c.scalar(c)
+            4
+            sage: d.scalar(a)
+            1
+            sage: d.scalar(b)
+            1
+            sage: d.scalar(c)
+            2
+
+            sage: m = SFAMonomial(ZZ)
+            sage: p4 = Partitions(4)
+            sage: l = [ [s(p).scalar(m(q)) for q in p4] for p in p4]
+            sage: matrix(l)
+            [ 1  0  0  0  0]
+            [-1  1  0  0  0]
+            [ 0 -1  1  0  0]
+            [ 1 -1 -1  1  0]
+            [-1  2  1 -3  1]
+        """
+        R = self.parent().base_ring()
+
+        if self.parent() != x.parent():
+            try:
+                x = self.parent()( x )
+            except:
+                raise TypeError, "cannot compute the scalar product of self and x (= %s)"%x
+
+        if len(self) < len(x):
+            smaller = self
+            greater = x
+        else:
+            smaller = x
+            greater = self
+
+        res = R(0)
+        smcs = smaller._monomial_coefficients
+        gmcs = greater._monomial_coefficients
+        for s_part in smcs :
+            if s_part in gmcs:
+                res += smcs[s_part]*gmcs[s_part]
+
+        return res
+
+    def expand(self, n, alphabet='x'):
+        """
+        Expands the symmetric function as a symmetric polynomial in n variables.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1])
+            sage: a.expand(2)
+            x0^2*x1 + x0*x1^2
+            sage: a.expand(3)
+            x0^2*x1 + x0*x1^2 + x0^2*x2 + 2*x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2
+            sage: a.expand(4)
+            x0^2*x1 + x0*x1^2 + x0^2*x2 + 2*x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2 + x0^2*x3 + 2*x0*x1*x3 + x1^2*x3 + 2*x0*x2*x3 + 2*x1*x2*x3 + x2^2*x3 + x0*x3^2 + x1*x3^2 + x2*x3^2
+            sage: a.expand(2, alphabet='y')
+            y0^2*y1 + y0*y1^2
+            sage: a.expand(2, alphabet=['a','b'])
+            a^2*b + a*b^2
+            sage: s([1,1,1,1]).expand(3)
+            0
+        """
+        e = eval('symmetrica.compute_' + str(classical.translate[self.parent().basis_name()]).lower() + '_with_alphabet')
+        resPR = PolynomialRing(self.parent().base_ring(), n, alphabet)
+        res = resPR(0)
+        self_mc = self._monomial_coefficients
+        for part in self_mc:
+            if len(part) > n:
+                continue
+            res += self_mc[part] * resPR(e(part, n, alphabet))
+        return res
+

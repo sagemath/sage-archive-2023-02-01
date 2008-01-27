@@ -211,6 +211,34 @@ class Gp(Expect):
         else:
             return a
 
+    def cputime(self, t=None):
+        """
+        cputime for pari -- cputime since the pari process was started.
+
+        INPUT:
+            t -- (default: None); if not None, then returns time since t
+
+        WARNING: If you call gettime explicitly, e.g., gp.eval('gettime'), you
+        will throw off this clock.
+
+        EXAMPLES:
+            sage: gp.cputime()          # random output
+            0.0080000000000000002
+            sage: gp.factor('2^157-1')
+            [852133201, 1; 60726444167, 1; 1654058017289, 1; 2134387368610417, 1]
+            sage: gp.cputime()          # random output
+            0.26900000000000002
+        """
+        try:
+            tm = self._last
+        except AttributeError:
+            tm = 0.0
+        m = eval(self.eval('gettime()/1000.0')) + tm
+        self._last = m
+        if t:
+            return m - t
+        return m
+
     def read(self, filename):
         s = self.eval('read("%s")'%filename)
         if 'error' in s:

@@ -24,6 +24,10 @@ from sage.structure.sequence import Sequence
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.integer_ring import ZZ
+from sage.misc.misc_c import running_total
+from matrix import is_Matrix
+
+import sage.categories.pushout
 
 def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
     """
@@ -589,3 +593,172 @@ def identity_matrix(ring, n=0):
         n = ring
         ring = rings.ZZ
     return matrix_space.MatrixSpace(ring, n, n).identity_matrix()
+
+
+def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):
+    """
+    Returns a larger matrix made by concatinating the sub_matrices
+    (rows first, then columns). For example, the matrix
+
+        [ A B ]
+        [ C D ]
+
+    is made up of submatrices A, B, C, and D.
+
+    INPUT:
+        sub_matrices -- matrices (must be of the correct size, or constants)
+        nrows         -- (optional) the number of block rows
+        ncols         -- (optional) the number of block cols
+        subdivide    -- boolean, whether or not to add
+                        subdivision information to the matrix
+
+    EXAMPLES:
+        sage: A = matrix(QQ, 2, 2, [3,9,6,10])
+        sage: block_matrix([A, -A, ~A, 100*A])
+        [    3     9|   -3    -9]
+        [    6    10|   -6   -10]
+        [-----------+-----------]
+        [-5/12   3/8|  300   900]
+        [  1/4  -1/8|  600  1000]
+
+    One can use constant entries:
+        sage: block_matrix([1, A, 0, 1])
+        [ 1  0| 3  9]
+        [ 0  1| 6 10]
+        [-----+-----]
+        [ 0  0| 1  0]
+        [ 0  0| 0  1]
+
+    One can specify the number of rows or columns (optional for square number of matrices):
+        sage: block_matrix([A, -A, ~A, 100*A], ncols=4)
+        [    3     9|   -3    -9|-5/12   3/8|  300   900]
+        [    6    10|   -6   -10|  1/4  -1/8|  600  1000]
+
+        sage: block_matrix([A, -A, ~A, 100*A], nrows=1)
+        [    3     9|   -3    -9|-5/12   3/8|  300   900]
+        [    6    10|   -6   -10|  1/4  -1/8|  600  1000]
+
+    It handle baserings nicely too:
+        sage: R.<x> = ZZ['x']
+        sage: block_matrix([1/2, A, 0, x-1])
+        [  1/2     0|    3     9]
+        [    0   1/2|    6    10]
+        [-----------+-----------]
+        [    0     0|x - 1     0]
+        [    0     0|    0 x - 1]
+        sage: block_matrix([1/2, A, 0, x-1]).parent()
+        Full MatrixSpace of 4 by 4 dense matrices over Univariate Polynomial Ring in x over Rational Field
+
+    Subdivisions are optional:
+        sage: B = matrix(QQ, 2, 3, range(6))
+        sage: block_matrix([~A, B, B, ~A], subdivide=False)
+        [-5/12   3/8     0     1     2]
+        [  1/4  -1/8     3     4     5]
+        [    0     1     2 -5/12   3/8]
+        [    3     4     5   1/4  -1/8]
+    """
+    # determine the block dimensions
+    n = ZZ(len(sub_matrices))
+    if nrows is None:
+        if ncols is None:
+            if n.is_square():
+                nrows = ncols = n.sqrt()
+            else:
+                raise ValueError, "Must specify rows or cols for non-square block matrix."
+        else:
+            nrows = int(n/ncols)
+    elif ncols is None:
+        ncols = int(n/nrows)
+    if nrows * ncols != n:
+        raise ValueError, "Given number of rows (%s), columns (%s) incompatable with number of submatrices (%s)" % (nrows, ncols, n)
+
+    # determine the sub-block dimensions
+    row_heights = [None] * nrows
+    col_widths = [None] * ncols
+    for i in range(nrows):
+        for j in range(0, ncols):
+            M = sub_matrices[i*ncols+j]
+            if is_Matrix(M):
+                if row_heights[i] is None:
+                    row_heights[i] = M.nrows()
+                if col_widths[j] is None:
+                    col_widths[j] = M.ncols()
+
+    if None in row_heights or None in col_widths:
+        for i in range(nrows):
+            for j in range(0, ncols):
+                x = sub_matrices[i*ncols+j]
+                if not is_Matrix(x) and x: # must be square matrix
+                    if row_heights[i] is None:
+                        row_heights[i] = col_widths[j]
+                    if col_widths[j] is None:
+                        col_widths[j] = row_heights[i]
+
+        if None in row_heights or None in col_widths:
+            raise ValueError, "Insufficient information to determine dimensions."
+
+    # determine the base ring
+    base = ZZ
+    for M in sub_matrices:
+        R = M.base_ring() if is_Matrix(M) else M.parent()
+        if R is not ZZ:
+            base = sage.categories.pushout.pushout(base, R)
+
+    # finally concatinate
+    for i in range(nrows):
+        for j in range(ncols):
+            # coerce
+            M = sub_matrices[i*ncols+j]
+            if is_Matrix(M):
+                if M.base_ring() is not base:
+                    M = M.change_ring(base)
+            else:
+                M = matrix(base, row_heights[i], col_widths[j], M)
+            # append
+            if j == 0:
+                row = M
+            else:
+                row = row.augment(M)
+        if i == 0:
+            big = row
+        else:
+            big = big.stack(row)
+
+    if subdivide:
+        big.subdivide(running_total(row_heights[:-1]),
+                      running_total(col_widths[:-1]))
+
+    return big
+
+def block_diagonal_matrix(*sub_matrices, **kwds):
+    """
+    Create a block matrix whose diagonal block entries are given by sub_matrices,
+    with zero elsewhere.
+
+    See also \code{block_matrix}.
+
+    EXAMPLES:
+        sage: A = matrix(ZZ, 2, [1,2,3,4])
+        sage: block_diagonal_matrix(A, A)
+        [1 2|0 0]
+        [3 4|0 0]
+        [---+---]
+        [0 0|1 2]
+        [0 0|3 4]
+
+    The sub-matrices need not be square:
+        sage: B = matrix(QQ, 2, 3, range(6))
+        sage: block_diagonal_matrix(~A, B)
+        [  -2    1|   0    0    0]
+        [ 3/2 -1/2|   0    0    0]
+        [---------+--------------]
+        [   0    0|   0    1    2]
+        [   0    0|   3    4    5]
+    """
+    if isinstance(sub_matrices, (list, tuple)) and len(sub_matrices) == 1:
+        sub_matrices = sub_matrices[0]
+    n = len(sub_matrices)
+    entries = [ZZ.zero_element()] * n**2
+    for i in range(n):
+        entries[n*i+i] = sub_matrices[i]
+    return block_matrix(entries, **kwds)

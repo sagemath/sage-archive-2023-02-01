@@ -679,9 +679,11 @@ cdef class PartitionStack:
 
     """
     def __new__(self, arg1, arg2=None):
-        cdef int k, nwords, ncols
+        cdef int k, nwords, ncols, sizeof_int
         cdef PartitionStack other
         cdef int *wd_ents, *wd_lvls, *col_ents, *col_lvls
+        cdef int *col_degs, *col_counts, *col_output, *wd_degs, *wd_counts, *wd_output
+        sizeof_int = sizeof(int)
 
         try:
             self.nrows = int(arg1)
@@ -693,22 +695,22 @@ cdef class PartitionStack:
             self.nwords = other.nwords
             self.ncols = other.ncols
 
-        self.radix = 8*sizeof(int)
+        self.radix = sizeof_int << 3
         self.flag = (1 << (self.radix-1))
 
         # data
-        self.wd_ents =    <int *> sage_malloc( self.nwords * sizeof(int) )
-        self.wd_lvls =    <int *> sage_malloc( self.nwords * sizeof(int) )
-        self.col_ents =   <int *> sage_malloc( self.ncols  * sizeof(int) )
-        self.col_lvls =   <int *> sage_malloc( self.ncols  * sizeof(int) )
+        self.wd_ents =    <int *> sage_malloc( self.nwords * sizeof_int )
+        self.wd_lvls =    <int *> sage_malloc( self.nwords * sizeof_int )
+        self.col_ents =   <int *> sage_malloc( self.ncols  * sizeof_int )
+        self.col_lvls =   <int *> sage_malloc( self.ncols  * sizeof_int )
 
         # scratch space
-        self.col_degs =   <int *> sage_malloc( self.ncols  * sizeof(int) )
-        self.col_counts = <int *> sage_malloc( self.nwords * sizeof(int) )
-        self.col_output = <int *> sage_malloc( self.ncols  * sizeof(int) )
-        self.wd_degs =    <int *> sage_malloc( self.nwords * sizeof(int) )
-        self.wd_counts =  <int *> sage_malloc( (self.ncols+1)  * sizeof(int) )
-        self.wd_output =  <int *> sage_malloc( self.nwords * sizeof(int) )
+        self.col_degs =   <int *> sage_malloc( self.ncols  * sizeof_int )
+        self.col_counts = <int *> sage_malloc( self.nwords * sizeof_int )
+        self.col_output = <int *> sage_malloc( self.ncols  * sizeof_int )
+        self.wd_degs =    <int *> sage_malloc( self.nwords * sizeof_int )
+        self.wd_counts =  <int *> sage_malloc( (self.ncols+1)  * sizeof_int )
+        self.wd_output =  <int *> sage_malloc( self.nwords * sizeof_int )
 
         if not (self.wd_ents  and self.wd_lvls    and self.col_ents   and self.col_lvls  \
             and self.col_degs and self.col_counts and self.col_output \
@@ -725,18 +727,19 @@ cdef class PartitionStack:
             if self.wd_output:       sage_free(self.wd_output)
             raise MemoryError("Memory.")
 
+        nwords = self.nwords
+        ncols = self.ncols
+
         if other:
-            memcpy(self.wd_ents,  other.wd_ents, self.nwords*(self.radix>>3))
-            memcpy(self.wd_lvls,  other.wd_lvls, self.nwords*(self.radix>>3))
-            memcpy(self.col_ents, other.col_ents, self.ncols*(self.radix>>3))
-            memcpy(self.col_lvls, other.col_lvls, self.ncols*(self.radix>>3))
+            memcpy(self.wd_ents,  other.wd_ents, self.nwords * sizeof_int)
+            memcpy(self.wd_lvls,  other.wd_lvls, self.nwords * sizeof_int)
+            memcpy(self.col_ents, other.col_ents, self.ncols * sizeof_int)
+            memcpy(self.col_lvls, other.col_lvls, self.ncols * sizeof_int)
         else:
             wd_ents = self.wd_ents
             wd_lvls = self.wd_lvls
             col_ents = self.col_ents
             col_lvls = self.col_lvls
-            nwords = self.nwords
-            ncols = self.ncols
             for k from 0 <= k < nwords-1:
                 wd_ents[k] = k
                 wd_lvls[k] = 2*ncols
@@ -747,6 +750,22 @@ cdef class PartitionStack:
             wd_lvls[nwords-1] = -1
             col_ents[ncols-1] = ncols-1
             col_lvls[ncols-1] = -1
+
+        col_degs = self.col_degs
+        col_counts = self.col_counts
+        col_output = self.col_output
+        wd_degs = self.wd_degs
+        wd_counts = self.wd_counts
+        wd_output = self.wd_output
+        for k from 0 <= k < ncols:
+            col_degs[k]=0
+            col_output[k]=0
+            wd_counts[k]=0
+        wd_counts[ncols]=0
+        for k from 0 <= k < nwords:
+            col_counts[k]=0
+            wd_degs[k]=0
+            wd_output[k]=0
 
     def __dealloc__(self):
         if self.basis_locations: sage_free(self.basis_locations)
@@ -769,20 +788,20 @@ cdef class PartitionStack:
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6)
-            sage: P.print_data() # random - actually "print P.print_data()"
-            nwords: 4
-            nrows: 2
-            ncols: 6
-            radix: 32
+            sage: print P.print_data()
+            nwords:4
+            nrows:2
+            ncols:6
+            radix:32
             wd_ents:
             0
             1
             2
             3
             wd_lvls:
-            4
-            4
-            4
+            12
+            12
+            12
             -1
             col_ents:
             0
@@ -792,48 +811,49 @@ cdef class PartitionStack:
             4
             5
             col_lvls:
-            6
-            6
-            6
-            6
-            6
+            12
+            12
+            12
+            12
+            12
             -1
             col_degs:
-            -1209339024
-            145606688
-            135493408
-            3
-            -1210787264
-            -1210787232
+            0
+            0
+            0
+            0
+            0
+            0
             col_counts:
-            -1209339024
-            145666744
-            40129536
-            21248
+            0
+            0
+            0
+            0
             col_output:
-            -1209339024
-            145654064
+            0
+            0
             0
             0
             0
             0
             wd_degs:
-            -1209339024
-            145166112
-            16
-            3
+            0
+            0
+            0
+            0
             wd_counts:
-            -1209339024
-            146261160
+            0
+            0
+            0
             0
             0
             0
             0
             wd_output:
-            -1209339024
-            146424680
-            135508928
-            3
+            0
+            0
+            0
+            0
 
         """
         cdef int i, j
@@ -867,7 +887,7 @@ cdef class PartitionStack:
         for i from 0 <= i < self.nwords:
             s += str(self.wd_degs[i]) + '\n'
         s += "wd_counts:" + '\n'
-        for i from 0 <= i < self.ncols:
+        for i from 0 <= i < self.ncols + 1:
             s += str(self.wd_counts[i]) + '\n'
         s += "wd_output:" + '\n'
         for i from 0 <= i < self.nwords:

@@ -35,13 +35,15 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
     INPUT:
         k -- even positive integer
         prec -- nonnegative integer
-        K -- a ring in which B_k/(2*k) is invertible
+        K -- a ring in which -(2*k)/B_k is invertible
 
     EXAMPLES:
         sage: eisenstein_series_qexp(2,5)
         -1/24 + q + 3*q^2 + 4*q^3 + 7*q^4 + O(q^5)
         sage: eisenstein_series_qexp(2,0)
         O(q^0)
+        sage: eisenstein_series_qexp(2,5,GF(7))
+        2 + q + 3*q^2 + 4*q^3 + O(q^5)
 
     AUTHORS:
         -- William Stein: original implementation
@@ -61,6 +63,12 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
     val = [one] * prec
     expt = k - one
 
+    try:
+        a0inv = - (2*k) / bernoulli(k)
+        a0 = K(1/a0inv)
+    except ZeroDivisionError:
+        raise ValueError, "-(2*k)/B_k (=%s) must be invertible in the ring K"%a0inv
+
     for p in prime_range(1,prec):
 
         int_p = int(p)
@@ -79,13 +87,27 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
             last = term
             term *= mult
 
-    val[0] = -bernoulli(k) / (2*k)
-    R = QQ[['q']]
+    val[0] = a0
+    R = K[['q']]
     return R(val, prec=prec, check=False)
 
 ######################################################################
 
 def __common_minimal_basering(chi, psi):
+    """
+    Find the smallest basering over which chi and psi are valued, and
+    return new chi and psi valued in that ring.
+
+    EXAMPLES:
+        sage: sage.modular.modform.eis_series.__common_minimal_basering(DirichletGroup(1).0, DirichletGroup(1).0)
+        ([1], [1])
+
+        sage: sage.modular.modform.eis_series.__common_minimal_basering(DirichletGroup(3).0, DirichletGroup(5).0)
+        ([-1], [zeta4])
+
+        sage: sage.modular.modform.eis_series.__common_minimal_basering(DirichletGroup(12).0, DirichletGroup(36).0)
+        ([-1, 1], [-1, 1])
+    """
     chi = chi.minimize_base_ring()
     psi = psi.minimize_base_ring()
     n = LCM(chi.base_ring().zeta().multiplicative_order(),\
@@ -103,6 +125,24 @@ def __common_minimal_basering(chi, psi):
 #    return eps.primitive_character()
 
 def __find_eisen_chars(character, k):
+    """
+    Find all characters chi such that (chi,k) gives rise to
+    Eisenstein series for the group determined by character.
+
+    EXAMPLES:
+        sage: sage.modular.modform.eis_series.__find_eisen_chars(DirichletGroup(36).0, 4)
+        []
+
+        sage: sage.modular.modform.eis_series.__find_eisen_chars(DirichletGroup(36).0, 5)
+        [([1, 1], [-1, 1], 1),
+        ([1, 1], [-1, 1], 3),
+        ([1, 1], [-1, 1], 9),
+        ([1, -1], [-1, -1], 1),
+        ([-1, 1], [1, 1], 1),
+        ([-1, 1], [1, 1], 3),
+        ([-1, 1], [1, 1], 9),
+        ([-1, -1], [1, -1], 1)]
+    """
     N = character.modulus()
     if character.is_trivial():
         if k%2 != 0:
@@ -175,6 +215,35 @@ def __find_eisen_chars(character, k):
 
 
 def __find_eisen_chars_gamma1(N, k):
+    """
+    Find all characters chi such that (chi,k) gives rise to
+    Eisenstein series for Gamma1(N).
+
+    EXAMPLES:
+        sage: sage.modular.modform.eis_series.__find_eisen_chars_gamma1(12, 4)
+        [([1, 1], [1, 1], 1),
+        ([1, 1], [1, 1], 2),
+        ([1, 1], [1, 1], 3),
+        ([1, 1], [1, 1], 4),
+        ([1, 1], [1, 1], 6),
+        ([1, 1], [1, 1], 12),
+        ([1, 1], [-1, -1], 1),
+        ([-1, -1], [1, 1], 1),
+        ([-1, 1], [1, -1], 1),
+        ([1, -1], [-1, 1], 1)]
+
+        sage: sage.modular.modform.eis_series.__find_eisen_chars_gamma1(12, 5)
+        [([1, 1], [-1, 1], 1),
+        ([1, 1], [-1, 1], 3),
+        ([-1, 1], [1, 1], 1),
+        ([-1, 1], [1, 1], 3),
+        ([1, 1], [1, -1], 1),
+        ([1, 1], [1, -1], 2),
+        ([1, 1], [1, -1], 4),
+        ([1, -1], [1, 1], 1),
+        ([1, -1], [1, 1], 2),
+        ([1, -1], [1, 1], 4)]
+    """
     pairs = []
     s = (-1)**k
     G = dirichlet.DirichletGroup(N)
@@ -260,8 +329,21 @@ def compute_eisenstein_params(character, k):
     If character is an integer $N$, then the parameters for
     $\Gamma_1(N)$ are computed instead.  Then the condition is that
     $\chi(-1)*\psi(-1) =(-1)^k$.
-    """
 
+    EXAMPLES:
+        sage: sage.modular.modform.eis_series.compute_eisenstein_params(DirichletGroup(30).0, 3)
+        []
+
+        sage: sage.modular.modform.eis_series.compute_eisenstein_params(DirichletGroup(30).0, 4)
+        [([1, 1, 1], [1, 1, 1], 1),
+        ([1, 1, 1], [1, 1, 1], 2),
+        ([1, 1, 1], [1, 1, 1], 3),
+        ([1, 1, 1], [1, 1, 1], 5),
+        ([1, 1, 1], [1, 1, 1], 6),
+        ([1, 1, 1], [1, 1, 1], 10),
+        ([1, 1, 1], [1, 1, 1], 15),
+        ([1, 1, 1], [1, 1, 1], 30)]
+    """
     if isinstance(character, (int,long,Integer)):
         N = character
         character = None

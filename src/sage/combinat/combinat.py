@@ -548,6 +548,7 @@ def mod_stirling(q,n,k):
 class CombinatorialObject(SageObject):
     def __init__(self, l):
         self.list = l
+        self._hash = None
 
     def __str__(self):
         return str(self.list)
@@ -595,7 +596,9 @@ class CombinatorialObject(SageObject):
         return self.list + other
 
     def __hash__(self):
-        return str(self.list).__hash__()
+        if self._hash is None:
+            self._hash = str(self.list).__hash__()
+        return self._hash
 
     #def __cmp__(self, other):
     #    return self.list.__cmp__(other)

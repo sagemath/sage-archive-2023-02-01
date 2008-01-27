@@ -1,5 +1,9 @@
 r"""
 Kostka-Foulkes Polynomials
+
+
+Based on the algorithms in John Stembridge's SF package for Maple which
+can be found at http://www.math.lsa.umich.edu/~jrs/maple.html .
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -17,7 +21,7 @@ Kostka-Foulkes Polynomials
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from partition import Partitions_n, Partition_class, Partition, Partitions_all
+import sage.combinat.partition
 from sage.rings.all import PolynomialRing, ZZ
 
 global_t = PolynomialRing(ZZ, 't').gen()
@@ -32,16 +36,16 @@ def KostkaFoulkesPolynomial(mu, nu, t=None):
         sage: KostkaFoulkesPolynomial([2,2],[4])
         0
         sage: KostkaFoulkesPolynomial([2,2],[1,1,1,1])
-        t^6 + t^5 + t^4 + t^2
+        t^4 + t^2
         sage: KostkaFoulkesPolynomial([2,2],[2,1,1])
-        t^2 + t
+        t
         sage: q = PolynomialRing(QQ,'q').gen()
         sage: KostkaFoulkesPolynomial([2,2],[2,1,1],q)
-        q^2 + q
+        q
     """
-    if mu not in Partitions_all():
+    if mu not in sage.combinat.partition.Partitions_all():
         raise ValueError, "mu must be a partition"
-    if nu not in Partitions_all():
+    if nu not in sage.combinat.partition.Partitions_all():
         raise ValueError, "nu must be a partition"
 
     if sum(mu) != sum(nu):
@@ -63,7 +67,7 @@ def kfpoly(mu, nu, t=None):
     if t is None:
         t = global_t
 
-    nuc = Partition(nu).conjugate()
+    nuc = sage.combinat.partition.Partition(nu).conjugate()
 
     def f(x):
         if x[0] == nuc:
@@ -80,7 +84,7 @@ def schur_to_hl(mu, t=None):
     P basis.
 
     EXAMPLES:
-        sage: from sage.combinat.kfpoly import *
+        sage: from sage.combinat.sf.kfpoly import *
         sage: schur_to_hl([1,1,1])
         {[1, 1, 1]: 1}
         sage: a = schur_to_hl([2,1])
@@ -89,29 +93,63 @@ def schur_to_hl(mu, t=None):
         [2, 1] 1
         sage: a = schur_to_hl([3])
         sage: for m,c in sorted(a.iteritems()): print m, c
-        [1, 1, 1] t^3 + 1
+        [1, 1, 1] t^3
         [2, 1] t
         [3] 1
+        sage: a = schur_to_hl([4])
+        sage: for m,c in sorted(a.iteritems()): print m, c
+        [1, 1, 1, 1] t^6
+        [2, 1, 1] t^3
+        [2, 2] t^2
+        [3, 1] t
+        [4] 1
+        sage: a = schur_to_hl([3,1])
+        sage: for m,c in sorted(a.iteritems()): print m, c
+        [1, 1, 1, 1] t^5 + t^4 + t^3
+        [2, 1, 1] t^2 + t
+        [2, 2] t
+        [3, 1] 1
+        sage: a = schur_to_hl([2,2])
+        sage: for m,c in sorted(a.iteritems()): print m, c
+        [1, 1, 1, 1] t^4 + t^2
+        [2, 1, 1] t
+        [2, 2] 1
+        sage: a = schur_to_hl([2,1,1])
+        sage: for m,c in sorted(a.iteritems()): print m, c
+        [1, 1, 1, 1] t^3 + t^2 + t
+        [2, 1, 1] 1
+        sage: a = schur_to_hl([1,1,1,1])
+        sage: for m,c in sorted(a.iteritems()): print m, c
+        [1, 1, 1, 1] 1
+        sage: a = schur_to_hl([2,2,2])
+        sage: for m,c in sorted(a.iteritems()): print m, c
+        [1, 1, 1, 1, 1, 1] t^9 + t^7 + t^6 + t^5 + t^3
+        [2, 1, 1, 1, 1] t^4 + t^2
+        [2, 2, 1, 1] t
+        [2, 2, 2] 1
 
     """
     if mu == []:
-        return mu
+        return {mu: 1}
     if t is None:
         t = global_t
 
     res = {}
     for rg in riggings(mu):
-        res[ rg[0].conjugate() ] = res.get(rg[0], 0) + weight(rg, t)
+        res[ rg[0] ] = res.get(rg[0], 0) + weight(rg, t)
 
-    return res
+    d = {}
+    for key in res:
+        d[ key.conjugate() ] = res[key]
+    return d
 
 def riggings(part):
     """
     Generate all possible rigging sequences for a
-    fixed partition.
+    fixed sage.combinat.partition.
 
     EXAMPLES:
-        sage: from sage.combinat.kfpoly import *
+        sage: from sage.combinat.sf.kfpoly import *
         sage: riggings([3])
         [[[1, 1, 1]], [[2, 1]], [[3]]]
         sage: riggings([2,1])
@@ -120,6 +158,14 @@ def riggings(part):
         [[[3], [2], [1]]]
         sage: riggings([2,2])
         [[[2, 2], [1, 1]], [[3, 1], [1, 1]], [[4], [1, 1]], [[4], [2]]]
+        sage: riggings([2,2,2])
+        [[[3, 3], [2, 2], [1, 1]],
+         [[4, 2], [2, 2], [1, 1]],
+         [[5, 1], [2, 2], [1, 1]],
+         [[6], [2, 2], [1, 1]],
+         [[5, 1], [3, 1], [1, 1]],
+         [[6], [3, 1], [1, 1]],
+         [[6], [4], [2]]]
     """
     l = len(part)
     res = [ [[],[]] ]
@@ -140,7 +186,7 @@ def compat(n, mu, nu):
     precede mu,nu in a rigging sequence.
 
     EXAMPLES:
-        sage: from sage.combinat.kfpoly import *
+        sage: from sage.combinat.sf.kfpoly import *
         sage: compat(4, [1], [2,1])
         [[1, 1, 1, 1], [2, 1, 1], [2, 2], [3, 1], [4]]
         sage: compat(3, [1], [2,1])
@@ -157,7 +203,7 @@ def compat(n, mu, nu):
         [[4]]
 
     """
-    sp = map(lambda p: p.conjugate(),Partitions_n(n))
+    sp = map(lambda p: p.conjugate(),sage.combinat.partition.Partitions_n(n))
     l = max( len(mu), len(nu))
     mmu = list(mu) + [0]*(l-len(mu))
     nnu = list(nu) + [0]*(l-len(nu))
@@ -168,14 +214,15 @@ def compat(n, mu, nu):
         sa += 2*mmu[i]-nnu[i]
         bd.append(sa)
 
-    for i in range(len(sp)):
-        if dom(sp[i],bd):
-            break
+    i = 0
+    len_sp = len(sp)
+    while i < len_sp and not dom(sp[i],bd):
+        i += 1
 
     if i >= len(sp):
-        return Partition_class([])
+        return sage.combinat.partition.Partition_class([])
     else:
-        return sp[i:]
+        return [x.conjugate() for x in sp[i].conjugate().dominate()]
 
 def dom(mu, snu):
     l = len(snu)
@@ -192,7 +239,7 @@ def weight(rg, t=None):
     Returns the wieght of a rigging.
 
     EXAMPLES:
-        sage: from sage.combinat.kfpoly import *
+        sage: from sage.combinat.sf.kfpoly import *
         sage: t = PolynomialRing(ZZ, 't').gen()
         sage: weight([[2,1], [1]], t)
         1
@@ -200,30 +247,35 @@ def weight(rg, t=None):
         t^2 + t
         sage: weight([[2,1],[3]], t)
         t^4
+        sage: weight([[2, 2], [1, 1]],t)
+        1
+        sage: weight([[3, 1], [1, 1]],t)
+        t
+        sage: weight([[4], [1, 1]],t)
+        t^4
+        sage: weight([[4], [2]],t)
+        t^2
     """
     if t is None:
         t = global_t
     nu = rg + [ [] ]
     l = 1 + max( map(len, nu) )
     nu = [ list(mu) + [0]*l for mu in nu ]
-
     res = t**int(sum( [ i*(i-1)/2 for i in rg[-1] ] ))
-
     for k in range(1, len(nu)-1):
         sa = 0
         for i in range( max( len(rg[k]), len(rg[k-1])) ):
             sa += nu[k-1][i]-2*nu[k][i]+nu[k+1][i]
-            res *= q_bin(nu[k][i]-nu[k+1][i+1], sa, t)
+            res *= q_bin(nu[k][i]-nu[k][i+1], sa, t)
             mu = nu[k-1][i]-nu[k][i]
             res *= t**int((mu*(mu-1)/2))
-
     return res
 
 
 def q_bin(a,b,t=None):
     """
     EXAMPLES:
-        sage: from sage.combinat.kfpoly import *
+        sage: from sage.combinat.sf.kfpoly import *
         sage: t = PolynomialRing(ZZ, 't').gen()
         sage: q_bin(4,2, t)
         t^8 + t^7 + 2*t^6 + 2*t^5 + 3*t^4 + 2*t^3 + 2*t^2 + t + 1

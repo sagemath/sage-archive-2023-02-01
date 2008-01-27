@@ -185,19 +185,12 @@ cdef class Linbox_integer_dense:
         """
         cdef mpz_t* poly
         cdef size_t degree
-        if self.nrows % 4 == 0 and UNAME == "Darwin":
-            verbose("using hack to get around bug in linbox on OS X since n is divisible by 4")
-            if do_minpoly:
-                linbox_integer_dense_minpoly_hacked(&poly, &degree, self.nrows, self.matrix, 1)
-            else:
-                linbox_integer_dense_minpoly_hacked(&poly, &degree, self.nrows, self.matrix, 0)
+        verbose("using linbox poly comp")
+        if do_minpoly:
+            linbox_integer_dense_minpoly(&poly, &degree, self.nrows, self.matrix)
         else:
-            verbose("using linbox poly comp")
-            if do_minpoly:
-                linbox_integer_dense_minpoly(&poly, &degree, self.nrows, self.matrix)
-            else:
-                linbox_integer_dense_charpoly(&poly, &degree, self.nrows, self.matrix)
-            verbose("computed poly -- now converting back to SAGE")
+            linbox_integer_dense_charpoly(&poly, &degree, self.nrows, self.matrix)
+        verbose("computed poly -- now converting back to SAGE")
 
         v = []
         cdef Integer k

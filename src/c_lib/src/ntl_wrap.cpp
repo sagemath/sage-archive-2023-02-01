@@ -856,8 +856,7 @@ void ZZ_pX_linear_roots(struct ZZ_p*** v, long* n, struct ZZ_pX* f)
 
 struct ZZ_pX ZZ_pE_to_ZZ_pX(struct ZZ_pE x)
 {
-  ZZ_pX *ans = new ZZ_pX(rep(x));
-  return *ans;
+  return ZZ_pX(rep(x));
 }
 
 

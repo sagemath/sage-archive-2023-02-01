@@ -1,10 +1,11 @@
-"""
-EXAMPLES of 3d Plots:
+r"""
+Introduction.
 
-First we draw a spiral of spheres:
-   sage: S = sum(sphere((sin(i),cos(i),i), size=0.5,color=((i-4)/8.0, 0.5,(4-i)/8.0)) for i in [-4,-3.5,..4])
-   sage: S.show(aspect_ratio=[1,1,1])
-
+EXAMPLES:
+    sage: x, y = var('x y')
+    sage: W = plot3d(sin(pi*((x)^2+(y)^2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
+    sage: S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
+    sage: show(W + S, figsize=8)
 """
 
 

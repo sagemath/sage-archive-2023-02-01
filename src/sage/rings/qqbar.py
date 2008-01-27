@@ -1827,7 +1827,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         Note that for odd n and negative real numbers, AlgebraicReal
         and AlgebraicNumber values give different answers: AlgebraicReal
         values prefer real results, and AlgebraicNumber values
-        return the principle root.
+        return the principal root.
 
         EXAMPLES:
             sage: AA(-8).nth_root(3)
@@ -2132,10 +2132,10 @@ class AlgebraicNumber(AlgebraicNumber_base):
     def __pow__(self, e):
         """
         self^p returns the p'th power of self (where p can be an arbitrary
-        rational).  If p is (a/b), takes the principle b'th root of self,
+        rational).  If p is (a/b), takes the principal b'th root of self,
         then takes that to the a'th power.  (Note that this differs
         from __pow__ on algebraic reals, where real roots are preferred
-        over principle roots if they exist.)
+        over principal roots if they exist.)
 
         EXAMPLES:
             sage: QQbar(2)^(1/2)
@@ -2456,7 +2456,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         and b is odd, it takes the real b'th root; if self is odd and
         b is even, this takes a complex root.  Note that the behavior
         when self is negative and b is odd differs from the complex
-        case; algebraic numbers select the principle complex b'th
+        case; algebraic numbers select the principal complex b'th
         root, but algebraic reals select the real root.
 
         EXAMPLES:
@@ -3073,7 +3073,7 @@ class AlgebraicPolynomialTracker(SageObject):
             sage: x = polygen(ZZ)
             sage: cp = AA.common_polynomial(x^4 - 2)
             sage: cp.complex_roots(30, 1)
-            [[1.1892071150027208 .. 1.1892071150027213], [-1.1892071150027213 .. -1.18920711500272...], [1.1892071150027208 .. 1.1892071150027213]*I, [-1.1892071150027213 .. -1.1892071150027208]*I]
+            [[1.1892071150027208 .. 1.1892071150027213], [-1.1892071150027213 .. -1.18920711500272...], [1.18920711500272... .. 1.1892071150027213]*I, [-1.1892071150027213 .. -1.1892071150027208]*I]
         """
         if self._roots_cache.has_key(multiplicity):
             roots = self._roots_cache[multiplicity]

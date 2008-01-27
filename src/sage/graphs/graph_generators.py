@@ -1967,8 +1967,9 @@ class GraphGenerators():
             y = 0
             pos_dict[i] = [x,y]
         import networkx
+        import sage.graphs.bipartite_graph as bipartite_graph
         G = networkx.complete_bipartite_graph(n1,n2)
-        return graph.Graph(G, pos=pos_dict, name="Complete bipartite graph")
+        return bipartite_graph.BipartiteGraph(G, pos=pos_dict, name="Complete bipartite graph")
 
     def CubeGraph(self, n):
         """
@@ -2664,7 +2665,7 @@ class GraphGenerators():
 #   Graph Iterators
 ################################################################################
 
-    def __call__(self, vertices, property=lambda x: True, augment='edges'):
+    def __call__(self, vertices, property=lambda x: True, augment='edges', size=None):
         """
         Accesses the generator of isomorphism class representatives. Iterates
         over distinct, exhaustive representatives.
@@ -2712,6 +2713,11 @@ class GraphGenerators():
             Graph on 3 vertices
             Graph on 3 vertices
 
+        Generate all graphs with 5 vertices and 4 edges.
+            sage: L = graphs(5, size=4)
+            sage: len(list(L))
+            6
+
         Generate all graphs with 5 vertices and up to 4 edges.
             sage: L = list(graphs(5, lambda G: G.size() <= 4))
             sage: len(L)
@@ -2725,16 +2731,19 @@ class GraphGenerators():
             45
 
         Generate all bipartite graphs on up to 7 vertices:
+        (see http://www.research.att.com/~njas/sequences/A033995)
             sage: L = list( graphs(7, lambda G: G.is_bipartite(), augment='vertices') )
-            sage: len(L)        #   random, due to NetworkX bug: see https://networkx.lanl.gov/ticket/132
-            133
+            sage: [len([g for g in L if g.order() == i]) for i in [1..7]]
+            [1, 2, 3, 7, 13, 35, 88]
 
         Generate all bipartite graphs on exactly 8 vertices:
+        (see http://www.research.att.com/~njas/sequences/A033995)
             sage: L = list( graphs(8, lambda G: G.is_bipartite()) )
-            sage: len(L)        #   random, due to NetworkX bug: see https://networkx.lanl.gov/ticket/132
-            143
+            sage: len(L)
+            303
 
-        Sloane A000088:
+        Generate graphs on the fly:
+        (see http://www.research.att.com/~njas/sequences/A000088)
             sage: for i in range(0, 7):
             ...    print len(list(graphs(i)))
             1
@@ -2751,9 +2760,14 @@ class GraphGenerators():
         """
         from sage.graphs.graph import Graph
         g = Graph()
+        if size is not None:
+            extra_property = lambda x: x.size() == size
+        else:
+            extra_property = lambda x: True
         if augment == 'vertices':
             for gg in canaug_traverse_vert(g, [], vertices, property):
-                yield gg
+                if extra_property(gg):
+                    yield gg
         elif augment == 'edges':
             g.add_vertices(range(vertices))
             gens = []
@@ -2763,7 +2777,8 @@ class GraphGenerators():
                 gen += range(i+2, vertices)
                 gens.append(gen)
             for gg in canaug_traverse_edge(g, gens, property):
-                yield gg
+                if extra_property(gg):
+                    yield gg
         else:
             raise NotImplementedError()
 

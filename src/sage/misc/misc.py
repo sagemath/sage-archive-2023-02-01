@@ -333,7 +333,7 @@ def cmp_props(left, right, props):
         if c: return c
     return 0
 
-from sage.misc.misc_c import prod
+from sage.misc.misc_c import prod, running_total
 
 # alternative name for prod
 mul = prod

@@ -55,8 +55,6 @@ import sage.groups.group as group
 include "../../ext/stdsage.pxi"
 include "../../ext/interrupt.pxi"
 include "../../ext/python_list.pxi"
-cdef extern from "stdsage.h":
-    object PY_NEW_SAME_TYPE(object o)
 
 from sage.rings.all      import ZZ, Integer, is_MPolynomial, MPolynomialRing, is_Polynomial
 from sage.matrix.all     import MatrixSpace

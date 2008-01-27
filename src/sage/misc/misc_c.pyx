@@ -21,6 +21,35 @@ include "../ext/python_tuple.pxi"
 cdef extern from *:
     bint PyGen_Check(x)
 
+
+def running_total(L, start=None):
+    """
+    Returns a list where the i-th entry is the sum of all entries up to (and incling) i.
+
+    INPUT:
+        L     -- the list
+        start -- (optional) a default start value
+
+    EXAMPLES:
+        sage: running_total(range(5))
+        [0, 1, 3, 6, 10]
+        sage: running_total("abcdef")
+        ['a', 'ab', 'abc', 'abcd', 'abcde', 'abcdef']
+        sage: running_total([1..10], start=100)
+        [101, 103, 106, 110, 115, 121, 128, 136, 145, 155]
+    """
+    cdef bint first = 1
+    for x in L:
+        if first:
+            total = L[0] if start is None else L[0]+start
+            running = [total]
+            first = 0
+            continue
+        total += x
+        PyList_Append(running, total)
+    return running
+
+
 def prod(x, z=None, Py_ssize_t recursion_cutoff = 5):
     """
     Return the product of the elements in the list x.  If optional

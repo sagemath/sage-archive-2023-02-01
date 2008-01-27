@@ -121,6 +121,7 @@ cdef class gen(sage.structure.element.RingElement):
     def __init__(self):
         self.b = 0
         self._parent = P
+        self._refers_to = {}
 
     def parent(self):
         return pari_instance
@@ -135,6 +136,7 @@ cdef class gen(sage.structure.element.RingElement):
         self.g = g
         self.b = b
         self._parent = P
+        self._refers_to = {}
 
     def __dealloc__(self):
         if self.b:
@@ -331,13 +333,9 @@ cdef class gen(sage.structure.element.RingElement):
 
     def __getitem__(gen self, n):
         """
-        Return a *copy* of the nth entry.
-
-        The indexing is 0-based, like in Python.  However, *copying*
-        the nth entry instead of returning reference is different
-        than what one usually does in Python.  However, we do it
-        this way for consistency with the PARI/GP interpreter, which
-        does make copies.
+        Return the nth entry of self. The indexing is 0-based, like
+        in Python. Note that this is *different* than the default
+        behavior of the Pari/GP interpreter.
 
         EXAMPLES:
             sage: p = pari('1 + 2*x + 3*x^2')
@@ -398,62 +396,103 @@ cdef class gen(sage.structure.element.RingElement):
             Traceback (most recent call last):
             ...
             TypeError: unindexable object
-
+            sage: m = pari("[[1,2;3,4],5]") ; m[0][1,0]
+            3
         """
-        if typ(self.g) in (t_INT, t_REAL, t_PADIC, t_QUAD):
+        cdef int pari_type
+
+        pari_type = typ(self.g)
+
+        if PyObject_TypeCheck(n, tuple):
+            if typ(self.g) != t_MAT:
+                raise TypeError, "self must be of pari type t_MAT"
+            if len(n) != 2:
+                raise IndexError, "index must be an integer or a 2-tuple (i,j)"
+            i = int(n[0])
+            j = int(n[1])
+
+            if i < 0 or i >= glength(<GEN>(self.g[1])):
+                raise IndexError, "row index out of bounds"
+            if j < 0 or j >= glength(self.g):
+                raise IndexError, "column index out of bounds"
+
+            ind = (i,j)
+
+            if PyDict_Contains(self._refers_to, ind):
+                return self._refers_to[ind]
+            else:
+                ## In this case, we're being asked to return
+                ## a GEN that has no gen pointing to it, so
+                ## we need to create such a gen, add it to
+                ## self._refers_to, and return it.
+                val = P.new_ref(gmael(self.g, j+1, i+1), self)
+                self._refers_to[ind] = val
+                return val
+
+        ## there are no "out of bounds" problems
+        ## for a polynomial or power series, so these go before
+        ## bounds testing
+        if pari_type == t_POL:
+            return self.polcoeff(n)
+
+        elif pari_type == t_SER:
+            bound = valp(self.g) + lg(self.g) - 2
+            if n >= bound:
+                raise IndexError, "index out of bounds"
+            return self.polcoeff(n)
+
+        elif pari_type in (t_INT, t_REAL, t_PADIC, t_QUAD):
             # these are definitely scalar!
             raise TypeError, "unindexable object"
 
-        if typ(self.g) in (t_INTMOD, t_POLMOD):
+        elif n < 0 or n >= glength(self.g):
+            raise IndexError, "index out of bounds"
+
+        elif typ(self.g) == t_VEC or typ(self.g) == t_MAT:
+            if PyDict_Contains(self._refers_to, n):
+                return self._refers_to[n]
+            else:
+                ## In this case, we're being asked to return
+                ## a GEN that has no gen pointing to it, so
+                ## we need to create such a gen, add it to
+                ## self._refers_to, and return it.
+                val = P.new_ref(gel(self.g, n+1), self)
+                self._refers_to[n] = val
+                return val
+
+        elif typ(self.g) == t_VECSMALL:
+            return self.g[n+1]
+
+        elif typ(self.g) == t_STR:
+            return chr( (<char *>(self.g+1))[n] )
+
+        elif typ(self.g) == t_LIST:
+            return P.new_ref(gel(self.g,n+2), self)
+
+        elif pari_type in (t_INTMOD, t_POLMOD):
             # if we keep going we would get:
             #   [0] = modulus
             #   [1] = lift to t_INT or t_POL
             # do we want this? maybe the other way around?
             raise TypeError, "unindexable object"
 
-        #if typ(self.g) in (t_FRAC, t_RFRAC):
+        #elif typ(self.g) in (t_FRAC, t_RFRAC):
             # generic code gives us:
             #   [0] = numerator
             #   [1] = denominator
 
-        #if typ(self.g) == t_COMPLEX:
+        #elif typ(self.g) == t_COMPLEX:
             # generic code gives us
             #   [0] = real part
             #   [1] = imag part
 
-        #if type(self.g) in (t_QFR, t_QFI):
+        #elif type(self.g) in (t_QFR, t_QFI):
             # generic code works ok
 
-        if typ(self.g) == t_POL:
-            return self.polcoeff(n)
-
-        if typ(self.g) == t_SER:
-            bound = valp(self.g) + lg(self.g) - 2
-            if n >= bound:
-                raise IndexError, "index out of bounds"
-            return self.polcoeff(n)
-
-        if isinstance(n, tuple):
-            if typ(self.g) != t_MAT:
-                raise TypeError, "an integer is required"
-            if len(n) != 2:
-                raise TypeError, "index must be an integer or a 2-tuple (i,j)"
-            i, j = n[0], n[1]
-            if i < 0 or i >= self.nrows():
-                raise IndexError, "row index out of bounds"
-            if j < 0 or j >= self.ncols():
-                raise IndexError, "column index out of bounds"
-            return P.new_ref(gmael(self.g,j+1,i+1), self)
-
-        if n < 0 or n >= glength(self.g):
-            raise IndexError, "index out of bounds"
-        if typ(self.g) == t_LIST:
-            return P.new_ref(gel(self.g,n+2), self)
-        if typ(self.g) == t_STR:
-            return chr( (<char *>(self.g+1))[n] )
-        if typ(self.g) == t_VECSMALL:
-            return self.g[n+1]
-        return P.new_ref(gel(self.g,n+1), self)
+        else:
+            ## generic code, which currently handles cases
+            ## as mentioned above
+            return P.new_ref(gel(self.g,n+1), self)
 
 
     def __getslice__(self,  Py_ssize_t i,  Py_ssize_t j):
@@ -498,15 +537,8 @@ cdef class gen(sage.structure.element.RingElement):
 
         \begin{notice}
         \begin{itemize}
-            \item There is a known BUG: If v is a vector and entry i of v is a vector,
-                       \code{v[i][j] = x}
-               should set entry j of v[i] to x.  Instead it sets it to nonsense.
-               I do not understand why this occurs.  The following is a safe way
-               to do the same thing:
-                        \code{tmp = v[i]; tmp[j] = x    }
-
             \item The indexing is 0-based, like everywhere else in Python, but
-               \emph{unlike} in GP/PARI.
+               \emph{unlike} in Pari/GP.
 
             \item Assignment sets the nth entry to a reference to y,
                assuming y is an object of type gen.  This is the same
@@ -535,11 +567,18 @@ cdef class gen(sage.structure.element.RingElement):
             sage: w[0] = -30
             sage: v
             [10, [-30, 8, -20], 2, 3, 4, 5, 6, 7, 8, 9]
-            sage: t = v[1]; t[1] = 10   # don't do v[1][1] !!! (because of mysterious BUG...)
-            sage: v
+            sage: t = v[1]; t[1] = 10 ; v
             [10, [-30, 10, -20], 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: v[1][0] = 54321 ; v
+            [10, [54321, 10, -20], 2, 3, 4, 5, 6, 7, 8, 9]
             sage: w
-            [-30, 10, -20]
+            [54321, 10, -20]
+            sage: v = pari([[[[0,1],2],3],4]) ; v[0][0][0][1] = 12 ; v
+            [[[[0, 12], 2], 3], 4]
+            sage: m = pari(matrix(2,2,range(4))) ; l = pari([5,6]) ; n = pari(matrix(2,2,[7,8,9,0])) ; m[1,0] = l ; l[1] = n ; m[1,0][1][1,1] = 1111 ; m
+            [0, 1; [5, [7, 8; 9, 1111]], 3]
+            sage: m = pari("[[1,2;3,4],5,6]") ; m[0][1,1] = 11 ; m
+            [[1, 2; 3, 11], 5, 6]
 
         Finally, we create a circular reference:
             sage: v = pari([0])
@@ -549,40 +588,54 @@ cdef class gen(sage.structure.element.RingElement):
             sage: w
             [[0]]
             sage: v[0] = w
-            sage: # Now there is a circular reference.  Trying to access v[0] will crash SAGE.
+            sage: # Now there is a circular reference. Accessing v[0] will crash Sage.
 
         """
+        cdef int i, j
         cdef gen x
+
         _sig_on
-        x = pari(y)
-        if isinstance(n, tuple):
-            try:
-                self.refers_to[n] = x
-            except TypeError:
-                self.refers_to = {n:x}
-            i = n[0]
-            j = n[1]
-            if i < 0 or i >= self.nrows():
-                raise IndexError, "row i(=%s) must be between 0 and %s"%(i,self.nrows())
-            if j < 0 or j >= self.ncols():
-                raise IndexError, "column j(=%s) must be between 0 and %s"%(j,self.ncols())
-            (<GEN>(self.g)[j+1])[i+1] = <long> x.g
+        if PyObject_TypeCheck(y, gen):
+            x = y
+        else:
+            x = pari(y)
+
+        if PyObject_TypeCheck(n, tuple):
+            if typ(self.g) != t_MAT:
+                raise TypeError, "cannot index Pari type %s by tuple"%typ(self.g)
+
+            if len(n) != 2:
+                raise ValueError, "matrix index must be of the form [row, column]"
+
+            i = int(n[0])
+            j = int(n[1])
+            ind = (i,j)
+
+            if i < 0 or i >= glength(<GEN>(self.g[1])):
+                raise IndexError, "row i(=%s) must be between 0 and %s"%(i,self.nrows()-1)
+            if j < 0 or j >= glength(self.g):
+                raise IndexError, "column j(=%s) must be between 0 and %s"%(j,self.ncols()-1)
+            self._refers_to[ind] = x
+
+            (<GEN>(self.g)[j+1])[i+1] = <long>(x.g)
             return
 
-        if n < 0 or n >= glength(self.g):
-            raise IndexError, "index (%s) must be between 0 and %s"%(n,glength(self.g)-1)
+        i = int(n)
+
+        if i < 0 or i >= glength(self.g):
+            raise IndexError, "index (%s) must be between 0 and %s"%(i,glength(self.g)-1)
 
         # so python memory manager will work correctly
         # and not free x if PARI part of self is the
         # only thing pointing to it.
-        try:
-            self.refers_to[n] = x
-        except TypeError:
-            self.refers_to = {n:x}
+        self._refers_to[i] = x
 
+        ## correct indexing for t_POLs
         if typ(self.g) == t_POL:
-            n = n + 1
-        (self.g)[n+1] = <long>(x.g)
+            i = i + 1
+
+        ## actually set the value
+        (self.g)[i+1] = <long>(x.g)
 
     def __len__(gen self):
         return glength(self.g)
@@ -639,7 +692,7 @@ cdef class gen(sage.structure.element.RingElement):
         return gcmp_sage(left.g, (<gen>right).g)
 
     def copy(gen self):
-        return P.new_gen(forcecopy(self.g))
+        return P.new_gen(gcopy(self.g))
 
     ###########################################
     # Conversion --> Python
@@ -838,16 +891,20 @@ cdef class gen(sage.structure.element.RingElement):
             [1, 2, 3, 10, 102, 10]
             sage: type(w[0])
             <type 'sage.libs.pari.gen.gen'>
+            sage: pari("[1,2,3]").python_list()
+            [1, 2, 3]
         """
-        if typ(self.g) != t_VEC:
-            raise TypeError, "Object (=%s) must be of type t_VEC."%self
         cdef long n, m
         cdef gen t
+
+        if typ(self.g) != t_VEC:
+            raise TypeError, "Object (=%s) must be of type t_VEC."%self
         m = glength(self.g)
         V = []
         for n from 0 <= n < m:
-            t = P.new_ref(<GEN> (self.g[n+1]), V)
-            V.append(t)
+##            t = P.new_ref(<GEN> (self.g[n+1]), V)
+##            V.append(t)
+            V.append(self.__getitem__(n))
         return V
 
     def python(self, precision=0, bits_prec=None):
@@ -1612,7 +1669,7 @@ cdef class gen(sage.structure.element.RingElement):
         Identical to Vec(x) except when x is
         -- a polynomial, this is the reverse of Vec.
         -- a power series, this includes low-order zero coefficients.
-        -- a laurant series, raises an exception
+        -- a Laurent series, raises an exception
 
         INPUT:
             x -- gen
@@ -5733,7 +5790,22 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         setlgefint( z, limbs+2 )
         setsigne( z, mpz_sgn(value) )
         mpz_export( int_LSW(z), NULL, -1, sizeof(long), 0, 0, value )
+
         return self.new_gen(z)
+
+    cdef GEN new_GEN_from_mpz_t(self, mpz_t value):
+        ## expects that you _sig_on before entry
+        cdef GEN z
+        cdef long limbs = 0
+
+        limbs = mpz_size(value)
+
+        z = cgetg( limbs+2, t_INT )
+        setlgefint( z, limbs+2 )
+        setsigne( z, mpz_sgn(value) )
+        mpz_export( int_LSW(z), NULL, -1, sizeof(long), 0, 0, value )
+
+        return z
 
     cdef gen new_gen_from_int(self, int value):
         cdef GEN z
@@ -5749,6 +5821,27 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             z[2] = -value
         setsigne( z, sign )
         return _new_gen(z)
+
+    cdef gen new_gen_from_padic(self, long ordp, long relprec,
+                                mpz_t prime, mpz_t p_pow, mpz_t unit):
+        cdef GEN z
+
+        _sig_on
+
+        z = cgetg( 5, t_PADIC )
+
+        ## set z[1]
+        setprecp( z, relprec )
+        setvalp( z, ordp )
+
+        z[2] = <long>self.new_GEN_from_mpz_t(prime)
+
+        z[3] = <long>self.new_GEN_from_mpz_t(p_pow)
+
+        z[4] = <long>self.new_GEN_from_mpz_t(unit)
+
+        return self.new_gen(z)
+
 
     def double_to_gen(self, x):
         cdef double dx
@@ -5810,45 +5903,68 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address):
         return deepcopy_to_python_heap(x, address)
 
-    cdef gen new_ref(self, GEN x, g):
-        cdef gen p
-        p = gen()
-        p.init(x, 0)
-        try:
-            p.refers_to[-1] = g  # so underlying memory won't get deleted
-                                 # out from under us.
-        except TypeError:
-            p.refers_to = {-1:g}
-        return p
+    cdef gen new_ref(self, GEN g, gen parent):
+        """
+        Create a new gen pointing to the given GEN, which is
+        allocated as a part of parent.g.
 
-    cdef gen adapt(self, s):
-        if isinstance(s, gen):
-            return s
-        return pari(s)
+        NOTE:
+        As a rule, there should never be more than one sage gen
+        pointing to a given Pari GEN. So that means there is
+        only one case where this function should be used: when
+        a complicated Pari GEN is allocated with a single gen
+        pointing to it, and one needs a gen pointing to one of
+        its components.
+
+        For example, doing x = pari("[1,2]") allocates a gen pointing
+        to the list [1,2], but x[0] has no gen wrapping it, so new_ref
+        should be used there. Then parent would be x in this case.
+        See __getitem__ for an example of usage.
+
+        EXAMPLES:
+            sage: pari("[[1,2],3]")[0][1] ## indirect doctest
+            2
+        """
+        cdef gen p = PY_NEW(gen)
+
+        p.b = 0
+        p._parent = self
+        p._refers_to = {-1:parent}
+        p.g = g
+
+        return p
 
     def __call__(self, s):
         """
         Create the PARI object obtained by evaluating s using PARI.
+
+        EXAMPLES:
+            sage: pari([2,3,5])
+            [2, 3, 5]
+            sage: pari(Matrix(2,2,range(4)))
+            [0, 1; 2, 3]
+            sage: pari(x^2-3)
+            x^2 - 3
         """
+        cdef int length, i
+        cdef gen v
 
         late_import()
 
-        if isinstance(s, gen):
+        if PyObject_TypeCheck(s, gen):
             return s
-        elif PY_TYPE_CHECK(s, Integer):
+        elif PyObject_TypeCheck(s, Integer):
             return self.new_gen_from_mpz_t(<mpz_t>(<void *>s + mpz_t_offset))
-
-        try:
+        elif PyObject_HasAttrString(s, "_pari_"):
             return s._pari_()
-        except AttributeError:
-            pass
-        if isinstance(s, (types.ListType, types.XRangeType,
+        elif isinstance(s, (types.ListType, types.XRangeType,
                             types.TupleType, types.GeneratorType)):
-            v = self.vector(len(s))
-            for i, x in enumerate(s):
-                v[i] = self(x)
+            length = len(s)
+            v = self._empty_vector(length)
+            for i from 0 <= i < length:
+                v[i] = self(s[i])
             return v
-        elif isinstance(s, bool):
+        elif PyObject_TypeCheck(s, bool):
             if s:
                 return self.ONE
             return self.ZERO
@@ -6190,15 +6306,19 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         vector(long n, entries=None):
         Create and return the length n PARI vector with given list of entries.
         """
-        cdef gen v
-        _sig_on
-        v = self.new_gen(zerovec(n))
+        cdef gen v = self._empty_vector(n)
         if entries is not None:
             if len(entries) != n:
                 raise IndexError, "length of entries (=%s) must equal n (=%s)"%\
                       (len(entries), n)
             for i, x in enumerate(entries):
                 v[i] = x
+        return v
+
+    cdef gen _empty_vector(self, long n):
+        cdef gen v
+        _sig_on
+        v = self.new_gen(zerovec(n))
         return v
 
     def matrix(self, long m, long n, entries=None):
@@ -6340,14 +6460,14 @@ cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
     tmp_bot = bot
     tmp_avma = avma
 
-    h = forcecopy(x)
+    h = gcopy(x)
     s = <size_t> (tmp_avma - avma)
 
     #print "Allocating %s bytes for PARI/Python object"%(<long> s)
     bot = <pari_sp> sage_malloc(s)
     top = bot + s
     avma = top
-    h = forcecopy(x)
+    h = gcopy(x)
     address[0] = bot
 
     # Restore the stack to how it was before x was created.

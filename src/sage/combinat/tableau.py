@@ -20,7 +20,7 @@ Tableaux
 from sage.rings.arith import factorial
 from sage.rings.integer import Integer
 import sage.combinat.skew_tableau
-from partition import Partition, Partitions
+import partition
 from composition import Compositions
 import word
 import misc
@@ -30,6 +30,7 @@ from sage.misc.all import prod
 import exceptions
 import random
 import copy
+import permutation
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from combinat import CombinatorialClass, CombinatorialObject
 import __builtin__
@@ -80,7 +81,7 @@ class Tableau_class(CombinatorialObject):
 
         #if t is a list, convert to to a partition first
         if isinstance(t, list):
-            t = Partition(t)
+            t = partition.Partition(t)
 
         #Check to make sure that
         if not self.shape().dominates(t):
@@ -106,7 +107,7 @@ class Tableau_class(CombinatorialObject):
             [3, 2, 1]
         """
 
-        return Partition([len(row) for row in self])
+        return partition.Partition([len(row) for row in self])
 
     def size(self):
         """
@@ -210,6 +211,148 @@ class Tableau_class(CombinatorialObject):
             [1, 4, 6, 2, 5, 3]
         """
         return self.to_word_by_row()
+
+    def to_word_by_reading_order(self):
+        """
+        Returns a word with the entries of self obtained by
+        reading self in the reading order.
+
+        EXAMPLES:
+            sage: Tableau([[1,2],[3,4]]).to_word_by_reading_order()
+            [3, 4, 1, 2]
+        """
+        word = []
+        for row in self:
+            word = row + word
+        return word
+
+    def to_permutation_by_reading_order(self):
+        """
+        Returns a permutation with the entries of self obtained by
+        reading self in the reading order.
+
+        EXAMPLES:
+            sage: Tableau([[1,2],[3,4]]).to_permutation_by_reading_order()
+            [3, 4, 1, 2]
+        """
+        return permutation.Permutation(self.to_word_by_reading_order())
+
+##     def descents(self):
+##         """
+##         Returns the i such that i+1 is SW of i in self.
+
+##         EXAMPLES:
+
+##             sage: p = Permutations(10).random()
+##             sage: l,r = p.robinson_schensted()
+##             sage: r.descents() == p.descents()
+##             True
+##             sage: l.descents() == p.idescents()
+##             True
+##         """
+##         return self.to_permutation_by_reading_order().idescents()
+
+    def descents(self):
+        """
+        Returns a list of the boxes (i,j) such that
+        self[i][j] > self[i-1][j].
+
+        EXAMPLES:
+            sage: Tableau( [[1,4],[2,3]] ).descents()
+            [(1, 0)]
+            sage: Tableau( [[1,2],[3,4]] ).descents()
+            [(1, 0), (1, 1)]
+
+        """
+        descents = []
+        for i in range(1,len(self)):
+            for j in range(len(self[i])):
+                if self[i][j] > self[i-1][j]:
+                    descents.append((i,j))
+        return descents
+
+    def major_index(self):
+        """
+        Returns the major index of self.  The major index
+        is defined to be the sum of the number of descents
+        of self and the sum of their legs.
+
+        EXAMPLES
+            sage: Tableau( [[1,4],[2,3]] ).major_index()
+            1
+            sage: Tableau( [[1,2],[3,4]] ).major_index()
+            2
+        """
+        descents = self.descents()
+        p = self.shape()
+        return len(descents) + sum([ p.leg(*d) for d in descents])
+
+    def attacking_pairs(self):
+        """
+        Returns a list of the attacking pairs of self.  An pair of boxes
+        (c, d) is said to be attacking if one of the following
+        conditions hold:
+            1) c and d lie in the same row with c to the west of d
+            2) c is in the row immediately to the south of d and c
+               lies strictly east of d.
+
+        EXAMPLES:
+        """
+        attacking_pairs = []
+        for i in range(len(self)):
+            for j in range(len(self[i])):
+                #c is in position (i,j)
+                #Find the d that satisfy condition 1
+                for k in range(j+1,len(self[i])):
+                    attacking_pairs.append( ((i,j),(i,k)) )
+
+                #Find the d that satisfy condition 2
+                if i == 0:
+                    break
+                for k in range(j):
+                    attacking_pairs.append( ((i,j),(i-1,k)) )
+
+        return attacking_pairs
+
+    def inversions(self):
+        """
+        Returns a list of the inversions of self.  An inversion is an
+        attacking pair (c,d) such that the entry of c in self is greater
+        than the entry of d.
+
+        EXAMPLES:
+        """
+        inversions = []
+        for (c,d) in self.attacking_pairs():
+            if self.entry(c) > self.entry(d):
+                inversions.append( (c,d) )
+        return inversions
+
+    def inversion_number(self):
+        """
+        Returns the inversion number of self.
+
+        The inversion number is defined to be the number of inversion of self
+        minus the sum of the arm lengths of the descents of self.
+
+        """
+        p = self.shape()
+        return len(self.inversions()) - sum([ p.arm(*box) for box in self.descents() ])
+
+    def entry(self, box):
+        """
+        Returns the entry of box in self.  Box is a tuple (i,j)
+        of coordinates.
+
+        EXAMPLES:
+            sage: t = Tableau([[1,2],[3,4]])
+            sage: t.entry( (0,0) )
+            1
+            sage: t.entry( (1,1) )
+            4
+        """
+        i,j = box
+        return self[i][j]
 
     def evaluation(self):
         """
@@ -839,7 +982,7 @@ def StandardTableaux(n=None):
     """
     if n == None:
         return StandardTableaux_all()
-    elif n in Partitions():
+    elif n in partition.Partitions():
         return StandardTableaux_partition(n)
     else:
         return StandardTableaux_n(n)
@@ -964,7 +1107,7 @@ class StandardTableaux_n(CombinatorialClass):
              [[1, 2], [3], [4]],
              [[1], [2], [3], [4]]]
         """
-        for p in Partitions(self.n):
+        for p in partition.Partitions(self.n):
             for st in StandardTableaux(p):
                 yield st
 
@@ -979,7 +1122,7 @@ class StandardTableaux_n(CombinatorialClass):
             True
         """
         c = 0
-        for p in Partitions(self.n):
+        for p in partition.Partitions(self.n):
             c += StandardTableaux(p).count()
         return c
 
@@ -992,7 +1135,7 @@ class StandardTableaux_partition(CombinatorialClass):
             sage: ST == loads(dumps(ST))
             True
         """
-        self.p = Partition(p)
+        self.p = partition.Partition(p)
 
     def __contains__(self, x):
         """
@@ -1329,7 +1472,7 @@ def SemistandardTableaux(p=None, mu=None):
     """
     if p == None:
         return SemistandardTableaux_all()
-    elif p in Partitions():
+    elif p in partition.Partitions():
         if mu == None:
             return SemistandardTableaux_p(p)
         else:
@@ -1453,7 +1596,7 @@ class SemistandardTableaux_n(CombinatorialClass):
             True
         """
         c = 0
-        for part in Partitions(self.n):
+        for part in partition.Partitions(self.n):
             c += SemistandardTableaux(part).count()
         return c
 
@@ -1473,7 +1616,7 @@ class SemistandardTableaux_n(CombinatorialClass):
              [[1, 1], [2]],
              [[1], [2], [3]]]
         """
-        for part in Partitions(self.n):
+        for part in partition.Partitions(self.n):
             for sst in SemistandardTableaux(part):
                 yield sst
 
@@ -1654,7 +1797,7 @@ class SemistandardTableaux_nmu(CombinatorialClass):
             sage: SemistandardTableaux(4, [2,2]).list()
             [[[1, 1, 2, 2]], [[1, 1, 2], [2]], [[1, 1], [2, 2]]]
         """
-        for p in Partitions(self.n):
+        for p in partition.Partitions(self.n):
             for sst in SemistandardTableaux_pmu(p, self.mu):
                 yield sst
 
@@ -1667,7 +1810,7 @@ class SemistandardTableaux_nmu(CombinatorialClass):
             3
         """
         c = 0
-        for p in Partitions(self.n):
+        for p in partition.Partitions(self.n):
             c += SemistandardTableaux_pmu(p, self.mu).count()
         return c
 

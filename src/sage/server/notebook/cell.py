@@ -608,12 +608,15 @@ class Cell(Cell_generic):
                 #script = '<script>jmol_applet(%s, "%s");</script>%s' % (size, url, popup)
                 #script = '<script>jmol_popup("%s");</script>' % (url)
 
-                script = '<div><script>jmol_applet(%s, "%s");</script></div>' % (size, url)
+                script = '<div><script>jmol_applet(%s, "%s?%d");</script></div>' % (size, url, self.version())
                 images.append(script)
             elif F.endswith('.jmol.zip'):
                 pass # jmol data
             else:
-                files.append('<a href="%s" class="file_link">%s</a>'%(url, F))
+                link_text = str(F)
+                if len(link_text) > 40:
+                    link_text = link_text[:10] + '...' + link_text[-20:]
+                files.append('<a href="%s" class="file_link">%s</a>'%(url, link_text))
         if len(images) == 0:
             images = ''
         else:

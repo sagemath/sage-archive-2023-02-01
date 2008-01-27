@@ -11,21 +11,7 @@ from sage.structure.sage_object import SageObject
 
 uniq_c = 0
 
-colors = {
-    "red"   : (1,0,0),
-    "orange": (1,.5,0),
-    "yellow": (1,1,0),
-    "green" : (0,1,0),
-    "blue"  : (0,0,1),
-    "purple": (.5,0,1),
-    "white" : (1,1,1),
-    "black" : (0,0,0),
-    'brown': (0.65, 0.165, 0.165),
-    "grey"  : (.5,.5,.5),
-    "gray"  : (.5,.5,.5),
-    "lightblue" : (0.4,0.4,1),
-    "automatic": (0.4,0.4,1)
-}
+from sage.plot.misc import colors
 
 def is_Texture(x):
     return isinstance(x, Texture_class)
@@ -62,7 +48,24 @@ def parse_color(info, base=None):
 
 
 class Texture_class(SageObject):
+    """
+    We create a translucent texture:
 
+        sage: from sage.plot.plot3d.texture import Texture
+        sage: t = Texture(opacity=0.6)
+        sage: t
+        <class 'sage.plot.plot3d.texture.Texture_class'>
+        sage: t.opacity
+        0.600000000000000
+        sage: t.jmol_str('obj')
+        'color obj translucent 0.4 [102,102,255]'
+        sage: t.mtl_str()
+        'newmtl texture2\nKa 0.2 0.2 0.5\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1\nd 0.600000000000000'
+        sage: t.tachyon_str()
+        'Texdef texture2\n  Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 0.600000000000000\n   Color 0.4 0.4 1.0\n   TexFunc 0'
+        sage: t.x3d_str()
+        "<Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance>"
+    """
     def __init__(self, id, color=(.4, .4, 1), opacity=1, ambient=0.5, diffuse=1, specular=0, shininess=1, **kwds):
         self.id = id
 
@@ -117,8 +120,11 @@ class Texture_class(SageObject):
                    "d %s" % self.opacity, ])
 
     def jmol_str(self, obj):
-        # With jmol translucent is any opacity < 1.
-        translucent = "translucent" if self.opacity < 1 else ""
+        """
+        EXAMPLES:
+            sage: sum([dodecahedron(center=[2.5*x, 0, 0], color=(1, 0, 0, x/10)) for x in range(11)]).show(aspect_ratio=[1,1,1], frame=False, zoom=2)
+        """
+        translucent = "translucent %s" % float(1-self.opacity) if self.opacity < 1 else ""
         return "color %s %s [%s,%s,%s]" % (obj, translucent,
                 int(255*self.color[0]), int(255*self.color[1]), int(255*self.color[2]))
 

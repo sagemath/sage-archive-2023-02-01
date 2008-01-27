@@ -12,6 +12,7 @@ AUTHOR:
     -- Robert Bradshaw (2007-09-19): * strip_string_literals, containing_block
                                        utility functions. Arrr!
                                      * Add [1,2,..,n] notation.
+    -- Robert Bradshaw (2008-01-04): * Implicit multiplication (off by default)
 
 EXAMPLES:
 
@@ -30,6 +31,11 @@ PREPARSE:
     'G.gen(0)'
     sage: preparse('a = 939393R')    # raw
     'a = 939393'
+    sage: implicit_multiplication(True)
+    sage: preparse('a b c in L')     # implicit multiplication
+    'a*b*c in L'
+    sage: preparse('2e3x + 3exp(y)')
+    "RealNumber('2e3')*x + Integer(3)*exp(y)"
 
 In SAGE methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error).
@@ -67,6 +73,19 @@ SYMBOLIC FUNCTIONAL NOTATION:
     sage: a = 5; f(x,y) = x*y*sqrt(a)
     sage: f
     (x, y) |--> sqrt(5)*x*y
+
+This involves an =-, but should still be turned into a symbolic expression:
+    sage: preparse('a(x) =- 5')
+    '_=var("x");a=symbolic_expression(- Integer(5)).function(x)'
+    sage: f(x)=-x
+    sage: f(10)
+    -10
+
+This involves -=, which should not be turned into a symbolic
+expression (of course a(x) isn't an identifier, so this will never be
+valid):
+    sage: preparse('a(x) -= 5')
+    'a(x) -= Integer(5)'
 
 RAW LITERALS:
 
@@ -134,6 +153,31 @@ implemented using the GMP C library.
 ###########################################################################
 import os, re
 import pdb
+
+implicit_mul_level = False
+
+def implicit_multiplication(level=None):
+    """
+    Turn implicit multiplication on or off, optionally setting a specific level.
+    Returns the current value if no argument is given.
+
+    EXAMPLES:
+      sage: implicit_multiplication(True)
+      sage: implicit_multiplication()
+      5
+      sage: preparse('2x')
+      'Integer(2)*x'
+      sage: implicit_multiplication(False)
+      sage: preparse('2x')
+      'Integer(2)x'
+    """
+    global implicit_mul_level
+    if level is None:
+        return implicit_mul_level
+    elif level is True:
+        implicit_mul_level = 5
+    else:
+        implicit_mul_level = level
 
 def isalphadigit_(s):
     return s.isalpha() or s.isdigit() or s=="_"
@@ -230,7 +274,7 @@ def strip_string_literals(code):
             else:
                 q += 1
         else:
-            raw = q>0 and code[q-1] == 'r'
+            raw = q>0 and code[q-1] in ['r', 'R']
             if len(code) >= q+3 and (code[q+1] == code[q] == code[q+2]):
                 in_quote = code[q]*3
             else:
@@ -503,6 +547,8 @@ def parse_generators(line, start_index):
 
     return (line, i)
 
+eq_chars_pre = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
+
 def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     r"""
     sage: preparse("ZZ.<x> = ZZ['x']")
@@ -525,6 +571,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         line = L % literals
     except SyntaxError:
         pass
+
+    if implicit_mul_level:
+        line = implicit_mul(line, level = implicit_mul_level)
 
     # find where the parens are for function assignment notation
     oparen_index = -1
@@ -666,7 +715,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         # Support for calculus-like function assignment, the line
         # "f(x,y,z) = sin(x^3 - 4*y) + y^x"
         # gets turnd into
-        # "f = SR(sin(x^3 - 4*y) + y^x).function(x,y,z)"
+        # '_=var("x,y,z");f=symbolic_expression(sin(x**Integer(3) - Integer(4)*y) + y**x).function(x,y,z)'
         # AUTHORS:
         #   - Bobby Moretti: initial version - 02/2007
         #   - William Stein: make variables become defined if they aren't already defined.
@@ -694,9 +743,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 i += 1
                 continue
 
-            # make sure the '=' sign is on its own, reprsenting assignment
-            eq_chars = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
-            if eq+1 < len(line) and (line[eq-1] in eq_chars or line[eq+1] in eq_chars):
+            # make sure the '=' sign is on its own, representing assignment
+            if eq+1 < len(line) and (line[eq-1] in eq_chars_pre or line[eq+1] == '='):
                 i += 1
                 continue
 
@@ -920,8 +968,10 @@ def implicit_mul(code, level=5):
     code, literals = strip_string_literals(code)
     if level >= 1:
         no_mul_token = " '''_no_mult_token_''' "
-        code = re.sub(r'\b(\d+\.?\d*)((r\b)|(e[-\d]))', r'\1%s\2' % no_mul_token, code)  # exclude such things as 1e5 and 10r
-        code = re_no_keyword(r'\b(\d+\.?\d*) *([a-zA-Z_(]\w*)\b', code)
+        code = re.sub(r'( *)time ', r'\1time %s' % no_mul_token, code)  # first word may be magic 'time'
+        code = re.sub(r'\b(\d+(?:\.\d+)?(?:e\d+)?)([rR]\b)', r'\1%s\2' % no_mul_token, code)  # exclude such things as 10r
+        code = re.sub(r'\b(\d+(?:\.\d+)?)e([-\d])', r'\1%se%s\2' % (no_mul_token, no_mul_token), code)  # exclude such things as 1e5
+        code = re_no_keyword(r'\b(\d+(?:\.\d+)?) *([a-zA-Z_(]\w*)\b', code)
     if level >= 2:
         code = re.sub(r'(\%\(L\d+\))s', r'\1%ss%s' % (no_mul_token, no_mul_token), code) # literal strings
         code = re_no_keyword(r'(\)) *(\w+)', code)

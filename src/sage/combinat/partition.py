@@ -1,5 +1,16 @@
 r"""
 Partitions
+
+A partition $p$ of a nonnegative integer $n$ is a non-increasing list of
+positive integers (the \emph{parts} of the partition) with total sum $n$.
+
+A partition can be depicted by a diagram made of rows of boxes, where the
+number of boxes in the $i^{th}$ row starting from the top is the $i^{th}$
+part of the partition.
+
+The coordinate system related to a partition applies from the top to
+the bottom and from left to right.  So, the corners of the partition
+are [[0,4], [1,2], [2,0]].
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -35,6 +46,9 @@ sinh = Function_sinh()
 from combinat import CombinatorialClass, CombinatorialObject, number_of_partitions
 import partitions as partitions_ext
 from sage.libs.all import pari
+import tableau
+import permutation
+import sf.sfa
 
 def Partition(l=None, exp=None, core_and_quotient=None):
     """
@@ -412,24 +426,28 @@ class Partition_class(CombinatorialObject):
             sage: p.dominates([2,2])
             True
             sage: p.dominates([2,1,1])
-            False
+            True
             sage: p.dominates([3,3])
             False
+            sage: Partition([]).dominates([1])
+            False
+            sage: Partition([]).dominates([])
+            True
+            sage: Partition([1]).dominates([])
+            True
         """
         p1 = self
         sum1 = 0
         sum2 = 0
-        if len(p2) > len(p1):
-            return False
-        for i in range(max(len(p1), len(p2))):
-            if i < len(p1):
-                sum1 += p1[i]
-            if i < len(p2):
-                sum2 += p2[i]
+        min_length = min(len(p1), len(p2))
+        if min_length == 0:
+            return len(p1) >= len(p2)
+
+        for i in range(min_length):
+            sum1 += p1[i]
+            sum2 += p2[i]
             if sum2 > sum1:
                 return False
-            sum1 = 0
-            sum2 = 0
         return True
 
     def conjugate(self):
@@ -467,6 +485,17 @@ class Partition_class(CombinatorialObject):
 
             return Partition(conj)
 
+    def reading_tableau(self):
+        """
+
+        EXAMPLES:
+            sage: Partition([3,2,1]).reading_tableau()
+            [[1, 3, 6], [2, 5], [4]]
+        """
+        st = tableau.StandardTableaux(self).first()
+        word = st.to_word_by_reading_order()
+        perm = permutation.Permutation(word)
+        return perm.robinson_schensted()[1]
 
     def associated(self):
         """
@@ -561,6 +590,57 @@ class Partition_class(CombinatorialObject):
         conj = p.conjugate()
         return [[conj[j]-(i+1) for j in range(p[i])] for i in range(len(p))]
 
+    def dominate(self, rows=None):
+        """
+        Returns a list of the partitions dominated by n.
+        If n is specified, then it only returns the ones with
+        <= rows rows.
+
+        """
+        #Naive implementation
+        return filter(lambda x: self.dominates(x), Partitions(sum(self)))
+
+
+
+    def hook_product(self, a):
+        """
+        Returns the Jack hook-product.
+
+        EXAMPLES:
+            sage: Partition([3,2,1]).hook_product(x)
+            (x + 2)^2*(2*x + 3)
+            sage: Partition([2,2]).hook_product(x)
+            2*(x + 1)*(x + 2)
+        """
+
+        nu = self.conjugate()
+        res = 1
+        for i in range(len(self)):
+            for j in range(self[i]):
+                res *= a*(self[i]-j-1)+nu[j]-i
+        return res
+
+    def hook_polynomial(self, q, t):
+        """
+        Returns the two-variable hook polynomial.
+
+        EXAMPLES:
+            sage: R.<q,t> = PolynomialRing(QQ)
+            sage: a = Partition([2,2]).hook_polynomial(q,t)
+            sage: a == (1 - t)*(1 - q*t)*(1 - t^2)*(1 - q*t^2)
+            True
+            sage: a = Partition([3,2,1]).hook_polynomial(q,t)
+            sage: a == (1 - t)^3*(1 - q*t^2)^2*(1 - q^2*t^3)
+            True
+        """
+        nu = self.conjugate()
+        res = 1
+        for i in range(len(self)):
+            for j in range(self[i]):
+                res *= 1-q**(self[i]-j-1)*t**(nu[j]-i)
+        return res
+
+
     def hook(self, i, j):
         """
         Returns the hook of box (i,j) in the partition p.  The hook of box
@@ -580,6 +660,19 @@ class Partition_class(CombinatorialObject):
         """
         return self.leg(i,j)+self.arm(i,j)+1
 
+    def hooks(self):
+        """
+        Returns a sorted list of the hook lengths in self.
+
+        EXAMPLES:
+            sage: Partition([3,2,1]).hooks()
+            [5, 3, 3, 1, 1, 1]
+        """
+        res = []
+        for row in self.hook_lengths():
+            res += row
+        res.sort(reverse=True)
+        return res
 
     def hook_lengths(self):
         r"""
@@ -619,20 +712,101 @@ class Partition_class(CombinatorialObject):
         conj = p.conjugate()
         return [[p[i]-(i+1)+conj[j]-(j+1)+1 for j in range(p[i])] for i in range(len(p))]
 
+    def upper_hook(self, i, j, alpha):
+        r"""
+        Returns the upper hook length of the box (i,j) in self.  When alpha == 1,
+        this is just the normal hook length.
+
+        The upper hook length of a box (i,j) is defined by
+        $$ h_*^\kappa(i,j) = \kappa_j^\prime-i+\alpha(\kappa_i - j+1).$$
+
+        """
+        p = self
+        conj = self.conjugate()
+        return conj[j]-(i+1)+alpha*(p[i]-(j+1)+1)
+
+    def upper_hook_lengths(self, alpha):
+        r"""
+        Returns the upper hook lengths of the partition.  When alpha == 1, these are
+        just the normal hook lengths.
+
+        The upper hook length of a box (i,j) is defined by
+        $$ h_*^\kappa(i,j) = \kappa_j^\prime-i+1+\alpha(\kappa_i - j).$$
+
+        EXAMPLES:
+            sage: Partition([3,2,1]).upper_hook_lengths(x)
+            [[3*x + 2, 2*x + 1, x], [2*x + 1, x], [x]]
+            sage: Partition([3,2,1]).upper_hook_lengths(1)
+            [[5, 3, 1], [3, 1], [1]]
+            sage: Partition([3,2,1]).hook_lengths()
+            [[5, 3, 1], [3, 1], [1]]
+        """
+        p = self
+        conj = p.conjugate()
+        return [[conj[j]-(i+1)+alpha*(p[i]-(j+1)+1) for j in range(p[i])] for i in range(len(p))]
+
+    def lower_hook(self, i, j, alpha):
+        r"""
+        Returns the lower hook length of the box (i,j) in self.  When alpha == 1,
+        this is just the normal hook length.
+
+        The lower hook length of a box (i,j) is defined by
+        $$ h_*^\kappa(i,j) = \kappa_j^\prime-i+1+\alpha(\kappa_i - j).$$
+
+        """
+        p = self
+        conj = self.conjugate()
+        return conj[j]-(i+1)+1+alpha*(p[i]-(j+1))
+
+
+    def lower_hook_lengths(self, alpha):
+        r"""
+        Returns the lower hook lengths of the partition.  When alpha == 1, these are
+        just the normal hook lengths.
+
+        The lower hook length of a box (i,j) is defined by
+        $$ h_\kappa^*(i,j) = \kappa_j^\prime-i+\alpha(\kappa_i - j + 1).$$
+
+        EXAMPLES:
+            sage: Partition([3,2,1]).lower_hook_lengths(x)
+            [[2*x + 3, x + 2, 1], [x + 2, 1], [1]]
+            sage: Partition([3,2,1]).lower_hook_lengths(1)
+            [[5, 3, 1], [3, 1], [1]]
+            sage: Partition([3,2,1]).hook_lengths()
+            [[5, 3, 1], [3, 1], [1]]
+        """
+        p = self
+        conj = p.conjugate()
+        return [[conj[j]-(i+1)+1+alpha*(p[i]-(j+1)) for j in range(p[i])] for i in range(len(p))]
+
 
     def weighted_size(self):
         """
         Returns sum([i*p[i] for i in range(len(p))]).
 
         EXAMPLES:
-            sage: Partition([2,2,1]).weighted_size()
-            9
-            sage: Partition([3,3]).weighted_size()
+            sage: Partition([2,2]).weighted_size()
+            2
+            sage: Partition([3,3,3]).weighted_size()
             9
         """
         p = self
-        return sum([(i+1)*p[i] for i in range(len(p))])
+        return sum([i*p[i] for i in range(len(p))])
 
+
+    def length(self):
+        """
+        Returns the number of parts in self.
+
+        EXAMPLES:
+            sage: Partition([3,2]).length()
+            2
+            sage: Partition([2,2,1]).length()
+            3
+            sage: Partition([]).length()
+            0
+        """
+        return len(self)
 
     def to_exp(self, k=0):
         """
@@ -976,6 +1150,58 @@ class Partition_class(CombinatorialObject):
             h[3, 2, 1] - h[3, 3] - h[4, 1, 1] + h[5, 1]
         """
         return sage.combinat.skew_partition.SkewPartition([ self, [] ]).jacobi_trudi()
+
+
+    def character_polynomial(self):
+        r"""
+        Returns the character polynomial associated to the partition
+        self.  The character polynomial $q_\mu$ is defined by
+
+        $$
+        q_\mu(x_1, x_2, \ldots, x_k) = \downarrow \sum_{\alpha \vdash k}\frac{ \chi^\mu_\alpha }{1^{a_1}2^{a_2}\cdots k^{a_k}a_1!a_2!\cdots a_k!} \prod_{i=1}^{k} (ix_i-1)^{a_i}
+        $$
+        where $a_i$ is the multiplicity of $i$ in $\alpha$.
+
+        It is computed in the following manner.
+
+        1) Expand the Schur function $s_\mu$ in the power-sum basis.
+        2) Replace each $p_i$ with $ix_i-1$
+        3) Apply the umbral operator $\downarrow$ to the resulting
+           polynomial.
+
+
+        EXAMPLES:
+            sage: Partition([1]).character_polynomial()
+            x - 1
+            sage: Partition([1,1]).character_polynomial()
+            1/2*x0^2 - 3/2*x0 - x1 + 1
+            sage: Partition([2,1]).character_polynomial()
+            1/3*x0^3 - 2*x0^2 + 8/3*x0 - x2
+
+        """
+
+        #Create the polynomial ring we will use
+        k = self.size()
+        P = PolynomialRing(QQ, k, 'x')
+        x = P.gens()
+
+        #Expand s_mu in the power sum basis
+        s = sf.sfa.SFASchur(QQ)
+        p = sf.sfa.SFAPower(QQ)
+        ps_mu = p(s(self))
+
+        #Replace each p_i by i*x_i-1
+        items = ps_mu.monomial_coefficients().items()  #items contains a list of (partition, coeff) pairs
+        def partition_to_monomial(part):
+            return prod([ (i*x[i-1]-1) for i in part ])
+        res = [ [partition_to_monomial(mc[0]), mc[1]] for mc in items ]
+
+        #Write things in the monomial basis
+        res = [ prod(pair) for pair in res ]
+        res = sum( res )
+
+        #Apply the umbral operator and return the result
+        return misc.umbral_operation(res)
 
 ##################################################
 
@@ -1444,6 +1670,10 @@ class Partitions_all(CombinatorialClass):
             True
             sage: [1,2] in P
             False
+            sage: [] in P
+            True
+            sage: [0] in P
+            False
         """
         if isinstance(x, Partition_class):
             return True
@@ -1451,7 +1681,7 @@ class Partitions_all(CombinatorialClass):
             for i in range(len(x)):
                 if not isinstance(x[i], (int, Integer)):
                     return False
-                if x[i] < 0:
+                if x[i] <= 0:
                     return False
                 if i == 0:
                     prev = x[i]

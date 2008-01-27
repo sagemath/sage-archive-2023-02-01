@@ -26,8 +26,12 @@ cdef extern from "stdsage.h":
     # Global tuple -- useful optimization
     void init_global_empty_tuple()
     object PY_NEW(object t)
+    object PY_NEW_SAME_TYPE(object t)
+
     void* PY_TYPE(object o)
     bint PY_TYPE_CHECK(object o, object t)
+    bint PY_TYPE_CHECK_EXACT(object o, object t)
+
     object IS_INSTANCE(object o, object t)
     void PY_SET_TP_NEW(object t1, object t2)
     bint HAS_DICTIONARY(object o)

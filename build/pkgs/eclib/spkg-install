@@ -33,8 +33,7 @@ fi
 
 if [ `uname` = "Darwin" ]; then
     make dylib
-fi
-if [ "$UNAME" = "CYGWIN" ]; then
+elif [ "$UNAME" = "CYGWIN" ]; then
     make dll
 else
     make so

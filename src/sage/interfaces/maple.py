@@ -450,6 +450,42 @@ connection to a server running Maple; for hints, type
     def _assign_symbol(self):
         return ":="
 
+    def _source(self, s):
+        """
+        Trys to return the source code of a Maple function str
+        as a string.
+
+        EXAMPLES:
+            sage: print maple._source('curry').strip()  #optional requires maple
+            p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
+            sage: maple._source('ZZZ')                  #optional requires maple
+            Traceback (most recent call last):
+            ...
+            Exception: no source code could be found
+        """
+        cmd = 'echo "interface(verboseproc=2): print(%s);" | maple -q'%s
+        src = os.popen(cmd).read()
+        if src.strip() == s:
+            raise Exception, "no source code could be found"
+        else:
+            return src
+
+    def source(self, s):
+        """
+        Display the Maple source (if possible) about s.  This is the same as
+        returning the output produced by the following Maple commands:
+
+        interface(verboseproc=2): print(s)
+
+        INPUT:
+            s -- a string representing the function whose source code you
+                 want
+        """
+        try:
+            pager()(self._source(s))
+        except Exception:
+            pager()('No source code could be found.')
+
     def _help(self, str):
         return os.popen('echo "?%s" | maple -q'%str).read()
 
@@ -514,10 +550,42 @@ class MapleFunction(ExpectFunction):
         M = self._parent
         return M._help(self._name)
 
+    def _sage_src_(self):
+        """
+        Returns the source code of self.  This is the function that eventually
+        gets called when doing maple.gcd?? for example.
+
+        EXAMPLES:
+            sage: print maple.curry._sage_src_().strip() #optional requires maple
+            p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
+            sage: maple.ZZZ._sage_src_()                 #optional requires maple
+            Traceback (most recent call last):
+            ...
+            Exception: no source code could be found
+
+        """
+        M = self._parent
+        return M._source(self._name)
+
 class MapleFunctionElement(FunctionElement):
     def _sage_doc_(self):
         return self._obj.parent()._help(self._name)
+    def _sage_src_(self):
+        """
+        Returns the source code of self.
 
+        EXAMPLES:
+            sage: g = maple('gcd')                   #optional requires maple
+            sage: print g.curry._sage_src_().strip() #optional requires maple
+            p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
+            sage: m = maple('2')                     #optional requires maple
+            sage: m.ZZZ._sage_src_()                 #optional requires maple
+            Traceback (most recent call last):
+            ...
+            Exception: no source code could be found
+
+        """
+        return self._obj.parent()._source(self._name)
 
 class MapleElement(ExpectElement):
     def __getattr__(self, attrname):

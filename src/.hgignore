@@ -67,7 +67,7 @@ pull
 ^sage/ext/coerce.c$
 ^sage/ext/congroup_pyx.c$
 ^sage/ext/dense_matrix_pyx.c$
-^sage/ext/element.c$
+^SAGE/ext/element.c$
 ^sage/ext/gens.c$
 ^sage/ext/group.c$
 ^sage/ext/heilbronn.c$
@@ -114,3 +114,5 @@ version.py
 ^sage/rings/rational.h$
 ^c_lib/.sconsign.dblite$
 ^c_lib/libcsage.so$
+sage/rings/complex_double.h
+sage/rings/complex_double_api.h

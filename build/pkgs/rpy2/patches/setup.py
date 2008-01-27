@@ -179,15 +179,16 @@ for RHOME in RHOMES:
 
     # Added for Sage
     libraries.append('lapack')
-    libraries.append('cblas')
-    libraries.append('atlas')
+    if sys.platform=='darwin':
+       libraries.append('Rblas')
+    else:
+       libraries.append('cblas')
+       libraries.append('atlas')
     if os.popen2('which_fortran')[1].read().startswith('g95'):
         libraries.append('f95')
     else:
         libraries.append('gfortran')
     library_dirs.append(GCC_LIB_DIR)
-
-
 
     # get the RPy version
     from rpy_version import rpy_version

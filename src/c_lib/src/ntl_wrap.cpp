@@ -907,201 +907,30 @@ struct ZZX* mat_ZZ_charpoly(const struct mat_ZZ* A)
   return f;
 }
 
-
-
 /**
- * GF2X
- *
- * @author Martin Albrecht <malb@informatik.uni-bremen.de>
- *
- * @versions 2006-01 malb
- *           initial version (based on code by William Stein)
+ * GF2EContext
  */
 
-struct GF2X* GF2X_pow(const struct GF2X* x, long e)
+GF2EContext* GF2EContext_construct(void *mem, const GF2X *p)
 {
-  GF2X *z = new GF2X();
-  power(*z, *x, e);
-  return z;
+  return new(mem) GF2EContext(*p);
 }
 
-struct GF2X* GF2X_neg(struct GF2X* x)
+
+GF2EContext* GF2EContext_new(const GF2X *p)
 {
-  return new GF2X(-(*x));
+  return new GF2EContext(*p);
 }
 
-struct GF2X* GF2X_copy(struct GF2X* x)
-{
-  GF2X *z = new GF2X(*x);
-  return z;
-}
-
-long GF2X_deg(struct GF2X* x)
-{
-  return deg(*x);
-}
-
-void GF2X_hex(long h)
-{
-  GF2X::HexOutput=h;
-}
-
-
-
-PyObject* GF2X_to_bin(const struct GF2X* x)
-{
-  long hex;
-  hex = GF2X::HexOutput;
-  GF2X::HexOutput=0;
-  std::ostringstream instore;
-  instore << (*x);
-  GF2X::HexOutput=hex;
-  return PyString_FromString(instore.str().data());
-}
-
-PyObject* GF2X_to_hex(const struct GF2X* x)
-{
-  long hex;
-  hex = GF2X::HexOutput;
-  GF2X::HexOutput=1;
-  std::ostringstream instore;
-  instore << (*x);
-  GF2X::HexOutput=hex;
-  return PyString_FromString(instore.str().data());
-}
-
-
-
-/**
- * GF2E
- *
- * @author Martin Albrecht <malb@informatik.uni-bremen.de>
- *
- * @versions 2006-01 malb
- *           initial version (based on code by William Stein)
- */
-
-
-void ntl_GF2E_set_modulus(GF2X* x)
-{
-  GF2E::init(*x);
-}
-
-
-struct GF2E* GF2E_pow(const struct GF2E* x, long e)
-{
-  GF2E *z = new GF2E();
-  power(*z, *x, e);
-  return z;
-}
-
-
-struct GF2E* GF2E_neg(struct GF2E* x)
-{
-  return new GF2E(-(*x));
-}
-
-struct GF2E* GF2E_copy(struct GF2E* x)
-{
-  GF2E *z = new GF2E(*x);
-  return z;
-}
-
-long GF2E_trace(struct GF2E* x)
-{
-  return rep(trace(*x));
-}
-
-
-long GF2E_degree()
-{
-  return GF2E::degree();
-}
-
-const struct GF2X* GF2E_modulus()
-{
-  GF2XModulus mod = GF2E::modulus();
-  GF2X *z = new GF2X(mod.val());
-  return z;
-}
-
-struct GF2E *GF2E_random(void)
-{
-  GF2E *z = new GF2E();
-  random(*z);
-  return z;
-}
-
-const struct GF2X *GF2E_ntl_GF2X(struct GF2E *x) {
-  GF2X *r = new GF2X(rep(*x));
-  return r;
-}
-
-
-/**
- * mat_GF2E
- *
- * @author Martin Albrecht <malb@informatik.uni-bremen.de>
- *
- * @versions 2006-01 malb
- *           initial version (based on code by William Stein)
- */
-
-void mat_GF2E_SetDims(struct mat_GF2E* m, long nrows, long ncols){
-  m->SetDims(nrows, ncols);
-}
-
-struct mat_GF2E* mat_GF2E_pow(const struct mat_GF2E* x, long e)
-{
-  mat_GF2E *z = new mat_GF2E();
-  power(*z, *x, e);
-  return z;
-}
-
-long mat_GF2E_nrows(const struct mat_GF2E* x)
-{
-  return x->NumRows();
-}
-
-
-long mat_GF2E_ncols(const struct mat_GF2E* x)
-{
-  return x->NumCols();
-}
 
 void mat_GF2E_setitem(struct mat_GF2E* x, int i, int j, const struct GF2E* z)
 {
   (*x)[i][j] = *z;
 }
 
-struct GF2E* mat_GF2E_getitem(const struct mat_GF2E* x, int i, int j)
-{
-  return new GF2E((*x)(i,j));
-}
-
-struct GF2E* mat_GF2E_determinant(const struct mat_GF2E* x)
-{
-  GF2E* d = new GF2E();
-  determinant(*d, *x);
-  return d;
-}
-
-long mat_GF2E_gauss(struct mat_GF2E *x, long w)
-{
-  if(w==0) {
-    return gauss(*x);
-  } else {
-    return gauss(*x, w);
-  }
-}
-
-struct mat_GF2E* mat_GF2E_transpose(const struct mat_GF2E* x) {
-  mat_GF2E *y = new mat_GF2E();
-  transpose(*y,*x);
-  return y;
-}
-
-
+/**
+ * ZZ_pContext
+ */
 
 ZZ_pContext* ZZ_pContext_new(ZZ *p)
 {
@@ -1288,9 +1117,9 @@ void ZZ_pX_right_pshift(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ 
     x.normalize();
 }
 
-void ZZ_pX_InvMod_newton(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ_pXModulus &F, const struct ZZ_pContext &cpn, const struct ZZ_pContext &cp)
+void ZZ_pX_InvMod_newton_unram(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ_pXModulus &F, const struct ZZ_pContext &cpn, const struct ZZ_pContext &cp)
 {
-    int j;
+    //int j;
     cp.restore();
     ZZ_pX *amodp = new ZZ_pX();
     ZZ_pX *xmodp = new ZZ_pX();
@@ -1304,16 +1133,18 @@ void ZZ_pX_InvMod_newton(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ
     ZZ_pX *xn = new ZZ_pX();
     ZZ_pX_conv_modulus(*xn, *xmodp, cpn);
     negate(*minusa, a);
-    do
+    while (1 > 0)
     {
-        *xn = x;
         // x_n = 2*x_{n-1} - a*x_{n-1}^2 = (2 - a*x_{n-1})*x_{n-1}
         MulMod(x, *minusa, *xn, F);
         SetCoeff(x, 0, ConstTerm(x) + 2);
         MulMod(x, x, *xn, F);
+        if (x == *xn)
+            break;
+        *xn = x;
         //cout << "x: " << x << "\nxn: " << *xn << "\n";
         //cin >> j;
-    } while (x != (*xn));
+    }
     delete amodp;
     delete xmodp;
     delete fmodp;
@@ -1321,66 +1152,33 @@ void ZZ_pX_InvMod_newton(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ
     delete xn;
 }
 
-void ZZ_pX_eis_shift(struct ZZ_pX &x, const struct ZZ_pX &a, long n, const struct ZZ_pXMultiplier* low_shifter, const struct ZZ_pXMultiplier* high_shifter, const struct ZZ_pXModulus &modulus, const struct ZZ &p, const struct ZZ_pContext &clower)
+void ZZ_pX_InvMod_newton_ram(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ_pXModulus &F, const struct ZZ_pContext &cpn)
 {
-    long degree = deg(modulus);
-    long pshift = n / degree;
-    long eis_part = n % degree;
-    long two_shift = 1;
-    int i;
-
-    //cout << "eis_part: " << eis_part << "\n";
-    //cout << "pshift: " << pshift << "\n";
-    ZZ_pX low_part; // = new ZZ_pX();
-    ZZ_pX shifted_high_part; // = new ZZ_pX();
-    x = a;
-    //cout << "beginning: a = " << a << "\n";
-    if (pshift)
+    //int j;
+    cpn.restore();
+    ZZ_pX *minusa = new ZZ_pX();
+    ZZ_pX *xn = new ZZ_pX();
+    SetCoeff(*xn, 0, inv(ConstTerm(a)));
+    negate(*minusa, a);
+    while (1 > 0)
     {
-        i = 0;
-        two_shift = 1;
-        ZZ *pn = new ZZ();
-        power(*pn, p, pshift);
-        ZZ_pX_right_pshift(x, x, *pn, clower);
-        delete pn;
-        while (pshift > 0)
-        {
-            if (pshift & 1)
-            {
-                MulMod(x, x, high_shifter[i], modulus);
-            }
-            i++;
-            two_shift <<= 1;
-            pshift >>= 1;
-        }
+        // x_n = 2*x_{n-1} - a*x_{n-1}^2 = (2 - a*x_{n-1})*x_{n-1}
+        MulMod(x, *minusa, *xn, F);
+        SetCoeff(x, 0, ConstTerm(x) + 2);
+        MulMod(x, x, *xn, F);
+        //cout << "x: " << x << "\nxn: " << *xn << "\n";
+        if (x == *xn)
+            break;
+        *xn = x;
+        //cin >> j;
     }
-    i = 0;
-    two_shift = 1;
-    while (eis_part > 0)
-    {
-        //cout << "eis_part = " << eis_part << "\n";
-        if (eis_part & 1)
-        {
-            //cout << "i = " << i << "\n";
-            //cout << "two_shift = " << two_shift << "\n";
-            shifted_high_part = x >> two_shift;
-            //cout << "shifted_high_part = " << shifted_high_part << "\n";
-            low_part = x - (shifted_high_part << two_shift);
-            //cout << "low_part = " << low_part << "\n";
-            ZZ_pX_right_pshift(low_part, low_part, p, clower);
-            //cout << "low_part = " << low_part << "\n";
-            MulMod(low_part, low_part, low_shifter[i], modulus);
-            //cout << "low_part = " << low_part << "\n";
-            x = low_part + shifted_high_part;
-            //cout << "x = " << x << "\n";
-        }
-        i++;
-        two_shift <<= 1;
-        eis_part >>= 1;
-    }
-    //delete low_part;
-    //delete shifted_high_part;
+    delete minusa;
+    delete xn;
 }
+
+/**
+ * ZZ_pEContext
+ */
 
 // Functions for using ZZ_pX's for p-adic extensions
 
@@ -1661,6 +1459,10 @@ void ZZ_pEContext_restore(ZZ_pEContext *ctx)
 {
 	ctx->restore();
 }
+
+/**
+ * zz_pContext
+ */
 
 zz_pContext* zz_pContext_new(long p)
 {

@@ -1,5 +1,5 @@
 r"""
-Further Examples.
+Calculus Tests and Examples.
 
 Compute the Christoffel symbol.
 
@@ -133,7 +133,7 @@ Mathematica docs:
     sage: forget()
 
 The following are a bunch of examples of integrals that Mathematica
-can do, but SAGE currently can't do:
+can do, but \sage currently can't do:
     sage: integrate(sqrt(x + sqrt(x)), x)    # todo -- mathematica can do this
     integrate(sqrt(x + sqrt(x)), x)
     sage: integrate(log(x)*exp(-x^2))        # todo -- mathematica can do this

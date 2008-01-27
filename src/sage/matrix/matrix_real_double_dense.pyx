@@ -636,7 +636,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             A -- a matrix
             algorithm -- 'numpy' or 'gsl'
         OUTPUT:
-            U, S, V -- matrices such that A = U * S * V^t, where
+            U, S, V -- matrices such that $A = U S V^t$, where
                        U and V are orthogonal and S is diagonal.
 
 
@@ -798,7 +798,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
         OUTPUT:
            Q, R -- matrices such that A = Q*R such that the columns of Q are
-                   orthogonal (i.e., Q^t*Q = I), and R is upper triangular.
+                   orthogonal (i.e., $Q^t Q = I$), and R is upper triangular.
 
         EXAMPLES:
             sage: m = matrix(RDF,3,range(12)); m

@@ -356,17 +356,17 @@ class Dokchitser(SageObject):
 
 
     def taylor_series(self, a=0, k=6, var='z'):
-        """
-        Return the first k terms of the Taylor series expansion of the
+        r"""
+        Return the first $k$ terms of the Taylor series expansion of the
         $L$-series about $a$.
 
-        This is returned as a series in var, where you should view var
+        This is returned as a series in \var{var}, where you should view \var{var}
         as equal to $s-a$.  Thus this function returns the formal
         power series whose coefficients are $L^{(n)}(a)/n!$.
 
         INPUT:
             a -- complex number (default: 0); point about which to expand
-            k -- integer (default: 6), series is O(var^k)
+            k -- integer (default: 6), series is $O(\var{var}^k)$
             var -- string (default: 'z'), variable of power series
 
         EXAMPLES:

@@ -39,9 +39,9 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
 
     NOTES:
     \begin{enumerate}
-      \item By default for a curve any points where f_x, f_y, or f_z do
+      \item By default for a curve any points where $f_x$, $f_y$, or $f_z$ do
         not evaluate to a real number are skipped.
-      \item Currently for a surface f_x, f_y, and f_z have to be defined
+      \item Currently for a surface $f_x$, $f_y$, and $f_z$ have to be defined
         everywhere. This will change.
     \end{enumerate}
 
@@ -52,7 +52,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
             sage: parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20))
 
         Note above the lambda function, which creates a callable Python function
-        that sends u to u/10.
+        that sends $u$ to $u/10$.
 
         \item Next we draw the same plot as above, but using symbolic functions:
             sage: u = var('u')

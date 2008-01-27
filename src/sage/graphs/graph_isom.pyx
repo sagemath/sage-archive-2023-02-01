@@ -2059,8 +2059,8 @@ def orbit_partition(gamma, list_perm=False):
     determined by a cyclic representation of gamma.
 
     INPUT:
-        list_perm -- if True, assumes gamma is a list representing the map
-    i \mapsto gamma[i].
+        list_perm -- if True, assumes \var{gamma} is a list representing the map
+    $i \mapsto \var{gamma}[i]$.
 
     EXAMPLES:
         sage: import sage.graphs.graph_isom

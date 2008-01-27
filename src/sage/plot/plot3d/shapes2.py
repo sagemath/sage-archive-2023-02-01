@@ -220,7 +220,7 @@ def sphere(center=(0,0,0), size=1, **kwds):
     A simple sphere:
        sage: sphere()
 
-    Two sphere's touching:
+    Two spheres touching:
        sage: sphere(center=(-1,0,0)) + sphere(center=(1,0,0), aspect_ratio=[1,1,1])
 
     Spheres of radii 1 and 2 one stuck into the other:
@@ -246,7 +246,7 @@ def text3d(txt, (x,y,z), **kwds):
         (x,y,z) -- position
         **kwds -- standard 3d graphics options
 
-    This function called implicitly when you use the text command with a 3d position.
+    This function is called implicitly when you use the text command with a 3d position.
 
     NOTE: There is no way to change the font size or opacity yet.
 
@@ -254,7 +254,7 @@ def text3d(txt, (x,y,z), **kwds):
     We write the word SAGE in red at position (1,2,3):
         sage: text("SAGE", (1,2,3), color=(0.5,0,0))
 
-    We draw a multicolore spiral of numbers:
+    We draw a multicolor spiral of numbers:
         sage: sum([text('%.1f'%n, (cos(n),sin(n),n), color=(n/2,1-n/2,0)) \
                     for n in [0,0.2,..,8]])
     """
@@ -404,7 +404,7 @@ class Line(PrimitiveObject):
 
     def corners(self, corner_cutoff=None, max_len=None):
         """
-        Figures out where the curve turns to sharply to pretend its smooth.
+        Figures out where the curve turns too sharply to pretend it's smooth.
 
         INPUT:
             Maximum cosine of angle between adjacent line segments

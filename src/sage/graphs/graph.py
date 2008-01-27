@@ -32,9 +32,9 @@ AUTHORS:
 
 \subsection{Graph Format}
 
-\subsubsection{The SAGE Graph Class: NetworkX plus}
+\subsubsection{The \sage Graph Class: NetworkX plus}
 
-            SAGE graphs are actually NetworkX graphs, wrapped in a SAGE class.
+            \sage graphs are actually NetworkX graphs, wrapped in a \sage class.
             In fact, any graph can produce its underlying NetworkX graph. For example,
 
                 sage: import networkx
@@ -58,7 +58,7 @@ AUTHORS:
             \subsubsection{Supported formats}
 
 
-            SAGE Graphs can be created from a wide range of inputs. A few examples are
+            \sage Graphs can be created from a wide range of inputs. A few examples are
             covered here.
 
             \begin{itemize}
@@ -85,7 +85,7 @@ AUTHORS:
                 Looped multi-graph on 10 vertices
                 sage: G.plot().show()    # or G.show()
 
-                Note that the \ character is an escape character in Python, and
+                Note that the \verb+\+ character is an escape character in Python, and
                 also a character used by graph6 strings:
 
                 sage: G = Graph('Ihe\n@GUA')
@@ -93,13 +93,13 @@ AUTHORS:
                 ...
                 RuntimeError: The string (Ihe) seems corrupt: for n = 10, the string is too short.
 
-                In Python, the escaped character \ is represented by \\:
+                In Python, the escaped character \verb+\+ is represented by \verb+\\+:
 
                 sage: G = Graph('Ihe\\n@GUA')
                 sage: G.plot().show()    # or G.show()
 
-                \item adjacency matrix In an adjacency matrix, each column and each row represent
-                a vertex. If a 1 shows up in row i, column j, there is an edge (i,j).
+                \item adjacency matrix: In an adjacency matrix, each column and each row represent
+                a vertex. If a 1 shows up in row $i$, column $j$, there is an edge $(i,j)$.
 
                 sage: M = Matrix([(0,1,0,0,1,1,0,0,0,0),(1,0,1,0,0,0,1,0,0,0), \
                 (0,1,0,1,0,0,0,1,0,0), (0,0,1,0,1,0,0,0,1,0),(1,0,0,1,0,0,0,0,0,1), \
@@ -192,7 +192,7 @@ AUTHORS:
         \subsection{Labels}\label{Graph:labels}
 
         Each vertex can have any hashable object as a label. These are things like
-        strings, numbers, and tuples. Each edge is given a default label of \var{None}, but
+        strings, numbers, and tuples. Each edge is given a default label of \code{None}, but
         if specified, edges can have any label at all. Edges between vertices $u$ and $v$ are
         represented typically as \verb|(u, v, l)|, where \var{l} is the label for the edge.
 
@@ -235,7 +235,7 @@ AUTHORS:
 
         \subsection{Visualization}
 
-        To see a graph G you are working with, right now there are two main options.
+        To see a graph $G$ you are working with, right now there are two main options.
         You can view the graph in two dimensions via matplotlib with \method{show()}.
 
             sage: G = graphs.RandomGNP(15,.3)
@@ -5616,7 +5616,7 @@ class DiGraph(GenericGraph):
             2. A dictionary of dictionaries
             3. A dictionary of lists
             4. A numpy matrix or ndarray
-            5. A SAGE adjacency matrix or incidence matrix
+            5. A Sage adjacency matrix or incidence matrix
             6. pygraphviz agraph
             7. scipy sparse matrix
 
@@ -5636,15 +5636,16 @@ class DiGraph(GenericGraph):
         weighted -- whether digraph thinks of itself as weighted or not. See
             self.weighted()
         format -- if None, DiGraph tries to guess- can be several values, including:
-            'adjacency_matrix' -- a square SAGE matrix M, with M[i,j] equal to the number
+            'adjacency_matrix' -- a square Sage matrix M, with M[i,j] equal to the number
                                   of edges \{i,j\}
-            'incidence_matrix' -- a SAGE matrix, with one column C for each edge, where
+            'incidence_matrix' -- a Sage matrix, with one column C for each edge, where
                                   if C represents \{i, j\}, C[i] is -1 and C[j] is 1
-            'weighted_adjacency_matrix' -- a square SAGE matrix M, with M[i,j]
+            'weighted_adjacency_matrix' -- a square Sage matrix M, with M[i,j]
                 equal to the weight of the single edge \{i,j\}. Given this
                 format, weighted is ignored (assumed True).
         boundary -- a list of boundary vertices, if none, digraph is considered as a 'digraph
                     without boundary'
+
     EXAMPLES:
     1. A NetworkX XDiGraph:
         sage: import networkx
@@ -5721,8 +5722,8 @@ class DiGraph(GenericGraph):
         sage: DiGraph(A)
         Digraph on 3 vertices
 
-    7. A SAGE matrix:
-    Note: If format is not specified, then SAGE assumes a square matrix is an adjacency
+    7. A \sage matrix:
+    Note: If format is not specified, then \sage assumes a square matrix is an adjacency
     matrix, and a nonsquare matrix is an incidence matrix.
 
         A. an adjacency matrix:
@@ -5943,13 +5944,10 @@ class DiGraph(GenericGraph):
 
     def add_edge(self, u, v=None, label=None):
         """
-        Adds an edge from u to v.
+        Adds an edge from $u$ to $v$.
 
         INPUT:
         The following forms are all accepted by NetworkX:
-        INPUT:
-        The following forms are all accepted:
-
         G.add_edge( 1, 2 )
         G.add_edge( (1, 2) )
         G.add_edges( [ (1, 2) ] )
@@ -5993,12 +5991,11 @@ class DiGraph(GenericGraph):
 
     def delete_edge(self, u, v=None, label=None):
         r"""
-        Delete the edge from u to v, return silently if vertices or edge does
+        Delete the edge from $u$ to $v$, return silently if vertices or edge does
         not exist.
 
         INPUT:
         The following forms are all accepted:
-
         G.delete_edge( 1, 2 )
         G.delete_edge( (1, 2) )
         G.delete_edges( [ (1, 2) ] )
@@ -6090,9 +6087,9 @@ class DiGraph(GenericGraph):
             return [(u,v) for u,v,_ in L]
 
     def edge_boundary(self, vertices1, vertices2=None, labels=True):
-        """
-        Returns a list of edges (u,v,l) with u in vertices1 and v in vertices2.
-        If vertices2 is None, then it is set to the complement of vertices1.
+        r"""
+        Returns a list of edges $(u,v,l)$ with $u$ in \var{vertices1} and $v$ in \var{vertices2}.
+        If \var{vertices2} is \code{None}, then it is set to the complement of \var{vertices1}.
 
         INPUT:
         labels -- if False, each edge is a tuple (u,v) of vertices.
@@ -7257,7 +7254,7 @@ def enum(graph, quick=False):
 def paths_helper(start, end, G, all_paths, p=None):
     """
     The recursive helper for path finding calls.  (i.e.: all_paths
-    and interior_paths).  Spawns potential path for each unvisited
+    and interior_paths).  Spawns a potential path for each unvisited
     neighbor of current vertex and appends all succesful paths to
     one list.  (Note that paths themselves are lists of vertices).
 

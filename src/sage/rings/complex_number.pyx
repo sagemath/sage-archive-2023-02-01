@@ -586,7 +586,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             self -- element of the upper half plane (if not,
                     raises a ValueError).
             omit_frac -- (bool, default: False), if True, omit
-                    the e^(pi i z / 12) factor.
+                    the $e^{\pi i z / 12}$ factor.
 
         OUTPUT:
             a complex number

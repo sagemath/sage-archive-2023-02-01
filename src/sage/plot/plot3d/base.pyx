@@ -809,7 +809,7 @@ def flatten_list(L):
     """
     This is an optimized routine to turn a list of lists (of lists ...) into a single
     list. We generate data in a non-flat format to avoid multiple data copying, and
-    then concatinate it all at the end.
+    then concatenate it all at the end.
 
     This is NOT recursive, otherwise there would be a lot of redundant copying (which
     we are trying to avoid in the first place, though at least it would be just the

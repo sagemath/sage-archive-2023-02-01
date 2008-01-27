@@ -229,7 +229,7 @@ class ModularFormElement(element.HeckeModuleElement):
 
     def __getitem__(self, n):
         """
-        Return the q^n coefficient of the q-expansion of self.
+        Return the $q^n$ coefficient of the $q$-expansion of self.
 
         EXAMPLES:
             sage: f = ModularForms(DirichletGroup(17).0^2,2).2
@@ -242,7 +242,7 @@ class ModularFormElement(element.HeckeModuleElement):
 
     def __getslice__(self, i, j):
         """
-        Return a list containing the q^i through q^j coefficients of self.
+        Return a list containing the $q^i$ through $q^j$ coefficients of self.
 
         EXAMPLES:
             sage: f = ModularForms(DirichletGroup(17).0^2,2).2

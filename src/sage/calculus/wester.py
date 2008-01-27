@@ -7,7 +7,7 @@ These are all the problems at
 They come from the 1994 paper "Review of CAS mathematical capabilities",
 by Michael Wester, who put forward 123 problems that a reasonable computer
 algebra system should be able to solve and tested the then current
-versions of various commercial CAS on this list.   SAGE can do most of
+versions of various commercial CAS on this list.   \sage can do most of
 the problems natively now, i.e., with no explicit calls to maxima or
 other systems.
 

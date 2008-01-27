@@ -668,7 +668,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
         """
         Wraps Singular's invariant_algebra_reynolds and invariant_ring
         in finvar.lib, with help from Simon King and Martin Albrecht.
-        Computes generators for the polynomial ring F[x1,...,xn]^G, where
+        Computes generators for the polynomial ring $F[x_1,\ldots,x_n]^G$, where
         G in GL(n,F) is a finite matrix group.
 
         In the "good characteristic" case the polynomials returned form a

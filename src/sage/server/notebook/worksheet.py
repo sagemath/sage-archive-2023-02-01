@@ -1,7 +1,7 @@
-"""nodoctest
+r"""nodoctest
 A Worksheet.
 
-A worksheet is embedded in a webpage that is served by the SAGE server.
+A worksheet is embedded in a webpage that is served by the \sage server.
 It is a linearly-ordered collections of numbered cells, where a
 cell is a single input/output block.
 """
@@ -70,7 +70,7 @@ TRASH    = 2
 
 # The default is for there to be one sage session for
 # each worksheet.  If this is False, then there is just
-# one global SAGE session, like with Mathematica.
+# one global Sage session, like with Mathematica.
 # This variable gets sets when the notebook function
 # in notebook.py is called.
 multisession = True
@@ -601,7 +601,8 @@ class Worksheet:
         """
         Return a plain-text version of the worksheet.
 
-        prompts -- if True format for inclusion in docstrings.
+        INPUT:
+            prompts -- if True format for inclusion in docstrings.
         """
         s = ''
         if banner:
@@ -941,9 +942,9 @@ class Worksheet:
         return time.time() - self.last_edited()
 
     def warn_about_other_person_editing(self,username, threshold):
-        """
+        r"""
         Check to see if another user besides username was the last to
-        edited this worksheet during the last threshold seconds.  If
+        edit this worksheet during the last \var{threshold} seconds.  If
         so, return True and that user name.  If not, return False.
 
         INPUT:
@@ -986,7 +987,7 @@ class Worksheet:
 
     def append_new_cell(self):
         """
-        Create an append a new cell to the list of cells.
+        Create and append a new cell to the list of cells.
         """
         C = self._new_cell()
         self.__cells.append(C)
@@ -1081,7 +1082,7 @@ class Worksheet:
             print "WARNING: %s"%msg
         except Exception, msg:
             print msg
-            print "WARNING: Error deleting SAGE object!"
+            print "WARNING: Error deleting Sage object!"
 
         try:
             os.kill(pid, 9)
@@ -1090,7 +1091,7 @@ class Worksheet:
 
         del self.__sage
 
-        # We do this to avoid getting a stale SAGE that uses old code.
+        # We do this to avoid getting a stale Sage that uses old code.
         self.clear_queue()
 
 
@@ -1118,7 +1119,7 @@ class Worksheet:
         return True
 
     def initialize_sage(self):
-        #print "Starting SAGE server for worksheet %s..."%self.name()
+        #print "Starting Sage server for worksheet %s..."%self.name()
         self.delete_cell_input_files()
         object_directory = os.path.abspath(self.notebook().object_directory())
         S = self.__sage
@@ -1257,7 +1258,7 @@ class Worksheet:
             S._send(cmd)
         except OSError, msg:
             self.restart_sage()
-            C.set_output_text('The SAGE compute process quit (possibly SAGE crashed?).\nPlease retry your calculation.','')
+            C.set_output_text('The Sage compute process quit (possibly Sage crashed?).\nPlease retry your calculation.','')
 
     def check_comp(self):
         if len(self.__queue) == 0:
@@ -1314,14 +1315,14 @@ class Worksheet:
 
         OUTPUT:
             bool -- return True if no problems interrupting calculation
-                    return False if the SAGE interpreter had to be restarted.
+                    return False if the Sage interpreter had to be restarted.
         """
         if len(self.__queue) == 0:
             # nothing to do
             return True
 
         success = False
-        # stop the current computation in the running SAGE
+        # stop the current computation in the running Sage
         try:
             S = self.__sage
         except AttributeError:
@@ -1343,7 +1344,7 @@ class Worksheet:
 
     def restart_sage(self):
         """
-        Restart SAGE kernel.
+        Restart \sage kernel.
         """
         self.quit()
 
@@ -1360,8 +1361,8 @@ class Worksheet:
     # Idle timeout
     ##########################################################
     def quit_if_idle(self, timeout):
-        """
-        Quit the worksheet process if it has been "idle" for more than timeout seconds,
+        r"""
+        Quit the worksheet process if it has been ``idle'' for more than \var{timeout} seconds,
         where idle is by definition that the worksheet has not reported back that it
         is actually computing.  I.e., an ignored worksheet process (since the user closed
         their browser) is also considered idle, even if code is running.
@@ -1475,8 +1476,8 @@ class Worksheet:
             return 0
 
     def delete_cell_input_files(self):
-        """
-        Delete all the files code_%s.py and code_%s.spyx that are created
+        r"""
+        Delete all the files \file{code_\%s.py} and \file{code_\%s.spyx} that are created
         when evaluating cells.  We do this when we first start the notebook
         to get rid of clutter.
         """
@@ -1665,7 +1666,7 @@ class Worksheet:
         # the python error message for list indices is not good enough.
         # out = out.replace('indices must be integers', 'indices must be of type Python int.\n(Hint: Use int(n) to make n into a Python int.)')
 
-        out = out.replace("NameError: name 'os' is not defined", "NameError: name 'os' is not defined\nTHERE WAS AN ERROR LOADING THE SAGE LIBRARIES.  Try starting SAGE from the command line to see what the error is.")
+        out = out.replace("NameError: name 'os' is not defined", "NameError: name 'os' is not defined\nTHERE WAS AN ERROR LOADING THE SAGE LIBRARIES.  Try starting Sage from the command line to see what the error is.")
 
         try:
             tb = 'Traceback (most recent call last):'
@@ -1692,7 +1693,7 @@ class Worksheet:
         S = self.system()
         # If we are tab completing in a worksheet for another
         # system, e.g., mathematica, this is like typing mathematica.[tab].
-        # However, for SAGE and Python, we want regular tab completion.
+        # However, for Sage and Python, we want regular tab completion.
         if S and not (S in ['sage', 'python']):
             t = S + '.' + t
         return t
@@ -1706,8 +1707,8 @@ class Worksheet:
     # Loading and attaching files
     ##########################################################
     def load_any_changed_attached_files(self, s):
-        """
-        Modify s by prepending any necessary load commands
+        r"""
+        Modify \var{s} by prepending any necessary load commands
         corresponding to attached files that have changed.
         """
         A = self.attached_files()
@@ -1911,7 +1912,7 @@ class Worksheet:
     def check_for_system_switching(self, s, C):
         r"""
         Check for input cells that start with \code{\%foo},
-        where foo is an object with an eval method.
+        where \var{foo} is an object with an eval method.
         """
         z = s
         s = s.lstrip()
@@ -2002,11 +2003,12 @@ sage: 2 + 2
 '''.lstrip()
 
 def ignore_prompts_and_output(aString):
-    """
+    r"""
     Given a string s that defines an input block of code,
-    if the first line begins in "sage:" (or ">>>"), strip out all lines
-    that don't begin in either "sage:" (or ">>>") or"...", and
-    remove all "sage:" (or ">>>") and "..." from the beginning
+    if the first line begins in \samp{sage:} (or \samp{>>>}),
+    strip out all lines
+    that don't begin in either \samp{sage:} (or \samp{>>>}) or \samp{...}, and
+    remove all \samp{sage:} (or \samp{>>>}) and \samp{...} from the beginning
     of the remaining lines.
 
     TESTS:
@@ -2052,7 +2054,7 @@ def extract_first_compute_cell(text):
         meta -- meta information about the cell (as a dictionary)
         input -- string, the input text
         output -- string, the output text
-        end -- integer, first position after }}} in text.
+        end -- integer, first position after \samp{\}\}\}} in text.
     """
     # Find the input block
     i = text.find('{{{')
@@ -2163,7 +2165,7 @@ def extract_name(text):
     return name.strip(), n
 
 def extract_system(text):
-    # If the first line is "system: ..." , then it is the system.  Otherwise the system is SAGE.
+    # If the first line is "system: ..." , then it is the system.  Otherwise the system is Sage.
     i = non_whitespace.search(text)
     if i is None:
         return 'sage', 0
@@ -2239,10 +2241,12 @@ def convert_time_to_string(t):
 
 
 def split_search_string_into_keywords(s):
-    """
+    r"""
     The point of this function is to allow for searches like this:
 
+    \begin{verbatim}
           "ws 7" foo bar  Modular  '"the" end'
+    \end{verbatim}
 
     i.e., where search terms can be in quotes and the different quote
     types can be mixed.

@@ -182,7 +182,7 @@ class DistributedSage(object):
                         enter commands at the command prompt (though
                         logging will make this hard).
             logfile  -- only used if blocking=True; the default is
-                        to log to $DOT_SAGE/dsage/server.log
+                        to log to \file{\$DOT_SAGE/dsage/server.log}
 
         """
 
@@ -231,7 +231,7 @@ class DistributedSage(object):
             privkey -- private key
             pubkey -- public key
             log_file -- only used if blocking=True; the default is
-                       to log to $DOT_SAGE/dsage/worker.log
+                       to log to \file{\$DOT_SAGE/dsage/worker.log}
             verbose -- be more verbose about launching the workers
 
         """

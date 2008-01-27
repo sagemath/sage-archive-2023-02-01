@@ -1,7 +1,7 @@
 r"""
 2D Plotting
 
-SAGE provides extensive 2D plotting functionality.  The underlying
+\sage provides extensive 2D plotting functionality.  The underlying
 rendering is done using the matplotlib Python library.
 
 The following graphics primitives are supported:
@@ -17,7 +17,7 @@ The following graphics primitives are supported:
 
 The following plotting functions are supported:
 \begin{itemize}
-    \item plot   -- plot of a function or other SAGE object (e.g., elliptic curve).
+    \item plot   -- plot of a function or other \sage object (e.g., elliptic curve).
     \item parametric_plot
     \item polar_plot
     \item list_plot
@@ -36,7 +36,7 @@ The following miscellaneous Graphics functions are included:
     \item hue
 \end{itemize}
 
-Type ? after each primitive in \sage for help and examples.
+Type \kbd{?} after each primitive in \sage for help and examples.
 
 EXAMPLES:
 We construct a plot involving several graphics objects:
@@ -63,14 +63,14 @@ wide as it is tall:
     sage: show(circle((1,1), 1) + plot(x^2, (0,5)), figsize=[8,4])
 
 Next we construct the reflection of the above polygon about the
-$y$-axis by iterating over the qlist of first-coordinates of the first
+$y$-axis by iterating over the list of first-coordinates of the first
 graphic element of $P$ (which is the actual Polygon; note that $P$ is
 a Graphics object, which consists of a single polygon):
 
     sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
     sage: Q   # show it
 
-We combine together different graphics objects using "+":
+We combine together different graphics objects using ``$+$'':
 
     sage: H = G + P + Q
     sage: print H
@@ -124,7 +124,7 @@ Another graph:
 
 PYX EXAMPLES:
 These are some examples of plots similar to some of the plots in the
-PyX (http://pyx.sourceforge.net) documentation:
+PyX (\url{http://pyx.sourceforge.net}) documentation:
 
 Symbolline:
     sage: y(x) = x*sin(x^2)
@@ -158,7 +158,7 @@ An illustration of integration:
 
 NUMERICAL PLOTTING:
 
-SAGE also provides 2D plotting with an interface that is a likely very
+\sage also provides 2D plotting with an interface that is a likely very
 familiar to people doing numerical computation.  For example,
 
     sage: from pylab import *
@@ -223,23 +223,23 @@ DOCTEST_MODE = False
 SHOW_DEFAULT = True
 
 def show_default(default=None):
-    """
+    r"""
     Set the default for showing plots using any plot commands.
     If called with no arguments, returns the current default.
 
-    If this is True (the default) then any plot object when displayed
+    If this is \code{True} (the default) then any plot object when displayed
     will be displayed as an actual plot instead of text, i.e., the
     show command is not needed.
 
     EXAMPLES:
-    The default starts out as True:
+    The default starts out as \code{True}:
         sage: show_default()
         True
 
-    We set it to False.
+    We set it to \code{False}.
         sage: show_default(False)
 
-    We see that it is False.
+    We see that it is \code{False}.
         sage: show_default()
         False
 
@@ -269,15 +269,15 @@ from misc import rgbcolor
 # Try not to import any matplotlib stuff here -- matplotlib is
 # slow to import.  (I did benchmarking and found that by not
 # importing here, and instead importing when needed below, that
-# SAGE startup times are much improved.)  - William
+# Sage startup times are much improved.)  - William
 ###############
 
-#SAGE 2D Graphics Axes class:
+#Sage 2D Graphics Axes class:
 from axes import Axes
 
 def is_Graphics(x):
     """
-    Return True if x is a Graphics object.
+    Return True if $x$ is a Graphics object.
 
     EXAMPLES:
         sage: is_Graphics(1)
@@ -301,7 +301,7 @@ class Graphics(SageObject):
         sage: G+=c; print G
         Graphics object consisting of 1 graphics primitive
 
-    Here we make a graphic of embeded isoceles triangles,
+    Here we make a graphic of embedded isosceles triangles,
     coloring each one with a different color as we go:
 
         sage: h=10; c=0.4; p=0.1;
@@ -382,7 +382,7 @@ class Graphics(SageObject):
 
     def axes_range(self, xmin=None, xmax=None, ymin=None, ymax=None):
         """
-        Set the ranges of the x and y axes.
+        Set the ranges of the $x$ and $y$ axes.
 
         INPUT:
             xmin, xmax, ymin, ymax -- floats
@@ -428,7 +428,7 @@ class Graphics(SageObject):
 
     def axes(self, show=None):
         """
-        Set whether or not the x and y axes are shown by default.
+        Set whether or not the $x$ and $y$ axes are shown by default.
 
         INPUT:
             show -- bool
@@ -1209,7 +1209,7 @@ class Graphics(SageObject):
             sage: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
 
         To correct the apect ratio of certain graphics, it is necessary
-        to show with a 'figsize' of square dimensions.
+        to show with a `\code{figsize}' of square dimensions.
 
             sage: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
 
@@ -1301,18 +1301,18 @@ class Graphics(SageObject):
              dpi=DEFAULT_DPI, axes=None, axes_labels=None, fontsize=None,
              frame=False, verify=True,
              aspect_ratio = None):
-        """
+        r"""
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
         depending on the file extension you give the filename.
-            Extension types can be: '.png', '.ps', '.eps', '.svg',
-            and '.sobj' (for a SAGE object you can load later).
+            Extension types can be: \file{.png}, \file{.ps}, \file{.eps}, \file{.svg},
+            and \file{.sobj} (for a \sage object you can load later).
 
         EXAMPLES:
             sage: c = circle((1,1),1,rgbcolor=(1,0,0))
             sage: c.show(xmin=-1,xmax=3,ymin=-1,ymax=3)
 
             To correct the apect ratio of certain graphics, it is necessary
-            to show with a 'figsize' of square dimensions.
+            to show with a '\code{figsize}' of square dimensions.
 
             sage: c.show(figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
         """
@@ -2748,8 +2748,8 @@ bar_chart = BarChartFactory()
 
 class CircleFactory(GraphicPrimitiveFactory_circle):
     """
-    Return a circle at a point = (x,y) with radius = r.
-    Type circle.options to see all options
+    Return a circle at a point = $(x,y)$ with radius = $r$.
+    Type \code{circle.options} to see all options
 
     circle(center, radius, **kwds)
 
@@ -2766,7 +2766,7 @@ class CircleFactory(GraphicPrimitiveFactory_circle):
         sage: c
 
     To correct the apect ratio of certain graphics, it is necessary
-    to show with a 'figsize' of square dimensions.
+    to show with a `\code{figsize}' of square dimensions.
 
         sage: c.show(figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
 
@@ -2801,7 +2801,7 @@ circle = CircleFactory()
 class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
     r"""
 
-    \code{contour_plot} takes a function of two variables, f(x,y)
+    \code{contour_plot} takes a function of two variables, $f(x,y)$
     and plots contour lines of the function over the specified
     xrange and yrange as demonstrated below.
 
@@ -2858,12 +2858,11 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
     r"""
     Create the line through the given list of points.
 
-    Type line.options for a dictionary of the default options for
+    Type \code{line.options} for a dictionary of the default options for
     lines.  You can change this to change the defaults for all future
-    lines.  Use line.reset() to reset to the default options.
+    lines.  Use \code{line.reset()} to reset to the default options.
 
     INPUT:
-    \begin{verbatim}
         alpha -- How transparent the line is
         thickness -- How thick the line is
         rgbcolor -- The color as an rgb tuple
@@ -2876,14 +2875,12 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
                    '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point),
                    '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right),
                    '<' (triangle_left), '>' (triangle_right), 'None' (nothing),
-                   'D' (diamond), 'H' (hexagon2), '_' (hline), '^' (triangle_up),
+                   'D' (diamond), 'H' (hexagon2), '_' (hline), '\^' (triangle_up),
                    'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon),
                    's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)"
        markersize -- the size of the marker in points
        markeredgecolor -- the markerfacecolor can be any color arg
        markeredgewidth -- the size of the markter edge in points
-    \end{verbatim}
-
 
     EXAMPLES:
     A blue conchoid of Nicomedes:
@@ -2982,12 +2979,12 @@ class MatrixPlotFactory(GraphicPrimitiveFactory_matrix_plot):
     r"""
     A plot of a given matrix or 2D array.
 
-    Each (ith, jth) matrix element is given a different
+    Each ($i$th, $j$th) matrix element is given a different
     color value depending on its relative size compared
     to the other elements in the matrix.
 
     The tick marks drawn on the frame axes denote the
-    (ith, jth) element of the matrix.
+    ($i$th, $j$th) element of the matrix.
 
     EXAMPLES:
 
@@ -3025,9 +3022,10 @@ matrix_plot = MatrixPlotFactory()
 class PlotFieldFactory(GraphicPrimitiveFactory_plot_field):
     r"""
 
-    \code{plot_field} takes two functions of one variable, (f(x), g(y))
+    \code{plot_field} takes two functions of one variable, $(f(x), g(y))$
     and plots vector arrows of the function over the specified
     xrange and yrange as demonstrated below.
+
     plot_field((f, g), (xmin, xmax), (ymin, ymax))
 
     EXAMPLES:
@@ -3052,11 +3050,11 @@ plot_vector_field = PlotFieldFactory()
 
 
 class DiskFactory(GraphicPrimitiveFactory_disk):
-    """
+    r"""
 
-    A disk at a point = (x,y) with radius = r
-    spanning (in radians) angle=(rad1, rad2)
-    Type disk.options to see all options
+    A disk at a point = $(x,y)$ with radius = $r$
+    spanning (in radians) angle=$(rad1, rad2)$
+    Type \code{disk.options} to see all options
 
     EXAMPLES:
     Make some dangerous disks:
@@ -3084,10 +3082,10 @@ class DiskFactory(GraphicPrimitiveFactory_disk):
 disk = DiskFactory()
 
 class PointFactory(GraphicPrimitiveFactory_from_point_list):
-    """
+    r"""
 
-    A point of size 'pointsize' defined by point = (x,y)
-    Type point.options to see all options. point takes either
+    A point of size `pointsize' defined by point = $(x,y)$.
+    Type \code{point.options} to see all options. point takes either
     a single tuple of coordinates or a list of tuples.
 
     EXAMPLES:
@@ -3121,10 +3119,10 @@ points = point
 
 
 class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
-    """
-    Type polygon.options for a dictionary of the default
+    r"""
+    Type \code{polygon.options} for a dictionary of the default
     options for polygons.  You can change this to change
-    the defaults for all future polygons.  Use polygon.reset()
+    the defaults for all future polygons.  Use \code{polygon.reset()}
     to reset to the default options.
 
     EXAMPLES:
@@ -3185,7 +3183,7 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
         self.options={'alpha':1,'rgbcolor':(0,0,1),'thickness':0}
 
     def _repr_(self):
-        return "SAGE polygon; type polygon? for help and examples."
+        return "Sage polygon; type polygon? for help and examples."
 
     def _from_xdata_ydata(self, xdata, ydata, coerce, options):
         if coerce:
@@ -3205,15 +3203,15 @@ class PlotFactory(GraphicPrimitiveFactory):
     r"""
     Use plot by writing
 
-        plot(X, ...)
+        \code{plot(X, ...)}
 
-    where X is a Sage object (or list of Sage objects) that either is
+    where $X$ is a \sage object (or list of \sage objects) that either is
     callable and returns numbers that can be coerced to floats, or has
-    a plot method that returns a GraphicPrimitive object.
+    a plot method that returns a \class{GraphicPrimitive} object.
 
-    Type plot.options for a dictionary of the default
+    Type \code{plot.options} for a dictionary of the default
     options for plots.  You can change this to change
-    the defaults for all future plots.  Use plot.reset()
+    the defaults for all future plots.  Use \code{plot.reset()}
     to reset to the default options.
 
     PLOT OPTIONS:
@@ -3221,7 +3219,7 @@ class PlotFactory(GraphicPrimitiveFactory):
 
         plot_points -- the number of points to initially plot before
                        doing adaptive refinement
-        plot_division -- the maximum number points including those
+        plot_division -- the maximum number of points including those
                        computed during adaptive refinement
         max_bend      -- parameter that affects adaptive refinement
 
@@ -3230,10 +3228,9 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     APPEARANCE OPTIONS:
     The following options affect the appearance of the line through the points
-    on the graph of X (these are the same as for the line function):
+    on the graph of $X$ (these are the same as for the line function):
 
     INPUT:
-    \begin{verbatim}
         alpha -- How transparent the line is
         thickness -- How thick the line is
         rgbcolor -- The color as an rgb tuple
@@ -3246,13 +3243,12 @@ class PlotFactory(GraphicPrimitiveFactory):
                    '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point),
                    '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right),
                    '<' (triangle_left), '>' (triangle_right), 'None' (nothing),
-                   'D' (diamond), 'H' (hexagon2), '_' (hline), '^' (triangle_up),
+                   'D' (diamond), 'H' (hexagon2), '_' (hline), '\^' (triangle_up),
                    'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon),
                    's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)"
        markersize -- the size of the marker in points
        markeredgecolor -- the markerfacecolor can be any color arg
        markeredgewidth -- the size of the marker edge in points
-    \end{verbatim}
 
     Note that this function does NOT simply sample equally spaced
     points between xmin and xmax.  Instead it computes equally spaced
@@ -3286,7 +3282,7 @@ class PlotFactory(GraphicPrimitiveFactory):
     and plots extra points near the origin.
         sage: plot(sin(1/x), (x, -1, 1))
 
-    The \code{plot_points} option, you can increase the number
+    With the \code{plot_points} option you can increase the number
     of sample points, to obtain a more accurate plot.
         sage: plot(sin(1/x), (x, -1, 1), plot_points=1000)
 
@@ -3451,12 +3447,12 @@ plot = PlotFactory()
 
 
 class TextFactory(GraphicPrimitiveFactory_text):
-    """
+    r"""
     text(txt, point, **kwds):
 
-    Returns a 2d or 3d text graphics object at the point (x,y)
+    Returns a 2d or 3d text graphics object at the point $(x,y)$
 
-    Type text.options for a dictionary of options for 2d text.  The 3d options
+    Type \code{text.options} for a dictionary of options for 2d text.  The 3d options
     are as for other 3d graphics objects (i.e., mainly just rgbcolor at present).
 
     2D OPTIONS:
@@ -3474,19 +3470,19 @@ class TextFactory(GraphicPrimitiveFactory_text):
 
     EXAMPLES:
     Some 2d text:
-        sage: text("SAGE is really neat!!",(2,12))
+        sage: text("Sage is really neat!!",(2,12))
 
     Some 2d text but guaranteed to be in the lower left no matter what:
-        sage: text("SAGE is really neat!!",(0,0), axis_coords=True, horizontal_alignment='left')
+        sage: text("Sage is really neat!!",(0,0), axis_coords=True, horizontal_alignment='left')
 
     The same text, but in 3d:
-        sage: text("SAGE is really neat!!",(2,12,1))
+        sage: text("Sage is really neat!!",(2,12,1))
 
     The same text in larger font and colored red:
-        sage: text("SAGE is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
+        sage: text("Sage is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
 
     And in 3d in two places:
-        sage: text("SAGE is...",(2,12,1), rgbcolor=(1,0,0)) + text("quite powerful!!",(4,10,0), rgbcolor=(0,0,1))
+        sage: text("Sage is...",(2,12,1), rgbcolor=(1,0,0)) + text("quite powerful!!",(4,10,0), rgbcolor=(0,0,1))
 
     You can also align 2d text differently:
         sage: t1 = text("Hello",(1,1), vertical_alignment="top")
@@ -3514,10 +3510,11 @@ text = TextFactory()
 ########## misc functions ###################
 
 def parametric_plot(funcs, tmin, tmax, **kwargs):
-    """
-    parametric_plot takes two functions as a list or a tuple and make
-    a plot with the first function giving the x coordinates and the
-    second function giving the y coordinates.
+    r"""
+    \code{parametric_plot} takes two or three functions as a list or a
+    tuple and makes a plot with the first function giving the $x$
+    coordinates, the second function giving the $y$ coordinates, and the
+    third function (if present) giving the $z$ coordinates.
 
     INPUT:
         funcs -- 2 or 3-tuple of functions
@@ -3536,8 +3533,8 @@ def parametric_plot(funcs, tmin, tmax, **kwargs):
     return plot(funcs, tmin, tmax, parametric=True, **kwargs)
 
 def polar_plot(funcs, xmin, xmax, **kwargs):
-    """
-    polar_plot takes a single function or a list or tuple of functions
+    r"""
+    \code{polar_plot} takes a single function or a list or tuple of functions
     and plots them parametrically in the given range.
 
     EXAMPLES:
@@ -3554,14 +3551,14 @@ def polar_plot(funcs, xmin, xmax, **kwargs):
     return plot(funcs, xmin, xmax, polar=True, **kwargs)
 
 def list_plot(data, plotjoined=False, **kwargs):
-    """
-    list_plot takes a single list of data, in which case it forms a
-    list of tuples (i,di) where i goes from 0 to len(data)-1 and di is
-    the ith data value, and puts points at those tuple values.
+    r"""
+    \code{list_plot} takes a single list of data, in which case it forms a
+    list of tuples $(i,di)$ where $i$ goes from 0 to ${\rm len}(data)-1$ and $di$ is
+    the $i$th data value, and puts points at those tuple values.
 
-    list_plot also takes a list of tuples (dxi, dyi) where dxi is the
-    ith data representing the x-value, and dyi is the ith y-value if
-    plotjoined=True, then a line spanning all the data is drawn
+    \code{list_plot} also takes a list of tuples $(dxi, dyi)$ where $dxi$ is the
+    $i$th data representing the $x$-value, and $dyi$ is the $i$th $y$-value.  If
+    \code{plotjoined=True}, then a line spanning all the data is drawn
     instead.
 
     EXAMPLES:
@@ -3676,8 +3673,8 @@ def hue(h, s=1, v=1):
     """
       hue(h,s=1,v=1) where 'h' stands for hue,
       's' stands for saturation, 'v' stands for value.
-      hue returns a list of rgb intensities (r, g, b)
-      All values are in range 0 to 1.
+      hue returns a tuple of rgb intensities (r, g, b)
+      All values are in the range 0 to 1.
 
       INPUT:
          h, s, v -- real numbers between 0 and 1.  Note that
@@ -3715,7 +3712,7 @@ def hue(h, s=1, v=1):
 
 class GraphicsArray(SageObject):
     """
-    GraphicsArray takes a (m x n) list of lists of graphics
+    GraphicsArray takes a ($m$ x $n$) list of lists of graphics
     objects and plots them all on one canvas.
     """
     def __init__(self, array):
@@ -3886,7 +3883,7 @@ def graphics_array(array, n=None, m=None):
         sage: p4 = parametric_plot((f,h),0,2*pi,rgbcolor=hue(1.0))
 
     Now make a graphics array out of the plots;
-    Ten you can type either: \code{ga.show()} or \code{ga.save()}.
+    then you can type either: \code{ga.show()} or \code{ga.save()}.
 
         sage: graphics_array(((p1,p2),(p3,p4)))
 
@@ -3908,7 +3905,7 @@ def float_to_html(r,g,b):
     """
     This is a function to present tuples of RGB floats as HTML-happy hex
     for matplotlib. This may not seem necessary, but there are some odd
-    cases where matplotlib is just plain schizophrenic- for an example, do
+    cases where matplotlib is just plain schizophrenic--for an example, do
 
     EXAMPLES:
         sage: vertex_colors = {(1.0, 0.8571428571428571, 0.0): [4, 5, 6], (0.28571428571428559, 0.0, 1.0): [14, 15, 16], (1.0, 0.0, 0.0): [0, 1, 2, 3], (0.0, 0.57142857142857162, 1.0): [12, 13], (1.0, 0.0, 0.85714285714285676): [17, 18, 19], (0.0, 1.0, 0.57142857142857162): [10, 11], (0.28571428571428581, 1.0, 0.0): [7, 8, 9]}
@@ -3930,7 +3927,7 @@ def float_to_html(r,g,b):
 
 def rainbow(n, format='hex'):
     """
-    Given an integer n, returns a list of colors, represented in HTML hex,
+    Given an integer $n$, returns a list of colors, represented in HTML hex,
     that changes smoothly in hue from one end of the spectrum to the other.
     Written in order to easily represent vertex partitions on graphs.
 

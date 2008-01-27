@@ -285,7 +285,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         INPUT:
             -- names - name of generator of output field
 
-        OUTPUT:  # todo -- is the return order backwards from the magma convention???
+        OUTPUT:
+            \# todo: is the return order backwards from the magma convention???
             -- field
             -- homomorphism from self to field
             -- homomorphism from field to self

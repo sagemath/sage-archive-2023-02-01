@@ -339,7 +339,7 @@ class Singular(Expect):
         return '< "%s";'%filename
 
     def eval(self, x, allow_semicolon=True, strip=True):
-        """
+        r"""
         Send the code x to the Singular interpreter and return the output
         as a string.
 

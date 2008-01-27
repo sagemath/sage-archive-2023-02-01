@@ -155,8 +155,10 @@ class FractionFieldElement(field_element.FieldElement):
         a list of fraction field elements over prime power denominators.
 
         The sum will be equal to the original fraction.
+
         AUTHOR:
              -- Robert Bradshaw (2007-05-31)
+
         EXAMPLES:
             sage: S.<t> = QQ[]
             sage: q = 1/(t+1) + 2/(t+2) + 3/(t-3); q

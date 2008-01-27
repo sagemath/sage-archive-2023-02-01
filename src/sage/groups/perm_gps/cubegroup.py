@@ -614,7 +614,7 @@ class CubeGroup(PermutationGroup_generic):
         Returns the group element and the reordered list of facets, as moved by
         the list mv (read left-to-right)
 
-        INPUT: mv is a string of the form X^a*Y^b*...",
+        INPUT: mv is a string of the form \samp{X\^a*Y\^b*...},
                where X, Y, ... are in {R,L,F,B,U,D}
                and a,b, ... are integers.
 

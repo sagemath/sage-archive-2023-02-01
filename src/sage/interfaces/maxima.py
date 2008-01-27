@@ -1003,7 +1003,7 @@ class Maxima(Expect):
         for u = umin...umax, v = vmin...vmax using gnuplot with options.
 
         INPUT:
-            x, y, z -- a string representing a function (such as x="u^2+v^2", ...)
+            x, y, z -- a string representing a function (such as \code{x="u\^2+v\^2"}, ...)
             vars is a list or two strings representing variables (such as vars = ["u","v"])
             urange -- [umin, umax]
             vrange -- [vmin, vmax] are lists of numbers with

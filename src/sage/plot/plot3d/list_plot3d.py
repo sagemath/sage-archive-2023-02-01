@@ -7,7 +7,7 @@ from sage.rings.all  import RDF
 
 def list_plot3d(v, texture="automatic", **kwds):
     """
-    A 3-dimensional plot of a surface defined by the list v of
+    A 3-dimensional plot of a surface defined by the list $v$ of
     points in 3-dimensional space.
 
     INPUT:
@@ -24,7 +24,7 @@ def list_plot3d(v, texture="automatic", **kwds):
         a 3d plot
 
     EXAMPLES:
-    We plot a matrix that illustrates summation modulo n.
+    We plot a matrix that illustrates summation modulo $n$.
         sage: n = 5; list_plot3d(matrix(RDF,n,[(i+j)%n for i in [1..n] for j in [1..n]]))
 
     We plot a matrix of values of sin.

@@ -949,7 +949,7 @@ class MPolynomialIdeal_singular_repr:
         form a Groebner basis. Let $I$ be the set of generators of
         this ideal. The check is performed by trying to lift
         $Syz(LM(I))$ to $Syz(I)$ as $I$ forms a Groebner basis if and
-        only if for every element $S$ in $Syz(LM(I)):
+        only if for every element $S$ in $Syz(LM(I))$:
         $$S \cdot G = \sum_{i=0}^{m} h_ig_i \rightarrow_G 0.$$.
 
         ALGORITHM: Uses Singular

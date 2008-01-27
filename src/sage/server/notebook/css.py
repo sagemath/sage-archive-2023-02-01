@@ -1,5 +1,5 @@
 """nodoctest
-SAGE Notebook CSS
+Sage Notebook CSS
 """
 
 
@@ -16,13 +16,13 @@ from sage.misc.misc import DOT_SAGE
 
 def css(color='default'):
     r"""
-    Return the CSS header used by the SAGE Notebook.
+    Return the CSS header used by the \sage Notebook.
 
     INPUT:
         color -- string or pair of html colors, e.g.,
                     'gmail'
                     'grey'
-                    \code{('#ff0000', '#0000ff')}
+                    \code{('\#ff0000', '\#0000ff')}
 
     EXAMPLES:
         sage: import sage.server.notebook.css as c

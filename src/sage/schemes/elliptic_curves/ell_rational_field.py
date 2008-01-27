@@ -2649,7 +2649,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ArithmeticError: Discriminant (=-3) must not be -3 or -4.
 
         The curve 681b returns an interval that contains $3/2$.
-        This is because $E(\Q) is not saturated in $E(K)$.  The
+        This is because $E(\Q)$ is not saturated in $E(K)$.  The
         true index is $3$:
             sage: E = EllipticCurve('681b')
             sage: I = E.heegner_index(-8); I

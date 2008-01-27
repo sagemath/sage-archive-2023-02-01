@@ -948,6 +948,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             5
             sage: EllipticCurve([0, 0, 1, -79, 342]).simon_two_descent()[0]  # much faster -- almost instant.
             5
+
+        Examples with denominators in defining equations:
+            sage: E = EllipticCurve( [0, 0, 0, 0, -675/4])
+            sage: E.rank()
+            0
+            sage: E = EllipticCurve( [0, 0, 1/2, 0, -1/5])
+            sage: E.rank()
+            1
+            sage: E.minimal_model().rank()
+            1
         """
         if proof is None:
             from sage.structure.proof.proof import get_flag

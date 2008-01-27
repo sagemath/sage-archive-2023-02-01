@@ -198,8 +198,8 @@ EXTERN void ZZ_pX_min_val_coeff(long &valuation, long &index, const struct ZZ_pX
 EXTERN long ZZ_pX_get_val_coeff(const struct ZZ_pX &f, const struct ZZ &p, long i);
 EXTERN void ZZ_pX_left_pshift(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ &pn, const struct ZZ_pContext &c);
 EXTERN void ZZ_pX_right_pshift(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ &pn, const struct ZZ_pContext &c);
-EXTERN void ZZ_pX_InvMod_newton(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ_pXModulus &F, const struct ZZ_pContext &cpn, const struct ZZ_pContext &cp);
-EXTERN void ZZ_pX_eis_shift(struct ZZ_pX &x, const struct ZZ_pX &a, long n, const struct ZZ_pXMultiplier* low_shifter, const struct ZZ_pXMultiplier* high_shifter, const struct ZZ_pXModulus &modulus, const struct ZZ &p, const struct ZZ_pContext &clower);
+EXTERN void ZZ_pX_InvMod_newton_unram(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ_pXModulus &F, const struct ZZ_pContext &cpn, const struct ZZ_pContext &cp);
+EXTERN void ZZ_pX_InvMod_newton_ram(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ_pXModulus &F, const struct ZZ_pContext &cpn);
 
 #endif
 
@@ -307,28 +307,14 @@ struct ZZ_pE;
 struct GF2X;
 #endif
 
-EXTERN struct GF2X* GF2X_pow(const struct GF2X* x, long e);
-EXTERN struct GF2X* GF2X_neg(struct GF2X* x);
-EXTERN long GF2X_deg(struct GF2X* x);
-EXTERN void GF2X_hex(long h);
-EXTERN PyObject* GF2X_to_bin(const struct GF2X* x);
-EXTERN PyObject* GF2X_to_hex(const struct GF2X* x);
-
-
-/////// GF2E ////////////////
+/////// GF2EContext ////////////////
 
 #ifndef __cplusplus
-struct GF2E;
+struct GF2EContext;
 #endif
 
-EXTERN struct GF2E* GF2E_pow(const struct GF2E* x, long e);
-EXTERN struct GF2E* GF2E_neg(struct GF2E* x);
-EXTERN void ntl_GF2E_set_modulus(struct GF2X* x);
-EXTERN long GF2E_degree();
-EXTERN const struct GF2X *GF2E_modulus();
-EXTERN struct GF2E *GF2E_random(void);
-EXTERN long GF2E_trace(struct GF2E *x);
-EXTERN const struct GF2X *GF2E_ntl_GF2X(struct GF2E *x);
+EXTERN struct GF2EContext* GF2EContext_new(struct GF2X_c* p);
+EXTERN struct GF2EContext* GF2EContext_construct(void *mem, const struct GF2X *p);
 
 //////// mat_GF2E //////////
 

@@ -34,6 +34,9 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20080127 (William Stein and John Cremona) ===
+ * Fix osx build and check issues
+
 === eclib-20071231.p0 (Michael Abshoff) ===
 
  * added Cygwin support
@@ -77,4 +80,5 @@ over 25 years of hard work.
 === previous versions ===
 
  * lost to history
+
 

@@ -41,7 +41,9 @@ cdef extern from "ntl_wrap.h":
     long ZZ_IsOne "IsOne"(ZZ_c a)
     long ZZ_compare "compare"(ZZ_c a, ZZ_c b)
     void ZZ_add "add"( ZZ_c x, ZZ_c a, ZZ_c b)
+    void ZZ_add_long "add"(ZZ_c x, ZZ_c a, long b)
     void ZZ_sub "sub"( ZZ_c x, ZZ_c a, ZZ_c b)
+    void ZZ_sub_long "sub"(ZZ_c x, long a, ZZ_c b)
     void ZZ_negate "negate"(ZZ_c x, ZZ_c a)
     void ZZ_abs "abs"(ZZ_c x, ZZ_c a)
 
@@ -52,7 +54,7 @@ cdef extern from "ntl_wrap.h":
     void ZZ_DivRem "DivRem"(ZZ_c q, ZZ_c r, ZZ_c a, ZZ_c b)
     void ZZ_div "div"( ZZ_c x, ZZ_c a, ZZ_c b)
     void ZZ_rem "rem"( ZZ_c r, ZZ_c a, ZZ_c b)
-    long ZZ_DivRem_long "DivRem"(ZZ_c q, ZZ_c q, long b)
+    long ZZ_DivRem_long "DivRem"(ZZ_c q, ZZ_c a, long b)
     long ZZ_rem_long "rem"(ZZ_c a, long b)
     long ZZ_divide "divide"(ZZ_c q, ZZ_c a, ZZ_c b)
     long ZZ_divide_long "divide"(ZZ_c q, ZZ_c a, long b)
@@ -68,7 +70,7 @@ cdef extern from "ntl_wrap.h":
     void ZZ_MulMod "MulMod"(ZZ_c x, ZZ_c a, ZZ_c b, ZZ_c n)
     void ZZ_SqrMod "SqrMod"(ZZ_c x, ZZ_c a, ZZ_c n)
     void ZZ_InvMod "InvMod"(ZZ_c x, ZZ_c a, ZZ_c n)
-    void ZZ_InvModStatus "InvModStatus"(ZZ_c x, ZZ_c a, ZZ_c n)
+    long ZZ_InvModStatus "InvModStatus"(ZZ_c x, ZZ_c a, ZZ_c n)
     void ZZ_PowerMod "PowerMod"(ZZ_c x, ZZ_c a, ZZ_c e, ZZ_c n)
     void ZZ_PowerMod_long "PowerMod"(ZZ_c x, ZZ_c a, long e, ZZ_c n)
 
@@ -274,7 +276,9 @@ cdef extern from "ntl_wrap.h":
     long ZZ_pX_IsOne "IsOne"(ZZ_pX_c a)
 
     void ZZ_pX_add "add"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
+    void ZZ_pX_add_long "add"(ZZ_pX_c x, ZZ_pX_c a, long b)
     void ZZ_pX_sub "sub"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
+    void ZZ_pX_sub_long "sub"(ZZ_pX_c x, long a, ZZ_pX_c b)
     void ZZ_pX_negate "negate"(ZZ_pX_c x, ZZ_pX_c a)
 
     void ZZ_pX_mul "mul"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
@@ -423,8 +427,8 @@ cdef extern from "ntl_wrap.h":
     long ZZ_pX_get_val_coeff(ZZ_pX_c f, ZZ_c p, long i)
     void ZZ_pX_left_pshift(ZZ_pX_c x, ZZ_pX_c a, ZZ_c pn, ZZ_pContext_c c)
     void ZZ_pX_right_pshift(ZZ_pX_c x, ZZ_pX_c a, ZZ_c pn, ZZ_pContext_c c)
-    void ZZ_pX_InvMod_newton(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F, ZZ_pContext_c cpn, ZZ_pContext_c cp)
-    void ZZ_pX_eis_shift(ZZ_pX_c x, ZZ_pX_c a, long n, ZZ_pX_Multiplier_c* low_shifter, ZZ_pX_Multiplier_c* high_shifter, ZZ_pX_Modulus_c modulus, ZZ_c p, ZZ_pContext_c clower)
+    void ZZ_pX_InvMod_newton_unram(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F, ZZ_pContext_c cpn, ZZ_pContext_c cp)
+    void ZZ_pX_InvMod_newton_ram(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F, ZZ_pContext_c cpn)
 
     # The following are ZZ_pX functions written in ntl_wrap, used for padics.
 
@@ -823,7 +827,7 @@ cdef extern from "ntl_wrap.h":
     GF2EContext_c* GF2EContext_new "New<GF2EContext>"()
     GF2EContext_c* GF2EContext_construct "Construct<GF2EContext>"(void *mem)
     GF2EContext_c* GF2EContext_new_GF2X "GF2EContext_new"(GF2X_c* p)
-    GF2EContext_c* GF2EContext_construct_GF2X "Construct<GF2EContext>"(void *mem, GF2X_c* p)
+    GF2EContext_c* GF2EContext_construct_GF2X "GF2EContext_construct"(void *mem, GF2X_c* p)
     void GF2EContext_destruct "Destruct<GF2EContext>"(GF2EContext_c *mem)
     void GF2EContext_delete "Delete<GF2EContext>"(GF2EContext_c *mem)
 

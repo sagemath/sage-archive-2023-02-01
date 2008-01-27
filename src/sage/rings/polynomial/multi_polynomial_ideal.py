@@ -213,14 +213,28 @@ class MPolynomialIdeal_singular_repr:
     underlying Singular ring associated to it.
     """
     def __cmp__(self, other):
+        """
+        EXAMPLE:
+            sage: R = PolynomialRing(QQ,'x,y,z')
+            sage: I = R.ideal()
+            sage: I == R.ideal()
+            True
+
+            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
+            sage: I = (x^3 + y, y)*R
+            sage: J = (x^3 + y, y, y*x^3 + y^2)*R
+            sage: I == J
+            True
+
+        """
         # Groebner basis determine equality since ideals are in the
         # same ring with same term order
 
         #c = cmp(self.gens(), other.gens())
         #if c == 0:
         #    return c
-        l = MPolynomialIdeal(self.ring(), self.groebner_basis()).reduced_basis()
-        r = MPolynomialIdeal(self.ring(),other.groebner_basis()).reduced_basis()
+        l = self.groebner_basis()
+        r = other.groebner_basis()
         return cmp(r,l)
 
     def _singular_(self, singular=None):

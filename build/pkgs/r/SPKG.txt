@@ -23,6 +23,9 @@
 
 == Changelog ==
 
+=== r-2.6.1.p14 (Michael Abshoff, Jan. 27th, 2008) ===
+ * fix rpy build issue on OSX 10.4 (#1943)
+
 === r-2.6.1.p13 (Michael Abshoff, Jan. 26th, 2008) ===
  * remove ATLAS and Lapack flags form configure for Darwin
 

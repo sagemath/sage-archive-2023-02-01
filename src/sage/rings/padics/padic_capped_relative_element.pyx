@@ -120,6 +120,22 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: R(R(5))
             5 + O(5^11)
 
+        Construct from Pari objects:
+            sage: R = Zp(5)
+            sage: x = pari(123123) ; R(x)
+            3 + 4*5 + 4*5^2 + 4*5^3 + 5^4 + 4*5^5 + 2*5^6 + 5^7 + O(5^20)
+            sage: R(pari(R(5252)))
+            2 + 2*5^3 + 3*5^4 + 5^5 + O(5^20)
+            sage: R = Zp(5,prec=5)
+            sage: R(pari(-1))
+            4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5)
+            sage: pari(R(-1))
+            4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5)
+            sage: pari(R(0))
+            0
+            sage: R(pari(R(0) + O(5^5)))
+            O(5^5)
+
         # todo: doctests for converting from other types of p-adic rings
 
         """

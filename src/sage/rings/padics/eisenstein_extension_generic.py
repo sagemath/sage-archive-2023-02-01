@@ -76,13 +76,13 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             self.ground_ring(), self.variable_name(), self.modulus())
 
     def ramification_index(self, K = None):
-        if K is None:
+        if K is None or K is self.ground_ring():
             return self.modulus().degree()
         else:
             raise NotImplementedError
 
     def inertia_degree(self, K = None):
-        if K is None:
+        if K is None or K is self.ground_ring():
             return 1
         else:
             raise NotImplementedError

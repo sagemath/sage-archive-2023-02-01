@@ -2297,7 +2297,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 ZZ_pX_PowerMod_pre(y, y, j, self.prime_pow.get_modulus(self.relprec)[0])
             ZZ_pX_sub_long(y, 1, y)
             ZZ_pX_min_val_coeff(val, mini, y, p)
-            if mini == -1:
+            if mini == -1 or val >= self.relprec:
                 #self == 1
                 big_oh = self._new_c(0)
                 big_oh._set_inexact_zero(self.relprec)
@@ -2327,7 +2327,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 ZZ_pX_PowerMod_pre(y, y, j, self.prime_pow.get_modulus_capdiv(self.relprec)[0])
             ZZ_pX_sub_long(y, 1, y)
             ZZ_pX_min_val_coeff(val, mini, y, p)
-            if mini == -1:
+            if mini == -1 or val * self.prime_pow.e + mini >= self.relprec:
                 #self == 1
                 big_oh = self._new_c(0)
                 big_oh._set_inexact_zero(self.relprec)
@@ -2342,6 +2342,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             # at powers of p, so consider x^(p^n)/p^n, which has valuation val * p^n - e * n. Differentiating
             # and solving for n gives n = (log(e) - log(val) - log(log(p))) / log(p).
 
+            #print "a"
             RDF_e = RealDoubleElement(float(self.prime_pow.e))
             RDF_val = RealDoubleElement(float(val))
             RDF_p = RealDoubleElement(float(self.prime_pow.prime))
@@ -2363,13 +2364,17 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 ans_ordp = mpz_get_si(vpn.value)
             # We now figure out the precision of the answer
             if high_ramification:
+                #print "b"
                 RDF_rprec = RealDoubleElement(float(self.relprec))
                 log_e_rprec_floor = (RDF_e / (RDF_rprec * RDF_p.log())).log(RDF_p).floor()
+                if log_e_rprec_floor < 0:
+                    log_e_rprec_floor = Integer(0)
                 if mpz_cmp_ui(self.prime_pow.prime.value, maxordp) >= 0:
                     # e / (p - 1) < 1 so we never have to multiply by p.
                     # Thus the minimum absolute precision of x^k/k is just self.relprec.
                     ans_aprec = self.relprec
                 else:
+                    #print "c"
                     p_long = mpz_get_si(self.prime_pow.prime.value)
                     if self.prime_pow.e < p_long - 1:
                         ans_aprec = self.relprec
@@ -2382,6 +2387,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                         # denominator cancels with adding e because of the extra p in the exponent)
                         threshold = (RealDoubleElement(float(self.prime_pow.e)) / (RealDoubleElement(float(p_long - 1) * float(self.relprec - val)))).log(RDF_p).ceiling()
                         if log_e_rprec_floor < threshold:
+                            #print "d"
+                            #print log_e_rprec_floor
                             vpn = self.precision_relative() * self.prime_pow.pow_Integer_Integer(log_e_rprec_floor)
                             if vpn * (1 - self.prime_pow.prime) + Integer_e <= 0: # initial lower
                                 vpn = vpn - Integer_e * log_e_rprec_floor
@@ -2389,8 +2396,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                                 vpn = vpn * self.prime_pow.prime - Integer_e * (log_e_rprec_floor + Integer(1))
                             ans_aprec = mpz_get_si(vpn.value)
                         else:
+                            #print "e"
                             # if e is divisible by p-1 we may have a floating point error.  So we check.
-                            if self.prime_pow.e % (p_long - 1) == 0:
+                            if threshold > 0 and self.prime_pow.e % (p_long - 1) == 0:
                                 vpn = self.prime_pow.pow_Integer_Integer(threshold - Integer(1))
                                 mpz_mul_si(vpn.value, vpn.value, self.relprec - val)
                                 mpz_mul_si(vpn.value, vpn.value, p_long - 1)
@@ -2398,19 +2406,26 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                                     threshold = threshold - Integer(1)
                             # After threshold, our function strictly increases.  So we need to check the values at threshold
                             # and threshold - 1
-                            vpn = self.precision_relative() * self.prime_pow.pow_Integer_Integer(threshold - Integer(1))
-                            if vpn * (1 - self.prime_pow.prime + Integer_e) <= 0:
-                                vpn = vpn - Integer_e * (threshold - Integer(1))
+                            if threshold > 0:
+                                vpn = self.precision_relative() * self.prime_pow.pow_Integer_Integer(threshold - Integer(1))
+                                if vpn * (1 - self.prime_pow.prime + Integer_e) <= 0:
+                                    #print "f"
+                                    vpn = vpn - Integer_e * (threshold - Integer(1))
+                                else:
+                                    #print "g"
+                                    vpn = vpn * self.prime_pow.prime - Integer_e * threshold
                             else:
-                                vpn = vpn * self.prime_pow.prime - Integer_e * threshold
+                                #print "h"
+                                vpn = self.precision_relative()
                             ans_aprec = mpz_get_si(vpn.value)
             else:
                 ans_aprec = self.relprec
             ans_rprec = ans_aprec - ans_ordp
             if ans_rprec > self.prime_pow.ram_prec_cap:
                 ans_rprec = self.prime_pow.ram_prec_cap
+                ans_aprec = ans_ordp + ans_rprec
             self.prime_pow.restore_context_capdiv(ans_rprec)
-            self.prime_pow.eis_shift(&x, &y, val, ans_rprec)
+            self.prime_pow.eis_shift_capdiv(&x, &y, val, ans_rprec)
 
         if ans_ordp < 0 and self.prime_pow.in_field == 0:
             raise ValueError, "Answer has negative valuation"
@@ -2426,6 +2441,10 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         # But we only actually need to do this extra computation
         # if there is some j with j - j.valuation(p) < n.
 
+        #print "ans_ordp = %s"%ans_ordp
+        #print "ans_aprec = %s"%ans_aprec
+        #print "ans_rprec = %s"%ans_rprec
+
         top = (ans_aprec - 1) / val + 1
         if top < 1:
             top = 1
@@ -2433,6 +2452,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         cdef long check_exp = 1
         cdef ZZ_c check, ZZ_aprec, one
         cdef long k
+        #printer_ZZ = PY_NEW(ntl_ZZ)
         if mpz_cmp_si(self.prime_pow.prime.value, maxordp) < 0:
             ZZ_conv_from_long(ZZ_top, top)
             ZZ_add_long(ZZ_top, ZZ_top, -1) # we want divisions by ppow to round up, so we subtract 1 here and add after dividing.
@@ -2441,7 +2461,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             to_list = PY_NEW(ntl_ZZ)
             ppow = p
             while True:
-                ZZ_divide(tester, ZZ_top, ppow)
+                ZZ_div(tester, ZZ_top, ppow)
+                #printer_ZZ.x = tester
+                #print "pre tester = %s"%printer
                 ZZ_add_long(tester, tester, 1)
                 if ZZ_divide_test(tester, p):
                     # we want tester to skip multiples of p.
@@ -2452,11 +2474,16 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                         ZZ_mul_long(check, to_list.x, val)
                         ZZ_add_long(check, check, -self.prime_pow.e * check_exp)
                         if ZZ_compare(check, ZZ_aprec) < 0:
+                            #print "appending %s"%(to_list)
                             L.append(to_list)
                             to_list = PY_NEW(ntl_ZZ)
                         else:
                             break
                     ZZ_add_long(tester, tester, 1)
+                #to_list.x = ppow
+                #print "ppow = %s"%to_list
+                #to_list.x = tester
+                #print "tester = %s"%to_list
                 if ZZ_compare(tester, one) == 0 and mpz_cmp_si(log_e_val_floor.value, check_exp) < 0:
                     break
                 check_exp += 1
@@ -2466,7 +2493,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         ZZ_conv_from_long(j, 1)
 
         #printer_ZZ = PY_NEW(ntl_ZZ)
-        #printer_ZZ_pX = ntl_ZZ_pX([], self.prime_pow.get_top_context())
+        #printer_ZZ_pX = ntl_ZZ_pX([], self.prime_pow.get_context_capdiv(ans_rprec))
         while ZZ_compare(j, ZZ_top) <= 0:
             ZZ_conv_to_long(to_shift, j)
             to_shift *= val
@@ -2475,19 +2502,19 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             else:
                 p_shift = 0
                 leftover = j
-            ##print "a"
-            ##printer_ZZ.x = leftover
-            ##print "leftover = %s"%printer_ZZ
-            ##printer_ZZ.x = p
-            ##print "p = %s"%printer_ZZ
-            ##printer_ZZ.x = self.prime_pow.pow_ZZ_top()[0]
-            ##print "p^n = %s"%printer_ZZ
-            ##print "p_shift = %s"%p_shift
-            ##print "a"
+            #print "a"
+            #printer_ZZ.x = leftover
+            #print "leftover = %s"%printer_ZZ
+            #printer_ZZ.x = p
+            #print "p = %s"%printer_ZZ
+            #printer_ZZ.x = self.prime_pow.pow_ZZ_top()[0]
+            #print "p^n = %s"%printer_ZZ
+            #print "p_shift = %s"%p_shift
+            #print "a"
             _sig_on
             ZZ_InvMod(leftover, leftover, self.prime_pow.pow_ZZ_tmp(ans_rprec)[0])
             _sig_off
-            ##print "b"
+            #print "b"
             ZZ_pX_mul_ZZ_p(to_add, xpow, ZZ_to_ZZ_p(leftover))
             if self.prime_pow.e == 1:
                 ZZ_pX_left_pshift(to_add, to_add, self.prime_pow.pow_ZZ_tmp(to_shift - p_shift - ans_ordp)[0], self.prime_pow.get_context(ans_rprec).x)
@@ -2506,21 +2533,24 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                     ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
                 else:
                     raise RuntimeError, "unrecognized PowComputer type"
+                _sig_on
                 ZZ_pX_InvMod_newton_ram(to_mul, to_mul, self.prime_pow.get_modulus_capdiv(ans_rprec)[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
-                ##print "d"
+                _sig_off
+                #print "d"
                 ZZ_pX_PowerMod_long_pre(to_mul, to_mul, p_shift, self.prime_pow.get_modulus_capdiv(ans_rprec)[0])
                 ZZ_pX_MulMod_pre(to_add, to_add, to_mul, self.prime_pow.get_modulus_capdiv(ans_rprec)[0])
-                self.prime_pow.eis_shift(&to_add, &to_add, -(to_shift - p_shift * self.prime_pow.e - ans_ordp), ans_rprec)
+                self.prime_pow.eis_shift_capdiv(&to_add, &to_add, -(to_shift - p_shift * self.prime_pow.e - ans_ordp), ans_rprec)
             ##printer_ZZ.x = j
             ##print "j = %s"%printer_ZZ
-            ##printer_ZZ_pX.x = to_add
-            ##print "to_add = %s"%printer_ZZ_pX
-            ##printer_ZZ_pX.x = xpow
-            ##print "xpow = %s"%printer_ZZ_pX
+            #printer_ZZ_pX.x = to_add
+            #print "to_add = %s"%printer_ZZ_pX
+            #printer_ZZ_pX.x = xpow
+            #print "xpow = %s\n"%printer_ZZ_pX
             ZZ_pX_add(ans.unit, ans.unit, to_add)
             ZZ_pX_MulMod_pre(xpow, xpow, x, self.prime_pow.get_modulus_capdiv(ans_rprec)[0])
             ZZ_add_long(j, j, 1)
-        ##print "starting L"
+        #print "starting L"
+        L.sort()
         for m in L:
             p_shift = ZZ_remove(leftover, (<ntl_ZZ>m).x, p)
             ZZ_mul_long(ZZ_tmp2, (<ntl_ZZ>m).x, val)
@@ -2529,9 +2559,11 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             ZZ_sub(ZZ_tmp, ZZ_tmp2, ZZ_tmp)
             ZZ_conv_to_long(to_shift, ZZ_tmp)
             to_shift = to_shift - ans_ordp
-            ##print "e"
+            #print "e"
+            _sig_on
             ZZ_InvMod(leftover, leftover, self.prime_pow.pow_ZZ_tmp(ans_rprec)[0])
-            ##print "f"
+            _sig_off
+            #print "f"
             ZZ_pX_mul_ZZ_p(to_add, xpow, ZZ_to_ZZ_p(leftover))
             if self.prime_pow.e == 1:
                 ZZ_pX_left_pshift(to_add, to_add, self.prime_pow.pow_ZZ_tmp(to_shift)[0], self.prime_pow.get_context(ans_rprec).x)
@@ -2539,32 +2571,39 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 #ZZ_pX_clear(to_mul)
                 #ZZ_pX_SetCoeff(to_mul, 0, ZZ_to_ZZ_p(self.prime_pow.pow_ZZ_tmp(p_shift)[0]))
                 #self.prime_pow.eis_shift(&to_mul, &to_mul, p_shift * self.prime_pow.e, self.prime_pow.ram_prec_cap)
-                ##print "g"
+                #print "g"
                 if PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_small_Eis):
                     ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_small_Eis>self.prime_pow).high_shifter[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
                 elif PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_big_Eis):
                     ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
                 else:
                     raise RuntimeError, "unrecognized PowComputer type"
+                _sig_on
                 ZZ_pX_InvMod_newton_ram(to_mul, to_mul, self.prime_pow.get_modulus_capdiv(ans_rprec)[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
-                ##print "h"
+                _sig_off
+                #print "h"
                 ZZ_pX_PowerMod_long_pre(to_mul, to_mul, p_shift, self.prime_pow.get_modulus_capdiv(ans_rprec)[0])
                 ZZ_pX_MulMod_pre(to_add, to_add, to_mul, self.prime_pow.get_modulus_capdiv(ans_rprec)[0])
-                self.prime_pow.eis_shift(&to_add, &to_add, -to_shift, ans_rprec)
-            ##print "m = %s"%m
-            ##printer_ZZ_pX.x = to_add
-            ##print printer_ZZ_pX
+                self.prime_pow.eis_shift_capdiv(&to_add, &to_add, -to_shift, ans_rprec)
+            #print "m = %s"%m
+            #printer_ZZ_pX.x = to_add
+            #print "to_add = %s"%printer_ZZ_pX
             ZZ_pX_add(ans.unit, ans.unit, to_add)
             ZZ_sub(gap, (<ntl_ZZ>m).x, ZZ_top)
             ZZ_top = (<ntl_ZZ>m).x
+            #printer_ZZ.x = gap
+            #print "gap = %s"%printer_ZZ
             ZZ_pX_PowerMod_pre(to_mul, x, gap, self.prime_pow.get_modulus_capdiv(ans_rprec)[0])
             ZZ_pX_MulMod_pre(xpow, xpow, to_mul, self.prime_pow.get_modulus_capdiv(ans_rprec)[0])
+            #print "loopdone\n"
         if not is_one:
             ZZ_add_long(q, q, -1)
             ZZ_rem(q, q, self.prime_pow.pow_ZZ_tmp(ans_rprec)[0])
-            ##print "i"
+            #print "i"
+            _sig_on
             ZZ_InvMod(q, q, self.prime_pow.pow_ZZ_tmp(ans_rprec)[0])
-            ##print "j"
+            _sig_off
+            #print "j"
             ZZ_pX_mul_ZZ_p(ans.unit, ans.unit, ZZ_to_ZZ_p(q))
         if branched:
             return ans + branch_add

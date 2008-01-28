@@ -21,12 +21,12 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from number_field_ideal import NumberFieldIdeal, convert_from_zk_basis
+from number_field_ideal import NumberFieldFractionalIdeal, convert_from_zk_basis
 
 import sage.rings.rational_field as rational_field
 QQ = rational_field.RationalField()
 
-class NumberFieldIdeal_rel(NumberFieldIdeal):
+class NumberFieldIdeal_rel(NumberFieldFractionalIdeal):
     """
     An ideal of a relative number field.
 
@@ -36,13 +36,10 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
         sage: i = K.ideal(38); i
         Fractional ideal (38)
 
-    BIG WARNING: Ideals in relative number fields are broken -- big warning:
         sage: K.<a> = NumberField([x^2 + 1, x^2 + 2]); K
         Number Field in a0 with defining polynomial x^2 + 1 over its base field
         sage: i = K.ideal([a+1]); i
-        Traceback (most recent call last):
-        ...
-        TypeError: Unable to coerce -a1 to an integer
+        Fractional ideal (a0 + 1)
     """
     def pari_rhnf(self):
         """

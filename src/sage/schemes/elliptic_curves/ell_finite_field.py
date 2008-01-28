@@ -42,6 +42,15 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
     Elliptic curve over a finite field.
     """
     def __init__(self, x, y=None):
+        """
+        Special constructor for elliptic curves over a finite field
+        EXAMPLES:
+        sage: EllipticCurve(GF(101),[2,3])
+        Elliptic Curve defined by y^2  = x^3 + 2*x + 3 over Finite Field of size 101
+        sage: F=GF(101)
+        sage: EllipticCurve([F(2),F(3)])
+        Elliptic Curve defined by y^2  = x^3 + 2*x + 3 over Finite Field of size 101
+        """
         if isinstance(x, list):
             ainvs = x
             field = ainvs[0].parent()
@@ -57,6 +66,12 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         self._point_class = ell_point.EllipticCurvePoint_finite_field
 
     def _pari_(self):
+        """
+        Return a GP/PARI elliptic curve
+        EXAMPLES:
+        sage: EllipticCurve(GF(41),[2,5])._pari_()
+        [Mod(0, 41), Mod(0, 41), Mod(0, 41), Mod(2, 41), Mod(5, 41), Mod(0, 41), Mod(4, 41), Mod(20, 41), Mod(37, 41), Mod(27, 41), Mod(26, 41), Mod(4, 41), Mod(11, 41), 0, 0, 0, 0, 0, 0]
+        """
         try:
             return self.__pari
         except AttributeError:
@@ -66,16 +81,31 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         return self.__pari
 
     def _magma_init_(self):
+        """
+        Return a string suitable for passing to Magma (if installed)
+        to create the same curve
+
+        EXAMPLES:
+        sage: EllipticCurve(GF(41),[2,5])._magma_init_()
+        'EllipticCurve([_sage_[1]|GF(41)!0,GF(41)!0,GF(41)!0,GF(41)!2,GF(41)!5])'
+        sage: magma(E) # optional -- requires Magma
+        Elliptic Curve defined by y^2 = x^3 + 2*x + 5 over GF(41)
+       """
         k = self.base_ring()
         kmn = k._magma_().name()
         return 'EllipticCurve([%s|%s])'%(kmn,','.join([x._magma_init_() for x in self.ainvs()]))
 
     def _gp(self):
         """
-        Return an elliptic curve in a GP/PARI interpreter with all Cremona's code
-        for finite fields preloaded.
+        Return an elliptic curve in a GP/PARI interpreter with all
+        Cremona's code for finite fields preloaded.  This includes
+        generators, which will vary from run to run.
 
         The base field must have prime order.
+        EXAMPLES:
+        sage: EllipticCurve(GF(41),[2,5])._gp()
+        [Mod(0, 41), Mod(0, 41), Mod(0, 41), Mod(2, 41), Mod(5, 41), Mod(0, 41), Mod(4, 41), Mod(20, 41), Mod(37, 41), Mod(27, 41), Mod(26, 41), Mod(4, 41), Mod(11, 41), 44, [2, 2; 11, 1], [22, 2], ...
+
         """
         try:
             return self.__gp
@@ -112,30 +142,36 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         return G
 
     def _points_over_prime_field(self):
+        """
+        Return a list of all the points on the curve, for prime fields
+        only (see points() for the general case)
+        EXAMPLES:
+        sage: S=EllipticCurve(GF(97),[2,3])._points_over_prime_field()
+        sage: len(S)
+        100
+        """
         # TODO, eliminate when polynomial calling is fast
         G, pts = self.abelian_group()
-        points = [self(0)]
-        if len(pts) == 0:
-            return points
-        P = pts[0]
-        Q = P
-        while Q[2] != 0:
-            points.append(Q)
-            Q += P
-        n = len(points)
 
-        if len(pts) > 1:
-            P = pts[1]
-            Q = P
-            while Q[2] != 0:
-                for R in points[:n]:
-                    points.append(R + Q)
-                Q += P
-        return points
+        ni = G.invariants()
+
+        def multiples(P,n):
+            H=[self(0)]
+            for m in range(1,n):
+                H.append(H[-1]+P)
+            return H
+
+        H0=multiples(pts[0], ni[0])
+        if len(ni)==1:   # cyclic case
+            return H0
+        else:            # noncyclic
+            H1=multiples(pts[1], ni[1])
+            return [P+Q for P in H0 for Q in H1]
 
     def points(self):
         r"""
-        All the points on this elliptic curve.
+        All the points on this elliptic curve.  The list of points is
+        cached so subsequent calls are free.
 
         EXAMPLES:
           sage: p = 5
@@ -175,8 +211,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
         Returns a random point on this elliptic curve.
 
-        Returns the point at infinity with probability $1/(\#k+1)$
-        where $k$ is the base field.
+        Returns the point at infinity with probability $1/(q+1)$
+        where the base field has cardinality $q$.
 
         EXAMPLES:
             sage: k = GF(next_prime(7^5))
@@ -205,37 +241,29 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         """
         k = self.base_field()
+        # The following allows the origin self(0) to be picked with
+        # approproate probability:
         if random.random() <= 1/float(k.order()+1):
             return self(0)
-        a1, a2, a3, a4, a6 = self.ainvs()
 
-        if k.characteristic() == 2:
-            P = PolynomialRing(k,'y')
-            y = P.gen()
-            while True:
-                x = k.random_element()
-                f = y**2 + a1*x*y + a3*y - x**3 + a2*x**2 + a4*x + a6
-                roots = f.roots()
-                n = len(roots)
-                if n:
-                    y = roots[random.randint(0,n-1)][0]
-                    return self([x,y])
-        else:
-            while True:
-                x = k.random_element()
-                d = 4*x**3 + (a1**2 + 4*a2)*x**2 + (2*a3*a1 + 4*a4)*x + (a3**2 + 4*a6)
-                try:
-                    m = d.sqrt(extend=False)
-                    if random.random() < 0.5:
-                        m = -m
-                    y = (-(a1*x + a3) + m) / k(2)
-                    return self([x,y])
-                except ValueError:
-                    pass
+        while True:
+            try:
+                return self.lift_x(k.random_element())
+            except:
+                pass
+
 
     def trace_of_frobenius(self):
         """
         Return the trace of Frobenius acting on this elliptic curve.
+
+        EXAMPLES:
+        sage: E=EllipticCurve(GF(101),[2,3])
+        sage: E.trace_of_frobenius()
+        6
+        sage: E=EllipticCurve(GF(11^5,'a'),[2,5])
+        sage: E.trace_of_frobenius()
+        802
         """
         q = self.base_field().order()
         return q + 1 - self.cardinality()
@@ -270,41 +298,41 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         The cardinality is \emph{not} cached.
 
         EXAMPLES:
-            sage: EllipticCurve(GF(4,'a'),[1,2,3,4,5]).cardinality()
-            8
-            sage: k.<a> = GF(3^3)
-            sage: l = [a^2 + 1, 2*a^2 + 2*a + 1, a^2 + a + 1, 2, 2*a]
-            sage: EllipticCurve(k,l).cardinality()
-            WARNING: Using very very stupid algorithm for counting
-            points over non-prime finite field. Please rewrite.
-            See the file ell_finite_field.py.
-            29
+        sage: EllipticCurve(GF(4,'a'),[1,2,3,4,5]).cardinality()
+        8
+        sage: k.<a> = GF(3^3)
+        sage: l = [a^2 + 1, 2*a^2 + 2*a + 1, a^2 + a + 1, 2, 2*a]
+        sage: EllipticCurve(k,l).cardinality()
+        WARNING: Using very very stupid algorithm for counting
+        points over non-prime finite field. Please rewrite.
+        See the file ell_finite_field.py.
+        29
 
-            sage: l = [1, 1, 0, 2, 0]
-            sage: EllipticCurve(k,l).cardinality()
-            38
+        sage: l = [1, 1, 0, 2, 0]
+        sage: EllipticCurve(k,l).cardinality()
+        38
 
         An even bigger extension (which we check against Magma):
 
-            sage: EllipticCurve(GF(3^100,'a'),[1,2,3,4,5]).cardinality()
-            515377520732011331036459693969645888996929981504
-            sage: magma.eval("Order(EllipticCurve([GF(3^100)|1,2,3,4,5]))")    # optional -- requires magma
-            '515377520732011331036459693969645888996929981504'
+        sage: EllipticCurve(GF(3^100,'a'),[1,2,3,4,5]).cardinality()
+        515377520732011331036459693969645888996929981504
+        sage: magma.eval("Order(EllipticCurve([GF(3^100)|1,2,3,4,5]))")    # optional -- requires magma
+        '515377520732011331036459693969645888996929981504'
 
 
-            sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality()
-            10076
-            sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='sea')
-            10076
-            sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='bsgs')
-            10076
-            sage: EllipticCurve(GF(next_prime(10**20)),[1,2,3,4,5]).cardinality(algorithm='sea')
-            100000000011093199520
+        sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality()
+        10076
+        sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='sea')
+        10076
+        sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality(algorithm='bsgs')
+        10076
+        sage: EllipticCurve(GF(next_prime(10**20)),[1,2,3,4,5]).cardinality(algorithm='sea')
+        100000000011093199520
 
         The cardinality is cached:
-            sage: E = EllipticCurve(GF(3^100,'a'),[1,2,3,4,5])
-            sage: E.cardinality() is E.cardinality()
-            True
+        sage: E = EllipticCurve(GF(3^100,'a'),[1,2,3,4,5])
+        sage: E.cardinality() is E.cardinality()
+        True
         """
         try:
             return self.__order
@@ -372,6 +400,23 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
     order = cardinality # alias
 
     def _cremona_abgrp_data(self):
+        """
+        Interface with Cremona's gp program for finding the group
+        structure over finite prime fields
+
+        Returns a list whose first element is the list of structure
+        constants ([n] or [n1,n2] with n2|n1) and the second is the
+        corresponding list of generators
+
+        Users are recommended to use abelian_group() instead.
+
+        EXAMPLES:
+        sage: E=EllipticCurve(GF(11),[2,5])
+        sage: E._cremona_abgrp_data()                       # generators random
+        [[10], [[0, 7]]]
+        sage: EllipticCurve(GF(41),[2,5])._cremona_abgrp_data() # generators random
+        [[22, 2], [[35, 8], [23, 0]]]
+        """
         E = self._gp()
         gp = E.parent()
         return eval(gp.eval('[%s.isotype, lift(%s.generators)]'%(E.name(), E.name())))
@@ -379,7 +424,16 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
     def abelian_group(self):
         """
         Returns the abelian group structure of the group of points on
-        this elliptic curve.
+        this elliptic curve.  Only implemented for prime fields, since
+        the underlying gp program is thus, but the algorithm there is
+        general.
+
+        A word of warning: the underlying algorithm is definitely
+        *not* intended for use with *large* finite fields!  The
+        factorization of the orders of an elements must be feasible.
+
+        Also, the algorithm uses random points on the curve and hence
+        the generators are likely to differ from one run to another.
 
         OUTPUT:
             -- an abelian group
@@ -388,36 +442,55 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         AUTHOR: John Cremona
 
-        NOTE: And finally...from what I remember of those gp programs,
-        the algorithm I was using (which is not exactly the same as
-        others use, for example it is not the same as described in
-        Cohen's book) is entirely valid for general finite fields.  It
-        would just be a question of replacing Mod(a,p) by the
-        appropriate alternative.  As I understand it, pari has no
-        trouble doing arithmetic over general finite fileds, with
-        elements represented as Mod(a,b) where b is a suitable
-        irreducible polynomial mod p; though the output format is hard
-        to read then (usually improved by allying lift() twice).
+        EXAMPLES:
+        sage: E=EllipticCurve(GF(11),[2,5])
+        sage: E.abelian_group()
+        (Multiplicative Abelian Group isomorphic to C10, ...
+        sage: EllipticCurve(GF(41),[2,5]).abelian_group()
+        (Multiplicative Abelian Group isomorphic to C22 x C2,
+        ...
 
-        One word of warning though: the underlying algorithm is
-        definitely *not* intended for use with *large* finite fields!
-        For example, I would regard the factorization of the order of
-        an element as inexpensive.
         """
         try:
             return self.__abelian_group
         except AttributeError:
             pass
         if self.base_ring().degree() == 1:
+
+            # In the non-cyclic case, Sage orders the invariants as
+            # n1,n2 with n1 a multiple of n2 (true on 2008-01-27!)
+            # which agrees with orders of the generators returned by
+            # _cremona_abgrp_data(), so there is no need to switch the
+            # points as in the past!
+
             I, G = self._cremona_abgrp_data()
             A = AbelianGroup(I)
-            G = tuple(reversed([self(P) for P in G]))
+            G = tuple([self(P) for P in G])
         else:
             raise NotImplementedError
         self.__abelian_group = A, G
         return A, G
 
     def __getitem__(self, n):
+        """
+        Return the n'th point in self's __points list.  This enables
+        users to iterate over the curve's point set.
+
+        EXAMPLE:
+        sage: E=EllipticCurve(GF(97),[2,3])
+        sage: S=E.points()
+        sage: E[10]           # random
+        (29 : 43 : 1)
+        sage: E[15]          # random
+        (56 : 8 : 1)
+        sage: for P in E: print P.order()
+        1
+        2
+        50
+        50
+        25
+        ...
+        """
         return self.points()[n]
 
 

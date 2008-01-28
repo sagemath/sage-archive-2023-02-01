@@ -1550,6 +1550,9 @@ cdef class NumberFieldElement(FieldElement):
         sage: b = a^2 + 30
         sage: b.valuation(P)
         1
+	sage: type(b.valuation(P))
+        <type 'sage.rings.integer.Integer'>
+
         """
         from number_field_ideal import is_NumberFieldIdeal
         if not is_NumberFieldIdeal(P):
@@ -1560,7 +1563,7 @@ cdef class NumberFieldElement(FieldElement):
         if not P.is_prime():
             # We always check this because it caches the pari prime representation of this ideal.
             raise ValueError, "P must be prime"
-        return self.number_field()._pari_().elementval(self._pari_(), P._pari_prime)
+        return Integer_sage(self.number_field()._pari_().elementval(self._pari_(), P._pari_prime))
 
     def _matrix_over_base(self, L):
         """

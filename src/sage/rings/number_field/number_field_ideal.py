@@ -3,7 +3,7 @@ Number Field Ideals
 
 AUTHOR:
    -- Steven Sivek (2005-05-16)
-   -- Willia Stein (2007-09-06): vastly improved the doctesting
+   -- William Stein (2007-09-06): vastly improved the doctesting
 
 TESTS:
 We test that pickling works:
@@ -57,21 +57,25 @@ QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
 
 def is_NumberFieldIdeal(x):
+    return isinstance(x, NumberFieldIdeal) \
+    or     isinstance(x, NumberFieldFractionalIdeal) and x.is_integral()
+
+def is_NumberFieldFractionalIdeal(x):
     """
     Return True if x is a fractional ideal of a number field.
 
     EXAMPLES:
-        sage: is_NumberFieldIdeal(2/3)
+        sage: is_NumberFieldFractionalIdeal(2/3)
         False
-        sage: is_NumberFieldIdeal(ideal(5))
+        sage: is_NumberFieldFractionalIdeal(ideal(5))
         False
         sage: k.<a> = NumberField(x^2 + 2)
         sage: I = k.ideal([a + 1]); I
         Fractional ideal (a + 1)
-        sage: is_NumberFieldIdeal(I)
+        sage: is_NumberFieldFractionalIdeal(I)
         True
     """
-    return isinstance(x, NumberFieldIdeal)
+    return isinstance(x, NumberFieldFractionalIdeal)
 
 def convert_from_zk_basis(field, hnf):
     """
@@ -95,7 +99,10 @@ def convert_from_zk_basis(field, hnf):
     """
     return field.pari_nf().getattr('zk') * hnf
 
-class NumberFieldIdeal(Ideal_fractional):
+class NumberFieldIdeal(Ideal_generic):
+    pass
+
+class NumberFieldFractionalIdeal(Ideal_fractional):
     """
     An ideal of a number field.
     """
@@ -112,7 +119,12 @@ class NumberFieldIdeal(Ideal_fractional):
         if not isinstance(field, number_field.NumberField_generic):
             raise TypeError, "field (=%s) must be a number field."%field
 
-        Ideal_generic.__init__(self, field, gens, coerce)
+        if len(gens)==0:
+            raise ValueError, "gens must have length at least 1 (zero ideal is not a fractional ideal)"
+        if misc.exists(gens,bool)[0]:
+            Ideal_fractional.__init__(self, field, gens)
+        else:
+            raise ValueError, "gens must have a nonzero element (zero ideal is not a fractional ideal)"
 
     def _latex_(self):
         """
@@ -146,7 +158,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: f[1][0] == GF(7)(5)
             False
         """
-        if not isinstance(other, NumberFieldIdeal):
+        if not isinstance(other, NumberFieldFractionalIdeal):
             return cmp(type(self), type(other))
         return cmp(self.pari_hnf(), other.pari_hnf())
 
@@ -204,9 +216,9 @@ class NumberFieldIdeal(Ideal_fractional):
             Fractional ideal (100*a^2 - 730*a + 5329)
             sage: hnf = I.pari_hnf(); hnf
             [17, 0, 13; 0, 17, 8; 0, 0, 1]
-            sage: I._NumberFieldIdeal__elements_from_hnf(hnf)
+            sage: I._NumberFieldFractionalIdeal__elements_from_hnf(hnf)
             [17, 17*a, a^2 + 8*a + 13]
-            sage: I._NumberFieldIdeal__elements_from_hnf(hnf^(-1))
+            sage: I._NumberFieldFractionalIdeal__elements_from_hnf(hnf^(-1))
             [1/17, 1/17*a, a^2 - 8/17*a - 13/17]
         """
         K = self.number_field()
@@ -267,8 +279,6 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: (1/I) * I
             Fractional ideal (1)
         """
-        if self.is_zero():
-            raise ZeroDivisionError
         nf = self.number_field().pari_nf()
         hnf = nf.idealdiv(self.number_field().ideal(1).pari_hnf(),
                           self.pari_hnf())
@@ -457,10 +467,8 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: I.divides(29)
             False
         """
-        if not isinstance(other, NumberFieldIdeal):
+        if not isinstance(other, NumberFieldFractionalIdeal):
             other = self.number_field().ideal(other)
-        if self.is_zero():
-            return other.is_zero # since 0 \subset 0
         return (other / self).is_integral()
 
     def factor(self):
@@ -484,9 +492,6 @@ class NumberFieldIdeal(Ideal_fractional):
         try:
             return self.__factorization
         except AttributeError:
-            if self.is_zero():
-                self.__factorization = Factorization([])
-                return self.__factorization
             K = self.number_field()
             F = list(K.pari_nf().idealfactor(self.pari_hnf()))
             P, exps = F[0], F[1]
@@ -653,7 +658,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.ideal(7).is_maximal()
             True
         """
-        return self.is_prime() and not self.is_zero()
+        return self.is_prime()
 
     def is_prime(self):
         """
@@ -672,9 +677,6 @@ class NumberFieldIdeal(Ideal_fractional):
         try:
             return self._pari_prime is not None
         except AttributeError:
-            if self.is_zero():
-                self._pari_prime = []
-                return True
             K = self.number_field()
             F = list(K.pari_nf().idealfactor(self.pari_hnf()))
             ### We should definitely cache F as the factorization of self
@@ -736,12 +738,11 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: (I+J).is_trivial()
             True
         """
-        return self.is_zero() or \
-            self == self.number_field().ideal(1)
+        return self == self.number_field().ideal(1)
 
     def is_zero(self):
         """
-        Return True if this is the zero ideal.
+        Return False since fractional ideals are not zero by definition.
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^2 + 2); K
@@ -751,7 +752,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.ideal(0).is_zero()
             True
         """
-        return self == self.number_field().ideal(0)
+        return False
 
     def norm(self):
         """
@@ -779,7 +780,7 @@ class NumberFieldIdeal(Ideal_fractional):
             Number Field in a with defining polynomial x^2 + 2
             sage: K.ideal(3).number_field()
             Number Field in a with defining polynomial x^2 + 2
-            sage: K.ideal(0).number_field()
+            sage: K.ideal(0).number_field() # not tested (not implemented)
             Number Field in a with defining polynomial x^2 + 2
         """
         return self.ring()
@@ -807,8 +808,6 @@ class NumberFieldIdeal(Ideal_fractional):
             ...
             ValueError: the ideal (= Fractional ideal (17)) is not prime
         """
-        if self.is_zero():
-            raise ValueError, "The input ideal must be nonzero"
         if self.is_prime():
             return ZZ(self._pari_prime.getattr('e'))
         raise ValueError, "the ideal (= %s) is not prime"%self
@@ -913,8 +912,6 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: [i.residue_class_degree() for i, _ in f]
             [2, 2, 1]
         """
-        if self.is_zero():
-            raise ValueError, "The ideal (=%s) is zero"%self
         if self.is_prime():
             return ZZ(self._pari_prime.getattr('f'))
         raise ValueError, "the ideal (= %s) is not prime"%self
@@ -931,8 +928,6 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: I.smallest_integer()
             2
         """
-        if self.is_zero():
-            raise ValueError, "ideal (= %s) must be nonzero"%self
         try:
             return self.__smallest_integer
         except AttributeError:
@@ -979,12 +974,14 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: i.valuation(0)
             Traceback (most recent call last):
             ...
-            ValueError: p (= Fractional ideal (0)) must be a nonzero prime
+            ValueError: p (= 0) must be nonzero
         """
-        if not isinstance(p, NumberFieldIdeal):
+        if p==0:
+            raise ValueError, "p (= %s) must be nonzero"%p
+        if not isinstance(p, NumberFieldFractionalIdeal):
             p = self.number_field().ideal(p)
-        if p.is_zero() or not p.is_prime():
-            raise ValueError, "p (= %s) must be a nonzero prime"%p
+        if not p.is_prime():
+            raise ValueError, "p (= %s) must be a prime"%p
         if p.ring() != self.number_field():
             raise ValueError, "p (= %s) must be an ideal in %s"%self.number_field()
         nf = self.number_field().pari_nf()

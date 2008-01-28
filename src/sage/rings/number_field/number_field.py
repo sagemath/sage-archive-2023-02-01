@@ -162,7 +162,7 @@ import sage.rings.complex_interval_field
 from sage.structure.parent_gens import ParentWithGens
 import number_field_element
 import number_field_element_quadratic
-from number_field_ideal import convert_from_zk_basis, is_NumberFieldIdeal
+from number_field_ideal import convert_from_zk_basis, is_NumberFieldIdeal, NumberFieldFractionalIdeal, is_NumberFieldFractionalIdeal
 
 import sage.rings.number_field.number_field_ideal_rel
 
@@ -1248,7 +1248,7 @@ class NumberField_generic(number_field_base.NumberField):
     def _ideal_class_(self):
         """
         Return the Python class used in defining ideals of the ring of
-        integes of this number field.
+        integers of this number field.
 
         This function is required by the general ring/ideal machinery.
 
@@ -1259,7 +1259,23 @@ class NumberField_generic(number_field_base.NumberField):
         return sage.rings.number_field.number_field_ideal.NumberFieldIdeal
 
     def ideal(self, *gens, **kwds):
-        return self.fractional_ideal(*gens, **kwds)
+        """
+        K.ideal() returns a fractional ideal of the field, except for the
+        zero ideal which is not a fractional ideal.
+
+        EXAMPLES:
+        sage: K.<i>=NumberField(x^2+1)
+        sage: K.ideal(2)
+        Fractional ideal (2)
+        sage: K.ideal(2+i)
+        Fractional ideal (i + 2)
+        sage: K.ideal(0)
+        Ideal (0) of Number Field in i with defining polynomial x^2 + 1
+        """
+        try:
+            return self.fractional_ideal(*gens, **kwds)
+        except ValueError:
+            return sage.rings.ring.Ring.ideal(self, gens, **kwds)
 
     def fractional_ideal(self, *gens, **kwds):
         r"""
@@ -1273,22 +1289,29 @@ class NumberField_generic(number_field_base.NumberField):
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3-2)
-            sage: K.ideal([a])
-            Fractional ideal (a)
+            sage: K.fractional_ideal([1/a])
+            Fractional ideal (1/2*a^2)
 
         One can also input in a number field ideal itself.
-            sage: K.ideal(K.ideal(a))
+            sage: K.fractional_ideal(K.fractional_ideal(a))
             Fractional ideal (a)
+
+        The zero ideal is not a facrtional ideal!
+            sage: K.fractional_ideal(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: gens must have a nonzero element (zero ideal is not a fractional ideal)
+
         """
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
-        if len(gens) == 1 and is_NumberFieldIdeal(gens[0]):
+        if len(gens) == 1 and is_NumberFieldFractionalIdeal(gens[0]):
             I = gens[0]
-            if I.number_field() == self:
+            if I.number_field() is self:
                 return I
             else:
                 gens = I.gens()
-        return sage.rings.ring.Ring.ideal(self, gens, **kwds)
+        return NumberFieldFractionalIdeal(self, gens, **kwds)
 
     def ideals_of_bdd_norm(self, bound):
         """

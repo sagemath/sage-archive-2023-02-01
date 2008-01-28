@@ -6,7 +6,7 @@ from number_field import (NumberField, CyclotomicField, QuadraticField,
                           is_AbsoluteNumberField,
                           is_fundamental_discriminant)
 from number_field_element import (NumberFieldElement, is_NumberFieldElement)
-from number_field_ideal import is_NumberFieldIdeal
+from number_field_ideal import is_NumberFieldFractionalIdeal
 
 from order import is_NumberFieldOrder, EquationOrder
 

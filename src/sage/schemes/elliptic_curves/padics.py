@@ -35,7 +35,7 @@ sqrt = math.sqrt
 import padic_height as pheight
 import monsky_washnitzer
 import sage.schemes.hyperelliptic_curves.frobenius
-
+from constructor import EllipticCurve
 
 def __check_padic_hypotheses(self, p):
     p = rings.Integer(p)
@@ -926,9 +926,8 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
               + O(p**prec)
 
     # Take into account the coordinate change.
-    X = self.weierstrass_model()
+    X=self.minimal_model().short_weierstrass_model()
     fudge_factor = (X.discriminant() / self.discriminant()).nth_root(6)
-
     # todo: here I should be able to write:
     #  return E2_of_X / fudge_factor
     # However, there is a bug in SAGE (#51 on trac) which makes this
@@ -976,17 +975,13 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
     # then the differentials differ by u. There's a sign ambiguity here,
     # but it doesn't matter because E2 changes by u^2 :-)
 
-    # todo: the weierstrass_model() function is overkill here, because
-    # it finds a *minimal* model. I imagine it has to do some factoring
-    # to do this. We only need a model that's minimal at p.
-
     # todo: In fact, there should be available a function that returns
     # exactly *which* coordinate change was used. If I had that I could
     # avoid the discriminant circus at the end.
 
     # todo: The following strategy won't work at all for p = 2, 3.
 
-    X = self.weierstrass_model()
+    X=self.minimal_model().short_weierstrass_model()
 
     assert X.discriminant().valuation(p) == 0, "Something's gone wrong. " \
            "The discriminant of the weierstrass model should be a unit " \

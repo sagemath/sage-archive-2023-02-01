@@ -915,6 +915,11 @@ def show(x, *args, **kwds):
         sage: show([sin(i*x) for i in range(2)])
         sage: show([sin(i*x) for i in range(30)], columns=1, rows=10)
 
+    If an item of a list does not have a plot function, then a blank is left in
+    its place.  For example, the \code{'a'} below is not plotted.
+
+        sage: show([x^2, 'a', x^3])
+
     """
     if not isinstance(x, (sage.interfaces.expect.Expect, sage.interfaces.expect.ExpectElement)):
         try:

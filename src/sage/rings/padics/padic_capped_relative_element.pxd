@@ -26,16 +26,18 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef long ordp
     cdef long relprec
     cdef bint _normalized
-    cdef void set_exact_zero(pAdicCappedRelativeElement self)
-    cdef void set_inexact_zero(pAdicCappedRelativeElement self, long absprec)
-    cdef void set_zero(pAdicCappedRelativeElement self, absprec)
-    cdef void set_precs(pAdicCappedRelativeElement self, long relprec)
-    cdef void set(pAdicCappedRelativeElement self, long ordp, Integer unit, long relprec)
+    cdef void _set_exact_zero(pAdicCappedRelativeElement self)
+    cdef void _set_inexact_zero(pAdicCappedRelativeElement self, long absprec)
+    cdef void _set_zero(pAdicCappedRelativeElement self, absprec)
+    cdef void _set_prec(pAdicCappedRelativeElement self, long relprec)
+    cdef void _set(pAdicCappedRelativeElement self, long ordp, mpz_t unit, long relprec)
+    cdef int _set_from_mpz_rel(pAdicCappedRelativeElement self, mpz_t x, unsigned long relprec) except -1
+    cdef int _set_from_mpz_both(pAdicCappedRelativeElement self, mpz_t x, long absprec, unsigned long relprec) except -1
+    cdef int _set_from_mpq_rel(pAdicCappedRelativeElement self, mpq_t x, unsigned long relprec) except -1
+    cdef int _set_from_mpq_both(pAdicCappedRelativeElement self, mpq_t x, long absprec, unsigned long relprec) except -1
+    cdef int _set_from_CR(pAdicCappedRelativeElement self, pAdicCappedRelativeElement other) except -1
     cdef pAdicCappedRelativeElement _new_c(pAdicCappedRelativeElement self)
     cdef void _normalize(pAdicCappedRelativeElement self)
-    cdef int _set_from_Integer( pAdicCappedRelativeElement self, parent, mpz_t x, absprec, relprec) except -1
-    cdef int _set_from_Rational( pAdicCappedRelativeElement self, parent, Rational x, absprec, relprec) except -1
-    cdef void set_from_Integers(pAdicCappedRelativeElement self, Integer ordp, Integer unit, Integer relprec)
     cdef ModuleElement _neg_c_impl(self)
     cdef RingElement _floordiv_c_impl(self, RingElement right)
     cdef pAdicCappedRelativeElement _lshift_c(pAdicCappedRelativeElement self, long shift)
@@ -45,6 +47,6 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef teichmuller_list(pAdicCappedRelativeElement self)
     cdef val_unit_c(self)
     cdef pAdicCappedRelativeElement unit_part_c(self)
-    cdef valuation_c(self)
+    cdef long valuation_c(self)
     cdef lift_c(self)
 

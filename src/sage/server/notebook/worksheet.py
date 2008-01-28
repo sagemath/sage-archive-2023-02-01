@@ -104,10 +104,11 @@ def worksheet_filename(name, owner):
     return owner + '/' + _notebook.clean_name(name)
 
 class Worksheet:
-    def __init__(self, name, dirname, notebook, system, owner, docbrowser=False):
+    def __init__(self, name, dirname, notebook, system, owner, docbrowser=False, prettyprint=False):
 
         # Record the basic properties of the worksheet
         self.__system   = system
+        self.__prettyprint = prettyprint
         self.__owner         = owner
         self.__viewers       = []
         self.__collaborators = []
@@ -263,6 +264,22 @@ class Worksheet:
 
     def set_system(self, system='sage'):
         self.__system = system.strip()
+
+    def prettyprint(self):
+        try:
+            return self.__prettyprint
+        except AttributeError:
+            self.__prettyprint = False
+            return self.__prettyprint
+
+    def set_prettyprint(self, check='false'):
+        if check == 'false':
+            check=False
+        else:
+            check=True
+        self.__prettyprint = check
+        S=self.sage()
+        S.eval("pretty_print_default(%r)"%(check))
 
     ##########################################################
     # Publication
@@ -819,8 +836,10 @@ class Worksheet:
 
         if self.is_doc_worksheet():
             system_select = ''
+            prettyprint_check = ''
         else:
             system_select = self.notebook().html_system_select_form_element(self)
+            prettyprint_check = self.notebook().html_prettyprint_check_form_element(self)
 
         data = self.html_data_options_list()
 
@@ -858,8 +877,9 @@ class Worksheet:
 </select>
 
  %s
+ %s
  """%(_notebook.clean_name(self.name()), self.filename(),
-      data, system_select)
+      data, system_select, prettyprint_check)
 # <option title="Browse the data directory" value="data/">Browse data directory...</option>
 # <option title="Browse the directory of output from cells" value="cells/">Browse cell output directories...</option>
 

@@ -931,6 +931,17 @@ function system_select(s) {
     async_request(worksheet_command('system/'+s), null, null);
 }
 
+function go_prettyprint_check(theform) {
+   with(theform) {
+          prettyprint_check(checked);
+   }
+}
+
+function prettyprint_check(s) {
+    async_request(worksheet_command('prettyprint/'+s), null, null);
+}
+
+
 
 function go_data(theform) {
    var value;

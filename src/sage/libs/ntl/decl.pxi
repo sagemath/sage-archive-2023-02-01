@@ -148,6 +148,7 @@ cdef extern from "ntl_wrap.h":
     void ZZ_p_sub "sub"( ZZ_p_c x, ZZ_p_c a, ZZ_p_c b)
     void ZZ_p_mul "mul"( ZZ_p_c x, ZZ_p_c a, ZZ_p_c b)
     void ZZ_p_mul_long "mul"( ZZ_p_c x, ZZ_p_c a, long b)
+    void ZZ_p_div "div"( ZZ_p_c x, ZZ_p_c a, ZZ_p_c b)
     void ZZ_p_negate "negate"(ZZ_p_c x, ZZ_p_c a)
     void ZZ_p_power "power"(ZZ_p_c t, ZZ_p_c x, long e)
     int ZZ_p_IsOne "IsOne"(ZZ_p_c x)
@@ -423,7 +424,7 @@ cdef extern from "ntl_wrap.h":
     void ZZ_pX_left_pshift(ZZ_pX_c x, ZZ_pX_c a, ZZ_c pn, ZZ_pContext_c c)
     void ZZ_pX_right_pshift(ZZ_pX_c x, ZZ_pX_c a, ZZ_c pn, ZZ_pContext_c c)
     void ZZ_pX_InvMod_newton(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F, ZZ_pContext_c cpn, ZZ_pContext_c cp)
-    void ZZ_pX_eis_shift(ZZ_pX_c x, ZZ_pX_c a, long n, ZZ_pX_Multiplier_c* low_shifter, ZZ_pX_Multiplier_c* high_shifter, ZZ_pX_Modulus_c modulus, ZZ_c p, ZZ_pContext_c cupper, ZZ_pContext_c clower)
+    void ZZ_pX_eis_shift(ZZ_pX_c x, ZZ_pX_c a, long n, ZZ_pX_Multiplier_c* low_shifter, ZZ_pX_Multiplier_c* high_shifter, ZZ_pX_Modulus_c modulus, ZZ_c p, ZZ_pContext_c clower)
 
     # The following are ZZ_pX functions written in ntl_wrap, used for padics.
 
@@ -822,7 +823,7 @@ cdef extern from "ntl_wrap.h":
     GF2EContext_c* GF2EContext_new "New<GF2EContext>"()
     GF2EContext_c* GF2EContext_construct "Construct<GF2EContext>"(void *mem)
     GF2EContext_c* GF2EContext_new_GF2X "GF2EContext_new"(GF2X_c* p)
-    GF2EContext_c* GF2EContext_construct_GF2X "GF2EContext_construct"(void *mem, GF2X_c* p)
+    GF2EContext_c* GF2EContext_construct_GF2X "Construct<GF2EContext>"(void *mem, GF2X_c* p)
     void GF2EContext_destruct "Destruct<GF2EContext>"(GF2EContext_c *mem)
     void GF2EContext_delete "Delete<GF2EContext>"(GF2EContext_c *mem)
 

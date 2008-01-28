@@ -424,7 +424,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         else:
             mpz_invert(self.unit, den_unit, self.prime_pow.pow_mpz_t_tmp(self.relprec)[0])
             mpz_mul(self.unit, self.unit, num_unit)
-            mpz_mod(self.unit, self.unit, self.prime_pow.pow_mpz_t_tmp(relprec)[0])
+            mpz_mod(self.unit, self.unit, self.prime_pow.pow_mpz_t_tmp(self.relprec)[0])
         mpz_clear(num_unit)
         mpz_clear(den_unit)
         self._normalized = 1
@@ -533,7 +533,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             elif mpz_sgn(self.unit) == 0:
                 self.ordp = self.ordp + self.relprec
                 self.relprec = 0
-        self._normalized = 1
+            self._normalized = 1
 
     def __dealloc__(pAdicCappedRelativeElement self):
         mpz_clear(self.unit)
@@ -1563,6 +1563,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             maxlong = 2147483647
         elif sizeof(long) == 8:
             maxlong = 9223372036854775807
+        else:
+            raise RuntimeError
         if v == maxlong:
             return infinity
         cdef Integer ans = PY_NEW(Integer)
@@ -1572,11 +1574,14 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef long valuation_c(self):
         cdef Integer ans
         cdef long maxlong
+        self._normalize()
         if mpz_sgn(self.unit) == -1:
             if sizeof(long) == 4:
                 maxlong = 2147483647
             elif sizeof(long) == 8:
                 maxlong = 9223372036854775807
+            else:
+                raise RuntimeError
             return maxlong
         else:
             return self.ordp

@@ -9,6 +9,10 @@ from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 
+from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX
+from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_small_Eis
+from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_big_Eis
+
 cdef object infinity
 from sage.rings.infinity import infinity
 
@@ -81,20 +85,167 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             poly = ntl_ZZ_pX(x.list(), self.prime_pow.get_top_context())
             self._set_from_ZZ_pX_c(poly.x, poly.c)
 
-    cdef int _set_from_mpz_rel(self, mpz_t x, unsigned long relprec) except -1:
-        self.prime_pow.restore_top_context()
-        cdef ZZ_c tmp
-        ZZ_construct(&tmp)
-        mpz_to_ZZ(&tmp, &x)
-        ZZ_pX_SetCoeff(self.value, 0, ZZ_to_ZZ_p(tmp))
-        ZZ_destruct(&tmp)
+    cdef int _set_inexact_zero(self, long absprec) except -1:
+        # self.unit should already have been set to zero
+        self.ordp = absprec
+        self.relprec = 0
+        self._normalized = 1
 
-    cdef int _set_from_mpz_both(self, mpz_t x, long absprec, unsigned long relprec) except -1:
+    cdef int _set_exact_zero(self) except -1:
+        cdef long maxlong
+        if sizeof(long) == 4:
+            maxlong = 2147483647
+        elif sizeof(long) == 8:
+            maxlong = 9223372036854775807
+        else:
+            raise RuntimeError
+        self.ordp = maxlong
+        self._normalized = 1
+
+    cdef bint _is_exact_zero(self) except -2:
+        cdef long maxlong
+        if sizeof(long) == 4:
+            maxlong = 2147483647
+        elif sizeof(long) == 8:
+            maxlong = 9223372036854775807
+        else:
+            raise RuntimeError
+        if self.ordp == maxlong:
+            return 1
+        else:
+            return 0
+
+    cdef int _set_from_ZZX_rel(self, ZZX_c poly, unsigned long relprec) except -1:
+        """
+        self.prime_pow must already be set.
+        relprec should be in range 0 <= relprec <= self.prime_pow.ram_prec_cap
+        """
+        if ZZX_IsZero(poly):
+            self._set_exact_zero()
+            return
+        cdef long i = 0
+        cdef long deg = ZZX_deg(poly)
+        cdef long mini = -1
+        cdef long minval
+        cdef long curval
+        cdef ZZ_c tmp_z
+        cdef ZZ_c *ppow
+        cdef ZZ_pX tmp_p
+        ZZ_construct(&tmp_z)
+        while mini == -1:
+            if not ZZ_IsZero(ZZX_coeff(poly,i)):
+                minval = ZZ_remove(tmp_z, ZZX_coeff(poly, i), self.prime_pow.pow_ZZ_tmp(1)[0])
+                mini = i
+            i += 1
+        while i <= deg:
+            if not ZZ_IsZero(ZZX_coeff(poly,i)):
+                curval = ZZ_remove(tmp_z, ZZX_coeff(poly, i), self.prime_pow.pow_ZZ_tmp(1)[0])
+                if curval < minval:
+                    minval = curval
+                    mini = i
+            i += 1
+
+        self.relprec = relprec
+        if self.prime_pow.e == 1: # unramified
+            self.prime_pow.restore_context(relprec)
+            self.ordp = minval
+            ppow = self.prime_pow.pow_ZZ_tmp(minval)
+            for i from 0 <= i <= deg:
+                ZZ_div(tmp_z, ZZX_coeff(poly, i), ppow[0])
+                ZZ_pX_SetCoeff(self.unit, i, ZZ_to_ZZ_p(tmp_z))
+        else: # eisenstein
+            self.ordp = minval * self.prime_pow.e + mini
+            self.prime_pow.restore_context(minval + cap_div(relprec + mini, self.prime_pow.e))
+            ZZ_pX_construct(&tmp_p)
+            ZZX_to_ZZ_pX(tmp_p, poly)
+            if PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_small_Eis):
+                ZZ_pX_eis_shift(self.unit, tmp_p, self.ordp, (<PowComputer_ZZ_pX_small_Eis>self.prime_pow).low_shifter, \
+                                (<PowComputer_ZZ_pX_small_Eis>self.prime_pow).high_shifter, \
+                                self.prime_pow.get_modulus(cap_div(relprec, self.prime_pow.e)), \
+                                self.prime_pow.pow_ZZ_tmp(1)[0], \
+                                self.prime_pow.get_context(cap_div(relprec, self.prime_pow.e)))
+            elif PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_big_Eis):
+                ZZ_pX_eis_shift(self.unit, tmp_p, self.ordp, (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).low_shifter, \
+                                (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter, \
+                                self.prime_pow.get_modulus(cap_div(relprec, self.prime_pow.e)), \
+                                self.prime_pow.pow_ZZ_tmp(1)[0], \
+                                self.prime_pow.get_context(cap_div(relprec, self.prime_pow.e)))
+            else:
+                raise RuntimeError, "prime_pow is of inconsistent type"
+            ZZ_pX_destruct(&tmp_p)
+        ZZ_destruct(&tmp_z)
+        self._normalized = 1
 
 
-    cdef int _set_from_ZZ_pX_c(self, ZZ_pX_c poly) except -1:
-        self.prime_pow.restore_top_context()
-        ZZ_pX_conv_modulus(self.value, poly, (<ntl_ZZ_pContext_class>self.prime_pow.get_top_context()).x)
+    cdef int _set_from_ZZ_pX_both(self, ZZ_pX_c poly, long absprec, unsigned long relprec) except -1:
+        """
+        self.prime_pow must already be set.
+        relprec should be in range 0 <= relprec <= self.prime_pow.ram_prec_cap
+        """
+        if ZZ_pX_IsZero(poly):
+            self._set_inexact_zero(absprec)
+            return
+        cdef long i = 0
+        cdef long deg = ZZ_pX_deg(poly)
+        cdef long mini = -1
+        cdef long minval
+        cdef long curval
+        cdef ZZ_c tmp_z
+        cdef ZZ_c *ppow
+        cdef ZZ_pX tmp_p
+        ZZ_construct(&tmp_z)
+        while mini == -1:
+            if not ZZ_p_IsZero(ZZ_pX_coeff(poly,i)):
+                minval = ZZ_remove(tmp_z, ZZ_p_rep(ZZ_pX_coeff(poly, i)), self.prime_pow.pow_ZZ_tmp(1)[0])
+                mini = i
+            i += 1
+        while i <= deg:
+            if not ZZ_p_IsZero(ZZ_pX_coeff(poly,i)):
+                curval = ZZ_remove(tmp_z, ZZ_p_rep(ZZ_pX_coeff(poly, i)), self.prime_pow.pow_ZZ_tmp(1)[0])
+                if curval < minval:
+                    minval = curval
+                    mini = i
+            i += 1
+        if self.prime_pow.e == 1: # unramified
+            self.ordp = minval
+            self.relprec = absprec - self.ordp
+            if relprec < self.relprec:
+                self.relprec = relprec
+            elif self.relprec < 0:
+                self.set_inexact_zero(absprec)
+                return
+            self.prime_pow.restore_context(relprec)
+            ppow = self.prime_pow.pow_ZZ_tmp(minval)
+            for i from 0 <= i <= deg:
+                ZZ_div(tmp_z, ZZ_p_rep(ZZ_pX_coeff(poly, i)), ppow[0])
+                ZZ_pX_SetCoeff(self.unit, i, ZZ_to_ZZ_p(tmp_z))
+        else: # eisenstein
+            self.ordp = minval * self.prime_pow.e + mini
+            self.relprec = absprec - self.ordp
+            if relprec < self.relprec:
+                self.relprec = relprec
+            elif self.relprec < 0:
+                self.set_inexact_zero(absprec)
+                return
+            self.prime_pow.restore_context(minval + cap_div(relprec + mini, self.prime_pow.e))
+            if PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_small_Eis):
+                ZZ_pX_eis_shift(self.unit, poly, self.ordp, (<PowComputer_ZZ_pX_small_Eis>self.prime_pow).low_shifter, \
+                                (<PowComputer_ZZ_pX_small_Eis>self.prime_pow).high_shifter, \
+                                self.prime_pow.get_modulus(cap_div(relprec, self.prime_pow.e)), \
+                                self.prime_pow.pow_ZZ_tmp(1)[0], \
+                                self.prime_pow.get_context(cap_div(relprec, self.prime_pow.e)))
+            elif PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_big_Eis):
+                ZZ_pX_eis_shift(self.unit, poly, self.ordp, (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).low_shifter, \
+                                (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter, \
+                                self.prime_pow.get_modulus(cap_div(relprec, self.prime_pow.e)), \
+                                self.prime_pow.pow_ZZ_tmp(1)[0], \
+                                self.prime_pow.get_context(cap_div(relprec, self.prime_pow.e)))
+            else:
+                raise RuntimeError, "prime_pow is of inconsistent type"
+        ZZ_destruct(&tmp_z)
+        self._normalized = 1
+
+    cdef _normalize(self):
 
     def __dealloc__(self):
         # Might need to call

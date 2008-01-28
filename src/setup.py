@@ -207,6 +207,11 @@ ntl_mat_GF2E = Extension('sage.libs.ntl.ntl_mat_GF2E',
                  libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
                  language='c++')
 
+ntl_GF2EContext = Extension('sage.libs.ntl.ntl_GF2EContext',
+                 sources = ["sage/libs/ntl/ntl_GF2EContext.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
+                 language = "c++")
+
 mwrank =  Extension("sage.libs.mwrank.mwrank",
                     sources = ["sage/libs/mwrank/mwrank.pyx",
                          "sage/libs/mwrank/wrap.cc"],

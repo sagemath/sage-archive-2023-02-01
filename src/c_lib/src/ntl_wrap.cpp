@@ -1321,7 +1321,7 @@ void ZZ_pX_InvMod_newton(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ
     delete xn;
 }
 
-void ZZ_pX_eis_shift(struct ZZ_pX &x, const struct ZZ_pX &a, long n, const struct ZZ_pXMultiplier* low_shifter, const struct ZZ_pXMultiplier* high_shifter, const struct ZZ_pXModulus &modulus, const struct ZZ &p, const struct ZZ_pContext &cupper, const struct ZZ_pContext &clower)
+void ZZ_pX_eis_shift(struct ZZ_pX &x, const struct ZZ_pX &a, long n, const struct ZZ_pXMultiplier* low_shifter, const struct ZZ_pXMultiplier* high_shifter, const struct ZZ_pXModulus &modulus, const struct ZZ &p, const struct ZZ_pContext &clower)
 {
     long degree = deg(modulus);
     long pshift = n / degree;
@@ -1329,7 +1329,6 @@ void ZZ_pX_eis_shift(struct ZZ_pX &x, const struct ZZ_pX &a, long n, const struc
     long two_shift = 1;
     int i;
 
-    cupper.restore();
     //cout << "eis_part: " << eis_part << "\n";
     //cout << "pshift: " << pshift << "\n";
     ZZ_pX low_part; // = new ZZ_pX();
@@ -1368,7 +1367,7 @@ void ZZ_pX_eis_shift(struct ZZ_pX &x, const struct ZZ_pX &a, long n, const struc
             //cout << "shifted_high_part = " << shifted_high_part << "\n";
             low_part = x - (shifted_high_part << two_shift);
             //cout << "low_part = " << low_part << "\n";
-            ZZ_pX_right_pshift(low_part, low_part, p, cupper);
+            ZZ_pX_right_pshift(low_part, low_part, p, clower);
             //cout << "low_part = " << low_part << "\n";
             MulMod(low_part, low_part, low_shifter[i], modulus);
             //cout << "low_part = " << low_part << "\n";

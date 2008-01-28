@@ -75,7 +75,6 @@ cdef class EisensteinFixedModElement(pAdicZZpXFMElement):
                             (<PowComputer_ZZ_pX_FM_Eis>self.prime_pow).high_shifter, \
                             self.prime_pow.get_top_modulus()[0], \
                             self.prime_pow.small_powers[1], \
-                            self.prime_pow.get_top_context().x, \
                             self.prime_pow.get_top_context().x)
             if top_zeros:
                 holder = ntl_ZZ()

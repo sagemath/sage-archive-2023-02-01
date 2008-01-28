@@ -16,6 +16,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include "../../libs/ntl/decl.pxi"
 include "../../ext/gmp.pxi"
 include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
@@ -24,8 +25,9 @@ cimport sage.rings.padics.padic_generic_element
 
 cimport sage.rings.rational
 cimport sage.rings.padics.pow_computer
-from sage.rings.rational cimport Rational
 from sage.rings.padics.pow_computer cimport PowComputer_base
+from sage.rings.padics.padic_printing cimport pAdicPrinter_class
+from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 
 import sage.rings.padics.padic_generic_element
 import sage.rings.padics.padic_lazy_element
@@ -39,7 +41,6 @@ from sage.rings.integer_mod import Mod
 from sage.rings.padics.precision_error import PrecisionError
 
 pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
-pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
 pari = sage.libs.pari.gen.pari
 pari_gen = sage.libs.pari.gen.gen
 PariError = sage.libs.pari.gen.PariError
@@ -47,16 +48,16 @@ PariError = sage.libs.pari.gen.PariError
 cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     def __init__(pAdicCappedAbsoluteElement self, parent, x, absprec=infinity, relprec = infinity, empty=False):
         mpz_init(self.value)
-        pAdicGenericElement.__init__(self,parent)
+        pAdicBaseGenericElement.__init__(self,parent)
         if empty:
             return
-        if absprec > parent.precision_cap():
+        if absprec is infinity or absprec > parent.precision_cap():
             absprec = parent.precision_cap()
         elif not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
-        if not relprec is infinity and not PY_TYPE_CHECK(relprec, Integer):
+        if relprec is not infinity and not PY_TYPE_CHECK(relprec, Integer):
             relprec = Integer(relprec)
-        if isinstance(x, pAdicGenericElement):
+        if PY_TYPE_CHECK(x, pAdicGenericElement):
             if x.valuation() < 0:
                 raise ValueError, "element valuation cannot be negative."
             if parent.prime() != x.parent().prime():
@@ -76,15 +77,15 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
                         x.set_precision_absolute(absprec)
                     except PrecisionError:
                         pass
-        if isinstance(x, pAdicBaseGenericElement):
-            if relprec is infinity:
-                absprec = min(x.precision_absolute(), absprec)
-            else:
-                absprec = min(x.precision_absolute(), x._min_valuation() + relprec, parent.precision_cap())
-            self.set_from_Integers(x._integer_(), absprec)
+        cdef mpz_t modulus
+        cdef Integer tmp
+        cdef unsigned long k
+        if PY_TYPE_CHECK(x, pAdicBaseGenericElement):
+            self._set_from_Integer(x._integer_(), absprec, relprec)
             return
-
-        if isinstance(x, pari_gen):
+        elif isinstance(x, (int, long)):
+            x = Integer(x)
+        elif isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
                 absprec = min(Integer(x.padicprec(parent.prime())), absprec)
                 x = x.lift()
@@ -95,10 +96,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             else:
                 raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
 
-        cdef mpz_t modulus
-        cdef Integer tmp
-        cdef unsigned long k
-        if sage.rings.integer_mod.is_IntegerMod(x):
+        elif sage.rings.integer_mod.is_IntegerMod(x):
             mpz_init_set(modulus, (<Integer>x.modulus()).value)
             k = mpz_remove(modulus, modulus, self.prime_pow.prime.value)
             if mpz_cmp_ui(modulus, 1) == 0:
@@ -110,29 +108,13 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             else:
                 mpz_clear(modulus)
                 raise TypeError, "cannot coerce from the given integer mod ring (not a power of the same prime)"
-
-        #Now use the code below to convert from integer or rational, so don't make the next line elif
-
-        if isinstance(x, (int, long)):
-            x = Integer(x)
-        if isinstance(x, Integer):
-            val = x.valuation(parent.prime())
-        elif isinstance(x, Rational):
-            val = x.valuation(parent.prime())
-            if val < 0:
-                raise ValueError, "p divides the denominator"
-            # todo: make the following understandable and speed it up a bit by just using mpz functions
-            absprec = min(absprec, val + relprec)
-            self.set_precs(mpz_get_ui((<Integer>absprec).value))
-            tmp = PY_NEW(Integer)
-            mpz_set(tmp.value, self.prime_pow.pow_mpz_top()[0])
-            tmp = <Integer> x % tmp
-            self.set_value_from_mpz(tmp.value)
+        if PY_TYPE_CHECK(x, Integer):
+            self._set_from_Integer(x, absprec, relprec)
             return
-        if isinstance(x, Integer):
-            self.set_from_Integers(x, min(absprec, val + relprec))
-        else:
-            raise TypeError, "unable to create p-adic element from %s of type %s"%(x, type(x))
+        if PY_TYPE_CHECK(x, Rational):
+            self._set_from_Rational(x, absprec, relprec)
+            return
+        self._set_from_Rational(Rational(x), absprec, relprec)
 
     def __dealloc__(self):
         mpz_clear(self.value)
@@ -147,27 +129,131 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         return make_pAdicCappedAbsoluteElement, (self.parent(), self.lift(), self.absprec)
 
-    cdef void set_precs(pAdicCappedAbsoluteElement self, unsigned long absprec):
+    cdef bint _set_prec_abs(self, long absprec):
         """
         Sets self.absprec
         """
         self.absprec = absprec
 
-    cdef void set_value_from_mpz(pAdicCappedAbsoluteElement self, mpz_t value):
+    cdef bint _set_prec_both(self, long absprec, long relprec):
         """
-        Assuming that self.absprec is set, sets self.value
+        Sets self.absprec.
         """
-        if mpz_sgn(value) == -1 or mpz_cmp(value, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0]) >= 0:
-            mpz_mod(self.value, value, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
-        else:
-            mpz_set(self.value, value)
+        self.absprec = absprec
+        cdef long ordp
+        if relprec < absprec:
+            ordp = self.valuation_c()
+            if ordp + relprec < absprec:
+                self.absprec = ordp + relprec
 
-    cdef void set_from_Integers(pAdicCappedAbsoluteElement self, Integer value, Integer absprec):
+    cdef int _set_from_Integer(pAdicCappedAbsoluteElement self, Integer x, absprec, relprec) except -1:
         """
         Set self.value and self.absprec.
+        absprec must be positive.
         """
-        self.set_precs(mpz_get_ui((<Integer>absprec).value))
-        self.set_value_from_mpz(value.value)
+        if relprec is not infinity and mpz_sgn((<Integer>relprec).value) == -1:
+            raise ValueError, "relprec must be positive"
+        if absprec is not infinity and mpz_sgn((<Integer>absprec).value) == -1:
+            raise ValueError, "absprec must be positive"
+        if relprec is infinity or mpz_fits_ulong_p((<Integer>relprec).value) == 0:
+            if absprec is infinity or mpz_cmp_ui((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
+                return self._set_from_mpz_abs(x.value, self.prime_pow.prec_cap)
+            else:
+                return self._set_from_mpz_abs(x.value, mpz_get_si((<Integer>absprec).value))
+        else:
+            if absprec is infinity or mpz_cmp_ui((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
+                return self._set_from_mpz_both(x.value, self.prime_pow.prec_cap, mpz_get_si((<Integer>relprec).value))
+            else:
+                return self._set_from_mpz_both(x.value, mpz_get_si((<Integer>absprec).value), mpz_get_si((<Integer>relprec).value))
+
+    cdef int _set_from_Rational(pAdicCappedAbsoluteElement self, Rational x, absprec, relprec) except -1:
+        """
+        Set self.value and self.absprec.
+        absprec must be positive.
+        """
+        if relprec is not infinity and mpz_sgn((<Integer>relprec).value) == -1:
+            raise ValueError, "relprec must be positive"
+        if absprec is not infinity and mpz_sgn((<Integer>absprec).value) == -1:
+            raise ValueError, "absprec must be positive"
+        if relprec is infinity or mpz_fits_ulong_p((<Integer>relprec).value) == 0:
+            if absprec is infinity or mpz_cmp_ui((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
+                return self._set_from_mpq_abs(x.value, self.prime_pow.prec_cap)
+            else:
+                return self._set_from_mpq_abs(x.value, mpz_get_si((<Integer>absprec).value))
+        else:
+            if absprec is infinity or mpz_cmp_ui((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
+                return self._set_from_mpq_both(x.value, self.prime_pow.prec_cap, mpz_get_si((<Integer>relprec).value))
+            else:
+                return self._set_from_mpq_both(x.value, mpz_get_si((<Integer>absprec).value), mpz_get_si((<Integer>relprec).value))
+
+    cdef int _set_from_mpz_abs(self, mpz_t x, long absprec) except -1:
+        """
+        self.prime_pow must already be set.
+        """
+        self._set_prec_abs(absprec)
+        if mpz_sgn(x) == -1 or mpz_cmp(x, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0]) >= 0:
+            _sig_on
+            mpz_mod(self.value, x, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
+            _sig_off
+        else:
+            mpz_set(self.value, x)
+        return 0
+
+    cdef int _set_from_mpz_both(self, mpz_t x, long absprec, long relprec) except -1:
+        """
+        self.prime_pow must already be set
+        """
+        if mpz_sgn(x) == 0:
+            mpz_set(self.value, x)
+            return 0
+        mpz_set(self.value, x)
+        self._set_prec_both(absprec, relprec)
+        if mpz_sgn(x) == -1 or mpz_cmp(x, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0]) >= 0:
+            _sig_on
+            mpz_mod(self.value, x, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
+            _sig_off
+        return 0
+
+    cdef int _set_from_mpq_abs(self, mpq_t x, long absprec) except -1:
+        """
+        self.prime_pow must already be set.
+        """
+        self._set_prec_abs(absprec)
+        if mpz_divisible_p(mpq_denref(x), self.prime_pow.prime.value):
+            raise ValueError, "p divides denominator"
+        _sig_on
+        mpz_invert(self.value, mpq_denref(x), self.prime_pow.pow_mpz_t_tmp(absprec)[0])
+        mpz_mul(self.value, self.value, mpq_numref(x))
+        mpz_mod(self.value, self.value, self.prime_pow.pow_mpz_t_tmp(absprec)[0])
+        _sig_off
+        return 0
+
+    cdef int _set_from_mpq_both(self, mpq_t x, long absprec, long relprec) except -1:
+        """
+        self.prime_pow must already be set
+        """
+        cdef long k
+        cdef mpz_t tmp
+        if mpq_sgn(x) == 0:
+            mpz_set_ui(self.value, 0)
+            return 0
+        mpz_init(tmp)
+        _sig_on
+        k = mpz_remove(tmp, mpq_numref(x), self.prime_pow.prime.value)
+        _sig_off
+        mpz_clear(tmp)
+        self.absprec = k + relprec
+        if self.absprec > absprec:
+            self.absprec = absprec
+        return self._set_from_mpq_abs(x, self.absprec)
+
+    cdef int _set_to_mpz(pAdicCappedAbsoluteElement self, mpz_t dest) except -1:
+        mpz_set(dest, self.value)
+        return 0
+
+    cdef int _set_to_mpq(pAdicCappedAbsoluteElement self, mpq_t dest) except -1:
+        mpq_set_z(dest, self.value)
+        return 0
 
     cdef pAdicCappedAbsoluteElement _new_c(self):
         cdef pAdicCappedAbsoluteElement x
@@ -176,6 +262,9 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         x.prime_pow = self.prime_pow
         mpz_init(x.value)
         return x
+
+    cpdef bint _is_inexact_zero(self):
+        return mpz_sgn(self.value) == 0
 
     def __richcmp__(left, right, op):
         return (<Element>left)._richcmp(right, op)
@@ -225,10 +314,10 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         ans = self._new_c()
         if val > 0:
             if new * val >= preccap:
-                ans.set_from_Integers(Integer(0), preccap)
+                ans._set_from_Integer(Integer(0), preccap, infinity)
             else:
                 absprec = <Integer> min(self.precision_relative() + new * val, preccap)
-                ans.set_precs(mpz_get_ui(absprec.value))
+                ans._set_prec_abs(mpz_get_ui(absprec.value))
                 _sig_on
                 mpz_powm(ans.value, self.value, new.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec)[0])
                 _sig_off
@@ -287,9 +376,9 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
             if mpz_sgn((<Integer>shift).value) == 1:
-                ans.set_precs(self.prime_pow.prec_cap)
+                ans._set_prec_abs(self.prime_pow.prec_cap)
             else:
-                ans.set_precs(0)
+                ans._set_prec_abs(0)
             return ans
         return self._lshift_c(mpz_get_si((<Integer>shift).value))
 
@@ -303,17 +392,17 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         if shift >= prec_cap: # if we ever start caching valuation, this check should change
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
-            ans.set_precs(prec_cap)
+            ans._set_prec_abs(prec_cap)
             return ans
         elif shift > 0:
             ans = self._new_c()
             ansprec = shift + self.absprec
             if ansprec > prec_cap:
                 ansprec = prec_cap
-            ans.set_precs(ansprec)
+            ans._set_prec_abs(ansprec)
             mpz_mul(ans.value, self.value, self.prime_pow.pow_mpz_t_tmp(shift)[0])
-            if mpz_cmp(ans.value, ans.prime_pow.pow_mpz_top()[0]) >= 0:
-                mpz_mod(ans.value, ans.value, ans.prime_pow.pow_mpz_top()[0])
+            if mpz_cmp(ans.value, ans.prime_pow.pow_mpz_t_top()[0]) >= 0:
+                mpz_mod(ans.value, ans.value, ans.prime_pow.pow_mpz_t_top()[0])
             return ans
         else:
             return self
@@ -340,9 +429,9 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
             if mpz_sgn((<Integer>shift).value) == -1:
-                ans.set_precs(self.prime_pow.prec_cap)
+                ans._set_prec_abs(self.prime_pow.prec_cap)
             else:
-                ans.set_precs(0)
+                ans._set_prec_abs(0)
             return ans
         return self._rshift_c(mpz_get_si((<Integer>shift).value))
 
@@ -355,12 +444,12 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         if shift >= self.absprec:
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
-            ans.set_precs(0)
+            ans._set_prec_abs(0)
             return ans
         elif shift > 0:
             ans = self._new_c()
             ansprec = self.absprec - shift
-            ans.set_precs(ansprec)
+            ans._set_prec_abs(ansprec)
             mpz_fdiv_q(ans.value, self.value, self.prime_pow.pow_mpz_t_tmp(shift)[0])
             return ans
         else:
@@ -385,14 +474,14 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         prec2 = rval + self.absprec
         if prec1 < prec2:
             if prec_cap < prec1:
-                ans.set_precs(prec_cap)
+                ans._set_prec_abs(prec_cap)
             else:
-                ans.set_precs(prec1)
+                ans._set_prec_abs(prec1)
         else:
             if prec_cap < prec2:
-                ans.set_precs(prec_cap)
+                ans._set_prec_abs(prec_cap)
             else:
-                ans.set_precs(prec2)
+                ans._set_prec_abs(prec2)
         mpz_mul(ans.value, self.value, right.value)
         mpz_mod(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec)[0])
         return ans
@@ -443,7 +532,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         if mpz_fits_ulong_p(_absprec.value) == 0:
             if mpz_sgn((<Integer>absprec).value) == -1:
                 ans = self._new_c()
-                ans.set_precs(0)
+                ans._set_prec_abs(0)
                 mpz_set_ui(ans.value, 0)
                 return ans
             else:
@@ -453,12 +542,12 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             return self
         elif newprec <= 0:
             ans = self._new_c()
-            ans.set_precs(0)
+            ans._set_prec_abs(0)
             mpz_set_ui(ans.value, 0)
             return ans
         else:
             ans = self._new_c()
-            ans.set_precs(newprec)
+            ans._set_prec_abs(newprec)
             mpz_set(ans.value, self.value)
             if mpz_cmp(ans.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec)[0]) >= 0:
                 mpz_mod(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(ans.absprec)[0])
@@ -573,7 +662,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             absprec = Integer(absprec)
         if mpz_fits_ulong_p((<Integer>absprec).value) == 0:
             ans = self._new_c()
-            ans.set_precs(prec_cap)
+            ans._set_prec_abs(prec_cap)
             mpz_set(ans.value, self.value)
         else:
             dest_prec = mpz_get_ui((<Integer>absprec).value)
@@ -583,7 +672,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
                 return self
             else:
                 ans = self._new_c()
-                ans.set_precs(dest_prec)
+                ans._set_prec_abs(dest_prec)
                 mpz_set(ans.value, self.value)
         return ans
 
@@ -609,8 +698,12 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         if lift_mode == 'teichmuller':
             return self.teichmuller_list()
+        if lift_mode == 'simple':
+            return (<pAdicPrinter_class>self.parent()._printer).base_p_list(self.value, True)
+        elif lift_mode == 'smallest':
+            return (<pAdicPrinter_class>self.parent()._printer).base_p_list(self.value, False)
         else:
-            return self.base_p_list(self.value, lift_mode)
+            raise ValueError
 
     cdef object teichmuller_list(pAdicCappedAbsoluteElement self):
         # May eventually want to add a dict to store teichmuller lifts already seen, if p small enough
@@ -624,10 +717,10 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         while mpz_sgn(tmp) != 0:
             curpower -= 1
             list_elt = self._new_c()
-            list_elt.set_precs(curpower)
+            list_elt._set_prec_abs(curpower)
             mpz_mod(list_elt.value, tmp, self.prime_pow.prime.value)
             mpz_set(tmp2, self.prime_pow.pow_mpz_t_tmp(curpower)[0])
-            sage.rings.padics.padic_generic_element.teichmuller_set_c(list_elt.value, self.prime_pow.prime.value, tmp2)
+            self.teichmuller_set_c(list_elt.value, tmp2)
             mpz_sub(tmp, tmp, list_elt.value)
             mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
             mpz_mod(tmp, tmp, self.prime_pow.pow_mpz_t_tmp(curpower)[0])
@@ -636,21 +729,11 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         mpz_clear(tmp)
         return ans
 
-    def _teichmuller_set(self, Integer n, Integer absprec):
-        mpz_set(self.value, n.value)
-        cdef unsigned long aprec
-        if mpz_fits_ulong_p(absprec.value) == 0:
-            aprec = self.prime_pow.prec_cap
-        if mpz_sgn(absprec.value) != 1:
-            raise ValueError, "can only compute to positive precision"
-        aprec = mpz_get_ui(absprec.value)
-        if aprec > self.prime_pow.prec_cap:
-            aprec = self.prime_pow.prec_cap
-        self.set_precs(aprec)
-        cdef mpz_t tmp2
-        mpz_init_set(tmp2, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
-        sage.rings.padics.padic_generic_element.teichmuller_set_c(self.value, self.prime_pow.prime.value, tmp2)
-        mpz_clear(tmp2)
+    def _teichmuller_set(self):
+        cdef mpz_t tmp
+        mpz_init_set(tmp, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
+        self.teichmuller_set_c(self.value, tmp)
+        mpz_clear(tmp)
 
     def log_artin_hasse(self):
         raise NotImplementedError
@@ -836,14 +919,14 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         if mpz_sgn(self.value) == 0:
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
-            ans.set_precs(0)
+            ans._set_prec_abs(0)
             return ans
         elif mpz_divisible_p(self.value, self.prime_pow.prime.value):
             ans = self._new_c()
             _sig_on
             v = mpz_remove(ans.value, self.value, self.prime_pow.prime.value)
             _sig_off
-            ans.set_precs(self.absprec - v)
+            ans._set_prec_abs(self.absprec - v)
             return ans
         else:
             return self
@@ -862,11 +945,11 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         mpz_set_ui(ans.value, self.valuation_c())
         return ans
 
-    cdef unsigned long valuation_c(self):
+    cdef long valuation_c(self):
         if mpz_sgn(self.value) == 0:
             return self.absprec
         cdef mpz_t tmp
-        cdef unsigned long ans
+        cdef long ans
         mpz_init(tmp)
         ans = mpz_remove(tmp, self.value, self.prime_pow.prime.value)
         mpz_clear(tmp)
@@ -896,13 +979,13 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         if mpz_sgn(self.value) == 0:
             unit = self._new_c()
             mpz_set_ui(unit.value, 0)
-            unit.set_precs(0)
+            unit._set_prec_abs(0)
             mpz_set_ui(val.value, self.absprec)
             return (val, unit)
         elif mpz_divisible_p(self.value, self.prime_pow.prime.value):
             unit = self._new_c()
             v = mpz_remove(unit.value, self.value, self.prime_pow.prime.value)
-            unit.set_precs(self.absprec - v)
+            unit._set_prec_abs(self.absprec - v)
             mpz_set_ui(val.value, v)
             return (val, unit)
         else:

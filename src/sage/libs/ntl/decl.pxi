@@ -428,6 +428,16 @@ cdef extern from "ntl_wrap.h":
     void ZZ_pX_InvMod_newton(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F, ZZ_pContext_c cpn, ZZ_pContext_c cp)
     void ZZ_pX_eis_shift(ZZ_pX_c x, ZZ_pX_c a, long n, ZZ_pX_Multiplier_c* low_shifter, ZZ_pX_Multiplier_c* high_shifter, ZZ_pX_Modulus_c modulus, ZZ_c p, ZZ_pContext_c cupper, ZZ_pContext_c clower)
 
+    # The following are ZZ_pX functions written in ntl_wrap, used for padics.
+
+    void ZZ_pX_conv_modulus(ZZ_pX_c fout, ZZ_pX_c fin, ZZ_pContext_c c)
+    void ZZ_pX_min_val_coeff(long valuation, long index, ZZ_pX_c f, ZZ_c p)
+    long ZZ_pX_get_val_coeff(ZZ_pX_c f, ZZ_c p, long i)
+    void ZZ_pX_left_pshift(ZZ_pX_c x, ZZ_pX_c a, ZZ_c pn, ZZ_pContext_c c)
+    void ZZ_pX_right_pshift(ZZ_pX_c x, ZZ_pX_c a, ZZ_c pn, ZZ_pContext_c c)
+    void ZZ_pX_InvMod_newton(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F, ZZ_pContext_c cpn, ZZ_pContext_c cp)
+    void ZZ_pX_eis_shift(ZZ_pX_c x, ZZ_pX_c a, long n, ZZ_pX_Multiplier_c* low_shifter, ZZ_pX_Multiplier_c* high_shifter, ZZ_pX_Modulus_c modulus, ZZ_c p, ZZ_pContext_c cupper, ZZ_pContext_c clower)
+
     #### zz_p_c
     ctypedef struct zz_p_c "struct zz_p":
         void *rep

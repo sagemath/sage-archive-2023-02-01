@@ -14,10 +14,6 @@ from sage.rings.padics.pow_computer cimport PowComputer_class
 
 cdef class pAdicFixedModElement(pAdicBaseGenericElement):
     cdef mpz_t value
-    cdef int _set_from_mpz(pAdicFixedModElement self, mpz_t value) except -1
-    cdef int _set_from_mpq(pAdicFixedModElement self, mpq_t x) except -1
-    cdef int _set_to_mpz(pAdicFixedModElement self, mpz_t dest) except -1
-    cdef int _set_to_mpq(pAdicFixedModElement self, mpq_t dest) except -1
     cdef pAdicFixedModElement _new_c(self)
     cdef RingElement _invert_c_impl(self)
     cdef pAdicFixedModElement _lshift_c(pAdicFixedModElement self, long shift)

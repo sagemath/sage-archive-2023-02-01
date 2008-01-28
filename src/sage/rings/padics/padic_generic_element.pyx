@@ -25,6 +25,7 @@ import sys
 from __future__ import with_statement
 cimport sage.rings.padics.local_generic_element
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
+from sage.rings.rational cimport Rational
 #cimport sage.structure.element
 #from sage.structure.element cimport Element
 #cimport pow_computer
@@ -43,6 +44,8 @@ import sage.rings.rational_field
 #PariError = sage.libs.pari.gen.PariError
 #pari = sage.libs.pari.gen.pari
 #QQ = sage.rings.rational_field.QQ
+
+cdef long maxordp = (1 << (sizeof(long) * 8 - 2)) -1
 
 cdef class pAdicGenericElement(LocalGenericElement):
     def __richcmp__(left, right, int op):
@@ -83,25 +86,55 @@ cdef class pAdicGenericElement(LocalGenericElement):
             if x_ordp == infinity:
                 return 0 # since both are zero
             else:
-                p = left.parent().prime()
-                a = left.unit_part().lift()
-                b = right.unit_part().lift()
-                prec = min(left.precision_relative(), right.precision_relative())
-                ppow = p**prec
-                a %= ppow
-                b %= ppow
-                if a < b:
-                    return -1
-                elif a == b:
-                    return 0
-                else:
-                    return 1
+                return (<pAdicGenericElement>left.unit_part())._cmp_units(right.unit_part())
+
+    cdef int _cmp_units(left, pAdicGenericElement right) except -2:
+        raise NotImplementedError
 
     cdef int _set_from_Integer(self, Integer x, absprec, relprec) except -1:
+        raise NotImplementedError
+    cdef int _set_from_mpz(self, mpz_t x) except -1:
+        raise NotImplementedError
+    cdef int _set_from_mpz_rel(self, mpz_t x, long relprec) except -1:
+        raise NotImplementedError
+    cdef int _set_from_mpz_abs(self, mpz_t value, long absprec) except -1:
+        raise NotImplementedError
+    cdef int _set_from_mpz_both(self, mpz_t x, long absprec, long relprec) except -1:
         raise NotImplementedError
 
     cdef int _set_from_Rational(self, Rational x, absprec, relprec) except -1:
         raise NotImplementedError
+    cdef int _set_from_mpq(self, mpq_t x) except -1:
+        raise NotImplementedError
+    cdef int _set_from_mpq_rel(self, mpq_t x, long relprec) except -1:
+        raise NotImplementedError
+    cdef int _set_from_mpq_abs(self, mpq_t value, long absprec) except -1:
+        raise NotImplementedError
+    cdef int _set_from_mpq_both(self, mpq_t x, long absprec, long relprec) except -1:
+        raise NotImplementedError
+
+    cdef int _pshift_self(self, long shift) except -1:
+        raise NotImplementedError
+
+    cdef void _set_inexact_zero(self, long absprec):
+        raise NotImplementedError
+    cdef void _set_exact_zero(self):
+        raise TypeError, "this type of p-adic does not support exact zeros"
+    cpdef bint _is_exact_zero(self):
+        return False
+    cpdef bint _is_inexact_zero(self):
+        raise NotImplementedError
+    cpdef bint _is_zero_rep(self):
+        return self._is_inexact_zero() or self._is_exact_zero()
+
+    cdef bint _set_prec_abs(self, long absprec):
+        self._set_prec_both(absprec, (<PowComputer_class>self.parent().prime_pow).prec_cap)
+
+    cdef bint _set_prec_rel(self, long relprec):
+        self._set_prec_both((<PowComputer_class>self.parent().prime_pow).prec_cap, relprec)
+
+    cdef bint _set_prec_both(self, long absprec, long relprec):
+        return 0
 
     def _pari_(self):
         return pari(self._pari_init_())
@@ -154,7 +187,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         NOTES:
         The element returned is an element of the fraction field.
         """
-        return self.parent().fraction_field()(self, relprec = self.relprec).__invert__()
+        return self.parent().fraction_field()(self, relprec = self.precision_relative()).__invert__()
 
     def __mod__(self, right):
         if right == 0:
@@ -167,11 +200,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
     def _integer_(self):
         return Integer(self.lift())
 
-    def _is_exact_zero(self):
-        return False
+    #def _is_exact_zero(self):
+    #    return False
 
-    def _is_inexact_zero(self):
-        return self.is_zero() and not self._is_exact_zero()
+    #def _is_inexact_zero(self):
+    #    return self.is_zero() and not self._is_exact_zero()
 
     def str(self, mode=None):
         return self._repr(mode=mode)
@@ -546,13 +579,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
             # Note that it is the absolute precision that is respected by log
             return self.parent()(ans.lift()).add_bigoh(prec)
         elif self.is_unit():
-            z = self.unit_part()
-            return (z**Integer(p-1)).log() // Integer(p-1)
+            return (self**Integer(p-1)).log() // Integer(p-1)
         elif not branch is None and self.parent().__contains__(branch):
             branch = self.parent()(branch)
             return self.unit_part().log() + branch*self.valuation()
         else:
-            raise ValueError, "not a unit"
+            raise ValueError, "not a unit: specify a branch of the log map"
 
     def log_artin_hasse(self):
         raise NotImplementedError
@@ -625,12 +657,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if self.valuation() != 0:
             return infinity
         res = self.residue(1)
-        if prec is None:
-            if self == self.parent().teichmuller(res):
-                return res.multiplicative_order()
-            else:
-                return infinity
-        if self.is_equal_to(self.parent().teichmuller(res),prec): #should this be made more efficient?
+        if self.is_equal_to(self.parent().teichmuller(res.lift()),prec): #should this be made more efficient?
             return res.multiplicative_order()
         else:
             return infinity
@@ -652,9 +679,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return self
 
     def valuation(self):
-        cdef Integer ans = PY_NEW(Integer)
-        mpz_set_si(ans.value, self.valuation_c())
-        return ans
+        cdef Integer ans
+        cdef long val = self.valuation_c()
+        if val == maxordp:
+            return infinity
+        else:
+            ans = PY_NEW(Integer)
+            mpz_set_si(ans.value, self.valuation_c())
+            return ans
 
     cdef long valuation_c(self):
         raise NotImplementedError
@@ -692,7 +724,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R(1/2).ordp()
             0
         """
-        return self.valuation()
+        return self.valuation() / self.parent().ramification_index()
 
     def rational_reconstruction(self):
         r"""
@@ -848,50 +880,4 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def _val_unit(self):
         return self.valuation(), self.unit_part().lift()
-
-
-cdef public void teichmuller_set_c(mpz_t value, mpz_t p, mpz_t ppow):
-    r"""
-    Sets value to the integer between 0 and p^prec that is congruent to the Teichmuller lift of value to Z_p.
-
-    INPUT:
-
-    value -- An mpz_t currently holding an approximation to the
-             Teichmuller representative (this approximation can
-             be any integer).  It will be set to the actual
-             Teichmuller lift
-    p -- An mpz_t holding the value of the prime
-    ppow -- An mpz_t holding the value p^prec, where prec is the desired precision of the Teichmuller lift
-    """
-    cdef mpz_t u, xnew
-    if mpz_divisible_p(value, p) != 0:
-        mpz_set_ui(value, 0)
-        return
-    if mpz_sgn(value) < 0 or mpz_cmp(value, ppow) >= 0:
-        mpz_mod(value, value, ppow)
-    mpz_init(u)
-    mpz_init(xnew)
-    # u = 1 / Mod(1 - p, ppow)
-    mpz_sub(u, ppow, p)
-    mpz_add_ui(u, u, 1)
-    mpz_invert(u, u, ppow)
-    # Consider x as Mod(self.value, ppow)
-    # xnew = x + u*(x^p - x)
-    mpz_powm(xnew, value, p, ppow)
-    mpz_sub(xnew, xnew, value)
-    mpz_mul(xnew, xnew, u)
-    mpz_add(xnew, xnew, value)
-    mpz_mod(xnew, xnew, ppow)
-    # while x != xnew:
-    #     x = xnew
-    #     xnew = x + u*(x^p - x)
-    while mpz_cmp(value, xnew) != 0:
-        mpz_set(value, xnew)
-        mpz_powm(xnew, value, p, ppow)
-        mpz_sub(xnew, xnew, value)
-        mpz_mul(xnew, xnew, u)
-        mpz_add(xnew, xnew, value)
-        mpz_mod(xnew, xnew, ppow)
-    mpz_clear(u)
-    mpz_clear(xnew)
 

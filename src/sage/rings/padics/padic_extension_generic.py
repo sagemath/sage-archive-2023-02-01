@@ -1,20 +1,30 @@
 import padic_generic
 import padic_extension_generic_element
 import padic_base_generic
+from sage.structure.element import Element
 
 pAdicGeneric = padic_generic.pAdicGeneric
 pAdicBaseGeneric = padic_base_generic.pAdicBaseGeneric
-pAdicExtensionGenericElement = padic_extension_generic_element.pAdicExtensionGenericElement
+#pAdicExtensionGenericElement = padic_extension_generic_element.pAdicExtensionGenericElement
 
 class pAdicExtensionGeneric(pAdicGeneric):
     def __init__(self, poly, prec, print_mode, names, element_class):
         #type checking done in factory
         self._given_poly = poly
         R = poly.base_ring()
-        pAdicGeneric.__init__(self, R.prime(), prec, print_mode, names, element_class)
+        pAdicGeneric.__init__(self, R, R.prime(), prec, print_mode, names, element_class)
+
+    def __reduce__(self):
+        """
+        For pickling.
+
+        This function is provided because prime_pow needs to be set before _printer, so the standard unpickling fails.
+        """
+        from sage.rings.padics.factory import ExtensionFactory
+        return ExtensionFactory, (self.base_ring(), self._pre_poly, self.precision_cap(), self.print_mode(), None, self.variable_name())
 
     def __contains__(self, x):
-        if isinstance(x, pAdicExtensionGenericElement) and (x.parent() is self or x.parent().fraction_field() is self):
+        if isinstance(x, Element) and (x.parent() is self or x.parent().fraction_field() is self):
             return True
         if self.ground_ring().__contains__(x):
             return True
@@ -55,21 +65,21 @@ class pAdicExtensionGeneric(pAdicGeneric):
     def polynomial_ring(self):
         return self._given_poly.parent()
 
-    def teichmuller(self, x, prec = None):
-        if prec is None:
-            prec = self.precision_cap()
-        x = self(x, prec)
-        if x.residue(1) == 0:
-            return self(0)
-        q = self.residue_class_field().order()
-        u = 1 / self(1 - q, prec)
-        delta = u * (1 - x ** (q - 1))
-        xnew = x - x*delta*(1 - q * delta)
-        while x != xnew:
-            x = xnew
-            delta = u*(1-x**(q-1))
-            xnew = x - x*delta*(1-q*delta)
-        return x
+    #def teichmuller(self, x, prec = None):
+    #    if prec is None:
+    #        prec = self.precision_cap()
+    #    x = self(x, prec)
+    #    if x.valuation() > 0:
+    #        return self(0)
+    #    q = self.residue_class_field().order()
+    #    u = 1 / self(1 - q, prec)
+    #    delta = u * (1 - x ** (q - 1))
+    #    xnew = x - x*delta*(1 - q * delta)
+    #    while x != xnew:
+    #        x = xnew
+    #        delta = u*(1-x**(q-1))
+    #        xnew = x - x*delta*(1-q*delta)
+    #    return x
 
     def absolute_discriminant(self):
         r"""

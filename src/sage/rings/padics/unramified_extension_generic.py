@@ -2,7 +2,7 @@ import padic_ring_base_generic
 import sage.rings.finite_field
 import sage.rings.polynomial.polynomial_ring
 import sage.rings.polynomial.polynomial_quotient_ring as pqr
-import sage.rings.padics.unramified_extension_generic_element
+#import sage.rings.padics.unramified_extension_generic_element
 #import sage.rings.polynomial.polynomial_quotient_ring_element
 #import sage.rings.padics.padic_ring_generic
 #import sage.rings.polynomial.polynomial_element
@@ -13,20 +13,23 @@ import sage.rings.padics.unramified_extension_generic_element
 import sage.rings.padics.padic_generic
 import padic_extension_generic
 
-pAdicRingBaseGeneric = padic_ring_base_generic.pAdicRingBaseGeneric
+#pAdicRingBaseGeneric = padic_ring_base_generic.pAdicRingBaseGeneric
 pAdicExtensionGeneric = padic_extension_generic.pAdicExtensionGeneric
-UnramifiedExtensionGenericElement = sage.rings.padics.unramified_extension_generic_element.UnramifiedExtensionGenericElement
+#UnramifiedExtensionGenericElement = sage.rings.padics.unramified_extension_generic_element.UnramifiedExtensionGenericElement
 PolynomialRing = sage.rings.polynomial.polynomial_ring.PolynomialRing
 GF = sage.rings.finite_field.GF
-pAdicGeneric = sage.rings.padics.padic_generic.pAdicGeneric
+#pAdicGeneric = sage.rings.padics.padic_generic.pAdicGeneric
 
 class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
+    """
+    An unramified extension of Qp or Zp.
+    """
     def __init__(self, poly, prec, print_mode, names, element_class):
         base = poly.base_ring()
-        if base.is_field():
-            self._PQR = pqr.PolynomialQuotientRing_field(poly.parent(), poly, name = names)
-        else:
-            self._PQR = pqr.PolynomialQuotientRing_domain(poly.parent(), poly, name = names)
+        #if base.is_field():
+        #    self._PQR = pqr.PolynomialQuotientRing_field(poly.parent(), poly, name = names)
+        #else:
+        #    self._PQR = pqr.PolynomialQuotientRing_domain(poly.parent(), poly, name = names)
         pAdicExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
 
     def _repr_(self, do_latex = False):
@@ -108,8 +111,6 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         ##
         ## I wouldn't mind if someone wanted to check to make sure
         ## I've got the right formula for the 2-adic case.
-        ##
-        ## Also, this is wrong when the base is not Zp
         ##
         if (self.prime() == 2):
             return n.divides(2*(self.residue_class_field().order()-1))

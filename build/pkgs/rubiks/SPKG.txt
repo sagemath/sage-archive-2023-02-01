@@ -25,6 +25,9 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
 
 == Changelog ==
 
+=== rubiks-20070912.p1 (Michael Abshoff, Jan. 28h, 2008) ===
+ * fix Solaris build by setting CC to gcc and changing Dik's makefile to use $CC instead of cc
+
 === rubiks-20070912.p0 (Michael Abshoff) ===
  * clean up SPKG.txt
  * remove *DS*Store and various prebuild binaries from tree

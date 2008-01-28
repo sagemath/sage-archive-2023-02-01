@@ -2,6 +2,7 @@
 
 CFLAGS="$CFLAGS -O2 -g -Wa,-W -fno-exceptions -Wno-deprecated"
 export CFLAGS
+export CC=gcc
 
 cd src
 

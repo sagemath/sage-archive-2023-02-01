@@ -588,6 +588,25 @@ class MapleElement(ExpectElement):
         M = self.parent()
         return float(maple.eval('evalf(%s)'%self.name()))
 
+    def __hash__(self):
+        """
+        Returns a 64-bit integer representing the hash of self.  Since Python uses
+        32-bit hashes, it will automatically convert the result of this to
+        a 32-bit hash.
+        EXAMPLES:
+            sage: m = maple('x^2+y^2')
+            sage: m.__hash__()
+            188724254834261060184983038723355865733L
+            sage: hash(m)
+            5035731711831192733
+            sage: m = maple('x^2+y^3')
+            sage: m.__hash__()
+            264835029579301191531663246434344770556L
+            sage: hash(m)
+            -2187277978252104690
+        """
+        return int(maple.eval('StringTools:-Hash(convert(%s, string));'%self.name())[1:-1],16)
+
     def __cmp__(self, other):
         """
         Compare equality between self and other, using maple.
@@ -653,7 +672,7 @@ class MapleElement(ExpectElement):
             return 1
         # everything is supposed to be comparable in Python, so we define
         # the comparison thus when no comparable in interfaced system.
-        if (hash(str(self)) < hash(str(other))):
+        if (hash(self) < hash(other)):
             return -1
         else:
             return 1

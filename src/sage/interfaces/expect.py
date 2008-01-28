@@ -1017,6 +1017,13 @@ class ExpectElement(RingElement):
     def _sage_doc_(self):
         return str(self)
 
+    def __hash__(self):
+        """
+        Returns the hash of self.  This is a defualt implementation
+        of hash which just takes the hash of the string of self.
+        """
+        return hash(str(self))
+
     def __cmp__(self, other):
         P = self.parent()
         if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
@@ -1028,7 +1035,7 @@ class ExpectElement(RingElement):
             return 0
         # everything is supposed to be comparable in Python, so we define
         # the comparison thus when no comparable in interfaced system.
-        if (hash(str(self)) < hash(str(other))):
+        if (hash(self) < hash(other)):
             return -1
         else:
             return 1

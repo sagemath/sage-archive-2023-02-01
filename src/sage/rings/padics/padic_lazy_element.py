@@ -329,8 +329,8 @@ class pAdicLazyElement(pAdicBaseGenericElement):
 class pAdicLazy_integer(pAdicLazyElement):
     def __init__(self, parent, x, absprec=infinity, relprec=infinity): #cannot call with input zero
         """
-        sage: a = ZpL(5)(-3); loads(dumps(a)) == a
-        True
+        #sage: a = ZpL(5)(-3); loads(dumps(a)) == a
+        #True
         """
         pAdicLazyElement.__init__(self, parent)
         self._set_base_valuation(x.valuation(parent.prime()))

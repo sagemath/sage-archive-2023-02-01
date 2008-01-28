@@ -340,7 +340,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         NOTES:
             Should this return 0 as well?
         """
-        return [self.teichmuller(i) for i in self.residue_class_field() if i != 0]
+        return [self.teichmuller(i.lift()) for i in self.residue_class_field() if i != 0]
 
     def absolute_discriminant(self):
         """

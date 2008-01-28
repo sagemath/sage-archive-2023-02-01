@@ -849,38 +849,6 @@ cdef class ntl_ZZ_pX:
         return ans
 
 
-    def convert_to_modulus(self, ntl_ZZ_pContext_class c):
-        """
-        Returns a new ntl_ZZ_pX which is the same as self, but considered modulo a different p.
-
-        In order for this to make mathematical sense, c.p should divide self.c.p
-        (in which case self is reduced modulo c.p) or self.c.p should divide c.p
-        (in which case self is lifted to something modulo c.p congruent to self modulo self.c.p)
-
-        EXAMPLES:
-        sage: a = ntl.ZZ_pX([412,181,991],5^4)
-        sage: a
-        [412 181 366]
-        sage: b = ntl.ZZ_pX([198,333,91],5^4)
-        sage: ap = a.convert_to_modulus(ntl.ZZ_pContext(5^2))
-        sage: bp = b.convert_to_modulus(ntl.ZZ_pContext(5^2))
-        sage: ap
-        [12 6 16]
-        sage: bp
-        [23 8 16]
-        sage: ap*bp
-        [1 9 8 24 6]
-        sage: (a*b).convert_to_modulus(ntl.ZZ_pContext(5^2))
-        [1 9 8 24 6]
-        """
-        c.restore_c()
-        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
-        ZZ_pX_construct(&ans.x)
-        ZZ_pX_conv_modulus(ans.x, self.x, c.x)
-        ans.c = c
-        return ans
-
-
     def derivative(self):
         """
         Return the derivative of this polynomial.

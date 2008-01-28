@@ -168,7 +168,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         polylist = self._poly.list()
         polylen = len(polylist)
         self._list = [self.base_ring()(polylist[i], absprec = self._relprecs[i]) << self._valbase for i in range(polylen)] \
-                     + [self.base_ring()(0, absprec = self._relprecs[i] + self._valaddeds[i] + self._valbase) for i in range(polylen, len(self._relprecs))]
+                     + [self.base_ring()(0, absprec = self._relprecs[i] + self._valbase) for i in range(polylen, len(self._relprecs))]
         while self._list[-1]._is_exact_zero():
             self._list.pop()
 
@@ -176,7 +176,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         self._valaddeds = []
         for i in range(self._poly.degree() + 1):
             tmp = self._poly.list()[i].valuation(self.parent().base_ring().prime())
-            if tmp is infinity:
+            if tmp is infinity or tmp > self._relprecs[i]:
                 self._valaddeds.append(self._relprecs[i])
             else:
                 self._valaddeds.append(tmp)
@@ -599,9 +599,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         sage: b.list()
         [13 + O(13^5), 1 + O(13^2), O(13^3)]
         sage: b = a.rshift_coeffs(2); b
-        (O(13^2))*t^2 + (O(13^1))*t + (1 + O(13^4))
+        (O(13^2))*t^2 + (O(13))*t + (1 + O(13^4))
         sage: b.list()
-        [1 + O(13^4), O(13^1), O(13^2)]
+        [1 + O(13^4), O(13), O(13^2)]
         """
         if shift < 0:
             return self.lshift_coeffs(-shift, no_list) # We can't just absorb this into the next if statement because we allow rshift to preserve _normalized

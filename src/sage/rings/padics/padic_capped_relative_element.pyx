@@ -20,6 +20,7 @@ include "../../libs/ntl/decl.pxi"
 include "../../ext/gmp.pxi"
 include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
+include "../../libs/pari/decl.pxi"
 
 cdef long maxint
 from sys import maxint
@@ -46,13 +47,12 @@ from sage.rings.padics.precision_error import PrecisionError
 
 from sage.rings.padics.padic_lazy_element import pAdicLazyElement
 
-## PariError = sage.libs.pari.gen.PariError
 cdef PariInstance P = sage.libs.pari.all.pari
+
+cdef long maxordp = (1 << (sizeof(long) * 8 - 2)) -1
 
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, GEN g )
-
-cdef long maxordp = (1 << (sizeof(long) * 8 - 2)) -1
 
 cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     def __init__(pAdicCappedRelativeElement self, parent, x, absprec=infinity, relprec=infinity, empty = False):
@@ -120,33 +120,15 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: R(R(5))
             5 + O(5^11)
 
-        Construct from Pari objects:
-            sage: R = Zp(5)
-            sage: x = pari(123123) ; R(x)
-            3 + 4*5 + 4*5^2 + 4*5^3 + 5^4 + 4*5^5 + 2*5^6 + 5^7 + O(5^20)
-            sage: R(pari(R(5252)))
-            2 + 2*5^3 + 3*5^4 + 5^5 + O(5^20)
-            sage: R = Zp(5,prec=5)
-            sage: R(pari(-1))
-            4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5)
-            sage: pari(R(-1))
-            4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5)
-            sage: pari(R(0))
-            0
-            sage: R(pari(R(0) + O(5^5)))
-            O(5^5)
-
         # todo: doctests for converting from other types of p-adic rings
 
         """
         #print "x = %s, type = %s, absprec = %s, relprec = %s"%(x, type(x),absprec, relprec)
         cdef RingElement ordp
-        cdef mpz_t modulus
+        cdef mpz_t modulus, tmp2
+        cdef GEN pari_tmp
         cdef Integer tmp
         cdef unsigned long k
-        cdef GEN pari_tmp
-        cdef mpz_t tmp2
-
         mpz_init(self.unit)
         pAdicBaseGenericElement.__init__(self, parent)
         if empty:
@@ -236,7 +218,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
             pari_tmp = (<pari_gen>x).g
 
-##            if x.type() == "t_PADIC":
+            #if x.type() == "t_PADIC":
             if typ(pari_tmp) == t_PADIC:
                 self.relprec = precp(pari_tmp)
                 if self.relprec > relprec:
@@ -247,21 +229,30 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 if mpz_sgn(self.unit) == -1 or mpz_cmp(self.unit, self.prime_pow.pow_mpz_t_tmp(self.relprec)[0]) >= 0:
                     mpz_mod(self.unit, self.unit, self.prime_pow.pow_mpz_t_tmp(self.relprec)[0])
                 if mpz_sgn(self.unit) == 0:
-                    self.set_inexact_zero(self.ordp + self.relprec)
+                    self._set_inexact_zero(self.ordp + self.relprec)
 
             elif typ(pari_tmp) == t_INT:
                 mpz_init(tmp2)
                 t_INT_to_ZZ(tmp2, pari_tmp)
-                ### FIX ME
-                self._set_from_mpz_rel(tmp2, absprec, relprec)
+                ### This code is duplicated from _set_from_Integer
+                if absprec is infinity:
+                    if relprec is infinity or mpz_fits_slong_p((<Integer>relprec).value) == 0:
+                        self._set_from_mpz_rel(tmp2, self.prime_pow.prec_cap)
+                    else:
+                        self._set_from_mpz_rel(tmp2, mpz_get_si((<Integer>relprec).value))
+                else:
+                    if mpz_fits_slong_p((<Integer>absprec).value) == 0:
+                        raise ValueError, "absprec must fit in a long"
+                    if relprec is infinity or mpz_fits_slong_p((<Integer>relprec).value) == 0:
+                        self._set_from_mpz_both(tmp2, mpz_get_si((<Integer>absprec).value), self.prime_pow.prec_cap)
+                    else:
+                        self._set_from_mpz_both(tmp2, mpz_get_si((<Integer>absprec).value), mpz_get_si((<Integer>relprec).value))
 
             elif x.type() == "t_FRAC":
                 self._set_from_Rational(Rational(x), absprec, relprec)
 
             else:
                 raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
-
-            return
 
         ##
         ## If this case gets included, it should be rewritten to
@@ -289,13 +280,13 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 return self._set_from_mpz_rel(x.value, self.prime_pow.prec_cap)
             else:
                 return self._set_from_mpz_rel(x.value, mpz_get_si((<Integer>relprec).value))
+        else:
+            if mpz_fits_slong_p((<Integer>absprec).value) == 0:
+                raise ValueError, "absprec must fit in a long"
+            if relprec is infinity or mpz_fits_slong_p((<Integer>relprec).value) == 0:
+                return self._set_from_mpz_both(x.value, mpz_get_si((<Integer>absprec).value), self.prime_pow.prec_cap)
             else:
-                if mpz_fits_slong_p((<Integer>absprec).value) == 0:
-                    raise ValueError, "absprec must fit in a long"
-                if relprec is infinity or mpz_fits_slong_p((<Integer>relprec).value) == 0:
-                    return self._set_from_mpz_both(x.value, mpz_get_si((<Integer>absprec).value), self.prime_pow.prec_cap)
-                else:
-                    return self._set_from_mpz_both(x.value, mpz_get_si((<Integer>absprec).value), mpz_get_si((<Integer>relprec).value))
+                return self._set_from_mpz_both(x.value, mpz_get_si((<Integer>absprec).value), mpz_get_si((<Integer>relprec).value))
 
     cdef int _set_from_Rational(pAdicCappedRelativeElement self,
                                 Rational x, absprec, relprec) except -1:
@@ -309,13 +300,13 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 return self._set_from_mpq_rel(x.value, self.prime_pow.prec_cap)
             else:
                 return self._set_from_mpq_rel(x.value, mpz_get_si((<Integer>relprec).value))
+        else:
+            if mpz_fits_slong_p((<Integer>absprec).value) == 0:
+                raise ValueError, "absprec must fit in a long"
+            if relprec is infinity or mpz_fits_slong_p((<Integer>relprec).value) == 0:
+                return self._set_from_mpq_both(x.value, mpz_get_si((<Integer>absprec).value), self.prime_pow.prec_cap)
             else:
-                if mpz_fits_slong_p((<Integer>absprec).value) == 0:
-                    raise ValueError, "absprec must fit in a long"
-                if relprec is infinity or mpz_fits_slong_p((<Integer>relprec).value) == 0:
-                    return self._set_from_mpq_both(x.value, mpz_get_si((<Integer>absprec).value), self.prime_pow.prec_cap)
-                else:
-                    return self._set_from_mpq_both(x.value, mpz_get_si((<Integer>absprec).value), mpz_get_si((<Integer>relprec).value))
+                return self._set_from_mpq_both(x.value, mpz_get_si((<Integer>absprec).value), mpz_get_si((<Integer>relprec).value))
 
     cdef int _set_from_mpz_rel(pAdicCappedRelativeElement self, mpz_t value, long relprec) except -1:
         """
@@ -700,7 +691,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             raise NotImplementedError
         else:
             raise TypeError, "exponent must be an integer, rational or base p-adic with the same prime"
-
+        # if right < 0, we return (~self)^(-right)
         # Now we compute the increased relprec due to the exponent having positive p-adic valuation
         if exp_val > 0:
             mpz_init_set_si(tmp, self.relprec)
@@ -727,7 +718,6 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 ans = self._new_c()
                 ans._set_inexact_zero(0)
                 return ans
-        # if right < 0, we return (~self)^(-right)
         if right < 0:
             base = ~self
             right = -right
@@ -1336,7 +1326,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         else:
             ans = self._new_c()
             mpz_set(ans.unit, self.unit)
-            ans._set_precs(relprec)
+            ans._set_prec(relprec)
             ans.ordp = self.ordp
             ans._normalized = self._normalized
             return ans
@@ -1344,7 +1334,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef pari_gen _to_gen(pAdicCappedRelativeElement self):
         return P.new_gen_from_padic(self.ordp, self.relprec,
                                     self.prime_pow.prime.value,
-                                    self.prime_pow.pow_mpz_t(self.relprec)[0],
+                                    self.prime_pow.pow_mpz_t_tmp(self.relprec)[0],
                                     self.unit)
 
     def _pari_(self):
@@ -1353,7 +1343,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         else:
             return P.new_gen_from_padic(self.ordp, self.relprec,
                                         self.prime_pow.prime.value,
-                                        self.prime_pow.pow_mpz_t(self.relprec)[0],
+                                        self.prime_pow.pow_mpz_t_tmp(self.relprec)[0],
                                         self.unit)
 
     def list(self, lift_mode = 'simple'):

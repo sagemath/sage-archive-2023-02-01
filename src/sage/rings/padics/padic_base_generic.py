@@ -1,5 +1,6 @@
 import padic_generic
 import sage.rings.infinity
+from sage.rings.padics.pow_computer import PowComputer
 
 infinity = sage.rings.infinity.infinity
 
@@ -20,15 +21,15 @@ class pAdicBaseGeneric(padic_generic.pAdicGeneric):
                 return Qp, (self.prime(), self.precision_cap(), 'capped-rel', self.print_mode(), 40, self.variable_name())
             else:
                 return Qp, (self.prime(), self.precision_cap(), 'lazy', self.print_mode(), self.halting_parameter(), self.variable_name())
+        else:
+            if self.is_capped_relative():
+                return Zp, (self.prime(), self.precision_cap(), 'capped-rel', self.print_mode(), 40, self.variable_name())
+            elif self.is_capped_absolute():
+                return Zp, (self.prime(), self.precision_cap(), 'capped-abs', self.print_mode(), 40, self.variable_name())
+            elif self.is_fixed_mod():
+                return Zp, (self.prime(), self.precision_cap(), 'fixed-mod', self.print_mode(), 40, self.variable_name())
             else:
-                if self.is_capped_relative():
-                    return Zp, (self.prime(), self.precision_cap(), 'capped-rel', self.print_mode(), 40, self.variable_name())
-                elif self.is_capped_absolute():
-                    return Zp, (self.prime(), self.precision_cap(), 'capped-abs', self.print_mode(), 40, self.variable_name())
-                elif self.is_fixed_mod():
-                    return Zp, (self.prime(), self.precision_cap(), 'fixed-mod', self.print_mode(), 40, self.variable_name())
-                else:
-                    return Zp, (self.prime(), self.precision_cap(), 'lazy', self.print_mode(), self.halting_parameter(), self.variable_name())
+                return Zp, (self.prime(), self.precision_cap(), 'lazy', self.print_mode(), self.halting_parameter(), self.variable_name())
 
     def is_isomorphic(self, ring):
         r"""

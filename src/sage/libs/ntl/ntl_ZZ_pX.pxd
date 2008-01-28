@@ -13,6 +13,3 @@ cdef class ntl_ZZ_pX:
 cdef class ntl_ZZ_pX_Modulus:
     cdef ZZ_pX_Modulus_c x
     cdef ntl_ZZ_pX poly
-cdef class ntl_ZZ_pX_Modulus:
-    cdef ZZ_pX_Modulus_c x
-    cdef ntl_ZZ_pX poly

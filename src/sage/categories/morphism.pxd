@@ -18,9 +18,6 @@ cdef class Morphism(Element):
 cdef class Section(Morphism):
     cdef Morphism _morphism
 
-cdef class Section(Morphism):
-    cdef Morphism _morphism
-
 cdef class FormalCoercionMorphism(Morphism):
     cdef Element _call_c(self, x)
 

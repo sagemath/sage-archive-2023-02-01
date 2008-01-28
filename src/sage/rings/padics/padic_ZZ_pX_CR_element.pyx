@@ -2501,9 +2501,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 ##print printer_ZZ_pX
                 ##print "c"
                 if PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_small_Eis):
-                    ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_small_Eis>self.prime_pow).high_shifter[0].val(), self.prime_pow.get_context_capdiv(ans_rprec).x)
+                    ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_small_Eis>self.prime_pow).high_shifter[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
                 elif PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_big_Eis):
-                    ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter[0].val(), self.prime_pow.get_context_capdiv(ans_rprec).x)
+                    ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
                 else:
                     raise RuntimeError, "unrecognized PowComputer type"
                 ZZ_pX_InvMod_newton_ram(to_mul, to_mul, self.prime_pow.get_modulus_capdiv(ans_rprec)[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
@@ -2525,7 +2525,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             p_shift = ZZ_remove(leftover, (<ntl_ZZ>m).x, p)
             ZZ_mul_long(ZZ_tmp2, (<ntl_ZZ>m).x, val)
             ZZ_conv_from_long(ZZ_tmp, self.prime_pow.e)
-            ZZ_mul_long(ZZ_tmp, p_shift)
+            ZZ_mul_long(ZZ_tmp, ZZ_tmp, p_shift)
             ZZ_sub(ZZ_tmp, ZZ_tmp2, ZZ_tmp)
             ZZ_conv_to_long(to_shift, ZZ_tmp)
             to_shift = to_shift - ans_ordp
@@ -2541,9 +2541,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 #self.prime_pow.eis_shift(&to_mul, &to_mul, p_shift * self.prime_pow.e, self.prime_pow.ram_prec_cap)
                 ##print "g"
                 if PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_small_Eis):
-                    ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_small_Eis>self.prime_pow).high_shifter[0].val(), self.prime_pow.get_context_capdiv(ans_rprec).x)
+                    ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_small_Eis>self.prime_pow).high_shifter[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
                 elif PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_big_Eis):
-                    ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter[0].val(), self.prime_pow.get_context_capdiv(ans_rprec).x)
+                    ZZ_pX_conv_modulus(to_mul, (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
                 else:
                     raise RuntimeError, "unrecognized PowComputer type"
                 ZZ_pX_InvMod_newton_ram(to_mul, to_mul, self.prime_pow.get_modulus_capdiv(ans_rprec)[0], self.prime_pow.get_context_capdiv(ans_rprec).x)
@@ -2554,7 +2554,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             ##print "m = %s"%m
             ##printer_ZZ_pX.x = to_add
             ##print printer_ZZ_pX
-            ZZ_pX_add(ans.value, ans.value, to_add)
+            ZZ_pX_add(ans.unit, ans.unit, to_add)
             ZZ_sub(gap, (<ntl_ZZ>m).x, ZZ_top)
             ZZ_top = (<ntl_ZZ>m).x
             ZZ_pX_PowerMod_pre(to_mul, x, gap, self.prime_pow.get_modulus_capdiv(ans_rprec)[0])

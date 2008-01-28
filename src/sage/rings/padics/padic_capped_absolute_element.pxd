@@ -1,16 +1,10 @@
 include "../../ext/cdefs.pxi"
 
-cimport sage.rings.padics.padic_base_generic_element
 from sage.rings.padics.padic_base_generic_element cimport pAdicBaseGenericElement
-
-cimport sage.structure.element
 from sage.structure.element cimport CommutativeRingElement, RingElement, ModuleElement, Element
-
-cimport sage.rings.padics.pow_computer
 from sage.rings.padics.pow_computer cimport PowComputer_class
-
-cimport sage.rings.integer
 from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 
 cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     cdef mpz_t value
@@ -24,5 +18,5 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     cdef Integer lift_c(pAdicCappedAbsoluteElement self)
     cdef object teichmuller_list(pAdicCappedAbsoluteElement self)
     cdef pAdicCappedAbsoluteElement unit_part_c(pAdicCappedAbsoluteElement self)
-    cdef unsigned long valuation_c(self)
+    cdef long valuation_c(self)
     cdef val_unit_c(self)

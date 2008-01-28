@@ -97,7 +97,7 @@ cdef class ntl_ZZ_pE:
         if PY_TYPE_CHECK( modulus, ntl_ZZ_pEContext_class ):
             self.c = <ntl_ZZ_pEContext_class>modulus
         elif PY_TYPE_CHECK( modulus, ntl_ZZ_pX ):
-            modulus.modulus_context().restore()
+            modulus.get_modulus_context().restore()
             self.c = <ntl_ZZ_pEContext_class>ntl_ZZ_pEContext(<ntl_ZZ_pX>modulus)
         elif PY_TYPE_CHECK(v, ntl_ZZ_pE):
             self.c = (<ntl_ZZ_pE>v).c
@@ -182,9 +182,9 @@ cdef class ntl_ZZ_pE:
         sage: loads(dumps(a)) == a
         True
         """
-        return make_ZZ_pE, (self.get_as_ZZ_pX(), self.modulus_context())
+        return make_ZZ_pE, (self.get_as_ZZ_pX(), self.get_modulus_context())
 
-    def modulus_context(self):
+    def get_modulus_context(self):
         return self.c
 
     def __repr__(self):

@@ -131,10 +131,6 @@ cdef class Morphism(Element):
             return self._call_c_impl(x)
 
     cdef Element _call_c_impl(self, Element x):
-        print type(self), self
-        print <long>self._call_c
-        print <long>Morphism._call_c
-        print <long>FormalCoercionMorphism._call_c
         raise NotImplementedError
 
     def pushforward(self, I):

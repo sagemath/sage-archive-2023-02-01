@@ -7,7 +7,6 @@ cdef struct fast_double_op:
     char type
     double_op_params params
 
-
 cdef class FastDoubleFunc:
     cdef readonly int max_height
     cdef readonly int nargs

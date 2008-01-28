@@ -187,17 +187,6 @@ EXTERN void ZZ_pX_min_val_coeff(long &valuation, long &index, const struct ZZ_pX
 EXTERN long ZZ_pX_get_val_coeff(const struct ZZ_pX &f, const struct ZZ &p, long i);
 EXTERN void ZZ_pX_left_pshift(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ &pn, const struct ZZ_pContext &c);
 EXTERN void ZZ_pX_right_pshift(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ &pn, const struct ZZ_pContext &c);
-EXTERN void ZZ_pX_InvMod_newton(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ_pXModulus &F, const struct ZZ_pContext &cpn, const struct ZZ_pContext &cp);
-EXTERN void ZZ_pX_eis_shift(struct ZZ_pX &x, const struct ZZ_pX &a, long n, const struct ZZ_pXMultiplier* low_shifter, const struct ZZ_pXMultiplier* high_shifter, const struct ZZ_pXModulus &modulus, const struct ZZ &p, const struct ZZ_pContext &cupper, const struct ZZ_pContext &clower);
-#endif
-
-#ifdef __cplusplus
-EXTERN void ZZ_pX_conv_modulus(struct ZZ_pX &fout, const struct ZZ_pX &fin, const struct ZZ_pContext &mod);
-EXTERN void ZZ_pEX_conv_modulus(struct ZZ_pEX &fout, const struct ZZ_pEX &fin, const struct ZZ_pContext &mod);
-EXTERN void ZZ_pX_min_val_coeff(long &valuation, long &index, const struct ZZ_pX &f, const struct ZZ &p);
-EXTERN long ZZ_pX_get_val_coeff(const struct ZZ_pX &f, const struct ZZ &p, long i);
-EXTERN void ZZ_pX_left_pshift(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ &pn, const struct ZZ_pContext &c);
-EXTERN void ZZ_pX_right_pshift(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ &pn, const struct ZZ_pContext &c);
 EXTERN void ZZ_pX_InvMod_newton_unram(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ_pXModulus &F, const struct ZZ_pContext &cpn, const struct ZZ_pContext &cp);
 EXTERN void ZZ_pX_InvMod_newton_ram(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ_pXModulus &F, const struct ZZ_pContext &cpn);
 

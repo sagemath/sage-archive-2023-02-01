@@ -19,23 +19,23 @@ from padic_extension_leaves import *
 
 ext_table = {}
 ext_table['e', pAdicFieldCappedRelative] = EisensteinExtensionFieldCappedRelative
-ext_table['e', pAdicFieldLazy] = EisensteinExtensionFieldLazy
+#ext_table['e', pAdicFieldLazy] = EisensteinExtensionFieldLazy
 ext_table['e', pAdicRingCappedAbsolute] = EisensteinExtensionRingCappedAbsolute
 ext_table['e', pAdicRingCappedRelative] = EisensteinExtensionRingCappedRelative
 ext_table['e', pAdicRingFixedMod] = EisensteinExtensionRingFixedMod
-ext_table['e', pAdicRingLazy] = EisensteinExtensionRingLazy
-ext_table['p', pAdicFieldCappedRelative] = pAdicGeneralExtensionFieldCappedRelative
-ext_table['p', pAdicFieldLazy] = pAdicGeneralExtensionFieldLazy
-ext_table['p', pAdicRingCappedAbsolute] = pAdicGeneralExtensionRingCappedAbsolute
-ext_table['p', pAdicRingCappedRelative] = pAdicGeneralExtensionRingCappedRelative
-ext_table['p', pAdicRingFixedMod] = pAdicGeneralExtensionRingFixedMod
-ext_table['p', pAdicRingLazy] = pAdicGeneralExtensionRingLazy
+#ext_table['e', pAdicRingLazy] = EisensteinExtensionRingLazy
+#ext_table['p', pAdicFieldCappedRelative] = pAdicGeneralExtensionFieldCappedRelative
+#ext_table['p', pAdicFieldLazy] = pAdicGeneralExtensionFieldLazy
+#ext_table['p', pAdicRingCappedAbsolute] = pAdicGeneralExtensionRingCappedAbsolute
+#ext_table['p', pAdicRingCappedRelative] = pAdicGeneralExtensionRingCappedRelative
+#ext_table['p', pAdicRingFixedMod] = pAdicGeneralExtensionRingFixedMod
+#ext_table['p', pAdicRingLazy] = pAdicGeneralExtensionRingLazy
 ext_table['u', pAdicFieldCappedRelative] = UnramifiedExtensionFieldCappedRelative
-ext_table['u', pAdicFieldLazy] = UnramifiedExtensionFieldLazy
+#ext_table['u', pAdicFieldLazy] = UnramifiedExtensionFieldLazy
 ext_table['u', pAdicRingCappedAbsolute] = UnramifiedExtensionRingCappedAbsolute
 ext_table['u', pAdicRingCappedRelative] = UnramifiedExtensionRingCappedRelative
 ext_table['u', pAdicRingFixedMod] = UnramifiedExtensionRingFixedMod
-ext_table['u', pAdicRingLazy] = UnramifiedExtensionRingLazy
+#ext_table['u', pAdicRingLazy] = UnramifiedExtensionRingLazy
 
 import weakref
 
@@ -49,7 +49,7 @@ import weakref
 #######################################################################################################
 
 padic_field_cache = {}
-def Qp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, names = None, check = True):
+def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, names = None, check = True):
     """
     A creation function for p-adic fields.
 
@@ -64,20 +64,25 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, name
     EXAMPLES:
         sage: K = Qp(5); a = K(4); a
         4 + O(5^20)
-        sage: L = Qp(5, 10, type = 'lazy'); b = L(2); b
-        2 + O(5^10)
-        sage: a + b
-        1 + 5 + O(5^20)
+
+        #sage: L = Qp(5, 10, type = 'lazy'); b = L(2); b
+        #2 + O(5^10)
+        #sage: a + b
+        #1 + 5 + O(5^20)
 
     NOTES:
-         values of type:
-         'capped-rel' -> pAdicFieldCappedRelative.  This is the default, considers precision as the precision of the unit part.  Tracks precision of individual elements, but bounds the precision of any element with a precision cap.
+        values of type:
+        'capped-rel' -> pAdicFieldCappedRelative.  This is the default, considers precision as the precision of the unit part.  Tracks precision of individual elements, but bounds the precision of any element with a precision cap.
         'lazy' -> pAdicFieldLazy.  Uses lazy elements so that additional precision can be requested during a computation.  There is some amount of performance penalty because of this ability.
 
         values of print_mode:
+        Leaving print_mode as None uses the global default print mode.  Other allowable values are:
         'val-unit' -- elements are displayed as p^k*u
-        'integer' -- elements are displayed as an integer
+        'terse' -- elements are displayed as an integer in base 10 or the quotient of an integer by a power of p (still in base 10)
         'series' -- elements are displayed as series in p
+        'digits' -- elements are displayed as a string of base p digits
+        'bars' -- elements are displayed as a string of base p digits with separators
+        For more details and more control, see sage.rings.padics.padic_printing or look at padic_printing.<tab> from the command line.
     """
     if check:
         p = Integer(p)
@@ -108,6 +113,7 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, name
     if (type == 'capped-rel'):
         K = pAdicFieldCappedRelative(p, prec, print_mode, name)
     elif (type == 'lazy'):
+        raise NotImplementedError, "lazy p-adics need more work.  Sorry."
         K = pAdicFieldLazy(p, prec, print_mode, halt, name)
     else:
         raise ValueError, "type must be either 'capped-rel' or 'lazy'"
@@ -118,13 +124,22 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, name
 # Qq -- unramified extensions
 ######################################################
 
-def Qq(q, prec = 20, type = 'capped-rel', modulus = None, names=None, print_mode="series", halt=40, qp_name = None, check=True):
+def Qq(q, prec = 20, type = 'capped-rel', modulus = None, names=None, print_mode=None, halt=40, qp_name = None, check=True):
     r"""
     Given a prime power q = p^n, return the unique unramified extension
     of Qp of degree n.
 
     Currently, there's no code for unramified field extensions, so
     we just return the UnramifiedRingExtension.
+
+        values of print_mode:
+        Leaving print_mode as None uses the global default print mode.  Other allowable values are:
+        'val-unit' -- elements are displayed as p^k*u
+        'terse' -- elements are displayed as an integer in base 10 or the quotient of an integer by a power of p (still in base 10)
+        'series' -- elements are displayed as series in p
+        'digits' -- elements are displayed as a string of base p digits
+        'bars' -- elements are displayed as a string of base p digits with separators
+        For more details and more control, see sage.rings.padics.padic_printing or look at padic_printing.<tab> from the command line.
     """
 
     from sage.rings.integer import Integer
@@ -166,20 +181,20 @@ def Qq(q, prec = 20, type = 'capped-rel', modulus = None, names=None, print_mode
 # Short constructor names for different types
 ######################################################
 
-def QpCR(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+def QpCR(p, prec = 20, print_mode = None, halt = 40, check=True):
     return Qp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-rel')
 
-def QpL(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+def QpL(p, prec = 20, print_mode = None, halt = 40, check=True):
     return Qp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'lazy')
 
 
-def QqCR(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+def QqCR(p, prec = 20, print_mode = None, halt = 40, check=True):
     return Qq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-rel')
 
-def QqL(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+def QqL(p, prec = 20, print_mode = None, halt = 40, check=True):
     return Qq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'lazy')
 
@@ -193,7 +208,7 @@ def QqL(p, prec = 20, print_mode = 'series', halt = 40, check=True):
 #######################################################################################################
 
 padic_ring_cache = {}
-def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, names = None, check=True):
+def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, names = None, check=True):
     """
     Return a model of the $p$-adic integer $\Z_p$.
 
@@ -235,8 +250,9 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, name
         7-adic Ring of fixed modulus 7^20
         sage: Zp(7, 20, 'capped-abs')
         7-adic Ring with capped absolute precision 20
-        sage: Zp(7, 20, 'lazy')
-        Lazy 7-adic Ring
+
+        #sage: Zp(7, 20, 'lazy')
+        #Lazy 7-adic Ring
 
     We create a capped relative ring with each print mode:
         sage: k = Zp(7, 8, print_mode='series'); k
@@ -294,13 +310,15 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, name
                      computation.  There is some amount of performance
                      penalty because of this ability.
 
-       print_mode -- string (default: 'series', unless it has been
-                     previously specified for a cached version of this ring)
-           'val-unit' -- elements are displayed as p^k*u
-           'terse' -- elements are displayed as an integer
-           'series' -- elements are displayed as series in p
+       print_mode -- string (default: None)
+        Leaving print_mode as None uses the global default print mode.  Other allowable values are:
+        'val-unit' -- elements are displayed as p^k*u
+        'terse' -- elements are displayed as an integer in base 10
+        'series' -- elements are displayed as series in p
+        'digits' -- elements are displayed as a string of base p digits
+        'bars' -- elements are displayed as a string of base p digits with separators
+        For more details and more control, see sage.rings.padics.padic_printing or look at padic_printing.<tab> from the command line.
     """
-    # if such a ring already exists reset it's print mode (unless the input print mode is None) and return it
     if check:
         p = Integer(p)
         if not p.is_prime():
@@ -334,6 +352,7 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, name
     elif (type == 'capped-abs'):
         K = pAdicRingCappedAbsolute(p, prec, print_mode, name)
     elif (type == 'lazy'):
+        raise NotImplementedError, "lazy p-adics need more work.  Sorry."
         K = pAdicRingLazy(p, prec, print_mode, halt, name)
     else:
         raise ValueError, "type must be one of 'capped-rel', 'fixed-mod', 'capped-abs' or 'lazy'"
@@ -345,17 +364,17 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, name
 ######################################################
 
 def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
-          print_mode='series', halt = 40, zp_name = None, check = True):
+          print_mode=None, halt = 40, zp_name = None, check = True):
     r"""
     Return an unramified extension of $\Z_p$.
 
     INPUT:
         q -- prime power
         prec -- integer (default: 20)
-        type -- string (default: 'capped-abs'); see the documentation for Zq
+        type -- string (default: 'capped-abs'); see the documentation for Zp
         modulus -- polynomial (default: None)
         names -- tuple
-        print_mode -- string (default: 'series'); see the documentation for print_mode
+        print_mode -- string (default: None); see the documentation for Zp
         halt -- integer (default: 40): only applicable for type='lazy'
         zp_name -- string (default: None): a name for the underlying Zp's prime
         check -- bool (default: True): whether to verify that the input is valid.
@@ -364,10 +383,6 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
         -- an unramified extension of Z_p
 
     EXAMPLES:
-
-    TODO: This printing is all completely backwards -- a and x must be switched.
-    We
-
         sage: k.<a> = Zq(4); k
         Unramified Extension of 2-adic Ring with capped absolute precision 20
         in a defined by (1 + O(2^20))*x^2 + (1 + O(2^20))*x + (1 + O(2^20))
@@ -406,25 +421,25 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
         if zp_name is None:
             zp_name = (str(F[0][0]),)
         modulus = PolynomialRing(base, 'x')(GF(q, names).modulus().change_ring(ZZ))
-    return ExtensionFactory(modulus, prec, print_mode, halt, names, check, unram = True)
+    return ExtensionFactory(base, modulus, prec, print_mode, halt, names, check, unram = True)
 
 ######################################################
 # Short constructor names for different types
 ######################################################
 
-def ZpCR(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+def ZpCR(p, prec = 20, print_mode = None, halt = 40, check=True):
     return Zp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-rel')
 
-def ZpCA(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+def ZpCA(p, prec = 20, print_mode = None, halt = 40, check=True):
     return Zp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-abs')
 
-def ZpFM(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+def ZpFM(p, prec = 20, print_mode = None, halt = 40, check=True):
     return Zp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'fixed-mod')
 
-def ZpL(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+def ZpL(p, prec = 20, print_mode = None, halt = 40, check=True):
     return Zp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'lazy')
 
@@ -452,34 +467,47 @@ def ZqL(q, prec = 20, modulus = None, names = None, print_mode = 'series', halt 
 #######################################################################################################
 
 extension_cache = {}
-def ExtensionFactory(modulus, prec = None, print_mode = None, halt = None, names = None, check = True, unram = False):
+def ExtensionFactory(base, premodulus, prec = None, print_mode = None, halt = None, names = None, check = True, unram = False):
+    from sage.calculus.all import is_SymbolicExpression
+    from sage.rings.polynomial.all import is_Polynomial
     if check:
-        pass # need to add sanity checking here.  Poly degree > 1.  Irreducible
-    base = modulus.base_ring()
+        if is_SymbolicExpression(premodulus):
+            if len(premodulus.variables()) != 1:
+                raise ValueError, "symbolic expression must be in only one variable"
+            modulus = premodulus.polynomial(base)
+        elif is_Polynomial(premodulus):
+            if premodulus.parent().ngens() != 1:
+                raise ValueError, "must use univariate polynomial"
+            modulus = premodulus.change_ring(base)
+        else:
+            raise ValueError, "modulus must be a polynomial"
+        if modulus.degree() <= 1:
+            raise NotImplementedError, "degree of modulus must be at least 2"
+        # need to add more checking here.
+        if not unram: #this is not quite the condition we want for not checking these things; deal with fixed-mod sanely
+            if not modulus.is_monic():
+                if base.is_field():
+                    modulus = modulus / modulus.leading_coefficient()
+                elif modulus.leading_coefficient().valuation() <= min(c.valuation() for c in modulus.list()):
+                    modulus = modulus.parent()(modulus / modulus.leading_coefficient())
+                else:
+                    modulus = modulus / modulus.leading_coefficient()
+                    base = base.fraction_field()
+            #Now modulus is monic
+            if not krasner_check(modulus, prec):
+                raise ValueError, "polynomial does not determine a unique extension.  Please specify more precision or use parameter check=False."
+        if print_mode is None:
+            print_mode = base.print_mode()
+        if names is None:
+            raise ValueError, "must specify name of generator of extension"
+        if isinstance(names, tuple):
+            names = names[0]
+    else:
+        modulus = premodulus
     #print type(base)
-    if not unram: #this is not quite the condition we want for not checking these things; deal with fixed-mod sanely
-        if not modulus.is_monic():
-            if modulus.base_ring().is_field():
-                modulus = modulus / modulus.leading_coefficient()
-            elif modulus.leading_coefficient().valuation() <= min(c.valuation() for c in modulus.list()):
-                modulus = modulus.parent()(modulus / modulus.leading_coefficient())
-            else:
-                modulus = modulus / modulus.leading_coefficient()
-                base = base.fraction_field()
-        #Now modulus is monic
-        if not krasner_check(modulus, prec):
-            raise ValueError, "polynomial does not determine a unique extension.  Please specify more precision."
-    if print_mode is None:
-        print_mode = base.print_mode()
-    if names is None:
-        raise ValueError, "must specify name of generator of extension"
-    if isinstance(names, tuple):
-        names = names[0]
-    # We now decide on the extension class: unramified, eisenstein or general (padic)
-    polytype = 'p'
+    # We now decide on the extension class: unramified, eisenstein, two-step or general
     if unram or is_unramified(modulus):
         polytype = 'u'
-        precmult = 1
         if halt is None and isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
             halt = base.halting_paramter()
         elif not isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
@@ -488,27 +516,63 @@ def ExtensionFactory(modulus, prec = None, print_mode = None, halt = None, names
             prec = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()])
         else:
             prec = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()] + [prec])
+        shift_seed = None
     elif is_eisenstein(modulus):
         polytype = 'e'
         e = modulus.degree()
-        precmult = e
         if halt is None and isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
             halt = base.halting_paramter() * e
         elif not isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
             halt = None
+        # The precision of an eisenstein extension is governed both by the absolute precision of the polynomial,
+        # and also by the precision of polynomial with the leading term removed (for shifting).
+        # The code below is to determine the correct prec for the extension, and possibly to obtain
+        # the information needed to shift right with full precision from the premodulus.
+        if is_SymbolicExpression(premodulus):
+            # Here we assume that the output of coeffs is sorted in increasing order by exponent:
+            coeffs = premodulus.coeffs()
+            preseed = premodulus / coeffs[-1][0]
+            preseed -= preseed.variables()[0]**coeffs[-1][1]
+            preseed /= base.prime() # here we assume that the base is unramified over Qp
+            shift_seed = -preseed.polynomial(base)
+        else: # a polynomial
+            if not premodulus.is_monic():
+                preseed = preseed / premodulus.leading_coefficient()
+            else:
+                preseed = premodulus
+            preseed = preseed[:preseed.degree()]
+            if base.is_fixed_mod():
+                shift_seed = -preseed.change_ring(base)
+                shift_seed = shift_seed.parent()([a >> 1 for a in shift_seed.list()])
+            else:
+                if base.e() == 1:
+                    try:
+                        preseed *= 1/base.prime()
+                        shift_seed = -preseed.change_ring(base)
+                    except TypeError:
+                        # give up on getting more precision
+                        shift_seed = -preseed.change_ring(base)
+                        shift_seed /= base.uniformizer()
+                else:
+                    # give up on getting more precision
+                    shift_seed = -preseed.change_ring(base)
+                    shift_seed /= base.uniformizer()
         if prec is None:
-            prec = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()]) * e
+            prec = min([c.precision_absolute() for c in shift_seed.list() if not c._is_exact_zero()] + [modulus.leading_coefficient().precision_absolute()] + [base.precision_cap()]) * e
         else:
-            prec = min([c.precision_absolute() * e for c in modulus.list()] + [base.precision_cap() * e] + [prec])
+            prec = min([c.precision_absolute() * e for c in shift_seed.list() if not c._is_exact_zero()] + [modulus.leading_coefficient().precision_absolute() * e] + [base.precision_cap() * e] + [prec])
+    else:
+        polytype = 'p'
     #print "polytype = %s"%polytype
-    if polytype != 'p':
+    if polytype == 'u' or polytype == 'e':
         modulus = truncate_to_prec(modulus, prec)
         key = (base, modulus, names, prec, halt, print_mode)
         if extension_cache.has_key(key):
             K = extension_cache[key]()
             if not (K is None):
                 return K
-        K = ext_table[polytype, type(base.ground_ring_of_tower())](modulus, prec*precmult, halt, print_mode, names)
+        #print ext_table[polytype, type(base.ground_ring_of_tower())]
+        K = ext_table[polytype, type(base.ground_ring_of_tower())](premodulus, modulus, prec, halt, print_mode, shift_seed, names)
         extension_cache[key] = weakref.ref(K)
         return K
     else:
@@ -519,7 +583,7 @@ def ExtensionFactory(modulus, prec = None, print_mode = None, halt = None, names
             K = extension_cache[key]()
             if not (K is None):
                 return K
-        K = ext_table['p', type(base.ground_ring_of_tower())](upoly, epoly, prec*precmult, halt, print_mode, names)
+        K = ext_table['p', type(base.ground_ring_of_tower())](premodulus, upoly, epoly, prec*precmult, halt, print_mode, names)
         extension_cache[key] = weakref.ref(K)
         return K
 

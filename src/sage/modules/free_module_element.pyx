@@ -438,11 +438,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         EXAMPLES:
             sage: v = vector([1..5]); abs(v)
-            sqrt(15)
+            sqrt(55)
             sage: v = vector(RDF, [1..5]); abs(v)
-            3.87298334621
+            7.4161984871
         """
-        return sum(self.list()).sqrt()
+        return sum([x**2 for x in self.list()]).sqrt()
 
     def norm(self, p):
         """

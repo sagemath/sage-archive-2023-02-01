@@ -16,9 +16,9 @@ import sage.structure.parent_gens
 
 
 class LocalGeneric(sage.rings.ring.CommutativeRing):
-    def __init__(self, prec, names):
+    def __init__(self, base, prec, names):
         self._prec = prec
-        sage.structure.parent_gens.ParentWithGens.__init__(self, self, (names,), normalize=False)
+        sage.structure.parent_gens.ParentWithGens.__init__(self, base, (names,), normalize=False)
 
     def __call__(self, x):
         raise NotImplementedError
@@ -73,8 +73,9 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
 	    10
 	    sage: R = Zp(3, 10,'capped-abs'); R.precision_cap()
 	    10
-	    sage: R = Zp(3, 10, 'lazy'); R.precision_cap()
-	    10
+
+	    #sage: R = Zp(3, 10, 'lazy'); R.precision_cap()
+	    #10
 
         NOTES:
             This will have different meanings depending on the type of local ring.
@@ -121,8 +122,8 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
             boolean -- whether self is exact, i.e. False.
 
 	EXAMPLES:
-	    sage: R = Zp(5, 3, 'lazy'); R.is_exact()
-	    False
+	    #sage: R = Zp(5, 3, 'lazy'); R.is_exact()
+	    #False
             sage: R = Zp(5, 3, 'fixed-mod'); R.is_exact()
             False
         """
@@ -219,13 +220,13 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
 
     def ramification_index(self):
         r"""
-        Returns the ramification index over the ground ring, i.e. 1.
+        Returns the ramification index over the ground ring: 1 unless overridden.
 
         INPUT:
             self -- a local ring
 
         OUTPUT:
-            integer -- the ramification index of this ring, i.e., 1
+            integer -- the ramification index of this ring: 1 unless overridden.
 
 	EXAMPLES:
 	    sage: R = Zp(3, 5, 'capped-rel'); R.ramification_index()
@@ -235,13 +236,13 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
 
     def e(self):
         r"""
-        Returns the ramification index over the ground ring, i.e. 1.
+        Returns the ramification index over the ground ring: 1 unless overridden.
 
         INPUT:
             self -- a local ring
 
         OUTPUT:
-            integer -- the ramification index of this ring, i.e., 1
+            integer -- the ramification index of this ring: 1 unless overridden.
 
         EXAMPLES:
 	    sage: R = Zp(3, 5, 'capped-rel'); R.e()
@@ -251,13 +252,13 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
 
     def inertia_degree(self):
         r"""
-        Returns the inertia degree over the ground ring, i.e. 1.
+        Returns the inertia degree over the ground ring: 1 unless overridden.
 
         INPUT:
             self -- a local ring
 
         OUTPUT:
-            integer -- the inertia degree of this ring, i.e., 1
+            integer -- the inertia degree of this ring: 1 unless overridden.
 
         EXAMPLES:
 	    sage: R = Zp(3, 5, 'capped-rel'); R.inertia_degree()
@@ -267,13 +268,13 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
 
     def f(self):
         r"""
-        Returns the inertia degree over the ground ring, i.e. 1.
+        Returns the inertia degree over the ground ring: 1 unless overridden.
 
         INPUT:
             self -- a local ring
 
         OUTPUT:
-            integer -- the inertia degree of this ring, i.e., 1
+            integer -- the inertia degree of this ring: 1 unless overridden.
 
         EXAMPLES:
 	    sage: R = Zp(3, 5, 'capped-rel'); R.f()

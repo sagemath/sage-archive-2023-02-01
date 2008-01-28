@@ -1,5 +1,10 @@
 Maintainer: Martin Albrecht:
 
+== Changelog ==
+
+=== libfplll-2.1.6-20071129.p0 (Michael Abshoff, Jan. 28th, 2008 ===
+ * Solaris 9 build fixes
+
 * 2007-11-08: Michael Abshoff
   + fix #1126
 

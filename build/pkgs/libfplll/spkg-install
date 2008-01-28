@@ -1,5 +1,9 @@
 #!/bin/sh
 
+cp patches/dpe.h src/src/dpe.h
+cp patches/llldiff.h src/src/llldiff.h
+cp patches/fplll.h src/src/fplll.h
+
 cd src
 
 INCLUDES="-I$SAGE_LOCAL/include/"

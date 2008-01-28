@@ -15,9 +15,7 @@ from sage.rings.integer cimport Integer
 cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     cdef mpz_t value
     cdef unsigned long absprec
-    cdef void set_precs(pAdicCappedAbsoluteElement self, unsigned long absprec)
-    cdef void set_value_from_mpz(pAdicCappedAbsoluteElement self, mpz_t value)
-    cdef void set_from_Integers(pAdicCappedAbsoluteElement self, Integer value, Integer absprec)
+
     cdef pAdicCappedAbsoluteElement _new_c(self)
     cdef RingElement _invert_c_impl(self)
     cdef ModuleElement _neg_c_impl(self)

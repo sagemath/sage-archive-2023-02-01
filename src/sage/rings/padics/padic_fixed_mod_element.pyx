@@ -185,7 +185,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             tmp = <Integer> Integer(x)
             self._set_from_mpz(tmp.value)
         else:
-            raise TypeError, "unable to create p-adic element"
+            self._set_from_Rational(Rational(x), absprec, relprec)
 
     def __dealloc__(self):
         mpz_clear(self.value)
@@ -234,6 +234,9 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         mpz_init(x.value)
         x.prime_pow = self.prime_pow
         return x
+
+    cpdef bint _is_inexact_zero(self):
+        return mpz_sgn(self.value) == 0
 
     def __richcmp__(left, right, op):
         return (<Element>left)._richcmp(right, op)
@@ -613,7 +616,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             list_elt = self._new_c()
             mpz_mod(list_elt.value, tmp, self.prime_pow.prime.value)
             mpz_set(tmp2, self.prime_pow.pow_mpz_t_tmp(preccap)[0])
-            sage.rings.padics.padic_generic_element.teichmuller_set_c(list_elt.value, self.prime_pow.prime.value, tmp2)
+            self.teichmuller_set_c(list_elt.value, tmp2)
             mpz_sub(tmp, tmp, list_elt.value)
             mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
             mpz_mod(tmp, tmp, self.prime_pow.pow_mpz_t_tmp(curpower)[0])
@@ -622,19 +625,10 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         mpz_clear(tmp2)
         return ans
 
-    def _teichmuller_set(self, Integer n, Integer absprec):
-        cdef unsigned long aprec
+    def _teichmuller_set(self):
         cdef mpz_t tmp
-        mpz_set(self.value, n.value)
-        if mpz_fits_ulong_p(absprec.value) == 0:
-            aprec = self.prime_pow.prec_cap
-        if mpz_sgn(absprec.value) != 1:
-            raise ValueError, "can only compute to positive precision"
-        aprec = mpz_get_ui(absprec.value)
-        if aprec > self.prime_pow.prec_cap:
-            aprec = self.prime_pow.prec_cap
-        mpz_init_set(tmp, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
-        sage.rings.padics.padic_generic_element.teichmuller_set_c(self.value, self.prime_pow.prime.value, tmp)
+        mpz_init_set(tmp, self.prime_pow.pow_mpz_t_top()[0])
+        self.teichmuller_set_c(self.value, tmp)
         mpz_clear(tmp)
 
 

@@ -714,7 +714,7 @@ def numerical_approx(x, prec=None, digits=None):
         return x.numerical_approx(prec)
     except AttributeError:
         try:
-            return sage.rings.real_mpfr.RealField(prec)(x)
+            return sage.rings.real_mpfr.RealField_constructor(prec)(x)
         except TypeError:
             return sage.rings.complex_field.ComplexField(prec)(x)
 

@@ -20,7 +20,6 @@ Transcendental Functions
 import  sage.libs.pari.all
 from sage.libs.pari.all import pari, PariError
 import sage.rings.complex_field as complex_field
-import sage.rings.real_mpfr as real_field
 import sage.rings.real_double as real_double
 import sage.rings.complex_number
 from sage.gsl.integration import numerical_integral

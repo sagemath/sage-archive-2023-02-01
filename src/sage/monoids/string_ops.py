@@ -8,7 +8,7 @@
 
 from sage.misc.misc import prod
 from sage.rings.integer import Integer
-from sage.rings.real_mpfr import RealField
+from sage.rings.all import RealField
 from sage.rings.rational_field import RationalField
 from sage.probability.random_variable import DiscreteProbabilitySpace
 from string_monoid_element import StringMonoidElement

@@ -205,6 +205,7 @@ from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
 import sage.structure.parent_base
 import partitions as partitions_ext
+from sage.combinat.partition import Partition
 
 ######### combinatorial sequences
 
@@ -2403,8 +2404,6 @@ def partition_associated(pi):
     ``conjugate'' in the literature) partition of the partition pi which is
     obtained by transposing the corresponding Ferrers diagram.
 
-    Wraps GAP's AssociatedPartition.
-
     EXAMPLES:
         sage: partition_associated([2,2])
         [2, 2]
@@ -2422,8 +2421,7 @@ def partition_associated(pi):
         *
         *
     """
-    ans=gap.eval("AssociatedPartition(%s)"%(pi))
-    return eval(ans)
+    return list(Partition(pi).conjugate())
 
 
 def fibonacci_sequence(start, stop=None, algorithm=None):

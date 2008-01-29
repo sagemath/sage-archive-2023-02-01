@@ -144,7 +144,6 @@ cdef void late_import():
         import sage.rings.arith
         arith = sage.rings.arith
 
-
 MAX_UNSIGNED_LONG = 2 * sys.maxint
 
 # This crashes SAGE:
@@ -437,7 +436,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 3 < 2
             False
 
-        Canonical coercisions are used but non-canonical ones are not.
+        Canonical coercions are used but non-canonical ones are not.
             sage: 4 == 4/1
             True
             sage: 4 == '4'
@@ -602,7 +601,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self.str(2)
 
-    def bits(self, int base=2):
+    def bits(self):
         """
         Return the number of bits in self.
 
@@ -694,6 +693,36 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return l # should we return a tuple?
 
+    def ndigits(self, int base=10):
+        """
+        Return the number of digits of self expressed in the given base.
+
+        INPUT:
+            base -- integer (default: 10)
+
+        EXAMPLES:
+            sage: n = 52
+            sage: n.ndigits()
+            2
+            sage: n = -10003
+            sage: n.ndigits()
+            5
+            sage: n = 15
+            sage: n.ndigits(2)
+            4
+            sage: n=1000**1000000+1
+            sage: n.ndigits()
+            3000001
+            sage: n=1000**1000000-1
+            sage: n.ndigits()
+            3000000
+            sage: n=10**10000000-10**9999990
+            sage: n.ndigits()
+            10000000
+        """
+        if self == 0:
+            return 1
+        return self.abs().exact_log(base) + 1
 
     def set_si(self, signed long int n):
         """
@@ -1127,10 +1156,42 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError, "self must be positive"
         if m < 2:
             raise ValueError, "m must be at least 2"
+
+        if m <= 256:
+            # if the base m is at most 256, we can use mpz_sizeinbase
+            # to get the following guess which is either the exact
+            # log, or 1+ the exact log
+            guess = Integer(mpz_sizeinbase(self.value, m)) - 1
+            # if the base is 2, the guess is always correct
+            if m == 2:
+                return guess
+
+            # otherwise, we need to compare self and m^guess
+            # this is time-consuming for large integers, so we start by
+            # doing a rough comparison using interval arithmetic
+            # (suggested by David Harvey and Carl Witty)
+            # "for randomly distributed integers, the chance of this
+            # interval-based comparison failing is absurdly low"
+            import real_mpfi
+            approx_compare = real_mpfi.RIF(m)**guess
+            if self > approx_compare:
+                return guess
+            elif self < approx_compare:
+                return guess - one
+            # if we reach this point, we're in an absurdly low-probability
+            # case; we "manually" compare self and m^guess
+            compare = Integer(m)**guess
+            if self >= compare:
+                return guess
+            else:
+                return guess - one
+
+        # if we are here, then the base m is bigger than 256
+        # TODO: optimize this
         import real_mpfr
         R = real_mpfr.RealField(53)
         guess = R(self).log(base = m).floor()
-        power = m ** guess
+        power = Integer(m) ** guess
 
         while power > self:
             power = power / m
@@ -1147,7 +1208,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return guess
         else:
             return guess - 1
-
 
     def prime_to_m_part(self, m):
         """

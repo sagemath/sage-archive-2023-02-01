@@ -593,6 +593,9 @@ class MapleElement(ExpectElement):
         Returns a 64-bit integer representing the hash of self.  Since Python uses
         32-bit hashes, it will automatically convert the result of this to
         a 32-bit hash.
+
+        These examples are optional, and require Maple to be installed. You    don't need to install any Sage packages for this.
+
         EXAMPLES:
             sage: m = maple('x^2+y^2')
             sage: m.__hash__()
@@ -610,6 +613,8 @@ class MapleElement(ExpectElement):
     def __cmp__(self, other):
         """
         Compare equality between self and other, using maple.
+
+        These examples are optional, and require Maple to be installed. You    don't need to install any Sage packages for this.
 
         EXAMPLES:
             sage: a = maple(5)
@@ -679,6 +684,8 @@ class MapleElement(ExpectElement):
 
     def _mul_(self, right):
         """
+        These examples are optional, and require Maple to be installed. You    don't need to install any Sage packages for this.
+
         EXAMPLES:
             sage: t = maple(5); u = maple(3)
             sage: t*u
@@ -708,6 +715,8 @@ class MapleElement(ExpectElement):
     def __repr__(self):
         """
         Return a string representation of self.
+
+        These examples are optional, and require Maple to be installed. You    don't need to install any Sage packages for this.
 
         EXAMPLES:
             sage: x = var('x')

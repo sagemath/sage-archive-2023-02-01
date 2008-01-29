@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
 build()
 {
     if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
@@ -24,10 +30,12 @@ build()
                  CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" LDFLAGS="$LDFLAGS" \
                  GMP_PREFIX="$SAGE_LOCAL" $EXTRA
 
+    echo "Building MPFR"
+    $MAKE
 
-    echo "Building and install mpfr"
+    echo "Installing MPFR"
+    MAKE=make; export MAKE
     $MAKE install
-
 }
 
 cd src
@@ -40,5 +48,4 @@ else
     echo "An error occured while building mpfr."
     exit 1
 fi
-
 

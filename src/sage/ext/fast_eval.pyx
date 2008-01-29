@@ -140,7 +140,7 @@ cdef enum:
     PY_FUNC
 
 
-# These two dictionaries are just for machine independant representation.
+# These two dictionaries are for printable and machine independant representation.
 
 op_names = {
     LOAD_ARG: 'load',
@@ -192,6 +192,15 @@ cfunc_names = {
 
 }
 
+cdef reverse_map(m):
+    r = {}
+    for key, value in m.iteritems():
+        r[value] = key
+    return r
+
+# With all the functionality around the op struct, perhaps there should be
+# a wrapper class, though we still wish to operate on pure structs for speed.
+
 cdef op_to_string(fast_double_op op):
     s = op_names[op.type]
     if op.type in [LOAD_ARG, POP_N]:
@@ -208,6 +217,58 @@ cdef op_to_string(fast_double_op op):
         n, func = <object>(op.params.func)
         s += " %s(%s)" % (func, n)
     return s
+
+cdef op_to_tuple(fast_double_op op):
+    s = op_names[op.type]
+    if op.type in [LOAD_ARG, POP_N]:
+        param = op.params.n
+    elif op.type == PUSH_CONST:
+        param = op.params.c
+    elif op.type in [ONE_ARG_FUNC, TWO_ARG_FUNC]:
+        param_count = 1 if op.type == ONE_ARG_FUNC else 2
+        try:
+            param = param_count, cfunc_names[<size_t>op.params.func]
+        except KeyError:
+            raise ValueError, "Unknown C function: 0x%x" % <size_t>op.params.func
+    elif op.type == PY_FUNC:
+        param = <object>(op.params.func)
+    else:
+        param = None
+    if param is None:
+        return (s,)
+    else:
+        return s, param
+
+def _unpickle_FastDoubleFunc(nargs, max_height, op_list):
+    cdef FastDoubleFunc self = PY_NEW(FastDoubleFunc)
+    self.nops = len(op_list)
+    self.nargs = nargs
+    self.max_height = max_height
+    self.ops = <fast_double_op *>sage_malloc(sizeof(fast_double_op) * self.nops)
+    self.allocate_stack()
+    cfunc_addresses = reverse_map(cfunc_names)
+    op_enums = reverse_map(op_names)
+    cdef size_t address
+    cdef int i = 0, type
+    for op in op_list:
+        self.ops[i].type = type = op_enums[op[0]]
+        if type in [LOAD_ARG, POP_N]:
+            self.ops[i].params.n = op[1]
+        elif type == PUSH_CONST:
+            self.ops[i].params.c = op[1]
+        elif type in [ONE_ARG_FUNC, TWO_ARG_FUNC]:
+            param_count, cfunc = op[1]
+            address = cfunc_addresses[cfunc]
+            self.ops[i].params.func = <void *>address
+            self.ops[i].type = ['', ONE_ARG_FUNC, TWO_ARG_FUNC][param_count]
+        elif type == PY_FUNC:
+            if self.py_funcs is None:
+                self.py_funcs = op[1]
+            else:
+                self.py_funcs = self.py_funcs + (op[1],)
+            self.ops[i].params.func = <void *>op[1]
+        i += 1
+    return self
 
 
 # This is where we wish we had case statements...
@@ -422,6 +483,50 @@ cdef class FastDoubleFunc:
             sage_free(self.stack)
         if self.argv:
             sage_free(self.argv)
+
+    def __reduce__(self):
+        """
+        TESTS:
+            sage: from sage.ext.fast_eval import fast_float_arg, fast_float_func
+            sage: f = fast_float_arg(0).sin() * 10 + fast_float_func(hash, fast_float_arg(1))
+            sage: loads(dumps(f)) == f
+            True
+        """
+        L = [op_to_tuple(self.ops[i]) for i from 0 <= i < self.nops]
+        return _unpickle_FastDoubleFunc, (self.nargs, self.max_height, L)
+
+    def __cmp__(self, other):
+        """
+        Two functions are considered equal if they represent the same
+        exact sequence of operations.
+
+        TESTS:
+            sage: from sage.ext.fast_eval import fast_float_arg
+            sage: fast_float_arg(0) == fast_float_arg(0)
+            True
+            sage: fast_float_arg(0) == fast_float_arg(1)
+            False
+            sage: fast_float_arg(0) == fast_float_arg(0).sin()
+            False
+        """
+        cdef int c, i
+        cdef FastDoubleFunc left, right
+        try:
+            left, right = self, other
+            c = cmp((left.nargs, left.nops, left.max_height),
+                    (right.nargs, right.nops, right.max_height))
+            if c != 0:
+                return c
+            for i from 0 <= i < self.nops:
+                if left.ops[i].type != right.ops[i].type:
+                    return cmp(left.ops[i].type, right.ops[i].type)
+            for i from 0 <= i < self.nops:
+                c = cmp(op_to_tuple(left.ops[i]), op_to_tuple(right.ops[i]))
+                if c != 0:
+                    return c
+            return c
+        except TypeError:
+            return cmp(type(self), type(other))
 
     def __call__(FastDoubleFunc self, *args):
         """

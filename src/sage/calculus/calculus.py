@@ -656,7 +656,6 @@ class SymbolicExpression(RingElement):
                 else:
                     param = A[0]
                 f = lambda x: self(x)
-                #f = self.fast_float_function()
             else:
                 A = self.variables()
                 if len(A) == 0:
@@ -3093,10 +3092,18 @@ class SymbolicExpression(RingElement):
     ###################################################################
     # Fast Evaluation
     ###################################################################
-    def fast_float_function(self, vars):
-        return self._fast_float_(vars)
 
     def _fast_float_(self, *vars):
+        """
+        EXAMPLES:
+            sage: x,y,z = var('x,y,z')
+            sage: f = 1 + sin(x)/x + sqrt(z^2+y^2)/cosh(x)
+            sage: ff = f._fast_float_('x', 'y', 'z')
+            sage: f(1.0,2.0,3.0)
+            4.1780638977866...
+            sage: ff(1.0,2.0,3.0)
+            4.17806389778660...
+        """
         try:
             return fast_float.fast_float_constant(float(self))
         except:

@@ -392,6 +392,9 @@ class Sage_FCompiler_1(Gnu95FCompiler):
 #    for fc_exe in map(find_executable,['gfortran']):
 #        if os.path.isfile(fc_exe):
 #            break
+
+
+
     executables = {
         'version_cmd'  : ["sage_fortran","--version"],
         'compiler_f77' : ["sage_fortran","-Wall","-ffixed-form","-fno-second-underscore"],
@@ -442,13 +445,18 @@ class Sage_FCompiler(FCompiler):
     # G95 (GCC 4.0.3 (g95 0.90!) Aug 22 2006)
 
     suggested_f90_compiler = 'sage_fortran'
+    if os.uname()[0]=="Darwin":
+        link_command=["sage_fortran","-undefined", "dynamic_lookup", "-bundle"]
+    else:
+        link_command=["sage_fortran","-shared"]
 
     executables = {
         'version_cmd'  : ["sage_fortran", "--version"],
         'compiler_f77' : ["sage_fortran", "-ffixed-form"],
         'compiler_fix' : ["sage_fortran", "-ffixed-form"],
         'compiler_f90' : ["sage_fortran"],
-        'linker_so'    : ["sage_fortran","-shared"],
+        'linker_so'    : link_command,
+#        'linker_so'    : ["sage_fortran","-shared"],
         'archiver'     : ["ar", "-cr"],
 #        'archiver'     : ["ar", "-cr", s+"/libf95.a"],
         'ranlib'       : ["ranlib"],
@@ -476,10 +484,10 @@ class Sage_FCompiler(FCompiler):
             os.environ['MACOSX_DEPLOYMENT_TARGET'] = '%s.%s' % (major,
                 minor)
 
-            opt.extend(['-undefined', 'dynamic_lookup', '-bundle'])
-	    opt.remove('-shared')
-        else:
-            opt.append("-shared")
+#            opt.extend(['-undefined', 'dynamic_lookup', '-bundle'])
+#	    opt.remove('-shared')
+#        else:
+#            opt.append("-shared")
         if sys.platform[:5]=='sunos':
             # SunOS often has dynamically loaded symbols defined in the
             # static library libg2c.a  The linker doesn't like this.  To

@@ -173,7 +173,7 @@ def setup_server(template=None):
     print DELIMITER
     print "Generating SSL certificate for server..."
 
-    if os.uname()[0] != 'Darwin' and cmd_exists('openssl'):
+    if False and os.uname()[0] != 'Darwin' and cmd_exists('openssl'):
         # We use openssl by default if it exists, since it is *vastly*
         # faster on Linux.
         cmd = ['openssl genrsa > %s' % privkey_file]

@@ -321,8 +321,14 @@ def is_pseudoprime(n, flag=0):
 
     INPUT:
         flag -- int
-                0 (default): checks whether x is a Baillie-Pomerance-Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo prime for base 2, followed by strong Lucas test for the sequence (P,-1), P smallest positive integer such that $P^2 - 4$ is not a square mod x).
-                > 0: checks whether x is a strong Miller-Rabin pseudo prime for flag randomly chosen bases (with end-matching to catch square roots of -1).
+                0 (default): checks whether x is a Baillie-Pomerance-
+                          Selfridge-Wagstaff pseudo prime (strong Rabin-Miller
+                          pseudo prime for base 2, followed by strong Lucas
+                          test for the sequence (P,-1), P smallest positive
+                          integer such that $P^2 - 4$ is not a square mod x).
+                > 0: checks whether x is a strong Miller-Rabin pseudo prime
+                          for flag randomly chosen bases (with end-matching
+                          to catch square roots of -1).
 
     OUTPUT:
         bool -- True or False

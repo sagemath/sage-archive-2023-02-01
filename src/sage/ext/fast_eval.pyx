@@ -1,33 +1,37 @@
 r"""
-For many applications such as numerical integration, differential equation
-approximation, plotting a 3d surface, optimization problems, monte-carlo
-simulations, etc. one wishes to pass around and evaluate a single algebraic
-many, many times at various floating point values. Doing this via recursive
-calls over a python representation of the object (even if maxima or other
-outside packages are not involved) is extremely inefficient.
+Fast Numerical Evaluation.
 
-Up until now the solution has been to use lambda expressions, but this is neither
-intuitive, Sage-like, nor efficient (compared to operating on raw c doubles).
-This module provides a representation of algebraic expression in Reverse
-Polish Notation, and provides an efficient interpreter on c double values
-as a callable python object. It does what it can in C, and will call out
-to Python if necessary.
+For many applications such as numerical integration, differential
+equation approximation, plotting a 3d surface, optimization problems,
+monte-carlo simulations, etc., one wishes to pass around and evaluate
+a single algebraic expression many, many times at various floating
+point values. Doing this via recursive calls over a python
+representation of the object (even if maxima or other outside packages
+are not involved) is extremely inefficient.
 
-Essential to the understanding of this class is the distinction between
-symbolic expressions and callable symbolic expressions (where the later
-binds argument names to argument positions). The \code{*vars} parameter
-passed around encapsulates this information.
+Up until now the solution has been to use lambda expressions, but this
+is neither intuitive, Sage-like, nor efficient (compared to operating
+on raw C doubles).  This module provides a representation of algebraic
+expression in Reverse Polish Notation, and provides an efficient
+interpreter on C double values as a callable python object. It does
+what it can in C, and will call out to Python if necessary.
+
+Essential to the understanding of this class is the distinction
+between symbolic expressions and callable symbolic expressions (where
+the later binds argument names to argument positions). The
+\code{*vars} parameter passed around encapsulates this information.
 
 See the function \code{fast_float(f, *vars)} to create a fast-callable
 version of f.
 
-To provide this interface for a class, implement \code{_fast_float_(self, *vars)}.
-The basic building blocks are provided by the functions \code{fast_float_constant}
-(returns a constant function), \code{fast_float_arg} (selects the $n$-th
-value when called with $\ge n$ arguments), and \code{fast_float_func} which
-wraps a callable Python function. These may be combined with the standard
-Python arithmatic operators, and support many of the basic math functions
-such sqrt, exp, and trig functions.
+To provide this interface for a class, implement
+\code{_fast_float_(self, *vars)}.  The basic building blocks are
+provided by the functions \code{fast_float_constant} (returns a
+constant function), \code{fast_float_arg} (selects the $n$-th value
+when called with $\ge n$ arguments), and \code{fast_float_func} which
+wraps a callable Python function. These may be combined with the
+standard Python arithmetic operators, and support many of the basic
+math functions such sqrt, exp, and trig functions.
 
 EXAMPLES:
     sage: from sage.ext.fast_eval import fast_float

@@ -60,6 +60,8 @@ include 'mpfr.pxi'
 import operator
 from random import random
 
+cdef extern from "solaris_fix.h": pass
+
 from sage.misc.sage_eval import sage_eval
 
 import sage.rings.complex_double

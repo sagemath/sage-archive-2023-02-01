@@ -903,10 +903,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1
             sage: (-1)^(1/3)
             (-1)^(1/3)
+
+        For consistency with Python and MPFR, 0^0 is defined to be 1
+        in Sage:
             sage: 0^0
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: 0^0 is undefined.
+            1
 
 
         The base need not be an integer (it can be a builtin
@@ -988,10 +989,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise RuntimeError, "exponent must be at most %s" % sys.maxint
 
         if nn == 0:
-            if not self:
-                raise ArithmeticError, "0^0 is undefined."
-            else:
-                return one
+            return one
 
         cdef Integer x = PY_NEW(Integer)
 

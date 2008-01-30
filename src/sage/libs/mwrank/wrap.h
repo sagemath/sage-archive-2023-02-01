@@ -1,11 +1,11 @@
 #ifdef __cplusplus
 /* The order here is very important. */
-#include "cremona/curve.h"
-#include "cremona/egr.h"
-#include "cremona/descent.h"
-#include "cremona/points.h"
-#include "cremona/isogs.h"
-#include "cremona/marith.h"
+#include "eclib/curve.h"
+#include "eclib/egr.h"
+#include "eclib/descent.h"
+#include "eclib/points.h"
+#include "eclib/isogs.h"
+#include "eclib/marith.h"
 #endif
 
 #ifdef __cplusplus

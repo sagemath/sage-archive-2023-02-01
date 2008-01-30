@@ -1,7 +1,7 @@
 r"""
 Wiki Interactive Web Page.
 
-SAGE includes the Moin Moin Wiki interactive web page system standard.
+\sage includes the Moin Moin Wiki interactive web page system standard.
 To start your own math-typesetting-aware wiki server immediately, just
 type \code{wiki()} at the command line.
 

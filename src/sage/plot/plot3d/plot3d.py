@@ -16,7 +16,7 @@ EXAMPLES:
     sage: S = P + axes(6, color='black')
     sage: S.show()
 
-We plot "cape man":
+We plot ``cape man'':
     sage: S = sphere(size=.5, color='yellow')
 
     sage: from sage.plot.plot3d.shapes import Cone

@@ -108,7 +108,7 @@ def SR(n=1,r=1,c=1,e=4, star=False, **kwargs):
         star -- determines if SR* or SR should be constructed (default: False)
         aes_mode -- as the SR key schedule specification differs slightly from the AES
                     key schedule this parameter controls which schedule to use (default: True)
-        gf2 -- generate polynomial systems over GF(2) rather than over GF(2^n) (default: False)
+        gf2 -- generate polynomial systems over $\GF(2)$ rather than over $\GF(2^n)$ (default: False)
         order -- a string to specify the term ordering of the variables
         postfix -- a string which is appended after the variable name (default: '')
         allow_zero_inversions -- a boolean to controll whether zero inversions raise

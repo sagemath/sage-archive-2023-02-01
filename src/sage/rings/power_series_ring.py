@@ -522,7 +522,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         return 1
 
     def random_element(self, prec, bound=None):
-        """
+        r"""
         Return a random power series.
 
         INPUT:
@@ -532,8 +532,8 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
 
         OUTPUT:
             power series -- a power series such that the coefficient
-            of x^i, for i up to degree, are coercions to the base
-            ring of random integers between -bound and bound.
+            of $x^i$, for $i$ up to \var{degree}, are coercions to the base
+            ring of random integers between -\var{bound} and \var{bound}.
 
         IMPLEMENTATION: Call the random_element method on the underlying polynomial ring.
 

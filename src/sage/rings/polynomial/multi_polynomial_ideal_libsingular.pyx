@@ -197,6 +197,9 @@ def interred_libsingular(I):
     cdef int j
     cdef int bck
 
+    if len(I.gens()) == 0:
+        return Sequence([], check=False, immutable=True)
+
     i = sage_ideal_to_singular_ideal(I)
     r = currRing
 

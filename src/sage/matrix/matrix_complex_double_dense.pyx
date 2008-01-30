@@ -833,7 +833,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         INPUT:
             A -- a matrix
         OUTPUT:
-            U, S, V -- matrices such that A = U * S * V^t, where
+            U, S, V -- matrices such that $A = U S V^t$, where
                        U and V are orthogonal and S is diagonal.
 
 

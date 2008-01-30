@@ -1028,7 +1028,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         INPUT:
             flag -- int
-                    0 (default): checks whether x is a Baillie-Pomerance-Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo prime for base 2, followed by strong Lucas test for the sequence (P,-1), P smallest positive integer such that P^2 - 4 is not a square mod x).
+                    0 (default): checks whether x is a Baillie-Pomerance-Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo prime for base 2, followed by strong Lucas test for the sequence (P,-1), P smallest positive integer such that $P^2 - 4$ is not a square mod x).
                     > 0: checks whether x is a strong Miller-Rabin pseudo prime for flag randomly chosen bases (with end-matching to catch square roots of -1).
 
         OUTPUT:
@@ -5467,7 +5467,7 @@ cdef class gen(sage.structure.element.RingElement):
                    complex number -- any number in the complex plane
                    string (or PARI variable) -- name of a variable.
 
-            n -- int (optional: default 20) if z is a variable, compute up to at least o(z^n).
+            n -- int (optional: default 20) if z is a variable, compute up to at least $o(z^n)$.
 
             flag -- int: 0 (default): compute only P(z)
                          1 compute [P(z),P'(z)]

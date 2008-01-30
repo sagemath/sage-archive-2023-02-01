@@ -147,7 +147,11 @@ class Sage(Expect):
             sage: sage0.cputime()     # random output
             1.6462939999999999
         """
-        return eval(self.eval('cputime(%s)'%t))
+        s = self.eval('cputime(%s)'%t)
+        i = s.rfind('m')
+        if i != -1:
+            s = s[i+1:-1]
+        return float(s)
 
     def trait_names(self):
         return eval(self.eval('globals().keys()'))

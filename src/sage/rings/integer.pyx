@@ -1686,8 +1686,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             p -- an integer at least 2.
 
         OUTPUT:
-            v_p(self) -- the p-adic valuation of self
-            u_p(self) -- self / p^{v_p(self)}
+            v_p(self) -- the p-adic valuation of \code{self}
+            u_p(self) -- \code{self} / $p^{v_p(\code{self})}$
 
         EXAMPLE:
         sage: n = 60

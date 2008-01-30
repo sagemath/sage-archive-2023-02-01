@@ -6,7 +6,7 @@ Given a 9x9 Sudoku puzzle as an integer matrix, the program solves it.
 
 def sudoku(A):
     """
-    Solve the 9x9 Sudoku puzzle defined by the matrix A.
+    Solve the 9x9 Sudoku puzzle defined by the matrix $A$.
 
     EXAMPLE:
         sage: A = matrix(ZZ,9,[5,0,0, 0,8,0, 0,4,9, 0,0,0, 5,0,0, 0,3,0, 0,6,7, 3,0,0, 0,0,1,  1,5,0, 0,0,0, 0,0,0,  0,0,0, 2,0,8, 0,0,0,    0,0,0, 0,0,0, 0,1,8,     7,0,0, 0,0,4, 1,5,0,   0,3,0, 0,0,2, 0,0,0,  4,9,0, 0,5,0, 0,0,3])
@@ -49,9 +49,9 @@ R9 = range(9)
 R10 = range(1,10)
 
 def grid_has_k(A, i, j, k):
-    """
-    Return True precisely if the 3x3 submatrix that contains
-    the i,j position of A already has a k in it.
+    r"""
+    Return \code{True} precisely if the 3x3 submatrix that contains
+    the $i$,$j$ position of $A$ already has a $k$ in it.
     """
     ii = i//3
     jj = j//3

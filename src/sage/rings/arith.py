@@ -321,7 +321,7 @@ def is_pseudoprime(n, flag=0):
 
     INPUT:
         flag -- int
-                0 (default): checks whether x is a Baillie-Pomerance-Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo prime for base 2, followed by strong Lucas test for the sequence (P,-1), P smallest positive integer such that P^2 - 4 is not a square mod x).
+                0 (default): checks whether x is a Baillie-Pomerance-Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo prime for base 2, followed by strong Lucas test for the sequence (P,-1), P smallest positive integer such that $P^2 - 4$ is not a square mod x).
                 > 0: checks whether x is a strong Miller-Rabin pseudo prime for flag randomly chosen bases (with end-matching to catch square roots of -1).
 
     OUTPUT:
@@ -1942,23 +1942,29 @@ def binomial(x,m):
         return P(0)
     return misc.prod([x-i for i in xrange(m)]) / P(factorial(m))
 
-def gaussian_binomial(n,k,q):
+def gaussian_binomial(n,k,q=None):
     r"""
     Return the gaussian binomial
     $$
-       \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}
-                             {(1-q)(1-q^2)\cdots (1-q^r)}.
+       \binom{n}{k}_q = \frac{(1-q^n)(1-q^{n-1})\cdots (1-q^{n-k+1})}
+                             {(1-q)(1-q^2)\cdots (1-q^k)}.
     $$
 
     EXAMPLES:
+        sage: gaussian_binomial(5,1)
+        q^4 + q^3 + q^2 + q + 1
+        sage: gaussian_binomial(5,1).subs(q=2)
+        31
         sage: gaussian_binomial(5,1,2)
         31
 
     AUTHOR: David Joyner and William Stein
     """
-    n = integer_ring.ZZ(misc.prod([1 - q**i for i in range((n-k+1),n+1)]))
-    d = integer_ring.ZZ(misc.prod([1 - q**i for i in range(1,k+1)]))
-    return n / d
+    if q is None:
+        q = integer_ring.ZZ['q'].gen()
+    n = misc.prod([1 - q**i for i in range((n-k+1),n+1)])
+    d = misc.prod([1 - q**i for i in range(1,k+1)])
+    return n/d
 
 def kronecker_symbol(x,y):
     """

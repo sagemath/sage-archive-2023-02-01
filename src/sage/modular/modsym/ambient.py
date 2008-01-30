@@ -410,16 +410,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return a
 
     def modular_symbol(self, x, check=True):
-        """
+        r"""
         Create a modular symbol in this space.
 
         INPUT:
             x -- a list of either 2 or 3 entries
-            2 entries:   [alpha, beta] -- creates the modular
+            2 entries:   [$\alpha$, $\beta$] -- creates the modular
                          symbol {alpha, beta}, or, if the weight
-                         is > 2 the symbol Y^(k-2){alpha,beta}.
-            3 entries:   [i, alpha, beta] -- create the modular
-                         symbol X^i*Y^(k-2-i){alpha,beta}.
+                         is > 2 the symbol $Y^(k-2){\alpha,\beta}$.
+            3 entries:   [i, $\alpha$, $\beta$] -- create the modular
+                         symbol $X^i Y^{k-2-i}{\alpha,\beta}$.
 
         EXAMPLES:
             sage: set_modsym_print_mode('modular')

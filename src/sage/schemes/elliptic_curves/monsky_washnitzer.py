@@ -125,7 +125,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         Constructor.
 
         INPUT:
-            Q -- a polynomial of the form Q(x) = x^3 + ax + b, where a, b
+            Q -- a polynomial of the form $Q(x) = x^3 + ax + b$, where a, b
                  belong to a ring in which 2, 3 are invertible.
             laurent_series -- whether or not to allow negative powers of T (default=False)
         """
@@ -485,7 +485,7 @@ def reduce_negative(Q, p, coeffs, offset, exact_form=None):
     INPUT:
         p -- prime
         Q -- cubic polynomial
-        coeffs -- list of length 3 lists. The i^th list [a, b, c]
+        coeffs -- list of length 3 lists. The $i^{\rm th}$ list [a, b, c]
                   represents $y^{2(i - offset)} (a + bx + cx^2) dx/y$.
         offset -- nonnegative integer
 
@@ -583,7 +583,7 @@ def reduce_positive(Q, p, coeffs, offset, exact_form=None):
 
     INPUT:
         Q -- cubic polynomial
-        coeffs -- list of length 3 lists. The i^th list [a, b, c]
+        coeffs -- list of length 3 lists. The $i^{\rm th}$ list [a, b, c]
                   represents $y^{2(i - offset)} (a + bx + cx^2) dx/y$.
         offset -- nonnegative integer
 
@@ -670,7 +670,7 @@ def reduce_zero(Q, coeffs, offset, exact_form=None):
 
     INPUT:
         Q -- cubic polynomial
-        coeffs -- list of length 3 lists. The i^th list [a, b, c]
+        coeffs -- list of length 3 lists. The $i^{\rm th}$ list [a, b, c]
                   represents $y^{2(i - offset)} (a + bx + cx^2) dx/y$.
         offset -- nonnegative integer
 
@@ -719,7 +719,7 @@ def reduce_all(Q, p, coeffs, offset, compute_exact_form=False):
 
     INPUT:
         Q -- cubic polynomial
-        coeffs -- list of length 3 lists. The i^th list [a, b, c]
+        coeffs -- list of length 3 lists. The $i^{\rm th}$ list [a, b, c]
                   represents $y^{2(i - offset)} (a + bx + cx^2) dx/y$.
         offset -- nonnegative integer
 
@@ -790,8 +790,8 @@ def frobenius_expansion_by_newton(Q, p, M):
     to powers of $T$.
 
     INPUT:
-        Q -- cubic polynomial of the form Q(x) = x^3 + ax + b,
-             whose coefficient ring is a Z/(p^M)Z-algebra
+        Q -- cubic polynomial of the form $Q(x) = x^3 + ax + b$,
+             whose coefficient ring is a $Z/(p^M)Z$-algebra
         p -- residue characteristic of the p-adic field
         M -- p-adic precision of the coefficient ring (this will be used
              to determine the number of Newton iterations)
@@ -1073,7 +1073,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
     WARNING:
         -- THE RESULT WILL NOT NECESSARILY BE CORRECT TO M p-ADIC DIGITS.
            If you want prec digits of precision, you need to use the function
-           adjusted_prec(), and then you need to reduce the answer mod p^prec
+           adjusted_prec(), and then you need to reduce the answer mod $p^{prec}$
            at the end.
 
     OUTPUT:

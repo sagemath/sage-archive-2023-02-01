@@ -150,6 +150,14 @@ def PermutationGroup(x, from_group=False, check=True):
         sage: H.gens()                            # requires optional database_gap
         ((1,2,3,4), (1,3))
 
+
+    We can also create permutation groups whose generators are
+    Gap permutation objects.
+        sage: p = gap('(1,2)(3,7)(4,6)(5,8)'); p
+        (1,2)(3,7)(4,6)(5,8)
+        sage: PermutationGroup([p])
+        Permutation Group with generators [(1,2)(3,7)(4,6)(5,8)]
+
     EXAMPLES:
     There is an underlying gap object that implements each permutation group.
 
@@ -211,7 +219,13 @@ class PermutationGroup_generic(group.FiniteGroup):
                 gens = list(gens)
             elif not isinstance(gens, list):
                 raise TypeError, "gens must be a tuple or list"
-            gens = [gap_format(x) for x in gens]
+            new_gens = []
+            for x in gens:
+                if is_GapElement(x):
+                    new_gens.append( str(x) )
+                else:
+                    new_gens.append(gap_format(x))
+            gens = new_gens
 
         cmd = 'Group(%s)'%gens
         cmd = cmd.replace("'","")  # get rid of quotes

@@ -2946,8 +2946,7 @@ class NumberField_absolute(NumberField_generic):
                      names[0] generators K and names[1] QQ(alpha).
 
         OUTPUT:
-            K   -- relative number field, map from K to self,
-                   map from self to K.
+            K   -- relative number field
 
         Also, \code{K.structure()} returns from_K and to_K, where
         from_K is an isomorphism from K to self and to_K is an isomorphism
@@ -3346,6 +3345,14 @@ class NumberField_relative(NumberField_generic):
             2/3
             sage: k(m.0^4)
             9
+
+        TESTS:
+            sage: K.<a> = NumberField(ZZ['x'].0^2 + 2, 'a')
+            sage: L.<b> = K.extension(ZZ['x'].0 - a, 'b')
+            sage: L(a)
+            a
+            sage: L(b+a)
+            2*a
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             P = x.parent()
@@ -4041,8 +4048,11 @@ class NumberField_relative(NumberField_generic):
             names -- name of generator for output field K.
 
         OUTPUT:
-            K, from_K, to_K -- relative number field, map from K to self,
-                               map from self to K.
+            K -- relative number field
+
+        Also, \code{K.structure()} returns from_K and to_K, where
+        from_K is an isomorphism from K to self and to_K is an isomorphism
+        from self to K.
 
         EXAMPLES:
             sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K

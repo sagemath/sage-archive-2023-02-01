@@ -253,7 +253,7 @@ class EllipticCurveFormalGroup(SageObject):
         the usual invariant differential $dx/(2y + a_1 x + a_3)$.
 
         INPUT:
-           prec -- nonnegative integer, answer will be returned O(t^prec)
+           prec -- nonnegative integer, answer will be returned $O(t^{\var{prec}})$
 
         OUTPUT:
             a power series with given precision

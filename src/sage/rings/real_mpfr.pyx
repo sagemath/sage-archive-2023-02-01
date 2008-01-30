@@ -822,7 +822,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return self.str(10, no_sci=True)
 
     def __hash__(self):
-        return hash(self.str(16))
+        """
+        Returns the hash of self, which coincides with the python
+        float (and often int) type.
+
+        This has the drawback that two very close high precision
+        numbers will have the same hash, but allows them to play
+        nicely with other real types.
+
+        EXAMPLE:
+            sage: hash(RR(1.2)) == hash(1.2r)
+            True
+        """
+        return hash(float(self))
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self) # since 1 |--> 1

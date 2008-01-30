@@ -19,3 +19,4 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
 	cdef ComplexDoubleElement _new_c(self, gsl_complex x)
 	cdef _new_from_gen_c(self, GEN g, pari_sp sp)
 
+cdef public api ComplexDoubleElement new_ComplexDoubleElement()

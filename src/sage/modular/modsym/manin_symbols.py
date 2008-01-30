@@ -695,7 +695,7 @@ class ManinSymbol(SageObject):
         return x.apply([a,b,c,d])
 
 def apply_to_monomial(i, j, a, b, c, d):
-    """
+    r"""
     Returns a list of the coefficients of
     $$
              (aX + bY)^i (cX + dY)^{j-i},
@@ -710,7 +710,7 @@ def apply_to_monomial(i, j, a, b, c, d):
 
     OUTPUT:
         list of ints, which are the coefficients
-        of Y^j, Y^(j-1)*X, ..., X^j, respectively.
+        of $Y^j$, $Y^{j-1}*X$, \ldots, $X^j$, respectively.
 
     EXAMPLE:
     We compute that $(X+Y)^2(X-Y) = X^3 + X^2Y - XY^2 - Y^3$.

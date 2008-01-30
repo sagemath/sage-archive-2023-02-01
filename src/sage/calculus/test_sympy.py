@@ -1,7 +1,9 @@
 r"""
-In the following session, we do all of the examples in the Sympy
-tutorial (http://code.google.com/p/sympy/wiki/Tutorial), but using
-SAGE instead of Sympy.
+A Sample Session using Sympy
+
+In this first part, we do all of the examples in the Sympy
+tutorial (\url{http://code.google.com/p/sympy/wiki/Tutorial}), but using
+\sage instead of Sympy.
 
 sage: a = Rational((1,2))
 sage: a
@@ -110,7 +112,7 @@ sage: pprint(f)
     1 + ---- + ----- + ------ + ------- + O(x**10)
          2       8      240      13440
 
-And the functionality to convert from sympy format to Sage format:
+And the functionality to convert from sympy format to \sage format:
 sage: e._sage_()
 1/cos(x)^3
 sage: print e._sage_()
@@ -125,7 +127,7 @@ sage: f._sage_()
 
 
 
-Mixing SymPy with SAGE:
+Mixing SymPy with \sage:
 sage: import sympy
 sage: sympy.sympify(var("y"))+sympy.Symbol("x")
 x + y

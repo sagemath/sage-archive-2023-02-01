@@ -862,7 +862,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: r, s, G = E.simon_two_descent(); r,s
             (7, 7)
             sage: E = EllipticCurve([0, 0, 1, -23737, 960366])
-            sage: r, s, G = E.simon_two_descent(); r,s       # long time
+            sage: r, s, G = E.simon_two_descent(); r,s
             (8, 8)
         """
         t = simon_two_descent(self, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
@@ -948,6 +948,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             5
             sage: EllipticCurve([0, 0, 1, -79, 342]).simon_two_descent()[0]  # much faster -- almost instant.
             5
+
+        Examples with denominators in defining equations:
+            sage: E = EllipticCurve( [0, 0, 0, 0, -675/4])
+            sage: E.rank()
+            0
+            sage: E = EllipticCurve( [0, 0, 1/2, 0, -1/5])
+            sage: E.rank()
+            1
+            sage: E.minimal_model().rank()
+            1
         """
         if proof is None:
             from sage.structure.proof.proof import get_flag
@@ -1629,6 +1639,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Generic morphism:
               From: Abelian group of points on Elliptic Curve defined by y^2 + 1/2*x*y  = x^3 + 5*x + 1/3 over Rational Field
               To:   Abelian group of points on Elliptic Curve defined by y^2 + 3*x*y  = x^3 + 6480*x + 15552 over Rational Field
+              Via:  (u,r,s,t) = (1/6, 0, 0, 0)
             sage: P = E([4/9,41/27])
             sage: phi(P)
             (16 : 328 : 1)
@@ -2000,7 +2011,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve('195a')
             sage: G = E.isogeny_graph()
-            sage: for v in G: print v, G.obj(v)
+            sage: for v in G: print v, G.get_vertex(v)
             ...
             0 Elliptic Curve defined by y^2 + x*y  = x^3 - 110*x + 435 over Rational Field
             1 Elliptic Curve defined by y^2 + x*y  = x^3 - 115*x + 392 over Rational Field
@@ -2018,7 +2029,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         d = {}
         for v in G.vertices():
             d[v] = L[v]
-        G.associate(d)
+        G.set_vertices(d)
         return G
 
     ##########################################################
@@ -2649,7 +2660,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ArithmeticError: Discriminant (=-3) must not be -3 or -4.
 
         The curve 681b returns an interval that contains $3/2$.
-        This is because $E(\Q) is not saturated in $E(K)$.  The
+        This is because $E(\Q)$ is not saturated in $E(K)$.  The
         true index is $3$:
             sage: E = EllipticCurve('681b')
             sage: I = E.heegner_index(-8); I

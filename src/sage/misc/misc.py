@@ -1366,7 +1366,13 @@ def tmp_dir(name='dir'):
 __tmp_n = 0
 
 def tmp_filename(name='tmp'):
-    name = str(name)
+    name = list(str(name))
+    for i in range(len(name)):
+        # protect against paths with slashes, colons, etc
+        if not (name[i].isalpha() or name[i].isdigit()):
+            name[i] = '_'
+    name = ''.join(name)
+
     global __tmp_n
     while True:
         tmp = "%s/%s_%s"%(SAGE_TMP, name, __tmp_n)

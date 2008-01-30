@@ -1776,8 +1776,8 @@ def read_all_polytopes(file_name, desc=None):
     INPUT:
         file_name -- the name of a file with vertices of polytopes
         desc -- a string, that will be used for creating polytope descriptions.
-            By default it will be set to 'A lattice polytope #%d from "filename"'
-            and will be used as \code{desc % n} where \code{n} is the number of
+            By default it will be set to 'A lattice polytope \#\%d from "filename"'
+            and will be used as \code{desc \% n} where \code{n} is the number of
             the polytope in the file (\emph{STARTING WITH ZERO}).
 
     OUTPUT:

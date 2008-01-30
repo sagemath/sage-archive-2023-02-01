@@ -479,10 +479,11 @@ class Partition_class(CombinatorialObject):
             return Partition([])
         else:
             l = len(p)
-            conj =  [l]*p[-1]
-            for i in xrange(l-1,0,-1):
-                conj.extend([i]*(p[i-1] - p[i]))
-            return Partition_class(conj)
+            conj =  [l]*p[l-1]
+            for i in range(2,l+1):
+                conj += [l-i+1]*(p[l-i] - p[l-i+1])
+
+            return Partition(conj)
 
     def reading_tableau(self):
         """

@@ -14,12 +14,12 @@ EXAMPLE:
     sage: import sage.interfaces.libecm
     sage: from sage.interfaces.libecm import ecmfactor
     sage: result = ecmfactor(999, 0.00)
-    sage: result in [(True, 27), (True, 999)]
+    sage: result in [(True, 27), (True, 37), (True, 999)]
     True
     sage: result = ecmfactor(999, 0.00, verbose=True)
     Performing one curve with B1=0
     Found factor in step 1: ...
-    sage: result in [(True, 27), (True, 999)]
+    sage: result in [(True, 27), (True, 37), (True, 999)]
     True
 
 """
@@ -70,3 +70,4 @@ def ecmfactor(number, py_B1, verbose=False):
         return (False, None)
     else:
         raise RuntimeError( "ECM lib error" )
+

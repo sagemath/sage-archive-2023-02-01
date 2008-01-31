@@ -3273,9 +3273,9 @@ cdef class gen(sage.structure.element.RingElement):
             gen -- value of the incomplete Gamma function at s.
 
         EXAMPLES:
-            sage: pari('1+I').incgam('3-I')             # long time
+            sage: pari('1+I').incgam('3-I')
             -0.04582978599199457259586742326 + 0.04336968187266766812050474478*I        # 32-bit
-            -0.045829785991994572595867423261490338705 + 0.043369681872667668120504744775954724733*I    # 64-bit
+            -0.045829785991994572595867423261490338708 + 0.043369681872667668120504744775954724732*I    # 64-bit
         """
         if not precision:
             precision = prec

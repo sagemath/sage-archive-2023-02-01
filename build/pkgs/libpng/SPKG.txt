@@ -1,3 +1,7 @@
 This is libpng.
 
 http://www.libpng.org/pub/png/libpng.html
+
+=== libpng-1.2.22.p4 (Michael Abshoff, Jan. 31st, 2008) ===
+ * remove loads of ._* files (#2010)
+

@@ -10,9 +10,12 @@ PACKAGE MAINTAINER: Carl Witty (cwitty@newtonlabs.com)
 
 == Changelog==
 
+=== mpfi-1.3.4-cvs20071125.p5 (Michael Abshoff, Jan. 31st, 2008)  ===
+ * remove  binary files from src/tests (#2011)
+
 === mpfi-1.3.4-cvs20071125.p4 (Michael Abshoff)  ===
-  * change configure.ac to detect dylibs on OSX, too. Changed the macros in
-    configure.ac to:
+ * change configure.ac to detect dylibs on OSX, too. Changed the macros in
+   configure.ac to:
 
 # Checks for MPFR lib (Before GMP!)
 if ` test "$with_mpfr_lib" `
@@ -56,7 +59,7 @@ fi
 
 
 === mpfi-1.3.4-cvs20071125.p3 (Michael Abshoff)  ===
-  * change configure.ac to check and link against a dynamic gmp.so, mpfr.so
+ * change configure.ac to check and link against a dynamic gmp.so, mpfr.so
 
 Clean up the test of the changelog
 

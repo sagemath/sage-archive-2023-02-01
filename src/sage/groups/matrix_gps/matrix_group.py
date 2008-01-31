@@ -695,8 +695,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
             sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[-1,1]])]
             sage: G = MatrixGroup(gens)
             sage: G.invariant_generators()  ## takes a long time (several mins)
-            [x1^20 + x1^16*x2^4 + x1^12*x2^8 + x1^8*x2^12 + x1^4*x2^16 + x2^20,
- x1^20*x2^4 + x1^16*x2^8 + x1^12*x2^12 + x1^8*x2^16 + x1^4*x2^20]
+            [x1^20 + x1^16*x2^4 + x1^12*x2^8 + x1^8*x2^12 + x1^4*x2^16 + x2^20, x1^20*x2^4 + x1^16*x2^8 + x1^12*x2^12 + x1^8*x2^16 + x1^4*x2^20]
 
 
         AUTHORS:

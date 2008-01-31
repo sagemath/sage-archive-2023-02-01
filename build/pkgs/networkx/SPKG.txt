@@ -1,5 +1,8 @@
 = networkx-0.36 =
 
+=== networkx-0.36.p1 (Michael Abshoff, Jan. 31st, 2008) ===
+ * remove .svn directories (#2009)
+
 === networkx-0.36.p0 ===
  * add hg repo, check in files
 

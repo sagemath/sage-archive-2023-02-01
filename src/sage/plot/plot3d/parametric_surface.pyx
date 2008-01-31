@@ -388,7 +388,7 @@ cdef class ParametricSurface(IndexFaceSet):
             for uu in urange:
                 for vv in vrange:
                     res = &self.vs[ix]
-                    res.x, res.y, res.z = self.f(u, v)
+                    res.x, res.y, res.z = self.f(uu, vv)
                     ix += 1
 
 
@@ -426,3 +426,4 @@ cdef double* to_double_array(py_list) except NULL:
         c_list[i] = a
         i += 1
     return c_list
+

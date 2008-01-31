@@ -1,5 +1,8 @@
 = gap =
 
+=== gap-4.4.10.p2 (Michael Abshoff, Jan. 31st, 2008) ===
+ * remove src/pkg/guava3.1/src/leonconv (#2006)
+
 === gap-4.4.10.p1 (Michael Abshoff, Jan. 22nd, 2008) ===
  * remove 1500 crap files from the spkg (part of #1883)
 

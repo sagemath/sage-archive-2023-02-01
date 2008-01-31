@@ -4,7 +4,7 @@
 import conf
 
 defaults = {'system':'sage',
-            'prettyprint':False
+            'pretty_print':False
            }
 
 class WorksheetConfiguration(conf.Configuration):

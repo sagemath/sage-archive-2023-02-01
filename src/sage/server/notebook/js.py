@@ -931,14 +931,14 @@ function system_select(s) {
     async_request(worksheet_command('system/'+s), null, null);
 }
 
-function go_prettyprint_check(theform) {
+function go_pretty_print_check(theform) {
    with(theform) {
-          prettyprint_check(checked);
+          pretty_print_check(checked);
    }
 }
 
-function prettyprint_check(s) {
-    async_request(worksheet_command('prettyprint/'+s), null, null);
+function pretty_print_check(s) {
+    async_request(worksheet_command('pretty_print/'+s), null, null);
 }
 
 

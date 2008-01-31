@@ -45,7 +45,7 @@ class Notebook(SageObject):
     def __init__(self,
                  dir,
                  system=None,
-                 prettyprint=False,
+                 pretty_print=False,
                  show_debug = False,
                  log_server=False,
                  address='localhost',
@@ -58,7 +58,7 @@ class Notebook(SageObject):
 
         self.__server_pool = server_pool
         self.set_system(system)
-        self.set_prettyprint(prettyprint)
+        self.set_pretty_print(pretty_print)
         self.__worksheets = {}
         self.__filename      = '%s/nb.sobj'%dir
         self.__worksheet_dir = '%s/worksheets'%dir
@@ -402,6 +402,18 @@ class Notebook(SageObject):
 
     def set_system(self, system):
         self.__system = system
+
+    ##########################################################
+    # The default typeset setting for new worksheets for
+    # a given user or the whole notebook (if username is None).
+    ##########################################################
+
+    # TODO -- only implemented for the notebook right now
+    def pretty_print(self, username=None):
+        return self.user(username).conf()['default_pretty_print']
+
+    def set_pretty_print(self, pretty_print):
+        self.__pretty_print = pretty_print
 
     ##########################################################
     # The default color scheme for the notebook.
@@ -1834,15 +1846,15 @@ function save_worksheet_and_close() {
             </select>"""%(i, options)
         return s
 
-    def html_prettyprint_check_form_element(self, ws):
-        prettyprint = ws.prettyprint()
-        if prettyprint:
+    def html_pretty_print_check_form_element(self, ws):
+        pretty_print = ws.pretty_print()
+        if pretty_print:
             check='checked="checked"'
         else:
             check=''
-        s = """<input type="checkbox" title="Enable/disable prettyprinting"
-        onchange="go_prettyprint_check(this);"
-        class="worksheet" value="prettyprint" %s> Typeset output"""%(check)
+        s = """<input type="checkbox" title="Enable/disable pretty_printing"
+        onchange="go_pretty_print_check(this);"
+        class="worksheet" value="pretty_print" %s> Typeset output"""%(check)
         return s
 
 

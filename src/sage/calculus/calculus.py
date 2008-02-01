@@ -4878,6 +4878,8 @@ class SymbolicArithmetic(SymbolicOperation):
                              infixops[self._operator],
                              sys_init(ops[1], system))
 
+is_python_identifier = re.compile("[_a-zA-Z][_a-zA-Z0-9]*")
+
 def is_SymbolicVariable(x):
     """
     Return True if $x$ is a symbolic variable.
@@ -4909,6 +4911,8 @@ class SymbolicVariable(SymbolicExpression):
         self._name = name
         if len(name) == 0:
             raise ValueError, "variable name must be nonempty"
+        elif not is_python_identifier.match(name):
+            raise ValueError, "variable name is not a valid Python identifier"
 
     def __hash__(self):
         """
@@ -5016,6 +5020,14 @@ def var(s, create=True):
     EXAMPLES:
         sage: var('xx')
         xx
+        sage: var('.foo')
+        Traceback (most recent call last):
+        ...
+        ValueError: variable name is not a valid Python identifier
+        sage: var('.foo/x')
+        Traceback (most recent call last):
+        ...
+        ValueError: variable name is not a valid Python identifier
     """
     if isinstance(s, SymbolicVariable):
         return s

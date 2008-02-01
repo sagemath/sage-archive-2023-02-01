@@ -21,7 +21,7 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "typecheck", "prop", "strunc",
                "assert_attribute", "LOGFILE"]
 
-import operator, os, socket, sys, signal, time, weakref, random, resource, math
+import operator, os, stat, socket, sys, signal, time, weakref, random, resource, math
 
 from banner import version, banner
 
@@ -66,6 +66,34 @@ if ' ' in DOT_SAGE:
         print "is to set the environment variable HOME to a"
         print "directory with no spaces that you have write"
         print "permissions to before you start sage."
+
+#################################################
+# Now that the variable DOT_SAGE has been set,
+# we make sure that the DOT_SAGE directory
+# has restrictive permissions, since otherwise
+# possibly just anybody can easily see every
+# command you type, since it is in the history,
+# and every worksheet you create, etc.
+# We do the following:
+#   1. If there is no DOT_SAGE, we create it.
+#   2. Check to see if the permissions on DOT_SAGE are
+#      sufficiently restrictive.  If not, we change them.
+
+if not os.path.exists(DOT_SAGE):
+    os.makedirs(DOT_SAGE)
+
+_mode = os.stat(DOT_SAGE)[stat.ST_MODE]
+_desired_mode = 040700     # drwx------
+if _mode != _desired_mode:
+    print "Setting permissions of DOT_SAGE directory so only you can read and write it."
+    # Change mode of DOT_SAGE.
+    os.chmod(DOT_SAGE, _desired_mode)
+
+
+#################################################
+# Next we create the Sage temporary directory.
+# It is called temp instead of tmp mainly for
+# "historical reasons"...
 
 SAGE_TMP='%s/temp/%s/%s/'%(DOT_SAGE, HOSTNAME, os.getpid())
 if not os.path.exists(SAGE_TMP):

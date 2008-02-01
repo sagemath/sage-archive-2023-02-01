@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-TIMEOUT = 180
+TIMEOUT = 1800
 
 import os, re, sys, signal, time, shutil
 

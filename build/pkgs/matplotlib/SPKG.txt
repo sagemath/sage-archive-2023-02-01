@@ -1,3 +1,11 @@
+= matplotlib =
+
+== Changelog ==
+
+=== matplotlib-0.91.1.p3 (Michael Abshoff, Jan. 31st, 2008) ===
+ * fix local issues in cbook.py (#1967) [William Stein]
+ * remove bianry crap (#2014)
+
 === matplotlib-0.91.1.p2 (Michael Abshoff, Jan. 17th, 2008) ===
  * bump version due to ucs4 update
 

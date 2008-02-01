@@ -1,0 +1,57 @@
+#!/bin/sh
+
+
+
+
+./copy_patches.pl
+
+# These flags confuse numpy's distutils.   In particular,
+# if they are set empty bad things happen.
+
+unset CFLAGS LDFLAGS CXXFLAGS SHAREDFLAGS
+
+if [ `uname` = "Darwin" ]; then
+    unset ATLAS
+    unset BLAS
+    unset LAPACK
+else
+    ATLAS="$SAGE_LOCAL"
+    export ATLAS
+    BLAS="$SAGE_LOCAL"
+    export BLAS
+    LAPACK="$SAGE_LOCAL"
+    export LAPACK
+fi
+
+
+# This avoid problems on some systems -- until we officially
+# support umfpack (which we will likely do, since cvxopt
+# I think includes it).
+#   http://projects.scipy.org/pipermail/scipy-user/2006-July/008661.html
+# (Currently swig gets invoked by scipy when building the umfpack interace,
+# which is bad.)
+
+UMFPACK="None"; export UMFPACK
+rm -rf "$SAGE_LOCAL"/lib/python/site-packages/scipy
+
+cd src/
+
+if [ $? -ne 0 ]; then
+    echo "Error patching setup.py"
+    exit 1
+fi
+
+# Build
+python setup.py build
+if [ $? -ne 0 ]; then
+    echo "Error building scipy."
+    exit 1
+fi
+
+# Intall
+python setup.py install
+if [ $? -ne 0 ]; then
+    echo "Error installing scipy."
+    exit 1
+fi
+

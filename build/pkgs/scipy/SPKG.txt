@@ -1,0 +1,15 @@
+= scipy =
+
+== maintainers ==
+ * William Stein
+ * Josh Kantor
+ * Michael Abshoff
+
+== Changelog ==
+
+=== scipy-20071020-0.6.p3 ===
+ * add hg repo, add .hgignore, remove backup files
+
+=== scipy-20071020-0.6.p2 ===
+ * previous release
+

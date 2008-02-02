@@ -1204,7 +1204,6 @@ code = setup(name        = 'sage',
                      'sage.numerical',
 
                      'sage.plot',
-                     'sage.plot.mpl3d',
                      'sage.plot.plot3d',
 
                      'sage.probability',

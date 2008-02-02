@@ -10,6 +10,9 @@ Maintainers: Michael Abshoff, Josh Kantor
 
 ChangeLog
 
+=== atlas-3.8.p11 (Michael Abshoff, Feb. 2nd, 2008) ===
+ * add pre-tuned information for Pentium M, Athlon MP
+
 === atlas-3.8.p10 (Michael Abshoff, Jan. 26th, 2008) ===
  * exit spkg-check on Darwin (fixes #1934)
 

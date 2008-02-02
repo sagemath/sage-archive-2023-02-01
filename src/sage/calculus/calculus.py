@@ -288,6 +288,7 @@ import sage.ext.fast_eval as fast_float
 #needed for converting from SymPy to SAGE
 import sympy
 
+# TODO: What the heck does this is_simplified thing do?
 is_simplified = False
 
 infixops = {operator.add: '+',
@@ -340,16 +341,70 @@ class SymbolicExpressionRing_class(CommutativeRing):
         Symbolic Ring
         sage: type(SR)
         <class 'sage.calculus.calculus.SymbolicExpressionRing_class'>
+
+    TESTS:
+    Test serializing:
+        sage: loads(dumps(SR)) == SR
+        True
     """
-    def __init__(self):
-        self._default_precision = 53 # default precision bits
+    def __init__(self, default_precision=53):
+        """
+        Create a symbolic expression ring.
+
+        EXAMPLES:
+            sage: from sage.calculus.calculus import SymbolicExpressionRing_class
+            sage: SymbolicExpressionRing_class()
+            Symbolic Ring
+        """
         ParentWithBase.__init__(self, RR)
 
     def __cmp__(self, other):
+        """
+        Compare two symbolic expression rings.  They are equal if and
+        only if they have the same type. Otherwise their types are
+        compared.
+
+        EXAMPLES:
+            sage: cmp(SR, RR)
+            1
+            sage: cmp(RR, SymbolicExpressionRing())
+            -1
+            sage: cmp(SR, SymbolicExpressionRing())
+            0
+        """
         return cmp(type(self), type(other))
 
-    def __reduce__(self):
-        return SymbolicExpressionRing, tuple([])
+    def __contains__(self, x):
+        r"""
+        True if there is an element of the symbolic ring  that is equal
+        to x under ==.
+
+        EXAMPLES:
+        The symbolic variable x is in the symbolic ring.
+            sage: x.parent()
+            Symbolic Ring
+            sage: x in SR
+            True
+
+        2 is also in the symbolic ring since it is equal to something
+        in SR, even though 2's parent is not SR.
+            sage: 2 in SR
+            True
+            sage: parent(2)
+            Integer Ring
+            sage: 1/3 in SR
+            True
+
+        The finite field element 1 (in GF(3)) is not equal to
+        anything in SR.
+            sage: GF(3)(1) in SR
+            False
+        """
+        try:
+            x2 = self(x)
+            return bool(x2 == x)
+        except TypeError:
+            return False
 
     def __call__(self, x):
         """
@@ -384,6 +439,8 @@ class SymbolicExpressionRing_class(CommutativeRing):
 
     def _coerce_impl(self, x):
         """
+        Used for implicit coercion.
+
         EXAMPLES:
             sage: x=var('x'); y0,y1=PolynomialRing(ZZ,2,'y').gens()
             sage: x+y0/y1
@@ -431,18 +488,67 @@ class SymbolicExpressionRing_class(CommutativeRing):
             raise TypeError, "cannot coerce type '%s' into a SymbolicExpression."%type(x)
 
     def _repr_(self):
+        """
+        Return string representation of this symbolic ring.
+
+        EXAMPLES:
+            sage: SR._repr_()
+            'Symbolic Ring'
+        """
         return 'Symbolic Ring'
 
     def _latex_(self):
-        return 'SymbolicExpressionRing'
+        """
+        Return latex representation of the symbolic ring.
+
+        EXAMPLES:
+            sage: latex(SR)
+            \text{SR}
+            sage: M = MatrixSpace(SR, 2); latex(M)
+            \mbox{\rm Mat}_{2\times 2}(\text{SR})
+        """
+        return r'\text{SR}'
 
     def var(self, x):
+        """
+        Return the symbolic variable defined by x as an element of the
+        symbolic ring.
+
+        EXAMPLES:
+            sage: zz = SR.var('zz'); zz
+            zz
+            sage: type(zz)
+            <class 'sage.calculus.calculus.SymbolicVariable'>
+            sage: t = SR.var('theta2'); t
+            theta2
+        """
         return var(x)
 
     def characteristic(self):
+        """
+        Return the characteristic of the symbolic ring, which is 0.
+
+        OUTPUT:
+            a Sage integer
+
+        EXAMPLES:
+            sage: c = SR.characteristic(); c
+            0
+            sage: type(c)
+            <type 'sage.rings.integer.Integer'>
+        """
         return Integer(0)
 
     def _an_element_impl(self):
+        """
+        Return an element of the symbolic ring, which is used
+        by the coercion model.
+
+        EXAMPLES:
+        Currently this function always returns 0.  That may change.
+            sage: SR._an_element_impl()
+            0
+        """
         try:
             return self.__zero
         except AttributeError:
@@ -450,9 +556,29 @@ class SymbolicExpressionRing_class(CommutativeRing):
         return self.__zero
 
     def is_field(self):
+        """
+        Returns True, since the symbolic expression ring is (for the
+        most part) a field.
+
+        EXAMPLES:
+            sage: SR.is_field()
+            True
+        """
         return True
 
     def is_exact(self):
+        """
+        Return False, because there are approximate elements in
+        the symbolic ring.
+
+        EXAMPLES:
+            sage: SR.is_exact()
+            False
+
+        Here is an inexact element.
+            sage: SR(1.9393)
+            1.93930000000000
+        """
         return False
 
 # Define the unique symbolic expression ring.
@@ -461,7 +587,9 @@ SR = SymbolicExpressionRing_class()
 # The factory function that returns the unique SR.
 def SymbolicExpressionRing():
     """
-    Return the symbolic expression ring.
+    Return the symbolic expression ring.  There is one
+    globally defines symbolic expression ring in the
+    calculus module.
 
     EXAMPLES:
         sage: SymbolicExpressionRing()
@@ -485,24 +613,68 @@ class SymbolicExpression(RingElement):
 
     """
     def __init__(self):
+        """
+        Create a symbolic expression.
+
+        EXAMPLES:
+        This example is mainly for testing purposes.
+
+        We explicitly import the SymbolicExpression class.
+            sage: from sage.calculus.calculus import SymbolicExpression
+
+        Then we make an instance of it.  Note that it prints as a
+        ``generic element'', since it doesn't even have a specific
+        value!
+            sage: a = SymbolicExpression(); a
+            Generic element of a structure
+
+        It's of the right type.
+            sage: type(a)
+            <class 'sage.calculus.calculus.SymbolicExpression'>
+
+        And it has the right parent.
+            sage: a.parent()
+            Symbolic Ring
+        """
         RingElement.__init__(self, SR)
         if is_simplified:
             self._simp = self
 
     def __hash__(self):
+        """
+        Returns the hash of this symbolic expression.
+
+        EXAMPLES:
+        We hash a symbolic polynomial:
+            sage: hash(x^2 + 1)
+            -832266011
+
+        The default hashing strategy is to simply hash
+        the string representation of an object.
+            sage: hash(repr(x^2+1))
+            -832266011
+
+        In some cases a better hashing strategy is used.
+            sage: hash(SR(3/1))
+            3
+            sage: hash(repr(SR(3/1)))
+            -2061914958
+        """
         return hash(self._repr_(simplify=False))
 
     def __nonzero__(self):
         """
-        EXAMPLES:
-        sage: k = var('k')
-        sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
-        sage: pol.is_zero()
-        True
+        Return True if this element is definitely not zero.
 
-        sage: f = sin(x)^2 + cos(x)^2 - 1
-        sage: f.is_zero()
-        True
+        EXAMPLES:
+            sage: k = var('k')
+            sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
+            sage: pol.is_zero()
+            True
+
+            sage: f = sin(x)^2 + cos(x)^2 - 1
+            sage: f.is_zero()
+            True
         """
 
         try:
@@ -543,6 +715,13 @@ class SymbolicExpression(RingElement):
         return '\n' + self.display2d(onscreen=False)
 
     def show(self):
+        """
+        Show this symbolic expression, i.e., typeset it nicely.
+
+        EXAMPLES:
+            sage: (x^2 + 1).show()
+            {x}^{2}  + 1
+        """
         from sage.misc.functional import _do_show
         return _do_show(self)
 
@@ -582,7 +761,7 @@ class SymbolicExpression(RingElement):
                                   + (sqrt(2)  I - sqrt(2)) erf(------------------------))/8
                                                                           2
         """
-        if not self.is_simplified():
+        if not self._has_been_simplified():
             self = self.simplify()
         s = self._maxima_().display2d(onscreen=False)
         s = s.replace('%pi',' pi').replace('%i',' I').replace('%e', ' e')
@@ -597,14 +776,70 @@ class SymbolicExpression(RingElement):
         else:
             return s
 
-    def is_simplified(self):
+    def _has_been_simplified(self):
+        """
+        Return True if this symbolic expression was constructed in
+        such a way that it is known to already be simplified.
+
+        WARNING: An expression that happens to be in a simplified form
+        need not return True.
+
+        EXAMPLES:
+        This expression starts in simple form:
+            sage: f = x^2 + 1; f
+            x^2 + 1
+
+        But it has not been simplified, i.e., it was constructed
+        as a simplified expression.
+            sage: f._has_been_simplified()
+            False
+            sage: g = f.simplify(); g
+            x^2 + 1
+            sage: g._has_been_simplified()
+            True
+
+        This function still does not return True, since f itself
+        isn't constructed as a simplified expression.
+            sage: f._has_been_simplified()
+            False
+
+        Here, though f looks simplified when printed, internally
+        it is much more complicated and hence not simplified.
+            sage: f = x + 1 - x; f
+            1
+            sage: f._has_been_simplified()
+            False
+            sage: type(f)
+            <class 'sage.calculus.calculus.SymbolicArithmetic'>
+            sage: f._operands
+            [x + 1, x]
+        """
         return hasattr(self, '_simp') and self._simp is self
 
     def _declare_simplified(self):
-        self._simp = self
+        """
+        Call this function to 'convince' this symbolic expression that
+        it is in fact simplified.  Basically this means it won't be
+        simplified further before printing if you do this.
 
-    def hash(self):
-        return hash(self._repr_(simplify=False))
+        This is mainly for internal use.
+
+        EXAMPLES:
+        We make an $x + 1 - x$ that prints as that expression with
+        no simplification before printing:
+            sage: f = x + 1 - x
+            sage: f._declare_simplified()
+            sage: f
+            x + 1 - x
+            sage: f._has_been_simplified()
+            True
+
+        Note that staying unsimplified as above does not persist
+        when we do arithmetic with $f$.
+            sage: f + 2
+            3
+        """
+        self._simp = self
 
     def plot(self, *args, **kwds):
         """
@@ -626,6 +861,13 @@ class SymbolicExpression(RingElement):
 
         A very thick green plot with a frame:
             sage: sin(x).plot((x,-4*pi, 4*pi), thickness=20, rgbcolor=(0,0.7,0)).show(frame=True)
+
+        You can embed 2d plots in 3d space as follows:
+            sage: plot(sin(x^2), (x,-pi, pi), thickness=2).plot3d(z = 1)
+
+        A more complicated family:
+            sage: G = sum([plot(sin(n*x), (x,-2*pi, 2*pi)).plot3d(z=n) for n in [0,0.1,..1]])
+            sage: G.show(frame_aspect_ratio=[1,1,1/2])
         """
         from sage.plot.plot import plot
 
@@ -669,54 +911,152 @@ class SymbolicExpression(RingElement):
         return plot(f, *args, **kwds)
 
     def __lt__(self, right):
+        r"""
+        Construct the symbolic inequality \code{self < right}.
+
+        NOTE: This only returns a Python bool if right does not coerce
+        to the symbolic ring.  Otherwise it returns a symbolic equation.
+
+        EXAMPLES:
+            sage: x < x
+            x < x
+            sage: x < Mod(2,5)
+            False
+        """
         try:
             return SymbolicEquation(self, SR(right), operator.lt)
         except TypeError:
-            return False
+            return type(self) < type(right)
 
     def __le__(self, right):
+        r"""
+        Construct the symbolic inequality \code{self <= right}.
+
+        NOTE: This only returns a Python bool if right does not coerce
+        to the symbolic ring.  Otherwise it returns a symbolic equation.
+
+        EXAMPLES:
+            sage: x <= x
+            x <= x
+            sage: x <= Mod(2,5)
+            False
+            sage: Mod(2,5) >= x
+            False
+            sage: Mod(2,5) <= x
+            True
+        """
         try:
             return SymbolicEquation(self, SR(right), operator.le)
         except TypeError:
-            return False
+            return type(self) <= type(right)
 
     def __eq__(self, right):
+        r"""
+        Construct the symbolic inequality \code{self == right}.
+
+        NOTE: This only returns a Python bool if right does not coerce
+        to the symbolic ring.  Otherwise it returns a symbolic equation.
+
+        EXAMPLES:
+
+        """
         try:
             return SymbolicEquation(self, SR(right), operator.eq)
         except TypeError:
             return False
 
     def __ne__(self, right):
+        r"""
+        Construct the symbolic inequality \code{self != right}.
+
+        NOTE: This only returns a Python bool if right does not coerce
+        to the symbolic ring.  Otherwise it returns a symbolic equation.
+
+        EXAMPLES:
+        """
         try:
             return SymbolicEquation(self, SR(right), operator.ne)
         except TypeError:
-            return False
+            return True
 
     def __ge__(self, right):
+        r"""
+        Construct the symbolic inequality \code{self >= right}.
+
+        NOTE: This only returns a Python bool if right does not coerce
+        to the symbolic ring.  Otherwise it returns a symbolic equation.
+
+        EXAMPLES:
+        """
         try:
             return SymbolicEquation(self, SR(right), operator.ge)
         except TypeError:
-            return False
+            return type(self) >= type(right)
 
     def __gt__(self, right):
+        r"""
+        Construct the symbolic inequality \code{self > right}.
+
+        NOTE: This only returns a Python bool if right does not coerce
+        to the symbolic ring.  Otherwise it returns a symbolic equation.
+
+        EXAMPLES:
+        """
         try:
             return SymbolicEquation(self, SR(right), operator.gt)
         except TypeError:
-            return False
+            return type(self) > type(right)
 
     def __cmp__(self, right):
         """
         Compares self and right.
 
         This is by definition the comparison of the underlying Maxima
-        objects.
+        objects, if right coerces to a symbolic (otherwise types are
+        compared).  It is not used unless you explicitly call cmp,
+        since all the other special comparison methods are overloaded.
 
         EXAMPLES:
         These two are equal:
             sage: cmp(e+e, e*2)
             0
+            sage: cmp(SR(3), SR(5))
+            -1
+            sage: cmp(SR(5), SR(2))
+            1
+
+        Note that specifiec comparison operators do not call cmp.
+            sage: SR(3) < SR(5)
+            3 < 5
+            sage: bool(SR(3) < SR(5))
+            True
+
+        We compare symbolic elements with non symbolic ones.
+            sage: cmp(SR(3), 5)
+            -1
+            sage: cmp(3, SR(5))
+            -1
+
+        Here the underlying types are compared, since Mod(2,5)
+        doesn't coerce to the symbolic ring.
+            sage: cmp(SR(3), Mod(2,5))
+            1
+            sage: cmp(type(SR(3)), type(Mod(2,5)))
+            1
+            sage: cmp(Mod(2,5), SR(3))
+            -1
+
+        Some comparisons are fairly arbitrary but consistent:
+            sage: cmp(SR(3), x)
+            -1
+            sage: cmp(x, SR(3))
+            1
         """
-        return cmp(maxima(self), maxima(right))
+        try:
+            right = SR(right)
+            return cmp(maxima(self), maxima(right))
+        except TypeError:
+            return cmp(type(self), type(right))
 
     def _richcmp_(left, right, op):
         """
@@ -2505,7 +2845,11 @@ class SymbolicExpression(RingElement):
 
         More examples:
             sage: (sin(x) + exp(x)).find_root(-10, 10)
-            -0.58853274398186284
+            -0.58853274398186273
+
+        An example with a square root:
+            sage: f = 1 + x + sqrt(x+2); f.find_root(-2,10)
+            -1.6180339887498949
 
        Some examples that Ted Kosan came up with:
             sage: t = var('t')
@@ -2525,14 +2869,32 @@ class SymbolicExpression(RingElement):
         However \code{find_root} works beautifully:
             sage: a.find_root(0,0.002)
             0.0004110514049349341...
+
+        We illustrate that root finding is only implemented
+        in one dimension:
+            sage: x, y = var('x,y')
+            sage: (x-y).find_root(-2,2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: root finding currently only implemented in 1 dimension.
         """
         a = float(a); b = float(b)
         if var is None:
-            var = first_var(self)
+            w = self.variables()
+            if len(w) > 1:
+                raise NotImplementedError, "root finding currently only implemented in 1 dimension."
+            if len(w) == 0:
+                if bool(self == 0):
+                    return a
+                else:
+                    raise RuntimeError, "no zero in the interval, since constant expression is not 0."
+            var = repr(w[0])
+
+        f = self._fast_float_(var)
         if a > b:
             a, b = b, a
-        def f(w):
-            return float(self.substitute({var:float(w)}))
+        #def f(w):
+        #    return float(self.substitute({var:float(w)}))
         return sage.numerical.optimize.find_root(f, a=a,b=b, xtol=xtol, rtol=rtol,
                                                  maxiter=maxiter, full_output=full_output)
 
@@ -3617,7 +3979,7 @@ class SymbolicOperation(SymbolicExpression):
             sage: (x^2 + x).variables()
             (x,)
         """
-        if not self.is_simplified():
+        if not self._has_been_simplified():
             return self.simplify().variables(vars)
 
         try:
@@ -3670,7 +4032,7 @@ class SymbolicOperation(SymbolicExpression):
         except AttributeError:
             pass
         variables = self.variables()
-        if not self.is_simplified():
+        if not self._has_been_simplified():
             n = self.simplify().number_of_arguments()
         else:
             # We need to do this maximum to correctly handle the case where
@@ -4071,7 +4433,7 @@ class SymbolicArithmetic(SymbolicOperation):
             else:
                 return self._convert(field)
         except TypeError:
-            if self.is_simplified():
+            if self._has_been_simplified():
                 raise
             else:
                 return self.simplify()._algebraic_(field)
@@ -4246,7 +4608,7 @@ class SymbolicArithmetic(SymbolicOperation):
             {\left( x + 1 \right) \cos}
         """
         # if we are not simplified, return the latex of a simplified version
-        if simplify and not self.is_simplified():
+        if simplify and not self._has_been_simplified():
             return self.simplify()._latex_()
         op = self._operator
         ops = self._operands
@@ -4344,10 +4706,18 @@ class SymbolicVariable(SymbolicExpression):
             sage: f = x._fast_float_('y', 'x')
             sage: f(1,2)
             2.0
+            sage: sqrt(2)._fast_float_()(2)
+            1.4142135623730951
         """
-        if self._name not in vars:
+        if self._name in vars:
+            return fast_float.fast_float_arg(list(vars).index(self._name))
+        svars = [repr(x) for x in vars]
+        if self._name in svars:
+            return fast_float.fast_float_arg(list(svars).index(self._name))
+        try:
+            return fast_float.fast_float_constant(float(self))
+        except TypeError:
             raise ValueError, "free variable: %s" % self._name
-        return fast_float.fast_float_arg(list(vars).index(self._name))
 
     def _recursive_sub(self, kwds):
         # do the replacement if needed
@@ -4454,7 +4824,6 @@ def is_CallableSymbolicExpressionRing(x):
 
 class CallableSymbolicExpressionRing_class(CommutativeRing):
     def __init__(self, args):
-        self._default_precision = 53 # default precision bits
         self._args = args
         ParentWithBase.__init__(self, RR)
 
@@ -5023,7 +5392,7 @@ class SymbolicComposition(SymbolicOperation):
         except AttributeError:
             pass
         variables = self.variables()
-        if not self.is_simplified():
+        if not self._has_been_simplified():
             n = self.simplify().number_of_arguments()
         else:
             # Note that we use self._operands[1:] so we don't include the
@@ -5064,7 +5433,7 @@ class SymbolicComposition(SymbolicOperation):
             return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
 
     def _latex_(self):
-        if not self.is_simplified():
+        if not self._has_been_simplified():
             return self.simplify()._latex_()
         ops = self._operands
 
@@ -5196,7 +5565,7 @@ class SymbolicComposition(SymbolicOperation):
             sage: RDF(sin(2)+cos(2))
             0.493150590279
         """
-        if not self.is_simplified():
+        if not self._has_been_simplified():
             return self.simplify()._real_double_(field)
         f = self._operands[0]
         g = self._operands[1]
@@ -5212,7 +5581,7 @@ class SymbolicComposition(SymbolicOperation):
         EXAMPLES:
 
         """
-        if not self.is_simplified():
+        if not self._has_been_simplified():
             return self.simplify()._real_rqdf_(field)
         f = self._operands[0]
         g = self._operands[1]
@@ -5240,7 +5609,7 @@ class SymbolicComposition(SymbolicOperation):
         try:
             return field(f(g._algebraic_(field)))
         except TypeError:
-            if self.is_simplified():
+            if self._has_been_simplified():
                 raise
             else:
                 return self.simplify()._algebraic_(field)

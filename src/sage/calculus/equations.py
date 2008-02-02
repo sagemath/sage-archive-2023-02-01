@@ -103,6 +103,28 @@ def paren(x):
     else:
         return '(%s)'%r
 
+def is_SymbolicEquation(x):
+    r"""
+    Return True if x is a symbolic equation.
+
+    EXAMPLES:
+    The following two examples are symbolic equations:
+        sage: is_SymbolicEquation(sin(x) == x)
+        True
+        sage: is_SymbolicEquation(sin(x) < x)
+        True
+
+    This is not, since \code{2==3} evaluates to the boolean \code{False}:
+        sage: is_SymbolicEquation(2 == 3)
+        False
+
+    However here since both 2 and 3 are coerced to be symbolic, we obtain
+    a symbolic equation:
+        sage: is_SymbolicEquation(SR(2) == SR(3))
+        True
+    """
+    return isinstance(x, SymbolicEquation)
+
 class SymbolicEquation(SageObject):
     def __init__(self, left, right, op):
         self._left = left
@@ -522,6 +544,46 @@ class SymbolicEquation(SageObject):
             m = self._maxima_init_(assume=True)
             maxima.assume(m)
             _assumptions.append(self)
+
+    def find_root(self, *args, **kwds):
+        r"""
+        If this is a symbolic equality with an equals sign \code{==}
+        find numerically a single root of this equation in a given
+        interval.  Otherwise raise a \code{ValueError}.  See the
+        documentation for the global \code{find_root} method for more
+        about the options to this function.
+
+        Note that this symbolic expression must involve at most one
+        variable.
+
+        EXAMPLES:
+            sage: (x == sin(x)).find_root(-2,2)
+            0.0
+            sage: (x^5 + 3*x + 2 == 0).find_root(-2,2)
+            -0.63283452024215225
+            sage: (cos(x) == sin(x)).find_root(10,20)
+            19.634954084936208
+
+        We illustrate some valid error conditions:
+            sage: (cos(x) != sin(x)).find_root(10,20)
+            Traceback (most recent call last):
+            ...
+            ValueError: Symbolic equation must be an equality.
+            sage: (SR(3)==SR(2)).find_root(-1,1)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: no zero in the interval, since constant expression is not 0.
+
+        There must be at most one variable:
+            sage: x, y = var('x,y')
+            sage: (x == y).find_root(-2,2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: root finding currently only implemented in 1 dimension.
+        """
+        if self._op != operator.eq:
+            raise ValueError, "Symbolic equation must be an equality."
+        return (self._left - self._right).find_root(*args, **kwds)
 
     def forget(self):
         """

@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
+# the default timeout for doctests: 3 minutes
 TIMEOUT = 180
+# the timeout value for long doctests: 30 minutes
+TIMEOUT_LONG = 1800
+# the timeout for doctests running under valgrind tools: unreasonably long
+TIMEOUT_VALGRIND = 1024*1024
 
 import os, re, sys, signal, time, shutil
 
@@ -403,6 +408,12 @@ if __name__ ==  '__main__':
         massif     = has_opt('massif')
         cachegrind = has_opt('cachegrind')
         omega      = has_opt('omega')
+        if long_time:
+            TIMEOUT = TIMEOUT_LONG
+            print "\nRaising timeout to %s seconds due to '-long' option"%TIMEOUT_LONG
+        if gdb or memcheck or massif or cachegrind or omega:
+            TIMEOUT = TIMEOUT_VALGRIND
+            print "\nRaising timeout to %s seconds due to valgrind"%TIMEOUT_VALGRIND
         if argv[1][0] == '-':
             usage()
         try:

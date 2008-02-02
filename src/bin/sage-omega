@@ -7,7 +7,7 @@ echo $PYTHONSTARTUP
 if [ ! -d "$HOME/.sage/valgrind" ]; then
     mkdir "$HOME/.sage/valgrind"
 fi
-LOG="$HOME"/.sage/valgrind/sage-omega
+LOG="$HOME"/.sage/valgrind/sage-omega.%p
 echo "Log file is $LOG"
 valgrind --tool=exp-omega --trace-children=yes \
          --log-file="$LOG"  python -i

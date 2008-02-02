@@ -7,7 +7,7 @@ echo $PYTHONSTARTUP
 if [ ! -d "$HOME/.sage/valgrind" ]; then
     mkdir "$HOME/.sage/valgrind"
 fi
-LOG="$HOME"/.sage/valgrind/sage-massif
+LOG="$HOME"/.sage/valgrind/sage-massif.%p
 echo "Log file is $LOG"
 valgrind --tool=massif --trace-children=yes --depth=6 \
          --log-file="$LOG"  python -i

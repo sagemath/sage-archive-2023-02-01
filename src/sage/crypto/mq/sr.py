@@ -2219,8 +2219,10 @@ def test_consistency(max_n=2, **kwargs):
 
     TESTS:
         sage: from sage.crypto.mq.sr import test_consistency
-        sage: test_consistency(2) # long time
+        sage: test_consistency(2) # long time -- and requires a LOT of RAM (>> 2GB, evidently).
         True
+
+    We emphasize that the above doctest will fail on a machine with "only" 2GB RAM.
     """
     consistent = True
     for r in (1,2,4):

@@ -916,7 +916,7 @@ class RubiksCube(SageObject):
                  +--------------+
     sage: C.show()
     sage: C.solve(algorithm='gap')  # long time
-    'L*R'
+    'L R'
     sage: C == RubiksCube("L*R")
     True
     """

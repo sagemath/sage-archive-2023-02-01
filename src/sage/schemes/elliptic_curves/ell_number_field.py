@@ -134,8 +134,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         A curve with 2-torsion
             sage: K.<a> = NumberField(x^2 + 7, 'a')
             sage: E = EllipticCurve(K, '15a')
-            sage: v = E.simon_two_descent(); v  # long time
-            (1, -1, [])
+            sage: v = E.simon_two_descent(); v  # long time (about 10 seconds)
+            (1, 3, [(-4 : -3/2*a + 3/2 : 1), (8 : 18 : 1), (-15/32*a - 59/32 : -15/128*a - 411/128 : 1), (-286/361 : -7215/13718*a - 75/722 : 1), (15/8*a + 19/8 : -105/16*a + 3/16 : 1), (-2 : 3 : 1)])
         """
         x = PolynomialRing(self.base_ring(), 'x').gen(0)
         t = simon_two_descent(self,

@@ -199,8 +199,8 @@ class Sha(SageObject):
 
     def an_padic(self, p, prec=0):
         r"""
-        Returns the conjectural order of Sha(E), according to the
-        $p$-adic analogue of the BSD conjecture.
+        Returns the conjectural order -- up to sign -- of Sha(E),
+        according to the $p$-adic analogue of the BSD conjecture.
 
         INPUT:
             p -- a prime > 3
@@ -237,11 +237,10 @@ class Sha(SageObject):
             sage: EllipticCurve('11a1').sha().an_padic(11) #rank 0
             1 + O(11)
 
-            NOTE: the following doctest is DISABLED. When I put in the fix for
-            trac #635, this strangely switched sign to become 40 + O(41).
-            I'm not sure whether this indicates a bug, possibly a normalisation issue.
+        The output is only up to sign, as the following two examples illustrate:
+
             sage: EllipticCurve('123a1').sha().an_padic(41) #rank 1    (long time)
-            1 + O(41)
+            40 + O(41)
             sage: EllipticCurve('817a1').sha().an_padic(43) #rank 2    (long time)
             42 + O(43)
 

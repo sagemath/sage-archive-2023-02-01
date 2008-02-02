@@ -3002,6 +3002,21 @@ class GenericGraph(SageObject):
                          edge_colors=None, edge_size=0.015,
                          pos3d=None,
                          iterations=50, color_by_label=False, **kwds):
+        """
+        Plot a graph using the new 3d plotting system.
+
+        NOTE: This will replace the plot3d command in the near future.
+
+        EXAMPLES:
+            sage: G = graphs.CubeGraph(5)
+            sage: G.plot3d_new(iterations=500, edge_size=None, vertex_size=0.04)
+
+        We plot a fairly complicated Cayley graph:
+            sage: A5 = AlternatingGroup(5); A5
+            Alternating group of order 5!/2 as a permutation group
+            sage: G = A5.cayley_graph()
+            sage: G.plot3d_new(vertex_size=0.03, edge_size=0.01, edge_size2=0.02, vertex_colors={(1,1,1):G.vertices()}, bgcolor=(0,0,0), color_by_label=True, iterations=200)
+        """
         from sage.plot.plot3d.all import sphere, line3d, arrow3d
 
         verts = self.vertices()
@@ -3018,20 +3033,26 @@ class GenericGraph(SageObject):
         elif edge_colors is None:
             edge_colors = { (0,0,0) : self.edges() }
 
+        # by default turn off the frame
+        if not kwds.has_key('frame'):
+            kwds['frame'] = False
+        # by default make the background given by bgcolor
+        if not kwds.has_key('background'):
+            kwds['background'] = bgcolor
         try:
             graphic = 0
             for color in vertex_colors:
                 for v in vertex_colors[color]:
-                    graphic += sphere(center=pos3d[v], size=vertex_size, color=color)
+                    graphic += sphere(center=pos3d[v], size=vertex_size, color=color, **kwds)
             if self.is_directed():
                 for color in edge_colors:
                     for u, v, l in edge_colors[color]:
-                        graphic += arrow3d(pos3d[u], pos3d[v], radius=edge_size, color=color, closed=False)
+                        graphic += arrow3d(pos3d[u], pos3d[v], radius=edge_size, color=color, closed=False, **kwds)
 
             else:
                 for color in edge_colors:
                     for u, v, l in edge_colors[color]:
-                        graphic += line3d([pos3d[u], pos3d[v]], radius=edge_size, color=color, closed=False)
+                        graphic += line3d([pos3d[u], pos3d[v]], radius=edge_size, color=color, closed=False, **kwds)
 
             return graphic
 

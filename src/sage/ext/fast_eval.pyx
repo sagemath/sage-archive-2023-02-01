@@ -917,7 +917,7 @@ cdef class FastDoubleFunc:
             sage: from sage.ext.fast_eval import fast_float_arg
             sage: f = fast_float_arg(0).cot()
             sage: f(pi/4)
-            1.00000000000000...
+            1.0...
         """
         return ~self.tan()
 
@@ -1010,8 +1010,8 @@ cdef class FastDoubleFunc:
         EXAMPLE:
             sage: from sage.ext.fast_eval import fast_float_arg
             sage: f = fast_float_arg(0).arctanh()
-            sage: f(tanh(0.5))
-            0.5
+            sage: abs(f(tanh(0.5)) - 0.5) < 0.0000001
+            True
         """
         return self.cfunc(&atanh)
 

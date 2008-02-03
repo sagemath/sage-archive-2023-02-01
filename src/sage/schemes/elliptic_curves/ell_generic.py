@@ -837,7 +837,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         isomorphic to self after adjoining sqrt(D) to the base
 
         In characteristic==2, D is arbitrary, and the twist is
-        isomorphic to self after adjoining a root of x^2+x+D to the
+        isomorphic to self after adjoining a root of $x^2+x+D$ to the
         base
 
         In characteristics 2 when j==0 this is not implemented (the

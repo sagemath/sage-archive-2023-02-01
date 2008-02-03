@@ -1375,7 +1375,7 @@ cdef class RealDoubleElement(FieldElement):
         Returns a number congruent to self mod $2\pi$ that lies in the interval $(-\pi, \pi]$.
 
         Specifically, it is the unique $x \in (-\pi, \pi]$ such that $\code{self} = x + 2\pi n$
-        for some $n \in \mathbb{Z}$.
+        for some $n \in \Z$.
 
         EXAMPLES:
             sage: RDF(pi).restrict_angle()

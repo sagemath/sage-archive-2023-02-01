@@ -237,9 +237,9 @@ class Sha(SageObject):
             sage: EllipticCurve('11a1').sha().an_padic(11) #rank 0
             1 + O(11)
 
-        The output is only up to sign, as the following two examples illustrate:
+        The output maybe be only up to sign, as the following two examples illustrate:
 
-            sage: EllipticCurve('123a1').sha().an_padic(41) #rank 1    (long time)
+            sage: EllipticCurve('123a1').sha().an_padic(41) #rank 1    (long time) -- random output (can be either 1 + O(41) or 40 + O(41)).
             40 + O(41)
             sage: EllipticCurve('817a1').sha().an_padic(43) #rank 2    (long time)
             42 + O(43)

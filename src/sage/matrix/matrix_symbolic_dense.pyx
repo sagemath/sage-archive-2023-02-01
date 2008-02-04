@@ -419,8 +419,18 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             sage: M = matrix(SR, 2, 2, var('a,b,c,d'))
             sage: M.charpoly('t')
             (a - t)*(d - t) - b*c
+            sage: matrix(SR, 5, [1..5^2]).charpoly().expand()
+            x^5 - 65*x^4 - 250*x^3
+
         """
-        res = repr(self._maxima.charpoly(var))
+        # Maxima has the definition det(matrix-xI) instead of
+        # det(xI-matrix), which is what Sage uses elsewhere.  We
+        # correct for the discrepancy.
+        if self.nrows() % 2 == 0:
+            res = repr(self._maxima.charpoly(var))
+        else:
+            res = repr(-self._maxima.charpoly(var))
+
         return self._parent.base_ring()(symbolic_expression_from_maxima_string(res))
 
 #    def echelonize(self, **kwds):

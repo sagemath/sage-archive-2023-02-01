@@ -239,7 +239,7 @@ def to_graphics_arrays(list, **kwds):
     g_arrays = []
     for i in range (len(list)):
         if ( isinstance( list[i], graph.GenericGraph ) ):
-            pos = list[i].__get_pos__()
+            pos = list[i].get_pos()
             if ( pos is None ):
                 if not kwds.has_key('layout'):
                     kwds['layout'] = 'circular'

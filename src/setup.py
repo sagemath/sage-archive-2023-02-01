@@ -85,9 +85,9 @@ def is_older(file1, file2):
     return False
 
 include_dirs = ['%s/include'%SAGE_LOCAL, \
-		'%s/include/csage'%SAGE_LOCAL, \
-		## this is included, but doesn't actually exist
-		## '%s/include/python'%SAGE_LOCAL, \
+        '%s/include/csage'%SAGE_LOCAL, \
+        ## this is included, but doesn't actually exist
+        ## '%s/include/python'%SAGE_LOCAL, \
                 '%s/sage/sage/ext'%SAGE_DEVEL]
 
 #####################################################
@@ -238,9 +238,9 @@ finite_field_givaro = Extension('sage.rings.finite_field_givaro',
                        language='c++'
                        )
 finite_field_ntl_gf2e = Extension('sage.rings.finite_field_ntl_gf2e',
-			 sources = ['sage/rings/finite_field_ntl_gf2e.pyx'],
-			 libraries = ['ntl', 'gmp'],
-			 language = 'c++')
+             sources = ['sage/rings/finite_field_ntl_gf2e.pyx'],
+             libraries = ['ntl', 'gmp'],
+             language = 'c++')
 
 qd = Extension('sage.rings.real_rqdf',
                        sources = ["sage/rings/real_rqdf.pyx"],
@@ -375,8 +375,8 @@ matrix_symbolic_dense = Extension('sage.matrix.matrix_symbolic_dense',
 #                                               ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx'])
 
 complex_number = Extension('sage.rings.complex_number',
-			    ['sage/rings/complex_number.pyx'],
-			    libraries = ['mpfr', 'gmp'])
+                ['sage/rings/complex_number.pyx'],
+                libraries = ['mpfr', 'gmp'])
 
 free_module_element = Extension('sage.modules.free_module_element',
                                 ['sage/modules/free_module_element.pyx'])
@@ -877,6 +877,20 @@ ext_modules = [ \
               ['sage/graphs/graph_isom.pyx']
               ), \
 
+    Extension('sage.graphs.planarity',
+              ['sage/graphs/planarity.pyx',
+              'sage/graphs/planarity/graphEmbed.c',
+              'sage/graphs/planarity/graphIO.c',
+              'sage/graphs/planarity/graphIsolator.c',
+              'sage/graphs/planarity/graphNonplanar.c',
+              'sage/graphs/planarity/graphPreprocess.c',
+              'sage/graphs/planarity/graphStructure.c',
+              'sage/graphs/planarity/graphTests.c',
+              'sage/graphs/planarity/listcoll.c',
+              'sage/graphs/planarity/planarity.c',
+              'sage/graphs/planarity/stack.c']
+              ), \
+
     Extension('sage.graphs.bruhat_sn',
               ['sage/graphs/bruhat_sn.pyx']
               ), \
@@ -1144,7 +1158,7 @@ code = setup(name        = 'sage',
 
                      'sage.crypto',
 
-		     'sage.crypto.mq',
+             'sage.crypto.mq',
 
                      'sage.databases',
 

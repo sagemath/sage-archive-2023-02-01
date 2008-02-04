@@ -555,14 +555,14 @@ class GenericGraph(SageObject):
         """
         self._nxg.info(vertex)
 
-    def __get_pos__(self):
+    def get_pos(self):
         """
         Returns the position dictionary, a dictionary specifying the coordinates
         of each vertex.
         """
         return self._pos
 
-    def __set_pos__(self, pos):
+    def set_pos(self, pos):
         """
         Sets the position dictionary, a dictionary specifying the
         coordinates of each vertex.
@@ -4816,7 +4816,53 @@ class Graph(GenericGraph):
             A[i][i] = S[i]
         return M.parent()(A)
 
-    def is_circular_planar(self, ordered=True):
+    def is_planar(self, set_emb=True, set_pos=True):
+        """
+        Returns True if a graph is planar, False if it is not.  This wraps the
+        reference implementation provided by John Boyer of the linear time
+        planarity algorithm by edge addition due to Boyer Myrvold.  (See reference
+        code in graphs.planarity).
+
+        REFERENCE:
+            [1] John M. Boyer and Wendy J. Myrvold, On the Cutting Edge:
+                Simplified O(n) Planarity by Edge Addition.  Journal of Graph
+                Algorithms and Applications, Vol. 8, No. 3, pp. 241-273, 2004.
+
+        INPUT:
+            set_emb -- whether or not to set the instance field variable that
+                       contains a combinatorial embedding (clockwise ordering
+                       of neighbors at each vertex).  This value will only be
+                       set if a planar embedding is found.  It is stored as a
+                       Python dict: {v1: [n1,n2,n3]} where v1 is a vertex and
+                       n1,n2,n3 are its neighbors.
+            set_pos -- whether or not to set the position dictionary (for
+                       plotting) to reflect the combinatorial embedding.  Note
+                       that this value will default to False if set_emb is set
+                       to False.  Also, the position dictionary will only be
+                       updated if a planar embedding is found.
+
+        EXAMPLES:
+            sage: g = graphs.CubeGraph(4)
+            sage: g.is_planar()
+            False
+            sage: g = graphs.CircularLadderGraph(4)
+            sage: g.is_planar()
+            True
+            sage: g.__embedding__
+
+            {0: [1, 4, 3],
+             1: [2, 5, 0],
+             2: [3, 6, 1],
+             3: [0, 7, 2],
+             4: [0, 5, 7],
+             5: [1, 6, 4],
+             6: [2, 7, 5],
+             7: [4, 6, 3]}
+        """
+        from sage.graphs.planarity import is_planar
+        return is_planar(self,set_pos,set_emb)
+
+    def is_circular_planar(self, ordered=True, set_emb=True, set_pos=True):
         """
         Returns True if a graph with boundary is circular planar, and
         False otherwise.  A graph (with nonempty boundary) is circular
@@ -4824,20 +4870,33 @@ class Graph(GenericGraph):
         can be drawn in order on a disc boundary, with all the interior
         vertices drawn inside the disc.
 
-        Note -- This function assumes that the graph has nonempty
-                boundary.  (Circular Planarity has no definition for
-                graphs without boundary).
-             -- The current version relies on computing the genus of a
-                slightly modified graph so it is time-expensive and not
-                reasonable to use for graphs with > 12 vertices.
-             -- Also since the current version relies on computing the
-                genus, it is necessary that the graph be connected in
-                order to use Euler's formula.
+        This is a linear time algorithm to test for circular planarity.  It
+        relies on the edge-addition planarity algorithm due to Boyer-Myrvold.
+        We accomplish linear time for circular planarity by modifying the graph
+        before running the general planarity algorithm.
+
+        REFERENCE:
+            [1] John M. Boyer and Wendy J. Myrvold, On the Cutting Edge:
+                Simplified O(n) Planarity by Edge Addition.  Journal of Graph
+                Algorithms and Applications, Vol. 8, No. 3, pp. 241-273, 2004.
+            [2] Kirkman, Emily A. O(n) Circular Planarity Testing. [Online]
+                Available: soon!
 
         INPUT:
             ordered -- whether or not to consider the order of the boundary
                        (set ordered=False to see if there is any possible
                        boundary order that will satisfy circular planarity)
+            set_emb -- whether or not to set the instance field variable that
+                       contains a combinatorial embedding (clockwise ordering
+                       of neighbors at each vertex).  This value will only be
+                       set if a circular planar embedding is found.  It is
+                       stored as a Python dict: {v1: [n1,n2,n3]} where v1 is
+                       a vertex and n1,n2,n3 are its neighbors.
+            set_pos -- whether or not to set the position dictionary (for
+                       plotting) to reflect the combinatorial embedding.  Note
+                       that this value will default to False if set_emb is set
+                       to False.  Also, the position dictionary will only be
+                       updated if a circular planar embedding is found.
 
         EXAMPLES:
             sage: g439 = Graph({1:[5,7], 2:[5,6], 3:[6,7], 4:[5,6,7]})
@@ -4848,6 +4907,15 @@ class Graph(GenericGraph):
             sage: g439.set_boundary([1,2,3])
             sage: g439.is_circular_planar()
             True
+            sage: g439.__embedding__
+
+            {1: [7, 5],
+             2: [5, 6],
+             3: [6, 7],
+             4: [7, 6, 5],
+             5: [4, 2, 1],
+             6: [4, 3, 2],
+             7: [3, 4, 1]}
 
         Order matters:
             sage: K23 = graphs.CompleteBipartiteGraph(2,3)
@@ -4860,14 +4928,10 @@ class Graph(GenericGraph):
             sage: K23.is_circular_planar(ordered=False)
             True
         """
-        if not self.is_connected():
-            raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
-        from sage.rings.infinity import Infinity
-        from sage.combinat.all import CyclicPermutationsOfPartition
-        from sage.graphs.graph_genus1 import trace_faces, nice_copy
-
-        graph = nice_copy(self)
-        boundary = graph.get_boundary()
+        from sage.graphs.planarity import is_planar
+        from sage.graphs.planarity import schnyder
+        graph = self.copy()
+        boundary = self.get_boundary()
 
         extra = 0
         while graph.has_vertex(extra):
@@ -4877,32 +4941,35 @@ class Graph(GenericGraph):
         for vertex in boundary:
             graph.add_edge(vertex,extra)
 
-        verts = len(graph.vertices())
-        edges = len(graph.edges())
+        extra_edges = []
+        if ordered: # WHEEL
+            for i in range(len(boundary)-1):
+                if not graph.has_edge(boundary[i],boundary[i+1]):
+                    graph.add_edge(boundary[i],boundary[i+1])
+                    extra_edges.append((boundary[i],boundary[i+1]))
+            if not graph.has_edge(boundary[-1],boundary[0]):
+                graph.add_edge(boundary[-1],boundary[0])
+                extra_edges.append((boundary[-1],boundary[0]))
+        # else STAR (empty list of extra edges)
 
-        # Construct a list of all rotation systems for graph
-        part = []
-        for vertex in graph.vertices():
-            if vertex != extra:
-                part.append(graph.neighbors(vertex))
-        if not ordered:
-            part.append(graph.neighbors(extra))
+        result = is_planar(graph,set_emb=set_emb,circular=True)
 
-        all_perms = []
-        for p in CyclicPermutationsOfPartition(part):
-            if ordered:
-                p.append(boundary)
-            all_perms.append(p)
+        if result:
+            # strip the embedding to fit original graph
+            graph.delete_vertex(extra)
+            graph.__embedding__.pop(extra)
+            graph.delete_edges(extra_edges)
+            for u,v in extra_edges:
+                graph.__embedding__[u].pop(graph.__embedding__[u].index(v))
+                graph.__embedding__[v].pop(graph.__embedding__[v].index(u))
+            for w in boundary:
+                graph.__embedding__[w].pop(graph.__embedding__[w].index(extra))
 
-        max_faces = -Infinity
-        for p in all_perms:
-            t = trace_faces(graph, p)
-            num = len(t)
-            if num > max_faces:
-                max_faces = num
-        genus = (2 - verts + edges - max_faces)/2
-        if genus == 0: return True
-        else: return False
+            self.__embedding__ = graph.__embedding__
+
+            if (set_emb and set_pos):
+                schnyder(self,self.__embedding__)
+        return result
 
     def genus(self):
         """
@@ -4947,7 +5014,9 @@ class Graph(GenericGraph):
 
         max_faces = -Infinity
         for p in all_perms:
+            print p
             t = trace_faces(graph, p)
+            print t
             faces = len(t)
             if faces > max_faces:
                 max_faces = faces

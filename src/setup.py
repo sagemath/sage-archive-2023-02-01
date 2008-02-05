@@ -70,7 +70,7 @@ if not os.path.islink(sage_link) or not os.path.exists(sage_link):
     os.system('cd %s; ln -sf ../../../../devel/sage/build/sage .'%SITE_PACKAGES)
 
 
-def is_older(file1, file2):
+def is_newer(file1, file2):
     """
     Return True if either file2 does not exist or is older than file1.
 
@@ -933,90 +933,7 @@ for m in ext_modules:
 # checking that we need.
 ######################################################################
 
-def check_dependencies( filename, outfile ):
-    """
-    INPUT:
-        filename -- The name of a .pyx, .pxd, or .pxi to check dependencies in the SAGE source.
-        outfile -- The output file for which we are determining out-of-date-ness
-
-    OUTPUT:
-        bool -- whether or not outfile must be regenerated.
-    """
-    if is_older(filename, outfile):
-        print "\nBuilding %s because it depends on %s."%(outfile, filename)
-        return True
-
-    # Now we look inside the file to see what it cimports or include.
-    # If any of these files are newer than outfile, we rebuild
-    # outfile.
-    S = open(filename).readlines()
-    # Take the lines that begin with cimport (it won't hurt to
-    # have extra lines)
-    C = [x.strip() for x in S if 'cimport' in x]
-    for A in C:
-        # Deduce the full module name.
-        # The only allowed forms of cimport/include are:
-        #        cimport a.b.c.d
-        #        from a.b.c.d cimport e
-        # Also, the cimport can be both have no dots (current directory) or absolute.
-        # The multiple imports with parens, e.g.,
-        #        import (a.b.c.d, e.f.g)
-        # of Python are not allowed in Cython.
-        # In both cases, the module name is the second word if we split on whitespace.
-        try:
-            A = A.strip().split()[1]
-        except IndexError:
-            # illegal statement or not really a cimport (e.g., cimport could
-            # be in a comment or something)
-            continue
-
-        if A[0] == '"':
-            A = A[1:-1]
-
-        # Now convert A to a filename, e.g., a/b/c/d
-        #
-        if '.' in A:
-            # It is an absolute cimport.
-            A = A.replace('.','/') + '.pxd'
-        else:
-            # It is a relative cimport.
-            A =  os.path.split(filename)[0] + '/' + A + '.pxd'
-        # Check to see if a/b/c/d.pxd exists and is newer than filename.
-        # If so, we have to regenerate outfile.  If not, we're safe.
-        if os.path.exists(A) and check_dependencies(A, outfile):
-            return True # yep we must rebuild
-
-    # OK, next we move on to include pxi files.
-    # If they change, we likewise must rebuild the pyx file.
-    I = [x for x in S if 'include' in x]
-    # The syntax for include is like this:
-    #       include "../a/b/c.pxi"
-    # I.e., it's a quoted *relative* path to a pxi file.
-    for A in I:
-        try:
-            A = A.strip().split()[1]
-        except IndexError:
-            # Illegal include statement or not really an include
-            # (e.g., include could easily be in a comment or
-            # something).  No reason to crash setup.py!
-            continue
-        # Strip the quotes from either side of the pxi filename.
-        A = A.strip('"').strip("'")
-        # Now take filename (the input argument to this function)
-        # and strip off the last part of the path and stick
-        # A onto it to get the filename of the pxi file relative
-        # where setup.py is being run.
-        R = A # save the relative filename in case it is absolute
-        A = os.path.split(filename)[0] + '/' + A
-        if not os.path.exists(A):
-            # A is an "absolute" path -- that is, absolute to the base of the sage tree
-            A = R # restore
-        # Finally, check to see if filename is older than A
-        if os.path.exists(A) and check_dependencies(A, outfile):
-            return True
-
-
-def need_to_cython(filename, outfile):
+def need_to_cython(deps, filename, outfile):
     """
     INPUT:
         filename -- The name of a cython file in the SAGE source tree.
@@ -1029,14 +946,14 @@ def need_to_cython(filename, outfile):
     base =  os.path.splitext(filename)[0]
     pxd = base+'.pxd'
 
-    if check_dependencies(filename, outfile):
+    if need_to_build(deps, filename, outfile):
         return True
-    elif os.path.exists(pxd) and check_dependencies(pxd, outfile):
+    elif os.path.exists(pxd) and need_to_build(deps, pxd, outfile):
         return True
     else:
         return False
 
-def process_cython_file(f, m):
+def process_cython_file(deps, f, m):
     """
     INPUT:
         f -- file name
@@ -1044,14 +961,14 @@ def process_cython_file(f, m):
     """
     # This is a cython file, so process accordingly.
     pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
-    if is_older(f, pyx_inst_file):
+    if is_newer(f, pyx_inst_file):
         print "%s --> %s"%(f, pyx_inst_file)
         os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
     outfile = f[:-4] + ".c"
     if m.language == 'c++':
         outfile += 'pp'
 
-    if need_to_cython(f, outfile):
+    if need_to_cython(deps, f, outfile):
         # Insert the -o parameter to specify the output file (particularly for c++)
         cmd = "cython --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
         print cmd
@@ -1087,7 +1004,7 @@ if H != H_old:
 else:
     do_cython = False
 
-def cython(ext_modules):
+def cython(deps, ext_modules):
     for m in ext_modules:
         m.extra_compile_args += extra_compile_args
 #        m.extra_link_args += extra_link_args
@@ -1096,15 +1013,130 @@ def cython(ext_modules):
             f = m.sources[i]
 #            s = open(f).read()
             if f[-4:] == ".pyx":
-                new_sources += process_cython_file(f, m)
+                new_sources += process_cython_file(deps, f, m)
             else:
                 new_sources.append(f)
         m.sources = new_sources
 
+def search_all_includes(filename):
+    """
+    Returns a list of all files that get included by f.
+    """
+    # Now we look inside the file to see what it cimports or include.
+    # If any of these files are newer than outfile, we rebuild
+    # outfile.
+    S = open(filename).readlines()
+    # Take the lines that begin with cimport (it won't hurt to
+    # have extra lines)
+    C = [x.strip() for x in S if 'cimport' in x]
+    this_deps = []
+    for A in C:
+        # Deduce the full module name.
+        # The only allowed forms of cimport/include are:
+        #        cimport a.b.c.d
+        #        from a.b.c.d cimport e
+        # Also, the cimport can be both have no dots (current directory) or absolute.
+        # The multiple imports with parens, e.g.,
+        #        import (a.b.c.d, e.f.g)
+        # of Python are not allowed in Cython.
+        # In both cases, the module name is the second word if we split on whitespace.
+        try:
+            A = A.strip().split()[1]
+        except IndexError:
+            # illegal statement or not really a cimport (e.g., cimport could
+            # be in a comment or something)
+            continue
+        if A[0] == '"':
+            A = A[1:-1]
 
+        # Now convert A to a filename, e.g., a/b/c/d
+        #
+        if '.' in A:
+            # It is an absolute cimport.
+            A = A.replace('.','/') + '.pxd'
+        else:
+            # It is a relative cimport.
+            A =  os.path.split(filename)[0] + '/' + A + '.pxd'
+        # Check to see if a/b/c/d.pxd exists and is newer than filename.
+        # If so, we have to regenerate outfile.  If not, we're safe.
+        if os.path.exists(A):
+            this_deps.append(os.path.abspath(A))
 
+    # OK, next we move on to include pxi files.
+    # If they change, we likewise must rebuild the pyx file.
+    I = [x for x in S if 'include' in x]
+    # The syntax for include is like this:
+    #       include "../a/b/c.pxi"
+    # I.e., it's a quoted *relative* path to a pxi file.
+    for A in I:
+        try:
+            A = A.strip().split()[1]
+        except IndexError:
+            # Illegal include statement or not really an include
+            # (e.g., include could easily be in a comment or
+            # something).  No reason to crash setup.py!
+            continue
+        # Strip the quotes from either side of the pxi filename.
+        A = A.strip('"').strip("'")
+        # Now take filename (the input argument to this function)
+        # and strip off the last part of the path and stick
+        # A onto it to get the filename of the pxi file relative
+        # where setup.py is being run.
+        R = A # save the relative filename in case it is absolute
+        A = os.path.split(filename)[0] + '/' + A
+        if not os.path.exists(A):
+            # A is an "absolute" path -- that is, absolute to the base of the sage tree
+            A = R # restore
+        # Finally, check to see if filename is older than A
+        if os.path.exists(A):
+            this_deps.append(os.path.abspath(A))
+    return this_deps
+
+def deps_graph(deps, f, visited=set([])):
+    # first we find all the dependencies of f
+    f = os.path.abspath(f)
+    this_deps = search_all_includes(f)
+    try:
+        deps[f] = deps[f].union(set(this_deps))
+    except KeyError:
+        deps[f] = set(this_deps)
+    visited.add(f)
+    for d in this_deps:
+        if d not in visited:
+            deps_graph(deps, d, visited)
+
+def need_to_build(deps, f, outfile, visited=set([])):
+    if is_newer(f, outfile):
+        print '\nBuilding %s because it depends on %s.' % (outfile, f)
+        return True
+    try:
+        this_deps = deps[f]
+    except KeyError:
+        # if we get this far and the file has no includes, then we are
+        # at a leaf node
+        return False
+    this_deps = [d for d in this_deps if d not in visited]
+    for d in this_deps:
+        visited.add(d)
+        return need_to_repbuid(deps, d, outfile, viisited)
+    return False
+
+def create_deps(ext_modules):
+    # first we compute the complete graph of dependencies
+    deps = {}
+    for m in ext_modules:
+        m.extra_compile_args += extra_compile_args
+        for i in range(len(m.sources)):
+            f = m.sources[i]
+            if f[-4:] == '.pyx':
+                deps_graph(deps, f)
+
+    return deps
+
+do_cython = True
 if not sdist and do_cython:
-    cython(ext_modules)
+    deps = create_deps(ext_modules)
+    cython(deps, ext_modules)
     pass
 
 code = setup(name        = 'sage',

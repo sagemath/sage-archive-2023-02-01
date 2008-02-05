@@ -45,6 +45,8 @@ from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.polydict import ETuple
+from sage.rings.polynomial.pbori import BooleanPolynomial
+
 
 # base ring imports
 from sage.rings.rational_field import RationalField
@@ -288,6 +290,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         rComplete(self._ring, 1)
         self._ring.ShortOut = 0
 
+        self._one_element = <MPolynomial_libsingular>co.new_MP(self,p_ISet(1, self._ring))
         self._zero_element = <MPolynomial_libsingular>co.new_MP(self,NULL)
 
     def __dealloc__(self):
@@ -458,12 +461,17 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             x
 
         Coercion from PARI objects:
-            sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
-            sage: P.<x,y,z> = MPolynomialRing_libsingular(QQ,3)
+            sage: P.<x,y,z> = MPolynomialRing(QQ,3)
             sage: P(pari('x^2 + y'))
             x^2 + y
             sage: P(pari('x*y'))
             x*y
+
+        Coercion from boolean polynomials:
+            sage: B.<x,y,z> = BooleanPolynomialRing(3)
+            sage: P.<x,y,z> = MPolynomialRing(QQ,3)
+            sage: P(B.gen(0))
+            x
 
         If everything else fails, we try to coerce to the base ring:
             sage: R.<x,y,z> = GF(3)[]
@@ -509,7 +517,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             d = self.gens_dict()
             if PY_TYPE_CHECK(self._base, FiniteField_givaro):
                 d[str(self._base.gen())]=self._base.gen()
-            element = sage_eval(element,d)
+            if '/' in element:
+                element = sage_eval(element,d)
+            else:
+                element = element.replace("^","**")
+                element = eval(element, d, {})
 
             # we need to do this, to make sure that we actually get an
             # element in self.
@@ -561,6 +573,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
                 return co.new_MP(self, _p)
+
+        if PY_TYPE_CHECK(element, BooleanPolynomial) and \
+               element.parent().ngens() == _ring.N and \
+               element.parent().variable_names() == self.variable_names():
+            if element.constant():
+                if element:
+                    return self._one_element
+                else:
+                    return self._zero_element
+            return eval(str(element),self.gens_dict())
 
         if PY_TYPE_CHECK(element, dict):
             _p = p_ISet(0, _ring)

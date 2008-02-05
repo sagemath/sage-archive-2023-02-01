@@ -1022,6 +1022,9 @@ cdef class BooleanMonomialIterator:
     def __iter__(self):
         return self
 
+    def __dealloc__(self):
+        PBMonomIter_destruct(&self._iter)
+
     def __next__(self):
         if self._iter.hash() == self._obj.end().hash():
             raise StopIteration
@@ -1508,6 +1511,9 @@ cdef class BooleanPolynomialIterator:
     def __iter__(self):
         return self
 
+    def __dealloc__(self):
+        PBPolyIter_destruct(&self._iter)
+
     def __next__(self):
         (<BooleanPolynomialRing>self._obj._parent)._pbring.activate()
         cdef PBMonom val
@@ -1737,6 +1743,9 @@ cdef class BooleSetIterator:
     def __iter__(self):
         return self
 
+    def __dealloc__(self):
+        PBSetIter_destruct(&self._iter)
+
     def __next__(self):
         cdef PBMonom val
         if self._iter.equal(self._obj._pbset.end()):
@@ -1816,6 +1825,9 @@ cdef class BooleanPolynomialVectorIterator:
         self._parent = parent
         self._obj = vector._vec
         self._iter = self._obj.begin()
+
+    def __dealloc__(self):
+        PBPolyVectorIter_destruct(&self._iter)
 
     def __iter__(self):
         return self

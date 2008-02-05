@@ -49,6 +49,8 @@ cdef extern from "pb_wrap.h":
         int (* next "operator++")()
         int (* hash)()
 
+    void PBMonomIter_destruct "Destruct<BooleMonomial::const_iterator>" (PBMonomIter *mem)
+
     ctypedef struct PBVar "BooleVariable":
         int (* index)()
         bint (* is_equal "operator==")(PBVar right)
@@ -84,6 +86,8 @@ cdef extern from "pb_wrap.h":
         int (* next "operator++")()
         bint (* equal)(PBSetIter rhs)
 
+    void PBSetIter_destruct "Destruct<BooleSet::const_iterator>"(PBSetIter *mem)
+
     ctypedef struct PBSet "BooleSet":
         bint (* emptiness)()
         bint (* owns)(PBMonom val)
@@ -111,10 +115,13 @@ cdef extern from "pb_wrap.h":
             (void* mem, int ind, PBNavigator a, PBNavigator b)
     void PBSet_destruct "Destruct<BooleSet>"(PBSet *mem)
 
+
     ctypedef struct PBPolyIter "BoolePolynomial::ordered_iterator":
         PBMonom (* value "operator*")()
         int (* next "operator++")()
         bint (* equal)(PBPolyIter rhs)
+
+    void PBPolyIter_destruct "Destruct<BoolePolynomial::ordered_iterator>"(PBPolyIter *mem)
 
     ctypedef struct PBPoly "BoolePolynomial":
         int (* deg)()
@@ -169,6 +176,8 @@ cdef extern from "pb_wrap.h":
             "std::vector<BoolePolynomial>::iterator ":
         PBPoly (* value "operator*")()
         int (* next "operator++")()
+
+    void PBPolyVectorIter_destruct "Destruct<std::vector<BoolePolynomial>::iterator>"(PBPolyVectorIter *mem)
 
     bint PBPolyVectorIter_equal "operator=="(PBPolyVectorIter lhs, \
             PBPolyVectorIter rhs)

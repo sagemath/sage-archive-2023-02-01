@@ -1542,8 +1542,43 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         MPolynomialIdeal.__init__(self, ring, gens, coerce)
 
     def groebner_basis(self, **kwds):
-        """
+        r"""
         Return a Groebner basis of this ideal.
+
+
+        INPUT:
+            heuristic -- Turn off heuristic by setting \code{heuristic=False}
+                         (default: True)
+            lazy  --  (default: True)
+            red_tail  --  use tail reduction (default: True)
+            redsb  --  return reduced Groebner basis (default: True)
+            minsb  --  (default: True)
+            invert -- setting \code{invert=True} input and output get
+                      a transformation $x+1$ for each variable $x$,
+                      which shouldn't effect the calculated GB, but
+                      the algorithm.
+            prot  --  show protocol (default: False)
+            full_prot  --  show full protocol (default: False)
+            draw_matrices  --  draw intermediate matrices (default: False)
+            matrix_prefix  --  filename prefix for drawn matrices (default: 'matrix')
+            faugere -- use Faugere's F4 (default: False)
+            noro  --  use Noro's F4 variant (default: False)
+            aes  --  input is AES system (default: False)
+            coding  --  input is coding theory system (default: False)
+            ll  --  (default: False)
+            llfirst  --  (default: False)
+            llfirstonthefly  --  (default: False)
+            gauss_on_linear_first  --  (default: True)
+            linearAlgebraInLastBlock  --  (default: True)
+            max_growth  --  (default: 2.0)
+            exchange  --  (default: True)
+            selection_size  --  (default: 1000)
+            implementation  -- either 'Python' or anything else (default: 'Python')
+            preprocess_only  -- (default: False)
+            deg_bound  --  (default: 1000000000000)
+            recursion  --  (default: False)
+            implications  --  (default: False)
+            step_factor  --  (default: 1)
 
         EXAMPLES:
             sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4)

@@ -148,7 +148,9 @@ matplotlib_setup() {
 
 sage_setup() {
     # Display the startup banner
-    cat "$SAGE_LOCAL/bin/sage-banner"
+    if [ "$SAGE_BANNER" != "no" ]; then
+        cat "$SAGE_LOCAL/bin/sage-banner"
+    fi
 
     # Check to see if the whole SAGE install tree has moved.
     # If so, regenerate .pyc files.
@@ -502,6 +504,7 @@ if [ $1 = '-grepdoc' -o $1 = "--grepdoc" ]; then
 fi
 
 if [ $1 = '-q' ]; then
+   SAGE_BANNER="no"
    sage_setup
    shift
    sage-ipython  $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND" "$@"

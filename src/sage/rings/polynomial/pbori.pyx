@@ -1501,6 +1501,9 @@ cdef class BooleanPolynomial(MPolynomial):
     def navigation(self):
         return new_CN_from_PBNavigator(self._pbpoly.navigation())
 
+    def mapEveryXToXPlusOne(self):
+        return new_BP_from_PBPoly(self._parent, map_every_x_to_x_plus_one(self._pbpoly))
+
 cdef class BooleanPolynomialIterator:
     def __iter__(self):
         return self
@@ -1559,10 +1562,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                       the algorithm.
             prot  --  show protocol (default: False)
             full_prot  --  show full protocol (default: False)
-            draw_matrices  --  draw intermediate matrices (default: False)
-            matrix_prefix  --  filename prefix for drawn matrices (default: 'matrix')
             faugere -- use Faugere's F4 (default: False)
-            noro  --  use Noro's F4 variant (default: False)
             aes  --  input is AES system (default: False)
             coding  --  input is coding theory system (default: False)
             ll  --  (default: False)
@@ -1574,7 +1574,6 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             exchange  --  (default: True)
             selection_size  --  (default: 1000)
             implementation  -- either 'Python' or anything else (default: 'Python')
-            preprocess_only  -- (default: False)
             deg_bound  --  (default: 1000000000000)
             recursion  --  (default: False)
             implications  --  (default: False)

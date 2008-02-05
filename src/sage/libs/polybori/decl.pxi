@@ -140,6 +140,8 @@ cdef extern from "pb_wrap.h":
         void (* imul_monom "operator*=")(PBMonom right)
         bint (* is_equal "operator==")(PBPoly right)
 
+    PBPoly map_every_x_to_x_plus_one(PBPoly)
+
     # non-allocating versions
     PBRing* PBRing_construct \
             "Construct_pp<BoolePolyRing, BoolePolyRing::size_type, BoolePolyRing::ordercode_type> " (void *mem, int nvars, ordercodes order)

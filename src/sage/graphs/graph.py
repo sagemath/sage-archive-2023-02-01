@@ -29,6 +29,8 @@ AUTHORS:
        edge colors differentiated by label
     -- Jason Grout (2007-09-25): Added functions, bug fixes, and
        general enhancements
+    -- Robert L. Miller (Sage Days 7): Edge labeled graph isomorphism
+    -- Tom Boothby (Sage Days 7): Miscellaneous awesomeness
 
 \subsection{Graph Format}
 
@@ -3286,7 +3288,7 @@ class GenericGraph(SageObject):
     ### Automorphism and isomorphism
 
     def automorphism_group(self, partition=None, translation=False,
-                           verbosity=0):
+                           verbosity=0, edge_labels=False):
         """
         Returns the largest subgroup of the automorphism group of the (di)graph
         whose orbit partition is finer than the partition given. If no
@@ -3298,6 +3300,10 @@ class GenericGraph(SageObject):
         where dict is a dictionary translating from keys == vertices to
         entries == elements of {1,2,...,n} (since permutation groups can
         currently only act on positive integers).
+            partition -- default is the unit partition, otherwise computes the
+        subgroup of the full automorphism group respecting the partition.
+            edge_labels -- default False, otherwise allows only permutations
+        respecting edge labels.
 
         EXAMPLES:
         Graphs:
@@ -3348,12 +3354,50 @@ class GenericGraph(SageObject):
             sage: D.automorphism_group()
             Permutation Group with generators [(1,2,3,4,5)]
 
+        Edge labeled graphs:
+            sage: G = Graph()
+            sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
+            sage: G.automorphism_group(edge_labels=True)
+            Permutation Group with generators [(1,4)(2,3)]
+
         """
         from sage.graphs.graph_isom import search_tree, perm_group_elt
         from sage.groups.perm_gps.permgroup import PermutationGroup
         dig = (self.is_directed() or self.loops())
         if partition is None:
             partition = [self.vertices()]
+        if edge_labels:
+            G, partition = happy_non_edge_labeled_graph(self, partition)
+            a,b = search_tree(G, partition, lab=False, dict=True, dig=dig, verbosity=verbosity)
+            # b is a translation of the labelings
+            acting_vertices = {}
+            translation_d = {}
+            m = G.order()
+            for v in self:
+                translation_d[v] = b[('o',v)]
+                if b[('o',v)] == m:
+                    acting_vertices[v] = 0
+                else:
+                    acting_vertices[v] = b[('o',v)]
+            real_aut_gp = []
+            n = self.order()
+            for gen in a:
+                gen_restr = [0]*n
+                for v in self.vertex_iterator():
+                    gen_restr[acting_vertices[v]] = gen[acting_vertices[v]]
+                if gen_restr not in real_aut_gp:
+                    real_aut_gp.append(gen_restr)
+            id = range(n)
+            if id in real_aut_gp:
+                real_aut_gp.remove(id)
+            if len(real_aut_gp) != 0:
+                a = PermutationGroup([perm_group_elt(aa) for aa in real_aut_gp])
+            else:
+                a = PermutationGroup([[]])
+            if translation:
+                return a, translation_d
+            else:
+                return a
         if self.multiple_edges():
             G, partition = happy_non_multi_graph(self, partition)
             a,b = search_tree(G, partition, lab=False, dict=True, dig=dig, verbosity=verbosity)
@@ -3399,13 +3443,15 @@ class GenericGraph(SageObject):
         else:
             return a
 
-    def is_isomorphic(self, other, certify=False, verbosity=0):
+    def is_isomorphic(self, other, certify=False, verbosity=0, edge_labels=False):
         """
         Tests for isomorphism between self and other.
 
         INPUT:
-            certify -- if True, then output is (a,b), where a is a boolean and b is either a map or
-        None.
+            certify -- if True, then output is (a,b), where a is a boolean and b
+                is either a map or None.
+            edge_labels -- default False, otherwise allows only permutations
+                respecting edge labels.
 
         EXAMPLES:
         Graphs:
@@ -3452,6 +3498,13 @@ class GenericGraph(SageObject):
             sage: A.is_isomorphic(B, certify=True)
             (True, {0: 1, 1: 0, 2: 2})
 
+        Edge labeled graphs:
+            sage: G = Graph()
+            sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
+            sage: H = G.relabel([1,2,3,4,0], inplace=False)
+            sage: G.is_isomorphic(H, edge_labels=True)
+            True
+
         """
         from sage.graphs.graph_isom import search_tree
         if certify:
@@ -3469,8 +3522,8 @@ class GenericGraph(SageObject):
             else:
                 if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
                     return False, None
-            b,a = self.canonical_label(certify=True, verbosity=verbosity)
-            d,c = other.canonical_label(certify=True, verbosity=verbosity)
+            b,a = self.canonical_label(certify=True, verbosity=verbosity, edge_labels=edge_labels)
+            d,c = other.canonical_label(certify=True, verbosity=verbosity, edge_labels=edge_labels)
             if b == d:
                 map = {}
                 cc = c.items()
@@ -3498,11 +3551,11 @@ class GenericGraph(SageObject):
                 if sorted(list(self.degree_iterator())) != sorted(list(other.degree_iterator())):
                     return False
             from sage.graphs.graph_isom import search_tree
-            b = self.canonical_label(verbosity=verbosity)
-            d = other.canonical_label(verbosity=verbosity)
+            b = self.canonical_label(verbosity=verbosity, edge_labels=edge_labels)
+            d = other.canonical_label(verbosity=verbosity, edge_labels=edge_labels)
             return b == d
 
-    def canonical_label(self, partition=None, certify=False, verbosity=0):
+    def canonical_label(self, partition=None, certify=False, verbosity=0, edge_labels=False):
         """
         Returns the canonical label with respect to the partition. If no
         partition is given, uses the unit partition.
@@ -3513,6 +3566,8 @@ class GenericGraph(SageObject):
             certify -- if True, a dictionary mapping from the (di)graph to its
                 canonical label will be given.
             verbosity -- gets passed to nice: prints helpful output.
+            edge_labels -- default False, otherwise allows only permutations
+                respecting edge labels.
 
         EXAMPLE:
             sage: D = graphs.DodecahedralGraph()
@@ -3546,13 +3601,33 @@ class GenericGraph(SageObject):
             [1 0 1 0 1 0 0 0 0 0]
             [1 1 0 1 0 0 0 0 0 0]
 
+        Edge labeled graphs:
+            sage: G = Graph()
+            sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
+            sage: G.canonical_label(edge_labels=True)
+            Graph on 5 vertices
+
         """
         from sage.graphs.graph_isom import search_tree
+        dig = (self.loops() or self.is_directed())
         if partition is None:
             partition = [self.vertices()]
+        if edge_labels:
+            G, partition = happy_non_edge_labeled_graph(self, partition)
+            a,b,c = search_tree(G, partition, certify=True, dig=dig, verbosity=verbosity)
+            # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
+            H = self.copy()
+            relabeling = {}
+            for v in H:
+                relabeling[v] = c[('o',v)]
+            H.relabel(relabeling)
+            if certify:
+                return H, relabeling
+            else:
+                return H
         if self.multiple_edges():
             G, partition = happy_non_multi_graph(self, partition)
-            a,b,c = search_tree(G, partition, certify=True, dig=self.loops(), verbosity=verbosity)
+            a,b,c = search_tree(G, partition, certify=True, dig=dig, verbosity=verbosity)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
             H = self.copy()
             relabeling = {}
@@ -3565,10 +3640,10 @@ class GenericGraph(SageObject):
                 return H
         else:
             if certify:
-                a,b,c = search_tree(self, partition, certify=True, dig=self.loops(), verbosity=verbosity)
+                a,b,c = search_tree(self, partition, certify=True, dig=dig, verbosity=verbosity)
                 return b,c
             else:
-                a,b = search_tree(self, partition, dig=self.loops(), verbosity=verbosity)
+                a,b = search_tree(self, partition, dig=dig, verbosity=verbosity)
                 return b
 
 
@@ -7348,4 +7423,65 @@ def happy_non_multi_graph(g, partition):
             edges_with_multiplicity = [e for e in edges_with_multiplicity if e != [u,v]]
     new_partition = [[('o',v) for v in cell] for cell in partition] + [[('x',i) for i in xrange(index)]]
     return G, new_partition
+
+
+def happy_non_edge_labeled_graph(g, partition):
+    """
+    Helper function for canonical labeling of edge labeled (di)graphs.
+
+    Translates to a bipartite incidence-structure type graph appropriate for
+    computing canonical labels of edge labeled graphs. Note that this is actually
+    computationally equivalent to implementing a change on an inner loop of the
+    main algorithm-- namely making the refinement procedure sort for each label.
+
+    EXAMPLE:
+        sage: G = Graph(multiedges=True)
+        sage: G.add_edges([(0,1,i) for i in range(10)])
+        sage: G.add_edge(1,2,'string')
+        sage: G.add_edge(2,3)
+        sage: from sage.graphs.graph import happy_non_edge_labeled_graph
+        sage: happy_non_edge_labeled_graph(G, [G.vertices()])
+        (Graph on 7 vertices,
+         [[('o', 0), ('o', 1), ('o', 2), ('o', 3)], [('x', 0)], [('x', 1)], [('x', 2)]])
+
+    """
+    if g.multiple_edges():
+        if g.is_directed():
+            G = DiGraph(loops=g.loops())
+        else:
+            G = Graph(loops=g.loops())
+        G.add_vertices(g.vertices())
+        for u,v,l in g.edge_iterator():
+            if not G.has_edge(u,v):
+                G.add_edge(u,v,{l:1})
+            else:
+                d = G.edge_label(u,v)
+                if d.has_key(l):
+                    d[l] += 1
+                else:
+                    d[l] = 1
+        g = G
+    edge_partition = []
+    if g.is_directed():
+        G = DiGraph(loops=g.loops())
+    else:
+        G = Graph(loops=g.loops())
+    G.add_vertices([('o', v) for v in g.vertices()]) # 'o' for original
+    index = 0
+    for u,v,l in g.edge_iterator():
+        if len([a for a in edge_partition if a[0] == l]) == 0:
+            edge_partition.append([l, [index]])
+        else:
+            i = 0
+            while edge_partition[i][0] != l:
+                i += 1
+            edge_partition[i][1].append(index)
+        G.add_edges([(('o',u), ('x', index)), (('x', index), ('o',v))]) # 'x' for extra
+        index += 1
+    new_partition = [[('o',v) for v in cell] for cell in partition] + [[('x',v) for v in a[1]] for a in edge_partition]
+    return G, new_partition
+
+
+
+
 

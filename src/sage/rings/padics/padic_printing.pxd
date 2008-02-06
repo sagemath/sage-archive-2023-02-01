@@ -8,11 +8,6 @@ from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 cdef class pAdicPrinter_class(SageObject):
     cdef object ring
     cdef int mode
-    cdef int terse
-    cdef int series
-    cdef int val_unit
-    cdef int digits
-    cdef int bars
     cdef bint pos
     cdef object pname
     cdef object unram_name

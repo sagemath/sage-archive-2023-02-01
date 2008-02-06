@@ -90,7 +90,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
         return ans
 
     def _latex_(self):
-        return self._repr(do_latex = True)
+        return self._repr_(do_latex = True)
 
     #def __mod__(self, right):
     #    raise NotImplementedError
@@ -102,15 +102,9 @@ cdef class LocalGenericElement(CommutativeRingElement):
     #    raise NotImplementedError
 
     def _pari_init_(self):
-        return self._repr(mode = 'series')
+        return self._repr_(mode = 'series')
 
     #def __pow__(self, right):
-    #    raise NotImplementedError
-
-    def _repr_(self):
-        return self._repr()
-
-    #def _repr(self, mode = None, do_latex = False):
     #    raise NotImplementedError
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):

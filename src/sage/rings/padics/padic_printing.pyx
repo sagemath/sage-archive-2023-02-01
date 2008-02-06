@@ -11,6 +11,13 @@ import sys
 
 from sage.rings.integer cimport Integer
 
+cdef enum print_modes:
+    terse
+    series
+    val_unit
+    digits
+    bars
+
 _printer_defaults = None
 
 def pAdicPrinter(ring, mode = None, pos = None, pname = None, unram_name = None, var_name = None, max_ram_terms = None, max_unram_terms = None, max_terse_terms = None, sep = None, alphabet = None):
@@ -44,11 +51,6 @@ cdef class pAdicPrinter_class(SageObject):
         self.prime_pow = ring.prime_pow
         from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
         self.base = isinstance(ring, pAdicBaseGeneric)
-        self.terse = 0
-        self.val_unit = 1
-        self.series = 2
-        self.digits = 3
-        self.bars = 4
         if alphabet is None:
             self.alphabet = _printer_defaults.alphabet
         else:
@@ -61,19 +63,19 @@ cdef class pAdicPrinter_class(SageObject):
         if mode is None:
             mode = _printer_defaults.mode
         if mode == 'val-unit':
-            self.mode = self.val_unit
+            self.mode = val_unit
         elif mode == 'series':
-            self.mode = self.series
+            self.mode = series
         elif mode == 'terse':
-            self.mode = self.terse
+            self.mode = terse
         elif mode == 'digits':
             if len(self.alphabet) < self.prime_pow.prime or (not self.base and ring.inertia_degree() != 1):
-                self.mode = self.bars
+                self.mode = bars
             else:
-                self.mode = self.digits
+                self.mode = digits
                 self.pos = True
         elif mode == 'bars':
-            self.mode = self.bars
+            self.mode = bars
         else:
             raise ValueError, "printing mode must be one of 'val-unit', 'series', 'terse', 'digits' or 'bars'"
         if pname is None:
@@ -147,15 +149,15 @@ cdef class pAdicPrinter_class(SageObject):
         return self.pname
 
     def _print_mode(self):
-        if self.mode == self.val_unit:
+        if self.mode == val_unit:
             return 'val-unit'
-        elif self.mode == self.series:
+        elif self.mode == series:
             return 'series'
-        elif self.mode == self.terse:
+        elif self.mode == terse:
             return 'terse'
-        elif self.mode == self.digits:
+        elif self.mode == digits:
             return 'digits'
-        elif self.mode == self.bars:
+        elif self.mode == bars:
             return 'bars'
 
     def _base_p_list(self, value, pos):
@@ -210,15 +212,15 @@ cdef class pAdicPrinter_class(SageObject):
         if mode is None:
             _mode = self.mode
         elif mode == 'val-unit':
-            _mode = self.val_unit
+            _mode = val_unit
         elif mode == 'series':
-            _mode = self.series
+            _mode = series
         elif mode == 'terse':
-            _mode = self.terse
+            _mode = terse
         elif mode == 'digits':
-            _mode = self.digits
+            _mode = digits
         elif mode == 'bars':
-            _mode = self.bars
+            _mode = bars
         else:
             raise ValueError, "printing mode must be one of 'val-unit', 'series', 'terse', 'bars', or 'digits'"
         if pos is None:
@@ -251,28 +253,28 @@ cdef class pAdicPrinter_class(SageObject):
         if elt._is_exact_zero():
             return "0"
         if elt._is_inexact_zero():
-            if mode == self.val_unit or mode == self.series:
+            if mode == val_unit or mode == series:
                 s = "O(%s"%(pname)
-            elif mode == self.terse:
+            elif mode == terse:
                 s = "0 + O(%s"%(pname)
-            else: # mode == self.digits or self.bars
+            else: # mode == digits or bars
                 s = "..."
-        elif mode == self.val_unit:
+        elif mode == val_unit:
             if do_latex:
                 if elt.valuation() == 0:
-                    s = "%s + O(%s"%(self._repr_spec(elt, do_latex, pos, self.terse, 0, pname), pname)
+                    s = "%s + O(%s"%(self._repr_spec(elt, do_latex, pos, terse, 0, pname), pname)
                 elif elt.valuation() == 1:
-                    s = "%s \\cdot %s + O(%s"%(pname, self._repr_spec(elt.unit_part(), do_latex, pos, self.terse, 1, pname), pname)
+                    s = "%s \\cdot %s + O(%s"%(pname, self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, pname), pname)
                 else:
-                    s = "%s^{%s} \\cdot %s + O(%s"%(pname, elt.valuation(), self._repr_spec(elt.unit_part(), do_latex, pos, self.terse, 1, pname), pname)
+                    s = "%s^{%s} \\cdot %s + O(%s"%(pname, elt.valuation(), self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, pname), pname)
             else:
                 if elt.valuation() == 0:
-                    s = "%s + O(%s"%(self._repr_spec(elt, do_latex, pos, self.terse, 0, pname), pname)
+                    s = "%s + O(%s"%(self._repr_spec(elt, do_latex, pos, terse, 0, pname), pname)
                 elif elt.valuation() == 1:
-                    s = "%s * %s + O(%s"%(pname, self._repr_spec(elt.unit_part(), do_latex, pos, self.terse, 1, pname), pname)
+                    s = "%s * %s + O(%s"%(pname, self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, pname), pname)
                 else:
-                    s = "%s^%s * %s + O(%s"%(pname, elt.valuation(), self._repr_spec(elt.unit_part(), do_latex, pos, self.terse, 1, pname), pname)
-        elif mode == self.digits:
+                    s = "%s^%s * %s + O(%s"%(pname, elt.valuation(), self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, pname), pname)
+        elif mode == digits:
             if self.base:
                 L = self.base_p_list((<Integer>elt.unit_part().lift()).value, True)
             else:
@@ -294,7 +296,7 @@ cdef class pAdicPrinter_class(SageObject):
                 L = L[:n] + ['.'] + L[n:]
             s = "".join(L)
             s = "..." + s
-        elif mode == self.bars:
+        elif mode == bars:
             if self.base:
                 L = self.base_p_list((<Integer>elt.unit_part().lift()).value, self.pos)
             else:
@@ -310,9 +312,9 @@ cdef class pAdicPrinter_class(SageObject):
                 L = L[:n] + ['.'] + L[n:]
             s = self.sep.join(L)
             s = "..." + s
-        else: # mode == self.terse or self.series
+        else: # mode == terse or series
             s = "%s + O(%s"%(self._repr_spec(elt, do_latex, pos, mode, 0, pname), pname)
-        if mode != self.bars and mode != self.digits:
+        if mode != bars and mode != digits:
             if elt.precision_absolute() == 1:
                 s += ")"
             else:
@@ -333,7 +335,7 @@ cdef class pAdicPrinter_class(SageObject):
         #cdef bint ellipsis = 0
         cdef ellipsis_unram
         if self.base:
-            if mode == self.terse:
+            if mode == terse:
                 if elt.valuation() >= 0:
                     lift_z = <Integer> elt.lift()
                     if not pos:
@@ -354,12 +356,12 @@ cdef class pAdicPrinter_class(SageObject):
                     else:
                         ppow = ppow2
                     if do_latex:
-                        return "\frac{%s}{%s}"%(self._repr_spec(elt.unit_part(), do_latex, pos, self.terse, 0, pname), ppow)
+                        return "\frac{%s}{%s}"%(self._repr_spec(elt.unit_part(), do_latex, pos, terse, 0, pname), ppow)
                     elif paren:
-                        return "(%s/%s)"%(self._repr_spec(elt.unit_part(), do_latex, pos, self.terse, 0, pname), ppow)
+                        return "(%s/%s)"%(self._repr_spec(elt.unit_part(), do_latex, pos, terse, 0, pname), ppow)
                     else:
-                        return "%s/%s"%(self._repr_spec(elt.unit_part(), do_latex, pos, self.terse, 0, pname), ppow)
-            else: # mode == self.series
+                        return "%s/%s"%(self._repr_spec(elt.unit_part(), do_latex, pos, terse, 0, pname), ppow)
+            else: # mode == series
                 slist = self.base_p_list((<Integer>elt.unit_part().lift()).value, pos)
                 slist, ellipsis = self._truncate_list(slist, self.max_ram_terms, 0)
                 s = ""
@@ -379,7 +381,7 @@ cdef class pAdicPrinter_class(SageObject):
                 if ellipsis:
                     s += self._plus_ellipsis(do_latex)
         else: # not self.base
-            if mode == self.terse:
+            if mode == terse:
                 if elt.parent().is_capped_relative():
                     poly, k = elt._ntl_rep_abs()
                     s = repr(poly)
@@ -429,7 +431,7 @@ cdef class pAdicPrinter_class(SageObject):
                                 s += self._dot_var(self.var_name, i, do_latex)
                     if ellipsis:
                         s += self._plus_ellipsis(do_latex)
-            else: # self.series
+            else: # series
                 s = ""
                 L = elt._ext_p_list(pos)
                 val = elt.valuation_c()

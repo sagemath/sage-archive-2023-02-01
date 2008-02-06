@@ -207,9 +207,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
     #    return self.is_zero() and not self._is_exact_zero()
 
     def str(self, mode=None):
-        return self._repr(mode=mode)
+        return self._repr_(mode=mode)
 
-    def _repr(self, mode=None, do_latex=False):
+    def _repr_(self, mode=None, do_latex=False):
         return self.parent()._printer.repr_gen(self, do_latex, mode=mode)
 
     def additive_order(self, prec):

@@ -1023,8 +1023,6 @@ def search_all_includes(filename):
     Returns a list of all files that get included by f.
     """
     # Now we look inside the file to see what it cimports or include.
-    # If any of these files are newer than outfile, we rebuild
-    # outfile.
     S = open(filename).readlines()
     # Take the lines that begin with cimport (it won't hurt to
     # have extra lines)
@@ -1050,7 +1048,6 @@ def search_all_includes(filename):
             A = A[1:-1]
 
         # Now convert A to a filename, e.g., a/b/c/d
-        #
         if '.' in A:
             # It is an absolute cimport.
             A = A.replace('.','/') + '.pxd'
@@ -1060,10 +1057,9 @@ def search_all_includes(filename):
         # Check to see if a/b/c/d.pxd exists and is newer than filename.
         # If so, we have to regenerate outfile.  If not, we're safe.
         if os.path.exists(A):
-            this_deps.append(os.path.abspath(A))
+            this_deps.append(module_path(A))
 
     # OK, next we move on to include pxi files.
-    # If they change, we likewise must rebuild the pyx file.
     I = [x for x in S if 'include' in x]
     # The syntax for include is like this:
     #       include "../a/b/c.pxi"
@@ -1087,14 +1083,22 @@ def search_all_includes(filename):
         if not os.path.exists(A):
             # A is an "absolute" path -- that is, absolute to the base of the sage tree
             A = R # restore
-        # Finally, check to see if filename is older than A
         if os.path.exists(A):
-            this_deps.append(os.path.abspath(A))
+            this_deps.append(module_path(A))
     return this_deps
+
+def module_path(path):
+    # get the absolute path
+    s = os.path.abspath(path)
+    # get rid of extraneous stuff
+    s = s[len(SAGE_ROOT):]
+    n = s.find('/', 12)
+    s = s[n+1:]
+    return s
 
 def deps_graph(deps, f, visited=set([])):
     # first we find all the dependencies of f
-    f = os.path.abspath(f)
+    f = module_path(f)
     this_deps = search_all_includes(f)
     try:
         deps[f] = deps[f].union(set(this_deps))
@@ -1105,20 +1109,18 @@ def deps_graph(deps, f, visited=set([])):
         if d not in visited:
             deps_graph(deps, d, visited)
 
-def need_to_build(deps, f, outfile, visited=set([])):
+def need_to_build(deps, f, outfile):
     if is_newer(f, outfile):
         print '\nBuilding %s because it depends on %s.' % (outfile, f)
         return True
     try:
         this_deps = deps[f]
     except KeyError:
-        # if we get this far and the file has no includes, then we are
-        # at a leaf node
+        # if we get this far, f has no includes, so it is a leaf node
         return False
-    this_deps = [d for d in this_deps if d not in visited]
     for d in this_deps:
-        visited.add(d)
-        return need_to_repbuid(deps, d, outfile, viisited)
+        if need_to_build(deps, d, outfile):
+            return True
     return False
 
 def create_deps(ext_modules):
@@ -1133,7 +1135,6 @@ def create_deps(ext_modules):
 
     return deps
 
-do_cython = True
 if not sdist and do_cython:
     deps = create_deps(ext_modules)
     cython(deps, ext_modules)

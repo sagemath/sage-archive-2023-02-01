@@ -7,6 +7,8 @@ It has been moved here to prevent code duplication and make finding the relevant
 include "../../ext/stdsage.pxi"
 include "../../ext/gmp.pxi"
 
+import sys
+
 from sage.rings.integer cimport Integer
 
 _printer_defaults = None
@@ -18,18 +20,15 @@ class pAdicPrinterDefaults(SageObject):
     def __init__(self, mode = 'series', pos = True, max_ram_terms = -1, max_unram_terms = -1, max_terse_terms = -1, sep = "|", alphabet = None):
         self.mode = mode
         self.pos = bool(pos)
-        max_ram_terms = Integer(max_ram_terms)
-        if max_ram_terms < -1 or mpz_fits_slong_p((<Integer>max_ram_terms).value) == 0:
+        if not -1 <= max_ram_terms <= sys.maxint:
             raise ValueError, "max_ram_terms must be positive and fit in a long"
-        self.max_ram_terms = max_ram_terms
-        max_unram_terms = Integer(max_unram_terms)
-        if max_unram_terms < -1 or mpz_fits_slong_p((<Integer>max_unram_terms).value) == 0:
+        self.max_ram_terms = int(max_ram_terms)
+        if not -1 <= max_unram_terms <= sys.maxint:
             raise ValueError, "max_unram_terms must be positive and fit in a long"
-        self.max_unram_terms = max_unram_terms
-        max_terse_terms = Integer(max_terse_terms)
-        if max_terse_terms < -1 or mpz_fits_slong_p((<Integer>max_terse_terms).value) == 0:
+        self.max_unram_terms = int(max_unram_terms)
+        if not -1 <= max_terse_terms <= sys.maxint:
             raise ValueError, "max_terse_terms must be positive and fit in a long"
-        self.max_terse_terms = max_terse_terms
+        self.max_terse_terms = int(max_terse_terms)
         self.sep = sep
         if alphabet is None:
             self.alphabet = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
@@ -94,43 +93,34 @@ cdef class pAdicPrinter_class(SageObject):
         else:
             self.sep = sep
         if max_ram_terms is not None:
-            max_ram_terms = Integer(max_ram_terms)
-            if max_ram_terms < 0 or mpz_fits_slong_p((<Integer>max_ram_terms).value) == 0:
+            self.max_ram_terms = max_ram_terms
+            if self.max_ram_terms < 0:
                 raise ValueError, "max_ram_terms must be positive and fit in a long"
-            self.max_ram_terms = mpz_get_si((<Integer>max_ram_terms).value)
         else:
-            self.max_ram_terms = mpz_get_si((<Integer>_printer_defaults.max_ram_terms).value)
+            self.max_ram_terms = _printer_defaults.max_ram_terms
         if max_unram_terms is not None:
-            max_unram_terms = Integer(max_unram_terms)
-            if max_unram_terms < 0 or mpz_fits_slong_p((<Integer>max_unram_terms).value) == 0:
+            self.max_unram_terms = max_unram_terms
+            if self.max_unram_terms < 0:
                 raise ValueError, "max_unram_terms must be positive and fit in a long"
-            self.max_unram_terms = mpz_get_si((<Integer>max_unram_terms).value)
         else:
-            self.max_unram_terms = mpz_get_si((<Integer>_printer_defaults.max_unram_terms).value)
+            self.max_unram_terms = _printer_defaults.max_unram_terms
         if max_terse_terms is not None:
-            max_terse_terms = Integer(max_terse_terms)
-            if max_terse_terms < 0 or mpz_fits_slong_p((<Integer>max_terse_terms).value) == 0:
+            self.max_terse_terms = max_terse_terms
+            if self.max_terse_terms < 0:
                 raise ValueError, "max_terse_terms must be positive and fit in a long"
-            self.max_terse_terms = mpz_get_si((<Integer>max_terse_terms).value)
         else:
-            self.max_terse_terms = mpz_get_si((<Integer>_printer_defaults.max_terse_terms).value)
+            self.max_terse_terms = _printer_defaults.max_terse_terms
 
     def __reduce__(self):
-        cdef Integer max_ram_terms = PY_NEW(Integer)
-        cdef Integer max_unram_terms = PY_NEW(Integer)
-        cdef Integer max_terse_terms = PY_NEW(Integer)
-        mpz_set_si(max_ram_terms.value, self.max_ram_terms)
-        mpz_set_si(max_unram_terms.value, self.max_unram_terms)
-        mpz_set_si(max_terse_terms.value, self.max_terse_terms)
         return pAdicPrinter, (self.ring, \
                               self._print_mode(), \
                               self.pos, \
                               self.pname, \
                               self.unram_name, \
                               self.var_name, \
-                              None if max_ram_terms == -1 else max_ram_terms, \
-                              None if max_unram_terms == -1 else max_unram_terms, \
-                              None if max_terse_terms == -1 else max_terse_terms, \
+                              None if self.max_ram_terms == -1 else self.max_ram_terms, \
+                              None if self.max_unram_terms == -1 else self.max_unram_terms, \
+                              None if self.max_terse_terms == -1 else self.max_terse_terms, \
                               self.sep, \
                               self.alphabet)
 
@@ -500,7 +490,7 @@ cdef class pAdicPrinter_class(SageObject):
         if exp == 0:
             return "1"
         if exp == 1:
-            return "%s"%(x)
+            return str(x)
         if do_latex:
             return "%s^{%s}"%(x, exp)
         else:

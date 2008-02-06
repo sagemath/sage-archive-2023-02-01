@@ -1218,7 +1218,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         sage: ~z
         w^-5 + 4*w^-4 + 4*w^-3 + 4*w^-2 + 2*w^-1 + 1 + w + 4*w^2 + 4*w^3 + 4*w^4 + w^5 + w^6 + w^7 + 4*w^8 + 4*w^9 + 2*w^10 + w^11 + 2*w^12 + 4*w^13 + 4*w^14 + O(w^15)
         sage: ~z * z
-        1 + O(w^25)
+        1 + O(w^20)
         """
         if self._is_exact_zero():
             raise ZeroDivisionError, "cannot divide by zero"

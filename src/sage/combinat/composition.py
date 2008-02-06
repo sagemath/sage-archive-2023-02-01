@@ -743,14 +743,15 @@ def from_code(code):
     Return the composition from its code.
 
     EXAMPLES:
-    sage: Composition([4,1,2,3,5]).to_code()
-    [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
-    sage: composition.from_code(_)
-    [4, 1, 2, 3, 5]
-    sage: Composition([3,1,2,3,5]).to_code()
-    [1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
-    sage: composition.from_code(_)
-    [3, 1, 2, 3, 5]
+        sage: import sage.combinat.composition as composition
+        sage: Composition([4,1,2,3,5]).to_code()
+        [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
+        sage: composition.from_code(_)
+        [4, 1, 2, 3, 5]
+        sage: Composition([3,1,2,3,5]).to_code()
+        [1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
+        sage: composition.from_code(_)
+        [3, 1, 2, 3, 5]
 
     """
     if code == [0]:

@@ -43,6 +43,28 @@ class CombinatorialAlgebraElement(AlgebraElement):
         AlgebraElement.__init__(self, A)
         self._monomial_coefficients = x
 
+    def __iter__(self):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1]) + s([3])
+            sage: [i for i in sorted(a)]
+            [([2, 1], 1), ([3], 1)]
+
+        """
+        return self._monomial_coefficients.iteritems()
+
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1]) + s([3])
+            sage: Partition([2,1]) in a
+            True
+            sage: Partition([1,1,1]) in a
+            False
+        """
+        return x in self._monomial_coefficients
 
     def monomial_coefficients(self):
         """
@@ -63,7 +85,14 @@ class CombinatorialAlgebraElement(AlgebraElement):
         """
         return self._monomial_coefficients
 
-    def _repr_(self):
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
+            sage: a = 2 + QS3([2,1,3])
+            sage: print a.__repr__()
+            2*[1, 2, 3] + [2, 1, 3]
+        """
         v = self._monomial_coefficients.items()
         v.sort()
         prefix = self.parent().prefix()
@@ -76,10 +105,20 @@ class CombinatorialAlgebraElement(AlgebraElement):
             return x
 
     def _latex_(self):
+        """
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
+            sage: a = 2 + QS3([2,1,3])
+            sage: latex(a) #indirect doctest
+            2[1,2,3] + [2,1,3]
+        """
         v = self._monomial_coefficients.items()
         v.sort()
         prefix = self.parent().prefix()
-        mons = [ prefix + '_{' + ",".join(map(str, m)) + '}' for (m, _) in v ]
+        if prefix == "":
+            mons = [ prefix + '[' + ",".join(map(str, m)) + ']' for (m, _) in v ]
+        else:
+            mons = [ prefix + '_{' + ",".join(map(str, m)) + '}' for (m, _) in v ]
         cffs = [ x for (_, x) in v ]
         x = repr_lincomb(mons, cffs, is_latex=True).replace("*1 "," ")
         if x[len(x)-2:] == "*1":
@@ -87,33 +126,14 @@ class CombinatorialAlgebraElement(AlgebraElement):
         else:
             return x
 
-    def _eq_(self, right):
-        """
-        EXAMPLES:
-            sage: s = SFASchur(QQ)
-            sage: a = s([2,1])
-            sage: b = s([2,1])
-            sage: c = s([2,1]) + 0
-            sage: d = s([2,1]) + 3
-            sage: a == b
-            True
-            sage: b == c
-            True
-            sage: c == d
-            False
-        """
-        for b in self.parent()._combinatorial_class:
-            if self.coefficient(b) != right.coefficient(b):
-                return False
-        return True
-
     def __cmp__(left, right):
         """
         The ordering is the one on the underlying sorted list of (monomial,coefficients) pairs.
         """
-        v = left._monomial_coefficients.items()
+        nonzero = lambda mc: mc[1] != 0
+        v = filter(nonzero, left._monomial_coefficients.items())
         v.sort()
-        w = right._monomial_coefficients.items()
+        w = filter(nonzero, right._monomial_coefficients.items())
         w.sort()
         return cmp(v, w)
 
@@ -198,9 +218,28 @@ class CombinatorialAlgebraElement(AlgebraElement):
         return z
 
     def _mul_(self, y):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2])
+            sage: a._mul_(a)
+            s[2, 2] + s[3, 1] + s[4]
+        """
         return self.parent().multiply(self, y)
 
     def _div_(self, y):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2])
+            sage: a._div_(s(2))
+            1/2*s[2]
+            sage: a._div_(a)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot invert self (= s[2])
+
+        """
         return self.parent().multiply(self, ~y)
 
     def __invert__(self):
@@ -223,11 +262,15 @@ class CombinatorialAlgebraElement(AlgebraElement):
 
     def __pow__(self, n):
         """
+        Returns self to the $n^{th}$ power.
+
         EXAMPLES:
             sage: s = SFASchur(QQ)
             sage: s([2])^2
             s[2, 2] + s[3, 1] + s[4]
 
+
+        TESTS:
             sage: s = SFASchur(QQ)
             sage: z = s([2,1])
             sage: z
@@ -543,13 +586,7 @@ class CombinatorialAlgebraElement(AlgebraElement):
         return res
 
 class CombinatorialAlgebra(Algebra):
-    """
-    """
     def __init__(self, R, element_class=None):
-        """
-        INPUT:
-            R -- ring
-        """
         #Make sure R is a ring with unit element
         if not isinstance(R, Ring):
             raise TypeError, "Argument R must be a ring."
@@ -596,12 +633,25 @@ class CombinatorialAlgebra(Algebra):
     def basis(self):
         """
         Returns a list of the basis elements of self.
+
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
+            sage: QS3.basis()
+            [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+
         """
         return map(self, self._combinatorial_class.list())
 
     def __call__(self, x):
         """
         Coerce x into self.
+
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
+            sage: QS3(2)
+            2*[1, 2, 3]
+            sage: QS3([2,3,1])
+            [2, 3, 1]
         """
         R = self.base_ring()
         eclass = self._element_class
@@ -652,15 +702,47 @@ class CombinatorialAlgebra(Algebra):
 
 
     def _an_element_impl(self):
+        """
+        Returns an element of self, namely the unit element.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s._an_element_impl()
+            s[]
+            sage: _.parent() is s
+            True
+        """
         return self._element_class(self, {self._combinatorial_class.object_class(self._one):self.base_ring()(1)})
 
-    def _repr_(self):
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
+            sage: print QS3.__repr__()
+            Symmetric group algebra of order 3 over Rational Field
+
+        """
         return self._name + " over %s"%self.base_ring()
 
-    def combintorial_class(self):
+    def combinatorial_class(self):
+        """
+        Returns the combinatorial class that indexes the basis
+        elements.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s.combinatorial_class()
+            Partitions
+        """
         return self._combinatorial_class
 
     def _coerce_impl(self, x):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s._coerce_impl(2)
+            2*s[]
+        """
         try:
             R = x.parent()
             if R.__class__ is self.__class__:
@@ -678,32 +760,112 @@ class CombinatorialAlgebra(Algebra):
         """
         Returns the dimension of the combinatorial algebra (which is given
         by the number of elements in the associated combinatorial class).
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s.dimension()
+            +Infinity
         """
-        return self._dim
+        return self._combinatorial_class.count()
 
     def set_order(self, order):
         """
         Sets the order of the elements of the combinatorial class.
+
         If .set_order() has not been called, then the ordering is
         the one used in the generation of the elements of self's
         associated combinatorial class.
+
+        EXAMPLES:
+            sage: QS2 = SymmetricGroupAlgebra(QQ,2)
+            sage: b = QS2.basis()
+            sage: b.reverse()
+            sage: QS2.set_order(b)
+            sage: QS2.get_order()
+            [[2, 1], [1, 2]]
+
         """
-
-        #TODO: add checks
-
         self._order = order
 
     def get_order(self):
+        """
+        Returns the order of the elements in the basis.
+
+        EXAMPLES:
+            sage: QS2 = SymmetricGroupAlgebra(QQ,2)
+            sage: QS2.get_order()
+            [[1, 2], [2, 1]]
+        """
+        if self._order is None:
+            self._order = self.combinatorial_class().list()
         return self._order
 
     def prefix(self):
+        """
+        Returns the prefix used when displaying elements of self.
+
+        EXAMPLES:
+            sage: X = SchubertPolynomialRing(QQ)
+            sage: X.prefix()
+            'X'
+        """
         return self._prefix
 
+    def __cmp__(self, other):
+        """
+        EXAMPLES:
+            sage: XQ = SchubertPolynomialRing(QQ)
+            sage: XZ = SchubertPolynomialRing(ZZ)
+            sage: XQ == XZ #indirect doctest
+            False
+            sage: XQ == XQ
+            True
+        """
+        if not isinstance(other, self.__class__):
+            return -1
+        c = cmp(self.base_ring(), other.base_ring())
+        if c: return c
+        return 0
 
-    def _linearize(self, f, a):
+    def _apply_module_morphism(self, x, f):
+        """
+        Returns the image of x under the module morphism defined by
+        extending f by linearity.
+
+        INPUT:
+            -- x : a element of self
+            -- f : a function that takes in a partition (basis element)
+                   and returns an element of the target domain
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([3]) + s([2,1]) + s([1,1,1])
+            sage: b = 2*a
+            sage: f = lambda part: len(part)
+            sage: s._apply_module_morphism(a, f) #1+2+3
+            6
+            sage: s._apply_module_morphism(b, f) #2*(1+2+3)
+            12
+
+
+        """
+        res = 0
+        for m, c in x._monomial_coefficients.iteritems():
+            res += c*f(m)
+        return res
+
+
+    def _linearize(self, a, f):
         """
         This takes in a function from the basis elements
         to the elements of self.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: f = lambda part: 2*s(part.conjugate())
+            sage: s._linearize( s([2,1]) + s([1,1,1]), f)
+            2*s[2, 1] + 2*s[3]
+
         """
         mcs = a.monomial_coefficients()
         base_ring = self.base_ring()
@@ -712,15 +874,10 @@ class CombinatorialAlgebra(Algebra):
         z_elt = {}
         for basis_element in mcs:
             f_mcs = f(basis_element).monomial_coefficients()
-            print f_mcs
             for f_basis_element in f_mcs:
                 z_elt[ f_basis_element ] = z_elt.get(f_basis_element, zero) + mcs[basis_element]*f_mcs[f_basis_element]
 
-        res = self(0)
-        print z_elt
-        res._monomial_coefficients = z_elt
-        print res.monomial_coefficients()
-        return res
+        return self._from_dict(z_elt)
 
     def multiply(self,left,right):
         A = left.parent()
@@ -770,18 +927,20 @@ class CombinatorialAlgebra(Algebra):
         for m in del_list:
             del z_elt[m]
 
-        z = A(Integer(0))
-        z._monomial_coefficients = z_elt
-        return z
+        return self._from_dict(z_elt)
 
+    def _from_dict(self, d):
+        """
+        Given a monomial coefficient dictionary d, return the element
+        of self with the dictionary.
 
-#class TestCA(CombinatorialAlgebra):
-#    _combinatorial_class = partition.Partitions()
-#    _name = "Test Combinatorial Algebra"
-#    _one = partition.Partition([])
-#    def _multiply_basis(self, left_basis, right_basis):
-#        #Append the two lists
-#        m = list(left_basis) + list(right_basis)
-#        #Sort the new lists
-#        m.sort(reverse=True)
-#        return partition.Partition(m)
+        EXAMPLES:
+            sage: e = SFAElementary(QQ)
+            sage: s = SFASchur(QQ)
+            sage: a = e([2,1]) + e([1,1,1]); a
+            e[1, 1, 1] + e[2, 1]
+            sage: s._from_dict(a.monomial_coefficients())
+            s[1, 1, 1] + s[2, 1]
+
+        """
+        return self._element_class(self, d)

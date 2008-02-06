@@ -28,7 +28,7 @@ are [[0,4], [1,2], [2,0]].
 #*****************************************************************************
 
 from sage.interfaces.all import gap, maxima, gp
-from sage.rings.all import QQ, RR, ZZ
+from sage.rings.all import QQ, RR, ZZ, infinity
 from sage.misc.all import prod, sage_eval
 from sage.rings.arith import factorial, gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -64,6 +64,10 @@ def Partition(l=None, exp=None, core_and_quotient=None):
         [11, 5, 5, 3, 2, 2, 2]
         sage: Partition([3,2,1])
         [3, 2, 1]
+        sage: [2,1,0] in Partitions()
+        True
+        sage: Partition([2,1,0])
+        [2, 1]
     """
     number_of_arguments = 0
     for arg in ['l', 'exp', 'core_and_quotient']:
@@ -74,9 +78,7 @@ def Partition(l=None, exp=None, core_and_quotient=None):
         raise ValueError, "you must specify exactly one argument"
 
     if l is not None:
-        if sum(l) == 0:
-            l = []
-        return Partition_class(l)
+        return Partition_class([i for i in l if i != 0])
     elif exp is not None:
         return from_exp(exp)
     else:
@@ -453,6 +455,36 @@ class Partition_class(CombinatorialObject):
                 return False
         return True
 
+    def boxes(self):
+        """
+        Return the coordinates of the boxes of self.
+
+        EXAMPLES:
+            sage: Partition([2,2]).boxes()
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
+            sage: Partition([3,2,1]).boxes()
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (2, 0)]
+
+        """
+        res = []
+        for i in range(len(self)):
+            for j in range(self[i]):
+                res.append( (i,j) )
+        return res
+
+    def generalized_pochhammer_symbol(self, a, alpha):
+        r"""
+        Returns the generalized Pochhammer symbol $(a)_{self}^{(\alpha)}$.
+
+        EXAMPLES:
+            sage: Partition([2,2]).generalized_pochhammer_symbol(2,1)
+            12
+        """
+        res = 1
+        for (i,j) in self.boxes():
+            res *= (a - (i-1)/alpha+j-1)
+        return res
+
     def conjugate(self):
         """
         conjugate() returns the ``conjugate'' (also called
@@ -479,7 +511,7 @@ class Partition_class(CombinatorialObject):
         """
         p = self
         if p == []:
-            return Partition([])
+            return Partition_class([])
         else:
             l = len(p)
             conj =  [l]*p[-1]
@@ -538,18 +570,26 @@ class Partition_class(CombinatorialObject):
             #Error: invalid coordinates
             pass
 
-    def arm_lengths(self):
+    def arm_lengths(self, flat=False):
         """
         Returns a tableau of shape p where each box is filled its arm.
 
         EXAMPLES:
             sage: Partition([2,2,1]).arm_lengths()
             [[1, 0], [1, 0], [0]]
+            sage: Partition([2,2,1]).arm_lengths(flat=True)
+            [1, 0, 1, 0, 0]
             sage: Partition([3,3]).arm_lengths()
             [[2, 1, 0], [2, 1, 0]]
+            sage: Partition([3,3]).arm_lengths(flat=True)
+            [2, 1, 0, 2, 1, 0]
         """
         p = self
-        return [[p[i]-(j+1) for j in range(p[i])] for i in range(len(p))]
+        res = [[p[i]-(j+1) for j in range(p[i])] for i in range(len(p))]
+        if flat:
+            return sum(res, [])
+        else:
+            return res
 
 
     def leg(self, i, j):
@@ -577,7 +617,7 @@ class Partition_class(CombinatorialObject):
             #Error: invalid coordinates
             pass
 
-    def leg_lengths(self):
+    def leg_lengths(self, flat=False):
         """
         Returns a tableau of shape p with each box filled in with
         its leg.
@@ -585,12 +625,21 @@ class Partition_class(CombinatorialObject):
         EXAMPLES:
             sage: Partition([2,2,1]).leg_lengths()
             [[2, 1], [1, 0], [0]]
+            sage: Partition([2,2,1]).leg_lengths(flat=True)
+            [2, 1, 1, 0, 0]
             sage: Partition([3,3]).leg_lengths()
             [[1, 1, 1], [0, 0, 0]]
+            sage: Partition([3,3]).leg_lengths(flat=True)
+            [1, 1, 1, 0, 0, 0]
         """
         p = self
         conj = p.conjugate()
-        return [[conj[j]-(i+1) for j in range(p[i])] for i in range(len(p))]
+        res = [[conj[j]-(i+1) for j in range(p[i])] for i in range(len(p))]
+        if flat:
+            return sum(res, [])
+        else:
+            return res
+
 
     def dominate(self, rows=None):
         """
@@ -1637,13 +1686,54 @@ class PartitionTuples_nk(CombinatorialClass):
 ##############
 
 def Partitions(n=None, **kwargs):
+    """
+    Returns a combinatorial class of integer partitions.
+
+    EXAMPLES:
+        sage: Partitions()
+        Partitions
+        sage: [2,1] in Partitions()
+        True
+
+        sage: Partitions(3)
+        Partitions of the integer 3
+        sage: Partitions(3).list()
+        [[3], [2, 1], [1, 1, 1]]
+
+        sage: Partitions(3, starting=[2,1])
+        Partitions of the integer 3 starting with [2, 1]
+        sage: Partitions(3, starting=[2,1]).list()
+        [[2, 1], [1, 1, 1]]
+
+        sage: Partitions(3, ending=[2,1])
+        Partitions of the integer 3 ending with [2, 1]
+        sage: Partitions(3, ending=[2,1]).list()
+        [[3], [2, 1]]
+
+        sage: Partitions(5,min_part=2)
+        Partitions of the integer 5 satisfying constraints min_part=2
+        sage: Partitions(5,min_part=2).list()
+        [[5], [3, 2]]
+
+        sage: Partitions(3,max_length=2).list()
+        [[3], [2, 1]]
+
+    """
     if n is None:
         return Partitions_all()
     else:
         if len(kwargs) == 0:
-            return Partitions_n(n)
+            if isinstance(n, (int,Integer)):
+                return Partitions_n(n)
+            else:
+                raise ValueError, "n must be an integer"
         else:
-            return Partitions_constraints(n, **kwargs)
+            if 'starting' in kwargs:
+                return Partitions_starting(n, kwargs['starting'])
+            elif 'ending' in kwargs:
+                return Partitions_ending(n, kwargs['ending'])
+            else:
+                return Partitions_constraints(n, **kwargs)
 
 class Partitions_all(CombinatorialClass):
     def __init__(self):
@@ -1656,6 +1746,17 @@ class Partitions_all(CombinatorialClass):
         pass
 
     object_class = Partition_class
+
+
+    def count(self):
+        """
+        Returns the number of integer partitions.
+
+        EXAMPLES:
+            sage: Partitions().count()
+            +Infinity
+        """
+        return infinity
 
     def __contains__(self, x):
         """
@@ -1672,7 +1773,7 @@ class Partitions_all(CombinatorialClass):
             sage: [] in P
             True
             sage: [0] in P
-            False
+            True
         """
         if isinstance(x, Partition_class):
             return True
@@ -1680,7 +1781,7 @@ class Partitions_all(CombinatorialClass):
             for i in range(len(x)):
                 if not isinstance(x[i], (int, Integer)):
                     return False
-                if x[i] <= 0:
+                if x[i] < 0:
                     return False
                 if i == 0:
                     prev = x[i]
@@ -1937,6 +2038,52 @@ class Partitions_n(CombinatorialClass):
                 yield p[:-1] + [p[-1] + 1]
             yield p + [1]
 
+class Partitions_starting(CombinatorialClass):
+    def __init__(self, n, starting_partition):
+        self.n = n
+        self._starting = Partition(starting_partition)
+
+    def __repr__(self):
+        return "Partitions of the integer %s starting with %s"%(self.n, self._starting)
+
+    def __contains__(self, x):
+        return x in Partitions_n(self.n) and x <= self._starting
+
+    def first(self):
+        return self._starting
+
+    def next(self, part):
+        return part.next()
+
+class Partitions_ending(CombinatorialClass):
+    """
+    EXAMPLES:
+        sage: Partitions(4, ending=[1,1,1,1]).list()
+        [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
+        sage: Partitions(4, ending=[2,2]).list()
+        [[4], [3, 1], [2, 2]]
+        sage: Partitions(4, ending=[4]).list()
+        [[4]]
+
+    """
+    def __init__(self, n, ending_partition):
+        self.n = n
+        self._ending = Partition(ending_partition)
+
+    def __repr__(self):
+        return "Partitions of the integer %s ending with %s"%(self.n, self._ending)
+
+    def __contains__(self, x):
+        return x in Partitions_n(self.n) and x >= self._ending
+
+    def first(self):
+        return Partition_class([self.n])
+
+    def next(self, part):
+        if part == self._ending:
+            return None
+        else:
+            return part.next()
 
 
 def PartitionsInBox(h, w):

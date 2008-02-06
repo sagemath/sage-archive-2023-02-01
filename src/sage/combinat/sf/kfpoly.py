@@ -55,9 +55,21 @@ def KostkaFoulkesPolynomial(mu, nu, t=None):
 
 def kfpoly(mu, nu, t=None):
     """
-     kfpoly(mu,nu,t) computes the Kostka-Foulkes polynomial K[mu,nu](t)
-     by generating all rigging sequences for the shape mu, and then
-     selecting those of content nu.
+    kfpoly(mu,nu,t) computes the Kostka-Foulkes polynomial K[mu,nu](t)
+    by generating all rigging sequences for the shape mu, and then
+    selecting those of content nu.
+
+    EXAMPLES:
+        sage: from sage.combinat.sf.kfpoly import kfpoly
+        sage: kfpoly([2,2], [2,1,1])
+        t
+        sage: kfpoly([4], [2,1,1])
+        t^3
+        sage: kfpoly([4], [2,2])
+        t^2
+        sage: kfpoly([1,1,1,1], [2,2])
+        0
+
     """
     if mu == nu:
         return 1

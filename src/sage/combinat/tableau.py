@@ -22,6 +22,7 @@ from sage.rings.integer import Integer
 import sage.combinat.skew_tableau
 import partition
 from composition import Compositions
+from integer_vector import IntegerVectors
 import word
 import misc
 import partition
@@ -1455,19 +1456,37 @@ def SemistandardTableaux(p=None, mu=None):
         sage: SST = SemistandardTableaux([2,1]); SST
         Semistandard tableaux of shape [2, 1]
         sage: SST.list()
-        [[[1, 2], [3]], [[1, 3], [2]], [[1, 2], [2]], [[1, 1], [2]]]
+        [[[1, 1], [2]],
+         [[1, 1], [3]],
+         [[1, 2], [2]],
+         [[1, 2], [3]],
+         [[1, 3], [2]],
+         [[1, 3], [3]],
+         [[2, 2], [3]],
+         [[2, 3], [3]]]
+
 
         sage: SST = SemistandardTableaux(3); SST
         Semistandard tableaux of size 3
         sage: SST.list()
-        [[[1, 2, 3]],
-         [[1, 2, 2]],
+        [[[1, 1, 1]],
          [[1, 1, 2]],
-         [[1, 1, 1]],
+         [[1, 1, 3]],
+         [[1, 2, 2]],
+         [[1, 2, 3]],
+         [[1, 3, 3]],
+         [[2, 2, 2]],
+         [[2, 2, 3]],
+         [[2, 3, 3]],
+         [[3, 3, 3]],
+         [[1, 1], [2]],
+         [[1, 1], [3]],
+         [[1, 2], [2]],
          [[1, 2], [3]],
          [[1, 3], [2]],
-         [[1, 2], [2]],
-         [[1, 1], [2]],
+         [[1, 3], [3]],
+         [[2, 2], [3]],
+         [[2, 3], [3]],
          [[1], [2], [3]]]
     """
     if p == None:
@@ -1587,9 +1606,9 @@ class SemistandardTableaux_n(CombinatorialClass):
         """
         EXAMPLES:
             sage: SemistandardTableaux(3).count()
-            9
+            19
             sage: SemistandardTableaux(4).count()
-            33
+            116
             sage: ns = range(1, 6)
             sage: ssts = [ SemistandardTableaux(n) for n in ns ]
             sage: all([sst.count() == len(sst.list()) for sst in ssts])
@@ -1604,17 +1623,28 @@ class SemistandardTableaux_n(CombinatorialClass):
         """
         EXAMPLES:
             sage: SemistandardTableaux(2).list()
-            [[[1, 2]], [[1, 1]], [[1], [2]]]
+            [[[1, 1]], [[1, 2]], [[2, 2]], [[1], [2]]]
             sage: SemistandardTableaux(3).list()
-            [[[1, 2, 3]],
-             [[1, 2, 2]],
+            [[[1, 1, 1]],
              [[1, 1, 2]],
-             [[1, 1, 1]],
+             [[1, 1, 3]],
+             [[1, 2, 2]],
+             [[1, 2, 3]],
+             [[1, 3, 3]],
+             [[2, 2, 2]],
+             [[2, 2, 3]],
+             [[2, 3, 3]],
+             [[3, 3, 3]],
+             [[1, 1], [2]],
+             [[1, 1], [3]],
+             [[1, 2], [2]],
              [[1, 2], [3]],
              [[1, 3], [2]],
-             [[1, 2], [2]],
-             [[1, 1], [2]],
+             [[1, 3], [3]],
+             [[2, 2], [3]],
+             [[2, 3], [3]],
              [[1], [2], [3]]]
+
         """
         for part in partition.Partitions(self.n):
             for sst in SemistandardTableaux(part):
@@ -1723,9 +1753,9 @@ class SemistandardTableaux_p(CombinatorialClass):
             sage: all([sst in SST for sst in SST])
             True
             sage: len(filter(lambda x: x in SST, SemistandardTableaux(3)))
-            4
+            8
             sage: SST.count()
-            4
+            8
         """
         return x in SemistandardTableaux_all() and map(len, x) == self.p
 
@@ -1741,16 +1771,19 @@ class SemistandardTableaux_p(CombinatorialClass):
         """
         EXAMPLES:
             sage: SemistandardTableaux([2,1]).count()
-            4
+            8
             sage: SemistandardTableaux([2,2,1]).count()
-            16
+            75
+            sage: s = SFASchur(QQ)
+            sage: s([2,2,1]).expand(5)(1,1,1,1,1)
+            75
             sage: SemistandardTableaux([5]).count()
-            16
+            126
             sage: SemistandardTableaux([3,2,1]).count()
-            96
+            896
         """
         c = 0
-        for comp in Compositions(sum(self.p)):
+        for comp in IntegerVectors(sum(self.p), sum(self.p)):
             c += SemistandardTableaux_pmu(self.p, comp).count()
         return c
 
@@ -1760,13 +1793,29 @@ class SemistandardTableaux_p(CombinatorialClass):
 
         EXAMPLES:
             sage: SemistandardTableaux([3]).list()
-            [[[1, 2, 3]], [[1, 2, 2]], [[1, 1, 2]], [[1, 1, 1]]]
+            [[[1, 1, 1]],
+             [[1, 1, 2]],
+             [[1, 1, 3]],
+             [[1, 2, 2]],
+             [[1, 2, 3]],
+             [[1, 3, 3]],
+             [[2, 2, 2]],
+             [[2, 2, 3]],
+             [[2, 3, 3]],
+             [[3, 3, 3]]]
             sage: SemistandardTableaux([2,1]).list()
-            [[[1, 2], [3]], [[1, 3], [2]], [[1, 2], [2]], [[1, 1], [2]]]
+            [[[1, 1], [2]],
+             [[1, 1], [3]],
+             [[1, 2], [2]],
+             [[1, 2], [3]],
+             [[1, 3], [2]],
+             [[1, 3], [3]],
+             [[2, 2], [3]],
+             [[2, 3], [3]]]
             sage: SemistandardTableaux([1,1,1]).list()
             [[[1], [2], [3]]]
         """
-        for c in Compositions(sum(self.p)):
+        for c in IntegerVectors(sum(self.p), sum(self.p)):
             for sst in SemistandardTableaux(self.p, c):
                 yield sst
 

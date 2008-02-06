@@ -30,7 +30,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         """
         classical.SymmetricFunctionAlgebra_classical.__init__(self, R, "monomial", SymmetricFunctionAlgebraElement_monomial, 'm')
 
-    def dual_basis(self, scalar=None, prefix=None):
+    def dual_basis(self, scalar=None, scalar_name="",  prefix=None):
         """
         The dual basis of the monomial basis with
         respect to the standard scalar product is the
@@ -45,7 +45,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         if scalar is None:
             return sfa.SFAHomogeneous(self.base_ring())
         else:
-            return dual.SymmetricFunctionAlgebra_dual(self, scalar, prefix=prefix)
+            return dual.SymmetricFunctionAlgebra_dual(self, scalar, scalar_name, prefix)
 
 
     def _multiply(self, left, right):
@@ -94,24 +94,6 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
 
 class SymmetricFunctionAlgebraElement_monomial(classical.SymmetricFunctionAlgebraElement_classical):
-    def frobenius(self):
-        """
-        Returns the image of self under the Frobenius / omega automorphism.
-
-        EXAMPLES:
-            sage: m = SFAMonomial(QQ)
-            sage: a = m([2,1]); a
-            m[2, 1]
-            sage: a.frobenius()
-            -m[2, 1] - 2*m[3]
-            sage: a.omega()
-            -m[2, 1] - 2*m[3]
-
-        """
-        parent = self.parent()
-        s = sfa.SFASchur(parent.base_ring())
-        return parent(s(self).frobenius())
-
     def expand(self, n, alphabet='x'):
         """
         Expands the symmetric function as a symmetric polynomial in n variables.
@@ -123,12 +105,6 @@ class SymmetricFunctionAlgebraElement_monomial(classical.SymmetricFunctionAlgebr
             sage: m([1,1,1]).expand(2)
             0
         """
-        e = eval('symmetrica.compute_' + str(classical.translate[self.parent().basis_name()]).lower() + '_with_alphabet')
-        resPR = PolynomialRing(self.parent().base_ring(), n, alphabet)
-        res = resPR(0)
-        self_mc = self._monomial_coefficients
-        for part in self_mc:
-            if len(part) > n:
-                continue
-            res += self_mc[part] * resPR(e(part, n, alphabet))
-        return res
+        condition = lambda part: len(part) > n
+        return self._expand(condition, n, alphabet)
+

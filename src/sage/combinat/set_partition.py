@@ -180,11 +180,24 @@ class SetPartitions_setparts(CombinatorialClass):
         return len(self.list())
 
 
-    def __iterator_part(self, part):
+    def _iterator_part(self, part):
+        """
+        Returns an iterator for the set partitions with block sizes
+        corresponding to the partition part.
+
+        EXAMPLES:
+            sage: S = SetPartitions(3)
+            sage: it = S._iterator_part([1,1,1])
+            sage: list(sorted(map(list, it.next())))
+            [[1], [2], [3]]
+            sage: S21 = SetPartitions(3,[2,1])
+            sage: len(list(S._iterator_part([2,1]))) == S21.count()
+            True
+        """
         set = self.set
 
         nonzero = []
-        p = partition.Partition(part)
+        p = partition.Partition_class(part)
         expo = p.to_exp()
 
         for i in range(len(expo)):
@@ -211,7 +224,7 @@ class SetPartitions_setparts(CombinatorialClass):
             [{{1, 2, 3}}, {{2, 3}, {1}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{2}, {3}, {1}}]
         """
         for p in self.parts:
-            for sp in self.__iterator_part(p):
+            for sp in self._iterator_part(p):
                 yield sp
 
 

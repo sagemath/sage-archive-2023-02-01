@@ -544,81 +544,226 @@ def mod_stirling(q,n,k):
 
 
 
-
 class CombinatorialObject(SageObject):
     def __init__(self, l):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: c == loads(dumps(c))
+            True
+            sage: c.list
+            [1, 2, 3]
+            sage: c._hash is None
+            True
+        """
         self.list = l
         self._hash = None
 
     def __str__(self):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: str(c)
+            '[1, 2, 3]'
+        """
         return str(self.list)
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: c.__repr__()
+            '[1, 2, 3]'
+        """
         return self.list.__repr__()
 
     def __eq__(self, other):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: d = CombinatorialObject([2,3,4])
+            sage: c == [1,2,3]
+            True
+            sage: c == [2,3,4]
+            False
+            sage: c == d
+            False
+        """
+
         if isinstance(other, CombinatorialObject):
             return self.list.__eq__(other.list)
         else:
             return self.list.__eq__(other)
 
     def __lt__(self, other):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: d = CombinatorialObject([2,3,4])
+            sage: c < d
+            True
+            sage: c < [2,3,4]
+            True
+        """
+
         if isinstance(other, CombinatorialObject):
             return self.list.__lt__(other.list)
         else:
             return self.list.__lt__(other)
 
     def __le__(self, other):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: d = CombinatorialObject([2,3,4])
+            sage: c <= c
+            True
+            sage: c <= d
+            True
+            sage: c <= [1,2,3]
+            True
+        """
         if isinstance(other, CombinatorialObject):
             return self.list.__le__(other.list)
         else:
             return self.list.__le__(other)
 
     def __gt__(self, other):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: d = CombinatorialObject([2,3,4])
+            sage: c > c
+            False
+            sage: c > d
+            False
+            sage: c > [1,2,3]
+            False
+        """
         if isinstance(other, CombinatorialObject):
             return self.list.__gt__(other.list)
         else:
             return self.list.__gt__(other)
 
     def __ge__(self, other):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: d = CombinatorialObject([2,3,4])
+            sage: c >= c
+            True
+            sage: c >= d
+            False
+            sage: c >= [1,2,3]
+            True
+        """
         if isinstance(other, CombinatorialObject):
             return self.list.__ge__(other.list)
         else:
             return self.list.__ge__(other)
 
     def __ne__(self, other):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: d = CombinatorialObject([2,3,4])
+            sage: c != c
+            False
+            sage: c != d
+            True
+            sage: c != [1,2,3]
+            False
+        """
         if isinstance(other, CombinatorialObject):
             return self.list.__ne__(other.list)
         else:
             return self.list.__ne__(other)
 
     def __add__(self, other):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: c + [4]
+            [1, 2, 3, 4]
+            sage: type(_)
+            <type 'list'>
+        """
         return self.list + other
 
     def __hash__(self):
+        """
+        Computes the hash of self by computing the hash of the
+        string representation of self.list.  The hash is cached
+        and stored in self._hash.
+
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: c._hash is None
+            True
+            sage: hash(c) #random
+            1335416675971793195
+            sage: c._hash #random
+            1335416675971793195
+        """
         if self._hash is None:
             self._hash = str(self.list).__hash__()
         return self._hash
 
-    #def __cmp__(self, other):
-    #    return self.list.__cmp__(other)
-
     def __len__(self):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: len(c)
+            3
+            sage: c.__len__()
+            3
+        """
         return self.list.__len__()
 
     def __getitem__(self, key):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: c[0]
+            1
+            sage: c[1:]
+            [2, 3]
+            sage: type(_)
+            <type 'list'>
+        """
         return self.list.__getitem__(key)
 
     def __iter__(self):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: list(iter(c))
+            [1, 2, 3]
+        """
         return self.list.__iter__()
 
     def __contains__(self, item):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: 1 in c
+            True
+            sage: 5 in c
+            False
+        """
         return self.list.__contains__(item)
 
 
     def index(self, key):
+        """
+        EXAMPLES:
+            sage: c = CombinatorialObject([1,2,3])
+            sage: c.index(1)
+            0
+            sage: c.index(3)
+            2
+        """
         return self.list.index(key)
-
 
 class CombinatorialClass(SageObject):
     def __len__(self):
@@ -681,6 +826,13 @@ class CombinatorialClass(SageObject):
         class and checks for equality.  However, since we use __contains__
         for type checking, this operation should be cheap and should be
         implemented manually for each combinatorial class.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: x in C
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 
@@ -714,6 +866,13 @@ class CombinatorialClass(SageObject):
         """
         Default implmentation of count which just goes through the iterator
         of the combinatorial class to count the number of objects.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: it = lambda: iter([1,2,3])
+            sage: C.iterator = it
+            sage: C.count() #indirect doctest
+            3
         """
         c = 0
         for x in self.iterator():
@@ -747,6 +906,14 @@ class CombinatorialClass(SageObject):
         """
         The default implementation of list which builds the list from
         the iterator.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: it = lambda: iter([1,2,3])
+            sage: C.iterator = it
+            sage: C.list() #indirect doctest
+            [1, 2, 3]
+
         """
         return [x for x in self.iterator()]
 
@@ -759,6 +926,14 @@ class CombinatorialClass(SageObject):
     def __iterator_from_next(self):
         """
         An iterator to use when .first() and .next() are provided.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: C.first = lambda: 0
+            sage: C.next  = lambda c: c+1
+            sage: it = C.iterator()
+            sage: [it.next() for _ in range(4)]
+            [0, 1, 2, 3]
         """
         f = self.first()
         yield f
@@ -768,7 +943,7 @@ class CombinatorialClass(SageObject):
             except:
                 break
 
-            if f == None:
+            if f is None or f is False :
                 break
             else:
                 yield f
@@ -776,9 +951,26 @@ class CombinatorialClass(SageObject):
     def __iterator_from_previous(self):
         """
         An iterator to use when .last() and .previous() are provided.
+        Note that this requires the combinatorial class to be finite.
+        It is not recommended to implement combinatorial classes
+        using last and previous.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: C.last = lambda: 4
+            sage: def prev(c):
+            ...       if c <= 1:
+            ...           return None
+            ...       else:
+            ...           return c-1
+            ...
+            sage: C.previous  = prev
+            sage: it = C.iterator()
+            sage: [it.next() for _ in range(4)]
+            [1, 2, 3, 4]
         """
         l = self.last()
-        yield l
+        li = [l]
         while True:
             try:
                 l = self.previous(l)
@@ -788,19 +980,27 @@ class CombinatorialClass(SageObject):
             if l == None:
                 break
             else:
-                yield l
+                li.append(l)
+        return reversed(li)
 
     def __iterator_from_unrank(self):
         """
         An iterator to use when .unrank() is provided.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: l = [1,2,3]
+            sage: C.unrank = lambda c: l[c]
+            sage: list(C.iterator())
+            [1, 2, 3]
         """
         r = 0
         u = self.unrank(r)
-        yield f
+        yield u
         while True:
             r += 1
             try:
-                u = self.unrank(l)
+                u = self.unrank(r)
             except:
                 break
 
@@ -812,6 +1012,12 @@ class CombinatorialClass(SageObject):
     def __iterator_from_list(self):
         """
         An iterator to use when .list() is provided()
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: C.list = lambda: [1, 2, 3]
+            sage: list(C.iterator())
+            [1, 2, 3]
         """
         for x in self.list():
             yield x
@@ -819,6 +1025,13 @@ class CombinatorialClass(SageObject):
     def iterator(self):
         """
         Default implementation of iterator.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: C.iterator()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: iterator called but not implemented
         """
         #Check to see if .first() and .next() are overridden in the subclass
         if ( self.first != self.__first_from_iterator and
@@ -837,13 +1050,15 @@ class CombinatorialClass(SageObject):
         else:
             raise NotImplementedError, "iterator called but not implemented"
 
-
-    def __list_from_unrank_and_count(self):
-        return [ self.unrank(i) for i in range(self.count()) ]
-
     def __unrank_from_iterator(self, r):
         """
         Default implementation of unrank which goes through the iterator.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: C.list = lambda: [1,2,3]
+            sage: C.unrank(1)
+            2
         """
         counter = 0
         for u in self.iterator():
@@ -859,6 +1074,12 @@ class CombinatorialClass(SageObject):
     def __random_from_unrank(self):
         """
         Default implementation of random which uses unrank.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: C.list = lambda: [1,2,3]
+            sage: C.random() #random
+            2
         """
         c = self.count()
         r = randint(0, c-1)
@@ -872,21 +1093,49 @@ class CombinatorialClass(SageObject):
 
 
     def __rank_from_iterator(self, obj):
+        """
+        Default implementation of rank which uses iterator.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: C.list = lambda: [1,2,3]
+            sage: C.rank(3)
+            2
+        """
         r = 0
         for i in self.iterator():
             if i == obj:
                 return r
             r += 1
+        raise ValueError
 
     rank =  __rank_from_iterator
 
     def __first_from_iterator(self):
+        """
+        Default implementation for first which uses iterator.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: C.list = lambda: [1,2,3]
+            sage: C.first()
+            1
+        """
         for i in self.iterator():
             return i
 
     first = __first_from_iterator
 
     def __last_from_iterator(self):
+        """
+        Default implementation for first which uses iterator.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: C.list = lambda: [1,2,3]
+            sage: C.last()
+            3
+        """
         for i in self.iterator():
             pass
         return i
@@ -894,12 +1143,15 @@ class CombinatorialClass(SageObject):
     last = __last_from_iterator
 
     def __next_from_iterator(self, obj):
-        if hasattr(obj, 'next'):
-            res = obj.next()
-            if res:
-                return res
-            else:
-                return None
+        """
+        Default implementation for next which uses iterator.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: C.list = lambda: [1,2,3]
+            sage: C.next(2)
+            3
+        """
         found = False
         for i in self.iterator():
             if found:
@@ -911,12 +1163,15 @@ class CombinatorialClass(SageObject):
     next = __next_from_iterator
 
     def __previous_from_iterator(self, obj):
-        if hasattr(obj, 'previous'):
-            res = obj.previous()
-            if res:
-                return res
-            else:
-                return None
+        """
+        Default implementation for next which uses iterator.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: C.list = lambda: [1,2,3]
+            sage: C.previous(2)
+            1
+        """
         prev = None
         for i in self.iterator():
             if i == obj:
@@ -961,21 +1216,54 @@ class FilteredCombinatorialClass(CombinatorialClass):
         self._name = name
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
+            sage: P.__repr__()
+            'Filtered sublass of Standard permutations of 3'
+            sage: P._name = 'Permutations avoiding [1, 2]'
+            sage: P.__repr__()
+            'Permutations avoiding [1, 2]'
+        """
         if self._name:
             return self._name
         else:
             return "Filtered sublass of " + repr(self.combinatorial_class)
 
     def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
+            sage: 'cat' in P
+            False
+            sage: [4,3,2,1] in P
+            False
+            sage: Permutation([1,2,3]) in P
+            False
+            sage: Permutation([3,2,1]) in P
+            True
+        """
         return x in self.combinatorial_class and self.f(x)
 
     def count(self):
+        """
+        EXAMPLES:
+            sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
+            sage: P.count()
+            1
+        """
         c = 0
         for x in self.iterator():
             c += 1
         return c
 
     def list(self):
+        """
+        EXAMPLES:
+            sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
+            sage: P.list()
+            [[3, 2, 1]]
+        """
         res = []
         for x in self.combinatorial_class.iterator():
             if self.f(x):
@@ -983,95 +1271,15 @@ class FilteredCombinatorialClass(CombinatorialClass):
         return res
 
     def iterator(self):
+        """
+        EXAMPLES:
+            sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
+            sage: list(P.iterator())
+            [[3, 2, 1]]
+        """
         for x in self.combinatorial_class.iterator():
             if self.f(x):
                 yield x
-
-    def __unrank_from_iterator(self, r):
-        """
-        Default implementation of unrank which goes through the iterator.
-        """
-        counter = 0
-        for u in self.iterator():
-            if counter == r:
-                return u
-            counter += 1
-        raise ValueError, "the value must be between %s and %s inclusive"%(0,counter-1)
-
-    #Set the default implementation of unrank
-    unrank = __unrank_from_iterator
-
-
-    def __random_from_unrank(self):
-        """
-        Default implementation of random which uses unrank.
-        """
-        c = self.count()
-        r = randint(0, c-1)
-        if hasattr(self, 'object_class'):
-            return self.object_class(self.unrank(r))
-        else:
-            return self.unrank(r)
-
-    #Set the default implementation of random
-    random = __random_from_unrank
-
-
-    def __rank_from_iterator(self, obj):
-        r = 0
-        for i in self.iterator():
-            if i == obj:
-                return r
-            r += 1
-
-    rank =  __rank_from_iterator
-
-    def __first_from_iterator(self):
-        for i in self.iterator():
-            return i
-
-    first = __first_from_iterator
-
-    def __last_from_iterator(self):
-        for i in self.iterator():
-            pass
-        return i
-
-    last = __last_from_iterator
-
-    def __next_from_iterator(self, obj):
-        if hasattr(obj, 'next'):
-            res = obj.next()
-            if res:
-                return res
-            else:
-                return None
-        found = False
-        for i in self.iterator():
-            if found:
-                return i
-            if i == obj:
-                found = True
-        return None
-
-    next = __next_from_iterator
-
-    def __previous_from_iterator(self, obj):
-        if hasattr(obj, 'previous'):
-            res = obj.previous()
-            if res:
-                return res
-            else:
-                return None
-        prev = None
-        for i in self.iterator():
-            if i == obj:
-                break
-            prev = i
-        return prev
-
-    previous = __previous_from_iterator
-
 
 class UnionCombinatorialClass(CombinatorialClass):
     def __init__(self, left_cc, right_cc, name=None):
@@ -1101,107 +1309,110 @@ class UnionCombinatorialClass(CombinatorialClass):
             return "Union combinatorial class of \n    %s\nand\n    %s"%(self.left_cc, self.right_cc)
 
     def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: P = Permutations(3).union(Permutations(2))
+            sage: [1,2] in P
+            True
+            sage: [3,2,1] in P
+            True
+            sage: [1,2,3,4] in P
+            False
+        """
         return x in self.left_cc or x in self.right_cc
 
     def count(self):
+        """
+        EXAMPLES:
+            sage: P = Permutations(3).union(Permutations(2))
+            sage: P.count()
+            8
+        """
         return self.left_cc.count() + self.right_cc.count()
 
     def list(self):
-        res = []
-        for x in self.left_cc.iterator():
-            res.append(x)
-        for x in self.right_cc.iterator():
-            res.append(x)
-        return res
+        """
+        EXAMPLES:
+            sage: P = Permutations(3).union(Permutations(2))
+            sage: P.list()
+            [[1, 2, 3],
+             [1, 3, 2],
+             [2, 1, 3],
+             [2, 3, 1],
+             [3, 1, 2],
+             [3, 2, 1],
+             [1, 2],
+             [2, 1]]
+        """
+        return self.left_cc.list() + self.right_cc.list()
+
 
     def iterator(self):
+        """
+        EXAMPLES:
+            sage: P = Permutations(3).union(Permutations(2))
+            sage: list(P.iterator())
+            [[1, 2, 3],
+             [1, 3, 2],
+             [2, 1, 3],
+             [2, 3, 1],
+             [3, 1, 2],
+             [3, 2, 1],
+             [1, 2],
+             [2, 1]]
+        """
         for x in self.left_cc.iterator():
             yield x
         for x in self.right_cc.iterator():
             yield x
 
-    def __unrank_from_iterator(self, r):
+    def first(self):
         """
-        Default implementation of unrank which goes through the iterator.
+        EXAMPLES:
+            sage: P = Permutations(3).union(Permutations(2))
+            sage: P.first()
+            [1, 2, 3]
         """
-        counter = 0
-        for u in self.iterator():
-            if counter == r:
-                return u
-            counter += 1
-        raise ValueError, "the value must be between %s and %s inclusive"%(0,counter-1)
+        return self.left_cc.first()
 
-    #Set the default implementation of unrank
-    unrank = __unrank_from_iterator
-
-    def __random_from_unrank(self):
+    def last(self):
         """
-        Default implementation of random which uses unrank.
+        EXAMPLES:
+            sage: P = Permutations(3).union(Permutations(2))
+            sage: P.last()
+            [2, 1]
         """
-        c = self.count()
-        r = randint(0, c-1)
-        if hasattr(self, 'object_class'):
-            return self.object_class(self.unrank(r))
-        else:
-            return self.unrank(r)
+        return self.right_cc.last()
 
-    #Set the default implementation of random
-    random = __random_from_unrank
+    def rank(self, x):
+        """
+        EXAMPLES:
+            sage: P = Permutations(3).union(Permutations(2))
+            sage: P.rank(Permutation([2,1]))
+            7
+            sage: P.rank(Permutation([1,2,3]))
+            0
+        """
+        try:
+            return self.left_cc.rank(x)
+        except:
+            return self.left_cc.count() + self.right_cc.rank(x)
 
-    def __rank_from_iterator(self, obj):
-        r = 0
-        for i in self.iterator():
-            if i == obj:
-                return r
-            r += 1
+    def unrank(self, x):
+        """
+        EXAMPLES:
+            sage: P = Permutations(3).union(Permutations(2))
+            sage: P.unrank(7)
+            [2, 1]
+            sage: P.unrank(0)
+            [1, 2, 3]
+        """
+        try:
+            return self.left_cc.unrank(x)
+        except:
+            return self.right_cc.unrank(x - self.left_cc.count())
 
-    rank =  __rank_from_iterator
 
-    def __first_from_iterator(self):
-        for i in self.iterator():
-            return i
-
-    first = __first_from_iterator
-
-    def __last_from_iterator(self):
-        for i in self.iterator():
-            pass
-        return i
-
-    last = __last_from_iterator
-
-    def __next_from_iterator(self, obj):
-        if hasattr(obj, 'next'):
-            res = obj.next()
-            if res:
-                return res
-            else:
-                return None
-        found = False
-        for i in self.iterator():
-            if found:
-                return i
-            if i == obj:
-                found = True
-        return None
-
-    next = __next_from_iterator
-
-    def __previous_from_iterator(self, obj):
-        if hasattr(obj, 'previous'):
-            res = obj.previous()
-            if res:
-                return res
-            else:
-                return None
-        prev = None
-        for i in self.iterator():
-            if i == obj:
-                break
-            prev = i
-        return prev
-
-    previous = __previous_from_iterator
 
 
 def hurwitz_zeta(s,x,N):

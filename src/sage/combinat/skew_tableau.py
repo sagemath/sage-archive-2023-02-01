@@ -16,12 +16,11 @@ Skew Tableaux
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.arith import factorial
-from sage.rings.integer import Integer
-#from sage.combinat.partition import Partition
+from sage.rings.all import Integer, factorial, infinity
+from sage.misc.misc import uniq
 import partition
 import sage.combinat.tableau
-from sage.combinat.skew_partition import SkewPartition
+import skew_partition
 import partition
 import misc
 import word
@@ -31,7 +30,8 @@ import random
 import copy
 from combinat import CombinatorialObject, CombinatorialClass
 from sage.graphs.graph import DiGraph
-
+import ribbon_tableau
+from integer_vector import IntegerVectors
 
 def SkewTableau(st=None, expr=None):
     """
@@ -121,7 +121,7 @@ class SkewTableau_class(CombinatorialObject):
             [[3, 2, 1], [1, 1]]
         """
 
-        return SkewPartition([self.outer_shape(), self.inner_shape()])
+        return skew_partition.SkewPartition([self.outer_shape(), self.inner_shape()])
 
 
     def outer_size(self):
@@ -218,15 +218,15 @@ class SkewTableau_class(CombinatorialObject):
 
         EXAMPLES:
             sage: SkewTableau([[None,1],[2,3]]).to_word_by_row()
-            [1, 2, 3]
+            [2, 3, 1]
             sage: SkewTableau([[None, 2, 4], [None, 3], [1]]).to_word_by_row()
-            [2, 4, 3, 1]
+            [1, 3, 2, 4]
         """
         word = []
         for row in self:
-            word += filter(lambda x: x is not None, row)
+            word = row + word
 
-        return word
+        return [i for i in word if i is not None]
 
 
     def to_word_by_column(self):
@@ -235,33 +235,22 @@ class SkewTableau_class(CombinatorialObject):
 
         EXAMPLES:
             sage: SkewTableau([[None,1],[2,3]]).to_word_by_column()
-            [2, 1, 3]
+            [1, 3, 2]
             sage: SkewTableau([[None, 2, 4], [None, 3], [1]]).to_word_by_column()
-            [1, 2, 3, 4]
+            [4, 2, 3, 1]
 
         """
-        word = []
-        conj = self.conjugate()
-        for row in conj:
-            word += filter(lambda x: x is not None, row)
-
-        return word
-
-    def to_word_by_reading_order(self):
-        """
-
-        EXAMPLES:
-            sage: SkewTableau([[None,1],[2,3]]).to_word_by_reading_order()
-            [2, 3, 1]
-        """
-        word = []
-        for row in self:
-            word = row + word
-        return [x for x in word if x is not None]
+        return self.conjugate().to_word_by_row()
 
     def to_word(self):
         """
         An alias for SkewTableau.to_word_by_row().
+
+        EXAMPLES:
+            sage: SkewTableau([[None,1],[2,3]]).to_word()
+            [2, 3, 1]
+            sage: SkewTableau([[None, 2, 4], [None, 3], [1]]).to_word()
+            [1, 3, 2, 4]
         """
         return self.to_word_by_row()
 
@@ -333,7 +322,7 @@ class SkewTableau_class(CombinatorialObject):
 
     def restrict(self, n):
         """
-        Returns the restriction of the standard skew tableau to all the numbers less
+        Returns the restriction of the (semi)standard skew tableau to all the numbers less
         than or equal to n.
 
         EXAMPLES:
@@ -341,26 +330,26 @@ class SkewTableau_class(CombinatorialObject):
             [[None, 1], [2]]
             sage: SkewTableau([[None,1],[2],[3]]).restrict(1)
             [[None, 1]]
+            sage: SkewTableau([[None,1],[1],[2]]).restrict(1)
+            [[None, 1], [1]]
+
         """
         t = self[:]
-        if not self.is_standard():
-            raise ValueError, "the skew tableau must be standard to perform the restriction"
-
         return SkewTableau( filter(lambda z: z != [], map(lambda x: filter(lambda y: y is None or y <= n, x), t)) )
 
     def to_chain(self):
         """
-        Returns the chain of skew partitions corresponding to the standard
+        Returns the chain of partitions corresponding to the (semi)standard
         skew tableau.
 
         EXAMPLES:
             sage: SkewTableau([[None,1],[2],[3]]).to_chain()
-            [[[1], [1]], [[2], [1]], [[2, 1], [1]], [[2, 1, 1], [1]]]
+            [[1], [2], [2, 1], [2, 1, 1]]
+            sage: SkewTableau([[None,1],[1],[2]]).to_chain()
+            [[1], [2, 1], [2, 1, 1]]
         """
-        if not self.is_standard():
-            raise ValueError, "the skew tableau must be standard to convert to a chain"
-
-        return map(lambda x: self.restrict(x).shape(), range(self.size()+1))
+        weights = [0] + uniq(sorted(self.to_word()))
+        return [ self.restrict(x).shape()[0] for x in weights]
 
     def slide(self, corner=None):
         """
@@ -441,6 +430,9 @@ class SkewTableau_class(CombinatorialObject):
         Fulton, William. 'Young Tableaux'. p15
 
         EXAMPLES:
+            sage: s = SkewTableau([[None,1],[2,3]])
+            sage: s.rectify()
+            [[1, 3], [2]]
         """
         rect = copy.deepcopy(self)
         inner_corners = rect.inner_shape().corners()
@@ -452,134 +444,18 @@ class SkewTableau_class(CombinatorialObject):
         return rect.to_tableau()
 
 
-
-
-class SkewTableauWithContent(SkewTableau_class):
-    def __init__(self, outer, inner, conts=None, maxrows=0):
-        self.rows = len(outer)
-
-        if conts is not None:
-            self.clen = len(conts)
-        else:
-            self.clen = 0
-        self.clen += self.rows
-
-        self.conts = [0]*self.clen
-        if conts is not None:
-            for i in range(len(conts)):
-                self.conts[i] = conts[i]
-
-        self.outer = outer[:]
-        self.inner = inner[:] + [0]*(len(outer)-len(inner))
-
-        if len(self.outer) == 0:
-            self.cols = 0
-        else:
-            self.cols = self.outer[0]
-
-
-        initial = [ [0]*self.outer[i] for i in range(len(self.outer)) ]
-        t = self._setmin(0, self.outer[0]-1, initial=initial)
-        SkewTableau.__init__(self,t)
-
-        self.outer_conj = None
-
-        self.maxrows = maxrows
-        if (maxrows >= self.clen):
-            self.maxrows = 0
-
-        if self.maxrows == 0:
-            return
-
-        if self.conts[self.maxrows] != 0:
-            raise ValueError, " self.conts[self.maxrows] != 0 "
-
-        self.outer_conj = partition.Partition(self.outer).conjugate()
-
-    def _setmin(self, y, x, initial=None):
-        #Compute t which is the "minimum" skew tableau with
-        #the given content
-        #t = [ [0]*self.outer[i] for i in range(len(self.outer)) ]
-        if initial is None:
-            t = self.list
-        else:
-            t = initial
-
-        #this algorithm comes from st_setmin
-        #print "Call: (%d, %d)"%(y,x)
-        while ( y < self.rows ):
-            while x >= self.inner[y]:
-                if y == 0 or x < self.inner[y-1]:
-                    e = 0
-                else:
-                    e = t[y-1][x] + 1
-
-                t[y][x] = e
-                try:
-                    self.conts[e] += 1
-                except:
-                    raise IndexError, "(%d,%d): %d, %s"%(y,x, e, str(self.conts))
-
-                x -= 1
-            y += 1
-
-            if y < self.rows:
-                x = self.outer[y] - 1
-        return t
-
-    def next(self):
+    def to_expr(self):
         """
-        Returns the next semistandard skew tableau
+        EXAMPLES:
+            sage: SkewTableau([[None,1,1,3],[None,2,2],[1]]).to_expr()
+            [[1, 1], [[1], [2, 2], [1, 1, 3]]]
+            sage: SkewTableau([]).to_expr()
+            [[], []]
         """
-        #new_st = copy.copy(self)
-        #IMPLEMENTATION SPECIFIC
-        l = self.list
-
-        for y in reversed(range(self.rows)):
-            xlim = self.outer[y]
-
-            for x in range(self.inner[y], xlim):
-                if self.maxrows == 0:
-                    elim = len(self.conts) -1
-                else:
-                    elim = self.maxrows + y - self.outer_conj[x]
-
-                if x != xlim - 1:
-                    next_cell = l[y][x+1]
-                    if next_cell < elim:
-                        elim = next_cell
-
-                e = l[y][x]
-                self.conts[e] -= 1
-
-                e += 1
-                while ( e <= elim and
-                        self.conts[e] == self.conts[e-1] ):
-                    e += 1
-
-                if e <= elim:
-                    l[y][x] = e
-                    self.conts[e] += 1
-
-                    #IMPLEMENTATION SPECIFIC
-                    #new_st._setmin(y, x-1)
-                    self._setmin(y,x-1)
-                    return self
-                    #return new_st
-
-        return False
-
-
-def st_iterator(outer, inner, conts=None, maxrows=0):
-    st = SkewTableauWithContent(outer,inner,conts=conts,maxrows=maxrows)
-    yield st
-
-    next = st.next()
-    while next != False:
-        yield next
-        next = next.next()
-
-
+        skew_shape = [ len(filter(lambda x: x is None, row)) for row in self ]
+        skew_shape = filter(lambda x: x != 0, skew_shape)
+        rows = [ filter(lambda x: x is not None, row) for row in reversed(self)]
+        return [skew_shape, rows]
 
 def _label_skew(list, sk):
     """
@@ -587,6 +463,7 @@ def _label_skew(list, sk):
     coordinates to filled in.
 
     EXAMPLES:
+        sage: import sage.combinat.skew_tableau as skew_tableau
         sage: l = [ '0,0', '1,1', '1,0', '0,1' ]
         sage: empty = [[None,None],[None,None]]
         sage: skew_tableau._label_skew(l, empty)
@@ -602,7 +479,7 @@ def _label_skew(list, sk):
             i += 1
     return skew
 
-def StandardSkewTableaux(skp):
+def StandardSkewTableaux(skp=None):
     """
     Returns the combinatorial class of standard skew tableaux of
     shape skp (where skp is a skew partition).
@@ -618,7 +495,91 @@ def StandardSkewTableaux(skp):
          [[None, 2, 3], [None, 4], [1]],
          [[None, 2, 4], [None, 3], [1]]]
     """
-    return StandardSkewTableaux_skewpartition(SkewPartition(skp))
+    if skp is None:
+        return StandardSkewTableaux_all()
+    elif isinstance(skp, (int, Integer)):
+        return StandardSkewTableaux_n(skp)
+    elif skp in skew_partition.SkewPartitions():
+        return StandardSkewTableaux_skewpartition(skew_partition.SkewPartition(skp))
+    else:
+        raise TypeError
+
+class StandardSkewTableaux_all(CombinatorialClass):
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: StandardSkewTableaux() #indirect doctest
+            Standard skew tableaux
+        """
+        return "Standard skew tableaux"
+
+    def __contains__(self, x):
+        raise NotImplementedError
+
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: StandardSkewTableaux().count()
+            +Infinity
+        """
+        return infinity
+
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: StandardSkewTableaux().list() #indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+class StandardSkewTableaux_n(CombinatorialClass):
+    def __init__(self, n):
+        """
+        EXAMPLES:
+            sage: s = StandardSkewTableaux(3)
+            sage: s == loads(dumps(s))
+            True
+        """
+        self.n = n
+
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: StandardSkewTableaux(3) #indirect doctest
+            Standard skew tableaux of size 3
+        """
+        return "Standard skew tableaux of size %s"%self.n
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: StandardSkewTableaux(1).count()
+            1
+            sage: StandardSkewTableaux(2).count()
+            4
+            sage: StandardSkewTableaux(3).count()
+            24
+            sage: StandardSkewTableaux(4).count()
+            194
+
+        """
+        count = 0
+        for skp in skew_partition.SkewPartitions(self.n):
+            count += StandardSkewTableaux_skewpartition(skp).count()
+        return count
+
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: StandardSkewTableaux(2).list() #indirect doctest
+            [[[1], [2]], [[None, 1], [2]], [[None, 2], [1]], [[1, 2]]]
+        """
+        for skp in skew_partition.SkewPartitions(self.n):
+            for sst in StandardSkewTableaux_skewpartition(skp):
+                yield sst
 
 class StandardSkewTableaux_skewpartition(CombinatorialClass):
     object_class = SkewTableau_class
@@ -693,6 +654,218 @@ class StandardSkewTableaux_skewpartition(CombinatorialClass):
             yield SkewTableau(_label_skew(le, empty))
 
 
+def SemistandardSkewTableaux(p=None, mu=None):
+    """
+    Returns a combinatorial class of semistandard skew
+    tableaux.
+
+    EXAMPLES:
+        sage: SemistandardSkewTableaux()
+        Semistandard skew tableaux
+
+        sage: SemistandardSkewTableaux(3)
+        Semistandard skew tableaux of size 3
+
+        sage: SemistandardSkewTableaux([[2,1],[]])
+        Semistandard skew tableaux of shape [[2, 1], []]
+
+        sage: SemistandardSkewTableaux([[2,1],[]],[2,1])
+        Semistandard skew tableaux of shape [[2, 1], []] and weight [2, 1]
+
+        sage: SemistandardSkewTableaux(3, [2,1])
+        Semistandard skew tableaux of size 3 and weight [2, 1]
+
+    """
+    if p is None and mu is None:
+        return SemistandardSkewTableaux_all()
+
+    if p is None:
+        raise ValueError, "you must specify either a size or shape"
+
+    if isinstance(p, (int, Integer)):
+        if mu is None:
+            return SemistandardSkewTableaux_n(p)
+        else:
+            return SemistandardSkewTableaux_nmu(p, mu)
+
+    if p in skew_partition.SkewPartitions():
+        if mu is None:
+            return SemistandardSkewTableaux_p(p)
+        else:
+            return SemistandardSkewTableaux_pmu(p, mu)
+
+
+
+class SemistandardSkewTableaux_all(CombinatorialClass):
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: SemistandardSkewTableaux().__repr__()
+            'Semistandard skew tableaux'
+        """
+        return "Semistandard skew tableaux"
+
+class SemistandardSkewTableaux_n(CombinatorialClass):
+    def __init__(self, n):
+        """
+        EXAMPLES:
+            sage: s = SemistandardSkewTableaux(3)
+            sage: s == loads(dumps(s))
+            True
+        """
+        self.n = n
+
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: SemistandardSkewTableaux(3).__repr__()
+            'Semistandard skew tableaux of size 3'
+        """
+        return "Semistandard skew tableaux of size %s"%self.n
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: SemistandardSkewTableaux(2).count()
+            8
+        """
+        count = 0
+        for p in skew_partition.SkewPartitions(self.n):
+            count += SemistandardSkewTableaux_p(p).count()
+        return count
+
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: SemistandardSkewTableaux(2).list()
+            [[[1], [2]],
+             [[None, 1], [1]],
+             [[None, 2], [1]],
+             [[None, 1], [2]],
+             [[None, 2], [2]],
+             [[1, 1]],
+             [[1, 2]],
+             [[2, 2]]]
+        """
+        for p in skew_partition.SkewPartitions(self.n):
+            for ssst in SemistandardSkewTableaux_p(p):
+                yield ssst
+
+class SemistandardSkewTableaux_nmu(CombinatorialClass):
+    def __init__(self, n, mu):
+        """
+        EXAMPLES:
+            sage: s = SemistandardSkewTableaux(3,[2,1])
+            sage: s == loads(dumps(s))
+            True
+        """
+        self.n = n
+        self.mu = mu
+
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: SemistandardSkewTableaux(3,[2,1]).__repr__()
+            'Semistandard skew tableaux of size 3 and weight [2, 1]'
+        """
+        return "Semistandard skew tableaux of size %s and weight %s"%(self.n,self.mu)
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: SemistandardSkewTableaux(2,[1,1]).count()
+            4
+        """
+        count = 0
+        for p in skew_partition.SkewPartitions(self.n):
+            count += SemistandardSkewTableaux_pmu(p, self.mu).count()
+        return count
+
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: SemistandardSkewTableaux(2,[1,1]).list()
+            [[[1], [2]], [[None, 2], [1]], [[None, 1], [2]], [[1, 2]]]
+        """
+        for p in skew_partition.SkewPartitions(self.n):
+            for ssst in SemistandardSkewTableaux_pmu(p, self.mu):
+                yield ssst
+
+class SemistandardSkewTableaux_p(CombinatorialClass):
+    def __init__(self, p):
+        """
+        EXAMPLES:
+            sage: s = SemistandardSkewTableaux([[2,1],[]])
+            sage: s == loads(dumps(s))
+            True
+        """
+        self.p = skew_partition.SkewPartition(p)
+
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: repr(SemistandardSkewTableaux([[2,1],[]]))
+            'Semistandard skew tableaux of shape [[2, 1], []]'
+        """
+        return "Semistandard skew tableaux of shape %s"%self.p
+
+    def count(self):
+        """
+        EXAMPLES:
+            sage: SemistandardSkewTableaux([[2,1],[]]).count()
+            8
+        """
+        count = 0
+        for mu in IntegerVectors(self.p.size(), self.p.size()):
+            count += SemistandardSkewTableaux_pmu(self.p, mu).count()
+        return count
+
+    def iterator(self):
+        """
+        EXAMPLES:
+            sage: SemistandardSkewTableaux([[2,1],[]]).list() #indirect test
+            [[[1, 1], [2]],
+             [[1, 1], [3]],
+             [[1, 2], [2]],
+             [[1, 3], [2]],
+             [[1, 2], [3]],
+             [[1, 3], [3]],
+             [[2, 2], [3]],
+             [[2, 3], [3]]]
+        """
+        for mu in IntegerVectors(self.p.size(), self.p.size()):
+            for ssst in SemistandardSkewTableaux_pmu(self.p, mu):
+                yield ssst
+
+class SemistandardSkewTableaux_pmu(CombinatorialClass):
+    def __init__(self, p, mu):
+        """
+        EXAMPLES:
+            sage: s = SemistandardSkewTableaux([[2,1],[]],[2,1])
+            sage: s == loads(dumps(s))
+            True
+        """
+        self.p = p
+        self.mu = mu
+
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: SemistandardSkewTableaux([[2,1],[]],[2,1]).__repr__()
+            'Semistandard skew tableaux of shape [[2, 1], []] and weight [2, 1]'
+        """
+        return "Semistandard skew tableaux of shape %s and weight %s"%(self.p, self.mu)
+
+
+    def list(self):
+        """
+        EXAMPLES:
+            sage: SemistandardSkewTableaux([[2,1],[]],[2,1]).list()
+            [[[1, 1], [2]]]
+        """
+        res = ribbon_tableau.RibbonTableaux_shapeweightlength(self.p, self.mu, 1).list()
+        return [ from_expr([self.p[1], x[1]]) for x in res]
+
 
 def from_expr(expr):
     """
@@ -704,6 +877,7 @@ def from_expr(expr):
     Provided primarily for compatability with MuPAD-Combinat.
 
     EXAMPLES:
+        sage: import sage.combinat.skew_tableau as skew_tableau
         sage: sage.combinat.skew_tableau.from_expr([[1,1],[[5],[3,4],[1,2]]])
         [[None, 1, 2], [None, 3, 4], [5]]
     """
@@ -724,35 +898,19 @@ def from_shape_and_word(shape, word):
     shape and the word obtained from the row reading.
 
     EXAMPLES:
+        sage: import sage.combinat.skew_tableau as skew_tableau
         sage: t = SkewTableau([[None, 2, 4], [None, 3], [1]])
         sage: shape = t.shape()
         sage: word  = t.to_word()
         sage: skew_tableau.from_shape_and_word(shape, word)
         [[None, 2, 4], [None, 3], [1]]
-
     """
     st = [ [None]*row_length for row_length in shape[0] ]
     w_count = 0
-    for i in range(len(shape[0])):
+    for i in reversed(range(len(shape[0]))):
         for j in range(shape[0][i]):
             if i >= len(shape[1]) or j >= shape[1][i]:
                 st[i][j] = word[w_count]
                 w_count += 1
     return SkewTableau(st)
 
-
-#####################
-# Under development #
-#####################
-
-def SemistandardSkewTableaux(shape, weight):
-    return SemistandardSkewTableaux_shapeweight(shape, weight)
-
-class SemistandardSkewTableaux_shapeweight(CombinatorialClass):
-    def __init__(self, shape, weight):
-        self.shape = shape
-        self.weight = weight
-
-    def iterator(self):
-        for skt in RibbonTableaux(self.shape, self.weight, 1):
-            yield SkewTableau_class(skt)

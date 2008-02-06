@@ -39,17 +39,34 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
     def ramification_index(self, K = None):
         if K is None:
             return 1
+        elif K is self:
+            return 1
         else:
             raise NotImplementedError
+
+    e = ramification_index
 
     def inertia_degree(self, K = None):
         if K is None:
             return self.modulus().degree()
+        elif K is self:
+            return 1
         else:
             raise NotImplementedError
 
+    residue_class_degree = inertia_degree
+
+    f = inertia_degree
+
     def inertia_subring(self):
+        return self
+
+    maximal_unramified_subextension = inertia_subring
+
+    def extension(self, *args, **kwds):
         raise NotImplementedError
+
+    ext = extension
 
     def get_extension(self):
         raise NotImplementedError
@@ -58,8 +75,10 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         #should eventually take advantage of finite field \code{extension} or finite field \code{unramified_extension_of_degree} over the automatic coercion base.
         return GF(self.prime_pow(self.modulus().degree()), name = self.variable_name(), modulus = PolynomialRing(self.ground_ring().residue_class_field(), self.polynomial_ring().variable_name())(self.modulus()))
 
+    residue_field = residue_class_field
+
     def discriminant(self, K=None):
-        if K is None:
+        if K is None or K is self:
             return 1
         else:
             raise NotImplementedError
@@ -95,8 +114,12 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
             return self(0)
         return self(self.prime_pow.pow_Integer(n))
 
+    uniformiser_pow = uniformizer_pow
+
     def uniformizer(self):
         return self(self.ground_ring().uniformizer())
+
+    uniformiser = uniformizer
 
     def _uniformizer_print(self):
         return self.ground_ring()._uniformizer_print()
@@ -108,10 +131,6 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         return self.ground_ring().has_pth_root()
 
     def has_root_of_unity(self, n):
-        ##
-        ## I wouldn't mind if someone wanted to check to make sure
-        ## I've got the right formula for the 2-adic case.
-        ##
         if (self.prime() == 2):
             return n.divides(2*(self.residue_class_field().order()-1))
         else:

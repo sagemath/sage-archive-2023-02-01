@@ -256,6 +256,8 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         """
         return sage.rings.finite_field.GF(self.prime())
 
+    residue_field = residue_class_field
+
     def residue_system(self):
         """
         Returns a list of elements representing all the residue classes.
@@ -434,44 +436,31 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         """
         return self(self.prime_pow._prime())
 
+    uniformiser = uniformizer
+
     def has_pth_root(self):
         r"""
-        Returns whether or not $\Z_p$ has a $p^{\mbox{th}}$ root of unity.
+        Returns whether or not $\Z_p$ has a primitive $p^{\mbox{th}}$ root of unity.
 
         INPUT:
             self -- a p-adic ring
 
         OUTPUT:
-            boolean -- whether self has $p^{\mbox{th}}$ root of unity
+            boolean -- whether self has primitive $p^{\mbox{th}}$ root of unity
         """
         return (self.prime() == 2)
 
     def has_root_of_unity(self, n):
         r"""
-        Returns whether or not $\Z_p$ has an $n^{\mbox{th}}$ root of unity.
+        Returns whether or not $\Z_p$ has a primitive $n^{\mbox{th}}$ root of unity.
 
         INPUT:
             self -- a p-adic ring
             n -- an integer
 
         OUTPUT:
-            boolean -- whether self has $n^{\mbox{th}}$ root of unity
+            boolean -- whether self has primitive $n^{\mbox{th}}$ root of unity
         """
-##        p = self.prime()
-##        if (p == 2) and (n % 2 == 0):
-##            return True
-##        if p.divides(n):
-##            return False
-##        if n == 1:
-##            return True
-##        if gcd(n, p-1) > 1:
-##            return True
-##        return False
-	##
-	## I'm not sure why the above definition existed. I'm keeping
-	## it for now until at least one other person looks and says
-	## I'm not missing something.
-	##
 	if (self.prime() == 2):
 	    return n.divides(2)
         else:

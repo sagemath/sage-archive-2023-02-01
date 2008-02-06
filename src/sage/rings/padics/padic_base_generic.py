@@ -47,5 +47,7 @@ class pAdicBaseGeneric(padic_generic.pAdicGeneric):
     def uniformizer_pow(self, n):
         return self(self.prime_pow(n))
 
+    uniformiser_pow = uniformizer_pow
+
     def _uniformizer_print(self):
         return self.variable_name()

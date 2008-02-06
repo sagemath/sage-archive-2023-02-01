@@ -31,19 +31,31 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
     def ramification_index(self, K = None):
         if K is None or K is self.ground_ring():
             return self.modulus().degree()
-        else:
-            raise NotImplementedError
-
-    def inertia_degree(self, K = None):
-        if K is None or K is self.ground_ring():
+	elif K is self:
             return 1
         else:
             raise NotImplementedError
 
-    def inertia_subring(self):
-        raise NotImplementedError
+    e = ramification_index
 
-    def extension(self):
+    def inertia_degree(self, K = None):
+        if K is None or K is self.ground_ring():
+            return 1
+        elif K is self:
+            return 1
+        else:
+            raise NotImplementedError
+
+    f = inertia_degree
+
+    residue_class_degree = inertia_degree
+
+    def inertia_subring(self):
+        return self.ground_ring()
+
+    maximal_unramified_subextension = inertia_subring
+
+    def extension(self, *args, **kwds):
         raise NotImplementedError
 
     ext = extension
@@ -51,8 +63,13 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
     def residue_class_field(self):
         return self.ground_ring().residue_class_field()
 
+    residue_field = residue_class_field
+
     def discriminant(self, K=None):
-        raise NotImplementedError
+        if K is self:
+            return 1
+        else:
+            raise NotImplementedError
 
     def automorphisms(self):
         raise NotImplementedError
@@ -84,6 +101,8 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         if n is not infinity:
             ans._set_uniformizer_pow(n)
         return ans
+
+    uniformiser_pow = uniformizer_pow
 
     def uniformizer(self):
         return self.gen()

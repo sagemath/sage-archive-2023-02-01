@@ -149,6 +149,8 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
 	#ASK: Is this function implemented by subclasses? It seems to work for any specific p-adic ring.
         raise NotImplementedError
 
+    residue_field = residue_class_field
+
     def defining_polynomial(self, var = 'x'):
         r"""
         Returns the defining polynomial of this local ring, i.e. just x.
@@ -234,21 +236,7 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
         """
         return Integer(1)
 
-    def e(self):
-        r"""
-        Returns the ramification index over the ground ring: 1 unless overridden.
-
-        INPUT:
-            self -- a local ring
-
-        OUTPUT:
-            integer -- the ramification index of this ring: 1 unless overridden.
-
-        EXAMPLES:
-	    sage: R = Zp(3, 5, 'capped-rel'); R.e()
-	    1
-        """
-        return self.ramification_index()
+    e = ramification_index
 
     def inertia_degree(self):
         r"""
@@ -266,21 +254,9 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
         """
         return Integer(1)
 
-    def f(self):
-        r"""
-        Returns the inertia degree over the ground ring: 1 unless overridden.
+    residue_class_degree = inertia_degree
 
-        INPUT:
-            self -- a local ring
-
-        OUTPUT:
-            integer -- the inertia degree of this ring: 1 unless overridden.
-
-        EXAMPLES:
-	    sage: R = Zp(3, 5, 'capped-rel'); R.f()
-            1
-        """
-        return self.inertia_degree()
+    f = inertia_degree
 
     def inertia_subring(self):
         r"""
@@ -294,6 +270,8 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
         """
         return self
 
+    maximal_unramified_subextension = inertia_subring
+
     def get_extension(self):
         r"""
         Returns the trivial extension of self.
@@ -306,11 +284,7 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
         """
         raise NotImplementedError
 
-    def uniformiser(self):
-        r"""
-        Returns a uniformiser.
-        """
-        return self.uniformizer()
+    uniformiser = uniformizer
 
     def has_root_of_unity(self, n):
         raise NotImplementedError

@@ -1,42 +1,68 @@
 """
-This file implements elements of eisenstein and unramified extensions of Zp and Qp with capped relative precision.
+This file implements elements of eisenstein and unramified extensions of Zp
+and Qp with capped relative precision.
+
 For the parent class see padic_extension_leaves.pyx.
 
-The underlying implementation is through NTL's ZZ_pX class.  Each element contains the following data:
-  ordp (long)    -- A power of the uniformizer to scale the unit by.  For unramified extensions this uniformizer is p,
-                     for eisenstein extensions it is not.  A value equal to the maximum value of a long indicates that
-                     the element is an exact zero.
-  relprec (long) -- A signed integer giving the precision to which this element is defined.  For nonzero relprecs, the absolute value
-                     gives the power of the uniformizer modulo which the unit is defined.  A positive value indicates
-                     that the element is normalized (ie unit is actually a unit: in the case of eisenstein extensions
-                     the constant term is not divisible by p, in the case of unramified extensions that there is at
-                     least one coefficient that is not divisible by p).  A negative value indicates that the element
-                     may or may not be normalized.  A zero value indicates that the element is zero to some precision.
-                     If so, ordp gives the absolute precision of the element.  If ordp is the maximum value for a long,
-                     then the element is an exact zero.
-  unit (ZZ_pX_c) -- An ntl ZZ_pX storing the unit part.  The varible x is the uniformizer in the case of eisenstein extensions.
-                     If the element is not normalized, the "unit"  may or may not actually
-                     be a unit.  This ZZ_pX is created with global ntl modulus determined by the absolute value of
-                     relprec.  If relprec is 0, unit IS NOT INITIALIZED, or destructed if normalized and found to be
-                     zero.  Otherwise, let r be relprec and e be the ramification index over Qp or Zp.  Then the modulus
-                     of unit is given by p^ceil(r/e).  Note that all kinds of problems arise if you try to mix moduli.
-                     ZZ_pX_conv_modulus gives a semi-safe way to convert between different moduli without having
-                     to pass through ZZX (see sage/libs/ntl/decl.pxi and c_lib/src/ntl_wrap.cpp)
-  prime_pow (some subclass of PowComputer_ZZ_pX) -- a class, identical among all elements with the same parent, holding
-                     common data.
+The underlying implementation is through NTL's ZZ_pX class.
+Each element contains the following data:
+  ordp (long)    -- A power of the uniformizer to scale the unit by.  For
+                     unramified extensions this uniformizer is p, for
+                     eisenstein extensions it is not.  A value equal to the
+                     maximum value of a long indicates that the element is
+                     an exact zero.
+  relprec (long) -- A signed integer giving the precision to which this
+                     element is defined.  For nonzero relprecs, the absolute
+                     value gives the power of the uniformizer modulo which
+                     the unit is defined.  A positive value indicates that
+                     the element is normalized (ie unit is actually a unit:
+                     in the case of eisenstein extensions the constant term
+                     is not divisible by p, in the case of unramified
+                     extensions that there is at least one coefficient that
+                     is not divisible by p).  A negative value indicates that
+                     the element may or may not be normalized.  A zero value
+                     indicates that the element is zero to some precision.
+                     If so, ordp gives the absolute precision of the element.
+                     If ordp is the maximum value for a long, then the element
+                     is an exact zero.
+  unit (ZZ_pX_c) -- An ntl ZZ_pX storing the unit part.  The varible x is the
+                     uniformizer in the case of eisenstein extensions. If the
+                     element is not normalized, the "unit"  may or may not
+                     actually be a unit.  This ZZ_pX is created with global
+                     ntl modulus determined by the absolute value of relprec.
+                     If relprec is 0, unit IS NOT INITIALIZED, or destructed
+                     if normalized and found to be zero.  Otherwise, let r be
+                     relprec and e be the ramification index over Qp or Zp.
+                     Then the modulus of unit is given by p^ceil(r/e).  Note
+                     that all kinds of problems arise if you try to mix moduli.
+                     ZZ_pX_conv_modulus gives a semi-safe way to convert
+                     between different moduli without having to pass through
+                     ZZX (see sage/libs/ntl/decl.pxi and c_lib/src/ntl_wrap.cpp)
+    prime_pow (some subclass of PowComputer_ZZ_pX) -- a class, identical among
+                     all elements with the same parent, holding common data.
     prime_pow.deg -- The degree of the extension
     prime_pow.e   -- The ramification index
     prime_pow.f   -- The inertia degree
-    prime_pow.prec_cap -- the unramified precision cap.  For eisenstein extensions this is the smallest power of p that is zero.
-    prime_pow.ram_prec_cap -- the ramified precision cap.  For eisenstein extensions this will be the smallest power of x that is
+    prime_pow.prec_cap -- the unramified precision cap.  For eisenstein
+                      extensions this is the smallest power of p that is zero.
+    prime_pow.ram_prec_cap -- the ramified precision cap.  For eisenstein
+                      extensions this will be the smallest power of x that is
                      indistinugishable from zero.
-    prime_pow.pow_ZZ_tmp, prime_pow.pow_mpz_t_tmp, prime_pow.pow_Integer -- functions for accessing powers of p.
-                     The first two return pointers.  See sage/rings/padics/pow_computer_ext for examples and important warnings.
-    prime_pow.get_context, prime_pow.get_context_capdiv, prime_pow.get_top_context -- obtain an ntl_ZZ_pContext_class corresponding to p^n.
-                     The capdiv version divides by prime_pow.e as appropriate.  top_context corresponds to prec_cap.
-    prime_pow.restore_context, prime_pow.restore_context_capdiv, prime_pow.restore_top_context -- restores the given context.
-    prime_pow.get_modulus, get_modulus_capdiv, get_top_modulus -- Returns a ZZ_pX_Modulus_c* pointing to a polynomial modulus defined modulo
-                     p^n (appropriately divided by prime_pow.e in the capdiv case).
+    prime_pow.pow_ZZ_tmp, prime_pow.pow_mpz_t_tmp, prime_pow.pow_Integer
+                      -- functions for accessing powers of p.
+                      The first two return pointers.
+                      See sage/rings/padics/pow_computer_ext for examples and
+                      important warnings.
+    prime_pow.get_context, prime_pow.get_context_capdiv, prime_pow.get_top_context
+                      -- obtain an ntl_ZZ_pContext_class corresponding to p^n.
+                       The capdiv version divides by prime_pow.e as appropriate.
+                       top_context corresponds to prec_cap.
+    prime_pow.restore_context, prime_pow.restore_context_capdiv, prime_pow.restore_top_context
+                      -- restores the given context.
+    prime_pow.get_modulus, get_modulus_capdiv, get_top_modulus
+                      -- Returns a ZZ_pX_Modulus_c* pointing to a polynomial
+                         modulus defined modulo p^n (appropriately divided by
+                         prime_pow.e in the capdiv case).
 
 EXAMPLES:
 An eisenstein extension:
@@ -97,10 +123,11 @@ You can get at the underlying ntl unit:
     ([5 95367431640505 25 95367431640560 5], 0)
 
 NOTES:
-    If you get an error 'internal error: can't grow this _ntl_gbigint,' it indicates that moduli are being mixed
-    inappropriately somewhere.
-    For example, when calling a function with a ZZ_pX_c as an argument, it copies.  If the modulus is not set
-    to the modulus of the ZZ_pX_c, you can get errors.
+    If you get an error 'internal error: can't grow this _ntl_gbigint,' it
+    indicates that moduli are being mixed inappropriately somewhere.
+    For example, when calling a function with a ZZ_pX_c as an argument, it
+    copies.  If the modulus is not set to the modulus of the ZZ_pX_c, you
+    can get errors.
 
 AUTHORS:
     -- David Roe  (2008-01-01) initial version

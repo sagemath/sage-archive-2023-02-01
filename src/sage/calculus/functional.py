@@ -1,12 +1,55 @@
 """
 Functional notation support for common calculus methods.
+
+EXAMPLES:
+We illustrate each of the calculus functional functions.
+    sage: simplify(x - x)
+    0
+    sage: a = var('a')
+    sage: derivative(x^a + sin(x), x)
+    cos(x) + a*x^(a - 1)
+    sage: diff(x^a + sin(x), x)
+    cos(x) + a*x^(a - 1)
+    sage: derivative(x^a + sin(x), x)
+    cos(x) + a*x^(a - 1)
+    sage: integral(a*x*sin(x), x)
+    a*(sin(x) - x*cos(x))
+    sage: integrate(a*x*sin(x), x)
+    a*(sin(x) - x*cos(x))
+    sage: limit(a*sin(x)/x, x=0)
+    a
+    sage: taylor(a*sin(x)/x, x, 0, 4)
+    a - a*x^2/6 + a*x^4/120
+    sage: expand( (x-a)^3 )
+    x^3 - 3*a*x^2 + 3*a^2*x - a^3
+    sage: laplace( e^(x+a), x, a)
+    e^a/(a - 1)
+    sage: inverse_laplace( e^a/(a-1), x, a)
+    ilt(e^a/(a - 1), x, a)
 """
 
 from calculus import SR, SymbolicExpression, CallableSymbolicExpression
 
 def simplify(f):
-    """
+    r"""
     Simplify the expression $f$.
+
+    EXAMPLES:
+    We simplify the expression $i + x - x$.
+        sage: f = I + x - x; simplify(f)
+        I
+
+    In fact, printing $f$ yields the same thing -- i.e., the simplified form.
+        sage: f
+        I
+
+    Nonetheless $f$ and \code{simplify(f)} have a different type; one remembers
+    that it is constructed as a sum, and the other is really just the
+    simplified expression:
+        sage: type(f)
+        <class 'sage.calculus.calculus.SymbolicArithmetic'>
+        sage: type(simplify(f))
+        <class 'sage.calculus.calculus.SymbolicConstant'>
     """
     try:
         return f.simplify()

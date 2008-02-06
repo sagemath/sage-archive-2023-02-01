@@ -265,7 +265,7 @@ def limit(f, dir=None, taylor=False, **argv):
     \sage does not know how to do this limit (which is 0),
     so it returns it unevaluated:
         sage: lim(exp(x^2)*(1-erf(x)), x=infinity)
-        limit(e^x^2 - e^x^2*erf(x), x=+Infinity)
+        limit(e^x^2 - e^x^2*erf(x), x, +Infinity)
     """
     if not isinstance(f, SymbolicExpression):
         f = SR(f)

@@ -83,19 +83,19 @@ def integral_elements_with_trace(F, C):
     return S
 """
 
-def integral_elements_in_box(self, C):
+def integral_elements_in_box(K, C):
     r"""
     EXAMPLES:
         sage: K.<alpha> = NumberField(x^2-2)
-        sage: K.integral_elements_in_box([[0,5],[0,10]])
+        sage: sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, [[0,5],[0,10]])
         [0, 5, -alpha + 2, -alpha + 3, 1, 2, 3, 4, alpha + 2, alpha + 3, alpha + 4, alpha + 5, alpha + 6, 2*alpha + 3, 2*alpha + 4, 2*alpha + 5, 2*alpha + 6, 2*alpha + 7, 3*alpha + 5]
-        sage: K.integral_elements_in_box([[0,5],[0,5]])
+        sage: sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, [[0,5],[0,5]])
         [0, 5, 3, -alpha + 2, -alpha + 3, 1, 2, 4, alpha + 2, alpha + 3]
     """
-    d = self.degree()
-    Z_F = self.maximal_order()
-    Foo = self.real_embeddings()
-    B = self.reduced_basis()
+    d = K.degree()
+    Z_F = K.maximal_order()
+    Foo = K.real_embeddings()
+    B = K.reduced_basis()
 
     L = numpy.array([ [v(b) for b in B] for v in Foo])
     Linv = numpy.linalg.inv(L)
@@ -196,7 +196,7 @@ class tr_data_rel:
 
         EXAMPLES:
             sage: F.<t> = NumberField(x^2-2)
-            sage: T = tr_data_rel(F, 2, 2000)
+            sage: T = sage.rings.number_field.totallyreal_rel.tr_data_rel(F, 2, 2000)
         """
 
         # Initialize constants.
@@ -237,15 +237,15 @@ class tr_data_rel:
                 for j in range(len(anm1s)):
                     anm1s[j] = [ anm1s[j] + [i] for i in range(m)]
                 anm1s = sum(anm1s, [])
-            anm1s = [sum([Z_Fbasis()[i]*a[i] for i in range(self.d)]) for a in anm1s]
+            anm1s = [sum([Z_Fbasis[i]*a[i] for i in range(self.d)]) for a in anm1s]
             # Minimize trace in class.
             for i in range(len(anm1s)):
-                Q = [ [ v(m*x) for v in self.Foo] + [0] for x in Z_Fbasis()] + [[v(anm1s[i]) for v in self.Foo] + [10**6]]
+                Q = [ [ v(m*x) for v in self.Foo] + [0] for x in Z_Fbasis] + [[v(anm1s[i]) for v in self.Foo] + [10**6]]
                 Q = str(numpy.array(Q).transpose())
                 Q = Q.replace(']\n [',';').replace('\n ', '').replace(' ', ',')
                 Q = Q[1:len(Q)-1]
                 adj = pari(Q).qflll()[self.d]
-                anm1s[i] += sum([m*Z_Fbasis()[i]*adj[i].__int__()//adj[self.d].__int__() for i in range(self.d)])
+                anm1s[i] += sum([m*Z_Fbasis[i]*adj[i].__int__()//adj[self.d].__int__() for i in range(self.d)])
 
             self.amaxvals[m-1] = anm1s
             self.a[m-1] = self.amaxvals[m-1].pop()
@@ -255,7 +255,7 @@ class tr_data_rel:
             br = max([1./m*(am1**2).trace() + \
                             self.gamma*(1./(m**d)*self.B/self.dF)**(1./(self.n-d)) for am1 in anm1s])
             br = math.floor(br)
-            T2s = integral_elements_with_trace(self.F, [bl,br])
+            T2s = self.F.integral_elements_with_trace([bl,br])
             self.trace_elts.append([bl,br,T2s])
 
         elif len(a) <= m+1:
@@ -297,22 +297,24 @@ class tr_data_rel:
 
     def incr(self, f_out, verbose=False, haltk=0):
         r"""
-        This function 'increments' the totally real data to the next value
-        which satisfies the bounds essentially given by Rolle's theorem,
-        and returns the next polynomial in the sequence f_out.
+        This function 'increments' the totally real data to the next
+        value which satisfies the bounds essentially given by Rolle's
+        theorem, and returns the next polynomial in the sequence
+        f_out.
 
-        The default or usual case just increments the constant coefficient; then
-        inductively, if this is outside of the bounds we increment the next
-        higher coefficient, and so on.
+        The default or usual case just increments the constant
+        coefficient; then inductively, if this is outside of the
+        bounds we increment the next higher coefficient, and so on.
 
-        If there are no more coefficients to be had, returns the zero polynomial.
+        If there are no more coefficients to be had, returns the zero
+        polynomial.
 
         INPUT:
-        f_out -- an integer sequence, to be written with the
-            coefficients of the next polynomial
-        verbose -- boolean to print verbosely computational details
-        haltk -- integer, the level at which to halt the inductive
-            coefficient bounds
+            f_out -- an integer sequence, to be written with the
+                     coefficients of the next polynomial
+            verbose -- boolean to print verbosely computational details
+            haltk -- integer, the level at which to halt the inductive
+                     coefficient bounds
 
         OUTPUT:
         the successor polynomial as a coefficient list.
@@ -398,7 +400,7 @@ class tr_data_rel:
                                     T2s.append(theta)
                             break
                     if not trace_elts_found:
-                        T2s = integral_elements_with_trace(self.F, [bl,br])
+                        T2s = self.F.integral_elements_with_trace([bl,br])
                         self.trace_elts.append([bl,br,T2s])
 
                     # Now ensure that T2 satisfies the correct parity condition
@@ -620,7 +622,6 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
 
     sage: F.<t> = NumberField(x^2-5)
     sage: enumerate_totallyreal_fields_rel(F, 2, 10^4)
-
     [[725, x^4 - x^3 - 3*x^2 + x + 1, xF^2 + (-1/2*t - 7/2)*xF + 1],
      [1125, x^4 - x^3 - 4*x^2 + 4*x + 1, xF^2 + (-1/2*t - 7/2)*xF + 1/2*t + 3/2],
      [1600, x^4 - 6*x^2 + 4, xF^2 - 2],
@@ -640,24 +641,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
      [8525, x^4 - 2*x^3 - 8*x^2 + 9*x + 19, xF^2 + xF - 1/2*t - 9/2],
      [8725, x^4 - x^3 - 10*x^2 + 2*x + 19, xF^2 + xF - 3/2*t - 11/2]]
     sage: [NumberField(ZZx(_[i][1]), 't').is_galois() for i in range(len(_))]
-    [False,
-     True,
-     True,
-     True,
-     False,
-     False,
-     True,
-     True,
-     False,
-     False,
-     False,
-     False,
-     True,
-     False,
-     False,
-     True,
-     False,
-     False]
+    [False, True, True, True, False, False, True, True, False, False, False, False, True, False, False, True, False, False]
 
     Seven out of 18 such fields are Galois (with Galois group Z/4Z
     or Z/2Z + Z/2Z); the others have have Galois closure of degree 8
@@ -670,6 +654,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
     sage: F.disc()
     49
     sage: enumerate_totallyreal_fields_rel(F, 3, 17*10^9)
+
 
     NOTES:
     We enumerate polynomials

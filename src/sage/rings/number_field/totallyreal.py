@@ -133,8 +133,7 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
      [37, x^2 - x - 9],
      [40, x^2 - 10],
      [41, x^2 - x - 10],
-     [44, x^2 - 11],
-     [5, x^2 - 3*x + 1]]
+     [44, x^2 - 11]]
     sage: [ d for d in range(5,50) if (is_squarefree(d) and d%4 == 1) or (d%4 == 0 and is_squarefree(d/4)) ]
     [5, 8, 12, 13, 17, 20, 21, 24, 28, 29, 33, 37, 40, 41, 44]
 
@@ -155,14 +154,15 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
 
     NOTES:
     This function uses Hunter's algorithm [C, Section 9.3] and
-    modifications due to Takeuchi [T] and the author (not yet published).
+    modifications due to Takeuchi [T] and the author (not yet
+    published).
 
     We enumerate polynomials
         f(x) = x^n + a[n-1]*x^(n-1) + ... + a[0].
-    Hunter's theorem gives bounds on a[n-1] and a[n-2];
-    then given a[n-1] and a[n-2], one can recursively compute bounds on
-    a[n-3], ..., a[0] using the fact that the polynomial is totally real
-    by looking at the zeros of successive derivatives and applying
+    Hunter's theorem gives bounds on a[n-1] and a[n-2]; then given
+    a[n-1] and a[n-2], one can recursively compute bounds on a[n-3],
+    ..., a[0] using the fact that the polynomial is totally real by
+    looking at the zeros of successive derivatives and applying
     Rolle's theorem!  See [T] for more details.
 
         REFERENCES:

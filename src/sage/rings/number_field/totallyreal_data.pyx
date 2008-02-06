@@ -224,6 +224,9 @@ def lagrange_degree_3(n, an1, an2, an3):
                r*nr**2*s2**3 + 4*r*nr*s1**3*s3 + 3*r*nr*s1**2*s2**2 - 3*r*s1**4*s2 -
                nr**3*s2**3 + 3*nr**2*s1**2*s2**2 - 3*nr*s1**4*s2 + s1**6
             ]
+
+        return p
+
         rts = numpy.roots(p)
         rts = numpy.real([rts[i] for i in range(6) if numpy.isreal(rts[i])]).tolist()
         if len(rts) > 0:
@@ -398,7 +401,8 @@ cdef class tr_data:
             k = 0
             a = [0, -1, 1]
             amax = [0, 0, 1]
-            [...]
+            beta =  [...]
+            gnk =  [...]
         """
 
         cdef int i
@@ -761,7 +765,9 @@ cdef class tr_data:
             k = 1
             a = [0, 0, -1, 1]
             amax = [0, 0, 0, 1]
-            [...]
+            beta =  [...]
+            gnk =  [...]
+
         """
         print "k =", self.k
         print "a =", [self.a[i] for i in range(self.n+1)]

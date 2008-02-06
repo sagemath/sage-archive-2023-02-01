@@ -399,7 +399,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         Tests if self is an exact zero.
 
         EXAMPLES:
-        sage: R = Zp(5,5)
+        sage: R = Qp(3,5)
         sage: S.<x> = R[]
         sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
         sage: W.<w> = R.ext(f)
@@ -420,7 +420,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         Tests if self is an inexact zero.
 
         EXAMPLES:
-        sage: R = Zp(5,5)
+        sage: R = Zp(7,5)
         sage: S.<x> = R[]
         sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
         sage: W.<w> = R.ext(f)
@@ -1217,6 +1217,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         sage: z = z - 1
         sage: ~z
         w^-5 + 4*w^-4 + 4*w^-3 + 4*w^-2 + 2*w^-1 + 1 + w + 4*w^2 + 4*w^3 + 4*w^4 + w^5 + w^6 + w^7 + 4*w^8 + 4*w^9 + 2*w^10 + w^11 + 2*w^12 + 4*w^13 + 4*w^14 + O(w^15)
+        sage: ~z * z
+        1 + O(w^25)
         """
         if self._is_exact_zero():
             raise ZeroDivisionError, "cannot divide by zero"

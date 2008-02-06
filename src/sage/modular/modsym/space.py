@@ -229,6 +229,11 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field,
             Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field
             ]
+            sage: C=ModularSymbols(1,14,0,GF(5)).cuspidal_submodule()
+            sage: C
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(1) of weight 14 with sign 0 over Finite Field of size 5
+            sage: C.is_simple()
+            True
         """
         try:
             return self._is_simple
@@ -994,6 +999,14 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         algebra.  For the multiplicities use factorization() instead.
 
         ASSUMPTION: self is a module over the anemic Hecke algebra.
+
+        EXAMPLES:
+            sage: ModularSymbols(1,100,sign=-1).simple_factors()
+            [Modular Symbols subspace of dimension 8 of Modular Symbols space of dimension 8 for Gamma_0(1) of weight 100 with sign -1 over Rational Field]
+            sage: ModularSymbols(1,16,0,GF(5)).simple_factors()
+            [Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(1) of weight 16 with sign 0 over Finite Field of size 5,
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(1) of weight 16 with sign 0 over Finite Field of size 5,
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(1) of weight 16 with sign 0 over Finite Field of size 5]
         """
         return [S for S,_ in self.factorization()]
 

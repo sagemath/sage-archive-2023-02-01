@@ -426,7 +426,7 @@ cdef class P1List:
             u, v -- integers, with GCD(u,v,N)=1.
 
         OUTPUT:
-            i -- the index of u, v, in the P^1 list.
+            i -- the index of $u$, $v$, in the $P^1$ list.
         """
         cdef int uu, vv, ss
         self.__normalize(self.__N, u, v, &uu, &vv, &ss, 0)
@@ -442,7 +442,7 @@ cdef class P1List:
         INPUT:
             u, v -- integers, with GCD(u,v,N)=1 normalized so they lie in the list.
         OUTPUT:
-            i -- the index of u, v, in the P^1 list.
+            i -- the index of $u$, $v$, in the $P^1$ list.
         """
         t, i = search(self.__list, (u,v))
         if t: return i
@@ -457,7 +457,7 @@ cdef class P1List:
             u, v -- integers, with GCD(u,v,N)=1.
 
         OUTPUT:
-            i -- the index of u, v, in the P^1 list.
+            i -- the index of $u$, $v$, in the $P^1$ list.
             s -- scalar that transforms normalized form to u,v
         """
         cdef int uu, vv, ss

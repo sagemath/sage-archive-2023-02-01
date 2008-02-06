@@ -1548,25 +1548,28 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     def LLL(self, delta=None, eta=None, algorithm=None, fp=None, prec=0, early_red = False, use_givens = False):
         r"""
         Returns LLL reduced or approximated LLL reduced lattice R for
-        self.
+        this matrix interpreted as a lattice.
 
-        A lattice is (delta, eta)-LLL-reduce if the two following
-        conditions hold:
+        A lattice $(b_1, b_2, ..., b_d)$ is $(\delta, \eta)$-LLL-reduced
+        if the two following conditions hold:
 
         (a) For any $i>j$, we have $|mu_{i, j}| <= \eta$,
         (b) For any $i<d$, we have
         $\delta |b_i^*|^2 <= |b_{i + 1}^* + mu_{i + 1, i} b_{i + 1}^* |^2$,
 
-        The lattice is returned as a matrix. Also the rank (and the
-        determinant) of self are cached if those are computed during
-        the reduction.
+        where $mu_{i,j} = <b_i, b_j^*>/<b_j^*,b_j^*>$ and $b_i^*$ is
+        the $i$-th vector of the Gram-Schmidt orthogonalisation of
+        $(b_1, b_2, ..., b_d)$.
 
         The default reduction parameters are $\delta=3/4$ and
         $eta=0.501$. The parameters $\delta$ and $\eta$ must satisfy:
-        $0.25 < \delta <= 1.0$ and $0.5 <= \eta < sqrt(\delta)$.
+        $0.25 < \delta <= 1.0$ and $0.5 <= \eta <
+        sqrt(\delta)$. Polynomial time complexity is only guaranteed
+        for $\delta < 1$.
 
-        If we can compute the determinant of self using this method,
-        we also cache it. Note that in general this only happens when
+        The lattice is returned as a matrix. Also the rank (and the
+        determinant) of self are cached if those are computed during
+        the reduction. Note that in general this only happens when
         self.rank() == self.ncols() and the exact algorithm is used.
 
         INPUT:
@@ -1585,7 +1588,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             use_givens -- use Givens orthogonalization (default: False)
                           only applicable to approximate reductions and NTL.
                           This is more stable but slower.
-
 
         Also, if the verbose level is >= 2, some more verbose output
         is printed during the calculation if NTL is used.
@@ -1625,11 +1627,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         sage: add([Q[i]*M[i] for i in range(n)])
         -1
 
-        ALGORITHM: Uses NTL or fpLLL.
+        ALGORITHM: Uses the NTL library by Victor Shoup or fpLLL
+        library by Damien Stehle depending on the chosen algorithm.
 
-        REFERENCES:
-            ntl.mat_ZZ or sage.libs.fplll.fplll for details on the
-            used algorithms.
+        REFERENCES: \code{ntl.mat_ZZ} or \code{sage.libs.fplll.fplll}
+            for details on the used algorithms.
         """
 
         import sage.libs.ntl.all

@@ -1,5 +1,5 @@
 """nodoctest
-The SAGE Notebook object
+The \sage Notebook object
 """
 
 #############################################################################
@@ -17,12 +17,12 @@ import socket
 import time
 import bz2
 
-# SAGE libraries
+# Sage libraries
 from   sage.structure.sage_object import SageObject, load
 from   sage.misc.misc       import (alarm, cancel_alarm,
                                     tmp_dir, pad_zeros)
 
-# SAGE Notebook
+# Sage Notebook
 import css          # style
 import js           # javascript
 import worksheet    # individual worksheets (which make up a notebook)
@@ -45,6 +45,7 @@ class Notebook(SageObject):
     def __init__(self,
                  dir,
                  system=None,
+                 pretty_print=False,
                  show_debug = False,
                  log_server=False,
                  address='localhost',
@@ -57,6 +58,7 @@ class Notebook(SageObject):
 
         self.__server_pool = server_pool
         self.set_system(system)
+        self.set_pretty_print(pretty_print)
         self.__worksheets = {}
         self.__filename      = '%s/nb.sobj'%dir
         self.__worksheet_dir = '%s/worksheets'%dir
@@ -100,7 +102,7 @@ class Notebook(SageObject):
             print "Your old worksheets are all available by clicking the published link"
             print "in the upper right corner."
             print "If you want to save disk space, you could immediately remove"
-            print "the objects and worksheets directories in your SAGE notebook, as"
+            print "the objects and worksheets directories in your Sage notebook, as"
             print "they are no longer used.  Do this now or never."
 
     ##########################################################
@@ -221,8 +223,8 @@ class Notebook(SageObject):
     # Publishing worksheets
     ##########################################################
     def _initialize_worksheet(self, src, W):
-        """
-        src and W are worksheets and W is brand new.
+        r"""
+        \var{src} and \var{W} are worksheets and \var{W} is brand new.
         """
         # Copy over images and other files
         data = src.data_directory()
@@ -234,11 +236,11 @@ class Notebook(SageObject):
         W.edit_save(src.edit_text())
 
     def publish_worksheet(self, worksheet, username):
-        """
+        r"""
         Publish the given worksheet.
 
-        This creates a new worksheet in the pub directory with the
-        same contents as worksheet.
+        This creates a new worksheet in the \file{pub} directory with the
+        same contents as \var{worksheet}.
         """
         for X in self.__worksheets.itervalues():
             if X.is_published() and X.worksheet_that_was_published() == worksheet:
@@ -343,8 +345,8 @@ class Notebook(SageObject):
 
     def migrate_old(self):
         """
-        Migrate all old worksheets, i.e., ones with no owner
-        to /pub.
+        Migrate all old worksheets, i.e., ones with no owner,
+        to \file{/pub}.
         """
         raise NotImplementedError
         for w in self.__worksheets.itervalues():
@@ -402,6 +404,18 @@ class Notebook(SageObject):
         self.__system = system
 
     ##########################################################
+    # The default typeset setting for new worksheets for
+    # a given user or the whole notebook (if username is None).
+    ##########################################################
+
+    # TODO -- only implemented for the notebook right now
+    def pretty_print(self, username=None):
+        return self.user(username).conf()['default_pretty_print']
+
+    def set_pretty_print(self, pretty_print):
+        self.__pretty_print = pretty_print
+
+    ##########################################################
     # The default color scheme for the notebook.
     ##########################################################
     def color(self):
@@ -456,7 +470,7 @@ class Notebook(SageObject):
         <html>
         <head>
            <link rel=stylesheet href="/css/main.css">
-           <title>SAGE: History for %s</title>
+           <title>Sage: History for %s</title>
         </head>
         <body>
         %s
@@ -464,7 +478,7 @@ class Notebook(SageObject):
         %s
         </pre>
         <hr class="usercontrol">
-        <a title="Click here to turn the above into a SAGE worksheet" href="/live_history">Create a new SAGE worksheet version of the last 100 commands in the above log.</a>
+        <a title="Click here to turn the above into a Sage worksheet" href="/live_history">Create a new Sage worksheet version of the last 100 commands in the above log.</a>
         <a name="bottom"></a>
         <script type="text/javascript"> window.location="#bottom"</script>
         </body>
@@ -562,8 +576,8 @@ class Notebook(SageObject):
         del ws[old_key]
 
     def import_worksheet(self, filename, owner):
-        """
-        Upload the worksheet with name filename and make it have the
+        r"""
+        Upload the worksheet with name \var{filename} and make it have the
         given owner.
         """
         if not os.path.exists(filename):
@@ -637,10 +651,10 @@ class Notebook(SageObject):
         t = W.plain_text(prompts = prompts)
         t = t.replace('<','&lt;')
         s = '<head>\n'
-        s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
+        s += '<title>Sage Worksheet: %s</title>\n'%W.name()
         s += '</head>\n'
         s += '<body>\n'
-        s += '<h1><a href=".">SAGE Worksheet: %s</a></h1>\n'%W.name()
+        s += '<h1><a href=".">Sage Worksheet: %s</a></h1>\n'%W.name()
         s += '<pre>' + t + '</pre>'
         s += '</body>\n'
         return s
@@ -657,7 +671,7 @@ class Notebook(SageObject):
     def DIR(self):
         """
         Return the absolute path to the directory that contains
-        the SAGE Notebook directory.
+        the \sage Notebook directory.
         """
         P = os.path.abspath('%s/..'%self.__dir)
         if not os.path.exists(P):
@@ -773,7 +787,7 @@ class Notebook(SageObject):
     def worksheet_html(self, filename, do_print=False):
         W = self.get_worksheet_with_filename(filename)
         s = '<head>\n'
-        s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
+        s += '<title>Sage Worksheet: %s</title>\n'%W.name()
         s += '<script type="text/javascript" src="/javascript/main.js"></script>\n'
         if do_print:
             s += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
@@ -807,7 +821,7 @@ class Notebook(SageObject):
         s = """
         <html>
            <link rel=stylesheet href="/css/main.css">
-           <title>SAGE: Published Worksheets</title>
+           <title>Sage: Published Worksheets</title>
            %s
         <body>
         %s
@@ -846,7 +860,7 @@ class Notebook(SageObject):
         s = """
         <html>
            <link rel=stylesheet href="/css/main.css">
-           <title>SAGE: Worksheet List</title>
+           <title>Sage: Worksheet List</title>
            %s
         <body>
         %s
@@ -862,7 +876,7 @@ class Notebook(SageObject):
         entries = []
 
         if self.user_is_guest(user):
-            entries.append(('/', 'Log in', 'Please log in to the SAGE notebook'))
+            entries.append(('/', 'Log in', 'Please log in to the Sage notebook'))
         else:
             entries.append(('/home/%s'%user, 'Home', 'Back to your personal worksheet list'))
             entries.append(('/pub', 'Published', 'Browse the published worksheets'))
@@ -871,11 +885,11 @@ class Notebook(SageObject):
 
         ## TODO -- settings
         #if self.user(user).is_admin():
-        #    entries.insert(1, ('/notebook_settings', 'Server', 'Change general SAGE notebook server configuration'))
+        #    entries.insert(1, ('/notebook_settings', 'Server', 'Change general Sage notebook server configuration'))
         if not pub:
             entries.insert(2, ('history_window()', 'Log', 'View a log of recent computations'))
         if not self.user_is_guest(user):
-            entries.append(('/logout', 'Sign out', 'Logout of the SAGE notebook'))
+            entries.append(('/logout', 'Sign out', 'Log out of the Sage notebook'))
 
         s += self.html_banner_and_control(user, entries)
         s += '<hr class="usercontrol">'
@@ -919,7 +933,7 @@ class Notebook(SageObject):
         s = """
         <div class="banner">
         <table width="100%"><tr><td>
-        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="SAGE"> Notebook</a></td><td><span class="ping" id="ping">Searching for SAGE server...</span></td>
+        <a class="banner" href="http://www.sagemath.org"><img align="top" src="/images/sagelogo.png" alt="Sage"> Notebook</a></td><td><span class="ping" id="ping">Searching for Sage server...</span></td>
         </tr></table>
         </div>
         """
@@ -1217,7 +1231,7 @@ class Notebook(SageObject):
             body += "Only the owner of a worksheet is allowed to share it."
             body += 'You can do whatever you want if you <a href="copy">make your own copy</a>.'
         else:
-            body += 'This SAGE Worksheet is currently shared with the people listed in the box below.<br>'
+            body += 'This Sage Worksheet is currently shared with the people listed in the box below.<br>'
             body += 'You may add or remove collaborators (separate user names by commas).<br><br>'
 
             collabs = ', '.join(worksheet.collaborators())
@@ -1228,7 +1242,7 @@ class Notebook(SageObject):
 
             body += '<br>'*2
             body += '<hr class="usercontrol">'
-            body += '<span class="username">SAGE Users:</span>'
+            body += '<span class="username">Sage Users:</span>'
             U = self.users()
             K = [x for x, u in U.iteritems() if not u.is_guest() and not u.username() in [username, 'pub', '_sage_']]
             def mycmp(x,y):
@@ -1321,7 +1335,7 @@ class Notebook(SageObject):
     def get_worksheet_with_filename(self, filename):
         """
         Get the worksheet with given filename.  If there is no such
-        worksheet, raise a KeyError.
+        worksheet, raise a \exception{KeyError}.
 
         INPUT:
             string
@@ -1405,9 +1419,9 @@ class Notebook(SageObject):
     def _html_head(self, worksheet_filename, username):
         if worksheet_filename is not None:
             worksheet = self.get_worksheet_with_filename(worksheet_filename)
-            head = '\n<title>%s (SAGE)</title>'%(worksheet.name())
+            head = '\n<title>%s (Sage)</title>'%(worksheet.name())
         else:
-            head = '\n<title>SAGE Notebook | Welcome</title>'
+            head = '\n<title>Sage Notebook | Welcome</title>'
         head += '\n<script type="text/javascript" src="/javascript/main.js"></script>\n'
         head += '\n<link rel=stylesheet href="/css/main.css" type="text/css">\n'
 
@@ -1482,7 +1496,7 @@ class Notebook(SageObject):
                         '  <span class="ratingmsg">%s</span>'%rating
 
             body += edit_line
-            #This document was published using <a href="/">SAGE</a>.'
+            #This document was published using <a href="/">Sage</a>.'
             body += '<span class="pubmsg">'
             body += '<a href="/pub/">Other published documents...</a></span>'
             body += '<hr class="usercontrol">'
@@ -1504,7 +1518,7 @@ class Notebook(SageObject):
                        ('help()', 'Help', 'Documentation')]
 
             if not self.user_is_guest(username):
-                entries.append(('/logout', 'Sign out', 'Logout of the SAGE notebook'))
+                entries.append(('/logout', 'Sign out', 'Log out of the Sage notebook'))
 
             body += self.html_banner_and_control(username, entries)
             if top_only:
@@ -1541,7 +1555,7 @@ class Notebook(SageObject):
 
     def html_plain_text_window(self, worksheet, username):
         """
-        Return a window that display plain text version of the worksheet
+        Return a window that displays a plain text version of the worksheet
 
         INPUT:
             worksheet -- a worksheet
@@ -1564,8 +1578,8 @@ class Notebook(SageObject):
         """%(head, body)
 
     def html_edit_window(self, worksheet, username):
-        """
-        Return a window for editing worksheet.
+        r"""
+        Return a window for editing \var{worksheet}.
 
         INPUT:
             worksheet -- a worksheet
@@ -1601,7 +1615,7 @@ function save_worksheet_and_close() {
         from tutorial import notebook_help
         s = """
         <html>
-        <title>SAGE Documentation</title>
+        <title>Sage Documentation</title>
 
         <body>
         """ + top + \
@@ -1641,28 +1655,28 @@ function save_worksheet_and_close() {
 
         <center>
         <br>
-        <a class="control" title="To quickly try out SAGE start here" href="/doc/live/tut/index.html">Tutorial</a>
+        <a class="control" title="To quickly try out Sage start here" href="/doc/live/tut/index.html">Tutorial</a>
         &nbsp;&nbsp;
-        <a class="control" title="View a 2000 page reference manual about SAGE" href="/doc/live/ref/index.html">Reference Manual</a>
+        <a class="control" title="View a 2000 page reference manual about Sage" href="/doc/live/ref/index.html">Reference Manual</a>
         &nbsp;&nbsp;
-        <a class="control" title="Learn to write SAGE programs" href="/doc/live/prog/index.html">Programming Guide</a>
+        <a class="control" title="Learn to write Sage programs" href="/doc/live/prog/index.html">Programming Guide</a>
         &nbsp;&nbsp;
-        <a class="control" title="How do I construct ... in SAGE?" href="/doc/live/const/const.html">Constructions</a>
+        <a class="control" title="How do I construct ... in Sage?" href="/doc/live/const/const.html">Constructions</a>
         <br><br>
         <hr class="usercontrol">
         <br>
 
         <div class="help_window">
-        <h2>How to use the SAGE Notebook</h2>
+        <h2>How to use the Sage Notebook</h2>
 
         <br><br>
 
-        A <i>worksheet</i> is an ordered list of SAGE calculations with output. <br>
+        A <i>worksheet</i> is an ordered list of Sage calculations with output. <br>
         A <i>session</i> is a worksheet and a set of variables in some state.<br>
-        The <i>SAGE notebook</i> is a collection of worksheets, saved objects, and user information.<br>
+        The <i>Sage notebook</i> is a collection of worksheets, saved objects, and user information.<br>
         <br>
         <br>
-        To get started with SAGE, <a href="/doc/live/tut/tut.html">work through the tutorial</a> (if
+        To get started with Sage, <a href="/doc/live/tut/tut.html">work through the tutorial</a> (if
         you have trouble with it, view the <a href="/doc/static/tut/tut.html">static version</a>).
         <br><br>
 
@@ -1675,7 +1689,7 @@ function save_worksheet_and_close() {
 
         s +="""
         <br>        <br>
-        The SAGE Notebook was primarily written by William Stein with substantial contributions from Tom Boothby, Timothy Clemans, Alex Clemesha, Bobby Moretti, Yi Qiang, and Dorian Raymer.
+        The Sage Notebook was primarily written by William Stein with substantial contributions from Tom Boothby, Timothy Clemans, Alex Clemesha, Bobby Moretti, Yi Qiang, and Dorian Raymer.
         </center>
         </body>
         </html>
@@ -1789,8 +1803,8 @@ function save_worksheet_and_close() {
 
     def _html_authorize(self):
         return """
-        <h1>SAGE Notebook Server</h1>
-        <div id="mainbody" class="login">Sign in to the SAGE Notebook<br>
+        <h1>Sage Notebook Server</h1>
+        <div id="mainbody" class="login">Sign in to the Sage Notebook<br>
         <form>
         <table>
         <tr><td>
@@ -1832,6 +1846,18 @@ function save_worksheet_and_close() {
             </select>"""%(i, options)
         return s
 
+    def html_pretty_print_check_form_element(self, ws):
+        pretty_print = ws.pretty_print()
+        if pretty_print:
+            check='checked="checked"'
+        else:
+            check=''
+        s = """<input type="checkbox" title="Enable/disable pretty_printing"
+        onchange="go_pretty_print_check(this);"
+        class="worksheet" value="pretty_print" %s> Typeset output"""%(check)
+        return s
+
+
     def html_worksheet_settings(self, ws, username):
         head, body = self.html_worksheet_page_template(ws, username, 'Worksheet Settings &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button name="button_save">Save Settings</button>  <input type="submit" value="Cancel" name="button_cancel"/>')
 
@@ -1864,13 +1890,13 @@ function save_worksheet_and_close() {
         body = """
         <br>
         <div class="docidx">
-        <h1>SAGE Documentation</h1>
+        <h1>Sage Documentation</h1>
         <br>
         <hr class="usercontrol">
         <br><br>
         <font size=+2>
         <a href="/doc/live/">Documentation</a><br><br>
-        <a href="/help/">SAGE Notebook Howto</a><br><br>
+        <a href="/help/">Sage Notebook Howto</a><br><br>
         <br><br>
         <br>
         <hr class="usercontrol">
@@ -1902,13 +1928,13 @@ function save_worksheet_and_close() {
 <html>
 <head>
 """
-        s += '<title>%s | SAGE Source Code</title>' % filename
+        s += '<title>%s | Sage Source Code</title>' % filename
 #        s += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css" />\n'
         s += """
 </head>
 <body>
 """
-        s += '<h1 align=center>SAGE Source Browser</h1>\n'
+        s += '<h1 align=center>Sage Source Browser</h1>\n'
         s += '<h2 align=center><tt>%s  <a href="..">(browse directory)</a></tt></h2>\n'%filename
         s += '<br><hr><br>\n'
         s += '<font size=+1><pre id="code">%s</pre></font>\n'%file
@@ -1993,8 +2019,8 @@ def load_notebook(dir, address=None, port=None, secure=None):
 
 
 def make_path_relative(dir):
-    """
-    If easy, replace the absolute path dir by a relative one.
+    r"""
+    If easy, replace the absolute path \var{dir} by a relative one.
     """
     base, file = os.path.split(dir)
     if os.path.exists(file):

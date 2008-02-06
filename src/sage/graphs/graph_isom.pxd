@@ -8,11 +8,6 @@
 
 include '../ext/cdefs.pxi'
 
-# TODO: Someone must have forgotten this one in cdefs.pxi. It should be put in
-# there, along with clearbit. There are also others missing...
-cdef extern from "gmp.h":
-    void mpz_setbit (mpz_t rop, unsigned long int bit_index)
-
 # The class OrbitPartition is a quasi-sorted union-find tree with path
 # compression. This type is used for Theta, which keeps track of the orbit
 # partition of that part of the automorphism group thus far encountered. The

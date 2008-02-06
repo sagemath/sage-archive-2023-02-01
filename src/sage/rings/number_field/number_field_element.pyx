@@ -39,9 +39,6 @@ import operator
 include '../../ext/interrupt.pxi'
 include '../../ext/python_int.pxi'
 include "../../ext/stdsage.pxi"
-cdef extern from *:
-    # TODO: move to stdsage.pxi
-    object PY_NEW_SAME_TYPE(object o)
 
 import sage.rings.field_element
 import sage.rings.infinity
@@ -1551,6 +1548,15 @@ cdef class NumberFieldElement(FieldElement):
         return self.number_field()._pari_().elementval(self._pari_(), P._pari_prime)
 
     def _matrix_over_base(self, L):
+        """
+        Return the matrix of self over the base field L.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(ZZ['x'].0^3-2, 'a')
+            sage: L.<b> = K.extension(ZZ['x'].0^2+3, 'b')
+            sage: L(a)._matrix_over_base(K) == L(a).matrix()
+            True
+        """
         K = self.number_field()
         E = L.embeddings(K)
         if len(E) == 0:
@@ -1559,7 +1565,34 @@ cdef class NumberFieldElement(FieldElement):
         return self._matrix_over_base_morphism(phi)
 
     def _matrix_over_base_morphism(self, phi):
+        """
+        Return the matrix of self over a specified base,
+        where phi gives a map from the specified base to
+        self.parent().
+
+        EXAMPLES:
+            sage: F.<alpha> = NumberField(ZZ['x'].0^5-2)
+            sage: h = Hom(QQ,F)([1])
+            sage: alpha._matrix_over_base_morphism(h) == alpha.matrix()
+            True
+            sage: alpha._matrix_over_base_morphism(h) == alpha.matrix(QQ)
+            True
+        """
         L = phi.domain()
+
+        ## the code below doesn't work if the morphism is
+        ## over QQ, since QQ.primitive_element() doesn't
+        ## make sense
+        if L is QQ:
+            K = phi.codomain()
+            if K != self.number_field():
+                raise ValueError, "codomain of phi must be parent of self"
+            ## the variable name is irrelevant below, because the
+            ## matrix is over QQ
+            F = K.absolute_field('alpha')
+            from_f, to_F = F.structure()
+            return to_F(self).matrix()
+
         alpha = L.primitive_element()
         beta = phi(alpha)
         K = phi.codomain()

@@ -5,18 +5,18 @@ EXAMPLES:
     sage: def f(x,y):
     ...       return math.sin(y*y+x*x)/math.sqrt(x*x+y*y+.0001)
     ...
-    sage: P = plot3d_adaptive(f,(-3,3),(-3,3), color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
+    sage: P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
     sage: P.show()
 
     sage: def f(x,y):
     ...       return math.exp(x/5)*math.sin(y)
     ...
-    sage: P = plot3d_adaptive(f,(-5,5),(-5,5), color=['red','yellow'])
+    sage: P = plot3d(f,(-5,5),(-5,5), adaptive=True, color=['red','yellow'])
     sage: from sage.plot.plot3d.plot3d import axes
     sage: S = P + axes(6, color='black')
     sage: S.show()
 
-We plot "cape man":
+We plot ``cape man'':
     sage: S = sphere(size=.5, color='yellow')
 
     sage: from sage.plot.plot3d.shapes import Cone
@@ -26,9 +26,9 @@ We plot "cape man":
     sage: S += sphere((.45, .1,.15),size=.1, color='white') + sphere((.51, .1,.17), size=.05, color='black')
     sage: S += sphere((.5,0,-.2),size=.1, color='yellow')
     sage: def f(x,y): return math.exp(x/5)*math.cos(y)
-    sage: P = plot3d_adaptive(f,(-5,5),(-5,5), ['red','yellow'], max_depth=10)
+    sage: P = plot3d(f,(-5,5),(-5,5), adaptive=True, color=['red','yellow'], max_depth=10)
     sage: cape_man = P.scale(.2) + S.translate(1,0,0)
-    sage: cape_man
+    sage: cape_man.show(aspect_ratio=[1,1,1])
 
 AUTHOR:
     -- Tom Boothby: adaptive refinement triangles
@@ -64,6 +64,8 @@ from base import Graphics3dGroup
 from sage.plot.plot import rainbow
 from texture import Texture, is_Texture
 
+from sage.ext.fast_eval import fast_float_arg, fast_float
+
 class TrivialTriangleFactory:
     def triangle(self, a, b, c, color = None):
         return [a,b,c]
@@ -71,11 +73,24 @@ class TrivialTriangleFactory:
         return [a,b,c]
 
 import parametric_plot3d
-def plot3d(f, urange, vrange, **kwds):
+def plot3d(f, urange, vrange, adaptive=False, **kwds):
     """
+    INPUT:
+        f -- a symbolic expression or function of 2 variables
+        urange -- a 2-tuple (u_min, u_max) or a 3-tuple (u, u_min, u_max)
+        vrange -- a 2-tuple (v_min, v_max) or a 3-tuple (v, v_min, v_max)
+        adaptive -- (default: False) whether to use adaptive refinement
+                    to draw the plot (slower, but may look better)
+
     EXAMPLES:
     We plot a 3d function defined as a Python function:
         sage: plot3d(lambda x, y: x^2 + y^2, (-2,2), (-2,2))
+
+    We plot the same 3d function but using adaptive refinement:
+        sage: plot3d(lambda x, y: x^2 + y^2, (-2,2), (-2,2), adaptive=True)
+
+    Adaptive refinement but with more points:
+        sage: plot3d(lambda x, y: x^2 + y^2, (-2,2), (-2,2), adaptive=True, initial_depth=5)
 
     We plot some 3d symbolic functions:
         sage: x, y = var('x,y')
@@ -84,7 +99,7 @@ def plot3d(f, urange, vrange, **kwds):
 
     Two wobby translucent planes:
         sage: x,y = var('x,y')
-        sage: P = plot3d(x+y+sin(x*y), (x,-10,10),(y,-10,10), opacity=0.87)
+        sage: P = plot3d(x+y+sin(x*y), (x,-10,10),(y,-10,10), opacity=0.87, color='blue')
         sage: Q = plot3d(x-2*y-cos(x*y),(x,-10,10),(y,-10,10),opacity=0.3,color='red')
         sage: P + Q
 
@@ -93,22 +108,43 @@ def plot3d(f, urange, vrange, **kwds):
         sage: P = plot3d(lambda x,y: 4 - x^3 - y^2, (-2,2), (-2,2), color='green')
         sage: Q = plot3d(lambda x,y: x^3 + y^2 - 4, (-2,2), (-2,2), color='orange')
         sage: L + P + Q
+
+    We draw the "Sinus" function (water ripple-like surface):
+        sage: x, y = var('x y')
+        sage: plot3d(sin(pi*(x^2+y^2))/2,(x,-1,1),(y,-1,1))
+
+    Hill and valley (flat surface with a bump and a dent):
+        sage: x, y = var('x y')
+        sage: plot3d( 4*x*exp(-x^2-y^2), (x,-2,2), (y,-2,2))
     """
     if len(urange) == 2:
-        w = (lambda u,v: u, lambda u,v: v, f)
+        try:
+            f, (u,v) = parametric_plot3d.adapt_to_callable(f, 2)
+            w = (u, v, f)
+            urange = (u, urange[0], urange[1])
+            vrange = (v, vrange[0], vrange[1])
+        except TypeError:
+             w = (fast_float_arg(0), fast_float_arg(1), f)
     else:
         u = urange[0]
         v = vrange[0]
         w = (u, v, f)
-    P = parametric_plot3d.parametric_plot3d(w, urange, vrange, **kwds)
+
+    if adaptive:
+        P = plot3d_adaptive(f, urange, vrange, **kwds)
+    else:
+        P = parametric_plot3d.parametric_plot3d(w, urange, vrange, **kwds)
     P.frame_aspect_ratio([1.0,1.0,0.5])
     return P
 
 def plot3d_adaptive(f, x_range, y_range, color="automatic",
                     grad_f=None,
                     max_bend=.5, max_depth=5, initial_depth=4, num_colors=128, **kwds):
-    """
+    r"""
     Adaptive 3d plotting of a function of two variables.
+
+    This is used internally by the plot3d command when the option
+    \code{adaptive=True} is given.
 
     INPUT:
         f -- a symbolic function or a Python function of 3 variables.
@@ -123,7 +159,8 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
         **kwds -- standard graphics parameters
 
     EXAMPLES:
-    We plot sin(xy):
+    We plot $\sin(xy)$:
+        sage: from sage.plot.plot3d.plot3d import plot3d_adaptive
         sage: x,y=var('x,y'); plot3d_adaptive(sin(x*y), (x,-pi,pi), (y,-pi,pi), initial_depth=5)
 
     """

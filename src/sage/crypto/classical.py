@@ -16,13 +16,166 @@ from sage.monoids.string_ops import strip_encoding
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.integer_mod_ring import IntegerModRing
+from sage.rings.arith import xgcd
 from random import randint
+from sage.matrix.matrix_space import MatrixSpace
 
 from cryptosystem import SymmetricKeyCryptosystem
 from classical_cipher import (
+     HillCipher,
      SubstitutionCipher,
      TranspositionCipher,
      VigenereCipher)
+
+class HillCryptosystem(SymmetricKeyCryptosystem):
+    """
+    Hill cryptosystem class
+    """
+
+    def __init__(self, S, m):
+        """
+        Create a Hill cryptosystem defined by the m x m matrix space over Z/NZ
+	where N is the alphabet size of the string monoid S.
+
+        INPUT:
+            A string monoid S over some alphabet, and a block length m.
+
+        EXAMPLES:
+            sage: S = AlphabeticStrings()
+            sage: E = HillCryptosystem(S,3)
+            sage: E
+	    Hill cryptosystem on Free alphabetic string monoid on A-Z of block length 3
+	    sage: R = IntegerModRing(26)
+	    sage: M = MatrixSpace(R,3,3)
+            sage: A = M([[1,0,1],[0,1,1],[2,2,3]])
+	    sage: A
+	    [1 0 1]
+	    [0 1 1]
+	    [2 2 3]
+	    sage: e = E(A)
+            sage: e
+	    [1 0 1]
+	    [0 1 1]
+	    [2 2 3]
+            sage: e(S("LAMAISONBLANCHE"))
+	    JYVKSKQPELAYKPV
+
+        TESTS:
+            sage: S = AlphabeticStrings()
+            sage: E = HillCryptosystem(S,3)
+            sage: E == loads(dumps(E))
+            True
+
+        """
+        if not isinstance(S, StringMonoid_class):
+            raise TypeError, "S (= %s) must be a string monoid."%S
+	R = IntegerModRing(S.ngens())
+	M = MatrixSpace(R,m,m)
+        SymmetricKeyCryptosystem.__init__(self, S, S, M, block_length = m)
+
+    def __call__(self, A):
+        """
+        Create a Hill cipher.
+
+        INPUT:
+            A matrix which specifies a block permutation.
+
+        EXAMPLES:
+            sage: S = AlphabeticStrings()
+            sage: E = HillCryptosystem(S,3)
+            sage: E
+            Hill cryptosystem on Free alphabetic string monoid on A-Z of block length 3
+	    sage: M = E.key_space()
+            sage: A = M([[1,0,1],[0,1,1],[2,2,3]])
+	    sage: A
+	    [1 0 1]
+	    [0 1 1]
+	    [2 2 3]
+	    sage: e = E(A)
+            sage: e
+	    [1 0 1]
+	    [0 1 1]
+	    [2 2 3]
+	    sage: m = S("LAMAISONBLANCHE")
+            sage: e(m)
+            JYVKSKQPELAYKPV
+            sage: c = e.inverse()
+            sage: c(e(m))
+	    LAMAISONBLANCHE
+        """
+        M = self.key_space()
+        m = self.block_length()
+        if isinstance(A, list):
+            try:
+                A = M(A)
+            except:
+                raise TypeError, "A (= %s) must specify a square matrix of degree %s." % (A, m)
+        return HillCipher(self, A)
+
+    def _repr_(self):
+        return "Hill cryptosystem on %s of block length %s" % (
+            self.cipher_domain(), self.block_length())
+
+    def block_length(self):
+        return self.key_space().nrows()
+
+    def random_key(self):
+        M = self.key_space()
+	R = M.base_ring()
+        m = M.nrows()
+        N = Integer(self.cipher_domain().ngens())
+	while True:
+	    A = M([ randint(0,N-1) for i in range(m**2) ])
+	    if N.gcd(A.det()) == 1:
+	        break
+        return A
+
+    def inverse_key(self,A):
+        """
+        EXAMPLES:
+            sage: S = AlphabeticStrings()
+            sage: E = HillCryptosystem(S,3)
+            sage: A = E.random_key()
+            sage: B = E.inverse_key(A)
+            sage: M = S("LAMAISONBLANCHE")
+            sage: e = E(A)
+            sage: c = E(B)
+            sage: c(e(M))
+            LAMAISONBLANCHE
+        """
+	S = self.plaintext_space()
+	M = self.key_space()
+	if not A in M:
+	    raise TypeError, "A (= %s) must be a matrix in the key space of %s." % (A, self)
+	m = self.block_length()
+	MatZZ = MatrixSpace(ZZ,m)
+	AZ = MatZZ([ [ A[i,j].lift() for j in range(m) ] for i in range(m) ])
+	AZ_adj = AZ.adjoint()
+	u, r, s = xgcd(A.det().lift(),S.ngens())
+	if u != 1:
+	    raise ValueError, "Argument:\n\n%s\n\nis not invertible."%(A)
+        return r * A.parent()(AZ_adj)
+
+    def encoding(self,M):
+        S = self.cipher_domain()
+        if isinstance(S,AlphabeticStringMonoid):
+            return S(strip_encoding(M))
+        try:
+            return S.encoding(M)
+        except:
+            raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
+
+    def deciphering(self,A,C):
+        # TODO: some type checking that A is invertible hence a valid key
+        i = self(self.inverse_key(A))
+        return i(C)
+
+    def enciphering(self,A,M):
+        # TODO: some type checking that A is invertible hence a valid key
+        e = self(A)
+        return e(M)
 
 class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
     """
@@ -85,7 +238,7 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
             raise TypeError, "K (= %s) must be a string in the key space."%K
         return SubstitutionCipher(self, K)
 
-    def __repr__(self):
+    def _repr_(self):
         return "Substitution cryptosystem on %s" % self.cipher_domain()
 
     def random_key(self):
@@ -194,7 +347,7 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
             raise TypeError, "K (= %s) must be a permutation or list specifying a permutation."%K
         return TranspositionCipher(self, K)
 
-    def __repr__(self):
+    def _repr_(self):
         return "Transposition cryptosystem on %s of block length %s" % (
             self.cipher_domain(), self.block_length())
 
@@ -296,7 +449,7 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             raise TypeError, "K (= %s) must specify a string of length %s." % (K, m)
         return VigenereCipher(self, K)
 
-    def __repr__(self):
+    def _repr_(self):
         return "Vigenere cryptosystem on %s of period %s" % (
             self.cipher_domain(), self.period())
 

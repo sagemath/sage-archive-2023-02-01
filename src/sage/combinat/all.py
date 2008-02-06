@@ -21,7 +21,17 @@ from composition_signed import SignedCompositions
 
 #Partitions
 import partition
-from partition import Partition, Partitions, PartitionsInBox, OrderedPartitions, RestrictedPartitions, PartitionTuples, PartitionsGreatestLE, PartitionsGreatestEQ
+from partition import Partition, Partitions, PartitionsInBox,\
+    OrderedPartitions, RestrictedPartitions, PartitionTuples,\
+    PartitionsGreatestLE, PartitionsGreatestEQ, partitions_set,\
+    number_of_partitions_set, number_of_partitions_list, \
+    ordered_partitions, number_of_ordered_partitions, number_of_partitions,\
+    partitions, cyclic_permutations_of_partition,\
+    cyclic_permutations_of_partition_iterator, ferrers_diagram, \
+    partitions_greatest, partitions_greatest_eq, partitions_restricted,\
+    number_of_partitions_restricted, partitions_tuples, \
+    number_of_partitions_tuples, partition_power, partition_sign, \
+    partition_associated, partitions_list
 import skew_partition
 from skew_partition import SkewPartition, SkewPartitions
 from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsRk, SetPartitionsPRk

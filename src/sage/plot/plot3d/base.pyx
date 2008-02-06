@@ -66,13 +66,17 @@ cdef class Graphics3d(SageObject):
     def __str__(self):
         return "Graphics3d Object"
 
-    def __add__(self, other):
+    def __add__(left, right):
         # Use == not "other is 0" here, since e.g., Sage integer zero is not 0.
-        if other == 0 or other is None:
-            return self
-        elif self == 0 or self is None:
-            return other
-        return Graphics3dGroup([self, other])
+        if right == 0 or right is None:
+            return left
+        elif left == 0 or left is None:
+            return right
+        elif not isinstance(left, Graphics3d):
+            left = left.plot3d()
+        elif not isinstance(right, Graphics3d):
+            right = right.plot3d()
+        return Graphics3dGroup([left, right])
 
     def _set_extra_kwds(self,kwds):
         self._extra_kwds = kwds
@@ -401,23 +405,45 @@ end_scene""" % (
 
         return X
 
-    def show(self, viewer="jmol", filename=None, verbosity=0, figsize=5,
-             aspect_ratio = "automatic",
-             frame_aspect_ratio = "automatic",
-             zoom=1,
-             frame=True, axes = False, **kwds):  # if you add any parameters you must update some code below!!!!!!
+    def show(self, **kwds):
         """
         INPUT:
-            viewer -- string (default: 'jmol'), how to view the plot
-                      'jmol': interactive 3d (java)
-                      'tachyon': a static png image (ray traced)
-            filename -- string (default: a temp file); file to save the image to
+            viewer    -- string (default: 'jmol'), how to view the plot
+                         'jmol': interactive 3d (java)
+                         'tachyon': a static png image (ray traced)
+                         'java3d': interactive opengl based 3d
+            filename  -- string (default: a temp file); file to save the image to
             verbosity -- display information about rendering the figure
-            figsize -- (default: 5); x or pair [x,y] for numbers, e.g., [5,5]; controls
-                       the size of the output figure.  E.g., with Tachyon the number of
-                       pixels in each direction is 100 times figsize[0].
-                       This is ignored for the jmol embedded renderer.
-            **kwds -- other options, which make sense for particular rendering engines
+            figsize   -- (default: 5); x or pair [x,y] for numbers, e.g., [5,5]; controls
+                         the size of the output figure.  E.g., with Tachyon the number of
+                         pixels in each direction is 100 times figsize[0].
+                         This is ignored for the jmol embedded renderer.
+            aspect_ratio -- (default: "automatic") -- aspect ratio of the coordinate system
+                         itself.  Give [1,1,1] to make spheres look round.
+            frame_aspect_ratio -- (default: "automatic") aspect ratio of frame that
+                         contains the 3d scene.
+            zoom      -- (default: 1) how zoomed in
+            frame     -- (default: True) if True, draw a bounding frame with labels
+            axes      -- (deault: False) if True, draw coordinate axes
+
+            **kwds    -- other options, which make sense for particular rendering engines
+
+        CHANGING DEFAULTS:
+        Defaults can be uniformly changed by importing a dictionary and changing it.
+        For example, here we change the default so images display without a frame
+        instead of with one:
+            sage: from sage.plot.plot3d.base import SHOW_DEFAULTS
+            sage: SHOW_DEFAULTS['frame'] = False
+
+        This sphere will not have a frame around it:
+            sage: sphere((0,0,0))
+
+        We change the default back:
+            sage: SHOW_DEFAULTS['frame'] = True
+
+        Now this sphere is enclosed in a frame:
+            sage: sphere((0,0,0))
+
 
         EXAMPLES:
         We illustrate use of the aspect_ratio option:
@@ -437,6 +463,10 @@ end_scene""" % (
             for key in ek.keys():
                 if not kwds.has_key(key):
                     kwds[key] = ek[key]
+
+        for key in SHOW_DEFAULTS.keys():
+            if not kwds.has_key(key):
+                kwds[key] = SHOW_DEFAULTS[key]
 
         # must have one line for every named argument:
         if kwds.has_key('viewer'): viewer = kwds['viewer']; del kwds['viewer']
@@ -527,6 +557,19 @@ end_scene""" % (
             else:
                 pipes = "2>/dev/null 1>/dev/null &"
             os.system('%s "%s.%s" %s' % (viewer_app, filename, ext, pipes))
+
+# if you add any default parameters you must update some code below
+SHOW_DEFAULTS = {'viewer':'jmol',
+                 'verbosity':0,
+                 'figsize':5,
+                 'aspect_ratio':"automatic",
+                 'frame_aspect_ratio':"automatic",
+                 'zoom':1,
+                 'frame':True,
+                 'axes':False}
+
+
+
 
 class Graphics3dGroup(Graphics3d):
     def __init__(self, all=[]):
@@ -766,7 +809,7 @@ def flatten_list(L):
     """
     This is an optimized routine to turn a list of lists (of lists ...) into a single
     list. We generate data in a non-flat format to avoid multiple data copying, and
-    then concatinate it all at the end.
+    then concatenate it all at the end.
 
     This is NOT recursive, otherwise there would be a lot of redundant copying (which
     we are trying to avoid in the first place, though at least it would be just the

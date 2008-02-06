@@ -87,6 +87,7 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Vector 
 import sage.rings.arith
 
 from sage.rings.ring import is_Ring
+from sage.rings.infinity import Infinity
 import sage.rings.integer_ring
 import sage.rings.integer
 from sage.rings.real_double import RDF
@@ -437,11 +438,50 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
         EXAMPLES:
             sage: v = vector([1..5]); abs(v)
-            sqrt(15)
+            sqrt(55)
             sage: v = vector(RDF, [1..5]); abs(v)
-            3.87298334621
+            7.4161984871
         """
-        return sum(self.list()).sqrt()
+        return sum([x**2 for x in self.list()]).sqrt()
+
+    def norm(self, p):
+        """
+        Return the p-norm of this vector, where p can be a real
+        number >= 1, Infinity, or a symbolic expression.
+        If p=2, this is the usual Euclidean norm; if p=Infinity,
+        this is the maximum norm; if p=1, this is the taxicab
+        (Manhattan) norm.
+
+        EXAMPLES:
+            sage: v = vector([1,2,3])
+            sage: v.norm(5)
+            276^(1/5)
+            sage: v.norm(2)
+            sqrt(14)
+            sage: v.norm(Infinity)
+            3
+            sage: v=vector(RDF,[1,2,3])
+            sage: v.norm(5)
+            3.07738488539
+            sage: v.norm(pi/2)
+            4.2165958647
+            sage: var('a b c d p')
+            (a, b, c, d, p)
+            sage: v=vector([a, b, c, d])
+            sage: v.norm(p)
+            (d^p + c^p + b^p + a^p)^(1/p)
+        """
+        if p == Infinity:
+            return max(self)
+        try:
+            pr = RDF(p)
+            if pr < 1:
+                raise ValueError, "%f is not greater than or equal to 1" %(pr)
+        except TypeError:
+            pass
+
+        s = sum([a**p for a in self])
+        return s**(1/p)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
@@ -578,6 +618,24 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         s = s + ")"
         return s
 
+    def _maple_init_(self):
+        """
+        EXAMPLES:
+            sage: v = vector(ZZ, 4, range(4))               #optional
+            sage: maple(v)                                  #optional
+            Vector[row](4, [0,1,2,3])
+
+            sage: v = vector(QQ, 3, [2/3, 0, 5/4])          #optional
+            sage: maple(v)                                  #optional
+            Vector[row](3, [2/3,0,5/4])
+
+            sage: P.<x> = ZZ[]                                       #optional
+            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) #optional
+            sage: maple(v)                                           #optional
+            Vector[row](3, [x^2+2,2*x+1,-2*x^2+4*x])
+        """
+        return "Vector[row](%s)"%(str(self.list()))
+
     def __setitem__(self, i, x):
         raise NotImplementedError
 
@@ -676,8 +734,80 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     #############################
     # Plotting
     #############################
-    def plot(self, xmin=0, xmax=1, eps=None, res=None,
-             connect=True, step=False, **kwds):
+    def plot(self, plot_type=None, **kwds):
+        """
+        INPUT:
+
+            plot_type -- (default: 'arrow' if v has 3 or fewer components,
+            otherwise 'step') type of plot.  Options are 'arrow' to an
+            arrow; 'point' to draw a point at the coordinates
+            specified by the vector; 'step' to draw a step function
+            representing the coordinates of the vector.  Both 'arrow'
+            and 'point' raise exceptions if the vector has more than 3
+            dimensions.
+
+        EXAMPLES:
+            sage: v = vector(RDF, (1,2))
+            sage: eps = 0.1
+            sage: plot(v, plot_type='arrow')
+            sage: plot(v, plot_type='point')
+            sage: plot(v, plot_type='step') # calls v.plot_step()
+            sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            sage: v = vector(RDF, (1,2,1))
+            sage: plot(v) # defaults to an arrow plot
+            sage: plot(v, plot_type='arrow')
+            sage: from sage.plot.plot3d.shapes2 import frame3d
+            sage: plot(v, plot_type='point')+frame3d((0,0,0), v.list())
+            sage: plot(v, plot_type='step') # calls v.plot_step()
+            sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            sage: v = vector(RDF, (1,2,3,4))
+            sage: plot(v) # defaults to a step plot
+
+
+        """
+        # Give sensible defaults based on the vector length
+        if plot_type is None:
+            if len(self)<=3:
+                plot_type='arrow'
+            else:
+                plot_type='step'
+
+        if plot_type == 'arrow' or plot_type == 'point':
+            dimension = len(self)
+            if dimension == 3:
+                from sage.plot.plot3d.shapes import arrow3d, Sphere
+                # Sphere complains if the radius is given twice,
+                # so we have to delete it from kwds if it is given.
+                radius = kwds.pop('radius', .02)
+
+                if plot_type == 'arrow':
+                    return arrow3d((0,0,0), self, radius=radius, **kwds)
+                else:
+                    return Sphere(radius, **kwds).translate(self.list())
+            elif dimension < 3:
+                vectorlist = self.list()
+                if dimension < 2:
+                    # pad to make 2-dimensional
+                    vectorlist.extend([0]*(2-dimension))
+
+                from sage.plot.all import arrow, point
+                if plot_type == 'arrow':
+                    return arrow((0,0), vectorlist, **kwds)
+                else:
+                    return point(vectorlist, **kwds)
+            else:
+                raise ValueError, "arrow and point plots require vectors with 3 or fewer components"
+
+        elif plot_type == 'step':
+            return self.plot_step(**kwds)
+        else:
+            raise NotImplementedError, "plot_type was unrecognized"
+
+
+
+
+    def plot_step(self, xmin=0, xmax=1, eps=None, res=None,
+             connect=True, **kwds):
         """
         INPUT:
             xmin -- (default: 0) start x position to start plotting
@@ -689,13 +819,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
                    in the graph
             connect -- (default: True) if True draws a line; otherwise draw
                        a list of points.
-            step -- (default: False) if True draw a step function plot.
 
         EXAMPLES:
             sage: eps=0.1
             sage: v = vector(RDF, [sin(n*eps) for n in range(100)])
-            sage: plot(v, eps=eps, xmax=5, hue=0).show()
-            sage: v.plot(eps=eps, xmax=5, hue=0).show()
+            sage: v.plot_step(eps=eps, xmax=5, hue=0)
         """
         if res is None:
             res = self.degree()
@@ -1243,6 +1371,23 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         return cmp(left._entries, (<FreeModuleElement_generic_dense>right)._entries)
 
 
+    def n(self, *args, **kwargs):
+        """
+        Returns a numerical approximation of self by calling the n()
+        method on all of its entries.
+
+        EXAMPLES:
+            sage: v = vector(RQDF, [1,2,3])
+            sage: v.n()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 75 bits of precision
+        """
+        return vector([e.n(*args, **kwargs) for e in self])
 
 #############################################
 # Generic sparse element
@@ -1507,4 +1652,21 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return K
 
 
+    def n(self, *args, **kwargs):
+        """
+        Returns a numerical approximation of self by calling the n()
+        method on all of its entries.
+
+        EXAMPLES:
+            sage: v = vector(RQDF, [1,2,3], sparse=True)
+            sage: v.n()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Sparse vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Sparse vector space of dimension 3 over Real Field with 75 bits of precision
+        """
+        return vector(dict([(e[0],e[1].n(*args, **kwargs)) for e in self._entries.iteritems()]), sparse=True)
 

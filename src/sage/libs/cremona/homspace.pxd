@@ -1,13 +1,13 @@
-cdef extern from "cremona/moddata.h":
+cdef extern from "eclib/moddata.h":
     pass
-cdef extern from "cremona/symb.h":
+cdef extern from "eclib/symb.h":
     pass
-cdef extern from "cremona/cusp.h":
+cdef extern from "eclib/cusp.h":
     pass
 
 include "../../ext/interrupt.pxi"
 
-cdef extern from "cremona/homspace.h":
+cdef extern from "eclib/homspace.h":
     # From mat.h
     ctypedef struct mat "mat":
         pass

@@ -155,8 +155,10 @@ class FractionFieldElement(field_element.FieldElement):
         a list of fraction field elements over prime power denominators.
 
         The sum will be equal to the original fraction.
+
         AUTHOR:
              -- Robert Bradshaw (2007-05-31)
+
         EXAMPLES:
             sage: S.<t> = QQ[]
             sage: q = 1/(t+1) + 2/(t+2) + 3/(t-3); q
@@ -176,7 +178,7 @@ class FractionFieldElement(field_element.FieldElement):
             sage: q = 1/(x^2 + 2)^2 + 1/(x-1); q
             (1.0000*x^4 + 4.0000*x^2 + 1.0000*x + 3.0000)/(1.0000*x^5 - 1.0000*x^4 + 4.0000*x^3 - 4.0000*x^2 + 4.0000*x - 4.0000)
             sage: whole, parts = q.partial_fraction_decomposition(); parts
-            [(-7.6294e-6*x^2 + 1.0000)/(1.0000*x^4 + 4.0000*x^2 + 4.0000), 1.0000/(1.0000*x - 1.0000)]
+            [1.0000/(1.0000*x - 1.0000), (-7.6294e-6*x^2 + 1.0000)/(1.0000*x^4 + 4.0000*x^2 + 4.0000)]
             sage: sum(parts)
             (1.0000*x^4 - 7.6294e-6*x^3 + 4.0000*x^2 + 1.0000*x + 3.0000)/(1.0000*x^5 - 1.0000*x^4 + 4.0000*x^3 - 4.0000*x^2 + 4.0000*x - 4.0000)
         """
@@ -192,7 +194,8 @@ class FractionFieldElement(field_element.FieldElement):
             all = {}
             for r in factors: all[r[0]] = 0
             for r in factors: all[r[0]] += r[1]
-            factors = all.iteritems()
+            factors = all.items()
+            factors.sort() # for doctest consistency
         factors = [r**e for r,e in factors]
         parts = []
         for d in factors:

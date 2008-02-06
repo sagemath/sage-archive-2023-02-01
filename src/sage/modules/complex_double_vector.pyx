@@ -37,8 +37,8 @@ import  free_module_element
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
-from sage.rings.complex_double import CDF, new_ComplexDoubleElement
-from sage.rings.complex_double cimport ComplexDoubleElement
+from sage.rings.complex_double import CDF
+from sage.rings.complex_double cimport ComplexDoubleElement, new_ComplexDoubleElement
 
 include '../ext/stdsage.pxi'
 
@@ -368,6 +368,23 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         p=<double *>n.data
         memcpy(self.v.data,p,self.v.size*sizeof(double)*2)
 
+    def n(self, *args, **kwargs):
+        """
+        Returns a numerical approximation of self by calling the n()
+        method on all of its entries.
+
+        EXAMPLES:
+            sage: v = vector(CDF, [1,2,3])
+            sage: v.n()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 75 bits of precision
+        """
+        return free_module_element.vector( [e.n(*args, **kwargs) for e in self] )
 
 cdef int ispow(int n):
     while n and n%2==0:

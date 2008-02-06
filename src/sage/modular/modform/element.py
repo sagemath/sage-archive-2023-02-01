@@ -88,6 +88,23 @@ class ModularFormElement(element.HeckeModuleElement):
         element.HeckeModuleElement.__init__(self, parent, x)
 
     def __ensure_is_compatible(self, other):
+        """
+        Make sure self and other are compatible for arithmetic or
+        comparison operations. Raise an error if incompatible,
+        do nothing otherwise.
+
+        EXAMPLES:
+            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
+            sage: g = ModularForms(DirichletGroup(17).0^2,2).1
+            sage: h = ModularForms(17,4).0
+
+            sage: f._ModularFormElement__ensure_is_compatible(g)
+
+            sage: f._ModularFormElement__ensure_is_compatible(h)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Modular forms must be in the same ambient space.
+        """
         if not isinstance(other, ModularFormElement):
             raise TypeError, "Second argument must be a modular form."
         if self.ambient_module() != other.ambient_module():
@@ -96,15 +113,74 @@ class ModularFormElement(element.HeckeModuleElement):
     def __call__(self, x, prec=None):
         """
         Evaluate the q-expansion of this modular form at x.
+
+        EXAMPLES:
+            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
+
+            sage: f(7) ## indirect doctest
+            -4851*zeta8^2 - 16464*zeta8 + 92372
+
+            sage: f(0)
+            0
         """
         return self.q_expansion(prec)(x)
 
     def _add_(self, other):
+        """
+        Add self to other.
+
+        EXAMPLES:
+            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
+            sage: g = ModularForms(DirichletGroup(17).0^2,2).1
+            sage: f
+            q + (-zeta8^2 + 2)*q^2 + (zeta8 + 3)*q^3 + (-2*zeta8^2 + 3)*q^4 + (-zeta8 + 5)*q^5 + O(q^6)
+
+            sage: g
+            1 + (-14/73*zeta8^3 + 57/73*zeta8^2 + 13/73*zeta8 - 6/73)*q^2 + (-90/73*zeta8^3 + 64/73*zeta8^2 - 52/73*zeta8 + 24/73)*q^3 + (-81/73*zeta8^3 + 189/73*zeta8^2 - 3/73*zeta8 + 153/73)*q^4 + (72/73*zeta8^3 + 124/73*zeta8^2 + 100/73*zeta8 + 156/73)*q^5 + O(q^6)
+
+            sage: f+g ## indirect doctest
+            1 + q + (-14/73*zeta8^3 - 16/73*zeta8^2 + 13/73*zeta8 + 140/73)*q^2 + (-90/73*zeta8^3 + 64/73*zeta8^2 + 21/73*zeta8 + 243/73)*q^3 + (-81/73*zeta8^3 + 43/73*zeta8^2 - 3/73*zeta8 + 372/73)*q^4 + (72/73*zeta8^3 + 124/73*zeta8^2 + 27/73*zeta8 + 521/73)*q^5 + O(q^6)
+        """
         return ModularFormElement(self.ambient_module(), self.element() + other.element())
 
+    def __eq__(self, other):
+        """
+        Compare self to other.
+
+        EXAMPLES:
+            sage: f = ModularForms(6,4).0
+            sage: g = ModularForms(23,2).0
+            sage: f == g ## indirect doctest
+            False
+            sage: f == f
+            True
+            sage: f == loads(dumps(f))
+            True
+        """
+        if not isinstance(other, ModularFormElement) or \
+           self.ambient_module() != other.ambient_module():
+            return False
+        else:
+            return self.element() == other.element()
+
     def __cmp__(self, other):
+        """
+        Compare self to other. If they are not the same object, but
+        are of the same type, compare them as vectors.
+
+        EXAMPLES:
+            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
+            sage: g = ModularForms(DirichletGroup(17).0^2,2).1
+            sage: f == g ## indirect doctest
+            False
+            sage: f == f
+            True
+        """
         self.__ensure_is_compatible(other)
-        return self.element() == other.element()
+        if self.element() == other.element():
+            return 0
+        else:
+            return -1
 
     def coefficients(self, X):
         """
@@ -134,40 +210,116 @@ class ModularFormElement(element.HeckeModuleElement):
             self.__coefficients = {}
         Y = [n for n in X   if  not (n in self.__coefficients.keys())]
         v = self._compute(Y)
+###        v = self._compute_q_expansion(max(Y)+1).list()
         for i in range(len(v)):
+###            self.__coefficients[X[i]] = v[i]
             self.__coefficients[Y[i]] = v[i]
+###        return v
         return [ self.__coefficients[x] for x in X ]
 
-##     def _compute(self, X):
-##         r"""
-##         Compute the coefficients $a_n$ of self, for integers $n \geq
-##         0$ in the list $X$.
-
-##         NOTES: The results need not be cached; use the coefficients
-##         method instead for cached results.
-##         """
-##         return self.parent()._compute_coefficients(self.element(), X)
+###    def _compute(self, prec):
+###         r"""
+###         Compute the coefficients $a_n$ of self, for integers $n \geq
+###         0$ in the list $X$.
+###
+###         NOTES: The results need not be cached; use the coefficients
+###         method instead for cached results.
+###         """
+###         return self.parent()._compute_coefficients(self.element(), X)
 
     def __getitem__(self, n):
+        """
+        Return the $q^n$ coefficient of the $q$-expansion of self.
+
+        EXAMPLES:
+            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
+            sage: f.__getitem__(10)
+            zeta8^3 - 5*zeta8^2 - 2*zeta8 + 10
+            sage: f[30]
+            -2*zeta8^3 - 17*zeta8^2 + 4*zeta8 + 29
+        """
         return self.q_expansion(n+1)[int(n)]
 
     def __getslice__(self, i, j):
-        return self.q_expansion(j+1)[int(i):int(j)]
+        """
+        Return a list containing the $q^i$ through $q^j$ coefficients of self.
+
+        EXAMPLES:
+            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
+            sage: f[10:15]
+            [zeta8^3 - 5*zeta8^2 - 2*zeta8 + 10,
+            -zeta8^3 + 11,
+            -2*zeta8^3 - 6*zeta8^2 + 3*zeta8 + 9,
+            12,
+            2*zeta8^3 - 7*zeta8^2 + zeta8 + 14]
+
+            sage: f.__getslice__(10,15)
+            [zeta8^3 - 5*zeta8^2 - 2*zeta8 + 10,
+            -zeta8^3 + 11,
+            -2*zeta8^3 - 6*zeta8^2 + 3*zeta8 + 9,
+            12,
+            2*zeta8^3 - 7*zeta8^2 + zeta8 + 14]
+        """
+        return self.q_expansion(j+1).list()[int(i):int(j)]
 
     def padded_list(self, n):
+        """
+        Return a list of length n whose entries are the first n
+        coefficients of the q-expansion of self.
+
+        EXAMPLES:
+            sage: CuspForms(1,12).0.padded_list(20)
+            [0, 1, -24, 252, -1472, 4830, -6048, -16744, 84480, -113643, -115920, 534612, -370944, -577738, 401856, 1217160, 987136, -6905934, 2727432, 10661420]
+        """
         return self.q_expansion(n).padded_list(n)
 
 
     def _repr_(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: ModularForms(25,4).0._repr_()
+            'q + O(q^6)'
+
+            sage: ModularForms(25,4).3._repr_()
+            'q^4 + O(q^6)'
+        """
         return str(self.q_expansion())
 
     def _latex_(self):
+        """
+        Return the LaTeX expression of self.
+
+        EXAMPLES:
+            sage: ModularForms(25,4).0._latex_()
+            'q + O(q^{6})'
+
+            sage: ModularForms(25,4).4._latex_()
+            'q^{5} + O(q^{6})'
+        """
         return self.q_expansion()._latex_()
 
     def base_ring(self):
+        """
+        Return the base_ring of self.
+
+        EXAMPLES:
+            sage: (ModularForms(117, 2).13).base_ring()
+            Rational Field
+            sage: (ModularForms(119, 2, base_ring=GF(7)).12).base_ring()
+            Finite Field of size 7
+        """
         return self.parent().base_ring()
 
     def character(self):
+        """
+        Return the character of self.
+
+        EXAMPLES:
+            sage: ModularForms(DirichletGroup(17).0^2,2).2.character()
+            [zeta8]
+        """
         chi = self.parent().character()
         if chi is None:
             raise NotImplementedError, "Determination of character in this " + \
@@ -175,17 +327,47 @@ class ModularFormElement(element.HeckeModuleElement):
         return chi
 
     def __nonzero__(self):
+        """
+        Return True if self is nonzero, and False if not.
+
+        EXAMPLES:
+            sage: ModularForms(25,6).6.__nonzero__()
+            True
+        """
         return not self.element().is_zero()
 
     def level(self):
+        """
+        Return the level of self.
+
+        EXAMPLES:
+            sage: ModularForms(25,4).0.level()
+            25
+        """
         return self.parent().level()
 
     def prec(self):
+        """
+        Return the precision to which self.q_expansion() is
+        currently known. Note that this may be 0.
+
+        EXAMPLES:
+            sage: M = ModularForms(25,4)
+            sage: f = M.0
+            sage: f.prec()
+            6
+
+            sage: M.prec(20)
+            20
+            sage: f.prec()
+            6
+            sage: x = f.q_expansion() ; f.prec()
+            20
+        """
         try:
-            self.__qexp
+            return self.__q_expansion[0]
         except AttributeError:
-            return self.parent().prec()
-        return self.__qexp.prec()
+            return 0
 
     def q_expansion(self, prec=None):
         r"""
@@ -212,29 +394,46 @@ class ModularFormElement(element.HeckeModuleElement):
             O(q^0)
         """
         if prec is None:
-            prec = self.prec()
+            prec = self.parent().prec()
         prec = rings.Integer(prec)
         if prec < 0:
             raise ValueError, "prec (=%s) must be at least 0"%prec
         try:
             current_prec, f = self.__q_expansion
         except AttributeError:
-            zero = self.parent()._q_expansion_ring()(0, -1)
-            current_prec, f = 0, zero
+            current_prec = 0
+            f = self.parent()._q_expansion_ring()(0, -1)
+
         if current_prec == prec:
             return f
         elif current_prec > prec:
             return f.add_bigoh(prec)
-        f = self._compute_q_expansion(prec)
-        self.__q_expansion = (prec, f)
-        return f
+        else:
+            f = self._compute_q_expansion(prec)
+            self.__q_expansion = (prec, f)
+            return f
 
-    def _compute_q_expansion(self, prec=None):
+    def _compute_q_expansion(self, prec):
+        """
+        Computes the q-expansion of self to precision prec.
+
+        EXAMPLES:
+            sage: f = EllipticCurve('37a').modular_form()
+            sage: f.q_expansion() ## indirect doctest
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + O(q^6)
+
+            sage: f._compute_q_expansion(10)
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + 6*q^6 - q^7 + 6*q^9 + O(q^10)
+        """
         return self.parent()._q_expansion(element = self.element(), prec=prec)
 
     def qexp(self, prec=None):
         """
         Same as self.q_expansion(prec).
+
+        EXAMPLES:
+            sage: CuspForms(1,12).0.qexp()
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
         """
         return self.q_expansion(prec)
 
@@ -349,57 +548,117 @@ class ModularFormElement(element.HeckeModuleElement):
         return L
 
     def weight(self):
+        """
+        Return the weight of self.
+
+        EXAMPLES:
+            sage: (ModularForms(Gamma1(9),2).6).weight()
+            2
+        """
         return self.parent().weight()
 
     def valuation(self):
-        if self.__valuation != None:
+        """
+        Return the valuation of self (i.e. as an element of the power
+        series ring in q).
+
+        EXAMPLES:
+            sage: ModularForms(11,2).0.valuation()
+            1
+            sage: ModularForms(11,2).1.valuation()
+            0
+            sage: ModularForms(25,6).1.valuation()
+            2
+            sage: ModularForms(25,6).6.valuation()
+            7
+        """
+        try:
             return self.__valuation
-        v = self.qexp().valuation()
-        if not (v is rings.infinity):
+        except AttributeError:
+            v = self.qexp().valuation()
+            if not (v is rings.infinity):
+                self.__valuation = v
+                return v
+            v = self.qexp(self.parent().sturm_bound()).valuation()
             self.__valuation = v
             return v
-        v = self.qexp(self.parent().sturm_bound()).valuation()
-        self.__valuation = v
-        return v
 
 class ModularFormElement_elliptic_curve(ModularFormElement):
     """
     A modular form attached to an elliptic curve.
-
-    EXAMPLES:
-        sage: E = EllipticCurve('5077a')
-        sage: f = E.modular_form()
-        sage: f
-        q - 2*q^2 - 3*q^3 + 2*q^4 - 4*q^5 + O(q^6)
-        sage: f.q_expansion(10)
-        q - 2*q^2 - 3*q^3 + 2*q^4 - 4*q^5 + 6*q^6 - 4*q^7 + 6*q^9 + O(q^10)
-        sage: f.parent()
-        Modular Forms space of dimension 423 for Congruence Subgroup Gamma0(5077) of weight 2 over Rational Field
     """
-    def __init__(self, parent, E, x=None):
+    def __init__(self, parent, E):
         """
         Modular form attached to an elliptic curve as an element
         of a space of modular forms.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('5077a')
+            sage: f = E.modular_form()
+            sage: f
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 4*q^5 + O(q^6)
+            sage: f.q_expansion(10)
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 4*q^5 + 6*q^6 - 4*q^7 + 6*q^9 + O(q^10)
+            sage: f.parent()
+            Modular Forms space of dimension 423 for Congruence Subgroup Gamma0(5077) of weight 2 over Rational Field
+
+            sage: E = EllipticCurve('37a')
+            sage: f = E.modular_form() ; f
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + O(q^6)
+            sage: f == loads(dumps(f))
+            True
         """
-        ModularFormElement.__init__(self, parent, x)
+        ModularFormElement.__init__(self, parent, None)
+##                                    parent.find_in_space( E.q_expansion(parent.hecke_bound()) ))
         self.__E = E
 
+
     def elliptic_curve(self):
+        """
+        Return elliptic curve associated to self.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a')
+            sage: f = E.modular_form()
+            sage: f.elliptic_curve()
+            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: f.elliptic_curve() is E
+            True
+        """
         return self.__E
 
     def _compute_element(self):
-        # TODO
-        raise NotImplementedError, "todo -- compute q-exp, find element of space, etc."
+        """
+        Compute self as a linear combination of the basis elements
+        of parent.
 
-    def _compute_q_expansion(self, prec=None):
+        EXAMPLES:
+            sage: EllipticCurve('11a1').modular_form()._compute_element()
+            [1, 0]
+            sage: EllipticCurve('389a1').modular_form()._compute_element()
+            [1, -2, -2, 2, -3, 4, -5, 0, 1, 6, -4, -4, -3, 10, 6, -4, -6, -2, 5, -6, 10, 8, -4, 0, 4, 6, 4, -10, -6, -12, 4, 8, 0]
+        """
+        M = self.parent()
+        S = M.cuspidal_subspace()
+##        return S.find_in_space( self.__E.q_expansion( S.q_expansion_basis()[0].prec() ) ) + [0] * ( M.dimension() - S.dimension() )
+        return S.find_in_space( self.__E.q_expansion( S.sturm_bound() ) ) + [0] * ( M.dimension() - S.dimension() )
+
+    def _compute_q_expansion(self, prec):
         r"""
         The $q$-expansion of the modular form to precision $O(q^\text{prec})$.
         This function takes one argument, which is the integer prec.
 
         EXAMPLES:
+            sage: E = EllipticCurve('11a') ; f = E.modular_form()
+            sage: f._compute_q_expansion(10)
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + 2*q^6 - 2*q^7 - 2*q^9 + O(q^10)
+
+            sage: f._compute_q_expansion(30)
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + 2*q^6 - 2*q^7 - 2*q^9 - 2*q^10 + q^11 - 2*q^12 + 4*q^13 + 4*q^14 - q^15 - 4*q^16 - 2*q^17 + 4*q^18 + 2*q^20 + 2*q^21 - 2*q^22 - q^23 - 4*q^25 - 8*q^26 + 5*q^27 - 4*q^28 + O(q^30)
+
+            sage: f._compute_q_expansion(10)
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + 2*q^6 - 2*q^7 - 2*q^9 + O(q^10)
         """
-        if prec is None:
-            prec = self.parent().prec()
         return self.__E.q_expansion(prec)
 
 ######################################################################
@@ -431,6 +690,31 @@ class EisensteinSeries(ModularFormElement):
         ]
     """
     def __init__(self, parent, vector, t, chi, psi):
+        """
+        An Eisenstein series.
+
+        EXAMPLES:
+            sage: E = EisensteinForms(1,12) ## indirect doctest
+            sage: E.eisenstein_series()
+            [
+            691/65520 + q + 2049*q^2 + 177148*q^3 + 4196353*q^4 + 48828126*q^5 + O(q^6)
+            ]
+            sage: E = EisensteinForms(11,2)
+            sage: E.eisenstein_series()
+            [
+            5/12 + q + 3*q^2 + 4*q^3 + 7*q^4 + 6*q^5 + O(q^6)
+            ]
+            sage: E = EisensteinForms(Gamma1(7),2)
+            sage: E.set_precision(4)
+            sage: E.eisenstein_series()
+            [
+            1/4 + q + 3*q^2 + 4*q^3 + O(q^4),
+            1/7*zeta6 - 3/7 + q + (-2*zeta6 + 1)*q^2 + (3*zeta6 - 2)*q^3 + O(q^4),
+            q + (-zeta6 + 2)*q^2 + (zeta6 + 2)*q^3 + O(q^4),
+            -1/7*zeta6 - 2/7 + q + (2*zeta6 - 1)*q^2 + (-3*zeta6 + 1)*q^3 + O(q^4),
+            q + (zeta6 + 1)*q^2 + (-zeta6 + 3)*q^3 + O(q^4)
+            ]
+        """
         N = parent.level()
         K = parent.base_ring()
         if chi.parent().modulus() != N or psi.parent().modulus() != N:
@@ -447,13 +731,22 @@ class EisensteinSeries(ModularFormElement):
         self.__psi = psi
         self.__t   = t
 
-    def _compute_q_expansion(self, prec):
+    def _compute_q_expansion(self, prec=None):
+        """
+        Compute the q-expansion of self to precision prec.
+
+        EXAMPLES:
+            sage: EisensteinForms(11,2).eisenstein_series()[0]._compute_q_expansion(10)
+            5/12 + q + 3*q^2 + 4*q^3 + 7*q^4 + 6*q^5 + 12*q^6 + 8*q^7 + 15*q^8 + 13*q^9 + O(q^10)
+        """
+        if prec is None:
+            prec = self.parent().prec()
         F = self._compute(range(prec))
         R = self.parent()._q_expansion_ring()
         return R(F, prec)
 
     def _compute(self, X):
-        """
+        r"""
         Compute the coefficients of $q^n$ of the power series of self,
         for $n$ in the list $X$.  The results are not cached.  (Use
         coefficients for cached results).
@@ -473,14 +766,23 @@ class EisensteinSeries(ModularFormElement):
             return self.__compute_general_case(X)
 
     def __compute_weight2_trivial_character(self, X):
-        """
-        Compute $E_2 - t*E_2(q^t)$.
+        r"""
+        Compute coefficients for self an Eisenstein series of the form
+        $E_2 - t*E_2(q^t)$. Computes $a_n$ for each $n\in X$.
+
+        EXAMPLES:
+            sage: EisensteinForms(14,2).eisenstein_series()[0]._EisensteinSeries__compute_weight2_trivial_character([0])
+            [1/24]
+            sage: EisensteinForms(14,2).eisenstein_series()[0]._EisensteinSeries__compute_weight2_trivial_character([0,4,11,38])
+            [1/24, 1, 12, 20]
         """
         F = self.base_ring()
         v = []
         t = self.__t
         for n in X:
-            if n <= 0:
+            if n < 0:
+                pass
+            elif n == 0:
                 v.append(F(t-1)/F(24))
             else:
                 an = rings.sigma(n,1)
@@ -534,6 +836,13 @@ class EisensteinSeries(ModularFormElement):
         return v
 
     def __defining_parameters(self):
+        """
+        Return defining parameters for self.
+
+        EXAMPLES:
+            sage: EisensteinForms(11,2).eisenstein_series()[0]._EisensteinSeries__defining_parameters()
+            (-1/24, [1], [1], Rational Field, 2, 11, 1, 1)
+        """
         try:
             return self.__defining_params
         except AttributeError:
@@ -553,27 +862,73 @@ class EisensteinSeries(ModularFormElement):
         return self.__defining_params
 
     def chi(self):
+        """
+        Return the parameter chi associated to self.
+
+        EXAMPLES:
+            sage: EisensteinForms(DirichletGroup(17).0,99).eisenstein_series()[1].chi()
+            [zeta16]
+        """
         return self.__chi
 
     def psi(self):
+        """
+        Return the parameter psi associated to self.
+
+        EXAMPLES:
+            sage: EisensteinForms(DirichletGroup(17).0,99).eisenstein_series()[1].psi()
+            [1]
+        """
         return self.__psi
 
     def t(self):
+        """
+        Return the parameter t associated to self.
+
+        EXAMPLES:
+            sage: EisensteinForms(DirichletGroup(17).0,99).eisenstein_series()[1].t()
+            1
+        """
         return self.__t
 
     def parameters(self):
         """
         Return chi, psi, and t, which are the defining parameters of self.
+
+        EXAMPLES:
+            sage: EisensteinForms(DirichletGroup(17).0,99).eisenstein_series()[1].parameters()
+            ([zeta16], [1], 1)
         """
         return self.__chi, self.__psi, self.__t
 
     def L(self):
+        """
+        Return the conductor of self.chi().
+
+        EXAMPLES:
+            sage: EisensteinForms(DirichletGroup(17).0,99).eisenstein_series()[1].L()
+            17
+        """
         return self.__chi.conductor()
 
     def M(self):
+        """
+        Return the conductor of self.psi().
+
+        EXAMPLES:
+            sage: EisensteinForms(DirichletGroup(17).0,99).eisenstein_series()[1].M()
+            1
+        """
         return self.__psi.conductor()
 
     def character(self):
+        """
+        Return the character associated to self.
+
+        EXAMPLES:
+            sage: EisensteinForms(DirichletGroup(17).0,99).eisenstein_series()[1].character()
+            [zeta16]
+        """
         try:
             return self.__character
         except AttributeError:
@@ -581,6 +936,17 @@ class EisensteinSeries(ModularFormElement):
         return self.__character
 
     def new_level(self):
+        """
+        Return level at which self is new.
+
+        EXAMPLES:
+            sage: EisensteinForms(DirichletGroup(17).0,99).eisenstein_series()[1].level()
+            17
+            sage: EisensteinForms(DirichletGroup(17).0,99).eisenstein_series()[1].new_level()
+            17
+            sage: [ [x.level(), x.new_level()] for x in EisensteinForms(DirichletGroup(60).0^2,2).eisenstein_series() ]
+            [[60, 2], [60, 3], [60, 2], [60, 5], [60, 2], [60, 2], [60, 2], [60, 3], [60, 2], [60, 2], [60, 2]]
+        """
         if self.__chi.is_trivial() and self.__psi.is_trivial() and self.weight() == 2:
             return rings.factor(self.__t)[0][0]
         return self.L()*self.M()

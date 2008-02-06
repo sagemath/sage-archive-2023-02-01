@@ -1,7 +1,7 @@
 r"""
 Symbolic Equations and Inequalities.
 
-SAGE can solving symbolic equations and expressing inequalities.
+\sage can solve symbolic equations and express inequalities.
 For example, we derive the quadratic formula as follows:
 
     sage: a,b,c = var('a,b,c')
@@ -155,7 +155,7 @@ class SymbolicEquation(SageObject):
 
     def multiply_both_sides(self, x):
         """
-        Multiply both sides of this inequality by x.
+        Multiply both sides of this inequality by $x$.
 
         EXAMPLES:
             sage: var('x,y'); f = x + 3 < y - 2
@@ -173,7 +173,7 @@ class SymbolicEquation(SageObject):
             ...
             ValueError: unable to multiply or divide both sides of an inequality by a number whose sign can't be determined.
 
-        Multiplying by complex numbers works only if its an inequality:
+        Multiplying by complex numbers works only if it's an equality:
             sage: f = sqrt(2) + x == y^3
             sage: f.multiply_both_sides(I)
             I*(x + sqrt(2)) == I*y^3
@@ -192,7 +192,7 @@ class SymbolicEquation(SageObject):
 
     def divide_both_sides(self, x):
         """
-        Divide both sides of the inequality by x.
+        Divide both sides of the inequality by $x$.
 
         EXAMPLES:
             sage: (x^3 + 1 > x^2 - 1) / (-1)
@@ -221,7 +221,7 @@ class SymbolicEquation(SageObject):
 
     def add_to_both_sides(self, x):
         """
-        Add x to both sides of this symbolic equation.
+        Add $x$ to both sides of this symbolic equation.
 
         EXAMPLES:
             sage: var('x y z')
@@ -236,7 +236,7 @@ class SymbolicEquation(SageObject):
 
     def subtract_from_both_sides(self, x):
         """
-        Subtract x from both sides of this symbolic equation.
+        Subtract $x$ from both sides of this symbolic equation.
 
         EXAMPLES:
             sage: eqn = x*sin(x)*sqrt(3) + sqrt(2) > cos(sin(x))
@@ -607,14 +607,14 @@ class SymbolicEquation(SageObject):
 
 
     def expand(self, side=None):
-        """
+        r"""
         Expands one or both sides of the equation.
 
         If side is not specified, then both sides of the equation
-        are expanded by calling expand() on the corresponding
-        SymbolicExpression.
+        are expanded by calling \code{expand()} on the corresponding
+        \class{SymbolicExpression}.
 
-        If side is 'left' (or 'right'), then only the left (or right)
+        If side is `left' (or `right'), then only the left (or right)
         side of the equation is expanded.
 
         EXAMPLES:
@@ -777,9 +777,9 @@ def solve(f, *args, **kwds):
         0.000 , -1.00
         0.000 , 1.00
 
-    If True appears in the list of equations it is ignored, and if
-    False appears in the list then no solutions are returned.  E.g.,
-    note that the first \code{3==3} evaluates to True, not to a symbolic
+    If \code{True} appears in the list of equations it is ignored, and if
+    \code{False} appears in the list then no solutions are returned.  E.g.,
+    note that the first \code{3==3} evaluates to \code{True}, not to a symbolic
     equation.
 
         sage: solve([3==3, 1.00000000000000*x^3 == 0], x)
@@ -787,7 +787,7 @@ def solve(f, *args, **kwds):
         sage: solve([1.00000000000000*x^3 == 0], x)
         [x == 0]
 
-    Here, the first evaluates to False, so there are no solutions:
+    Here, the first equation evaluates to \code{False}, so there are no solutions:
         sage: solve([1==3, 1.00000000000000*x^3 == 0], x)
         []
 
@@ -826,12 +826,12 @@ def string_to_list_of_solutions(s):
 # Solving modulo N
 
 def solve_mod(eqns, modulus):
-    """
-    Return all solutions to an equation or lists of equations modulo
+    r"""
+    Return all solutions to an equation or list of equations modulo
     the given integer modulus.  Each equation must involve only
     polynomials in 1 or many variables.
 
-    The solutions are returned as n-tuples, where n is the
+    The solutions are returned as $n$-tuples, where $n$ is the
     number of variables appearing anywhere in the given equations.
     The variables are in alphabetical order.
 
@@ -857,9 +857,9 @@ def solve_mod(eqns, modulus):
     WARNING:
         Currently this naively enumerates all possible solutions.
         The interface is good, but the algorithm is horrible if the
-        modulus is at all large!   Sage *does* have the ability to do
+        modulus is at all large!   \sage \strong{does} have the ability to do
         something much faster in certain cases at least by using
-        the Chinese Remainder Theorem, Groebner basis, linear algebra
+        the Chinese Remainder Theorem, Gr\"obner basis, linear algebra
         techniques, etc.  But for a lot of toy problems this function
         as is might be useful.  At least it establishes an interface.
     """

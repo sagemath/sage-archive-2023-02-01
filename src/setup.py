@@ -573,6 +573,9 @@ ext_modules = [ \
     Extension('sage.ext.sig',
               sources = ['sage/ext/sig.pyx']), \
 
+    Extension('sage.ext.fast_eval',
+              sources = ['sage/ext/fast_eval.pyx']), \
+
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \
 
@@ -688,6 +691,10 @@ ext_modules = [ \
     Extension('sage.rings.integer_ring',
               sources = ['sage/rings/integer_ring.pyx'],
               libraries=['ntl', 'gmp']), \
+
+    Extension('sage.interfaces.libecm',
+              sources = ['sage/interfaces/libecm.pyx'],
+              libraries=['ecm', 'gmp']), \
 
     Extension('sage.rings.padics.pow_computer',
               sources = ['sage/rings/padics/pow_computer.pyx'],
@@ -1236,7 +1243,6 @@ code = setup(name        = 'sage',
                      'sage.numerical',
 
                      'sage.plot',
-                     'sage.plot.mpl3d',
                      'sage.plot.plot3d',
 
                      'sage.probability',

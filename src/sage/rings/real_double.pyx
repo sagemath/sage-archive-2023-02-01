@@ -46,6 +46,16 @@ from sage.rings.integer cimport Integer
 from sage.categories.morphism cimport Morphism
 
 def is_RealDoubleField(x):
+    """
+    Returns True if x is the field of real double precision numbers.
+
+    EXAMPLE:
+        sage: from sage.rings.real_double import is_RealDoubleField
+        sage: is_RealDoubleField(RDF)
+        True
+        sage: is_RealDoubleField(RealField(53))
+        False
+    """
     return PY_TYPE_CHECK(x, RealDoubleField_class)
 
 cdef class RealDoubleField_class(Field):
@@ -62,6 +72,13 @@ cdef class RealDoubleField_class(Field):
         Field.__init__(self, self)
 
     def is_exact(self):
+        """
+        Returns False, because doubles are not exact.
+
+        EXAMPLE:
+            sage: RDF.is_exact()
+            False
+        """
         return False
 
     def _latex_(self):
@@ -268,10 +285,10 @@ cdef class RealDoubleField_class(Field):
         Return a random element of this real double field in the interval [min, max].
 
         EXAMPLES:
-	    sage: RDF.random_element()
-	    -0.657233364114
-	    sage: RDF.random_element(min=100, max=110)
-	    106.592535785
+            sage: RDF.random_element()
+            -0.657233364114
+            sage: RDF.random_element(min=100, max=110)
+            106.592535785
         """
         return self._new_c((max-min)*(<double>random())/RAND_MAX + min)
 
@@ -279,7 +296,12 @@ cdef class RealDoubleField_class(Field):
         return "RealDoubleField"
 
     def __hash__(self):
-        return 1455926870 #return hash(self.name())
+        """
+        TEST:
+            sage: hash(RDF) % 2^32 == hash(str(RDF)) % 2^32
+            True
+        """
+        return 1157042230 #return hash(str(self))
 
     def pi(self):
         """
@@ -348,18 +370,34 @@ cdef class RealDoubleField_class(Field):
             return self(-1)
         raise ValueError, "No %sth root of unity in self"%n
 
+    def NaN(self):
+        """
+        EXAMPLES:
+            sage: RDF.NaN()
+            nan
+        """
+        return self(0)/self(0)
 
-
-def new_RealDoubleElement():
-    cdef RealDoubleElement x
-    x = PY_NEW(RealDoubleElement)
-    return x
+    def nan(self):
+        """
+        EXAMPLES:
+            sage: RDF.nan()
+            nan
+        """
+        return self(0)/self(0)
 
 cdef class RealDoubleElement(FieldElement):
     def __new__(self, x=None):
         (<Element>self)._parent = _RDF
 
     def __init__(self, x):
+        """
+        Create a new RealDoubleElement with value x.
+
+        EXAMPLES:
+            sage: RDF(10^100)
+            1e+100
+        """
         self._value = float(x)
 
     def __reduce__(self):
@@ -448,6 +486,11 @@ cdef class RealDoubleElement(FieldElement):
         return self.str()
 
     def _latex_(self):
+        """
+        EXAMPLE:
+            sage: RDF(2e-100)._latex_()
+            '2 \\times 10^{-100}'
+        """
         s = self.str()
         parts = s.split('e')
         if len(parts) > 1:
@@ -458,7 +501,15 @@ cdef class RealDoubleElement(FieldElement):
         return s
 
     def __hash__(self):
-        return hash(float(self))
+        """
+        Returns the hash of self, which coincides with the python
+        float (and often int) type.
+
+        EXAMPLE:
+            sage: hash(RDF(1.2)) == hash(1.2r)
+            True
+        """
+        return hash(self._value)
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self) # since 1 |--> 1
@@ -637,10 +688,34 @@ cdef class RealDoubleElement(FieldElement):
         return x
 
     def __abs__(self):
-        return self.abs()
+        """
+        Returns the absolute value of self.
 
-    cdef RealDoubleElement abs(RealDoubleElement self):
-        return RealDoubleElement(abs(self._value))
+        EXAMPLES:
+            sage: abs(RDF(1.5))
+            1.5
+            sage: abs(RDF(-1.5))
+            1.5
+        """
+        if self._value >= 0:
+            return self
+        else:
+            return self._new_c(-self._value)
+
+    cpdef RealDoubleElement abs(RealDoubleElement self):
+        """
+        Returns the absolute value of self.
+
+        EXAMPLES:
+            sage: RDF(1e10).abs()
+            10000000000.0
+            sage: RDF(-1e10).abs()
+            10000000000.0
+        """
+        if self._value >= 0:
+            return self
+        else:
+            return self._new_c(-self._value)
 
     def __lshift__(x, y):
         """
@@ -655,10 +730,23 @@ cdef class RealDoubleElement(FieldElement):
         raise TypeError, "unsupported operand type(s) for >>"
 
     def multiplicative_order(self):
-        if self == 1:
+        r"""
+        Returns $n$ such that $\code{self}^n$ = 1.
+
+        Only $\pm 1$ have finite multiplicative_order order.
+
+        EXAMPLES:
+            sage: RDF(1).multiplicative_order()
+            1
+            sage: RDF(-1).multiplicative_order()
+            2
+            sage: RDF(3).multiplicative_order()
+            +Infinity
+        """
+        if self._value == 1:
             return 1
-        elif self == -1:
-            return -1
+        elif self._value == -1:
+            return 2
         return sage.rings.infinity.infinity
 
     def sign(self):
@@ -727,8 +815,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return sage.rings.integer.Integer(int(math.ceil(self._value)))
 
-    def ceiling(self):
-        return self.ceil()
+    ceiling = ceil
 
     def trunc(self):
         """
@@ -765,6 +852,15 @@ cdef class RealDoubleElement(FieldElement):
     ###########################################
 
     def __float__(self):
+        """
+        Return self as a python float.
+
+        EXAMPLES:
+            sage: float(RDF(1.5))
+            1.5
+            sage: type(float(RDF(1.5)))
+            <type 'float'>
+        """
         return self._value
 
     def _rpy_(self):
@@ -784,12 +880,25 @@ cdef class RealDoubleElement(FieldElement):
     def __int__(self):
         """
         Returns integer truncation of this real number.
+
+        EXAMPLES:
+            sage: int(RDF(2.99))
+            2
+            sage: int(RDF(-2.99))
+            -2
         """
         return int(self._value)
 
     def __long__(self):
         """
         Returns long integer truncation of this real number.
+
+        EXAMPLES:
+            sage: int(RDF(10e15))
+            10000000000000000L                   # 32-bit
+            10000000000000000                    # 64-bit
+            sage: long(RDF(2^100)) == 2^100
+            True
         """
         return long(self._value)
 
@@ -820,6 +929,11 @@ cdef class RealDoubleElement(FieldElement):
         return CDF(self._value)
 
     def _pari_(self):
+        """
+        EXAMPLES:
+            sage: RDF(1.5)._pari_()
+            1.5000000000000000000
+        """
         cdef sage.libs.pari.gen.PariInstance P = sage.libs.pari.gen.pari
         return P.double_to_gen_c(self._value)
 
@@ -829,15 +943,49 @@ cdef class RealDoubleElement(FieldElement):
     ###########################################
 
     def is_NaN(self):
+        """
+        EXAMPLES:
+            sage: RDF(1).is_NaN()
+            False
+            sage: a = RDF(0)/RDF(0)
+            sage: a.is_NaN()
+            True
+        """
         return gsl_isnan(self._value)
 
     def is_positive_infinity(self):
+        """
+        EXAMPLES:
+            sage: a = RDF(1)/RDF(0)
+            sage: a.is_positive_infinity()
+            True
+            sage: a = RDF(-1)/RDF(0)
+            sage: a.is_positive_infinity()
+            False
+        """
         return gsl_isinf(self._value) > 0
 
     def is_negative_infinity(self):
+        """
+        EXAMPLES:
+            sage: a = RDF(2)/RDF(0)
+            sage: a.is_negative_infinity()
+            False
+            sage: a = RDF(-3)/RDF(0)
+            sage: a.is_negative_infinity()
+            True
+        """
         return gsl_isinf(self._value) < 0
 
     def is_infinity(self):
+        """
+        EXAMPLES:
+            sage: a = RDF(2); b = RDF(0)
+            sage: (a/b).is_infinity()
+            True
+            sage: (b/a).is_infinity()
+            False
+        """
         return gsl_isinf(self._value)
 
     def __richcmp__(left, right, int op):
@@ -854,6 +1002,22 @@ cdef class RealDoubleElement(FieldElement):
     ############################
     # Special Functions
     ############################
+
+    def NaN(self):
+        """
+        EXAMPLES:
+            sage: RDF.NaN()
+            nan
+        """
+        return self(0)/self(0)
+
+    def nan(self):
+        """
+        EXAMPLES:
+            sage: RDF.nan()
+            nan
+        """
+        return self(0)/self(0)
 
     def sqrt(self, extend=True, all=False):
         """
@@ -966,10 +1130,10 @@ cdef class RealDoubleElement(FieldElement):
             dx=abs(x - x0)
         return x
 
-    def __pow(self, RealDoubleElement exponent):
-        return self._new_c(gsl_sf_exp(gsl_sf_log(self._value) * exponent._value))
+    cdef RealDoubleElement __pow_float(self, double exponent):
+        return self._new_c(gsl_sf_exp(gsl_sf_log(self._value) * exponent))
 
-    def __pow_int(self, int exponent):
+    cdef RealDoubleElement __pow_int(self, int exponent):
         return self._new_c(gsl_pow_int(self._value, exponent))
 
     def __pow__(self, exponent, modulus):
@@ -996,24 +1160,31 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF('-2.3')^x
             -2.30000000000000^x
         """
-        cdef RealDoubleElement x
-        if PY_TYPE_CHECK(exponent, RealDoubleElement):
-            return self.__pow(RealDoubleElement(exponent))
-        elif PY_TYPE_CHECK(exponent, int):
-            return self.__pow_int(exponent)
-        elif PY_TYPE_CHECK(exponent, Integer) and exponent < INT_MAX:
-            return self.__pow_int(int(exponent))
-        try:
-            x = self.parent()(exponent)
-        except TypeError:
+        cdef RealDoubleElement base, exp
+        if PY_TYPE_CHECK(self, RealDoubleElement):
+            base = self
+            if PY_TYPE_CHECK(exponent, RealDoubleElement):
+                return base.__pow_float((<RealDoubleElement>exponent)._value)
+            elif PY_TYPE_CHECK(exponent, float):
+                return base.__pow_float(exponent)
+            elif PY_TYPE_CHECK(exponent, int):
+                return base.__pow_int(exponent)
+            elif PY_TYPE_CHECK(exponent, Integer) and exponent < INT_MAX:
+                return base.__pow_int(exponent)
             try:
-                return exponent.parent()(self)**exponent
-            except AttributeError:
-                raise TypeError
-        return self.__pow(x)
+                exp = base._parent(exponent)
+                return base.__pow_float(exp._value)
+            except TypeError:
+                return exponent.parent()(self) ** exponent # neither operand is RealDoubleElement
+        else:
+            try:
+                base = exp.parent()(self)
+                return base.__pow_float((<RealDoubleElement>exponent)._value)
+            except TypeError:
+                return self ** self.parent()(exponent) # neither operand is RealDoubleElement
 
 
-    def _log_base(self, double log_of_base):
+    cdef _log_base(self, double log_of_base):
         if self._value < 2:
             if self._value == 0:
                 return -1./0
@@ -1200,6 +1371,20 @@ cdef class RealDoubleElement(FieldElement):
         return self._new_c(gsl_sf_sin(self._value))
 
     def restrict_angle(self):
+        r"""
+        Returns a number congruent to self mod $2\pi$ that lies in the interval $(-\pi, \pi]$.
+
+        Specifically, it is the unique $x \in (-\pi, \pi]$ such that $\code{self} = x + 2\pi n$
+        for some $n \in \Z$.
+
+        EXAMPLES:
+            sage: RDF(pi).restrict_angle()
+            3.14159265359
+            sage: RDF(pi + 1e-10).restrict_angle()
+            -3.14159265349
+            sage: RDF(1+10^10*pi).restrict_angle()
+            0.9999977606...
+        """
         return self._new_c(gsl_sf_angle_restrict_symm(self._value))
 
     def tan(self):
@@ -1231,43 +1416,53 @@ cdef class RealDoubleElement(FieldElement):
         return self.sin(), self.cos()
 
     def hypot(self, other):
+        r"""
+        Computes the value $\sqrt(self^2 + other^2)$ in such a way as to avoid overflow.
+
+        EXAMPLES:
+            sage: x = RDF(4e300); y = RDF(3e300);
+            sage: x.hypot(y)
+            5e+300
+            sage: sqrt(x^2+y^2) # overflow
+            inf
+        """
         _sig_on
         a = self._new_c(gsl_sf_hypot(self._value, float(other)))
         _sig_off
         return a
 
-    def acos(self):
+    def arccos(self):
         """
         Returns the inverse cosine of this number
 
         EXAMPLES:
             sage: q = RDF.pi()/3
             sage: i = q.cos()
-            sage: i.acos() == q
+            sage: i.arccos() == q
             True
         """
         return self._new_c(acos(self._value))
 
-    def asin(self):
+    def arcsin(self):
         """
         Returns the inverse sine of this number
 
         EXAMPLES:
             sage: q = RDF.pi()/5
             sage: i = q.sin()
-            sage: i.asin() == q
+            sage: i.arcsin() == q
             True
         """
         return self._new_c(asin(self._value))
 
-    def atan(self):
+    def arctan(self):
         """
         Returns the inverse tangent of this number
 
         EXAMPLES:
             sage: q = RDF.pi()/5
             sage: i = q.tan()
-            sage: i.atan() == q
+            sage: i.arctan() == q
             True
         """
         return self._new_c(atan(self._value))
@@ -1319,7 +1514,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return self._new_c(gsl_acosh(self._value))
 
-    def asinh(self):
+    def arcsinh(self):
         """
         Returns the hyperbolic inverse sine of this number
 
@@ -1327,12 +1522,12 @@ cdef class RealDoubleElement(FieldElement):
             sage: q = RDF.pi()/2
             sage: i = q.sinh() ; i
             2.30129890231
-            sage: abs(i.asinh()-q) < 1e-15
+            sage: abs(i.arcsinh()-q) < 1e-15
             True
         """
         return self._new_c(gsl_asinh(self._value))
 
-    def atanh(self):
+    def arctanh(self):
         """
         Returns the hyperbolic inverse tangent of this number
 
@@ -1340,7 +1535,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: q = RDF.pi()/2
             sage: i = q.tanh() ; i
             0.917152335667
-            sage: i.atanh() - q      # output is random, depending on arch.
+            sage: i.arctanh() - q      # output is random, depending on arch.
             -4.4408920985e-16
         """
         return self._new_c(gsl_atanh(self._value))
@@ -1389,6 +1584,16 @@ cdef class RealDoubleElement(FieldElement):
         $u_{n+1}$ is the arithmetic mean of $u_n$ and $v_n$, and
         $v_{n+1}$ is the geometric mean of u_n and v_n. If any operand
         is negative, the return value is \code{NaN}.
+
+        EXAMPLES:
+            sage: a = RDF(1.5)
+            sage: b = RDF(2.3)
+            sage: a.agm(b)
+            1.87864845581
+
+        The arithmetic-geometric always lies between the geometric and arithmetic mean.
+            sage: sqrt(a*b) < a.agm(b) < (a+b)/2
+            True
         """
         return RealDoubleElement(sage.rings.all.RR(self).agm(sage.rings.all.RR(other)))
 
@@ -1526,6 +1731,13 @@ _RDF = RealDoubleField_class()
 RDF = _RDF   # external interface
 
 def RealDoubleField():
+    """
+    Return the unique instance of the Real Double Field.
+
+    EXAMPLES:
+        sage: RealDoubleField() is RealDoubleField()
+        True
+    """
     global _RDF
     return _RDF
 

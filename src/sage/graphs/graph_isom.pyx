@@ -776,7 +776,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     valid for digraphs and graphs with loops.
         dict--      if True, explain which vertices are which elements of the set
     {1,2,...,n} in the representation of the automorphism group.
-        certify--     if True, return the automorphism between G and its canonical
+        certify--     if True, return the relabeling from G to its canonical
     label. Forces lab=True.
         verbosity-- 0 - print nothing
                     1 - display state trace
@@ -1815,8 +1815,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     if certify:
         dd = {}
         for i from 0 <= i < n:
-            dd[rho.entries[i]] = i
-            # NOTE - this should take the relabeling into account!
+            dd[to[rho.entries[i]]] = i
         if dict:
             return output, ddd, H, dd
         else:
@@ -2059,8 +2058,8 @@ def orbit_partition(gamma, list_perm=False):
     determined by a cyclic representation of gamma.
 
     INPUT:
-        list_perm -- if True, assumes gamma is a list representing the map
-    i \mapsto gamma[i].
+        list_perm -- if True, assumes \var{gamma} is a list representing the map
+    $i \mapsto \var{gamma}[i]$.
 
     EXAMPLES:
         sage: import sage.graphs.graph_isom

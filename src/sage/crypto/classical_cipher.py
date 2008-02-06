@@ -12,6 +12,74 @@ Classical Ciphers.
 
 from cipher import SymmetricKeyCipher
 from sage.monoids.string_monoid_element import StringMonoidElement
+from sage.modules.free_module import FreeModule
+
+class HillCipher(SymmetricKeyCipher):
+    """
+    Hill cipher class
+    """
+    def __init__(self, parent, key):
+        """
+        Create a Hill cipher.
+
+        INPUT: Parent and key
+
+        EXAMPLES:
+            sage: S = AlphabeticStrings()
+            sage: E = HillCryptosystem(S,3)
+	    sage: E
+            Hill cryptosystem on Free alphabetic string monoid on A-Z of block length 3
+	    sage: M = E.key_space()
+            sage: A = M([[1,0,1],[0,1,1],[2,2,3]])
+	    sage: A
+	    [1 0 1]
+	    [0 1 1]
+	    [2 2 3]
+	    sage: e = E(A)
+            sage: e
+	    [1 0 1]
+	    [0 1 1]
+	    [2 2 3]
+            sage: e(S("LAMAISONBLANCHE"))
+	    JYVKSKQPELAYKPV
+
+        TESTS:
+            sage: S = AlphabeticStrings()
+            sage: E = HillCryptosystem(S,3)
+            sage: E == loads(dumps(E))
+            True
+        """
+	# TODO: some type checking that the key is an invertible matrix?
+	SymmetricKeyCipher.__init__(self, parent, key)
+
+    def __eq__(self, right):
+        return type(self) == type(right) and self.parent() == right.parent() and self.key() == right.key()
+
+    def __call__(self, M):
+	S = self.domain() # = plaintext_space = ciphertext_space
+	if not isinstance(M, StringMonoidElement) and M.parent() == S:
+	    raise TypeError, "Argument M (= %s) must be a string in the plaintext space." % M
+	m = self.parent().block_length()
+	if len(M) % m != 0:
+	    raise TypeError, "The length of M (= %s) must be a multiple of %s." % (M, m )
+	Alph = list(S.alphabet())
+	A = self.key() # A is an m x m matrix
+        R = A.parent().base_ring()
+        V = FreeModule(R,m)
+	Mstr = str(M)
+	C = []
+	for i in range(len(M)//m):
+	    v = V([ Alph.index(Mstr[m*i+j]) for j in range(m) ])
+	    C += (v * A).list()
+	return S([ k.lift() for k in C ])
+
+    def inverse(self):
+        E = self.parent()
+	try:
+	    B = E.inverse_key(self.key())
+	except:
+ 	    raise ValueError, "Argument\n\n%s\n\nmust be an invertible cipher." % self
+	return E(B)
 
 class SubstitutionCipher(SymmetricKeyCipher):
     """

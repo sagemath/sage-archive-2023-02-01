@@ -7,6 +7,8 @@ from shapes2 import line3d
 from texture import Texture
 from sage.plot.misc import ensure_subs
 
+from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
+
 def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
     r"""
     Return a parametric three-dimensional space curve or surface.
@@ -30,18 +32,18 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
     INPUT:
         f -- a 3-tuple of functions or expressions
         urange -- a 2-tuple (u_min, u_max) or a 3-tuple (u, u_min, u_max)
-        vrange -- (optional -- only used for surfaces) a 2-tuple (u_min, u_max)
-                  or a 3-tuple (u, u_min, u_max)
+        vrange -- (optional -- only used for surfaces) a 2-tuple (v_min, v_max)
+                  or a 3-tuple (v, v_min, v_max)
         plot_points -- (default: "automatic", which is 75 for curves and
-                       [15,15] for surfaces) initial number of sample
+                       [40,40] for surfaces) initial number of sample
                        points in each parameter; an integer for a curve,
                        and a pair of integers for a surface.
 
     NOTES:
     \begin{enumerate}
-      \item By default for a curve any points where f_x, f_y, or f_z do
+      \item By default for a curve any points where $f_x$, $f_y$, or $f_z$ do
         not evaluate to a real number are skipped.
-      \item Currently for a surface f_x, f_y, and f_z have to be defined
+      \item Currently for a surface $f_x$, $f_y$, and $f_z$ have to be defined
         everywhere. This will change.
     \end{enumerate}
 
@@ -52,7 +54,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
             sage: parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20))
 
         Note above the lambda function, which creates a callable Python function
-        that sends u to u/10.
+        that sends $u$ to $u/10$.
 
         \item Next we draw the same plot as above, but using symbolic functions:
             sage: u = var('u')
@@ -87,6 +89,9 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
         sage: t = var('t')
         sage: parametric_plot3d( (1, sin(t), cos(t)), (t, 0, 3) )
 
+
+    MANY MORE EXAMPLES:
+
     We plot two interlinked tori:
         sage: u, v = var('u,v')
         sage: f1 = (4+(3+cos(v))*sin(u), 4+(3+cos(v))*cos(u), 4+sin(v))
@@ -95,11 +100,192 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
         sage: p2 = parametric_plot3d(f2, (u,0,2*pi), (v,0,2*pi), texture="blue")
         sage: p1 + p2
 
+    A cylindrical Star of David:
+        sage: u,v = var('u v')
+        sage: f_x = cos(u)*cos(v)*(abs(cos(3*v/4))^500 + abs(sin(3*v/4))^500)^(-1/260)*(abs(cos(4*u/4))^200 + abs(sin(4*u/4))^200)^(-1/200)
+        sage: f_y = cos(u)*sin(v)*(abs(cos(3*v/4))^500 + abs(sin(3*v/4))^500)^(-1/260)*(abs(cos(4*u/4))^200 + abs(sin(4*u/4))^200)^(-1/200)
+        sage: f_z = sin(u)*(abs(cos(4*u/4))^200 + abs(sin(4*u/4))^200)^(-1/200)
+        sage: parametric_plot3d([f_x, f_y, f_z], (u, -pi, pi), (v, 0, 2*pi))
+
+    Double heart:
+        sage: u, v = var('u,v')
+        sage: f_x = ( abs(v) - abs(u) - abs(tanh((1/sqrt(2))*u)/(1/sqrt(2))) + abs(tanh((1/sqrt(2))*v)/(1/sqrt(2))) )*sin(v)
+        sage: f_y = ( abs(v) - abs(u) - abs(tanh((1/sqrt(2))*u)/(1/sqrt(2))) - abs(tanh((1/sqrt(2))*v)/(1/sqrt(2))) )*cos(v)
+        sage: f_z = sin(u)*(abs(cos(4*u/4))^1 + abs(sin(4*u/4))^1)^(-1/1)
+        sage: parametric_plot3d([f_x, f_y, f_z], (u, 0, pi), (v, -pi, pi))
+
+    Heart:
+        sage: u, v = var('u,v')
+        sage: f_x = cos(u)*(4*sqrt(1-v^2)*sin(abs(u))^abs(u))
+        sage: f_y = sin(u) *(4*sqrt(1-v^2)*sin(abs(u))^abs(u))
+        sage: f_z = v
+        sage: parametric_plot3d([f_x, f_y, f_z], (u, -pi, pi), (v, -1, 1), frame=False, color="red")
+
+    Green bowtie:
+        sage: u, v = var('u,v')
+        sage: f_x = sin(u) / (sqrt(2) + sin(v))
+        sage: f_y = sin(u) / (sqrt(2) + cos(v))
+        sage: f_z = cos(u) / (1 + sqrt(2))
+        sage: parametric_plot3d([f_x, f_y, f_z], (u, -pi, pi), (v, -pi, pi), frame=False, color="green")
+
+    Boy's surface \url{http://en.wikipedia.org/wiki/Boy's_surface}
+        sage: u, v = var('u,v')
+        sage: fx = 2/3* (cos(u)* cos(2*v) + sqrt(2)* sin(u)* cos(v))* cos(u) / (sqrt(2) - sin(2*u)* sin(3*v))
+        sage: fy = 2/3* (cos(u)* sin(2*v) - sqrt(2)* sin(u)* sin(v))* cos(u) / (sqrt(2) - sin(2*u)* sin(3*v))
+        sage: fz = sqrt(2)* cos(u)* cos(u) / (sqrt(2) - sin(2*u)* sin(3*v))
+        sage: parametric_plot3d([fx, fy, fz], (u, -2*pi, 2*pi), (v, 0, pi), plot_points = [90,90], frame=False, color="orange") # long time -- about 30 seconds
+
+    Maeder's_Owl (pretty but can't find an internet reference):
+        sage: u, v = var('u,v')
+        sage: fx = v *cos(u) - 0.5* v^2 * cos(2* u)
+        sage: fy = -v *sin(u) - 0.5* v^2 * sin(2* u)
+        sage: fz = 4 *v^1.5 * cos(3 *u / 2) / 3
+        sage: parametric_plot3d([fx, fy, fz], (u, -2*pi, 2*pi), (v, 0, 1),plot_points = [90,90], frame=False, color="purple")
+
+    Bracelet:
+        sage: u, v = var('u,v')
+        sage: fx = (2 + 0.2*sin(2*pi*u))*sin(pi*v)
+        sage: fy = 0.2*cos(2*pi*u) *3*cos(2*pi*v)
+        sage: fz = (2 + 0.2*sin(2*pi*u))*cos(pi*v)
+        sage: parametric_plot3d([fx, fy, fz], (u, 0, pi/2), (v, 0, 3*pi/4), frame=False, color="gray")
+
+    Green goblet
+        sage: u, v = var('u,v')
+        sage: fx = cos(u)*cos(2*v)
+        sage: fy = sin(u)*cos(2*v)
+        sage: fz = sin(v)
+        sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, pi), frame=False, color="green")
+
+    Funny folded surface - with square projection:
+        sage: u, v = var('u,v')
+        sage: fx = cos(u)*sin(2*v)
+        sage: fy = sin(u)*cos(2*v)
+        sage: fz = sin(v)
+        sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi), frame=False, color="green")
+
+    Surface of revolution of figure 8:
+        sage: u, v = var('u,v')
+        sage: fx = cos(u)*sin(2*v)
+        sage: fy = sin(u)*sin(2*v)
+        sage: fz = sin(v)
+        sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi), frame=False, color="green")
+
+    Yellow Whitney's umbrella \url{http://en.wikipedia.org/wiki/Whitney_umbrella}:
+        sage: u, v = var('u,v')
+        sage: fx = u*v
+        sage: fy = u
+        sage: fz = v^2
+        sage: parametric_plot3d([fx, fy, fz], (u, -1, 1), (v, -1, 1), frame=False, color="yellow")
+
+    Cross cap \url{http://en.wikipedia.org/wiki/Cross-cap}:
+        sage: u, v = var('u,v')
+        sage: fx = (1+cos(v))*cos(u)
+        sage: fy = (1+cos(v))*sin(u)
+        sage: fz = -tanh((2/3)*(u-pi))*sin(v)
+        sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi), frame=False, color="red")
+
+    Twisted torus:
+        sage: u, v = var('u,v')
+        sage: fx = (3+sin(v)+cos(u))*cos(2*v)
+        sage: fy = (3+sin(v)+cos(u))*sin(2*v)
+        sage: fz = sin(u)+2*cos(v)
+        sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi), frame=False, color="red")
+
+    Four intersecting discs:
+        sage: u, v = var('u,v')
+        sage: fx = v *cos(u) -0.5*v^2*cos(2*u)
+        sage: fy = -v*sin(u) -0.5*v^2*sin(2*u)
+        sage: fz = 4* v^1.5 *cos(3* u / 2) / 3
+        sage: parametric_plot3d([fx, fy, fz], (u, 0, 4*pi), (v, 0,2*pi), frame=False, color="red", opacity=0.7)
+
+    Steiner surface/Roman's surface (see \url{http://en.wikipedia.org/wiki/Roman_surface} and \url{http://en.wikipedia.org/wiki/Steiner_surface}):
+        sage: u, v = var('u,v')
+        sage: fx = (sin(2 * u) * cos(v) * cos(v))
+        sage: fy = (sin(u) * sin(2 * v))
+        sage: fz = (cos(u) * sin(2 * v))
+        sage: parametric_plot3d([fx, fy, fz], (u, -pi/2, pi/2), (v, -pi/2,pi/2), frame=False, color="red")
+
+    Klein bottle? (see \url{http://en.wikipedia.org/wiki/Klein_bottle}):
+        sage: u, v = var('u,v')
+        sage: fx = (3*(1+sin(v)) + 2*(1-cos(v)/2)*cos(u))*cos(v)
+        sage: fy = (4+2*(1-cos(v)/2)*cos(u))*sin(v)
+        sage: fz = -2*(1-cos(v)/2) * sin(u)
+        sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi), frame=False, color="green")
+
+    A Figure 8 embedding of the Klein bottle (see \url{http://en.wikipedia.org/wiki/Klein_bottle}):
+        sage: u, v = var('u,v')
+        sage: fx = (2 + cos(v/2)* sin(u) - sin(v/2)* sin(2 *u))* cos(v)
+        sage: fy = (2 + cos(v/2)* sin(u) - sin(v/2)* sin(2 *u))* sin(v)
+        sage: fz = sin(v/2)* sin(u) + cos(v/2) *sin(2* u)
+        sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi), frame=False, color="red")
+
+    Enneper's surface (see \url{http://en.wikipedia.org/wiki/Enneper_surface}):
+        sage: u, v = var('u,v')
+        sage: fx = u -u^3/3  + u*v^2
+        sage: fy = v -v^3/3  + v*u^2
+        sage: fz = u^2 - v^2
+        sage: parametric_plot3d([fx, fy, fz], (u, -2, 2), (v, -2, 2), frame=False, color="red")
+
+    Henneberg's surface (see \url{http://xahlee.org/surface/gallery_m.html})
+        sage: u, v = var('u,v')
+        sage: fx = 2*sinh(u)*cos(v) -(2/3)*sinh(3*u)*cos(3*v)
+        sage: fy = 2*sinh(u)*sin(v) +(2/3)*sinh(3*u)*sin(3*v)
+        sage: fz = 2*cosh(2*u)*cos(2*v)
+        sage: parametric_plot3d([fx, fy, fz], (u, -1, 1), (v, -pi/2, pi/2), frame=False, color="red")
+
+    Dini's spiral
+        sage: u, v = var('u,v')
+        sage: fx = cos(u)*sin(v)
+        sage: fy = sin(u)*sin(v)
+        sage: fz = (cos(v)+log(tan(v/2))) + 0.2*u
+        sage: parametric_plot3d([fx, fy, fz], (u, 0, 12.4), (v, 0.1, 2),frame=False, color="red")
+
+    Catalan's surface (see \url{http://xahlee.org/surface/catalan/catalan.html}):
+        sage: u, v = var('u,v')
+        sage: fx = u-sin(u)*cosh(v)
+        sage: fy = 1-cos(u)*cosh(v)
+        sage: fz = 4*sin(1/2*u)*sinh(v/2)
+        sage: parametric_plot3d([fx, fy, fz], (u, -pi, 3*pi), (v, -2, 2), frame=False, color="red")
+
     A Conchoid:
         sage: u, v = var('u,v')
         sage: k = 1.2; k_2 = 1.2; a = 1.5
         sage: f = (k^u*(1+cos(v))*cos(u), k^u*(1+cos(v))*sin(u), k^u*sin(v)-a*k_2^u)
         sage: parametric_plot3d(f, (u,0,6*pi), (v,0,2*pi), plot_points=[40,40], texture=(0,0.5,0))
+
+    A M\"obius strip:
+        sage: u,v = var("u,v")
+        sage: parametric_plot3d([cos(u)*(1+v*cos(u/2)), sin(u)*(1+v*cos(u/2)), 0.2*v*sin(u/2)], (u,0, 4*pi+0.5), (v,0, 0.3),plot_points=[50,50])
+
+    A Twisted Ribon
+        sage: u, v = var('u,v')
+        sage: parametric_plot3d([3*sin(u)*cos(v), 3*sin(u)*sin(v), cos(v)], (u,0, 2*pi), (v, 0, pi),plot_points=[50,50])
+
+    An Ellipsoid:
+        sage: u, v = var('u,v')
+        sage: parametric_plot3d([3*sin(u)*cos(v), 2*sin(u)*sin(v), cos(u)], (u,0, 2*pi), (v, 0, 2*pi),plot_points=[50,50], aspect_ratio=[1,1,1])
+
+    A Cone:
+        sage: u, v = var('u,v')
+        sage: parametric_plot3d([u*cos(v), u*sin(v), u], (u, -1, 1), (v, 0, 2*pi+0.5), plot_points=[50,50])
+
+    A Paraboloid:
+        sage: u, v = var('u,v')
+        sage: parametric_plot3d([u*cos(v), u*sin(v), u^2], (u, 0, 1), (v, 0, 2*pi+0.4), plot_points=[50,50])
+
+    A Hyperboloid:
+        sage: u, v = var('u,v')
+        sage: plot3d(u^2-v^2, (u, -1, 1), (v, -1, 1), plot_points=[50,50])
+
+    A weird looking surface - like a M\"obius band but also an O:
+        sage: u, v = var('u,v')
+        sage: parametric_plot3d([sin(u)*cos(u)*log(u^2)*sin(v), (u^2)^(1/6)*(cos(u)^2)^(1/4)*cos(v), sin(v)], (u, 0.001, 1), (v, -pi, pi+0.2), plot_points=[50,50])
+
+    A heart, but not a cardioid (for my wife):
+        sage: u, v = var('u,v')
+        sage: p1 = parametric_plot3d([sin(u)*cos(u)*log(u^2)*v*(1-v)/2, ((u^6)^(1/20)*(cos(u)^2)^(1/4)-1/2)*v*(1-v), v^(0.5)], (u, 0.001, 1), (v, 0, 1), plot_points=[70,70], color='red')
+        sage: p2 = parametric_plot3d([-sin(u)*cos(u)*log(u^2)*v*(1-v)/2, ((u^6)^(1/20)*(cos(u)^2)^(1/4)-1/2)*v*(1-v), v^(0.5)], (u, 0.001, 1), (v, 0, 1), plot_points=[70,70], color='red')
+        sage: show(p1+p2, frame=False)
     """
     # TODO:
     #   * Surface -- behavior of functions not defined everywhere -- see note above
@@ -131,7 +317,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
         G = parametric_plot3d_curve(f, urange, plot_points, **kwds)
     else:
         if plot_points == "automatic":
-            plot_points = [15,15]
+            plot_points = [40,40]
         G = parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds)
     G._set_extra_kwds(kwds)
     return G
@@ -147,12 +333,22 @@ def parametric_plot3d_curve(f, urange, plot_points, **kwds):
     fail = 0
 
     if u is None:
-        f_x, f_y, f_z = f
+        try:
+            f, (u,) = adapt_to_callable(f, 1)
+        except TypeError:
+            pass
+
+    else:
+        f = fast_float(f, u)
+
+    f_x, f_y, f_z = f
+    if u is None or all(is_fast_float(f_i) for f_i in f):
         for t in vals:
             try:
                 w.append((float(f_x(t)), float(f_y(t)), float(f_z(t))))
             except TypeError:
                 fail += 1
+
     else:
         f_x, f_y, f_z = [ensure_subs(m) for m in f]
         for t in vals:
@@ -181,21 +377,68 @@ def parametric_plot3d_surface(f, urange, vrange, plot_points, **kwds):
     if u is None:
         if not v is None:
             raise ValueError, "both ranges must specify a variable or neither must"
-        # nothing to do
-        f_x, f_y, f_z = f
+
+        try:
+            g, (u,v) = adapt_to_callable(f, 2)
+        except TypeError:
+            g = tuple(f)
+
     else:
         if v is None:
             raise ValueError, "both ranges must specify a variable or neither must"
-        f0, f1, f2 = [ensure_subs(w) for w in f]
-        def f_x(uu,vv):
-            return float(f0.subs({u:uu, v:vv}))
-        def f_y(uu,vv):
-            return float(f1.subs({u:uu, v:vv}))
-        def f_z(uu,vv):
-            return float(f2.subs({u:uu, v:vv}))
 
-    def g(x,y):
-        # Change to use fast callable float symbolic expressions later
-        return (float(f_x(x,y)), float(f_y(x,y)), float(f_z(x,y)))
+        g = fast_float(f, str(u), str(v))
 
     return ParametricSurface(g, (u_vals, v_vals), **kwds)
+
+
+
+def adapt_if_symbolic(f):
+    """
+    If f is symbolic find the variables u, v to substitute into f.
+    Otherwise raise a TypeError.
+
+    This function is used internally by the plot commands for
+    efficiency reasons only.
+    """
+    from sage.calculus.calculus import is_SymbolicExpression, SR
+    if sum([is_SymbolicExpression(a) for a in f]) > 0:
+        g = [SR(a) for a in f]
+        vars = list(set(sum([list(a.variables()) for a in g], [])))
+        vars.sort()
+        if len(vars) > 0:
+            u = vars[0]
+            if len(vars) > 1:
+                v = vars[1]
+            else:
+                v = None
+            return g, u, v
+        else:
+            g = [lambda x: float(a) for a in g]
+            return g, None, None
+
+def adapt_to_callable(f, nargs=None):
+    """
+    Tries to make f into a (fast) callable function, returning
+    f and the number of expected arguments.
+    """
+    try:
+        s = sum(f) # get common universe
+        try:
+            # If s is callable, will return the arguments in the right order
+            vars = s.args()
+        except AttributeError:
+            # Otherwise any free variable names in any order
+            try:
+                vars = s.variables()
+            except AttributeError:
+                vars = ()
+                f = [fast_float_constant(x) for x in f]
+    except TypeError:
+        vars = ()
+        f = [fast_float_constant(x) for x in f]
+
+    if nargs is not None and len(vars) != nargs:
+        vars = (vars + ('_',)*nargs)[:nargs]
+
+    return fast_float(f, *vars), vars

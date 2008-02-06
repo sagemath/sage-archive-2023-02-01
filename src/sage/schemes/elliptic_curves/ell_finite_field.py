@@ -82,7 +82,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         except AttributeError:
             pass
         F = self.base_ring()
-        if not F.is_prime():
+        if not F.is_prime_field():
             raise NotImplementedError
         self.__gp = gp_cremona.ellinit(self.a_invariants(), F.characteristic())
         return self.__gp
@@ -164,7 +164,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             return self.__points
         except AttributeError: pass
 
-        if self.base_ring().is_prime():
+        if self.base_ring().is_prime_field():
             self.__points = self._points_over_prime_field() # _points_cache_sqrt
         else:
             self.__points = self._points_fast_sqrt()

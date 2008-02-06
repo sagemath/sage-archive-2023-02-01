@@ -2048,10 +2048,40 @@ cdef class Matrix(matrix1.Matrix):
         algorithm that is in dual_eigenvector in sage/modular/hecke/module.py.
 
         EXAMPLES:
+        We compute the eigenspaces of a $3\times 3$ rational matrix.
+            sage: A = Matrix(QQ,3,3,range(9)); A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: A.eigenspaces()
+            [
+            (0, [
+            (1, -2, 1)
+            ]),
+            (a1, [
+            (1, 1/15*a1 + 2/5, 2/15*a1 - 1/5)
+            ])
+            ]
+
+        The same computation, but with implicit base change to a field:
+            sage: A = matrix(ZZ,3,range(9)); A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: A.eigenspaces()
+            [
+            (0, [
+            (1, -2, 1)
+            ]),
+            (a1, [
+            (1, 1/15*a1 + 2/5, 2/15*a1 - 1/5)
+            ])
+            ]
+
+
         We compute the eigenspaces of the matrix of the Hecke operator
         $T_2$ on level 43 modular symbols.
-            sage: # A = ModularSymbols(43).T(2).matrix()
-            sage: A = matrix(QQ, 7, [3, 0, 0, 0, 0, 0, -1, 0, -2, 1, 0, 0, 0, 0, 0, -1, 1, 1, 0, -1, 0, 0, -1, 0, -1, 2, -1, 1, 0, -1, 0, 1, 1, -1, 1, 0, 0, -2, 0, 2, -2, 1, 0, 0, -1, 0, 1, 0, -1]); A
+            sage: A = ModularSymbols(43).T(2).matrix(); A
             [ 3  0  0  0  0  0 -1]
             [ 0 -2  1  0  0  0  0]
             [ 0 -1  1  1  0 -1  0]
@@ -2059,6 +2089,8 @@ cdef class Matrix(matrix1.Matrix):
             [ 0 -1  0  1  1 -1  1]
             [ 0  0 -2  0  2 -2  1]
             [ 0  0 -1  0  1  0 -1]
+            sage: A.base_ring()
+            Rational Field
             sage: f = A.charpoly(); f
             x^7 + x^6 - 12*x^5 - 16*x^4 + 36*x^3 + 52*x^2 - 32*x - 48
             sage: factor(f)
@@ -2080,40 +2112,28 @@ cdef class Matrix(matrix1.Matrix):
 
         Next we compute the eigenspaces over the finite field
         of order 11:
-
-            sage: # A = ModularSymbols(43, base_ring=GF(11), sign=1).T(2).matrix()
-            sage: A = matrix(QQ, 4, [3, 9, 0, 0, 0, 9, 0, 1, 0, 10, 9, 2, 0, 9, 0, 2])
+            sage: A = ModularSymbols(43, base_ring=GF(11), sign=1).T(2).matrix(); A
+            [ 3  9  0  0]
+            [ 0  9  0  1]
+            [ 0 10  9  2]
+            [ 0  9  0  2]
+            sage: A.base_ring()
+            Finite Field of size 11
             sage: A.charpoly()
-            x^4 - 23*x^3 + 168*x^2 - 405*x + 243
+            x^4 + 10*x^3 + 3*x^2 + 2*x + 1
             sage: A.eigenspaces(var = 'beta')
             [
             (9, [
-            (0, 1, -9/88, 5/44)
+            (0, 0, 1, 5)
             ]),
             (3, [
-            (1, -3/5, 0, -3/5)
+            (1, 6, 0, 6)
             ]),
             (beta2, [
-            (0, 1, 0, 1/9*beta2 - 1)
+            (0, 1, 0, 5*beta2 + 10)
             ])
             ]
 
-        Finally, we compute the eigenspaces of a $3\times 3$ matrix.
-
-            sage: A = Matrix(QQ,3,3,range(9))
-            sage: A.eigenspaces()
-            [
-            (0, [
-            (1, -2, 1)
-            ]),
-            (a1, [
-            (1, 1/15*a1 + 2/5, 2/15*a1 - 1/5)
-            ])
-            ]
-
-        The same computation, but with implicit base change to a field:
-            sage: a = matrix(ZZ,3,range(9))
-            sage: v = a.eigenspaces()
         """
         x = self.fetch('eigenspaces')
         if not x is None:
@@ -2975,10 +2995,10 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.__invert__()
 
-    def gramm_schmidt(self):
+    def gram_schmidt(self):
         r"""
         Return the matrix G whose rows are obtained from the rows of self (=A) by
-        applying the Gramm-Schmidt orthogonalization process.  Also return
+        applying the Gram-Schmidt orthogonalization process.  Also return
         the coefficients mu ij, i.e., a matrix mu such that \code{(mu + 1)*G == A}.
 
         OUTPUT:
@@ -2991,7 +3011,7 @@ cdef class Matrix(matrix1.Matrix):
             [ -1   2   5]
             [-11   1   1]
             [  1  -1  -3]
-            sage: G, mu = A.gramm_schmidt()
+            sage: G, mu = A.gram_schmidt()
             sage: G
             [     -1       2       5]
             [  -52/5    -1/5      -2]
@@ -3011,9 +3031,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: (mu + 1)*G == A
             True
         """
-        from sage.modules.misc import gramm_schmidt
+        from sage.modules.misc import gram_schmidt
         from constructor import matrix
-        Bstar, mu = gramm_schmidt(self.rows())
+        Bstar, mu = gram_schmidt(self.rows())
         return matrix(Bstar), mu
 
 

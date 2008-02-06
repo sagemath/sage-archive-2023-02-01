@@ -684,6 +684,12 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: RealIntervalField(2)(w).str(2)
             '[10. .. 11.]'
 
+        TESTS:
+            sage: a = RealIntervalField(428)(factorial(100)/exp(2)); a
+            [1.263032980050731959984395050580852040281429201347422414946715021063335485935763831416667583000898603378890023851970081919104068945e157 .. 1.263032980050731959984395050580852040281429201347422414946715021063335485935763831416667583000898603378890023851970081919104068950e157]
+            sage: a.diameter()
+            3.1364249297386517141045969994953263236588371094306826888961103474959002344191899147063056507500286786379396422813182492881735297e-129
+
         Type:
             RealIntervalField?
         for many more examples.
@@ -754,7 +760,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             mpfi_set(self.value, d.value)
 
         else:
-            if isinstance(x, str):
+            import sage.calculus.calculus
+
+            if isinstance(x, sage.calculus.calculus.SymbolicExpression):
+                d = x._mpfr_(self._parent)
+                mpfi_set(self.value, d.value)
+
+            elif isinstance(x, str):
                 # string
                 s = str(x).replace('..', ',').replace(' ','').replace('+infinity', '@inf@').replace('-infinity','-@inf@')
                 if mpfi_set_str(self.value, s, base):
@@ -2425,7 +2437,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         _sig_off
 #         return x,y
 
-    def acos(self):
+    def arccos(self):
         """
         Returns the inverse cosine of this number
 
@@ -2434,7 +2446,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             [1.0471975511965976 .. 1.0471975511965979]
             sage: i = q.cos(); i
             [0.49999999999999988 .. 0.50000000000000012]
-            sage: q2 = i.acos(); q2
+            sage: q2 = i.arccos(); q2
             [1.0471975511965974 .. 1.0471975511965981]
             sage: q == q2
             False
@@ -2454,7 +2466,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def asin(self):
+    def arcsin(self):
         """
         Returns the inverse sine of this number
 
@@ -2463,7 +2475,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             [0.62831853071795862 .. 0.62831853071795874]
             sage: i = q.sin(); i
             [0.58778525229247302 .. 0.58778525229247325]
-            sage: q2 = i.asin(); q2
+            sage: q2 = i.arcsin(); q2
             [0.62831853071795851 .. 0.62831853071795885]
             sage: q == q2
             False
@@ -2483,7 +2495,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def atan(self):
+    def arctan(self):
         """
         Returns the inverse tangent of this number
 
@@ -2492,7 +2504,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             [0.62831853071795862 .. 0.62831853071795874]
             sage: i = q.tan(); i
             [0.72654252800536078 .. 0.72654252800536113]
-            sage: q2 = i.atan(); q2
+            sage: q2 = i.arctan(); q2
             [0.62831853071795851 .. 0.62831853071795885]
             sage: q == q2
             False
@@ -2560,13 +2572,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def acosh(self):
+    def arccosh(self):
         """
         Returns the hyperbolic inverse cosine of this number
 
         EXAMPLES:
             sage: q = RIF.pi()/2
-            sage: i = q.acosh() ; i
+            sage: i = q.arccosh() ; i
             [1.0232274785475503 .. 1.0232274785475509]
         """
         cdef RealIntervalFieldElement x
@@ -2576,7 +2588,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def asinh(self):
+    def arcsinh(self):
         """
         Returns the hyperbolic inverse sine of this number
 
@@ -2584,7 +2596,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: q = RIF.pi()/7
             sage: i = q.sinh() ; i
             [0.46401763049299088 .. 0.46401763049299106]
-            sage: i.asinh() - q
+            sage: i.arcsinh() - q
             [-1.6653345369377349e-16 .. 1.6653345369377349e-16]
         """
         cdef RealIntervalFieldElement x
@@ -2594,7 +2606,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def atanh(self):
+    def arctanh(self):
         """
         Returns the hyperbolic inverse tangent of this number
 
@@ -2602,7 +2614,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: q = RIF.pi()/7
             sage: i = q.tanh() ; i
             [0.42091124104853488 .. 0.42091124104853501]
-            sage: i.atanh() - q
+            sage: i.arctanh() - q
             [-1.6653345369377349e-16 .. 1.6653345369377349e-16]
         """
         cdef RealIntervalFieldElement x

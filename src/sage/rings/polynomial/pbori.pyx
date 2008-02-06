@@ -34,6 +34,8 @@ from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.finite_field import GF
 from sage.monoids.monoid import Monoid_class
 
+from sage.structure.sequence import Sequence
+
 order_dict= {"lp":      lp,
              "dlex":    dlex,
              "dp_asc":  dp_asc,
@@ -104,7 +106,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 pb_order_code = block_dp_asc
             for i in range(1, len(order.blocks)):
                 if order.blocks[0][0] != order.blocks[i][0]:
-                    raise ValueError, "Each block should have the same order type (deglex or degrevlex) for block orderings."
+                    raise ValueError, "Each block must have the same order type (deglex or degrevlex) for block orderings."
 
         PBRing_construct(&self._pbring, n, pb_order_code)
 
@@ -130,6 +132,18 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
     def __dealloc__(self):
         PBRing_destruct(&self._pbring)
+
+    def __reduce__(self):
+        """
+        EXAMPLE:
+            sage: P.<a,b> = BooleanPolynomialRing(2)
+            sage: loads(dumps(P)) == P # indirect doctest
+            True
+        """
+        n = self.ngens()
+        names = self.variable_names()
+        order = self.term_order()
+        return unpickle_BooleanPolynomialRing,(n, names, order)
 
     def ngens(self):
         """
@@ -445,6 +459,11 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                             p += m
                     return p
 
+        elif PY_TYPE_CHECK(other, str):
+            other = other.replace("^","**")
+            p = self(eval(other, self.gens_dict(), {}))
+            return p
+
         try:
             i = int(other)
         except:
@@ -489,6 +508,13 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     def __hash__(self):
         """
         Return a hash of self.
+
+        EXAMPLE:
+            sage: P.<a,b,c,d> = BooleanPolynomialRing(4, order='lex')
+            sage: P
+            Boolean PolynomialRing in a, b, c, d
+            sage: {P:1} # indirect doctest
+            {Boolean PolynomialRing in a, b, c, d: 1}
         """
         return hash(str(self))
 
@@ -1360,6 +1386,61 @@ cdef class BooleanPolynomial(MPolynomial):
     def elimination_length(self):
         return self._pbpoly.eliminationLength()
 
+    def variables(self):
+        """
+        Return a list of all variables appearing in self.
+
+        EXAMPLE:
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: (x + y).variables()
+            [x, y]
+
+            sage: (x*y + z).variables()
+            [x, y, z]
+
+            sage: P.zero_element().variables()
+            []
+
+            sage: P.one_element().variables()
+            [1]
+        """
+        P = self.parent()
+        o = P.one_element()
+        if self is o or self == o:
+            return [o]
+        V = self.vars()
+        return [P.gen(i) for i in V]
+
+    def monomials(self):
+        """
+        Return a list of monomials appearing in self ordered largest
+        to smallest.
+
+        EXAMPLE:
+            sage: P.<a,b,c> = BooleanPolynomialRing(3,order='lex')
+            sage: f = a + c*b
+            sage: f.monomials()
+            [a, b*c]
+
+            sage: P.<a,b,c> = BooleanPolynomialRing(3,order='degrevlex')
+            sage: f = a + c*b
+            sage: f.monomials()
+            [b*c, a]
+        """
+        return list(self)
+
+    def __hash__(self):
+        """
+        Return hash for self.
+
+        EXAMPLE:
+            sage: P.<x,y> = BooleanPolynomialRing(2)
+            sage: {x:1} # indirect doctest
+            {x: 1}
+        """
+        (<BooleanPolynomialRing>self._parent)._pbring.activate()
+        return hash(PBPoly_to_str(&self._pbpoly))
+
     def __len__(self):
         """
         Return number of monomials in self.
@@ -1379,6 +1460,16 @@ cdef class BooleanPolynomial(MPolynomial):
             0
         """
         return self._pbpoly.length()
+
+    def __reduce__(self):
+        """
+        EXAMPLE:
+            sage: P.<a,b> = BooleanPolynomialRing(2)
+            sage: loads(dumps(a)) == a
+            True
+        """
+        (<BooleanPolynomialRing>self._parent)._pbring.activate()
+        return unpickle_BooleanPolynomial, (self._parent, PBPoly_to_str(&self._pbpoly))
 
     def set(self):
         return new_BS_from_PBSet(self._pbpoly.set())
@@ -1461,7 +1552,10 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             [x0*x1 + x0*x2 + x0, x0*x2*x3 + x0*x3]
         """
         from polybori.gbcore import groebner_basis
-        return groebner_basis(self.gens(), **kwds)
+        _sig_on
+        gb = groebner_basis(self.gens(), **kwds)
+        _sig_off
+        return Sequence(gb, self.ring(), check=False, immutable=True)
 
 cdef inline BooleanPolynomial new_BP(BooleanPolynomialRing parent):
     """
@@ -2014,5 +2108,29 @@ def set_cring(BooleanPolynomialRing R):
 def set_ring_callback(func):
     global ring_callbacks
     ring_callbacks.append(func)
+
+def unpickle_BooleanPolynomial(ring, string):
+    """
+    Unpickle BooleanPolynomial
+
+    EXAMPLE:
+        sage: T = TermOrder('deglex',2)+TermOrder('deglex',2)
+        sage: P.<a,b,c,d> = BooleanPolynomialRing(4,order=T)
+        sage: loads(dumps(a+b)) == a+b
+        True
+    """
+    return ring(eval(string,ring.gens_dict()))
+
+def unpickle_BooleanPolynomialRing(n, names, order):
+    """
+    Unpickle BooleanPolynomialRing
+
+    EXAMPLE:
+        sage: T = TermOrder('deglex',2)+TermOrder('deglex',2)
+        sage: P.<a,b,c,d> = BooleanPolynomialRing(4,order=T)
+        sage: loads(dumps(P)) == P
+        True
+    """
+    return BooleanPolynomialRing(n, names=names, order=order)
 
 init_M4RI()

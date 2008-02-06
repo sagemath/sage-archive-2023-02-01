@@ -59,6 +59,7 @@ class TextCell(Cell_generic):
 
     def html(self, ncols, do_print=False, do_math_parse=True):
         """
+        INPUT:
             do_math_parse -- bool (default: True)
                 If True, call math_parse (defined in cell.py)
                 on the html.
@@ -408,7 +409,7 @@ class Cell(Cell_generic):
         INPUT:
             username -- name of user doing the evaluation
             time -- if True return time computation takes
-            introspect -- either False or a pair [before_curse, after_cursor] of strings.
+            introspect -- either False or a pair [before_cursor, after_cursor] of strings.
         """
         self.__interrupted = False
         self.__time = time
@@ -443,7 +444,7 @@ class Cell(Cell_generic):
         self.__time = True
 
     def doc_html(self, wrap=None, div_wrap=True, do_print=False):
-        """Modified version of self.html for the doc browser. This is a hack and needs to be improved.
+        """Modified version of \code{self.html} for the doc browser. This is a hack and needs to be improved.
         The problem is how to get the documentation html to display nicely between the example cells.
         The type setting (jsMath formating) needs attention too.
         """

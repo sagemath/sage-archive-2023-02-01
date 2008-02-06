@@ -220,7 +220,7 @@ def sphere(center=(0,0,0), size=1, **kwds):
     A simple sphere:
        sage: sphere()
 
-    Two sphere's touching:
+    Two spheres touching:
        sage: sphere(center=(-1,0,0)) + sphere(center=(1,0,0), aspect_ratio=[1,1,1])
 
     Spheres of radii 1 and 2 one stuck into the other:
@@ -246,7 +246,7 @@ def text3d(txt, (x,y,z), **kwds):
         (x,y,z) -- position
         **kwds -- standard 3d graphics options
 
-    This function called implicitly when you use the text command with a 3d position.
+    This function is called implicitly when you use the text command with a 3d position.
 
     NOTE: There is no way to change the font size or opacity yet.
 
@@ -254,7 +254,7 @@ def text3d(txt, (x,y,z), **kwds):
     We write the word SAGE in red at position (1,2,3):
         sage: text("SAGE", (1,2,3), color=(0.5,0,0))
 
-    We draw a multicolore spiral of numbers:
+    We draw a multicolor spiral of numbers:
         sage: sum([text('%.1f'%n, (cos(n),sin(n),n), color=(n/2,1-n/2,0)) \
                     for n in [0,0.2,..,8]])
     """
@@ -382,7 +382,9 @@ class Line(PrimitiveObject):
 
     def jmol_repr(self, render_params):
         T = render_params.transform
-        corners = self.corners()
+        corners = self.corners(max_len=255) # hardcoded limit in jmol
+        last_corner = corners[-1]
+        corners = set(corners)
         cmds = []
         cmd = None
         for P in self.points:
@@ -391,7 +393,7 @@ class Line(PrimitiveObject):
                 if cmd:
                     cmds.append(cmd + " {%s %s %s} " % TP)
                     cmds.append(self.texture.jmol_str('$'+name))
-                type = 'arrow' if self.arrow_head and P is corners[-1] else 'curve'
+                type = 'arrow' if self.arrow_head and P is last_corner else 'curve'
                 name = render_params.unique_name('line')
                 cmd = "draw %s diameter %s %s {%s %s %s} " % (name, int(self.thickness), type, TP[0], TP[1], TP[2])
             else:
@@ -400,9 +402,9 @@ class Line(PrimitiveObject):
         cmds.append(self.texture.jmol_str('$'+name))
         return cmds
 
-    def corners(self, corner_cutoff=None):
+    def corners(self, corner_cutoff=None, max_len=None):
         """
-        Figures out where the curve turns to sharply to pretend its smooth.
+        Figures out where the curve turns too sharply to pretend it's smooth.
 
         INPUT:
             Maximum cosine of angle between adjacent line segments
@@ -434,10 +436,16 @@ class Line(PrimitiveObject):
         if corner_cutoff is None:
             corner_cutoff = self.corner_cutoff
         if corner_cutoff >= 1:
-            return self.points[:-1]
+            if max_len:
+                self.points[:-1][::max_len-1]
+            else:
+                return self.points[:-1]
         elif corner_cutoff <= -1:
             return self.points[0]
         else:
+            if not max_len:
+                max_len = len(self.points)+1
+            count = 2
             # ... -- prev -- cur -- next -- ...
             cur  = self.points[0]
             next = self.points[1]
@@ -448,12 +456,15 @@ class Line(PrimitiveObject):
                 if next == cur:
                     corners.append(cur)
                     cur = next
+                    count = 1
                     continue
                 next_dir = [next[i] - cur[i] for i in range(3)]
                 cos_angle = dot(prev_dir, next_dir) / math.sqrt(dot(prev_dir, prev_dir) * dot(next_dir, next_dir))
-                if cos_angle <= corner_cutoff:
+                if cos_angle <= corner_cutoff or count > max_len-1:
                     corners.append(cur)
+                    count = 1
                 cur, prev_dir = next, next_dir
+                count += 1
             return corners
 
 

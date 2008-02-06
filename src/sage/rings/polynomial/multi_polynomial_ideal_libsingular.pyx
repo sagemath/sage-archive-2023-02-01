@@ -8,7 +8,8 @@ EXAMPLES:
     sage: x,y,z = QQ['x,y,z'].gens()
     sage: I = ideal(x^5 + y^4 + z^3 - 1,  x^3 + y^3 + z^2 - 1)
     sage: I.groebner_basis('libsingular:std')
-    [x^3 + y^3 + z^2 - 1, x^2*y^3 - y^4 + x^2*z^2 - z^3 - x^2 + 1, y^6 + x*y^4 + 2*y^3*z^2 + x*z^3 + z^4 - 2*y^3 - 2*z^2 - x + 1]
+    [x^3 + y^3 + z^2 - 1, x^2*y^3 - y^4 + x^2*z^2 - z^3 - x^2 + 1, y^6
+    + x*y^4 + 2*y^3*z^2 + x*z^3 + z^4 - 2*y^3 - 2*z^2 - x + 1]
 
 We compute a Groebner basis for cyclic 6, which is a standard
 benchmark and test ideal.
@@ -23,7 +24,7 @@ Two examples from the Mathematica documentation (done in SAGE):
     We compute a Groebner basis:
         sage: R.<x,y> = PolynomialRing(QQ, order='lex')
         sage: ideal(x^2 - 2*y^2, x*y - 3).groebner_basis('libsingular:slimgb')
-        [3*x - 2*y^3, 2*y^4 - 9]
+        [2*y^4 - 9, 3*x - 2*y^3]
 
     We show that three polynomials have no common root:
         sage: R.<x,y> = QQ[]
@@ -127,6 +128,8 @@ def std_libsingular(I):
     cdef tHomog hom = testHomog
     cdef ideal *result
 
+    singular_options[0] = singular_options[0] | Sy_bit(OPT_REDSB)
+
     _sig_on
     result =kStd(i,NULL,hom,NULL)
     _sig_off
@@ -166,6 +169,8 @@ def slimgb_libsingular(I):
         id_Delete(&i, r)
         raise TypeError
 
+    singular_options[0] = singular_options[0] | Sy_bit(OPT_REDSB)
+
     _sig_on
     result = t_rep_gb(r, i, i.rank, 0)
     _sig_off
@@ -191,6 +196,9 @@ def interred_libsingular(I):
     cdef poly *p
     cdef int j
     cdef int bck
+
+    if len(I.gens()) == 0:
+        return Sequence([], check=False, immutable=True)
 
     i = sage_ideal_to_singular_ideal(I)
     r = currRing

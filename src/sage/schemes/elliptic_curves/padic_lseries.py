@@ -852,7 +852,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         Ehat = E.formal()
         elog = Ehat.log(prec + Integer(3))
 
-        # we will have to do it properly with David Harvey's _DivPolyContext(E, R, Q)
+        # we will have to do it properly with David Harvey's _multiply_point()
         n = arith.LCM(E.tamagawa_numbers())
         n = arith.LCM(n, E.Np(p)) # allowed here because E has good reduction at p
 

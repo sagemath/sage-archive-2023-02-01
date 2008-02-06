@@ -1,5 +1,116 @@
 r"""
 Skew Partitions
+
+A skew partition $skp$ of size $n$ is a pair of partitions $[p_1, p_2]$
+where $p_1$ is a partition of the integer $n_1$, $p_2$ is a partition
+of the integer $n_2$, $p_2$ is an inner partition of $p_1$, and
+$n = n_1 - n_2$.  We say that $p_1$ and $p_2$ are respectively
+the \emph{inner} and \emph{outer} partitions of $skp$.
+
+A skew partition can be depicted by a diagram made of rows of boxes,
+in the same way as a partition.  Only the boxes of the outer
+partition $p_1$ which are not in the inner partition $p_2$ appear
+in the picture.  For example, this is the diagram of the skew
+partition [[5,4,3,1],[3,3,1]].
+
+sage: print SkewPartition([[5,4,3,1],[3,3,1]]).diagram()
+   ##
+   #
+ ##
+#
+
+A skew partition can be \emph{connected}, which can easily be
+described in graphic terms: for each pair of consecutive rows,
+there are at least two boxes (one in each row) which have
+a common edge.  This is the diagram of the connected skew
+partition [[5,4,3,1],[3,1]]:
+
+sage: print SkewPartition([[5,4,3,1],[3,1]]).diagram()
+   ##
+ ###
+###
+#
+sage: SkewPartition([[5,4,3,1],[3,1]]).is_connected()
+True
+
+The first example of a skew partition is not a connected one.
+
+Applying a reflection with respect to the main diagonal
+yields the diagram of the \emph{conjugate skew partition},
+here [[4,3,3,2,1],[3,3,2]]:
+
+sage: SkewPartition([[5,4,3,1],[3,3,1]]).conjugate()
+[[4, 3, 3, 2, 1], [3, 2, 2]]
+sage: print SkewPartition([[5,4,3,1],[3,3,1]]).conjugate().diagram()
+   #
+  #
+  #
+##
+#
+
+The \emph{outer corners} of a skew partition are the corners
+of its outer partition.  The \emph{inner corners} are the
+internal corners of the outer partition when the inner partition
+is taken off.  Shown below are the coordinates of the
+inner and outer corners.
+
+sage: SkewPartition([[5,4,3,1],[3,3,1]]).outer_corners()
+[[0, 4], [1, 3], [2, 2], [3, 0]]
+sage: SkewPartition([[5,4,3,1],[3,3,1]]).inner_corners()
+[[0, 3], [2, 1], [3, 0]]
+
+EXAMPLES:
+  There are 9 skew partitions of size 3.
+
+    sage: SkewPartitions(3).count()
+    9
+    sage: SkewPartitions(3).list()
+    [[[1, 1, 1], []],
+     [[2, 2, 1], [1, 1]],
+     [[2, 1, 1], [1]],
+     [[3, 2, 1], [2, 1]],
+     [[2, 2], [1]],
+     [[3, 2], [2]],
+     [[2, 1], []],
+     [[3, 1], [1]],
+     [[3], []]]
+
+  There are 4 connected skew partitions of size 3.
+
+    sage: SkewPartitions(3, overlap=1).count()
+    4
+    sage: SkewPartitions(3, overlap=1).list()
+    [[[1, 1, 1], []], [[2, 2], [1]], [[2, 1], []], [[3], []]]
+
+  This is the conjugate of the skew partition [[4,3,1],[2]]
+
+    sage: SkewPartition([[4,3,1],[2]]).conjugate()
+    [[3, 2, 2, 1], [1, 1]]
+
+  Geometrically, we just applied a relection with respect to the
+  main diagonal on the diagram of the partition.  Of course, this
+  operation is an involution:
+
+    sage: SkewPartition([[4,3,1],[2]]).conjugate().conjugate()
+    [[4, 3, 1], [2]]
+
+  The jacobi_trudy() method computes the Jacobi-Trudi matrix.
+  See Macdonald I.-G., (1995), "Symmetric Functions and Hall
+  Polynomials", Oxford Science Publication for a definition
+  and discussion.
+
+    sage: SkewPartition([[4,3,1],[2]]).jacobi_trudi()
+    [h[2]  h[]    0]
+    [h[5] h[3]  h[]]
+    [h[6] h[4] h[1]]
+
+  This example shows how to compute the corners of a skew partition.
+
+    sage: SkewPartition([[4,3,1],[2]]).inner_corners()
+    [[0, 2], [1, 0]]
+    sage: SkewPartition([[4,3,1],[2]]).outer_corners()
+    [[0, 3], [1, 2], [2, 0]]
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -60,6 +171,35 @@ class SkewPartition_class(CombinatorialObject):
         inner = sage.combinat.partition.Partition(skp[1])
         CombinatorialObject.__init__(self, [outer, inner])
 
+    def ferrers_diagram(self):
+        """
+        Return the Ferrers diagram of self.
+
+        EXAMPLES:
+            sage: print SkewPartition([[5,4,3,1],[3,3,1]]).ferrers_diagram()
+               ##
+               #
+             ##
+            #
+            sage: print SkewPartition([[5,4,3,1],[3,1]]).diagram()
+               ##
+             ###
+            ###
+            #
+
+        """
+        s = ""
+        for i in range(len(self[0])):
+            if len(self[1]) > i:
+                s += " "*self[1][i]
+                s += "#"*(self[0][i]-self[1][i])
+            else:
+                s += "#"*self[0][i]
+            s += "\n"
+        return s[:-1]
+
+    diagram = ferrers_diagram
+
     def inner(self):
         """
         Returns the inner partition of the skew partition.
@@ -80,11 +220,21 @@ class SkewPartition_class(CombinatorialObject):
         """
         return self[0]
 
+    def column_lengths(self):
+        """
+        Returns the column lengths of the skew partition.
 
+        EXAMPLES:
+            sage: SkewPartition([[3,2,1],[1,1]]).column_lengths()
+            [1, 2, 1]
+            sage: SkewPartition([[5,2,2,2],[2,1]]).column_lengths()
+            [2, 3, 1, 1, 1]
+        """
+        return self.conjugate().row_lengths()
 
     def row_lengths(self):
         """
-        Returns the sum of the row lengths of the skew partition.
+        Returns the row lengths of the skew partition.
 
         EXAMPLES:
             sage: SkewPartition([[3,2,1],[1,1]]).row_lengths()
@@ -107,7 +257,72 @@ class SkewPartition_class(CombinatorialObject):
         """
         return sum(self.row_lengths())
 
+    def is_connected(self):
+        """
+        Returns True if self is a connected skew partition.
 
+        A skew partition is said to be \emph{connected} if for each
+        pair of consecutive rows, there are at least two boxes
+        (one in each row) which have a common edge.
+
+        EXAMPLES:
+            sage: SkewPartition([[5,4,3,1],[3,3,1]]).is_connected()
+            False
+            sage: SkewPartition([[5,4,3,1],[3,1]]).is_connected()
+            True
+        """
+        return self.is_overlap(1)
+
+
+    def overlap(self):
+        """
+        Returns the overlap of self.
+
+        The overlap of two consecutive rows in a skew partition
+        is the number of pairs of boxes (one in each row) that
+        share a common edge.  This number can be positive,
+        zero, or negative.
+
+        The overlap of a skew partition is the minimum of the
+        overlap of the consecutive rows, or infinity in the case
+        of at most one row.  If the overlap is positive, then
+        the skew partition is called \emph{connected}.
+
+        EXAMPLES:
+            sage: SkewPartition([[],[]]).overlap()
+            +Infinity
+            sage: SkewPartition([[1],[]]).overlap()
+            +Infinity
+            sage: SkewPartition([[10],[]]).overlap()
+            +Infinity
+            sage: SkewPartition([[10],[2]]).overlap()
+            +Infinity
+            sage: SkewPartition([[10,1],[2]]).overlap()
+            -1
+            sage: SkewPartition([[10,10],[1]]).overlap()
+            9
+        """
+        p,q = self
+        if len(p) <= 1:
+            return infinity
+        if q == []:
+            return min(p)
+        q = [q[0]] + list(q)
+        return min(row_lengths_aux([p,q]))
+
+
+    def is_overlap(self, n):
+        r"""
+        Returns True if n <= self.overlap()
+
+        SEE ALSO: .overlap()
+
+        EXAMPLES:
+            sage: SkewPartition([[5,4,3,1],[3,1]]).is_overlap(1)
+            True
+
+        """
+        return n <= self.overlap()
 
     def conjugate(self):
         """
@@ -158,7 +373,14 @@ class SkewPartition_class(CombinatorialObject):
 
     def to_list(self):
         """
+        Returns self as a list of lists.
+
         EXAMPLES:
+            sage: s = SkewPartition([[4,3,1],[2]])
+            sage: s.to_list()
+            [[4, 3, 1], [2]]
+            sage: type(s.to_list())
+            <type 'list'>
         """
         return map(list, list(self))
 
@@ -328,37 +550,15 @@ class SkewPartition_class(CombinatorialObject):
             m.append(row)
         return H(m)
 
-    def overlap(self):
-        """
-        """
-        return overlap_aux(self)
 
-def overlap_aux(skp):
+def row_lengths_aux(skp):
     """
-    Returns the overlap of the skew partition skp.
-
     EXAMPLES:
-        sage: overlap = sage.combinat.skew_partition.overlap_aux
-        sage: overlap([[],[]])
-        +Infinity
-        sage: overlap([[1],[]])
-        +Infinity
-        sage: overlap([[10],[2]])
-        +Infinity
-        sage: overlap([[10,1],[2]])
-        -1
-    """
-    p,q = skp
-    if len(p) <= 1:
-        return infinity
-    if q == []:
-        return min(p)
-    r = [ q[0] ] + q
-    return min(rowlengths_aux([p,r]))
-
-def rowlengths_aux(skp):
-    """
-
+        sage: from sage.combinat.skew_partition import row_lengths_aux
+        sage: row_lengths_aux([[5,4,3,1],[3,3,1]])
+        [2, 1, 2]
+        sage: row_lengths_aux([[5,4,3,1],[3,1]])
+        [2, 3]
     """
     if skp[0] == []:
         return []
@@ -370,6 +570,16 @@ def SkewPartitions(n=None, row_lengths=None, overlap=0):
     Returns the combinatorial class of skew partitions.
 
     EXAMPLES:
+        sage: SkewPartitions(4)
+        Skew partitions of 4
+        sage: SkewPartitions(4).count()
+        28
+        sage: SkewPartitions(row_lengths=[2,1,2])
+        Skew partitions with row lengths [2, 1, 2]
+        sage: SkewPartitions(4, overlap=2)
+        Skew partitions of 4 with overlap of 2
+        sage: SkewPartitions(4, overlap=2).list()
+        [[[2, 2], []], [[4], []]]
     """
     number_of_arguments = 0
     for arg in ['n', 'row_lengths']:
@@ -523,7 +733,7 @@ class SkewPartitions_n(CombinatorialClass):
             True
 
         """
-        return x in SkewPartitions() and sum(x[0])-sum(x[1]) == self.n and self.overlap <= overlap_aux(x)
+        return x in SkewPartitions() and sum(x[0])-sum(x[1]) == self.n and self.overlap <= SkewPartition(x).overlap()
 
 
     def __repr__(self):
@@ -563,6 +773,19 @@ class SkewPartitions_n(CombinatorialClass):
         Returns the number of skew partitions of the integer n.
 
         EXAMPLES:
+            sage: SkewPartitions(0).count()
+            1
+            sage: SkewPartitions(4).count()
+            28
+            sage: SkewPartitions(5).count()
+            87
+            sage: SkewPartitions(4, overlap=1).count()
+            9
+            sage: SkewPartitions(5, overlap=1).count()
+            20
+            sage: s = SkewPartitions(5, overlap=-1)
+            sage: s.count() == len(s.list())
+            True
         """
         n = self.n
         overlap = self.overlap
@@ -650,6 +873,17 @@ class SkewPartitions_rowlengths(CombinatorialClass):
     object_class = SkewPartition_class
 
     def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: [[4,3,1],[2]] in SkewPartitions(row_lengths=[2,3,1])
+            True
+            sage: [[4,3,1],[2]] in SkewPartitions(row_lengths=[2,1,3])
+            False
+            sage: [[5,4,3,1],[3,3,1]] in SkewPartitions(row_lengths=[2,1,1,2])
+            False
+            sage: [[5,4,3,1],[3,3,1]] in SkewPartitions(row_lengths=[2,1,2,1])
+            True
+        """
         valid = x in SkewPartitions()
         if valid:
             o = x[0]

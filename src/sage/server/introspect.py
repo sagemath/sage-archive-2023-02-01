@@ -1,5 +1,5 @@
 """
-SAGE Notebook: Introspection
+Sage Notebook: Introspection
 
 TODO:
     -- add support for grabbing source code from pyrex functions (even if not
@@ -25,7 +25,6 @@ def introspect(S, query, format='html'):
         query  -- a string: - if has no '?' then return completion list
                             - if begins or ends in one '?' return docstring
                             - if begins or ends in '??' return source code
-
         format -- (string) 'html', 'png', 'none'
                   (only html is implemented right now!)
 

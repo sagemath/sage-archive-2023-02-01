@@ -212,7 +212,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         INPUT:
             level -- int, the level of the codomain of the map (positive int).
             t  -- int, the parameter of the degeneracy map, i.e., the map is
-                  related to f(q) |--> f(q^t).
+                  related to $f(q)$ |--> $f(q^t)$.
 
         OUTPUT:
             A linear function from self to the space of modular symbols

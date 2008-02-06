@@ -18,50 +18,189 @@ cdef enum print_modes:
     digits
     bars
 
-_printer_defaults = None
 
 def pAdicPrinter(ring, mode = None, pos = None, pname = None, unram_name = None, var_name = None, max_ram_terms = None, max_unram_terms = None, max_terse_terms = None, sep = None, alphabet = None):
     return pAdicPrinter_class(ring, mode, pos, pname, unram_name, var_name, max_ram_terms, max_unram_terms, max_terse_terms, sep, alphabet)
 
 class pAdicPrinterDefaults(SageObject):
+
     def __init__(self, mode = 'series', pos = True, max_ram_terms = -1, max_unram_terms = -1, max_terse_terms = -1, sep = "|", alphabet = None):
-        self.mode = mode
-        self.pos = bool(pos)
+        self._mode = mode
+        self._pos = bool(pos)
         if not -1 <= max_ram_terms <= sys.maxint:
             raise ValueError, "max_ram_terms must be positive and fit in a long"
-        self.max_ram_terms = int(max_ram_terms)
+        self._max_ram_terms = int(max_ram_terms)
         if not -1 <= max_unram_terms <= sys.maxint:
             raise ValueError, "max_unram_terms must be positive and fit in a long"
-        self.max_unram_terms = int(max_unram_terms)
+        self._max_unram_terms = int(max_unram_terms)
         if not -1 <= max_terse_terms <= sys.maxint:
             raise ValueError, "max_terse_terms must be positive and fit in a long"
-        self.max_terse_terms = int(max_terse_terms)
-        self.sep = sep
+        self._max_terse_terms = int(max_terse_terms)
+        self._sep = sep
         if alphabet is None:
-            self.alphabet = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+            self._alphabet = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
         else:
-            self.alphabet = alphabet
+            self._alphabet = alphabet
+
+    def mode(self, mode=None):
+        """
+        Set the default printing mode.
+
+        EXAMPLES:
+            sage: padic_printing.mode('terse')
+            sage: padic_printing.mode()
+            'terse'
+            sage: Qp(7)(100)
+            100 + O(7^20)
+            sage: padic_printing.mode('series')
+            sage: Qp(11)(100)
+            1 + 9*11 + O(11^20)
+            sage: padic_printing.mode('val-unit')
+            sage: Qp(13)(130)
+            13 * 10 + O(13^21)
+            sage: padic_printing.mode('digits')
+            sage: repr(Qp(17)(100))
+            '...5F'
+            sage: repr(Qp(17)(1000))
+            '...37E'
+            sage: padic_printing.mode('bars')
+            sage: repr(Qp(19)(1000))
+            '...2|14|12'
+
+            sage: padic_printing.mode('series')
+        """
+        if mode is None:
+            return self._mode
+        else:
+            if mode in ['val-unit','series','terse','digits','bars']:
+                self._mode = mode
+            else:
+                raise ValueError, "invalid printing mode"
+
+    def allow_negatives(self, neg = None):
+        """
+        Controls whether or not to display a balanced representation.
+
+        EXAMPLES:
+            sage: padic_printing.allow_negatives(True)
+            sage: padic_printing.allow_negatives()
+            True
+            sage: Qp(29)(-1)
+            -1 + O(29^20)
+            sage: Qp(29)(-1000)
+            -14 - 5*29 - 29^2 + O(29^20)
+            sage: padic_printing.allow_negatives(False)
+        """
+        if neg is None:
+            return not self._pos
+        else:
+            self._pos = not neg
+
+    def max_series_terms(self, max = None):
+        """
+        EXAMPLES:
+            sage: padic_printing.max_series_terms(2)
+            sage: padic_printing.max_series_terms()
+            2
+            sage: Qp(31)(1000)
+            8 + 31 + ... + O(31^20)
+            sage: padic_printing.max_series_terms(-1)
+            sage: Qp(37)(100000)
+            26 + 37 + 36*37^2 + 37^3 + O(37^20)
+        """
+        if max is None:
+            return self._max_ram_terms
+        else:
+            self._max_ram_terms = int(max)
+
+    def max_unram_terms(self, max = None):
+        """
+        EXAMPLES:
+            sage: padic_printing.max_unram_terms(2)
+            sage: padic_printing.max_unram_terms()
+            2
+            sage: Zq(5^6, 5, names='a')([1,2,3,-1])^17
+            (2*a + 3 + ...) + (a^2 + a + ...)*5 + (a + 2 + ...)*5^2 + (a + 2 + ...)*5^3 + (4*a + 4 + ...)*5^4 + O(5^5)
+
+            sage: padic_printing.max_unram_terms(-1)
+        """
+        if max is None:
+            return self._max_unram_terms
+        else:
+            self._max_unram_terms = int(max)
+
+    def max_poly_terms(self, max = None):
+        """
+        EXAMPLES:
+            sage: padic_printing.max_poly_terms(3)
+            sage: padic_printing.max_poly_terms()
+            3
+            sage: padic_printing.mode('terse')
+            sage: Zq(7^5, 5, names='a')([2,3,4])^8
+            2570 + 15808*a + 9018*a^2 + ... + O(7^5)
+
+            sage: padic_printing.max_poly_terms(-1)
+            sage: padic_printing.mode('series')
+        """
+        if max is None:
+            return self._max_terse_terms
+        else:
+            self._max_terse_terms = int(max)
+
+    def sep(self, sep = None):
+        """
+        EXAMPLES:
+            sage: padic_printing.sep('][')
+            sage: padic_printing.sep()
+            ']['
+            sage: padic_printing.mode('bars')
+            sage: repr(Qp(61)(-1))
+            '...60][60][60][60][60][60][60][60][60][60][60][60][60][60][60][60][60][60][60][60'
+
+            sage: padic_printing.sep('|')
+            sage: padic_printing.mode('series')
+        """
+        if sep is None:
+            return self._sep
+        else:
+            self._sep = str(sep)
+
+    def alphabet(self, alphabet = None):
+        """
+        EXAMPLES:
+            sage: padic_printing.alphabet("abc")
+            sage: padic_printing.mode('digits')
+            sage: repr(Qp(3)(1234))
+            '...bcaacab'
+
+            sage: padic_printing.mode('series')
+        """
+        if alphabet is None:
+            return self._alphabet
+        else:
+            self._alphabet = list(alphabet)
+
+_printer_defaults = pAdicPrinterDefaults()
+
 
 cdef class pAdicPrinter_class(SageObject):
     def __init__(self, ring, mode, pos, pname, unram_name, var_name, max_ram_terms, max_unram_terms, max_terse_terms, sep, alphabet):
         global _printer_defaults
-        if _printer_defaults is None:
-            _printer_defaults = pAdicPrinterDefaults()
         self.ring = ring
         self.prime_pow = ring.prime_pow
         from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
         self.base = isinstance(ring, pAdicBaseGeneric)
         if alphabet is None:
-            self.alphabet = _printer_defaults.alphabet
+            self.alphabet = _printer_defaults._alphabet
         else:
             self.alphabet = alphabet
         # note that self.pos is reset to True if mode == 'digits'
         if pos is None:
-            self.pos = _printer_defaults.pos
+            self.pos = _printer_defaults._pos
         else:
             self.pos = pos
         if mode is None:
-            mode = _printer_defaults.mode
+            mode = _printer_defaults._mode
         if mode == 'val-unit':
             self.mode = val_unit
         elif mode == 'series':
@@ -91,7 +230,7 @@ cdef class pAdicPrinter_class(SageObject):
         else:
             self.var_name = var_name
         if sep is None:
-            self.sep = _printer_defaults.sep
+            self.sep = _printer_defaults._sep
         else:
             self.sep = sep
         if max_ram_terms is not None:
@@ -99,19 +238,19 @@ cdef class pAdicPrinter_class(SageObject):
             if self.max_ram_terms < 0:
                 raise ValueError, "max_ram_terms must be positive and fit in a long"
         else:
-            self.max_ram_terms = _printer_defaults.max_ram_terms
+            self.max_ram_terms = _printer_defaults._max_ram_terms
         if max_unram_terms is not None:
             self.max_unram_terms = max_unram_terms
             if self.max_unram_terms < 0:
                 raise ValueError, "max_unram_terms must be positive and fit in a long"
         else:
-            self.max_unram_terms = _printer_defaults.max_unram_terms
+            self.max_unram_terms = _printer_defaults._max_unram_terms
         if max_terse_terms is not None:
             self.max_terse_terms = max_terse_terms
             if self.max_terse_terms < 0:
                 raise ValueError, "max_terse_terms must be positive and fit in a long"
         else:
-            self.max_terse_terms = _printer_defaults.max_terse_terms
+            self.max_terse_terms = _printer_defaults._max_terse_terms
 
     def __reduce__(self):
         return pAdicPrinter, (self.ring, \

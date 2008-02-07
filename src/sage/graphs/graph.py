@@ -4995,9 +4995,11 @@ class Graph(GenericGraph):
         if not self.is_connected():
             raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
         from sage.combinat.all import CyclicPermutationsOfPartition
-        from sage.graphs.graph_genus1 import trace_faces, nice_copy
+        from sage.graphs.graph_genus1 import trace_faces
 
-        graph = nice_copy(self)
+        # TODO -- do we need a copy?
+        #graph = nice_copy(self)
+        graph = self
 
         verts = len(graph.vertices())
         edges = len(graph.edges())
@@ -5005,8 +5007,7 @@ class Graph(GenericGraph):
         if not minimal:
             if not hasattr(graph,'__embedding__'):
                 raise NoEmbeddingDefinedDipfuckError
-            p = graph.__embedding__.values()
-            max_faces = len(trace_faces(graph, p))
+            max_faces = len(trace_faces(graph, graph.__embedding__))
         else:
             # Construct an intitial combinatorial embedding for graph
             part = []
@@ -5017,18 +5018,20 @@ class Graph(GenericGraph):
             max_faces = -1
             min_embedding = []
             for p in CyclicPermutationsOfPartition(part):
-                t = trace_faces(graph, p)
-                faces = len(t)
-                if faces > max_faces:
-                    max_faces = faces
-                    min_embedding = p
-            if set_embedding:
                 # Make dict of node labels embedding
                 comb_emb = {}
                 labels = graph.vertices()
-                for i in range(len(min_embedding)):
-                    comb_emb[labels[i]] = min_embedding[i]
-                self.__embedding__ = comb_emb
+                for i in range(len(p)):
+                    comb_emb[labels[i]] = p[i]
+
+                t = trace_faces(graph, comb_emb)
+                faces = len(t)
+                if faces > max_faces:
+                    max_faces = faces
+                    min_embedding = comb_emb
+            if set_embedding:
+                # Make dict of node labels embedding
+                self.__embedding__ = min_embedding
         return (2-verts+edges-max_faces)/2
 
     def interior_paths(self, start, end):

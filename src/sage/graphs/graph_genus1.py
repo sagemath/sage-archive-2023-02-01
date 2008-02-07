@@ -61,7 +61,7 @@ def nice_copy(g):
         graph.__embedding__ = emb
     return graph
 
-def trace_faces(graph, rot_sys):
+def trace_faces(graph, comb_emb):
     """
     A helper function for finding the genus of a graph.
     Given a graph and a combinatorial embedding (rot_sys),
@@ -91,12 +91,6 @@ def trace_faces(graph, rot_sys):
         [[(0, 1), (1, 3), (3, 2), (2, 0)], [(1, 0), (0, 2), (2, 3), (3, 1)]]
     """
     from sage.sets.set import Set
-
-    # Make dict of node labels embedding
-    comb_emb = {}
-    labels = graph.vertices()
-    for i in range(len(rot_sys)):
-        comb_emb[labels[i]] = rot_sys[i]
 
     # Establish set of possible edges
     edgeset = Set([])

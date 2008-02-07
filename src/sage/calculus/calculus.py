@@ -365,11 +365,11 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
         compared.
 
         EXAMPLES:
-            sage: cmp(SR, RR)
+            sage: cmp(SR, RR) #random
             1
-            sage: cmp(RR, SymbolicExpressionRing())
+            sage: cmp(RR, SymbolicExpressionRing()) #random
             -1
-            sage: cmp(SR, SymbolicExpressionRing())
+            sage: cmp(SR, SymbolicExpressionRing()) #random
             0
         """
         return cmp(type(self), type(other))
@@ -646,18 +646,18 @@ class SymbolicExpression(RingElement):
 
         EXAMPLES:
         We hash a symbolic polynomial:
-            sage: hash(x^2 + 1)
+            sage: hash(x^2 + 1) #random due to architecture dependence
             -832266011
 
         The default hashing strategy is to simply hash
         the string representation of an object.
-            sage: hash(repr(x^2+1))
+            sage: hash(repr(x^2+1)) #random due to architecture dependence
             -832266011
 
         In some cases a better hashing strategy is used.
             sage: hash(SR(3/1))
             3
-            sage: hash(repr(SR(3/1)))
+            sage: hash(repr(SR(3/1))) #random due to architecture dependence
             -2061914958
         """
         return hash(self._repr_(simplify=False))
@@ -920,7 +920,7 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: x < x
             x < x
-            sage: x < Mod(2,5)
+            sage: x < Mod(2,5) #random due to architecture dependence
             False
         """
         try:
@@ -938,11 +938,11 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: x <= x
             x <= x
-            sage: x <= Mod(2,5)
+            sage: x <= Mod(2,5) #random due to architecture dependence
             False
-            sage: Mod(2,5) >= x
+            sage: Mod(2,5) >= x #random due to architecture dependence
             False
-            sage: Mod(2,5) <= x
+            sage: Mod(2,5) <= x #random due to architecture dependence
             True
         """
         try:
@@ -1039,17 +1039,17 @@ class SymbolicExpression(RingElement):
 
         Here the underlying types are compared, since Mod(2,5)
         doesn't coerce to the symbolic ring.
-            sage: cmp(SR(3), Mod(2,5))
+            sage: cmp(SR(3), Mod(2,5)) #random due to architecture dependence
             1
-            sage: cmp(type(SR(3)), type(Mod(2,5)))
+            sage: cmp(type(SR(3)), type(Mod(2,5))) #random due to architecture dependence
             1
-            sage: cmp(Mod(2,5), SR(3))
+            sage: cmp(Mod(2,5), SR(3) ) #random due to architecture dependence
             -1
 
         Some comparisons are fairly arbitrary but consistent:
-            sage: cmp(SR(3), x)
+            sage: cmp(SR(3), x) #random due to architecture dependence
             -1
-            sage: cmp(x, SR(3))
+            sage: cmp(x, SR(3)) #random due to architecture dependence
             1
         """
         try:
@@ -2901,7 +2901,7 @@ class SymbolicExpression(RingElement):
 
         More examples:
             sage: (sin(x) + exp(x)).find_root(-10, 10)
-            -0.58853274398186273
+            -0.588532743981862...
 
         An example with a square root:
             sage: f = 1 + x + sqrt(x+2); f.find_root(-2,10)
@@ -4917,9 +4917,9 @@ class SymbolicVariable(SymbolicExpression):
 
         EXAMPLES:
             sage: z = var('z')
-            sage: hash(z)
+            sage: hash(z) #random due to architecture dependence
             -1563822213
-            sage: hash('z')
+            sage: hash('z') #random due to architecture dependence
             -1563822213
         """
         return hash(self._name)

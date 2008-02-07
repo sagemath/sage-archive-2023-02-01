@@ -1,3 +1,6 @@
+from sage.sets.set import Set
+from graph_genus1 import trace_faces
+
 cdef extern from "planarity/graph.h":
     # TODO: point out to Robert how much shit I was able to erase already
     ctypedef struct graphNode:
@@ -86,6 +89,116 @@ def is_planar(g, set_pos=True, set_emb=True, circular=False):
                 g.__embedding__ = emb_dict
         gp_Free(&theGraph)
         return True
+
+def triangulate(g, comb_emb):
+    cdef i
+
+    faces = trace_faces(g, comb_emb)
+#    edges_used = Set([])
+#    edges_free = Set([])
+
+    for face in faces:
+        print face
+
+    print 'starting to loop:'
+
+    # first check if graphs is one of
+    # single vertex
+    # two vertices
+    # o--o--o
+    # not connected?
+
+    for face in faces:
+        print face
+        new_face = []
+        if len(face) < 3:
+            print 'oops'
+            return
+        if len(face) == 3:
+            continue
+        elif len(face) == 4:
+            new_face = (face[1][1], face[0][0])
+            if g.has_edge(new_face):
+                new_face = (face[2][1], face[1][0])
+            g.add_edge(new_face)
+        else:
+            N = len(face)
+            i = 0
+            while i < N-1:
+                new_edge = (face[i+1][1], face[i][0])
+                if g.has_edge(new_edge) or new_edge[0] == new_edge[1]:
+                    new_face.append(face[i])
+                    if i == N - 2:
+                        break
+                    i = i + 1
+                    continue
+                    #new_edge = (face[i+1][1], face[i][0])
+
+                g.add_edge(new_edge)
+                new_face.append((new_edge[1], new_edge[0]))
+                i = i + 2
+            if i != N:
+                new_face.append(face[-1])
+            faces.append(new_face)
+
+def normal_label(g, comb_emb, external_face):
+    print 'using external face', external_face
+    contracted = []
+    contractible = []
+
+    v1 = external_face[0][0]
+    v1_neighbors = Set(g.neighbors(v1))
+
+    neighbor_count = {}
+    for v in g.vertices():
+        neighbor_count[v] = len(v1_neighbors.intersection( Set(g.neighbors(v))))
+
+    for v in v1_neighbors:
+        if v == external_face[1][0] or v == external_face[2][0]:
+            continue
+        if neighbor_count[v] == 2:
+            contractible.append(v)
+
+    while g.order() > 3:
+        try:
+            v = contractible.pop()
+        except:
+            print 'fart'
+            break
+        print 'going to contract', v
+        v_neighbors = Set(g.neighbors(v))
+        contracted.append( (v, v_neighbors, v_neighbors - v1_neighbors - Set([v1])) )
+        g.delete_vertex(v)
+        g.show()
+        v1_neighbors -= Set([v])
+        for w in v_neighbors - v1_neighbors - Set([v1]):
+            print 'adding edge:', v1, w
+            g.add_edge( (v1, w) )
+            g.show()
+        if g.order() == 3:
+            break
+        v1_neighbors += v_neighbors - Set([v1])
+        for w in v_neighbors - Set([v1]):
+            print 'neighbors of', w, ':', g.neighbors(w)
+            print 'neighbors of', v1,':', v1_neighbors, g.neighbors(v1)
+            new_neighbor_count = len(v1_neighbors.intersection( Set(g.neighbors(w))))
+            print w, 'neighbor count is now', new_neighbor_count
+            if new_neighbor_count != neighbor_count[w]:
+                if new_neighbor_count == 2:
+                    contractible.append(w)
+                    print 'declaring', w, 'contractible'
+                elif neighbor_count[w] == 2:
+                    contractible.remove(w)
+                    print 'declaring', w, 'no longer contractible'
+            neighbor_count[w] = new_neighbor_count
+
+    while len(contracted) > 0:
+        v, new_neighbors, neighbors_to_delete = contracted.pop()
+        for w in new_neighbors:
+            g.add_edge((v,w))
+        for w in neighbors_to_delete:
+            g.delete_edge((v1,w))
+        g.show()
 
 def schnyder(g, emb_dict, circular=False):
     # TODO

@@ -1039,27 +1039,26 @@ cdef class NumberFieldElement(FieldElement):
         ZZX_getitem_as_mpz(&num.value, &self.__numerator, 0)
         return num / (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
 
-    def galois_conjugates(self, K=None):
+    def galois_conjugates(self, K):
         r"""
         Return all Gal(Qbar/Q)-conjugates of this number field element in
-        the Galois closure of the parent field if K is not given, or
-        in K if K is given.
+        the field K.
 
         EXAMPLES:
         In the first example the conjugates are obvious:
             sage: K.<a> = NumberField(x^2 - 2)
-            sage: a.galois_conjugates()
+            sage: a.galois_conjugates(K)
             [a, -a]
-            sage: K(3).galois_conjugates()
+            sage: K(3).galois_conjugates(K)
             [3]
 
         In this example the field is not Galois, so we have to pass
         to an extension to obtain the Galois conjugates.
             sage: K.<a> = NumberField(x^3 - 2)
-            sage: a.galois_conjugates()
-            [1/84*a1^4 + 13/42*a1, -1/252*a1^4 - 55/126*a1, -1/126*a1^4 + 8/63*a1]
+            sage: c = a.galois_conjugates(K); c
+            [a]
             sage: K.<a> = NumberField(x^3 - 2)
-            sage: c = a.galois_conjugates(); c
+            sage: c = a.galois_conjugates(K.galois_closure('a1')); c
             [1/84*a1^4 + 13/42*a1, -1/252*a1^4 - 55/126*a1, -1/126*a1^4 + 8/63*a1]
             sage: c[0]^3
             2
@@ -1075,12 +1074,9 @@ cdef class NumberFieldElement(FieldElement):
 
         Galois conjugates of $\sqrt[3]{2}$ in the field $\QQ(\zeta_3,\sqrt[3]{2})$:
             sage: L.<a> = CyclotomicField(3).extension(x^3 - 2)
-            sage: a.galois_conjugates()
+            sage: a.galois_conjugates(L)
             [a, (-zeta3 - 1)*a, zeta3*a]
         """
-        if K is None:
-            L = self.number_field()
-            K = L.galois_closure()
         f = self.absolute_minpoly()
         g = K['x'](f)
         return [a for a,_ in g.roots()]

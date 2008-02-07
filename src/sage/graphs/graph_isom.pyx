@@ -193,34 +193,40 @@ cdef class PartitionStack:
 
         sage: from sage.graphs.graph_isom import PartitionStack
         sage: P = PartitionStack([range(9, -1, -1)])
-        sage: P.sort_by_function(0, [2,1,2,1,2,1,3,4,2,1], 1, 10)
+        sage: P.set_k(1)
+        sage: P.sort_by_function(0, [2,1,2,1,2,1,3,4,2,1], 10)
         0
-        sage: P.sort_by_function(0, [2,1,2,1], 2, 10)
+        sage: P.set_k(2)
+        sage: P.sort_by_function(0, [2,1,2,1], 10)
         0
-        sage: P.sort_by_function(4, [2,1,2,1], 3, 10)
+        sage: P.set_k(3)
+        sage: P.sort_by_function(4, [2,1,2,1], 10)
         4
-        sage: P.sort_by_function(0, [0,1], 4, 10)
+        sage: P.set_k(4)
+        sage: P.sort_by_function(0, [0,1], 10)
         0
-        sage: P.sort_by_function(2, [1,0], 5, 10)
+        sage: P.set_k(5)
+        sage: P.sort_by_function(2, [1,0], 10)
         2
-        sage: P.sort_by_function(4, [1,0], 6, 10)
+        sage: P.set_k(6)
+        sage: P.sort_by_function(4, [1,0], 10)
         4
-        sage: P.sort_by_function(6, [1,0], 7, 10)
+        sage: P.set_k(7)
+        sage: P.sort_by_function(6, [1,0], 10)
         6
         sage: P
-        ({5,9,7,1,6,2,8,0,4,3})
-        ({5,9,7,1},{6,2,8,0},{4},{3})
-        ({5,9},{7,1},{6,2,8,0},{4},{3})
-        ({5,9},{7,1},{6,2},{8,0},{4},{3})
-        ({5},{9},{7,1},{6,2},{8,0},{4},{3})
-        ({5},{9},{7},{1},{6,2},{8,0},{4},{3})
-        ({5},{9},{7},{1},{6},{2},{8,0},{4},{3})
-        ({5},{9},{7},{1},{6},{2},{8},{0},{4},{3})
-        ({5},{9},{7},{1},{6},{2},{8},{0},{4},{3})
-        ({5},{9},{7},{1},{6},{2},{8},{0},{4},{3})
-        sage: P.is_discrete(7)
+        (5,9,7,1,6,2,8,0,4,3)
+        (5,9,7,1|6,2,8,0|4|3)
+        (5,9|7,1|6,2,8,0|4|3)
+        (5,9|7,1|6,2|8,0|4|3)
+        (5|9|7,1|6,2|8,0|4|3)
+        (5|9|7|1|6,2|8,0|4|3)
+        (5|9|7|1|6|2|8,0|4|3)
+        (5|9|7|1|6|2|8|0|4|3)
+        sage: P.is_discrete()
         1
-        sage: P.is_discrete(6)
+        sage: P.set_k(6)
+        sage: P.is_discrete()
         0
 
         sage: M = graphs.PetersenGraph().am()
@@ -230,33 +236,19 @@ cdef class PartitionStack:
         ...     for j in range(10):
         ...         MM[i].append(M[i,j])
         sage: P = PartitionStack(10)
-        sage: P.split_vertex(0, 1)
-        sage: P.refine_by_square_matrix(MM, 1, [0], 10, 0)
+        sage: P.set_k(1)
+        sage: P.split_vertex(0)
+        sage: P.refine_by_square_matrix(MM, [0], 10, 0)
         sage: P
-        ({0,2,3,6,7,8,9,1,4,5})
-        ({0},{2,3,6,7,8,9},{1,4,5})
-        ({0},{2,3,6,7,8,9},{1,4,5})
-        ({0},{2,3,6,7,8,9},{1,4,5})
-        ({0},{2,3,6,7,8,9},{1,4,5})
-        ({0},{2,3,6,7,8,9},{1,4,5})
-        ({0},{2,3,6,7,8,9},{1,4,5})
-        ({0},{2,3,6,7,8,9},{1,4,5})
-        ({0},{2,3,6,7,8,9},{1,4,5})
-        ({0},{2,3,6,7,8,9},{1,4,5})
-        sage: P.split_vertex(1, 2)
-        sage: P.refine_by_square_matrix(MM, 2, [7], 10, 0)
+        (0,2,3,6,7,8,9,1,4,5)
+        (0|2,3,6,7,8,9|1,4,5)
+        sage: P.set_k(2)
+        sage: P.split_vertex(1)
+        sage: P.refine_by_square_matrix(MM, [7], 10, 0)
         sage: P
-        ({0,3,7,8,9,2,6,1,4,5})
-        ({0},{3,7,8,9,2,6},{1,4,5})
-        ({0},{3,7,8,9},{2,6},{1},{4,5})
-        ({0},{3,7,8,9},{2,6},{1},{4,5})
-        ({0},{3,7,8,9},{2,6},{1},{4,5})
-        ({0},{3,7,8,9},{2,6},{1},{4,5})
-        ({0},{3,7,8,9},{2,6},{1},{4,5})
-        ({0},{3,7,8,9},{2,6},{1},{4,5})
-        ({0},{3,7,8,9},{2,6},{1},{4,5})
-        ({0},{3,7,8,9},{2,6},{1},{4,5})
-
+        (0,3,7,8,9,2,6,1,4,5)
+        (0|3,7,8,9,2,6|1,4,5)
+        (0|3,7,8,9|2,6|1|4,5)
 
     """
     def __new__(self, data):
@@ -276,6 +268,7 @@ cdef class PartitionStack:
                 self.levels[k] = n
             self.entries[n-1] = n-1
             self.levels[n-1] = -1
+            self.k = 0
         except:
             if isinstance(data, list):
                 n = sum([len(datum) for datum in data])
@@ -314,6 +307,7 @@ cdef class PartitionStack:
                     self.levels[k] = _data.levels[k]
             else:
                 raise ValueError("Input must be an int, a list of lists, or a PartitionStack.")
+            self.k = _data.k
 
     def __dealloc__(self):
         sage_free(self.entries)
@@ -322,55 +316,58 @@ cdef class PartitionStack:
     def __repr__(self):
         k = 0
         s = ''
-        while k == 0 or self.levels[k-1] != -1:
-            s += '({'
+        while (k == 0 or self.levels[k-1] != -1) and k <= self.k:
+            s += '('
             i = 0
             while i == 0 or self.levels[i-1] != -1:
                 s += str(self.entries[i])
                 if self.levels[i] <= k:
-                    s += '},{'
+                    s += '|'
                 else:
                     s += ','
                 i += 1
-            s = s[:-2] + ')\n'
+            s = s[:-1] + ')\n'
             k += 1
         return s
 
-    def is_discrete(self, k):
-        return self._is_discrete(k)
+    def set_k(self, k):
+        self.k = k
 
-    cdef int _is_discrete(self, int k):
+    def is_discrete(self):
+        return self._is_discrete()
+
+    cdef int _is_discrete(self):
         cdef int i = 0
         while True:
-            if self.levels[i] > k:
+            if self.levels[i] > self.k:
                 return 0
             if self.levels[i] == -1: break
             i += 1
         return 1
 
-    def num_cells(self, k):
-        return self._num_cells(k)
+    def num_cells(self):
+        return self._num_cells()
 
-    cdef int _num_cells(self, int k):
+    cdef int _num_cells(self):
         cdef int i = 0, j = 1
         while self.levels[i] != -1:
         #for i from 0 <= i < n-1:
-            if self.levels[i] <= k:
+            if self.levels[i] <= self.k:
                 j += 1
             i += 1
         return j
 
-    def sat_225(self, k, n):
-        return self._sat_225(k, n) == 1
+    def sat_225(self, n):
+        return self._sat_225(n) == 1
 
-    cdef int _sat_225(self, int k, int n):
+    cdef int _sat_225(self, int n):
         cdef int i, in_cell = 0
         cdef int nontrivial_cells = 0
-        cdef int total_cells = self._num_cells(k)
+        cdef int total_cells = self._num_cells()
         if n <= total_cells + 4:
             return 1
         for i from 0 <= i < n-1:
-            if self.levels[i] <= k:
+            if self.levels[i] <= self.k:
                 if in_cell:
                     nontrivial_cells += 1
                 in_cell = 0
@@ -393,28 +390,28 @@ cdef class PartitionStack:
         """
         return self.levels[i] <= k
 
-    def split_vertex(self, v, k):
+    def split_vertex(self, v):
         """
         Splits the cell in self(k) containing v, putting new cells in place
         in self(k).
         """
-        self._split_vertex(v, k)
+        self._split_vertex(v)
 
-    cdef int _split_vertex(self, int v, int k):
+    cdef int _split_vertex(self, int v):
         cdef int i = 0, j
         while self.entries[i] != v:
             i += 1
         j = i
-        while self.levels[i] > k:
+        while self.levels[i] > self.k:
             i += 1
-        if j == 0 or self.levels[j-1] <= k:
+        if j == 0 or self.levels[j-1] <= self.k:
             self._percolate(j+1, i)
         else:
-            while j != 0 and self.levels[j-1] > k:
+            while j != 0 and self.levels[j-1] > self.k:
                 self.entries[j] = self.entries[j-1]
                 j -= 1
             self.entries[j] = v
-        self.levels[j] = k
+        self.levels[j] = self.k
         return j
 
     def percolate(self, start, end):
@@ -428,17 +425,17 @@ cdef class PartitionStack:
                 self.entries[i] = self.entries[i-1]
                 self.entries[i-1] = temp
 
-    def sort_by_function(self, start, degrees, k, n):
+    def sort_by_function(self, start, degrees, n):
         cdef int i
         cdef int *degs = <int *> sage_malloc( ( 3 * n + 1 ) * sizeof(int) )
         if not degs:
             raise MemoryError("Couldn't allocate...")
         for i from 0 <= i < len(degrees):
             degs[i] = degrees[i]
-        return self._sort_by_function(start, degs, k, n)
+        return self._sort_by_function(start, degs, n)
         sage_free(degs)
 
-    cdef int _sort_by_function(self, int start, int *degrees, int k, int n):
+    cdef int _sort_by_function(self, int start, int *degrees, int n):
         cdef int i, j, m = 2*n, max, max_location
         cdef int *counts = degrees + n, *output = degrees + 2*n + 1
 #        print '|'.join(['%02d'%self.entries[iii] for iii in range(n)])
@@ -450,7 +447,7 @@ cdef class PartitionStack:
         for i from 0 <= i <= n:
             counts[i] = 0
         i = 0
-        while self.levels[i+start] > k:
+        while self.levels[i+start] > self.k:
             counts[degrees[i]] += 1
             i += 1
         counts[degrees[i]] += 1
@@ -476,26 +473,26 @@ cdef class PartitionStack:
         j = 1
         while j <= n and counts[j] <= i:
             if counts[j] > 0:
-                self.levels[start + counts[j] - 1] = k
+                self.levels[start + counts[j] - 1] = self.k
             self._percolate(start + counts[j-1], start + counts[j] - 1)
             j += 1
 
         return max_location
 
-    def clear(self, k):
-        self._clear(k)
+    def clear(self):
+        self._clear()
 
-    cdef void _clear(self, int k):
+    cdef void _clear(self):
         cdef int i = 0, j = 0
         while self.levels[i] != -1:
-            if self.levels[i] >= k:
+            if self.levels[i] >= self.k:
                 self.levels[i] += 1
-            if self.levels[i] < k:
+            if self.levels[i] < self.k:
                 self._percolate(j, i)
                 j = i + 1
             i+=1
 
-    def refine_by_square_matrix(self, G_matrix, k, alpha, n, dig):
+    def refine_by_square_matrix(self, G_matrix, alpha, n, dig):
         cdef int *_alpha, i, j
         cdef int **G
         _alpha = <int *> sage_malloc( ( 4 * n + 1 )* sizeof(int) )
@@ -523,13 +520,53 @@ cdef class PartitionStack:
         for i from 0 <= i < len(alpha):
             _alpha[i] = alpha[i]
         _alpha[len(alpha)] = -1
-        self._refine_by_square_matrix(k, _alpha, n, G, dig)
+        self._refine_by_square_matrix(_alpha, n, G, dig)
         sage_free(_alpha)
         for i from 0 <= i < n:
             sage_free(G[i])
         sage_free(G)
 
-    cdef int _refine_by_square_matrix(self, int k, int *alpha, int n, int **G, int dig):
+    cdef int test_refine_by_square_matrix(self, int *alpha, int n, int **g, int dig) except? -1:
+        cdef int i, j, result
+        initial_partition = [] # this includes the vertex just split out...
+        i = 0
+        cell = []
+        while i < n:
+            cell.append(self.entries[i])
+            while self.levels[i] > self.k:
+                i += 1
+                cell.append(self.entries[i])
+            i += 1
+            initial_partition.append(cell)
+            cell = []
+        #
+        result = self._refine_by_square_matrix(alpha, n, g, dig)
+        #
+        terminal_partition = []
+        i = 0
+        cell = []
+        while i < n:
+            cell.append(self.entries[i])
+            while self.levels[i] > self.k:
+                i += 1
+                cell.append(self.entries[i])
+            i += 1
+            terminal_partition.append(cell)
+            cell = []
+        #
+        if dig:
+            G = DiGraph(loops=True)
+        else:
+            G = Graph()
+        G.add_vertices(xrange(n))
+        for i from 0 <= i < n:
+            for j from 0 <= j < n:
+                if g[i][j]:
+                    G.add_edge(i,j)
+        verify_partition_refinement(G, initial_partition, terminal_partition)
+        return result
+
+    cdef int _refine_by_square_matrix(self, int *alpha, int n, int **G, int dig):
         cdef int m = 0, j # - m iterates through alpha, the indicator cells
                           # - j iterates through the cells of the partition
         cdef int i, t, s, r # local variables:
@@ -548,7 +585,7 @@ cdef class PartitionStack:
             # does not depend on self.entries goes... at least, anything cheap
         cdef int *degrees = alpha + n # alpha assumed to be length 4*n + 1 for
                                       # extra scratch space
-        while not self._is_discrete(k) and alpha[m] != -1:
+        while not self._is_discrete() and alpha[m] != -1:
             invariant += 1
             j = 0
             while j < n: # j still points at a valid cell
@@ -562,16 +599,16 @@ cdef class PartitionStack:
 #                print 'm =', m
                 i = j; s = 0
                 while True:
-                    degrees[i-j] = self._degree_square_matrix(G, i, alpha[m], k)
+                    degrees[i-j] = self._degree_square_matrix(G, i, alpha[m])
                     if degrees[i-j] != degrees[0]: s = 1
                     i += 1
-                    if self.levels[i-1] <= k: break
+                    if self.levels[i-1] <= self.k: break
 #                print '|'.join(['%02d'%degrees[iii] for iii in range(n)])
                 # now: j points to this cell,
                 #      i points to the next cell (before refinement)
                 if s:
                     invariant += 10
-                    t = self._sort_by_function(j, degrees, k, n)
+                    t = self._sort_by_function(j, degrees, n)
                     # t now points to the first largest subcell
                     invariant += t + degrees[i - j - 1]
                     s = m
@@ -583,7 +620,7 @@ cdef class PartitionStack:
                     while alpha[s] != -1: s += 1
                     r = j
                     while True:
-                        if r == j or self.levels[r-1] == k:
+                        if r == j or self.levels[r-1] == self.k:
                             if r != t:
                                 alpha[s] = r
                                 s += 1
@@ -608,15 +645,15 @@ cdef class PartitionStack:
 #                print 'm =', m
                 i = j; s = 0
                 while True:
-                    degrees[i-j] = self._degree_inv_square_matrix(G, i, alpha[m], k)
+                    degrees[i-j] = self._degree_inv_square_matrix(G, i, alpha[m])
                     if degrees[i-j] != degrees[0]: s = 1
                     i += 1
-                    if self.levels[i-1] <= k: break
+                    if self.levels[i-1] <= self.k: break
                 # now: j points to this cell,
                 #      i points to the next cell (before refinement)
                 if s:
                     invariant += 7
-                    t = self._sort_by_function(j, degrees, k, n)
+                    t = self._sort_by_function(j, degrees, n)
                     # t now points to the first largest subcell
                     invariant += t + degrees[i - j - 1]
                     s = m
@@ -628,7 +665,7 @@ cdef class PartitionStack:
                     while alpha[s] != -1: s += 1
                     r = j
                     while True:
-                        if r == j or self.levels[r-1] == k:
+                        if r == j or self.levels[r-1] == self.k:
                             if r != t:
                                 alpha[s] = r
                                 s += 1
@@ -641,7 +678,7 @@ cdef class PartitionStack:
             m += 1
         return invariant
 
-    def degree_square_matrix(self, G, v, W, k):
+    def degree_square_matrix(self, G, v, W):
         cdef int i, j, n = len(G)
         cdef int **GG = <int **> sage_malloc( n * sizeof(int*) )
         if not GG:
@@ -656,13 +693,13 @@ cdef class PartitionStack:
         for i from 0 <= i < n:
             for j from 0 <= j < n:
                 GG[i][j] = G[i][j]
-        j = self._degree_square_matrix(GG, v, W, k)
+        j = self._degree_square_matrix(GG, v, W)
         for i from 0 <= i < n:
             sage_free(GG[i])
         sage_free(GG)
         return j
 
-    cdef int _degree_square_matrix(self, int** G, int v, int W, int k):
+    cdef int _degree_square_matrix(self, int** G, int v, int W):
         """
         G is a square matrix, and W points to the beginning of a cell in the
         k-th part of the stack.
@@ -672,11 +709,11 @@ cdef class PartitionStack:
         while True:
             if G[self.entries[W]][v]:
                 i += 1
-            if self.levels[W] > k: W += 1
+            if self.levels[W] > self.k: W += 1
             else: break
         return i
 
-    cdef int _degree_inv_square_matrix(self, int** G, int v, int W, int k):
+    cdef int _degree_inv_square_matrix(self, int** G, int v, int W):
         """
         G is a square matrix, and W points to the beginning of a cell in the
         k-th part of the stack.
@@ -686,15 +723,15 @@ cdef class PartitionStack:
         while True:
             if G[v][self.entries[W]]:
                 i += 1
-            if self.levels[W] > k: W += 1
+            if self.levels[W] > self.k: W += 1
             else: break
         return i
 
-    cdef int _first_smallest_nontrivial(self, int *W, int k, int n):
+    cdef int _first_smallest_nontrivial(self, int *W, int n):
         cdef int i = 0, j = 0, location = 0, min = n
         while True:
             W[i] = 0
-            if self.levels[i] <= k:
+            if self.levels[i] <= self.k:
                 if i != j and n > i - j + 1:
                     n = i - j + 1
                     location = j
@@ -707,7 +744,7 @@ cdef class PartitionStack:
             if min > self.entries[location]:
                 min = self.entries[location]
             W[self.entries[location]] = 1
-            if self.levels[location] <= k: break
+            if self.levels[location] <= self.k: break
             location += 1
         return min
 
@@ -1176,7 +1213,6 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
 
     cdef PartitionStack nu, zeta, rho
     cdef int k_rho # the number of partitions in rho
-    cdef int k = 0 # the number of partitions in nu
     cdef int h = -1 # longest common ancestor of zeta and nu:
                     # zeta[h] == nu[h], zeta[h+1] != nu[h+1]
     cdef int hb     # longest common ancestor of rho and nu:
@@ -1336,15 +1372,16 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     while state != -1:
         if verbosity > 0:
             print '-----'
-            print 'state:', state
             print 'nu'
-            print [nu.entries[iii] for iii in range(n)]
-            print [nu.levels[iii] for iii in range(n)]
+#            print [nu.entries[iii] for iii in range(n)]
+#            print [nu.levels[iii] for iii in range(n)]
+            print nu.k
+            print nu
             if verbosity > 1:
                 t = cputime(t)
                 print 'time:', t
             if verbosity > 2:
-                print 'k: ' + str(k)
+                print 'k: ' + str(nu.k)
                 print 'zeta:'
                 print [zeta.entries[iii] for iii in range(n)]
                 print [zeta.levels[iii] for iii in range(n)]
@@ -1363,6 +1400,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
                     if not didit:
                         Thetarep.append([j])
                 print 'Theta: ', str(Thetarep)
+            print '-----'
+            print 'state:', state
+
 
         if state == 1: # Entry point to algorithm
             # get alpha to point to cells of nu
@@ -1375,57 +1415,57 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             alpha[j] = -1
 
             # "nu[0] := R(G, Pi, Pi)"
-            nu._refine_by_square_matrix(k, alpha, n, M, _dig)
+            nu._refine_by_square_matrix(alpha, n, M, _dig)
 
             if not _dig:
-                if nu._sat_225(k, n): hh = k
-            if nu._is_discrete(k): state = 18; continue
+                if nu._sat_225(n): hh = nu.k
+            if nu._is_discrete(): state = 18; continue
 
             # store the first smallest nontrivial cell in W[k], and set v[k]
             # equal to its minimum element
-            v[k] = nu._first_smallest_nontrivial(W[k], k, n)
-            mpz_set_ui(Lambda_mpz[k], 0)
-            e[k] = 0 # see state 12, and 17
+            v[nu.k] = nu._first_smallest_nontrivial(W[nu.k], n)
+            mpz_set_ui(Lambda_mpz[nu.k], 0)
+            e[nu.k] = 0 # see state 12, and 17
             state = 2
 
         elif state == 2: # Move down the search tree one level by refining nu
-            k += 1
+            nu.k += 1
 
             # "nu[k] := nu[k-1] perp v[k-1]"
-            nu._clear(k)
-            alpha[0] = nu._split_vertex(v[k-1], k)
+            nu._clear()
+            alpha[0] = nu._split_vertex(v[nu.k-1])
             alpha[1] = -1
-            i = nu._refine_by_square_matrix(k, alpha, n, M, _dig)
+            i = nu._refine_by_square_matrix(alpha, n, M, _dig)
 
             # add one, then multiply by the invariant
-            mpz_add_ui(Lambda_mpz[k], Lambda_mpz[k-1], 1)
-            mpz_mul_si(Lambda_mpz[k], Lambda_mpz[k], i)
+            mpz_add_ui(Lambda_mpz[nu.k], Lambda_mpz[nu.k-1], 1)
+            mpz_mul_si(Lambda_mpz[nu.k], Lambda_mpz[nu.k], i)
 
             # only if this is the first time moving down the search tree:
             if h == -1: state = 5; continue
 
             # update hzf
-            if hzf == k-1 and mpz_cmp(Lambda_mpz[k], zf_mpz[k]) == 0: hzf = k
+            if hzf == nu.k-1 and mpz_cmp(Lambda_mpz[nu.k], zf_mpz[nu.k]) == 0: hzf = nu.k
             if not lab: state = 3; continue
 
             # "qzb := cmp(Lambda[k], zb[k])"
-            if mpz_cmp_si(zb_mpz[k], -1) == 0: # if "zb[k] == oo"
+            if mpz_cmp_si(zb_mpz[nu.k], -1) == 0: # if "zb[k] == oo"
                 qzb = -1
             else:
-                qzb = mpz_cmp( Lambda_mpz[k], zb_mpz[k] )
+                qzb = mpz_cmp( Lambda_mpz[nu.k], zb_mpz[nu.k] )
             # update hzb
-            if hzb == k-1 and qzb == 0: hzb = k
+            if hzb == nu.k-1 and qzb == 0: hzb = nu.k
 
             # if Lambda[k] > zb[k], then zb[k] := Lambda[k]
             # (zb keeps track of the indicator invariants corresponding to
             # rho, the closest canonical leaf so far seen- if Lambda is
             # bigger, then rho must be about to change
-            if qzb > 0: mpz_set(zb_mpz[k], Lambda_mpz[k])
+            if qzb > 0: mpz_set(zb_mpz[nu.k], Lambda_mpz[nu.k])
             state = 3
 
         elif state == 3: # attempt to rule out automorphisms while moving down
                          # the tree
-            if hzf <= k or (lab and qzb >= 0): # changed hzb to hzf, == to <=
+            if hzf <= nu.k or (lab and qzb >= 0): # changed hzb to hzf, == to <=
                 state = 4
             else: state = 6
             # if k > hzf, then we know that nu currently does not look like
@@ -1437,28 +1477,28 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
 
         elif state == 4: # at this point we have -not- ruled out the presence
                          # of automorphisms
-            if nu._is_discrete(k): state = 7; continue
+            if nu._is_discrete(): state = 7; continue
 
             # store the first smallest nontrivial cell in W[k], and set v[k]
             # equal to its minimum element
-            v[k] = nu._first_smallest_nontrivial(W[k], k, n)
+            v[nu.k] = nu._first_smallest_nontrivial(W[nu.k], n)
 
-            if _dig or not nu._sat_225(k, n): hh = k + 1
-            e[k] = 0 # see state 12, and 17
+            if _dig or not nu._sat_225(n): hh = nu.k + 1
+            e[nu.k] = 0 # see state 12, and 17
             state = 2 # continue down the tree
 
         elif state == 5: # alternative to 3: since we have not yet gotten
                          # zeta, there are no automorphisms to rule out.
                          # instead we record Lambda to zf and zb
                          # (see state 3)
-            mpz_set(zf_mpz[k], Lambda_mpz[k])
-            mpz_set(zb_mpz[k], Lambda_mpz[k])
+            mpz_set(zf_mpz[nu.k], Lambda_mpz[nu.k])
+            mpz_set(zb_mpz[nu.k], Lambda_mpz[nu.k])
             state = 4
 
         elif state == 6: # at this stage, there is no reason to continue
                          # downward, and an automorphism has not been
                          # discovered
-            j = k
+            j = nu.k
 
             # return to the longest ancestor nu[i] of nu that could have a
             # descendant equivalent to zeta or could improve on rho.
@@ -1469,17 +1509,17 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # of nu[i] is equivalent to zeta (see [1, p67]).
             if ht-1 > hzb:
                 if ht-1 < hh-1:
-                    k = ht-1
+                    nu.k = ht-1
                 else:
-                    k = hh-1
+                    nu.k = hh-1
             else:
                 if hzb < hh-1:
-                    k = hzb
+                    nu.k = hzb
                 else:
-                    k = hh-1
+                    nu.k = hh-1
 
             # TODO: investigate the following line
-            if k == -1: k = 0 # not in BDM, broke at G = Graph({0:[], 1:[]}), Pi = [[0,1]], lab=False
+            if nu.k == -1: nu.k = 0 # not in BDM, broke at G = Graph({0:[], 1:[]}), Pi = [[0,1]], lab=False
 
             if j == hh: state = 13; continue
             # recall hh: the height of the oldest ancestor of zeta for which
@@ -1511,7 +1551,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # TODO: investigate why, in practice, the same does not seem to be
             # true for hzf < k... BDM had !=, not <, and this broke at
             # G = Graph({0:[],1:[],2:[]}), Pi = [[0,1,2]]
-            if k < hzf: state = 8; continue
+            if nu.k < hzf: state = 8; continue
 
             # get the permutation corresponding to this terminal node
             nu._get_permutation_from(zeta, gamma)
@@ -1536,7 +1576,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
 
             # if Lambda[k] > zb[k] or nu is shorter than rho, then we have
             # found an improvement for rho
-            if (qzb > 0) or (k < k_rho):
+            if (qzb > 0) or (nu.k < k_rho):
                 state = 9; continue
 
             # if G(nu) > G(rho) (returns 1), goto 9
@@ -1558,14 +1598,14 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         elif state == 9: # entering this state, nu is a best-so-far guess at
                          # the canonical label
             rho = PartitionStack(nu)
-            k_rho = k
+            k_rho = nu.k
 
             qzb = 0
-            hb = k
-            hzb = k
+            hb = nu.k
+            hzb = nu.k
 
             # set zb[k+1] = Infinity
-            mpz_set_si(zb_mpz[k+1], -1)
+            mpz_set_si(zb_mpz[nu.k+1], -1)
             state = 6
 
         elif state == 10: # we have an automorphism to process
@@ -1603,12 +1643,12 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             if Theta.elements[tvh] == -1 and lab: ## added "and lab"
                 state = 11
                 continue
-            k = h
+            nu.k = h
             state = 13
 
         elif state == 11: # if we are searching for a label, backtrack to the
                           # common ancestor of nu and rho
-            k = hb
+            nu.k = hb
             state = 12
 
         elif state == 12: # we are looking at a branch we may have to continue
@@ -1619,20 +1659,20 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # to explore. In this case, intersect W[k] with Omega[l], since
             # there may be an automorphism mapping one element of W[k] to
             # another, hence only one must be investigated.
-            if e[k] == 1:
+            if e[nu.k] == 1:
                 for j from 0 <= j < n:
-                    if W[k][j] and not Omega[l][j]:
-                        W[k][j] = 0
+                    if W[nu.k][j] and not Omega[l][j]:
+                        W[nu.k][j] = 0
             state = 13
 
         elif state == 13: # hub state
-            if k == -1:
+            if nu.k == -1:
                 # the algorithm has finished
                 state = -1; continue
-            if k > h:
+            if nu.k > h:
                 # if we are not at a node of zeta
                 state = 17; continue
-            if k == h:
+            if nu.k == h:
                 # if we are at a node of zeta, then state 14 can rule out
                 # vertices to consider
                 state = 14; continue
@@ -1640,12 +1680,12 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # thus, it must be that k < h, and this means we are done
             # searching underneath zeta[k+1], so now, k is the new longest
             # ancestor of nu and zeta:
-            h = k
+            h = nu.k
 
             # set tvh to the minimum cell representative of W[k]
             # (see states 10 and 14)
             for i from 0 <= i < n:
-                if W[k][i]:
+                if W[nu.k][i]:
                     tvh = i
                     break
             state = 14
@@ -1656,25 +1696,25 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # the last time we were at state 13 and at a node descending to
             # zeta. If this is in the same cell of Theta as v[k], increment
             # index (see Theorem 2.33 in [1])
-            if Theta._find(v[k]) == Theta._find(tvh):
+            if Theta._find(v[nu.k]) == Theta._find(tvh):
                 index += 1
 
             # find the next v[k] in W[k]
-            i = v[k] + 1
-            while i < n and not W[k][i]:
+            i = v[nu.k] + 1
+            while i < n and not W[nu.k][i]:
                 i += 1
             if i < n:
-                v[k] = i
+                v[nu.k] = i
             else:
                 # there is no new vertex to consider at this level
-                v[k] = -1
+                v[nu.k] = -1
                 state = 16
                 continue
 
             # if the new v[k] is not a minimum cell representative of Theta,
             # then we already considered that rep., and that subtree was
             # isomorphic to the one corresponding to v[k]
-            if Theta.elements[v[k]] != -1: state = 14
+            if Theta.elements[v[nu.k]] != -1: state = 14
             else:
                 # otherwise, we do have a vertex to consider
                 state = 15
@@ -1683,16 +1723,16 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             # hh is smallest such that nu[hh] satisfies Lemma 2.25. If it is
             # larger than k+1, it must be modified, since we are changing that
             # part
-            if k + 1 < hh:
-                hh = k + 1
+            if nu.k + 1 < hh:
+                hh = nu.k + 1
             # hzf is maximal such that indicators line up for nu and zeta
-            if k < hzf:
-                hzf = k
-            if not lab or hb < k: # changed hzb to hb
+            if nu.k < hzf:
+                hzf = nu.k
+            if not lab or hb < nu.k: # changed hzb to hb
                 # in either case there is no need to update hb, which is the
                 # length of the common ancestor of nu and rho
                 state = 2; continue
-            hb = k # changed hzb to hb
+            hb = nu.k # changed hzb to hb
             qzb = 0
             state = 2
 
@@ -1700,65 +1740,65 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
                           # information relevant to Theorem 2.33
             j = 0
             for i from 0 <= i < n:
-                if W[k][i]: j += 1
-            if j == index and ht == k+1: ht = k
+                if W[nu.k][i]: j += 1
+            if j == index and ht == nu.k+1: ht = nu.k
             size = size*index
             index = 0
-            k -= 1
+            nu.k -= 1
             state = 13
 
         elif state == 17: # you have just finished coming up the search tree,
                           # and must now consider going back down.
-            if e[k] == 0:
+            if e[nu.k] == 0:
                 # intersect W[k] with each Omega[i] such that {v_0,...,v_(k-1)}
                 # is contained in Phi[i]
                 for i from 0 <= i <= l:
                     # check if {v_0,...,v_(k-1)} is contained in Phi[i]
                     # i.e. fixed pointwise by the automorphisms so far seen
                     j = 0
-                    while j < k and Phi[i][v[j]]:
+                    while j < nu.k and Phi[i][v[j]]:
                         j += 1
                     # if so, only check the minimal orbit representatives
-                    if j == k:
+                    if j == nu.k:
                         for j from 0 <= j < n:
-                            if W[k][j] and not Omega[i][j]:
-                                W[k][j] = 0
-            e[k] = 1 # see state 12
+                            if W[nu.k][j] and not Omega[i][j]:
+                                W[nu.k][j] = 0
+            e[nu.k] = 1 # see state 12
 
             # see if there is a relevant vertex to split on:
-            i = v[k] + 1
-            while i < n and not W[k][i]:
+            i = v[nu.k] + 1
+            while i < n and not W[nu.k][i]:
                 i += 1
             if i < n:
-                v[k] = i
+                v[nu.k] = i
                 state = 15
                 continue
             else:
-                v[k] = -1
+                v[nu.k] = -1
 
             # otherwise backtrack one level
-            k -= 1
+            nu.k -= 1
             state = 13
 
         elif state == 18: # The first time we encounter a terminal node, we
                           # come straight here to set up zeta. This is a one-
                           # time state.
             # initialize counters for zeta:
-            h = k # zeta[h] == nu[h]
-            ht = k # nodes descended from zeta[ht] are all equivalent
-            hzf = k # max such that indicators for zeta and nu agree
+            h = nu.k # zeta[h] == nu[h]
+            ht = nu.k # nodes descended from zeta[ht] are all equivalent
+            hzf = nu.k # max such that indicators for zeta and nu agree
 
             zeta = PartitionStack(nu)
 
-            k -= 1
+            nu.k -= 1
             if not lab: state = 13; continue
 
             rho = PartitionStack(nu)
 
             # initialize counters for rho:
-            k_rho = k # number of partitions in rho
-            hzb = k # max such that indicators for rho and nu agree - BDM had k+1
-            hb = k # rho[hb] == nu[hb] - BDM had k+1
+            k_rho = nu.k # number of partitions in rho
+            hzb = nu.k # max such that indicators for rho and nu agree - BDM had k+1
+            hb = nu.k # rho[hb] == nu[hb] - BDM had k+1
 
             qzb = 0 # Lambda[k] == zb[k], so...
             state = 13
@@ -2109,4 +2149,36 @@ def number_of_graphs(n, j = None):
         if g not in graph_list:
             graph_list.append(g)
     return len(graph_list)
+
+def verify_partition_refinement(G, initial_partition, terminal_partition):
+    if not is_equitable(G, terminal_partition):
+        raise RuntimeError("Resulting partition is not equitable!!!!!!!!!\n"+\
+        str(initial_partition) + "\n" + \
+        str(terminal_partition) + "\n" + \
+        str(G.am()))
+
+def is_equitable(G, partition):
+    if G.is_directed():
+        for cell1 in partition:
+            for cell2 in partition:
+                for u in cell1:
+                    for v in cell1:
+                        vs_in_neighbors_in_cell2 = set([a for a,_,_ in G.incoming_edges(v)]) & set(cell2)
+                        us_in_neighbors_in_cell2 = set([a for a,_,_ in G.incoming_edges(u)]) & set(cell2)
+                        if len(us_in_neighbors_in_cell2) != len(vs_in_neighbors_in_cell2):
+                            return False
+                        vs_out_neighbors_in_cell2 = set([a for _,a,_ in G.outgoing_edges(v)]) & set(cell2)
+                        us_out_neighbors_in_cell2 = set([a for _,a,_ in G.outgoing_edges(u)]) & set(cell2)
+                        if len(us_out_neighbors_in_cell2) != len(vs_out_neighbors_in_cell2):
+                            return False
+    else:
+        for cell1 in partition:
+            for cell2 in partition:
+                for u in cell1:
+                    for v in cell1:
+                        vs_neighbors_in_cell2 = set(G.neighbors(v)) & set(cell2)
+                        us_neighbors_in_cell2 = set(G.neighbors(u)) & set(cell2)
+                        if len(us_neighbors_in_cell2) != len(vs_neighbors_in_cell2):
+                            return False
+    return True
 

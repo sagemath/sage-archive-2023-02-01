@@ -57,20 +57,22 @@ cdef class OrbitPartition:
 cdef class PartitionStack:
     cdef int *entries
     cdef int *levels
+    cdef int k
 
-    cdef int _is_discrete(self, int k)
-    cdef int _num_cells(self, int k)
+    cdef int _is_discrete(self)
+    cdef int _num_cells(self)
     cdef int _is_min_cell_rep(self, int i, int k)
     cdef int _is_fixed(self, int i, int k)
-    cdef int _sat_225(self, int k, int n)
-    cdef int _split_vertex(self, int v, int k)
+    cdef int _sat_225(self, int n)
+    cdef int _split_vertex(self, int v)
     cdef void _percolate(self, int start, int end)
-    cdef int _sort_by_function(self, int start, int *degrees, int k, int n)
-    cdef void _clear(self, int k)
-    cdef int _refine_by_square_matrix(self, int k, int *alpha, int n, int **G, int dig)
-    cdef int _degree_square_matrix(self, int **G, int v, int W, int k)
-    cdef int _degree_inv_square_matrix(self, int **G, int v, int W, int k)
-    cdef int _first_smallest_nontrivial(self, int *W, int k, int n)
+    cdef int _sort_by_function(self, int start, int *degrees, int n)
+    cdef void _clear(self)
+    cdef int test_refine_by_square_matrix(self, int *alpha, int n, int **G, int dig) except? -1
+    cdef int _refine_by_square_matrix(self, int *alpha, int n, int **G, int dig)
+    cdef int _degree_square_matrix(self, int **G, int v, int W)
+    cdef int _degree_inv_square_matrix(self, int **G, int v, int W)
+    cdef int _first_smallest_nontrivial(self, int *W, int n)
     cdef void _get_permutation_from(self, PartitionStack zeta, int *gamma)
     cdef int _compare_with(self, int **G, int n, PartitionStack other)
 

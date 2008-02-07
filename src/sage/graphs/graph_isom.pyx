@@ -1372,16 +1372,14 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     while state != -1:
         if verbosity > 0:
             print '-----'
-            print 'nu'
-#            print [nu.entries[iii] for iii in range(n)]
-#            print [nu.levels[iii] for iii in range(n)]
-            print nu.k
+            print 'k: ' + str(nu.k)
+            print 'k_rho: ' + str(k_rho)
+            print 'nu:'
             print nu
             if verbosity > 1:
                 t = cputime(t)
                 print 'time:', t
             if verbosity > 2:
-                print 'k: ' + str(nu.k)
                 print 'zeta:'
                 print [zeta.entries[iii] for iii in range(n)]
                 print [zeta.levels[iii] for iii in range(n)]
@@ -1796,7 +1794,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             rho = PartitionStack(nu)
 
             # initialize counters for rho:
-            k_rho = nu.k # number of partitions in rho
+            k_rho = nu.k + 1 # number of partitions in rho
             hzb = nu.k # max such that indicators for rho and nu agree - BDM had k+1
             hb = nu.k # rho[hb] == nu[hb] - BDM had k+1
 

@@ -2851,7 +2851,7 @@ cdef class BinaryCodeClassifier:
                 k -= 1
                 rho = PartitionStack(nu)
                 # initialize counters for rho:
-                k_rho = k # number of partitions in rho
+                k_rho = k+1 # number of partitions in rho
                 hzb__h_rho = k # max such that indicators for rho and nu agree - BDM had k+1
                 hb = k # rho[hb] == nu[hb] - BDM had k+1
                 qzb = 0 # Lambda[k] == zb[k], so...

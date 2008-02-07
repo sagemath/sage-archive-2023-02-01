@@ -291,6 +291,36 @@ cdef class PowerSeries(AlgebraElement):
     def __call__(self, x):   # you *MUST* overrride this in the derived class
         raise NotImplementedError
 
+
+    def coefficients(self):
+        """
+        Return the nonzero coefficients of self.
+
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: f = t + t^2 - 10/3*t^3
+            sage: f.coefficients()
+            [1, 1, -10/3]
+
+        """
+        zero = self.parent().base_ring().zero_element()
+        return [c for c in self.list() if c != zero]
+
+    def exponents(self):
+        """
+        Return the exponents appearing in self with nonzero
+        coefficients.
+
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: f = t + t^2 - 10/3*t^3
+            sage: f.exponents()
+            [1, 2, 3]
+        """
+        zero = self.parent().base_ring().zero_element()
+        l = self.list()
+        return [i for i in range(len(l)) if l[i] != zero]
+
     def list(self):          # you *MUST* overrride this in the derived class
         raise NotImplementedError
 

@@ -88,48 +88,8 @@ def is_planar(g, set_pos=True, set_emb=True, circular=False):
         return True
 
 def schnyder(g, emb_dict, circular=False):
-    # TODO, because everyone loves a pretty picture of a graph
-    from sage.graphs.graph_genus1 import trace_faces
-    from sage.sets.set import Set
-    # TODO: ignoring label for now, should only need to chnage this once.
-    # g.relabel(ffrom)
-    faces = trace_faces(g, emb_dict.values())
-    """
-    ext_face = faces[0] # actually should pick longest one
-    if circular:
-        #TODO
-        # want to set external face as one with all boundary nodes in order on it
-        pass
-
-    triang_faces = []
-    extra_edges = []
-    for face in faces:
-        if len(face) > 3:
-            # use a Set to guarantee each extra edge is used in both directions
-
-            tris = [face[2*i:2*i+2] for i in range(len(face)/2)]
-            for tri in tris:
-                connect = (tri[0][0],tri[-1][-1])
-                tri.append(connect)
-                triang_faces.append(tri)
-                extra_edges.append(connect)
-                g.add_edge(connect)
-        else:
-            triang_faces.append(face)
-    """
+    # TODO
     pass
-
-
-
-
-
-## list from c array:
-# cdef int * array
-# ........
-## *without* a cdef blah List ....
-# (or cdef object List)
-# List = [array[i] for i from 0 <= i < length_of_array]
-
 
 
 

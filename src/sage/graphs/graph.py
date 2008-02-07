@@ -4971,7 +4971,7 @@ class Graph(GenericGraph):
                 schnyder(self,self.__embedding__)
         return result
 
-    def genus(self):
+    def genus(self,set_embedding=True, minimal=True):
         """
         Returns the minimal genus of the graph.  The genus of a compact
         surface is the number of handles it has.  The genus of a graph
@@ -4994,7 +4994,6 @@ class Graph(GenericGraph):
         """
         if not self.is_connected():
             raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
-        from sage.rings.infinity import Infinity
         from sage.combinat.all import CyclicPermutationsOfPartition
         from sage.graphs.graph_genus1 import trace_faces, nice_copy
 
@@ -5003,23 +5002,33 @@ class Graph(GenericGraph):
         verts = len(graph.vertices())
         edges = len(graph.edges())
 
-        # Construct a list of all rotation systems for graph
-        part = []
-        for vertex in graph.vertices():
-            part.append(graph.neighbors(vertex))
+        if not minimal:
+            if not hasattr(graph,'__embedding__'):
+                raise NoEmbeddingDefinedDipfuckError
+            p = graph.__embedding__.values()
+            max_faces = len(trace_faces(graph, p))
+        else:
+            # Construct an intitial combinatorial embedding for graph
+            part = []
+            for vertex in graph.vertices():
+                part.append(graph.neighbors(vertex))
 
-        all_perms = []
-        for p in CyclicPermutationsOfPartition(part):
-            all_perms.append(p)
-
-        max_faces = -Infinity
-        for p in all_perms:
-            print p
-            t = trace_faces(graph, p)
-            print t
-            faces = len(t)
-            if faces > max_faces:
-                max_faces = faces
+            # Iterate through all embeddings
+            max_faces = -1
+            min_embedding = []
+            for p in CyclicPermutationsOfPartition(part):
+                t = trace_faces(graph, p)
+                faces = len(t)
+                if faces > max_faces:
+                    max_faces = faces
+                    min_embedding = p
+            if set_embedding:
+                # Make dict of node labels embedding
+                comb_emb = {}
+                labels = graph.vertices()
+                for i in range(len(min_embedding)):
+                    comb_emb[labels[i]] = min_embedding[i]
+                self.__embedding__ = comb_emb
         return (2-verts+edges-max_faces)/2
 
     def interior_paths(self, start, end):

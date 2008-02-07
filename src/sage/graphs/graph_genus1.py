@@ -13,7 +13,7 @@ AUTHOR:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-def nice_copy(graph):
+def nice_copy(g):
     """
     Creates a 'nice' copy of the graph (with vertices labeled
     0 through n-1).  Also copies the boundary to be in the
@@ -38,8 +38,8 @@ def nice_copy(graph):
         sage: L.get_boundary()
         [1, 0]
     """
-    boundary = graph.get_boundary()
-    graph = graph.copy()
+    boundary = g.get_boundary()
+    graph = g.copy()
 
     newboundary = []
     relabeldict = {}
@@ -52,6 +52,13 @@ def nice_copy(graph):
             newboundary.append(relabeldict[v])
     graph.relabel(relabeldict)
     graph.set_boundary(newboundary)
+    if hasattr(g,'__embedding__'):
+        emb = g.__embedding__
+        for vertex in emb:
+            for nbr in emb[vertex]:
+                nbr = relabeldict[nbr]
+            vertex = relabeldict[nbr]
+        graph.__embedding__ = emb
     return graph
 
 def trace_faces(graph, rot_sys):
@@ -123,185 +130,3 @@ def trace_faces(graph, rot_sys):
     if (len(path) != 0): faces.append(path)
     return faces
 
-def all_embeddings(graph):
-    """
-    Returns a list of tuples, one for each possible embedding.
-    The tuples have the minimal genus of the particular
-    embedding as the first entry.  The second entry is a list
-    of lists of edges (tuples) that represent the embedding
-    via face traces.  Each inner list represents one face in
-    the embedding.
-
-    Note -- returns list of tuples:
-        (genus,[list of lists representing face traces])
-
-    INPUT:
-        graph -- the graph to find all possible embeddings of
-
-    EXAMPLES:
-        sage: from sage.graphs import graph_genus1
-        sage: J = Graph({'alpha':['beta', 'epsilon'], 'gamma':['beta', 'epsilon']})
-        sage: J.set_boundary(['beta','alpha'])
-        sage: graph_genus1.all_embeddings(J)
-        [(0, [[(0, 1), (1, 3), (3, 2), (2, 0)], [(1, 0), (0, 2), (2, 3), (3, 1)]])]
-        sage: K23 = graphs.CompleteBipartiteGraph(2,3)
-        sage: graph_genus1.all_embeddings(K23)
-        [(1,
-          [[(1, 2),
-            (2, 0),
-            (0, 3),
-            (3, 1),
-            (1, 4),
-            (4, 0),
-            (0, 2),
-            (2, 1),
-            (1, 3),
-            (3, 0),
-            (0, 4),
-            (4, 1)]]),
-         (0,
-          [[(1, 2), (2, 0), (0, 4), (4, 1)],
-           [(1, 3), (3, 0), (0, 2), (2, 1)],
-           [(0, 3), (3, 1), (1, 4), (4, 0)]]),
-         (0,
-          [[(1, 2), (2, 0), (0, 3), (3, 1)],
-           [(1, 3), (3, 0), (0, 4), (4, 1)],
-           [(1, 4), (4, 0), (0, 2), (2, 1)]]),
-         (1,
-          [[(1, 2),
-            (2, 0),
-            (0, 4),
-            (4, 1),
-            (1, 3),
-            (3, 0),
-            (0, 2),
-            (2, 1),
-            (1, 4),
-            (4, 0),
-            (0, 3),
-            (3, 1)]])]
-    """
-    from sage.combinat.all import CyclicPermutationsOfPartition
-
-    graph = nice_copy(graph)
-
-    verts = len(graph.vertices())
-    edges = len(graph.edges())
-
-    # Construct a list of all rotation systems for graph
-    part = []
-    for node in graph.vertices():
-        part.append(graph.neighbors(node))
-    all_perms = []
-    for p in CyclicPermutationsOfPartition(part):
-        all_perms.append(p)
-
-    embeddings = []
-    for p in all_perms:
-        t = trace_faces(graph, p)
-        faces = len(t)
-
-        g = (2-verts+edges-faces)/2
-        embeddings.append((g,t))
-
-    return embeddings
-
-def planar_embeddings(graph):
-    """
-    Returns a list of lists of lists of edges (tuples), where
-    each inner inner list of edges represents the tracing of
-    one face in the embedding, and each inner list of lists
-    represents one planar embedding.  The list is an
-    exhaustive list of all embeddings of graph with genus=0.
-    Returns an empty list if there are no planar embeddings
-    of the graph.
-
-    INPUT:
-        graph -- the graph to find all planar embeddings of
-
-    EXAMPLES:
-        sage: from sage.graphs import graph_genus1
-        sage: K5 = graphs.CompleteGraph(5)
-        sage: graph_genus1.planar_embeddings(K5)
-        []
-
-        sage: K23 = graphs.CompleteBipartiteGraph(2,3)
-        sage: graph_genus1.planar_embeddings(K23)
-        [[[(1, 2), (2, 0), (0, 4), (4, 1)],
-          [(1, 3), (3, 0), (0, 2), (2, 1)],
-          [(0, 3), (3, 1), (1, 4), (4, 0)]],
-         [[(1, 2), (2, 0), (0, 3), (3, 1)],
-          [(1, 3), (3, 0), (0, 4), (4, 1)],
-          [(1, 4), (4, 0), (0, 2), (2, 1)]]]
-        sage: graph_genus1.all_embeddings(K23)
-        [(1,
-          [[(1, 2),
-            (2, 0),
-            (0, 3),
-            (3, 1),
-            (1, 4),
-            (4, 0),
-            (0, 2),
-            (2, 1),
-            (1, 3),
-            (3, 0),
-            (0, 4),
-            (4, 1)]]),
-         (0,
-          [[(1, 2), (2, 0), (0, 4), (4, 1)],
-           [(1, 3), (3, 0), (0, 2), (2, 1)],
-           [(0, 3), (3, 1), (1, 4), (4, 0)]]),
-         (0,
-          [[(1, 2), (2, 0), (0, 3), (3, 1)],
-           [(1, 3), (3, 0), (0, 4), (4, 1)],
-           [(1, 4), (4, 0), (0, 2), (2, 1)]]),
-         (1,
-          [[(1, 2),
-            (2, 0),
-            (0, 4),
-            (4, 1),
-            (1, 3),
-            (3, 0),
-            (0, 2),
-            (2, 1),
-            (1, 4),
-            (4, 0),
-            (0, 3),
-            (3, 1)]])]
-
-        sage: g = graphs.CycleGraph(9)
-        sage: graph_genus1.planar_embeddings(g)
-        [[[(1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8), (8, 0), (0, 1)],
-          [(5, 4), (4, 3), (3, 2), (2, 1), (1, 0), (0, 8), (8, 7), (7, 6), (6, 5)]]]
-        sage: graph_genus1.all_embeddings(g)
-        [(0,
-          [[(1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8), (8, 0), (0, 1)],
-           [(5, 4), (4, 3), (3, 2), (2, 1), (1, 0), (0, 8), (8, 7), (7, 6), (6, 5)]])]
-    """
-    from sage.combinat.all import CyclicPermutationsOfPartition
-
-    graph = nice_copy(graph)
-
-    verts = len(graph.vertices())
-    edges = len(graph.edges())
-
-    # Construct a list of all rotation systems for graph
-    part = []
-    for node in graph.vertices():
-        part.append(graph.neighbors(node))
-    all_perms = []
-    for p in CyclicPermutationsOfPartition(part):
-        all_perms.append(p)
-
-    # planar embeddings
-    plan_emb = []
-
-    for p in all_perms:
-        t = trace_faces(graph, p)
-        faces = len(t)
-
-        # return planar embeddings
-        if ((2-verts+edges-faces)/2 == 0):
-            plan_emb.append(t)
-
-    return plan_emb

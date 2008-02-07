@@ -238,13 +238,13 @@ cdef class PartitionStack:
         sage: P = PartitionStack(10)
         sage: P.set_k(1)
         sage: P.split_vertex(0)
-        sage: P.refine_by_square_matrix(MM, [0], 10, 0)
+        sage: P.refine_by_square_matrix(MM, [0], 10, 0, 1)
         sage: P
         (0,2,3,6,7,8,9,1,4,5)
         (0|2,3,6,7,8,9|1,4,5)
         sage: P.set_k(2)
         sage: P.split_vertex(1)
-        sage: P.refine_by_square_matrix(MM, [7], 10, 0)
+        sage: P.refine_by_square_matrix(MM, [7], 10, 0, 1)
         sage: P
         (0,3,7,8,9,2,6,1,4,5)
         (0|3,7,8,9,2,6|1,4,5)
@@ -492,7 +492,7 @@ cdef class PartitionStack:
                 j = i + 1
             i+=1
 
-    def refine_by_square_matrix(self, G_matrix, alpha, n, dig):
+    def refine_by_square_matrix(self, G_matrix, alpha, n, dig, uif):
         cdef int *_alpha, i, j
         cdef int **G
         _alpha = <int *> sage_malloc( ( 4 * n + 1 )* sizeof(int) )
@@ -520,13 +520,14 @@ cdef class PartitionStack:
         for i from 0 <= i < len(alpha):
             _alpha[i] = alpha[i]
         _alpha[len(alpha)] = -1
-        self._refine_by_square_matrix(_alpha, n, G, dig)
+        self._refine_by_square_matrix(_alpha, n, G, dig, uif)
         sage_free(_alpha)
         for i from 0 <= i < n:
             sage_free(G[i])
         sage_free(G)
 
-    cdef int test_refine_by_square_matrix(self, int *alpha, int n, int **g, int dig) except? -1:
+    cdef int test_refine_by_square_matrix(self, int *alpha, int n, int **g,
+                                          int dig, int uif) except? -1:
         cdef int i, j, result
         initial_partition = [] # this includes the vertex just split out...
         i = 0
@@ -540,7 +541,7 @@ cdef class PartitionStack:
             initial_partition.append(cell)
             cell = []
         #
-        result = self._refine_by_square_matrix(alpha, n, g, dig)
+        result = self._refine_by_square_matrix(alpha, n, g, dig, uif)
         #
         terminal_partition = []
         i = 0
@@ -566,7 +567,7 @@ cdef class PartitionStack:
         verify_partition_refinement(G, initial_partition, terminal_partition)
         return result
 
-    cdef int _refine_by_square_matrix(self, int *alpha, int n, int **G, int dig):
+    cdef int _refine_by_square_matrix(self, int *alpha, int n, int **G, int dig, int uif):
         cdef int m = 0, j # - m iterates through alpha, the indicator cells
                           # - j iterates through the cells of the partition
         cdef int i, t, s, r # local variables:
@@ -676,7 +677,10 @@ cdef class PartitionStack:
                     j = i
                 else: j = i
             m += 1
-        return invariant
+        if uif:
+            return invariant
+        else:
+            return 0
 
     def degree_square_matrix(self, G, v, W):
         cdef int i, j, n = len(G)
@@ -791,7 +795,8 @@ def _term_pnest_graph(G, PartitionStack nu):
     H.relabel(d)
     return H
 
-def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity=0):
+def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
+                verbosity=0, use_indicator_function=True):
     """
     Assumes that the vertex set of G is {0,1,...,n-1} for some n.
 
@@ -813,6 +818,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
                     2 - with timings
                     3 - display partition nests
                     4 - display orbit partition
+        use_indicator_function -- option to turn off indicator function
+    (False -> slower)
 
     STATE DIAGRAM:
         sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] } )
@@ -1190,8 +1197,18 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         sage: gens = search_tree(C, [C.vertices()], lab=False)
         sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order() # long time
         46080
+
+    One can also turn off the indicator function (note- this will take longer)
+        sage: D1 = DiGraph({0:[2],2:[0],1:[1]}, loops=True)
+        sage: D2 = DiGraph({1:[2],2:[1],0:[0]}, loops=True)
+        sage: a,b = search_tree(D1, [D1.vertices()], use_indicator_function=False)
+        sage: c,d = search_tree(D2, [D2.vertices()], use_indicator_function=False)
+        sage: b==d
+        True
+
     """
     cdef int i, j, m # local variables
+    cdef int uif = 1 if use_indicator_function else 0
 
     cdef OrbitPartition Theta, OP
     cdef int index = 0, size = 1 # see Theorem 2.33 in [1]
@@ -1413,7 +1430,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             alpha[j] = -1
 
             # "nu[0] := R(G, Pi, Pi)"
-            nu._refine_by_square_matrix(alpha, n, M, _dig)
+            nu._refine_by_square_matrix(alpha, n, M, _dig, uif)
 
             if not _dig:
                 if nu._sat_225(n): hh = nu.k
@@ -1433,7 +1450,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             nu._clear()
             alpha[0] = nu._split_vertex(v[nu.k-1])
             alpha[1] = -1
-            i = nu._refine_by_square_matrix(alpha, n, M, _dig)
+            i = nu._refine_by_square_matrix(alpha, n, M, _dig, uif)
 
             # add one, then multiply by the invariant
             mpz_add_ui(Lambda_mpz[nu.k], Lambda_mpz[nu.k-1], 1)

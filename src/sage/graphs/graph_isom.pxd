@@ -68,8 +68,8 @@ cdef class PartitionStack:
     cdef void _percolate(self, int start, int end)
     cdef int _sort_by_function(self, int start, int *degrees, int n)
     cdef void _clear(self)
-    cdef int test_refine_by_square_matrix(self, int *alpha, int n, int **G, int dig) except? -1
-    cdef int _refine_by_square_matrix(self, int *alpha, int n, int **G, int dig)
+    cdef int test_refine_by_square_matrix(self, int *alpha, int n, int **G, int dig, int uif) except? -1
+    cdef int _refine_by_square_matrix(self, int *alpha, int n, int **G, int dig, int uif)
     cdef int _degree_square_matrix(self, int **G, int v, int W)
     cdef int _degree_inv_square_matrix(self, int **G, int v, int W)
     cdef int _first_smallest_nontrivial(self, int *W, int n)

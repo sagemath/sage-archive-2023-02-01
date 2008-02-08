@@ -2,7 +2,7 @@ Source: gfan
 Section: math
 Priority: extra
 Maintainer: Tim Abbott <tabbott@mit.edu>
-Build-Depends: @cdbs@, libgmp3-dev
+Build-Depends: @cdbs@, libgmp3-dev, libcdd-dev
 Standards-Version: 3.7.2
 
 Package: gfan

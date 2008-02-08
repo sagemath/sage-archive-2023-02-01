@@ -23,6 +23,8 @@ def CartanType(t):
     EXAMPLES:
 
     """
+    if isinstance(t, CartanType_simple):
+        return t;
     if isinstance(t, (int, Integer)):
         if t > 0:
             return CartanType_simple(['A', t])

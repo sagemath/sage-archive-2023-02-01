@@ -1011,7 +1011,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     def _echelon_strassen(self):
         raise NotImplementedError
 
-    def echelon_form(self, algorithm="default", cutoff=0, include_zero_rows=True):
+    def echelon_form(self, algorithm="default", cutoff=0, include_zero_rows=True, D=None):
         r"""
         Return the echelon form of this matrix over the integers also
         known as the hermit normal form (HNF).
@@ -1023,6 +1023,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             cutoff -- ignored currently
             include_zero_rows -- (default: True)
                                  if False, don't include zero rows
+            D -- (default: None)  if given and the algorithm is 'ntl', then D
+                   must be a multiple of the determinant and this function
+                   will use that fact.
 
         EXAMPLES:
             sage: A = MatrixSpace(ZZ,2)([1,2,3,4])
@@ -1131,7 +1134,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     v[i,j] = self.get_unsafe(nr-i-1,nc-j-1)
 
             try:
-                w = v.HNF()
+                w = v.HNF(D=D)
             except RuntimeError: # HNF may fail if a nxm matrix has rank < m
                 return self.echelon_form(algorithm='pari',
                                          include_zero_rows=include_zero_rows,

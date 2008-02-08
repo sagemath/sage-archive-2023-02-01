@@ -34,16 +34,3 @@ Index: symmetrica-2.0/make.unix
 +clean:
 +	rm -f *.o *.a a.out
 \ No newline at end of file
-Index: symmetrica-2.0/sb.c
-===================================================================
---- symmetrica-2.0.orig/sb.c	2007-11-25 19:37:18.000000000 -0500
-+++ symmetrica-2.0/sb.c	2007-11-25 19:38:50.000000000 -0500
-@@ -1803,7 +1803,7 @@
- 	if (gt(e,d)) erg += copy(e,d);
- 	erg += mult(a,b,e);
- 	erg += last_permutation(d,d);
--	erg += divdiff(d,e,c);
-+	erg += divdiff_perm_schubert(d,e,c);
- 	erg += freeall(d);
- 	erg += freeall(e);
- 	ENDR("scalarproduct_schubert");

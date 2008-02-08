@@ -1136,6 +1136,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             try:
                 w = v.HNF(D=D)
             except RuntimeError: # HNF may fail if a nxm matrix has rank < m
+                print "Switching to using PARI for HNF calculation, since NTL failed."
                 return self.echelon_form(algorithm='pari',
                                          include_zero_rows=include_zero_rows,
                                          cutoff=cutoff)

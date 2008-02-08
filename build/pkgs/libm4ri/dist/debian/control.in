@@ -1,0 +1,19 @@
+Source: libm4ri
+Priority: extra
+Maintainer: Tim Abbott <tabbott@mit.edu>
+Build-Depends: @cdbs@
+Standards-Version: 3.7.2
+
+Package: libm4ri-dev
+Architecture: any
+Section: libdevel
+Depends: ${shlibs:Depends}, ${misc:Depends}, libm4ri0
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
+
+Package: libm4ri0
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>

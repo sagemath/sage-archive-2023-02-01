@@ -2,7 +2,7 @@ Source: cddlib
 Section: libs
 Priority: extra
 Maintainer: Tim Abbott <tabbott@mit.edu>
-Build-Depends: @cdbs@
+Build-Depends: @cdbs@, libgmp3-dev
 Standards-Version: 3.7.2
 
 Package: libcdd-dev
@@ -29,7 +29,7 @@ Description: Library for finding vertices of convex polytopes
  .
  Homepage: http://www.ifor.math.ethz.ch/~fukuda/cdd_home/
 
-Package: cdd-test
+Package: libcdd-test
 Section: devel
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}

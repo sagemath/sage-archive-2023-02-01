@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# Usage: dasource [-r REPOS] [PACKAGENAME ...]
+
+# Originally from the MIT Athena 10 project.
+
+# Creates or updates a checkout and source package for each listed
+# PACKAGENAME, or for all regular packages if no PACKAGENAME is
+# specified.
+
+# If REPOS is specified, it is used in preference to the canonical
+# Athena repository trunk.
+
+# Package subdirectories are created in the cwd.  The source checkout
+# will reside in PACKAGENAME/PACKAGENAME-VERSION and the source
+# package will be created in PACKAGENAME.
+
+set -e
+
+die() {
+  echo "$@" >&2
+  exit 1
+}
+
+do_package() {
+  dir=$1
+
+  # Extract the changelog version and strip off the epoch and Debian component.
+  pkgname=$(cd $dir && dpkg-parsechangelog | sed -n 's/Source: //p')
+  changever=$(cd $dir && dpkg-parsechangelog | sed -n 's/Version: //p')
+  sver=$(echo $changever | sed -re 's/^[0-9]+://p')
+  upver=$(echo $sver | sed -re 's/-[^-]*$//')
+
+  # Rename the source checkout if necessary.
+  correctdir=${pkgname}-$upver
+  if [ $dir != $correctdir ]; then
+    echo "Renaming $dir to $correctdir"
+    mv $dir $correctdir
+    dir=$correctdir
+  fi
+
+  # If the version has a debian component then we need an orig archive.
+  if [ $sver != $upver ]; then
+    tarfile=${pkgname}_$upver.orig.tar.gz
+    if [ ! -e $pkgname/$tarfile ]; then
+        echo "Creating original source archive"
+        (tar --exclude=.svn --exclude=debian $correctname -czf \
+         $tarfile ${pkgname}-$upver)
+    fi
+  fi
+
+  # Build an unsigned package, ignoring version control subdirs in the source.
+  echo "Creating source package"
+  (cd $dir && debuild -S -i -I -sa -us -uc)
+}
+
+if [ $# -gt 0 ]; then
+    do_package "$1"
+fi

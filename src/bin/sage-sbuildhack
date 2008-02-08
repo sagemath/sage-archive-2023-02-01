@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Wrapper around sbuild.  The main purpose is to append a
+# distribution-dependent string like "~ubuntu7.10" to the binary
+# package version, using Sbuildhack.pm.
+
+# Originally from Debathena
+
+usage() {
+    echo "Usage: $0 <dist>-<arch> ..." >&2
+    exit 1
+}
+
+dist_arch=$1; shift
+if [ -z "$dist_arch" ]; then usage; fi
+IFS=- read dist arch <<EOF
+$dist_arch
+EOF
+if [ -z "$dist" ] || [ -z "$arch" ]; then usage; fi
+perl -I"$(dirname "$0")" -Msage-SbuildHack \
+	/usr/bin/sbuild --binNMU=171717 --make-binNMU="Build with sbuild." \
+	-d "$dist" --arch="$arch" -v "$@"

@@ -169,11 +169,14 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 aprec = mpz_get_si((<Integer>absprec).value)
                 if aprec > self.prime_pow.ram_prec_cap:
                     aprec = self.prime_pow.ram_prec_cap
-        if relprec is not infinity:
+        if relprec is infinity:
+            # This might not be the right default
+            rprec = self.prime_pow.ram_prec_cap
+        else:
             if not PY_TYPE_CHECK(relprec, Integer):
-                relprec = Integer(relprec)
+                rprec = Integer(relprec)
             if mpz_cmp_ui((<Integer>relprec).value, aprec) >= 0:
-                relprec = infinity
+                rprec = self.prime_pow.ram_prec_cap
             elif relprec < 0:
                 rprec = 0
             else:

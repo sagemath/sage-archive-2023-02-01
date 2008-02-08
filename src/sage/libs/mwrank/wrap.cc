@@ -4,8 +4,8 @@ using namespace std;
 
 #include "wrap.h"
 
-#include "cremona/htconst.h"
-#include "cremona/interface.h"
+#include "eclib/htconst.h"
+#include "eclib/interface.h"
 
 /**************** Miscellaneous functions ****************/
 
@@ -169,6 +169,19 @@ char* point_vector_to_str(const vector<Point>& v)
   return stringstream_to_char(instore);
 }
 
+char* p2point_vector_to_str(const vector<P2Point>& v)
+{
+  ostringstream instore;
+  instore << "[";
+  for (unsigned int i=0; i<v.size(); i++) {
+    instore << v[i];
+    if (i+1 < v.size())
+      instore << ", ";
+  }
+  instore << "]";
+  return stringstream_to_char(instore);
+}
+
 char* mw_getbasis(struct mw* m)
 {
   return point_vector_to_str(m->getbasis());
@@ -243,7 +256,7 @@ long two_descent_getselmer(struct two_descent* t)
 
 char* two_descent_getbasis(struct two_descent* t)
 {
-  return point_vector_to_str(t->getbasis());
+  return p2point_vector_to_str(t->getbasis());
 }
 
 int two_descent_ok(const struct two_descent* t)

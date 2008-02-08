@@ -28,7 +28,7 @@ global_names_at_init = None
 
 def init(object_directory=None, globs={}):
     """
-    Initialize SAGE for use with the web notebook interface.
+    Initialize \sage for use with the web notebook interface.
     """
     global sage_globals, globals_at_init, global_names_at_init
     global EMBEDDED_MODE
@@ -49,9 +49,6 @@ def init(object_directory=None, globs={}):
     sage.misc.pager.EMBEDDED_MODE = True
 
     setup_systems(globs)
-
-    # Turn on latex print mode by default.
-    #sage.misc.latex.lprint()
 
 
 def setup_systems(globs):
@@ -117,10 +114,10 @@ def completions(s, globs, format=False, width=90, system="None"):
 
 def docstring(obj_name, globs):
     r"""
-    Format obj's docstring for printing in Sage notebook.
+    Format \var{obj_name}'s docstring for printing in \sage notebook.
 
     AUTHOR:
-        -- William Stein (but partly taken from IPython for use in SAGE).
+        -- William Stein (but partly taken from IPython for use in \sage).
         -- Extensions by Nick Alexander
     """
     try:
@@ -145,10 +142,10 @@ def docstring(obj_name, globs):
 
 def source_code(s, globs):
     r"""
-    Format obj's source code for printing in Sage notebook.
+    Format obj's source code for printing in \sage notebook.
 
     AUTHOR:
-        -- William Stein (but partly taken from IPython for use in SAGE).
+        -- William Stein (but partly taken from IPython for use in \sage).
         -- Extensions by Nick Alexander
     """
     try:
@@ -276,7 +273,7 @@ def cython_import(filename, verbose=False, compile_message=False,
     OUTPUT:
         module -- the module that contains the compiled cython code.
 
-    Raises an ImportError exception if anything goes wrong.
+    Raises an \exception{ImportError} exception if anything goes wrong.
     """
     name, build_dir = sage.misc.cython.cython(filename, verbose=verbose,
                                             compile_message=compile_message,
@@ -296,7 +293,7 @@ def cython_import_all(filename, globals, verbose=False, compile_message=False,
         changes globals using the attributes of the Cython module
         that do not begin with an underscore.
 
-    Raises an ImportError exception if anything goes wrong.
+    Raises an \exception{ImportError} exception if anything goes wrong.
     """
     m = cython_import(filename, verbose=verbose, compile_message=compile_message,
                      use_cache=use_cache,

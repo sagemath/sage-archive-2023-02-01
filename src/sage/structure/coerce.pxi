@@ -1,7 +1,7 @@
 # These are shared inline functions.
 
 #################################################################################
-# fast tests to verify no coersion is needed
+# fast tests to verify no coercion is needed
 #################################################################################
 
 cdef inline bint have_same_parent(left, right):
@@ -35,7 +35,7 @@ cdef inline bint have_same_base(Element x, Element y):
 # parent
 #################################################################################
 cdef inline parent_c(x):
-    if PY_TYPE_CHECK(x,Element):
+    if PY_TYPE_CHECK(x, Element):
         return (<Element>x)._parent
     elif hasattr(x, 'parent'):
         return x.parent()

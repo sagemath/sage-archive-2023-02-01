@@ -522,6 +522,17 @@ def loads(s, compress=True):
         sage: loads(s)
         [   1    2]
         [   3 -4/3]
+
+    One can load uncompressed data even if one messes up
+    and doesn't specify compress=False.  This is slightly
+    slower though.
+        sage: v = [1..10]
+        sage: loads(dumps(v, compress=False)) == v
+        True
+        sage: loads(dumps(v, compress=False), compress=True) == v
+        True
+        sage: loads(dumps(v, compress=True), compress=False) == v
+        True
     """
     if not isinstance(s, str):
         raise TypeError, "s must be a string"
@@ -529,7 +540,6 @@ def loads(s, compress=True):
         try:
             return cPickle.loads(comp.decompress(s))
         except Exception, msg1:
-            raise
             try:
                 return cPickle.loads(comp_other.decompress(s))
             except Exception, msg2:

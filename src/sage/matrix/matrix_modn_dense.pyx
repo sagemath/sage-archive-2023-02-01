@@ -501,14 +501,14 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return R(v)
 
     def echelonize(self, algorithm="linbox", **kwds):
-        """
+        r"""
         Puts self in row echelon form.
 
         INPUT:
             self -- a mutable matrix
             algorithm -- 'linbox' -- uses the C++ linbox library
-                         'gauss'  -- uses a custom slower O(n^3) Gauss
-                                     elimination implemented in SAGE.
+                         'gauss'  -- uses a custom slower $O(n^3)$ Gauss
+                                     elimination implemented in \sage.
                          'all' -- compute using both algorithms and verify
                                   that the results are the same (for the paranoid).
             **kwds -- these are all ignored

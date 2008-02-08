@@ -466,6 +466,44 @@ cdef class Polynomial(CommutativeAlgebraElement):
         self._compiled = CompiledPolynomialFunction(self.list())
         return self._compiled
 
+    def _fast_float_(self, *vars):
+        """
+        Returns a quickly-evaluating function on floats.
+
+        EXAMPLE:
+            sage: R.<t> = QQ[]
+            sage: f = t^3-t
+            sage: ff = f._fast_float_()
+            sage: ff(10)
+            990.0
+
+        Horner's method is used:
+            sage: f = (t+10)^3; f
+            t^3 + 30*t^2 + 300*t + 1000
+            sage: list(f._fast_float_())
+            ['load 0', 'push 30.0', 'add', 'load 0', 'mul', 'push 300.0', 'add', 'load 0', 'mul', 'push 1000.0', 'add']
+        """
+        from sage.ext.fast_eval import fast_float_arg, fast_float_constant
+        var = (<ParentWithGens>self._parent)._names[0]
+        if len(vars) == 0:
+            x = fast_float_arg(0)
+        elif var in vars:
+            x = fast_float_arg(list(vars).index(var))
+        else:
+            raise ValueError, "free variable: %s" % var
+        cdef int i, d = self.degree()
+        expr = x
+        coeff = self[d]
+        if coeff != 1:
+            expr *= fast_float_constant(coeff)
+        for i from d > i >= 0:
+            coeff = self[i]
+            if coeff:
+                expr += fast_float_constant(coeff)
+            if i > 0:
+                expr *= x
+        return expr
+
     cdef int _cmp_c_impl(self, Element other) except -2:
         """
         Compare the two polynomials self and other.
@@ -2667,7 +2705,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(-1.2146389322441... - 0.14142505258239...*I, 1), (-0.14142505258239... + 1.2146389322441...*I, 1), (0.14142505258239... - 1.2146389322441...*I, 1), (1.2146389322441... + 0.14142505258239...*I, 1)]
             sage: p = p^2 * (y^2 - 2)
             sage: p.roots(ring=CIF)
-            [([-1.4142135623730952 .. -1.4142135623730949], 1), ([1.4142135623730949 .. 1.4142135623730952], 1), ([-1.2146389322441827 .. -1.2146389322441821] - [0.1414250525823937... .. 0.1414250525823939...]*I, 2), ([-0.141425052582393... .. -0.1414250525823937...] + [1.2146389322441821 .. 1.2146389322441827]*I, 2), ([0.141425052582393... .. 0.141425052582393...] - [1.2146389322441821 .. 1.2146389322441827]*I, 2), ([1.2146389322441821 .. 1.2146389322441827] + [0.14142505258239376 .. 0.14142505258239399]*I, 2)]
+            [([-1.41421356237309... .. -1.41421356237309...], 1), ([1.41421356237309... .. 1.41421356237309...], 1), ([-1.214638932244182... .. -1.21463893224418...] - [0.1414250525823937... .. 0.1414250525823939...]*I, 2), ([-0.141425052582393... .. -0.1414250525823937...] + [1.21463893224418... .. 1.214638932244182...]*I, 2), ([0.141425052582393... .. 0.141425052582393...] - [1.21463893224418... .. 1.21463893224418...]*I, 2), ([1.21463893224418... .. 1.21463893224418...] + [0.141425052582393... .. 0.141425052582393...]*I, 2)]
 
         There are many combinations of floating-point input and output
         types that work.  (Note that some of them are quite pointless...
@@ -3040,6 +3078,40 @@ sage: rts[0][0] == rt2
             't'
         """
         return self.parent().variable_name()
+
+    def variables(self):
+        """
+        Returns the list of variables occuring in this polynomial.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: x.variables()
+            (x,)
+
+        A constant polynomial has no variables.
+            sage: R(2).variables()
+            ()
+        """
+        if self.is_constant():
+            return ()
+        else:
+            return self._parent.gens()
+
+    def args(self):
+        """
+        Returns the generator of this polynomial ring, which is the (only)
+        argument used when calling self.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: x.args()
+            (x,)
+
+        A constant polynomial has no variables, but still takes a single argument.
+            sage: R(2).args()
+            (x,)
+        """
+        return self._parent.gens()
 
     def valuation(self, p=None):
         r"""

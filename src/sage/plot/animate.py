@@ -252,13 +252,14 @@ class Animation(SageObject):
         graphics objects in self.
 
         This function will only work if the Imagemagick command line
-        tools package is installed, i.e., you have the"convert" command.
+        tools package is installed, i.e., you have the ``\code{convert}'' command.
 
         INPUT:
             delay -- (default: 20) delay in hundredths of a second between frames
             outfile -- file that the animated gif gets saved to
             iterations -- integer (default: 0); number of iterations of
                           animation.  If 0, loop forever.
+
         AUTHOR:
             -- William Stein
         """

@@ -10,6 +10,8 @@ from sage.misc.all import verbose
 import sage.rings.all as rings
 from sage.categories.all import Objects
 
+from sage.rings.number_field.number_field_element import NumberFieldElement as NumberFieldElement
+
 import eis_series
 import element
 import submodule
@@ -19,6 +21,16 @@ class EisensteinSubmodule(submodule.ModularFormsSubmodule):
     The Eisenstein submodule of an ambient space of modular forms.
     """
     def __init__(self, ambient_space):
+        """
+        Return the Eisenstein submodule of the given space.
+
+        EXAMPLES:
+            sage: E = ModularForms(23,4).eisenstein_subspace() ## indirect doctest
+            sage: E
+            Eisenstein subspace of dimension 2 of Modular Forms space of dimension 7 for Congruence Subgroup Gamma0(23) of weight 4 over Rational Field
+            sage: E == loads(dumps(E))
+            True
+        """
         verbose('creating eisenstein submodule of %s'%ambient_space)
         d = ambient_space._dim_eisenstein()
         V = ambient_space.module()
@@ -29,9 +41,26 @@ class EisensteinSubmodule(submodule.ModularFormsSubmodule):
         submodule.ModularFormsSubmodule.__init__(self, ambient_space, S)
 
     def _repr_(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: E = ModularForms(23,4).eisenstein_subspace() ## indirect doctest
+            sage: E._repr_()
+            'Eisenstein subspace of dimension 2 of Modular Forms space of dimension 7 for Congruence Subgroup Gamma0(23) of weight 4 over Rational Field'
+        """
         return "Eisenstein subspace of dimension %s of %s"%(self.dimension(), self.ambient_module())
 
     def eisenstein_submodule(self):
+        """
+        Return the Eisenstein submodule of self.
+        (Yes, this is just self.)
+
+        EXAMPLES:
+            sage: E = ModularForms(23,4).eisenstein_subspace()
+            sage: E == E.eisenstein_submodule()
+            True
+        """
         return self
 
     def modular_symbols(self, sign=0):
@@ -77,17 +106,86 @@ class EisensteinSubmodule(submodule.ModularFormsSubmodule):
 
 class EisensteinSubmodule_params(EisensteinSubmodule):
     def parameters(self):
+        r"""
+        Return a list of parameters for each Eisenstein series
+        spanning self. That is, for each such series, return a triple
+        of the form ($\psi$, $\chi$, level), where $\psi$ and $\chi$
+        are the characters defining the Eisenstein series, and level
+        is the smallest level at which this series occurs.
+
+        EXAMPLES:
+            sage: ModularForms(24,2).eisenstein_submodule().parameters()
+            [([1, 1, 1], [1, 1, 1], 2),
+            ([1, 1, 1], [1, 1, 1], 3),
+            ([1, 1, 1], [1, 1, 1], 4),
+            ([1, 1, 1], [1, 1, 1], 6),
+            ([1, 1, 1], [1, 1, 1], 8),
+            ([1, 1, 1], [1, 1, 1], 12),
+            ([1, 1, 1], [1, 1, 1], 24)]
+            sage: EisensteinForms(12,6).parameters()
+            [([1, 1], [1, 1], 1),
+            ([1, 1], [1, 1], 2),
+            ([1, 1], [1, 1], 3),
+            ([1, 1], [1, 1], 4),
+            ([1, 1], [1, 1], 6),
+            ([1, 1], [1, 1], 12)]
+            sage: ModularForms(DirichletGroup(24).0,3).eisenstein_submodule().parameters()
+            [([1, 1, 1], [-1, 1, 1], 1),
+            ([1, 1, 1], [-1, 1, 1], 2),
+            ([1, 1, 1], [-1, 1, 1], 3),
+            ([1, 1, 1], [-1, 1, 1], 6),
+            ([-1, 1, 1], [1, 1, 1], 1),
+            ([-1, 1, 1], [1, 1, 1], 2),
+            ([-1, 1, 1], [1, 1, 1], 3),
+            ([-1, 1, 1], [1, 1, 1], 6)]
+        """
         try:
             return self.__parameters
         except AttributeError:
-            P = eis_series.compute_eisenstein_params(self._parameters_character(), self.weight())
+            char = self._parameters_character()
+            if char is None:
+                P = eis_series.compute_eisenstein_params(self.level(), self.weight())
+            else:
+                P = eis_series.compute_eisenstein_params(char, self.weight())
             self.__parameters = P
             return P
 
     def _parameters_character(self):
+        """
+        Return the character defining self.
+
+        EXAMPLES:
+            sage: EisensteinForms(DirichletGroup(33).1,5)._parameters_character()
+            [1, zeta10]
+        """
         return self.character()
 
     def change_ring(self, base_ring):
+        """
+        Return self as a module over base_ring.
+
+        EXAMPLES:
+        sage: E = EisensteinForms(12,2) ; E
+        Eisenstein subspace of dimension 5 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(12) of weight 2 over Rational Field
+        sage: E.basis()
+        [
+        1 + O(q^6),
+        q + 6*q^5 + O(q^6),
+        q^2 + O(q^6),
+        q^3 + O(q^6),
+        q^4 + O(q^6)
+        ]
+        sage: E.change_ring(GF(5))
+        Eisenstein subspace of dimension 5 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(12) of weight 2 over Finite Field of size 5
+        sage: E.change_ring(GF(5)).basis()
+        [
+        1 + O(q^6),
+        q + q^5 + O(q^6),
+        q^2 + O(q^6),
+        q^3 + O(q^6),
+        q^4 + O(q^6)
+        ]
+        """
         if base_ring == self.base_ring():
             return self
         A = self.ambient_module()
@@ -157,29 +255,22 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
             self.__eisenstein_series = E
             return E
 
-    def xxx_compute_q_expansion_basis(self, prec):
-        E = self.eisenstein_series()
-        QQ = rings.QQ
-        V = QQ**prec
-        G = []
-        z = QQ(0)
-        # TODO: Possibly optimization: include one form from each Galois orbit.
-        for e in E:
-            f = e.q_expansion(prec)
-            w = f.padded_list(prec)
-            if f.base_ring() == QQ:
-                G.append(V(w))
-            else:
-                assert False, 'the following is just wrong in general'
-                for i in range(f.base_ring().degree()):
-                    G.append(V([x[i] for x in w]))
-        #print Sequence(G,cr=True)
-        W = V.submodule(G, check=False)
-        R = self._q_expansion_ring()
-        X = [R(f.list(), prec) for f in W.basis()]
-        return X + [R(0,prec)]*(self.dimension() - len(X))
-
     def _compute_q_expansion_basis(self, prec):
+        """
+        Compute a q-expansion basis for self to precision prec.
+
+        EXAMPLES:
+            sage: EisensteinForms(22,4)._compute_q_expansion_basis(6)
+            [1 + O(q^6),
+            q + 28*q^3 - 8*q^4 + 126*q^5 + O(q^6),
+            q^2 + 9*q^4 + O(q^6),
+            O(q^6)]
+            sage: EisensteinForms(22,4)._compute_q_expansion_basis(15)
+            [1 + O(q^15),
+            q + 28*q^3 - 8*q^4 + 126*q^5 + 344*q^7 - 72*q^8 + 757*q^9 - 224*q^12 + 2198*q^13 + O(q^15),
+            q^2 + 9*q^4 + 28*q^6 + 73*q^8 + 126*q^10 + 252*q^12 + 344*q^14 + O(q^15),
+            q^11 + O(q^15)]
+        """
         E = self.eisenstein_series()
         K = self.base_ring()
         V = K**prec
@@ -196,14 +287,26 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
                 s = [r(x) for x in w]
                 for i in range(d):
                     G.append(V([x[i] for x in s]))
-            # end if
-        # end for
+
         W = V.submodule(G, check=False)
         R = self._q_expansion_ring()
         X = [R(f.list(), prec) for f in W.basis()]
         return X + [R(0,prec)]*(self.dimension() - len(X))
 
     def _q_expansion(self, element, prec):
+        """
+        Compute a q-expansion for a given element of self,
+        expressed as a vector of coefficients for the basis
+        vectors of self, viewing self as a subspace of the
+        corresponding space of modular forms.
+
+        EXAMPLES:
+        sage: E = EisensteinForms(17,4)
+        sage: (11*E.0 + 3*E.1).q_expansion(20)
+        11 + 3*q + 27*q^2 + 84*q^3 + 219*q^4 + 378*q^5 + 756*q^6 + 1032*q^7 + 1755*q^8 + 2271*q^9 + 3402*q^10 + 3996*q^11 + 6132*q^12 + 6594*q^13 + 9288*q^14 + 10584*q^15 + 14043*q^16 + 17379*q^17 + 20439*q^18 + 20580*q^19 + O(q^20)
+        sage: E._q_expansion([0,0,0,0,11,3],20)
+        11 + 3*q + 27*q^2 + 84*q^3 + 219*q^4 + 378*q^5 + 756*q^6 + 1032*q^7 + 1755*q^8 + 2271*q^9 + 3402*q^10 + 3996*q^11 + 6132*q^12 + 6594*q^13 + 9288*q^14 + 10584*q^15 + 14043*q^16 + 17379*q^17 + 20439*q^18 + 20580*q^19 + O(q^20)
+        """
         B = self.q_expansion_basis(prec)
         f = self._q_expansion_zero()
         for i in range(self._start_position, len(element)):
@@ -222,6 +325,15 @@ class EisensteinSubmodule_g1_Q(EisensteinSubmodule_params):
     Space of Eisenstein forms for Gamma1(N).
     """
     def _parameters_character(self):
+        """
+        Return the character defining self. Since self is
+        a space of Eisenstein forms on Gamma1(N), the character
+        is the trivial one, which we represent by the level.
+
+        EXAMPLES:
+            sage: EisensteinForms(Gamma1(7),4)._parameters_character()
+            7
+        """
         return self.level()
 
 
@@ -249,7 +361,6 @@ class EisensteinSubmodule_eps(EisensteinSubmodule_params):
         sage: ModularSymbols(e,2).eisenstein_subspace().T(2).matrix().fcp()
         (x + zeta3 + 2) * (x + 2*zeta3 + 1) * (x - 2*zeta3 - 1)^2 * (x - zeta3 - 2)^2
 
-
 	sage: M.basis()
         [
         1 - 3*zeta3*q^6 + (-2*zeta3 + 2)*q^9 + O(q^10),
@@ -259,7 +370,6 @@ class EisensteinSubmodule_eps(EisensteinSubmodule_params):
         q^4 - 2*zeta3*q^7 + O(q^10),
         q^5 + (zeta3 + 1)*q^8 + O(q^10)
         ]
-
 
     """
     # TODO
@@ -271,11 +381,55 @@ class EisensteinSubmodule_eps(EisensteinSubmodule_params):
 from sage.rings.all import CyclotomicField, lcm, euler_phi
 
 def cyclotomic_restriction(L,K):
+    r"""
+    Given two cyclotomic fields L and K, compute the compositum
+    M of K and L, and return a function and the index [M:K]. The
+    function is a map that acts as follows (here M = Q($\zeta_m$)):
+
+       INPUT: element alpha in L
+       OUTPUT: a polynomial f(x) in K[x] such that f(zeta_m) = alpha,
+               where we view alpha as living in M. (Note that
+               $\zeta_m$ generates M, not L.)
+
+    EXAMPLES:
+        sage: L = CyclotomicField(12) ; N = CyclotomicField(33) ; M = CyclotomicField(132)
+        sage: z, n = sage.modular.modform.eisenstein_submodule.cyclotomic_restriction(L,N)
+        sage: n
+        2
+
+        sage: z(L.0)
+        (-zeta33^19)*x
+        sage: z(L.0)(M.0)
+        zeta132^11
+
+        sage: z(L.0^3-L.0+1)
+        (zeta33^19 + zeta33^8)*x + 1
+        sage: z(L.0^3-L.0+1)(M.0)
+        zeta132^33 - zeta132^11 + 1
+        sage: z(L.0^3-L.0+1)(M.0) - M(L.0^3-L.0+1)
+        0
+    """
     if not L.has_coerce_map_from(K):
         M = CyclotomicField(lcm(L.zeta_order(), K.zeta_order()))
         f = cyclotomic_restriction_tower(M,K)
         def g(x):
-            return f(M(x)), euler_phi(M.zeta_order())//euler_phi(K.zeta_order())
+            """
+            Function returned by cyclotomic restriction.
+
+            INPUT: element alpha in L
+            OUTPUT: a polynomial f(x) in K[x] such that f(zeta_m) = alpha,
+                    where we view alpha as living in M. (Note that
+                    $\zeta_m$ generates M, not L.)
+
+            EXAMPLES:
+            sage: L = CyclotomicField(12)
+            sage: N = CyclotomicField(33)
+            sage: g, n = sage.modular.modform.eisenstein_submodule.cyclotomic_restriction(L,N)
+            sage: g(L.0)
+            (-zeta33^19)*x
+            """
+            return f(M(x))
+        return g, euler_phi(M.zeta_order())//euler_phi(K.zeta_order())
     else:
         return cyclotomic_restriction_tower(L,K), \
                euler_phi(L.zeta_order())//euler_phi(K.zeta_order())
@@ -286,9 +440,16 @@ def cyclotomic_restriction_tower(L,K):
     Suppose L/K is an extension of cyclotomic fields and L=Q(zeta_m).
     This function computes a map with the following property:
 
-       INPUT: element alpha in L
-       OUTPUT: a list that gives the coefficients of a polynomial f(x) in K[x]
-               such that f(zeta_m) = alpha.
+       INPUT: an element alpha in L
+       OUTPUT: a polynomial f(x) in K[x] such that f(zeta_m) = alpha.
+
+    EXAMPLES:
+        sage: L = CyclotomicField(12) ; K = CyclotomicField(6)
+        sage: z = sage.modular.modform.eisenstein_submodule.cyclotomic_restriction_tower(L,K)
+        sage: z(L.0)
+        x
+        sage: z(L.0^2+L.0)
+        x + zeta6
     """
     if not L.has_coerce_map_from(K):
         raise ValueError, "K must be contained in L"
@@ -296,8 +457,25 @@ def cyclotomic_restriction_tower(L,K):
     R = K['x']
     x = R.gen()
     g = R(f)
-    h = g.factor()[0][0]    # all factors are the same, since everybody is Galois
+    h_ls = [ x[0] for x in g.factor() if x[0](L.gen(0)) == 0 ]
+    if len(h_ls) == 0:
+        raise ValueError, "K (= Q(\zeta_%s)) is not contained in L (= Q(\zeta_%s))"%(K.zeta_order(), L.zeta_order())
+    h = h_ls[0]
     def z(a):
+        """
+        Function returned by cyclotomic_restriction_tower.
+
+        INPUT: an element alpha in L
+        OUTPUT: a polynomial f(x) in K[x] such that f(zeta_m) = alpha.
+
+        EXAMPLES:
+            sage: L = CyclotomicField(121) ; K = CyclotomicField(11)
+            sage: z = sage.modular.modform.eisenstein_submodule.cyclotomic_restriction_tower(L,K)
+            sage: z(L.0)
+            x
+            sage: z(L.0^11)
+            zeta11
+        """
         return R(a.polynomial()) % h
     return z
 

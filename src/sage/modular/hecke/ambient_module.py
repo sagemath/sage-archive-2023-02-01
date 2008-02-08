@@ -150,7 +150,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             level -- int, the level of the codomain of the map (positive int).
 
             t  -- int, the parameter of the degeneracy map, i.e., the map is
-                  related to f(q) |--> f(q^t).
+                  related to $f(q)$ |--> $f(q^t)$.
 
         OUTPUT:
             A morphism from self to corresponding the Hecke module of

@@ -1,5 +1,5 @@
 r"""
-Further Examples.
+Calculus Tests and Examples.
 
 Compute the Christoffel symbol.
 
@@ -89,7 +89,7 @@ Mathematica docs:
     n*x^(n - 1)
     sage: diff(x^2 * log(x+a), x)
     2*x*log(x + a) + x^2/(x + a)
-    sage: derivative(atan(x), x)
+    sage: derivative(arctan(x), x)
     1/(x^2 + 1)
     sage: derivative(x^n, x, 3)
     (n - 2)*(n - 1)*n*x^(n - 3)
@@ -99,8 +99,8 @@ Mathematica docs:
     2*x*diff(f(x^2), x, 1) + 2*f(x^2)
     sage: print integrate( 1/(x^4 - a^4), x)
                                                            x
-                                                      atan(-)
-                            log(x + a)   log(x - a)	       a
+                                                    arctan(-)
+                            log(x + a)   log(x - a)	   a
                           - ---------- + ---------- - -------
                                   3		   3	      3
                                4 a	        4 a	   2 a
@@ -118,10 +118,10 @@ Mathematica docs:
     integrate(x^x, x)
     sage: print integrate(1/(x^3+1),x)
                                              2 x - 1
-                           2	    atan(-------)
-                      log(x  - x + 1)	 sqrt(3)    log(x + 1)
+                           2          arctan(-------)
+                      log(x  - x + 1)        sqrt(3)    log(x + 1)
                     - --------------- + ------------- + ----------
-                             6	       sqrt(3)	        3
+                             6             sqrt(3)          3
     sage: integrate(1/(x^3+1), x, 0, 1)
     (6*log(2) + sqrt(3)*pi)/18 + sqrt(3)*pi/18
 
@@ -133,7 +133,7 @@ Mathematica docs:
     sage: forget()
 
 The following are a bunch of examples of integrals that Mathematica
-can do, but SAGE currently can't do:
+can do, but \sage currently can't do:
     sage: integrate(sqrt(x + sqrt(x)), x)    # todo -- mathematica can do this
     integrate(sqrt(x + sqrt(x)), x)
     sage: integrate(log(x)*exp(-x^2))        # todo -- mathematica can do this
@@ -189,7 +189,7 @@ Maple documentation:
 
 
     sage: integrate( x/(x^3-1), x)
-    -log(x^2 + x + 1)/6 + atan((2*x + 1)/sqrt(3))/sqrt(3) + log(x - 1)/3
+    -log(x^2 + x + 1)/6 + arctan((2*x + 1)/sqrt(3))/sqrt(3) + log(x - 1)/3
     sage: integrate(exp(-x^2), x)
     sqrt(pi)*erf(x)/2
     sage: integrate(exp(-x^2)*log(x), x)       # todo: maple can compute this exactly.

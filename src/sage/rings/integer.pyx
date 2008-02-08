@@ -102,6 +102,7 @@ include "../ext/stdsage.pxi"
 include "../ext/python_list.pxi"
 include "../ext/python_number.pxi"
 include "../ext/python_int.pxi"
+include "../structure/coerce.pxi"   # for parent_c
 include "../libs/pari/decl.pxi"
 
 cdef extern from "mpz_pylong.h":
@@ -902,10 +903,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1
             sage: (-1)^(1/3)
             (-1)^(1/3)
+
+        For consistency with Python and MPFR, 0^0 is defined to be 1
+        in Sage:
             sage: 0^0
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: 0^0 is undefined.
+            1
 
 
         The base need not be an integer (it can be a builtin
@@ -931,6 +933,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2^x
             sage: 2^1.5              # real number
             2.82842712474619
+            sage: 2^float(1.5)       # python float
+            2.8284271247461903
             sage: 2^I                # complex number
             2^I
             sage: f = 2^(sin(x)-cos(x)); f
@@ -957,9 +961,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return Mod(self, modulus) ** n
 
 
-        cdef long nn
-        cdef _n
-        cdef unsigned int _nval
         if not PY_TYPE_CHECK(self, Integer):
             if isinstance(self, str):
                 return self * n
@@ -967,12 +968,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 return self ** int(n)
 
         cdef Integer _self = <Integer>self
+        cdef long nn
 
         try:
             nn = PyNumber_Index(n)
         except TypeError:
             try:
-                s = n.parent()(self)
+                s = parent_c(n)(self)
                 return s**n
             except AttributeError:
                 raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
@@ -987,10 +989,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise RuntimeError, "exponent must be at most %s" % sys.maxint
 
         if nn == 0:
-            if not self:
-                raise ArithmeticError, "0^0 is undefined."
-            else:
-                return one
+            return one
 
         cdef Integer x = PY_NEW(Integer)
 
@@ -1685,8 +1684,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             p -- an integer at least 2.
 
         OUTPUT:
-            v_p(self) -- the p-adic valuation of self
-            u_p(self) -- self / p^{v_p(self)}
+            v_p(self) -- the p-adic valuation of \code{self}
+            u_p(self) -- \code{self} / $p^{v_p(\code{self})}$
 
         EXAMPLE:
         sage: n = 60
@@ -2187,7 +2186,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_prime(self):
         r"""
-        Retuns \code{True} if self is prime
+        Returns \code{True} if self is prime
 
         EXAMPLES:
             sage: z = 2^31 - 1
@@ -2201,7 +2200,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_pseudoprime(self):
         r"""
-        Retuns \code{True} if self is a pseudoprime
+        Returns \code{True} if self is a pseudoprime
 
         EXAMPLES:
             sage: z = 2^31 - 1
@@ -2215,7 +2214,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_perfect_power(self):
         r"""
-        Retuns \code{True} if self is a perfect power.
+        Returns \code{True} if self is a perfect power.
 
         EXAMPLES:
             sage: z = 8
@@ -2272,7 +2271,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         $\left(\frac{self}{b}\right)$ with the Kronecker extension
         $(self/2)=(2/self)$ when self odd, or $(self/2)=0$ when $self$ even.
 
-        EXAMPLES:
         EXAMPLES:
             sage: z = 5
             sage: z.kronecker(41)
@@ -3480,6 +3478,9 @@ cdef hook_fast_tp_functions():
 
     cdef RichPyObject* o
     o = <RichPyObject*>global_dummy_Integer
+
+    # Make sure this never, ever gets collected
+    Py_INCREF(global_dummy_Integer)
 
     # By default every object created in Pyrex is garbage
     # collected. This means it may have references to other objects

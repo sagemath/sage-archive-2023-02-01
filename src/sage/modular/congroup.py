@@ -747,7 +747,7 @@ class GammaH_class(CongruenceSubgroup):
         Compute a canonical form for a given Manin symbol.
 
         INPUT:
-        Two integers (uu,vv) that define an element of (Z/NZ)^2.
+        Two integers (uu,vv) that define an element of $(Z/NZ)^2$.
             uu -- an integer
             vv -- an integer
 

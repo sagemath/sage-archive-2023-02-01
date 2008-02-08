@@ -51,7 +51,7 @@ Test introspection of classes defined in Python and Cython files:
         '.../attach.py'
 
         sage: sage_getdoc(sage.misc.attach.Attach).lstrip()
-        'Attach a file to a running instance of SAGE...'
+        "Attach a file to a running instance of Sage..."
 
         sage: sage_getsource(sage.misc.attach.Attach)
         'class Attach:...'

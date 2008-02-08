@@ -183,7 +183,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             return self.__points
         except AttributeError: pass
 
-        if self.base_ring().is_prime():
+        if self.base_ring().is_prime_field():
             self.__points = self._points_cache_sqrt()
         else:
             if self.base_ring().order() < zech_log_bound:

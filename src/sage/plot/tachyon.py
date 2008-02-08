@@ -71,12 +71,12 @@ class Tachyon(SageObject):
     OUTPUT:
         A Tachyon 3d scene.
 
-    Note that the coordinates are by default such that z is up,
-    positive y is to the *left* and x is toward you.  This is
+    Note that the coordinates are by default such that $z$ is up,
+    positive $y$ is to the \strong{left} and $x$ is toward you.  This is
     not oriented according to the right hand rule.
 
     EXAMPLES:
-    Sphere's along the twisted cubic.
+    Spheres along the twisted cubic.
         sage: t = Tachyon(xres=512,yres=512, camera_center=(3,0.3,0))
         sage: t.light((4,3,2), 0.2, (1,1,1))
         sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(1.0,0,0))
@@ -220,10 +220,8 @@ class Tachyon(SageObject):
                        0 -- silent
                        1 -- some output
                        2 -- very verbose output
-
             block -- bool (default: True); if False, run the rendering
                      command in the background.
-
             extra_opts -- passed directly to tachyon command line.
                      Use tachyon_rt.usage() to see some of the possibilities.
         """
@@ -387,25 +385,25 @@ class Tachyon(SageObject):
     def plot(self,f,(xmin,xmax),(ymin,ymax),texture,grad_f=None,
                   max_bend=.7,max_depth=5,initial_depth=3, num_colors=None):
         r"""
-        Arguments:
-          f : Function of two variables, which returns a float (or coercable to a float)
-          (xmin,xmax)
-          (ymin,ymax) : defines the rectangle to plot over
-          texture: Name of texture to be used
+        INPUT:
+            f -- Function of two variables, which returns a float (or coercable to a float)
+            (xmin,xmax)
+            (ymin,ymax) -- defines the rectangle to plot over
+            texture: Name of texture to be used
         Optional arguments:
-          grad_f : gradient function.  If specified, smooth triangles will be used.
-          max_bend: Cosine of the threshold angle between triangles used to determine
-                   whether or not to recurse after the minimum depth
-          max_depth: maximum recursion depth.  Maximum triangles plotted = $2^{2*max_depth}$
-          initial_depth: minimum recursion depth.  No error-tolerance checking is performed
-                   below this depth.  Minimum triangles plotted: $2^{2*min_depth}$
-          num_colors: Number of rainbow bands to color the plot with.  Texture supplied will
-                   be cloned (with different colors) using the texture_recolor method of the
-                   Tachyon object.
+            grad_f -- gradient function.  If specified, smooth triangles will be used.
+            max_bend -- Cosine of the threshold angle between triangles used to determine
+                        whether or not to recurse after the minimum depth
+            max_depth -- maximum recursion depth.  Maximum triangles plotted = $2^{2*max_depth}$
+            initial_depth -- minimum recursion depth.  No error-tolerance checking is performed
+                             below this depth.  Minimum triangles plotted: $2^{2*min_depth}$
+            num_colors -- Number of rainbow bands to color the plot with.  Texture supplied will
+                          be cloned (with different colors) using the texture_recolor method of the
+                          Tachyon object.
 
         Plots a function by constructing a mesh with nonstandard sampling density
         without gaps. At very high resolutions (depths > 10) it becomes very
-        slow.  Pyrex may help.  Complexity is approx.
+        slow.  Cython may help.  Complexity is approx.
         $O(2^{2*maxdepth})$.  This
         algorithm has been optimized for speed, not memory -- values from f(x,y) are
         recycled rather than calling the function multiple times.  At high recursion
@@ -917,7 +915,7 @@ def hue(h, s=1, v=1):
       hue(h,s=1,v=1) where 'h' stands for hue,
       's' stands for saturation, 'v' stands for value.
       hue returns a list of rgb intensities (r, g, b)
-      All values are in range 0 to 1.
+      All values are in the range 0 to 1.
 
       INPUT:
          h, s, v -- real numbers between 0 and 1.  Note that

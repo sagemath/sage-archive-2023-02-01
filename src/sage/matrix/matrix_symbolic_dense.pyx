@@ -4,7 +4,7 @@ cimport matrix_dense
 cimport matrix
 
 cdef maxima
-from sage.interfaces.all import maxima
+from sage.calculus.calculus import maxima
 
 from sage.calculus.calculus import symbolic_expression_from_maxima_string, SymbolicVariable
 
@@ -268,6 +268,13 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
 
     def eigenvalues(self, solution_set=False):
         """
+        Compute the eigenvalues by solving the characteristic
+        polynomial in maxima
+
+        EXAMPLE:
+            sage: a=matrix(SR,[[1,2],[3,4]])
+            sage: a.eigenvalues()
+            [(5 - sqrt(33))/2, (sqrt(33) + 5)/2]
 
         """
         tmp = SymbolicVariable('tmp_var')
@@ -277,8 +284,8 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         else:
             values = []
             for sol in sols:
-                if sol.left() != tmp or tmp in sol.right.variables():
-                    raise ValueError, "Unable to symbolicaly extract eigenvalues, use solution_set=True option."
+                if sol.left() != tmp or tmp in sol.right().variables():
+                    raise ValueError, "Unable to symbolically extract eigenvalues, use solution_set=True option."
                 values.append(sol.right())
             return values
 

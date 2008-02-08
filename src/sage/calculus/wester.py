@@ -7,7 +7,7 @@ These are all the problems at
 They come from the 1994 paper "Review of CAS mathematical capabilities",
 by Michael Wester, who put forward 123 problems that a reasonable computer
 algebra system should be able to solve and tested the then current
-versions of various commercial CAS on this list.   SAGE can do most of
+versions of various commercial CAS on this list.   \sage can do most of
 the problems natively now, i.e., with no explicit calls to maxima or
 other systems.
 
@@ -250,7 +250,7 @@ sage: print a
 
 sage: # (YES) Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0
 sage: # Yes, in that the thing is clearly not equal to 0!
-sage: f = log(tan(x/2 + pi/4)) - asin(tan(x))
+sage: f = log(tan(x/2 + pi/4)) - arcsin(tan(x))
 sage: bool(f == 0)
 False
 sage: [float(f(i/10)) for i in range(1,5)]           # random low order bits
@@ -310,7 +310,7 @@ sage: print a.real()
                                     log(5)
 sage: print a.imag()
                                          4
-                                    atan(-)
+                                  arctan(-)
                                          3
 
 sage: # (YES) Obtain real and imaginary parts of Tan(x+I*y)
@@ -381,7 +381,7 @@ sage: print m
     [  1   d d^2 d^3]
 sage: d = m.determinant()
 sage: print d.factor()
-                (b - a) (c - a) (c - b) (d - a) (d - b) (d - c)
+                (b - a) (a - c) (b - c) (a - d) (b - d) (d - c)
 
 sage: # (YES) Compute and factor the determinant of the 4x4 Vandermonde matrix in a, b, c, d.
 sage: # Do it instead in a multivariate ring

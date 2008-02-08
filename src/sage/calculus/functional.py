@@ -6,7 +6,7 @@ from calculus import SR, SymbolicExpression, CallableSymbolicExpression
 
 def simplify(f):
     """
-    Simplify the expression f.
+    Simplify the expression $f$.
     """
     try:
         return f.simplify()
@@ -15,7 +15,7 @@ def simplify(f):
 
 def derivative(f, *args, **kwds):
     """
-    The derivative of f.
+    The derivative of $f$.
 
     EXAMPLES:
     We differentiate a callable symbolic function:
@@ -55,8 +55,8 @@ diff = derivative
 differentiate = derivative
 
 def integral(f, *args, **kwds):
-    """
-    The integral of f.
+    r"""
+    The integral of $f$.
 
     EXAMPLES:
         sage: integral(sin(x), x)
@@ -80,7 +80,7 @@ def integral(f, *args, **kwds):
 
         sage: print integral(x/(x^3-1), x)
                                          2 x + 1
-                       2            atan(-------)
+                       2          arctan(-------)
                   log(x  + x + 1)        sqrt(3)    log(x - 1)
                 - --------------- + ------------- + ----------
                          6             sqrt(3)          3
@@ -99,7 +99,7 @@ def integral(f, *args, **kwds):
         sage: integrate(f, x)
         x |--> erf(x/sqrt(2))/2
 
-    You can have SAGE calculate multiple integrals.  For example,
+    You can have \sage calculate multiple integrals.  For example,
     consider the function $exp(y^2)$ on the region between the lines
     $x=y$, $x=1$, and $y=0$. We find the value of the integral on
     this region using the command:
@@ -108,7 +108,7 @@ def integral(f, *args, **kwds):
         sage: float(area)
         0.85914091422952255
 
-    We compute the line integral of sin(x) along the arc of the curve
+    We compute the line integral of $\sin(x)$ along the arc of the curve
     $x=y^4$ from $(1,-1)$ to $(1,1)$:
         sage: t = var('t')
         sage: (x,y) = (t^4,t)
@@ -117,7 +117,7 @@ def integral(f, *args, **kwds):
         0
         sage: restore('x,y')   # restore the symbolic variables x and y
 
-    SAGE is unable to do anything with the following integral:
+    \sage is unable to do anything with the following integral:
 
         sage: print integral( exp(-x^2)*log(x), x )
                               /      2
@@ -126,7 +126,7 @@ def integral(f, *args, **kwds):
                               ]
                               /
 
-    SAGE does not know how to compute this integral either.
+    \sage does not know how to compute this integral either.
         sage: print integral( exp(-x^2)*ln(x), x, 0, oo)
                               inf
                              /         2
@@ -140,7 +140,7 @@ def integral(f, *args, **kwds):
         sage: integral( ln(x)/x, x, 1, 2)
         log(2)^2/2
 
-    SAGE can't do this elliptic integral (yet):
+    \sage can't do this elliptic integral (yet):
         sage: integral(1/sqrt(2*t^4 - 3*t^2 - 2), t, 2, 3)
         integrate(1/sqrt(2*t^4 - 3*t^2 - 2), t, 2, 3)
 
@@ -185,7 +185,7 @@ integrate = integral
 
 def limit(f, dir=None, taylor=False, **argv):
     r"""
-    Return the limit as the variable v approaches a from the
+    Return the limit as the variable $v$ approaches $a$ from the
     given direction.
 
         \begin{verbatim}
@@ -219,7 +219,7 @@ def limit(f, dir=None, taylor=False, **argv):
         sage: limit((tan(sin(x)) - sin(tan(x)))/x^7, taylor=True, x=0)
         1/30
 
-    SAGE does not know how to do this limit (which is 0),
+    \sage does not know how to do this limit (which is 0),
     so it returns it unevaluated:
         sage: lim(exp(x^2)*(1-erf(x)), x=infinity)
         limit(e^x^2 - e^x^2*erf(x), x=+Infinity)
@@ -233,7 +233,7 @@ lim = limit
 def taylor(f, v, a, n):
     """
     Expands self in a truncated Taylor or Laurent series in the
-    variable v around the point a, containing terms through $(x - a)^n$.
+    variable $v$ around the point $a$, containing terms through $(x - a)^n$.
 
     INPUT:
         v -- variable
@@ -299,11 +299,11 @@ def expand(x, *args, **kwds):
 
 def laplace(f, t, s):
     r"""
-    Attempts to compute and return the Laplace transform of self
-    with respect to the variable t and transform parameter s.  If
-    Laplace cannot find a solution, a delayed function is returned.
+    Attempts to compute and return the Laplace transform of \code{self}
+    with respect to the variable $t$ and transform parameter $s$.  If
+    this function cannot find a solution, a delayed function is returned.
 
-    The function that is returned maybe be viewed as a function of s.
+    The function that is returned may be be viewed as a function of $s$.
 
     EXAMPLES:
         sage: var('a,s,t')
@@ -326,8 +326,8 @@ def laplace(f, t, s):
 def inverse_laplace(f, t, s):
     r"""
     Attempts to compute and return the inverse Laplace transform of
-    self with respect to the variable t and transform parameter s.  If
-    Laplace cannot find a solution, a delayed function is returned, which
+    \code{self} with respect to the variable $t$ and transform parameter $s$.  If
+    this function cannot find a solution, a delayed function is returned, which
     is called \code{ilt}.
 
     EXAMPLES:
@@ -344,7 +344,7 @@ def inverse_laplace(f, t, s):
                  e    (-------------- - --------------) + -----
                           sqrt(3)             3             3
 
-    No explicit inverse Laplace transform, so one is returned formally as a function ilt.
+    No explicit inverse Laplace transform, so one is returned formally as a function \code{ilt}.
         sage: inverse_laplace(cos(s), s, t)
         ilt(cos(s), s, t)
     """

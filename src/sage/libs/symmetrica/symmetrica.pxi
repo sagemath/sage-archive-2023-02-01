@@ -697,7 +697,16 @@ cdef object _py_polynom(OP a):
     return P(d)
 
 
-cdef object _py_polynom_alphabet(OP a, object alphabet):
+cdef object _py_polynom_alphabet(OP a, object alphabet, object length):
+    """
+    Converts a symmetrica multivariate polynomial a to a Sage multivariate
+    polynomials.  Alphabet specifies the names of the variables which are
+    fed into PolynomialRing.  length specifies the number of variables; if
+    it is set to 0, then the number of variables is autodetected based on
+    the number of variables in alphabet or the result obtained from
+    symmetrica.
+
+    """
     late_import()
     cdef OP pointer = a
 
@@ -705,10 +714,15 @@ cdef object _py_polynom_alphabet(OP a, object alphabet):
         return 0
 
     parent_ring = _py(s_po_k(pointer)).parent()
-    if isinstance(alphabet, (builtinlist, tuple)):
-        l = len(alphabet)
+    if length == 0:
+        if isinstance(alphabet, (builtinlist, tuple)):
+            l = len(alphabet)
+        elif isinstance(alphabet, str) and ',' in alphabet:
+            l = len(alphabet.split(','))
+        else:
+            l = _py(s_po_sl(a))
     else:
-        l = _py(s_po_sl(a))
+        l = length
 
     P = PolynomialRing(parent_ring, l, alphabet)
     x = P.gens()

@@ -156,7 +156,7 @@ cdef class Cone(ParametricSurface):
         vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
         return urange, vrange
 
-    cdef eval_c(self, point_c *res, double u, double v):
+    cdef int eval_c(self, point_c *res, double u, double v) except -1:
         if u == -1:
             res.x, res.y, res.z = 0, 0, 0
         elif u == 0:
@@ -250,7 +250,7 @@ draw %s width %s {%s %s %s} {%s %s %s}\n%s
         vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
         return urange, vrange
 
-    cdef eval_c(self, point_c *res, double u, double v):
+    cdef int eval_c(self, point_c *res, double u, double v) except -1:
         if u == -2:
             res.x, res.y, res.z = 0, 0, 0
         elif u == -1:
@@ -413,7 +413,7 @@ cdef class Sphere(ParametricSurface):
         vrange = [float(twoPi*k/v_res) for k in range(v_res)] + [0.0]
         return urange, vrange
 
-    cdef eval_c(self, point_c *res, double u, double v):
+    cdef int eval_c(self, point_c *res, double u, double v) except -1:
         if u == -10:
             res.x, res.y, res.z = 0, 0, -self.radius
         elif u == 10:
@@ -447,7 +447,7 @@ cdef class Torus(ParametricSurface):
         vrange = [ twoPi*k/v_divs for k in range(v_divs)] + [0.0]
         return urange, vrange
 
-    cdef eval_c(self, point_c *res, double u, double v):
+    cdef int eval_c(self, point_c *res, double u, double v) except -1:
         res.x = (self.R+self.r*sin(v))*sin(u)
         res.y = (self.R+self.r*sin(v))*cos(u)
         res.z = self.r*cos(v)

@@ -410,16 +410,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return a
 
     def modular_symbol(self, x, check=True):
-        """
+        r"""
         Create a modular symbol in this space.
 
         INPUT:
             x -- a list of either 2 or 3 entries
-            2 entries:   [alpha, beta] -- creates the modular
+            2 entries:   [$\alpha$, $\beta$] -- creates the modular
                          symbol {alpha, beta}, or, if the weight
-                         is > 2 the symbol Y^(k-2){alpha,beta}.
-            3 entries:   [i, alpha, beta] -- create the modular
-                         symbol X^i*Y^(k-2-i){alpha,beta}.
+                         is > 2 the symbol $Y^(k-2){\alpha,\beta}$.
+            3 entries:   [i, $\alpha$, $\beta$] -- create the modular
+                         symbol $X^i Y^{k-2-i}{\alpha,\beta}$.
 
         EXAMPLES:
             sage: set_modsym_print_mode('modular')
@@ -795,13 +795,25 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
     def cuspidal_submodule(self):
         """
-        The cuspidal submodule.
+        The cuspidal submodule of self.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(12,2,0,GF(5)) ; M
+            Modular Symbols space of dimension 5 for Gamma_0(12) of weight 2 with sign 0 over Finite Field of size 5
+            sage: M.cuspidal_submodule()
+            Modular Symbols subspace of dimension 0 of Modular Symbols space of dimension 5 for Gamma_0(12) of weight 2 with sign 0 over Finite Field of size 5
+            sage: ModularSymbols(1,24,-1).cuspidal_submodule()
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 2 for Gamma_0(1) of weight 24 with sign -1 over Rational Field
         """
         try:
             return self.__cuspidal_submodule
         except AttributeError:
             S = self.boundary_map().kernel()
             S._is_full_hecke_module = True
+            ## We know the cuspidal subspace is stable, so
+            ## if it's one-dimensional, it must be simple
+            if S.dimension() == 1:
+                S._is_simple = True
             if self.base_ring().characteristic() == 0:
                 d = self._cuspidal_submodule_dimension_formula()
                 if not d is None:

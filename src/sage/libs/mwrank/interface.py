@@ -489,7 +489,7 @@ class mwrank_MordellWeil(SageObject):
             height_limit -- float (default: 18) search up to
                             this logarithmetic height.
                    On 32-bit machines, h_lim MUST be < 21.48 else
-                   exp(h_lim)>2^31 and overflows.
+                   $\exp(h_lim)>2^31$ and overflows.
         """
         # On 64-bit machines, h_lim must be < 43.668, but
         #           it's unlikely (in 2005) that you would ever

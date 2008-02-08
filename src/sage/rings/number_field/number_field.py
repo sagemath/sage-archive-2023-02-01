@@ -2414,6 +2414,41 @@ class NumberField_generic(number_field_base.NumberField):
             else:
                 return from_field(R[0][0])
 
+    def number_of_roots_of_unity(self):
+        """
+        Return number of roots of unity in this field.
+
+        sage: K.<b> = NumberField(x^2+1)
+        sage: K.number_of_roots_of_unity()
+        4
+        sage: K.<a> = CyclotomicField(3)
+        sage: K.number_of_roots_of_unity()
+        6
+        """
+        return ZZ(self.pari_nf().nfrootsof1()[0])
+
+    def roots_of_unity(self):
+        """
+        Return all the roots of unity in this field, primitive or not.
+
+        EXAMPLES:
+            sage: K.<b> = NumberField(x^2+1)
+            sage: zs = K.roots_of_unity(); zs
+            [b, -1, -b, 1]
+            sage: [ z**K.number_of_roots_of_unity() for z in zs ]
+            [1, 1, 1, 1]
+
+            sage: K.<a> = CyclotomicField(3)
+            sage: zs = K.roots_of_unity(); zs
+            [-a, -a - 1, -1, a, a + 1, 1]
+            sage: [ z**K.number_of_roots_of_unity() for z in zs ]
+            [1, 1, 1, 1, 1, 1]
+        """
+        temp = self.pari_nf().nfrootsof1()
+        n = ZZ(temp[0])
+        z = self(temp[1])
+        return [ z**k for k in range(1, n+1) ]
+
     def zeta_coefficients(self, n):
         """
         Compute the first n coefficients of the Dedekind zeta function
@@ -2911,8 +2946,7 @@ class NumberField_absolute(NumberField_generic):
                      names[0] generators K and names[1] QQ(alpha).
 
         OUTPUT:
-            K   -- relative number field, map from K to self,
-                   map from self to K.
+            K   -- relative number field
 
         Also, \code{K.structure()} returns from_K and to_K, where
         from_K is an isomorphism from K to self and to_K is an isomorphism
@@ -3311,6 +3345,14 @@ class NumberField_relative(NumberField_generic):
             2/3
             sage: k(m.0^4)
             9
+
+        TESTS:
+            sage: K.<a> = NumberField(ZZ['x'].0^2 + 2, 'a')
+            sage: L.<b> = K.extension(ZZ['x'].0 - a, 'b')
+            sage: L(a)
+            a
+            sage: L(b+a)
+            2*a
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             P = x.parent()
@@ -4006,8 +4048,11 @@ class NumberField_relative(NumberField_generic):
             names -- name of generator for output field K.
 
         OUTPUT:
-            K, from_K, to_K -- relative number field, map from K to self,
-                               map from self to K.
+            K -- relative number field
+
+        Also, \code{K.structure()} returns from_K and to_K, where
+        from_K is an isomorphism from K to self and to_K is an isomorphism
+        from self to K.
 
         EXAMPLES:
             sage: K.<a,b> = NumberField([x^4 + 3, x^2 + 2]); K
@@ -4573,6 +4618,15 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: k.zeta(7)
             zeta49^7
 
+            sage: K.<a> = CyclotomicField(7)
+            sage: K.zeta(14, all=True)
+            [-a, -a^3, -a^5, -a^2, -a^4, a^5 + a^4 + a^3 + a^2 + a + 1]
+            sage: K.<a> = CyclotomicField(10)
+            sage: K.zeta(20, all=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: n (=20) does not divide order of generator
+
             sage: K.<a> = CyclotomicField(5)
             sage: K.zeta(4)
             Traceback (most recent call last):
@@ -4589,6 +4643,11 @@ class NumberField_cyclotomic(NumberField_absolute):
             n = integer.Integer(n)
             z = self.gen()
             m = z.multiplicative_order()
+            if n % 2 == 0 and m % 2 == 1:
+                # In the p-th cyclotomic field, p odd, there are actually
+                # 2*p-th roots of unity, so we include them.
+                z = -z
+                m = 2*m
             if m % n != 0:
                 raise ValueError, "n (=%s) does not divide order of generator"%n
                 # use generic method (factor cyclotomic polynomial)

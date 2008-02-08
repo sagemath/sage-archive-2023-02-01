@@ -914,6 +914,21 @@ class MagmaElement(ExpectElement):
             Y = [x for x in X if tt in x]
         return Y
 
+    def __floordiv__(self, x):
+        """
+        Quotient of division of self by other.  This is denoted // ("div" in magma).
+
+        EXAMPLE:
+            sage: R.<x,y,z>=QQ[]
+            sage: magma(5)//magma(2) # optional
+            2
+            sage: m=magma(x*z+x*y)   # optional
+            sage: n=magma(x)         # optional
+            sage: m//n               # optional
+            y + z
+        """
+        return self.parent()('%s div %s'%(self.name(), x.name()))
+
     def __nonzero__(self):
         try:
             return not self.parent()("%s eq 0"%self.name()).bool()

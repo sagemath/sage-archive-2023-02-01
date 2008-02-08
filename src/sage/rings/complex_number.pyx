@@ -103,7 +103,19 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         return self.str(10)
 
     def __hash__(self):
-        return hash(self.str())
+        """
+        Returns the hash of self, which coincides with the python
+        complex and float (and often int) types.
+
+        This has the drawback that two very close high precision
+        numbers will have the same hash, but allows them to play
+        nicely with other real types.
+
+        EXAMPLE:
+            sage: hash(CC(1.2, 33)) == hash(complex(1.2, 33))
+            True
+        """
+        return hash(complex(self))
 
     def __getitem__(self, i):
         if i == 0:
@@ -473,50 +485,50 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
 
     # Trig functions
-    def acos(self):
+    def arccos(self):
         """
         EXAMPLES:
-            sage: (1+CC(I)).acos()
+            sage: (1+CC(I)).arccos()
             0.904556894302381 - 1.06127506190504*I
         """
         return self._parent(self._pari_().acos())
 
-    def acosh(self):
+    def arccosh(self):
         """
         EXAMPLES:
-            sage: (1+CC(I)).acosh()
+            sage: (1+CC(I)).arccosh()
             1.06127506190504 + 0.904556894302381*I
         """
         return self._parent(self._pari_().acosh())
 
-    def asin(self):
+    def arcsin(self):
         """
         EXAMPLES:
-            sage: (1+CC(I)).asin()
+            sage: (1+CC(I)).arcsin()
             0.666239432492515 + 1.06127506190504*I
         """
         return self._parent(self._pari_().asin())
 
-    def asinh(self):
+    def arcsinh(self):
         """
         EXAMPLES:
-            sage: (1+CC(I)).asinh()
+            sage: (1+CC(I)).arcsinh()
             1.06127506190504 + 0.666239432492515*I
         """
         return self._parent(self._pari_().asinh())
 
-    def atan(self):
+    def arctan(self):
         """
         EXAMPLES:
-            sage: (1+CC(I)).atan()
+            sage: (1+CC(I)).arctan()
             1.01722196789785 + 0.402359478108525*I
         """
         return self._parent(self._pari_().atan())
 
-    def atanh(self):
+    def arctanh(self):
         """
         EXAMPLES:
-            sage: (1+CC(I)).atanh()
+            sage: (1+CC(I)).arctanh()
             0.402359478108525 + 1.01722196789785*I
         """
         return self._parent(self._pari_().atanh())
@@ -586,7 +598,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             self -- element of the upper half plane (if not,
                     raises a ValueError).
             omit_frac -- (bool, default: False), if True, omit
-                    the e^(pi i z / 12) factor.
+                    the $e^{\pi i z / 12}$ factor.
 
         OUTPUT:
             a complex number
@@ -755,8 +767,19 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: i = ComplexField(30).0
             sage: (1+i).gamma()
             0.49801567 - 0.15494983*I
+
+        TESTS:
+            sage: CC(0).gamma()
+            Infinity
+
+            sage: CC(-1).gamma()
+            Infinity
         """
-        return self._parent(self._pari_().gamma())
+        try:
+            return self._parent(self._pari_().gamma())
+        except sage.libs.pari.all.PariError:
+            from sage.rings.infinity import UnsignedInfinityRing
+            return UnsignedInfinityRing.gen()
 
     def gamma_inc(self, t):
         """

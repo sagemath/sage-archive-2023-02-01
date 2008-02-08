@@ -856,61 +856,6 @@ class MPolynomialIdeal_singular_repr:
                        check=False, immutable=True)
         return ret
 
-    def reduce(self, f):
-        """
-        Reduce an element modulo a standard basis for this ideal.
-        This returns 0 if and only if the element is in this ideal.
-
-        EXAMPLES:
-            sage: R.<x,y> = PolynomialRing(QQ, 2)
-            sage: I = (x^3 + y, y)*R
-            sage: I.reduce(y)
-            0
-            sage: I.reduce(x^3)
-            0
-            sage: I.reduce(x - y)
-            x
-
-            sage: I = (y^2 - (x^3 + x))*R
-            sage: I.reduce(x^3)
-            y^2 - x
-            sage: I.reduce(x^6)
-            y^4 - 2*x*y^2 + x^2
-            sage: (y^2 - x)^2
-            y^4 - 2*x*y^2 + x^2
-
-        NOTE: Requires computation of a Groebner basis, which is a
-        very expensive operation.
-        """
-        if self.base_ring() == sage.rings.integer_ring.ZZ:
-            return self._reduce_using_macaulay2(f)
-
-        try:
-            singular = self._singular_groebner_basis().parent()
-        except (AttributeError, RuntimeError):
-            singular = self._singular_groebner_basis().parent()
-
-        f = self.ring()(f)
-        g = singular(f)
-        try:
-            self.ring()._singular_(singular).set_ring()
-            h = g.reduce(self._singular_groebner_basis())
-        except TypeError:
-            # This is OK, since f is in the right ring -- type error
-            # just means it's a rational
-            return f
-        try:
-            return self.ring()(h)
-        except (TypeError, RuntimeError):
-            return self.ring()(h[1])
-            # Why the above?
-            # For mysterious reasons, sometimes Singular returns a length
-            # one vector with the reduced polynomial in it.
-            # This occurs in the following example:
-            #sage: R.<x,y> = PolynomialRing(QQ, 2)
-            #sage: S.<a,b> = R.quotient(x^2 + y^2)
-            #sage: phi = S.hom([b,a])
-            #sage: loads(dumps(phi))
 
 
     def syzygy_module(self):
@@ -1569,6 +1514,38 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         """
         return P.ideal([P(f) for f in self.gens()])
 
+    def reduce(self, f):
+        """
+        Reduce an element modulo a standard basis for this ideal.
+        This returns 0 if and only if the element is in this ideal.
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: I = (x^3 + y, y)*R
+            sage: I.reduce(y)
+            0
+            sage: I.reduce(x^3)
+            0
+            sage: I.reduce(x - y)
+            x
+
+            sage: I = (y^2 - (x^3 + x))*R
+            sage: I.reduce(x^3)
+            y^2 - x
+            sage: I.reduce(x^6)
+            y^4 - 2*x*y^2 + x^2
+            sage: (y^2 - x)^2
+            y^4 - 2*x*y^2 + x^2
+
+        NOTE: Requires computation of a Groebner basis, which is a
+        very expensive operation.
+        """
+        if self.base_ring() == sage.rings.integer_ring.ZZ:
+            return self._reduce_using_macaulay2(f)
+
+
+        gb = self.groebner_basis()
+        return f.reduce(gb)
     def homogenize(self, var='h'):
         """
         Return homogeneous ideal spanned by the homogeneous

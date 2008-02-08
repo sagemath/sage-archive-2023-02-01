@@ -1,18 +1,21 @@
 Source: eclib
-Section: python
 Priority: extra
 Maintainer: Tim Abbott <tabbott@mit.edu>
 Build-Depends: cdbs (>= 0.4.23-1.1), debhelper (>= 5), quilt, patchutils (>= 0.2.25), cdbs (>= 0.4.27-1), libntl-dev, libgmp3-dev, libpari-dev
 Standards-Version: 3.7.2
 
 Package: libec-dev
+Section: libdevel
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libec0
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Description: Elliptic Curve library, development files
+ John Cremona's programs for enumerating and computating with elliptic
+ curves defined over the rational numbers.
 
 Package: libec0
+Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Description: Elliptic Curve library, shared objects
+ John Cremona's programs for enumerating and computating with elliptic
+ curves defined over the rational numbers.

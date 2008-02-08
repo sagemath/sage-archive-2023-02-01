@@ -1,0 +1,20 @@
+Source: lcalc
+Section: math
+Priority: extra
+Maintainer: Tim Abbott <tabbott@mit.edu>
+Build-Depends: @cdbs@, libpari-dev
+Standards-Version: 3.7.2
+
+Package: lcalc
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A program for calculating with L-functions
+ A program for computing zeros and values of L-functions.
+ The L-functions that are supported include the Riemann
+ zeta function, the L-function of the Ramanujan delta
+ function, and L-functions of elliptic curves defined
+ over the rationals.
+ .
+ This version of lcalc is heavily modified for SAGE.
+ .
+ Homepage: http://pmmac03.math.uwaterloo.ca/~mrubinst/L_function_public/CODE/

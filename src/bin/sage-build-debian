@@ -1,0 +1,10 @@
+#!/bin/sh
+echo "Starting Debian build"
+mv dist/debian src/
+cd src
+debuild -S
+cd ..
+sbuildhack "$DEBIAN_RELEASE" *.dsc
+mkdir -p $SAGE_ROOT/deb
+mv *.dsc *.changes *.build *.deb *.orig.tar.gz *.tar.gz *.diff.gz $SAGE_ROOT/deb
+echo "Debian Build complete"

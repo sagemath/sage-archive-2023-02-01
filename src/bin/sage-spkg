@@ -236,7 +236,16 @@ fi
 echo "****************************************************"
 
 BASEDIR=`pwd`
-time ./spkg-install
+if [ -n "$DEBIAN_RELEASE" ]; then
+    SAGE_CHECK=''
+    if [ -e ./spkg-debian ]; then
+	time ./spkg-debian
+    else
+	time sage-build-debian $BASEDIR
+    fi
+else
+    time ./spkg-install
+fi
 
 if [ $? -eq 0 ]; then
    cd $INSTALLED

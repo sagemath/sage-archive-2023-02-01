@@ -1,0 +1,2 @@
+debian/tmp/usr/include/* usr/include/cdd/
+debian/tmp/usr/lib/* usr/lib/

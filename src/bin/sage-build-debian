@@ -2,7 +2,7 @@
 echo "Starting Debian build"
 mv dist/debian src/
 sage-dasource src/
-sage-sbuildhack "$DEBIAN_RELEASE" *.dsc
+sage-sbuildhack "$DEBIAN_RELEASE" *.dsc || exit 1
 mkdir -p $SAGE_ROOT/deb
-mv *.dsc *.changes *.build *.deb *.orig.tar.gz *.tar.gz *.diff.gz $SAGE_ROOT/deb
+mv *.dsc *.changes *.build *.deb *.tar.gz *.diff.gz $SAGE_ROOT/deb
 echo "Debian Build complete"

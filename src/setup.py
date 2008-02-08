@@ -749,6 +749,9 @@ ext_modules = [ \
               sources = ['sage/rings/padics/padic_printing.pyx'],
               libraries=['gmp', 'ntl', 'csage', 'gmpxx', 'm', 'stdc++'],
               language='c++'),
+    Extension('sage.rings.padics.rigid_functions',
+              sources = ['sage/rings/padics/rigid_functions.pyx']),
+
     #Extension('sage.rings.padics.morphism',
     #          sources = ['sage/rings/padics/morphism.pyx'],
     #          libraries=['gmp', 'ntl', 'csage', 'gmpxx', 'm', 'stdc++'],

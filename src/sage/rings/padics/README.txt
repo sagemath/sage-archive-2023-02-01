@@ -9,6 +9,7 @@
 
 This document has the following goals:
   -- to explain the file structure and class heirarchy for p-adics in Sage
+  -- to serve as a location to collect priorities for action items on p-adics
   -- to serve as a collection point for tips about altering and adding to these files.
 
 The parent heirarchy uses multiple inheritance.  The numbers before each class name give the superclasses immediately above that class.
@@ -100,3 +101,55 @@ LocalGenericElement (local_generic_element.pyx)                                 
         pAdicRelExtCAElement (padic_rel_ext_CA_element.pyx, does not yet exist)   :
         pAdicRelExtFMElement (padic_rel_ext_FM_element.pyx, does not yet exist)   :
         pAdicRelExtLElement (padic_rel_ext_L_element.pyx, does not yet exist)     :
+
+To Do:
+  Residue Fields
+  log in high ramification
+  exp
+  residue systems
+  sqrt
+  hensel lifting
+  norms and traces
+  degree
+  Documentation (file, priority, assigned to):
+    padic_printing.pyx (10/10)
+    padic_capped_relative_element.pyx (8/10)
+    padic_capped_absolute_element.pyx (8/10)
+    padic_fixed_mod_element.pyx (8/10)
+    factory.py (7/10)
+    padic_generic_element.pyx (7/10)
+    padic_ZZ_pX_CR_element.pyx (5/10)
+    padic_ZZ_pX_CA_element.pyx (5/10)
+    padic_ZZ_pX_FM_element.pyx (5/10)
+    padic_ZZ_pX_element.pyx (5/10)
+    padic_ext_element.pyx (5/10)
+    padic_extension_generic.py (5/10)
+    local_generic.py (5/10)
+    padic_generic.py (5/10)
+    local_generic_element.pyx (4/10)
+    padic_extension_leaves.py (4/10)
+    pow_computer.pyx (4/10)
+    pow_computer_ext.pyx (4/10)
+    eisenstein_extension_generic.py (3/10)
+    unramified_extension_generic.py (3/10)
+    padic_field_generic.py (2/10)
+    padic_ring_generic.py (2/10)
+    padic_base_generic_element.pyx (2/10)
+    padic_base_generic.py (2/10)
+    padic_field_capped_relative.py (2/10)
+    padic_printing_defaults.py (2/10)
+    padic_ring_base_generic.py (1/10)
+    padic_ring_capped_absolute.py (1/10)
+    padic_ring_capped_relative.py (1/10)
+    padic_ring_fixed_mod.py (1/10)
+    capped_absolute_generic.py (1/10)
+    capped_relative_generic.py (1/10)
+    fixed_mod_generic.py (1/10)
+    padic_field_lazy.py (0/10)
+    lazy_generic.py (0/10)
+    padic_lazy_element.py (0/10)
+    padic_lazy_field_generic.py (0/10)
+    padic_lazy_generic.py (0/10)
+    padic_lazy_ring_generic.py (0/10)
+    padic_ring_lazy.py (0/10)
+    valuation.py (0/10)

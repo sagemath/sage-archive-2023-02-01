@@ -13,7 +13,7 @@ Superclass for p-adic and power series rings.
 
 import sage.rings.ring
 import sage.structure.parent_gens
-
+from sage.rings.integer import Integer
 
 class LocalGeneric(sage.rings.ring.CommutativeRing):
     def __init__(self, base, prec, names):
@@ -216,7 +216,7 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
 	    sage: R = Zp(3, 10, 'capped-rel'); R.degree()
             1
         """
-        return 1
+        return Integer(1)
 
     def ramification_index(self):
         r"""
@@ -232,7 +232,7 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
 	    sage: R = Zp(3, 5, 'capped-rel'); R.ramification_index()
 	    1
         """
-        return 1
+        return Integer(1)
 
     def e(self):
         r"""
@@ -264,7 +264,7 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
 	    sage: R = Zp(3, 5, 'capped-rel'); R.inertia_degree()
 	    1
         """
-        return 1
+        return Integer(1)
 
     def f(self):
         r"""

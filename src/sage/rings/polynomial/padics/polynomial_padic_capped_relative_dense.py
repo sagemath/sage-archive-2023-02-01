@@ -713,7 +713,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             -1
         """
         self._normalize()
-        return self._poly.degree()
+        return Integer(self._poly.degree())
 
     def prec_degree(self):
         """

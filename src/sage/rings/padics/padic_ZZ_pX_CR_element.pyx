@@ -2351,6 +2351,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 high_ramification = False
                 ans_ordp = val
             else:
+                # The high ramification code isn't working yet.  So we raise a NotImplementedError.
+                raise NotImplementedError
                 vpn = Integer_val * self.prime_pow.pow_Integer_Integer(log_e_val_floor)
                 # (val * p^n - e * n) - (val * p^(n+1) - e * (n+1)) = vpn * (1 - p) + e
                 if vpn * (1 - self.prime_pow.prime) + Integer_e <= 0: # initial lower

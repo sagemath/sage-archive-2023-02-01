@@ -689,7 +689,7 @@ ext_modules = [ \
 
     Extension('sage.interfaces.libecm',
               sources = ['sage/interfaces/libecm.pyx'],
-              libraries=['ecm', 'gmp']), \
+              libraries = ['ecm', 'gmp']), \
 
     Extension('sage.rings.padics.pow_computer',
               sources = ['sage/rings/padics/pow_computer.pyx'],
@@ -952,6 +952,7 @@ def need_to_cython(deps, filename, outfile):
 
     base =  os.path.splitext(filename)[0]
     pxd = base+'.pxd'
+    if 'real_mpfi' in base: print base
 
     if need_to_build(deps, filename, outfile):
         return True
@@ -1033,6 +1034,9 @@ def search_all_includes(filename):
     S = open(filename).readlines()
     # Take the lines that begin with cimport (it won't hurt to
     # have extra lines)
+    if 'real_mpfi' in filename:
+        import pdb
+        pdb.set_trace()
     C = [x.strip() for x in S if 'cimport' in x]
     this_deps = []
     for A in C:
@@ -1138,12 +1142,18 @@ def create_deps(ext_modules):
         for i in range(len(m.sources)):
             f = m.sources[i]
             if f[-4:] == '.pyx':
-                deps_graph(deps, f)
+                visited = set()
+                deps_graph(deps, f, visited)
+                base = os.path.splitext(f)[0]
+                f = f[:-4] + '.pxd'
+                if os.path.exists(f):
+                    deps_graph(deps, f, visited)
 
     return deps
 
 if not sdist and do_cython:
     deps = create_deps(ext_modules)
+    print deps['sage/rings/real_mpfi.pyx']
     cython(deps, ext_modules)
     pass
 

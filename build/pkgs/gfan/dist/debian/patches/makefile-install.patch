@@ -1,0 +1,16 @@
+Index: gfan-0.2.2/Makefile
+===================================================================
+--- gfan-0.2.2.orig/Makefile	2007-11-25 18:34:01.000000000 -0500
++++ gfan-0.2.2/Makefile	2008-01-09 21:12:29.000000000 -0500
+@@ -211,8 +211,9 @@
+ clean:
+ 	/bin/rm -f *.o $(EXECS) $(MAIN)
+ install:
+-	cp $(EXECS) /usr/local/bin
+-	./gfan installlinks /usr/local/bin/
++	mkdir -p ${DESTDIR}/usr/bin
++	cp $(EXECS) ${DESTDIR}/usr/bin
++	cd ${DESTDIR}/usr/bin/ && ./gfan installlinks
+ .c.o:
+ 	$(CC) $(CFLAGS) -c $<
+ .cc.o:

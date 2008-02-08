@@ -1,5 +1,7 @@
 #!/bin/sh
 
+cp patches/Makefile src/
+
 cd src/
 
 rm -f "$SAGE_LOCAL/bin/gfan*"

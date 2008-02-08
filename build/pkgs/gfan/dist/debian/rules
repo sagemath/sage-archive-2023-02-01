@@ -1,0 +1,9 @@
+#!/usr/bin/make -f
+
+DEB_AUTO_UPDATE_DEBIAN_CONTROL = 1
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/makefile.mk
+include /usr/share/cdbs/1/rules/patchsys-quilt.mk
+
+DEB_MAKE_INVOKE = make DESTDIR=${DEB_DESTDIR}
+DEB_MAKE_INSTALL_TARGET = install

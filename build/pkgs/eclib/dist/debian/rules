@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+DEB_AUTO_UPDATE_DEBIAN_CONTROL = 1
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/makefile.mk
+include /usr/share/cdbs/1/rules/patchsys-quilt.mk
+
+CFLAGS += -fPIC
+DEB_MAKE_INVOKE = $(DEB_MAKE_ENVVARS) $(MAKE) $(if $(DEB_MAKE_MAKEFILE), -f $(DEB_MAKE_MAKEFILE),) -C $(DEB_BUILDDIR)
+DEB_MAKE_INVOKE += PICFLAG=-fPIC NTL_PREFIX=/usr PARI_PREFIX=/usr
+DEB_MAKE_INSTALL_TARGET = so
+DEB_MAKE_CLEAN_TARGET = veryclean

@@ -1,0 +1,2 @@
+lib/*.so usr/lib/eclib/
+lib/*.so.* usr/lib/eclib/

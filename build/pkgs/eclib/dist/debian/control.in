@@ -1,0 +1,18 @@
+Source: eclib
+Section: python
+Priority: extra
+Maintainer: Tim Abbott <tabbott@mit.edu>
+Build-Depends: @cdbs@, libntl-dev, libgmp3-dev, libpari-dev
+Standards-Version: 3.7.2
+
+Package: libec-dev
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libec0
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
+
+Package: libec0
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>

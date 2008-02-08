@@ -1,0 +1,2 @@
+include/* usr/include/eclib/
+lib/*.a usr/lib/eclib/

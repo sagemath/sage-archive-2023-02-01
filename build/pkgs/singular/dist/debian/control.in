@@ -1,0 +1,51 @@
+Source: singular
+Section: math
+Priority: extra
+Maintainer: Tim Abbott <tabbott@mit.edu>
+Build-Depends: @cdbs@, libgmp3-dev, libntl-dev, libncurses5-dev, libreadline5-dev, libmpfr-dev
+Standards-Version: 3.7.2
+
+Package: singular
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libsingular0
+Description: A commutative algebra system
+ This version of Singular may have been modified by SAGE.
+ .
+ SINGULAR is a Computer Algebra System for polynomial computations
+ with special emphasis on the needs of commutative algebra,
+ algebraic geometry, and singularity theory.
+ .
+ Main computational objects: ideals/modules over very general
+ polynomial rings over various ground fields.
+ .
+ Homepage:http://www.singular.uni-kl.de/
+
+Package: libsingular-dev
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libsingular0
+Description: Library for commutative algebra, development files
+ This version of Singular may have been modified by SAGE.
+ .
+ SINGULAR is a Computer Algebra System for polynomial computations
+ with special emphasis on the needs of commutative algebra,
+ algebraic geometry, and singularity theory.
+ .
+ Main computational objects: ideals/modules over very general
+ polynomial rings over various ground fields.
+ .
+ Homepage:http://www.singular.uni-kl.de/
+
+Package: libsingular0
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Library for commutative algebra, shared library
+ This version of Singular may have been modified by SAGE.
+ .
+ SINGULAR is a Computer Algebra System for polynomial computations
+ with special emphasis on the needs of commutative algebra,
+ algebraic geometry, and singularity theory.
+ .
+ Main computational objects: ideals/modules over very general
+ polynomial rings over various ground fields.
+ .
+ Homepage:http://www.singular.uni-kl.de/

@@ -1,0 +1,3 @@
+debian/tmp/usr/lib/singular/*.*o usr/lib/singular/
+debian/tmp/usr/share/singular/* usr/lib/singular/LIB
+

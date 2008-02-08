@@ -1,0 +1,13 @@
+Index: singular-20071209/kernel/feResource.cc
+===================================================================
+--- singular-20071209.orig/kernel/feResource.cc	2008-02-07 05:12:57.000000000 -0500
++++ singular-20071209/kernel/feResource.cc	2008-02-07 05:13:14.000000000 -0500
+@@ -73,7 +73,7 @@
+ {
+   {"SearchPath",    's', feResPath,  NULL,
+    "$SINGULARPATH;"
+-   "%b/LIB;"
++   "/usr/lib/singular/LIB/;"
+    "%b/MOD;"
+    "%r/LIB;"
+    "%r/../LIB;"

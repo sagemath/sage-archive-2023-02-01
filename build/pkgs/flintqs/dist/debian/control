@@ -1,0 +1,15 @@
+Source: flintqs
+Section: math
+Priority: extra
+Maintainer: Tim Abbott <tabbott@mit.edu>
+Build-Depends: cdbs (>= 0.4.23-1.1), debhelper (>= 5), quilt, patchutils (>= 0.2.25), cdbs (>= 0.4.27-1), libgmp3-dev
+Standards-Version: 3.7.2
+
+Package: flintqs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: An optimized quadratic seive for factoring integers
+ Implementation of the quadratic sieve for factoring integers.
+ This program has essentially been subsumed into Flint.
+ .
+ Homepage: http://www.flintlib.org

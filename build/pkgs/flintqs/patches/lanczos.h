@@ -26,9 +26,7 @@
 #define u_int64_t unsigned long long
 #endif
 
-#ifdef MACOSX
-#  include <sys/types.h> // needed on MacOS X 10.5 for uint type
-#endif
+#include <sys/types.h> // needed on MacOS X 10.5 for uint type
 
 #include <stdlib.h>
 

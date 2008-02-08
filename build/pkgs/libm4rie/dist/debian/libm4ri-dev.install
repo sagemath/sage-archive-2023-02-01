@@ -1,0 +1,3 @@
+debian/tmp/usr/include/* usr/include
+debian/tmp/usr/lib/*.*a usr/lib
+debian/tmp/usr/lib/*.so usr/lib

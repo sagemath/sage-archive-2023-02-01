@@ -5,4 +5,6 @@ include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/makefile.mk
 include /usr/share/cdbs/1/rules/patchsys-quilt.mk
 
+CFLAGS += -I/usr/include/pari
+LDFLAGS += -lpari
 DEB_MAKE_INSTALL_TARGET = install DESTDIR=$(DEB_DESTDIR)

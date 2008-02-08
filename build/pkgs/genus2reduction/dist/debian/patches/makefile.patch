@@ -4,7 +4,7 @@ Index: src/Makefile
 +++ src/Makefile	2008-02-08 15:22:00.000000000 -0800
 @@ -0,0 +1,14 @@
 +CFLAGS = -O2 -I/usr/include/pari
-+LDFLAGS = -lpari -lgmp -lm
++LDFLAGS = -lpari
 +CC = gcc
 +
 +genus2reduction:

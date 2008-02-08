@@ -5,7 +5,7 @@ echo "Compiling genus2reduction.c"
 cd src/
 
 $CC $CFLAGS -O2 -I"$SAGE_LOCAL/include/pari" -L"$SAGE_LOCAL/lib" \
-                -o genus2reduction genus2reduction.c -lpari -lgmp -lm
+                -o genus2reduction genus2reduction.c -lpari
 
 if [ $? -ne 0 ]; then
     echo "Error building genus2reduction"

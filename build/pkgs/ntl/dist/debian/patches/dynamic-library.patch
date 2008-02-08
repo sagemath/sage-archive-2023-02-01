@@ -1,0 +1,24 @@
+Index: ntl-5.4.1/src/mfile
+===================================================================
+--- ntl-5.4.1.orig/src/mfile	2007-11-25 19:14:50.000000000 -0500
++++ ntl-5.4.1/src/mfile	2007-11-25 19:20:06.000000000 -0500
+@@ -296,7 +296,10 @@
+ 	make setup3
+ 	make setup4
+ 	make ntl.a
++	make libntl.so
+ 
++libntl.so: $(OBJ)
++	$(CXX) -fPIC -shared -o libntl.so $(OBJ)
+ 
+ # setup1 generates the file ../incluse/NTL/mach_desc.h
+ 
+@@ -417,7 +420,7 @@
+ 	- rm ntl.a mach_desc.h ../include/NTL/mach_desc.h  GetTime.c 
+ 	- rm lip_gmp_aux_impl.h ../include/NTL/gmp_aux.h
+ 	- sh RemoveProg $(PROGS) MakeDesc TestGetTime gen_lip_gmp_aux gen_gmp_aux
+-	- rm *.o
++	- rm *.o *.so
+ 	- rm -r small
+ 
+ clean:

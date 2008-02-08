@@ -1,0 +1,30 @@
+Source: ntl
+Section: math
+Priority: extra
+Maintainer: Tim Abbott <tabbott@mit.edu>
+Build-Depends: @cdbs@, libgmp3-dev
+Standards-Version: 3.7.2
+
+Package: libntl0
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends}, ${misc:Depends}, libgmp3c2
+Description: Number Theory Library
+ NTL is a high-performance, portable C++ library providing
+ data structures and algorithms for manipulating signed,
+ arbitrary length integers, and for vectors, matrices,
+ and polynomials over the integers and over finite fields.
+ .
+ Homepage: http://www.shoup.net/ntl/
+
+Package: libntl-dev
+Section: libdevel
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libntl0
+Description: Number Theory Library
+ NTL is a high-performance, portable C++ library providing
+ data structures and algorithms for manipulating signed,
+ arbitrary length integers, and for vectors, matrices,
+ and polynomials over the integers and over finite fields.
+ .
+ Homepage: http://www.shoup.net/ntl/

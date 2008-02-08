@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+
+DEB_AUTO_UPDATE_DEBIAN_CONTROL = 1
+DEB_AUTO_UPDATE_AUTOCONF = 2.50
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
+include /usr/share/cdbs/1/rules/patchsys-quilt.mk
+
+DEB_CONFIGURE_EXTRA_FLAGS +=
+DEB_CONFIGURE_INVOKE = cd src && $(DEB_CONFIGURE_SCRIPT_ENV) ./configure NTL_GMP_LIP=on NTL_STD_CXX=on PREFIX="/usr" CFLAGS="$$CFLAGS $$SHAREDFLAGS" CXXFLAGS="$$CXXFLAGS $$SHAREDFLAGS" LDFLAGS="$$LDFLAGS" GMP_PREFIX="/usr"
+DEB_CONFIGURE_SCRIPT = ./src/configure
+DEB_MAKE_INVOKE = cd src && $(DEB_MAKE_ENVVARS) $(MAKE) -C $(DEB_BUILDDIR)
+DEB_MAKE_INSTALL_TARGET = install PREFIX=../debian/libntl-dev/usr
+
+DEB_MAKE_CLEAN_TARGET = clobber

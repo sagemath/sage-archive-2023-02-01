@@ -2,6 +2,9 @@
 
 FIXME
 
+=== ntl-5.4.1.p11 (Tim Abbott, Feb. 7th, 2008) ===
+ * add Debian package build support
+
 === ntl-5.4.1.p10 (Michael Abshoff) ===
  * add "-g" to CFLAGS and CXXFLAGS for debugging purposes
 
@@ -9,9 +12,12 @@ FIXME
 
 5.4.1.p1 is an artificial increment to force a rebuild.
 
+== Special Update/Build Instructions ==
+
+[This section and the following below need some serious cleanup!]
 
 I had to create some extra lines for the Makefile in
-order to build a dynamic library.    The trickiest
+order to build a dynamic library. The trickiest
 was the one for OS X.
 
 It's *crucial* that NTL be built as a dynamic library; otherwise
@@ -42,6 +48,8 @@ Some notes about finding the ntl bug:
 
 
 ---------
+
+[The comment below is outdated and probably due to a crappy gcc]
 
 On Solaris I have to use
 

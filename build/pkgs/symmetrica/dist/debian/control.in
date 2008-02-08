@@ -1,0 +1,18 @@
+Source: symmetrica
+Section: libs
+Priority: extra
+Maintainer: Tim Abbott <tabbott@mit.edu>
+Build-Depends: @cdbs@
+Standards-Version: 3.7.2
+
+Package: libsymmetrica-dev
+Architecture: any
+Section: libdevel
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A library for combinatorics
+ Representation theory of the symmetric group and related groups,
+ combinatorics of tableaux, symmetric functions and polynomials,
+ Schubert polynomials, representation theory of Hecke algebras
+ of type A_n.
+ .
+ Homepage: http://www.mathe2.uni-bayreuth.de/axel/symneu_engl.html

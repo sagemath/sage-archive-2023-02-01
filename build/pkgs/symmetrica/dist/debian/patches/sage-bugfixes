@@ -1,0 +1,62 @@
+Index: symmetrica-2.0/de.c
+===================================================================
+--- symmetrica-2.0.orig/de.c	2007-11-25 19:37:17.000000000 -0500
++++ symmetrica-2.0/de.c	2007-11-25 19:38:49.000000000 -0500
+@@ -22,7 +22,7 @@
+ FILE *texout;   /* global variable for texoutput */
+ OP *speicher;   /* global variable for callocobject/freeall */
+ INT speicherposition;
+-INT no_banner = FALSE; /* AK 281293 */
++INT no_banner = TRUE; /* AK 281293 */
+ INT no_mem_check=TRUE; /* AK 100893 */
+ INT english_tableau=FALSE; /* AK 290995 */
+
+Index: symmetrica-2.0/hiccup.c
+===================================================================
+--- symmetrica-2.0.orig/hiccup.c	2007-11-25 19:37:18.000000000 -0500
++++ symmetrica-2.0/hiccup.c	2007-11-25 19:38:49.000000000 -0500
+@@ -1435,7 +1435,7 @@
+ 	if (query==NULL)
+ 	{
+ 		printf("Memory error? None left? Exiting!\n");
+-		exit();
++		exit(1);
+ 	}
+ }
+
+Index: symmetrica-2.0/make.unix
+===================================================================
+--- symmetrica-2.0.orig/make.unix	2007-11-25 19:37:18.000000000 -0500
++++ symmetrica-2.0/make.unix	2007-11-25 19:39:59.000000000 -0500
+@@ -1,7 +1,16 @@
+ .c.o:
+-	cc  -c -O   -Dunix -I/usr/include/malloc/ -DALLTRUE $<
++	cc  -c -O3  -fPIC -Dunix -I/usr/include/malloc/ -DALLTRUE $<
++libsymmetrica.a: bar.o bi.o boe.o bruch.o classical.o de.o di.o ff.o ga.o\
++gra.o hiccup.o io.o ko.o list.o lo.o ma.o mo.o na.o nb.o\
++nc.o nu.o part.o perm.o plet.o poly.o pr.o rest.o rh.o sab.o\
++sb.o sc.o sr.o ta.o test.o vc.o zo.o zyk.o zykelind.o
++	ar crs libsymmetrica.a *.o
++
+ a.out: bar.o bi.o boe.o bruch.o classical.o de.o di.o ff.o ga.o\
+ gra.o hiccup.o io.o ko.o list.o lo.o ma.o mo.o na.o nb.o\
+ nc.o nu.o part.o perm.o plet.o poly.o pr.o rest.o rh.o sab.o\
+ sb.o sc.o sr.o ta.o test.o vc.o zo.o zyk.o zykelind.o
+ 	cc   *.o   -o a.out
++
++clean:
++	rm -f *.o *.a a.out
+\ No newline at end of file
+Index: symmetrica-2.0/sb.c
+===================================================================
+--- symmetrica-2.0.orig/sb.c	2007-11-25 19:37:18.000000000 -0500
++++ symmetrica-2.0/sb.c	2007-11-25 19:38:50.000000000 -0500
+@@ -1803,7 +1803,7 @@
+ 	if (gt(e,d)) erg += copy(e,d);
+ 	erg += mult(a,b,e);
+ 	erg += last_permutation(d,d);
+-	erg += divdiff(d,e,c);
++	erg += divdiff_perm_schubert(d,e,c);
+ 	erg += freeall(d);
+ 	erg += freeall(e);
+ 	ENDR("scalarproduct_schubert");

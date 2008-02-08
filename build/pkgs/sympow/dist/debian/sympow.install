@@ -1,0 +1,5 @@
+*.gp usr/lib/sympow/
+datafiles usr/lib/sympow/
+new_data usr/lib/sympow/datafiles
+sympow usr/lib/sympow/
+debian/binary/sympow usr/bin/

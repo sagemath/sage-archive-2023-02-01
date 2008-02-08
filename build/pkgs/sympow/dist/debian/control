@@ -1,0 +1,16 @@
+Source: sympow
+Section: math
+Priority: extra
+Maintainer: Tim Abbott <tabbott@mit.edu>
+Build-Depends: cdbs (>= 0.4.23-1.1), debhelper (>= 5), quilt, patchutils (>= 0.2.25), cdbs (>= 0.4.27-1), pari-gp
+Standards-Version: 3.7.2
+
+Package: sympow
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Special values of symmetric power elliptic curve L-functions
+ SYMPOW is a package to compute special values of symmetric power
+ elliptic curve L-functions.
+ .
+ Homepage: http://www.maths.bris.ac.uk/~mamjw/
+

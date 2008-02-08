@@ -2,7 +2,7 @@ Source: lcalc
 Section: math
 Priority: extra
 Maintainer: Tim Abbott <tabbott@mit.edu>
-Build-Depends: @cdbs@, libpari-dev
+Build-Depends: @cdbs@, libpari-dev, libmpfr-dev
 Standards-Version: 3.7.2
 
 Package: lcalc

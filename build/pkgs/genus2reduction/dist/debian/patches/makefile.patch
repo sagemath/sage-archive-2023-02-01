@@ -1,0 +1,19 @@
+Index: src/Makefile
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ src/Makefile	2008-02-08 15:22:00.000000000 -0800
+@@ -0,0 +1,14 @@
++CFLAGS = -O2 -I/usr/include/pari
++LDFLAGS = -lpari -lgmp -lm
++CC = gcc
++
++genus2reduction:
++	${CC} ${CFLAGS} ${LDFLAGS} -o genus2reduction genus2reduction.c
++
++install: genus2reduction
++	mkdir -p ${DESTDIR}/usr/bin
++	install -p $< ${DESTDIR}/usr/bin/
++
++clean:
++	rm -f genus2reduction
++

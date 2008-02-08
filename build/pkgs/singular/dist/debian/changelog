@@ -1,5 +1,5 @@
-singular (20071209-1) unstable; urgency=low
+singular (0.0.20071209-1) unstable; urgency=low
 
-  * Initial release. (Closes: #XXXXXX)
+  * Initial release.
 
  -- Tim Abbott <tabbott@mit.edu>  Wed, 14 Nov 2007 20:27:35 -0500

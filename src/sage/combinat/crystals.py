@@ -32,7 +32,7 @@ It has a single highest weight element:
 
 A crystal is a CombinatorialClass; and we can count and list its elements
 in the usual way:
-    sage: C.count()    # todo: not implemented
+    sage: C.count()
     5
     sage: C.list()
     [1, 2, 3, 4, 5]
@@ -89,6 +89,9 @@ class CrystalElement(Element):
     \end{itemize}
     """
 
+    def index_set(self):
+        return self._parent.index_set
+
     def e(self, i):
         r"""
         Returns $e_i(x)$ if it exists or None otherwise
@@ -117,6 +120,12 @@ def CrystalOfLetters(type):
         sage: C = CrystalOfLetters(['A',5])
         sage: C.list()
         [1, 2, 3, 4, 5]
+
+    TEST:
+
+        sage: C.unrank(0) == C(1)  # todo: fix this test
+        True
+
     """
     return Crystals_of_letters_type_A(type)
 
@@ -127,11 +136,11 @@ class Crystals_of_letters_type_A(Crystal):
     def __init__(self, type):
         self.cartanType = CartanType(type)
         self._name = "The crystal of letters for type %s"%type
-        self.indexSet = self.cartanType.index_set()
+        self.index_set = self.cartanType.index_set()
         self.module_generators = [self(1)]
 
     def list(self):
-        return range(1,self.cartanType.n+1)
+        return [self(i) for i in range(1,self.cartanType.n+1)]
 
     def __call__(self, value):
         return Crystals_of_letters_type_A_element(self, value);
@@ -155,8 +164,25 @@ class Crystals_of_letters_type_A_element(Letters, CrystalElement):
     Type A crystal of letters elements
     """
     def e(self, i):
-        assert i in self.indexSet()
-        if self.value == i:
+        r"""
+        TEST:
+            sage: C = CrystalOfLetters(['A',5])
+            sage: C(1).e(1) == None
+            True
+            sage: C(2).e(1) == C(1)
+            True
+            sage: C(3).e(1) == None
+            True
+            sage: C(1).e(2) == None
+            True
+            sage: C(2).e(2) == None
+            True
+            sage: C(3).e(2) == C(2)
+            True
+            None
+        """
+        assert i in self.index_set()
+        if self.value == i+1
             return self._parent(self.value-1)
         else:
             return None

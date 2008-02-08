@@ -479,6 +479,8 @@ def Cyclic(R, n=None, homog=False, singular=singular_default):
 
     \note{R will be set as the active ring in Singular}
     """
+    from rational_field import RationalField
+
     if n:
         if n > R.ngens():
             raise ArithmeticError, "n must be <= R.ngens()"
@@ -486,13 +488,14 @@ def Cyclic(R, n=None, homog=False, singular=singular_default):
         n = R.ngens()
 
     singular.lib("poly")
-    R._singular_().set_ring()
+    R2 = R.change_ring(RationalField())
+    R2._singular_().set_ring()
+
     if not homog:
         I = singular.cyclic(n)
     else:
-        I = singular.cyclic(n).homog(R.gen(n-1))
-    return R.ideal(I)
-
+        I = singular.cyclic(n).homog(R2.gen(n-1))
+    return R2.ideal(I).change_ring(R)
 
 def Katsura(R, n=None, homog=False, singular=singular_default):
     """
@@ -506,25 +509,28 @@ def Katsura(R, n=None, homog=False, singular=singular_default):
                  variable in the ideal (default: False)
         singular -- singular instance to use
     """
+    from rational_field import RationalField
     if n:
         if n > R.ngens():
-            raise ArithmeticError, "n must be <= R.ngens()"
+            raise ArithmeticError, "n must be <= R.ngens()."
     else:
         n = R.ngens()
     singular.lib("poly")
-    R._singular_().set_ring()
+    R2 = R.change_ring(RationalField())
+    R2._singular_().set_ring()
+
     if not homog:
         I = singular.katsura(n)
     else:
-        I = singular.katsura(n).homog(R.gen(n-1))
-    return R.ideal(I)
+        I = singular.katsura(n).homog(R2.gen(n-1))
+    return R2.ideal(I).change_ring(R)
 
 def FieldIdeal(R):
     """
     Let q = R.base_ring().order() and (x0,...,x_n) = R.gens() then if
     q is finite this constructor returns
 
-    $\langle x_0^q - x_0, \dots , x_n^q - x_n \rangle.$
+    $< x_0^q - x_0, ... , x_n^q - x_n >.$
 
     We call this ideal the field ideal and the generators the field
     equations.

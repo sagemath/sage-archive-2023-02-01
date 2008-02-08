@@ -140,9 +140,6 @@ class MPolynomialRing_macaulay2_repr:
     def is_exact(self):
         return self.base_ring().is_exact()
 
-    def change_ring(self, R):
-        from polynomial_ring_constructor import PolynomialRing
-        return PolynomialRing(R, self.variable_names(), order=self.term_order())
 
 class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_generic):
     """

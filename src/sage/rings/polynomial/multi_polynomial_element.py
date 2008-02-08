@@ -1026,6 +1026,16 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         """
         Quotient of division of self by other.  This is denoted //.
         """
+        # handle division my monomials without using Singular
+        if len(right.dict()) == 1:
+            P = self.parent()
+            ret = 0
+            for c,m in self:
+                t = c*m
+                if P.monomial_is_divisible_by(t, right):
+                    ret += P.monomial_quotient(t, right)
+            return ret
+
         Q, _ = self.quo_rem(right)
         return Q
 

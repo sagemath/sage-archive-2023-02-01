@@ -42,6 +42,7 @@ from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_double import is_ComplexDoubleField
 from sage.rings.real_double import is_RealDoubleField
+from sage.rings.rational_field import is_RationalField
 from sage.rings.integer_ring import ZZ
 import sage.rings.arith
 import sage.rings.ring
@@ -256,7 +257,8 @@ class PolynomialRing_singular_repr:
         """
         base_ring = self.base_ring()
         return ( sage.rings.ring.is_FiniteField(base_ring)
-                 or base_ring.is_prime_field()
+                 or is_RationalField(base_ring)
+                 or (base_ring.is_prime_field() and base_ring.characteristic() <= 2147483647)
                  or is_RealField(base_ring)
                  or is_ComplexField(base_ring)
                  or is_RealDoubleField(base_ring)

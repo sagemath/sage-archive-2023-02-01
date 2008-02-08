@@ -1,0 +1,15 @@
+Source: palp
+Section: math
+Priority: extra
+Maintainer: Tim Abbott <tabbott@mit.edu>
+Build-Depends: @cdbs@
+Standards-Version: 3.7.2
+
+Package: palp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: A Package for Analyzing Lattice Polytopes
+ A program for classifying reflexive lattice polytopes.
+ See http://arxiv.org/abs/math/0204356 for details.
+ .
+ Homepage: http://hep.itp.tuwien.ac.at/%7Ekreuzer/CY/CYpalp.html

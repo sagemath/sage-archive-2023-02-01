@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+
+DEB_AUTO_UPDATE_DEBIAN_CONTROL = 1
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/makefile.mk
+include /usr/share/cdbs/1/rules/patchsys-quilt.mk
+
+DEB_MAKE_BUILD_TARGET = libflint.so
+
+FLINT_TUNE = -fPIC -funroll-loops # tuning
+DEB_MAKE_INVOKE += FLINT_TUNE="$(FLINT_TUNE)"
+
+clean::
+	rm -f *.o libflint.so

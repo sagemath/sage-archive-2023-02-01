@@ -3426,7 +3426,6 @@ class PlotFactory(GraphicPrimitiveFactory):
                 except (ZeroDivisionError, TypeError, ValueError), msg:
                     sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                     exceptions += 1
-
                 j += 1
                 if j > plot_division:
                     break
@@ -4080,14 +4079,9 @@ def adjust_figsize_for_aspect_ratio(figsize, aspect_ratio, xmin, xmax, ymin, yma
         figsize = [figsize, figsize * 0.618033988749895]   # 1/golden_ratio
     if aspect_ratio is None:
         return figsize
-    # We find a number r such that (xmax-xmin)*r / (ymax-ymin) = aspect_ratio:
-    r = max(aspect_ratio * (ymax - ymin)/(xmax-xmin), 0.001)
+    # We find a number r such that (ymax-ymin)*r / (xmax-xmin) = aspect_ratio:
+    r = max(aspect_ratio * (xmax - xmin)/(ymax-ymin), 0.001)
     mx = max(figsize)
     f = (figsize[0]*r, figsize[0])
     s = min((mx/f[0], mx/f[1]))
     return f[0]*s, f[1]*s
-
-
-
-
-

@@ -98,7 +98,12 @@ class CrystalElement(Element):
         """
         raise NotImplementedError
 
-    # should implement e, f, ...
+    def f(self, i):
+        r"""
+        Returns $f_i(x)$ if it exists or None otherwise
+        """
+        raise NotImplementedError
+
     def epsilon(self, i):
         x = self;
         eps = 0;
@@ -106,6 +111,25 @@ class CrystalElement(Element):
             x = x.e(i)
             eps = eps+1
         return eps
+
+    def phi(self, i):
+        x = self;
+        eps = 0;
+        while x is not None:
+            x = x.f(i)
+            eps = eps+1
+        return eps
+
+    def is_highest_weight(self):
+	r"""
+        TEST:
+	    sage: C = CrystalOfLetters(['A',5])
+	    sage: C(1).is_highest_weight()
+	    True
+	    sage: C(2).is_highest_weight()
+	    False
+	"""
+	return all(self.e(i) == None for i in self.index_set())
 
 
 def CrystalOfLetters(type):
@@ -182,7 +206,31 @@ class Crystals_of_letters_type_A_element(Letters, CrystalElement):
             None
         """
         assert i in self.index_set()
-        if self.value == i+1
+        if self.value == i+1:
             return self._parent(self.value-1)
+        else:
+            return None
+
+    def f(self, i):
+        r"""
+        TEST:
+            sage: C = CrystalOfLetters(['A',5])
+            sage: C(1).f(1) == C(2)
+            True
+            sage: C(2).f(1) == None
+            True
+            sage: C(3).f(1) == None
+            True
+            sage: C(1).f(2) == None
+            True
+            sage: C(2).f(2) == C(3)
+            True
+            sage: C(3).f(2) == None
+            True
+            None
+        """
+        assert i in self.index_set()
+        if self.value == i:
+            return self._parent(self.value+1)
         else:
             return None

@@ -2026,7 +2026,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 raise ZeroDivisionError, "input matrix must be nonsingular"
             return self._solve_iml(P.identity_matrix(), right=True)
 
-    def solve_right(self, B):
+    def solve_right(self, B, check_rank=True):
         r"""
         If self is a matrix $A$ of full rank, then this function
         returns a vector or matrix $X$ such that $A X = B$.  If $B$ is
@@ -2092,7 +2092,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         # throws an error instead of ** going into an infinite loop **
         # in the non-full rank case.  In any case, we do this for now,
         # since rank is very fast and infinite loops are evil.
-        if self.rank() < self.nrows():
+        if check_rank and self.rank() < self.nrows():
             raise ValueError, "self must be of full rank."
 
         if not self.is_square():

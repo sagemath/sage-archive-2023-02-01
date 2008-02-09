@@ -1017,6 +1017,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     def _echelon_strassen(self):
         raise NotImplementedError
 
+    def _hnf(self, **kwds):
+        """
+        Experimental Hermite form algorithm for square full rank matrices.
+
+        VERY FAST.  The fastest implementation in the world.
+        """
+        import matrix_integer_dense_hnf
+        return matrix_integer_dense_hnf.hnf(self)
+
     def echelon_form(self, algorithm="default", cutoff=0, include_zero_rows=True, D=None):
         r"""
         Return the echelon form of this matrix over the integers also
@@ -2470,8 +2479,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         top n rows of A to form a new matrix that is in reduced row
         echelon form.  We then clear that corresponding new pivot column.
         """
-        from sage.all import verbose
-        tt = cputime()
         cdef Py_ssize_t i, j, piv, n = self._nrows, m = self._ncols
 
         import constructor
@@ -2490,11 +2497,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
 
         # 1. Create a new matrix that has row as the last row.
-        tm = verbose('1', level=0)
         row_mat = constructor.matrix(row)
-        tm = verbose('2', tm, level=0)
         A = self.stack(row_mat)
-        tm = verbose('3', tm, level=0)
         # 2. Working from the left, clear each column to put
         #    the resulting matrix back in echelon form.
         for i, p in enumerate(pivots):
@@ -2514,7 +2518,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     for j in range(m):
                         A[n,j] -= c * A[i,j]
             else:
-                tm = verbose('3.5', tm, level=0)
                 # (b). More elaborate.
                 #  Replace the ith row by s*A[i] + t*A[n], which will
                 # have g in the i,p position, and replace the last row by
@@ -2538,158 +2541,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 # function with the top part of A (all but last row) and the
                 # row r.
 
-                tm = verbose('', tm, level=0)
                 zz = range(A.nrows()-1)
                 del zz[i]
                 top_mat = A.matrix_from_rows(zz)
-                tm = verbose('construct matrix 2', tm, level=0)
                 new_pivots = list(pivots)
                 del new_pivots[i]
 
-                tm = verbose('hard else', tm, level=0)
                 top_mat, pivots = top_mat._add_row_and_maintain_echelon_form(new_top, new_pivots)
-                verbose('total after recurse 1', tt, level=0)
                 w = top_mat._add_row_and_maintain_echelon_form(new_bot, pivots)
-                verbose('total after recurse 2', tt, level=0)
                 return w
-
-        tm = verbose('4', tm, level=0)
 
         # 3. If it turns out that the last row is nonzero,
         #    insert last row in A sliding other rows down.
-        v = A.row(n)
-        new_pivots = list(pivots)
-        if v != 0:
-            tm = verbose('about to insert', tm, level=0)
-            R = A.rows()
-            # Determine where the last row should be inserted.
-            i = v.nonzero_positions()[0]
-            if i in pivots:
-                assert False, 'WARNING: bug in add_row -- i (=%s) should not be a pivot'%i
-            # If pivot entry is negative negate this row.
-            if v[i] < 0:
-                A.rescale_row(n, -1)
-                v = A.row(n)
-            new_pivots.append(i)
-            new_pivots.sort()
-            import bisect
-            j = bisect.bisect(pivots, i)
-            # The new row should go *before* row j, so it becomes row j
-            del R[-1]
-            R.insert(j, v)
-            A = A.parent()(R)   # BAD
-            tm = verbose('inserted', tm, level=0)
-
-        tm = verbose('5', tm, level=0)
-        _clear_columns(A, new_pivots, A.nrows())
-        tm = verbose('6', tm, level=0)
-        verbose('total', tt, level=0)
-        # end if
-        return A, new_pivots
-
-    def xxx_add_row_and_maintain_echelon_form(self, row, pivots):
-        """
-        Assuming self is a full rank n x m matrix in reduced row
-        Echelon form over ZZ and row is a vector of degree m, this
-        function creates a new matrix that is the echelon form of self
-        with row appended to the bottom.
-
-        WARNING: It is assumed that self is in
-
-        INPUT:
-            row -- a vector of degree m over ZZ
-            pivots -- a list of integers that are the pivot columns of self.
-
-        OUTPUT:
-            matrix -- a matrix of in reduced row echelon form over ZZ
-            pivots -- list of integers
-
-        ALGORITHM: For each pivot column of self, we use the extended
-        Euclidean algorithm to clear the column.  The result is a new
-        matrix B whose row span is the same as self.stack(row), and
-        whose last row is 0 if and only if row is in the QQ-span of
-        the rows of self.  If row is not in the QQ-span of the rows of
-        self, then row is nonzero and suitable to be inserted into the
-        top n rows of A to form a new matrix that is in reduced row
-        echelon form.  We then clear that corresponding new pivot column.
-        """
-        cdef Py_ssize_t i, j, piv, n = self._nrows, m = self._ncols
-
-        import constructor
-
-        # 0. Base case
-        if self.nrows() == 0:
-            pos = row.nonzero_positions()
-            if len(pos) > 0:
-                pivots = [0]
-                i = pos[0]
-                if row[i] < 0:
-                    row *= -1
-            else:
-                pivots = []
-            return constructor.matrix([row]), pivots
-
-
-        # 1. Create a new matrix that has row as the last row.
-        row_mat = constructor.matrix(row)
-        A = self.stack(row_mat)
-
-        # 2. Working from the left, clear each column to put
-        #    the resulting matrix back in echelon form.
-        for i, p in enumerate(pivots):
-            # p is the i-th pivot
-
-            # (a). Take xgcd of pivot positions in last row and in ith
-            # row.
-
-            # TODO (optimize) -- change to use direct call to gmp and
-            # no bounds checking!
-            a = A[i,p]
-            b = A[n,p]
-            if b % a == 0:
-                # (b) Subtract a multiple of row i from row n.
-                c = b // a
-                if c:
-                    for j in range(m):
-                        A[n,j] -= c * A[i,j]
-            else:
-                # (b). More elaborate.
-                #  Replace the ith row by s*A[i] + t*A[n], which will
-                # have g in the i,p position, and replace the last row by
-                # (b//g)*A[i] - (a//g)*A[n], which will have 0 in the i,p
-                # position.
-                g, s, t = a.xgcd(b)
-
-                # TODO: change to use a single mpz_t* instead of an extracted row.
-                row_i = A.row(i)
-                row_n = A.row(n)
-
-                # TODO: change to use direct mpz_t access instead of []:
-                ag = a//g; bg = b//g
-
-                # OK -- now we have to make sure the top part of the matrix
-                # but with row i replaced by
-                #     r = s*row_i[j]  +  t*row_n[j]
-                # is put in rref.  We do this by recursively calling this
-                # function with the top part of A (all but last row) and the
-                # row r.
-
-                rows = A.rows()
-                new_top = s*row_i  +  t*row_n
-                new_bot = bg*row_i - ag*row_n
-
-                del rows[-1]
-                del rows[i]
-                top_mat = constructor.matrix(ZZ, n-1, m, rows)
-                new_pivots = list(pivots)
-                del new_pivots[i]
-
-                top_mat, pivots = top_mat._add_row_and_maintain_echelon_form(new_top, new_pivots)
-                return top_mat._add_row_and_maintain_echelon_form(new_bot, pivots)
-
-        # 3. Insert last row in A sliding other rows down if it turns out
-        #     that the last row is nonzero.
-        # TODO: change to use some fast mpz_t access.
         v = A.row(n)
         new_pivots = list(pivots)
         if v != 0:
@@ -2710,8 +2573,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             A = A.insert_row(j, v)
 
         _clear_columns(A, new_pivots, A.nrows())
-
-        # end if
         return A, new_pivots
 
     #####################################################################################
@@ -2728,8 +2589,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
 
     def _hnf_mod(self, D):
+        t = verbose('hermite mod d', caller_name='matrix_integer_dense')
         res = self._new_uninitialized_matrix(self._nrows, self._ncols)
         self._hnf_modn(res, D)
+        verbose('finished hnf mod', t, caller_name='matrix_integer_dense')
         return res
 
     cdef int _hnf_modn(Matrix_integer_dense self, Matrix_integer_dense res,
@@ -2986,21 +2849,6 @@ cdef _clear_columns(Matrix_integer_dense A, pivots, Py_ssize_t n):
                         mpz_sub(matrix[k][l], matrix[k][l], t)
     mpz_clear(c)
     mpz_clear(t)
-
-def xxx_clear_columns(A, pivots, n):
-    # Clear all columns
-    m = A.ncols()
-    for i, p in enumerate(pivots):
-        v = A.row(i)
-        b = v[p]
-        for k in range(n):
-            if k != i:
-                a = A[k,p]
-                if a:
-                    c = a//b
-                    # subtract off c*v from row k; resulting A[k,i] entry will be < b, hence in Echelon form.
-                    for l in range(m):
-                        A[k,l] -= c*v[l]
 
 
 ###############################################################

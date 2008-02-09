@@ -38,7 +38,7 @@ def fastdet(A, times=1):
         p = previous_prime(p)
     return d
 
-def doubleDet (A, b, c):
+def xxx_doubleDet (A, b, c):
     """
     Compute the determinants of the stacked matrices A.stack(b) and A.stack(c).
 
@@ -55,6 +55,59 @@ def doubleDet (A, b, c):
     d2 = fastdet(A.stack(c))
     verbose('finished double det', t)
     return (d1,d2)
+
+def doubleDet (A, b, c):
+    """
+    Compute the determinants of the stacked matrices A.stack(b) and A.stack(c).
+
+    INPUT:
+        A -- an (n-1) x n matrix
+        b -- an 1 x n matrix
+        c -- an 1 x n matrix
+
+    OUTPUT:
+        a pair of two integers.
+    """
+    # We use the "two for the price of one" algorithm.
+
+    # This is a clever trick!  First we transpose everything.  Then
+    # we use that if [A|b]*v = c then [A|c]*w = b with w easy to write down!
+    # In fact w is got from v by dividing all entries by -v[n], where n is the
+    # number of rows of v, and *also* dividing the last entry of w by v[n] again.
+    # See this as an algebra exercise where you have to think of matrix vector
+    # multiply as "linear combination of columns".
+    A = A.transpose()
+    b = b.transpose()
+    c = c.transpose()
+    t = verbose('starting double det')
+    B = A.augment(b)
+    v = B.solve_right(-c, check_rank=False)  # infinite loop if not full rank!
+    db = v.denominator()
+    p = 46337
+    Bmod = B._reduce(p)
+    z = Bmod.determinant() / db
+    z = z.lift()
+    if z > p//2:
+        z = z - p
+    db *= z
+
+    n = v.nrows()
+    vn = v[n-1,0]
+    w = (-1/vn)*v
+    w[n-1] = w[n-1]/vn
+    dc = w.denominator()
+
+    Cmod = A.augment(c)._reduce(p)
+    z = Cmod.determinant() / dc
+    z = z.lift()
+    if z > p//2:
+        z = z - p
+    dc *= z
+
+    verbose('finished double det', t)
+
+    return (db, dc)
+
 
 def add_column(B, H_B, a):
     """
@@ -75,8 +128,6 @@ def add_column(B, H_B, a):
     # what is in that paper, in 2 ways -- (1) no inverse need
     # to be computed, and (2) we cleverly solve a vastly easier
     # system and recover the solution to the original system.
-
-    t = verbose('starting optimized solve')
 
     # Here's how:
     # 1. We make a copy of B but with the last *nasty* row of B replaced
@@ -111,13 +162,13 @@ def add_column(B, H_B, a):
     rhs = a_prime - w * x
     alpha = rhs[0] / lhs[0]
     z = x + alpha*k
-    t = verbose('start matrix-vector multiply', t)
-    HQ = H_B.change_ring(QQ)
-    x = HQ * z
-    verbose('done with matrix-vector multiply', t)
-    x = x.change_ring(ZZ)
+    zd, d = z._clear_denom()
+    x = H_B * zd
+    if d > 1:
+        for i in range(x.ncols()):
+            x[i,0] = x[i,0]/d
 
-    verbose('finished add column -- overall time', t0)
+    verbose('finished add column', t0)
 
     return x
 
@@ -183,3 +234,22 @@ def hnf(A):
 
 
 
+def benchmark(nrange, bits=4):
+    from sage.misc.misc import cputime
+    b = 2**bits
+    for n in nrange:
+        a = random_matrix(ZZ, n, x=-b,y=b)
+        t = cputime()
+        h = hnf(a)
+        tm = cputime(t)
+        print '%s,'%(('sage', n, bits, tm),)
+
+def benchmark_magma(nrange, bits=4):
+    from sage.misc.misc import cputime
+    b = 2**bits
+    for n in nrange:
+        a = magma('MatrixAlgebra(IntegerRing(),%s)![Random(%s,%s) : i in [1..%s]]'%(n,-b,b,n**2))
+        t = magma.cputime()
+        h = a.EchelonForm()
+        tm = magma.cputime(t)
+        print '%s,'%(('magma', n, bits, tm),)

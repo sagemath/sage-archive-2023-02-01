@@ -599,8 +599,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpz_init(A_row[0])
                 mpz_divexact(A_row[0], D.value, mpq_denref(self_row[0]))
                 mpz_mul(A_row[0], A_row[0], mpq_numref(self_row[0]))
-                A_row = A_row + 1
-                self_row = self_row + 1
+                A_row += 1
+                self_row += 1
         _sig_off
         A._initialized = 1
         self.cache('clear_denom', (A,D))

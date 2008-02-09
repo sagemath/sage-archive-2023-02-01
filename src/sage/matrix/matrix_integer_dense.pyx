@@ -2107,6 +2107,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             True
 
         """
+        t = verbose('starting linbox solve_right...')
         # It would probably be much better to rewrite linbox so it
         # throws an error instead of ** going into an infinite loop **
         # in the non-full rank case.  In any case, we do this for now,
@@ -2130,9 +2131,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             X = (1/d) * X
         if not matrix:
             # Convert back to a vector
-            return (X.base_ring() ** X.nrows())(X.list())
-        else:
-            return X
+            X = (X.base_ring() ** X.nrows())(X.list())
+        verbose('finished solve_right', t)
+        return X
 
     def _solve_iml(self, Matrix_integer_dense B, right=True):
         """
@@ -2589,7 +2590,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
 
     def _hnf_mod(self, D):
-        t = verbose('hermite mod d', caller_name='matrix_integer_dense')
+        t = verbose('hermite mod %s'%D, caller_name='matrix_integer_dense')
         res = self._new_uninitialized_matrix(self._nrows, self._ncols)
         self._hnf_modn(res, D)
         verbose('finished hnf mod', t, caller_name='matrix_integer_dense')

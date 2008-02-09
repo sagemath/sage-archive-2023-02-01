@@ -1,0 +1,207 @@
+r"""
+Tensor products of crystals
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2007 Anne Schilling <anne at math.ucdavis.edu>
+#                          Nicolas Thiery <nthiery at users.sf.net>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#****************************************************************************
+
+from sage.structure.element    import Element
+from sage.combinat.cartan_type import CartanType
+from sage.combinat.cartesian_product  import CombinatorialObject, CartesianProduct
+from crystals                  import Crystal, CrystalElement
+
+##############################################################################
+# Support classes
+##############################################################################
+
+class ImmutableListWithParent(CombinatorialObject, Element):
+    r"""
+    A class for lists having a parent
+
+    We create an immutable list whose parent is the class list:
+
+    sage: from sage.combinat.crystals.tensor_product import ImmutableListWithParent
+    sage: l = ImmutableListWithParent(list, [1,2,3])
+
+    TESTS:
+
+    sage: l.list == [1, 2, 3]
+    True
+    sage: l.parent() == list
+    True
+    sage: l == l
+    True
+    sage: l.sibling([2,1]) == ImmutableListWithParent(list, [2,1])
+    True
+    sage: l.reverse()      == l.sibling([3,2,1])
+    True
+    sage: l.set_index(1,4) == l.sibling([1,4,3])
+    True
+
+    """
+
+    def __init__(self, parent, list):
+#        Element.__init__(self, parent);
+        self._parent = parent
+        CombinatorialObject.__init__(self, list)
+
+    def parent(self):
+        return self._parent  # Should be inherited from Element!
+
+    def __repr__(self):
+        return "%s"%self.list
+
+    def __eq__(self, other):
+        return self.__class__ == other.__class__ and \
+               self.parent()  == self.parent()   and \
+               self.list      == other.list
+
+    def sibling(self, list): # Makes some hypothesis on the constructor!
+                             # of subclasses
+        return self.__class__(self.parent(), list)
+
+    def reverse(self):
+        return self.sibling([ i for i in reversed(self.list)])
+
+    def set_index(self, k, value):
+        l = [i for i in self.list]
+        l[k] = value
+        return self.sibling(l)
+
+class TensorProductOfCrystals(Crystal):
+    r"""
+    Tensor product of crystals
+
+    TESTS:
+        sage: C = CrystalOfLetters(['A',5])
+        sage: T = TensorProductOfCrystals(C,C)
+
+        sage: T(C(1),C(2)).e(1) == T(C(1),C(1))
+        True
+        sage: T(C(2),C(1)).e(1) == None
+        True
+        sage: T(C(2),C(2)).e(1) == T(C(1),C(2))
+        True
+
+	sage: T(C(1),C(1)).f(1) == T(C(1),C(2))
+	True
+	sage: T(C(2),C(1)).f(1) == None
+	True
+	sage: T(C(1),C(2)).f(1) == T(C(2),C(2))
+	True
+
+	sage: T(C(2),C(1)).positionsOfUnmatchedMinus(1) == []
+	True
+	sage: T(C(2),C(1)).positionsOfUnmatchedPlus(1) == []
+	True
+	sage: T(C(1),C(2)).positionsOfUnmatchedMinus(1) == [0]
+	True
+	sage: T(C(1),C(2)).positionsOfUnmatchedPlus(1) == [1]
+	True
+    """
+    def __init__(self, *crystals):
+        crystals = [ crystal for crystal in crystals]
+        self._name = "The tensor product of the crystals %s"%crystals
+        self.crystals = crystals
+        self.cartanType = crystals[1].cartanType
+        self.index_set = self.cartanType.index_set()
+        self.module_generators = \
+        [ self(*generator) \
+          for generator in CartesianProduct(*[[x for x in crystal] \
+                                              for crystal in crystals])]
+
+    def __call__(self, *args):
+        return TensorProductOfCrystalsElement(self,
+                                              [crystal for crystal in args]);
+
+class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
+    r"""
+    A class for elements of tensor products of crystals
+    """
+
+    def e(self, i):
+	assert i in self.index_set()
+	position = self.positionsOfUnmatchedPlus(i)
+	if position == []:
+	    return None
+	k = position[0]
+	return self.set_index(k, self[k].e(i))
+#	self[k] = self[k].e(i)
+#       return self
+
+    def f(self, i):
+	assert i in self.index_set()
+	position = self.positionsOfUnmatchedMinus(i)
+	if position == []:
+	    return None
+	k = position[len(position)-1]
+	self = self.set_index(k, self[k].f(i))
+#	self[k] = self[k].f(i)
+	return self
+
+    def phi(self, i):
+	self = self.reverse()
+	height = 0
+	for j in range(len(self)):
+	    plus = self[j].epsilon(i)
+	    minus = self[j].phi(i)
+	    if height-plus < 0:
+		height = minus
+	    else:
+		height = height - plus + minus
+	return height
+
+    def epsilon(self, i):
+	height = 0
+	for j in range(len(self)):
+	    minus = self[j].phi(i)
+	    plus = self[j].epsilon(i)
+	    if height-minus < 0:
+		height = plus
+	    else:
+		height = height - minus + plus
+	return height
+
+    def positionsOfUnmatchedMinus(self, i, dual=False, reverse=False):
+	unmatchedPlus = []
+	height = 0
+	if reverse == True:
+	    self = self.reverse()
+	if dual == False:
+	    for j in range(len(self)):
+		minus = self[j].phi(i)
+		plus = self[j].epsilon(i)
+		if height-minus < 0:
+		    unmatchedPlus.append(j)
+		    height = plus
+		else:
+		    height = height - minus + plus
+	else:
+	    for j in range(len(self)):
+		plus = self[j].epsilon(i)
+		minus = self[j].phi(i)
+		if height-plus < 0:
+		    unmatchedPlus.append(j)
+		    height = minus
+		else:
+		    height = height - plus + minus
+	return unmatchedPlus
+
+    def positionsOfUnmatchedPlus(self, i):
+	list = self.positionsOfUnmatchedMinus(i, dual=True, reverse=True)
+	list.reverse()
+	return [len(self)-1-list[j] for j in range(len(list))]
+

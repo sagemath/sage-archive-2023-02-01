@@ -1,2 +1,2 @@
 debian/tmp/usr/include/ usr/
-debian/tmp/usr/lib/singular/*.*a usr/lib/singular/
+debian/tmp/usr/lib/singular/*.*a usr/lib/

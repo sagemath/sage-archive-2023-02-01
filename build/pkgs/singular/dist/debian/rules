@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-DEB_AUTO_UPDATE_AUTOCONF = 1
+#DEB_AUTO_UPDATE_AUTOCONF = 1
 DEB_AUTO_UPDATE_DEBIAN_CONTROL = 1
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/autotools.mk
@@ -21,7 +21,7 @@ common-install-impl::
 	+$(DEB_MAKE_INVOKE) install-libsingular
 
 clean::
-	rm -f configure
+#	rm -f configure
 	find . -name *.dl_o -exec rm \{\} \;
 	find . -name *.o -exec rm \{\} \;
 	find . -name *.og -exec rm \{\} \;

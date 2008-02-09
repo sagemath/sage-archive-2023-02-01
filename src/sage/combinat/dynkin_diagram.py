@@ -267,7 +267,7 @@ def dynkin_diagram(t):
     f = "type_"
     letter = t[0].lower()
     affine = ""
-    if len(t) == 3:
+    if t.is_affine():
         affine = "_affine"
 
     function = eval(f+letter+affine)

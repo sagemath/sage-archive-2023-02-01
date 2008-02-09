@@ -13,7 +13,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from dynkin_diagram import dynkin_diagram, dynkin_diagram_as_function
-from cartan_type import CartanType
+import cartan_type
 from sage.matrix.all import matrix, MatrixSpace
 from sage.rings.all import ZZ
 
@@ -25,7 +25,7 @@ def cartan_matrix_as_function(t):
     EXAMPLES:
 
     """
-    ct = CartanType(t)
+    ct = cartan_type.CartanType(t)
     f = dynkin_diagram_as_function(t)
     s = ct.index_set()
 
@@ -85,7 +85,7 @@ def cartan_matrix(t):
         [-3  2]
 
     """
-    ct = CartanType(t)
+    ct = cartan_type.CartanType(t)
     index_set = ct.index_set()
     cmf = cartan_matrix_as_function(t)
     MS = MatrixSpace(ZZ, len(index_set), sparse=True)

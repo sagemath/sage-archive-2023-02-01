@@ -13,6 +13,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.rings.all import Integer
+import root_system
+from cartan_matrix import cartan_matrix
 
 def CartanType(t):
     """
@@ -73,6 +75,12 @@ class CartanType_simple:
             IndexError: list index out of range
         """
         return self.t[x]
+
+    def __len__(self):
+        if self.affine:
+            return 3
+        else:
+            return 2
 
     def is_finite(self):
         if self.affine is not None:
@@ -139,3 +147,12 @@ class CartanType_simple:
             return range(n+1)
         else:
             return range(1, n+1)
+
+    def root_system(self):
+        return root_system.RootSystem(self)
+
+    def cartan_matrix(self):
+        return cartan_matrix(self)
+
+    def type(self):
+        return self.letter

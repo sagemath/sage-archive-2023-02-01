@@ -178,6 +178,8 @@ class ImmutableListWithParent(CombinatorialObject, Element):
     True
     sage: l.reverse()      == l.sibling([3,2,1])
     True
+    sage: l.set_index(1,4) == l.sibling([1,4,3])
+    True
 
     """
 
@@ -204,7 +206,12 @@ class ImmutableListWithParent(CombinatorialObject, Element):
     def reverse(self):
         return self.sibling([ i for i in reversed(self.list)])
 
+    def set_index(self, k, value):
+        l = [i for i in self.list]
+        l[k] = value
+        return self.sibling(l)
 
+##############################################################################
 
 def CrystalOfLetters(type):
     r"""

@@ -1019,7 +1019,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         INPUT:
             algorithm -- 'pari', 'ntl' or 'default';
                   the default is ntl if self is square and of full rank;
-                  otherwise, it is ntl.
+                  otherwise, it is pari.
             cutoff -- ignored currently
             include_zero_rows -- (default: True)
                                  if False, don't include zero rows

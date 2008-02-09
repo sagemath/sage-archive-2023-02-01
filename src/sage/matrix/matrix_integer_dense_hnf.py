@@ -81,7 +81,7 @@ def doubleDet (A, b, c):
     c = c.transpose()
     t = verbose('starting double det')
     B = A.augment(b)
-    v = B.solve_right(-c, check_rank=False)  # infinite loop if not full rank!
+    v = B.solve_right(-c, check_rank=True)  # infinite loop if not full rank and don't do this.
     db = v.denominator()
     p = 46337
     Bmod = B._reduce(p)
@@ -162,13 +162,12 @@ def add_column(B, H_B, a):
     rhs = a_prime - w * x
     alpha = rhs[0] / lhs[0]
     z = x + alpha*k
+
     zd, d = z._clear_denom()
     x = H_B * zd
-    if d > 1:
-        for i in range(x.ncols()):
+    if d != 1:
+        for i in range(x.nrows()):
             x[i,0] = x[i,0]/d
-
-    verbose('finished add column', t0)
 
     return x
 

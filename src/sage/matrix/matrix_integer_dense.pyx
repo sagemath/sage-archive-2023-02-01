@@ -1022,6 +1022,19 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Experimental Hermite form algorithm for square full rank matrices.
 
         VERY FAST.  The fastest implementation in the world.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ,4,[4, -1, -2, 1, 1, -1, 3, -1, -1, 4, -3, -3, -1, -1, 5, -1])
+            sage: a._hnf()
+            [ 1  0  1  8]
+            [ 0  1  0  2]
+            [ 0  0  2  3]
+            [ 0  0  0 10]
+            sage: a.echelon_form()
+            [ 1  0  1  8]
+            [ 0  1  0  2]
+            [ 0  0  2  3]
+            [ 0  0  0 10]
         """
         import matrix_integer_dense_hnf
         return matrix_integer_dense_hnf.hnf(self)

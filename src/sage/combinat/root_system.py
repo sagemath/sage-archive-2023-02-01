@@ -162,12 +162,19 @@ class AmbientLattice_generic(WeightLatticeRealization_class):
     def __init__(self, ct):
         if not hasattr(self, 'n'):
             self.n  = ct.rank()
+        self.ct = ct
         self._free_module = FreeModule(ZZ, self.n)
 
     #def __call__(self, i):
     #    return self._term(i+1)
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: RootSystem(['B',4]).ambient_lattice()
+            Ambient lattice of the root system of type ['B', 4]
+
+        """
         return "Ambient lattice of the root system of type %s"%self.ct
 
     def __getitem__(self,i):
@@ -259,12 +266,18 @@ class AmbientLattice_a(AmbientLattice_generic):
         return [ sum([self._term(j) for j in range(i+1)]) for i in range(self.n-1)]
 
 class AmbientLattice_b(AmbientLattice_generic):
-    def root(self, i, j, p1, p2):
-        raise NotImplementedError
+    def root(self, i, j):
+        return self._term(i) - self._term(j)
     def simple_roots(self):
-        raise NotImplementedError
+        """
+        EXAMPLES:
+            sage: e =  RootSystem(['B',4]).ambient_lattice()
+            sage: e.simple_roots()
+            [(1, -1, 0, 0), (0, 1, -1, 0), (0, 0, 1, -1), (0, 0, 0, 1)]
+        """
+        return [ self.root(i,i+1) for i in range(self.n-1) ] + [ self._term(self.n-1) ]
     def negative_roots(self):
-        raise NotImplementedError
+        return [ -a for a in self.positive_roots()]
     def positive_roots(self):
         raise NotImplementedError
     def fundamental_weights(self):

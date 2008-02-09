@@ -22,6 +22,8 @@ from sage.structure.element    import Element
 from sage.combinat.cartan_type import CartanType
 from sage.combinat.cartesian_product  import CombinatorialObject, CartesianProduct
 from crystals                  import Crystal, CrystalElement
+from letters                   import CrystalOfLetters
+from sage.misc.flatten         import flatten
 
 ##############################################################################
 # Support classes
@@ -171,9 +173,9 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
 	if position == []:
 	    return None
 	k = position[len(position)-1]
-	self = self.set_index(k, self[k].f(i))
+	return self.set_index(k, self[k].f(i))
 #	self[k] = self[k].f(i)
-	return self
+#	return self
 
     def phi(self, i):
 	self = self.reverse()
@@ -228,3 +230,12 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
 	list.reverse()
 	return [len(self)-1-list[j] for j in range(len(list))]
 
+class CrystalOfTableaux(TensorProductOfCrystals):
+    def __init__(self, type, shape):
+	C=CrystalOfLetters(type)
+	module_generator = flatten([[C(i+1)]*shape[i] for i in range(len(shape))])
+        TensorProductOfCrystals.__init__(self, *[C]*shape.size(), **{'generators':[module_generator]})
+	self._name = "The crystal of tableaux of type%s"%type
+
+class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
+    pass

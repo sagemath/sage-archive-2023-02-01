@@ -1,20 +1,20 @@
 r"""
 Crystals
 
-Let $T$ be a CartanType with index set I, and W be a realization of the
+Let $T$ be a CartanType with index set $I$, and $W$ be a realization of the
 type $T$ weight lattice.
 
 A type $T$ crystal $C$ is an oriented graph equiped with a weight
 function the nodes to some realization of the type $T$ weight lattice
 such that:
 \begin{itemize}
-\item each edge has a label in I
-\item for each i in I, each node x has:
-    - at most one i-successor f_i(x)
-    - at most one i-predecessor e_i(x)
+\item each edge has a label in $I$
+\item for each $i$ in $I$, each node $x$ has:
+    - at most one $i$-successor $f_i(x)$
+    - at most one $i$-predecessor $e_i(x)$
    Furthermore, when the exists,
-    - f_i(x).weight() = x.weight() - \alpha_i
-    - e_i(x).weight() = x.weight() + \alpha_i
+    - $f_i(x)$.weight() = x.weight() - $\alpha_i$
+    - $e_i(x)$.weight() = x.weight() + $\alpha_i$
 
 This crystal actually models a representation of a Lie algebra if it
 satisfies some further local conditions due to Stembridge.
@@ -40,6 +40,7 @@ in the usual way:
 
 #*****************************************************************************
 #       Copyright (C) 2007 Nicolas Thiery <nthiery at users.sf.net>,
+#                          Anne Schilling
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -190,20 +191,19 @@ class Crystals_of_letters_type_A_element(Letters, CrystalElement):
     def e(self, i):
         r"""
         TEST:
-            sage: C = CrystalOfLetters(['A',5])
-            sage: C(1).e(1) == None
-            True
-            sage: C(2).e(1) == C(1)
-            True
-            sage: C(3).e(1) == None
-            True
-            sage: C(1).e(2) == None
-            True
-            sage: C(2).e(2) == None
-            True
-            sage: C(3).e(2) == C(2)
-            True
-            None
+	sage: C = CrystalOfLetters(['A',5])
+	sage: C(1).e(1) == None
+	True
+	sage: C(2).e(1) == C(1)
+	True
+	sage: C(3).e(1) == None
+	True
+	sage: C(1).e(2) == None
+	True
+	sage: C(2).e(2) == None
+	True
+	sage: C(3).e(2) == C(2)
+	True
         """
         assert i in self.index_set()
         if self.value == i+1:
@@ -214,23 +214,124 @@ class Crystals_of_letters_type_A_element(Letters, CrystalElement):
     def f(self, i):
         r"""
         TEST:
-            sage: C = CrystalOfLetters(['A',5])
-            sage: C(1).f(1) == C(2)
-            True
-            sage: C(2).f(1) == None
-            True
-            sage: C(3).f(1) == None
-            True
-            sage: C(1).f(2) == None
-            True
-            sage: C(2).f(2) == C(3)
-            True
-            sage: C(3).f(2) == None
-            True
-            None
+	sage: C = CrystalOfLetters(['A',5])
+	sage: C(1).f(1) == C(2)
+	True
+	sage: C(2).f(1) == None
+	True
+	sage: C(3).f(1) == None
+	True
+	sage: C(1).f(2) == None
+	True
+	sage: C(2).f(2) == C(3)
+	True
+	sage: C(3).f(2) == None
+	True
         """
         assert i in self.index_set()
         if self.value == i:
             return self._parent(self.value+1)
         else:
             return None
+
+class ListWithParent:
+    pass
+
+
+class TensorProductOfCrystalElement(ListWithParent, CrystalElement):
+    r"""
+    A class for tensor products of crystals
+    """
+
+    def e(self, i):
+	r"""
+        TEST:
+	sage: C = CrystalOfLetters(['A',5])
+	sage: T = TensorProductOfCrystalElement(C,C)
+	sage: T(C(1),C(2)).e(1) == T(C(1),C(1))
+	True
+	sage: T(C(2),C(1)).e(1) == None
+	True
+	sage: T(C(2),C(2)).e(1) == T(C(1),C(2))
+	True
+        """
+	assert i in self.index_set()
+	position = self.positionsOfUnmatchedOpening(i)
+	if position == []:
+	    return None
+	k = position[0]
+	self[k] = self[k].e(i)
+	return self
+
+    def f(self, i):
+	r"""
+        TEST:
+	sage: C = CrystalOfLetters(['A',5])
+	sage: T = TensorProductOfCrystalElement(C,C)
+	sage: T(C(1),C(1)).f(1) == T(C(1),C(2))
+	True
+	sage: T(C(2),C(1)).f(1) == None
+	True
+	sage: T(C(1),C(2)).f(1) == T(C(2),C(2))
+	True
+        """
+	assert i in self.index_set()
+	position = self.positionsOfUnmatchedClosing(i)
+	if position == []:
+	    return None
+	k = position[len(position)-1]
+	self[k] = self[k].e(i)
+	return self
+
+    def phi(self, i):
+	self = self.reverse()
+	height = 0
+	for j in range(len(self)):
+	    plus = self[j].epsilon(i)
+	    minus = self[j].phi(i)
+	    if height-plus < 0:
+		height = minus
+	    else:
+		height = height - plus + minus
+	return height
+
+    def epsilon(self, i):
+	height = 0
+	for j in range(len(self)):
+	    minus = self[j].phi(i)
+	    plus = self[j].epsilon(i)
+	    if height-minus < 0:
+		height = plus
+	    else:
+		height = height - minus + plus
+	return height
+
+    def positionsOfUnmatchedPlus(self, i, dual=False, reverse=False):
+	unmatchedPlus = []
+	height = 0
+	if reverse == True:
+	    self = self.reverse()
+	if dual == False:
+	    for j in range(1,len(self)+1):
+		plus = self[j].phi(i)
+		minus = self[j].epsilon(i)
+		if height-plus < 0:
+		    unmatchedPlus.append(j)
+		    height = minus
+		else:
+		    height = height - plus + minus
+	else:
+	    for j in range(1,len(self)+1):
+		plus = self[j].epsilon(i)
+		minus = self[j].phi(i)
+		if height-plus < 0:
+		    unmatchedPlus.append(j)
+		    height = minus
+		else:
+		    height = height - plus + minus
+	return unmatchedPlus
+
+    def positionsOfUnmatchedMinus(self, i):
+	l = len(l)
+	[self.posititonsOfUnmatchedPlus(i, dual=True, reverse=True)[l-1-j]
+	 for j in range(l)]

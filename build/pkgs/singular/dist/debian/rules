@@ -20,7 +20,7 @@ common-install-impl::
 	+$(DEB_MAKE_INVOKE) libsingular
 	+$(DEB_MAKE_INVOKE) install-libsingular
 
-binary-post-install/singular:
+binary-post-install/singular::
 	rm -f debian/singular/usr/bin/*.*o*
 
 clean::

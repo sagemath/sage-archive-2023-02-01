@@ -75,6 +75,12 @@ class Crystal(CombinatorialClass, Parent):
     \end{itemize}
     """
 
+    def weight_lattice_realization(self):
+	return self.cartanType.root_system().ambient_lattice()
+
+    def Lambda(self):
+	return self.weight_lattice_realization().fundamental_weights()
+
     def __iter__(self):
         r"""
         Returns an iterator over the elements of the crystal.
@@ -131,6 +137,9 @@ class CrystalElement(Element):
     def index_set(self):
         return self._parent.index_set
 
+    def weight(self):
+	return self.Phi() - self.Epsilon()
+
     def e(self, i):
         r"""
         Returns $e_i(x)$ if it exists or None otherwise
@@ -182,6 +191,12 @@ class CrystalElement(Element):
                 break
             phi = phi+1
         return phi
+
+    def Epsilon(self):
+	sum(self.epsilon(i) * self._parent.Lambda[i] for i in self.index_set())
+
+    def Phi(self):
+	sum(self.phi(i) * self._parent.Lambda[i] for i in self.index_set())
 
     def is_highest_weight(self):
 	r"""

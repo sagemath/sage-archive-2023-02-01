@@ -194,10 +194,10 @@ class CrystalElement(Element):
         return phi
 
     def Epsilon(self):
-	sum(self.epsilon(i) * self._parent.Lambda[i] for i in self.index_set())
+	return sum(self.epsilon(i) * self._parent.Lambda()[i-1] for i in self.index_set())
 
     def Phi(self):
-	sum(self.phi(i) * self._parent.Lambda[i] for i in self.index_set())
+	return sum(self.phi(i) * self._parent.Lambda()[i-1] for i in self.index_set())
 
     def is_highest_weight(self):
 	r"""

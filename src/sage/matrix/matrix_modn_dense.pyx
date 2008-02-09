@@ -892,6 +892,33 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             # linbox is very buggy for p=2
             return matrix_dense.Matrix_dense.rank(self)
 
+    def determinant(self):
+        """
+        Return the dterminant of this matrix.
+
+        EXAMPLES:
+            m = matrix(GF(101),5,range(25))
+            sage: m.det()
+            0
+
+        Det is not implemented over the integers modulo a composite yet.
+            sage: m = matrix(Integers(4), 2, [2,2,2,2])
+            sage: m.rank()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 4'.
+        """
+        if self.p > 2 and is_prime(self.p):
+            x = self.fetch('det')
+            if not x is None:
+                return x
+            self._init_linbox()
+            _sig_on
+            d = linbox.det()
+            _sig_off
+            self.cache('det', d)
+            return d
+
     def randomize(self, density=1):
         """
         Randomize density proportion of the entries of this matrix,

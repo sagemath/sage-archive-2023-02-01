@@ -1,0 +1,27 @@
+= jsMath Image Fonts =
+
+== Description ==
+
+The jsMath image fonts provide a fall-back for rendering TeX
+characters in browsers on computers that do not have the TeX fonts
+installed.
+
+== License ==
+
+Apache License 2.0
+
+== SPKG Maintainers ==
+
+Jason Grout
+
+== Upstream Contact ==
+
+Davide P. Cervone, dpvc@union.edu
+
+== Dependencies ==
+
+jsMath
+
+== Changelog ==
+
+* 2007-02-08: Initial version.

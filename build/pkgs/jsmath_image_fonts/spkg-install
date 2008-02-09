@@ -1,0 +1,10 @@
+#!/bin/sh
+
+export top_level=`pwd`
+
+echo "Extracting and installing jsMath Image Fonts to:"
+cd $SAGE_ROOT/data/extcode/notebook/javascript/jsmath/
+echo `pwd`
+tar -xjf $top_level/src/jsMath-fonts-1.3.tar.bz2
+
+echo "Finished installing jsMath Image Fonts."

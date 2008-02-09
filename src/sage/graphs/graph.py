@@ -2810,8 +2810,8 @@ class GenericGraph(SageObject):
             layout -- what kind of layout to use, takes precedence over pos
                 'circular' -- plots the graph with vertices evenly distributed
                     on a circle
-                'spring' -- uses the traditional spring layout, ignores the
-                    graphs current positions
+                'spring' -- uses the traditional spring layout, using the
+                    graph's current positions as initial positions
             vertex_labels -- whether to print vertex labels
             edge_labels -- whether to print edge labels. By default, False, but
                 if True, the result of str(l) is printed on the edge for each
@@ -2930,8 +2930,6 @@ class GenericGraph(SageObject):
                 x = float(cos((pi/2) + ((2*pi)/n)*i))
                 y = float(sin((pi/2) + ((2*pi)/n)*i))
                 pos[verts[i]] = [x,y]
-        elif layout == 'spring':
-            pos = None
         elif heights is not None:
             pos = {}
             mmax = max([len(ccc) for ccc in heights.values()])
@@ -2944,8 +2942,8 @@ class GenericGraph(SageObject):
                 j = (mmax - num_xes)/2.0
                 for k in range(num_xes):
                     pos[heights[height][k]] = [ dist * (j+k+1), height ]
-        if pos is None:
-            pos = graph_fast.spring_layout_fast(self, iterations=iterations)
+        if pos is None or layout == 'spring':
+            pos = graph_fast.spring_layout_fast(self, iterations=iterations, vpos=pos)
         else:
             for v in pos:
                 for a in range(len(pos[v])):

@@ -21,6 +21,7 @@ Tensor products of crystals
 from sage.structure.element    import Element
 from sage.combinat.cartan_type import CartanType
 from sage.combinat.cartesian_product  import CombinatorialObject, CartesianProduct
+from sage.combinat.tableau import Tableau
 from crystals                  import Crystal, CrystalElement
 from letters                   import CrystalOfLetters
 from sage.misc.flatten         import flatten
@@ -262,6 +263,9 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
 	    list = [i for i in args]
 	TensorProductOfCrystalsElement.__init__(self, parent, list=list)
 
+    def __repr__(self):
+	return repr(self.to_tableau())
+
     def to_tableau(self):
 	tab = [ [self[0]] ]
 	for i in range(1,len(self)):
@@ -270,4 +274,4 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
 	    else:
 		l = len(tab)-1
 		tab[l].append(self[i])
-	return tab
+	return Tableau(tab)

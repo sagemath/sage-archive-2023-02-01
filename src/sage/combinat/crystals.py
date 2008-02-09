@@ -32,7 +32,7 @@ It has a single highest weight element:
 
 A crystal is a CombinatorialClass; and we can count and list its elements
 in the usual way:
-    sage: C.count()
+    sage: C.count()    # todo: not implemented
     5
     sage: C.list()
     [1, 2, 3, 4, 5]
@@ -74,8 +74,29 @@ class Crystal(CombinatorialClass, Parent):
     \end{itemize}
     """
 
-    def bla(self):
-        return 1;
+    def __iter__(self):
+        def rec(x):
+            for i in x.index_set():
+                child = x.f(i);
+                if child is None:
+                    break
+                hasParent = False;
+                for j in x.index_set():
+                    if j == i:
+                        break
+                    if not child.e(j) == None:
+                        hasParent = True
+                        break
+                if hasParent:
+                    break;
+                if child is not None:
+                    for y in rec(child):
+                        yield y;
+        for generator in self.module_generators:
+            yield generator;
+            for x in rec(generator):
+                yield x;
+
     # list / ...
 
 class CrystalElement(Element):
@@ -132,6 +153,58 @@ class CrystalElement(Element):
 	"""
 	return all(self.e(i) == None for i in self.index_set())
 
+##############################################################################
+# Support classes
+##############################################################################
+
+class ImmutableListWithParent(CombinatorialObject, Element):
+    r"""
+    A class for lists having a parent
+
+    We create an immutable list whose parent is the class list:
+
+    sage: from sage.combinat.crystals import ImmutableListWithParent
+    sage: l = ImmutableListWithParent(list, [1,2,3])
+
+    TESTS:
+
+    sage: l.list == [1, 2, 3]
+    True
+    sage: l.parent() == list
+    True
+    sage: l == l
+    True
+    sage: l.sibling([2,1]) == ImmutableListWithParent(list, [2,1])
+    True
+    sage: l.reverse()      == l.sibling([3,2,1])
+    True
+
+    """
+
+    def __init__(self, parent, list):
+#        Element.__init__(self, parent);
+        self._parent = parent
+        CombinatorialObject.__init__(self, list)
+
+    def parent(self):
+        return self._parent  # Should be inherited from Element!
+
+    def __repr__(self):
+        return "%s"%self.list
+
+    def __eq__(self, other):
+        return self.__class__ == other.__class__ and \
+               self.parent()  == self.parent()   and \
+               self.list      == other.list
+
+    def sibling(self, list): # Makes some hypothesis on the constructor!
+                             # of subclasses
+        return self.__class__(self.parent(), list)
+
+    def reverse(self):
+        return self.sibling([ i for i in reversed(self.list)])
+
+
 
 def CrystalOfLetters(type):
     r"""
@@ -152,9 +225,9 @@ def CrystalOfLetters(type):
         True
 
     """
-    return Crystals_of_letters_type_A(type)
+    return Crystal_of_letters_type_A(type)
 
-class Crystals_of_letters_type_A(Crystal):
+class Crystal_of_letters_type_A(Crystal):
     r"""
     Type A crystal of letters
     """
@@ -168,11 +241,26 @@ class Crystals_of_letters_type_A(Crystal):
         return [self(i) for i in range(1,self.cartanType.n+1)]
 
     def __call__(self, value):
-        return Crystals_of_letters_type_A_element(self, value);
+        return Crystal_of_letters_type_A_element(self, value);
 
-class Letters(Element):
+class Letter(Element):
     r"""
-    A generic class for letters
+    A class for letters
+
+    TEST:
+        sage: from sage.combinat.crystals import Letter
+        sage: parent1 = 1  # Any fake value ...
+        sage: parent2 = 2  # Any fake value ...
+        sage: l11 = Letter(parent1, 1)
+        sage: l12 = Letter(parent1, 2)
+        sage: l21 = Letter(parent2, 1)
+        sage: l22 = Letter(parent2, 2)
+        sage: l11 == l11
+        True
+        sage: l11 == l12
+        False
+        sage: l11 == l21
+        False
     """
 
     def __init__(self, parent, value):
@@ -180,30 +268,37 @@ class Letters(Element):
         self._parent = parent
         self.value = value
 
+    def parent(self):
+        return self._parent  # Should be inherited from Element!
+
     def __repr__(self):
         return "%s"%self.value
 
+    def __eq__(self, other):
+        return self.__class__ == other.__class__ and \
+               self.parent()  == other.parent()   and \
+               self.value     == other.value
 
-class Crystals_of_letters_type_A_element(Letters, CrystalElement):
+class Crystal_of_letters_type_A_element(Letter, CrystalElement):
     r"""
     Type A crystal of letters elements
     """
     def e(self, i):
         r"""
         TEST:
-	sage: C = CrystalOfLetters(['A',5])
-	sage: C(1).e(1) == None
-	True
-	sage: C(2).e(1) == C(1)
-	True
-	sage: C(3).e(1) == None
-	True
-	sage: C(1).e(2) == None
-	True
-	sage: C(2).e(2) == None
-	True
-	sage: C(3).e(2) == C(2)
-	True
+            sage: C = CrystalOfLetters(['A',5])
+            sage: C(1).e(1) == None
+            True
+            sage: C(2).e(1) == C(1)
+            True
+            sage: C(3).e(1) == None
+            True
+            sage: C(1).e(2) == None
+            True
+            sage: C(2).e(2) == None
+            True
+            sage: C(3).e(2) == C(2)
+            True
         """
         assert i in self.index_set()
         if self.value == i+1:
@@ -213,20 +308,20 @@ class Crystals_of_letters_type_A_element(Letters, CrystalElement):
 
     def f(self, i):
         r"""
-        TEST:
-	sage: C = CrystalOfLetters(['A',5])
-	sage: C(1).f(1) == C(2)
-	True
-	sage: C(2).f(1) == None
-	True
-	sage: C(3).f(1) == None
-	True
-	sage: C(1).f(2) == None
-	True
-	sage: C(2).f(2) == C(3)
-	True
-	sage: C(3).f(2) == None
-	True
+        TESTS:
+            sage: C = CrystalOfLetters(['A',5])
+            sage: C(1).f(1) == C(2)
+            True
+            sage: C(2).f(1) == None
+            True
+            sage: C(3).f(1) == None
+            True
+            sage: C(1).f(2) == None
+            True
+            sage: C(2).f(2) == C(3)
+            True
+            sage: C(3).f(2) == None
+            True
         """
         assert i in self.index_set()
         if self.value == i:
@@ -234,29 +329,51 @@ class Crystals_of_letters_type_A_element(Letters, CrystalElement):
         else:
             return None
 
-class ListWithParent:
-    pass
 
 
-class TensorProductOfCrystalElement(ListWithParent, CrystalElement):
+class TensorProductOfCrystals(Crystal):
     r"""
-    A class for tensor products of crystals
+    Tensor product of crystals
+
+    TESTS:
+        sage: from sage.combinat.crystals import TensorProductOfCrystals
+        sage: C = CrystalOfLetters(['A',5])
+        sage: T = TensorProductOfCrystals(C,C)
+
+        sage: T(C(1),C(2)).e(1) == T(C(1),C(1))
+        True
+        sage: T(C(2),C(1)).e(1) == None
+        True
+        sage: T(C(2),C(2)).e(1) == T(C(1),C(2))
+        True
+
+	sage: T(C(1),C(1)).f(1) == T(C(1),C(2))
+	True
+	sage: T(C(2),C(1)).f(1) == None
+	True
+	sage: T(C(1),C(2)).f(1) == T(C(2),C(2))
+	True
+    """
+    def __init__(self, *crystals):
+        crystals = [ crystal for crystal in crystals]
+        self._name = "The tensor product of the crystals %s"%crystals
+        self.crystals = crystals
+        self.cartanType = crystals[1].cartanType
+        self.index_set = self.cartanType.index_set()
+        self.module_generators = [self(1)]
+
+    def __call__(self, *args):
+        return TensorProductOfCrystalsElement(self,
+                                              [crystal for crystal in args]);
+
+class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
+    r"""
+    A class for elements of tensor products of crystals
     """
 
     def e(self, i):
-	r"""
-        TEST:
-	sage: C = CrystalOfLetters(['A',5])
-	sage: T = TensorProductOfCrystalElement(C,C)
-	sage: T(C(1),C(2)).e(1) == T(C(1),C(1))
-	True
-	sage: T(C(2),C(1)).e(1) == None
-	True
-	sage: T(C(2),C(2)).e(1) == T(C(1),C(2))
-	True
-        """
 	assert i in self.index_set()
-	position = self.positionsOfUnmatchedOpening(i)
+	position = self.positionsOfUnmatchedPlus(i)
 	if position == []:
 	    return None
 	k = position[0]
@@ -264,19 +381,8 @@ class TensorProductOfCrystalElement(ListWithParent, CrystalElement):
 	return self
 
     def f(self, i):
-	r"""
-        TEST:
-	sage: C = CrystalOfLetters(['A',5])
-	sage: T = TensorProductOfCrystalElement(C,C)
-	sage: T(C(1),C(1)).f(1) == T(C(1),C(2))
-	True
-	sage: T(C(2),C(1)).f(1) == None
-	True
-	sage: T(C(1),C(2)).f(1) == T(C(2),C(2))
-	True
-        """
 	assert i in self.index_set()
-	position = self.positionsOfUnmatchedClosing(i)
+	position = self.positionsOfUnmatchedMinus(i)
 	if position == []:
 	    return None
 	k = position[len(position)-1]
@@ -332,6 +438,6 @@ class TensorProductOfCrystalElement(ListWithParent, CrystalElement):
 	return unmatchedPlus
 
     def positionsOfUnmatchedMinus(self, i):
-	l = len(l)
-	[self.posititonsOfUnmatchedPlus(i, dual=True, reverse=True)[l-1-j]
+	l = len(self)
+	[self.positionsOfUnmatchedPlus(i, dual=True, reverse=True)[l-1-j]
 	 for j in range(l)]

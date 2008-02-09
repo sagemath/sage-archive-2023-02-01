@@ -4070,10 +4070,10 @@ def adjust_figsize_for_aspect_ratio(figsize, aspect_ratio, xmin, xmax, ymin, yma
         (5, 5/2)
 
     Here the x range is rather large, so to get an aspect ratio where circles
-    look twice as wide as they are tall, we have to shrink the x size
+    look twice as wide as they are tall, we have to shrink the y size
     of the image.
         sage: adjust_figsize_for_aspect_ratio([3,5], 2, 0, 10, 0, 2)
-        (2, 5)
+        (5, 1/2)
     """
     if not isinstance(figsize, (list, tuple)):
         figsize = [figsize, figsize * 0.618033988749895]   # 1/golden_ratio

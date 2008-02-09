@@ -72,14 +72,27 @@ class Crystal(CombinatorialClass, Parent):
     \item module_generators
     \item weight_lattice_realization
     \end{itemize}
+
     """
 
     def __iter__(self):
+        r"""
+        Returns an iterator over the elements of the crystal.
+
+        Caveats: this assume that the crystal is highest weight, and
+        that the module generators are all highest weights.
+        This second restriction would be easy to remove.
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A',5])
+            sage: [x for x in C]
+            [1, 2, 3, 4, 5, 6]
+        """
         def rec(x):
             for i in x.index_set():
                 child = x.f(i);
                 if child is None:
-                    break
+                    continue
                 hasParent = False;
                 for j in x.index_set():
                     if j == i:
@@ -89,9 +102,9 @@ class Crystal(CombinatorialClass, Parent):
                         break
                 if hasParent:
                     break;
-                if child is not None:
-                    for y in rec(child):
-                        yield y;
+                yield child
+                for y in rec(child):
+                    yield y;
         for generator in self.module_generators:
             yield generator;
             for x in rec(generator):
@@ -127,20 +140,44 @@ class CrystalElement(Element):
         raise NotImplementedError
 
     def epsilon(self, i):
-        x = self;
-        eps = 0;
-        while x is not None:
+        r"""
+        TESTS:
+            # rather minimal tests
+            sage: C = CrystalOfLetters(['A',5])
+            sage: C(1).epsilon(1)
+            0
+            sage: C(2).epsilon(1)
+            1
+        """
+        assert i in self.index_set()
+        x = self
+        eps = 0
+        while True:
             x = x.e(i)
+            if x is None:
+                break
             eps = eps+1
         return eps
 
     def phi(self, i):
-        x = self;
-        eps = 0;
-        while x is not None:
+        r"""
+        TESTS:
+            # rather minimal tests
+            sage: C = CrystalOfLetters(['A',5])
+            sage: C(1).phi(1)
+            1
+            sage: C(2).phi(1)
+            0
+        """
+        assert i in self.index_set()
+        x = self
+        phi = 0
+        while True:
             x = x.f(i)
-            eps = eps+1
-        return eps
+            if x is None:
+                break
+            phi = phi+1
+        return phi
 
     def is_highest_weight(self):
 	r"""

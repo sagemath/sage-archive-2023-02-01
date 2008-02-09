@@ -160,8 +160,8 @@ class WeightLatticeRealization_class:
 
 class AmbientLattice_generic(WeightLatticeRealization_class):
     def __init__(self, ct):
-        self.ct = ct
-        self.n  = ct.rank()
+        if not hasattr(self, 'n'):
+            self.n  = ct.rank()
         self._free_module = FreeModule(ZZ, self.n)
 
     #def __call__(self, i):
@@ -195,9 +195,9 @@ class AmbientLattice_generic(WeightLatticeRealization_class):
 
 class AmbientLattice_a(AmbientLattice_generic):
     def __init__(self, ct):
-        self.ct = ct
         self.n  = ct.rank()+1
-        self._free_module = FreeModule(ZZ, self.n)
+        AmbientLattice_generic.__init__(self, ct)
+
 
     def root(self, i, j):
         return self._term(i) - self._term(j)
@@ -340,23 +340,75 @@ class AmbientLattice_c(AmbientLattice_generic):
 class AmbientLattice_d(AmbientLattice_generic):
     def root(self, i, j, p1, p2):
         if i != j:
-            (-1)**p1 * self._term(i) + (-1)**p2 * self._term(j)
+            return (-1)**p1 * self._term(i) + (-1)**p2 * self._term(j)
         else:
             return (-1)**p1 * self._term(i)
 
     def simple_roots(self):
-        return [ self.root(i, i+1) for i in range(self.n-1) ] + [self.root(self.n-1, self.n, 0, 0)]
+        """
+        EXAMPLES:
+            sage: RootSystem(['D',4]).ambient_lattice().simple_roots()
+            [(1, -1, 0, 0), (0, 1, -1, 0), (0, 0, 1, -1), (0, 0, 1, 1)]
+        """
+        return [ self.root(i, i+1, 0, 1) for i in range(self.n-1) ] + [self.root(self.n-2, self.n-1, 0, 0)]
 
     def positive_roots(self):
-        return [ self.root(i,j,0,p) for i in range(j-1) for j in range(n) for p in [0,1] ]
+        """
+        EXAMPLES:
+            sage: RootSystem(['D',4]).ambient_lattice().positive_roots()
+            [(1, 1, 0, 0),
+             (1, 0, 1, 0),
+             (0, 1, 1, 0),
+             (1, 0, 0, 1),
+             (0, 1, 0, 1),
+             (0, 0, 1, 1),
+             (1, -1, 0, 0),
+             (1, 0, -1, 0),
+             (0, 1, -1, 0),
+             (1, 0, 0, -1),
+             (0, 1, 0, -1),
+             (0, 0, 1, -1)]
+
+        """
+        res = []
+        for p in [0,1]:
+            for j in range(self.n):
+                res.extend([self.root(i,j,0,p) for i in range(j)])
+        return res
 
     def negative_roots(self):
-        return [ self.root(i,j,1,p) for i in range(j-1) for j in range(n) for p in [0,1] ]
+        """
+        EXAMPLES:
+            sage: RootSystem(['D',4]).ambient_lattice().negative_roots()
+            [(-1, 1, 0, 0),
+             (-1, 0, 1, 0),
+             (0, -1, 1, 0),
+             (-1, 0, 0, 1),
+             (0, -1, 0, 1),
+             (0, 0, -1, 1),
+             (-1, -1, 0, 0),
+             (-1, 0, -1, 0),
+             (0, -1, -1, 0),
+             (-1, 0, 0, -1),
+             (0, -1, 0, -1),
+             (0, 0, -1, -1)]
+        """
+        res = []
+        for p in [0,1]:
+            for j in range(self.n):
+                res.extend([self.root(i,j,1,p) for i in range(j)])
+        return res
+
 
     def fundamental_weights(self):
-        return [ sum(self._term(j) for j in range(i)) for i in range(self.n-2)]+\
-               [ sum(self._term(j) for j in range(n-1))/2-self._term(self.n-1)/2]+\
-               [ sum(self._term(j) for j in range(n))/2 ]
+        """
+        EXAMPLES:
+            sage: RootSystem(['D',4]).ambient_lattice().fundamental_weights()
+            [(1, 0, 0, 0), (1, 1, 0, 0), (1/2, 1/2, 1/2, -1/2), (1/2, 1/2, 1/2, 1/2)]
+        """
+        return [ sum(self._term(j) for j in range(i+1)) for i in range(self.n-2)]+\
+               [ sum(self._term(j) for j in range(self.n-1))/2-self._term(self.n-1)/2]+\
+               [ sum(self._term(j) for j in range(self.n))/2 ]
 
 
 class AmbientLattice_g(AmbientLattice_generic):

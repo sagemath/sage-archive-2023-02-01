@@ -84,6 +84,12 @@ cimport sage.structure.element
 
 import matrix_space
 
+################
+# Used for modular HNF
+from sage.ext.arith cimport arith_int
+cdef arith_int ai
+ai = arith_int()
+################
 
 ######### linbox interface ##########
 from sage.libs.linbox.linbox cimport Linbox_integer_dense
@@ -2464,6 +2470,149 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         top n rows of A to form a new matrix that is in reduced row
         echelon form.  We then clear that corresponding new pivot column.
         """
+        from sage.all import verbose
+        tt = cputime()
+        cdef Py_ssize_t i, j, piv, n = self._nrows, m = self._ncols
+
+        import constructor
+
+        # 0. Base case
+        if self.nrows() == 0:
+            pos = row.nonzero_positions()
+            if len(pos) > 0:
+                pivots = [0]
+                i = pos[0]
+                if row[i] < 0:
+                    row *= -1
+            else:
+                pivots = []
+            return constructor.matrix([row]), pivots
+
+
+        # 1. Create a new matrix that has row as the last row.
+        tm = verbose('1', level=0)
+        row_mat = constructor.matrix(row)
+        tm = verbose('2', tm, level=0)
+        A = self.stack(row_mat)
+        tm = verbose('3', tm, level=0)
+        # 2. Working from the left, clear each column to put
+        #    the resulting matrix back in echelon form.
+        for i, p in enumerate(pivots):
+            # p is the i-th pivot
+
+            # (a). Take xgcd of pivot positions in last row and in ith
+            # row.
+
+            # TODO (optimize) -- change to use direct call to gmp and
+            # no bounds checking!
+            a = A[i,p]
+            b = A[n,p]
+            if b % a == 0:
+                # (b) Subtract a multiple of row i from row n.
+                c = b // a
+                if c:
+                    for j in range(m):
+                        A[n,j] -= c * A[i,j]
+            else:
+                tm = verbose('3.5', tm, level=0)
+                # (b). More elaborate.
+                #  Replace the ith row by s*A[i] + t*A[n], which will
+                # have g in the i,p position, and replace the last row by
+                # (b//g)*A[i] - (a//g)*A[n], which will have 0 in the i,p
+                # position.
+                g, s, t = a.xgcd(b)
+
+                row_i = A.row(i)
+                row_n = A.row(n)
+
+                ag = a//g; bg = b//g
+
+                new_top = s*row_i  +  t*row_n
+                new_bot = bg*row_i - ag*row_n
+
+
+                # OK -- now we have to make sure the top part of the matrix
+                # but with row i replaced by
+                #     r = s*row_i[j]  +  t*row_n[j]
+                # is put in rref.  We do this by recursively calling this
+                # function with the top part of A (all but last row) and the
+                # row r.
+
+                tm = verbose('', tm, level=0)
+                zz = range(A.nrows()-1)
+                del zz[i]
+                top_mat = A.matrix_from_rows(zz)
+                tm = verbose('construct matrix 2', tm, level=0)
+                new_pivots = list(pivots)
+                del new_pivots[i]
+
+                tm = verbose('hard else', tm, level=0)
+                top_mat, pivots = top_mat._add_row_and_maintain_echelon_form(new_top, new_pivots)
+                verbose('total after recurse 1', tt, level=0)
+                w = top_mat._add_row_and_maintain_echelon_form(new_bot, pivots)
+                verbose('total after recurse 2', tt, level=0)
+                return w
+
+        tm = verbose('4', tm, level=0)
+
+        # 3. If it turns out that the last row is nonzero,
+        #    insert last row in A sliding other rows down.
+        v = A.row(n)
+        new_pivots = list(pivots)
+        if v != 0:
+            tm = verbose('about to insert', tm, level=0)
+            R = A.rows()
+            # Determine where the last row should be inserted.
+            i = v.nonzero_positions()[0]
+            if i in pivots:
+                assert False, 'WARNING: bug in add_row -- i (=%s) should not be a pivot'%i
+            # If pivot entry is negative negate this row.
+            if v[i] < 0:
+                A.rescale_row(n, -1)
+                v = A.row(n)
+            new_pivots.append(i)
+            new_pivots.sort()
+            import bisect
+            j = bisect.bisect(pivots, i)
+            # The new row should go *before* row j, so it becomes row j
+            del R[-1]
+            R.insert(j, v)
+            A = A.parent()(R)   # BAD
+            tm = verbose('inserted', tm, level=0)
+
+        tm = verbose('5', tm, level=0)
+        _clear_columns(A, new_pivots, A.nrows())
+        tm = verbose('6', tm, level=0)
+        verbose('total', tt, level=0)
+        # end if
+        return A, new_pivots
+
+    def xxx_add_row_and_maintain_echelon_form(self, row, pivots):
+        """
+        Assuming self is a full rank n x m matrix in reduced row
+        Echelon form over ZZ and row is a vector of degree m, this
+        function creates a new matrix that is the echelon form of self
+        with row appended to the bottom.
+
+        WARNING: It is assumed that self is in
+
+        INPUT:
+            row -- a vector of degree m over ZZ
+            pivots -- a list of integers that are the pivot columns of self.
+
+        OUTPUT:
+            matrix -- a matrix of in reduced row echelon form over ZZ
+            pivots -- list of integers
+
+        ALGORITHM: For each pivot column of self, we use the extended
+        Euclidean algorithm to clear the column.  The result is a new
+        matrix B whose row span is the same as self.stack(row), and
+        whose last row is 0 if and only if row is in the QQ-span of
+        the rows of self.  If row is not in the QQ-span of the rows of
+        self, then row is nonzero and suitable to be inserted into the
+        top n rows of A to form a new matrix that is in reduced row
+        echelon form.  We then clear that corresponding new pivot column.
+        """
         cdef Py_ssize_t i, j, piv, n = self._nrows, m = self._ncols
 
         import constructor
@@ -2544,30 +2693,301 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         v = A.row(n)
         new_pivots = list(pivots)
         if v != 0:
-            R = A.rows()
-            # Determine where the last row should be inserted.
             i = v.nonzero_positions()[0]
-            if i in pivots:
-                assert False, 'WARNING: bug in add_row -- i (=%s) should not be a pivot'%i
+            assert not (i in pivots), 'WARNING: bug in add_row -- i (=%s) should not be a pivot'%i
+
             # If pivot entry is negative negate this row.
             if v[i] < 0:
-                A.rescale_row(n, -1)
-                v = A.row(n)
+                v = -v
+
+            # Determine where the last row should be inserted.
             new_pivots.append(i)
             new_pivots.sort()
             import bisect
             j = bisect.bisect(pivots, i)
             # The new row should go *before* row j, so it becomes row j
-            del R[-1]
-            R.insert(j, v)
-            A = A.parent()(R)
+
+            A = A.insert_row(j, v)
 
         _clear_columns(A, new_pivots, A.nrows())
 
         # end if
         return A, new_pivots
 
-def _clear_columns(A, pivots, n):
+    #####################################################################################
+    # Hermite form modulo D
+    # This code below is by E. Burcin.  Thanks!
+    #####################################################################################
+    cdef _new_uninitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols):
+        """
+        Return a new matrix over the integers with the given number of rows and columns.
+        All memory is allocated for this matrix, but its entries have not yet been
+        filled in.
+        """
+        P = self._parent.matrix_space(nrows, ncols)
+        return Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
+
+    def _hnf_mod(self, D):
+        res = self._new_uninitialized_matrix(self._nrows, self._ncols)
+        self._hnf_modn(res, D)
+        return res
+
+    cdef int _hnf_modn(Matrix_integer_dense self, Matrix_integer_dense res,
+            mod_int det) except -1:
+        cdef long long *res_l
+        cdef Py_ssize_t i,j,k
+        res_l = self._hnf_modn_impl(det, self._nrows, self._ncols)
+        k = 0
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                mpz_init_set_si(res._matrix[i][j], res_l[k])
+                k += 1
+        sage_free(res_l)
+
+
+    cdef long long* _hnf_modn_impl(Matrix_integer_dense self, mod_int det,
+            Py_ssize_t nrows, Py_ssize_t ncols):
+        cdef long long *res, *T_ent, **res_rows, **T_rows, *B
+        cdef Py_ssize_t i, j, k
+        cdef long long R, mod, T_i_i, T_j_i, c1, c2, q, t
+        cdef int u, v, d
+        cdef mpz_t m
+
+        # allocate memory for result matrix
+        res = <long long*> sage_malloc(sizeof(long long)*ncols*nrows)
+        if res == NULL:
+            raise MemoryError, "out of memory allocating a matrix"
+        res_rows = <long long**> sage_malloc(sizeof(long long*)*nrows)
+        if res_rows == NULL:
+            sage_free(res)
+            raise MemoryError, "out of memory allocating a matrix"
+
+        # allocate memory for temporary matrix
+        T_ent = <long long*> sage_malloc(sizeof(long long)*ncols*nrows)
+        if T_ent == NULL:
+            sage_free(res)
+            sage_free(res_rows)
+            raise MemoryError, "out of memory allocating a matrix"
+        T_rows = <long long**> sage_malloc(sizeof(long long*)*nrows)
+        if T_rows == NULL:
+            sage_free(res)
+            sage_free(res_rows)
+            sage_free(T_ent)
+            raise MemoryError, "out of memory allocating a matrix"
+
+        # allocate memory for temporary row vector
+        B = <long long*>sage_malloc(sizeof(long long)*nrows)
+        if B == NULL:
+            sage_free(res)
+            sage_free(res_rows)
+            sage_free(T_ent)
+            sage_free(T_rows)
+            raise MemoryError, "out of memory allocating a matrix"
+
+        # initialize the row pointers
+        k = 0
+        for i from 0 <= i < nrows:
+            res_rows[i] = res + k
+            T_rows[i] = T_ent + k
+            k += nrows
+
+
+        mpz_init(m)
+        # copy entries from self to temporary matrix
+        k = 0
+        for i from 0 <= i < nrows:
+            for j from 0 <= j < ncols:
+                mpz_mod_ui(m, self._matrix[i][j], det)
+                T_ent[k] = mpz_get_si(m)
+                k += 1
+        mpz_clear(m)
+
+
+        # initialize variables
+        i = 0
+        j = 0
+        R = det
+
+        while 1:
+            if j == nrows-1:
+                T_i_i = T_rows[i][i]
+                d = ai.c_xgcd_int(T_i_i, R, &u, &v)
+                for k from 0 <= k < i:
+                    res_rows[i][k] = 0
+                for k from i <= k < ncols:
+                    t = (u*T_rows[i][k])%R
+                    if t < 0:
+                        t += R
+                    res_rows[i][k] = t
+                if res_rows[i][i] == 0:
+                    res_rows[i][i] = R
+                d = res_rows[i][i]
+                for j from 0 <= j < i:
+                    q = res_rows[j][i]/d
+                    for k from i <= k < ncols:
+                        u = (res_rows[j][k] - q*res_rows[i][k])%R
+                        if u < 0:
+                            u += R
+                        res_rows[j][k] = u
+
+                R = R/d
+                i += 1
+                j = i
+                if i == nrows :
+                    break # return res
+                if T_rows[i][i] == 0:
+                    T_rows[i][i] = R
+                continue
+
+
+            j += 1
+            if T_rows[j][i] == 0:
+                continue
+
+            T_i_i = T_rows[i][i]
+            T_j_i = T_rows[j][i]
+            d = ai.c_xgcd_int(T_i_i , T_j_i, &u, &v)
+            if d != T_i_i:
+                for k from i <= k < ncols:
+                    B[k] = (u*T_rows[i][k] + v*T_rows[j][k])
+            c1 = T_i_i/d
+            c2 = -T_j_i/d
+            for k from i <= k < ncols:
+                T_rows[j][k] = (c1*T_rows[j][k] + c2*T_rows[i][k])%R
+            if d != T_i_i:
+                for k from i <= k < ncols:
+                    T_rows[i][k] = B[k]%R
+
+        sage_free(B)
+        sage_free(res_rows)
+        return res
+
+
+    #####################################################################################
+    # operations with matrices
+    #####################################################################################
+    def stack(self, other):
+        """
+        Return the matrix self on top of other:
+           [ self  ]
+           [ other ]
+
+        EXAMPLES:
+            sage: M = Matrix(ZZ, 2, 3, range(6))
+            sage: N = Matrix(ZZ, 1, 3, [10,11,12])
+            sage: M.stack(N)
+            [ 0  1  2]
+            [ 3  4  5]
+            [10 11 12]
+        """
+        if self._ncols != other.ncols():
+            raise TypeError, "number of columns must be the same"
+        if not (self._base_ring is other.base_ring()):
+            other = other.change_ring(self._base_ring)
+        cdef Matrix_integer_dense A = other
+        cdef Matrix_integer_dense M
+        M = self.new_matrix(nrows = self._nrows + A._nrows, ncols = self.ncols())
+        cdef Py_ssize_t i, k
+        k = self._nrows * self._ncols
+        for i from 0 <= i < k:
+            mpz_set(M._entries[i], self._entries[i])
+        for i from 0 <= i < A._nrows * A._ncols:
+            mpz_set(M._entries[k + i], A._entries[i])
+        return M
+
+    def insert_row(self, Py_ssize_t index, row):
+        """
+        Create a new matrix from self with.
+
+        INPUT:
+            index -- integer
+            row -- a vector
+
+        EXAMPLES:
+            sage: X = matrix(ZZ,3,range(9)); X
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: X.insert_row(1, [1,5,-10])
+            [  0   1   2]
+            [  1   5 -10]
+            [  3   4   5]
+            [  6   7   8]
+            sage: X.insert_row(0, [1,5,-10])
+            [  1   5 -10]
+            [  0   1   2]
+            [  3   4   5]
+            [  6   7   8]
+            sage: X.insert_row(3, [1,5,-10])
+            [  0   1   2]
+            [  3   4   5]
+            [  6   7   8]
+            [  1   5 -10]
+        """
+        cdef Matrix_integer_dense res = self._new_uninitialized_matrix(self._nrows + 1, self._ncols)
+        cdef Py_ssize_t j, k
+        cdef Integer z
+        if index < 0:
+            raise ValueError, "index must be nonnegative"
+        if index > self._nrows:
+            raise ValueError, "index must be less than number of rows"
+        for j from 0 <= j < self._ncols * index:
+            mpz_init_set(res._entries[j], self._entries[j])
+
+        k = 0
+        for j from self._ncols * index <= j < self._ncols * (index+1):
+            z = row[k]
+            mpz_init_set(res._entries[j], z.value)
+            k += 1
+
+        for j from self._ncols * (index+1) <= j < (self._nrows + 1)*self._ncols:
+            mpz_init_set(res._entries[j], self._entries[j - self._ncols])
+
+        return res
+
+##     def augment(self, other):
+##         """
+##         """
+##         if self._nrows != other.nrows():
+##             raise TypeError, "number of rows must be the same"
+##         if not (self._base_ring is other.base_ring()):
+##             other = other.change_ring(self._base_ring)
+##         cdef Matrix_integer_dense A = other
+##         cdef Matrix_integer_dense M
+##         M = self.new_matrix(nrows = self._nrows, ncols = self._ncols + A._ncols)
+##         cdef Py_ssize_t i, k
+##         k = self._nrows * self._ncols
+##         for i from 0 <= i < k:
+##             mpz_set(M._entries[i], self._entries[i])
+##         for i from 0 <= i < A._nrows * A._ncols:
+##             mpz_set(M._entries[k + i], A._entries[i])
+##         return M
+
+
+    #####################################################################################
+
+cdef _clear_columns(Matrix_integer_dense A, pivots, Py_ssize_t n):
+    # Clear all columns
+    cdef Py_ssize_t i, k, p, l, m = A._ncols
+    cdef mpz_t** matrix = A._matrix
+    cdef mpz_t c, t
+    mpz_init(c)
+    mpz_init(t)
+
+    for i from 0 <= i < len(pivots):
+        p = pivots[i]
+        for k from 0 <= k < n:
+            if k != i:
+                if mpz_cmp_si(matrix[k][p],0):
+                    mpz_fdiv_q(c, matrix[k][p], matrix[i][p])
+                    # subtract off c*v from row k; resulting A[k,i] entry will be < b, hence in Echelon form.
+                    for l from 0 <= l < m:
+                        mpz_mul(t, c, matrix[i][l])
+                        mpz_sub(matrix[k][l], matrix[k][l], t)
+    mpz_clear(c)
+    mpz_clear(t)
+
+def xxx_clear_columns(A, pivots, n):
     # Clear all columns
     m = A.ncols()
     for i, p in enumerate(pivots):

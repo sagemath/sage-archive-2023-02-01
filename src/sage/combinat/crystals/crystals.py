@@ -58,6 +58,7 @@ from sage.structure.parent     import Parent
 from sage.structure.element    import Element
 from sage.combinat.combinat    import CombinatorialClass
 from sage.combinat.cartan_type import CartanType
+from sage.graphs.graph         import DiGraph
 
 ## MuPAD-Combinat's Cat::Crystal
 class Crystal(CombinatorialClass, Parent):
@@ -122,6 +123,20 @@ class Crystal(CombinatorialClass, Parent):
                 yield x;
 
     iterator = __iter__
+
+    def digraph(self):
+        dict = {};
+        for x in self:
+            dict[x] = {}
+            for i in self.index_set:
+                child = x.f(i)
+                if child is None:
+                    continue
+                dict[x][child]=i
+        return DiGraph(dict)
+
+    def plot(self, **options):
+        return self.digraph().plot(edge_labels=True,vertex_size=0,**options)
 
 class CrystalElement(Element):
     r"""

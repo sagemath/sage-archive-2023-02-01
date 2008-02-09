@@ -1,7 +1,7 @@
 from combinat import *
 from expnums import expnums
 
-from crystals import CrystalOfLetters
+from crystals import CrystalOfLetters, TensorProductOfCrystals
 
 #Combinatorial Algebra
 from combinatorial_algebra import CombinatorialAlgebra

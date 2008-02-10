@@ -21,7 +21,11 @@ build() {
       echo "Installing c_lib"
       CUR=`pwd`
       cd "c_lib"
-      scons -Q install
+      if [ -n "$SAGE_DEBIAN" ]; then
+        SAGE_LOCAL=/usr scons -Q install
+      else
+        scons -Q install
+      fi
       ## make sure c_lib install went okay
       if [ $? -ne 0 ]; then
 	  echo "ERROR: There was an error building c_lib."
@@ -74,7 +78,11 @@ if [ $DO_BUILD_ALL = 1 ]; then
    echo "*** TOUCHING ALL CYTHON (.pyx) FILES ***"
    touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx 2> /dev/null
    cd ../c_lib
-   scons -Q -c install
+   if [ -n "$SAGE_DEBIAN" ]; then
+     SAGE_LOCAL=/usr scons -Q install
+   else
+     scons -Q install
+   fi
    cd ..
 
    cd "$CUR"

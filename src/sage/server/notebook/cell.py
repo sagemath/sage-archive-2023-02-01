@@ -100,6 +100,36 @@ class Cell(Cell_generic):
         self.__completions = False
         self.has_new_output = False
         self.__version = 0
+        self.__no_output_cell = False
+        self.__asap = False
+
+    def set_asap(self, asap):
+        self.__asap = bool(asap)
+
+    def is_asap(self):
+        """
+        Return True if this is an asap cell, i.e., evaluation of it is
+        done as soon as possible.
+        """
+        try:
+            return self.__asap
+        except AttributeError:
+            self.__asap = False
+            return self.__asap
+
+    def set_no_output(self, no_output):
+        self.__no_output = bool(no_output)
+
+    def is_no_output(self):
+        """
+        Return True if this is an no_output cell, i.e., a cell for
+        which we don't care at all about the output.
+        """
+        try:
+            return self.__no_output
+        except AttributeError:
+            self.__no_output = False
+            return self.__no_output
 
     def set_cell_output_type(self, typ='wrap'):
         self.__type = typ

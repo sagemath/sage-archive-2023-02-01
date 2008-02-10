@@ -18,7 +18,7 @@ if [ ! -f $HOME/.hgrc ]; then
     exit 1
 fi
 
-SERVER="http://sagemath.org/sage/hg/sage-main"
+SERVER="http://sagemath.org/hg/sage-main"
 
 echo "Now contacting the web server $SERVER"
 echo "To figure out how to make a bundle containing all your changes."

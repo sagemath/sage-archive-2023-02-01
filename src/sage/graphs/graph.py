@@ -2742,7 +2742,7 @@ class GenericGraph(SageObject):
     def plot(self, pos=None, layout=None, vertex_labels=True,
             edge_labels=False, vertex_size=200, graph_border=False,
             vertex_colors=None, partition=None, edge_colors=None,
-            scaling_term=0.05, iterations=50,
+            scaling_term=0.05, iterations=50, loop_size=.1,
             color_by_label=False, heights=None):
         """
         Returns a graphics object representing the (di)graph.
@@ -2826,6 +2826,11 @@ class GenericGraph(SageObject):
             sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
             sage: D.show(partition=Pi)
 
+            sage: G = graphs.PetersenGraph()
+            sage: G.loops(True)
+            sage: G.add_edge(0,0)
+            sage: G.show()
+
         """
         from sage.plot.plot import networkx_plot
         from sage.plot.plot import rainbow
@@ -2892,12 +2897,19 @@ class GenericGraph(SageObject):
             K.axes_range(xmin=G.xmin(), xmax=G.xmax(), ymin=G.ymin(), ymax=G.ymax())
             G += K
             G.axes(False)
+        if self.loops():
+            from sage.plot.plot import circle
+            L = []
+            for v in self.loop_vertices():
+                L.append(circle((pos[v][0],pos[v][1]-loop_size), loop_size, rgbcolor=(0,0,0)))
+            G = sum(L) + G
+            G.axes(False)
         return G
 
     def show(self, pos=None, layout=None, vertex_labels=True,
              edge_labels=False, vertex_size=200, graph_border=False,
              vertex_colors=None, edge_colors=None, partition=None,
-             scaling_term=0.05, talk=False, iterations=50,
+             scaling_term=0.05, talk=False, iterations=50, loop_size=.1,
              color_by_label=False, heights=None, **kwds):
         """
         Shows the (di)graph.
@@ -2983,6 +2995,11 @@ class GenericGraph(SageObject):
             sage: Pi = [[6,5,15,14,7],[16,13,8,2,4],[12,17,9,3,1],[0,19,18,10,11]]
             sage: D.show(partition=Pi)
 
+            sage: G = graphs.PetersenGraph()
+            sage: G.loops(True)
+            sage: G.add_edge(0,0)
+            sage: G.show()
+
         """
         if talk:
             vertex_size = 500
@@ -2993,7 +3010,7 @@ class GenericGraph(SageObject):
                   vertex_colors=vertex_colors, edge_colors=edge_colors,
                   graph_border=graph_border, partition=partition,
                   scaling_term=scaling_term, iterations=iterations,
-                  color_by_label=color_by_label,
+                  color_by_label=color_by_label, loop_size=loop_size,
                   heights=heights).show(**kwds)
 
 

@@ -1005,10 +1005,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             2^(3/4)/3^(3/4)
             sage: (-1/3)^0
             1
-            sage: (0/1)^0
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: 0^0 is undefined.
+            sage: a = (0/1)^(0/1); a
+            1
+            sage: type(a)
+            <type 'sage.rings.rational.Rational'>
 
         The exponent must fit in a long unless the base is -1, 0, or 1.
             sage: s = (1/2)^(2^100)
@@ -1086,13 +1086,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         cdef Rational x = <Rational> PY_NEW(Rational)
 
         if nn == 0:
-            if not mpq_sgn(_self.value):
-                raise ArithmeticError, "0^0 is undefined."
-            else:
-                mpq_set_si(x.value, 1, 1)
-                return x
-
-
+            mpq_set_si(x.value, 1, 1)
+            return x
 
         if nn < 0:
             _sig_on

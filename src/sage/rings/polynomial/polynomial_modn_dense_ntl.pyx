@@ -387,6 +387,11 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         self.x = ntl.x
         self.c = ntl.c
 
+    def __dealloc__(self):
+        if <object>self.c is not None:
+            self.c.restore_c()
+        zz_pX_destruct(&self.x)
+
     def ntl_set_directly(self, v):
         # TODO: Get rid of this
         Polynomial_dense_mod_n.ntl_set_directly(self, v)
@@ -853,6 +858,11 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         self.__poly = None # this will eventually go away
         self.x = ntl.x
         self.c = ntl.c
+
+    def __dealloc__(self):
+        if <object>self.c is not None:
+            self.c.restore_c()
+        ZZ_pX_destruct(&self.x)
 
     def ntl_set_directly(self, v):
         # TODO: Get rid of this

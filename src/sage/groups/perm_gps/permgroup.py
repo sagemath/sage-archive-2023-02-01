@@ -150,14 +150,22 @@ def PermutationGroup(x, from_group=False, check=True):
         sage: H.gens()                            # requires optional database_gap
         ((1,2,3,4), (1,3))
 
+
+    We can also create permutation groups whose generators are
+    Gap permutation objects.
+        sage: p = gap('(1,2)(3,7)(4,6)(5,8)'); p
+        (1,2)(3,7)(4,6)(5,8)
+        sage: PermutationGroup([p])
+        Permutation Group with generators [(1,2)(3,7)(4,6)(5,8)]
+
     EXAMPLES:
     There is an underlying gap object that implements each permutation group.
 
         sage: G = PermutationGroup([[(1,2,3,4)]])
         sage: G._gap_()
-        Group([ (1,2,3,4) ])
+        Group( [ (1,2,3,4) ] )
         sage: gap(G)
-        Group([ (1,2,3,4) ])
+        Group( [ (1,2,3,4) ] )
         sage: gap(G) is G._gap_()
         True
         sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
@@ -211,7 +219,13 @@ class PermutationGroup_generic(group.FiniteGroup):
                 gens = list(gens)
             elif not isinstance(gens, list):
                 raise TypeError, "gens must be a tuple or list"
-            gens = [gap_format(x) for x in gens]
+            new_gens = []
+            for x in gens:
+                if is_GapElement(x):
+                    new_gens.append( str(x) )
+                else:
+                    new_gens.append(gap_format(x))
+            gens = new_gens
 
         cmd = 'Group(%s)'%gens
         cmd = cmd.replace("'","")  # get rid of quotes
@@ -244,7 +258,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         return right._gap_().__cmp__(self._gap_())
 
 
-    def __call__(self, x):
+    def __call__(self, x, check=True):
         """
         Coerce x into this permutation group.
 
@@ -262,6 +276,12 @@ class PermutationGroup_generic(group.FiniteGroup):
             (1,2)(3,4)
             sage: G('(1,2)(3,4)')
             (1,2)(3,4)
+            sage: G('(1,2)(3)(4)')
+            (1,2)
+            sage: G(((1,2,3),(4,)))
+            (1,2,3)
+            sage: G(((1,2,3,4),))
+            (1,2,3,4)
             sage: G([1,2,4,3])
             (3,4)
             sage: G([2,3,4,1])
@@ -291,15 +311,11 @@ class PermutationGroup_generic(group.FiniteGroup):
             if x.parent() is self:
                 return x
             else:
-                return PermutationGroupElement(x._gap_(), self, check = True)
+                return PermutationGroupElement(x._gap_(), self, check = check)
         elif isinstance(x, (list, str)):
-            if isinstance(x, list) and len(x) > 0 and not isinstance(x[0], tuple):
-                # todo: This is ok, but is certainly not "industry strength" fast
-                # compared to what is possible.
-                x = gap.eval('PermList(%s)'%x)
-            return PermutationGroupElement(x, self, check = True)
+            return PermutationGroupElement(x, self, check = check)
         elif isinstance(x, tuple):
-            return PermutationGroupElement([x], self, check = True)
+            return PermutationGroupElement([x], self, check = check)
         elif isinstance(x, (int, long, Integer)) and x == 1:
             return self.identity()
         else:
@@ -579,7 +595,11 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.degree()
             5
         """
-        return self.largest_moved_point()
+        try:
+            return self._deg
+        except AttributeError:
+            self._deg = self.largest_moved_point()
+            return self._deg
 
     def exponent(self):
         """
@@ -1247,7 +1267,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             Group([ (2,4), (1,3) ])
             sage: g = G([(1,2,3,4)])
             sage: G.normalizer(g)
-            Group([ (1,2,3,4), (1,3)(2,4), (2,4) ])
+            Group( [ (1,2,3,4), (1,3)(2,4), (2,4) ] )
 
         """
         N = self._gap_().Normalizer(str(g))
@@ -1630,7 +1650,7 @@ def direct_product_permgroups(P):
         sage: D==G1
         True
         sage: direct_product_permgroups([])
-        Symmetric group of order 0! as a permutation group
+        Symmetric group of order 1! as a permutation group
     """
     from permgroup_named import SymmetricGroup
     n = len(P)

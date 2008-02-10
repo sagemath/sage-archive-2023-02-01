@@ -51,7 +51,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
 cimport free_module_element
-
+from free_module_element import vector
 
 cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
     cdef bint is_dense_c(self):
@@ -83,6 +83,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
 
     def __new__(self, parent=None, x=None, coerce=True,copy=True):
         self._entries = NULL
+        self._is_mutable = 1
         if not parent is None:
             self._init(parent.degree(), parent)
 
@@ -94,7 +95,7 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_init(self._entries[i])
         if isinstance(x, (list, tuple)):
             if len(x) != self._degree:
-                raise ArithmeticError, "entries must be a list of length %s"%self._degree
+                raise TypeError, "entries must be a list of length %s"%self._degree
             for i from 0 <= i < self._degree:
                 z = Rational(x[i])
                 mpq_set(self._entries[i], z.value)
@@ -143,6 +144,8 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
         return self._degree
 
     def __setitem__(self, Py_ssize_t i, x):
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         cdef Rational z
         if i < 0 or i >= self._degree:
             raise IndexError
@@ -273,7 +276,23 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             mpq_neg(z._entries[i], self._entries[i])
         return z
 
+    def n(self, *args, **kwargs):
+        """
+        Returns a numerical approximation of self by calling the n()
+        method on all of its entries.
 
+        EXAMPLES:
+            sage: v = vector(QQ, [1,2,3])
+            sage: v.n()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 75 bits of precision
+        """
+        return vector( [e.n(*args, **kwargs) for e in self] )
 
 
 def unpickle_v0(parent, entries, degree):

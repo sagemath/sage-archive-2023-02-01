@@ -76,6 +76,7 @@ import space
 import subspace
 
 QQ = rings.Rational
+ZZ = rings.Integers
 
 
 class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule):
@@ -409,16 +410,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return a
 
     def modular_symbol(self, x, check=True):
-        """
+        r"""
         Create a modular symbol in this space.
 
         INPUT:
             x -- a list of either 2 or 3 entries
-            2 entries:   [alpha, beta] -- creates the modular
+            2 entries:   [$\alpha$, $\beta$] -- creates the modular
                          symbol {alpha, beta}, or, if the weight
-                         is > 2 the symbol Y^(k-2){alpha,beta}.
-            3 entries:   [i, alpha, beta] -- create the modular
-                         symbol X^i*Y^(k-2-i){alpha,beta}.
+                         is > 2 the symbol $Y^(k-2){\alpha,\beta}$.
+            3 entries:   [i, $\alpha$, $\beta$] -- create the modular
+                         symbol $X^i Y^{k-2-i}{\alpha,\beta}$.
 
         EXAMPLES:
             sage: set_modsym_print_mode('modular')
@@ -794,13 +795,25 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
     def cuspidal_submodule(self):
         """
-        The cuspidal submodule.
+        The cuspidal submodule of self.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(12,2,0,GF(5)) ; M
+            Modular Symbols space of dimension 5 for Gamma_0(12) of weight 2 with sign 0 over Finite Field of size 5
+            sage: M.cuspidal_submodule()
+            Modular Symbols subspace of dimension 0 of Modular Symbols space of dimension 5 for Gamma_0(12) of weight 2 with sign 0 over Finite Field of size 5
+            sage: ModularSymbols(1,24,-1).cuspidal_submodule()
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 2 for Gamma_0(1) of weight 24 with sign -1 over Rational Field
         """
         try:
             return self.__cuspidal_submodule
         except AttributeError:
             S = self.boundary_map().kernel()
             S._is_full_hecke_module = True
+            ## We know the cuspidal subspace is stable, so
+            ## if it's one-dimensional, it must be simple
+            if S.dimension() == 1:
+                S._is_simple = True
             if self.base_ring().characteristic() == 0:
                 d = self._cuspidal_submodule_dimension_formula()
                 if not d is None:
@@ -883,9 +896,9 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             t = self.manin_symbols().index(x.tuple())
             if isinstance(t, tuple):
                 i, scalar = t
-                v = self.manin_gens_to_basis()[i] * scalar
+                v = self.manin_gens_to_basis().row(i) * scalar
             else:
-                v = self.manin_gens_to_basis()[t]
+                v = self.manin_gens_to_basis().row(t)
             return element.ModularSymbolsElement(self, v)
 
         elif isinstance(x, element.ModularSymbolsElement):
@@ -917,6 +930,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         modular symbols and self is isomorphic to the direct sum of
         the $S^e$ as a module over the \emph{anemic} Hecke algebra
         adjoin the star involution.
+
+        EXAMPLES:
+            sage: ModularSymbols(Gamma0(22), 2).factorization()
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 1 for Gamma_0(2) of weight 2 with sign 0 over Rational Field)^3 *
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field)^2 *
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field)^2
+
+            sage: ModularSymbols(1,6,0,GF(2)).factorization()
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(1) of weight 6 with sign 0 over Finite Field of size 2) *
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(1) of weight 6 with sign 0 over Finite Field of size 2)
         """
 
 ##         EXAMPLES:
@@ -1004,6 +1027,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             P = [p for p in arith.prime_range(2, self.hecke_bound() + 1) if self.level() % p != 0]
         # The above was all for dealing with e2 in the weight 2 case.
 
+        ## If the characteristic of the base ring is 2,
+        ## the star involution is the identity, so we
+        ## want to avoid adding each cuspidal submodule
+        ## twice.
+        if self.base_ring().characteristic() == 2:
+            skip_minus = True
+        else:
+            skip_minus = False
+
+
         for d in reversed(arith.divisors(self.level())):
             n = arith.number_of_divisors(self.level() // d)
             M = self.modular_symbols_of_level(d)
@@ -1014,6 +1047,8 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                         V = A.plus_submodule()
                         V._is_simple = True
                         D.append((V,n))
+                        if skip_minus:
+                            continue
                         V = A.minus_submodule()
                         V._is_simple = True
                         D.append((V,n))
@@ -1156,8 +1191,12 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                             This are useful for many algorithms.
         OUTPUT:
             subspace of modular symbols
+
+        EXAMPLES:
+            sage: ModularSymbols(1,12,0,GF(5)).minus_submodule() ## indirect doctest
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Finite Field of size 5
         """
-        S = self.star_involution().matrix() - sign
+        S = self.star_involution().matrix() - self.base_ring()(sign)
         V = S.kernel()
         if compute_dual:
             Vdual = S.transpose().kernel()
@@ -1316,7 +1355,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         # structure.  We next obtain the corresponding list of elements
         # by passing to the quotient by the remaining relations
         # via the _manin_gens_to_basis attribute.
-        X = [self._manin_gens_to_basis[i] for i in G]
+        X = [self._manin_gens_to_basis.row(i) for i in G]
 
         # Next we take each element of X, which gives a linear combination
         # of the basis of the underlying vector space of self, and compute

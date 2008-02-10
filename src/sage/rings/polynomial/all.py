@@ -32,3 +32,6 @@ from multi_polynomial_element import degree_lowest_rational_function, is_MPolyno
 
 # Generic convolution
 from sage.rings.polynomial.convolution import convolution
+
+# Boolean Polynomial Rings
+from sage.rings.polynomial.pbori import BooleanPolynomialRing

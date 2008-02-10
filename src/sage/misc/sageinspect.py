@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 Inspect Python, Sage, and Cython objects.
 
 This module extends parts of Python's inspect module to Cython objects.
@@ -28,8 +28,8 @@ Test introspection of modules defined in Python and Cython files:
         sage: sage_getfile(sage.misc.sageinspect)
         '.../sageinspect.py'
 
-        sage: sage_getdoc(sage.misc.sageinspect).lstrip()
-        'Inspect Python, Sage, and Cython objects...'
+        sage: print sage_getdoc(sage.misc.sageinspect).lstrip()[:40]
+        Inspect Python, Sage, and Cython objects
 
         sage: sage_getsource(sage.misc.sageinspect).lstrip()[5:-1]
         'Inspect Python, Sage, and Cython objects...'
@@ -51,10 +51,19 @@ Test introspection of classes defined in Python and Cython files:
         '.../attach.py'
 
         sage: sage_getdoc(sage.misc.attach.Attach).lstrip()
-        'Attach a file to a running instance of SAGE...'
+        "Attach a file to a running instance of Sage..."
 
         sage: sage_getsource(sage.misc.attach.Attach)
         'class Attach:...'
+
+    Python classes with no docstring, but an __init__ docstring:
+        sage: class Foo:
+        ...     def __init__(self):
+        ...         'docstring'
+        ...         pass
+        ...
+        sage: sage_getdoc(Foo)
+        'docstring'
 
 Test introspection of functions defined in Python and Cython files:
 
@@ -90,6 +99,8 @@ Test introspection of functions defined in Python and Cython files:
 
         sage: sage_getdef(str.find, 'find')
         'find( [noargspec] )'
+
+
 """
 
 import inspect
@@ -121,7 +132,8 @@ def _extract_embedded_position(docstring):
         return None
     res = __embedded_position_re.match(docstring)
     if res is not None:
-        filename = '%s/local/lib/python/site-packages/%s' % (SAGE_ROOT, res.group('FILENAME'))
+        #filename = '%s/local/lib/python/site-packages/%s' % (SAGE_ROOT, res.group('FILENAME'))
+        filename = '%s/devel/sage/%s' % (SAGE_ROOT, res.group('FILENAME'))
         lineno = int(res.group('LINENO'))
         original = res.group('ORIGINAL')
         return (original, filename, lineno)
@@ -250,8 +262,15 @@ def sage_getargspec(obj):
             func_obj = obj
 
     # Otherwise we're (hopefully!) plain Python, so use inspect
-    args, varargs, varkw = inspect.getargs(func_obj.func_code)
-    return args, varargs, varkw, func_obj.func_defaults
+    try:
+        args, varargs, varkw = inspect.getargs(func_obj.func_code)
+    except AttributeError:
+        args, varargs, varkw = inspect.getargs(func_obj)
+    try:
+        defaults = func_obj.func_defaults
+    except AttributeError:
+        defaults = tuple([])
+    return args, varargs, varkw,
 
 def sage_getdef(obj, obj_name=''):
     r"""
@@ -272,7 +291,7 @@ def sage_getdef(obj, obj_name=''):
             s = s[4:]
         s = s.lstrip(',').strip()
         return obj_name + '(' + s + ')'
-    except TypeError, ValueError:
+    except (AttributeError, TypeError, ValueError):
         return '%s( [noargspec] )'%obj_name
 
 def sage_getdoc(obj, obj_name=''):
@@ -286,12 +305,19 @@ def sage_getdoc(obj, obj_name=''):
         -- William Stein
         -- Extensions by Nick Alexander
     """
+    if obj is None: return ''
     import sage.misc.sagedoc
     r = None
     try:
         r = obj._sage_doc_()
     except AttributeError:
         r = obj.__doc__
+
+    #Check to see if there is an __init__ method, and if there
+    #is, use its docstring.
+    if r is None and hasattr(obj, '__init__'):
+        r = obj.__init__.__doc__
+
     if r is None:
         return ''
     s = sage.misc.sagedoc.format(str(r))
@@ -326,7 +352,8 @@ def sage_getsource(obj, is_binary=False):
 
 def sage_getsourcelines(obj, is_binary=False):
     r"""
-    Return a pair ([source_lines], starting line number) of the source code associated to obj, or None.
+    Return a pair ([source_lines], starting line number) of the source
+    code associated to obj, or None.
 
     At this time we ignore is_binary in favour of a 'do our best' strategy.
 
@@ -348,6 +375,8 @@ def sage_getsourcelines(obj, is_binary=False):
         return None
 
     return _extract_source(source_lines, lineno), lineno
+
+
 
 __internal_teststring = '''
 import os                                  # 1
@@ -381,7 +410,7 @@ def __internal_tests():
 
     A cython function with default arguments:
         sage: sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
-        "factor(algorithm='pari')"
+        "factor(algorithm='pari', proof='True')"
 
     A cython method without an embedded position can lead to surprising errors:
         sage: sage_getsource(sage.rings.integer.Integer.__init__, is_binary=True)

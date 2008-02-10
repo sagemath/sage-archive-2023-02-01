@@ -69,6 +69,10 @@ import affine_space
 
 from sage.structure.parent_gens import normalize_names
 
+from sage.rings.arith import gcd
+
+from sage.combinat.tuple import Tuples
+
 def is_ProjectiveSpace(x):
     return isinstance(x, ProjectiveSpace_ring)
 
@@ -391,7 +395,7 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
         return [ P for P in self(F) ]
 
 class ProjectiveSpace_rational_field(ProjectiveSpace_field):
-    def rational_points(self, bound=0):
+    def rational_points(self,bound=0):
         r"""
         Returns the projective points $(x_0:\cdots:x_n)$ over $\Q$
         with $|x_i| \leq$ bound.
@@ -405,37 +409,61 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
             [(1)]
             sage: PP = ProjectiveSpace(1,QQ)
             sage: PP.rational_points(2)
-            [(0 : 1), (-2 : 1), (-1 : 1), (-1/2 : 1), (0 : 1), (1 : 1), (1/2 : 1), (2 : 1), (1 : 0)]
+            [(-2 : 1), (-1 : 1), (0 : 1), (1 : 1), (2 : 1), (-1/2 : 1), (1/2 : 1), (1 : 0)]
+            sage: PP = ProjectiveSpace(2,QQ)
+            sage: PP.rational_points(2)
+            [(-2 : -2 : 1), (-1 : -2 : 1), (0 : -2 : 1), (1 : -2 : 1), (2 : -2 : 1),
+            (-2 : -1 : 1), (-1 : -1 : 1), (0 : -1 : 1), (1 : -1 : 1), (2 : -1 : 1),
+            (-2 : 0 : 1), (-1 : 0 : 1), (0 : 0 : 1), (1 : 0 : 1), (2 : 0 : 1), (-2 :
+            1 : 1), (-1 : 1 : 1), (0 : 1 : 1), (1 : 1 : 1), (2 : 1 : 1), (-2 : 2 :
+            1), (-1 : 2 : 1), (0 : 2 : 1), (1 : 2 : 1), (2 : 2 : 1), (-1/2 : -1 :
+            1), (1/2 : -1 : 1), (-1 : -1/2 : 1), (-1/2 : -1/2 : 1), (0 : -1/2 : 1),
+            (1/2 : -1/2 : 1), (1 : -1/2 : 1), (-1/2 : 0 : 1), (1/2 : 0 : 1), (-1 :
+            1/2 : 1), (-1/2 : 1/2 : 1), (0 : 1/2 : 1), (1/2 : 1/2 : 1), (1 : 1/2 :
+            1), (-1/2 : 1 : 1), (1/2 : 1 : 1), (-2 : 1 : 0), (-1 : 1 : 0), (0 : 1 :
+            0), (1 : 1 : 0), (2 : 1 : 0), (-1/2 : 1 : 0), (1/2 : 1 : 0), (1 : 0 :
+            0)]
+
+        NOTES:
+            The very simple algorithm works as follows: every
+            point $(x_0:\cdots:x_n)$ in projective space has a unique
+            largest index $i$ for which $x_i$ is not zero. The
+            algorithm then iterates downward on this index. We normalize
+            by choosing $x_i$ positive. Then, the points $x_0,\ldots,x_{i-1}$
+            are the points of affine $i$-space that are relatively prime to $x_i$.
+            We access these by using the Tuples method.
+
+        AUTHORS:
+            - Benjamin Antieau (2008-01-12)
+
         """
         if not bound > 0:
             raise ValueError, \
                   "Argument bound (= %s) must be a positive integer."
+
         n = self.dimension()
-        R = [ k-bound for k in range(2*bound+1) ]
-        Q = [ k+1 for k in range(bound) ]
+
+
+        Q = [ k-bound for k in range(2*bound+1) ]      # the affine coordinates
+        R = [ (k+1) for k in range(bound) ]            # the projective coordinate
+        S = [ Tuples(Q,(k+1)) for k in range(n) ]
         pts = []
-        i = int(n)
-        while not i < 0:
-            P = [ 0 for _ in range(n+1) ]; P[i] = 1
-            m = ZZ(0)
-            pts.append(self(P))
-            iters = [ iter(R) for _ in range(i) ]
-            j = 0
-            while j < i:
-                try:
-                    aj = ZZ(iters[j].next())
-                    m = m.gcd(aj)
-                    P[j] = aj
-                    for ai in Q:
-                        P[i] = ai
-                        if m.gcd(ai) == 1:
-                            pts.append(self(P))
-                    j = 0
-                    m = ZZ(0)
-                except StopIteration:
-                    iters[j] = iter(R)  # reset
-                    iters[j].next() # put at zero
-                    P[j] = 0
-                    j += 1
-            i -= 1
+
+        i=n
+
+        while i > 0:
+            P = [ 0 for _ in range(n+1) ]
+            for ai in R:
+                P[i]=ai
+                for tup in S[i-1]:
+                    if gcd([ai]+tup,True)==1:
+                        for j in range(i):
+                            P[j]=tup[j]
+                        pts.append(self(P))
+            i-=1
+
+        # now do i=0; this is treated as a special case so that
+        # we don't have all points (1:0),(2,0),(3,0),etc.
+        P = [ 0 for _ in range(n+1) ]; P[0]=1
+        pts.append(self(P))
         return pts

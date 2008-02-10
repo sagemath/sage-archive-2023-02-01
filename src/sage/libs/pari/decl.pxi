@@ -1284,7 +1284,8 @@ cdef extern from 'pari/pari.h':
     void    err(long numerr, ...)
     #void   *err_catch(long errnum, jmp_buf *penv)
     void    err_leave(void **v)
-    GEN     forcecopy(GEN x)
+    ## forcecopy is deprecated, use gcopy instead
+    ## GEN     forcecopy(GEN x)
     void    freeall()
     GEN     gcopy(GEN x)
     GEN     gcopy_i(GEN x, long lx)

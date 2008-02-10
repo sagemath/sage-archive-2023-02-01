@@ -59,7 +59,7 @@ def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None):
         left += xmax - xmin + buffer
     return pos
 
-def spring_layout_fast(G, iterations=50, dim=2, vpos=None):
+def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True):
     """
     Spring force model layout
 
@@ -116,6 +116,29 @@ def spring_layout_fast(G, iterations=50, dim=2, vpos=None):
     elist[cur_edge+1] = -1
 
     run_spring(iterations, dim, pos, elist, n)
+
+    # recenter
+    cdef double* cen
+    cdef double r, r2, max_r2 = 0
+    if rescale:
+        cen = <double *>sage_malloc(sizeof(double) * dim)
+        for x from 0 <= x < dim: cen[x] = 0
+        for i from 0 <= i < n:
+            for x from 0 <= x < dim:
+                cen[x] += pos[i*dim + x]
+        for x from 0 <= x < dim: cen[x] /= n
+        for i from 0 <= i < n:
+            r2 = 0
+            for x from 0 <= x < dim:
+                pos[i*dim + x] -= cen[x]
+                r2 += pos[i*dim + x] * pos[i*dim + x]
+            if r2 > max_r2:
+                max_r2 = r2
+        r = 1 if max_r2 == 0 else sqrt(max_r2)
+        for i from 0 <= i < n:
+            for x from 0 <= x < dim:
+                pos[i*dim + x] /= r
+        sage_free(cen)
 
     # put the data back into a position dictionary
     vpos = {}
@@ -243,7 +266,11 @@ def binary(n, length=None):
     cdef mpz_t i
     mpz_init(i)
     mpz_set_ui(i,n)
-    return mpz_get_str(NULL, 2, i)
+    cdef char* s=mpz_get_str(NULL, 2, i)
+    t=str(s)
+    free(s)
+    mpz_clear(i)
+    return t
 
 def R(x):
     """

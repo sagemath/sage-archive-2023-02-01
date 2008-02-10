@@ -1,7 +1,7 @@
 # These are shared inline functions.
 
 #################################################################################
-# fast tests to verify no coersion is needed
+# fast tests to verify no coercion is needed
 #################################################################################
 
 cdef inline bint have_same_parent(left, right):
@@ -35,7 +35,7 @@ cdef inline bint have_same_base(Element x, Element y):
 # parent
 #################################################################################
 cdef inline parent_c(x):
-    if PY_TYPE_CHECK(x,Element):
+    if PY_TYPE_CHECK(x, Element):
         return (<Element>x)._parent
     elif hasattr(x, 'parent'):
         return x.parent()
@@ -71,7 +71,7 @@ cdef inline arith_error_message(x, y, op):
         return "unsupported operand parent(s) for '%s': '%s' and '%s'"%(n, parent_c(x), parent_c(y))
 
 #################################################################################
-# Inline arithmatic dispatchers for ModuleElements and RingElements
+# Inline arithmetic dispatchers for ModuleElements and RingElements
 #################################################################################
 
 cdef inline ModuleElement _add_c(ModuleElement left, ModuleElement right):
@@ -144,7 +144,7 @@ cdef inline RingElement _idiv_c(RingElement left, RingElement right):
         return left._idiv_c_impl(right)
 
 cdef enum:
-    # 3 references: handle, scope container, and arithmatic call stack
+    # 3 references: handle, scope container, and arithmetic call stack
     inplace_threshold = 0
 
 

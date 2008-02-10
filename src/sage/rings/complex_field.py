@@ -25,6 +25,23 @@ from sage.misc.sage_eval import sage_eval
 
 from sage.structure.parent_gens import ParentWithGens
 
+NumberFieldElement_quadratic = None
+AlgebraicNumber_base = None
+AlgebraicNumber = None
+AlgebraicReal = None
+def late_import():
+    global NumberFieldElement_quadratic
+    global AlgebraicNumber_base
+    global AlgebraicNumber
+    global AlgebraicReal
+    if NumberFieldElement_quadratic is None:
+        import sage.rings.number_field.number_field_element_quadratic as nfeq
+        NumberFieldElement_quadratic = nfeq.NumberFieldElement_quadratic
+        import sage.rings.qqbar
+        AlgebraicNumber_base = sage.rings.qqbar.AlgebraicNumber_base
+        AlgebraicNumber = sage.rings.qqbar.AlgebraicNumber
+        AlgebraicReal = sage.rings.qqbar.AlgebraicReal
+
 def is_ComplexField(x):
     return isinstance(x, ComplexField_class)
 
@@ -68,14 +85,13 @@ class ComplexField_class(field.Field):
         0.333333333333333
         sage: C(1/3, 2)
         0.333333333333333 + 2.00000000000000*I
-
-    Note that the second argument is the number of *bits* of precision,
-    not the number of digits of precision:
-        sage: C(1/3, 2)
-        0.333333333333333 + 2.00000000000000*I
+        sage: C(RQDF.pi())
+        3.14159265358979
+        sage: C(RQDF.log2(), RQDF.e())
+        0.693147180559945 + 2.71828182845905*I
 
     We can also coerce rational numbers and integers into C, but
-    coercing a polynomial in raising an exception.
+    coercing a polynomial will raise an exception.
 
         sage: Q = RationalField()
         sage: C(1/3)
@@ -163,6 +179,12 @@ class ComplexField_class(field.Field):
             1.00000000000000 + 1.00000000000000*I
             sage: CC(2,3)
             2.00000000000000 + 3.00000000000000*I
+            sage: CC(QQ[I].gen())
+            1.00000000000000*I
+            sage: CC.gen() + QQ[I].gen()
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '+': 'Complex Field with 53 bits of precision' and 'Number Field in I with defining polynomial x^2 + 1'
         """
         if im is None:
             if isinstance(x, complex_number.ComplexNumber) and x.parent() is self:
@@ -174,6 +196,12 @@ class ComplexField_class(field.Field):
                 # efficient way to do this.  -- Martin Albrecht
                 return complex_number.ComplexNumber(self,
                             sage_eval(x.replace(' ',''), locals={"I":self.gen(),"i":self.gen()}))
+
+            late_import()
+            if isinstance(x, NumberFieldElement_quadratic) and list(x.parent().polynomial()) == [1, 0, 1]:
+                (re, im) = list(x)
+                return complex_number.ComplexNumber(self, re, im)
+
             try:
                 return x._complex_mpfr_field_( self )
             except AttributeError:
@@ -188,6 +216,10 @@ class ComplexField_class(field.Field):
         The rings that canonicaly coerce to the MPFS complex field are:
            * this MPFR complex field, or any other of higher precision
            * anything that canonically coerces to the mpfr real field with this prec
+
+        EXAMPLES:
+        sage: ComplexField(200)(1) + RealField(90)(1)
+        2.0000000000000000000000000
         """
         try:
             K = x.parent()
@@ -195,6 +227,9 @@ class ComplexField_class(field.Field):
                 return self(x)
         except AttributeError:
             pass
+        late_import()
+        if isinstance(x, AlgebraicNumber_base):
+            return self(x)
         return self._coerce_try(x, self._real_field())
 
     def _repr_(self):
@@ -231,6 +266,21 @@ class ComplexField_class(field.Field):
         """
         return False
 
+    def construction(self):
+        """
+        Returns the functorial construction of self, namely,
+        algebraic closure of the real field with the same precision.
+
+        EXAMPLES:
+            sage: c, S = CC.construction(); S
+            Real Field with 53 bits of precision
+            sage: CC == c(S)
+            True
+        """
+        from sage.categories.pushout import AlgebraicClosureFunctor
+        return (AlgebraicClosureFunctor(), self._real_field())
+
+
     def pi(self):
         return self(self._real_field().pi())
 
@@ -265,5 +315,3 @@ class ComplexField_class(field.Field):
 
     def scientific_notation(self, status=None):
         return self._real_field().scientific_notation(status)
-
-

@@ -68,13 +68,35 @@ cdef class Transformation:
         len_a = a.dot_product(a)
         return max([abs(len_a - b.dot_product(b)) for b in basis]) < eps
 
-    def transform_point(self, x):
-        Tx = self.matrix * vector(RDF, [x[0], x[1], x[2], 1])
-        return (Tx[0], Tx[1], Tx[2])
+    cpdef transform_point(self, x):
+        cdef point_c res, P
+        P.x, P.y, P.z = x
+        point_c_transform(&res, self._matrix_data, P)
+        return res.x, res.y, res.z
 
-    def transform_vector(self, x):
-        Tx = self.matrix * vector(RDF, [x[0], x[1], x[2], 0])
-        return (Tx[0], Tx[1], Tx[2])
+    cpdef transform_vector(self, v):
+        cdef point_c res, P
+        P.x, P.y, P.z = v
+        point_c_stretch(&res, self._matrix_data, P)
+        return res.x, res.y, res.z
+
+    cpdef transform_bounding_box(self, box):
+        cdef point_c lower, upper, res, temp
+        cdef point_c bounds[2]
+        bounds[0].x, bounds[0].y, bounds[0].z = box[0]
+        bounds[1].x, bounds[1].y, bounds[1].z = box[1]
+        point_c_transform(&lower, self._matrix_data, bounds[0])
+        point_c_transform(&upper, self._matrix_data, bounds[0])
+        cdef int i
+        for i from 1 <= i < 8:
+            temp.x = bounds[ i & 1      ].x
+            temp.y = bounds[(i & 2) >> 1].y
+            temp.z = bounds[(i & 4) >> 2].z
+            point_c_transform(&res, self._matrix_data, temp)
+            point_c_lower_bound(&lower, lower, res)
+            point_c_upper_bound(&upper, upper, res)
+        return (lower.x, lower.y, lower.z), (upper.x, upper.y, upper.z)
+
 
     cdef void transform_point_c(self, point_c* res, point_c P):
         point_c_transform(res, self._matrix_data, P)
@@ -85,14 +107,21 @@ cdef class Transformation:
     def __mul__(Transformation self, Transformation other):
         return Transformation(m = self.matrix * other.matrix)
 
+    def __invert__(Transformation self):
+        return Transformation(m=~self.matrix)
+
     def __call__(self, p):
-        res = self.matrix * vector(RDF, [p[0], p[1], p[2], 1])
-        return tuple(res[:3])
+        return self.transform_point(p)
 
     def max_scale(self):
         if self._svd is None:
             self._svd = self.matrix.submatrix(0,0,3,3).SVD()
         return self._svd[1][0,0]
+
+    def avg_scale(self):
+        if self._svd is None:
+            self._svd = self.matrix.submatrix(0,0,3,3).SVD()
+        return (self._svd[1][0,0] * self._svd[1][1,1] * self._svd[1][2,2]) ** (1/3.0)
 
 
 def rotate_arbitrary(v, double theta):
@@ -161,12 +190,12 @@ def rotate_arbitrary(v, double theta):
             sage: vy = sqrt(1-vx^2-vz^2)
 
         Now we rotate about the $x$-axis so $v$ is in the $xy$-plane.
-            sage: t = atan(vy/vz)+pi/2
+            sage: t = arctan(vy/vz)+pi/2
             sage: m = rotX(t)
             sage: new_y = vy*cos(t) - vz*sin(t)
 
         And rotate about the $z$ axis so $v$ lies on the $x$ axis.
-            sage: s = atan(vx/new_y) + pi/2
+            sage: s = arctan(vx/new_y) + pi/2
             sage: m = rotZ(s) * m
 
         Rotating about $v$ in our old system is the same as rotating
@@ -174,17 +203,17 @@ def rotate_arbitrary(v, double theta):
             sage: m = rotX(theta) * m
 
         Do some simplfying here to avoid blow-up.
-            sage: ix = [(i,j) for i in range(3) for j in range(3)]
-            sage: for ij in ix: m[ij] = m[ij].simplify_rational()
+            sage: m = m.simplify_rational()
 
         Now go back to the original coordinate system.
             sage: m = rotZ(-s) * m
             sage: m = rotX(-t) * m
-            sage: for ij in ix: m[ij] = m[ij].simplify_rational()
-            sage: m    # not tested, since broken -- need a special symbolic matrix class
-            [                                       (1 - cos(theta))*x^2 + cos(theta) -(sin(theta)*abs(z)^3 + (cos(theta) - 1)*x*z^2*sqrt(-z^2 - x^2 + 1))/z^2  (sin(theta)*sqrt(-z^2 - x^2 + 1)*abs(z)^3 + (1 - cos(theta))*x*z^4)/z^3]
-            [             sin(theta)*abs(z) + (1 - cos(theta))*x*sqrt(-z^2 - x^2 + 1)                          (cos(theta) - 1)*z^2 + (cos(theta) - 1)*x^2 + 1     -(sin(theta)*x*abs(z) + (cos(theta) - 1)*z^2*sqrt(-z^2 - x^2 + 1))/z]
-            [    -(sin(theta)*sqrt(-z^2 - x^2 + 1)*abs(z) + (cos(theta) - 1)*x*z^2)/z     -((cos(theta) - 1)*z^2*sqrt(-z^2 - x^2 + 1) - sin(theta)*x*abs(z))/z                                        (1 - cos(theta))*z^2 + cos(theta)]
+            sage: m = m.simplify_rational()
+            sage: m
+            [                                              (1 - cos(theta))*x^2 + cos(theta)                  (1 - cos(theta))*x*sqrt(-z^2 - x^2 + 1) - sin(theta)*sqrt(z^2)          (sin(theta)*sqrt(-z^2 - x^2 + 1)*sqrt(z^2) + (1 - cos(theta))*x*z^2)/z]
+            [                 sin(theta)*sqrt(z^2) + (1 - cos(theta))*x*sqrt(-z^2 - x^2 + 1)                                 (cos(theta) - 1)*z^2 + (cos(theta) - 1)*x^2 + 1 (-(cos(theta) - 1)*z*sqrt(-z^2 - x^2 + 1)*sqrt(z^2) - sin(theta)*x*z)/sqrt(z^2)]
+            [        (-sin(theta)*sqrt(-z^2 - x^2 + 1)*sqrt(z^2) - (cos(theta) - 1)*x*z^2)/z  (sin(theta)*x*z - (cos(theta) - 1)*z*sqrt(-z^2 - x^2 + 1)*sqrt(z^2))/sqrt(z^2)                                               (1 - cos(theta))*z^2 + cos(theta)]
+
 
         Re-expressing some entries in terms of y and resolving the absolute
         values introduced by eliminating y, we get the desired result.

@@ -36,17 +36,36 @@ from sage.matrix.all import matrix, MatrixSpace
 class CombinatorialAlgebraElement(AlgebraElement):
     def __init__(self, A, x):
         """
+        Create a combinatorial algebra element x.  This should never
+        be called directly, but only through the parent combinatorial
+        algebra's __call__ method.
         """
         AlgebraElement.__init__(self, A)
         self._monomial_coefficients = x
 
 
     def monomial_coefficients(self):
+        """
+        Return the internal dictionary which has the combinatorial
+        objects indexing the basis as keys and their corresponding
+        coefficients as values.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1])+2*s([3,2])
+            sage: d = a.monomial_coefficients()
+            sage: type(d)
+            <type 'dict'>
+            sage: d[ Partition([2,1]) ]
+            1
+            sage: d[ Partition([3,2]) ]
+            2
+        """
         return self._monomial_coefficients
 
     def _repr_(self):
         v = self._monomial_coefficients.items()
-
+        v.sort()
         prefix = self.parent().prefix()
         mons = [ prefix + str(m) for (m, _) in v ]
         cffs = [ x for (_, x) in v ]
@@ -69,6 +88,20 @@ class CombinatorialAlgebraElement(AlgebraElement):
             return x
 
     def _eq_(self, right):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1])
+            sage: b = s([2,1])
+            sage: c = s([2,1]) + 0
+            sage: d = s([2,1]) + 3
+            sage: a == b
+            True
+            sage: b == c
+            True
+            sage: c == d
+            False
+        """
         for b in self.parent()._combinatorial_class:
             if self.coefficient(b) != right.coefficient(b):
                 return False
@@ -85,6 +118,15 @@ class CombinatorialAlgebraElement(AlgebraElement):
         return cmp(v, w)
 
     def _add_(self, y):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s([2,1]) + s([5,4])
+            s[2, 1] + s[5, 4]
+            sage: a = s([2,1]) + 0
+            sage: len(a.monomial_coefficients())
+            1
+        """
         A = self.parent()
         BR = A.base_ring()
         z_elt = dict(self._monomial_coefficients)
@@ -113,14 +155,22 @@ class CombinatorialAlgebraElement(AlgebraElement):
         return z
 
     def _neg_(self):
-        y = self.parent()(0)
-        y_elt = {}
-        for m, c in self._monomial_coefficients.iteritems():
-            y_elt[m] = -c
-        y._monomial_coefficients = y_elt
-        return y
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: -s([2,1])
+            -s[2, 1]
+        """
+        return self.map_coefficients(lambda c: -c)
+
 
     def _sub_(self, y):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s([2,1]) - s([5,4])
+            s[2, 1] - s[5, 4]
+        """
         A = self.parent()
         BR = A.base_ring()
         z_elt = dict(self._monomial_coefficients)
@@ -154,6 +204,16 @@ class CombinatorialAlgebraElement(AlgebraElement):
         return self.parent().multiply(self, ~y)
 
     def __invert__(self):
+        """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: ~s(2)
+            1/2*s[]
+            sage: ~s([2,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot invert self (= s[2, 1])
+        """
         mcs = self._monomial_coefficients
         one = self.parent()._one
         if len(mcs) == 1 and one in mcs:
@@ -163,7 +223,24 @@ class CombinatorialAlgebraElement(AlgebraElement):
 
     def __pow__(self, n):
         """
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s([2])^2
+            s[2, 2] + s[3, 1] + s[4]
 
+            sage: s = SFASchur(QQ)
+            sage: z = s([2,1])
+            sage: z
+            s[2, 1]
+            sage: z^2
+            s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
+
+            sage: e = SFAElementary(QQ)
+            sage: y = e([1])
+            sage: y^2
+            e[1, 1]
+            sage: y^4
+            e[1, 1, 1, 1]
         """
         if not isinstance(n, (int, Integer)):
             raise TypeError, "n must be an integer"
@@ -173,12 +250,37 @@ class CombinatorialAlgebraElement(AlgebraElement):
             z *= self
         return z
 
-    def _coefficient_fast(self, m, default):
+    def _coefficient_fast(self, m, default=None):
+        """
+        Returns the coefficient of m in self, where m is key
+        in self._monomial_coefficients.
+
+        EXAMPLES:
+            sage: p = Partition([2,1])
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1])
+            sage: a._coefficient_fast([2,1])
+            Traceback (most recent call last):
+            ...
+            TypeError: list objects are unhashable
+            sage: a._coefficient_fast(p)
+            1
+            sage: a._coefficient_fast(p, 2)
+            1
+        """
+        if default is None:
+            default = self.base_ring()(0)
         return self._monomial_coefficients.get(m, default)
 
     def coefficient(self, m):
         """
-
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: z = s([4]) - 2*s([2,1]) + s([1,1,1]) + s([1])
+            sage: z.coefficient([4])
+            1
+            sage: z.coefficient([2,1])
+            -2
         """
         p = self.parent()
         if m in p._combinatorial_class:
@@ -186,7 +288,20 @@ class CombinatorialAlgebraElement(AlgebraElement):
         else:
             raise TypeError, "you must specify an element of %s"%p._combinatorial_class
 
+
     def is_zero(self):
+        """
+        Returns True if and only self == 0.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s([2,1]).is_zero()
+            False
+            sage: s(0).is_zero()
+            True
+            sage: (s([2,1]) - s([2,1])).is_zero()
+            True
+        """
         BR = self.parent().base_ring()
         for v in self._monomial_coefficients.values():
             if v != BR(0):
@@ -194,24 +309,95 @@ class CombinatorialAlgebraElement(AlgebraElement):
         return True
 
     def __len__(self):
+        """
+        Returns the number of basis elements of self with
+        nonzero coefficients.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
+            sage: len(z)
+            4
+        """
         return self.length()
 
     def length(self):
         """
+        Returns the number of basis elements of self with
+        nonzero coefficients.
+
         EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
+            sage: z.length()
+            4
         """
         return len( filter(lambda x: self._monomial_coefficients[x] != 0, self._monomial_coefficients) )
 
     def support(self):
         """
+        Returns a pair [mons, cffs] of lists of the monomials
+        of self (mons) and their respective coefficients (cffs).
+
         EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
+            sage: z.support()
+            [[[1], [1, 1, 1], [2, 1], [4]], [1, 1, 1, 1]]
         """
         v = self._monomial_coefficients.items()
+        v.sort()
         mons = [ m for (m, _) in v ]
         cffs = [ x for (_, x) in v ]
         return [mons, cffs]
 
+    def monomials(self):
+        """
+        Returns a list of the combinatorial objects indexing
+        the basis elements of self which non-zero coefficients.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
+            sage: z.monomials()
+            [[1], [1, 1, 1], [2, 1], [4]]
+        """
+        v = self._monomial_coefficients.items()
+        v.sort()
+        mons = [ m for (m, _) in v ]
+        return mons
+
+    def coefficients(self):
+        """
+        Returns a list of the coefficents appearing on the
+        basiselements in self.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: z = s([4]) + s([2,1]) + s([1,1,1]) + s([1])
+            sage: z.coefficients()
+            [1, 1, 1, 1]
+        """
+        v = self._monomial_coefficients.items()
+        v.sort()
+        cffs = [ c for (_, c) in v ]
+        return cffs
+
     def _vector_(self, new_BR=None):
+        """
+        Returns a vector version of self. If new_BR is specified,
+        then in returns a vector over new_BR.
+
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: a = 2*QS3([1,2,3])+4*QS3([3,2,1])
+            sage: a._vector_()
+            (2, 0, 0, 0, 0, 4)
+            sage: vector(a)
+            (2, 0, 0, 0, 0, 4)
+            sage: a._vector_(RDF)
+            (2.0, 0.0, 0.0, 0.0, 0.0, 4.0)
+        """
         parent = self.parent()
         if parent.get_order() is None:
             cc = parent._combinatorial_class
@@ -224,9 +410,43 @@ class CombinatorialAlgebraElement(AlgebraElement):
         return vector(new_BR, [new_BR(self._monomial_coefficients.get(m, 0)) for m in cc])
 
     def to_vector(self):
+        """
+        Returns a vector version of self.
+
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: a = 2*QS3([1,2,3])+4*QS3([3,2,1])
+            sage: a.to_vector()
+            (2, 0, 0, 0, 0, 4)
+        """
         return self._vector_()
 
     def _matrix_(self, new_BR = None):
+        """
+        Returns a matrix version of self obtained by
+        the action of self on the left.  If new_BR
+        is specified, then the matrix will be over
+        new_BR.
+
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: a = QS3([2,1,3])
+            sage: a._matrix_()
+            [0 0 1 0 0 0]
+            [0 0 0 0 1 0]
+            [1 0 0 0 0 0]
+            [0 0 0 0 0 1]
+            [0 1 0 0 0 0]
+            [0 0 0 1 0 0]
+            sage: a._matrix_(RDF)
+            [0.0 0.0 1.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0 1.0 0.0]
+            [1.0 0.0 0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0 0.0 1.0]
+            [0.0 1.0 0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 1.0 0.0 0.0]
+
+        """
         parent = self.parent()
 
         if parent.get_order() is None:
@@ -243,8 +463,84 @@ class CombinatorialAlgebraElement(AlgebraElement):
         return MS(l).transpose()
 
     def to_matrix(self):
+        """
+        Returns a matrix version of self obtained by
+        the action of self on the left.  If new_BR
+        is specified, then the matrix will be over
+        new_BR.
+
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: a = QS3([2,1,3])
+            sage: a._matrix_()
+            [0 0 1 0 0 0]
+            [0 0 0 0 1 0]
+            [1 0 0 0 0 0]
+            [0 0 0 0 0 1]
+            [0 1 0 0 0 0]
+            [0 0 0 1 0 0]
+            sage: a._matrix_(RDF)
+            [0.0 0.0 1.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0 1.0 0.0]
+            [1.0 0.0 0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 0.0 0.0 1.0]
+            [0.0 1.0 0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 1.0 0.0 0.0]
+
+        """
         return self._matrix_()
 
+    def map_coefficients(self, f):
+        """
+        Returns a new element of self.parent() obtained
+        by applying the function f to all of the coefficients
+        of self.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1])+2*s([3,2])
+            sage: a.map_coefficients(lambda x: x*2)
+            2*s[2, 1] + 4*s[3, 2]
+        """
+        res = self.parent()(0)
+        z_elt = {}
+        for m,c in self.monomial_coefficients().iteritems():
+            z_elt[m] = f(c)
+        res._monomial_coefficients = z_elt
+        return res
+
+    def map_basis(self, f):
+        """
+        Returns a new element of self.parent() obtained
+        by applying the function f to all of the combinatorial
+        objects indexing the basis elements.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1])+2*s([3,2])
+            sage: a.map_basis(lambda x: x.conjugate())
+            s[2, 1] + 2*s[2, 2, 1]
+        """
+        res = self.parent()(0)
+        z_elt = {}
+        for m,c in self.monomial_coefficients().iteritems():
+            z_elt[f(m)] = c
+        res._monomial_coefficients = z_elt
+        return res
+
+    def map_mc(self, f):
+        """
+        Returns a new element of self.parent() obtained
+        by applying the function f to a monomial coefficient
+        (m,c) pair.  f returns a (new_m, new_c) pair.
+        """
+        res = self.parent()(0)
+        z_elt = {}
+        for m,c in self.monomial_coefficients().iteritems():
+            new_m, new_c = f(m,c)
+            z_elt[new_m] = new_c
+        res._monomial_coefficients = z_elt
+        return res
 
 class CombinatorialAlgebra(Algebra):
     """
@@ -318,7 +614,7 @@ class CombinatorialAlgebra(Algebra):
         if hasattr(self, '_coerce_start'):
             try:
                 return self._coerce_start(x)
-            except:
+            except TypeError:
                 pass
 
         #x is an element of the same type of combinatorial algebra
@@ -350,9 +646,9 @@ class CombinatorialAlgebra(Algebra):
             if hasattr(self, '_coerce_end'):
                 try:
                     return self._coerce_start(x)
-                except:
+                except TypeError:
                     pass
-            raise TypeError, "do not know how to make x (= %s) an element of self"%(x)
+            raise TypeError, "do not know how to make x (= %s) an element of self (=%s)"%(x,self)
 
 
     def _an_element_impl(self):
@@ -456,7 +752,13 @@ class CombinatorialAlgebra(Algebra):
         #his or her own, and returns a dict with monomials as keys and
         #coefficients as values
         else:
-            z_elt = self._multiply(left, right)
+            m = self._multiply(left, right)
+            if isinstance(m, self._element_class):
+                return m
+            if not isinstance(m, dict):
+                z_elt = m.monomial_coefficients()
+            else:
+                z_elt = m
 
         #Remove all entries that are equal to 0
         BR = self.base_ring()

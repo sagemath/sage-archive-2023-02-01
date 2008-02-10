@@ -1,3 +1,4 @@
+
 """
 Univariate Polynomial Rings
 
@@ -338,7 +339,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES:
             sage: R.<z> = ZZ[]
             sage: gap(R)
-            PolynomialRing(..., [ z ])
+            PolynomialRing( Integers, ["z"] )
             sage: gap(z^2 + z)
             z^2+z
         """
@@ -677,17 +678,17 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return 1
 
     def random_element(self, degree=2, *args, **kwds):
-        """
+        r"""
         Return a random polynomial.
 
         INPUT:
             degree -- an integer
-            *args, **kwds -- passed onto the random_element method for the base ring.
+            *args, **kwds -- passed onto the \code{random_element} method for the base ring.
 
         OUTPUT:
-            Polynomial -- A polynomial such that the coefficient of x^i,
-            for i up to degree, are coercions to the base ring of
-            random integers between -bound and bound.
+            Polynomial -- A polynomial such that the coefficient of $x^i$,
+            for $i$ up to \var{degree}, are coercions to the base ring of
+            random integers between -\var{bound} and \var{bound}.
 
         EXAMPLES:
             sage: R.<x> = ZZ[]

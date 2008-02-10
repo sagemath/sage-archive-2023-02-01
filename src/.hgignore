@@ -2,6 +2,7 @@
 PKG-INFO
 push
 pull
+.cython_hash$
 \.hi$
 \.mtl$
 \.obj$
@@ -113,3 +114,5 @@ version.py
 ^sage/rings/rational.h$
 ^c_lib/.sconsign.dblite$
 ^c_lib/libcsage.so$
+sage/rings/complex_double.h
+sage/rings/complex_double_api.h

@@ -193,6 +193,13 @@ examples test saving and loading to strings.
     sage: loads(dumps(n)) == n
     True
 
+OTHER Examples:
+    sage: def math_bessel_K(nu,x):
+    ...       return mathematica(nu).BesselK(x).N(20).sage()
+    ...
+    sage: math_bessel_K(2,I)
+    0.180489972066962*I - 2.592886175491197
+
 AUTHOR:
     -- William Stein (2005): first version
     -- Doug Cutrell (2006-03-01): Instructions for use under Cygwin/Windows.
@@ -218,7 +225,7 @@ import os
 from expect import (Expect, ExpectElement, ExpectFunction,
                     FunctionElement, AsciiArtString)
 
-from sage.misc.misc import verbose
+from sage.misc.misc import verbose, graphics_filename
 
 def clean_output(s):
     if s is None:
@@ -268,13 +275,14 @@ class Mathematica(Expect):
         return """
 In order to use the Mathematica interface you need to have Mathematica
 installed and have a script in your PATH called "math" that runs the
-command-line version of Mathematica (alternatively, you could use a remote connection to a server running Mathematica. Do _install_hints_ssh() for hints on how to do that).
+command-line version of Mathematica. Alternatively, you could use a
+remote connection to a server running Mathematica -- for hints, type
+    print mathematica._install_hints_ssh()
 
-  (1) You might have to buy Mathematica (for at most $1880) at
-      http://www.wolfram.com/.
+
+  (1) You might have to buy Mathematica (http://www.wolfram.com/).
 
   (2) * LINUX: The math script comes standard with your Mathematica install.
-
 
       * APPLE OS X:
           (a) create a file called math (in your PATH):
@@ -289,29 +297,33 @@ command-line version of Mathematica (alternatively, you could use a remote conne
                 chmod +x math
 
       * WINDOWS:
-        The following only works with SAGE for Cygwin (not colinux).
-        Note that SAGE colinux is the preferred way to run SAGE in Windows,
-        and I do not know how to use mathematica from colinux SAGE (unless
-        you install Mathematica-for-linux into the colinux machine, which
-        is possible).
 
-        Create a file named "math", which you place in the SAGE root
-        directory.  The file contained a single line, which was the
-        path to the mathematica math.exe file.  In my case, this might be:
-
-        C:/Program Files/Wolfram Research/Mathematica/4.0/math.exe
-
-        The key points are
-        1) there is a file named "math.exe", and it will generally be
-           located in a place analagous to the above (depending on where
-           Mathematica has been installed).  This file is used only for
-           launching the kernel with a text-based interface.
-        2) a cygwin batch file must be created which executes this file,
-           which means using forward slashes rather than back slashes,
-           and probably surrounding everything in quotes
-        3) this cygwin batch file must be on the path for SAGE (placing
-           it in <SAGE_ROOT>/local/bin/ is an easy way to ensure this).
+        Install Mathematica for Linux into the VMware virtual machine (sorry,
+        that's the only way at present).
 """
+
+##         The following only works with SAGE for Cygwin (not colinux).
+##         Note that SAGE colinux is the preferred way to run SAGE in Windows,
+##         and I do not know how to use mathematica from colinux SAGE (unless
+##         you install Mathematica-for-linux into the colinux machine, which
+##         is possible).
+
+##         Create a file named "math", which you place in the SAGE root
+##         directory.  The file contained a single line, which was the
+##         path to the mathematica math.exe file.  In my case, this might be:
+
+##         C:/Program Files/Wolfram Research/Mathematica/4.0/math.exe
+
+##         The key points are
+##         1) there is a file named "math.exe", and it will generally be
+##            located in a place analagous to the above (depending on where
+##            Mathematica has been installed).  This file is used only for
+##            launching the kernel with a text-based interface.
+##         2) a cygwin batch file must be created which executes this file,
+##            which means using forward slashes rather than back slashes,
+##            and probably surrounding everything in quotes
+##         3) this cygwin batch file must be on the path for SAGE (placing
+##            it in <SAGE_ROOT>/local/bin/ is an easy way to ensure this).
 
     def eval(self, code, strip=True):
         s = Expect.eval(self, code)
@@ -377,6 +389,20 @@ command-line version of Mathematica (alternatively, you could use a remote conne
     def _right_list_delim(self):
         return "}"
 
+    ###########################################
+    # System -- change directory, etc
+    ###########################################
+    def chdir(self, dir):
+        """
+        Change Mathematica's current working directory.
+
+        EXAMPLES:
+            sage: mathematica.chdir('/')          # optional
+            sage: mathematica('Directory[]')      # optional
+            "/"
+        """
+        self.eval('SetDirectory["%s"]'%dir)
+
     def _true_symbol(self):
         return '         True'
 
@@ -441,6 +467,24 @@ class MathematicaElement(ExpectElement):
     def __str__(self):
         P = self._check_valid()
         return P.get(self._name, ascii_art=True)
+
+    def show(self, filename=None, ImageSize=600):
+        """
+        Show a mathematica plot in the Sage notebook.
+
+        EXAMPLES:
+            sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional
+            sage: show(P)                                        # optional
+            sage: P.show(ImageSize=800)                          # optional
+        """
+        P = self._check_valid()
+        if filename is None:
+            filename = graphics_filename()
+        orig_dir = P.eval('Directory[]').strip()
+        P.chdir(os.path.abspath("."))
+        s = 'Export["%s", %s, ImageSize->%s]'%(filename, self.name(), ImageSize)
+        P.eval(s)
+        P.chdir(orig_dir)
 
     def str(self):
         return str(self)

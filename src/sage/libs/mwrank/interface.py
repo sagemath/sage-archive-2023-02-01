@@ -81,6 +81,7 @@ class mwrank_EllipticCurve(SageObject):
             ArithmeticError: Invariants (= [0, 0, 0, 0, 0]) do not describe an elliptic curve.
         """
         # import here to save time during startup (mwrank takes a while to init)
+
         from sage.libs.mwrank.mwrank import _Curvedata
 
         if not isinstance(ainvs, list) and len(ainvs) <= 5:
@@ -488,7 +489,7 @@ class mwrank_MordellWeil(SageObject):
             height_limit -- float (default: 18) search up to
                             this logarithmetic height.
                    On 32-bit machines, h_lim MUST be < 21.48 else
-                   exp(h_lim)>2^31 and overflows.
+                   $\exp(h_lim)>2^31$ and overflows.
         """
         # On 64-bit machines, h_lim must be < 43.668, but
         #           it's unlikely (in 2005) that you would ever

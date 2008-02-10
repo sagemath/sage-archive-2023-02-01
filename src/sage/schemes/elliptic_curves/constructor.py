@@ -1,5 +1,9 @@
 """
 Elliptic curve constructor
+
+AUTHORS:
+   * William Stein (2005) -- Initial version
+   * John Cremona (Jan 2008) -- EllipticCurve(j) fixed for all cases
 """
 
 #*****************************************************************************
@@ -47,7 +51,7 @@ def EllipticCurve(x, y=None):
            arbitrary ring.  Note that addition need not be defined.
 
         -- EllipticCurve(j): Return an elliptic curve with j-invariant
-           $j$. (Some mild hypothesis on char of base ring.)
+           $j$.
 
     EXAMPLES:
     We illustrate creating elliptic curves.
@@ -115,13 +119,26 @@ def EllipticCurve(x, y=None):
         return ell_rational_field.EllipticCurve_rational_field(x)
 
     if rings.is_RingElement(x):
-        # TODO: worry about char != 0!!!!
-        j = x
+        # Fixed for all characteristics and cases by John Cremona
+        j=x
+        F=j.parent().fraction_field()
+        char=F.characteristic()
+        if char==2:
+            if j==0:
+                return EllipticCurve(F, [ 0, 0, 1, 0, 0 ])
+            else:
+                return EllipticCurve(F, [ 1, 0, 0, 0, 1/j ])
+        if char==3:
+            if j==0:
+                return EllipticCurve(F, [ 0, 0, 0, 1, 0 ])
+            else:
+                return EllipticCurve(F, [ 0, j, 0, 0, -j**2 ])
         if j == 0:
-            return EllipticCurve(x.parent(), [ 0, 0, 1, 0, 0 ])
-        elif j == 1728:
-            return EllipticCurve(x.parent(), [ 0, 0, 0, 1, 0 ])
-        return EllipticCurve((j/1).parent(), [1,0,0,-36/(j - 1728), -1/(j - 1728)])
+            return EllipticCurve(F, [ 0, 0, 0, 0, 1 ])
+        if j == 1728:
+            return EllipticCurve(F, [ 0, 0, 0, 1, 0 ])
+        k=j-1728
+        return EllipticCurve(F, [0,0,0,-3*j*k, -2*j*k**2])
 
     if not isinstance(x,list):
         raise TypeError, "invalid input to EllipticCurve constructor"

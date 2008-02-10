@@ -377,7 +377,8 @@ class Maxima(Expect):
         import sage.rings.all
         return Expect.__call__(self, x)
 
-    def __init__(self, script_subdirectory=None, logfile=None, server=None):
+    def __init__(self, script_subdirectory=None, logfile=None, server=None,
+                 init_code = None):
         """
         Create an instance of the Maxima interpreter.
         """
@@ -388,6 +389,8 @@ class Maxima(Expect):
         STARTUP = '%s/local/bin/sage-maxima.lisp'%SAGE_ROOT
         if not os.path.exists(STARTUP):
             raise RuntimeError, 'You must get the file local/bin/sage-maxima.lisp'
+        if init_code is None:
+            init_code = ['display2d : false'] # no ascii art output
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',
@@ -396,9 +399,7 @@ class Maxima(Expect):
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,
-                        init_code = ['display2d : false',  # no ascii art output
-                                     #'load("mactex-utilities")'   # latex instead of plain tex from tex command (broken in maxima-5.11.0!)
-                                     ],
+                        init_code = init_code,
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
         self._display_prompt = '<sage-display>'  # must match what is in the file local/ibn/sage-maxima.lisp!!
@@ -500,23 +501,30 @@ class Maxima(Expect):
     def _before(self):
         return self._expect.before
 
-    def _batch(self, str, batchload=True):
-        F = open(self._local_tmpfile(), 'w')
-        F.write(str)
+    def _batch(self, s, batchload=True):
+        filename = '%s-%s'%(self._local_tmpfile(),randrange(2147483647))
+        F = open(filename, 'w')
+        F.write(s)
         F.close()
-        tmp_to_use = self._local_tmpfile()
         if self.is_remote():
-            self._send_tmpfile_to_server()
+            self._send_tmpfile_to_server(local_file=filename)
             tmp_to_use = self._remote_tmpfile()
+        tmp_to_use = filename
 
         if batchload:
             cmd = 'batchload("%s");'%tmp_to_use
         else:
             cmd = 'batch("%s");'%tmp_to_use
+
+        r = randrange(2147483647)
+        s = str(r+1)
+        cmd = "%s1+%s;\n"%(cmd,r)
+
         self._sendline(cmd)
-        self._expect_expr()
+        self._expect_expr(s)
         out = self._before()
         self._error_check(str, out)
+        os.unlink(filename)
         return out
 
     def _error_check(self, str, out):
@@ -539,6 +547,9 @@ class Maxima(Expect):
         self._synchronize()
 
         if len(line) > self.__eval_using_file_cutoff:
+	    # This implicitly uses the set method, then displays the result of the thing that was set.
+            # This only works when the input line is an expression.   But this is our only choice, since
+            # batchmode doesn't display expressions to screen.
             a = self(line)
             return repr(a)
         else:
@@ -607,6 +618,36 @@ class Maxima(Expect):
             self.quit()
 
 
+    ###########################################
+    # System -- change directory, etc
+    ###########################################
+    def chdir(self, dir):
+        """
+        Change Maxima's current working directory.
+
+        EXAMPLES:
+           sage: maxima.chdir('/')
+        """
+        self.lisp('(ext::cd "%s")'%dir)
+
+    ###########################################
+    # Direct access to underlying lisp interpreter.
+    ###########################################
+    def lisp(self, cmd):
+        """
+        Send a lisp command to maxima.
+
+        NOTE: The output of this command is very raw -- not pretty.
+
+        EXAMPLES:
+            sage: maxima.lisp("(+ 2 17)")   # random formated output
+             :lisp (+ 2 17)
+            19
+            (
+        """
+        self._eval_line(':lisp %s\n""'%cmd, allow_use_file=False, wait_for_prompt=False, reformat=False, error_check=False)
+        self._expect_expr('(%i)')
+        return self._before()
 
     ###########################################
     # Interactive help
@@ -674,6 +715,13 @@ class Maxima(Expect):
         return self.__commands
 
     def trait_names(self, verbose=True, use_disk_cache=True):
+        """
+        Return all Maxima commands, which is useful for tab completion.
+
+        EXAMPLES:
+           sage: len(maxima.trait_names(verbose=False))    # random output
+           1743
+        """
         try:
             return self.__trait_names
         except AttributeError:
@@ -689,18 +737,44 @@ class Maxima(Expect):
                 print "a few seconds only the first time you do it)."
                 print "To force rebuild later, delete %s."%COMMANDS_CACHE
             v = self._commands(verbose=verbose)
-            print "\nDone!"
+            if verbose:
+                print "\nDone!"
             self.__trait_names = v
             sage.misc.persist.save(v, COMMANDS_CACHE)
             return v
 
     def _object_class(self):
+        """
+        Return the Python class of Maxima elements.
+
+        EXAMPLES:
+            sage: maxima._object_class()
+            <class 'sage.interfaces.maxima.MaximaElement'>
+        """
         return MaximaElement
 
     def _true_symbol(self):
+        """
+        Return the true symbol in Maxima.
+
+        EXAMPLES:
+            sage: maxima._true_symbol()
+            'true'
+            sage: maxima.eval('is(2 = 2)')
+            'true'
+        """
         return 'true'
 
     def _false_symbol(self):
+        """
+        Return the false symbol in Maxima.
+
+        EXAMPLES:
+            sage: maxima._false_symbol()
+            'false'
+            sage: maxima.eval('is(2 = 4)')
+            'false'
+        """
         return 'false'
 
     def function(self, args, defn, rep=None, latex=None):
@@ -795,9 +869,38 @@ class Maxima(Expect):
             pass
 
     def console(self):
+        r"""
+        Start the interactive Maxima console.  This is a completely separate maxima
+        session from this interface.    To interact with this session, you should
+        instead use \code{maxima.interact()}.
+
+        EXAMPLES:
+            sage: maxima.console()             # not tested (since we can't)
+            Maxima 5.13.0 http://maxima.sourceforge.net
+            Using Lisp CLISP 2.41 (2006-10-13)
+            Distributed under the GNU Public License. See the file COPYING.
+            Dedicated to the memory of William Schelter.
+            This is a development version of Maxima. The function bug_report()
+            provides bug reporting information.
+            (%i1)
+
+        sage: maxima.interact()     # this is not tested either
+          --> Switching to Maxima <--
+        maxima: 2+2
+        4
+        maxima:
+          --> Exiting back to SAGE <--
+        """
         maxima_console()
 
     def version(self):
+        """
+        Return the version of Maxima that Sage includes.
+
+        EXAMPLES:
+            sage: maxima.version()
+            '5.13.0'
+        """
         return maxima_version()
 
 ##     def display2d(self, flag=True):
@@ -900,7 +1003,7 @@ class Maxima(Expect):
         for u = umin...umax, v = vmin...vmax using gnuplot with options.
 
         INPUT:
-            x, y, z -- a string representing a function (such as x="u^2+v^2", ...)
+            x, y, z -- a string representing a function (such as \code{x="u\^2+v\^2"}, ...)
             vars is a list or two strings representing variables (such as vars = ["u","v"])
             urange -- [umin, umax]
             vrange -- [vmin, vmax] are lists of numbers with
@@ -1206,20 +1309,42 @@ class MaximaElement(ExpectElement):
                    # everything is supposed to be comparable in Python, so we define
                    # the comparison thus when no comparable in interfaced system.
 
-    def sage_object(self):
-         from sage.calculus.calculus import symbolic_expression_from_maxima_string
-         return symbolic_expression_from_maxima_string(self.name(), maxima=self.parent())
+    def _sage_(self):
+        """
+        Attempt to make a native Sage object out of this maxima object.  This is useful
+        for automatic coercions in addition to other things.
 
-    def numer(self):
-        return self.comma('numer')
+        EXAMPLES:
+            sage: a = maxima('sqrt(2) + 2.5'); a
+            sqrt(2)+2.5
+            sage: b = a._sage_(); b
+            sqrt(2) + 2.50000000000000
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicArithmetic'>
 
-    def real(self):
-        return self.realpart()
+        We illustrate an automatic coercion:
+            sage: c = b + sqrt(3); c
+            sqrt(3) + sqrt(2) + 2.50000000000000
+            sage: type(c)
+            <class 'sage.calculus.calculus.SymbolicArithmetic'>
+            sage: d = sqrt(3) + b; d
+            sqrt(3) + sqrt(2) + 2.50000000000000
+            sage: type(d)
+            <class 'sage.calculus.calculus.SymbolicArithmetic'>
+        """
+        from sage.calculus.calculus import symbolic_expression_from_maxima_string
+        #return symbolic_expression_from_maxima_string(self.name(), maxima=self.parent())
+        return symbolic_expression_from_maxima_string(repr(self))
 
-    def imag(self):
-        return self.imagpart()
+    def __complex__(self):
+        """
+        EXAMPLES:
+            sage: complex(maxima('sqrt(-2)+1'))
+            (1+1.4142135623730951j)
+        """
+        return complex(self._sage_())
 
-    def _complex_mpfr_field_(self, CC):
+    def _complex_mpfr_field_(self, C):
         """
         EXAMPLES:
             sage: CC(maxima('1+%i'))
@@ -1228,14 +1353,90 @@ class MaximaElement(ExpectElement):
              2342.23482943872 + 234.000000000000*I
             sage: ComplexField(10)(maxima('2342.23482943872+234*%i'))
              2300. + 230.*I
+            sage: ComplexField(200)(maxima('1+%i'))
+            1.0000000000000000000000000000000000000000000000000000000000 + 1.0000000000000000000000000000000000000000000000000000000000*I
+            sage: ComplexField(200)(maxima('sqrt(-2)'))
+            1.4142135623730950488016887242096980785696718753769480731767*I
+            sage: N(sqrt(-2), 200)
+            1.4142135623730950488016887242096980785696718753769480731767*I
         """
-        return sage.rings.complex_number.ComplexNumber( CC, self.real(), self.imag() )
+        return C(self._sage_())
+
+    def _mpfr_(self, R):
+        """
+        EXAMPLES:
+            sage: RealField(100)(maxima('sqrt(2)+1'))
+            2.4142135623730950488016887242
+        """
+        return R(self._sage_())
+
+    def _complex_double_(self, C):
+        """
+        EXAMPLES:
+            sage: CDF(maxima('sqrt(2)+1'))
+            2.41421356237
+        """
+        return C(self._sage_())
+
+    def _real_double_(self, R):
+        """
+        EXAMPLES:
+            sage: RDF(maxima('sqrt(2)+1'))
+            2.41421356237
+        """
+        return R(self._sage_())
+
+    def real(self):
+        """
+        Return the real part of this maxima element.
+
+        EXAMPLES:
+            sage: maxima('2 + (2/3)*%i').real()
+            2
+        """
+        return self.realpart()
+
+    def imag(self):
+        """
+        Return the imaginary part of this maxima element.
+
+        EXAMPLES:
+            sage: maxima('2 + (2/3)*%i').imag()
+            2/3
+        """
+        return self.imagpart()
+
+    def numer(self):
+        """
+        Return numerical approximation to self as a Maxima object.
+
+        EXAMPLES:
+            sage: a = maxima('sqrt(2)').numer(); a
+            1.414213562373095
+            sage: type(a)
+            <class 'sage.interfaces.maxima.MaximaElement'>
+        """
+        return self.comma('numer')
 
     def str(self):
+        """
+        Return string representation of this maxima object.
+
+        EXAMPLES:
+            sage: maxima('sqrt(2) + 1/3').str()
+            'sqrt(2)+1/3'
+        """
         P = self._check_valid()
         return P.get(self._name)
 
     def __repr__(self):
+        """
+        Return print representation of this object.
+
+        EXAMPLES:
+            sage: maxima('sqrt(2) + 1/3').__repr__()
+            'sqrt(2)+1/3'
+        """
         P = self._check_valid()
         try:
             return self.__repr
@@ -1490,14 +1691,44 @@ class MaximaElement(ExpectElement):
             yield self[i]
 
     def subst(self, val):
+        """
+        Substitute a value or several values into this Maxima object.
+
+        EXAMPLES:
+            sage: maxima('a^2 + 3*a + b').subst('b=2')
+            a^2+3*a+2
+            sage: maxima('a^2 + 3*a + b').subst('a=17')
+            b+340
+            sage: maxima('a^2 + 3*a + b').subst('a=17, b=2')
+            342
+        """
         return self.comma(val)
 
     def comma(self, args):
+        """
+        Form the expression that would be written 'self, args' in Maxima.
+
+        EXAMPLES:
+            sage: maxima('sqrt(2) + I').comma('numer')
+            I+1.414213562373095
+            sage: maxima('sqrt(2) + I*a').comma('a=5')
+            5*I+sqrt(2)
+        """
         self._check_valid()
         P = self.parent()
         return P('%s, %s'%(self.name(), args))
 
     def _latex_(self):
+        """
+        Return Latex representation of this Maxima object.
+
+        This calls the tex command in Maxima, then does a little `
+        post-processing to fix bugs in the resulting Maxima output.
+
+        EXAMPLES:
+            sage: maxima('sqrt(2) + 1/3 + asin(5)')._latex_()
+            '\\sin^{-1}\\cdot5+\\sqrt{2}+{{1}\\over{3}}'
+        """
         self._check_valid()
         P = self.parent()
         s = P._eval_line('tex(%s);'%self.name(), reformat=False)

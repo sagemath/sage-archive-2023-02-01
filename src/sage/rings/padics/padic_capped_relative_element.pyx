@@ -44,9 +44,11 @@ from sage.rings.padics.precision_error import PrecisionError
 
 from sage.rings.padics.padic_lazy_element import pAdicLazyElement
 
-pari = sage.libs.pari.gen.pari
-pari_gen = sage.libs.pari.gen.gen
-PariError = sage.libs.pari.gen.PariError
+## PariError = sage.libs.pari.gen.PariError
+cdef PariInstance P = sage.libs.pari.all.pari
+
+cdef extern from "convert.h":
+    cdef void t_INT_to_ZZ( mpz_t value, GEN g )
 
 cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     def __init__(pAdicCappedRelativeElement self, parent, x, absprec=infinity, relprec=infinity, empty = False):
@@ -114,6 +116,22 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: R(R(5))
             5 + O(5^11)
 
+        Construct from Pari objects:
+            sage: R = Zp(5)
+            sage: x = pari(123123) ; R(x)
+            3 + 4*5 + 4*5^2 + 4*5^3 + 5^4 + 4*5^5 + 2*5^6 + 5^7 + O(5^20)
+            sage: R(pari(R(5252)))
+            2 + 2*5^3 + 3*5^4 + 5^5 + O(5^20)
+            sage: R = Zp(5,prec=5)
+            sage: R(pari(-1))
+            4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5)
+            sage: pari(R(-1))
+            4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + O(5^5)
+            sage: pari(R(0))
+            0
+            sage: R(pari(R(0) + O(5^5)))
+            O(5^5)
+
         # todo: doctests for converting from other types of p-adic rings
 
         """
@@ -122,6 +140,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         cdef mpz_t modulus
         cdef Integer tmp
         cdef unsigned long k
+        cdef GEN pari_tmp
+        cdef mpz_t tmp2
+
         mpz_init(self.unit)
         pAdicGenericElement.__init__(self, parent)
         if empty:
@@ -158,7 +179,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                     pass
 
         if isinstance(x, Integer):
-            self._set_from_Integer(parent, x, absprec, relprec)
+            self._set_from_Integer(parent, (<Integer>x).value, absprec, relprec)
             return
 
         elif isinstance(x, Rational):
@@ -167,7 +188,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         elif isinstance(x, (int, long)):
             x = Integer(x)
-            self._set_from_Integer(parent, x, absprec, relprec)
+            self._set_from_Integer(parent, (<Integer>x).value, absprec, relprec)
             return
 
         elif isinstance(x, pAdicBaseGenericElement):
@@ -194,21 +215,37 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 absprec = Integer(min(tmp, absprec))
                 x = x.lift()
                 mpz_clear(modulus)
-                self._set_from_Integer(parent, x, absprec, relprec)
+                self._set_from_Integer(parent, (<Integer>x).value, absprec, relprec)
                 return
             else:
                 mpz_clear(modulus)
                 raise TypeError, "cannot coerce from the given integer mod ring (not a power of the same prime)"
 
         elif isinstance(x, pari_gen):
-            if x.type() == "t_PADIC":
-                absprec = Integer(min(x.padicprec(parent.prime()), absprec))
-                x = x.lift()
 
-            if x.type() == "t_INT":
-                self._set_from_Integer(parent, Integer(x), absprec, relprec)
+            pari_tmp = (<pari_gen>x).g
+
+##            if x.type() == "t_PADIC":
+            if typ(pari_tmp) == t_PADIC:
+                self.relprec = precp(pari_tmp)
+                if self.relprec > relprec:
+                    self.relprec = relprec
+                self.ordp = valp(pari_tmp)
+                t_INT_to_ZZ(self.unit, <GEN>(pari_tmp[4]))
+                self._normalized = 1
+                if mpz_sgn(self.unit) == -1 or mpz_cmp(self.unit, self.prime_pow.pow_mpz_t_tmp(self.relprec)[0]) >= 0:
+                    mpz_mod(self.unit, self.unit, self.prime_pow.pow_mpz_t_tmp(self.relprec)[0])
+                if mpz_sgn(self.unit) == 0:
+                    self.set_inexact_zero(self.ordp + self.relprec)
+
+            elif typ(pari_tmp) == t_INT:
+                mpz_init(tmp2)
+                t_INT_to_ZZ(tmp2, pari_tmp)
+                self._set_from_Integer(parent, tmp2, absprec, relprec)
+
             elif x.type() == "t_FRAC":
                 self._set_from_Rational(parent, Rational(x), absprec, relprec)
+
             else:
                 raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
 
@@ -231,11 +268,11 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         return
 
     cdef int _set_from_Integer(pAdicCappedRelativeElement self, parent,
-                               Integer x, absprec, relprec) except -1:
+                               mpz_t x, absprec, relprec) except -1:
 
         cdef long absprec_c
 
-        if not x:
+        if not mpz_sgn(x):
             if (absprec is infinity):
                 self.set_exact_zero()
             else:
@@ -243,7 +280,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             return 0
         else:
             _sig_on
-            self.ordp = mpz_remove(self.unit, x.value,
+            self.ordp = mpz_remove(self.unit, x,
                                    self.prime_pow.prime.value)
             _sig_off
 
@@ -264,7 +301,6 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         return 0
 
-    ### WORKING HERE
     cdef int _set_from_Rational(pAdicCappedRelativeElement self, parent,
                                 Rational x, absprec, relprec) except -1:
 
@@ -296,6 +332,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         self.ordp = num_ordp - den_ordp
 
         if self.ordp < 0 and self.prime_pow.in_field == 0:
+            mpz_clear(num_unit)
+            mpz_clear(den_unit)
             raise ValueError, "p divides the denominator."
 
         if (absprec is infinity):
@@ -338,6 +376,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             mpz_mod(self.unit, self.unit, self.prime_pow.pow_mpz_t_tmp(self.relprec)[0])
             _sig_off
 
+        mpz_clear(num_unit)
+        mpz_clear(den_unit)
         return 0
 
     cdef void set_exact_zero(pAdicCappedRelativeElement self):
@@ -507,6 +547,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             if mpz_fits_slong_p(tmp) == 0:
                 raise ValueError, "Valuation too large"
             ans.ordp = mpz_get_si(tmp)
+            mpz_clear(tmp)
             _sig_on
             mpz_powm(ans.unit, (<pAdicCappedRelativeElement>self).unit, (<Integer>right).value, ans.prime_pow.pow_mpz_t_tmp(ans.relprec)[0])
             _sig_off
@@ -1102,6 +1143,21 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             ans.ordp = self.ordp
             ans._normalized = self._normalized
             return ans
+
+    cdef pari_gen _to_gen(pAdicCappedRelativeElement self):
+        return P.new_gen_from_padic(self.ordp, self.relprec,
+                                    self.prime_pow.prime.value,
+                                    self.prime_pow.pow_mpz_t(self.relprec)[0],
+                                    self.unit)
+
+    def _pari_(self):
+        if mpz_sgn(self.unit) == -1:
+            return P.new_gen_from_int(0)
+        else:
+            return P.new_gen_from_padic(self.ordp, self.relprec,
+                                        self.prime_pow.prime.value,
+                                        self.prime_pow.pow_mpz_t(self.relprec)[0],
+                                        self.unit)
 
     def list(self, list_mode = 'simple'):
         """

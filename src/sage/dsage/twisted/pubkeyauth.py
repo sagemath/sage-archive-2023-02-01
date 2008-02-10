@@ -36,7 +36,7 @@ def get_pubkey_string(filename=None):
         if not type_ == 'ssh-rsa':
             raise TypeError('Invalid key type.')
     except IOError, msg:
-        key = pubkey_file
+        key = filename
 
     return key
 
@@ -55,7 +55,7 @@ class PublicKeyCredentialsChecker(object):
 
     def requestAvatarId(self, credentials):
         if IAnonymous.providedBy(credentials):
-             return 'Anonymous'
+            return 'Anonymous'
 
         # read the authentication table to make sure we have a fresh copy
         self.authorizedKeys = self.getAuthorizedKeys(self.file_name)

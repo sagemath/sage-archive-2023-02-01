@@ -1,7 +1,7 @@
 r"""
 Symbolic Equations and Inequalities.
 
-SAGE can solving symbolic equations and expressing inequalities.
+\sage can solve symbolic equations and express inequalities.
 For example, we derive the quadratic formula as follows:
 
     sage: a,b,c = var('a,b,c')
@@ -22,7 +22,8 @@ For example, we derive the quadratic formula as follows:
     ]
 
 AUTHORS:
-    -- Bobby Moretti: initial version
+    -- Bobby Moretti: initial version (based on a trick that
+       Robert Bradshaw suggested).
     -- William Stein: second version
     -- William Stein (2007-07-16): added arithmetic with symbolic equations
 
@@ -34,7 +35,8 @@ EXAMPLES:
 
     sage: f = x^5 + a
     sage: solve(f==0,x)
-    [x == -e^(2*I*pi/5)*a^(1/5), x == -e^(4*I*pi/5)*a^(1/5), x == -e^(-(4*I*pi/5))*a^(1/5), x == -e^(-(2*I*pi/5))*a^(1/5), x == -a^(1/5)]
+    [x == e^(2*I*pi/5)*(-a)^(1/5), x == e^(4*I*pi/5)*(-a)^(1/5), x == e^(-(4*I*pi/5))*(-a)^(1/5), x == e^(-(2*I*pi/5))*(-a)^(1/5), x == (-a)^(1/5)]
+
 
 
 You can also do arithmetic with inequalities, as illustrated below:
@@ -60,6 +62,14 @@ You can also do arithmetic with inequalities, as illustrated below:
     x + 5 < y + x + 8
     sage: f*(-1)
     -x - 3 > 2 - y
+
+TESTS:
+We test serializing symbolic equations:
+    sage: eqn = x^3 + 2/3 >= x
+    sage: loads(dumps(eqn))
+    x^3 + 2/3 >= x
+    sage: loads(dumps(eqn)) == eqn
+    True
 """
 
 _assumptions = []
@@ -93,35 +103,142 @@ opposite_op = {operator.lt:operator.gt, operator.le:operator.ge,
                operator.gt: operator.lt, operator.ge:operator.le}
 
 def var_cmp(x,y):
+    """
+    Return comparison of the two variables x and y, which is just the
+    comparison of the underlying string representations of the
+    variables.  This is used internally by the Calculus package.
+
+    INPUT:
+        x, y -- symbolic variables
+
+    OUTPUT:
+        Python integer; either -1, 0, or 1.
+
+    EXAMPLES:
+        sage: sage.calculus.equations.var_cmp(x,x)
+        0
+        sage: sage.calculus.equations.var_cmp(x,var('z'))
+        -1
+        sage: sage.calculus.equations.var_cmp(x,var('a'))
+        1
+    """
     return cmp(str(x), str(y))
 
-def paren(x):
-    r = repr(x)
-    if x._is_atomic() or not ('+' in r or '-' in r):
-        return r
-    else:
-        return '(%s)'%r
+def is_SymbolicEquation(x):
+    r"""
+    Return True if x is a symbolic equation.
+
+    EXAMPLES:
+    The following two examples are symbolic equations:
+        sage: is_SymbolicEquation(sin(x) == x)
+        True
+        sage: is_SymbolicEquation(sin(x) < x)
+        True
+
+    This is not, since \code{2==3} evaluates to the boolean \code{False}:
+        sage: is_SymbolicEquation(2 == 3)
+        False
+
+    However here since both 2 and 3 are coerced to be symbolic, we obtain
+    a symbolic equation:
+        sage: is_SymbolicEquation(SR(2) == SR(3))
+        True
+    """
+    return isinstance(x, SymbolicEquation)
 
 class SymbolicEquation(SageObject):
+    """
+    A symbolic equation, which consists of a left hand side, an operator
+    and a right hand side.
+
+    EXAMPLES:
+    """
     def __init__(self, left, right, op):
+        r"""
+        Create a symbolic expression.
+
+        Internally a symbolic expression is simply a left side
+        (\code{self._left}), operator (\code{self._op}), and a right
+        hand side (\code{self._right}), where the left and right hand
+        sides are symbolic expressions and the operator is a Python
+        equation or inequality operator, e.g., \code{operator.le}.
+
+        EXAMPLES:
+
+        One should not call the SymbolicEquation constructor directly,
+        since it does no type checking.  However, we illustrate how to
+        do so below.
+
+        Bad illustrative usage:
+            sage: eqn = sage.calculus.equations.SymbolicEquation(-x, x^2 + 1, operator.gt); eqn
+            -x > x^2 + 1
+
+        Really bad usage!
+            sage: eqn.__init__(x, 2*x+pi, operator.lt)
+            sage: eqn                 # cripes!
+            x < 2*x + pi
+        """
         self._left = left
         self._right = right
         self._op = op
 
     def __call__(self, *args, **argv):
+        """
+        Substitute both sides of this equation
+
+        EXAMPLES:
+           sage: var('theta')
+           theta
+           sage: eqn =   (x^3 + theta < sin(x*theta))
+           sage: eqn(x = 5)
+           theta + 125 < sin(5*theta)
+           sage: eqn(theta=x, x=0)
+           x < 0
+        """
         return self._op(self._left(*args, **argv), self._right(*args,**argv))
 
     def __getitem__(self, i):
+        """
+        Return the ith part of this equation:
+
+        OUTPUT:
+            self[0] -- left hand side
+            self[1] -- operator
+            self[2] -- right hand side
+
+        EXAMPLES:
+            sage: eqn = x^2 + sin(x) < cos(x^2)
+            sage: eqn[0]
+            sin(x) + x^2
+            sage: eqn[1]
+            <built-in function lt>
+            sage: eqn[2]
+            cos(x^2)
+            sage: eqn[-1]
+            cos(x^2)
+        """
         return [self._left, self._op, self._right][i]
 
-    def _scalar(self, scalar, op):
+    def _scalar(self, scalar, op, checksign=True):
         """
-        TESTS:
+        INPUT:
+            scalar -- number
+            op -- operation to perform
+            checksign -- (default: True) boolean; if True and op is
+                         multiply or divides, switch direction of
+                         inequality of x is negative; otherwise
+                         direction will not switch.
+
+        EXAMPLES:
             sage: var('x y')
             (x, y)
             sage: f = x + 3 < y - 2
             sage: f*-1
             -x - 3 > 2 - y
+            sage: f._scalar(-1, operator.mul, checksign=True)
+            -x - 3 > 2 - y
+            sage: f._scalar(-1, operator.mul, checksign=False)
+            -x - 3 < 2 - y
             sage: f * 5
             5*(x + 3) < 5*(y - 2)
             sage: f - 3
@@ -134,7 +251,7 @@ class SymbolicEquation(SageObject):
 
         # There are no subtleties if both sides are equal or
         # we are adding or subtracting from both sides.
-        if self._op == operator.eq or op in [operator.add, operator.sub]:
+        if not checksign or (self._op == operator.eq or op in [operator.add, operator.sub]):
             return SymbolicEquation(op(self._left, x),
                                     op(self._right, x),
                                     self._op)
@@ -154,7 +271,7 @@ class SymbolicEquation(SageObject):
 
     def multiply_both_sides(self, x):
         """
-        Multiply both sides of this inequality by x.
+        Multiply both sides of this inequality by $x$.
 
         EXAMPLES:
             sage: var('x,y'); f = x + 3 < y - 2
@@ -172,7 +289,7 @@ class SymbolicEquation(SageObject):
             ...
             ValueError: unable to multiply or divide both sides of an inequality by a number whose sign can't be determined.
 
-        Multiplying by complex numbers works only if its an inequality:
+        Multiplying by complex numbers works only if it's an equality:
             sage: f = sqrt(2) + x == y^3
             sage: f.multiply_both_sides(I)
             I*(x + sqrt(2)) == I*y^3
@@ -189,11 +306,34 @@ class SymbolicEquation(SageObject):
         """
         return self._scalar(x, operator.mul)
 
-    def divide_both_sides(self, x):
+    def divide_both_sides(self, x, checksign=True):
         """
-        Divide both sides of the inequality by x.
+        Divide both sides of the inequality by $x$.
+
+        INPUT:
+            x -- number
+            checksign -- (default: True) boolean; if True, switch direction of
+                         inequality of x is negative; otherwise direction
+                         will not switch.
 
         EXAMPLES:
+            sage: var('theta')
+            theta
+            sage: eqn =   (x^3 + theta < sin(x*theta))
+            sage: eqn.divide_both_sides(theta, checksign=False)
+            (x^3 + theta)/theta < sin(theta*x)/theta
+            sage: assume(theta > 0)
+            sage: eqn.divide_both_sides(theta)
+            (x^3 + theta)/theta < sin(theta*x)/theta
+            sage: eqn/theta
+            (x^3 + theta)/theta < sin(theta*x)/theta
+            sage: forget(theta > 0)
+            sage: eqn.divide_both_sides(theta)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to multiply or divide both sides of an inequality by a number whose sign can't be determined.
+
+        As a shorthand you can just use the divides notation:
             sage: (x^3 + 1 > x^2 - 1) / (-1)
             -x^3 - 1 < 1 - x^2
 
@@ -216,11 +356,11 @@ class SymbolicEquation(SageObject):
             (x^3 + 1)/(x^2 - 1) < 1
             sage: forget()
         """
-        return self._scalar(x, operator.div)
+        return self._scalar(x, operator.div, checksign=checksign)
 
     def add_to_both_sides(self, x):
         """
-        Add x to both sides of this symbolic equation.
+        Add $x$ to both sides of this symbolic equation.
 
         EXAMPLES:
             sage: var('x y z')
@@ -235,7 +375,7 @@ class SymbolicEquation(SageObject):
 
     def subtract_from_both_sides(self, x):
         """
-        Subtract x from both sides of this symbolic equation.
+        Subtract $x$ from both sides of this symbolic equation.
 
         EXAMPLES:
             sage: eqn = x*sin(x)*sqrt(3) + sqrt(2) > cos(sin(x))
@@ -247,6 +387,39 @@ class SymbolicEquation(SageObject):
         return self._scalar(x, operator.sub)
 
     def _arith(self, right, op):
+        """
+        This function is called internally to implement arithmetic
+        operations on symbolic expressions.
+
+        INPUT:
+            self -- a symbolic equation
+            right -- a symbolic equation
+            op -- an operation, e.g., operator.add
+
+        EXAMPLES:
+        We create two symbolic equations and add them:
+            sage: e1 = x^3 + x < sin(2*x)
+            sage: e2 = x^2 - x < cos(x)
+            sage: e1._arith(e2, operator.add)
+            x^3 + x^2 < sin(2*x) + cos(x)
+
+        We try to multiply them, which doesn't really make sense:
+            sage: e1._arith(e2, operator.mul)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot multiply or divide inequalities.
+
+        We can multiply equalities though:
+            sage: e1 = x^3 + x == sin(2*x)
+            sage: e2 = x^2 - x == cos(x)
+            sage: f = e1._arith(e2, operator.mul); f
+            (x^2 - x)*(x^3 + x) == cos(x)*sin(2*x)
+
+        By the way, we can expand the above product by calling the
+        \code{expand} method:
+            sage: f.expand()
+            x^5 - x^4 + x^3 - x^2 == cos(x)*sin(2*x)
+        """
         if not isinstance(right, SymbolicEquation):
             return self._scalar(right, op)
 
@@ -359,12 +532,48 @@ class SymbolicEquation(SageObject):
 
     # The maxima one is special:
     def _maxima_(self, session=None):
+        """
+        Return version of this symbolic expression but in the given
+        Maxima session.
+
+        EXAMPLES:
+            sage: e1 = x^3 + x == sin(2*x)
+            sage: z = e1._maxima_()
+            sage: z.parent() is sage.calculus.calculus.maxima
+            True
+            sage: z = e1._maxima_(maxima)
+            sage: z.parent() is maxima
+            True
+            sage: z = maxima(e1)
+            sage: z.parent() is maxima
+            True
+        """
         if session is None:
             return SageObject._maxima_(self, sage.calculus.calculus.maxima)
         else:
             return SageObject._maxima_(self, session)
 
     def substitute(self, *args, **kwds):
+        """
+        Do the given symbolic substitution to both sides of the equation.  The
+        notation is the same for substitute on a symbolic expression.
+
+        EXAMPLES:
+            sage: var('a')
+            a
+            sage: e = (x^3 + a == sin(x/a)); e
+            x^3 + a == sin(x/a)
+            sage: e.substitute(x=5*x)
+            125*x^3 + a == sin(5*x/a)
+            sage: e.substitute(a=1)
+            x^3 + 1 == sin(x)
+            sage: e.substitute(a=x)
+            x^3 + x == sin(1)
+            sage: e.substitute(a=x, x=1)
+            x + 1 == sin(1/x)
+            sage: e.substitute({a:x, x:1})
+            x + 1 == sin(1/x)
+        """
         return self.__call__(*args, **kwds)
 
     subs = substitute
@@ -390,41 +599,115 @@ class SymbolicEquation(SageObject):
         return 0
 
     def _repr_(self):
+        r"""
+        Return non-ASCII art string representation of this
+        symbolic equation.  This is called implicitly when
+        displaying an equation (without using print).
+
+        EXAMPLES:
+        We create an inequality $f$ and called the \code{_repr_}
+        method on it, and note that this produces the same
+        string as just displaying $f$:
+            sage: f = x^3 + 1/3*x - sqrt(2) <= sin(x)
+            sage: f._repr_()
+            'x^3 + x/3 - sqrt(2) <= sin(x)'
+            sage: f
+            x^3 + x/3 - sqrt(2) <= sin(x)
+
+        When using print the \code{__str__} method is called instead,
+        which results in ASCII art:
+            sage: print f
+                               3   x
+                              x  + - - sqrt(2) <= sin(x)
+                                   3
+
+        """
         return "%r%s%r" %(self._left, symbols[self._op], self._right)
 
     def variables(self):
         """
+        Return the variables appearing in this symbolic equation.
+
+        OUTPUT:
+            tuple -- tuple of the variables in this equation (the
+                     result of calling this is cached).
+
         EXAMPLES:
             sage: var('x,y,z,w')
             (x, y, z, w)
             sage: f =  (x+y+w) == (x^2 - y^2 - z^3);   f
             y + x + w == -z^3 - y^2 + x^2
             sage: f.variables()
-            [w, x, y, z]
+            (w, x, y, z)
         """
         try:
             return self.__variables
         except AttributeError:
             v = list(set(list(self._left.variables()) + list(self._right.variables())))
             v.sort(var_cmp)
+            v = tuple(v)
             self.__variables = v
             return v
 
     def operator(self):
+        """
+        Return the operator in this equation.
+
+        EXAMPLES:
+            sage: eqn = x^3 + 2/3 >= x - pi
+            sage: eqn.operator()
+            <built-in function ge>
+            sage: (x^3 + 2/3 < x - pi).operator()
+            <built-in function lt>
+            sage: (x^3 + 2/3 == x - pi).operator()
+            <built-in function eq>
+        """
         return self._op
 
     def left(self):
+        r"""
+        Return the left hand side of this equation.
+
+        EXAMPLES:
+            sage: eqn = x^3 + 2/3 >= x - pi
+            sage: eqn.lhs()
+            x^3 + 2/3
+            sage: eqn.left()
+            x^3 + 2/3
+            sage: eqn.left_hand_side()
+            x^3 + 2/3
+
+        SYNONYMS: \code{lhs}, \code{left_hand_side}
+        """
         return self._left
     lhs = left
     left_hand_side = left
 
     def right(self):
+        r"""
+        Return the right hand side of this equation.
+
+        EXAMPLES:
+            sage: (x + sqrt(2) >= sqrt(3) + 5/2).right()
+            sqrt(3) + 5/2
+            sage: (x + sqrt(2) >= sqrt(3) + 5/2).rhs()
+            sqrt(3) + 5/2
+            sage: (x + sqrt(2) >= sqrt(3) + 5/2).right_hand_side()
+            sqrt(3) + 5/2
+
+        SYNONYMS: \code{rhs}, \code{right_hand_side}
+        """
         return self._right
     rhs = right
     right_hand_side = right
 
     def __str__(self):
-        """
+        r"""
+        Return the string representation of this equation, in 2-d ASCII art.
+
+        OUTPUT:
+            string
+
         EXAMPLES:
             sage: f =  (x^2 - x == 0)
             sage: f
@@ -432,23 +715,42 @@ class SymbolicEquation(SageObject):
             sage: print f
                                                2
                                               x  - x == 0
+
+        Here we call \code{__str__} explicitly:
+            sage: (x > 2/3).__str__()
+            '                                         2\r\n                                     x > -\r\n                                         3'
         """
         s = self._maxima_().display2d(onscreen=False)
         s = s.replace('%pi','pi').replace('%i',' I').replace('%e', ' e').replace(' = ',' == ')
         return s
 
     def _latex_(self):
+        r"""
+        Return latex representation of this symbolic equation.
+
+        This is obtained by calling the \code{_latex_} method
+        on both the left and right hand sides, and typesetting
+        the operator symbol correctly.
+
+        OUTPUT:
+            string -- a string
+
+        EXAMPLES:
+        The output is a strig with backslashes, so prints funny:
+            sage: (x^(3/5) >= pi)._latex_()
+            '{x}^{\\frac{3}{5}}   \\geq  \\pi'
+
+        Call the latex method to get an object that prints more nicely:
+            sage: latex(x^(3/5) >= pi)
+            {x}^{\frac{3}{5}}   \geq  \pi
+        """
         return "%s %s %s" %(self._left._latex_(), latex_symbols[self._op],
                             self._right._latex_())
 
-    # this is an excellent idea by Robert Bradshaw
-    #def __nonzero__(self):
-    #    result = self._left.__cmp__(self._right)
-    #    return result in comparisons[self._op]
     def __nonzero__(self):
         """
-        Return True if this equality is definitely true.  Return False
-        if it is false or the algorithm for testing equality is
+        Return True if this (in)equality is definitely true.  Return False
+        if it is false or the algorithm for testing (in)equality is
         inconclusive.
 
         EXAMPLES:
@@ -459,6 +761,18 @@ class SymbolicEquation(SageObject):
             sage: f = sin(x)^2 + cos(x)^2 - 1
             sage: bool(f == 0)
             True
+            sage: bool( x == x )
+            True
+            sage: bool( x != x )
+            False
+            sage: bool( x > x )
+            False
+            sage: bool( x^2 > x )
+            False
+            sage: bool( x + 2 > x )
+            True
+            sage: bool( x - 2 > x )
+            False
         """
         m = self._maxima_()
 
@@ -471,11 +785,15 @@ class SymbolicEquation(SageObject):
         try:
             s = m.parent()._eval_line('is (%s)'%m.name())
         except TypeError, msg:
-            #raise ValueError, "unable to evaluate the predicate '%s'"%repr(self)
-            return cmp(self._left._maxima_() , self._right._maxima_()) == 0
+            raise ValueError, "unable to evaluate the predicate '%s'"%repr(self)
 
         if s == 'true':
             return True
+        elif s == 'unknown':
+            return False
+
+        if self.operator() != operator.eq:
+            return False
 
         difference = self._left - self._right
         if repr(difference) == '0':
@@ -493,6 +811,14 @@ class SymbolicEquation(SageObject):
         return False
 
     def _maxima_init_(self, maxima=maxima, assume=False):
+        """
+        Return string representation for this symbolic equation
+        in a form suitable for evaluation in Maxima.
+
+        EXAMPLES:
+            sage: (x^(3/5) >= pi^2 + e^i)._maxima_init_()
+            '((x) ^ (3/5)) >= (((%pi) ^ (2)) + ((%e) ^ (%i)))'
+        """
         l = self._left._maxima_init_()
         r = self._right._maxima_init_()
         if assume and self._op == operator.eq:
@@ -500,14 +826,84 @@ class SymbolicEquation(SageObject):
         return '(%s)%s(%s)' % (l, maxima_symbols[self._op], r)
 
     def assume(self):
+        r"""
+        Assume that this equation holds.  This is relevant for
+        symbolic integration, among other things.
+
+        EXAMPLES:
+        We call the assume method to assume that $x>2$:
+            sage: (x > 2).assume()
+
+        Bool returns True below if the inequality is \emph{definitely}
+        known to be True.
+            sage: bool(x > 0)
+            True
+            sage: bool(x < 0)
+            False
+
+        This may or may not be True, so bool returns False:
+            sage: bool(x > 3)
+            False
+        """
         if not self in _assumptions:
             m = self._maxima_init_(assume=True)
             maxima.assume(m)
             _assumptions.append(self)
 
+    def find_root(self, *args, **kwds):
+        r"""
+        If this is a symbolic equality with an equals sign \code{==}
+        find numerically a single root of this equation in a given
+        interval.  Otherwise raise a \code{ValueError}.  See the
+        documentation for the global \code{find_root} method for more
+        about the options to this function.
+
+        Note that this symbolic expression must involve at most one
+        variable.
+
+        EXAMPLES:
+            sage: (x == sin(x)).find_root(-2,2)
+            0.0
+            sage: (x^5 + 3*x + 2 == 0).find_root(-2,2)
+            -0.63283452024215225
+            sage: (cos(x) == sin(x)).find_root(10,20)
+            19.634954084936208
+
+        We illustrate some valid error conditions:
+            sage: (cos(x) != sin(x)).find_root(10,20)
+            Traceback (most recent call last):
+            ...
+            ValueError: Symbolic equation must be an equality.
+            sage: (SR(3)==SR(2)).find_root(-1,1)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: no zero in the interval, since constant expression is not 0.
+
+        There must be at most one variable:
+            sage: x, y = var('x,y')
+            sage: (x == y).find_root(-2,2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: root finding currently only implemented in 1 dimension.
+        """
+        if self._op != operator.eq:
+            raise ValueError, "Symbolic equation must be an equality."
+        return (self._left - self._right).find_root(*args, **kwds)
+
     def forget(self):
         """
         Forget the given constraint.
+
+        EXAMPLES:
+            sage: var('x,y')
+            (x, y)
+            sage: forget()
+            sage: assume(x>0, y < 2)
+            sage: assumptions()
+            [x > 0, y < 2]
+            sage: forget(y < 2)
+            sage: assumptions()
+            [x > 0]
         """
         m = self._maxima_()
         m.parent().forget(m)
@@ -523,15 +919,19 @@ class SymbolicEquation(SageObject):
         WARNING: In many cases, only one solution is computed.
 
         INPUT:
-            x -- a SymbolicVariable object (if not given, the first in the expression is used)
-            multiplicities -- (default: False) if True, also returns the multiplicities
-                          of each solution, in order.
-            solution_dict -- (default: False) if True, return the solution as a dictionary rather than an equation.
-            explicit_solution -- (default: False); if True, require that all solutions
-                returned be explicit (rather than implicit)
-        OUTPUT:
-            A list of SymbolicEquations with the variable to solve for on the
-            left hand side.
+            x -- a SymbolicVariable object (if not given, the first in
+                 the expression is used)
+
+            multiplicities -- (default: False) if True, also returns
+                          the multiplicities of each solution, in order.
+
+            solution_dict -- (default: False) if True, return the
+                        solution as a dictionary rather than an equation.
+
+            explicit_solution -- (default: False); if True, require
+                that all solutions returned be explicit (rather than
+                implicit) OUTPUT: A list of SymbolicEquations with the
+                variable to solve for on the left hand side.
 
         EXAMPLES:
             sage: S = solve(x^3 - 1 == 0, x)
@@ -583,6 +983,35 @@ class SymbolicEquation(SageObject):
         else:
             return X
 
+
+    def expand(self, side=None):
+        r"""
+        Expands one or both sides of the equation.
+
+        If side is not specified, then both sides of the equation
+        are expanded by calling \code{expand()} on the corresponding
+        \class{SymbolicExpression}.
+
+        If side is `left' (or `right'), then only the left (or right)
+        side of the equation is expanded.
+
+        EXAMPLES:
+            sage: a = (16*x-13)/6 == (3*x+5)/2 - (4-x)/3
+            sage: a.expand()
+            8*x/3 - 13/6 == 11*x/6 + 7/6
+            sage: a.expand('left')
+            8*x/3 - 13/6 == (3*x + 5)/2 - (4 - x)/3
+            sage: a.expand('right')
+            (16*x - 13)/6 == 11*x/6 + 7/6
+        """
+        if side is None:
+            return SymbolicEquation(self._left.expand(), self._right.expand(), self._op)
+        elif side == 'left':
+            return SymbolicEquation(self._left.expand(), self._right, self._op)
+        elif side == 'right':
+            return SymbolicEquation(self._left, self._right.expand(), self._op)
+        else:
+            raise ValueError, "side must be 'left', 'right', or None"
 
 
 def assume(*args):
@@ -644,7 +1073,7 @@ def forget(*args):
         [y > 0]
     """
     if len(args) == 0:
-        forget_all()
+        _forget_all()
         return
     for x in args:
         if isinstance(x, (tuple, list)):
@@ -680,7 +1109,26 @@ def assumptions():
     """
     return list(_assumptions)
 
-def forget_all():
+def _forget_all():
+    """
+    Forget all symbolic assumptions.
+
+    This is called by \code{forget()}.
+
+    EXAMPLES:
+        sage: var('x,y')
+        (x, y)
+        sage: assume(x > 0, y < 0)
+        sage: bool(x*y < 0)      # means definitely true
+        True
+        sage: bool(x*y > 0)      # might not be true
+        False
+        sage: forget()    # implicitly calls _forget_all
+        sage: bool(x*y < 0)      # might not be true
+        False
+        sage: bool(x*y > 0)      # might not be true
+        False
+    """
     global _assumptions
     if len(_assumptions) == 0:
         return
@@ -692,13 +1140,14 @@ def forget_all():
     _assumptions = []
 
 def solve(f, *args, **kwds):
-    """
+    r"""
     Algebraically solve an equation of system of equations for given variables.
 
     INPUT:
         f -- equation or system of equations (given by a list or tuple)
         *args -- variables to solve for.
 	solution_dict = True -- return a list of dictionaries containing the solutions.
+
     EXAMPLES:
         sage: x, y = var('x, y')
         sage: solve([x+y==6, x-y==4], x, y)
@@ -725,9 +1174,27 @@ def solve(f, *args, **kwds):
         0.000 , -1.00
         0.000 , 1.00
 
+    If \code{True} appears in the list of equations it is ignored, and if
+    \code{False} appears in the list then no solutions are returned.  E.g.,
+    note that the first \code{3==3} evaluates to \code{True}, not to a symbolic
+    equation.
+
+        sage: solve([3==3, 1.00000000000000*x^3 == 0], x)
+        [x == 0]
+        sage: solve([1.00000000000000*x^3 == 0], x)
+        [x == 0]
+
+    Here, the first equation evaluates to \code{False}, so there are no solutions:
+        sage: solve([1==3, 1.00000000000000*x^3 == 0], x)
+        []
 
     """
     if isinstance(f, (list, tuple)):
+        f = [s for s in f if s is not True]
+        for s in f:
+            if s is False:
+                return []
+
         m = maxima(list(f))
         try:
             s = m.solve(args)
@@ -747,7 +1214,96 @@ import sage.categories.all
 objs = sage.categories.all.Objects()
 
 def string_to_list_of_solutions(s):
+    r"""
+    Used internally by the symbolic solve command to convert the
+    output of Maxima's solve command to a list of solutions in
+    Sage's symbolic package.
+
+    EXAMPLES:
+    We derive the (monic) quadratic formula:
+        sage: var('x,a,b')
+        (x, a, b)
+        sage: solve(x^2 + a*x + b == 0, x)
+        [x == (-sqrt(a^2 - 4*b) - a)/2, x == (sqrt(a^2 - 4*b) - a)/2]
+
+    Behind the scenes when the above is evaluated the function
+    \code{string_to_list_of_solutions} is called with input the
+    string $s$ below:
+        sage: s = '[x=-(sqrt(a^2-4*b)+a)/2,x=(sqrt(a^2-4*b)-a)/2]'
+        sage: sage.calculus.equations.string_to_list_of_solutions(s)
+        [x == (-sqrt(a^2 - 4*b) - a)/2, x == (sqrt(a^2 - 4*b) - a)/2]
+    """
     from sage.calculus.calculus import symbolic_expression_from_maxima_string
     v = symbolic_expression_from_maxima_string(s, equals_sub=True)
     return Sequence(v, universe=objs, cr_str=True)
+
+
+############################################################
+# Solving modulo N
+
+def solve_mod(eqns, modulus):
+    r"""
+    Return all solutions to an equation or list of equations modulo
+    the given integer modulus.  Each equation must involve only
+    polynomials in 1 or many variables.
+
+    The solutions are returned as $n$-tuples, where $n$ is the
+    number of variables appearing anywhere in the given equations.
+    The variables are in alphabetical order.
+
+
+    INPUT:
+        eqns -- equation or list of equations
+        modulus -- an integer
+
+    EXAMPLES:
+        sage: var('x,y')
+        (x, y)
+        sage: solve_mod([x^2 + 2 == x, x^2 + y == y^2], 14)
+        [(2, 4), (6, 4), (9, 4), (13, 4)]
+        sage: solve_mod([x^2 == 1, 4*x  == 11], 15)
+        [(14,)]
+
+    Fermat's equation modulo 3 with exponent 5:
+        sage: var('x,y,z')
+        (x, y, z)
+        sage: solve_mod([x^5 + y^5 == z^5], 3)
+        [(0, 0, 0), (0, 1, 1), (0, 2, 2), (1, 0, 1), (1, 1, 2), (1, 2, 0), (2, 0, 2), (2, 1, 0), (2, 2, 1)]
+
+    WARNING:
+        Currently this naively enumerates all possible solutions.
+        The interface is good, but the algorithm is horrible if the
+        modulus is at all large!   \sage \strong{does} have the ability to do
+        something much faster in certain cases at least by using
+        the Chinese Remainder Theorem, Gr\"obner basis, linear algebra
+        techniques, etc.  But for a lot of toy problems this function
+        as is might be useful.  At least it establishes an interface.
+    """
+    from sage.rings.all import Integer, Integers, MPolynomialRing
+    from calculus import is_SymbolicExpression
+    from sage.misc.all import cartesian_product_iterator
+
+    if not isinstance(eqns, (list, tuple)):
+        eqns = [eqns]
+    modulus = Integer(modulus)
+    if modulus < 1:
+         raise ValueError, "the modulus must be a positive integer"
+    vars = list(set(sum([list(e.variables()) for e in eqns], [])))
+    vars.sort()
+    n = len(vars)
+    R = Integers(modulus)
+    S = MPolynomialRing(R, len(vars), vars)
+    eqns_mod = [S(eq) if is_SymbolicExpression(eq) else \
+                  S(eq.lhs() - eq.rhs()) for eq in eqns]
+    ans = []
+    for t in cartesian_product_iterator([R]*len(vars)):
+        is_soln = True
+        for e in eqns_mod:
+            if e(t) != 0:
+                is_soln = False
+                break
+        if is_soln:
+            ans.append(t)
+
+    return ans
 

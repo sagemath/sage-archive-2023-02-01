@@ -18,7 +18,8 @@ Skew Tableaux
 
 from sage.rings.arith import factorial
 from sage.rings.integer import Integer
-from sage.combinat.partition import Partition
+#from sage.combinat.partition import Partition
+import partition
 import sage.combinat.tableau
 from sage.combinat.skew_partition import SkewPartition
 import partition
@@ -97,7 +98,7 @@ class SkewTableau_class(CombinatorialObject):
             [3, 2, 1]
         """
 
-        return Partition([len(row) for row in self])
+        return partition.Partition([len(row) for row in self])
 
 
     def inner_shape(self):
@@ -109,7 +110,7 @@ class SkewTableau_class(CombinatorialObject):
             [1, 1]
         """
 
-        return Partition(filter(lambda x: x != 0, [len(filter(lambda x: x is None, row)) for row in self]))
+        return partition.Partition(filter(lambda x: x != 0, [len(filter(lambda x: x is None, row)) for row in self]))
 
     def shape(self):
         r"""
@@ -245,6 +246,18 @@ class SkewTableau_class(CombinatorialObject):
             word += filter(lambda x: x is not None, row)
 
         return word
+
+    def to_word_by_reading_order(self):
+        """
+
+        EXAMPLES:
+            sage: SkewTableau([[None,1],[2,3]]).to_word_by_reading_order()
+            [2, 3, 1]
+        """
+        word = []
+        for row in self:
+            word = row + word
+        return [x for x in word if x is not None]
 
     def to_word(self):
         """
@@ -481,7 +494,7 @@ class SkewTableauWithContent(SkewTableau_class):
         if self.conts[self.maxrows] != 0:
             raise ValueError, " self.conts[self.maxrows] != 0 "
 
-        self.outer_conj = Partition(self.outer).conjugate()
+        self.outer_conj = partition.Partition(self.outer).conjugate()
 
     def _setmin(self, y, x, initial=None):
         #Compute t which is the "minimum" skew tableau with

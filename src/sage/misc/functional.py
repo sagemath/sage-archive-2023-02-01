@@ -28,6 +28,7 @@ import math
 import sage.misc.latex
 import sage.server.support
 import sage.interfaces.expect
+import sage.interfaces.mathematica
 
 
 from sage.rings.complex_double import CDF
@@ -713,7 +714,7 @@ def numerical_approx(x, prec=None, digits=None):
         sage: N(pi^2 + e)
         12.5878862295484
         sage: n(pi^2 + e, digits=50)
-        12.5878862295484038541947784712288136330709465009407
+        12.587886229548403854194778471228813633070946500941
 
     You can also usually use method notation:
         sage: (pi^2 + e).n()
@@ -723,7 +724,7 @@ def numerical_approx(x, prec=None, digits=None):
         if digits is None:
             prec = 53
         else:
-            prec = int(digits * 3.4) + 2
+            prec = int((digits+1) * 3.32192) + 1
     try:
         return x.numerical_approx(prec)
     except AttributeError:
@@ -811,9 +812,32 @@ def real(x):
         sage: z = 1+2*I
         sage: real(z)
         1
+        sage: real(5/3)
+        5/3
+        sage: a = 2.5
+        sage: real(a)
+        2.50000000000000
+        sage: type(real(a))
+        <type 'sage.rings.real_mpfr.RealNumber'>
     """
-    try: return x.real()
-    except AttributeError: return CDF(x).real()
+
+    #Try to all the .real() method
+    try:
+        return x.real()
+    except AttributeError:
+        pass
+
+    #Try to coerce x into RDF.  If that
+    #succeeds, then we can just return x
+    try:
+        rdf_x = RDF(x)
+        return x
+    except TypeError:
+        pass
+
+    #Finall try to coerce x into CDF and call
+    #the .real() method.
+    return CDF(x).real()
 
 def regulator(x):
     """
@@ -874,23 +898,45 @@ def show(x, *args, **kwds):
 
     OPTIONAL INPUT:
         filename -- (default: None) string
+
+    SOME OF THESE MAY APPLY:
         dpi -- dots per inch
         figsize -- [width, height] (same for square aspect)
         axes -- (default: True)
         fontsize -- positive integer
         frame -- (default: False) draw a MATLAB-like frame around the image
+
+    EXAMPLES:
+        sage: show(graphs(3))
+        sage: show(list(graphs(3)))
+
     """
     if not isinstance(x, (sage.interfaces.expect.Expect, sage.interfaces.expect.ExpectElement)):
         try:
             return x.show(*args, **kwds)
         except AttributeError:
             pass
+    if isinstance(x, sage.interfaces.mathematica.MathematicaElement):
+        return x.show(*args, **kwds)
+
+    import types
+    if isinstance(x, types.GeneratorType):
+        x = list(x)
+    if isinstance(x, list):
+        if len(x) > 0:
+            from sage.graphs.graph import GenericGraph
+            if isinstance(x[0], GenericGraph):
+                import sage.graphs.graph_list as graphs_list
+                graphs_list.show_graphs(x)
+                return
     _do_show(x)
 
 def _do_show(x):
     if sage.server.support.EMBEDDED_MODE:
         print '<html><div class="math">%s</div></html>'%sage.misc.latex.latex(x)
         return sage.misc.latex.LatexExpr('') # so no visible output
+    if sage.plot.plot.DOCTEST_MODE:
+        return sage.misc.latex.latex(x)
     from latex import view
     view(x)
     #raise AttributeError, "object %s does not support show."%(x, )

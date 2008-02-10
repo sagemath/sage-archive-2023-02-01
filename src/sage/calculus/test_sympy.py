@@ -1,7 +1,9 @@
 r"""
-In the following session, we do all of the examples in the Sympy
-tutorial (http://code.google.com/p/sympy/wiki/Tutorial), but using
-SAGE instead of Sympy.
+A Sample Session using Sympy
+
+In this first part, we do all of the examples in the Sympy
+tutorial (\url{http://code.google.com/p/sympy/wiki/Tutorial}), but using
+\sage instead of Sympy.
 
 sage: a = Rational((1,2))
 sage: a
@@ -21,7 +23,7 @@ sage: float(pi)
 sage: RealField(200)(pi)
 3.1415926535897932384626433832795028841971693993751058209749
 sage: float(pi + exp(1))
-5.8598744820488378
+5.85987448204883...
 sage: oo != 2
 True
 
@@ -110,7 +112,7 @@ sage: pprint(f)
     1 + ---- + ----- + ------ + ------- + O(x**10)
          2       8      240      13440
 
-And the functionality to convert from sympy format to Sage format:
+And the functionality to convert from sympy format to \sage format:
 sage: e._sage_()
 1/cos(x)^3
 sage: print e._sage_()
@@ -123,4 +125,34 @@ sage: e._sage_().taylor(x._sage_(), 0, 8)
 sage: f._sage_()
 8651*x^8/13440 + 241*x^6/240 + 11*x^4/8 + 3*x^2/2 + 1
 
+
+
+Mixing SymPy with \sage:
+sage: import sympy
+sage: sympy.sympify(var("y"))+sympy.Symbol("x")
+x + y
+sage: o = var("omega")
+sage: s = sympy.Symbol("x")
+sage: t1 = s + o
+sage: t2 = o + s
+sage: print type(t1)
+<class 'sympy.core.add.Add'>
+sage: print type(t2)
+<class 'sage.calculus.calculus.SymbolicArithmetic'>
+sage: print t1, t2
+omega + x                                    x + omega
+sage: e=sympy.sin(var("y"))+sage.all.cos(Symbol("x"))
+sage: print type(e)
+<class 'sympy.core.add.Add'>
+sage: print e
+cos(x) + sin(y)
+sage: e=e._sage_()
+sage: print type(e)
+<class 'sage.calculus.calculus.SymbolicArithmetic'>
+sage: print e
+                                sin(y) + cos(x)
+sage: e = sage.all.cos(var("y")**3)**4+var("x")**2
+sage: e = e._sympy_()
+sage: print e
+    x**2 + cos(y**3)**4
 """

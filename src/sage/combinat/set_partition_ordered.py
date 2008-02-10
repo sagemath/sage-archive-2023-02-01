@@ -1,5 +1,55 @@
 r"""
 Ordered Set Partitions
+
+An ordered set partition  p of a set s is a partition of s, into subsets called parts and represented as a list of sets. By extension, an ordered set partition of a nonnegative integer n is the set partition of the integers from 1 to n. The number of ordered set partitions of n is called the n-th ordered Bell number.
+
+
+There is a natural integer composition associated with an ordered set partition, that is the sequence of sizes of all its parts in order.
+
+EXAMPLES:
+  There are 13 ordered set partitions of {1,2,3}.
+
+    sage: OrderedSetPartitions(3).count()
+    13
+
+  Here is the list of them:
+
+    sage: OrderedSetPartitions(3).list() #random due to the sets
+    [[{1}, {2}, {3}],
+     [{1}, {3}, {2}],
+     [{2}, {1}, {3}],
+     [{3}, {1}, {2}],
+     [{2}, {3}, {1}],
+     [{3}, {2}, {1}],
+     [{1}, {2, 3}],
+     [{2}, {1, 3}],
+     [{3}, {1, 2}],
+     [{1, 2}, {3}],
+     [{1, 3}, {2}],
+     [{2, 3}, {1}],
+     [{1, 2, 3}]]
+
+  There are 12 ordered set partitions of {1,2,3,4} whose underlying
+  composition is [1,2,1].
+
+    sage: OrderedSetPartitions(4,[1,2,1]).list() #random due to the sets
+    [[{1}, {2, 3}, {4}],
+     [{1}, {2, 4}, {3}],
+     [{1}, {3, 4}, {2}],
+     [{2}, {1, 3}, {4}],
+     [{2}, {1, 4}, {3}],
+     [{3}, {1, 2}, {4}],
+     [{4}, {1, 2}, {3}],
+     [{3}, {1, 4}, {2}],
+     [{4}, {1, 3}, {2}],
+     [{2}, {3, 4}, {1}],
+     [{3}, {2, 4}, {1}],
+     [{4}, {2, 3}, {1}]]
+
+AUTHORS:
+    --Mike Hansen
+    --MuPAD-Combinat developers (for algorithms and design inspiration)
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,

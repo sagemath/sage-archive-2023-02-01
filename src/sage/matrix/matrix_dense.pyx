@@ -120,7 +120,28 @@ cdef class Matrix_dense(matrix.Matrix):
             raise RuntimeError, "unknown matrix version (=%s)"%version
 
     cdef int _cmp_c_impl(self, Element right) except -2:
-        return cmp(self._list(), right._list())
+        """
+        EXAMPLES:
+            sage: P.<x> = QQ[]
+            sage: m = matrix([[x,x+1],[1,x]])
+            sage: n = matrix([[x+1,x],[1,x]])
+            sage: o = matrix([[x,x],[1,x]])
+            sage: m.__cmp__(n)
+            -1
+            sage: m.__cmp__(m)
+            0
+            sage: n.__cmp__(m)
+            1
+            sage: m.__cmp__(o)
+            1
+        """
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                res = cmp( self[i,j], right[i,j] )
+                if res != 0:
+                    return res
+        return 0
 
     def transpose(self):
         """

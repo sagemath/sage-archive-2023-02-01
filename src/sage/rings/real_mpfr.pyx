@@ -9,6 +9,8 @@ AUTHORS:
    -- William Stein (2006-10): default printing truncates to avoid base-2
               rounding confusing (fix suggested by Bill Hart)
    -- didier deshommes <dfdeshom@gmail.com>: special constructor for QD numbers
+   -- Paul Zimmermann (2008-01): added new functions from mpfr-2.3.0, replaced
+      some, e.g., sech = 1/cosh, by their original mpfr version.
 
 EXAMPLES:
 
@@ -17,8 +19,8 @@ EXAMPLES:
 A difficult conversion:
 
     sage: RR(sys.maxint)
-    9223372036854780000.     # 64-bit
-    2147483647.00000         # 32-bit
+    9.22337203685478e18      # 64-bit
+    2.14748364700000e9       # 32-bit
 
 TESTS:
     sage: -1e30
@@ -236,6 +238,12 @@ cdef class RealField(sage.rings.ring.Field):
             1.5625
             sage: a.str(2)
             '1.1001000000000000000'
+            sage: w = RQDF('2.345001').sqrt(); w
+            1.531339609622894852128128425884749978483262262653204338472911277
+            sage: RealField(212)(w)
+            1.53133960962289485212812842588474997848326226265320433847291128
+            sage: RR(w)
+            1.53133960962289
         """
         if hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
@@ -255,19 +263,20 @@ cdef class RealField(sage.rings.ring.Field):
              * real mathematical constants
 	     * the field of algebraic reals
         """
-        import sage.rings.algebraic_real
-
         if isinstance(x, RealNumber):
             P = x.parent()
             if (<RealField> P).__prec >= self.__prec:
                 return self(x)
             else:
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        elif isinstance(x, (Integer, Rational, sage.rings.algebraic_real.AlgebraicRealNumber)):
+        elif isinstance(x, (Integer, Rational)):
             return self(x)
         elif isinstance(x,QuadDoubleElement) and self.__prec <=212:
             return self(x)
         elif is_RealDoubleElement(x) and self.__prec <= 53:
+            return self(x)
+        import sage.rings.qqbar
+        if isinstance(x, sage.rings.qqbar.AlgebraicReal):
             return self(x)
         raise TypeError
 
@@ -346,6 +355,13 @@ cdef class RealField(sage.rings.ring.Field):
         Return complex field of the same precision.
         """
         return sage.rings.complex_field.ComplexField(self.prec())
+
+    def algebraic_closure(self):
+        """
+        Returns the algebraic closure of self, ie the
+        complex field with the same precision.
+        """
+        return self.complex_field()
 
     def ngens(self):
         return 1
@@ -621,8 +637,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         self._set(x, base)
 
     cdef _set(self, x, int base):
-        import sage.rings.algebraic_real
-
         # This should not be called except when the number is being created.
         # Real Numbers are supposed to be immutable.
         cdef RealNumber _x, n, d
@@ -652,11 +666,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif PY_TYPE_CHECK(x, QuadDoubleElement):
             qd = x
             self._set_from_qd(qd)
-        elif isinstance(x, sage.rings.algebraic_real.AlgebraicRealNumber):
-            d = x.real(parent)
-            mpfr_set(self.value, d.value, parent.rnd)
-        elif hasattr(x, '_mpfr_'):
-            return x._mpfr_(self)
         else:
             s = str(x).replace(' ','')
             if mpfr_set_str(self.value, s, base, parent.rnd):
@@ -682,6 +691,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: RR = RealField (200)
             sage: RR(RQDF('324324.0098736633445565765349760000276353865'))
             324324.00987366334455657653497600002763538650000000000000000
+
+            sage: w = RQDF('2.345001').sqrt(); w
+            1.531339609622894852128128425884749978483262262653204338472911277
+            sage: RealField(212)(w)
+            1.53133960962289485212812842588474997848326226265320433847291128
+            sage: RealField(250)(w)
+            1.5313396096228948521281284258847499784832622626532043384729112767048720070
         """
         cdef int i
         cdef double d
@@ -806,7 +822,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return self.str(10, no_sci=True)
 
     def __hash__(self):
-        return hash(self.str(16))
+        """
+        Returns the hash of self, which coincides with the python
+        float (and often int) type.
+
+        This has the drawback that two very close high precision
+        numbers will have the same hash, but allows them to play
+        nicely with other real types.
+
+        EXAMPLE:
+            sage: hash(RR(1.2)) == hash(1.2r)
+            True
+        """
+        return hash(float(self))
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self) # since 1 |--> 1
@@ -856,11 +884,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             '1.4555555555555@1'
             sage: b = 2.0^99
             sage: b.str()
-            '633825300114115000000000000000.'
+            '6.33825300114115e29'
             sage: b.str(no_sci=False)
             '6.33825300114115e29'
             sage: b.str(no_sci=True)
-            '633825300114115000000000000000.'
+            '6.33825300114115e29'
             sage: c = 2.0^100
             sage: c.str()
             '1.26765060022823e30'
@@ -871,7 +899,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: c.str(no_sci=2)
             '1267650600228230000000000000000.'
             sage: 0.5^53
-            0.000000000000000111022302462516
+            1.11022302462516e-16
             sage: 0.5^54
             5.55111512312578e-17
         """
@@ -932,7 +960,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         t = str(s)
         mpfr_free_str(s)
 
-
         cdef int digits
         digits = len(t)
         if t[0] == "-":
@@ -941,7 +968,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if no_sci is None:
             no_sci = not (<RealField>self._parent).sci_not
 
-        if no_sci is True and (-exponent > digits or exponent > 2*digits):
+        if no_sci is True and ( abs(exponent-1) >=6 ):
             no_sci = False
 
         if no_sci==False:
@@ -950,22 +977,26 @@ cdef class RealNumber(sage.structure.element.RingElement):
             return "%s.%s%s%s"%(t[0], t[1:], e, exponent-1)
 
         lpad = ''
+
         if exponent <= 0:
             n = len(t)
             lpad = '0.' + '0'*abs(exponent)
         else:
             n = exponent
+
         if t[0] == '-':
             lpad = '-' + lpad
             t = t[1:]
         z = lpad + str(t[:n])
         w = t[n:]
-        if len(w) > 0:
+
+        if len(w) > 0 and '.' not in z:
             z = z + ".%s"%w
         elif exponent > 0:
             z = z + '0'*(n-len(t))
         if '.' not in z:
-            z = z + '.'
+            z = z + "."
+
         return z
 
     def __copy__(self):
@@ -1027,7 +1058,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         A big number with no decimal point:
             sage: a = RR(10^17); a
-            100000000000000000.
+            1.00000000000000e17
             sage: a.integer_part()
             100000000000000000
         """
@@ -1155,7 +1186,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         EXAMPLES:
             sage: 1.0 << 32
-            4294967296.00000
+            4.29496729600000e9
             sage: 1.5 << 2.5
             Traceback (most recent call last):
             ...
@@ -2037,7 +2068,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             1.41421356237310*I
         """
         cdef RealNumber x
-        if self >= 0:
+        if mpfr_cmp_ui(self.value, 0) >= 0:
             x = self._new()
             _sig_on
             mpfr_sqrt(x.value, self.value, (<RealField>self._parent).rnd)
@@ -2079,7 +2110,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             5.00000000000000
             sage: r = -119.0
             sage: r.cube_root()^3 - r       # illustrates precision loss
-            -0.0000000000000142108547152020
+            -1.42108547152020e-14
         """
         cdef RealNumber x
         x = self._new()
@@ -2214,6 +2245,35 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
+    def log1p(self):
+        """
+        Returns log of 1 + self
+
+        EXAMPLES:
+            sage: r = 15.0; r.log1p()
+            2.77258872223978
+            sage: (r+1).log()
+            2.77258872223978
+
+            sage: r = 38.9; r.log1p()
+            3.68637632389582
+
+            sage: r = -1.0
+            sage: r.log1p()
+            -infinity
+
+            sage: r = -2.0
+            sage: r.log1p()
+            NaN
+
+        """
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_log1p(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
+
     def exp(self):
         r"""
         Returns $e^\code{self}$
@@ -2225,13 +2285,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = 32.3
             sage: a = r.exp(); a
-            106588847274864.
+            1.06588847274864e14
             sage: a.log()
             32.3000000000000
 
             sage: r = -32.3
             sage: r.exp()
-            0.00000000000000938184458849869
+            9.38184458849869e-15
         """
         cdef RealNumber x
         x = self._new()
@@ -2251,11 +2311,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = 32.0
             sage: r.exp2()
-            4294967296.00000
+            4.29496729600000e9
 
             sage: r = -32.3
             sage: r.exp2()
-            0.000000000189117248253021
+            1.89117248253021e-10
 
         """
         cdef RealNumber x
@@ -2286,6 +2346,48 @@ cdef class RealNumber(sage.structure.element.RingElement):
         x = self._new()
         _sig_on
         mpfr_exp10(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
+
+    def expm1(self):
+        """
+        Returns $e^\code{self}-1$, avoiding cancellation near 0.
+
+        EXAMPLES:
+            sage: r = 1.0
+            sage: r.expm1()
+            1.71828182845905
+
+            sage: r = 1e-16
+            sage: exp(r)-1
+            0.000000000000000
+            sage: r.expm1()
+            1.00000000000000e-16
+        """
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_expm1(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
+
+    def eint(self):
+        """
+        Returns the exponential integral of this number.
+
+        EXAMPLES:
+            sage: r = 1.0
+            sage: r.eint()
+            1.89511781635594
+
+            sage: r = -1.0
+            sage: r.eint()
+            NaN
+        """
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_eint(x.value, self.value, (<RealField>self._parent).rnd)
         _sig_off
         return x
 
@@ -2370,14 +2472,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     # int mpfr_sin_cos (mpfr_t rop, mpfr_t op, mpfr_t, mp_rnd_t rnd)
 
-    def acos(self):
+    def arccos(self):
         """
         Returns the inverse cosine of this number
 
         EXAMPLES:
             sage: q = RR.pi()/3
             sage: i = q.cos()
-            sage: i.acos() == q
+            sage: i.arccos() == q
             True
         """
         cdef RealNumber x
@@ -2387,16 +2489,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def asin(self):
+    def arcsin(self):
         """
         Returns the inverse sine of this number
 
         EXAMPLES:
             sage: q = RR.pi()/5
             sage: i = q.sin()
-            sage: i.asin() == q
+            sage: i.arcsin() == q
             True
-            sage: i.asin() - q
+            sage: i.arcsin() - q
             0.000000000000000
         """
         cdef RealNumber x
@@ -2406,13 +2508,15 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def atan(self):
+    def arctan(self):
         """
         Returns the inverse tangent of this number
 
         EXAMPLES:
             sage: q = RR.pi()/5
             sage: i = q.tan()
+            sage: i.arctan() == q
+            True
         """
         cdef RealNumber x
         x = self._new()
@@ -2475,53 +2579,95 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def coth(self):
         """
+        Returns the hyperbolic cotangent of this number
+
         EXAMPLES:
             sage: RealField(100)(2).coth()
             1.0373147207275480958778097648
         """
-        return 1/self.tanh()
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_coth(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
 
     def cot(self):
         """
+        Returns the cotangent of this number
+
         EXAMPLES:
             sage: RealField(100)(2).cot()
             -0.45765755436028576375027741043
         """
-        return 1/self.tan()
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_cot(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
 
     def csch(self):
         """
+        Returns the hyperbolic cosecant of this number
+
         EXAMPLES:
             sage: RealField(100)(2).csch()
             0.27572056477178320775835148216
         """
-        return 1/self.sinh()
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_csch(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
 
     def csc(self):
         """
+        Returns the cosecant of this number
+
         EXAMPLES:
             sage: RealField(100)(2).csc()
             1.0997501702946164667566973970
         """
-        return 1/self.sin()
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_csc(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
 
     def sech(self):
         """
+        Returns the hyperbolic secant of this number
+
         EXAMPLES:
             sage: RealField(100)(2).sech()
             0.26580222883407969212086273982
         """
-        return 1/self.cosh()
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_sech(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
 
     def sec(self):
         """
+        Returns the secant of this number
+
         EXAMPLES:
             sage: RealField(100)(2).sec()
             -2.4029979617223809897546004014
         """
-        return 1/self.cos()
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_sec(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
 
-    def acosh(self):
+    def arccosh(self):
         """
         Returns the hyperbolic inverse cosine of this number
 
@@ -2529,6 +2675,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: q = RR.pi()/2
             sage: i = q.cosh() ; i
             2.50917847865806
+            sage: q == i.arccosh()
+            True
         """
         cdef RealNumber x
         x = self._new()
@@ -2537,7 +2685,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def asinh(self):
+    def arcsinh(self):
         """
         Returns the hyperbolic inverse sine of this number
 
@@ -2545,7 +2693,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: q = RR.pi()/7
             sage: i = q.sinh() ; i
             0.464017630492991
-            sage: i.asinh() - q
+            sage: i.arcsinh() - q
             0.000000000000000
         """
         cdef RealNumber x
@@ -2555,7 +2703,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def atanh(self):
+    def arctanh(self):
         """
         Returns the hyperbolic inverse tangent of this number
 
@@ -2563,7 +2711,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: q = RR.pi()/7
             sage: i = q.tanh() ; i
             0.420911241048535
-            sage: i.atanh() - q
+            sage: i.arctanh() - q
             0.000000000000000
         """
         cdef RealNumber x
@@ -2593,13 +2741,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
-
     def erf(self):
         """
         Returns the value of the error function on self.
 
         EXAMPLES:
-           sage: R = RealField()
+           sage: R = RealField(53)
+           sage: R(2).erf()
+           0.995322265018953
            sage: R(6).erf()
            1.00000000000000
         """
@@ -2610,6 +2759,124 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
+    def erfc(self):
+        """
+        Returns the value of the complementary error function on self,
+        i.e., $1-\code{erf}(\code{self})$.
+
+        EXAMPLES:
+           sage: R = RealField(53)
+           sage: R(2).erfc()
+           0.00467773498104727
+           sage: R(6).erfc()
+           2.15197367124989e-17
+        """
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_erfc(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
+
+    def j0(self):
+        """
+        Returns the value of the Bessel J function of order 0 at self.
+
+        EXAMPLES:
+           sage: R = RealField(53)
+           sage: R(2).j0()
+           0.223890779141236
+        """
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_j0(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
+
+    def j1(self):
+        """
+        Returns the value of the Bessel J function of order 1 at self.
+
+        EXAMPLES:
+           sage: R = RealField(53)
+           sage: R(2).j1()
+           0.576724807756873
+        """
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_j1(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
+
+    def jn(self, long n):
+        """
+        Returns the value of the Bessel J function of order $n$ at self.
+
+        EXAMPLES:
+           sage: R = RealField(53)
+           sage: R(2).jn(3)
+           0.128943249474402
+           sage: R(2).jn(-17)
+           -2.65930780516787e-15
+        """
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_jn(x.value, n, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
+
+    def y0(self):
+        """
+        Returns the value of the Bessel Y function of order 0 at self.
+
+        EXAMPLES:
+           sage: R = RealField(53)
+           sage: R(2).y0()
+           0.510375672649745
+        """
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_y0(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
+
+    def y1(self):
+        """
+        Returns the value of the Bessel Y function of order 1 at self.
+
+        EXAMPLES:
+           sage: R = RealField(53)
+           sage: R(2).y1()
+           -0.107032431540938
+        """
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_y1(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
+
+    def yn(self, long n):
+        """
+        Returns the value of the Bessel Y function of order $n$ at self.
+
+        EXAMPLES:
+           sage: R = RealField(53)
+           sage: R(2).yn(3)
+           -1.12778377684043
+           sage: R(2).yn(-17)
+           7.09038821729481e12
+        """
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_yn(x.value, n, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
 
     def gamma(self):
         """
@@ -2626,6 +2893,24 @@ cdef class RealNumber(sage.structure.element.RingElement):
         x = self._new()
         _sig_on
         mpfr_gamma(x.value, self.value, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
+
+    def lngamma(self):
+        """
+        Return the logarithm of gamma of self.
+
+        EXAMPLES:
+           sage: R = RealField(53)
+           sage: R(6).lngamma()
+           4.78749174278205
+           sage: R(1e10).lngamma()
+           2.20258509288811e11
+        """
+        cdef RealNumber x
+        x = self._new()
+        _sig_on
+        mpfr_lngamma(x.value, self.value, (<RealField>self._parent).rnd)
         _sig_off
         return x
 
@@ -2655,7 +2940,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
              1.6449340668482264364724151666460251892    # 64-bit
 
         Note that the number of bits of precision in the constructor only
-        effects the internel precision of the pari number, not the number
+        effects the internal precision of the pari number, not the number
         of digits that gets displayed.  To increase that you must
         use \code{pari.set_real_precision}.
 
@@ -2984,10 +3269,37 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
     """
     if not isinstance(s, str):
         s = str(s)
-    if base == 10:
-        bits = int(3.32192*len(s))
+
+    if 'e' in s or 'E' in s:
+        #Figure out the exponent
+        index = max( s.find('e'), s.find('E') )
+        exponent = int(s[index+1:])
+        rest = s[:index]
+
+        #Find the first nonzero entry in rest
+        sigfigs = 0
+        for i in range(len(rest)):
+            if rest[i] != '.' and rest[i] != '0':
+                sigfigs = len(rest) - i
+                break
+
+        if base == 10:
+            bits = int(3.32192*sigfigs)+1
+        else:
+            bits = int(math.log(base,2)*sigfigs)+1
     else:
-        bits = int(math.log(base,2)*len(s))
+        #Find the first nonzero entry in s
+        sigfigs = 0
+        for i in range(len(s)):
+            if s[i] != '.' and s[i] != '0':
+                sigfigs = len(s) - i
+                break
+
+        if base == 10:
+            bits = int(3.32192*sigfigs)+1
+        else:
+            bits = int(math.log(base,2)*sigfigs)+1
+
     R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
     return RealNumber(R, s, base)
 

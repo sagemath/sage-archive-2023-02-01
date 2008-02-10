@@ -144,6 +144,25 @@ cdef class Matrix(matrix0.Matrix):
             v.append(x._magma_init_())
         return s + '![%s]'%(','.join(v))
 
+    def _maple_init_(self):
+        """
+        EXAMPLES:
+            sage: M = matrix(ZZ,2,range(4))             #optional
+            sage: maple(M)                              #optional
+            Matrix(2, 2, [[0,1],[2,3]])
+
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])    #optional
+            sage: maple(M)                                      #optional
+            Matrix(3, 3, [[1,2,3],[4/3,5/3,3/2],[7,8,9]])
+
+            sage: P.<x> = ZZ[]                          #optional
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5]) #optional
+            sage: maple(M)                             #optional
+            Matrix(2, 2, [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]])
+        """
+        s = str(self.rows()).replace('(','[').replace(')',']')
+        return "Matrix(%s,%s,%s)"%(self.nrows(), self.ncols(), s)
+
     def _singular_(self, singular=None):
         """
         Tries to coerce this matrix to a singular matrix.
@@ -530,9 +549,24 @@ cdef class Matrix(matrix0.Matrix):
         indexing, e.g., -1 gives the right-most column:
             sage: a.column(-1)
             (2, 5)
+
+        TESTS:
+            sage: a = matrix(2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.column(3)
+            Traceback (most recent call last):
+            ...
+            IndexError: column index out of range
+            sage: a.column(-4)
+            Traceback (most recent call last):
+            ...
+            IndexError: column index out of range
         """
         if self._ncols == 0:
             raise IndexError, "matrix has no columns"
+        if i >= self._ncols or i < -self._ncols:
+            raise IndexError, "column index out of range"
         i = i % self._ncols
         if i < 0:
             i = i + self._ncols
@@ -571,9 +605,24 @@ cdef class Matrix(matrix0.Matrix):
             (3, 4, 5)
             sage: a.row(-1)  # last row
             (3, 4, 5)
+
+        TESTS:
+            sage: a = matrix(2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.row(2)
+            Traceback (most recent call last):
+            ...
+            IndexError: row index out of range
+            sage: a.row(-3)
+            Traceback (most recent call last):
+            ...
+            IndexError: row index out of range
         """
         if self._nrows == 0:
             raise IndexError, "matrix has no rows"
+        if i >= self._nrows or i < -self._nrows:
+            raise IndexError, "row index out of range"
         i = i % self._nrows
         if i < 0:
             i = i + self._nrows
@@ -745,6 +794,69 @@ cdef class Matrix(matrix0.Matrix):
             ncols = self._ncols - col
         return self.matrix_from_rows_and_columns(range(row, row+nrows), range(col, col+ncols))
 
+
+
+    def set_row(self, row, v):
+        """
+        Sets the entries of row row in self to be the entries of v.
+
+        EXAMPLES:
+            sage: A = matrix([[1,2],[3,4]]); A
+            [1 2]
+            [3 4]
+            sage: A.set_row(0, [0,0]); A
+            [0 0]
+            [3 4]
+            sage: A.set_row(1, [0,0]); A
+            [0 0]
+            [0 0]
+            sage: A.set_row(2, [0,0]); A
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix index out of range
+
+            sage: A.set_row(0, [0,0,0])
+            Traceback (most recent call last):
+            ...
+            ValueError: v must be of length 2
+
+        """
+        if len(v) != self._ncols:
+            raise ValueError, "v must be of length %s"%self._ncols
+
+        for j in range(self._ncols):
+            self[row,j] = v[j]
+
+    def set_column(self, col, v):
+        """
+        Sets the entries of column col in self to be the entries of v.
+
+        EXAMPLES:
+            sage: A = matrix([[1,2],[3,4]]); A
+            [1 2]
+            [3 4]
+            sage: A.set_column(0, [0,0]); A
+            [0 2]
+            [0 4]
+            sage: A.set_column(1, [0,0]); A
+            [0 0]
+            [0 0]
+            sage: A.set_column(2, [0,0]); A
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix index out of range
+
+            sage: A.set_column(0, [0,0,0])
+            Traceback (most recent call last):
+            ...
+            ValueError: v must be of length 2
+
+        """
+        if len(v) != self._nrows:
+            raise ValueError, "v must be of length %s"%self._nrows
+
+        for i in range(self._nrows):
+            self[i,col] = v[i]
 
 
     ####################################################################################

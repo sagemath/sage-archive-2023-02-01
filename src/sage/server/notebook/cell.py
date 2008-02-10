@@ -59,6 +59,7 @@ class TextCell(Cell_generic):
 
     def html(self, ncols, do_print=False, do_math_parse=True):
         """
+        INPUT:
             do_math_parse -- bool (default: True)
                 If True, call math_parse (defined in cell.py)
                 on the html.
@@ -99,6 +100,36 @@ class Cell(Cell_generic):
         self.__completions = False
         self.has_new_output = False
         self.__version = 0
+        self.__no_output_cell = False
+        self.__asap = False
+
+    def set_asap(self, asap):
+        self.__asap = bool(asap)
+
+    def is_asap(self):
+        """
+        Return True if this is an asap cell, i.e., evaluation of it is
+        done as soon as possible.
+        """
+        try:
+            return self.__asap
+        except AttributeError:
+            self.__asap = False
+            return self.__asap
+
+    def set_no_output(self, no_output):
+        self.__no_output = bool(no_output)
+
+    def is_no_output(self):
+        """
+        Return True if this is an no_output cell, i.e., a cell for
+        which we don't care at all about the output.
+        """
+        try:
+            return self.__no_output
+        except AttributeError:
+            self.__no_output = False
+            return self.__no_output
 
     def set_cell_output_type(self, typ='wrap'):
         self.__type = typ
@@ -408,7 +439,7 @@ class Cell(Cell_generic):
         INPUT:
             username -- name of user doing the evaluation
             time -- if True return time computation takes
-            introspect -- either False or a pair [before_curse, after_cursor] of strings.
+            introspect -- either False or a pair [before_cursor, after_cursor] of strings.
         """
         self.__interrupted = False
         self.__time = time
@@ -417,7 +448,14 @@ class Cell(Cell_generic):
         self.__type = 'wrap'
         dir = self.directory()
         for D in os.listdir(dir):
-            os.unlink(dir + '/' + D)
+            F = dir + '/' + D
+            try:
+                os.unlink(F)
+            except OSError:
+                try:
+                    shutil.rmtree(F)
+                except:
+                    pass
 
     def version(self):
         try:
@@ -436,7 +474,7 @@ class Cell(Cell_generic):
         self.__time = True
 
     def doc_html(self, wrap=None, div_wrap=True, do_print=False):
-        """Modified version of self.html for the doc browser. This is a hack and needs to be improved.
+        """Modified version of \code{self.html} for the doc browser. This is a hack and needs to be improved.
         The problem is how to get the documentation html to display nicely between the example cells.
         The type setting (jsMath formating) needs attention too.
         """
@@ -528,10 +566,13 @@ class Cell(Cell_generic):
               onKeyDown  = 'return input_keydown(%s,event);'
               onInput    = 'cell_input_resize(this); return true;'
               onBlur     = 'cell_blur(%s); return true;'
-              onFocus    = 'this.className = "cell_input_active"; return true;'
+              onFocus    = 'this.className = "cell_input_active"; set_class("eval_button%s","eval_button_active"); return true;'
               %s
            >%s</textarea>
-        """%(cls, r, ncols, id, id, id, id,'readonly=1' if do_print else '', t)
+        """%(cls, r, ncols, id, id, id, id, id, 'readonly=1' if do_print else '', t)
+
+        if not do_print:
+           s+= '<a href="javascript:evaluate_cell(%s,0)" class="eval_button" id="eval_button%s" alt="Click here or press shift-return to evaluate">evaluate</a>'%(id,id)
 
         t = t.replace("<","&lt;")+" "
 
@@ -583,11 +624,30 @@ class Cell(Cell_generic):
             elif F.endswith('.obj'):
                 images.append("""<a href="javascript:sage3d_show('%s', '%s_%s', '%s');">Click for interactive view.</a>"""%(url, self.__id, F, F[:-4]))
             elif F.endswith('.mtl') or F.endswith(".objmeta"):
-                pass
+                pass # obj data
             elif F.endswith('.svg'):
                 images.append('<embed src="%s" type="image/svg+xml" name="emap">'%url)
+            elif F.endswith('.jmol'):
+                # If F ends in -size500.jmol then we make the viewer applet with size 500.
+                i = F.rfind('-size')
+                if i != -1:
+                    size = F[i+5:-5]
+                else:
+                    size = 500
+
+                #popup  = """<br><a href="javascript:jmol_popup('%s');">Enlarge</a>"""%url
+                #script = '<script>jmol_applet(%s, "%s");</script>%s' % (size, url, popup)
+                #script = '<script>jmol_popup("%s");</script>' % (url)
+
+                script = '<div><script>jmol_applet(%s, "%s?%d");</script></div>' % (size, url, self.version())
+                images.append(script)
+            elif F.endswith('.jmol.zip'):
+                pass # jmol data
             else:
-                files.append('<a href="%s" class="file_link">%s</a>'%(url, F))
+                link_text = str(F)
+                if len(link_text) > 40:
+                    link_text = link_text[:10] + '...' + link_text[-20:]
+                files.append('<a href="%s" class="file_link">%s</a>'%(url, link_text))
         if len(images) == 0:
             images = ''
         else:

@@ -915,7 +915,25 @@ If this all works, you can then make calls like:
         return ExpectFunction(self, attrname)
 
     def __cmp__(self, other):
-        return cmp(type(self), type(other))
+        """
+        Compare to pseudo-tty interfaces.  To interfaces compare equal
+        if and only if they are identical objects (this is a critical
+        constrait so that caching of representations of objects in
+        interfaces works correctly).  Otherwise they are never equal.
+
+
+        EXAMPLES:
+            sage: sage.calculus.calculus.maxima == maxima
+            False
+            sage: maxima == maxima
+            True
+        """
+        if self is other:
+            return 0
+        c = cmp(type(self), type(other))
+        if c:
+            return c
+        return -1  # sucky, but I can't think of anything better; it is important that different interfaces to the same system still compare differently; unfortunately there is nothing to distinguish them.
 
     def console(self):
         raise NotImplementedError
@@ -1017,6 +1035,13 @@ class ExpectElement(RingElement):
     def _sage_doc_(self):
         return str(self)
 
+    def __hash__(self):
+        """
+        Returns the hash of self.  This is a defualt implementation
+        of hash which just takes the hash of the string of self.
+        """
+        return hash('%s%s'%(self, self._session_number))
+
     def __cmp__(self, other):
         P = self.parent()
         if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
@@ -1026,9 +1051,12 @@ class ExpectElement(RingElement):
         elif P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
                                  other.name())) == P._true_symbol():
             return 0
+        # everything is supposed to be comparable in Python, so we define
+        # the comparison thus when no comparable in interfaced system.
+        if (hash(self) < hash(other)):
+            return -1
         else:
-            return -1  # everything is supposed to be comparable in Python, so we define
-                       # the comparison thus when no comparable in interfaced system.
+            return 1
 
     def _matrix_(self, R):
         raise NotImplementedError
@@ -1076,7 +1104,7 @@ class ExpectElement(RingElement):
 
     def _sage_(self):
         #TO DO: this could use file transfers when self.is_remote()
-        return sage.misc.sage_eval.sage_eval(repr(self))
+        return sage.misc.sage_eval.sage_eval(repr(self).replace('\n',''))
 
 
     def sage(self):

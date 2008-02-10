@@ -16,6 +16,8 @@
 from cartan_type import CartanType
 from cartan_matrix import cartan_matrix
 from sage.combinat.combinatorial_algebra import CombinatorialAlgebra
+from sage.modules.free_module import FreeModule
+from sage.rings.all import ZZ
 
 def RootSystem(t):
     """
@@ -103,3 +105,42 @@ class RootSystemRealization_generic:
     ## (positive/negative/simple) roots inside some space, not necessarily
     ## with any particular structure
 
+
+
+class AmbientLattice_generic:
+    def __init__(self, ct):
+        self.ct = ct
+        self.n = ct.rank()+1
+
+        self._free_module = FreeModule(ZZ, self.n)
+
+    def __call__(self, i):
+        raise NotImplementedError
+
+class AmbientLattice_a(AmbientLattice_generic):
+
+    def root(self, i, j):
+        return self._free_module.gen(i) - self._free_module.gen(j)
+
+    def simple_roots(self):
+        return [ self.root(i, i+1) for i in range(self.n-1) ]
+
+    def roots(self):
+        return self.positive_roots() + self.negative_roots()
+
+    def negative_roots(self):
+        res = []
+        for j in range(self.n):
+            for i in range(j,self.n+1):
+                res.append(  self.root(i,j) )
+        return res
+
+    def positive_roots(self):
+        res = []
+        for j in range(self.n):
+            for i in range(j):
+                res.append(  self.root(i,j) )
+        return res
+
+    def fundamental_weights(self):
+        return [ sum([self(j) for j in range(i)]) for i in range(self.n)]

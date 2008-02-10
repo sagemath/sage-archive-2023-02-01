@@ -253,6 +253,19 @@ class Magma(Expect):
             raise AttributeError
         return MagmaFunction(self, attrname)
 
+    def chdir(self, dir):
+        """
+        Change the Magma interpreters current working directory.
+
+        EXAMPLES:
+            sage: magma.eval('System("pwd")')   # optional and random
+            '/Users/was/s/devel/sage-main/sage'
+            sage: magma.chdir('..')             # optional
+            sage: magma.eval('System("pwd")')   # optional and random
+            '/Users/was/s/devel/sage-main'
+        """
+        self.eval('ChangeDirectory("%s")'%dir, strip=False)
+
     def eval(self, x, strip=True):
         """
         INPUT:
@@ -348,7 +361,7 @@ class Magma(Expect):
         Attaching a file in MAGMA makes all intrinsics defined in the
         file available to the shell.  Moreover, if the file doesn't
         start with the \code{freeze;} command, then the file is
-        reloaded whenver it is changed.  Note that functions and
+        reloaded whenever it is changed.  Note that functions and
         procedures defined in the file are \emph{not} available.
         For only those, use \code{magma.load(filename)}.
         """
@@ -900,6 +913,21 @@ class MagmaElement(ExpectElement):
         else:
             Y = [x for x in X if tt in x]
         return Y
+
+    def __floordiv__(self, x):
+        """
+        Quotient of division of self by other.  This is denoted // ("div" in magma).
+
+        EXAMPLE:
+            sage: R.<x,y,z>=QQ[]
+            sage: magma(5)//magma(2) # optional
+            2
+            sage: m=magma(x*z+x*y)   # optional
+            sage: n=magma(x)         # optional
+            sage: m//n               # optional
+            y + z
+        """
+        return self.parent()('%s div %s'%(self.name(), x.name()))
 
     def __nonzero__(self):
         try:

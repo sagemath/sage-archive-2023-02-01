@@ -1,4 +1,4 @@
-
+import sage.misc.misc as misc
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -74,8 +74,9 @@ cdef class MPolynomial(CommutativeRingElement):
     def coefficients(self):
         """
         Return the nonzero coefficients of this polynomial in a list.
-        The order the coefficients appear in depends on the ordering
-        used on self's parent.
+        The returned list is decreasingly ordered by the term ordering
+        of self.parent(), i.e. the list of coefficients matches the list
+        of monomials returned by self.monomials().
 
         EXAMPLES:
             sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='degrevlex')
@@ -110,6 +111,60 @@ cdef class MPolynomial(CommutativeRingElement):
             raise ValueError, "var must be one of the generators of the parent polynomial ring."
         d = self.dict()
         return R(dict([(k, c) for k, c in d.iteritems() if k[ind] < n]))
+
+    def _fast_float_(self, *vars):
+        """
+        Returns a quickly-evaluating function on floats.
+
+        EXAMPLE:
+            sage: K.<x,y,z> = QQ[]
+            sage: f = (x+2*y+3*z^2)^2 + 42
+            sage: f(1, 10, 100)
+            901260483
+            sage: ff = f._fast_float_()
+            sage: ff(0, 0, 1)
+            51.0
+            sage: ff(0, 1, 0)
+            46.0
+            sage: ff(1, 10, 100)
+            901260483.0
+            sage: ff_swapped = f._fast_float_('z', 'y', 'x')
+            sage: ff_swapped(100, 10, 1)
+            901260483.0
+            sage: ff_extra = f._fast_float_('x', 'A', 'y', 'B', 'z', 'C')
+            sage: ff_extra(1, 7, 10, 13, 100, 19)
+            901260483.0
+
+        Currently, we use a fairly unoptimized method that evaluates one
+        monomial at a time, with no sharing of repeated computations and
+        with useless additions of 0 and multiplications by 1:
+            sage: list(ff)
+            ['push 0.0', 'push 4.0', 'load 1', 'dup', 'mul', 'mul', 'add', 'push 6.0', 'load 0', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 9.0', 'load 2', 'dup', 'mul', 'dup', 'mul', 'mul', 'add', 'push 4.0', 'load 0', 'load 1', 'mul', 'mul', 'add', 'push 12.0', 'load 1', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 1.0', 'load 0', 'dup', 'mul', 'mul', 'add', 'push 42.0', 'add']
+
+        TESTS:
+            sage: from sage.ext.fast_eval import fast_float
+            sage: list(fast_float(K(0)))
+            ['push 0.0']
+            sage: list(fast_float(K(17)))
+            ['push 0.0', 'push 17.0', 'add']
+            sage: list(fast_float(y))
+            ['push 0.0', 'push 1.0', 'load 1', 'mul', 'add']
+        """
+        from sage.ext.fast_eval import fast_float_arg, fast_float_constant
+        my_vars = self.parent().variable_names()
+        vars = list(vars)
+        if len(vars) == 0:
+            indices = range(len(my_vars))
+        else:
+            indices = [vars.index(v) for v in my_vars]
+        x = [fast_float_arg(i) for i in indices]
+
+        n = len(x)
+        expr = fast_float_constant(0)
+        for (m,c) in self.dict().iteritems():
+            monom = misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
+            expr = expr + monom
+        return expr
 
     def polynomial(self, var):
         """
@@ -254,8 +309,70 @@ cdef class MPolynomial(CommutativeRingElement):
                 D[ETuple(tmp)] = a
             return D
 
+    cdef long _hash_c(self):
+        """
+        This hash incorporates the variable name in an effort to respect the obvious inclusions
+        into multi-variable polynomial rings.
 
+        The tuple algorithm is borrowed from http://effbot.org/zone/python-hash.htm.
 
+        EXAMPLES:
+            sage: T.<y>=QQ[]
+            sage: R.<x>=ZZ[]
+            sage: S.<x,y>=ZZ[]
+            sage: hash(S.0)==hash(R.0)  # respect inclusions into mpoly rings (with matching base rings)
+            True
+            sage: hash(S.1)==hash(T.0)  # respect inclusions into mpoly rings (with unmatched base rings)
+            True
+            sage: hash(S(12))==hash(12)  # respect inclusions of the integers into an mpoly ring
+            True
+            sage: # the point is to make for more flexible dictionary look ups
+            sage: d={S.0:12}
+            sage: d[R.0]
+            12
+            sage: # or, more to the point, make subs in fraction field elements work
+            sage: f=x/y
+            sage: f.subs({x:1})
+            1/y
+        """
+        cdef long result = 0 # store it in a c-int and just let the overflowing additions wrap
+        cdef long result_mon
+        var_name_hash = [hash(v) for v in self._parent.variable_names()]
+        cdef long c_hash
+        for m,c in self.dict().iteritems():
+            #  I'm assuming (incorrectly) that hashes of zero indicate that the element is 0.
+            # This assumption is not true, but I think it is true enough for the purposes and it
+            # it allows us to write fast code that omits terms with 0 coefficients.  This is
+            # important if we want to maintain the '==' relationship with sparse polys.
+            c_hash = hash(c)
+            if c_hash != 0: # this is always going to be true, because we are sparse (correct?)
+                # Hash (self[i], gen_a, exp_a, gen_b, exp_b, gen_c, exp_c, ...) as a tuple according to the algorithm.
+                # I omit gen,exp pairs where the exponent is zero.
+                result_mon = c_hash
+                for p in m.nonzero_positions():
+                    result_mon = (1000003 * result_mon) ^ var_name_hash[p]
+                    result_mon = (1000003 * result_mon) ^ m[p]
+                result += result_mon
+        if result == -1:
+            return -2
+        return result
+
+    # you may have to replicate this boilerplate code in derived classes if you override
+    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
+    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
+    def __hash__(self):
+        return self._hash_c()
+
+    def args(self):
+        """
+        Returns the named of the arguments of self, in the order they are accepted from call.
+
+        EXAMPLES:
+            sage: R.<x,y> = ZZ[]
+            sage: x.args()
+            (x, y)
+        """
+        return self._parent.gens()
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

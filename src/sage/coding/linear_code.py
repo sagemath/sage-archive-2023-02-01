@@ -1,7 +1,7 @@
 r"""
 Linear Codes
 
-VERSION: 0.8
+VERSION: 0.9
 
 Let $ F$ be a finite field (we denote the finite field with $q$ elements
 $GF(q)$ by $\FF_q$). A subspace of $ F^n$ (with the standard basis)
@@ -16,9 +16,9 @@ for the code,
 \]
 called the {\it dual space} of  $C$.
 
-If $ F=\FF_2$ then $ C$ is called a {\it binary code}.
-If $ F = \FF_q$ then $ C$ is called a {\it $ q$-ary code}.
-The elements of a code $ C$ are called {\it codewords}.
+If $ F=\FF_2$ then $C$ is called a {\it binary code}.
+If $ F = \FF_q$ then $C$ is called a {\it $ q$-ary code}.
+The elements of a code $C$ are called {\it codewords}.
 
 Let $ F$ be a finite field with $ q$ elements. Here's a constructive
 definition of a cyclic code of length $ n$.
@@ -67,15 +67,15 @@ LinearCode, Codeword class definitions; LinearCode_from_vectorspace
 conversion function
 \item
 The spectrum (weight distribution), minimum distance
-programs (calling Steve Linton's C programs), and zeta_function for
-the Duursma zeta function.
+programs (calling Steve Linton's C programs), characteristic function,
+and several implementations of the Duursma zeta function.
 \item
-interface with A. Brouwer's online tables, as well as
-best_known_linear_code, bounds_minimum_distance which call tables
+interface with best_known_linear_code (interface with A. Brouwer's online tables has
+been disabled), bounds_minimum_distance which call tables
 in GUAVA (updated May 2006) created by Cen Tjhai instead of the online
 internet tables.
 \item
-ToricCode, TrivialCode (in a separate module, you will find the constructions
+ToricCode, TrivialCode (in a separate "guava.py" module, you will find the constructions
 Hamming codes, "random" linear codes, Golay codes, binary Reed-Muller codes,
 binary quadratic and extended quadratic residue codes, cyclic codes, all
 wrapped form the corresponding GUAVA codes),
@@ -146,6 +146,10 @@ added LinearCode_from_vectorspace, extended_code, zeta_function
 characteristic_polynomial, binomial_moment, support for LinearCode.
 Completely rewritten zeta_function (old version is now zeta_function2)
 and a new function, LinearCodeFromVectorSpace.
+    -- DJ (2007-11): added zeta_polynomial, weight_enumerator,
+                     chinen_polynomial;  improved best_known_code;
+                     made some pythonic revisions;
+                     added is_equivalent (for binary codes)
 
 TESTS:
    sage: MS = MatrixSpace(GF(2),4,7)
@@ -156,10 +160,11 @@ TESTS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2005 David Joyner <wdj@usna.edu>
-#                     2006 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2005 David Joyner <wdjoyner@gmail.com>
+#                     2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or later (at your preference).
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -168,28 +173,22 @@ import copy
 import sage.modules.free_module as fm
 import sage.modules.module as module
 import sage.modules.free_module_element as fme
-#from sage.databases.lincodes import linear_code_bound
 from sage.interfaces.all import gap
-
-# TODO -- import *'s SUCK -- this must all be fixed and made explicit!!
-from sage.misc.preparser import *
-from sage.rings.finite_field import *
-from sage.groups.perm_gps.permgroup import *
-
+from sage.rings.finite_field import GF
+from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.matrix.matrix_space import MatrixSpace
-
 from sage.rings.arith import GCD, rising_factorial, binomial
-
 from sage.groups.all import SymmetricGroup
 from sage.misc.sage_eval import sage_eval
 from sage.misc.misc import prod, add
-from sage.misc.functional import log
+from sage.misc.functional import log, is_even, is_odd
 from sage.rings.rational_field import QQ
 from sage.structure.parent_gens import ParentWithGens
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import IntegerRing
 from sage.combinat.set_partition import SetPartitions
+from sage.rings.real_mpfr import RR      ## RealField
 
 ZZ = IntegerRing()
 VectorSpace = fm.VectorSpace
@@ -229,8 +228,12 @@ def wtdist(Gmat, F):
     n = int(C.WordLength())
     z = 'Z(%s)*%s'%(q, [0]*n)     # GAP zero vector as a string
     dist = gap.eval("w:=DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
+    ## for some reason, this commented code doesn't work:
+    #dist0 = gap("DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
+    #v0 = dist0._matrix_(F)
+    #print dist0,v0
     #d = G.DistancesDistributionMatFFEVecFFE(k, z)
-    v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,n+2)]
+    v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,n+2)] ## because GAP returns vectors in compressed form
     return v
 
 def min_wt_vec(Gmat,F):
@@ -242,42 +245,46 @@ def min_wt_vec(Gmat,F):
         Same as wtdist.
 
     OUTPUT:
-        Returns a minimum weight vector v, the"message" vector m such that m*G = v, and the (minimum) weight, as a triple.
+        Returns a minimum weight vector v of the code generated by Gmat
+         \#\# , the"message" vector m such that m*G = v, and the (minimum) distance, as a triple.
 
     EXAMPLES:
         sage: Gstr = "Z(2)*[[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]]"
     	sage: sage.coding.linear_code.min_wt_vec(Gstr,GF(2))
-    	[[0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 0], 3]
+    	(0, 0, 1, 0, 1, 1, 0)
 
     Here Gstr is a generator matrix of the Hamming [7,4,3] binary code.
 
     AUTHOR: David Joyner (11-2005)
     """
+    from sage.rings.finite_field import gap_to_sage
     gap.eval("G:="+Gmat)
-    k = int(gap.eval('Length(G)'))
+    k = int(gap.eval("Length(G)"))
     q = F.order()
     qstr = str(q)
-    gap.eval("C:=GeneratorMatCode("+Gmat+",GF("+qstr+"))")
-    n = int(gap.eval("WordLength(C)"))
-    zerovec = [0 for i in range(n)]
-    zerovecstr = "Z("+qstr+")*"+str(zerovec)
-    all = []
-    for i in range(1,k+1):
-        P = gap.eval("P:=AClosestVectorCombinationsMatFFEVecFFECoords("+Gmat+", GF("+qstr+"),"+zerovecstr+","+str(i)+","+str(0)+"); d:=WeightVecFFE(P[1])")
-        v = gap.eval("v:=List(P[1], i->i)")
-        m = gap.eval("m:=List(P[2], i->i)")
-        dist = gap.eval("d")
-        #print v,m,dist
-        #print [gap.eval("v["+str(i+1)+"]") for i in range(n)]
-        all.append([[gap_to_sage(gap.eval("v["+str(i+1)+"]"),F)
-                              for i in range(n)],
-                    [gap_to_sage(gap.eval("m["+str(i+1)+"]"),F)
-                              for i in range(k)],int(dist)])
-    ans = all[0]
-    for x in all:
-        if x[2]<ans[2] and x[2]>0:
-            ans = x
-    return ans
+    C = gap(Gmat).GeneratorMatCode(F)
+    n = int(C.WordLength())
+    cg = C.MinimumDistanceCodeword()
+    c = [gap_to_sage(cg[j],F) for j in range(1,n+1)]
+    V = VectorSpace(F,n)
+    return V(c)
+    ## this older code returns more info but may be slower:
+    #zerovec = [0 for i in range(n)]
+    #zerovecstr = "Z("+qstr+")*"+str(zerovec)
+    #all = []
+    #for i in range(1,k+1):
+    #    P = gap.eval("P:=AClosestVectorCombinationsMatFFEVecFFECoords("+Gmat+", GF("+qstr+"),"+zerovecstr+","+str(i)+","+str(0)+"); d:=WeightVecFFE(P[1])")
+    #    v = gap("[List(P[1], i->i)]")
+    #    m = gap("[List(P[2], i->i)]")
+    #    dist = gap.eval("d")
+    #    #print v,m,dist
+    #    #print [gap.eval("v["+str(i+1)+"]") for i in range(n)]
+    #    all.append([v._matrix_(F),m._matrix_(F),int(dist)])
+    #ans = all[0]
+    #for x in all:
+    #    if x[2]<ans[2] and x[2]>0:
+    #        ans = x
+    #return ans
 
 ## def minimum_distance_lower_bound(n,k,F):
 ##     r"""
@@ -341,6 +348,8 @@ def best_known_linear_code(n,k,F):
 
     EXAMPLES:
         sage: best_known_linear_code(10,5,GF(2))    # long time
+        Linear code of length 10, dimension 5 over Finite Field of size 2
+        sage: gap.eval("C:=BestKnownLinearCode(10,5,GF(2))")     # long time
         'a linear [10,5,4]2..4 shortened code'
 
     This means that best possible binary linear code of length 10 and dimension 5
@@ -349,7 +358,14 @@ def best_known_linear_code(n,k,F):
     for further details.
     """
     q = F.order()
-    return gap.eval("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
+    C = gap("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
+    G = C.GeneratorMat()
+    k = G.Length()
+    n = G[1].Length()
+    Gs = G._matrix_(F)
+    MS = MatrixSpace(F,k,n)
+    return LinearCode(MS(Gs))
+    #return gap.eval("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
 
 def bounds_minimum_distance(n,k,F):
     r"""
@@ -449,11 +465,11 @@ class LinearCode(module.Module):
     #    sage: C.minimum_distance_why()     # optional (net connection)
     #    Ub(7,4) = 3 follows by the Griesmer bound.
     def __init__(self, gen_mat):
-        base_ring = gen_mat[0][0].parent()
+        base_ring = gen_mat[0,0].parent()
         ParentWithGens.__init__(self, base_ring)
         self.__gens = gen_mat.rows()
         self.__gen_mat = gen_mat
-        self.__length = len(gen_mat[0])
+        self.__length = len(gen_mat.row(0))
         self.__dim = gen_mat.rank()
 
     def length(self):
@@ -466,14 +482,25 @@ class LinearCode(module.Module):
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
 
     def random(self):
+        """
+        EXAMPLES:
+            sage: C = HammingCode(3,GF(4,'a'))
+            sage: Cc = C.galois_closure(GF(2))
+            sage: c = C.random()
+            sage: V = VectorSpace(GF(4,'a'),21)
+            sage: c2 = V([x^2 for x in c.list()])
+            sage: c2 in C
+            False
+
+        """
+        from sage.rings.finite_field import gap_to_sage
         F = self.base_ring()
         q = F.order()
         G = self.gen_mat()
         n = len(G.columns())
-        Gstr = str(gap(G))
-        gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
-        gap.eval("c:=Random( C )")
-        ans = [gap_to_sage(gap.eval("c["+str(i)+"]"),F) for i in range(1,n+1)]
+        Cg = gap(G).GeneratorMatCode(F)
+        c = Cg.Random()
+        ans = [gap_to_sage(c[i],F) for i in range(1,n+1)]
         V = VectorSpace(F,n)
         return V(ans)
 
@@ -612,7 +639,7 @@ class LinearCode(module.Module):
         G = self.gen_mat()
         gapG = gap(G)
         Gstr = "%s*Z(%s)^0"%(gapG, q)
-        return min_wt_vec(Gstr,F)[2]
+        return hamming_weight(min_wt_vec(Gstr,F))
 
     def genus(self):
         r"""
@@ -674,6 +701,7 @@ class LinearCode(module.Module):
 
         Does not work for very long codes since the syndrome table grows too large.
         """
+        from sage.rings.finite_field import gap_to_sage
         F = self.base_ring()
         q = F.order()
         G = self.gen_mat()
@@ -712,23 +740,15 @@ class LinearCode(module.Module):
         if n==k:
             return TrivialCode(F,n)
         Gstr = str(gap(G))
-	C = gap.GeneratorMatCode(Gstr, 'GF(%s)'%q)
         #H = C.CheckMat()
         #A = H._matrix_(GF(q))
         #return LinearCode(A)       ## This does not work when k = n-1 for a mysterious reason.
-        ##  less pythonic way 1:
-        gap.eval("C:=DualCode(GeneratorMatCode("+Gstr+",GF("+str(q)+")))")
-        gap.eval("G:=GeneratorMat(C)")
-        G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,n-k+1)]
+        ##  less pythonic way :
+        C = gap("DualCode(GeneratorMatCode("+Gstr+",GF("+str(q)+")))")
+        G = C.GeneratorMat()
+        Gs = G._matrix_(F)
         MS = MatrixSpace(F,n-k,n)
-        #print G, MS(G)
-        return LinearCode(MS(G))
-        ##  less pythonic way 2:
-        Hmat = gap.eval("H:=CheckMat( C )")
-        H = [[gap_to_sage(gap.eval("H["+str(i)+"]["+str(j)+"]"),F)
-              for j in range(1,n+1)] for i in range(1,n-k+1)]
-        MS = MatrixSpace(F,n-k,n)
-        return LinearCode(MS(H))
+        return LinearCode(MS(Gs))
 
     def extended_code(self):
         r"""
@@ -746,22 +766,20 @@ class LinearCode(module.Module):
             sage: Cx = C.extended_code()
             sage: Cx
             Linear code of length 22, dimension 18 over Finite Field in a of size 2^2
-
         """
-        from sage.rings.finite_field import gap_to_sage
         G = self.gen_mat()
         F = self.base_ring()
         q = F.order()
         n = len(G.columns())
         k = len(G.rows())
-        Gstr = str(gap(G))
-        gap.eval( "G:="+Gstr )
-        gap.eval("C:=GeneratorMatCode(G,GF("+str(q)+"))")
-        gap.eval("Gx:=GeneratorMat( ExtendedCode(C) )")
-        Gx = [[gap_to_sage(gap.eval("Gx["+str(i)+"]["+str(j)+"]"),F)
-              for j in range(1,n+2)] for i in range(1,k+1)]
+        g = gap(G)
+        gap.eval( "G:="+g.name())
+        C = gap("GeneratorMatCode(G,GF("+str(q)+"))")
+        Cx = C.ExtendedCode()
+        Gx = Cx.GeneratorMat()
+        Gxs = Gx._matrix_(F)           # this is the killer
         MS = MatrixSpace(F,k,n+1)
-        return LinearCode(MS(Gx))
+        return LinearCode(MS(Gxs))
 
     def check_mat(self):
         r"""
@@ -884,10 +902,12 @@ class LinearCode(module.Module):
 
             sage: C = ExtendedTernaryGolayCode()
             sage: M11 = MathieuGroup(11)
-            sage: G = C.permutation_automorphism_group()  ## this should take < 15 seconds                                    # long time
+            sage: G = C.permutation_automorphism_group()  ## this should take < 15 seconds  # long time
             sage: G.is_isomorphic(M11)        # long time
             True
 
+        WARNING: - *Ugly code, which should be replaced by a call to Robert Miller's nice program.*
+                 - Known to mysteriously crash in one example.
         """
         F = self.base_ring()
         q = F.order()
@@ -934,7 +954,7 @@ class LinearCode(module.Module):
 
     def permuted_code(self,p):
         r"""
-        Returns the permuted code -- the code $C$ which is equivalenet
+        Returns the permuted code -- the code $C$ which is equivalent
         to self via the column permutation $p$.
 
         EXAMPLES:
@@ -1023,12 +1043,11 @@ class LinearCode(module.Module):
         p = Sn(gap.eval("p:=PutStandardForm(G)"))
         if mode=="verbose":
             print "\n",gap.eval("Display(G)"),"\n"
-        gap.eval("C:=GeneratorMatCode(G,GF("+str(q)+"))")
-        gap.eval("Gp:=GeneratorMat( C )")
-        Gp = [[gap_to_sage(gap.eval("Gp["+str(i)+"]["+str(j)+"]"),F)
-              for j in range(1,n+1)] for i in range(1,k+1)]
+        C = gap("GeneratorMatCode(G,GF("+str(q)+"))")
+        Gp = C.GeneratorMat()
+        Gs = Gp._matrix_(F)
         MS = MatrixSpace(F,k,n)
-        return LinearCode(MS(Gp)),p
+        return LinearCode(MS(Gs)),p
 
     def module_composition_factors(self,gp):
         r"""
@@ -1039,7 +1058,7 @@ class LinearCode(module.Module):
             sage: MS = MatrixSpace(GF(2),4,8)
             sage: G  = MS([[1,0,0,0,1,1,1,0],[0,1,1,1,0,0,0,0],[0,0,0,0,0,0,0,1],[0,0,0,0,0,1,0,0]])
             sage: C  = LinearCode(G)
-            sage: gp = C.permutation_automorphism_group()
+            sage: gp = C.permutation_automorphism_group()    # long time
 
         Now type "C.module_composition_factors(gp)" to get the record printed.
 
@@ -1070,14 +1089,11 @@ class LinearCode(module.Module):
 
         EXAMPLES:
             sage: C = HammingCode(3,GF(4,'a'))
-            sage: C
-            Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
             sage: Cc = C.galois_closure(GF(2))
-            sage: Cc
+            sage: C; Cc
+            Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
             Linear code of length 21, dimension 20 over Finite Field in a of size 2^2
             sage: c = C.random()
-            sage: c  ## random output
-            (1, 0, 1, 1, 1, a, 0, a, a + 1, a + 1, a + 1, a + 1, a, 1, a + 1, a + 1, 0, a + 1, 0, 1, 1)
             sage: V = VectorSpace(GF(4,'a'),21)
             sage: c2 = V([x^2 for x in c.list()])
             sage: c2 in C
@@ -1103,7 +1119,7 @@ class LinearCode(module.Module):
         r = G3.rank()
         MS = MatrixSpace(F,r,n)
         Grref = G3.echelon_form()
-        G = MS([Grref[i] for i in range(r)])
+        G = MS([Grref.row(i) for i in range(r)])
         return LinearCode(G)
 
     def is_galois_closed(self):
@@ -1231,9 +1247,169 @@ class LinearCode(module.Module):
             return ans
         return 0
 
+    def weight_enumerator(self,names="xy"):
+        """
+        Returns the weight enumerator of the code.
+
+        EXAMPLES:
+            sage: C = HammingCode(3,GF(2))
+            sage: C.weight_enumerator()
+            x^7 + 7*x^4*y^3 + 7*x^3*y^4 + y^7
+            sage: C.weight_enumerator(names="st")
+            s^7 + 7*s^4*t^3 + 7*s^3*t^4 + t^7
+        """
+        spec = self.spectrum()
+        n = self.length()
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing
+        R = PolynomialRing(QQ,2,names)
+        x,y = R.gens()
+        we = sum([spec[i]*x**(n-i)*y**i for i in range(n+1)])
+        return we
+
+    def zeta_polynomial(self,name = "T"):
+        r"""
+        Returns the Duursma zeta polynomial of the code.
+
+        Assumes minimum_distance(C) > 1 and minimum_distance$(C^\perp) > 1$.
+
+        EXAMPLES:
+            sage: C = HammingCode(3,GF(2))
+            sage: C.zeta_polynomial()
+            2/5*T^2 + 2/5*T + 1/5
+            sage: C = best_known_linear_code(6,3,GF(2))  # long time
+            sage: C.minimum_distance()                   # long time (because of above)
+            3
+            sage: C.zeta_polynomial()                    # long time (because of above)
+            2/5*T^2 + 2/5*T + 1/5
+            sage: C = HammingCode(4,GF(2))
+            sage: C.zeta_polynomial()
+            16/429*T^6 + 16/143*T^5 + 80/429*T^4 + 32/143*T^3 + 30/143*T^2 + 2/13*T + 1/13
+
+        REFERENCES:
+
+             I. Duursma, "From weight enumerators to zeta functions",
+             in {\bf Discrete Applied Mathematics}, vol. 111, no. 1-2,
+             pp. 55-73, 2001.
+        """
+        n = self.length()
+        q = (self.base_ring()).characteristic()
+        d = self.minimum_distance()
+        dperp = (self.dual_code()).minimum_distance()
+        if d == 1 or dperp == 1:
+            print "\n WARNING: There is no guarantee this function works when the minimum distance"
+            print "            of the code or of the dual code equals 1.\n"
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing
+        from sage.rings.fraction_field import FractionField
+        from sage.rings.power_series_ring import PowerSeriesRing
+        RT = PolynomialRing(QQ,"%s"%name)
+        R = PolynomialRing(QQ,3,"xy%s"%name)
+        x,y,T = R.gens()
+        we = self.weight_enumerator()
+        A = R(we)
+        B = A(x+y,y,T)-(x+y)**n
+        Bs = B.coefficients()
+        b = [Bs[i]/binomial(n,i+d) for i in range(len(Bs))]
+        r = n-d-dperp+2
+        #print B,Bs,b,r
+        P_coeffs = []
+        for i in range(len(b)):
+           if i == 0:
+              P_coeffs.append(b[0])
+           if i == 1:
+              P_coeffs.append(b[1] - (q+1)*b[0])
+           if i>1:
+              P_coeffs.append(b[i] - (q+1)*b[i-1] + q*b[i-2])
+        #print P_coeffs
+        P = sum([P_coeffs[i]*T**i for i in range(r+1)])
+        return RT(P)
+
+    def chinen_polynomial(self):
+        """
+        Returns the Chinen zeta polynomial of the code.
+
+        EXAMPLES:
+            sage: C = HammingCode(3,GF(2))
+            sage: C.chinen_polynomial()       # long time
+            (2*sqrt(2)*t^3/5 + 2*sqrt(2)*t^2/5 + 2*t^2/5 + sqrt(2)*t/5 + 2*t/5 + 1/5)/(sqrt(2) + 1)
+            sage: C = TernaryGolayCode()
+            sage: C.chinen_polynomial()       # long time
+            (6*sqrt(3)*t^3/7 + 6*sqrt(3)*t^2/7 + 6*t^2/7 + 2*sqrt(3)*t/7 + 6*t/7 + 2/7)/(2*sqrt(3) + 2)
+
+        This last output agrees with the corresponding example given in Chinen's paper below.
+
+        REFERENCES:
+            Chinen, K. "An abundance of invariant polynomials
+            satisfying the Riemann hypothesis", April 2007 preprint.
+
+        """
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing, polygen
+        #from sage.calculus.functional import expand
+        from sage.calculus.calculus import sqrt, SymbolicExpressionRing, var
+        C = self
+        n = C.length()
+        RT = PolynomialRing(QQ,2,"Ts")
+        T,s = FractionField(RT).gens()
+        t = PolynomialRing(QQ,"t").gen()
+        Cd = C.dual_code()
+        k = C.dimension()
+        q = (C.base_ring()).characteristic()
+        d = C.minimum_distance()
+        dperp = Cd.minimum_distance()
+        if dperp > d:
+            P = RT(C.zeta_polynomial())
+            ## SAGE does not find dealing with sqrt(int) *as an algebraic object*
+            ## an easy thing to do. Some tricky gymnastics are used to
+            ## make SAGE deal with objects over QQ(sqrt(q)) nicely.
+            if is_even(n):
+                Pd = q**(k-n/2)*RT(Cd.zeta_polynomial())*T**(dperp - d)
+            if not(is_even(n)):
+                Pd = s*q**(k-(n+1)/2)*RT(Cd.zeta_polynomial())*T**(dperp - d)
+            CP = P+Pd
+            f = CP/CP(1,s)
+            return f(t,sqrt(q))
+        if dperp < d:
+            P = RT(C.zeta_polynomial())*T**(d - dperp)
+            if is_even(n):
+                Pd = q**(k-n/2)*RT(Cd.zeta_polynomial())
+            if not(is_even(n)):
+                Pd = s*q**(k-(n+1)/2)*RT(Cd.zeta_polynomial())
+            CP = P+Pd
+            f = CP/CP(1,s)
+            return f(t,sqrt(q))
+        if dperp == d:
+            P = RT(C.zeta_polynomial())
+            if is_even(n):
+                Pd = q**(k-n/2)*RT(Cd.zeta_polynomial())
+            if not(is_even(n)):
+                Pd = s*q**(k-(n+1)/2)*RT(Cd.zeta_polynomial())
+            CP = P+Pd
+            f = CP/CP(1,s)
+            return f(t,sqrt(q))
+
+    def zeta_function(self,name = "T"):
+        r"""
+        Returns the Duursma zeta function of the code.
+
+        EXAMPLES:
+            sage: C = HammingCode(3,GF(2))
+            sage: C.zeta_function()
+            (2/5*T^2 + 2/5*T + 1/5)/(2*T^2 - 3*T + 1)
+        """
+        P =  self.zeta_polynomial()
+        q = (self.base_ring()).characteristic()
+        RT = PolynomialRing(QQ,"%s"%name)
+        T = RT.gen()
+        return P/((1-T)*(1-q*T))
+
     def zeta_function2(self,mode=None):
         r"""
         Returns the Duursma zeta function of the code.
+
+        NOTE: This is somewhat experimental code. It sometimes
+        returns "fail" for a reason I don't fully understand.
+        However, when it does return a polynomial, the answer is
+        (as far as I know) correct.  *Experimental code* included to
+        study a particular implementation.
 
         INPUT:
 
@@ -1262,10 +1438,6 @@ class LinearCode(module.Module):
              I. Duursma, "Weight distributions of geometric Goppa codes,"
              Trans. A.M.S., 351 (1999)3609-3639.
 
-        NOTE: This is somewhat experimental code. It sometimes
-        returns "fail" for a reason I don't fully understand.
-        However, when it does return a polynomial, the answer is
-        (as far as I know) correct.
         """
         from sage.rings.polynomial.polynomial_ring import PolynomialRing
         from sage.rings.fraction_field import FractionField
@@ -1276,6 +1448,10 @@ class LinearCode(module.Module):
         d = self.minimum_distance()
         n = self.length()
         k = self.dimension()
+        dperp = (self.dual_code()).minimum_distance()
+        if d == 1 or dperp == 1:
+            print "\n WARNING: There is no guarantee this function works when the minimum distance\n"
+            print "            of the code or of the dual code equals 1.\n"
         gammaC = n+1-d #  C.genus()
         if mode=="dual":
             Cp = self.dual_code()
@@ -1322,27 +1498,32 @@ class LinearCode(module.Module):
             #    print "det = ",Mmm.determinant(),"   m = ",m
         return "fails"
 
-    def zeta_function(self,mode=None):
+    def zeta_function3(self,mode=None):
         r"""
         Returns the Duursma zeta function of the code.
+
+        NOTE: This sometimes returns "fail" for a reason I don't fully
+        understand. However, when it does return a polynomial, the answer is
+        (as far as I know) correct. *Experimental code* included to
+        study a particular implementation.
 
         INPUT:
             mode -- string
                mode = "dual" computes both the zeta function of C and that of C*
                mode = "normalized" computes the normalized zeta function of C, zeta_C(T)*T(1-genus(C))
             (NOTE: if xi(T,C) denotes the normalized zeta function
-            then xi(T,C*) = xi(1/(qT),C) is equivalent to zeta_{C*}(T)
-            = zeta_C(1/(qT))*q^(gamma-1)T^(gamma+gamma*-2), where
+            then xi(T,C*) = xi(1/(qT),C) is equivalent to $zeta_{C*}(T)
+            = zeta_C(1/(qT))*q^(gamma-1)T^(gamma+gamma*-2)$, where
             gamma = gamma(C) and gamma* = gamma(C*).)
 
         EXAMPLES:
-            sage: C = HammingCode(3,GF(2))
-            sage: C.zeta_function()
+            sage.: C = HammingCode(3,GF(2))
+            sage.: C.zeta_function3()
             (2/5*T^2 + 2/5*T + 1/5)/(2*T^2 - 3*T + 1)
-            sage: C = ExtendedTernaryGolayCode()
-            sage: C.zeta_function()
+            sage.: C = ExtendedTernaryGolayCode()
+            sage.: C.zeta_function3()
             (3/7*T^2 + 3/7*T + 1/7)/(3*T^2 - 4*T + 1)
-            sage: C.zeta_function(mode="dual")
+            sage.: C.zeta_function3(mode="dual")
             ((3/7*T^2 + 3/7*T + 1/7)/(3*T^2 - 4*T + 1),
              (729/7*T^2 + 729/7*T + 243/7)/(729*T^2 - 972*T + 243))
 
@@ -1355,6 +1536,10 @@ class LinearCode(module.Module):
         d = self.minimum_distance()
         n = self.length()
         k = self.dimension()
+        dperp = (self.dual_code()).minimum_distance()
+        if d == 1 or dperp == 1:
+            print "\n WARNING: There is no guarantee this function works when the minimum distance\n"
+            print "            of the code or of the dual code equals 1.\n"
         gammaC = n+1-k-d
         if mode=="dual":
             Cp = self.dual_code()
@@ -1422,7 +1607,6 @@ class LinearCode(module.Module):
             Linear code of length 5, dimension 4 over Finite Field of size 2
 
         """
-        from sage.rings.finite_field import gap_to_sage
         G = self.gen_mat()
         F = self.base_ring()
         q = F.order()
@@ -1431,11 +1615,11 @@ class LinearCode(module.Module):
         nL = n-len(L)
         Gstr = str(gap(G))
         gap.eval( "G:="+Gstr )
-        gap.eval("C:=GeneratorMatCode(G,GF("+str(q)+"))")
-        gap.eval("Gp:=GeneratorMat( PuncturedCode(C,%s) )"%L)
-        kL = eval(gap.eval("kL:=Length(Gp)"))  ## this is = dim(CL), usually = k
-        G2 = [[gap_to_sage(gap.eval("Gp["+str(i)+"]["+str(j)+"]"),F)
-              for j in range(1,nL+1)] for i in range(1,kL+1)]
+        C = gap("GeneratorMatCode(G,GF("+str(q)+"))")
+        CP = C.PuncturedCode(L)
+        Gp = CP.GeneratorMat()
+        kL = Gp.Length()  ## this is = dim(CL), usually = k
+        G2 = Gp._matrix_(F)
         MS = MatrixSpace(F,kL,nL)
         return LinearCode(MS(G2))
 
@@ -1454,7 +1638,6 @@ class LinearCode(module.Module):
             Linear code of length 5, dimension 2 over Finite Field of size 2
 
         """
-        from sage.rings.finite_field import gap_to_sage
         G = self.gen_mat()
         F = self.base_ring()
         q = F.order()
@@ -1463,13 +1646,15 @@ class LinearCode(module.Module):
         nL = n-len(L)
         Gstr = str(gap(G))
         gap.eval("G:="+Gstr )
-        gap.eval("C:=GeneratorMatCode(G,GF("+str(q)+"))")
-        gap.eval("Gs:=GeneratorMat( DualCode(PuncturedCode(DualCode(C),%s)) )"%str(L))
-        kL = eval(gap.eval("kL:=Length(Gs)"))  ## this is = dim(CL), usually = k
-        Gs = [[gap_to_sage(gap.eval("Gs["+str(i)+"]["+str(j)+"]"),F)
-              for j in range(1,nL+1)] for i in range(1,kL+1)]
+        C = gap("GeneratorMatCode(G,GF("+str(q)+"))")
+        Cd = C.DualCode()
+        Cdp = Cd.PuncturedCode(L)
+        Cdpd = Cdp.DualCode()
+        Gs = Cdpd.GeneratorMat()
+        kL = Gs.Length()  ## this is = dim(CL), usually = k
+        Gss = Gs._matrix_(F)
         MS = MatrixSpace(F,kL,nL)
-        return LinearCode(MS(Gs))
+        return LinearCode(MS(Gss))
 
     def binomial_moment(self,i):
         r"""
@@ -1487,7 +1672,7 @@ class LinearCode(module.Module):
             sage: C.binomial_moment(2)
             0
             sage: C.binomial_moment(3)    # long time
-            4
+            0
             sage: C.binomial_moment(4)    # long time
             35
 
@@ -1595,12 +1780,12 @@ class LinearCode(module.Module):
            (does not check if C is actually sd)
 
         RETURN:
-           The data v,m as in Duursama [1]
+           The data v,m as in Duursama [D]
 
         EXAMPLES:
 
         REFERENCES:
-            [1] I. Duursma, "Extremal weight enumerators and ultraspherical polynomials"
+            [D] I. Duursma, "Extremal weight enumerators and ultraspherical polynomials"
 
         """
         n = C.length()
@@ -1629,12 +1814,12 @@ class LinearCode(module.Module):
                  A_i>0 iff i is divisible by d0).
 
         RETURN:
-           The coefficients $q_0, q_1, ...,$  of $q(T)$ as in Duursama [1].
+           The coefficients $q_0, q_1, ...,$  of $q(T)$ as in Duursama [D].
 
         EXAMPLES:
 
         REFERENCES:
-            [1] I. Duursma, "Extremal weight enumerators and ultraspherical polynomials"
+            [D] I. Duursma, "Extremal weight enumerators and ultraspherical polynomials"
 
         """
         q = (C.base_ring()).order()
@@ -1654,6 +1839,8 @@ class LinearCode(module.Module):
         v = ZZ(C.sd_duursma_data(i)[0])
         m = ZZ(C.sd_duursma_data(i)[1])
         #print m,v,d,d0,c0
+        if m<0 or v<0:
+            raise ValueError("This case not implemented.")
         PR = PolynomialRing(QQ,"T")
         T = PR.gen()
         if i == 1:
@@ -1701,12 +1888,15 @@ class LinearCode(module.Module):
             8/91*T^8 + 16/91*T^7 + 212/1001*T^6 + 28/143*T^5 + 43/286*T^4 + 14/143*T^3 + 53/1001*T^2 + 2/91*T + 1/182
 
         It is a general fact about Duursma zeta polynomials that P(1) = 1.
+
+        REFERENCES:
+            [D] I. Duursma, "Extremal weight enumerators and ultraspherical polynomials"
         """
         d0 = C.divisor()
         q = (C.base_ring()).order()
         P = C.sd_duursma_q(type,d0)
         PR = P.parent()
-        T = PR.gen()
+        T = FractionField(PR).gen()
         if type == 1: return P
         if type == 2: return P/(1-2*T+2*T**2)
         if type == 3: return P/(1+3*T**2)

@@ -23,6 +23,9 @@ import itertools
 import __builtin__
 from combinat import CombinatorialClass, CombinatorialObject
 from sage.rings.all import binomial, Integer, infinity
+from sage.combinat.integer_vector import IntegerVectors
+import copy
+from subset import Subsets
 
 def Words(*args):
     """
@@ -620,72 +623,162 @@ def min_lex(l):
 # Shuffle Product #
 ###################
 
+def ShuffleProduct(w1, w2, shifted=False, overlapping=False):
+    """
+    Returns the combinatorial class representing the shuffle product between
+    w1 and w2.  This consists of all words of length len(w1)+len(w2) which
+    have both w1 and w2 as subwords.
 
-## def shuffle(w1,w2):
-##     """
-##     Returns the list of words in the shuffle product
-##     of w1 and w2.
+    EXAMPLES:
+        sage: sp = ShuffleProduct([1,2],[3,4]); sp
+        Shuffle product of [1, 2] and [3, 4]
+        sage: sp.count()
+        6
+        sage: sp.list()
+        [[1, 2, 3, 4],
+         [1, 3, 2, 4],
+         [1, 3, 4, 2],
+         [3, 1, 2, 4],
+         [3, 1, 4, 2],
+         [3, 4, 1, 2]]
+    """
+    if shifted is True:
+        return ShuffleProduct_shifted(w1, w2)
 
-##     """
-##     return shuffle_list(w1,w2)
+    if overlapping is True:
+        return ShuffleProduct_overlapping(w1, w2)
 
-## def shuffle_shifted(w1, w2):
-##     """
-##     Returns the shifted shuffle of w1 and w2.
+    return ShuffleProduct_w1w2(w1, w2)
 
-##     EXAMPLES:
+class ShuffleProduct_w1w2(CombinatorialClass):
+    def __init__(self, w1, w2):
+        self.w1 = w1
+        self.w2 = w2
 
-##     """
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: repr(ShuffleProduct([1,2],[3,4]))
+            'Shuffle product of [1, 2] and [3, 4]'
 
-##     return shuffle(w1, [x+len(w1) for x in v])
+        """
+        return "Shuffle product of %s and %s"%(self.w1, self.w2)
 
-## def shuffle_count(w1,w2):
-##     """
-##     Returns the number of words in the shuffle product
-##     of w1 and w2.
+    def count(self):
+        """
+        Returns the number of words in the shuffle product
+        of w1 and w2.
 
-##     It is given by binomial(len(w1)+len(w2), len(w1)).
+        It is given by binomial(len(w1)+len(w2), len(w1)).
 
-##     EXAMPLES:
-##         sage: word.shuffle_count([2,3],[3,4])
-##         6
-##     """
+        EXAMPLES:
+            sage: ShuffleProduct([2,3],[3,4]).count()
+            6
+         """
+        return binomial(len(self.w1)+len(self.w2), len(self.w1))
 
-##     return binomial(len(w1)+len(w2), len(w1))
+
+    def iterator(self):
+        """
+        Returns an iterator for the words in the
+        shuffle product of w1 and w2.
+
+        EXAMPLES:
+            sage: ShuffleProduct([1,2],[3,4]).list() #indirect test
+            [[1, 2, 3, 4],
+             [1, 3, 2, 4],
+             [1, 3, 4, 2],
+             [3, 1, 2, 4],
+             [3, 1, 4, 2],
+             [3, 4, 1, 2]]
+        """
+
+        n1 = len(self.w1)
+        n2 = len(self.w2)
+
+        def proc(vect):
+            i1 = -1
+            i2 = -1
+            res = []
+            for v in vect:
+                if v == 1:
+                    i1 += 1
+                    res.append(self.w1[i1])
+                else:
+                    i2 += 1
+                    res.append(self.w2[i2])
+            return res
+
+        return itertools.imap(proc, IntegerVectors(n1, n1+n2, max_part=1))
 
 
-## def shuffle_list(w1,w2):
-##     """
-##     Returns the list of words in the shuffle product
-##     of w1 and w2.
 
-##     """
+class ShuffleProduct_shifted(ShuffleProduct_w1w2):
+    def __init__(self, w1, w2):
+        self.w1 = w1
+        self.w2 = [x+len(w1) for x in w2]
 
-##     return [w for w in shuffle_iterator(w1,w2)]
+    def __repr__(self):
+        return "Shifted shuffle product of %s and %s"%(self.w1, self.w2)
 
-## def shuffle_iterator(w1,w2):
-##     """
-##     Returns an iterator for the words in the
-##     shuffle product of w1 and w2.
 
-##     EXAMPLES:
+class ShuffleProduct_overlapping_r(CombinatorialClass):
+    def __init__(self, w1, w2, r):
+        self.w1 = w1
+        self.w2 = w2
+        self.r  = r
 
-##     """
+    def __repr__(self):
+        return "Overlapping shuffle product of %s and %s with %s overlaps"%(self.w1, self.w2, self.r)
 
-##     n1 = len(w1)
-##     n2 = len(w2)
+    def iterator(self):
+        m = len(self.w1)
+        n = len(self.w2)
+        r = self.r
 
-##     def proc(vect):
-##         i1 = -1
-##         i2 = -1
-##         res = []
-##         for v in vect:
-##             if v == 1:
-##                 i1 += 1
-##                 res.append(w1[i1])
-##             else:
-##                 i2 += 1
-##                 res.append(w2[i2])
+        blank = [0]*(m+n-r)
+        for iv in IntegerVectors(m, m+n-r, max_part=1):
+            w = copy.copy(blank)
+            filled_places = []
+            unfilled_places = []
+            #Fill in w1 into the iv slots
+            i = 0
+            for j in range(len(iv)):
+                if iv[j] == 1:
+                    w[j] = self.w1[i]
+                    i += 1
+                    filled_places.append(j)
+                else:
+                    unfilled_places.append(j)
 
-##     return itertools.imap(proc, integer_vector.iterator(n1, n1+n2, max_parts=1))
+            #Choose r of these filled places
+            for subset in Subsets(filled_places, r):
+                places_to_fill = unfilled_places + list(subset)
+                places_to_fill.sort()
+
+                #Fill in w2 into the places
+                i = 0
+                res = copy.copy(w)
+                for j in places_to_fill:
+                    res[j] += self.w2[i]
+                    i += 1
+
+                yield res
+
+class ShuffleProduct_overlapping(CombinatorialClass):
+    def __init__(self, w1, w2):
+        self.w1 = w1
+        self.w2 = w2
+
+    def __repr__(self):
+        return "Overlapping shuffle product of %s and %s"%(self.w1, self.w2)
+
+    def iterator(self):
+        m = len(self.w1)
+        n = len(self.w2)
+
+        for r in range(min(m,n)+1):
+            for w in ShuffleProduct_overlapping_r(self.w1, self.w2, r):
+                yield w
+
 

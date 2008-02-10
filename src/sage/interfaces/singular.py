@@ -278,6 +278,7 @@ from sage.structure.element import RingElement
 import sage.misc.misc as misc
 import sage.rings.integer
 
+from sage.misc.misc import get_verbose
 
 class Singular(Expect):
     r"""
@@ -338,7 +339,7 @@ class Singular(Expect):
         return '< "%s";'%filename
 
     def eval(self, x, allow_semicolon=True, strip=True):
-        """
+        r"""
         Send the code x to the Singular interpreter and return the output
         as a string.
 
@@ -353,6 +354,53 @@ class Singular(Expect):
             '1'
             sage: singular.eval('2 + 2')
             '4'
+
+            if the verbosity level is $> 1$ comments are also printed
+            and not only returned.
+
+            sage: r = singular.ring(0,'(x,y,z)','dp')
+            sage: i = singular.ideal(['x^2','y^2','z^2'])
+            sage: s = i.std()
+            sage: singular.eval('hilb(%s)'%(s.name()))
+            '// 1 t^0\n// -3 t^2\n// 3 t^4\n// -1 t^6\n\n// 1 t^0\n//
+            3 t^1\n// 3 t^2\n// 1 t^3\n// dimension (affine) = 0\n//
+            degree (affine) = 8'
+
+            sage: set_verbose(1)
+            sage: o = singular.eval('hilb(%s)'%(s.name()))
+            //         1 t^0
+            //        -3 t^2
+            //         3 t^4
+            //        -1 t^6
+            //         1 t^0
+            //         3 t^1
+            //         3 t^2
+            //         1 t^3
+            // dimension (affine) = 0
+            // degree (affine)  = 8
+
+            This is mainly useful if this method is called
+            implicitly. Because then intermediate results, debugging
+            outputs and printed statements are printed
+
+            sage: o = s.hilb()
+            //         1 t^0
+            //        -3 t^2
+            //         3 t^4
+            //        -1 t^6
+            //         1 t^0
+            //         3 t^1
+            //         3 t^2
+            //         1 t^3
+            // dimension (affine) = 0
+            // degree (affine)  = 8
+            // ** right side is not a datum, assignment ignored
+
+            rather than ignored
+
+            sage: set_verbose(0)
+            sage: o = s.hilb()
+
         """
         # Uncomment the print statements below for low-level debuging of
         # code that involves the singular interfaces.  Everything goes
@@ -369,7 +417,15 @@ class Singular(Expect):
 
         if s.find("error") != -1 or s.find("Segment fault") != -1:
             raise RuntimeError, 'Singular error:\n%s'%s
-        return s
+
+        if get_verbose() > 0:
+            ret = []
+            for line in s.splitlines():
+                if line.startswith("//"):
+                    print line
+            return s
+        else:
+            return s
 
     def set(self, type, name, value):
         """
@@ -693,7 +749,7 @@ class Singular(Expect):
         return singular_version()
 
     def __getattr__(self, attrname):
-        if attrname[:1] == "_":
+        if attrname.startswith("_"):
             raise AttributeError
         return SingularFunction(self, attrname)
 

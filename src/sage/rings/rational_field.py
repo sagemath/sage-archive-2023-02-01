@@ -296,6 +296,29 @@ class RationalField(_uniq, number_field_base.NumberField):
         return (sage.rings.integer.Integer(1), sage.rings.integer.Integer(0))
 
 
+    def discriminant(self):
+        """
+        Return the discriminant of the field of rational numbers,
+        which is 1.
+
+        EXAMPLES:
+            sage: QQ.discriminant()
+            1
+        """
+        return sage.rings.integer.Integer(1)
+
+    def signature(self):
+        """
+        Return the signature of the rational field, which is (1,0),
+        since there are 1 real and no complex embeddings.
+
+        EXAMPLES:
+            sage: QQ.signature()
+            (1, 0)
+        """
+        return (sage.rings.integer.Integer(1), sage.rings.integer.Integer(0))
+
+
     def embeddings(self, K):
         """
         Return list of the one embedding of QQ into K, if it exists.

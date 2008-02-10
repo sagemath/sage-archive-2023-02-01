@@ -190,7 +190,7 @@ class LCalc(SageObject):
             lcalc:  Will use the maximum possible, though the output will not necessarily be accurate.
             lcalc:  nan nan
             [(0, 0.209951303),
-             (0.500000000, -2...e-16),
+             (0.500000000, -...e-16),
              (1.00000000, 0.133768433),
              (2.00000000, 0.552975867)]
 

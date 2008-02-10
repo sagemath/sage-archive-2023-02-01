@@ -119,7 +119,10 @@ class MapRelativeNumberFieldToRelativeVectorSpace(SageObject):
         alpha = self.__K(alpha)
         f = alpha.polynomial('x')
         # f is the absolute polynomial that defines this number field element
-        g = self.__rnf.rnfeltabstorel(pari(f))
+        if self.__K.degree() == 1:
+            g = -1*self.__rnf[0][0]*f[1] + f[0]
+        else:
+            g = self.__rnf.rnfeltabstorel(pari(f))
         # Now g is a relative polynomial that defines this element.
         # This g is a polynomial in a pari variable x with
         # coefficients polynomials in a variable y.

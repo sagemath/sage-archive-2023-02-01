@@ -17,7 +17,7 @@ AUTHORS:
 ################################################################################
 
 include "../../ext/stdsage.pxi"
-
+include "sage/ext/interrupt.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, RingElement
@@ -217,7 +217,6 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return Polynomial_integer_dense_ntl, \
                (self.parent(), self.list(), False, self.is_gen())
 
-
     def __getitem__(self, long n):
         r"""
         Returns coefficient of x^n, or zero if n is negative.
@@ -236,14 +235,14 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f[-1]
             0
         """
-        # todo: this is performing an unnecessary copy. We need
-        # a function that returns a (const!) pointer to the coefficient
-        # of the NTL polynomial.
-        cdef ZZ_c temp = ZZX_coeff(self.__poly, n)
         cdef Integer z = PY_NEW(Integer)
-        ZZ_to_mpz(&z.value, &temp)
-        return z
-
+        if n < 0 or n > ZZX_deg(self.__poly):
+            return z
+        else:
+            # Note that the NTL documentation blesses this direct access of the "rep" member in ZZX.txt.
+            #  Check the "Miscellany" section.
+            ZZ_to_mpz(&z.value, &self.__poly.rep.elts()[n])
+            return z
 
     def __getslice__(self, long i, long j):
         r"""
@@ -316,11 +315,14 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
     def quo_rem(self, right):
         r"""
-        Returns a tuple (quotient, remainder) where
-            self = quotient*other + remainder.
+        Attempts to divide self by right, and return a quotient and remainder.
 
-        If the quotient and remainder are not integral,
-        an exception is raised.
+        If right is monic, then it returns (q, r) where
+            self = q * right + r
+        and deg(r) < deg(right).
+
+        If right is not monic, then it returns (q, 0) where q = self/right
+        if right exactly divides self, otherwise it raises an exception.
 
         EXAMPLES:
             sage: R.<x> = PolynomialRing(ZZ)
@@ -330,22 +332,60 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             (9*x^7 + 8*x^6 + 16*x^5 + 14*x^4 + 21*x^3 + 18*x^2 + 24*x + 20, 25*x + 20)
             sage: q*g + r == f
             True
+
+            sage: f = x^2
+            sage: f.quo_rem(0)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: division by zero polynomial
+
+            sage: f = (x^2 + 3) * (2*x - 1)
+            sage: f.quo_rem(2*x - 1)
+            (x^2 + 3, 0)
+
+            sage: f = x^2
+            sage: f.quo_rem(2*x - 1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: division not exact in Z[x] (consider coercing to Q[x] first)
+
         """
         if not isinstance(right, Polynomial_integer_dense_ntl):
             right = self.parent()(right)
         elif self.parent() is not right.parent():
             raise TypeError
 
-        # ugggh this isn't pretty. Lots of unnecessary copies.
-        cdef ZZX_c *r, *q
-        ZZX_quo_rem(&self.__poly, &(<Polynomial_integer_dense_ntl>right).__poly, &r, &q)
-        cdef Polynomial_integer_dense_ntl rr = self._new()
+        cdef Polynomial_integer_dense_ntl _right = <Polynomial_integer_dense_ntl> right
+
+        if ZZX_IsZero(_right.__poly):
+            raise ArithmeticError, "division by zero polynomial"
+
+        cdef ZZX_c *q, *r
         cdef Polynomial_integer_dense_ntl qq = self._new()
-        rr.__poly = r[0]
-        qq.__poly = q[0]
-        ZZX_delete(&r[0])
-        ZZX_delete(&q[0])
-        return (qq, rr)
+        cdef Polynomial_integer_dense_ntl rr = self._new()
+        cdef int divisible
+
+        if ZZ_IsOne(ZZX_LeadCoeff(_right.__poly)):
+            # divisor is monic. Just do the division and remainder
+            ZZX_quo_rem(&self.__poly, &_right.__poly, &r, &q)
+            ZZX_swap(qq.__poly, q[0])
+            ZZX_swap(rr.__poly, r[0])
+            ZZX_delete(q)
+            ZZX_delete(r)
+        else:
+            # Non-monic divisor. Check whether it divides exactly.
+            q = ZZX_div(&self.__poly, &_right.__poly, &divisible)
+            if divisible:
+                # exactly divisible
+                ZZX_swap(q[0], qq.__poly)
+                ZZX_delete(q)
+            else:
+                # division failed: clean up and raise exception
+                ZZX_delete(q)
+                raise ArithmeticError, "division not exact in Z[x] (consider coercing to Q[x] first)"
+
+        return qq, rr
+
 
 
     def gcd(self, right):
@@ -657,6 +697,64 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         free(e)
         return Factorization(F, unit=c, sort=False)
 
+    def _factor_pari(self):
+        return Polynomial.factor(self) # uses pari for integers over ZZ
+
+    def _factor_ntl(self):
+        """
+        There are ample doc-tests elsewhere that test this functionality.
+        AUTHOR:
+            -- Joel B. Mohler
+        """
+        cdef Polynomial_integer_dense_ntl fac_py
+        cdef ZZ_c content
+        cdef vec_pair_ZZX_long_c factors
+        cdef long i
+        cdef int sig_me = ZZX_deg(self.__poly)
+        if sig_me > 10:
+            _sig_on
+        ZZX_factor(content, factors, self.__poly, 0, 0)
+        if sig_me > 10:
+            _sig_off
+        results = []
+        unit = None
+        if not ZZ_IsOne(content):
+            fac_py = self._new()
+            ZZX_SetCoeff(fac_py.__poly, 0, content)
+            if ZZX_deg(fac_py.__poly) == 0 and ZZ_to_int(fac_py.__poly.rep.elts())==-1:
+                unit = fac_py
+            else:
+                results.append( (fac_py,1) )
+        for i from 0 <= i < factors.length():
+            fac_py = self._new()
+            fac_py.__poly = factors.RawGet(i).a
+            results.append( (fac_py,factors.RawGet(i).b) )
+        return Factorization(results, unit = unit)
+
+    def factor(self):
+        """
+        This function overrides the generic polynomial factorization to
+        make a somewhat intelligent decision to use Pari or NTL based on
+        some benchmarking.
+
+        EXAMPLES:
+            sage: R.<x>=ZZ[]
+            sage: f=x^4-1
+            sage: f.factor()
+            (x - 1) * (x + 1) * (x^2 + 1)
+            sage: f=1-x
+            sage: f.factor()
+            (-1) * (x - 1)
+            sage: f.factor().unit()
+            -1
+        """
+        cdef int i
+        cdef int deg = ZZX_deg(self.__poly)
+        # it appears that pari has a window from about degrees 30 and 300 in which it beats NTL.
+        if deg < 30 or deg > 300:
+            return self._factor_ntl()
+        else:
+            return self._factor_pari()
 
     def factor_mod(self, p):
         """

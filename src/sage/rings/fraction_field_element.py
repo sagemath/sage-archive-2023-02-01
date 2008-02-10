@@ -85,7 +85,6 @@ class FractionFieldElement(field_element.FieldElement):
             raise ArithmeticError, "unable to reduce because lack of gcd or quo_rem algorithm"
         except TypeError, s:
             raise ArithmeticError, "unable to reduce because gcd algorithm doesn't work on input"
-
         except NotImplementedError, s:
             raise ArithmeticError, "unable to reduce because gcd algorithm not implemented on input"
 
@@ -99,12 +98,66 @@ class FractionFieldElement(field_element.FieldElement):
     def denominator(self):
         return self.__denominator
 
+    def __hash__(self):
+        """
+        This function hashes in a special way to ensure that generators of a ring R
+        and generators of a fraction field of R have the same hash.  This enables them
+        to be used as keys interchangably in a dictionary (since \code{==} will claim them equal).
+        This is particularly useful for methods like subs on \code{ParentWithGens} if you
+        are passing a dictionary of substitutions.
+
+        EXAMPLES:
+            sage: R.<x>=ZZ[]
+            sage: hash(R.0)==hash(FractionField(R).0)
+            True
+            sage: ((x+1)/(x^2+1)).subs({x:1})
+            1
+            sage: d={x:1}
+            sage: d[FractionField(R).0]
+            1
+            sage: R.<x>=QQ[] # this probably has a separate implementation from ZZ[]
+            sage: hash(R.0)==hash(FractionField(R).0)
+            True
+            sage: d={x:1}
+            sage: d[FractionField(R).0]
+            1
+            sage: R.<x,y,z>=ZZ[] # this probably has a separate implementation from ZZ[]
+            sage: hash(R.0)==hash(FractionField(R).0)
+            True
+            sage: d={x:1}
+            sage: d[FractionField(R).0]
+            1
+            sage: R.<x,y,z>=QQ[] # this probably has a separate implementation from ZZ[]
+            sage: hash(R.0)==hash(FractionField(R).0)
+            True
+            sage: ((x+1)/(x^2+1)).subs({x:1})
+            1
+            sage: d={x:1}
+            sage: d[FractionField(R).0]
+            1
+            sage: hash(R(1)/R(2))==hash(1/2)
+            True
+        """
+        # This is same algorithm as used for members of QQ
+        #cdef long n, d
+        n = hash(self.__numerator)
+        d = hash(self.__denominator)
+        if d == 1:
+            return n
+        n = n ^ d
+        if n == -1:
+            return -2
+        return n
+
     def partial_fraction_decomposition(self):
         """
         Decomposes fraction field element into a whole part and
         a list of fraction field elements over prime power denominators.
 
         The sum will be equal to the original fraction.
+
+        AUTHOR:
+             -- Robert Bradshaw (2007-05-31)
 
         EXAMPLES:
             sage: S.<t> = QQ[]
@@ -125,12 +178,9 @@ class FractionFieldElement(field_element.FieldElement):
             sage: q = 1/(x^2 + 2)^2 + 1/(x-1); q
             (1.0000*x^4 + 4.0000*x^2 + 1.0000*x + 3.0000)/(1.0000*x^5 - 1.0000*x^4 + 4.0000*x^3 - 4.0000*x^2 + 4.0000*x - 4.0000)
             sage: whole, parts = q.partial_fraction_decomposition(); parts
-            [(-0.0000076294*x^2 + 1.0000)/(1.0000*x^4 + 4.0000*x^2 + 4.0000), 1.0000/(1.0000*x - 1.0000)]
+            [1.0000/(1.0000*x - 1.0000), (-7.6294e-6*x^2 + 1.0000)/(1.0000*x^4 + 4.0000*x^2 + 4.0000)]
             sage: sum(parts)
-            (1.0000*x^4 - 0.0000076294*x^3 + 4.0000*x^2 + 1.0000*x + 3.0000)/(1.0000*x^5 - 1.0000*x^4 + 4.0000*x^3 - 4.0000*x^2 + 4.0000*x - 4.0000)
-
-        AUTHOR:
-            -- Robert Bradshaw (2007-05-31)
+            (1.0000*x^4 - 7.6294e-6*x^3 + 4.0000*x^2 + 1.0000*x + 3.0000)/(1.0000*x^5 - 1.0000*x^4 + 4.0000*x^3 - 4.0000*x^2 + 4.0000*x - 4.0000)
         """
         denom = self.denominator()
         whole, numer = self.numerator().quo_rem(denom)
@@ -144,7 +194,8 @@ class FractionFieldElement(field_element.FieldElement):
             all = {}
             for r in factors: all[r[0]] = 0
             for r in factors: all[r[0]] += r[1]
-            factors = all.iteritems()
+            factors = all.items()
+            factors.sort() # for doctest consistency
         factors = [r**e for r,e in factors]
         parts = []
         for d in factors:
@@ -170,7 +221,7 @@ class FractionFieldElement(field_element.FieldElement):
             sage: h(1,2,5)
             -17/7
         """
-        return self.__numerator(x) / self.__denominator(x)
+        return self.__numerator(*x) / self.__denominator(*x)
 
     def _is_atomic(self):
         return self.__numerator._is_atomic() and self.__denominator._is_atomic()
@@ -188,9 +239,24 @@ class FractionFieldElement(field_element.FieldElement):
         return s
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of this rational function.
+
+        EXAMPLES:
+            sage: R = PolynomialRing(QQ, 'x').fraction_field()
+            sage: x = R.gen()
+            sage: a = x^2 / 1
+            sage: latex(a)
+            x^{2}
+            sage: latex(x^2/(x^2+1))
+            \frac{x^{2}}{x^{2} + 1}
+            sage: a = 1/x
+            sage: a._FractionFieldElement__numerator = R(0)
+            sage: latex(a)
+            0
         """
+        if self.is_zero():
+            return "0"
         if self.__denominator == 1:
             return latex.latex(self.__numerator)
         return "\\frac{%s}{%s}"%(latex.latex(self.__numerator),
@@ -281,9 +347,49 @@ class FractionFieldElement(field_element.FieldElement):
             raise TypeError, "denominator must equal 1"
 
     def __pow__(self, right):
-        return FractionFieldElement(self.parent(),
-                                    self.__numerator**right,
-                                    self.__denominator**right, coerce=False, reduce=False)
+        r"""
+        Returns self raised to the $right^{th}$ power.
+
+        Note that we need to check whether or not right is negative so we
+        don't set __numerator or __denominator to an element of the
+        fraction field instead of the underlying ring.
+
+        EXAMPLES:
+            sage: R = QQ['x','y']
+            sage: FR = R.fraction_field()
+            sage: x,y = FR.gens()
+            sage: a = x^2; a
+            x^2
+            sage: type(a.numerator())
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
+            sage: type(a.denominator())
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
+            sage: a = x^(-2); a
+            1/x^2
+            sage: type(a.numerator())
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
+            sage: type(a.denominator())
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
+            sage: x^0
+            1
+            sage: ((x+y)/(x-y))^2
+            (x^2 + 2*x*y + y^2)/(x^2 - 2*x*y + y^2)
+            sage: ((x+y)/(x-y))^-2
+            (x^2 - 2*x*y + y^2)/(x^2 + 2*x*y + y^2)
+            sage: ((x+y)/(x-y))^0
+            1
+        """
+        if right == 0:
+            return FractionFieldElement(self.parent(), 1, 1, reduce=False)
+        elif right > 0:
+            return FractionFieldElement(self.parent(),
+                                        self.__numerator**right,
+                                        self.__denominator**right, coerce=False, reduce=False)
+        else:
+            right = -right
+            return FractionFieldElement(self.parent(),
+                                        self.__denominator**right,
+                                        self.__numerator**right, coerce=False, reduce=False)
 
     def __neg__(self):
         return FractionFieldElement(self.parent(), -self.__numerator, self.__denominator,

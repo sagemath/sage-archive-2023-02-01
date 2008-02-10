@@ -87,6 +87,7 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Vector 
 import sage.rings.arith
 
 from sage.rings.ring import is_Ring
+from sage.rings.infinity import Infinity
 import sage.rings.integer_ring
 import sage.rings.integer
 from sage.rings.real_double import RDF
@@ -265,12 +266,138 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         self._is_mutable = 1
 
     def _vector_(self, R):
+        r"""Return self as a vector.
+
+        EXAMPLES:
+            sage: v = vector(ZZ, [2, 12, 22])
+            sage: vector(v)
+            (2, 12, 22)
+            sage: vector(GF(7), v)
+            (2, 5, 1)
+            sage: vector(v, ZZ['x', 'y'])
+            (2, 12, 22)
+        """
         return self.change_ring(R)
+
+    def _matrix_(self, R=None):
+        r"""Return self as a row matrix.
+
+        EXAMPLES:
+            sage: v = vector(ZZ, [2, 12, 22])
+            sage: vector(v)
+            (2, 12, 22)
+            sage: vector(GF(7), v)
+            (2, 5, 1)
+            sage: vector(v, ZZ['x', 'y'])
+            (2, 12, 22)
+        """
+        if R is None:
+            R = self.base_ring()
+        from sage.matrix.constructor import matrix
+        return matrix(R, [list(self)])
+
+    def transpose(self):
+        r"""Return self as a column matrix.
+
+        EXAMPLES:
+            sage: v = vector(ZZ, [2, 12, 22])
+            sage: transpose(vector(v))
+            [ 2]
+            [12]
+            [22]
+
+            sage: transpose(vector(GF(7), v))
+            [2]
+            [5]
+            [1]
+
+            sage: transpose(vector(v, ZZ['x', 'y']))
+            [ 2]
+            [12]
+            [22]
+        """
+        return self._matrix_().transpose()
 
     def _hash(self):
         return hash(tuple(list(self)))
 
+    def copy(self):
+        """
+        Make a copy of this vector.
+
+        EXAMPLES:
+            sage: v = vector([1..5]); v
+            (1, 2, 3, 4, 5)
+            sage: w = v.copy()
+            sage: v == w
+            True
+            sage: v is w
+            False
+
+            sage: v = vector([1..5], sparse=True); v
+            (1, 2, 3, 4, 5)
+            sage: v.copy()
+            (1, 2, 3, 4, 5)
+        """
+        return self.__copy__()
+
+    def __copy__(self):
+        if self.is_sparse():
+            return self.parent()(self.dict())
+        else:
+            return self.parent()(self.list())
+
+    def set_immutable(self):
+        """
+        Make this vector immutable.  This operation can't be undone.
+
+        EXAMPLES:
+            sage: v = vector([1..5]); v
+            (1, 2, 3, 4, 5)
+            sage: v[1] = 10
+            sage: v.set_immutable()
+            sage: v[1] = 10
+            Traceback (most recent call last):
+            ...
+            ValueError: vector is immutable; please change a copy instead (use self.copy())
+        """
+        self._is_mutable = 0
+
+    def is_mutable(self):
+        """
+        Return True if this vector is mutable, i.e., the entries can be changed.
+
+        EXAMPLES:
+            sage: v = vector(QQ['x,y'], [1..5]); v.is_mutable()
+            True
+            sage: v.set_immutable()
+            sage: v.is_mutable()
+            False
+        """
+        return self._is_mutable
+
+    def is_immutable(self):
+        """
+        Return True if this vector is immutable, i.e., the entries cannot be changed.
+
+        EXAMPLES:
+            sage: v = vector(QQ['x,y'], [1..5]); v.is_immutable()
+            False
+            sage: v.set_immutable()
+            sage: v.is_immutable()
+            True
+        """
+        return not self._is_mutable
+
     def change_ring(self, R):
+        """
+        Change the base ring of this vector, by coercing each element
+        of this vector into R.
+
+        EXAMPLES:
+            sage: v = vector(QQ['x,y'], [1..5]); v.change_ring(GF(3))
+            (1, 2, 0, 1, 2)
+        """
         P = self.parent()
         if P.base_ring() is R:
             return self
@@ -306,7 +433,55 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return self.dict(copy=False).iteritems()
 
     def __abs__(self):
-        return self.norm()
+        """
+        Return the square root of the sum of the squares of the entries of this vector.
+
+        EXAMPLES:
+            sage: v = vector([1..5]); abs(v)
+            sqrt(55)
+            sage: v = vector(RDF, [1..5]); abs(v)
+            7.4161984871
+        """
+        return sum([x**2 for x in self.list()]).sqrt()
+
+    def norm(self, p):
+        """
+        Return the p-norm of this vector, where p can be a real
+        number >= 1, Infinity, or a symbolic expression.
+        If p=2, this is the usual Euclidean norm; if p=Infinity,
+        this is the maximum norm; if p=1, this is the taxicab
+        (Manhattan) norm.
+
+        EXAMPLES:
+            sage: v = vector([1,2,3])
+            sage: v.norm(5)
+            276^(1/5)
+            sage: v.norm(2)
+            sqrt(14)
+            sage: v.norm(Infinity)
+            3
+            sage: v=vector(RDF,[1,2,3])
+            sage: v.norm(5)
+            3.07738488539
+            sage: v.norm(pi/2)
+            4.2165958647
+            sage: var('a b c d p')
+            (a, b, c, d, p)
+            sage: v=vector([a, b, c, d])
+            sage: v.norm(p)
+            (d^p + c^p + b^p + a^p)^(1/p)
+        """
+        if p == Infinity:
+            return max(self)
+        try:
+            pr = RDF(p)
+            if pr < 1:
+                raise ValueError, "%f is not greater than or equal to 1" %(pr)
+        except TypeError:
+            pass
+
+        s = sum([a**p for a in self])
+        return s**(1/p)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
@@ -409,10 +584,26 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         raise NotImplementedError
 
     def _repr_(self):
+        """
+        String representation of a vector.
+
+        EXAMPLES:
+            sage: vector(QQ, [])._repr_()
+            '()'
+            sage: vector(QQ, range(5))._repr_()
+            '(0, 1, 2, 3, 4)'
+
+        Symbolic are not displayed using ASCII art.
+            sage: x = var('x')
+            sage: v = vector([x/(2*x)+sqrt(2)+var('theta')^3,x/(2*x)]); v
+            (theta^3 + sqrt(2) + 1/2, 1/2)
+            sage: v._repr_()
+            '(theta^3 + sqrt(2) + 1/2, 1/2)'
+        """
         d = self.degree()
         if d == 0: return "()"
         # compute column widths
-        S = [str(x) for x in self.list(copy=False)]
+        S = [repr(x) for x in self.list(copy=False)]
         #width = max([len(x) for x in S])
         s = "("
         for i in xrange(d):
@@ -426,6 +617,24 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             s = s + entry + sep
         s = s + ")"
         return s
+
+    def _maple_init_(self):
+        """
+        EXAMPLES:
+            sage: v = vector(ZZ, 4, range(4))               #optional
+            sage: maple(v)                                  #optional
+            Vector[row](4, [0,1,2,3])
+
+            sage: v = vector(QQ, 3, [2/3, 0, 5/4])          #optional
+            sage: maple(v)                                  #optional
+            Vector[row](3, [2/3,0,5/4])
+
+            sage: P.<x> = ZZ[]                                       #optional
+            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) #optional
+            sage: maple(v)                                           #optional
+            Vector[row](3, [x^2+2,2*x+1,-2*x^2+4*x])
+        """
+        return "Vector[row](%s)"%(str(self.list()))
 
     def __setitem__(self, i, x):
         raise NotImplementedError
@@ -457,7 +666,15 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (1.0, 2.0, 3.0 + 4.0*I)
             sage: v[1:] = (1,3); v
             (1.0, 1.0, 3.0)
+
+            sage: v.set_immutable()
+            sage: v[1:2] = [3,5]
+            Traceback (most recent call last):
+            ...
+            ValueError: vector is immutable; please change a copy instead (use self.copy())
         """
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         cdef Py_ssize_t k, d, n
         d = self.degree()
         R = self.base_ring()
@@ -517,8 +734,80 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     #############################
     # Plotting
     #############################
-    def plot(self, xmin=0, xmax=1, eps=None, res=None,
-             connect=True, step=False, **kwds):
+    def plot(self, plot_type=None, **kwds):
+        """
+        INPUT:
+
+            plot_type -- (default: 'arrow' if v has 3 or fewer components,
+            otherwise 'step') type of plot.  Options are 'arrow' to an
+            arrow; 'point' to draw a point at the coordinates
+            specified by the vector; 'step' to draw a step function
+            representing the coordinates of the vector.  Both 'arrow'
+            and 'point' raise exceptions if the vector has more than 3
+            dimensions.
+
+        EXAMPLES:
+            sage: v = vector(RDF, (1,2))
+            sage: eps = 0.1
+            sage: plot(v, plot_type='arrow')
+            sage: plot(v, plot_type='point')
+            sage: plot(v, plot_type='step') # calls v.plot_step()
+            sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            sage: v = vector(RDF, (1,2,1))
+            sage: plot(v) # defaults to an arrow plot
+            sage: plot(v, plot_type='arrow')
+            sage: from sage.plot.plot3d.shapes2 import frame3d
+            sage: plot(v, plot_type='point')+frame3d((0,0,0), v.list())
+            sage: plot(v, plot_type='step') # calls v.plot_step()
+            sage: plot(v, plot_type='step', eps=eps, xmax=5, hue=0)
+            sage: v = vector(RDF, (1,2,3,4))
+            sage: plot(v) # defaults to a step plot
+
+
+        """
+        # Give sensible defaults based on the vector length
+        if plot_type is None:
+            if len(self)<=3:
+                plot_type='arrow'
+            else:
+                plot_type='step'
+
+        if plot_type == 'arrow' or plot_type == 'point':
+            dimension = len(self)
+            if dimension == 3:
+                from sage.plot.plot3d.shapes import arrow3d, Sphere
+                # Sphere complains if the radius is given twice,
+                # so we have to delete it from kwds if it is given.
+                radius = kwds.pop('radius', .02)
+
+                if plot_type == 'arrow':
+                    return arrow3d((0,0,0), self, radius=radius, **kwds)
+                else:
+                    return Sphere(radius, **kwds).translate(self.list())
+            elif dimension < 3:
+                vectorlist = self.list()
+                if dimension < 2:
+                    # pad to make 2-dimensional
+                    vectorlist.extend([0]*(2-dimension))
+
+                from sage.plot.all import arrow, point
+                if plot_type == 'arrow':
+                    return arrow((0,0), vectorlist, **kwds)
+                else:
+                    return point(vectorlist, **kwds)
+            else:
+                raise ValueError, "arrow and point plots require vectors with 3 or fewer components"
+
+        elif plot_type == 'step':
+            return self.plot_step(**kwds)
+        else:
+            raise NotImplementedError, "plot_type was unrecognized"
+
+
+
+
+    def plot_step(self, xmin=0, xmax=1, eps=None, res=None,
+             connect=True, **kwds):
         """
         INPUT:
             xmin -- (default: 0) start x position to start plotting
@@ -530,13 +819,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
                    in the graph
             connect -- (default: True) if True draws a line; otherwise draw
                        a list of points.
-            step -- (default: False) if True draw a step function plot.
 
         EXAMPLES:
             sage: eps=0.1
             sage: v = vector(RDF, [sin(n*eps) for n in range(100)])
-            sage: plot(v, eps=eps, xmax=5, hue=0).show()
-            sage: v.plot(eps=eps, xmax=5, hue=0).show()
+            sage: v.plot_step(eps=eps, xmax=5, hue=0)
         """
         if res is None:
             res = self.degree()
@@ -880,6 +1167,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         # no type checking.
         cdef FreeModuleElement_generic_dense x
         x = PY_NEW(FreeModuleElement_generic_dense)
+        x._is_mutable = 1
         x._parent = self._parent
         x._entries = v
         x._degree = self._degree
@@ -908,7 +1196,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                 raise TypeError, "entries (=%s) must be a list"%(entries, )
 
             if len(entries) != self.degree():
-                raise ArithmeticError, "entries must be a list of length %s"%\
+                raise TypeError, "entries must be a list of length %s"%\
                             self.degree()
             if coerce:
                 try:
@@ -1028,6 +1316,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         Set entry i of self to value.
         """
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         i = int(i)
         #if not isinstance(i, int):
         #    raise TypeError, "index must an integer"
@@ -1051,6 +1341,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v[:2]
             (5, 3)
         """
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         cdef Py_ssize_t k, n, d
         d = self.degree()
         R = self.base_ring()
@@ -1079,6 +1371,23 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         return cmp(left._entries, (<FreeModuleElement_generic_dense>right)._entries)
 
 
+    def n(self, *args, **kwargs):
+        """
+        Returns a numerical approximation of self by calling the n()
+        method on all of its entries.
+
+        EXAMPLES:
+            sage: v = vector(RQDF, [1,2,3])
+            sage: v.n()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 75 bits of precision
+        """
+        return vector([e.n(*args, **kwargs) for e in self])
 
 #############################################
 # Generic sparse element
@@ -1124,6 +1433,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         # no type checking.
         cdef FreeModuleElement_generic_sparse x
         x = PY_NEW(FreeModuleElement_generic_sparse)
+        x._is_mutable = 1
         x._parent = self._parent
         x._entries = v
         x._degree = self._degree
@@ -1285,6 +1595,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         Like __setitem__ but with no type or bounds checking.
         """
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         i = int(i)
         if x == 0:
             if self._entries.has_key(i):
@@ -1295,6 +1607,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     def __setitem__(self, i, value):
         """
         """
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         i = int(i)
         #if not isinstance(i, int):
         #    raise TypeError, "index must an integer"
@@ -1338,4 +1652,21 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return K
 
 
+    def n(self, *args, **kwargs):
+        """
+        Returns a numerical approximation of self by calling the n()
+        method on all of its entries.
+
+        EXAMPLES:
+            sage: v = vector(RQDF, [1,2,3], sparse=True)
+            sage: v.n()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Sparse vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Sparse vector space of dimension 3 over Real Field with 75 bits of precision
+        """
+        return vector(dict([(e[0],e[1].n(*args, **kwargs)) for e in self._entries.iteritems()]), sparse=True)
 

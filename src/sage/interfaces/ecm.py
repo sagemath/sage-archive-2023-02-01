@@ -149,10 +149,89 @@ class ECM:
         return self._recommended_B1_list[self.__B1_table_value(factor_digits)]
 
 
+    def one_curve(self, n, factor_digits=None, B1=2000, method="ECM", **kwds):
+        """
+        Run one single ECM (or P-1/P+1) curve on input n.
+        INPUT:
+            n -- a positive integer
+            factor_digits -- decimal digits estimate of the wanted factor
+            B1 -- stage 1 bound (default 2000)
+            method -- either "ECM" (default), "P-1" or "P+1"
+        OUTPUT:
+            a list [p,q] where p and q are integers and n = p * q.
+            If no factor was found, then p = 1 and q = n.
+            WARNING: neither p nor q is guaranteed to be prime.
+        EXAMPLES:
+            sage: f = ECM()
+            sage: n = 508021860739623467191080372196682785441177798407961
+            sage: f.one_curve(n, B1=10000, sigma=11)
+            [1, 508021860739623467191080372196682785441177798407961]
+            sage: f.one_curve(n, B1=10000, sigma=1022170541)
+            [79792266297612017, 6366805760909027985741435139224233]
+            sage: n = 432132887883903108009802143314445113500016816977037257
+            sage: f.one_curve(n, B1=500000, method="P-1")
+            [67872792749091946529, 6366805760909027985741435139224233]
+            sage: n = 2088352670731726262548647919416588631875815083
+            sage: f.one_curve(n, B1=2000, method="P+1", x0=5)
+            [328006342451, 6366805760909027985741435139224233]
+        """
+        if not factor_digits is None:
+            B1 = self.recommended_B1(factor_digits)
+        if method == "P-1":
+            kwds['pm1'] = ''
+        elif method == "P+1":
+            kwds['pp1'] = ''
+        else:
+           if not method == "ECM":
+              err = "unexpected method: " + method
+              raise ValueError, err
+        self.__cmd = self._ECM__startup_cmd(B1, None, kwds)
+        child = pexpect.spawn(self.__cmd)
+        cleaner.cleaner(child.pid, self.__cmd)
+        child.timeout = None
+	child.__del__ = nothing   # work around stupid exception ignored error
+        child.expect('[ECM]')
+        child.sendline(str(n))
+        child.sendline("bad") # child.sendeof()
+        while True:
+            try:
+               child.expect('(Using B1=(\d+), B2=(\d+), polynomial ([^,]+), sigma=(\d+)\D)|(Factor found in step \d:\s+(\d+)\D)|(Error - invalid number)')
+               info = child.match.groups()
+               # B1 is info[1], B2 is info[2], poly is info[3], sigma is info[4],
+               # step is info[5], factor is info[6], cofactor is info[7]
+               if not info[0] is None:
+                  # got Using B1=... line
+                  self.last_params = { 'B1' : child.match.groups()[1],
+                                       'B2' : child.match.groups()[2],
+                                       'poly' : child.match.groups()[3],
+                                       'sigma' : child.match.groups()[4] }
+               elif info[7] != None:
+                  # got Error - invalid number, which means the curve did
+                  # end without finding any factor, and the next input 'bad'
+                  # was given to GMP-ECM
+                  child.kill(0)
+                  return [1, n]
+               else:
+                  # got Factor found...
+                  p = Integer(info[6])
+                  child.kill(0)
+                  return [p, n/p]
+
+            except pexpect.EOF:
+               child.kill(0)
+               return [1, n]
+            child.kill(0)
+
+
     def find_factor(self, n, factor_digits=None, B1=2000, **kwds):
         """
         Splits off a single factor of n.
         See ECM.factor()
+        EXAMPLES:
+           sage: f = ECM()
+           sage: n = 508021860739623467191080372196682785441177798407961
+           sage: f.find_factor(n)
+           [79792266297612017, 6366805760909027985741435139224233]
         """
         if not 'c' in kwds: kwds['c'] = 1000000000
         if not 'I' in kwds: kwds['I'] = 1

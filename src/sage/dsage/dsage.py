@@ -105,7 +105,8 @@ class DistributedSage(object):
         pass
 
     def start_all(self, port=None, workers=2, log_level=0, poll=1.0,
-                  anonymous_workers=False, verbose=True):
+                  anonymous_workers=False, job_failure_threshold=3,
+                  verbose=True):
         """
         Start the server and worker and returns a connection to the server.
 
@@ -117,6 +118,7 @@ class DistributedSage(object):
         if port is None:
             port = find_open_port()
         self.server(port=port, log_level=log_level, blocking=False,
+                    job_failure_threshold=job_failure_threshold,
                     verbose=verbose)
         self.worker(port=port, workers=workers, log_level=log_level,
                     blocking=False, poll=poll, anonymous=anonymous_workers,
@@ -166,6 +168,7 @@ class DistributedSage(object):
                cert=os.path.join(DSAGE_DIR, 'pubcert.pem'),
                stats_file=os.path.join(DSAGE_DIR, 'dsage.xml'),
                anonymous_logins=False,
+               job_failure_threshold=3,
                verbose=True):
         r"""
         Run the Distributed SAGE server.
@@ -179,14 +182,14 @@ class DistributedSage(object):
                         enter commands at the command prompt (though
                         logging will make this hard).
             logfile  -- only used if blocking=True; the default is
-                        to log to $DOT_SAGE/dsage/server.log
+                        to log to \file{\$DOT_SAGE/dsage/server.log}
 
         """
 
         cmd = 'dsage_server.py -d %s -p %s -l %s -f %s ' + \
-                              '-c %s -k %s --statsfile=%s'
+                              '-c %s -k %s --jobfailures %s --statsfile=%s'
         cmd = cmd % (db_file, port, log_level, log_file, cert, privkey,
-                     stats_file)
+                     job_failure_threshold, stats_file)
         if ssl:
             cmd += ' --ssl'
         if not blocking:
@@ -228,7 +231,7 @@ class DistributedSage(object):
             privkey -- private key
             pubkey -- public key
             log_file -- only used if blocking=True; the default is
-                       to log to $DOT_SAGE/dsage/worker.log
+                       to log to \file{\$DOT_SAGE/dsage/worker.log}
             verbose -- be more verbose about launching the workers
 
         """

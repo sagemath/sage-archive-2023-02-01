@@ -4,16 +4,15 @@ Symbolic Computation.
 AUTHORS:
     Bobby Moretti and William Stein: 2006--2007
 
-The \sage calculus module is loosely based on the \sage Enhahcement Proposal
-found at: http://www.sagemath.org:9001/CalculusSEP.
+The \sage calculus module is loosely based on the \sage Enhancement Proposal
+found at: \url{http://www.sagemath.org:9001/CalculusSEP.}
 
 EXAMPLES:
-
     The basic units of the calculus package are symbolic expressions
     which are elements of the symbolic expression ring (SR). There are
-    many subclasses of SymbolicExpression. The most basic of these is
-    the formal indeterminate class, SymbolicVariable. To create a
-    SymbolicVariable object in \sage, use the var() method, whose
+    many subclasses of \class{SymbolicExpression}. The most basic of these is
+    the formal indeterminate class, \class{SymbolicVariable}. To create a
+    \class{SymbolicVariable} object in \sage, use the \code{var()} method, whose
     argument is the text of that variable.  Note that \sage is
     intelligent about {\LaTeX}ing variable names.
 
@@ -26,14 +25,13 @@ EXAMPLES:
         sage: latex(theta)
         \theta
 
-    \sage predefines upper and lowercase letters as global
-    indeterminates. Thus the following works:
+    \sage predefines \code{x} to be a global indeterminate. Thus the following works:
         sage: x^2
         x^2
         sage: type(x)
         <class 'sage.calculus.calculus.SymbolicVariable'>
 
-    More complicated expressions in SAGE can be built up using
+    More complicated expressions in \sage can be built up using
     ordinary arithmetic. The following are valid, and follow the rules
     of Python arithmetic: (The '=' operator represents assignment, and
     not equality)
@@ -87,16 +85,16 @@ EXAMPLES:
         sage: f(4)
         sin(8*pi/y)
 
-    We can also make CallableSymbolicExpressions, which is a SymbolicExpression
+    We can also make \class{CallableSymbolicExpressions}, which is a \class{SymbolicExpression}
     that are functions of variables in a fixed order. Each
-    SymbolicExpression has a function() method used to create a
-    CallableSymbolicExpression.
+    \class{SymbolicExpression} has a function() method used to create a
+    \class{CallableSymbolicExpression}.
 
         sage: u = log((2-x)/(y+5))
         sage: f = u.function(x, y); f
         (x, y) |--> log((2 - x)/(y + 5))
 
-    There is an easier way of creating a CallableSymbolicExpression, which
+    There is an easier way of creating a \class{CallableSymbolicExpression}, which
     relies on the \sage preparser.
 
         sage: f(x,y) = log(x)*cos(y); f
@@ -123,9 +121,9 @@ EXAMPLES:
 
     Another example:
         sage: f = integrate(1/sqrt(9+x^2), x); f
-        asinh(x/3)
+        arcsinh(x/3)
         sage: f(3)
-        asinh(1)
+        arcsinh(1)
         sage: f.diff(x)
         1/(3*sqrt(x^2/9 + 1))
 
@@ -135,7 +133,7 @@ EXAMPLES:
         sage: dy = diff(y,x)
         sage: z = integral(sqrt(1 + dy^2), x, 0, 2)
         sage: print z
-                             asinh(4) + 4 sqrt(17)
+                             arcsinh(4) + 4 sqrt(17)
                              ---------------------
                                        4
         sage: n(z,200)
@@ -143,7 +141,14 @@ EXAMPLES:
         sage: float(z)
         4.6467837624329356
 
-COERCION EXAMPLES:
+
+    We test pickling:
+        sage: x, y = var('x,y')
+        sage: f = -sqrt(pi)*(x^3 + sin(x/cos(y)))
+        sage: bool(loads(dumps(f)) == f)
+        True
+
+Coercion examples:
 
 We coerce various symbolic expressions into the complex numbers:
 
@@ -185,17 +190,23 @@ We can, of course, substitute:
            n8    n6    n6    n5    n4    n3    n2
 
 TESTS:
-We test pickling:
-    sage: f = -sqrt(pi)*(x^3 + sin(x/cos(y)))
-    sage: bool(loads(dumps(f)) == f)
-    True
 
 Substitution:
     sage: f = x
     sage: f(x=5)
     5
 
-The symbolic Calculus package uses its own copy of Maxima for
+Simplifying expressions involving scientific notation:
+    sage: k = var('k')
+    sage: a0 = 2e-6; a1 = 12
+    sage: c = a1 + a0*k; c
+    2.000000000000000e-6*k + 12
+    sage: sqrt(c)
+    sqrt(2.000000000000000e-6*k + 12)
+    sage: sqrt(c^3)
+    sqrt((2.000000000000000e-6*k + 12)^3)
+
+The symbolic Calculus package uses its own copy of maxima for
 simplification, etc., which is separate from the default system-wide
 version:
     sage: maxima.eval('[x,y]: [1,2]')
@@ -220,7 +231,7 @@ This simplification is done using maxima (behind the scenes):
     sage: x + x + pi
     2*x + pi
 
-Note that x is still x, since the maxima used by the calculus package
+Note that \code{x} is still \var{x}, since the maxima used by the calculus package
 is different than the one in the interactive interpreter.
 
 """
@@ -230,23 +241,28 @@ import weakref
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_MPolynomial, is_MPolynomialRing, is_FractionFieldElement,
                             is_RealNumber, is_ComplexNumber, RR,
-                            Integer, Rational, CC,
+                            Integer, Rational, CC, QQ, CDF,
                             QuadDoubleElement,
                             PolynomialRing, ComplexField,
-                            algdep)
+                            algdep, Integer, RealNumber, RealIntervalField)
+
+from sage.rings.real_mpfr import create_RealNumber
 
 from sage.structure.element import RingElement, is_Element
 from sage.structure.parent_base import ParentWithBase
 
 import operator
 from sage.misc.latex import latex, latex_variable_name
+from sage.misc.misc import uniq as unique
 from sage.structure.sage_object import SageObject
 
 from sage.interfaces.maxima import MaximaElement, Maxima
 
+import sage.numerical.optimize
+
 # The calculus package uses its own copy of maxima, which is
 # separate from the default system-wide version.
-maxima = Maxima()
+maxima = Maxima(init_code = ['display2d:false; domain: complex;'])
 
 from sage.misc.sage_eval import sage_eval
 
@@ -265,7 +281,14 @@ from sage.rings.complex_double import ComplexDoubleElement
 import sage.functions.constants
 
 import math
+import sage.functions.functions
 
+import sage.ext.fast_eval as fast_float
+
+#needed for converting from SymPy to SAGE
+import sympy
+
+# TODO: What the heck does this is_simplified thing do?
 is_simplified = False
 
 infixops = {operator.add: '+',
@@ -273,6 +296,8 @@ infixops = {operator.add: '+',
             operator.mul: '*',
             operator.div: '/',
             operator.pow: '^'}
+
+arc_functions =  ['asin', 'acos', 'atan', 'asinh', 'acosh', 'atanh', 'acoth', 'asech', 'acsch', 'acot', 'acsc', 'asec']
 
 
 def is_SymbolicExpression(x):
@@ -303,11 +328,11 @@ class uniq(object):
         global cache
         if cache.has_key(cls):
             return cache[cls]
-        O = object.__new__(cls)
+        O = CommutativeRing.__new__(cls)
         cache[cls] = O
         return O
 
-class SymbolicExpressionRing_class(CommutativeRing):
+class SymbolicExpressionRing_class(uniq, CommutativeRing):
     """
     The ring of all formal symbolic expressions.
 
@@ -316,20 +341,74 @@ class SymbolicExpressionRing_class(CommutativeRing):
         Symbolic Ring
         sage: type(SR)
         <class 'sage.calculus.calculus.SymbolicExpressionRing_class'>
+
+    TESTS:
+    Test serializing:
+        sage: loads(dumps(SR)) == SR
+        True
     """
-    def __init__(self):
-        self._default_precision = 53 # default precision bits
+    def __init__(self, default_precision=53):
+        """
+        Create a symbolic expression ring.
+
+        EXAMPLES:
+            sage: from sage.calculus.calculus import SymbolicExpressionRing_class
+            sage: SymbolicExpressionRing_class()
+            Symbolic Ring
+        """
         ParentWithBase.__init__(self, RR)
 
     def __cmp__(self, other):
+        """
+        Compare two symbolic expression rings.  They are equal if and
+        only if they have the same type. Otherwise their types are
+        compared.
+
+        EXAMPLES:
+            sage: cmp(SR, RR) #random
+            1
+            sage: cmp(RR, SymbolicExpressionRing()) #random
+            -1
+            sage: cmp(SR, SymbolicExpressionRing()) #random
+            0
+        """
         return cmp(type(self), type(other))
 
-    def __reduce__(self):
-        return SymbolicExpressionRing, tuple([])
+    def __contains__(self, x):
+        r"""
+        True if there is an element of the symbolic ring  that is equal
+        to x under ==.
+
+        EXAMPLES:
+        The symbolic variable x is in the symbolic ring.
+            sage: x.parent()
+            Symbolic Ring
+            sage: x in SR
+            True
+
+        2 is also in the symbolic ring since it is equal to something
+        in SR, even though 2's parent is not SR.
+            sage: 2 in SR
+            True
+            sage: parent(2)
+            Integer Ring
+            sage: 1/3 in SR
+            True
+
+        The finite field element 1 (in GF(3)) is not equal to
+        anything in SR.
+            sage: GF(3)(1) in SR
+            False
+        """
+        try:
+            x2 = self(x)
+            return bool(x2 == x)
+        except TypeError:
+            return False
 
     def __call__(self, x):
         """
-        Coerce x into the symbolic expression ring SR.
+        Coerce $x$ into the symbolic expression ring SR.
 
         EXAMPLES:
             sage: a = SR(-3/4); a
@@ -338,9 +417,13 @@ class SymbolicExpressionRing_class(CommutativeRing):
             <class 'sage.calculus.calculus.SymbolicConstant'>
             sage: a.parent()
             Symbolic Ring
+            sage: type(SR(I))
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+            sage: is_SymbolicExpression(SR(I))
+            True
 
-        If a is already in the symblic expression ring, coercing returns
-        a itself (not a copy):
+        If $a$ is already in the symblic expression ring, coercing returns
+        $a$ itself (not a copy):
             sage: SR(a) is a
             True
 
@@ -348,7 +431,7 @@ class SymbolicExpressionRing_class(CommutativeRing):
             sage: SR(complex(2,-3))
             2.00000000000000 - 3.00000000000000*I
         """
-        if is_Element(x) and x.parent() is self:
+        if is_SymbolicExpression(x):
             return x
         elif hasattr(x, '_symbolic_'):
             return x._symbolic_(self)
@@ -356,6 +439,8 @@ class SymbolicExpressionRing_class(CommutativeRing):
 
     def _coerce_impl(self, x):
         """
+        Used for implicit coercion.
+
         EXAMPLES:
             sage: x=var('x'); y0,y1=PolynomialRing(ZZ,2,'y').gens()
             sage: x+y0/y1
@@ -369,6 +454,9 @@ class SymbolicExpressionRing_class(CommutativeRing):
             return x
         elif isinstance(x, MaximaElement):
             return symbolic_expression_from_maxima_element(x)
+        # if "x" is a SymPy object, convert it to a SAGE object
+        elif isinstance(x, sympy.Basic):
+            return self(x._sage_())
         elif is_Polynomial(x) or is_MPolynomial(x):
             if x.base_ring() != self:  # would want coercion to go the other way
                 return SymbolicPolynomial(x)
@@ -400,24 +488,97 @@ class SymbolicExpressionRing_class(CommutativeRing):
             raise TypeError, "cannot coerce type '%s' into a SymbolicExpression."%type(x)
 
     def _repr_(self):
+        """
+        Return string representation of this symbolic ring.
+
+        EXAMPLES:
+            sage: SR._repr_()
+            'Symbolic Ring'
+        """
         return 'Symbolic Ring'
 
     def _latex_(self):
-        return 'SymbolicExpressionRing'
+        """
+        Return latex representation of the symbolic ring.
+
+        EXAMPLES:
+            sage: latex(SR)
+            \text{SR}
+            sage: M = MatrixSpace(SR, 2); latex(M)
+            \mbox{\rm Mat}_{2\times 2}(\text{SR})
+        """
+        return r'\text{SR}'
 
     def var(self, x):
+        """
+        Return the symbolic variable defined by x as an element of the
+        symbolic ring.
+
+        EXAMPLES:
+            sage: zz = SR.var('zz'); zz
+            zz
+            sage: type(zz)
+            <class 'sage.calculus.calculus.SymbolicVariable'>
+            sage: t = SR.var('theta2'); t
+            theta2
+        """
         return var(x)
 
     def characteristic(self):
+        """
+        Return the characteristic of the symbolic ring, which is 0.
+
+        OUTPUT:
+            a Sage integer
+
+        EXAMPLES:
+            sage: c = SR.characteristic(); c
+            0
+            sage: type(c)
+            <type 'sage.rings.integer.Integer'>
+        """
         return Integer(0)
 
     def _an_element_impl(self):
-        return SymbolicVariable('_generic_variable_name_')
+        """
+        Return an element of the symbolic ring, which is used
+        by the coercion model.
+
+        EXAMPLES:
+        Currently this function always returns 0.  That may change.
+            sage: SR._an_element_impl()
+            0
+        """
+        try:
+            return self.__zero
+        except AttributeError:
+            self.__zero = SR(0)
+        return self.__zero
 
     def is_field(self):
+        """
+        Returns True, since the symbolic expression ring is (for the
+        most part) a field.
+
+        EXAMPLES:
+            sage: SR.is_field()
+            True
+        """
         return True
 
     def is_exact(self):
+        """
+        Return False, because there are approximate elements in
+        the symbolic ring.
+
+        EXAMPLES:
+            sage: SR.is_exact()
+            False
+
+        Here is an inexact element.
+            sage: SR(1.9393)
+            1.93930000000000
+        """
         return False
 
 # Define the unique symbolic expression ring.
@@ -426,7 +587,9 @@ SR = SymbolicExpressionRing_class()
 # The factory function that returns the unique SR.
 def SymbolicExpressionRing():
     """
-    Return the symbolic expression ring.
+    Return the symbolic expression ring.  There is one
+    globally defines symbolic expression ring in the
+    calculus module.
 
     EXAMPLES:
         sage: SymbolicExpressionRing()
@@ -437,11 +600,11 @@ def SymbolicExpressionRing():
     return SR
 
 class SymbolicExpression(RingElement):
-    """
+    r"""
     A Symbolic Expression.
 
     EXAMPLES:
-        Some types of SymbolicExpressions:
+        Some types of \class{SymbolicExpression}s:
 
         sage: a = SR(2+2); a
         4
@@ -450,24 +613,68 @@ class SymbolicExpression(RingElement):
 
     """
     def __init__(self):
+        """
+        Create a symbolic expression.
+
+        EXAMPLES:
+        This example is mainly for testing purposes.
+
+        We explicitly import the SymbolicExpression class.
+            sage: from sage.calculus.calculus import SymbolicExpression
+
+        Then we make an instance of it.  Note that it prints as a
+        ``generic element'', since it doesn't even have a specific
+        value!
+            sage: a = SymbolicExpression(); a
+            Generic element of a structure
+
+        It's of the right type.
+            sage: type(a)
+            <class 'sage.calculus.calculus.SymbolicExpression'>
+
+        And it has the right parent.
+            sage: a.parent()
+            Symbolic Ring
+        """
         RingElement.__init__(self, SR)
         if is_simplified:
-            self._simp = self
+            self._simp = None
 
     def __hash__(self):
+        """
+        Returns the hash of this symbolic expression.
+
+        EXAMPLES:
+        We hash a symbolic polynomial:
+            sage: hash(x^2 + 1) #random due to architecture dependence
+            -832266011
+
+        The default hashing strategy is to simply hash
+        the string representation of an object.
+            sage: hash(repr(x^2+1)) #random due to architecture dependence
+            -832266011
+
+        In some cases a better hashing strategy is used.
+            sage: hash(SR(3/1))
+            3
+            sage: hash(repr(SR(3/1))) #random due to architecture dependence
+            -2061914958
+        """
         return hash(self._repr_(simplify=False))
 
     def __nonzero__(self):
         """
-        EXAMPLES:
-        sage: k = var('k')
-        sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
-        sage: pol.is_zero()
-        True
+        Return True if this element is definitely not zero.
 
-        sage: f = sin(x)^2 + cos(x)^2 - 1
-        sage: f.is_zero()
-        True
+        EXAMPLES:
+            sage: k = var('k')
+            sage: pol = 1/(k-1) - 1/k -1/k/(k-1);
+            sage: pol.is_zero()
+            True
+
+            sage: f = sin(x)^2 + cos(x)^2 - 1
+            sage: f.is_zero()
+            True
         """
 
         try:
@@ -494,16 +701,33 @@ class SymbolicExpression(RingElement):
                                                  3          3
                                           (y + 1)    (x - 1)
 
+            sage: f = (exp(x)-1)/(exp(x/2)+1)
+            sage: g = exp(x/2)-1
+            sage: print f(10), g(10)
+                                     10
+                                    e   - 1
+                                   --------
+                                     5
+                                    e  + 1
+                                      5
+                                     e  - 1
         """
-        return self.display2d(onscreen=False)
+        return '\n' + self.display2d(onscreen=False)
 
     def show(self):
+        """
+        Show this symbolic expression, i.e., typeset it nicely.
+
+        EXAMPLES:
+            sage: (x^2 + 1).show()
+            {x}^{2}  + 1
+        """
         from sage.misc.functional import _do_show
         return _do_show(self)
 
     def display2d(self, onscreen=True):
-        """
-        Display self using ASCII art.
+        r"""
+        Display \code{self} using ASCII art.
 
         INPUT:
             onscreen -- string (optional, default True) If True,
@@ -522,11 +746,11 @@ class SymbolicExpression(RingElement):
                                                 2
                                              3 y  + x + 1
 
-        Use onscreen=False to get the 2d string:
+        Use \code{onscreen=False} to get the 2d string:
              sage: f.display2d(onscreen=False)
              '                                         3\r\n                                    y + x\r\n                                 ------------\r\n                                    2\r\n                                 3 y  + x + 1'
 
-        ASCII art is really helps for the following integral:
+        ASCII art really helps for the following integral:
             sage: f = integral(sin(x^2)); f
             sqrt(pi)*((sqrt(2)*I + sqrt(2))*erf((sqrt(2)*I + sqrt(2))*x/2) + (sqrt(2)*I - sqrt(2))*erf((sqrt(2)*I - sqrt(2))*x/2))/8
             sage: print f
@@ -537,25 +761,114 @@ class SymbolicExpression(RingElement):
                                   + (sqrt(2)  I - sqrt(2)) erf(------------------------))/8
                                                                           2
         """
-        if not self.is_simplified():
+        if not self._has_been_simplified():
             self = self.simplify()
         s = self._maxima_().display2d(onscreen=False)
         s = s.replace('%pi',' pi').replace('%i',' I').replace('%e', ' e')
+
+        #Change asin, etc. to arcsin, etc
+        for arc_function in arc_functions:
+            s = s.replace("  "+arc_function, "arc"+arc_function[1:])
+            s = s.replace(arc_function, "arc"+arc_function[1:])
+
         if onscreen:
             print s
         else:
             return s
 
-    def is_simplified(self):
-        return hasattr(self, '_simp') and self._simp is self
+    def _has_been_simplified(self):
+        """
+        Return True if this symbolic expression was constructed in
+        such a way that it is known to already be simplified.
+
+        WARNING: An expression that happens to be in a simplified form
+        need not return True.
+
+        EXAMPLES:
+        This expression starts in simple form:
+            sage: f = x^2 + 1; f
+            x^2 + 1
+
+        But it has not been simplified, i.e., it was constructed
+        as a simplified expression.
+            sage: f._has_been_simplified()
+            False
+            sage: g = f.simplify(); g
+            x^2 + 1
+            sage: g._has_been_simplified()
+            True
+
+        This function still does not return True, since f itself
+        isn't constructed as a simplified expression.
+            sage: f._has_been_simplified()
+            False
+
+        Here, though f looks simplified when printed, internally
+        it is much more complicated and hence not simplified.
+            sage: f = x + 1 - x; f
+            1
+            sage: f._has_been_simplified()
+            False
+            sage: type(f)
+            <class 'sage.calculus.calculus.SymbolicArithmetic'>
+            sage: f._operands
+            [x + 1, x]
+        """
+        return hasattr(self, '_simp') and self._simp is None
 
     def _declare_simplified(self):
-        self._simp = self
+        """
+        Call this function to 'convince' this symbolic expression that
+        it is in fact simplified.  Basically this means it won't be
+        simplified further before printing if you do this.
 
-    def hash(self):
-        return hash(self._repr_(simplify=False))
+        This is mainly for internal use.
+
+        EXAMPLES:
+        We make an $x + 1 - x$ that prints as that expression with
+        no simplification before printing:
+            sage: f = x + 1 - x
+            sage: f._declare_simplified()
+            sage: f
+            x + 1 - x
+            sage: f._has_been_simplified()
+            True
+
+        Note that staying unsimplified as above does not persist
+        when we do arithmetic with $f$.
+            sage: f + 2
+            3
+        """
+        self._simp = None
 
     def plot(self, *args, **kwds):
+        """
+        Plot a symbolic expression.
+
+        All arguments are passed onto the standard plot command.
+
+        EXAMPLES:
+        This displays a straight line:
+            sage: sin(2).plot((x,0,3))
+
+        This draws a red oscillatory curve:
+            sage: sin(x^2).plot((x,0,2*pi), rgbcolor=(1,0,0))
+
+        Another plot using the variable theta:
+            sage: var('theta')
+            theta
+            sage: (cos(theta) - erf(theta)).plot((theta,-2*pi,2*pi))
+
+        A very thick green plot with a frame:
+            sage: sin(x).plot((x,-4*pi, 4*pi), thickness=20, rgbcolor=(0,0.7,0)).show(frame=True)
+
+        You can embed 2d plots in 3d space as follows:
+            sage: plot(sin(x^2), (x,-pi, pi), thickness=2).plot3d(z = 1)
+
+        A more complicated family:
+            sage: G = sum([plot(sin(n*x), (x,-2*pi, 2*pi)).plot3d(z=n) for n in [0,0.1,..1]])
+            sage: G.show(frame_aspect_ratio=[1,1,1/2])
+        """
         from sage.plot.plot import plot
 
         # see if the user passed a variable in.
@@ -572,7 +885,7 @@ class SymbolicExpression(RingElement):
         F = self.simplify()
         if isinstance(F, Symbolic_object):
             if hasattr(F._obj, '__call__'):
-                f = lambda x: F._obj(x)
+                f = lambda x: F.subs(x)
             else:
                 y = float(F._obj)
                 f = lambda x: y
@@ -592,60 +905,158 @@ class SymbolicExpression(RingElement):
                     f = lambda x: y
                 else:
                     param = A[0]
-                f = self.function(param)
+                    f = self.function(param)
         else:
             f = self.function(param)
         return plot(f, *args, **kwds)
 
     def __lt__(self, right):
+        r"""
+        Construct the symbolic inequality \code{self < right}.
+
+        NOTE: This only returns a Python bool if right does not coerce
+        to the symbolic ring.  Otherwise it returns a symbolic equation.
+
+        EXAMPLES:
+            sage: x < x
+            x < x
+            sage: x < Mod(2,5) #random due to architecture dependence
+            False
+        """
         try:
             return SymbolicEquation(self, SR(right), operator.lt)
         except TypeError:
-            return False
+            return type(self) < type(right)
 
     def __le__(self, right):
+        r"""
+        Construct the symbolic inequality \code{self <= right}.
+
+        NOTE: This only returns a Python bool if right does not coerce
+        to the symbolic ring.  Otherwise it returns a symbolic equation.
+
+        EXAMPLES:
+            sage: x <= x
+            x <= x
+            sage: x <= Mod(2,5) #random due to architecture dependence
+            False
+            sage: Mod(2,5) >= x #random due to architecture dependence
+            False
+            sage: Mod(2,5) <= x #random due to architecture dependence
+            True
+        """
         try:
             return SymbolicEquation(self, SR(right), operator.le)
         except TypeError:
-            return False
+            return type(self) <= type(right)
 
     def __eq__(self, right):
+        r"""
+        Construct the symbolic inequality \code{self == right}.
+
+        NOTE: This only returns a Python bool if right does not coerce
+        to the symbolic ring.  Otherwise it returns a symbolic equation.
+
+        EXAMPLES:
+
+        """
         try:
             return SymbolicEquation(self, SR(right), operator.eq)
         except TypeError:
             return False
 
     def __ne__(self, right):
+        r"""
+        Construct the symbolic inequality \code{self != right}.
+
+        NOTE: This only returns a Python bool if right does not coerce
+        to the symbolic ring.  Otherwise it returns a symbolic equation.
+
+        EXAMPLES:
+        """
         try:
             return SymbolicEquation(self, SR(right), operator.ne)
         except TypeError:
-            return False
+            return True
 
     def __ge__(self, right):
+        r"""
+        Construct the symbolic inequality \code{self >= right}.
+
+        NOTE: This only returns a Python bool if right does not coerce
+        to the symbolic ring.  Otherwise it returns a symbolic equation.
+
+        EXAMPLES:
+        """
         try:
             return SymbolicEquation(self, SR(right), operator.ge)
         except TypeError:
-            return False
+            return type(self) >= type(right)
 
     def __gt__(self, right):
+        r"""
+        Construct the symbolic inequality \code{self > right}.
+
+        NOTE: This only returns a Python bool if right does not coerce
+        to the symbolic ring.  Otherwise it returns a symbolic equation.
+
+        EXAMPLES:
+        """
         try:
             return SymbolicEquation(self, SR(right), operator.gt)
         except TypeError:
-            return False
+            return type(self) > type(right)
 
     def __cmp__(self, right):
         """
         Compares self and right.
 
         This is by definition the comparison of the underlying Maxima
-        objects.
+        objects, if right coerces to a symbolic (otherwise types are
+        compared).  It is not used unless you explicitly call cmp,
+        since all the other special comparison methods are overloaded.
 
         EXAMPLES:
         These two are equal:
             sage: cmp(e+e, e*2)
             0
+            sage: cmp(SR(3), SR(5))
+            -1
+            sage: cmp(SR(5), SR(2))
+            1
+
+        Note that specifiec comparison operators do not call cmp.
+            sage: SR(3) < SR(5)
+            3 < 5
+            sage: bool(SR(3) < SR(5))
+            True
+
+        We compare symbolic elements with non symbolic ones.
+            sage: cmp(SR(3), 5)
+            -1
+            sage: cmp(3, SR(5))
+            -1
+
+        Here the underlying types are compared, since Mod(2,5)
+        doesn't coerce to the symbolic ring.
+            sage: cmp(SR(3), Mod(2,5)) #random due to architecture dependence
+            1
+            sage: cmp(type(SR(3)), type(Mod(2,5))) #random due to architecture dependence
+            1
+            sage: cmp(Mod(2,5), SR(3) ) #random due to architecture dependence
+            -1
+
+        Some comparisons are fairly arbitrary but consistent:
+            sage: cmp(SR(3), x) #random due to architecture dependence
+            -1
+            sage: cmp(x, SR(3)) #random due to architecture dependence
+            1
         """
-        return cmp(maxima(self), maxima(right))
+        try:
+            right = SR(right)
+            return cmp(maxima(self), maxima(right))
+        except TypeError:
+            return cmp(type(self), type(right))
 
     def _richcmp_(left, right, op):
         """
@@ -676,8 +1087,8 @@ class SymbolicExpression(RingElement):
 
 
     def _neg_(self):
-        """
-        Return the formal negative of self.
+        r"""
+        Return the formal negative of \code{self}.
 
         EXAMPLES:
             sage: var('a,x,y')
@@ -746,13 +1157,13 @@ class SymbolicExpression(RingElement):
 
         EXAMPLES:
             sage: gap(e+pi^2 + x^3)
-            "x^3 + pi^2 + e"
+            x^3 + pi^2 + e
         """
         return '"%s"'%repr(self)
 
     def _singular_init_(self):
         """
-        Conversion of symbolic object to Singular always results in a Singular string.
+        Conversion of a symbolic object to Singular always results in a Singular string.
 
         EXAMPLES:
             sage: singular(e+pi^2 + x^3)
@@ -784,7 +1195,7 @@ class SymbolicExpression(RingElement):
 
     def numerical_approx(self, prec=None, digits=None):
         r"""
-        Return a numerical approximation of self as either a real or
+        Return a numerical approximation of \code{self} as either a real or
         complex number with at least the requested number of bits or
         digits of precision.
 
@@ -803,7 +1214,7 @@ class SymbolicExpression(RingElement):
             sage: cos(3).numerical_approx()
             -0.989992496600445
 
-        Use the n() shortcut:
+        Use the \code{n()} shortcut:
             sage: cos(3).n()
             -0.989992496600445
 
@@ -837,7 +1248,7 @@ class SymbolicExpression(RingElement):
     n = numerical_approx
 
     def minpoly(self, bits=None, degree=None, epsilon=0):
-        """
+        r"""
         Return the minimal polynomial of self, if possible.
 
         INPUT:
@@ -856,18 +1267,18 @@ class SymbolicExpression(RingElement):
 
             If the minimal polynomial could not be found, two distinct kinds
             of errors are raised. If no reasonable candidate was found with
-            the given bit/degree parameters, a ValueError will be raised.
+            the given bit/degree parameters, a \exception{ValueError} will be raised.
             If a reasonable candidate was found but (perhaps due to limits
             in the underlying symbolic package) was unable to be proved
-            correct, a NotImplementedError will be raised.
+            correct, a \exception{NotImplementedError} will be raised.
 
         ALGORITHM:
-            Use the PARI algdep command on a numerical approximation of self
-            to get a candidate minpoly f. Approximate f(self) to higher
+            Use the PARI algdep command on a numerical approximation of \code{self}
+            to get a candidate minpoly $f$. Approximate $f(\code{self})$ to higher
             precision and if the result is still close enough to 0 then
-            evaluate f(self) symbolically, attempting to prove vanishing.
-            If this fails, and epsilon is non-zero, return f as long as
-            f(self) < epsilon. Otherwise raise an error.
+            evaluate $f(\code{self})$ symbolically, attempting to prove vanishing.
+            If this fails, and \var{epsilon} is non-zero, return $f$ as long as
+            $f(\code{self}) < \var{epsilon}$. Otherwise raise an error.
 
 
         NOTE: Failure of this function does not prove self is
@@ -911,7 +1322,7 @@ class SymbolicExpression(RingElement):
             sage: sin(pi/3).minpoly()
             x^2 - 3/4
 
-        Here we show use of the epsilon parameter. That this result is
+        Here we show use of the \var{epsilon} parameter. That this result is
         actually exact can be shown using the addition formula for sin,
         but maxima is unable to see that.
 
@@ -1061,9 +1472,9 @@ class SymbolicExpression(RingElement):
         return SymbolicArithmetic([self, right], operator.pow)
 
     def variables(self, vars=tuple([])):
-        """
+        r"""
         Return sorted list of variables that occur in the simplified
-        form of self.
+        form of \code{self}.
 
         OUTPUT:
             a Python set
@@ -1082,23 +1493,38 @@ class SymbolicExpression(RingElement):
         """
         return vars
 
-    def _first_variable(self):
-        try:
-            return self.__first_variable
-        except AttributeError:
-            pass
-        v = self.variables()
-        if len(v) == 0:
-            ans = var('x')
-        else:
-            ans = v[0]
-        self.__first_variable = ans
-        return ans
+    def arguments(self):
+        r"""
+        Return the arguments of self, if we view self as a callable
+        function.
+
+        This is the same as \code{self.variables()}.
+
+        EXAMPLES:
+            sage: x, theta, a = var('x, theta, a')
+            sage: f = x^2 + theta^3 - a^x; f
+            x^2 + theta^3 - a^x
+            sage: f.arguments()
+            (a, theta, x)
+        """
+        return self.variables()
+
+    def number_of_arguments(self):
+        """
+        Returns the number of arguments the object can take.
+
+        EXAMPLES:
+            sage: a,b,c = var('a,b,c')
+            sage: foo = function('foo', a,b,c)
+            sage: foo.number_of_arguments()
+            3
+        """
+        return len(self.variables())
 
     def _has_op(self, operator):
-        """
-        Recursively searches for the given operator in a SymbolicExpression
-        object.
+        r"""
+        Recursively searches for the given operator in a
+        \class{SymbolicExpression} object.
 
         INPUT:
             operator: the operator to search for
@@ -1135,8 +1561,62 @@ class SymbolicExpression(RingElement):
         return False
 
 
-    def __call__(self, dict=None, **kwds):
-        return self.substitute(dict, **kwds)
+    def __call__(self, *args, **kwds):
+        """
+        EXAMPLES:
+            sage: x,y=var('x,y')
+            sage: f = x+y
+            sage: f.arguments()
+            (x, y)
+            sage: f()
+            y + x
+            sage: f(3)
+            y + 3
+            sage: f(3,4)
+            7
+            sage: f(2,3,4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of arguments must be less than or equal to 2
+
+            sage: f({x:3})
+            y + 3
+            sage: f({x:3,y:4})
+            7
+            sage: f(x=3)
+            y + 3
+            sage: f(x=3,y=4)
+            7
+
+            sage: a = (2^(8/9))
+            sage: a(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of arguments must be less than or equal to 0
+
+
+            sage: f = function('Gamma', var('z'), var('w')); f
+            Gamma(z, w)
+            sage: f(2)
+            Gamma(2, w)
+            sage: f(2,5)
+            Gamma(2, 5)
+
+        """
+        if len(args) == 0:
+            d = None
+        elif len(args) == 1 and isinstance(args[0], dict):
+            d = args[0]
+        else:
+            d = {}
+            vars = self.arguments()
+            for i in range(len(args)):
+                try:
+                    d[ vars[i] ] = args[i]
+                except IndexError:
+                    raise ValueError, "the number of arguments must be less than or equal to %s"%len(self.variables())
+
+        return self.substitute(d, **kwds)
 
     def power_series(self, base_ring):
         """
@@ -1166,8 +1646,8 @@ class SymbolicExpression(RingElement):
 
     def polynomial(self, base_ring):
         r"""
-        Return self as an algebraic polynomial over the given base ring, if
-        possible.
+        Return \code{self} as an algebraic polynomial over the given
+        base ring, if possible.
 
         The point of this function is that it converts purely symbolic
         polynomials into optimized algebraic polynomials over a given
@@ -1248,7 +1728,7 @@ class SymbolicExpression(RingElement):
 
     def _polynomial_(self, R):
         """
-        Coerce this symbolic expression to a polynomial in R.
+        Coerce this symbolic expression to a polynomial in $R$.
 
         EXAMPLES:
             sage: var('x,y,z,w')
@@ -1312,8 +1792,8 @@ class SymbolicExpression(RingElement):
         return self.substitute_over_ring(dict(sub), ring=R)
 
     def function(self, *args):
-        """
-        Return a CallableSymbolicExpression, fixing a variable order
+        r"""
+        Return a \class{CallableSymbolicExpression}, fixing a variable order
         to be the order of args.
 
         EXAMPLES:
@@ -1335,7 +1815,7 @@ class SymbolicExpression(RingElement):
             sage: f(1,2,3)
             sin(3) + 4
 
-        Using the function method we can obtain the above function f,
+        Using the \method{function} method we can obtain the above function $f$,
         but viewed as a function of different variables:
             sage: h = f.function(w,a); h
             (w, a) |--> x^2 + sin(a*w)
@@ -1363,20 +1843,22 @@ class SymbolicExpression(RingElement):
     # derivative
     ###################################################################
     def derivative(self, *args):
-        """
-        Returns the derivative of itself. If self has exactly one variable, then
-        it differentiates with respect to that variable. If there is more than one
-        variable in the expression, then you must explicitly supply a variable.
-        If you supply a variable $x$ followed by a number $n$, then it will
-        differentiate with respect to $n$ times with respect to $n$.
+        r"""
+        Returns the derivative of itself. If \code{self} has exactly
+        one variable, then it differentiates with respect to that
+        variable. If there is more than one variable in the
+        expression, then you must explicitly supply a variable.  If
+        you supply a variable $x$ followed by a number $n$, then it
+        will differentiate $n$ times with respect to $x$.
 
-        You may supply more than one variable. Each variable may optionally be
-        followed by a positive integer. Then SAGE will differentiate with
-        respect to the first variable $n$ times, where $n$ is the number
-        immediately following the variable in the parameter list. If the
-        variable is not followed by an integer, then SAGE will differentiate
-        once. Then SAGE will differentiate by the second variables, and if that
-        is followed by a number $m$, it will differentiate $m$ times, and so on.
+        You may supply more than one variable. Each variable may
+        optionally be followed by a positive integer. Then \sage will
+        differentiate with respect to the first variable $n$ times,
+        where $n$ is the number immediately following the variable in
+        the parameter list. If the variable is not followed by an
+        integer, then SAGE will differentiate once. Then SAGE will
+        differentiate by the second variables, and if that is followed
+        by a number $m$, it will differentiate $m$ times, and so on.
 
         EXAMPLES:
             sage: h = sin(x)/cos(x)
@@ -1410,7 +1892,7 @@ class SymbolicExpression(RingElement):
 
             sage: g = 1/(sqrt((x^2-1)*(x+5)^6))
             sage: diff(g, x)
-            -3/((x + 5)^3*sqrt(x^2 - 1)*abs(x + 5)) - x/((x^2 - 1)^(3/2)*abs(x + 5)^3)
+            -3*(x + 5)^5/(((x + 5)^6)^(3/2)*sqrt(x^2 - 1)) - x/(sqrt((x + 5)^6)*(x^2 - 1)^(3/2))
         """
         # check each time
         s = ""
@@ -1464,9 +1946,10 @@ class SymbolicExpression(RingElement):
     # Taylor series
     ###################################################################
     def taylor(self, v, a, n):
-        """
-        Expands self in a truncated Taylor or Laurent series in the
-        variable v around the point a, containing terms through $(x - a)^n$.
+        r"""
+        Expands \code{self} in a truncated Taylor or Laurent series in
+        the variable $v$ around the point $a$, containing terms
+        through $(x - a)^n$.
 
         INPUT:
             v -- variable
@@ -1500,7 +1983,7 @@ class SymbolicExpression(RingElement):
     ###################################################################
     def limit(self, dir=None, taylor=False, **argv):
         r"""
-        Return the limit as the variable v approaches a from the
+        Return the limit as the variable $v$ approaches $a$ from the
         given direction.
 
         \begin{verbatim}
@@ -1518,7 +2001,7 @@ class SymbolicExpression(RingElement):
                    in some obscure cases due to bugs in Maxima).
             **argv -- 1 named parameter
 
-        NOTE: Output it may also use `und' (undefined), `ind'
+        NOTE: The output may also use `und' (undefined), `ind'
         (indefinite but bounded), and `infinity' (complex infinity).
 
         EXAMPLES:
@@ -1528,11 +2011,11 @@ class SymbolicExpression(RingElement):
             sage: f.limit(x = 5)
             7776/3125
             sage: f.limit(x = 1.2)
-            2.069615754672029
+            2.0696157546720...
             sage: f.limit(x = I, taylor=True)
             (1 - I)^I
             sage: f(1.2)
-            2.069615754672029
+            2.0696157546720...
             sage: f(I)
             (1 - I)^I
             sage: CDF(f(I))
@@ -1561,11 +2044,6 @@ class SymbolicExpression(RingElement):
             -Infinity
             sage: lim(x*sin(1/x), x=0)
             0
-
-            Traceback (most recent call last):
-            ...
-            TypeError: Computation failed since Maxima requested additional constraints (use assume):
-            Is  x  positive or negative?
 
             sage: f = log(log(x))/log(x)
             sage: forget(); assume(x<-2); lim(f, x=0, taylor=True)
@@ -1605,11 +2083,13 @@ class SymbolicExpression(RingElement):
     ###################################################################
     def laplace(self, t, s):
         r"""
-        Attempts to compute and return the Laplace transform of self
-        with respect to the variable t and transform parameter s.  If
-        Laplace cannot find a solution, a formal function is returned.
+        Attempts to compute and return the Laplace transform of
+        \code{self} with respect to the variable $t$ and transform
+        parameter $s$.  If this function cannot find a solution, a
+        formal function is returned.
 
-        The function that is returned maybe be viewed as a function of s.
+        The function that is returned may be be viewed as a function
+        of $s$.
 
         DEFINITION:
         The Laplace transform of a function $f(t)$, defined for all
@@ -1682,12 +2162,13 @@ class SymbolicExpression(RingElement):
 
     def inverse_laplace(self, t, s):
         r"""
-        Attempts to compute the inverse Laplace transform of self with
-        respect to the variable t and transform parameter s.  If
-        Laplace cannot find a solution, a formal function is returned.
+        Attempts to compute the inverse Laplace transform of
+        \code{self} with respect to the variable $t$ and transform
+        parameter $s$.  If this function cannot find a solution, a
+        formal function is returned.
 
-        The function that is returned maybe be viewed as a function of s.
-
+        The function that is returned may be be viewed as a function
+        of $s$.
 
         DEFINITION:
         The inverse Laplace transform of a function $F(s)$,
@@ -1713,17 +2194,47 @@ class SymbolicExpression(RingElement):
     # a default variable, for convenience.
     ###################################################################
     def default_variable(self):
-        vars = self.variables()
-        if len(vars) < 1:
-            return var('x')
+        """
+        Return the default variable, which is by definition the first
+        variable in self, or $x$ is there are no variables in self.
+        The result is cached.
+
+        EXAMPLES:
+            sage: sqrt(2).default_variable()
+            x
+            sage: x, theta, a = var('x, theta, a')
+            sage: f = x^2 + theta^3 - a^x
+            sage: f.default_variable()
+            a
+
+        Note that this is the first \emph{variable}, not
+        the first \emph{argument}:
+            sage: f(theta, a, x) = a + theta^3
+            sage: f.default_variable()
+            a
+            sage: f.variables()
+            (a, theta)
+            sage: f.arguments()
+            (theta, a, x)
+        """
+        try:
+            return self.__default_variable
+        except AttributeError:
+            pass
+        v = self.variables()
+        if len(v) == 0:
+            ans = var('x')
         else:
-            return vars[0]
+            ans = v[0]
+        self.__default_variable = ans
+        return ans
+
 
     ###################################################################
     # integration
     ###################################################################
     def integral(self, v=None, a=None, b=None):
-        """
+        r"""
         Returns the indefinite integral with respect to the variable
         $v$, ignoring the constant of integration. Or, if endpoints
         $a$ and $b$ are specified, returns the definite integral over
@@ -1798,7 +2309,7 @@ class SymbolicExpression(RingElement):
             sage: integral(x^2 * exp(-x^2), x, -oo, oo)
             sqrt(pi)/2
 
-        We integrate the same function in both Mathematica and SAGE (via Maxima):
+        We integrate the same function in both Mathematica and \sage (via Maxima):
             sage: f = sin(x^2) + y^z
             sage: g = mathematica(f)                           # optional  -- requires mathematica
             sage: print g                                      # optional
@@ -1867,8 +2378,9 @@ class SymbolicExpression(RingElement):
                   desired_relative_error='1e-8',
                   maximum_num_subintervals=200):
         r"""
-        Return a numerical approximation to the integral of self from
-        a to b.
+        Return a floating point machine precision numerical
+        approximation to the integral of \code{self} from $a$ to $b$, computed
+        using floating point arithmetic via maxima.
 
         INPUT:
             x -- variable to integrate with respect to
@@ -1900,19 +2412,75 @@ class SymbolicExpression(RingElement):
             numerical integration using the GSL C library.  It is potentially
             much faster and applies to arbitrary user defined functions.
 
+            Also, there are limits to the precision to which Maxima can compute
+            the integral to due to limitations in quadpack.
+
+            sage: f = x
+            sage: f = f.nintegral(x,0,1,1e-14)
+            Traceback (most recent call last):
+            ...
+            ValueError: Maxima (via quadpack) cannot compute the integral to that precision
+
         EXAMPLES:
             sage: f(x) = exp(-sqrt(x))
             sage: f.nintegral(x, 0, 1)
-            (0.52848223531423055, 4.1633141378838452e-11, 231, 0)
+            (0.52848223531423055, 4.163...e-11, 231, 0)
 
         We can also use the \code{numerical_integral} function, which calls
         the GSL C library.
             sage: numerical_integral(f, 0, 1)       # random low-order bits
             (0.52848223225314706, 6.8392846084921134e-07)
+
+        Note that in exotic cases where floating point evaluation of
+        the expression leads to the wrong value, then the output
+        can be completely wrong:
+            sage: f = exp(pi*sqrt(163)) - 262537412640768744
+
+        Despite appearance, $f$ is really very close to 0, but one
+        gets a nonzero value since the definition of \code{float(f)} is
+        that it makes all constants inside the expression floats, then
+        evaluates each function and each arithmetic operation
+        using float arithmetic:
+            sage: float(f)
+            -480.0
+
+        Computing to higher precision we see the truth:
+            sage: f.n(200)
+            -7.4992740280181431112064614366622348652078895136533593355718e-13
+            sage: f.n(300)
+            -7.49927402801814311120646143662663009137292462589621789352095066181709095575681963967103004e-13
+
+        Now numerically integrating, we see why the answer is wrong:
+            sage: f.nintegrate(x,0,1)
+            (-480.00000000000011, 5.3290705182007538e-12, 21, 0)
+
+        It is just because every floating point evaluation of return
+        -480.0 in floating point.
+
+        Important note: using GP/PARI one can compute numerical
+        integrals to high precision:
+            sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
+            '2.565728500561051482917356396 E-127'        # 32-bit
+            '2.5657285005610514829173563961304785900 E-127'    # 64-bit
+            sage: old_prec = gp.set_real_precision(50)
+            sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
+            '2.5657285005610514829173563961304785900147709554020 E-127'
+            sage: gp.set_real_precision(old_prec)
+            57
+
+        Note that the input function above is a string in PARI
+        syntax.
         """
-        v = self._maxima_().quad_qags(var(x),
+        try:
+            v = self._maxima_().quad_qags(var(x),
                                       a, b, desired_relative_error,
                                       maximum_num_subintervals)
+        except TypeError, err:
+            if "ERROR" in str(err):
+                raise ValueError, "Maxima (via quadpack) cannot compute the integral to that precision"
+            else:
+                raise TypeError, err
+
         return float(v[0]), float(v[1]), Integer(v[2]), Integer(v[3])
 
     nintegrate = nintegral
@@ -1950,13 +2518,14 @@ class SymbolicExpression(RingElement):
         return self.parent()(self._maxima_().coeff(x, n))
 
     def coeffs(self, x=None):
-        """
-        Coefficients of self as a polynomial in x.
+        r"""
+        Coefficients of \code{self} as a polynomial in x.
 
         INPUT:
             x -- optional variable
         OUTPUT:
-            list of pairs [expr, n], where expr is a symbolic expression and n is a power.
+            list of pairs [expr, n], where expr is a symbolic
+            expression and n is a power.
 
         EXAMPLES:
             sage: var('x, y, a')
@@ -1988,11 +2557,11 @@ class SymbolicExpression(RingElement):
 
     def poly(self, x=None):
         r"""
-        Express self as a polynomial in x.  Is self is not a polynomial
-        in x, then some coefficients may be functions of x.
+        Express \code{self} as a polynomial in $x$.  If \code{self} is not a polynomial
+        in $x$, then some coefficients may be functions of $x$.
 
         WARNING: This is different from \code{self.polynomial()} which
-        returns a SAGE polynomial over a given base ring.
+        returns a \sage polynomial over a given base ring.
 
         EXAMPLES:
             sage: var('a, x')
@@ -2033,8 +2602,8 @@ class SymbolicExpression(RingElement):
         return ans
 
     def combine(self):
-        """
-        Simplifies self by combining all terms with the same
+        r"""
+        Simplifies \code{self} by combining all terms with the same
         denominator into a single term.
 
         EXAMPLES:
@@ -2076,6 +2645,8 @@ class SymbolicExpression(RingElement):
 
     def denominator(self):
         """
+        Return the denominator of self.
+
         EXAMPLES:
             sage: var('x, y, z, theta')
             (x, y, z, theta)
@@ -2108,15 +2679,15 @@ class SymbolicExpression(RingElement):
             (x, y, z)
             sage: f = x^3-y^3
             sage: f.factor()
-            -(y - x)*(y^2 + x*y + x^2)
+            (x - y)*(y^2 + x*y + x^2)
 
         Notice that the -1 factor is separated out:
             sage: f.factor_list()
-            [(-1, 1), (y - x, 1), (y^2 + x*y + x^2, 1)]
+            [(x - y, 1), (y^2 + x*y + x^2, 1)]
 
         We factor a fairly straightforward expression:
             sage: factor(-8*y - 4*x + z^2*(2*y + x)).factor_list()
-            [(2*y + x, 1), (z - 2, 1), (z + 2, 1)]
+            [(z - 2, 1), (z + 2, 1), (2*y + x, 1)]
 
         This function also works for quotients:
             sage: f = -1 - 2*x - x^2 + y^2 + 2*x*y^2 + x^2*y^2
@@ -2146,6 +2717,21 @@ class SymbolicExpression(RingElement):
         return self.factor(dontfactor=dontfactor)._factor_list()
 
     def _factor_list(self):
+        r"""
+        Turn an expression already in factored form into a
+        list of (prime, power) pairs.
+
+        This is used, e.g., internally by the \code{factor_list}
+        command.
+
+        EXAMPLES:
+            sage: g = factor(x^3 - 1); g
+            (x - 1)*(x^2 + x + 1)
+            sage: v = g._factor_list(); v
+            [(x - 1, 1), (x^2 + x + 1, 1)]
+            sage: type(v)
+            <type 'list'>
+        """
         if isinstance(self, SymbolicArithmetic):
             if self._operator == operator.mul:
                 left, right = self._operands
@@ -2169,7 +2755,12 @@ class SymbolicExpression(RingElement):
     ###################################################################
     def roots(self, x=None, explicit_solutions=True):
         r"""
-        Returns the roots of self, with multiplicities.
+        Returns roots of \code{self} that can be found exactly, with
+        multiplicities.  Not all root are guaranteed to be found.
+
+        WARNING: This is \emph{not} a numerical solver -- use
+        \code{find_root} to solve for self == 0 numerically on an
+        interval.
 
         INPUT:
             x -- variable to view the function in terms of
@@ -2180,7 +2771,7 @@ class SymbolicExpression(RingElement):
             list of pairs (root, multiplicity)
 
         If there are infinitely many roots, e.g., a function
-        like sin(x), only one is returned.
+        like $\sin(x)$, only one is returned.
 
         EXAMPLES:
             sage: var('x, a')
@@ -2194,17 +2785,17 @@ class SymbolicExpression(RingElement):
             sage: f = expand((x^2 - 1)^3*(x^2 + 1)*(x-a)); f
             x^9 - a*x^8 - 2*x^7 + 2*a*x^6 + 2*x^3 - 2*a*x^2 - x + a
 
-        The default variable is a, since it is the first in alphabetical order:
+        The default variable is $a$, since it is the first in alphabetical order:
             sage: f.roots()
             [(x, 1)]
 
-        As a polynomial in a, x is indeed a root:
+        As a polynomial in $a$, $x$ is indeed a root:
             sage: f.poly(a)
             (x^9 - 2*x^7 + 2*x^3 - x)*1 + (-x^8 + 2*x^6 - 2*x^2 + 1)*a
             sage: f(a=x)
             0
 
-        The roots in terms of x are what we expect:
+        The roots in terms of $x$ are what we expect:
             sage: f.roots(x)
             [(a, 1), (-1*I, 1), (I, 1), (1, 3), (-1, 3)]
 
@@ -2221,8 +2812,8 @@ class SymbolicExpression(RingElement):
 
 
         By default, all the roots are required to be explicit rather than
-        implicit.  To get implicit roots, pass explicit_solutions=False
-        to .roots()
+        implicit.  To get implicit roots, pass \code{explicit_solutions=False}
+        to \code{.roots()}
             sage: var('x')
             x
             sage: f = x^(1/9) + (2^(8/9) - 2^(1/9))*(x - 1) - x^(8/9)
@@ -2253,7 +2844,11 @@ class SymbolicExpression(RingElement):
 
     def solve(self, x, multiplicities=False, explicit_solutions=False):
         r"""
-        Solve the equation \code{self == 0} for the variable x.
+        Analytically solve the equation \code{self == 0} for the variable $x$.
+
+        WARNING: This is not a numerical solver -- use
+        \code{find_root} to solve for self == 0 numerically on an
+        interval.
 
         INPUT:
             x -- variable to solve for
@@ -2269,15 +2864,211 @@ class SymbolicExpression(RingElement):
         x = var(x)
         return (self == 0).solve(x, multiplicities=multiplicities, explicit_solutions=explicit_solutions)
 
+    def find_root(self, a, b, var=None, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False):
+        """
+        Numerically find a root of self on the closed interval [a,b]
+        (or [b,a]) if possible, where self is a function in the one variable.
+
+        INPUT:
+            a, b -- endpoints of the interval
+            var  -- optional variable
+            xtol, rtol -- the routine converges when a root is known
+                    to lie within xtol of the value return. Should be
+                    >= 0.  The routine modifies this to take into
+                    account the relative precision of doubles.
+            maxiter -- integer; if convergence is not achieved in
+                    maxiter iterations, an error is raised. Must be >= 0.
+            full_output -- bool (default: False), if True, also return
+                    object that contains information about convergence.
+
+        EXAMPLES:
+        Note that in this example both f(-2) and f(3) are positive, yet we still find a
+        root in that interval.
+            sage: f = x^2 - 1
+            sage: f.find_root(-2, 3)
+            1.0
+            sage: z, result = f.find_root(-2, 3, full_output=True)
+            sage: result.converged
+            True
+            sage: result.flag
+            'converged'
+            sage: result.function_calls
+            11
+            sage: result.iterations
+            10
+            sage: result.root
+            1.0
+
+        More examples:
+            sage: (sin(x) + exp(x)).find_root(-10, 10)
+            -0.588532743981862...
+
+        An example with a square root:
+            sage: f = 1 + x + sqrt(x+2); f.find_root(-2,10)
+            -1.6180339887498949
+
+       Some examples that Ted Kosan came up with:
+            sage: t = var('t')
+            sage: v = 0.004*(9600*e^(-(1200*t)) - 2400*e^(-(300*t)))
+            sage: v.find_root(0, 0.002)
+            0.001540327067911417...
+
+             sage: a = .004*(8*e^(-(300*t)) - 8*e^(-(1200*t)))*(720000*e^(-(300*t)) - 11520000*e^(-(1200*t))) +.004*(9600*e^(-(1200*t)) - 2400*e^(-(300*t)))^2
+
+        There is a 0 very close to the origin:
+            sage: show(plot(a, 0, .002),xmin=0, xmax=.002)
+
+        Using solve does not work to find it:
+            sage: a.solve(t)
+            []
+
+        However \code{find_root} works beautifully:
+            sage: a.find_root(0,0.002)
+            0.0004110514049349341...
+
+        We illustrate that root finding is only implemented
+        in one dimension:
+            sage: x, y = var('x,y')
+            sage: (x-y).find_root(-2,2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: root finding currently only implemented in 1 dimension.
+        """
+        a = float(a); b = float(b)
+        if var is None:
+            w = self.variables()
+            if len(w) > 1:
+                raise NotImplementedError, "root finding currently only implemented in 1 dimension."
+            if len(w) == 0:
+                if bool(self == 0):
+                    return a
+                else:
+                    raise RuntimeError, "no zero in the interval, since constant expression is not 0."
+            var = repr(w[0])
+
+        f = self._fast_float_(var)
+        if a > b:
+            a, b = b, a
+        #def f(w):
+        #    return float(self.substitute({var:float(w)}))
+        return sage.numerical.optimize.find_root(f, a=a,b=b, xtol=xtol, rtol=rtol,
+                                                 maxiter=maxiter, full_output=full_output)
+
+    def find_maximum_on_interval(self, a, b, var=None, tol=1.48e-08, maxfun=500):
+        r"""
+        Numerically find the maximum of the expression \code{self} on
+        the interval [a,b] (or [b,a]) along with the point at which
+        the maximum is attained.
+
+        See the documentation for \code{self.find_minimum_on_interval}
+        for more details.
+
+        EXAMPLES:
+            sage: f = x*cos(x)
+            sage: f.find_maximum_on_interval(0,5)
+            (0.5610963381910451, 0.8603335890...)
+            sage: f.find_maximum_on_interval(0,5, tol=0.1, maxfun=10)
+            (0.56109032345808163, 0.857926501456)
+        """
+        minval, x = (-self).find_minimum_on_interval(a, b, var=var, tol=tol, maxfun=maxfun)
+        return -minval, x
+
+    def find_minimum_on_interval(self, a, b, var=None, tol=1.48e-08, maxfun=500):
+        r"""
+        Numerically find the minimum of the expression \code{self} on
+        the interval [a,b] (or [b,a]) and the point at which it
+        attains that minimum.  Note that \code{self} must be a
+        function of (at most) one variable.
+
+        INPUT:
+            var -- variable (default: first variable in self)
+            a,b -- endpoints of interval on which to minimize self.
+            tol -- the convergence tolerance
+            maxfun -- maximum function evaluations
+
+        OUTPUT:
+
+            minval -- (float) the minimum value that self takes on in
+                      the interval [a,b]
+
+            x -- (float) the point at which self takes on the minimum value
+
+        EXAMPLES:
+            sage: f = x*cos(x)
+            sage: f.find_minimum_on_interval(1, 5)
+            (-3.2883713955908962, 3.42561846957)
+            sage: f.find_minimum_on_interval(1, 5, tol=1e-3)
+            (-3.288371361890984, 3.42575079030572)
+            sage: f.find_minimum_on_interval(1, 5, tol=1e-2, maxfun=10)
+            (-3.2883708459837844, 3.42508402203)
+            sage: show(f.plot(0, 20))
+            sage: f.find_minimum_on_interval(1, 15)
+            (-9.4772942594797929, 9.52933441095)
+
+        ALGORITHM: Uses \module{scipy.optimize.fminbound} which uses Brent's method.
+
+        AUTHOR:
+             -- William Stein (2007-12-07)
+        """
+        a = float(a); b = float(b)
+        if var is None:
+            var = first_var(self)
+        f = lambda w: float(self.substitute({var:float(w)}))
+        return sage.numerical.optimize.find_minimum_on_interval(f,
+                                                 a=a,b=b,tol=tol, maxfun=maxfun )
+
+
+
     ###################################################################
     # simplify
     ###################################################################
     def simplify(self):
+        r"""
+        Return the simplified form of this symbolic expression.
+
+        NOTE: Expressions always print simplified; a simplified
+        expression is distinguished because the way it prints agrees
+        with its underlyilng representation.
+
+        OUTPUT:
+            symbolic expression -- a simplified symbolic expression
+
+        EXAMPLES:
+        We create the symbolic expression $x - x + 1$, which is of
+        course equal to $1$.
+            sage: Z = x - x + 1
+
+        It prints as $1$ but is really a symbolic arithmetic object,
+        that has the information of the full expression:
+            sage: Z
+            1
+            sage: type(Z)
+            <class 'sage.calculus.calculus.SymbolicArithmetic'>
+
+        Calling simplify returns a new object $W$ (it does not change $Z$),
+        which actually simplified:
+            sage: W = Z.simplify(); W
+            1
+
+        Thus $W$ is a single constant:
+            sage: type(W)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+
+        The \code{_has_been_simplified} method tells whether an object was
+        constructed by simplifying -- or at least is known to be already
+        simplified:
+            sage: Z._has_been_simplified()
+            False
+            sage: W._has_been_simplified()
+            True
+        """
         try:
+            if self._simp is None:
+                return self
             return self._simp
         except AttributeError:
             S = evaled_symbolic_expression_from_maxima_string(self._maxima_init_())
-            S._simp = S
+            S._simp = None
             self._simp = S
             return S
 
@@ -2338,27 +3129,27 @@ class SymbolicExpression(RingElement):
 
     def simplify_radical(self):
         r"""
-        Wraps the Maxima radcan() command. From the Maxima documentation:
+        Simplifies this symbolic expression, which can contain logs,
+        exponentials, and radicals, by converting it into a form which
+        is canonical over a large class of expressions and a given
+        ordering of variables
 
-            Simplifies this expression, which can contain logs, exponentials,
-            and radicals, by converting it into a form which is canonical over a
-            large class of expressions and a given ordering of variables; that
-            is, all functionally equivalent forms are mapped into a unique form.
-            For a somewhat larger class of expressions, produces a regular form.
-            Two equivalent expressions in this class do not necessarily have the
-            same appearance, but their difference can be simplified by radcan to
-            zero.
+        DETAILS: This uses the Maxima radcan() command. From the
+        Maxima documentation: "All functionally equivalent forms are
+        mapped into a unique form.  For a somewhat larger class of
+        expressions, produces a regular form.  Two equivalent
+        expressions in this class do not necessarily have the same
+        appearance, but their difference can be simplified by radcan
+        to zero.  For some expressions radcan is quite time
+        consuming. This is the cost of exploring certain relationships
+        among the components of the expression for simplifications
+        based on factoring and partial fraction expansions of
+        exponents."
 
-            For some expressions radcan is quite time consuming. This is the
-            cost of exploring certain relationships among the components of the
-            expression for simplifications based on factoring and partial
-            fraction expansions of exponents.
-
-        ALIAS: radical_simplify, simplify_log, log_simplify, exp_simplify,
-        simplify_exp are all the same
+        ALIAS: radical_simplify, simplify_radical, simplify_log,
+        log_simplify, exp_simplify, simplify_exp are all the same
 
         EXAMPLES:
-
             sage: var('x,y,a')
             (x, y, a)
 
@@ -2374,7 +3165,10 @@ class SymbolicExpression(RingElement):
             sage: f.simplify_exp()
             e^(x/2) - 1
         """
-        return self.parent()(self._maxima_().radcan())
+        maxima.eval('domain: real$')
+        res = self.parent()(self._maxima_().radcan())
+        maxima.eval('domain: complex$')
+        return res
 
     radical_simplify = simplify_log = log_simplify = simplify_radical
     simplify_exp = exp_simplify = simplify_radical
@@ -2402,7 +3196,7 @@ class SymbolicExpression(RingElement):
             (x, y, z)
 
             sage: (x^3-y^3).factor()
-            -(y - x)*(y^2 + x*y + x^2)
+            (x - y)*(y^2 + x*y + x^2)
             sage: factor(-8*y - 4*x + z^2*(2*y + x))
             (2*y + x)*(z - 2)*(z + 2)
             sage: f = -1 - 2*x - x^2 + y^2 + 2*x*y^2 + x^2*y^2
@@ -2412,6 +3206,15 @@ class SymbolicExpression(RingElement):
                                         (x  + 2 x + 1) (y - 1)
                                         ----------------------
                                               36 (y + 1)
+
+        If you are factoring a polynomial with rational coefficients
+        (and dontfactor is empty) the factorization is done using
+        Singular instead of Maxima, so the following is very fast instead
+        of dreadfully slow:
+            sage: var('x,y')
+            (x, y)
+            sage: (x^99 + y^99).factor()
+            (y + x)*(y^2 - x*y + x^2)*(y^6 - x^3*y^3 + x^6)*...
         """
         if len(dontfactor) > 0:
             m = self._maxima_()
@@ -2419,13 +3222,47 @@ class SymbolicExpression(RingElement):
             cmd = 'block([dontfactor:%s],factor(%s))'%(dontfactor, name)
             return evaled_symbolic_expression_from_maxima_string(cmd)
         else:
+            try:
+                f = self.polynomial(QQ)
+                w = repr(f.factor())
+                return sage_eval(w, _vars)
+            except TypeError:
+                pass
             return self.parent()(self._maxima_().factor())
 
     ###################################################################
     # expand
     ###################################################################
     def expand(self):
-        """
+        r"""
+        Expand this symbolic expression.  Products of sums and
+        exponentiated sums are multiplied out, numerators of rational
+        expressions which are sums are split into their respective
+        terms, and multiplications are distributed over addition at
+        all levels.
+
+        For polynomials one should usually use \code{expand_rational}
+        which uses a more efficient algorithm.
+
+        EXAMPLES:
+        We expand the expression $(x-y)^5$ using both method and
+        functional notation.
+            sage: x,y = var('x,y')
+            sage: a = (x-y)^5
+            sage: a.expand()
+            -y^5 + 5*x*y^4 - 10*x^2*y^3 + 10*x^3*y^2 - 5*x^4*y + x^5
+            sage: expand(a)
+            -y^5 + 5*x*y^4 - 10*x^2*y^3 + 10*x^3*y^2 - 5*x^4*y + x^5
+
+        Note that \code{expand_rational} may be faster.
+            sage: a.expand_rational()
+            -y^5 + 5*x*y^4 - 10*x^2*y^3 + 10*x^3*y^2 - 5*x^4*y + x^5
+
+        We expand some other expressions:
+            sage: expand((x-1)^3/(y-1))
+            x^3/(y - 1) - 3*x^2/(y - 1) + 3*x/(y - 1) - 1/(y - 1)
+            sage: expand((x+sin((x+y)^2))^2)
+            sin(y^2 + 2*x*y + x^2)^2 + 2*x*sin(y^2 + 2*x*y + x^2) + x^2
         """
         try:
             return self.__expand
@@ -2434,8 +3271,53 @@ class SymbolicExpression(RingElement):
             self.__expand = e
         return e
 
-    def expand_trig(self):
+    def expand_rational(self):
         """
+        Expands self by multiplying out products of sums and
+        exponentiated sums, combining fractions over a common
+        denominator, cancelling the greatest common divisor of the
+        numerator and denominator, then splitting the numerator (if a
+        sum) into its respective terms divided by the denominator.
+
+        EXAMPLES:
+            sage: x,y = var('x,y')
+            sage: a = (x-y)^5
+            sage: a.expand_rational()
+            -y^5 + 5*x*y^4 - 10*x^2*y^3 + 10*x^3*y^2 - 5*x^4*y + x^5
+            sage: a.rational_expand()
+            -y^5 + 5*x*y^4 - 10*x^2*y^3 + 10*x^3*y^2 - 5*x^4*y + x^5
+
+        ALIAS: rational_expand and expand_rational are the same
+        """
+        return self.parent()(self._maxima_().ratexpand())
+
+    rational_expand = expand_rational
+
+    def expand_trig(self, full=False, half_angles=False, plus=True, times=True):
+        """
+        Expands trigonometric and hyperbolic functions of sums of angles
+        and of multiple angles occurring in self.  For best results,
+        self should already be expanded.
+
+        INPUT:
+            full -- (default: False) To enhance user control of
+                    simplification, this function expands only one
+                    level at a time by default, expanding sums of
+                    angles or multiple angles.  To obtain full
+                    expansion into sines and cosines immediately, set
+                    the optional parameter full to True.
+            half_angles -- (default: False) If True, causes
+                    half-angles to be simplified away.
+            plus -- (default: True) Controls the sum rule; expansion
+                    of sums (e.g. `sin(x + y)') will take place only
+                    if plus is True.
+            times -- (default: True) Controls the product rule, expansion
+                    of products (e.g. sin(2*x)) will take place only if
+                    times is True.
+
+        OUTPUT:
+            -- a symbolic expression
+
         EXAMPLES:
             sage: sin(5*x).expand_trig()
             sin(x)^5 - 10*cos(x)^2*sin(x)^3 + 5*cos(x)^4*sin(x)
@@ -2443,9 +3325,34 @@ class SymbolicExpression(RingElement):
             sage: cos(2*x + var('y')).trig_expand()
             cos(2*x)*cos(y) - sin(2*x)*sin(y)
 
+        We illustrate various options to this function:
+            sage: f = sin(sin(3*cos(2*x))*x)
+            sage: f.expand_trig()
+            sin(x*(3*cos(cos(2*x))^2*sin(cos(2*x)) - sin(cos(2*x))^3))
+            sage: f.expand_trig(full=True)
+            sin(x*(3*(sin(cos(x)^2)*cos(sin(x)^2) - cos(cos(x)^2)*sin(sin(x)^2))*(sin(cos(x)^2)*sin(sin(x)^2) + cos(cos(x)^2)*cos(sin(x)^2))^2 - (sin(cos(x)^2)*cos(sin(x)^2) - cos(cos(x)^2)*sin(sin(x)^2))^3))
+            sage: sin(2*x).expand_trig(times=False)
+            sin(2*x)
+            sage: sin(2*x).expand_trig(times=True)
+            2*cos(x)*sin(x)
+            sage: sin(2 + x).expand_trig(plus=False)
+            sin(x + 2)
+            sage: sin(2 + x).expand_trig(plus=True)
+            cos(2)*sin(x) + sin(2)*cos(x)
+            sage: sin(x/2).expand_trig(half_angles=False)
+            sin(x/2)
+            sage: sin(x/2).expand_trig(half_angles=True)
+            sqrt(1 - cos(x))/sqrt(2)
+
         ALIAS: trig_expand and expand_trig are the same
         """
-        return self.parent()(self._maxima_().trigexpand())
+        M = self._maxima_()
+        P = M.parent()
+        opt = maxima_options(trigexpand=full, halfangles=half_angles,
+                             trigexpandplus=plus, trigexpandtimes=times)
+        cmd = 'trigexpand(%s), %s'%(M.name(), opt)
+        ans = P(cmd)
+        return self.parent()(ans)
 
     trig_expand = expand_trig
 
@@ -2454,10 +3361,10 @@ class SymbolicExpression(RingElement):
     # substitute
     ###################################################################
     def substitute(self, in_dict=None, **kwds):
-        """
+        r"""
         Takes the symbolic variables given as dict keys or as keywords and
         replaces them with the symbolic expressions given as dict values or as
-        keyword values.  Also run when you call a SymbolicExpression.
+        keyword values.  Also run when you call a \class{SymbolicExpression}.
 
         INPUT:
             in_dict -- (optional) dictionary of inputs
@@ -2547,11 +3454,67 @@ class SymbolicExpression(RingElement):
 
 
     ###################################################################
+    # Expression substitution
+    ###################################################################
+    def subs_expr(self, *equations):
+        """
+        Given a dictionary of key:value pairs, substitute all occurences
+        of key for value in self.
+
+        WARNING: This is a formal pattern substitution, which may or
+        may not have any mathematical meaning.  The exact rules used
+        at present in Sage are determined by Maxima's subst command.
+        Sometimes patterns are not replaced even though one would think
+        they should be -- see examples below.
+
+        EXAMPLES:
+            sage: f = x^2 + 1
+            sage: f.subs_expr(x^2 == x)
+            x + 1
+
+            sage: var('x,y,z'); f = x^3 + y^2 + z
+            (x, y, z)
+            sage: f.subs_expr(x^3 == y^2, z == 1)
+            2*y^2 + 1
+
+            sage: f = x^2 + x^4
+            sage: f.subs_expr(x^2 == x)
+            x^4 + x
+            sage: f = cos(x^2) + sin(x^2)
+            sage: f.subs_expr(x^2 == x)
+            sin(x) + cos(x)
+
+            sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
+            sage: f.subs_expr(y^2 == t)
+            (x, y, t) |--> sin(y) + cos(x) + x^2 + 2*t
+
+        The following seems really weird, but it *is* what maple does:
+            sage: f.subs_expr(x^2 + y^2 == t)
+            (x, y, t) |--> sin(y) + y^2 + cos(x) + x^2 + t
+            sage: maple.eval('subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)')          # optional requires maple
+            'cos(x)+sin(y)+x^2+y^2+t'
+            sage: maxima.quit()
+            sage: maxima.eval('cos(x) + sin(y) + x^2 + y^2 + t, x^2 + y^2 = t')
+            'sin(y)+y^2+cos(x)+x^2+t'
+
+        Actually Mathematica does something that makes more sense:
+            sage: mathematica.eval('Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t')       # optional -- requires mathematica
+            2 t + Cos[x] + Sin[y]
+        """
+        for x in equations:
+            if not isinstance(x, SymbolicEquation):
+                raise TypeError, "each expression must be an equation"
+        R = self.parent()
+        v = ','.join(['%s=%s'%(x.lhs()._maxima_init_(), x.rhs()._maxima_init_()) \
+                      for x in equations])
+        return R(self._maxima_().subst(v))
+
+    ###################################################################
     # Real and imaginary parts
     ###################################################################
     def real(self):
-        """
-        Return the real part of self.
+        r"""
+        Return the real part of \code{self}.
 
         EXAMPLES:
             sage: a = log(3+4*I)
@@ -2561,7 +3524,7 @@ class SymbolicExpression(RingElement):
                                                 log(5)
             sage: print a.imag()
                                                      4
-                                                atan(-)
+                                              arctan(-)
                                                      3
 
         Now make a and b symbolic and compute the general real part:
@@ -2574,14 +3537,14 @@ class SymbolicExpression(RingElement):
         return self.parent()(self._maxima_().real())
 
     def imag(self):
-        """
-        Return the imaginary part of self.
+        r"""
+        Return the imaginary part of \code{self}.
 
         EXAMPLES:
             sage: sqrt(-2).imag()
             sqrt(2)
 
-        We simplify Ln(Exp(z)) to z for -Pi<Im(z)<=Pi:
+        We simplify $\ln(\exp(z))$ to $z$ for $-\pi<{\rm Im}(z)<=\pi$:
 
             sage: z = var('z')
             sage: f = log(exp(z))
@@ -2596,13 +3559,13 @@ class SymbolicExpression(RingElement):
             (a, b)
             sage: f = log(a + b*I)
             sage: f.imag()
-            atan(b/a)
+            arctan(b/a)
         """
         return self.parent()(self._maxima_().imag())
 
     def conjugate(self):
-        """
-        The complex conjugate of self.
+        r"""
+        The complex conjugate of \code{self}.
 
         EXAMPLES:
             sage: a = 1 + 2*I
@@ -2616,8 +3579,8 @@ class SymbolicExpression(RingElement):
         return self.parent()(self._maxima_().conjugate())
 
     def norm(self):
-        """
-        The complex norm of self, i.e., self times its complex conjugate.
+        r"""
+        The complex norm of \code{self}, i.e., \code{self} times its complex conjugate.
 
         EXAMPLES:
             sage: a = 1 + 2*I
@@ -2639,8 +3602,8 @@ class SymbolicExpression(RingElement):
     # Partial fractions
     ###################################################################
     def partial_fraction(self, var=None):
-        """
-        Return the partial fraction expansion of self with respect to
+        r"""
+        Return the partial fraction expansion of \code{self} with respect to
         the given variable.
 
         INPUT:
@@ -2677,16 +3640,34 @@ class SymbolicExpression(RingElement):
             1/(y + 1) - 2/(y + 1)^2 + 1/(y + 1)^3 + x/(x^3 - 3*x^2 + 3*x - 1)
         """
         if var is None:
-            var = self._first_variable()
+            var = self.default_variable()
         return self.parent()(self._maxima_().partfrac(var))
 
+    ###################################################################
+    # Fast Evaluation
+    ###################################################################
 
+    def _fast_float_(self, *vars):
+        """
+        EXAMPLES:
+            sage: x,y,z = var('x,y,z')
+            sage: f = 1 + sin(x)/x + sqrt(z^2+y^2)/cosh(x)
+            sage: ff = f._fast_float_('x', 'y', 'z')
+            sage: f(1.0,2.0,3.0)
+            4.1780638977866...
+            sage: ff(1.0,2.0,3.0)
+            4.17806389778660...
+        """
+        try:
+            return fast_float.fast_float_constant(float(self))
+        except:
+            raise NotImplementedError # return lambda x: float(self(x))
 
 
 class Symbolic_object(SymbolicExpression):
     r"""
-    A class representing a symbolic expression in terms of a SageObject (not
-    necessarily a 'constant').
+    A class representing a symbolic expression in terms of a \class{SageObject} (not
+    necessarily a `constant').
     """
     def __init__(self, obj):
         SymbolicExpression.__init__(self)
@@ -2704,6 +3685,9 @@ class Symbolic_object(SymbolicExpression):
         EXAMPLES:
         """
         return self._obj
+
+    def _fast_float_(self, *vars):
+        return fast_float.fast_float_constant(float(self))
 
     def __float__(self):
         """
@@ -2772,6 +3756,18 @@ class Symbolic_object(SymbolicExpression):
     def _sys_init_(self, system):
         return sys_init(self._obj, system)
 
+    def number_of_arguments(self):
+        """
+        Returns the number of arguments this object can take.
+
+        EXAMPLES:
+            sage: SR = SymbolicExpressionRing()
+            sage: a = SR(e)
+            sage: a.number_of_arguments()
+            0
+        """
+        return 0
+
 def maxima_init(x):
     try:
         return x._maxima_init_()
@@ -2796,6 +3792,14 @@ class SymbolicConstant(Symbolic_object):
             else:
                 self._precedence = 2000
         Symbolic_object.__init__(self, x)
+##         if hasattr(x, 'parent'):
+##             Symbolic_object.__init__(self, x)
+##         elif isinstance(x, int):
+##             Symbolic_object.__init__(self, Integer(x))
+##         elif isinstance(x, float):
+##             Symbolic_object.__init__(self, RealNumber(x))
+##         else:
+##             raise ValueError, "%s needs parent"%type(x)
 
     #def _is_atomic(self):
     #    try:
@@ -2816,6 +3820,9 @@ class SymbolicConstant(Symbolic_object):
                 if isinstance(self._obj, int):
                     return True
 
+    def _fast_float_(self, *vars):
+        return fast_float.fast_float_constant(float(self))
+
     def _recursive_sub(self, kwds):
         """
         EXAMPLES:
@@ -2830,6 +3837,190 @@ class SymbolicConstant(Symbolic_object):
     def _recursive_sub_over_ring(self, kwds, ring):
         return ring(self)
 
+    def _algebraic_(self, field):
+        """
+        EXAMPLES:
+            sage: a = SR(5/6)
+            sage: AA(a)
+            5/6
+            sage: type(AA(a))
+            <class 'sage.rings.qqbar.AlgebraicReal'>
+            sage: QQbar(a)
+            5/6
+            sage: type(QQbar(a))
+            <class 'sage.rings.qqbar.AlgebraicNumber'>
+            sage: from sage.calculus.calculus import SymbolicConstant
+            sage: i = SymbolicConstant(I)
+            sage: AA(i)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            sage: QQbar(i)
+            1*I
+            sage: phi = SymbolicConstant(golden_ratio)
+            sage: AA(phi)
+            [1.6180339887498946 .. 1.6180339887498950]
+            sage: QQbar(phi)
+            [1.6180339887498946 .. 1.6180339887498950]
+        """
+
+        # Out of the many kinds of things that can be in a SymbolicConstant,
+        # we accept only rational numbers (or things that can be coerced
+        # to rational) and a few instances of Constant.
+
+        if isinstance(self._obj, sage.functions.constants.Constant) \
+               and hasattr(self._obj, '_algebraic_'):
+            return self._obj._algebraic_(field)
+        return field(Rational(self._obj))
+
+    def _add_(self, right):
+        """
+        EXAMPLES:
+            sage: SR = SymbolicExpressionRing()
+            sage: a = SR(2)
+            sage: b = a+2; b
+            4
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+            sage: b = sum([a for i in range(1000)]); b
+            2000
+            sage: type(_)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+        """
+        if isinstance(right, SymbolicConstant):
+            try:
+                self_parent = self._obj.parent()
+                right_parent = right._obj.parent()
+                if self_parent != SR and right_parent != SR and ( self_parent.has_coerce_map_from(right_parent) or right_parent.has_coerce_map_from(self_parent) ):
+                    return SymbolicConstant( operator.add(self._obj, right._obj) )
+
+            except AttributeError:
+                #Either self._obj or right._obj doesn't have a
+                #parent method (like 'int' or 'float')
+                constants = isinstance(self._obj, sage.functions.constants.Constant) or isinstance(right._obj, sage.functions.constants.Constant)
+                if not constants:
+                    return SymbolicConstant( operator.add(self._obj, right._obj) )
+
+
+
+        return SymbolicArithmetic([self, right], operator.add)
+
+    def _sub_(self, right):
+        """
+        EXAMPLES:
+            sage: SR = SymbolicExpressionRing()
+            sage: a = SR(2)
+            sage: b = a-2; b
+            0
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+            sage: b = SR(2000)
+            sage: for i in range(1000): b -= a;
+            sage: b
+            0
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+
+        """
+        if isinstance(right, SymbolicConstant):
+            try:
+                self_parent = self._obj.parent()
+                right_parent = right._obj.parent()
+                if self_parent != SR and right_parent != SR and ( self_parent.has_coerce_map_from(right_parent) or right_parent.has_coerce_map_from(self_parent) ):
+                    return SymbolicConstant( operator.sub(self._obj, right._obj) )
+
+            except AttributeError:
+                #Either self._obj or right._obj doesn't have a
+                #parent method (like 'int' or 'float')
+                constants = isinstance(self._obj, sage.functions.constants.Constant) or isinstance(right._obj, sage.functions.constants.Constant)
+                if not constants:
+                    return SymbolicConstant( operator.sub(self._obj, right._obj) )
+
+
+
+        return SymbolicArithmetic([self, right], operator.sub)
+
+
+
+    def _mul_(self, right):
+        """
+        EXAMPLES:
+            sage: SR = SymbolicExpressionRing()
+            sage: a = SR(2)
+            sage: b = a*2; b
+            4
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+            sage: prod([a for i in range(1000)])
+            10715086071862673209484250490600018105614048117055336074437503883703510511249361224931983788156958581275946729175531468251871452856923140435984577574698574803934567774824230985421074605062371141877954182153046474983581941267398767559165543946077062914571196477686542167660429831652624386837205668069376
+            sage: type(_)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+        """
+        if isinstance(right, SymbolicConstant):
+            try:
+                self_parent = self._obj.parent()
+                right_parent = right._obj.parent()
+                if self_parent != SR and right_parent != SR and ( self_parent.has_coerce_map_from(right_parent) or right_parent.has_coerce_map_from(self_parent) ):
+                    return SymbolicConstant( operator.mul(self._obj, right._obj) )
+
+            except AttributeError:
+                #Either self._obj or right._obj doesn't have a
+                #parent method (like 'int' or 'float')
+                constants = isinstance(self._obj, sage.functions.constants.Constant) or isinstance(right._obj, sage.functions.constants.Constant)
+                if not constants:
+                    return SymbolicConstant( operator.mul(self._obj, right._obj) )
+
+        return SymbolicArithmetic([self, right], operator.mul)
+
+    def _div_(self, right):
+        """
+        EXAMPLES:
+            sage: SR = SymbolicExpressionRing()
+            sage: a = SR(2)
+            sage: b = a/2; b
+            1
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+            sage: b = SR(2^1000)
+            sage: for i in range(1000): b /= a;
+            sage: b
+            1
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+
+        """
+        if isinstance(right, SymbolicConstant):
+            try:
+                self_parent = self._obj.parent()
+                right_parent = right._obj.parent()
+                if self_parent != SR and right_parent != SR and ( self_parent.has_coerce_map_from(right_parent) or right_parent.has_coerce_map_from(self_parent) ):
+                    return SymbolicConstant( operator.div(self._obj, right._obj) )
+
+            except AttributeError:
+                #Either self._obj or right._obj doesn't have a
+                #parent method (like 'int' or 'float')
+                constants = isinstance(self._obj, sage.functions.constants.Constant) or isinstance(right._obj, sage.functions.constants.Constant)
+                if not constants:
+                    return SymbolicConstant( operator.div(self._obj, right._obj) )
+
+
+
+        return SymbolicArithmetic([self, right], operator.div)
+
+
+
+    def __pow__(self, right):
+        """
+        EXAMPLES:
+            sage: SR = SymbolicExpressionRing()
+            sage: a = SR(2)
+            sage: b = a^2; b
+            4
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicArithmetic'>
+        """
+        right = self.parent()(right)
+        return SymbolicArithmetic([self, right], operator.pow)
 
 
 class SymbolicPolynomial(Symbolic_object):
@@ -2897,9 +4088,41 @@ class SymbolicPolynomial(Symbolic_object):
                     t.append(g)
             return ring(f(*t))
 
-    def polynomial(self, base_ring):
+    def variables(self):
+        r"""
+        Return sorted list of variables that occur in \code{self}.
+        The ordering is alphabetic.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]; S.<y> = R[]
+            sage: f = x+y*x+y^2
+            sage: g = SR(f)
+            sage: g.variables()
+            (x, y)
         """
-        Return self as a polynomial over the given base ring, if possible.
+        P = self._obj.parent()
+        variables = map(var, P.variable_names_recursive())
+        variables.sort()
+        return tuple(variables)
+
+    def number_of_arguments(self):
+        r"""
+        Returns the number of arguments this object can take.  For
+        \class{SymbolicPolynomial}s, this is just the number of variables
+        of the polynomial.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]; S.<y> = R[]
+            sage: f = x+y*x+y^2
+            sage: g = SR(f)
+            sage: g.number_of_arguments()
+            2
+        """
+        return len(self.variables())
+
+    def polynomial(self, base_ring):
+        r"""
+        Return \code{self} as a polynomial over the given base ring, if possible.
 
         INPUT:
            base_ring -- a ring
@@ -2917,6 +4140,11 @@ class SymbolicPolynomial(Symbolic_object):
             return f
         return f.change_ring(base_ring)
 
+    def _fast_float_(self, *vars):
+        # use Horners rule
+        return self._obj._fast_float_(*vars)
+
+
 ##################################################################
 
 
@@ -2924,16 +4152,16 @@ zero_constant = SymbolicConstant(Integer(0))
 
 class SymbolicOperation(SymbolicExpression):
     r"""
-    A parent class representing any operation on SymbolicExpression objects.
+    A parent class representing any operation on \class{SymbolicExpression} objects.
     """
     def __init__(self, operands):
         SymbolicExpression.__init__(self)
         self._operands = operands   # don't even make a copy -- ok, since immutable.
 
     def variables(self, vars=tuple([])):
-        """
+        r"""
         Return sorted list of variables that occur in the simplified
-        form of self.  The ordering is alphabetic.
+        form of \code{self}.  The ordering is alphabetic.
 
         EXAMPLES:
             sage: var('x,y,z,w,a,b,c')
@@ -2949,7 +4177,7 @@ class SymbolicOperation(SymbolicExpression):
             sage: (x^2 + x).variables()
             (x,)
         """
-        if not self.is_simplified():
+        if not self._has_been_simplified():
             return self.simplify().variables(vars)
 
         try:
@@ -2963,6 +4191,54 @@ class SymbolicOperation(SymbolicExpression):
         self.__variables = vars
         return vars
 
+    def number_of_arguments(self):
+        r"""
+        Returns the number of arguments this object can take.
+
+        EXAMPLES:
+            sage: x,y,z = var('x,y,z')
+            sage: (x+y).number_of_arguments()
+            2
+            sage: (x+1).number_of_arguments()
+            1
+            sage: (sin+1).number_of_arguments()
+            1
+            sage: (sin+x).number_of_arguments()
+            1
+            sage: (sin+x+y).number_of_arguments()
+            2
+            sage: (sin(z)+x+y).number_of_arguments()
+            3
+            sage: (sin+cos).number_of_arguments()
+            1
+            sage: (sin(x+y)).number_of_arguments()
+            2
+
+            sage: ( 2^(8/9) - 2^(1/9) )(x-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of arguments must be less than or equal to 0
+
+        Note that \code{self} is simplified first:
+            sage: f = x + pi - x; f
+            pi
+            sage: f.number_of_arguments()
+            0
+        """
+        try:
+            return self.__number_of_args
+        except AttributeError:
+            pass
+        variables = self.variables()
+        if not self._has_been_simplified():
+            n = self.simplify().number_of_arguments()
+        else:
+            # We need to do this maximum to correctly handle the case where
+            # self is something like (sin+1)
+            n = max( max(map(lambda i: i.number_of_arguments(), self._operands)+[0]), len(variables) )
+        self.__number_of_args = n
+        return n
+
 def var_cmp(x,y):
     return cmp(repr(x), repr(y))
 
@@ -2972,7 +4248,7 @@ symbols = {operator.add:' + ', operator.sub:' - ', operator.mul:'*',
 
 class SymbolicArithmetic(SymbolicOperation):
     r"""
-    Represents the result of an arithemtic operation on
+    Represents the result of an arithmetic operation on
     $f$ and $g$.
     """
     def __init__(self, operands, op):
@@ -3009,6 +4285,108 @@ class SymbolicArithmetic(SymbolicOperation):
             self._l_assoc = True
             self._r_assoc = True
 
+    def __call__(self, *args, **kwargs):
+        """
+        EXAMPLES:
+            sage: x,y,z=var('x,y,z')
+
+            sage: h = sin + cos
+            sage: h(1)
+            sin(1) + cos(1)
+            sage: h(x)
+            sin(x) + cos(x)
+            sage: h = 3*sin
+            sage: h(1)
+            3*sin(1)
+            sage: h(x)
+            3*sin(x)
+
+            sage: (sin+cos)(1)
+            sin(1) + cos(1)
+            sage: (sin+1)(1)
+            sin(1) + 1
+            sage: (x+sin)(5)
+            sin(5) + 5
+            sage: (y+sin)(5)
+            sin(5) + 5
+            sage: (x+y+sin)(5)
+            y + sin(5) + 5
+
+
+            sage: f = x + 2*y + 3*z
+            sage: f(1)
+            3*z + 2*y + 1
+            sage: f(0,1)
+            3*z + 2
+            sage: f(0,0,1)
+            3
+
+            sage: (sqrt(2) + 17)(x+2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of arguments must be less than or equal to 0
+            sage: (I*17+3*5)(x+2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of arguments must be less than or equal to 0
+        """
+        if kwargs and args:
+            raise ValueError, "args and kwargs cannot both be specified"
+
+        if len(args) == 1 and isinstance(args[0], dict):
+            kwargs = dict(map(lambda x: (repr(x[0]), x[1]), args[0].iteritems()))
+
+        if kwargs:
+            #Handle the case where kwargs are specified
+            x = var('x')
+
+            new_ops = []
+            for op in self._operands:
+                try:
+                    new_ops.append( op(**kwargs) )
+                except ValueError:
+                    new_ops.append(op)
+
+
+
+        else:
+            #Handle the case where args are specified
+
+            #Get all the variables
+            variables = list( self.arguments() )
+
+            if len(args) > self.number_of_arguments():
+                raise ValueError, "the number of arguments must be less than or equal to %s"%self.number_of_arguments()
+
+            new_ops = []
+            for op in self._operands:
+                try:
+                    op_vars = op.variables()
+                    if len(op_vars) == 0:
+                        if len(args) != 0:
+                            new_ops.append( op(args[0]) )
+                        else:
+                            new_ops.append( op )
+                        continue
+                    else:
+                        indices = filter(lambda i: i < len(args), map(variables.index, op_vars))
+                        if len(indices) == 0:
+                            new_ops.append( op )
+                        else:
+                            new_ops.append( op(*[args[i] for i in indices]) )
+                except ValueError:
+                    new_ops.append( op )
+
+        #Check to see if all of the new_ops are symbolic constants
+        #If so, then we should return a symbolic constant.
+        new_ops = map(SR, new_ops)
+        is_constant = all(map(lambda x: isinstance(x, SymbolicConstant), new_ops))
+        if is_constant:
+            return SymbolicConstant( self._operator(*map(lambda x: x._obj, new_ops)) )
+        else:
+            return self._operator(*new_ops)
+
+
     def _recursive_sub(self, kwds):
         """
         EXAMPLES:
@@ -3026,10 +4404,22 @@ class SymbolicArithmetic(SymbolicOperation):
             sage: f = y^5 - sqrt(2)
             sage: f(10)
             100000 - sqrt(2)
+
+            sage: a = x^2; b = a(2); b
+            4
+            sage: type(b)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
         """
         ops = self._operands
         new_ops = [SR(op._recursive_sub(kwds)) for op in ops]
-        return self._operator(*new_ops)
+
+        #Check to see if all of the new_ops are symbolic constants
+        #If so, then we should return a symbolic constant.
+        is_constant = all(map(lambda x: isinstance(x, SymbolicConstant), new_ops))
+        if is_constant:
+            return SymbolicConstant( self._operator(*map(lambda x: x._obj, new_ops)) )
+        else:
+            return self._operator(*new_ops)
 
     def _recursive_sub_over_ring(self, kwds, ring):
         ops = self._operands
@@ -3039,39 +4429,212 @@ class SymbolicArithmetic(SymbolicOperation):
             new_ops = [op._recursive_sub_over_ring(kwds, ring=ring) for op in ops]
         return ring(self._operator(*new_ops))
 
-    def __float__(self):
-        fops = [float(op) for op in self._operands]
+    def _fast_float_(self, *vars):
+        """
+        EXAMPLES:
+            sage: x,y = var('x,y')
+            sage: f = x*x-y
+            sage: ff = f._fast_float_('x','y')
+            sage: ff(2,3)
+            1.0
+        """
+        fops = [op._fast_float_(*vars) for op in self._operands]
         return self._operator(*fops)
+
+    def _convert(self, typ):
+        """
+        Convert self to the given type by converting each of the
+        operands to that type and doing the arithmetic.
+
+        EXAMPLES:
+            sage: f = sqrt(2) * cos(3); f
+            sqrt(2)*cos(3)
+            sage: f._convert(RDF)
+            -1.40006081534
+            sage: f._convert(float)
+            -1.4000608153399503
+
+        Converting to an int can have surprising consequences, since
+        Python int is ``floor'' and one individual factor can floor to 0
+        but the product doesn't:
+            sage: int(f)
+            -1
+            sage: f._convert(int)
+            0
+            sage: int(sqrt(2))
+            1
+            sage: int(cos(3))
+            0
+
+        TESTS:
+        This illustrates how the conversion works even when a type
+        exception is raised, since here one operand is still x (in the
+        unsimplified form):
+            sage: f = sin(0)*x
+            sage: f._convert(CDF)
+            0
+        """
+        try:
+            fops = [typ(op) for op in self._operands]
+        except TypeError:
+            g = self.simplify()
+            if self is g:
+                raise
+            else:
+                return typ(g)
+        return self._operator(*fops)
+
+
+    def __float__(self):
+        """
+        TESTS:
+            sage: f=x*sin(0)
+            sage: float(f(x=1))
+            0.0
+            sage: w = I - I
+            sage: float(w)
+            0.0
+        """
+        return self._convert(float)
 
     def __complex__(self):
-        fops = [complex(op) for op in self._operands]
-        return self._operator(*fops)
+        """
+        EXAMPLES:
+            sage: complex((-2)^(1/4))
+            (0.840896415253714...+0.840896415253714...j)
+
+        TESTS:
+            sage: complex(I - I)
+            0j
+            sage: w = I-I; complex(w)
+            0j
+            sage: complex(w * x)
+            0j
+        """
+        return self._convert(complex)
 
     def _mpfr_(self, field):
-        rops = [op._mpfr_(field) for op in self._operands]
-        return self._operator(*rops)
+        """
+        EXAMPLES:
+            sage: RealField(200)(sqrt(2))
+            1.4142135623730950488016887242096980785696718753769480731767
+
+        TESTS:
+            sage: w = I-I; RR(w)
+            0.000000000000000
+            sage: w = I-I; RealField(200)(w)
+            0.00000000000000000000000000000000000000000000000000000000000
+            sage: RealField(200)(x*sin(0))
+            0.00000000000000000000000000000000000000000000000000000000000
+        """
+        return self._convert(field)
 
     def _complex_mpfr_field_(self, field):
-        rops = [op._complex_mpfr_field_(field) for op in self._operands]
-        return self._operator(*rops)
+        """
+        EXAMPLES:
+            sage: CC(sqrt(2))
+            1.41421356237310
+            sage: a = sqrt(-2); a
+            sqrt(2)*I
+            sage: CC(a)
+            1.41421356237310*I
+            sage: ComplexField(200)(a)
+            1.4142135623730950488016887242096980785696718753769480731767*I
+            sage: ComplexField(100)((-1)^(1/10))
+            0.95105651629515357211643933338 + 0.30901699437494742410229341718*I
+
+        TESTS:
+            sage: CC(x*sin(0))
+            0
+        """
+        return self._convert(field)
 
     def _complex_double_(self, field):
-        if not self.is_simplified():
-            return self.simplify()._complex_double_(field)
-        rops = [op._complex_double_(field) for op in self._operands]
-        return self._operator(*rops)
+        """
+        EXAMPLES:
+            sage: CDF((-1)^(1/3))
+            0.5 + 0.866025403784*I
+
+        Watch out -- right now Maxima algebraically simplifies the above to -1:
+            sage: (-1)^(1/3)
+            (-1)^(1/3)
+
+        So when doing this conversion it is the non-simplified form
+        that is converted, for efficiency purposes, which can result
+        in a different answer in some cases.  You can always force
+        using the simplified form:
+
+            sage: a = (-1)^(1/3)
+            sage: CDF(a.simplify())
+            0.5 + 0.866025403784*I
+
+        TESTS:
+            sage: CDF(x*sin(0))
+            0
+        """
+        return self._convert(field)
 
     def _real_double_(self, field):
-        if not self.is_simplified():
-            return self.simplify()._real_double_(field)
-        rops = [op._real_double_(field) for op in self._operands]
-        return self._operator(*rops)
+        """
+        EXAMPLES:
+            sage: RDF(sqrt(2))
+            1.41421356237
+
+
+        TESTS:
+            sage: RDF(x*sin(0))
+            0.0
+        """
+        return self._convert(field)
 
     def _real_rqdf_(self, field):
-        if not self.is_simplified():
-            return self.simplify()._real_rqdf_(field)
-        rops = [op._real_rqdf_(field) for op in self._operands]
-        return self._operator(*rops)
+        """
+        EXAMPLES:
+            sage: RQDF(sqrt(2))
+            1.414213562373095048801688724209698078569671875376948073176679738
+
+        TESTS:
+            sage: RQDF(x*sin(0))
+            0.000000000000000000000000000000000000000000000000000000000000000
+        """
+        return self._convert(field)
+
+    def _algebraic_(self, field):
+        """
+        Convert a symbolic expression to an algebraic number.
+
+        EXAMPLES:
+            sage: QQbar(sqrt(2) + sqrt(8))
+            [4.2426406871192847 .. 4.2426406871192857]
+            sage: AA(sqrt(2) ^ 4) == 4
+            True
+            sage: AA(-golden_ratio)
+            [-1.6180339887498950 .. -1.6180339887498946]
+            sage: QQbar((2*I)^(1/2))
+            [1.0000000000000000 .. 1.0000000000000000] + [1.0000000000000000 .. 1.0000000000000000]*I
+
+        TESTS:
+            sage: AA(x*sin(0))
+            0
+            sage: QQbar(x*sin(0))
+            0
+        """
+
+        # We try to avoid simplifying, because maxima's simplify command
+        # can change the value of a radical expression (by changing which
+        # root is selected).
+        try:
+            if self._operator is operator.pow:
+                base = field(self._operands[0])
+                expt = Rational(self._operands[1])
+                return field(field(base) ** expt)
+            else:
+                return self._convert(field)
+        except TypeError:
+            if self._has_been_simplified():
+                raise
+            else:
+                return self.simplify()._algebraic_(field)
 
     def _is_atomic(self):
         try:
@@ -3114,9 +4677,15 @@ class SymbolicArithmetic(SymbolicOperation):
             -1/3
             sage: (-1)^(1/4)
             (-1)^(1/4)
+
+            sage: (-(x-1)/2)._latex_(simplify=False)
+            '\\frac{-\\left( x - 1 \\right)}{2}'
+
         """
         if simplify:
             if hasattr(self, '_simp'):
+                if self._simp is None:
+                    return self._repr_(simplify=False)
                 return self._simp._repr_(simplify=False)
             else:
                 return self.simplify()._repr_(simplify=False)
@@ -3228,8 +4797,18 @@ class SymbolicArithmetic(SymbolicOperation):
             return '%s%s' % (symbols[op], s[0])
 
     def _latex_(self, simplify=True):
+        """
+        EXAMPLES:
+            sage: var('x,y')
+            (x, y)
+            sage: f=(x+y)*(x-y)*(x^2-2)*(y^2-3)
+            sage: latex(f)
+            {{{\left( {x}^{2}  - 2 \right) \left( x - y \right)} \left( y + x \right)} \left( {y}^{2}  - 3 \right)}
+            sage: latex(cos*(x+1))
+            {\left( x + 1 \right) \cos}
+        """
         # if we are not simplified, return the latex of a simplified version
-        if simplify and not self.is_simplified():
+        if simplify and not self._has_been_simplified():
             return self.simplify()._latex_()
         op = self._operator
         ops = self._operands
@@ -3246,11 +4825,11 @@ class SymbolicArithmetic(SymbolicOperation):
         elif op is operator.sub:
             return '%s - %s' % (s[0], s[1])
         elif op is operator.mul:
-            if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
-                s[0] = r'\left( %s \right)' %s[0]
-            if ops[1]._has_op(operator.add) or ops[1]._has_op(operator.sub):
-                s[1] = r'\left( %s \right)' %s[1]
-            return '{%s \\cdot %s}' % (s[0], s[1])
+            for i in [0,1]:
+                if isinstance(ops[i], SymbolicArithmetic) and ops[i]._operator in [operator.add, operator.sub]:
+                    s[i] = r'\left( %s \right)' %s[i]
+            return '{%s %s}' % (s[0], s[1])
+            # used to be --> return '{%s \\cdot %s}' % (s[0], s[1])
         elif op is operator.div:
             return '\\frac{%s}{%s}' % (s[0], s[1])
         elif op is operator.pow:
@@ -3260,6 +4839,8 @@ class SymbolicArithmetic(SymbolicOperation):
                 s[0] = r'\left( %s \right)' % s[0]
             return '{%s}^{%s} ' % (s[0], s[1])
         elif op is operator.neg:
+            if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
+                s[0] = r'\left( %s \right)'%s[0]
             return '-%s' % s[0]
 
     def _maxima_init_(self):
@@ -3271,6 +4852,23 @@ class SymbolicArithmetic(SymbolicOperation):
                              infixops[self._operator],
                              ops[1]._maxima_init_())
 
+    def _sympy_(self):
+        """Converts any expression to SymPy."""
+
+        # Current implementation is fragile - it first converts the expression
+        # to string, then preparses it, then gets rid of "Integer" and then
+        # sympifies this string.
+
+        # In order to make this robust, one would have to implement _sympy_
+        # recursively in all expressions. But we want something now, instead of
+        # tomorrow, so the following one-liner does the job for now.
+        # Also all ugly things are concentrated in this line, everything else
+        # (sympy.sympify, sage.all.SR, ...) is clean and robust.
+        import sympy
+        from sage.all import preparse
+        s = sympy.sympify(preparse(repr(self)).replace("Integer",""))
+        return s
+
     def _sys_init_(self, system):
         ops = self._operands
         if self._operator is operator.neg:
@@ -3280,12 +4878,32 @@ class SymbolicArithmetic(SymbolicOperation):
                              infixops[self._operator],
                              sys_init(ops[1], system))
 
-import re
-
 def is_SymbolicVariable(x):
+    """
+    Return True if $x$ is a symbolic variable.
+
+    INPUT:
+        x -- object
+    OUTPUT:
+        bool -- True precisely if x is a symbolic variable.
+
+    EXAMPLES:
+        sage: is_SymbolicVariable('x')
+        False
+        sage: is_SymbolicVariable(x)
+        True
+    """
     return isinstance(x, SymbolicVariable)
 
 class SymbolicVariable(SymbolicExpression):
+    """
+    A symbolic variable, which is a calculus object.
+
+    EXAMPLES:
+        sage: z = var('z')
+        sage: type(z)
+        <class 'sage.calculus.calculus.SymbolicVariable'>
+    """
     def __init__(self, name):
         SymbolicExpression.__init__(self)
         self._name = name
@@ -3293,7 +4911,44 @@ class SymbolicVariable(SymbolicExpression):
             raise ValueError, "variable name must be nonempty"
 
     def __hash__(self):
+        """
+        Return the hash of this symbolic variable, which is just the
+        hash of the underlying name (as a string).
+
+        EXAMPLES:
+            sage: z = var('z')
+            sage: hash(z) #random due to architecture dependence
+            -1563822213
+            sage: hash('z') #random due to architecture dependence
+            -1563822213
+        """
         return hash(self._name)
+
+    def _fast_float_(self, *vars):
+        r"""
+        Returns a quickly-evaluating function with named parameters
+        \code{vars}. Specifically, if \code{self} is the $n$-th parameter
+        it returns a function extracting the $n$-th item out of a tuple.
+
+        EXAMPLES:
+            sage: f = x._fast_float_('x', 'y')
+            sage: f(1,2)
+            1.0
+            sage: f = x._fast_float_('y', 'x')
+            sage: f(1,2)
+            2.0
+            sage: sqrt(2)._fast_float_()(2)
+            1.4142135623730951
+        """
+        if self._name in vars:
+            return fast_float.fast_float_arg(list(vars).index(self._name))
+        svars = [repr(x) for x in vars]
+        if self._name in svars:
+            return fast_float.fast_float_arg(list(svars).index(self._name))
+        try:
+            return fast_float.fast_float_constant(float(self))
+        except TypeError:
+            raise ValueError, "free variable: %s" % self._name
 
     def _recursive_sub(self, kwds):
         # do the replacement if needed
@@ -3309,11 +4964,22 @@ class SymbolicVariable(SymbolicExpression):
             return ring(self)
 
     def variables(self, vars=tuple([])):
-        """
+        r"""
         Return sorted list of variables that occur in the simplified
-        form of self.
+        form of \code{self}.
         """
         return (self, )
+
+    def number_of_arguments(self):
+        r"""
+        Returns the number of arguments of \code{self}.
+
+        EXAMPLES:
+            sage: x = var('x')
+            sage: x.number_of_arguments()
+            1
+        """
+        return 1
 
     def __cmp__(self, right):
         if isinstance(right, SymbolicVariable):
@@ -3377,6 +5043,14 @@ def var(s, create=True):
 #########################################################################################
 def is_CallableSymbolicExpressionRing(x):
     """
+    Return True if x is a callable symbolic expression.
+
+    INPUT:
+        x -- object
+
+    OUTPUT:
+        bool
+
     EXAMPLES:
         sage: is_CallableSymbolicExpressionRing(QQ)
         False
@@ -3389,7 +5063,6 @@ def is_CallableSymbolicExpressionRing(x):
 
 class CallableSymbolicExpressionRing_class(CommutativeRing):
     def __init__(self, args):
-        self._default_precision = 53 # default precision bits
         self._args = args
         ParentWithBase.__init__(self, RR)
 
@@ -3412,21 +5085,54 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
 
     def _coerce_impl(self, x):
         if isinstance(x, SymbolicExpression):
+            if isinstance(x, PrimitiveFunction):
+                return CallableSymbolicExpression(self, x( *self._args ))
             if isinstance(x, CallableSymbolicExpression):
                 x = x._expr
             return CallableSymbolicExpression(self, x)
         return self._coerce_try(x, [SR])
 
     def _repr_(self):
+        """
+        String representation of ring of callable symbolic expressions.
+
+        EXAMPLES:
+            sage: R = CallableSymbolicExpressionRing(var('x,y,theta'))
+            sage: R._repr_()
+            'Callable function ring with arguments (x, y, theta)'
+        """
         return "Callable function ring with arguments %s"%(self._args,)
 
     def args(self):
+        r"""
+        Returns the arguments of \code{self}.  The order that the variables appear
+        in \code{self.args()} is the order that is used in evaluating the elements
+        of \code{self}.
+
+        EXAMPLES:
+            sage: x,y = var('x,y')
+            sage: f(x,y) = 2*x+y
+            sage: f.parent().args()
+            (x, y)
+            sage: f(y,x) = 2*x+y
+            sage: f.parent().args()
+            (y, x)
+        """
         return self._args
 
-    def arguments(self):
-        return self.args()
+    arguments = args
 
     def zero_element(self):
+        """
+        Return the zero element of the ring of callable symbolic expressions.
+
+        EXAMPLES:
+            sage: R = CallableSymbolicExpressionRing(var('x,y,theta'))
+            sage: f = R.zero_element(); f
+            (x, y, theta) |--> 0
+            sage: f(2,3,4)
+            0
+        """
         try:
             return self.__zero_element
         except AttributeError:
@@ -3435,6 +5141,15 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
             return z
 
     def _an_element_impl(self):
+        """
+        Return an element of the ring of callabel symbolic expressions.
+        This is used by the coercion model.
+
+        EXAMPLES:
+            sage: R = CallableSymbolicExpressionRing(var('x,y,theta'))
+            sage: R._an_element_impl()
+            (x, y, theta) |--> 0
+        """
         return CallableSymbolicExpression(self, SR._an_element())
 
 
@@ -3457,8 +5172,8 @@ def CallableSymbolicExpressionRing(args, check=True):
     return R
 
 def is_CallableSymbolicExpression(x):
-    """
-    Returns true if x is a callable symbolic expression.
+    r"""
+    Returns true if \var{x} is a callable symbolic expression.
 
     EXAMPLES:
         sage: var('a x y z')
@@ -3511,8 +5226,8 @@ class CallableSymbolicExpression(SymbolicExpression):
         return self._expr.variables()
 
     def integral(self, x=None, a=None, b=None):
-        """
-        Returns an integral of self.
+        r"""
+        Returns an integral of \code{self}.
         """
         if a is None:
             return SymbolicExpression.integral(self, x, None, None)
@@ -3538,10 +5253,51 @@ class CallableSymbolicExpression(SymbolicExpression):
         return self.parent().args()
 
     def arguments(self):
+        r"""
+        Returns the arguments of \code{self}.  The order that the
+        variables appear in \code{self.arguments()} is the order that
+        is used in \code{self.__call__}.
+
+        EXAMPLES:
+            sage: x,y = var('x,y')
+            sage: f(x,y) = 2*x+y
+            sage: f.arguments()
+            (x, y)
+            sage: f(2)
+            y + 4
+            sage: f(2, 1)
+            5
+
+            sage: f(y,x) = 2*x+y
+            sage: f.arguments()
+            (y, x)
+            sage: f(2)
+            2*x + 2
+            sage: f(2, 1)
+            4
+        """
         return self.args()
+
+    def number_of_arguments(self):
+        r"""
+        Returns the number of arguments of \code{self}.
+
+        EXAMPLES:
+            sage: a = var('a')
+            sage: g(x) = sin(x) + a
+            sage: g.number_of_arguments()
+            1
+            sage: g(x,y,z) = sin(x) - a + a
+            sage: g.number_of_arguments()
+            3
+        """
+        return len(self.args())
 
     def _maxima_init_(self):
         return self._expr._maxima_init_()
+
+    def _fast_float_(self, *vars):
+        return self._expr._fast_float_(*vars)
 
     def __float__(self):
         return float(self._expr)
@@ -3608,6 +5364,16 @@ class CallableSymbolicExpression(SymbolicExpression):
             (x, n, m, y, z) |--> z^m + y^m + 2*x^n
             sage: g + f
             (x, n, m, y, z) |--> z^m + y^m + 2*x^n
+
+            sage: f(x) = x^2
+            sage: f+sin
+            x |--> sin(x) + x^2
+            sage: g(y) = y^2
+            sage: g+sin
+            y |--> sin(y) + y^2
+            sage: h = g+sin
+            sage: h(2)
+            sin(2) + 4
         """
         if isinstance(right, CallableSymbolicExpression):
             if self.parent() is right.parent():
@@ -3718,8 +5484,8 @@ class CallableSymbolicExpression(SymbolicExpression):
 
     def _unify_args(self, x):
         r"""
-        Takes the variable list from another CallableSymbolicExpression object and
-        compares it with the current CallableSymbolicExpression object's variable list,
+        Takes the variable list from another \class{CallableSymbolicExpression} object and
+        compares it with the current \class{CallableSymbolicExpression} object's variable list,
         combining them according to the following rules:
 
         Let \code{a} be \code{self}'s variable list, let \code{b} be
@@ -3738,8 +5504,8 @@ class CallableSymbolicExpression(SymbolicExpression):
 
         \end{enumerate}
 
-        Note: When used for arithmetic between CallableSymbolicExpressions,
-        these rules ensure that the set of CallableSymbolicExpressions will have
+        Note: When used for arithmetic between \class{CallableSymbolicExpression}s,
+        these rules ensure that the set of \class{CallableSymbolicExpression}s will have
         certain properties.  In particular, it ensures that the set is
         a \emph{commutative} ring, i.e., the order of the input
         variables is the same no matter in which order arithmetic is
@@ -3843,6 +5609,66 @@ class SymbolicComposition(SymbolicOperation):
         """
         SymbolicOperation.__init__(self, [f,g])
 
+    def _polynomial_(self, R):
+        """
+        Symbolic compositions cannot be converted to polynomials unless
+        they are constants.
+
+        EXAMPLES:
+            sage: sqrt(2).polynomial(RR)
+            1.41421356237310
+
+            sage: sqrt(2).polynomial(CC)
+            1.41421356237310
+
+            sage: cos(x).polynomial(QQ)
+            Traceback (most recent call last):
+            ....
+            TypeError: cannot convert self (= cos(x)) to a polynomial
+
+            sage: sqrt(x).polynomial(QQ)
+            Traceback (most recent call last):
+            ....
+            TypeError: cannot convert self (= sqrt(x)) to a polynomial
+
+            sage: K3.<a> = NumberField(sqrt(x))
+            Traceback (most recent call last):
+            ....
+            TypeError: polynomial (=sqrt(x)) must be a polynomial.
+        """
+        if self.number_of_arguments() == 0:
+            #Convert self into R's base ring and then into R since
+            #self must be a constant.
+            return R( R.base_ring()(self) )
+        else:
+            raise TypeError, "cannot convert self (= %s) to a polynomial"%str(self).strip()
+
+
+    def number_of_arguments(self):
+        r"""
+        Returns the number of arguments that \code{self} can take.
+
+        EXAMPLES:
+            sage: sqrt(x).number_of_arguments()
+            1
+            sage: sqrt(2).number_of_arguments()
+            0
+        """
+        try:
+            return self.__number_of_args
+        except AttributeError:
+            pass
+        variables = self.variables()
+        if not self._has_been_simplified():
+            n = self.simplify().number_of_arguments()
+        else:
+            # Note that we use self._operands[1:] so we don't include the
+            # number of arguments that the function takes since it is
+            # already being "called"
+            n = max( max(map(lambda i: i.number_of_arguments(), self._operands[1:])+[0]), len(variables) )
+        self.__number_of_args = n
+        return n
+
     def _recursive_sub(self, kwds):
         ops = self._operands
         return ops[0](ops[1]._recursive_sub(kwds))
@@ -3857,6 +5683,8 @@ class SymbolicComposition(SymbolicOperation):
     def _repr_(self, simplify=True):
         if simplify:
             if hasattr(self, '_simp'):
+                if self._simp is None:
+                    return self._repr_(simplify=False)
                 return self._simp._repr_(simplify=False)
             else:
                 return self.simplify()._repr_(simplify=False)
@@ -3874,7 +5702,7 @@ class SymbolicComposition(SymbolicOperation):
             return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
 
     def _latex_(self):
-        if not self.is_simplified():
+        if not self._has_been_simplified():
             return self.simplify()._latex_()
         ops = self._operands
 
@@ -3902,10 +5730,31 @@ class SymbolicComposition(SymbolicOperation):
         g = self._operands[1]
         return float(f._approx_(float(g)))
 
+    def _fast_float_(self, *vars):
+        f = self._operands[0]
+        g = self._operands[1]._fast_float_(*vars)
+        try:
+            return f(g)
+        except TypeError:
+            if f is abs_symbolic:
+                return abs(g) # special case
+            else:
+                return fast_float.fast_float_func(f, g)
+        return lambda x: f(g(x))
+
     def __complex__(self):
+        """
+        Convert this symbolic composition to a Python complex number.
+
+        EXAMPLES:
+            sage: complex(cos(3))
+            (-0.98999249660044542+0j)
+            sage: complex(cos(3*I))
+            (10.067661995777771+0j)
+        """
         f = self._operands[0]
         g = self._operands[1]
-        return complex(f._approx_(float(g)))
+        return complex(f._complex_approx_(complex(g)))
 
     def _mpfr_(self, field):
         """
@@ -3916,7 +5765,7 @@ class SymbolicComposition(SymbolicOperation):
             0.49315059027853930839845163641
 
             sage: RR(sin(pi))
-            0.000000000000000122464679914735
+            1.22464679914735e-16
 
             sage: type(RR(sqrt(163)*pi))
             <type 'sage.rings.real_mpfr.RealNumber'>
@@ -3925,7 +5774,7 @@ class SymbolicComposition(SymbolicOperation):
             1.00374187319732
             sage: RealField(100)(coth(pi))
             1.0037418731973212882015526912
-            sage: RealField(200)(acos(1/10))
+            sage: RealField(200)(arccos(1/10))
             1.4706289056333368228857985121870581235299087274579233690964
         """
         f = self._operands[0]
@@ -3985,7 +5834,7 @@ class SymbolicComposition(SymbolicOperation):
             sage: RDF(sin(2)+cos(2))
             0.493150590279
         """
-        if not self.is_simplified():
+        if not self._has_been_simplified():
             return self.simplify()._real_double_(field)
         f = self._operands[0]
         g = self._operands[1]
@@ -4001,7 +5850,7 @@ class SymbolicComposition(SymbolicOperation):
         EXAMPLES:
 
         """
-        if not self.is_simplified():
+        if not self._has_been_simplified():
             return self.simplify()._real_rqdf_(field)
         f = self._operands[0]
         g = self._operands[1]
@@ -4010,6 +5859,30 @@ class SymbolicComposition(SymbolicOperation):
             raise TypeError, "precision loss"
         else:
             return z
+
+    def _algebraic_(self, field):
+        """
+        Coerce to an algebraic number.
+
+        EXAMPLES:
+            sage: QQbar(sqrt(2))
+            [1.4142135623730949 .. 1.4142135623730952]
+            sage: AA(abs(1+I))
+            [1.4142135623730949 .. 1.4142135623730952]
+        """
+        # We try to avoid simplifying, because maxima's simplify command
+        # can change the value of a radical expression (by changing which
+        # root is selected).
+        f = self._operands[0]
+        g = self._operands[1]
+        try:
+            return field(f(g._algebraic_(field)))
+        except TypeError:
+            if self._has_been_simplified():
+                raise
+            else:
+                return self.simplify()._algebraic_(field)
+
 
 class PrimitiveFunction(SymbolicExpression):
     def __init__(self, needs_braces=False):
@@ -4048,12 +5921,51 @@ class PrimitiveFunction(SymbolicExpression):
         s = '%s(%s), numer'%(self._repr_(), float(x))
         return float(maxima.eval(s))
 
+    def _complex_approx_(self, x): # must be called with Python complex float as input
+        """
+        Given a Python complex $x$, evaluate self and return a complex value.
+
+        EXAMPLES:
+            sage: complex(cos(3*I))
+            (10.067661995777771+0j)
+
+        The following fails because we and Maxima haven't implemented
+        erf yet for complex values:
+            sage: complex(erf(3*I))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to simplify to complex approximation
+        """
+        if x.imag == 0:
+            return complex(self._approx_(x.real))
+        s = '%s(%s+%s*%%i), numer'%(self._repr_(), x.real, x.imag)
+        a = maxima.eval(s).replace('%i', '1j')
+        if '(' in a:
+            # unable to simplify to a complex -- still function calls there.
+            raise TypeError, "unable to simplify to complex approximation"
+        return complex(eval(a))
+
+    def number_of_arguments(self):
+        """
+        Returns the number of arguments of self.
+
+        EXAMPLES:
+            sage: sin.variables()
+            ()
+            sage: sin.number_of_arguments()
+            1
+        """
+        return 1
+
 _syms = {}
 
 class Function_erf(PrimitiveFunction):
     r"""
     The error function, defined as $\text{erf}(x) =
     \frac{2}{\sqrt{\pi}}\int_0^x e^{-t^2} dt$.
+
+    \sage currently \strong{only} implements the error function (via a call to
+    PARI) when the input is real.
     """
 
     def _repr_(self, simplify=True):
@@ -4083,7 +5995,7 @@ class Function_abs(PrimitiveFunction):
         sage: abs(-2)
         2
         sage: sqrt(x^2)
-        abs(x)
+        sqrt(x^2)
         sage: abs(sqrt(x))
         sqrt(x)
     """
@@ -4106,6 +6018,16 @@ class Function_abs(PrimitiveFunction):
     def _approx_(self, x):
         return float(x.__abs__())
 
+    def _complex_approx_(self, x):
+        """
+        EXAMPLES:
+            sage: complex(abs(3*I))
+            (3+0j)
+            sage: abs_symbolic._complex_approx_(complex(3*I))
+            (3+0j)
+        """
+        return complex(x.__abs__())
+
     def __call__(self, x): # special case
         return SymbolicComposition(self, SR(x))
 
@@ -4115,8 +6037,23 @@ _syms['abs'] = abs_symbolic
 
 
 class Function_ceil(PrimitiveFunction):
-    """
+    r"""
     The ceiling function.
+
+    The ceiling of $x$ is computed in the following manner.
+    \begin{enumerate}
+    \item The \code{x.ceil()} method is called and returned if it is there.
+         If it is not, then \sage checks if $x$ is one of Python's
+         native numeric data types.  If so, then it calls
+         and returns \code{Integer(int(math.ceil(x)))}.
+    \item \sage tries to convert $x$ into a \class{RealIntervalField}.  The
+         ceilings of the endpoints are computed.  If they are the same,
+         then that value is returned.  Otherwise, the precision of
+         the \class{RealIntervalField} is increased until they do match up
+         or it reaches \code{maximum_bits} of precision.
+    \item If none of the above work, \sage returns a \class{SymbolicComposition}
+         object.
+    \end{enumerate}
 
     EXAMPLES:
         sage: a = ceil(2/5 + x)
@@ -4138,6 +6075,13 @@ class Function_ceil(PrimitiveFunction):
         6
         sage: type(ceil(5.4))
         <type 'sage.rings.integer.Integer'>
+
+        sage: ceil(factorial(50)/exp(1))
+        11188719610782480504630258070757734324011354208865721592720336801
+        sage: ceil(SR(10^50 + 10^(-50)))
+        100000000000000000000000000000000000000000000000001
+        sage: ceil(SR(10^50 - 10^(-50)))
+        100000000000000000000000000000000000000000000000000
     """
     def _repr_(self, simplify=True):
         return "ceil"
@@ -4150,21 +6094,61 @@ class Function_ceil(PrimitiveFunction):
 
     _approx_ = math.ceil
 
-    def __call__(self, x):
+    def __call__(self, x, maximum_bits=20000):
         try:
             return x.ceil()
         except AttributeError:
             if isinstance(x, (float, int, long, complex)):
-                return int(math.ceil(x))
-        return SymbolicComposition(self, SR(x))
+                return Integer(int(math.ceil(x)))
+
+        #If x can be coerced into a real interval, then we should
+        #try increasing the number of bits of precision until
+        #we get the ceiling at each of the endpoints is the same.
+        #The precision will continue to be increased up to maximum_bits
+        #of precision at which point it will raise a value error.
+        bits = 53
+        try:
+            x_interval = RealIntervalField(bits)(x)
+            upper_ceil = x_interval.upper().ceil()
+            lower_ceil = x_interval.lower().ceil()
+            while upper_ceil != lower_ceil and bits < maximum_bits:
+                bits += 100
+                x_interval = RealIntervalField(bits)(x)
+                upper_ceil = x_interval.upper().ceil()
+                lower_ceil = x_interval.lower().ceil()
+
+            if bits < maximum_bits:
+                return lower_ceil
+            else:
+                raise ValueError, "x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits)
+
+        except TypeError:
+            #If x cannot be coerced into a RealField, then
+            #it should be left as a symbolic expression.
+            return SymbolicComposition(self, SR(x))
 
 ceil = Function_ceil()
 _syms['ceiling'] = ceil   # spelled ceiling in maxima
 
 
 class Function_floor(PrimitiveFunction):
-    """
+    r"""
     The floor function.
+
+    The floor of $x$ is computed in the following manner.
+    \begin{enumerate}
+    \item The \code{x.floor()} method is called and returned if it is there.
+         If it is not, then \sage checks if $x$ is one of Python's
+         native numeric data types.  If so, then it calls
+         and returns \code{Integer(int(math.floor(x)))}.
+    \item \sage tries to convert $x$ into a \class{RealIntervalField}.  The
+         floors of the endpoints are computed.  If they are the same,
+         then that value is returned.  Otherwise, the precision of
+         the \class{RealIntervalField} is increased until they do match up
+         or it reaches \code{maximum_bits} of precision.
+    \item If none of the above work, \sage returns a \class{SymbolicComposition}
+         object.
+    \end{enumerate}
 
     EXAMPLES:
         sage: floor(5.4)
@@ -4174,9 +6158,15 @@ class Function_floor(PrimitiveFunction):
         sage: var('x')
         x
         sage: a = floor(5.4 + x); a
-        floor(x + 0.4000000000000004) + 5
+        floor(x + 0.400000000000000) + 5
         sage: a(2)
         7
+        sage: floor(factorial(50)/exp(1))
+        11188719610782480504630258070757734324011354208865721592720336800
+        sage: floor(SR(10^50 + 10^(-50)))
+        100000000000000000000000000000000000000000000000000
+        sage: floor(SR(10^50 - 10^(-50)))
+        99999999999999999999999999999999999999999999999999
     """
     def _repr_(self, simplify=True):
         return "floor"
@@ -4189,13 +6179,39 @@ class Function_floor(PrimitiveFunction):
 
     _approx_ = math.floor
 
-    def __call__(self, x):
+    def __call__(self, x, maximum_bits=20000):
         try:
             return x.floor()
         except AttributeError:
             if isinstance(x, (float, int, long, complex)):
-                return int(math.floor(x))
-        return SymbolicComposition(self, SR(x))
+                return Integer(int(math.floor(x)))
+
+        #If x can be coerced into a real interval, then we should
+        #try increasing the number of bits of precision until
+        #we get the floor at each of the endpoints is the same.
+        #The precision will continue to be increased up to maximum_bits
+        #of precision at which point it will raise a value error.
+        bits = 53
+        try:
+            x_interval = RealIntervalField(bits)(x)
+            upper_floor = x_interval.upper().floor()
+            lower_floor = x_interval.lower().floor()
+            while upper_floor != lower_floor and bits < maximum_bits:
+                bits += 100
+                x_interval = RealIntervalField(bits)(x)
+                upper_floor = x_interval.upper().floor()
+                lower_floor = x_interval.lower().floor()
+
+            if bits < maximum_bits:
+                return lower_floor
+            else:
+                raise ValueError, "x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits)
+
+        except TypeError:
+            #If x cannot be coerced into a RealField, then
+            #it should be left as a symbolic expression.
+            return SymbolicComposition(self, SR(x))
+
 
 floor = Function_floor()
 _syms['floor'] = floor   # spelled ceiling in maxima
@@ -4221,6 +6237,9 @@ class Function_sin(PrimitiveFunction):
                 return math.sin(x)
         return SymbolicComposition(self, SR(x))
 
+    def _fast_float_(self):
+        return math.sin
+
 sin = Function_sin()
 _syms['sin'] = sin
 
@@ -4243,6 +6262,9 @@ class Function_cos(PrimitiveFunction):
             if isinstance(x, float):
                 return math.cos(x)
         return SymbolicComposition(self, SR(x))
+
+    def _fast_float_(self):
+        return math.cos
 
 
 cos = Function_cos()
@@ -4362,103 +6384,220 @@ class Function_tan(PrimitiveFunction):
 tan = Function_tan()
 _syms['tan'] = tan
 
-def atan2(y, x):
-    return atan(y/x)
+def arctan2(y, x):
+    r"""
+    Modified version of arctan function, since it is used by Maxima.
 
-_syms['atan2'] = atan2
+         \code{arctan2(y,x) = arctan(y/x)}
 
-class Function_asin(PrimitiveFunction):
+    This is mainly for internal use.
+
+    EXAMPLES:
+        sage: sage.calculus.calculus.arctan2(2,3)
+        arctan(2/3)
+    """
+    return arctan(y/x)
+
+atan2 = arctan2
+_syms['atan2'] = arctan2
+
+class Function_arcsin(PrimitiveFunction):
     """
     The arcsine function
 
     EXAMPLES:
-        sage: asin(0.5)
+        sage: arcsin(0.5)
         0.523598775598299
-        sage: asin(1/2)
+        sage: arcsin(1/2)
         pi/6
-        sage: asin(1 + I*1.0)
-        1.061275061905036*I + 0.6662394324925153
+        sage: arcsin(1 + I*1.0)
+        1.061275061905036*I + 0.666239432492515
     """
     def _repr_(self, simplify=True):
+        """
+        Return string representation of arcsin.
+
+        EXAMPLES:
+            sage: arcsin._repr_()
+            'arcsin'
+        """
+        return "arcsin"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arcsin._maxima_init_()
+            'asin'
+        """
         return "asin"
 
     def _latex_(self):
+        """
+        Return latex representation of self.
+
+        EXAMPLES:
+            sage: arcsin._latex_()
+            '\\sin^{-1}'
+        """
         return "\\sin^{-1}"
 
     def _approx_(self, x):
+        """
+        Return floating point approximation to the inverse of sine.
+
+        EXAMPLES:
+            sage: arcsin._approx_(0.5)
+            0.52359877559829893
+        """
         return math.asin(x)
 
-asin = Function_asin()
-_syms['asin'] = asin
+arcsin = Function_arcsin()
+asin = arcsin
+_syms['asin'] = arcsin
 
-class Function_asinh(PrimitiveFunction):
+class Function_arcsinh(PrimitiveFunction):
     """
     The inverse of the hyperbolic sine function.
 
     EXAMPLES:
-        sage: asinh(0.5)
+        sage: arcsinh(0.5)
         0.481211825059603
-        sage: asinh(1/2)
-        asinh(1/2)
-        sage: asinh(1 + I*1.0)
-        0.6662394324925153*I + 1.061275061905036
+        sage: arcsinh(1/2)
+        arcsinh(1/2)
+        sage: arcsinh(1 + I*1.0)
+        0.666239432492515*I + 1.061275061905036
     """
     def _repr_(self, simplify=True):
+        """
+        Return string representation of arcsinh.
+
+        EXAMPLES:
+            sage: arcsinh._repr_()
+            'arcsinh'
+        """
+        return "arcsinh"
+
+    def _maxima_init_(self):
+        """
+        Return Maxima representation of this function.
+
+        EXAMPLES:
+            sage: arcsinh._maxima_init_()
+            'asinh'
+        """
         return "asinh"
 
     def _latex_(self):
+        """
+        Return latex representation of self.
+
+        EXAMPLES:
+            sage: arcsinh._latex_()
+            '\\sinh^{-1}'
+        """
         return "\\sinh^{-1}"
 
     def _approx_(self, x):
+        """
+        Return floating point numerical approximation to inverse hyperbolic sin at $x$.
+
+        EXAMPLES:
+            sage: arcsinh._approx_(0.5)
+            0.48121182505960347
+            sage: sinh(arcsinh._approx_(0.5))
+            0.5
+        """
         return float(pari(float(x)).asinh())
 
-asinh = Function_asinh()
-_syms['asinh'] = asinh
+arcsinh = Function_arcsinh()
+asinh = arcsinh
+_syms['asinh'] = arcsinh
 
-class Function_acosh(PrimitiveFunction):
+class Function_arccosh(PrimitiveFunction):
     """
-    The inverse of the hyperbolic cose function.
+    The inverse of the hyperbolic cosine function.
 
     EXAMPLES:
-        sage: acosh(1/2)
-        acosh(1/2)
-        sage: acosh(1 + I*1.0)
-        0.9045568943023813*I + 1.061275061905036
+        sage: arccosh(1/2)
+        arccosh(1/2)
+        sage: arccosh(1 + I*1.0)
+        0.904556894302381*I + 1.061275061905036
 
     Warning: If the input is real the output will be real or NaN:
-        sage: acosh(0.5)
+        sage: arccosh(0.5)
         NaN
 
-    But evaluate where the input is in the complex field yields a complex output:
-        sage: acosh(CC(0.5))
+    But evaluation where the input is in the complex field yields a complex output:
+        sage: arccosh(CC(0.5))
         1.04719755119660*I
-
     """
     def _repr_(self, simplify=True):
+        """
+        Return string representation of arccosh.
+
+        EXAMPLES:
+            sage: arccosh._repr_()
+            'arccosh'
+        """
+        return "arccosh"
+
+    def _maxima_init_(self):
+        """
+        Return Maxima representation of this function.
+
+        EXAMPLES:
+            sage: arccosh._maxima_init_()
+            'acosh'
+        """
         return "acosh"
 
     def _latex_(self):
+        """
+        Return latex representation of inverse cosine.
+
+        EXAMPLES:
+            sage: arccosh._latex_()
+            '\\cosh^{-1}'
+        """
         return "\\cosh^{-1}"
 
     def _approx_(self, x):
+        """
+        Return floating point approximation to arccosh.
+
+        EXAMPLES:
+            sage: float(arccosh(2))
+            1.3169578969248168
+            sage: cosh(float(arccosh(2)))
+            2.0
+        """
         return float(pari(float(x)).acosh())
 
-acosh = Function_acosh()
-_syms['acosh'] = acosh
+arccosh = Function_arccosh()
+acosh = arccosh
+_syms['acosh'] = arccosh
 
-class Function_atanh(PrimitiveFunction):
+class Function_arctanh(PrimitiveFunction):
     """
-    The inverse of the hyperbolic tane function.
+    The inverse of the hyperbolic tangent function.
 
     EXAMPLES:
-        sage: atanh(0.5)
+        sage: arctanh(0.5)
         0.549306144334055
-        sage: atanh(1/2)
-        atanh(1/2)
-        sage: atanh(1 + I*1.0)
-        1.017221967897851*I + 0.4023594781085251
+        sage: arctanh(1/2)
+        arctanh(1/2)
+        sage: arctanh(1 + I*1.0)
+        1.017221967897851*I + 0.402359478108525
     """
     def _repr_(self, simplify=True):
+        return "arctanh"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arctanh._maxima_init_()
+            'atanh'
+        """
         return "atanh"
 
     def _latex_(self):
@@ -4467,22 +6606,130 @@ class Function_atanh(PrimitiveFunction):
     def _approx_(self, x):
         return float(pari(float(x)).atanh())
 
-atanh = Function_atanh()
-_syms['atanh'] = atanh
+arctanh = Function_arctanh()
+atanh = arctanh
+_syms['atanh'] = arctanh
 
-class Function_acos(PrimitiveFunction):
+class Function_arccoth(PrimitiveFunction):
+    """
+    The inverse of the hyperbolic cotangent function.
+
+    EXAMPLES:
+        sage: arccoth(2.)
+        0.549306144334055
+        sage: arccoth(2)
+        arccoth(2)
+        sage: arccoth(1 + I*1.0)
+        0.402359478108525 - 0.553574358897045*I
+    """
+    def _repr_(self, simplify=True):
+        return "arccoth"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arccoth._maxima_init_()
+            'acoth'
+        """
+        return "acoth"
+
+    def _latex_(self):
+        return "\\coth^{-1}"
+
+    def _approx_(self, x):
+        return float(pari(float(1/x)).atanh())
+
+arccoth = Function_arccoth()
+acoth = arccoth
+_syms['acoth'] = arccoth
+
+class Function_arcsech(PrimitiveFunction):
+    """
+    The inverse of the hyperbolic secant function.
+
+    EXAMPLES:
+        sage: arcsech(.5)
+        1.316957896924817
+        sage: arcsech(1/2)
+        arcsech(1/2)
+        sage: arcsech(1 + I*1.0)
+        0.530637530952518 - 1.118517879643706*I
+    """
+    def _repr_(self, simplify=True):
+        return "arcsech"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arcsech._maxima_init_()
+            'asech'
+        """
+        return "asech"
+
+    def _latex_(self):
+        return "\\sech^{-1}"
+
+    def _approx_(self, x):
+        return float(pari(float(1/x)).acosh())
+
+arcsech = Function_arcsech()
+asech = arcsech
+_syms['asech'] = arcsech
+
+class Function_arccsch(PrimitiveFunction):
+    """
+    The inverse of the hyperbolic cosecant function.
+
+    EXAMPLES:
+        sage: arccsch(2.)
+        0.481211825059603
+        sage: arccsch(2)
+        arccsch(2)
+        sage: arccsch(1 + I*1.0)
+        0.530637530952518 - 0.452278447151191*I
+    """
+    def _repr_(self, simplify=True):
+        return "arccsch"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arccsch._maxima_init_()
+            'acsch'
+        """
+        return "acsch"
+
+    def _latex_(self):
+        return "\\csch^{-1}"
+
+    def _approx_(self, x):
+        return float(pari(float(1/x)).arcsinh())
+
+arccsch = Function_arccsch()
+acsch = arccsch
+_syms['acsch'] = arccsch
+
+class Function_arccos(PrimitiveFunction):
     """
     The arccosine function
 
     EXAMPLES:
-        sage: acos(0.5)
+        sage: arccos(0.5)
         1.04719755119660
-        sage: acos(1/2)
+        sage: arccos(1/2)
         pi/3
-        sage: acos(1 + I*1.0)
-        0.9045568943023813 - 1.061275061905036*I
+        sage: arccos(1 + I*1.0)
+        0.904556894302381 - 1.061275061905036*I
     """
     def _repr_(self, simplify=True):
+        return "arccos"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arccos._maxima_init_()
+            'acos'
+        """
         return "acos"
 
     def _latex_(self):
@@ -4491,23 +6738,32 @@ class Function_acos(PrimitiveFunction):
     def _approx_(self, x):
         return math.acos(x)
 
-acos = Function_acos()
+arccos = Function_arccos()
+acos = arccos
 _syms['acos'] = acos
 
 
-class Function_atan(PrimitiveFunction):
+class Function_arctan(PrimitiveFunction):
     """
     The arctangent function.
 
     EXAMPLES:
-        sage: atan(1/2)
-        atan(1/2)
-        sage: RDF(atan(1/2))
+        sage: arctan(1/2)
+        arctan(1/2)
+        sage: RDF(arctan(1/2))
         0.463647609001
-        sage: atan(1 + I)
-        atan(I + 1)
+        sage: arctan(1 + I)
+        arctan(I + 1)
     """
     def _repr_(self, simplify=True):
+        return "arctan"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arctan._maxima_init_()
+            'atan'
+        """
         return "atan"
 
     def _latex_(self):
@@ -4516,8 +6772,108 @@ class Function_atan(PrimitiveFunction):
     def _approx_(self, x):
         return math.atan(x)
 
-atan = Function_atan()
-_syms['atan'] = atan
+arctan = Function_arctan()
+atan = arctan
+_syms['atan'] = arctan
+
+class Function_arccot(PrimitiveFunction):
+    """
+    The arccotangent function.
+
+    EXAMPLES:
+        sage: arccot(1/2)
+        arccot(1/2)
+        sage: RDF(arccot(1/2))
+        1.10714871779
+        sage: arccot(1 + I)
+        arccot(I + 1)
+    """
+    def _repr_(self, simplify=True):
+        return "arccot"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arccot._maxima_init_()
+            'acot'
+        """
+        return "acot"
+
+    def _latex_(self):
+        return "\\cot^{-1}"
+
+    def _approx_(self, x):
+        return math.pi/2 - math.atan(x)
+
+arccot = Function_arccot()
+acot = arccot
+_syms['acot'] = arccot
+
+class Function_arccsc(PrimitiveFunction):
+    """
+    The arccosecant function.
+
+    EXAMPLES:
+        sage: arccsc(2)
+        arccsc(2)
+        sage: RDF(arccsc(2))
+        0.523598775598
+        sage: arccsc(1 + I)
+        arccsc(I + 1)
+    """
+    def _repr_(self, simplify=True):
+        return "arccsc"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: arccsc._maxima_init_()
+            'acsc'
+        """
+        return "acsc"
+
+    def _latex_(self):
+        return "\\csc^{-1}"
+
+    def _approx_(self, x):
+        return math.asin(1/x)
+
+arccsc = Function_arccsc()
+acsc = arccsc
+_syms['acsc'] = arccsc
+
+class Function_arcsec(PrimitiveFunction):
+    """
+    The arcsecant function.
+
+    EXAMPLES:
+        sage: arcsec(2)
+        arcsec(2)
+        sage: RDF(arcsec(2))
+        1.0471975512
+        sage: arcsec(1 + I)
+        arcsec(I + 1)
+    """
+    def _repr_(self, simplify=True):
+        return "arcsec"
+
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            asec: arcsec._maxima_init_()
+            'acsc'
+        """
+        return "asec"
+
+    def _latex_(self):
+        return "\\sec^{-1}"
+
+    def _approx_(self, x):
+        return math.acos(1/x)
+
+arcsec = Function_arcsec()
+asec = arcsec
+_syms['asec'] = arcsec
 
 
 #######
@@ -4738,6 +7094,20 @@ function_log = Function_log()
 ln = function_log
 
 def log(x, base=None):
+    """
+    Return the logarithm of x to the given base.
+
+    EXAMPLES:
+        sage: log(10, 2)
+        log(10)/log(2)
+        sage: n(log(10, 2))
+        3.32192809488736
+        sage: log(10, e)
+        log(10)
+        sage: n(log(10, e))
+        2.30258509299405
+    """
+
     if base is None:
         try:
             return x.log()
@@ -4763,9 +7133,15 @@ class Function_polylog(PrimitiveFunction):
         z -- object
 
     EXAMPLES:
-
+        sage: f = polylog(1,x)._operands[0]; f
+        polylog(1)
+        sage: type(f)
+        <class 'sage.calculus.calculus.Function_polylog'>
     """
     def __init__(self, n):
+        """
+
+        """
         PrimitiveFunction.__init__(self)
         self._n = n
 
@@ -4776,6 +7152,19 @@ class Function_polylog(PrimitiveFunction):
         return 'polylog(%s, %s)'%(self._n, args)
 
     def _maxima_init_(self):
+        """
+        Return string representation of this polylog function in Maxima.
+
+        EXAMPLES:
+            sage: polylog(1,x)._operands[0]._maxima_init_()
+            'li[1]'
+            sage: polylog(2,x)._operands[0]._maxima_init_()
+            'li[2]'
+            sage: polylog(3,x)._operands[0]._maxima_init_()
+            'li[3]'
+            sage: polylog(4,x)._operands[0]._maxima_init_()
+            'polylog(4)'
+        """
         if self._n in [1,2,3]:
             return 'li[%s]'%self._n
         else:
@@ -4787,18 +7176,68 @@ class Function_polylog(PrimitiveFunction):
         else:
             return 'polylog(%s, %s)'%(self._n, args)
 
-    def n(self):
+    def index(self):
+        r"""
+        Return the index of this polylogarithm, i.e., if this is $\text{Li}_n(z)$, then
+        this function returns $n$.
+
+        EXAMPLES:
+            sage: a = polylog(5,x); a
+            polylog(5, x)
+            sage: a._operands
+            [polylog(5), x]
+            sage: a._operands[0].index()
+            5
+        """
         return self._n
 
     def _latex_(self):
-        return "\\text{Li}"
+        """
+        Return Latex representation of this polylogarithm.
+
+        EXAMPLES:
+            sage: polylog(5,x)._operands[0]._latex_()
+            '\\text{Li}_{5}'
+        """
+        return "\\text{Li}_{%s}"%(self._n)
 
     def _approx_(self, x):
+        """
+        Return real numerical approximation for this polylogarithm evaluated
+        at $x$.
+
+        EXAMPLES:
+            sage: f = polylog(4,x)._operands[0]; f
+            polylog(4)
+            sage: f._approx_(1)
+            1.0823232337111381
+            sage: type(f._approx_(1))
+            <type 'float'>
+        """
         try:
             return float(pari(x).polylog(self._n))
         except PariError:
             raise TypeError, 'unable to coerce polylogarithm to float'
 
+    def _complex_approx_(self, x):
+        """
+        Return real numerical approximation for this polylogarithm
+        evaluated at $x$.
+
+        EXAMPLES:
+            sage: a = pari('1+I')
+            sage: CDF(a)
+            1.0 + 1.0*I
+            sage: complex(polylog(4,2))
+            (2.4278628067547032-0.17437130002545306j)
+            sage: polylog(4,x)._operands[0]._complex_approx_(2)
+            (2.4278628067547032-0.17437130002545306j)
+        """
+        try:
+            # kind of lame using CDF here.
+            return complex(CDF(pari(CDF(x)).polylog(self._n)))
+        except PariError:
+            raise TypeError, 'unable to coerce polylogarithm to float'
 
 def polylog(n, z):
     r"""
@@ -4838,7 +7277,7 @@ class Function_sqrt(PrimitiveFunction):
         sage: sqrt(2)
         sqrt(2)
         sage: sqrt(x^2)
-        abs(x)
+        sqrt(x^2)
     """
     def __init__(self):
         PrimitiveFunction.__init__(self, needs_braces=True)
@@ -4859,8 +7298,7 @@ class Function_sqrt(PrimitiveFunction):
 
     def __call__(self, x, *args, **kwds):
         """
-
-        POSSIBLE INPUTS INCLUDE:
+        INPUT:
             x -- a number
             prec -- integer (default: None): if None, returns an exact
                  square root; otherwise returns a numerical square
@@ -4974,22 +7412,79 @@ class SymbolicFunction(PrimitiveFunction):
     def _approx_(self, x):
         raise TypeError
 
-    def __call__(self, *args, **kwds):
+    def __call__(self, *args):
         return SymbolicFunctionEvaluation(self, [SR(x) for x in args])
 
 
 
 class SymbolicFunction_delayed(SymbolicFunction):
     def simplify(self):
+        """
+        Return the simplified form of this delayed function.  This
+        always just returns this delayed function itself.
+
+        OUTPUT:
+            self
+
+        EXAMPLES:
+            sage: f = sage.calculus.calculus.symbolic_expression_from_maxima_string("?%jacobi_cd")
+            sage: type(f)
+            <class 'sage.calculus.calculus.SymbolicFunction_delayed'>
+            sage: f.simplify()
+            jacobi_cd
+            sage: f.simplify() is f
+            True
+        """
         return self
 
-    def is_simplified(self):
+    def _has_been_simplified(self):
+        """
+        Return True, since delayed symbolic functions are simplified
+        by construction.
+
+        OUTPUT:
+            bool -- True
+
+        EXAMPLES:
+            sage: f = sage.calculus.calculus.symbolic_expression_from_maxima_string("?%jacobi_cd")
+            sage: type(f)
+            <class 'sage.calculus.calculus.SymbolicFunction_delayed'>
+            sage: f._has_been_simplified()
+            True
+        """
         return True
 
     def _maxima_init_(self):
-        return "%s"%self._name
+        """
+        Return Maxima version of self.
+
+        EXAMPLES:
+            sage: f = sage.calculus.calculus.symbolic_expression_from_maxima_string("?%jacobi_cd")
+            sage: f._maxima_init_()
+            '?%jacobi_cd'
+            sage: maxima(f)
+            ?%jacobi_cd
+        """
+        return '?%%%s'%self._name
 
     def __call__(self, *args):
+        """
+        Call this delayed function evaluation at the given inputs.
+
+        OUTPUT:
+            a delayed function evaluation
+
+        EXAMPLES:
+            sage: f = sage.calculus.calculus.symbolic_expression_from_maxima_string("?%jacobi_cd")
+            sage: f(2)
+            jacobi_cd(2)
+            sage: f(2,3)
+            jacobi_cd(2, 3)
+            sage: f(2,3,x)
+            jacobi_cd(2, 3, x)
+            sage: type(f(2,3,x))
+            <class 'sage.calculus.calculus.SymbolicFunctionEvaluation_delayed'>
+        """
         return SymbolicFunctionEvaluation_delayed(self, [SR(x) for x in args])
 
 
@@ -5010,7 +7505,7 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         sage: k.diff(x)
         gfun(x)
     """
-    def __init__(self, f, args=None, kwds=None):
+    def __init__(self, f, args=None):
         """
         INPUT:
             f -- symbolic function
@@ -5023,7 +7518,6 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
             if not isinstance(args, tuple):
                 args = tuple(args)
         self._args = args
-        self._kwds = kwds
 
     def __float__(self):
         return float(maxima(self))
@@ -5032,10 +7526,29 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         return True
 
     def arguments(self):
+        """
+        Return arguments of self.
+
+        EXAMPLES:
+            sage: f = function('Gamma', var('z'), var('w'))
+            sage: f.arguments()
+            (z, w)
+        """
         return tuple(self._args)
 
-    def keyword_arguments(self):
-        return self._kwds
+##     def keyword_arguments(self):
+##         """
+##         Return the keyword arguments to this formal function evaluation.
+
+##         EXAMPLES:
+##             sage: g = f(2,3,z=10); g
+##             abc(2, 3, )
+##             sage: type(g)
+##             <class 'sage.calculus.calculus.SymbolicFunctionEvaluation'>
+##             sage: g.keyword_arguments()
+##             {'z': 10}
+##         """
+##         return self._kwds
 
     def _repr_(self, simplify=True):
         if simplify:
@@ -5043,17 +7556,29 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         else:
             args = ', '.join([x._repr_(simplify=simplify) for x in
                                                       self._args])
-            if not self._kwds is None:
-                kwds = ', '.join(["%s=%s" %(x, y) for x,y in self._kwds.iteritems()])
-                return '%s(%s, %s)' % (self._f._name, args, kwds)
-            else:
-                return '%s(%s)' % (self._f._name, args)
+            #if not self._kwds is None:
+            #    kwds = ', '.join(["%s=%s" %(x, y) for x,y in self._kwds.iteritems()])
+            #    return '%s(%s, %s)' % (self._f._name, args, kwds)
+            #else:
+            return '%s(%s)' % (self._f._name, args)
 
     def _latex_(self):
         return "{\\rm %s}(%s)"%(self._f._name, ', '.join([x._latex_() for
                                                        x in self._args]))
 
     def _maxima_init_(self):
+        r"""
+        Return string that in Maxima evaluates to something
+        equivalent to \code{self}.
+
+        EXAMPLES:
+            sage: f = function('Gamma', var('w'), var('theta')); f
+            Gamma(w, theta)
+            sage: f._maxima_init_()
+            "'Gamma(w, theta)"
+            sage: maxima(f(sqrt(2), theta+3))
+            'Gamma(sqrt(2),theta+3)
+        """
         try:
             return self.__maxima_init
         except AttributeError:
@@ -5064,6 +7589,26 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
                                            for x in self._args]))
             self.__maxima_init = s
         return s
+
+    def _mathematica_init_(self):
+        r"""
+        Return string that in Mathematica evaluates to something
+        equivalent to \code{self}.
+
+        EXAMPLES:
+            sage: f = function('Gamma', var('z'))
+            sage: mathematica(f) # optional
+            Gamma[z]
+            sage: f = function('Gamma', var('w'), var('z')); f
+            Gamma(w, z)
+            sage: f._mathematica_init_()
+            'Gamma[w, z]'
+            sage: mathematica(f(sqrt(2), z+1)) # optional
+            Gamma[Sqrt[2], 1 + z]
+        """
+        n = self._f._name
+        return "%s[%s]"%(n, ', '.join([x._mathematica_init_()
+                                           for x in self._args]))
 
     def _recursive_sub(self, kwds):
         """
@@ -5115,8 +7660,8 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         raise TypeError, "no way to coerce the formal function to ring."
 
     def variables(self):
-        """
-        Return the variables appearing in the simplified form of self.
+        r"""
+        Return the variables appearing in the simplified form of \code{self}.
 
         EXAMPLES:
             sage: foo = function('foo')
@@ -5138,11 +7683,25 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         self.__variables = vars
         return vars
 
+
 class SymbolicFunctionEvaluation_delayed(SymbolicFunctionEvaluation):
+    """
+    We create an example of such a thing.
+
+    EXAMPLES:
+        sage: f = sage.calculus.calculus.symbolic_expression_from_maxima_string("?%jacobi_cd")
+        sage: type(f)
+        <class 'sage.calculus.calculus.SymbolicFunction_delayed'>
+        sage: g = f(10)
+        sage: type(g)
+        <class 'sage.calculus.calculus.SymbolicFunctionEvaluation_delayed'>
+        sage: g
+        jacobi_cd(10)
+    """
     def simplify(self):
         return self
 
-    def is_simplified(self):
+    def _has_been_simplified(self):
         return True
 
     def __float__(self):
@@ -5227,22 +7786,20 @@ def function(s, *args):
     _syms[s] = v
     return v
 
-#######################################################
-# This is buggy as is:
-# sage: a = lim(exp(x^2)*(1-erf(x)), x=infinity)
-# sage: maxima(a)
-# 'limit(%e^x^2-%e^x^2*erf(x))
-#  ??? -- what happened to the infinity in the above.
-# With the old version one gets
-# sage: maxima(a)
-# 'limit(%e^x^2-%e^x^2*erf(x),x,inf)
-# Which is right, since:
-# (%i3) limit(%e^x^2-%e^x^2*erf(x),x,inf);
-# (%o3) 'limit(%e^x^2-%e^x^2*erf(x),x,inf)
-#a
 def dummy_limit(*args):
+    """
+    This function is called to create formal wrappers of limits that
+    Maxima can't compute:
+
+    EXAMPLES:
+        sage: a = lim(exp(x^2)*(1-erf(x)), x=infinity); a
+        limit(e^x^2 - e^x^2*erf(x), x, +Infinity)
+        sage: a = sage.calculus.calculus.dummy_limit(sin(x)/x, x, 0);a
+        limit(sin(x)/x, x, 0)
+    """
     s = str(args[1])
-    return SymbolicFunctionEvaluation(function('limit'), args=(args[0],), kwds={s: args[2]})
+    #return SymbolicFunctionEvaluation(function('limit'), args=(args[0],), kwds={s: args[2]})
+    return SymbolicFunctionEvaluation(function('limit'), args=(args[0], var(s), SR(args[2])))
 
 ######################################i################
 
@@ -5261,6 +7818,9 @@ _syms['minf'] = minus_infinity
 
 from sage.misc.multireplace import multiple_replace
 
+import re
+
+
 maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
 
 maxima_qp = re.compile("\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
@@ -5270,6 +7830,20 @@ maxima_var = re.compile("\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
 
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
+    """
+    Given a string representation of a Maxima expression, parse it and
+    return the corresponding Sage symbolic expression.
+
+    INPUT:
+        x -- a string
+        equals_sub -- (default: False) if True, replace '=' by '==' in self
+        maxima -- (default: the calculus package's Maxima) the Maxima
+                  interpreter to use.
+
+    EXAMPLES:
+        sage: sage.calculus.calculus.symbolic_expression_from_maxima_string('x^%e + %e^%pi + %i + sin(0)')
+        x^e + I + e^pi
+    """
     syms = dict(_syms)
 
     if len(x) == 0:
@@ -5301,12 +7875,13 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     if equals_sub:
         s = s.replace('=','==')
 
-    #replace all instances of scientific notation
+    #replace all instances of Maxima's scientific notation
     #with regular notation
     search = sci_not.search(s)
     while not search is None:
         (start, end) = search.span()
-        s = s.replace(s[start:end], str(RR(s[start:end])))
+        r = create_RealNumber(s[start:end]).str(no_sci=2, truncate=True)
+        s = s.replace(s[start:end], r)
         search = sci_not.search(s)
 
     # have to do this here, otherwise maxima_tick catches it
@@ -5348,12 +7923,88 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         is_simplified = False
 
 def symbolic_expression_from_maxima_element(x):
+    """
+    Given an element of the calculus copy of the Maxima interface,
+    create the corresponding Sage symbolic expression.
+
+    EXAMPLES:
+        sage: a = sage.calculus.calculus.maxima('x^(sqrt(y)+%pi) + sin(%e + %pi)')
+        sage: sage.calculus.calculus.symbolic_expression_from_maxima_element(a)
+        x^(sqrt(y) + pi) - sin(e)
+    """
     return symbolic_expression_from_maxima_string(x.name())
 
 def evaled_symbolic_expression_from_maxima_string(x):
+    """
+    Given a string expression that makes sense in Maxima, return the
+    corresponding Sage symbolic expression.  This is used mainly
+    internally by the Calculus module.
+
+    EXAMPLES:
+        sage: sage.calculus.calculus.evaled_symbolic_expression_from_maxima_string('2*x + x^3 + y*z*sin(sqrt(x)*erf(theta))')
+        sin(erf(theta)*sqrt(x))*y*z + x^3 + 2*x
+        sage: sage.calculus.calculus.evaled_symbolic_expression_from_maxima_string('x^%e + %e^%pi + %i')
+        x^e + I + e^pi
+    """
     return symbolic_expression_from_maxima_string(maxima.eval(x))
+
+def first_var(expr):
+    """
+    Return the first variable in expr or `x' if there are no variables
+    in expression.
+
+    EXAMPLES:
+        sage: var('a,x,y')
+        (a, x, y)
+        sage: sage.calculus.calculus.first_var(a + y^x)
+        a
+        sage: sage.calculus.calculus.first_var(y^x - x^3)
+        x
+    """
+    v = expr.variables()
+    if len(v) > 0:
+        return v[0]
+    else:
+        return var('x')
+
 
 
 # External access used by restore
 syms_cur = _syms
 syms_default = dict(syms_cur)
+
+# Comma format options for Maxima
+def mapped_opts(v):
+    """
+    Used internally when creating a string of options to pass to Maxima.
+
+    INPUT:
+        v -- an object
+    OUTPUT:
+        a string.
+
+    The main use of this is to turn Python bools into lower case strings.
+
+    EXAMPLES:
+        sage: sage.calculus.calculus.mapped_opts(True)
+        'true'
+        sage: sage.calculus.calculus.mapped_opts(False)
+        'false'
+        sage: sage.calculus.calculus.mapped_opts('bar')
+        'bar'
+    """
+    if isinstance(v, bool):
+        return str(v).lower()
+    return str(v)
+
+def maxima_options(**kwds):
+    """
+    Used internally to create a string of options to pass to Maxima.
+
+    EXAMPLES:
+        sage: sage.calculus.calculus.maxima_options(an_option=True, another=False, foo='bar')
+        'an_option=true,foo=bar,another=false'
+    """
+    return ','.join(['%s=%s'%(key,mapped_opts(val)) for key, val in kwds.iteritems()])
+
+

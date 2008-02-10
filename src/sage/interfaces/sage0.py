@@ -135,6 +135,24 @@ class Sage(Expect):
                         )
         self._preparse = preparse
 
+    def cputime(self, t=None):
+        """
+        Return cputime since this Sage subprocess was started.
+
+        EXAMPLES:
+            sage: sage0.cputime()     # random output
+            1.3530439999999999
+            sage: sage0('factor(2^157-1)')
+            852133201 * 60726444167 * 1654058017289 * 2134387368610417
+            sage: sage0.cputime()     # random output
+            1.6462939999999999
+        """
+        s = self.eval('cputime(%s)'%t)
+        i = s.rfind('m')
+        if i != -1:
+            s = s[i+1:-1]
+        return float(s)
+
     def trait_names(self):
         return eval(self.eval('globals().keys()'))
 
@@ -263,14 +281,23 @@ class SageElement(ExpectElement):
         return SageFunction(self, attrname)
 
     def _sage_(self):
+        """
+        Return local copy of self.
+
+        EXAMPLE:
+            sage: sr = mq.SR(allow_zero_inversions=True)
+            sage: F,s = sr.polynomial_system()
+            sage: F == sage0(F)._sage_()
+            True
+        """
         P = self.parent()
         if P.is_remote():
             P.eval('save(%s, "%s")'%(self.name(), P._remote_tmpfile()))
             P._get_tmpfile_from_server(self)
             return load(P._local_tmp_file())
         else:
-            P.eval('dumps(%s, "%s")'%(self.name(), P._local_tmpfile()))
-            return loads(open(P._local_tmpfile()).read())
+            P.eval('save(%s, "%s")'%(self.name(), P._local_tmpfile()))
+            return load(P._local_tmpfile())
 
 class SageFunction(FunctionElement):
     def __call__(self, *args):

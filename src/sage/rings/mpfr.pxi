@@ -1,5 +1,5 @@
 #*****************************************************************************
-# Headers.  When you past things in here from mpfr, be sure
+# Headers.  When you paste things in here from mpfr, be sure
 # to remove const's, since those aren't allowed in pyrex.  Also, it can be
 # challenging figuring out how to modify things from mpfr.h to be valid pyrex
 # code.    Note that what is here is only used for generating the C code.
@@ -82,15 +82,22 @@ cdef extern from "mpfr.h":
     int mpfr_log (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_log2 (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_log10 (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
+    int mpfr_log1p (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
 
     int mpfr_exp (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_exp2 (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_exp10 (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
+    int mpfr_expm1 (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
+    int mpfr_eint (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
 
     int mpfr_cos (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_sin (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_tan (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_sin_cos (mpfr_t rop, mpfr_t op, mpfr_t, mp_rnd_t rnd)
+
+    int mpfr_sec (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
+    int mpfr_csc (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
+    int mpfr_cot (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
 
     int mpfr_acos (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
     int mpfr_asin (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
@@ -100,21 +107,35 @@ cdef extern from "mpfr.h":
     int mpfr_sinh (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
     int mpfr_tanh (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
 
+    int mpfr_sech (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
+    int mpfr_csch (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
+    int mpfr_coth (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
+
     int mpfr_atanh (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
     int mpfr_acosh (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
     int mpfr_asinh (mpfr_ptr, mpfr_srcptr, mp_rnd_t)
 
     int mpfr_agm (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
     int mpfr_gamma (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
+    int mpfr_lngamma (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_zeta (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_erf (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
+    int mpfr_erfc (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
+
+    int mpfr_j0 (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
+    int mpfr_j1 (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
+    int mpfr_jn (mpfr_t rop, long n, mpfr_t op, mp_rnd_t rnd)
+
+    int mpfr_y0 (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
+    int mpfr_y1 (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
+    int mpfr_yn (mpfr_t rop, long n, mpfr_t op, mp_rnd_t rnd)
 
     int mpfr_pow (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
     #int mpfr_ui_pow _PROTO ((mpfr_ptr, unsigned long int, mpfr_srcptr, mp_rnd_t));
     #int mpfr_pow_si _PROTO ((mpfr_ptr, mpfr_srcptr, long int, mp_rnd_t));
 
-    #int mpfr_min _PROTO ((mpfr_ptr, mpfr_srcptr, mpfr_srcptr, mp_rnd_t));
-    #int mpfr_max _PROTO ((mpfr_ptr, mpfr_srcptr, mpfr_srcptr, mp_rnd_t));
+    int mpfr_min (mpfr_ptr, mpfr_srcptr, mpfr_srcptr, mp_rnd_t)
+    int mpfr_max (mpfr_ptr, mpfr_srcptr, mpfr_srcptr, mp_rnd_t)
 
     int mpfr_fac_ui (mpfr_t rop, unsigned long int op, mp_rnd_t rnd)
 
@@ -122,6 +143,7 @@ cdef extern from "mpfr.h":
     int mpfr_sgn(mpfr_t op)
     #define mpfr_abs(a,b,r) mpfr_set4(a,b,r,1)
     #define mpfr_sgn(x) mpfr_cmp_ui(x,0)
+    int mpfr_cmp_ui(mpfr_t, unsigned int n)
 
     int mpfr_round (mpfr_ptr rop, mpfr_srcptr op)
     int mpfr_trunc (mpfr_ptr rop, mpfr_srcptr op)
@@ -149,7 +171,11 @@ cdef extern from "mpfr.h":
 
     int mpfr_neg (mpfr_ptr rop, mpfr_srcptr op, mp_rnd_t rnd)
     # int mpfr_eq (mpfr_srcptr rop, mpfr_srcptr op, unsigned long i)
+    int mpfr_cmp (mpfr_t op1, mpfr_t op2)
+    bint mpfr_greater_p (mpfr_t op1, mpfr_t op2)
+    bint mpfr_greaterequal_p (mpfr_t op1, mpfr_t op2)
     bint mpfr_less_p (mpfr_t op1, mpfr_t op2)
     bint mpfr_lessequal_p (mpfr_t op1, mpfr_t op2)
-    int mpfr_cmp (mpfr_t op1, mpfr_t op2)
+    bint mpfr_lessgreater_p (mpfr_t op1, mpfr_t op2)
     bint mpfr_equal_p (mpfr_t op1, mpfr_t op2)
+    bint mpfr_unordered_p (mpfr_t op1, mpfr_t op2)

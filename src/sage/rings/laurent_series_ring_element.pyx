@@ -79,6 +79,22 @@ cdef class LaurentSeries(AlgebraElement):
 
         OUTPUT:
             a Laurent series
+
+        EXAMPLES:
+            sage: R.<q> = LaurentSeriesRing(ZZ)
+            sage: R([1,2,3])
+            1 + 2*q + 3*q^2
+            sage: R([1,2,3],-5)
+            q^-5 + 2*q^-4 + 3*q^-3
+
+            sage: S.<s> = LaurentSeriesRing(GF(5))
+            sage: T.<t> = PowerSeriesRing(pAdicRing(5))
+            sage: S(t)
+            s
+            sage: parent(S(t))
+            Laurent Series Ring in s over Finite Field of size 5
+            sage: parent(S(t)[1])
+            Finite Field of size 5
         """
         AlgebraElement.__init__(self, parent)
 
@@ -90,6 +106,12 @@ cdef class LaurentSeries(AlgebraElement):
                 f = parent.power_series_ring()((<LaurentSeries>f).__u)
         elif not PY_TYPE_CHECK(f, PowerSeries):
             f = parent.power_series_ring()(f)
+        ## now this is a power series, over a different ring ...
+        ## requires that power series rings with same vars over the
+        ## same parent are unique.
+        elif parent is not f.parent():
+            f = parent.power_series_ring()(f)
+
 
         # self is that t^n * u:
         cdef long val
@@ -870,6 +892,15 @@ cdef class LaurentSeries(AlgebraElement):
             Traceback (most recent call last):
             ...
             ArithmeticError: The integral of is not a Laurent series, since t^-1 has nonzero coefficient.
+
+        Another example with just one negative coefficient:
+            sage: A.<t> = QQ[[]]
+	    sage: f = -2*t^(-4) + O(t^8)
+	    sage: f.integral()
+	    2/3*t^-3 + O(t^9)
+	    sage: f.integral().derivative() == f
+	    True
+
         """
         cdef long i, n = self.__n
         a = self.__u.list()
@@ -878,7 +909,7 @@ cdef class LaurentSeries(AlgebraElement):
                   "The integral of is not a Laurent series, since t^-1 has nonzero coefficient."
 
         if n < 0:
-            v = [a[i]/(n+i+1) for i in range(-1-n)] + [0]
+            v = [a[i]/(n+i+1) for i in range(min(-1-n,len(a)))] + [0]
         else:
             v = []
         v += [a[i]/(n+i+1) for i in range(max(-n,0), len(a))]

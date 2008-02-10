@@ -192,7 +192,7 @@ def FiniteField(order, name=None, modulus=None, names=None,
                 raise ValueError, "finite field modulus must be irreducible but it is not"
         if name is None:
             raise TypeError, "you must specify the generator name"
-        if order < 2**16:
+        if order < zech_log_bound:
             # DO *NOT* use for prime subfield, since that would lead to
             # a circular reference in the call to ParentWithGens in the
             # __init__ method.
@@ -418,6 +418,20 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         return self.__char
 
     def gen(self, n=0):
+        """
+        Return generator of this finite field.
+
+        EXAMPLES:
+            sage: k = GF(13)
+            sage: k.gen()
+            1
+            sage: k.gen(1)
+            Traceback (most recent call last):
+            ...
+            IndexError: only one generator
+        """
+        if n != 0:
+            raise IndexError, "only one generator"
         return self.__gen
 
     def __iter__(self):
@@ -436,3 +450,5 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             20
         """
         return 1
+
+zech_log_bound = 2**16

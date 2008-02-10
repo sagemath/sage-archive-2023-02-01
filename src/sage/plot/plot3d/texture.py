@@ -11,17 +11,7 @@ from sage.structure.sage_object import SageObject
 
 uniq_c = 0
 
-colors = {
-    "red"   : (1,0,0),
-    "orange": (1,.5,0),
-    "yellow": (1,1,0),
-    "green" : (0,1,0),
-    "blue"  : (0,0,1),
-    "purple": (.5,0,1),
-    "white" : (1,1,1),
-    "black" : (0,0,0),
-    "grey"  : (.5,.5,.5)
-}
+from sage.plot.misc import colors
 
 def is_Texture(x):
     return isinstance(x, Texture_class)
@@ -31,9 +21,12 @@ def Texture(id=None, **kwds):
         return id
     if isinstance(id, dict):
         kwds = id
+        if kwds.has_key('rgbcolor'):
+            kwds['color'] = kwds['rgbcolor']
         id = None
     elif isinstance(id, str) and colors.has_key(id):
-        kwds = {"color": id}
+        kwds['color'] = id
+        #kwds = {"color": id}
         id = None
     elif isinstance(id, tuple):
         kwds['color'] = id
@@ -49,14 +42,31 @@ def parse_color(info, base=None):
             try:
                 return colors[info]
             except KeyError:
-                raise # TODO: parse hex?
+                raise ValueError, "unknown color '%s'"%info
         else:
             return (float(info*base[0]), float(info*base[1]), float(info*base[2]))
 
 
 class Texture_class(SageObject):
+    """
+    We create a translucent texture:
 
-    def __init__(self, id, color=(.5, .5, .5), opacity=1, ambient=0.5, diffuse=1, specular=0, shininess=1):
+        sage: from sage.plot.plot3d.texture import Texture
+        sage: t = Texture(opacity=0.6)
+        sage: t
+        <class 'sage.plot.plot3d.texture.Texture_class'>
+        sage: t.opacity
+        0.600000000000000
+        sage: t.jmol_str('obj')
+        'color obj translucent 0.4 [102,102,255]'
+        sage: t.mtl_str()
+        'newmtl texture2\nKa 0.2 0.2 0.5\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1\nd 0.600000000000000'
+        sage: t.tachyon_str()
+        'Texdef texture2\n  Ambient 0.333333333333 Diffuse 0.666666666667 Specular 0.0 Opacity 0.600000000000000\n   Color 0.4 0.4 1.0\n   TexFunc 0'
+        sage: t.x3d_str()
+        "<Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1' specularColor='0.0 0.0 0.0'/></Appearance>"
+    """
+    def __init__(self, id, color=(.4, .4, 1), opacity=1, ambient=0.5, diffuse=1, specular=0, shininess=1, **kwds):
         self.id = id
 
         if not isinstance(color, tuple):
@@ -108,4 +118,15 @@ class Texture_class(SageObject):
                    "illum %s" % (2 if sum(self.specular) > 0 else 1),
                    "Ns %s" % self.shininess,
                    "d %s" % self.opacity, ])
+
+    def jmol_str(self, obj):
+        """
+        EXAMPLES:
+            sage: sum([dodecahedron(center=[2.5*x, 0, 0], color=(1, 0, 0, x/10)) for x in range(11)]).show(aspect_ratio=[1,1,1], frame=False, zoom=2)
+        """
+        translucent = "translucent %s" % float(1-self.opacity) if self.opacity < 1 else ""
+        return "color %s %s [%s,%s,%s]" % (obj, translucent,
+                int(255*self.color[0]), int(255*self.color[1]), int(255*self.color[2]))
+
+
 

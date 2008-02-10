@@ -24,6 +24,7 @@ import sage.structure.factorization as factorization
 from sage.structure.element import RingElement, canonical_coercion, bin_op
 from sage.interfaces.all import gp
 from sage.misc.misc import prod
+from sage.rings.fraction_field_element import is_FractionFieldElement
 
 import integer_ring
 import integer
@@ -69,7 +70,7 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
         sage: p.factor()
         (x + 1) * x^2 * (x^2 - x + 1)
         sage: z^2 - z + 1
-        0.000000000000000111022302462516
+        1.11022302462516e-16
 
     This example involves a $p$-adic number.
         sage: K = Qp(3, print_mode = 'series')
@@ -320,8 +321,14 @@ def is_pseudoprime(n, flag=0):
 
     INPUT:
         flag -- int
-                0 (default): checks whether x is a Baillie-Pomerance-Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo prime for base 2, followed by strong Lucas test for the sequence (P,-1), P smallest positive integer such that P^2 - 4 is not a square mod x).
-                > 0: checks whether x is a strong Miller-Rabin pseudo prime for flag randomly chosen bases (with end-matching to catch square roots of -1).
+                0 (default): checks whether x is a Baillie-Pomerance-
+                          Selfridge-Wagstaff pseudo prime (strong Rabin-Miller
+                          pseudo prime for base 2, followed by strong Lucas
+                          test for the sequence (P,-1), P smallest positive
+                          integer such that $P^2 - 4$ is not a square mod x).
+                > 0: checks whether x is a strong Miller-Rabin pseudo prime
+                          for flag randomly chosen bases (with end-matching
+                          to catch square roots of -1).
 
     OUTPUT:
         bool -- True or False
@@ -384,28 +391,32 @@ def is_prime_power(n, flag=0):
 
 def valuation(m, p):
     """
-    The exact power of p>0 that divides the integer m.
-    We do not require that p be prime, and if m is 0,
-    then this function returns rings.infinity.
+    The exact power of p that divides m.
 
-    EXAMPLES::
+    m should be an integer or rational (but maybe other types
+    work too.)
 
+    This actually just calls the m.valuation() method.
+
+    If m is 0, this function returns rings.infinity.
+
+    EXAMPLES:
         sage: valuation(512,2)
         9
         sage: valuation(1,2)
         0
+        sage: valuation(5/9, 3)
+        -2
 
-    Valuation of 0 is defined, but valuation with respect to 0 is not::
-
+    Valuation of 0 is defined, but valuation with respect to 0 is not:
         sage: valuation(0,7)
         +Infinity
         sage: valuation(3,0)
         Traceback (most recent call last):
         ...
-        ValueError: valuation at 0 not defined
+        ValueError: You can only compute the valuation with respect to a integer larger than 1.
 
-    Here are some other example::
-
+    Here are some other examples:
         sage: valuation(100,10)
         2
         sage: valuation(200,10)
@@ -417,18 +428,19 @@ def valuation(m, p):
         sage: valuation(243*10007,10007)
         1
     """
-    if p <= 0:
-        raise ValueError, "valuation at 0 not defined"
+    if hasattr(m, 'valuation'):
+        return m.valuation(p)
     if m == 0:
         import sage.rings.all
         return sage.rings.all.infinity
-    r=0
-    power=p
-    while m%power==0:
+    if is_FractionFieldElement(m):
+        return valuation(m.numerator()) - valuation(m.denominator())
+    r = 0
+    power = p
+    while not (m % power): # m % power == 0
         r += 1
         power *= p
     return r
-
 
 
 
@@ -1131,6 +1143,11 @@ def xgcd(a, b):
     OUTPUT:
         g, s, t -- such that g = s*a + t*b
 
+    NOTE:
+        There is no guarantee that the returned cofactors (s and t)
+        are minimal. In the integer case, see Integer._xgcd() for
+        minimal cofactors.
+
     EXAMPLES:
         sage: xgcd(56, 44)
         (4, 4, -5)
@@ -1529,7 +1546,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
     NOTES:
         The qsieve and ecm commands give access to highly optimized
         implementations of algorithms for doing certain integer
-        factorization problems.  These implementation are not used by
+        factorization problems.  These implementations are not used by
         the generic factor command, which currently just calls PARI
         (note that PARI also implements sieve and ecm algorithms, but
         they aren't as optimized).  Thus you might consider using them
@@ -1650,6 +1667,11 @@ def prime_to_m_part(n,m):
         m -- Integer
     OUTPUT:
         Integer
+
+    EXAMPLES:
+        sage: z = 43434
+        sage: z.prime_to_m_part(20)
+        21717
     """
     if n == 0:
         raise ValueError, "n must be nonzero."
@@ -1926,23 +1948,29 @@ def binomial(x,m):
         return P(0)
     return misc.prod([x-i for i in xrange(m)]) / P(factorial(m))
 
-def gaussian_binomial(n,k,q):
+def gaussian_binomial(n,k,q=None):
     r"""
     Return the gaussian binomial
     $$
-       \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}
-                             {(1-q)(1-q^2)\cdots (1-q^r)}.
+       \binom{n}{k}_q = \frac{(1-q^n)(1-q^{n-1})\cdots (1-q^{n-k+1})}
+                             {(1-q)(1-q^2)\cdots (1-q^k)}.
     $$
 
     EXAMPLES:
+        sage: gaussian_binomial(5,1)
+        q^4 + q^3 + q^2 + q + 1
+        sage: gaussian_binomial(5,1).subs(q=2)
+        31
         sage: gaussian_binomial(5,1,2)
         31
 
     AUTHOR: David Joyner and William Stein
     """
-    n = integer_ring.ZZ(misc.prod([1 - q**i for i in range((n-k+1),n+1)]))
-    d = integer_ring.ZZ(misc.prod([1 - q**i for i in range(1,k+1)]))
-    return n / d
+    if q is None:
+        q = integer_ring.ZZ['q'].gen()
+    n = misc.prod([1 - q**i for i in range((n-k+1),n+1)])
+    d = misc.prod([1 - q**i for i in range(1,k+1)])
+    return n/d
 
 def kronecker_symbol(x,y):
     """
@@ -2006,7 +2034,7 @@ def legendre_symbol(x,p):
         raise ValueError, "p must be a prime"
     if p == 2:
         raise ValueError, "p must be odd"
-    return integer_ring.ZZ(pari(x).kronecker(p).python())
+    return x.kronecker(p)
 
 def primitive_root(n):
     """

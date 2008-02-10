@@ -12,6 +12,7 @@ AUTHOR:
     -- Robert Bradshaw (2007-09-19): * strip_string_literals, containing_block
                                        utility functions. Arrr!
                                      * Add [1,2,..,n] notation.
+    -- Robert Bradshaw (2008-01-04): * Implicit multiplication (off by default)
 
 EXAMPLES:
 
@@ -30,6 +31,11 @@ PREPARSE:
     'G.gen(0)'
     sage: preparse('a = 939393R')    # raw
     'a = 939393'
+    sage: implicit_multiplication(True)
+    sage: preparse('a b c in L')     # implicit multiplication
+    'a*b*c in L'
+    sage: preparse('2e3x + 3exp(y)')
+    "RealNumber('2e3')*x + Integer(3)*exp(y)"
 
 In SAGE methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error).
@@ -67,6 +73,19 @@ SYMBOLIC FUNCTIONAL NOTATION:
     sage: a = 5; f(x,y) = x*y*sqrt(a)
     sage: f
     (x, y) |--> sqrt(5)*x*y
+
+This involves an =-, but should still be turned into a symbolic expression:
+    sage: preparse('a(x) =- 5')
+    '_=var("x");a=symbolic_expression(- Integer(5)).function(x)'
+    sage: f(x)=-x
+    sage: f(10)
+    -10
+
+This involves -=, which should not be turned into a symbolic
+expression (of course a(x) isn't an identifier, so this will never be
+valid):
+    sage: preparse('a(x) -= 5')
+    'a(x) -= Integer(5)'
 
 RAW LITERALS:
 
@@ -135,9 +154,43 @@ implemented using the GMP C library.
 import os, re
 import pdb
 
+implicit_mul_level = False
+
+def implicit_multiplication(level=None):
+    """
+    Turn implicit multiplication on or off, optionally setting a specific level.
+    Returns the current value if no argument is given.
+
+    EXAMPLES:
+      sage: implicit_multiplication(True)
+      sage: implicit_multiplication()
+      5
+      sage: preparse('2x')
+      'Integer(2)*x'
+      sage: implicit_multiplication(False)
+      sage: preparse('2x')
+      'Integer(2)x'
+    """
+    global implicit_mul_level
+    if level is None:
+        return implicit_mul_level
+    elif level is True:
+        implicit_mul_level = 5
+    else:
+        implicit_mul_level = level
+
 def isalphadigit_(s):
     return s.isalpha() or s.isdigit() or s=="_"
 
+keywords = """
+and       del       from      not       while
+as        elif      global    or        with
+assert    else      if        pass      yield
+break     except    import    print
+class     exec      in        raise
+continue  finally   is        return
+def       for       lambda    try
+""".split()
 
 in_single_quote = False
 in_double_quote = False
@@ -162,6 +215,8 @@ def strip_string_literals(code):
         {'L4': '"d\\""', 'L2': '"b"', 'L3': "'c'", 'L1': "'a'"}
         sage: print s % literals
         ['a', "b", 'c', "d\""]
+        sage: print strip_string_literals(r'-"\\\""-"\\"-')[0]
+        -%(L1)s-%(L2)s-
 
     Triple-quotes are handled as well.
         sage: s, literals = strip_string_literals("[a, '''b''', c, '']")
@@ -169,6 +224,12 @@ def strip_string_literals(code):
         '[a, %(L1)s, c, %(L2)s]'
         sage: print s % literals
         [a, '''b''', c, '']
+
+    Comments are subsituted too:
+        sage: s, literals = strip_string_literals("code '#' # ccc 't'"); s
+        'code %(L1)s #%(L2)s'
+        sage: s % literals
+        "code '#' # ccc 't'"
     """
     new_code = []
     literals = {}
@@ -179,14 +240,29 @@ def strip_string_literals(code):
     while True:
         sig_q = code.find("'", q)
         dbl_q = code.find('"', q)
+        hash_q = code.find('#', q)
         q = min(sig_q, dbl_q)
         if q == -1: q = max(sig_q, dbl_q)
-        if q == -1:
+        if not in_quote and hash_q != -1 and (q == -1 or hash_q < q):
+            # it's a comment
+            newline = code.find('\n', hash_q)
+            if newline == -1: newline = len(code)
+            counter += 1
+            label = "L%s" % counter
+            literals[label] = code[hash_q+1:newline]
+            new_code.append(code[start:hash_q].replace('%','%%'))
+            new_code.append("#%%(%s)s" % label)
+            start = q = newline
+        elif q == -1:
             new_code.append(code[start:].replace('%','%%'))
-            return "".join(new_code), literals
-        if in_quote:
+            break
+        elif in_quote:
             if not raw and code[q-1] == '\\':
-                q += 1
+                k = 2
+                while code[q-k] == '\\':
+                    k += 1
+                if k % 2 == 0:
+                    q += 1
             if code[q:q+len(in_quote)] == in_quote:
                 counter += 1
                 label = "L%s" % counter
@@ -198,7 +274,7 @@ def strip_string_literals(code):
             else:
                 q += 1
         else:
-            raw = q>0 and code[q-1] == 'r'
+            raw = q>0 and code[q-1] in ['r', 'R']
             if len(code) >= q+3 and (code[q+1] == code[q] == code[q+2]):
                 in_quote = code[q]*3
             else:
@@ -206,6 +282,8 @@ def strip_string_literals(code):
             new_code.append(code[start:q].replace('%', '%%'))
             start = q
             q += len(in_quote)
+
+    return "".join(new_code), literals
 
 
 def containing_block(code, ix, delimiters=['()','[]','{}'], require_delim=True):
@@ -281,7 +359,9 @@ def parse_ellipsis(code, preparse_step=True):
     """
     ix = code.find('..')
     while ix != -1:
-        if code[ix-1]=='.':
+        if ix == 0:
+            raise SyntaxError, "Cannot start line with ellipsis."
+        elif code[ix-1]=='.':
             # '...' be valid Python in index slices
             code = code[:ix-1] + "Ellipsis" + code[ix+2:]
         elif len(code) >= ix+3 and code[ix+2]=='.':
@@ -467,8 +547,22 @@ def parse_generators(line, start_index):
 
     return (line, i)
 
+eq_chars_pre = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
+
 def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     r"""
+    sage: preparse("ZZ.<x> = ZZ['x']")
+    "ZZ = ZZ['x']; (x,) = ZZ._first_ngens(Integer(1))"
+    sage: preparse("ZZ.<x> = ZZ['y']")
+    "ZZ = ZZ['y']; (x,) = ZZ._first_ngens(Integer(1))"
+    sage: preparse("ZZ.<x,y> = ZZ[]")
+    "ZZ = ZZ['x, y']; (x, y,) = ZZ._first_ngens(Integer(2))"
+    sage: preparse("ZZ.<x,y> = ZZ['u,v']")
+    "ZZ = ZZ['u,v']; (x, y,) = ZZ._first_ngens(Integer(2))"
+    sage: preparse("ZZ.<x> = QQ[2^(1/3)]")
+    'ZZ = QQ[Integer(2)**(Integer(1)/Integer(3))]; (x,) = ZZ._first_ngens(Integer(1))'
+    sage: QQ[2^(1/3)]
+    Number Field in a with defining polynomial x^3 - 2
     """
     try:
         # [1,2,..,n] notation
@@ -477,6 +571,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         line = L % literals
     except SyntaxError:
         pass
+
+    if implicit_mul_level:
+        line = implicit_mul(line, level = implicit_mul_level)
 
     # find where the parens are for function assignment notation
     oparen_index = -1
@@ -618,7 +715,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         # Support for calculus-like function assignment, the line
         # "f(x,y,z) = sin(x^3 - 4*y) + y^x"
         # gets turnd into
-        # "f = SR(sin(x^3 - 4*y) + y^x).function(x,y,z)"
+        # '_=var("x,y,z");f=symbolic_expression(sin(x**Integer(3) - Integer(4)*y) + y**x).function(x,y,z)'
         # AUTHORS:
         #   - Bobby Moretti: initial version - 02/2007
         #   - William Stein: make variables become defined if they aren't already defined.
@@ -646,9 +743,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 i += 1
                 continue
 
-            # make sure the '=' sign is on its own, reprsenting assignment
-            eq_chars = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
-            if eq+1 < len(line) and (line[eq-1] in eq_chars or line[eq+1] in eq_chars):
+            # make sure the '=' sign is on its own, representing assignment
+            if eq+1 < len(line) and (line[eq-1] in eq_chars_pre or line[eq+1] == '='):
                 i += 1
                 continue
 
@@ -834,3 +930,54 @@ def preparse_file(contents, attached={}, magic=True,
 
     return '\n'.join(F)
 
+def implicit_mul(code, level=5):
+    """
+    Insert explicit *'s for implicit multiplication.
+
+    INPUT:
+        code  -- the code with missing *'s
+        level -- how agressive to be in placing *'s
+                   0) Do nothing
+                   1) numeric followed by alphanumeric
+                   2) closing parentheses followed by alphanumeric
+                   3) Spaces between alphanumeric
+                  10) Adjacent parentheses (may mangle call statements)
+
+    EXAMPLES:
+        sage: from sage.misc.preparser import implicit_mul
+        sage: implicit_mul('(2x^2-4x+3)a0')
+        '(2*x^2-4*x+3)*a0'
+        sage: implicit_mul('a b c in L')
+        'a*b*c in L'
+        sage: implicit_mul('1r + 1e3 + 5exp(2)')
+        '1r + 1e3 + 5*exp(2)'
+        sage: implicit_mul('f(a)(b)', level=10)
+        'f(a)*(b)'
+    """
+    def re_no_keyword(pattern, code):
+        for _ in range(2): # do it twice in because matches don't overlap
+            for m in reversed(list(re.finditer(pattern, code))):
+                left, right = m.groups()
+                if left not in keywords and right not in keywords:
+                    code = "%s%s*%s%s" % (code[:m.start()],
+                                          left,
+                                          right,
+                                          code[m.end():])
+        return code
+
+    code, literals = strip_string_literals(code)
+    if level >= 1:
+        no_mul_token = " '''_no_mult_token_''' "
+        code = re.sub(r'( *)time ', r'\1time %s' % no_mul_token, code)  # first word may be magic 'time'
+        code = re.sub(r'\b(\d+(?:\.\d+)?(?:e\d+)?)([rR]\b)', r'\1%s\2' % no_mul_token, code)  # exclude such things as 10r
+        code = re.sub(r'\b(\d+(?:\.\d+)?)e([-\d])', r'\1%se%s\2' % (no_mul_token, no_mul_token), code)  # exclude such things as 1e5
+        code = re_no_keyword(r'\b(\d+(?:\.\d+)?) *([a-zA-Z_(]\w*)\b', code)
+    if level >= 2:
+        code = re.sub(r'(\%\(L\d+\))s', r'\1%ss%s' % (no_mul_token, no_mul_token), code) # literal strings
+        code = re_no_keyword(r'(\)) *(\w+)', code)
+    if level >= 3:
+        code = re_no_keyword(r'(\w+) +(\w+)', code)
+    if level >= 10:
+        code = re.sub(r'\) *\(', ')*(', code)
+    code = code.replace(no_mul_token, '')
+    return code % literals

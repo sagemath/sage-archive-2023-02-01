@@ -1736,7 +1736,7 @@ def positive_integer_relations(points):
     relations = relations.matrix_from_rows(relations.transpose().pivots())
     # Switch to integers
     for i in range(n):
-        relations.rescale_row(i, 1/gcd(relations[i].list()))
+        relations.rescale_row(i, 1/gcd(relations.row(i).list()))
     return relations.change_ring(ZZ)
 
 
@@ -1776,8 +1776,8 @@ def read_all_polytopes(file_name, desc=None):
     INPUT:
         file_name -- the name of a file with vertices of polytopes
         desc -- a string, that will be used for creating polytope descriptions.
-            By default it will be set to 'A lattice polytope #%d from "filename"'
-            and will be used as \code{desc % n} where \code{n} is the number of
+            By default it will be set to 'A lattice polytope \#\%d from "filename"'
+            and will be used as \code{desc \% n} where \code{n} is the number of
             the polytope in the file (\emph{STARTING WITH ZERO}).
 
     OUTPUT:

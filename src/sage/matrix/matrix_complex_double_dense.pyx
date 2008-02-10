@@ -174,6 +174,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
                     raise TypeError, "scalar matrix must be square"
                 for i from 0<=i<self._ncols:
                     gsl_matrix_complex_set(self._matrix,i,i,z._complex)
+
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         cdef ComplexDoubleElement z
         z = sage.rings.complex_double.CDF(value)   # do I assume value is already CDF
@@ -824,5 +825,84 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         GSL_SET_COMPLEX(&b,0,0)
         gsl_blas_zgemv(CblasTrans,a,self._matrix, v_.v,b,ans.v)
         return ans
+
+    def SVD(self):
+        r"""
+        Return the singular value decomposition of this matrix.
+
+        INPUT:
+            A -- a matrix
+        OUTPUT:
+            U, S, V -- matrices such that $A = U S V^t$, where
+                       U and V are orthogonal and S is diagonal.
+
+
+        EXAMPLES:
+            sage: m = matrix(CDF,4,range(16))
+            sage: U,S,V = m.SVD()
+            sage: U*S*V.transpose()    # slightly random output (due to computer architecture)
+            [3.45569519412e-16               1.0               2.0               3.0]
+            [4.0               5.0               6.0               7.0]
+            [8.0               9.0              10.0              11.0]
+            [12.0              13.0              14.0              15.0]
+
+        A non-square example:
+            sage: m = matrix(CDF, 2, range(6)); m
+            [  0 1.0 2.0]
+            [3.0 4.0 5.0]
+            sage: U, S, V = m.SVD()
+            sage: U
+            [-0.274721127897 -0.961523947641]
+            [-0.961523947641  0.274721127897]
+            sage: S
+            [7.34846922835             0             0]
+            [            0           1.0             0]
+            sage: V
+            [-0.392540507864  0.824163383692  0.408248290464]
+            [-0.560772154092  0.137360563949 -0.816496580928]
+            [ -0.72900380032 -0.549442255795  0.408248290464]
+            sage: U*S*V.transpose()           # random low bits
+            [7.62194127257e-17               1.0               2.0]
+            [              3.0               4.0               5.0]
+            sage: m = matrix(CDF,3,2,range(6)); m
+            [  0 1.0]
+            [2.0 3.0]
+            [4.0 5.0]
+            sage: U,S,V = m.SVD()
+            sage: U*S*V.transpose()   # random low order bits
+            [-8.13151629364e-19                1.0]
+            [               2.0                3.0]
+            [               4.0                5.0]
+
+        TESTS:
+            sage: m = matrix(CDF, 3, 0, []); m
+            []
+            sage: m.SVD()
+            ([], [], [])
+            sage: m = matrix(CDF, 0, 3, []); m
+            []
+            sage: m.SVD()
+            ([], [], [])
+        """
+        if self._nrows == 0 or self._ncols == 0:
+            U_t = self.new_matrix(self._nrows, self._ncols)
+            S_t = self.new_matrix(self._nrows, self._ncols)
+            V_t = self.new_matrix(self._ncols, self._nrows)
+            return U_t, S_t, V_t
+
+        import numpy.linalg
+        cdef int i, s_dim
+        P = self.parent()
+        CDF = P.base_ring()
+
+        U,_S,V = numpy.linalg.svd(self.numpy())
+
+        #Create the inner diagonal matrix
+        s_dim = len(_S)
+        S = matrix(CDF, self._nrows, self._ncols, 0)
+        for i from 0 <= i < s_dim:
+            S[(i,i)] = _S[i]
+
+        return (matrix(U),S,matrix(V).transpose())
 
 

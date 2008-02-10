@@ -60,6 +60,8 @@ include 'mpfr.pxi'
 import operator
 from random import random
 
+cdef extern from "solaris_fix.h": pass
+
 from sage.misc.sage_eval import sage_eval
 
 import sage.rings.complex_double
@@ -116,24 +118,26 @@ cdef qd *qd_from_mpfr(mpfr_t rr):
     cdef double d[4]
     cdef int i
     cdef mpfr_t cur, res
-    cdef bint isnan
+    cdef int isnan
     isnan = 0
     # The most significant double
-    d[0] = mpfr_get_d(rr, GMP_RNDZ)
+    # We use GMP_RNDN here, which guarantees an exact
+    # conversion if prec(rr) <= 4*53+3=215.
+    d[0] = mpfr_get_d(rr, GMP_RNDN)
     mpfr_init2(cur, 53)
     mpfr_init2(res, mpfr_get_prec(rr))
-    mpfr_set_d(cur, d[0], GMP_RNDZ)
-    mpfr_sub(res, rr, cur, GMP_RNDZ)
+    mpfr_set_d(cur, d[0], GMP_RNDN)
+    mpfr_sub(res, rr, cur, GMP_RNDN)
     # now we repeatedly find the most significant part of the remainder
     for i from 1 <= i < 4:
-        d[i] = mpfr_get_d(res, GMP_RNDZ)
-        mpfr_set_d(cur, d[i], GMP_RNDZ)
-        mpfr_sub(res, res, cur, GMP_RNDZ)
+        d[i] = mpfr_get_d(res, GMP_RNDN)
+        mpfr_set_d(cur, d[i], GMP_RNDN)
+        mpfr_sub(res, res, cur, GMP_RNDN)
     mpfr_clear(cur)
     mpfr_clear(res)
     # check if result is nan
     if 0 == d[0]: return qd_from_qd(0.0, 0.0, 0.0, 0.0)
-    for i from 0 <= i < 4:
+    for i from 0 <= i < 3:
         if d[i] == d[i+1]: isnan += 1
 
     if 3 == isnan:
@@ -1075,20 +1079,6 @@ cdef class QuadDoubleElement(FieldElement):
         """
         return K(repr(self))
 
-    def _mpfr_(self, K):
-        """
-        EXAMPLES:
-            sage: w = RQDF('2.345001').sqrt(); w
-            1.531339609622894852128128425884749978483262262653204338472911277
-            sage: w._mpfr_(RealField(212))
-            1.53133960962289485212812842588474997848326226265320433847291128
-            sage: RealField(212)(w)
-            1.53133960962289485212812842588474997848326226265320433847291128
-            sage: RealField(250)(w)
-            1.5313396096228948521281284258847499784832622626532043384729112770000000000
-        """
-        return K(repr(self))
-
     def _pari_(self):
         """
         Return the PARI real number corresponding to self.
@@ -1238,6 +1228,8 @@ cdef class QuadDoubleElement(FieldElement):
             1.41421356237309504880168872420969807856967187537694807317667974
             sage: w = RQDF(-2).sqrt(); w
             1.41421356237309504880168872420969807856967187537694807317667974*I
+            sage: w = RQDF('2.345001').sqrt(); w
+            1.531339609622894852128128425884749978483262262653204338472911277
             sage: w = RQDF(2).sqrt(all=True); w
             [1.414213562373095048801688724209698078569671875376948073176679738,
             -1.414213562373095048801688724209698078569671875376948073176679738]
@@ -1521,7 +1513,7 @@ cdef class QuadDoubleElement(FieldElement):
         """
         return self.sin(), self.cos()
 
-    def acos(self):
+    def arccos(self):
         """
         Returns the inverse cosine of this number
 
@@ -1530,7 +1522,7 @@ cdef class QuadDoubleElement(FieldElement):
             sage: i = q.cos()
             sage: q
             1.047197551196597746154214461093167628065723133125035273658314863
-            sage: i.acos()
+            sage: i.arccos()
             1.047197551196597746154214461093167628065723133125035273658314863
         """
         cdef QuadDoubleElement res
@@ -1543,7 +1535,7 @@ cdef class QuadDoubleElement(FieldElement):
         _sig_off
         return res
 
-    def asin(self):
+    def arcsin(self):
         """
         Returns the inverse sine of this number
 
@@ -1552,7 +1544,7 @@ cdef class QuadDoubleElement(FieldElement):
             sage: i = q.sin()
             sage: q
             1.047197551196597746154214461093167628065723133125035273658314863
-            sage: i.asin()
+            sage: i.arcsin()
             1.047197551196597746154214461093167628065723133125035273658314863
         """
         cdef QuadDoubleElement res
@@ -1565,7 +1557,7 @@ cdef class QuadDoubleElement(FieldElement):
         _sig_off
         return res
 
-    def atan(self):
+    def arctan(self):
         """
         Returns the inverse tangent of this number
 
@@ -1574,7 +1566,7 @@ cdef class QuadDoubleElement(FieldElement):
             sage: i = q.tan()
             sage: q
             1.047197551196597746154214461093167628065723133125035273658314863
-            sage: i.atan()
+            sage: i.arctan()
             1.047197551196597746154214461093167628065723133125035273658314863
         """
         cdef QuadDoubleElement res
@@ -1644,7 +1636,7 @@ cdef class QuadDoubleElement(FieldElement):
         _sig_off
         return res
 
-    def acosh(self):
+    def arccosh(self):
         """
         Returns the hyperbolic inverse cosine of this number
 
@@ -1652,7 +1644,7 @@ cdef class QuadDoubleElement(FieldElement):
             sage: q = RQDF(pi/2)
             sage: i = q.cosh() ; i
             2.509178478658056782009995643269405948212024358148152274047975682
-            sage: i.acosh()
+            sage: i.arccosh()
             1.570796326794896619231321691639751442098584699687552910487472296
             sage: q
             1.570796326794896619231321691639751442098584699687552910487472295
@@ -1667,7 +1659,7 @@ cdef class QuadDoubleElement(FieldElement):
         _sig_off
         return res
 
-    def asinh(self):
+    def arcsinh(self):
         """
         Returns the hyperbolic inverse sine of this number
 
@@ -1675,7 +1667,7 @@ cdef class QuadDoubleElement(FieldElement):
             sage: q = RQDF(pi/2)
             sage: i = q.sinh() ; i
             2.301298902307294873463040023434427178178146516516382665972839798
-            sage: i.asinh() ; q
+            sage: i.arcsinh() ; q
             1.570796326794896619231321691639751442098584699687552910487472296
             1.570796326794896619231321691639751442098584699687552910487472295
         """
@@ -1689,7 +1681,7 @@ cdef class QuadDoubleElement(FieldElement):
         _sig_off
         return res
 
-    def atanh(self):
+    def arctanh(self):
         """
         Returns the hyperbolic inverse tangent of this number
 
@@ -1697,7 +1689,7 @@ cdef class QuadDoubleElement(FieldElement):
             sage: q = RQDF(pi/2)
             sage: i = q.tanh() ; i
             0.917152335667274346373092921442618775367927148601088945343574124
-            sage: i.atanh() ; q
+            sage: i.arctanh() ; q
             1.570796326794896619231321691639751442098584699687552910487472291
             1.570796326794896619231321691639751442098584699687552910487472295
         """

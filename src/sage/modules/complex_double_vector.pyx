@@ -37,8 +37,8 @@ import  free_module_element
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
-from sage.rings.complex_double import CDF, new_ComplexDoubleElement
-from sage.rings.complex_double cimport ComplexDoubleElement
+from sage.rings.complex_double import CDF
+from sage.rings.complex_double cimport ComplexDoubleElement, new_ComplexDoubleElement
 
 include '../ext/stdsage.pxi'
 
@@ -68,6 +68,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
     cdef _new_c(self, gsl_vector_complex* v):
         cdef ComplexDoubleVectorSpaceElement y
         y = PY_NEW(ComplexDoubleVectorSpaceElement)
+        y._is_mutable = 1
         y._parent = self._parent
         y._degree = self._degree
         y.v = v
@@ -108,6 +109,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             coerce, copy -- ignored
         """
         self._parent = parent
+        self._is_mutable = 1
         cdef int n = parent.degree()
         cdef gsl_complex z_temp
         cdef ComplexDoubleElement z
@@ -117,9 +119,9 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             self.v = NULL
             return
 
-        self.v = gsl_vector_complex_calloc(n)
+        self.v = <gsl_vector_complex *>gsl_vector_complex_calloc(n)
         if self.v == NULL:
-            raise MemoryError, "error allocating vector"
+            raise MemoryError, "error allocating memory"
 
         try:
             length=len(x)
@@ -130,12 +132,9 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
                 else:
                     raise MemoryError, "error allocating memory"
             else:
+                gsl_vector_complex_free(self.v)
                 self.v = NULL
                 raise TypeError, "must be a list, tuple, vector or 0"
-
-        _sig_on
-        self.v = <gsl_vector_complex *> gsl_vector_complex_calloc(n)
-        _sig_off
 
         if self.v is not NULL and length == n:
             _sig_on
@@ -160,6 +159,8 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         return self._degree
 
     def __setitem__(self,size_t i,x):
+        if not self._is_mutable:
+            raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
         cdef gsl_complex z_temp
 
         if i < 0 or i >= self._degree:
@@ -367,6 +368,23 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         p=<double *>n.data
         memcpy(self.v.data,p,self.v.size*sizeof(double)*2)
 
+    def n(self, *args, **kwargs):
+        """
+        Returns a numerical approximation of self by calling the n()
+        method on all of its entries.
+
+        EXAMPLES:
+            sage: v = vector(CDF, [1,2,3])
+            sage: v.n()
+            (1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+            sage: v.n(prec=75)
+            (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+            sage: _.parent()
+            Vector space of dimension 3 over Real Field with 75 bits of precision
+        """
+        return free_module_element.vector( [e.n(*args, **kwargs) for e in self] )
 
 cdef int ispow(int n):
     while n and n%2==0:

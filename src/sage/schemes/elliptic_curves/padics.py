@@ -87,7 +87,7 @@ def padic_lseries(self, p, normalize=True):
         sage: f = x^2 - e.ap(3)*x + 3
         sage: f(alpha)
         O(3^9)
-        sage: r = e.L_series().L_ratio(); r
+        sage: r = e.Lseries().L_ratio(); r
         1/5
         sage: (1 - alpha^(-1))^2 * r
         2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + 3^7 + O(3^9)
@@ -100,7 +100,7 @@ def padic_lseries(self, p, normalize=True):
         sage: P = L.series(5)
         sage: alpha = L.alpha(9); alpha
         1 + 2*3 + 3^2 + 2*3^5 + 2*3^7 + 3^8 + O(3^9)
-        sage: r = e.L_series().L_ratio(); r
+        sage: r = e.Lseries().L_ratio(); r
         1/3
         sage: (1 - alpha^(-1))^2 * r
         3 + 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + O(3^9)
@@ -131,7 +131,7 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
 
     INPUT:
         p -- prime >= 5
-        prec -- answer will be returned modulo p^prec
+        prec -- answer will be returned modulo $p^{\var{prec}}$
         height -- precomputed height function. If not supplied, this
              function will call padic_height to compute it.
         check_hypotheses -- boolean, whether to check that this is a
@@ -211,7 +211,7 @@ def padic_height_pairing_matrix(self, p, prec=20, height=None, check_hypotheses=
 
     INPUT:
         p -- prime >= 5
-        prec -- answer will be returned modulo p^prec
+        prec -- answer will be returned modulo $p^{\var{prec}}$
         height -- precomputed height function. If not supplied, this
              function will call padic_height to compute it.
         check_hypotheses -- boolean, whether to check that this is a
@@ -280,43 +280,48 @@ def padic_height_pairing_matrix(self, p, prec=20, height=None, check_hypotheses=
 
 
 
-class _DivPolyContext:
+def _multiply_point(E, R, P, m):
     r"""
-    This class implements the algorithm in Section 3 of "Efficient
-    Computation of p-adic Heights" (David Harvey, still in draft form).
+    Computes coordinates of a multiple of P with entries in a ring.
 
-    The constructor takes as input an elliptic curve $E/\QQ$ with integer
-    coefficients, a rational point $P$ that reduces to a non-singular
-    point at all primes, and a ring $R$ in which $2$ is invertible.
-    Typically $R$ will be $\ZZ/R\ZZ$ for some positive integer $R$.
+    INPUT:
+        E -- elliptic curve over Q with integer coefficients
+        P -- a rational point on P that reduces to a non-singular point
+             at all primes
+        R -- a ring in which 2 is invertible (typically $\ZZ/L\ZZ$ for some
+             positive odd integer $L$).
+        m -- an integer, >= 2
 
-    One then calls triple(m) for an integer $m \geq 1$; it returns a
-    triple $(a', b', d')$ such that if the point $mQ$ has coordinates
-    $(a/d^2, b/d^3)$, then we have $a' \equiv a$, $b' \equiv \pm b$,
-    $d' \equiv \pm d$ all modulo $R$.
+    OUTPUT:
+        A triple $(a', b', d')$ such that if the point $mP$ has coordinates
+        $(a/d^2, b/d^3)$, then we have $a' \equiv a$, $b' \equiv \pm b$,
+        $d' \equiv \pm d$ all in $R$ (i.e. modulo $L$).
 
-    Note the ambiguity of signs for $b'$ and $d'$. There's not much one
-    can do about this, but at least one can say that the sign for $b'$
-    will match the sign for $d'$.
+        Note the ambiguity of signs for $b'$ and $d'$. There's not much one
+        can do about this, but at least one can say that the sign for $b'$
+        will match the sign for $d'$.
 
-    Complexity is soft $O(\log R \log^2 m)$.
+    ALGORITHM:
+        Proposition 9 of ``Efficient Computation of p-adic Heights'' (David Harvey,
+        to appear in LMS JCM).
+
+        Complexity is soft-$O(\log L \log m + \log^2 m)$.
 
     AUTHOR:
-        -- David Harvey (2007-02)
+        -- David Harvey (2008-01): replaced _DivPolyContext with _multiply_point
 
     EXAMPLES:
 
     37a has trivial tamagawa numbers so all points have nonsingular
     reduction at all primes:
         sage: E = EllipticCurve("37a")
-        sage: P = E([0,-1]); P
+        sage: P = E([0, -1]); P
         (0 : -1 : 1)
         sage: 19*P
         (-59997896/67387681 : 88075171080/553185473329 : 1)
         sage: R = Integers(625)
-        sage: from sage.schemes.elliptic_curves.padics import _DivPolyContext
-        sage: C = _DivPolyContext(E, R, P)
-        sage: C.triple(19)
+        sage: from sage.schemes.elliptic_curves.padics import _multiply_point
+        sage: _multiply_point(E, R, P, 19)
         (229, 170, 541)
         sage: -59997896 % 625
         229
@@ -332,149 +337,87 @@ class _DivPolyContext:
         sage: R = Integers(625)
         sage: E = EllipticCurve([4, -11, 17, -8, -10])
         sage: P = E.gens()[0] * LCM(E.tamagawa_numbers())
-        sage: from sage.schemes.elliptic_curves.padics import _DivPolyContext
-        sage: C = _DivPolyContext(E, R, P)
-        sage: Q = E(0)
-        sage: for n in range(1, 25):
+        sage: from sage.schemes.elliptic_curves.padics import _multiply_point
+        sage: Q = P
+        sage: for n in range(2, 25):
         ...      Q = Q + P
         ...      naive = R(Q[0].numerator()),  \
         ...              R(Q[1].numerator()),  \
         ...              R(Q[0].denominator().sqrt())
-        ...      triple = C.triple(n)
+        ...      triple = _multiply_point(E, R, P, n)
         ...      assert (triple[0] == naive[0]) and ( \
         ...        (triple[1] == naive[1] and triple[2] == naive[2]) or \
         ...        (triple[1] == -naive[1] and triple[2] == -naive[2])), \
-        ...           "_DivPolyContext.triple() gave an incorrect answer"
+        ...           "_multiply_point() gave an incorrect answer"
 
     """
-    def __init__(self, E, R, P):
-        alpha = R(P[0].numerator())
-        beta = R(P[1].numerator())
-        d = R(P[0].denominator().sqrt())
+    assert m >= 2
 
-        a1 = R(E.a1()) * d
-        a3 = R(E.a3()) * d**3
+    alpha = R(P[0].numerator())
+    beta = R(P[1].numerator())
+    d = R(P[0].denominator().sqrt())
 
-        b2 = R(E.b2()) * d**2
-        b4 = R(E.b4()) * d**4
-        b6 = R(E.b6()) * d**6
-        b8 = R(E.b8()) * d**8
+    a1 = R(E.a1()) * d
+    a3 = R(E.a3()) * d**3
 
-        B4 = 6*alpha**2 + b2*alpha + b4
-        B6 = 4*alpha**3 + b2*alpha**2 + 2*b4*alpha + b6
-        B8 = 3*alpha**4 + b2*alpha**3 + 3*b4*alpha**2 + 3*b6*alpha + b8
+    b2 = R(E.b2()) * d**2
+    b4 = R(E.b4()) * d**4
+    b6 = R(E.b6()) * d**6
+    b8 = R(E.b8()) * d**8
 
-        self.E = E
-        self.R = R
-        self.alpha = alpha
-        self.beta = beta
-        self.d = d
-        self.a1 = a1
-        self.a3 = a3
-        self.b2 = b2
-        self.b4 = b4
-        self.b6 = b6
-        self.b8 = b8
-        self.B4 = B4
-        self.B6 = B6
-        self.B6_sqr = B6*B6
-        self.B8 = B8
-        self.T = 2*beta + a1*alpha + a3
+    B4 = 6*alpha**2 + b2*alpha + b4
+    B6 = 4*alpha**3 + b2*alpha**2 + 2*b4*alpha + b6
+    B6_sqr = B6*B6
+    B8 = 3*alpha**4 + b2*alpha**3 + 3*b4*alpha**2 + 3*b6*alpha + b8
 
-        self.g_cache = \
-              {0 : R(0), 1 : R(1), 2 : R(-1), 3 : B8, 4 : B6**2 - B4*B8}
-        self.psi_cache = {}
-        self.theta_cache = {}
-        self.omega_cache = {1 : beta}
+    T = 2*beta + a1*alpha + a3
 
+    # make a list of disjoint intervals [a[i], b[i]) such that we need to
+    # compute g(k) for all a[i] <= k <= b[i] for each i
+    intervals = []
+    interval = (m - 2, m + 3)
+    while interval[0] < interval[1]:
+        intervals.append(interval)
+        interval = max((interval[0] - 3) >> 1, 0), \
+                   min((interval[1] + 5) >> 1, interval[0])
 
-    def g(self, n):
-        r"""
-        Returns $\hat g_n(P)$ as defined in the paper mentioned above.
-        """
-        # try to get cached value
-        try:
-            return self.g_cache[n]
-        except KeyError:
-            pass
+    # now walk through list and compute g(k)
+    g = {0 : R(0), 1 : R(1), 2 : R(-1), 3 : B8, 4 : B6**2 - B4*B8}
+    last = [0, 1, 2, 3, 4]     # last few k
+    for i in reversed(intervals):
+        k = i[0]
+        while k < i[1]:
+            if k > 4:
+                j = k >> 1
+                if k & 1:
+                    t1 = g[j]
+                    t2 = g[j+1]
+                    prod1 = g[j+2] * t1*t1*t1
+                    prod2 = g[j-1] * t2*t2*t2
+                    g[k] = prod1 - B6_sqr * prod2 if j & 1 else B6_sqr * prod1 - prod2
+                else:
+                    t1 = g[j-1]
+                    t2 = g[j+1]
+                    g[k] = g[j] * (g[j-2] * t2*t2 - g[j+2] * t1*t1)
+            k = k + 1
 
-        # didn't work, have to compute it
-        g = self.g
-        m = n // 2
-        if n & 1:
-            prod1 = g(m+2) * g(m)**3
-            prod2 = g(m-1) * g(m+1)**3
+    if m & 1:
+        psi_m = g[m]
+        psi_m_m1 = g[m-1] * T
+        psi_m_p1 = g[m+1] * T
+    else:
+        psi_m = g[m] * T
+        psi_m_m1 = g[m-1]
+        psi_m_p1 = g[m+1]
 
-            if m & 1:
-                X = prod1 - self.B6_sqr * prod2
-            else:
-                X = self.B6_sqr * prod1 - prod2
-        else:
-            X = g(m) * (g(m-2) * g(m+1)**2 - g(m+2) * g(m-1)**2)
+    theta = alpha * psi_m * psi_m - psi_m_m1 * psi_m_p1
+    t1 = g[m-2] * g[m+1] * g[m+1] - g[m+2] * g[m-1] * g[m-1]
+    if m & 1:
+        t1 = t1 * T
+    omega = (t1 + (a1 * theta + a3 * psi_m * psi_m) * psi_m) / -2
 
-        self.g_cache[n] = X
-        return X
+    return theta, omega, psi_m * d
 
-
-    def psi(self, n):
-        r"""
-        Returns $\hat \psi_n(P)$ as defined in the paper mentioned above.
-        """
-        # try to get cached value
-        try:
-            return self.psi_cache[n]
-        except KeyError:
-            assert n >= 0
-
-        # didn't work, have to compute it
-        X = self.g(n)
-        if n & 1 == 0:
-            X = X * self.T
-
-        self.psi_cache[n] = X
-        return X
-
-
-    def theta(self, n):
-        r"""
-        Returns $\hat \theta g_n(P)$ as defined in the paper mentioned above.
-        """
-        # try to get cached value
-        try:
-            return self.theta_cache[n]
-        except KeyError:
-            assert n >= 1
-
-        # didn't work, have to compute it
-        X = self.alpha * self.psi(n)**2 - self.psi(n-1) * self.psi(n+1)
-        self.theta_cache[n] = X
-        return X
-
-
-    def omega(self, n):
-        r"""
-        Returns $\hat \omega g_n(P)$ as defined in the paper mentioned above.
-        """
-        # try to get cached value
-        try:
-            return self.omega_cache[n]
-        except KeyError:
-            assert n >= 2
-
-        # didn't work, have to compute it
-        X = self.g(n-2) * self.g(n+1)**2 - self.g(n+2) * self.g(n-1)**2
-        if n & 1 == 1:
-            X = X * self.T
-        X = (X + (self.a1 * self.theta(n) + self.a3 * self.psi(n)**2) \
-                                                      * self.psi(n)) / -2
-
-        self.omega_cache[n] = X
-        return X
-
-
-    def triple(self, n):
-        assert n >= 1
-        return self.theta(n), self.omega(n), self.psi(n) * self.d
 
 
 def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
@@ -608,9 +551,7 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
                    "from which the height function was created"
 
         Q = n2 * P
-        C = _DivPolyContext(E, R, Q)
-
-        alpha, beta, d = C.triple(m)
+        alpha, beta, d = _multiply_point(E, R, Q, m)
 
         assert beta.lift() % p != 0, "beta should be a unit!"
         assert d.lift() % p == 0, "d should not be a unit!"

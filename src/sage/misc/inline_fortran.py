@@ -24,12 +24,12 @@ class InlineFortran:
         EXAMPLES:
             sage: from sage.misc.inline_fortran import InlineFortran
             sage: s = open(os.environ['SAGE_ROOT'] + '/examples/fortran/FIB1.F').read()
-            sage: test_fortran = InlineFortran(globals())   # optional -- requires fortran
-            sage: test_fortran(s)           # optional -- requires fortran
+            sage: test_fortran = InlineFortran(globals())   #-- requires fortran
+            sage: test_fortran(s)           # -- requires fortran
             sage: import numpy
             sage: n = numpy.array(range(10),dtype=float)
-            sage: fib(n,int(10))            # optional -- requires fortran
-            sage: n                         # optional -- requires fortran
+            sage: fib(n,int(10))            # -- requires fortran
+            sage: n                         # -- requires fortran
             array([  0.,   1.,   1.,   2.,   3.,   5.,   8.,  13.,  21.,  34.])
         """
         if len(x.splitlines()) == 1 and os.path.exists(x):

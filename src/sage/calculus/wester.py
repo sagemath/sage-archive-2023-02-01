@@ -7,7 +7,7 @@ These are all the problems at
 They come from the 1994 paper "Review of CAS mathematical capabilities",
 by Michael Wester, who put forward 123 problems that a reasonable computer
 algebra system should be able to solve and tested the then current
-versions of various commercial CAS on this list.   SAGE can do most of
+versions of various commercial CAS on this list.   \sage can do most of
 the problems natively now, i.e., with no explicit calls to maxima or
 other systems.
 
@@ -25,7 +25,7 @@ sage: # Evaluate  e^(Pi*Sqrt(163)) to 50 decimal digits
 sage: a = e^(pi*sqrt(163)); a
 e^(sqrt(163)*pi)
 sage: print RealField(150)(a)
-262537412640768743.99999999999925007259719819
+2.6253741264076874399999999999925007259719819e17
 
 sage: # Evaluate the Bessel function J[2] numerically at z=1+I.
 sage: bessel_J (2, 1+I)
@@ -250,7 +250,7 @@ sage: print a
 
 sage: # (YES) Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0
 sage: # Yes, in that the thing is clearly not equal to 0!
-sage: f = log(tan(x/2 + pi/4)) - asin(tan(x))
+sage: f = log(tan(x/2 + pi/4)) - arcsin(tan(x))
 sage: bool(f == 0)
 False
 sage: [float(f(i/10)) for i in range(1,5)]           # random low order bits
@@ -310,7 +310,7 @@ sage: print a.real()
                                     log(5)
 sage: print a.imag()
                                          4
-                                    atan(-)
+                                  arctan(-)
                                          3
 
 sage: # (YES) Obtain real and imaginary parts of Tan(x+I*y)
@@ -381,7 +381,7 @@ sage: print m
     [  1   d d^2 d^3]
 sage: d = m.determinant()
 sage: print d.factor()
-                (b - a) (c - a) (c - b) (d - a) (d - b) (d - c)
+                (b - a) (a - c) (b - c) (a - d) (b - d) (d - c)
 
 sage: # (YES) Compute and factor the determinant of the 4x4 Vandermonde matrix in a, b, c, d.
 sage: # Do it instead in a multivariate ring
@@ -397,7 +397,7 @@ sage: print d
 a^3*b^2*c - a^2*b^3*c - a^3*b*c^2 + a*b^3*c^2 + a^2*b*c^3 - a*b^2*c^3 - a^3*b^2*d + a^2*b^3*d + a^3*c^2*d - b^3*c^2*d - a^2*c^3*d + b^2*c^3*d + a^3*b*d^2 - a*b^3*d^2 - a^3*c*d^2 + b^3*c*d^2 + a*c^3*d^2 - b*c^3*d^2 - a^2*b*d^3 + a*b^2*d^3 + a^2*c*d^3 - b^2*c*d^3 - a*c^2*d^3 + b*c^2*d^3
 
 sage: print d.factor()
-(-1) * (a - d) * (-a + b) * (b - d) * (a - c) * (b - c) * (c - d)
+(-1) * (c - d) * (b - d) * (b - c) * (-a + b) * (a - d) * (a - c)
 
 sage: # Find the eigenvalues of a 3x3 integer matrix.
 sage: m = matrix(QQ, 3, [5,-3,-7, -2,1,2, 2,-3,-4])
@@ -492,9 +492,7 @@ sage: # [OK] Compute Legendre polynomials directly from Rodrigues's formula, P[n
 sage: #      P(n,x) := Simplify( 1/(2*n)!! *
 sage: #        Deriv(x,n) (x^2-1)^n );
 sage: #      TestYacas(P(4,x), (35*x^4)/8+(-15*x^2)/4+3/8);
-sage: def P(n,x):
-...    return   simplify(diff((x^2-1)^n,x,n) / (2^n * factorial(n)))
-...
+sage: P = lambda n, x: simplify(diff((x^2-1)^n,x,n) / (2^n * factorial(n)))
 sage: print P(4,x).expand()
                                    4	   2
                                35 x    15 x    3

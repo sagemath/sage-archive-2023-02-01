@@ -46,7 +46,7 @@ from sage.rings.padics.factory import Zp, Qp
 
 # Use some interval arithmetic to guarantee correctness.  We assume
 # that alpha is computed to the precision of a float.
-IR = rings.RIF
+# IR = rings.RIF
 #from sage.rings.interval import IntervalRing; IR = IntervalRing()
 
 import sage.matrix.all as matrix
@@ -86,11 +86,12 @@ sqrt = math.sqrt
 exp = math.exp
 mul = misc.mul
 next_prime = arith.next_prime
+kronecker_symbol = arith.kronecker_symbol
 
 Q = RationalField()
 C = ComplexField()
 R = RealField()
-
+IR = rings.RealIntervalField(20)
 
 _MAX_HEIGHT=21
 
@@ -237,13 +238,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     #  Access to PARI curves related to this curve.
     ####################################################################
 
-    def pari_curve(self, prec = None):
+    def pari_curve(self, prec = None, factor = 1):
         """
         Return the PARI curve corresponding to this elliptic curve.
 
         INPUT:
-        prec -- The precision of quantities calculated for the returned curve (in decimal digits).
-                if None, defaults to the precision of the largest cached curve (or 10 if none yet computed)
+            prec -- The precision of quantities calculated for the
+                    returned curve (in decimal digits).  if None, defaults
+                    to factor * the precision of the largest cached curve
+                    (or 10 if none yet computed)
+            factor -- the factor to increase the precision over the
+                      maximum previously computed precision.  Only used if
+                      prec (which gives an explicit precision) is None.
 
         EXAMPLES:
             sage: E = EllipticCurve([0, 0,1,-1,0])
@@ -264,20 +270,25 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         if prec is None:
             try:
-                L = self.__pari_curve.keys()
+                L = self._pari_curve.keys()
                 L.sort()
-                return self.__pari_curve[L[len(L) - 1]]
+                if factor == 1:
+                    return self._pari_curve[L[-1]]
+                else:
+                    prec = int(factor * L[-1])
+                    self._pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
+                    return self._pari_curve[prec]
             except AttributeError:
                 pass
         try:
-            return self.__pari_curve[prec]
+            return self._pari_curve[prec]
         except AttributeError:
             prec = 10
-            self.__pari_curve = {}
+            self._pari_curve = {}
         except KeyError:
             pass
-        self.__pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
-        return self.__pari_curve[prec]
+        self._pari_curve[prec] = pari(self.a_invariants()).ellinit(precision=prec)
+        return self._pari_curve[prec]
 
     def pari_mincurve(self, prec = None):
         """
@@ -285,8 +296,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         for this elliptic curve.
 
         INPUT:
-        prec -- The precision of quantities calculated for the returned curve (in decimal digits).
-                if None, defaults to the precision of the largest cached curve (or 10 if none yet computed)
+        prec -- The precision of quantities calculated for the
+                returned curve (in decimal digits).  if None, defaults
+                to the precision of the largest cached curve (or 10 if
+                none yet computed)
 
         EXAMPLES:
             sage: E = EllipticCurve(RationalField(), ['1/3', '2/3'])
@@ -300,21 +313,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         if prec is None:
             try:
-                L = self.__pari_mincurve.keys()
+                L = self._pari_mincurve.keys()
                 L.sort()
-                return self.__pari_mincurve[L[len(L) - 1]]
+                return self._pari_mincurve[L[len(L) - 1]]
             except AttributeError:
                 pass
         try:
-            return self.__pari_mincurve[prec]
+            return self._pari_mincurve[prec]
         except AttributeError:
             prec = 10
-            self.__pari_mincurve = {}
+            self._pari_mincurve = {}
         except KeyError:
             pass
         e = self.pari_curve(prec)
         mc, change = e.ellminimalmodel()
-        self.__pari_mincurve[prec] = mc
+        self._pari_mincurve[prec] = mc
         # self.__min_transform = change
         return mc
 
@@ -398,7 +411,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     #def __pari_double_prec(self):
     #    EllipticCurve_number_field._EllipticCurve__pari_double_prec(self)
     #    try:
-    #        del self.__pari_mincurve
+    #        del self._pari_mincurve
     #    except AttributeError:
     #        pass
 
@@ -587,7 +600,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__modular_form
         except AttributeError:
             M = sage.modular.modform.constructor.ModularForms(self.conductor(),weight=2)
-            f = sage.modular.modform.element.ModularFormElement_elliptic_curve(M, self, None)
+            f = sage.modular.modform.element.ModularFormElement_elliptic_curve(M, self)
             self.__modular_form = f
             return f
 
@@ -788,12 +801,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Given a curve with no 2-torsion, computes (probably) the rank
         of the Mordell-Weil group, with certainty the rank of the
-        2-Selmer group, and a list of independent points on
-        some mysterious model of the curve.
-
-        \note{The points are not translated back to self only because
-        nobody has written code to do this yet.  Implement it and send
-        a patch.}
+        2-Selmer group, and a list of independent points on the curve.
 
         INPUT:
             verbose -- integer, 0,1,2,3; (default: 0), the verbosity level
@@ -809,7 +817,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         OUTPUT:
             integer -- "probably" the rank of self
             integer -- the 2-rank of the Selmer group
-            list    -- list of independent points on some (myserious!!) model for the curve.
+            list    -- list of independent points on the curve.
 
         IMPLEMENTATION: Uses {\bf Denis Simon's} GP/PARI scripts from
                          \url{http://www.math.unicaen.fr/~simon/}
@@ -823,13 +831,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             (0, 0, [])
             sage: E = EllipticCurve('37a1')
             sage: E.simon_two_descent()
-            (1, 1, [(0 : 4 : 1)])
+            (1, 1, [(0 : 0 : 1)])
             sage: E = EllipticCurve('389a1')
             sage: E.simon_two_descent()
-            (2, 2, [(57/4 : 621/8 : 1), (57 : 243 : 1)])
+            (2, 2, [(1 : 0 : 1), (-11/9 : -55/27 : 1)])
             sage: E = EllipticCurve('5077a1')
             sage: E.simon_two_descent()
-            (3, 3, [(1 : 17 : 1), (-8 : 28 : 1), (8 : 4 : 1)])
+            (3, 3, [(1 : 0 : 1), (2 : -1 : 1), (0 : 2 : 1)])
 
 
         In this example Simon's program does not find any points, though
@@ -854,18 +862,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: r, s, G = E.simon_two_descent(); r,s
             (7, 7)
             sage: E = EllipticCurve([0, 0, 1, -23737, 960366])
-            sage: r, s, G = E.simon_two_descent(); r,s       # long time
+            sage: r, s, G = E.simon_two_descent(); r,s
             (8, 8)
         """
-        if self.torsion_order() % 2 == 0:
-            raise ArithmeticError, "curve must not have rational 2-torsion\nThe *only* reason for this is that I haven't finished implementing the wrapper\nin this case.  It wouldn't be too difficult.\nPerhaps you could do it?!  Email me (wstein@gmail.com)."
-        F = self.integral_weierstrass_model()
-        a1,a2,a3,a4,a6 = F.a_invariants()
-        t = simon_two_descent(a2,a4,a6, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
+        t = simon_two_descent(self, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime)
         prob_rank = rings.Integer(t[0])
         two_selmer_rank = rings.Integer(t[1])
-        prob_gens = [F(P) for P in t[2]]
+        prob_gens = [self(P) for P in t[2]]
         return prob_rank, two_selmer_rank, prob_gens
 
     two_descent_simon = simon_two_descent
@@ -944,6 +948,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             5
             sage: EllipticCurve([0, 0, 1, -79, 342]).simon_two_descent()[0]  # much faster -- almost instant.
             5
+
+        Examples with denominators in defining equations:
+            sage: E = EllipticCurve( [0, 0, 0, 0, -675/4])
+            sage: E.rank()
+            0
+            sage: E = EllipticCurve( [0, 0, 1/2, 0, -1/5])
+            sage: E.rank()
+            1
+            sage: E.minimal_model().rank()
+            1
         """
         if proof is None:
             from sage.structure.proof.proof import get_flag
@@ -1412,11 +1426,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 return False
         return True
 
-    def is_isomorphic(self, E):
-        if not isinstance(E, EllipticCurve_rational_field):
-            raise TypeError, "E (=%s) must be an elliptic curve over the rational numbers"%E
-        return E.minimal_model() == self.minimal_model()
-
     def kodaira_type(self, p):
         """
         Local Kodaira type of the elliptic curve at $p$.
@@ -1578,6 +1587,68 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         F = self.minimal_model()
         return EllipticCurve_number_field.weierstrass_model(F)
 
+    def local_integral_model(self,p):
+        r"""
+        Return a model of self which is integral at the prime $p$
+
+        EXAMPLES:
+            sage: E=EllipticCurve([0, 0, 1/216, -7/1296, 1/7776])
+            sage: E.local_integral_model(2)
+	     Elliptic Curve defined by y^2 + 1/27*y = x^3 - 7/81*x + 2/243 over Rational Field
+            sage: E.local_integral_model(3)
+             Elliptic Curve defined by y^2 + 1/8*y = x^3 - 7/16*x + 3/32 over Rational Field
+            sage: E.local_integral_model(2).local_integral_model(3) == EllipticCurve('5077a1')
+            True
+        """
+        ai = self.a_invariants()
+        e  = min([(ai[i].valuation(p)/[1,2,3,4,6][i]) for i in range(5)]).floor()
+        return constructor.EllipticCurve([ai[i]/p**(e*[1,2,3,4,6][i]) for i in range(5)])
+
+    def global_integral_model(self):
+        r"""
+        Return a model of self which is integral at all primes
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0, 0, 1/216, -7/1296, 1/7776])
+            sage: F = E.global_integral_model(); F
+            Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
+            sage: F == EllipticCurve('5077a1')
+            True
+        """
+        ai = self.a_invariants()
+        for a in ai:
+            if not a.is_integral():
+               for p, _ in a.denom().factor():
+                  e  = min([(ai[i].valuation(p)/[1,2,3,4,6][i]) for i in range(5)]).floor()
+                  ai = [ai[i]/p**(e*[1,2,3,4,6][i]) for i in range(5)]
+        for z in ai:
+            assert z.denominator() == 1, "bug in global_integral_model: %s" % ai
+        return constructor.EllipticCurve(ai)
+
+    def integral_model(self):
+        r"""
+        Return a weierstrass model, $F$, of self with integral coefficients,
+        along with a morphism $\phi$ of points on self to points on $F$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([1/2,0,0,5,1/3])
+            sage: F, phi = E.integral_model()
+            sage: F
+            Elliptic Curve defined by y^2 + 3*x*y  = x^3 + 6480*x + 15552 over Rational Field
+            sage: phi
+            Generic morphism:
+              From: Abelian group of points on Elliptic Curve defined by y^2 + 1/2*x*y  = x^3 + 5*x + 1/3 over Rational Field
+              To:   Abelian group of points on Elliptic Curve defined by y^2 + 3*x*y  = x^3 + 6480*x + 15552 over Rational Field
+              Via:  (u,r,s,t) = (1/6, 0, 0, 0)
+            sage: P = E([4/9,41/27])
+            sage: phi(P)
+            (16 : 328 : 1)
+            sage: phi(P) in F
+            True
+        """
+        F = self.global_integral_model()
+        return F, self.isomorphism_to(F)
+
     def integral_weierstrass_model(self):
         r"""
         Return a model of the form $y^2 = x^3 + a*x + b$ for this curve with $a,b\in\Z$.
@@ -1599,6 +1670,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         while arith.valuation(A,3)>3 and arith.valuation(B,3)>5:
             A = A/Integer(3**4)
             B = B/Integer(3**6)
+        assert A.denominator() == 1 and B.denominator() == 1, 'bug in integral_weierstrass_model'
         return constructor.EllipticCurve([A,B])
 
     def modular_degree(self, algorithm='sympow'):
@@ -1939,7 +2011,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve('195a')
             sage: G = E.isogeny_graph()
-            sage: for v in G: print v, G.obj(v)
+            sage: for v in G: print v, G.get_vertex(v)
             ...
             0 Elliptic Curve defined by y^2 + x*y  = x^3 - 110*x + 435 over Rational Field
             1 Elliptic Curve defined by y^2 + x*y  = x^3 - 115*x + 392 over Rational Field
@@ -1957,7 +2029,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         d = {}
         for v in G.vertices():
             d[v] = L[v]
-        G.associate(d)
+        G.set_vertices(d)
         return G
 
     ##########################################################
@@ -2005,7 +2077,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             self.__is_reducible[p] = False
             return False  # definitely not reducible
         isogeny_matrix = self.isogeny_class()[ 1 ]
-        v = isogeny_matrix[0]  # first row
+        v = isogeny_matrix.row(0) # first row
         for a in v:
             if a != 0 and a % p == 0:
                 self.__is_reducible[p] = True
@@ -2408,18 +2480,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             ans.append(s.python())
         return ans
 
-
-    def L_series(self):
-        try:
-            return self.__lseries
-        except AttributeError:
-            self.__lseries = Lseries_ell(self)
-            return self.__lseries
-
-
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
         M = self.isogeny_class()[1]
-        return Integer(misc.prod([x for x in M[0] if x], 1))
+        return Integer(misc.prod([x for x in M.row(0) if x], 1))
 
     ########################################################################
     # Functions related to bounding the order of Sha (provably correctly!)
@@ -2438,23 +2501,54 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         Returns True precisely when D is a fundamental discriminant
         that satisfies the Heegner hypothesis for this elliptic curve.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a1')
+            sage: E.satisfies_heegner_hypothesis(-7)
+            True
+            sage: E.satisfies_heegner_hypothesis(-11)
+            False
         """
         if not number_field.is_fundamental_discriminant(D):
             return False
         if arith.GCD(D, self.conductor()) != 1:
             return False
-        K = number_field.QuadraticField(D, 'a')
         for p, _ in factor(self.conductor()):
-            if len(K.factor_integer(p)) != 2:
+            if kronecker_symbol(D,p) != 1:
                 return False
         return True
 
     def heegner_discriminants(self, bound):
+        """
+        Return the list of self's Heegner discriminants between -1 and -bound.
+
+        INPUT:
+            bound (int) -- upper bound for -discriminant
+
+        OUTPUT:
+            The list of Heegner discriminants between -1 and -bound for the given elliptic curve.
+
+        EXAMPLE:
+            sage: E=EllipticCurve('11a')
+            sage: E.heegner_discriminants(30)
+            [-7, -8, -19, -24]
+        """
         return [-D for D in xrange(1,bound) if self.satisfies_heegner_hypothesis(-D)]
 
     def heegner_discriminants_list(self, n):
         """
-        List of the first n Heegner discriminants for self.
+        Return the list of self's first n Heegner discriminants smaller than -5.
+
+        INPUT:
+            n (int) -- the number of discriminants to compute
+
+        OUTPUT:
+            The list of the first n Heegner discriminants smaller than -5 for the given elliptic curve.
+
+        EXAMPLE:
+            sage: E=EllipticCurve('11a')
+            sage: E.heegner_discriminants_list(4)
+            [-7, -8, -19, -24]
         """
         v = []
         D = -5
@@ -2501,10 +2595,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         k_E = prec*sqrt(E.conductor()) + 20
         k_F = prec*sqrt(F.conductor()) + 20
 
-        IR = rings.RealIntervalField(20)
-        MIN_ERR = R('1e-6')   # we assume that regulator and
-                            # discriminant, etc., computed to this accuracy.
-                            # this should be made more intelligent / rigorous relative
+        MIN_ERR = R('1e-6')  # we assume that regulator and
+                             # discriminant, etc., computed to this accuracy (which is easily the case).
+                             # this should be made more intelligent / rigorous relative
                              # to the rest of the system.
         if eps == 1:   # E has even rank
             LF1, err_F = F.Lseries().deriv_at1(k_F)
@@ -2521,27 +2614,25 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)
 
 
-    def heegner_index(self, D,  min_p=3, prec=5, verbose=False):
-        """
-        Return an interval that contains the SQUARE of the index of
-        the Heegner point in the group of K-rational points *modulo
-        torsion* on the twist of the elliptic curve by D, computed
-        using the Gross-Zagier formula and/or a point search.
+    def heegner_index(self, D,  min_p=2, prec=5, verbose=False):
+        r"""
+        Return an interval that contains the index of the Heegner
+        point $y_K$ in the group of K-rational points modulo torsion
+        on this elliptic curve, computed using the Gross-Zagier
+        formula and/or a point search, or the index divided by $2$.
 
-        WARNING: This function uses the Gross-Zagier formula.
-        When E is 681b and D=-8 for some reason the returned index
-        is 9/4 which is off by a factor of 4.   Evidently the
-        GZ formula must be modified when D=-8.
-
-        If 0 is in the interval of the height of the Heegner point
-        computed to the given prec, then this function returns 0.
+        NOTES: If \code{min_p} is bigger than 2 then the index can be
+        off by any prime less than \code{min_p}.   This function
+        returns the index divided by $2$ exactly when $E(\Q)_{/tor}$
+        has index $2$ in $E(K)_{/tor}$.
 
         INPUT:
             D (int) -- Heegner discriminant
-            min_p (int) -- (default: 3) only rule out primes >= min_p
+            min_p (int) -- (default: 2) only rule out primes >= min_p
                            dividing the index.
-            verbose (bool) -- (default: False); print lots of mwrank search status
-                                                information when computing regulator
+            verbose (bool) -- (default: False); print lots of mwrank
+                              search status information when computing
+                              regulator
             prec (int) -- (default: 5), use prec*sqrt(N) + 20 terms
                           of L-series in computations, where N is the
                           conductor.
@@ -2554,19 +2645,34 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.heegner_discriminants(50)
             [-7, -8, -19, -24, -35, -39, -40, -43]
             sage: E.heegner_index(-7)
-            [0.99998760 ... 1.0000134]
+            [0.99999332 .. 1.0000077]
 
             sage: E = EllipticCurve('37b')
             sage: E.heegner_discriminants(100)
             [-3, -4, -7, -11, -40, -47, -67, -71, -83, -84, -95]
             sage: E.heegner_index(-95)          # long time (1 second)
-            [3.9999771 ... 4.0000229]
+            [1.9999923 .. 2.0000077]
 
         Current discriminants -3 and -4 are not supported:
             sage: E.heegner_index(-3)
             Traceback (most recent call last):
             ...
             ArithmeticError: Discriminant (=-3) must not be -3 or -4.
+
+        The curve 681b returns an interval that contains $3/2$.
+        This is because $E(\Q)$ is not saturated in $E(K)$.  The
+        true index is $3$:
+            sage: E = EllipticCurve('681b')
+            sage: I = E.heegner_index(-8); I
+            [1.4999942 .. 1.5000058]
+            sage: 2*I
+            [2.9999885 .. 3.0000115]
+
+        In fact, whenever the returned index has a denominator
+        of $2$, the true index is got by multiplying the returned
+        index by $2$.  Unfortunately, this is not an if and only
+        if condition, i.e., sometimes the index must be multiplied
+        by $2$ even though the denominator is not $2$.
         """
         # First compute upper bound on height of Heegner point.
         tm = misc.verbose("computing heegner point height...")
@@ -2592,7 +2698,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if c > _MAX_HEIGHT or F is self:
             misc.verbose("Doing direct computation of MW group.")
             reg = F.regulator(verbose=verbose)
-            return ht/IR(reg)
+            return self.__adjust_heegner_index(ht/IR(reg))
 
         # Do naive search to eliminate possibility that Heegner point
         # is divisible by p<min_p, without finding Heegner point.
@@ -2602,10 +2708,26 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         P = [x for x in P if x.order() == oo]
         if len(P) == 0:
             return IR(1)
+
         misc.verbose("saturating")
         S, I, reg = F.saturation(P, verbose=verbose)
         misc.verbose("done saturating")
-        return ht/IR(reg)
+        return self.__adjust_heegner_index(ht/IR(reg))
+
+    def __adjust_heegner_index(self, a):
+        r"""
+        Take the square root of the interval that contains the Heegner
+        index.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a1')
+            sage: a = RIF(sqrt(2))-1.4142135623730951
+            sage: E._EllipticCurve_rational_field__adjust_heegner_index(a)
+            [0.0000000... .. 1.490116...e-8]
+        """
+        if a.lower() < 0:
+            a = IR((0, a.upper()))
+        return a.sqrt()
 
 
     def heegner_index_bound(self, D=0,  prec=5, verbose=True, max_height=_MAX_HEIGHT):
@@ -2627,20 +2749,28 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
             D (int) -- (deault: 0) Heegner discriminant; if 0, use the
-                       first discriminant < -4 that satisfies the Heegner hypothesis
+                       first discriminant < -4 that satisfies the Heegner
+                       hypothesis
             verbose (bool) -- (default: True)
             prec (int) -- (default: 5), use prec*sqrt(N) + 20 terms
                           of L-series in computations, where N is the
                           conductor.
-            max_height (float) -- should be <= 21; bound on logarithmic naive height
-                                  used in point searches.  Make smaller to make this
-                                  function faster, at the expense of possibly obtaining
-                                  a worse answer.  A good range is between 13 and 21.
+            max_height (float) -- should be <= 21; bound on logarithmic
+                                  naive height used in point searches.
+                                  Make smaller to make this function
+                                  faster, at the expense of possibly
+                                  obtaining a worse answer.  A good
+                                  range is between 13 and 21.
 
         OUTPUT:
             v -- list or int (bad primes or 0 or -1)
             D -- the discriminant that was used (this is useful if D was
                  automatically selected).
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a1')
+            sage: E.heegner_index_bound(verbose=False)
+            ([2], -7)
         """
         max_height = min(float(max_height), _MAX_HEIGHT)
         if self.root_number() != 1:

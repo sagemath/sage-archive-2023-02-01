@@ -30,6 +30,20 @@ def cblas():
         # This is very slow  (?), but *guaranteed* to be available.
         return 'gslcblas'
 
+# In case of ATLAS we need to link against cblas as well as atlas
+# In the other cases we just return the same library name as cblas()
+# which is fine for the linker
+def atlas():
+    if os.environ.has_key('SAGE_CBLAS'):
+        return os.environ['SAGE_CBLAS']
+    elif os.path.exists('/usr/lib/libatlas.dylib') or \
+        os.path.exists('/usr/lib/libatlas.so'):
+        return 'atlas'
+    elif os.path.exists('/usr/lib/libblas.dll.a'):   # untested
+        return 'blas'
+    else:
+        # This is very slow  (?), but *guaranteed* to be available.
+        return 'gslcblas'
 
 include_dirs = ['%s/local/include/csage/'%SAGE_ROOT,
                 '%s/local/include/'%SAGE_ROOT,  \
@@ -39,8 +53,8 @@ include_dirs = ['%s/local/include/csage/'%SAGE_ROOT,
                 '%s/devel/sage/sage/gsl/'%SAGE_ROOT]
 
 
-standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
-                 'mwrank', 'gsl', cblas(), 'ntl', 'csage']
+standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'curvesntl', \
+                 'g0nntl', 'jcntl', 'rankntl', 'gsl', cblas(), atlas(), 'ntl', 'csage']
 
 offset = 0
 
@@ -118,7 +132,7 @@ include "stdsage.pxi"  # ctrl-c interrupt block support
 sequence_number = {}
 
 def cython(filename, verbose=False, compile_message=False,
-          use_cache=False, create_local_c_file=False):
+          use_cache=False, create_local_c_file=False, annotate=True, sage_namespace=True):
     if not filename.endswith('pyx'):
         print "File (=%s) should have extension .pyx"%filename
 
@@ -202,15 +216,24 @@ setup(ext_modules = ext_modules,
     """%(name, name, extension, additional_source_files, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
 
-    cython_include = ' '.join(['-I %s'%x for x in includes if len(x.strip()) > 0 ])
+    cython_include = ' '.join(["-I '%s'"%x for x in includes if len(x.strip()) > 0 ])
 
-    cmd = 'cd %s && cython -p --incref-local-binop %s %s.pyx 1>log 2>err '%(build_dir, cython_include, name)
+    options = ['-p', '--incref-local-binop']
+    if annotate:
+        options.append('-a')
+    if sage_namespace:
+        options.append('--pre-import sage.all')
+
+    cmd = "cd '%s' && cython %s %s '%s.pyx' 1>log 2>err " % (build_dir, ' '.join(options), cython_include, name)
 
     if create_local_c_file:
         target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
         if language == 'c++':
             target_c = target_c + "pp"
-        cmd += ' && cp %s.c %s'%(name, target_c)
+        cmd += " && cp '%s.c' '%s'"%(name, target_c)
+        if annotate:
+            target_html = '%s/_%s.pyx.html'%(os.path.abspath(os.curdir), base)
+            cmd += " && cp '%s.pyx.html' '%s'"%(name, target_html)
 
     if verbose:
         print cmd
@@ -220,7 +243,7 @@ setup(ext_modules = ext_modules,
         raise RuntimeError, "Error converting %s to C:\n%s\n%s"%(filename, log, err)
 
     if language=='c++':
-        os.system("cd %s && mv %s.c %s.cpp"%(build_dir,name,name))
+        os.system("cd '%s' && mv '%s.c' '%s.cpp'"%(build_dir,name,name))
 
 ##     if make_c_file_nice and os.path.exists(target_c):
 ##         R = open(target_c).read()

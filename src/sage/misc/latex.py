@@ -40,8 +40,6 @@ import os.path
 
 import random
 
-import sage.plot.all
-
 from misc import tmp_dir
 import sage_eval
 
@@ -108,6 +106,9 @@ class LatexExpr(str):
         str.__init__(self, x)
 
     def __repr__(self):
+        return str(self)
+
+    def _latex_(self):
         return str(self)
 
 def latex(x):
@@ -203,7 +204,7 @@ class Latex:
         if self.__slide:
             O.write('\n\n\\end{document}')
         else:
-            O.write('\\end{document}\n')
+            O.write('\n\n\\end{document}\n')
 
         O.close()
         if not debug:
@@ -453,6 +454,7 @@ def png(x, filename, density=150, debug=False, brk=0, do_in_background=True, tin
     Create a png image representation of x and save to the given
     filename.
     """
+    import sage.plot.all
     if sage.plot.all.is_Graphics(x):
         x.save(filename)
         return
@@ -537,39 +539,44 @@ def repr_lincomb(symbols, coeffs):
     s = s.replace("+ -","- ")
     return s
 
-#def _view_hook(s):
-#    if s is None:
-#        return ''
-#    if isinstance(s, LatexExpr):
-#        print s
-#    else:
-#        print '<html><div class="math">%s</div></html>'%latex(s)
-#    return ''
 
-def _show_hook(s):
-    if s is None:
-        return ''
-    if isinstance(s, LatexExpr):
-        print s
-    else:
-        print '<html><span class="math">%s</span></html>'%latex(s)
-    return ''
-
-_old_hook = None
-def lprint():
+def pretty_print (object):
     """
-    Toggle latex print mode on and off.
+    Try to pretty print the object in an intelligent way.  For many
+    things, this will convert the object to latex inside of html and
+    rely on a latex-aware front end (like jsMath) to render the text
+    """
+    if object is None:
+        return
+    import __builtin__
+    __builtin__._=object
+
+    from sage.plot.plot import Graphics
+    from sage.plot.plot3d.base import Graphics3d
+    if isinstance(object, (Graphics, Graphics3d)):
+        print repr(object)
+        return
+    else:
+        try:
+            print '<html><span class="math">%s</span></html>'%latex(object)
+        except:
+            import sys
+            sys.__displayhook__(object)
+
+
+def pretty_print_default(enable=True):
+    """
+    Enable or disable default pretty printing.  Pretty printing means
+    rendering things so that jsMath or some other latex-aware front
+    end can render real math.
     """
     import sys
-    global _old_hook
-    if _old_hook:
-        sys.displayhook = _old_hook
-        _old_hook = None
-        print "Latex print mode off."
+    if enable:
+        sys.displayhook = pretty_print
     else:
-        _old_hook = sys.displayhook
-        sys.displayhook = _show_hook
-        print "Latex print mode on."
+        sys.displayhook = sys.__displayhook__
+
+
 
 common_varnames = ['alpha',
                    'beta',

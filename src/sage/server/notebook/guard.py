@@ -149,8 +149,6 @@ class MySessionWrapper(object):
         Inital logic occurs here to decide the
         authentication status of a given user.
         """
-        #log.msg("request: %s, segments: %s" % (str(request.args), segments))
-        #see if the user already has a session going
         if segments and segments[0] == "login":
             #log.msg("Login")
             #get the username and password in the postdata
@@ -160,7 +158,13 @@ class MySessionWrapper(object):
             l.addCallback(lambda _: self.requestPasswordAuthentication(request, segments))
             return l
 
+        if segments and segments[0] == "":
+            if request.args.get('startup_token', [''])[0]:
+                return self.requestPasswordAuthentication(request, segments)
+
+        #see if the user already has a session going
         session = self.getSession(request)
+        #log.msg("session: %s" % session)
         if session is None:
             #log.msg("unknown session")
             return self.requestAnonymousAuthentication(request, segments)
@@ -238,7 +242,6 @@ class MySessionWrapper(object):
         mind = [newCookie, None, None]
         d = self.portal.login(creds, mind, self.credInterface)
         d.addCallback(_success, request, segments)
-        #d.addErrback(self._loginFailure, request, segments, 'Anonymous access not allowed.')
         return d
 
     def getSession(self, request):
@@ -258,6 +261,9 @@ class MySessionWrapper(object):
         or if they dont exist we have an anonymous
         session
         """
+        if request.args.get('startup_token', [''])[0]:
+            import avatars
+            return avatars.TokenCred(request.args.get('startup_token', [''])[0])
         username = request.args.get('email', [''])[0]
         password = request.args.get('password', [''])[0]
         return credentials.UsernamePassword(username, password)
@@ -269,12 +275,14 @@ class MySessionWrapper(object):
         Also saved the credentials that the user used to log in
         to later associate these credentials with the users session.
         """
+        #log.msg("=== _loginSuccess ===")
         session.set_authCreds(creds)
         return rsrc, ()
 
     def _loginFailure(self, *x): #TODO
-        #log.msg("=== _loginFailure ===")
-        print x
+        log.msg("=== _loginFailure ===")
+
+        log.msg(str(x))
 
     def incorrectLoginError(self, error, ctx, segments, loginFailure):
         pass

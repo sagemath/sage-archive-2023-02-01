@@ -303,27 +303,6 @@ cdef class LocalGenericElement(CommutativeRingElement):
         F = self.parent()
         return self.valuation()/F.ramification_index()
 
-    def normalized_valuation(self):
-        r"""
-        Returns the normalized valuation of this local ring element,
-        i.e., the valuation divided by the absolute ramification index.
-
-        INPUT:
-            self -- a local ring element.
-
-        OUTPUT:
-            rational -- the normalized valuation of self.
-
-        EXAMPLES:
-            sage: Q7 = Qp(7)
-            sage: R.<x> = Q7[]
-            sage: F.<z> = Q7.ext(x^3+7*x+7)
-            sage: z.normalized_valuation()
-            1/3
-        """
-        F = self.parent()
-        return self.valuation()/F.ramification_index()
-
     def _min_valuation(self):
         r"""
         Returns the valuation of this local ring element.

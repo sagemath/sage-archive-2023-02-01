@@ -2249,6 +2249,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             soft-$O(N)$ using algorithm described by Dan Bernstein:
             http://cr.yp.to/lineartime/multapps-20041007.pdf
         """
+        raise NotImplementedError, "log is not quite working yet"
         if same_ring is False:
             if self.prime_pow.in_field == 0:
                 return self.parent().fraction_field()(self).log(branch=branch, same_ring=True)

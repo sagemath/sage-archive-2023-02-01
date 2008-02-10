@@ -203,7 +203,10 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         elif self._is_inexact_zero():
             return self.ground_ring(0, self.valuation())
         norm_of_uniformizer = (-1)**self.parent().degree() * self.parent().defining_polynomial()[0]
-        return self.parent().ground_ring()(self.unit_part().matrix_mod_pn().det()) * norm_of_uniformizer**self.valuation()
+        if self.valuation() == 0:
+            return self.parent().ground_ring()(self.unit_part().matrix_mod_pn().det())
+        else:
+            return self.parent().ground_ring()(self.unit_part().matrix_mod_pn().det()) * norm_of_uniformizer**self.valuation()
 
     def trace(self, base = None):
         """

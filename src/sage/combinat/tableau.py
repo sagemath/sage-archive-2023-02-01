@@ -67,6 +67,9 @@ class Tableau_class(CombinatorialObject):
 
         CombinatorialObject.__init__(self,t)
 
+    def _latex_(self):
+        return self._tex_from_array()
+
     def _tex_from_array(self):
         import output
         m = max(len(self), len(self[0]))

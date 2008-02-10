@@ -117,6 +117,7 @@ from sage.rings.padics.padic_base_generic_element cimport pAdicBaseGenericElemen
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.libs.pari.gen import gen as pari_gen
 from sage.rings.all import is_IntegerMod
+from sage.rings.all import IntegerModRing
 from sage.rings.padics.padic_ext_element cimport pAdicExtElement
 from sage.rings.padics.precision_error import PrecisionError
 
@@ -1526,6 +1527,63 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             return self.teichmuller_list()
         else:
             raise ValueError, "lift mode must be one of 'simple', 'smallest' or 'teichmuller'"
+
+    def matrix_mod_pn(self):
+        """
+        Returns the matrix of right multiplication by
+        the element on the power basis $1, x, x^2, \ldots, x^{d-1}$
+        for this extension field.  Thus the \emph{rows} of this matrix give
+        the images of each of the $x^i$.  The entries of the matrices
+        are IntegerMod elements, defined modulo p^(self.absprec() / e).
+
+        EXAMPLES:
+        sage: R = ZpCA(5,5)
+        sage: S.<x> = R[]
+        sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+        sage: W.<w> = R.ext(f)
+        sage: a = (3+w)^7
+        sage: a.matrix_mod_pn()
+        [2757  333 1068  725 2510]
+        [  50 1507  483  318  725]
+        [ 500   50 3007 2358  318]
+        [1590 1375 1695 1032 2358]
+        [2415  590 2370 2970 1032]
+        """
+        from sage.matrix.all import matrix
+        # this may be the wrong precision when ram_prec_cap is not divisible by e.
+        R = IntegerModRing(self.prime_pow.pow_Integer(self.prime_pow.capdiv(self.absprec)))
+        n = self.prime_pow.deg
+        L = []
+        cdef ntl_ZZ_pX cur = <ntl_ZZ_pX>self._ntl_rep()
+        cur.c.restore_c()
+        cdef ZZ_pX_Modulus_c m = self.prime_pow.get_modulus_capdiv(self.absprec)[0]
+        cdef ZZ_pX_c x
+        ZZ_pX_SetX(x)
+        cdef Py_ssize_t i, j
+        zero = int(0)
+        for i from 0 <= i < n:
+            curlist = cur.list()
+            L.extend(curlist + [zero]*(n - len(curlist)))
+            ZZ_pX_MulMod_pre(cur.x, cur.x, x, m)
+        return matrix(R, n, n,  L)
+
+    def matrix(self, base = None):
+        """
+        If base is None, return the matrix of right multiplication by
+        the element on the power basis $1, x, x^2, \ldots, x^{d-1}$
+        for this extension field.  Thus the \emph{rows} of this matrix give
+        the images of each of the $x^i$.
+
+        If base is not None, then base must be either a field that
+        embeds in the parent of self or a morphism to the parent of
+        self, in which case this function returns the matrix of
+        multiplication by self on the power basis, where we view the
+        parent field as a field over base.
+
+        INPUT:
+            base -- field or morphism
+        """
+        raise NotImplementedError
 
     def multiplicative_order(self, prec=None):
         """

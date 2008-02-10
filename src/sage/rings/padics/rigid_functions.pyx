@@ -360,6 +360,11 @@ cdef class RigidAnalyticFunction_exp(RigidAnalyticFunction_disc):
     def __init__(self, base_ring):
         RigidAnalyticFunction_disc.__init__(self, base_ring, -~(base_ring.prime() - 1), 0, 0, ExpCoeffs(base_ring))
 
+
+cdef class RigidAnalyticFunction_log(RigidAnalyticFunction_disc):
+    def __init__(self, base_ring):
+        RigidAnalyticFunction_disc.__init__(self, base_ring, 0, 1, RIF(0.001), LogCoeffs(base_ring))
+
     cpdef Integer coeff_val_bound(self, _i):
         cdef Integer i
         if PY_TYPE_CHECK(_i, Integer):
@@ -372,8 +377,4 @@ cdef class RigidAnalyticFunction_exp(RigidAnalyticFunction_disc):
         return self.coeff_val_bound(_i) + val * _i
 
     cpdef output_valuation(self, input_valuation):
-
-
-cdef class RigidAnalyticFunction_log(RigidAnalyticFunction_disc):
-    def __init__(self, base_ring):
-        RigidAnalyticFunction_disc.__init__(self, base_ring, 0, 1, RIF(0.001), LogCoeffs(base_ring))
+        pass

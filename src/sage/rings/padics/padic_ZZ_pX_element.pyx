@@ -157,6 +157,117 @@ cdef class pAdicZZpXElement(pAdicExtElement):
                 break
         return ans
 
+    def norm(self, base = None):
+        """
+        Return the absolute or relative norm of this element.
+
+        If K is given then K must be a subfield of the parent L of
+        self, in which case the norm is the relative norm from L to K.
+        In all other cases, the norm is the absolute norm down to Qp or Zp.
+
+        EXAMPLES:
+        sage: R = ZpCR(5,5)
+        sage: S.<x> = R[]
+        sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+        sage: W.<w> = R.ext(f)
+        sage: ((1+2*w)^5).norm()
+        1 + 5^2 + O(5^5)
+        sage: ((1+2*w)).norm()^5
+        1 + 5^2 + O(5^5)
+
+        TESTS:
+        sage: R = ZpCA(5,5)
+        sage: S.<x> = R[]
+        sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+        sage: W.<w> = R.ext(f)
+        sage: ((1+2*w)^5).norm()
+        1 + 5^2 + O(5^5)
+        sage: ((1+2*w)).norm()^5
+        1 + 5^2 + O(5^5)
+        sage: R = ZpFM(5,5)
+        sage: S.<x> = R[]
+        sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+        sage: W.<w> = R.ext(f)
+        sage: ((1+2*w)^5).norm()
+        1 + 5^2 + O(5^5)
+        sage: ((1+2*w)).norm()^5
+        1 + 5^2 + O(5^5)
+        """
+        if base is not None:
+            if base is self.parent():
+                return self
+            else:
+                raise NotImplementedError
+        if self._is_exact_zero():
+            return self.parent().ground_ring()(0)
+        elif self._is_inexact_zero():
+            return self.ground_ring(0, self.valuation())
+        norm_of_uniformizer = (-1)**self.parent().degree() * self.parent().defining_polynomial()[0]
+        return self.parent().ground_ring()(self.unit_part().matrix_mod_pn().det()) * norm_of_uniformizer**self.valuation()
+
+    def trace(self, base = None):
+        """
+        Return the absolute or relative trace of this element.
+
+        If K is given then K must be a subfield of the parent L of
+        self, in which case the norm is the relative norm from L to K.
+        In all other cases, the norm is the absolute norm down to Qp or Zp.
+
+        EXAMPLES:
+        sage: R = ZpCR(5,5)
+        sage: S.<x> = R[]
+        sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+        sage: W.<w> = R.ext(f)
+        sage: a = (2+3*w)^7
+        sage: b = (6+w^3)^5
+        sage: a.trace()
+        3*5 + 2*5^2 + 3*5^3 + 2*5^4 + O(5^5)
+        sage: a.trace() + b.trace()
+        4*5 + 5^2 + 5^3 + 2*5^4 + O(5^5)
+        sage: (a+b).trace()
+        4*5 + 5^2 + 5^3 + 2*5^4 + O(5^5)
+
+        TESTS:
+        sage: R = ZpCA(5,5)
+        sage: S.<x> = R[]
+        sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+        sage: W.<w> = R.ext(f)
+        sage: a = (2+3*w)^7
+        sage: b = (6+w^3)^5
+        sage: a.trace()
+        3*5 + 2*5^2 + 3*5^3 + 2*5^4 + O(5^5)
+        sage: a.trace() + b.trace()
+        4*5 + 5^2 + 5^3 + 2*5^4 + O(5^5)
+        sage: (a+b).trace()
+        4*5 + 5^2 + 5^3 + 2*5^4 + O(5^5)
+        sage: R = ZpFM(5,5)
+        sage: S.<x> = R[]
+        sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+        sage: W.<w> = R.ext(f)
+        sage: a = (2+3*w)^7
+        sage: b = (6+w^3)^5
+        sage: a.trace()
+        3*5 + 2*5^2 + 3*5^3 + 2*5^4 + O(5^5)
+        sage: a.trace() + b.trace()
+        4*5 + 5^2 + 5^3 + 2*5^4 + O(5^5)
+        sage: (a+b).trace()
+        4*5 + 5^2 + 5^3 + 2*5^4 + O(5^5)
+        """
+        if base is not None:
+            if base is self.parent():
+                return self
+            else:
+                raise NotImplementedError
+        if self._is_exact_zero():
+            return self.parent().ground_ring()(0)
+        elif self._is_inexact_zero():
+            return self.ground_ring(0, (self.valuation() - 1) // self.parent().e() + 1)
+        if self.valuation() >= 0:
+            return self.parent().ground_ring()(self.matrix_mod_pn().trace())
+        else:
+            shift = -(self.valuation() // self.parent().e())
+            return self.parent().ground_ring()((self * self.parent().prime() ** shift).matrix_mod_pn().trace()) / self.parent().prime()**shift
+
     def _ntl_rep(self):
         raise NotImplementedError
 

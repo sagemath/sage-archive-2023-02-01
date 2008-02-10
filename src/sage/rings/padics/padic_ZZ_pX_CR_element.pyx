@@ -135,6 +135,7 @@ from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_small_Eis
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_big_Eis
+from sage.rings.integer_mod_ring import IntegerModRing
 
 from sage.rings.real_double cimport RealDoubleElement
 
@@ -2185,7 +2186,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES:
         First, the Eisenstein case.
-        sage: R = ZpFM(5,5)
+        sage: R = ZpCR(5,5)
         sage: S.<x> = R[]
         sage: f = x^4 + 15*x^2 + 625*x - 5
         sage: W.<w> = R.ext(f)
@@ -2611,6 +2612,66 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             return ans + branch_add
         else:
             return ans
+
+    def matrix_mod_pn(self):
+        """
+        Returns the matrix of right multiplication by
+        the element on the power basis $1, x, x^2, \ldots, x^{d-1}$
+        for this extension field.  Thus the \emph{rows} of this matrix give
+        the images of each of the $x^i$.  The entries of the matrices
+        are IntegerMod elements, defined modulo p^(self.absprec() / e).
+
+        Raises an error if self has negative valuation.
+
+        EXAMPLES:
+        sage: R = ZpCR(5,5)
+        sage: S.<x> = R[]
+        sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+        sage: W.<w> = R.ext(f)
+        sage: a = (3+w)^7
+        sage: a.matrix_mod_pn()
+        [2757  333 1068  725 2510]
+        [  50 1507  483  318  725]
+        [ 500   50 3007 2358  318]
+        [1590 1375 1695 1032 2358]
+        [2415  590 2370 2970 1032]
+        """
+        if self.valuation_c() < 0:
+            raise ValueError, "self must be integral"
+        from sage.matrix.all import matrix
+        R = IntegerModRing(self.prime_pow.pow_Integer(self.prime_pow.capdiv(self.ordp + self.relprec)))
+        n = self.prime_pow.deg
+        L = []
+        cdef ntl_ZZ_pX cur = <ntl_ZZ_pX>self._ntl_rep_abs()[0]
+        cur.c.restore_c()
+        cdef ZZ_pX_Modulus_c m = self.prime_pow.get_modulus_capdiv(self.ordp + self.relprec)[0]
+        cdef ZZ_pX_c x
+        ZZ_pX_SetX(x)
+        cdef Py_ssize_t i, j
+        zero = int(0)
+        for i from 0 <= i < n:
+            curlist = cur.list()
+            L.extend(curlist + [zero]*(n - len(curlist)))
+            ZZ_pX_MulMod_pre(cur.x, cur.x, x, m)
+        return matrix(R, n, n,  L)
+
+    def matrix(self, base = None):
+        """
+        If base is None, return the matrix of right multiplication by
+        the element on the power basis $1, x, x^2, \ldots, x^{d-1}$
+        for this extension field.  Thus the \emph{rows} of this matrix give
+        the images of each of the $x^i$.
+
+        If base is not None, then base must be either a field that
+        embeds in the parent of self or a morphism to the parent of
+        self, in which case this function returns the matrix of
+        multiplication by self on the power basis, where we view the
+        parent field as a field over base.
+
+        INPUT:
+            base -- field or morphism
+        """
+        raise NotImplementedError
 
     def multiplicative_order(self, prec=None):
         """

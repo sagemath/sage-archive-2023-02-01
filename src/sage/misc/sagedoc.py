@@ -1,4 +1,4 @@
-"""nodoctest
+r"""nodoctest
 Format SAGE documentation for viewing with IPython
 """
 
@@ -163,21 +163,68 @@ def format_src(s):
 
 ###############################
 
-def search_src(s, extra='', interact=True):
+def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True):
+    r"""
+    Search \Sage librrary source code for lines containing \code{string}.
+    The search is not case sensitive.
+
+    INPUT:
+        -- string: a string to find in the \Sage source code.
+        -- extra1, ..., extra5: additional strings to require.
+
+    NOTE:
+        The extraN parameters are present only because
+        search_src(string, *extras, interact=None)
+        is not parsed correctly by Python 2.6; see http://bugs.python.org/issue1909.
+
+    EXAMPLES:
+        sage: print search_src(" fetch(", "def", interact=False) # random # long
+        matrix/matrix0.pyx:    cdef fetch(self, key):
+        matrix/matrix0.pxd:    cdef fetch(self, key)
+
+        sage: print search_src(" fetch(", "def", interact=False) # random # long
+        matrix/matrix0.pyx:    cdef fetch(self, key):
+        matrix/matrix0.pxd:    cdef fetch(self, key)
+
+        sage: print search_src(" fetch(", "def", "pyx", interact=False) # random # long
+        matrix/matrix0.pyx:    cdef fetch(self, key):
     """
-    Search sage source code for lines containing s.  The search is not
-    case sensitive.
-    """
-    cmd = 'sage -grep "%s" | grep "%s"'%(s,extra)
+    cmd = 'sage -grep "%s"' % string
+    for extra in [ extra1, extra2, extra3, extra4, extra5 ]:
+        if not extra:
+            continue
+        cmd += '| grep "%s"' % extra
+
     r = os.popen(cmd).read()
     if not interact:
         return r
     from sage.server.support import EMBEDDED_MODE
     if EMBEDDED_MODE:   # I.e., running from the notebook
-        print format_search_as_html('Source Code', r, s + extra)
+        print format_search_as_html('Source Code', r, string + extra)
     else:
         from sage.misc.all import pager
         pager()(r)
+
+def search_def(name, extra1='', extra2='', extra3='', extra4='', interact=True):
+    r"""
+    Search \Sage librrary source code for function names containing \code{name}.
+    The search is not case sensitive.
+
+    INPUT:
+        -- name: a string to find in the names of functions in the \Sage source code.
+        -- extra1, ..., extra4: see search_src.
+
+    EXAMPLES:
+        sage: print search_def("fetch", interact=False) # random # long
+        matrix/matrix0.pyx:    cdef fetch(self, key):
+        matrix/matrix0.pxd:    cdef fetch(self, key)
+
+        sage: print search_def("fetch", "pyx", interact=False) # random # long
+        matrix/matrix0.pyx:    cdef fetch(self, key):
+    """
+    return search_src(name, extra1='def ',
+                      extra2=extra1, extra3=extra2,
+                      extra4=extra3, extra5=extra4, interact=interact)
 
 def format_search_as_html(what, r, search):
     s = '<html>'

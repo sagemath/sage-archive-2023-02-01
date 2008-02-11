@@ -38,7 +38,7 @@ from package import install_package, standard_packages, optional_packages, exper
 
 from pager import pager
 
-from sagedoc import search_src, search_doc
+from sagedoc import search_src, search_def, search_doc
 
 from classgraph import class_graph
 

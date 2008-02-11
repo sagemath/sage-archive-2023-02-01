@@ -165,7 +165,7 @@ def format_src(s):
 
 def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', interact=True):
     r"""
-    Search \Sage librrary source code for lines containing \code{string}.
+    Search \Sage library source code for lines containing \code{string}.
     The search is not case sensitive.
 
     INPUT:
@@ -207,7 +207,7 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='', extra5='', in
 
 def search_def(name, extra1='', extra2='', extra3='', extra4='', interact=True):
     r"""
-    Search \Sage librrary source code for function names containing \code{name}.
+    Search \Sage library source code for function names containing \code{name}.
     The search is not case sensitive.
 
     INPUT:

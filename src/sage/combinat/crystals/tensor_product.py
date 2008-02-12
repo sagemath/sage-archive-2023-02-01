@@ -18,6 +18,7 @@ Tensor products of crystals
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+from sage.misc.latex           import latex
 from sage.structure.element    import Element
 from sage.combinat.cartan_type import CartanType
 from sage.combinat.cartesian_product  import CombinatorialObject, CartesianProduct
@@ -235,6 +236,30 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
 	return [len(self)-1-list[j] for j in range(len(list))]
 
 class CrystalOfTableaux(TensorProductOfCrystals):
+    r"""
+    Crystals of tableaux
+
+    EXAMPLES:
+
+        We create the crystal of tableaux for type $A_2$, with highest
+        weight given by the partition [2,1,1]
+
+        sage: Tab = CrystalOfTableaux(['A',3], Partition([2,1,1]))
+
+        Here is the list of elements:
+
+        sage: Tab.list()
+
+        One can get (currently) crude ploting via:
+
+        sage: Tab.plot()
+
+        Once can get instead get a LaTeX drawing ready to be
+        copy-pasted into a LaTeX file:
+
+        sage: Tab.latex()
+
+    """
     def __init__(self, type, shape):
 	C=CrystalOfLetters(type)
 	module_generator = flatten([[C(i+1)]*shape[i] for i in range(len(shape))])
@@ -265,6 +290,9 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
 
     def __repr__(self):
 	return repr(self.to_tableau())
+
+    def _latex_(self):
+	return latex(self.to_tableau())
 
     def to_tableau(self):
 	tab = [ [self[0]] ]

@@ -102,7 +102,7 @@ class Crystal_of_letters_type_A(Crystal):
         self.module_generators = [self(1)]
 
     def list(self):
-        return [self(i) for i in range(1,self.cartanType.n+1)]
+        return [self(i) for i in range(1,self.cartanType.n+2)]
 
     def __call__(self, value):
         return Crystal_of_letters_type_A_element(self, value)

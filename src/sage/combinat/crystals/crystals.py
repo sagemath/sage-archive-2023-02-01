@@ -54,11 +54,13 @@ in the usual way:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+from sage.misc.latex           import latex
 from sage.structure.parent     import Parent
 from sage.structure.element    import Element
 from sage.combinat.combinat    import CombinatorialClass
 from sage.combinat.cartan_type import CartanType
 from sage.graphs.graph         import DiGraph
+from sage.combinat             import ranker
 
 ## MuPAD-Combinat's Cat::Crystal
 class Crystal(CombinatorialClass, Parent):
@@ -134,6 +136,25 @@ class Crystal(CombinatorialClass, Parent):
                     continue
                 dict[x][child]=i
         return DiGraph(dict)
+
+    def latex(self):
+        from dot2tex.dot2tex import Dot2TikZConv;
+        conv = Dot2TikZConv();
+        return conv.convert(self.dot_tex());
+
+    def dot_tex(self):
+        rank = ranker.from_list(self.list())[0];
+        result = "digraph G {\n";
+        for x in self:
+            result += "N_"+str(rank(x))+ " [ label = \" \", texlbl = \"$"+latex(x)+"$\" ];\n";
+        for x in self:
+            for i in self.index_set:
+                child = x.f(i)
+                if child is None:
+                    continue
+                result += "N_"+str(rank(x))+ " -> "+"N_"+str(rank(child))+ " [ label = \" \", texlbl = \""+latex(i)+"\" ];\n";
+        result+="}";
+        return result;
 
     def plot(self, **options):
         return self.digraph().plot(edge_labels=True,vertex_size=0,**options)

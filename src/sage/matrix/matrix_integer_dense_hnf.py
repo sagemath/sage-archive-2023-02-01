@@ -5,11 +5,16 @@ AUTHORS:
     -- Clement Pernet and William Stein (2008-02-07): initial version
 
 TODO:
-
-   [ ] optimize double det
    [ ] more rows than columns
    [ ] more columns than rows
    [ ] degenerate cases -- fail nicely
+   [ ] provably correct determinant (via linbox)
+   [ ] memory leaks?!
+   [ ] Make this the default in Sage.
+   [ ] improve documentation
+   [ ] testing for correctness
+   [ ] generalize to polynomials
+   [ ] write a "technical report" with tables of timings
 
 """
 
@@ -20,45 +25,10 @@ from sage.matrix.constructor import random_matrix, matrix
 
 from sage.rings.all import ZZ, QQ, previous_prime
 
-def fastdet(A, times=1):
-    """
-    Likely to be correct fast det (no guarantee).
-    """
-    v = random_matrix(ZZ,A.nrows(), 1, x=-1,y=1)
-    w = A.solve_right(v, check_rank=False)
-    d = w.denominator()
-    p = 46337
-    for i in range(times):
-        Amod = A._reduce(p)
-        det = Amod.determinant() / d
-        m = ZZ(det)
-        if m >= p//2:
-            m -= p
-        d *= m
-        p = previous_prime(p)
-    return d
-
-def xxx_doubleDet (A, b, c):
-    """
-    Compute the determinants of the stacked matrices A.stack(b) and A.stack(c).
-
-    INPUT:
-        A -- an (n-1) x n matrix
-        b -- an 1 x n matrix
-        c -- an 1 x n matrix
-
-    OUTPUT:
-        a pair of two integers.
-    """
-    t = verbose('starting double det')
-    d1 = fastdet(A.stack(b))
-    d2 = fastdet(A.stack(c))
-    verbose('finished double det', t)
-    return (d1,d2)
-
 def doubleDet (A, b, c):
     """
-    Compute the determinants of the stacked matrices A.stack(b) and A.stack(c).
+    Compute the determinants of the stacked integer matrices
+    A.stack(b) and A.stack(c).
 
     INPUT:
         A -- an (n-1) x n matrix
@@ -67,8 +37,20 @@ def doubleDet (A, b, c):
 
     OUTPUT:
         a pair of two integers.
+
+    EXAMPLES:
+        sage: import sage.matrix.matrix_integer_dense_hnf as hnf
+        sage: A = matrix(ZZ, 2, 3, [1,2,3, 4,-2,5])
+        sage: b = matrix(ZZ, 1, 3, [1,-2,5])
+        sage: c = matrix(ZZ, 1, 3, [8,2,10])
+        sage: A.stack(b).det()
+        -48
+        sage: A.stack(c).det()
+        42
+        sage: hnf.doubleDet(A, b, c)
+        (-48, 42)
     """
-    # We use the "two for the price of one" algorithm.
+    # We use the "two for the price of one" algorithm, which I made up. (William Stein)
 
     # This is a clever trick!  First we transpose everything.  Then
     # we use that if [A|b]*v = c then [A|c]*w = b with w easy to write down!
@@ -120,6 +102,24 @@ def add_column(B, H_B, a):
 
     OUTPUT:
         x   -- a vector such that H' = H_B.augment(x) is the HNF of A = B.augment(a).
+
+    EXAMPLES:
+        sage: B = matrix(ZZ, 3, 3, [1,2,5, 0,-5,3, 1,1,2])
+        sage: H_B = B.echelon_form()
+        sage: a = matrix(ZZ, 3, 1, [1,8,-2])
+        sage: import sage.matrix.matrix_integer_dense_hnf as hnf
+        sage: x = hnf.add_column(B, H_B, a); x
+        [18]
+        [ 3]
+        [23]
+        sage: H_B.augment(x)
+        [ 1  0 17 18]
+        [ 0  1  3  3]
+        [ 0  0 18 23]
+        sage: B.augment(a).echelon_form()
+        [ 1  0 17 18]
+        [ 0  1  3  3]
+        [ 0  0 18 23]
     """
     t0 = verbose('starting add_column')
 
@@ -176,20 +176,33 @@ def add_row(A, b, pivots):
     The add row procedure.
 
     INPUT:
-        A -- an n x (n-1) matrix in Hermite normal form
-        b -- an n x 1 matrix
+        A -- a matrix in Hermite normal form with n column
+        b -- an n x 1 row matrix
         pivots -- sorted list of integers; the pivot positions of A.
 
     OUTPUT:
-        H -- the Hermite normal form of A.stack(b)
+        H -- the Hermite normal form of A.stack(b).
+        new_pivots -- the pivot columns of H.
+
+    EXAMPLES:
+        sage: import sage.matrix.matrix_integer_dense_hnf as hnf
+        sage: A = matrix(ZZ, 2, 3, [-21, -7, 5, 1,20,-7])
+        sage: b = matrix(ZZ, 1,3, [-1,1,-1])
+        sage: hnf.add_row(A, b, A.pivots())
+        ([ 1  6 29]
+        [ 0  7 28]
+        [ 0  0 46], [0, 1, 2])
+        sage: A.stack(b).echelon_form()
+        [ 1  6 29]
+        [ 0  7 28]
+        [ 0  0 46]
     """
     t = verbose('first add row')
-    global X, v
-    X = A
     v = b.row(0)
-    z = A._add_row_and_maintain_echelon_form(b.row(0), pivots)
+    z,p = A._add_row_and_maintain_echelon_form(b.row(0), pivots)
+    z = z.matrix_from_rows(range(A.nrows()+1))
     verbose('finished add row', t)
-    return z
+    return z, p
 
 def hnf(A):
     """
@@ -197,6 +210,18 @@ def hnf(A):
         an n x m matrix A over the integers.
     OUTPUT:
         the Hermite normal form of A.
+
+    EXAMPLES:
+        sage: import sage.matrix.matrix_integer_dense_hnf as hnf
+        sage: A = matrix(ZZ, 3, [-21, -7, 5, 1,20,-7, -1,1,-1])
+        sage: hnf.hnf(A)
+        [ 1  6 29]
+        [ 0  7 28]
+        [ 0  0 46]
+        sage: A.echelon_form()
+        [ 1  6 29]
+        [ 0  7 28]
+        [ 0  0 46]
     """
     n = A.nrows()
     m = A.ncols()
@@ -234,6 +259,15 @@ def hnf(A):
 
 
 def benchmark(nrange, bits=4):
+    """
+    Run benchmark program.
+
+    EXAMPLES:
+        sage: import sage.matrix.matrix_integer_dense_hnf as hnf
+        sage: hnf.benchmark([50,100],32)
+        ('sage', 50, 32, ...),
+        ('sage', 100, 32, ...),
+    """
     from sage.misc.misc import cputime
     b = 2**bits
     for n in nrange:
@@ -244,7 +278,15 @@ def benchmark(nrange, bits=4):
         print '%s,'%(('sage', n, bits, tm),)
 
 def benchmark_magma(nrange, bits=4):
+    """
+    EXAMPLES:
+        sage: import sage.matrix.matrix_integer_dense_hnf as hnf
+        sage: hnf.benchmark_magma([50,100],32)     # optional -- requires magma
+        ('magma', 50, 32, ...),
+        ('magma', 100, 32, ...),
+    """
     from sage.misc.misc import cputime
+    from sage.interfaces.all import magma
     b = 2**bits
     for n in nrange:
         a = magma('MatrixAlgebra(IntegerRing(),%s)![Random(%s,%s) : i in [1..%s]]'%(n,-b,b,n**2))

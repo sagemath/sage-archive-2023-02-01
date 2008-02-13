@@ -94,6 +94,7 @@ import sage.rings.arith
 
 import sage.rings.complex_field
 import sage.rings.real_mpfr
+import sage.rings.real_mpfi
 import sage.rings.complex_double
 import sage.rings.real_double
 
@@ -111,6 +112,9 @@ import sage.structure.parent_gens
 
 from sage.structure.proof.proof import get_flag
 import maps
+
+import math, numpy
+from sage.rings.integer_ring import IntegerRing
 
 def proof_flag(t):
     """
@@ -153,6 +157,7 @@ import sage.rings.polynomial.polynomial_element as polynomial_element
 import sage.rings.ideal as ideal
 import sage.rings.complex_field
 import sage.groups.abelian_gps.abelian_group
+import sage.rings.complex_interval_field
 
 from sage.structure.parent_gens import ParentWithGens
 import number_field_element
@@ -165,6 +170,8 @@ from sage.libs.all import pari, pari_gen
 
 QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
+RIF = sage.rings.real_mpfi.RealIntervalField()
+CIF = sage.rings.complex_interval_field.ComplexIntervalField()
 
 _nf_cache = {}
 def NumberField(polynomial, name=None, check=True, names=None, cache=True):
@@ -883,6 +890,18 @@ class NumberField_generic(number_field_base.NumberField):
         t = self.pari_polynomial().nfisisom(other.pari_polynomial())
         return t != 0
 
+    def is_totally_real(self):
+        """
+        Return True if self is totally real, and false otherwise.
+
+        EXAMPLES:
+            sage: NumberField(x^2+2, 'alpha').is_totally_real()
+            False
+            sage: NumberField(x^2-2, 'alpha').is_totally_real()
+            True
+        """
+        return ZZ(self.pari_nf()[1][1]) == ZZ(0)
+
     def complex_embeddings(self, prec=53):
         r"""
         Return all homomorphisms of this number field into the
@@ -1032,6 +1051,11 @@ class NumberField_generic(number_field_base.NumberField):
             return self._coerce_from_other_number_field(x)
         elif isinstance(x,str):
             return self._coerce_from_str(x)
+        elif isinstance(x, (sage.modules.vector_integer_dense.Vector_integer_dense,
+                            sage.modules.vector_rational_dense.Vector_rational_dense)):
+            if len(x) != self.degree():
+                raise ValueError, "vector must be of length equal to the degree of this number field"
+            return sum([ x[i]*self.gen(0)**i for i in range(self.degree()) ])
         return self._coerce_non_number_field_element_in(x)
 
     def _coerce_from_str(self, x):
@@ -1650,6 +1674,17 @@ class NumberField_generic(number_field_base.NumberField):
             return [NumberField(C[i], name + str(i)) for i in range(len(C))]
 
     def absolute_degree(self):
+        """
+        Return the degree of self over $\mathbb{Q}$.
+
+        EXAMPLES:
+            sage: NumberField(x^3 + x^2 + 997*x + 1, 'a').absolute_degree()
+            3
+            sage: NumberField(x + 1, 'a').absolute_degree()
+            1
+            sage: NumberField(x^997 + 17*x + 3, 'a', check=False).absolute_degree()
+            997
+        """
         return self.polynomial().degree()
 
     def degree(self):
@@ -2016,6 +2051,188 @@ class NumberField_generic(number_field_base.NumberField):
         self.__integral_basis[v] = basis
         return basis
 
+    def reduced_basis(self):
+        r"""
+        This function returns an LLL-reduced basis for the Minkowski-embedding
+        of the maximal order of a number field.
+
+        INPUT:
+            self -- number field, the base field
+
+        OUTPUT:
+            An LLL-reduced basis for the Minkowski-embedding of the
+            maximal order of a number field, given by a sequence of
+            (integral) elements from the field.
+
+        NOTE: In the non-totally-real case, the LLL routine we call is
+        currently Pari's qflll(), which works with floating point
+        approximations, and so the result is only as good as the
+        precision promised by Pari.
+
+        EXAMPLES:
+            sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1)
+            sage: F.maximal_order().basis()
+            [1/2*t^5 + 1/2*t^4 + 1/2*t^2 + 1/2, t, t^2, t^3, t^4, t^5]
+            sage: F.reduced_basis()
+            [1,
+            1/2*t^5 - 1/2*t^4 - 3*t^3 + 3/2*t^2 + 4*t - 1/2,
+            t,
+            1/2*t^5 + 1/2*t^4 - 4*t^3 - 5/2*t^2 + 7*t + 1/2,
+            1/2*t^5 - 1/2*t^4 - 2*t^3 + 3/2*t^2 - 1/2,
+            1/2*t^5 - 1/2*t^4 - 3*t^3 + 5/2*t^2 + 4*t - 5/2]
+
+            sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
+            sage: F.integral_basis()
+            [1, alpha, alpha^2, 1/2*alpha^3 + 1/2*alpha^2]
+            sage: F.reduced_basis()
+            [1, alpha, alpha^2 - 15*alpha + 1, alpha^3 - 16*alpha^2 + 469*alpha + 267109]
+        """
+        try:
+            return self.__reduced_basis
+        except AttributeError:
+            pass
+
+        d = self.degree()
+        Z_basis = self.integral_basis()
+
+        from sage.matrix.constructor import matrix
+
+        ## If self is totally real, then we can use (x*y).trace() as
+        ## the inner product on the Minkowski embedding, which is
+        ## faster than computing all the conjugates, etc ...
+        if self.is_totally_real():
+            T = pari(matrix(ZZ, d, d, [[(x*y).trace() for x in Z_basis]
+                                       for y in Z_basis])).qflllgram()
+            self.__reduced_basis = [ sum([ ZZ(T[i][j]) * Z_basis[j]
+                                           for j in range(d)])
+                                     for i in range(d)]
+        else:
+            M = self.Minkowski_embedding(self.integral_basis())
+            T = sage.matrix.all.Matrix(d, pari(M).qflll()._sage_())
+            self.__reduced_basis = [ self(v) for v in T.columns() ]
+
+        return self.__reduced_basis
+
+
+    def reduced_gram_matrix(self):
+        r"""
+        This function returns the Gram matrix of an LLL-reduced basis for
+        the Minkowski embedding of the maximal order of a number field.
+
+        INPUT:
+            self -- number field, the base field
+
+        OUTPUT:
+            The Gram matrix $[<x_i,x_j>]$ of an LLL reduced basis for
+            the maximal order of self, where the integral basis for
+            self is given by $\{x_0, \dots, x_{n-1}\}$. Here < , > is
+            the usual inner product on $\mathbb{R}^n$, and self is
+            embedded in $\mathbb{R}^n$ by the Minkowski embedding. See
+            the docstring for self.Minkowski_embedding for more
+            information.
+
+        NOTE: In the non-totally-real case, the LLL routine we call is
+        currently Pari's qflll(), which works with floating point
+        approximations, and so the result is only as good as the
+        precision promised by Pari.  In particular, in this case, the
+        returned matrix will *not* be integral, and may not have
+        enough precision to recover the correct gram matrix (which is
+        known to be integral for theoretical reasons).
+
+        EXAMPLES:
+            sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1)
+            sage: F.reduced_gram_matrix()
+            [ 6 -3  0 -2  0 -1]
+            [-3  9  0  1  0  3]
+            [ 0  0 14  6 -2  3]
+            [-2  1  6 16 -3  3]
+            [ 0  0 -2 -3 16  6]
+            [-1  3  3  3  6 19]
+            sage: Matrix(6, [(x*y).trace() for x in F.integral_basis() for y in F.integral_basis()])
+            [   6    0   14    3   54   52]
+            [   0   14    3   54   30  133]
+            [  14    3   54   30  233  259]
+            [   3   54   30  233  217  664]
+            [  54   30  233  217 1078 1368]
+            [  52  133  259  664 1368 2550]
+
+            sage: var('x')
+            x
+            sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
+            sage: F.reduced_gram_matrix() # random low-order bits
+            [   3.99999999998249   0.000000000000000    1.99999999997817 -1.06846799999532e6]
+            [  0.000000000000000    46721.5393313587    11488.9100265019 -1.12285582008158e7]
+            [   1.99999999997817    11488.9100265019  5.56589153102570e8  8.06191790906345e9]
+            [-1.06846799999532e6 -1.12285582008158e7  8.06191790906345e9 5.87118790062408e12]
+
+        """
+        try:
+            return self.__reduced_gram_matrix
+        except AttributeError:
+            pass
+
+        from sage.matrix.constructor import matrix
+        from sage.misc.flatten import flatten
+        d = self.degree()
+
+        if self.is_totally_real():
+            B = self.reduced_basis()
+            self.__reduced_gram_matrix = matrix(ZZ, d, d,
+                                                [[(x*y).trace() for x in B]
+                                                 for y in B])
+        else:
+            M = self.Minkowski_embedding()
+            T = matrix(d, flatten([ a.vector().list()
+                                    for a in self.reduced_basis() ]))
+            A = M*(T.transpose())
+            self.__reduced_gram_matrix = A.transpose()*A
+
+        return self.__reduced_gram_matrix
+
+
+    #******************************************************
+    # Supplementary algorithm to enumerate lattice points
+    #******************************************************
+
+    def integral_elements_with_trace(self, C):
+        r"""
+        Find all integral elements in self with trace in the
+        interval C.
+
+        NOTE: This is currently only implemented in the case
+        that self is totally real, since it requires exact
+        computation of self.reduced_gram_matrix().
+
+        EXAMPLES:
+            sage: K.<alpha> = NumberField(ZZ['x'].0^2-2)
+            sage: K.integral_elements_with_trace([0,5])
+            [alpha + 2, 2, 1]
+            sage: L.<beta> = NumberField(ZZ['x'].0^2+1)
+            sage: L.integral_elements_with_trace([5,11])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: exact computation of LLL reduction only implemented in the totally real case
+        """
+        if not self.is_totally_real():
+            raise NotImplementedError, "exact computation of LLL reduction only implemented in the totally real case"
+
+        Z_F = self.maximal_order()
+        B = self.reduced_basis()
+        T = self.reduced_gram_matrix()
+        P = pari(T).qfminim((C[1]**2)*(1./2), 10**6)[2]
+
+        S = []
+        for p in P:
+            theta = sum([ p.list()[i]*B[i] for i in range(self.degree())])
+            if theta.trace() >= C[0] and theta.trace() <= C[1]:
+                inbounds = True
+                for v in self.real_embeddings():
+                    inbounds = inbounds and v(theta) > 0
+                if inbounds:
+                    S.append(self(theta))
+        return S
+
+
     def zeta_function(self, prec=53,
                       max_imaginary_part=0,
                       max_asymp_coeffs=40):
@@ -2035,7 +2252,7 @@ class NumberField_generic(number_field_base.NumberField):
             The zeta function of this number field.
 
         EXAMPLES:
-            sage: K.<a> = NumberField(x^2+x-1)
+            sage: K.<a> = NumberField(ZZ['x'].0^2+ZZ['x'].0-1)
             sage: Z = K.zeta_function()
             sage: Z
             Zeta function associated to Number Field in a with defining polynomial x^2 + x - 1
@@ -2930,8 +3147,203 @@ class NumberField_absolute(NumberField_generic):
         # then it is most natural, so we put it first.
         put_natural_embedding_first(v)
 
-        self.__embeddings[K] = Sequence(v, cr=True, immutable=True, check=False, universe=self.Hom(K))
+        self.__embeddings[K] = Sequence(v, cr=True, immutable=True,
+                                        check=False, universe=self.Hom(K))
         return v
+
+    def Minkowski_embedding(self, B=None, prec=None):
+        r"""
+        Return an nxn matrix over RDF whose columns are the images of
+        the basis $\{1, \alpha, \dots, \alpha^{n-1}\}$ of self over
+        $\mathbb{Q}$ (as vector spaces), where here $\alpha$ is the
+        generator of self over $\mathbb{Q}$, i.e.  self.gen(0).  If B
+        is not None, return the images of the vectors in B as the
+        columns instead. If prec is not None, use RealField(prec)
+        instead of RDF.
+
+        This embedding is the so-called "Minkowski embedding" of a
+        number field in $\mathbb{R}^n$: given the $n$ embeddings
+        $\sigma_1, \dots, \sigma_n$ of self in $\mathbb{C}$, write
+        $\sigma_1, \dots, \sigma_r$ for the real embeddings, and
+        $\sigma_{r+1}, \dots, \sigma_{r+s}$ for choices of one of each
+        pair of complex conjugate embeddings (in our case, we simply
+        choose the one where the image of $\alpha$ has positive real
+        part). Here $(r,s)$ is the signature of self.  Then the
+        Minkowski embedding is given by:
+
+          x |--> ( $\sigma_1(x)$, $\dots$, $\sigma_r(x)$,
+                   $\sqrt{2}\Re(\sigma_{r+1}(x))$,
+                   $\sqrt{2}\Im(\sigma_{r+1}(x))$,
+                   $\dots$,
+                   $\sqrt{2}\Re(\sigma_{r+s}(x))$,
+                   $\sqrt{2}\Im(\sigma_{r+s}(x))$)
+
+        Equivalently, this is an embedding of self in $\mathbb{R}^n$
+        so that the usual norm on $\mathbb{R}^n$ coincides with
+          $\|x\| = \sum_i |\sigma_i(x)|^2$
+        on self.
+
+        TODO: This could be much improved by implementing
+        homomorphisms over VectorSpaces.
+
+        EXAMPLES:
+            sage: F.<alpha> = NumberField(x^3+2)
+            sage: F.Minkowski_embedding() # random low-order bits
+            [ 1.00000000000000 -1.25992104989487  1.58740105196820]
+            [ 1.41421356237000 0.890898718138390 -1.12246204830692]
+            [0.000000000000000  1.54308184421368  1.94416129723541]
+            sage: F.Minkowski_embedding([1, alpha+2, alpha^2-alpha]) # random low-order bits
+            [ 1.00000000000000 0.740078950105127  2.84732210186307]
+            [ 1.41421356237000  3.71932584287839 -2.01336076644531]
+            [0.000000000000000  1.54308184421368 0.401079453021736]
+            sage: F.Minkowski_embedding() * (alpha + 2).vector().transpose() # random low-order bits
+            [0.740078950105127]
+            [ 3.71932584287839]
+            [ 1.54308184421368]
+        """
+        n = self.degree()
+        if prec is None:
+            R = sage.rings.real_double.RDF
+        else:
+            R = sage.rings.real_mpfr.RealField(prec)
+        r,s = self.signature()
+        places = self.places(prec=prec)
+
+        if B is None:
+            B = [ (self.gen(0))**i for i in range(n) ]
+
+        A = polynomial_ring.PolynomialRing(ZZ, 'x')
+        f = A.gen(0)**2-2
+        sqrt2 = f.roots(R)[1][0]
+
+        d = {}
+
+        for col in range(n):
+
+            for row in range(r):
+                d[(row,col)] = places[row](B[col])
+
+            for i in range(s):
+                z = places[r+i](B[col])
+                d[(r+2*i,col)] = z.real()*sqrt2
+                d[(r+2*i+1,col)] = z.imag()*sqrt2
+
+
+        M = sage.matrix.all.matrix(d)
+
+        return M
+
+
+    def places(self, all_complex=False, prec=None):
+        """
+        Return the collection of all places of self. By default, this
+        returns the set of real places as homomorphisms into RIF
+        first, followed by a choice of one of each pair of complex
+        conjugate homomorphisms into CIF.
+
+        On the other hand, if prec is not None, we simply return
+        places into RealField(prec) and ComplexField(prec) (or RDF,
+        CDF if prec=53).
+
+        There is an optional flag all_complex, which defaults to
+        False. If all_complex is True, then the real embeddings are
+        returned as embeddings into CIF instead of RIF.
+
+        EXAMPLES:
+            sage: F.<alpha> = NumberField(x^3-100*x+1) ; F.places()
+            [Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
+            To:   Real Field with 106 bits of precision
+            Defn: alpha |--> -10.00499625499181184573367219280,
+            Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
+            To:   Real Field with 106 bits of precision
+            Defn: alpha |--> 0.01000001000003000012000055000273,
+            Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
+            To:   Real Field with 106 bits of precision
+            Defn: alpha |--> 9.994996244991781845613530439509]
+
+            sage: F.<alpha> = NumberField(x^3+7) ; F.places()
+            [Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 + 7
+            To:   Real Field with 106 bits of precision
+            Defn: alpha |--> -1.912931182772389101199116839549,
+            Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 + 7
+            To:   Complex Field with 53 bits of precision
+            Defn: alpha |--> 0.956465591386195 + 1.65664699997230*I]
+
+            sage: F.<alpha> = NumberField(x^3+7) ; F.places(all_complex=True)
+            [Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 + 7
+            To:   Complex Field with 53 bits of precision
+            Defn: alpha |--> -1.91293118277239,
+            Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 + 7
+            To:   Complex Field with 53 bits of precision
+            Defn: alpha |--> 0.956465591386195 + 1.65664699997230*I]
+            sage: F.places(prec=10)
+            [Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 + 7
+            To:   Real Field with 10 bits of precision
+            Defn: alpha |--> -1.9,
+            Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 + 7
+            To:   Complex Field with 10 bits of precision
+            Defn: alpha |--> 0.96 + 1.7*I]
+        """
+        if prec is None:
+            R = RIF
+            C = CIF
+        elif prec == 53:
+            R = sage.rings.real_double.RDF
+            C = sage.rings.complex_double.CDF
+        else:
+            R = sage.rings.real_mpfr.RealField(prec)
+            C = sage.rings.complex_field.ComplexField(prec)
+
+        ## first, find the intervals with roots, and see how much
+        ## precision we need to approximate the roots
+        ##
+        all_intervals = [ x[0] for x in self.defining_polynomial().roots(C) ]
+
+        ## first, set up the real places
+        if all_complex:
+            real_intervals = [ x for x in all_intervals if x.imag().is_zero() ]
+        else:
+            real_intervals = [ x[0] for x in self.defining_polynomial().roots(R) ]
+
+        if prec is None:
+            real_places = [ self.hom([i.center()], check=False) for i in real_intervals ]
+
+            complex_places = [ self.hom([i.center()], check=False) for i in
+                               all_intervals if i.imag() > 0 ]
+        else:
+            real_places = [ self.hom([i], check=False) for i in real_intervals ]
+
+            complex_places = [ self.hom([i], check=False) for i in
+                               all_intervals if i.imag() > 0 ]
+
+        return real_places + complex_places
+
+    def real_places(self, prec=None):
+        """
+        Return all real places of self as homomorphisms into RIF.
+
+        EXAMPLES:
+            sage: F.<alpha> = NumberField(x^4-7) ; F.real_places()
+            [Ring morphism:
+            From: Number Field in alpha with defining polynomial x^4 - 7
+            To:   Real Field with 106 bits of precision
+            Defn: alpha |--> -1.626576561697785743211232345494,
+            Ring morphism:
+            From: Number Field in alpha with defining polynomial x^4 - 7
+            To:   Real Field with 106 bits of precision
+            Defn: alpha |--> 1.626576561697785743211232345494]
+        """
+        return self.places(prec=prec)[0:self.signature()[0]]
+
 
     def relativize(self, alpha, names):
         r"""
@@ -3007,7 +3419,6 @@ class NumberField_absolute(NumberField_generic):
                     return M
 
         assert False, "bug in relativize"
-
 
 
 

@@ -290,6 +290,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         rComplete(self._ring, 1)
         self._ring.ShortOut = 0
 
+        rChangeCurrRing(self._ring)
         self._one_element = <MPolynomial_libsingular>co.new_MP(self,p_ISet(1, self._ring))
         self._zero_element = <MPolynomial_libsingular>co.new_MP(self,NULL)
 
@@ -2966,6 +2967,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         cdef poly *p, *v
         cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
+        if(r != currRing): rChangeCurrRing(r)
         cdef int i
         l = list()
         si = set()

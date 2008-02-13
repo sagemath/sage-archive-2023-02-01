@@ -966,7 +966,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             return self.__lc
         except AttributeError:
             if self.is_zero():
-                return self
+                return self.base_ring()._zero_element
             R = self.parent()
             f = self._MPolynomial_element__element.dict()
             self.__lc = f[self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )]
@@ -1032,7 +1032,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             ret = 0
             for c,m in self:
                 t = c*m
-                if P.monomial_is_divisible_by(t, right):
+                if P.monomial_divides(right, t):
                     ret += P.monomial_quotient(t, right)
             return ret
 
@@ -1236,13 +1236,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: F = Ideal([f1,f2,f3])
             sage: g = x*y - 3*x*y^2
             sage: g.reduce(F)
-            -6*y^2 + 2*y
+            6*y^2 - 2*y
             sage: g.reduce(F.gens())
-            -6*y^2 + 2*y
+            6*y^2 - 2*y
 
             sage: f = 3*x
             sage: f.reduce([2*x,y])
-            3*x
+            x
         """
         from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
@@ -1275,9 +1275,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                     gi = I[i]
                     plm = p.lm()
                     gilm = gi.lm()
-                    if P.monomial_is_divisible_by(plm, gilm):
+                    if P.monomial_divides(gilm, plm):
                         quot = p.lc()/gi.lc() * P.monomial_quotient(plm, gilm)
-                        a[i] += quot
                         p -= quot*I[i]
                         break
                 else:
@@ -1285,16 +1284,20 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                     r += plt
                     p -= plt
         else:
+            if p.lc() < 0:
+                p = (-1)*p
             while p != 0:
                 for i in xrange(lI):
                     gi = I[i]
                     plm = p.lm()
                     gilm = gi.lm()
-                    if P.monomial_is_divisible_by(plm, gilm) and ZZ(gi.lc()).divides(ZZ(p.lc())):
-                        quot = p.lc()//gi.lc() * P.monomial_quotient(plm, gilm)
-                        a[i] += quot
-                        p -= quot*I[i]
-                        break
+                    plc = p.lc()
+                    gilc = gi.lc()
+                    if P.monomial_divides(gilm, plm):
+                        if gilc.abs() <= plc.abs():
+                            quot = plc//gilc * P.monomial_quotient(plm, gilm)
+                            p -= quot*I[i]
+                            break
                 else:
                     plt = p.lt()
                     r += plt

@@ -627,49 +627,50 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             return 0,0
         for g in G:
             t = g.lm()
-            if self.monomial_is_divisible_by(f,t):
-                return self.monomial_quotient(f,t),g
+            try:
+                if self.monomial_divides(t,f):
+                    return self.monomial_quotient(f,t),g
+            except ZeroDivisionError:
+                return 0,0
         return 0,0
 
 
-    def monomial_is_divisible_by(self, a, b):
+    def monomial_divides(self, a, b):
         """
-        Return False if b does not divide a and True otherwise.
+        Return False if a does not divide b and True otherwise.
 
         INPUT:
             a -- monomial
             b -- monomial
 
         EXAMPLES:
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: P.monomial_is_divisible_by(x^3*y^2*z^4, x*y*z)
+            sage: P.<x,y,z>=MPolynomialRing(ZZ,3, order='degrevlex')
+            sage: P.monomial_divides(x*y*z, x^3*y^2*z^4)
             True
-            sage: P.monomial_is_divisible_by(x*y*z, x^3*y^2*z^4)
+            sage: P.monomial_divides(x^3*y^2*z^4, x*y*z)
             False
 
         TESTS:
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: P.monomial_is_divisible_by(P(0),P(1))
+            sage: P.<x,y,z>=MPolynomialRing(ZZ,3, order='degrevlex')
+            sage: P.monomial_divides(P(1), P(0))
             True
-            sage: P.monomial_is_divisible_by(x,P(1))
+            sage: P.monomial_divides(P(1), x)
             True
 
         """
 
-        if not a:
-            return True
         if not b:
-            return False
+            return True
+        if not a:
+            raise ZeroDivisionError
 
         one = self.base_ring()(1)
 
         a=a.dict().keys()[0]
         b=b.dict().keys()[0]
 
-        for i in a.common_nonzero_positions(b):
-          if a[i] - b[i] < 0:
+        for i in b.common_nonzero_positions(a):
+          if b[i] - a[i] < 0:
             return False
         return True
 

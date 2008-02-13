@@ -1110,9 +1110,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             p_SetCoeff(res, n_Init(1, r), r)
         return co.new_MP(self, res)
 
-    def monomial_is_divisible_by(self, MPolynomial_libsingular a, MPolynomial_libsingular b):
+    def monomial_divides(self, MPolynomial_libsingular a, MPolynomial_libsingular b):
         """
-        Return False if b does not divide a and True otherwise.
+        Return False if a does not divide b and True otherwise.
 
         INPUT:
             a -- monomial
@@ -1120,16 +1120,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         EXAMPLES:
             sage: P.<x,y,z> = QQ[]
-            sage: P.monomial_is_divisible_by(x^3*y^2*z^4, x*y*z)
+            sage: P.monomial_divides(x*y*z, x^3*y^2*z^4)
             True
-            sage: P.monomial_is_divisible_by(x*y*z, x^3*y^2*z^4)
+            sage: P.monomial_divides(x^3*y^2*z^4, x*y*z)
             False
 
         TESTS:
             sage: P.<x,y,z> = QQ[]
-            sage: P.monomial_is_divisible_by(P(0),P(1))
+            sage: P.monomial_divides(P(1), P(0))
             True
-            sage: P.monomial_is_divisible_by(x,P(1))
+            sage: P.monomial_divides(P(1), x)
             True
 
         """
@@ -1143,12 +1143,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         _b = b._poly
         _r = (<MPolynomialRing_libsingular>a._parent)._ring
 
-        if _b == NULL:
-            raise ZeroDivisionError
         if _a == NULL:
+            raise ZeroDivisionError
+        if _b == NULL:
             return True
 
-        if not p_DivisibleBy(_b, _a, _r):
+        if not p_DivisibleBy(_a, _b, _r):
             return False
         else:
             return True

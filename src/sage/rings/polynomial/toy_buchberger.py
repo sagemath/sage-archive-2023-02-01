@@ -257,7 +257,7 @@ def update(G,B,h):
     while C != set():
         (h,g1) = C.pop()
 
-        lcm_divides = lambda rhs: R.monomial_is_divisible_by( LCM(LM(h),LM(g1)), LCM(LM(h),LM(rhs[1])) )
+        lcm_divides = lambda rhs: R.monomial_divides( LCM(LM(h),LM(rhs[1])), LCM(LM(h),LM(g1)))
 
         if R.monomial_pairwise_prime(LM(h),LM(g)) or \
            (\
@@ -278,7 +278,7 @@ def update(G,B,h):
 
     while B != set():
         g1,g2 = B.pop()
-        if not R.monomial_is_divisible_by( LCM(LM(g1),LM(g2)), LM(h) ) or \
+        if not R.monomial_divides( LM(h),  LCM(LM(g1),LM(g2)) ) or \
                R.monomial_lcm(LM(g1),LM( h)) == LCM(LM(g1),LM(g2)) or \
                R.monomial_lcm(LM( h),LM(g2)) == LCM(LM(g1),LM(g2)) :
             B_new.add( (g1,g2) )
@@ -289,7 +289,7 @@ def update(G,B,h):
 
     while G != set():
         g = G.pop()
-        if not R.monomial_is_divisible_by(LM(g),LM(h)):
+        if not R.monomial_divides(LM(h), LM(g)):
             G_new.add(g)
 
     G_new.add(h)

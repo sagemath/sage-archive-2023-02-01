@@ -1320,6 +1320,13 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         return M
 
 
+cdef inline int polyLengthBounded(poly *p, int bound):
+    cdef poly *n = p
+    cdef int count = 0
+    while n and count < bound:
+        n = pNext(n)
+        count += 1
+    return count
 
 def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
     """
@@ -1811,7 +1818,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             raise TypeError,  "exponent is too large, max. is 65535"
 
         if(_ring != currRing): rChangeCurrRing(_ring)
+        cdef int count = polyLengthBounded(self._poly,15)
+        if count >= 15 or _exp > 15:
+            _sig_on
         _p = pPower( p_Copy(self._poly,_ring),_exp)
+        if count >= 15 or _exp > 15:
+            _sig_off
         return co.new_MP((<MPolynomialRing_libsingular>self._parent),_p)
 
     def __neg__(self):
@@ -3099,7 +3111,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if right.is_zero():
             raise ZeroDivisionError
 
+        cdef int count = polyLengthBounded(_self._poly,15)
+        if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
+            _sig_on
         quo = singclap_pdivide( _self._poly, _right._poly )
+        if count >= 15:
+            _sig_off
         return co.new_MP(parent, quo)
 
     def factor(self):
@@ -3158,9 +3175,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         # I make a temporary copy of the poly in self because singclap_factorize appears to modify it's parameter
         ptemp = p_Copy(self._poly,_ring)
         iv = NULL
-        _sig_on
+        cdef int count = polyLengthBounded(self._poly,5)
+        if count >= 5:
+            _sig_on
         I = singclap_factorize ( ptemp, &iv , 0) #delete iv at some point
-        _sig_off
+        if count >= 5:
+            _sig_off
 
         ivv = iv.ivGetVec()
         v = [(co.new_MP(parent, p_Copy(I.m[i],_ring)) , ivv[i])   for i in range(1,I.ncols)]
@@ -3336,7 +3356,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         else:
             _right = (<MPolynomial_libsingular>right)
 
+        cdef int count = polyLengthBounded(self._poly,20)+polyLengthBounded(_right._poly,20)
+        if count >= 20:
+            _sig_on
         _res = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_right._poly, _ring))
+        if count >= 20:
+            _sig_off
 
         return co.new_MP((<MPolynomialRing_libsingular>self._parent), _res)
 
@@ -3361,16 +3386,24 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
         cdef poly *ret, *prod, *gcd
+        cdef MPolynomial_libsingular _g
         if(_ring != currRing): rChangeCurrRing(_ring)
 
         if self._parent is not g._parent:
-            g = (<MPolynomialRing_libsingular>self._parent)._coerce_c(g)
+            _g = (<MPolynomialRing_libsingular>self._parent)._coerce_c(g)
+        else:
+            _g = <MPolynomial_libsingular>g
 
-        gcd = singclap_gcd(p_Copy(self._poly, _ring), p_Copy((<MPolynomial_libsingular>g)._poly, _ring))
-        prod = pp_Mult_qq(self._poly, (<MPolynomial_libsingular>g)._poly, _ring)
+        cdef int count = polyLengthBounded(self._poly,20)+polyLengthBounded(_g._poly,20)
+        if count >= 20:
+            _sig_on
+        gcd = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_g._poly, _ring))
+        prod = pp_Mult_qq(self._poly, _g._poly, _ring)
         ret = singclap_pdivide(prod , gcd )
         p_Delete(&prod, _ring)
         p_Delete(&gcd, _ring)
+        if count >= 20:
+            _sig_off
         return co.new_MP(self._parent, ret)
 
     def is_squarefree(self):
@@ -3414,8 +3447,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if right.is_zero():
             raise ZeroDivisionError
 
+        cdef int count = polyLengthBounded(self._poly,15)
+        if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
+            _sig_on
         quo = singclap_pdivide( self._poly, right._poly )
         rem = p_Add_q(p_Copy(self._poly, r), p_Neg(pp_Mult_qq(right._poly, quo, r), r), r)
+        if count >= 15:
+            _sig_off
         return co.new_MP(parent, quo), co.new_MP(parent, rem)
 
     def _magma_(self, magma=None):
@@ -3739,7 +3777,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if not variable.parent() is self.parent():
             raise TypeError, "second parameter needs to be an element of self.parent() or None"
 
+        cdef int count = polyLengthBounded(self._poly,20)+polyLengthBounded(other._poly,20)
+        if count >= 20:
+            _sig_on
         rt =  singclap_resultant(self._poly, other._poly, (<MPolynomial_libsingular>variable)._poly )
+        if count >= 20:
+            _sig_off
         return co.new_MP(self._parent, rt)
 
     def coefficients(self):

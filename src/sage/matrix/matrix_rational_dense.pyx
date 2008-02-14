@@ -71,6 +71,7 @@ from sage.rings.arith import gcd
 
 import sage.ext.multi_modular
 from matrix2 import cmp_pivots, decomp_seq
+from matrix0 import Matrix as Matrix_base
 
 from sage.misc.misc import verbose, get_verbose, prod
 
@@ -494,26 +495,94 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         return self.invert()
 
-    def invert(self, check_invertible=True):
+    def invert(self, check_invertible=True, algorithm="iml"):
         """
         INPUT:
-           check_invertible -- default: True (whether to check that matrix is invertible)
+           check_invertible -- default: True (whether to check that
+                               matrix is invertible) algorithm --"iml" (only option right now)
 
         OUTPUT:
            -- the inverse of self
 
+        NOTES:
+         * If self is not invertible, a ZeroDivisionError is raised.
+         * The n x n cases for n <= 2 are handcoded for speed.
 
-        If self is not invertible, a ZeroDivisionError is raised.
-
+        EXAMPLES:
             sage: a = matrix(QQ,3,[1,2,5,3,2,1,1,1,1,])
             sage: a.invert(check_invertible=False)
             [1/2 3/2  -4]
             [ -1  -2   7]
             [1/2 1/2  -2]
+
+        A 1x1 matrix (a special case):
+            sage: a = matrix(QQ, 1, [390284089234])
+            sage: a.invert()
+            [1/390284089234]
+
+        A 2x2 matrix (a special hand-coded case):
+            sage: a = matrix(QQ, 1,
+            sage: a.invert()
+                sage: a = matrix(QQ, 2, [1, 5, 17, 3]); a
+                [ 1  5]
+                [17  3]
+                sage: a.invert()
+                [-3/82  5/82]
+                [17/82 -1/82]
+                sage: a.invert()  * a
+                [1 0]
+                [0 1]
         """
-        A, denom = self._clear_denom()
-        B, d = A._invert_iml(check_invertible=check_invertible)
-        return (denom/d)*B
+        cdef Matrix_rational_dense A
+        cdef mpq_t t0, t1
+        cdef int i
+
+        if self._nrows != self._ncols:
+            raise ValueError, "self must be square"
+        if self._nrows == 0:
+            return self
+        if self._nrows <= 2:
+            A = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
+            if self._nrows == 1:
+                if mpq_cmp_si(self._entries[0], 0, 1) == 0:
+                    raise ZeroDivisionError
+                _sig_on
+                mpq_inv(A._entries[0], self._entries[0])
+                _sig_off
+                return A
+            elif self._nrows == 2:
+                _sig_on
+                mpq_init(t0); mpq_init(t1)
+                mpq_mul(t0, self._entries[0], self._entries[3])
+                mpq_mul(t1, self._entries[1], self._entries[2])
+                mpq_sub(t0, t0, t1)
+                i = mpq_cmp_si(t0, 0, 1)
+                _sig_off
+                if i == 0:
+                    mpq_clear(t0); mpq_clear(t1)
+                    raise ZeroDivisionError
+                _sig_on
+                # d/det
+                mpq_div(A._entries[0], self._entries[3], t0)
+                # -b/det
+                mpq_neg(A._entries[1], self._entries[1])
+                mpq_div(A._entries[1], A._entries[1], t0)
+                # -c/det
+                mpq_neg(A._entries[2], self._entries[2])
+                mpq_div(A._entries[2], A._entries[2], t0)
+                # a/det
+                mpq_div(A._entries[3], self._entries[0], t0)
+                _sig_off
+
+                mpq_clear(t0); mpq_clear(t1)
+                return A
+
+        if algorithm == "iml":
+            A, denom = self._clear_denom()
+            B, d = A._invert_iml(check_invertible=check_invertible)
+            return (denom/d)*B
+        else:
+            raise ValueError, "unknown algorithm '%s'"%algorithm
 
     def determinant(self):
         """

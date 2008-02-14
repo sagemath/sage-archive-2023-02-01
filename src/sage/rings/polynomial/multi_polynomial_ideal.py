@@ -1231,8 +1231,7 @@ class MPolynomialIdeal_singular_repr:
         ($R = \oplus R_d$) over a field $K$. The Hilbert polynomial is the
         unique polynomial $HP(t)$ with rational coefficients such that
         $HP(d) = dim_K R_d$ for all but finitely many positive
-        integers $d$. This $d$ is called the index of regularity of
-        $I$.
+        integers $d$.
 
         EXAMPLE:
             sage: P.<x,y,z> = PolynomialRing(QQ)

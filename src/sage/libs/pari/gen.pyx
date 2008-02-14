@@ -6400,7 +6400,43 @@ cdef GEN ten_to_15 = _tmp.g
 
 ##############################################
 
+def init_pari_stack(size=8000000):
+    """
+    Change the PARI scratch stack space to the given size.
 
+    The main application of this command is that you've done some
+    individual PARI computation that used a lot of stack space.  As a
+    result the PARI stack may have doubled several times and is now
+    quite large.  That object you computed is copied off to the heap,
+    but the PARI stack is never automatically shrunk back down.  If
+    you call this function you can shrink it back down.
+
+    If you set this too small then it will automatically be increased
+    if it is exceeded, which could make some calculations initially
+    slower (since they have to be redone until the stack is big enough).
+
+    INPUT:
+        size -- an integer (default: 8000000)
+
+    EXAMPLES:
+        sage: get_memory_usage()                       # random output
+        '122M+'
+        sage: a = pari('2^100000000')
+        sage: get_memory_usage()                       # random output
+        '157M+'
+        sage: del a
+        sage: get_memory_usage()                       # random output
+        '145M+'
+
+    Hey, I want my memory back!
+
+        sage: sage.libs.pari.gen.init_pari_stack()
+        sage: get_memory_usage()                       # random output
+        '114M+'
+
+    Ahh, that's better.
+    """
+    init_stack(size)
 
 cdef int init_stack(size_t size) except -1:
     cdef size_t s

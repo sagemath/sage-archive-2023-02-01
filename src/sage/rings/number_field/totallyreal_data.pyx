@@ -32,15 +32,17 @@ include "../../ext/stdsage.pxi"
 
 from sage.rings.arith import binomial, gcd
 from sage.rings.integer_ring import IntegerRing
+from sage.rings.rational_field import RationalField
 from sage.rings.polynomial.polynomial_ring import PolynomialRing
 from sage.rings.real_mpfi import RealIntervalField
 
-RIF = RealIntervalField()
+# RIF = RealIntervalField()
 
 import math, numpy
 
 # Other global variables
 ZZx = PolynomialRing(IntegerRing(), 'x')
+# QQx = PolynomialRing(RationalField(), 'x')
 
 #***********************************************************************************************
 # Auxiliary routines:
@@ -205,7 +207,7 @@ def lagrange_degree_3(n, an1, an2, an3):
         # Note: coefficients of elimination polynomial are in reverse order
         # for numpy, i.e. the coefficient of x^i is p[n-i].
         p = [
-             ## x^0
+             ## x^6
              r**3*nr*s3**2 - r**3*s2**3 + 2*r**2*nr**2*s3**2 -
              6*r**2*nr*s1*s2*s3 + r**2*nr*s2**3 + 3*r**2*s1**2*s2**2
              + r*nr**3*s3**2 - 6*r*nr**2*s1*s2*s3 + r*nr**2*s2**3 +
@@ -213,12 +215,12 @@ def lagrange_degree_3(n, an1, an2, an3):
              nr**3*s2**3 + 3*nr**2*s1**2*s2**2 - 3*nr*s1**4*s2 +
              s1**6,
 
-             ## x^1
+             ## x^5
              6*r**2*nr*s2*s3 - 6*r**2*s1*s2**2 + 6*r*nr**2*s2*s3 -
              12*r*nr*s1**2*s3 - 6*r*nr*s1*s2**2 + 12*r*s1**3*s2 -
              6*nr**2*s1*s2**2 + 12*nr*s1**3*s2 - 6*s1**5,
 
-             ## x^2
+             ## x^4
              3*r**3*s2**2 + 6*r**2*nr*s1*s3 - 3*r**2*nr*s2**2 -
              6*r**2*s1**2*s2 + 3*r**2*s2**2 + 6*r*nr**2*s1*s3 -
              3*r*nr**2*s2**2 - 6*r*nr*s1**2*s2 + 12*r*nr*s1*s3 +
@@ -233,36 +235,49 @@ def lagrange_degree_3(n, an1, an2, an3):
              12*r*nr*s1*s2 - 4*r*nr*s3 - 12*r*s1**3 + 12*r*s1*s2 +
              12*nr**2*s1*s2 - 12*nr*s1**3 + 12*nr*s1*s2 - 20*s1**3,
 
-             ## x^4
+             ## x^2
              -3*r**3*s2 - 3*r**2*nr*s2 + 3*r**2*s1**2 - 6*r**2*s2 -
              3*r*nr**2*s2 + 15*r*nr*s1**2 - 6*r*nr*s2 + 18*r*s1**2 -
              3*r*s2 - 3*nr**3*s2 + 3*nr**2*s1**2 - 6*nr**2*s2 +
              18*nr*s1**2 - 3*nr*s2 + 15*s1**2,
 
-             ## x^5
+             ## x^1
              -6*r**2*nr*s1 - 6*r**2*s1 - 6*r*nr**2*s1 - 18*r*nr*s1
              - 12*r*s1 - 6*nr**2*s1 - 12*nr*s1 - 6*s1,
 
-             ## x^6
+             ## x^0
              r**3*nr + r**3 + 2*r**2*nr**2 + 5*r**2*nr + 3*r**2 +
              r*nr**3 + 5*r*nr**2 + 7*r*nr + 3*r + nr**3 + 3*nr**2 +
              3*nr + 1
-
             ]
 
-        ## we used to use numpy ...
-        ## rts = numpy.roots(p)
-        ## rts = numpy.real([rts[i] for i in range(6) if numpy.isreal(rts[i])]).tolist()
-        ## if len(rts) > 0:
-        ##     z4minmax = [min(rts + z4minmax), max(rts + z4minmax)]
+        rts = numpy.roots(p)
+        r"""
+        # If any roots appear double, recompute with gcd.
+        # Happens sufficiently often, so just do it each time?
+        possible_double = False
+        rlen = len(rts)
+        for i in range(rlen):
+            for j in range(i+1,rlen):
+                if numpy.abs(rts[i]-rts[j]) < 10.**(-4):
+                    possible_double = True
+        if possible_double:
+        """
+        p.reverse()
+        f = ZZx(p)
+        df = ZZx([i*p[i] for i in range(1,7)])
+        f = f//gcd(f,df)
+        fcoeff = f.coeffs()
+        rts = numpy.roots(fcoeff)
 
-        # f = ZZx(p)
-        # f = f // gcd(f,f.derivative())
-
-        rts = [ x[0] for x in ZZx(p).roots(RIF) ]
+        rts = numpy.real([rts[i] for i in range(len(rts)) if numpy.isreal(rts[i])]).tolist()
         if len(rts) > 0:
-            z4minmax = [ min([ x.lower() for x in rts] + z4minmax),
-                         max([ x.upper() for x in rts] + z4minmax)  ]
+            z4minmax = [min(rts + z4minmax), max(rts + z4minmax)]
+
+        # rts = [ x[0] for x in ZZx(p).roots(RIF) ]
+        # if len(rts) > 0:
+        #     z4minmax = [ min([ x.lower() for x in rts] + z4minmax),
+        #                  max([ x.upper() for x in rts] + z4minmax) ]
 
     return z4minmax
 
@@ -486,10 +501,11 @@ cdef class tr_data:
             # Bounds come from an application of Lagrange multipliers in degrees 2,3.
             self.b_lower = -1./n*(self.a[n-1] + (n-1.)*sqrt((1.*self.a[n-1])**2 - 2.*(1+1./(n-1))*self.a[n-2]))
             self.b_upper = -1./n*(self.a[n-1] - (n-1.)*sqrt((1.*self.a[n-1])**2 - 2.*(1+1./(n-1))*self.a[n-2]))
-            if k < n-2:
+            if k < n-3:
                 bminmax = lagrange_degree_3(n,a[n-1],a[n-2],a[n-3])
-                self.b_lower = bminmax[0]
-                self.b_upper = bminmax[1]
+                if len(bminmax) > 0:
+                    self.b_lower = bminmax[0]
+                    self.b_upper = bminmax[1]
 
             # Annoying, but must reverse coefficients for numpy.
             gnk = [binomial(j,k+2)*a[j] for j in range(k+2,n+1)]
@@ -688,8 +704,9 @@ cdef class tr_data:
                     elif k == n-4:
                         # New bounds from Lagrange multiplier in degree 3.
                         bminmax = lagrange_degree_3(n,self.a[n-1],self.a[n-2],self.a[n-3])
-                        self.b_lower = bminmax[0]
-                        self.b_upper = bminmax[1]
+                        if len(bminmax) > 0:
+                            self.b_lower = bminmax[0]
+                            self.b_upper = bminmax[1]
                     elif k == n-5 and phc:
                         # New bounds using phc/Lagrange multiplier in degree 4.
                         bminmax = __lagrange_bounds_phc(n, 4, [self.a[i] for i from 0 <= i <= n])

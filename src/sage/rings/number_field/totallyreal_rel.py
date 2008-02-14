@@ -27,7 +27,7 @@ from sage.rings.integer_ring import IntegerRing
 from sage.rings.number_field.totallyreal_data import ZZx, lagrange_degree_3, int_has_small_square_divisor, hermite_constant
 from sage.rings.number_field.number_field import NumberField
 from sage.rings.polynomial.polynomial_ring import PolynomialRing
-from sage.rings.number_field.totallyreal import weed_fields, odlyzko_bound_totallyreal, enumerate_totallyreal_fields
+from sage.rings.number_field.totallyreal import weed_fields, odlyzko_bound_totallyreal, enumerate_totallyreal_fields_prim
 from sage.libs.pari.gen import pari
 
 import math, numpy, bisect, sys
@@ -592,7 +592,6 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
     NOTE:
     This is guaranteed to give all primitive such fields, and
     seems in practice to give many imprimitive ones.
-    For a guaranteed listing, use enumerate_totallyreal_fields_all().
 
     INPUT:
     F -- number field, the base field
@@ -842,8 +841,10 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
     else:
         return S
 
-def enumerate_totallyreal_fields_imprim(n, B, verbose=0, return_seqs=False):
+def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False):
     r"""
+    Enumerates all totally real fields of degree n with discriminant <= B.
+    See enumerate_totallyreal_fields_prim() for examples.
     """
 
     S = []
@@ -852,7 +853,7 @@ def enumerate_totallyreal_fields_imprim(n, B, verbose=0, return_seqs=False):
         raise ValueError, "Only implemented for n = p*q with p,q prime"
     for d in divisors(n):
         if d > 1 and d < n:
-            Sds = enumerate_totallyreal_fields(d, int(math.floor((1.*B)**(1.*d/n))), verbose=verbose)
+            Sds = enumerate_totallyreal_fields_prim(d, int(math.floor((1.*B)**(1.*d/n))), verbose=verbose)
             for i in range(len(Sds)):
                 if verbose:
                     print "="*80
@@ -866,7 +867,7 @@ def enumerate_totallyreal_fields_imprim(n, B, verbose=0, return_seqs=False):
                 else:
                     S += [[t[0],t[1]] for t in T]
                 j = i+1
-                for E in enumerate_totallyreal_fields(n/d, int(math.floor((1.*B)**(1./d)/(1.*Sds[i][0])**(n*1./d**2)))):
+                for E in enumerate_totallyreal_fields_prim(n/d, int(math.floor((1.*B)**(1./d)/(1.*Sds[i][0])**(n*1./d**2)))):
                     for EF in F.composite_fields(NumberField(ZZx(E[1]), 'u')):
                         if EF.degree() == n and EF.disc() <= B:
                             S.append([EF.disc(), pari(EF.absolute_polynomial())])

@@ -60,7 +60,7 @@ def __lagrange_bounds_phc(n, m, a, tmpfile='/tmp/phc_tr'):
     This function determines the bounds on the roots in
     the enumeration of totally real fields via Lagrange multipliers.
     It is used internally by the main function
-    enumerate_totallyreal_fields(), which should be consulted for
+    enumerate_totallyreal_fields_prim(), which should be consulted for
     further information.
 
     INPUT:

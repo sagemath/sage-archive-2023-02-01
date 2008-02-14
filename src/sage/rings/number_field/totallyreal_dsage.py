@@ -36,7 +36,7 @@ class totallyreal_dsage:
     cputime = 0
     walltime = 0
 
-    def __init__(self, D=None, timeout = 30*60):
+    def __init__(self, D=None, timeout = 0):
         r"""
         Initializes the totallyreal DSage instance.
 
@@ -73,9 +73,9 @@ class totallyreal_dsage:
             self.D = D
         self.timeout = timeout
 
-    def enumerate(self, n, B, k, load=True):
+    def enumerate(self, n, B, k, load=True, keep_fields=False, t_2=False):
         """
-        Runs the enumeration algorithm in enumerate_totallyreal_fields in
+        Runs the enumeration algorithm in enumerate_totallyreal_fields_prim in
         a distributed computing environment.
         Once coefficients the coefficients a[k+1...n] are obtained,
         the rest are performed by workers.
@@ -118,28 +118,35 @@ class totallyreal_dsage:
 
         # Increment, and halt at level k.
         # Feed tasks to the workers, one for each a.
-        self.prestr = 'DSAGE_RESULT=enumerate_totallyreal_fields(' + str(n) + ',' + str(B) + ','
+        self.prestr = 'DSAGE_RESULT=enumerate_totallyreal_fields_prim(' + str(n) + ',' + str(B) + ','
         self.jobs = []
         # Small tweak.
         if k <> n-1:
             T.incr(f_out, haltk=k)
 
+        list_jobs = []
+
         while f_out[n] <> 0:
             a = f_out[k:n+1]
-            # Dsage handles it all here.
-            if load:
-                job = self.D.eval(self.prestr + str(a) + ',return_seqs=True)', timeout = self.timeout)
-                self.jobs.append([a,job])
-            else:
-                self.jobs.append([a,''])
+            list_jobs.append([a[k]**2-2*a[k-1],a])
             T.incr(f_out, haltk=k)
 
-    def init_jobs(self, n, B, A, split=False):
+        list_jobs.sort()
+
+        for a in list_jobs:
+            # Dsage handles it all here.
+            if load:
+                job = self.D.eval(self.prestr + str(a[1]) + ',return_seqs=True,keep_fields=' + str(keep_fields) + ',t_2=' + str(t_2) + ')', timeout = self.timeout)
+                self.jobs.append([a[1],job])
+            else:
+                self.jobs.append([a[1],''])
+
+    def init_jobs(self, n, B, A, split=False, keep_fields=False, t_2=False):
         self.n = n
         self.B = B
         f_out = [0]*n + [1]
         self.jobs = []
-        self.prestr = 'DSAGE_RESULT=enumerate_totallyreal_fields(' + str(n) + ',' + str(B) + ','
+        self.prestr = 'DSAGE_RESULT=enumerate_totallyreal_fields_prim(' + str(n) + ',' + str(B) + ','
 
         if split:
             for a0 in A:
@@ -150,13 +157,13 @@ class totallyreal_dsage:
                 while f_out[self.n] <> 0:
                     a = f_out[k_new:self.n+1]
                     # Dsage handles it all here.
-                    job = self.D.eval(self.prestr + str(a) + ',return_seqs=True)', timeout = self.timeout)
+                    job = self.D.eval(self.prestr + str(a) + ',return_seqs=True,keep_fields=' + str(keep_fields) + ',t_2=' + str(t_2) + ')', timeout = self.timeout)
                     self.jobs.append([a,job])
                     T.incr(f_out, haltk=k_new)
             self.k = k_new
         else:
             for a in A:
-                job = self.D.eval(self.prestr + str(a) + ',return_seqs=True)', timeout = self.timeout)
+                job = self.D.eval(self.prestr + str(a) + ',return_seqs=True,keep_fields=' + str(keep_fields) + ',t_2=' + str(t_2) + ')', timeout = self.timeout)
                 self.jobs.append([a,job])
 
     def recover(self):
@@ -175,16 +182,16 @@ class totallyreal_dsage:
     def load_jobs(self, A, split=False):
         self.init_jobs(self.n, self.B, A, split)
 
-    def restart_job(self, i, force=False):
+    def restart_job(self, i, force=False, keep_fields=False, t_2=False):
         if force or self.jobs[i][1].status == 'completed':
-            job = self.D.eval(self.prestr + str(self.jobs[i][0]) + ',return_seqs=True)', timeout = self.timeout)
+            job = self.D.eval(self.prestr + str(self.jobs[i][0]) + ',return_seqs=True,keep_fields=' + str(keep_fields) + ',t_2=' + str(t_2) + ')', timeout = self.timeout)
             self.jobs[i][1] = job
 
     def restart_all_jobs(self, force=False):
         for i in range(len(self.jobs)):
             self.restart_job(i, force)
 
-    def split_job(self, i, force=False):
+    def split_job(self, i, force=False, t_2=False):
         if force or self.jobs[i][1].output.find('computation timed out') <> -1:
             job = self.jobs.pop(i)
             T = tr_data(self.n, self.B, job[0])
@@ -194,7 +201,7 @@ class totallyreal_dsage:
             while f_out[self.n] <> 0:
                 a = f_out[k_new:self.n+1]
                 # Dsage handles it all here.
-                job = self.D.eval(self.prestr + str(a) + ',return_seqs=True)', timeout = self.timeout)
+                job = self.D.eval(self.prestr + str(a) + ',return_seqs=True,keep_fields=' + str(keep_fields) + ',t_2=' + str(t_2) + ')', timeout = self.timeout)
                 self.jobs.append([a,job])
                 T.incr(f_out, haltk=k_new)
 
@@ -205,7 +212,7 @@ class totallyreal_dsage:
         else:
             i = 0
             while i < len(self.jobs):
-                if self.jobs[i][1].output.find('computation timed out') <> -1:
+                if self.jobs[i][1] <> '' and self.jobs[i][1].output.find('computation timed out') <> -1:
                     self.split_job(i,True)
                 else:
                     i += 1
@@ -218,6 +225,58 @@ class totallyreal_dsage:
         for i in range(len(self.jobs)):
             if type(self.jobs[i][1]) <> str:
                 print self.jobs[i][0], self.jobs[i][1].status
+
+    def just_save(self):
+        r"""
+        Pop any finished jobs and save the resulting data.
+        """
+
+        filename_start = str(self.n) + '/' + str(self.n) + '-' + str(self.B) + '-'
+
+        i = 0
+        # For each completed job, add the fields to the list.
+        while i < len(self.jobs):
+            if type(self.jobs[i][1]) <> str:
+                if self.jobs[i][1].status == 'completed' and not self.jobs[i][1].result in ['None', '']:
+                    print "Saving job", i, "with", self.jobs[i][0]
+                    job = self.jobs[i]
+
+                    # Add the timings.
+                    self.cputime += job[1].cpu_time
+                    self.walltime += job[1].wall_time
+
+                    fsock = open(filename_start + str(job[0]).replace(' ','') + '.out', 'w')
+                    fsock.write("Cpu time = " + timestr(job[1].cpu_time) + "\n")
+                    fsock.write("Wall time = " + timestr(job[1].wall_time) + "\n")
+
+                    S = job[1].result
+                    # Add the counts of polynomials checked.
+                    for j in range(4):
+                        self.counts[j] += S[0][j]
+                    fsock.write("Counts: " + str(S[0]) + "\n")
+                    fsock.write("Total number of fields: " + str(len(S[1])) + "\n\n")
+
+                    # Save fields
+                    S = S[1]
+                    for j in range(len(S)):
+                        fsock.write(str(S[j]) + "\n")
+
+                    fsock.close()
+                    self.jobs.pop(i)
+
+                # Otherwise, continue.
+                # Note we do not add 1 to i if we just popped jobs!
+                else:
+                    i += 1
+            else:
+                i += 1
+
+        fsock = open(filename_start + 'reload.dat', 'w')
+        fsock.write(str([[self.jobs[i][0] for i in range(len(self.jobs))],
+                         [[s[0], s[1].reverse().Vec()] for s in self.S],
+                         self.counts, self.cputime, self.walltime]))
+        fsock.close()
+        print self.num_jobs(), "remaining..."
 
     def compile_fields(self, write_result=True):
         r"""
@@ -310,7 +369,7 @@ class totallyreal_dsage:
     def reload(self, n, B, load=True):
         self.n = n
         self.B = B
-        self.prestr = 'DSAGE_RESULT=enumerate_totallyreal_fields(' + str(n) + ',' + str(B) + ','
+        self.prestr = 'DSAGE_RESULT=enumerate_totallyreal_fields_prim(' + str(n) + ',' + str(B) + ','
         filename_start = str(n) + '/' + str(n) + '-' + str(B) + '-'
 
         fsock = open(filename_start + 'reload.dat', 'r')

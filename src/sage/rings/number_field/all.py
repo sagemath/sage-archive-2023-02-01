@@ -10,7 +10,7 @@ from number_field_ideal import is_NumberFieldIdeal
 
 from order import is_NumberFieldOrder, EquationOrder
 
-from totallyreal import enumerate_totallyreal_fields
+from totallyreal import enumerate_totallyreal_fields_prim
 from totallyreal_data import hermite_constant
 from totallyreal_dsage import totallyreal_dsage
-from totallyreal_rel import enumerate_totallyreal_fields_imprim, enumerate_totallyreal_fields_rel
+from totallyreal_rel import enumerate_totallyreal_fields_all, enumerate_totallyreal_fields_rel

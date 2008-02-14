@@ -2,6 +2,8 @@
 Enumeration of Totally Real Fields
 
 AUTHORS:
+    -- Craig Citro and John Voight (2008-02-10):
+        * Final modifications for submission.
     -- Craig Citro and John Voight (2007-11-04):
         * Additional doctests and type checking.
     -- John Voight (2007-10-27):
@@ -84,9 +86,10 @@ def odlyzko_bound_totallyreal(n):
         dB = 33.9508
     return dB
 
-def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc=False, keep_fields=False):
+def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False, \
+    phc=False, keep_fields=False, t_2=False):
     r"""
-    This function enumerates (primitive) totally real fields of
+    This function enumerates primitive totally real fields of
     degree $n>1$ with discriminant $d \leq B$; optionally one can
     specify the first few coefficients, where the sequence $a$
     corresponds to a polynomial by
@@ -98,6 +101,7 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
     exporting to a file).
     If keep_fields, then keep fields up to B*log(B); if keep_fields is
     an integer, then keep fields up to that integer.
+    If t_2 = T, then keep only polynomials with t_2 norm >= T.
 
     NOTE:
     This is guaranteed to give all primitive such fields, and
@@ -119,7 +123,7 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
     In this first simple example, we compute the totally real quadratic
     fields of discriminant <= 50.
 
-    sage: enumerate_totallyreal_fields(2,50)
+    sage: enumerate_totallyreal_fields_prim(2,50)
     [[5, x^2 - x - 1],
      [8, x^2 - 2],
      [12, x^2 - 3],
@@ -139,7 +143,7 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
 
     Next, we compute all totally real quintic fields of discriminant <= 10^5.
 
-    sage: enumerate_totallyreal_fields(5,10^5)
+    sage: enumerate_totallyreal_fields_prim(5,10^5)
     [[14641, x^5 - x^4 - 4*x^3 + 3*x^2 + 3*x - 1],
      [24217, x^5 - 5*x^3 - x^2 + 3*x + 1],
      [36497, x^5 - 2*x^4 - 3*x^3 + 5*x^2 + x - 1],
@@ -154,8 +158,7 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
 
     NOTES:
     This function uses Hunter's algorithm [C, Section 9.3] and
-    modifications due to Takeuchi [T] and the author (not yet
-    published).
+    modifications due to Takeuchi [T] and the author [V].
 
     We enumerate polynomials
         f(x) = x^n + a[n-1]*x^(n-1) + ... + a[0].
@@ -172,6 +175,9 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
             [T] Kisao Takeuchi, Totally real algebraic number fields of
                 degree 9 with small discriminant, Saitama Math. J.
                 17 (1999), 63--85 (2000).
+            [V] John Voight, Enumeration of totally real number fields
+                of bounded root discriminant, to appear in
+                Lect. Notes in Comp. Sci.
 
     AUTHORS:
     - John Voight (2007-09-03)
@@ -197,6 +203,10 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
             keepB = int(math.floor(B*math.log(B)))
         else:
             keepB = keep_fields
+
+    if t_2:
+        k0 = len(a)
+        t_2val = a[k0-2]**2-2*a[k0-3]
 
     # Trivial case
     if n == 1:
@@ -234,7 +244,8 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
                     counts[2] += 1
                     [zk,d] = nf.nfbasis_d()
 
-                    if d <= B or (keep_fields and d <= keepB):
+                    if d <= B or (type(keep_fields) == Integer and keep_fields == 0) or \
+                                 (keep_fields and d <= keepB):
                         if verbose:
                             print "has discriminant", d,
 
@@ -252,7 +263,9 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
                                 found = True
                                 break
                             ind += 1
-                        if not found:
+                        ngt2 = ng[n-1]**2-2*ng[n-2]
+                        if not found and (type(t_2) == bool and (not t_2 or ngt2 >= t_2val)) or \
+                            (type(t_2) == Integer and ngt2 >= t_2):
                             if verbose:
                                 print "and is new!"
                             S.insert(ind, [d,ng])
@@ -280,10 +293,12 @@ def enumerate_totallyreal_fields(n, B, a = [], verbose=0, return_seqs=False, phc
 
     # In the application of Smyth's theorem above, we exclude finitely
     # many possibilities which we must now throw back in.
-    if n == 2 and B >= 5:
-        S = [[5,pari('x^2-3*x+1')]] + S
-    elif n == 3 and B >= 49:
-        S = [[49,pari('x^3-5*x^2+6*x-1')]] + S
+    if n == 2 and B >= 5 and (type(t_2) == bool and (not t_2 or 5 >= t_2val)) or \
+        (type(t_2) == Integer and 5 >= t_2):
+        S = [[5,pari('x^2-x+1')]] + S
+    elif n == 3 and B >= 49 and (type(t_2) == bool and (not t_2 or 5 >= t_2val)) or \
+        (type(t_2) == Integer and 5 >= t_2):
+        S = [[49,pari('x^3-x^2-2*x+1')]] + S
     # The polynomials with n = 4 define imprimitive number fields.
 
     # Now check for isomorphic fields

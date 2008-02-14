@@ -95,6 +95,8 @@ include_dirs = ['%s/include'%SAGE_LOCAL, \
 if os.environ.has_key('SAGE_DEBIAN'):
     debian_include_dirs=["/usr/include","/usr/include/numpy","/usr/include/FLINT","/usr/include/givaro", "/usr/include/gsl","/usr/include/fplll","/usr/include/eclib","/usr/include/gmp++","/usr/include/linbox","/usr/include/NTL","/usr/include/pari","/usr/include/qd","/usr/include/singular","/usr/include/singular/singular","/usr/include/symmetrica","/usr/include/polybori"]
     include_dirs = include_dirs + debian_include_dirs
+else:
+    debian_include_dirs=[]
 
 #####################################################
 

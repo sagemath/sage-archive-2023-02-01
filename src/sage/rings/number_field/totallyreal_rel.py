@@ -1,3 +1,4 @@
+
 """
 Enumeration of Totally Real Fields: Relative Extensions
 
@@ -32,7 +33,6 @@ from sage.libs.pari.gen import pari
 
 import math, numpy, bisect, sys
 from numpy.linalg import inv
-
 
 r"""
 ## This code needs optimization before any serious use.
@@ -89,8 +89,12 @@ def integral_elements_in_box(K, C):
     r"""
     EXAMPLES:
         sage: K.<alpha> = NumberField(x^2-2)
-        sage: sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, [[0,5],[0,10]])
-        [0, 5, -alpha + 2, -alpha + 3, 1, 2, 3, 4, alpha + 2, alpha + 3, alpha + 4, alpha + 5, alpha + 6, 2*alpha + 3, 2*alpha + 4, 2*alpha + 5, 2*alpha + 6, 2*alpha + 7, 3*alpha + 5]
+        sage: ls = sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, [[0,5],[0,10]])
+        sage: sorted([ x.trace() for x in ls ])
+        [0, 2, 4, 4, 4, 6, 6, 6, 6, 8, 8, 8, 10, 10, 10, 10, 12, 12, 14]
+        sage: len(ls)
+        19
+
         sage: sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, [[0,5],[0,5]])
         [0, 5, 3, -alpha + 2, -alpha + 3, 1, 2, 4, alpha + 2, alpha + 3]
     """
@@ -622,7 +626,8 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
     with root discriminant <= 10.
 
     sage: F.<t> = NumberField(x^2-5)
-    sage: enumerate_totallyreal_fields_rel(F, 2, 10^4)
+    sage: ls = enumerate_totallyreal_fields_rel(F, 2, 10^4)
+    sage: ls # random
     [[725, x^4 - x^3 - 3*x^2 + x + 1, xF^2 + (-1/2*t + 1/2)*xF - t - 2],
      [1125, x^4 - x^3 - 4*x^2 + 4*x + 1, xF^2 + (-1/2*t + 1/2)*xF - 1/2*t - 3/2],
      [1600, x^4 - 6*x^2 + 4, xF^2 - t - 3],
@@ -643,7 +648,8 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
      [8525, x^4 - 2*x^3 - 8*x^2 + 9*x + 19, xF^2 + xF - 1/2*t - 9/2],
      [8725, x^4 - x^3 - 10*x^2 + 2*x + 19, xF^2 + (-1/2*t - 1/2)*xF - 1/2*t - 9/2],
      [9225, x^4 - x^3 - 10*x^2 + 7*x + 19, xF^2 + (-1/2*t + 1/2)*xF - 1/2*t - 9/2]]
-
+    sage: [ f[0] for f in ls ]
+    [725, 1125, 1600, 2000, 2225, 2525, 3600, 4225, 4400, 4525, 5125, 5225, 5725, 6125, 7600, 7625, 8000, 8525, 8725, 9225]
 
     sage: [NumberField(ZZx(_[i][1]), 't').is_galois() for i in range(len(_))]
     [False, True, True, True, False, False, True, True, False, False, False, False, False, True, False, False, True, False, False, False]
@@ -659,7 +665,8 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
     sage: F.disc()
     49
     sage: enumerate_totallyreal_fields_rel(F, 3, 17*10^9)
-    [[16240385609L, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]
+    [[16240385609L, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 32-bit
+    [[16240385609, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 64-bit
 
     NOTES:
     We enumerate polynomials

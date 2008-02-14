@@ -189,9 +189,9 @@ def lagrange_degree_3(n, an1, an2, an3):
     We use a precomputed elimination ideal.
 
     EXAMPLES:
-        sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,0,1,2)
+        sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,0,1,2) # random low order bits
         [-1.000000000000000000000000467750, -0.9999999999999999999999994624949]
-        sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,6,1,2)
+        sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,6,1,2) # random low order bits
         [-5.887850847558445916683125710722, -5.887850847558445916682940422175]
     """
 
@@ -208,25 +208,19 @@ def lagrange_degree_3(n, an1, an2, an3):
         # for numpy, i.e. the coefficient of x^i is p[n-i].
         p = [
              ## x^6
-             r**3*nr*s3**2 - r**3*s2**3 + 2*r**2*nr**2*s3**2 -
-             6*r**2*nr*s1*s2*s3 + r**2*nr*s2**3 + 3*r**2*s1**2*s2**2
-             + r*nr**3*s3**2 - 6*r*nr**2*s1*s2*s3 + r*nr**2*s2**3 +
-             4*r*nr*s1**3*s3 + 3*r*nr*s1**2*s2**2 - 3*r*s1**4*s2 -
-             nr**3*s2**3 + 3*nr**2*s1**2*s2**2 - 3*nr*s1**4*s2 +
-             s1**6,
+             r**3*nr + r**3 + 2*r**2*nr**2 + 5*r**2*nr + 3*r**2 +
+             r*nr**3 + 5*r*nr**2 + 7*r*nr + 3*r + nr**3 + 3*nr**2 +
+             3*nr + 1,
 
              ## x^5
-             6*r**2*nr*s2*s3 - 6*r**2*s1*s2**2 + 6*r*nr**2*s2*s3 -
-             12*r*nr*s1**2*s3 - 6*r*nr*s1*s2**2 + 12*r*s1**3*s2 -
-             6*nr**2*s1*s2**2 + 12*nr*s1**3*s2 - 6*s1**5,
+             -6*r**2*nr*s1 - 6*r**2*s1 - 6*r*nr**2*s1 - 18*r*nr*s1
+             - 12*r*s1 - 6*nr**2*s1 - 12*nr*s1 - 6*s1,
 
              ## x^4
-             3*r**3*s2**2 + 6*r**2*nr*s1*s3 - 3*r**2*nr*s2**2 -
-             6*r**2*s1**2*s2 + 3*r**2*s2**2 + 6*r*nr**2*s1*s3 -
-             3*r*nr**2*s2**2 - 6*r*nr*s1**2*s2 + 12*r*nr*s1*s3 +
-             3*r*nr*s2**2 + 3*r*s1**4 - 18*r*s1**2*s2 +
-             3*nr**3*s2**2 - 6*nr**2*s1**2*s2 + 3*nr**2*s2**2 +
-             3*nr*s1**4 - 18*nr*s1**2*s2 + 15*s1**4,
+             -3*r**3*s2 - 3*r**2*nr*s2 + 3*r**2*s1**2 - 6*r**2*s2 -
+             3*r*nr**2*s2 + 15*r*nr*s1**2 - 6*r*nr*s2 + 18*r*s1**2 -
+             3*r*s2 - 3*nr**3*s2 + 3*nr**2*s1**2 - 6*nr**2*s2 +
+             18*nr*s1**2 - 3*nr*s2 + 15*s1**2,
 
              ## x^3
              -2*r**3*nr*s3 - 4*r**2*nr**2*s3 + 6*r**2*nr*s1*s2 -
@@ -236,48 +230,50 @@ def lagrange_degree_3(n, an1, an2, an3):
              12*nr**2*s1*s2 - 12*nr*s1**3 + 12*nr*s1*s2 - 20*s1**3,
 
              ## x^2
-             -3*r**3*s2 - 3*r**2*nr*s2 + 3*r**2*s1**2 - 6*r**2*s2 -
-             3*r*nr**2*s2 + 15*r*nr*s1**2 - 6*r*nr*s2 + 18*r*s1**2 -
-             3*r*s2 - 3*nr**3*s2 + 3*nr**2*s1**2 - 6*nr**2*s2 +
-             18*nr*s1**2 - 3*nr*s2 + 15*s1**2,
+             3*r**3*s2**2 + 6*r**2*nr*s1*s3 - 3*r**2*nr*s2**2 -
+             6*r**2*s1**2*s2 + 3*r**2*s2**2 + 6*r*nr**2*s1*s3 -
+             3*r*nr**2*s2**2 - 6*r*nr*s1**2*s2 + 12*r*nr*s1*s3 +
+             3*r*nr*s2**2 + 3*r*s1**4 - 18*r*s1**2*s2 +
+             3*nr**3*s2**2 - 6*nr**2*s1**2*s2 + 3*nr**2*s2**2 +
+             3*nr*s1**4 - 18*nr*s1**2*s2 + 15*s1**4,
 
              ## x^1
-             -6*r**2*nr*s1 - 6*r**2*s1 - 6*r*nr**2*s1 - 18*r*nr*s1
-             - 12*r*s1 - 6*nr**2*s1 - 12*nr*s1 - 6*s1,
+             6*r**2*nr*s2*s3 - 6*r**2*s1*s2**2 + 6*r*nr**2*s2*s3 -
+             12*r*nr*s1**2*s3 - 6*r*nr*s1*s2**2 + 12*r*s1**3*s2 -
+             6*nr**2*s1*s2**2 + 12*nr*s1**3*s2 - 6*s1**5,
 
              ## x^0
-             r**3*nr + r**3 + 2*r**2*nr**2 + 5*r**2*nr + 3*r**2 +
-             r*nr**3 + 5*r*nr**2 + 7*r*nr + 3*r + nr**3 + 3*nr**2 +
-             3*nr + 1
+             r**3*nr*s3**2 - r**3*s2**3 + 2*r**2*nr**2*s3**2 -
+             6*r**2*nr*s1*s2*s3 + r**2*nr*s2**3 + 3*r**2*s1**2*s2**2
+             + r*nr**3*s3**2 - 6*r*nr**2*s1*s2*s3 + r*nr**2*s2**3 +
+             4*r*nr*s1**3*s3 + 3*r*nr*s1**2*s2**2 - 3*r*s1**4*s2 -
+             nr**3*s2**3 + 3*nr**2*s1**2*s2**2 - 3*nr*s1**4*s2 +
+             s1**6
+
             ]
 
-        rts = numpy.roots(p)
-        r"""
         # If any roots appear double, recompute with gcd.
         # Happens sufficiently often, so just do it each time?
-        possible_double = False
-        rlen = len(rts)
-        for i in range(rlen):
-            for j in range(i+1,rlen):
-                if numpy.abs(rts[i]-rts[j]) < 10.**(-4):
-                    possible_double = True
-        if possible_double:
-        """
-        p.reverse()
+        ## p.reverse()
+        ## rts = numpy.roots(p)
+        ## p.reverse()
+        ## possible_double = False
+        ## rlen = len(rts)
+        ## for i in range(rlen):
+            ## for j in range(i+1,rlen):
+                ## if numpy.abs(rts[i]-rts[j]) < 10.**(-4):
+                    ## possible_double = True
+        ## if possible_double:
+
         f = ZZx(p)
         df = ZZx([i*p[i] for i in range(1,7)])
         f = f//gcd(f,df)
-        fcoeff = f.coeffs()
+        fcoeff = f.list()
         rts = numpy.roots(fcoeff)
 
         rts = numpy.real([rts[i] for i in range(len(rts)) if numpy.isreal(rts[i])]).tolist()
         if len(rts) > 0:
             z4minmax = [min(rts + z4minmax), max(rts + z4minmax)]
-
-        # rts = [ x[0] for x in ZZx(p).roots(RIF) ]
-        # if len(rts) > 0:
-        #     z4minmax = [ min([ x.lower() for x in rts] + z4minmax),
-        #                  max([ x.upper() for x in rts] + z4minmax) ]
 
     return z4minmax
 

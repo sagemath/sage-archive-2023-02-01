@@ -2516,6 +2516,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         #    the resulting matrix back in echelon form.
         for i, p in enumerate(pivots):
             # p is the i-th pivot
+            b = A[n,p]
+            if not b:
+                continue
 
             # (a). Take xgcd of pivot positions in last row and in ith
             # row.
@@ -2523,7 +2526,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             # TODO (optimize) -- change to use direct call to gmp and
             # no bounds checking!
             a = A[i,p]
-            b = A[n,p]
             if b % a == 0:
                 # (b) Subtract a multiple of row i from row n.
                 c = b // a

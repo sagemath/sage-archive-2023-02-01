@@ -21,7 +21,7 @@ TODO:
 from copy import copy
 
 from sage.misc.misc import verbose
-from sage.matrix.constructor import random_matrix, matrix
+from sage.matrix.constructor import random_matrix, matrix, matrix
 
 from sage.rings.all import ZZ, QQ, previous_prime
 
@@ -171,7 +171,7 @@ def add_column(B, H_B, a):
 
     return x
 
-def add_row(A, b, pivots):
+def add_row(A, b, pivots, include_zero_rows):
     """
     The add row procedure.
 
@@ -197,24 +197,25 @@ def add_row(A, b, pivots):
         [ 0  7 28]
         [ 0  0 46]
     """
-    t = verbose('first add row')
+    t = verbose('add hnf row')
     v = b.row(0)
-    z,p = A._add_row_and_maintain_echelon_form(b.row(0), pivots)
-    z = z.matrix_from_rows(range(A.nrows()+1))
-    verbose('finished add row', t)
-    return z, p
+    H, pivs = A._add_row_and_maintain_echelon_form(b.row(0), pivots)
+    if include_zero_rows and H.nrows() != A.nrows()+1:
+        H = H.matrix_from_rows(range(A.nrows()+1))
+    verbose('finished add hnf row', t)
+    return H, pivs
 
-def hnf(A):
+def hnf_square(A):
     """
     INPUT:
-        an n x m matrix A over the integers.
+        a nonsingular n x n matrix A over the integers.
     OUTPUT:
         the Hermite normal form of A.
 
     EXAMPLES:
         sage: import sage.matrix.matrix_integer_dense_hnf as hnf
         sage: A = matrix(ZZ, 3, [-21, -7, 5, 1,20,-7, -1,1,-1])
-        sage: hnf.hnf(A)
+        sage: hnf.hnf_square(A)
         [ 1  6 29]
         [ 0  7 28]
         [ 0  0 46]
@@ -228,6 +229,11 @@ def hnf(A):
     if n != m:
         raise NotImplementedError, "A must be square."
 
+    # Small cases -- don't use this algorithm
+    if n <= 3:
+        return A.echelon_form(algorithm="pari")
+
+
     t = verbose("starting slicings")
     B = A.matrix_from_rows(range(m-2)).matrix_from_columns(range(n-1))
     c = A.matrix_from_rows([m-2]).matrix_from_columns (range(n-1))
@@ -235,36 +241,198 @@ def hnf(A):
     b = A.matrix_from_columns([n-1]).matrix_from_rows(range(m-2))
     verbose("done slicing", t)
 
-    (d1,d2) = doubleDet (B,c,d)
-
+    try:
+        (d1,d2) = doubleDet (B,c,d)
+    except (ValueError, ZeroDivisionError):
+        verbose("det computation failed -- we compute hnf of submatrix directly.")
+        d1 = d2 = ZZ(0)
     (g,k,l) = d1._xgcd (d2, minimal=True)
-
     W = B.stack (k*c + l*d)
-
-    H = W._hnf_mod(2*g)
-
+    verbose("submatrix det: g=%s"%g)
+    if g == 0 or g > 2**30:  # inconceivable that g will be at all large on even slightly random input
+        H = hnf(W)
+    else:
+        H = W._hnf_mod(2*g)
     x = add_column(B.stack(k*c+l*d), H, b.stack(matrix(1,1,[k*A[m-2,m-1] + l*A[m-1,m-1]])))
-
     Hprime = H.augment(x)
-
     pivots = range(Hprime.nrows())
-
-    Hprime, pivots = add_row(Hprime, A.matrix_from_rows([m-2]), pivots)
-    Hprime, pivots = add_row(Hprime, A.matrix_from_rows([m-1]), pivots)
-
+    Hprime, pivots = add_row(Hprime, A.matrix_from_rows([m-2]), pivots, include_zero_rows=False)
+    Hprime, pivots = add_row(Hprime, A.matrix_from_rows([m-1]), pivots, include_zero_rows=False)
     H = Hprime.matrix_from_rows(range(m))
     return H
 
+def interleave_matrices(A, B, cols1, cols2):
+    """
+    INPUT:
+        A, B -- matrices with the same number of rows
+        cols1, cols2 -- disjoint lists of integers
+    OUTPUT:
+        construct a new matrix C by sticking the columns
+        of A at the positions specified by cols1 and the
+        columns of B at the positions specified by cols2.
+
+    EXAMPLES:
+        sage: A = matrix(ZZ, 2, [1,2,3,4]); B = matrix(ZZ, 2, [-1,5,2,3])
+        sage: A
+        [1 2]
+        [3 4]
+        sage: B
+        [-1  5]
+        [ 2  3]
+        sage: interleave_matrices(A, B, [1,3], [0,2])
+        [-1  1  5  2]
+        [ 2  3  3  4]
+    """
+    D = A.augment(B)
+    w = cols1 + cols2
+    v = [w.index(i) for i in range(len(cols1) + len(cols2))]
+    return D.matrix_from_columns(v)
+
+def probable_pivot_rows(A):
+    """
+    INPUT:
+        A -- a matrix
+    OUTPUT:
+        a list of integers
+    """
+    return probable_pivot_columns(A.transpose())
+
+def probable_pivot_columns(A):
+    """
+    INPUT:
+        A -- a matrix
+    OUTPUT:
+        a list of integers
+    """
+    p = ZZ.random_element(10007, 46000).next_prime()
+    return A._reduce(p).pivots()
+
+def ones(H, pivots):
+    # Find the "onecol" pivot columns of H, i.e., the columns
+    # that contain exactly one "1" entry and all other entries 0.
+    onecol = []
+    onerow = []
+    i = 0
+    for c in pivots:
+        if H[i,c] == 1:
+            onecol.append(c)
+            onerow.append(i)
+        i += 1
+    onecol_set = set(onecol)
+    non_onecol = [i for i in range(H.ncols()) if i not in onecol_set]
+    non_onerow = [i for i in range(len(pivots)) if i not in onerow]
+    return onecol, onerow, non_onecol, non_onerow
+
+def extract_ones_data(H, pivots):
+        onecol, onerow, non_onecol, non_onerow = ones(H, pivots)
+        verbose('extract_ones -- got submatrix of size %s'%len(non_onecol))
+        if len(non_onecol) in [1, 2]:
+            # Extract submatrix of all non-onecol columns and onecol rows
+            C = H.matrix_from_rows_and_columns(onerow, non_onecol)
+            # Extract submatrix of all non-onecol columns and other rows
+            D = H.matrix_from_rows_and_columns(non_onerow, non_onecol).transpose()
+            E = D**(-1)
+            return C, D, E, onecol, onerow, non_onecol, non_onerow
+        else:
+            return None, None, None, onecol, onerow, non_onecol, non_onerow
+
+def hnf(A, include_zero_rows=True):
+    """
+    INPUT:
+        an n x m matrix A over the integers.
+    OUTPUT:
+        the Hermite normal form of A.
+    """
+
+    # Find left-most full rank submatrix by working modulo a prime
+    rows = probable_pivot_rows(A)
+    B    = A.matrix_from_rows(rows)
+    cols = probable_pivot_columns(B)
+    C   = B.matrix_from_columns(cols)
+    # Now C is a submatrix of A that has full rank and is square.
+
+    # We compute the HNF of C.
+    H = hnf_square(C)
+
+    # The transformation matrix to HNF is the unique
+    # matrix U such that U * C = H, i.e., U = H*C^(-1).
+
+    if len(cols) < B.ncols():
+        # We compute the HNF of B by finding the
+        # HNF of B by multiplying the matrix D
+        # got from the columns not in C by U:
+        # We want to compute X = U*D.  But U = H*C^(-1),
+        # so X = U*D = H*C^(-1)*D.
+        # So C*H^(-1)*X = D
+
+        # find y s.t C*y = D
+        #   H^(-1)*X = y ===> X = H*y
+        #
+        cols_set = set(cols)
+        cols2 = [i for i in range(B.ncols()) if not i in cols_set]
+        D = B.matrix_from_columns(cols2)
+        Y = C.solve_right(D)
+        H2 = H*Y
+        H2 = H2.change_ring(ZZ)
+        # The HNF of B is got by assembling together
+        # the matrices H and H2.
+        H = interleave_matrices(H, H2, cols, cols2)
+
+    # Now H is the HNF of the matrix B
+    # Finally we add all remaining rows of A to H using
+    # the add_row function.
+    C, D, E, onecol, onerow, non_onecol, non_onerow = extract_ones_data(H, cols)
+    if len(non_onecol) == 0:
+        # Identity matrix -- done
+        verbose("hnf -- got identity matrix -- early abort")
+        return pad_zeros(H, A.nrows() - H.nrows())
+
+    rows_set = set(rows)
+    nz = 0
+    for i in range(A.nrows()):
+        if not i in rows_set:
+            if E is None:
+                H, cols = add_row(H, A.matrix_from_rows([i]), cols, include_zero_rows)
+                C, D, E, onecol, onerow, non_onecol, non_onerow = extract_ones_data(H, cols)
+                if len(non_onecol) == 0:
+                    # Identity matrix -- done
+                    verbose("hnf -- got identity matrix -- early abort")
+                    return pad_zeros(H, A.nrows() - H.nrows())
+            else:
+                z = A.matrix_from_rows_and_columns([i], non_onecol)
+                w = A.matrix_from_rows_and_columns([i], onecol)
+                tt = verbose("checking denom (%s x %s)"%(D.nrows(), D.ncols()))
+                Y = (z - w*C).transpose()
+                k = E*Y
+                verbose("done checking denom",tt)
+                if k.denominator() != 1:
+                    H, cols = add_row(H, A.matrix_from_rows([i]), cols, include_zero_rows)
+                    D = H.matrix_from_rows_and_columns(non_onerow, non_onecol).transpose()
+                else:
+                    nz += 1
+                nn = ones(H, cols)
+                if len(nn[2]) == 0:
+                    verbose("hnf -- got identity matrix -- early abort")
+                    return pad_zeros(H, A.nrows() - H.nrows())
 
 
+    if include_zero_rows:
+        return pad_zeros(H, nz)
+    return H
 
-def benchmark(nrange, bits=4):
+def pad_zeros(H, nz):
+    if nz == 0:
+        return H
+    return H.stack(matrix(ZZ, nz, H.ncols()))
+
+
+def benchmark_hnf(nrange, bits=4):
     """
     Run benchmark program.
 
     EXAMPLES:
         sage: import sage.matrix.matrix_integer_dense_hnf as hnf
-        sage: hnf.benchmark([50,100],32)
+        sage: hnf.benchmark_hnf([50,100],32)
         ('sage', 50, 32, ...),
         ('sage', 100, 32, ...),
     """
@@ -277,11 +445,11 @@ def benchmark(nrange, bits=4):
         tm = cputime(t)
         print '%s,'%(('sage', n, bits, tm),)
 
-def benchmark_magma(nrange, bits=4):
+def benchmark_magma_hnf(nrange, bits=4):
     """
     EXAMPLES:
         sage: import sage.matrix.matrix_integer_dense_hnf as hnf
-        sage: hnf.benchmark_magma([50,100],32)     # optional -- requires magma
+        sage: hnf.benchmark_magma_hnf([50,100],32)     # optional -- requires magma
         ('magma', 50, 32, ...),
         ('magma', 100, 32, ...),
     """
@@ -294,3 +462,86 @@ def benchmark_magma(nrange, bits=4):
         h = a.EchelonForm()
         tm = magma.cputime(t)
         print '%s,'%(('magma', n, bits, tm),)
+
+
+################################################################
+# Integer Kernel
+#################################################################
+
+################################################################
+# Saturation
+# David Kohel sent me the following a couple of years ago.
+# It's probably the algorithm to use.
+## function pAdicSaturation(B,p)
+##     if Type(B[1]) eq SeqEnum then
+##         V := RSpace(Rationals(),#B[1]);
+## 	B := [ V | v : v in B];
+##     end if;
+##     V := Universe(B);
+##     n := Degree(V);
+##     for i in [1..#B] do
+## 	B[i] *:= LCM([ Denominator(c) : c in Eltseq(B[i]) ]);
+##     end for;
+##     ZZ := Integers();
+##     FF := FiniteField(p);
+##     B := RMatrixSpace(ZZ,#B,n)!Matrix(B);
+##     m := Rank(B);
+##     B := Submatrix(HermiteForm(B),1,1,m,n);
+##     N := RMatrixSpace(FF,m,n)!B;
+##     while Rank(N) lt m do
+## 	K := Kernel(N);
+## 	vprintf pAdicSaturation :
+## 	    "Rank(N) + Rank(K) = %o + %o = %o\n", Rank(N), Rank(K), m;
+## 	C := RMatrixSpace(ZZ,#Basis(K),n)!
+## 	Matrix([ (1/p)*V!&+[ ZZ!u[i]*B[i] : i in [1..m] ] : u in Basis(K) ]);
+## 	vtime pAdicSaturation, 2 :
+## 	    B := Submatrix(HermiteForm(VerticalJoin(B,C)),1,1,m,n);
+## 	N := RMatrixSpace(FF,m,n)!B;
+##     end while;
+##     vprintf pAdicSaturation : "Rank(N) = %o \n", Rank(N), m;
+##     return [ B[i] : i in [1..m] ];
+## end function;
+#################################################################
+
+
+##########################
+# Allan also says:
+## > How does the MAGMA command PureLattice work?  What is the
+## > algorithm, etc.?
+## > Do you do this:
+## >
+## > 1. Find echelon form of basis of lattice.
+## >
+## > 2. Write down matrix over $\Z$ that has saturation of lattice
+## >    as kernel.
+## >
+## > 3. Find the kernel using algorithm 2.7.2 of Cohen's book (Kernel
+##    over Z using LLL).
+## More complicated than this.  That would work, but requires 2 kernels
+## and the 2nd one can't done by a modular algorithm: I don't want to
+## compute kernels, because I do that by modular methods and they only do
+## it over Q and then you need this very saturation alg to get the kernel
+## over Z!!!
+## Here is basic form of one "standard" saturation algorithm, which
+## I used to do:
+##     Given basis B.
+##     H = HermiteForm(B);
+##     for (;;)
+##     {
+## 	Get Smith form S of H and P so that S = P*H*?;
+## 	    [right transformation mat ? not needed]
+## 	If diag of S is all ones, then return H;
+## 	H = P*H;
+## 	Remove content from all rows of H;
+## 	    [if entry (i,i) of S has val d > 1, then d will divide all
+## 	     entries of row i of H]
+##     }
+## Then H is basis at the end.
+## I have a new modular algorithm for this done about a year ago which is
+## complicated -- I may publish this if I get a chance.  It is now
+## used by all funcs in Magma which need saturation.  It finds the largest
+## elem divisor D of B by modular method, then partially factors D and
+## for small divisors, uses modular method to get rid of those primes, and
+## then does the big primes another way I think.
+
+

@@ -4707,13 +4707,14 @@ class CallableSymbolicExpression(SymbolicExpression):
 
     def _latex_(self):
         args = self.args()
+        args = [arg._latex_() for arg in args]
         if len(args) == 1:
             return "%s \\ {\mapsto}\\ %s" % (args[0],
                     self._expr._latex_())
         else:
-            vars = ", ".join(map(latex, args))
+            vars = ", ".join(args)
             # the weird TeX is to workaround an apparent JsMath bug
-            return "\\left(%s \\right)\\ {\\mapsto}\\ %s" % (args, self._expr._latex_())
+            return "\\left(%s \\right)\\ {\\mapsto}\\ %s" % (vars, self._expr._latex_())
 
     def _neg_(self):
         return CallableSymbolicExpression(self.parent(), -self._expr)

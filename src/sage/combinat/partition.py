@@ -2012,16 +2012,21 @@ class Partitions_n(CombinatorialClass):
             sage: [x for x in Partitions(4)]
             [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
         """
+        for p in self._fast_iterator():
+            yield Partition_class(p)
+
+
+    def _fast_iterator(self):
         # base case of the recursion: zero is the sum of the empty tuple
         if self.n == 0:
-            yield Partition_class([])
+            yield []
             return
 
         # modify the partitions of n-1 to form the partitions of n
-        for p in Partitions_n(self.n-1):
+        for p in Partitions_n(self.n-1)._fast_iterator():
             if p and (len(p) < 2 or p[-2] > p[-1]):
-                yield Partition_class(list(p[:-1]) + [p[-1] + 1])
-            yield  Partition_class(p + [1])
+                yield p[:-1] + [p[-1] + 1]
+            yield p + [1]
 
 
 

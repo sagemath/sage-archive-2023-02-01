@@ -174,13 +174,13 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e]); m
             [sqrt(2)       3]
             [     pi       e]
-            sage: hash(m)
+            sage: hash(m) #random due to architecture dependence
             1532248127            # 32-bit
             1653238849131003967   # 64-bit
-            sage: m.__hash__()
+            sage: m.__hash__() #random due to architecture dependence
             1532248127            # 32-bit
             1653238849131003967   # 64-bit
-            sage: hash(maxima(m))
+            sage: hash(maxima(m)) #random due to architecture dependence
             1532248127            # 32-bit
             1653238849131003967   # 64-bit
         """

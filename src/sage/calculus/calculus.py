@@ -237,6 +237,7 @@ is different than the one in the interactive interpreter.
 """
 
 import weakref
+import re
 
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_MPolynomial, is_MPolynomialRing, is_FractionFieldElement,

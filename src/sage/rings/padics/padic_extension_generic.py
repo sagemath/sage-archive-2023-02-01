@@ -1,5 +1,5 @@
 import padic_generic
-import padic_extension_generic_element
+#import padic_extension_generic_element
 import padic_base_generic
 from sage.structure.element import Element
 

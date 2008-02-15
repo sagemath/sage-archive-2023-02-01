@@ -3,7 +3,7 @@ from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
 
 from unramified_extension_generic import UnramifiedExtensionGeneric
 from eisenstein_extension_generic import EisensteinExtensionGeneric
-from padic_general_extension_generic import pAdicGeneralExtensionGeneric
+#from padic_general_extension_generic import pAdicGeneralExtensionGeneric
 
 from padic_capped_relative_ring_generic import pAdicCappedRelativeRingGeneric
 from padic_capped_relative_field_generic import pAdicCappedRelativeFieldGeneric

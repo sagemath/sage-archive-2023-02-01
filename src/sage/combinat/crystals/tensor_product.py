@@ -246,7 +246,7 @@ class CrystalOfTableaux(TensorProductOfCrystals):
 
         sage: Tab = CrystalOfTableaux(['A',3], Partition([2,1,1]))
 
-        Here is the list of elements:
+        Here is the list of its elements:
 
         sage: Tab.list()
 
@@ -254,11 +254,12 @@ class CrystalOfTableaux(TensorProductOfCrystals):
 
         sage: Tab.plot()
 
-        Once can get instead get a LaTeX drawing ready to be
+        One can get instead get a LaTeX drawing ready to be
         copy-pasted into a LaTeX file:
 
         sage: Tab.latex()
 
+        See sage.combinat.crystals? for general help on using crystals
     """
     def __init__(self, type, shape):
 	C=CrystalOfLetters(type)

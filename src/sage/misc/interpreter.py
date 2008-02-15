@@ -433,6 +433,7 @@ def embedded():
     return sage.server.support.EMBEDDED_MODE
 
 ipython_prefilter = InteractiveShell.prefilter
+do_preparse=True
 def preparser(on=True):
     """
     Turn on or off the SAGE preparser.
@@ -453,11 +454,12 @@ def preparser(on=True):
         sage: 2^3
         8
     """
-    if embedded():
-        print "To turn off preparsing in the notebook, swith to Python mode."
+    global do_preparse
     if on:
+        do_preparse = True
         InteractiveShell.prefilter = sage_prefilter
     else:
+        do_preparse = False
         InteractiveShell.prefilter = ipython_prefilter
 
 

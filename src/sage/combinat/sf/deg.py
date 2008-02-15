@@ -78,7 +78,7 @@ def s_to_q(part):
     for st in StandardTableaux(part):
         #Construct the permutation by reading the entries of
         #the standard tableau
-        perm = Permutation( st.to_word_by_reading_order() )
+        perm = Permutation( st.to_word() )
 
         #Get the idescents of the permutation
         idescents = perm.idescents()
@@ -449,7 +449,7 @@ def permutation_graph(perm, f):
     return g
 
 def standard_deg(shape):
-    perms = [ Permutation(st.to_word_by_reading_order()) for st in StandardTableaux(shape) ]
+    perms = [ Permutation(st.to_word()) for st in StandardTableaux(shape) ]
     return create_graph(perms, iswitches)
 
 def macdonald_dgraph(shape):
@@ -464,7 +464,7 @@ def tableau_signature(t):
     Returnt the idescent signature of the word obtained from
     the reading order of t.
     """
-    return Tableau(t).to_permutation_by_reading_order().idescents_signature()
+    return Tableau(t).to_permutation().idescents_signature()
 
 ########
 #Checks#

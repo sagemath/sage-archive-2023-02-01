@@ -36,6 +36,22 @@ in the usual way:
     5
     sage: C.list()
     [1, 2, 3, 4, 5]
+
+as well as use it in for loops
+    sage: [x for x in C]
+    [1, 2, 3, 4, 5]
+
+One can get (currently) crude ploting via:
+
+    sage: Tab.plot()
+
+Thanks to graphviz (which needs to be installed), one can produce
+high quality LaTeX output of the crystal graph:
+
+    sage: f=open('/tmp/crystal.tex', 'w')
+    sage: f.write(C.latex())
+    sage: f.close()
+
 """
 
 #*****************************************************************************
@@ -144,15 +160,23 @@ class Crystal(CombinatorialClass, Parent):
 
     def dot_tex(self):
         rank = ranker.from_list(self.list())[0];
+        def vertex_key(x):
+            return "N_"+str(rank(x))
+        def quoted_latex(x):
+            import re;
+            # To do: check the regular expression
+            # Removing %-style comments, newlines, quotes
+            return re.sub("\"|\r|(%[^\n]*)?\n","", latex(x))
+
         result = "digraph G {\n";
         for x in self:
-            result += "N_"+str(rank(x))+ " [ label = \" \", texlbl = \"$"+latex(x)+"$\" ];\n";
+            result += vertex_key(x) + " [ label = \" \", texlbl = \"$"+quoted_latex(x)+"$\" ];\n";
         for x in self:
             for i in self.index_set:
                 child = x.f(i)
                 if child is None:
                     continue
-                result += "N_"+str(rank(x))+ " -> "+"N_"+str(rank(child))+ " [ label = \" \", texlbl = \""+latex(i)+"\" ];\n";
+                result += vertex_key(x)+ " -> "+vertex_key(child)+ " [ label = \" \", texlbl = \""+quoted_latex(i)+"\" ];\n";
         result+="}";
         return result;
 

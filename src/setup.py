@@ -1356,7 +1356,17 @@ code = setup(name        = 'sage',
 
       scripts = ['sage/dsage/scripts/dsage_server.py',
                  'sage/dsage/scripts/dsage_worker.py',
-                 'sage/dsage/scripts/dsage_setup.py'
+                 'sage/dsage/scripts/dsage_setup.py',
+                 'spkg-debian-maybe',
+                 'debian/',
+                 'debian/changelog',
+                 'debian/check-use-debian.pl',
+                 'debian/compat',
+                 'debian/control',
+                 'debian/control.in',
+                 'debian/rules',
+                 'debian/sage',
+                 'debian/sagemath.install'
                 ],
 
       data_files = [('dsage/web/static',

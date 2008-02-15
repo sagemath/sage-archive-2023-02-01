@@ -6,30 +6,34 @@ function PreparseElts(R)
 end function;
 
 intrinsic Sage(X::.) -> MonStgElt
-{}
+{Default way to convert a Magma object to Sage if we haven't
+written anything better.}
     return Sprintf("%o", X), true;
 end intrinsic;
 
 intrinsic Sage(X::SetEnum) -> MonStgElt
-{}
+{Convert an enumerated set to Sage.}
     Y := [Sage(z) : z in X];
     return Sprintf("Set(%o)", Y), true;
 end intrinsic;
 
 intrinsic Sage(X::SetIndx) -> MonStgElt
-{WARNING: Sage does not have an analogue of indexed sets.}
-    Y := [z : z in X];
+{Convert an indexed set to Sage.
+ WARNING: Sage does not have an analogue of indexed sets (yet!),
+ so we just return a Python list.}
+    Y := [Sage(z) : z in X];
     return Sprintf("%o", Y), true;
 end intrinsic;
 
 intrinsic Sage(X::SetMulti) -> MonStgElt, BoolElt
-{WARNING: Sage does not have an analogue of multisets.}
-    Y := [z : z in X];
+{Convert a multiset to Sage.
+ WARNING: Sage does not have an analogue of multisets yet, so we return a Python list.}
+    Y := [Sage(z) : z in X];
     return Sprintf("%o", Y), true;
 end intrinsic;
 
 intrinsic Sage(X::RngInt) -> MonStgElt, BoolElt
-{}
+{Conver the ring of integers to Sage.}
     return "ZZ", false;
 end intrinsic;
 
@@ -61,3 +65,5 @@ intrinsic Sage(X::ModMatRngElt) -> MonStgElt, BoolElt
     pp := PreparseElts(BaseRing(X));
     return convert_matrix(X, pp), pp;
 end intrinsic;
+
+/* Elltiptic Curve */

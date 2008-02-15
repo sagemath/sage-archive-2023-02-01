@@ -2340,6 +2340,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
                         is too small, decrease. should be positive, but values much bigger than
                         1/8 won't be useful unless the nodes are huge
+        draw_edges -- whether to draw edges.
 
     EXAMPLES:
         sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
@@ -2399,12 +2400,15 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: g.show(edge_colors={(1.0, 0.8571428571428571, 0.0): g.edges()})
 
     """
-    def __init__(self, graph, pos=None, vertex_labels=True, vertex_size=300, vertex_colors=None, edge_colors=None, scaling_term=0.05):
+    def __init__(self, graph, pos=None, vertex_labels=True, vertex_size=300, \
+                   vertex_colors=None, edge_colors=None, scaling_term=0.05, \
+                   draw_edges=True):
         self.__nxg = graph
         self.__vertex_size = vertex_size
         self.__vertex_labels = vertex_labels
         self.__vertex_colors = vertex_colors
         self.__edge_colors = edge_colors
+        self.__draw_edges = draw_edges
         if len(self.__nxg) != 0:
             import networkx as NX
             if pos is None:
@@ -2467,13 +2471,14 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
                     NX.draw_networkx_nodes(G=self.__nxg, nodelist=self.__vertex_colors[i],
                                            node_color=i if isinstance(i, str) else [float(z) for z in i],
                                            pos=self.__pos, ax=subplot, node_size=vertex_size)
-            if self.__edge_colors is None:
-                NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=vertex_size)
-            else:
-                for i in self.__edge_colors:
-                    NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, edgelist=self.__edge_colors[i],
-                                           edge_color=i if isinstance(i, str) else [float(z) for z in i],
-                                           ax=subplot, node_size=vertex_size)
+            if self.__draw_edges:
+                if self.__edge_colors is None:
+                    NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=vertex_size)
+                else:
+                    for i in self.__edge_colors:
+                        NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, edgelist=self.__edge_colors[i],
+                                               edge_color=i if isinstance(i, str) else [float(z) for z in i],
+                                               ax=subplot, node_size=vertex_size)
             if self.__vertex_labels:
                 labels = {}
                 for v in self.__nxg:
@@ -3587,7 +3592,7 @@ def list_plot(data, plotjoined=False, **kwargs):
     return P
 
 def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_colors=None,
-                  edge_colors=None, graph_border=False, scaling_term=0.05):
+                  edge_colors=None, graph_border=False, scaling_term=0.05, draw_edges=True):
     """
     Creates a graphics object ready to display a NetworkX graph.
 
@@ -3645,7 +3650,9 @@ def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_c
         sage: networkx_plot(C._nxg, pos=C.__get_pos__(), edge_colors=edge_colors, vertex_labels=False, vertex_size=0)
     """
     g = Graphics()
-    NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, scaling_term=scaling_term)
+    NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, \
+      vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, \
+      scaling_term=scaling_term, draw_edges=draw_edges)
     g._Graphics__objects.append(NGP)
     xmin = NGP._xmin
     xmax = NGP._xmax

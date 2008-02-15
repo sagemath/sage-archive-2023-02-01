@@ -55,6 +55,17 @@ def install_package(package=None, force=False):
         return X
     os.system('sage -f "%s"'%package)
 
+
+def is_package_installed(package):
+    """
+    Return true if a package starting with the given string is installed.
+
+    EXAMPLES:
+        sage: is_package_installed('sage')
+        True
+    """
+    return any(p.startswith(package) for p in install_package())
+
 def standard_packages():
     """
     Return two lists.  The first contains the installed and the second

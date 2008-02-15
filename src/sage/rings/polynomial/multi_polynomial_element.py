@@ -190,16 +190,30 @@ class MPolynomial_element(MPolynomial):
         return self.__class__(self.parent(),self.__element * right.__element)
 
     def _lmul_(self, a):
-        scaled = {}
-        for (m,c) in self.element().dict().iteritems():
-            scaled[m] = c*a
-        return self.parent()(scaled)
+        """
+        Left Scalar Multiplication
+
+        EXAMPLES:
+            # Note that it is not really possible to do a meaningful example since sage mpoly rings refuse to have non-commutative bases.
+            sage: x,y = ZZ['x,y'].gens()
+            sage: f = (x + y)
+            sage: 3*f
+            3*x + 3*y
+        """
+        return self.__class__(self.parent(),self.__element.scalar_lmult(a))
 
     def _rmul_(self, a):
-        scaled = {}
-        for (m,c) in self.element().dict().iteritems():
-            scaled[m] = a*c
-        return self.parent()(scaled)
+        """
+        Right Scalar Multiplication
+
+        EXAMPLES:
+            # Note that it is not really possible to do a meaningful example since sage mpoly rings refuse to have non-commutative bases.
+            sage: x,y = ZZ['x,y'].gens()
+            sage: f = (x + y)
+            sage: f*3
+            3*x + 3*y
+        """
+        return self.__class__(self.parent(),self.__element.scalar_rmult(a))
 
     def _div_(self, right):
         r"""

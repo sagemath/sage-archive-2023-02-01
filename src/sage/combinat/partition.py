@@ -1910,7 +1910,7 @@ class Partitions_n(CombinatorialClass):
     def count(self, algorithm='default'):
         r"""
             algorithm -- (default: 'default')
-                'bober' -- use Jonathon Bober's implementation (*very* fast,
+                'bober' -- use Jonathan Bober's implementation (*very* fast,
                           but new and not well tested yet).
                 'gap' -- use GAP (VERY *slow*)
                 'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
@@ -2188,10 +2188,10 @@ def number_of_partitions(n,k=None, algorithm='default'):
              the positive integer n into sums with k summands.
         algorithm -- (default: 'default')
             'default' -- If k is not None, then use Gap (very slow).
-                         If k is None, use Jon Bober's highly
+                         If k is None, use Jonathan Bober's highly
                          optimized implementation (this is the fastest
                          code in the world for this problem).
-            'bober' -- use Jonathon Bober's implementation
+            'bober' -- use Jonathan Bober's implementation
             'gap' -- use GAP (VERY *slow*)
             'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
                       in the thousands, in which case PARI is faster. *But*

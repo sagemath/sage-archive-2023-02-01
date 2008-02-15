@@ -549,9 +549,24 @@ cdef class Matrix(matrix0.Matrix):
         indexing, e.g., -1 gives the right-most column:
             sage: a.column(-1)
             (2, 5)
+
+        TESTS:
+            sage: a = matrix(2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.column(3)
+            Traceback (most recent call last):
+            ...
+            IndexError: column index out of range
+            sage: a.column(-4)
+            Traceback (most recent call last):
+            ...
+            IndexError: column index out of range
         """
         if self._ncols == 0:
             raise IndexError, "matrix has no columns"
+        if i >= self._ncols or i < -self._ncols:
+            raise IndexError, "column index out of range"
         i = i % self._ncols
         if i < 0:
             i = i + self._ncols
@@ -590,9 +605,24 @@ cdef class Matrix(matrix0.Matrix):
             (3, 4, 5)
             sage: a.row(-1)  # last row
             (3, 4, 5)
+
+        TESTS:
+            sage: a = matrix(2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.row(2)
+            Traceback (most recent call last):
+            ...
+            IndexError: row index out of range
+            sage: a.row(-3)
+            Traceback (most recent call last):
+            ...
+            IndexError: row index out of range
         """
         if self._nrows == 0:
             raise IndexError, "matrix has no rows"
+        if i >= self._nrows or i < -self._nrows:
+            raise IndexError, "row index out of range"
         i = i % self._nrows
         if i < 0:
             i = i + self._nrows

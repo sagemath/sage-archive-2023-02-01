@@ -828,7 +828,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         mpq_set_si(pr, 1, 1)
         for row from 0 <= row < self._nrows:
-            tmp = []
             mpq_set_si(s, 0, 1)
             for c in cols:
                 if c<0 or c >= self._ncols:

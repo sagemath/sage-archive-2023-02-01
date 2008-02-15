@@ -34,11 +34,11 @@ from dist import install_scripts
 
 from hg import hg_sage, hg_doc, hg_scripts, hg_extcode
 
-from package import install_package, standard_packages, optional_packages, experimental_packages, upgrade
+from package import install_package, is_package_installed, standard_packages, optional_packages, experimental_packages, upgrade
 
 from pager import pager
 
-from sagedoc import search_src, search_doc
+from sagedoc import search_src, search_def, search_doc
 
 from classgraph import class_graph
 

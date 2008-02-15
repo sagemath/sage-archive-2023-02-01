@@ -492,9 +492,7 @@ sage: # [OK] Compute Legendre polynomials directly from Rodrigues's formula, P[n
 sage: #      P(n,x) := Simplify( 1/(2*n)!! *
 sage: #        Deriv(x,n) (x^2-1)^n );
 sage: #      TestYacas(P(4,x), (35*x^4)/8+(-15*x^2)/4+3/8);
-sage: def P(n,x):
-...    return   simplify(diff((x^2-1)^n,x,n) / (2^n * factorial(n)))
-...
+sage: P = lambda n, x: simplify(diff((x^2-1)^n,x,n) / (2^n * factorial(n)))
 sage: print P(4,x).expand()
                                    4	   2
                                35 x    15 x    3

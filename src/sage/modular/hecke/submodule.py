@@ -315,6 +315,11 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             (2, 3)
             sage: C = A.intersection(B); C.dimension()
             1
+
+        TESTS:
+            sage: M = ModularSymbols(1,80)
+            sage: M.plus_submodule().cuspidal_submodule().sign() # indirect doctest
+            1
         """
         if self.ambient_hecke_module() != other.ambient_hecke_module():
             raise ArithmeticError, "Intersection only defined for subspaces of"\
@@ -323,10 +328,18 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             return self
         if self.is_ambient():
             return other
+
         # Neither is ambient
         V = self.free_module().intersection(other.free_module())
-        M = self.ambient_hecke_module()
-        return M.submodule(V, check=False)
+        M = self.ambient_hecke_module().submodule(V,check=False)
+
+        ## if sign is nonzero, the intersection will be, too
+        if self.sign():
+            M._set_sign(self.sign())
+        elif other.sign():
+            M._set_sign(other.sign())
+
+        return M
 
     def is_ambient(self):
         return self.free_module() == self.ambient_hecke_module().free_module()

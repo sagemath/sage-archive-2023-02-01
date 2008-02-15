@@ -1,4 +1,4 @@
-from equations import (SymbolicEquation,
+from equations import (is_SymbolicEquation,
                        forget, assume, assumptions,
                        solve, solve_mod)
 
@@ -41,6 +41,32 @@ from desolvers import (desolve, desolve_laplace, desolve_system,
 from var import (var, function, clear_vars)
 
 def symbolic_expression(x):
+    """
+    Create a symbolic expression from x.
+
+    INPUT:
+        x -- an object
+    OUTPUT:
+        a symbolic expression.
+
+    EXAMPLES:
+        sage: a = symbolic_expression(3/2); a
+        3/2
+        sage: type(a)
+        <class 'sage.calculus.calculus.SymbolicConstant'>
+        sage: R.<x> = QQ[]; type(x)
+        <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_rational_dense'>
+        sage: a = symbolic_expression(2*x^2 + 3); a
+        2*x^2 + 3
+        sage: type(a)
+        <class 'sage.calculus.calculus.SymbolicPolynomial'>
+        sage: is_SymbolicExpression(a)
+        True
+        sage: a in SR
+        True
+        sage: a.parent()
+        Symbolic Ring
+    """
     return SR(x)
 
 import desolvers

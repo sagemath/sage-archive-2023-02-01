@@ -198,7 +198,7 @@ def cyclotomic_polynomial(n, var='x'):
         x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
     """
     return sage.rings.all.PolynomialRing(\
-                  sage.rings.all.QQ, name=var).cyclotomic_polynomial(n)
+                  sage.rings.all.ZZ, name=var).cyclotomic_polynomial(n)
 
 def decomposition(x):
     """
@@ -905,10 +905,20 @@ def show(x, *args, **kwds):
         axes -- (default: True)
         fontsize -- positive integer
         frame -- (default: False) draw a MATLAB-like frame around the image
+        columns -- (default: 4) Number of columns if showing a list
+        rows -- (default: int((5/4)*columns)) Number of rows if showing a list
 
     EXAMPLES:
         sage: show(graphs(3))
-        sage: show(list(graphs(3)))
+        sage: show(list(graphs(4)))
+        sage: show([plot(sin(i*x)) for i in range(30)]) # Two pages of images
+        sage: show([sin(i*x) for i in range(2)])
+        sage: show([sin(i*x) for i in range(30)], columns=1, rows=10)
+
+    If an item of a list does not have a plot function, then a blank is left in
+    its place.  For example, the \code{'a'} below is not plotted.
+
+        sage: show([x^2, 'a', x^3])
 
     """
     if not isinstance(x, (sage.interfaces.expect.Expect, sage.interfaces.expect.ExpectElement)):
@@ -922,19 +932,48 @@ def show(x, *args, **kwds):
     import types
     if isinstance(x, types.GeneratorType):
         x = list(x)
-    if isinstance(x, list):
-        if len(x) > 0:
-            from sage.graphs.graph import GenericGraph
-            if isinstance(x[0], GenericGraph):
-                import sage.graphs.graph_list as graphs_list
-                graphs_list.show_graphs(x)
-                return
+    if isinstance(x, list) and len(x)>0:
+        columns = kwds.pop('columns',4)
+        rows = kwds.pop('rows',int(columns*5/4))
+        page_size=rows*columns
+
+        from copy import copy
+        graphic_list = []
+        for item in x:
+            try:
+                plot_kwds = copy(item.graphics_array_defaults)
+            except AttributeError:
+                plot_kwds = {}
+            plot_kwds.update(kwds)
+            try:
+                graphic_list.append(item.plot(**plot_kwds))
+            except AttributeError:
+                # Apparently we don't have a plot function for an item
+                from sage.plot.plot import Graphics
+                G = Graphics()
+                G.axes(False)
+                graphic_list.append(G)
+
+        from sage.plot.plot import graphics_array
+        from math import ceil
+        page_list=[graphic_list[i:i+page_size] \
+                   for i in xrange(0,len(graphic_list),page_size)]
+        for page in page_list:
+            g = graphics_array(page,
+                               int(ceil(float(len(page))/columns)),
+                               min(len(page),columns))
+            g.__set_figsize__([g.ncols()*2,g.nrows()*2])
+            g.show()
+        return
+
     _do_show(x)
 
 def _do_show(x):
     if sage.server.support.EMBEDDED_MODE:
         print '<html><div class="math">%s</div></html>'%sage.misc.latex.latex(x)
         return sage.misc.latex.LatexExpr('') # so no visible output
+    if sage.plot.plot.DOCTEST_MODE:
+        return sage.misc.latex.latex(x)
     from latex import view
     view(x)
     #raise AttributeError, "object %s does not support show."%(x, )

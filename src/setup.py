@@ -56,6 +56,8 @@ if not os.path.exists(SITE_PACKAGES):
     SITE_PACKAGES = '%s/lib/python2.5/site-packages/'%SAGE_LOCAL
     if not os.path.exists(SITE_PACKAGES):
         SITE_PACKAGES = '%s/lib/python2.4/site-packages/'%SAGE_LOCAL
+        if not os.path.exists(SITE_PACKAGES) and os.environ.has_key('SAGE_DEBIAN'):
+            SITE_PACKAGES = '/usr/lib/python2.5/site-packages/'
         if not os.path.exists(SITE_PACKAGES):
             raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
 
@@ -70,7 +72,7 @@ if not os.path.islink(sage_link) or not os.path.exists(sage_link):
     os.system('cd %s; ln -sf ../../../../devel/sage/build/sage .'%SITE_PACKAGES)
 
 
-def is_older(file1, file2):
+def is_newer(file1, file2):
     """
     Return True if either file2 does not exist or is older than file1.
 
@@ -89,6 +91,12 @@ include_dirs = ['%s/include'%SAGE_LOCAL, \
 		## this is included, but doesn't actually exist
 		## '%s/include/python'%SAGE_LOCAL, \
                 '%s/sage/sage/ext'%SAGE_DEVEL]
+
+if os.environ.has_key('SAGE_DEBIAN'):
+    debian_include_dirs=["/usr/include","/usr/include/numpy","/usr/include/FLINT","/usr/include/givaro", "/usr/include/gsl","/usr/include/fplll","/usr/include/eclib","/usr/include/gmp++","/usr/include/linbox","/usr/include/NTL","/usr/include/pari","/usr/include/qd","/usr/include/singular","/usr/include/singular/singular","/usr/include/symmetrica","/usr/include/polybori"]
+    include_dirs = include_dirs + debian_include_dirs
+else:
+    debian_include_dirs=[]
 
 #####################################################
 
@@ -111,7 +119,7 @@ hanke = Extension(name = "sage.libs.hanke.hanke",
 fmpz_poly = Extension('sage.libs.flint.fmpz_poly',
                  sources = ["sage/libs/flint/fmpz_poly.pyx"],
                  libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
-                 include_dirs=[SAGE_ROOT+'/local/include/FLINT/'],
+                 include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/include/FLINT/'],
                  extra_compile_args=["-std=c99"]
                  )
 
@@ -299,14 +307,14 @@ libsingular = Extension('sage.libs.singular.singular',
                         sources = ['sage/libs/singular/singular.pyx'],
                         libraries = ['m', 'readline', 'singular', 'singfac', 'singcf', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
                         language="c++",
-                        include_dirs=[SAGE_ROOT +'/local/include/singular']
+                        include_dirs=debian_include_dirs + [SAGE_ROOT +'/local/include/singular']
                         )
 
 fplll = Extension('sage.libs.fplll.fplll',
                         sources = ['sage/libs/fplll/fplll.pyx'],
                         libraries = ['gmp', 'mpfr', 'stdc++', 'fplll'],
                         language="c++",
-                        include_dirs=[SAGE_ROOT +'/local/include/fplll']
+                        include_dirs=debian_include_dirs + [SAGE_ROOT +'/local/include/fplll']
                         )
 
 
@@ -346,11 +354,11 @@ matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
 
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
    ['sage/matrix/matrix_real_double_dense.pyx'],libraries=[BLAS, BLAS2, 'gsl'],
-   define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+   define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 matrix_complex_double_dense=Extension('sage.matrix.matrix_complex_double_dense',
    ['sage/matrix/matrix_complex_double_dense.pyx'],libraries=['gsl', BLAS, BLAS2],
-   define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+   define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 
 solve = Extension('sage.matrix.solve',['sage/matrix/solve.pyx'],libraries = ['gsl', BLAS, BLAS2],define_macros =
@@ -371,7 +379,7 @@ matrix_mpolynomial_dense = Extension('sage.matrix.matrix_mpolynomial_dense',
                                      ['sage/matrix/matrix_mpolynomial_dense.pyx'],
                                      libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
                                      language="c++",
-                                     include_dirs=[SAGE_ROOT +'/local/include/singular'])
+                                     include_dirs=debian_include_dirs + [SAGE_ROOT +'/local/include/singular'])
 
 matrix_symbolic_dense = Extension('sage.matrix.matrix_symbolic_dense',
                                    ['sage/matrix/matrix_symbolic_dense.pyx'])
@@ -415,10 +423,10 @@ complex_double = Extension('sage.rings.complex_double',
                            libraries = ['gsl', BLAS, BLAS2, 'pari', 'gmp'])
 
 real_double_vector = Extension('sage.modules.real_double_vector',['sage/modules/real_double_vector.pyx'],
-                              libraries = ['gsl', BLAS, BLAS2, 'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECAED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+                              libraries = ['gsl', BLAS, BLAS2, 'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECAED','1')],include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 complex_double_vector = Extension('sage.modules.complex_double_vector',['sage/modules/complex_double_vector.pyx'],
-                           libraries = ['gsl', BLAS, BLAS2, 'pari', 'gmp'],define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+                           libraries = ['gsl', BLAS, BLAS2, 'pari', 'gmp'],define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 
 vector_integer_dense = Extension('sage.modules.vector_integer_dense',
@@ -453,7 +461,7 @@ sagex_ds = Extension('sage.misc.sagex_ds', ['sage/misc/sagex_ds.pyx'])
 symmetrica = Extension('sage.libs.symmetrica.symmetrica',
                        sources = ["sage/libs/symmetrica/%s"%s for s in \
                                   ["symmetrica.pyx"]],
-                       include_dirs=['/usr/include/malloc/'],
+                       include_dirs=debian_include_dirs + ['/usr/include/malloc/'],
                        libraries = ["symmetrica"])
 
 
@@ -631,13 +639,13 @@ ext_modules = [ \
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
               libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
-              include_dirs=[SAGE_ROOT +'/local/include/singular']), \
+              include_dirs=debian_include_dirs + [SAGE_ROOT +'/local/include/singular']), \
 
     Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
               libraries = ['m', 'readline', 'singular', 'singcf', 'singfac', 'omalloc', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
-              include_dirs=[SAGE_ROOT +'/local/include/singular']), \
+              include_dirs=debian_include_dirs + [SAGE_ROOT +'/local/include/singular']), \
 
     Extension('sage.groups.group',
               sources = ['sage/groups/group.pyx']), \
@@ -694,7 +702,7 @@ ext_modules = [ \
 
     Extension('sage.interfaces.libecm',
               sources = ['sage/interfaces/libecm.pyx'],
-              libraries=['ecm', 'gmp']), \
+              libraries = ['ecm', 'gmp']), \
 
     Extension('sage.rings.padics.pow_computer',
               sources = ['sage/rings/padics/pow_computer.pyx'],
@@ -765,14 +773,14 @@ ext_modules = [ \
               sources = ['sage/rings/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],
               libraries=['ntl','stdc++'],
               language = 'c++',
-              include_dirs=['sage/libs/ntl/']), \
+              include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
 
     Extension('sage.schemes.hyperelliptic_curves.frobenius',
                  sources = ['sage/schemes/hyperelliptic_curves/frobenius.pyx',
                             'sage/schemes/hyperelliptic_curves/frobenius_cpp.cpp'],
                  libraries = ['ntl', 'stdc++', 'gmp'],
                  language = 'c++',
-                 include_dirs=['sage/libs/ntl/']), \
+                 include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
 
     Extension('sage.rings.polynomial.polynomial_compiled',
                sources = ['sage/rings/polynomial/polynomial_compiled.pyx']), \
@@ -784,13 +792,13 @@ ext_modules = [ \
                  sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx'],
                  libraries = ['ntl', 'stdc++', 'gmp'],
                  language = 'c++',
-                 include_dirs=['sage/libs/ntl/']), \
+                 include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
 
     Extension('sage.rings.polynomial.polynomial_modn_dense_ntl',
                  sources = ['sage/rings/polynomial/polynomial_modn_dense_ntl.pyx'],
                  libraries = ['ntl', 'stdc++', 'gmp'],
                  language = 'c++',
-                 include_dirs=['sage/libs/ntl/']), \
+                 include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
 
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']), \
@@ -835,8 +843,12 @@ ext_modules = [ \
     Extension('sage.rings.number_field.number_field_base',
               sources = ['sage/rings/number_field/number_field_base.pyx']), \
 
+    Extension('sage.rings.number_field.totallyreal_data',
+              ['sage/rings/number_field/totallyreal_data.pyx'],
+              libraries = ['gmp']), \
+
     Extension('sage.rings.morphism',
-              sources = ['sage/rings/morphism.pyx']),
+              sources = ['sage/rings/morphism.pyx']), \
 
     Extension('sage.structure.wrapper_parent',
               sources = ['sage/structure/wrapper_parent.pyx']), \
@@ -947,7 +959,7 @@ ext_modules = [ \
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],
               libraries=['polybori','pboriCudd','groebner'],
-              include_dirs=[SAGE_ROOT+'/local/include/cudd',
+              include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/include/cudd',
                             SAGE_ROOT+'/local/include/polybori',
                             SAGE_ROOT+'/local/include/polybori/groebner'],
               language = 'c++'), \
@@ -972,7 +984,10 @@ if DEVEL:
 
 for m in ext_modules:
     m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
-    m.library_dirs += ['%s/lib' % SAGE_LOCAL]
+    if os.environ.has_key('SAGE_DEBIAN'):
+        m.library_dirs += ['/usr/lib','/usr/lib/eclib','/usr/lib/singular','/usr/lib/R/lib','%s/lib' % SAGE_LOCAL]
+    else:
+        m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 
 ######################################################################
@@ -982,90 +997,7 @@ for m in ext_modules:
 # checking that we need.
 ######################################################################
 
-def check_dependencies( filename, outfile ):
-    """
-    INPUT:
-        filename -- The name of a .pyx, .pxd, or .pxi to check dependencies in the SAGE source.
-        outfile -- The output file for which we are determining out-of-date-ness
-
-    OUTPUT:
-        bool -- whether or not outfile must be regenerated.
-    """
-    if is_older(filename, outfile):
-        print "\nBuilding %s because it depends on %s."%(outfile, filename)
-        return True
-
-    # Now we look inside the file to see what it cimports or include.
-    # If any of these files are newer than outfile, we rebuild
-    # outfile.
-    S = open(filename).readlines()
-    # Take the lines that begin with cimport (it won't hurt to
-    # have extra lines)
-    C = [x.strip() for x in S if 'cimport' in x]
-    for A in C:
-        # Deduce the full module name.
-        # The only allowed forms of cimport/include are:
-        #        cimport a.b.c.d
-        #        from a.b.c.d cimport e
-        # Also, the cimport can be both have no dots (current directory) or absolute.
-        # The multiple imports with parens, e.g.,
-        #        import (a.b.c.d, e.f.g)
-        # of Python are not allowed in Cython.
-        # In both cases, the module name is the second word if we split on whitespace.
-        try:
-            A = A.strip().split()[1]
-        except IndexError:
-            # illegal statement or not really a cimport (e.g., cimport could
-            # be in a comment or something)
-            continue
-
-        if A[0] == '"':
-            A = A[1:-1]
-
-        # Now convert A to a filename, e.g., a/b/c/d
-        #
-        if '.' in A:
-            # It is an absolute cimport.
-            A = A.replace('.','/') + '.pxd'
-        else:
-            # It is a relative cimport.
-            A =  os.path.split(filename)[0] + '/' + A + '.pxd'
-        # Check to see if a/b/c/d.pxd exists and is newer than filename.
-        # If so, we have to regenerate outfile.  If not, we're safe.
-        if os.path.exists(A) and check_dependencies(A, outfile):
-            return True # yep we must rebuild
-
-    # OK, next we move on to include pxi files.
-    # If they change, we likewise must rebuild the pyx file.
-    I = [x for x in S if 'include' in x]
-    # The syntax for include is like this:
-    #       include "../a/b/c.pxi"
-    # I.e., it's a quoted *relative* path to a pxi file.
-    for A in I:
-        try:
-            A = A.strip().split()[1]
-        except IndexError:
-            # Illegal include statement or not really an include
-            # (e.g., include could easily be in a comment or
-            # something).  No reason to crash setup.py!
-            continue
-        # Strip the quotes from either side of the pxi filename.
-        A = A.strip('"').strip("'")
-        # Now take filename (the input argument to this function)
-        # and strip off the last part of the path and stick
-        # A onto it to get the filename of the pxi file relative
-        # where setup.py is being run.
-        R = A # save the relative filename in case it is absolute
-        A = os.path.split(filename)[0] + '/' + A
-        if not os.path.exists(A):
-            # A is an "absolute" path -- that is, absolute to the base of the sage tree
-            A = R # restore
-        # Finally, check to see if filename is older than A
-        if os.path.exists(A) and check_dependencies(A, outfile):
-            return True
-
-
-def need_to_cython(filename, outfile):
+def need_to_cython(deps, filename, outfile):
     """
     INPUT:
         filename -- The name of a cython file in the SAGE source tree.
@@ -1077,15 +1009,14 @@ def need_to_cython(filename, outfile):
 
     base =  os.path.splitext(filename)[0]
     pxd = base+'.pxd'
-
-    if check_dependencies(filename, outfile):
+    if need_to_build(deps, filename, outfile):
         return True
-    elif os.path.exists(pxd) and check_dependencies(pxd, outfile):
+    elif os.path.exists(pxd) and need_to_build(deps, pxd, outfile):
         return True
     else:
         return False
 
-def process_cython_file(f, m):
+def process_cython_file(deps, f, m):
     """
     INPUT:
         f -- file name
@@ -1093,14 +1024,14 @@ def process_cython_file(f, m):
     """
     # This is a cython file, so process accordingly.
     pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
-    if is_older(f, pyx_inst_file):
+    if is_newer(f, pyx_inst_file):
         print "%s --> %s"%(f, pyx_inst_file)
         os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
     outfile = f[:-4] + ".c"
     if m.language == 'c++':
         outfile += 'pp'
 
-    if need_to_cython(f, outfile):
+    if need_to_cython(deps, f, outfile):
         # Insert the -o parameter to specify the output file (particularly for c++)
         cmd = "cython --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
         print cmd
@@ -1136,7 +1067,7 @@ if H != H_old:
 else:
     do_cython = False
 
-def cython(ext_modules):
+def cython(deps, ext_modules):
     for m in ext_modules:
         m.extra_compile_args += extra_compile_args
 #        m.extra_link_args += extra_link_args
@@ -1145,15 +1076,136 @@ def cython(ext_modules):
             f = m.sources[i]
 #            s = open(f).read()
             if f[-4:] == ".pyx":
-                new_sources += process_cython_file(f, m)
+                new_sources += process_cython_file(deps, f, m)
             else:
                 new_sources.append(f)
         m.sources = new_sources
 
+def search_all_includes(filename):
+    """
+    Returns a list of all files that get included by f.
+    """
+    # Now we look inside the file to see what it cimports or include.
+    S = open(filename).readlines()
+    # Take the lines that begin with cimport (it won't hurt to
+    # have extra lines)
+    C = [x.strip() for x in S if 'cimport' in x]
+    this_deps = []
+    for A in C:
+        # Deduce the full module name.
+        # The only allowed forms of cimport/include are:
+        #        cimport a.b.c.d
+        #        from a.b.c.d cimport e
+        # Also, the cimport can be both have no dots (current directory) or absolute.
+        # The multiple imports with parens, e.g.,
+        #        import (a.b.c.d, e.f.g)
+        # of Python are not allowed in Cython.
+        # In both cases, the module name is the second word if we split on whitespace.
+        try:
+            A = A.strip().split()[1]
+        except IndexError:
+            # illegal statement or not really a cimport (e.g., cimport could
+            # be in a comment or something)
+            continue
+        if A[0] == '"':
+            A = A[1:-1]
 
+        # Now convert A to a filename, e.g., a/b/c/d
+        if '.' in A:
+            # It is an absolute cimport.
+            A = A.replace('.','/') + '.pxd'
+        else:
+            # It is a relative cimport.
+            A =  os.path.split(filename)[0] + '/' + A + '.pxd'
+        # Check to see if a/b/c/d.pxd exists and is newer than filename.
+        # If so, we have to regenerate outfile.  If not, we're safe.
+        if os.path.exists(A):
+            this_deps.append(module_path(A))
+
+    # OK, next we move on to include pxi files.
+    I = [x for x in S if 'include' in x]
+    # The syntax for include is like this:
+    #       include "../a/b/c.pxi"
+    # I.e., it's a quoted *relative* path to a pxi file.
+    for A in I:
+        try:
+            A = A.strip().split()[1]
+        except IndexError:
+            # Illegal include statement or not really an include
+            # (e.g., include could easily be in a comment or
+            # something).  No reason to crash setup.py!
+            continue
+        # Strip the quotes from either side of the pxi filename.
+        A = A.strip('"').strip("'")
+        # Now take filename (the input argument to this function)
+        # and strip off the last part of the path and stick
+        # A onto it to get the filename of the pxi file relative
+        # where setup.py is being run.
+        R = A # save the relative filename in case it is absolute
+        A = os.path.split(filename)[0] + '/' + A
+        if not os.path.exists(A):
+            # A is an "absolute" path -- that is, absolute to the base of the sage tree
+            A = R # restore
+        if os.path.exists(A):
+            this_deps.append(module_path(A))
+    return this_deps
+
+def module_path(path):
+    # get the absolute path
+    s = os.path.abspath(path)
+    # get rid of extraneous stuff
+    s = s[len(SAGE_ROOT):]
+    n = s.find('/', 12)
+    s = s[n+1:]
+    return s
+
+def deps_graph(deps, f, visited=set([])):
+    # first we find all the dependencies of f
+    f = module_path(f)
+    this_deps = search_all_includes(f)
+    try:
+        deps[f] = deps[f].union(set(this_deps))
+    except KeyError:
+        deps[f] = set(this_deps)
+    visited.add(f)
+    for d in this_deps:
+        if d not in visited:
+            deps_graph(deps, d, visited)
+
+def need_to_build(deps, f, outfile):
+    if is_newer(f, outfile):
+        print '\nBuilding %s because it depends on %s.' % (outfile, f)
+        return True
+    try:
+        this_deps = deps[f]
+    except KeyError:
+        # if we get this far, f has no includes, so it is a leaf node
+        return False
+    for d in this_deps:
+        if need_to_build(deps, d, outfile):
+            return True
+    return False
+
+def create_deps(ext_modules):
+    # first we compute the complete graph of dependencies
+    deps = {}
+    for m in ext_modules:
+        m.extra_compile_args += extra_compile_args
+        for i in range(len(m.sources)):
+            f = m.sources[i]
+            if f[-4:] == '.pyx':
+                visited = set()
+                deps_graph(deps, f, visited)
+                base = os.path.splitext(f)[0]
+                f = f[:-4] + '.pxd'
+                if os.path.exists(f):
+                    deps_graph(deps, f, visited)
+
+    return deps
 
 if not sdist and do_cython:
-    cython(ext_modules)
+    deps = create_deps(ext_modules)
+    cython(deps, ext_modules)
     pass
 
 code = setup(name        = 'sage',

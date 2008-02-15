@@ -1772,7 +1772,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         mpz_set_si(pr, 1)
         for row from 0 <= row < self._nrows:
-            tmp = []
             mpz_set_si(s, 0)
             for c in cols:
                 if c<0 or c >= self._ncols:

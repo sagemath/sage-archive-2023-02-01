@@ -249,6 +249,11 @@ class CrystalOfTableaux(TensorProductOfCrystals):
         Here is the list of its elements:
 
         sage: Tab.list()
+	[[[1, 1], [2], [3]], [[1, 2], [2], [3]], [[1, 3], [2], [3]],
+         [[1, 4], [2], [3]], [[1, 4], [2], [4]], [[1, 4], [3], [4]],
+         [[2, 4], [3], [4]], [[1, 1], [2], [4]], [[1, 2], [2], [4]],
+         [[1, 3], [2], [4]], [[1, 3], [3], [4]], [[2, 3], [3], [4]],
+         [[1, 1], [3], [4]], [[1, 2], [3], [4]], [[2, 2], [3], [4]]]
 
         One can get (currently) crude ploting via:
 
@@ -257,16 +262,28 @@ class CrystalOfTableaux(TensorProductOfCrystals):
         One can get instead get a LaTeX drawing ready to be
         copy-pasted into a LaTeX file:
 
-        sage: Tab.latex()
+        sage: Tab.latex() # random
 
         See sage.combinat.crystals? for general help on using crystals
+
+    TESTS:
+
+#	sage: T = CrystalOfTableaux(['C',2],Partition([2,1]))
+#        sage: T.list() == [ T(t) for t in [[[1, 1], [2]], [[1, 2], [2]], [[1, -2], [2]],\
+#                           [[1, -1], [2]], [[1, -2], [-2]], [[1, -1], [-2]],\
+#                           [[2, -1], [-2]], [[2, -1], [-1]], [[1, 1], [-2]],\
+#                           [[1, 2], [-2]], [[2, 2], [-2]], [[2, 2], [-1]],\
+#                           [[2, -2], [-2]], [[2, -2], [-1]], [[-2, -2], [-1]],\
+#                           [[-2, -1], [-1]]]]
+#        True
     """
     def __init__(self, type, shape):
 	C=CrystalOfLetters(type)
-	module_generator = flatten([[C(i+1)]*shape[i] for i in range(len(shape))])
-	module_generator.reverse()
+	p = shape.conjugate()
+	module_generator = flatten([[C(p[j]-i) for i in range(p[j])] for j in range(len(p))])
         TensorProductOfCrystals.__init__(self, *[C]*shape.size(), **{'generators':[module_generator]})
 	self._name = "The crystal of tableaux of type%s"%type
+	self.shape = shape
 
     def __call__(self, *args, **options):
 	if not options.has_key('rows') and isinstance(args[0], Element) and args[0].parent() == self:
@@ -296,11 +313,14 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
 	return latex(self.to_tableau())
 
     def to_tableau(self):
-	tab = [ [self[0]] ]
-	for i in range(1,len(self)):
-	    if self[i-1].value > self[i].value:
-		tab.append([self[i]])
-	    else:
-		l = len(tab)-1
-		tab[l].append(self[i])
-	return Tableau(tab)
+	shape = self.parent().shape.conjugate()
+	tab = []
+	s = 0
+	for i in range(len(shape)):
+	    col = [ self[s+k] for k in range(shape[i]) ]
+	    col.reverse()
+	    s += shape[i]
+	    tab.append(col)
+	tab = Tableau(tab)
+	return(tab.conjugate())
+

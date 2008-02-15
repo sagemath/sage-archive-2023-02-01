@@ -37,6 +37,10 @@ PREPARSE:
     sage: preparse('2e3x + 3exp(y)')
     "RealNumber('2e3')*x + Integer(3)*exp(y)"
 
+A hex literal:
+    sage: preparse('0x23')
+    'Integer(0x23)'
+
 In SAGE methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error).
     sage: 16.sqrt()

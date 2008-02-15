@@ -27,7 +27,7 @@ are [[0,4], [1,2], [2,0]].
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.interfaces.all import gap, maxima
+from sage.interfaces.all import gap, maxima, gp
 from sage.rings.all import QQ, RR, ZZ
 from sage.misc.all import prod, sage_eval
 from sage.rings.arith import factorial, gcd
@@ -50,6 +50,8 @@ import tableau
 import permutation
 import sf.sfa
 import copy
+from integer_vector import IntegerVectors
+from cartesian_product import CartesianProduct
 
 def Partition(l=None, exp=None, core_and_quotient=None):
     """
@@ -1578,28 +1580,26 @@ class PartitionTuples_nk(CombinatorialClass):
     def __repr__(self):
         return "%s-tuples of partitions of %s"%(self.k, self.n)
 
-    def list(self):
-        """
-        Returns the list of all k-tuples of partitions
+    def iterator(self):
+        r"""
+        Returns an iterator for all k-tuples of partitions
         which together form a partition of n.
 
-        Wraps GAP's PartitionTuples.
-
         EXAMPLES:
-            sage: PartitionTuples(3,2).list()
-            [[[1, 1, 1], []],
-            [[1, 1], [1]],
-            [[1], [1, 1]],
-            [[], [1, 1, 1]],
-            [[2, 1], []],
-            [[1], [2]],
-            [[2], [1]],
-            [[], [2, 1]],
-            [[3], []],
-            [[], [3]]]
+            sage: PartitionTuples(2,0).list() #indirect doctest
+            []
+            sage: PartitionTuples(2,1).list() #indirect doctest
+            [[[2]], [[1, 1]]]
+            sage: PartitionTuples(2,2).list() #indirect doctest
+            [[[2], []], [[1, 1], []], [[1], [1]], [[], [2]], [[], [1, 1]]]
+            sage: PartitionTuples(3,2).list() #indirect doctest
+            [[[3], []], [[2, 1], []], [[1, 1, 1], []], [[2], [1]], [[1, 1], [1]], [[1], [2]], [[1], [1, 1]], [[], [3]], [[], [2, 1]], [[], [1, 1, 1]]]
         """
-        ans=gap.eval("PartitionTuples(%s,%s)"%(ZZ(self.n),ZZ(self.k)))
-        return map(lambda x: map(lambda y: Partition(y), x), eval(ans))
+        p = [Partitions(i) for i in range(self.n+1)]
+        for iv in IntegerVectors(self.n,self.k):
+            for cp in CartesianProduct(*[p[i] for i in iv]):
+                yield cp
+
 
     def count(self):
         r"""
@@ -1629,9 +1629,8 @@ class PartitionTuples_nk(CombinatorialClass):
             185
             \end{verbatim}
         """
+        return ZZ(gp.eval('polcoeff(1/eta(x)^%s, %s, x)'%(self.k, self.n)))
 
-        ans=gap.eval("NrPartitionTuples(%s,%s)"%(ZZ(self.n),ZZ(self.k)))
-        return ZZ(ans)
 
 ##############
 # Partitions #

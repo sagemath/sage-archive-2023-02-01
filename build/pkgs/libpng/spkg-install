@@ -3,7 +3,11 @@
 cd src
 
 # Need to detect zlib
-CFLAGS="$CFLAGS -I\"$SAGE_LOCAL/include\""
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+    CFLAGS="-m64 $CFLAGS -fPIC -g -I$SAGE_LOCAL/include"
+else
+    CFLAGS="$CFLAGS -fPIC -g -I$SAGE_LOCAL/include"
+fi
 export CFLAGS
 
 

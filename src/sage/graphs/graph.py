@@ -2878,7 +2878,9 @@ class GenericGraph(SageObject):
         elif heights is not None:
             pos = {}
             mmax = max([len(ccc) for ccc in heights.values()])
-            dist = (1.0/(mmax+1))
+            ymin = min(heights.keys())
+            ymax = max(heights.keys())
+            dist = ((ymax-ymin)/(mmax+1.0))
             for height in heights:
                 num_xes = len(heights[height])
                 if num_xes == 0: continue

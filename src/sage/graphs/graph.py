@@ -2911,7 +2911,12 @@ class GenericGraph(SageObject):
                     for u,v,_ in edge_colors[color]:
                         if u != v:
                             P += arrow((pos[u][0],pos[u][1]),(pos[v][0],pos[v][1]),rgbcolor=color)
+            limits = (G.xmin(), G.xmax(), G.ymin(), G.ymax())
             G = P + G
+            G.xmin(limits[0])
+            G.xmax(limits[1])
+            G.ymin(limits[2])
+            G.ymax(limits[3])
         if edge_labels:
             from sage.plot.plot import text
             K = Graphics()

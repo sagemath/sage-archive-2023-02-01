@@ -1,3 +1,20 @@
+= tachyon =
+
+== license ==
+
+see below
+
+== Changelog ==
+
+=== tachyon-0.98beta.p4 (Tim Abbott, Jan. 15th, 2008) ===
+ * Debianize spkg (TIm Abbott)
+ * add .hgignore, update SPKG.txt (Michael Abshoff)
+
+=== tachyon-0.98beta.p3 ===
+ * Changes lost to history
+
+== Build Instructions ==
+
 Deleted the scenes directory, which has lots of cool examples.
 If you're interested, definitely download the source distribution
 from http://jedi.ks.uiuc.edu/~johns/raytracer/ and check them out!

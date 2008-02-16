@@ -318,17 +318,21 @@ cdef class PartitionStack:
         k = 0
         s = ''
         while (k == 0 or self.levels[k-1] != -1) and k <= self.k:
-            s += '('
-            i = 0
-            while i == 0 or self.levels[i-1] != -1:
-                s += str(self.entries[i])
-                if self.levels[i] <= k:
-                    s += '|'
-                else:
-                    s += ','
-                i += 1
-            s = s[:-1] + ')\n'
+            s += self.repr_at_k(k) + '\n'
             k += 1
+        return s
+
+    def repr_at_k(self, k):
+        s = '('
+        i = 0
+        while i == 0 or self.levels[i-1] != -1:
+            s += str(self.entries[i])
+            if self.levels[i] <= k:
+                s += '|'
+            else:
+                s += ','
+            i += 1
+        s = s[:-1] + ')'
         return s
 
     def set_k(self, k):
@@ -819,6 +823,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
                     2 - with timings
                     3 - display partition nests
                     4 - display orbit partition
+                    5 - plot the part of the tree traversed during search
         use_indicator_function -- option to turn off indicator function
     (False -> slower)
 
@@ -1394,17 +1399,17 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
             print 'k_rho: ' + str(k_rho)
             print 'nu:'
             print nu
-            if verbosity > 1:
+            if verbosity >= 2:
                 t = cputime(t)
                 print 'time:', t
-            if verbosity > 2:
+            if verbosity >= 3:
                 print 'zeta:'
                 print [zeta.entries[iii] for iii in range(n)]
                 print [zeta.levels[iii] for iii in range(n)]
                 print 'rho'
                 print [rho.entries[iii] for iii in range(n)]
                 print [rho.levels[iii] for iii in range(n)]
-            if verbosity > 3:
+            if verbosity >= 4:
                 Thetarep = []
                 for i from 0 <= i < n:
                     j = Theta._find(i)
@@ -1416,6 +1421,41 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
                     if not didit:
                         Thetarep.append([j])
                 print 'Theta: ', str(Thetarep)
+            if verbosity >= 5:
+                if state == 1:
+                    verbose_first_time = True
+                    verbose_just_refined = False
+                elif verbose_first_time:
+                    verbose_first_time = False
+                    # here we have just gone through step 1, and must now begin
+                    # to record information about the tree
+                    ST_vis = DiGraph()
+                    ST_vis_heights = {0:[nu.repr_at_k(0)]}
+                    ST_vis.add_vertex(nu.repr_at_k(0))
+                    ST_vis_current_vertex = nu.repr_at_k(0)
+                    ST_vis_current_level = 0
+                    #ST_vis.show(vertex_size=0)
+                if state == 2:
+                    verbose_just_refined = True
+                elif verbose_just_refined:
+                    verbose_just_refined = False
+                    # here we have gone through step 2, and must record the
+                    # refinement just made
+                    while ST_vis_current_level > nu.k-1:
+                        ST_vis_current_vertex = ST_vis.predecessors(ST_vis_current_vertex)[0]
+                        ST_vis_current_level -= 1
+                    if ST_vis_heights.has_key(nu.k):
+                        ST_vis_heights[nu.k].append(nu.repr_at_k(nu.k))
+                    else:
+                        ST_vis_heights[nu.k] = [nu.repr_at_k(nu.k)]
+                    ST_vis.add_edge(ST_vis_current_vertex, nu.repr_at_k(nu.k))
+                    ST_vis_current_vertex = nu.repr_at_k(nu.k)
+                    ST_vis_current_level += 1
+                if state == 13 and nu.k == -1:
+                    ST_vis_new_heights = {}
+                    for ST_vis_k in ST_vis_heights:
+                        ST_vis_new_heights[-ST_vis_k] = ST_vis_heights[ST_vis_k]
+                    ST_vis.show(vertex_size=0, heights=ST_vis_new_heights, figsize=[30,10])
             print '-----'
             print 'state:', state
 

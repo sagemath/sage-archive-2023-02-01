@@ -80,13 +80,15 @@ def IntegerModRing(order=0):
     Return the quotient ring $\ZZ / n\ZZ$.
 
     INPUT:
-        order -- integer (default: 0)
+        order -- integer (default: 0), positive or negative
 
     EXAMPLES:
         sage: IntegerModRing(15)
         Ring of integers modulo 15
         sage: IntegerModRing(7)
         Ring of integers modulo 7
+        sage: IntegerModRing(-100)
+        Ring of integers modulo 100
 
     Note that you can also use \code{Integers}, which is a synonym
     for \code{IntegerModRing}.
@@ -95,6 +97,8 @@ def IntegerModRing(order=0):
     """
     if order == 0:
         return integer_ring.IntegerRing()
+    if order < 0:
+        order = -order
     global _objsIntegerModRing
     if _objsIntegerModRing.has_key(order):
         x = _objsIntegerModRing[order]()

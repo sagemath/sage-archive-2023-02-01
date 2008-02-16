@@ -456,6 +456,32 @@ class Ideal_pid(Ideal_principal):
         else:
             raise NotImplementedError
 
+    def is_prime(self):
+        """
+        Returns True if the ideal is prime.  This relies on the
+        ring elements having a method is_irreducible() implemented.
+
+        EXAMPLES:
+            sage: ZZ.ideal(2).is_prime()
+            True
+            sage: ZZ.ideal(-2).is_prime()
+            True
+            sage: ZZ.ideal(4).is_prime()
+            False
+            sage: R.<x>=QQ[]
+            sage: P=R.ideal(x^2+1); P
+            Principal ideal (x^2 + 1) of Univariate Polynomial Ring in x over Rational Field
+            sage: P.is_prime()
+            True
+
+        """
+        g = self.gen()
+        if hasattr(g, 'is_irreducible'):
+            return g.is_irreducible()
+
+        raise NotImplementedError
+
+
 class Ideal_fractional(Ideal_generic):
     def __repr__(self):
         return "Fractional ideal %s of %s"%(self._repr_short(), self.ring())

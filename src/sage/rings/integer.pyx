@@ -1246,6 +1246,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         late_import()
         return sage.rings.arith.prime_divisors(self)
 
+    prime_factors = prime_divisors
+
     def divisors(self):
         """
         Returns a list of all positive integer divisors
@@ -2293,6 +2295,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Returns \code{True} if self is prime
 
+        NB primes are by definition *positive*!  See also is_irreducible()
+
         EXAMPLES:
             sage: z = 2^31 - 1
             sage: z.is_prime()
@@ -2300,8 +2304,35 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z = 2^31
             sage: z.is_prime()
             False
+            sage: z = 7
+            sage: z.is_prime()
+            True
+            sage: z = -7
+            sage: z.is_prime()
+            False
         """
         return bool(self._pari_().isprime())
+
+    def is_irreducible(self):
+        r"""
+        Returns \code{True} if self is irreducible, i.e. +/- prime
+
+        EXAMPLES:
+            sage: z = 2^31 - 1
+            sage: z.is_irreducible()
+            True
+            sage: z = 2^31
+            sage: z.is_irreducible()
+            False
+            sage: z = 7
+            sage: z.is_irreducible()
+            True
+            sage: z = -7
+            sage: z.is_irreducible()
+            True
+        """
+        n = self if self>=0 else -self
+        return bool(n._pari_().isprime())
 
     def is_pseudoprime(self):
         r"""

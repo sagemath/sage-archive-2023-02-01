@@ -30,6 +30,15 @@ cdef extern from "linbox_wrap.h":
 
 
 cdef class Linbox_modn_dense:
+    def __init__(self):
+        self.matrix = <mod_int**> 0
+
+    def __dealloc__(self):
+        if self.matrix:
+            for i from 0 <= i < self.nrows:
+                sage_free(self.matrix[i])
+            sage_free(self.matrix)
+
     cdef set(self, mod_int n, mod_int** matrix,
              size_t nrows, size_t ncols):
         self.n = n

@@ -5,27 +5,115 @@ AUTHORS:
     -- Clement Pernet and William Stein (2008-02-07): initial version
 
 TODO:
-   [ ] more rows than columns
-   [ ] more columns than rows
-   [ ] degenerate cases -- fail nicely
-   [ ] provably correct determinant (via linbox)
-   [ ] memory leaks?!
-   [ ] Make this the default in Sage.
-   [ ] improve documentation
-   [ ] testing for correctness
-   [ ] generalize to polynomials
-   [ ] write a "technical report" with tables of timings
 
+   [ ] provably correct det
+   [ ] provably correct hnf (since we use rank profile -- if wrong need to retry!)
+   [ ] transformation matrix
+   [ ] fix memory leaks:
+sage..: a = random_matrix(ZZ, 300,400)
+sage..: get_memory_usage()
+'626M+'
+sage..: time h = hnf(a
+sage..: get_memory_usage()
+'634M+'
+
+   [ ] Make this the default in Sage and test free modules, etc.
+   [ ] automated testing for correctness
 """
 
 from copy import copy
 
-from sage.misc.misc import verbose
+from sage.misc.misc import verbose, prod
 from sage.matrix.constructor import random_matrix, matrix, matrix
 
-from sage.rings.all import ZZ, QQ, previous_prime
+from sage.rings.all import ZZ, QQ, previous_prime, CRT_list
+import math
 
-def doubleDet (A, b, c):
+#MAX_DET_PRIME = 67108879   # next prime after 2^26 -- biggest for linbox (?)
+MAX_DET_PRIME=16777259      # but this prime much faster for linbox
+
+def det_from_modp_and_divisor(A, d, p, z_mod, moduli):
+    tm = verbose("Multimodular stage of det calculation -- using p = %s"%p, level=1)
+    z = A._linbox_modn_det(p) / d
+    z = z.lift()
+    z_mod.append(z)
+    moduli.append(p)
+    z = CRT_list(z_mod, moduli)
+    N = prod(moduli)
+    if z > N//2:
+        z = z - N
+    verbose("finished multimodular det for p = %s"%p, tm, level=1)
+    return d * z
+
+def det_given_divisor(A, d, proof=True, stabilize=3):
+    """
+    Given a divisor d of the determinant of A, compute the
+    determinant of A.
+
+    INPUT:
+        A -- a square integer matrix
+        d -- an integer that is assumed to divide the determinant of A
+        proof -- bool (default True) compute det modulo enough primes
+                 so that the determinant is computed provably correctly
+                 (via the Hadamard bound).
+        stabilize -- int (default: 3) if proof = False, then compute det
+                 mod p until stabilize successive modulo det computations
+                 stabilize.
+    """
+    p = MAX_DET_PRIME
+    z_mod = []
+    moduli = []
+    if proof:
+        N = 1
+        B = (10**A.hadamard_bound()) // d + 1
+        dd = d
+        verbose("Multimodular det -- need to use about %s primes."%(int(math.log(B)/math.log(p))))
+        while N < B:
+            dd = det_from_modp_and_divisor(A, d, p, z_mod, moduli)
+            N *= p
+            p = previous_prime(p)
+        return dd
+    else:
+        val = []
+        while True:
+            dd = det_from_modp_and_divisor(A, d, p, z_mod, moduli)
+            val.append(dd)
+            if len(val) >= stabilize and len(set(val[-stabilize:])) == 1:
+                return val[-1]
+            p = previous_prime(p)
+
+def det_padic(A, proof=True, stabilize=3):
+    """
+    Return the determinant of A, computed using a p-adic/multimodular
+    algorithm.
+
+    INPUTS:
+        A -- a square matrix
+        proof -- boolean
+        stabilize -- if proof False, number of successive primes so that
+                     CRT det must stabilize.
+
+    EXAMPLES:
+        sage: import sage.matrix.matrix_integer_dense_hnf as h
+        sage: a = matrix(ZZ, 3, [1..9])
+        sage: h.det_padic(a)
+        0
+        sage: a = matrix(ZZ, 3, [1,2,5,-7,8,10,192,5,18])
+        sage: h.det_padic(a)
+        -3669
+        sage: a.determinant(algorithm='ntl')
+        -3669
+    """
+    if not A.is_square():
+        raise ValueError, "A must be a square matrix"
+    r = A.rank()
+    if r < A.nrows():
+        return ZZ(0)
+    v = random_matrix(ZZ, A.nrows(), 1)
+    d = A.solve_right(v, check_rank=False).denominator()
+    return det_given_divisor(A, d, proof=proof, stabilize=stabilize)
+
+def double_det (A, b, c, proof):
     """
     Compute the determinants of the stacked integer matrices
     A.stack(b) and A.stack(c).
@@ -34,6 +122,8 @@ def doubleDet (A, b, c):
         A -- an (n-1) x n matrix
         b -- an 1 x n matrix
         c -- an 1 x n matrix
+        proof -- whether or not to compute the det modulo enough times
+                 to provably compute the determinant.
 
     OUTPUT:
         a pair of two integers.
@@ -47,7 +137,7 @@ def doubleDet (A, b, c):
         -48
         sage: A.stack(c).det()
         42
-        sage: hnf.doubleDet(A, b, c)
+        sage: hnf.double_det(A, b, c, False)
         (-48, 42)
     """
     # We use the "two for the price of one" algorithm, which I made up. (William Stein)
@@ -64,27 +154,15 @@ def doubleDet (A, b, c):
     t = verbose('starting double det')
     B = A.augment(b)
     v = B.solve_right(-c, check_rank=True)  # infinite loop if not full rank and don't do this.
-    db = v.denominator()
-    p = 46337
-    Bmod = B._reduce(p)
-    z = Bmod.determinant() / db
-    z = z.lift()
-    if z > p//2:
-        z = z - p
-    db *= z
+
+    # we use stabilize=2, since the det is typically so small with this construction
+    db = det_given_divisor(B, v.denominator(), proof=proof, stabilize=2)
 
     n = v.nrows()
     vn = v[n-1,0]
     w = (-1/vn)*v
     w[n-1] = w[n-1]/vn
-    dc = w.denominator()
-
-    Cmod = A.augment(c)._reduce(p)
-    z = Cmod.determinant() / dc
-    z = z.lift()
-    if z > p//2:
-        z = z - p
-    dc *= z
+    dc = det_given_divisor(A.augment(c), w.denominator(), proof=proof, stabilize=2)
 
     verbose('finished double det', t)
 
@@ -188,7 +266,7 @@ def add_row(A, b, pivots, include_zero_rows):
         sage: import sage.matrix.matrix_integer_dense_hnf as hnf
         sage: A = matrix(ZZ, 2, 3, [-21, -7, 5, 1,20,-7])
         sage: b = matrix(ZZ, 1,3, [-1,1,-1])
-        sage: hnf.add_row(A, b, A.pivots())
+        sage: hnf.add_row(A, b, A.pivots(), True)
         ([ 1  6 29]
         [ 0  7 28]
         [ 0  0 46], [0, 1, 2])
@@ -205,7 +283,7 @@ def add_row(A, b, pivots, include_zero_rows):
     verbose('finished add hnf row', t)
     return H, pivs
 
-def hnf_square(A):
+def hnf_square(A, proof):
     """
     INPUT:
         a nonsingular n x n matrix A over the integers.
@@ -215,7 +293,7 @@ def hnf_square(A):
     EXAMPLES:
         sage: import sage.matrix.matrix_integer_dense_hnf as hnf
         sage: A = matrix(ZZ, 3, [-21, -7, 5, 1,20,-7, -1,1,-1])
-        sage: hnf.hnf_square(A)
+        sage: hnf.hnf_square(A, False)
         [ 1  6 29]
         [ 0  7 28]
         [ 0  0 46]
@@ -242,7 +320,7 @@ def hnf_square(A):
     verbose("done slicing", t)
 
     try:
-        (d1,d2) = doubleDet (B,c,d)
+        (d1,d2) = double_det (B,c,d, proof=proof)
     except (ValueError, ZeroDivisionError):
         verbose("det computation failed -- we compute hnf of submatrix directly.")
         d1 = d2 = ZZ(0)
@@ -279,7 +357,8 @@ def interleave_matrices(A, B, cols1, cols2):
         sage: B
         [-1  5]
         [ 2  3]
-        sage: interleave_matrices(A, B, [1,3], [0,2])
+        sage: import sage.matrix.matrix_integer_dense_hnf as hnf
+        sage: hnf.interleave_matrices(A, B, [1,3], [0,2])
         [-1  1  5  2]
         [ 2  3  3  4]
     """
@@ -331,19 +410,66 @@ def extract_ones_data(H, pivots):
             C = H.matrix_from_rows_and_columns(onerow, non_onecol)
             # Extract submatrix of all non-onecol columns and other rows
             D = H.matrix_from_rows_and_columns(non_onerow, non_onecol).transpose()
+            tt = verbose("extract ones -- INVERT %s x %s"%(len(non_onecol), len(non_onecol)), level=1)
             E = D**(-1)
+            verbose("done inverting", tt, level=1)
             return C, D, E, onecol, onerow, non_onecol, non_onerow
         else:
             return None, None, None, onecol, onerow, non_onecol, non_onerow
 
-def hnf(A, include_zero_rows=True):
+def is_in_hnf_form(H):
+    """
+    Return True precisely if the matrix H is in Hermite normal form.
+    """
+    tt = verbose('testing if matrix is in HNF')
+    for i in xrange(H.nrows()):
+        for j in xrange(H.ncols()):
+            if i > j:
+                if H[i,j]:
+                    verbose('done verifying in HNF - not in HNF', tt)
+                    return False
+            elif i < j and j < H.nrows():
+                if H[i,j] < 0 or H[i,j] >= H[j,j]:
+                    verbose('done verifying in HNF - not in HNF', tt)
+                    return False
+            elif i == j:
+                if H[i,i] < 0:
+                    verbose('done verifying in HNF - not in HNF', tt)
+                    return False
+    verbose('done verifying in HNF', tt)
+    return True
+
+def hnf(A, include_zero_rows=True, proof=False):
     """
     INPUT:
-        an n x m matrix A over the integers.
+        A -- an n x m matrix A over the integers.
+        include_zero_rows -- bool (default: True) whether or not to
+                             include zero rows in the output matrix
+        proof -- whether or not to prove the result correct.
+
     OUTPUT:
         the Hermite normal form of A.
     """
+    if proof == False:
+        return probable_pivots_hnf(A, include_zero_rows = include_zero_rows, proof=False)
 
+    while True:
+        try:
+            H = probable_pivots_hnf(A, include_zero_rows = include_zero_rows, proof=True)
+        except (AssertionError, ZeroDivisionError):
+            verbose("Assertion occured when computing HNF; guessed pivot columns likely wrong.")
+            pass
+        else:
+            if is_in_hnf_form(H):
+                return H
+        verbose("After attempt the return matrix is not in HNF form since pivots must have been wrong.  We try again.")
+
+
+def probable_pivots_hnf(A, include_zero_rows, proof):
+    """
+    OUTPUT:
+        the Hermite normal form of A.
+    """
     # Find left-most full rank submatrix by working modulo a prime
     rows = probable_pivot_rows(A)
     B    = A.matrix_from_rows(rows)
@@ -352,7 +478,7 @@ def hnf(A, include_zero_rows=True):
     # Now C is a submatrix of A that has full rank and is square.
 
     # We compute the HNF of C.
-    H = hnf_square(C)
+    H = hnf_square(C, proof=proof)
 
     # The transformation matrix to HNF is the unique
     # matrix U such that U * C = H, i.e., U = H*C^(-1).

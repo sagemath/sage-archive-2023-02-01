@@ -49,6 +49,7 @@ from sage.misc.misc import verbose, get_verbose, cputime
 
 from sage.rings.arith import previous_prime
 from sage.structure.element import is_Element
+from sage.structure.proof.proof import get_flag as get_proof_flag
 
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
@@ -93,7 +94,7 @@ ai = arith_int()
 ################
 
 ######### linbox interface ##########
-from sage.libs.linbox.linbox cimport Linbox_integer_dense
+from sage.libs.linbox.linbox cimport Linbox_integer_dense, Linbox_modn_dense
 cdef Linbox_integer_dense linbox
 linbox = Linbox_integer_dense()
 USE_LINBOX_POLY = True
@@ -1005,6 +1006,63 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         sage_free(row_list)
         return res
 
+    def _linbox_modn_det(self, mod_int n):
+        """
+        INPUT:
+            n -- a prime (at most 67108879)
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 3, [1,2,5,-7,8,10,192,5,18])
+            sage: a.det()
+            -3669
+            sage: a._linbox_modn_det(5077)
+            1408
+            sage: a._linbox_modn_det(3)
+            0
+            sage: a._linbox_modn_det(2)
+            1
+            sage: a.det()%5077
+            1408
+            sage: a.det()%2
+            1
+            sage: a.det()%3
+            0
+        """
+        # TODO: use charpoly for now, since linbox is shaky for det
+        c = self._linbox_modn(n).charpoly()[0]
+        if self._nrows % 2 != 0:
+            c = -c
+        return IntegerModRing(n)(c)
+
+    def _linbox_modn(self, mod_int n):
+        """
+        Return modn linbox object associated to this integer matrix.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 3, [1,2,5,-7,8,10,192,5,18])
+            sage: b = a._linbox_modn(19); b
+            <sage.libs.linbox.linbox.Linbox_modn_dense object at 0x6921800>
+            sage: b.charpoly()
+            [2L, 10L, 11L, 1L]
+        """
+        if n > 67108879:   # doesn't work for bigger primes -- experimental observation
+            raise NotImplementedError, "modulus to big"
+        cdef mod_int** matrix = <mod_int**>sage_malloc(sizeof(mod_int*) * self._nrows)
+        if matrix == NULL:
+            raise MemoryError, "out of memory allocating multi-modular coefficent list"
+
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < self._nrows:
+            matrix[i] = <mod_int *>sage_malloc(sizeof(mod_int) * self._ncols)
+            if matrix[i] == NULL:
+                raise MemoryError, "out of memory allocating multi-modular coefficent list"
+            for j from 0 <= j < self._ncols:
+                matrix[i][j] = mpz_fdiv_ui(self._matrix[i][j], n)
+
+        cdef Linbox_modn_dense L = Linbox_modn_dense()
+        L.set(n, matrix, self._nrows, self._ncols)
+        return L
+
     def _echelon_in_place_classical(self):
         cdef Matrix_integer_dense E
         E = self.echelon_form()
@@ -1018,43 +1076,35 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     def _echelon_strassen(self):
         raise NotImplementedError
 
-    def _hnf(self, proof=False):
+    def hermite_normal_form(self, **kwds):
+        r"""
+        Return the Hermite normal form of self.
+
+        This is a synonym for \code{self.echelon_form(...)}.  See the documentation
+        for \code{self.echelon_form} for more details.
         """
-        Experimental Hermite form algorithm for square full rank matrices.
+        return self.echelon_form(**kwds)
 
-        VERY FAST.  The fastest implementation in the world.
-
-        EXAMPLES:
-            sage: a = matrix(ZZ,4,[4, -1, -2, 1, 1, -1, 3, -1, -1, 4, -3, -3, -1, -1, 5, -1])
-            sage: a._hnf()
-            [ 1  0  1  8]
-            [ 0  1  0  2]
-            [ 0  0  2  3]
-            [ 0  0  0 10]
-            sage: a.echelon_form()
-            [ 1  0  1  8]
-            [ 0  1  0  2]
-            [ 0  0  2  3]
-            [ 0  0  0 10]
-        """
-        import matrix_integer_dense_hnf
-        return matrix_integer_dense_hnf.hnf(self)
-
-    def echelon_form(self, algorithm="default", cutoff=0, include_zero_rows=True, D=None):
+    def echelon_form(self, algorithm="padic", proof=None, include_zero_rows=True, cutoff=0, D=None):
         r"""
         Return the echelon form of this matrix over the integers also
         known as the hermit normal form (HNF).
 
         INPUT:
-            algorithm -- 'pari', 'ntl' or 'default';
-                  the default is ntl if self is square and of full rank;
-                  otherwise, it is pari.
-            cutoff -- ignored currently
+            algorithm --
+                  'padic' -- (default) a new fast p-adic modular algorithm,
+                  'pari' -- use PARI with flag 1
+                  'ntl' -- use NTL
+            proof -- (default: True)
             include_zero_rows -- (default: True)
                                  if False, don't include zero rows
+            cutoff -- passed to pari (only relevant with algorithm='pari')
             D -- (default: None)  if given and the algorithm is 'ntl', then D
                    must be a multiple of the determinant and this function
                    will use that fact.
+
+        OUTPUT:
+            matrix -- the Hermite normal form (=echelon form over ZZ) of self.
 
         EXAMPLES:
             sage: A = MatrixSpace(ZZ,2)([1,2,3,4])
@@ -1113,13 +1163,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         cdef Matrix_integer_dense H_m
 
-        if algorithm == 'default':
-            if nr <= nc and self.rank() == nr:
-                algorithm = 'ntl'
-            else:
-                algorithm = 'pari'
+        proof = get_proof_flag(proof, "linear_algebra")
 
-        if algorithm == 'pari':
+        if algorithm == "padic":
+            import matrix_integer_dense_hnf
+            return matrix_integer_dense_hnf.hnf(self,
+                      include_zero_rows=include_zero_rows, proof=proof)
+
+        elif algorithm == 'pari':
             # The following complicated sequence of column reversals
             # and transposes is needed since PARI's Hermite Normal Form
             # does column operations instead of row operations.
@@ -1911,16 +1962,30 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         A = self._mod_int_c(p)
         return A.rank()
 
-    #### Determinante
+    #### Determinant
 
-    def determinant(self, algorithm=None):
-        """
+    def determinant(self, algorithm='padic', proof=None, stabilize=3):
+        r"""
         Return the determinant of this matrix.
 
         INPUT:
-            algorithm -- 'linbox', 'ntl' or None (default: None)
+            algorithm --
+                'padic' -- (the default) uses a p-adic / multimodular
+                           algorithm that relies on code in IML and linbox
+                'linbox' -- calls linbox det
+                'ntl' -- calls NTL's det function
+            proof -- bool or None; if None use proof.linear_algebra(); only
+                     relevant for the padic algorithm.
+            stabilize -- if proof is False, require det to be the same
+                         for this many CRT primes in a row.  Ignored
+                         if proof is True.
 
-        ALGORITHM: Uses LinBox or NTL.
+        ALGORITHM:
+            The p-adic algorithm works by first finding a random
+            vector v, then solving A*x = v and taking the denominator
+            $d$.  This gives a divisor of the determinant.  Then we
+            compute $\det(A)/d$ using a multimodular algorithm and the
+            Hadamard bound.
 
         EXAMPLES:
             sage: A = matrix(ZZ,8,8,[3..66])
@@ -1933,21 +1998,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: D2 = A.determinant(algorithm='ntl')
             sage: D1 == D2
             True
-
         """
         d = self.fetch('det')
         if not d is None:
             return d
+        proof = get_proof_flag(proof, "linear_algebra")
 
-        if algorithm is None:
-            algorithm = 'ntl'
-
-        if algorithm == 'linbox':
+        if algorithm == 'padic':
+            import matrix_integer_dense_hnf
+            return matrix_integer_dense_hnf.det_padic(self, proof=proof, stabilize=stabilize)
+        elif algorithm == 'linbox':
             d = self._det_linbox()
         elif algorithm == 'ntl':
             d = self._det_ntl()
         else:
-            raise TypeError, "algorithm '%s' not understood"%(algorithm)
+            raise TypeError, "algorithm '%s' not known"%(algorithm)
 
         self.cache('det', d)
         return d

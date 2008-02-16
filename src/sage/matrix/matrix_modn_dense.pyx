@@ -982,11 +982,16 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             ...
             NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 4'.
         """
+        cdef Matrix_modn_dense A
         if self.p > 2 and is_prime(self.p):
             x = self.fetch('rank')
             if not x is None:
                 return x
-            self._init_linbox()
+            # avoid modifying self in place!
+            # TODO: it is crappy/buggy that linbox would change a matrix
+            # when the rank function is called on it... Sigh.
+            A = self.__copy__()
+            A._init_linbox()
             _sig_on
             r = Integer(linbox.rank())
             _sig_off

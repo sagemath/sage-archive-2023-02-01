@@ -3036,6 +3036,29 @@ cdef class Matrix(matrix1.Matrix):
         Bstar, mu = gram_schmidt(self.rows())
         return matrix(Bstar), mu
 
+    def hadamard_bound(self):
+        r"""
+        Return an int n such that the absolute value of the
+        determinant of this matrix is at most $10^n$.
+
+        This function can fail if the entries in self are horrendously
+        large.
+
+        This function only makes sense when the base field can be
+        coerced to the real double field RDF.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 3, [1,2,5,7,-3,4,2,1,123])
+            sage: a.hadamard_bound()
+            4
+            sage: a.det()
+            -2014
+            sage: 10^4
+            10000
+        """
+        from sage.rings.all import RDF
+        A = self.change_ring(RDF)
+        return A.hadamard_bound()
 
 def _dim_cmp(x,y):
     """

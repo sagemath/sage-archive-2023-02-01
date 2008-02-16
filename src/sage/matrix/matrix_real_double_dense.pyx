@@ -31,10 +31,13 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+import math
+
 include '../ext/interrupt.pxi'
 include '../ext/stdsage.pxi'
 include '../ext/cdefs.pxi'
 include '../ext/python.pxi'
+
 from sage.rings.real_double cimport RealDoubleElement
 import sage.rings.real_double
 import sage.rings.complex_double
@@ -1084,3 +1087,26 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
 
+    def hadamard_bound(self):
+        r"""
+        Return an integer n such that the absolute value of the
+        determinant of this matrix is at most $10^n$.
+
+        EXAMPLES:
+            sage: a = matrix(RDF, 3, [1,2,5,7,-3,4,2,1,123])
+            sage: a.hadamard_bound()
+            4
+            sage: a.det()
+            -2014.0
+            sage: 10^4
+            10000
+        """
+        cdef double d = 0, s
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < self._nrows:
+            s = 0
+            for j from 0 <= j < self._ncols:
+                s += gsl_matrix_get(self._matrix,i,j) * gsl_matrix_get(self._matrix,i,j)
+            d += gsl_sf_log(s)
+        d /= 2
+        return int(math.ceil(d / gsl_sf_log(10)))

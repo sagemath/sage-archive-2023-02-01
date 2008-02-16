@@ -521,20 +521,18 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [1/390284089234]
 
         A 2x2 matrix (a special hand-coded case):
-            sage: a = matrix(QQ, 1,
+            sage: a = matrix(QQ, 2, [1, 5, 17, 3]); a
+            [ 1  5]
+            [17  3]
             sage: a.invert()
-                sage: a = matrix(QQ, 2, [1, 5, 17, 3]); a
-                [ 1  5]
-                [17  3]
-                sage: a.invert()
-                [-3/82  5/82]
-                [17/82 -1/82]
-                sage: a.invert()  * a
-                [1 0]
-                [0 1]
+            [-3/82  5/82]
+            [17/82 -1/82]
+            sage: a.invert()  * a
+            [1 0]
+            [0 1]
         """
         cdef Matrix_rational_dense A
-        cdef mpq_t t0, t1
+        cdef mpq_t det, t1
         cdef int i
 
         if self._nrows != self._ncols:
@@ -552,34 +550,34 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 return A
             elif self._nrows == 2:
                 _sig_on
-                mpq_init(t0); mpq_init(t1)
-                mpq_mul(t0, self._entries[0], self._entries[3])
+                mpq_init(det); mpq_init(t1)
+                mpq_mul(det, self._entries[0], self._entries[3])
                 mpq_mul(t1, self._entries[1], self._entries[2])
-                mpq_sub(t0, t0, t1)
-                i = mpq_cmp_si(t0, 0, 1)
+                mpq_sub(det, det, t1)
+                i = mpq_cmp_si(det, 0, 1)
                 _sig_off
                 if i == 0:
-                    mpq_clear(t0); mpq_clear(t1)
+                    mpq_clear(det); mpq_clear(t1)
                     raise ZeroDivisionError
                 _sig_on
                 # d/det
-                mpq_div(A._entries[0], self._entries[3], t0)
+                mpq_div(A._entries[0], self._entries[3], det)
                 # -b/det
                 mpq_neg(A._entries[1], self._entries[1])
-                mpq_div(A._entries[1], A._entries[1], t0)
+                mpq_div(A._entries[1], A._entries[1], det)
                 # -c/det
                 mpq_neg(A._entries[2], self._entries[2])
-                mpq_div(A._entries[2], A._entries[2], t0)
+                mpq_div(A._entries[2], A._entries[2], det)
                 # a/det
-                mpq_div(A._entries[3], self._entries[0], t0)
+                mpq_div(A._entries[3], self._entries[0], det)
                 _sig_off
 
-                mpq_clear(t0); mpq_clear(t1)
+                mpq_clear(det); mpq_clear(t1)
                 return A
 
         if algorithm == "iml":
-            A, denom = self._clear_denom()
-            B, d = A._invert_iml(check_invertible=check_invertible)
+            AZ, denom = self._clear_denom()
+            B, d = AZ._invert_iml(check_invertible=check_invertible)
             return (denom/d)*B
         else:
             raise ValueError, "unknown algorithm '%s'"%algorithm
@@ -648,6 +646,14 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             D*self, D
 
         The product is a matrix over ZZ
+
+        EXAMPLES:
+            sage: a = matrix(QQ,2,[-1/6,-7,3,5/4]); a
+            [-1/6   -7]
+            [   3  5/4]
+            sage: a._clear_denom()
+            ([ -2 -84]
+            [ 36  15], 12)
         """
         X = self.fetch('clear_denom')
         if not X is None: return X

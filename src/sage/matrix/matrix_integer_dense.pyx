@@ -62,6 +62,7 @@ from sage.ext.multi_modular cimport MultiModularBasis
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational_field import QQ
+from sage.rings.real_double import RDF
 from sage.rings.integer_ring import ZZ, IntegerRing_class
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.integer_mod_ring import IntegerModRing
@@ -1017,7 +1018,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     def _echelon_strassen(self):
         raise NotImplementedError
 
-    def _hnf(self, **kwds):
+    def _hnf(self, proof=False):
         """
         Experimental Hermite form algorithm for square full rank matrices.
 
@@ -2822,6 +2823,23 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             mpz_init_set(res._entries[j], self._entries[j - self._ncols])
 
         return res
+
+    def _change_ring(self, ring):
+        """
+        Return the matrix obtained by coercing the entries of this
+        matrix into the given ring.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ,2,[1,-7,3,5])
+            sage: a._change_ring(RDF)
+            [ 1.0 -7.0]
+            [ 3.0  5.0]
+        """
+        if ring == RDF:
+            import change_ring
+            return change_ring.integer_to_real_double_dense(self)
+        else:
+            raise NotImplementedError
 
 ##     def augment(self, other):
 ##         """

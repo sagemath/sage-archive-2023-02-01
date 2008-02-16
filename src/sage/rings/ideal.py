@@ -458,8 +458,9 @@ class Ideal_pid(Ideal_principal):
 
     def is_prime(self):
         """
-        Returns True if the ideal is prime.  This relies on the
-        ring elements having a method is_irreducible() implemented.
+        Returns True if the ideal is prime.  This relies on the ring
+        elements having a method is_irreducible() implemented, since
+        an ideal (a) is prime iff a is irreducible (or 0)
 
         EXAMPLES:
             sage: ZZ.ideal(2).is_prime()
@@ -468,6 +469,8 @@ class Ideal_pid(Ideal_principal):
             True
             sage: ZZ.ideal(4).is_prime()
             False
+            sage: ZZ.ideal(0).is_prime()
+            True
             sage: R.<x>=QQ[]
             sage: P=R.ideal(x^2+1); P
             Principal ideal (x^2 + 1) of Univariate Polynomial Ring in x over Rational Field
@@ -475,6 +478,8 @@ class Ideal_pid(Ideal_principal):
             True
 
         """
+        if self.is_zero(): # PIDs are integral domains by definition
+            return True
         g = self.gen()
         if hasattr(g, 'is_irreducible'):
             return g.is_irreducible()

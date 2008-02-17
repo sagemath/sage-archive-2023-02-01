@@ -1003,10 +1003,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def determinant(self):
         """
-        Return the dterminant of this matrix.
+        Return the determinant of this matrix.
 
         EXAMPLES:
-            m = matrix(GF(101),5,range(25))
+            sage: m = matrix(GF(101),5,range(25))
             sage: m.det()
             0
 
@@ -1025,8 +1025,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             _sig_on
             d = linbox.det()
             _sig_off
-            self.cache('det', d)
-            return d
+            d2 = self._coerce_element(d)
+            self.cache('det', d2)
+            return d2
 
     def randomize(self, density=1):
         """

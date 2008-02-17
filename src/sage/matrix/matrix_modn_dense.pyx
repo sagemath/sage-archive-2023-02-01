@@ -88,6 +88,10 @@ include '../ext/stdsage.pxi'
 include '../ext/random.pxi'
 
 import sage.ext.multi_modular
+cimport sage.ext.arith
+import sage.ext.arith
+cdef sage.ext.arith.arith_int ArithIntObj
+ArithIntObj  = sage.ext.arith.arith_int()
 
 MAX_MODULUS = sage.ext.multi_modular.MAX_MODULUS
 
@@ -533,7 +537,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         x = self.fetch('in_echelon_form')
         if not x is None: return  # already known to be in echelon form
         if not self.base_ring().is_field():
-            raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
+            self._echelon_mod_n ()
+            #raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
 
         self.check_mutability()
         self.clear_cache()
@@ -597,7 +602,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         self.clear_cache()
 
         cdef Py_ssize_t start_row, c, r, nr, nc, i
-        cdef mod_int p, a, a_inverse, b
+        cdef mod_int p, a, s, t, b
         cdef mod_int **m
 
         start_row = 0
@@ -631,6 +636,105 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
                     break
         self.cache('pivots',pivots)
         self.cache('in_echelon_form',True)
+
+    cdef xgcd_eliminate (self, mod_int * row1, mod_int* row2, Py_ssize_t start_col):
+        """
+        Reduces row1 and row2 by a unimodular transformation using the xgcd relation between their first
+        coefficients a and b.
+
+        INPUT:
+            -- self: a mutable matrix
+            -- row1, row2: the two rows to be transformed (within self)
+            -- start_col: the column of the pivots in row1 and row2. It is assumed that all entries before
+                          start_col in row1 and row2 are zero.
+
+        OUTPUT:
+            -- g: the gcd of the first elements of row1 and row2 at column start_col
+            -- put row1 = s * row1 + t * row2
+                   row2 = w * row1 + t * row2
+               where g = sa + tb
+        """
+        cdef mod_int p = self.p
+        cdef mod_int * row1_p, * row2_p
+        cdef mod_int tmp
+        cdef int g, s, t, v, w
+        cdef Py_ssize_t nc, i
+        cdef mod_int a =  row1[start_col]
+        cdef mod_int b =  row2[start_col]
+        g = ArithIntObj.c_xgcd_int (a,b,<int*>&s,<int*>&t)
+        v = a/g
+        w = -<int>b/g
+        nc = self.ncols()
+
+    #    print("In wgcd_eliminate")
+        for i from start_col <= i < nc:
+   #         print(self)
+            tmp = ( s * <int>row1[i] + t * <int>row2[i]) % p
+  #          print (tmp,s, <int>row1[i],t,<int>row2[i])
+ #           print (row2[i],w, <int>row1[i],v,<int>row2[i])
+            row2[i] = (w* <int>row1[i] + v*<int>row2[i]) % p
+#            print (row2[i],w, <int>row1[i],v,<int>row2[i])
+            row1[i] = tmp
+        #print(self)
+       # print("sortie")
+        return g
+
+
+    def _echelon_mod_n (self):
+        """
+        Put self in Hermite normal form modulo n
+        (echelonize the matrix over a ring $Z_n$)
+
+        INPUT:
+            self: a mutable matrix over $Z_n$
+        OUTPUT:
+            Transform in place the working matrix into its Hermite
+            normal form over Z, using the modulo n algorithm of
+            [Hermite Normal form computation using modulo determinant arithmetic,
+            Domich Kannan & Trotter, 1987]
+        """
+        self.check_mutability()
+        self.clear_cache()
+
+        cdef Py_ssize_t start_row, nr, nc,
+        cdef long c, r, i
+        cdef mod_int p, a, a_inverse, b, g
+        cdef mod_int **m
+        cdef Py_ssize_t start_row = 0
+        p = self.p
+        m = self._matrix
+        nr = self._nrows
+        nc = self._ncols
+        pivots = []
+        cdef Py_ssize_t fifth = self._ncols / 10 + 1
+        do_verb = (get_verbose() >= 2)
+        for c from 0 <= c < nc:
+            if do_verb and (c % fifth == 0 and c>0):
+                tm = verbose('on column %s of %s'%(c, self._ncols),
+                             level = 2,
+                             caller_name = 'matrix_modn_dense echelon mod n')
+
+            if PyErr_CheckSignals(): raise KeyboardInterrupt
+            for r from start_row <= r < nr:
+                a = m[r][c]
+                if a:
+                    self.swap_rows_c(r, start_row)
+                    for i from start_row +1 <= i < nr:
+                        b = m[i][c]
+
+                        if b != 0:
+                            self.xgcd_eliminate (self._matrix[start_row], self._matrix[i], c)
+                            verbose('eliminating rows %s and %s', (start_row,i))
+                    for i from 0 <= i <start_row:
+                        p = -m[i][c]//m[start_row][c]
+                        self._add_multiple_of_row_c(i, start_row, p, c)
+
+                    pivots.append(m[start_row][c])
+                    start_row = start_row + 1
+                    break
+        self.cache('pivots',pivots)
+        self.cache('in_echelon_form',True)
+
 
     cdef rescale_row_c(self, Py_ssize_t row, multiple, Py_ssize_t start_col):
         self._rescale_row_c(row, multiple, start_col)
@@ -878,11 +982,16 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             ...
             NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 4'.
         """
+        cdef Matrix_modn_dense A
         if self.p > 2 and is_prime(self.p):
             x = self.fetch('rank')
             if not x is None:
                 return x
-            self._init_linbox()
+            # avoid modifying self in place!
+            # TODO: it is crappy/buggy that linbox would change a matrix
+            # when the rank function is called on it... Sigh.
+            A = self.__copy__()
+            A._init_linbox()
             _sig_on
             r = Integer(linbox.rank())
             _sig_off

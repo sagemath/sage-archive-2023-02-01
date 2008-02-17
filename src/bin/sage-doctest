@@ -65,7 +65,11 @@ signal.alarm(%s)
 NONE=0; LONG_TIME=1; RANDOM=2; OPTIONAL=3; NOT_IMPLEMENTED=4; NOT_TESTED=5
 
 def comment_modifier(s):
-    L = s.lower()
+    sind = s.find('#')
+    if sind == -1 or s[sind:sind+3] == '###':
+        return []
+    eind = s.find('###',sind+1)
+    L = s[sind+1:eind].lower()
     v = []
     if ('optional' in L) or ('known bug' in L):
         v.append(OPTIONAL)
@@ -76,12 +80,7 @@ def comment_modifier(s):
     if 'not tested' in L:
         v.append(NOT_TESTED)
     if 'random' in L:
-        i = L.rfind('#')
-        j = L.rfind('random')
-        if j > i:
-            v.append(RANDOM)
-        if L.find("=") == -1 and L.find("print") == -1:
-            v.append(RANDOM)
+        v.append(RANDOM)
     return v
 
 def preparse_line_with_prompt(L):
@@ -113,7 +112,7 @@ def doc_preparse(s):
             if LONG_TIME in c and not long_time:
                 L = '\n'  # extra line so output ignored
             if RANDOM in c:
-                L = L.replace('sage:', 'sage: _=')
+                L = L.replace('sage:', 'sage: print "ignore this"; ')
             if NOT_TESTED in c:
                 L = '\n'   # not tested
             if NOT_IMPLEMENTED in c:
@@ -122,7 +121,13 @@ def doc_preparse(s):
                 L = '\n'
             line = preparse_line_with_prompt(L)
             if RANDOM in c:
-                line += '\n'    # extra line so output ignored
+                # count spaces at the beginning of line to fix alignment later
+                i = 0
+                while i < len(line) and line[i].isspace():
+                    i += 1
+                # append a line saying 'ignore' followed by ellipsis (...)
+                # and an empty line, to ignore the output given in the test
+                line += '\n' + ' '*i + 'ignore ...\n'
             t.append(line)
 
         elif begin.startswith('...'):

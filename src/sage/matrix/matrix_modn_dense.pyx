@@ -1010,12 +1010,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: m.det()
             0
 
-        Det is not implemented over the integers modulo a composite yet.
             sage: m = matrix(Integers(4), 2, [2,2,2,2])
-            sage: m.rank()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 4'.
+            sage: m.det()
+            0
+
         """
         if self.p > 2 and is_prime(self.p):
             x = self.fetch('det')
@@ -1028,6 +1026,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             d2 = self._coerce_element(d)
             self.cache('det', d2)
             return d2
+        else:
+            return matrix_dense.Matrix_dense.determinant(self)
 
     def randomize(self, density=1):
         """

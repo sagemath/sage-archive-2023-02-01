@@ -1675,7 +1675,7 @@ class NumberField_generic(number_field_base.NumberField):
 
     def absolute_degree(self):
         """
-        Return the degree of self over $\mathbb{Q}$.
+        Return the degree of self over $\QQ$.
 
         EXAMPLES:
             sage: NumberField(x^3 + x^2 + 997*x + 1, 'a').absolute_degree()
@@ -2126,8 +2126,8 @@ class NumberField_generic(number_field_base.NumberField):
             The Gram matrix $[<x_i,x_j>]$ of an LLL reduced basis for
             the maximal order of self, where the integral basis for
             self is given by $\{x_0, \dots, x_{n-1}\}$. Here < , > is
-            the usual inner product on $\mathbb{R}^n$, and self is
-            embedded in $\mathbb{R}^n$ by the Minkowski embedding. See
+            the usual inner product on $\RR^n$, and self is
+            embedded in $\RR^n$ by the Minkowski embedding. See
             the docstring for self.Minkowski_embedding for more
             information.
 
@@ -3155,15 +3155,15 @@ class NumberField_absolute(NumberField_generic):
         r"""
         Return an nxn matrix over RDF whose columns are the images of
         the basis $\{1, \alpha, \dots, \alpha^{n-1}\}$ of self over
-        $\mathbb{Q}$ (as vector spaces), where here $\alpha$ is the
-        generator of self over $\mathbb{Q}$, i.e.  self.gen(0).  If B
+        $\QQ$ (as vector spaces), where here $\alpha$ is the
+        generator of self over $\QQ$, i.e.  self.gen(0).  If B
         is not None, return the images of the vectors in B as the
         columns instead. If prec is not None, use RealField(prec)
         instead of RDF.
 
         This embedding is the so-called "Minkowski embedding" of a
-        number field in $\mathbb{R}^n$: given the $n$ embeddings
-        $\sigma_1, \dots, \sigma_n$ of self in $\mathbb{C}$, write
+        number field in $\RR^n$: given the $n$ embeddings
+        $\sigma_1, \dots, \sigma_n$ of self in $\CC$, write
         $\sigma_1, \dots, \sigma_r$ for the real embeddings, and
         $\sigma_{r+1}, \dots, \sigma_{r+s}$ for choices of one of each
         pair of complex conjugate embeddings (in our case, we simply
@@ -3178,8 +3178,8 @@ class NumberField_absolute(NumberField_generic):
                    $\sqrt{2}\Re(\sigma_{r+s}(x))$,
                    $\sqrt{2}\Im(\sigma_{r+s}(x))$)
 
-        Equivalently, this is an embedding of self in $\mathbb{R}^n$
-        so that the usual norm on $\mathbb{R}^n$ coincides with
+        Equivalently, this is an embedding of self in $\RR^n$
+        so that the usual norm on $\RR^n$ coincides with
           $\|x\| = \sum_i |\sigma_i(x)|^2$
         on self.
 

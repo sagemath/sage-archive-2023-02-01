@@ -1267,7 +1267,7 @@ class MPolynomialIdeal_singular_repr:
         \code{self.ring()} be a graded commutative algebra ($R =
         \oplus R_d$) over a field $K$. Then the Hilbert function is
         defined as $H(d) = dim_K R_d$ and the Hilbert series of $I$ is
-        defined as the formal power series $HS(t) = \Sum_0^{oo} H(d) t^d$.
+        defined as the formal power series $HS(t) = \sum_0^{\infty} H(d) t^d$.
 
         This power series can be expressed as $HS(t) = Q(t)/(1-t)^n$
         where $Q(t)$ is a polynomial over $Z$ and $n$ the number of

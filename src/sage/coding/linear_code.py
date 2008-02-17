@@ -150,6 +150,8 @@ and a new function, LinearCodeFromVectorSpace.
                      chinen_polynomial;  improved best_known_code;
                      made some pythonic revisions;
                      added is_equivalent (for binary codes)
+    -- dj (2008-01): fixed bug in decode reported by harald schilly,
+                     (with M Hansen) added some doctests.
 
 TESTS:
    sage: MS = MatrixSpace(GF(2),4,7)
@@ -695,9 +697,24 @@ class LinearCode(module.Module):
             sage: C = HammingCode(3,GF(2))
             sage: MS = MatrixSpace(GF(2),1,7)
             sage: F = GF(2); a = F.gen()
-            sage: v = [a,a,F(0),a,a,F(0),a]
-            sage: C.decode(v)
+            sage: v1 = [a,a,F(0),a,a,F(0),a]
+            sage: C.decode(v1)
             (1, 1, 0, 1, 0, 0, 1)
+            sage: v2 = matrix([[a,a,F(0),a,a,F(0),a]])
+            sage: C.decode(v2)
+            (1, 1, 0, 1, 0, 0, 1)
+            sage: v3 = vector([a,a,F(0),a,a,F(0),a])
+            sage: c = C.decode(v3); c
+            (1, 1, 0, 1, 0, 0, 1)
+            sage: c in C
+            True
+            sage: v4 = [[a,a,F(0),a,a,F(0),a]]
+            sage: C.decode(v4)
+            (1, 1, 0, 1, 0, 0, 1)
+            sage: C = HammingCode(2,GF(5))
+            sage: v = vector(GF(5),[1,0,0,2,1,0])
+            sage: C.decode(v)
+ 	    (1, 0, 0, 2, 1, 2)
 
         Does not work for very long codes since the syndrome table grows too large.
         """
@@ -708,7 +725,11 @@ class LinearCode(module.Module):
         n = len(G.columns())
         k = len(G.rows())
         Gstr = str(gap(G))
-        vstr = str(gap(right))
+        if not(type(right) == list):
+            v = right.list()
+        else:
+            v = right
+        vstr = str(gap(v))
         if vstr[:3] == '[ [':
             vstr = vstr[1:-1]     # added by William Stein so const.tex works 2006-10-01
         gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")

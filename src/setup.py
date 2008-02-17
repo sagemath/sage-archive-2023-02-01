@@ -957,6 +957,7 @@ ext_modules = [ \
     Extension('sage.plot.plot3d.parametric_surface',
               ['sage/plot/plot3d/parametric_surface.pyx']
               ), \
+
     Extension('sage.plot.plot3d.shapes',
               ['sage/plot/plot3d/shapes.pyx']
               ), \
@@ -968,6 +969,10 @@ ext_modules = [ \
                             SAGE_ROOT+'/local/include/polybori',
                             SAGE_ROOT+'/local/include/polybori/groebner'],
               language = 'c++'), \
+
+    Extension('sage.misc.sage_timeit_class',
+              ['sage/misc/sage_timeit_class.pyx']
+              ), \
 
     ]
 

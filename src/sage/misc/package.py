@@ -21,6 +21,8 @@ All package management can also be done via the SAGE command line.
 
 import os
 
+__installed_packages = None
+
 def install_package(package=None, force=False):
     """
     Install a package or return a list of all packages
@@ -41,6 +43,7 @@ def install_package(package=None, force=False):
         upgrade -- upgrade to latest version of core packages
                    (optional packages are not automatically upgraded).
     """
+    global __installed_packages
     if os.uname()[0][:6] == 'CYGWIN':
         print "install_package may not work correctly under Microsoft Windows"
         print "since you can't change an opened file.  Quit all"
@@ -48,12 +51,15 @@ def install_package(package=None, force=False):
         print "use the force option to install_package."
         return
     if package is None:
-        X = os.popen('sage -f').read().split('\n')
-        i = X.index('Currently installed packages:')
-        X = [Y for Y in X[i+1:] if Y != '']
-        X.sort()
-        return X
+        if __installed_packages is None:
+            X = os.popen('sage -f').read().split('\n')
+            i = X.index('Currently installed packages:')
+            X = [Y for Y in X[i+1:] if Y != '']
+            X.sort()
+            __installed_packages = X
+        return __installed_packages
     os.system('sage -f "%s"'%package)
+    __installed_packages = None
 
 
 def is_package_installed(package):
@@ -210,12 +216,14 @@ def upgrade():
         install_package -- list of all optional packages
         optional_packages -- list of all optional packages
     """
+    global __installed_packages
     if os.uname()[0][:6] == 'CYGWIN':
         print "Upgrade may not work correctly under Microsoft Windows"
         print "since you can't change an opened file.  Quit all"
         print "instances of sage and use 'sage -upgrade' instead."
         return
     os.system('sage -upgrade')
+    __installed_packages = None
     print "You should quit and restart SAGE now."
 
 

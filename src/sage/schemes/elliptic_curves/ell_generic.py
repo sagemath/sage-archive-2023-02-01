@@ -737,13 +737,25 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def base_extend(self, R):
         """
+        Returns a new curve with the same a-invariants but defined
+        over a new ring into which the original's a-invariants may be
+        mapped.  R is either a ring into which they may be coerced, or
+        a morphism which may be applied to them.
+
         EXAMPLES:
         sage: E=EllipticCurve(GF(5),[1,1]); E
         Elliptic Curve defined by y^2  = x^3 + x +1 over Finite Field of size 5
         sage: E1=E.base_extend(GF(125,'a')); E1
         Elliptic Curve defined by y^2  = x^3 + x +1 over Finite Field in a of size 5^3
+        sage: F2=GF(5^2,'a'); a=F2.gen()
+        sage: F4=GF(5^4,'b'); b=F4.gen()
+        sage: h=F2.hom([a.charpoly().roots(ring=F4,multiplicities=False)[0]],F4)
+        sage: E=EllipticCurve(F2,[1,a]); E
+        Elliptic Curve defined by y^2  = x^3 + x + a over Finite Field in a of size 5^2
+        sage: E.base_extend(h)
+        Elliptic Curve defined by y^2  = x^3 + x + (4*b^3+4*b^2+4*b+3) over Finite Field in b of size 5^4
         """
-        return constructor.EllipticCurve(R, [R(a) for a in self.a_invariants()])
+        return constructor.EllipticCurve([R(a) for a in self.a_invariants()])
 
     def base_ring(self):
         """
@@ -1757,4 +1769,19 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         x = R.gen(0)
         a1, a2, a3, a4, a6 = self.ainvs()
         return R([a6, a4, a2, 1]), R([a3, a1])
+
+
+def Hasse_bounds(q):
+    """
+    Return the Hasse bounds (lb,ub) for the cardinality of an elliptic
+    curve defined over GF(q)
+
+    EXAMPLES:
+       sage: Hasse_bounds(2)
+       sage: Hasse_bounds(next_prime(10^30))
+       (999999999999998000000000000058, 1000000000000002000000000000058)
+       (1, 5)
+    """
+    rq = 2*q.isqrt()
+    return (q+1-rq,q+1+rq)
 

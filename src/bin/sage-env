@@ -121,14 +121,21 @@ if [ -d "$SAGE_ROOT/local/lib/python" ]; then
     PYTHONHOME="$SAGE_ROOT/local" && export PYTHONHOME
 fi
 
-SAGE_ORIG_LD_LIBRARY_PATH=$LD_LIBRARY_PATH && export SAGE_ORIG_LD_LIBRARY_PATH
+if [ -z "${SAGE_ORIG_LD_LIBRARY_PATH_SET}" ]; then
+    SAGE_ORIG_LD_LIBRARY_PATH=$LD_LIBRARY_PATH && export SAGE_ORIG_LD_LIBRARY_PATH
+    SAGE_ORIG_LD_LIBRARY_PATH_SET=True && export SAGE_ORIG_LD_LIBRARY_PATH_SET
+fi
+
 LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
 # This following is needed for openmpi:
 LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/openmpi:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
 # The following is needed for OS X (especially for the
 # Singular install).
 if [ `uname` = "Darwin" ]; then
-    SAGE_ORIG_DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
+    if [ -z "${SAGE_ORIG_DYLD_LIBRARY_PATH_SET}" ]; then
+        SAGE_ORIG_DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH && export SAGE_ORIG_DYLD_LIBRARY_PATH
+        SAGE_ORIG_DYLD_LIBRARY_PATH_SET=True && export SAGE_ORIG_DYLD_LIBRARY_PATH_SET
+    fi
     DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH:$SAGE_LOCAL/lib/R/lib" && export DYLD_LIBRARY_PATH
 fi
 

@@ -843,7 +843,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def quadratic_twist(self, D):
         """
-        Return the quadratic twist of this curve by D.
+        Return the quadratic twist of this curve by D, which must be nonzero except in characteristic 2.
 
         In characteristic!=2, D must be nonzero, and the twist is
         isomorphic to self after adjoining sqrt(D) to the base
@@ -900,7 +900,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def quartic_twist(self, D):
         """
-        Return the quartic twist of this curve by D.
+        Return the quartic twist of this curve by D, which must be nonzero.
 
         The characteristic must not be 2 or 3 and the j-invariant must be 1728
 
@@ -936,7 +936,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def sextic_twist(self, D):
         """
-        Return the sextic twist of this curve by D.
+        Return the sextic twist of this curve by D, which must be nonzero.
 
         The characteristic must not be 2 or 3 and the j-invariant must be 0
 
@@ -965,7 +965,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             raise ValueError, "Sextic twist not defined when j!=1728"
 
         if D.is_zero():
-            raise ValueError, "quartic twist requires a nonzero argument"
+            raise ValueError, "Sextic twist requires a nonzero argument"
 
         c4,c6=self.c_invariants()
         # E is isomorphic to  [0,0,0,0,-54*c6]

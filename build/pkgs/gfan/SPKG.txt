@@ -6,7 +6,7 @@ MAINTAINER:
 
 Download the package from
 
-    http://home.imf.au.dk/ajensen/software/gfan/gfan.html
+    http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html
 
 then remove the doc, homepage, and examples subdirectories,
 which take up most of the space.

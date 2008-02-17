@@ -1,4 +1,6 @@
-PACKAGE: gfan, a software package written by Anders Nedergaard Jensen
+= gfan =
+
+A software package written by Anders Nedergaard Jensen
 
 
 MAINTAINER:
@@ -10,4 +12,12 @@ Download the package from
 
 then remove the doc, homepage, and examples subdirectories,
 which take up most of the space.
+
+== Changelog ==
+
+=== gfan-0.2.2.p3 (Tim Abbott, Feb. 17th, 2008)  ===
+ * Debianize spkg
+
+=== gfan-0.2.2.p2 ===
+ * details lost to history
 

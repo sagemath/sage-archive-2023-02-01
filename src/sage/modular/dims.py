@@ -7,7 +7,7 @@ AUTHORS:
 
 ACKNOWLEDGEMENT:
     The dimension formulas and implementations in this module grew out
-    of a program that Bruce Caskel wrote (around 1996) in PARI, which
+    of a program that Bruce Kaskel wrote (around 1996) in PARI, which
     Kevin Buzzard subsequently extended.  I (William Stein) then
     implemented it in C++ for HECKE.  I also implemented it in MAGMA.
     Also, the functions for dimensions of spaces with nontrivial
@@ -464,7 +464,7 @@ def dimension_new_cusp_forms_eps(eps, k=2, p=0):
 
 
 ######################################################################
-# Computing dimensions of mdoualr forms spaces for Gamma_H.
+# Computing dimensions of modular forms spaces for Gamma_H.
 # Algorithms found and implemented by Jordi Quer.
 ######################################################################
 # degree of the covering $X_H(N)->X$
@@ -879,6 +879,8 @@ def dimension_modular_forms(X, k=2):
     elif not isinstance(X, congroup.CongruenceSubgroup) and \
          not isinstance(X, dirichlet.DirichletCharacter):
         raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character."
+    if k == 0:
+        return 1
     if congroup.is_GammaH(X):
         return dimension_modular_forms_H(X, k)
     return dimension_cusp_forms(X, k) + dimension_eis(X, k)

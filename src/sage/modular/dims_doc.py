@@ -2,7 +2,7 @@
 Dimensions of spaces of modular forms
 
 The dimension formulas and implementations in this module grew out of
-a program that Bruce Caskel wrote (around 1996) in PARI, which Kevin
+a program that Bruce Kaskel wrote (around 1996) in PARI, which Kevin
 Buzzard subsequently extended.  I (William Stein) then implemented it
 in C++ for HECKE.  I also implemented it in MAGMA.  Also, the
 functions for dimensions of spaces with nontrivial character are based

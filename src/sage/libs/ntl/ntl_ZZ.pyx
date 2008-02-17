@@ -428,7 +428,7 @@ def randomBnd(q):
     Returns cryptographically-secure random number in the range [0,n)
 
     EXAMPLES:
-        sage: [ntl.ZZ_random(99999) for i in range(5)]
+        sage: [ntl.ZZ_random(99999) for i in range(5)] # random output
         [53357, 19674, 69528, 87029, 28752]
 
     AUTHOR:
@@ -451,7 +451,7 @@ def randomBits(long n):
     Return a pseudo-random number between 0 and $2^n-1$
 
     EXAMPLES:
-        sage: [ntl.ZZ_random_bits(20) for i in range(3)]
+        sage: [ntl.ZZ_random_bits(20) for i in range(3)] # random output
         [1025619, 177635, 766262]
 
     AUTHOR:

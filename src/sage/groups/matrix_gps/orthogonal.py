@@ -117,11 +117,11 @@ class SpecialOrthogonalGroup_generic(OrthogonalGroup):
         Special Orthogonal Group of degree 4, form parameter 1, over the Finite Field of size 7
         sage: G._gap_init_()
         'SO(1, 4, 7)'
-        sage: G.random()
+        sage: G.random() # random output
         [4 2 5 6]
-	[0 3 2 4]
-	[5 3 5 2]
-	[1 1 6 2]
+        [0 3 2 4]
+        [5 3 5 2]
+        [1 1 6 2]
 
     """
     def _gap_init_(self):

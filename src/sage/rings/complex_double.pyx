@@ -176,11 +176,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         and imaginary part bounded by xmin, xmax, ymin, ymax.
 
         EXAMPLES:
-            sage: CDF.random_element()
+            sage: CDF.random_element() # random output
             0.209449195154 + 0.358283042908*I
-            sage: CDF.random_element(-10,10,-10,10)
+            sage: CDF.random_element(-10,10,-10,10) # random output
             -8.95410163615 + 8.72241592407*I
-            sage: CDF.random_element(-10^20,10^20,-2,2)
+            sage: CDF.random_element(-10^20,10^20,-2,2) # random output
             2.60705696501e+19 - 1.3642168045*I
         """
         global _CDF

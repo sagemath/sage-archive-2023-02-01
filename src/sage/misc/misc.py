@@ -1106,9 +1106,9 @@ def random_sublist(X, s):
 
     EXAMPLES:
         sage: S = [1,7,3,4,18]
-        sage: random_sublist(S, 0.5)
+        sage: random_sublist(S, 0.5) # random output
         [7]
-        sage: random_sublist(S, 0.5)
+        sage: random_sublist(S, 0.5) # random output
         [1, 7, 3]
     """
     return [a for a in X if random.random() <= s]

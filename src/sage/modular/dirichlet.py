@@ -1647,11 +1647,11 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         of the generator minus 1, inclusive.
 
         EXAMPLES:
-            sage: DirichletGroup(37).random_element()
+            sage: DirichletGroup(37).random_element() # random output
             [-zeta36^6]
-            sage: DirichletGroup(20).random_element()
+            sage: DirichletGroup(20).random_element() # random output
             [-1, -zeta4]
-            sage: DirichletGroup(60).random_element()
+            sage: DirichletGroup(60).random_element() # random output
             [1, 1, zeta4]
         """
         e = self(1)

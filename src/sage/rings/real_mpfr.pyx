@@ -499,9 +499,9 @@ cdef class RealField(sage.rings.ring.Field):
         min and max (default -1 to 1).
 
         EXAMPLES:
-            sage: RealField(100).random_element(-5, 10)
+            sage: RealField(100).random_element(-5, 10) # random output
             4.2682457657074627882421620493
-            sage: RealField(10).random_element()
+            sage: RealField(10).random_element() # random output
             .27
         """
         cdef RealNumber x = self._new()

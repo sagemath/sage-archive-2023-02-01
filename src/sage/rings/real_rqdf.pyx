@@ -388,13 +388,13 @@ cdef class RealQuadDoubleField_class(Field):
         RQDF.random_element(min, max) -- return a real number between min and max-1, inclusive.
 
         EXAMPLES:
-            sage: RQDF.random_element(-10,10)
+            sage: RQDF.random_element(-10,10) # random output
             -9.209632774772854987051276623390256588416142859212155465978529901
 
-            sage: RQDF.random_element(10)
+            sage: RQDF.random_element(10) # random output
             6.930095034109401944886360558592890441129375345858722509513142274
 
-            sage: [RQDF.random_element(10) for _ in range(5)]
+            sage: [RQDF.random_element(10) for _ in range(5)] # random output
             [1.070088577397235633479391067676924075710322235504950140678090698,
             1.593383098411245301526647147481406756307992796331404894981051621,
             9.622324671355391154671389092701091581790555025762598685473110481,

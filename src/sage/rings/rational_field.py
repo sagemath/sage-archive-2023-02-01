@@ -575,7 +575,7 @@ class RationalField(_uniq, number_field_base.NumberField):
     def random_element(self, num_bound=None, den_bound=None, distribution=None):
         """
         EXAMPLES:
-            sage: QQ.random_element(10,10)
+            sage: QQ.random_element(10,10) # random output
             -5/3
         """
         global ZZ

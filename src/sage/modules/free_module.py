@@ -1226,11 +1226,11 @@ class FreeModule_generic(module.Module):
 
         EXAMPLES:
             sage: M = FreeModule(ZZ, 2).span([[1,1]])
-            sage: M.random_element()
+            sage: M.random_element() # random output
             (1, 1)
-            sage: M.random_element()
+            sage: M.random_element() # random output
             (-2, -2)
-            sage: M.random_element()
+            sage: M.random_element() # random output
             (-1, -1)
         """
         R = self.base_ring()

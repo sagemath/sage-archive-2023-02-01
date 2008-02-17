@@ -871,7 +871,7 @@ def random_prime(n, proof=None):
                 (see sage.structure.proof)
 
     EXAMPLES:
-        sage: random_prime(100000)
+        sage: random_prime(100000) # random output
         54601
         sage: random_prime(2)
         2

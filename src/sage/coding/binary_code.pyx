@@ -2458,12 +2458,13 @@ cdef class BinaryCodeClassifier:
                 # update hzf__h_zeta
                 if hzf__h_zeta == k-1 and Lambda[k] == zf__Lambda_zeta[k]: hzf__h_zeta = k
                 # update qzb
-                if zb__Lambda_rho[k] == -1 or Lambda[k] < zb__Lambda_rho[k]:
-                    qzb = -1
-                elif Lambda[k] > zb__Lambda_rho[k]:
-                    qzb = 1
-                else:
-                    qzb = 0
+                if qzb == 0:
+                    if zb__Lambda_rho[k] == -1 or Lambda[k] < zb__Lambda_rho[k]:
+                        qzb = -1
+                    elif Lambda[k] > zb__Lambda_rho[k]:
+                        qzb = 1
+                    else:
+                        qzb = 0
                 # update hzb
                 if hzb__h_rho == k-1 and qzb == 0: hzb__h_rho = k
                 # if Lambda[k] > zb[k], then zb[k] := Lambda[k]
@@ -2767,8 +2768,8 @@ cdef class BinaryCodeClassifier:
                 if k < hzf__h_zeta:
                     hzf__h_zeta = k
                 # hb is longest common ancestor of nu and rho
-                if hb >= k:
-                    hb = k
+                if hzb__h_rho >= k:
+                    hzb__h_rho = k
                     qzb = 0
                 state = 2
 

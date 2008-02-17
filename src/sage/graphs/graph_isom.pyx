@@ -855,7 +855,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: Pi=[range(20)]
         sage: a,b = search_tree(G, Pi)
         sage: print a, enum(b)
-        [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0], [2, 1, 0, 19, 18, 11, 10, 9, 8, 7, 6, 5, 15, 14, 13, 12, 16, 17, 4, 3]] 17318942212009113839976787462421724338461987195898671092180383421848885858584973127639899792828728124797968735273000
+        [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0], [1, 8, 7, 6, 5, 15, 14, 13, 9, 10, 0, 19, 18, 11, 12, 16, 17, 4, 3, 2], [2, 1, 0, 19, 18, 11, 10, 9, 8, 7, 6, 5, 15, 14, 13, 12, 16, 17, 4, 3]] 17318942212009113839976787462421724338461987195898671092180383421848885858584973127639899792828728124797968735273000
         sage: c = search_tree(G, Pi, lab=False)
         sage: print c
         [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0], [2, 1, 0, 19, 18, 11, 10, 9, 8, 7, 6, 5, 15, 14, 13, 12, 16, 17, 4, 3]]
@@ -888,7 +888,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: Pi=[range(10)]
         sage: a,b = search_tree(G, Pi)
         sage: print a, enum(b)
-        [[0, 1, 2, 7, 5, 4, 6, 3, 9, 8], [0, 1, 6, 8, 5, 4, 2, 9, 3, 7], [0, 4, 3, 8, 5, 1, 9, 2, 6, 7], [1, 0, 4, 9, 6, 2, 5, 3, 7, 8], [2, 1, 0, 5, 7, 3, 6, 4, 8, 9]] 8715233764864019919698297664
+        [[0, 1, 2, 7, 5, 4, 6, 3, 9, 8], [0, 1, 6, 8, 5, 4, 2, 9, 3, 7], [0, 4, 3, 8, 5, 1, 9, 2, 6, 7], [1, 0, 4, 9, 6, 2, 5, 3, 7, 8], [1, 2, 3, 8, 6, 0, 7, 4, 5, 9]] 8715233764864019919698297664
         sage: c = search_tree(G, Pi, lab=False)
         sage: PAut = PermutationGroup([perm_group_elt(aa) for aa in a]) # long time
         sage: PAut.character_table() # long time
@@ -1212,6 +1212,13 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: b==d
         True
 
+    Previously a bug, now the output is correct:
+        sage: G = Graph('^????????????????????{??N??@w??FaGa?PCO@CP?AGa?_QO?Q@G?CcA??cc????Bo????{????F_')
+        sage: perm = {3:15, 15:3}
+        sage: H = G.relabel(perm, inplace=False)
+        sage: G.canonical_label() == H.canonical_label()
+        True
+
     """
     cdef int i, j, m # local variables
     cdef int uif = 1 if use_indicator_function else 0
@@ -1448,14 +1455,14 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
                         ST_vis_heights[nu.k].append(nu.repr_at_k(nu.k))
                     else:
                         ST_vis_heights[nu.k] = [nu.repr_at_k(nu.k)]
-                    ST_vis.add_edge(ST_vis_current_vertex, nu.repr_at_k(nu.k))
+                    ST_vis.add_edge(ST_vis_current_vertex, nu.repr_at_k(nu.k), ST_vis_invariant)
                     ST_vis_current_vertex = nu.repr_at_k(nu.k)
                     ST_vis_current_level += 1
                 if state == 13 and nu.k == -1:
                     ST_vis_new_heights = {}
                     for ST_vis_k in ST_vis_heights:
                         ST_vis_new_heights[-ST_vis_k] = ST_vis_heights[ST_vis_k]
-                    ST_vis.show(vertex_size=0, heights=ST_vis_new_heights, figsize=[30,10])
+                    ST_vis.show(vertex_size=0, heights=ST_vis_new_heights, figsize=[30,10], edge_labels=True)
             print '-----'
             print 'state:', state
 
@@ -1492,10 +1499,10 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
             alpha[0] = nu._split_vertex(v[nu.k-1])
             alpha[1] = -1
             i = nu._refine_by_square_matrix(alpha, n, M, _dig, uif)
+            if verbosity >= 5:
+                ST_vis_invariant = int(i)
 
-            # add one, then multiply by the invariant
-            mpz_add_ui(Lambda_mpz[nu.k], Lambda_mpz[nu.k-1], 1)
-            mpz_mul_si(Lambda_mpz[nu.k], Lambda_mpz[nu.k], i)
+            mpz_set_si(Lambda_mpz[nu.k], i)
 
             # only if this is the first time moving down the search tree:
             if h == -1: state = 5; continue
@@ -1505,10 +1512,11 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
             if not lab: state = 3; continue
 
             # "qzb := cmp(Lambda[k], zb[k])"
-            if mpz_cmp_si(zb_mpz[nu.k], -1) == 0: # if "zb[k] == oo"
-                qzb = -1
-            else:
-                qzb = mpz_cmp( Lambda_mpz[nu.k], zb_mpz[nu.k] )
+            if qzb == 0:
+                if mpz_cmp_si(zb_mpz[nu.k], -1) == 0: # if "zb[k] == oo"
+                    qzb = -1
+                else:
+                    qzb = mpz_cmp( Lambda_mpz[nu.k], zb_mpz[nu.k] )
             # update hzb
             if hzb == nu.k-1 and qzb == 0: hzb = nu.k
 
@@ -1784,11 +1792,11 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
             # hzf is maximal such that indicators line up for nu and zeta
             if nu.k < hzf:
                 hzf = nu.k
-            if not lab or hb < nu.k: # changed hzb to hb
+            if not lab or hzb < nu.k:
                 # in either case there is no need to update hb, which is the
                 # length of the common ancestor of nu and rho
                 state = 2; continue
-            hb = nu.k # changed hzb to hb
+            hzb = nu.k
             qzb = 0
             state = 2
 

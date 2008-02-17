@@ -962,7 +962,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             raise ValueError, "Sextic twist not defined in chars 2,3"
 
         if self.j_invariant() !=K(0):
-            raise ValueError, "Sextic twist not defined when j!=1728"
+            raise ValueError, "Sextic twist not defined when j!=0"
 
         if D.is_zero():
             raise ValueError, "Sextic twist requires a nonzero argument"

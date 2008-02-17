@@ -1010,6 +1010,74 @@ class GenericGraph(SageObject):
                 output[v] = None
         return output
 
+    def set_edge_label(self, u, v, l):
+        """
+        Set the edge label of a given edge.
+
+        INPUT:
+            u, v -- the vertices (and direction if digraph) of the edge
+            l -- the new label
+
+        EXAMPLE:
+            sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] } )
+            sage: SD.set_edge_label(1, 18, 'discrete')
+            sage: SD.set_edge_label(4, 7, 'discrete')
+            sage: SD.set_edge_label(2, 5, 'h = 0')
+            sage: SD.set_edge_label(7, 18, 'h = 0')
+            sage: SD.set_edge_label(7, 10, 'aut')
+            sage: SD.set_edge_label(8, 10, 'aut')
+            sage: SD.set_edge_label(8, 9, 'label')
+            sage: SD.set_edge_label(8, 6, 'no label')
+            sage: SD.set_edge_label(13, 17, 'k > h')
+            sage: SD.set_edge_label(13, 14, 'k = h')
+            sage: SD.set_edge_label(17, 15, 'v_k finite')
+            sage: SD.set_edge_label(14, 15, 'v_k m.c.r.')
+            sage: posn = {1:[ 3,-3],  2:[0,2],  3:[0, 13],  4:[3,9],  5:[3,3],  6:[16, 13], 7:[6,1],  8:[6,6],  9:[6,11], 10:[9,1], 11:[10,6], 12:[13,6], 13:[16,2], 14:[10,-6], 15:[0,-10], 16:[14,-6], 17:[16,-10], 18:[6,-4]}
+            sage: SD.plot(pos=posn, vertex_size=400, vertex_colors={'#FFFFFF':range(1,19)}, edge_labels=True).show()
+
+            sage: G = graphs.HeawoodGraph()
+            sage: for u,v,l in G.edges():
+            ...    G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
+            sage: G.edges()
+                [(0, 1, '(0,1)'),
+                 (0, 5, '(0,5)'),
+                 (0, 13, '(0,13)'),
+                 ...
+                 (11, 12, '(11,12)'),
+                 (12, 13, '(12,13)')]
+
+            sage: g = Graph({0: [0,1,1,2]}, loops=True, multiedges=True)
+            sage: g.set_edge_label(0,0,'test')
+            sage: g.edges()
+            [(0, 0, 'test'), (0, 1, None), (0, 1, None), (0, 2, None)]
+            sage: g.add_edge(0,0,'test2')
+            sage: g.set_edge_label(0,0,'test3')
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Cannot set edge label, since there are more than one edge (0,0).
+
+
+
+        """
+        if self.is_directed() and self.has_edge(u, v):
+            if self.multiple_edges():
+                if len(self._nxg.adj[u][v]) > 1:
+                    raise RuntimeError("Cannot set edge label, since there are more than one edge (%s,%s)."%(u,v))
+                else:
+                    self._nxg.adj[u][v] = [l]
+            else:
+                self._nxg.adj[u][v] = l
+        elif not self.is_directed() and self.has_edge(u, v):
+            if self.multiple_edges():
+                if len(self._nxg.adj[u][v]) > 1:
+                    raise RuntimeError("Cannot set edge label, since there are more than one edge (%s,%s)."%(u,v))
+                else:
+                    self._nxg.adj[u][v] = [l]
+                    self._nxg.adj[v][u] = [l]
+            else:
+                self._nxg.adj[u][v] = l
+                self._nxg.adj[v][u] = l
+
     def loop_vertices(self):
         """
         Returns a list of vertices with loops.
@@ -4514,24 +4582,6 @@ class Graph(GenericGraph):
                 K.append((u,v))
             return K
 
-    def set_edge_label(self, u, v, l):
-        """
-        Set the edge label of a given edge.
-
-        INPUT:
-            u, v -- the vertices of the edge
-            l -- the new label
-
-        EXAMPLE:
-            sage: G = graphs.HeawoodGraph()
-            sage: for u,v,l in G.edges():
-            ...    G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
-            sage: G.plot(edge_labels=True).show()
-
-        """
-        if self.has_edge(u, v):
-            self._nxg.adj[u][v] = l
-            self._nxg.adj[v][u] = l
 
     def edge_label(self, u, v=None):
         """
@@ -6555,34 +6605,6 @@ class DiGraph(GenericGraph):
             for u,v,l in L:
                 K.append((u,v))
             return K
-
-    def set_edge_label(self, u, v, l):
-        """
-        Set the edge label of a given edge.
-
-        INPUT:
-            u, v -- the vertices (and direction) of the edge
-            l -- the new label
-
-        EXAMPLE:
-            sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] } )
-            sage: SD.set_edge_label(1, 18, 'discrete')
-            sage: SD.set_edge_label(4, 7, 'discrete')
-            sage: SD.set_edge_label(2, 5, 'h = 0')
-            sage: SD.set_edge_label(7, 18, 'h = 0')
-            sage: SD.set_edge_label(7, 10, 'aut')
-            sage: SD.set_edge_label(8, 10, 'aut')
-            sage: SD.set_edge_label(8, 9, 'label')
-            sage: SD.set_edge_label(8, 6, 'no label')
-            sage: SD.set_edge_label(13, 17, 'k > h')
-            sage: SD.set_edge_label(13, 14, 'k = h')
-            sage: SD.set_edge_label(17, 15, 'v_k finite')
-            sage: SD.set_edge_label(14, 15, 'v_k m.c.r.')
-            sage: posn = {1:[ 3,-3],  2:[0,2],  3:[0, 13],  4:[3,9],  5:[3,3],  6:[16, 13], 7:[6,1],  8:[6,6],  9:[6,11], 10:[9,1], 11:[10,6], 12:[13,6], 13:[16,2], 14:[10,-6], 15:[0,-10], 16:[14,-6], 17:[16,-10], 18:[6,-4]}
-            sage: SD.plot(pos=posn, vertex_size=400, vertex_colors={'#FFFFFF':range(1,19)}, edge_labels=True).show()
-        """
-        if self.has_edge(u, v):
-            self._nxg.adj[u][v] = l
 
     def edge_label(self, u, v=None):
         """

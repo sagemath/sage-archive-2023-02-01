@@ -262,6 +262,28 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return PolynomialFunctor(self.variable_name()), self.base_ring()
 
     def completion(self, p, prec=20, extras=None):
+        """
+        Return the completion of self with respect to the irreducible
+        polynomial p.  Currently only implemented for p=self.gen(),
+        i.e. you can only cimplete R[x] with respect to x, the result
+        being a rings of power series in x. The prec variable controls
+        the precision used in the power series ring.
+
+        EXAMPLES:
+            sage: P.<x>=PolynomialRing(QQ)
+            sage: P
+            Univariate Polynomial Ring in x over Rational Field
+            sage: PP=P.completion(x)
+            sage: PP
+            Power Series Ring in x over Rational Field
+            sage: f=1-x
+            sage: PP(f)
+            1 - x
+            sage: 1/f
+            1/(-x + 1)
+            sage: 1/PP(f)
+            1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + x^7 + x^8 + x^9 + x^10 + x^11 + x^12 + x^13 + x^14 + x^15 + x^16 + x^17 + x^18 + x^19 + O(x^20)
+        """
         if str(p) == self._names[0]:
             from sage.rings.power_series_ring import PowerSeriesRing
             return PowerSeriesRing(self.base_ring(), self._names[0], prec)

@@ -5,9 +5,37 @@ The class \class{RationalField} represents the field $\Q$ of
 (arbitrary precision) rational numbers.  Each rational number is an
 instance of the class \class{Rational}.
 
+Interactively, an instance of \class{RationalField} is available as
+\code{QQ}.
+
+   sage: QQ
+   Rational Field
+
+Values of various types can be converted to rational numbers by
+using the \code{__call__} method of \class{RationalField} (that is,
+by treating \code{QQ} as a function).
+
+   sage: RealField(9).pi()
+   3.1
+   sage: QQ(RealField(9).pi())
+   22/7
+   sage: QQ(RealField().pi())
+   245850922/78256779
+   sage: QQ(35)
+   35
+   sage: QQ('12/347')
+   12/347
+   sage: QQ(exp(pi*I))
+   -1
+   sage: x = polygen(ZZ)
+   sage: QQ((3*x)/(4*x))
+   3/4
+
 TEST:
    sage: Q = RationalField()
    sage: Q == loads(dumps(Q))
+   True
+   sage: RationalField() is RationalField()
    True
 
 """
@@ -119,7 +147,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def __call__(self, x, base=0):
         """
-        Coerce x into the field of rational numbers.
+        Coerce $x$ into the field of rational numbers.
 
         EXAMPLES:
             sage: a = long(901824309821093821093812093810928309183091832091)
@@ -321,7 +349,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def embeddings(self, K):
         """
-        Return list of the one embedding of QQ into K, if it exists.
+        Return list of the one embedding of $\Q$ into $K$, if it exists.
 
         EXAMPLES:
             sage: QQ.embeddings(QQ)
@@ -331,7 +359,7 @@ class RationalField(_uniq, number_field_base.NumberField):
               From: Rational Field
               To:   Cyclotomic Field of order 5 and degree 4]
 
-        K must have characteristic 0:
+        $K$ must have characteristic 0:
             sage: QQ.embeddings(GF(3))
             Traceback (most recent call last):
             ...
@@ -406,7 +434,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def is_absolute(self):
         """
-        QQ is an absolute extension of QQ.
+        $\Q$ is an absolute extension of $\Q$.
 
         EXAMPLES:
             sage: QQ.is_absolute()
@@ -416,9 +444,9 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def is_subring(self, K):
         """
-        Return True if QQ is a subring of K.
+        Return \code{True} if $\Q$ is a subring of $K$.
 
-        We are only able to determine this in some cases, e.g., when K
+        We are only able to determine this in some cases, e.g., when $K$
         is a field or of positive characteristic.
 
         EXAMPLES:
@@ -447,7 +475,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def is_field(self):
         """
-        Return True, since the rational field is a field.
+        Return \code{True}, since the rational field is a field.
 
         EXAMPLES:
             sage: QQ.is_field()
@@ -457,7 +485,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def is_finite(self):
         """
-        Return False, since the rational field is not finite.
+        Return \code{False}, since the rational field is not finite.
 
         EXAMPLES:
             sage: QQ.is_finite()
@@ -467,7 +495,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def is_prime_field(self):
         """
-        Return True, since QQ is a prime field.
+        Return \code{True}, since $\Q$ is a prime field.
 
         EXAMPLES:
             sage: QQ.is_prime_field()
@@ -493,7 +521,7 @@ class RationalField(_uniq, number_field_base.NumberField):
     def maximal_order(self):
         """
         Return the maximal order of the rational numbers,
-        i.e., the ring ZZ of integers.
+        i.e., the ring $\Z$ of integers.
 
         EXAMPLES:
             sage: QQ.maximal_order()
@@ -506,8 +534,8 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def number_field(self):
         """
-        Return the number field associated to QQ.  Since QQ
-        is a number field, this just returns QQ again.
+        Return the number field associated to $\Q$.  Since $\Q$
+        is a number field, this just returns $\Q$ again.
 
         EXAMPLES:
             sage: QQ.number_field() is QQ
@@ -568,7 +596,7 @@ class RationalField(_uniq, number_field_base.NumberField):
                          ZZ.random_element(1, den_bound+1, distribution=distribution)))
     def zeta(self, n=2):
         """
-        Return a root of unity in self.
+        Return a root of unity in \code{self}.
 
         INPUT:
             n -- integer (default: 2) order of the root of unity

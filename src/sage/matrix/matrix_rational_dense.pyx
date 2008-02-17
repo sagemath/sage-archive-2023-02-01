@@ -582,9 +582,15 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         else:
             raise ValueError, "unknown algorithm '%s'"%algorithm
 
-    def determinant(self):
+    def determinant(self, proof=None):
         """
         Return the determinant of this matrix.
+
+        INPUT:
+            proof -- bool or None; if None use proof.linear_algebra(); only
+                     relevant for the padic algorithm.
+                     NOTE: It would be *VERY VERY* hard for det to fail
+                     even with proof=False.
 
         ALGORITHM: Clear denominators and call the integer determinant function.
 
@@ -599,7 +605,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         if not det is None: return det
 
         A, denom = self._clear_denom()
-        det = Rational(A.determinant())
+        det = Rational(A.determinant(proof=proof))
         if denom != 1:
             det = det / (denom**self.nrows())
         self.cache('det', det)

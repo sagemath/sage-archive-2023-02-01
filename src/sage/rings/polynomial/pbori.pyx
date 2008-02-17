@@ -542,6 +542,157 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         gens = flatten(gens)
         return BooleanPolynomialIdeal(self, gens, coerce)
 
+    def random_element(self, degree=2, terms=5, choose_degree=True,
+            vars_set=None, seed=None):
+        """
+        Return a random boolean polynomial. Generated polynomial has the given number of terms, and at most given degree.
+
+        INPUT:
+            degree -- maximum degree (default: 2)
+            terms -- number of terms (default: 5)
+            choose_degree -- choose degree of monomials randomly first, rather
+                             than monomials uniformly random
+            vars_set -- list of integer indicies of generators of self to use
+                        in the generated polynomial
+
+        EXAMPLES:
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: P.random_element(degree=3, terms=4) # random output
+            x*y + x*z + z + 1
+
+            sage: P.random_element(degree=1, terms=2) # random output
+            x + 1
+
+        TESTS:
+            sage: P.random_element(degree=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: Given degree should be less than or equal to number of variables (3)
+
+            sage: t = P.random_element(degree=1, terms=5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot generate random polynomial with 5 terms and maximum degree 1 using 3 variables
+
+            sage: t = P.random_element(degree=2,terms=5,vars_set=(0,1))
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot generate random polynomial with 5 terms using 2 variables
+
+        """
+        from sage.rings.integer import Integer
+        from sage.rings.arith import binomial
+
+        if not vars_set:
+            vars_set=range(self.ngens())
+        nvars = len(vars_set)
+
+        if degree > nvars:
+            raise ValueError, "Given degree should be less than or equal to number of variables (%s)"%(nvars)
+
+        if Integer(terms-1).bits() > nvars:
+            raise ValueError, "Cannot generate random polynomial with %s terms using %s variables"%(terms, nvars)
+
+        tot_terms=0
+        monom_counts = []
+        for i from 0 <= i <= degree:
+            tot_terms += binomial(nvars,i)
+            monom_counts.append(tot_terms)
+
+        if terms > tot_terms:
+            raise ValueError, "Cannot generate random polynomial with %s terms and maximum degree %s using %s variables"%(terms, degree, nvars)
+
+        p = self._zero_element
+        while len(p) < terms:
+            p=self(p.set().union(\
+                self._random_uniform_rec(degree, monom_counts, vars_set, choose_degree, terms-len(p))\
+                .set()))
+        return p
+
+    def _random_uniform_rec(self, degree, monom_counts, vars_set, dfirst, l):
+        """
+        Recursively generate a random polynomial in self, using the variables from \code{vars_set}.
+
+        INPUT:
+            degree -- maximum degree
+            monom_counts -- a list containing total number of monomials up to given degree
+            vars_set -- list of variable indicies to use in the generated polynomial
+            dfirst -- if \code{True} choose degree first, otherwise choose the monomial uniformly
+            l -- number of monomials to generate
+
+        EXAMPLES:
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2) # random
+            y + 1
+        """
+        from sage.rings.integer import Integer
+        from sage.rings.integer_ring import ZZ
+        if l == 0:
+            return self._zero_element
+        if l == 1:
+            if dfirst:
+                return self._random_monomial_dfirst(degree, vars_set)
+            else:
+                return self._random_monomial_uniform(monom_counts, vars_set)
+
+        return self._random_uniform_rec(degree, monom_counts,
+                    vars_set, dfirst, l//2) + \
+               self._random_uniform_rec(degree, monom_counts,
+                    vars_set, dfirst, l - l//2)
+
+    def _random_monomial_uniform(self, monom_counts, vars_set):
+        """
+        Choose a random monomial uniformly from set of monomials in the variables indexed by \code{vars_set} in self.
+
+        INPUT:
+            monom_counts -- list of number of monomials up to given degree
+            vars_set -- list of variable indicies to use in the generated monomial
+
+        EXAMPLES:
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: P._random_monomial_uniform([1, 3, 4], (0,1)) # random output
+            x
+        """
+        from sage.rings.integer_ring import ZZ
+        from sage.combinat.choose_nk import from_rank
+
+        t = ZZ.random_element(0,monom_counts[-1])
+        if t == 0:
+            return self._one_element
+        i = 1
+        while t >= monom_counts[i]:
+            i+=1
+        mind = t-monom_counts[i-1]
+        var_inds = from_rank(mind,len(vars_set),i)
+        M = self._monom_monoid
+        m = M._one_element
+        for j in var_inds:
+            m*=M.gen(vars_set[j])
+        return self(m)
+
+    def _random_monomial_dfirst(self, degree, vars_set):
+        """
+        Choose a random monomial using variables indexed in \code{vars_set} up to given \code{degree}. The degree of the monomial, $d$, is chosen uniformly in the interval [0,degree] first, then the monomial is generated by selecting a random sample of size $d$ from \code{vars_set}.
+
+        INPUT:
+            degree -- maximum degree
+            vars_set -- list of variable indicies of self
+
+        EXAMPLES:
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: P._random_monomial_dfirst(3, (0,1,2)) # random output
+            x*y
+        """
+        from sage.rings.integer_ring import ZZ
+        from random import sample
+        d = ZZ.random_element(0,degree+1)
+        vars = sample(vars_set, d)
+        M = self._monom_monoid
+        m = M._one_element
+        for j in vars:
+            m*=M.gen(j)
+        return self(m)
+
 def get_var_mapping(ring, other):
     """
     Return a variable mapping between variables of other and ring. When other is a parent object, the mapping defines images for all variables of other. If it is an element, only variables occuring in other are mapped.

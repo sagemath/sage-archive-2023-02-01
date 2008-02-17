@@ -1028,11 +1028,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: a.det()%3
             0
         """
-        # TODO: use charpoly for now, since linbox is shaky for det
-        c = self._linbox_modn(n).charpoly()[0]
-        if self._nrows % 2 != 0:
-            c = -c
-        return IntegerModRing(n)(c)
+        d = self._linbox_modn(n).det()
+        return IntegerModRing(n)(d)
 
     def _linbox_modn(self, mod_int n):
         """
@@ -2038,16 +2035,16 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Hadamard bound, skipping primes that divide $d$.
 
         TIMINGS:
-            For A having at all large entries, e.g., 16 bits or more,
-            this is perhaps the fastest implementation of determinants
-            in the world, especially with proof is False.  E.g., for a
-            500x500 random matrix with 32-bit entries on a core2 duo
-            2.6Ghz running OS X, Sage takes 5.66 seconds, whereas
-            Magma takes 61.04 seconds (both with proof False).  For
-            another example, a 200x200 random matrix with 32-bit
-            entries takes 2.52 seconds in pari, 0.17 in Sage with
-            proof True, 0.11 in Sage with proof False, and 0.58
-            seconds in Magma (with either proof False or True).
+            This is perhaps the fastest implementation of determinants
+            in the world.  E.g., for a 500x500 random matrix with
+            32-bit entries on a core2 duo 2.6Ghz running OS X, Sage
+            takes 4.12 seconds, whereas Magma takes 62.87 seconds
+            (both with proof False).  With proof=True on the same problem
+            Sage takes 5.73 seconds.  For another example, a 200x200
+            random matrix with 1-digit entries takes 4.18 seconds in
+            pari, 0.18 in Sage with proof True, 0.11 in Sage with
+            proof False, and 0.21 seconds in Magma with proof True
+            and 0.18 in Magma with proof False.
 
         EXAMPLES:
             sage: A = matrix(ZZ,8,8,[3..66])
@@ -2247,7 +2244,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             True
 
         """
-        t = verbose('starting linbox solve_right...')
+        t = verbose('starting IML solve_right...')
         # It would probably be much better to rewrite linbox so it
         # throws an error instead of ** going into an infinite loop **
         # in the non-full rank case.  In any case, we do this for now,

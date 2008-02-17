@@ -98,7 +98,7 @@ cdef class Linbox_modn_dense:
         r = linbox_modn_dense_rank(self.n,   self.matrix, self.nrows, self.ncols)
         return r
 
-    cdef mod_int det(self) except -1:
+    cpdef mod_int det(self) except -1:
         cdef mod_int d
         d = linbox_modn_dense_det(self.n,   self.matrix, self.nrows, self.ncols)
         return d

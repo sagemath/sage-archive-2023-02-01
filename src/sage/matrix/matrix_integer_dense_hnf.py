@@ -3,16 +3,6 @@ Modular algorithm to compute Hermite normal forms of integer matrices.
 
 AUTHORS:
     -- Clement Pernet and William Stein (2008-02-07): initial version
-
-TODO:
-   [ ] fix memory leaks:
-sage..: a = random_matrix(ZZ, 300,400)
-sage..: get_memory_usage()
-'626M+'
-sage..: time h = hnf(a
-sage..: get_memory_usage()
-'634M+'
-   [ ] rerun automatic tests
 """
 
 from copy import copy
@@ -20,11 +10,31 @@ from copy import copy
 from sage.misc.misc import verbose, prod
 from sage.matrix.constructor import random_matrix, matrix, matrix, identity_matrix
 
-from sage.rings.all import ZZ, QQ, previous_prime, CRT_list
+from sage.rings.all import ZZ, QQ, previous_prime, next_prime, CRT_list
 import math
 
-#MAX_DET_PRIME = 67108879   # next prime after 2^26 -- biggest for linbox (?)
-MAX_DET_PRIME=16777259      # but this prime much faster for linbox
+def max_det_prime(n):
+    """
+    Return the largest prime so that it is reasonably efficiency to
+    compute modulo that prime with n x n matrices in Linbox.
+
+    INPUT:
+        n -- a positive integer
+
+    OUTPUT:
+        a prime number
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix_integer_dense_hnf import max_det_prime
+        sage: max_det_prime(10000)
+        524309
+        sage: max_det_prime(1000)
+        2097169
+        sage: max_det_prime(10)
+        16777259
+    """
+    k = int(26 - math.ceil(math.log(n)*0.7213475205))
+    return next_prime(2**k)
 
 def det_from_modp_and_divisor(A, d, p, z_mod, moduli):
     """
@@ -96,26 +106,29 @@ def det_given_divisor(A, d, proof=True, stabilize=2):
         -30
 
     Here we illustrate proof=False giving a wrong answer:
-        sage: p = matrix_integer_dense_hnf.MAX_DET_PRIME
+        sage: p = matrix_integer_dense_hnf.max_det_prime(2)
         sage: q = previous_prime(p)
         sage: a = matrix(ZZ, 2, [p, 0, 0, q])
+        sage: p * q
+        1125899772623531
         sage: matrix_integer_dense_hnf.det_given_divisor(a, 1, proof=False, stabilize=2)
         0
 
     This still works, because we don't work modulo primes that divide
     the determinant bound, which is found using a p-adic algorithm.
         sage: a.det(proof=False, stabilize=2)
-        281475647799167
+        1125899772623531
+
 
     3 primes is enough:
         sage: matrix_integer_dense_hnf.det_given_divisor(a, 1, proof=False, stabilize=3)
-        281475647799167
+        1125899772623531
         sage: matrix_integer_dense_hnf.det_given_divisor(a, 1, proof=False, stabilize=5)
-        281475647799167
+        1125899772623531
         sage: matrix_integer_dense_hnf.det_given_divisor(a, 1, proof=True)
-        281475647799167
+        1125899772623531
     """
-    p = MAX_DET_PRIME
+    p = max_det_prime(A.nrows())
     z_mod = []
     moduli = []
     assert d != 0

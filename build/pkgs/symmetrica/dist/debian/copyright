@@ -1,0 +1,10 @@
+This package was debianized by Tim Abbott <tabbott@mit.edu> in 2008.
+
+It was downloaded from http://www.mathe2.uni-bayreuth.de/axel/symneu_engl.html
+
+Upstream Author: Lehrstuhl Mathematik II.  Contact: <sym@btm2x2.mat.uni-bayreuth.de>
+
+Copyright: Public domain (see http://www.mathe2.uni-bayreuth.de/axel/symneu_engl.html)
+
+The Debian packaging is (C) 2008, Tim Abbott <tabbott@mit.edu> and is
+licensed under the GPL, see `/usr/share/common-licenses/GPL'.

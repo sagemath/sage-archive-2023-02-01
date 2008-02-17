@@ -1173,7 +1173,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         rank is not sufficient for 'ntl' we silently fall back to
         'pari'.
         """
-        label = 'echelon_form-%s'%transformation
+        if transformation:
+            label = 'echelon_form_transformation'
+        else:
+            label = 'echelon_form'
         x = self.fetch(label)
         if not x is None:
             return x
@@ -2636,6 +2639,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [  0   1 219]
             [  0   0 545], [0, 1, 2])
         """
+        from sage.all import get_memory_usage
         cdef Py_ssize_t i, j, piv, n = self._nrows, m = self._ncols
 
         import constructor
@@ -2715,7 +2719,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 top_mat, pivots = top_mat._add_row_and_maintain_echelon_form(new_top, new_pivots)
                 w = top_mat._add_row_and_maintain_echelon_form(new_bot, pivots)
                 return w
-
         # 3. If it turns out that the last row is nonzero,
         #    insert last row in A sliding other rows down.
         v = A.row(n)
@@ -2734,9 +2737,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             import bisect
             j = bisect.bisect(pivots, i)
             # The new row should go *before* row j, so it becomes row j
-
             A = A.insert_row(j, v)
-
         try:
             _clear_columns(A, new_pivots, A.nrows())
         except RuntimeError:
@@ -2766,8 +2767,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             matrix -- the Hermite normal form of self.
         """
         t = verbose('hermite mod %s'%D, caller_name='matrix_integer_dense')
-        res = self._new_uninitialized_matrix(self._nrows, self._ncols)
+        cdef Matrix_integer_dense res = self._new_uninitialized_matrix(self._nrows, self._ncols)
         self._hnf_modn(res, D)
+        res._initialized = True
         verbose('finished hnf mod', t, caller_name='matrix_integer_dense')
         return res
 
@@ -2985,6 +2987,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for j from self._ncols * (index+1) <= j < (self._nrows + 1)*self._ncols:
             mpz_init_set(res._entries[j], self._entries[j - self._ncols])
 
+        res._initialized = True
         return res
 
     def _change_ring(self, ring):

@@ -875,7 +875,10 @@ def random_prime(n, proof=None):
         54601
         sage: random_prime(2)
         2
-
+        sage: type(random_prime(2))
+        <type 'sage.rings.integer.Integer'>
+        sage: type(random_prime(100))
+        <type 'sage.rings.integer.Integer'>
 
     AUTHOR:
         -- Jon Hanke: 2006-08-08  (with standard Stein cleanup)
@@ -904,7 +907,7 @@ def random_prime(n, proof=None):
             # for example, return the first of a pair of twin primes.
             p = random.randint(2,n)
             if prime_test(p):
-                return p
+                return integer_ring.ZZ(p)
 
 
 def divisors(n):

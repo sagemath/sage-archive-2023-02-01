@@ -1,0 +1,32 @@
+This package was debianized by Tim Abbott <tabbott@mit.edu> in 2008.
+
+It was downloaded from http://www.cs.uwaterloo.ca/~z4chen/iml.html
+
+Upstream Author: Zhuliang Chen <z4chen@uwaterloo.ca>,
+                 Cory Fletcher <c2fletcher@scg.uwaterloo.ca>,
+                 Arne Storjohann <astorjoh@scg.uwaterloo.ca>
+
+Copyright: (C) 2004-2007 Zhuliang Chen
+
+License:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted under the terms of the BSD License.
+
+    THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+    OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+    LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+    SUCH DAMAGE.
+
+On Debian systems, the complete text of the BSD License can be found
+in `/usr/share/common-licenses/BSD'.
+
+
+The Debian packaging is (C) 2008, Tim Abbott <tabbott@mit.edu> and
+is licensed under the GPL, see `/usr/share/common-licenses/GPL'.

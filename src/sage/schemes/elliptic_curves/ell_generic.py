@@ -877,8 +877,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         K=self.base_ring()
         char=K.characteristic()
+        D=K(D)
 
         if char!=2:
+            if D.is_zero():
+                raise ValueError, "quadratic twist requires a nonzero argument when characteristic is not 2"
             b2,b4,b6,b8=self.b_invariants()
             # E is isomorphic to  [0,b2,0,8*b4,16*b6]
             return EllipticCurve(K,[0,b2*D,0,8*b4*D**2,16*b6*D**3])
@@ -915,12 +918,16 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         K=self.base_ring()
         char=K.characteristic()
+        D=K(D)
 
         if char==2 or char==3:
             raise ValueError, "Quartic twist not defined in chars 2,3"
 
         if self.j_invariant() !=K(1728):
             raise ValueError, "Quartic twist not defined when j!=1728"
+
+        if D.is_zero():
+            raise ValueError, "quartic twist requires a nonzero argument"
 
         c4,c6=self.c_invariants()
         # E is isomorphic to  [0,0,0,-27*c4,0]
@@ -949,12 +956,16 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         K=self.base_ring()
         char=K.characteristic()
+        D=K(D)
 
         if char==2 or char==3:
             raise ValueError, "Sextic twist not defined in chars 2,3"
 
         if self.j_invariant() !=K(0):
             raise ValueError, "Sextic twist not defined when j!=1728"
+
+        if D.is_zero():
+            raise ValueError, "quartic twist requires a nonzero argument"
 
         c4,c6=self.c_invariants()
         # E is isomorphic to  [0,0,0,0,-54*c6]
@@ -1771,17 +1782,17 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         return R([a6, a4, a2, 1]), R([a3, a1])
 
 
-def Hasse_bounds(q):
+def Hasse_bounds(q, genus=1):
     """
-    Return the Hasse bounds (lb,ub) for the cardinality of an elliptic
-    curve defined over GF(q)
+    Return the Hasse bounds (lb,ub) for the cardinality of a curve of
+    genus g (default 1) defined over GF(q)
 
     EXAMPLES:
        sage: Hasse_bounds(2)
+       (1, 5)
        sage: Hasse_bounds(next_prime(10^30))
        (999999999999998000000000000058, 1000000000000002000000000000058)
-       (1, 5)
     """
-    rq = 2*q.isqrt()
+    rq = 2*genus*q.isqrt()
     return (q+1-rq,q+1+rq)
 

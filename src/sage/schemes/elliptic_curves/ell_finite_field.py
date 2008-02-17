@@ -33,7 +33,7 @@ from ell_field import EllipticCurve_field
 from constructor import EllipticCurve
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
-from sage.rings.all import Integer, ZZ, PolynomialRing, ComplexField, FiniteField, GF
+from sage.rings.all import Integer, ZZ, PolynomialRing, ComplexField, FiniteField, GF, polygen
 import gp_cremona
 import sea
 from sage.groups.all import AbelianGroup
@@ -506,7 +506,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.frobenius_polynomial()
             x^2 - 4*x + 11
         """
-        x=PolynomialRing(ZZ,'x').gen()
+        x=polygen(ZZ)
         return x**2-self.trace_of_frobenius()*x+self.base_field().cardinality()
 
     def frobenius_order(self):

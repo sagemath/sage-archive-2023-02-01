@@ -84,6 +84,19 @@ PKG_NAME=`echo "$1" | sed -e "s/\.spkg//"`
 PKG_NAME=`basename "$PKG_NAME"`
 PKG_SRC="$1"
 PKG_BASE=`echo "$PKG_NAME" | sed -e "s/-.*//"`
+# check if noclobber is set and warn about it
+if [ $PKG_SRC == "noclobber" ]; then
+    echo "***********************************************************"
+    echo "* WARNING WARNING WARNING WARNING WARNING WARNING WARNING *"
+    echo "*                                                         *"
+    echo "* noclobber is set in .bashrc and/or .bash_profile - you  *"
+    echo "* should consider disabling it. The Sage install should   *"
+    echo "* continue to work, so don't worry about it too much.     *"
+    echo "*                                                         *"
+    echo "* WARNING WARNING WARNING WARNING WARNING WARNING WARNING *"
+    echo "***********************************************************"
+    exit 0
+fi
 
 if [ ! -f "$PKG_SRC" ]; then
     if [ -f "$SAGE_PACKAGES/standard/$PKG_NAME.spkg" ]; then

@@ -98,17 +98,15 @@ cdef class Matrix(matrix0.Matrix):
        """
        EXAMPLES:
            sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
-           sage: g = mathematica(A); g                                   # optional
-           {{1}, {2}, {3}, {4/3}, {5/3}, {3/2}, {7}, {8}, {9}}
+           sage: g = mathematica(A); g                  # optional
+           {{1, 2, 3}, {4/3, 5/3, 3/2}, {7, 8, 9}}
+
+           sage: A = matrix([[1,2],[3,4]])
+           sage: g = mathematica(A); g                  # optional
+           {{1, 2}, {3, 4}}
        """
-       cdef Py_ssize_t i, j
-       v = []
-       for i from 0 <= i < self._nrows:
-           w = []
-           for j from 0 <= j < self._ncols:
-               w.append('{%s}'%self.get_unsafe(i, j))
-           v.append(','.join(w))
-       return '{%s}'%(','.join(v))
+       import sage.interfaces.mathematica as mathematica
+       return mathematica.mathematica(list(self))
 
     def _magma_init_(self):
         r"""

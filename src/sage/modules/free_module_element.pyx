@@ -1086,6 +1086,15 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def is_vector(self):
         return True
 
+    def _mathematica_init_(self):
+        """
+        EXAMPLES:
+            sage: mathematica(vector((1,2,3), QQ))  #optional
+            {1, 2, 3}
+        """
+        import sage.interfaces.mathematica as mathematica
+        return mathematica.mathematica(tuple(self))
+
 ##     def zero_out_positions(self, P):
 ##         """
 ##         Set the positions of self in the list P equal to 0.

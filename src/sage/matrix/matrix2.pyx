@@ -3041,11 +3041,11 @@ cdef class Matrix(matrix1.Matrix):
         Return an int n such that the absolute value of the
         determinant of this matrix is at most $10^n$.
 
-        This function can fail if the entries in self are horrendously
-        large.
+        This is got using both the row norms and the column norms.
 
         This function only makes sense when the base field can be
-        coerced to the real double field RDF.
+        coerced to the real double field RDF or the MPFR Real Field
+        with 53-bits precision.
 
         EXAMPLES:
             sage: a = matrix(ZZ, 3, [1,2,5,7,-3,4,2,1,123])
@@ -3055,10 +3055,33 @@ cdef class Matrix(matrix1.Matrix):
             -2014
             sage: 10^4
             10000
+
+        In this example the Hadamard bound has to be computed (automatically)
+        using mpfr instead of doubles, since doubles overflow:
+            sage: a = matrix(ZZ, 2, [2^10000,3^10000,2^50,3^19292])
+            sage: a.hadamard_bound()
+            12215
+            sage: len(str(a.det()))
+            12215
         """
-        from sage.rings.all import RDF
-        A = self.change_ring(RDF)
-        return A.hadamard_bound()
+        from sage.rings.all import RDF, RealField
+        try:
+            A = self.change_ring(RDF)
+            m1 = A._hadamard_row_bound()
+            A = A.transpose()
+            m2 = A._hadamard_row_bound()
+            return min(m1, m2)
+        except (OverflowError, TypeError):
+            # Try using MPFR, which handles large numbers much better, but is slower.
+            import misc
+            R = RealField(53, rnd='RNDU')
+            A = self.change_ring(R)
+            m1 = misc.hadamard_row_bound_mpfr(A)
+            A = A.transpose()
+            m2 = misc.hadamard_row_bound_mpfr(A)
+            return min(m1, m2)
+
+
 
 def _dim_cmp(x,y):
     """

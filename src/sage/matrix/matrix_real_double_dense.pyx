@@ -1087,14 +1087,14 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
 
-    def hadamard_bound(self):
+    def _hadamard_row_bound(self):
         r"""
         Return an integer n such that the absolute value of the
         determinant of this matrix is at most $10^n$.
 
         EXAMPLES:
             sage: a = matrix(RDF, 3, [1,2,5,7,-3,4,2,1,123])
-            sage: a.hadamard_bound()
+            sage: a._hadamard_row_bound()
             4
             sage: a.det()
             -2014.0

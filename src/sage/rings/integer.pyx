@@ -1593,7 +1593,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return mpz_pythonhash(self.value)
 
-    def factor(self, algorithm='pari', proof=True):
+    def _factor_trial_division(self, limit):
+        """
+        Return partial factorization of self obtained using trial
+        division for all primes up to limit, where limit must fit
+        in a signed int.
+
+        INPUT:
+            limit -- integer that fits in a signed int
+
+        ALGORITHM: Uses Pari.
+
+        EXAMPLES:
+            sage: n = 920384092842390423848290348203948092384082349082
+            sage: n._factor_trial_division(1000)
+            2 * 11 * 41835640583745019265831379463815822381094652231
+            sage: n._factor_trial_division(2^30)
+            2 * 11 * 1531 * 27325696005058797691594630609938486205809701
+        """
+        import sage.structure.factorization as factorization
+        F = self._pari_().factor(limit)
+        B, e = F
+        return factorization.Factorization([(the_integer_ring(B[i]), the_integer_ring(e[i])) for i in range(len(B))])
+
+    def factor(self, algorithm='pari', proof=True, limit=None):
         """
         Return the prime factorization of the integer as a list of
         pairs $(p,e)$, where $p$ is prime and $e$ is a positive integer.
@@ -1605,12 +1628,28 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                              the optional kash package be installed)
             proof -- bool (default: True) whether or not to prove primality
                     of each factor (only applicable for PARI).
-
+            limit -- int or None (default: None) if limit is given it
+                     must fit in a signed int, and the factorization
+                     is done using trial divsion and primits up to limit.
 
         EXAMPLES:
             sage: n = 2^100 - 1; n.factor()
             3 * 5^3 * 11 * 31 * 41 * 101 * 251 * 601 * 1801 * 4051 * 8101 * 268501
+
+        We using proof=False, which doesn't prove correctness of the
+        primes that appear in the factorization:
+            sage: n = 920384092842390423848290348203948092384082349082
+            sage: n.factor(proof=False)
+            2 * 11 * 1531 * 4402903 * 10023679 * 619162955472170540533894518173
+            sage: n.factor(proof=True)
+            2 * 11 * 1531 * 4402903 * 10023679 * 619162955472170540533894518173
+
+        We factor using trial division only:
+            sage: n.factor(limit=1000)
+            2 * 11 * 41835640583745019265831379463815822381094652231
         """
+        if limit is not None:
+            return self._factor_trial_division(limit)
         import sage.rings.integer_ring
         return sage.rings.integer_ring.factor(self, algorithm=algorithm, proof=proof)
 

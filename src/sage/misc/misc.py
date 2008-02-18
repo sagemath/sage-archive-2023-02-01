@@ -1487,7 +1487,11 @@ def branch_current_hg():
     Return the current hg Mercurial branch name.  If the branch
     is 'main', which is the default branch, then just '' is returned.
     """
-    s = os.popen('ls -l %s/devel/sage'%os.environ['SAGE_ROOT']).read()
+    try:
+        s = os.popen('ls -l %s/devel/sage'%os.environ['SAGE_ROOT']).read()
+    except IOError:
+        # this happens when running sage under gdb on macs
+        s = 'gdb'
     if 'No such file or directory' in s:
         raise RuntimeError, "unable to determine branch?!"
     # do ls -l and look for a symlink, which `ls` represents by a '->'

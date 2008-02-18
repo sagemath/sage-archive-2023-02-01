@@ -7,10 +7,10 @@ AUTHORS:
 
 from copy import copy
 
-from sage.misc.misc import verbose, prod
+from sage.misc.misc import verbose, prod, cputime
 from sage.matrix.constructor import random_matrix, matrix, matrix, identity_matrix
 
-from sage.rings.all import ZZ, QQ, previous_prime, next_prime, CRT_list
+from sage.rings.all import ZZ, QQ, previous_prime, next_prime, CRT_list, GCD, RR
 import math
 
 def max_det_prime(n):
@@ -62,7 +62,7 @@ def det_from_modp_and_divisor(A, d, p, z_mod, moduli):
         sage: a.det()
         -377
     """
-    tm = verbose("Multimodular stage of det calculation -- using p = %s"%p, level=1)
+    tm = verbose("Multimodular stage of det calculation -- using p = %s"%p, level=2)
     z = A._linbox_modn_det(p) / d
     z = z.lift()
     z_mod.append(z)
@@ -71,7 +71,7 @@ def det_from_modp_and_divisor(A, d, p, z_mod, moduli):
     N = prod(moduli)
     if z > N//2:
         z = z - N
-    verbose("finished multimodular det for p = %s"%p, tm, level=1)
+    verbose("Finished multimodular det for p = %s"%p, tm, level=2)
     return d * z
 
 def det_given_divisor(A, d, proof=True, stabilize=2):
@@ -137,18 +137,25 @@ def det_given_divisor(A, d, proof=True, stabilize=2):
         B = (10**A.hadamard_bound()) // d + 1
         dd = d
         # bad verbose statement, since computing the log overflows!
-        #verbose("Multimodular det -- need to use about %s primes."%(int(math.log(B)/math.log(p))))
+        est = int(RR(B).log() / RR(p).log()) + 1
+        cnt = 1
+        verbose("Multimodular det -- need to use about %s primes."%est, level=1)
         while N < B:
             if d % p != 0:
+                tm = cputime()
                 dd = det_from_modp_and_divisor(A, d, p, z_mod, moduli)
                 N *= p
+                verbose("computed det mod p=%s which is %s (of about %s)"%(p, cnt, est), tm)
             p = previous_prime(p)
+            cnt += 1
         return dd
     else:
         val = []
         while True:
             if d % p != 0:
+                tm = cputime()
                 dd = det_from_modp_and_divisor(A, d, p, z_mod, moduli)
+                verbose("computed det mod %s"%p, tm)
                 val.append(dd)
                 if len(val) >= stabilize and len(set(val[-stabilize:])) == 1:
                     return val[-1]
@@ -276,6 +283,88 @@ def add_column_fallback(B, a, proof):
     verbose('finished add column fallback', tt)
     return C
 
+def solve_system_with_difficult_last_row(B, a):
+    """
+    Solve B*x = a when the last row of $B$ contains huge entries using
+    a clever trick that reduces the problem to solve C*x = a where $C$
+    is $B$ but with the last row replaced by something small, along
+    with one easy nullspace computation.  The latter are both solved
+    $p$-adically.
+
+    INPUT:
+        B -- a square n x n nonsingular matrix with painful big bottom row.
+        a -- an n x 1 column matrix
+    OUTPUT:
+        the unique solution to B*x = a.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix_integer_dense_hnf import solve_system_with_difficult_last_row
+        sage: B = matrix(ZZ, 3, [1,2,4, 3,-4,7, 939082,2930982,132902384098234])
+        sage: a = matrix(ZZ,3,1, [1,2,5])
+        sage: z = solve_system_with_difficult_last_row(B, a)
+        sage: z
+        [ 106321906985474/132902379815497]
+        [132902385037291/1329023798154970]
+        [        -5221794/664511899077485]
+        sage: B*z
+        [1]
+        [2]
+        [5]
+    """
+    # Here's how:
+    # 1. We make a copy of B but with the last *nasty* row of B replaced
+    #    by a random very nice row.
+    C = copy(B)
+    while True:
+        C[C.nrows()-1] = random_matrix(ZZ,1,C.ncols()).row(0)
+        # 2. Then we find the unique solution to C * x = a
+        try:
+            x = C.solve_right(a)
+        except ValueError:
+            verbose("Try difficult solve again with different random vector")
+        else:
+            break
+
+
+    # 3. We next delete the last row of B and find a basis vector k
+    #    for the 1-dimensional kernel.
+    D = B.matrix_from_rows(range(C.nrows()-1))
+    N = D._rational_kernel_iml()
+    if N.ncols() != 1:
+        verbose("Try difficult solve again with different random vector")
+        return solve_system_with_difficult_last_row(B, a)
+
+    k = N.matrix_from_columns([0])
+
+    # 4. The sought for solution z to B*z = a is some linear combination
+    #
+    #       z = x + alpha*k
+    #
+    #  of x and k, where k is the above fixed basis for the kernel of D.
+    #  Setting w to be the last row of B, this column vector z satisfies
+    #
+    #       w * z = a'
+    #
+    # where a' is the last entry of a.  Thus
+    #
+    #       w * (x + alpha*k) = a'
+    #
+    # so    w * x + alpha*w*k = a'
+    # so    alpha*w*k  = a' - w*x.
+
+    w = B[-1]  # last row of B
+    a_prime = a[-1]
+    lhs = w*k
+    rhs = a_prime - w * x
+
+    if lhs[0] == 0:
+        verbose("Try difficult solve again with different random vector")
+        return solve_system_with_difficult_last_row(B, a)
+
+    alpha = rhs[0] / lhs[0]
+    z = x + alpha*k
+    return z
+
 def add_column(B, H_B, a, proof):
     """
     The add column procedure.
@@ -309,53 +398,10 @@ def add_column(B, H_B, a, proof):
     """
     t0 = verbose('starting add_column')
 
-    # We use a direct solve method without inverse.  This
-    # is more clever than what is in Allan Steel's talk and
-    # what is in that paper, in 2 ways -- (1) no inverse need
-    # to be computed, and (2) we cleverly solve a vastly easier
-    # system and recover the solution to the original system.
-
-    # Here's how:
-    # 1. We make a copy of B but with the last *nasty* row of B replaced
-    #    by a random very nice row.
-    C = copy(B)
-    C[C.nrows()-1] = [1]*C.ncols()
-
-    # 2. Then we find the unique solution to C * x = a
-    #    (todo -- recover from bad case.)
-    try:
-        x = C.solve_right(a)
-    except ValueError:
-        # This means C doesn't have full rank.  This can happen for
-        # "non random" input.
+    if B.rank() < B.nrows():
         return add_column_fallback(B, a, proof)
-
-    # 3. We next delete the last row of B and find a basis vector k
-    #    for the 1-dimensional kernel.
-    D = B.matrix_from_rows(range(C.nrows()-1))
-    N = D._rational_kernel_iml()
-    if N.ncols() != 1:
-        raise NotImplementedError, "need to recover gracefully from rank issues with matrix."
-    k = N.matrix_from_columns([0])
-
-    # 4. The sought for solution z to B*z = a is some linear combination
-    #       z = x + alpha*k
-    # and setting w to be the last row of B, this column vector z satisfies
-    #       w * z = a'
-    # where a' is the last entry of a.  Thus
-    #       w * (x + alpha*k) = a'
-    # so    w * x + alpha*w*k = a'
-    # so    alpha*w*k  = a' - w*x.
-
-    w = B[-1]  # last row of B
-    a_prime = a[-1]
-    lhs = w*k
-    if lhs[0] == 0:
-        return add_column_fallback(B, a, proof)
-
-    rhs = a_prime - w * x
-    alpha = rhs[0] / lhs[0]
-    z = x + alpha*k
+    else:
+        z = solve_system_with_difficult_last_row(B, a)
 
     zd, d = z._clear_denom()
     x = H_B * zd
@@ -453,7 +499,7 @@ def hnf_square(A, proof):
     n = A.nrows()
     m = A.ncols()
     if n != m:
-        raise NotImplementedError, "A must be square."
+        raise ValueError, "A must be square."
 
     # Small cases -- don't use this algorithm
     if n <= 3:
@@ -473,26 +519,45 @@ def hnf_square(A, proof):
 
     try:
         (d1,d2) = double_det (B,c,d, proof=proof)
-        (g,k,l) = d1._xgcd (d2, minimal=True)
-    except (ValueError, ZeroDivisionError):
-        verbose("det computation failed -- we compute hnf of submatrix directly.")
-        g = ZZ(0)   # don't use modular algorithm
-        k = ZZ(1)
-        l = ZZ(0)
+    except (ValueError, ZeroDivisionError), msg:
+        d1 = B.stack(c).det(proof=proof)
+        d2 = B.stack(d).det(proof=proof)
+
+    (g,k,l) = d1._xgcd (d2, minimal=True)
 
     W = B.stack (k*c + l*d)
     verbose("submatrix det: g=%s"%g)
+    CUTOFF = 2**30
     if g == 0:
         # Big trouble -- matrix isn't invertible
         # Since we have no good conditioning code at present,
         # in this case we just fall back to using pari.
         H = W.echelon_form(algorithm='pari')
-    elif g > 2**30:
+    elif g > CUTOFF:
         # Unlikely that g will be large on even slightly random input
-        # if it is, we recurse
-        H , _ = hnf(W, proof=proof)
+        # if it is, we fallback to the traditional algorithm.
+        # A nasty example is A = n*random_matrix(ZZ,m), where
+        # this algorithm gets killed.  This is not random input though.
+        f = W.gcd()
+        g = g / (f**W.nrows())
+        if g <= CUTOFF:
+            verbose("Found common factor of %s -- dividing out; get new g = %s"%(f,g))
+            W0 = (W/f).change_ring(ZZ)
+            H = W0._hnf_mod(2*g)
+            H *= f
+        else:
+            verbose("Falling back to PARI HNF since input matrix is ill conditioned for p-adic hnf algorithm.")
+            # We need more clever preconditioning?
+            # It is important to *not* just do the submatrix, since
+            # the whole rest of the algorithm will likely be very slow in
+            # weird cases where the det is large.
+            # E.g., matrix all of whose rows but 1 are multiplied by some
+            # fixed scalar n.
+            raise NotImplementedError, "fallback to PARI!"
+            #H = W.hermite_form(algorithm='pari')
     else:
         H = W._hnf_mod(2*g)
+
     x = add_column(W, H, b.stack(matrix(1,1,[k*A[m-2,m-1] + l*A[m-1,m-1]])), proof)
     Hprime = H.augment(x)
     pivots = pivots_of_hnf_matrix(Hprime)
@@ -648,7 +713,7 @@ def extract_ones_data(H, pivots):
     """
     onecol, onerow, non_onecol, non_onerow = ones(H, pivots)
     verbose('extract_ones -- got submatrix of size %s'%len(non_onecol))
-    if len(non_onecol) in [1, 2]:
+    if len(non_onecol) in [1,2]:
         # Extract submatrix of all non-onecol columns and onecol rows
         C = H.matrix_from_rows_and_columns(onerow, non_onecol)
         # Extract submatrix of all non-onecol columns and other rows
@@ -747,7 +812,13 @@ def probable_hnf(A, include_zero_rows, proof):
     # Now C is a submatrix of A that has full rank and is square.
 
     # We compute the HNF of C, which is a square nonsingular matrix.
-    H = hnf_square(C, proof=proof)
+    try:
+        H = hnf_square(C, proof=proof)
+    except NotImplementedError:
+        verbose("generic random modular HNF algorithm failed -- we fall back to PARI")
+        H = A.hermite_form(algorithm='pari')
+        return H, H.pivots()
+        # this signals that we must fallback to pari
 
     # The transformation matrix to HNF is the unique
     # matrix U such that U * C = H, i.e., U = H*C^(-1).
@@ -768,6 +839,7 @@ def probable_hnf(A, include_zero_rows, proof):
         Y = C.solve_right(D)
         H2 = H*Y
         H2 = H2.change_ring(ZZ)
+
         # The HNF of B is got by assembling together
         # the matrices H and H2.
         H = interleave_matrices(H, H2, cols, cols2)
@@ -883,13 +955,20 @@ def hnf(A, include_zero_rows=True, proof=True):
         [0 1 0]
         [0 0 1], [0, 1, 2])
     """
+    if A.nrows() <= 1:
+        if A != 0 and A.nrows() == 1:
+            pivots = [0]
+        else:
+            pivots = []
+        return A, pivots
+
     if proof == False:
         return probable_hnf(A, include_zero_rows = include_zero_rows, proof=False)
 
     while True:
         try:
             H, pivots = probable_hnf(A, include_zero_rows = include_zero_rows, proof=True)
-        except (AssertionError, ZeroDivisionError):
+        except (AssertionError, ZeroDivisionError, TypeError):
             verbose("Assertion occured when computing HNF; guessed pivot columns likely wrong.")
             continue
         else:
@@ -968,7 +1047,6 @@ def benchmark_hnf(nrange, bits=4):
         ('sage', 50, 32, ...),
         ('sage', 100, 32, ...),
     """
-    from sage.misc.misc import cputime
     b = 2**bits
     for n in nrange:
         a = random_matrix(ZZ, n, x=-b,y=b)
@@ -985,7 +1063,6 @@ def benchmark_magma_hnf(nrange, bits=4):
         ('magma', 50, 32, ...),
         ('magma', 100, 32, ...),
     """
-    from sage.misc.misc import cputime
     from sage.interfaces.all import magma
     b = 2**bits
     for n in nrange:
@@ -1030,6 +1107,10 @@ def sanity_checks(times=50, n=8, m=5, proof=True, stabilize=2, check_using_magma
         0 1 2 3 4  (done)
         sparse 5 x 8
         0 1 2 3 4  (done)
+        ill conditioned -- 1000*A -- 8 x 5
+        0 1 2 3 4  (done)
+        ill conditioned -- 1000*A but one row -- 8 x 5
+        0 1 2 3 4  (done)
     """
     import sys
     def __do_check(v):
@@ -1068,86 +1149,17 @@ def sanity_checks(times=50, n=8, m=5, proof=True, stabilize=2, check_using_magma
     print "sparse %s x %s"%(m,n)
     __do_check([random_matrix(ZZ, m, n, density=0.1) for _ in range(times)])
 
+    print "ill conditioned -- 1000*A -- %s x %s"%(n,m)
+    __do_check([1000*random_matrix(ZZ, n, m, x=-1,y=1) for _ in range(times)])
+
+    print "ill conditioned -- 1000*A but one row -- %s x %s"%(n,m)
+    v = []
+    for _ in range(times):
+        a = 1000*random_matrix(ZZ, n, m, x=-1,y=1)
+        a[a.nrows()-1] = a[a.nrows()-1]/1000
+        v.append(a)
+    __do_check(v)
 
 
-################################################################
-# Integer Kernel
-#################################################################
-
-################################################################
-# Saturation
-# David Kohel sent me the following a couple of years ago.
-# It's probably the algorithm to use.
-## function pAdicSaturation(B,p)
-##     if Type(B[1]) eq SeqEnum then
-##         V := RSpace(Rationals(),#B[1]);
-## 	B := [ V | v : v in B];
-##     end if;
-##     V := Universe(B);
-##     n := Degree(V);
-##     for i in [1..#B] do
-## 	B[i] *:= LCM([ Denominator(c) : c in Eltseq(B[i]) ]);
-##     end for;
-##     ZZ := Integers();
-##     FF := FiniteField(p);
-##     B := RMatrixSpace(ZZ,#B,n)!Matrix(B);
-##     m := Rank(B);
-##     B := Submatrix(HermiteForm(B),1,1,m,n);
-##     N := RMatrixSpace(FF,m,n)!B;
-##     while Rank(N) lt m do
-## 	K := Kernel(N);
-## 	vprintf pAdicSaturation :
-## 	    "Rank(N) + Rank(K) = %o + %o = %o\n", Rank(N), Rank(K), m;
-## 	C := RMatrixSpace(ZZ,#Basis(K),n)!
-## 	Matrix([ (1/p)*V!&+[ ZZ!u[i]*B[i] : i in [1..m] ] : u in Basis(K) ]);
-## 	vtime pAdicSaturation, 2 :
-## 	    B := Submatrix(HermiteForm(VerticalJoin(B,C)),1,1,m,n);
-## 	N := RMatrixSpace(FF,m,n)!B;
-##     end while;
-##     vprintf pAdicSaturation : "Rank(N) = %o \n", Rank(N), m;
-##     return [ B[i] : i in [1..m] ];
-## end function;
-#################################################################
-
-
-##########################
-# Allan also says:
-## > How does the MAGMA command PureLattice work?  What is the
-## > algorithm, etc.?
-## > Do you do this:
-## >
-## > 1. Find echelon form of basis of lattice.
-## >
-## > 2. Write down matrix over $\Z$ that has saturation of lattice
-## >    as kernel.
-## >
-## > 3. Find the kernel using algorithm 2.7.2 of Cohen's book (Kernel
-##    over Z using LLL).
-## More complicated than this.  That would work, but requires 2 kernels
-## and the 2nd one can't done by a modular algorithm: I don't want to
-## compute kernels, because I do that by modular methods and they only do
-## it over Q and then you need this very saturation alg to get the kernel
-## over Z!!!
-## Here is basic form of one "standard" saturation algorithm, which
-## I used to do:
-##     Given basis B.
-##     H = HermiteForm(B);
-##     for (;;)
-##     {
-## 	Get Smith form S of H and P so that S = P*H*?;
-## 	    [right transformation mat ? not needed]
-## 	If diag of S is all ones, then return H;
-## 	H = P*H;
-## 	Remove content from all rows of H;
-## 	    [if entry (i,i) of S has val d > 1, then d will divide all
-## 	     entries of row i of H]
-##     }
-## Then H is basis at the end.
-## I have a new modular algorithm for this done about a year ago which is
-## complicated -- I may publish this if I get a chance.  It is now
-## used by all funcs in Magma which need saturation.  It finds the largest
-## elem divisor D of B by modular method, then partially factors D and
-## for small divisors, uses modular method to get rid of those primes, and
-## then does the big primes another way I think.
 
 

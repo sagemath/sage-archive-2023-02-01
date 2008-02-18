@@ -2051,13 +2051,15 @@ class NumberField_generic(number_field_base.NumberField):
         self.__integral_basis[v] = basis
         return basis
 
-    def reduced_basis(self):
+    def reduced_basis(self, prec=None):
         r"""
-        This function returns an LLL-reduced basis for the Minkowski-embedding
-        of the maximal order of a number field.
+        This function returns an LLL-reduced basis for the
+        Minkowski-embedding of the maximal order of a number field.
 
         INPUT:
             self -- number field, the base field
+            prec (default: None) -- the precision with which
+              to compute the Minkowski embedding. (See NOTE below.)
 
         OUTPUT:
             An LLL-reduced basis for the Minkowski-embedding of the
@@ -2065,9 +2067,11 @@ class NumberField_generic(number_field_base.NumberField):
             (integral) elements from the field.
 
         NOTE: In the non-totally-real case, the LLL routine we call is
-        currently Pari's qflll(), which works with floating point
-        approximations, and so the result is only as good as the
-        precision promised by Pari.
+            currently Pari's qflll(), which works with floating point
+            approximations, and so the result is only as good as the
+            precision promised by Pari. The matrix returned will
+            always be integral; however, it may only be only "almost"
+            LLL-reduced when the precision is not sufficiently high.
 
         EXAMPLES:
             sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1)
@@ -2084,18 +2088,27 @@ class NumberField_generic(number_field_base.NumberField):
             sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
             sage: F.integral_basis()
             [1, alpha, alpha^2, 1/2*alpha^3 + 1/2*alpha^2]
-            sage: F.reduced_basis()
-            [1, alpha, alpha^2 - 15*alpha + 1, alpha^3 - 16*alpha^2 + 469*alpha + 267109]
+            sage: F.reduced_basis(prec=10)
+            [1, alpha, alpha^2 - 16*alpha, alpha^3 - 15*alpha^2 + 440*alpha + 267857]
+            sage: F.reduced_basis(prec=300)
+            [1, alpha, alpha^2 - 15*alpha, alpha^3 - 16*alpha^2 + 469*alpha + 267109]
         """
-        try:
-            return self.__reduced_basis
-        except AttributeError:
-            pass
+        if self.is_totally_real():
+            try:
+                return self.__reduced_basis
+            except AttributeError:
+                pass
+        else:
+            try:
+                if self.__reduced_basis_precision >= prec:
+                    return self.__reduced_basis
+            except AttributeError:
+                pass
+
+        from sage.matrix.constructor import matrix
 
         d = self.degree()
         Z_basis = self.integral_basis()
-
-        from sage.matrix.constructor import matrix
 
         ## If self is totally real, then we can use (x*y).trace() as
         ## the inner product on the Minkowski embedding, which is
@@ -2107,20 +2120,28 @@ class NumberField_generic(number_field_base.NumberField):
                                            for j in range(d)])
                                      for i in range(d)]
         else:
-            M = self.Minkowski_embedding(self.integral_basis())
+            M = self.Minkowski_embedding(self.integral_basis(), prec=prec)
             T = sage.matrix.all.Matrix(d, pari(M).qflll()._sage_())
             self.__reduced_basis = [ self(v) for v in T.columns() ]
+            if prec is None:
+                ## this is the default choice for Minkowski_embedding
+                self.__reduced_basis_prec = 53
+            else:
+                self.__reduced_basis_prec = prec
 
         return self.__reduced_basis
 
 
-    def reduced_gram_matrix(self):
+    def reduced_gram_matrix(self, prec=None):
         r"""
-        This function returns the Gram matrix of an LLL-reduced basis for
-        the Minkowski embedding of the maximal order of a number field.
+        This function returns the Gram matrix of an LLL-reduced basis
+        for the Minkowski embedding of the maximal order of a number
+        field.
 
         INPUT:
             self -- number field, the base field
+            prec (default: None) -- the precision with which to
+              calculate the Minkowski embedding. (See NOTE below.)
 
         OUTPUT:
             The Gram matrix $[<x_i,x_j>]$ of an LLL reduced basis for
@@ -2132,12 +2153,13 @@ class NumberField_generic(number_field_base.NumberField):
             information.
 
         NOTE: In the non-totally-real case, the LLL routine we call is
-        currently Pari's qflll(), which works with floating point
-        approximations, and so the result is only as good as the
-        precision promised by Pari.  In particular, in this case, the
-        returned matrix will *not* be integral, and may not have
-        enough precision to recover the correct gram matrix (which is
-        known to be integral for theoretical reasons).
+            currently Pari's qflll(), which works with floating point
+            approximations, and so the result is only as good as the
+            precision promised by Pari.  In particular, in this case,
+            the returned matrix will *not* be integral, and may not
+            have enough precision to recover the correct gram matrix
+            (which is known to be integral for theoretical reasons).
+            Thus the need for the prec flag above.
 
         EXAMPLES:
             sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1)
@@ -2166,10 +2188,17 @@ class NumberField_generic(number_field_base.NumberField):
             [-1.06846799999532e6 -1.12285582008158e7  8.06191790906345e9 5.87118790062408e12]
 
         """
-        try:
-            return self.__reduced_gram_matrix
-        except AttributeError:
-            pass
+        if self.is_totally_real():
+            try:
+                return self.__reduced_gram_matrix
+            except AttributeError:
+                pass
+        else:
+            try:
+                if self.__reduced_gram_matrix_prec >= prec:
+                    return self.__reduced_gram_matrix
+            except AttributeError:
+                pass
 
         from sage.matrix.constructor import matrix
         from sage.misc.flatten import flatten
@@ -2186,6 +2215,11 @@ class NumberField_generic(number_field_base.NumberField):
                                     for a in self.reduced_basis() ]))
             A = M*(T.transpose())
             self.__reduced_gram_matrix = A.transpose()*A
+            if prec is None:
+                ## this is the default choice for Minkowski_embedding
+                self.__reduced_gram_matrix_prec = 53
+            else:
+                self.__reduced_gram_matrix_prec = prec
 
         return self.__reduced_gram_matrix
 

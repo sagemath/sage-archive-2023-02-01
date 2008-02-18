@@ -1,59 +1,10 @@
 #!/bin/sh
 
-CFLAGS="$CFLAGS -O2 -g -Wa,-W -fno-exceptions -Wno-deprecated"
-export CFLAGS
+CXXFLAGS="$CFLAGS -O2 -g -Wa,-W -fno-exceptions -Wno-deprecated"
+export CXXFLAGS
 export CC=gcc
 
 cd src
 
-success() {
-    if [ $? -ne 0 ]; then
-        echo "Error building '$1'"
-        exit 1
-    fi
-}
-
-echo "Building Eric Dietz's Rubik's cube solvers with $CXX..."
-
-cd dietz
-
-cd solver
-make
-success 'dietz/cubex'
-strip cubex
-cp cubex "$SAGE_LOCAL"/bin
-
-cd ../cu2
-make
-success 'dietz/cu2'
-strip cu2
-cp cu2 "$SAGE_LOCAL"/bin
-
-cd ../mcube
-make
-success 'dietz/mcube'
-strip mcube
-cp mcube "$SAGE_LOCAL"/bin
-
-cd ../..
-
-echo "Building Dik T. Winter's solver with $CXX..."
-cd dik
-make
-success 'dik/cube'
-strip cube
-cp cube "$SAGE_LOCAL"/bin
-
-make size222
-success 'dik/size222'
-strip size222
-cp size222 "$SAGE_LOCAL"/bin
-
-
-cd ..
-
-echo "Building Michael Reid's optimal solver with gcc..."
-cd reid
-gcc -O2 -g -o optimal optimal.c
-success 'reid/optimal'
-cp optimal "$SAGE_LOCAL"/bin
+echo "Building Rubiks cube solvers"
+make install PREFIX="$SAGE_LOCAL"

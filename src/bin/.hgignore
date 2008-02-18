@@ -248,3 +248,15 @@ cubex
 mcube
 size222
 dumpsexp
+cg_merge
+changelog
+check-use-debian.pl
+compat
+control
+control.in
+ms_print
+rules
+sage
+sagemath.install
+spkg-debian-maybe
+

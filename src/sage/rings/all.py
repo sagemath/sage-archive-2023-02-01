@@ -72,8 +72,8 @@ from finite_field_element import FiniteFieldElement, is_FiniteFieldElement
 from number_field.all import *
 
 # p-adic field
-
 from padics.all import *
+from padics.padic_printing import _printer_defaults as padic_printing
 
 # Real numbers
 from real_mpfr import (RealField, is_RealField, is_RealNumber, RR,

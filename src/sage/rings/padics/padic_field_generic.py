@@ -61,15 +61,15 @@ In the lazy case, a certain number of digits are computed and stored,
 and in addition a function is stored so that additional digits can be
 computed later.  In order to set the number of known digits you call
 set_precision_absolute().
-    sage: R = Qp(5, 5, 'lazy', 'series'); a = R(4006); a
-    1  + 5 + 2*5^3 + 5^4 + O(5^5)
-    sage: b = R(50127); b
-    2 + 5^3 + O(5^5)
-    sage: c = a * b; c
-    2 + 2*5 + 4*5^4 + O(5^5)
-    sage: c.set_precision_absolute(15)
-    sage: c
-    2 + 2*5 + 4*5^4 + 3*5^5 + 5^6 + 4*5^8 + 2*5^9 + 4*5^11 + O(5^15)
+    #sage: R = Qp(5, 5, 'lazy', 'series'); a = R(4006); a
+    #1  + 5 + 2*5^3 + 5^4 + O(5^5)
+    #sage: b = R(50127); b
+    #2 + 5^3 + O(5^5)
+    #sage: c = a * b; c
+    #2 + 2*5 + 4*5^4 + O(5^5)
+    #sage: c.set_precision_absolute(15)
+    #sage: c
+    #2 + 2*5 + 4*5^4 + 3*5^5 + 5^6 + 4*5^8 + 2*5^9 + 4*5^11 + O(5^15)
 
 There is some performance penalty for carrying the function around,
 but it is minimized if you determine the precision you will need going
@@ -82,8 +82,9 @@ names.
 
     sage: Qp(17,10,'capped-rel')
     17-adic Field with capped relative precision 10
-    sage: Qp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
-    Lazy 7-adic Field
+
+    #sage: Qp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
+    #Lazy 7-adic Field
     sage: R = Qp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); S = Qp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); R is S
     True
     sage: Qp(2)

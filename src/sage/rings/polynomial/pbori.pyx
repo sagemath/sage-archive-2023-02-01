@@ -1022,6 +1022,9 @@ cdef class BooleanMonomialIterator:
     def __iter__(self):
         return self
 
+    def __dealloc__(self):
+        PBMonomIter_destruct(&self._iter)
+
     def __next__(self):
         if self._iter.hash() == self._obj.end().hash():
             raise StopIteration
@@ -1501,9 +1504,15 @@ cdef class BooleanPolynomial(MPolynomial):
     def navigation(self):
         return new_CN_from_PBNavigator(self._pbpoly.navigation())
 
+    def mapEveryXToXPlusOne(self):
+        return new_BP_from_PBPoly(self._parent, map_every_x_to_x_plus_one(self._pbpoly))
+
 cdef class BooleanPolynomialIterator:
     def __iter__(self):
         return self
+
+    def __dealloc__(self):
+        PBPolyIter_destruct(&self._iter)
 
     def __next__(self):
         (<BooleanPolynomialRing>self._obj._parent)._pbring.activate()
@@ -1542,8 +1551,39 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         MPolynomialIdeal.__init__(self, ring, gens, coerce)
 
     def groebner_basis(self, **kwds):
-        """
+        r"""
         Return a Groebner basis of this ideal.
+
+
+        INPUT:
+            heuristic -- Turn off heuristic by setting \code{heuristic=False}
+                         (default: True)
+            lazy  --  (default: True)
+            red_tail  --  use tail reduction (default: True)
+            redsb  --  return reduced Groebner basis (default: True)
+            minsb  --  (default: True)
+            invert -- setting \code{invert=True} input and output get
+                      a transformation $x+1$ for each variable $x$,
+                      which shouldn't effect the calculated GB, but
+                      the algorithm.
+            prot  --  show protocol (default: False)
+            full_prot  --  show full protocol (default: False)
+            faugere -- use Faugere's F4 (default: False)
+            aes  --  input is AES system (default: False)
+            coding  --  input is coding theory system (default: False)
+            ll  --  (default: False)
+            llfirst  --  (default: False)
+            llfirstonthefly  --  (default: False)
+            gauss_on_linear_first  --  (default: True)
+            linearAlgebraInLastBlock  --  (default: True)
+            max_growth  --  (default: 2.0)
+            exchange  --  (default: True)
+            selection_size  --  (default: 1000)
+            implementation  -- either 'Python' or anything else (default: 'Python')
+            deg_bound  --  (default: 1000000000000)
+            recursion  --  (default: False)
+            implications  --  (default: False)
+            step_factor  --  (default: 1)
 
         EXAMPLES:
             sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4)
@@ -1703,6 +1743,9 @@ cdef class BooleSetIterator:
     def __iter__(self):
         return self
 
+    def __dealloc__(self):
+        PBSetIter_destruct(&self._iter)
+
     def __next__(self):
         cdef PBMonom val
         if self._iter.equal(self._obj._pbset.end()):
@@ -1782,6 +1825,9 @@ cdef class BooleanPolynomialVectorIterator:
         self._parent = parent
         self._obj = vector._vec
         self._iter = self._obj.begin()
+
+    def __dealloc__(self):
+        PBPolyVectorIter_destruct(&self._iter)
 
     def __iter__(self):
         return self

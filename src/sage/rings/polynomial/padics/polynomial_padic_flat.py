@@ -80,7 +80,7 @@ class Polynomial_padic_flat(Polynomial_generic_dense):
             if x != 0:
                 if n != m:
                     s += " + "
-                x = repr(x)
+                #x = repr(x)
                 x = "(%s)"%x
                 if n > 1:
                     var = "*%s^%s"%(name,n)

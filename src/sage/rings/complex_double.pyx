@@ -253,6 +253,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: b == CC(a)
             True
         """
+        cdef pari_sp sp
         if im is None:
             if isinstance(x, ComplexDoubleElement):
                 return x
@@ -261,6 +262,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             elif isinstance(x, complex):
                 return ComplexDoubleElement(x.real, x.imag)
             elif isinstance(x, complex_number.ComplexNumber):
+                return ComplexDoubleElement(x.real(), x.imag())
+            elif isinstance(x, sage.libs.pari.gen.gen):
+                # It seems we should get a speed increase by
+                # using _new_from_gen_c instead; I wasn't
+                # able to get this to work.
                 return ComplexDoubleElement(x.real(), x.imag())
             elif isinstance(x, tuple):
                 return ComplexDoubleElement(x[0], x[1])
@@ -1724,7 +1730,7 @@ cdef GEN complex_gen(x):
 cdef ComplexDoubleField_class _CDF
 _CDF = ComplexDoubleField_class()
 CDF = _CDF  # external interface
-I = ComplexDoubleElement(0,1)
+cdef ComplexDoubleElement I = ComplexDoubleElement(0,1)
 
 def ComplexDoubleField():
     """

@@ -20,6 +20,8 @@ from sage.interfaces.all import gap
 from sage.rings.all import QQ, RR, ZZ, Integer, binomial
 from combinat import CombinatorialObject, CombinatorialClass
 from choose_nk import rank, from_rank
+from integer_vector import IntegerVectors
+from sage.misc.misc import uniq
 
 def Combinations(mset, k=None):
     """
@@ -203,21 +205,20 @@ class Combinations_msetk(CombinatorialClass):
         """
         return "Combinations of %s of length %s"%(self.mset, self.k)
 
-    def list(self):
+    def iterator(self):
         """
-        Wraps GAP's Combinations.
         EXAMPLES:
             sage: Combinations(['a','a','b'],2).list()
             [['a', 'a'], ['a', 'b']]
         """
-        def label(x):
-            return self.mset[x]
-
+        d = {}
         items = map(self.mset.index, self.mset)
-        ans=eval(gap.eval("Combinations(%s,%s)"%(items,ZZ(self.k))).replace("\n",""))
-
-        return map(lambda x: map(label, x), ans)
-
+        indices = uniq(sorted(items))
+        counts = [0]*len(indices)
+        for i in items:
+            counts[indices.index(i)] += 1
+        for iv in IntegerVectors(self.k, len(indices), outer=counts):
+            yield sum([[self.mset[indices[i]]]*iv[i] for i in range(len(indices))],[])
 
     def count(self):
         """

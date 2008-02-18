@@ -1245,6 +1245,12 @@ def exists(S, P):
     function returns True and the element x.  Otherwise it
     returns False and None.
 
+    Note that this function is NOT suitable to be used in an
+    if-statement or in any place where a boolean expression
+    is expected. For those situations, use the Python built-in
+
+    any(P(x) for x in S)
+
     INPUT:
         S -- object (that supports enumeration)
         P -- function that returns True or False
@@ -1279,6 +1285,13 @@ def forall(S, P):
     If P(x) is true every x in S, return True and None.
     If there is some element x in S such that P is not True,
     return False and x.
+
+    Note that this function is NOT suitable to be used in an
+    if-statement or in any place where a boolean expression
+    is expected. For those situations, use the Python built-in
+
+    all(P(x) for x in S)
+
 
     INPUT:
         S -- object (that supports enumeration)

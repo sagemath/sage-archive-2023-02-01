@@ -314,7 +314,7 @@ cdef class Matrix(matrix1.Matrix):
         Calculates the permanental $k$-minor of a $m \times n$ matrix.
 
         This is the sum of the permanents of all possible $k$ by $k$
-        submatices of $A$.
+        submatrices of $A$.
 
         See Brualdi and Ryser: Combinatorial Matrix Theory, p. 203.
         Note the typo $p_0(A) = 0$ in that reference!  For
@@ -488,7 +488,7 @@ cdef class Matrix(matrix1.Matrix):
 
         ALGORITHM: For small matrices (n<4), this is computed using the naive formula
         For integral domains, the charpoly is computed (using hessenberg form)
-        Otherwise his is computed using the very stupid expansion by
+        Otherwise this is computed using the very stupid expansion by
         minors stupid \emph{naive generic algorithm}.  For matrices
         over more most rings more sophisticated algorithms can be
         used.  (Type \code{A.determinant?} to see what is done for a
@@ -584,7 +584,7 @@ cdef class Matrix(matrix1.Matrix):
 
     cdef _det_by_minors(self, Py_ssize_t level):
         """
-        Compute the determinent of the upper-left level x level submatrix of self.
+        Compute the determinant of the upper-left level x level submatrix of self.
         Does not handle degenerate cases, level MUST be >= 2
         """
         cdef Py_ssize_t n, i
@@ -959,7 +959,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def hessenbergize(self):
         """
-        Tranform self to Hessenberg form.
+        Transform self to Hessenberg form.
 
         The hessenberg form of a matrix $A$ is a matrix that is
         similar to $A$, so has the same characteristic polynomial as
@@ -2712,7 +2712,7 @@ cdef class Matrix(matrix1.Matrix):
         Randomize density proportion of the entries of this matrix,
         leaving the rest unchanged.
 
-        NOTE: We actually choos at random density proportion of
+        NOTE: We actually choose at random density proportion of
         entries of the matrix and set them to random elements.  It's
         possible that the same position can be chosen multiple times,
         especially for a very small matrix.
@@ -3036,6 +3036,29 @@ cdef class Matrix(matrix1.Matrix):
         Bstar, mu = gram_schmidt(self.rows())
         return matrix(Bstar), mu
 
+    def hadamard_bound(self):
+        r"""
+        Return an int n such that the absolute value of the
+        determinant of this matrix is at most $10^n$.
+
+        This function can fail if the entries in self are horrendously
+        large.
+
+        This function only makes sense when the base field can be
+        coerced to the real double field RDF.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 3, [1,2,5,7,-3,4,2,1,123])
+            sage: a.hadamard_bound()
+            4
+            sage: a.det()
+            -2014
+            sage: 10^4
+            10000
+        """
+        from sage.rings.all import RDF
+        A = self.change_ring(RDF)
+        return A.hadamard_bound()
 
 def _dim_cmp(x,y):
     """
@@ -3072,7 +3095,7 @@ def decomp_seq(v):
 def cmp_pivots(x,y):
     """
     Compare two sequences of pivot columns.
-    If x is short than y, return -1, i.e., x < y, "not as good".
+    If x is shorter than y, return -1, i.e., x < y, "not as good".
     If x is longer than y, x > y, "better"
     If the length is the same then x is better, i.e., x > y
         if the entries of x are correspondingly >= those of y with
@@ -3095,7 +3118,7 @@ def _choose(Py_ssize_t n, Py_ssize_t t):
     Returns all possible sublists of length t from range(n)
 
     Based on algoritm T from Knuth's taocp part 4: 7.2.1.3 p.5
-    This fuction replaces the one base on algorithm L because it is faster.
+    This function replaces the one based on algorithm L because it is faster.
 
     EXAMPLES:
         sage: from sage.matrix.matrix2 import _choose

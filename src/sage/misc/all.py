@@ -10,6 +10,8 @@ from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange
                   is_32_bit, is_64_bit, newton_method_sizes,
                   running_total)
 
+from sage_timeit_class import timeit
+
 from edit_module import edit
 
 from flatten import flatten
@@ -34,11 +36,11 @@ from dist import install_scripts
 
 from hg import hg_sage, hg_doc, hg_scripts, hg_extcode
 
-from package import install_package, standard_packages, optional_packages, experimental_packages, upgrade
+from package import install_package, is_package_installed, standard_packages, optional_packages, experimental_packages, upgrade
 
 from pager import pager
 
-from sagedoc import search_src, search_doc
+from sagedoc import search_src, search_def, search_doc
 
 from classgraph import class_graph
 

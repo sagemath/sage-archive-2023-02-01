@@ -32,6 +32,7 @@ from sage.libs.ntl.ntl_ZZ_pE cimport ntl_ZZ_pE
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
 from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
 from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
+from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
@@ -153,7 +154,7 @@ cdef class ntl_ZZ_pEX:
         sage: loads(dumps(f)) == f
         True
         """
-        return make_ZZ_pEX, (self.list(), self.modulus_context())
+        return make_ZZ_pEX, (self.list(), self.get_modulus_context())
 
     def __repr__(self):
         """
@@ -216,7 +217,7 @@ cdef class ntl_ZZ_pEX:
         """
         return self.__copy__()
 
-    def modulus_context(self):
+    def get_modulus_context(self):
         """
         Returns the structure that holds the underlying NTL modulus.
 
@@ -225,7 +226,7 @@ cdef class ntl_ZZ_pEX:
         sage: a = ntl.ZZ_pE([3,2], c)
         sage: b = ntl.ZZ_pE([1,2], c)
         sage: f = ntl.ZZ_pEX([a, b, b])
-        sage: f.modulus_context()
+        sage: f.get_modulus_context()
         NTL modulus [1 1 1] (mod 7)
         """
         return self.c
@@ -592,6 +593,38 @@ cdef class ntl_ZZ_pEX:
         # self.c.restore_c() # _new() calls restore
         ZZ_pEX_negate(r.x, self.x)
         return r
+
+    def convert_to_modulus(self, ntl_ZZ_pContext_class c):
+        """
+        Returns a new ntl_ZZ_pX which is the same as self, but considered modulo a different p (but the SAME polynomial).
+
+        In order for this to make mathematical sense, c.p should divide self.c.p
+        (in which case self is reduced modulo c.p) or self.c.p should divide c.p
+        (in which case self is lifted to something modulo c.p congruent to self modulo self.c.p)
+
+        EXAMPLES:
+        sage: c = ntl.ZZ_pEContext(ntl.ZZ_pX([-5, 0, 1], 5^20))
+        sage: a = ntl.ZZ_pE([192870, 1928189], c)
+        sage: b = ntl.ZZ_pE([18275,293872987], c)
+        sage: f = ntl.ZZ_pEX([a, b])
+        sage: g = f.convert_to_modulus(ntl.ZZ_pContext(ntl.ZZ(5^5)))
+        sage: g
+        [[2245 64] [2650 1112]]
+        sage: g.get_modulus_context()
+        NTL modulus [3120 0 1] (mod 3125)
+        sage: g^2
+        [[1130 2985] [805 830] [2095 2975]]
+        sage: (f^2).convert_to_modulus(ntl.ZZ_pContext(ntl.ZZ(5^5)))
+        [[1130 2985] [805 830] [2095 2975]]
+        """
+        cdef ntl_ZZ_pEContext_class cE = ntl_ZZ_pEContext(self.c.f.convert_to_modulus(c))
+        cE.restore_c()
+        cdef ntl_ZZ_pEX ans = PY_NEW(ntl_ZZ_pEX)
+        _sig_on
+        ZZ_pEX_conv_modulus(ans.x, self.x, c.x)
+        _sig_off
+        ans.c = cE
+        return ans
 
     def left_shift(self, long n):
         """

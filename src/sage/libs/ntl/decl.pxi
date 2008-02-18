@@ -26,9 +26,10 @@ cdef extern from "ntl_wrap.h":
     object ZZ_to_PyString "_to_PyString<ZZ>"(ZZ_c *x)
     int ZZ_equal "_equal<ZZ>"(ZZ_c x, ZZ_c y)
 
-    void ZZ_conv_int "conv"(ZZ_c x, int i)
+    void ZZ_conv_from_int "conv"(ZZ_c x, int i)
+    void ZZ_conv_to_int "conv"(int i, ZZ_c x)
+    void ZZ_conv_from_long "conv"(ZZ_c x, long l)
     void ZZ_conv_to_long "conv"(long l, ZZ_c x)
-    void conv_ZZ_int "conv"(ZZ_c x, int i)
     void ZZ_to_mpz(mpz_t* output, ZZ_c* x)
     void mpz_to_ZZ(ZZ_c *output, mpz_t* x)
     cdef int ZZ_to_int(ZZ_c* x)
@@ -40,7 +41,9 @@ cdef extern from "ntl_wrap.h":
     long ZZ_IsOne "IsOne"(ZZ_c a)
     long ZZ_compare "compare"(ZZ_c a, ZZ_c b)
     void ZZ_add "add"( ZZ_c x, ZZ_c a, ZZ_c b)
+    void ZZ_add_long "add"(ZZ_c x, ZZ_c a, long b)
     void ZZ_sub "sub"( ZZ_c x, ZZ_c a, ZZ_c b)
+    void ZZ_sub_long "sub"(ZZ_c x, long a, ZZ_c b)
     void ZZ_negate "negate"(ZZ_c x, ZZ_c a)
     void ZZ_abs "abs"(ZZ_c x, ZZ_c a)
 
@@ -51,7 +54,7 @@ cdef extern from "ntl_wrap.h":
     void ZZ_DivRem "DivRem"(ZZ_c q, ZZ_c r, ZZ_c a, ZZ_c b)
     void ZZ_div "div"( ZZ_c x, ZZ_c a, ZZ_c b)
     void ZZ_rem "rem"( ZZ_c r, ZZ_c a, ZZ_c b)
-    long ZZ_DivRem_long "DivRem"(ZZ_c q, ZZ_c q, long b)
+    long ZZ_DivRem_long "DivRem"(ZZ_c q, ZZ_c a, long b)
     long ZZ_rem_long "rem"(ZZ_c a, long b)
     long ZZ_divide "divide"(ZZ_c q, ZZ_c a, ZZ_c b)
     long ZZ_divide_long "divide"(ZZ_c q, ZZ_c a, long b)
@@ -67,7 +70,7 @@ cdef extern from "ntl_wrap.h":
     void ZZ_MulMod "MulMod"(ZZ_c x, ZZ_c a, ZZ_c b, ZZ_c n)
     void ZZ_SqrMod "SqrMod"(ZZ_c x, ZZ_c a, ZZ_c n)
     void ZZ_InvMod "InvMod"(ZZ_c x, ZZ_c a, ZZ_c n)
-    void ZZ_InvModStatus "InvModStatus"(ZZ_c x, ZZ_c a, ZZ_c n)
+    long ZZ_InvModStatus "InvModStatus"(ZZ_c x, ZZ_c a, ZZ_c n)
     void ZZ_PowerMod "PowerMod"(ZZ_c x, ZZ_c a, ZZ_c e, ZZ_c n)
     void ZZ_PowerMod_long "PowerMod"(ZZ_c x, ZZ_c a, long e, ZZ_c n)
 
@@ -147,6 +150,7 @@ cdef extern from "ntl_wrap.h":
     void ZZ_p_sub "sub"( ZZ_p_c x, ZZ_p_c a, ZZ_p_c b)
     void ZZ_p_mul "mul"( ZZ_p_c x, ZZ_p_c a, ZZ_p_c b)
     void ZZ_p_mul_long "mul"( ZZ_p_c x, ZZ_p_c a, long b)
+    void ZZ_p_div "div"( ZZ_p_c x, ZZ_p_c a, ZZ_p_c b)
     void ZZ_p_negate "negate"(ZZ_p_c x, ZZ_p_c a)
     void ZZ_p_power "power"(ZZ_p_c t, ZZ_p_c x, long e)
     int ZZ_p_IsOne "IsOne"(ZZ_p_c x)
@@ -161,8 +165,6 @@ cdef extern from "ntl_wrap.h":
     int ZZ_p_to_int(ZZ_p_c x)
     ZZ_p_c int_to_ZZ_p(int i)
     void ZZ_p_modulus(ZZ_c* mod, ZZ_p_c* x)
-
-    ZZ_c ZZ_p_rep "rep"(ZZ_p_c x)
 
     #### vec_ZZ_p_c
     ctypedef struct vec_ZZ_p_c "struct vec_ZZ_p":
@@ -274,12 +276,14 @@ cdef extern from "ntl_wrap.h":
     long ZZ_pX_IsOne "IsOne"(ZZ_pX_c a)
 
     void ZZ_pX_add "add"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
+    void ZZ_pX_add_long "add"(ZZ_pX_c x, ZZ_pX_c a, long b)
     void ZZ_pX_sub "sub"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
+    void ZZ_pX_sub_long "sub"(ZZ_pX_c x, long a, ZZ_pX_c b)
     void ZZ_pX_negate "negate"(ZZ_pX_c x, ZZ_pX_c a)
 
     void ZZ_pX_mul "mul"( ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c b)
     void ZZ_pX_mul_long "mul"( ZZ_pX_c x, ZZ_pX_c a, long b)
-    void ZZ_pX_mul_ZZ "mul"( ZZ_pX_c x, ZZ_pX_c a, ZZ_c b)
+    void ZZ_pX_mul_ZZ_p "mul"( ZZ_pX_c x, ZZ_pX_c a, ZZ_p_c b)
     void ZZ_pX_rmul "mul"( ZZ_pX_c x, ZZ_pX_c a, ZZ_p_c b)
     void ZZ_pX_sqr "sqr"( ZZ_pX_c x, ZZ_pX_c a)
     long ZZ_pX_power "power"( ZZ_pX_c x, ZZ_pX_c a, long e)
@@ -330,7 +334,7 @@ cdef extern from "ntl_wrap.h":
     long ZZ_pX_InvModStatus "InvModStatus"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c f)
 
     ctypedef struct ZZ_pX_Modulus_c "struct ZZ_pXModulus":
-        void (* val) ( )
+        ZZ_pX_c (* val) ( )
     ZZ_pX_Modulus_c* ZZ_pX_Modulus_new "New<ZZ_pXModulus>"()
     ZZ_pX_Modulus_c* ZZ_pX_Modulus_construct "Construct<ZZ_pXModulus>"(void *mem)
     void ZZ_pX_Modulus_destruct "Destruct<ZZ_pXModulus>"(ZZ_pX_Modulus_c *mem)
@@ -350,15 +354,16 @@ cdef extern from "ntl_wrap.h":
     void ZZ_pX_rem_pre "rem"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F)
     void ZZ_pX_DivRem_pre "DivRem"(ZZ_pX_c q, ZZ_pX_c r, ZZ_pX_c a, ZZ_pX_Modulus_c F)
     void ZZ_pX_div_pre "div"(ZZ_pX_c q, ZZ_pX_c a, ZZ_pX_Modulus_c F)
+    void ZZ_pX_InvMod_pre "InvMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F)
 
     ctypedef struct ZZ_pX_Multiplier_c "struct ZZ_pXMultiplier":
-        void (* val) ( )
+        ZZ_pX_c (* val) ( )
     ZZ_pX_Multiplier_c* ZZ_pX_Multiplier_new "New<ZZ_pXMultiplier>"()
     ZZ_pX_Multiplier_c* ZZ_pX_Multiplier_construct "Construct<ZZ_pXMultiplier>"(void *mem)
     void ZZ_pX_Multiplier_destruct "Destruct<ZZ_pXMultiplier>"(ZZ_pX_Multiplier_c *mem)
     void ZZ_pX_Multiplier_delete "Delete<ZZ_pXMultiplier>"(ZZ_pX_Multiplier_c *mem)
     void ZZ_pX_Multiplier_from_str "_from_str<ZZ_pXMultiplier>"(ZZ_pX_Multiplier_c* dest, char* s)
-    void ZZ_pX_Multiplier_build "build"(ZZ_pX_Multiplier_c F, ZZ_pX_c b) # MUST be called before using the multiplier
+    void ZZ_pX_Multiplier_build "build"(ZZ_pX_Multiplier_c F, ZZ_pX_c b, ZZ_pX_Modulus_c F) # MUST be called before using the multiplier
     void ZZ_pX_MulMod_premul "MulMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Multiplier_c B, ZZ_pX_Modulus_c F)
 
     void ZZ_pX_CompMod "CompMod"(ZZ_pX_c x, ZZ_pX_c g, ZZ_pX_c h, ZZ_pX_Modulus_c F)
@@ -414,6 +419,26 @@ cdef extern from "ntl_wrap.h":
 
     void ZZ_pX_factor(ZZ_pX_c*** v, long** e, long* n, ZZ_pX_c* x, long verbose)
     void ZZ_pX_linear_roots(ZZ_p_c*** v, long* n, ZZ_pX_c* x)
+
+    # The following are ZZ_pX functions written in ntl_wrap, used for padics.
+
+    void ZZ_pX_conv_modulus(ZZ_pX_c fout, ZZ_pX_c fin, ZZ_pContext_c c)
+    void ZZ_pX_min_val_coeff(long valuation, long index, ZZ_pX_c f, ZZ_c p)
+    long ZZ_pX_get_val_coeff(ZZ_pX_c f, ZZ_c p, long i)
+    void ZZ_pX_left_pshift(ZZ_pX_c x, ZZ_pX_c a, ZZ_c pn, ZZ_pContext_c c)
+    void ZZ_pX_right_pshift(ZZ_pX_c x, ZZ_pX_c a, ZZ_c pn, ZZ_pContext_c c)
+    void ZZ_pX_InvMod_newton_unram(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F, ZZ_pContext_c cpn, ZZ_pContext_c cp)
+    void ZZ_pX_InvMod_newton_ram(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F, ZZ_pContext_c cpn)
+
+    # The following are ZZ_pX functions written in ntl_wrap, used for padics.
+
+    void ZZ_pX_conv_modulus(ZZ_pX_c fout, ZZ_pX_c fin, ZZ_pContext_c c)
+    void ZZ_pX_min_val_coeff(long valuation, long index, ZZ_pX_c f, ZZ_c p)
+    long ZZ_pX_get_val_coeff(ZZ_pX_c f, ZZ_c p, long i)
+    void ZZ_pX_left_pshift(ZZ_pX_c x, ZZ_pX_c a, ZZ_c pn, ZZ_pContext_c c)
+    void ZZ_pX_right_pshift(ZZ_pX_c x, ZZ_pX_c a, ZZ_c pn, ZZ_pContext_c c)
+    void ZZ_pX_InvMod_newton(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F, ZZ_pContext_c cpn, ZZ_pContext_c cp)
+    void ZZ_pX_eis_shift(ZZ_pX_c x, ZZ_pX_c a, long n, ZZ_pX_Multiplier_c* low_shifter, ZZ_pX_Multiplier_c* high_shifter, ZZ_pX_Modulus_c modulus, ZZ_c p, ZZ_pContext_c cupper, ZZ_pContext_c clower)
 
     #### zz_p_c
     ctypedef struct zz_p_c "struct zz_p":
@@ -678,7 +703,7 @@ cdef extern from "ntl_wrap.h":
     void ZZ_pEX_clear "clear"(ZZ_pEX_c x)
     void ZZ_pEX_set "set"(ZZ_pEX_c x)
 
-
+    void ZZ_pEX_conv_modulus(ZZ_pEX_c fout, ZZ_pEX_c fin, ZZ_pContext_c c)
 
 
     #### mat_ZZ_c

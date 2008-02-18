@@ -88,7 +88,7 @@ def gap_format(x):
     if isinstance(x, list) and not isinstance(x[0], tuple):
         return gap.eval('PermList(%s)' % x)
     x = str(x).replace(' ','').replace('\n','')
-    return x.replace('),(',')(').replace('[','').replace(']','')
+    return x.replace('),(',')(').replace('[','').replace(']','').replace(',)',')')
 
 cdef class PermutationGroupElement(MultiplicativeGroupElement):
     """

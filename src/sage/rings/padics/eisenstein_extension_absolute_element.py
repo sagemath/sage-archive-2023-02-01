@@ -1,4 +1,0 @@
-from eisenstein_extension_generic_element import EisensteinExtensionGenericElement
-
-class EisensteinExtensionAbsoluteElement(EisensteinExtensionGenericElement):
-    pass

@@ -252,7 +252,7 @@ class Factorization(SageObject, list):
     def _repr_(self):
         cr = self._cr()
         if len(self) == 0:
-            return str(self.__unit)
+            return repr(self.__unit)
         try:
             atomic = ((isinstance(self[0][0], (int, long)) or \
                        self.base_ring().is_atomic_repr()))
@@ -263,7 +263,7 @@ class Factorization(SageObject, list):
         if cr:
             mul += '\n'
         for i in range(len(self)):
-            t = str(self[i][0])
+            t = repr(self[i][0])
             n = self[i][1]
             if (n>1 or len(self) > 1 or self.__unit != 1) and not atomic  and ('+' in t or '-' in t or ' ' in t):
                 t = '(%s)'%t
@@ -274,7 +274,7 @@ class Factorization(SageObject, list):
                 s += mul
         if self.__unit != 1:
             if atomic:
-                u = str(self.__unit)
+                u = repr(self.__unit)
             else:
                 u = '(%s)'%self.__unit
             s =  u + mul + s

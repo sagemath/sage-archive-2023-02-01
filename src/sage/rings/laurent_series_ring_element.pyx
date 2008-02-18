@@ -364,8 +364,46 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return iter(self.__u)
 
+
     def list(self):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = -5/t^(2) + t + t^2 - 10/3*t^3
+            sage: f.list()
+            [-5, 0, 0, 1, 1, -10/3]
+        """
         return self.__u.list()
+
+    def coefficients(self):
+        """
+        Return the nonzero coefficients of self.
+
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = -5/t^(2) + t + t^2 - 10/3*t^3
+            sage: f.coefficients()
+            [-5, 1, 1, -10/3]
+
+        """
+        zero = self.parent().base_ring().zero_element()
+        return [c for c in self.list() if c != zero]
+
+    def exponents(self):
+        """
+        Return the exponents appearing in self with nonzero
+        coefficients.
+
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = -5/t^(2) + t + t^2 - 10/3*t^3
+            sage: f.exponents()
+            [-2, 1, 2, 3]
+        """
+        zero = self.parent().base_ring().zero_element()
+        l = self.list()
+        v = self.valuation()
+        return [i+v for i in range(len(l)) if l[i] != zero]
 
     def __setitem__(self, n, value):
         """

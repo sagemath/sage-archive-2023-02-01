@@ -27,7 +27,7 @@ are [[0,4], [1,2], [2,0]].
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.interfaces.all import gap, maxima
+from sage.interfaces.all import gap, maxima, gp
 from sage.rings.all import QQ, RR, ZZ
 from sage.misc.all import prod, sage_eval
 from sage.rings.arith import factorial, gcd
@@ -49,6 +49,9 @@ from sage.libs.all import pari
 import tableau
 import permutation
 import sf.sfa
+import copy
+from integer_vector import IntegerVectors
+from cartesian_product import CartesianProduct
 
 def Partition(l=None, exp=None, core_and_quotient=None):
     """
@@ -1577,28 +1580,26 @@ class PartitionTuples_nk(CombinatorialClass):
     def __repr__(self):
         return "%s-tuples of partitions of %s"%(self.k, self.n)
 
-    def list(self):
-        """
-        Returns the list of all k-tuples of partitions
+    def iterator(self):
+        r"""
+        Returns an iterator for all k-tuples of partitions
         which together form a partition of n.
 
-        Wraps GAP's PartitionTuples.
-
         EXAMPLES:
-            sage: PartitionTuples(3,2).list()
-            [[[1, 1, 1], []],
-            [[1, 1], [1]],
-            [[1], [1, 1]],
-            [[], [1, 1, 1]],
-            [[2, 1], []],
-            [[1], [2]],
-            [[2], [1]],
-            [[], [2, 1]],
-            [[3], []],
-            [[], [3]]]
+            sage: PartitionTuples(2,0).list() #indirect doctest
+            []
+            sage: PartitionTuples(2,1).list() #indirect doctest
+            [[[2]], [[1, 1]]]
+            sage: PartitionTuples(2,2).list() #indirect doctest
+            [[[2], []], [[1, 1], []], [[1], [1]], [[], [2]], [[], [1, 1]]]
+            sage: PartitionTuples(3,2).list() #indirect doctest
+            [[[3], []], [[2, 1], []], [[1, 1, 1], []], [[2], [1]], [[1, 1], [1]], [[1], [2]], [[1], [1, 1]], [[], [3]], [[], [2, 1]], [[], [1, 1, 1]]]
         """
-        ans=gap.eval("PartitionTuples(%s,%s)"%(ZZ(self.n),ZZ(self.k)))
-        return map(lambda x: map(lambda y: Partition(y), x), eval(ans))
+        p = [Partitions(i) for i in range(self.n+1)]
+        for iv in IntegerVectors(self.n,self.k):
+            for cp in CartesianProduct(*[p[i] for i in iv]):
+                yield cp
+
 
     def count(self):
         r"""
@@ -1628,9 +1629,8 @@ class PartitionTuples_nk(CombinatorialClass):
             185
             \end{verbatim}
         """
+        return ZZ(gp.eval('polcoeff(1/eta(x)^%s, %s, x)'%(self.k, self.n)))
 
-        ans=gap.eval("NrPartitionTuples(%s,%s)"%(ZZ(self.n),ZZ(self.k)))
-        return ZZ(ans)
 
 ##############
 # Partitions #
@@ -1758,9 +1758,9 @@ class Partitions_constraints(CombinatorialClass):
             sage: [x for x in Partitions(4, min_part=2)]
             [[4], [2, 2]]
             sage: [x for x in Partitions(4, length=3, min_part=0)]
-            [[4, 0, 0], [3, 1, 0], [2, 2, 0], [2, 1, 1]]
+            [[2, 1, 1]]
             sage: [x for x in Partitions(4, min_length=3, min_part=0)]
-            [[4, 0, 0], [3, 1, 0], [2, 2, 0], [2, 1, 1], [1, 1, 1, 1]]
+            [[2, 1, 1], [1, 1, 1, 1]]
             sage: [x for x in Partitions(4, outer=[3,1,1])]
             [[3, 1], [2, 1, 1]]
             sage: [x for x in Partitions(4, outer=['inf', 1, 1])]
@@ -1776,101 +1776,10 @@ class Partitions_constraints(CombinatorialClass):
             sage: [x for x in Partitions(11, max_slope=-1, min_slope=-3, min_length=2, max_length=4, outer=[6,5,2])]
             [[6, 5], [6, 4, 1], [6, 3, 2], [5, 4, 2]]
         """
-        n = self.n
+        for p in Partitions_n(self.n)._fast_iterator():
+            if misc.check_integer_list_constraints([p], **self.constraints):
+                yield Partition_class(p)
 
-        #put the constraints in the namespace
-        length = self.constraints.get('length',None)
-        min_length = self.constraints.get('min_length',None)
-        max_length = self.constraints.get('max_length',None)
-        max_part = self.constraints.get('max_part',None)
-        min_part = self.constraints.get('min_part',None)
-        max_slope = self.constraints.get('max_slope',None)
-        min_slope = self.constraints.get('min_slope',None)
-        inner = self.constraints.get('inner',None)
-        outer = self.constraints.get('outer',None)
-
-        #Preproccess the constraints
-        if max_slope == "inf":
-            max_slope = n
-        if min_slope == "-inf":
-            min_slope = -n
-        if length is not None:
-            min_length = length
-            max_length = length
-        if outer is not None:
-            for i in range(len(outer)):
-                if outer[i] == "inf":
-                    outer[i] = n
-
-        l = []
-        old_p = Partition_class([self.n])
-
-        #Go through all of the partitions
-        while old_p != False:
-            meets_constraints = True
-
-            #Handle the case if the user specifies
-            #min_part = 0
-            if min_part == 0:
-                #if length is not None and len(p) < length:
-                #    p += [0]*(len(p)-length)
-                if min_length is not None and len(old_p) < min_length:
-                    p = old_p + [0]*(min_length-len(old_p))
-                else:
-                    p = old_p
-            else:
-                p = old_p
-
-            #if length is not None:
-            #    if len(p) != length:
-            #        meets_constraints = False
-
-            if min_length is not None:
-                if len(p) < min_length:
-                    meets_constraints = False
-
-            if max_length is not None:
-                if len(p) > max_length:
-                    meets_constraints = False
-
-            if max_part is not None:
-                if max(p) > max_part:
-                    meets_constraints = False
-
-            if min_part is not None:
-                if min(p) < min_part:
-                    meets_constraints = False
-
-            if outer is not None:
-                if len(p) > len(outer):
-                    meets_constraints = False
-                else:
-                    for i in range(len(p)):
-                        if p[i] > outer[i]:
-                            meets_constraints = False
-
-            if inner is not None:
-                if len(p) < len(inner):
-                    meets_constraints = False
-                else:
-                    for i in range(len(inner)):
-                        if p[i] < inner[i]:
-                            meets_constraints = False
-
-
-            if max_slope is not None:
-                if max([p[i+1]-p[i] for i in range(0, len(p)-1)]+[-n] ) > max_slope:
-                    meets_constraints = False
-
-            if min_slope is not None:
-                if min([p[i+1]-p[i] for i in range(0, len(p)-1)]+[n] ) < min_slope:
-                    meets_constraints = False
-
-
-            if meets_constraints:
-                yield p
-
-            old_p = old_p.next()
 
 class Partitions_n(CombinatorialClass):
     object_class = Partition_class
@@ -1910,7 +1819,7 @@ class Partitions_n(CombinatorialClass):
     def count(self, algorithm='default'):
         r"""
             algorithm -- (default: 'default')
-                'bober' -- use Jonathon Bober's implementation (*very* fast,
+                'bober' -- use Jonathan Bober's implementation (*very* fast,
                           but new and not well tested yet).
                 'gap' -- use GAP (VERY *slow*)
                 'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
@@ -2012,16 +1921,21 @@ class Partitions_n(CombinatorialClass):
             sage: [x for x in Partitions(4)]
             [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
         """
+        for p in self._fast_iterator():
+            yield Partition_class(p)
+
+
+    def _fast_iterator(self):
         # base case of the recursion: zero is the sum of the empty tuple
         if self.n == 0:
-            yield Partition_class([])
+            yield []
             return
 
         # modify the partitions of n-1 to form the partitions of n
-        for p in Partitions_n(self.n-1):
+        for p in Partitions_n(self.n-1)._fast_iterator():
             if p and (len(p) < 2 or p[-2] > p[-1]):
-                yield Partition_class(list(p[:-1]) + [p[-1] + 1])
-            yield  Partition_class(p + [1])
+                yield p[:-1] + [p[-1] + 1]
+            yield p + [1]
 
 
 
@@ -2188,10 +2102,10 @@ def number_of_partitions(n,k=None, algorithm='default'):
              the positive integer n into sums with k summands.
         algorithm -- (default: 'default')
             'default' -- If k is not None, then use Gap (very slow).
-                         If k is None, use Jon Bober's highly
+                         If k is None, use Jonathan Bober's highly
                          optimized implementation (this is the fastest
                          code in the world for this problem).
-            'bober' -- use Jonathon Bober's implementation
+            'bober' -- use Jonathan Bober's implementation
             'gap' -- use GAP (VERY *slow*)
             'pari' -- use PARI.  Speed seems the same as GAP until $n$ is
                       in the thousands, in which case PARI is faster. *But*

@@ -5,8 +5,7 @@ Finite Fields
 EXAMPLES:
 Finite Fields support iteration, starting with 0.
     sage: k = GF(9, 'a')
-    sage: i = 0
-    sage: for x in k: print i, x; i+=1
+    sage: for i,x in enumerate(k):  print i,x
     0 0
     1 2*a
     2 a + 1
@@ -99,7 +98,7 @@ def FiniteField(order, name=None, modulus=None, names=None,
 
     INPUT:
         order --   int
-        name --    string; must be specified in not a prime field
+        name --    string; must be specified if not a prime field
         modulus -- (optional) defining polynomial for field, i.e.,
                    generator of the field will be a root of this
                    polynomial; if not specified the choice of

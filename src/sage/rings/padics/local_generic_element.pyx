@@ -90,7 +90,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
         return ans
 
     def _latex_(self):
-        return self._repr(do_latex = True)
+        return self._repr_(do_latex = True)
 
     #def __mod__(self, right):
     #    raise NotImplementedError
@@ -102,15 +102,9 @@ cdef class LocalGenericElement(CommutativeRingElement):
     #    raise NotImplementedError
 
     def _pari_init_(self):
-        return self._repr(mode = 'series')
+        return self._repr_(mode = 'series')
 
     #def __pow__(self, right):
-    #    raise NotImplementedError
-
-    def _repr_(self):
-        return self._repr()
-
-    #def _repr(self, mode = None, do_latex = False):
     #    raise NotImplementedError
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
@@ -287,6 +281,27 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
     #def valuation(self):
     #    raise NotImplementedError
+
+    def normalized_valuation(self):
+        r"""
+        Returns the normalized valuation of this local ring element,
+        i.e., the valuation divided by the absolute ramification index.
+
+        INPUT:
+            self -- a local ring element.
+
+        OUTPUT:
+            rational -- the normalized valuation of self.
+
+        EXAMPLES:
+            sage: Q7 = Qp(7)
+            sage: R.<x> = Q7[]
+            sage: F.<z> = Q7.ext(x^3+7*x+7)
+            sage: z.normalized_valuation()
+            1/3
+        """
+        F = self.parent()
+        return self.valuation()/F.ramification_index()
 
     def _min_valuation(self):
         r"""

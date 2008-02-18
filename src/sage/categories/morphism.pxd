@@ -15,6 +15,9 @@ cdef class Morphism(Element):
     cdef Element _call_c(self, x)
     cdef Element _call_c_impl(self, Element x)
 
+cdef class Section(Morphism):
+    cdef Morphism _morphism
+
 cdef class FormalCoercionMorphism(Morphism):
     cdef Element _call_c(self, x)
 

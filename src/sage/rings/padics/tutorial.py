@@ -277,18 +277,18 @@ supports two ways to do this: \verb/set_precision_relative/ and
 \verb/set_precision_absolute/.
 
 
-sage: R = Zp(5, prec = 10, type = 'lazy', print_mode = 'series', halt = 30)
-sage: R
-Lazy 5-adic Ring
-sage: R.precision_cap()
-10
-sage: R.halting_parameter()
-30
-sage: K = Qp(5, type = 'lazy')
-sage: K.precision_cap()
-20
-sage: K.halting_parameter()
-40
+#sage: R = Zp(5, prec = 10, type = 'lazy', print_mode = 'series', halt = 30)
+#sage: R
+#Lazy 5-adic Ring
+#sage: R.precision_cap()
+#10
+#sage: R.halting_parameter()
+#30
+#sage: K = Qp(5, type = 'lazy')
+#sage: K.precision_cap()
+#20
+#sage: K.halting_parameter()
+#40
 
 
 
@@ -299,14 +299,14 @@ rings, sometimes situations arise where the insolvability of the
 halting problem gives us problems.  For example,
 
 
-sage: a = R(16)
-sage: b = a.log().exp() - a
-sage: b
-O(5^10)
-sage: b.valuation()
-Traceback (most recent call last):
-...
-HaltingError: Stopped computing sum: set halting parameter higher if you want computation to continue
+#sage: a = R(16)
+#sage: b = a.log().exp() - a
+#sage: b
+#O(5^10)
+#sage: b.valuation()
+#Traceback (most recent call last):
+#...
+#HaltingError: Stopped computing sum: set halting parameter higher if you want computation to continue
 
 
 
@@ -318,14 +318,14 @@ computations with them, discover that the answer does not have the
 desired precision, and then ask for more precision.  For example,
 
 
-sage: a = R(6).log() * 15
-sage: b = a.exp()
-sage: c = b / R(15).exp()
-sage: c
-1 + 2*5 + 4*5^2 + 3*5^3 + 2*5^4 + 3*5^5 + 5^6 + 5^10 + O(5^11)
-sage: c.set_precision_absolute(15)
-sage: c
-1 + 2*5 + 4*5^2 + 3*5^3 + 2*5^4 + 3*5^5 + 5^6 + 5^10 + 4*5^11 + 2*5^12 + 4*5^13 + 3*5^14 + O(5^15)
+#sage: a = R(6).log() * 15
+#sage: b = a.exp()
+#sage: c = b / R(15).exp()
+#sage: c
+#1 + 2*5 + 4*5^2 + 3*5^3 + 2*5^4 + 3*5^5 + 5^6 + 5^10 + O(5^11)
+#sage: c.set_precision_absolute(15)
+#sage: c
+#1 + 2*5 + 4*5^2 + 3*5^3 + 2*5^4 + 3*5^5 + 5^6 + 5^10 + 4*5^11 + 2*5^12 + 4*5^13 + 3*5^14 + O(5^15)
 
 
 

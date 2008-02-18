@@ -1,9 +1,17 @@
+"""
+Numerical Root Finding and Optimization
+
+AUTHOR:
+    -- William Stein (2007)
+"""
+
 def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False):
     """
     Numerically find a root of f on the closed interval [a,b]
     (or [b,a]) if possible, where f is a function in the one variable.
 
     INPUT:
+        f -- a function of one variable or symbolic equality
         a, b -- endpoints of the interval
         xtol, rtol -- the routine converges when a root is known
                 to lie within xtol of the value return. Should be

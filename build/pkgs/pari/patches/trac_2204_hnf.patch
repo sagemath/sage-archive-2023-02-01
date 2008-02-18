@@ -1,0 +1,18 @@
+Index: src/basemath/alglin2.c
+===================================================================
+--- src/basemath/alglin2.c	(revision 9574)
++++ src/basemath/alglin2.c	(working copy)
+@@ -3082,11 +3082,9 @@
+     for (i=h[j]; i; i--)
+     {
+       a = gcoeff(A,i,j);
+-      if (!signe(a)) continue;
+-
+       k = c[i];
+-      ZV_elem(a,gcoeff(A,i,k), A,B, j,k);
+-      ZM_reduce(A,B, i,k);
++      if (signe(a)) ZV_elem(a,gcoeff(A,i,k), A,B, j,k);
++      ZM_reduce(A,B, i,k); /* ensure non-negative entries, even if a = 0 */
+       if (low_stack(lim, stack_lim(av1,1)))
+       {
+         if (DEBUGMEM>1) pari_warn(warnmem,"hnfall[3], j = %ld", j);

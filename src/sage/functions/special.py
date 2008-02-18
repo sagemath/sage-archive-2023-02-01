@@ -313,6 +313,16 @@ REFERENCE:
 TODO:
     Resolve weird bug in commented out code in hypergeometric_U below.
 
+AUTHORS:
+    David Joyner and William Stein
+
+Added 16-02-2008 (wdj): optional calls to scipy and replace all
+"#random" by "..." (both at the request fo William Stein)
+
+WARNING:
+   SciPy's versions are poorly documented and seem less
+accurate than the Maxima andr Pari versions.
+
 """
 
 #*****************************************************************************
@@ -342,6 +352,7 @@ from sage.misc.sage_eval import sage_eval
 from sage.rings.all import ZZ, QQ, RR
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
+from sage.misc.functional import real, imag
 
 from sage.interfaces.maxima import maxima
 
@@ -381,7 +392,7 @@ def bessel_I(nu,z,alg = "pari",prec=53):
     INPUT:
         nu -- a real (or complex, for pari) number
         z  -- a real (positive)
-        alg - "pari" or "maxima"
+        alg - "pari" or "maxima" or "scipy"
         prec - real precision (for Pari only)
 
     DEFINITION:
@@ -418,12 +429,15 @@ def bessel_I(nu,z,alg = "pari",prec=53):
         0.565159103992485027207696027609863307328899621621092009480294489479255640964371134092664997766814410064677886055526302676857637684917179812041131208121
         sage: bessel_I(1,1)
         0.565159103992485
-        sage: bessel_I(2,1.1,"maxima")  # last few digits are random
-        0.16708949925104899
-        sage: bessel_I(0,1.1,"maxima")  # last few digits are random
-        1.3261601837126531
-        sage: bessel_I(0,1,"maxima")    # last few digits are random
-        1.2660658777520091
+        sage: bessel_I(2,1.1,"maxima")
+        0.16708949925104...
+        sage: bessel_I(0,1.1,"maxima")
+        1.32616018371265...
+        sage: bessel_I(0,1,"maxima")
+        1.26606587775200...
+        sage: bessel_I(1,1,"scipy")
+        0.565159103992...
+
     """
     if alg=="pari":
         from sage.libs.pari.all import pari
@@ -431,6 +445,13 @@ def bessel_I(nu,z,alg = "pari",prec=53):
         b = R(pari(nu).besseli(z))
         pari.set_real_precision(a)
         return b
+    elif alg=="scipy":
+        import scipy.special
+        ans = str(scipy.special.iv(float(nu),complex(real(z),imag(z))))
+        ans = ans.replace("(","")
+        ans = ans.replace(")","")
+        ans = ans.replace("j","*I")
+        return sage_eval(ans)
     else:
         return sage_eval(maxima.eval("bessel_i(%s,%s)"%(float(nu),float(z))))
 
@@ -470,18 +491,21 @@ def bessel_J(nu,z,alg="pari",prec=53):
         Inaccurate for small values of z.
 
     EXAMPLES:
-        sage: bessel_J(2,1.1)  # last few digits are random
-        0.136564153956658000
-        sage: bessel_J(0,1.1)  # last few digits are random
-        0.719622018527510801
-        sage: bessel_J(0,1)    # last few digits are random
-        0.765197686557966605
+        sage: bessel_J(2,1.1)
+        0.13656415395665...
+        sage: bessel_J(0,1.1)
+        0.71962201852751...
+        sage: bessel_J(0,1)
+        0.76519768655796...
 
     We check consistency of PARI and Maxima:
-        sage: n(bessel_J(3,10,"maxima"))   # last few digits are random
-        0.0583793793051869
-        sage: n(bessel_J(3,10,"pari"))     # last few digits are random
-        0.0583793793051868
+        sage: n(bessel_J(3,10,"maxima"))
+        0.0583793793051...
+        sage: n(bessel_J(3,10,"pari"))
+        0.0583793793051...
+        sage: bessel_J(3,10,"scipy")
+        0.0583793793052... - 1.65905485529...e-17*I
+
     """
     if alg=="pari":
         from sage.libs.pari.all import pari
@@ -494,10 +518,17 @@ def bessel_J(nu,z,alg="pari",prec=53):
         b = K(nu.besselj(z))
         pari.set_real_precision(a)
         return b
+    elif alg=="scipy":
+        import scipy.special
+        ans = str(scipy.special.jv(float(nu),complex(real(z),imag(z))))
+        ans = ans.replace("(","")
+        ans = ans.replace(")","")
+        ans = ans.replace("j","*I")
+        return sage_eval(ans)
     else:
         return meval("bessel_j(%s,%s)"%(nu, z))
 
-def bessel_K(nu,z,prec=53):
+def bessel_K(nu,z,alg="pari",prec=53):
     r"""
     Implements the "K-Bessel function", or
     "modified Bessel function, 2nd kind", with
@@ -513,21 +544,34 @@ def bessel_K(nu,z,prec=53):
 
     Sometimes bessel_K(nu,z) is denoted K_nu(z) in the
     literature. In Pari, nu can be complex and
-    x must be real and positive.
+    z must be real and positive.
 
     EXAMPLES:
+        sage: bessel_K(3,2,"scipy")
+        0.64738539094...
+        sage: bessel_K(3,2)
+        0.64738539094...
         sage: bessel_K(1,1)
-        0.601907230197235
-        sage: bessel_K(1,1,500)
-        0.601907230197234574737540001535617339261586889968106456017767959168553582946237840168863706958258215354644099783140050908469292813493294605655726961996
+        0.60190723019...
+        sage: bessel_K(1,1,"pari",10)
+        0.60
+        sage: bessel_K(1,1,"pari",100)
+        0.60190723019723457473754000154
     """
+    if alg=="scipy":
+        import scipy.special
+        ans = str(scipy.special.kv(float(nu),float(z)))
+        ans = ans.replace("(","")
+        ans = ans.replace(")","")
+        ans = ans.replace("j","*I")
+        return sage_eval(ans)
     from sage.libs.pari.all import pari
     RR,a = _setup(prec)
     b = RR(pari(nu).besselk(z))
     pari.set_real_precision(a)
     return b
 
-def bessel_Y(nu,z):
+def bessel_Y(nu,z,alg="maxima"):
     r"""
     Implements the "Y-Bessel function", or
     "Bessel function of the 2nd kind", with
@@ -543,16 +587,25 @@ def bessel_Y(nu,z):
     Sometimes bessel_Y(n,z) is denoted Y_n(z) in the
     literature.
 
-    This is computed using Pari.
+    This is computed using Maxima by default.
 
     EXAMPLES:
-        sage: bessel_Y(2,1.1)         # last few digits are random
-        -1.4314714939590090
-        sage: bessel_Y(3.001,2.1)     # last few digits are random
-        -1.0299574976424311
+        sage: bessel_Y(2,1.1,"scipy")
+        -1.4314714939...
+        sage: bessel_Y(2,1.1)
+        -1.4314714939590...
+        sage: bessel_Y(3.001,2.1)
+        -1.0299574976424...
 
     NOTE: Adding "0"+ inside sage_eval as a temporary bug work-around.
     """
+    if alg=="scipy":
+        import scipy.special
+        ans = str(scipy.special.yv(float(nu),complex(real(z),imag(z))))
+        ans = ans.replace("(","")
+        ans = ans.replace(")","")
+        ans = ans.replace("j","*I")
+        return sage_eval(ans)
     return RR(maxima.eval("bessel_y(%s,%s)"%(float(nu),float(z))))
 
 class Bessel():
@@ -622,9 +675,10 @@ class Bessel():
             P = plot(f,a,b)
         return P
 
-def hypergeometric_U(alpha,beta,x,prec=53):
+def hypergeometric_U(alpha,beta,x,alg="pari",prec=53):
     r"""
-    Wraps Pari's hyperu(alpha,beta,x) function.
+    Default is a wrap of Pari's hyperu(alpha,beta,x) function.
+    Optionally, alg = "scipy" can be used.
 
     The confluent hypergeometric function $y = U(a,b,x)$ is defined
     to be the solution to Kummer's differential equation
@@ -643,11 +697,20 @@ def hypergeometric_U(alpha,beta,x,prec=53):
         functions.
 
     EXAMPLES:
-        sage: hypergeometric_U(1,1,1)      ## random output
-        0.59634736232319407
-        sage: hypergeometric_U(1,1,1,70)   ## random output
-        0.59634736232319407434152
+        sage: hypergeometric_U(1,1,1,"scipy")
+        0.596347362323...
+        sage: hypergeometric_U(1,1,1)
+        0.59634736232319...
+        sage: hypergeometric_U(1,1,1,"pari",70)
+        0.59634736232319407434...
     """
+    if alg=="scipy":
+        import scipy.special
+        ans = str(scipy.special.hyperu(float(alpha),float(beta),float(x)))
+        ans = ans.replace("(","")
+        ans = ans.replace(")","")
+        ans = ans.replace("j","*I")
+        return sage_eval(ans)
     ## For commented out code below,
     ##   f = lambda x: hypergeometric_U(1,1,x)
     ##   P = plot(f,0.1,1)
@@ -700,7 +763,7 @@ def hypergeometric_U(alpha,beta,x,prec=53):
 #    pari.set_real_precision(a)
 #    return b
 
-def spherical_bessel_J(n, var):
+def spherical_bessel_J(n, var, alg="maxima"):
     r"""
     Returns the spherical Bessel function of the first kind
     for integers n > -1.
@@ -711,10 +774,17 @@ def spherical_bessel_J(n, var):
         sage: spherical_bessel_J(2,x)
         (-(1 - 24/(8*x^2))*sin(x) - 3*cos(x)/x)/x
     """
+    if alg=="scipy":
+        import scipy.special
+        ans = str(scipy.special.sph_jn(int(n),float(var)))
+        ans = ans.replace("(","")
+        ans = ans.replace(")","")
+        ans = ans.replace("j","*I")
+        return sage_eval(ans)
     _init()
     return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))
 
-def spherical_bessel_Y(n,var):
+def spherical_bessel_Y(n,var, alg="maxima"):
     r"""
     Returns the spherical Bessel function of the second kind
     for integers n > -1.
@@ -726,6 +796,13 @@ def spherical_bessel_Y(n,var):
         sage: spherical_bessel_Y(2,x)
         -(3*sin(x)/x - (1 - 24/(8*x^2))*cos(x))/x
     """
+    if alg=="scipy":
+        import scipy.special
+        ans = str(scipy.special.sph_yn(int(n),float(var)))
+        ans = ans.replace("(","")
+        ans = ans.replace(")","")
+        ans = ans.replace("j","*I")
+        return sage_eval(ans)
     _init()
     return meval("spherical_bessel_y(%s,%s)"%(ZZ(n),var))
 

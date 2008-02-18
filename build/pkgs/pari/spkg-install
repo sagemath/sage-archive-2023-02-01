@@ -9,7 +9,7 @@ cd src
 
 cp "$TOP"/patches/get_dlld config/
 
-# Mabshoff: This patch is to get around problem in PPC 32-bit linux build (but it is ok on any other machine)
+# mabshoff: This patch is to get around problem in PPC 32-bit linux build (but it is ok on any other machine)
 cp "$TOP"/patches/get_dlcflags config/
 
 # cwitty: disable -rpath
@@ -17,6 +17,9 @@ cp "$TOP"/patches/get_ld config/
 
 # cwitty: disable TeX; allow bz2 compression
 cp "$TOP"/patches/gphelp.in doc/
+
+# mabshoff: copy over patched hnf routine (#2204)
+cp "$TOP"/patches/alglin2.c src/basemath/
 
 # This is needed or there are weird locale problems involving rpath
 # with building SAGE.
@@ -27,6 +30,11 @@ export LANG
 
 build()
 {
+    #  add the proper flags for 64 bit build mode on OSX
+    if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+       CFLAGS="-g -m64 " && export CFLAGS
+    fi
+
     CUR=`pwd`
 
     # On my systems PARI does *not* build correctly with these set! (and they are

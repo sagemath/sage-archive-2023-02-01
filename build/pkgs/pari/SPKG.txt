@@ -1,3 +1,31 @@
+= pari =
+
+== Description ==
+
+PARI/GP is a widely used computer algebra system designed for fast computations in number theory (factorizations, algebraic number theory, elliptic curves...), but also contains a large number of other useful functions to compute with mathematical entities such as matrices, polynomials, power series, algebraic numbers etc., and a lot of transcendental functions. PARI is also available as a C library to allow for faster computations.
+
+Originally developed by Henri Cohen and his co-workers (Université Bordeaux I, France), PARI is now under the GPL and maintained by Karim Belabas with the help of many volunteer contributors.
+
+Website: http://pari.math.u-bordeaux.fr/
+
+== License ==
+
+GPL
+
+== SPKG Maintainers ==
+ * Craig Citro
+ * William Stein
+ * Michael Abshoff
+
+== Upstream Contact ==
+ * Karim Belabas, http://www.math.u-bordeaux.fr/~belabas/
+ * pari-dev@list.cr.yp.to
+
+== Dependencies ==
+ * gmp
+
+== Build Notes ==
+
 Here is how to build a new version of the PARI SAGE spkg:
 
   1) Get the latest stable source code from
@@ -13,8 +41,22 @@ Here is how to build a new version of the PARI SAGE spkg:
   4) Extract the file galdata.tgz from http://pari.math.u-bordeaux.fr/download.html
      in the directory pari-*/src/
 
+Note from David Kirby that could be relevant to building on Solaris:
 
------------------------------------
+Since pari is using -xarch=native, which implies -xarch=v8plusa on my box, but I set -xarch=v8plus (without the last a), this probably means there will be different types of object files and so they may not link together.  Ick.  Feel free to tell me how to modify the configure script.
+
+I got around it by setting CFLAGS -xarch=v8plus myself, so they were all the same. But it is not right. I have not looked at pari to see exactly where it says native, but I would expact a grep to find it.
+
+== Changelog ==
+
+=== pari-2.3.3.p0 (Michael Abshoff, Feb. 18th, 2008) ===
+ * apply Karim's hnf patch
+ * add OSX 10.5 64 bit build support
+
+=== pari-2.3.3 (William Stein) ===
+ * upgrade to the 2.3.3 release
+
+=== pari-2.3.2 ===
 
 * 2007-10-31: (Carl Witty)
    disable runpath altogether; we want Sage to be relocatable.
@@ -47,18 +89,3 @@ Here is how to build a new version of the PARI SAGE spkg:
 
 
 * Put the extra galois groups data files in the data/galdata subdirectory,
-  so PARI can compute Galois groups up to bigger degree.
-
--------------------------
-
-Note from David Kirby that could be relevant to building on Solaris:
-
-9) Since pari is using -xarch=native, which implies -xarch=v8plusa on
-my box, but I set -xarch=v8plus (without the last a), this probably
-means there will be different types of object files and so they may
-not link together.  Ick.  Feel free to tell me how to modify the
-configure script.
-
-I got around it by setting CFLAGS -xarch=v8plus myself, so they were
-all the same. But it is not right. I have not looked at pari to see
-exactly where it says native, but I would expact a grep to find it.

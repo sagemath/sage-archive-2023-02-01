@@ -265,6 +265,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         self._degree = parent.degree()
         self._is_mutable = 1
 
+    def __hash__(self):
+        if self._is_mutable:
+            raise TypeError, "mutable vectors are unhasheable"
+        return hash(tuple(self))
+
     def _vector_(self, R):
         r"""Return self as a vector.
 
@@ -1147,6 +1152,19 @@ def make_FreeModuleElement_generic_dense(parent, entries, degree):
     v._degree = degree
     return v
 
+def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_mutable):
+    # If you think you want to change this function, don't.
+    # Instead make a new version with a name like
+    #    make_FreeModuleElement_generic_dense_v2
+    # and changed the reduce method below.
+    cdef FreeModuleElement_generic_dense v
+    v = FreeModuleElement_generic_dense.__new__(FreeModuleElement_generic_dense)
+    v._entries = entries
+    v._parent = parent
+    v._degree = degree
+    v._is_mutable = is_mutable
+    return v
+
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     """
     A generic dense element of a free module. a
@@ -1297,7 +1315,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         return left._new_c(v)
 
     def __reduce__(self):
-        return (make_FreeModuleElement_generic_dense, (self._parent, self._entries, self._degree))
+        return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
     def __getitem__(self, Py_ssize_t i):
         """
@@ -1405,6 +1423,15 @@ def make_FreeModuleElement_generic_sparse(parent, entries, degree):
     v._entries = entries
     v._parent = parent
     v._degree = degree
+    return v
+
+def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable):
+    cdef FreeModuleElement_generic_sparse v
+    v = FreeModuleElement_generic_sparse.__new__(FreeModuleElement_generic_sparse)
+    v._entries = entries
+    v._parent = parent
+    v._degree = degree
+    v._is_mutable = is_mutable
     return v
 
 cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
@@ -1567,7 +1594,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return self._entries.iteritems()
 
     def __reduce__(self):
-        return (make_FreeModuleElement_generic_sparse, (self._parent, self._entries, self._degree))
+        return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
     def __getitem__(self, i):
         #if not isinstance(i, int):

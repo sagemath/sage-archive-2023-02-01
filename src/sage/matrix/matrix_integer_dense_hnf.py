@@ -815,10 +815,11 @@ def probable_hnf(A, include_zero_rows, proof):
     try:
         H = hnf_square(C, proof=proof)
     except NotImplementedError:
+        # raise
+        # this signals that we must fallback to pari
         verbose("generic random modular HNF algorithm failed -- we fall back to PARI")
         H = A.hermite_form(algorithm='pari')
         return H, H.pivots()
-        # this signals that we must fallback to pari
 
     # The transformation matrix to HNF is the unique
     # matrix U such that U * C = H, i.e., U = H*C^(-1).
@@ -956,23 +957,34 @@ def hnf(A, include_zero_rows=True, proof=True):
         [0 0 1], [0, 1, 2])
     """
     if A.nrows() <= 1:
-        if A != 0 and A.nrows() == 1:
-            pivots = [0]
-        else:
+        np = A.nonzero_positions()
+        if len(np) == 0:
             pivots = []
+            if not include_zero_rows:
+                A = A.new_matrix(0)  # 0 rows
+        else:
+            i,j = np[0]
+            if A[i,j] < 0:
+                A = -A
+            pivots = [j]
         return A, pivots
 
     if proof == False:
-        return probable_hnf(A, include_zero_rows = include_zero_rows, proof=False)
+        H, pivots = probable_hnf(A, include_zero_rows = include_zero_rows, proof=False)
+        if not include_zero_rows and len(pivots) > H.nrows():
+            return H.matrix_from_rows(range(len(pivots))), pivots
 
     while True:
         try:
             H, pivots = probable_hnf(A, include_zero_rows = include_zero_rows, proof=True)
         except (AssertionError, ZeroDivisionError, TypeError):
-            verbose("Assertion occured when computing HNF; guessed pivot columns likely wrong.")
-            continue
+            raise
+            #verbose("Assertion occured when computing HNF; guessed pivot columns likely wrong.")
+            #continue
         else:
             if is_in_hnf_form(H, pivots):
+                if not include_zero_rows and len(pivots) > H.nrows():
+                    H = H.matrix_from_rows(range(len(pivots)))
                 return H, pivots
             verbose("After attempt the return matrix is not in HNF form since pivots must have been wrong.  We try again.")
 

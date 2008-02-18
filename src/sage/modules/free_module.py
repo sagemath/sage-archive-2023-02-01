@@ -96,6 +96,15 @@ and verify that the element types are correct:
     [    0 1.0*I     0]
     sage: type(W.0)
     <type 'sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement'>
+
+Basis vectors are immutable:
+    sage: A = span(ZZ, [[1,2,3], [4,5,6]])
+    sage: A.0
+    (1, 2, 3)
+    sage: A.0[0] = 5
+    Traceback (most recent call last):
+    ...
+    ValueError: vector is immutable; please change a copy instead (use self.copy())
 """
 
 ####################################################################################
@@ -386,6 +395,9 @@ class FreeModule_generic(module.Module):
         self._inner_product_matrix = inner_product_matrix
         self._gram_matrix = None
         self.element_class()
+
+    def __hash__(self):
+        raise NotImplementedError
 
     def construction(self):
         from sage.categories.pushout import VectorFunctor
@@ -874,6 +886,15 @@ class FreeModule_generic(module.Module):
         return self
 
     def gen(self, i=0):
+        """
+        Return ith generator for self, where i is between 0 and rank-1, inclusive.
+
+        INPUT:
+            i -- an integer
+
+        OUTPUT:
+            i-th basis vector for self.
+        """
         if i < 0 or i >= self.rank():
             raise ValueError, "Generator %s not defined."%i
         return self.basis()[int(i)]
@@ -1693,9 +1714,15 @@ class FreeModule_generic_pid(FreeModule_generic):
         R = self.base_ring()
         if R.is_field():
             return self
-        V = self.vector_space()
-        A = self.ambient_module()
-        return V.intersection(A)
+        try:
+            A, _ = self.basis_matrix()._clear_denom()
+            S = A.saturation()
+            return S.row_space()
+        except AttributeError:
+            # fallback in case _clear_denom isn't written
+            V = self.vector_space()
+            A = self.ambient_module()
+            return V.intersection(A)
 
     def span(self, gens, check=True, already_echelonized=False):
         """
@@ -2564,6 +2591,15 @@ class FreeModule_ambient(FreeModule_generic):
         FreeModule_generic.__init__(self, base_ring, rank,
                                     rank, sparse, inner_product_matrix)
 
+    def __hash__(self):
+        try:
+            return hash((self.rank(), self.base_ring()))
+        except AttributeError:
+            # This is a fallback because sometimes hash is called during object
+            # reconstruction (unpickle), and the above fields haven't been
+            # filled in yet.
+            return 0
+
     def _dense_module(self):
         return FreeModule(base_ring=self.base_ring(),
                           rank = self.rank(), sparse=False,
@@ -3067,7 +3103,6 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             C = element_class(R.fraction_field(), self.is_sparse())
             w = [C(self, x.list(),
                           coerce=False, copy=True) for x in basis]
-
         self.__basis = basis_seq(self, w)
 
         if echelonized_basis != None:
@@ -3084,6 +3119,9 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         if check and len(basis) != len(self.__echelonized_basis):
             raise ValueError, "basis vectors must be linearly independent."
+
+    def __hash__(self):
+        return hash(self.__basis)
 
     def construction(self):
         """
@@ -3642,7 +3680,6 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
         [ 4  5 19]
 
     We can save and load submodules and elements.
-
         sage: loads(W.dumps()) == W
         True
         sage: v = W.0 + W.1
@@ -3942,6 +3979,8 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
 
 def basis_seq(V, w):
+    for z in w:
+        z.set_immutable()
     return Sequence(w, universe=V, check = False, immutable=True, cr=True)
 
 

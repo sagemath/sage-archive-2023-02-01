@@ -1364,13 +1364,15 @@ cdef class Matrix(matrix1.Matrix):
             Echelon basis matrix:
             [0 1]
         """
-        d = self.denominator()
-        A = self*d
-        R = d.parent()
-        M = matrix_space.MatrixSpace(R, self.nrows(), self.ncols())(A)
-        return M.kernel()
-
-
+        try:
+            A, _ = self._clear_denom()
+            return A.kernel()
+        except AttributeError:
+            d = self.denominator()
+            A = self*d
+            R = d.parent()
+            M = matrix_space.MatrixSpace(R, self.nrows(), self.ncols())(A)
+            return M.kernel()
 
     def image(self):
         """

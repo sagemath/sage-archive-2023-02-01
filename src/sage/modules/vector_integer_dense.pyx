@@ -165,7 +165,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             return z
 
     def __reduce__(self):
-        return (unpickle_v0, (self._parent, self.list(), self._degree))
+        return (unpickle_v1, (self._parent, self.list(), self._degree, self._is_mutable))
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         cdef Vector_integer_dense z, r
@@ -291,4 +291,15 @@ def unpickle_v0(parent, entries, degree):
     for i from 0 <= i < degree:
         z = Integer(entries[i])
         mpz_init_set(v._entries[i], z.value)
+    return v
+
+def unpickle_v1(parent, entries, degree, is_mutable):
+    cdef Vector_integer_dense v
+    v = PY_NEW(Vector_integer_dense)
+    v._init(degree, parent)
+    cdef Integer z
+    for i from 0 <= i < degree:
+        z = Integer(entries[i])
+        mpz_init_set(v._entries[i], z.value)
+    v._is_mutable = is_mutable
     return v

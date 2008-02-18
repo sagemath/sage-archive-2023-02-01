@@ -20,10 +20,24 @@ def p_saturation(A, p, proof=True):
         The p-saturation of the matrix A, i.e., a new matrix in Hermite form
         whose row span a ZZ-module that is p-saturated.
 
-    ISSUES:
-         * What if p is large? -- Sage linear algebra is maybe
-           currently only implemented for small p.  This could be a
-           major problem.  Maybe Linbox will help.
+    EXAMPLES:
+        sage: from sage.matrix.matrix_integer_dense_saturation import p_saturation
+        sage: A = matrix(ZZ, 2, 2, [3,2,3,4]); B = matrix(ZZ, 2,3,[1,2,3,4,5,6])
+        sage: A.det()
+        6
+        sage: C = A*B; C
+        [11 16 21]
+        [19 26 33]
+        sage: C2 = p_saturation(C, 2); C2
+        [ 1  8 15]
+        [ 0  9 18]
+        sage: C2.index_in_saturation()
+        9
+        sage: C3 = p_saturation(C, 3); C3
+        [ 1  0 -1]
+        [ 0  2  4]
+        sage: C3.index_in_saturation()
+        2
     """
     tm = verbose("%s-saturating a %sx%s matrix"%(p, A.nrows(), A.ncols()))
     H = A.hermite_form(include_zero_rows=False, proof=proof)
@@ -56,6 +70,13 @@ def random_sublist_of_size(k, n):
 
     OUTPUT:
         a randomly chosen sublist of range(k) of size n.
+
+    EXAMPLES:
+        sage: import sage.matrix.matrix_integer_dense_saturation as s
+        sage: s.random_sublist_of_size(10,3)            # random output
+        [1, 5, 6]
+        sage: s.random_sublist_of_size(10,7)            # random output
+        [0, 1, 2, 3, 4, 6, 9]
     """
     if n > k:
         raise ValueError, "n must be <= len(v)"
@@ -90,6 +111,14 @@ def solve_system_with_difficult_last_row(B, A):
         the unique solution to B*Z = A.
 
     EXAMPLES:
+        sage: from sage.matrix.matrix_integer_dense_saturation import solve_system_with_difficult_last_row
+        sage: B = matrix(ZZ, 3, [1,2,3, 3,-1,2,939239082,39202803080,2939028038402834]); A = matrix(ZZ,3,2,[1,2,4,3,-1,0])
+        sage: X = solve_system_with_difficult_last_row(B, A); X
+        [  290668794698843/226075992027744         468068726971/409557956572]
+        [-226078357385539/1582531944194208       1228691305937/2866905696004]
+        [      2365357795/1582531944194208           -17436221/2866905696004]
+        sage: B*X == A
+        True
     """
     # See the comments in the function of the same name in matrix_integer_dense_hnf.py.
     # This function is just a generalization of that one to A a matrix.
@@ -136,6 +165,8 @@ def solve_system_with_difficult_last_row(B, A):
 
 def saturation(A, proof=True, p=0, max_dets=5):
     """
+    Compute a saturation matrix of A.
+
     INPUT:
         A     -- a matrix over ZZ
         proof -- bool (default: True)
@@ -145,7 +176,30 @@ def saturation(A, proof=True, p=0, max_dets=5):
                  submatrices to compute.
 
     OUTPUT:
-        the saturation of A
+        matrix -- saturation of the matrix A.
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix_integer_dense_saturation import saturation
+        sage: A = matrix(ZZ, 2, 2, [3,2,3,4]); B = matrix(ZZ, 2,3,[1,2,3,4,5,6]); C = A*B
+        sage: C
+        [11 16 21]
+        [19 26 33]
+        sage: C.index_in_saturation()
+        18
+        sage: S = saturation(C); S
+        [11 16 21]
+        [-2 -3 -4]
+        sage: S.index_in_saturation()
+        1
+        sage: saturation(C, proof=False)
+        [11 16 21]
+        [-2 -3 -4]
+        sage: saturation(C, p=2)
+        [11 16 21]
+        [-2 -3 -4]
+        sage: saturation(C, p=2, max_dets=1)
+        [11 16 21]
+        [-2 -3 -4]
     """
     # Find a submatrix of full rank and instead saturate that matrix.
     r = A.rank()
@@ -158,6 +212,7 @@ def saturation(A, proof=True, p=0, max_dets=5):
         A = A.matrix_from_rows(P)
 
     # Factor out all common factors from all rows, just in case.
+    A = A.copy()
     A._factor_out_common_factors_from_each_row()
 
     if A.nrows() <= 1:
@@ -200,88 +255,42 @@ def saturation(A, proof=True, p=0, max_dets=5):
     # To make this practical we use solve_system_with_difficult_last_row, since the
     # last column of HNF's are typically the only really big ones.
     B = A.transpose().hermite_form(include_zero_rows=False, proof=proof)
-    if B.nrows() > r:
-        B = B.matrix_from_rows(range(r))
     B = B.transpose()
 
     # Now compute B^(-1) * A
     C = solve_system_with_difficult_last_row(B, A)
     return C.change_ring(ZZ)
 
+def index_in_saturation(A, proof=True):
+    """
+    The index of A in its saturation.
+
+    INPUT:
+        A -- matrix over ZZ
+        proof -- bool (True or False)
+
+    OUTPUT:
+        an integer
+
+    EXAMPLES:
+        sage: from sage.matrix.matrix_integer_dense_saturation import index_in_saturation
+        sage: A = matrix(ZZ, 2, 2, [3,2,3,4]); B = matrix(ZZ, 2,3,[1,2,3,4,5,6]); C = A*B; C
+        [11 16 21]
+        [19 26 33]
+        sage: index_in_saturation(C)
+        18
+        sage: W = C.row_space()
+        sage: S = W.saturation()
+        sage: W.index_in(S)
+        18
+    """
+    r = A.rank()
+    if r < A.nrows():
+        A = A.hermite_form(proof=proof, include_zero_rows=False)
+    if A.is_square():
+        return abs(A.determinant(proof=proof))
+    A = A.transpose()
+    A = A.hermite_form(proof=proof,include_zero_rows=False)
+    return abs(A.determinant(proof=proof))
 
 
-################################################################
-# Saturation
-# David Kohel sent me the following a couple of years ago.
-# It's probably the algorithm to use.
-## function pAdicSaturation(B,p)
-##     if Type(B[1]) eq SeqEnum then
-##         V := RSpace(Rationals(),#B[1]);
-## 	B := [ V | v : v in B];
-##     end if;
-##     V := Universe(B);
-##     n := Degree(V);
-##     for i in [1..#B] do
-## 	B[i] *:= LCM([ Denominator(c) : c in Eltseq(B[i]) ]);
-##     end for;
-##     ZZ := Integers();
-##     FF := FiniteField(p);
-##     B := RMatrixSpace(ZZ,#B,n)!Matrix(B);
-##     m := Rank(B);
-##     B := Submatrix(HermiteForm(B),1,1,m,n);
-##     N := RMatrixSpace(FF,m,n)!B;
-##     while Rank(N) lt m do
-## 	K := Kernel(N);
-## 	vprintf pAdicSaturation :
-## 	    "Rank(N) + Rank(K) = %o + %o = %o\n", Rank(N), Rank(K), m;
-## 	C := RMatrixSpace(ZZ,#Basis(K),n)!
-## 	Matrix([ (1/p)*V!&+[ ZZ!u[i]*B[i] : i in [1..m] ] : u in Basis(K) ]);
-## 	vtime pAdicSaturation, 2 :
-## 	    B := Submatrix(HermiteForm(VerticalJoin(B,C)),1,1,m,n);
-## 	N := RMatrixSpace(FF,m,n)!B;
-##     end while;
-##     vprintf pAdicSaturation : "Rank(N) = %o \n", Rank(N), m;
-##     return [ B[i] : i in [1..m] ];
-## end function;
-#################################################################
-
-
-##########################
-# Allan also says:
-## > How does the MAGMA command PureLattice work?  What is the
-## > algorithm, etc.?
-## > Do you do this:
-## >
-## > 1. Find echelon form of basis of lattice.
-## >
-## > 2. Write down matrix over $\Z$ that has saturation of lattice
-## >    as kernel.
-## >
-## > 3. Find the kernel using algorithm 2.7.2 of Cohen's book (Kernel
-##    over Z using LLL).
-## More complicated than this.  That would work, but requires 2 kernels
-## and the 2nd one can't done by a modular algorithm: I don't want to
-## compute kernels, because I do that by modular methods and they only do
-## it over Q and then you need this very saturation alg to get the kernel
-## over Z!!!
-## Here is basic form of one "standard" saturation algorithm, which
-## I used to do:
-##     Given basis B.
-##     H = HermiteForm(B);
-##     for (;;)
-##     {
-## 	Get Smith form S of H and P so that S = P*H*?;
-## 	    [right transformation mat ? not needed]
-## 	If diag of S is all ones, then return H;
-## 	H = P*H;
-## 	Remove content from all rows of H;
-## 	    [if entry (i,i) of S has val d > 1, then d will divide all
-## 	     entries of row i of H]
-##     }
-## Then H is basis at the end.
-## I have a new modular algorithm for this done about a year ago which is
-## complicated -- I may publish this if I get a chance.  It is now
-## used by all funcs in Magma which need saturation.  It finds the largest
-## elem divisor D of B by modular method, then partially factors D and
-## for small divisors, uses modular method to get rid of those primes, and
-## then does the big primes another way I think.

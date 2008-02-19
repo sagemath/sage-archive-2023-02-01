@@ -266,7 +266,7 @@ matrix = Extension('sage.matrix.matrix', ['sage/matrix/matrix.pyx'])
 matrix_action = Extension('sage.matrix.action', ['sage/matrix/action.pyx'])
 
 matrix_misc = Extension('sage.matrix.misc', ['sage/matrix/misc.pyx'],
-                        libraries=['gmp'])
+                        libraries=['mpfr','gmp'])
 
 matrix_dense = Extension('sage.matrix.matrix_dense',
                          ['sage/matrix/matrix_dense.pyx'])

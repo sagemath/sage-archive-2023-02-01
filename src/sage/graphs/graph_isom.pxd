@@ -72,4 +72,6 @@ cdef class PartitionStack:
     cdef int _degree_inv_square_matrix(self, int **G, int v, int W, int k)
     cdef int _first_smallest_nontrivial(self, int *W, int k, int n)
     cdef void _get_permutation_from(self, PartitionStack zeta, int *gamma)
-    cdef _enumerate_graph_from_discrete(self, int **G, int n)
+    cdef int _compare_with(self, int **G, int n, PartitionStack other)
+
+cdef int _is_automorphism(int **G, int n, int *gamma)

@@ -576,8 +576,11 @@ cdef class PartitionStack:
                     invariant += t + degrees[i - j - 1]
                     s = m
                     while alpha[s] != -1:
-                        if alpha[s] == j: alpha[s] = t # TODO this will only happen once, so should break
+                        if alpha[s] == j:
+                            alpha[s] = t
+                            break
                         s += 1
+                    while alpha[s] != -1: s += 1
                     r = j
                     while True:
                         if r == j or self.levels[r-1] == k:
@@ -618,8 +621,11 @@ cdef class PartitionStack:
                     invariant += t + degrees[i - j - 1]
                     s = m
                     while alpha[s] != -1:
-                        if alpha[s] == j: alpha[s] = t # this will only happen once, so should break
+                        if alpha[s] == j:
+                            alpha[s] = t
+                            break
                         s += 1
+                    while alpha[s] != -1: s += 1
                     r = j
                     while True:
                         if r == j or self.levels[r-1] == k:
@@ -713,38 +719,25 @@ cdef class PartitionStack:
             i += 1
             if self.levels[i-1] == -1: break
 
-# (TODO)
-# Important note: the enumeration should be kept abstract, and only comparison
-# functions should be written. This takes up too much memory and time. Simply
-# iterate starting with the most significant digit in the matrix, and return
-# as soon as a contradiction is encountered.
-
-    cdef _enumerate_graph_from_discrete(self, int **G, int n):
+    cdef int _compare_with(self, int **G, int n, PartitionStack other):
         cdef int i, j
-        enumeration = Integer(0)
         for i from 0 <= i < n:
             for j from 0 <= j < n:
-                if G[i][j]:
-                    enumeration += Integer(2)**((n-(self.entries[i]+1))*n + n-(self.entries[j]+1))
-        return enumeration
+                if G[self.entries[i]][self.entries[j]]:
+                    if not G[other.entries[i]][other.entries[j]]:
+                        return 1
+                elif G[other.entries[i]][other.entries[j]]:
+                    return -1
+        return 0
 
-cdef _enumerate_graph_with_permutation(int **G, int n, int *gamma):
+cdef int _is_automorphism(int **G, int n, int *gamma):
     cdef int i, j
-    enumeration = Integer(0)
     for i from 0 <= i < n:
         for j from 0 <= j < n:
             if G[i][j]:
-                enumeration += Integer(2)**((n-(gamma[i]+1))*n + n-(gamma[j]+1))
-    return enumeration
-
-cdef _enumerate_graph(int **G, int n):
-    cdef int i, j # enumeration = 0
-    enumeration = Integer(0)
-    for i from 0 <= i < n:
-        for j from 0 <= j < n:
-            if G[i][j]:
-                enumeration += Integer(2)**((n-(i+1))*n + n-(j+1))
-    return enumeration
+                if not G[gamma[i]][gamma[j]]:
+                    return 0
+    return 1
 
 def _term_pnest_graph(G, PartitionStack nu):
     """
@@ -1161,7 +1154,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
         sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order() # long time
         46080
     """
-    cdef int i, j, # local variables
+    cdef int i, j, m # local variables
 
     cdef OrbitPartition Theta, OP
     cdef int index = 0, size = 1 # see Theorem 2.33 in [1]
@@ -1328,7 +1321,6 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
     # set up the rest of the variables
     nu = PartitionStack(Pi)
     Theta = OrbitPartition(n)
-    G_enum = _enumerate_graph(M, n)
     output = []
     if dig: _dig = 1
     else: _dig = 0
@@ -1525,11 +1517,11 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             nu._get_permutation_from(zeta, gamma)
 
             if verbosity > 3:
-                print 'automorphism discovered:'
+                print 'checking for automorphism:'
                 print [gamma[iii] for iii in range(n)]
 
-            # if G^gamma == G, the permutation is an automorphism, goto 10
-            if G_enum == _enumerate_graph_with_permutation(M, n, gamma):
+            # if G^gamma == G, goto 10
+            if _is_automorphism(M, n, gamma):
                 state = 10
             else:
                 state = 8
@@ -1547,15 +1539,14 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False, verbosity
             if (qzb > 0) or (k < k_rho):
                 state = 9; continue
 
-            # if G(nu) > G(rho), goto 9
-            # if G(nu) < G(rho), goto 6
-            # if G(nu) == G(rho), get the automorphism and goto 10
-            m1 = nu._enumerate_graph_from_discrete(M, n)
-            m2 = rho._enumerate_graph_from_discrete(M, n)
+            # if G(nu) > G(rho) (returns 1), goto 9
+            # if G(nu) < G(rho) (returns -1), goto 6
+            # if G(nu) == G(rho) (returns 0), get the automorphism and goto 10
+            m = nu._compare_with(M, n, rho)
 
-            if m1 > m2:
+            if m > 0:
                 state = 9; continue
-            if m1 < m2:
+            if m < 0:
                 state = 6; continue
 
             rho._get_permutation_from(nu, gamma)

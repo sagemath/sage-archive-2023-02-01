@@ -290,6 +290,7 @@ cdef class PartitionStack:
                     self._percolate(k, j-1)
                     k = j
                 self.levels[j-1] = -1
+                self.k = 0
             elif isinstance(data, PartitionStack):
                 _data = data
                 j = 0
@@ -305,9 +306,9 @@ cdef class PartitionStack:
                 for k from 0 <= k < n:
                     self.entries[k] = _data.entries[k]
                     self.levels[k] = _data.levels[k]
+                self.k = _data.k
             else:
                 raise ValueError("Input must be an int, a list of lists, or a PartitionStack.")
-            self.k = _data.k
 
     def __dealloc__(self):
         sage_free(self.entries)

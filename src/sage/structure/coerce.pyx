@@ -244,6 +244,13 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
             yp = parent_c(y)
             if xp is yp:
                 return op(x,y)
+            ## TODO: The following code, if uncommented, woudl fix trac #2079
+            ## However, it might be possible to do something much better
+            ## by rewriting the action file better.
+##             if op is idiv:
+##                 op = imul
+##                 y = ~y
+##                 yp = parent_c(y)
             action = self.get_action_c(xp, yp, op)
             if action is not None:
                 return (<Action>action)._call_c(x, y)
@@ -890,6 +897,28 @@ cdef class RightModuleAction(Action):
         if self.extended_base is not None:
             return self.extended_base
         return self.S
+
+    def connecting_map(self):
+        """
+        Return the connecting map.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]; a = 2*x^2+2
+            sage: import sage.structure.element as e
+            sage: cm = e.get_coercion_model()
+            sage: act = cm.get_action(parent(a), parent(2), operator.idiv)
+            sage: f = ~act
+            sage: type(f)
+            <type 'sage.structure.coerce.RightModuleAction'>
+            sage: h = f.connecting_map()
+            sage: h
+            Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+            sage: type(h)
+            <type 'sage.rings.rational.Z_to_Q'>
+        """
+        return self.connecting
 
 
 

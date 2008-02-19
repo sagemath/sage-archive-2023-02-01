@@ -1,4 +1,4 @@
-"""
+r"""
 Group, ring, etc. actions on objects.
 
 The terminology and notation used is suggestive of groups
@@ -126,7 +126,20 @@ cdef class Action(Functor):
 
 cdef class InverseAction(Action):
     """
-    An action whose acts as the inverse of the given action.
+    An action that acts as the inverse of the given action.
+
+    TESTS:
+    This illustrates a shortcoming in the current coercion model.
+    See the comments in _call_c below.
+
+        sage: from sage.all import *
+        sage: x = polygen(QQ,'x')
+        sage: a = 2*x^2+2; a
+        2*x^2 + 2
+        sage: a /= 2
+        Traceback (most recent call last):
+        ...
+        TypeError: no coercion of this rational to integer
     """
     def __init__(self, Action action):
         G = action.G
@@ -152,11 +165,23 @@ cdef class InverseAction(Action):
         if self._action._is_left:
             if self.S_precomposition is not None:
                 b = self.S_precomposition(b)
-            return self._action._call_c(~a, b)
+            # See comment below.
+            #return self._action._call_c(~a, b)
+            return self._action(~a, b)
         else:
             if self.S_precomposition is not None:
                 a = self.S_precomposition(a)
-            return self._action._call_c(a, ~b)
+            #
+            # The tilde below completely SCREWS UP the assumption
+            # that is made in _call_c that the two inputs
+            # are in the appropriate domains.  Because of this
+            # assumption, *extremely subtle* basic arithmetic
+            # bugs can be introduced all of over Sage.
+            # Thus I'm removing the direct faster call to _call_c
+            # until the real issues leading to this are resolved.  -- William
+            #
+            #return self._action._call_c(a, ~b)
+            return self._action(a, ~b)
 
     def __invert__(self):
         return self._action

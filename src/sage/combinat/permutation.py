@@ -3887,7 +3887,7 @@ def Permutations(n=None,k=None, **kwargs):
         Standard permutations of 5 avoiding [[3, 4, 1, 2], [4, 2, 3, 1]]
         sage: p.count()
         88
-        sage: p.random()
+        sage: p.random() # random output
         [1, 4, 2, 5, 3]
 
     """

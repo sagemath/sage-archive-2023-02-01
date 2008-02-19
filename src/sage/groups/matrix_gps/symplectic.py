@@ -11,7 +11,7 @@ EXAMPLES:
     'Sp(4, 7)'
     sage: G
     Symplectic Group of rank 2 over Finite Field of size 7
-    sage: G.random()
+    sage: G.random() # random output
     [5 5 5 1]
     [0 2 6 3]
     [5 0 1 0]

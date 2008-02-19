@@ -21,7 +21,7 @@ import bz2
 from   sage.structure.sage_object import SageObject, load
 from   sage.misc.misc       import (alarm, cancel_alarm,
                                     tmp_dir, pad_zeros)
-
+from   sage.misc.package   import is_package_installed
 # Sage Notebook
 import css          # style
 import js           # javascript
@@ -36,6 +36,11 @@ import user         # users
 SYSTEMS = ['sage', 'axiom', 'gap', 'gp', 'jsmath', 'kash', 'latex', 'lisp', 'macaulay2', 'magma', 'maple', 'mathematica', 'matlab', 'maxima', 'mupad', 'mwrank', 'octave', 'python', 'sage', 'sh', 'singular']
 
 JSMATH = True
+
+if is_package_installed("jsmath-image-fonts"):
+    JSMATH_IMAGE_FONTS = True
+else:
+    JSMATH_IMAGE_FONTS = False
 
 vbar = '<span class="vbar"></span>'
 
@@ -1427,7 +1432,8 @@ class Notebook(SageObject):
 
         if JSMATH:
             head += '<script type="text/javascript">jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
-            head +=' <script type="text/javascript" src="/javascript/jsmath/plugins/noImageFonts.js"></script>\n'
+            if not JSMATH_IMAGE_FONTS:
+                head +=' <script type="text/javascript" src="/javascript/jsmath/plugins/noImageFonts.js"></script>\n'
             head += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
             head += "<script type='text/javascript'>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
 

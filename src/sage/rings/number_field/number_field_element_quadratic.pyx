@@ -55,6 +55,7 @@ def __make_NumberFieldElement_quadratic0(parent, a, b, denom):
 
 
 cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
+
     def __init__(self, parent, f):
         """
         Construct a NumberFieldElement_quadratic object as an efficiently
@@ -154,6 +155,17 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             else:
                 mpz_set_ui(self.denom, 1)
 
+    cdef _new(self):
+        """
+        Quickly creates a new initialized NumberFieldElement with the
+        same parent as self.
+        """
+        cdef NumberFieldElement_quadratic x
+        x = <NumberFieldElement_quadratic>PY_NEW_SAME_TYPE(self)
+        x._parent = self._parent
+        x.D = self.D
+        return x
+
     cdef number_field(self):
         return self._parent
 
@@ -178,7 +190,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_set(x.a, self.a)
         mpz_set(x.b, self.b)
         mpz_set(x.denom, self.denom)
-        x.D = self.D
         return x
 
 
@@ -318,7 +329,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
         cdef mpz_t gcd, tmp
-        res.D = self.D
         if mpz_cmp(self.denom, other.denom) == 0:
             mpz_add(res.a, self.a, other.a)
             mpz_add(res.b, self.b, other.b)
@@ -365,7 +375,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
         cdef mpz_t gcd, tmp
-        res.D = self.D
         if mpz_cmp(self.denom, other.denom) == 0:
             mpz_sub(res.a, self.a, other.a)
             mpz_sub(res.b, self.b, other.b)
@@ -407,7 +416,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             -1/2*a + 3/2
         """
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         mpz_neg(res.a, self.a)
         mpz_neg(res.b, self.b)
         mpz_set(res.denom, self.denom)
@@ -438,7 +446,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         cdef mpz_t tmp
 
         if mpz_size(self.a) + mpz_size(self.b) < 8: # could I use a macro instead?
@@ -481,7 +488,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         cdef Rational c =  <Rational>_c
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         mpz_mul(res.a, self.a, mpq_numref(c.value))
         mpz_mul(res.b, self.b, mpq_numref(c.value))
         mpz_mul(res.denom, self.denom, mpq_denref(c.value))
@@ -498,7 +504,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         cdef Rational c =  <Rational>_c
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         mpz_mul(res.a, self.a, mpq_numref(c.value))
         mpz_mul(res.b, self.b, mpq_numref(c.value))
         mpz_mul(res.denom, self.denom, mpq_denref(c.value))
@@ -542,7 +547,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             1
         """
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         cdef mpz_t tmp, gcd
         mpz_init(tmp)
         mpz_init(gcd)
@@ -576,7 +580,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     cdef NumberFieldElement conjugate_c(self):
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         mpz_set(res.a, self.a)
         mpz_neg(res.b, self.b)
         mpz_set(res.denom, self.denom)
@@ -904,7 +907,6 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         """
         cdef Integer c = <Integer>_c
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         mpz_mul(res.a, self.a, c.value)
         mpz_mul(res.b, self.b, c.value)
         mpz_set(res.denom, self.denom)
@@ -924,7 +926,6 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         """
         cdef Integer c = <Integer>_c
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         mpz_mul(res.a, self.a, c.value)
         mpz_mul(res.b, self.b, c.value)
         mpz_set(res.denom, self.denom)

@@ -604,7 +604,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
         EXAMPLE:
             sage: sr = mq.SR(2,2,2,4)
-            sage: sr.random_state_array()
+            sage: sr.random_state_array() # random output
             [a^3 + a + 1           0]
             [          a         a^2]
         """
@@ -617,7 +617,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
         EXAMPLE:
             sage: sr = mq.SR(2,2,2,4)
-            sage: sr.random_vector()
+            sage: sr.random_vector() # random output
             [a^3 + a^2 + a + 1]
             [          a^3 + a]
             [              a^3]
@@ -648,12 +648,12 @@ class SR_generic(MPolynomialSystemGenerator):
 
         EXAMPLE:
             sage: sr = mq.SR()
-            sage: sr.random_element()
+            sage: sr.random_element() # random output
             [      a]
             [    a^2]
             [  a + 1]
             [a^2 + 1]
-            sage: sr.random_element('state_array')
+            sage: sr.random_element('state_array') # random output
             [a^3 + a + 1]
         """
         if type == "vector":

@@ -52,7 +52,7 @@ def LyndonWords(e, k=None):
         [1, 1, 2]
         sage: LW.last()
         [2, 3, 3]
-        sage: LW.random() #
+        sage: LW.random() # random output
         [1, 1, 2]
         sage: LW.count()
         8

@@ -452,25 +452,26 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         EXAMPLES:
         The default distribution is on average 50% $\pm 1$:
-            sage: [ZZ.random_element() for _ in range(10)]
+            sage: [ZZ.random_element() for _ in range(10)] # random output
             [-1, -4, 1, -1, -1, 3, 8, 100, -2, -4]
 
         The default uniform distribution is integers between -2 and 2 inclusive:
-            sage: [ZZ.random_element(distribution="uniform") for _ in range(10)]
+            sage: [ZZ.random_element(distribution="uniform") \
+                    for _ in range(10)]   # random output
             [-2, -2, 1, 1, 0, 1, 2, -2, 1, -2]
 
         If a range is given, the distribution is uniform in that range:
-            sage: ZZ.random_element(-10,10)
+            sage: ZZ.random_element(-10,10) # random output
             -6
-            sage: ZZ.random_element(10)
+            sage: ZZ.random_element(10) # random output
             6
-            sage: ZZ.random_element(10^50)
+            sage: ZZ.random_element(10^50) # random output
             46451269108731711203254579547654565878787536081836
-            sage: [ZZ.random_element(5) for _ in range(10)]
+            sage: [ZZ.random_element(5) for _ in range(10)] # random output
             [3, 3, 2, 1, 0, 4, 2, 1, 1, 0]
 
         Notice that the right endpoint is not included:
-            sage: [ZZ.random_element(-2,2) for _ in range(10)]
+            sage: [ZZ.random_element(-2,2) for _ in range(10)] # random output
             [1, 0, -1, 1, 0, -2, 0, -1, 1, 0]
 
         """

@@ -546,32 +546,32 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         EXAMPLES:
             sage: P.<x,y,z> = PolynomialRing(QQ)
-            sage: P.random_element(2, 5)
+            sage: P.random_element(2, 5) # random output
             1/2*y^2 + x*z - x + 2*y + 19/2*z
 
-            sage: P.random_element(2, 5, choose_degree=True)
+            sage: P.random_element(2, 5, choose_degree=True) # random output
             28*x*z + y*z - z^2 - 1/2*x - 44/39
-            sage: P.random_element(0, 1)
+            sage: P.random_element(0, 1) # random output
             1
 
-            sage: P.random_element(2, 0)
+            sage: P.random_element(2, 0) # random output
             0
 
             stacked rings:
 
             sage: R = QQ['x,y']
             sage: S = R['t,u']
-            sage: S.random_element(degree=2, terms=1)
+            sage: S.random_element(degree=2, terms=1) # random output
             (3*x^2 - x*y - 17*y^2 + y - 2/3)*u
 
             default values apply if no degree and/or number of terms
             is provided:
 
-            sage: random_matrix(QQ['x,y,z'], 2, 2)
+            sage: random_matrix(QQ['x,y,z'], 2, 2) # random output
             [   4*x^2 + 4*x*y + 1/10*y*z + 1/2*z^2 - 15 4/3*x^2 + 5/2*x*z + 134/3*y*z + 20*z^2 - y]
             [      -1/2*x^2 - 1/6*x*y - 2*z^2 - 2*z - 1          -x*y - x*z - y*z + 1/15*z^2 - 5*z]
 
-            sage: random_matrix(QQ['x,y,z'], 2, 2, terms=1, degree=1)
+            sage: random_matrix(QQ['x,y,z'], 2, 2, terms=1, degree=1) # random
             [-1/2*z   -7/5]
             [    -y 1/11*z]
 

@@ -1675,7 +1675,7 @@ class NumberField_generic(number_field_base.NumberField):
 
     def absolute_degree(self):
         """
-        Return the degree of self over $\mathbb{Q}$.
+        Return the degree of self over $\QQ$.
 
         EXAMPLES:
             sage: NumberField(x^3 + x^2 + 997*x + 1, 'a').absolute_degree()
@@ -2051,13 +2051,15 @@ class NumberField_generic(number_field_base.NumberField):
         self.__integral_basis[v] = basis
         return basis
 
-    def reduced_basis(self):
+    def reduced_basis(self, prec=None):
         r"""
-        This function returns an LLL-reduced basis for the Minkowski-embedding
-        of the maximal order of a number field.
+        This function returns an LLL-reduced basis for the
+        Minkowski-embedding of the maximal order of a number field.
 
         INPUT:
             self -- number field, the base field
+            prec (default: None) -- the precision with which
+              to compute the Minkowski embedding. (See NOTE below.)
 
         OUTPUT:
             An LLL-reduced basis for the Minkowski-embedding of the
@@ -2065,9 +2067,11 @@ class NumberField_generic(number_field_base.NumberField):
             (integral) elements from the field.
 
         NOTE: In the non-totally-real case, the LLL routine we call is
-        currently Pari's qflll(), which works with floating point
-        approximations, and so the result is only as good as the
-        precision promised by Pari.
+            currently Pari's qflll(), which works with floating point
+            approximations, and so the result is only as good as the
+            precision promised by Pari. The matrix returned will
+            always be integral; however, it may only be only "almost"
+            LLL-reduced when the precision is not sufficiently high.
 
         EXAMPLES:
             sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1)
@@ -2084,18 +2088,27 @@ class NumberField_generic(number_field_base.NumberField):
             sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
             sage: F.integral_basis()
             [1, alpha, alpha^2, 1/2*alpha^3 + 1/2*alpha^2]
-            sage: F.reduced_basis()
-            [1, alpha, alpha^2 - 15*alpha + 1, alpha^3 - 16*alpha^2 + 469*alpha + 267109]
+            sage: F.reduced_basis(prec=10)
+            [1, alpha, alpha^2 - 16*alpha, alpha^3 - 15*alpha^2 + 440*alpha + 267857]
+            sage: F.reduced_basis(prec=300)
+            [1, alpha, alpha^2 - 15*alpha, alpha^3 - 16*alpha^2 + 469*alpha + 267109]
         """
-        try:
-            return self.__reduced_basis
-        except AttributeError:
-            pass
+        if self.is_totally_real():
+            try:
+                return self.__reduced_basis
+            except AttributeError:
+                pass
+        else:
+            try:
+                if self.__reduced_basis_precision >= prec:
+                    return self.__reduced_basis
+            except AttributeError:
+                pass
+
+        from sage.matrix.constructor import matrix
 
         d = self.degree()
         Z_basis = self.integral_basis()
-
-        from sage.matrix.constructor import matrix
 
         ## If self is totally real, then we can use (x*y).trace() as
         ## the inner product on the Minkowski embedding, which is
@@ -2107,37 +2120,46 @@ class NumberField_generic(number_field_base.NumberField):
                                            for j in range(d)])
                                      for i in range(d)]
         else:
-            M = self.Minkowski_embedding(self.integral_basis())
+            M = self.Minkowski_embedding(self.integral_basis(), prec=prec)
             T = sage.matrix.all.Matrix(d, pari(M).qflll()._sage_())
             self.__reduced_basis = [ self(v) for v in T.columns() ]
+            if prec is None:
+                ## this is the default choice for Minkowski_embedding
+                self.__reduced_basis_prec = 53
+            else:
+                self.__reduced_basis_prec = prec
 
         return self.__reduced_basis
 
 
-    def reduced_gram_matrix(self):
+    def reduced_gram_matrix(self, prec=None):
         r"""
-        This function returns the Gram matrix of an LLL-reduced basis for
-        the Minkowski embedding of the maximal order of a number field.
+        This function returns the Gram matrix of an LLL-reduced basis
+        for the Minkowski embedding of the maximal order of a number
+        field.
 
         INPUT:
             self -- number field, the base field
+            prec (default: None) -- the precision with which to
+              calculate the Minkowski embedding. (See NOTE below.)
 
         OUTPUT:
             The Gram matrix $[<x_i,x_j>]$ of an LLL reduced basis for
             the maximal order of self, where the integral basis for
             self is given by $\{x_0, \dots, x_{n-1}\}$. Here < , > is
-            the usual inner product on $\mathbb{R}^n$, and self is
-            embedded in $\mathbb{R}^n$ by the Minkowski embedding. See
+            the usual inner product on $\RR^n$, and self is
+            embedded in $\RR^n$ by the Minkowski embedding. See
             the docstring for self.Minkowski_embedding for more
             information.
 
         NOTE: In the non-totally-real case, the LLL routine we call is
-        currently Pari's qflll(), which works with floating point
-        approximations, and so the result is only as good as the
-        precision promised by Pari.  In particular, in this case, the
-        returned matrix will *not* be integral, and may not have
-        enough precision to recover the correct gram matrix (which is
-        known to be integral for theoretical reasons).
+            currently Pari's qflll(), which works with floating point
+            approximations, and so the result is only as good as the
+            precision promised by Pari.  In particular, in this case,
+            the returned matrix will *not* be integral, and may not
+            have enough precision to recover the correct gram matrix
+            (which is known to be integral for theoretical reasons).
+            Thus the need for the prec flag above.
 
         EXAMPLES:
             sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1)
@@ -2166,10 +2188,17 @@ class NumberField_generic(number_field_base.NumberField):
             [-1.06846799999532e6 -1.12285582008158e7  8.06191790906345e9 5.87118790062408e12]
 
         """
-        try:
-            return self.__reduced_gram_matrix
-        except AttributeError:
-            pass
+        if self.is_totally_real():
+            try:
+                return self.__reduced_gram_matrix
+            except AttributeError:
+                pass
+        else:
+            try:
+                if self.__reduced_gram_matrix_prec >= prec:
+                    return self.__reduced_gram_matrix
+            except AttributeError:
+                pass
 
         from sage.matrix.constructor import matrix
         from sage.misc.flatten import flatten
@@ -2186,6 +2215,11 @@ class NumberField_generic(number_field_base.NumberField):
                                     for a in self.reduced_basis() ]))
             A = M*(T.transpose())
             self.__reduced_gram_matrix = A.transpose()*A
+            if prec is None:
+                ## this is the default choice for Minkowski_embedding
+                self.__reduced_gram_matrix_prec = 53
+            else:
+                self.__reduced_gram_matrix_prec = prec
 
         return self.__reduced_gram_matrix
 
@@ -3155,15 +3189,15 @@ class NumberField_absolute(NumberField_generic):
         r"""
         Return an nxn matrix over RDF whose columns are the images of
         the basis $\{1, \alpha, \dots, \alpha^{n-1}\}$ of self over
-        $\mathbb{Q}$ (as vector spaces), where here $\alpha$ is the
-        generator of self over $\mathbb{Q}$, i.e.  self.gen(0).  If B
+        $\QQ$ (as vector spaces), where here $\alpha$ is the
+        generator of self over $\QQ$, i.e.  self.gen(0).  If B
         is not None, return the images of the vectors in B as the
         columns instead. If prec is not None, use RealField(prec)
         instead of RDF.
 
         This embedding is the so-called "Minkowski embedding" of a
-        number field in $\mathbb{R}^n$: given the $n$ embeddings
-        $\sigma_1, \dots, \sigma_n$ of self in $\mathbb{C}$, write
+        number field in $\RR^n$: given the $n$ embeddings
+        $\sigma_1, \dots, \sigma_n$ of self in $\CC$, write
         $\sigma_1, \dots, \sigma_r$ for the real embeddings, and
         $\sigma_{r+1}, \dots, \sigma_{r+s}$ for choices of one of each
         pair of complex conjugate embeddings (in our case, we simply
@@ -3178,8 +3212,8 @@ class NumberField_absolute(NumberField_generic):
                    $\sqrt{2}\Re(\sigma_{r+s}(x))$,
                    $\sqrt{2}\Im(\sigma_{r+s}(x))$)
 
-        Equivalently, this is an embedding of self in $\mathbb{R}^n$
-        so that the usual norm on $\mathbb{R}^n$ coincides with
+        Equivalently, this is an embedding of self in $\RR^n$
+        so that the usual norm on $\RR^n$ coincides with
           $\|x\| = \sum_i |\sigma_i(x)|^2$
         on self.
 

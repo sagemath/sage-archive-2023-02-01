@@ -70,7 +70,7 @@ a Graphics object, which consists of a single polygon):
     sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
     sage: Q   # show it
 
-We combine together different graphics objects using ``$+$'':
+We combine together different graphics objects using ``+'':
 
     sage: H = G + P + Q
     sage: print H

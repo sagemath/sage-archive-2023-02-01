@@ -1483,7 +1483,7 @@ cdef class FiniteField(Field):
 
         EXAMPLES:
             sage: k = GF(2^10, 'a')
-            sage: k.random_element()
+            sage: k.random_element() # random output
             a^9 + a
         """
         if self.degree() == 1:

@@ -194,7 +194,9 @@ class MPolynomial_element(MPolynomial):
         Left Scalar Multiplication
 
         EXAMPLES:
-            # Note that it is not really possible to do a meaningful example since sage mpoly rings refuse to have non-commutative bases.
+            Note that it is not really possible to do a meaningful
+            example since sage mpoly rings refuse to have
+            non-commutative bases.
             sage: x,y = ZZ['x,y'].gens()
             sage: f = (x + y)
             sage: 3*f
@@ -207,7 +209,9 @@ class MPolynomial_element(MPolynomial):
         Right Scalar Multiplication
 
         EXAMPLES:
-            # Note that it is not really possible to do a meaningful example since sage mpoly rings refuse to have non-commutative bases.
+            Note that it is not really possible to do a meaningful
+            example since sage mpoly rings refuse to have
+            non-commutative bases.
             sage: x,y = ZZ['x,y'].gens()
             sage: f = (x + y)
             sage: f*3

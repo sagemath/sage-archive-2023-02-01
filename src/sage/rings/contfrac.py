@@ -292,7 +292,7 @@ class ContinuedFractionField_class(Field):
     def random_element(self, num_bound=2, den_bound=2):
         """
         EXAMPLES:
-           sage: CFF.random_element(10,10)
+           sage: CFF.random_element(10,10) # random output
            [0, 1, 1, 4]
         """
         return self(QQ.random_element(num_bound = num_bound, den_bound = den_bound))

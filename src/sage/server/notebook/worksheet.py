@@ -38,6 +38,7 @@ import pexpect
 from sage.structure.sage_object  import load, save
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
+import sage.misc.interpreter
 from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE, walltime
 import sage.server.support as support
 
@@ -1209,12 +1210,13 @@ class Worksheet:
                 if S is None: S = 'sage'
                 C.set_output_text('Exited %s process'%S,'')
                 return
-            if I.startswith('%time'):
-                C.do_time()
-                I = after_first_word(I).lstrip()
-            elif first_word(I) == 'time':
-                C.do_time()
-                I = after_first_word(I).lstrip()
+            if not I.startswith('%timeit'):
+                if I.startswith('%time'):
+                    C.do_time()
+                    I = after_first_word(I).lstrip()
+                elif first_word(I) == 'time':
+                    C.do_time()
+                    I = after_first_word(I).lstrip()
         else:
             I = C.introspect()[0]
 
@@ -1781,8 +1783,9 @@ class Worksheet:
         return t
 
     def preparse(self, s):
-        s = preparse_file(s, magic=False, do_time=True,
-                          ignore_prompts=False)
+        if sage.misc.interpreter.do_preparse:
+            s = preparse_file(s, magic=False, do_time=True,
+                              ignore_prompts=False)
         return s
 
     ##########################################################

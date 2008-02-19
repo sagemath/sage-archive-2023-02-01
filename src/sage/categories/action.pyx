@@ -146,16 +146,9 @@ cdef class InverseAction(Action):
         try:
             from sage.groups.group import Group
             if (PY_TYPE_CHECK(G, Group) and G.is_multiplicative()) or G.is_field():
+                # i.e. parent(~a) == parent(a)
                 Action.__init__(self, G, action.S, action._is_left)
                 self._action = action
-                return
-            elif G.is_ring() and action.S.base_ring() is not action.S:
-                G = G.fraction_field()
-                S = action.S.base_extend(G)
-                Action.__init__(self, G, S, action._is_left)
-                self._action = action
-                if S is not action.S:
-                    self.S_precomposition = S.coerce_map_from(action.S)
                 return
         except (AttributeError, NotImplementedError):
             pass
@@ -201,9 +194,9 @@ cdef class PrecomposedAction(Action):
               right_precomposition = homset.Hom(right_precomposition._codomain, right).natural_map() * right_precomposition
             right = right_precomposition._domain
         if action._is_left:
-            Action.__init__(left, action.S, 1)
+            Action.__init__(self, left, action.S, 1)
         else:
-            Action.__init__(right, action.S, 0)
+            Action.__init__(self, right, action.S, 0)
         self._action = action
         self.left_precomposition = left_precomposition
         self.right_precomposition = right_precomposition

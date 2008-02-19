@@ -24,7 +24,7 @@ import time
 
 from sage_object cimport SageObject
 import sage.categories.morphism
-from sage.categories.action import InverseAction
+from sage.categories.action import InverseAction, PrecomposedAction
 
 from element import py_scalar_to_element
 
@@ -438,32 +438,24 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                     K = S.fraction_field()
                 except TypeError:
                     K = None
-            else:
+            elif PY_TYPE_CHECK(S, Parent):
                 K = S
+            else:
+                K = py_scalar_parent(S)
 
             if K is not None:
-                if PY_TYPE_CHECK(S, Parent) and (<Parent>S).get_action_c(R, mul, False) is not None:
-                    action = (<Parent>K).get_action_c(R, mul, False)
-                    if action is not None and action.actor() is K:
-                        try:
-                            return ~action
-                        except TypeError:
-                            pass
-
-                if PY_TYPE_CHECK(R, Parent) and (<Parent>R).get_action_c(S, mul, True) is not None:
-                    action = (<Parent>R).get_action_c(K, mul, True)
-                    if action is not None and action.actor() is K:
-                        try:
-                            return ~action
-                        except TypeError:
-                            pass
-
+                action = self.get_action_c(R, K, mul)
+                if action is not None and action.actor() is K:
+                    action = ~action
+                    if K is not S:
+                        action = PrecomposedAction(action, None, K.coerce_map_from(S))
+                    return action
 
         if PY_TYPE(R) == <void *>type:
             sageR = py_scalar_parent(R)
             if sageR is not None:
                 action = self.discover_action_c(sageR, S, op)
-                if action:
+                if action is not None:
                     if not PY_TYPE_CHECK(action, IntegerMulAction):
                         action = PyScalarAction(action)
                     return action
@@ -472,7 +464,7 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             sageS = py_scalar_parent(S)
             if sageS is not None:
                 action = self.discover_action_c(R, sageS, op)
-                if action:
+                if action is not None:
                     if not PY_TYPE_CHECK(action, IntegerMulAction):
                         action = PyScalarAction(action)
                     return action

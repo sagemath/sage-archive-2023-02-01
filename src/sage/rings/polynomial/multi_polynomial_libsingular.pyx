@@ -45,6 +45,8 @@ from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.polydict import ETuple
+from sage.rings.polynomial.pbori import BooleanPolynomial
+
 
 # base ring imports
 from sage.rings.rational_field import RationalField
@@ -288,6 +290,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         rComplete(self._ring, 1)
         self._ring.ShortOut = 0
 
+        rChangeCurrRing(self._ring)
+        self._one_element = <MPolynomial_libsingular>co.new_MP(self,p_ISet(1, self._ring))
         self._zero_element = <MPolynomial_libsingular>co.new_MP(self,NULL)
 
     def __dealloc__(self):
@@ -458,12 +462,17 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             x
 
         Coercion from PARI objects:
-            sage: from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
-            sage: P.<x,y,z> = MPolynomialRing_libsingular(QQ,3)
+            sage: P.<x,y,z> = MPolynomialRing(QQ,3)
             sage: P(pari('x^2 + y'))
             x^2 + y
             sage: P(pari('x*y'))
             x*y
+
+        Coercion from boolean polynomials:
+            sage: B.<x,y,z> = BooleanPolynomialRing(3)
+            sage: P.<x,y,z> = MPolynomialRing(QQ,3)
+            sage: P(B.gen(0))
+            x
 
         If everything else fails, we try to coerce to the base ring:
             sage: R.<x,y,z> = GF(3)[]
@@ -509,7 +518,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             d = self.gens_dict()
             if PY_TYPE_CHECK(self._base, FiniteField_givaro):
                 d[str(self._base.gen())]=self._base.gen()
-            element = sage_eval(element,d)
+            if '/' in element:
+                element = sage_eval(element,d)
+            else:
+                element = element.replace("^","**")
+                element = eval(element, d, {})
 
             # we need to do this, to make sure that we actually get an
             # element in self.
@@ -561,6 +574,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
                 return co.new_MP(self, _p)
+
+        if PY_TYPE_CHECK(element, BooleanPolynomial) and \
+               element.parent().ngens() == _ring.N and \
+               element.parent().variable_names() == self.variable_names():
+            if element.constant():
+                if element:
+                    return self._one_element
+                else:
+                    return self._zero_element
+            return eval(str(element),self.gens_dict())
 
         if PY_TYPE_CHECK(element, dict):
             _p = p_ISet(0, _ring)
@@ -1087,9 +1110,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             p_SetCoeff(res, n_Init(1, r), r)
         return co.new_MP(self, res)
 
-    def monomial_is_divisible_by(self, MPolynomial_libsingular a, MPolynomial_libsingular b):
+    def monomial_divides(self, MPolynomial_libsingular a, MPolynomial_libsingular b):
         """
-        Return False if b does not divide a and True otherwise.
+        Return False if a does not divide b and True otherwise.
 
         INPUT:
             a -- monomial
@@ -1097,16 +1120,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         EXAMPLES:
             sage: P.<x,y,z> = QQ[]
-            sage: P.monomial_is_divisible_by(x^3*y^2*z^4, x*y*z)
+            sage: P.monomial_divides(x*y*z, x^3*y^2*z^4)
             True
-            sage: P.monomial_is_divisible_by(x*y*z, x^3*y^2*z^4)
+            sage: P.monomial_divides(x^3*y^2*z^4, x*y*z)
             False
 
         TESTS:
             sage: P.<x,y,z> = QQ[]
-            sage: P.monomial_is_divisible_by(P(0),P(1))
+            sage: P.monomial_divides(P(1), P(0))
             True
-            sage: P.monomial_is_divisible_by(x,P(1))
+            sage: P.monomial_divides(P(1), x)
             True
 
         """
@@ -1120,12 +1143,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         _b = b._poly
         _r = (<MPolynomialRing_libsingular>a._parent)._ring
 
-        if _b == NULL:
-            raise ZeroDivisionError
         if _a == NULL:
+            raise ZeroDivisionError
+        if _b == NULL:
             return True
 
-        if not p_DivisibleBy(_b, _a, _r):
+        if not p_DivisibleBy(_a, _b, _r):
             return False
         else:
             return True
@@ -1320,6 +1343,13 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         return M
 
 
+cdef inline int polyLengthBounded(poly *p, int bound):
+    cdef poly *n = p
+    cdef int count = 0
+    while n and count < bound:
+        n = pNext(n)
+        count += 1
+    return count
 
 def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
     """
@@ -1811,7 +1841,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             raise TypeError,  "exponent is too large, max. is 65535"
 
         if(_ring != currRing): rChangeCurrRing(_ring)
+        cdef int count = polyLengthBounded(self._poly,15)
+        if count >= 15 or _exp > 15:
+            _sig_on
         _p = pPower( p_Copy(self._poly,_ring),_exp)
+        if count >= 15 or _exp > 15:
+            _sig_off
         return co.new_MP((<MPolynomialRing_libsingular>self._parent),_p)
 
     def __neg__(self):
@@ -2932,6 +2967,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         cdef poly *p, *v
         cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
+        if(r != currRing): rChangeCurrRing(r)
         cdef int i
         l = list()
         si = set()
@@ -3099,7 +3135,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if right.is_zero():
             raise ZeroDivisionError
 
+        cdef int count = polyLengthBounded(_self._poly,15)
+        if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
+            _sig_on
         quo = singclap_pdivide( _self._poly, _right._poly )
+        if count >= 15:
+            _sig_off
         return co.new_MP(parent, quo)
 
     def factor(self):
@@ -3158,9 +3199,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         # I make a temporary copy of the poly in self because singclap_factorize appears to modify it's parameter
         ptemp = p_Copy(self._poly,_ring)
         iv = NULL
-        _sig_on
+        cdef int count = polyLengthBounded(self._poly,5)
+        if count >= 5:
+            _sig_on
         I = singclap_factorize ( ptemp, &iv , 0) #delete iv at some point
-        _sig_off
+        if count >= 5:
+            _sig_off
 
         ivv = iv.ivGetVec()
         v = [(co.new_MP(parent, p_Copy(I.m[i],_ring)) , ivv[i])   for i in range(1,I.ncols)]
@@ -3336,7 +3380,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         else:
             _right = (<MPolynomial_libsingular>right)
 
+        cdef int count = polyLengthBounded(self._poly,20)+polyLengthBounded(_right._poly,20)
+        if count >= 20:
+            _sig_on
         _res = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_right._poly, _ring))
+        if count >= 20:
+            _sig_off
 
         return co.new_MP((<MPolynomialRing_libsingular>self._parent), _res)
 
@@ -3361,16 +3410,24 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
         cdef poly *ret, *prod, *gcd
+        cdef MPolynomial_libsingular _g
         if(_ring != currRing): rChangeCurrRing(_ring)
 
         if self._parent is not g._parent:
-            g = (<MPolynomialRing_libsingular>self._parent)._coerce_c(g)
+            _g = (<MPolynomialRing_libsingular>self._parent)._coerce_c(g)
+        else:
+            _g = <MPolynomial_libsingular>g
 
-        gcd = singclap_gcd(p_Copy(self._poly, _ring), p_Copy((<MPolynomial_libsingular>g)._poly, _ring))
-        prod = pp_Mult_qq(self._poly, (<MPolynomial_libsingular>g)._poly, _ring)
+        cdef int count = polyLengthBounded(self._poly,20)+polyLengthBounded(_g._poly,20)
+        if count >= 20:
+            _sig_on
+        gcd = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_g._poly, _ring))
+        prod = pp_Mult_qq(self._poly, _g._poly, _ring)
         ret = singclap_pdivide(prod , gcd )
         p_Delete(&prod, _ring)
         p_Delete(&gcd, _ring)
+        if count >= 20:
+            _sig_off
         return co.new_MP(self._parent, ret)
 
     def is_squarefree(self):
@@ -3414,8 +3471,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if right.is_zero():
             raise ZeroDivisionError
 
+        cdef int count = polyLengthBounded(self._poly,15)
+        if count >= 15:  # note that _right._poly must be of shorter length than self._poly for us to care about this call
+            _sig_on
         quo = singclap_pdivide( self._poly, right._poly )
         rem = p_Add_q(p_Copy(self._poly, r), p_Neg(pp_Mult_qq(right._poly, quo, r), r), r)
+        if count >= 15:
+            _sig_off
         return co.new_MP(parent, quo), co.new_MP(parent, rem)
 
     def _magma_(self, magma=None):
@@ -3739,7 +3801,12 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if not variable.parent() is self.parent():
             raise TypeError, "second parameter needs to be an element of self.parent() or None"
 
+        cdef int count = polyLengthBounded(self._poly,20)+polyLengthBounded(other._poly,20)
+        if count >= 20:
+            _sig_on
         rt =  singclap_resultant(self._poly, other._poly, (<MPolynomial_libsingular>variable)._poly )
+        if count >= 20:
+            _sig_off
         return co.new_MP(self._parent, rt)
 
     def coefficients(self):

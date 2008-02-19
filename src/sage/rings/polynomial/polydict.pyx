@@ -463,9 +463,9 @@ cdef class PolyDict:
         D = self.__repn.copy() #faster!
         R = other.__repn
         for e,c in R.iteritems():
-            if D.has_key(e):
-                D[e] = D[e] + c
-            else:
+            try:
+                D[e] += c
+            except KeyError:
                 D[e] = c
         F = PolyDict(D, zero=zero, remove_zero=True, force_int_exponents=False,  force_etuples=False)
         return F
@@ -511,10 +511,46 @@ cdef class PolyDict:
         F = PolyDict(newpoly, self.__zero, force_int_exponents=False, remove_zero=True, force_etuples=False)
         return F
 
-    def scalar_mult(PolyDict self, s):
+    def scalar_rmult(PolyDict self, s):
+        """
+        Right Scalar Multiplication
+
+        EXAMPLES:
+            sage: from sage.rings.polynomial.polydict import PolyDict
+            sage: x,y=FreeMonoid(2,'x,y').gens()  # a strange object to live in a polydict, but non-commutative!
+            sage: f = PolyDict({(2,3):x})
+            sage: f.scalar_rmult(y)
+            PolyDict with representation {(2, 3): x*y}
+            sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
+            sage: f.scalar_rmult(-2)
+            PolyDict with representation {(1, 2): -6, (2, 1): -8, (2, 3): -4}
+        """
         v = {}
-        for e, c in self.__repn.iteritems():
-            v[e] = c*s
+        # if s is 0, then all the products will be zero
+        if s != self.__zero:
+            for e, c in self.__repn.iteritems():
+                v[e] = c*s
+        return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
+
+    def scalar_lmult(PolyDict self, s):
+        """
+        Left Scalar Multiplication
+
+        EXAMPLES:
+            sage: from sage.rings.polynomial.polydict import PolyDict
+            sage: x,y=FreeMonoid(2,'x,y').gens()  # a strange object to live in a polydict, but non-commutative!
+            sage: f = PolyDict({(2,3):x})
+            sage: f.scalar_lmult(y)
+            PolyDict with representation {(2, 3): y*x}
+            sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
+            sage: f.scalar_lmult(-2)
+            PolyDict with representation {(1, 2): -6, (2, 1): -8, (2, 3): -4}
+        """
+        v = {}
+        # if s is 0, then all the products will be zero
+        if s != self.__zero:
+            for e, c in self.__repn.iteritems():
+                v[e] = s*c
         return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
 
     def __sub__(PolyDict self,PolyDict  other):
@@ -532,7 +568,7 @@ cdef class PolyDict:
         """
 
         # TOOD: should refactor add, make abstract operator, so can do both +/-; or copy code.
-        return self + other.scalar_mult(-1)
+        return self + other.scalar_lmult(-1)
 
     def __one(PolyDict self):
         one = self.__zero + 1

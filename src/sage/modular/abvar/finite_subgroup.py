@@ -207,6 +207,19 @@ class FiniteSubgroup(Module):
 
 
     def _full_module(self):
+        """
+        Return the ZZ-module that corresponds to this finite subgroup.
+        This is a ZZ-module that contains the integral homology of the
+        ambient variety with finite index.
+
+        EXAMPLES:
+            sage: C = J0(11).cuspidal_subgroup()
+            sage: C._full_module()
+            Free module of degree 2 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [  1   0]
+            [  0 1/5]
+        """
         try:
             return self.__full_module
         except AttributeError:

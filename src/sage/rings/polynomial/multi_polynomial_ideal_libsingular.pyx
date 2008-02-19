@@ -24,7 +24,7 @@ Two examples from the Mathematica documentation (done in SAGE):
     We compute a Groebner basis:
         sage: R.<x,y> = PolynomialRing(QQ, order='lex')
         sage: ideal(x^2 - 2*y^2, x*y - 3).groebner_basis('libsingular:slimgb')
-        [2*y^4 - 9, 3*x - 2*y^3]
+        [y^4 - 9/2, x - 2/3*y^3]
 
     We show that three polynomials have no common root:
         sage: R.<x,y> = QQ[]

@@ -38,6 +38,7 @@ import pexpect
 from sage.structure.sage_object  import load, save
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
+import sage.misc.interpreter
 from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE, walltime
 import sage.server.support as support
 
@@ -278,8 +279,7 @@ class Worksheet:
         else:
             check=True
         self.__pretty_print = check
-        S=self.sage()
-        S.eval("pretty_print_default(%r)"%(check))
+        self.eval_asap_no_output("pretty_print_default(%r)"%(check))
 
     ##########################################################
     # Publication
@@ -1076,6 +1076,10 @@ class Worksheet:
             self.append_new_cell()
 
     def computing(self):
+        """
+        Return whether or not a cell is currently being run in the
+        worksheet Sage process.
+        """
         try:
             return self.__comp_is_running
         except AttributeError:
@@ -1175,6 +1179,14 @@ class Worksheet:
         self.initialize_sage()
         return self.__sage
 
+    def eval_asap_no_output(self, cmd, username=None):
+        C = self._new_cell(hidden=True)
+        C.set_asap(True)
+        C.set_no_output(True)
+        C.set_input_text(cmd)
+        self.enqueue(C, username=username)
+
+
     def start_next_comp(self):
         if len(self.__queue) == 0:
             return
@@ -1184,6 +1196,7 @@ class Worksheet:
             return
 
         C = self.__queue[0]
+
         if C.interrupted():
             # don't actually compute
             return
@@ -1197,25 +1210,29 @@ class Worksheet:
                 if S is None: S = 'sage'
                 C.set_output_text('Exited %s process'%S,'')
                 return
-            if I.startswith('%time'):
-                C.do_time()
-                I = after_first_word(I).lstrip()
-            elif first_word(I) == 'time':
-                C.do_time()
-                I = after_first_word(I).lstrip()
+            if not I.startswith('%timeit'):
+                if I.startswith('%time'):
+                    C.do_time()
+                    I = after_first_word(I).lstrip()
+                elif first_word(I) == 'time':
+                    C.do_time()
+                    I = after_first_word(I).lstrip()
         else:
             I = C.introspect()[0]
 
         S = self.sage()
 
         id = self.next_block_id()
+        C.code_id = id
 
         # prevent directory disappear problems
         dir = self.directory()
-        if not os.path.exists('%s/code'%dir):
-            os.makedirs('%s/code'%dir)
-        if not os.path.exists('%s/cells'%dir):
-            os.makedirs('%s/cells'%dir)
+        code_dir = '%s/code'%dir
+        if not os.path.exists(code_dir):
+            os.makedirs(code_dir)
+        cell_dir = '%s/cells'%dir
+        if not os.path.exists(cell_dir):
+            os.makedirs(cell_dir)
         tmp = '%s/code/%s.py'%(dir, id)
 
         absD = os.path.abspath(D)
@@ -1310,6 +1327,20 @@ class Worksheet:
         # Finished a computation.
         self.__comp_is_running = False
         del self.__queue[0]
+
+        if C.is_no_output():
+            # Clean up the temp directories associated to C, and do not set any output
+            # text that C might have got.
+            dir = self.directory()
+            code_file = '%s/code/%s.py'%(dir, C.code_id)
+            # NOTE -- this deletes the input file, which in the rare case when
+            # the input defines a function and the user asks for the source of
+            # that function, they wouldn't get it.
+            os.unlink(code_file)
+            cell_dir = '%s/cells/%s'%(dir, C.id())
+            shutil.rmtree(cell_dir)
+            return 'd', C
+
         out = self._process_output(out)
         if C.introspect():
             before_prompt, after_prompt = C.introspect()
@@ -1427,7 +1458,19 @@ class Worksheet:
                 self.__queue.append(c)
 
 
-    def enqueue(self, C, username=None):
+    def enqueue(self, C, username=None, next=False):
+        r"""
+        Queue up the cell C for evaluation in this worksheet.
+
+        INPUT:
+            C -- a Cell
+            username -- the name of the user that is evaluating this
+                        cell (mainly used for loging)
+
+        NOTE: If \code{C.is_asap()} is True, then we put C as close to
+        the beginning of the queue as possible, but after all asap cells.
+        Otherwise, C goes at the end of the queue.
+        """
         self._record_that_we_are_computing(username)
         if not isinstance(C, Cell):
             raise TypeError
@@ -1436,7 +1479,16 @@ class Worksheet:
 
         # Now enqueue the requested cell.
         if not (C in self.__queue):
-            self.__queue.append(C)
+            if C.is_asap():
+                if self.computing():
+                    i = 1
+                else:
+                    i = 0
+                while i < len(self.__queue) and self.__queue[i].is_asap():
+                    i += 1
+                self.__queue.insert(i, C)
+            else:
+                self.__queue.append(C)
         self.start_next_comp()
 
     def _enqueue_auto_cells(self):
@@ -1453,10 +1505,22 @@ class Worksheet:
             self.__next_id += 1
         return TextCell(id, plain_text, self)
 
-    def _new_cell(self, id=None):
+    def next_hidden_id(self):
+        try:
+            i = self.__next_hidden_id
+            self.__next_hidden_id -= 1
+        except AttributeError:
+            i = -1
+            self.__next_hidden_id = -2
+        return i
+
+    def _new_cell(self, id=None, hidden=False):
         if id is None:
-            id = self.__next_id
-            self.__next_id += 1
+            if hidden:
+                id = self.next_hidden_id()
+            else:
+                id = self.__next_id
+                self.__next_id += 1
         return Cell(id, '', '', self)
 
     def append(self, L):
@@ -1719,8 +1783,9 @@ class Worksheet:
         return t
 
     def preparse(self, s):
-        s = preparse_file(s, magic=False, do_time=True,
-                          ignore_prompts=False)
+        if sage.misc.interpreter.do_preparse:
+            s = preparse_file(s, magic=False, do_time=True,
+                              ignore_prompts=False)
         return s
 
     ##########################################################

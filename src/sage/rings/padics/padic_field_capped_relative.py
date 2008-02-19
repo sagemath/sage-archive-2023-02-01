@@ -60,8 +60,9 @@ a given type, p, print mode and precision.  It also saves typing very
 long class names.
     sage: Qp(17,10,'capped-rel')
     17-adic Field with capped relative precision 10
-    sage: Qp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
-    Lazy 7-adic Field
+
+    #sage: Qp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
+    #Lazy 7-adic Field
     sage: R = Qp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); S = Qp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); R is S
     True
     sage: Qp(2)

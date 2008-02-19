@@ -13,7 +13,7 @@ EXAMPLES:
     sage: SetPartitions(3).count()
     5
 
-  Here is the list of them:
+  Here is the list of them
 
     sage: SetPartitions(3).list() #random due to the sets
     [{{1, 2, 3}}, {{2, 3}, {1}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{2}, {3}, {1}}]
@@ -192,7 +192,7 @@ class SetPartitions_setparts(CombinatorialClass):
 
         taillesblocs = map(lambda x: (x[0])*(x[1]), nonzero)
 
-        blocs = set_partition_ordered.OrderedSetPartitions(copy.copy(set), taillesblocs).list()
+        blocs = set_partition_ordered.OrderedSetPartitions(copy.copy(set), taillesblocs)
 
         for b in blocs:
             lb = [ _listbloc(nonzero[i][0], nonzero[i][1], b[i]) for i in range(len(nonzero)) ]
@@ -286,10 +286,10 @@ def _listbloc(n, nbrepets, listint=None):
     Not to be called by the user.
 
     EXAMPLES:
-        sage: sage.combinat.set_partition._listbloc(2,1)
+        sage: list(sage.combinat.set_partition._listbloc(2,1))
         [{{1, 2}}]
         sage: l = [Set([Set([3, 4]), Set([1, 2])]), Set([Set([2, 4]), Set([1, 3])]), Set([Set([2, 3]), Set([1, 4])])]
-        sage: sage.combinat.set_partition._listbloc(2,2,[1,2,3,4]) == l
+        sage: list(sage.combinat.set_partition._listbloc(2,2,[1,2,3,4])) == l
         True
 
 
@@ -299,7 +299,8 @@ def _listbloc(n, nbrepets, listint=None):
 
 
     if nbrepets == 1:
-        return [Set([listint])]
+        yield Set([listint])
+        return
 
     l = __builtin__.list(listint)
     l.sort()
@@ -307,13 +308,12 @@ def _listbloc(n, nbrepets, listint=None):
     new_listint = Set(l[1:])
 
     f = lambda u, v: u.union(_set_union([smallest,v]))
-    res = []
 
     for ssens in subset.Subsets(new_listint, n-1):
         for z in _listbloc(n, nbrepets-1, new_listint-ssens):
-            res.append(f(z,ssens))
+            yield f(z,ssens)
 
-    return res
+
 
 def _union(s):
     """

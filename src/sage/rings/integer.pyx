@@ -144,7 +144,6 @@ cdef void late_import():
         import sage.rings.arith
         arith = sage.rings.arith
 
-
 MAX_UNSIGNED_LONG = 2 * sys.maxint
 
 # This crashes SAGE:
@@ -437,7 +436,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 3 < 2
             False
 
-        Canonical coercisions are used but non-canonical ones are not.
+        Canonical coercions are used but non-canonical ones are not.
             sage: 4 == 4/1
             True
             sage: 4 == '4'
@@ -602,7 +601,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self.str(2)
 
-    def bits(self, int base=2):
+    def bits(self):
         """
         Return the number of bits in self.
 
@@ -694,6 +693,36 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return l # should we return a tuple?
 
+    def ndigits(self, int base=10):
+        """
+        Return the number of digits of self expressed in the given base.
+
+        INPUT:
+            base -- integer (default: 10)
+
+        EXAMPLES:
+            sage: n = 52
+            sage: n.ndigits()
+            2
+            sage: n = -10003
+            sage: n.ndigits()
+            5
+            sage: n = 15
+            sage: n.ndigits(2)
+            4
+            sage: n=1000**1000000+1
+            sage: n.ndigits()
+            3000001
+            sage: n=1000**1000000-1
+            sage: n.ndigits()
+            3000000
+            sage: n=10**10000000-10**9999990
+            sage: n.ndigits()
+            10000000
+        """
+        if self == 0:
+            return 1
+        return self.abs().exact_log(base) + 1
 
     def set_si(self, signed long int n):
         """
@@ -802,7 +831,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def _r_action(self, s):
         """
         EXAMPLES:
-            sage: 8 * [0]
+            sage: 8 * [0] #indirect doctest
             [0, 0, 0, 0, 0, 0, 0, 0]
             sage: 8 * 'hi'
             'hihihihihihihihi'
@@ -814,7 +843,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def _l_action(self, s):
         """
         EXAMPLES:
-            sage: [0] * 8
+            sage: [0] * 8 #indirect doctest
             [0, 0, 0, 0, 0, 0, 0, 0]
             sage: 'hi' * 8
             'hihihihihihihihi'
@@ -1127,10 +1156,42 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError, "self must be positive"
         if m < 2:
             raise ValueError, "m must be at least 2"
+
+        if m <= 256:
+            # if the base m is at most 256, we can use mpz_sizeinbase
+            # to get the following guess which is either the exact
+            # log, or 1+ the exact log
+            guess = Integer(mpz_sizeinbase(self.value, m)) - 1
+            # if the base is 2, the guess is always correct
+            if m == 2:
+                return guess
+
+            # otherwise, we need to compare self and m^guess
+            # this is time-consuming for large integers, so we start by
+            # doing a rough comparison using interval arithmetic
+            # (suggested by David Harvey and Carl Witty)
+            # "for randomly distributed integers, the chance of this
+            # interval-based comparison failing is absurdly low"
+            import real_mpfi
+            approx_compare = real_mpfi.RIF(m)**guess
+            if self > approx_compare:
+                return guess
+            elif self < approx_compare:
+                return guess - one
+            # if we reach this point, we're in an absurdly low-probability
+            # case; we "manually" compare self and m^guess
+            compare = Integer(m)**guess
+            if self >= compare:
+                return guess
+            else:
+                return guess - one
+
+        # if we are here, then the base m is bigger than 256
+        # TODO: optimize this
         import real_mpfr
         R = real_mpfr.RealField(53)
         guess = R(self).log(base = m).floor()
-        power = m ** guess
+        power = Integer(m) ** guess
 
         while power > self:
             power = power / m
@@ -1147,7 +1208,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return guess
         else:
             return guess - 1
-
 
     def prime_to_m_part(self, m):
         """
@@ -1527,7 +1587,36 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return mpz_pythonhash(self.value)
 
-    def factor(self, algorithm='pari', proof=True):
+    cdef hash_c(self):
+        """
+        A C version of the __hash__ function.
+        """
+        return mpz_pythonhash(self.value)
+
+    def _factor_trial_division(self, limit):
+        """
+        Return partial factorization of self obtained using trial
+        division for all primes up to limit, where limit must fit
+        in a signed int.
+
+        INPUT:
+            limit -- integer that fits in a signed int
+
+        ALGORITHM: Uses Pari.
+
+        EXAMPLES:
+            sage: n = 920384092842390423848290348203948092384082349082
+            sage: n._factor_trial_division(1000)
+            2 * 11 * 41835640583745019265831379463815822381094652231
+            sage: n._factor_trial_division(2^30)
+            2 * 11 * 1531 * 27325696005058797691594630609938486205809701
+        """
+        import sage.structure.factorization as factorization
+        F = self._pari_().factor(limit)
+        B, e = F
+        return factorization.Factorization([(the_integer_ring(B[i]), the_integer_ring(e[i])) for i in range(len(B))])
+
+    def factor(self, algorithm='pari', proof=True, limit=None):
         """
         Return the prime factorization of the integer as a list of
         pairs $(p,e)$, where $p$ is prime and $e$ is a positive integer.
@@ -1539,12 +1628,28 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                              the optional kash package be installed)
             proof -- bool (default: True) whether or not to prove primality
                     of each factor (only applicable for PARI).
-
+            limit -- int or None (default: None) if limit is given it
+                     must fit in a signed int, and the factorization
+                     is done using trial divsion and primits up to limit.
 
         EXAMPLES:
             sage: n = 2^100 - 1; n.factor()
             3 * 5^3 * 11 * 31 * 41 * 101 * 251 * 601 * 1801 * 4051 * 8101 * 268501
+
+        We using proof=False, which doesn't prove correctness of the
+        primes that appear in the factorization:
+            sage: n = 920384092842390423848290348203948092384082349082
+            sage: n.factor(proof=False)
+            2 * 11 * 1531 * 4402903 * 10023679 * 619162955472170540533894518173
+            sage: n.factor(proof=True)
+            2 * 11 * 1531 * 4402903 * 10023679 * 619162955472170540533894518173
+
+        We factor using trial division only:
+            sage: n.factor(limit=1000)
+            2 * 11 * 41835640583745019265831379463815822381094652231
         """
+        if limit is not None:
+            return self._factor_trial_division(limit)
         import sage.rings.integer_ring
         return sage.rings.integer_ring.factor(self, algorithm=algorithm, proof=proof)
 
@@ -3212,6 +3317,31 @@ cdef class int_to_Z(Morphism):
         cdef Integer r
         r = <Integer>PY_NEW(Integer)
         mpz_set_si(r.value, PyInt_AS_LONG(a))
+        return r
+    def _repr_type(self):
+        return "Native"
+
+cdef class long_to_Z(Morphism):
+    """
+    EXAMPLES:
+        sage: f = ZZ.coerce_map_from(long); f
+        Native morphism:
+          From: Set of Python objects of type 'long'
+          To:   Integer Ring
+        sage: f(1rL)
+        1
+        sage: f(-10000000000000000000001r)
+        -10000000000000000000001
+    """
+    def __init__(self):
+        import integer_ring
+        import sage.categories.homset
+        from sage.structure.parent import Set_PythonType
+        Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(long), integer_ring.ZZ))
+    cdef Element _call_c(self, a):
+        cdef Integer r
+        r = <Integer>PY_NEW(Integer)
+        mpz_set_pylong(r.value, a)
         return r
     def _repr_type(self):
         return "Native"

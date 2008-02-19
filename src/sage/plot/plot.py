@@ -70,7 +70,7 @@ a Graphics object, which consists of a single polygon):
     sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
     sage: Q   # show it
 
-We combine together different graphics objects using ``$+$'':
+We combine together different graphics objects using ``+'':
 
     sage: H = G + P + Q
     sage: print H
@@ -2340,6 +2340,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
                         is too small, decrease. should be positive, but values much bigger than
                         1/8 won't be useful unless the nodes are huge
+        draw_edges -- whether to draw edges.
 
     EXAMPLES:
         sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
@@ -2399,12 +2400,15 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: g.show(edge_colors={(1.0, 0.8571428571428571, 0.0): g.edges()})
 
     """
-    def __init__(self, graph, pos=None, vertex_labels=True, vertex_size=300, vertex_colors=None, edge_colors=None, scaling_term=0.05):
+    def __init__(self, graph, pos=None, vertex_labels=True, vertex_size=300, \
+                   vertex_colors=None, edge_colors=None, scaling_term=0.05, \
+                   draw_edges=True):
         self.__nxg = graph
         self.__vertex_size = vertex_size
         self.__vertex_labels = vertex_labels
         self.__vertex_colors = vertex_colors
         self.__edge_colors = edge_colors
+        self.__draw_edges = draw_edges
         if len(self.__nxg) != 0:
             import networkx as NX
             if pos is None:
@@ -2467,13 +2471,14 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
                     NX.draw_networkx_nodes(G=self.__nxg, nodelist=self.__vertex_colors[i],
                                            node_color=i if isinstance(i, str) else [float(z) for z in i],
                                            pos=self.__pos, ax=subplot, node_size=vertex_size)
-            if self.__edge_colors is None:
-                NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=vertex_size)
-            else:
-                for i in self.__edge_colors:
-                    NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, edgelist=self.__edge_colors[i],
-                                           edge_color=i if isinstance(i, str) else [float(z) for z in i],
-                                           ax=subplot, node_size=vertex_size)
+            if self.__draw_edges:
+                if self.__edge_colors is None:
+                    NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=vertex_size)
+                else:
+                    for i in self.__edge_colors:
+                        NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, edgelist=self.__edge_colors[i],
+                                               edge_color=i if isinstance(i, str) else [float(z) for z in i],
+                                               ax=subplot, node_size=vertex_size)
             if self.__vertex_labels:
                 labels = {}
                 for v in self.__nxg:
@@ -3426,7 +3431,6 @@ class PlotFactory(GraphicPrimitiveFactory):
                 except (ZeroDivisionError, TypeError, ValueError), msg:
                     sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                     exceptions += 1
-
                 j += 1
                 if j > plot_division:
                     break
@@ -3588,7 +3592,7 @@ def list_plot(data, plotjoined=False, **kwargs):
     return P
 
 def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_colors=None,
-                  edge_colors=None, graph_border=False, scaling_term=0.05):
+                  edge_colors=None, graph_border=False, scaling_term=0.05, draw_edges=True):
     """
     Creates a graphics object ready to display a NetworkX graph.
 
@@ -3646,7 +3650,9 @@ def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_c
         sage: networkx_plot(C._nxg, pos=C.__get_pos__(), edge_colors=edge_colors, vertex_labels=False, vertex_size=0)
     """
     g = Graphics()
-    NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, scaling_term=scaling_term)
+    NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, \
+      vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, \
+      scaling_term=scaling_term, draw_edges=draw_edges)
     g._Graphics__objects.append(NGP)
     xmin = NGP._xmin
     xmax = NGP._xmax
@@ -4071,23 +4077,18 @@ def adjust_figsize_for_aspect_ratio(figsize, aspect_ratio, xmin, xmax, ymin, yma
         (5, 5/2)
 
     Here the x range is rather large, so to get an aspect ratio where circles
-    look twice as wide as they are tall, we have to shrink the x size
+    look twice as wide as they are tall, we have to shrink the y size
     of the image.
         sage: adjust_figsize_for_aspect_ratio([3,5], 2, 0, 10, 0, 2)
-        (2, 5)
+        (5, 1/2)
     """
     if not isinstance(figsize, (list, tuple)):
         figsize = [figsize, figsize * 0.618033988749895]   # 1/golden_ratio
     if aspect_ratio is None:
         return figsize
-    # We find a number r such that (xmax-xmin)*r / (ymax-ymin) = aspect_ratio:
-    r = max(aspect_ratio * (ymax - ymin)/(xmax-xmin), 0.001)
+    # We find a number r such that (ymax-ymin)*r / (xmax-xmin) = aspect_ratio:
+    r = max(aspect_ratio * (xmax - xmin)/(ymax-ymin), 0.001)
     mx = max(figsize)
     f = (figsize[0]*r, figsize[0])
     s = min((mx/f[0], mx/f[1]))
     return f[0]*s, f[1]*s
-
-
-
-
-

@@ -274,7 +274,6 @@ class Sage(Expect):
     def new(self, x):
         return SageElement(self, x)
 
-
 class SageElement(ExpectElement):
     def __getattr__(self, attrname):
         self._check_valid()
@@ -300,11 +299,21 @@ class SageElement(ExpectElement):
             return load(P._local_tmpfile())
 
 class SageFunction(FunctionElement):
-    def __call__(self, *args):
+    def __call__(self, *args, **kwds):
         P = self._obj.parent()
-        a = [P(x) for x in args]
-        b = ','.join([x.name() for x in a])
-        z = SageElement(P, '%s.%s(%s)'%(self._obj._name, self._name, b))
+        args = [P(x) for x in args]
+        args = ','.join([x.name() for x in args])
+        kwds = ",".join(["%s=%s"%(k,P(v).name()) for k,v in kwds.iteritems()])
+        if args != "" and kwds != "":
+            callstr = '%s.%s(%s,%s)'%(self._obj._name, self._name, args, kwds)
+        elif kwds != "":
+            callstr = '%s.%s(%s)'%(self._obj._name, self._name, kwds)
+        elif args != "":
+            callstr = '%s.%s(%s)'%(self._obj._name, self._name, args)
+        else:
+            callstr = '%s.%s()'%(self._obj._name, self._name)
+        z = SageElement(P, callstr)
+
         return z
 
     def __repr__(self):

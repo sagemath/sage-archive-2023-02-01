@@ -1,4 +1,13 @@
-from sage.structure.element cimport ModuleElement
+"""
+Symbolic matrices
+
+Matrices with symbolic entries.  The underlying representation is a
+pointer to a Maxima object.
+"""
+
+
+from sage.structure.element cimport ModuleElement, RingElement
+from sage.structure.factorization import Factorization
 
 cimport matrix_dense
 cimport matrix
@@ -38,7 +47,6 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [t 0]
             [0 t]
         """
-
         matrix.Matrix.__init__(self, parent)
 
         cdef Py_ssize_t i, n
@@ -70,7 +78,6 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
                 R = parent.base_ring()
                 for i from 0 <= i < n:
                     entries[i] = R(entries[i])
-
             self.set_from_list(entries)
 
         else:
@@ -82,42 +89,102 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
                 self._maxima = maxima.zeromatrix(self._nrows, self._ncols)
 
     def _new_c(self):
+        """
+        Called when creating a new matrix.
+
+        EXAMPLES:
+            sage: matrix(SR,0)   # this implicitly calls _new_c
+            []
+        """
         cdef Matrix_symbolic_dense M = Matrix_symbolic_dense.__new__(Matrix_symbolic_dense, 0, 0, 0)
         matrix.Matrix.__init__(M, self._parent)
         return M
 
     cdef set_from_list(self, entries):
-        rows = [maxima(entries[i:i+self._ncols]) for i from 0 <= i < self._ncols*self._nrows by self._ncols]
-        self._maxima = maxima.matrix(*tuple(rows))
+        """
+        Set a matrix from a list of entries, all known to be in the symbolic ring.
+        """
+        s = ','.join(['[' + ','.join([z._maxima_init_() for z in entries[i:i+self._ncols]]) + ']' for
+                      i from 0 <= i < self._ncols*self._nrows by self._ncols])
+        self._maxima = maxima('matrix(%s)'%s)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
+        """
+        Set the i,j entry without bounds checking.
+        """
         maxima.setelmx(value, i+1, j+1, self._maxima)
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Get the i,j entry without bounds checking.
+        """
         entry = symbolic_expression_from_maxima_string(maxima.eval("%s[%s,%s]" % (self._maxima._name, i+1, j+1)))
         return self._parent.base_ring()(entry)
 
     def _pickle(self):
         """
+        Used when serializing a symbolic matrix.
+
         EXAMPLES:
             sage: M = matrix(SR, 2, 2, range(4))
             sage: type(M)
             <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
-            sage: loads(dumps(M)) == M
+            sage: loads(dumps(M)) == M         # implicitly calls _pickle
             True
         """
         return self._list(), 0
 
     def _unpickle(self, data, int version):
+        """
+        Used when de-serializing a symbolic matrix.
+
+        EXAMPLES:
+            sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e]); m
+            [sqrt(2)       3]
+            [     pi       e]
+            sage: loads(dumps(m))   # implicitly calls _unpickle
+            [sqrt(2)       3]
+            [     pi       e]
+        """
         if version == 0:
             self.set_from_list(data)
         else:
             raise RuntimeError, "unknown matrix version"
 
     def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
+        """
+        Called implicitly when doing comparisons.
+
+        EXAMPLES:
+            sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e])
+            sage: cmp(m,m)
+            0
+            sage: cmp(m,3)
+            -1
+        """
         return self._richcmp(right, op)
+
     def __hash__(self):
-        return self._hash()
+        """
+        Return hash of this matrix.
+
+        NOTE: The hash of a symbolic matrix agrees with its hash in Maxima.
+
+        EXAMPLES:
+            sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e]); m
+            [sqrt(2)       3]
+            [     pi       e]
+            sage: hash(m) #random due to architecture dependence
+            1532248127            # 32-bit
+            1653238849131003967   # 64-bit
+            sage: m.__hash__() #random due to architecture dependence
+            1532248127            # 32-bit
+            1653238849131003967   # 64-bit
+            sage: hash(maxima(m)) #random due to architecture dependence
+            1532248127            # 32-bit
+            1653238849131003967   # 64-bit
+        """
+        return hash(self._maxima)
 
     ########################################################################
     # LEVEL 2 functionality
@@ -139,6 +206,8 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
 
     def __neg__(self):
         """
+        Return the negative of this matrix.
+
         EXAMPLES:
             sage: -matrix(SR, 2, range(4))
             [ 0 -1]
@@ -150,6 +219,8 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
 
     def __invert__(self):
         """
+        Return the inverse of this matrix.
+
         EXAMPLES:
             sage: M = matrix(SR, 2, var('a,b,c,d'))
             sage: ~M
@@ -166,11 +237,37 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         return M
 
     def __copy__(self):
+        """
+        Make a copy of this matrix.
+
+        EXAMPLES:
+        We make a copy of a matrix and change one entry:
+            sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e])
+            sage: n = copy(m)
+            sage: n[0,0] = sin(1)
+            sage: m
+            [sqrt(2)       3]
+            [     pi       e]
+            sage: n
+            [sin(1)      3]
+            [    pi      e]
+        """
         cdef Matrix_symbolic_dense M = self._new_c()
         M._maxima = self._maxima.copymatrix()
         return M
 
     def _multiply_classical(left, Matrix_symbolic_dense right):
+        """
+        Multiply this matrix by another matrix.
+
+        EXAMPLES:
+            sage: m = matrix(SR, 4, [1..4^2])
+            sage: m * m              # _multiply_classical is called implicitly
+            [ 90 100 110 120]
+            [202 228 254 280]
+            [314 356 398 440]
+            [426 484 542 600]
+        """
         if left._ncols != right._nrows:
             raise IndexError, "Number of columns of left must equal number of rows of other."
         cdef Matrix_symbolic_dense M = Matrix_symbolic_dense.__new__(Matrix_symbolic_dense, 0, 0, 0)
@@ -180,7 +277,52 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         return M
 
     def _list(self):
-        return [self[i,j] for i from 0 <= i < self._nrows for j from 0 <= j < self._ncols]
+        r"""
+        Return cached underlying list of entries of self.
+
+        It is dangerous to use this if you change it! -- instead use
+        \code{self.list()} which returns a copy.
+
+        EXAMPLES:
+            sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e]); m
+            [sqrt(2)       3]
+            [     pi       e]
+            sage: v = m._list(); v
+            [sqrt(2), 3, pi, e]
+            sage: w = m.list(); w
+            [sqrt(2), 3, pi, e]
+
+        We now illustrate the caching behavior of \code{list} versus \code{_list}.
+            sage: v[0] = 10
+            sage: m._list()
+            [10, 3, pi, e]
+            sage: m.list()
+            [10, 3, pi, e]
+            sage: w[0] = 100
+            sage: m.list()
+            [10, 3, pi, e]
+            sage: m._list()
+            [10, 3, pi, e]
+        """
+        l = self.fetch('_list')
+        if not l is None: return l
+        v = [self.get_unsafe(i,j) for i from 0 <= i < self._nrows for j from 0 <= j < self._ncols]
+        self.cache('_list', v)
+        return v
+
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        """
+        Multiply a scalar times a matrix efficiently.
+
+        EXAMPLES:
+            sage: m = matrix(SR, 2, [1..4]); sqrt(2)*m
+            [  sqrt(2) 2*sqrt(2)]
+            [3*sqrt(2) 4*sqrt(2)]
+        """
+        cdef Matrix_symbolic_dense M = self._new_c()
+        M._maxima = right._maxima_() * self._maxima
+        return M
+
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
@@ -198,6 +340,24 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         return M
 
     def _maxima_(self, session=None):
+        """
+        Return maxima version of this matrix.
+
+        INPUT:
+            session -- Maxima session.  If None, returns the session sage.calculus.calculus.maxima.
+
+        OUTPUT:
+            a maxima object with parent session
+
+        EXAMPLES:
+            sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e])
+            sage: m._maxima_()
+            matrix([sqrt(2),3],[%pi,%e])
+
+        Now put the same matrix in a completely different Maxima sesssion:
+            sage: m._maxima_(maxima)
+            matrix([sqrt(2),3],[%pi,%e])
+        """
         if session is None:
             return self._maxima
         else:
@@ -259,8 +419,18 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             sage: M = matrix(SR, 2, 2, var('a,b,c,d'))
             sage: M.charpoly('t')
             (a - t)*(d - t) - b*c
+            sage: matrix(SR, 5, [1..5^2]).charpoly().expand()
+            x^5 - 65*x^4 - 250*x^3
+
         """
-        res = repr(self._maxima.charpoly(var))
+        # Maxima has the definition det(matrix-xI) instead of
+        # det(xI-matrix), which is what Sage uses elsewhere.  We
+        # correct for the discrepancy.
+        if self.nrows() % 2 == 0:
+            res = repr(self._maxima.charpoly(var))
+        else:
+            res = repr(-self._maxima.charpoly(var))
+
         return self._parent.base_ring()(symbolic_expression_from_maxima_string(res))
 
 #    def echelonize(self, **kwds):
@@ -288,6 +458,77 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
                     raise ValueError, "Unable to symbolically extract eigenvalues, use solution_set=True option."
                 values.append(sol.right())
             return values
+
+    def exp(self):
+        r"""
+        Return the matrix exponential of this matrix $X$, which is the matrix
+        $$
+             e^X = \sum_{k=0}^{\infty} \frac{X^k}{k!}.
+        $$
+
+        EXAMPLES:
+            sage: m = matrix(SR,2, [0,x,x,0]); m
+            [0 x]
+            [x 0]
+            sage: m.exp()
+            [e^(-x)*(e^(2*x) + 1)/2 e^(-x)*(e^(2*x) - 1)/2]
+            [e^(-x)*(e^(2*x) - 1)/2 e^(-x)*(e^(2*x) + 1)/2]
+            sage: exp(m)
+            [e^(-x)*(e^(2*x) + 1)/2 e^(-x)*(e^(2*x) - 1)/2]
+            [e^(-x)*(e^(2*x) - 1)/2 e^(-x)*(e^(2*x) + 1)/2]
+            sage: m.exp().expand()
+            [e^x/2 + e^(-x)/2 e^x/2 - e^(-x)/2]
+            [e^x/2 - e^(-x)/2 e^x/2 + e^(-x)/2]
+
+        Exp works on 0x0 and 1x1 matrices:
+            sage: m = matrix(SR,0,[]); m
+            []
+            sage: m.exp()
+            []
+            sage: m = matrix(SR,1,[2]); m
+            [2]
+            sage: m.exp()
+            [e^2]
+
+        Commuting matrices $m, n$ have the property that $e^{m+n} =
+        e^m e^n$ (but non-commuting matrices need not):
+            sage: m = matrix(SR,2,[1..4]); n = m^2
+            sage: a = exp(m+n) - exp(m)*exp(n)
+            sage: bool(a == 0)
+            True
+
+        The input matrix must be square:
+            sage: m = matrix(SR,2,3,[1..6]); exp(m)
+            Traceback (most recent call last):
+            ...
+            ValueError: exp only defined on square matrices
+
+        In this example we take the symbolic answer and make it numerical at the end:
+            sage: exp(matrix(SR, [[1.2, 5.6], [3,4]])).change_ring(RDF)
+            [346.557487298 661.734590934]
+            [354.500673715 677.424782765]
+
+        Another example involving the reversed identity matrix, which we clumsily create.
+            sage: m = identity_matrix(SR,4); m = matrix(list(reversed(m.rows()))) * x
+            sage: exp(m)
+            [e^(-x)*(e^(2*x) + 1)/2                      0                      0 e^(-x)*(e^(2*x) - 1)/2]
+            [                     0 e^(-x)*(e^(2*x) + 1)/2 e^(-x)*(e^(2*x) - 1)/2                      0]
+            [                     0 e^(-x)*(e^(2*x) - 1)/2 e^(-x)*(e^(2*x) + 1)/2                      0]
+            [e^(-x)*(e^(2*x) - 1)/2                      0                      0 e^(-x)*(e^(2*x) + 1)/2]
+
+        """
+        if not self.is_square():
+            raise ValueError, "exp only defined on square matrices"
+        if self.nrows() == 0:
+            return self
+        cdef Matrix_symbolic_dense M = self._new_c()
+        if self.nrows() == 1:
+            z = self._maxima.matrixexp()
+            # We do the following, because Maxima stupidly exp's 1x1 matrices into non-matrices!
+            M._maxima = maxima('matrix([%s])'%z.name())
+        else:
+            M._maxima = self._maxima.matrixexp()
+        return M
 
 
     #############################################
@@ -326,11 +567,6 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         M._maxima = self._maxima.fullratsimp()
         return M
 
-    def simplify_radical(self):
-        cdef Matrix_symbolic_dense M = self._new_c()
-        M._maxima = self._maxima.simplify_radical()
-        return M
-
     def factor(self):
         """
         Operates pointwise on each element.
@@ -365,3 +601,23 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         return M
 
 
+    def fcp(self, var='x'):
+        """
+        Return the factorization of the characteristic polynomial of self.
+
+        INPUT:
+            var -- (default: 'x') name of variable of charpoly
+
+        EXAMPLES:
+            sage: a = matrix(SR,[[1,2],[3,4]])
+            sage: a.fcp()
+            x^2 - 5*x - 2
+            sage: [i for i in a.fcp()]
+            [(x^2 - 5*x - 2, 1)]
+            sage: a = matrix(SR,[[1,0],[0,2]])
+            sage: a.fcp()
+            (x - 2) * (x - 1)
+            sage: [i for i in a.fcp()]
+            [(x - 2, 1), (x - 1, 1)]
+        """
+        return Factorization(self.charpoly(var).factor_list())

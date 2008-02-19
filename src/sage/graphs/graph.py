@@ -273,6 +273,9 @@ class GenericGraph(SageObject):
 
     """
 
+    # Nice defaults for plotting arrays of graphs (see sage.misc.functional.show)
+    graphics_array_defaults =  {'layout': 'circular', 'vertex_size':50, 'vertex_labels':False, 'graph_border':True}
+
     def __cmp__(self, other):
         """
         Comparison of self and other. For equality, must be in the same class,
@@ -2833,9 +2836,12 @@ class GenericGraph(SageObject):
             sage: G.add_edge(0,0)
             sage: G.show()
 
+            sage: D = DiGraph({0:[0,1], 1:[2], 2:[3]}, loops=True)
+            sage: D.show()
+            sage: D.show(edge_colors={(0,1,0):[(0,1,None),(1,2,None)],(0,0,0):[(2,3,None)]})
+
         """
-        from sage.plot.plot import networkx_plot
-        from sage.plot.plot import rainbow
+        from sage.plot.plot import networkx_plot, Graphics, rainbow
         import networkx
         if vertex_colors is None:
             if partition is not None:
@@ -2889,7 +2895,23 @@ class GenericGraph(SageObject):
         if color_by_label:
             edge_colors = self._color_by_label()
 
-        G = networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, graph_border=graph_border, scaling_term=scaling_term)
+        G = networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, \
+          vertex_size=vertex_size, vertex_colors=vertex_colors, \
+          edge_colors=edge_colors, graph_border=graph_border, \
+          scaling_term=scaling_term, draw_edges=(not self.is_directed()))
+        if self.is_directed():
+            from sage.plot.plot import arrow
+            P = Graphics()
+            if edge_colors is None:
+                for u,v,_ in self.edge_iterator():
+                    if u != v:
+                        P += arrow((pos[u][0],pos[u][1]),(pos[v][0],pos[v][1]),rgbcolor=(0,0,0))
+            else:
+                for color in edge_colors:
+                    for u,v,_ in edge_colors[color]:
+                        if u != v:
+                            P += arrow((pos[u][0],pos[u][1]),(pos[v][0],pos[v][1]),rgbcolor=color)
+            G = P + G
         if edge_labels:
             from sage.plot.plot import text
             K = Graphics()

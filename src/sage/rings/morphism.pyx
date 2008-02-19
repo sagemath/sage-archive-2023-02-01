@@ -507,9 +507,10 @@ cdef class RingHomomorphism(RingMap):
             raise ValueError, "No lift map defined."
 
 cdef class RingHomomorphism_coercion(RingHomomorphism):
-    def __init__(self, parent):
+    def __init__(self, parent, check = True):
         RingHomomorphism.__init__(self, parent)
-        if not self.codomain().has_coerce_map_from(self.domain()):
+        # putting in check allows us to define subclasses of RingHomomorphism_coercion that implement _coerce_map_from
+        if check and not self.codomain().has_coerce_map_from(self.domain()):
             raise TypeError, "Natural coercion morphism from %s to %s not defined."%(self.domain(), self.codomain())
 
     def _repr_type(self):

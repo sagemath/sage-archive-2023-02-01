@@ -350,7 +350,7 @@ class Subsets_sk(CombinatorialClass):
         EXAMPLES:
             sage: Subsets(3, 2).random() #random
             {1, 2}
-            sage: Subsets(3,4).random()
+            sage: Subsets(3,4).random() # random
             None
         """
         lset = __builtin__.list(self.s)

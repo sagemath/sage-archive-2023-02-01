@@ -832,7 +832,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
         EXAMPLES:
             sage: R = IntegerModRing(18)
-            sage: R.random_element()
+            sage: R.random_element() # random output
             15
         """
         if not (bound is None):

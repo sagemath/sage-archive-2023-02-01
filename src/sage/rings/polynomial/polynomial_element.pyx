@@ -1941,11 +1941,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             alpha^2 + 1
             sage: alpha^3 + alpha^2
             1
+
+        TESTS:
+            sage: (PolynomialRing(Integers(31),name='x').0+5).root_field('a')
+            Ring of integers modulo 31
         """
         from sage.rings.number_field.number_field import is_NumberField, NumberField
 
         R = self.base_ring()
-        if not is_IntegralDomain(R):
+        if not R.is_integral_domain():
             raise ValueError, "the base ring must be a domain"
 
         if self.degree() <= 1:
@@ -2096,6 +2100,34 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             return a*self
 
+
+    def coefficients(self):
+        """
+        Return the coefficients of the monomials appearing in self.
+
+        EXAMPLES:
+            sage: _.<x> = PolynomialRing(ZZ)
+            sage: f = x^4+2*x^2+1
+            sage: f.coefficients()
+            [1, 2, 1]
+
+        """
+        zero = self.parent().base_ring().zero_element()
+        return [c for c in self.list() if c != zero]
+
+    def exponents(self):
+        """
+        Return the exponents of the monomials appearing in self.
+
+        EXAMPLES:
+            sage: _.<x> = PolynomialRing(ZZ)
+            sage: f = x^4+2*x^2+1
+            sage: f.exponents()
+            [0, 2, 4]
+        """
+        zero = self.parent().base_ring().zero_element()
+        l = self.list()
+        return [i for i in range(len(l)) if l[i] != zero]
 
     def list(self):
         """

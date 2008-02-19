@@ -45,6 +45,24 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     A transparent thick green line and a little blue line:
         sage: line3d([(0,0,0), (1,1,1), (1,0,2)], opacity=0.5, radius=0.1, \
                      color='green') + line3d([(0,1,0), (1,0,2)])
+
+    A Dodecahedral complex of 5 tetrahedrons (a more elaborate examples from Peter Jipsen):
+        sage: def tetra(col):
+        ...       return line3d([(0,0,1), (2*sqrt(2.)/3,0,-1./3), (-sqrt(2.)/3, sqrt(6.)/3,-1./3),\
+        ...              (-sqrt(2.)/3,-sqrt(6.)/3,-1./3), (0,0,1), (-sqrt(2.)/3, sqrt(6.)/3,-1./3),\
+        ...              (-sqrt(2.)/3,-sqrt(6.)/3,-1./3), (2*sqrt(2.)/3,0,-1./3)],\
+        ...              color=col, thickness=10, aspect_ratio=[1,1,1])
+        ...
+        sage: v  = (sqrt(5.)/2-5/6, 5/6*sqrt(3.)-sqrt(15.)/2, sqrt(5.)/3)
+        sage: t  = acos(sqrt(5.)/3)/2
+        sage: t1 = tetra('blue').rotateZ(t)
+        sage: t2 = tetra('red').rotateZ(t).rotate(v,2*pi/5)
+        sage: t3 = tetra('green').rotateZ(t).rotate(v,4*pi/5)
+        sage: t4 = tetra('yellow').rotateZ(t).rotate(v,6*pi/5)
+        sage: t5 = tetra('orange').rotateZ(t).rotate(v,8*pi/5)
+        sage: show(t1+t2+t3+t4+t5, frame=False)
+
+
     """
     if len(points) < 2:
         raise ValueError, "there must be at least 2 points"

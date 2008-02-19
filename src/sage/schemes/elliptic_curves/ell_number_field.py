@@ -52,10 +52,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
     Elliptic curve over a number field.
 
     EXAMPLES:
-
-    sage: K.<i>=NumberField(x^2+1)
-    sage: EllipticCurve([i, i - 1, i + 1, 24*i + 15, 14*i + 35])
-    Elliptic Curve defined by y^2 + i*x*y + (i+1)*y = x^3 + (i-1)*x^2 + (24*i+15)*x + (14*i+35) over Number Field in i with defining polynomial x^2 + 1
+        sage: K.<i>=NumberField(x^2+1)
+        sage: EllipticCurve([i, i - 1, i + 1, 24*i + 15, 14*i + 35])
+        Elliptic Curve defined by y^2 + i*x*y + (i+1)*y = x^3 + (i-1)*x^2 + (24*i+15)*x + (14*i+35) over Number Field in i with defining polynomial x^2 + 1
     """
     def __init__(self, x, y=None):
         """
@@ -66,14 +65,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         A curve from the database of curves over Q, but over a larger field:
 
-        sage: K.<i>=NumberField(x^2+1)
-        sage: EllipticCurve(K,'389a1')
-        Elliptic Curve defined by y^2 + y = x^3 + x^2 + (-2)*x over Number Field in i with defining polynomial x^2 + 1
+            sage: K.<i>=NumberField(x^2+1)
+            sage: EllipticCurve(K,'389a1')
+            Elliptic Curve defined by y^2 + y = x^3 + x^2 + (-2)*x over Number Field in i with defining polynomial x^2 + 1
 
         Making the field of definition explicitly larger:
 
-        sage: EllipticCurve(K,[0,-1,1,0,0])
-        Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in i with defining polynomial x^2 + 1
+            sage: EllipticCurve(K,[0,-1,1,0,0])
+            Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 over Number Field in i with defining polynomial x^2 + 1
 
         """
         if y is None:
@@ -170,18 +169,19 @@ class EllipticCurve_number_field(EllipticCurve_field):
         return prob_rank, two_selmer_rank, prob_gens
 
     def is_local_integral_model(self,*P):
-        r""" Tests if self is integral at the prime ideal $P$, or at all the
+        r"""
+        Tests if self is integral at the prime ideal $P$, or at all the
         primes if P is a list or tuple
 
         EXAMPLES:
-        sage: K.<i>=NumberField(x^2+1)
-        sage: P1,P2 =(K.factor_integer(5)[j][0] for j in (0,1))
-        sage: E=EllipticCurve([i/5,i/5,i/5,i/5,i/5])
-        sage: E.is_local_integral_model(P1,P2)
-        False
-        sage: Emin=E.local_integral_model(P1,P2)
-        sage: Emin.is_local_integral_model(P1,P2)
-        True
+            sage: K.<i>=NumberField(x^2+1)
+            sage: P1,P2 =(K.factor_integer(5)[j][0] for j in (0,1))
+            sage: E=EllipticCurve([i/5,i/5,i/5,i/5,i/5])
+            sage: E.is_local_integral_model(P1,P2)
+            False
+            sage: Emin=E.local_integral_model(P1,P2)
+            sage: Emin.is_local_integral_model(P1,P2)
+            True
         """
         if len(P)==1: P=P[0]
         if isinstance(P,(tuple,list)):
@@ -194,11 +194,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
         NB Does not affect integrality at other primes even if P non-principal
 
         EXAMPLES:
-        sage: K.<i>=NumberField(x^2+1)
-        sage: P1,P2 =(K.factor_integer(5)[j][0] for j in (0,1))
-        sage: E=EllipticCurve([i/5,i/5,i/5,i/5,i/5])
-        sage: E.local_integral_model((P1,P2))
-        Elliptic Curve defined by y^2 + (-i)*x*y + (-25*i)*y = x^3 + 5*i*x^2 + 125*i*x + 3125*i over Number Field in i with defining polynomial x^2 + 1
+            sage: K.<i>=NumberField(x^2+1)
+            sage: P1,P2 =(K.factor_integer(5)[j][0] for j in (0,1))
+            sage: E=EllipticCurve([i/5,i/5,i/5,i/5,i/5])
+            sage: E.local_integral_model((P1,P2))
+            Elliptic Curve defined by y^2 + (-i)*x*y + (-25*i)*y = x^3 + 5*i*x^2 + 125*i*x + 3125*i over Number Field in i with defining polynomial x^2 + 1
         """
         if len(P)==1: P=P[0]
         if isinstance(P,(tuple,list)):
@@ -215,12 +215,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
         Return true iff self is integral at all primes
 
         EXAMPLES:
-        sage: K.<i>=NumberField(x^2+1)
-        sage: E=EllipticCurve([i/5,i/5,i/5,i/5,i/5])
-        sage: P1,P2 = (K.factor_integer(5)[j][0] for j in (0,1))
-        sage: Emin=E.global_integral_model()
-        sage: Emin.is_global_integral_model()
-        True
+            sage: K.<i>=NumberField(x^2+1)
+            sage: E=EllipticCurve([i/5,i/5,i/5,i/5,i/5])
+            sage: P1,P2 = (K.factor_integer(5)[j][0] for j in (0,1))
+            sage: Emin=E.global_integral_model()
+            sage: Emin.is_global_integral_model()
+            True
         """
         return forall(self.a_invariants(), lambda x : x.is_integral())[0]
 
@@ -229,11 +229,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
         Return a model of self which is integral at all primes
 
         EXAMPLES:
-        sage: K.<i>=NumberField(x^2+1)
-        sage: E=EllipticCurve([i/5,i/5,i/5,i/5,i/5])
-        sage: P1,P2 = (K.factor_integer(5)[j][0] for j in (0,1))
-        sage: E.global_integral_model()
-        Elliptic Curve defined by y^2 + (-i)*x*y + (-25*i)*y = x^3 + 5*i*x^2 + 125*i*x + 3125*i over Number Field in i with defining polynomial x^2 + 1
+            sage: K.<i>=NumberField(x^2+1)
+            sage: E=EllipticCurve([i/5,i/5,i/5,i/5,i/5])
+            sage: P1,P2 = (K.factor_integer(5)[j][0] for j in (0,1))
+            sage: E.global_integral_model()
+            Elliptic Curve defined by y^2 + (-i)*x*y + (-25*i)*y = x^3 + 5*i*x^2 + 125*i*x + 3125*i over Number Field in i with defining polynomial x^2 + 1
 
         """
         K = self.base_field()
@@ -281,24 +281,22 @@ class EllipticCurve_number_field(EllipticCurve_field):
         and a3 lie in the ring of integers of the base field.
 
         EXAMPLES:
-        sage: K.<a>=NumberField(x^2-38)
+            sage: K.<a>=NumberField(x^2-38)
 
-        sage: E=EllipticCurve([a, -5*a + 19, -39*a + 237, 368258520200522046806318224*a - 2270097978636731786720858047, 8456608930180227786550494643437985949781*a - 52130038506835491453281450568107193773505])
-        sage: E.ainvs()
-        [a,
-        -5*a + 19,
-        -39*a + 237,
-        368258520200522046806318224*a - 2270097978636731786720858047,
-        8456608930180227786550494643437985949781*a - 52130038506835491453281450568107193773505]
+            sage: E=EllipticCurve([a, -5*a + 19, -39*a + 237, 368258520200522046806318224*a - 2270097978636731786720858047, 8456608930180227786550494643437985949781*a - 52130038506835491453281450568107193773505])
+            sage: E.ainvs()
+            [a,
+            -5*a + 19,
+            -39*a + 237,
+            368258520200522046806318224*a - 2270097978636731786720858047,
+            8456608930180227786550494643437985949781*a - 52130038506835491453281450568107193773505]
 
-        sage: E._tidy_model().ainvs()
-        [-a,
-        a + 1,
-        -11*a + 151,
-        368258520200522046806318520*a - 2270097978636731786720859535,
-        8456608930173478039472018047583706317255*a - 52130038506793883217874390501829588398139]
-
-
+            sage: E._tidy_model().ainvs()
+            [-a,
+            a + 1,
+            -11*a + 151,
+            368258520200522046806318520*a - 2270097978636731786720859535,
+            8456608930173478039472018047583706317255*a - 52130038506793883217874390501829588398139]
         """
         ZK = self.base_ring().maximal_order()
         (a1, a2, a3, a4, a6) = [ZK(a) for a in self.a_invariants()]
@@ -324,50 +322,36 @@ class EllipticCurve_number_field(EllipticCurve_field):
         at other primes, but not minimality.
 
         INPUT:
-        self -- an elliptic curve over a number field.
-        P    -- either None or a prime ideal of the base field of self.
-        proof -- whether to only use provably correct methods (default controled by
-                 global proof module).  Note that the proof module is number_field,
-                 not elliptic_curves, since the functions that actually need the flag
-                 are in number fields.
+            self -- an elliptic curve over a number field.
+            P    -- either None or a prime ideal of the base field of self.
+            proof -- whether to only use provably correct methods (default controled by
+                     global proof module).  Note that the proof module is number_field,
+                     not elliptic_curves, since the functions that actually need the flag
+                     are in number fields.
+
         OUTPUT:
-        If P specified, returns a 6-tuple with the following data:
-          Emin -- a model (integral and) minimal at P
-          p    -- the residue characteristic
-          vpd  -- the valuation of the local minimal discriminant
-          fp   -- valuation of the conductor
-          KS   -- Kodaira symbol
-          cp   -- Tamagawa number
-        Otherwise, for all primes dividing the discriminant, returns a pair with the first
-        member of the pair being that prime P, and the second being a tuple with the above
-        data for that P.
+            If P specified, returns a 6-tuple with the following data:
+              Emin -- a model (integral and) minimal at P
+              p    -- the residue characteristic
+              vpd  -- the valuation of the local minimal discriminant
+              fp   -- valuation of the conductor
+              KS   -- Kodaira symbol
+              cp   -- Tamagawa number
+            Otherwise, for all primes dividing the discriminant, returns a pair with the first
+            member of the pair being that prime P, and the second being a tuple with the above
+            data for that P.
 
         EXAMPLES
-        sage: K.<i>=NumberField(x^2+1)
-        sage: E=EllipticCurve([1 + i  ,0  ,1  ,0  ,0  ])
-        sage: E.local_information()
-        [(Fractional ideal (-3*i - 2),
-        (Elliptic Curve defined by y^2 + (i+1)*x*y + (4*i+7)*y = x^3 + 12*x^2 + (-i+47)*x + (-4*i+58) over Number Field in i with defining polynomial x^2 + 1,
-        13,
-        2,
-        1,
-        I2,
-        2)),
-        (Fractional ideal (2*i + 1),
-        (Elliptic Curve defined by y^2 + (i+1)*x*y + (4*i+7)*y = x^3 + 12*x^2 + (-i+47)*x + (-4*i+58) over Number Field in i with defining polynomial x^2 + 1,
-        5,
-        1,
-        1,
-        I1,
-        1))]
-        sage: E.local_information(K.ideal(3))
-        (Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1,
-        3,
-        0,
-        0,
-        I0,
-        1)
-
+            sage: K.<i> = NumberField(x^2+1)
+            sage: E = EllipticCurve([1 + i  ,0  ,1  ,0  ,0  ])
+            sage: E.local_information()
+            [(Fractional ideal (-3*i - 2),
+            (Elliptic Curve defined by y^2 + (i+1)*x*y + (4*i+7)*y = x^3 + 12*x^2 + (-i+47)*x + (-4*i+58) over Number Field in i with defining polynomial x^2 + 1, 13, 2, 1, I2, 2)),
+            (Fractional ideal (2*i + 1),
+            (Elliptic Curve defined by y^2 + (i+1)*x*y + (4*i+7)*y = x^3 + 12*x^2 + (-i+47)*x + (-4*i+58) over Number Field in i with defining polynomial x^2 + 1, 5, 1, 1, I1, 1))]
+            sage: E.local_information(K.ideal(3))
+            (Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1,
+            3, 0, 0, I0, 1)
         """
         if proof is None:
             import sage.structure.proof.proof
@@ -396,21 +380,22 @@ class EllipticCurve_number_field(EllipticCurve_field):
         at other primes, but not minimality.
 
         INPUT:
-        self -- an elliptic curve over a number field.
-        P    -- a prime ideal of the base field of self.
-        proof -- whether to only use provably correct methods (default controled by
-                 global proof module).  Note that the proof module is number_field,
-                 not elliptic_curves, since the functions that actually need the flag
-                 are in number fields.
+            self -- an elliptic curve over a number field.
+            P    -- a prime ideal of the base field of self.
+            proof -- whether to only use provably correct methods (default controled by
+                     global proof module).  Note that the proof module is number_field,
+                     not elliptic_curves, since the functions that actually need the flag
+                     are in number fields.
+
         OUTPUT:
-          Emin -- a model (integral and) minimal at P
+            Emin -- a model (integral and) minimal at P
 
         EXAMPLES:
-        sage: K.<a>=NumberField(x^2-5)
-        sage: E=EllipticCurve([20, 225, 750, 625*a + 6875, 31250*a + 46875])
-        sage: P=K.ideal(a)
-        sage: E.local_minimal_model(P).ainvs()
-        [20, -87, 30, a - 277, 2*a - 213]
+            sage: K.<a>=NumberField(x^2-5)
+            sage: E=EllipticCurve([20, 225, 750, 625*a + 6875, 31250*a + 46875])
+            sage: P=K.ideal(a)
+            sage: E.local_minimal_model(P).ainvs()
+            [20, -87, 30, a - 277, 2*a - 213]
         """
         if proof is None:
             import sage.structure.proof.proof
@@ -429,19 +414,22 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         Returns the conductor of this elliptic curve as a fractional ideal of the base field.
 
-        EXAMPLES:
-        sage: K.<i>=NumberField(x^2+1)
-        sage: EllipticCurve([i, i - 1, i + 1, 24*i + 15, 14*i + 35]).conductor()
-        Fractional ideal (21*i - 3)
-        sage: K.<a>=NumberField(x^2-x+3)
-        sage: EllipticCurve([1 + a  ,-1 + a  ,1 + a  ,-11 + a  ,5 -9*a  ]).conductor()
-        Fractional ideal (-6*a)
+        OUTPUT:
+            a fractional ideal
 
-        A not so well known curve with everywhere good reduction:
-        sage: K.<a>=NumberField(x^2-38)
-        sage: E=EllipticCurve([0,0,0, 21796814856932765568243810*a - 134364590724198567128296995, 121774567239345229314269094644186997594*a - 750668847495706904791115375024037711300])
-        sage: E.conductor()
-        Fractional ideal (1)
+        EXAMPLES:
+            sage: K.<i>=NumberField(x^2+1)
+            sage: EllipticCurve([i, i - 1, i + 1, 24*i + 15, 14*i + 35]).conductor()
+            Fractional ideal (21*i - 3)
+            sage: K.<a>=NumberField(x^2-x+3)
+            sage: EllipticCurve([1 + a  ,-1 + a  ,1 + a  ,-11 + a  ,5 -9*a  ]).conductor()
+            Fractional ideal (-6*a)
+
+            A not so well known curve with everywhere good reduction:
+            sage: K.<a>=NumberField(x^2-38)
+            sage: E=EllipticCurve([0,0,0, 21796814856932765568243810*a - 134364590724198567128296995, 121774567239345229314269094644186997594*a - 750668847495706904791115375024037711300])
+            sage: E.conductor()
+            Fractional ideal (1)
         """
         ## Ported from John Cremona's code implementing Tate's algorithm.
         primes = [f[0] for f in self.base_ring().ideal(self.discriminant()).factor()]
@@ -455,22 +443,24 @@ class EllipticCurve_number_field(EllipticCurve_field):
         Returns a model of self that is minimal at all primes, and the conductor of self.
 
         Note that this only works for class number 1.
+
         INPUT:
-        self -- an elliptic curve over a number field of class number
-        proof -- whether to only use provably correct methods (default controled by
-                 global proof module).  Note that the proof module is number_field,
-                 not elliptic_curves, since the functions that actually need the flag
-                 are in number fields.
+            self -- an elliptic curve over a number field of class number
+            proof -- whether to only use provably correct methods (default controled by
+                     global proof module).  Note that the proof module is number_field,
+                     not elliptic_curves, since the functions that actually need the flag
+                     are in number fields.
+
         OUTPUT:
-        An ordered pair consisting of a global minimal model, and the conductor of self as a
-        fractional ideal of the base field.
+            A 2-tuple consisting of a global minimal model, and
+            the conductor of self as a fractional ideal of the base
+            field.
 
         EXAMPLES:
-        sage: K.<a>=NumberField(x^2-38)
-        sage: E=EllipticCurve([0,0,0, 21796814856932765568243810*a - 134364590724198567128296995, 121774567239345229314269094644186997594*a - 750668847495706904791115375024037711300])
-        sage: E.global_minimal_model()
-        (Elliptic Curve defined by y^2 + a*x*y + (-39*a+237)*y = x^3 + (-5*a+19)*x^2 + (368258520200522046806318224*a-2270097978636731786720858047)*x + (8456608930180227786550494643437985949781*a-52130038506835491453281450568107193773505) over Number Field in a with defining polynomial x^2 - 38, Fractional ideal (1))
-
+            sage: K.<a> = NumberField(x^2-38)
+            sage: E = EllipticCurve([0,0,0, 21796814856932765568243810*a - 134364590724198567128296995, 121774567239345229314269094644186997594*a - 750668847495706904791115375024037711300])
+            sage: E.global_minimal_model()
+            (Elliptic Curve defined by y^2 + a*x*y + (-39*a+237)*y = x^3 + (-5*a+19)*x^2 + (368258520200522046806318224*a-2270097978636731786720858047)*x + (8456608930180227786550494643437985949781*a-52130038506835491453281450568107193773505) over Number Field in a with defining polynomial x^2 - 38, Fractional ideal (1))
         """
         ## Ported from John Cremona's code implementing Tate's algorithm.
         if proof is None:
@@ -502,17 +492,18 @@ class EllipticCurve_number_field(EllipticCurve_field):
         integrality at other primes, but not minimality.
 
         INPUT:
-        self -- an elliptic curve over a number field.
-        P    -- a prime ideal of the base field of self.
-        OUTPUT:
-        Emin -- a model (integral and) minimal at P
-        p    -- the residue characteristic
-        vpd  -- the valuation of the local minimal discriminant
-        fp   -- valuation of the conductor
-        KS   -- Kodaira symbol
-        cp   -- Tamagawa number
+            self -- an elliptic curve over a number field.
+            P    -- a prime ideal of the base field of self.
 
-        EXAMPLES: see local_information()
+        OUTPUT:
+            Emin -- a model (integral and) minimal at P
+            p    -- the residue characteristic
+            vpd  -- the valuation of the local minimal discriminant
+            fp   -- valuation of the conductor
+            KS   -- Kodaira symbol
+            cp   -- Tamagawa number
+
+        EXAMPLES: see self.local_information()
         """
         ## Ported from John Cremona's code implementing Tate's algorithm.
         K = self.base_ring()

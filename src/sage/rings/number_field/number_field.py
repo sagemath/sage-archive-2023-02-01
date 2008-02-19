@@ -751,7 +751,7 @@ class NumberField_generic(number_field_base.NumberField):
               To:   Number Field in a with defining polynomial x^4 - 3
               Defn: b |--> a^2
 
-            sage: K.<z>=CyclotomicField(5)
+            sage: K.<z> = CyclotomicField(5)
             sage: K.subfield(z-z^2-z^3+z^4)
             (Number Field in z0 with defining polynomial x^2 - 5,
             Ring morphism:
@@ -1286,13 +1286,13 @@ class NumberField_generic(number_field_base.NumberField):
         zero ideal which is not a fractional ideal.
 
         EXAMPLES:
-        sage: K.<i>=NumberField(x^2+1)
-        sage: K.ideal(2)
-        Fractional ideal (2)
-        sage: K.ideal(2+i)
-        Fractional ideal (i + 2)
-        sage: K.ideal(0)
-        Ideal (0) of Number Field in i with defining polynomial x^2 + 1
+            sage: K.<i>=NumberField(x^2+1)
+            sage: K.ideal(2)
+            Fractional ideal (2)
+            sage: K.ideal(2+i)
+            Fractional ideal (i + 2)
+            sage: K.ideal(0)
+            Ideal (0) of Number Field in i with defining polynomial x^2 + 1
         """
         try:
             return self.fractional_ideal(*gens, **kwds)
@@ -2500,11 +2500,11 @@ class NumberField_generic(number_field_base.NumberField):
             The residue field at this prime.
 
         EXAMPLES:
-        sage: R.<x> = QQ[]
-        sage: K.<a> = NumberField(x^4+3*x^2-17)
-        sage: P = K.ideal(61).factor()[0][0]
-        sage: K.residue_field(P)
-        Residue field in abar of Fractional ideal (-2*a^2 + 1)
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^4+3*x^2-17)
+            sage: P = K.ideal(61).factor()[0][0]
+            sage: K.residue_field(P)
+            Residue field in abar of Fractional ideal (-2*a^2 + 1)
         """
         import sage.rings.residue_field
         return sage.rings.residue_field.ResidueField(prime, names = names)
@@ -2550,41 +2550,40 @@ class NumberField_generic(number_field_base.NumberField):
         Returns an element of self with valuation 1 at the prime ideal P.
 
         INPUT:
-        self -- a number field
-        P -- a prime ideal of self
-        others -- either "positive" (default), in which case the element will have
-                  non-negative valuation at all other primes of self,
-                  or "negative", in which case the element will have non-positive
-                  valuation at all other primes of self.
+            self -- a number field
+            P -- a prime ideal of self
+            others -- either "positive" (default), in which case the element will have
+                      non-negative valuation at all other primes of self,
+                      or "negative", in which case the element will have non-positive
+                      valuation at all other primes of self.
 
-        When P is principal (e.g. always when self has class number
+        NOTE: When P is principal (e.g. always when self has class number
         one) the result may or may not be a generator of P!
 
         EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 5); K
+            Number Field in a with defining polynomial x^2 + 5
+            sage: P,Q = K.ideal(3).prime_factors()
+            sage: P
+            Fractional ideal (3, a + 1)
+            sage: pi=K.uniformizer(P); pi
+            a + 1
+            sage: K.ideal(pi).factor()
+            (Fractional ideal (2, a + 1)) * (Fractional ideal (3, a + 1))
+            sage: pi=K.uniformizer(P,'negative'); pi
+            1/2*a + 1/2
+            sage: K.ideal(pi).factor()
+            (Fractional ideal (2, a + 1))^-1 * (Fractional ideal (3, a + 1))
 
-        sage: K.<a> = NumberField(x^2 + 5); K
-        Number Field in a with defining polynomial x^2 + 5
-        sage: P,Q = K.ideal(3).prime_factors()
-        sage: P
-        Fractional ideal (3, a + 1)
-        sage: pi=K.uniformizer(P); pi
-        a + 1
-        sage: K.ideal(pi).factor()
-        (Fractional ideal (2, a + 1)) * (Fractional ideal (3, a + 1))
-        sage: pi=K.uniformizer(P,'negative'); pi
-        1/2*a + 1/2
-        sage: K.ideal(pi).factor()
-        (Fractional ideal (2, a + 1))^-1 * (Fractional ideal (3, a + 1))
-
-        sage: K=CyclotomicField(9)
-        sage: Plist=K.ideal(17).prime_factors()
-        sage: pilist = [K.uniformizer(P) for P in Plist]
-        sage: [pi.is_integral() for pi in pilist]
-        [True, True, True]
-        sage: [pi.valuation(P) for pi,P in zip(pilist,Plist)]
-        [1, 1, 1]
-        sage: [Plist[i]==K.ideal(pilist[i]) for i in range(len(Plist))]
-        [True, False, False]
+            sage: K = CyclotomicField(9)
+            sage: Plist=K.ideal(17).prime_factors()
+            sage: pilist = [K.uniformizer(P) for P in Plist]
+            sage: [pi.is_integral() for pi in pilist]
+            [True, True, True]
+            sage: [pi.valuation(P) for pi,P in zip(pilist,Plist)]
+            [1, 1, 1]
+            sage: [Plist[i]==K.ideal(pilist[i]) for i in range(len(Plist))]
+            [True, False, False]
 
 
         """
@@ -2773,7 +2772,7 @@ class NumberField_absolute(NumberField_generic):
 
     def is_absolute(self):
         """
-        Returns True since self _is_ absolute
+        Returns True since self is an absolute field.
 
         EXAMPLES:
             sage: K = CyclotomicField(5)

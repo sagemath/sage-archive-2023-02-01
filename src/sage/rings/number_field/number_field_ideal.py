@@ -701,6 +701,9 @@ class NumberFieldIdeal(Ideal_generic):
         INPUT:
             p -- a prime ideal of this number field.
 
+        OUTPUT:
+            integer
+
         EXAMPLES:
             sage: K.<a> = NumberField(x^5 + 2); K
             Number Field in a with defining polynomial x^5 + 2
@@ -853,6 +856,11 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
     def prime_factors(self):
         """
         Return a list of the prime ideal factors of self
+
+        OUTPUT:
+            list -- list of prime ideals (a new list is returned
+            each time this function is called)
+
         EXAMPLES:
             sage: K.<w> = NumberField(x^2 + 23)
             sage: I = ideal(w*23^5)

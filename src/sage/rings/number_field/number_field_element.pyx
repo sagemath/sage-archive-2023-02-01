@@ -1544,15 +1544,14 @@ cdef class NumberFieldElement(FieldElement):
            P -- a prime ideal of the parent of self
 
         EXAMPLES:
-        sage: R.<x> = QQ[]
-        sage: K.<a> = NumberField(x^4+3*x^2-17)
-        sage: P = K.ideal(61).factor()[0][0]
-        sage: b = a^2 + 30
-        sage: b.valuation(P)
-        1
-	sage: type(b.valuation(P))
-        <type 'sage.rings.integer.Integer'>
-
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^4+3*x^2-17)
+            sage: P = K.ideal(61).factor()[0][0]
+            sage: b = a^2 + 30
+            sage: b.valuation(P)
+            1
+            sage: type(b.valuation(P))
+            <type 'sage.rings.integer.Integer'>
         """
         from number_field_ideal import is_NumberFieldIdeal
         if not is_NumberFieldIdeal(P):

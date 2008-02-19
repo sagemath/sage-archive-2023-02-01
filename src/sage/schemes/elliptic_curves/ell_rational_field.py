@@ -10,6 +10,7 @@ AUTHORS:
    -- David Harvey (2007-02): reworked padic-height related code
    -- Christian Wuthrich (2007): added padic sha computation
    -- David Roe (2007-9): moved sha, l-series and p-adic functionality to separate files.
+   -- John Cremona (2008-01)
 """
 
 #*****************************************************************************
@@ -1575,25 +1576,26 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return sum([a[n]*(F(n,s-1) + eps*F(n,1-s)) for n in xrange(1,prec+1)])
 
     def is_local_integral_model(self,*p):
-        r""" Tests if self is integral at the prime $p$, or at all the
+        r"""
+        Tests if self is integral at the prime $p$, or at all the
         primes if $p$ is a list or tuple of primes
 
         EXAMPLES:
-        sage: E=EllipticCurve([1/2,1/5,1/5,1/5,1/5])
-        sage: [E.is_local_integral_model(p) for p in (2,3,5)]
-        [False, True, False]
-        sage: E.is_local_integral_model(2,3,5)
-        False
-        sage: Eint2=E.local_integral_model(2)
-        sage: Eint2.is_local_integral_model(2)
-        True
+            sage: E=EllipticCurve([1/2,1/5,1/5,1/5,1/5])
+            sage: [E.is_local_integral_model(p) for p in (2,3,5)]
+            [False, True, False]
+            sage: E.is_local_integral_model(2,3,5)
+            False
+            sage: Eint2=E.local_integral_model(2)
+            sage: Eint2.is_local_integral_model(2)
+            True
         """
         if len(p)==1: p=p[0]
         if isinstance(p,(tuple,list)):
             return misc.forall(p, lambda x : self.is_local_integral_model(x))[0]
         assert p.is_prime(), "p must be prime in is_local_integral_model()"
         return misc.forall(self.ainvs(), lambda x : x.valuation(p) >= 0)[0]
-
+n
     def local_integral_model(self,p):
         r"""
         Return a model of self which is integral at the prime $p$
@@ -1617,12 +1619,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Return true iff self is integral at all primes
 
         EXAMPLES:
-        sage: E=EllipticCurve([1/2,1/5,1/5,1/5,1/5])
-        sage: E.is_global_integral_model()
-        False
-        sage: Emin=E.global_integral_model()
-        sage: Emin.is_global_integral_model()
-        True
+            sage: E=EllipticCurve([1/2,1/5,1/5,1/5,1/5])
+            sage: E.is_global_integral_model()
+            False
+            sage: Emin=E.global_integral_model()
+            sage: Emin.is_global_integral_model()
+            True
         """
         return self.is_integral()
 

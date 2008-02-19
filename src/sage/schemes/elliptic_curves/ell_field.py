@@ -20,13 +20,13 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         to equal either 0 or 1.
 
         EXAMPLES:
-        sage: E=EllipticCurve('37a1')
-        sage: E._check_satisfies_equations([0,-1,0])
-        sage: E._check_satisfies_equations([0,1,0])
-        sage: E._check_satisfies_equations([0,0,0])
-        Traceback (most recent call last):
-        ...
-        TypeError: coordinates [0, 0, 0] do not define a point on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: E = EllipticCurve('37a1')
+            sage: E._check_satisfies_equations([0,-1,0])
+            sage: E._check_satisfies_equations([0,1,0])
+            sage: E._check_satisfies_equations([0,0,0])
+            Traceback (most recent call last):
+            ...
+            TypeError: coordinates [0, 0, 0] do not define a point on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
         """
         if v[2] == 0:

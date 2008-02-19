@@ -68,6 +68,7 @@ def cm_j_invariants(K):
 
     INPUT:
         K -- a number field (but only implemented for K=QQ)
+
     OUTPUT:
         list -- of CM j-invariants
 
@@ -93,13 +94,14 @@ def cm_j_invariants_and_orders(K):
 
     INPUT:
         K -- a number field (but only implemented for K=QQ)
+
     OUTPUT:
         list -- of CM triple (j,D,f) where j is a CM j-invariant with
         quadratic fundamental discriminant D and conductor f
 
     EXAMPLE:
-    sage: cm_j_invariants_and_orders(QQ)
-    [(-3, 3, -12288000), (-3, 2, 54000), (-3, 1, 0), (-4, 2, 287496), (-4, 1, 1728), (-7, 2, 16581375), (-7, 1, -3375), (-8, 1, 8000), (-11, 1, -32768), (-19, 1, -884736), (-43, 1, -884736000), (-67, 1, -147197952000), (-163, 1, -262537412640768000)]
+        sage: cm_j_invariants_and_orders(QQ)
+        [(-3, 3, -12288000), (-3, 2, 54000), (-3, 1, 0), (-4, 2, 287496), (-4, 1, 1728), (-7, 2, 16581375), (-7, 1, -3375), (-8, 1, 8000), (-11, 1, -32768), (-19, 1, -884736), (-43, 1, -884736000), (-67, 1, -147197952000), (-163, 1, -262537412640768000)]
     """
     if K == RationalField():
         T = [ (0,-3, 1), (54000,-3,2), (-12288000, -3,3), (1728,-1, 1), \

@@ -926,7 +926,7 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
               + O(p**prec)
 
     # Take into account the coordinate change.
-    X=self.minimal_model().short_weierstrass_model()
+    X = self.minimal_model().short_weierstrass_model()
     fudge_factor = (X.discriminant() / self.discriminant()).nth_root(6)
     # todo: here I should be able to write:
     #  return E2_of_X / fudge_factor

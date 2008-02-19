@@ -861,6 +861,8 @@ def dimension_modular_forms(X, k=2):
     EXAMPLES:
         sage: dimension_modular_forms(Gamma0(11),2)
         2
+        sage: dimension_modular_forms(Gamma0(11),0)
+        1
         sage: dimension_modular_forms(Gamma1(13),2)
         13
 

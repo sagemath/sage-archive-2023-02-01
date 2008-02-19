@@ -257,6 +257,19 @@ class Order(IntegralDomain):
             self._is_maximal = (self.absolute_discriminant() == self._K.discriminant())
         return self._is_maximal
 
+    def is_field(self):
+        r"""
+        Return False (because an order is never a field).
+
+        EXAMPLES:
+            sage: L.<alpha> = NumberField(x**4 - x**2 + 7)
+            sage: O = L.maximal_order() ; O.is_field()
+            False
+            sage: CyclotomicField(12).ring_of_integers().is_field()
+            False
+        """
+        return False
+
     def is_integrally_closed(self):
         """
         Return True if this ring is integrally closed, i.e., is equal

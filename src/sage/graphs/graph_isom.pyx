@@ -855,7 +855,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: Pi=[range(20)]
         sage: a,b = search_tree(G, Pi)
         sage: print a, enum(b)
-        [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0], [1, 8, 7, 6, 5, 15, 14, 13, 9, 10, 0, 19, 18, 11, 12, 16, 17, 4, 3, 2], [2, 1, 0, 19, 18, 11, 10, 9, 8, 7, 6, 5, 15, 14, 13, 12, 16, 17, 4, 3]] 17318942212009113839976787462421724338461987195898671092180383421848885858584973127639899792828728124797968735273000
+        [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0], [2, 1, 0, 19, 18, 11, 10, 9, 8, 7, 6, 5, 15, 14, 13, 12, 16, 17, 4, 3]] 17318942212009113839976787462421724338461987195898671092180383421848885858584973127639899792828728124797968735273000
         sage: c = search_tree(G, Pi, lab=False)
         sage: print c
         [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0], [2, 1, 0, 19, 18, 11, 10, 9, 8, 7, 6, 5, 15, 14, 13, 12, 16, 17, 4, 3]]
@@ -888,7 +888,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: Pi=[range(10)]
         sage: a,b = search_tree(G, Pi)
         sage: print a, enum(b)
-        [[0, 1, 2, 7, 5, 4, 6, 3, 9, 8], [0, 1, 6, 8, 5, 4, 2, 9, 3, 7], [0, 4, 3, 8, 5, 1, 9, 2, 6, 7], [1, 0, 4, 9, 6, 2, 5, 3, 7, 8], [1, 2, 3, 8, 6, 0, 7, 4, 5, 9]] 8715233764864019919698297664
+        [[0, 1, 2, 7, 5, 4, 6, 3, 9, 8], [0, 1, 6, 8, 5, 4, 2, 9, 3, 7], [0, 4, 3, 8, 5, 1, 9, 2, 6, 7], [1, 0, 4, 9, 6, 2, 5, 3, 7, 8], [2, 1, 0, 5, 7, 3, 6, 4, 8, 9]] 8715233764864019919698297664
         sage: c = search_tree(G, Pi, lab=False)
         sage: PAut = PermutationGroup([perm_group_elt(aa) for aa in a]) # long time
         sage: PAut.character_table() # long time
@@ -1218,6 +1218,10 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: H = G.relabel(perm, inplace=False)
         sage: G.canonical_label() == H.canonical_label()
         True
+
+    Another former bug:
+        sage: Graph('Fll^G').canonical_label()
+        Graph on 7 vertices
 
     """
     cdef int i, j, m # local variables
@@ -1585,6 +1589,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
             # TODO: investigate the following line
             if nu.k == -1: nu.k = 0 # not in BDM, broke at G = Graph({0:[], 1:[]}), Pi = [[0,1]], lab=False
 
+            if hb > nu.k: # update hb since we are backtracking (not in [1])
+                hb = nu.k # recall hb is the longest common ancestor of rho and nu
+
             if j == hh: state = 13; continue
             # recall hh: the height of the oldest ancestor of zeta for which
             # Lemma 2.25 is satsified, which implies that all terminal nodes
@@ -1793,8 +1800,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
             if nu.k < hzf:
                 hzf = nu.k
             if not lab or hzb < nu.k:
-                # in either case there is no need to update hb, which is the
-                # length of the common ancestor of nu and rho
+                # in either case there is no need to update hzb, which is the
+                # length for which nu and rho have the same indicators
                 state = 2; continue
             hzb = nu.k
             qzb = 0
@@ -1809,6 +1816,10 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
             size = size*index
             index = 0
             nu.k -= 1
+
+            if hb > nu.k: # update hb since we are backtracking (not in [1]):
+                hb = nu.k # recall hb is the longest common ancestor of rho and nu
+
             state = 13
 
         elif state == 17: # you have just finished coming up the search tree,

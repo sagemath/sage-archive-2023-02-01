@@ -2840,6 +2840,10 @@ class GenericGraph(SageObject):
             sage: D.show()
             sage: D.show(edge_colors={(0,1,0):[(0,1,None),(1,2,None)],(0,0,0):[(2,3,None)]})
 
+            sage: from sage.graphs.bruhat_sn import *
+            sage: S = BruhatSn(5)
+            sage: S.to_directed().show(heights = S.lengths, vertex_labels=False, vertex_size=0, figsize=[10,10])
+
         """
         from sage.plot.plot import networkx_plot, Graphics, rainbow
         import networkx
@@ -7480,6 +7484,17 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition):
     computationally equivalent to implementing a change on an inner loop of the
     main algorithm-- namely making the refinement procedure sort for each label.
 
+    If the graph is a multigraph, it is translated to a non-multigraph, where each
+    edge is labeled with a dictionary describing how many edges of each label were
+    originally there. Then in either case we are working on a graph without multiple
+    edges. At this point, we create another (bipartite) graph, whose left vertices
+    are the original vertices of the graph, and whose right vertices represent the
+    edges. We partition the left vertices as they were originally, and the right
+    vertices by common labels: only automorphisms taking edges to like-labeled edges
+    are allowed, and this additional partition information enforces this on the
+    bipartite graph.
+
+
     EXAMPLE:
         sage: G = Graph(multiedges=True)
         sage: G.add_edges([(0,1,i) for i in range(10)])
@@ -7499,13 +7514,17 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition):
         G.add_vertices(g.vertices())
         for u,v,l in g.edge_iterator():
             if not G.has_edge(u,v):
-                G.add_edge(u,v,{l:1})
+                G.add_edge(u,v,[[l,1]])
             else:
-                d = G.edge_label(u,v)
-                if d.has_key(l):
-                    d[l] += 1
-                else:
-                    d[l] = 1
+                label_list = G.edge_label(u,v)
+                seen_label = False
+                for i in range(len(label_list)):
+                    if label_list[i][0] == l:
+                        label_list[i][1] += 1
+                        seen_label = True
+                        break
+                if not seen_label:
+                    label_list.append([l,1])
         g = G
     edge_partition = []
     if g.is_directed():

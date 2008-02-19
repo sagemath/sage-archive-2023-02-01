@@ -844,6 +844,12 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: posn = {1:[ 3,-3],  2:[0,2],  3:[0, 13],  4:[3,9],  5:[3,3],  6:[16, 13], 7:[6,1],  8:[6,6],  9:[6,11], 10:[9,1], 11:[10,6], 12:[13,6], 13:[16,2], 14:[10,-6], 15:[0,-10], 16:[14,-6], 17:[16,-10], 18:[6,-4]}
         sage: SD.plot(pos=posn, vertex_size=400, vertex_colors={'#FFFFFF':range(1,19)}, edge_labels=True).save('search_tree.png')
 
+    NOTE:
+        There is a function, called test_refine_by_square_matrix, that has the
+    same signature as refine_by_square_matrix. It calls refine_by_square_matrix,
+    then checks to make sure the output is sane. To use this, simply add 'test'
+    to the two places this algorithm calls the function (states 1 and 2).
+
     EXAMPLES:
         sage: import sage.graphs.graph_isom
         sage: from sage.graphs.graph_isom import search_tree
@@ -1466,7 +1472,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
                     ST_vis_new_heights = {}
                     for ST_vis_k in ST_vis_heights:
                         ST_vis_new_heights[-ST_vis_k] = ST_vis_heights[ST_vis_k]
-                    ST_vis.show(vertex_size=0, heights=ST_vis_new_heights, figsize=[30,10], edge_labels=True)
+                    ST_vis.show(vertex_size=0, heights=ST_vis_new_heights, figsize=[30,10], edge_labels=True, edge_colors={(.6,.6,.6):ST_vis.edges()})
             print '-----'
             print 'state:', state
 

@@ -3321,6 +3321,31 @@ cdef class int_to_Z(Morphism):
     def _repr_type(self):
         return "Native"
 
+cdef class long_to_Z(Morphism):
+    """
+    EXAMPLES:
+        sage: f = ZZ.coerce_map_from(long); f
+        Native morphism:
+          From: Set of Python objects of type 'long'
+          To:   Integer Ring
+        sage: f(1rL)
+        1
+        sage: f(-10000000000000000000001r)
+        -10000000000000000000001
+    """
+    def __init__(self):
+        import integer_ring
+        import sage.categories.homset
+        from sage.structure.parent import Set_PythonType
+        Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(long), integer_ring.ZZ))
+    cdef Element _call_c(self, a):
+        cdef Integer r
+        r = <Integer>PY_NEW(Integer)
+        mpz_set_pylong(r.value, a)
+        return r
+    def _repr_type(self):
+        return "Native"
+
 
 ############### INTEGER CREATION CODE #####################
 

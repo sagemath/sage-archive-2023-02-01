@@ -419,6 +419,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         if S is int:
             return sage.rings.integer.int_to_Z()
+        elif S is long:
+            return sage.rings.integer.long_to_Z()
         else:
             return PrincipalIdealDomain.coerce_map_from_c_impl(self, S)
 

@@ -145,8 +145,9 @@ cdef class InverseAction(Action):
         G = action.G
         try:
             from sage.groups.group import Group
+            # We must be in the case that parent(~a) == parent(a)
+            # so we can invert in call_c code below.
             if (PY_TYPE_CHECK(G, Group) and G.is_multiplicative()) or G.is_field():
-                # i.e. parent(~a) == parent(a)
                 Action.__init__(self, G, action.S, action._is_left)
                 self._action = action
                 return
@@ -158,23 +159,11 @@ cdef class InverseAction(Action):
         if self._action._is_left:
             if self.S_precomposition is not None:
                 b = self.S_precomposition(b)
-            # See comment below.
-            #return self._action._call_c(~a, b)
-            return self._action(~a, b)
+            return self._action._call_c(~a, b)
         else:
             if self.S_precomposition is not None:
                 a = self.S_precomposition(a)
-            #
-            # The tilde below completely SCREWS UP the assumption
-            # that is made in _call_c that the two inputs
-            # are in the appropriate domains.  Because of this
-            # assumption, *extremely subtle* basic arithmetic
-            # bugs can be introduced all of over Sage.
-            # Thus I'm removing the direct faster call to _call_c
-            # until the real issues leading to this are resolved.  -- William
-            #
-            #return self._action._call_c(a, ~b)
-            return self._action(a, ~b)
+            return self._action._call_c(a, ~b)
 
     def __invert__(self):
         return self._action

@@ -244,13 +244,6 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
             yp = parent_c(y)
             if xp is yp:
                 return op(x,y)
-            ## TODO: The following code, if uncommented, woudl fix trac #2079
-            ## However, it might be possible to do something much better
-            ## by rewriting the action file better.
-##             if op is idiv:
-##                 op = imul
-##                 y = ~y
-##                 yp = parent_c(y)
             action = self.get_action_c(xp, yp, op)
             if action is not None:
                 return (<Action>action)._call_c(x, y)
@@ -442,25 +435,51 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             return action
 
     def verify_action(self, action, R, S, op):
+        r"""
+        Verify that \code{action} takes an element of R on the left and S
+        on the right, raising an error if not.
+
+        This is used for consistancy checking in the coercion model.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ['x']
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.verify_action(R.get_action(QQ), R, QQ, operator.mul)
+            True
+            sage: cm.verify_action(R.get_action(QQ), RDF, R, operator.mul)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: There is a BUG in the coercion model:
+                Action found for R <built-in function mul> S does not have the correct domains
+                R = Real Double Field
+                S = Univariate Polynomial Ring in x over Integer Ring
+                (should be Univariate Polynomial Ring in x over Integer Ring, Rational Field)
+                action = Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring (<type 'sage.structure.coerce.RightModuleAction'>)
+        """
         if action is None:
             return True
         elif PY_TYPE_CHECK(action, IntegerMulAction):
             return True
         cdef bint ok = True
-        if action.left_domain() is not R:
-            ok &= PY_TYPE_CHECK(R, type) and action.left_domain()._type is R
-        if action.right_domain() is not S:
-            ok &= PY_TYPE_CHECK(S, type) and action.right_domain()._type is S
+        try:
+            if action.left_domain() is not R:
+                ok &= PY_TYPE_CHECK(R, type) and action.left_domain()._type is R
+            if action.right_domain() is not S:
+                ok &= PY_TYPE_CHECK(S, type) and action.right_domain()._type is S
+        except AttributeError:
+            ok = False
         if not ok:
-            print action.left_domain()
-            print action.right_domain()
-            # raise RuntimeError
-            print """There is a BUG in the coercion model:
+            if action.left_domain() == R and action.right_domain() == S:
+                # Non-unique parents
+                return True
+            raise RuntimeError, """There is a BUG in the coercion model:
             Action found for R %s S does not have the correct domains
             R = %s
             S = %s
+            (should be %s, %s)
             action = %s (%s)
-            """ % (op, R, S, action, type(action))
+            """ % (op, R, S, action.left_domain(), action.right_domain(), action, type(action))
+        return ok
 
     cdef discover_action_c(self, R, S, op):
 #        print "looking", R, <int>R, op, S, <int>S
@@ -953,11 +972,10 @@ cdef class RightModuleAction(Action):
             sage: R.<x> = QQ[]; a = 2*x^2+2
             sage: import sage.structure.element as e
             sage: cm = e.get_coercion_model()
-            sage: act = cm.get_action(parent(a), parent(2), operator.idiv)
-            sage: f = ~act
-            sage: type(f)
+            sage: act = cm.get_action(parent(a), parent(2), operator.mul)
+            sage: type(act)
             <type 'sage.structure.coerce.RightModuleAction'>
-            sage: h = f.connecting_map()
+            sage: h = act.connecting_map()
             sage: h
             Natural morphism:
               From: Integer Ring

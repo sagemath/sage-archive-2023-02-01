@@ -403,6 +403,33 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
 
 
     def get_action(self, R, S, op):
+        """
+        Get the action of R on S or S on R associated to the operation op.
+
+        EXAMPLES:
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.get_action(ZZ['x'], ZZ, operator.mul)
+            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
+            sage: cm.get_action(ZZ['x'], ZZ, operator.imul)
+            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
+            sage: cm.get_action(ZZ['x'], QQ, operator.mul)
+            Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring
+            sage: cm.get_action(QQ['x'], int, operator.mul)
+            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Rational Field
+            with precomposition on right by Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Integer Ring
+
+            sage: R.<x> = QQ['x']
+            sage: A = cm.get_action(R, ZZ, operator.div); A
+            Right inverse action by Rational Field on Univariate Polynomial Ring in x over Rational Field
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+            sage: A(x+10, 5)
+            1/5*x + 2
+
+        """
         return self.get_action_c(R, S, op)
 
     cdef get_action_c(self, R, S, op):
@@ -410,8 +437,30 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             return self._action_maps.get(R, S, op)
         except KeyError:
             action = self.discover_action_c(R, S, op)
+            self.verify_action(action, R, S, op)
             self._action_maps.set(R, S, op, action)
             return action
+
+    def verify_action(self, action, R, S, op):
+        if action is None:
+            return True
+        elif PY_TYPE_CHECK(action, IntegerMulAction):
+            return True
+        cdef bint ok = True
+        if action.left_domain() is not R:
+            ok &= PY_TYPE_CHECK(R, type) and action.left_domain()._type is R
+        if action.right_domain() is not S:
+            ok &= PY_TYPE_CHECK(S, type) and action.right_domain()._type is S
+        if not ok:
+            print action.left_domain()
+            print action.right_domain()
+            # raise RuntimeError
+            print """There is a BUG in the coercion model:
+            Action found for R %s S does not have the correct domains
+            R = %s
+            S = %s
+            action = %s (%s)
+            """ % (op, R, S, action, type(action))
 
     cdef discover_action_c(self, R, S, op):
 #        print "looking", R, <int>R, op, S, <int>S
@@ -427,6 +476,39 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             if action is not None:
 #                print "found", action
                 return action
+
+        if PY_TYPE(R) == <void *>type:
+            sageR = py_scalar_parent(R)
+            if sageR is not None:
+                action = self.discover_action_c(sageR, S, op)
+                if action is not None:
+                    if not PY_TYPE_CHECK(action, IntegerMulAction):
+                        action = PrecomposedAction(action, sageR.coerce_map_from(R), None)
+                    return action
+
+        if PY_TYPE(S) == <void *>type:
+            sageS = py_scalar_parent(S)
+            if sageS is not None:
+                action = self.discover_action_c(R, sageS, op)
+                if action is not None:
+                    if not PY_TYPE_CHECK(action, IntegerMulAction):
+                        action = PrecomposedAction(action, None, sageS.coerce_map_from(S))
+                    return action
+
+        if op.__name__[0] == 'i':
+            try:
+                a = self.discover_action_c(R, S, no_inplace_op(op))
+                if a is not None:
+                    is_inverse = isinstance(a, InverseAction)
+                    if is_inverse: a = ~a
+                    if a is not None and PY_TYPE_CHECK(a, RightModuleAction):
+                        # We want a new instance so that we don't alter the (potentially cached) original
+                        a = RightModuleAction(S, R)
+                        (<RightModuleAction>a).is_inplace = 1
+                    if is_inverse: a = ~a
+                return a
+            except KeyError:
+                pass
 
         if op is div:
             # Division on right is the same acting on right by inverse, if it is so defined.
@@ -450,39 +532,6 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                     if K is not S:
                         action = PrecomposedAction(action, None, K.coerce_map_from(S))
                     return action
-
-        if PY_TYPE(R) == <void *>type:
-            sageR = py_scalar_parent(R)
-            if sageR is not None:
-                action = self.discover_action_c(sageR, S, op)
-                if action is not None:
-                    if not PY_TYPE_CHECK(action, IntegerMulAction):
-                        action = PyScalarAction(action)
-                    return action
-
-        if PY_TYPE(S) == <void *>type:
-            sageS = py_scalar_parent(S)
-            if sageS is not None:
-                action = self.discover_action_c(R, sageS, op)
-                if action is not None:
-                    if not PY_TYPE_CHECK(action, IntegerMulAction):
-                        action = PyScalarAction(action)
-                    return action
-
-        if op.__name__[0] == 'i':
-            try:
-                a = self.discover_action_c(R, S, no_inplace_op(op))
-                if a is not None:
-                    is_inverse = isinstance(a, InverseAction)
-                    if is_inverse: a = ~a
-                    if a is not None and PY_TYPE_CHECK(a, RightModuleAction):
-                        # We want a new instance so that we don't alter the (potentially cached) original
-                        a = RightModuleAction(S, R)
-                        (<RightModuleAction>a).is_inplace = 1
-                    if is_inverse: a = ~a
-                return a
-            except KeyError:
-                pass
 
 #        if op is operator.mul:
 #            from sage.rings.integer_ring import ZZ
@@ -813,6 +862,9 @@ cdef class LeftModuleAction(Action):
     def _repr_name_(self):
         return "scalar multiplication"
 
+    def domain(self):
+        return self.S
+
     def codomain(self):
         if self.extended_base is not None:
             return self.extended_base
@@ -885,6 +937,9 @@ cdef class RightModuleAction(Action):
     def _repr_name_(self):
         return "scalar multiplication"
 
+    def domain(self):
+        return self.S
+
     def codomain(self):
         if self.extended_base is not None:
             return self.extended_base
@@ -911,26 +966,6 @@ cdef class RightModuleAction(Action):
             <type 'sage.rings.rational.Z_to_Q'>
         """
         return self.connecting
-
-
-
-cdef class PyScalarAction(Action):
-
-    def __init__(self, Action action):
-        Action.__init__(self, action.G, action.S, action._is_left, action.op)
-        self._action = action
-
-    cdef Element _call_c(self, a, b):
-        # Override this (BAD) because signature of _call_c_impl requires elements
-        if self._is_left:
-            a = self.G(a)
-            return self._action._call_c(a,b)
-        else:
-            b = self.G(b)
-            return self._action._call_c(a,b)
-
-    def __inverse__(self):
-        return PyScalarAction(~self._action)
 
 
 cdef class IntegerMulAction(Action):

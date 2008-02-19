@@ -36,6 +36,20 @@ cdef class MatrixMulAction(Action):
     def codomain(self):
         return self._codomain
 
+    def domain(self):
+        """
+        EXAMPLES:
+            sage: A = MatrixSpace(QQ, 2).get_action(MatrixSpace(ZZ['x'], 2)); A
+            Left action by Full MatrixSpace of 2 by 2 dense matrices over Rational Field on Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring
+            sage: A.actor()
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: A.domain()
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Integer Ring
+            sage: A.codomain()
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+        """
+        return self.S
+
 
 cdef class MatrixMatrixAction(MatrixMulAction):
     def __init__(self, G, S):

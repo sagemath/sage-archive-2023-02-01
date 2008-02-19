@@ -2528,6 +2528,9 @@ cdef class BinaryCodeClassifier:
                     "A counterexample to an assumption the author made while writing this software has been encountered.")
                 # TODO: is the following line necessary?
                 if k == -1: k = 0
+
+                if hb > k:# update hb since we are backtracking
+                    hb = k
                 # if j == hh, then all nodes lower than our current position are equivalent, so bail out
                 if j == hh: state = 13; continue
 
@@ -2767,7 +2770,7 @@ cdef class BinaryCodeClassifier:
                 # hzf is maximal such that indicators line up for nu and zeta
                 if k < hzf__h_zeta:
                     hzf__h_zeta = k
-                # hb is longest common ancestor of nu and rho
+                # hzb is longest such that nu and rho have the same indicators
                 if hzb__h_rho >= k:
                     hzb__h_rho = k
                     qzb = 0
@@ -2790,6 +2793,8 @@ cdef class BinaryCodeClassifier:
                 # (POINT A)
                 index = 0
                 k -= 1
+                if hb > k: # update hb since we are backtracking
+                    hb = k
                 state = 13
 
             elif state == 17: # see if there are any more splits to make from this level of nu (and not zeta)

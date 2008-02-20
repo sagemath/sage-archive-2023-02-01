@@ -88,7 +88,8 @@ class ImmutableListWithParent(CombinatorialObject, Element):
         l[k] = value
         return self.sibling(l)
 
-class TensorProductOfCrystals(Crystal):
+# FIXME: should be, or not, in ClassicalCrystal depending on the input
+class TensorProductOfCrystals(ClassicalCrystal):
     r"""
     Tensor product of crystals
 

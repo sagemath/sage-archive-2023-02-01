@@ -20,7 +20,7 @@ Crystals of letters
 
 from sage.structure.element    import Element
 from sage.combinat.cartan_type import CartanType
-from crystals                  import Crystal, CrystalElement
+from crystals                  import Crystal, ClassicalCrystal, CrystalElement
 from sage.misc.flatten         import flatten
 
 def CrystalOfLetters(type):
@@ -34,7 +34,7 @@ def CrystalOfLetters(type):
 
         sage: C = CrystalOfLetters(['A',5])
         sage: C.list()
-        [1, 2, 3, 4, 5]
+        [1, 2, 3, 4, 5, 6]
 
     TEST:
 
@@ -43,14 +43,66 @@ def CrystalOfLetters(type):
 
     """
     if type[0] == 'A':
-	return Crystal_of_letters_type_A(type)
+	return ClassicalCrystalOfLetters(type,
+                                         Crystal_of_letters_type_A_element)
     elif type[0] == 'C':
-	return Crystal_of_letters_type_C(type)
+	return ClassicalCrystalOfLetters(type,
+                                         Crystal_of_letters_type_C_element)
     else:
 	print('not yet implemented')
 
-# This class should be factored out at some point!
-#
+
+class ClassicalCrystalOfLetters(ClassicalCrystal):
+    r"""
+    A generic class for classical crystals of letters.
+
+    All classical crystals of letters should be instance of this class
+    or of subclasses. To define a new crystal of letters, one only
+    need to implement a class for the elements (which subclasses
+    Letter and CrystalElement), with appropriate e and f
+    operations. If the module generator is not 1, one also need to
+    subclass ClassicalCrystalOfLetters for the crystal itself.
+
+    The basic assumption is that crystals of letters are small, but
+    used intensivelly as building blocks. All other operations (list,
+    comparison, ...) can be derived automatically in the brute force
+    way, with appropriate caching).
+
+    """
+    def __init__(self, type, element_class):
+        self.cartanType = CartanType(type)
+        self._name = "The crystal of letters for type %s"%type
+        self.index_set = self.cartanType.index_set()
+        self.element_class = element_class
+        self.module_generators = [self(1)]
+        self._list = ClassicalCrystal.list(self)
+        self._digraph = ClassicalCrystal.digraph(self)
+        self._digraph_closure = self.digraph().transitive_closure()
+
+    def __call__(self, value):
+        if value.__class__ == self.element_class and value.parent == self:
+            return self
+        else: # Should do sanity checks!
+            return self.element_class(self, value)
+
+    def list(self):
+        return self._list
+
+    def digraph(self):
+        return self._digraph
+
+    def cmp_elements(self, x,y):
+        assert x.parent() == self and y.parent() == self;
+        if   self._digraph_closure.has_edge(x,y):
+            return -1;
+        elif self._digraph_closure.has_edge(y,x):
+            return 1;
+        else:
+            return 0;
+
+    # TODO: cmp, in, ...
+
+# Utility. Note: much of this class should be factored out at some point!
 class Letter(Element):
     r"""
     A class for letters
@@ -87,29 +139,32 @@ class Letter(Element):
                self.parent()  == other.parent()   and \
                self.value     == other.value
 
+    def __cmp__(self, other):
+        assert self.parent() == other.parent()
+        return self.parent().cmp_elements(self, other)
+
 #########################
 # Type A
 #########################
 
-class Crystal_of_letters_type_A(Crystal):
-    r"""
-    Type A crystal of letters
-    """
-    def __init__(self, type):
-        self.cartanType = CartanType(type)
-        self._name = "The crystal of letters for type %s"%type
-        self.index_set = self.cartanType.index_set()
-        self.module_generators = [self(1)]
-
-    def list(self):
-        return [self(i) for i in range(1,self.cartanType.n+2)]
-
-    def __call__(self, value):
-        return Crystal_of_letters_type_A_element(self, value)
-
 class Crystal_of_letters_type_A_element(Letter, CrystalElement):
     r"""
     Type A crystal of letters elements
+
+    TEST:
+        sage: C = CrystalOfLetters (['A',3])
+        sage: C.list()
+        [1, 2, 3, 4]
+        sage: [ [x < y for y in C] for x in C ]
+        [[False, True, True, True],
+         [False, False, True, True],
+         [False, False, False, True],
+         [False, False, False, False]]
+
+        sage: C = CrystalOfLetters(['A',5])
+        sage: C(1) < C(1), C(1) < C(2), C(1) < C(3), C(2) < C(1)
+        (False, True, True, False)
+
     """
     def e(self, i):
         r"""
@@ -162,25 +217,22 @@ class Crystal_of_letters_type_A_element(Letter, CrystalElement):
 # Type C
 #########################
 
-class Crystal_of_letters_type_C(Crystal):
-    r"""
-    Type C crystal of letters
-    """
-    def __init__(self, type):
-        self.cartanType = CartanType(type)
-        self._name = "The crystal of letters for type %s"%type
-        self.index_set = self.cartanType.index_set()
-        self.module_generators = [self(1)]
-
-    def list(self):
-        return flatten([[self(i) for i in range(1,self.cartanType.n+1)], [self(-i) for i in range(1,self.cartanType.n+1)]])
-
-    def __call__(self, value):
-        return Crystal_of_letters_type_C_element(self, value)
-
 class Crystal_of_letters_type_C_element(Letter, CrystalElement):
     r"""
     Type C crystal of letters elements
+
+    TEST:
+    sage: C = CrystalOfLetters (['C',3])
+    sage: C.list()
+    [1, 2, 3, -3, -2, -1]
+    sage: [ [x < y for y in C] for x in C ]
+    [[False, True, True, True, True, True],
+     [False, False, True, True, True, True],
+     [False, False, False, True, True, True],
+     [False, False, False, False, True, True],
+     [False, False, False, False, False, True],
+     [False, False, False, False, False, False]]
+
     """
     def e(self, i):
         r"""

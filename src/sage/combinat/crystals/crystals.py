@@ -79,6 +79,7 @@ from sage.graphs.graph         import DiGraph
 from sage.combinat             import ranker
 
 ## MuPAD-Combinat's Cat::Crystal
+# FIXME: crystals, like most parent should have unique data representation
 class Crystal(CombinatorialClass, Parent):
     r"""
     The abstract class of crystals
@@ -99,48 +100,6 @@ class Crystal(CombinatorialClass, Parent):
 
     def Lambda(self):
 	return self.weight_lattice_realization().fundamental_weights()
-
-    def __iter__(self):
-        r"""
-        Returns an iterator over the elements of the crystal.
-
-        Memory complexity: O(depth of the crystal)
-
-        Caveats: this assume that the crystal is highest weight, and
-        that the module generators are all highest weights.
-        This second restriction would be easy to remove.
-
-        EXAMPLES:
-            sage: C = CrystalOfLetters(['A',5])
-            sage: [x for x in C]
-            [1, 2, 3, 4, 5, 6]
-        """
-        def rec(x):
-            for i in x.index_set():
-                child = x.f(i);
-                if child is None:
-                    continue
-                hasParent = False;
-                for j in x.index_set():
-                    if j == i:
-                        break
-                    if not child.e(j) == None:
-                        hasParent = True
-                        break
-                if hasParent:
-                    break;
-                yield child
-                for y in rec(child):
-                    yield y;
-        for generator in self.module_generators:
-            # This is just in case the module_generators
-            if not generator.is_highest_weight():
-                continue
-            yield generator;
-            for x in rec(generator):
-                yield x;
-
-    iterator = __iter__
 
     def digraph(self):
         dict = {};
@@ -270,3 +229,56 @@ class CrystalElement(Element):
 	"""
 	return all(self.e(i) == None for i in self.index_set())
 
+class ClassicalCrystal(Crystal):
+    r"""
+    The abstract class of classical crystals
+    """
+
+    def __iter__(self):
+        r"""
+        Returns an iterator over the elements of the crystal.
+
+        Memory complexity: O(depth of the crystal)
+
+        Caveats: this assume that the crystal is highest weight, and
+        that the module generators are all highest weights.
+        This second restriction would be easy to remove.
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A',5])
+            sage: [x for x in C]
+            [1, 2, 3, 4, 5, 6]
+        """
+        def rec(x):
+            for i in x.index_set():
+                child = x.f(i);
+                if child is None:
+                    continue
+                hasParent = False;
+                for j in x.index_set():
+                    if j == i:
+                        break
+                    if not child.e(j) == None:
+                        hasParent = True
+                        break
+                if hasParent:
+                    break;
+                yield child
+                for y in rec(child):
+                    yield y;
+        for generator in self.module_generators:
+            # This is just in case the module_generators
+            if not generator.is_highest_weight():
+                continue
+            yield generator;
+            for x in rec(generator):
+                yield x;
+
+    iterator = __iter__
+
+
+class AffineCrystal(Crystal):
+    r"""
+    The abstract class of affine crystals
+    """
+    pass;

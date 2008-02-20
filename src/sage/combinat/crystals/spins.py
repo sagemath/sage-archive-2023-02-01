@@ -19,6 +19,7 @@ Spin Crystals
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+from sage.rings.integer        import Integer
 from sage.structure.element    import Element
 from sage.combinat.cartan_type import CartanType
 from crystals                  import Crystal, ClassicalCrystal, CrystalElement
@@ -56,18 +57,28 @@ def CrystalOfSpins(type):
     else:
 	raise NotImplementedError
 
-class Spin_crystal_type_B(Crystal):
+class Spin_crystal_type_B(ClassicalCrystal):
     r"""
     Type B spin representation crystal
+
+        TEST:
+            sage: C = CrystalOfSpins(['B',3])
+
+            # Those broke at some point because of plain ints
+            sage: C.module_generators[0].e(1) == None
+            True
+            sage: C.list()[0].e(1) == None
+            True
+
     """
     def __init__(self, type):
         self.cartanType = CartanType(type)
         self._name = "The spin crystal for type %s"%type
         self.index_set = self.cartanType.index_set()
-        self.module_generators = [self(1)]
+        self.module_generators = [self(Integer(1))]
 
     def list(self):
-        return [self(i) for i in range(1, 1+2**(self.cartanType.n))]
+        return [self(Integer(i)) for i in range(1, 1+2**(self.cartanType.n))]
 
     def __call__(self, value):
         return Spin_crystal_type_B_element(self, value)
@@ -79,7 +90,7 @@ class Spin_crystal_type_B_element(Letter, CrystalElement):
     def e(self, i):
         r"""
         TEST:
-            sage: C = SpinCrystal(['B',3])
+            sage: C = CrystalOfSpins(['B',3])
             sage: C(1).e(1) == None
             True
             sage: C(1).e(2) == None
@@ -143,7 +154,7 @@ class Spin_crystal_type_B_element(Letter, CrystalElement):
     def f(self, i):
         r"""
         TESTS:
-            sage: C = SpinCrystal(['B',3])
+            sage: C = CrystalOfSpins(['B',3])
             sage: C(1).f(1) == None
             True
             sage: C(1).f(2) == None

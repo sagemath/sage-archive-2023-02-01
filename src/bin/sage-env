@@ -38,6 +38,23 @@ if [ "$SAGE_ROOT" = "" ]; then
            echo "You must set the SAGE_ROOT environment variable or"
            echo "run this script from the SAGE_ROOT or "
            echo "SAGE_ROOT/local/bin/ directory."
+        fi
+    fi
+else
+    if [ -f sage -a -d spkg ]; then
+       if [ "$SAGE_ROOT" != "`pwd`" ]; then
+           echo "Warning: Attempted to overwrite SAGE_ROOT enviroment variable"
+       fi
+    else
+       if [ -f ../../sage -a -d ../../spkg ]; then
+           cd ../../
+           if [ "$SAGE_ROOT" != "`pwd`" ]; then
+              echo "Warning: Attempted to overwrite SAGE_ROOT enviroment variable"
+           fi
+       else
+           echo "You must set the SAGE_ROOT environment variable or"
+           echo "run this script from the SAGE_ROOT or "
+           echo "SAGE_ROOT/local/bin/ directory."
        fi
     fi
 fi

@@ -22,8 +22,9 @@ from sage.misc.latex           import latex
 from sage.structure.element    import Element
 from sage.combinat.cartan_type import CartanType
 from sage.combinat.cartesian_product  import CombinatorialObject, CartesianProduct
-from sage.combinat.tableau import Tableau
-from crystals                  import Crystal, CrystalElement
+from sage.combinat.partition   import Partition
+from sage.combinat.tableau     import Tableau
+from crystals                  import Crystal, CrystalElement, ClassicalCrystal
 from letters                   import CrystalOfLetters
 from sage.misc.flatten         import flatten
 
@@ -88,7 +89,8 @@ class ImmutableListWithParent(CombinatorialObject, Element):
         l[k] = value
         return self.sibling(l)
 
-class TensorProductOfCrystals(Crystal):
+# FIXME: should be, or not, in ClassicalCrystal depending on the input
+class TensorProductOfCrystals(ClassicalCrystal):
     r"""
     Tensor product of crystals
 
@@ -244,7 +246,7 @@ class CrystalOfTableaux(TensorProductOfCrystals):
         We create the crystal of tableaux for type $A_2$, with highest
         weight given by the partition [2,1,1]
 
-        sage: Tab = CrystalOfTableaux(['A',3], Partition([2,1,1]))
+        sage: Tab = CrystalOfTableaux(['A',3], shape = [2,1,1])
 
         Here is the list of its elements:
 
@@ -268,7 +270,7 @@ class CrystalOfTableaux(TensorProductOfCrystals):
 
     TESTS:
 
-#	sage: T = CrystalOfTableaux(['C',2],Partition([2,1]))
+#	sage: T = CrystalOfTableaux(['C',2], shape = [2,1])
 #        sage: T.list() == [ T(t) for t in [[[1, 1], [2]], [[1, 2], [2]], [[1, -2], [2]],\
 #                           [[1, -1], [2]], [[1, -2], [-2]], [[1, -1], [-2]],\
 #                           [[2, -1], [-2]], [[2, -1], [-1]], [[1, 1], [-2]],\
@@ -278,7 +280,8 @@ class CrystalOfTableaux(TensorProductOfCrystals):
 #        True
     """
     def __init__(self, type, shape):
-	C=CrystalOfLetters(type)
+	C = CrystalOfLetters(type)
+        shape = Partition(shape)
 	p = shape.conjugate()
 	module_generator = flatten([[C(p[j]-i) for i in range(p[j])] for j in range(len(p))])
         TensorProductOfCrystals.__init__(self, *[C]*shape.size(), **{'generators':[module_generator]})

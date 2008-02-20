@@ -201,7 +201,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<a> = NumberField(x^3 + 389); K
             Number Field in a with defining polynomial x^3 + 389
             sage: I = K.factor_integer(17)[0][0]; I
-            Fractional ideal (100*a^2 - 730*a + 5329)
+            Fractional ideal (-100*a^2 + 730*a - 5329)
             sage: hnf = I.pari_hnf(); hnf
             [17, 0, 13; 0, 17, 8; 0, 0, 1]
             sage: I._NumberFieldIdeal__elements_from_hnf(hnf)

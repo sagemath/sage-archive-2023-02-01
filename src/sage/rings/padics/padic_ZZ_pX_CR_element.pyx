@@ -1071,10 +1071,10 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                     ZZ_pX_conv_modulus(high_shifter, high_array[high_length-1], c.x)
                     # if shift = r + s * 2^(high_length - 1)
                     # then high_shifter = p^(s*2^(high_length - 1))/x^(e*s*2^(high_length - 1))
-                    ZZ_pX_PowerMod_long_pre(high_shifter, high_shifter, (shift / (1 << (high_length - 1))), modulus)
+                    ZZ_pX_PowerMod_long_pre(high_shifter, high_shifter, (shift / (1L << (high_length - 1))), modulus)
                     ZZ_pX_MulMod_pre(self.unit, self.unit, high_shifter, modulus)
                     # Now we only need to multiply self.unit by p^r/x^(e*r) where r < 2^(high_length - 1), which is tractible.
-                    shift = shift % (1 << (high_length - 1))
+                    shift = shift % (1L << (high_length - 1))
                 while shift > 0:
                     if shift & 1:
                         ZZ_pX_conv_modulus(high_shifter, high_array[i], c.x)

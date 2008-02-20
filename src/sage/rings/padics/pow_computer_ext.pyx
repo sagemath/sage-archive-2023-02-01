@@ -191,7 +191,7 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
         # Now we divide by p.
         #ZZ_pX_right_pshift(tmp, tmp, prime_pow.small_powers[1], cup.x)
         #ZZ_pX_conv_modulus(into_multiplier, tmp, prime_pow.get_top_context().x)
-        ZZ_pX_PowerXMod_long_pre(into_multiplier, prime_pow.e - (1 << i), prime_pow.get_top_modulus()[0])
+        ZZ_pX_PowerXMod_long_pre(into_multiplier, prime_pow.e - (1L << i), prime_pow.get_top_modulus()[0])
         ZZ_pX_MulMod_pre(into_multiplier, into_multiplier, shift_seed_inv, prime_pow.get_top_modulus()[0])
         ##printer.x = into_multiplier
         ##print printer
@@ -337,14 +337,14 @@ cdef int ZZ_pX_eis_shift(PowComputer_ZZ_pX self, ZZ_pX_c* x, ZZ_pX_c* a, long n,
 #            ##print printer
 #            # if val = r + s * 2^(high_length - 1)
 #            # then shifter = p^(s*2^(high_length - 1))/x^(e*s*2^(high_length - 1))
-#            ZZ_pX_PowerMod_long_pre(shifter, shifter, (pshift / (1 << (high_length - 1))), m)
+#            ZZ_pX_PowerMod_long_pre(shifter, shifter, (pshift / (1L << (high_length - 1))), m)
 #            ##printer.x = shifter
 #            ##print printer
 #            ZZ_pX_MulMod_pre(x[0], x[0], shifter, m)
 #            ##printer.x = shifter
 #            ##print printer
 #            # Now we only need to multiply self.unit by p^r/x^(e*r) where r < 2^(high_length - 1), which is tractible.
-#            pshift = pshift % (1 << (high_length - 1))
+#            pshift = pshift % (1L << (high_length - 1))
 #        while pshift > 0:
 #            if pshift & 1:
 #                ##print "pshift = %s"%pshift
@@ -1323,14 +1323,14 @@ cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
 #                 # high_shifter = p^(2^(high_length - 1))/x^(e*2^(high_length - 1))
 #                 # if val = r + s * 2^(high_length - 1)
 #                 # then high_shifter = p^(s*2^(high_length - 1))/x^(e*s*2^(high_length - 1))
-#                 ZZ_pX_PowerMod_long_pre(high_shifter, self.high_shifter[self.high_length-1].val(), (pshift / (1 << (self.high_length - 1))), self.get_top_modulus()[0])
+#                 ZZ_pX_PowerMod_long_pre(high_shifter, self.high_shifter[self.high_length-1].val(), (pshift / (1L << (self.high_length - 1))), self.get_top_modulus()[0])
 #                 ##printer.x = high_shifter
 #                 ##print printer
 #                 ZZ_pX_MulMod_pre(x[0], x[0], high_shifter, self.get_top_modulus()[0])
 #                 ##printer.x = high_shifter
 #                 ##print printer
 #                 # Now we only need to multiply self.unit by p^r/x^(e*r) where r < 2^(high_length - 1), which is tractible.
-#                 pshift = pshift % (1 << (self.high_length - 1))
+#                 pshift = pshift % (1L << (self.high_length - 1))
 #             while pshift > 0:
 #                 if pshift & 1:
 #                     ##print "pshift = %s"%pshift

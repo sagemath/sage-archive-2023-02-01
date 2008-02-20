@@ -3321,6 +3321,15 @@ class PlotFactory(GraphicPrimitiveFactory):
     We can change the line style to one of '--' (dashed), '-.' (dash dot),
     '-' (solid), 'steps', ':' (dotted):
         sage: plot(sin(x), 0, 10, linestyle='-.')
+
+    TESTS:
+    We do not randomize the endpoints:
+        sage: p = plot(x, (x,-1,1))
+        sage: p[0].xdata[0] == -1
+        True
+        sage: p[0].xdata[-1] == 1
+        True
+
     """
     def _reset(self):
         o = self.options
@@ -3402,11 +3411,12 @@ class PlotFactory(GraphicPrimitiveFactory):
         exceptions = 0; msg=''
         for i in range(plot_points):
             xi = xmin + i*delta
-            if i < plot_points:
+            # Slightly randomize points except for the first and last
+            if i > 0 and i < plot_points-1:
                 xi += delta*random.random()
                 if xi > xmax:
                     xi = xmax
-            else:
+            elif i == plot_points-1:
                 xi = xmax  # guarantee that we get the last point.
 
             try:

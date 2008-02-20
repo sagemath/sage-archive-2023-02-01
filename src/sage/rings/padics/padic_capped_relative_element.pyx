@@ -49,7 +49,7 @@ from sage.rings.padics.padic_lazy_element import pAdicLazyElement
 
 cdef PariInstance P = sage.libs.pari.all.pari
 
-cdef long maxordp = (1 << (sizeof(long) * 8 - 2)) -1
+cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) -1
 
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, GEN g )

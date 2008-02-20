@@ -267,6 +267,27 @@ def umbral_operation(poly):
 
 
 class IterableFunctionCall:
+    """
+    This class wraps functions with a yield statement (generators)
+    by an object that can be iterated over.  For example,
+
+    EXAMPLES:
+        sage: def f(): yield 'a'; yield 'b'
+
+    This does not work:
+        sage: for z in f: print z
+        Traceback (most recent call last):
+        ...
+        TypeError: 'function' object is not iterable
+
+    Use IterableFunctionCall if you want something like
+    the above to work:
+        sage: from sage.combinat.misc import IterableFunctionCall
+        sage: g = IterableFunctionCall(f)
+        sage: for z in g: print z
+        a
+        b
+    """
     def __init__(self, f, *args, **kwargs):
         """
         EXAMPLES:

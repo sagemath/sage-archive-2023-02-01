@@ -33,13 +33,18 @@ It has a single highest weight element:
 A crystal is a CombinatorialClass; and we can count and list its elements
 in the usual way:
     sage: C.count()    # todo: not implemented
-    5
+    6
     sage: C.list()
-    [1, 2, 3, 4, 5]
+    [1, 2, 3, 4, 5, 6]
 
 as well as use it in for loops
     sage: [x for x in C]
-    [1, 2, 3, 4, 5]
+    [1, 2, 3, 4, 5, 6]
+
+Here are some more elaborate crystals (see there respective documentations):
+    sage: Tens = TensorProductOfCrystals(C, C)
+    sage: Spin = SpinCrystal(['B', 3])
+    sage: Tab  = CrystalOfTableaux(['A', 3], shape = [2,1,1])
 
 One can get (currently) crude ploting via:
 

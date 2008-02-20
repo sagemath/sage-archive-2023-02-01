@@ -60,6 +60,7 @@ import sage.combinat.set_partition_ordered as set_partition_ordered
 import copy
 from combinat import CombinatorialClass, CombinatorialObject, bell_number, stirling_number2
 from subword import Subwords
+from misc import IterableFunctionCall
 
 
 def SetPartitions(s, part=None):
@@ -192,10 +193,10 @@ class SetPartitions_setparts(CombinatorialClass):
 
         taillesblocs = map(lambda x: (x[0])*(x[1]), nonzero)
 
-        blocs = set_partition_ordered.OrderedSetPartitions(copy.copy(set), taillesblocs)
+        blocs = set_partition_ordered.OrderedSetPartitions(copy.copy(set), taillesblocs).list()
 
         for b in blocs:
-            lb = [ _listbloc(nonzero[i][0], nonzero[i][1], b[i]) for i in range(len(nonzero)) ]
+            lb = [ IterableFunctionCall(_listbloc, nonzero[i][0], nonzero[i][1], b[i]) for i in range(len(nonzero)) ]
             for x in itertools.imap(lambda x: _union(x), CartesianProduct( *lb )):
                 yield x
 

@@ -264,3 +264,35 @@ def umbral_operation(poly):
     coefficients = poly.coefficients()
     length = len(exponents)
     return sum( [coefficients[i]*_monomial_exponent_to_lower_factorial(exponents[i],x) for i in range(length)] )
+
+
+class IterableFunctionCall:
+    def __init__(self, f, *args, **kwargs):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.misc import IterableFunctionCall
+            sage: IterableFunctionCall(iter, [1,2,3])
+            Iterable function call <built-in function iter> with args=([1, 2, 3],) and kwargs={}
+        """
+        self.f = f
+        self.args = args
+        self.kwargs = kwargs
+
+    def __iter__(self):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.misc import IterableFunctionCall
+            sage: list(iter(IterableFunctionCall(iter, [1,2,3])))
+            [1, 2, 3]
+        """
+        return self.f(*self.args, **self.kwargs)
+
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.misc import IterableFunctionCall
+            sage: repr(IterableFunctionCall(iter, [1,2,3]))
+            'Iterable function call <built-in function iter> with args=([1, 2, 3],) and kwargs={}'
+
+        """
+        return "Iterable function call %s with args=%s and kwargs=%s"%(self.f, self.args, self.kwargs)

@@ -43,7 +43,7 @@ as well as use it in for loops
 
 Here are some more elaborate crystals (see there respective documentations):
     sage: Tens = TensorProductOfCrystals(C, C)
-    sage: Spin = SpinCrystal(['B', 3])
+    sage: Spin = CrystalOfSpins(['B', 3])
     sage: Tab  = CrystalOfTableaux(['A', 3], shape = [2,1,1])
 
 One can get (currently) crude ploting via:

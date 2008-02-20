@@ -627,7 +627,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
 
     sage: F.<t> = NumberField(x^2-5)
     sage: ls = enumerate_totallyreal_fields_rel(F, 2, 10^4)
-    sage: ls # random
+    sage: ls # random (the second factor is platform-dependent)
     [[725, x^4 - x^3 - 3*x^2 + x + 1, xF^2 + (-1/2*t + 1/2)*xF - t - 2],
      [1125, x^4 - x^3 - 4*x^2 + 4*x + 1, xF^2 + (-1/2*t + 1/2)*xF - 1/2*t - 3/2],
      [1600, x^4 - 6*x^2 + 4, xF^2 - t - 3],
@@ -651,7 +651,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
     sage: [ f[0] for f in ls ]
     [725, 1125, 1600, 2000, 2225, 2525, 3600, 4225, 4400, 4525, 5125, 5225, 5725, 6125, 7600, 7625, 8000, 8525, 8725, 9225]
 
-    sage: [NumberField(ZZx(_[i][1]), 't').is_galois() for i in range(len(_))]
+    sage: [NumberField(ZZx(x[1]), 't').is_galois() for x in ls]
     [False, True, True, True, False, False, True, True, False, False, False, False, False, True, False, False, True, False, False, False]
 
     Seven out of 18 such fields are Galois (with Galois group Z/4Z

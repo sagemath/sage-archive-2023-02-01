@@ -128,7 +128,7 @@ from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_big_Eis
 cdef object infinity
 from sage.rings.infinity import infinity
 
-cdef long maxordp = (1 << (sizeof(long) * 8 - 2)) -1
+cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) -1
 
 cdef class pAdicZZpXCAElement(pAdicZZpXElement):
     def __init__(self, parent, x, absprec = infinity, relprec = infinity, empty = False):

@@ -169,7 +169,7 @@ from sage.rings.real_double cimport RealDoubleElement
 cdef object infinity
 from sage.rings.infinity import infinity
 
-cdef long maxordp = (1 << (sizeof(long) * 8 - 2)) -1
+cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) -1
 
 cdef class pAdicZZpXCRElement(pAdicZZpXElement):
     def __init__(self, parent, x, absprec = infinity, relprec = infinity, empty = False):

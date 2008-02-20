@@ -818,11 +818,19 @@ class SymbolicEquation(SageObject):
         EXAMPLES:
             sage: (x^(3/5) >= pi^2 + e^i)._maxima_init_()
             '((x) ^ (3/5)) >= (((%pi) ^ (2)) + ((%e) ^ (%i)))'
+            sage: (x == 0)._maxima_init_(assume=True)
+            'equal(x, 0)'
+            sage: (x != 0)._maxima_init_(assume=True)
+            'notequal(x, 0)'
+
         """
         l = self._left._maxima_init_()
         r = self._right._maxima_init_()
-        if assume and self._op == operator.eq:
-            return 'equal(%s, %s)'%(l, r)
+        if assume:
+            if  self._op == operator.eq:
+                return 'equal(%s, %s)'%(l, r)
+            elif self._op == operator.ne:
+                return 'notequal(%s, %s)'%(l, r)
         return '(%s)%s(%s)' % (l, maxima_symbols[self._op], r)
 
     def assume(self):
@@ -844,6 +852,13 @@ class SymbolicEquation(SageObject):
         This may or may not be True, so bool returns False:
             sage: bool(x > 3)
             False
+
+        TESTS:
+            sage: v,c = var('v,c')
+            sage: assume(c != 0)
+            sage: integral((1+v^2/c^2)^3/(1-v^2/c^2)^(3/2),v)
+            -75*sqrt(c^2)*arcsin(sqrt(c^2)*v/c^2)/8 - v^5/(4*c^4*sqrt(1 - v^2/c^2)) - 17*v^3/(8*c^2*sqrt(1 - v^2/c^2)) + 83*v/(8*sqrt(1 - v^2/c^2))
+
         """
         if not self in _assumptions:
             m = self._maxima_init_(assume=True)

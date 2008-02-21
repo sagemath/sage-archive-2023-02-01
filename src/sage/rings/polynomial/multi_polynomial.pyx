@@ -254,11 +254,7 @@ cdef class MPolynomial(CommutativeRingElement):
             z + p
             sage: R = Qp(7)['x,y,z,p']; S = ZZ['x']['y,z,t']['p'] # shouldn't work, but should throw a better error
             sage: R(S.0)
-            BROKEN -- FIX ME
-
-            #Traceback (most recent call last):
-            #...
-            #TypeError: cannot create a p-adic out of <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            p
         """
         from polydict import ETuple
         if not self:

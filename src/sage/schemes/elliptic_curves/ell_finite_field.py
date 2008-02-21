@@ -195,7 +195,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: p + 1 - a_sub_p
             4
             sage: E.points()
-            [(0 : 1 : 0), (4 : 1 : 1), (1 : 0 : 1), (4 : 4 : 1)]
+            [(0 : 1 : 0), (1 : 0 : 1), (4 : 1 : 1), (4 : 4 : 1)]
+
 
             sage: K = GF(p**2,'a')
             sage: E = E.change_ring(K)
@@ -203,18 +204,26 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             32
             sage: (p + 1)**2 - a_sub_p**2
             32
-            sage: E.points()
-            [(0 : 1 : 0), (0 : 2*a + 4 : 1), (0 : 3*a + 1 : 1), (4*a : 0 : 1), (a + 3 : 4*a : 1), (a + 3 : a : 1), (a + 2 : 4*a + 4 : 1), (a + 2 : a + 1 : 1), (a + 4 : 0 : 1), (2 : 2*a + 4 : 1), (2 : 3*a + 1 : 1), (2*a + 4 : 4*a + 4 : 1), (2*a + 4 : a + 1 : 1), (4*a + 4 : a + 4 : 1), (4*a + 4 : 4*a + 1 : 1), (4 : 1 : 1), (4 : 4 : 1), (a : 1 : 1), (a : 4 : 1), (4*a + 3 : a + 3 : 1), (4*a + 3 : 4*a + 2 : 1), (4*a + 1 : 1 : 1), (4*a + 1 : 4 : 1), (3 : 2*a + 4 : 1), (3 : 3*a + 1 : 1), (2*a : 3*a : 1), (2*a : 2*a : 1), (3*a + 1 : a + 3 : 1), (3*a + 1 : 4*a + 2 : 1), (3*a + 2 : 2*a + 3 : 1), (3*a + 2 : 3*a + 2 : 1), (1 : 0 : 1)]
+            sage: w = E.points(); w
+            [(0 : 1 : 0), (0 : 2*a + 4 : 1), (0 : 3*a + 1 : 1), (1 : 0 : 1), (2 : 2*a + 4 : 1), (2 : 3*a + 1 : 1), (3 : 2*a + 4 : 1), (3 : 3*a + 1 : 1), (4 : 1 : 1), (4 : 4 : 1), (a : 1 : 1), (a : 4 : 1), (a + 2 : a + 1 : 1), (a + 2 : 4*a + 4 : 1), (a + 3 : a : 1), (a + 3 : 4*a : 1), (a + 4 : 0 : 1), (2*a : 2*a : 1), (2*a : 3*a : 1), (2*a + 4 : a + 1 : 1), (2*a + 4 : 4*a + 4 : 1), (3*a + 1 : a + 3 : 1), (3*a + 1 : 4*a + 2 : 1), (3*a + 2 : 2*a + 3 : 1), (3*a + 2 : 3*a + 2 : 1), (4*a : 0 : 1), (4*a + 1 : 1 : 1), (4*a + 1 : 4 : 1), (4*a + 3 : a + 3 : 1), (4*a + 3 : 4*a + 2 : 1), (4*a + 4 : a + 4 : 1), (4*a + 4 : 4*a + 1 : 1)]
+
+        Note that the returned list is an immutable sorted Sequence:
+            sage: w[0] = 9
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead.
         """
         try:
             return self.__points
         except AttributeError: pass
 
+        from sage.structure.sequence import Sequence
         if self.base_ring().is_prime_field():
-            self.__points = self._points_via_group_structure() # _points_cache_sqrt
+            v = self._points_via_group_structure()
         else:
-            self.__points = self._points_fast_sqrt()
-
+            v =self._points_fast_sqrt()
+        v.sort()
+        self.__points = Sequence(v, immutable=True)
         return self.__points
 
     def random_element(self):
@@ -727,10 +736,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             (56 : 8 : 1)
             sage: for P in E: print P.order()
             1
-            2
             50
             50
-            25
+            50
+            50
+            5
+            5
+            50
             ...
         """
         return self.points()[n]

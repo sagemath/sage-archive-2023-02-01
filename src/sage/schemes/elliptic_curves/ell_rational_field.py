@@ -10,6 +10,7 @@ AUTHORS:
    -- David Harvey (2007-02): reworked padic-height related code
    -- Christian Wuthrich (2007): added padic sha computation
    -- David Roe (2007-9): moved sha, l-series and p-adic functionality to separate files.
+   -- John Cremona (2008-01)
 """
 
 #*****************************************************************************
@@ -30,6 +31,7 @@ AUTHORS:
 import ell_point
 import formal_group
 import rational_torsion
+from ell_generic import EllipticCurve_generic
 from ell_number_field import EllipticCurve_number_field
 
 import sage.groups.all
@@ -1518,7 +1520,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.real_components ()
             1
         """
-        invs = self.weierstrass_model().ainvs()
+        invs = self.short_weierstrass_model().ainvs()
         x = rings.polygen(self.base_ring())
         f = x**3 + invs[3]*x + invs[4]
         if f.discriminant() > 0:
@@ -1573,19 +1575,26 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
         return sum([a[n]*(F(n,s-1) + eps*F(n,1-s)) for n in xrange(1,prec+1)])
 
-    def weierstrass_model(self):
+    def is_local_integral_model(self,*p):
         r"""
-        Return a model of the form $y^2 = x^3 + a*x + b$ for this curve.
+        Tests if self is integral at the prime $p$, or at all the
+        primes if $p$ is a list or tuple of primes
 
-        More precisely, we have $a = c_4 / (2^4 \cdot 3)$ and
-        $b = -c_6 / (2^5\cdot 3^3)$, where $c_4, c_6$ are the $c$-invariants
-        for a minimal Weierstrass equation for $E$.
-
-        Use \code{self.integral_weierstrass_model()} for a model with
-        $a,b\in\ZZ$.
+        EXAMPLES:
+            sage: E=EllipticCurve([1/2,1/5,1/5,1/5,1/5])
+            sage: [E.is_local_integral_model(p) for p in (2,3,5)]
+            [False, True, False]
+            sage: E.is_local_integral_model(2,3,5)
+            False
+            sage: Eint2=E.local_integral_model(2)
+            sage: Eint2.is_local_integral_model(2)
+            True
         """
-        F = self.minimal_model()
-        return EllipticCurve_number_field.weierstrass_model(F)
+        if len(p)==1: p=p[0]
+        if isinstance(p,(tuple,list)):
+            return misc.forall(p, lambda x : self.is_local_integral_model(x))[0]
+        assert p.is_prime(), "p must be prime in is_local_integral_model()"
+        return misc.forall(self.ainvs(), lambda x : x.valuation(p) >= 0)[0]
 
     def local_integral_model(self,p):
         r"""
@@ -1600,9 +1609,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.local_integral_model(2).local_integral_model(3) == EllipticCurve('5077a1')
             True
         """
+        assert p.is_prime(), "p must be prime in local_integral_model()"
         ai = self.a_invariants()
         e  = min([(ai[i].valuation(p)/[1,2,3,4,6][i]) for i in range(5)]).floor()
         return constructor.EllipticCurve([ai[i]/p**(e*[1,2,3,4,6][i]) for i in range(5)])
+
+    def is_global_integral_model(self):
+        r"""
+        Return true iff self is integral at all primes
+
+        EXAMPLES:
+            sage: E=EllipticCurve([1/2,1/5,1/5,1/5,1/5])
+            sage: E.is_global_integral_model()
+            False
+            sage: Emin=E.global_integral_model()
+            sage: Emin.is_global_integral_model()
+            True
+        """
+        return self.is_integral()
 
     def global_integral_model(self):
         r"""
@@ -1658,19 +1682,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.integral_weierstrass_model()
             Elliptic Curve defined by y^2  = x^3 - 11*x - 890 over Rational Field
         """
-        F = self.minimal_model()
-        a0, a1, a2, a3, a4 = F.ainvs()
-        A = -27*a0**4 - 216*a0**2*a1 + 648*a0*a2 - 432*a1**2 + 1296*a3
-        B = 54*a0**6 + 648*a0**4*a1 - 1944*a0**3*a2 + 2592*a0**2*a1**2 -\
-            3888*a0**2*a3 - 7776*a0*a1*a2 + 3456*a1**3 - \
-            15552*a1*a3 + 11664*a2**2 + 46656*a4
-        while arith.valuation(A,2)>3 and arith.valuation(B,2)>5:
-            A = A/Integer(2**4)
-            B = B/Integer(2**6)
-        while arith.valuation(A,3)>3 and arith.valuation(B,3)>5:
-            A = A/Integer(3**4)
-            B = B/Integer(3**6)
-        assert A.denominator() == 1 and B.denominator() == 1, 'bug in integral_weierstrass_model'
+        F = self.minimal_model().short_weierstrass_model()
+        _,_,_,A,B = F.ainvs()
+        for p in [2,3]:
+            e=min(A.valuation(p)/4,B.valuation(p)/6).floor()
+            A /= Integer(p**(4*e))
+            B /= Integer(p**(6*e))
         return constructor.EllipticCurve([A,B])
 
     def modular_degree(self, algorithm='sympow'):
@@ -2161,10 +2178,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return False, "%s-torsion"%p
 
         if p == 2:
-            invs = self.weierstrass_model().ainvs()
+            # E is isomorphic to  [0,b2,0,8*b4,16*b6]
+            b2,b4,b6,b8=self.b_invariants()
             R = rings.PolynomialRing(self.base_ring(), 'x')
             x = R.gen()
-            f = x**3 + invs[3]*x + invs[4]
+            f = x**3 + b2*x**2 + 8*b4*x + 16*b6
             if not f.is_irreducible():
                 return False, '2-torsion'
             if arith.is_square(f.discriminant()):
@@ -2870,7 +2888,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Return the family of all elliptic curves with the same mod-5
         representation as self.
         """
-        E = self.weierstrass_model()
+        E = self.short_weierstrass_model()
         a = E.a4()
         b = E.a6()
         return mod5family.mod5family(a,b)

@@ -240,15 +240,13 @@ def isomorphisms(E,F,JustOne=False):
 
     if char==2:
         if j==0:
-            ulist=[u[0] for u in (x**3-(a3E/a3F)).roots()]
+            ulist=(x**3-(a3E/a3F)).roots(multiplicities=False)
             ans=[]
             for u in ulist:
-                slist=[s[0] for s in
-                       (x**4+a3E*x+(a2F**2+a4F)*u**4+a2E**2+a4E).roots()]
+                slist=(x**4+a3E*x+(a2F**2+a4F)*u**4+a2E**2+a4E).roots(multiplicities=False)
                 for s in slist:
                     r=s**2+a2E+a2F*u**2
-                    tlist=[t[0] for t in
-                    (x**2 + a3E*x + r**3 + a2E*r**2 + a4E*r + a6E + a6F*u**6).roots()]
+                    tlist= (x**2 + a3E*x + r**3 + a2E*r**2 + a4E*r + a6E + a6F*u**6).roots(multiplicities=False)
                     for t in tlist:
                         if JustOne: return (u,r,s,t)
                         ans.append((u,r,s,t))
@@ -273,12 +271,12 @@ def isomorphisms(E,F,JustOne=False):
 
     if char==3:
         if j==0:
-            ulist=[u[0] for u in (x**4-(b4E/b4F)).roots()]
+            ulist=(x**4-(b4E/b4F)).roots(multiplicities=False)
             ans=[]
             for u in ulist:
                 s=a1E-a1F*u
                 t=a3E-a3F*u**3
-                rlist=[r[0] for r in (x**3-b4E*x+(b6E-b6F*u**6)).roots()]
+                rlist=(x**3-b4E*x+(b6E-b6F*u**6)).roots(multiplicities=False)
                 for r in rlist:
                     if JustOne: return (u,r,s,t+r*a1E)
                     ans.append((u,r,s,t+r*a1E))
@@ -286,7 +284,7 @@ def isomorphisms(E,F,JustOne=False):
             ans.sort()
             return ans
         else:
-            ulist=[u[0] for u in (x**2-(b2E/b2F)).roots()]
+            ulist=(x**2-(b2E/b2F)).roots(multiplicities=False)
             ans=[]
             for u in ulist:
                 r = (b4F*u**4 -b4E)/b2E
@@ -308,7 +306,7 @@ def isomorphisms(E,F,JustOne=False):
         m,um=4,c4E/c4F
     else:
         m,um=2,(c6E*c4F)/(c6F*c4E)
-    ulist=[u[0] for u in (x**m-um).roots()]
+    ulist=(x**m-um).roots(multiplicities=False)
     ans=[]
     for u in ulist:
         s = (a1F*u - a1E)/2

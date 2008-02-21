@@ -21,12 +21,12 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from number_field_ideal import NumberFieldIdeal, convert_from_zk_basis
+from number_field_ideal import NumberFieldFractionalIdeal, convert_from_zk_basis
 
 import sage.rings.rational_field as rational_field
 QQ = rational_field.RationalField()
 
-class NumberFieldIdeal_rel(NumberFieldIdeal):
+class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
     """
     An ideal of a relative number field.
 
@@ -36,7 +36,7 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
         sage: i = K.ideal(38); i
         Fractional ideal (38)
 
-    BIG WARNING: Ideals in relative number fields are broken -- big warning:
+    WARNING: Ideals in relative number fields are broken:
         sage: K.<a> = NumberField([x^2 + 1, x^2 + 2]); K
         Number Field in a0 with defining polynomial x^2 + 1 over its base field
         sage: i = K.ideal([a+1]); i
@@ -166,3 +166,34 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
         raise NotImplementedError
     def valuation(self):
         raise NotImplementedError
+
+def is_NumberFieldFractionalIdeal_rel(x):
+    """
+    Return True if x is a fractional ideal of a relative number field.
+
+    EXAMPLES:
+        sage: is_NumberFieldFractionalIdeal_rel(2/3)
+        False
+        sage: is_NumberFieldFractionalIdeal_rel(ideal(5))
+        False
+        sage: k.<a> = NumberField(x^2 + 2)
+        sage: I = k.ideal([a + 1]); I
+        Fractional ideal (a + 1)
+        sage: is_NumberFieldFractionalIdeal_rel(I)
+        False
+        sage: R.<x> = QQ[]
+        sage: K.<a> = NumberField(x^2+6)
+        sage: L.<b> = K.extension(K['x'].gen()^4 + a)
+        sage: I = L.ideal(b); I
+        Fractional ideal (b)
+        sage: is_NumberFieldFractionalIdeal_rel(I)
+        True
+        sage: N = I.norm(); N
+        Fractional ideal (-a)
+        sage: is_NumberFieldFractionalIdeal_rel(N)
+        False
+        sage: is_NumberFieldFractionalIdeal(N)
+        True
+    """
+    return isinstance(x, NumberFieldFractionalIdeal_rel)
+

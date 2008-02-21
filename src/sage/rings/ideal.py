@@ -159,7 +159,9 @@ class Ideal_generic(MonoidElement):
         if coerce:
             gens = [ring(x) for x in gens]
 
-        self.__gens = tuple(gens)
+        gens = tuple(gens)
+        if len(gens)==0: gens=(ring.zero_element(),)
+        self.__gens = gens
         MonoidElement.__init__(self, ring.ideal_monoid())
 
     def _repr_short(self):
@@ -455,8 +457,6 @@ class Ideal_pid(Ideal_principal):
             raise NotImplementedError
 
 class Ideal_fractional(Ideal_generic):
-    def __init__(self, ring, gen):
-        Ideal_generic.__init__(self, ring, [gen])
     def __repr__(self):
         return "Fractional ideal %s of %s"%(self._repr_short(), self.ring())
 

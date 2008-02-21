@@ -53,6 +53,9 @@ def CrystalOfLetters(type):
     elif type[0] == 'C':
 	return ClassicalCrystalOfLetters(type,
                                          Crystal_of_letters_type_C_element)
+    elif type[0] == 'D':
+	return ClassicalCrystalOfLetters(type,
+                                         Crystal_of_letters_type_D_element)
     else:
 	raise NotImplementedError
 
@@ -366,6 +369,186 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
 	    return  self._parent(-self.value)
         elif self.value == i or self.value == -i-1:
             return self._parent(self.value+1)
+        else:
+            return None
+
+#########################
+# Type D
+#########################
+
+class Crystal_of_letters_type_D_element(Letter, CrystalElement):
+    r"""
+    Type C crystal of letters elements
+
+    TEST:
+    sage: C = CrystalOfLetters (['D',3])
+    sage: C.list()
+    [1, 2, 3, -3, -2, -1]
+
+    """
+    def e(self, i):
+        r"""
+        TEST:
+            sage: C = CrystalOfLetters(['D',4])
+            sage: C(1).e(1) == None
+            True
+            sage: C(1).e(2) == None
+            True
+            sage: C(1).e(3) == None
+            True
+            sage: C(1).e(4) == None
+            True
+            sage: C(2).e(1) == C(1)
+            True
+            sage: C(2).e(2) == None
+            True
+            sage: C(2).e(3) == None
+            True
+            sage: C(2).e(4) == None
+            True
+            sage: C(3).e(1) == None
+            True
+            sage: C(3).e(2) == C(2)
+            True
+            sage: C(3).e(3) == None
+            True
+            sage: C(3).e(4) == None
+            True
+            sage: C(4).e(1) == None
+            True
+            sage: C(4).e(2) == None
+            True
+            sage: C(4).e(3) == C(3)
+            True
+            sage: C(4).e(4) == None
+            True
+            sage: C(-4).e(1) == None
+            True
+            sage: C(-4).e(2) == None
+            True
+            sage: C(-4).e(3) == None
+            True
+            sage: C(-4).e(4) == C(3)
+            True
+            sage: C(-3).e(1) == None
+            True
+            sage: C(-3).e(2) == None
+            True
+            sage: C(-3).e(3) == C(-4)
+            True
+            sage: C(-3).e(4) == C(4)
+            True
+            sage: C(-2).e(1) == None
+            True
+            sage: C(-2).e(2) == C(-3)
+            True
+            sage: C(-2).e(3) == None
+            True
+            sage: C(-2).e(4) == None
+            True
+            sage: C(-1).e(1) == C(-2)
+            True
+            sage: C(-1).e(2) == None
+            True
+            sage: C(-1).e(3) == None
+            True
+            sage: C(-1).e(4) == None
+            True
+        """
+        assert i in self.index_set()
+        if i == self._parent.cartanType.n:
+            if self.value == -i:
+                return self._parent(i-1)
+            elif self.value == -(i-1):
+                return self._parent(i)
+            else:
+                return None
+        elif self.value == i+1:
+            return self._parent(i)
+        elif self.value == -i:
+            return self._parent(-(i+1))
+        else:
+            return None
+
+    def f(self, i):
+        r"""
+        TESTS:
+            sage: C = CrystalOfLetters(['D',4])
+            sage: C(1).f(1) == C(2)
+            True
+            sage: C(1).f(2) == None
+            True
+            sage: C(1).f(3) == None
+            True
+            sage: C(1).f(4) == None
+            True
+            sage: C(2).f(1) == None
+            True
+            sage: C(2).f(2) == C(3)
+            True
+            sage: C(2).f(3) == None
+            True
+            sage: C(2).f(4) == None
+            True
+            sage: C(3).f(1) == None
+            True
+            sage: C(3).f(2) == None
+            True
+            sage: C(3).f(3) == C(4)
+            True
+            sage: C(3).f(4) == C(-4)
+            True
+            sage: C(4).f(1) == None
+            True
+            sage: C(4).f(2) == None
+            True
+            sage: C(4).f(3) == None
+            True
+            sage: C(4).f(4) == C(-3)
+            True
+            sage: C(-4).f(1) == None
+            True
+            sage: C(-4).f(2) == None
+            True
+            sage: C(-4).f(3) == C(-3)
+            True
+            sage: C(-4).f(4) == None
+            True
+            sage: C(-3).f(1) == None
+            True
+            sage: C(-3).f(2) == C(-2)
+            True
+            sage: C(-3).f(3) == None
+            True
+            sage: C(-3).f(4) == None
+            True
+            sage: C(-2).f(1) == C(-1)
+            True
+            sage: C(-2).f(2) == None
+            True
+            sage: C(-2).f(3) == None
+            True
+            sage: C(-2).f(4) == None
+            True
+            sage: C(-1).f(1) == None
+            True
+            sage: C(-1).f(2) == None
+            True
+            sage: C(-1).f(3) == None
+            True
+            sage: C(-1).f(4) == None
+            True
+        """
+        assert i in self.index_set()
+        if i == self.value:
+            if i == self._parent.cartanType.n:
+                return self._parent(-(i-1))
+            else:
+                return self._parent(i+1)
+        elif self.value == -(i+1):
+            return self._parent(-i)
+        elif self.value == self._parent.cartanType.n-1 and i == self.value+1:
+            return self._parent(-i)
         else:
             return None
 

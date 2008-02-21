@@ -66,6 +66,37 @@ from sage.structure.parent_gens cimport ParentWithGens
 import polynomial_fateman
 
 def is_Polynomial(f):
+    """
+    Return True if f is of type univariate polynomial.
+
+    INPUT:
+        f -- an object
+
+    EXAMPLES:
+        sage: R.<x> = ZZ[]
+        sage: is_Polynomial(x^3 + x + 1)
+        True
+        sage: S.<y> = R[]
+        sage: f = y^3 + x*y -3*x; f
+        y^3 + x*y - 3*x
+        sage: is_Polynomial(f)
+        True
+
+    However this function does not return True for genuine multivariate
+    polynomial type objects or symbolic polynomials, since those are not
+    of the same data type as univariate polynomials:
+        sage: R.<x,y> = QQ[]
+        sage: f = y^3 + x*y -3*x; f
+        y^3 + x*y - 3*x
+        sage: is_Polynomial(f)
+        False
+        sage: var('x,y')
+        (x, y)
+        sage: f = y^3 + x*y -3*x; f
+        y^3 + x*y - 3*x
+        sage: is_Polynomial(f)
+        False
+    """
     return PY_TYPE_CHECK(f, Polynomial)
 
 from polynomial_compiled cimport CompiledPolynomialFunction
@@ -836,6 +867,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         AUTHOR:
           -- David Harvey (2006-09-09)
 
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = x^3 + 1
+            sage: f.square()
+            x^6 + 2*x^3 + 1
+            sage: f*f
+            x^6 + 2*x^3 + 1
         """
         return self * self
 
@@ -981,6 +1019,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return generic_power(self, right)
 
     def _repr(self, name=None):
+        """
+        Return the string representation of this polynomial.
+
+        INPUT:
+             name -- None or a string; used for printing the variable.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = x^3 + x + 1
+            sage: f._repr()
+            'x^3 + x + 1'
+            sage: f._repr('theta')
+            'theta^3 + theta + 1'
+            sage: f._repr('sage math')
+            'sage math^3 + sage math + 1'
+        """
         s = " "
         m = self.degree() + 1
         r = reversed(xrange(m))
@@ -1078,12 +1132,44 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
 
     def __setitem__(self, n, value):
+        """
+        Set the n-th coefficient of this polynomial.  This always raises
+        an IndexError, since in Sage polynomials are immutable.
+
+        INPUT:
+            n -- an integer
+            value -- value to set the n-th coefficient to
+
+        OUTPUT:
+            an IndexErros is always raised.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = x^3 + x + 1
+            sage: f[2] = 3
+            Traceback (most recent call last):
+            ...
+            IndexError: polynomials are immutable
+        """
         raise IndexError, "polynomials are immutable"
 
 
     def __floordiv__(self,right):
         """
         Quotient of division of self by other.  This is denoted //.
+
+        If self = quotient * right + remainder, this function returns quotient.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = x^3 + x + 1
+            sage: g = f*(x^2-2) + x
+            sage: g.div(f)
+            x^2 - 2
+            sage: g.__floordiv__(f)
+            x^2 - 2
+            sage: g//f
+            x^2 - 2
         """
         Q, _ = self.quo_rem(right)
         return Q
@@ -1091,6 +1177,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def div(self,right):
         """
         Quotient of division of self by other.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = x^3 + x + 1
+            sage: g = f*(x^2-2) + x
+            sage: g.div(f)
+            x^2 - 2
         """
         Q, _ = self.quo_rem(right)
         return Q
@@ -1349,6 +1442,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Return a dict of coefficent entries suitable for construction of a MPolynomial_polydict
         with the given variables.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: R(0)._mpoly_dict_recursive()
+            {}
+            sage: f = 7*x^5 + x^2 - 2*x - 3
+            sage: f._mpoly_dict_recursive()
+            {(0,): -3, (1,): -2, (2,): 1, (5,): 7}
         """
         if not self:
             return {}
@@ -1480,6 +1581,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return d
 
     def derivative(self):
+        """
+        Return the derivative of this polynomial.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: R(0).derivative()
+            0
+            sage: parent(R(0).derivative())
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: f = 7*x^5 + x^2 - 2*x - 3
+            sage: f.derivative()
+            35*x^4 + 2*x - 2
+        """
         if self.is_zero():
             return self
         cdef Py_ssize_t n, degree = self.degree()
@@ -1489,14 +1603,46 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self.polynomial([n*coeffs[n] for n from 1 <= n <= degree])
 
     def integral(self):
+        """
+        Return the integral of this polynomial.
+
+        NOTE: The integral is always chosen so the constant term is 0.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: R(0).integral()
+            0
+            sage: f = R(2).integral(); f
+            2*x
+
+        Note that since the integral is defined over the same base
+        ring the integral is actually in the base ring.
+            sage: f.parent()
+            Univariate Polynomial Ring in x over Integer Ring
+
+        If the integral isn't defined over the same base ring, then the
+        base ring is extended:
+            sage: f = x^3 + x - 2
+            sage: g = f.integral(); g
+            1/4*x^4 + 1/2*x^2 - 2*x
+            sage: g.parent()
+            Univariate Polynomial Ring in x over Rational Field
+        """
         cdef Py_ssize_t n, degree = self.degree()
         if degree < 0:
             return self.parent()(0)
+
+        coeffs = self.list()
+        v = [0, coeffs[0]] + [coeffs[n]/(n+1) for n from 1 <= n <= degree]
         try:
-            coeffs = self.list()
-            return self.polynomial([0, coeffs[0]] + [coeffs[n]/(n+1) for n from 1 <= n <= degree])
+            return self.polynomial(v)
         except TypeError:
-            raise ArithmeticError, "coefficients of integral cannot be coerced into the base ring"
+            R = self.parent()
+            try:
+                S = R.change_ring(R.base_ring().fraction_field())
+                return S(v)
+            except (TypeError, AttributeError):
+                raise ArithmeticError, "coefficients of integral cannot be coerced into the base ring or its fraction field"
 
 
     def dict(self):
@@ -1901,6 +2047,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return ~(q.leading_coefficient())*q  # make monic  (~ is inverse in python)
 
     def is_constant(self):
+        """
+        Return True if this is a constant polynomial.
+
+        OUTPUT:
+            bool -- True if and only if this polynomial is constant
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: x.is_constant()
+            False
+            sage: R(2).is_constant()
+            True
+            sage: R(0).is_constant()
+            True
+        """
         return self.degree() <= 0
 
     def root_field(self, names, check_irreducible=True):
@@ -1970,6 +2131,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
 
     def constant_coefficient(self):
+        """
+        Return the constant coefficient of this polynomial.
+
+        OUTPUT:
+            elemenet of base ring
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = -2*x^3 + 2*x - 1/3
+            sage: f.constant_coefficient()
+            -1/3
+        """
         return self[0]
 
     def is_monic(self):
@@ -2051,9 +2224,43 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return True
 
     def is_gen(self):
+        r"""
+        Return True if this polynomial is the distinguished generator
+        of the parent polynomial ring.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: R(1).is_gen()
+            False
+            sage: R(x).is_gen()
+            True
+
+        Important -- this function doesn't return True if self equals
+        the generator; it returs True if self \emph{is} the generator.
+            sage: f = R([0,1]); f
+            x
+            sage: f.is_gen()
+            False
+            sage: f is x
+            False
+            sage: f == x
+            True
+        """
         return bool(self._is_gen)
 
     def leading_coefficient(self):
+        """
+        Return the leading coefficient of this polynomial.
+
+        OUTPUT:
+            element of the base ring
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = (-2/5)*x^3 + 2*x - 1/3
+            sage: f.leading_coefficient()
+            -2/5
+        """
         return self[self.degree()]
 
     def monic(self):
@@ -2133,6 +2340,33 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Return a new copy of the list of the underlying
         elements of self.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = (-2/5)*x^3 + 2*x - 1/3
+            sage: v = f.list(); v
+            [-1/3, 2, 0, -2/5]
+
+        Note that v is a list, it is mutable, and each
+        call to the list method returns a new list:
+            sage: type(v)
+            <type 'list'>
+            sage: v[0] = 5
+            sage: f.list()
+            [-1/3, 2, 0, -2/5]
+
+        Here is an example with a generic polynomial ring:
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R[]
+            sage: f = y^3 + x*y -3*x; f
+            y^3 + x*y - 3*x
+            sage: type(f)
+            <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
+            sage: v = f.list(); v
+            [-3*x, x, 0, 1]
+            sage: v[0] = 10
+            sage: f.list()
+            [-3*x, x, 0, 1]
         """
         raise NotImplementedError
 
@@ -2243,6 +2477,30 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return L
 
     def polynomial(self, *args, **kwds):
+        r"""
+        Return a new polynomial in the parent of self.
+
+        This function doesn't have much to do with self except that it
+        is a convenient shortcut to avoid having to write
+        \code{self.parent()(...)}.
+
+
+        INPUT:
+            *args, **kwds -- are passed on exactly as is to the parent
+                             polynomial ring call method.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = 2*x^2 - 3
+            sage: f.polynomial([12,5,7,3])
+            3*x^3 + 7*x^2 + 5*x + 12
+
+        The input list must of course define a polynomial in the parent:
+            sage: f.polynomial([12,5,7,3/2])
+            Traceback (most recent call last):
+            ...
+            TypeError: no coercion of this rational to integer
+        """
         return self._parent(*args, **kwds)
 
     def newton_slopes(self, p):
@@ -2493,6 +2751,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self.parent().base_ring()(res)
 
     def reverse(self):
+        """
+        Return polynomial but with the coefficients reversed.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]; S.<y> = R[]
+            sage: f = y^3 + x*y -3*x; f
+            y^3 + x*y - 3*x
+            sage: f.reverse()
+            (-3*x)*y^3 + x*y^2 + 1
+        """
         v = list(self.list())
         v.reverse()
         return self.parent()(v)
@@ -3157,17 +3425,17 @@ sage: rts[0][0] == rt2
         The valuation at $\infty$ is -self.degree().
 
         EXAMPLES:
-        sage: P,x=PolynomialRing(ZZ,'x').objgen()
-        sage: (x^2+x).valuation()
-        1
-        sage: (x^2+x).valuation(x+1)
-        1
-        sage: (x^2+1).valuation()
-        0
-        sage: (x^3+1).valuation(infinity)
-        -3
-        sage: P(0).valuation()
-        +Infinity
+            sage: P,x=PolynomialRing(ZZ,'x').objgen()
+            sage: (x^2+x).valuation()
+            1
+            sage: (x^2+x).valuation(x+1)
+            1
+            sage: (x^2+1).valuation()
+            0
+            sage: (x^3+1).valuation(infinity)
+            -3
+            sage: P(0).valuation()
+            +Infinity
         """
         cdef int k
 
@@ -3195,16 +3463,28 @@ sage: rts[0][0] == rt2
         raise RuntimeError, "bug in computing valuation of polynomial"
 
     def ord(self, p=None):
-        """Synonym for valuation
+        r"""
+        This is the same as the valuation of self at p.  See the documentation for
+        \code{self.valuation}.
 
         EXAMPLES:
-        sage: P,x=PolynomialRing(ZZ,'x').objgen()
-        sage: (x^2+x).ord(x+1)
-        1
+            sage: P,x=PolynomialRing(ZZ,'x').objgen()
+            sage: (x^2+x).ord(x+1)
+            1
         """
         return self.valuation(p)
 
     def name(self):
+        """
+        Return the string variable name of the indeterminate of this polynomial.
+
+        EXAMPLES:
+            sage: R.<theta> = ZZ[];
+            sage: f = (2-theta)^3; f
+            -theta^3 + 6*theta^2 - 12*theta + 8
+            sage: f.name()
+            'theta'
+        """
         return self.parent().variable_name()
 
     def _xgcd(self, other):
@@ -3251,6 +3531,8 @@ sage: rts[0][0] == rt2
 
     def is_irreducible(self):
         """
+        Return True precisely if this polynomial is irreducible.
+
         EXAMPLES:
             sage: R.<x> = ZZ[]
             sage: (x^3 + 1).is_irreducible()
@@ -3340,6 +3622,17 @@ sage: rts[0][0] == rt2
         r"""
         Returns the polynomial of degree $ < n$ which is equivalent to self
         modulo $x^n$.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]; S.<y> = R[]
+            sage: f = y^3 + x*y -3*x; f
+            y^3 + x*y - 3*x
+            sage: f.truncate(2)
+            x*y - 3*x
+            sage: f.truncate(1)
+            -3*x
+            sage: f.truncate(0)
+            0
         """
         return self._parent(self[:n], check=False)
 

@@ -23,7 +23,7 @@ from sage.rings.integer        import Integer
 from sage.structure.element    import Element
 from sage.combinat.cartan_type import CartanType
 from crystals                  import Crystal, ClassicalCrystal, CrystalElement
-from letters                   import Letter
+from letters                   import Letter, ClassicalCrystalOfLetters
 
 #########################
 # Type B spin
@@ -41,47 +41,23 @@ def CrystalOfSpins(type):
     by positive integers, but their notation can be recovered using
     signature()
 
-    EXAMPLES:
+    TESTS:
 
         sage: C = CrystalOfSpins(['B',3])
         sage: C.list()
-        [1, 2, 3, 4, 5, 6, 7, 8]
+        [1, 2, 3, 5, 4, 6, 7, 8]
 
         sage: [x.signature() for x in C]
-        ['+++', '++-', '+-+', '+--', '-++', '-+-', '--+', '---']
+        ['+++', '++-', '+-+', '-++', '+--', '-+-', '--+', '---']
 
+        sage: len(TensorProductOfCrystals(C,C,generators=[[C(1),C(1)]]).list())
+        35
     """
     type = CartanType(type)
     if type[0] == 'B':
-	return Spin_crystal_type_B(type)
+	return ClassicalCrystalOfLetters(type, Spin_crystal_type_B_element)
     else:
 	raise NotImplementedError
-
-class Spin_crystal_type_B(ClassicalCrystal):
-    r"""
-    Type B spin representation crystal
-
-        TEST:
-            sage: C = CrystalOfSpins(['B',3])
-
-            # Those broke at some point because of plain ints
-            sage: C.module_generators[0].e(1) == None
-            True
-            sage: C.list()[0].e(1) == None
-            True
-
-    """
-    def __init__(self, type):
-        self.cartanType = CartanType(type)
-        self._name = "The spin crystal for type %s"%type
-        self.index_set = self.cartanType.index_set()
-        self.module_generators = [self(Integer(1))]
-
-    def list(self):
-        return [self(Integer(i)) for i in range(1, 1+2**(self.cartanType.n))]
-
-    def __call__(self, value):
-        return Spin_crystal_type_B_element(self, value)
 
 class Spin_crystal_type_B_element(Letter, CrystalElement):
     r"""
@@ -143,7 +119,7 @@ class Spin_crystal_type_B_element(Letter, CrystalElement):
         assert i in self.index_set()
         rank = self._parent.cartanType.n
         if i < rank:
-            if ((self.value-1)/2**(rank-i-1)).floor()%4 == 2:
+            if int((self.value-1)/2**(rank-i-1))%4 == 2:
                 return self._parent(self.value-2**(rank-i-1))
         elif i == rank:
             if (self.value-1)%2 == 1:
@@ -207,7 +183,7 @@ class Spin_crystal_type_B_element(Letter, CrystalElement):
         assert i in self.index_set()
         rank = self._parent.cartanType.n
         if i < rank:
-            if ((self.value-1)/2**(rank-i-1)).floor()%4 == 1:
+            if int((self.value-1)/2**(rank-i-1))%4 == 1:
                 return self._parent(self.value+2**(rank-i-1))
         elif i == rank:
             if (self.value-1)%2 == 0:

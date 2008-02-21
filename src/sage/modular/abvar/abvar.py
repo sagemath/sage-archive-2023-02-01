@@ -23,6 +23,15 @@ from sage.rings.all             import ZZ, QQ
 import homology
 
 def is_ModularAbelianVariety(x):
+    """
+    Return True if x is a modular abelian variety.
+
+    INPUT:
+        x -- object
+
+    EXAMPLES:
+
+    """
     return isinstance(x, ModularAbelianVariety)
 
 class ModularAbelianVariety(SageObject):

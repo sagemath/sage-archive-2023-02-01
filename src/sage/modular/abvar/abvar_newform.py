@@ -1,3 +1,14 @@
 class ModularAbelianVariety_newform(ModularAbelianVariety):
-    def __init__(self):
-        raise NotImplementedError
+    """
+    A modular abelian variety attached to a specific newform.
+    """
+    def __init__(self, f):
+        """
+        Create the modular abelian variety $A_f$ attached to the
+        newform $f$.
+
+        INPUT:
+            f -- a newform
+        """
+        self.__f = f
+

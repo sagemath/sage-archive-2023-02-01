@@ -3229,15 +3229,16 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     PLOT OPTIONS:
     The plot options are
-
         plot_points -- the number of points to initially plot before
                        doing adaptive refinement
         plot_division -- the maximum number of points including those
                        computed during adaptive refinement
         max_bend      -- parameter that affects adaptive refinement
-
         xmin -- starting x value
         xmax -- ending x value
+        color -- an rgb-tuple (r,g,b) with each of r,g,b between 0 and 1, or
+                 a color name as a string (e.g., 'purple'), or an HTML
+                 color such as '#aaff0b'.
 
     APPEARANCE OPTIONS:
     The following options affect the appearance of the line through the points
@@ -3284,6 +3285,11 @@ class PlotFactory(GraphicPrimitiveFactory):
         sage: len(P[0])  # random output
         80
         sage: P          # render
+
+    Some colored functions:
+
+        sage: plot(sin, 0, 10, rgbcolor='#ff00ff')
+        sage: plot(sin, 0, 10, rgbcolor='purple')
 
     We plot several functions together by passing a list
     of functions as input:
@@ -3372,6 +3378,9 @@ class PlotFactory(GraphicPrimitiveFactory):
     def _call(self, funcs, xrange, parametric=False,
               polar=False, label='', **kwds):
         options = dict(self.options)
+        if kwds.has_key('color') and not kwds.has_key('rgbcolor'):
+            kwds['rgbcolor'] = kwds['color']
+            del kwds['color']
         for k, v in kwds.iteritems():
             options[k] = v
 
@@ -3680,17 +3689,71 @@ def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_c
     return g
 
 def to_float_list(v):
+    """
+    Given a list or tuple or iterable v, coerce each element of v to a
+    float and make a list out of the result.
+
+    EXAMPLES:
+        sage: from sage.plot.plot import to_float_list
+        sage: to_float_list([1,1/2,3])
+        [1.0, 0.5, 3.0]
+    """
     return [float(x) for x in v]
 
 def to_mpl_color(c):
-    c = list(c)
-    for i in range(len(c)):
-        s = float(c[i])
-        if s != 1:
-            s = modf(s)[0]
-            if s < 0:
-                s += 1
-        c[i] = s
+    """
+    Convert a tuple or string to a matplotlib rgb color tuple.
+
+    INPUT:
+        c -- string or 3-tuple
+
+    OUTPUT:
+        3-tuple of floats between 0 and 1.
+
+    EXAMPLES:
+        sage: from sage.plot.plot import to_mpl_color
+        sage: to_mpl_color('#fa0')
+        (1.0, 0.66666666666666663, 0.0)
+        sage: to_mpl_color('#ffffe1')
+        (1.0, 1.0, 0.88235294117647056)
+        sage: to_mpl_color('blue')
+        (0.0, 0.0, 1.0)
+        sage: to_mpl_color([1,1/2,1/3])
+        (1.0, 0.5, 0.33333333333333331)
+        sage: to_mpl_color([1,2,255])   # WARNING -- numbers are reduced mod 1!!
+        (1.0, 0.0, 0.0)
+    """
+    if isinstance(c, str):
+        if len(c) > 0 and c[0] == '#':
+            # it is some sort of html like color, e.g, #00ffff or #ab0
+            h = c[1:]
+            if len(h) == 3:
+                h = '%s%s%s%s%s%s'%(h[0],h[0], h[1],h[1], h[2],h[2])
+            elif len(h) != 6:
+                raise ValueError, "color hex string (= '%s') must have length 3 or 6"%h
+            return tuple([eval('0x%s'%h[i:i+2])/float(255) for i in [0,2,4]])
+        else:
+            from texture import colors
+            try:
+                return colors[c]
+            except KeyError:
+                raise ValueError, "unknown color '%s'"%c
+
+    elif isinstance(c, (list, tuple)):
+        c = list(c)
+        if len(c) != 3:
+            raise ValueError, "color tuple must have 3 entries, one for each RGB channel"
+        for i in range(len(c)):
+            s = float(c[i])
+            if s != 1:
+                s = modf(s)[0]
+                if s < 0:
+                    s += 1
+            c[i] = s
+
+    else:
+        raise TypeError, "c must be a list, tuple, or string"
+
     return tuple(c)
 
 def hue(h, s=1, v=1):

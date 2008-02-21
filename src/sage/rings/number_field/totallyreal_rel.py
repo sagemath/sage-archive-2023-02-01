@@ -664,9 +664,9 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
     sage: F.<t> = NumberField(ZZx([1,-4,3,1]))
     sage: F.disc()
     49
-    sage: enumerate_totallyreal_fields_rel(F, 3, 17*10^9)
-    [[16240385609L, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 32-bit
-    [[16240385609, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 64-bit
+    sage: enumerate_totallyreal_fields_rel(F, 3, 17*10^9) # not tested
+    [[16240385609L, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 32 bit
+    [[16240385609, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 64 bit
 
     NOTES:
     We enumerate polynomials

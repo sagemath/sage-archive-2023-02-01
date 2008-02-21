@@ -537,8 +537,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         x = self.fetch('in_echelon_form')
         if not x is None: return  # already known to be in echelon form
         if not self.base_ring().is_field():
-            self._echelon_mod_n ()
-            #raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
+            #self._echelon_mod_n ()
+            raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
 
         self.check_mutability()
         self.clear_cache()
@@ -680,60 +680,64 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return g
 
 
-    def _echelon_mod_n (self):
-        """
-        Put self in Hermite normal form modulo n
-        (echelonize the matrix over a ring $Z_n$)
+## This is code by Me and/or Clement Pernet from SD7.  Unfortunately I
+## think it is still buggy, since it is so painful to implement with
+## unsigned ints. Code to do basically the same thing is in
+## matrix_integer_dense, by Erocal Burcin.
+##     def _echelon_mod_n (self):
+##         """
+##         Put self in Hermite normal form modulo n
+##         (echelonize the matrix over a ring $Z_n$)
 
-        INPUT:
-            self: a mutable matrix over $Z_n$
-        OUTPUT:
-            Transform in place the working matrix into its Hermite
-            normal form over Z, using the modulo n algorithm of
-            [Hermite Normal form computation using modulo determinant arithmetic,
-            Domich Kannan & Trotter, 1987]
-        """
-        self.check_mutability()
-        self.clear_cache()
+##         INPUT:
+##             self: a mutable matrix over $Z_n$
+##         OUTPUT:
+##             Transform in place the working matrix into its Hermite
+##             normal form over Z, using the modulo n algorithm of
+##             [Hermite Normal form computation using modulo determinant arithmetic,
+##             Domich Kannan & Trotter, 1987]
+##         """
+##         self.check_mutability()
+##         self.clear_cache()
 
-        cdef Py_ssize_t start_row, nr, nc,
-        cdef long c, r, i
-        cdef mod_int p, a, a_inverse, b, g
-        cdef mod_int **m
-        cdef Py_ssize_t start_row = 0
-        p = self.p
-        m = self._matrix
-        nr = self._nrows
-        nc = self._ncols
-        pivots = []
-        cdef Py_ssize_t fifth = self._ncols / 10 + 1
-        do_verb = (get_verbose() >= 2)
-        for c from 0 <= c < nc:
-            if do_verb and (c % fifth == 0 and c>0):
-                tm = verbose('on column %s of %s'%(c, self._ncols),
-                             level = 2,
-                             caller_name = 'matrix_modn_dense echelon mod n')
+##         cdef Py_ssize_t start_row, nr, nc,
+##         cdef long c, r, i
+##         cdef mod_int p, a, a_inverse, b, g
+##         cdef mod_int **m
+##         cdef Py_ssize_t start_row = 0
+##         p = self.p
+##         m = self._matrix
+##         nr = self._nrows
+##         nc = self._ncols
+##         pivots = []
+##         cdef Py_ssize_t fifth = self._ncols / 10 + 1
+##         do_verb = (get_verbose() >= 2)
+##         for c from 0 <= c < nc:
+##             if do_verb and (c % fifth == 0 and c>0):
+##                 tm = verbose('on column %s of %s'%(c, self._ncols),
+##                              level = 2,
+##                              caller_name = 'matrix_modn_dense echelon mod n')
 
-            if PyErr_CheckSignals(): raise KeyboardInterrupt
-            for r from start_row <= r < nr:
-                a = m[r][c]
-                if a:
-                    self.swap_rows_c(r, start_row)
-                    for i from start_row +1 <= i < nr:
-                        b = m[i][c]
+##             if PyErr_CheckSignals(): raise KeyboardInterrupt
+##             for r from start_row <= r < nr:
+##                 a = m[r][c]
+##                 if a:
+##                     self.swap_rows_c(r, start_row)
+##                     for i from start_row +1 <= i < nr:
+##                         b = m[i][c]
 
-                        if b != 0:
-                            self.xgcd_eliminate (self._matrix[start_row], self._matrix[i], c)
-                            verbose('eliminating rows %s and %s', (start_row,i))
-                    for i from 0 <= i <start_row:
-                        p = -m[i][c]//m[start_row][c]
-                        self._add_multiple_of_row_c(i, start_row, p, c)
+##                         if b != 0:
+##                             self.xgcd_eliminate (self._matrix[start_row], self._matrix[i], c)
+##                             verbose('eliminating rows %s and %s', (start_row,i))
+##                     for i from 0 <= i <start_row:
+##                         p = -m[i][c]//m[start_row][c]
+##                         self._add_multiple_of_row_c(i, start_row, p, c)
 
-                    pivots.append(m[start_row][c])
-                    start_row = start_row + 1
-                    break
-        self.cache('pivots',pivots)
-        self.cache('in_echelon_form',True)
+##                     pivots.append(m[start_row][c])
+##                     start_row = start_row + 1
+##                     break
+##         self.cache('pivots',pivots)
+##         self.cache('in_echelon_form',True)
 
 
     cdef rescale_row_c(self, Py_ssize_t row, multiple, Py_ssize_t start_col):

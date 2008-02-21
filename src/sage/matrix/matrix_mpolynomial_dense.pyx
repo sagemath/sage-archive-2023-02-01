@@ -45,19 +45,22 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
     Dense matrix over a multivariate polynomial ring over a field.
     """
 
-    def echelon_form(self, algorithm="default", **kwds):
+    def echelon_form(self, algorithm="row_reduction", **kwds):
         """
-        Return a  echelon form of self depending on chosen algorithm.
+        Return an echelon form of self depending on chosen algorithm.
+
+        By default only a usual row reduction with no divisions or
+        column swaps is returned.
 
         If Gauss-Bareiss algorithm is chosen, column swaps are
         recorded and can be retrieved via E.swapped_columns().
 
         INPUT:
-            algorithm -- string, which algorithm to use (default: 'default')
-                         'default' -- reduced echelon form over fraction field
+            algorithm -- string, which algorithm to use (default: 'row_reduction')
+                         'row_reduction' (default) -- reduce as far as possible, only divide
+                                   by constant entries
+                         'frac' -- reduced echelon form over fraction field
                          'bareiss' -- fraction free Gauss-Bareiss algorithm with column swaps
-                         'row_reduction' -- reduce as far as possible, only divide by constant
-                                            entries
 
         OUTPUT:
             matrix -- A row echelon form of A depending on the
@@ -73,21 +76,24 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             [1 y]
 
 
-            The default behavior is to compute the reduced row echelon
-            form over the fraction field.
+            sage: A.echelon_form()
+            [     1      x]
+            [     0 -x + y]
 
-            sage: A.echelon_form() # over fraction field
+
+        The reduced row echelon form over the fraction field is as follows:
+            sage: A.echelon_form('frac') # over fraction field
             [1 0]
             [0 1]
 
-            Alternatively, the Gauss-Bareiss algorithm may be chosen.
+        Alternatively, the Gauss-Bareiss algorithm may be chosen.
 
             sage: E = A.echelon_form('bareiss'); E
             [    1     y]
             [    0 x - y]
 
-            After the application of the Gauss-Bareiss algorithm the
-            swapped columns may inspected.
+        After the application of the Gauss-Bareiss algorithm the
+        swapped columns may inspected.
 
             sage: E.swapped_columns(), E.pivots()
             ([0, 1], [0, 1])
@@ -105,17 +111,17 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         x = self.fetch('echelon_form_'+algorithm)
         if x is not None: return x
 
-        if  algorithm == "default":
+        if  algorithm == "frac":
             E = self.matrix_over_field()
+            E.echelonize(**kwds)
         else:
             E = self.copy()
-
-        E.echelonize(algorithm=algorithm, **kwds)
+            E.echelonize(algorithm=algorithm, **kwds)
 
         E.set_immutable()  # so we can cache the echelon form.
         self.cache('echelon_form_'+algorithm, E)
 
-        if algorithm == "default":
+        if algorithm == "frac":
             self.cache('pivots', E.pivots())
         elif algorithm == "bareiss":
             l = E.swapped_columns()
@@ -125,7 +131,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
         return E
 
-    def echelonize(self, algorithm="bareiss", **kwds):
+    def echelonize(self, algorithm="row_reduction", **kwds):
         r"""
         Transform self into a matrix in echelon form over the same
         base ring as self.
@@ -134,10 +140,11 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         recorded and can be retrieved via self.swapped_columns().
 
         INPUT:
-            algorithm -- string, which algorithm to use (default: 'bareiss')
-                   'bareiss' -- fraction free Gauss-Bareiss algorithm with column swaps
+            algorithm -- string, which algorithm to use (default: 'row_reduction')
                    'row_reduction' -- reduce as far as possible,
                                       only divide by constant entries
+                   'bareiss' -- fraction free Gauss-Bareiss algorithm with column swaps
+
         EXAMPLES:
             sage: P.<x,y> = MPolynomialRing(QQ,2)
             sage: A = matrix(P,2,2,[1/2,x,1,3/4*y+1])
@@ -145,7 +152,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             [      1/2         x]
             [        1 3/4*y + 1]
 
-            sage: B = A.copy(); B.echelonize(); B
+            sage: B = A.copy(); B.echelonize('bareiss'); B
             [              1       3/4*y + 1]
             [              0 x - 3/8*y - 1/2]
 

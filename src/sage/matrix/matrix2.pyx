@@ -2171,6 +2171,42 @@ cdef class Matrix(matrix1.Matrix):
     #####################################################################################
     # Generic Echelon Form
     ###################################################################################
+
+    def _echelonize_ring(self, **kwds):
+        """
+        Echelonize self in place, where the base ring of self is assumed
+        to be a ring (not a field).
+
+        Right now this *only* works over ZZ; otherwise a
+        NotImplementedError is raised.  In the special case of sparse
+        matrices over ZZ it makes them dense, gets the echelon form of
+        the dense matrix, then sets self equal to the result.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 3, 4, [1..12], sparse=True); a
+            [ 1  2  3  4]
+            [ 5  6  7  8]
+            [ 9 10 11 12]
+            sage: a._echelonize_ring()
+            sage: a
+            [ 1  2  3  4]
+            [ 0  4  8 12]
+            [ 0  0  0  0]
+
+        """
+        self.check_mutability()
+        cdef Matrix d
+        if self._base_ring == ZZ:
+            d = self.dense_matrix().echelon_form(**kwds)
+            for c from 0 <= c < self.ncols():
+                for r from 0 <= r < self.nrows():
+                    self.set_unsafe(r, c, d.get_unsafe(r,c))
+            self.clear_cache()
+            self.cache('pivots', d.pivots())
+            return
+        else:
+            raise NotImplementedError, "echelon form over %s not yet implementd"%self.base_ring()
+
     def echelonize(self, algorithm="default", cutoff=0, **kwds):
         r"""
         Transform self into a matrix in echelon form over the same
@@ -2182,7 +2218,7 @@ cdef class Matrix(matrix1.Matrix):
                    'strassen' -- use a Strassen divide and conquer algorithm (if available)
             cutoff -- integer; only used if the Strassen algorithm is selected.
 
-        EXAMPLES:
+       EXAMPLES:
             sage: a = matrix(QQ,3,range(9)); a
             [0 1 2]
             [3 4 5]
@@ -2214,17 +2250,16 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  1  2]
             [ 0  0  0]
 
-        As the echelon form is not defined for any integral domain, we
-        compute it over the fraction field instead.
+        We compute an echelon form both over a domain and fraction field:
 
             sage: R.<x,y> = QQ[]
             sage: a = matrix(R, 2, [x,y,x,y])
-            sage: a.echelon_form()
-            [  1 y/x]
-            [  0   0]
+            sage: a.echelon_form()               # not very useful? -- why two copies of the same row?
+            [x y]
+            [x y]
 
             sage: b = a.change_ring(R.fraction_field())
-            sage: b.echelon_form()
+            sage: b.echelon_form()               # potentially useful
             [  1 y/x]
             [  0   0]
 
@@ -2250,18 +2285,22 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  0  0]
         """
         self.check_mutability()
+
         if algorithm == 'default':
             if self._will_use_strassen_echelon():
                 algorithm = 'strassen'
             else:
                 algorithm = 'classical'
         try:
-            if algorithm == 'classical':
-                self._echelon_in_place_classical()
-            elif algorithm == 'strassen':
-                self._echelon_strassen(cutoff)
+            if self.base_ring().is_field():
+                if algorithm == 'classical':
+                    self._echelon_in_place_classical()
+                elif algorithm == 'strassen':
+                    self._echelon_strassen(cutoff)
+                else:
+                    raise ValueError, "Unknown algorithm '%s'"%algorithm
             else:
-                raise ValueError, "Unknown algorithm '%s'"%algorithm
+                self._echelonize_ring()
         except ArithmeticError, msg:
             raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
 
@@ -2291,14 +2330,7 @@ cdef class Matrix(matrix1.Matrix):
         x = self.fetch('echelon_form')
         if not x is None:
             return x
-        R = self.base_ring()
-        if not (R == ZZ or R.is_field()):
-            try:
-                E = self.matrix_over_field()
-            except TypeError:
-                raise NotImplementedError, "Echelon form not implemented over '%s'."%R
-        else:
-            E = self.copy()
+        E = self.copy()
         if algorithm == 'default':
             E.echelonize(cutoff=cutoff)
         else:
@@ -2344,20 +2376,7 @@ cdef class Matrix(matrix1.Matrix):
 
         nr = self._nrows
         nc = self._ncols
-
-        if not self._base_ring.is_field():
-            if self._base_ring == ZZ:
-                d = self.dense_matrix().echelon_form()
-                for c from 0 <= c < nc:
-                    for r from 0 <= r < nr:
-                        self.set_unsafe(r, c, d.get_unsafe(r,c))
-                self.clear_cache()
-                self.cache('pivots', d.pivots())
-                return
-            else:
-                A = self.matrix_over_field()
-        else:
-            A = self
+        A = self
 
         start_row = 0
         pivots = []

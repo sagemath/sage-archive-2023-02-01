@@ -52,7 +52,7 @@ class SageTimeit:
         Sage where commands often call out to other subprocesses that don't appear
         in CPU time.
             sage: timeit('sleep(0.5)', number=3)
-            3 loops, best of 3: 500 ms per loop
+            3 loops, best of 3: ... ms per loop
         """
         if globs is None:
             globs = globals()

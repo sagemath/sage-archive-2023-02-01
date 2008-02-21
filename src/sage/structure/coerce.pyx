@@ -482,7 +482,7 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
         return ok
 
     cdef discover_action_c(self, R, S, op):
-#        print "looking", R, <int>R, op, S, <int>S
+#        print "looking", R, <int><void *>R, op, S, <int><void *>S
 
         if PY_TYPE_CHECK(S, Parent):
             action = (<Parent>S).get_action_c(R, op, False)
@@ -542,15 +542,19 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             elif PY_TYPE_CHECK(S, Parent):
                 K = S
             else:
-                K = py_scalar_parent(S)
+                # python scalar case handled recursively above
+                K = None
 
             if K is not None:
                 action = self.get_action_c(R, K, mul)
                 if action is not None and action.actor() is K:
-                    action = ~action
-                    if K is not S:
-                        action = PrecomposedAction(action, None, K.coerce_map_from(S))
-                    return action
+                    try:
+                        action = ~action
+                        if K is not S:
+                            action = PrecomposedAction(action, None, K.coerce_map_from(S))
+                        return action
+                    except TypeError: # action may not be invertible
+                        pass
 
 #        if op is operator.mul:
 #            from sage.rings.integer_ring import ZZ

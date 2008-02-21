@@ -2221,25 +2221,46 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         sage: W.<w> = R.ext(f)
         sage: z = 1 + w^2 + 4*w^7; z
         1 + w^2 + 4*w^7 + O(w^20)
-        sage: z.log()
+
+        Log is actually not implemented completely yet in this case!
+        sage: z.log()   # not tested -- what we wish would happen
         4*w^2 + 3*w^4 + w^6 + w^7 + w^8 + 4*w^9 + 3*w^10 + w^12 + w^13 + 3*w^14 + w^15 + 4*w^16 + 4*w^17 + 3*w^18 + 3*w^19 + O(w^20)
+        sage: z.log()   # what does happen
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: log is not quite working yet
+
 
         Check that log is multiplicative:
         sage: y = 1 + 3*w^4 + w^5
-        sage: y.log() + z.log() - (y*z).log()
+        sage: y.log() + z.log() - (y*z).log()  # not tested -- what we wish would happen
         O(w^20)
+        sage: y.log() + z.log() - (y*z).log()  # what does happen
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: log is not quite working yet
+
+
 
         Now an unramified example.
         sage: g = x^3 + 3*x + 3
         sage: A.<a> = R.ext(g)
         sage: b = 1 + 5*(1 + a^2) + 5^3*(3 + 2*a)
-        sage: b.log()
+        sage: b.log()          # not tested -- what should happen
         (4*a^2 + 4)*5 + (a^2 + a + 2)*5^2 + (a^2 + 2*a + 4)*5^3 + (a^2 + 2*a + 2)*5^4 + O(5^5)
+        sage: b.log()          # what does happen
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: log is not quite working yet
 
         Check that log is multiplicative:
         sage: c = 3 + 5^2*(2 + 4*a)
-        sage: b.log() + c.log() - (b*c).log()
+        sage: b.log() + c.log() - (b*c).log()   # not tested -- what should happen
         O(5^5)
+        sage: b.log() + c.log() - (b*c).log()   # what *actually* does happen
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: log is not quite working yet
 
         AUTHORS:
             -- David Roe: initial version

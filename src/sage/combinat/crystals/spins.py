@@ -31,7 +31,12 @@ from letters                   import Letter, ClassicalCrystalOfLetters
 
 def CrystalOfSpins(type):
     r"""
-    Return the spin crystal of the given type
+    Return the spin crystal of the given type (B or D).
+
+    For classical type B or D, this is a combinatorial model for the
+    crystal with highest weight Lambda_n (the n-th fundamental
+    weight). See also CrystalOfLetters.
+
 
     INPUT:
         T -- A CartanType (either B or D)

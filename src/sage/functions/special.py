@@ -511,7 +511,7 @@ def bessel_J(nu,z,algorithm="pari",prec=53):
         sage: n(bessel_J(3,10,"pari"))
         0.0583793793051...
         sage: bessel_J(3,10,"scipy")
-        0.0583793793052000 - ...e-17*I
+        0.0583793793052...
 
 
     """

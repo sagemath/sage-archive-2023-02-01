@@ -26,7 +26,19 @@ from sage.misc.flatten         import flatten
 
 def CrystalOfLetters(type):
     r"""
-    Return the crystal of letters of the given type
+    Returns the crystal of letters of the given type.
+
+    For classical types, this is a combinatorial model for the crystal
+    with highest weight Lambda_1 (the first fundamental weight).
+
+    Any irreducible classical crystal appears as irreducible component
+    of the tensor product of several copies of this crystal (plus
+    possibly one copy of the spin crystal, see CrystalOfSpins).
+    Elements of this irreducible component have a fixed shape, and can
+    be fit inside a tableau shape. Otherwise said, any irreducible
+    classical crystal is a crystal of tableaux with cells filled by
+    elements of the crystal of letters (possibly tensored with one
+    crystal of spins).
 
     INPUT:
         T -- A CartanType
@@ -61,7 +73,7 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
     r"""
     A generic class for classical crystals of letters.
 
-    All classical crystals of letters should be instance of this class
+    All classical crystals of letters should be instances of this class
     or of subclasses. To define a new crystal of letters, one only
     need to implement a class for the elements (which subclasses
     Letter and CrystalElement), with appropriate e and f
@@ -69,10 +81,10 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
     subclass ClassicalCrystalOfLetters for the crystal itself.
 
     The basic assumption is that crystals of letters are small, but
-    used intensivelly as building blocks. All other operations (list,
-    comparison, ...) can be derived automatically in the brute force
-    way, with appropriate caching).
-
+    used intensivelly as building blocks. Therefore, we explicitly
+    build in memory the list of all elements, the crystal graph and
+    its transitive closure, so as to make the following operations
+    constant time: list, cmp, (todo: phi, epsilon, e, f with caching)
     """
     def __init__(self, type, element_class):
         self.cartanType = CartanType(type)
@@ -97,6 +109,13 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
         return self._digraph
 
     def cmp_elements(self, x,y):
+        r"""
+        The crystal being classical, it is an acyclic digraph
+        which can be interpreted as a poset. This implements the
+        comparison function of this poset.
+
+        Returns whether there is a path from x to y in the crystal graph
+        """
         assert x.parent() == self and y.parent() == self;
         if   self._digraph_closure.has_edge(x,y):
             return -1;

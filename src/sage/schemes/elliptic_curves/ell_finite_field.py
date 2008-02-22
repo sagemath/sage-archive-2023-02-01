@@ -372,8 +372,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                             factor of the order is found.
 
             extension_degree -- int (default: 1); if the base field is
-                            k=GF(p^n) and extension_degree=d, returns
-                            the cardinality of E(GF(p^{n d})).
+                            $k=GF(p^n)$ and extension_degree=d, returns
+                            the cardinality of $E(GF(p^{n d}))$.
 
         OUTPUT: an integer
 

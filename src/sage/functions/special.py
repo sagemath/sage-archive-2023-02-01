@@ -318,7 +318,7 @@ AUTHORS:
     David Joyner and William Stein
 
 Added 16-02-2008 (wdj): optional calls to scipy and replace all
-"#random" by "..." (both at the request of William Stein)
+"\#random" by "..." (both at the request of William Stein)
 
 WARNING:
    SciPy's versions are poorly documented and seem less

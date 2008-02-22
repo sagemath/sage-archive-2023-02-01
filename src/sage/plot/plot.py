@@ -3238,7 +3238,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         xmax -- ending x value
         color -- an rgb-tuple (r,g,b) with each of r,g,b between 0 and 1, or
                  a color name as a string (e.g., 'purple'), or an HTML
-                 color such as '#aaff0b'.
+                 color such as '\#aaff0b'.
 
     APPEARANCE OPTIONS:
     The following options affect the appearance of the line through the points

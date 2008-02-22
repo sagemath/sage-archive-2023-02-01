@@ -1342,7 +1342,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             3. Check max_dets random dets of submatrices to see if their
                gcd (with p) is 1 -- if so matrix is saturated and we're done.
             4. Finally, use that if A is a matrix of full rank, then
-                   hnf(transpose(A))^(-1)*A
+                   $hnf(transpose(A))^(-1)*A$
                is a saturation of A.
 
         EXAMPLES:

@@ -212,35 +212,35 @@ Oren Patashnik in their book Concrete Mathematics.
 Methods implemented:
     * chebyshev_T (n, x) - the Chebyshev polynomial of the first kind
       for integers n > -1.
-      REFERENCE: A\&S 22.5.31 page 778 and A\&S 6.1.22 page 256.
+      REFERENCE: A\\&S 22.5.31 page 778 and A\\&S 6.1.22 page 256.
     * chebyshev_U (n, x) - the Chebyshev polynomial of the second kind
       for integers n > -1.
-      REFERENCE: A\&S, 22.8.3 page 783  and A\&S 6.1.22 page 256.
+      REFERENCE: A\\&S, 22.8.3 page 783  and A\\&S 6.1.22 page 256.
     * gen_laguerre (n, a, x) - the generalized Laguerre polynomial
       for integers n > -1.
-      REFERENCE: table on page 789 in A\&S.
+      REFERENCE: table on page 789 in A\\&S.
     * gen_legendre_P (n, x) - the associated (or generalized) Legendre
       function of the first kind for integers n > -1.
     * gen_legendre_Q (n, x) - the associated (or generalized) Legendre
       function of the second kind for integers n > -1.
       REFERENCE: Gradshteyn and Ryzhik 8.706 page 1000.
     * hermite (n,x) - the Hermite polynomial for integers n > -1.
-      REFERENCE: A\&S 22.5.40 and 22.5.41, page 779.
+      REFERENCE: A\\&S 22.5.40 and 22.5.41, page 779.
     * jacobi_P (n, a, b, x) - the Jacobi polynomial for integers n > -1
       and a and b symbolic or a > -1 and b > -1.
-      REFERENCE: table on page 789 in A\&S.
+      REFERENCE: table on page 789 in A\\&S.
     * laguerre (n, x) - the generalized Laguerre polynomial
       for integers n > -1.
-      REFERENCE: A\&S 22.5.16, page 778 and A\&S page 789.
+      REFERENCE: A\\&S 22.5.16, page 778 and A\\&S page 789.
     * legendre_P (n, x) - the Legendre polynomial of the first
       kind for integers n > -1.
-      REFERENCE: A\&S 22.5.35 page 779.
+      REFERENCE: A\\&S 22.5.35 page 779.
     * legendre_Q (n, x) - the Legendre function of the second
       kind for integers n > -1.
     * ultraspherical (n,a,x) - the ultraspherical polynomials for
       integers n > -1. The ultraspherical polynomials are also
       known as Gegenbauer polynomials.
-      REFERENCE: A\&S 22.5.27
+      REFERENCE: A\\&S 22.5.27
 
 NOTE:
    The first call of any of these will usually cost a bit extra

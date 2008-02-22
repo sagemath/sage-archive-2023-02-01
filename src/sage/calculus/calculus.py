@@ -2969,7 +2969,7 @@ class SymbolicExpression(RingElement):
             sage: f.find_maximum_on_interval(0,5)
             (0.5610963381910451, 0.8603335890...)
             sage: f.find_maximum_on_interval(0,5, tol=0.1, maxfun=10)
-            (0.56109032345808163, 0.857926501456)
+            (0.561090323458081..., 0.857926501456)
         """
         minval, x = (-self).find_minimum_on_interval(a, b, var=var, tol=tol, maxfun=maxfun)
         return -minval, x

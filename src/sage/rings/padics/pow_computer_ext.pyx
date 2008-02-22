@@ -610,7 +610,7 @@ cdef class PowComputer_ext(PowComputer_class):
         it stores the result in self.temp_z and returns a pointer
         to that ZZ_c.  So if you try to use the results of two
         calls at once, things will break.
-        sage: PC._pow_ZZ_tmp_demo(6, 8)
+        sage: PC._pow_ZZ_tmp_demo(6, 8)  # 244140625 on some architectures and 152587890625 on others: random
         244140625
         sage: 5^6*5^8
         6103515625

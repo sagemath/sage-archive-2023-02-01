@@ -36,9 +36,9 @@ def CrystalOfLetters(type):
     possibly one copy of the spin crystal, see CrystalOfSpins).
     Elements of this irreducible component have a fixed shape, and can
     be fit inside a tableau shape. Otherwise said, any irreducible
-    classical crystal is a crystal of tableaux with cells filled by
-    elements of the crystal of letters (possibly tensored with one
-    crystal of spins).
+    classical crystal is isomorphic to a crystal of tableaux with
+    cells filled by elements of the crystal of letters (possibly
+    tensored with the crystal of spins).
 
     INPUT:
         T -- A CartanType

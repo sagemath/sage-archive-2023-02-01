@@ -2616,10 +2616,8 @@ class NumberField_generic(number_field_base.NumberField):
             [True, True, True]
             sage: [pi.valuation(P) for pi,P in zip(pilist,Plist)]
             [1, 1, 1]
-            sage: [Plist[i]==K.ideal(pilist[i]) for i in range(len(Plist))]
-            [True, False, True]
-
-
+            sage: [ pilist[i] in Plist[i] for i in range(len(Plist)) ]
+            [True, True, True]
         """
         if not is_NumberFieldIdeal(P):
             P = self.ideal(P)

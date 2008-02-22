@@ -864,9 +864,11 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
 
         EXAMPLES:
             sage: K.<w> = NumberField(x^2 + 23)
-            sage: I = ideal(w*23^5)
+            sage: I = ideal(w+1)
             sage: I.prime_factors()
-            [Fractional ideal (-w)]
+            [Fractional ideal (2, 1/2*w - 1/2),
+            Fractional ideal (2, 1/2*w + 1/2),
+            Fractional ideal (3, -1/2*w - 1/2)]
         """
         return [x[0] for x in self.factor()]
 

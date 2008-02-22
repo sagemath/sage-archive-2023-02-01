@@ -2173,12 +2173,12 @@ cdef class Matrix(matrix1.Matrix):
     ###################################################################################
 
     def _echelonize_ring(self, **kwds):
-        """
+        r"""
         Echelonize self in place, where the base ring of self is assumed
         to be a ring (not a field).
 
         Right now this *only* works over ZZ; otherwise a
-        NotImplementedError is raised.  In the special case of sparse
+        \code{NotImplementedError} is raised.  In the special case of sparse
         matrices over ZZ it makes them dense, gets the echelon form of
         the dense matrix, then sets self equal to the result.
 

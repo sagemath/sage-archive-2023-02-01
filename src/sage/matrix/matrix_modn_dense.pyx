@@ -680,10 +680,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return g
 
 
-## This is code by Me and/or Clement Pernet from SD7.  Unfortunately I
+## This is code by William Stein and/or Clement Pernet from SD7. Unfortunately I (W.S.)
 ## think it is still buggy, since it is so painful to implement with
 ## unsigned ints. Code to do basically the same thing is in
-## matrix_integer_dense, by Erocal Burcin.
+## matrix_integer_dense, by Burcin Erocal.
 ##     def _echelon_mod_n (self):
 ##         """
 ##         Put self in Hermite normal form modulo n

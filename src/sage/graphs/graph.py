@@ -2203,10 +2203,20 @@ class GenericGraph(SageObject):
                 lengths[v] = len(paths[v]) - 1
             return lengths
 
-    def shortest_path_all_pairs(self):
+    def shortest_path_all_pairs(self, by_weight=True, default_weight=1):
         """
-        Uses the Floyd-Warshall algorithm to find a shortest path for each
-        pair of vertices.
+        Uses the Floyd-Warshall algorithm to find a shortest weighted
+        path for each pair of vertices.
+
+        The weights (labels) on the vertices can be anything that can
+        be compared and can be summed.
+
+        INPUT:
+
+            by_weight -- If False, figure distances by the numbers of edges.
+
+            default_weight -- (defaults to 1) The default weight to
+            assign edges that don't have a weight (i.e., a label).
 
         OUTPUT:
             A tuple (dist, pred). They are both dicts of dicts. The first
@@ -2228,6 +2238,44 @@ class GenericGraph(SageObject):
         So for example the shortest weighted path from 0 to 3 is obtained as
         follows. The predecessor of 3 is pred[0][3] == 2, the predecessor of 2
         is pred[0][2] == 1, and the predecessor of 1 is pred[0][1] == 0.
+
+
+            sage: G = Graph( { 0: {1:None}, 1: {2:None}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} } )
+            sage: G.shortest_path_all_pairs(by_weight=False)
+            ({0: {0: 0, 1: 1, 2: 2, 3: 2, 4: 1},
+            1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 2},
+            2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 2},
+            3: {0: 2, 1: 2, 2: 1, 3: 0, 4: 1},
+            4: {0: 1, 1: 2, 2: 2, 3: 1, 4: 0}},
+            {0: {0: None, 1: 0, 2: 1, 3: 4, 4: 0},
+            1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0},
+            2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3},
+            3: {0: 4, 1: 2, 2: 3, 3: None, 4: 3},
+            4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
+            sage: G.shortest_path_all_pairs()
+            ({0: {0: 0, 1: 1, 2: 2, 3: 3, 4: 2},
+            1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 3},
+            2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 3},
+            3: {0: 3, 1: 2, 2: 1, 3: 0, 4: 2},
+            4: {0: 2, 1: 3, 2: 3, 3: 2, 4: 0}},
+            {0: {0: None, 1: 0, 2: 1, 3: 2, 4: 0},
+            1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0},
+            2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3},
+            3: {0: 1, 1: 2, 2: 3, 3: None, 4: 3},
+            4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
+            sage: G.shortest_path_all_pairs(default_weight=200)
+            ({0: {0: 0, 1: 200, 2: 5, 3: 4, 4: 2},
+            1: {0: 200, 1: 0, 2: 200, 3: 201, 4: 202},
+            2: {0: 5, 1: 200, 2: 0, 3: 1, 4: 3},
+            3: {0: 4, 1: 201, 2: 1, 3: 0, 4: 2},
+            4: {0: 2, 1: 202, 2: 3, 3: 2, 4: 0}},
+            {0: {0: None, 1: 0, 2: 3, 3: 4, 4: 0},
+            1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0},
+            2: {0: 4, 1: 2, 2: None, 3: 2, 4: 3},
+            3: {0: 4, 1: 2, 2: 3, 3: None, 4: 3},
+            4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
+
+
         """
         from sage.rings.infinity import Infinity
         dist = {}
@@ -2239,7 +2287,12 @@ class GenericGraph(SageObject):
             pred[u] = {}
             for v in verts:
                 if adj[u].has_key(v):
-                    dist[u][v] = adj[u][v]
+                    if by_weight is False:
+                        dist[u][v] = 1
+                    elif adj[u][v] is None:
+                        dist[u][v] = default_weight
+                    else:
+                        dist[u][v] = adj[u][v]
                     pred[u][v] = u
                 else:
                     dist[u][v] = Infinity

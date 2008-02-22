@@ -17,6 +17,7 @@ import cartan_type
 from sage.combinat.combinatorial_algebra import CombinatorialAlgebra
 from sage.modules.free_module import FreeModule
 from sage.rings.all import ZZ
+from sage.misc.misc import prod
 
 
 def RootSystem(t):
@@ -459,3 +460,26 @@ class AmbientLattice_g(AmbientLattice_generic):
         return [ self._term(1)-self._term(2),\
                  self._term(0)-2*self._term(1)+self._term(2)]
 
+
+
+def WeylDim(lattice, hwv):
+    """
+    The Weyl Dimension Formula. Here lattice is the ambient lattice of a root
+    system, and hwv is a dominant weight. Returns the dimension of the
+    irreducible representation of the corresponding semisimple complex Lie
+    group having hwv as highest weight vector.
+    EXAMPLE:
+        sage: e = RootSystem(['B',4]).ambient_lattice()
+        sage: f0 = e.fundamental_weights()[0] ; print f0 # hwv of standard rep for SO(9)
+        (1, 0, 0, 0)
+        sage: fspin = e.fundamental_weights()[3] ; print(fspin) # hwv of spin rep for Spin(9)
+        (1/2, 1/2, 1/2, 1/2)
+        sage: WeylDim(e,f0)
+        9
+        sage: WeylDim(e,fspin)
+        16
+    """
+    rho = sum(lattice.fundamental_weights())
+    n = prod([(rho+hwv).dot_product(x) for x in lattice.positive_roots()])
+    d = prod([rho.dot_product(x) for x in lattice.positive_roots()])
+    return n/d

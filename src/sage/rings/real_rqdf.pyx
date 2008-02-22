@@ -29,8 +29,10 @@ Mixing of symbolic an quad double elements:
     2.00000000000000/log(10)
     sage: parent(a)
     Symbolic Ring
+
+Note that the following numerical imprecision is caused by coercion:
     sage: RQDF(a)
-    0.868588963806503655302257837833210164588794011607333132228907565
+    0.86858896380650365530225783783321016458879401160733313222890756...
 
 """
 

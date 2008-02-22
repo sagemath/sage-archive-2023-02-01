@@ -274,14 +274,41 @@ class AmbientLattice_b(AmbientLattice_generic):
             sage: e =  RootSystem(['B',4]).ambient_lattice()
             sage: e.simple_roots()
             [(1, -1, 0, 0), (0, 1, -1, 0), (0, 0, 1, -1), (0, 0, 0, 1)]
+            sage: e.positive_roots()
+            [(1, -1, 0, 0),
+            (1, 1, 0, 0),
+            (1, 0, -1, 0),
+            (1, 0, 1, 0),
+            (1, 0, 0, -1),
+            (1, 0, 0, 1),
+            (0, 1, -1, 0),
+            (0, 1, 1, 0),
+            (0, 1, 0, -1),
+            (0, 1, 0, 1),
+            (0, 0, 1, -1),
+            (0, 0, 1, 1),
+            (1, 0, 0, 0),
+            (0, 1, 0, 0),
+            (0, 0, 1, 0),
+            (0, 0, 0, 1)]
+            sage: e.fundamental_weights()
+            [(1, 0, 0, 0), (1, 1, 0, 0), (1, 1, 1, 0), (1/2, 1/2, 1/2, 1/2)]
         """
         return [ self.root(i,i+1) for i in range(self.n-1) ] + [ self._term(self.n-1) ]
     def negative_roots(self):
         return [ -a for a in self.positive_roots()]
     def positive_roots(self):
-        raise NotImplementedError
+        res = []
+        for i in range(self.n-1):
+            for j in range(i+1,self.n):
+                res.append(self._term(i) - self._term(j))
+                res.append(self._term(i) + self._term(j))
+        for i in range(self.n):
+            res.append(self._term(i))
+        return res
+
     def fundamental_weights(self):
-        return [ sum(self._term(j) for j in range(i)) for i in range(self.n)]\
+        return [ sum(self._term(j) for j in range(i+1)) for i in range(self.n-1)]\
                + [ sum( self._term(j) for j in range(self.n) ) / 2 ]
 
 

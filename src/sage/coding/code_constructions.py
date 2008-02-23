@@ -1,6 +1,7 @@
 r"""
 AUTHOR:
     -- David Joyner (2007-05): initial version
+    --    "         (2008-02): added cyclic codes, Hamming codes
 
 This file contains contructions of error-correcting codes which are not
 obtained from wrapping GUAVA functions. The GUAVA wrappers are in guava.py.
@@ -11,18 +12,134 @@ import sage.modules.free_module as fm
 import sage.modules.module as module
 import sage.modules.free_module_element as fme
 from sage.interfaces.all import gap
-from sage.misc.preparser import *
+#from sage.misc.preparser import *
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.finite_field import *
-from sage.groups.perm_gps.permgroup import *
+from sage.rings.finite_field import GF
+#from sage.groups.perm_gps.permgroup import *
+from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.misc.sage_eval import sage_eval
 from sage.misc.misc import prod, add
 from sage.misc.functional import log
 from sage.rings.rational_field import QQ
 from sage.structure.parent_gens import ParentWithGens
-from linear_code import *
+from linear_code import LinearCodeFromVectorSpace, LinearCode
 from sage.modules.free_module import span
 from sage.misc.functional import rank
+from sage.schemes.generic.projective_space import ProjectiveSpace
+from sage.structure.sequence import Sequence
+from sage.rings.arith import gcd
+
+############### utility functions ################
+
+def permutation_action(g,v):
+    """
+    Returns permutation of rows g*v. Works on lists, matrices,
+    sequences and vectors (by permuting coordinates). The code requires
+    switching from i to i+1 (and back again) since the SymmetricGroup is,
+    by convention, the symmetric group on the "letters"
+    {1, 2, ..., n} (not {0, 1, ..., n-1}).
+
+    EXAMPLES:
+        sage: V = VectorSpace(GF(3),5)
+        sage: v = V([0,1,2,0,1])
+        sage: G = SymmetricGroup(5)
+        sage: g = G([(1,2,3)])
+        sage: permutation_action(g,v)
+        (1, 2, 0, 0, 1)
+        sage: g = G([()])
+        sage: permutation_action(g,v)
+        (0, 1, 2, 0, 1)
+        sage: g = G([(1,2,3,4,5)])
+        sage: permutation_action(g,v)
+        (1, 2, 0, 1, 0)
+        sage: L = Sequence([1,2,3,4,5])
+        sage: permutation_action(g,L)
+        [2, 3, 4, 5, 1]
+        sage: MS = MatrixSpace(GF(3),3,7)
+        sage: A = MS([[1,0,0,0,1,1,0],[0,1,0,1,0,1,0],[0,0,0,0,0,0,1]])
+        sage: S5 = SymmetricGroup(5)
+        sage: g = S5([(1,2,3)])
+        sage: A; permutation_action(g,A)
+        <BLANKLINE>
+        [1 0 0 0 1 1 0]
+        [0 1 0 1 0 1 0]
+        [0 0 0 0 0 0 1]
+        <BLANKLINE>
+        [0 1 0 1 0 1 0]
+        [0 0 0 0 0 0 1]
+        [1 0 0 0 1 1 0]
+
+    It also works on lists and is a "left action":
+
+        sage: v = [0,1,2,0,1]
+        sage: G = SymmetricGroup(5)
+        sage: g = G([(1,2,3)])
+        sage: gv = permutation_action(g,v); gv
+        [1, 2, 0, 0, 1]
+        sage: permutation_action(g,v) == g(v)
+        True
+        sage: h = G([(3,4)])
+        sage: gv = permutation_action(g,v)
+        sage: hgv = permutation_action(h,gv)
+        sage: hgv == permutation_action(h*g,v)
+        True
+
+    AUTHOR: David Joyner, licensed under the GPL v2 or greater.
+    """
+    v_type_list = False
+    if type(v) == list:
+        v_type_list = True
+        v = Sequence(v)
+    V = v.parent()
+    n = len(list(v))
+    gv = []
+    for i in range(n):
+        gv.append(v[g(i+1)-1])
+    if v_type_list:
+        return gv
+    return V(gv)
+
+##################### main constructions #####################
+
+def HammingCode(r,F):
+    """
+    Implements the Hamming codes.
+
+    The $r^{th}$ Hamming code over $F=GF(q)$ is an $[n,k,d]$ code
+    with length $n=(q^r-1)/(q-1)$, dimension $k=(q^r-1)/(q-1) - r$ and
+    minimum distance $d=3$.
+    The parity check matrix of a Hamming code has rows consisting of
+    all nonzero vectors of length r in its columns, modulo a scalar factor
+    so no parallel columns arise. A Hamming code is a single error-correcting
+    code.
+
+    INPUT:
+        r -- an integer > 2
+        F -- a finite field.
+
+    OUTPUT:
+        Returns the r-th q-ary Hamming code.
+
+    EXAMPLES:
+        sage: HammingCode(3,GF(2))
+        Linear code of length 7, dimension 4 over Finite Field of size 2
+        sage: C = HammingCode(3,GF(3)); C
+        Linear code of length 13, dimension 10 over Finite Field of size 3
+        sage: C.minimum_distance()
+        3
+        sage: C = HammingCode(3,GF(4,'a')); C
+        Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
+
+    """
+    q = F.order()
+    n =  (q**r-1)/(q-1)
+    k = n-r
+    MS = MatrixSpace(F,n,r)
+    X = ProjectiveSpace(r-1,F)
+    PFn = [list(p) for p in X.point_set(F).points(F)]
+    H = MS(PFn).transpose()
+    Cd = LinearCode(H)
+    return Cd.dual_code()
 
 def ToricCode(P,F):
     r"""
@@ -56,7 +173,7 @@ def ToricCode(P,F):
         Linear code of length 16, dimension 9 over Finite Field of size 5
         sage: C.minimum_distance()
         6
-        sage: C = ToricCode([ [0,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[3,1],[3,2],[4,1]],GF(8,"a"))
+       sage: C = ToricCode([ [0,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[3,1],[3,2],[4,1]],GF(8,"a"))
         sage: C
         Linear code of length 49, dimension 11 over Finite Field in a of size 2^3
 
@@ -216,3 +333,153 @@ def RandomLinearCode(n,k,F):
             V = span(F, G.rows())
             return LinearCodeFromVectorSpace(V)
     return "fail"
+
+def LinearCodeFromCheckMatrix(H):
+    """
+    A linear [n,k]-code C is uniquely determined by its generator
+    matrix G and check matrix H. We have the following short
+    exact sequence
+
+    \[
+    0 \rightarrow
+    {\mathbf{F}}^k \stackrel{G}{\rightarrow}
+    {\mathbf{F}}^n \stackrel{H}{\rightarrow}
+    {\mathbf{F}}^{n-k} \rightarrow
+    0.
+    \end{equation}
+    (``Short exact'' means (a) the arrow $G$ is injective,
+    i.e., $G$ is a full-rank $k\times n$ matrix, (b) the arrow $H$ is
+    surjective, and (c) ${\rm image}(G)={\rm kernel}(H)$.)
+
+    EXAMPLES:
+        sage: C = HammingCode(3,GF(2))
+        sage: H = C.check_mat(); H
+        <BLANKLINE>
+        [1 0 0 1 1 0 1]
+        [0 1 0 1 0 1 1]
+        [0 0 1 1 1 1 0]
+        sage: LinearCodeFromCheckMatrix(H) == C
+        True
+        sage: C = HammingCode(2,GF(3))
+        sage: H = C.check_mat(); H
+        <BLANKLINE>
+        [1 0 2 2]
+        [0 1 2 1]
+        sage: LinearCodeFromCheckMatrix(H) == C
+        True
+        sage: C = RandomLinearCode(10,5,GF(4,"a"))
+        sage: H = C.check_mat()
+        sage: LinearCodeFromCheckMatrix(H) == C
+        True
+
+    """
+    Cd = LinearCode(H)
+    return Cd.dual_code()
+
+def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
+    """
+    If g is a polynomial over GF(q) which divides x^n-1 then this
+    constructs the code "generated by g" (ie, the code associated with
+    the principle ideal (g) in the ring GF(q)[x]/(x^n-1) in the usual way).
+
+    The option "ignore" says to ignore the condition that
+    (a) the characteristic of the base field does not divide the length
+    (the usual assumtion in the theory of cyclic codes), and
+    (b) $g$ must divide $x^n-1$. If ignore=True, instead of returning an error, a
+    code generated by $gcd(x^n-1,g)$ is created.
+
+    EXAMPLES:
+        sage: P.<x> = PolynomialRing(GF(3),"x")
+        sage: g = x-1
+        sage: C = CyclicCodeFromGeneratingPolynomial(4,g); C
+        Linear code of length 4, dimension 3 over Finite Field of size 3
+        sage: P.<x> = PolynomialRing(GF(4,"a"),"x")
+        sage: g = x^3+1
+        sage: C = CyclicCodeFromGeneratingPolynomial(9,g); C
+        Linear code of length 9, dimension 6 over Finite Field in a of size 2^2
+        sage: P.<x> = PolynomialRing(GF(2),"x")
+        sage: g = x^3+x+1
+        sage: C = CyclicCodeFromGeneratingPolynomial(7,g); C
+        Linear code of length 7, dimension 4 over Finite Field of size 2
+        sage: C.gen_mat()
+        <BLANKLINE>
+        [1 1 0 1 0 0 0]
+        [0 1 1 0 1 0 0]
+        [0 0 1 1 0 1 0]
+        [0 0 0 1 1 0 1]
+        sage: g = x+1
+        sage: C = CyclicCodeFromGeneratingPolynomial(4,g); C
+        Linear code of length 4, dimension 3 over Finite Field of size 2
+        sage: C.gen_mat()
+        <BLANKLINE>
+        [1 1 0 0]
+        [0 1 1 0]
+        [0 0 1 1]
+
+    On the other hand, CyclicCodeFromPolynomial(4,x) will produce
+    a ValueError including a traceback error message: "x must divide x^4 - 1".
+    You will also get a ValueError if you type
+        sage: P.<x> = PolynomialRing(GF(4,"a"),"x")
+        sage: g = x^2+1
+
+    followed by CyclicCodeFromGeneratingPolynomial(6,g). You will also
+    get a ValueError if you type
+        sage: P.<x> = PolynomialRing(GF(3),"x")
+        sage: g = x^2-1
+        sage: C = CyclicCodeFromGeneratingPolynomial(5,g); C
+        Linear code of length 5, dimension 4 over Finite Field of size 3
+
+    followed by C = CyclicCodeFromGeneratingPolynomial(5,g,False), with
+    a traceback message including "x^2 + 2 must divide x^5 - 1".
+
+    """
+    P = g.parent()
+    x = P.gen()
+    F = g.base_ring()
+    p = F.characteristic()
+    if not(ignore) and p.divides(n):
+        raise ValueError, 'The characteristic %s must not divide %s'%(p,n)
+    if not(ignore) and not(g.divides(x**n-1)):
+        raise ValueError, '%s must divide x^%s - 1'%(g,n)
+    gn = gcd(x**n-1,g)
+    d = gn.degree()
+    coeffs = Sequence(gn.list())
+    r1 = Sequence(coeffs+[0]*(n - d - 1))
+    Sn = SymmetricGroup(n)
+    s = Sn.gens()[0] ## assumes 1st gen of S_n is (1,2,...,n)
+    rows = [permutation_action(s**(-i),r1) for i in range(n-d)]
+    MS = MatrixSpace(F,n-d,n)
+    return LinearCode(MS(rows))
+
+def CyclicCodeFromCheckPolynomial(n,h,ignore=True):
+    """
+    If h is a polynomial over GF(q) which divides x^n-1 then this
+    constructs the code "generated by g=(x^n-1)/h" (ie, the code associated with
+    the principle ideal (g) in the ring GF(q)[x]/(x^n-1) in the usual way).
+    The option "ignore" says to ignore the condition that the
+    characteristic of the base field does nto divide the length
+    (the usual assumtion in the theory of cyclic codes).
+
+    EXAMPLES:
+        sage: P.<x> = PolynomialRing(GF(3),"x")
+        sage: C = CyclicCodeFromCheckPolynomial(4,x + 1); C
+        Linear code of length 4, dimension 1 over Finite Field of size 3
+        sage: C = CyclicCodeFromCheckPolynomial(4,x^3 + x^2 + x + 1); C
+        Linear code of length 4, dimension 3 over Finite Field of size 3
+        sage: C.gen_mat()
+        [2 1 0 0]
+        [0 2 1 0]
+        [0 0 2 1]
+
+    """
+    P = h.parent()
+    x = P.gen()
+    d = h.degree()
+    F = h.base_ring()
+    p = F.characteristic()
+    if not(ignore) and p.divides(n):
+        raise ValueError, 'The characteristic %s must not divide %s'%(p,n)
+    if not(h.divides(x**n-1)):
+        raise ValueError, '%s must divide x^%s - 1'%(h,n)
+    g = P((x**n-1)/h)
+    return CyclicCodeFromGeneratingPolynomial(n,g)

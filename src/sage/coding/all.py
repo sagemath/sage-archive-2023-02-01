@@ -1,5 +1,5 @@
-from linear_code import (LinearCode,
-                         LinearCode_from_vectorspace,
+from linear_code import (LinearCode, LinearCodeFromVectorSpace,
+                         #LinearCode_from_vectorspace,
                          hamming_weight,
                          #minimum_distance_lower_bound,
                          #minimum_distance_upper_bound,
@@ -7,20 +7,22 @@ from linear_code import (LinearCode,
                          best_known_linear_code,
                          bounds_minimum_distance)
 
-from guava import (HammingCode,
-                   QuadraticResidueCode,
+from guava import (QuadraticResidueCode,
                    ExtendedQuadraticResidueCode,
                    QuasiQuadraticResidueCode,
                    BinaryReedMullerCode,
-                   CyclicCode, RandomLinearCodeGuava)
+                   RandomLinearCodeGuava)
 
-from code_constructions import (BinaryGolayCode,
+from code_constructions import (permutation_action,
+                   BinaryGolayCode,
                    ExtendedBinaryGolayCode,
                    TernaryGolayCode,
                    ExtendedTernaryGolayCode,
                    RandomLinearCode,
-                   ToricCode,
-                   TrivialCode)
+                   ToricCode, LinearCodeFromCheckMatrix,
+                   HammingCode, TrivialCode,
+                   CyclicCodeFromGeneratingPolynomial,
+                   CyclicCodeFromCheckPolynomial)
 
 from ag_code import ag_code
 

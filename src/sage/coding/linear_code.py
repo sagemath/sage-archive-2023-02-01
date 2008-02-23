@@ -1,7 +1,7 @@
 r"""
 Linear Codes
 
-VERSION: 0.9
+VERSION: 0.10
 
 Let $ F$ be a finite field (we denote the finite field with $q$ elements
 $GF(q)$ by $\FF_q$). A subspace of $ F^n$ (with the standard basis)
@@ -152,6 +152,7 @@ and a new function, LinearCodeFromVectorSpace.
                      added is_equivalent (for binary codes)
     -- dj (2008-01): fixed bug in decode reported by harald schilly,
                      (with M Hansen) added some doctests.
+    -- dj (2008-02): translated standard_form, dual_code to Python.
 
 TESTS:
    sage: MS = MatrixSpace(GF(2),4,7)
@@ -395,28 +396,6 @@ def bounds_minimum_distance(n,k,F):
     Ldata = gap.eval("Display(data)")
     return Ldata
 
-def LinearCode_from_vectorspace(self):
-    r"""
-    Converts a VectorSpace over GF(q) into a LinearCode
-
-    EXAMPLES:
-        sage: V = VectorSpace(GF(2),7)
-        sage: W = V.subspace([[1,0,0,1,1,1,1], [1,1,0,0,0,1,1]])
-        sage: C = LinearCode_from_vectorspace(W)
-        sage: C
-        Linear code of length 7, dimension 2 over Finite Field of size 2
-        sage: C.gen_mat()
-        [1 0 0 1 1 1 1]
-        [0 1 0 1 1 0 0]
-    """
-    F = self.base_ring()
-    B = self.basis()
-    n = len(B[0].list())
-    k = len(B)
-    MS = MatrixSpace(F,k,n)
-    G = MS([B[i].list() for i in range(k)])
-    return LinearCode(G)
-
 
 ########################### linear codes python class #######################
 
@@ -523,7 +502,7 @@ class LinearCode(module.Module):
             sage: C = HammingCode(3,GF(2))
             sage: Clist = C.list()
             sage: Clist[5]; Clist[5] in C
-            (1, 0, 1, 0, 1, 0, 1)
+            (1, 0, 1, 0, 0, 1, 1)
             True
         """
         n = self.length()
@@ -546,14 +525,8 @@ class LinearCode(module.Module):
         EXAMPLES:
             sage: C = HammingCode(3,GF(2))
             sage: [list(c) for c in C if hamming_weight(c) < 4]
-            [[0, 0, 0, 0, 0, 0, 0],
-             [1, 0, 0, 0, 0, 1, 1],
-             [0, 1, 0, 0, 1, 0, 1],
-             [0, 0, 1, 0, 1, 1, 0],
-             [1, 1, 1, 0, 0, 0, 0],
-             [1, 0, 0, 1, 1, 0, 0],
-             [0, 1, 0, 1, 0, 1, 0],
-             [0, 0, 1, 1, 0, 0, 1]]
+            [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 1, 0, 1, 0], [1, 1, 0, 0, 0, 0, 1], [0, 0, 1, 1, 0, 0, 1], [0, 1, 1, 0, 0, 1, 0], [0, 0, 0, 0, 1, 1, 1], [0, 1, 0, 1, 1, 0, 0], [1, 0, 1, 0, 1, 0, 0]]
+
         """
         n = self.length()
         k = self.dimension()
@@ -699,22 +672,22 @@ class LinearCode(module.Module):
             sage: F = GF(2); a = F.gen()
             sage: v1 = [a,a,F(0),a,a,F(0),a]
             sage: C.decode(v1)
-            (1, 1, 0, 1, 0, 0, 1)
+            (1, 0, 0, 1, 1, 0, 1)
             sage: v2 = matrix([[a,a,F(0),a,a,F(0),a]])
             sage: C.decode(v2)
-            (1, 1, 0, 1, 0, 0, 1)
+            (1, 0, 0, 1, 1, 0, 1)
             sage: v3 = vector([a,a,F(0),a,a,F(0),a])
             sage: c = C.decode(v3); c
-            (1, 1, 0, 1, 0, 0, 1)
+            (1, 0, 0, 1, 1, 0, 1)
             sage: c in C
             True
             sage: v4 = [[a,a,F(0),a,a,F(0),a]]
             sage: C.decode(v4)
-            (1, 1, 0, 1, 0, 0, 1)
+            (1, 0, 0, 1, 1, 0, 1)
             sage: C = HammingCode(2,GF(5))
             sage: v = vector(GF(5),[1,0,0,2,1,0])
             sage: C.decode(v)
- 	    (1, 0, 0, 2, 1, 2)
+ 	    (2, 0, 0, 2, 1, 0)
 
         Does not work for very long codes since the syndrome table grows too large.
         """
@@ -740,10 +713,11 @@ class LinearCode(module.Module):
 
     def dual_code(self):
         r"""
-        Wraps GUAVA's DualCode.
-
-        OUTPUT:
-            The dual code.
+        This computes the dual code Cd of the code C,
+        \[
+        Cd = \{ v \in V\ |\ v\cdot c = 0,\ \forall c \in C \}.
+        \]
+        Does not call GAP.
 
         EXAMPLES:
             sage: C = HammingCode(3,GF(2))
@@ -753,23 +727,20 @@ class LinearCode(module.Module):
             sage: C.dual_code()
             Linear code of length 21, dimension 3 over Finite Field in a of size 2^2
         """
-        F = self.base_ring()
-        q = F.order()
         G = self.gen_mat()
-        n = len(G.columns())
-        k = len(G.rows())
-        if n==k:
-            return TrivialCode(F,n)
-        Gstr = str(gap(G))
-        #H = C.CheckMat()
-        #A = H._matrix_(GF(q))
-        #return LinearCode(A)       ## This does not work when k = n-1 for a mysterious reason.
-        ##  less pythonic way :
-        C = gap("DualCode(GeneratorMatCode("+Gstr+",GF("+str(q)+")))")
-        G = C.GeneratorMat()
-        Gs = G._matrix_(F)
-        MS = MatrixSpace(F,n-k,n)
-        return LinearCode(MS(Gs))
+        H = G.transpose().kernel()
+        V = H.ambient_vector_space()
+        Cd = LinearCodeFromVectorSpace(V.span(H))
+        return Cd
+        #another way:
+        #Gsf, p = standard_form(G)
+        #k = len(G.rows())
+        #n = len(G.columns())
+        #MS = G.parent()
+        #sG = G.matrix_from_columns(range(k,n))
+        #Inmk = MatrixSpace(F,n-k,n-k).identity_matrix()
+        #H = Inmk.augment(sG.transpose())
+        #return LinearCode(H)
 
     def extended_code(self):
         r"""
@@ -813,23 +784,24 @@ class LinearCode(module.Module):
             Linear code of length 7, dimension 4 over Finite Field of size 2
             Linear code of length 7, dimension 3 over Finite Field of size 2
             sage: C.gen_mat()
-            [1 1 1 0 0 0 0]
-            [1 0 0 1 1 0 0]
-            [0 1 0 1 0 1 0]
-            [1 1 0 1 0 0 1]
+            [1 0 0 1 0 1 0]
+            [0 1 0 1 0 1 1]
+            [0 0 1 1 0 0 1]
+            [0 0 0 0 1 1 1]
             sage: C.check_mat()
-            [0 1 1 1 1 0 0]
-            [1 0 1 1 0 1 0]
-            [1 1 0 1 0 0 1]
+            [1 0 0 1 1 0 1]
+            [0 1 0 1 0 1 1]
+            [0 0 1 1 1 1 0]
             sage: Cperp.check_mat()
-            [1 1 1 0 0 0 0]
-            [1 0 0 1 1 0 0]
-            [0 1 0 1 0 1 0]
-            [1 1 0 1 0 0 1]
+            [1 0 0 1 0 1 0]
+            [0 1 0 1 0 1 1]
+            [0 0 1 1 0 0 1]
+            [0 0 0 0 1 1 1]
             sage: Cperp.gen_mat()
-            [0 1 1 1 1 0 0]
-            [1 0 1 1 0 1 0]
-            [1 1 0 1 0 0 1]
+            [1 0 0 1 1 0 1]
+            [0 1 0 1 0 1 1]
+            [0 0 1 1 1 1 0]
+
         """
         Cperp = self.dual_code()
         return Cperp.gen_mat()
@@ -980,34 +952,11 @@ class LinearCode(module.Module):
 
         EXAMPLES:
             sage: C = ExtendedQuadraticResidueCode(7,GF(2))
-            sage: G = C.permutation_automorphism_group()     # long time
-            sage: p = G("(1,6,3,5)(2,7,4,8)")                # long time
-            sage: Cp = C.permuted_code(p)                    # long time
-            sage: C.gen_mat()
-            [1 1 0 1 0 0 0 1]
-            [0 1 1 0 1 0 0 1]
-            [0 0 1 1 0 1 0 1]
-            [0 0 0 1 1 0 1 1]
-            sage: Cp.gen_mat()                               # long time
-            [0 1 0 0 0 1 1 1]
-            [1 1 0 0 1 0 1 0]
-            [0 1 1 0 1 0 0 1]
-            [1 1 0 1 0 0 0 1]
-            sage: Cs1,p1 = C.standard_form(mode="verbose"); p1
-            1 . . . 1 1 . 1
-            . 1 . . . 1 1 1
-             . . 1 . 1 1 1 .
-             . . . 1 1 . 1 1
-            ()
-            sage: Cs2,p2 = Cp.standard_form(mode="verbose"); p2   # long time
-             1 . . . 1 1 . 1
-             . 1 . . . 1 1 1
-             . . 1 . 1 1 1 .
-             . . . 1 1 . 1 1
-            ()
-
-        Therefore you can see that Cs1 and Cs2 are the same, so C and Cp are
-        equivalent.
+            sage: G = C.permutation_automorphism_group()
+            sage: p = G("(1,6,3,5)(2,7,4,8)")
+            sage: Cp = C.permuted_code(p)
+            sage: C == Cp
+            True
 
         """
         F = self.base_ring()
@@ -1017,7 +966,7 @@ class LinearCode(module.Module):
         Gp = G*MS(p.matrix().rows())
         return LinearCode(Gp)
 
-    def standard_form(self,mode=None):
+    def standard_form(self):
         r"""
         An $[n,k]$ linear code with generator matrix $G$ is in
         standard form is the row-reduced echelon form of $G$ is
@@ -1025,8 +974,9 @@ class LinearCode(module.Module):
         and $A$ is a $k \times (n-k)$ block.  This method returns a
         pair $(C,p)$ where $C$ is a code permutation equivalent to
         self and $p$ in $S_n$ ($n$ = length of $C$) is the permutation
-        sending self to $C$.  When mode ="verbose" the new generator
-        matrix in the standard form $(I,A)$ is "Display"'d.
+        sending self to $C$. This does not call GAP.
+
+        Thanks to Frank Luebeck for (the GAP version of) this code.
 
         EXAMPLES:
             sage: C = ExtendedQuadraticResidueCode(7,GF(2))
@@ -1043,32 +993,41 @@ class LinearCode(module.Module):
             [0 0 0 1 1 0 1 1]
             sage: p
             ()
-            sage: C.standard_form(mode="verbose")
-            <BLANKLINE>
-            1 . . . 1 1 . 1
-            . 1 . . . 1 1 1
-            . . 1 . 1 1 1 .
-            . . . 1 1 . 1 1
-            <BLANKLINE>
-            (Linear code of length 8, dimension 4 over Finite Field of size 2, ())
+            sage: MS = MatrixSpace(GF(3),3,7)
+            sage: G = MS([[1,0,0,0,1,1,0],[0,1,0,1,0,1,0],[0,0,0,0,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: G; C.standard_form()[0].gen_mat()
+            [1 0 0 0 1 1 0]
+            [0 1 0 1 0 1 0]
+            [0 0 0 0 0 0 1]
+            [1 0 0 0 1 1 0]
+            [0 1 0 1 0 1 0]
+            [0 0 1 0 0 0 0]
+            sage: C.standard_form()[1]
+            (3,7)
 
         """
-        F = self.base_ring()
-        q = F.order()
-        G = self.gen_mat()
-        n = len(G.columns())
-        k = len(G.rows())                                 ## G is always full rank
-        Sn = SymmetricGroup(n)
-        Gstr = str(gap(G))
-        gap.eval( "G:="+Gstr )
-        p = Sn(gap.eval("p:=PutStandardForm(G)"))
-        if mode=="verbose":
-            print "\n",gap.eval("Display(G)"),"\n"
-        C = gap("GeneratorMatCode(G,GF("+str(q)+"))")
-        Gp = C.GeneratorMat()
-        Gs = Gp._matrix_(F)
-        MS = MatrixSpace(F,k,n)
-        return LinearCode(MS(Gs)),p
+        from sage.coding.code_constructions import permutation_action as perm_action
+        mat = self.gen_mat()
+        MS = mat.parent()
+        A = []
+        k = len(mat.rows())
+        M = mat.echelon_form()
+        d = len(mat.columns())
+        G = SymmetricGroup(d)
+        perm = G([()])
+        for i in range(1,k+1):
+            r = M.rows()[i-1]
+            j = r.nonzero_positions()[0]
+            if (j < d and i <> j+1):
+                perm = perm *G([(i,j+1)])
+        if perm <> G([()]):
+            for i in range(k):
+                r = M.rows()[i]
+                A.append(perm_action(perm,r))
+        if perm == G([()]):
+            A = M
+        return LinearCode(MS(A)), perm
 
     def module_composition_factors(self,gp):
         r"""

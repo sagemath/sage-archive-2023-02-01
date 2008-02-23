@@ -266,6 +266,7 @@ from sage.plot.plot import Graphics, GraphicPrimitive_NetworkXGraph
 import sage.graphs.graph_fast as graph_fast
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.graphs.graph_coloring import chromatic_number, chromatic_polynomial
 
 class GenericGraph(SageObject):
     """
@@ -3750,6 +3751,29 @@ class GenericGraph(SageObject):
             else:
                 a,b = search_tree(self, partition, dig=dig, verbosity=verbosity)
                 return b
+
+    def chromatic_polynomial(self):
+        """
+        Returns the chromatic polynomial of the graph G.
+
+        EXAMPLES:
+            sage: G = Graph({0:[1,2,3],1:[2]})
+            sage: factor(chromatic_polynomial(G))
+            (x - 2) * x * (x - 1)^2
+        """
+        return chromatic_polynomial(self)
+
+    def chromatic_number(self):
+        """
+        Returns the minimal number of colors needed to color the
+        vertices of the graph G.
+
+        EXAMPLES:
+            sage: G = Graph({0:[1,2,3],1:[2]})
+            sage: chromatic_number(G)
+            3
+        """
+        return chromatic_number(self)
 
 
 

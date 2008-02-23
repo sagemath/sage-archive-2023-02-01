@@ -1088,12 +1088,19 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
     def _mathematica_init_(self):
         """
+        Returns string representation of this vector as a Mathematica list.
+
         EXAMPLES:
-            sage: mathematica(vector((1,2,3), QQ))  #optional
+            sage: vector((1,2,3), QQ)._mathematica_init_()
+            '{1/1, 2/1, 3/1}'
+            sage: mathematica(vector((1,2,3), QQ))  #optional -- requires mathematica
             {1, 2, 3}
+            sage: a = vector(SR, 5, [1, x, x^2, sin(x), pi]); a
+            (1, x, x^2, sin(x), pi)
+            sage: a._mathematica_init_()
+            '{1, x, (x) ^ (2), Sin[x], Pi}'
         """
-        import sage.interfaces.mathematica as mathematica
-        return mathematica.mathematica(tuple(self))
+        return '{' + ', '.join([x._mathematica_init_() for x in self.list()]) + '}'
 
 ##     def zero_out_positions(self, P):
 ##         """

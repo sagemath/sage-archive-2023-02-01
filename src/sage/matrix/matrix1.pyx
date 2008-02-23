@@ -96,17 +96,26 @@ cdef class Matrix(matrix0.Matrix):
 
     def _mathematica_init_(self):
        """
+       Return Mathematica string representation of this matrix.
+
        EXAMPLES:
            sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
            sage: g = mathematica(A); g                  # optional
            {{1, 2, 3}, {4/3, 5/3, 3/2}, {7, 8, 9}}
+           sage: A._mathematica_init_()
+           '{{1/1, 2/1, 3/1}, {4/3, 5/3, 3/2}, {7/1, 8/1, 9/1}}'
 
            sage: A = matrix([[1,2],[3,4]])
            sage: g = mathematica(A); g                  # optional
            {{1, 2}, {3, 4}}
+
+           sage: a = matrix([[pi, sin(x)], [cos(x), 1/e]]); a
+           [    pi sin(x)]
+           [cos(x)   e^-1]
+           sage: a._mathematica_init_()
+           '{{Pi, Sin[x]}, {Cos[x], (E) ^ (-1)}}'
        """
-       import sage.interfaces.mathematica as mathematica
-       return mathematica.mathematica(list(self))
+       return '{' + ', '.join([v._mathematica_init_() for v in self.rows()]) + '}'
 
     def _magma_init_(self):
         r"""

@@ -331,23 +331,23 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         # Two easy cases:
         if j==k(1728) and q%4==3:
-            self.__order=q+1
-            return self.__order
+            self._order=Integer(q+1)
+            return self._order
         if j==k(0) and q%6==5:
-            self.__order=q+1
-            return self.__order
+            self._order=Integer(q+1)
+            return self._order
 
         # A quick test to see if the curve's coefficients are all
         # in the prime field:
         if not all(a in k.prime_subfield() for a in self.a_invariants()):
             # resort to basic algorithm:
-            self.__order = self.cardinality_from_group()
-            return self.__order
+            self._order = self.cardinality_from_group()
+            return self._order
 
         # OK, curve's coefficients are in prime field:
         E = EllipticCurve_finite_field(k.prime_subfield(), self.a_invariants())
-        self.__order = E.cardinality(extension_degree=k.degree())
-        return self.__order
+        self._order = E.cardinality(extension_degree=k.degree())
+        return self._order
 
     def cardinality(self, algorithm='heuristic', early_abort=False, disable_warning=False, extension_degree=1):
         r"""
@@ -436,7 +436,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         # Now extension_degree==1
         try:
-            return self.__order
+            return self._order
         except AttributeError:
             pass
 
@@ -465,8 +465,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     N = N1
                 else:
                     raise RuntimeError, "BUG! Cardinality with bsgs=%s but with sea=%s"%(N1, N2)
-            self.__order = N
-            return self.__order
+            self._order = Integer(N)
+            return self._order
 
         # now k is not a prime field
 
@@ -485,8 +485,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         # if not possible to work over a smaller field:
         if d==j_deg:
-            self.__order = self.cardinality_from_group()
-            return self.__order
+            self._order = self.cardinality_from_group()
+            return self._order
 
         kj=GF(p**j_deg,name='a',modulus=j_pol)
         jkj=kj.gen() if j_deg>1 else j_pol.roots(multiplicities=False)[0]
@@ -497,8 +497,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         # is curve a (quadratic) twist of the "standard" one?
         if not self.is_isomorphic(EllipticCurve(j)): N=2*(q+1)-N
 
-        self.__order = N
-        return self.__order
+        self._order = N
+        return self._order
 
     order = cardinality # alias
 
@@ -567,8 +567,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.cardinality_exhaustive()
             64
         """
-        self.__order = 1+sum([len(self.lift_x(x,all=True)) for x in self.base_field()])
-        return self.__order
+        self._order = Integer(1+sum([len(self.lift_x(x,all=True)) for x in self.base_field()]))
+        return self._order
 
     def _merge_points(self,P1,n1,P2):
         """
@@ -619,7 +619,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
 
         A, gens = self.abelian_group()
-        return self.__order
+        return self._order
 
 
     def _cremona_abgrp_data(self):
@@ -748,14 +748,15 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         return self.points()[n]
 
     def abelian_group(self, debug=False):
-        """
+        r"""
         Returns the abelian group structure of the group of points on
         this elliptic curve.
 
-        WARNING:
-            The algorithm is definitely *not* intended for use with *large*
-            finite fields!  The factorization of the orders of elements
-            must be feasible.
+        WARNING: The algorithm is definitely *not* intended for use
+            with *large* finite fields!  The factorization of the
+            orders of elements must be feasible.  Also,
+            baby-step-giant-step methods are used which have space and
+            time requirements which are $O(\sqrt{q})$.
 
         Also, the algorithm uses random points on the curve and hence
         the generators are likely to differ from one run to another;
@@ -765,7 +766,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         Note: This function applies to elliptic curves over arbitrary
         finite fields.  The related function
         abelian_group_prime_field() uses the pari script,  for prime
-        fields only.
+        fields only; it is now obsolete
 
         INPUT:
             -- debug (default: False): if True, print debugging messages
@@ -821,14 +822,14 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         group_order_known = False
         try:
-            N=self.__order
+            N=self._order
             if debug:
                 print "Group order alrady known to be ",N
             group_order_known = True
             lower=N
             upper=N
         except:
-            if (q<75) or (q==181) or (q==331) or (q==547):
+            if (q<75):
                 if debug:
                     print "Computing group order naively"
                 N=self.cardinality_exhaustive()
@@ -837,18 +838,29 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 group_order_known = True
                 lower=N
                 upper=N
-                self.__order=N
+                self._order=N
+            elif k.is_prime_field() and q>10**18:
+                if debug:
+                    print "Computing group order using SEA"
+                N=self.cardinality(algorithm='sea')
+                if debug:
+                    print "... group order = ",N
+                group_order_known = True
+                lower=N
+                upper=N
+                self._order=N
+
         if group_order_known and debug:
             print "Lower and upper bounds on group order adjusted ",
-            print "to actual order ",lower," since field size < 75 ",
-            print "or =181, 331, 547"
+            print "to actual order ",lower
 
         P1=self(0)
         P2=self(0)
         n1= Integer(1)
         n2= Integer(1)
-        P1.__order=n1
-        P2.__order=n2
+        P1._order=n1
+        P2._order=n2
+        npts = 0
 
         # At all stages the current subgroup is generated by P1, P2 with
         # orders n1,n2 which are disjoint.  We stop when n1*n2 >= lower
@@ -863,6 +875,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 sys.stdout.flush()
             t=cputime()
             Q = self.random_point()
+            npts += 1
             if debug:
                 print "Q = ",Q,":",
                 t=cputime()
@@ -873,13 +886,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             Q1=n1*Q;
             sys.stdout.flush()
 
-            if Q1.is_zero(): # then P1,n1 will not change but we may increase n2
+            if Q1.is_zero() and npts>=10: # then P1,n1 will not change but we may increase n2
                 if debug: print "Case 2: n2 may increase"
                 m,a = P1.linear_relation(Q)
                 if debug: print "linear relation gives m=",m,", a=",a
                 if m>1: # else Q is in <P1>
                     Q=Q-(a//m)*P1; # has order m and is disjoint from P1
-                    Q.__order=m
+                    Q._order=m
                     if n2==1: # this is our first nontrivial P2
                         P2=Q
                         n2=m
@@ -889,21 +902,21 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     else:     # we must merge P2 and Q:
                         oldn2=n2 # holds old value
                         P2,n2=self._merge_points(P2,n2,Q);
-                        P2.__order=n2
+                        P2._order=n2
                         if debug:
                             if n2>oldn2:
                                 print "Replacing second generator by ",P2,
                                 print " of order ",n2, "  gaining index ",n2//a
                                 print "Group order now ",n1*n2,"=",n1,"*",n2
-            else: # Q1 nonzero: n1 will increase
+            elif not Q1.is_zero(): # Q1 nonzero: n1 will increase
                 if debug:  print "Case 1: n1 may increase"
                 oldn1=n1
                 if n2>1:
                     P3=(n1//n2)*P1  # so P2,P3 are a basis for n2-torsion
-                    P3.__order=n2
+                    P3._order=n2
                     if debug: print "storing generator ",P3," of ",n2,"-torsion"
                 P1,n1=self._merge_points(P1,n1,Q)
-                P1.__order=n1
+                P1._order=n1
                 if debug:
                     print "Replacing first  generator by ",P1," of order ",
                     print n1,", gaining index ",n1//oldn1
@@ -914,7 +927,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     m,a = P1.linear_relation(P3)
                     if debug: print "linear relation gives m=",m,", a=",a
                     P3=P3-(a//m)*P1
-                    P3.__order=m
+                    P3._order=m
                     if debug: print "First  P2 component =",P3
                     if m==n2:
                         P2=P3
@@ -922,10 +935,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                         m,a = P1.linear_relation(P2)
                         if debug: print "linear relation gives m=",m,", a=",a
                         P2=P2-(a//m)*P1;
-                        P2.__order=m
+                        P2._order=m
                         if debug: print "Second  P2 component =",P2
                         P2,n2=self._merge_points(P2,n2,P3)
-                        P2.__order=n2
+                        P2._order=n2
                         if debug: print "Combined P2 component =",P2
 
             if debug:
@@ -946,7 +959,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         # Finished: record group order, structure and generators
 
-        self.__order = n1*n2
+        self._order = n1*n2
         if n1==1:
             self.__abelian_group = AbelianGroup([]), ()
         else:

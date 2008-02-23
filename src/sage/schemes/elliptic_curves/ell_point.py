@@ -584,22 +584,12 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             raise ValueError, "ECDLog problem has no solution"
 
 
-    def order(self, disable_warning=False):
+    def order(self):
         """
         Return the order of this point on the elliptic curve.
         If the point has infinite order, returns 0.
 
-        EXAMPLE:
-            sage: E = EllipticCurve([0,0,1,-1,0])
-            sage: P = E([0,0]); P
-            (0 : 0 : 1)
-            sage: P.order()
-            +Infinity
-
-            sage: E = EllipticCurve([0,1])
-            sage: P = E([-1,0])
-            sage: P.order()
-            2
+        EXAMPLES:
             sage: k.<a> = GF(5^5)
             sage: E = EllipticCurve(k,[2,4]); E
             Elliptic Curve defined by y^2  = x^3 + 2*x + 4 over Finite Field in a of size 5^5
@@ -610,69 +600,83 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             sage: Q.order()
             7
 
+            In the next example, the cardinality of E will be computed
+            (using SEA) and cached:
 
-        ALGORITHM: uses PARI's \code{ellzppointorder} if base ring is
-        prime or baby-step-giant-step algorithm
+            sage: p=next_prime(2^150)
+            sage: E=EllipticCurve(GF(p),[1,1])
+            sage: P=E(831623307675610677632782670796608848711856078, 42295786042873366706573292533588638217232964)
+            sage: P.order()
+            1427247692705959881058262545272474300628281448
+            sage: P.order()==E.cardinality()
+            True
 
-        AUTHOR: John Cremona, 2008-02-10. NB If we know the group order
-        already then there is no need to use BSGS to compute a
-        multiple of the order.  It would also be good to cache the
-        factorization of the order.  But we don't want to rely on this
-        since this function is used in the group order computation!
+
+        ALGORITHM: first finds a multiple of the order: either the
+        group order, if this is known, or uses baby-step-giant-step
+        algorithm.  If the group order is known, its factorization is
+        cached.  From a multiple of the order and its factorization it
+        is then easy to determine the exact order.  We must not cause
+        the group order to be calculated when not known since this
+        function is used in determining the group order via
+        computation of several random points and their orders.
+
+        AUTHOR: John Cremona, 2008-02-10.
 
         """
         try:
-            return self.__order
+            return self._order
         except AttributeError:
             pass
         if self.is_zero():
             return rings.Integer(1)
         E = self.curve()
         K = E.base_ring()
-        q = K.order()
-        lb,ub=ell_generic.Hasse_bounds(q)
-        if K.is_prime_field():
-            e = E._gp()
-            N = rings.Integer(e.ellzppointorder(list(self.xy())))
-        else:
+        lb,ub = ell_generic.Hasse_bounds(K.order())
+
+        try:
+            M = E._order
             try:
-                M=E.__order
-                try:
-                    plist=E.__prime_factors_of_order
-                except:
-                    plist = M.prime_divisors()
-                    E.__prime_factors_of_order=plist
+                plist = E._prime_factors_of_order
             except:
-                M = self._bsgs(self.curve()(0),1,ub)
+                plist = M.prime_divisors()
+                E._prime_factors_of_order = plist
+        except:
+            if K.is_prime_field():
+                M = E.cardinality() # computed and cached
+                plist = M.prime_divisors()
+                E._prime_factors_of_order = plist
+            else:
+                M = self._bsgs(E(0),1,ub)
                 plist = M.prime_divisors()
 
-            # Now M is a multiple of the order and plist is a list of
-            # its prime factors
+        # Now M is a multiple of the order and plist is a list of
+        # its prime factors
 
-            # For each p in plist we determine the power of p dividing
-            # the order, accumulating the order in N
+        # For each p in plist we determine the power of p dividing
+        # the order, accumulating the order in N
 
-            N=rings.Integer(1)
-            for p in plist:
-                Q=M.prime_to_m_part(p)*self   # so Q has p-power order
-                while not Q.is_zero():
-                    Q=p*Q
-                    N*=p
+        N=rings.Integer(1)
+        for p in plist:
+            Q=M.prime_to_m_part(p)*self   # so Q has p-power order
+            while not Q.is_zero():
+                Q=p*Q
+                N*=p
 
         # now N is the exact order of self
 
         if 2*N>ub: # then we have a generator, so cache this
             try:
-                dummy=E.__order
+                dummy = E._order
             except:
-                E.__order=N
+                E._order = N
             try:
-                dummy=E.__abelian_group
+                dummy = E.__abelian_group
             except:
                 E.__abelian_group = AbelianGroup([N]), (self,)
 
-        self.__order = N
-        return self.__order
+        self._order = N
+        return self._order
 
     # returns (m,a) where m>0 is minimal s.t. m*Q is in <P> with m*Q=a*P.
     # Special case: if <Q> and <P> are disjoint, then returns m=order(Q)
@@ -721,7 +725,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
     # old version of order function
 
-    def order_old(self, disable_warning=False):
+    def order_old(self):
         """
         Return the order of this point on the elliptic curve.
         If the point has infinite order, returns 0.
@@ -752,7 +756,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
         """
         try:
-            return self.__order
+            return self._order
         except AttributeError:
             pass
         if self.is_zero():
@@ -761,8 +765,8 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         K = E.base_ring()
         if K.is_prime_field():
             e = E._gp()
-            self.__order = rings.Integer(e.ellzppointorder(list(self.xy())))
-            return self.__order
+            self._order = rings.Integer(e.ellzppointorder(list(self.xy())))
+            return self._order
         else:
             P = self
             E = P.curve()
@@ -774,16 +778,16 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
                 while not P.is_zero():
                     n += 1
                     P += self
-                self.__order = rings.Integer(n)
-                return self.__order
+                self._order = rings.Integer(n)
+                return self._order
 
             try:
-                M=E.__order
+                M=E._order
                 try:
-                    plist=E.__prime_factors_of_order
+                    plist=E._prime_factors_of_order
                 except:
                     plist = M.prime_divisors()
-                    E.__prime_factors_of_order=plist
+                    E._prime_factors_of_order=plist
             except:
 
                 # 1. Compute Q = (q+1)P
@@ -838,6 +842,6 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
                         M = M/p
                         break
                 if N == M:
-                    self.__order = rings.Integer(M)
-                    return self.__order
+                    self._order = rings.Integer(M)
+                    return self._order
 

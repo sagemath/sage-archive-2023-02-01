@@ -1066,7 +1066,7 @@ def hash_of_cython_file_timestamps():
     return hash_of_dir('sage')
 
 CYTHON_HASH_FILE='.cython_hash'
-H = str(hash_of_cython_file_timestamps())
+H = str(hash_of_cython_file_timestamps() + hash(os.path.getmtime('setup.py')))
 if not os.path.exists(CYTHON_HASH_FILE):
     H_old = H + 'x'
 else:
@@ -1214,9 +1214,13 @@ def create_deps(ext_modules):
     return deps
 
 if not sdist and do_cython:
+    import resource
+    print "Updating Cython code...."
+    u,s = resource.getrusage(resource.RUSAGE_SELF)[:2]
     deps = create_deps(ext_modules)
     cython(deps, ext_modules)
-    pass
+    uu,ss = resource.getrusage(resource.RUSAGE_SELF)[:2]
+    print "Finished updating Cython code (time = %s seconds)"%(uu+ss-u-s)
 
 code = setup(name        = 'sage',
 

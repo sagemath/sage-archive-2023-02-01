@@ -1,4 +1,4 @@
-"""
+r"""
 Field of Arbitrary Precision Real Numbers
 
 AUTHORS:
@@ -11,11 +11,51 @@ AUTHORS:
    -- didier deshommes <dfdeshom@gmail.com>: special constructor for QD numbers
    -- Paul Zimmermann (2008-01): added new functions from mpfr-2.3.0, replaced
       some, e.g., sech = 1/cosh, by their original mpfr version.
+   -- Carl Witty (2008-02): define floating-point rank and associated
+      functions; add some documentation
+
+This is a binding for the MPFR arbitrary-precision floating point
+library.
+
+We define a class \class{RealField}, where each instance of \class{RealField}
+specifies a field of floating-point numbers with a specified precision
+and rounding mode.  Individual floating-point numbers are of class
+\class{RealNumber}.
+
+In \sage (as in MPFR), floating-point numbers of precision $p$ are of
+the form $s m 2^{e-p}$, where $s \in \{-1, 1\}$, $2^{p-1} \leq m < 2^p$, and
+$-2^{30} + 1 \leq e \leq 2^{30} - 1$; plus the special values
+\code{+0}, \code{-0}, \code{+infinity}, \code{-infinity}, and \code{NaN}
+(which stands for Not-a-Number).
+
+Operations in this module which are direct wrappers of MPFR functions
+are ``correctly rounded''; we briefly describe what this means.
+Assume that you could perform the operation exactly, on real nunbers,
+to get a result $r$.  If this result can be represented as a
+floating-point number, then we return that number.
+
+Otherwise, the result $r$ is between two floating-point numbers.  For
+the directed rounding modes (round to plus infinity, round to minus
+infinity, round to zero), we return the floating-point number in the
+indicated direction from $r$.  For round to nearest, we return the
+floating-point number which is nearest to $r$.
+
+This leaves one case unspecified: in round to nearest mode, what
+happens if $r$ is exactly halfway between the two nearest
+floating-point numbers?  In that case, we round to the number with an
+even mantissa (the mantissa is the number $m$ in the representation
+above).
+
+Consider the ordered set of floating-point numbers of precision $p$.
+(Here we identify \code{+0} and \code{-0}, and ignore \code{NaN}.)  We
+can give a bijection between these floating-point numbers and a
+segment of the integers, where 0 maps to 0 and adjacent floating-point
+numbers map to adjacent integers.  We call the integer
+corresponding to a given floating-point number the "floating-point
+rank" of the number.  (This is not standard terminology; I just made
+it up.)
 
 EXAMPLES:
-
-
-
 A difficult conversion:
 
     sage: RR(sys.maxint)
@@ -82,14 +122,6 @@ import sage.rings.rational_field
 import sage.rings.infinity
 
 from sage.structure.parent_gens cimport ParentWithGens
-
-#*****************************************************************************
-# Headers.  When you past things in here from mpfr, be sure
-# to remove const's, since those aren't allowed in pyrex.  Also, it can be
-# challenging figuring out how to modify things from mpfr.h to be valid pyrex
-# code.    Note that what is here is only used for generating the C code.
-# The C compiler doesn't see any of this -- it only sees mpfr.h and stdlib.h
-#*****************************************************************************
 
 cdef class RealNumber(sage.structure.element.RingElement)
 
@@ -1061,6 +1093,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a = 119.41212
             sage: a.integer_part()
             119
+            sage: a = -123.4567
+            sage: a.integer_part()
+            -123
 
         A big number with no decimal point:
             sage: a = RR(10^17); a
@@ -1074,6 +1109,111 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef Integer z = Integer()
         mpfr_get_z(z.value, self.value, GMP_RNDZ)
         return z
+
+    def fp_rank(self):
+        r"""
+        Returns the floating-point rank of this number.  That is,
+        if you list the floating-point numbers of this precision
+        in order, and number them starting with 0.0 $\rightarrow$ 0
+        and extending the list to positive and negative infinity,
+        returns the number corresponding to this floating-point number.
+
+        EXAMPLES:
+            sage: RR(0).fp_rank()
+            0
+            sage: RR(0).nextabove().fp_rank()
+            1
+            sage: RR(0).nextbelow().nextbelow().fp_rank()
+            -2
+            sage: RR(1).fp_rank()
+            4835703278458516698824705
+            sage: RR(-1).fp_rank()
+            -4835703278458516698824705
+            sage: RR(1).fp_rank() - RR(1).nextbelow().fp_rank()
+            1
+            sage: RR(-infinity).fp_rank()
+            -9671406552413433770278913
+            sage: RR(-infinity).fp_rank() - RR(-infinity).nextabove().fp_rank()
+            -1
+        """
+        if mpfr_nan_p(self.value):
+            raise ValueError, "Cannot compute fp_rank of NaN"
+
+        cdef Integer z = PY_NEW(Integer)
+
+        cdef mp_exp_t EXP_MIN = -(1<<30) + 1
+        cdef mp_exp_t EXP_MAX = (1<<30) - 1
+        # fp_rank(0.0) = 0
+        # fp_rank(m*2^e-p) = (m-2^{p-1})+(e-EXP_MIN)*2^{p-1}+1
+        #                  = m+(e-EXP_MIN-1)*2^{p-1}+1
+        # fp_rank(infinity) = (EXP_MAX+1-EXP_MIN)*2^{p-1}+1
+        # fp_rank(-x) = -fp_rank(x)
+
+        cdef int sgn = mpfr_sgn(self.value)
+
+        if sgn == 0:
+            return z
+
+        cdef int prec = (<RealField>self._parent).__prec
+
+        if mpfr_inf_p(self.value):
+            mpz_set_ui(z.value, EXP_MAX+1-EXP_MIN)
+            mpz_mul_2exp(z.value, z.value, prec-1)
+            mpz_add_ui(z.value, z.value, 1)
+            if sgn < 0:
+                mpz_neg(z.value, z.value)
+            return z
+
+        cdef mpz_t mantissa
+        mpz_init(mantissa)
+        cdef mp_exp_t exponent = mpfr_get_z_exp(mantissa, self.value)
+        mpz_set_si(z.value, exponent+prec-EXP_MIN-1)
+        mpz_mul_2exp(z.value, z.value, prec-1)
+        mpz_add_ui(z.value, z.value, 1)
+        if sgn > 0:
+            mpz_add(z.value, z.value, mantissa)
+        else:
+            mpz_sub(z.value, z.value, mantissa)
+            mpz_neg(z.value, z.value)
+        mpz_clear(mantissa)
+        return z
+
+    def fp_rank_delta(self, RealNumber other):
+        r"""
+        Return the floating-point rank delta between \code{self} and
+        \var{other}.  That is, if the return value is positive, this
+        is the number of times you have to call \code{.nextabove()}
+        to get from \code{self} to \var{other}.
+
+        EXAMPLES:
+            sage: [x.fp_rank_delta(x.nextabove()) for x in
+            ...      (RR(-infinity), -1.0, 0.0, 1.0, RR(pi), RR(infinity))]
+            [1, 1, 1, 1, 1, 0]
+
+        In the 2-bit floating-point field, one subsegment of the
+        floating-point numbers is:
+        1, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32
+            sage: R2 = RealField(2)
+            sage: R2(1).fp_rank_delta(R2(2))
+            2
+            sage: R2(2).fp_rank_delta(R2(1))
+            -2
+            sage: R2(1).fp_rank_delta(R2(1048576))
+            40
+            sage: R2(24).fp_rank_delta(R2(4))
+            -5
+            sage: R2(-4).fp_rank_delta(R2(-24))
+            -5
+
+        There are lots of floating-point numbers around 0:
+            sage: R2(-1).fp_rank_delta(R2(1))
+            4294967298
+        """
+
+        # We create the API for forward compatibility, because it can have
+        # a (somewhat) more efficient implementation than this; but for now,
+        # we just go with the stupid implementation.
+        return other.fp_rank() - self.fp_rank()
 
     ########################
     #   Basic Arithmetic

@@ -2293,9 +2293,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_prime(self):
         r"""
-        Returns \code{True} if self is prime
+        Returns \code{True} if self is prime.
 
-        NB primes are by definition *positive*!  See also is_irreducible()
+        NOTE: Integer primes are by definition \emph{positive}!
+        This is different than Magma, but the same as in Pari.
+        See also the \code{is_irreducible()} method.
 
         EXAMPLES:
             sage: z = 2^31 - 1
@@ -2310,6 +2312,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z = -7
             sage: z.is_prime()
             False
+            sage: z.is_irreducible()
+            True
         """
         return bool(self._pari_().isprime())
 

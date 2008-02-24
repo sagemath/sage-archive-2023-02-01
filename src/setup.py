@@ -1162,9 +1162,9 @@ def search_all_includes(filename):
 
 def module_path(path):
     # get the absolute path
-    s = os.path.abspath(path)
+    s = os.path.realpath(path)
     # get rid of extraneous stuff
-    s = s[len(SAGE_ROOT):]
+    s = s[len(os.path.realpath(SAGE_ROOT)):]
     n = s.find('/', 12)
     s = s[n+1:]
     return s

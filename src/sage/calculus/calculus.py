@@ -85,10 +85,11 @@ EXAMPLES:
         sage: f(4)
         sin(8*pi/y)
 
-    We can also make \class{CallableSymbolicExpressions}, which is a \class{SymbolicExpression}
-    that are functions of variables in a fixed order. Each
-    \class{SymbolicExpression} has a function() method used to create a
-    \class{CallableSymbolicExpression}.
+    We can also make a \class{CallableSymbolicExpression}, which is a
+    \class{SymbolicExpression} that is a function of specified
+    variables in a fixed order. Each \class{SymbolicExpression} has a
+    \code{function(...)} method that is used to create a
+    \class{CallableSymbolicExpression}, as illustrated below:
 
         sage: u = log((2-x)/(y+5))
         sage: f = u.function(x, y); f

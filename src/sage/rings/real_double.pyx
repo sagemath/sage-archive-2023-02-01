@@ -476,7 +476,7 @@ cdef class RealDoubleElement(FieldElement):
     def _interface_init_(self):
         """
         Returns self formatted as a string, suitable as input to another
-        computer algebra system.  (This the default function used for
+        computer algebra system.  (This is the default function used for
         exporting to other computer algebra systems.)
 
         EXAMPLES:

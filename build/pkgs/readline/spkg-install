@@ -8,12 +8,25 @@ cd src/
 build()
 {
     ./configure --prefix=$SAGE_LOCAL
+    if [ `uname` == 'Darwin' ]; then
+      if [ `uname -r | awk -F. '{ print $1; }'` == '9' ]; then
+	echo "Fixing Makefile for OSX 10.5 compatibility"
+	sed -e 's/-dynamic/-dynamiclib/' shlib/Makefile > shlib/Makefile.ok
+	mv shlib/Makefile.ok shlib/Makefile
+      fi
+    fi
     make install
 }
 
 build
 
-if [ -f $SAGE_LOCAL/lib/libreadline.so -o -f $SAGE_LOCAL/lib/libreadline.a ]; then
+if [ `uname` == 'Darwin' ]; then
+  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.dylib
+else
+  DYLIB_NAME=$SAGE_LOCAL/lib/libreadline.so
+fi
+
+if [ -f $DYLIB_NAME -a -f $SAGE_LOCAL/lib/libreadline.a ]; then
   chmod 755 $SAGE_LOCAL/lib/libreadline.*
   chmod 755 $SAGE_LOCAL/lib/libhistory.*
   exit 0

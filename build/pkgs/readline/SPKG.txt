@@ -5,6 +5,10 @@ didn't delete anything else.
 
 FIXME
 
+=== readline-5.2.p1 (Craig Citro) ===
+ * add fix for OSX 10.5 from Pari FAQ, where readline wasn't building
+ a dynamic library
+
 === readline-5.2.p0 (Michael Abshoff) ===
  * set correct permissions on libreadline.so* and libhistory.so* (#1752)
 

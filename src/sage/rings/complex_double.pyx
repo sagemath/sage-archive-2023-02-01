@@ -609,6 +609,23 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return complex(self._complex.dat[0], self._complex.dat[1])
 
+    def _interface_init_(self):
+        """
+        Returns self formatted as a string, suitable as input to another
+        computer algebra system.  (This the default function used for
+        exporting to other computer algebra systems.)
+
+        EXAMPLES:
+            sage: s1 = CDF(exp(I)); s1
+            0.540302305868 + 0.841470984808*I
+            sage: s1._interface_init_()
+            '0.54030230586813977 + 0.84147098480789650*I'
+            sage: s1 == CDF(gp(s1))
+            True
+        """
+        # Sending to another computer algebra system is slow anyway, right?
+        return CC(self)._interface_init_()
+
     def __repr__(self):
         """
         Return print version of self.

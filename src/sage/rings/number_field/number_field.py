@@ -2134,7 +2134,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: F.integral_basis()
             [1, alpha, alpha^2, 1/2*alpha^3 + 1/2*alpha^2]
             sage: F.reduced_basis(prec=10)
-            [1, alpha, alpha^2 - 16*alpha, alpha^3 - 15*alpha^2 + 440*alpha + 267857]
+            [1, alpha, alpha^2 - 15*alpha + 8, alpha^3 - 16*alpha^2 + 471*alpha + 266719]
             sage: F.reduced_basis(prec=300)
             [1, alpha, alpha^2 - 15*alpha, alpha^3 - 16*alpha^2 + 469*alpha + 267109]
         """

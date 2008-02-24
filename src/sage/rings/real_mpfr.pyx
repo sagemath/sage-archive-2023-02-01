@@ -817,9 +817,15 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: n = 1.3939494594
             sage: n._interface_init_()
-            '1.39394945940000'
+            '1.3939494593999999'
+            sage: s1 = RR(sin(1)); s1
+            0.841470984807897
+            sage: s1._interface_init_()
+            '0.84147098480789650'
+            sage: s1 == RR(gp(s1))
+            True
         """
-        return self.str(10, no_sci=True)
+        return self.str(10, no_sci=True, truncate=False)
 
     def __hash__(self):
         """

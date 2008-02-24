@@ -99,6 +99,22 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_clear(self.__re)
         mpfr_clear(self.__im)
 
+    def _interface_init_(self):
+        """
+        Returns self formatted as a string, suitable as input to another
+        computer algebra system.  (This the default function used for
+        exporting to other computer algebra systems.)
+
+        EXAMPLES:
+            sage: s1 = CC(exp(I)); s1
+            0.540302305868140 + 0.841470984807897*I
+            sage: s1._interface_init_()
+            '0.54030230586813977 + 0.84147098480789650*I'
+            sage: s1 == CC(gp(s1))
+            True
+        """
+        return self.str(truncate=False)
+
     def _repr_(self):
         return self.str(10)
 
@@ -140,10 +156,34 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def _set_multiplicative_order(self, n):
         self._multiplicative_order = integer.Integer(n)
 
-    def str(self, base=10):
+    def str(self, base=10, truncate=True):
+        r"""
+        Return a string representation of this number.
+
+        INPUTS:
+            base -- The base to use for printing (default 10)
+            truncate -- (default: \code{True}) Whether to print fewer
+              digits than are available, to mask errors in the last bits.
+
+        EXAMPLES:
+            sage: a = CC(pi + I*e)
+            sage: a.str()
+            '3.14159265358979 + 2.71828182845905*I'
+            sage: a.str(truncate=False)
+            '3.1415926535897931 + 2.7182818284590451*I'
+            sage: a.str(base=2)
+            '11.001001000011111101101010100010001000010110100011000 + 10.101101111110000101010001011000101000101011101101001*I'
+            sage: CC(0.5 + 0.625*I).str(base=2)
+            '0.10000000000000000000000000000000000000000000000000000 + 0.10100000000000000000000000000000000000000000000000000*I'
+            sage: a.str(base=16)
+            '3.243f6a8885a30 + 2.b7e151628aed2*I'
+            sage: a.str(base=36)
+            '3.53i5ab8p5fc + 2.puw5nggjf8f*I'
+        """
+
         s = ""
         if self.real() != 0:
-            s = self.real().str(base)
+            s = self.real().str(base, truncate=truncate)
         if self.imag() != 0:
             y  =  self.imag()
             if s!="":
@@ -152,7 +192,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
                     y = -y
                 else:
                     s = s+" + "
-            s = s+"%s*I"%y.str(base)
+            s = s+"%s*I"%y.str(base, truncate=truncate)
         if len(s) == 0:
             s = "0"
         return s
@@ -164,12 +204,6 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def _pari_(self):
         return sage.libs.pari.all.pari.complex(self.real()._pari_(), self.imag()._pari_())
-
-    def _pari_init_(self):
-        """
-        This is only for the gp interpreter; can lose precision.
-        """
-        return str(self)
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         cdef ComplexNumber x

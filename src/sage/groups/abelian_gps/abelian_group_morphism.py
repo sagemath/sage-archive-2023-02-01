@@ -229,7 +229,7 @@ class AbelianGroupMorphism:
 
     	"""
         G = g.parent()
-        w = g.word_problem(self.domaingens,display=False)
+        w = g.word_problem(self.domaingens)
         n = len(w)
         #print w,g.word_problem(self.domaingens)
         # g.word_problem is faster in general than word_problem(g)

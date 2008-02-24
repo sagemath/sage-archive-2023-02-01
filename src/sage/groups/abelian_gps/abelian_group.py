@@ -7,6 +7,7 @@ AUTHOR:
     -- David Joyner (2006-08) trivial changes to docs, added random,
                               fixed bug in how invariants are recorded
     -- David Joyner (2006-10) added dual_group method
+    -- David Joyner (2008-02) fixed serious bug in word_problem
 
 TODO:
    * additive abelian groups should also be supported
@@ -108,6 +109,8 @@ REFERENCES:
     [C2] ------, {\bf A course in computational algebraic number theory}, Springer, 1996.
     [R]  J. Rotman, {\bf An introduction to the theory of groups}, 4th ed, Springer, 1995.
 
+ WARNINGS: Many basic properties for infinite abelian groups are not implemented.
+
 """
 
 ##########################################################################
@@ -135,6 +138,7 @@ import sage.groups.group as group
 
 # TODO: this uses perm groups - the AbelianGroupElement instance method
 # uses a different implementation.
+
 
 def word_problem(words, g, verbose = False):
     r"""
@@ -169,9 +173,11 @@ def word_problem(words, g, verbose = False):
         Multiplicative Abelian Group isomorphic to C2 x C3 x C4
         sage: word_problem([a*b,a*c], b*c)
         [[a*b, 1], [a*c, 1]]
-        sage: word_problem([a*b,a*c],b*c)
-        [[a*b, 1], [a*c, 1]]
-
+        sage: word_problem([a*c,c],a)
+        [[a*c, 1], [c, -1]]
+        sage: word_problem([a*c,c],a,verbose=True)
+        a = (a*c)^1*(c)^-1
+        [[a*c, 1], [c, -1]]
 
         sage: A.<a,b,c,d,e> = AbelianGroup(5,[4, 5, 5, 7, 8])
         sage: b1 = a^3*b*c*d^2*e^5
@@ -181,9 +187,13 @@ def word_problem(words, g, verbose = False):
         sage: b5 = a^2*b^4*c^2*d^4*e^5
         sage: word_problem([b1,b2,b3,b4,b5],e)
         [[a^3*b*c*d^2*e^5, 1],
-        [a^2*b*c^2*d^3*e^3, 1],
-        [a^3*b^3*d^4*e^4, 3],
-        [a^3*b^2*c^2*d^3*e^5, 1]]
+         [a^2*b*c^2*d^3*e^3, 1],
+         [a^3*b^3*d^4*e^4, 3],
+         [a^2*b^4*c^2*d^4*e^5, 1]]
+        sage: word_problem([a,b,c,d,e],e)
+        [[e, 1]]
+        sage: word_problem([a,b,c,d,e],b)
+        [[b, 1]]
 
 
     WARNINGS: (1) Might have unpleasant effect when the word problem
@@ -222,13 +232,14 @@ def word_problem(words, g, verbose = False):
     s5 = 'H:=Group(gensH)'
     gap.eval(s5)
     gap.eval("x:=Factorization(H,g)")
-    l3 = gap.eval("L3:=ExtRepOfObj(x)")
+    l3 = eval(gap.eval("L3:=ExtRepOfObj(x)"))
     nn = gap.eval("n:=Int(Length(L3)/2)")
     LL = eval(gap.eval("L4:=List([l..n],i->L3[2*i])"))
     if verbose:
-        v = '*'.join(['(%s)^%s'%(words[i], LL[i]) for i in range(len(LL))])
+        #print gap.eval("x"), l3, nn, LL
+        v = '*'.join(['(%s)^%s'%(words[l3[2*i]-1], LL[i]) for i in range(len(LL))])
         print '%s = %s'%(g, v)
-    return [[words[i],LL[i]] for i in range(len(LL))]
+    return [[words[l3[2*i]-1],LL[i]] for i in range(len(LL))]
 
 
 def AbelianGroup(n, invfac=None, names="f"):
@@ -971,6 +982,7 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         #    return -1
         #else:
         #    return 1
+
 
     #def __repr__(self):
     #    s = "AbelianGroup( %s, %s)"%(len(self.invariants()), self.invariants())

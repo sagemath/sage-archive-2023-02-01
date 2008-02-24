@@ -117,6 +117,9 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         if len(s) == 0: s = "1"
         return s
 
+    def _div_(self, y):
+        return self*y**(-1)
+
     def _mul_(self, y):
         #Same as _mul_ in FreeAbelianMonoidElement except that the
         #exponents get reduced mod the invariant.
@@ -268,7 +271,9 @@ class AbelianGroupElement(MultiplicativeGroupElement):
             g = g*gens[i]**(random(gens[i].order()))
         return g
 
-    def word_problem(self, words, display=True):
+
+
+    def word_problem(self, words):
         """
         TODO -- this needs a rewrite -- see stuff in the matrix_grp directory.
 
@@ -278,70 +283,21 @@ class AbelianGroupElement(MultiplicativeGroupElement):
 
         This function does not solve the word problem in SAGE. Rather
         it pushes it over to GAP, which has optimized algorithms for
-        the word problem. Essentially, this function is a wrapper for the GAP
-        functions "EpimorphismFromFreeGroup" and "PreImagesRepresentative".
+        the word problem.
 
         WANRING: Don't use E (or other GAP-reserved letters) as a generator
         name.
 
         EXAMPLE:
-            sage: A=AbelianGroup(5,[3, 5, 5, 7, 8], names="abcde")
-	    sage: a,b,c,d,e=A.gens()
-            sage: b1 = a^3*b*c*d^2*e^5
-            sage: b2 = a^2*b*c^2*d^3*e^3
-            sage: b3 = a^7*b^3*c^5*d^4*e^4
-	    sage: b4 = a^3*b^2*c^2*d^3*e^5
-	    sage: b5 = a^2*b^4*c^2*d^4*e^5
-	    sage: e.word_problem([b1,b2,b3,b4,b5],display=False)
-            [[b^2*c^2*d^3*e^5, 245]]
-            sage: (b^2*c^2*d^3*e^5)^245
-            e
             sage: G = AbelianGroup(2,[2,3], names="xy")
             sage: x,y = G.gens()
-            sage: x.word_problem([x,y],display=False)
+            sage: x.word_problem([x,y])
             [[x, 1]]
-            sage: y.word_problem([x,y],display=False)
+            sage: y.word_problem([x,y])
             [[y, 1]]
-            sage: (y*x).word_problem([x,y],display=False)
+            sage: (y*x).word_problem([x,y])
             [[x, 1], [y, 1]]
 
         """
-        import copy
-        from sage.groups.abelian_gps.abelian_group import AbelianGroup
-        from sage.interfaces.all import gap
-        g = self
-        gens = self.parent().variable_names()
-        #print gens
-        G = g.parent()
-        gap.eval("l:=One(Rationals)")            ## trick needed for LL line below to keep SAGE from parsing
-        s1 = "gens := GeneratorsOfGroup(%s)"%G._gap_init_()
-        gap.eval(s1)
-        for i in range(len(gens)):
-           cmd = ("%s := gens["+str(i+1)+"]")%gens[i]
-           #print i,"  \n",cmd
-           gap.eval(cmd)
-        s2 = "g0:=%s; gensH:=%s"%(str(g),words)
-        #print s2
-        gap.eval(s2)
-        s3 = 'G:=Group(gens); H:=Group(gensH)'
-        #print s3,"\n"
-        gap.eval(s3)
-        phi = gap.eval("hom:=EpimorphismFromFreeGroup(H)")
-        l1 = gap.eval("ans:=PreImagesRepresentative(hom,g0)")
-        l2 = copy.copy(l1)
-        l4 = []
-        l3 = l1.split("*")
-        for i in range(1,len(words)+1):
-            l2 = l2.replace("x"+str(i),"("+str(words[i-1])+")")
-        l3 = eval(gap.eval("L3:=ExtRepOfObj(ans)"))
-        #print l3
-        nn = eval(gap.eval("n:=Int(Length(L3)/2)"))
-        LL1 = eval(gap.eval("L4:=List([l..n],i->L3[2*i])"))                     ## note the l not 1
-        LL2 = eval(gap.eval("L5:=List([l..n],i->L3[2*i-1])"))                   ## note the l not 1
-        #print LL1,LL2
-        if display:
-            s = str(g)+" = "+add(["("+str(words[LL2[i]-1])+")^"+str(LL1[i])+"*" for i in range(nn)])
-            m = len(s)
-            #print "      ",s[:m-1]
-        return [[words[LL2[i]-1],LL1[i]] for i in range(nn)]
-
+        from sage.groups.abelian_gps.abelian_group import AbelianGroup, word_problem
+        return word_problem(words,self)

@@ -2727,6 +2727,29 @@ cdef class Matrix(matrix1.Matrix):
         else:
             return (self.subdivisions[0][1:-1], self.subdivisions[1][1:-1])
 
+    def tensor_product(self,Y):
+        """
+        Returns the tensor product of two matrices.
+
+        EXAMPLES:
+            sage: M1=Matrix(QQ,[[-1,0],[-1/2,-1]])
+            sage: M2=Matrix(ZZ,[[1,-1,2],[-2,4,8]])
+            sage: M1.tensor_product(M2)
+            [  -1    1   -2|   0    0    0]
+            [   2   -4   -8|   0    0    0]
+            [--------------+--------------]
+            [-1/2  1/2   -1|  -1    1   -2]
+            [   1   -2   -4|   2   -4   -8]
+            sage: M2.tensor_product(M1)
+            [  -1    0|   1    0|  -2    0]
+            [-1/2   -1| 1/2    1|  -1   -2]
+            [---------+---------+---------]
+            [   2    0|  -4    0|  -8    0]
+            [   1    2|  -2   -4|  -4   -8]
+        """
+        if not isinstance(Y,Matrix):
+            raise TypeError, "second argument must be a matrix"
+        return sage.matrix.constructor.block_matrix([x*Y for x in self.list()],self.nrows(),self.ncols())
 
     def randomize(self, density=1, *args, **kwds):
         """

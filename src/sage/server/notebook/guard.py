@@ -149,6 +149,7 @@ class MySessionWrapper(object):
         Inital logic occurs here to decide the
         authentication status of a given user.
         """
+        log.msg("serving %s" % segments)
         if segments and segments[0] == "login":
             #log.msg("Login")
             #get the username and password in the postdata

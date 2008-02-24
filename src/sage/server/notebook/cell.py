@@ -573,9 +573,13 @@ class Cell(Cell_generic):
             self.__url_to_self = '/home/%s/cells/%s'%(self.worksheet_filename(), self.id())
             return self.__url_to_self
 
-    def files_html(self, out):
+    def files(self):
         dir = self.directory()
         D = os.listdir(dir)
+        return D
+
+    def files_html(self, out):
+        D = self.files()
         D.sort()
         if len(D) == 0:
             return ''

@@ -1176,20 +1176,26 @@ class Worksheet:
         return self.__sage
 
     def start_next_comp(self):
+        print "start_next_comp"
+        print "len(self.__queue)", len(self.__queue)
         if len(self.__queue) == 0:
             return
 
+        print "self.__comp_is_running", self.__comp_is_running
         if self.__comp_is_running:
             #self._record_that_we_are_computing()
             return
 
         C = self.__queue[0]
+        print "C.interrupted()", C.interrupted()
         if C.interrupted():
             # don't actually compute
             return
 
         D = C.directory()
+        print "D", D
         if not C.introspect():
+            print "not C.introspect()"
             I = C.input_text().strip()
             if I in ['restart', 'quit', 'exit']:
                 self.restart_sage()
@@ -1207,6 +1213,7 @@ class Worksheet:
             I = C.introspect()[0]
 
         S = self.sage()
+        print "S", S
 
         id = self.next_block_id()
 
@@ -1224,6 +1231,7 @@ class Worksheet:
         # TODOss
         os.system('chmod -R a+rw "%s"'%absD)
 
+        print "timing"
         if C.time():
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
         if I.endswith('?'):
@@ -1261,7 +1269,7 @@ class Worksheet:
         if C.time() and not C.introspect():
             input += 'print "CPU time: %.2f s,  Wall time: %.2f s"%(cputime(__SAGE_t__), walltime(__SAGE_w__))\n'
 
-
+        print "synchronizing"
         input = self.synchronize(input)
         # Unfortunately, this has to go here at the beginning of the file until Python 2.6,
         # in order to support use of the with statement in the notebook.  Very annoying.
@@ -1279,6 +1287,7 @@ class Worksheet:
         except OSError, msg:
             self.restart_sage()
             C.set_output_text('The Sage compute process quit (possibly Sage crashed?).\nPlease retry your calculation.','')
+        print "done"
 
     def check_comp(self):
         if len(self.__queue) == 0:

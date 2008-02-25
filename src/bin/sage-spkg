@@ -335,7 +335,7 @@ echo "Making SAGE/Python scripts relocatable..."
 cd "$SAGE_LOCAL"/bin
 ./sage-make_relative
 
-
+echo "Finished installing $PKG_NAME.spkg"
 
 # It's OK if they above fails -- in fact it will until Python
 # itself gets installed. That's fine.

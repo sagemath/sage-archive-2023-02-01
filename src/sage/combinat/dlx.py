@@ -1,10 +1,15 @@
 # dlx.py
 # Copyright (c) 2006,2008 Antti Ajanki <antti.ajanki@iki.fi>
 
-# Modified Feb 2008, Tom Boothby
-#  * The solve method is now a generator (i.e. yields)
+# Heavily Modified Feb 2008, Tom Boothby
 #  * Added a function which takes a Sage matrix and solves
 #    the exact cover problem for it.
+#  * Recursive search is now iterative
+#  * Removed callback functionality
+#  * Revamped the class to be a pythonic generator; new usage:
+#        for cover in DLXMatrix(ones,initialsolution):
+#            blah(cover)
+#  * DOCUMENTATION AND TESTS GALORE HOLYCRAP 100% COVERAGE!!!!!1!!111@%^%*QQ!@E~
 
 # DLXMatrix class is used to store and solve an exact cover problem
 # with help of Dancing Links [1] technique by Donald Knuth. The
@@ -43,34 +48,151 @@ COUNT  = 5
 
 
 class DLXMatrix:
-    def __init__(self):
-        self.cursolution = []
-        self.solutioncallback = None
-        self.nodes = [[0, 0, None, None, None, None]]
+    def __init__(self, ones, initialsolution=[]):
+        """
+        Solves the Exact Cover problem by using the Dancing Links
+        algorithm described by Knuth.
 
-    def walknodes(self, firstnode, direction):
-        """Generator for iterating over all nodes in given direction
-        (not including firstnode)."""
-        nodetable=self.nodes
+        Consider a matrix M with entries of 0 and 1, and compute a
+        subset of the rows of this matrix which sum to the vector
+        of all 1's.
+
+        The dancing links algorithm works particularly well for
+        sparse matrices, so the input is a list of lists of the
+        form: (note the 1-index!)
+            [
+             [1, [i_11,i_12,...,i_1r]]
+             ...
+             [m, [i_m1,i_m2,...,i_ms]]
+            ]
+        where M[j][i_jk] = 1.
+
+        The first example below corresponds to the matrix
+
+            1110
+            1010
+            0100
+            0001
+
+        which is exactly covered by
+
+            1110
+            0001
+
+        and
+
+            1010
+            0100
+            0001
+
+        EXAMPLES:
+            sage: from dlx import *
+            sage: ones = [[1,[1,2,3]]]
+            sage: ones+= [[2,[1,3]]]
+            sage: ones+= [[3,[2]]]
+            sage: ones+= [[4,[4]]]
+            sage: for C in DLXMatrix(ones,[4]):
+            ...      print C
+            [4, 1]
+            [4, 2, 3]
+
+
+        NOTE:
+            The 0 entry is reserved internally for headers in the
+            sparse representation, so rows and columns begin
+            their indexing with 1.  Apologies for any heartache
+            this causes.  Blame the original author, or fix it
+            yourself.
+        """
+        self._cursolution = []
+        self._nodes = [[0, 0, None, None, None, None]]
+        self._constructmatrix(ones, initialsolution)
+        self._level = 0
+        self._stack = [(None,None)]
+
+    def __iter__(self):
+        """
+        Returns self.
+
+        TESTS:
+            sage: from dlx import *
+            sage: M = DLXMatrix([[1,[1]]])
+            sage: print M.__iter__() is M
+            True
+        """
+
+        return self
+
+    def _walknodes(self, firstnode, direction):
+        """
+        Generator for iterating over all nodes in given direction
+        (not including firstnode).
+
+        TESTS:
+            sage: from dlx import *
+            sage: ones = [[1,[1,2,3]]]
+            sage: ones+= [[2,[1,3]]]
+            sage: ones+= [[3,[2]]]
+            sage: ones+= [[4,[4]]]
+            sage: DLX = DLXMatrix(ones,[4])
+            sage: count = 0
+            sage: for c in DLX._walknodes(ROOTNODE,RIGHT):
+            ...       count += DLX._nodes[c][COUNT]
+            ...       for d in DLX._walknodes(c,DOWN):
+            ...           count -= 1
+            sage: print count
+            0
+        """
+        nodetable=self._nodes
         n = nodetable[firstnode][direction]
         while n != firstnode:
             yield n
             n = nodetable[n][direction]
 
-    def constructmatrix(self, ones, initialsolution=[]):
-        """Construct the (sparse) DLX matrix based on list 'ones'. The
+    def _constructmatrix(self, ones, initialsolution=[]):
+        """
+        Construct the (sparse) DLX matrix based on list 'ones'. The
         first component in the list elements is row index (which will
         be returned by solve) and the second component is list of
         column indexes of ones in given row.
 
         'initialsolution' is list of row indexes that are required to
-        be part of the solution. They will be removed from the matrix."""
-        self.cursolution = []
+        be part of the solution. They will be removed from the matrix.
+
+        Note: rows and cols are 1-indexed -- the zero index is reserved
+        for the root node and column heads.
+
+        TESTS:
+            sage: from dlx import *
+            sage: ones = [[1,[1,2,3]]]
+            sage: ones+= [[2,[1,3]]]
+            sage: ones+= [[3,[2]]]
+            sage: ones+= [[4,[4]]]
+            sage: DLX = DLXMatrix([[1,[1]]])
+            sage: DLX._constructmatrix(ones,[4])
+            sage: c = DLX._nodes[ROOTNODE][RIGHT]
+            sage: fullcount = 0
+            sage: while c != ROOTNODE:
+            ...       fullcount += DLX._nodes[c][COUNT]
+            ...       d = DLX._nodes[c][DOWN]
+            ...       while d != c:
+            ...           bad = DLX._nodes[DLX._nodes[d][DOWN]][UP] != d
+            ...           bad|= DLX._nodes[DLX._nodes[d][UP]][DOWN] != d
+            ...           bad|= DLX._nodes[DLX._nodes[d][LEFT]][RIGHT] != d
+            ...           bad|= DLX._nodes[DLX._nodes[d][RIGHT]][LEFT] != d
+            ...           if bad:
+            ...               raise RuntimeError, "Linked list inconsistent."
+            ...           d = DLX._nodes[d][DOWN]
+            ...       c = DLX._nodes[c][RIGHT]
+            sage: print fullcount
+            6
+        """
+        self._cursolution = []
         # LEFT, RIGHT, UP, DOWN, COLUMN, INDEX/COUNT
-        self.nodes = [[ROOTNODE, ROOTNODE, None, None, None, None]]
+        self._nodes = [[ROOTNODE, ROOTNODE, None, None, None, None]]
 
         # optimization: local variables are faster
-        nodetable = self.nodes
+        nodetable = self._nodes
         ones.sort()
         pruneNodes = []
         headers = [ROOTNODE] # indexes of header nodes for faster access
@@ -91,7 +213,7 @@ class DLXMatrix:
 
             # Add new nodes to indexes newind..newind+len(columns)-1
             # LEFT and RIGHT links can be calculated when created the
-            # node, only UP, DONW and COUNT have to be updated when
+            # node, only UP, DOWN and COUNT have to be updated when
             # adding new nodes
             newind = len(nodetable)
             for i, c in enumerate(columns):
@@ -109,74 +231,197 @@ class DLXMatrix:
 
         # Remove columns that are required to be in the solution
         for n in pruneNodes:
-            self.cursolution += [nodetable[n][INDEX]]
-            self.covercolumn(nodetable[n][COLUMN])
-            for j in self.walknodes(n, RIGHT):
-                self.covercolumn(nodetable[j][COLUMN])
+            self._cursolution += [nodetable[n][INDEX]]
+            self._covercolumn(nodetable[n][COLUMN])
+            for j in self._walknodes(n, RIGHT):
+                self._covercolumn(nodetable[j][COLUMN])
 
-    def covercolumn(self, c):
-        nodetable = self.nodes
+    def _covercolumn(self, c):
+        """
+        Performs the column covering operation, as described by
+        Knuth's pseudocode:
+            cover(c):
+                i <- D[c]
+                while i != c:
+                    j <- R[i]
+                    while j != i
+                        D[U[j]] <- D[j]
+                        U[D[j]] <- U[j]
+                        N[C[j]] <- N[C[j]] - 1
+                        j <- R[j]
+                    i <- D[i]
+
+        This is undone by the uncover operation.
+
+        TESTS:
+            sage: from dlx import *
+            sage: M = DLXMatrix([[1,[1,3]],[2,[1,2]],[3,[2]]])
+            sage: one = M._nodes[ROOTNODE][RIGHT]
+            sage: M._covercolumn(one)
+            sage: two = M._nodes[ROOTNODE][RIGHT]
+            sage: three = M._nodes[two][RIGHT]
+            sage: print M._nodes[three][RIGHT] == ROOTNODE
+            True
+            sage: print M._nodes[two][COUNT]
+            1
+            sage: print M._nodes[three][COUNT]
+            0
+        """
+
+        nodetable = self._nodes
         nodetable[nodetable[c][RIGHT]][LEFT] = nodetable[c][LEFT]
         nodetable[nodetable[c][LEFT]][RIGHT] = nodetable[c][RIGHT]
-        for i in self.walknodes(c, DOWN):
-            for j in self.walknodes(i, RIGHT):
+        for i in self._walknodes(c, DOWN):
+            for j in self._walknodes(i, RIGHT):
                 nodetable[nodetable[j][DOWN]][UP] = nodetable[j][UP]
                 nodetable[nodetable[j][UP]][DOWN] = nodetable[j][DOWN]
                 nodetable[nodetable[j][COLUMN]][COUNT] -= 1
 
-    def uncovercolumn(self, c):
-        nodetable = self.nodes
-        for i in self.walknodes(c, UP):
-            for j in self.walknodes(i, LEFT):
+    def _uncovercolumn(self, c):
+        """
+        Performs the column uncovering operation, as described by
+        Knuth's pseudocode:
+            uncover(c):
+                i <- U[c]
+                while i != c:
+                    j <- L[i]
+                    while j != i
+                        U[j] <- U[D[j]]
+                        D[j] <- D[U[j]]
+                        N[C[j]] <- N[C[j]] + 1
+                        j <- L[j]
+                    i <- U[i]
+
+        This undoes by the cover operation since everything is done
+        in the reverse order.
+
+        TESTS:
+            sage: from dlx import *
+            sage: M = DLXMatrix([[1,[1,3]],[2,[1,2]],[3,[2]]])
+            sage: one = M._nodes[ROOTNODE][RIGHT]
+            sage: M._covercolumn(one)
+            sage: two = M._nodes[ROOTNODE][RIGHT]
+            sage: M._uncovercolumn(one)
+            sage: print M._nodes[two][LEFT] == one
+            True
+            sage: print M._nodes[two][COUNT]
+            2
+        """
+        nodetable = self._nodes
+        for i in self._walknodes(c, UP):
+            for j in self._walknodes(i, LEFT):
                 nodetable[nodetable[j][DOWN]][UP] = j
                 nodetable[nodetable[j][UP]][DOWN] = j
                 nodetable[nodetable[j][COLUMN]][COUNT] += 1
         nodetable[nodetable[c][RIGHT]][LEFT] = c
         nodetable[nodetable[c][LEFT]][RIGHT] = c
 
-    def dosearch(self):
-        """Internal. The actual recursive searching function."""
-        nodetable = self.nodes # optimization: local variables are faster
+    def next(self):
+        """
+        Search for the first solution we can find, and return it.
 
-        if nodetable[ROOTNODE][RIGHT] == ROOTNODE:
-            if self.solutioncallback is not None:
-                self.solutioncallback(self.cursolution)
-                return
+        Knuth describes the Dancing Links algorithm recursively,
+        though actually implementing it as a recursive algorithm
+        is permissible only for highly restricted problems.  (for
+        example, the original author implemented this for Sudoku,
+        and it works beautifully there)
+
+        What follows is an iterative description of DLX:
+
+        stack <- [(NULL)]
+        level <- 0
+        while level >= 0:
+            cur <- stack[level]
+            if cur = NULL:
+                if R[h] = h:
+                    level <- level - 1
+                    yield solution
+                else:
+                    cover(best_column)
+                    stack[level] = best_column
+            else if D[cur] != C[cur]:
+                if cur != C[cur]:
+                    delete solution[level]
+                    for j in L[cur], L[L[cur]], ... , while j != cur:
+                        uncover(C[j])
+                cur <- D[cur]
+                solution[level] <- cur
+                stack[level] <- cur
+                for j in R[cur], R[R[cur]], ... , while j != cur:
+                    cover(C[j])
+                level <- level + 1
+                stack[level] <- (NULL)
             else:
-                yield self.cursolution
-                return
-        a = None
-        c = nodetable[ROOTNODE][RIGHT]
-        maxcount = nodetable[nodetable[ROOTNODE][RIGHT]][COUNT]
-        for j in self.walknodes(ROOTNODE, RIGHT):
-            if nodetable[j][COUNT] < maxcount:
-                c = j
-                maxcount = nodetable[j][COUNT]
-        self.covercolumn(c)
-        for r in self.walknodes(c, DOWN):
-            self.cursolution += [nodetable[r][INDEX]]
-            for j in self.walknodes(r, RIGHT):
-                self.covercolumn(nodetable[j][COLUMN])
-            for a in self.dosearch():
-                yield a
+                if C[cur] != cur:
+                    delete solution[level]
+                    for j in L[cur], L[L[cur]], ... , while j != cur:
+                        uncover(C[j])
+                uncover(cur)
+                level <- level - 1
 
-            self.cursolution = self.cursolution[:-1]
-            for j in self.walknodes(r, LEFT):
-                self.uncovercolumn(nodetable[j][COLUMN])
-        self.uncovercolumn(c)
-        return
+        TESTS:
+            sage: from dlx import *
+            sage: M = DLXMatrix([[1,[1,2]],[2,[2,3]],[3,[1,3]]])
+            sage: while 1:
+            ...     try:
+            ...         C = M.next()
+            ...     except StopIteration:
+            ...         print "StopIteration"
+            ...         break
+            ...     print C
+            StopIteration
+            sage: M = DLXMatrix([[1,[1,2]],[2,[2,3]],[3,[3]]])
+            sage: for C in M:
+            ...       print C
+            [1, 3]
+            sage: M = DLXMatrix([[1,[1]],[2,[2,3]],[3,[2]],[4,[3]]])
+            sage: for C in M:
+            ...       print C
+            [1, 2]
+            [1, 3, 4]
+        """
+        nodetable = self._nodes # optimization: local variables are faster
 
-    def solve(self, ones, initialsolution=[], callback=None):
-        """Construct DLX matrix and solve exact cover problem. Returns
-        list of row indexes of found solution or None none is found.
+        while self._level >= 0:
+            c,r = self._stack[self._level]
+            if c is None:
+                if nodetable[ROOTNODE][RIGHT] == ROOTNODE:
+                    self._level -= 1
+                    return self._cursolution
+                else:
+                    c = nodetable[ROOTNODE][RIGHT]
+                    maxcount = nodetable[nodetable[ROOTNODE][RIGHT]][COUNT]
+                    for j in self._walknodes(ROOTNODE, RIGHT):
+                        if nodetable[j][COUNT] < maxcount:
+                            c = j
+                            maxcount = nodetable[j][COUNT]
+                    self._covercolumn(c)
+                    self._stack[self._level] = (c,c)
+            elif nodetable[r][DOWN] != c:
+                if c != r:
+                    self._cursolution = self._cursolution[:-1]
+                    for j in self._walknodes(r, LEFT):
+                        self._uncovercolumn(nodetable[j][COLUMN])
+                r = nodetable[r][DOWN]
+                self._cursolution += [nodetable[r][INDEX]]
+                for j in self._walknodes(r, RIGHT):
+                    self._covercolumn(nodetable[j][COLUMN])
+                self._stack[self._level] = (c,r)
+                self._level += 1
+                if len(self._stack) == self._level:
+                    self._stack.append((None,None))
+                else:
+                    self._stack[self._level] = (None,None)
+            else:
+                if c != r:
+                    self._cursolution = self._cursolution[:-1]
+                    for j in self._walknodes(r, LEFT):
+                        self._uncovercolumn(nodetable[j][COLUMN])
+                self._uncovercolumn(c)
+                self._level -= 1
 
-        If callback is given, tries to find all solutions and calls
-        the callback with one argument once for every solution. The
-        argument is list of row indexes. If callback is given this
-        method always returns None."""
-        self.constructmatrix(ones, initialsolution)
-        self.solutioncallback=callback
-        return self.dosearch()
+        raise StopIteration
+
 
 
 def AllExactCovers(M):
@@ -193,6 +438,7 @@ def AllExactCovers(M):
         ...       print cover
         [(1, 1, 0), (0, 0, 1)]
         [(1, 0, 1), (0, 1, 0)]
+
     """
     ones = []
     r = 1   #damn 1-indexing
@@ -203,8 +449,7 @@ def AllExactCovers(M):
                 row.append(i+1) #damn 1-indexing
         ones.append([r,row])
         r+=1
-    X = DLXMatrix()
-    for s in X.solve(ones):
+    for s in DLXMatrix(ones):
         yield [M.row(i-1) for i in s] #damn 1-indexing
 
 def OneExactCover(M):

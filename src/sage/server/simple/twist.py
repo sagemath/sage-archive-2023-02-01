@@ -1,4 +1,4 @@
-import re, random
+import re, random, os.path
 
 from twisted.internet.threads import deferToThread
 from twisted.python import log
@@ -53,6 +53,11 @@ class SessionObject:
         self.worksheet = worksheet
         self.default_timeout = timeout
 
+    def get_status(self):
+        return {
+            'id': self.id,
+        }
+
 class LoginResource(resource.Resource):
 
     def render(self, ctx):
@@ -63,33 +68,45 @@ class LoginResource(resource.Resource):
         worksheet.initialize_sage()
         # is this a secure enough random number?
         session_id = "%x" % random.randint(1, 1 << 128)
-        sessions[session_id] = SessionObject(session_id, username, worksheet)
+        session = SessionObject(session_id, username, worksheet)
+        sessions[session_id] = session
         # FOR TESTING
-        sessions['test'] = sessions[session_id]
-        status = { 'session': session_id }
+        sessions['test'] = session
+        status = session.get_status()
         return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
 
+class LogoutResource(resource.Resource):
 
-class TryDeferreds(resource.Resource):
+    def render(self, ctx):
+        late_import()
+        session = sessions[ctx.args['session'][0]]
+        session.worksheet.notebook().delete_worksheet(session.worksheet.filename())
+        status = session.get_status()
+        return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
 
-  def render(self, ctx):
-#      print ctx.__dict__
-#      d = deferToThread(self.real_render, 'blah')
-#      d.addCallback(ctx.write)
-#      d.addCallback(lambda _: ctx.finish())
-#      #        d.addErrback(log.err)
-#      return NOT_DONE_YET
+class InterruptResource(resource.Resource):
 
-      d = defer.Deferred()
-      d.addCallback(self.real_render)
-      reactor.callLater(1, d.callback, None)
-      print "d", d
-      return d
+    def render(self, ctx):
+        late_import()
+        session = sessions[ctx.args['session'][0]]
+        session.worksheet.interrupt()
+        status = session.get_status()
+        return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
 
-  def real_render(self, arg):
-      print "rendering", arg
-      return http.Response(stream = "Got here: %s" % arg)
+class RestartResource(resource.Resource):
 
+    def render(self, ctx):
+        late_import()
+        session = sessions[ctx.args['session'][0]]
+        session.worksheet.restart_sage()
+        status = session.get_status()
+        return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
+
+class SessionStatus:
+
+    def render_session_status(self, session):
+        status = {}
+        return http.Response(stream = "\n".join([simple_jsonize(status), SEP]))
 
 class CellResource(resource.Resource):
 
@@ -112,10 +129,28 @@ class StatusResource(CellResource):
 
     def render(self, ctx):
         session = sessions[ctx.args['session'][0]]
+        try:
+            cell_id = ctx.args['cell'][0]
+            cell = session.worksheet.get_cell_with_id(cell_id)
+            print "raw output", cell.output_text(raw=True)
+            return self.render_cell_result(cell)
+        except KeyError:
+            status = session.get_status()
+            return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
+
+class FileResource(resource.Resource):
+    """
+    This differs from the rest as it does not print a header, just the raw file data.
+    """
+    def render(self, ctx):
+        session = sessions[ctx.args['session'][0]]
         cell_id = ctx.args['cell'][0]
         cell = session.worksheet.get_cell_with_id(cell_id)
-        return self.render_cell_result(cell)
-
+        file_name = ctx.args['file'][0]
+        if file_name in cell.files():
+            return static.File("%s/%s" % (self.directory(), file_name))
+        else:
+            return http.Response(code=404, stream = "No such file %s in cell %s." % (file_name, cell_id))
 
 class ComputeResource(CellResource):
 
@@ -138,10 +173,13 @@ class ComputeResource(CellResource):
 class SimpleServer(resource.Resource):
 
     child_login = LoginResource()
+    child_logout = LogoutResource()
+    child_interrupt = InterruptResource()
+    child_restart = RestartResource()
+
     child_compute = ComputeResource()
     child_status = StatusResource()
-    child_defer = TryDeferreds()
-#    child_status = StatusResource()
+    child_file = FileResource()
 
     def render(self, ctx):
         return http.Response(stream="Yo!")

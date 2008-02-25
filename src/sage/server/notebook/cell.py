@@ -285,6 +285,7 @@ class Cell(Cell_generic):
         self.__in = new_text
 
     def set_output_text(self, output, html, sage=None):
+        print "setting cell output '%s', '%s', '%s'" % (output, html, sage)
         if hasattr(self, '_html_cache'):
             del self._html_cache
         output = output.replace('\r','')

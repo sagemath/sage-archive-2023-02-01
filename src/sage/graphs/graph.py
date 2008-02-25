@@ -3752,30 +3752,6 @@ class GenericGraph(SageObject):
                 a,b = search_tree(self, partition, dig=dig, verbosity=verbosity)
                 return b
 
-    def chromatic_polynomial(self):
-        """
-        Returns the chromatic polynomial of the graph G.
-
-        EXAMPLES:
-            sage: G = Graph({0:[1,2,3],1:[2]})
-            sage: factor(chromatic_polynomial(G))
-            (x - 2) * x * (x - 1)^2
-        """
-        return chromatic_polynomial(self)
-
-    def chromatic_number(self):
-        """
-        Returns the minimal number of colors needed to color the
-        vertices of the graph G.
-
-        EXAMPLES:
-            sage: G = Graph({0:[1,2,3],1:[2]})
-            sage: chromatic_number(G)
-            3
-        """
-        return chromatic_number(self)
-
-
 
 class Graph(GenericGraph):
     r"""
@@ -5946,6 +5922,30 @@ class Graph(GenericGraph):
             return edges
         else:
             raise NotImplementedError, "Minimum Spanning Tree algorithm '%s' is not implemented."%algorithm
+
+    def chromatic_polynomial(self):
+        """
+        Returns the chromatic polynomial of the graph G.
+
+        EXAMPLES:
+            sage: G = Graph({0:[1,2,3],1:[2]})
+            sage: factor(G.chromatic_polynomial())
+            (x - 2) * x * (x - 1)^2
+        """
+        return chromatic_polynomial(self)
+
+    def chromatic_number(self):
+        """
+        Returns the minimal number of colors needed to color the
+        vertices of the graph G.
+
+        EXAMPLES:
+            sage: G = Graph({0:[1,2,3],1:[2]})
+            sage: G.chromatic_number()
+            3
+        """
+        return chromatic_number(self)
+
 
 
 

@@ -107,11 +107,10 @@ def all_graph_colorings(G,n,count_only=False):
         for i in range(n*nE):
             ones.append([k+i, [nV+i+1]])
 
-    m = DLXMatrix()
     colors = rainbow(n)
 
     try:
-        for a in m.solve(ones):
+        for a in DLXMatrix(ones):
             if count_only:
                 yield 1
                 continue

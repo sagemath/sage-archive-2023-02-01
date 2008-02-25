@@ -88,6 +88,10 @@ class Factorization(SageObject, list):
         -1
         sage: loads(F.dumps()) == F
         True
+        sage: F = Factorization([(x,1/3)])
+        Traceback (most recent call last):
+        ...
+        TypeError: powers of factors must be integers
     """
     def __init__(self, x, unit=None, cr=False, sort=True, simplify=True):
         if not isinstance(x, list):
@@ -98,10 +102,17 @@ class Factorization(SageObject, list):
             else:
                 unit = x.__unit * unit
         from sage.rings.integer import Integer
-        for t in x:
-            if not (isinstance(t, tuple) and len(t) == 2 and isinstance(t[1],(int, long, Integer))):
-                raise TypeError, "x must be a list of tuples of length 2"
-        list.__init__(self, x)
+        for i in xrange(len(x)):
+            t=x[i]
+            if not (isinstance(t, tuple) and len(t) == 2):
+                raise TypeError, "input must be a list of tuples of length 2"
+            if not isinstance(t[1],(int, long, Integer)):
+                try: # try coercing to an integer
+                    x[i]= (t[0], Integer(t[1]))
+                except TypeError:
+                    raise TypeError, "powers of factors must be integers"
+
+        list.__init__(self, [ (t[0],int(t[1])) for t in x])
         if unit is None:
             if len(x) > 0:
                 try:
@@ -250,6 +261,12 @@ class Factorization(SageObject, list):
             return False
 
     def _repr_(self):
+        """
+        EXAMPLES:
+            sage: x = polygen(QQ)
+            sage: Factorization([(x-1,1), (x-2,2)])
+            (x - 1) * (x - 2)^2
+        """
         cr = self._cr()
         if len(self) == 0:
             return repr(self.__unit)

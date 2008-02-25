@@ -130,9 +130,8 @@ class StatusResource(CellResource):
     def render(self, ctx):
         session = sessions[ctx.args['session'][0]]
         try:
-            cell_id = ctx.args['cell'][0]
+            cell_id = int(ctx.args['cell'][0])
             cell = session.worksheet.get_cell_with_id(cell_id)
-            print "raw output", cell.output_text(raw=True)
             return self.render_cell_result(cell)
         except KeyError:
             status = session.get_status()
@@ -144,11 +143,11 @@ class FileResource(resource.Resource):
     """
     def render(self, ctx):
         session = sessions[ctx.args['session'][0]]
-        cell_id = ctx.args['cell'][0]
+        cell_id = int(ctx.args['cell'][0])
         cell = session.worksheet.get_cell_with_id(cell_id)
         file_name = ctx.args['file'][0]
         if file_name in cell.files():
-            return static.File("%s/%s" % (self.directory(), file_name))
+            return static.File("%s/%s" % (cell.directory(), file_name))
         else:
             return http.Response(code=404, stream = "No such file %s in cell %s." % (file_name, cell_id))
 

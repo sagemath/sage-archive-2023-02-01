@@ -129,17 +129,17 @@ class Crystal(CombinatorialClass, Parent):
         result = set(self.module_generators)
         todo = result.copy()
         while len(todo) > 0:
-            x = todo.pop();
+            x = todo.pop()
             for i in self.index_set:
                 y = x.f(i)
                 if y == None or y in result:
                     continue
                 todo.add(y)
                 result.add(y)
-        return list(result);
+        return list(result)
 
     def digraph(self):
-        dict = {};
+        dict = {}
         for x in self:
             dict[x] = {}
             for i in self.index_set:
@@ -150,31 +150,31 @@ class Crystal(CombinatorialClass, Parent):
         return DiGraph(dict)
 
     def latex(self):
-        from dot2tex.dot2tex import Dot2TikZConv;
-        conv = Dot2TikZConv();
-        return conv.convert(self.dot_tex());
+        from dot2tex.dot2tex import Dot2TikZConv
+        conv = Dot2TikZConv()
+        return conv.convert(self.dot_tex())
 
     def dot_tex(self):
-        rank = ranker.from_list(self.list())[0];
+        rank = ranker.from_list(self.list())[0]
         def vertex_key(x):
             return "N_"+str(rank(x))
         def quoted_latex(x):
-            import re;
+            import re
             # To do: check the regular expression
             # Removing %-style comments, newlines, quotes
             return re.sub("\"|\r|(%[^\n]*)?\n","", latex(x))
 
-        result = "digraph G {\n";
+        result = "digraph G {\n"
         for x in self:
-            result += vertex_key(x) + " [ label = \" \", texlbl = \"$"+quoted_latex(x)+"$\" ];\n";
+            result += vertex_key(x) + " [ label = \" \", texlbl = \"$"+quoted_latex(x)+"$\" ];\n"
         for x in self:
             for i in self.index_set:
                 child = x.f(i)
                 if child is None:
                     continue
-                result += vertex_key(x)+ " -> "+vertex_key(child)+ " [ label = \" \", texlbl = \""+quoted_latex(i)+"\" ];\n";
-        result+="}";
-        return result;
+                result += vertex_key(x)+ " -> "+vertex_key(child)+ " [ label = \" \", texlbl = \""+quoted_latex(i)+"\" ];\n"
+        result+="}"
+        return result
 
     def plot(self, **options):
         return self.digraph().plot(edge_labels=True,vertex_size=0,**options)
@@ -303,10 +303,10 @@ class ClassicalCrystal(Crystal):
         """
         def rec(x):
             for i in x.index_set():
-                child = x.f(i);
+                child = x.f(i)
                 if child is None:
                     continue
-                hasParent = False;
+                hasParent = False
                 for j in x.index_set():
                     if j == i:
                         break
@@ -314,7 +314,7 @@ class ClassicalCrystal(Crystal):
                         hasParent = True
                         break
                 if hasParent:
-                    continue;
+                    continue
                 yield child
                 for y in rec(child):
                     yield y
@@ -323,9 +323,9 @@ class ClassicalCrystal(Crystal):
             # This is just in case the module_generators
             if not generator.is_highest_weight():
                 continue
-            yield generator;
+            yield generator
             for x in rec(generator):
-                yield x;
+                yield x
 
     iterator = __iter__
 
@@ -334,4 +334,4 @@ class AffineCrystal(Crystal):
     r"""
     The abstract class of affine crystals
     """
-    pass;
+    pass

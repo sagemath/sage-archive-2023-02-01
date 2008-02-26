@@ -46,22 +46,108 @@ EXAMPLES:
 
 
 from sage.modular.hecke.all import HeckeModule_free_module
-from sage.rings.all import Integer, ZZ, QQ
+from sage.rings.all import Integer, ZZ, QQ, is_CommutativeRing
 
+# TODO: we will probably also need homology that is *not* a Hecke module.
 
 class Homology(HeckeModule_free_module):
-    def hecke_polynomial(self, n, var):
+    """
+    A homology group of an abelian variety, equipped with a Hecke
+    action.
+    """
+    def hecke_polynomial(self, n, var='x'):
+        """
+        Return the n-th Hecke polynomial in the given variable.
+
+        INPUT:
+            n -- positive integer
+            var -- string (default: 'x') the variable name
+
+        OUTPUT:
+            a polynomial over ZZ in the given variable
+
+        EXAMPLES:
+            sage: H = J0(43).integral_homology(); H
+            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+            sage: f = H.hecke_polynomial(3); f
+            x^6 + 4*x^5 - 16*x^3 - 12*x^2 + 16*x + 16
+            sage: parent(f)
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: H.hecke_polynomial(3,'w')
+            w^6 + 4*w^5 - 16*w^3 - 12*w^2 + 16*w + 16
+        """
         return self.hecke_matrix(n).charpoly(var)
 
 
 class Homology_abvar(Homology):
+    """
+    The homology of a modular abelian variety.
+    """
     def __init__(self, abvar, base):
+        """
+        This is an abstract base class, so it is called implicitly in
+        the following examples.
+
+        EXAMPLES:
+            sage: H = J0(43).integral_homology()
+            sage: type(H)
+            <class 'sage.modular.abvar.homology.IntegralHomology'>
+
+        TESTS:
+            sage: H = J0(43).integral_homology()
+            sage: loads(dumps(H)) == H
+            True
+        """
+        if not is_CommutativeRing(base):
+            raise TypeError, "base ring must be a commutative ring"
         HeckeModule_free_module.__init__(
             self, base, abvar.level(), weight=2)
         self.__abvar = abvar
 
     def _repr_(self):
-        return "Homology of %s"%self.__abvar
+        """
+        Return string representation of this.  This must be defined
+        in the derived class.
+
+        EXAMPLES:
+            sage: H = J0(43).integral_homology()
+            sage: from sage.modular.abvar.homology import Homology_abvar
+            sage: Homology_abvar._repr_(H)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: please override this in the derived class
+        """
+        raise NotImplementedError, "please override this in the derived class"
+
+    def gens(self):
+        """
+        Return generators of self.
+
+        This is not yet implemented!
+
+        EXAMPLES:
+            sage: H = J0(37).homology()
+            sage: H.gens()    # this will change
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: homology classes not yet implemented
+        """
+        raise NotImplementedError, "homology classes not yet implemented"
+
+    def gen(self, n):
+        """
+        Return $n$th generator of self.
+
+        This is not yet implemented!
+
+        EXAMPLES:
+            sage: H = J0(37).homology()
+            sage: H.gen(0)    # this will change
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: homology classes not yet implemented
+        """
+        raise NotImplementedError, "homology classes not yet implemented"
 
     def abelian_variety(self):
         """
@@ -95,7 +181,12 @@ class Homology_abvar(Homology):
             sage: H.free_module()
             Ambient free module of rank 6 over the principal ideal domain Integer Ring
         """
-        return self.base_ring()**self.rank()
+        try:
+            return self.__free_module
+        except AttributeError:
+            M = self.base_ring()**self.rank()
+            self.__free_module = M
+            return M
 
     def hecke_bound(self):
         r"""
@@ -114,6 +205,26 @@ class Homology_abvar(Homology):
         """
         Return the matrix of the n-th Hecke operator acting on
         this homology group.
+
+        INPUT:
+            n -- a positive integer
+
+        OUTPUT:
+            a matrix over the coefficient ring of this homology group
+
+        EXAMPLES:
+            sage: H = J0(23).integral_homology()
+            sage: H.hecke_matrix(3)
+            [-1 -2  2  0]
+            [ 0 -3  2 -2]
+            [ 2 -4  3 -2]
+            [ 2 -2  0  1]
+
+        The matrix is over the coefficient ring:
+            sage: J = J0(23)
+            sage: J.homology(QQ[I]).hecke_matrix(3).parent()
+            Full MatrixSpace of 4 by 4 dense matrices over Number Field in I with defining polynomial x^2 + 1
+
         """
         raise NotImplementedError
 
@@ -135,10 +246,11 @@ class Homology_abvar(Homology):
         be a submodule of the free module associated to this homology group.
 
         INPUT:
-            U -- submodule of ambient free module
+            U -- submodule of ambient free module (or something that defines one)
             check -- currently ignored.
 
-        NOTE: We do not check that U is invariant under all Hecke operators.
+        NOTE: We do \emph{not} check that U is invariant under all
+        Hecke operators.
 
         EXAMPLES:
             sage: H = J0(23).homology(); H
@@ -162,10 +274,36 @@ class Homology_abvar(Homology):
 
 
 class IntegralHomology(Homology_abvar):
+    r"""
+    The rational homology $H_1(A,\ZZ)$ of a modular abelian variety.
+    """
     def __init__(self, abvar):
+        """
+        Create the integral homology of a modular abelian variety.
+
+        INPUT:
+            abvar -- a modular abelian variety
+
+        EXAMPLES:
+            sage: H = J0(23).integral_homology(); H
+            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+            sage: type(H)
+            <class 'sage.modular.abvar.homology.IntegralHomology'>
+
+        TESTS:
+            sage: loads(dumps(H)) == H
+            True
+        """
         Homology_abvar.__init__(self, abvar, ZZ)
 
     def _repr_(self):
+        """
+        String representation of the integral homology.
+
+        EXAMPLES:
+            sage: J0(23).integral_homology()._repr_()
+            'Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)'
+        """
         return "Integral Homology of %s"%self.abelian_variety()
 
     def hecke_matrix(self, n):
@@ -204,10 +342,34 @@ class IntegralHomology(Homology_abvar):
         return f
 
 class RationalHomology(Homology_abvar):
+    r"""
+    The rational homology $H_1(A,\QQ)$ of a modular abelian variety.
+    """
     def __init__(self, abvar):
+        """
+        Create the integral homology of a modular abelian variety.
+
+        INPUT:
+            abvar -- a modular abelian variety
+
+        EXAMPLES:
+            sage: H = J0(23).rational_homology(); H
+            Rational Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+
+        TESTS:
+            sage: loads(dumps(H)) == H
+            True
+        """
         Homology_abvar.__init__(self, abvar, QQ)
 
     def _repr_(self):
+        """
+        Return string representation of the rational homology.
+
+        EXAMPLES:
+            sage: J0(23).rational_homology()._repr_()
+            'Rational Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)'
+        """
         return "Rational Homology of %s"%self.abelian_variety()
 
     def hecke_matrix(self, n):
@@ -252,10 +414,39 @@ class RationalHomology(Homology_abvar):
 
 
 class Homology_over_base(Homology_abvar):
+    r"""
+    The homology over a modular abelian variety over an arbitrary base
+    commutative ring (not $\ZZ$ or $\QQ$).
+    """
     def __init__(self, abvar, base_ring):
+        r"""
+        Called when creating homology with coefficients not $\ZZ$ or $\QQ$.
+
+        INPUT:
+             abvar -- a modular abelian variety
+             base_ring -- a commutative ring
+
+        EXAMPLES:
+            sage: H = J0(23).homology(GF(5)); H
+            Homology with coefficients in Finite Field of size 5 of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+            sage: type(H)
+            <class 'sage.modular.abvar.homology.Homology_over_base'>
+
+        TESTS:
+            sage: loads(dumps(H)) == H
+            True
+        """
         Homology_abvar.__init__(self, abvar, base_ring)
 
     def _repr_(self):
+        """
+        Return string representation of self.
+
+        EXAMPLES:
+            sage: H = J0(23).homology(GF(5))
+            sage: H._repr_()
+            'Homology with coefficients in Finite Field of size 5 of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)'
+        """
         return "Homology with coefficients in %s of %s"%(self.base_ring(), self.abelian_variety())
 
     def hecke_matrix(self, n):
@@ -276,13 +467,49 @@ class Homology_over_base(Homology_abvar):
         return self.abelian_variety()._integral_hecke_matrix(n).change_ring(self.base_ring())
 
 class Homology_submodule(Homology):
+    """
+    A submodule of the homology of a modular abelian variety.
+    """
     def __init__(self, ambient, submodule):
+        """
+        Create a submodule of the homology of a modular abelian variety.
+
+        INPUT:
+            ambient -- the homology of some modular abelian variety with
+                       ring coefficients
+            submodule -- a submodule of the free module underlying ambient
+
+        EXAMPLES:
+            sage: H = J0(37).homology()
+            sage: H.submodule([[1,0,0,0]])
+            Submodule of rank 1 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+
+        TESTS:
+            sage: loads(dumps(H)) == H
+            True
+        """
+        if not isinstance(ambient, Homology_abvar):
+            raise TypeError, "ambient must be the homology of a modular abelian variety"
         self.__ambient = ambient
+        #try:
+        #    if not submodule.is_submodule(ambient):
+        #        raise ValueError, "submodule must be a submodule of the ambient homology group"
+        #except AttributeError:
+        submodule = ambient.free_module().submodule(submodule)
         self.__submodule = submodule
         HeckeModule_free_module.__init__(
             self, ambient.base_ring(), ambient.level(), weight=2)
 
     def _repr_(self):
+        """
+        String representation of this submodule of homology.
+
+        EXAMPLES:
+            sage: H = J0(37).homology()
+            sage: G = H.submodule([[1, 2, 3, 4]])
+            sage: G._repr_()
+            'Submodule of rank 1 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)'
+        """
         return "Submodule of rank %s of %s"%(self.rank(), self.__ambient)
 
     def ambient_hecke_module(self):

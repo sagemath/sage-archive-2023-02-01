@@ -11,12 +11,24 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
-import sage.categories.all
+import sage.categories.morphism
 
-class Morphism(sage.categories.all.Morphism):
-    def __init__(self, parent, x):
-        self._parent = parent
-        self._x = x
+class Morphism(sage.categories.morphism.Morphism):
+    """
+    A morphism between modular abelian varieties.
+    """
+    def __init__(self, parent):
+        """
+        Create a morphism between modular abelian varieties.
 
-    def _repr_(self):
-        return "Morphism defined by %s in %s"%(self._x, self._parent)
+        INPUT:
+             parent -- a homset
+
+        EXAMPLES:
+            sage: t = J0(11).hecke_operator(2)
+            sage: from sage.modular.abvar.morphism import Morphism
+            sage: isinstance(t, Morphism)
+            True
+        """
+        sage.categories.morphism.Morphism.__init__(self, parent)
+

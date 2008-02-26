@@ -89,8 +89,9 @@ class Sequence(sage.structure.sage_object.SageObject, list):
                     using canonical coercions and the entire list of elements.
                     If list is empty, is category Objects() of all objects.
         check -- (default: True) whether to coerce the elements of x into the universe
-        cr -- (default: False) if True, then print a carriage return after each comma
-                               when printing this sequence.
+        immutable -- (default: True) whether or not this sequence is immutable
+        cr -- (default: False) if True, then print a carriage return after each
+                         comma when printing this sequence.
 
     OUTPUT:
         a sequence
@@ -130,12 +131,22 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         sage: isinstance(v, list)
         True
 
+    Sequence can be immutable, so entries can't be changed:
+        sage: v = Sequence([1,2,3], immutable=True)
+        sage: v.is_immutable()
+        True
+        sage: v[0] = 5
+        Traceback (most recent call last):
+        ...
+        ValueError: object is immutable; please change a copy instead.
+
     Sequences are hashable (unlike Python lists), though the hashing
     is potentially slow, since it first involves conversion of the
     sequence to a tuple, and returning the hash of that.  The hash
     is cached, and is only recomputed if the sequence is changed
     (which has a small performance penalty for assignment).
 
+        sage: v = Sequence(range(10), ZZ); v[3] = 5
         sage: hash(v)
         2083920238            # 32-bit
         -8049699692026128018  # 64-bit

@@ -250,6 +250,18 @@ class Homset(ParentWithBase, Set_generic):
         return "Set of Morphisms from %s to %s in %s"%(
             self.__domain, self.__codomain, self.__category)
 
+    def homset_category(self):
+        """
+        Return the category that this is a Hom in, i.e., this is
+        typically the category of the domain or codomain object.
+
+        EXAMPLES:
+            sage: H = Hom(SymmetricGroup(4), SymmetricGroup(7))
+            sage: H.homset_category()
+            Category of groups
+        """
+        return self.__category
+
     def __call__(self, x, y=None, check=True):
         """
         Construct a morphism in this homset from x if possible.

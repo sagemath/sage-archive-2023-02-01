@@ -3,6 +3,12 @@ Optimal abelian variety quotients of modular jacobians.
 
 AUTHOR:
     -- William Stein (2007-03)
+
+EXAMPLES:
+    sage: A = J0(389)[0]; A
+    Modular abelian variety quotient of dimension 1 and level 389
+    sage: loads(dumps(A)) == A
+    True
 """
 
 ###########################################################################
@@ -11,16 +17,32 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
-from abvar             import ModularAbelianVariety_modsym
+from abvar             import ModularAbelianVariety_modsym, ModularAbelianVariety
 from sage.rings.all    import QQ
 
 class ModAbVar_modsym_factor(ModularAbelianVariety_modsym):
+    r"""
+    A factor of a modular abelian variety.
+
+    A \emph{factor} is an abelian subvariety (attached to a modular
+    symbols space) of an ambient modular abelian variety $J$ attached
+    to a congruence subgroup.
+    """
     def __init__(self, ambient, modsym):
+        """
+        Create a modular abelian variety factor attached to a modular symbols space.
+
+        EXAMPLES:
+            sage: A = J0(389)[0]; A
+            Modular abelian variety quotient of dimension 1 and level 389
+            sage: type(A)
+            <class 'sage.modular.abvar.abvar_modsym_factor.ModAbVar_modsym_factor'>
+        """
         self._ambient = ambient
         self._modsym = {1:modsym}
         assert modsym.base_ring() == QQ
         assert modsym.sign() == 1
-        ModularAbelianVariety_modsym.__init__(self, level = modsym.level(), base_ring = QQ)
+        ModularAbelianVariety_modsym.__init__(self, level = modsym.level(), base_field = QQ)
 
     def ambient_variety(self):
         """
@@ -84,26 +106,78 @@ class ModAbVar_modsym_factor(ModularAbelianVariety_modsym):
         return A
 
     def _repr_(self):
+        """
+        Return string representation of this factor.
+
+        EXAMPLES:
+            sage: A = J0(389)[0]
+            sage: A._repr_()
+            'Modular abelian variety quotient of dimension 1 and level 389'
+        """
         return "Modular abelian variety quotient of dimension %s and level %s"%(\
             self.dimension(), self.level())
 
-##     def is_subvariety(self, other):
-##         """
-##         Return True if self is a subvariety of other, as they sit in an ambient
-##         modular abelian variety.
+    def __add__(self, other):
+        """
+        Add two modular abelian variety factors.
 
-##         EXAMPLES:
+        EXAMPLES:
+            sage: A = J0(42); D = A.decomposition(); D
+            [
+            Modular abelian variety quotient of dimension 1 and level 42,
+            Modular abelian variety quotient of dimension 2 and level 42,
+            Modular abelian variety quotient of dimension 2 and level 42
+            ]
+            sage: D[0] + D[1]
+            Modular abelian variety quotient of dimension 3 and level 42
+            sage: D[1].is_subvariety(D[0] + D[1])
+            True
+            sage: D[0] + D[1] + D[2]
+            Modular abelian variety quotient of dimension 5 and level 42
+            sage: D[0] + D[0]
+            Modular abelian variety quotient of dimension 1 and level 42
+            sage: D[0] + D[0] == D[0]
+            True
+        """
+        if not isinstance(other, ModularAbelianVariety):
+            raise TypeError, "sum not defined"
+        if not isinstance(other, ModularAbelianVariety_modsym):
+            raise NotImplementedError, "general sum not implemented"
+        if self.ambient_variety() != other.ambient_variety():
+            raise TypeError, "sum not defined since ambient spaces different"
+        M = self.modular_symbols(1) + other.modular_symbols(1)
+        return ModAbVar_modsym_factor(self.ambient_variety(), M)
 
-##         """
-##         if not isinstance(other, ModularAbelianVariety_modsym):
-##             return False
-##         A = self.ambient_variety()
-##         if A == other:
-##             return True
-##         B = other.ambient_variety()
-##         if A != B:
-##             return False
-##         return self.modular_symbols(1).is_submodule(other.modular_symbols(1))
+    def is_subvariety(self, other):
+        """
+        Return True if self is a subvariety of other, as they sit in an ambient
+        modular abelian variety.
+
+        EXAMPLES:
+            sage: A = J0(42); D = A.decomposition(); D
+            [
+            Modular abelian variety quotient of dimension 1 and level 42,
+            Modular abelian variety quotient of dimension 2 and level 42,
+            Modular abelian variety quotient of dimension 2 and level 42
+            ]
+            sage: D[0].is_subvariety(A)
+            True
+            sage: D[1].is_subvariety(D[0] + D[1])
+            True
+            sage: D[2].is_subvariety(D[0] + D[1])
+            False
+        """
+        if not isinstance(other, ModularAbelianVariety):
+            return False
+        A = self.ambient_variety()
+        if A == other:
+            return True
+        B = other.ambient_variety()
+        if A != B:
+            return False
+        if not isinstance(other, ModularAbelianVariety_modsym):
+            raise NotImplementedError, "general is_subvariety not implemented"
+        return self.modular_symbols(1).is_submodule(other.modular_symbols(1))
 
 
 ## class ModAbVar_modsym_simple_new_factor(ModAbVar_modsym_factor):

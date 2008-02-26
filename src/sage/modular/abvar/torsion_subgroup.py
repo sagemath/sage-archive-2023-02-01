@@ -86,13 +86,58 @@ from sage.modular.congroup      import is_Gamma0
 
 
 class TorsionSubgroup(FiniteSubgroup):
+    """
+    The torsion subgroup of a modular abelian variety.
+    """
     def __init__(self, abvar):
+        """
+        Create the torsion subgroup.
+
+        INPUT:
+            abvar -- a modular abelian variety
+
+        EXAMPLES:
+            sage: T = J0(14).torsion_subgroup(); T
+            Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(14)
+            sage: type(T)
+            <class 'sage.modular.abvar.torsion_subgroup.TorsionSubgroup'>
+        """
         FiniteSubgroup.__init__(self, abvar)
 
     def _repr_(self):
+        """
+        Return string representation of this torsion subgroup.
+
+        EXAMPLES:
+            sage: T = J1(13).torsion_subgroup(); T
+            Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma1(13)
+            sage: T._repr_()
+            'Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma1(13)'
+        """
         return "Torsion subgroup of %s"%self.abelian_variety()
 
     def __cmp__(self, other):
+        """
+        Compare torsion subgroups.
+
+        INPUT:
+            other -- an object
+
+        If other is a torsion subgroup the abelian varieties are
+        compared.  Otherwise the generic behavior for finite abelian
+        variety subgroups is used.
+
+        EXAMPLE:
+            sage: G = J0(11).torsion_subgroup(); H = J0(13).torsion_subgroup()
+            sage: G == G
+            True
+            sage: G < H   # since 11 < 13
+            True
+            sage: G > H
+            False
+            sage: G < 5   # meaningless
+            False
+        """
         if isinstance(other, TorsionSubgroup):
             return cmp(self.abelian_variety(), other.abelian_variety())
         return FiniteSubgroup.__cmp__(self, other)
@@ -129,6 +174,30 @@ class TorsionSubgroup(FiniteSubgroup):
         raise RuntimeError, "Unable to compute order of torsion subgroup (it is in %s)"%O
 
     def _generators(self):
+        """
+        Return generators for this torsion subgroup, but as
+        representative elements of the rational homology.
+
+        EXAMPLES:
+            sage: J0(11).torsion_subgroup()._generators()
+            ((0, 1/5),)
+
+        The following fails because in fact I know of no (reasonable)
+        algorithm to provably compute the torsion subgroup in general.
+            sage: T = J0(33).torsion_subgroup()
+            sage: T._generators()
+            Traceback (most recent call last):
+            ...
+            ValueError: no explicit presentation of this finite subgroup is known (unable to compute explicitly)
+
+        The problem is that the multiple of the order got by counting
+        points over finite fields is twice the divisor of the order got
+        from the rational cuspidal subgroup.
+            sage: T.multiple_of_order(30)
+            200
+            sage: J0(33).rational_cuspidal_subgroup().order()
+            100
+        """
         A = self.abelian_variety()
         if A.dimension() == 0:
             return []
@@ -144,6 +213,18 @@ class TorsionSubgroup(FiniteSubgroup):
         the divisor and multiple of the order.
 
         EXAMPLES:
+            sage: J0(11).torsion_subgroup().possible_orders()
+            [5]
+            sage: J0(33).torsion_subgroup().possible_orders()
+            [100, 200]
+
+        Note that this function has been implemented for $J_1(N)$,
+        though it should be reasonably easy to do so soon (see Conrad,
+        Edixhoven, Stein):
+            sage: J1(13).torsion_subgroup().possible_orders()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: torsion multiple only implemented for Gamma0
         """
         try:
             return self._possible_orders

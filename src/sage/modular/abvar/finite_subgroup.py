@@ -19,7 +19,7 @@ EXAMPLES:
     sage: J = J0(33)
     sage: C = J.cuspidal_subgroup()
     sage: C
-    Cuspidal subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(33)
+    Cuspidal subgroup with invariants [10, 10] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(33)
     sage: C.order()
     100
     sage: C.gens()
@@ -29,7 +29,7 @@ EXAMPLES:
     sage: 10*(C.0 + C.1)
     [(0, 0, 0, 0, 0, 0)]
     sage: G = C.subgroup([C.0 + C.1]); G
-    Finite subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(33) defined over Complex Field with 53 bits of precision
+    Finite subgroup with invariants [10] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(33)
     sage: G.gens()
     [[(1/10, 1/5, 1/5, 1/10, 1/5, -4/5)]]
     sage: G.order()
@@ -74,6 +74,14 @@ few levels:
     37 3
     38 135
     39 56
+
+TESTS:
+    sage: G = J0(11).finite_subgroup([[1/3,0], [0,1/5]]); G
+    Finite subgroup with invariants [15] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+    sage: loads(dumps(G)) == G
+    True
+    sage: loads(dumps(G.0)) == G.0
+    True
 """
 
 ###########################################################################
@@ -85,22 +93,98 @@ few levels:
 from sage.modules.module      import Module
 from sage.structure.element   import ModuleElement
 from sage.structure.sequence  import Sequence
-from sage.rings.all           import gcd, lcm, QQ, ZZ, CC
+from sage.rings.all           import gcd, lcm, QQ, ZZ, QQbar, is_Field
 from sage.misc.misc           import prod
 
+import abvar as abelian_variety
+
 class FiniteSubgroup(Module):
+    """
+    A finite subgroup of a modular abelian variety.
+    """
     def __init__(self, abvar, base_field=QQ):
+        """
+        Create a finite subgroup of a modular abelian variety.
+
+        INPUT:
+            abvar -- a modular abelian variety
+            base_field -- a field over which this group is defined.
+
+        EXAMPLES:
+        This is an abstract base class so there are no instances
+        of this class itself.
+            sage: A = J0(37)
+            sage: G = A.n_torsion_subgroup(3); G
+            Finite subgroup with invariants [3, 3, 3, 3] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+            sage: type(G)
+            <class 'sage.modular.abvar.finite_subgroup.FiniteSubgroup_gens'>
+            sage: from sage.modular.abvar.finite_subgroup import FiniteSubgroup
+            sage: isinstance(G, FiniteSubgroup)
+            True
+        """
+        if not is_Field(base_field):
+            raise TypeError, "base_field must be a field"
+        if not isinstance(abvar, abelian_variety.ModularAbelianVariety):
+            raise TypeError, "abvar must be a modular abelian variety"
         Module.__init__(self, base_field)
-        self._abvar = abvar
-        self._base_field = base_field
+        self.__abvar = abvar
+        self.__base_field = base_field
 
     def __cmp__(self, other):
+        """
+        Compare this finite subgroup to other.
+
+        If other is not a modular abelian variety finite subgroup,
+        then the types of self and other are compared.  If other is a
+        finite subgroup, and the ambient abelian varieties are equal,
+        then the subgroups themselves are compared, by comparing their
+        full modules.  If the containing abelian varieties are not
+        equal and their ambient varieties are different they are
+        compared; if they are the same, then a NotImplemnetedError
+        is raised (this is temporary).
+
+
+        EXAMPLES:
+        We first compare to subgroups of $J_0(37)$:
+            sage: A = J0(37)
+            sage: G = A.n_torsion_subgroup(3); G.order()
+            81
+            sage: H = A.cuspidal_subgroup(); H.order()
+            3
+            sage: H < G
+            True
+            sage: H.is_subgroup(G)
+            True
+            sage: H < 5
+            False
+            sage: 5 < H
+            True
+
+        The ambient varieties are compared:
+            sage: cmp(A[0].cuspidal_subgroup(), J0(11).cuspidal_subgroup())
+            1
+
+        The following case is not implemented yet, but should be:
+            sage: cmp(A[0].cuspidal_subgroup(), A[1].cuspidal_subgroup())
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         if not isinstance(other, FiniteSubgroup):
             return cmp(type(self), type(other))
-        c = cmp(self.abelian_variety(), other.abelian_variety())
-        if c: return c
-        # Minus sign because order gets reversed in passing to lattices.
-        return -cmp(self._full_module(), other._full_module())
+        A = self.abelian_variety()
+        B = other.abelian_variety()
+        c = cmp(A,B)
+        if c == 0:
+            # Minus sign because order gets reversed in passing to lattices.
+            return -cmp(self.full_module(), other.full_module())
+        c = cmp(A.ambient_variety(), B.ambient_variety())
+        if c:
+            return c
+        # Ambient varieties are the same, but the varieties that
+        # contain these groups aren't -- we should embed each group
+        # into ambient variety, but this isn't implemented yet.
+        raise NotImplementedError
 
     def is_subgroup(self, other):
         """
@@ -121,10 +205,14 @@ class FiniteSubgroup(Module):
             True
         """
         if not isinstance(other, FiniteSubgroup):
+            if isinstance(other, abelian_variety.ModularAbelianVariety):
+                if self.abelian_variety().is_subvariety(other):
+                    return True
+                raise NotImplementedError, "determining general inclusions not completely implemented yet."
             return False
         if self.abelian_variety() != other.abelian_variety():
             return False
-        if self._full_module().is_submodule(other._full_module()):
+        if self.full_module().is_submodule(other.full_module()):
             return True
         return False
 
@@ -149,6 +237,32 @@ class FiniteSubgroup(Module):
                         self._generators() + other._generators(), base_field=K)
 
     def __mul__(self, right):
+        """
+        Multiply this subgroup by the rational number right.
+
+        If right is an integer the result is a subgroup of self.  If
+        right is a rational number $n/m$, then this group is first
+        divided by $m$ then multiplied by $n$.
+
+        INPUT:
+            right -- a rational number
+
+        OUTPUT:
+            a subgroup
+
+        EXAMPLES:
+            sage: J = J0(37)
+            sage: H = J.cuspidal_subgroup(); H.order()
+            3
+            sage: G = H * 3; G.order()
+            1
+            sage: G = H * (1/2); G.order()
+            48
+            sage: J.n_torsion_subgroup(2) + H == G
+            True
+            sage: G = H*(3/2); G.order()
+            16
+        """
         r = QQ(right)
         G = [r*v for v in self._generators()]
         if r.denominator() != 1:
@@ -158,38 +272,145 @@ class FiniteSubgroup(Module):
         return FiniteSubgroup_gens(self.abelian_variety(), G, base_field = self.base_field())
 
     def __rmul__(self, left):
+        """
+        Multiply this finite subgroup on the left by an integer.
+
+        EXAMPLES:
+            sage: J = J0(42)
+            sage: G = J.cuspidal_subgroup(); factor(G.order())
+            2^8 * 3^2
+            sage: H = G.__rmul__(2)
+            sage: H.order().factor()
+            2^4 * 3^2
+
+        Automatic calling is currently broken because of trac \#2283.
+            sage: 2*G  # desired output should be not an error.
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and '<class 'sage.modular.abvar.cuspidal_subgroup.CuspidalSubgroup'>'
+        """
         return self * left
 
     def multiply(self, right):
+        """
+        Multiply this finite group by the rational number right.
+
+        INPUT:
+            right -- rational number
+
+        OUTPUT:
+            a new finite group
+
+        EXAMPLES:
+            sage: J = J0(42)
+            sage: G = J.cuspidal_subgroup(); factor(G.order())
+            2^8 * 3^2
+            sage: G.multiply(3).order()
+            256
+            sage: G.multiply(0).order()
+            1
+            sage: G.multiply(1/5).order()
+            22500000000
+        """
+
         return self * right
 
     def _generators(self):
         """
-        Return a list of vectors that define elements of the rational
+        Return a tuples of vectors that define elements of the rational
         homology that generate this finite subgroup.
 
         Raises a ValueError if no explicit presentation of this finite
-        subgroup is known.
+        subgroup is known, i.e., if this function hasn't been
+        overridden in a derived class.
+
+        EXAMPLES:
+            sage: J = J0(42)
+            sage: G = J.torsion_subgroup(); G
+            Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)
+            sage: G._generators()
+            Traceback (most recent call last):
+            ...
+            ValueError: no explicit presentation of this finite subgroup is known (unable to compute explicitly)
         """
         raise ValueError, "no explicit presentation of this finite subgroup is known"
 
     def abelian_variety(self):
-        return self._abvar
+        """
+        Return the abelian variety that this is a finite subgroup of.
+
+        EXAMPLES:
+            sage: J = J0(42)
+            sage: G = J.torsion_subgroup(); G
+            Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)
+            sage: G.abelian_variety()
+            Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)
+        """
+        return self.__abvar
 
     def base_field(self):
-        return self._base_field
+        """
+        Return the field over which this finite modular abelian
+        variety subgroup is defined.  This is a field over which
+        this subgroup is defined.
 
-    def base_ring(self):
-        return self.base_field()
+        EXAMPLES:
+            sage: J = J0(42)
+            sage: G = J.torsion_subgroup(); G
+            Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)
+            sage: G.base_field()
+            Rational Field
+        """
+        return self.__base_field
+
+    base_ring = base_field
 
     def _repr_(self):
-        return "Finite subgroup of %s defined over %s"%(self._abvar, self._base_field)
+        """
+        Return string representation of this finite subgroup.
+
+        EXAMPLES:
+            sage: J = J0(42)
+            sage: G = J.n_torsion_subgroup(3); G._repr_()
+            'Finite subgroup with invariants [3, 3, 3, 3, 3, 3, 3, 3, 3, 3] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)'
+        """
+        K = self.__base_field
+        if K == QQbar:
+            field = "QQbar"
+        elif K == QQ:
+            field = "QQ"
+        else:
+            field = str(K)
+        return "Finite subgroup %sover %s of %s"%(self._invariants_repr(), field, self.__abvar)
+
+    def _invariants_repr(self):
+        """
+        The string representation of the 'invariants' part of this group.
+
+        We make this a separate function so it is possible to create
+        finite subgroups that don't print their invariants, since
+        printing them could be expensive.
+
+        EXAMPLES:
+            sage: J0(42).cuspidal_subgroup()._invariants_repr()
+            'with invariants [2, 2, 12, 48] '
+        """
+        return 'with invariants %s '%(self.invariants(), )
 
     def order(self):
+        """
+        Return the order (number of elements) of this finite subgroup.
+
+        EXAMPLES:
+            sage: J = J0(42)
+            sage: C = J.cuspidal_subgroup()
+            sage: C.order()
+            2304
+        """
         try:
             return self.__order
         except AttributeError:
-            if self._abvar.dimension() == 0:
+            if self.__abvar.dimension() == 0:
                 self.__order = ZZ(1)
                 return self.__order
             o = prod(self.invariants())
@@ -197,24 +418,53 @@ class FiniteSubgroup(Module):
             return o
 
     def _lattice(self):
+        r"""
+        Return lattice corresponding to this finite subgroup -- this
+        is just a free module of rank equal to the rank of the ambient
+        abelian variety, i.e., it's $H_1(\Z)$.  This is used
+        internally by other algorithms.
+
+        EXAMPLES:
+            sage: J = J0(23)
+            sage: C = J.cuspidal_subgroup()
+            sage: C._lattice().basis()
+            [
+            (1, 0, 0, 0),
+            (0, 1, 0, 0),
+            (0, 0, 1, 0),
+            (0, 0, 0, 1)
+            ]
+
+        We emphasize that lattice has essentially nothing to do with
+        this finite subgroup -- it's really a function of the ambient
+        variety.  You really want \code{full_module} for something
+        about $C$ itself.
+            sage: C.full_module().basis()
+            [
+            (1/11, 10/11, 0, 8/11),
+            (0, 1, 0, 0),
+            (0, 0, 1, 0),
+            (0, 0, 0, 1)
+            ]
+        """
         try:
             return self.__lattice
         except AttributeError:
-            A = self._abvar
+            A = self.__abvar
             L = ZZ**(2*A.dimension())
             self.__lattice = L
             return L
 
 
-    def _full_module(self):
-        """
-        Return the ZZ-module that corresponds to this finite subgroup.
-        This is a ZZ-module that contains the integral homology of the
+    def full_module(self):
+        r"""
+        Return the $\ZZ$-module that corresponds to this finite subgroup.
+        This is a $\ZZ$-module that contains the integral homology of the
         ambient variety with finite index.
 
         EXAMPLES:
             sage: C = J0(11).cuspidal_subgroup()
-            sage: C._full_module()
+            sage: C.full_module()
             Free module of degree 2 and rank 2 over Integer Ring
             Echelon basis matrix:
             [  1   0]
@@ -231,10 +481,28 @@ class FiniteSubgroup(Module):
         return W
 
 
-    def _rescaled_module(self):
+    def rescaled_module(self):
         r"""
-        Return d * gens as a module, where gens is a list of generators
-        of self modulo the $\ZZ^n$.
+        Return d * M and the integer d as a module, where M is the
+        ZZ-module generated by gens modulo the $\ZZ^n$.  This is the
+        analogue of \code{full_module}, except it returns a
+        not-necessarily full rank integral lattice and the denominator
+        instead of a (possibly) non-integral full rank lattice.
+
+        EXAMPLES:
+            sage: J = J0(23)
+            sage: C = J.cuspidal_subgroup()
+            sage: C.full_module()
+            Free module of degree 4 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [ 1/11 10/11     0  8/11]
+            [    0     1     0     0]
+            [    0     0     1     0]
+            [    0     0     0     1]
+            sage: C.rescaled_module()
+            (Free module of degree 4 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [ 1 -1  0 -3], 11)
         """
         try:
             return self.__rescaled_module, self.__denom
@@ -280,10 +548,10 @@ class FiniteSubgroup(Module):
         except AttributeError:
             pass
 
-        W, d = self._rescaled_module()
+        W, d = self.rescaled_module()
 
         e = 1/d
-        B = [FiniteSubgroupElement(self, e*v) for
+        B = [FiniteSubgroupElement(self, e*v, check=False) for
                  v in W.basis() if gcd(v.list()) % d != 0]
 
         #endif
@@ -291,30 +559,115 @@ class FiniteSubgroup(Module):
         return self.__gens
 
     def gen(self, n):
+        """
+        Return $n$th generator of self.
+
+        EXAMPLES:
+            sage: J = J0(23)
+            sage: C = J.n_torsion_subgroup(3)
+            sage: C.gens()
+            [[(1/3, 0, 0, 0)], [(0, 1/3, 0, 0)], [(0, 0, 1/3, 0)], [(0, 0, 0, 1/3)]]
+            sage: C.gen(0)
+            [(1/3, 0, 0, 0)]
+            sage: C.gen(3)
+            [(0, 0, 0, 1/3)]
+            sage: C.gen(4)
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+
+        Negative indices wrap around:
+            sage: C.gen(-1)
+            [(0, 0, 0, 1/3)]
+        """
         return self.gens()[n]
 
     def __call__(self, x):
+        r"""
+        Coerce $x$ into this finite subgroup.
+
+        This works when the abelian varietiees that contains x and
+        self are the same, or if $x$ is coercible into the rational
+        homology (viewed as an abstract $\QQ$-vector space).
+
+        EXAMPLES:
+        We first construct the $11$-torsion subgroup of $J_0(23)$:
+            sage: J = J0(23)
+            sage: G = J.n_torsion_subgroup(11)
+            sage: G.invariants()
+            [11, 11, 11, 11]
+
+        We also construct the cuspidal subgroup.
+            sage: C = J.cuspidal_subgroup()
+            sage: C.invariants()
+            [11]
+
+        Coercing something into its parent returns it:
+            sage: G(G.0) is G.0
+            True
+
+        We coerce an element from the cuspidal subgroup into the
+        $11$-torsion subgroup:
+            sage: z = G(C.0); z
+            [(1/11, -1/11, 0, -3/11)]
+            sage: z.parent() == G
+            True
+
+        We coerce a list, which defines an element of the underlying
+        \code{full_module} into $G$, and verify an equality:
+            sage: x = G([1/11, 1/11, 0, -1/11])
+            sage: x == G([1/11, 1/11, 0, 10/11])
+            True
+
+        Finally we coerce in two elements that shouldn't work, since
+        they do not define elements of $G$:
+            sage: G(J.n_torsion_subgroup(3).0)
+            Traceback (most recent call last):
+            ...
+            TypeError: x does not define an element of self
+            sage: G(J0(11).n_torsion_subgroup(11).0)
+            Traceback (most recent call last):
+            ...
+            TypeError: x does not define an element of self
+        """
         if isinstance(x, FiniteSubgroupElement):
             if x.parent() is self:
                 return x
             elif x.parent() == self:
-                return FiniteSubgroupElement(self, x._element)
-            elif x.parent()._abvar == self._abvar:
-                return self(x._element)
+                return FiniteSubgroupElement(self, x.element(), check=False)
+            elif x.parent().__abvar == self.__abvar:
+                return self(x.element())
             else:
-                raise TypeError, "no known way to coerce x yet."
+                raise TypeError, "x does not define an element of self"
         else:
-            W, d = self._rescaled_module()
-            x = W.ambient_vector_space(x)
+            W, d = self.rescaled_module()
+            x = W.ambient_vector_space()(x)
             if d * x in W:
-                return FiniteSubgroupElement(self, x)
+                return FiniteSubgroupElement(self, x, check=False)
             else:
-                raise TypeError, "x does not define an element of self."
+                raise TypeError, "x does not define an element of self"
 
     def subgroup(self, gens):
         """
         Return the subgroup of self spanned by the given generators,
         which all must be elements of self.
+
+        EXAMPLES:
+            sage: J = J0(23)
+            sage: G = J.n_torsion_subgroup(11); G
+            Finite subgroup with invariants [11, 11, 11, 11] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+
+        We create the subgroup of the 11-torsion subgroup of $J_0(23)$ generated
+        by the first $11$-torsion point:
+            sage: H = G.subgroup([G.0]); H
+            Finite subgroup with invariants [11] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+            sage: H.invariants()
+            [11]
+
+        We can also create a subgroup from a list of objects that
+        coerce into the ambient rational homology.
+            sage: H == G.subgroup([[1/11,0,0,0]])
+            True
         """
         if not isinstance(gens, (tuple, list)):
             raise TypeError, "gens must be a list or tuple"
@@ -323,13 +676,28 @@ class FiniteSubgroup(Module):
 
     def invariants(self):
         """
-        Return the elementary invariants of this abelian group.
+        Return elementary invariants of this abelian group, by which
+        we mean a nondecreasing (immutable) sequence of integers $n_i$
+        that divide each other such that this group is abstractly
+
+        EXAMPLES:
+            sage: J = J0(38)
+            sage: C = J.cuspidal_subgroup(); C
+            Cuspidal subgroup with invariants [3, 45] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(38)
+            sage: v = C.invariants(); v
+            [3, 45]
+            sage: v[0] = 5
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead.
+            sage: type(v[0])
+            <type 'sage.rings.integer.Integer'>
         """
         try:
-            return self._invariants
+            return self.__invariants
         except AttributeError:
             pass
-        W, d = self._rescaled_module()
+        W, d = self.rescaled_module()
         B = W.basis_matrix().change_ring(ZZ)
         E = B.elementary_divisors()
         # That the formula below is right is a somewhat tricky diagram change
@@ -341,53 +709,267 @@ class FiniteSubgroup(Module):
         I = Sequence([d // gcd(e,d) for e in E if e != 0 and e != d])
         I.sort()
         I.set_immutable()
-        self._invariants = I
+        self.__invariants = I
         return I
 
 
 class FiniteSubgroup_gens(FiniteSubgroup):
-    def __init__(self, abvar, gens, base_field=CC):
+    """
+    A finite subgroup of a modular abelian variety that is generated
+    by given generators.
+    """
+    def __init__(self, abvar, gens, base_field=QQbar, check=True):
+        """
+        Create a finite subgroup with given generators.
+
+        INPUT:
+            abvar -- a modular abelian variety
+            gens -- a list or tuple of generators of a subgroup
+            check -- bool (default: True) whether or not to check that each
+                     generator is a FiniteSubgroupElement with
+                     the abvar as abelian variety.
+
+        EXAMPLES:
+            sage: J = J0(11)
+            sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
+            Finite subgroup with invariants [15] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+        """
+        if check:
+            HQ = abvar._rational_homology_space()
+            v = []
+            for g in gens:
+                if not isinstance(g, FiniteSubgroupElement):
+                    g = HQ(g)
+                else:
+                    # it is a FiniteSubgroupElement
+                    if g.parent().abelian_variety() != abvar:
+                        # TODO
+                        raise NotImplementedError, "coercion of elements into abelian varieties not implemented in general"
+                    # Now g is a FiniteSubgroupElement with correct ambient variety
+                    # but not in this subgroup.
+                    g = g.element()
+                # done
+                v.append(g)
+        else:
+            v = gens
+
         FiniteSubgroup.__init__(self, abvar, base_field)
-        self._gens = gens
+        self.__v = tuple(v)
 
     def _generators(self):
-        return self._gens
+        r"""
+        Return tuple of elements of the vector space underlying the
+        rational homology that together generator this abelian
+        variety.  The need not be independent.  This is mainly for
+        internal use; use the \code{gens()} method for independent
+        FiniteSubgroupElement's.
+
+        EXAMPLES:
+            sage: J = J0(11)
+            sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
+            Finite subgroup with invariants [15] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+            sage: G._generators()
+            ((1/3, 0), (0, 1/5))
+        """
+        return self.__v
 
 
 class FiniteSubgroupElement(ModuleElement):
-    def __init__(self, parent, element):
+    """
+    An element of a finite subgroup of a modular abelian variety.
+    """
+    def __init__(self, parent, element, check=True):
+        """
+        Create a finite subgroup element.
+
+        INPUT:
+            parent  -- a finite subgroup of a modular abelian variety
+            element -- a QQ vector space element that represents this
+                       element in rational homology modulo integral
+                       homology.
+            check   -- bool (default: True) whether to check that element
+                       is in the appropriate vector space
+
+        EXAMPLES:
+        The following calls the FiniteSubgroupElement constructor implicitly:
+            sage: J = J0(11)
+            sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
+            Finite subgroup with invariants [15] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+            sage: type(G.0)
+            <class 'sage.modular.abvar.finite_subgroup.FiniteSubgroupElement'>
+        """
         ModuleElement.__init__(self, parent)
+        if check:
+            element = parent.abelan_variety()._rational_homology_space()(element)
         if element.denominator() == 1:
             element = element.parent().zero_vector()
-        self._element = element
+        self.__element = element
 
     def element(self):
-        return self._element
+        """
+        Return an underlying QQ-vector space element that defines this
+        element of a modular abelian variety.
+
+        EXAMPLES:
+        We create some elements of $J_0(11)$:
+            sage: J = J0(11)
+            sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
+            Finite subgroup with invariants [15] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+            sage: G.0.element()
+            (1/3, 0)
+
+        The underlying element is a vector over the rational numbers:
+            sage: v = (G.0-G.1).element(); v
+            (1/3, -1/5)
+            sage: type(v)
+            <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+        """
+        return self.__element
 
     def _repr_(self):
-        return '[%s]'%self._element
+        r"""
+        Return string representation of this finite subgroup element.
+        Since they are represented as equivalences classes of rational
+        homology modulo integral homology, we represent an element
+        corresponding to $v$ in the rational homology by \code{[v]}.
+
+        EXAMPLES:
+            sage: J = J0(11)
+            sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
+            Finite subgroup with invariants [15] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+            sage: G.0._repr_()
+            '[(1/3, 0)]'
+        """
+        return '[%s]'%self.__element
 
     def _add_(self, other):
-        return FiniteSubgroupElement(self.parent(), self._element + other._element)
+        """
+        Add two finite subgroup elements with the same parent.  This is called implicitly by +.
+
+        INPUT:
+            other -- a FiniteSubgroupElement with the same parent as self
+
+        OUTPUT:
+            a FiniteSubgroupElement
+
+        EXAMPLES:
+            sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
+            sage: G.0._add_(G.1)
+            [(1/3, 1/5)]
+            sage: G.0 + G.1
+            [(1/3, 1/5)]
+        """
+        return FiniteSubgroupElement(self.parent(), self.__element + other.__element, check=False)
 
     def _sub_(self, other):
-        return FiniteSubgroupElement(self.parent(), self._element - other._element)
+        """
+        Add two finite subgroup elements with the same parent.  This is called implicitly by +.
+
+        INPUT:
+            other -- a FiniteSubgroupElement with the same parent as self
+
+        OUTPUT:
+            a FiniteSubgroupElement
+
+        EXAMPLES:
+            sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
+            sage: G.0._sub_(G.1)
+            [(1/3, -1/5)]
+            sage: G.0 - G.1
+            [(1/3, -1/5)]
+        """
+        return FiniteSubgroupElement(self.parent(), self.__element - other.__element, check=False)
 
     def _neg_(self):
-        return FiniteSubgroupElement(self.parent(), -self._element)
+        """
+        Negate a finite subgroup element.
+
+        EXAMPLES:
+            sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
+            sage: G.0._neg_()
+            [(-1/3, 0)]
+        """
+        return FiniteSubgroupElement(self.parent(), -self.__element, check=False)
 
     def _rmul_(self, left):
-        return FiniteSubgroupElement(self.parent(), left * self._element)
+        """
+        Left multiply a finite subgroup element.
+
+        EXAMPLES:
+            sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
+            sage: G.0._rmul_(2)
+            [(2/3, 0)]
+            sage: 2*G.0
+            [(2/3, 0)]
+        """
+        return FiniteSubgroupElement(self.parent(), ZZ(left) * self.__element, check=False)
 
     def _lmul_(self, right):
-        return FiniteSubgroupElement(self.parent(), self._element * right)
+        """
+        Right multiply a finite subgroup element.
+
+        EXAMPLES:
+            sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
+            sage: G.0._lmul_(2)
+            [(2/3, 0)]
+            sage: G.0 * 2
+            [(2/3, 0)]
+        """
+        return FiniteSubgroupElement(self.parent(), self.__element * ZZ(right), check=False)
 
     def __cmp__(self, right):
-        v = self._element - right._element
+        """
+        Compare self and right.
+
+        INPUT:
+            self, right -- elements of the same finite abelian variety subgroup.
+
+        OUTPUT:
+            -1, 0, or 1
+
+        EXAMPLES:
+            sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
+            sage: cmp(G.0, G.1)
+            1
+            sage: cmp(G.0, G.0)
+            0
+            sage: 3*G.0 == 0
+            True
+            sage: 3*G.0 == 5*G.1
+            True
+
+        We make sure things that shouldn't be equal aren't:
+            sage: H = J0(14).finite_subgroup([[1/3,0]])
+            sage: G.0 == H.0
+            False
+            sage: cmp(G.0, H.0)
+            -1
+            sage: G.0
+            [(1/3, 0)]
+            sage: H.0
+            [(1/3, 0)]
+        """
+        if self.parent() != right.parent():
+            return cmp(self.parent(), right.parent())
+        v = self.__element - right.__element
         if v.denominator() == 1:
-            # two elements are equal modulo the lattice
+            # two elements are equal if they are equal modulo the lattice
             return 0
-        return cmp(self._element, right._element)
+        return cmp(self.__element, right.__element)
 
     def additive_order(self):
-        return self._element.denominator()
+        """
+        Return the additive order of this element.
+
+        EXAMPLES:
+            sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
+            sage: G.0.additive_order()
+            3
+            sage: G.1.additive_order()
+            5
+            sage: (G.0 + G.1).additive_order()
+            15
+            sage: (3*G.0).additive_order()
+            1
+        """
+        return self.__element.denominator()

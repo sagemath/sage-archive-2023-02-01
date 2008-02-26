@@ -106,6 +106,38 @@ class Crystal(CombinatorialClass, Parent):
     def Lambda(self):
 	return self.weight_lattice_realization().fundamental_weights()
 
+    def check(self):
+        r"""
+        Runs sanity checks on the crystal
+
+        Should check for weight, Stembridge's rules, etc.
+        """
+        # Those tests could be lifted up to CombinatorialClass
+        list1 = self.list();        set1 = set(list1)
+        list2 = [ c for c in self]; set2 = set(list2)
+        list3 = Crystal.list(self); set3 = set(list3)
+        return len(set1) == len(list1)   and \
+               len(set2) == len(list2)   and \
+               len(set3) == len(list3)   and \
+               len(set1) == self.count() and \
+               set1 == set2              and \
+               set2 == set3
+
+    def list(self):
+        # To be generalized to some transitiveIdeal
+        # To be moved in a super category CombinatorialModule
+        result = set(self.module_generators)
+        todo = result.copy()
+        while len(todo) > 0:
+            x = todo.pop();
+            for i in self.index_set:
+                y = x.f(i)
+                if y == None or y in result:
+                    continue
+                todo.add(y)
+                result.add(y)
+        return list(result);
+
     def digraph(self):
         dict = {};
         for x in self:
@@ -239,6 +271,7 @@ class ClassicalCrystal(Crystal):
     The abstract class of classical crystals
     """
 
+    list  = CombinatorialClass.list#__list_from_iterator
     def __iter__(self):
         r"""
         Returns an iterator over the elements of the crystal.
@@ -253,6 +286,20 @@ class ClassicalCrystal(Crystal):
             sage: C = CrystalOfLetters(['A',5])
             sage: [x for x in C]
             [1, 2, 3, 4, 5, 6]
+
+
+        TESTS:
+            sage: C = CrystalOfLetters(['D',4])
+            sage: D = CrystalOfSpinsPlus(['D',4])
+            sage: E = CrystalOfSpinsMinus(['D',4])
+            sage: T=TensorProductOfCrystals(D,E,generators=[[D(1),E(2)]])
+            sage: U=TensorProductOfCrystals(C,E,generators=[[C(1),E(2)]])
+            sage: len(T)    # triggered bug reported by Daniel Bump Sun, 24 Feb 2008 17:06:37 -0800
+            56
+            sage: T.check()
+            True
+            sage: U.check()
+            True
         """
         def rec(x):
             for i in x.index_set():
@@ -267,10 +314,11 @@ class ClassicalCrystal(Crystal):
                         hasParent = True
                         break
                 if hasParent:
-                    break;
+                    continue;
                 yield child
                 for y in rec(child):
-                    yield y;
+                    yield y
+
         for generator in self.module_generators:
             # This is just in case the module_generators
             if not generator.is_highest_weight():

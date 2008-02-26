@@ -1029,6 +1029,18 @@ cdef class BooleanMonomial(MonoidElement):
         return PBMonom_to_str(&self._pbmonom)
 
     def _eval(self, d):
+        """
+        Evaluate this monomial.
+
+        INPUT:
+        d -- dictionary with integer indicies
+
+        EXAMPLES:
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: m = P._monom_monoid(x*y)
+            sage: m._eval({0:y,1:z})
+            y*z
+        """
         res = 1
         for i in self:
             if d.has_key(i):

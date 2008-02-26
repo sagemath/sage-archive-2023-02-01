@@ -140,6 +140,9 @@ class TensorProductOfCrystals(ClassicalCrystal):
 	True
 	sage: T(C(1),C(2)).positionsOfUnmatchedPlus(1) == [1]
 	True
+
+        sage: T.check()   # module generators not implemented
+        True
     """
     def __init__(self, *crystals, **options):
         crystals = [ crystal for crystal in crystals]
@@ -251,7 +254,7 @@ class CrystalOfTableaux(TensorProductOfCrystals):
         Here is the list of its elements:
 
         sage: Tab.list()
-	[[[1, 1], [2], [3]], [[1, 2], [2], [3]], [[1, 3], [2], [3]],
+        [[[1, 1], [2], [3]], [[1, 2], [2], [3]], [[1, 3], [2], [3]],
          [[1, 4], [2], [3]], [[1, 4], [2], [4]], [[1, 4], [3], [4]],
          [[2, 4], [3], [4]], [[1, 1], [2], [4]], [[1, 2], [2], [4]],
          [[1, 3], [2], [4]], [[1, 3], [3], [4]], [[2, 3], [3], [4]],
@@ -259,25 +262,30 @@ class CrystalOfTableaux(TensorProductOfCrystals):
 
         One can get (currently) crude ploting via:
 
-        sage: Tab.plot()
+#        sage: Tab.plot()  # random
 
         One can get instead get a LaTeX drawing ready to be
         copy-pasted into a LaTeX file:
 
-        sage: Tab.latex() # random
+#        sage: Tab.latex() # random
 
         See sage.combinat.crystals? for general help on using crystals
 
     TESTS:
+        sage: T = CrystalOfTableaux(['C',2], shape = [2,1])
+        sage: T.check()
+        True
 
-#	sage: T = CrystalOfTableaux(['C',2], shape = [2,1])
+#       Currently broken because the constructor of T takes a word and not a list of lists
 #        sage: T.list() == [ T(t) for t in [[[1, 1], [2]], [[1, 2], [2]], [[1, -2], [2]],\
 #                           [[1, -1], [2]], [[1, -2], [-2]], [[1, -1], [-2]],\
 #                           [[2, -1], [-2]], [[2, -1], [-1]], [[1, 1], [-2]],\
 #                           [[1, 2], [-2]], [[2, 2], [-2]], [[2, 2], [-1]],\
 #                           [[2, -2], [-2]], [[2, -2], [-1]], [[-2, -2], [-1]],\
 #                           [[-2, -1], [-1]]]]
+#
 #        True
+
     """
     def __init__(self, type, shape):
 	C = CrystalOfLetters(type)

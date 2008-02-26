@@ -38,6 +38,8 @@ by +1 and - by -1.
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+## TODO: proper latex'ing of spins
+
 from sage.rings.integer        import Integer
 from sage.structure.element    import Element
 from sage.combinat.cartan_type import CartanType
@@ -66,9 +68,11 @@ def CrystalOfSpins(type):
         sage: C = CrystalOfSpins(['B',3])
         sage: C.list()
         [+++, ++-, +-+, -++, +--, -+-, --+, ---]
+        sage: C.check()
+        True
 
         sage: [x.signature() for x in C]
-        ['+++', '++-', '+-+', '-++', '+--', '-+-', '--+', '---']
+        [[1, 1, 1], [1, 1, -1], [1, -1, 1], [-1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]]
 
         sage: len(TensorProductOfCrystals(C,C,generators=[[C(1),C(1)]]).list())
         35
@@ -99,16 +103,20 @@ def CrystalOfSpinsPlus(type):
         sage: D = CrystalOfSpinsPlus(['D',4])
         sage: D.list()
         [++++, ++--, +-+-, -++-, +--+, -+-+, --++, ----]
-        sage: [x.signature() for x in C]
 
-        [[1, 1, 1],
-         [1, 1, -1],
-         [1, -1, 1],
-         [-1, 1, 1],
-         [1, -1, -1],
-         [-1, 1, -1],
-         [-1, -1, 1],
-         [-1, -1, -1]]
+#       TODO: update for D4
+#        sage: [x.signature() for x in D]
+#        [[1, 1, 1],
+#         [1, 1, -1],
+#         [1, -1, 1],
+#         [-1, 1, 1],
+#         [1, -1, -1],
+#         [-1, 1, -1],
+#         [-1, -1, 1],
+#         [-1, -1, -1]]
+
+        sage: D.check()
+	True
     """
     type = CartanType(type)
     if type[0] == 'D':
@@ -134,17 +142,21 @@ def CrystalOfSpinsMinus(type):
 
         sage: D = CrystalOfSpinsMinus(['D',4])
         sage: D.list()
-        [++++, ++--, +-+-, -++-, +--+, -+-+, --++, ----]
-        sage: [x.signature() for x in C]
+        [+++-, ++-+, +-++, -+++, +---, -+--, --+-, ---+]
 
-        [[1, 1, 1],
-         [1, 1, -1],
-         [1, -1, 1],
-         [-1, 1, 1],
-         [1, -1, -1],
-         [-1, 1, -1],
-         [-1, -1, 1],
-         [-1, -1, -1]]
+#       TODO: update for D4
+#        sage: [x.signature() for x in C]
+#        [[1, 1, 1],
+#         [1, 1, -1],
+#         [1, -1, 1],
+#         [-1, 1, 1],
+#         [1, -1, -1],
+#         [-1, 1, -1],
+#         [-1, -1, 1],
+#         [-1, -1, -1]]
+
+        sage: D.check()
+	True
     """
     type = CartanType(type)
     if type[0] == 'D':

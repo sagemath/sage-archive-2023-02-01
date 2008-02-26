@@ -53,7 +53,6 @@ def CrystalOfLetters(type):
 
         sage: C.unrank(0) == C(1)  # todo: fix this test
         True
-
     """
     type = CartanType(type)
     if type[0] == 'A':
@@ -192,6 +191,8 @@ class Crystal_of_letters_type_A_element(Letter, CrystalElement):
         sage: C(1) < C(1), C(1) < C(2), C(1) < C(3), C(2) < C(1)
         (False, True, True, False)
 
+        sage: C.check()
+        True
     """
     def e(self, i):
         r"""
@@ -249,6 +250,10 @@ class Crystal_of_letters_type_B_element(Letter, CrystalElement):
 
     Todo: similar tests as for type A around line 157
 
+    TEST:
+        sage: C = CrystalOfLetters (['B',3])
+        sage: C.check()
+        True
     """
     def e(self, i):
         r"""
@@ -335,16 +340,18 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
     Type C crystal of letters elements
 
     TEST:
-    sage: C = CrystalOfLetters (['C',3])
-    sage: C.list()
-    [1, 2, 3, -3, -2, -1]
-    sage: [ [x < y for y in C] for x in C ]
-    [[False, True, True, True, True, True],
-     [False, False, True, True, True, True],
-     [False, False, False, True, True, True],
-     [False, False, False, False, True, True],
-     [False, False, False, False, False, True],
-     [False, False, False, False, False, False]]
+        sage: C = CrystalOfLetters (['C',3])
+        sage: C.list()
+        [1, 2, 3, -3, -2, -1]
+        sage: [ [x < y for y in C] for x in C ]
+        [[False, True, True, True, True, True],
+         [False, False, True, True, True, True],
+         [False, False, False, True, True, True],
+         [False, False, False, False, True, True],
+         [False, False, False, False, False, True],
+         [False, False, False, False, False, False]]
+        sage: C.check()
+        True
 
     """
     def e(self, i):
@@ -400,9 +407,11 @@ class Crystal_of_letters_type_D_element(Letter, CrystalElement):
     Type C crystal of letters elements
 
     TEST:
-    sage: C = CrystalOfLetters (['D',3])
-    sage: C.list()
-    [1, 2, 3, -3, -2, -1]
+        sage: C = CrystalOfLetters (['D',3])
+        sage: C.list()
+        [1, 2, 3, -3, -2, -1]
+        sage: C.check()
+        True
 
     """
     def e(self, i):

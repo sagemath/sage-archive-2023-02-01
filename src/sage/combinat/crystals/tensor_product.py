@@ -148,15 +148,16 @@ class TensorProductOfCrystals(ClassicalCrystal):
         crystals = [ crystal for crystal in crystals]
         self._name = "The tensor product of the crystals %s"%crystals
         self.crystals = crystals
-        self.cartanType = crystals[1].cartanType
+	if options.has_key('cartan_type'):
+	    self.cartanType = CartanType(options['cartan_type'])
+	else:
+	    if len(crystals) == 0:
+		raise RuntimeError, "you need to specify the Cartan type if the tensor product list is empty"
+	    else:
+		self.cartanType = crystals[0].cartanType
         self.index_set = self.cartanType.index_set()
         if options.has_key('generators'):
             self.module_generators = [ self(*x) for x in options['generators']]
-#             self.module_genera
-#         self.module_generators = \
-#         [ self(*generator) \
-#           for generator in CartesianProduct(*[[x for x in crystal] \
-#                                               for crystal in crystals])]
 
     def __call__(self, *args):
         return TensorProductOfCrystalsElement(self,
@@ -174,8 +175,6 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
 	    return None
 	k = position[0]
 	return self.set_index(k, self[k].e(i))
-#	self[k] = self[k].e(i)
-#       return self
 
     def f(self, i):
 	assert i in self.index_set()
@@ -184,8 +183,6 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
 	    return None
 	k = position[len(position)-1]
 	return self.set_index(k, self[k].f(i))
-#	self[k] = self[k].f(i)
-#	return self
 
     def phi(self, i):
 	self = self.reverse()
@@ -271,28 +268,32 @@ class CrystalOfTableaux(TensorProductOfCrystals):
 
         See sage.combinat.crystals? for general help on using crystals
 
+	Internally, a tableau of a given Cartan type is represented as a tensor
+	product of letters of the same type. The order in which the tensor factors
+	appear is by reading the columns of the tableaux left to right, top to bottom.
+	As an example:
+	sage: T = CrystalOfTableaux(['A',2], shape = [3,2])
+	sage: T.module_generators[0]
+	[[1, 1, 1], [2, 2]]
+	sage: T.module_generators[0].list
+	[2, 1, 2, 1, 1]
+
     TESTS:
-        sage: T = CrystalOfTableaux(['C',2], shape = [2,1])
-        sage: T.check()
-        True
-
-#       Currently broken because the constructor of T takes a word and not a list of lists
-#        sage: T.list() == [ T(t) for t in [[[1, 1], [2]], [[1, 2], [2]], [[1, -2], [2]],\
-#                           [[1, -1], [2]], [[1, -2], [-2]], [[1, -1], [-2]],\
-#                           [[2, -1], [-2]], [[2, -1], [-1]], [[1, 1], [-2]],\
-#                           [[1, 2], [-2]], [[2, 2], [-2]], [[2, 2], [-1]],\
-#                           [[2, -2], [-2]], [[2, -2], [-1]], [[-2, -2], [-1]],\
-#                           [[-2, -1], [-1]]]]
-#
-#        True
-
+        sage: T = CrystalOfTableaux(['A',2], shape = [])
+	sage: T.list()
+	[[]]
+        sage: T = CrystalOfTableaux(['C',2], shape = [1])
+	sage: T.check()
+	True
+        sage: T.list()
+	[[[1]], [[2]], [[-2]], [[-1]]]
     """
     def __init__(self, type, shape):
 	C = CrystalOfLetters(type)
         shape = Partition(shape)
 	p = shape.conjugate()
 	module_generator = flatten([[C(p[j]-i) for i in range(p[j])] for j in range(len(p))])
-        TensorProductOfCrystals.__init__(self, *[C]*shape.size(), **{'generators':[module_generator]})
+	TensorProductOfCrystals.__init__(self, *[C]*shape.size(), **{'generators':[module_generator],'cartan_type':type})
 	self._name = "The crystal of tableaux of type%s"%type
 	self.shape = shape
 
@@ -300,9 +301,10 @@ class CrystalOfTableaux(TensorProductOfCrystals):
         r"""
         TESTS:
             sage: T = CrystalOfTableaux(['A',3], [3,2])
-            #sage: T(rows=[[2,3],[1,2,4]])
-            #sage: T(list=[2,3,1,2,4])
-            #sage: T(2,3,1,2,4)
+
+            #sage: T(rows=[[1,2,4],[2,3]])
+            #sage: T(list=[2,1,3,2,4])
+            #sage: T(2,1,3,2,4)
         """
 	if not options.has_key('rows') and len(args)>= 1 and isinstance(args[0], Element) and args[0].parent() == self:
 	    return args[0];

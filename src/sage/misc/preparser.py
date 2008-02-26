@@ -907,7 +907,7 @@ def preparse_file(contents, attached={}, magic=True,
     while i < len(A):
         L = A[i].rstrip()
         if magic and L[:7] == "attach ":
-            name = os.path.abspath(eval(L[7:]))
+            name = os.path.abspath(_strip_quotes(L[7:]))
             try:
                 if not attached.has_key(name):
                     t = os.path.getmtime(name)
@@ -918,7 +918,7 @@ def preparse_file(contents, attached={}, magic=True,
 
         if magic and L[:5] == "load ":
             try:
-                name_load = str(eval(L[5:]))
+                name_load = _strip_quotes(L[5:])
             except:
                 name_load = L[5:].strip()
             if name_load in loaded_files:
@@ -1004,3 +1004,36 @@ def implicit_mul(code, level=5):
         code = re.sub(r'\) *\(', ')*(', code)
     code = code.replace(no_mul_token, '')
     return code % literals
+
+
+
+def _strip_quotes(s):
+    """
+    Strips one set of outer quotes.
+
+    INPUT:
+        a string s
+
+    OUTPUT:
+        a string with the single and double quotes on either side of s
+        removed, if there are any
+
+    EXAMPLES:
+    Both types of quotes work.
+        sage: import sage.misc.preparser
+        sage: sage.misc.preparser._strip_quotes('"foo.sage"')
+        'foo.sage'
+        sage: sage.misc.preparser._strip_quotes("'foo.sage'")
+        'foo.sage'
+
+    The only thing that is stripped is at most one set of outer quotes:
+        sage: sage.misc.preparser._strip_quotes('""foo".sage""')
+        '"foo".sage"'
+    """
+    if len(s) == 0:
+        return s
+    if s[0] in ["'", '"']:
+        s = s[1:]
+    if s[-1] in ["'", '"']:
+        s = s[:-1]
+    return s

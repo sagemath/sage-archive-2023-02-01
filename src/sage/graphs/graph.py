@@ -2584,49 +2584,120 @@ class GenericGraph(SageObject):
 
 
 
-    def disjoint_union(self, other):
+    def disjoint_union(self, other, verbose_relabel=True):
         """
         Returns the disjoint union of self and other.
 
-        If there are common vertices to both, they will be renamed.
+        If the graphs have common vertices, the vertices will be
+        renamed to form disjoint sets.
+
+        INPUT:
+
+            verbose_relabel -- (defaults to True) If True and the
+            graphs have common vertices, then each vertex v in the
+            first graph will be changed to '0,v' and each vertex u in
+            the second graph will be changed to '1,u'.  If False, the
+            vertices of the first graph and the second graph will be
+            relabeled with consecutive integers.
 
         EXAMPLE:
-            sage: D = graphs.DodecahedralGraph()
-            sage: P = graphs.PetersenGraph()
-            sage: D.disjoint_union(P)
-            union( Dodecahedron, Petersen graph ): Graph on 30 vertices
+            sage: G = graphs.CycleGraph(3)
+            sage: H = graphs.CycleGraph(4)
+            sage: J = G.disjoint_union(H); J
+            union( Cycle graph, Cycle graph ): Graph on 7 vertices
+            sage: J.vertices()
+            ['0,0', '0,1', '0,2', '1,0', '1,1', '1,2', '1,3']
+            sage: J = G.disjoint_union(H, verbose_relabel=False); J
+            disjoint_union( Cycle graph, Cycle graph ): Graph on 7 vertices
+            sage: J.vertices()
+            [0, 1, 2, 3, 4, 5, 6]
 
+        If the vertices are already disjoint and verbose_relabel is
+        True, then the vertices are not relabeled.
+            sage: G=Graph({'a': ['b']})
+            sage: G.name("Custom path")
+            'Custom path'
+            sage: H=graphs.CycleGraph(3)
+            sage: J=G.disjoint_union(H); J
+            union( Custom path, Cycle graph ): Graph on 5 vertices
+            sage: J.vertices()
+            [0, 1, 2, 'a', 'b']
         """
         if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):
             raise TypeError('Both arguments must be of the same class.')
-        repeat = False
-        for u in self.vertices():
-            for v in other.vertices():
-                if u == v:
-                    repeat = True
-                    break
-            if repeat: break
-        if repeat:
+
+        import networkx
+        if not verbose_relabel:
+            if self.is_directed():
+                return DiGraph(networkx.disjoint_union(self._nxg, other._nxg))
+            else:
+                return Graph(networkx.disjoint_union(self._nxg, other._nxg))
+
+        if any(u==v for u in self.vertices() for v in other.vertices()):
             rename = ('0,','1,')
         else:
             rename = False
-        import networkx
+
         if self.is_directed():
             return DiGraph(networkx.union(self._nxg, other._nxg, rename=rename))
         else:
             return Graph(networkx.union(self._nxg, other._nxg, rename=rename))
 
+    def __add__(self, other_graph):
+        """
+        Returns the disjoint union of self and other.
+
+        If there are common vertices to both, they will be renamed.
+
+
+        EXAMPLE:
+            sage: G = graphs.CycleGraph(3)
+            sage: H = graphs.CycleGraph(4)
+            sage: J = G + H; J
+            disjoint_union( Cycle graph, Cycle graph ): Graph on 7 vertices
+            sage: J.vertices()
+            [0, 1, 2, 3, 4, 5, 6]
+
+        """
+
+        if isinstance(other_graph, GenericGraph):
+            return self.disjoint_union(other_graph, verbose_relabel=False)
+
+    def __mul__(self, n):
+        """
+        Returns the sum of a graph with itself n times.  Note that the
+        graph must on the left side of the multiplication currently.
+
+        EXAMPLE:
+            sage: G = graphs.CycleGraph(3)
+            sage: H = G*3; H
+            disjoint_union( disjoint_union( disjoint_union( , Cycle graph ), Cycle graph ), Cycle graph ): Graph on 9 vertices
+            sage: H.vertices()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+        """
+        if isinstance(n, (int, long, Integer)):
+            if self.is_directed():
+                return sum([self]*n, DiGraph())
+            else:
+                return sum([self]*n, Graph())
+
     def union(self, other):
         """
         Returns the union of self and other.
 
-        If there are common vertices to both, they will be renamed.
+        If the graphs have common vertices, the common vertices will
+        be identified.
 
         EXAMPLE:
-            sage: D = graphs.DodecahedralGraph()
-            sage: P = graphs.PetersenGraph()
-            sage: D.union(P)
-            Graph on 20 vertices
+            sage: G = graphs.CycleGraph(3)
+            sage: H = graphs.CycleGraph(4)
+            sage: J = G.union(H); J
+            Graph on 4 vertices
+            sage: J.vertices()
+            [0, 1, 2, 3]
+            sage: J.edges(labels=False)
+            [(0, 1), (0, 2), (0, 3), (1, 2), (2, 3)]
 
         """
         if (self.is_directed() and not other.is_directed()) or (not self.is_directed() and other.is_directed()):

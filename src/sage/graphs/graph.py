@@ -1014,6 +1014,10 @@ class GenericGraph(SageObject):
         """
         Set the edge label of a given edge.
 
+        NOTE:
+            There can be only one edge from u to v for this to make sense.
+        Otherwise, an error is raised.
+
         INPUT:
             u, v -- the vertices (and direction if digraph) of the edge
             l -- the new label
@@ -1054,29 +1058,24 @@ class GenericGraph(SageObject):
             sage: g.set_edge_label(0,0,'test3')
             Traceback (most recent call last):
             ...
-            RuntimeError: Cannot set edge label, since there are more than one edge (0,0).
-
-
+            RuntimeError: Cannot set edge label, since there are multiple edges from 0 to 0.
 
         """
-        if self.is_directed() and self.has_edge(u, v):
+        if self.has_edge(u, v):
             if self.multiple_edges():
                 if len(self._nxg.adj[u][v]) > 1:
-                    raise RuntimeError("Cannot set edge label, since there are more than one edge (%s,%s)."%(u,v))
-                else:
+                    raise RuntimeError("Cannot set edge label, since there are multiple edges from %s to %s."%(u,v))
+                if self.is_directed():
                     self._nxg.adj[u][v] = [l]
-            else:
-                self._nxg.adj[u][v] = l
-        elif not self.is_directed() and self.has_edge(u, v):
-            if self.multiple_edges():
-                if len(self._nxg.adj[u][v]) > 1:
-                    raise RuntimeError("Cannot set edge label, since there are more than one edge (%s,%s)."%(u,v))
                 else:
                     self._nxg.adj[u][v] = [l]
                     self._nxg.adj[v][u] = [l]
             else:
-                self._nxg.adj[u][v] = l
-                self._nxg.adj[v][u] = l
+                if self.is_directed():
+                    self._nxg.adj[u][v] = l
+                else:
+                    self._nxg.adj[u][v] = l
+                    self._nxg.adj[v][u] = l
 
     def loop_vertices(self):
         """

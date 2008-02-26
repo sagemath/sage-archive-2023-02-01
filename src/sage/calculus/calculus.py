@@ -2951,8 +2951,6 @@ class SymbolicExpression(RingElement):
         f = self._fast_float_(var)
         if a > b:
             a, b = b, a
-        #def f(w):
-        #    return float(self.substitute({var:float(w)}))
         return sage.numerical.optimize.find_root(f, a=a,b=b, xtol=xtol, rtol=rtol,
                                                  maxiter=maxiter, full_output=full_output)
 
@@ -3063,6 +3061,19 @@ class SymbolicExpression(RingElement):
             False
             sage: W._has_been_simplified()
             True
+
+        Note that \code{__init__} automatically calls \code{_simp} when a
+        symbolic expression is created:
+            sage: f = x*x*x - (1+1+1)*x*x + 2 + 3 + 5 + 7 + 11; f
+            x^3 - 3*x^2 + 28
+            sage: x*x*x
+            x^3
+
+        \code{simplify}, however, can be called manually:
+            sage: f
+            x^3 - 3*x^2 + 28
+            sage: f.simplify()
+            x^3 - 3*x^2 + 28
         """
         try:
             if self._simp is None:
@@ -5019,7 +5030,41 @@ def var(s, create=True):
     r"""
     Create a symbolic variable with the name \emph{s}.
 
+    INPUTS:
+        s -- a string, either a single variable name
+             or a space or comma separated list of
+             variable names
+
+    NOTE: sage.calculus.calculus.var is better suited for using var in library
+    code since it won't touch the global namespace. To create a new variable
+    in the global namespace, use sage.calculus.var.var. That is, use
+    sage.calculus.calculus.var when defining a symbolic variable for use in
+    sage.calculus.calculus functions or library code.
+
     EXAMPLES:
+    Note that sage.calculus.calculus.var defines a variable which is locally
+    defined in the calculus namespace but is not globally defined:
+
+        sage: alpha = 42; alpha
+        42
+        sage: sage.calculus.calculus.var('alpha')
+        alpha
+        sage: alpha
+        42
+
+    The variable is still of type SymbolicVariable and belongs to the
+    symbolic expression ring:
+
+        sage: type(alpha)
+        <type 'sage.rings.integer.Integer'>
+        sage: type(sage.calculus.calculus.var('alpha'))
+        <class 'sage.calculus.calculus.SymbolicVariable'>
+        sage: var('beta')
+        beta
+        sage: type(beta)
+        <class 'sage.calculus.calculus.SymbolicVariable'>
+
+    TESTS:
         sage: var('xx')
         xx
         sage: var('.foo')
@@ -6406,8 +6451,17 @@ def arctan2(y, x):
 
     This is mainly for internal use.
 
+    TODO: entering 'atan2(1,2)' into Sage returns a  NameError that 'atan2'
+    is not defined despite the two lines following this function definition.
+    However, one can enter 'atan(1/2)' with no errors.
+
     EXAMPLES:
-        sage: sage.calculus.calculus.arctan2(2,3)
+        sage: arctan2 = sage.calculus.calculus.arctan2
+        sage: arctan2(1,2)
+        arctan(1/2)
+        sage: float(arctan2(1,2))
+        0.46364760900080609
+        sage: arctan2(2,3)
         arctan(2/3)
     """
     return arctan(y/x)
@@ -7111,7 +7165,22 @@ def log(x, base=None):
     """
     Return the logarithm of x to the given base.
 
+    Calls the \code{log} method of the object x when computing the logarithm,
+    thus allowing use of logarithm on any object containing a \code{log}
+    method. In other words, log works on more than just real numbers.
+
+    TODO: Add p-adic log example.
+
     EXAMPLES:
+        sage: log(e^2)
+        2
+        sage: log(1024, 2); RDF(log(1024, 2))
+        log(1024)/log(2)
+        10.0
+        sage: log(10, 4); RDF(log(10, 4))
+        log(10)/log(4)
+        1.66096404744
+
         sage: log(10, 2)
         log(10)/log(2)
         sage: n(log(10, 2))
@@ -7120,8 +7189,20 @@ def log(x, base=None):
         log(10)
         sage: n(log(10, e))
         2.30258509299405
-    """
 
+    The log function also works in finite fields as long as the base is
+    generator of the multiplicative group:
+        sage: F = GF(13); g = F.multiplicative_generator(); g
+        2
+        sage: a = F(8)
+        sage: log(a,g); g^log(a,g)
+        3
+        8
+        sage: log(a,3)
+        Traceback (most recent call last):
+        ...
+        ValueError: base (=3) for discrete log must generate multiplicative group
+    """
     if base is None:
         try:
             return x.log()

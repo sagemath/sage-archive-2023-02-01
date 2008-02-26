@@ -264,6 +264,7 @@ from sage.plot.plot import Graphics, GraphicPrimitive_NetworkXGraph
 import sage.graphs.graph_fast as graph_fast
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational import Rational
 
 class GenericGraph(SageObject):
     """
@@ -4816,12 +4817,90 @@ class Graph(GenericGraph):
             A[i][i] = S[i]
         return M.parent()(A)
 
-    def is_planar(self, set_emb=True, set_pos=True):
+    def set_embedding(self, embedding):
+        """
+        Sets a combinatorial embedding dictionary to _embedding attribute.
+        Dictionary is organized with vertex labels as keys and a list of
+        each vertex's neighbors in clockwise order.
+
+        Dictionary is error-checked for validity.
+
+        INPUT:
+            embedding -- a dictionary
+
+        EXAMPLES:
+            TODO
+        """
+        if self.check_embedding_validity(embedding):
+            self._embedding = embedding
+        else:
+            raise Exception('embedding is not valid for %s'%self)
+
+    def get_embedding(self):
+        """
+        Returns the attribute _embedding if it exists.  _embedding
+        is a dictionary organized with vertex labels as keys and a list of
+        each vertex's neighbors in clockwise order.
+
+        Error-checked to insure valid embedding is returned.
+
+        EXAMPLES:
+            TODO
+        """
+        if self.check_embedding_validity():
+            return self._embedding
+        else:
+            raise Exception('%s has been modified and the embedding is no longer valid.'%self)
+
+    def check_embedding_validity(self, embedding=None):
+        """
+        Checks whether an _embedding attribute is defined on self and if so,
+        checks for accuracy.  Returns True if everything is okay, False otherwise.
+
+        If embedding=None will test the attribute _embedding.
+
+        EXAMPLES:
+            TODO
+        """
+        if embedding == None:
+            if hasattr(self,'_embedding'):
+                if len(self._embedding) != self.order():
+                    return False
+                for v in self._embedding:
+                    if self.has_vertex(v):
+                        if len(self._embedding[v]) != len(self.neighbors(v)):
+                            return False
+                        for n in range(len(self._embedding[v])):
+                            if not self.has_edge(v,self._embedding[v][n]):
+                                return False
+                    else:
+                        return False
+                return True
+            return False
+        else:
+            for v in embedding:
+                if self.has_vertex(v):
+                    if len(embedding[v]) != len(self.neighbors(v)):
+                        return False
+                    for n in range(len(embedding[v])):
+                        if not self.has_edge(v,embedding[v][n]):
+                            return False
+                else:
+                    return False
+            return True
+
+    def is_planar(self, on_embedding=None, set_embedding=False, set_pos=False):
         """
         Returns True if a graph is planar, False if it is not.  This wraps the
         reference implementation provided by John Boyer of the linear time
         planarity algorithm by edge addition due to Boyer Myrvold.  (See reference
         code in graphs.planarity).
+
+        Note -- the argument on_embedding takes precedence over set_embedding.
+                This means that only the on_embedding combinatorial embedding
+                will be tested for planarity and no _embedding attribute will
+                be set as a result of this function call, unless on_embedding
+                is None.
 
         REFERENCE:
             [1] John M. Boyer and Wendy J. Myrvold, On the Cutting Edge:
@@ -4829,7 +4908,9 @@ class Graph(GenericGraph):
                 Algorithms and Applications, Vol. 8, No. 3, pp. 241-273, 2004.
 
         INPUT:
-            set_emb -- whether or not to set the instance field variable that
+            on_embedding -- the embedding dictionary to test planarity on.  (i.e.:
+                       will return True or False only for the given embedding.)
+            set_embedding -- whether or not to set the instance field variable that
                        contains a combinatorial embedding (clockwise ordering
                        of neighbors at each vertex).  This value will only be
                        set if a planar embedding is found.  It is stored as a
@@ -4846,10 +4927,9 @@ class Graph(GenericGraph):
             sage: g.is_planar()
             False
             sage: g = graphs.CircularLadderGraph(4)
-            sage: g.is_planar()
+            sage: g.is_planar(set_embedding=True)
             True
-            sage: g.__embedding__
-
+            sage: g._embedding
             {0: [1, 4, 3],
              1: [2, 5, 0],
              2: [3, 6, 1],
@@ -4859,10 +4939,16 @@ class Graph(GenericGraph):
              6: [2, 7, 5],
              7: [4, 6, 3]}
         """
-        from sage.graphs.planarity import is_planar
-        return is_planar(self,set_pos,set_emb)
+        if on_embedding:
+            if self.check_embedding_validity(on_embedding):
+                return (0 == self.genus(minimal=False,set_embedding=False,on_embedding=on_embedding))
+            else:
+                raise Exception('on_embedding is not a valid embedding for %s.'%self)
+        else:
+            from sage.graphs.planarity import is_planar
+            return is_planar(self,set_pos=set_pos,set_embedding=set_embedding)
 
-    def is_circular_planar(self, ordered=True, set_emb=True, set_pos=True):
+    def is_circular_planar(self, ordered=True, set_embedding=False, set_pos=False):
         """
         Returns True if a graph with boundary is circular planar, and
         False otherwise.  A graph (with nonempty boundary) is circular
@@ -4886,7 +4972,9 @@ class Graph(GenericGraph):
             ordered -- whether or not to consider the order of the boundary
                        (set ordered=False to see if there is any possible
                        boundary order that will satisfy circular planarity)
-            set_emb -- whether or not to set the instance field variable that
+            on_embedding -- the embedding dictionary to test planarity on.  (i.e.:
+                       will return True or False only for the given embedding.)
+            set_embedding -- whether or not to set the instance field variable that
                        contains a combinatorial embedding (clockwise ordering
                        of neighbors at each vertex).  This value will only be
                        set if a circular planar embedding is found.  It is
@@ -4905,10 +4993,9 @@ class Graph(GenericGraph):
             sage: g439.is_circular_planar()
             False
             sage: g439.set_boundary([1,2,3])
-            sage: g439.is_circular_planar()
+            sage: g439.is_circular_planar(set_embedding=True, set_pos=False)
             True
-            sage: g439.__embedding__
-
+            sage: g439.get_embedding()
             {1: [7, 5],
              2: [5, 6],
              3: [6, 7],
@@ -4923,13 +5010,12 @@ class Graph(GenericGraph):
             sage: K23.is_circular_planar()
             False
             sage: K23.set_boundary([0,2,1,3]) # Diff Order!
-            sage: K23.is_circular_planar()
+            sage: K23.is_circular_planar(set_embedding=True)
             True
             sage: K23.is_circular_planar(ordered=False)
             True
         """
         from sage.graphs.planarity import is_planar
-        from sage.graphs.planarity import schnyder
         graph = self.copy()
         boundary = self.get_boundary()
 
@@ -4952,26 +5038,194 @@ class Graph(GenericGraph):
                 extra_edges.append((boundary[-1],boundary[0]))
         # else STAR (empty list of extra edges)
 
-        result = is_planar(graph,set_emb=set_emb,circular=True)
+        result = is_planar(graph,set_embedding=set_embedding,circular=True)
 
         if result:
-            # strip the embedding to fit original graph
             graph.delete_vertex(extra)
-            graph.__embedding__.pop(extra)
             graph.delete_edges(extra_edges)
-            for u,v in extra_edges:
-                graph.__embedding__[u].pop(graph.__embedding__[u].index(v))
-                graph.__embedding__[v].pop(graph.__embedding__[v].index(u))
-            for w in boundary:
-                graph.__embedding__[w].pop(graph.__embedding__[w].index(extra))
 
-            self.__embedding__ = graph.__embedding__
+            if hasattr(graph,'_embedding'):
+                # strip the embedding to fit original graph
+                graph._embedding.pop(extra)
+                for u,v in extra_edges:
+                    graph._embedding[u].pop(graph._embedding[u].index(v))
+                    graph._embedding[v].pop(graph._embedding[v].index(u))
+                for w in boundary:
+                    graph._embedding[w].pop(graph._embedding[w].index(extra))
 
-            if (set_emb and set_pos):
-                schnyder(self,self.__embedding__)
+                if set_embedding:
+                    self._embedding = graph._embedding
+
+            if (set_pos and set_embedding):
+                self.set_planar_positions()
         return result
 
-    def genus(self,set_embedding=True, minimal=True):
+    def set_planar_positions(self, set_embedding=False, on_embedding=None, external_face=None, test=False, circular=False):
+        """
+        TODO -- docstring
+
+        TODO -- inplace, sets _pos attr
+
+        TODO -- should be able to specify external face and otherwise default should be longest face
+
+        on test=True, returns True if tests pass and False otherwise
+
+        schnyder
+
+        EXAMPLES:
+            sage: g = graphs.PathGraph(10)
+            sage: g.set_planar_positions(test=True)
+            True
+            sage: g = graphs.BalancedTree(3,4)
+            sage: g.set_planar_positions(test=True)
+            True
+            sage: g = graphs.CycleGraph(7)
+            sage: g.set_planar_positions(test=True)
+            True
+            sage: g = graphs.CompleteGraph(5)
+            sage: g.set_planar_positions(test=True,set_embedding=True)
+            Traceback (most recent call last):
+            ...
+            Exception: Complete graph is not a planar graph.
+
+        """
+        from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
+
+        embedding_copy = None
+        if set_embedding:
+            if not self.is_planar(set_embedding=True):
+                raise Exception('%s is not a planar graph.'%self)
+            embedding_copy = self._embedding
+        else:
+            if on_embedding is not None:
+                if self.check_embedding_validity(on_embedding):
+                    if not self.is_planar(on_embedding=on_embedding):
+                        raise Exception( 'Provided embedding is not a planar embedding for %s.'%self )
+                else:
+                    raise Exception('Provided embedding is not a valid embedding for %s. Try putting set_embedding=True.'%self)
+            else:
+                if hasattr(self,'_embedding'):
+                    if self.check_embedding_validity():
+                        if not self.is_planar(on_embedding=self._embedding):
+                            raise Exception('%s has nonplanar _embedding attribute.  Try putting set_embedding=True.'%self)
+                        embedding_copy = self._embedding
+                    else:
+                        raise Exception('Provided embedding is not a valid embedding for %s. Try putting set_embedding=True.'%self)
+                else:
+                    self.is_planar(set_embedding=True)
+
+        # The following is what was breaking the code.  It is where we were specifying the external
+        #       face ahead of time.  This is definitely a TODO:
+        #
+        # Running is_planar(set_embedding=True) has set attribute self._embedding
+        #if external_face is None:
+        #    faces = trace_faces( self, self._embedding )
+        #    faces.sort(key=len)
+        #    external_face = faces[-1]
+
+        #n = len(external_face)
+        #other_added_edges = []
+        #if n > 3:
+        #    v1, v2, v3 = external_face[0][0], external_face[int(n/3)][0], external_face[int(2*n/3)][0]
+        #    if not self.has_edge( (v1,v2) ):
+        #        self.add_edge( (v1, v2) )
+        #        other_added_edges.append( (v1, v2) )
+        #    if not self.has_edge( (v2,v3) ):
+        #        self.add_edge( (v2, v3) )
+        #        other_added_edges.append( (v2, v3) )
+        #    if not self.has_edge( (v3,v1) ):
+        #        self.add_edge( (v3, v1) )
+        #        other_added_edges.append( (v3, v1) )
+        #    if not self.is_planar(set_embedding=True): # get new combinatorial embedding (with added edges)
+        #        raise Exception('Modified graph %s is not planar.  Try specifying an external face.'%self)
+
+        # Triangulate the graph
+        extra_edges = _triangulate( self, self._embedding)
+
+        # Optional error-checking
+        if test:
+            self.is_planar(set_embedding=True) # to get new embedding
+            test_faces = self.trace_faces(self._embedding)
+            for face in test_faces:
+                if len(face) != 3:
+                    raise Exception('BUG: Triangulation returned face: %'%face)
+
+        self.is_planar(set_embedding=True)
+        faces = self.trace_faces(self._embedding)
+        # Assign a normal label to the graph
+        label = _normal_label( self, self._embedding, faces[0] )
+
+        # Get dictionary of tree nodes from the realizer
+        tree_nodes = _realizer( self, label)
+
+        # Compute the coordinates and store in position dictionary (attr self._pos)
+        _compute_coordinates( self, tree_nodes )
+
+        # Delete all the edges added to the graph
+        self.delete_edges( extra_edges )
+        #self.delete_edges( other_added_edges )
+
+        if embedding_copy is not None:
+            self._embedding = embedding_copy
+        else:
+            del self._embedding
+
+        if test:    # Optional error-checking, ( looking for edge-crossings O(n^2) ).
+            return self.is_drawn_free_of_edge_crossings() # returns true if tests pass
+        else:
+            return
+
+    def is_drawn_free_of_edge_crossings(self):
+        """
+        Returns True is the position dictionary for this graph is set
+        and that position dictionary gives a planar embedding.
+
+        This simply checks all pairs of edges that don't share a vertex
+        to make sure that they don't intersect.
+
+        NOTE:  This function require that _pos attribute is set.  (Returns
+        false otherwise.)
+
+        EXAMPLES:
+            TODO
+        """
+        if self._pos is None:
+            return False
+
+        for edge1 in self.edges(labels = False):
+            for edge2 in self.edges(labels = False):
+                if edge1[0] == edge2[0] or edge1[0] == edge2[1] or edge1[1] == edge2[0] or edge1[1] == edge2[1]:
+                    continue
+                p1, p2 = self._pos[edge1[0]], self._pos[edge1[1]]
+                dy = Rational(p2[1] - p1[1])
+                dx = Rational(p2[0] - p1[0])
+                q1, q2 = self._pos[edge2[0]], self._pos[edge2[1]]
+                db = Rational(q2[1] - q1[1])
+                da = Rational(q2[0] - q1[0])
+                if(da * dy == db * dx):
+                    if dx != 0:
+                        t1 = Rational(q1[0] - p1[0])/dx
+                        t2 = Rational(q2[0] - p1[0])/dx
+                        if (0 <= t1 and t1 <= 1) or (0 <= t2 and t2 <= 1):
+                            if p1[1] + t1 * dy == q1[1] or p1[1] + t2 * dy == q2[1]:
+                                return False
+                    else:
+                        t1 = Rational(q1[1] - p1[1])/dy
+                        t2 = Rational(q2[1] - p1[1])/dy
+                        if (0 <= t1 and t1 <= 1) or (0 <= t2 and t2 <= 1):
+                            if p1[0] + t1 * dx == q1[0] or p1[0] + t2 * dx == q2[0]:
+                                return False
+                else:
+                    s = (dx * Rational(q1[1] - p1[1]) + dy * Rational(p1[0] - q1[0])) / (da * dy - db * dx)
+                    t = (da * Rational(p1[1] - q1[1]) + db * Rational(q1[0] - p1[0])) / (db * dx - da * dy)
+
+                    if s >= 0 and s <= 1 and t >= 0 and t <= 1:
+                        print 'fail on', p1, p2, ' : ',q1, q2
+                        print edge1, edge2
+                        return False
+        return True
+
+    def genus(self,set_embedding=True, on_embedding=None, minimal=True):
         """
         Returns the minimal genus of the graph.  The genus of a compact
         surface is the number of handles it has.  The genus of a graph
@@ -4995,24 +5249,22 @@ class Graph(GenericGraph):
         if not self.is_connected():
             raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
         from sage.combinat.all import CyclicPermutationsOfPartition
-        from sage.graphs.graph_genus1 import trace_faces
 
-        # TODO -- do we need a copy?
-        #graph = nice_copy(self)
-        graph = self
-
-        verts = len(graph.vertices())
-        edges = len(graph.edges())
+        verts = len(self.vertices())
+        edges = len(self.edges())
 
         if not minimal:
-            if not hasattr(graph,'__embedding__'):
-                raise NoEmbeddingDefinedDipfuckError
-            max_faces = len(trace_faces(graph, graph.__embedding__))
+            if on_embedding is not None:
+                if not hasattr(self,'_embedding'):
+                    raise Exception("Graph must have attribute _embedding set to compute current (non-minimal) genus.")
+                max_faces = len(self.trace_faces(self._embedding))
+            else:
+                max_faces = len(self.trace_faces(on_embedding))
         else:
             # Construct an intitial combinatorial embedding for graph
             part = []
-            for vertex in graph.vertices():
-                part.append(graph.neighbors(vertex))
+            for vertex in self.vertices():
+                part.append(self.neighbors(vertex))
 
             # Iterate through all embeddings
             max_faces = -1
@@ -5020,19 +5272,71 @@ class Graph(GenericGraph):
             for p in CyclicPermutationsOfPartition(part):
                 # Make dict of node labels embedding
                 comb_emb = {}
-                labels = graph.vertices()
+                labels = self.vertices()
                 for i in range(len(p)):
                     comb_emb[labels[i]] = p[i]
 
-                t = trace_faces(graph, comb_emb)
+                t = self.trace_faces(comb_emb)
                 faces = len(t)
                 if faces > max_faces:
                     max_faces = faces
                     min_embedding = comb_emb
             if set_embedding:
                 # Make dict of node labels embedding
-                self.__embedding__ = min_embedding
+                self._embedding = min_embedding
         return (2-verts+edges-max_faces)/2
+
+    def trace_faces(self, comb_emb):
+        """
+        A helper function for finding the genus of a graph.
+        Given a graph and a combinatorial embedding (rot_sys),
+        this function will compute the faces (returned as a list
+        of lists of edges (tuples) of the particular embedding.
+
+        Note -- rot_sys is an ordered list based on the hash order
+        of the vertices of graph.  To avoid confusion, it might be
+        best to set the rot_sys based on a 'nice_copy' of the graph.
+
+        INPUT:
+            comb_emb -- a combinatorial embedding dictionary.  Format:
+                    { v1:[v2,v3], v2:[v1], v3:[v1] } (clockwise ordering
+                    of neighbors at each vertex.)
+
+        EXAMPLES:
+            TODO
+        """
+        from sage.sets.set import Set
+
+        # Establish set of possible edges
+        edgeset = Set([])
+        for edge in self.edges():
+            edgeset = edgeset.union(Set([(edge[0],edge[1]),(edge[1],edge[0])]))
+
+        # Storage for face paths
+        faces = []
+        path = []
+        for edge in edgeset:
+            path.append(edge)
+            edgeset -= Set([edge])
+            break  # (Only one iteration)
+
+        # Trace faces
+        while (len(edgeset) > 0):
+            neighbors = comb_emb[path[-1][-1]]
+            next_node = neighbors[(neighbors.index(path[-1][-2])+1)%(len(neighbors))]
+            tup = (path[-1][-1],next_node)
+            if tup == path[0]:
+                faces.append(path)
+                path = []
+                for edge in edgeset:
+                    path.append(edge)
+                    edgeset -= Set([edge])
+                    break  # (Only one iteration)
+            else:
+                path.append(tup)
+                edgeset -= Set([tup])
+        if (len(path) != 0): faces.append(path)
+        return faces
 
     def interior_paths(self, start, end):
         """

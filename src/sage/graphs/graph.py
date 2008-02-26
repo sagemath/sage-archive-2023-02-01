@@ -1022,6 +1022,32 @@ class GenericGraph(SageObject):
         """
         return self._nxg.nodes_with_selfloops()
 
+    def has_edge(self, u, v=None, label=None):
+        r"""
+        Returns True if (u, v) is an edge, False otherwise.
+
+        INPUT:
+        The following forms are accepted by NetworkX:
+
+        G.has_edge( 1, 2 )
+        G.has_edge( (1, 2) )
+        G.has_edge( 1, 2, 'label' )
+
+        EXAMPLE:
+            sage: graphs.EmptyGraph().has_edge(9,2)
+            False
+            sage: DiGraph().has_edge(9,2)
+            False
+            sage: G = Graph()
+            sage: G.add_edge(0,1,"label")
+            sage: G.has_edge(0,1,"different label")
+            False
+            sage: G.has_edge(0,1,"label")
+            True
+
+        """
+        return self._nxg.has_edge(u, v, label)
+
     def clear(self):
         """
         Empties the graph of vertices and edges and removes name,
@@ -4488,24 +4514,6 @@ class Graph(GenericGraph):
                 K.append((u,v))
             return K
 
-    def has_edge(self, u, v=None, label=None):
-        r"""
-        Returns True if \{u, v\} is an edge, False otherwise.
-
-        INPUT:
-        The following forms are accepted by NetworkX:
-
-        G.has_edge( 1, 2 )
-        G.has_edge( (1, 2) )
-        G.has_edge( 1, 2, 'label' )
-
-        EXAMPLE:
-            sage: graphs.EmptyGraph().has_edge(9,2)
-            False
-
-        """
-        return self._nxg.has_edge(u, v)
-
     def set_edge_label(self, u, v, l):
         """
         Set the edge label of a given edge.
@@ -6547,24 +6555,6 @@ class DiGraph(GenericGraph):
             for u,v,l in L:
                 K.append((u,v))
             return K
-
-    def has_edge(self, u, v=None, label=None):
-        """
-        Returns True if there is an edge from u to v, False otherwise.
-
-        INPUT:
-        The following forms are accepted by NetworkX:
-
-        D.has_edge( 1, 2 )
-        D.has_edge( (1, 2) )
-        D.has_edge( 1, 2, 'label' )
-
-        EXAMPLE:
-            sage: DiGraph().has_edge(9,2)
-            False
-
-        """
-        return self._nxg.has_edge(u,v)
 
     def set_edge_label(self, u, v, l):
         """

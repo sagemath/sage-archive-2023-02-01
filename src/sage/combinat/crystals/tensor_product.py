@@ -297,7 +297,14 @@ class CrystalOfTableaux(TensorProductOfCrystals):
 	self.shape = shape
 
     def __call__(self, *args, **options):
-	if not options.has_key('rows') and isinstance(args[0], Element) and args[0].parent() == self:
+        r"""
+        TESTS:
+            sage: T = CrystalOfTableaux(['A',3], [3,2])
+            #sage: T(rows=[[2,3],[1,2,4]])
+            #sage: T(list=[2,3,1,2,4])
+            #sage: T(2,3,1,2,4)
+        """
+	if not options.has_key('rows') and len(args)>= 1 and isinstance(args[0], Element) and args[0].parent() == self:
 	    return args[0];
         return CrystalOfTableauxElement(self, *args, **options);
 

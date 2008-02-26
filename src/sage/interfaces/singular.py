@@ -826,6 +826,35 @@ class SingularElement(ExpectElement):
             raise AttributeError
         return SingularFunctionElement(self, attrname)
 
+    def __copy__(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLES:
+            sage: R=singular.ring(0,'(x,y)','dp')
+            sage: M=singular.matrix(3,3,'0,0,-x, 0,y,0, x*y,0,0')
+            sage: N=copy(M)
+            sage: N[1,1]=singular('x+y')
+            sage: N
+            x+y,0,-x,
+            0,  y,0,
+            x*y,0,0
+            sage: M
+            0,  0,-x,
+            0,  y,0,
+            x*y,0,0
+            sage: S=copy(R)
+            sage: S.set_ring()
+            sage: R.fetch(M)
+            0,  0,-x,
+            0,  y,0,
+            x*y,0,0
+        """
+        if (self.type()=='ring') or (self.type()=='qring'):
+            return (self.ringlist()).ring()
+        else:
+            return self.parent()(self.name())
+
     def __len__(self):
         return int(self.size())
 

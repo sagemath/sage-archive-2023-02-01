@@ -4,7 +4,7 @@ Crystals
 Let $T$ be a CartanType with index set $I$, and $W$ be a realization of the
 type $T$ weight lattice.
 
-A type $T$ crystal $C$ is an oriented graph equiped with a weight
+A type $T$ crystal $C$ is an oriented graph equipped with a weight
 function the nodes to some realization of the type $T$ weight lattice
 such that:
 \begin{itemize}
@@ -41,7 +41,7 @@ as well as use it in for loops
     sage: [x for x in C]
     [1, 2, 3, 4, 5, 6]
 
-Here are some more elaborate crystals (see there respective documentations):
+Here are some more elaborate crystals (see their respective documentations):
     sage: Tens = TensorProductOfCrystals(C, C)
     sage: Spin = CrystalOfSpins(['B', 3])
     sage: Tab  = CrystalOfTableaux(['A', 3], shape = [2,1,1])

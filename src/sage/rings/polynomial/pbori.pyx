@@ -28,6 +28,7 @@ from sage.structure.element cimport ModuleElement
 from sage.structure.parent cimport Parent
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
+from sage.rings.integer import Integer
 
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.term_order import TermOrder
@@ -293,7 +294,12 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             x
         """
         cdef BooleanPolynomial p
-        if PY_TYPE_CHECK(other, BooleanMonomial):
+        if PY_TYPE_CHECK(other, int) or PY_TYPE_CHECK(other, Integer):
+            if other %2:
+                return self._one_element
+            else:
+                return self._zero_element
+        elif PY_TYPE_CHECK(other, BooleanMonomial):
             if (<BooleanMonomial>other)._parent._ring is self:
                 p = new_BP_from_PBMonom(self, (<BooleanMonomial>other)._pbmonom)
                 return p
@@ -348,11 +354,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                         return self._zero_element
                     else:
                         return self._one_element
-        elif PY_TYPE_CHECK(other, int):
-            if other %2:
-                return self._one_element
-            else:
-                return self._zero_element
         else:
             raise TypeError, "cannot coerce from %s to %s" % \
                     (type(other), str(self))
@@ -1027,6 +1028,48 @@ cdef class BooleanMonomial(MonoidElement):
         (<BooleanPolynomialRing>self._parent._ring)._pbring.activate()
         return PBMonom_to_str(&self._pbmonom)
 
+    def _eval(self, d):
+        res = 1
+        for i in self:
+            if d.has_key(i):
+                res *= d[i]
+            else:
+                res *= self._parent.gen(i)
+        return res
+
+
+    def __call__(self, *args, **kwds):
+        """
+        Evaluate this monomial.
+
+        EXAMPLE:
+            sage: B.<x,y,z> = BooleanPolynomialRing(3)
+            sage: f = x*y
+            sage: m = f.monomials()[0]
+            sage: m(B(0),B(1))
+            0
+            sage: m(x=B(1))
+            y
+        """
+        P = self.parent()
+        if args and kwds:
+            raise ValueError, "Using keywords and regular arguments not supported."
+        if args:
+            d = {}
+            if len(args) > self._parent.ngens():
+                raise ValueError, "Number of arguments is greater than the number of variables of parent ring."
+            for i in range(len(args)):
+                d[i] = args[i]
+        elif kwds:
+            d = list(self._parent.gens())
+            gd = dict(zip(self._parent.variable_names(),range(len(d))))
+            for var,val in kwds.iteritems():
+                d[gd[var]] = val
+        res = self._parent._one_element
+        for var in self:
+            res *= d[var]
+        return res
+
     def __hash__(self):
         """
         Return a hash of self.
@@ -1615,6 +1658,143 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return self._pbpoly.length()
 
+    def __call__(self, *args, **kwds):
+        """
+        Evaluate this boolean polynomials.
+
+        EXAMPLE:
+            sage: B.<x,y,z> = BooleanPolynomialRing(3)
+            sage: f = x*y + z + 1
+            sage: f(0,1,1)
+            0
+            sage: f(z,y,x)
+            x + y*z + 1
+            sage: f(x=z)
+            y*z + z + 1
+
+            sage: P.<a,b,c> = PolynomialRing(QQ)
+            sage: f(a,b,c)
+            a*b + c + 1
+            sage: f(x=a,y=b,z=1)
+            a*b + 2
+
+            Evaluation of polynomials can be used fully symbolic:
+
+            sage: f(x=var('a'),y=var('b'),z=var('c'))
+            c + a*b + 1
+            sage: f(var('a'),var('b'),1)
+            a*b
+        """
+        P = self._parent
+        cdef int N = P.ngens()
+        if args and kwds:
+            raise ValueError, "Using keywords and regular arguments not supported."
+        if args:
+            d = {}
+            if len(args) != N:
+                raise ValueError, "Number of arguments is different from the number of variables of parent ring."
+            for i in range(N):
+                arg = args[i]
+                try:
+                    arg = P(arg)
+                    if arg.constant():
+                        # TODO: We should collect those and reduce once only
+                        self = ll_red_nf(self, (P.gen(i) + arg).set())
+                    else:
+                        d[i] = arg
+                except TypeError:
+                    d[i] = arg
+            if not len(d):
+                return self
+        elif kwds:
+            d = dict(zip(range(P.ngens()), P.gens()))
+            gd = dict(zip(P.variable_names(),range(P.ngens())))
+            for var,val in kwds.iteritems():
+                d[gd[var]] = val
+
+        res = 0
+        for m in self:
+            res += m._eval(d)
+        return res
+
+    def subs(self, in_dict=None, **kwds):
+        r"""
+        Fixes some given variables in a given boolean polynomial and
+        returns the changed boolean polynomials. The polynomial itself
+        is not affected. The variable,value pairs for fixing are to be
+        provided as dictionary of the form \code{\{variable:value\}}
+        or named parameters (see examples below).
+
+        INPUT:
+            in_dict -- (optional) dict with variable:value pairs
+            **kwds -- names parameters
+
+        EXAMPLE:
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: f = x*y + z + y*z + 1
+            sage: f.subs(x=1)
+            y*z + y + z + 1
+            sage: f.subs(x=0)
+            y*z + z + 1
+
+            sage: f.subs(x=y)
+            y*z + y + z + 1
+
+            sage: f.subs({x:1},y=1)
+            0
+            sage: f.subs(y=1)
+            x + 1
+            sage: f.subs(y=1,z=1)
+            x + 1
+            sage: f.subs(z=1)
+            x*y + y
+            sage: f.subs({'x':1},y=1)
+            0
+
+            This method can work fully symbolic:
+
+            sage: f.subs(x=var('a'),y=var('b'),z=var('c'))
+            b*c + c + a*b + 1
+
+            sage: f.subs({'x':var('a'),'y':var('b'),'z':var('c')})
+            b*c + c + a*b + 1
+        """
+        P = self._parent
+
+        fixed = {}
+        if in_dict is not None:
+            for var,val in in_dict.iteritems():
+                if PY_TYPE_CHECK(var, basestring):
+                    var = P(var)
+                elif var.parent() is not P:
+                    var = P(var)
+                try:
+                    v = P(val)
+                    if v.constant():
+                        self = ll_red_nf(self, (var + v).set())
+                    else:
+                        fixed[list(list(var)[0])[0]] = val
+                except TypeError:
+                    fixed[list(list(var)[0])[0]] = val
+
+        for var,val in kwds.iteritems():
+            var = P(var)
+            try:
+                v =  P(val)
+                if v.constant():
+                    self = ll_red_nf(self, (var + v).set())
+                else:
+                    fixed[list(list(var)[0])[0]] = val
+            except TypeError:
+                fixed[list(list(var)[0])[0]] = val
+
+        if not len(fixed):
+            return self
+        res = 0
+        for m in self:
+            res += m._eval(fixed)
+        return res
+
     def __reduce__(self):
         """
         EXAMPLE:
@@ -1870,6 +2050,14 @@ cdef class BooleSet:
 
     def __iter__(self):
         return new_BSI_from_PBSetIter(self, get_cring())
+
+    def subset0(self, i):
+        return new_BS_from_PBSet(self._pbset.subset0(int(i)))
+
+    def subset1(self, i):
+        return new_BS_from_PBSet(self._pbset.subset1(int(i)))
+
+
 
 
 cdef inline BooleSet new_BS_from_PBSet(PBSet juice):

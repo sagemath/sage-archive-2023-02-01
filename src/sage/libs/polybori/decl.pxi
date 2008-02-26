@@ -99,6 +99,8 @@ cdef extern from "pb_wrap.h":
         PBMonom (* usedVariables)()
         PBSetIter (* begin)()
         PBSetIter (* end)()
+        PBSet (* subset0)(int i)
+        PBSet (* subset1)(int i)
 
     object PBSet_to_str "_to_PyString<BooleSet>"(PBSet *p)
 

@@ -1599,7 +1599,20 @@ cdef class RealNumber(sage.structure.element.RingElement):
             6125652559
             sage: RealField(5)(-pi).exact_rational()
             -25/8
+
+        TESTS:
+            sage: RR('nan').exact_rational()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
+            sage: RR('-infinity').exact_rational()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
         """
+        if not mpfr_number_p(self.value):
+            raise ValueError, 'Cannot convert NaN or infinity to rational number'
+
         cdef Integer mantissa = Integer()
         cdef mp_exp_t exponent
 
@@ -1727,7 +1740,20 @@ cdef class RealNumber(sage.structure.element.RingElement):
             -21
             sage: check(RRu2(-24))
             -24
+
+        TESTS:
+            sage: RR('nan').simplest_rational()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
+            sage: RR('-infinity').simplest_rational()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
         """
+        if not mpfr_number_p(self.value):
+            raise ValueError, 'Cannot convert NaN or infinity to rational number'
+
         if mpfr_zero_p(self.value):
             return Rational(0)
 
@@ -1810,7 +1836,29 @@ cdef class RealNumber(sage.structure.element.RingElement):
             3
             sage: RR(-3.5).nearby_rational(max_denominator=1)
             -3
+
+        TESTS:
+            sage: RR('nan').nearby_rational(max_denominator=1000)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
+            sage: RR('nan').nearby_rational(max_error=0.01)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
+            sage: RR('infinity').nearby_rational(max_denominator=1000)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
+            sage: RR('infinity').nearby_rational(max_error=0.01)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
         """
+
+        if not mpfr_number_p(self.value):
+            raise ValueError, 'Cannot convert NaN or infinity to rational number'
+
         if ((max_error is None and max_denominator is None) or
             (max_error is not None and max_denominator is not None)):
             raise ValueError, 'Must specify exactly one of max_error or max_denominator in nearby_rational()'

@@ -15,7 +15,7 @@ cimport matrix
 cdef maxima
 from sage.calculus.calculus import maxima
 
-from sage.calculus.calculus import symbolic_expression_from_maxima_string, SymbolicVariable
+from sage.calculus.calculus import symbolic_expression_from_maxima_string, SymbolicVariable, var_cmp
 
 cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
     r"""
@@ -48,6 +48,8 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             [0 t]
         """
         matrix.Matrix.__init__(self, parent)
+        self.__variables = None
+        self._simp = None
 
         cdef Py_ssize_t i, n
 
@@ -534,6 +536,53 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
     #############################################
     # Simplification commands
     #############################################
+    def is_simplified(self):
+        """
+        Return True if self is the result of running simplify() on a symbolic
+        matrix.  This has the semantics of 'has_been_simplified'.
+
+        EXAMPLES:
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: m = matrix([[z, (x+y)/(x+y)], [x^2, y^2+2]]); m
+            [      z       1]
+            [    x^2 y^2 + 2]
+            sage: m.is_simplified()
+            False
+            sage: ms = m.simplify(); ms
+            [      z       1]
+            [    x^2 y^2 + 2]
+
+            sage: m.is_simplified()
+            False
+            sage: ms.is_simplified()
+            True
+        """
+
+        return self._simp is self
+
+    def simplify(self):
+        """
+        Simplifies self.
+
+        EXAMPLES:
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: m = matrix([[z, (x+y)/(x+y)], [x^2, y^2+2]]); m
+            [      z       1]
+            [    x^2 y^2 + 2]
+            sage: m.simplify()
+            [      z       1]
+            [    x^2 y^2 + 2]
+        """
+        if self._simp is not None:
+            return self._simp
+
+        S = self.parent()([x.simplify() for x in self.list()])
+        S._simp = S
+        self._simp = S
+        return S
+
 
     def simplify_trig(self):
         """
@@ -601,6 +650,202 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         return M
 
 
+
+    def variables(self, vars=tuple([])):
+        """
+        Returns the variables of self.
+
+        EXAMPLES:
+            sage: var('a,b,c,x,y')
+            (a, b, c, x, y)
+            sage: m = matrix([[x, x+2], [x^2, x^2+2]]); m
+            [      x   x + 2]
+            [    x^2 x^2 + 2]
+            sage: m.variables()
+            (x,)
+            sage: m = matrix([[a, b+c], [x^2, y^2+2]]); m
+            [      a   c + b]
+            [    x^2 y^2 + 2]
+            sage: m.variables()
+            (a, b, c, x, y)
+        """
+        if self.__variables is not None:
+            return self.__variables
+
+        vars = list(set(sum([list(op.variables()) for op in self.list()], list(vars))))
+
+        vars.sort(var_cmp)
+        vars = tuple(vars)
+        self.__variables = vars
+        return vars
+
+    def number_of_arguments(self):
+        """
+        Returns the number of arguments that self can take.
+
+        EXAMPLES:
+            sage: var('a,b,c,x,y')
+            (a, b, c, x, y)
+            sage: m = matrix([[a, (x+y)/(x+y)], [x^2, y^2+2]]); m
+            [      a       1]
+            [    x^2 y^2 + 2]
+            sage: m.number_of_arguments()
+            3
+
+            sage: M = MatrixSpace(SR,2,2)
+            sage: m = M(sin+1)
+            sage: m.variables()
+            ()
+            sage: m.number_of_arguments()
+            1
+
+        """
+        if self.__number_of_args is not None:
+            return self.__number_of_args
+
+        variables = self.variables()
+        if not self.is_simplified():
+            n = self.simplify().number_of_arguments()
+        else:
+            # We need to do this maximum to correctly handle the case where
+            # self is something like (sin+1)
+            n = max( max([i.number_of_arguments() for i in self.list()]+[0]), len(variables) )
+        self.__number_of_args = n
+        return n
+
+    def arguments(self):
+        """
+        Returns a tuple of the arguments that self can take.
+
+        EXAMPLES:
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: M = MatrixSpace(SR,2,2)
+            sage: M(x).arguments()
+            (x,)
+            sage: M(x+sin).arguments()
+            (x,)
+
+            sage: M(sin+1).arguments()
+            ()
+            sage: M(sin+1).number_of_arguments()
+            1
+        """
+        return self.variables()
+
+    def __call__(self, *args, **kwargs):
+        """
+        EXAMPLES:
+            sage: var('x,y,z')
+            (x, y, z)
+            sage: M = MatrixSpace(SR,2,2)
+            sage: h = M(sin+cos)
+            sage: h
+            [sin + cos         0]
+            [        0 sin + cos]
+            sage: h(1)
+            [sin(1) + cos(1)               0]
+            [              0 sin(1) + cos(1)]
+            sage: h(x)
+            [sin(x) + cos(x)               0]
+            [              0 sin(x) + cos(x)]
+            sage: h = 3*M(sin)
+            sage: h(1)
+            [3*sin(1)        0]
+            [       0 3*sin(1)]
+            sage: h(x)
+            [3*sin(x)        0]
+            [       0 3*sin(x)]
+
+            sage: M(sin+1)(1)
+            [sin(1) + 1          0]
+            [         0 sin(1) + 1]
+            sage: M(x+sin)(5)
+            [sin(5) + 5          0]
+            [         0 sin(5) + 5]
+
+            sage: f = M([0,x,y,z]); f
+            [0 x]
+            [y z]
+            sage: f.arguments()
+            (x, y, z)
+            sage: f()
+            [0 x]
+            [y z]
+            sage: f(1)
+            [0 1]
+            [y z]
+            sage: f(1,2)
+            [0 1]
+            [2 z]
+            sage: f(1,2,3)
+            [0 1]
+            [2 3]
+            sage: f(x=1)
+            [0 1]
+            [y z]
+            sage: f(x=1,y=2)
+            [0 1]
+            [2 z]
+            sage: f(x=1,y=2,z=3)
+            [0 1]
+            [2 3]
+            sage: f({x:1,y:2,z:3})
+            [0 1]
+            [2 3]
+
+            sage: f(1, x=2)
+            Traceback (most recent call last):
+            ...
+            ValueError: args and kwargs cannot both be specified
+            sage: f(1,2,3,4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of arguments must be less than or equal to 3
+        """
+        if kwargs and args:
+            raise ValueError, "args and kwargs cannot both be specified"
+
+        if len(args) == 1 and isinstance(args[0], dict):
+            kwargs = dict([(repr(x[0]), x[1]) for x in args[0].iteritems()])
+
+        if kwargs:
+            #Handle the case where kwargs are specified
+            new_entries = []
+            for entry in self.list():
+                try:
+                    new_entries.append( entry(**kwargs) )
+                except ValueError:
+                    new_entries.append(entry)
+        else:
+            #Handle the case where args are specified
+
+            #Get all the variables
+            variables = list( self.arguments() )
+
+            if len(args) > self.number_of_arguments():
+                raise ValueError, "the number of arguments must be less than or equal to %s"%self.number_of_arguments()
+
+            new_entries = []
+            for entry in self.list():
+                try:
+                    entry_vars = entry.variables()
+                    if len(entry_vars) == 0:
+                        if len(args) != 0:
+                            new_entries.append( entry(args[0]) )
+                        else:
+                            new_entries.append( entry )
+                        continue
+                    else:
+                        indices = [i for i in map(variables.index, entry_vars) if i < len(args)]
+                        if len(indices) == 0:
+                            new_entries.append( entry )
+                        else:
+                            new_entries.append( entry(*[args[i] for i in indices]) )
+                except ValueError:
+                    new_entries.append( entry )
+
+        return self.parent(new_entries)
     def fcp(self, var='x'):
         """
         Return the factorization of the characteristic polynomial of self.

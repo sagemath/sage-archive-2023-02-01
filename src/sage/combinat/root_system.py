@@ -462,23 +462,28 @@ class AmbientLattice_g(AmbientLattice_generic):
 
 
 
-def WeylDim(lattice, hwv):
+def WeylDim(type, coeffs):
     """
-    The Weyl Dimension Formula. Here lattice is the ambient lattice of a root
-    system, and hwv is a dominant weight. Returns the dimension of the
-    irreducible representation of the corresponding semisimple complex Lie
-    group having hwv as highest weight vector.
-    EXAMPLE:
-        sage: e = RootSystem(['B',4]).ambient_lattice()
-        sage: f0 = e.fundamental_weights()[0] ; print f0 # hwv of standard rep for SO(9)
-        (1, 0, 0, 0)
-        sage: fspin = e.fundamental_weights()[3] ; print(fspin) # hwv of spin rep for Spin(9)
-        (1/2, 1/2, 1/2, 1/2)
-        sage: WeylDim(e,f0)
-        9
-        sage: WeylDim(e,fspin)
-        16
+    The Weyl Dimension Formula. Here type is a Cartan type and coeffs
+    are a list of nonnegative integers of length equal to the rank
+    type[1]. A dominant weight hwv is constructed by summing the
+    fundamental weights with coefficients from this list. The
+    dimension of the irreducible representation of the semisimple
+    complex Lie algebra with highest weight vector hwv is returned.
+    EXAMPLE: For SO(7), the Cartan type is B3, so:
+        sage: WeylDim(['B',3],[1,0,0]) # standard representation of SO(7)
+        7
+        sage: WeylDim(['B',3],[0,1,0]) # exterior square
+        21
+        sage: WeylDim(['B',3],[0,0,1]) # spin representation of spin(7)
+        8
+        sage: WeylDim(['B',3],[1,0,1]) # sum of the first and third fundamental weights
+        48
     """
+    lattice = RootSystem(type).ambient_lattice()
+    rank = type[1]
+    fw = lattice.fundamental_weights()
+    hwv = sum(coeffs[i]*fw[i] for i in range(min(rank, len(coeffs))))
     rho = sum(lattice.fundamental_weights())
     n = prod([(rho+hwv).dot_product(x) for x in lattice.positive_roots()])
     d = prod([rho.dot_product(x) for x in lattice.positive_roots()])

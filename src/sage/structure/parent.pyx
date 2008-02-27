@@ -116,10 +116,12 @@ cdef class Parent(sage_object.SageObject):
             True
             sage: I in RR
             False
+            sage: SR(2) in ZZ
+            True
         """
         try:
             x2 = self(x)
-            return x2 == x
+            return bool(x2 == x)
         except TypeError:
             return False
 

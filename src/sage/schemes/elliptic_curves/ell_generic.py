@@ -1,5 +1,11 @@
-"""
+r"""
 Elliptic curves over a general ring
+
+Elliptic curves are always represented by `Weierstass Models' with
+five coefficients $[a_1,a_2,a_3,a_4,a_6]$ in standard notation.  In
+Magma, `Weierstrass Model' means a model with a1=a2=a3=0, which is
+called `Short Weierstrass Model' in Sage; these only exist in
+characteristics other than 2 and 3.
 
 EXAMPLES:
 We construct an elliptic curve over an elaborate base ring:
@@ -502,7 +508,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         AUTHOR: Robert Bradshaw, 2007-04-24
 
         TEST:
-            sage: E = EllipticCurve('37a').weierstrass_model().change_ring(GF(17))
+            sage: E = EllipticCurve('37a').short_weierstrass_model().change_ring(GF(17))
             sage: E.lift_x(3, all=True)
             []
             sage: E.lift_x(7, all=True)
@@ -737,13 +743,25 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def base_extend(self, R):
         """
+        Returns a new curve with the same a-invariants but defined
+        over a new ring into which the original's a-invariants may be
+        mapped.  R is either a ring into which they may be coerced, or
+        a morphism which may be applied to them.
+
         EXAMPLES:
         sage: E=EllipticCurve(GF(5),[1,1]); E
         Elliptic Curve defined by y^2  = x^3 + x +1 over Finite Field of size 5
         sage: E1=E.base_extend(GF(125,'a')); E1
         Elliptic Curve defined by y^2  = x^3 + x +1 over Finite Field in a of size 5^3
+        sage: F2=GF(5^2,'a'); a=F2.gen()
+        sage: F4=GF(5^4,'b'); b=F4.gen()
+        sage: h=F2.hom([a.charpoly().roots(ring=F4,multiplicities=False)[0]],F4)
+        sage: E=EllipticCurve(F2,[1,a]); E
+        Elliptic Curve defined by y^2  = x^3 + x + a over Finite Field in a of size 5^2
+        sage: E.base_extend(h)
+        Elliptic Curve defined by y^2  = x^3 + x + (4*b^3+4*b^2+4*b+3) over Finite Field in b of size 5^4
         """
-        return constructor.EllipticCurve(R, [R(a) for a in self.a_invariants()])
+        return constructor.EllipticCurve([R(a) for a in self.a_invariants()])
 
     def base_ring(self):
         """
@@ -831,7 +849,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def quadratic_twist(self, D):
         """
-        Return the quadratic twist of this curve by D.
+        Return the quadratic twist of this curve by D, which must be nonzero except in characteristic 2.
 
         In characteristic!=2, D must be nonzero, and the twist is
         isomorphic to self after adjoining sqrt(D) to the base
@@ -865,8 +883,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         K=self.base_ring()
         char=K.characteristic()
+        D=K(D)
 
         if char!=2:
+            if D.is_zero():
+                raise ValueError, "quadratic twist requires a nonzero argument when characteristic is not 2"
             b2,b4,b6,b8=self.b_invariants()
             # E is isomorphic to  [0,b2,0,8*b4,16*b6]
             return EllipticCurve(K,[0,b2*D,0,8*b4*D**2,16*b6*D**3])
@@ -885,7 +906,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def quartic_twist(self, D):
         """
-        Return the quartic twist of this curve by D.
+        Return the quartic twist of this curve by D, which must be nonzero.
 
         The characteristic must not be 2 or 3 and the j-invariant must be 1728
 
@@ -903,12 +924,16 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         K=self.base_ring()
         char=K.characteristic()
+        D=K(D)
 
         if char==2 or char==3:
             raise ValueError, "Quartic twist not defined in chars 2,3"
 
         if self.j_invariant() !=K(1728):
             raise ValueError, "Quartic twist not defined when j!=1728"
+
+        if D.is_zero():
+            raise ValueError, "quartic twist requires a nonzero argument"
 
         c4,c6=self.c_invariants()
         # E is isomorphic to  [0,0,0,-27*c4,0]
@@ -917,7 +942,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def sextic_twist(self, D):
         """
-        Return the sextic twist of this curve by D.
+        Return the sextic twist of this curve by D, which must be nonzero.
 
         The characteristic must not be 2 or 3 and the j-invariant must be 0
 
@@ -937,12 +962,16 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         K=self.base_ring()
         char=K.characteristic()
+        D=K(D)
 
         if char==2 or char==3:
             raise ValueError, "Sextic twist not defined in chars 2,3"
 
         if self.j_invariant() !=K(0):
-            raise ValueError, "Sextic twist not defined when j!=1728"
+            raise ValueError, "Sextic twist not defined when j!=0"
+
+        if D.is_zero():
+            raise ValueError, "Sextic twist requires a nonzero argument"
 
         c4,c6=self.c_invariants()
         # E is isomorphic to  [0,0,0,0,-54*c6]
@@ -1454,19 +1483,19 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: F = E.weierstrass_model()
+            sage: F = E.short_weierstrass_model()
             sage: w = E.isomorphism_to(F); w
             Generic morphism:
-              From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-              To:   Abelian group of points on Elliptic Curve defined by y^2  = x^3 - x + 1/4 over Rational Field
-              Via:  (u,r,s,t) = (1, 0, 0, -1/2)
+            From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            To:   Abelian group of points on Elliptic Curve defined by y^2  = x^3 - 16*x + 16 over Rational Field
+            Via:  (u,r,s,t) = (1/2, 0, 0, -1/2)
             sage: P = E(0,-1,1)
             sage: w(P)
-            (0 : -1/2 : 1)
+            (0 : -4 : 1)
             sage: w(5*P)
-            (1/4 : 1/8 : 1)
+            (1 : 1 : 1)
             sage: 5*w(P)
-            (1/4 : 1/8 : 1)
+            (1 : 1 : 1)
             sage: 120*w(P) == w(120*P)
             True
 
@@ -1600,64 +1629,66 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             urst = urst[0]
         return constructor.EllipticCurve((wm.baseWI(*urst))(self.ainvs()))
 
-    def weierstrass_model(self):
+    def short_weierstrass_model(self, complete_cube=True):
         """
+        If complete_cube=True:
         Return a model of the form $y^2 = x^3 + a*x + b$ for this curve.
+        The characteristic must not be 2 or 3.
+        a,b = -27*c4, -54*c6
+
+        If complete_cube=False:
+        Return a model of the form $y^2 = x^3 + ax^2 + bx + c$ for this curve.
+        The characteristic must not be 2.
+        a,b,c = b2, 8*b4, 16*b6
 
         EXAMPLES:
-            sage: E = EllipticCurve('37a')
+            sage: E = EllipticCurve([1,2,3,4,5])
             sage: print E
-            Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-            sage: F = E.weierstrass_model()
+            Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field
+            sage: F = E.short_weierstrass_model()
             sage: print F
-            Elliptic Curve defined by y^2  = x^3 - x + 1/4 over Rational Field
-            sage: print F.minimal_model() == E.minimal_model()
+            Elliptic Curve defined by y^2  = x^3 + 4941*x + 185166 over Rational Field
+            sage: E.is_isomorphic(F)
+            True
+            sage: F = E.short_weierstrass_model(complete_cube=False)
+            sage: print F
+            Elliptic Curve defined by y^2  = x^3 + 9*x^2 + 88*x + 464 over Rational Field
+            sage: print E.is_isomorphic(F)
             True
 
-            sage: E = EllipticCurve([1,2,3,4,5])
-            sage: F = E.weierstrass_model()
-            sage: print F
-            Elliptic Curve defined by y^2  = x^3 + 61/16*x + 127/32 over Rational Field
-            sage: print F.minimal_model() == E.minimal_model()
-            True
+            sage: E = EllipticCurve(GF(3),[1,2,3,4,5])
+            sage: E.short_weierstrass_model(complete_cube=False)
+            Elliptic Curve defined by y^2  = x^3 + x + 2 over Finite Field of size 3
+            sage: E.short_weierstrass_model()
+            Traceback (most recent call last):
+            ...
+            ValueError: short_weierstrass_model(): no short model for Elliptic Curve defined by y^2 + x*y  = x^3 + 2*x^2 + x + 2 over Finite Field of size 3 (characteristic is 3)
+
         """
         import constructor
         K = self.base_ring()
-        if K.characteristic() == 2 or K.characteristic() == 3:
-            raise ValueError, "weierstrass_model(): no short model for %s (characteristic is %s)"%(self,K.characteristic())
+        if K.characteristic() == 2:
+            raise ValueError, "short_weierstrass_model(): no short model for %s (characteristic is %s)"%(self,K.characteristic())
+        if K.characteristic() == 3 and complete_cube:
+            raise ValueError, "short_weierstrass_model(): no short model for %s (characteristic is %s)"%(self,K.characteristic())
 
-        c4, c6 = self.c_invariants()
-        return constructor.EllipticCurve([-c4/(2**4*3), -c6/(2**5*3**3)])
-
-### The following functions should not be in ell_generic.py but in ell_rational_field.py!  John Cremona
-    def integral_weierstrass_model(self):
-        raise NotImplementedError
-
-    def integral_model(self):
-        """
-        Return an integral model for this elliptic curve along
-        with an isomorphism from self to this integral model.
-
-        EXAMPLES:
-            sage: E = EllipticCurve([1/2,2/3,3/5,4/7,5/11]); E
-            Elliptic Curve defined by y^2 + 1/2*x*y + 3/5*y = x^3 + 2/3*x^2 + 4/7*x + 5/11 over Rational Field
-            sage: E.integral_model()
-            (Elliptic Curve defined by y^2 + 1155*x*y + 7395834600*y = x^3 + 3557400*x^2 + 16270836120000*x + 69063597765855000000 over Rational Field,
-            Generic morphism:
-             From: Abelian group of points on Elliptic Curve defined by y^2 + 1/2*x*y + 3/5*y = x^3 + 2/3*x^2 + 4/7*x + 5/11 over Rational Field
-             To:   Abelian group of points on Elliptic Curve defined by y^2 + 1155*x*y + 7395834600*y = x^3 + 3557400*x^2 + 16270836120000*x + 69063597765855000000 over Rational Field
-             Via:  (u,r,s,t) = (1/2310, 0, 0, 0))
-            sage: E.integral_model()[0].minimal_model()
-            Elliptic Curve defined by y^2 + x*y + y = x^3 - x^2 + 15495546786070*x + 60459278934205438697 over Rational Field
-        """
-        denom = lcm([a.denominator() for a in self.ainvs()])
-        if denom != 1:
-            F = self.integral_weierstrass_model()
-            return F, self.isomorphism_to(F)
+        a1,a2,a3,_,_ = self.a_invariants()
+        if complete_cube:
+            if a1==0 and a2==0 and a3==0:
+                return self
+            else:
+                b2,b4,b6,_ = self.b_invariants()
+                if b2==0:
+                    return constructor.EllipticCurve([0,0,0,8*b4,16*b6])
+                else:
+                    c4, c6 = self.c_invariants()
+                    return constructor.EllipticCurve([0,0,0,-27*c4, -54*c6])
         else:
-            parent = self(0).parent()
-            return self, IdentityMorphism(Hom(parent, parent))
-
+            if a1==0 and a3==0:
+                return self
+            else:
+                b2,b4,b6,_ = self.b_invariants()
+                return constructor.EllipticCurve([0,b2,0,8*b4,16*b6])
 
 
     ##############################################################################
@@ -1757,4 +1788,19 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         x = R.gen(0)
         a1, a2, a3, a4, a6 = self.ainvs()
         return R([a6, a4, a2, 1]), R([a3, a1])
+
+
+def Hasse_bounds(q, genus=1):
+    """
+    Return the Hasse bounds (lb,ub) for the cardinality of a curve of
+    genus g (default 1) defined over GF(q)
+
+    EXAMPLES:
+       sage: Hasse_bounds(2)
+       (1, 5)
+       sage: Hasse_bounds(next_prime(10^30))
+       (999999999999998000000000000058, 1000000000000002000000000000058)
+    """
+    rq = 2*genus*q.isqrt()
+    return (q+1-rq,q+1+rq)
 

@@ -163,6 +163,16 @@ cdef class Morphism(Element):
         # todo -- what about the case n=0 -- need to specify the identity map somehow.
         return generic_power(self, n)
 
+cdef class Section(Morphism):
+    def __init__(self, morphism):
+        from sage.categories.homset import Hom
+        from sage.categories.category_types import SetsWithPartialMaps
+        Morphism.__init__(self, Hom(morphism.codomain(), morphism.domain(), SetsWithPartialMaps()))
+        self._morphism = morphism
+
+    def _repr_type(self):
+        return "Section"
+
 cdef class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):
         Morphism.__init__(self, parent)

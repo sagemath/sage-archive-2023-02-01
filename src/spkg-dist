@@ -28,7 +28,7 @@ if [ $? -ne 0 ]; then
     echo "Error deleting c_lib temp files"
 fi
 
-cp -prv MANIFEST.in README* install sage sage-push pull setup.py spkg-* .hg .hgtags .hgignore bundle export mercurial-howto.txt setupnb.py spkg-delauto c_lib tmp/
+cp -prv MANIFEST.in README* install sage sage-push pull setup.py spkg-* .hg .hgtags .hgignore bundle export mercurial-howto.txt setupnb.py spkg-delauto spkg-debian-maybe c_lib debian tmp/
 
 cd tmp/
 

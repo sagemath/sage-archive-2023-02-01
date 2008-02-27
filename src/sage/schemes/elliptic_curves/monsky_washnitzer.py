@@ -21,7 +21,7 @@ AUTHORS:
        Xiao)
     -- David Harvey (Aug/Sep 2006): cleaned up, rewrote some chunks, lots
        more documentation, added Newton iteration method, added more complete
-       "trace trick", integrated better into SAGE.
+       ``trace trick'', integrated better into SAGE.
     -- David Harvey (Feb 2007): added algorithm with sqrt(p) complexity
                   (removed in May 2007 due to better C++ implementation)
     -- Robert Bradshaw (Mar 2007): keep track of exact form in reduction algorithms
@@ -128,6 +128,24 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
             Q -- a polynomial of the form $Q(x) = x^3 + ax + b$, where a, b
                  belong to a ring in which 2, 3 are invertible.
             laurent_series -- whether or not to allow negative powers of T (default=False)
+
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: R
+            SpecialCubicQuotientRing over Ring of integers modulo 125 with polynomial T = x^3 + 124*x + 94
+
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 + 2*t^2 - t + B(1/4))
+            Traceback (most recent call last):
+            ...
+            ValueError: Q (=t^3 + 2*t^2 + 124*t + 94) must be of the form x^3 + ax + b
+
+            sage: B.<t> = PolynomialRing(Integers(10))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + 1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: 2 and 3 must be invertible in the coefficient ring (=Ring of integers modulo 10) of Q
+
         """
         if not is_Polynomial(Q):
             raise TypeError, "Q (=%s) must be a polynomial" % Q
@@ -163,30 +181,49 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
                                                         8, 4, 2])**(-1)
                               ).change_ring(base_ring).list()
 
-        # todo: get rid of the next line.
-        # It's currently necessary in __mul__ for the elements of this list to
-        # be in poly_ring. But in an ideal world they should be elements of the
-        # base_ring. Unfortunately SAGE's binop stuff is screwed up somewhere,
-        # and __mul__ breaks for certain base rings.
-        self._speedup_matrix = [self._poly_ring(x) for x in self._speedup_matrix]
-
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: print R
+            SpecialCubicQuotientRing over Ring of integers modulo 125 with polynomial T = x^3 + 124*x + 94
+        """
         return "SpecialCubicQuotientRing over %s with polynomial T = %s" % \
                (self.base_ring(), PolynomialRing(self.base_ring(), 'x')(
                                                 [self._b, self._a, 0, 1]))
 
     def poly_ring(self):
-        """ Return the underlying polynomial ring in T. """
+        """
+        Return the underlying polynomial ring in T.
+
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: R.poly_ring()
+            Univariate Polynomial Ring in T over Ring of integers modulo 125
+        """
         return self._poly_ring
 
     def gens(self):
-        """ Return a list [x, T] where x and T are the generators of the ring
+        """
+        Return a list [x, T] where x and T are the generators of the ring
         (as element *of this ring*).
 
         NOTE:
             I have no idea if this is compatible with the usual SAGE
-            "gens" interface.
+            ``gens'' interface.
+
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: x, T = R.gens()
+            sage: x
+            (0) + (1)*x + (0)*x^2
+            sage: T
+            (T) + (0)*x + (0)*x^2
+
         """
         return [SpecialCubicQuotientRingElement(self,
                    self._poly_ring(0), self._poly_ring(1), self._poly_ring(0),
@@ -196,36 +233,46 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
                    check=False)]
 
     def create_element(self, p0, p1, p2, check=True):
-        """ Creates the element $p_0 + p_1*x + p_2*x^2$, where pi's are
+        """
+        Creates the element $p_0 + p_1*x + p_2*x^2$, where pi's are
         polynomials in T.
 
         INPUT:
             p0, p1, p2 -- coefficients; must be coercable into poly_ring()
             check -- bool (default True): whether to carry out coercion
 
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: A, z = R.poly_ring().objgen()
+            sage: R.create_element(z^2, z+1, 3)
+            (T^2) + (T + 1)*x + (3)*x^2
+
         """
         return SpecialCubicQuotientRingElement(self, p0, p1, p2, check)
 
 
-    # todo: work out exactly where the following coercions are being
-    # called, and exactly how they should operate
-
     def __call__(self, value):
+        """
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: R(3)
+            (3) + (0)*x + (0)*x^2
+        """
         return self._coerce_(value)
 
 
     def _coerce_impl(self, value):
-        # todo: I don't understand why the direct _poly_ring.__call__()
-        # doesn't work....
-
-        # try coercing to base ring
-        try:
-            value = self.base_ring()._coerce_(value)
-            value = self._poly_ring._coerce_(value)
-
-        except TypeError:
-            # try coercing to underlying polynomial ring
-            value = self._poly_ring._coerce_(value)
+        """
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: R._coerce_impl(3)
+            (3) + (0)*x + (0)*x^2
+        """
+        # coerce to underlying polynomial ring (possibly via base ring):
+        value = self._poly_ring._coerce_(value)
 
         return SpecialCubicQuotientRingElement(self,
                    value, self._poly_ring(0), self._poly_ring(0), check=False)
@@ -244,6 +291,13 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             parent -- a SpecialCubicQuotientRing
             p0, p1, p2 -- coefficients; must be coercable into parent.poly_ring()
             check -- bool (default True): whether to carry out coercion
+
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: from sage.schemes.elliptic_curves.monsky_washnitzer import SpecialCubicQuotientRingElement
+            sage: SpecialCubicQuotientRingElement(R, 2, 3, 4)
+            (2) + (3)*x + (4)*x^2
 
         """
         if not isinstance(parent, SpecialCubicQuotientRing):
@@ -265,6 +319,12 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
         $x^0$, $x^1$, $x^2$ coefficients. The lists are zero padded to the same
         length. The list entries belong to the base ring.
 
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: p = R.create_element(t, t^2 - 2, 3)
+            sage: p.coeffs()
+            [[0, 1, 0], [123, 0, 1], [3, 0, 0]]
         """
         coeffs = [column.coeffs() for column in self._triple]
         degree = max([len(x) for x in coeffs])
@@ -274,6 +334,18 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
         return coeffs
 
     def __nonzero__(self):
+        """
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: x, T = R.gens()
+            sage: not x
+            False
+            sage: not T
+            False
+            sage: not R.create_element(0, 0, 0)
+            True
+        """
         return not not self._triple[0] or not not self._triple[1] or not not self._triple[2]
 
     def __cmp__(self, other):
@@ -291,15 +363,41 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
         return cmp(self._triple, other._triple)
 
     def _repr_(self):
+        """
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: x, T = R.gens()
+            sage: x + T*x - 2*T^2
+            (123*T^2) + (T + 1)*x + (0)*x^2
+        """
         return "(%s) + (%s)*x + (%s)*x^2" % self._triple
 
 
     def _latex_(self):
+        """
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: x, T = R.gens()
+            sage: f = x + T*x - 2*T^2
+            sage: latex(f)
+            (123T^{2}) + (T + 1)x + (0)x^2
+        """
         return "(%s) + (%s)x + (%s)x^2" % \
                tuple([column._latex_() for column in self._triple])
 
 
     def _add_(self, other):
+        """
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: f = R.create_element(2, t, t^2 - 3)
+            sage: g = R.create_element(3 + t, -t, t)
+            sage: f + g
+            (T + 5) + (0)*x + (T^2 + T + 122)*x^2
+        """
         return SpecialCubicQuotientRingElement(self.parent(),
                                                self._triple[0] + other._triple[0],
                                                self._triple[1] + other._triple[1],
@@ -308,6 +406,15 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
 
     def _sub_(self, other):
+        """
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: f = R.create_element(2, t, t^2 - 3)
+            sage: g = R.create_element(3 + t, -t, t)
+            sage: f - g
+            (124*T + 124) + (2*T)*x + (T^2 + 124*T + 122)*x^2
+        """
         return SpecialCubicQuotientRingElement(self.parent(),
                                                self._triple[0] - other._triple[0],
                                                self._triple[1] - other._triple[1],
@@ -316,7 +423,21 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
 
     def shift(self, n):
-        """ Returns this element multiplied by $T^n$. """
+        """
+        Returns this element multiplied by $T^n$.
+
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: f = R.create_element(2, t, t^2 - 3)
+            sage: f
+            (2) + (T)*x + (T^2 + 122)*x^2
+            sage: f.shift(1)
+            (2*T) + (T^2)*x + (T^3 + 122*T)*x^2
+            sage: f.shift(2)
+            (2*T^2) + (T^3)*x + (T^4 + 122*T^2)*x^2
+
+        """
         return SpecialCubicQuotientRingElement(self.parent(),
                                                self._triple[0].shift(n),
                                                self._triple[1].shift(n),
@@ -325,16 +446,25 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
 
     def scalar_multiply(self, scalar):
-        """ Multiplies this element by a "scalar".
-
-        i.e. just multiply each coefficient of $x^j$ by the scalar.
+        """
+        Multiplies this element by a scalar, i.e. just multiply each coefficient
+        of $x^j$ by the scalar.
 
         INPUT:
-            scalar -- either an element of base_ring,
-                      or an element of poly_ring.
+            scalar -- either an element of base_ring, or an element of poly_ring.
+
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: x, T = R.gens()
+            sage: f = R.create_element(2, t, t^2 - 3)
+            sage: f
+            (2) + (T)*x + (T^2 + 122)*x^2
+            sage: f.scalar_multiply(2)
+            (4) + (2*T)*x + (2*T^2 + 119)*x^2
+            sage: f.scalar_multiply(t)
+            (2*T) + (T^2)*x + (T^3 + 122*T)*x^2
         """
-        # try to coerce scalar into underlying polynomial ring
-        # todo: why bother with this coercion here?
         scalar = self.parent()._poly_ring(scalar)
         return SpecialCubicQuotientRingElement(self.parent(),
                                                scalar * self._triple[0],
@@ -342,27 +472,34 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
                                                scalar * self._triple[2],
                                                check=False)
 
-
     def square(self):
-        # todo: we can maybe do this faster with the toom-cook squaring algorithm,
-        # should be particularly effective for very large input
+        """
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: x, T = R.gens()
+
+            sage: f = R.create_element(1 + 2*t + 3*t^2, 4 + 7*t + 9*t^2, 3 + 5*t + 11*t^2)
+            sage: f.square()
+            (73*T^5 + 16*T^4 + 38*T^3 + 39*T^2 + 70*T + 120) + (121*T^5 + 113*T^4 + 73*T^3 + 8*T^2 + 51*T + 61)*x + (18*T^4 + 60*T^3 + 22*T^2 + 108*T + 31)*x^2
+
+        """
         return self * self
 
 
     def _mul_(self, other):
-        # todo: cache results of toom-cook splitting, i.e. often we multiply
-        # the same polynomial by a bunch of other things, and we can save
-        # on part of the repetitve work
+        """
+        EXAMPLES:
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: x, T = R.gens()
 
-        # todo: if the degree is small, perhaps just use the naive
-        # algorithm instead?
+            sage: f = R.create_element(1 + 2*t + 3*t^2, 4 + 7*t + 9*t^2, 3 + 5*t + 11*t^2)
+            sage: g = R.create_element(4 + 3*t + 7*t^2, 2 + 3*t + t^2, 8 + 4*t + 6*t^2)
+            sage: f * g
+            (65*T^5 + 27*T^4 + 33*T^3 + 75*T^2 + 120*T + 57) + (66*T^5 + T^4 + 123*T^3 + 95*T^2 + 24*T + 50)*x + (45*T^4 + 75*T^3 + 37*T^2 + 2*T + 52)*x^2
 
-        # todo: I did a bit of simple profiling on this code and it looks to
-        # be spending WAY too much time in the additions/subtraction/scalar
-        # operations. It should be spending most of its time in the polynomial
-        # multiplications. So this all needs to be revisited when the underlying
-        # polynomial code has been pyrexified and all that.
-
+        """
         if not isinstance(other, SpecialCubicQuotientRingElement):
             return self.scalar_multiply(other)
 
@@ -373,11 +510,23 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
         b0, b1, b2 = other._triple
         M = self.parent()._speedup_matrix
 
-        p0 = a0 * b0
-        p1 = (a0 + 2*a1 + 4*a2) * (b0 + 2*b1 + 4*b2)
-        p2 = (a0 + a1 + a2) * (b0 + b1 + b2)
-        p3 = (4*a0 + 2*a1 + a2) * (4*b0 + 2*b1 + b2)
-        p4 = a2 * b2
+        if self is other:
+            # faster method if we're squaring
+            p0 = a0 * a0
+            temp = a0 + 2*a1 + 4*a2
+            p1 = temp * temp
+            temp = a0 + a1 + a2
+            p2 = temp * temp
+            temp = 4*a0 + 2*a1 + a2
+            p3 = temp * temp
+            p4 = a2 * a2
+
+        else:
+            p0 = a0 * b0
+            p1 = (a0 + 2*a1 + 4*a2) * (b0 + 2*b1 + 4*b2)
+            p2 = (a0 + a1 + a2) * (b0 + b1 + b2)
+            p3 = (4*a0 + 2*a1 + a2) * (4*b0 + 2*b1 + b2)
+            p4 = a2 * b2
 
         q1 = p1 - p0 - 16*p4
         q2 = p2 - p0 - p4
@@ -417,6 +566,12 @@ def transpose_list(input):
 
     OUTPUT:
         output -- a list of lists such that output[i][j] = input[j][i]
+
+    EXAMPLES:
+        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import transpose_list
+        sage: L = [[1, 2], [3, 4], [5, 6]]
+        sage: transpose_list(L)
+        [[1, 3, 5], [2, 4, 6]]
 
     """
 

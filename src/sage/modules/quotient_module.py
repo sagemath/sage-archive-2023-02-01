@@ -128,13 +128,13 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             sage: Q = V/W; Q.dimension()
             0
             sage: hash(Q)
-            -1880683406            # 32-bit
-            2870563926094318706    # 64-bit
+            954887582               # 32-bit
+            -5856620741060301410    # 64-bit
 
         The hash is just got by hashing both V and W.
             sage: hash((V, W))
-            -1880683406            # 32-bit
-            2870563926094318706    # 64-bit
+            954887582             # 32-bit
+            -5856620741060301410  # 64-bit
         """
         return self.__hash
 

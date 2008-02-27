@@ -24,8 +24,10 @@ from sage.rings.all import (bernoulli, CyclotomicField,
 
 def eisenstein_series_qexp(k, prec=10, K=QQ):
     r"""
-    Return the $q$-expansion of the weight $k$ Eisenstein series
-    to precision prec in the field $K$.
+    Return the $q$-expansion of the normalized weight $k$ Eisenstein
+    series to precision prec in the ring $K$.  (The normalization
+    chosen here is the one that forces the coefficient of $q$ to be
+    1.)
 
     Here's a rough description of how the algorithm works: we know
     $E_k = const + \sum_n sigma(n,k-1) q^n$. Now, we basically just
@@ -56,7 +58,7 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
     if prec < 0:
         raise ValueError, "prec (=%s) must be an even nonnegative integer"%prec
     if (prec == 0):
-        R = QQ[['q']]
+        R = K[['q']]
         return R(0).add_bigoh(0)
 
     one = Integer(1)
@@ -67,7 +69,7 @@ def eisenstein_series_qexp(k, prec=10, K=QQ):
         a0inv = - (2*k) / bernoulli(k)
         a0 = K(1/a0inv)
     except ZeroDivisionError:
-        raise ValueError, "-(2*k)/B_k (=%s) must be invertible in the ring K"%a0inv
+        raise ValueError, "-(2*k)/B_k (=%s) must be invertible in the %r"%(a0inv, K)
 
     for p in prime_range(1,prec):
 

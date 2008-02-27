@@ -198,7 +198,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             return n
 
     def __reduce__(self):
-        return (unpickle_v0, (self._parent, self.list(), self._degree, self._p))
+        return unpickle_v1, (self._parent, self.list(), self._degree, self._p, self._is_mutable)
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         cdef Vector_modn_dense z, r
@@ -302,4 +302,13 @@ def unpickle_v0(parent, entries, degree, p):
     v._init(degree, parent, p)
     for i from 0 <= i < degree:
         v._entries[i] = entries[i]
+    return v
+
+def unpickle_v1(parent, entries, degree, p, is_mutable):
+    cdef Vector_modn_dense v
+    v = PY_NEW(Vector_modn_dense)
+    v._init(degree, parent, p)
+    for i from 0 <= i < degree:
+        v._entries[i] = entries[i]
+    v._is_mutable = is_mutable
     return v

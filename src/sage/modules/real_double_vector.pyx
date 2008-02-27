@@ -91,7 +91,7 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         self.v = NULL
 
     def __reduce__(self):
-        return (unpickle_v0, (self._parent, self.list(), self._degree))
+        return (unpickle_v1, (self._parent, self.list(), self._degree, self._is_mutable))
 
     def __init__(self, parent, x, coerce=True, copy=True):
         self._parent = parent
@@ -419,3 +419,10 @@ def unpickle_v0(parent, entries, degree):
     #    make_FreeModuleElement_generic_dense_v1
     # and changed the reduce method below.
     return parent(entries)
+
+
+def unpickle_v1(parent, entries, degree, is_mutable):
+    cdef RealDoubleVectorSpaceElement v = parent(entries)
+    v._is_mutable = is_mutable
+    return v
+

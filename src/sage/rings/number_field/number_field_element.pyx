@@ -185,7 +185,7 @@ cdef class NumberFieldElement(FieldElement):
             # fast pathway
             (<Integer>ZZ(f))._to_ZZ(&coeff)
             ZZX_SetCoeff( self.__numerator, 0, coeff )
-            conv_ZZ_int( self.__denominator, 1 )
+            ZZ_conv_from_int( self.__denominator, 1 )
             return
 
         elif isinstance(f, NumberFieldElement):
@@ -597,6 +597,25 @@ cdef class NumberFieldElement(FieldElement):
             1.2599
         """
         return self.number_field().complex_embeddings(prec)[i](self)
+
+    def is_totally_positive(self):
+        """
+        Returns True if self is positive for all real embeddings of
+        its parent number field.  We do nothing at complex places,
+        so e.g. any element of a totally complex number field will return
+        True.
+
+        EXAMPLES:
+            sage: F.<b> = NumberField(x^3-3*x-1)
+            sage: b.is_totally_positive()
+            False
+            sage: (b^2).is_totally_positive()
+            True
+        """
+        for v in self.number_field().real_embeddings():
+            if v(self) <= 0:
+                return False
+        return True
 
     def is_square(self, root=False):
         """
@@ -1039,27 +1058,26 @@ cdef class NumberFieldElement(FieldElement):
         ZZX_getitem_as_mpz(&num.value, &self.__numerator, 0)
         return num / (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
 
-    def galois_conjugates(self, K=None):
+    def galois_conjugates(self, K):
         r"""
         Return all Gal(Qbar/Q)-conjugates of this number field element in
-        the Galois closure of the parent field if K is not given, or
-        in K if K is given.
+        the field K.
 
         EXAMPLES:
         In the first example the conjugates are obvious:
             sage: K.<a> = NumberField(x^2 - 2)
-            sage: a.galois_conjugates()
+            sage: a.galois_conjugates(K)
             [a, -a]
-            sage: K(3).galois_conjugates()
+            sage: K(3).galois_conjugates(K)
             [3]
 
         In this example the field is not Galois, so we have to pass
         to an extension to obtain the Galois conjugates.
             sage: K.<a> = NumberField(x^3 - 2)
-            sage: a.galois_conjugates()
-            [1/84*a1^4 + 13/42*a1, -1/252*a1^4 - 55/126*a1, -1/126*a1^4 + 8/63*a1]
+            sage: c = a.galois_conjugates(K); c
+            [a]
             sage: K.<a> = NumberField(x^3 - 2)
-            sage: c = a.galois_conjugates(); c
+            sage: c = a.galois_conjugates(K.galois_closure('a1')); c
             [1/84*a1^4 + 13/42*a1, -1/252*a1^4 - 55/126*a1, -1/126*a1^4 + 8/63*a1]
             sage: c[0]^3
             2
@@ -1075,12 +1093,9 @@ cdef class NumberFieldElement(FieldElement):
 
         Galois conjugates of $\sqrt[3]{2}$ in the field $\QQ(\zeta_3,\sqrt[3]{2})$:
             sage: L.<a> = CyclotomicField(3).extension(x^3 - 2)
-            sage: a.galois_conjugates()
+            sage: a.galois_conjugates(L)
             [a, (-zeta3 - 1)*a, zeta3*a]
         """
-        if K is None:
-            L = self.number_field()
-            K = L.galois_closure()
         f = self.absolute_minpoly()
         g = K['x'](f)
         return [a for a,_ in g.roots()]
@@ -1529,12 +1544,14 @@ cdef class NumberFieldElement(FieldElement):
            P -- a prime ideal of the parent of self
 
         EXAMPLES:
-        sage: R.<x> = QQ[]
-        sage: K.<a> = NumberField(x^4+3*x^2-17)
-        sage: P = K.ideal(61).factor()[0][0]
-        sage: b = a^2 + 30
-        sage: b.valuation(P)
-        1
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^4+3*x^2-17)
+            sage: P = K.ideal(61).factor()[0][0]
+            sage: b = a^2 + 30
+            sage: b.valuation(P)
+            1
+            sage: type(b.valuation(P))
+            <type 'sage.rings.integer.Integer'>
         """
         from number_field_ideal import is_NumberFieldIdeal
         if not is_NumberFieldIdeal(P):
@@ -1545,7 +1562,7 @@ cdef class NumberFieldElement(FieldElement):
         if not P.is_prime():
             # We always check this because it caches the pari prime representation of this ideal.
             raise ValueError, "P must be prime"
-        return self.number_field()._pari_().elementval(self._pari_(), P._pari_prime)
+        return Integer_sage(self.number_field()._pari_().elementval(self._pari_(), P._pari_prime))
 
     def _matrix_over_base(self, L):
         """

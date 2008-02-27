@@ -2458,12 +2458,13 @@ cdef class BinaryCodeClassifier:
                 # update hzf__h_zeta
                 if hzf__h_zeta == k-1 and Lambda[k] == zf__Lambda_zeta[k]: hzf__h_zeta = k
                 # update qzb
-                if zb__Lambda_rho[k] == -1 or Lambda[k] < zb__Lambda_rho[k]:
-                    qzb = -1
-                elif Lambda[k] > zb__Lambda_rho[k]:
-                    qzb = 1
-                else:
-                    qzb = 0
+                if qzb == 0:
+                    if zb__Lambda_rho[k] == -1 or Lambda[k] < zb__Lambda_rho[k]:
+                        qzb = -1
+                    elif Lambda[k] > zb__Lambda_rho[k]:
+                        qzb = 1
+                    else:
+                        qzb = 0
                 # update hzb
                 if hzb__h_rho == k-1 and qzb == 0: hzb__h_rho = k
                 # if Lambda[k] > zb[k], then zb[k] := Lambda[k]
@@ -2527,6 +2528,9 @@ cdef class BinaryCodeClassifier:
                     "A counterexample to an assumption the author made while writing this software has been encountered.")
                 # TODO: is the following line necessary?
                 if k == -1: k = 0
+
+                if hb > k:# update hb since we are backtracking
+                    hb = k
                 # if j == hh, then all nodes lower than our current position are equivalent, so bail out
                 if j == hh: state = 13; continue
 
@@ -2766,9 +2770,9 @@ cdef class BinaryCodeClassifier:
                 # hzf is maximal such that indicators line up for nu and zeta
                 if k < hzf__h_zeta:
                     hzf__h_zeta = k
-                # hb is longest common ancestor of nu and rho
-                if hb >= k:
-                    hb = k
+                # hzb is longest such that nu and rho have the same indicators
+                if hzb__h_rho >= k:
+                    hzb__h_rho = k
                     qzb = 0
                 state = 2
 
@@ -2789,6 +2793,8 @@ cdef class BinaryCodeClassifier:
                 # (POINT A)
                 index = 0
                 k -= 1
+                if hb > k: # update hb since we are backtracking
+                    hb = k
                 state = 13
 
             elif state == 17: # see if there are any more splits to make from this level of nu (and not zeta)
@@ -2851,7 +2857,7 @@ cdef class BinaryCodeClassifier:
                 k -= 1
                 rho = PartitionStack(nu)
                 # initialize counters for rho:
-                k_rho = k # number of partitions in rho
+                k_rho = k+1 # number of partitions in rho
                 hzb__h_rho = k # max such that indicators for rho and nu agree - BDM had k+1
                 hb = k # rho[hb] == nu[hb] - BDM had k+1
                 qzb = 0 # Lambda[k] == zb[k], so...

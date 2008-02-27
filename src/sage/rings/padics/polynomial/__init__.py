@@ -1,1 +1,0 @@
-# padic polynomial initialization file

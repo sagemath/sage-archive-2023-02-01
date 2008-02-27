@@ -692,13 +692,13 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         EXAMPLES:
             sage: R.<x> = ZZ[]
-            sage: R.random_element(10, 5,10)
+            sage: R.random_element(10, 5,10) # random output
             6*x^10 + 7*x^9 + 8*x^8 + 9*x^7 + 8*x^6 + 9*x^5 + 6*x^4 + 9*x^3 + 5*x^2 + 8*x + 6
-            sage: R.random_element(6)
+            sage: R.random_element(6) # random output
             2*x^5 - 2*x^4 - x^3 + 1
-            sage: R.random_element(6)
+            sage: R.random_element(6) # random output
             2*x^5 + 2*x^3 + x - 1
-            sage: R.random_element(6)
+            sage: R.random_element(6) # random output
             -2*x^6 - x^5 - 2*x^3 - x^2 + 2*x + 1
         """
         R = self.base_ring()

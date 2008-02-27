@@ -12,14 +12,14 @@ from sage.structure.sage_object import SageObject
 uniq_c = 0
 
 colors = {
-    "red"   : (1,0,0),
-    "orange": (1,.5,0),
-    "yellow": (1,1,0),
-    "green" : (0,1,0),
-    "blue"  : (0,0,1),
-    "purple": (.5,0,1),
-    "white" : (1,1,1),
-    "black" : (0,0,0),
+    "red"   : (1.0,0.0,0.0),
+    "orange": (1.0,.5,0.0),
+    "yellow": (1.0,1.0,0.0),
+    "green" : (0.0,1.0,0.0),
+    "blue"  : (0.0,0.0,1.0),
+    "purple": (.5,0.0,1.0),
+    "white" : (1.0,1.0,1.0),
+    "black" : (0.0,0.0,0.0),
     "grey"  : (.5,.5,.5)
 }
 

@@ -70,7 +70,7 @@ a Graphics object, which consists of a single polygon):
     sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
     sage: Q   # show it
 
-We combine together different graphics objects using ``$+$'':
+We combine together different graphics objects using ``+'':
 
     sage: H = G + P + Q
     sage: print H
@@ -2340,6 +2340,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
                         is too small, decrease. should be positive, but values much bigger than
                         1/8 won't be useful unless the nodes are huge
+        draw_edges -- whether to draw edges.
 
     EXAMPLES:
         sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
@@ -2399,12 +2400,15 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: g.show(edge_colors={(1.0, 0.8571428571428571, 0.0): g.edges()})
 
     """
-    def __init__(self, graph, pos=None, vertex_labels=True, vertex_size=300, vertex_colors=None, edge_colors=None, scaling_term=0.05):
+    def __init__(self, graph, pos=None, vertex_labels=True, vertex_size=300, \
+                   vertex_colors=None, edge_colors=None, scaling_term=0.05, \
+                   draw_edges=True):
         self.__nxg = graph
         self.__vertex_size = vertex_size
         self.__vertex_labels = vertex_labels
         self.__vertex_colors = vertex_colors
         self.__edge_colors = edge_colors
+        self.__draw_edges = draw_edges
         if len(self.__nxg) != 0:
             import networkx as NX
             if pos is None:
@@ -2467,13 +2471,14 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
                     NX.draw_networkx_nodes(G=self.__nxg, nodelist=self.__vertex_colors[i],
                                            node_color=i if isinstance(i, str) else [float(z) for z in i],
                                            pos=self.__pos, ax=subplot, node_size=vertex_size)
-            if self.__edge_colors is None:
-                NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=vertex_size)
-            else:
-                for i in self.__edge_colors:
-                    NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, edgelist=self.__edge_colors[i],
-                                           edge_color=i if isinstance(i, str) else [float(z) for z in i],
-                                           ax=subplot, node_size=vertex_size)
+            if self.__draw_edges:
+                if self.__edge_colors is None:
+                    NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=vertex_size)
+                else:
+                    for i in self.__edge_colors:
+                        NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, edgelist=self.__edge_colors[i],
+                                               edge_color=i if isinstance(i, str) else [float(z) for z in i],
+                                               ax=subplot, node_size=vertex_size)
             if self.__vertex_labels:
                 labels = {}
                 for v in self.__nxg:
@@ -3224,15 +3229,16 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     PLOT OPTIONS:
     The plot options are
-
         plot_points -- the number of points to initially plot before
                        doing adaptive refinement
         plot_division -- the maximum number of points including those
                        computed during adaptive refinement
         max_bend      -- parameter that affects adaptive refinement
-
         xmin -- starting x value
         xmax -- ending x value
+        color -- an rgb-tuple (r,g,b) with each of r,g,b between 0 and 1, or
+                 a color name as a string (e.g., 'purple'), or an HTML
+                 color such as '\#aaff0b'.
 
     APPEARANCE OPTIONS:
     The following options affect the appearance of the line through the points
@@ -3280,6 +3286,11 @@ class PlotFactory(GraphicPrimitiveFactory):
         80
         sage: P          # render
 
+    Some colored functions:
+
+        sage: plot(sin, 0, 10, rgbcolor='#ff00ff')
+        sage: plot(sin, 0, 10, rgbcolor='purple')
+
     We plot several functions together by passing a list
     of functions as input:
         sage: plot([sin(n*x) for n in [1..4]], (0, pi))
@@ -3316,6 +3327,15 @@ class PlotFactory(GraphicPrimitiveFactory):
     We can change the line style to one of '--' (dashed), '-.' (dash dot),
     '-' (solid), 'steps', ':' (dotted):
         sage: plot(sin(x), 0, 10, linestyle='-.')
+
+    TESTS:
+    We do not randomize the endpoints:
+        sage: p = plot(x, (x,-1,1))
+        sage: p[0].xdata[0] == -1
+        True
+        sage: p[0].xdata[-1] == 1
+        True
+
     """
     def _reset(self):
         o = self.options
@@ -3358,6 +3378,9 @@ class PlotFactory(GraphicPrimitiveFactory):
     def _call(self, funcs, xrange, parametric=False,
               polar=False, label='', **kwds):
         options = dict(self.options)
+        if kwds.has_key('color') and not kwds.has_key('rgbcolor'):
+            kwds['rgbcolor'] = kwds['color']
+            del kwds['color']
         for k, v in kwds.iteritems():
             options[k] = v
 
@@ -3397,11 +3420,12 @@ class PlotFactory(GraphicPrimitiveFactory):
         exceptions = 0; msg=''
         for i in range(plot_points):
             xi = xmin + i*delta
-            if i < plot_points:
+            # Slightly randomize points except for the first and last
+            if i > 0 and i < plot_points-1:
                 xi += delta*random.random()
                 if xi > xmax:
                     xi = xmax
-            else:
+            elif i == plot_points-1:
                 xi = xmax  # guarantee that we get the last point.
 
             try:
@@ -3426,7 +3450,6 @@ class PlotFactory(GraphicPrimitiveFactory):
                 except (ZeroDivisionError, TypeError, ValueError), msg:
                     sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                     exceptions += 1
-
                 j += 1
                 if j > plot_division:
                     break
@@ -3588,7 +3611,7 @@ def list_plot(data, plotjoined=False, **kwargs):
     return P
 
 def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_colors=None,
-                  edge_colors=None, graph_border=False, scaling_term=0.05):
+                  edge_colors=None, graph_border=False, scaling_term=0.05, draw_edges=True):
     """
     Creates a graphics object ready to display a NetworkX graph.
 
@@ -3646,7 +3669,9 @@ def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_c
         sage: networkx_plot(C._nxg, pos=C.__get_pos__(), edge_colors=edge_colors, vertex_labels=False, vertex_size=0)
     """
     g = Graphics()
-    NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, scaling_term=scaling_term)
+    NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, \
+      vertex_size=vertex_size, vertex_colors=vertex_colors, edge_colors=edge_colors, \
+      scaling_term=scaling_term, draw_edges=draw_edges)
     g._Graphics__objects.append(NGP)
     xmin = NGP._xmin
     xmax = NGP._xmax
@@ -3664,17 +3689,71 @@ def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_c
     return g
 
 def to_float_list(v):
+    """
+    Given a list or tuple or iterable v, coerce each element of v to a
+    float and make a list out of the result.
+
+    EXAMPLES:
+        sage: from sage.plot.plot import to_float_list
+        sage: to_float_list([1,1/2,3])
+        [1.0, 0.5, 3.0]
+    """
     return [float(x) for x in v]
 
 def to_mpl_color(c):
-    c = list(c)
-    for i in range(len(c)):
-        s = float(c[i])
-        if s != 1:
-            s = modf(s)[0]
-            if s < 0:
-                s += 1
-        c[i] = s
+    """
+    Convert a tuple or string to a matplotlib rgb color tuple.
+
+    INPUT:
+        c -- string or 3-tuple
+
+    OUTPUT:
+        3-tuple of floats between 0 and 1.
+
+    EXAMPLES:
+        sage: from sage.plot.plot import to_mpl_color
+        sage: to_mpl_color('#fa0')
+        (1.0, 0.66666666666666663, 0.0)
+        sage: to_mpl_color('#ffffe1')
+        (1.0, 1.0, 0.88235294117647056)
+        sage: to_mpl_color('blue')
+        (0.0, 0.0, 1.0)
+        sage: to_mpl_color([1,1/2,1/3])
+        (1.0, 0.5, 0.33333333333333331)
+        sage: to_mpl_color([1,2,255])   # WARNING -- numbers are reduced mod 1!!
+        (1.0, 0.0, 0.0)
+    """
+    if isinstance(c, str):
+        if len(c) > 0 and c[0] == '#':
+            # it is some sort of html like color, e.g, #00ffff or #ab0
+            h = c[1:]
+            if len(h) == 3:
+                h = '%s%s%s%s%s%s'%(h[0],h[0], h[1],h[1], h[2],h[2])
+            elif len(h) != 6:
+                raise ValueError, "color hex string (= '%s') must have length 3 or 6"%h
+            return tuple([eval('0x%s'%h[i:i+2])/float(255) for i in [0,2,4]])
+        else:
+            from texture import colors
+            try:
+                return colors[c]
+            except KeyError:
+                raise ValueError, "unknown color '%s'"%c
+
+    elif isinstance(c, (list, tuple)):
+        c = list(c)
+        if len(c) != 3:
+            raise ValueError, "color tuple must have 3 entries, one for each RGB channel"
+        for i in range(len(c)):
+            s = float(c[i])
+            if s != 1:
+                s = modf(s)[0]
+                if s < 0:
+                    s += 1
+            c[i] = s
+
+    else:
+        raise TypeError, "c must be a list, tuple, or string"
+
     return tuple(c)
 
 def hue(h, s=1, v=1):
@@ -4071,23 +4150,18 @@ def adjust_figsize_for_aspect_ratio(figsize, aspect_ratio, xmin, xmax, ymin, yma
         (5, 5/2)
 
     Here the x range is rather large, so to get an aspect ratio where circles
-    look twice as wide as they are tall, we have to shrink the x size
+    look twice as wide as they are tall, we have to shrink the y size
     of the image.
         sage: adjust_figsize_for_aspect_ratio([3,5], 2, 0, 10, 0, 2)
-        (2, 5)
+        (5, 1/2)
     """
     if not isinstance(figsize, (list, tuple)):
         figsize = [figsize, figsize * 0.618033988749895]   # 1/golden_ratio
     if aspect_ratio is None:
         return figsize
-    # We find a number r such that (xmax-xmin)*r / (ymax-ymin) = aspect_ratio:
-    r = max(aspect_ratio * (ymax - ymin)/(xmax-xmin), 0.001)
+    # We find a number r such that (ymax-ymin)*r / (xmax-xmin) = aspect_ratio:
+    r = max(aspect_ratio * (xmax - xmin)/(ymax-ymin), 0.001)
     mx = max(figsize)
     f = (figsize[0]*r, figsize[0])
     s = min((mx/f[0], mx/f[1]))
     return f[0]*s, f[1]*s
-
-
-
-
-

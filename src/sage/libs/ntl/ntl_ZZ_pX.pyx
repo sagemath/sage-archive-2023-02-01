@@ -18,6 +18,7 @@ include "../../ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
+from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
@@ -135,7 +136,7 @@ cdef class ntl_ZZ_pX:
         cdef ntl_ZZ_pX r
         self.c.restore_c()
         r = PY_NEW(ntl_ZZ_pX)
-        ZZ_pX_construct(&r.x)
+        #ZZ_pX_construct(&r.x)
         r.c = self.c
         return r
 
@@ -147,7 +148,7 @@ cdef class ntl_ZZ_pX:
             sage: loads(dumps(f)) == f
             True
         """
-        return unpickle_class_args, (ntl_ZZ_pX, (self.list(), self.modulus_context()))
+        return unpickle_class_args, (ntl_ZZ_pX, (self.list(), self.get_modulus_context()))
 
     def __repr__(self):
         """
@@ -202,13 +203,13 @@ cdef class ntl_ZZ_pX:
         """
         return self.__copy__()
 
-    def modulus_context(self):
+    def get_modulus_context(self):
         """
         Return the modulus for self.
 
         EXAMPLES:
             sage: x = ntl.ZZ_pX([0,5,3],17)
-            sage: c = x.modulus_context()
+            sage: c = x.get_modulus_context()
             sage: y = ntl.ZZ_pX([5],c)
             sage: x+y
             [5 5 3]
@@ -635,6 +636,32 @@ cdef class ntl_ZZ_pX:
         _sig_off
         return r
 
+    def _left_pshift(self, ntl_ZZ n):
+        """
+        Multiplies all coefficients by n and the context by n.
+        """
+        cdef ntl_ZZ new_c_p = PY_NEW(ntl_ZZ)
+        ZZ_mul(new_c_p.x, (<ntl_ZZ>self.c.p).x, n.x)
+        cdef ntl_ZZ_pContext_class new_c = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(new_c_p)
+        new_c.restore_c()
+        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        ans.c = new_c
+        ZZ_pX_left_pshift(ans.x, self.x, n.x, new_c.x)
+        return ans
+
+    def _right_pshift(self, ntl_ZZ n):
+        """
+        Divides all coefficients by n and the context by n.  Only really makes sense when n divides self.c.p
+        """
+        cdef ntl_ZZ new_c_p = PY_NEW(ntl_ZZ)
+        ZZ_div(new_c_p.x, (<ntl_ZZ>self.c.p).x, n.x)
+        cdef ntl_ZZ_pContext_class new_c = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(new_c_p)
+        new_c.restore_c()
+        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        ans.c = new_c
+        ZZ_pX_right_pshift(ans.x, self.x, n.x, new_c.x)
+        return ans
+
     def gcd(self, ntl_ZZ_pX other):
         """
         Return the gcd d = gcd(a, b), where by convention the leading coefficient
@@ -789,6 +816,38 @@ cdef class ntl_ZZ_pX:
             False
         """
         return bool(ZZ_pX_IsX(self.x))
+
+    def convert_to_modulus(self, ntl_ZZ_pContext_class c):
+        """
+        Returns a new ntl_ZZ_pX which is the same as self, but considered modulo a different p.
+
+        In order for this to make mathematical sense, c.p should divide self.c.p
+        (in which case self is reduced modulo c.p) or self.c.p should divide c.p
+        (in which case self is lifted to something modulo c.p congruent to self modulo self.c.p)
+
+        EXAMPLES:
+        sage: a = ntl.ZZ_pX([412,181,991],5^4)
+        sage: a
+        [412 181 366]
+        sage: b = ntl.ZZ_pX([198,333,91],5^4)
+        sage: ap = a.convert_to_modulus(ntl.ZZ_pContext(5^2))
+        sage: bp = b.convert_to_modulus(ntl.ZZ_pContext(5^2))
+        sage: ap
+        [12 6 16]
+        sage: bp
+        [23 8 16]
+        sage: ap*bp
+        [1 9 8 24 6]
+        sage: (a*b).convert_to_modulus(ntl.ZZ_pContext(5^2))
+        [1 9 8 24 6]
+        """
+        c.restore_c()
+        cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
+        ZZ_pX_construct(&ans.x)
+        ZZ_pX_conv_modulus(ans.x, self.x, c.x)
+        ans.c = c
+        return ans
+
 
     def derivative(self):
         """
@@ -1003,12 +1062,66 @@ cdef class ntl_ZZ_pX:
         """
         if m < 0:
             raise ArithmeticError, "m (=%s) must be positive"%m
-        _sig_on
         cdef ntl_ZZ_pX r = self._new()
         _sig_on
         ZZ_pX_InvTrunc(r.x, self.x, m)
         _sig_off
         return r
+
+    def invmod(self, ntl_ZZ_pX modulus):
+        """
+        Returns the inverse of self modulo the modulus using ntl's InvMod.
+        """
+        cdef ntl_ZZ_pX r = self._new()
+        _sig_on
+        ZZ_pX_InvMod(r.x, self.x, modulus.x)
+        _sig_off
+        return r
+
+    def invmod_newton(self, ntl_ZZ_pX modulus):
+        """
+        Returns the inverse of self modulo the modulus using Newton lifting.
+        Only works if modulo a power of a prime, and if modulus is either
+        unramified or Eisenstein.
+        """
+        cdef Integer pn = Integer(self.c.p)
+        cdef ntl_ZZ_pX ans = self._new()
+        F = pn.factor()
+        if len(F) > 1:
+            raise ValueError, "must be modulo a prime power"
+        p = F[0][0]
+        cdef ntl_ZZ pZZ = <ntl_ZZ>ntl_ZZ(p)
+        cdef ZZ_pX_Modulus_c mod
+        ZZ_pX_Modulus_build(mod, modulus.x)
+        cdef ntl_ZZ_pX mod_prime
+        cdef ntl_ZZ_pContext_class ctx
+        cdef long mini, minval
+        if Integer(modulus[0].lift()).valuation(p) == 1:
+            eisenstein = True
+            for c in modulus.list()[1:-1]:
+                if not p.divides(Integer(c.lift())):
+                    eisenstein = False
+                    break
+            if eisenstein:
+                if p.divides(Integer(self[0])):
+                    raise ZeroDivisionError, "cannot invert element"
+                ZZ_pX_InvMod_newton_ram(ans.x, self.x, mod, self.c.x)
+            else:
+                raise ValueError, "not eisenstein or unramified"
+        else:
+            ctx = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(p)
+            mod_prime = PY_NEW(ntl_ZZ_pX)
+            ZZ_pX_conv_modulus(mod_prime.x, modulus.x, ctx.x)
+            mod_prime.c = ctx
+            F = mod_prime.factor()
+            if len(F) == 1 and F[0][1] == 1:
+                ZZ_pX_min_val_coeff(minval, mini, self.x, pZZ.x)
+                if minval > 0:
+                    raise ZeroDivisionError, "cannot invert element"
+                ZZ_pX_InvMod_newton_unram(ans.x, self.x, mod, self.c.x, ctx.x)
+            else:
+                raise ValueError, "not eisenstein or unramified"
+        return ans
 
     def multiply_mod(self, ntl_ZZ_pX other, ntl_ZZ_pX modulus):
         """
@@ -1229,5 +1342,27 @@ cdef class ntl_ZZ_pX:
         #ZZ_pX_preallocate_space(&self.x, n)
         _sig_off
 
+cdef class ntl_ZZ_pX_Modulus:
+    """
+    Thin holder for ZZ_pX_Moduli.
+    """
+    def __new__(self, ntl_ZZ_pX poly):
+        ZZ_pX_Modulus_construct(&self.x)
+        ZZ_pX_Modulus_build(self.x, poly.x)
+        self.poly = poly
+
+    def __init__(self, ntl_ZZ_pX poly):
+        pass
+
+    def __dealloc__(self):
+        ZZ_pX_Modulus_destruct(&self.x)
+
+    def __repr__(self):
+        return "NTL ZZ_pXModulus %s (mod %s)"%(self.poly, self.poly.c.p)
+
+    def degree(self):
+        cdef Integer ans = PY_NEW(Integer)
+        mpz_set_ui(ans.value, ZZ_pX_Modulus_deg(self.x))
+        return ans
 
     ## TODO: NTL's ZZ_pX has minpolys of linear recurrence sequences!!!

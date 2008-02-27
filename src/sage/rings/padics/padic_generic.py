@@ -57,22 +57,21 @@ import sage.rings.padics.local_generic
 import sage.rings.integer_mod
 import sage.rings.ring
 
-from sage.rings.padics.pow_computer import PowComputer
 from sage.rings.integer import Integer
+from sage.rings.padics.padic_printing import pAdicPrinter
 
 infinity = sage.rings.infinity.infinity
 Mod = sage.rings.integer_mod.Mod
 
 class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
                    sage.rings.padics.local_generic.LocalGeneric):
-    def __init__(self, p, prec, print_mode, names, element_class):
-        sage.rings.padics.local_generic.LocalGeneric.__init__(self, prec, names)
+    def __init__(self, base, p, prec, print_mode, names, element_class):
+        sage.rings.padics.local_generic.LocalGeneric.__init__(self, base, prec, names)
         #if prec <= 100:
         #    self.prime_pow = PowComputer(p, prec, prec, self.is_field())
         #else:
         #    self.prime_pow = PowComputer(p, 3, prec, self.is_field())
-        self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field())
-        self.__set_print_mode(print_mode)
+        self._printer = pAdicPrinter(self, print_mode)
         self._element_class = element_class
 
     def _repr_(self, do_latex = False):
@@ -135,35 +134,35 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             sage: R.print_mode()
             'series'
         """
-        return self._print_mode
+        return self._printer._print_mode()
 
-    def __set_print_mode(self, print_mode):
-        """
-        Sets the print mode.
+#     def __set_print_mode(self, print_mode):
+#         """
+#         Sets the print mode.
 
-        WARNING: You should not use this function.
+#         WARNING: You should not use this function.
 
-        INPUT:
-            self -- a p-adic ring
-            print_mode -- string (see NOTES)
+#         INPUT:
+#             self -- a p-adic ring
+#             print_mode -- string (see NOTES)
 
-        NOTES:
-            The options for print_mode are:
-            'val-unit' -- elements are displayed as p^k*u
-            'terse' -- elements are displayed as an integer if positive valuation, as u/ppow or u/p^k if negative valuation
-            'series' -- elements are displayed as series in p, where p is self.variable_name() (default, e.g., "5")
-        """
-        if (print_mode in ['val-unit', 'terse', 'series']):
-            try:
-                old = self._print_mode
-                self._print_mode = print_mode
-                return old
-            except AttributeError:
-                self._print_mode = print_mode
-        else:
-            raise ValueError, "print_mode=%s must be either val-unit, terse, series"%print_mode
+#         NOTES:
+#             The options for print_mode are:
+#             'val-unit' -- elements are displayed as p^k*u
+#             'terse' -- elements are displayed as an integer if positive valuation, as u/ppow or u/p^k if negative valuation
+#             'series' -- elements are displayed as series in p, where p is self.variable_name() (default, e.g., "5")
+#         """
+#         if (print_mode in ['val-unit', 'terse', 'series']):
+#             try:
+#                 old = self._print_mode
+#                 self._print_mode = print_mode
+#                 return old
+#             except AttributeError:
+#                 self._print_mode = print_mode
+#         else:
+#             raise ValueError, "print_mode=%s must be either val-unit, terse, series"%print_mode
 
-    def _element_class(self):
+    def element_class(self):
         return self._element_class
 
     def characteristic(self):
@@ -200,9 +199,27 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         return self.prime_pow._prime()
 
     def uniformizer_pow(self, n):
+        """
+        Returns p^n, as an element of self.
+
+        If n is infinity, returns 0.
+
+        EXAMPLES:
+        sage: R = Zp(3, 5, 'fixed-mod')
+        sage: R.uniformizer_pow(3)
+        3^3 + O(3^5)
+        sage: R.uniformizer_pow(infinity)
+        O(3^5)
+        """
         if n is infinity:
             return self(0)
-        return self.uniformizer()**n
+        return self(self.prime_pow.pow_Integer_Integer(n))
+
+    def _unram_print(self):
+        """
+        For printing.  Will be None if the unramified subextension of self is of degree 1 over Z_p or Q_p.
+        """
+        return None
 
     def residue_characteristic(self):
         """
@@ -239,6 +256,8 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         """
         return sage.rings.finite_field.GF(self.prime())
 
+    residue_field = residue_class_field
+
     def residue_system(self):
         """
         Returns a list of elements representing all the residue classes.
@@ -261,23 +280,37 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         Returns the teichmuller representative of x.
 
         INPUT:
-            self -- a p-adic ring
-            x -- an integer or element of $\Z / p\Z$ that is not divisible by $p$
+        self -- a p-adic ring
+        x -- something that can be cast into self
         OUTPUT:
-            element -- the teichmuller lift of x
+        element -- the teichmuller lift of x
         EXAMPLES:
-            sage: R = Zp(5, 10, 'capped-rel', 'series')
-            sage: R.teichmuller(2)
-            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
-            sage: R = Qp(5, 10,'capped-rel','series')
-            sage: R.teichmuller(2)
-            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
-            sage: R = Zp(5, 10, 'capped-abs', 'series')
-            sage: R.teichmuller(2)
-            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
-            sage: R = Zp(5, 10, 'fixed-mod', 'series')
-            sage: R.teichmuller(2)
-            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+        sage: R = Zp(5, 10, 'capped-rel', 'series')
+        sage: R.teichmuller(2)
+        2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+        sage: R = Qp(5, 10,'capped-rel','series')
+        sage: R.teichmuller(2)
+        2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+        sage: R = Zp(5, 10, 'capped-abs', 'series')
+        sage: R.teichmuller(2)
+        2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+        sage: R = Zp(5, 10, 'fixed-mod', 'series')
+        sage: R.teichmuller(2)
+        2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+        sage: R = Zp(5,5)
+        sage: S.<x> = R[]
+        sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+        sage: W.<w> = R.ext(f)
+        sage: y = W.teichmuller(3); y
+        3 + 3*w^5 + w^7 + 2*w^9 + 2*w^10 + 4*w^11 + w^12 + 2*w^13 + 3*w^15 + 2*w^16 + 3*w^17 + w^18 + 3*w^19 + 3*w^20 + 2*w^21 + 2*w^22 + 3*w^23 + 4*w^24 + O(w^25)
+        sage: y^5 == y
+        True
+        sage: g = x^3 + 3*x + 3
+        sage: A.<a> = R.ext(g)
+        sage: b = A.teichmuller(1 + 2*a - a^2); b
+        (4*a^2 + 2*a + 1) + 2*a*5 + (3*a^2 + 1)*5^2 + (a + 4)*5^3 + (a^2 + a + 1)*5^4 + O(5^5)
+        sage: b^125 == b
+        True
 
         AUTHORS:
         Initial version: David Roe
@@ -287,9 +320,8 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             prec = self.precision_cap()
         else:
             prec = min(Integer(prec), self.precision_cap())
-        x = Integer(x)
-        ans = self._element_class(self, None, empty = True)
-        ans._teichmuller_set(x, prec)
+        ans = self._element_class(self, x, prec)
+        ans._teichmuller_set()
         return ans
 
     def teichmuller_system(self):
@@ -310,7 +342,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         NOTES:
             Should this return 0 as well?
         """
-        return [self.teichmuller(i) for i in self.residue_class_field() if i != 0]
+        return [self.teichmuller(i.lift()) for i in self.residue_class_field() if i != 0]
 
     def absolute_discriminant(self):
         """
@@ -404,44 +436,31 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         """
         return self(self.prime_pow._prime())
 
+    uniformiser = uniformizer
+
     def has_pth_root(self):
         r"""
-        Returns whether or not $\Z_p$ has a $p^{\mbox{th}}$ root of unity.
+        Returns whether or not $\Z_p$ has a primitive $p^{\mbox{th}}$ root of unity.
 
         INPUT:
             self -- a p-adic ring
 
         OUTPUT:
-            boolean -- whether self has $p^{\mbox{th}}$ root of unity
+            boolean -- whether self has primitive $p^{\mbox{th}}$ root of unity
         """
         return (self.prime() == 2)
 
     def has_root_of_unity(self, n):
         r"""
-        Returns whether or not $\Z_p$ has an $n^{\mbox{th}}$ root of unity.
+        Returns whether or not $\Z_p$ has a primitive $n^{\mbox{th}}$ root of unity.
 
         INPUT:
             self -- a p-adic ring
             n -- an integer
 
         OUTPUT:
-            boolean -- whether self has $n^{\mbox{th}}$ root of unity
+            boolean -- whether self has primitive $n^{\mbox{th}}$ root of unity
         """
-##        p = self.prime()
-##        if (p == 2) and (n % 2 == 0):
-##            return True
-##        if p.divides(n):
-##            return False
-##        if n == 1:
-##            return True
-##        if gcd(n, p-1) > 1:
-##            return True
-##        return False
-	##
-	## I'm not sure why the above definition existed. I'm keeping
-	## it for now until at least one other person looks and says
-	## I'm not missing something.
-	##
 	if (self.prime() == 2):
 	    return n.divides(2)
         else:
@@ -493,25 +512,18 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         """
         Create an extension of this p-adic ring.
 
-        WARNING -- this isn't ready for general use yet.
-
         EXAMPLES:
             sage: k = Qp(5)
             sage: R.<x> = k[]
-            sage: l.<a> = k.extension(x^2 + 5)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: This is not yet ready for general use.
+            sage: l.<w> = k.extension(x^2-5); l
+            Eisenstein Extension of 5-adic Field with capped relative precision 20 in w defined by (1 + O(5^20))*x^2 + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + 4*5^12 + 4*5^13 + 4*5^14 + 4*5^15 + 4*5^16 + 4*5^17 + 4*5^18 + 4*5^19 + 4*5^20 + O(5^21))
         """
-        raise NotImplementedError, "This is not yet ready for general use."
-        if not self is modulus.base_ring():
-            modulus = modulus.parent().change_ring(self)(modulus)
         from sage.rings.padics.factory import ExtensionFactory
-        return ExtensionFactory(modulus, prec, print_mode, halt, names, check = True)
+        return ExtensionFactory(self, modulus, prec, print_mode, halt, names, check = True)
 
     ext = extension
 
-class local_print_mode:
+def local_print_mode(obj, print_mode, pos = None, uniformizer_name = None):
     r"""
     Context manager for safely temporarily changing the print_mode
     of a p-adic ring/field.
@@ -527,12 +539,8 @@ class local_print_mode:
 
     NOTES:  For more documentation see localvars in parent_gens.pyx
     """
-    def __init__(self, obj, print_mode):
-        self._obj = obj
-        self._print_mode = print_mode
-
-    def __enter__(self):
-        self._orig = self._obj._pAdicGeneric__set_print_mode(self._print_mode)
-
-    def __exit__(self, type, value, traceback):
-        self._obj._pAdicGeneric__set_print_mode(self._orig)
+    if pos is None:
+        pos = obj._printer._pos()
+    if uniformizer_name is None:
+        uniformizer_name = obj._printer._uniformizer_name()
+    return pAdicPrinter(obj, print_mode, pos, uniformizer_name)

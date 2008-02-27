@@ -115,6 +115,32 @@ class Polynomial_generic_sparse(Polynomial):
         """
         return dict(self.__coeffs)
 
+    def coefficients(self):
+        """
+        Return the coefficients of the monomials appearing in self.
+
+        EXAMPLES:
+            sage: R.<w> = PolynomialRing(Integers(8), sparse=True)
+            sage: f = 5 + w^1997 - w^10000; f
+            7*w^10000 + w^1997 + 5
+            sage: f.coefficients()
+            [5, 1, 7]
+        """
+        return [c[1] for c in sorted(self.__coeffs.iteritems())]
+
+    def exponents(self):
+        """
+        Return the exponents of the monomials appearing in self.
+
+        EXAMPLES:
+            sage: R.<w> = PolynomialRing(Integers(8), sparse=True)
+            sage: f = 5 + w^1997 - w^10000; f
+            7*w^10000 + w^1997 + 5
+            sage: f.exponents()
+            [0, 1997, 10000]
+        """
+        return [c[0] for c in sorted(self.__coeffs.iteritems())]
+
     def valuation(self):
         """
         EXAMPLES:
@@ -809,6 +835,12 @@ class Polynomial_rational_dense(Polynomial_generic_field):
     def disc(self):
         """
         Same as discriminant().
+
+        EXAMPLES:
+            sage: _.<x> = PolynomialRing(QQ)
+            sage: f = x^3 + 3*x - 17
+            sage: f.disc()
+            -7911
         """
         return self.discriminant()
 
@@ -888,6 +920,8 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             [-17/13, 3, 0, 1]
         """
         return [QQ(x) for x in self.__poly.Vecrev()]
+
+
 
 ##     def partial_fraction(self, g):
 ##         """

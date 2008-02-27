@@ -1,4 +1,4 @@
-
+import sage.misc.misc as misc
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -112,6 +112,60 @@ cdef class MPolynomial(CommutativeRingElement):
         d = self.dict()
         return R(dict([(k, c) for k, c in d.iteritems() if k[ind] < n]))
 
+    def _fast_float_(self, *vars):
+        """
+        Returns a quickly-evaluating function on floats.
+
+        EXAMPLE:
+            sage: K.<x,y,z> = QQ[]
+            sage: f = (x+2*y+3*z^2)^2 + 42
+            sage: f(1, 10, 100)
+            901260483
+            sage: ff = f._fast_float_()
+            sage: ff(0, 0, 1)
+            51.0
+            sage: ff(0, 1, 0)
+            46.0
+            sage: ff(1, 10, 100)
+            901260483.0
+            sage: ff_swapped = f._fast_float_('z', 'y', 'x')
+            sage: ff_swapped(100, 10, 1)
+            901260483.0
+            sage: ff_extra = f._fast_float_('x', 'A', 'y', 'B', 'z', 'C')
+            sage: ff_extra(1, 7, 10, 13, 100, 19)
+            901260483.0
+
+        Currently, we use a fairly unoptimized method that evaluates one
+        monomial at a time, with no sharing of repeated computations and
+        with useless additions of 0 and multiplications by 1:
+            sage: list(ff)
+            ['push 0.0', 'push 4.0', 'load 1', 'dup', 'mul', 'mul', 'add', 'push 6.0', 'load 0', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 9.0', 'load 2', 'dup', 'mul', 'dup', 'mul', 'mul', 'add', 'push 4.0', 'load 0', 'load 1', 'mul', 'mul', 'add', 'push 12.0', 'load 1', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 1.0', 'load 0', 'dup', 'mul', 'mul', 'add', 'push 42.0', 'add']
+
+        TESTS:
+            sage: from sage.ext.fast_eval import fast_float
+            sage: list(fast_float(K(0)))
+            ['push 0.0']
+            sage: list(fast_float(K(17)))
+            ['push 0.0', 'push 17.0', 'add']
+            sage: list(fast_float(y))
+            ['push 0.0', 'push 1.0', 'load 1', 'mul', 'add']
+        """
+        from sage.ext.fast_eval import fast_float_arg, fast_float_constant
+        my_vars = self.parent().variable_names()
+        vars = list(vars)
+        if len(vars) == 0:
+            indices = range(len(my_vars))
+        else:
+            indices = [vars.index(v) for v in my_vars]
+        x = [fast_float_arg(i) for i in indices]
+
+        n = len(x)
+        expr = fast_float_constant(0)
+        for (m,c) in self.dict().iteritems():
+            monom = misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
+            expr = expr + monom
+        return expr
+
     def polynomial(self, var):
         """
         Let var be one of the variables of the parent of self.  This
@@ -200,9 +254,7 @@ cdef class MPolynomial(CommutativeRingElement):
             z + p
             sage: R = Qp(7)['x,y,z,p']; S = ZZ['x']['y,z,t']['p'] # shouldn't work, but should throw a better error
             sage: R(S.0)
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot create a p-adic out of <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            p
         """
         from polydict import ETuple
         if not self:

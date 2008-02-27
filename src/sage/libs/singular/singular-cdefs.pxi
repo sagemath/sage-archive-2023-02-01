@@ -391,6 +391,9 @@ cdef extern from "libsingular.h":
 
     poly *pNext(poly *p)
 
+    # Returns the number of monomials in the poly
+    int pLength(poly *a)
+
     # compare l and r
 
     int p_Cmp(poly *l, poly *r, ring *r)

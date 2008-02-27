@@ -28,35 +28,35 @@ The following relationship holds: self.valuation() + self.precision_relative() =
     True
 
 In the lazy case, a certain number of digits are computed and stored, and in addition a function is stored so that additional digits can be computed later.  In order to set the number of known digits you call cache_set_precision().
-    sage: R = Qp(5, 5, 'lazy', 'series'); a = R(4006); a
-    1  + 5 + 2*5^3 + 5^4 + O(5^5)
-    sage: b = R(50127); b
-    2 + 5^3 + O(5^5)
-    sage: c = a * b; c
-    2 + 2*5 + 4*5^4 + O(5^5)
-    sage: c.set_precision_absolute(15)
-    sage: c
-    2 + 2*5 + 4*5^4 + 3*5^5 + 5^6 + 4*5^8 + 2*5^9 + 4*5^11 + O(5^15)
+    #sage: R = Qp(5, 5, 'lazy', 'series'); a = R(4006); a
+    #1  + 5 + 2*5^3 + 5^4 + O(5^5)
+    #sage: b = R(50127); b
+    #2 + 5^3 + O(5^5)
+    #sage: c = a * b; c
+    #2 + 2*5 + 4*5^4 + O(5^5)
+    #sage: c.set_precision_absolute(15)
+    #sage: c
+    #2 + 2*5 + 4*5^4 + 3*5^5 + 5^6 + 4*5^8 + 2*5^9 + 4*5^11 + O(5^15)
 
 There is some performance penalty for carrying the function around, but it is minimized if you determine the precision you will need going into a computation and set the cache precision appropriately at the outset.
 
 p-Adic fields should be created using the creation function Qp as above.  This will ensure that there is only one instance of $\Q_p$ of a given type, p and precision.  It also saves typing very long class names.
-    sage: Qp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
-    Lazy 7-adic Field
-    sage: R = Qp(7, prec = 20, type = 'lazy', print_mode = 'val-unit'); S = Qp(7, prec = 20, type = 'lazy', print_mode = 'val-unit'); R is S
-    True
+    #sage: Qp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
+    #Lazy 7-adic Field
+    #sage: R = Qp(7, prec = 20, type = 'lazy', print_mode = 'val-unit'); S = Qp(7, prec = 20, type = 'lazy', print_mode = 'val-unit'); R is S
+    #True
     sage: Qp(2)
     2-adic Field with capped relative precision 20
 
 Once one has a p-Adic field, one can cast elements into it in the standard way.  Integers, ints, longs, Rationals, other p-Adic types, pari p-adics and elements of $\Z / p^n \Z$ can all be cast into a p-Adic field.
-    sage: R = Qp(5, 5, 'lazy','series'); a = R(16); a
-    1 + 3*5 + O(5^5)
-    sage: b = R(23/15); b
-    5^-1 + 3 + 3*5 + 5^2 + 3*5^3 + O(5^4)
-    sage: S = Zp(5, 5, 'fixed-mod','val-unit'); c = S(Mod(75,125)); c
-    5^2 * 3 + O(5^5)
-    sage: R(c)
-    3*5^2 + O(5^5)
+    #sage: R = Qp(5, 5, 'lazy','series'); a = R(16); a
+    #1 + 3*5 + O(5^5)
+    #sage: b = R(23/15); b
+    #5^-1 + 3 + 3*5 + 5^2 + 3*5^3 + O(5^4)
+    #sage: S = Zp(5, 5, 'fixed-mod','val-unit'); c = S(Mod(75,125)); c
+    #5^2 * 3 + O(5^5)
+    #sage: R(c)
+    #3*5^2 + O(5^5)
 
 In the previous example, since fixed-mod elements don't keep track of their precision, we assume that it has the full precision of the ring.  This is why you have to cast manually here.
 
@@ -182,13 +182,13 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric, pAdicLazyFieldGeneric):
         (e.g. precision, rounding, print mode).
 
         EXAMPLE:
-            sage: K = Qp(17, 8, type='lazy')
-            sage: c, L = K.construction(); L
-            Rational Field
-            sage: c(L)
-            Lazy 17-adic Field
-            sage: K == c(L)
-            True
+            #sage: K = Qp(17, 8, type='lazy')
+            #sage: c, L = K.construction(); L
+            #Rational Field
+            #sage: c(L)
+            #Lazy 17-adic Field
+            #sage: K == c(L)
+            #True
         """
         from sage.categories.pushout import CompletionFunctor
         return (CompletionFunctor(self.prime(),
@@ -221,9 +221,9 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric, pAdicLazyFieldGeneric):
         OUTPUT:
             element -- the teichmuller lift of x
         EXAMPLES:
-            sage: R = Qp(5, 10, 'lazy', 'series')
-            sage: R.teichmuller(2)
-                2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+            #sage: R = Qp(5, 10, 'lazy', 'series')
+            #sage: R.teichmuller(2)
+            #    2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
         """
         if prec is None:
             prec = self.precision_cap()

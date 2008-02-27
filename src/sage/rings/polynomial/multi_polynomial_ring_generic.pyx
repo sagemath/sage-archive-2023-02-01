@@ -546,32 +546,32 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         EXAMPLES:
             sage: P.<x,y,z> = PolynomialRing(QQ)
-            sage: P.random_element(2, 5)
+            sage: P.random_element(2, 5) # random output
             1/2*y^2 + x*z - x + 2*y + 19/2*z
 
-            sage: P.random_element(2, 5, choose_degree=True)
+            sage: P.random_element(2, 5, choose_degree=True) # random output
             28*x*z + y*z - z^2 - 1/2*x - 44/39
-            sage: P.random_element(0, 1)
+            sage: P.random_element(0, 1) # random output
             1
 
-            sage: P.random_element(2, 0)
+            sage: P.random_element(2, 0) # random output
             0
 
             stacked rings:
 
             sage: R = QQ['x,y']
             sage: S = R['t,u']
-            sage: S.random_element(degree=2, terms=1)
+            sage: S.random_element(degree=2, terms=1) # random output
             (3*x^2 - x*y - 17*y^2 + y - 2/3)*u
 
             default values apply if no degree and/or number of terms
             is provided:
 
-            sage: random_matrix(QQ['x,y,z'], 2, 2)
+            sage: random_matrix(QQ['x,y,z'], 2, 2) # random output
             [   4*x^2 + 4*x*y + 1/10*y*z + 1/2*z^2 - 15 4/3*x^2 + 5/2*x*z + 134/3*y*z + 20*z^2 - y]
             [      -1/2*x^2 - 1/6*x*y - 2*z^2 - 2*z - 1          -x*y - x*z - y*z + 1/15*z^2 - 5*z]
 
-            sage: random_matrix(QQ['x,y,z'], 2, 2, terms=1, degree=1)
+            sage: random_matrix(QQ['x,y,z'], 2, 2, terms=1, degree=1) # random
             [-1/2*z   -7/5]
             [    -y 1/11*z]
 
@@ -637,24 +637,27 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         return self(dict(zip(M,C)))
 
-    def new_ring(self, names=None, order=None):
+    def change_ring(self, base_ring=None, names=None, order=None):
         """
         Return a new multivariate polynomial ring which isomorphic to
         self, but has a different ordering given by the parameter
         'order' or names given by the parameter 'names'.
 
         INPUT:
+            base_ring -- a base ring
+            names -- variable names
             order -- a term order
 
         EXAMPLE:
             sage: P.<x,y,z> = PolynomialRing(GF(127),3,order='lex')
             sage: x > y^2
             True
-            sage: Q.<x,y,z> = P.new_ring(order='degrevlex')
+            sage: Q.<x,y,z> = P.change_ring(order='degrevlex')
             sage: x > y^2
             False
         """
-        base_ring = self.base_ring()
+        if base_ring is None:
+            base_ring = self.base_ring()
         if names is None:
             names = self.variable_names()
         if order is None:
@@ -662,6 +665,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         from polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(base_ring, self.ngens(), names, order=order)
+
 
 ####################
 # Leave *all* old versions!

@@ -37,6 +37,10 @@ PREPARSE:
     sage: preparse('2e3x + 3exp(y)')
     "RealNumber('2e3')*x + Integer(3)*exp(y)"
 
+A hex literal:
+    sage: preparse('0x23')
+    'Integer(0x23)'
+
 In SAGE methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error).
     sage: 16.sqrt()
@@ -669,6 +673,10 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 if in_quote():
                     # do not wrap
                     pass
+                elif i < len(line) and line[i] == 'x' and line[i-1] == '0' and num_start==i-1:
+                    # Yes, hex constant.
+                    i += 1
+                    continue
                 elif i < len(line) and line[i] in 'eE':
                     # Yes, in scientific notation, so will wrap later
                     is_real = True
@@ -968,6 +976,7 @@ def implicit_mul(code, level=5):
     code, literals = strip_string_literals(code)
     if level >= 1:
         no_mul_token = " '''_no_mult_token_''' "
+        code = re.sub(r'\b0x', r'0%sx' % no_mul_token, code)  # hex digits
         code = re.sub(r'( *)time ', r'\1time %s' % no_mul_token, code)  # first word may be magic 'time'
         code = re.sub(r'\b(\d+(?:\.\d+)?(?:e\d+)?)([rR]\b)', r'\1%s\2' % no_mul_token, code)  # exclude such things as 10r
         code = re.sub(r'\b(\d+(?:\.\d+)?)e([-\d])', r'\1%se%s\2' % (no_mul_token, no_mul_token), code)  # exclude such things as 1e5

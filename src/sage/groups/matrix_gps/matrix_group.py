@@ -451,15 +451,15 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
             [0 2 0 2]
 
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
-	    sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
-	    sage: G = MatrixGroup(gens)
-	    sage: G.random()
+            sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
+            sage: G = MatrixGroup(gens)
+            sage: G.random() # random output
             [2 4]
             [0 1]
-            sage: G.random()
+            sage: G.random() # random output
             [3 1]
             [2 2]
-            sage: G.random()
+            sage: G.random() # random output
             [3 2]
             [4 2]
         """

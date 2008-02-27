@@ -441,6 +441,8 @@ class AlgebraicRealField(_uniq_alg_r, AlgebraicField_common):
     def has_coerce_map_from_impl(self, from_par):
         if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:
             return True
+        if from_par == AA:
+            return True
         late_import()
         if is_SymbolicExpressionRing(from_par):
             return True
@@ -571,7 +573,7 @@ class AlgebraicField(_uniq_alg, AlgebraicField_common):
     def has_coerce_map_from_impl(self, from_par):
         if from_par == ZZ or from_par == QQ or from_par == int or from_par == long:
             return True
-        if from_par == AA:
+        if from_par == AA or from_par == QQbar:
             return True
         late_import()
         if is_SymbolicExpressionRing(from_par):

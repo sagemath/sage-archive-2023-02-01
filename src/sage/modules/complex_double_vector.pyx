@@ -100,7 +100,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         return self._new_c(self.gsl_vector_complex_copy())
 
     def __reduce__(self):
-        return (unpickle_v0, (self._parent, self.list(), self._degree))
+        return (unpickle_v1, (self._parent, self.list(), self._degree, self._is_mutable))
 
     def __init__(self, parent, x, coerce = True, copy = True):
         """
@@ -397,3 +397,8 @@ def unpickle_v0(parent, entries, degree):
     #    make_FreeModuleElement_generic_dense_v1
     # and changed the reduce method below.
     return parent(entries)
+
+def unpickle_v1(parent, entries, degree, is_mutable):
+    cdef ComplexDoubleVectorSpaceElement v = parent(entries)
+    v._is_mutable = is_mutable
+    return v

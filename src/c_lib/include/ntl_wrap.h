@@ -12,6 +12,7 @@
 #include <NTL/mat_ZZ.h>
 #include <NTL/mat_poly_ZZ.h>
 #include <NTL/GF2E.h>
+#include <NTL/GF2X.h>
 #include <NTL/GF2EX.h>
 #include <NTL/mat_GF2E.h>
 #include <NTL/HNF.h>
@@ -46,8 +47,9 @@ EXTERN void ZZ_set_from_int(struct ZZ* x, int value);
 //EXTERN struct ZZ* ZZ_randomBnd(const struct ZZ* x);
 //EXTERN struct ZZ* ZZ_randomBits(long n);
 
-EXTERN long ZZ_remove(struct ZZ x, const struct ZZ a, const struct ZZ p);
-
+#ifdef __cplusplus
+EXTERN long ZZ_remove(struct ZZ& x, const struct ZZ& a, const struct ZZ& p);
+#endif
 
 ////////  ZZ_p //////////
 
@@ -133,42 +135,42 @@ struct ZZ_pX;
 #endif
 
 EXTERN struct ZZ_pX* ZZ_pX_init();
-EXTERN char* ZZ_pX_repr(struct ZZ_pX* x);
-EXTERN struct ZZ_pX* ZZ_pX_copy(struct ZZ_pX* x);
-EXTERN void ZZ_pX_setitem_from_int(struct ZZ_pX* x, long i, int value);
-EXTERN int ZZ_pX_getitem_as_int(struct ZZ_pX* x, long i);
-EXTERN struct ZZ_pX* ZZ_pX_div(struct ZZ_pX* x, struct ZZ_pX* y, int* divisible);
-EXTERN struct ZZ_pX* ZZ_pX_mod(struct ZZ_pX* x, struct ZZ_pX* y);
-EXTERN void ZZ_pX_quo_rem(struct ZZ_pX* x, struct ZZ_pX* other, struct ZZ_pX** r, struct ZZ_pX** q);
-EXTERN struct ZZ_pX* ZZ_pX_square(struct ZZ_pX* x);
-EXTERN int ZZ_pX_equal(struct ZZ_pX* x, struct ZZ_pX* y);
-EXTERN int ZZ_pX_is_monic(struct ZZ_pX* x);
-EXTERN struct ZZ_pX* ZZ_pX_neg(struct ZZ_pX* x);
-EXTERN struct ZZ_pX* ZZ_pX_left_shift(struct ZZ_pX* x, long n);
-EXTERN struct ZZ_pX* ZZ_pX_right_shift(struct ZZ_pX* x, long n);
-EXTERN void ZZ_pX_quo_rem(struct ZZ_pX* x, struct ZZ_pX* y, struct ZZ_pX** r, struct ZZ_pX** q);
-EXTERN struct ZZ_pX* ZZ_pX_gcd(struct ZZ_pX* x, struct ZZ_pX* y);
-EXTERN void ZZ_pX_xgcd(struct ZZ_pX** d, struct ZZ_pX** s, struct ZZ_pX** t, struct ZZ_pX* a, struct ZZ_pX* b);
-EXTERN void ZZ_pX_plain_xgcd(struct ZZ_pX** d, struct ZZ_pX** s, struct ZZ_pX** t, struct ZZ_pX* a, struct ZZ_pX* b);
-EXTERN long ZZ_pX_degree(struct ZZ_pX* x);
-EXTERN void ZZ_pX_set_x(struct ZZ_pX* x);
-EXTERN int ZZ_pX_is_x(struct ZZ_pX* x);
-EXTERN struct ZZ_pX* ZZ_pX_derivative(struct ZZ_pX* x);
-EXTERN struct ZZ_pX* ZZ_pX_reverse(struct ZZ_pX* x);
-EXTERN struct ZZ_pX* ZZ_pX_reverse_hi(struct ZZ_pX* x, int hi);
-EXTERN struct ZZ_pX* ZZ_pX_truncate(struct ZZ_pX* x, long m);
-EXTERN struct ZZ_pX* ZZ_pX_multiply_and_truncate(struct ZZ_pX* x, struct ZZ_pX* y, long m);
-EXTERN struct ZZ_pX* ZZ_pX_square_and_truncate(struct ZZ_pX* x, long m);
-EXTERN struct ZZ_pX* ZZ_pX_invert_and_truncate(struct ZZ_pX* x, long m);
-EXTERN struct ZZ_pX* ZZ_pX_multiply_mod(struct ZZ_pX* x, struct ZZ_pX* y,  struct ZZ_pX* modulus);
-EXTERN struct ZZ_p* ZZ_pX_trace_mod(struct ZZ_pX* x, struct ZZ_pX* y);
+//EXTERN char* ZZ_pX_repr(struct ZZ_pX* x);
+/* EXTERN struct ZZ_pX* ZZ_pX_copy(struct ZZ_pX* x); */
+/* EXTERN void ZZ_pX_setitem_from_int(struct ZZ_pX* x, long i, int value); */
+/* EXTERN int ZZ_pX_getitem_as_int(struct ZZ_pX* x, long i); */
+/* EXTERN struct ZZ_pX* ZZ_pX_div(struct ZZ_pX* x, struct ZZ_pX* y, int* divisible); */
+/* EXTERN struct ZZ_pX* ZZ_pX_mod(struct ZZ_pX* x, struct ZZ_pX* y); */
+/* EXTERN void ZZ_pX_quo_rem(struct ZZ_pX* x, struct ZZ_pX* other, struct ZZ_pX** r, struct ZZ_pX** q); */
+/* EXTERN struct ZZ_pX* ZZ_pX_square(struct ZZ_pX* x); */
+/* EXTERN int ZZ_pX_equal(struct ZZ_pX* x, struct ZZ_pX* y); */
+/* EXTERN int ZZ_pX_is_monic(struct ZZ_pX* x); */
+/* EXTERN struct ZZ_pX* ZZ_pX_neg(struct ZZ_pX* x); */
+/* EXTERN struct ZZ_pX* ZZ_pX_left_shift(struct ZZ_pX* x, long n); */
+/* EXTERN struct ZZ_pX* ZZ_pX_right_shift(struct ZZ_pX* x, long n); */
+/* EXTERN void ZZ_pX_quo_rem(struct ZZ_pX* x, struct ZZ_pX* y, struct ZZ_pX** r, struct ZZ_pX** q); */
+/* EXTERN struct ZZ_pX* ZZ_pX_gcd(struct ZZ_pX* x, struct ZZ_pX* y); */
+/* EXTERN void ZZ_pX_xgcd(struct ZZ_pX** d, struct ZZ_pX** s, struct ZZ_pX** t, struct ZZ_pX* a, struct ZZ_pX* b); */
+/* EXTERN void ZZ_pX_plain_xgcd(struct ZZ_pX** d, struct ZZ_pX** s, struct ZZ_pX** t, struct ZZ_pX* a, struct ZZ_pX* b); */
+/* EXTERN long ZZ_pX_degree(struct ZZ_pX* x); */
+/* EXTERN void ZZ_pX_set_x(struct ZZ_pX* x); */
+/* EXTERN int ZZ_pX_is_x(struct ZZ_pX* x); */
+/* EXTERN struct ZZ_pX* ZZ_pX_derivative(struct ZZ_pX* x); */
+/* EXTERN struct ZZ_pX* ZZ_pX_reverse(struct ZZ_pX* x); */
+/* EXTERN struct ZZ_pX* ZZ_pX_reverse_hi(struct ZZ_pX* x, int hi); */
+/* EXTERN struct ZZ_pX* ZZ_pX_truncate(struct ZZ_pX* x, long m); */
+/* EXTERN struct ZZ_pX* ZZ_pX_multiply_and_truncate(struct ZZ_pX* x, struct ZZ_pX* y, long m); */
+/* EXTERN struct ZZ_pX* ZZ_pX_square_and_truncate(struct ZZ_pX* x, long m); */
+/* EXTERN struct ZZ_pX* ZZ_pX_invert_and_truncate(struct ZZ_pX* x, long m); */
+/* EXTERN struct ZZ_pX* ZZ_pX_multiply_mod(struct ZZ_pX* x, struct ZZ_pX* y,  struct ZZ_pX* modulus); */
+/* EXTERN struct ZZ_p* ZZ_pX_trace_mod(struct ZZ_pX* x, struct ZZ_pX* y); */
 EXTERN char* ZZ_pX_trace_list(struct ZZ_pX* x);
-EXTERN struct ZZ_p* ZZ_pX_resultant(struct ZZ_pX* x, struct ZZ_pX* y);
-EXTERN struct ZZ_p* ZZ_pX_norm_mod(struct ZZ_pX* x, struct ZZ_pX* y);
-EXTERN struct ZZ_pX* ZZ_pX_charpoly_mod(struct ZZ_pX* x, struct ZZ_pX* y);
-EXTERN struct ZZ_pX* ZZ_pX_minpoly_mod(struct ZZ_pX* x, struct ZZ_pX* y);
-EXTERN void ZZ_pX_clear(struct ZZ_pX* x);
-EXTERN void ZZ_pX_preallocate_space(struct ZZ_pX* x, long n);
+/* EXTERN struct ZZ_p* ZZ_pX_resultant(struct ZZ_pX* x, struct ZZ_pX* y); */
+/* EXTERN struct ZZ_p* ZZ_pX_norm_mod(struct ZZ_pX* x, struct ZZ_pX* y); */
+/* EXTERN struct ZZ_pX* ZZ_pX_charpoly_mod(struct ZZ_pX* x, struct ZZ_pX* y); */
+/* EXTERN struct ZZ_pX* ZZ_pX_minpoly_mod(struct ZZ_pX* x, struct ZZ_pX* y); */
+/* EXTERN void ZZ_pX_clear(struct ZZ_pX* x); */
+// EXTERN void ZZ_pX_preallocate_space(struct ZZ_pX* x, long n);
 
 // Factoring elements of ZZ_pX:
 // OUTPUT: v -- pointer to list of n ZZ_pX elements (the irred factors)
@@ -177,6 +179,18 @@ EXTERN void ZZ_pX_preallocate_space(struct ZZ_pX* x, long n);
 //  The lists v and e are mallocd, and must be freed by the calling code.
 EXTERN void ZZ_pX_factor(struct ZZ_pX*** v, long** e, long* n, struct ZZ_pX* x, long verbose);
 EXTERN void ZZ_pX_linear_roots(struct ZZ_p*** v, long* n, struct ZZ_pX* f);
+
+#ifdef __cplusplus
+EXTERN void ZZ_pX_conv_modulus(struct ZZ_pX &fout, const struct ZZ_pX &fin, const struct ZZ_pContext &mod);
+EXTERN void ZZ_pEX_conv_modulus(struct ZZ_pEX &fout, const struct ZZ_pEX &fin, const struct ZZ_pContext &mod);
+EXTERN void ZZ_pX_min_val_coeff(long &valuation, long &index, const struct ZZ_pX &f, const struct ZZ &p);
+EXTERN long ZZ_pX_get_val_coeff(const struct ZZ_pX &f, const struct ZZ &p, long i);
+EXTERN void ZZ_pX_left_pshift(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ &pn, const struct ZZ_pContext &c);
+EXTERN void ZZ_pX_right_pshift(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ &pn, const struct ZZ_pContext &c);
+EXTERN void ZZ_pX_InvMod_newton_unram(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ_pXModulus &F, const struct ZZ_pContext &cpn, const struct ZZ_pContext &cp);
+EXTERN void ZZ_pX_InvMod_newton_ram(struct ZZ_pX &x, const struct ZZ_pX &a, const struct ZZ_pXModulus &F, const struct ZZ_pContext &cpn);
+
+#endif
 
 //////// zz_p //////////
 
@@ -244,13 +258,40 @@ EXTERN struct ZZX* mat_ZZ_charpoly(const struct mat_ZZ* A);
 EXTERN long mat_ZZ_LLL(struct ZZ **det, struct mat_ZZ *x, long a, long b, long verbose);
 EXTERN long mat_ZZ_LLL_U(struct ZZ **det, struct mat_ZZ *x, struct mat_ZZ *U, long a, long b, long verbose);
 
+/* //////// ZZ_p ////////// */
+/* #ifndef __cplusplus */
+/* struct ZZ_p; */
+/* #endif */
+
+/* EXTERN void ZZ_p_set_modulus(const struct ZZ* p); */
+/* EXTERN struct ZZ_p* new_ZZ_p(void); */
+/* EXTERN void del_ZZ_p(struct ZZ_p* x); */
+/* EXTERN struct ZZ_p* ZZ_p_add(const struct ZZ_p* x, const struct ZZ_p* y); */
+/* EXTERN struct ZZ_p* ZZ_p_sub(const struct ZZ_p* x, const struct ZZ_p* y); */
+/* EXTERN struct ZZ_p* ZZ_p_mul(const struct ZZ_p* x, const struct ZZ_p* y); */
+/* EXTERN struct ZZ_p* ZZ_p_pow(const struct ZZ_p* x, long e); */
+/* EXTERN int ZZ_p_is_zero(struct ZZ_p*x ); */
+/* EXTERN int ZZ_p_is_one(struct ZZ_p*x ); */
+
+
 //////// ZZ_pE //////////
 #ifndef __cplusplus
 struct ZZ_pE;
 #endif
 
-/////// GF2X ////////////////
+// EXTERN struct ZZ_pE* new_ZZ_pE
 
+
+
+//////// ZZ_pEX //////////
+
+//#ifndef __cplusplus
+//struct ZZ_pEX;
+//#endif
+
+//EXTERN struct ZZ_pEX* new_ZZ_pEX
+
+/////// GF2X ////////////////
 #ifndef __cplusplus
 struct GF2X;
 #endif

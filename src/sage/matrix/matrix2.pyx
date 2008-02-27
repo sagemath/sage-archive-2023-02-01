@@ -314,7 +314,7 @@ cdef class Matrix(matrix1.Matrix):
         Calculates the permanental $k$-minor of a $m \times n$ matrix.
 
         This is the sum of the permanents of all possible $k$ by $k$
-        submatices of $A$.
+        submatrices of $A$.
 
         See Brualdi and Ryser: Combinatorial Matrix Theory, p. 203.
         Note the typo $p_0(A) = 0$ in that reference!  For
@@ -488,7 +488,7 @@ cdef class Matrix(matrix1.Matrix):
 
         ALGORITHM: For small matrices (n<4), this is computed using the naive formula
         For integral domains, the charpoly is computed (using hessenberg form)
-        Otherwise his is computed using the very stupid expansion by
+        Otherwise this is computed using the very stupid expansion by
         minors stupid \emph{naive generic algorithm}.  For matrices
         over more most rings more sophisticated algorithms can be
         used.  (Type \code{A.determinant?} to see what is done for a
@@ -584,7 +584,7 @@ cdef class Matrix(matrix1.Matrix):
 
     cdef _det_by_minors(self, Py_ssize_t level):
         """
-        Compute the determinent of the upper-left level x level submatrix of self.
+        Compute the determinant of the upper-left level x level submatrix of self.
         Does not handle degenerate cases, level MUST be >= 2
         """
         cdef Py_ssize_t n, i
@@ -959,7 +959,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def hessenbergize(self):
         """
-        Tranform self to Hessenberg form.
+        Transform self to Hessenberg form.
 
         The hessenberg form of a matrix $A$ is a matrix that is
         similar to $A$, so has the same characteristic polynomial as
@@ -1364,13 +1364,15 @@ cdef class Matrix(matrix1.Matrix):
             Echelon basis matrix:
             [0 1]
         """
-        d = self.denominator()
-        A = self*d
-        R = d.parent()
-        M = matrix_space.MatrixSpace(R, self.nrows(), self.ncols())(A)
-        return M.kernel()
-
-
+        try:
+            A, _ = self._clear_denom()
+            return A.kernel()
+        except AttributeError:
+            d = self.denominator()
+            A = self*d
+            R = d.parent()
+            M = matrix_space.MatrixSpace(R, self.nrows(), self.ncols())(A)
+            return M.kernel()
 
     def image(self):
         """
@@ -2169,6 +2171,42 @@ cdef class Matrix(matrix1.Matrix):
     #####################################################################################
     # Generic Echelon Form
     ###################################################################################
+
+    def _echelonize_ring(self, **kwds):
+        r"""
+        Echelonize self in place, where the base ring of self is assumed
+        to be a ring (not a field).
+
+        Right now this *only* works over ZZ; otherwise a
+        \code{NotImplementedError} is raised.  In the special case of sparse
+        matrices over ZZ it makes them dense, gets the echelon form of
+        the dense matrix, then sets self equal to the result.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 3, 4, [1..12], sparse=True); a
+            [ 1  2  3  4]
+            [ 5  6  7  8]
+            [ 9 10 11 12]
+            sage: a._echelonize_ring()
+            sage: a
+            [ 1  2  3  4]
+            [ 0  4  8 12]
+            [ 0  0  0  0]
+
+        """
+        self.check_mutability()
+        cdef Matrix d
+        if self._base_ring == ZZ:
+            d = self.dense_matrix().echelon_form(**kwds)
+            for c from 0 <= c < self.ncols():
+                for r from 0 <= r < self.nrows():
+                    self.set_unsafe(r, c, d.get_unsafe(r,c))
+            self.clear_cache()
+            self.cache('pivots', d.pivots())
+            return
+        else:
+            raise NotImplementedError, "echelon form over %s not yet implementd"%self.base_ring()
+
     def echelonize(self, algorithm="default", cutoff=0, **kwds):
         r"""
         Transform self into a matrix in echelon form over the same
@@ -2180,7 +2218,7 @@ cdef class Matrix(matrix1.Matrix):
                    'strassen' -- use a Strassen divide and conquer algorithm (if available)
             cutoff -- integer; only used if the Strassen algorithm is selected.
 
-        EXAMPLES:
+       EXAMPLES:
             sage: a = matrix(QQ,3,range(9)); a
             [0 1 2]
             [3 4 5]
@@ -2212,17 +2250,16 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  1  2]
             [ 0  0  0]
 
-        As the echelon form is not defined for any integral domain, we
-        compute it over the fraction field instead.
+        We compute an echelon form both over a domain and fraction field:
 
             sage: R.<x,y> = QQ[]
             sage: a = matrix(R, 2, [x,y,x,y])
-            sage: a.echelon_form()
-            [  1 y/x]
-            [  0   0]
+            sage: a.echelon_form()               # not very useful? -- why two copies of the same row?
+            [x y]
+            [x y]
 
             sage: b = a.change_ring(R.fraction_field())
-            sage: b.echelon_form()
+            sage: b.echelon_form()               # potentially useful
             [  1 y/x]
             [  0   0]
 
@@ -2248,18 +2285,22 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  0  0]
         """
         self.check_mutability()
+
         if algorithm == 'default':
             if self._will_use_strassen_echelon():
                 algorithm = 'strassen'
             else:
                 algorithm = 'classical'
         try:
-            if algorithm == 'classical':
-                self._echelon_in_place_classical()
-            elif algorithm == 'strassen':
-                self._echelon_strassen(cutoff)
+            if self.base_ring().is_field():
+                if algorithm == 'classical':
+                    self._echelon_in_place_classical()
+                elif algorithm == 'strassen':
+                    self._echelon_strassen(cutoff)
+                else:
+                    raise ValueError, "Unknown algorithm '%s'"%algorithm
             else:
-                raise ValueError, "Unknown algorithm '%s'"%algorithm
+                self._echelonize_ring()
         except ArithmeticError, msg:
             raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
 
@@ -2289,14 +2330,7 @@ cdef class Matrix(matrix1.Matrix):
         x = self.fetch('echelon_form')
         if not x is None:
             return x
-        R = self.base_ring()
-        if not (R == ZZ or R.is_field()):
-            try:
-                E = self.matrix_over_field()
-            except TypeError:
-                raise NotImplementedError, "Echelon form not implemented over '%s'."%R
-        else:
-            E = self.copy()
+        E = self.copy()
         if algorithm == 'default':
             E.echelonize(cutoff=cutoff)
         else:
@@ -2342,20 +2376,7 @@ cdef class Matrix(matrix1.Matrix):
 
         nr = self._nrows
         nc = self._ncols
-
-        if not self._base_ring.is_field():
-            if self._base_ring == ZZ:
-                d = self.dense_matrix().echelon_form()
-                for c from 0 <= c < nc:
-                    for r from 0 <= r < nr:
-                        self.set_unsafe(r, c, d.get_unsafe(r,c))
-                self.clear_cache()
-                self.cache('pivots', d.pivots())
-                return
-            else:
-                A = self.matrix_over_field()
-        else:
-            A = self
+        A = self
 
         start_row = 0
         pivots = []
@@ -2712,7 +2733,7 @@ cdef class Matrix(matrix1.Matrix):
         Randomize density proportion of the entries of this matrix,
         leaving the rest unchanged.
 
-        NOTE: We actually choos at random density proportion of
+        NOTE: We actually choose at random density proportion of
         entries of the matrix and set them to random elements.  It's
         possible that the same position can be chosen multiple times,
         especially for a very small matrix.
@@ -3036,6 +3057,52 @@ cdef class Matrix(matrix1.Matrix):
         Bstar, mu = gram_schmidt(self.rows())
         return matrix(Bstar), mu
 
+    def hadamard_bound(self):
+        r"""
+        Return an int n such that the absolute value of the
+        determinant of this matrix is at most $10^n$.
+
+        This is got using both the row norms and the column norms.
+
+        This function only makes sense when the base field can be
+        coerced to the real double field RDF or the MPFR Real Field
+        with 53-bits precision.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 3, [1,2,5,7,-3,4,2,1,123])
+            sage: a.hadamard_bound()
+            4
+            sage: a.det()
+            -2014
+            sage: 10^4
+            10000
+
+        In this example the Hadamard bound has to be computed (automatically)
+        using mpfr instead of doubles, since doubles overflow:
+            sage: a = matrix(ZZ, 2, [2^10000,3^10000,2^50,3^19292])
+            sage: a.hadamard_bound()
+            12215
+            sage: len(str(a.det()))
+            12215
+        """
+        from sage.rings.all import RDF, RealField
+        try:
+            A = self.change_ring(RDF)
+            m1 = A._hadamard_row_bound()
+            A = A.transpose()
+            m2 = A._hadamard_row_bound()
+            return min(m1, m2)
+        except (OverflowError, TypeError):
+            # Try using MPFR, which handles large numbers much better, but is slower.
+            import misc
+            R = RealField(53, rnd='RNDU')
+            A = self.change_ring(R)
+            m1 = misc.hadamard_row_bound_mpfr(A)
+            A = A.transpose()
+            m2 = misc.hadamard_row_bound_mpfr(A)
+            return min(m1, m2)
+
+
 
 def _dim_cmp(x,y):
     """
@@ -3072,7 +3139,7 @@ def decomp_seq(v):
 def cmp_pivots(x,y):
     """
     Compare two sequences of pivot columns.
-    If x is short than y, return -1, i.e., x < y, "not as good".
+    If x is shorter than y, return -1, i.e., x < y, "not as good".
     If x is longer than y, x > y, "better"
     If the length is the same then x is better, i.e., x > y
         if the entries of x are correspondingly >= those of y with
@@ -3095,7 +3162,7 @@ def _choose(Py_ssize_t n, Py_ssize_t t):
     Returns all possible sublists of length t from range(n)
 
     Based on algoritm T from Knuth's taocp part 4: 7.2.1.3 p.5
-    This fuction replaces the one base on algorithm L because it is faster.
+    This function replaces the one based on algorithm L because it is faster.
 
     EXAMPLES:
         sage: from sage.matrix.matrix2 import _choose

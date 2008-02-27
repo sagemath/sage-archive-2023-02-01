@@ -2033,7 +2033,7 @@ cdef class Matrix(matrix1.Matrix):
         return f
 
 
-    def eigenspaces(self, var='a'):
+    def eigenspaces(self, var='a', even_if_inexact=False):
         r"""
         Return a list of pairs
              (e, V)
@@ -2043,6 +2043,12 @@ cdef class Matrix(matrix1.Matrix):
         The eigenspaces are returned sorted by the corresponding characteristic
         polynomials, where polynomials are sorted in dictionary order starting
         with constant terms.
+
+        NOTE:
+            Calling this method of a matrix over an inexact base ring will
+            raise a NotImplementedError.  If you want to force this anyway,
+            pass the option even_if_inexact=True.
+
 
         INPUT:
             var -- variable name used to represent elements of
@@ -2058,19 +2064,23 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES:
         We compute the eigenspaces of a $3\times 3$ rational matrix.
-            sage: A = Matrix(QQ,3,3,range(9)); A
+            sage: A = matrix(QQ,3,3,range(9)); A
             [0 1 2]
             [3 4 5]
             [6 7 8]
-            sage: A.eigenspaces()
+            sage: es = A.eigenspaces(); es
             [
-            (0, [
-            (1, -2, 1)
-            ]),
-            (a1, [
-            (1, 1/15*a1 + 2/5, 2/15*a1 - 1/5)
-            ])
+            (0, Vector space of degree 3 and dimension 1 over Rational Field
+            User basis matrix:
+            [ 1 -2  1]),
+            (a1, Vector space of degree 3 and dimension 1 over Number Field in a1 with defining polynomial x^2 - 12*x - 18
+            User basis matrix:
+            [            1 1/15*a1 + 2/5 2/15*a1 - 1/5])
             ]
+            sage: e, v = es[0]; v = v.basis()[0]
+            sage: delta = e*v - v*A
+            sage: abs(abs(delta)) < 1e-10
+            True
 
         The same computation, but with implicit base change to a field:
             sage: A = matrix(ZZ,3,range(9)); A
@@ -2079,14 +2089,13 @@ cdef class Matrix(matrix1.Matrix):
             [6 7 8]
             sage: A.eigenspaces()
             [
-            (0, [
-            (1, -2, 1)
-            ]),
-            (a1, [
-            (1, 1/15*a1 + 2/5, 2/15*a1 - 1/5)
-            ])
+            (0, Vector space of degree 3 and dimension 1 over Rational Field
+            User basis matrix:
+            [ 1 -2  1]),
+            (a1, Vector space of degree 3 and dimension 1 over Number Field in a1 with defining polynomial x^2 - 12*x - 18
+            User basis matrix:
+            [            1 1/15*a1 + 2/5 2/15*a1 - 1/5])
             ]
-
 
         We compute the eigenspaces of the matrix of the Hecke operator
         $T_2$ on level 43 modular symbols.
@@ -2106,17 +2115,17 @@ cdef class Matrix(matrix1.Matrix):
             (x - 3) * (x + 2)^2 * (x^2 - 2)^2
             sage: A.eigenspaces()
             [
-            (3, [
-            (1, 0, 1/7, 0, -1/7, 0, -2/7)
-            ]),
-            (-2, [
-            (0, 1, 0, 1, -1, 1, -1),
-            (0, 0, 1, 0, -1, 2, -1)
-            ]),
-            (a2, [
-            (0, 1, 0, -1, -a2 - 1, 1, -1),
-            (0, 0, 1, 0, -1, 0, -a2 + 1)
-            ])
+            (3, Vector space of degree 7 and dimension 1 over Rational Field
+            User basis matrix:
+            [   1    0  1/7    0 -1/7    0 -2/7]),
+            (-2, Vector space of degree 7 and dimension 2 over Rational Field
+            User basis matrix:
+            [ 0  1  0  1 -1  1 -1]
+            [ 0  0  1  0 -1  2 -1]),
+            (a2, Vector space of degree 7 and dimension 2 over Number Field in a2 with defining polynomial x^2 - 2
+            User basis matrix:
+            [      0       1       0      -1 -a2 - 1       1      -1]
+            [      0       0       1       0      -1       0 -a2 + 1])
             ]
 
         Next we compute the eigenspaces over the finite field
@@ -2132,21 +2141,61 @@ cdef class Matrix(matrix1.Matrix):
             x^4 + 10*x^3 + 3*x^2 + 2*x + 1
             sage: A.eigenspaces(var = 'beta')
             [
-            (9, [
-            (0, 0, 1, 5)
-            ]),
-            (3, [
-            (1, 6, 0, 6)
-            ]),
-            (beta2, [
-            (0, 1, 0, 5*beta2 + 10)
-            ])
+            (9, Vector space of degree 4 and dimension 1 over Finite Field of size 11
+            User basis matrix:
+            [0 0 1 5]),
+            (3, Vector space of degree 4 and dimension 1 over Finite Field of size 11
+            User basis matrix:
+            [1 6 0 6]),
+            (beta2, Vector space of degree 4 and dimension 1 over Univariate Quotient Polynomial Ring in beta2 over Finite Field of size 11 with modulus x^2 + 9
+            User basis matrix:
+            [           0            1            0 5*beta2 + 10])
             ]
+
+        TESTS:
+           sage: R=RealField(30)
+           sage: M=matrix(R,2,[2,1,1,1])
+           sage: M.eigenspaces()
+           Traceback (most recent call last):
+           ...
+           NotImplementedError: won't use generic algorithm for inexact base rings, pass the option even_if_inexact=True if you really want this.
+
+           sage: R=ComplexField(30)
+           sage: N=matrix(R,2,[2,1,1,1])
+           sage: N.eigenspaces()
+           Traceback (most recent call last):
+           ...
+           NotImplementedError: won't use generic algorithm for inexact base rings, pass the option even_if_inexact=True if you really want this.
+
+        But you can ask for (and receive!) garbage:
+            sage: M.eigenspaces(even_if_inexact=True) #random
+            [
+            (2.6180340, Vector space of degree 2 and dimension 0 over Real Field with 30 bits of precision
+            User basis matrix:
+            []),
+            (0.38196601, Vector space of degree 2 and dimension 0 over Real Field with 30 bits of precision
+            User basis matrix:
+            [])
+            ]
+
+            sage: N.eigenspaces(even_if_inexact=True) #random
+            [
+            (2.6180340, Vector space of degree 2 and dimension 0 over Complex Field with 30 bits of precision
+            User basis matrix:
+            []),
+            (0.38196601, Vector space of degree 2 and dimension 0 over Complex Field with 30 bits of precision
+            User basis matrix:
+            [])
+            ]
+
 
         """
         x = self.fetch('eigenspaces')
         if not x is None:
             return x
+
+        if not self.base_ring().is_exact() and not even_if_inexact:
+            raise NotImplementedError, "won't use generic algorithm for inexact base rings, pass the option even_if_inexact=True if you really want this."
 
         # minpoly is rarely implemented and is unreliable (leading to hangs) via linbox when implemented
         # as of 2007-03-25.
@@ -2169,7 +2218,7 @@ cdef class Matrix(matrix1.Matrix):
                 A = self.change_ring(F) - alpha
             W = A.kernel()
             i = i + 1
-            V.append((alpha, W.basis()))
+            V.append((alpha, W.ambient_module().span_of_basis(W.basis())))
         V = Sequence(V, cr=True)
         self.cache('eigenspaces', V)
         return V

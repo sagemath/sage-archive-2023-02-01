@@ -386,26 +386,42 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         r"""
         Return a list of pairs (e, V) where e runs through all complex
         eigenvalues of this matrix, and V is the corresponding
-        eigenspace (always a 1-dimensional complex vector space).
-
-        OUTPUT:
-            list -- of eigenvalues
-            list -- of 1-dimensional CDF vector spaces
+        left eigenspace (always a 1-dimensional complex vector space).
 
         EXAMPLES:
             sage: m = matrix(RDF, 3, range(9)); m
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             [6.0 7.0 8.0]
-            sage: e, v = m.eigenspaces()
-            sage: e      # random low order bits
-            [13.3484692283, -1.34846922835, -9.96461975961e-16]
-            sage: a = (v[0].0) * m; b = e[0] * v[0].0
-            sage: a.change_ring(CDF) - b         # random -- very small numbers
+            sage: es = m.eigenspaces()
+            sage: es # random
+            [(13.3484692283, Vector space of degree 3 and dimension 1 over Real Double Field
+            User basis matrix:
+            [-0.440242867236 -0.567868371314 -0.695493875393]),
+            (-1.34846922835, Vector space of degree 3 and dimension 1 over Real Double Field
+            User basis matrix:
+            [-0.897878732262 -0.278434036822  0.341010658618]),
+            (-9.10854412047e-16, Vector space of degree 3 and dimension 1 over Real Double Field
+            User basis matrix:
+            [ 0.408248290464 -0.816496580928  0.408248290464])]
+
+            sage: e, v = es[0]
+            sage: v = v.basis()[0]
+            sage: a = v * m
+            sage: b = e * v
+            sage: diff = a.change_ring(CDF) - b
+            sage: abs(abs(diff)) < 1e-10
+            True
+            sage: diff # random -- very small numbers
             (-2.6645352591e-15, -7.1054273576e-15, -3.5527136788e-15)
         """
         e, v = self.left_eigenvectors()
-        return e, [c.parent().span_of_basis([c], check=False) for c in v.columns()]
+        v = v.rows()
+        pairs = []
+        for l from 0<=l<len(e):
+            c = v[l]
+            pairs.append((e[l], c.parent().span_of_basis([c], check=False)))
+        return pairs
 
     def left_eigenvectors(self):
         """
@@ -420,8 +436,15 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
         EXAMPLES:
             sage: m = Matrix(RDF, 3, range(9))
-            sage: m.left_eigenvectors()           # random-ish platform-dependent output (low order digits)
-
+            sage: es = m.left_eigenvectors()
+            sage: es # random-ish platform-dependent output (low order digits)
+            ([13.3484692283, -1.34846922835, -9.10854412047e-16],
+            [-0.440242867236 -0.567868371314 -0.695493875393]
+            [-0.897878732262 -0.278434036822  0.341010658618]
+            [ 0.408248290464 -0.816496580928  0.408248290464])
+            sage: e, v = es; e = e[0]; v = v[0]
+            sage: abs(abs(e*v - v*m)) < 1e-10
+            True
 
         IMPLEMENTATION:
             Uses numpy.

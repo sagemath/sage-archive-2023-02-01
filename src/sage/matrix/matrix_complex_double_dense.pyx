@@ -401,14 +401,38 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         eigenvalues of this matrix, and V is the corresponding
         eigenspace (always a 1-dimensional complex vector space).
 
-        OUTPUT:
-            list -- of eigenvalues
-            list -- of 1-dimensional CDF vector spaces
-
         EXAMPLES:
+            sage: m = matrix(CDF, 3, 3, [[0, 0, 1], [1, 0, 1], [0, 1, 0]]); m
+            [  0   0 1.0]
+            [1.0   0 1.0]
+            [  0 1.0   0]
+            sage: es = m.eigenspaces()
+            sage: es # random
+            [(1.32471795724 - 5.55111512313e-17*I, Vector space of degree 3 and dimension 1 over Complex Double Field
+            User basis matrix:
+            [0.413998885523 - 5.55111512313e-17*I 0.548431757932 - 2.22044604925e-16*I                       0.726517398056]), (-0.662358978622 + 0.562279512062*I, Vector space of degree 3 and dimension 1 over Complex Double Field
+            User basis matrix:
+            [                    0.655865618097 -0.434418480916 + 0.368779799722*I 0.0803836554683 - 0.488529222961*I]), (-0.662358978622 - 0.562279512062*I, Vector space of degree 3 and dimension 1 over Complex Double Field
+            User basis matrix:
+            [                    0.655865618097 -0.434418480916 - 0.368779799722*I 0.0803836554683 + 0.488529222961*I])]
+
+            sage: e, v = es[0]
+            sage: v = v.basis()[0]
+            sage: a = v * m
+            sage: b = e * v
+            sage: diff = a.change_ring(CDF) - b
+            sage: abs(abs(diff)) < 1e-10
+            True
+            sage: diff # random -- very small numbers
+            (6.66133814775e-16 - 1.25526431318e-16*I, 3.24590553708e-16*I, 9.99200722163e-16 - 2.37225939001e-16*I)
         """
         e, v = self.left_eigenvectors()
-        return e, [c.parent().span_of_basis([c], check=False) for c in v.columns()]
+        v = v.rows()
+        pairs = []
+        for l from 0<=l<len(e):
+            c = v[l]
+            pairs.append((e[l], c.parent().span_of_basis([c], check=False)))
+        return pairs
 
 
     def __eigen_numpy(self):

@@ -2665,8 +2665,7 @@ class GenericGraph(SageObject):
 
     def __mul__(self, n):
         """
-        Returns the sum of a graph with itself n times.  Note that the
-        graph must on the left side of the multiplication currently.
+        Returns the sum of a graph with itself n times.
 
         EXAMPLE:
             sage: G = graphs.CycleGraph(3)
@@ -2681,6 +2680,22 @@ class GenericGraph(SageObject):
                 return sum([self]*n, DiGraph())
             else:
                 return sum([self]*n, Graph())
+        else:
+            raise TypeError('multiplication of a graph and something other than an integer is not defined')
+
+    def __rmul__(self, n):
+        """
+        Returns the sum of a graph with itself n times.
+
+        EXAMPLE:
+            sage: G = graphs.CycleGraph(3)
+            sage: H = int(3)*G; H
+            disjoint_union( disjoint_union( disjoint_union( , Cycle graph ), Cycle graph ), Cycle graph ): Graph on 9 vertices
+            sage: H.vertices()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+        """
+        return self*n
 
     def union(self, other):
         """

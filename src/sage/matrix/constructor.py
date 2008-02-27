@@ -762,3 +762,26 @@ def block_diagonal_matrix(*sub_matrices, **kwds):
     for i in range(n):
         entries[n*i+i] = sub_matrices[i]
     return block_matrix(entries, **kwds)
+
+def jordan_block(eigenvalue, size, sparse=False):
+    r"""
+    Form the Jordan block with the specified size associated with the
+    eigenvalue.
+
+    INPUT:
+        eigenvalue -- eigenvalue for the diagonal entries of the block
+        size -- size of the Jordan block
+        sparse -- (default False) if True, return a sparse matrix
+
+    EXAMPLE:
+        sage: jordan_block(5, 3)
+        [5 1 0]
+        [0 5 1]
+        [0 0 5]
+
+    """
+    block = diagonal_matrix([eigenvalue]*size, sparse=sparse)
+    for i in xrange(size-1):
+        block[i,i+1]=1
+    return block
+

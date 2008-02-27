@@ -3087,6 +3087,86 @@ cdef class Matrix(matrix1.Matrix):
         Bstar, mu = gram_schmidt(self.rows())
         return matrix(Bstar), mu
 
+    def jordan_form(self, base_ring=None, sparse=False, subdivide=True):
+        r"""
+        Compute the Jordan canonical form of the matrix, if it exists.
+
+	This computation is performed in a naive way using the ranks
+        of powers of A-xI, where x is an eigenvalue of the matrix A.
+
+        INPUT:
+            base_ring -- ring in which to compute the Jordan form.
+            sparse -- (default False) If sparse=True, return a sparse matrix.
+            subdivide -- (default True) If subdivide=True, the subdivisions
+                         for the Jordan blocks in the matrix are shown.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ,4,[1, 0, 0, 0, 0, 1, 0, 0, 1, \
+            -1, 1, 0, 1, -1, 1, 2]); a
+            [ 1  0  0  0]
+            [ 0  1  0  0]
+            [ 1 -1  1  0]
+            [ 1 -1  1  2]
+            sage: a.jordan_form()
+            [2|0 0|0]
+            [-+---+-]
+            [0|1 1|0]
+            [0|0 1|0]
+            [-+---+-]
+            [0|0 0|1]
+            sage: a.jordan_form(subdivide=False)
+            [2 0 0 0]
+            [0 1 1 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            sage: b = matrix(ZZ,3,range(9)); b
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: b.jordan_form()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Some eigenvalue does not exist in Integer Ring.
+            sage: b.jordan_form(RealField(15))
+            [-1.348|0.0000|0.0000]
+            [------+------+------]
+            [0.0000|0.0000|0.0000]
+            [------+------+------]
+            [0.0000|0.0000| 13.35]
+
+        """
+        from sage.matrix.constructor import block_diagonal_matrix, jordan_block, diagonal_matrix
+        from sage.combinat.partition import Partition
+
+        size=self.nrows()
+
+        if base_ring is None:
+            mat = self
+        else:
+            mat = self.change_ring(base_ring)
+
+        evals=mat.charpoly().roots()
+        if sum([mult for (_,mult) in evals]) < size:
+            raise RuntimeError("Some eigenvalue does not exist in %s."%(mat.base_ring()))
+        blocks=[]
+        for (eval, mult) in evals:
+            if mult == 1:
+                blocks.append((eval,1))
+            else:
+                b=mat - diagonal_matrix([eval]*size, sparse=sparse)
+                c=b
+                ranks=[mat.rank(), c.rank()]
+                i=0
+                while (ranks[i]-ranks[i+1]>0) and ranks[i+1] > size-mult:
+                    c=b*c
+                    ranks.append(c.rank())
+                    i=i+1
+                diagram = [ranks[i]-ranks[i+1] for i in xrange(len(ranks)-1)]
+                blocks.extend([(eval,i) for i in Partition(diagram).conjugate()])
+        return block_diagonal_matrix([jordan_block(eval,size, sparse=sparse) for (eval,size) in blocks],subdivide=subdivide)
+
+
+
     def hadamard_bound(self):
         r"""
         Return an int n such that the absolute value of the

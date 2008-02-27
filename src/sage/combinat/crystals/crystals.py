@@ -276,11 +276,38 @@ class ClassicalCrystal(Crystal):
         r"""
         Returns an iterator over the elements of the crystal.
 
+        Time complexity: $O(nf)$ amortized for each produced element,
+        where $n$ is the size of the index set, and f is the cost of
+        computing $e$ and $f$ operators.
+
         Memory complexity: O(depth of the crystal)
 
-        Caveats: this assume that the crystal is highest weight, and
-        that the module generators are all highest weights.
-        This second restriction would be easy to remove.
+        Principle of the algorithm:
+
+        Let C be a classical crystal. It's an acyclic graph where all
+        connected componnent has a unique element without predecessors
+        (the highest weight element for this component). Let's assume
+        for simplicity that C is irreducible (i.e. connected) with
+        highest weigth element u.
+
+        One can define a natural spanning tree of $C$ by taking $u$ as
+        rot of the tree, and for any other element $y$ taking as
+        ancestor the element $x$ such that there is an $i$-arrow from
+        $x$ to $y$ with $i$ minimal. Then, a path from $u$ to $y$
+        describes the lexicographically smallest sequence
+        $i_1,\dots,i_k$ such that $(f_{i_k} \circ f_{i_1})(u)=y$.
+
+        Morally, the iterator implemented below just does a depth
+        first search walk through this spanning tree. In practice,
+        this can be achieved recursively as follow: take an element
+        $x$, and consider in turn each successor $y = f_i(x)$,
+        ignoring those such that $y = f_j(x')$ for some $x'$ and $j<i$
+        (this can be tested by computing $e_j(y)$ for $j<i$).
+
+        It probably would be more efficient (and about as readable) to
+        unroll the recursion by managing the stack by hand. This would
+        avoid yieding down through the whole call stack for each
+        element of the crystal.
 
         EXAMPLES:
             sage: C = CrystalOfLetters(['A',5])
@@ -302,25 +329,27 @@ class ClassicalCrystal(Crystal):
             True
         """
         def rec(x):
-            for i in x.index_set():
-                child = x.f(i)
-                if child is None:
+            for i in self.index_set: # Run through the childs y of x
+                y = x.f(i)
+                if y is None:
                     continue
+                # Ignore those which can be reached by an arrow with smaller label
                 hasParent = False
                 for j in x.index_set():
                     if j == i:
                         break
-                    if not child.e(j) == None:
+                    if not y.e(j) == None:
                         hasParent = True
                         break
                 if hasParent:
                     continue
-                yield child
-                for y in rec(child):
-                    yield y
+                # yield y and all elements further below
+                yield y
+                for z in rec(y):
+                    yield z
 
         for generator in self.module_generators:
-            # This is just in case the module_generators
+            # Ignore potential non highest weight module_generators
             if not generator.is_highest_weight():
                 continue
             yield generator

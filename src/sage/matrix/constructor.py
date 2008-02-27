@@ -577,22 +577,64 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=None):
         return matrix(ring, nrows, nrows, w, sparse=sparse)
 
 
-def identity_matrix(ring, n=0):
+def identity_matrix(ring, n=0, sparse=False):
     """
-    Return the n x n identity matrix over the given ring.
+    Return the $n \times n$ identity matrix over the given ring.
+
+    The default ring is the integers.
 
     EXAMPLES:
-        sage: identity_matrix(QQ, 2)
+        sage: M = identity_matrix(QQ, 2); M
         [1 0]
         [0 1]
-        sage: identity_matrix(2)
+        sage: M.parent()
+        Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+        sage: M = identity_matrix(2); M
         [1 0]
         [0 1]
+        sage: M.parent()
+        Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+        sage: M = identity_matrix(3, sparse=True); M
+        [1 0 0]
+        [0 1 0]
+        [0 0 1]
+        sage: M.parent()
+        Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
     """
     if isinstance(ring, (int, long, rings.Integer)):
         n = ring
         ring = rings.ZZ
-    return matrix_space.MatrixSpace(ring, n, n).identity_matrix()
+    return matrix_space.MatrixSpace(ring, n, n, sparse).identity_matrix()
+
+
+def zero_matrix(ring, nrows, ncols=None, sparse=False):
+    """
+    Return the $nrows \times ncols$ zero matrix over the given ring.
+
+    The default ring is the integers.
+
+    EXAMPLES:
+        sage: M = zero_matrix(QQ, 2); M
+        [0 0]
+        [0 0]
+        sage: M.parent()
+        Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+        sage: M = zero_matrix(2, 3); M
+        [0 0 0]
+        [0 0 0]
+        sage: M.parent()
+        Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
+        sage: M = zero_matrix(3, 1, sparse=True); M
+        [0]
+        [0]
+        [0]
+        sage: M.parent()
+        Full MatrixSpace of 3 by 1 sparse matrices over Integer Ring
+    """
+    if isinstance(ring, (int, long, rings.Integer)):
+        nrows, ncols = (ring, nrows)
+        ring = rings.ZZ
+    return matrix_space.MatrixSpace(ring, nrows, ncols, sparse).zero_matrix()
 
 
 def block_matrix(sub_matrices, nrows=None, ncols=None, subdivide=True):

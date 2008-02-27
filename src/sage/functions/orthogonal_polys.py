@@ -440,15 +440,19 @@ def hermite (n,x):
         sage: hermite(3,x)
         8*x^3 - 12*x
         sage: hermite(3,2)
-        40.0
+        40
+        sage: S.<y> = PolynomialRing(RR)
+        sage: hermite(3,y)
+        8.00000000000000*y^3 - 12.0000000000000*y
+        sage: R.<x,y> = QQ[]
+        sage: hermite(3,y^2)
+        8*y^6 - 12*y^2
+        sage: w = var('w')
+        sage: hermite(3,2*w)
+        -24*w*(1 - 8*w^2/3)
     """
     _init()
-    n0 = ZZ(n) # n must be an integer
-    if not(is_Polynomial(x)):
-        return RDF(maxima.eval("hermite(%s,%s)"%(n0,RDF(x))))
-    R = x.parent()
-    y = R.gen()
-    return sage_eval(maxima.eval("hermite(%s,%s)"%(n0,y)),locals={str(y):y})
+    return sage_eval(maxima.eval('hermite(%s,x)'%ZZ(n)), locals={'x':x})
 
 def jacobi_P(n,a,b,x):
     r"""

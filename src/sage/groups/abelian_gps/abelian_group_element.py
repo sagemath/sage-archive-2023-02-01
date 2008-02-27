@@ -118,6 +118,15 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         return s
 
     def _div_(self, y):
+        """
+        TESTS:
+            sage: G.<a,b> = AbelianGroup(2)
+            sage: a/b
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for %: 'int' and 'PlusInfinity'
+
+        """
         return self*y**(-1)
 
     def _mul_(self, y):

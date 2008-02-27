@@ -1118,20 +1118,37 @@ class SingularElement(ExpectElement):
         """
         If self is a Singular list of lists of Singular elements,
         returns corresponding SAGE list of lists of strings.
+
+        EXAMPLES:
+            sage: R=singular.ring(0,'(x,y)','dp')
+            sage: RL=R.ringlist()
+            sage: RL
+            [1]:
+               0
+            [2]:
+               [1]:
+                  x
+               [2]:
+                  y
+            [3]:
+               [1]:
+                  [1]:
+                     dp
+                  [2]:
+                     1,1
+               [2]:
+                  [1]:
+                     C
+                  [2]:
+                     0
+            [4]:
+               _[1]=0
+            sage: RL.sage_structured_str_list()
+            ['0', ['x', 'y'], [['dp', '1,\n1 '], ['C', '0 ']], '0']
         """
-        s = str(self)
-        c = '\[[0-9]*\]:'
-        r = re.compile(c)
-        s = r.sub('xxx__SAGE__xxx',s)
-        v = s.split('xxx__SAGE__xxx')[1:]
-        c = '_\[[0-9]*\]='
-        r = re.compile(c)
-        ans = []
-        for w in v:
-            t = r.sub('xxx__SAGE__xxx', w)
-            z = [m.strip() for m in t.split('xxx__SAGE__xxx')[1:]]
-            ans.append(z)
-        return ans
+        if not (self.type()=='list'):
+            return str(self)
+        return [X.sage_structured_str_list() for X in self]
 
     def trait_names(self):
         return self.parent().trait_names()

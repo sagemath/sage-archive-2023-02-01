@@ -332,7 +332,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         T = X2[1][2]
         T.set_ring()
         LG = G.BrillNoether(X2)
-        LG = LG.sage_structured_str_list()
+        LG = [X.split(',\n') for X in LG.sage_structured_str_list()]
         x,y,z = self.ambient_space().coordinate_ring().gens()
         vars = {'x':x, 'y':y, 'z':z}
         V = [(sage_eval(a, vars)/sage_eval(b, vars)) for a, b in LG]

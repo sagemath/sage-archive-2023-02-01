@@ -14,6 +14,10 @@ Notebook control object
 This is used for configuring and starting the SAGE notebook server.
 """
 
+import time, os, shutil, signal, tempfile
+
+import notebook as _notebook
+
 import run_notebook
 
 class NotebookObject:
@@ -148,3 +152,38 @@ def inotebook(*args, **kwds):
     """
     kwds['secure'] = False
     notebook(*args, **kwds)
+
+
+def test_notebook(admin_passwd, directory=None, port=8050, address='localhost'):
+    """
+    This function is used to test notebook server functions.
+
+    EXAMPLE:
+        sage: import urllib
+        sage: from sage.server.notebook.notebook_object import test_notebook
+        sage: passwd = str(randint(1,1<<128))
+        sage: nb = test_notebook(passwd, address='localhost', port=8060)
+        sage: h = urllib.urlopen('https://localhost:8060')
+        sage: homepage = h.read()
+        sage: h.close()
+        sage: 'html' in homepage
+        True
+        sage: nb.close(force=True)
+        """
+    if directory is None:
+        directory = tmp_dir = tempfile.mkdtemp()
+    else:
+        tmp_dir = None
+
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    nb = _notebook.load_notebook(directory)
+    nb.set_accounts(True)
+    nb.add_user('admin', admin_passwd, '')
+    nb.set_accounts(False)
+    nb.save()
+
+    p = notebook(directory=directory, port=port, address=address, open_viewer=False, fork=True, quiet=True)
+    p.expect("Starting factory")
+    return p

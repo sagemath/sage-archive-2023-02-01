@@ -21,7 +21,7 @@ import getpass
 
 from sage.misc.misc import DOT_SAGE
 from   sage.server.misc import print_open_msg, find_next_available_port
-import os, shutil, socket
+import os, shutil, socket, pexpect
 
 import notebook
 
@@ -58,7 +58,10 @@ def notebook_twisted(self,
              open_viewer = True,
 
              sagetex_path = "",
-             start_path = ""):
+             start_path = "",
+             fork = False,
+             quiet = False):
+
     if directory is None:
         directory = '%s/sage_notebook'%DOT_SAGE
     else:
@@ -68,7 +71,8 @@ def notebook_twisted(self,
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    print "The notebook files are stored in:", directory
+    if not quiet:
+        print "The notebook files are stored in:", directory
     # First change to the directory that contains the notebook directory
     wd = os.path.split(directory)
     if wd[0]: os.chdir(wd[0])
@@ -222,13 +226,20 @@ s.setServiceParent(application)
         config.close()
 
         ## Start up twisted
-        print_open_msg(address, port, secure=secure)
-        if secure:
+        if not quiet:
+            print_open_msg(address, port, secure=secure)
+        if secure and not quiet:
             print "There is an admin account.  If you do not remember the password,"
             print "quit the notebook and type notebook(reset=True)."
-        e = os.system('sage -twistd --pidfile="%s"/twistd.pd -ny "%s"/twistedconf.tac'%(directory, directory))
+        cmd = 'sage -twistd --pidfile="%s"/twistd.pd -ny "%s"/twistedconf.tac'%(directory, directory)
+        if fork:
+            return pexpect.spawn(cmd)
+        else:
+            e = os.system(cmd)
         if e == 256:
             raise socket.error
+        return True
+        # end of inner function run
 
     if address != 'localhost' and not secure:
             print "*"*70
@@ -242,9 +253,7 @@ s.setServiceParent(application)
     #    open_page(address, port, secure, pause=PAUSE)
     if open_viewer:
         "Open viewer automatically isn't fully implemented.  You have to manually open your web browser to the above URL."
-    run(port)
-
-    return True
+    return run(port)
 
 
 
@@ -252,7 +261,6 @@ s.setServiceParent(application)
 
 
 #######
-
 
 
 def get_admin_passwd():

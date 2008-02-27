@@ -3440,9 +3440,9 @@ cdef extern from "gmp.h":
 
     # We allocate _mp_d directly (mpz_t is typedef of this in GMP)
     ctypedef struct __mpz_struct "__mpz_struct":
+        int _mp_alloc
+        int _mp_size
         mp_ptr _mp_d
-        size_t _mp_alloc
-        size_t _mp_size
 
     # sets the three free, alloc, and realloc function pointers to the
     # memory management functions set in GMP. Accepts NULL pointer.

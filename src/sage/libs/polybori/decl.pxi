@@ -137,6 +137,7 @@ cdef extern from "pb_wrap.h":
         bint (* isSingleton)()
         PBMonom (* lead)()
         PBMonom (* lexLead)()
+        int (* lexLmDeg)()
         PBMonom (* usedVariables)()
         PBDD (* diagram)()
         PBSet (* set)()

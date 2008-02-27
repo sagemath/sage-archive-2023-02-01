@@ -1832,6 +1832,12 @@ cdef class BooleanPolynomial(MPolynomial):
     def lexLead(self):
         return new_BM_from_PBMonom(self._parent._monom_monoid,
                                                 self._pbpoly.lexLead())
+    def lexLmDeg(self):
+        """
+        Return degree of leading monomial w.r.t to lex ordering
+        """
+        return self._pbpoly.lexLmDeg()
+
     def constant(self):
         return self._pbpoly.isConstant()
 

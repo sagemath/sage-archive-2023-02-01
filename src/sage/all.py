@@ -167,12 +167,16 @@ copyright = license
 
 def save_session(state, name='sage_session', verbose=False):
     r"""
-    Save all variables that can be saved wto the given filename.  The
+    Save all variables that can be saved to the given filename.  The
     variables will be saved to a dictionary, which can be loaded using
     load(name) or load_session.
 
     From the interpreter use \code{save_session(name)} (i.e., you may
     ignore that state argument).
+
+    EXAMPLES:
+        sage: save_session('test')   # not tested
+        sage: load_session('test')   # not tested
     """
     import cPickle
     S = set(show_identifiers(state))

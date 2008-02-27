@@ -774,6 +774,13 @@ cdef class Matrix(matrix1.Matrix):
         We could also compute f in terms of Z from the start:
             sage: A.charpoly('Z')
             Z^2 + (-1*y^2 - x)*Z - x^2*y + x*y^2
+
+        TESTS:
+            sage: P.<a,b,c> = PolynomialRing(Rationals())
+            sage: u = MatrixSpace(P,3)([[0,0,a],[1,0,b],[0,1,c]])
+            sage: Q.<x> = PolynomialRing(P)
+            sage: u.charpoly('x')
+            x^3 + (-c)*x^2 + (-b)*x - a
         """
         D = self.fetch('charpoly')
         if not D is None:

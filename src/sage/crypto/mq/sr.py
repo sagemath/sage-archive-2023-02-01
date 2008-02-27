@@ -77,7 +77,7 @@ REFERENCES:
    Advanced Encryption Standard; Springer 2006;
 """
 
-from sage.rings.finite_field import GF
+from sage.rings.finite_field import FiniteField as GF
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring import PolynomialRing
 

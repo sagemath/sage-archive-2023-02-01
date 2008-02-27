@@ -14,7 +14,7 @@ import sage.modules.free_module_element as fme
 from sage.interfaces.all import gap
 #from sage.misc.preparser import *
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.finite_field import GF
+from sage.rings.finite_field import FiniteField as GF
 #from sage.groups.perm_gps.permgroup import *
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.misc.sage_eval import sage_eval

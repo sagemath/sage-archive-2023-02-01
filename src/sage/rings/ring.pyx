@@ -1120,9 +1120,6 @@ cdef class FiniteFieldIterator:
         return self.parent(self.iter.next())
 
 cdef class FiniteField(Field):
-    """
-    """
-
     def __init__(self):
         """
         EXAMPLES:
@@ -1514,7 +1511,7 @@ cdef class FiniteField(Field):
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.finite_field import GF
+        from sage.rings.finite_field import FiniteField as GF
 
         if variable_name is None and self.__polynomial_ring is not None:
             return self.__polynomial_ring

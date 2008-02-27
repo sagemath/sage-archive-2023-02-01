@@ -17,7 +17,7 @@ import padic_extension_generic
 pAdicExtensionGeneric = padic_extension_generic.pAdicExtensionGeneric
 #UnramifiedExtensionGenericElement = sage.rings.padics.unramified_extension_generic_element.UnramifiedExtensionGenericElement
 PolynomialRing = sage.rings.polynomial.polynomial_ring.PolynomialRing
-GF = sage.rings.finite_field.GF
+GF = sage.rings.ring.FiniteField
 #pAdicGeneric = sage.rings.padics.padic_generic.pAdicGeneric
 
 class UnramifiedExtensionGeneric(pAdicExtensionGeneric):

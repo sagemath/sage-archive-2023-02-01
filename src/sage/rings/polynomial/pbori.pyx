@@ -32,7 +32,7 @@ from sage.rings.integer import Integer
 
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.term_order import TermOrder
-from sage.rings.finite_field import GF
+from sage.rings.finite_field import FiniteField as GF
 from sage.monoids.monoid import Monoid_class
 
 from sage.structure.sequence import Sequence

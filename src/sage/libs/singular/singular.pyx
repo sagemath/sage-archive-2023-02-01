@@ -21,7 +21,7 @@ cdef extern from "limits.h":
     long INT_MIN
 
 from sage.rings.rational_field import RationalField
-from sage.rings.finite_field import FiniteField_prime_modn
+from sage.rings.finite_field_prime_modn import FiniteField_prime_modn
 from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
 from sage.libs.pari.all import pari
 

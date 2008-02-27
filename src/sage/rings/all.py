@@ -65,7 +65,9 @@ Integers = IntegerModRing
 
 # Finite fields
 from finite_field import (FiniteField, is_FiniteField, is_PrimeFiniteField,
-                          GF, conway_polynomial, exists_conway_polynomial)
+                          conway_polynomial, exists_conway_polynomial)
+GF = FiniteField
+
 from finite_field_element import FiniteFieldElement, is_FiniteFieldElement
 
 # Number field

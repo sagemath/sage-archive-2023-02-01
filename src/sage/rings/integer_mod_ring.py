@@ -103,9 +103,6 @@ def IntegerModRing(order=0):
     if _objsIntegerModRing.has_key(order):
         x = _objsIntegerModRing[order]()
         if not x is None: return x
-    #if check_prime and arith.is_prime(order):
-    #    R = sage.rings.finite_field.FiniteField_prime_modn(order)
-    #else:
     R = IntegerModRing_generic(order)
     _objsIntegerModRing[order] = weakref.ref(R)
     return R
@@ -584,9 +581,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             return TypeError, "error coercing to finite field"
         except TypeError:
             if sage.interfaces.all.is_GapElement(x):
-                import finite_field
+                from sage.interfaces.gap import gfq_gap_to_sage
                 try:
-                    return finite_field.gap_to_sage(x, self)
+                    return gfq_gap_to_sage(x, self)
                 except (ValueError, IndexError, TypeError), msg:
                     raise TypeError, "%s\nerror coercing to finite field"%msg
             else:

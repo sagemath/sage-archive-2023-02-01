@@ -1,9 +1,62 @@
-"""
+r"""
 Finite Fields
 
+\SAGE supports arithmetic in finite prime and extension fields.
+Several implementation for prime fields are implemented natively in
+\SAGE for several sizes of primes $p$. These implementations are
+\begin{itemize}
+\item \code{sage.rings.integer_mod.IntegerMod_int},
+\item \code{sage.rings.integer_mod.IntegerMod_int64}, and
+\item \code{sage.rings.integer_mod.IntegerMod_gmp}.
+\end{itemize}
+Small extension fields
+of cardinality $< 2^{16}$ are implemented using tables of Zech logs
+via the Givaro C++ library
+(\code{sage.rings.finite_field_givaro.FiniteField_givaro}). While this
+representation is very fast it is limited to finite fields of small
+cardinality. Larger finite extension fields of order $q >= 2^{16}$ are
+internally represented as polynomials over a smaller finite prime
+fields. If the characteristic of such a field is 2 then NTL is used
+internally to represent the field
+(\code{sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e}). In all
+other case the PARI C library is used
+(\code{sage.rings.finite_field_ext_pari.FiniteField_ext_pari}).
+
+However, this distinction is internal only and the user usually does
+not have to worry about it because consistency across all
+implementations is aimed for. In all extension field implementations
+the user may either specify a minimal polynomial or leave the choice
+to \SAGE.
+
+For small finite fields the default choice are Conway polynomials.
+
+The Conway polynomial $C_n$ is the lexicographically first monic
+irreducible, primitive polynomial of degree $n$ over $GF(p)$ with the
+property that for a root $\alpha$ of $C_n$ we have that $\beta=
+\alpha^{(p^n - 1)/(p^m - 1)}$ is a root of $C_m$ for all $m$ dividing
+$n$. \SAGE contains a database of conway polynomials which also can be
+queried independendtly of finite field construction.
+
+While \SAGE supports basic arithmetic in finite fields some more
+advanced features for computing with finite fields are still not
+implemented. For instance, \SAGE does not calculate embeddings of
+finite fields yet.
 
 EXAMPLES:
+    sage: k = GF(5); type(k)
+    <class 'sage.rings.finite_field_prime_modn.FiniteField_prime_modn'>
+
+    sage: k = GF(5^2,'c'); type(k)
+    <type 'sage.rings.finite_field_givaro.FiniteField_givaro'>
+
+    sage: k = GF(2^16,'c'); type(k)
+    <type 'sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e'>
+
+    sage: k = GF(3^16,'c'); type(k)
+    <class 'sage.rings.finite_field_ext_pari.FiniteField_ext_pari'>
+
 Finite Fields support iteration, starting with 0.
+
     sage: k = GF(9, 'a')
     sage: for i,x in enumerate(k):  print i,x
     0 0
@@ -24,8 +77,9 @@ Finite Fields support iteration, starting with 0.
     4
 
 We output the base rings of several finite fields.
+
     sage: k = GF(3); type(k)
-    <class 'sage.rings.finite_field.FiniteField_prime_modn'>
+    <class 'sage.rings.finite_field_prime_modn.FiniteField_prime_modn'>
     sage: k.base_ring()
     Finite Field of size 3
 
@@ -48,6 +102,11 @@ Further examples:
     True
     sage: GF(8,'a').is_field()
     True
+
+AUTHORS:
+     -- William Stein: initial version
+     -- Robert Bradshaw: prime field implementation
+     -- Martin Albrecht: Givaro and ntl.GF2E implementations
 """
 
 #*****************************************************************************
@@ -68,22 +127,19 @@ Further examples:
 import random
 import weakref
 
-import arith
-
-import integer
-import rational
-import integer_mod
-
-import integer_mod_ring
 from ring import is_FiniteField
-from ring import FiniteField as FiniteField_generic
-from finite_field_givaro import FiniteField_givaro
+from sage.structure.parent_gens import normalize_names
+
+import arith
+import integer
 
 import polynomial.polynomial_ring as polynomial_ring
 import polynomial.polynomial_element as polynomial_element
 import polynomial.multi_polynomial_element as multi_polynomial_element
 
-from sage.structure.parent_gens import normalize_names, ParentWithGens
+# We don't late import this because this means trouble with the Givaro library
+# TODO: figure out why
+from finite_field_givaro import FiniteField_givaro
 
 import sage.interfaces.gap
 import sage.databases.conway
@@ -152,15 +208,15 @@ def FiniteField(order, name=None, modulus=None, names=None,
         sage: F.<x> = GF(5)[]
         sage: K.<a> = GF(5**2, name='a', modulus=x^2 + 2, check_irreducible=False)
 
-    For example, you may print finite field elements as integers via
-    the Givaro implementation. But the constructor parameter to allow
-    this is not passed to the actual implementation so far.
+    For example, you may print finite field elements as integers. This
+    currently only works if the order of field is $<2^{16}$, though.
 
         sage: k.<a> = GF(2^8,repr='int')
         sage: a
         2
 
     The order of a finite field must be a prime power:
+
         sage: GF(100)
         Traceback (most recent call last):
         ...
@@ -179,6 +235,7 @@ def FiniteField(order, name=None, modulus=None, names=None,
         if not K is None:
             return K
     if arith.is_prime(order):
+        from finite_field_prime_modn import FiniteField_prime_modn
         K = FiniteField_prime_modn(order,*args,**kwds)
     else:
         if not arith.is_prime_power(order):
@@ -210,8 +267,7 @@ def FiniteField(order, name=None, modulus=None, names=None,
 
 def is_PrimeFiniteField(x):
     """
-    Returns True if x is a prime finite field (which is a specific
-    data type).
+    Returns True if x is a prime finite field.
 
     EXAMPLES:
         sage: is_PrimeFiniteField(QQ)
@@ -223,14 +279,16 @@ def is_PrimeFiniteField(x):
         sage: is_PrimeFiniteField(GF(next_prime(10^90,proof=False)))
         True
     """
-    return isinstance(x, FiniteField_prime_modn)
+    from finite_field_prime_modn import FiniteField_prime_modn
+    from ring import FiniteField as FiniteField_generic
 
-GF = FiniteField
+    return isinstance(x, FiniteField_prime_modn) or \
+           (isinstance(x, FiniteField_generic) and x.degree() == 1)
 
 ##################################################################
 
 def conway_polynomial(p, n):
-    """
+    r"""
     Return the Conway polynomial of degree n over GF(p), which is
     loaded from a table.
 
@@ -248,10 +306,10 @@ def conway_polynomial(p, n):
     disk, which takes a fraction of a second.  Subsequent calls do not
     require reloading the table.
 
-    See also the ConwayPolynomials() object, which is a table of
-    Conway polynomials.   For example, if c=ConwayPolynomials, then
-    c.primes() is a list of all primes for which the polynomials are
-    known, and for a given prime p,  c.degree(p) is a list of all
+    See also the \code{ConwayPolynomials()} object, which is a table of
+    Conway polynomials.   For example, if \code{c=ConwayPolynomials}, then
+    \code{c.primes()} is a list of all primes for which the polynomials are
+    known, and for a given prime $p$,  \code{c.degree(p)} is a list of all
     degrees for which the Conway polynomials are known.
 
     EXAMPLES:
@@ -265,19 +323,19 @@ def conway_polynomial(p, n):
         RuntimeError: requested conway polynomial not in database.
     """
     (p,n)=(int(p),int(n))
-    R = polynomial_ring.PolynomialRing(GF(p), 'x')
+    R = polynomial_ring.PolynomialRing(FiniteField(p), 'x')
     try:
         return R(sage.databases.conway.ConwayPolynomials()[p][n])
     except KeyError:
         raise RuntimeError, "requested conway polynomial not in database."
 
 def exists_conway_polynomial(p, n):
-    """
-    Return True if the Conway polynomial over F_p of degree n is in the
+    r"""
+    Return True if the Conway polynomial over $F_p$ of degree $n$ is in the
     database and False otherwise.
 
     If the Conway polynomial is in the database, to obtain it use the
-    command conway_polynomial(p,n).
+    command \code{conway_polynomial(p,n)}.
 
     EXAMPLES:
         sage: exists_conway_polynomial(2,3)
@@ -291,163 +349,5 @@ def exists_conway_polynomial(p, n):
     """
     return sage.databases.conway.ConwayPolynomials().has_polynomial(p,n)
 
-def gap_to_sage(x, F):
-    """
-    INPUT:
-        x -- gap finite field element
-        F -- SAGE finite field
-    OUTPUT:
-        element of F
-
-    EXAMPLES:
-        sage: x = gap('Z(13)')
-        sage: F = GF(13, 'a')
-        sage: F(x)
-        2
-        sage: F(gap('0*Z(13)'))
-        0
-        sage: F = GF(13^2, 'a')
-        sage: x = gap('Z(13)')
-        sage: F(x)
-        2
-        sage: x = gap('Z(13^2)^3')
-        sage: F(x)
-        12*a + 11
-        sage: F.multiplicative_generator()^3
-        12*a + 11
-
-    AUTHOR:
-        -- David Joyner and William Stein
-    """
-    s = str(x)
-    if s[:2] == '0*':
-        return F(0)
-    i1 = s.index("(")
-    i2 = s.index(")")
-    q  = eval(s[i1+1:i2].replace('^','**'))
-    if q == F.order():
-        K = F
-    else:
-        K = FiniteField(q, F.variable_name())
-    if s.find(')^') == -1:
-        e = 1
-    else:
-        e = int(s[i2+2:])
-    if F.degree() == 1:
-        g = int(sage.interfaces.gap.gap.eval('Int(Z(%s))'%q))
-    else:
-        g = K.multiplicative_generator()
-    return F(K(g**e))
-
-
-class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRing_generic):
-    def __init__(self, p, name=None):
-        p = integer.Integer(p)
-        if not arith.is_prime(p):
-            raise ArithmeticError, "p must be prime"
-        integer_mod_ring.IntegerModRing_generic.__init__(self, p)
-        self._kwargs = {}
-        self.__char = p
-        self.__gen = self(1)  # self(int(pari.pari(p).znprimroot().lift()))
-        ParentWithGens.__init__(self, self, ('x',), normalize=False)
-
-    def __cmp__(self, other):
-        if not isinstance(other, FiniteField_prime_modn):
-            return cmp(type(self), type(other))
-        return cmp(self.__char, other.__char)
-
-    def _is_valid_homomorphism_(self, codomain, im_gens):
-        """
-        This is called implicitly by the hom constructor.
-
-        EXAMPLES:
-            sage: k = GF(73^2,'a')
-            sage: f = k.modulus()
-            sage: r = f.change_ring(k).roots()
-            sage: k.hom([r[0][0]])
-            Ring endomorphism of Finite Field in a of size 73^2
-              Defn: a |--> 72*a + 3
-        """
-        try:
-            return im_gens[0] == codomain._coerce_(self.gen(0))
-        except TypeError:
-            return False
-
-    def _coerce_impl(self, x):
-        if isinstance(x, (int, long, integer.Integer)):
-            return self(x)
-        if isinstance(x, integer_mod.IntegerMod_abstract) and \
-               x.parent().characteristic() == self.characteristic():
-            return self(x)
-        raise TypeError, "no canonical coercion of x"
-
-    def characteristic(self):
-        return self.__char
-
-    def modulus(self):
-        try:
-            return self.__modulus
-        except AttributeError:
-            x = polynomial_ring.PolynomialRing(self, 'x').gen()
-            self.__modulus = x - 1
-        return self.__modulus
-
-    def is_prime_field(self):
-        return True
-
-    def is_prime(self):
-        return True
-
-    def polynomial(self, name=None):
-        if name is None:
-            name = self.variable_name()
-        try:
-            return self.__polynomial[name]
-        except  AttributeError:
-            R = polynomial_ring.PolynomialRing(FiniteField(self.characteristic()), name)
-            f = polynomial_ring.PolynomialRing(self, name)([0,1])
-            try:
-                self.__polynomial[name] = f
-            except (KeyError, AttributeError):
-                self.__polynomial = {}
-                self.__polynomial[name] = f
-            return f
-
-    def order(self):
-        return self.__char
-
-    def gen(self, n=0):
-        """
-        Return generator of this finite field.
-
-        EXAMPLES:
-            sage: k = GF(13)
-            sage: k.gen()
-            1
-            sage: k.gen(1)
-            Traceback (most recent call last):
-            ...
-            IndexError: only one generator
-        """
-        if n != 0:
-            raise IndexError, "only one generator"
-        return self.__gen
-
-    def __iter__(self):
-        for i in xrange(self.order()):
-            yield self(i)
-
-    def degree(self):
-        """
-        Returns the degree of the finite field, which is a positive
-        integer.
-
-        EXAMPLES:
-            sage: FiniteField(3).degree()
-            1
-            sage: FiniteField(3^20, 'a').degree()
-            20
-        """
-        return 1
 
 zech_log_bound = 2**16

@@ -169,7 +169,7 @@ def Qq(q, prec = 20, type = 'capped-rel', modulus = None, names=None, print_mode
         return Qp(q, prec, type, print_mode, halt, names, check)
     base = Qp(F[0][0], prec, type, print_mode, halt, qp_name, check = False)
     if modulus is None:
-        from sage.rings.finite_field import GF
+        from sage.rings.finite_field import FiniteField as GF
         from sage.rings.integer_ring import ZZ
 	from sage.rings.polynomial.polynomial_ring import PolynomialRing
         if qp_name is None:
@@ -417,7 +417,7 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
         return Zp(q, prec, type, print_mode, halt, names, check)
     base = Zp(F[0][0], prec, type, print_mode, halt, zp_name, check = False)
     if modulus is None:
-        from sage.rings.finite_field import GF
+        from sage.rings.finite_field import FiniteField as GF
         if zp_name is None:
             zp_name = (str(F[0][0]),)
         modulus = PolynomialRing(base, 'x')(GF(q, names).modulus().change_ring(ZZ))

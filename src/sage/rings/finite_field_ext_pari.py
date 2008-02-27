@@ -181,7 +181,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             raise ArithmeticError, "q must be a prime power"
 
         if F[0][1] > 1:
-            from finite_field import GF
+            from finite_field import FiniteField as GF
             base_ring = GF(F[0][0])
         else:
             raise ValueError, "The size of the finite field must not be prime."
@@ -207,7 +207,7 @@ class FiniteField_ext_pari(FiniteField_generic):
                 #     self.__pari_modulus = pari.pari.finitefield_init(self.__char, self.__degree, self.variable_name())
                 # So instead we iterate through random polys until we find an irreducible one.
 
-                from finite_field import GF
+                from finite_field import FiniteField as GF
                 R = polynomial_ring.PolynomialRing(GF(self.__char), 'x')
                 while True:
                     modulus = R.random_element(self.__degree)
@@ -433,9 +433,9 @@ class FiniteField_ext_pari(FiniteField_generic):
                 raise TypeError, "no coercion defined"
 
         elif sage.interfaces.gap.is_GapElement(x):
-            from finite_field import gap_to_sage
+            from sage.interfaces.gap import gfq_gap_to_sage
             try:
-                return gap_to_sage(x, self)
+                return gfq_gap_to_sage(x, self)
             except (ValueError, IndexError, TypeError):
                 raise TypeError, "no coercion defined"
 
@@ -569,7 +569,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         try:
             return self.__polynomial[name]
         except (AttributeError, KeyError):
-            from finite_field import GF
+            from finite_field import FiniteField as GF
             R = polynomial_ring.PolynomialRing(GF(self.characteristic()), name)
             f = R(self._pari_modulus())
             try:

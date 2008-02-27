@@ -1,5 +1,5 @@
 r"""
-Finite Non-prime Fields of cardinality up to $2^{16}$
+Finite Extension Fields of cardinality up to $2^{16}$
 
 SAGE includes the Givaro finite field library, for highly optimized
 arithmetic in finite fields.
@@ -14,7 +14,7 @@ using the PARI implementation.
 
 EXAMPLES:
     sage: k = GF(5); type(k)
-    <class 'sage.rings.finite_field.FiniteField_prime_modn'>
+    <class 'sage.rings.finite_field_prime_modn.FiniteField_prime_modn'>
     sage: k = GF(5^2,'c'); type(k)
     <type 'sage.rings.finite_field_givaro.FiniteField_givaro'>
     sage: k = GF(2^16,'c'); type(k)
@@ -516,8 +516,8 @@ cdef class FiniteField_givaro(FiniteField):
             e = e._pari_()
 
         elif sage.interfaces.gap.is_GapElement(e):
-            from sage.rings.finite_field import gap_to_sage
-            return gap_to_sage(e, self)
+            from sage.interfaces.gap import gfq_gap_to_sage
+            return gfq_gap_to_sage(e, self)
 
         else:
             raise TypeError, "unable to coerce"
@@ -614,7 +614,7 @@ cdef class FiniteField_givaro(FiniteField):
             sage: S.prime_subfield()
             Finite Field of size 5
             sage: type(S.prime_subfield())
-            <class 'sage.rings.finite_field.FiniteField_prime_modn'>
+            <class 'sage.rings.finite_field_prime_modn.FiniteField_prime_modn'>
         """
         return self.prime_subfield_C()
 

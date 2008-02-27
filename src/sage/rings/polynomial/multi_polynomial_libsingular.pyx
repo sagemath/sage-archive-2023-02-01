@@ -50,8 +50,8 @@ from sage.rings.polynomial.pbori import BooleanPolynomial
 
 # base ring imports
 from sage.rings.rational_field import RationalField
-from sage.rings.finite_field import FiniteField_prime_modn
-from sage.rings.finite_field import FiniteField_generic
+from sage.rings.finite_field_prime_modn import FiniteField_prime_modn
+from sage.rings.ring import FiniteField as FiniteField_generic
 from sage.rings.finite_field_givaro cimport FiniteField_givaroElement
 from sage.rings.finite_field_givaro cimport FiniteField_givaro
 from sage.rings.number_field.number_field import NumberField_generic

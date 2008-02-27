@@ -254,7 +254,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             sage: k
                 Finite Field of size 3
         """
-        return sage.rings.finite_field.GF(self.prime())
+        return sage.rings.finite_field.FiniteField(self.prime())
 
     residue_field = residue_class_field
 
@@ -491,7 +491,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             else:
                 raise ValueError, "No, %sth root of unity in self"%n
         else:
-            return self.teichmuller(sage.rings.finite_field.GF(self.prime()).zeta(n).lift())
+            return self.teichmuller(sage.rings.finite_field.FiniteField(self.prime()).zeta(n).lift())
 
     def zeta_order(self):
         """

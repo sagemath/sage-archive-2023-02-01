@@ -289,11 +289,12 @@ class CrystalOfTableaux(TensorProductOfCrystals):
 	[[[1]], [[2]], [[-2]], [[-1]]]
     """
     def __init__(self, type, shape):
-	C = CrystalOfLetters(type)
+	self.letters = CrystalOfLetters(type)
         shape = Partition(shape)
 	p = shape.conjugate()
-	module_generator = flatten([[C(p[j]-i) for i in range(p[j])] for j in range(len(p))])
-	TensorProductOfCrystals.__init__(self, *[C]*shape.size(), **{'generators':[module_generator],'cartan_type':type})
+        # The column canonical tableau, read by columns
+	module_generator = flatten([[self.letters(p[j]-i) for i in range(p[j])] for j in range(len(p))])
+	TensorProductOfCrystals.__init__(self, *[self.letters]*shape.size(), **{'generators':[module_generator],'cartan_type':type})
 	self._name = "The crystal of tableaux of type%s"%type
 	self.shape = shape
 
@@ -316,12 +317,11 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
 	    list = options['list']
 	elif options.has_key('rows'):
 	    rows=options['rows']
-	    C=CrystalOfLetters(parent.cartanType)
 	    list = []
 	    l = len(rows)
 	    for i in range(l):
 		for x in rows[i]:
-		    list.append(C(x))
+		    list.append(parent.letters(x))
         else:
 	    list = [i for i in args]
 	TensorProductOfCrystalsElement.__init__(self, parent, list=list)

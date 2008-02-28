@@ -279,15 +279,47 @@ class CrystalOfTableaux(TensorProductOfCrystals):
 	sage: T.module_generators[0].list
 	[2, 1, 2, 1, 1]
 
+        To create a tableau, one can use:
+        sage: Tab = CrystalOfTableaux(['A',3], shape = [2,2])
+        sage: Tab(rows    = [[1,2],[3,4]])
+        [[1, 2], [3, 4]]
+        sage: Tab(columns = [[3,1],[4,2]])
+        [[1, 2], [3, 4]]
+
+        FIXME: do we want to specify the columns increasingly or decreasingly
+        That is, should this be Tab(columns = [[1,3],[2,4]])
+
+        TODO: make this fully consistent with Tableau!
+
     TESTS:
-        sage: T = CrystalOfTableaux(['A',2], shape = [])
-	sage: T.list()
+
+        Base cases:
+
+        sage: Tab = CrystalOfTableaux(['A',2], shape = [])
+	sage: Tab.list()
 	[[]]
-        sage: T = CrystalOfTableaux(['C',2], shape = [1])
-	sage: T.check()
+        sage: Tab = CrystalOfTableaux(['C',2], shape = [1])
+	sage: Tab.check()
 	True
-        sage: T.list()
+        sage: Tab.list()
 	[[[1]], [[2]], [[-2]], [[-1]]]
+
+        Input tests:
+
+        sage: Tab = CrystalOfTableaux(['A',3], shape = [2,2])
+        sage: C = Tab.letters
+        sage: Tab(rows    = [[1,2],[3,4]]).list == [C(3),C(1),C(4),C(2)]
+        True
+        sage: Tab(columns = [[3,1],[4,2]]).list == [C(3),C(1),C(4),C(2)]
+        True
+
+        And for compatibility with TensorProductOfCrystal we should
+        also allow as input the internal list / sequence of elements:
+
+        sage: Tab(list    = [3,1,4,2]).list     == [C(3),C(1),C(4),C(2)]
+        True
+        sage: Tab(3,1,4,2).list                 == [C(3),C(1),C(4),C(2)]
+        True
     """
     def __init__(self, type, shape):
 	self.letters = CrystalOfLetters(type)
@@ -300,27 +332,15 @@ class CrystalOfTableaux(TensorProductOfCrystals):
 	self.shape = shape
 
     def __call__(self, *args, **options):
-        r"""
-        TESTS:
-	    sage: T=CrystalOfTableaux(['A',3],Partition([2,2]))
-	    sage: T(rows=[[1,2],[3,4]])
-	    [[1, 2], [3, 4]]
-	    sage: T(columns=[[3,1],[4,2]])
-	    [[1, 2], [3, 4]]
-	    sage: T(list=[3,1,4,2])
-	    [[1, 2], [3, 4]]
-	    sage: T(3,1,4,2)
-	    [[1, 2], [3, 4]]
-	    sage: t=T(3,1,4,2)
-	    sage: t.f(3)
-	    [[1, 2], [4, 4]]
-        """
-	if not options.has_key('rows') and len(args)>= 1 and isinstance(args[0], Element) and args[0].parent() == self:
-	    return args[0];
         return CrystalOfTableauxElement(self, *args, **options);
 
 class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
     def __init__(self, parent, *args, **options):
+        if len(args) == 1 and isinstance(args[0], CrystalOfTableauxElement):
+            if args[0].parent() == parent:
+                return args[0];
+            else:
+                raise RuntimeError("Inconsistent parent")
 	if options.has_key('list'):
 	    list = options['list']
 	elif options.has_key('rows'):

@@ -156,8 +156,19 @@ class RootSystemRealization_generic:
 
 
 class WeightLatticeRealization_class:
-    pass
 
+    # Should this be a method or an attribute?
+    # same question for the roots, ...
+    def rho(self):
+        return sum(self.fundamental_weights())
+
+    # Should it be a method of highest_weight?
+    def weyl_dimension(self, highest_weight):
+        # Should assert(highest_weight.is_dominant())
+        rho = self.rho()
+        n = prod([(rho+highest_weight).dot_product(x) for x in self.positive_roots()])
+        d = prod([ rho                .dot_product(x) for x in self.positive_roots()])
+        return n/d
 
 class AmbientLattice_generic(WeightLatticeRealization_class):
     def __init__(self, ct):
@@ -484,7 +495,4 @@ def WeylDim(type, coeffs):
     rank = type[1]
     fw = lattice.fundamental_weights()
     hwv = sum(coeffs[i]*fw[i] for i in range(min(rank, len(coeffs))))
-    rho = sum(lattice.fundamental_weights())
-    n = prod([(rho+hwv).dot_product(x) for x in lattice.positive_roots()])
-    d = prod([rho.dot_product(x) for x in lattice.positive_roots()])
-    return n/d
+    return lattice.weyl_dimension(hwv)

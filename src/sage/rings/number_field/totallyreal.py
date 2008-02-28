@@ -295,7 +295,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     # many possibilities which we must now throw back in.
     if n == 2 and B >= 5 and (type(t_2) == bool and (not t_2 or 5 >= t_2val)) or \
         (type(t_2) == Integer and 5 >= t_2):
-        S = [[5,pari('x^2-3*x+1')]] + S
+        S = [[5,pari('x^2-x+1')]] + S
     elif n == 3 and B >= 49 and (type(t_2) == bool and (not t_2 or 5 >= t_2val)) or \
         (type(t_2) == Integer and 5 >= t_2):
         S = [[49,pari('x^3-x^2-2*x+1')]] + S
@@ -388,27 +388,4 @@ def timestr(m):
     outstr += '%.1f'%n + 's'
 
     return outstr
-
-def __selberg_zograf_bound(n, g):
-    r"""
-    Returns an upper bound on the possible root discriminant of a
-    totally real field of degree n which gives rise to an arithmetic
-    Fuchsian group of genus g.  The bound is:
-       (16/3*(g+1))^(2/(3*n))*(2*pi)^(4/3).
-
-    INPUT:
-        n -- integer, the degree
-        g -- integer, the genus
-
-    OUTPUT:
-        the upper bound.
-
-    AUTHORS:
-        - John Voight (2007-09-19)
-
-    EXAMPLES:
-        sage: sage.rings.number_field.totallyreal.__selberg_zograf_bound(8,7)
-        15.851871776151311
-    """
-    return ((16./3)*(g+1))**(2./(3*n))*(2*3.1415926535897931)**(4./3)
 

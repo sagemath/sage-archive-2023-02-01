@@ -38,8 +38,19 @@ PREPARSE:
     "RealNumber('2e3')*x + Integer(3)*exp(y)"
 
 A hex literal:
-    sage: preparse('0x23')
-    'Integer(0x23)'
+    sage: preparse('0x2a3')
+    'Integer(0x2a3)'
+    sage: 0xA
+    10
+
+Raw and hex works correctly:
+    sage: type(0xa1)
+    <type 'sage.rings.integer.Integer'>
+    sage: type(0xa1r)
+    <type 'int'>
+    sage: type(0Xa1R)
+    <type 'int'>
+
 
 In SAGE methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error).
@@ -619,6 +630,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     num_start = -1
     in_number = False
     is_real = False
+    is_hex = False
 
     in_args = False
 
@@ -667,7 +679,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         if in_number:
             if line[i] == ".":
                 is_real = True
-            elif not line[i].isdigit():
+            elif not is_real and i == num_start+1 and line[num_start:i+1].lower() == '0x':
+                is_hex = True
+            elif not (line[i].isdigit() or (is_hex and line[i].lower() in 'abcdef')):
                 # end of a number
                 # Do we wrap?
                 if in_quote():

@@ -4954,7 +4954,13 @@ class Graph(GenericGraph):
             embedding -- a dictionary
 
         EXAMPLES:
-            TODO
+            sage: G = graphs.PetersenGraph()
+            sage: G.set_embedding({0: [1, 5, 4], 1: [0, 2, 6], 2: [1, 3, 7], 3: [8, 2, 4], 4: [0, 9, 3], 5: [0, 8, 7], 6: [8, 1, 9], 7: [9, 2, 5], 8: [3, 5, 6], 9: [4, 6, 7]})
+            sage: G.set_embedding({'s': [1, 5, 4], 1: [0, 2, 6], 2: [1, 3, 7], 3: [8, 2, 4], 4: [0, 9, 3], 5: [0, 8, 7], 6: [8, 1, 9], 7: [9, 2, 5], 8: [3, 5, 6], 9: [4, 6, 7]})
+            Traceback (most recent call last):
+            ...
+            Exception: embedding is not valid for Petersen graph
+
         """
         if self.check_embedding_validity(embedding):
             self._embedding = embedding
@@ -4970,7 +4976,21 @@ class Graph(GenericGraph):
         Error-checked to insure valid embedding is returned.
 
         EXAMPLES:
-            TODO
+            sage: G = graphs.PetersenGraph()
+            sage: G.genus()
+            1
+            sage: G.get_embedding()
+            {0: [1, 5, 4],
+             1: [0, 2, 6],
+             2: [1, 3, 7],
+             3: [8, 2, 4],
+             4: [0, 9, 3],
+             5: [0, 8, 7],
+             6: [8, 1, 9],
+             7: [9, 2, 5],
+             8: [3, 5, 6],
+             9: [4, 6, 7]}
+
         """
         if self.check_embedding_validity():
             return self._embedding
@@ -4985,7 +5005,11 @@ class Graph(GenericGraph):
         If embedding=None will test the attribute _embedding.
 
         EXAMPLES:
-            TODO
+            sage: d = {0: [1, 5, 4], 1: [0, 2, 6], 2: [1, 3, 7], 3: [8, 2, 4], 4: [0, 9, 3], 5: [0, 8, 7], 6: [8, 1, 9], 7: [9, 2, 5], 8: [3, 5, 6], 9: [4, 6, 7]}
+            sage: G = graphs.PetersenGraph()
+            sage: G.check_embedding_validity(d)
+            True
+
         """
         if embedding == None:
             if hasattr(self,'_embedding'):
@@ -5187,15 +5211,16 @@ class Graph(GenericGraph):
 
     def set_planar_positions(self, set_embedding=False, on_embedding=None, external_face=None, test=False, circular=False):
         """
-        TODO -- docstring
+        Uses Schnyder's algorithm to determine positions for a planar embedding of
+        self, raising an error if self is not planar.
 
-        TODO -- inplace, sets _pos attr
-
-        TODO -- should be able to specify external face and otherwise default should be longest face
-
-        on test=True, returns True if tests pass and False otherwise
-
-        schnyder
+        INPUT:
+            set_embedding -- if True, sets the combinatorial embedding used (see
+        self.get_embedding())
+            on_embedding -- dict: provide a combinatorial embedding
+            external_face -- ignored
+            test -- if True, perform sanity tests along the way
+            circular -- ignored
 
         EXAMPLES:
             sage: g = graphs.PathGraph(10)
@@ -5312,7 +5337,11 @@ class Graph(GenericGraph):
         false otherwise.)
 
         EXAMPLES:
-            TODO
+            sage: D = graphs.DodecahedralGraph()
+            sage: D.set_planar_positions()
+            sage: D.is_drawn_free_of_edge_crossings()
+            True
+
         """
         if self._pos is None:
             return False
@@ -5428,7 +5457,13 @@ class Graph(GenericGraph):
                     of neighbors at each vertex.)
 
         EXAMPLES:
-            TODO
+            sage: T = graphs.TetrahedralGraph()
+            sage: T.trace_faces({0: [1, 3, 2], 1: [0, 2, 3], 2: [0, 3, 1], 3: [0, 1, 2]})
+            [[(0, 1), (1, 2), (2, 0)],
+             [(3, 2), (2, 1), (1, 3)],
+             [(2, 3), (3, 0), (0, 2)],
+             [(0, 3), (3, 1), (1, 0)]]
+
         """
         from sage.sets.set import Set
 

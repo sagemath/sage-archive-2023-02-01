@@ -1,5 +1,5 @@
 """
-TODO - docstrings throughout
+Wrapper for Boyer's (C) planarity algorithm.
 """
 
 cdef extern from "planarity/graph.h":
@@ -23,6 +23,22 @@ cdef extern from "planarity/graph.h":
     cdef int gp_SortVertices(graphP theGraph)
 
 def is_planar(g, set_pos=False, set_embedding=False, circular=False):
+    """
+    Calls Boyer's planarity algorithm to determine whether g is planar.
+
+    INPUT:
+        set_pos -- if True, uses Schnyder's algorithm to determine positions
+        set_embedding -- if True, records the combinatorial embedding returned
+    (see g.get_embedding())
+        circular -- if True, test for circular planarity
+
+    EXAMPLE:
+        sage: G = graphs.DodecahedralGraph()
+        sage: from sage.graphs.planarity import is_planar
+        sage: is_planar(G)
+        True
+
+    """
     # create to and from mappings to relabel vertices to the set {0,...,n-1}
     cdef int i
     listto = g.vertices()

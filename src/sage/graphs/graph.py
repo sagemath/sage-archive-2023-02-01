@@ -3082,6 +3082,15 @@ class GenericGraph(SageObject):
             sage: g = Graph({0:[1], 1:[2], 2:[3], 3:[4], 4:[0]})
             sage: g.plot(pos=pos, layout='spring', iterations=0)
 
+            sage: G = Graph()
+            sage: P = G.plot()
+            sage: P.axes()
+            False
+            sage: G = DiGraph()
+            sage: P = G.plot()
+            sage: P.axes()
+            False
+
         """
         from sage.plot.plot import networkx_plot, Graphics, rainbow
         import networkx

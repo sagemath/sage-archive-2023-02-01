@@ -267,6 +267,7 @@ import sage.graphs.graph_fast as graph_fast
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.graphs.graph_coloring import chromatic_number, chromatic_polynomial
+from sage.rings.rational import Rational
 
 class GenericGraph(SageObject):
     """

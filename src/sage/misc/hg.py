@@ -35,6 +35,9 @@ from   viewer import browser
 from   misc   import tmp_filename, branch_current_hg
 from   remote_file import get_remote_file as get_remote_file0
 from   sage.server.misc import print_open_msg
+import re
+
+sage_trac_re = re.compile('http[s]?://(sagetrac\.org|trac\.sagemath\.org)/sage_trac/attachment/ticket/[0-9]+/.*\.(patch|hg)')
 
 def get_remote_file(f, **kwds):
     """
@@ -250,7 +253,7 @@ class HG:
              update -- if True (the default), update the working directory after unbundling.
         """
         if bundle.startswith("http://") or bundle.startswith("https://"):
-            if 'attachment/ticket/' in bundle and bundle[-11:] != '?format=raw':
+            if sage_trac_re.match(bundle) and bundle.endswith('?format=raw'):
                 bundle += '?format=raw'
             bundle = get_remote_file(bundle, verbose=True)
         if bundle[-6:] == '.patch':

@@ -168,7 +168,7 @@ def test_notebook(admin_passwd, directory=None, port=8050, address='localhost'):
         sage: h.close()
         sage: 'html' in homepage
         True
-        sage: nb.close(force=True)
+        sage: nb.dispose()
         """
     if directory is None:
         directory = tmp_dir = tempfile.mkdtemp()
@@ -186,4 +186,11 @@ def test_notebook(admin_passwd, directory=None, port=8050, address='localhost'):
 
     p = notebook(directory=directory, port=port, address=address, open_viewer=False, fork=True, quiet=True)
     p.expect("Starting factory")
+    def dispose():
+        p.send('\x03') # control-C
+        p.expect("Press control-C again to exit")
+        p.send('\x03')
+        p.close(force=True)
+        shutil.rmtree(nb.directory())
+    p.dispose = dispose
     return p

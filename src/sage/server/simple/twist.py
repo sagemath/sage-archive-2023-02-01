@@ -12,8 +12,8 @@ Start the notebook:
     sage: nb = test_notebook(passwd, address='localhost', port=8095)
 
 Login to a new session:
-    sage: login_page = get_url('https://localhost:8095/simple/login?user=admin&password=%s' % passwd)
-    sage: print login_page # random session info
+    sage: login_page = get_url('https://localhost:8095/simple/login?username=admin&password=%s' % passwd)
+    sage: print login_page # random session id
     {
     "session": "2afee978c09b3d666c88b9b845c69608"
     }
@@ -67,7 +67,7 @@ Test out getting files:
 
 Log out:
     sage: _ = get_url('https://localhost:8095/simple/logout?session=%s' % session)
-    sage: nb.close(force=True)
+    sage: nb.dispose()
 """
 
 #############################################################################
@@ -78,12 +78,12 @@ Log out:
 #############################################################################
 
 
-import re, random, os.path
+import re, random, os.path, shutil, time
 
 from twisted.internet.threads import deferToThread
 from twisted.python import log
 from twisted.internet import defer, reactor
-from twisted.web.server import NOT_DONE_YET
+from twisted.cred import credentials
 
 from twisted.web2 import server, http, resource, channel
 from twisted.web2 import static, http_headers, responsecode
@@ -127,7 +127,7 @@ def simple_jsonize(data):
             return '"%s"' % value
 
 class SessionObject:
-    def __init__(self, id, username, worksheet, timeout=1):
+    def __init__(self, id, username, worksheet, timeout=5):
         self.id = id
         self.username = username
         self.worksheet = worksheet
@@ -152,15 +152,22 @@ class LoginResource(resource.Resource):
 
     def render(self, ctx):
         late_import()
-        username = "admin" # ctx.args['username'][0]
-        worksheet = notebook_twist.notebook.create_new_worksheet("_simple_session", username)
+        try:
+            username = ctx.args['username'][0]
+            password = ctx.args['password'][0]
+            U = notebook_twist.notebook.user(username)
+            if not U.password_is(password):
+                raise ValueError # want to return the same error message
+        except KeyError, ValueError:
+            return http.Response(stream = "Invalid login.")
+
+        worksheet = notebook_twist.notebook.create_new_worksheet("_simple_session_", username, add_to_list=False)
         worksheet.sage() # create the sage session
         worksheet.initialize_sage()
         # is this a secure enough random number?
         session_id = "%x" % random.randint(1, 1 << 128)
         session = SessionObject(session_id, username, worksheet)
         sessions[session_id] = session
-        # FOR TESTING
         sessions['test'] = session
         status = session.get_status()
         return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
@@ -168,17 +175,22 @@ class LoginResource(resource.Resource):
 class LogoutResource(resource.Resource):
 
     def render(self, ctx):
-        late_import()
-        session = sessions[ctx.args['session'][0]]
-        session.worksheet.notebook().delete_worksheet(session.worksheet.filename())
+        try:
+            session = sessions[ctx.args['session'][0]]
+        except KeyError:
+            return http.Response(stream = "Invalid session.")
+        session.worksheet.quit()
+        shutil.rmtree(session.worksheet.directory())
         status = session.get_status()
         return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
 
 class InterruptResource(resource.Resource):
 
     def render(self, ctx):
-        late_import()
-        session = sessions[ctx.args['session'][0]]
+        try:
+            session = sessions[ctx.args['session'][0]]
+        except KeyError:
+            return http.Response(stream = "Invalid session.")
         session.worksheet.interrupt()
         status = session.get_status()
         return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
@@ -186,24 +198,35 @@ class InterruptResource(resource.Resource):
 class RestartResource(resource.Resource):
 
     def render(self, ctx):
-        late_import()
-        session = sessions[ctx.args['session'][0]]
+        try:
+            session = sessions[ctx.args['session'][0]]
+        except KeyError:
+            return http.Response(stream = "Invalid session.")
         session.worksheet.restart_sage()
         status = session.get_status()
         return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
 
-class SessionStatus:
-
-    def render_session_status(self, session):
-        status = {}
-        return http.Response(stream = "\n".join([simple_jsonize(status), SEP]))
-
 class CellResource(resource.Resource):
 
-    def render_cell_result(self, cell):
+    def wait_for_comp(self, cell, timeout):
+        """
+        This function polls the worksheet and exits when the computation finishes
+        or timeout seconds have elapsed.
 
-        late_import()
+        It would seem twisted would have a builtin mechanism to do this...
+        """
+        t = time.time()
         cell.worksheet().check_comp()
+        if not cell.computing() or timeout <= 0:
+            return self.render_cell_result(cell)
+        else:
+            poll_freq = 0.25
+            d = defer.Deferred()
+            d.addCallback(self.wait_for_comp, timeout-poll_freq-(time.time()-t))
+            reactor.callLater(poll_freq, d.callback, cell)
+            return d
+
+    def render_cell_result(self, cell):
         if cell.interrupted():
             cell_status = 'interrupted'
         elif cell.computing():
@@ -215,48 +238,62 @@ class CellResource(resource.Resource):
         return http.Response(stream = "\n".join([simple_jsonize(status), SEP, result]))
 
 
+class ComputeResource(CellResource):
+
+    def render(self, ctx):
+        try:
+            session = sessions[ctx.args['session'][0]]
+        except KeyError:
+            return http.Response(stream = "Invalid session.")
+        try:
+            timeout = float(sessions[ctx.args['timeout'][0]])
+        except KeyError, ValueError:
+            timeout = session.default_timeout
+        cell = session.worksheet.append_new_cell()
+        cell.set_input_text(ctx.args['code'][0])
+        cell.evaluate(username = session.username)
+        return self.wait_for_comp(cell, timeout)
+
+
 class StatusResource(CellResource):
 
     def render(self, ctx):
-        session = sessions[ctx.args['session'][0]]
+        try:
+            session = sessions[ctx.args['session'][0]]
+        except KeyError:
+            return http.Response(stream = "Invalid session.")
         try:
             cell_id = int(ctx.args['cell'][0])
             cell = session.worksheet.get_cell_with_id(cell_id)
-            return self.render_cell_result(cell)
+            try:
+                timeout = float(sessions[ctx.args['timeout'][0]])
+            except KeyError, ValueError:
+                timeout = -1
+            return self.wait_for_comp(cell, timeout)
         except KeyError:
             status = session.get_status()
             return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))
+
 
 class FileResource(resource.Resource):
     """
     This differs from the rest as it does not print a header, just the raw file data.
     """
     def render(self, ctx):
-        session = sessions[ctx.args['session'][0]]
-        cell_id = int(ctx.args['cell'][0])
+        try:
+            session = sessions[ctx.args['session'][0]]
+        except KeyError:
+            return http.Response(code=404, stream = "Invalid session.")
+        try:
+            cell_id = int(ctx.args['cell'][0])
+            file_name = ctx.args['file'][0]
+        except KeyError:
+            return http.Response(code=404, stream = "Unspecified cell or file.")
         cell = session.worksheet.get_cell_with_id(cell_id)
-        file_name = ctx.args['file'][0]
         if file_name in cell.files():
             return static.File("%s/%s" % (cell.directory(), file_name))
         else:
             return http.Response(code=404, stream = "No such file %s in cell %s." % (file_name, cell_id))
-
-class ComputeResource(CellResource):
-
-    def render(self, ctx):
-        late_import()
-        session = sessions[ctx.args['session'][0]]
-        # is this a secure enough random number?
-        cell = session.worksheet.append_new_cell()
-        cell.set_input_text(ctx.args['code'][0])
-        cell.evaluate(username = session.username)
-        # session.worksheet.start_next_comp()
-
-        d = defer.Deferred()
-        d.addCallback(self.render_cell_result)
-        reactor.callLater(session.default_timeout, d.callback, cell) # is there a way to call this earlier?
-
-        return d
 
 
 class SimpleServer(resource.Resource):
@@ -271,4 +308,4 @@ class SimpleServer(resource.Resource):
     child_file = FileResource()
 
     def render(self, ctx):
-        return http.Response(stream="Yo!")
+        return http.Response(stream="Please login.")

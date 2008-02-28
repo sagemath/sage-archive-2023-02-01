@@ -303,7 +303,15 @@ class CrystalOfTableaux(TensorProductOfCrystals):
         r"""
         TESTS:
 	    sage: T=CrystalOfTableaux(['A',3],Partition([2,2]))
-	    sage: t=T(rows=[[1,2],[3,4]])
+	    sage: T(rows=[[1,2],[3,4]])
+	    [[1, 2], [3, 4]]
+	    sage: T(columns=[[3,1],[4,2]])
+	    [[1, 2], [3, 4]]
+	    sage: T(list=[3,1,4,2])
+	    [[1, 2], [3, 4]]
+	    sage: T(3,1,4,2)
+	    [[1, 2], [3, 4]]
+	    sage: t=T(3,1,4,2)
 	    sage: t.f(3)
 	    [[1, 2], [4, 4]]
         """

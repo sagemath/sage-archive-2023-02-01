@@ -250,6 +250,8 @@ class HG:
              update -- if True (the default), update the working directory after unbundling.
         """
         if bundle.startswith("http://") or bundle.startswith("https://"):
+            if 'attachment/ticket/' in bundle and bundle[-11:] != '?format=raw':
+                bundle += '?format=raw'
             bundle = get_remote_file(bundle, verbose=True)
         if bundle[-6:] == '.patch':
             self.import_patch(bundle, options)

@@ -63,6 +63,8 @@ from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integral_domain import is_IntegralDomain
 from sage.structure.parent_gens cimport ParentWithGens
 
+from sage.misc.derivative import multi_derivative
+
 import polynomial_fateman
 
 def is_Polynomial(f):
@@ -1580,20 +1582,97 @@ cdef class Polynomial(CommutativeAlgebraElement):
             d = d.lcm(y.denominator())
         return d
 
-    def derivative(self):
+
+    def derivative(self, *args):
+        r"""
+        The formal derivative of this polynomial, with respect to
+        variables supplied in args.
+
+        Multiple variables and iteration counts may be supplied; see
+        documentation for the global derivative() function for more details.
+
+        SEE ALSO:
+            self._derivative()
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: g = -x^4 + x^2/2 - x
+            sage: g.derivative()
+            -4*x^3 + x - 1
+            sage: g.derivative(x)
+            -4*x^3 + x - 1
+            sage: g.derivative(x, x)
+            -12*x^2 + 1
+            sage: g.derivative(x, 2)
+            -12*x^2 + 1
+
+            sage: R.<t> = PolynomialRing(ZZ)
+            sage: S.<x> = PolynomialRing(R)
+            sage: f = t^3*x^2 + t^4*x^3
+            sage: f.derivative()
+            3*t^4*x^2 + 2*t^3*x
+            sage: f.derivative(x)
+            3*t^4*x^2 + 2*t^3*x
+            sage: f.derivative(t)
+            4*t^3*x^3 + 3*t^2*x^2
         """
-        Return the derivative of this polynomial.
+        return multi_derivative(self, args)
+
+
+    def _derivative(self, var=None):
+        r"""
+        Return the formal derivative of this polynomial with respect
+        to the variable var.
+
+        If var is the generator of this polynomial ring (or the default
+        value None), this is the usual formal derivative.
+
+        Otherwise, _derivative(var) is called recursively for each of the
+        coefficients of this polynomial.
+
+        SEE ALSO:
+            self.derivative()
 
         EXAMPLES:
             sage: R.<x> = ZZ[]
-            sage: R(0).derivative()
+            sage: R(0)._derivative()
             0
-            sage: parent(R(0).derivative())
+            sage: parent(R(0)._derivative())
             Univariate Polynomial Ring in x over Integer Ring
+
             sage: f = 7*x^5 + x^2 - 2*x - 3
-            sage: f.derivative()
+            sage: f._derivative()
             35*x^4 + 2*x - 2
+            sage: f._derivative(None)
+            35*x^4 + 2*x - 2
+            sage: f._derivative(x)
+            35*x^4 + 2*x - 2
+
+        In the following example, it doesn't recognise 2*x as the generator, so it
+        tries to differentiate each of the coefficients with respect to 2*x, which
+        doesn't work because the integer coefficients don't have a _derivative() method:
+            sage: f._derivative(2*x)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.rings.integer.Integer' object has no attribute '_derivative'
+
+        Examples illustrating recursive behaviour:
+            sage: R.<x> = ZZ[]
+            sage: S.<y> = PolynomialRing(R)
+            sage: f = x^3 + y^3
+            sage: f._derivative()
+            3*y^2
+            sage: f._derivative(y)
+            3*y^2
+            sage: f._derivative(x)
+            3*x^2
+
         """
+        if var is not None and var is not self._parent.gen():
+            # call _derivative() recursively on coefficients
+            return self.polynomial([coeff._derivative(var) for coeff in self.list()])
+
+        # compute formal derivative with respect to generator
         if self.is_zero():
             return self
         cdef Py_ssize_t n, degree = self.degree()
@@ -1601,6 +1680,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.parent()(0)
         coeffs = self.list()
         return self.polynomial([n*coeffs[n] for n from 1 <= n <= degree])
+
 
     def integral(self):
         """

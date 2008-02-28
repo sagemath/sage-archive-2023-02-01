@@ -3706,7 +3706,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             y += codomain(c)*mul([ im_gens[i]**m[i] for i in range(n) if m[i]])
         return y
 
-    def diff(self, MPolynomial_libsingular variable, have_ring=True):
+
+    def _derivative(self, MPolynomial_libsingular var):
         """
         Differentiates self with respect to the provided variable. This
         is completely symbolic so it is also defined over e.g. finite
@@ -3716,33 +3717,40 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             variable -- the derivative is taken with respect to variable
             have_ring -- ignored, accepted for compatibility reasons
 
+        SEE ALSO:
+            self.derivative()
+
         EXAMPLES:
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: f = 3*x^3*y^2 + 5*y^2 + 3*x + 2
-            sage: f.diff(x)
+            sage: f._derivative(x)
             9*x^2*y^2 + 3
-            sage: f.diff(y)
+            sage: f._derivative(y)
             6*x^3*y + 10*y
 
-            The derivate is also defined over finite fields:
+        The derivative is also defined over finite fields:
 
             sage: R.<x,y> = PolynomialRing(GF(2**8, 'a'),2)
             sage: f = x^3*y^2 + y^2 + x + 2
-            sage: f.diff(x)
+            sage: f._derivative(x)
             x^2*y^2 + 1
 
         """
+        if var is None:
+            raise ValueError, "you must specify which variable with respect to which to differentiate"
+
         cdef int i, var_i
 
         cdef poly *p
-        if variable._parent is not self._parent:
+        if var._parent is not self._parent:
             raise TypeError, "provided variable is not in same ring as self"
         cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
-        if _ring != currRing: rChangeCurrRing(_ring)
+        if _ring != currRing:
+            rChangeCurrRing(_ring)
 
         var_i = -1
         for i from 0 <= i <= _ring.N:
-            if p_GetExp(variable._poly, i, _ring):
+            if p_GetExp(var._poly, i, _ring):
                 if var_i == -1:
                     var_i = i
                 else:
@@ -3751,9 +3759,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if var_i == -1:
             raise TypeError, "provided variable is constant"
 
-
         p = pDiff(self._poly, var_i)
         return co.new_MP(self._parent,p)
+
 
     def resultant(self, MPolynomial_libsingular other, variable=None):
         """

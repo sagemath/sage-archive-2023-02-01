@@ -223,21 +223,6 @@ def denominator(x):
         return 1
     return x.denominator()
 
-def derivative(x):
-    """
-    Return the derivative of a polynomial x.
-
-    EXAMPLES:
-        sage: f = cyclotomic_polynomial(10)
-        sage: derivative(f)
-        4*x^3 - 3*x^2 + 2*x - 1
-        sage: R.<x> = PolynomialRing(GF(7))
-        sage: f = x^7 + x
-        sage: derivative(f)
-        1
-    """
-    return x.derivative()
-
 def det(x):
     """
     Return the determinant of x.

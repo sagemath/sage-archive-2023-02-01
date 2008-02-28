@@ -125,13 +125,13 @@ EXAMPLES:
         arcsinh(x/3)
         sage: f(3)
         arcsinh(1)
-        sage: f.diff(x)
+        sage: f.derivative(x)
         1/(3*sqrt(x^2/9 + 1))
 
     We compute the length of the parabola from 0 to 2:
         sage: x = var('x')
         sage: y = x^2
-        sage: dy = diff(y,x)
+        sage: dy = derivative(y,x)
         sage: z = integral(sqrt(1 + dy^2), x, 0, 2)
         sage: print z
                              arcsinh(4) + 4 sqrt(17)
@@ -281,6 +281,8 @@ from sage.libs.pari.gen import pari, PariError, gen as PariGen
 from sage.rings.complex_double import ComplexDoubleElement
 
 import sage.functions.constants
+
+from sage.misc.derivative import multi_derivative, derivative_parse
 
 import math
 import sage.functions.functions
@@ -1844,101 +1846,158 @@ class SymbolicExpression(RingElement):
     ###################################################################
     # derivative
     ###################################################################
+
+    def _derivative(self, var=None):
+        r"""
+        Derivative of self with respect to var (a symbolic variable).
+
+        If var is None, self must contain only one variable, and the result
+        is the derivative with respect to that variable.
+
+        If var does not appear in self, the result is zero.
+
+        SEE ALSO:
+            self.derivative()
+
+        EXAMPLES:
+            sage: x = var("x"); y = var("y"); z = var("z")
+            sage: f = sin(x) * cos(y)
+            sage: f._derivative(x)
+            cos(x)*cos(y)
+            sage: f._derivative(y)
+            -sin(x)*sin(y)
+            sage: f._derivative(z)
+            0
+            sage: f._derivative()
+            Traceback (most recent call last):
+            ...
+            ValueError: must supply an explicit variable for an expression containing more than one variable
+
+            sage: f = sin(x)
+            sage: f._derivative()
+            cos(x)
+
+            sage: f._derivative(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: arguments must be SymbolicVariable objects
+
+        """
+        if var is None:
+            # use default variable, if we can figure it out
+            vars = self.variables()
+            if len(vars) > 1:
+                raise ValueError, "must supply an explicit variable for an " +\
+                                  "expression containing more than one variable"
+            if len(vars) == 0:
+                # no variables in expression, derivative must be zero
+                return self.parent()(0)
+            var = vars[0]
+
+        elif not isinstance(var, SymbolicVariable):
+            raise TypeError, "arguments must be SymbolicVariable objects"
+
+        t = maxima('diff(%s, %s)' % (self._maxima_().name(), repr(var)))
+        f = self.parent()(t)
+        return f
+
+
     def derivative(self, *args):
         r"""
-        Returns the derivative of itself. If \code{self} has exactly
-        one variable, then it differentiates with respect to that
-        variable. If there is more than one variable in the
-        expression, then you must explicitly supply a variable.  If
-        you supply a variable $x$ followed by a number $n$, then it
-        will differentiate $n$ times with respect to $x$.
+        Derivative with respect to variables supplied in args.
 
-        You may supply more than one variable. Each variable may
-        optionally be followed by a positive integer. Then \sage will
-        differentiate with respect to the first variable $n$ times,
-        where $n$ is the number immediately following the variable in
-        the parameter list. If the variable is not followed by an
-        integer, then SAGE will differentiate once. Then SAGE will
-        differentiate by the second variables, and if that is followed
-        by a number $m$, it will differentiate $m$ times, and so on.
+        Multiple variables and iteration counts may be supplied; see
+        documentation for the global derivative() function for more details.
+
+        SEE ALSO:
+            self._derivative()
 
         EXAMPLES:
             sage: h = sin(x)/cos(x)
-            sage: diff(h,x,x,x)
+            sage: derivative(h,x,x,x)
             6*sin(x)^4/cos(x)^4 + 8*sin(x)^2/cos(x)^2 + 2
-            sage: diff(h,x,3)
+            sage: derivative(h,x,3)
             6*sin(x)^4/cos(x)^4 + 8*sin(x)^2/cos(x)^2 + 2
 
             sage: var('x, y')
             (x, y)
             sage: u = (sin(x) + cos(y))*(cos(x) - sin(y))
-            sage: diff(u,x,y)
+            sage: derivative(u,x,y)
             sin(x)*sin(y) - cos(x)*cos(y)
             sage: f = ((x^2+1)/(x^2-1))^(1/4)
-            sage: g = diff(f, x); g # this is a complex expression
+            sage: g = derivative(f, x); g # this is a complex expression
             x/(2*(x^2 - 1)^(1/4)*(x^2 + 1)^(3/4)) - x*(x^2 + 1)^(1/4)/(2*(x^2 - 1)^(5/4))
             sage: g.simplify_rational()
             -x/((x^2 - 1)^(5/4)*(x^2 + 1)^(3/4))
 
             sage: f = y^(sin(x))
-            sage: diff(f, x)
+            sage: derivative(f, x)
             cos(x)*y^sin(x)*log(y)
 
             sage: g(x) = sqrt(5-2*x)
-            sage: g_3 = diff(g, x, 3); g_3(2)
+            sage: g_3 = derivative(g, x, 3); g_3(2)
             -3
 
             sage: f = x*e^(-x)
-            sage: diff(f, 100)
+            sage: derivative(f, 100)
             x*e^(-x) - 100*e^(-x)
 
             sage: g = 1/(sqrt((x^2-1)*(x+5)^6))
-            sage: diff(g, x)
+            sage: derivative(g, x)
             -3*(x + 5)^5/(((x + 5)^6)^(3/2)*sqrt(x^2 - 1)) - x/(sqrt((x + 5)^6)*(x^2 - 1)^(3/2))
         """
-        # check each time
-        s = ""
-        # see if we can implicitly supply a variable name
-        try:
-            a = args[0]
-        except IndexError:
-            # if there were NO arguments, try assuming
-            a = 1
-        if a is None or isinstance(a, (int, long, Integer)):
-            vars = self.variables()
-            if len(vars) == 1:
-                s = "%s, %s" % (vars[0], a)
-            else:
-                raise ValueError, "must supply an explicit variable for an " +\
-                                "expression containing more than one variable"
-        for i in range(len(args)):
-            if isinstance(args[i], SymbolicVariable):
-                s = s + '%s, ' %repr(args[i])
-                # check to see if this is followed by an integer
-                try:
-                    if isinstance(args[i+1], (int, long, Integer)):
-                        s = s + '%s, ' %repr(args[i+1])
-                    else:
-                        s = s + '1, '
-                except IndexError:
-                    s = s + '1'
-            elif isinstance(args[i], (int, long, Integer)):
-                if args[i] == 0:
-                    return self
-                if args[i] < 0:
-                    raise ValueError, "cannot take negative derivative"
-            else:
-                raise TypeError, "arguments must be integers or " +\
-                                 "SymbolicVariable objects"
+        # note: it would be simpler to use multi_derivative() here instead of all
+        # the code below. The reason we do it this way is to reduce the number of
+        # calls to maxima wherever possible.
 
-        try:
-            if s[-2] == ',':
-                s = s[:-2]
-        except IndexError:
-            pass
-        t = maxima('diff(%s, %s)'%(self._maxima_().name(), s))
-        f = self.parent()(t)
-        return f
+        args = derivative_parse(args)
+
+        if not args:
+            # no differentation taking place
+            return self
+
+        # check all variables are really variables
+        for arg in args:
+            if arg is not None and not isinstance(arg, SymbolicVariable):
+                raise TypeError, "arguments must be SymbolicVariable objects"
+
+        vars = self.variables()
+
+        if len(vars) == 0:
+            # self has no variables, so result must be zero
+            return self.parent()(0)
+
+        if len(vars) == 1:
+            # self has exactly one variable. If the argument list contains
+            # a different variable somewhere, the result has to be zero.
+            for arg in args:
+                if arg is not None and arg is not vars[0]:
+                    return self.parent()(0)
+
+            # otherwise we're differentating with respect to that
+            # variable n times (each None may be assumed to correspond
+            # to that variable).
+            t = maxima('diff(%s, %s, %d)' % (self._maxima_().name(), repr(vars[0]), len(args)))
+            return self.parent()(t)
+
+        # There's more than one variable in self.
+        # If None appears anywhere in args, we'll just have to differentiate
+        # one step at a time, since we can't tell in advance what the "default"
+        # variable is going to be.
+        if None in args:
+            F = self
+            for arg in args:
+                F = F._derivative(arg)
+            return F
+
+        # The list of arguments is completely explicit, so we do it in
+        # a single maxima call
+        s = ""
+        for arg in args:
+            s = s + ", " + repr(arg) + ", 1"
+        t = maxima('diff(%s%s)' % (self._maxima_().name(), s))
+        return self.parent()(t)
+
 
     differentiate = derivative
     diff = derivative

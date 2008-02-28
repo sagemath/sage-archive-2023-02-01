@@ -158,15 +158,43 @@ class Polynomial_generic_sparse(Polynomial):
             return infinity
         return ZZ(min(self.__coeffs.keys()))
 
-    def derivative(self):
+    def _derivative(self, var=None):
         """
+        Computes formal derivative of this polynomial with respect to
+        the given variable.
+
+        If var is None or is the generator of this ring, the derivative
+        is with respect to the generator. Otherwise, _derivative(var) is called
+        recursively for each coefficient of this polynomial.
+
+        SEE ALSO:
+            self.derivative()
+
         EXAMPLES:
             sage: R.<w> = PolynomialRing(ZZ, sparse=True)
             sage: f = R(range(9)); f
             8*w^8 + 7*w^7 + 6*w^6 + 5*w^5 + 4*w^4 + 3*w^3 + 2*w^2 + w
-            sage: f.derivative()
+            sage: f._derivative()
             64*w^7 + 49*w^6 + 36*w^5 + 25*w^4 + 16*w^3 + 9*w^2 + 4*w + 1
+            sage: f._derivative(w)
+            64*w^7 + 49*w^6 + 36*w^5 + 25*w^4 + 16*w^3 + 9*w^2 + 4*w + 1
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: S.<y> = PolynomialRing(R, sparse=True)
+            sage: f = x^3*y^4
+            sage: f._derivative()
+            4*x^3*y^3
+            sage: f._derivative(y)
+            4*x^3*y^3
+            sage: f._derivative(x)
+            3*x^2*y^4
         """
+        if var is not None and var is not self.parent().gen():
+            # call _derivative() recursively on coefficients
+            return self.polynomial(dict([(n, c._derivative(var)) \
+                                         for (n, c) in self.__coeffs.iteritems()]))
+
+        # compute formal derivative with respect to generator
         d = {}
         for n, c in self.__coeffs.iteritems():
             d[n-1] = n*c

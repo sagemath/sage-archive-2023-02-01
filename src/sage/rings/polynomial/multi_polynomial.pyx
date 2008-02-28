@@ -1,5 +1,7 @@
 import sage.misc.misc as misc
 
+from sage.misc.derivative import multi_derivative
+
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
 
@@ -165,6 +167,63 @@ cdef class MPolynomial(CommutativeRingElement):
             monom = misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
             expr = expr + monom
         return expr
+
+
+    def derivative(self, *args):
+        r"""
+        The formal derivative of this polynomial, with respect to
+        variables supplied in args.
+
+        Multiple variables and iteration counts may be supplied; see
+        documentation for the global derivative() function for more details.
+
+        SEE ALSO:
+            self._derivative()
+
+        EXAMPLES:
+
+        Polynomials implemented via Singular:
+            sage: R.<x, y> = PolynomialRing(FiniteField(5))
+            sage: f = x^3*y^5 + x^7*y
+            sage: type(f)
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
+            sage: f.derivative(x)
+            2*x^6*y - 2*x^2*y^5
+            sage: f.derivative(y)
+            x^7
+
+        Generic multivariate polynomials:
+            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: S.<x, y> = PolynomialRing(R)
+            sage: f = (t^2 + O(t^3))*x^2*y^3 + (37*t^4 + O(t^5))*x^3
+            sage: type(f)
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            sage: f.derivative(x)   # with respect to x
+            (2*t^2 + O(t^3))*x*y^3 + (111*t^4 + O(t^5))*x^2
+            sage: f.derivative(y)   # with respect to y
+            (3*t^2 + O(t^3))*x^2*y^2
+            sage: f.derivative(t)   # with respect to t (recurses into base ring)
+            (2*t + O(t^2))*x^2*y^3 + (148*t^3 + O(t^4))*x^3
+            sage: f.derivative(x, y) # with respect to x and then y
+            (6*t^2 + O(t^3))*x*y^2
+            sage: f.derivative(y, 3) # with respect to y three times
+            (6*t^2 + O(t^3))*x^2
+            sage: f.derivative()    # can't figure out the variable
+            Traceback (most recent call last):
+            ...
+            ValueError: must specify which variable to differentiate with respect to
+
+        Polynomials over the symbolic ring (just for fun....):
+            sage: x = var("x")
+            sage: S.<u, v> = PolynomialRing(SR)
+            sage: f = u*v*x
+            sage: f.derivative(x) == u*v
+            True
+            sage: f.derivative(u) == v*x
+            True
+        """
+        return multi_derivative(self, args)
+
 
     def polynomial(self, var):
         """

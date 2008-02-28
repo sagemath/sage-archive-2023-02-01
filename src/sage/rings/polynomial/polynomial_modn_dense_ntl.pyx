@@ -354,10 +354,10 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
     def lcm(self, singular=singular_default, have_ring=False):
         return polynomial_singular_interface.lcm_func(self, singular, have_ring)
-    def diff(self, variable, have_ring=False):
-        return self.derivative()
+
     def resultant(self, other, variable=None):
         return polynomial_singular_interface.resultant_func(self, other, variable)
+
 
 
 
@@ -700,19 +700,43 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         zz_pX_RightShift(r.x, self.x, n)
         return r
 
-    def derivative(self):
-        """
-        Returns the formal derivative of self.
+    def _derivative(self, var=None):
+        r"""
+        Returns the formal derivative of self with respect to var.
+
+        var must be either the generator of the polynomial ring to which
+        this polynomial belongs, or None (either way the behaviour is the
+        same).
+
+        SEE ALSO:
+            self.derivative()
 
         EXAMPLES:
             sage: R.<x> = Integers(77)[]
             sage: f = x^4 - x - 1
-            sage: f.derivative()
+            sage: f._derivative()
             4*x^3 + 76
+            sage: f._derivative(None)
+            4*x^3 + 76
+
+            sage: f._derivative(2*x)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to 2*x
+
+            sage: y = var("y")
+            sage: f._derivative(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to y
         """
+        if var is not None and var is not self._parent.gen():
+            raise ValueError, "cannot differentiate with respect to %s" % var
+
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         zz_pX_diff(r.x, self.x)
         return r
+
 
     def reverse(self):
         """
@@ -1179,19 +1203,44 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         ZZ_pX_RightShift(r.x, self.x, n)
         return r
 
-    def derivative(self):
-        """
-        Returns the formal derivative of self.
+
+    def _derivative(self, var=None):
+        r"""
+        Returns the formal derivative of self with respect to var.
+
+        var must be either the generator of the polynomial ring to which
+        this polynomial belongs, or None (either way the behaviour is the
+        same).
+
+        SEE ALSO:
+            self.derivative()
 
         EXAMPLES:
             sage: R.<x> = Integers(12^29)[]
             sage: f = x^4 + x + 5
-            sage: f.derivative()
+            sage: f._derivative()
             4*x^3 + 1
+            sage: f._derivative(None)
+            4*x^3 + 1
+
+            sage: f._derivative(2*x)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to 2*x
+
+            sage: y = var("y")
+            sage: f._derivative(y)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate with respect to y
         """
+        if var is not None and var is not self._parent.gen():
+            raise ValueError, "cannot differentiate with respect to %s" % var
+
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
         ZZ_pX_diff(r.x, self.x)
         return r
+
 
     def reverse(self):
         """

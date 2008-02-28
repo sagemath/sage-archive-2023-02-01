@@ -56,6 +56,8 @@ from sage.rings.integer import Integer
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, AlgebraElement
 
+from sage.misc.derivative import multi_derivative
+
 include "../ext/stdsage.pxi"
 
 def is_LaurentSeries(x):
@@ -882,19 +884,76 @@ cdef class LaurentSeries(AlgebraElement):
     def copy(self):
         return LaurentSeries(self._parent, self.__u.copy(), self.__n)
 
-    def derivative(self):
+
+    def derivative(self, *args):
         """
-        The formal derivative of this Laurent series.
+        The formal derivative of this Laurent series, with respect to
+        variables supplied in args.
+
+        Multiple variables and iteration counts may be supplied; see
+        documentation for the global derivative() function for more details.
+
+        SEE ALSO:
+            self._derivative()
+
+        EXAMPLES:
+            sage: R.<x> = LaurentSeriesRing(QQ)
+            sage: g = 1/x^10 - x + x^2 - x^4 + O(x^8)
+            sage: g.derivative()
+            -10*x^-11 - 1 + 2*x - 4*x^3 + O(x^7)
+            sage: g.derivative(x)
+            -10*x^-11 - 1 + 2*x - 4*x^3 + O(x^7)
+
+            sage: R.<t> = PolynomialRing(ZZ)
+            sage: S.<x> = LaurentSeriesRing(R)
+            sage: f = 2*t/x + (3*t^2 + 6*t)*x + O(x^2)
+            sage: f.derivative()
+            -2*t*x^-2 + (3*t^2 + 6*t) + O(x)
+            sage: f.derivative(x)
+            -2*t*x^-2 + (3*t^2 + 6*t) + O(x)
+            sage: f.derivative(t)
+            2*x^-1 + (6*t + 6)*x + O(x^2)
+        """
+        return multi_derivative(self, args)
+
+
+    def _derivative(self, var=None):
+        """
+        The formal derivative of this Laurent series with respect to var.
+
+        If var is None or the generator of this ring, it's the formal
+        derivative as expected. Otherwise, _derivative(var) gets called
+        recursively on each coefficient.
+
+        SEE ALSO:
+            self.derivative()
 
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
             sage: f = x^2 + 3*x^4 + O(x^7)
-            sage: f.derivative()
+            sage: f._derivative()
+            2*x + 12*x^3 + O(x^6)
+            sage: f._derivative(x)
             2*x + 12*x^3 + O(x^6)
             sage: g = 1/x^10 - x + x^2 - x^4 + O(x^8)
-            sage: g.derivative()
+            sage: g._derivative()
             -10*x^-11 - 1 + 2*x - 4*x^3 + O(x^7)
+
+        Differentiating with respect to something other than the generator
+        gets recursed into the base ring:
+            sage: R.<t> = PolynomialRing(ZZ)
+            sage: S.<x> = LaurentSeriesRing(R)
+            sage: f = 2*t/x + (3*t^2 + 6*t)*x + O(x^2)
+            sage: f._derivative(t)
+            2*x^-1 + (6*t + 6)*x + O(x^2)
         """
+        if var is not None and var is not self._parent.gen():
+            # call _derivative() recursively on coefficients
+            u = [coeff._derivative(var) for coeff in self.__u.list()]
+            u = self._parent.power_series_ring()(u, self.__u.prec())
+            return LaurentSeries(self._parent, u, self.__n)
+
+        # compute formal derivative with respect to generator
         if self.is_zero():
             return LaurentSeries(self._parent, 0, self.__u.prec() - 1)
         cdef long m, n = self.__n
@@ -902,6 +961,7 @@ cdef class LaurentSeries(AlgebraElement):
         v = [(n+m)*a[m] for m from 0 <= m < len(a)]
         u = self._parent.power_series_ring()(v, self.__u.prec())
         return LaurentSeries(self._parent, u, n-1)
+
 
     def integral(self):
         r"""

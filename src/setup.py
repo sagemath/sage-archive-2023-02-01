@@ -673,6 +673,9 @@ ext_modules = [ \
     Extension('sage.ext.interactive_constructors_c',
               sources = ['sage/ext/interactive_constructors_c.pyx']), \
 
+    Extension('sage.misc.derivative',
+              sources = ['sage/misc/derivative.pyx']), \
+
     Extension('sage.misc.cython_c',
               sources = ['sage/misc/cython_c.pyx']), \
 

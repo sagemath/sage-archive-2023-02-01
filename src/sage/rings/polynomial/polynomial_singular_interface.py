@@ -275,7 +275,7 @@ class Polynomial_singular_repr:
     polynomial classes which support conversion from and to
     Singular polynomials.
 
-    Due to the incompatablity of Python extension classes and multiple inheritance,
+    Due to the incompatibility of Python extension classes and multiple inheritance,
     this just defers to module-level functions.
     """
     def _singular_(self, singular=singular_default, have_ring=False, force=False):
@@ -284,11 +284,8 @@ class Polynomial_singular_repr:
         return _singular_init_func(self, singular, have_ring, force)
     def lcm(self, singular=singular_default, have_ring=False):
         return lcm_func(self, singular, have_ring)
-    def diff(self, variable, have_ring=False):
-        return diff_func(self, variable, have_ring)
     def resultant(self, other, variable=None):
         return resultant_func(self, other, variable)
-
 
 def _singular_func(self, singular=singular_default, have_ring=False, force=False):
     """
@@ -389,49 +386,6 @@ def lcm_func(self, right, have_ring=False):
     """
     lcm = self._singular_(have_ring=have_ring).lcm(right._singular_(have_ring=have_ring))
     return lcm.sage_poly(self.parent())
-
-def diff_func(self, variable, have_ring=False):
-    """
-    Differentiates self with respect to the provided variable. This
-    is completely symbolic so it is also defined over e.g. finite
-    fields.
-
-    INPUT:
-        variable -- the derivative is taken with respect to variable
-        have_ring -- see self._singular_() (default:False)
-
-    EXAMPLES:
-        sage: R.<x,y> = PolynomialRing(RR,2)
-        sage: f = 3*x^3*y^2 + 5*y^2 + 3*x + 2
-        sage: f.diff(x)
-        9.00000000000000*x^2*y^2 + 3.00000000000000
-        sage: f.diff(y)
-        6.00000000000000*x^3*y + 10.0000000000000*y
-
-        The derivate is also defined over finite fields:
-
-        sage: R.<x,y> = PolynomialRing(GF(2**8, 'a'),2)
-        sage: f = x^3*y^2 + y^2 + x + 2
-        sage: f.diff(x)
-        x^2*y^2 + 1
-
-        The new coefficients are coerced to the base ring:
-
-        sage: f.diff(y)
-        0
-
-        sage: w = var('w')
-        sage: R.<x,y> = PolynomialRing(NumberField(w^3-2, 'a'),2)
-        sage: a=R.base_ring().0
-        sage: f = x^3*y^2 + y^2 + a*x + 2
-        sage: f.diff(x)
-        3*x^2*y^2 + a
-
-    ALGORITHM: Singular
-
-    """
-    df = self._singular_(have_ring=have_ring).diff(variable._singular_(have_ring=have_ring))
-    return df.sage_poly(self.parent())
 
 
 def resultant_func(self, other, variable=None):

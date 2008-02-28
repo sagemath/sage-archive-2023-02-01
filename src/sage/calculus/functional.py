@@ -60,6 +60,12 @@ def derivative(f, *args, **kwds):
     """
     The derivative of $f$.
 
+    Repeated differentation is supported by the syntax given in the
+    examples below.
+
+    ALIASES:
+        diff, differentiate
+
     EXAMPLES:
     We differentiate a callable symbolic function:
         sage: f(x,y) = x*y + sin(x^2) + e^(-x)
@@ -76,15 +82,48 @@ def derivative(f, *args, **kwds):
         -t^5 + 5*t^4 - 10*t^3 + 10*t^2 - 5*t + 1
         sage: derivative(f)
         -5*t^4 + 20*t^3 - 30*t^2 + 20*t - 5
+        sage: derivative(f, t)
+        -5*t^4 + 20*t^3 - 30*t^2 + 20*t - 5
+        sage: derivative(f, t, t)
+        -20*t^3 + 60*t^2 - 60*t + 20
+        sage: derivative(f, t, 2)
+        -20*t^3 + 60*t^2 - 60*t + 20
+        sage: derivative(f, 2)
+        -20*t^3 + 60*t^2 - 60*t + 20
 
     We differentiate a symbolic expression:
         sage: var('a x')
         (a, x)
         sage: f = exp(sin(a - x^2))/x
-        sage: diff(f, x)
+        sage: derivative(f, x)
         -2*cos(x^2 - a)*e^(-sin(x^2 - a)) - e^(-sin(x^2 - a))/x^2
-        sage: diff(f, a)
+        sage: derivative(f, a)
         cos(x^2 - a)*e^(-sin(x^2 - a))/x
+
+    Syntax for repeated differentiation:
+        sage: R.<u, v> = PolynomialRing(QQ)
+        sage: f = u^4*v^5
+        sage: derivative(f, u)
+        4*u^3*v^5
+        sage: f.derivative(u)   # can always used method notation too
+        4*u^3*v^5
+
+        sage: derivative(f, u, u)
+        12*u^2*v^5
+        sage: derivative(f, u, u, u)
+        24*u*v^5
+        sage: derivative(f, u, 3)
+        24*u*v^5
+
+        sage: derivative(f, u, v)
+        20*u^3*v^4
+        sage: derivative(f, u, 2, v)
+        60*u^2*v^4
+        sage: derivative(f, u, v, 2)
+        80*u^3*v^3
+        sage: derivative(f, [u, v, v])
+        80*u^3*v^3
+
     """
     try:
         return f.derivative(*args, **kwds)

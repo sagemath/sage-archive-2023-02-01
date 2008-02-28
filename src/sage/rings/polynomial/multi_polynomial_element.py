@@ -292,6 +292,9 @@ class MPolynomial_macaulay2_repr:
 
 
 class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr, MPolynomial_element):
+    r"""
+    Multivariate polynomials implemented in pure python using polydicts.
+    """
     def __init__(self, parent, x):
         """
         EXAMPLES:
@@ -1030,7 +1033,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         """
         Quotient of division of self by other.  This is denoted //.
         """
-        # handle division my monomials without using Singular
+        # handle division by monomials without using Singular
         if len(right.dict()) == 1:
             P = self.parent()
             ret = 0
@@ -1042,6 +1045,62 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         Q, _ = self.quo_rem(right)
         return Q
+
+
+    def _derivative(self, var=None):
+        r"""
+        Differentiates self with respect to variable var.
+
+        If var is not one of the generators of this ring, _derivative(var)
+        is called recursively on each coefficient of this polynomial.
+
+        SEE ALSO:
+            self.derivative()
+
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: S.<x, y> = PolynomialRing(R)
+            sage: f = (t^2 + O(t^3))*x^2*y^3 + (37*t^4 + O(t^5))*x^3
+            sage: type(f)
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            sage: f.derivative(x)   # with respect to x
+            (2*t^2 + O(t^3))*x*y^3 + (111*t^4 + O(t^5))*x^2
+            sage: f.derivative(y)   # with respect to y
+            (3*t^2 + O(t^3))*x^2*y^2
+            sage: f.derivative(t)   # with respect to t (recurses into base ring)
+            (2*t + O(t^2))*x^2*y^3 + (148*t^3 + O(t^4))*x^3
+            sage: f.derivative(x, y) # with respect to x and then y
+            (6*t^2 + O(t^3))*x*y^2
+            sage: f.derivative(y, 3) # with respect to y three times
+            (6*t^2 + O(t^3))*x^2
+            sage: f.derivative()    # can't figure out the variable
+            Traceback (most recent call last):
+            ...
+            ValueError: must specify which variable to differentiate with respect to
+        """
+        if var is None:
+            raise ValueError, "must specify which variable to differentiate with respect to"
+
+        gens = list(self.parent().gens())
+
+        # check if var is one of the generators
+        try:
+            index = gens.index(var)
+        except ValueError:
+            # var is not a generator; do term-by-term differentiation recursively
+            d = dict([(e, x._derivative(var)) for (e, x) in self.dict().iteritems()])
+            d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
+            return MPolynomial_polydict(self.parent(), d)
+
+        # differentiate w.r.t. indicated variable
+        d = {}
+        v = polydict.ETuple({index:1}, len(gens))
+        for (exp, coeff) in self.dict().iteritems():
+            if exp[index] > 0:
+                d[exp.esub(v)] = coeff * exp[index]
+        d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
+        return MPolynomial_polydict(self.parent(), d)
+
 
     def factor(self):
         r"""

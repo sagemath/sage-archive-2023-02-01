@@ -5401,14 +5401,27 @@ class CallableSymbolicExpression(SymbolicExpression):
             return "(%s) |--> %s" % (args, self._expr._repr_(simplify=simplify))
 
     def _latex_(self):
+        """
+        Finds the LaTeX representation of this expression.
+
+        EXAMPLES:
+            sage: f(A, t, omega, psi) = A*cos(omega*t - psi)
+            sage: f._latex_()
+            '\\left(A, t, \\omega, \\psi \\right)\\ {\\mapsto}\\ {\\cos \\left( {\\omega t} - \\psi \\right) A}'
+
+            sage: f(mu) =  mu^3
+            sage: f._latex_()
+            '\\mu \\ {\\mapsto}\\ {\\mu}^{3} '
+        """
         args = self.args()
+        args = [arg._latex_() for arg in args]
         if len(args) == 1:
             return "%s \\ {\mapsto}\\ %s" % (args[0],
                     self._expr._latex_())
         else:
-            vars = ", ".join(map(latex, args))
+            vars = ", ".join(args)
             # the weird TeX is to workaround an apparent JsMath bug
-            return "\\left(%s \\right)\\ {\\mapsto}\\ %s" % (args, self._expr._latex_())
+            return "\\left(%s \\right)\\ {\\mapsto}\\ %s" % (vars, self._expr._latex_())
 
     def _neg_(self):
         return CallableSymbolicExpression(self.parent(), -self._expr)

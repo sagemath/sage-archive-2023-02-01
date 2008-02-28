@@ -147,7 +147,7 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         else:
             gsl_vector_set(self.v,i,x)
 
-    def __getitem__(self,size_t i):
+    def __getitem__(self, Py_ssize_t i):
         """
         Return the ith entry of self.
 
@@ -156,14 +156,22 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
             (1.0, 1.41421356237, -1.0)
             sage: a = v[1]; a
             1.41421356237
+            sage: v[-2]
+            1.41421356237
             sage: parent(a)
             Real Double Field
             sage: v[5]
             Traceback (most recent call last):
             ...
             IndexError: index out of range
+            sage: v[-5]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
         """
         cdef RealDoubleElement x
+        if i < 0:
+            i += self.v.size
         if not self.v or i < 0 or i >=self.v.size:
             raise IndexError, 'index out of range'
         else:

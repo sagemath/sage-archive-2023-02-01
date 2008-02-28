@@ -186,8 +186,31 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     def __getitem__(self, Py_ssize_t i):
         """
         Return the ith entry of self.
+
+        EXAMPLES:
+            sage: R = Integers(7)
+            sage: v = vector(R, [1,2,3]); v
+            (1, 2, 3)
+            sage: v[0]
+            1
+            sage: v[2]
+            3
+            sage: v[-2]
+            2
+            sage: v[5]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: v[-5]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+
         """
         cdef IntegerMod_int n
+
+        if i < 0:
+            i += self._degree
 
         if i < 0 or i >= self._degree:
             raise IndexError, 'index out of range'

@@ -1335,15 +1335,31 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     def __getitem__(self, Py_ssize_t i):
         """
+        EXAMPLES:
+            sage: v = vector([RR(1), RR(2)]); v
+            (1.00000000000000, 2.00000000000000)
+            sage: v[0]
+            1.00000000000000
+            sage: v[-1]
+            2.00000000000000
+            sage: v[4]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between -2 and 1
+            sage: v[-4]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between -2 and 1
+
         """
         if isinstance(i, slice):
             return list(self)[i]
+        degree = self.degree()
         i = int(i)
-        #if not isinstance(i, int):
-        #    raise TypeError, "index must an integer"
+        if i < 0:
+            i += degree
         if i < 0 or i >= self.degree():
-            raise IndexError, "index (i=%s) must be between 0 and %s"%(i,
-                            self.degree()-1)
+            raise IndexError, "index must be between -%s and %s"%(degree, degree-1)
         return self._entries[i]
 
     def __setitem__(self, Py_ssize_t i, value):
@@ -1613,12 +1629,30 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
     def __getitem__(self, i):
-        #if not isinstance(i, int):
+        """
+        EXAMPLES:
+            sage: v = vector([RR(1), RR(2)], sparse=True); v
+            (1.00000000000000, 2.00000000000000)
+            sage: v[0]
+            1.00000000000000
+            sage: v[-1]
+            2.00000000000000
+            sage: v[5]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between -2 and 1
+            sage: v[-3]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between -2 and 1
+        """
         i = int(i)
-            #raise TypeError, "index must an integer"
-        if i < 0 or i >= self.degree():
-            raise IndexError, "index (i=%s) must be between 0 and %s"%(i,
-                            self.degree()-1)
+        degree = self.degree()
+        if i < 0:
+            i += degree
+        if i < 0 or i >= degree:
+            raise IndexError, "index must be between %s and %s"%(-degree,
+                            degree-1)
         if self._entries.has_key(i):
             return self._entries[i]
         return self.base_ring()(0)  # optimize this somehow

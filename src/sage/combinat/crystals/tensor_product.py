@@ -317,12 +317,13 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
 	    list = options['list']
 	elif options.has_key('rows'):
 	    rows=options['rows']
-	    list = []
-	    l = len(rows)
-	    for i in range(l):
-		for x in rows[i]:
-		    list.append(parent.letters(x))
-        else:
+	    list=Tableau(rows).to_word_by_column()
+	elif options.has_key('columns'):
+	    columns=options['columns']
+	    list=[]
+	    for col in columns:
+		list+=col
+	else:
 	    list = [i for i in args]
 	TensorProductOfCrystalsElement.__init__(self, parent, list=list)
 

@@ -104,6 +104,14 @@ def find_maximum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):
         (0.561090323458, 0.857926501456)
     """
     def g(z):
+        r"""
+        Returns the negative of the input function f. Finding the maximum
+        of f(z) on [a,b] is equivalent to finding th minimum of -f(z) on
+        [a,b].
+
+        EXAMPLES:
+
+        """
         return -f(z)
     minval, x = find_minimum_on_interval(g, a=a, b=b, tol=tol, maxfun=maxfun)
     return -minval, x

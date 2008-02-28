@@ -253,7 +253,7 @@ class HG:
              update -- if True (the default), update the working directory after unbundling.
         """
         if bundle.startswith("http://") or bundle.startswith("https://"):
-            if sage_trac_re.match(bundle) and bundle.endswith('?format=raw'):
+            if sage_trac_re.match(bundle) and not bundle.endswith('?format=raw'):
                 bundle += '?format=raw'
             bundle = get_remote_file(bundle, verbose=True)
         if bundle[-6:] == '.patch':

@@ -24,7 +24,7 @@ from sage.interfaces.all import gap
 from sage.misc.preparser import *
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.finite_field import FiniteField as GF
-from sage.interfaces.gap import gfq_gap_to_sage as gap_to_sage
+from sage.interfaces.gap import gfq_gap_to_sage
 from sage.groups.perm_gps.permgroup import *
 from sage.misc.sage_eval import sage_eval
 from sage.misc.misc import prod, add
@@ -98,7 +98,7 @@ def ExtendedQuadraticResidueCode(n,F):
     gap.eval("G:=GeneratorMat(XC)")
     k = eval(gap.eval("Length(G)"))
     n = eval(gap.eval("Length(G[1])"))
-    G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
+    G = [[gfq_gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
 

@@ -64,25 +64,29 @@ def CrystalOfSpins(type):
     and CrystalOfSpinsMinus.
 
     TESTS:
+    sage: C = CrystalOfSpins(['B',3])
 
-        sage: C = CrystalOfSpins(['B',3])
-        sage: C.list()
-        [+++, ++-, +-+, -++, +--, -+-, --+, ---]
-        sage: C.check()
-        True
+    sage: C.list()
+    [[1, 1, 1],
+    [1, 1, -1],
+    [1, -1, 1],
+    [-1, 1, 1],
+    [1, -1, -1],
+    [-1, 1, -1],
+    [-1, -1, 1],
+    [-1, -1, -1]]
 
-        sage: [x.signature() for x in C]
-        [[1, 1, 1], [1, 1, -1], [1, -1, 1], [-1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1], [-1, -1, -1]]
+    sage: [x.signature() for x in C]
+    ['+++', '++-', '+-+', '-++', '+--', '-+-', '--+', '---']
 
-        sage: len(TensorProductOfCrystals(C,C,generators=[[C(1),C(1)]]).list())
-        35
+    sage: len(TensorProductOfCrystals(C,C,generators=[[C.list()[0],C.list()[0]]]))
+    35
     """
     type = CartanType(type)
     if type[0] == 'B':
-	return GenericCrystalOfSpins(type, Spin_crystal_type_B_element, 1)
-
+        return GenericCrystalOfSpins(type, Spin_crystal_type_B_element, "spins")
     else:
-	raise NotImplementedError
+        raise NotImplementedError
 
 #########################
 # Type D spins
@@ -100,29 +104,29 @@ def CrystalOfSpinsPlus(type):
 
     TESTS:
 
-        sage: D = CrystalOfSpinsPlus(['D',4])
-        sage: D.list()
-        [++++, ++--, +-+-, -++-, +--+, -+-+, --++, ----]
+      sage: D = CrystalOfSpinsPlus(['D',4])
+      sage: D.list()
+      [[1, 1, 1, 1],
+       [1, 1, -1, -1],
+       [1, -1, 1, -1],
+       [-1, 1, 1, -1],
+       [1, -1, -1, 1],
+       [-1, 1, -1, 1],
+       [-1, -1, 1, 1],
+       [-1, -1, -1, -1]]
 
-#       TODO: update for D4
-#        sage: [x.signature() for x in D]
-#        [[1, 1, 1],
-#         [1, 1, -1],
-#         [1, -1, 1],
-#         [-1, 1, 1],
-#         [1, -1, -1],
-#         [-1, 1, -1],
-#         [-1, -1, 1],
-#         [-1, -1, -1]]
+      sage: [x.signature() for x in D]
+      ['++++', '++--', '+-+-', '-++-', '+--+', '-+-+', '--++', '----']
 
-        sage: D.check()
-	True
+      sage: D.check()
+      True
     """
     type = CartanType(type)
     if type[0] == 'D':
-	return GenericCrystalOfSpins(type, Spin_crystal_type_D_element, 1)
+        generator = [1 for i in range(type[1])]
+        return GenericCrystalOfSpins(type, Spin_crystal_type_D_element, "plus")
     else:
-	raise NotImplementedError
+        raise NotImplementedError
 
 def CrystalOfSpinsMinus(type):
     r"""
@@ -134,51 +138,52 @@ def CrystalOfSpinsMinus(type):
     This is the crystal with highest weight $Lambda_{n-1}$
     (the (n-1)-st fundamental weight).
 
-    Caution: to get the highest weight vector use
-    E = CrystalOfSpinsMinus(['D',4])
-    E(2) NOT E(1).
-
     TESTS:
 
-        sage: D = CrystalOfSpinsMinus(['D',4])
-        sage: D.list()
-        [+++-, ++-+, +-++, -+++, +---, -+--, --+-, ---+]
-
-#       TODO: update for D4
-#        sage: [x.signature() for x in C]
-#        [[1, 1, 1],
-#         [1, 1, -1],
-#         [1, -1, 1],
-#         [-1, 1, 1],
-#         [1, -1, -1],
-#         [-1, 1, -1],
-#         [-1, -1, 1],
-#         [-1, -1, -1]]
-
-        sage: D.check()
-	True
+        sage: E = CrystalOfSpinsMinus(['D',4])
+        sage: E.list()
+         [[1, 1, 1, -1],
+         [1, 1, -1, 1],
+         [1, -1, 1, 1],
+         [-1, 1, 1, 1],
+         [1, -1, -1, -1],
+         [-1, 1, -1, -1],
+         [-1, -1, 1, -1],
+         [-1, -1, -1, 1]]
+        sage: [x.signature() for x in E]
+        ['+++-', '++-+', '+-++', '-+++', '+---', '-+--', '--+-', '---+']
+        sage: len(TensorProductOfCrystals(E,E,generators=[[E.list()[0],E.list()[0]]]).list())
+        35
+        sage: D = CrystalOfSpinsPlus(['D',4])
+        sage: len(TensorProductOfCrystals(D,E,generators=[[D.list()[0],E.list()[0]]]).list())
+        56
     """
     type = CartanType(type)
     if type[0] == 'D':
-	return GenericCrystalOfSpins(type, Spin_crystal_type_D_element, 2)
+        return GenericCrystalOfSpins(type, Spin_crystal_type_D_element, "minus")
     else:
-	raise NotImplementedError
+        raise NotImplementedError
 
 class GenericCrystalOfSpins(ClassicalCrystal):
     r"""
     Derived from ClassicalCrystalOfLetters
     """
-    def __init__(self, type, element_class, generator):
+    def __init__(self, type, element_class, case):
         self.cartanType = CartanType(type)
-        if type[0] == 'B':
+        if case == "spins":
             self._name = "The crystal of spins for type %s"%type
-        elif generator == 1:
+        elif case == "plus":
             self._name = "The plus crystal of spins for type %s"%type
         else:
             self._name = "The minus crystal of spins for type %s"%type
 
         self.index_set = self.cartanType.index_set()
         self.element_class = element_class
+        if case == "minus":
+            generator = [1 for i in range(type[1]-1)]
+            generator.append(-1)
+        else:
+            generator = [1 for i in range(type[1])]
         self.module_generators = [self(generator)]
         self._list = ClassicalCrystal.list(self)
         self._digraph = ClassicalCrystal.digraph(self)
@@ -187,7 +192,7 @@ class GenericCrystalOfSpins(ClassicalCrystal):
     def __call__(self, value):
         if value.__class__ == self.element_class and value.parent == self:
             return self
-        else: # Should do sanity checks!
+        else:
             return self.element_class(self, value)
 
     def list(self):
@@ -218,7 +223,6 @@ class Spin(Element):
     """
 
     def __init__(self, parent, value):
-#        Element.__init__(self, parent);
         self._parent = parent
         self.value = value
 
@@ -226,30 +230,7 @@ class Spin(Element):
         return self._parent  # Should be inherited from Element!
 
     def __repr__(self):
-        sword = ""
-        m = self.value-1
-        for i in range(self._parent.cartanType.n,0,-1):
-            if m >= 2**(i-1):
-                sword = sword + "-"
-                m = m - 2**(i-1)
-            else:
-                sword = sword + "+"
-        return(sword)
-
-    def signature(self):
-        spinlist = []
-        m = self.value-1
-        for i in range(self._parent.cartanType.n,0,-1):
-            if m >= 2**(i-1):
-                spinlist.append(-1)
-                m = m - 2**(i-1)
-            else:
-                spinlist.append(1)
-        return(spinlist)
-
-
-    def internal_repr(self):
-        return "%s"%self.value
+        return str(self.value)
 
     def __eq__(self, other):
         return self.__class__ == other.__class__ and \
@@ -260,298 +241,164 @@ class Spin(Element):
         assert self.parent() == other.parent()
         return self.parent().cmp_elements(self, other)
 
+    def signature(self):
+        sword = ""
+        for x in range(self._parent.cartanType.n):
+            if self.value[x] == 1:
+                sword = sword + "+"
+            else:
+                sword = sword + "-"
+        return(sword)
+
 class Spin_crystal_type_B_element(Spin, CrystalElement):
     r"""
     Type B spin representation crystal element
+
+    TESTS:
+        sage: C = CrystalOfSpins(['B',3])
+        sage: [[C.list()[m].e(i) for i in range(1,4)] for m in range(8)]
+        [[None, None, None],
+        [None, None, [1, 1, 1]],
+        [None, [1, 1, -1], None],
+        [[1, -1, 1], None, None],
+        [None, None, [1, -1, 1]],
+        [[1, -1, -1], None, [-1, 1, 1]],
+        [None, [-1, 1, -1], None],
+        [None, None, [-1, -1, 1]]]
+
+        sage: [[C.list()[m].f(i) for i in range(1,4)] for m in range(8)]
+        [[None, None, [1, 1, -1]],
+        [None, [1, -1, 1], None],
+        [[-1, 1, 1], None, [1, -1, -1]],
+        [None, None, [-1, 1, -1]],
+        [[-1, 1, -1], None, None],
+        [None, [-1, -1, 1], None],
+        [None, None, [-1, -1, -1]],
+        [None, None, None]]
     """
     def e(self, i):
         r"""
-        TEST:
-            sage: C = CrystalOfSpins(['B',3])
-            sage: C(1).e(1) == None
-            True
-            sage: C(1).e(2) == None
-            True
-            sage: C(1).e(3) == None
-            True
-            sage: C(2).e(1) == None
-            True
-            sage: C(2).e(2) == None
-            True
-            sage: C(2).e(3) == C(1)
-            True
-            sage: C(3).e(1) == None
-            True
-            sage: C(3).e(2) == C(2)
-            True
-            sage: C(3).e(3) == None
-            True
-            sage: C(4).e(1) == None
-            True
-            sage: C(4).e(2) == None
-            True
-            sage: C(4).e(3) == C(3)
-            True
-            sage: C(5).e(1) == C(3)
-            True
-            sage: C(5).e(2) == None
-            True
-            sage: C(5).e(3) == None
-            True
-            sage: C(6).e(1) == C(4)
-            True
-            sage: C(6).e(2) == None
-            True
-            sage: C(6).e(3) == C(5)
-            True
-            sage: C(7).e(1) == None
-            True
-            sage: C(7).e(2) == C(6)
-            True
-            sage: C(7).e(3) == None
-            True
-            sage: C(8).e(1) == None
-            True
-            sage: C(8).e(2) == None
-            True
-            sage: C(8).e(3) == C(7)
-            True
         """
         assert i in self.index_set()
         rank = self._parent.cartanType.n
         if i < rank:
-            if int((self.value-1)/2**(rank-i-1))%4 == 2:
-                return self._parent(self.value-2**(rank-i-1))
+            if self.value[i-1] == -1 and self.value[i] == 1:
+                ret = [self.value[x] for x in range(rank)]
+                ret[i-1] = 1
+                ret[i] = -1
+                return self._parent(ret)
         elif i == rank:
-            if (self.value-1)%2 == 1:
-                return self._parent(self.value-1)
+            if self.value[i-1] == -1:
+                ret = [self.value[x] for x in range(rank)]
+                ret[i-1] = 1
+                return self._parent(ret)
         else:
             return None
 
     def f(self, i):
         r"""
-        TESTS:
-            sage: C = CrystalOfSpins(['B',3])
-            sage: C(1).f(1) == None
-            True
-            sage: C(1).f(2) == None
-            True
-            sage: C(1).f(3) == C(2)
-            True
-            sage: C(2).f(1) == None
-            True
-            sage: C(2).f(2) == C(3)
-            True
-            sage: C(2).f(3) == None
-            True
-            sage: C(3).f(1) == C(5)
-            True
-            sage: C(3).f(2) == None
-            True
-            sage: C(3).f(3) == C(4)
-            True
-            sage: C(4).f(1) == C(6)
-            True
-            sage: C(4).f(2) == None
-            True
-            sage: C(4).f(3) == None
-            True
-            sage: C(5).f(1) == None
-            True
-            sage: C(5).f(2) == None
-            True
-            sage: C(5).f(3) == C(6)
-            True
-            sage: C(6).f(1) == None
-            True
-            sage: C(6).f(2) == C(7)
-            True
-            sage: C(6).f(3) == None
-            True
-            sage: C(7).f(1) == None
-            True
-            sage: C(7).f(2) == None
-            True
-            sage: C(7).f(3) == C(8)
-            True
-            sage: C(8).f(1) == None
-            True
-            sage: C(8).f(2) == None
-            True
-            sage: C(8).f(3) == None
-            True
         """
         assert i in self.index_set()
         rank = self._parent.cartanType.n
         if i < rank:
-            if int((self.value-1)/2**(rank-i-1))%4 == 1:
-                return self._parent(self.value+2**(rank-i-1))
+            if self.value[i-1] == 1 and self.value[i] == -1:
+                ret = [self.value[x] for x in range(rank)]
+                ret[i-1] = -1
+                ret[i] = 1
+                return self._parent(ret)
         elif i == rank:
-            if (self.value-1)%2 == 0:
-                return self._parent(self.value+1)
+            if self.value[i-1] == 1:
+                ret = [self.value[x] for x in range(rank)]
+                ret[i-1] = -1
+                return self._parent(ret)
         else:
             return None
 
 class Spin_crystal_type_D_element(Spin, CrystalElement):
     r"""
     Type D spin representation crystal element
+
+    TESTS:
+
+        sage: D = CrystalOfSpinsPlus(['D',4])
+        sage: [[D.list()[m].e(i) for i in range(1,4)] for m in range(8)]
+        [[None, None, None],
+         [None, None, None],
+         [None, [1, 1, -1, -1], None],
+         [[1, -1, 1, -1], None, None],
+         [None, None, [1, -1, 1, -1]],
+         [[1, -1, -1, 1], None, [-1, 1, 1, -1]],
+         [None, [-1, 1, -1, 1], None],
+         [None, None, None]]
+
+        sage: [[D.list()[m].f(i) for i in range(1,4)] for m in range(8)]
+        [[None, None, None],
+         [None, [1, -1, 1, -1], None],
+         [[-1, 1, 1, -1], None, [1, -1, -1, 1]],
+         [None, None, [-1, 1, -1, 1]],
+         [[-1, 1, -1, 1], None, None],
+         [None, [-1, -1, 1, 1], None],
+         [None, None, None],
+         [None, None, None]]
+
+        sage: E = CrystalOfSpinsMinus(['D',4])
+        sage: [[E.list()[m].e(i) for i in range(1,4)] for m in range(8)]
+        [[None, None, None],
+         [None, None, [1, 1, 1, -1]],
+         [None, [1, 1, -1, 1], None],
+         [[1, -1, 1, 1], None, None],
+         [None, None, None],
+         [[1, -1, -1, -1], None, None],
+         [None, [-1, 1, -1, -1], None],
+         [None, None, [-1, -1, 1, -1]]]
+
+        sage: [[E.list()[m].f(i) for i in range(1,4)] for m in range(8)]
+        [[None, None, [1, 1, -1, 1]],
+         [None, [1, -1, 1, 1], None],
+         [[-1, 1, 1, 1], None, None],
+         [None, None, None],
+         [[-1, 1, -1, -1], None, None],
+         [None, [-1, -1, 1, -1], None],
+         [None, None, [-1, -1, -1, 1]],
+         [None, None, None]]
     """
     def e(self, i):
         r"""
-        TEST:
-            sage: D = CrystalOfSpinsPlus(['D',4])
-            sage: D(1).e(1) == None
-            True
-            sage: D(1).e(2) == None
-            True
-            sage: D(1).e(3) == None
-            True
-            sage: D(1).e(4) == None
-            True
-            sage: D(4).e(1) == None
-            True
-            sage: D(4).e(2) == None
-            True
-            sage: D(4).e(3) == None
-            True
-            sage: D(4).e(4) == D(1)
-            True
-            sage: D(6).e(1) == None
-            True
-            sage: D(6).e(2) == D(4)
-            True
-            sage: D(6).e(3) == None
-            True
-            sage: D(6).e(4) == None
-            True
-            sage: D(7).e(1) == None
-            True
-            sage: D(7).e(2) == None
-            True
-            sage: D(7).e(3) == D(6)
-            True
-            sage: D(7).e(4) == None
-            True
-            sage: D(10).e(1) == D(6)
-            True
-            sage: D(10).e(2) == None
-            True
-            sage: D(10).e(3) == None
-            True
-            sage: D(10).e(4) == None
-            True
-            sage: D(11).e(1) == D(7)
-            True
-            sage: D(11).e(2) == None
-            True
-            sage: D(11).e(3) == D(10)
-            True
-            sage: D(11).e(4) == None
-            True
-            sage: D(13).e(1) == None
-            True
-            sage: D(13).e(2) == D(11)
-            True
-            sage: D(13).e(3) == None
-            True
-            sage: D(13).e(4) == None
-            True
-            sage: D(16).e(1) == None
-            True
-            sage: D(16).e(2) == None
-            True
-            sage: D(16).e(3) == None
-            True
-            sage: D(16).e(4) == D(13)
-            True
         """
         assert i in self.index_set()
         rank = self._parent.cartanType.n
         if i < rank:
-            if int((self.value-1)/2**(rank-i-1))%4 == 2:
-                return self._parent(self.value-2**(rank-i-1))
+            if self.value[i-1] == -1 and self.value[i] == 1:
+                ret = [self.value[x] for x in range(rank)]
+                ret[i-1] = 1
+                ret[i] = -1
+                return self._parent(ret)
         elif i == rank:
-            if (self.value-1)%4 == 3:
-                return self._parent(self.value-3)
+            if self.value[i-2] == -1 and self.value[i-1] == -1:
+                ret = [self.value[x] for x in range(rank)]
+                ret[i-2] = 1
+                ret[i-1] = 1
+                return self._parent(ret)
         else:
             return None
 
     def f(self, i):
         r"""
         TESTS:
-            sage: D = CrystalOfSpinsPlus(['D',4])
-            sage: D(1).f(1) == None
-            True
-            sage: D(1).f(2) == None
-            True
-            sage: D(1).f(3) == None
-            True
-            sage: D(1).f(4) == D(4)
-            True
-            sage: D(4).f(1) == None
-            True
-            sage: D(4).f(2) == D(6)
-            True
-            sage: D(4).f(3) == None
-            True
-            sage: D(4).f(4) == None
-            True
-            sage: D(6).f(1) == D(10)
-            True
-            sage: D(6).f(2) == None
-            True
-            sage: D(6).f(3) == D(7)
-            True
-            sage: D(6).f(4) == None
-            True
-            sage: D(7).f(1) == D(11)
-            True
-            sage: D(7).f(2) == None
-            True
-            sage: D(7).f(3) == None
-            True
-            sage: D(7).f(4) == None
-            True
-            sage: D(10).f(1) == None
-            True
-            sage: D(10).f(2) == None
-            True
-            sage: D(10).f(3) == D(11)
-            True
-            sage: D(10).f(4) == None
-            True
-            sage: D(11).f(1) == None
-            True
-            sage: D(11).f(2) == D(13)
-            True
-            sage: D(11).f(3) == None
-            True
-            sage: D(11).f(4) == None
-            True
-            sage: D(13).f(1) == None
-            True
-            sage: D(13).f(2) == None
-            True
-            sage: D(13).f(3) == None
-            True
-            sage: D(13).f(4) == D(16)
-            True
-            sage: D(16).f(1) == None
-            True
-            sage: D(16).f(2) == None
-            True
-            sage: D(16).f(3) == None
-            True
-            sage: D(16).f(4) == None
-            True
         """
         assert i in self.index_set()
         rank = self._parent.cartanType.n
         if i < rank:
-            if int((self.value-1)/2**(rank-i-1))%4 == 1:
-                return self._parent(self.value+2**(rank-i-1))
+            if self.value[i-1] == 1 and self.value[i] == -1:
+                ret = [self.value[x] for x in range(rank)]
+                ret[i-1] = -1
+                ret[i] = 1
+                return self._parent(ret)
         elif i == rank:
-            if (self.value-1)%4 == 0:
-                return self._parent(self.value+3)
+            if self.value[i-2] == 1 and self.value[i-1] == 1:
+                ret = [self.value[x] for x in range(rank)]
+                ret[i-2] = -1
+                ret[i-1] = -1
+                return self._parent(ret)
         else:
             return None

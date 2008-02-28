@@ -3167,14 +3167,13 @@ class GenericGraph(SageObject):
                     K += text(str(l), [(pos[u][0] + pos[v][0])/2, (pos[u][1] + pos[v][1])/2])
             K.axes_range(xmin=G.xmin(), xmax=G.xmax(), ymin=G.ymin(), ymax=G.ymax())
             G += K
-            G.axes(False)
         if self.loops():
             from sage.plot.plot import circle
             L = []
             for v in self.loop_vertices():
                 L.append(circle((pos[v][0],pos[v][1]-loop_size), loop_size, rgbcolor=(0,0,0)))
             G = sum(L) + G
-            G.axes(False)
+        G.axes(False)
         return G
 
     def show(self, pos=None, layout=None, vertex_labels=True,

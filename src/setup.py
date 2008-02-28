@@ -927,6 +927,18 @@ ext_modules = [ \
               language='c++'
               ), \
 
+    Extension('sage.graphs.base.c_graph',
+              ['sage/graphs/base/c_graph.pyx']
+              ), \
+
+    Extension('sage.graphs.base.sparse_graph',
+              ['sage/graphs/base/sparse_graph.pyx']
+              ), \
+
+    Extension('sage.graphs.base.dense_graph',
+              ['sage/graphs/base/dense_graph.pyx']
+              ), \
+
     Extension('sage.graphs.graph_fast',
               ['sage/graphs/graph_fast.pyx'],
               libraries = ['gmp']
@@ -1283,6 +1295,7 @@ code = setup(name        = 'sage',
                      'sage.gsl',
 
                      'sage.graphs',
+                     'sage.graphs.base',
 
                      'sage.groups',
                      'sage.groups.abelian_gps',

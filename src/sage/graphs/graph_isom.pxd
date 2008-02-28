@@ -7,6 +7,12 @@
 #*****************************************************************************
 
 include '../ext/cdefs.pxi'
+include '../ext/python_mem.pxi'
+include '../ext/stdsage.pxi'
+
+from sage.graphs.base.c_graph cimport CGraph
+from sage.graphs.base.sparse_graph cimport SparseGraph
+from sage.graphs.base.dense_graph cimport DenseGraph
 
 # The class OrbitPartition is a quasi-sorted union-find tree with path
 # compression. This type is used for Theta, which keeps track of the orbit
@@ -68,12 +74,12 @@ cdef class PartitionStack:
     cdef void _percolate(self, int start, int end)
     cdef int _sort_by_function(self, int start, int *degrees, int n)
     cdef void _clear(self)
-    cdef int test_refine_by_square_matrix(self, int *alpha, int n, int **G, int dig, int uif) except? -1
-    cdef int _refine_by_square_matrix(self, int *alpha, int n, int **G, int dig, int uif)
-    cdef int _degree_square_matrix(self, int **G, int v, int W)
-    cdef int _degree_inv_square_matrix(self, int **G, int v, int W)
+    cdef int test_refine(self, int *alpha, int n, CGraph G, int dig, int uif) except? -1
+    cdef int _refine(self, int *alpha, int n, CGraph G, int dig, int uif)
+    cdef int _degree(self, CGraph G, int v, int W)
+    cdef int _degree_inv(self, CGraph G, int v, int W)
     cdef int _first_smallest_nontrivial(self, int *W, int n)
     cdef void _get_permutation_from(self, PartitionStack zeta, int *gamma)
-    cdef int _compare_with(self, int **G, int n, PartitionStack other)
+    cdef int _compare_with(self, CGraph G, int n, PartitionStack other)
 
-cdef int _is_automorphism(int **G, int n, int *gamma)
+cdef int _is_automorphism(CGraph G, int n, int *gamma)

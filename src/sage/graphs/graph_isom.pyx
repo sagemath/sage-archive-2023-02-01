@@ -51,11 +51,7 @@ NOTE:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../ext/cdefs.pxi'
-include '../ext/python_mem.pxi'
-include '../ext/stdsage.pxi'
-
-from sage.graphs.graph import Graph, DiGraph
+from sage.graphs.graph import GenericGraph, Graph, DiGraph
 from sage.misc.misc import cputime
 from sage.rings.integer import Integer
 
@@ -192,6 +188,7 @@ cdef class PartitionStack:
     EXAMPLES:
 
         sage: from sage.graphs.graph_isom import PartitionStack
+        sage: from sage.graphs.base.sparse_graph import SparseGraph
         sage: P = PartitionStack([range(9, -1, -1)])
         sage: P.set_k(1)
         sage: P.sort_by_function(0, [2,1,2,1,2,1,3,4,2,1], 10)
@@ -229,22 +226,20 @@ cdef class PartitionStack:
         sage: P.is_discrete()
         0
 
-        sage: M = graphs.PetersenGraph().am()
-        sage: MM = []
-        sage: for i in range(10):
-        ...     MM.append([])
-        ...     for j in range(10):
-        ...         MM[i].append(M[i,j])
+        sage: G = SparseGraph(10)
+        sage: for i,j,_ in graphs.PetersenGraph().edge_iterator():
+        ...    G.add_arc(i,j)
+        ...    G.add_arc(j,i)
         sage: P = PartitionStack(10)
         sage: P.set_k(1)
         sage: P.split_vertex(0)
-        sage: P.refine_by_square_matrix(MM, [0], 10, 0, 1)
+        sage: P.refine(G, [0], 10, 0, 1)
         sage: P
         (0,2,3,6,7,8,9,1,4,5)
         (0|2,3,6,7,8,9|1,4,5)
         sage: P.set_k(2)
         sage: P.split_vertex(1)
-        sage: P.refine_by_square_matrix(MM, [7], 10, 0, 1)
+        sage: P.refine(G, [7], 10, 0, 1)
         sage: P
         (0,3,7,8,9,2,6,1,4,5)
         (0|3,7,8,9,2,6|1,4,5)
@@ -497,42 +492,18 @@ cdef class PartitionStack:
                 j = i + 1
             i+=1
 
-    def refine_by_square_matrix(self, G_matrix, alpha, n, dig, uif):
+    def refine(self, CGraph G, alpha, n, dig, uif):
         cdef int *_alpha, i, j
-        cdef int **G
         _alpha = <int *> sage_malloc( ( 4 * n + 1 )* sizeof(int) )
         if not _alpha:
             raise MemoryError("Memory!")
-        G = <int **> sage_malloc( n * sizeof(int*) )
-        if not G:
-            sage_free(_alpha)
-            raise MemoryError("Memory!")
-        for i from 0 <= i < n:
-            G[i] = <int *> sage_malloc( n * sizeof(int) )
-            if not G[i]:
-                for j from 0 <= j < i:
-                    sage_free(G[j])
-                sage_free(G)
-                sage_free(_alpha)
-                raise MemoryError("Memory!")
-        for i from 0 <= i < n:
-            for j from 0 <= j < n:
-                G[i][j] = G_matrix[i][j]
-        # note -- one could memcopy or memmove for the above loop,
-        # but this function is only a python interface to a C function
-        # that gets called by other functions which have already allocated
-        # memory
         for i from 0 <= i < len(alpha):
             _alpha[i] = alpha[i]
         _alpha[len(alpha)] = -1
-        self._refine_by_square_matrix(_alpha, n, G, dig, uif)
+        self._refine(_alpha, n, G, dig, uif)
         sage_free(_alpha)
-        for i from 0 <= i < n:
-            sage_free(G[i])
-        sage_free(G)
 
-    cdef int test_refine_by_square_matrix(self, int *alpha, int n, int **g,
-                                          int dig, int uif) except? -1:
+    cdef int test_refine(self, int *alpha, int n, CGraph g, int dig, int uif) except? -1:
         cdef int i, j, result
         initial_partition = [] # this includes the vertex just split out...
         i = 0
@@ -546,7 +517,7 @@ cdef class PartitionStack:
             initial_partition.append(cell)
             cell = []
         #
-        result = self._refine_by_square_matrix(alpha, n, g, dig, uif)
+        result = self._refine(alpha, n, g, dig, uif)
         #
         terminal_partition = []
         i = 0
@@ -567,12 +538,12 @@ cdef class PartitionStack:
         G.add_vertices(xrange(n))
         for i from 0 <= i < n:
             for j from 0 <= j < n:
-                if g[i][j]:
+                if g.has_arc_unsafe(i, j):
                     G.add_edge(i,j)
         verify_partition_refinement(G, initial_partition, terminal_partition)
         return result
 
-    cdef int _refine_by_square_matrix(self, int *alpha, int n, int **G, int dig, int uif):
+    cdef int _refine(self, int *alpha, int n, CGraph G, int dig, int uif):
         cdef int m = 0, j # - m iterates through alpha, the indicator cells
                           # - j iterates through the cells of the partition
         cdef int i, t, s, r # local variables:
@@ -605,7 +576,7 @@ cdef class PartitionStack:
 #                print 'm =', m
                 i = j; s = 0
                 while True:
-                    degrees[i-j] = self._degree_square_matrix(G, i, alpha[m])
+                    degrees[i-j] = self._degree(G, i, alpha[m])
                     if degrees[i-j] != degrees[0]: s = 1
                     i += 1
                     if self.levels[i-1] <= self.k: break
@@ -651,7 +622,7 @@ cdef class PartitionStack:
 #                print 'm =', m
                 i = j; s = 0
                 while True:
-                    degrees[i-j] = self._degree_inv_square_matrix(G, i, alpha[m])
+                    degrees[i-j] = self._degree_inv(G, i, alpha[m])
                     if degrees[i-j] != degrees[0]: s = 1
                     i += 1
                     if self.levels[i-1] <= self.k: break
@@ -687,50 +658,34 @@ cdef class PartitionStack:
         else:
             return 0
 
-    def degree_square_matrix(self, G, v, W):
-        cdef int i, j, n = len(G)
-        cdef int **GG = <int **> sage_malloc( n * sizeof(int*) )
-        if not GG:
-            raise MemoryError("Memory!")
-        for i from 0 <= i < n:
-            GG[i] = <int *> sage_malloc( n * sizeof(int) )
-            if not GG[i]:
-                for j from 0 <= j < i:
-                    sage_free(GG[j])
-                sage_free(GG)
-                raise MemoryError("Memory!")
-        for i from 0 <= i < n:
-            for j from 0 <= j < n:
-                GG[i][j] = G[i][j]
-        j = self._degree_square_matrix(GG, v, W)
-        for i from 0 <= i < n:
-            sage_free(GG[i])
-        sage_free(GG)
+    def degree(self, CGraph G, v, W):
+        cdef int j
+        j = self._degree(G, v, W)
         return j
 
-    cdef int _degree_square_matrix(self, int** G, int v, int W):
+    cdef int _degree(self, CGraph G, int v, int W):
         """
-        G is a square matrix, and W points to the beginning of a cell in the
+        G is a CGraph, and W points to the beginning of a cell in the
         k-th part of the stack.
         """
         cdef int i = 0
         v = self.entries[v]
         while True:
-            if G[self.entries[W]][v]:
+            if G.has_arc_unsafe(self.entries[W], v):
                 i += 1
             if self.levels[W] > self.k: W += 1
             else: break
         return i
 
-    cdef int _degree_inv_square_matrix(self, int** G, int v, int W):
+    cdef int _degree_inv(self, CGraph G, int v, int W):
         """
-        G is a square matrix, and W points to the beginning of a cell in the
+        G is a CGraph, and W points to the beginning of a cell in the
         k-th part of the stack.
         """
         cdef int i = 0
         v = self.entries[v]
         while True:
-            if G[v][self.entries[W]]:
+            if G.has_arc_unsafe(v, self.entries[W]):
                 i += 1
             if self.levels[W] > self.k: W += 1
             else: break
@@ -765,23 +720,23 @@ cdef class PartitionStack:
             i += 1
             if self.levels[i-1] == -1: break
 
-    cdef int _compare_with(self, int **G, int n, PartitionStack other):
+    cdef int _compare_with(self, CGraph G, int n, PartitionStack other):
         cdef int i, j
         for i from 0 <= i < n:
             for j from 0 <= j < n:
-                if G[self.entries[i]][self.entries[j]]:
-                    if not G[other.entries[i]][other.entries[j]]:
+                if G.has_arc_unsafe(self.entries[i], self.entries[j]):
+                    if not G.has_arc_unsafe(other.entries[i], other.entries[j]):
                         return 1
-                elif G[other.entries[i]][other.entries[j]]:
+                elif G.has_arc_unsafe(other.entries[i], other.entries[j]):
                     return -1
         return 0
 
-cdef int _is_automorphism(int **G, int n, int *gamma):
+cdef int _is_automorphism(CGraph G, int n, int *gamma):
     cdef int i, j
     for i from 0 <= i < n:
         for j from 0 <= j < n:
-            if G[i][j]:
-                if not G[gamma[i]][gamma[j]]:
+            if G.has_arc_unsafe(i, j):
+                if not G.has_arc_unsafe(gamma[i], gamma[j]):
                     return 0
     return 1
 
@@ -791,17 +746,31 @@ def _term_pnest_graph(G, PartitionStack nu):
     nu[m], where m is the first index corresponding to a discrete partition.
     Assumes nu is a terminal partition nest in T(G, Pi).
     """
-    cdef int i, n
-    n = G.order()
+    cdef int i, j, n
+    cdef CGraph M
+    if isinstance(G, GenericGraph):
+        n = G.order()
+        H = G.copy()
+    else: # G is a CGraph
+        M = G
+        n = M.num_verts
+        if isinstance(G, SparseGraph):
+            H = SparseGraph(n)
+        else:
+            H = DenseGraph(n)
     d = {}
     for i from 0 <= i < n:
         d[nu.entries[i]] = i
-    H = G.copy()
-    H.relabel(d)
+    if isinstance(G, GenericGraph):
+        H.relabel(d)
+    else:
+        for i from 0 <= i < n:
+            for j in G.out_neighbors(i):
+                H.add_arc(d[i],d[j])
     return H
 
 def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
-                verbosity=0, use_indicator_function=True):
+                verbosity=0, use_indicator_function=True, sparse=False):
     """
     Assumes that the vertex set of G is {0,1,...,n-1} for some n.
 
@@ -826,6 +795,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
                     5 - plot the part of the tree traversed during search
         use_indicator_function -- option to turn off indicator function
     (False -> slower)
+        sparse -- whether to use sparse or dense representation of the graph
+    (ignored if G is already a CGraph - see sage.graphs.base)
 
     STATE DIAGRAM:
         sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] } )
@@ -845,23 +816,48 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: SD.plot(pos=posn, vertex_size=400, vertex_colors={'#FFFFFF':range(1,19)}, edge_labels=True).save('search_tree.png')
 
     NOTE:
-        There is a function, called test_refine_by_square_matrix, that has the
-    same signature as refine_by_square_matrix. It calls refine_by_square_matrix,
-    then checks to make sure the output is sane. To use this, simply add 'test'
-    to the two places this algorithm calls the function (states 1 and 2).
+        There is a function, called test_refine, that has the same signature as
+    _refine. It calls _refine, then checks to make sure the output is sane. To
+    use this, simply add 'test' to the two places this algorithm calls the
+    function (states 1 and 2).
 
     EXAMPLES:
         sage: import sage.graphs.graph_isom
         sage: from sage.graphs.graph_isom import search_tree
         sage: from sage.graphs.graph import enum
+        sage: from sage.graphs.base.sparse_graph import SparseGraph
+        sage: from sage.graphs.base.dense_graph import DenseGraph
         sage: from sage.groups.perm_gps.permgroup import PermutationGroup # long time
         sage: from sage.graphs.graph_isom import perm_group_elt # long time
 
         sage: G = graphs.DodecahedralGraph()
+        sage: GD = DenseGraph(20)
+        sage: GS = SparseGraph(20)
+        sage: for i,j,_ in G.edge_iterator():
+        ...    GD.add_arc(i,j); GD.add_arc(j,i)
+        ...    GS.add_arc(i,j); GS.add_arc(j,i)
         sage: Pi=[range(20)]
         sage: a,b = search_tree(G, Pi)
+        sage: asp,bsp = search_tree(GS, Pi)
+        sage: ade,bde = search_tree(GD, Pi)
+        sage: bsg = Graph()
+        sage: bdg = Graph()
+        sage: for i in range(20):
+        ...    for j in range(20):
+        ...        if bsp.has_arc(i,j):
+        ...            bsg.add_edge(i,j)
+        ...        if bde.has_arc(i,j):
+        ...            bdg.add_edge(i,j)
         sage: print a, enum(b)
         [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0], [2, 1, 0, 19, 18, 11, 10, 9, 8, 7, 6, 5, 15, 14, 13, 12, 16, 17, 4, 3]] 17318942212009113839976787462421724338461987195898671092180383421848885858584973127639899792828728124797968735273000
+        sage: a == asp
+        True
+        sage: a == ade
+        True
+        sage: enum(b) == enum(bsg)
+        True
+        sage: enum(b) == enum(bdg)
+        True
         sage: c = search_tree(G, Pi, lab=False)
         sage: print c
         [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0], [2, 1, 0, 19, 18, 11, 10, 9, 8, 7, 6, 5, 15, 14, 13, 12, 16, 17, 4, 3]]
@@ -889,6 +885,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         [                     4                      0                      1                      0                      1                     -1                     -1                     -1                      1                     -4]
         [                     5                      1                     -1                      1                      0                      0                     -1                      0                      0                      5]
         [                     5                     -1                     -1                      1                      0                      0                      1                      0                      0                     -5]
+
+
 
         sage: G = graphs.PetersenGraph()
         sage: Pi=[range(10)]
@@ -1267,15 +1265,23 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
     cdef int hzf      # the max height for which Lambda and zf agree
     cdef int hzb = -1 # the max height for which Lambda and zb agree
 
-    cdef int **M # for the square adjacency matrix
+    cdef CGraph M
     cdef int *gamma # for storing permutations
     cdef int *alpha # for storing pointers to cells of nu[k]:
                      # allocated to be length 4*n + 1 for scratch (see functions
-                     # _sort_by_function and _refine_by_square_matrix)
+                     # _sort_by_function and _refine)
     cdef int *v # list of vertices determining nu
     cdef int *e # 0 or 1, see states 12 and 17
     cdef int state # keeps track of place in algorithm
-    cdef int _dig, tvh, n = G.order()
+    cdef int _dig, tvh, n
+
+    if isinstance(G, GenericGraph):
+        n = G.order()
+    elif isinstance(G, CGraph):
+        M = G
+        n = M.num_verts
+    else:
+        raise TypeError("G must be a Sage graph.")
 
     # trivial case
     if n == 0:
@@ -1300,7 +1306,6 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
 
     # allocate int pointers
     W = <int **> sage_malloc( n * sizeof(int *) )
-    M = <int **> sage_malloc( n * sizeof(int *) )
     Phi = <int **> sage_malloc( L * sizeof(int *) )
     Omega = <int **> sage_malloc( L * sizeof(int *) )
 
@@ -1310,12 +1315,11 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
     zb_mpz = <mpz_t *> sage_malloc( (n+2) * sizeof(mpz_t) )
 
     # check for memory errors
-    if not (W and M and Phi and Omega and Lambda_mpz and zf_mpz and zb_mpz):
+    if not (W and Phi and Omega and Lambda_mpz and zf_mpz and zb_mpz):
         sage_free(Lambda_mpz)
         sage_free(zf_mpz)
         sage_free(zb_mpz)
         sage_free(W)
-        sage_free(M)
         sage_free(Phi)
         sage_free(Omega)
         raise MemoryError("Error allocating memory.")
@@ -1323,7 +1327,6 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
     # allocate int arrays
     gamma = <int *> sage_malloc( n * sizeof(int) )
     W[0] = <int *> sage_malloc( (n*n) * sizeof(int) )
-    M[0] = <int *> sage_malloc( (n*n) * sizeof(int) )
     Phi[0] = <int *> sage_malloc( (L*n) * sizeof(int) )
     Omega[0] = <int *> sage_malloc( (L*n) * sizeof(int) )
     alpha = <int *> sage_malloc( (4*n + 1) * sizeof(int) )
@@ -1331,10 +1334,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
     e = <int *> sage_malloc( n * sizeof(int) )
 
     # check for memory errors
-    if not (gamma and W[0] and M[0] and Phi[0] and Omega[0] and alpha and v and e):
+    if not (gamma and W[0] and Phi[0] and Omega[0] and alpha and v and e):
         sage_free(gamma)
         sage_free(W[0])
-        sage_free(M[0])
         sage_free(Phi[0])
         sage_free(Omega[0])
         sage_free(alpha)
@@ -1344,7 +1346,6 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage_free(zf_mpz)
         sage_free(zb_mpz)
         sage_free(W)
-        sage_free(M)
         sage_free(Phi)
         sage_free(Omega)
         raise MemoryError("Error allocating memory.")
@@ -1352,8 +1353,6 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
     # setup double index arrays
     for i from 0 < i < n:
         W[i] = W[0] + n*i
-    for i from 0 < i < n:
-        M[i] = M[0] + n*i
     for i from 0 < i < L:
         Phi[i] = Phi[0] + n*i
     for i from 0 < i < L:
@@ -1367,32 +1366,36 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         # Note that there is a potential memory leak here - if a particular
         # mpz fails to allocate, this is not checked for
 
-    # create to and from mappings to relabel vertices to the set {0,...,n-1}
-    listto = G.vertices()
-    ffrom = {}
-    for vvv in listto:
-        ffrom[vvv] = listto.index(vvv)
-    to = {}
-    for i from 0 <= i < len(listto):
-        to[i] = listto[i]
-    G.relabel(ffrom)
-    Pi2 = []
-    for cell in Pi:
-        Pi2.append([ffrom[c] for c in cell])
-    Pi = Pi2
+    if isinstance(G, GenericGraph):
+        # create to and from mappings to relabel vertices to the set {0,...,n-1}
+        listto = G.vertices()
+        ffrom = {}
+        for vvv in listto:
+            ffrom[vvv] = listto.index(vvv)
+        to = {}
+        for i from 0 <= i < len(listto):
+            to[i] = listto[i]
+        G.relabel(ffrom)
+        Pi2 = []
+        for cell in Pi:
+            Pi2.append([ffrom[c] for c in cell])
+        Pi = Pi2
+        if sparse:
+            M = SparseGraph(n)
+        else:
+            M = DenseGraph(n)
+        if isinstance(G, Graph):
+            for i, j, la in G.edge_iterator():
+                M.add_arc_unsafe(i,j)
+                M.add_arc_unsafe(j,i)
+        elif isinstance(G, DiGraph):
+            for i, j, la in G.edge_iterator():
+                M.add_arc_unsafe(i,j)
 
-    # initialize M and W
+    # initialize W
     for i from 0 <= i < n:
         for j from 0 <= j < n:
-            M[i][j] = 0
             W[i][j] = 0
-    if isinstance(G, Graph):
-        for i, j, la in G.edge_iterator():
-            M[i][j] = 1
-            M[j][i] = 1
-    elif isinstance(G, DiGraph):
-        for i, j, la in G.edge_iterator():
-            M[i][j] = 1
 
     # set up the rest of the variables
     nu = PartitionStack(Pi)
@@ -1488,7 +1491,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
             alpha[j] = -1
 
             # "nu[0] := R(G, Pi, Pi)"
-            nu._refine_by_square_matrix(alpha, n, M, _dig, uif)
+            nu._refine(alpha, n, M, _dig, uif)
 
             if not _dig:
                 if nu._sat_225(n): hh = nu.k
@@ -1508,7 +1511,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
             nu._clear()
             alpha[0] = nu._split_vertex(v[nu.k-1])
             alpha[1] = -1
-            i = nu._refine_by_square_matrix(alpha, n, M, _dig, uif)
+            i = nu._refine(alpha, n, M, _dig, uif)
             if verbosity >= 5:
                 ST_vis_invariant = int(i)
 
@@ -1893,7 +1896,6 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
     # free int arrays
     sage_free(gamma)
     sage_free(W[0])
-    sage_free(M[0])
     sage_free(Phi[0])
     sage_free(Omega[0])
     sage_free(alpha)
@@ -1907,21 +1909,25 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
 
     # free int pointers
     sage_free(W)
-    sage_free(M)
     sage_free(Phi)
     sage_free(Omega)
 
-    # use to and from mappings to relabel vertices back from the set {0,...,n-1}
     if lab:
         H = _term_pnest_graph(G, rho)
-    G.relabel(to)
-    if dict:
-        ddd = {}
-        for vvv in G.vertices(): # v is a C variable
-            if ffrom[vvv] != 0:
-                ddd[vvv] = ffrom[vvv]
-            else:
-                ddd[vvv] = n
+    if isinstance(G, GenericGraph):
+        # use to and from mappings to relabel vertices back from the set {0,...,n-1}
+        G.relabel(to)
+        if dict:
+            ddd = {}
+            for vvv in G.vertices(): # v is a C variable
+                if ffrom[vvv] != 0:
+                    ddd[vvv] = ffrom[vvv]
+                else:
+                    ddd[vvv] = n
+    elif dict: # G is a CGraph
+            ddd = {}
+            for i from 0 <= i < n:
+                ddd[i] = i
 
     # prepare output
     if certify:

@@ -1092,18 +1092,36 @@ class MPolynomialIdeal_singular_repr:
 
         return R.ideal([f.sage_poly(R) for f in self._singular_().quotient(J._singular_())])
 
-    def variety(self):
+    def variety(self, ring=None):
         """
         Return the variety of self.
 
-        Given a zero-dimensional ideal I (== self) of a polynomial ring P
-        whose order is lexicographic, return the variety of I over its
-        coefficient field K as a list of dictionaries with (variable, value)
-        pairs.
+        Given a zero-dimensional ideal $I$ (== \code{self}) of a polynomial
+        ring P whose order is lexicographic, return the variety of I
+        as a list of dictionaries with (variable, value) pairs.  By
+        default, the variety of the ideal over its coefficient field $K$
+        is returned; \var{ring} can be specified to find the variety
+        over a different ring.
 
         These dictionaries have cardinality equal to the number of
         variables in P and represent assignments of values to these
         variables such that all polynomials in I vanish.
+
+        If \var{ring} is specified, then a triangular decomposition of
+        \code{self} is found over the original coefficient field $K$;
+        then the triangular systems are solved using root-finding over
+        \var{ring}.  This is particularly useful when $K$ is \code{QQ}
+        (to allow fast symbolic computation of the triangular
+        decomposition) and \var{ring} is \code{RR}, \code{AA},
+        \code{CC}, or \code{QQbar} (to compute the whole real or
+        complex variety of the ideal).
+
+        Note that with \var{ring}=\code{RR} or \code{CC}, computation
+        is done numerically and potentially inaccurately; in
+        particular, the number of points in the real variety may be
+        miscomputed.  With \var{ring}=\code{AA} or \code{QQbar},
+        computation is done exactly (which may be much slower, of
+        course).
 
         EXAMPLE:
             sage: K.<w> = GF(27) # this example is from the MAGMA handbook
@@ -1128,6 +1146,49 @@ class MPolynomialIdeal_singular_repr:
 
             sage: I.vector_space_dimension()
             48
+
+            Here we compute the points of intersection of a hyperbola and
+            a circle, in several fields.
+
+            sage: K.<x, y> = PolynomialRing(QQ, 2, order='lex')
+            sage: I = Ideal([ x*y - 1, (x-2)^2 + (y-1)^2 - 1])
+            sage: I = Ideal(I.groebner_basis()); I
+            Ideal (y^4 - 2*y^3 + 4*y^2 - 4*y + 1, x + y^3 - 2*y^2 + 4*y - 4) of Multivariate Polynomial Ring in x, y over Rational Field
+
+            These two curves have one rational intersection:
+
+            sage: I.variety()
+            [{y: 1, x: 1}]
+
+            There are two real intersections:
+
+            sage: I.variety(ring=RR)
+            [{y: 0.361103080528647, x: 2.76929235423863},
+             {y: 1.00000000000000, x: 1.00000000000000}]
+            sage: I.variety(ring=AA)
+            [{x: [2.7692923542386314 .. 2.7692923542386319],
+              y: [0.36110308052864736 .. 0.36110308052864743]},
+             {x: [1.0000000000000000 .. 1.0000000000000000],
+              y: [1.0000000000000000 .. 1.0000000000000000]}]
+
+            and a total of four intersections:
+
+            sage: I.variety(ring=CC)
+            [{y: 0.31944845973567... - 1.6331702409152...*I,
+              x: 0.11535382288068... + 0.58974280502220...*I},
+             {y: 0.31944845973567... + 1.6331702409152...*I,
+              x: 0.11535382288068... - 0.58974280502220...*I},
+             {y: 0.36110308052864..., x: 2.7692923542386...},
+             {y: 1.00000000000000, x: 1.00000000000000}]
+            sage: I.variety(ring=QQbar)
+            [{y: [0.31944845973567626 .. 0.31944845973567632] - [1.6331702409152375 .. 1.6331702409152378]*I,
+              x: [0.11535382288068428 .. 0.11535382288068430] + [0.58974280502220544 .. 0.58974280502220556]*I},
+             {y: [0.31944845973567626 .. 0.31944845973567632] + [1.6331702409152375 .. 1.6331702409152378]*I,
+              x: [0.11535382288068428 .. 0.11535382288068430] - [0.58974280502220544 .. 0.58974280502220556]*I},
+             {y: [0.36110308052864736 .. 0.36110308052864743],
+              x: [2.7692923542386314 .. 2.7692923542386319]},
+             {y: [1.0000000000000000 .. 1.0000000000000000],
+              x: [1.0000000000000000 .. 1.0000000000000000]}]
 
         TESTS:
             sage: K.<w> = GF(27)
@@ -1154,7 +1215,7 @@ class MPolynomialIdeal_singular_repr:
                 return V
 
             variable = f.variable(0)
-            roots = f.univariate_polynomial().roots()
+            roots = f.univariate_polynomial().roots(ring=ring)
 
             for root,multiplicity in roots:
                 vbar = v.copy()
@@ -1165,6 +1226,7 @@ class MPolynomialIdeal_singular_repr:
             return V
 
         P = self.ring()
+        if ring is not None: P = P.change_ring(ring)
         T = self.triangular_decomposition('singular:triangLfak')
 
         V = []

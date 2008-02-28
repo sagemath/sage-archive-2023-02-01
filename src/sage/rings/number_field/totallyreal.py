@@ -295,7 +295,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     # many possibilities which we must now throw back in.
     if n == 2 and B >= 5 and (type(t_2) == bool and (not t_2 or 5 >= t_2val)) or \
         (type(t_2) == Integer and 5 >= t_2):
-        S = [[5,pari('x^2-x+1')]] + S
+        S = [[5,pari('x^2-x-1')]] + S
     elif n == 3 and B >= 49 and (type(t_2) == bool and (not t_2 or 5 >= t_2val)) or \
         (type(t_2) == Integer and 5 >= t_2):
         S = [[49,pari('x^3-x^2-2*x+1')]] + S

@@ -219,6 +219,24 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         sage: ZZ['x,y,z'].0 + ZZ['w,x,z,a'].1
         2*x
 
+    If a class is not part of the coercion system, we should call the
+    __rmul__ method when it makes sense.
+
+        sage: class Foo:
+        ...      def __rmul__(self, left):
+        ...          return 'hello'
+        ...
+        sage: H = Foo()
+        sage: print int(3)*H
+        hello
+        sage: print Integer(3)*H
+        hello
+        sage: print H*3
+        Traceback (most recent call last):
+        ...
+        TypeError: unsupported operand parent(s) for '*': '<type 'instance'>' and 'Integer Ring'
+
+
     AUTHOR:
         -- Robert Bradshaw
     """
@@ -268,6 +286,11 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
                 return y._r_action(x)
             except (AttributeError, TypeError):
                 pass
+            if not isinstance(y, Element):
+                try:
+                    return y.__rmul__(x)
+                except (AttributeError, TypeError):
+                    pass
 
         raise TypeError, arith_error_message(x,y,op)
 

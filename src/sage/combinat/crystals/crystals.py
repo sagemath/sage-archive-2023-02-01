@@ -57,6 +57,12 @@ high quality LaTeX output of the crystal graph:
     sage: f.write(C.latex())
     sage: f.close()
 
+TODO:
+ - choose vocabulary:
+   - elements or vectors of a crystal?
+   - For a classical crystal: connected / highest weight / irreducible
+   - ...
+
 """
 
 #*****************************************************************************
@@ -108,9 +114,15 @@ class Crystal(CombinatorialClass, Parent):
 
     def check(self):
         r"""
-        Runs sanity checks on the crystal
-
-        Should check for weight, Stembridge's rules, etc.
+        Runs sanity checks on the crystal:
+        \begin{itemize}
+        \item Checks that count, list, and __iter__ are
+        consistent. For a ClassicalCrystal, this in particular checks
+        that the number of elements returned by the brute force
+        listing and the iterator __iter__ are consistent with the Weyl
+        dimension formula.
+        \item Should check Stembridge's rules, etc.
+        \end{itemize}
         """
         # Those tests could be lifted up to CombinatorialClass
         list1 = self.list();        set1 = set(list1)
@@ -327,6 +339,42 @@ class ClassicalCrystal(Crystal):
             True
             sage: U.check()
             True
+
+            Bump's systematic tests:
+
+            sage: def fa3(a,b,c):\
+                 return CrystalOfTableaux(['A',3],shape=[a+b+c,b+c,c])
+            sage: def fb3(a,b,c):\
+                 return CrystalOfTableaux(['B',3],shape=[a+b+c,b+c,c])
+            sage: def fb3spin(a,b,c):\
+                 C = CrystalOfTableaux(['B',3],shape=[a+b+c,b+c,c]);\
+                 D = CrystalOfSpins(['B',3]);\
+                 return TensorProductOfCrystals(C,D,generators=[[C.list()[0],D(1)]])
+            sage: def fb4(a,b,c,d):\
+                 return CrystalOfTableaux(['B',4],shape=[a+b+c+d,b+c+d,c+d,d])
+            sage: def fc3(a,b,c):\
+                 return CrystalOfTableaux(['C',3],shape=[a+b+c,b+c,c])
+            sage: def fd4(a,b,c,d):\
+                 return CrystalOfTableaux(['D',4],shape=[a+b+c+d,b+c+d,c+d,d])
+            sage: def fd4spinplus(a,b,c,d):\
+                 C = CrystalOfTableaux(['D',4],shape=[a+b+c+d,b+c+d,c+d,d]);\
+                 D = CrystalOfSpinsPlus(['D',4]);\
+                 return TensorProductOfCrystals(C,D,generators=[[C.list()[0],D(1)]])
+            sage: def fd5(a,b,c,d,e):\
+                 return CrystalOfTableaux(['D',5],shape=[a+b+c+d+e,b+c+d+e,c+d+e,d+e,e])
+
+
+            TODO: choose a good panel of values for a,b,c ... both for
+            basic systematic tests and for conditionally run more
+            computatinaly involved tests
+
+            sage: fb4(1,0,1,0).check()
+            True
+
+            #sage: fb4(1,1,1,1).check() # expensive: the crystal is of size 297297
+            #True
+
+
         """
         def rec(x):
             for i in self.index_set: # Run through the childs y of x
@@ -348,16 +396,44 @@ class ClassicalCrystal(Crystal):
                 for z in rec(y):
                     yield z
 
-        for generator in self.module_generators:
-            # Ignore potential non highest weight module_generators
-            if not generator.is_highest_weight():
-                continue
+        for generator in self.highest_weight_vectors():
             yield generator
             for x in rec(generator):
                 yield x
 
     iterator = __iter__
 
+    def highest_weight_vectors(self):
+        r"""
+        Returns the highest weight vectors
+        """
+        # Implementation: selects among the module generators those that are highest weight
+        # and cache the result
+        if not self.__dict__.has_key('_highest_weight_vectors'): # What's the right idiom for testing the existence of an attribute
+            self._highest_weight_vectors = []
+            for x in self.module_generators: # What's the right idiom for 'select'
+                if x.is_highest_weight():
+                    self._highest_weight_vectors.append(x)
+        return self._highest_weight_vectors
+
+    def highest_weight_vector(self):
+        r"""
+        Returns the higest weight vector if there is a single one
+        Raise an error otherwise
+        """
+        hw = self.highest_weight_vectors();
+        if len(hw) == 1:
+            return hw[0]
+        else:
+            raise RuntimeError("The crystal does not have exactly one highest weight vector")
+
+    def count(self):
+        r"""
+        Returns the number of elements of the crystal, using Weyl's dimension formula on each
+        connected component
+        """
+        return sum(self.weight_lattice_realization().weyl_dimension(x.weight())
+                   for x in self.highest_weight_vectors())
 
 class AffineCrystal(Crystal):
     r"""

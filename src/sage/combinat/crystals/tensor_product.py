@@ -27,6 +27,7 @@ from sage.combinat.tableau     import Tableau
 from crystals                  import Crystal, CrystalElement, ClassicalCrystal
 from letters                   import CrystalOfLetters
 from sage.misc.flatten         import flatten
+from sage.rings.integer        import Integer
 
 ##############################################################################
 # Support classes
@@ -301,11 +302,10 @@ class CrystalOfTableaux(TensorProductOfCrystals):
     def __call__(self, *args, **options):
         r"""
         TESTS:
-            sage: T = CrystalOfTableaux(['A',3], [3,2])
-
-            #sage: T(rows=[[1,2,4],[2,3]])
-            #sage: T(list=[2,1,3,2,4])
-            #sage: T(2,1,3,2,4)
+	    sage: T=CrystalOfTableaux(['A',3],Partition([2,2]))
+	    sage: t=T(rows=[[1,2],[3,4]])
+	    sage: t.f(3)
+	    [[1, 2], [4, 4]]
         """
 	if not options.has_key('rows') and len(args)>= 1 and isinstance(args[0], Element) and args[0].parent() == self:
 	    return args[0];
@@ -325,6 +325,8 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
 		list+=col
 	else:
 	    list = [i for i in args]
+	if list <> [] and type(list[0]) == Integer:
+	    list=[parent.letters(x) for x in list]
 	TensorProductOfCrystalsElement.__init__(self, parent, list=list)
 
     def __repr__(self):

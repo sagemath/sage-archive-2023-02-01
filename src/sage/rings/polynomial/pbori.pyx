@@ -1835,6 +1835,21 @@ cdef class BooleanPolynomial(MPolynomial):
     def lexLmDeg(self):
         """
         Return degree of leading monomial w.r.t to lex ordering
+
+        EXAMPLE:
+            sage: B.<x,y,z> = BooleanPolynomialRing(3,order='lex')
+            sage: f = x + y*z
+            sage: f
+            x + y*z
+            sage: f.lexLmDeg()
+            1
+
+            sage: B.<x,y,z> = BooleanPolynomialRing(3,order='deglex')
+            sage: f = x + y*z
+            sage: f
+            y*z + x
+            sage: f.lexLmDeg()
+            1
         """
         return self._pbpoly.lexLmDeg()
 

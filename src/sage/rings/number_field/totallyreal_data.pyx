@@ -268,7 +268,7 @@ def lagrange_degree_3(n, an1, an2, an3):
         f = ZZx(p)
         df = ZZx([i*p[i] for i in range(1,7)])
         f = f//gcd(f,df)
-        fcoeff = f.list()
+        fcoeff = [int(c) for c in f.list()]
         rts = numpy.roots(fcoeff)
 
         rts = numpy.real([rts[i] for i in range(len(rts)) if numpy.isreal(rts[i])]).tolist()
@@ -504,7 +504,7 @@ cdef class tr_data:
                     self.b_upper = bminmax[1]
 
             # Annoying, but must reverse coefficients for numpy.
-            gnk = [binomial(j,k+2)*a[j] for j in range(k+2,n+1)]
+            gnk = [int(binomial(j,k+2))*a[j] for j in range(k+2,n+1)]
             gnk.reverse()
             rts = numpy.roots(gnk).tolist()
             rts.sort()

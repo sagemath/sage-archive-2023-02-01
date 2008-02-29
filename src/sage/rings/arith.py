@@ -2091,7 +2091,7 @@ def discrete_log_generic(x, base, ord=None):
     The elements a and b must support exponentiation to a negative
     power.
 
-    If no such $x$ exits, this function raises a ValueError exception.
+    If no such $x$ exists, this function raises a ValueError exception.
 
     ALGORITHM: Baby step giant step.
 
@@ -2120,8 +2120,16 @@ def discrete_log_generic(x, base, ord=None):
         ...
         ValueError: Log of 2 to the base 1 does not exist.
 
+        See trac#2356:
+        sage: F.<w> = GF(121)
+        sage: v = w^120
+        sage: v.log(w)
+        0
+
+
     AUTHOR:
         -- William Stein and David Joyner (2005-01-05)
+        -- John Cremona (2008-02-29) rewrite using dict()
     """
     Z = integer_ring.ZZ
     b = base; a = x
@@ -2147,22 +2155,21 @@ def discrete_log_generic(x, base, ord=None):
                 return Z(i)
             c *= b
         raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
-
-    m = ord.isqrt()
-    g = [a]
-    c = b**(-m)
-    S2 = [1]
+    m = ord.isqrt()+1  # we need sqrt(ord) rounded up
+    table = dict()     # will hold pairs (b^j,j) for j in range(m)
+    g = 1              # will run through b**j
+    for j in range(m):
+        table[g] = j
+        g *= b
+    g = g**(-1)        # this is now b**(-m)
+    h = a              # will run through a*g**i = a*b**(-i*m)
     for i in range(m):
-        g.append(g[i]*c)
-        if i < m-1:
-            S2.append(S2[i]*b)
-    for y in g:
-        if y in S2:
-            x = S2.index(y)
-            return Z(m*(g.index(y)) + x)
+        j = table.get(h)
+        if not j==None:  # then a*b**(-i*m) == b**j
+            return Z(i*m + j)
+        h *= g
 
     raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
-
 
 
 def quadratic_residues(n):

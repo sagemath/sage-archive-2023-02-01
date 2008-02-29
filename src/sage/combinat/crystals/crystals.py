@@ -57,12 +57,26 @@ high quality LaTeX output of the crystal graph:
     sage: f.write(C.latex())
     sage: f.close()
 
+Caveat: this crystal library, although relatively featureful for
+classical crystals, is still in an early development stage, and the
+syntax details may be subject to changes.
+
 TODO:
- - choose vocabulary:
+ - Vocabulary and conventions:
    - elements or vectors of a crystal?
    - For a classical crystal: connected / highest weight / irreducible
    - ...
+ - More introductory doc explaining the mathematical background
+ - Layout instructions for plot() for rank 2 types
+ - Streamlining the latex output
+ - Litltemann paths and/or alcove paths (this would give us the exceptional types)
+ - RestrictionOfCrystal / DirectSumOfCrystals
+ - Crystal.crystal_morphism
+ - Affine crystals
 
+Most of the above features (except littelmann/alcove paths) are in
+MuPAD-Combinat (see lib/COMBINAT/crystals.mu), which could provide
+inspiration.
 """
 
 #*****************************************************************************
@@ -79,6 +93,9 @@ TODO:
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
+#****************************************************************************
+# Acknowledgment: most of the design and implementation of this
+# library is heavily inspired from MuPAD-Combinat.
 #****************************************************************************
 
 from sage.misc.latex           import latex

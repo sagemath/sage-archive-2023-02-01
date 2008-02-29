@@ -2545,20 +2545,15 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if(_ring != currRing): rChangeCurrRing(_ring)
         return bool(pIsHomogeneous(self._poly))
 
-    def homogenize(self, var='h'):
-        """
-        Return self is self is homogeneous.  Otherwise return a
-        homogeneous polynomial. If a string is given, return a
-        polynomial in one more variable such that setting that
-        variable equal to 1 yields self. This variable is added to the
-        end of the variables. If either a variable in self.parent() or
-        an index is given, this variable is used to homogenize the
-        polynomial.
+    cpdef _homogenize(self, int var):
+        r"""
+        Return \code{self} if \code{self} is homogeneous.  Otherwise
+        return a homogenized polynomial constructed by modifying the
+        degree of the variable with index \code{var}.
 
         INPUT:
-            var -- either a string (default: 'h'); a variable name for the new variable
-                   to be added in when homogenizing or a variable/index to specify the existing
-                   variable to be used.
+            var -- an integer indicating which variable to use to
+                    homogenize (0 <= var < parent(self).ngens())
 
         OUTPUT:
             a multivariate polynomial
@@ -2567,13 +2562,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: P.<x,y> = PolynomialRing(QQ,2)
             sage: P.<x,y> = MPolynomialRing(QQ,2)
             sage: f = x^2 + y + 1 + 5*x*y^10
-            sage: g = f.homogenize('z'); g
+            sage: g = f.homogenize('z'); g # indirect doctest
             5*x*y^10 + x^2*z^9 + y*z^10 + z^11
             sage: g.parent()
             Multivariate Polynomial Ring in x, y, z over Rational Field
-            sage: f.homogenize(x)
+            sage: f._homogenize(0)
             2*x^11 + x^10*y + 5*x*y^10
 
+        SEE: \code{self.homogenize}
         """
         cdef MPolynomialRing_libsingular parent = <MPolynomialRing_libsingular>self._parent
         cdef MPolynomial_libsingular f
@@ -2581,26 +2577,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if self.is_homogeneous():
             return self
 
-        if PY_TYPE_CHECK(var, MPolynomial_libsingular):
-            if (<MPolynomial_libsingular>var)._parent is self._parent:
-                var = var._variable_indices_()
-                if len(var) == 1:
-                    var = var[0]
-                else:
-                    raise TypeError, "parameter var must be single variable"
-
-        if PY_TYPE_CHECK(var,str):
-            names = [str(e) for e in parent.gens()] + [var]
-            P = MPolynomialRing_libsingular(parent.base(),parent.ngens()+1, names, order=parent.term_order())
-            f = P(str(self))
-            return co.new_MP(P, pHomogen(f._poly,len(names)))
-        elif PY_TYPE_CHECK(var,int) or PY_TYPE_CHECK(var,Integer):
-            if var < parent._ring.N:
-                return co.new_MP(parent, pHomogen(p_Copy(self._poly, parent._ring), var+1))
-            else:
-                raise TypeError, "var must be < self.parent().ngens()"
+        if var < parent._ring.N:
+            return co.new_MP(parent, pHomogen(p_Copy(self._poly, parent._ring), var+1))
         else:
-            raise TypeError, "parameter var not understood"
+            raise TypeError, "var must be < self.parent().ngens()"
 
     def is_monomial(self):
         return not self._poly.next

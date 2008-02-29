@@ -293,13 +293,14 @@ cdef class PolyDict:
         # exponent sums is at most 1.
         return len(set(map(sum,K))) <= 1
 
-    def homogenize(PolyDict self):
+    def homogenize(PolyDict self, var):
         R = self.__repn
         H = {}
         deg = self.degree()
         for e, val in R.iteritems():
             i = deg - sum(e)
-            f = tuple(e) + (i,)
+            f = list(e)
+            f[var] += i
             H[ETuple(f)] = val
         return PolyDict(H, zero=self.__zero, force_etuples=False)
 

@@ -642,37 +642,34 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         """
         return self.element().is_homogeneous()
 
-    def homogenize(self, var="h"):
-        """
-        Return self is self is homogeneous.  Otherwise return a homogeneous
-        polynomial in one more variable such that setting that variable
-        equal to 1 yields self.
+    def _homogenize(self, var):
+        r"""
+        Return \code{self} if \code{self} is homogeneous.  Otherwise
+        return a homogenized polynomial constructed by modifying the
+        degree of the variable with index \code{var}.
 
         INPUT:
-            var -- string (default: "h"); a variable name for the new variable
-                   to be added in when homogenizing.
+            var -- an integer indicating which variable to use to
+                    homogenize (0 <= var < parent(self).ngens())
 
         OUTPUT:
             a multivariate polynomial
 
         EXAMPLES:
-            sage: x,y = MPolynomialRing(RationalField(),2,['x','y']).gens()
-            sage: f = x^2 + y + 1 + 5*x*y^10
-            sage: g = f.homogenize('z'); g
-            5*x*y^10 + x^2*z^9 + y*z^10 + z^11
+            sage: P.<x,y> = MPolynomialRing(ZZ,2)
+            sage: f = x^2 + y + 1 + 5*x*y^1
+            sage: g = f.homogenize('z'); g # indirect doctest
+            x^2 + 5*x*y + y*z + z^2
             sage: g.parent()
-            Multivariate Polynomial Ring in x, y, z over Rational Field
+            Multivariate Polynomial Ring in x, y, z over Integer Ring
+
+        SEE: \code{self.homogenize}
         """
         if self.is_homogeneous():
             return self
-        X = self.element().homogenize()
+        X = self.element().homogenize(var)
         R = self.parent()
-        S = multi_polynomial_ring.MPolynomialRing(
-                        R.base_ring(),
-                        R.ngens() + 1,
-                        names=R.variable_names() + (var,),
-                        order = R.term_order())
-        return S(X)
+        return R(X)
 
     def is_monomial(self):
         return len(self.element().dict().keys()) == 1

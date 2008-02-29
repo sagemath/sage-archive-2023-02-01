@@ -1,5 +1,8 @@
 import sage.misc.misc as misc
 
+include "sage/ext/stdsage.pxi"
+from sage.rings.integer cimport Integer
+
 from sage.misc.derivative import multi_derivative
 
 def is_MPolynomial(x):
@@ -430,6 +433,87 @@ cdef class MPolynomial(CommutativeRingElement):
             (x, y)
         """
         return self._parent.gens()
+
+    def homogenize(self, var='h'):
+        r"""
+        Return \code{self} if \code{self} is homogeneous.  Otherwise
+        return a homogenized polynomial for \code{self}. If a string
+        is given, return a polynomial in one more variable named after
+        the strig such that setting that variable equal to 1 yields
+        self. This variable is added to the end of the variables. If a
+        variable in \code{self.parent()} is given, this variable is
+        used to homogenize the polynomial. If an integer is given, the
+        variable with this index is used for homogenization.
+
+        INPUT:
+            var -- either a variable name, variable index or a
+                   variable (default: 'h').
+
+        OUTPUT:
+            a multivariate polynomial
+
+        EXAMPLES:
+            sage: P.<x,y> = PolynomialRing(QQ,2)
+            sage: f = x^2 + y + 1 + 5*x*y^10
+            sage: g = f.homogenize('z'); g
+            5*x*y^10 + x^2*z^9 + y*z^10 + z^11
+            sage: g.parent()
+            Multivariate Polynomial Ring in x, y, z over Rational Field
+
+            sage: f.homogenize(x)
+            2*x^11 + x^10*y + 5*x*y^10
+
+            sage: f.homogenize(0)
+            2*x^11 + x^10*y + 5*x*y^10
+
+            sage: x, y = Zmod(3)['x', 'y'].gens()
+            sage: (x + x^2).homogenize(y)
+            x^2 + x*y
+
+            sage: x, y = Zmod(3)['x', 'y'].gens()
+            sage: (x + x^2).homogenize(y).parent()
+            Multivariate Polynomial Ring in x, y over Ring of integers modulo 3
+
+            sage: x, y = GF(3)['x', 'y'].gens()
+            sage: (x + x^2).homogenize(y)
+            x^2 + x*y
+
+            sage: x, y = GF(3)['x', 'y'].gens()
+            sage: (x + x^2).homogenize(y).parent()
+            Multivariate Polynomial Ring in x, y over Finite Field of size 3
+
+        """
+        P = self.parent()
+
+        if self.is_homogeneous():
+            return self
+
+        if PY_TYPE_CHECK(var, basestring):
+            V = list(P.variable_names())
+            try:
+                i = V.index(var)
+                return self._homogenize(i)
+            except ValueError:
+                P = P.__class__(P.base_ring(), len(V)+1, V + [var], order=P.term_order())
+                return P(self)._homogenize(len(V))
+
+        elif PY_TYPE_CHECK(var, MPolynomial) and \
+             ((<MPolynomial>var)._parent is P or (<MPolynomial>var)._parent == P):
+            V = list(P.gens())
+            try:
+                i = V.index(var)
+                return self._homogenize(i)
+            except ValueError:
+                P = P.change_ring(names=P.variable_names() + [str(var)])
+                return P(self)._homogenize(len(V))
+
+        elif PY_TYPE_CHECK(var, int) or PY_TYPE_CHECK(var, Integer):
+            if 0 <= var < P.ngens():
+                return self._homogenize(var)
+            else:
+                raise TypeError, "Variable index %d must be < parent(self).ngens()."%var
+        else:
+            raise TypeError, "Parameter var must be either a variable, a string or an integer."
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

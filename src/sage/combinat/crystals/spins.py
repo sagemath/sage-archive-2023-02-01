@@ -123,7 +123,6 @@ def CrystalOfSpinsPlus(type):
     """
     type = CartanType(type)
     if type[0] == 'D':
-        generator = [1 for i in range(type[1])]
         return GenericCrystalOfSpins(type, Spin_crystal_type_D_element, "plus")
     else:
         raise NotImplementedError

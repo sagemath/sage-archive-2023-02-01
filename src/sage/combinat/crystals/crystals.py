@@ -348,8 +348,8 @@ class ClassicalCrystal(Crystal):
             sage: C = CrystalOfLetters(['D',4])
             sage: D = CrystalOfSpinsPlus(['D',4])
             sage: E = CrystalOfSpinsMinus(['D',4])
-            sage: T=TensorProductOfCrystals(D,E,generators=[[D(1),E(2)]])
-            sage: U=TensorProductOfCrystals(C,E,generators=[[C(1),E(2)]])
+            sage: T=TensorProductOfCrystals(D,E,generators=[[D.list()[0],E.list()[0]]])
+            sage: U=TensorProductOfCrystals(C,E,generators=[[C(1),E.list()[0]]])
             sage: len(T)    # triggered bug reported by Daniel Bump Sun, 24 Feb 2008 17:06:37 -0800
             56
             sage: T.check()

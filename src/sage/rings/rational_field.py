@@ -46,7 +46,6 @@ import ring
 import sage.rings.rational
 import sage.structure.factorization
 import infinity
-
 ZZ = None
 
 from sage.structure.parent_gens import ParentWithGens
@@ -204,9 +203,18 @@ class RationalField(_uniq, number_field_base.NumberField):
             0.200000000000000
             sage: QQ(RealField(45)(t))
             1/5
+
+        Elements from the extended rational field can be coerced
+        back into the rational field.
+            sage: E = ExtendedRationalField
+            sage: QQ(E(2))
+            2
+            sage: type(_)
+            <type 'sage.rings.rational.Rational'>
         """
-        if isinstance(x, sage.rings.rational.Rational):
+        if x.__class__ is sage.rings.rational.Rational:
             return x
+
         return sage.rings.rational.Rational(x, base)
 
     def construction(self):

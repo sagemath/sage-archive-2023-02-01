@@ -197,19 +197,12 @@ class Crystal_of_letters_type_A_element(Letter, CrystalElement):
     def e(self, i):
         r"""
         TEST:
-            sage: C = CrystalOfLetters(['A',5])
-            sage: C(1).e(1) == None
-            True
-            sage: C(2).e(1) == C(1)
-            True
-            sage: C(3).e(1) == None
-            True
-            sage: C(1).e(2) == None
-            True
-            sage: C(2).e(2) == None
-            True
-            sage: C(3).e(2) == C(2)
-            True
+            sage: C = CrystalOfLetters(['A',4])
+            sage: [[[i,j,C(i).e(j)] for j in range(1,5)] for i in range(1,5)]
+            [[[1, 1, None], [1, 2, None], [1, 3, None], [1, 4, None]],
+             [[2, 1, 1], [2, 2, None], [2, 3, None], [2, 4, None]],
+             [[3, 1, None], [3, 2, 2], [3, 3, None], [3, 4, None]],
+             [[4, 1, None], [4, 2, None], [4, 3, 3], [4, 4, None]]]
         """
         assert i in self.index_set()
         if self.value == i+1:
@@ -220,19 +213,12 @@ class Crystal_of_letters_type_A_element(Letter, CrystalElement):
     def f(self, i):
         r"""
         TESTS:
-            sage: C = CrystalOfLetters(['A',5])
-            sage: C(1).f(1) == C(2)
-            True
-            sage: C(2).f(1) == None
-            True
-            sage: C(3).f(1) == None
-            True
-            sage: C(1).f(2) == None
-            True
-            sage: C(2).f(2) == C(3)
-            True
-            sage: C(3).f(2) == None
-            True
+            sage: C = CrystalOfLetters(['A',4])
+            sage: [[[i,j,C(i).f(j)] for j in range(1,5)] for i in range(1,5)]
+            [[[1, 1, 2], [1, 2, None], [1, 3, None], [1, 4, None]],
+            [[2, 1, None], [2, 2, 3], [2, 3, None], [2, 4, None]],
+            [[3, 1, None], [3, 2, None], [3, 3, 4], [3, 4, None]],
+            [[4, 1, None], [4, 2, None], [4, 3, None], [4, 4, 5]]]
         """
         assert i in self.index_set()
         if self.value == i:
@@ -248,8 +234,6 @@ class Crystal_of_letters_type_B_element(Letter, CrystalElement):
     r"""
     Type B crystal of letters elements
 
-    Todo: similar tests as for type A around line 157
-
     TEST:
         sage: C = CrystalOfLetters (['B',3])
         sage: C.check()
@@ -259,26 +243,12 @@ class Crystal_of_letters_type_B_element(Letter, CrystalElement):
         r"""
         TEST:
             sage: C = CrystalOfLetters(['B',2])
-            sage: C(1).e(1) == None
-            True
-            sage: C(1).e(2) == None
-            True
-            sage: C(2).e(1) == C(1)
-            True
-            sage: C(2).e(2) == None
-            True
-            sage: C(0).e(1) == None
-            True
-            sage: C(0).e(2) == C(2)
-            True
-            sage: C(-2).e(1) == None
-            True
-            sage: C(-2).e(2) == C(0)
-            True
-            sage: C(-1).e(1) == C(-2)
-            True
-            sage: C(-1).e(2) == None
-            True
+            sage: [[[i,j,C(i).e(j)] for j in range(1,3)] for i in range(-2,3)]
+            [[[-2, 1, None], [-2, 2, 0]],
+            [[-1, 1, -2], [-1, 2, None]],
+            [[0, 1, None], [0, 2, 2]],
+            [[1, 1, None], [1, 2, None]],
+            [[2, 1, 1], [2, 2, None]]]
         """
         assert i in self.index_set()
         if self.value == i+1:
@@ -297,26 +267,12 @@ class Crystal_of_letters_type_B_element(Letter, CrystalElement):
         r"""
         TESTS:
             sage: C = CrystalOfLetters(['B',2])
-            sage: C(1).f(1) == C(2)
-            True
-            sage: C(1).f(2) == None
-            True
-            sage: C(2).f(1) == None
-            True
-            sage: C(2).f(2) == C(0)
-            True
-            sage: C(0).f(1) == None
-            True
-            sage: C(0).f(2) == C(-2)
-            True
-            sage: C(-2).f(1) == C(-1)
-            True
-            sage: C(-2).f(2) == None
-            True
-            sage: C(-1).f(1) == None
-            True
-            sage: C(-1).f(2) == None
-            True
+            sage: [[[i,j,C(i).f(j)] for j in range(1,3)] for i in range(-2,3)]
+            [[[-2, 1, -1], [-2, 2, None]],
+            [[-1, 1, None], [-1, 2, None]],
+            [[0, 1, None], [0, 2, -2]],
+            [[1, 1, 2], [1, 2, None]],
+            [[2, 1, None], [2, 2, 0]]]
         """
         assert i in self.index_set()
         if self.value == i:

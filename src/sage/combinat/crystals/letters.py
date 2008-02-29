@@ -197,13 +197,9 @@ class Crystal_of_letters_type_A_element(Letter, CrystalElement):
     def e(self, i):
         r"""
         TEST:
-             sage: C = CrystalOfLetters(['A',4])
-             sage: [[[i,j,C(i).e(j)] for j in range(1,5)] for i in range(1,6)]
-             [[[1, 1, None], [1, 2, None], [1, 3, None], [1, 4, None]],
-              [[2, 1, 1], [2, 2, None], [2, 3, None], [2, 4, None]],
-              [[3, 1, None], [3, 2, 2], [3, 3, None], [3, 4, None]],
-              [[4, 1, None], [4, 2, None], [4, 3, 3], [4, 4, None]],
-              [[5, 1, None], [5, 2, None], [5, 3, None], [5, 4, 4]]]
+            sage: C = CrystalOfLetters(['A',4])
+            sage: [[c,i,c.e(i)] for i in C.index_set for c in C if not c.e(i) == None]
+            [[2, 1, 1], [3, 2, 2], [4, 3, 3], [5, 4, 4]]
         """
         assert i in self.index_set()
         if self.value == i+1:
@@ -214,13 +210,9 @@ class Crystal_of_letters_type_A_element(Letter, CrystalElement):
     def f(self, i):
         r"""
         TESTS:
-             sage: C = CrystalOfLetters(['A',4])
-             sage: [[[i,j,C(i).f(j)] for j in range(1,5)] for i in range(1,6)]
-             [[[1, 1, 2], [1, 2, None], [1, 3, None], [1, 4, None]],
-              [[2, 1, None], [2, 2, 3], [2, 3, None], [2, 4, None]],
-              [[3, 1, None], [3, 2, None], [3, 3, 4], [3, 4, None]],
-              [[4, 1, None], [4, 2, None], [4, 3, None], [4, 4, 5]],
-              [[5, 1, None], [5, 2, None], [5, 3, None], [5, 4, None]]]
+            sage: C = CrystalOfLetters(['A',4])
+            sage: [[c,i,c.f(i)] for i in C.index_set for c in C if not c.f(i) == None]
+            [[1, 1, 2], [2, 2, 3], [3, 3, 4], [4, 4, 5]]
         """
         assert i in self.index_set()
         if self.value == i:
@@ -244,13 +236,16 @@ class Crystal_of_letters_type_B_element(Letter, CrystalElement):
     def e(self, i):
         r"""
         TEST:
-            sage: C = CrystalOfLetters(['B',2])
-            sage: [[[i,j,C(i).e(j)] for j in range(1,3)] for i in range(-2,3)]
-            [[[-2, 1, None], [-2, 2, 0]],
-            [[-1, 1, -2], [-1, 2, None]],
-            [[0, 1, None], [0, 2, 2]],
-            [[1, 1, None], [1, 2, None]],
-            [[2, 1, 1], [2, 2, None]]]
+            sage: C = CrystalOfLetters(['B',4])
+            sage: [[c,i,c.e(i)] for i in C.index_set for c in C if not c.e(i) == None]
+            [[2, 1, 1],
+             [-1, 1, -2],
+             [3, 2, 2],
+             [-2, 2, -3],
+             [4, 3, 3],
+             [-3, 3, -4],
+             [0, 4, 4],
+             [-4, 4, 0]]
         """
         assert i in self.index_set()
         if self.value == i+1:
@@ -268,13 +263,16 @@ class Crystal_of_letters_type_B_element(Letter, CrystalElement):
     def f(self, i):
         r"""
         TESTS:
-            sage: C = CrystalOfLetters(['B',2])
-            sage: [[[i,j,C(i).f(j)] for j in range(1,3)] for i in range(-2,3)]
-            [[[-2, 1, -1], [-2, 2, None]],
-            [[-1, 1, None], [-1, 2, None]],
-            [[0, 1, None], [0, 2, -2]],
-            [[1, 1, 2], [1, 2, None]],
-            [[2, 1, None], [2, 2, 0]]]
+            sage: C = CrystalOfLetters(['B',4])
+            sage: [[c,i,c.f(i)] for i in C.index_set for c in C if not c.f(i) == None]
+            [[1, 1, 2],
+             [-2, 1, -1],
+             [2, 2, 3],
+             [-3, 2, -2],
+             [3, 3, 4],
+             [-4, 3, -3],
+             [4, 4, 0],
+             [0, 4, -4]]
         """
         assert i in self.index_set()
         if self.value == i:
@@ -315,17 +313,15 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
     def e(self, i):
         r"""
         TEST:
-            sage: C = CrystalOfLetters(['C',2])
-            sage: C(1).e(1) == None
-            True
-            sage: C(2).e(1) == C(1)
-            True
-            sage: C(-2).e(1) == None
-            True
-            sage: C(-1).e(1) == C(-2)
-            True
-            sage: C(-2).e(2) == C(2)
-            True
+            sage: C = CrystalOfLetters(['C',4])
+            sage: [[c,i,c.e(i)] for i in C.index_set for c in C if not c.e(i) == None]
+            [[2, 1, 1],
+             [-1, 1, -2],
+             [3, 2, 2],
+             [-2, 2, -3],
+             [4, 3, 3],
+             [-3, 3, -4],
+             [-4, 4, 4]]
         """
         assert i in self.index_set()
     	if self.value == -self._parent.cartanType.n and self.value == -i:
@@ -338,15 +334,15 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
     def f(self, i):
         r"""
         TESTS:
-            sage: C = CrystalOfLetters(['C',2])
-            sage: C(1).f(1) == C(2)
-            True
-            sage: C(2).f(1) == None
-            True
-            sage: C(-2).f(1) == C(-1)
-            True
-            sage: C(-1).f(2) == None
-            True
+            sage: C = CrystalOfLetters(['C',4])
+            sage: [[c,i,c.f(i)] for i in C.index_set for c in C if not c.f(i) == None]
+            [[1, 1, 2],
+             [-2, 1, -1],
+             [2, 2, 3],
+             [-3, 2, -2],
+             [3, 3, 4],
+             [-4, 3, -3],
+             [4, 4, -4]]
         """
         assert i in self.index_set()
 	if self.value == self._parent.cartanType.n and self.value == i:
@@ -362,7 +358,7 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
 
 class Crystal_of_letters_type_D_element(Letter, CrystalElement):
     r"""
-    Type C crystal of letters elements
+    Type D crystal of letters elements
 
     TEST:
         sage: C = CrystalOfLetters(['D',4])
@@ -374,71 +370,18 @@ class Crystal_of_letters_type_D_element(Letter, CrystalElement):
     def e(self, i):
         r"""
         TEST:
-            sage: C = CrystalOfLetters(['D',4])
-            sage: C(1).e(1) == None
-            True
-            sage: C(1).e(2) == None
-            True
-            sage: C(1).e(3) == None
-            True
-            sage: C(1).e(4) == None
-            True
-            sage: C(2).e(1) == C(1)
-            True
-            sage: C(2).e(2) == None
-            True
-            sage: C(2).e(3) == None
-            True
-            sage: C(2).e(4) == None
-            True
-            sage: C(3).e(1) == None
-            True
-            sage: C(3).e(2) == C(2)
-            True
-            sage: C(3).e(3) == None
-            True
-            sage: C(3).e(4) == None
-            True
-            sage: C(4).e(1) == None
-            True
-            sage: C(4).e(2) == None
-            True
-            sage: C(4).e(3) == C(3)
-            True
-            sage: C(4).e(4) == None
-            True
-            sage: C(-4).e(1) == None
-            True
-            sage: C(-4).e(2) == None
-            True
-            sage: C(-4).e(3) == None
-            True
-            sage: C(-4).e(4) == C(3)
-            True
-            sage: C(-3).e(1) == None
-            True
-            sage: C(-3).e(2) == None
-            True
-            sage: C(-3).e(3) == C(-4)
-            True
-            sage: C(-3).e(4) == C(4)
-            True
-            sage: C(-2).e(1) == None
-            True
-            sage: C(-2).e(2) == C(-3)
-            True
-            sage: C(-2).e(3) == None
-            True
-            sage: C(-2).e(4) == None
-            True
-            sage: C(-1).e(1) == C(-2)
-            True
-            sage: C(-1).e(2) == None
-            True
-            sage: C(-1).e(3) == None
-            True
-            sage: C(-1).e(4) == None
-            True
+            sage: C = CrystalOfLetters(['D',5])
+            sage: [[c,i,c.e(i)] for i in C.index_set for c in C if not c.e(i) == None]
+            [[2, 1, 1],
+             [-1, 1, -2],
+             [3, 2, 2],
+             [-2, 2, -3],
+             [4, 3, 3],
+             [-3, 3, -4],
+             [5, 4, 4],
+             [-4, 4, -5],
+             [-5, 5, 4],
+             [-4, 5, 5]]
         """
         assert i in self.index_set()
         if i == self._parent.cartanType.n:
@@ -458,71 +401,18 @@ class Crystal_of_letters_type_D_element(Letter, CrystalElement):
     def f(self, i):
         r"""
         TESTS:
-            sage: C = CrystalOfLetters(['D',4])
-            sage: C(1).f(1) == C(2)
-            True
-            sage: C(1).f(2) == None
-            True
-            sage: C(1).f(3) == None
-            True
-            sage: C(1).f(4) == None
-            True
-            sage: C(2).f(1) == None
-            True
-            sage: C(2).f(2) == C(3)
-            True
-            sage: C(2).f(3) == None
-            True
-            sage: C(2).f(4) == None
-            True
-            sage: C(3).f(1) == None
-            True
-            sage: C(3).f(2) == None
-            True
-            sage: C(3).f(3) == C(4)
-            True
-            sage: C(3).f(4) == C(-4)
-            True
-            sage: C(4).f(1) == None
-            True
-            sage: C(4).f(2) == None
-            True
-            sage: C(4).f(3) == None
-            True
-            sage: C(4).f(4) == C(-3)
-            True
-            sage: C(-4).f(1) == None
-            True
-            sage: C(-4).f(2) == None
-            True
-            sage: C(-4).f(3) == C(-3)
-            True
-            sage: C(-4).f(4) == None
-            True
-            sage: C(-3).f(1) == None
-            True
-            sage: C(-3).f(2) == C(-2)
-            True
-            sage: C(-3).f(3) == None
-            True
-            sage: C(-3).f(4) == None
-            True
-            sage: C(-2).f(1) == C(-1)
-            True
-            sage: C(-2).f(2) == None
-            True
-            sage: C(-2).f(3) == None
-            True
-            sage: C(-2).f(4) == None
-            True
-            sage: C(-1).f(1) == None
-            True
-            sage: C(-1).f(2) == None
-            True
-            sage: C(-1).f(3) == None
-            True
-            sage: C(-1).f(4) == None
-            True
+            sage: C = CrystalOfLetters(['D',5])
+            sage: [[c,i,c.f(i)] for i in C.index_set for c in C if not c.f(i) == None]
+            [[1, 1, 2],
+             [-2, 1, -1],
+             [2, 2, 3],
+             [-3, 2, -2],
+             [3, 3, 4],
+             [-4, 3, -3],
+             [4, 4, 5],
+             [-5, 4, -4],
+             [4, 5, -5],
+             [5, 5, -4]]
         """
         assert i in self.index_set()
         if i == self.value:

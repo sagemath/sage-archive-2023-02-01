@@ -366,7 +366,7 @@ class ClassicalCrystal(Crystal):
             sage: def fb3spin(a,b,c):\
                  C = CrystalOfTableaux(['B',3],shape=[a+b+c,b+c,c]);\
                  D = CrystalOfSpins(['B',3]);\
-                 return TensorProductOfCrystals(C,D,generators=[[C.list()[0],D(1)]])
+                 return TensorProductOfCrystals(C,D,generators=[[C.list()[0],D.list()[0]]])
             sage: def fb4(a,b,c,d):\
                  return CrystalOfTableaux(['B',4],shape=[a+b+c+d,b+c+d,c+d,d])
             sage: def fc3(a,b,c):\
@@ -376,7 +376,7 @@ class ClassicalCrystal(Crystal):
             sage: def fd4spinplus(a,b,c,d):\
                  C = CrystalOfTableaux(['D',4],shape=[a+b+c+d,b+c+d,c+d,d]);\
                  D = CrystalOfSpinsPlus(['D',4]);\
-                 return TensorProductOfCrystals(C,D,generators=[[C.list()[0],D(1)]])
+                 return TensorProductOfCrystals(C,D,generators=[[C.list()[0],D.list()[0]]])
             sage: def fd5(a,b,c,d,e):\
                  return CrystalOfTableaux(['D',5],shape=[a+b+c+d+e,b+c+d+e,c+d+e,d+e,e])
 

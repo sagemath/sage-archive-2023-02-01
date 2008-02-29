@@ -328,7 +328,7 @@ class CrystalOfTableaux(TensorProductOfCrystals):
         # The column canonical tableau, read by columns
 	module_generator = flatten([[self.letters(p[j]-i) for i in range(p[j])] for j in range(len(p))])
 	TensorProductOfCrystals.__init__(self, *[self.letters]*shape.size(), **{'generators':[module_generator],'cartan_type':type})
-	self._name = "The crystal of tableaux of type%s"%type
+	self._name = "The crystal of tableaux of type %s and shape %s"%(type, str(shape))
 	self.shape = shape
 
     def __call__(self, *args, **options):

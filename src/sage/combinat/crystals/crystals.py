@@ -377,7 +377,7 @@ class ClassicalCrystal(Crystal):
 
         """
         def rec(x):
-            for i in self.index_set: # Run through the childs y of x
+            for i in self.index_set: # Run through the children y of x
                 y = x.f(i)
                 if y is None:
                     continue

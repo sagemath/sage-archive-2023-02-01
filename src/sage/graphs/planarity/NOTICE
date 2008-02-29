@@ -1,8 +1,0 @@
-Planar Graph Embedder and Non-Planar Subgraph Isolator
-Copyright 1999-2005 by John M. Boyer
-
-This Work includes a reference implementation for the following journal paper:
-
-John M. Boyer and Wendy J. Myrvold, On the Cutting Edge: Simplified O(n)
-Planarity by Edge Addition.  Journal of Graph Algorithms and Applications,
-Vol. 8, No. 3, pp. 241-273, 2004.

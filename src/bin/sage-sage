@@ -87,6 +87,8 @@ usage_advanced() {
     #echo "  -update       -- download latest non-optional SAGE packages (do not build them)"
     #echo "  -update-build -- build and install all downloaded non-optional SAGE packages"
     echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
+    echo "  -gthread, -qthread, -q4thread, -wthread, -pylab"
+    echo "                -- pass the option through to ipython"
     echo "  -valgrind     -- this is an alias for -memcheck"
     echo "  -memcheck     -- run SAGE under the control of valgrind using the memcheck tool."
     echo "                   The log files can be found in $HOME/.sage/ Those are named "
@@ -211,7 +213,7 @@ fi
 
 sage() {
     sage_setup
-    sage-ipython -c "$SAGE_STARTUP_COMMAND;"  "$@"
+    sage-ipython "$@" -c "$SAGE_STARTUP_COMMAND;"
 }
 
 if [ $# -eq 0 ]; then
@@ -806,6 +808,10 @@ if [ $1 = '-omega' -o $1 = "--omega" ]; then
     exit $?
 fi
 
+if [ $1 = '-gthread' -o $1 = '-qthread' -o $1 = '-q4thread' -o $1 = '-wthread' -o $1 = '-pylab' ]; then
+    sage $1
+    exit $?
+fi
 
 if [ $# -ge 1 ]; then
    matplotlib_setup

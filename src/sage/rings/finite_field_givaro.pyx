@@ -570,7 +570,8 @@ cdef class FiniteField_givaro(FiniteField):
         r"""
         Return a generator of self. All elements x of self are
         expressed as $\log_{self.gen()}(p)$ internally. If self is
-        a prime field this method returns 1.
+        a prime field this method returns a generator of the
+        multiplicative group (i.e., a  primitive root).
 
         EXAMPLES:
             sage: k = GF(3^4, 'b'); k.gen()
@@ -579,6 +580,11 @@ cdef class FiniteField_givaro(FiniteField):
             Traceback (most recent call last):
             ...
             IndexError: only one generator
+	    sage: F=sage.rings.finite_field_givaro.FiniteField_givaro(31)
+	    sage: F.gen()
+	    3
+	    sage: F.gen().multiplicative_order()
+	    30
         """
         if n > 0:
             raise IndexError, "only one generator"

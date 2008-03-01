@@ -13,3 +13,5 @@
 from notebook_object import notebook, inotebook
 
 from sagetex import sagetex
+
+from manipulate import manipulate

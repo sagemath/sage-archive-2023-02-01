@@ -290,7 +290,21 @@ class Cell(Cell_generic):
     def computing(self):
         return self in self.__worksheet.queue()
 
+    def is_manipulating(self):
+        return hasattr(self, 'manipulate')
+
+    def stop_manipulating(self):
+        if self.is_manipulating():
+            del self.manipulate
+
     def set_input_text(self, input):
+        if input.startswith('%manipulate'):
+            self.manipulate = input[len('%manipulate')+1:]
+            self.__version = 1+self.version()
+            return
+        elif self.is_manipulating():
+            del self.manipulate
+
         self.__version = 1+self.version()
         self.__in = input
         if hasattr(self, '_html_cache'):
@@ -315,6 +329,10 @@ class Cell(Cell_generic):
         self.__in = new_text
 
     def set_output_text(self, output, html, sage=None):
+        if self.is_manipulating():
+            self._manipulate_output = (output,html)
+            return
+
         if hasattr(self, '_html_cache'):
             del self._html_cache
         output = output.replace('\r','')
@@ -370,7 +388,29 @@ class Cell(Cell_generic):
             x = x.replace(s,begin + s[7:-1] + end)
         return x
 
-    def output_text(self, ncols=0, html=True, raw=False):
+    def output_text(self, ncols=0, html=True, raw=False, allow_manipulate=True):
+        if allow_manipulate and hasattr(self, '_manipulate_output'):
+            z = self.output_text(ncols,html,raw,allow_manipulate=False)
+            try:
+                # Fill in the input valuees
+                if hasattr(self, 'manipulate'):
+                    inp = self.manipulate
+                    i = inp.lstrip().find('\n'); inp = inp[:i]
+                    i = inp.rfind('.'); inp = inp[i+1:]
+                    var, value = inp[:i].split('=')
+                    z = z.replace('<?%s>'%var, value)
+
+                # Fill in the output template
+                output,html = self._manipulate_output
+                z = z.replace('<?TEXT>', output.lstrip())
+                z = z.replace('<?HTML>', html)
+
+
+                return z
+            except (ValueError, AttributeError), msg:
+                print msg
+                pass
+
         s = self.__out
 
         if raw:

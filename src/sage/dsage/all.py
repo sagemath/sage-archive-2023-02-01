@@ -1,4 +1,6 @@
-"""nodoctest
+r"""
+This file exposes most of the public facing \code{dsage} functionality.
+
 """
 ##############################################################################
 #
@@ -22,14 +24,14 @@
 import os
 from sage.dsage.dist_functions.all import *
 from sage.dsage.misc.constants import DSAGE_DIR
-from sage.dsage.dsage import *
+from sage.dsage.dsage import DistributedSage
+import sage.plot.plot
 
-def DSage(server='localhost', port=8081,
+def connect(server='localhost', port=8081,
           username=os.getenv('USER'),
           pubkey_file=os.path.join(DSAGE_DIR,'dsage_key.pub'),
           privkey_file=os.path.join(DSAGE_DIR, 'dsage_key'),
-          log_level=0,
-          ssl=True):
+          log_level=0, ssl=True, testing=False):
     """
     This object represents a connection to the distributed SAGE server.
 
@@ -45,7 +47,13 @@ def DSage(server='localhost', port=8081,
     """
 
     from sage.dsage.interface.dsage_interface import BlockingDSage
+
+    if sage.plot.plot.DOCTEST_MODE:
+        testing = True
+
     return BlockingDSage(server=server, port=port, username=username,
                          pubkey_file=pubkey_file, privkey_file=privkey_file,
-                         log_level=log_level, ssl=ssl)
+                         log_level=log_level, ssl=ssl, testing=testing)
 
+dsage = DistributedSage()
+dsage.connect = connect

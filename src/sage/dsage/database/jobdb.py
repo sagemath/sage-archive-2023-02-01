@@ -16,72 +16,193 @@
 #                  http://www.gnu.org/licenses/
 #
 ############################################################################
-
 import datetime
-import os
-import random
-import string
 import sqlite3
+from sqlalchemy import *
 
 from twisted.python import log
+from zope.interface import Interface
+from zope.interface import implements
 
 import sage.dsage.database.sql_functions as sql_functions
-from sage.dsage.misc.constants import DSAGE_DIR
-from sage.dsage.misc.constants import DELIMITER
+from sage.dsage.database.job import Job, expand_job
+from sage.dsage.misc.constants import DELIMITER, SERVER_LOG
+from sage.dsage.misc.misc import random_string
 
-class JobDatabase(object):
-    """
-    Implementation of the job database.
-    Common methods between the implementations should go here.
 
-    """
-
-    def __init__(self, db_file=os.path.join(DSAGE_DIR, 'db', 'dsage.db'),
-                 job_failure_threshold=3,
-                 log_file=os.path.join(DSAGE_DIR, 'server.log'),
-                 log_level=0, test=False):
-        self.test = test
-        if self.test:
-            self.db_file = 'test_jobdb.db'
-            self.db_file = 'dsage_test.db'
-            self.log_file = 'dsage_test.log'
-            self.log_level = 5
-            self.prune_in_days = 10
-            self.job_failure_threshold = 3
-        else:
-            self.db_file = db_file
-            if not os.path.exists(self.db_file):
-                dir_, file_ = os.path.split(self.db_file)
-                if dir_ == '':
-                    pass
-                elif not os.path.isdir(dir_):
-                    os.mkdir(dir_)
-            self.job_failure_threshold = job_failure_threshold
-            self.log_file = log_file
-            self.log_level = log_level
-
-    def random_string(self, length=10):
+class IJobDatabase(Interface):
+    def get_job(self, authenticated=False):
         """
-        Returns a random string
-
-        Parameters:
-            length -- the length of the string
+        Returns the first unprocessed job of the highest priority.
 
         """
 
-        random.seed()
-        l = list((length*length) * (string.letters + string.digits))
-        random.shuffle(l)
-        s = ''.join(random.sample(l, length))
 
-        return s
+    def set_job_uuid(self, job_id, uuid):
+        """
+        Sets the unique identifier for a job.
 
-class JobDatabaseSQLite(JobDatabase):
+        """
+
+
+    def get_job_uuid(self, job_id):
+        """
+        Returns the unique identifier for a job.
+
+        """
+
+    def get_all_jobs(self):
+        """
+        Returns all jobs in the database.
+
+        """
+
+
+    def get_job(self):
+        """
+        Returns a unprocessed job from the job queue.
+
+        """
+
+
+    def set_killed(self, job_id, killed=True):
+        """
+        Sets the killed status of a job.
+
+        """
+
+
+    def store_jdict(self, jdict):
+        """
+        Stores a job in the database.
+
+        """
+
+
+    def get_jobs_by_username(self, username, active=True):
+        """
+        Returns jobs belonging to a user.
+
+        """
+
+
+    def has_job(self, job_id):
+        """
+        Checks to see if the database has a particular job.
+
+        """
+
+
+
+class JobDatabaseSA(object):
+    implements(IJobDatabase)
+
+    def __init__(self, Session):
+        self.sess = Session()
+        self.failure_threshold = 5
+
+    def _shutdown(self):
+        self.sess.close()
+
+    def get_job(self):
+        q = self.sess.query(Job).order_by(Job.c.creation_time.asc()).limit(1)
+        query = q.filter_by(status='new', killed=False)
+
+        return query.first()
+
+    def get_job_count(self):
+        c = self.sess.query(Job).count()
+
+        return c
+
+    def get_job_by_id(self, job_id):
+        return self.sess.query(Job).filter_by(job_id=job_id).first()
+
+    def has_job(self, job_id):
+        query = self.sess.query(Job).filter_by(job_id=job_id)
+
+        return query.one() > 0
+
+    def set_job_uuid(self, job_id, uuid):
+        job = self.sess.query(Job).filter_by(job_id=job_id).first()
+        job.uuid = uuid
+        self.sess.save_or_update(job)
+        self.sess.commit()
+
+    def get_job_uuid(self, job_id):
+        job = self.sess.query(Job).filter_by(job_id=job_id).first()
+
+        return job.uuid
+
+    def update_job(self, job):
+        """
+        Takes a job object and updates it in the database.
+
+        """
+
+        self.sess.save_or_update(job)
+        self.sess.commit()
+
+    def store_jdict(self, jdict):
+        try:
+            job_id = jdict['job_id']
+            assert job_id != None
+            job = self.sess.query(Job).filter_by(job_id=job_id).first()
+            for k,v in jdict.iteritems():
+                setattr(job, k, v)
+        except:
+            job_id = random_string(length=10)
+            jdict['job_id'] = job_id
+            job = expand_job(jdict)
+        self.update_job(job)
+
+        return job_id
+
+    def get_job_range(self, start, end):
+        q = self.sess.query(Job).order_by(Job.c.update_time.desc())
+        j = q[start:end].all()
+
+        return j
+
+    def get_n_jobs(self, n):
+        q = self.sess.query(Job)
+        j = q.order_by(Job.c.creation_time.desc()).limit(n).all()
+
+        return j
+
+    def get_all_jobs(self):
+        jobs = self.sess.query(Job).order_by(Job.c.creation_time.desc()).all()
+
+        return jobs
+
+    def get_active_jobs(self):
+        jobs = self.sess.query(Job).filter_by(status='processing').all()
+
+        return [job._reduce() for job in jobs]
+
+    def get_jobs_by_username(self, username, status):
+        q = self.sess.query(Job)
+        q = q.filter_by(username=username).filter_by(status=status)
+
+        return q.all()
+
+    def get_killed_jobs_list(self):
+        return self.sess.query(Job).filter_by(killed=True).all()
+
+    def set_killed(self, job_id, killed=True):
+        job = self.sess.query(Job).filter_by(job_id=job_id).first()
+        job.killed = killed
+        job.status = 'killed'
+        self.sess.save_or_update(job)
+        self.sess.commit()
+
+        return job
+
+class JobDatabaseSQLite(object):
     """
     Implementation of DSage's database using SQLite.
 
     Parameters:
-    test -- set to true for unittesting purposes
 
     AUTHORS:
     Yi Qiang
@@ -89,84 +210,38 @@ class JobDatabaseSQLite(JobDatabase):
 
     """
 
-    # TODO: SQLite does *NOT* enforce foreign key constraints
-    # Must do manual checking.
+    implements(IJobDatabase)
 
-    CREATE_JOBS_TABLE = """CREATE TABLE jobs
-    (job_id TEXT NOT NULL UNIQUE,
-     name TEXT,
-     username TEXT REFERENCES clients(username),
-     monitor_id TEXT REFERENCES monitors(uuid),
-     worker_info TEXT,
-     code TEXT,
-     data BLOB,
-     output TEXT,
-     result BLOB,
-     status TEXT NOT NULL,
-     priority INTEGER DEFAULT 5,
-     type TEXT,
-     failures INTEGER DEFAULT 0,
-     creation_time timestamp NOT NULL,
-     update_time timestamp,
-     start_time timestamp,
-     finish_time timestamp,
-     cpu_time REAL,
-     wall_time REAL,
-     verifiable BOOL,
-     private BOOL DEFAULT 0,
-     timeout INTEGER DEFAULT 600,
-     killed BOOL DEFAULT 0
-    );
-    """
-
-    def __init__(self, db_file=None, job_failure_threshold=3,
-                 log_file=os.path.join(DSAGE_DIR, 'server.log'),
-                 log_level=0, test=False):
-        JobDatabase.__init__(self, db_file=db_file,
-                             job_failure_threshold=job_failure_threshold,
-                             log_file=log_file, log_level=log_level,
-                             test=test)
+    def __init__(self, db_conn, failure_threshold=3,
+                 log_level=0, log_file=SERVER_LOG):
+        self.con = db_conn
+        self.failure_threshold = failure_threshold
+        self.log_file = log_file
+        self.log_level = log_level
         self.tablename = 'jobs'
-        self.con = sqlite3.connect(
-                  self.db_file,
-                  isolation_level=None,
-                  detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
-        sql_functions.optimize_sqlite(self.con)
-        # Don't use this, slow!
-        # self.con.text_factory = sqlite3.OptimizedUnicode
-        self.con.text_factory = str
-        if not sql_functions.table_exists(self.con, self.tablename):
-            sql_functions.create_table(self.con,
-                                       self.tablename,
-                                       self.CREATE_JOBS_TABLE)
+
 
     def _shutdown(self):
         self.con.commit()
-        self.con.close()
 
-    def get_job(self, anonymous=False):
+
+    def get_job(self):
         """
         Returns the first unprocessed job of the highest priority.
 
         """
 
-        if anonymous:
-            query = """SELECT * FROM jobs
-                       WHERE status = 'new' AND killed = 0
-                       ORDER BY priority, creation_time
-                       LIMIT 1
-                    """
-        else:
-            query = """SELECT * FROM jobs
-                       WHERE status = 'new' AND killed = 0
-                       ORDER BY priority, creation_time
-                       LIMIT 1
-                    """
+        query = """SELECT * FROM jobs
+                   WHERE status = 'new' AND killed = 0
+                   ORDER BY priority, creation_time
+                   LIMIT 1
+                """
         cur = self.con.cursor()
         cur.execute(query)
         jtuple = cur.fetchone()
 
         return self.create_jdict(jtuple, cur.description)
+
 
     def set_job_uuid(self, job_id, uuid):
         query = "UPDATE jobs SET monitor_id=? WHERE job_id=?"
@@ -174,14 +249,18 @@ class JobDatabaseSQLite(JobDatabase):
         cur.execute(query, (uuid, job_id))
         self.con.commit()
 
+
     def get_all_jobs(self):
-        query = "SELECT * from jobs"
+        query = """SELECT * from jobs
+                   ORDER by update_time DESC
+                """
         cur = self.con.cursor()
         cur.execute(query)
         result = cur.fetchall()
 
         return [self.create_jdict(jtuple, cur.description)
                 for jtuple in result]
+
 
     def get_job_by_id(self, job_id):
         """
@@ -216,6 +295,7 @@ class JobDatabaseSQLite(JobDatabase):
 
         return jdict
 
+
     def _get_jobs_by_parameter(self, key, value):
         """
         Returns a particular result given a key and value.
@@ -230,6 +310,7 @@ class JobDatabaseSQLite(JobDatabase):
         return [self.create_jdict(jtuple, cur.description)
                 for jtuple in result]
 
+
     def _set_parameter(self, job_id, key, value):
         query = """UPDATE jobs
         SET %s=?
@@ -238,7 +319,8 @@ class JobDatabaseSQLite(JobDatabase):
         cur.execute(query, (value, job_id))
         self.con.commit()
 
-    def store_job(self, jdict):
+
+    def store_jdict(self, jdict):
         """
         Stores a job based on information from Job.jdict.
         The keys of the dictionary should correspond to the columns in the
@@ -255,7 +337,7 @@ class JobDatabaseSQLite(JobDatabase):
             job_id = None
 
         if job_id is None:
-            job_id = self.random_string()
+            job_id = random_string(length=10)
             if self.log_level > 3:
                 log.msg('[JobDB] Creating a new job with id:', job_id)
             query = """INSERT INTO jobs
@@ -282,6 +364,7 @@ class JobDatabaseSQLite(JobDatabase):
                 continue
 
         return job_id
+
 
     def create_jdict(self, jtuple, row_description):
         """
@@ -317,6 +400,7 @@ class JobDatabaseSQLite(JobDatabase):
 
         return jdict
 
+
     def get_killed_jobs_list(self):
         """
         Returns a list of jobs which have been marked as killed.
@@ -342,6 +426,7 @@ class JobDatabaseSQLite(JobDatabase):
         return [self.create_jdict(jdict, cur.description)
                 for jdict in killed_jobs]
 
+
     def get_jobs_by_username(self, username, active=True):
         """
         Returns a list of jobs belonging to 'username'
@@ -358,6 +443,7 @@ class JobDatabaseSQLite(JobDatabase):
 
         return [self.create_jdict(jtuple, cur.description) for jtuple in cur]
 
+
     def has_job(self, job_id):
         """
         Checks if the database contains a job with the given uid.
@@ -370,14 +456,18 @@ class JobDatabaseSQLite(JobDatabase):
         else:
             return True
 
+
     def set_killed(self, job_id, killed=True):
         """
         Sets the value of killed for a job.
 
         """
 
+        sql_functions.update_value(self.con, 'jobs', 'job_id', job_id,
+                                   'status', 'killed')
         return sql_functions.update_value(self.con, 'jobs', 'job_id',
                                           job_id, 'killed', killed)
+
 
     def get_active_jobs(self):
         """
@@ -386,48 +476,3 @@ class JobDatabaseSQLite(JobDatabase):
         """
 
         return self._get_jobs_by_parameter('status', 'processing')
-
-class DatabasePruner(object):
-    """
-    DatabasePruner is responsible for cleaning out the database.
-
-    """
-    def __init__(self, jobdb):
-        """
-        Parameters:
-            jobdb -- a JobDatabase object
-
-        """
-
-        self.jobdb = jobdb
-
-    def clean_old_jobs(self):
-        """
-        Cleans out jobs that are older than PRUNE_IN_DAYS days.
-
-        """
-
-        log.msg('[DatabasePruner] Cleaning out old jobs...')
-        jobs = self.jobdb.get_jobs_list()
-        for job in jobs:
-            delta =  datetime.datetime.now() - job.update_time
-            if delta > datetime.timedelta(self.jobdb.prune_in_days):
-                self.jobdb.remove_job(job.job_id)
-                log.msg('[DatabasePruner, clean_old_jobs] Deleted job ',
-                        job.job_id)
-
-    def clean_failed_jobs(self):
-        """
-        Cleans out jobs which are marked as having failed.
-
-        """
-
-        jobs = self.jobdb.get_jobs_list()
-
-        for job in jobs:
-            if job.failures > self.jobdb.job_failure_threshold:
-                self.jobdb.remove_job(job.job_id)
-
-    def prune(self):
-        self.clean_old_jobs()
-        self.clean_failed_jobs()

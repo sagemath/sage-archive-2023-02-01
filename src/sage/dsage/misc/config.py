@@ -26,16 +26,15 @@ import os
 import ConfigParser
 import uuid
 
-from sage.dsage.misc.misc import random_str
-
+from sage.dsage.misc.constants import DSAGE_DIR
 
 def check_dsage_dir():
-    DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
     if os.path.exists(DSAGE_DIR):
         return True
     else:
-        print "Creating " + DSAGE_DIR
+        # print "Creating " + DSAGE_DIR
         os.mkdir(DSAGE_DIR)
+        os.mkdir(DSAGE_DIR + '/db')
 
 def check_version(old_version):
     from sage.dsage.__version__ import version
@@ -72,10 +71,9 @@ def read_conf(config):
     return conf
 
 def get_conf(type, test=False):
+    from sage.dsage.misc.misc import random_str
     if test:
         DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'tmp')
-    else:
-        DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
     config = ConfigParser.ConfigParser()
     try:
         if type == 'client':
@@ -97,7 +95,7 @@ def get_conf(type, test=False):
                 config.write(f)
                 config.read(conf_file)
             conf = read_conf(config)
-        elif type == 'jobdb' or type == 'clientdb' or type == 'monitordb':
+        elif type == 'jobdb' or type == 'clientdb' or type == 'workerdb':
             conf_file = os.path.join(DSAGE_DIR, 'server.conf')
             config.read(conf_file)
             conf = read_conf(config)

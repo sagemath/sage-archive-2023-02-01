@@ -29,7 +29,7 @@ class XMLStats(object):
 
     def __init__(self, dsage_server):
         self.dsage_server = dsage_server
-        self.monitordb = self.dsage_server.monitordb
+        self.workerdb = self.dsage_server.workerdb
         self.root = Element('stats')
 
     def gen_xml(self):
@@ -50,9 +50,9 @@ class XMLStats(object):
 
         """
 
-        busy_workers = self.monitordb.get_worker_count(connected=True,
+        busy_workers = self.workerdb.get_worker_count(connected=True,
                                                        busy=True)
-        free_workers = self.monitordb.get_worker_count(connected=True,
+        free_workers = self.workerdb.get_worker_count(connected=True,
                                                        busy=False)
 
         self.add_element('busy_workers', busy_workers)
@@ -62,10 +62,10 @@ class XMLStats(object):
         """
         Adds the current working MHz to root."""
 
-        working_mhz = self.monitordb.get_cpu_speed(connected=True,
-                                                   busy=True)
-        total_mhz = self.monitordb.get_cpu_speed(connected=True,
+        working_mhz = self.workerdb.get_cpu_speed(connected=True,
+                                                   busy= True)
+        total_mhz = self.workerdb.get_cpu_speed(connected=True,
                                                  busy=False)
-
+        online_mhz = self.workerdb.get_cpu_speed(busy=False, connected=True)
         self.add_element('working_mhz', working_mhz)
         self.add_element('total_mhz', total_mhz)

@@ -19,11 +19,33 @@
 
 import unittest
 import os
-import datetime
-from glob import glob
 
-from sage.dsage.database.jobdb import JobDatabaseSQLite
+from sage.dsage.database.jobdb import JobDatabaseSQLite, JobDatabaseSA
 from sage.dsage.database.job import Job
+from sage.dsage.database.db_config import create_schema, init_db, init_db_sa
+
+class JobDatabaseSATestCase(unittest.TestCase):
+    def setUp(self):
+        Session = init_db_sa('test.db')
+        self.jobdb = JobDatabaseSA(Session)
+
+    def tearDown(self):
+        from sqlalchemy.orm import clear_mappers
+        self.jobdb.sess.close()
+        clear_mappers()
+        os.remove('test.db')
+
+    def testget_job(self):
+        job = Job()
+        job.status = 'new'
+        job.killed = False
+        job_id = self.jobdb.store_jdict(job._reduce())
+        self.assertEquals(job_id, self.jobdb.get_job().job_id)
+
+    def teststore_jdict(self):
+        job = Job()
+        self.assert_(isinstance(self.jobdb.store_jdict(job._reduce()), str))
+
 
 class JobDatabaseSQLiteTestCase(unittest.TestCase):
     """
@@ -32,44 +54,47 @@ class JobDatabaseSQLiteTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        self.jobdb = JobDatabaseSQLite(test=True)
+        db_conn = init_db('test.db')
+        create_schema(db_conn)
+        self.jobdb = JobDatabaseSQLite(db_conn)
 
     def tearDown(self):
         query = """DELETE FROM jobs"""
         cur = self.jobdb.con.cursor()
         cur.execute(query)
         self.jobdb._shutdown()
+        os.remove('test.db')
 
     def testget_job(self):
         job = Job()
         job.status = 'new'
         job.killed = False
-        job_id = self.jobdb.store_job(job.reduce())
+        job_id = self.jobdb.store_jdict(job._reduce())
         self.assertEquals(job_id, self.jobdb.get_job()['job_id'])
 
-    def teststore_job(self):
+    def teststore_jdict(self):
         job = Job()
-        self.assert_(isinstance(self.jobdb.store_job(job.reduce()), str))
+        self.assert_(isinstance(self.jobdb.store_jdict(job._reduce()), str))
 
     def testget_job_by_id(self):
         job = Job()
-        job_id = self.jobdb.store_job(job.reduce())
+        job_id = self.jobdb.store_jdict(job._reduce())
         self.assert_(self.jobdb.get_job_by_id(job_id) is not None)
 
     def testhas_job(self):
         job = Job()
-        job_id = self.jobdb.store_job(job.reduce())
+        job_id = self.jobdb.store_jdict(job._reduce())
         self.assertEquals(self.jobdb.has_job(job_id), True)
 
     def testcreate_jdict(self):
         job = Job()
-        job_id = self.jobdb.store_job(job.reduce())
+        job_id = self.jobdb.store_jdict(job._reduce())
         jdict = self.jobdb.get_job_by_id(job_id)
         self.assert_(isinstance(jdict, dict))
 
     def testget_killed_jobs_list(self):
         job = Job()
-        job_id = self.jobdb.store_job(job.reduce())
+        job_id = self.jobdb.store_jdict(job._reduce())
         jdict = self.jobdb.get_job_by_id(job_id)
         self.jobdb.set_killed(jdict['job_id'], killed=True)
         self.assertEquals(len(self.jobdb.get_killed_jobs_list()), 1)

@@ -16,77 +16,74 @@
 #                  http://www.gnu.org/licenses/
 #
 ##############################################################################
-
 import datetime
-import os
-import sqlite3
 
-from twisted.python import log
+from sage.dsage.misc.constants import SERVER_LOG
+from sage.dsage.database.client import Client
 
-import sage.dsage.database.sql_functions as sql_functions
-from sage.dsage.misc.constants import DSAGE_DIR
+class ClientDatabaseSA(object):
+    def __init__(self, Session):
+        self.sess = Session()
 
-class ClientDatabase(object):
+    def _add_test_client(self):
+        print 'Adding testing client...'
+        self.add_client('tester', '')
+
+    def get_client(self, username):
+        c = self.sess.query(Client).filter_by(username=username).first()
+
+        return c
+
+    def add_client(self, username, public_key):
+        c = Client(username, public_key)
+        self.sess.save(c)
+        self.sess.commit()
+
+    def del_client(self, username):
+        c = self.sess.query(Client).filter_by(username=username).first()
+        self.sess.delete(c)
+        self.sess.commit()
+
+    def get_client_list(self):
+        clients = self.sess.query(Client).all()
+
+        return clients
+
+    def update_login_time(self, username):
+        c = self.sess.query(Client).filter_by(username=username).first()
+        c.last_login = datetime.datetime.now()
+        self.sess.save_or_update(c)
+        self.sess.commit()
+
+    def set_connected(self, username, connected):
+        c = self.sess.query(Client).filter_by(username=username).first()
+        c.connected = connected
+        self.sess.save_or_update(c)
+        self.sess.commit()
+
+class ClientDatabaseSQLite(object):
     """
     This class defines the ClientDatabase which is used to store user
     authentication credentials and other information.
 
     """
 
-    TABLENAME = 'clients'
-
-    CREATE_USER_TABLE = """CREATE TABLE %s
-    (
-     id integer PRIMARY KEY,
-     username text NOT NULL UNIQUE,
-     public_key text NOT NULL UNIQUE,
-     creation_time timestamp,
-     access_time timestamp,
-     last_login timestamp,
-     connected BOOL,
-     enabled BOOL DEFAULT 1
-    )
-    """ % TABLENAME
-
-    def __init__(self, db_file=os.path.join(DSAGE_DIR, 'db', 'dsage.db'),
-                 log_file=os.path.join(DSAGE_DIR, 'server.log'), log_level=0,
-                 test=False):
+    def __init__(self, db_conn, log_file=SERVER_LOG, log_level=0):
         """
         Parameters:
         test -- set to true if you would like to do testing.
 
         """
 
-        self.tablename = self.TABLENAME
         self.log_level = log_level
-        self.log_file=log_file
-
-        if test:
-            self.db_file = 'clientdb_test.db'
-        else:
-            self.db_file = db_file
-            if not os.path.exists(self.db_file):
-                dir_, file_ = os.path.split(self.db_file)
-                if not os.path.isdir(dir_):
-                    os.mkdir(dir_)
-        self.con = sqlite3.connect(self.db_file,
-                isolation_level=None,
-                detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
-        # Don't use this slow!
-        # self.con.text_factory = sqlite3.OptimizedUnicode
-        sql_functions.optimize_sqlite(self.con)
-        self.con.text_factory = str
-        if sql_functions.table_exists(self.con, self.tablename) is None:
-            sql_functions.create_table(self.con,
-                                       self.tablename,
-                                       self.CREATE_USER_TABLE)
-            self.con.commit()
+        self.log_file = log_file
+        self.tablename = 'clients'
+        self.con = db_conn
 
     def _shutdown(self):
         self.con.commit()
-        self.con.close()
 
-    def get_user_and_key(self, username):
+    def get_client_key(self, username):
         """
         Returns a tuple containing the username and public key.
 
@@ -102,7 +99,7 @@ class ClientDatabase(object):
 
         return result
 
-    def get_user(self, username):
+    def get_client(self, username):
         """
         Returns a tuple containing all of the clients information.
 
@@ -117,7 +114,7 @@ class ClientDatabase(object):
 
         return result
 
-    def add_user(self, username, pubkey):
+    def add_client(self, username, pubkey):
         """
         Adds a user to the database.
 
@@ -136,7 +133,7 @@ class ClientDatabase(object):
         cur.execute(query, (username, pubkey, datetime.datetime.now()))
         self.con.commit()
 
-    def del_user(self, username):
+    def del_client(self, username):
         """
         Deletes a user from the database.
 
@@ -220,14 +217,24 @@ class ClientDatabase(object):
         self.con.execute(query, (datetime.datetime.now(), username,))
         self.con.commit()
 
-    def get_client_list(self):
+    def get_client_list(self, connected=True):
         """
         Returns a list of clients connected.
 
         """
 
-        query = """SELECT username from clients WHERE connected"""
+        if connected:
+            query = """SELECT * from clients WHERE connected"""
+        else:
+            query = """SELECT * from clients"""
         cur = self.con.cursor()
         cur.execute(query)
+        result = cur.fetchall()
 
-        return [result[0] for result in cur.fetchall()]
+        return [self.create_dict(r, cur.description) for r in result]
+
+    def create_dict(self, tuple_, row_description):
+        columns = [desc[0] for desc in row_description]
+        d = dict(zip(columns, tuple_))
+
+        return d

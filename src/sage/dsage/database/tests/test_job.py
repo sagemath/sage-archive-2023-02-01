@@ -20,16 +20,15 @@ import unittest
 import datetime
 
 from sage.dsage.database.job import Job
-
+from sage.dsage.misc.misc import random_string
 
 class JobTestCase(unittest.TestCase):
-
     def testcreate_job(self):
         job = Job()
         self.assert_(isinstance(job, Job))
-
-        job = Job(id_=10, name='test', code='test', parent='test',
-                  username='test', type_='test')
+        job_id = random_string(10)
+        job = Job(job_id=job_id, name='test', code='test', username='test',
+                  kind='test')
         self.assert_(isinstance(job, Job))
 
     def testjob_id(self):

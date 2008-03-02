@@ -2497,10 +2497,10 @@ function show_help_window(worksheet) {
 
 
 ///////////////////////////////////////////////////////////////////
-// Dynamic / Manipulate
+// Manipulate
 ///////////////////////////////////////////////////////////////////
 
-function dynamic(id, input) {
+function manipulate(id, input) {
     active_cell_list = active_cell_list.concat([id]);
     async_request(worksheet_command('eval'), evaluate_cell_callback,
             'newcell=0' + '&id=' + id + '&input='+escape0('%manipulate\n' + input));

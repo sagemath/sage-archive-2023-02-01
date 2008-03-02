@@ -50,12 +50,12 @@ One can get (currently) crude ploting via:
 
     sage: Tab.plot()
 
-Thanks to graphviz (which needs to be installed), one can produce
+Thanks to graphviz and dot2tex (which need to be installed), one can produce
 high quality LaTeX output of the crystal graph:
 
-    sage: f=open('/tmp/crystal.tex', 'w')
-    sage: f.write(C.latex())
-    sage: f.close()
+    f=open('/tmp/crystal.tex', 'w')
+    f.write(C.latex())
+    f.close()
 
 For rank two crystals, there is an alternative method of getting
 metapost pictures. For more information see C.metapost?
@@ -182,7 +182,11 @@ class Crystal(CombinatorialClass, Parent):
         return DiGraph(dict)
 
     def latex(self):
-        from dot2tex.dot2tex import Dot2TikZConv
+        try:
+            from dot2tex.dot2tex import Dot2TikZConv
+        except ImportError:
+            print "dot2tex not available.  Install after running \'sage -sh\'"
+            return "Game over, man!"
         conv = Dot2TikZConv()
         return conv.convert(self.dot_tex())
 

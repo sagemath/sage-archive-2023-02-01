@@ -26,7 +26,7 @@ def cartan_matrix_as_function(t):
 
     """
     ct = cartan_type.CartanType(t)
-    f = dynkin_diagram_as_function(t)
+    f = dynkin_diagram_as_function(ct)
     s = ct.index_set()
 
     def cmf(i, j):
@@ -87,7 +87,7 @@ def cartan_matrix(t):
     """
     ct = cartan_type.CartanType(t)
     index_set = ct.index_set()
-    cmf = cartan_matrix_as_function(t)
+    cmf = cartan_matrix_as_function(ct)
     MS = MatrixSpace(ZZ, len(index_set), sparse=True)
     m = MS(0)
     for i in range(len(index_set)):

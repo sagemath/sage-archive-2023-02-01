@@ -2060,7 +2060,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 a = ( z[0] + z[0].conj() ).real()
                 b = ( z[0]*(z[0].conj()) ).real()
                 G[0].append( x**2 - a*x + b )
-                G[1].append( z[1]/2 )
+                G[1].append( z[1] )
 
         elif sage.rings.complex_field.is_ComplexField(R):
             # This is a hack to make the polynomial have complex coefficients, since

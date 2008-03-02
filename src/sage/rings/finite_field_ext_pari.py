@@ -277,7 +277,10 @@ class FiniteField_ext_pari(FiniteField_generic):
         is a root of the defining polynomial of the finite field.
 
         WARNING: The generator is not guaranteed to be a generator for
-            the multiplicative group.
+            the multiplicative group.  To obtain the latter, use
+            multiplicative_generator().  Both gen() and
+            multiplicative_generator() are random: the elements
+            returned will in general differ between runs.
 
         INPUT:
             nothing
@@ -296,13 +299,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: a^4
             alpha^3 + 1
 
-            sage: F = FiniteField_ext_pari(23^20, "b")
-            sage: F.gen().multiplicative_order() == F.order()-1
-            False
-            sage: F.multiplicative_generator()
-            b + 1
-
-            """
+        """
         return self.__gen
 
     def characteristic(self):

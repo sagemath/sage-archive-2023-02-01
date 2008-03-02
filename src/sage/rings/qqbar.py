@@ -941,7 +941,7 @@ def conjugate_shrink(v):
         return v.real()
     return v
 
-def nf_elements_from_algebraics(numbers, minimal=False):
+def number_field_elements_from_algebraics(numbers, minimal=False):
     r"""
     Given a sequence of elements of either \code{AA} or \code{QQbar}
     (or a mixture), computes a number field containing all of these
@@ -951,6 +951,10 @@ def nf_elements_from_algebraics(numbers, minimal=False):
 
     This may not return the smallest such number field, unless
     \var{minimal}=\code{True} is specified.
+
+    Also, a single number can be passed, rather than a sequence; and
+    any values which are not elements of \code{AA} or \code{QQbar}
+    will automatically be coerced to \code{QQbar}.
 
     This function may be useful for efficiency reasons: doing exact
     computations in the corresponding number field will be faster
@@ -963,7 +967,7 @@ def nf_elements_from_algebraics(numbers, minimal=False):
         sage: x = polygen(QQ)
         sage: p = x^3 + x^2 + x + 17
         sage: rts = p.roots(ring=QQbar, multiplicities=False)
-        sage: splitting = nf_elements_from_algebraics(rts)[0]; splitting
+        sage: splitting = number_field_elements_from_algebraics(rts)[0]; splitting
         Number Field in a with defining polynomial y^6 + 169*y^4 + 7968*y^2 + 121088
         sage: p.roots(ring=splitting)
         [(-9/2176*a^4 - 1121/2176*a^2 - 1625/136, 1), (9/17408*a^5 + 9/4352*a^4 + 1121/17408*a^3 + 1121/4352*a^2 + 1489/1088*a + 1489/272, 1), (-9/17408*a^5 + 9/4352*a^4 - 1121/17408*a^3 + 1121/4352*a^2 - 1489/1088*a + 1489/272, 1)]
@@ -981,13 +985,13 @@ def nf_elements_from_algebraics(numbers, minimal=False):
         sage: rt2c = z3 + rt2 - z3; rt2c
         [1.4142135623730949 .. 1.4142135623730952] + [-2.7105054312137611e-19 .. 2.7105054312137611e-19]*I
 
-        sage: nf_elements_from_algebraics((rt2,))
-        (Number Field in a with defining polynomial y^2 - 2, [a], Ring morphism:
+        sage: number_field_elements_from_algebraics(rt2)
+        (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Real Field
             Defn: a |--> [1.4142135623730949 .. 1.4142135623730952])
 
-        sage: nf_elements_from_algebraics((rt2,rt3))
+        sage: number_field_elements_from_algebraics((rt2,rt3))
         (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, [-a^3 + 3*a, -a^2 + 2], Ring morphism:
             From: Number Field in a with defining polynomial y^4 - 4*y^2 + 1
             To:   Algebraic Real Field
@@ -995,29 +999,37 @@ def nf_elements_from_algebraics(numbers, minimal=False):
 
     We've created \code{rt2b} in such a way that \sage doesn't initially know
     that it's in a degree-2 extension of $\QQ$.
-        sage: nf_elements_from_algebraics((rt2b,))
-        (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, [-a^3 + 3*a], Ring morphism:
+        sage: number_field_elements_from_algebraics(rt2b)
+        (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, -a^3 + 3*a, Ring morphism:
             From: Number Field in a with defining polynomial y^4 - 4*y^2 + 1
             To:   Algebraic Real Field
             Defn: a |--> [0.51763809020504147 .. 0.51763809020504159])
 
     We can specify \code{minimal=True} if we want the smallest number field.
-        sage: nf_elements_from_algebraics((rt2b,), minimal=True)
-        (Number Field in a with defining polynomial y^2 - 2, [a], Ring morphism:
+        sage: number_field_elements_from_algebraics(rt2b, minimal=True)
+        (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Real Field
             Defn: a |--> [1.4142135623730949 .. 1.4142135623730952])
 
     Things work fine with rational numbers, too.
-        sage: nf_elements_from_algebraics((QQbar(1/2), AA(17)))
+        sage: number_field_elements_from_algebraics((QQbar(1/2), AA(17)))
         (Rational Field, [1/2, 17], Ring morphism:
             From: Rational Field
             To:   Algebraic Real Field
             Defn: 1 |--> 1)
 
+    Or we can just pass in symbolic expressions, as long as they can be
+    coerced into \code{QQbar}.
+        sage: number_field_elements_from_algebraics((sqrt(7), sqrt(9), sqrt(11)))
+        (Number Field in a with defining polynomial y^4 - 9*y^2 + 1, [-a^3 + 8*a, 3, -a^3 + 10*a], Ring morphism:
+            From: Number Field in a with defining polynomial y^4 - 9*y^2 + 1
+            To:   Algebraic Real Field
+            Defn: a |--> [0.33543673964540460 .. 0.33543673964540466])
+
     Here we see an example of doing some computations with number field
     elements, and then mapping them back into \code{QQbar}.
-        sage: (fld,nums,hom) = nf_elements_from_algebraics((rt2, rt3, qqI, z3))
+        sage: (fld,nums,hom) = number_field_elements_from_algebraics((rt2, rt3, qqI, z3))
         sage: fld,nums,hom
         (Number Field in a with defining polynomial y^8 - y^4 + 1, [-a^5 + a^3 + a, a^6 - 2*a^2, a^6, -a^4], Ring morphism:
             From: Number Field in a with defining polynomial y^8 - y^4 + 1
@@ -1044,12 +1056,12 @@ def nf_elements_from_algebraics(numbers, minimal=False):
         True
 
     TESTS:
-        sage: nf_elements_from_algebraics((rt3,))
-        (Number Field in a with defining polynomial y^2 - 3, [a], Ring morphism:
+        sage: number_field_elements_from_algebraics(rt3)
+        (Number Field in a with defining polynomial y^2 - 3, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 3
             To:   Algebraic Real Field
             Defn: a |--> [1.7320508075688771 .. 1.7320508075688775])
-        sage: nf_elements_from_algebraics((rt2,qqI))
+        sage: number_field_elements_from_algebraics((rt2,qqI))
         (Number Field in a with defining polynomial y^4 + 1, [a^3 - a, -a^2], Ring morphism:
             From: Number Field in a with defining polynomial y^4 + 1
             To:   Algebraic Field
@@ -1060,20 +1072,35 @@ def nf_elements_from_algebraics(numbers, minimal=False):
     \code{minimal=True}, we get a homomorphism to \code{AA}.  Also note
     that the exact answer depends on a Pari function that gives
     different answers for 32-bit and 64-bit machines.
-        sage: nf_elements_from_algebraics((rt2c,))
-        (Number Field in a with defining polynomial y^4 + 2*y^2 + 4, [1/2*a^3], Ring morphism:
+        sage: number_field_elements_from_algebraics(rt2c)
+        (Number Field in a with defining polynomial y^4 + 2*y^2 + 4, 1/2*a^3, Ring morphism:
             From: Number Field in a with defining polynomial y^4 + 2*y^2 + 4
             To:   Algebraic Field
             Defn: a |--> [-0.70710678118654758 .. -0.70710678118654746] + [1.2247448713915889 .. 1.2247448713915892]*I) # 32-bit
             Defn: a |--> [-0.70710678118654758 .. -0.70710678118654746] - [1.2247448713915889 .. 1.2247448713915892]*I) # 64-bit
-        sage: nf_elements_from_algebraics((rt2c,), minimal=True)
-        (Number Field in a with defining polynomial y^2 - 2, [a], Ring morphism:
+        sage: number_field_elements_from_algebraics(rt2c, minimal=True)
+        (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Real Field
             Defn: a |--> [1.4142135623730949 .. 1.4142135623730952])
 
     """
     gen = qq_generator
+
+    # Keep track of whether we were given a single value or a list.
+    single_number = False
+    try:
+        len(numbers)
+    except:
+        numbers = [numbers]
+        single_number = True
+
+    def mk_algebraic(x):
+        if isinstance(x, AlgebraicNumber_base):
+            return x
+        return QQbar(x)
+
+    numbers = map(mk_algebraic, numbers)
 
     for v in numbers:
         if minimal:
@@ -1083,6 +1110,9 @@ def nf_elements_from_algebraics(numbers, minimal=False):
     fld = gen._field
 
     nums = [gen(v._exact_value()) for v in numbers]
+
+    if single_number:
+        nums = nums[0]
 
     codomain = QQbar if gen.is_complex() else AA
     hom = fld.hom([codomain(gen._root)])
@@ -2031,6 +2061,55 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             [0.99939082701909565 .. 0.99939082701909577] + [0.034899496702500969 .. 0.034899496702500977]*I
         """
         return self.__pow__(~ZZ(n))
+
+    def as_number_field_element(self, minimal=False):
+        """
+        Returns a number field containing this value, a representation of
+        this value as an element of that number field, and a homomorphism
+        from the number field back to \code{AA} or \code{QQbar}.
+
+        This may not return the smallest such number field, unless
+        \var{minimal}=\code{True} is specified.
+
+        To compute a single number field containing multiple algebraic
+        numbers, use the function \code{number_field_elements_from_algebraics}
+        instead.
+
+        EXAMPLES:
+            sage: QQbar(sqrt(8)).as_number_field_element()
+            (Number Field in a with defining polynomial y^2 - 2, 2*a, Ring morphism:
+                From: Number Field in a with defining polynomial y^2 - 2
+                To:   Algebraic Real Field
+                Defn: a |--> [1.4142135623730949 .. 1.4142135623730952])
+            sage: x = polygen(ZZ)
+            sage: p = x^3 + x^2 + x + 17
+            sage: (rt,) = p.roots(ring=AA, multiplicities=False); rt
+            [-2.8046427269327419 .. -2.8046427269327414]
+            sage: (nf, elt, hom) = rt.as_number_field_element(); (nf, elt, hom)
+            (Number Field in a with defining polynomial y^3 - y^2 + y - 17, -a, Ring morphism:
+                From: Number Field in a with defining polynomial y^3 - y^2 + y - 17
+                To:   Algebraic Real Field
+                Defn: a |--> [2.8046427269327414 .. 2.8046427269327419])
+            sage: hom(elt) == rt
+            True
+
+        We see an example where we don't get the minimal number field unless
+        we specify \var{minimal}=\code{True}.
+            sage: rt2 = AA(sqrt(2))
+            sage: rt3 = AA(sqrt(3))
+            sage: rt3b = rt2 + rt3 - rt2
+            sage: rt3b.as_number_field_element()
+            (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, -a^2 + 2, Ring morphism:
+                From: Number Field in a with defining polynomial y^4 - 4*y^2 + 1
+                To:   Algebraic Real Field
+                Defn: a |--> [0.51763809020504147 .. 0.51763809020504159])
+            sage: rt3b.as_number_field_element(minimal=True)
+            (Number Field in a with defining polynomial y^2 - 3, a, Ring morphism:
+                From: Number Field in a with defining polynomial y^2 - 3
+                To:   Algebraic Real Field
+                Defn: a |--> [1.7320508075688771 .. 1.7320508075688775])
+        """
+        return number_field_elements_from_algebraics(self, minimal=minimal)
 
     def exactify(self):
         """

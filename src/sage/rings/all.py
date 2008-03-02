@@ -93,7 +93,7 @@ from qqbar import (AlgebraicRealField, is_AlgebraicRealField, AA,
                    AlgebraicReal, is_AlgebraicReal,
                    AlgebraicField, is_AlgebraicField, QQbar,
                    AlgebraicNumber, is_AlgebraicNumber,
-                   nf_elements_from_algebraics)
+                   number_field_elements_from_algebraics)
 
 # Intervals
 from real_mpfi import (RealIntervalField, is_RealIntervalField,

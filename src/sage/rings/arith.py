@@ -2073,25 +2073,38 @@ def nth_prime(n):
         raise ValueError
     return integer_ring.ZZ(pari('prime(%s)'%int(n)))
 
-def discrete_log_generic(x, base, ord=None):
+def discrete_log_generic(a, base, ord=None, operation='multiplication',
+                         identity=None, inverse=None, op=None):
     r"""
-    Return an integer $n$ such that $b^n = x$, assuming that ord is a
-    multiple of the multiplicative order of $a$ and $b$ is the base.
-    If ord is not specified an attempt is made to compute it.
+    Totally generic discrete log function.
+
+    a and base must be elements of some group with identity given by
+    identity, inverse of x by inverse(x), and group operation on x,y
+    by op(x,y).
+
+    If operation is 'multiplication' or 'addition' then the other
+    arguments are provided automatically; otherwise they must be
+    provided by the caller.
 
     WARNING: If x has a log method, it is likely to be vastly faster
     than using this function.  E.g., if x is an integer modulo n, use
     its log method instead!
 
     INPUT:
-        x -- number
-        base -- number (base of log)
-        ord -- integer (multiple of order of base).
+        a    -- group element
+        base -- group element (the base)
+        ord  -- integer (multiple of order of base, or None)
+        operation -- string: 'multiplication', 'addition', 'other'
+        identity -- the group's identity
+        inverse()  -- function of 1 argument x returning inverse of x
+        op() -- function of 2 arguments x,y returning x*y in group
 
-    The elements a and b must support exponentiation to a negative
-    power.
+    OUTPUT:
+        Returns an integer $n$ such that $b^n = a$ (or $n*b = a$),
+        assuming that ord is a multiple of the order of the base $b$.
+        If ord is not specified an attempt is made to compute it.
 
-    If no such $x$ exists, this function raises a ValueError exception.
+        If no such $n$ exists, this function raises a ValueError exception.
 
     ALGORITHM: Baby step giant step.
 
@@ -2126,48 +2139,63 @@ def discrete_log_generic(x, base, ord=None):
         sage: v.log(w)
         0
 
+        An additive example: elliptic curve DLOG:
+        sage: F=GF(37^2,'a')
+        sage: E=EllipticCurve(F,[1,1])
+        sage: F.<a>=GF(37^2,'a')
+        sage: E=EllipticCurve(F,[1,1])
+        sage: P=E(25*a + 16 , 15*a + 7 )
+        sage: P.order()
+        672
+        sage: Q=39*P; Q
+        (36*a + 32 : 5*a + 12 : 1)
+        sage: discrete_log_generic(Q,P,P.order(),'addition')
+        39
 
     AUTHOR:
         -- William Stein and David Joyner (2005-01-05)
         -- John Cremona (2008-02-29) rewrite using dict()
     """
     Z = integer_ring.ZZ
-    b = base; a = x
+    b = base
 
-    if b == 0:
-        if a == 0:
-            return Integer(1)
-        else:
-            raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
-    elif a == 0:
-        if b == 0:
-            return Integer(1)
-        else:
-            raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
+    if operation=='multiplication':
+        identity = b.parent()(1)
+        inverse  = lambda x: x**(-1)
+        op = lambda x,y: x*y
+        if ord==None:
+            ord = b.multiplicative_order()
+    elif operation=='addition':
+        identity = b.parent()(0)
+        inverse  = lambda x: -x
+        op = lambda x,y: x+y
+        if ord==None:
+            ord = b.order()
+    else:
+        if ord==None or identity==None or inverse==None or op==None:
+            raise ValueError, "order, identity, inverse and operation must all be spcified"
 
-    if ord is None:
-        ord = b.multiplicative_order()
     ord = Z(ord)
     if ord < 100:
-        c = 1
+        c = identity
         for i in range(ord):
             if c == a:        # is b^i
                 return Z(i)
-            c *= b
+            c = op(c,b)
         raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
     m = ord.isqrt()+1  # we need sqrt(ord) rounded up
     table = dict()     # will hold pairs (b^j,j) for j in range(m)
-    g = 1              # will run through b**j
+    g = identity       # will run through b**j
     for j in range(m):
         table[g] = j
-        g *= b
-    g = g**(-1)        # this is now b**(-m)
+        g = op(g,b)
+    g = inverse(g)     # this is now b**(-m)
     h = a              # will run through a*g**i = a*b**(-i*m)
     for i in range(m):
         j = table.get(h)
         if not j==None:  # then a*b**(-i*m) == b**j
             return Z(i*m + j)
-        h *= g
+        h = op(h,g)
 
     raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
 

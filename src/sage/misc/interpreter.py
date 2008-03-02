@@ -143,10 +143,10 @@ def attached_files():
 def load_startup_file(file):
     if os.path.exists(file):
         X = do_prefilter_paste('load "%s"'%file,False)
-        _ip.magic(X)
+        _ip.runlines(X)
     if os.path.exists('attach.sage'):
         X = do_prefilter_paste('attach "attach.sage"',False)
-        _ip.magic(X)
+        _ip.runlines(X)
 
 
 def do_prefilter_paste(line, continuation):
@@ -176,16 +176,16 @@ def do_prefilter_paste(line, continuation):
 
     line = line.rstrip()
 
-    if not line.startswith('attach ') and not line.startswith('load '):
+    if not line.startswith('attach ') and not line.startswith('load ') and not line.startswith('%run '):
         for F in attached.keys():
             tm = attached[F]
             if os.path.exists(F) and os.path.getmtime(F) > tm:
                 # Reload F.
                 try:
                     if F.endswith('.py'):
-                        _ip.magic('run -i "%s"'%F)
+                        _ip.runlines('%%run -i "%s"'%F)
                     elif F.endswith('.sage'):
-                        _ip.magic('run -i "%s"'%preparse_file_named(F))
+                        _ip.runlines('%%run -i "%s"'%preparse_file_named(F))
                     elif F.endswith('.spyx') or F.endswith('.pyx'):
                         X = load_cython(F)
                         __IPYTHON__.push(X)
@@ -243,7 +243,7 @@ def do_prefilter_paste(line, continuation):
                 log.offset -= 1
                 L = do_prefilter_paste(L, False)
                 if len(L.strip()) > 0:
-                    _ip.magic(L)
+                    _ip.runlines(L)
                 L = ''
             else:
                 L = preparser_ipython.preparse_ipython(L, not continuation)

@@ -1,14 +1,13 @@
 r"""
 Factorizations
 
-Factorizations of objects are a class, which prints in factored form.
-This class can be manipulated like a list of prime-exponent pairs
-(with unit ignored) or easily turned into a list.  For example, we
-factor the integer $-45$:
+The \code{Factorization} class derives from \code{list}, so it can
+print nicely and be manipulated like a list of prime-exponent pairs or
+easily turned into a list.  For example, we factor the integer $-45$:
 
     sage: F = factor(-45)
 
-This returns an object of type Factorization:
+This returns an object of type \code{Factorization}:
     sage: type(F)
     <class 'sage.structure.factorization.Factorization'>
 
@@ -23,8 +22,7 @@ unit part} (!).
     sage: isinstance(F, list)
     False
 
-We can access the Factorization F itself as if it were a list (since
-it is after all):
+We can access the \code{Factorization} F itself as if it were a list:
     sage: F[0]
     (3, 2)
     sage: F[1]
@@ -125,7 +123,8 @@ TESTS:
 
 AUTHORS:
     -- William Stein (2006-01-22): added unit part as suggested by David Kohel.
-    -- William Stein (2008-01-17): added unit part as suggested by David Kohel.
+    -- William Stein (2008-01-17): wrote much of the documentation and fixed
+                                   a couple of bugs.
 """
 
 #*****************************************************************************
@@ -164,7 +163,7 @@ class Factorization(SageObject):
     """
     def __init__(self, x, unit=None, cr=False, sort=True, simplify=True):
         """
-        Create a Factorization object.
+        Create a \code{Factorization} object.
 
         INPUT:
             x    -- a list of (p, e) pairs with e an integer (or a TypeError
@@ -358,7 +357,7 @@ class Factorization(SageObject):
 
     def __deepcopy__(self, memo):
         r"""
-        Return a copy of self.
+        Return a deep copy of self.
 
         This is of course not a deepcopy -- only references to the factors
         are returned, not copies of them.
@@ -585,7 +584,7 @@ class Factorization(SageObject):
         between factors.
 
         EXAMPLES:
-        Our fix example involves factoring an integer:
+        Our first example involves factoring an integer:
             sage: F = factor(-93930); F
             -1 * 2 * 3 * 5 * 31 * 101
             sage: F._cr()
@@ -672,7 +671,7 @@ class Factorization(SageObject):
 
     def _latex_(self):
         r"""
-        Return the \LaTeX representation of this factorization.
+        Return the \LaTeX{} representation of this factorization.
 
         EXAMPLES:
             sage: f = factor(-100); f
@@ -776,7 +775,7 @@ class Factorization(SageObject):
         return Factorization([(left, 1)]) * self
 
     def __mul__(self, other):
-        """
+        r"""
         Return the product of two factorizations, which is obtained by
         combining together like factors.
 
@@ -838,7 +837,7 @@ class Factorization(SageObject):
         return generic_power(self, n, Factorization([]))
 
     def __invert__(self):
-        """
+        r"""
         Return the formal inverse of the factors in the factorization.
 
         EXAMPLES:

@@ -262,7 +262,18 @@ class Factorization(SageObject):
         Return i-th factor of self.
 
         EXAMPLES:
-
+            sage: a = factor(-75); a
+            -1 * 3 * 5^2
+            sage: a[0]
+            (3, 1)
+            sage: a[1]
+            (5, 2)
+            sage: a[-1]
+            (5, 2)
+            sage: a[5]
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
         """
         return self.__x.__getitem__(i)
 
@@ -273,6 +284,12 @@ class Factorization(SageObject):
         NOT ALLOWED -- Factorizations are immutable.
 
         EXAMPLES:
+            sage: a = factor(-75); a
+            -1 * 3 * 5^2
+            sage: a[0] = (2,3)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'Factorization' object does not support item assignment
         """
         raise TypeError, "'Factorization' object does not support item assignment"
         #from sage.rings.integer import Integer
@@ -282,9 +299,22 @@ class Factorization(SageObject):
 
     def __len__(self):
         """
-        Return the length of self.
+        Return the number of prime factors of self, not counting
+        the unit part.
 
         EXAMPLES:
+            sage: len(factor(15))
+            2
+
+        Note that the unit part is not included in the count.
+            sage: a = factor(-75); a
+            -1 * 3 * 5^2
+            sage: len(a)
+            2
+            sage: list(a)
+            [(3, 1), (5, 2)]
+            sage: len(list(a))
+            2
         """
         return len(self.__x)
 

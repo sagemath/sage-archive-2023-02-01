@@ -1063,17 +1063,17 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = (t^2 + O(t^3))*x^2*y^3 + (37*t^4 + O(t^5))*x^3
             sage: type(f)
             <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
-            sage: f.derivative(x)   # with respect to x
+            sage: f._derivative(x)   # with respect to x
             (2*t^2 + O(t^3))*x*y^3 + (111*t^4 + O(t^5))*x^2
-            sage: f.derivative(y)   # with respect to y
+            sage: f._derivative(y)   # with respect to y
             (3*t^2 + O(t^3))*x^2*y^2
-            sage: f.derivative(t)   # with respect to t (recurses into base ring)
+            sage: f._derivative(t)   # with respect to t (recurses into base ring)
             (2*t + O(t^2))*x^2*y^3 + (148*t^3 + O(t^4))*x^3
-            sage: f.derivative(x, y) # with respect to x and then y
+            sage: f._derivative(x)._derivative(y) # with respect to x and then y
             (6*t^2 + O(t^3))*x*y^2
             sage: f.derivative(y, 3) # with respect to y three times
             (6*t^2 + O(t^3))*x^2
-            sage: f.derivative()    # can't figure out the variable
+            sage: f._derivative()    # can't figure out the variable
             Traceback (most recent call last):
             ...
             ValueError: must specify which variable to differentiate with respect to

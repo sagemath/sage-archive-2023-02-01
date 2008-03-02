@@ -105,7 +105,7 @@ def derivative(f, *args, **kwds):
         sage: f = u^4*v^5
         sage: derivative(f, u)
         4*u^3*v^5
-        sage: f.derivative(u)   # can always used method notation too
+        sage: f.derivative(u)   # can always use method notation too
         4*u^3*v^5
 
         sage: derivative(f, u, u)

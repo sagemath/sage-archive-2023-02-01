@@ -10,6 +10,9 @@
 
 == Changelog ==
 
+=== linbox-1.1.5rc2.p0 (Michael Abshoff, March 3rd, 2008) ===
+ * Apply Clement Pernet's PID_Integer patch (fixed #915)
+
 === linbox-1.1.5rc2 (Clement Pernet, March 2nd, 2008) ===
  * updated to upstream 1.1.5rc2
  * added additional funcionality in linbox_wrap

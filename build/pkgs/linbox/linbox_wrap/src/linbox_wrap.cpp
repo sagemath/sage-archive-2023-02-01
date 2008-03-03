@@ -29,7 +29,6 @@
 #include <linbox/solutions/charpoly.h>
 #include "linbox/algorithms/double-det.h"
 #include <linbox/integer.h>
-#include <linbox/field/gmp-integers.h>
 #include <linbox/field/gmp-rational.h>
 #include <linbox/ring/givaro-polynomial.h>
 #include <linbox/field/modular.h>
@@ -219,17 +218,17 @@ void printPolynomial (const Field &F, const Polynomial &v)
         cout << endl;
 }
 
-GMP_Integers ZZ;
+Integers ZZ;
 SpyInteger spy;
-typedef GivPolynomialRing<GMP_Integers,Dense> IntPolRing;
+typedef GivPolynomialRing<Integers,Dense> IntPolRing;
 
-DenseMatrix<GMP_Integers> new_matrix(mpz_t** matrix, size_t nrows, size_t ncols) {
-  DenseMatrix<GMP_Integers> A ( ZZ, nrows, ncols);
+DenseMatrix<Integers> new_matrix(mpz_t** matrix, size_t nrows, size_t ncols) {
+  DenseMatrix<Integers> A ( ZZ, nrows, ncols);
 
      size_t i, j, k;
      for (i=0; i < nrows; i++) {
 	 for (j=0; j < ncols; j++) {
-	     GMP_Integers::Element t;
+	     Integers::Element t;
 	     mpz_set(spy.get_mpz(t), matrix[i][j]);
 	     A.setEntry(i, j, t);
 	 }
@@ -273,10 +272,10 @@ void linbox_integer_dense_minpoly_hacked(mpz_t* *mp, size_t* degree, size_t n, m
 	 m = n;
      }
 
-     DenseMatrix<GMP_Integers> A( ZZ, m, m);
+     DenseMatrix<Integers> A( ZZ, m, m);
 
      size_t i, j;
-     GMP_Integers::Element t;
+     Integers::Element t;
      for (i=0; i < n; i++) {
 	 for (j=0; j < n; j++) {
 	     mpz_set(spy.get_mpz(t), matrix[i][j]);
@@ -284,7 +283,7 @@ void linbox_integer_dense_minpoly_hacked(mpz_t* *mp, size_t* degree, size_t n, m
 	 }
      }
 
- //    vector<GMP_Integers::Element> m_A;
+ //    vector<Integers::Element> m_A;
      IntPolRing::Element m_A;
 
      if (do_minpoly)
@@ -330,7 +329,7 @@ void linbox_integer_dense_minpoly_hacked(mpz_t* *mp, size_t* degree, size_t n, m
      /* THIS IS Broken when n % 4 == 0!!!!  Use above function instead. */
    /*    linbox_integer_dense_minpoly(mp, degree, n, matrix, 0); */
 
-     DenseMatrix<GMP_Integers> A(new_matrix(matrix, n, n));
+     DenseMatrix<Integers> A(new_matrix(matrix, n, n));
      IntPolRing::Element m_A;
      charpoly(m_A, A);
 
@@ -347,7 +346,7 @@ void linbox_integer_dense_minpoly_hacked(mpz_t* *mp, size_t* degree, size_t n, m
      /* THIS IS Broken when n % 4 == 0!!!!  Use above function instead. */
    /*    linbox_integer_dense_minpoly(mp, degree, n, matrix, 0); */
 
-   DenseMatrix<GMP_Integers> A(new_matrix(matrix, n, n));
+   DenseMatrix<Integers> A(new_matrix(matrix, n, n));
      IntPolRing::Element m_A;
      minpoly(m_A, A);
 
@@ -387,7 +386,7 @@ void linbox_integer_dense_minpoly_hacked(mpz_t* *mp, size_t* degree, size_t n, m
 
  unsigned long linbox_integer_dense_rank(mpz_t** matrix, size_t nrows,
 					 size_t ncols) {
-     DenseMatrix<GMP_Integers> A(new_matrix(matrix, nrows, ncols));
+     DenseMatrix<Integers> A(new_matrix(matrix, nrows, ncols));
      unsigned long r;
      rank(r, A);
      return r;
@@ -399,7 +398,7 @@ void linbox_integer_dense_minpoly_hacked(mpz_t* *mp, size_t* degree, size_t n, m
    commentator.setMaxDepth (0);
 
    DenseMatrix<Integers> A(new_matrix_integers(matrix, nrows, ncols));
-   GMP_Integers::Element d;
+   Integers::Element d;
    det(d, A);
    mpz_set(ans, spy.get_mpz(d));
 }

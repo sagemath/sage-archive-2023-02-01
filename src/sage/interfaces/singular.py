@@ -843,15 +843,36 @@ class SingularElement(ExpectElement):
             0,  0,-x,
             0,  y,0,
             x*y,0,0
-            sage: S=copy(R)
-            sage: S.set_ring()
+            sage: L=R.ringlist()
+            sage: L[4]=singular.ideal('x**2-5')
+            sage: Q=L.ring()
+            sage: otherR=singular.ring(5,'(x)','dp')
+            sage: cpQ=copy(Q)
+            sage: cpQ.set_ring()
+            sage: cpQ
+            //   characteristic : 0
+            //   number of vars : 2
+            //        block   1 : ordering dp
+            //                  : names    x y
+            //        block   2 : ordering C
+            // quotient ring from ideal
+            _[1]=x^2-5
             sage: R.fetch(M)
             0,  0,-x,
             0,  y,0,
             x*y,0,0
         """
         if (self.type()=='ring') or (self.type()=='qring'):
-            return (self.ringlist()).ring()
+            # Problem: singular has no clean method to produce
+            # a copy of a ring/qring. We use ringlist, but this
+            # is only possible if we make self the active ring,
+            # use ringlist, and switch back to the previous
+            # basering.
+            br=self.parent().current_ring()
+            self.set_ring()
+            OUT = (self.ringlist()).ring()
+            br.set_ring()
+            return OUT
         else:
             return self.parent()(self.name())
 

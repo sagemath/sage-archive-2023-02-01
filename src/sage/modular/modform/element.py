@@ -27,7 +27,7 @@ def is_ModularFormElement(x):
     """
     return isinstance(x, ModularFormElement)
 
-def delta_Lseries(prec=53,
+def delta_lseries(prec=53,
                  max_imaginary_part=0,
                  max_asymp_coeffs=40):
     r"""
@@ -45,7 +45,7 @@ def delta_Lseries(prec=53,
         The L-series of $\Delta$.
 
     EXAMPLES:
-        sage: L = delta_Lseries()
+        sage: L = delta_lseries()
         sage: L(1)
         0.0374412812685155
     """
@@ -437,7 +437,7 @@ class ModularFormElement(element.HeckeModuleElement):
         """
         return self.q_expansion(prec)
 
-    def cuspform_Lseries(self, prec=53,
+    def cuspform_lseries(self, prec=53,
                          max_imaginary_part=0,
                          max_asymp_coeffs=40):
         r"""
@@ -457,18 +457,18 @@ class ModularFormElement(element.HeckeModuleElement):
 
         EXAMPLES:
            sage: f = CuspForms(2,8).0
-           sage: L = f.cuspform_Lseries()
+           sage: L = f.cuspform_lseries()
            sage: L(1)
            0.0884317737041015
            sage: L(0.5)
            0.0296568512531983
 
-        Consistency check with delta_Lseries (which computes coefficients in pari):
+        Consistency check with delta_lseries (which computes coefficients in pari):
            sage: delta = CuspForms(1,12).0
-           sage: L = delta.cuspform_Lseries()
+           sage: L = delta.cuspform_lseries()
            sage: L(1)
            0.0374412812685155
-           sage: L = delta_Lseries()
+           sage: L = delta_lseries()
            sage: L(1)
            0.0374412812685155
         """
@@ -497,7 +497,7 @@ class ModularFormElement(element.HeckeModuleElement):
         L.rename('L-series associated to the cusp form %s'%self)
         return L
 
-    def modform_Lseries(self, prec=53,
+    def modform_lseries(self, prec=53,
                         max_imaginary_part=0,
                         max_asymp_coeffs=40):
         r"""
@@ -518,13 +518,13 @@ class ModularFormElement(element.HeckeModuleElement):
         EXAMPLES:
         We commpute with the L-series of the Eisenstein series $E_4$:
            sage: f = ModularForms(1,4).0
-           sage: L = f.modform_Lseries()
+           sage: L = f.modform_lseries()
            sage: L(1)
            -0.0304484570583933
         """
         a = self.q_expansion(prec).list()
         if a[0] == 0:
-            raise TypeError,"f = %s is a cusp form; please use f.cuspform_Lseries() instead!"%self
+            raise TypeError,"f = %s is a cusp form; please use f.cuspform_lseries() instead!"%self
         if self.level() != 1:
             raise TypeError, "f = %s is not a modular form for SL_2(Z)"%self
         from sage.lfunctions.all import Dokchitser

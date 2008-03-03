@@ -27,7 +27,7 @@ class Lseries_ell(SageObject):
         Create an elliptic curve $L$-series.
 
         EXAMPLES:
-            sage: EllipticCurve([1..5]).Lseries()
+            sage: EllipticCurve([1..5]).lseries()
             Complex L-series of the Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field
         """
         self.__E = E
@@ -38,7 +38,7 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: L = E.Lseries()
+            sage: L = E.lseries()
             sage: L.elliptic_curve ()
             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
         """
@@ -55,7 +55,7 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: L = E.Lseries()
+            sage: L = E.lseries()
             sage: L.taylor_series(series_prec=3)      # random nearly 0 constant and linear terms
             -2.69129566562797e-23 + (1.52514901968783e-23)*z + 0.759316500288427*z^2 + O(z^3)
             sage: L.taylor_series(series_prec=3)[2:]
@@ -70,7 +70,7 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: L = E.Lseries()
+            sage: L = E.lseries()
             sage: L._repr_()
             'Complex L-series of the Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field'
         """
@@ -98,10 +98,10 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: L = E.Lseries().dokchitser()
+            sage: L = E.lseries().dokchitser()
             sage: L(2)
             0.381575408260711
-            sage: L = E.Lseries().dokchitser(algorithm='magma')         # optional
+            sage: L = E.lseries().dokchitser(algorithm='magma')         # optional
             sage: L.Evaluate(2)                                     # optional
             0.38157540826071121129371040958008663667709753398892116
 
@@ -109,7 +109,7 @@ class Lseries_ell(SageObject):
         compute with the L-series using this command.  Instead a
         RuntimeError is raised:
             sage: e = EllipticCurve([1,1,0,-63900,-1964465932632])
-            sage: L = e.Lseries().dokchitser(15)
+            sage: L = e.lseries().dokchitser(15)
             Traceback (most recent call last):
             ...
             RuntimeError: Unable to create L-series, due to precision or other limits in PARI.
@@ -161,7 +161,7 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: a = E.Lseries().sympow(2,16)   # optional -- requires precomputing "sympow('-new_data 2')"
+            sage: a = E.lseries().sympow(2,16)   # optional -- requires precomputing "sympow('-new_data 2')"
             sage: a      # optional
             '2.492262044273650E+00'
             sage: RR(a)                      # optional
@@ -190,7 +190,7 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: print E.Lseries().sympow_derivs(1,16,2)      # optional -- requires precomputing "sympow('-new_data 2')"
+            sage: print E.lseries().sympow_derivs(1,16,2)      # optional -- requires precomputing "sympow('-new_data 2')"
             sympow 1.018 RELEASE  (c) Mark Watkins --- see README and COPYING for details
             Minimal model of curve  is [0,0,1,-1,0]
             At 37: Inertia Group is  C1 MULTIPLICATIVE REDUCTION
@@ -223,10 +223,10 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.Lseries().zeros(2)
+            sage: E.lseries().zeros(2)
             [0.000000000, 5.00317001]
 
-            sage: a = E.Lseries().zeros(20)             # long time
+            sage: a = E.lseries().zeros(20)             # long time
             sage: point([(1,x) for x in a]).save()    # graph  (long time)
 
         AUTHOR:
@@ -255,7 +255,7 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.Lseries().zeros_in_interval(6, 10, 0.1)      # long
+            sage: E.lseries().zeros_in_interval(6, 10, 0.1)      # long
             [(6.87039122, 0.248922780), (8.01433081, -0.140168533), (9.93309835, -0.129943029)]
         """
         from sage.lfunctions.lcalc import lcalc
@@ -282,7 +282,7 @@ class Lseries_ell(SageObject):
         EXAMPLES:
             sage: I = CC.0
             sage: E = EllipticCurve('37a')
-            sage: E.Lseries().values_along_line(1, 0.5+20*I, 5)     # long time and slightly random output
+            sage: E.lseries().values_along_line(1, 0.5+20*I, 5)     # long time and slightly random output
             [(0.500000000, 0), (0.400000000 + 4.00000000*I, 3.31920245 - 2.60028054*I), (0.300000000 + 8.00000000*I, -0.886341185 - 0.422640337*I), (0.200000000 + 12.0000000*I, -3.50558936 - 0.108531690*I), (0.100000000 + 16.0000000*I, -3.87043288 - 1.88049411*I)]
         """
         from sage.lfunctions.lcalc import lcalc
@@ -308,7 +308,7 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.Lseries().twist_values(1, -12, -4)    # slightly random output depending on architecture
+            sage: E.lseries().twist_values(1, -12, -4)    # slightly random output depending on architecture
             [(-11, 1.4782434171), (-8, 0), (-7, 1.8530761916), (-4, 2.4513893817)]
             sage: F = E.quadratic_twist(-8)
             sage: F.rank()
@@ -340,7 +340,7 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.Lseries().twist_zeros(3, -4, -3)         # long
+            sage: E.lseries().twist_zeros(3, -4, -3)         # long
             {-4: [1.60813783, 2.96144840, 3.89751747], -3: [2.06170900, 3.48216881, 4.45853219]}
         """
         from sage.lfunctions.lcalc import lcalc
@@ -392,7 +392,7 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37b')
-            sage: E.Lseries().at1(100)
+            sage: E.lseries().at1(100)
             (0.725681061936153, 1.52437502288743e-45)
         """
         if self.__E.root_number() == -1:
@@ -451,12 +451,12 @@ class Lseries_ell(SageObject):
                $$
                For a proof see [Grigorov-Jorza-Patrascu-Patrikis-Stein].  This
                is exactly the same as the bound for the approximation to
-               $L(E,1)$ produced by \code{E.Lseries().at1}.
+               $L(E,1)$ produced by \code{E.lseries().at1}.
         \end{enumerate}
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.Lseries().deriv_at1(100)
+            sage: E.lseries().deriv_at1(100)
             (0.305999773834879, 1.52437502288740e-45)
         """
         if self.__E.root_number() == 1: return 0
@@ -484,7 +484,7 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve([1,2,3,4,5])
-            sage: L = E.Lseries()
+            sage: L = E.lseries()
             sage: L(1)
             0
             sage: L(1.1)
@@ -510,14 +510,14 @@ class Lseries_ell(SageObject):
     #
     #    EXAMPLES:
     #        sage: E = EllipticCurve('389a')
-    #        sage: E.Lseries().extended(1 + I, 50)
+    #        sage: E.lseries().extended(1 + I, 50)
     #        -0.638409959099589 + 0.715495262192901*I
-    #        sage: E.Lseries().extended(1 + 0.1*I, 50)
+    #        sage: E.lseries().extended(1 + 0.1*I, 50)
     #        -0.00761216538818315 + 0.000434885704670107*I
     #
     #    NOTE: You might also want to use Tim Dokchitser's
     #    L-function calculator, which is available by typing
-    #    L = E.Lseries().dokchitser(), then evaluating L.  It
+    #    L = E.lseries().dokchitser(), then evaluating L.  It
     #    gives the same information but is sometimes much faster.
     #
     #    """
@@ -550,22 +550,22 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve([0, -1, 1, -10, -20])   # 11A  = X_0(11)
-            sage: E.Lseries().L1_vanishes()
+            sage: E.lseries().L1_vanishes()
             False
             sage: E = EllipticCurve([0, -1, 1, 0, 0])       # X_1(11)
-            sage: E.Lseries().L1_vanishes()
+            sage: E.lseries().L1_vanishes()
             False
             sage: E = EllipticCurve([0, 0, 1, -1, 0])       # 37A  (rank 1)
-            sage: E.Lseries().L1_vanishes()
+            sage: E.lseries().L1_vanishes()
             True
             sage: E = EllipticCurve([0, 1, 1, -2, 0])       # 389A (rank 2)
-            sage: E.Lseries().L1_vanishes()
+            sage: E.lseries().L1_vanishes()
             True
             sage: E = EllipticCurve([0, 0, 1, -38, 90])     # 361A (CM curve))
-            sage: E.Lseries().L1_vanishes()
+            sage: E.lseries().L1_vanishes()
             True
             sage: E = EllipticCurve([0,-1,1,-2,-1])         # 141C (13-isogeny)
-            sage: E.Lseries().L1_vanishes()
+            sage: E.lseries().L1_vanishes()
             False
 
         WARNING: It's conceivable that machine floats are not large
@@ -594,25 +594,25 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve([0, -1, 1, -10, -20])   # 11A  = X_0(11)
-            sage: E.Lseries().L_ratio()
+            sage: E.lseries().L_ratio()
             1/5
             sage: E = EllipticCurve([0, -1, 1, 0, 0])       # X_1(11)
-            sage: E.Lseries().L_ratio()
+            sage: E.lseries().L_ratio()
             1/25
             sage: E = EllipticCurve([0, 0, 1, -1, 0])       # 37A  (rank 1)
-            sage: E.Lseries().L_ratio()
+            sage: E.lseries().L_ratio()
             0
             sage: E = EllipticCurve([0, 1, 1, -2, 0])       # 389A (rank 2)
-            sage: E.Lseries().L_ratio()
+            sage: E.lseries().L_ratio()
             0
             sage: E = EllipticCurve([0, 0, 1, -38, 90])     # 361A (CM curve))
-            sage: E.Lseries().L_ratio()
+            sage: E.lseries().L_ratio()
             0
             sage: E = EllipticCurve([0,-1,1,-2,-1])         # 141C (13-isogeny)
-            sage: E.Lseries().L_ratio()
+            sage: E.lseries().L_ratio()
             1
             sage: E = EllipticCurve(RationalField(), [1, 0, 0, 1/24624, 1/886464])
-            sage: E.Lseries().L_ratio()
+            sage: E.lseries().L_ratio()
             2
 
         WARNING: It's conceivable that machine floats are not large
@@ -634,7 +634,7 @@ class Lseries_ell(SageObject):
             pass
 
         if not self.__E.is_minimal():
-            self.__lratio = self.__E.minimal_model().Lseries().L_ratio()
+            self.__lratio = self.__E.minimal_model().lseries().L_ratio()
             return self.__lratio
 
         if self.__E.root_number() == -1:

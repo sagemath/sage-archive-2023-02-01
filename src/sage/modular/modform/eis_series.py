@@ -273,7 +273,7 @@ def __find_eisen_chars_gamma1(N, k):
             triples.append((chi, psi, t))
     return triples
 
-def eisenstein_series_Lseries(weight, prec=53,
+def eisenstein_series_lseries(weight, prec=53,
                max_imaginary_part=0,
                max_asymp_coeffs=40):
     r"""
@@ -294,10 +294,10 @@ def eisenstein_series_Lseries(weight, prec=53,
 
     EXAMPLES:
     We compute with the L-series of $E_{16}$ and then $E_{20}$:
-       sage: L = eisenstein_series_Lseries(16)
+       sage: L = eisenstein_series_lseries(16)
        sage: L(1)
        -0.291657724743873
-       sage: L = eisenstein_series_Lseries(20)
+       sage: L = eisenstein_series_lseries(20)
        sage: L(2)
        -5.02355351645987
     """

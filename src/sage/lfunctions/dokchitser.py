@@ -84,7 +84,7 @@ class Dokchitser(SageObject):
 
     We compute with the $L$-series of a rank $1$ curve.
         sage: E = EllipticCurve('37a')
-        sage: L = E.Lseries().dokchitser(); L
+        sage: L = E.lseries().dokchitser(); L
         Dokchitser L-function associated to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         sage: L(1)
         0
@@ -106,7 +106,7 @@ class Dokchitser(SageObject):
     of a rank $2$ curve.
 
         sage: E = EllipticCurve('389a')
-        sage: L = E.Lseries().dokchitser()
+        sage: L = E.lseries().dokchitser()
         sage: L.num_coeffs ()
         156
         sage: L.derivative(1,E.rank())
@@ -181,7 +181,7 @@ class Dokchitser(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('11a')
-            sage: L = E.Lseries().dokchitser()
+            sage: L = E.lseries().dokchitser()
             sage: L(2)
             0.546048036215014
             sage: L.gp()
@@ -225,11 +225,11 @@ class Dokchitser(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('11a')
-            sage: L = E.Lseries().dokchitser()
+            sage: L = E.lseries().dokchitser()
             sage: L.num_coeffs()
             26
             sage: E = EllipticCurve('5077a')
-            sage: L = E.Lseries().dokchitser()
+            sage: L = E.lseries().dokchitser()
             sage: L.num_coeffs()
             568
             sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
@@ -304,7 +304,7 @@ class Dokchitser(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('5077a')
-            sage: L = E.Lseries().dokchitser(100)
+            sage: L = E.lseries().dokchitser(100)
             sage: L(1)
             0
             sage: L(1+I)
@@ -374,13 +374,13 @@ class Dokchitser(SageObject):
             sage: L.taylor_series(2, 3)
             1.64493406684823 - 0.937548254315844*z + 0.994640117149451*z^2 + O(z^3)
             sage: E = EllipticCurve('37a')
-            sage: L = E.Lseries().dokchitser()
+            sage: L = E.lseries().dokchitser()
             sage: L.taylor_series(1)
             0.305999773834052*z + 0.186547797268162*z^2 - 0.136791463097188*z^3 + 0.0161066468496401*z^4 + 0.0185955175398802*z^5 + O(z^6)
 
         We compute a Taylor series where each coefficient is to high precision.
             sage: E = EllipticCurve('389a')
-            sage: L = E.Lseries().dokchitser(200)
+            sage: L = E.lseries().dokchitser(200)
             sage: L.taylor_series(1,3)
             6.2239725530250970363983975962696997888173850098274602272589e-73 + (-3.527106203544994604921190324282024612952450859320...e-73)*z + 0.75931650028842677023019260789472201907809751649492435158581*z^2 + O(z^3)                          # 32-bit
             6.2239725530250970363983942830358807065824196704980264311105e-73 + (-3.5271062035449946049211884466825561834034352383203420991340e-73)*z + 0.75931650028842677023019260789472201907809751649492435158581*z^2 + O(z^3)                          # 64-bit

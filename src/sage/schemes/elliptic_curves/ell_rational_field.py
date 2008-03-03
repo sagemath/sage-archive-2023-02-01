@@ -981,13 +981,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             N = self.conductor()
             prec = int(4*float(sqrt(N))) + 10
             if self.root_number() == 1:
-                L, err = self.Lseries().at1(prec)
+                L, err = self.lseries().at1(prec)
                 if abs(L) > err + R(0.0001):  # definitely doesn't vanish
                     misc.verbose("rank 0 because L(E,1)=%s"%L)
                     self.__rank[proof] = 0
                     return self.__rank[proof]
             else:
-                Lprime, err = self.Lseries().deriv_at1(prec)
+                Lprime, err = self.lseries().deriv_at1(prec)
                 if abs(Lprime) > err + R(0.0001):  # definitely doesn't vanish
                     misc.verbose("rank 1 because L'(E,1)=%s"%Lprime)
                     self.__rank[proof] = 1
@@ -1540,7 +1540,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         from sage.schemes.elliptic_curves.period_lattice import PeriodLattice_ell
         return PeriodLattice_ell(self)
 
-    def Lseries(self):
+    def lseries(self):
         try:
             return self.__lseries
         except AttributeError:
@@ -2604,7 +2604,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if D == -3 or D == -4:
             raise ArithmeticError, "Discriminant (=%s) must not be -3 or -4."%D
         eps = self.root_number()
-        L1_vanishes = self.Lseries().L1_vanishes()
+        L1_vanishes = self.lseries().L1_vanishes()
         if eps == 1 and L1_vanishes:
             return IR(0) # rank even hence >= 2, so Heegner point is torsion.
         alpha = R(sqrt(abs(D)))/(2*self.period_lattice().complex_area())
@@ -2618,15 +2618,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                              # this should be made more intelligent / rigorous relative
                              # to the rest of the system.
         if eps == 1:   # E has even rank
-            LF1, err_F = F.Lseries().deriv_at1(k_F)
-            LE1, err_E = E.Lseries().at1(k_E)
+            LF1, err_F = F.lseries().deriv_at1(k_F)
+            LE1, err_E = E.lseries().at1(k_E)
             err_F = max(err_F, MIN_ERR)
             err_E = max(err_E, MIN_ERR)
             return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)
 
         else:          # E has odd rank
-            LE1, err_E = E.Lseries().deriv_at1(k_E)
-            LF1, err_F = F.Lseries().at1(k_F)
+            LE1, err_E = E.lseries().deriv_at1(k_E)
+            LF1, err_F = F.lseries().at1(k_F)
             err_F = max(err_F, MIN_ERR)
             err_E = max(err_E, MIN_ERR)
             return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)

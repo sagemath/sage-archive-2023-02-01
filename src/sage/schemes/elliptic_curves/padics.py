@@ -88,7 +88,7 @@ def padic_lseries(self, p, normalize=True):
         sage: f = x^2 - e.ap(3)*x + 3
         sage: f(alpha)
         O(3^9)
-        sage: r = e.Lseries().L_ratio(); r
+        sage: r = e.lseries().L_ratio(); r
         1/5
         sage: (1 - alpha^(-1))^2 * r
         2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + 3^7 + O(3^9)
@@ -101,7 +101,7 @@ def padic_lseries(self, p, normalize=True):
         sage: P = L.series(5)
         sage: alpha = L.alpha(9); alpha
         1 + 2*3 + 3^2 + 2*3^5 + 2*3^7 + 3^8 + O(3^9)
-        sage: r = e.Lseries().L_ratio(); r
+        sage: r = e.lseries().L_ratio(); r
         1/3
         sage: (1 - alpha^(-1))^2 * r
         3 + 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + O(3^9)

@@ -8,7 +8,7 @@
 
 from constructor import ModularForms, CuspForms, EisensteinForms
 
-from eis_series import eisenstein_series_qexp, eisenstein_series_Lseries
+from eis_series import eisenstein_series_qexp, eisenstein_series_lseries
 
 from half_integral import half_integral_weight_modform_basis
 
@@ -22,6 +22,6 @@ from hecke_operator_on_qexp import (hecke_operator_on_qexp,
                                     hecke_operator_on_basis)
 from numerical import NumericalEigenforms as numerical_eigenforms
 
-from element import is_ModularFormElement, delta_Lseries
+from element import is_ModularFormElement, delta_lseries
 
 #from find_generators import ModularFormsRing, span_of_series, modform_generators

@@ -47,7 +47,8 @@ class HeckeOperator(Morphism):
     """
     def __init__(self, abvar, n):
         """
-        Create the Hecke operator of index $n$ acting on the abelian variety abvar.
+        Create the Hecke operator of index $n$ acting on the abelian
+        variety abvar.
 
         INPUT:
             abvar -- a modular abelian variety
@@ -80,8 +81,8 @@ class HeckeOperator(Morphism):
 
     def index(self):
         """
-        Return the index of this Hecke operator.  I.e., if this is
-        the operator $T_n$, then the index is the integer $n$.
+        Return the index of this Hecke operator. (For example, if this
+        is the operator $T_n$, then the index is the integer $n$.)
 
         OUTPUT:
             n -- a (Sage) Integer

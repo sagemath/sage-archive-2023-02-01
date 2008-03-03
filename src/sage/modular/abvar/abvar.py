@@ -249,8 +249,8 @@ class ModularAbelianVariety(ParentWithBase):
             sage: H.rank()
             10
 
-        If you just ask for the rank of the homology, no serious calculations are done, so the
-        following is fast:
+        If you just ask for the rank of the homology, no serious
+        calculations are done, so the following is fast:
             sage: H = J0(50000).integral_homology(); H
             Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(50000)
             sage: H.rank()
@@ -318,7 +318,7 @@ class ModularAbelianVariety(ParentWithBase):
         NOTE: If self has dimension d, then this is a polynomial of
         degree d.  It is not of degree 2*d, so it is the square root
         of the characteristic polynomial of the Hecke operator on
-        integral or rational homology (which has degree degree 2*d).
+        integral or rational homology (which has degree 2*d).
 
         EXAMPLES:
             sage: factor(J0(11).hecke_polynomial(2))
@@ -409,7 +409,8 @@ class ModularAbelianVariety(ParentWithBase):
 
     def zero_subgroup(self):
         """
-        Return the zero subgroup of this modular abelian variety, as a finite group.
+        Return the zero subgroup of this modular abelian variety, as a
+        finite group.
 
         EXAMPLES:
             sage: A =J0(54); G = A.zero_subgroup(); G
@@ -508,7 +509,8 @@ class ModularAbelianVariety(ParentWithBase):
             sage: abvar.ModularAbelianVariety.is_subvariety(A, A)
             True
 
-        For anything nontrivial the derived class must implement the functionality:
+        For anything nontrivial the derived class must implement the
+        functionality:
             sage: abvar.ModularAbelianVariety.is_subvariety(A, J)
             Traceback (most recent call last):
             ...
@@ -561,8 +563,9 @@ class ModularAbelianVariety(ParentWithBase):
             ...
             ValueError: no action of Hecke operators over ZZ
         """
-        # this is allowed to raise an error if
-        # associated modular symbols space has no Hecke action, e.g., isn't hecke invariant.
+        # this is allowed to raise an error if associated modular
+        # symbols space has no Hecke action, e.g., isn't hecke
+        # invariant.
         raise ValueError, "no action of Hecke operators over ZZ"
 
     def _rational_hecke_matrix(self, n):        # derived classes may define
@@ -606,8 +609,8 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety):
         EXAMPLES:
             sage: A = J0(37)
 
-        The base class function must be redefined in the derived class.  Since
-        A is in a derived class this is the case here:
+        The base class function must be redefined in the derived
+        class.  Since A is in a derived class this is the case here:
             sage: type(A)
             <class 'sage.modular.abvar.abvar_ambient_jacobian.ModAbVar_ambient_jacobian_class'>
             sage: import sage.modular.abvar.abvar as abvar
@@ -626,12 +629,13 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety):
 
     def __cmp__(self, other):
         """
-        Compare two modular abelian varieties associated to spaces of cuspidal
-        modular symbols.
+        Compare two modular abelian varieties associated to spaces of
+        cuspidal modular symbols.
 
         If other is a modular abelian variety attached to modular
         symbols, then this function compares the underlying +1 modular
-        symbols spaces.  Otherwise it just compares the underlying types.
+        symbols spaces.  Otherwise it just compares the underlying
+        types.
 
         EXAMPLES:
             sage: A = J0(37)
@@ -882,7 +886,7 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety):
 
     def __getslice__(self, i, j):
         """
-        The the slice i:j of decompositions of self.
+        The slice i:j of decompositions of self.
 
         EXAMPLES:
             sage: J = J0(125); J.decomposition()

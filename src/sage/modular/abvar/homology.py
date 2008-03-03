@@ -106,7 +106,7 @@ class Homology_abvar(Homology):
 
     def _repr_(self):
         """
-        Return string representation of this.  This must be defined
+        Return string representation of self.  This must be defined
         in the derived class.
 
         EXAMPLES:
@@ -162,7 +162,8 @@ class Homology_abvar(Homology):
 
     def ambient_hecke_module(self):
         """
-        Return the ambient Hecke module that this homology is contained in.
+        Return the ambient Hecke module that this homology is
+        contained in.
 
         EXAMPLES:
             sage: H = J0(48).homology(); H
@@ -174,7 +175,7 @@ class Homology_abvar(Homology):
 
     def free_module(self):
         """
-        Return the underlying free module of the homology group.
+        Return the underlying free module of this homology group.
 
         EXAMPLES:
             sage: H = J0(48).homology()
@@ -230,7 +231,8 @@ class Homology_abvar(Homology):
 
     def rank(self):
         """
-        Return the rank as a module or vector space of this homology group.
+        Return the rank as a module or vector space of this homology
+        group.
 
         EXAMPLES:
             sage: H = J0(5077).homology(); H
@@ -275,7 +277,7 @@ class Homology_abvar(Homology):
 
 class IntegralHomology(Homology_abvar):
     r"""
-    The rational homology $H_1(A,\ZZ)$ of a modular abelian variety.
+    The integral homology $H_1(A,\ZZ)$ of a modular abelian variety.
     """
     def __init__(self, abvar):
         """
@@ -312,9 +314,9 @@ class IntegralHomology(Homology_abvar):
         this homology group.
 
         EXAMPLES:
-            sage: J0(48).homology().hecke_bound()
+            sage: J0(48).integral_homology().hecke_bound()
             16
-            sage: t = J1(13).homology().hecke_matrix(3); t
+            sage: t = J1(13).integral_homology().hecke_matrix(3); t
             [ 0  0  2 -2]
             [-2 -2  0  2]
             [-2 -2  0  0]
@@ -327,7 +329,7 @@ class IntegralHomology(Homology_abvar):
 
     def hecke_polynomial(self, n, var='x'):
         """
-        Return the n-th Hecke polynomial on this rational homology group.
+        Return the n-th Hecke polynomial on this integral homology group.
 
         EXAMPLES:
             sage: f = J0(43).integral_homology().hecke_polynomial(2)
@@ -347,7 +349,7 @@ class RationalHomology(Homology_abvar):
     """
     def __init__(self, abvar):
         """
-        Create the integral homology of a modular abelian variety.
+        Create the rational homology of a modular abelian variety.
 
         INPUT:
             abvar -- a modular abelian variety
@@ -398,7 +400,8 @@ class RationalHomology(Homology_abvar):
 
     def hecke_polynomial(self, n, var='x'):
         """
-        Return the n-th Hecke polynomial on this rational homology group.
+        Return the n-th Hecke polynomial on this rational homology
+        group.
 
         EXAMPLES:
             sage: f = J0(43).rational_homology().hecke_polynomial(2)
@@ -514,7 +517,8 @@ class Homology_submodule(Homology):
 
     def ambient_hecke_module(self):
         """
-        Return the ambient Hecke module that this homology is contained in.
+        Return the ambient Hecke module that this homology is
+        contained in.
 
         EXAMPLES:
             sage: H = J0(48).homology(); H
@@ -559,8 +563,8 @@ class Homology_submodule(Homology):
             Submodule of rank 4 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
             ]
 
-        Because this factor has dimension 2 it corresponds to an elliptic curve,
-        so we have a Hecke bound of 1.
+        Because the first factor has dimension 2 it corresponds to an
+        elliptic curve, so we have a Hecke bound of 1.
             sage: d[0].hecke_bound()
             1
             sage: d[1].hecke_bound()

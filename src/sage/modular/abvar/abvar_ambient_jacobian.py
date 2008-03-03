@@ -18,7 +18,8 @@ _cache = {}
 
 def ModAbVar_ambient_jacobian(group):
     """
-    Return ambient Jacobian attached to a given congruence subgroup.
+    Return the ambient Jacobian attached to a given congruence
+    subgroup.
 
     The result is cached using a weakref.  This function is called
     internally by modular abelian variety constructors.
@@ -76,7 +77,8 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym):
 
     def _repr_(self):
         """
-        Return string representation of this Jacobian modular abelian variety.
+        Return string representation of this Jacobian modular abelian
+        variety.
 
         EXAMPLES:
             sage: A = J0(11); A
@@ -180,8 +182,8 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym):
 
     def is_subvariety(self, other):
         """
-        Return True if self is a subvariety of other, as they sit in an ambient
-        modular abelian variety.
+        Return True if self is a subvariety of other, as they sit in
+        an ambient modular abelian variety.
 
         EXAMPLES:
             sage: J = J0(37)

@@ -126,8 +126,9 @@ class Lseries_complex(Lseries):
         Return the rational part of this $L$-function at the central critical
         value $1$.
 
+        NOTE: This is not yet implemented.
+
         EXAMPLES:
-        This is not yet implemented.
             sage: J0(37).lseries().rational_part()
             Traceback (most recent call last):
             ...
@@ -204,8 +205,9 @@ class Lseries_padic(Lseries):
         a power series in $T$.  Each coefficient is a $p$-adic number
         whose precision is provably correct.
 
+        NOTE: This is not yet implemented.
+
         EXAMPLES:
-        This is not yet implemented.
             sage: L = J0(37)[0].padic_lseries(5)
             sage: L.power_series()
             Traceback (most recent call last):

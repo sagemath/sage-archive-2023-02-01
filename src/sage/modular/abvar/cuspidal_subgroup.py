@@ -70,7 +70,8 @@ class CuspidalSubgroup_generic(FiniteSubgroup):
         homology that generate this finite subgroup.
 
         INPUT:
-            rational_only -- bool (default: False); if True only use rational cusps.
+            rational_only -- bool (default: False); if \code{True}, only
+            use rational cusps.
 
         OUTPUT:
             list -- list of vectors

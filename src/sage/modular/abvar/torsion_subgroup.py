@@ -123,8 +123,8 @@ class TorsionSubgroup(FiniteSubgroup):
         INPUT:
             other -- an object
 
-        If other is a torsion subgroup the abelian varieties are
-        compared.  Otherwise the generic behavior for finite abelian
+        If other is a torsion subgroup, the abelian varieties are
+        compared.  Otherwise, the generic behavior for finite abelian
         variety subgroups is used.
 
         EXAMPLE:
@@ -190,9 +190,9 @@ class TorsionSubgroup(FiniteSubgroup):
             ...
             ValueError: no explicit presentation of this finite subgroup is known (unable to compute explicitly)
 
-        The problem is that the multiple of the order got by counting
-        points over finite fields is twice the divisor of the order got
-        from the rational cuspidal subgroup.
+        The problem is that the multiple of the order obtained by
+        counting points over finite fields is twice the divisor of the
+        order got from the rational cuspidal subgroup.
             sage: T.multiple_of_order(30)
             200
             sage: J0(33).rational_cuspidal_subgroup().order()
@@ -210,7 +210,7 @@ class TorsionSubgroup(FiniteSubgroup):
     def possible_orders(self):
         """
         Return the possible orders of this torsion subgroup, computed from
-        the divisor and multiple of the order.
+        a known divisor and multiple of the order.
 
         EXAMPLES:
             sage: J0(11).torsion_subgroup().possible_orders()

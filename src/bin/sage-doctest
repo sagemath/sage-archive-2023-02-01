@@ -27,7 +27,8 @@ DOT_SAGE = os.environ['DOT_SAGE']
 SAGE_TMP='%s/tmp/%s/'%(DOT_SAGE,os.getpid())
 def delete_tmpfiles():
     try:
-        shutil.rmtree(SAGE_TMP)
+        pass
+#        shutil.rmtree(SAGE_TMP)
     except OSError:
         pass
 
@@ -341,13 +342,13 @@ def test_file(file):
 
         tm = time.time()
         try:
-            if verbose or gdb or memcheck or massif or cachegrind:
-                e = os.system(cmd)
-                out = ''; err = ''
-            else:
-                e = os.system("%s 1>.doctest/out 2>.doctest/err"%cmd)
-                out = open('.doctest/out').read()
-                err = open('.doctest/err').read()
+            #if verbose or gdb or memcheck or massif or cachegrind:
+            e = os.system(cmd)
+            out = ''; err = ''
+            #else:
+                #e = os.system("%s 1>.doctest/out 2>.doctest/err%s"%(cmd,os.getpid()))
+                #out = open('.doctest/out%s'% os.getpid() ).read()
+                #err = open('.doctest/err%s'% os.getpid() ).read()
         except KeyboardInterrupt:
             err += "\n Error -- interrupted after %s seconds!"%tm
             print "Error!!!"

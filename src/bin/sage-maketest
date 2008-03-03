@@ -29,7 +29,7 @@ sage -t "$@" const.tex 2>&1 | tee -a "$SAGE_ROOT"/tmp/test.log
 
 # Run SAGE library doctests, which end with a summary report.
 cd "$SAGE_ROOT"
-./sage -t devel/sage/sage 2>&1 | tee -a "$SAGE_ROOT"/tmp/test.log
+sage -t "$@" devel/sage/sage 2>&1 | tee -a "$SAGE_ROOT"/tmp/test.log
 
 # Print the small summary report for dsage unit tests, if necessary.
 # TODO -- skip this for now.

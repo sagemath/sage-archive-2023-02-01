@@ -16,18 +16,92 @@ AUTHOR:
     -- Jason Grout (2008-03): collaborators substantially on the
        design and prototypes.
 
-TODO/PLAN:
-   [ ] sliders
-   [ ] default value
-   [ ] more widgets
-   [ ] better widget layout controls
+TODO:
+   [ ] get sliders to work
+   [ ] default values; values after move slider
+   [ ] implement a color object
+
+PLANS and IDEAS:
+   [ ] automagically determine the type of control from the default
+       value of the variable.  Here is how this will work:
+        * u                      blank input field
+        * u = (umin,umax)        slider; umin must not be a string
+        * u = (umin,umax,du)     discrete slider
+        * u = [1,2,3,4]          setter bar: automatically when there are are most 5
+                                 elements; otherwise a drop down menu
+        * u = ((xmin,xmax),(ymin,ymax))  2d slider
+        * u = Graphic            a locator in a 2d plot  (Graphic is a 2d graphics objects)
+        * u = True or u = False  a checkbox
+        * u = color(...)         a color slider
+        * u = "string"           text input field
+        * u = ('label', obj)     obj can be any of the above; control is labeled with
+                                 the given label
+        * u = element            if parent(element)._manipulate_control_(element) is
+                                 defined, then it will be used.  Otherwise make a
+                                 text input that coerces input to parent(element)
+   [ ] tag_cell('foo') -- makes it so one can refer to the current cell
+       from elsewhere using the tag foo instead of the cell id number
+       This involves doing something with SAGE_CELL_ID and the cell_id()
+       method.
    [ ] 100% doctest coverage
+
+JQUERY:
+   [ ] tab_view -- represents an object in which clicking the tab
+                     with label lbl[i] displays expr[i]
+   [ ] slide_view -- represents an object in which the a list of objects
+                     are displayed on successive slides.
+   [ ] framed -- put a frame around an object
+   [ ] panel -- put an object in a panel
+   [ ] flot (?)
+
+ELEMENTS:
+   [ ] control: this models the input and other tags in html
+          align -- left, right, top, texttop, middle, absmiddle, baseline, bottom, absbottom
+          background -- the color of the background for the cell
+          frame -- draw a frame around
+          disabled -- disables the input element when it first loads
+                      so that the user can not write text in it, or
+                      select it.
+          editable -- bool
+          font_size -- integer
+          maxlength -- the maximum number of characters allowed in a text field.
+          name -- defines a unique name for the input element
+          size -- the size of the input element
+          type -- button, checkbox, file, password, radio, slider, text, setter_bar, drop_down
+   [ ] setter bar (buttons)
+   [ ] checkbox
+   [ ] color slider
+   [ ] blank input field
+   [ ] 2d slider
+   [ ] locator in a graphic
+
+IDEAS for code:
+
+@manipulate
+def foo(x=range(10), y=slider(1,10)):
+    ...
+
+@manipulate
+def foo(x=random_matrix(ZZ,2))
+    ...
+
+
+@framed
+def foo(x,y):
+    ...
 """
 
 import inspect
 
 SAGE_CELL_ID = 0
 vars = {}
+
+_k = 0
+def new_adapt_name():
+    global _k
+    _k += 1
+    return 'adapt%s'%_k
+
 
 def html(s):
     """
@@ -41,6 +115,24 @@ def html(s):
         string -- html format
     """
     print "<html>%s</html>"%s
+
+def html_slider(id, callback, margin=0):
+    s = """<div id='%s' class='ui-slider-1' style="margin:%spx;"><span class='ui-slider-handle'></span></div>"""%(
+        id, int(margin))
+
+    # We now generat javascript that gets run after the above div gets
+    # inserted. This happens because of the setTimeout function below
+    # which gets passed an anonymous function.
+    s += """
+    <script>
+    setTimeout(function() {
+        $('#%s').slider();
+        $('#%s').bind('click', function () { var position = $('#%s').slider('value',0); %s; });
+    }, 1)
+    </script>
+    """%(id, id, id, callback)
+    return s
+
 
 class ManipulateControl:
     """
@@ -62,6 +154,18 @@ class ManipulateControl:
     def __repr__(self):
         return "A ManipulateControl (abstract base class)"
 
+    def adapt(self):
+        """
+        Return string representation of function that is called to
+        adapt the values of this control to Python.
+        """
+        name = new_adapt_name()
+        vars[name] = self._adapt
+        return 'sage.server.notebook.manipulate.vars[\\"%s\\"]'%name
+
+    def _adapt(self, x):
+        return x
+
     def manipulate(self):
         """
         Return a string that when evaluated in Javascript calls the
@@ -71,8 +175,9 @@ class ManipulateControl:
         OUTPUT:
             string -- that is meant to be evaluated in Javascript
         """
-        return 'manipulate(%s, "sage.server.notebook.manipulate.vars[%s][\\"%s\\"]=sage_eval(r\\"\\"\\""+%s+"\\"\\"\\", globals())\\n%s()");'%(
-            self.cell_id(), self.cell_id(), self.var(), self.value(), self.function_name())
+        s = 'manipulate(%s, "sage.server.notebook.manipulate.vars[%s][\\"%s\\"]=sage_eval(r\\"\\"\\"%s("+%s+")\\"\\"\\", globals())\\n%s()");'%(
+            self.cell_id(), self.cell_id(), self.var(), self.adapt(), self.value(), self.function_name())
+        return s
 
     def function_name(self):
         """
@@ -116,7 +221,7 @@ class TextBox(ManipulateControl):
         OUTPUT:
              string -- javascript
         """
-        return "this.value"
+        return 'this.value'
 
     def render(self):
         """
@@ -152,7 +257,18 @@ class Slider(ManipulateControl):
         OUTPUT:
              string -- javascript
         """
-        return "this.value"
+        return "position"
+
+    def _adapt(self, position):
+        # Input position is a string that evals to a float between 0 and 100.
+        # we translate it into an index into self.__values
+        v = self.__values
+        i = int(len(v) * (float(position)/100.0))
+        if i < 0:
+            i = 0
+        elif i >= len(v):
+            i = len(v) - 1
+        return v[i]
 
     def render(self):
         """
@@ -161,9 +277,7 @@ class Slider(ManipulateControl):
         OUTPUT:
              string -- html format
         """
-        return """
-        SLIDER %s: <input type='text' value='<?%s>' onchange='%s'></input>
-        """%(self.var(), self.var(), self.manipulate())
+        return html_slider('slider-%s-%s'%(self.var(), self.cell_id()), self.manipulate())
 
 
 class ManipulateCanvas:
@@ -196,7 +310,7 @@ class ManipulateCanvas:
         return """
         <table bgcolor=black cellpadding=3><tr><td bgcolor=white>
         <?TEXT>
-           <table border=0 width=800px>
+           <table border=0 width=800px height=500px>
            <tr><td align=center>  <?HTML>  </td></tr>
            </table>
         </td></tr></table>
@@ -236,8 +350,9 @@ def manipulate(f):
         defaults = []
 
     n = len(args) - len(defaults)
-    controls = [TextBox(f, v) for v in args[:n]] + \
-               [defaults[i].render(f, args[i+n]) for i in range(len(defaults))]
+    controls = [automatic_control(f, args[i], defaults[i-n] if i >= n else None) for i in range(len(args))]
+    #controls = [automatic_control(f, v) for v in args[:n]] + \
+    #           [defaults[i].render(f, args[i+n]) for i in range(len(defaults))]
 
     C = ManipulateCanvas(controls)
 
@@ -299,3 +414,11 @@ class slider(control):
     def render(self, f, var):
         return Slider(f, var, self.__values)
 
+def automatic_control(f, v, default):
+    if isinstance(default, control):
+        C = default
+    elif isinstance(default, list):
+        C = slider(default)
+    else:
+        C = text_box(str(default))
+    return C.render(f, v)

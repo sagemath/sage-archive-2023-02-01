@@ -393,7 +393,8 @@ class Cell(Cell_generic):
             z = self.output_text(ncols,html,raw,allow_manipulate=False)
             try:
                 # Fill in the input valuees
-                if hasattr(self, 'manipulate'):
+                # TODO -- redo
+                if False and hasattr(self, 'manipulate'):
                     inp = self.manipulate
                     i = inp.lstrip().find('\n'); inp = inp[:i]
                     i = inp.rfind('.'); inp = inp[i+1:]
@@ -404,7 +405,6 @@ class Cell(Cell_generic):
                 output,html = self._manipulate_output
                 z = z.replace('<?TEXT>', output.lstrip())
                 z = z.replace('<?HTML>', html)
-
 
                 return z
             except (ValueError, AttributeError), msg:

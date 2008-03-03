@@ -37,6 +37,8 @@ SYSTEMS = ['sage', 'axiom', 'gap', 'gp', 'jsmath', 'kash', 'latex', 'lisp', 'mac
 
 JSMATH = True
 
+JQUERY = True
+
 if is_package_installed("jsmath-image-fonts"):
     JSMATH_IMAGE_FONTS = True
 else:
@@ -1437,12 +1439,33 @@ class Notebook(SageObject):
             head += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
             head += "<script type='text/javascript'>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
 
+        if JQUERY:
+            # Load the jquery and ui-jquery javascript library.
+            # This is used for manipulate functionality in the notebook, and will be used
+            # to enable drag and drop, image zoom, etc.
+            head += '''
+<script type="text/javascript" src="/javascript/jquery/jquery.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/jquery.dimensions.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/ui.mouse.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/ui.slider.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/ui.draggable.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/ui.draggable.ext.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/ui.resizable.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/ui.dialog.js"></script>
+<link rel="stylesheet" href="/javascript/jqueryui/themes/flora/flora.all.css"
+   type="text/css" media="screen" title="Flora (Default)">
+         '''
+
+        # This was for syntax hilighting
 #        head +=' <script type="text/javascript" src="/javascript/highlight/prettify.js"></script>\n'
 #        head += '<link rel=stylesheet href="/css/highlight/prettify.css" type="text/css">\n'
 
         head +=' <script type="text/javascript" src="/javascript/sage3d.js"></script>\n'
+
+        # Jmol -- embedded 3d graphics.
         head +=' <script type="text/javascript" src="/java/jmol/appletweb/Jmol.js"></script>\n'
-        head +=' <script>jmolInitialize("/java/jmol");</script>\n' # this must stay in the <body>
+
+        head +=' <script>jmolInitialize("/java/jmol");</script>\n' # this must stay in the <head>
         return head
 
     def html_worksheet_topbar(self, worksheet, select=None, username='guest'):

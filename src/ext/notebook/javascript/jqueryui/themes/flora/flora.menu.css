@@ -1,0 +1,8 @@
+.ui-menu-toolbar {z-index:500; list-style:none;}
+.ui-menu-toolbar-button {float:left; padding:4px 20px; cursor:pointer;}
+.ui-menu-toolbar-button:hover {}
+.ui-menu-toolbar-button a {text-decoration:none;}
+.ui-menu-items {display:none; padding:0; z-index:500; list-style:none; padding:1px 4px; min-width:80px; *width:80px;}
+.ui-menu-item a { text-decoration:none;}
+.ui-menu-item-parent { background: url('i/menu-submenu.gif') no-repeat center right; }
+.ui-menu-item-disabled {}

@@ -155,9 +155,9 @@ class FiniteSubgroup(Module):
             True
             sage: H.is_subgroup(G)
             True
-            sage: H < 5
+            sage: H < 5 #random (meaningless since it depends on memory layout)
             False
-            sage: 5 < H
+            sage: 5 < H #random (meaningless since it depends on memory layout)
             True
 
         The ambient varieties are compared:
@@ -285,9 +285,7 @@ class FiniteSubgroup(Module):
 
         Automatic calling is currently broken because of trac \#2283.
             sage: 2*G  # desired output should be not an error.
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and '<class 'sage.modular.abvar.cuspidal_subgroup.CuspidalSubgroup'>'
+            Finite subgroup with invariants [1, 1, 1, 6, 24] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)
         """
         return self * left
 

@@ -647,9 +647,9 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety):
             1
 
         cmp also works when other is not a modular abelian variety.
-            sage: cmp(A,17)
+            sage: cmp(A,17) #random (meaningless since it depends on memory layout)
             1
-            sage: cmp(17,A)
+            sage: cmp(17,A) #random (meaningless since it depends on memory layout)
             -1
         """
         if not isinstance(other, ModularAbelianVariety_modsym):

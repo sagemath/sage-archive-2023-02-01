@@ -1,3 +1,21 @@
+= linbox =
+
+== Maintainers ==
+ * Clement Pernet
+ * Michael Abshoff
+ * William Stein
+
+== ToDo ==
+ * resolve uncommitted changes
+
+== Changelog ==
+
+=== linbox-1.1.5rc2 (Clement Pernet, March 2nd, 2008) ===
+ * updated to upstream 1.1.5rc2
+ * added additional funcionality in linbox_wrap
+
+
+
 * 2007-12-16 (mabshoff)
  + detect internal ATLAS and link against it per default on non-OSX
 

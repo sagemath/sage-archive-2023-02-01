@@ -20,14 +20,14 @@
 #include <linbox/algorithms/echelon-form.h>
 #include "linbox/algorithms/gauss.h"
 #include "linbox/algorithms/smith-form-adaptive.h"
-
+#include "linbox/ffpack/ffpack.h"
 #include <linbox/solutions/rank.h>
 #include <linbox/solutions/det.h>
 #include <linbox/solutions/solve.h>
 #include "linbox/solutions/methods.h"
 #include <linbox/solutions/minpoly.h>
 #include <linbox/solutions/charpoly.h>
-
+#include "linbox/algorithms/double-det.h"
 #include <linbox/integer.h>
 #include <linbox/field/gmp-integers.h>
 #include <linbox/field/gmp-rational.h>
@@ -87,22 +87,29 @@ int linbox_modn_dense_echelonize(mod_int modulus,
 int linbox_modn_dense_rank(mod_int modulus,
 			   mod_int** matrix, size_t nrows, size_t ncols) {
 
-    ModInt F((double)modulus);
-    EchelonFormDomain< ModInt > EF(F);
-    DenseMatrix<ModInt> A(F, nrows, ncols);
+  Modular<double> F ((double) modulus);
+  double * Ad = new double [nrows*ncols];
+  for (size_t i=0; i< nrows; ++i)
+    for (size_t j = 0; j < ncols; ++j)
+      *(Ad + i * ncols + j) = matrix[i][j];
 
-    mod_int* row;
-    for (size_t i=0; i < nrows; i++) {
-	row = matrix[i];
-	for (size_t j=0; j < ncols; j++)
-	    A.setEntry(i, j, (double)row[j]);
-	}
-
-    unsigned long r;
-    rank(r, A);
-    return r;
+  size_t r = FFPACK::Rank (F, nrows, ncols, Ad, ncols);
+  delete[] Ad;
+  return r;
 }
 
+mod_int linbox_modn_dense_det(mod_int modulus,
+			      mod_int** matrix, size_t nrows, size_t ncols) {
+
+    Modular<double> F ((double) modulus);
+    double * Ad = new double [nrows*ncols];
+    for (size_t i=0; i< nrows; ++i)
+      for (size_t j = 0; j < nrows; ++j)
+	*(Ad + i * ncols + j) = matrix[i][j];
+    double dd = FFPACK::Det (F, nrows, ncols, Ad, ncols);
+    delete[] Ad;
+    return (mod_int) dd;
+}
 
 void linbox_modn_dense_minpoly(mod_int modulus, mod_int **mp, size_t* degree, size_t n, mod_int **matrix, int do_minpoly) {
 
@@ -125,6 +132,25 @@ void linbox_modn_dense_minpoly(mod_int modulus, mod_int **mp, size_t* degree, si
 	(*mp)[i] = (mod_int)m_A[i];
     }
 
+}
+
+int linbox_modn_dense_col_rankprofile_submatrix (mod_int modulus,
+						 mod_int** matrix,
+						 double* ans,
+						 size_t* rank,
+						 size_t nrows, size_t ncols){
+  Modular<double> F ((double) modulus);
+  double * Ad = new double [nrows*ncols];
+  double * X;
+  for (size_t i=0; i< nrows; ++i)
+    for (size_t j = 0; j < nrows; ++j)
+      *(Ad + i * ncols + j) = matrix[i][j];
+
+  FFPACK::ColRankProfileSubmatrix (F, nrows, ncols, Ad, ncols, ans, *rank);
+
+  delete[] Ad;
+  delete[] X;
+  return *rank;
 }
 
 void linbox_modn_dense_delete_array(mod_int *f) {
@@ -393,6 +419,32 @@ DenseMatrix<NTL_ZZ> new_matrix_integer_dense_ntl(mpz_t** matrix, size_t nrows, s
 	 }
      }
      return A;
+}
+
+void linbox_integer_dense_double_det (mpz_t  ans1, mpz_t ans2, mpz_t **a, mpz_t ** b, mpz_t **c,
+				      size_t n, int proof) {
+
+  PID_integer ZZ;
+  BlasBlackbox <PID_integer> A (ZZ, n+1, n);
+  size_t i, j, k;
+  for (i=0; i < n-1; i++) {
+    for (j=0; j < n; j++) {
+      PID_integer::Element t;
+      mpz_set(spy.get_mpz(t), a[i][j]);
+      A.setEntry(i, j, t);
+    }
+  }
+  for (j=0; j < n; j++) {
+    PID_integer::Element t;
+    mpz_set(spy.get_mpz(t), b[0][j]);
+    A.setEntry (n-1, j, t);
+    mpz_set (spy.get_mpz(t), c[0][j]);
+    A.setEntry (n, j, t);
+  }
+  PID_integer::Element d1,d2;
+  doubleDet (d1, d2, A, proof);
+  mpz_set(ans1, spy.get_mpz(d1));
+  mpz_set(ans2, spy.get_mpz(d2));
 }
 
 /*

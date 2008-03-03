@@ -36,6 +36,11 @@ EXTERN int linbox_modn_dense_matrix_matrix_multiply(mod_int modulus, mod_int **a
 EXTERN int linbox_modn_dense_rank(mod_int modulus,
 				  mod_int** matrix, size_t nrows, size_t ncols);
 
+EXTERN mod_int linbox_modn_dense_det(mod_int modulus,
+				     mod_int** matrix, size_t nrows, size_t ncols);
+
+EXTERN int linbox_modn_dense_col_rankprofile_submatrix (mod_int modulus, mod_int** matrix, mod_int **outmatrix,
+							size_t* rank, size_t nrows, size_t ncols);
 /*****************************************************************
 
   Dense over ZZ
@@ -66,6 +71,8 @@ EXTERN void linbox_integer_dense_smithform(mpz_t **v,
 					   mpz_t **matrix,
 					   size_t nrows, size_t ncols);
 
+EXTERN void linbox_integer_dense_double_det (mpz_t ans1, mpz_t ans2, mpz_t **a,
+					     mpz_t ** b, mpz_t **c, size_t n, int proof);
 /*****************************************************************
 
   Sparse over Z/nZ

@@ -827,8 +827,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: from sage.graphs.graph import enum
         sage: from sage.graphs.base.sparse_graph import SparseGraph
         sage: from sage.graphs.base.dense_graph import DenseGraph
-        sage: from sage.groups.perm_gps.permgroup import PermutationGroup # long time
-        sage: from sage.graphs.graph_isom import perm_group_elt # long time
+        sage: from sage.groups.perm_gps.permgroup import PermutationGroup
+        sage: from sage.graphs.graph_isom import perm_group_elt
 
         sage: G = graphs.DodecahedralGraph()
         sage: GD = DenseGraph(20)
@@ -861,8 +861,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: c = search_tree(G, Pi, lab=False)
         sage: print c
         [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0], [2, 1, 0, 19, 18, 11, 10, 9, 8, 7, 6, 5, 15, 14, 13, 12, 16, 17, 4, 3]]
-        sage: DodecAut = PermutationGroup([perm_group_elt(aa) for aa in a]) # long time
-        sage: DodecAut.character_table() # long time
+        sage: DodecAut = PermutationGroup([perm_group_elt(aa) for aa in a])
+        sage: DodecAut.character_table()
         [                     1                      1                      1                      1                      1                      1                      1                      1                      1                      1]
         [                     1                     -1                      1                      1                     -1                      1                     -1                      1                     -1                     -1]
         [                     3                     -1                      0                     -1     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      3]
@@ -873,8 +873,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         [                     4                      0                      1                      0                      1                     -1                     -1                     -1                      1                     -4]
         [                     5                      1                     -1                      1                      0                      0                     -1                      0                      0                      5]
         [                     5                     -1                     -1                      1                      0                      0                      1                      0                      0                     -5]
-        sage: DodecAut2 = PermutationGroup([perm_group_elt(cc) for cc in c]) # long time
-        sage: DodecAut2.character_table() # long time
+        sage: DodecAut2 = PermutationGroup([perm_group_elt(cc) for cc in c])
+        sage: DodecAut2.character_table()
         [                     1                      1                      1                      1                      1                      1                      1                      1                      1                      1]
         [                     1                     -1                      1                      1                     -1                      1                     -1                      1                     -1                     -1]
         [                     3                     -1                      0                     -1     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      0     -zeta5^3 - zeta5^2  zeta5^3 + zeta5^2 + 1                      3]
@@ -894,8 +894,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: print a, enum(b)
         [[0, 1, 2, 7, 5, 4, 6, 3, 9, 8], [0, 1, 6, 8, 5, 4, 2, 9, 3, 7], [0, 4, 3, 8, 5, 1, 9, 2, 6, 7], [1, 0, 4, 9, 6, 2, 5, 3, 7, 8], [2, 1, 0, 5, 7, 3, 6, 4, 8, 9]] 8715233764864019919698297664
         sage: c = search_tree(G, Pi, lab=False)
-        sage: PAut = PermutationGroup([perm_group_elt(aa) for aa in a]) # long time
-        sage: PAut.character_table() # long time
+        sage: PAut = PermutationGroup([perm_group_elt(aa) for aa in a])
+        sage: PAut.character_table()
         [ 1  1  1  1  1  1  1]
         [ 1 -1  1 -1  1 -1  1]
         [ 4 -2  0  1  1  0 -1]
@@ -903,8 +903,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         [ 5  1  1  1 -1 -1  0]
         [ 5 -1  1 -1 -1  1  0]
         [ 6  0 -2  0  0  0  1]
-        sage: PAut = PermutationGroup([perm_group_elt(cc) for cc in c]) # long time
-        sage: PAut.character_table() # long time
+        sage: PAut = PermutationGroup([perm_group_elt(cc) for cc in c])
+        sage: PAut.character_table()
         [ 1  1  1  1  1  1  1]
         [ 1 -1  1 -1  1 -1  1]
         [ 4 -2  0  1  1  0 -1]
@@ -925,24 +925,24 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         [[0, 2, 1, 3, 4, 6, 5, 7], [0, 1, 4, 5, 2, 3, 6, 7], [1, 0, 3, 2, 5, 4, 7, 6]] 520239721777506480
         sage: c = search_tree(G, Pi, lab=False)
 
-        sage: PermutationGroup([perm_group_elt(aa) for aa in a]).order() # long time
+        sage: PermutationGroup([perm_group_elt(aa) for aa in a]).order()
         48
-        sage: PermutationGroup([perm_group_elt(cc) for cc in c]).order() # long time
+        sage: PermutationGroup([perm_group_elt(cc) for cc in c]).order()
         48
-        sage: DodecAut.order() # long time
+        sage: DodecAut.order()
         120
-        sage: PAut.order() # long time
+        sage: PAut.order()
         120
 
         sage: D = graphs.DodecahedralGraph()
         sage: a,b,c = search_tree(D, [range(20)], certify=True)
-        sage: from sage.plot.plot import GraphicsArray # long time
-        sage: import networkx # long time
-        sage: position_D = networkx.spring_layout(D._nxg) # long time
-        sage: position_b = {} # long time
-        sage: for vert in position_D: # long time
+        sage: from sage.plot.plot import GraphicsArray
+        sage: import networkx
+        sage: position_D = networkx.spring_layout(D._nxg)
+        sage: position_b = {}
+        sage: for vert in position_D:
         ...    position_b[c[vert]] = position_D[vert]
-        sage: graphics_array([D.plot(pos=position_D), b.plot(pos=position_b)]).show()  # long time
+        sage: graphics_array([D.plot(pos=position_D), b.plot(pos=position_b)]).show()
         sage: c
         {0: 0, 1: 19, 2: 16, 3: 15, 4: 9, 5: 1, 6: 10, 7: 8, 8: 14, 9: 12, 10: 17, 11: 11, 12: 5, 13: 6, 14: 2, 15: 4, 16: 3, 17: 7, 18: 13, 19: 18}
 
@@ -1185,27 +1185,27 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
 
         sage: C = graphs.CubeGraph(1)
         sage: gens = search_tree(C, [C.vertices()], lab=False)
-        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order() # long time
+        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order()
         2
         sage: C = graphs.CubeGraph(2)
         sage: gens = search_tree(C, [C.vertices()], lab=False)
-        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order() # long time
+        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order()
         8
         sage: C = graphs.CubeGraph(3)
         sage: gens = search_tree(C, [C.vertices()], lab=False)
-        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order() # long time
+        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order()
         48
         sage: C = graphs.CubeGraph(4)
         sage: gens = search_tree(C, [C.vertices()], lab=False)
-        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order() # long time
+        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order()
         384
         sage: C = graphs.CubeGraph(5)
         sage: gens = search_tree(C, [C.vertices()], lab=False)
-        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order() # long time
+        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order()
         3840
         sage: C = graphs.CubeGraph(6)
         sage: gens = search_tree(C, [C.vertices()], lab=False)
-        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order() # long time
+        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order()
         46080
 
     One can also turn off the indicator function (note- this will take longer)
@@ -1978,10 +1978,10 @@ def all_labeled_graphs(n):
         2 2
         3 4
         4 11
-        sage: n = 5 # long time
-        sage: Glist[n] = all_labeled_graphs(n) # long time
-        sage: Giso[n] = [] # long time
-        sage: for g in Glist[5]: # long time
+        sage: n = 5
+        sage: Glist[n] = all_labeled_graphs(n)
+        sage: Giso[n] = []
+        sage: for g in Glist[5]:
         ...    a, b = search_tree(g, [range(n)])
         ...    inn = False
         ...    for gi in Giso[n]:

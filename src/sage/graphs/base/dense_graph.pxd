@@ -19,7 +19,7 @@ cdef class DenseGraph(CGraph):
     cdef int radix_div_shift
     cdef int radix_mod_mask
     cdef int num_longs
-    cdef long *edges
+    cdef unsigned long *edges
 
     # Method declarations inherited from CGraph:
     # cdef int add_arc_unsafe(self, int, int)

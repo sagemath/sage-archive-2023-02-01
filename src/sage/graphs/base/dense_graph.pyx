@@ -24,21 +24,21 @@ cdef class DenseGraph(CGraph):
     """
 
     def __new__(self, int nverts):
-        cdef int radix = sizeof(long) << 3
+        cdef int radix = sizeof(unsigned long) << 3
         self.radix_mod_mask = radix - 1
         cdef int i = 0
-        while (1<<i) & self.radix_mod_mask:
+        while ((<unsigned long>1)<<i) & self.radix_mod_mask:
             i += 1
         self.radix_div_shift = i
         self.num_verts = nverts
         self.num_arcs = 0
-#        print ''.join(reversed(['1' if (1<<i)&radix else '0' for i in xrange(sizeof(long)*8)]))
-#        print ''.join(reversed(['1' if (1<<i)&(radix - 1) else '0' for i in xrange(sizeof(long)*8)]))
+#        print ''.join(reversed(['1' if (1<<i)&radix else '0' for i in xrange(sizeof(unsigned long)*8)]))
+#        print ''.join(reversed(['1' if (1<<i)&(radix - 1) else '0' for i in xrange(sizeof(unsigned long)*8)]))
         i = nverts >> self.radix_div_shift
         if nverts & self.radix_mod_mask:
             i += 1
         self.num_longs = i
-        self.edges = <long *> sage_malloc(nverts * self.num_longs * sizeof(long))
+        self.edges = <unsigned long *> sage_malloc(nverts * self.num_longs * sizeof(unsigned long))
         self.in_degrees = <int *> sage_malloc(nverts * sizeof(int))
         self.out_degrees = <int *> sage_malloc(nverts * sizeof(int))
         if not self.edges or not self.in_degrees or not self.out_degrees:
@@ -66,7 +66,7 @@ cdef class DenseGraph(CGraph):
 
         """
         cdef int place = (u * self.num_longs) + (v >> self.radix_div_shift)
-        cdef long word = 1 << (v & self.radix_mod_mask)
+        cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
         if not self.edges[place] & word:
             self.in_degrees[v] += 1
             self.out_degrees[u] += 1
@@ -113,7 +113,7 @@ cdef class DenseGraph(CGraph):
 
         """
         cdef int place = (u * self.num_longs) + (v >> self.radix_div_shift)
-        cdef long word = 1 << (v & self.radix_mod_mask)
+        cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
         if self.edges[place] & word:
             return 1
         else:
@@ -151,7 +151,7 @@ cdef class DenseGraph(CGraph):
 
         """
         cdef int place = (u * self.num_longs) + (v >> self.radix_div_shift)
-        cdef long word = 1 << (v & self.radix_mod_mask)
+        cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
         if self.edges[place] & word:
             self.in_degrees[v] -= 1
             self.out_degrees[u] -= 1
@@ -199,7 +199,7 @@ cdef class DenseGraph(CGraph):
         """
         cdef int place = (u * self.num_longs), num_nbrs = 0
         cdef int i, v = 0
-        cdef long word, data
+        cdef unsigned long word, data
         for i from 0 <= i < self.num_longs:
             data = self.edges[place + i]
             word = 1
@@ -262,7 +262,7 @@ cdef class DenseGraph(CGraph):
 
         """
         cdef int place = v >> self.radix_div_shift
-        cdef long word = 1 << (v & self.radix_mod_mask)
+        cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
         cdef int i, num_nbrs = 0
         for i from 0 <= i < self.num_verts:
             if self.edges[place + i*self.num_longs] & word:

@@ -143,12 +143,12 @@ def test(F, cmd):
 
 def populatefilelist(filelist):
     global CUR
+    filemutex.acquire()
     for FF in filelist:
         if os.path.isfile(FF):
             files.append(FF)
             continue
         curdir = os.getcwd()
-        filemutex.acquire()
         walkdir = os.path.join(CUR,FF)
         for root, dirs, lfiles in os.walk(walkdir):
             for F in lfiles:
@@ -164,7 +164,10 @@ def populatefilelist(filelist):
             for D in dirs:
                 if '#' in D or '/notes' in D:
                     dirs.remove(D)
-        filemutex.release()
+    files.insert(0,SAGE_ROOT+"/devel/doc/tut/tut.tex")
+    files.insert(0,SAGE_ROOT+"/devel/doc/prog/prog.tex")
+    files.insert(0,SAGE_ROOT+"/devel/doc/const/const.tex")
+    filemutex.release()
     return 0
 
 populatefilelist(infiles)
@@ -180,8 +183,10 @@ for t in threadlist:
 if len(failed) == 0:
     print "All tests passed!"
 else:
-    print "The following tests failed:\n"
-    print "\n\t".join(failed)
+    print "\nThe following tests failed:\n"
+    for i in range(len(failed)):
+           print "\t", failed[i]
+    print "-"*int(70)
 
 print "Total time for all tests: %.1f seconds"%(time.time() - t0)
 

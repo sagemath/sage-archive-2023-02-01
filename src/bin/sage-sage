@@ -578,6 +578,13 @@ if [ $1 = '-t' ]; then
    exit $?
 fi
 
+if [ $1 = '-tp' ]; then
+   cd "$CUR"
+   shift
+   sage-ptest "$@"
+   exit $?
+fi
+
 if [ $1 = '-tnew' ]; then
    cd "$CUR"
    shift

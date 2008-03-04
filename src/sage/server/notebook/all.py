@@ -14,4 +14,4 @@ from notebook_object import notebook, inotebook
 
 from sagetex import sagetex
 
-from manipulate import manipulate, text_box, slider
+from manipulate import manipulate, input_box, slider

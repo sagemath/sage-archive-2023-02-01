@@ -6,7 +6,7 @@ notebook.
 
 The controls are:
 \begin{itemize}
-    \item TextBox -- a text box
+    \item InputBox -- a input box
     \item Slider -- a slider
 \end{itemize}
 
@@ -17,9 +17,22 @@ AUTHOR:
        design and prototypes.
 
 TODO:
-   [ ] get sliders to work
-   [ ] default values; values after move slider
+   [X] get sliders to work; values after move slider
+
+   [x] default values
+   [ ] get everything in the current version to work 100% bug free (including some style). post bundle.
+       BUGS:
+          [x] have default values set from the get go
+          [x] spacing around sliders; also need to have labels
+          [x] when re-evaluate input, make sure to clear output so cell-manipulate-id div is gone.
+          [ ] if you  use a manipulate control after restarting, doesn't work.   Need to reset it.  How?
+          [x] two manipulates in one cell -- what to do?
+          [ ] display html parts of output as html
+
+   [ ] implement in non-word wrap mode too.
    [ ] implement a color object
+   [ ] cool looking sliders:
+        http://jqueryfordesigners.com/demo/slider-gallery.html
 
 PLANS and IDEAS:
    [ ] automagically determine the type of control from the default
@@ -33,12 +46,12 @@ PLANS and IDEAS:
         * u = Graphic            a locator in a 2d plot  (Graphic is a 2d graphics objects)
         * u = True or u = False  a checkbox
         * u = color(...)         a color slider
-        * u = "string"           text input field
+        * u = "string"           input field
         * u = ('label', obj)     obj can be any of the above; control is labeled with
                                  the given label
         * u = element            if parent(element)._manipulate_control_(element) is
-                                 defined, then it will be used.  Otherwise make a
-                                 text input that coerces input to parent(element)
+                                 defined, then it will be used.  Otherwise make an
+                                 input that coerces input to parent(element)
    [ ] tag_cell('foo') -- makes it so one can refer to the current cell
        from elsewhere using the tag foo instead of the cell id number
        This involves doing something with SAGE_CELL_ID and the cell_id()
@@ -70,7 +83,8 @@ ELEMENTS:
           type -- button, checkbox, file, password, radio, slider, text, setter_bar, drop_down
    [ ] setter bar (buttons)
    [ ] checkbox
-   [ ] color slider
+   [ ] color slider:
+          http://interface.eyecon.ro/demos/slider_colorpicker.html
    [ ] blank input field
    [ ] 2d slider
    [ ] locator in a graphic
@@ -94,13 +108,13 @@ def foo(x,y):
 import inspect
 
 SAGE_CELL_ID = 0
-vars = {}
+state = {}
 
 _k = 0
-def new_adapt_name():
+def new_adapt_number():
     global _k
     _k += 1
-    return 'adapt%s'%_k
+    return _k
 
 
 def html(s):
@@ -116,9 +130,9 @@ def html(s):
     """
     print "<html>%s</html>"%s
 
-def html_slider(id, callback, margin=0):
-    s = """<div id='%s' class='ui-slider-1' style="margin:%spx;"><span class='ui-slider-handle'></span></div>"""%(
-        id, int(margin))
+def html_slider(label, id, callback, steps, default=0, margin=0):
+    s = """<table style='margin:0px;padding:0px;'><tr><td>%s</td><td><div id='%s' class='ui-slider-1' style='padding:0px;margin:%spx;'><span class='ui-slider-handle'></span></div></div></td></tr></table>"""%(
+        label, id, int(margin))
 
     # We now generat javascript that gets run after the above div gets
     # inserted. This happens because of the setTimeout function below
@@ -126,11 +140,13 @@ def html_slider(id, callback, margin=0):
     s += """
     <script>
     setTimeout(function() {
-        $('#%s').slider();
-        $('#%s').bind('click', function () { var position = $('#%s').slider('value',0); %s; });
-    }, 1)
+        $('#%s').slider({
+               stepping: 1, minValue: 0, maxValue: %s, startValue: %s,
+               change: function () { var position = Math.ceil($('#%s').slider('value')); %s; }
+        });
+    }, 1);      /* setTimeout might be a hack? This could lead to a bug?  */
     </script>
-    """%(id, id, id, callback)
+    """%(id, steps-1, default, id, callback)
     return s
 
 
@@ -138,7 +154,7 @@ class ManipulateControl:
     """
     Base class for manipulate controls.
     """
-    def __init__(self, f, var):
+    def __init__(self, f, var, default_value):
         """
         Create a new manipulate control.
 
@@ -150,20 +166,24 @@ class ManipulateControl:
         self.__var = var
         self.__cell_id = SAGE_CELL_ID
         self.__f = f
+        self.__default_value = default_value
+        self.__adapt_number = new_adapt_number()
 
     def __repr__(self):
         return "A ManipulateControl (abstract base class)"
 
-    def adapt(self):
+    def default_value(self):
+        return self.__default_value
+
+    def adapt_user_input(self):
         """
         Return string representation of function that is called to
         adapt the values of this control to Python.
         """
-        name = new_adapt_name()
-        vars[name] = self._adapt
-        return 'sage.server.notebook.manipulate.vars[\\"%s\\"]'%name
+        state[self.cell_id()]['adapt'][self.__adapt_number] = self._adapt_user_input
+        return 'sage.server.notebook.manipulate.state[%s][\\"adapt\\"][%s]'%(self.cell_id(), self.__adapt_number)
 
-    def _adapt(self, x):
+    def _adapt_user_input(self, x):
         return x
 
     def manipulate(self):
@@ -175,8 +195,8 @@ class ManipulateControl:
         OUTPUT:
             string -- that is meant to be evaluated in Javascript
         """
-        s = 'manipulate(%s, "sage.server.notebook.manipulate.vars[%s][\\"%s\\"]=sage_eval(r\\"\\"\\"%s("+%s+")\\"\\"\\", globals())\\n%s()");'%(
-            self.cell_id(), self.cell_id(), self.var(), self.adapt(), self.value(), self.function_name())
+        s = 'manipulate(%s, "sage.server.notebook.manipulate.state[%s][\\"variables\\"][\\"%s\\"]=sage_eval(r\\"\\"\\"%s("+%s+")\\"\\"\\", globals())\\n%s()");'%(
+            self.cell_id(), self.cell_id(), self.var(), self.adapt_user_input(), self.value(), self.function_name())
         return s
 
     def function_name(self):
@@ -186,7 +206,7 @@ class ManipulateControl:
         OUTPUT:
             string -- name of a function as a string
         """
-        return self.__f.__name__
+        return 'sage.server.notebook.manipulate.state[%s][\\"function\\"]'%(self.cell_id())
 
     def var(self):
         """
@@ -206,12 +226,12 @@ class ManipulateControl:
         """
         return self.__cell_id
 
-class TextBox(ManipulateControl):
+class InputBox(ManipulateControl):
     """
-    A text box manipulate control.
+    An input box manipulate control.
     """
     def __repr__(self):
-        return "A TextBox manipulate control"
+        return "A InputBox manipulate control"
 
     def value(self):
         """
@@ -231,23 +251,30 @@ class TextBox(ManipulateControl):
              string -- html format
         """
         return """
-        %s: <input type='text' value='<?%s>' onchange='%s'></input>
-        """%(self.var(), self.var(), self.manipulate())
+        %s: <input type='text' value='%r' width=100%% onchange='%s'></input>
+        """%(self.var(), self.default_value(),  self.manipulate())
 
 class Slider(ManipulateControl):
     """
     A slider manipulate control.
     """
-    def __init__(self, f, var, values):
+    def __init__(self, f, var, values, default_position):
         """
         Create a slider manipulate control that takes on the given
         list of values.
         """
-        ManipulateControl.__init__(self, f, var)
+        ManipulateControl.__init__(self, f, var, values[default_position])
         self.__values = values
+        self.__default_position = default_position
 
     def __repr__(self):
         return "A Slider manipulate control"
+
+    def default_position(self):
+        """
+        Return the default position (as an integer) of the slider.
+        """
+        return self.__default_position
 
     def value(self):
         """
@@ -259,16 +286,11 @@ class Slider(ManipulateControl):
         """
         return "position"
 
-    def _adapt(self, position):
+    def _adapt_user_input(self, position):
         # Input position is a string that evals to a float between 0 and 100.
         # we translate it into an index into self.__values
         v = self.__values
-        i = int(len(v) * (float(position)/100.0))
-        if i < 0:
-            i = 0
-        elif i >= len(v):
-            i = len(v) - 1
-        return v[i]
+        return v[int(position)]
 
     def render(self):
         """
@@ -277,7 +299,9 @@ class Slider(ManipulateControl):
         OUTPUT:
              string -- html format
         """
-        return html_slider('slider-%s-%s'%(self.var(), self.cell_id()), self.manipulate())
+        return html_slider('<font color=black>%s</font> '%self.var(), 'slider-%s-%s'%(self.var(), self.cell_id()),
+                           self.manipulate(), steps=len(self.__values),
+                           default=self.default_position())
 
 
 class ManipulateCanvas:
@@ -286,7 +310,7 @@ class ManipulateCanvas:
     along with the output of the manipulated function are layed out
     and rendered.
     """
-    def __init__(self, controls):
+    def __init__(self, controls, id):
         """
         Create a manipulate canvas.
 
@@ -294,6 +318,10 @@ class ManipulateCanvas:
             controls -- a list of ManipulateControl instances.
         """
         self.__controls = controls
+        self.__cell_id = id
+
+    def cell_id(self):
+        return self.__cell_id
 
     def render_output(self):
         """
@@ -306,15 +334,16 @@ class ManipulateCanvas:
         OUTPUT:
             string -- html
         """
-
         return """
-        <table bgcolor=black cellpadding=3><tr><td bgcolor=white>
-        <?TEXT>
-           <table border=0 width=800px height=500px>
-           <tr><td align=center>  <?HTML>  </td></tr>
-           </table>
-        </td></tr></table>
-        """
+        <div id='cell-manipulate-%s'><?START>
+        <table border=1 bgcolor='#dcdcdc' cellpadding=3 width=100%% height=100%%>
+        <tr><td bgcolor=white>
+          <?TEXT>
+        </td></tr>
+        <tr><td><?HTML></td></tr>
+        </table>
+        </td></tr></table><?END></div>
+        """%self.cell_id()
 
     def render_controls(self):
         """
@@ -326,6 +355,10 @@ class ManipulateCanvas:
         # This will need some sophisticated layout querying of the c's, maybe.
         return ''.join([c.render() for c in self.__controls])
 
+    def wrap_in_outside_frame(self, inside):
+        #return "<table bgcolor='#c5c5c5' width=100%% height=100%% cellpadding=5><tr><td bgcolor='#f9f9f9'>%s</td></tr></table>"%inside
+        return "<table bgcolor='#c5c5c5' width=800px height=400px cellpadding=5><tr><td bgcolor='#f9f9f9'>%s</td></tr></table>"%inside
+
     def render(self):
         """
         Render in text (html) the entire manipulate canvas.
@@ -333,7 +366,9 @@ class ManipulateCanvas:
         OUTPUT:
             string -- html
         """
-        return "%s%s"%(self.render_controls(), self.render_output())
+        s = "%s%s"%(self.render_controls(), self.render_output())
+        s = self.wrap_in_outside_frame(s)
+        return s
 
 
 def manipulate(f):
@@ -342,6 +377,9 @@ def manipulate(f):
         @manipulate
         def foo(n,m):
             ...
+
+    Note -- it is safe to make several distinct manipulate cells with functions that
+    have the same name.
     """
 
     (args, varargs, varkw, defaults) = inspect.getargspec(f)
@@ -354,17 +392,21 @@ def manipulate(f):
     #controls = [automatic_control(f, v) for v in args[:n]] + \
     #           [defaults[i].render(f, args[i+n]) for i in range(len(defaults))]
 
-    C = ManipulateCanvas(controls)
+    C = ManipulateCanvas(controls, SAGE_CELL_ID)
 
-    vars[SAGE_CELL_ID] = {}
-    d = vars[SAGE_CELL_ID]
-    for v in args:
-         d[v] = ''
+    d = {}
+    state[SAGE_CELL_ID] = {'variables':d, 'adapt':{}}
+
+    for con in controls:
+        d[con.var()] = con.default_value()
 
     html(C.render())
 
     def g():
         return f(*[d[args[i]] for i in range(len(args))])
+
+    state[SAGE_CELL_ID]['function'] = g
+
     return g
 
 
@@ -374,7 +416,7 @@ def manipulate(f):
 class control:
     pass
 
-class text_box(control):
+class input_box(control):
     def __init__(self, default):
         """
         INPUT:
@@ -383,7 +425,7 @@ class text_box(control):
         self.__default = default
 
     def __repr__(self):
-        return "A manipulate text box control with default value '%s'"%self.__default
+        return "A manipulate input box control with default value '%r'"%self.__default
 
     def render(self, f, var):
         """
@@ -391,10 +433,10 @@ class text_box(control):
             f -- a Python function
             var -- a string (variable; one of the variable names input to f)
         """
-        return TextBox(f, var)
+        return InputBox(f, var, self.__default)
 
 class slider(control):
-    def __init__(self, vmin, vmax=None, steps=30):
+    def __init__(self, vmin, vmax=None, steps=30, default=None):
         if isinstance(vmin, list):
             self.__values = vmin
         else:
@@ -407,12 +449,31 @@ class slider(control):
             else:
                 step = (vmax-vmin)/steps  # hard coded
                 self.__values = [vmin + i*step for i in range(steps)] + [vmax]
+        if len(self.__values) == 0:
+            self.__values = [0]
+        if default is None:
+            self.__default = 0
+        else:
+            try:
+                i = self.__values.index(default)
+            except ValueError:
+                i = 0
+            self.__default = i
 
     def __repr__(self):
         return "A manipulate slider control [%s - %s]."%(min(self.__values), max(self.__values))
 
+    def default(self):
+        """
+        Return default index into the list of values.
+
+        OUTPUT:
+            int
+        """
+        return self.__default
+
     def render(self, f, var):
-        return Slider(f, var, self.__values)
+        return Slider(f, var, self.__values, self.__default)
 
 def automatic_control(f, v, default):
     if isinstance(default, control):
@@ -420,5 +481,5 @@ def automatic_control(f, v, default):
     elif isinstance(default, list):
         C = slider(default)
     else:
-        C = text_box(str(default))
+        C = input_box(default)
     return C.render(f, v)

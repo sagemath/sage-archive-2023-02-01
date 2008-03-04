@@ -1,4 +1,4 @@
-r"""nodoctest
+"""nodoctest
 A Cell.
 
 A cell is a single input/output block.  Worksheets are built out of a
@@ -298,6 +298,8 @@ class Cell(Cell_generic):
             del self.manipulate
 
     def set_input_text(self, input):
+
+        # Stuff to deal with manipulate
         if input.startswith('%manipulate'):
             self.manipulate = input[len('%manipulate')+1:]
             self.__version = 1+self.version()
@@ -329,12 +331,19 @@ class Cell(Cell_generic):
         self.__in = new_text
 
     def set_output_text(self, output, html, sage=None):
+        if output.count('<?TEXT>') > 1:
+            html = '<h3><font color="red">WARNING: multiple @manipulates in one cell disabled (not yet implemented).</font></h3>'
+            output = ''
+
+        # In manipulating mode, we just save the computed output
+        # (do not overwrite).
         if self.is_manipulating():
-            self._manipulate_output = (output,html)
+            self._manipulate_output = (output, html)
             return
 
         if hasattr(self, '_html_cache'):
             del self._html_cache
+
         output = output.replace('\r','')
         if len(output) > MAX_OUTPUT:
             url = ""
@@ -390,26 +399,29 @@ class Cell(Cell_generic):
 
     def output_text(self, ncols=0, html=True, raw=False, allow_manipulate=True):
         if allow_manipulate and hasattr(self, '_manipulate_output'):
-            z = self.output_text(ncols,html,raw,allow_manipulate=False)
-            try:
-                # Fill in the input valuees
-                # TODO -- redo
-                if False and hasattr(self, 'manipulate'):
-                    inp = self.manipulate
-                    i = inp.lstrip().find('\n'); inp = inp[:i]
-                    i = inp.rfind('.'); inp = inp[i+1:]
-                    var, value = inp[:i].split('=')
-                    z = z.replace('<?%s>'%var, value)
-
-                # Fill in the output template
-                output,html = self._manipulate_output
-                z = z.replace('<?TEXT>', output.lstrip())
-                z = z.replace('<?HTML>', html)
-
+            # Get the input template
+            z = self.output_text(ncols, html, raw, allow_manipulate=False)
+            if not '<?TEXT>' in z or not '<?HTML>' in z:
                 return z
-            except (ValueError, AttributeError), msg:
-                print msg
-                pass
+            if ncols:
+                # Get the output template
+                try:
+                    # Fill in the output template
+                    output,html = self._manipulate_output
+                    z = z.replace('<?TEXT>', output.replace('<','&lt;'))
+                    z = z.replace('<?HTML>', html)
+                    return z
+                except (ValueError, AttributeError), msg:
+                    print msg
+                    pass
+            else:
+                # Get rid of the manipulate div to avoid updating the wrong output location
+                # during manipulate.
+                return ''
+
+        is_manipulate = '@manipulate' in ''.join(self.input_text().split())
+        if ncols == 0 and is_manipulate:
+            return '<h2>Click to the left again to hide and once more to show the manipulation window</h2>'
 
         s = self.__out
 
@@ -444,9 +456,8 @@ class Cell(Cell_generic):
                 t += format(s[:i]) + format_html(s[i+6:j])
                 s = s[j+7:]
             s = t
-            if not self.is_html() and len(s.strip()) > 0:
+            if not is_manipulate and not self.is_html() and len(s.strip()) > 0:
                 s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
-
 
         return s.strip('\n')
 
@@ -700,8 +711,8 @@ class Cell(Cell_generic):
 
     def html_out(self, ncols=0, do_print=False):
         out_nowrap = self.output_text(0, html=True)
-        out_html = self.output_html()
 
+        out_html = self.output_html()
         if self.introspect():
             out_wrap = out_nowrap
         else:
@@ -722,13 +733,14 @@ class Cell(Cell_generic):
         else:
             prnt = ""
 
-        out = """<div class="cell_output_%s%s" id="cell_output_%s">%s</div>
-                 <div class="cell_output_%snowrap_%s" id="cell_output_nowrap_%s">%s</div>
-                 <div class="cell_output_html_%s" id="cell_output_html_%s">%s </div>
-                 """%(prnt, typ, self.__id, out_wrap,
-                      prnt, typ, self.__id, out_nowrap,
-                      typ, self.__id, out_html)
+        out_wrap   = '<div class="cell_output_%s%s" id="cell_output_%s">%s</div>'%(
+            prnt, typ,self.__id, out_wrap)
+        out_nowrap = '<div class="cell_output_%snowrap_%s" id="cell_output_nowrap_%s">%s</div>'%(
+            prnt, typ, self.__id, out_nowrap)
+        out_html   = '<div class="cell_output_html_%s" id="cell_output_html_%s">%s </div>'%(
+            typ, self.__id, out_html)
 
+        out = "%s%s%s"%(out_wrap, out_nowrap, out_html)
         s = top + out + '</div>'
 
         r = ''

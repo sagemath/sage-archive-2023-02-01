@@ -20,8 +20,10 @@ import keyboards
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                     2006 Tom Boothby <boothby@u.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#   Released under the *modified* BSD license.
+#     Tom wrote in email to me at wstein@gmail.com on March 2, 2008: "You have my permission
+#     to change the license on anything I've contributed to the notebook, to whatever suits you."
+#
 ###########################################################################
 
 
@@ -1792,7 +1794,7 @@ function cell_set_not_evaluated(id) {
 }
 
 function cell_set_running(id) {
-    set_output_text(id, '', '', '', '', '');
+    set_output_text(id, '', '', '', '', '', 1);   // the 1 means no manipulation dynamics
     cell_output_set_type(id, 'wrap');
     var cell_div = get_element('cell_div_output_' + id);
     cell_div.className = 'cell_output_running';
@@ -1837,15 +1839,27 @@ function cancel_update_check() {
     document.title = original_title;
 }
 
-function set_output_text(id, text, wrapped_text, output_html, status, introspect_html) {
-    /* fill in output text got so far */
-    var cell_output = get_element('cell_output_' + id);
-    var cell_output_nowrap = get_element('cell_output_nowrap_' + id);
-    var cell_output_html = get_element('cell_output_html_' + id);
+function set_output_text(id, text, wrapped_text, output_html, status, introspect_html, no_manip) {
+    var cell_manip = get_element("cell-manipulate-" + id);
+    if (!no_manip && cell_manip) {
+        var i = wrapped_text.indexOf('<?START>');
+        var j = wrapped_text.indexOf('<?END>');
+        if (i == -1 || j == -1) {
+            alert("bug -- manipulate wrapped text is invalid" + wrapped_text);
+            return;
+        }
+        var new_manip_output = wrapped_text.slice(i+8,j);
+        cell_manip.innerHTML = new_manip_output;
+    } else {
+        /* fill in output text got so far */
+        var cell_output = get_element('cell_output_' + id);
+        var cell_output_nowrap = get_element('cell_output_nowrap_' + id);
+        var cell_output_html = get_element('cell_output_html_' + id);
 
-    cell_output.innerHTML = wrapped_text;
-    cell_output_nowrap.innerHTML = text;
-    cell_output_html.innerHTML = output_html;
+        cell_output.innerHTML = wrapped_text;
+        cell_output_nowrap.innerHTML = text;
+        cell_output_html.innerHTML = output_html;
+    }
 
     if (status == 'd') {
          cell_set_done(id);
@@ -2505,8 +2519,6 @@ function manipulate(id, input) {
     async_request(worksheet_command('eval'), evaluate_cell_callback,
             'newcell=0' + '&id=' + id + '&input='+escape0('%manipulate\n' + input));
 }
-
-
 
 /********************* js math ***************************/
 

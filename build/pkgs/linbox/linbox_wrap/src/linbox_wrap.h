@@ -30,7 +30,10 @@ EXTERN void linbox_modn_dense_minpoly(mod_int modulus, mod_int **mp, size_t* deg
 
 EXTERN void linbox_modn_dense_delete_array(mod_int *f);
 
-EXTERN int linbox_modn_dense_matrix_matrix_multiply(mod_int modulus, mod_int **ans, mod_int **A, mod_int **B,
+EXTERN void linbox_modn_dense_delete_dbl_array(double *f);
+
+EXTERN int linbox_modn_dense_matrix_matrix_multiply(mod_int modulus, mod_int **ans,
+						    mod_int **A, mod_int **B,
 						    size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc);
 
 EXTERN int linbox_modn_dense_rank(mod_int modulus,
@@ -39,8 +42,18 @@ EXTERN int linbox_modn_dense_rank(mod_int modulus,
 EXTERN mod_int linbox_modn_dense_det(mod_int modulus,
 				     mod_int** matrix, size_t nrows, size_t ncols);
 
-EXTERN int linbox_modn_dense_col_rankprofile_submatrix (mod_int modulus, mod_int** matrix, mod_int **outmatrix,
-							size_t* rank, size_t nrows, size_t ncols);
+EXTERN int linbox_modn_dense_col_rankprofile_submatrix (mod_int modulus,
+							mod_int** matrix,
+							double ** outmatrix,
+							size_t* rank,
+							size_t nrows, size_t ncols);
+EXTERN int linbox_modn_dense_col_rankprofile_submatrix_indices (mod_int modulus,
+								mod_int** matrix,
+								size_t ** row_idx,
+								size_t ** col_idx,
+								size_t * rank,
+								size_t nrows,
+								size_t ncols);
 /*****************************************************************
 
   Dense over ZZ

@@ -132,27 +132,59 @@ void linbox_modn_dense_minpoly(mod_int modulus, mod_int **mp, size_t* degree, si
     }
 
 }
-
-int linbox_modn_dense_col_rankprofile_submatrix (mod_int modulus,
-						 mod_int** matrix,
-						 double* ans,
-						 size_t* rank,
-						 size_t nrows, size_t ncols){
+EXTERN int linbox_modn_dense_col_rankprofile_submatrix_indices (mod_int modulus,
+								mod_int** matrix,
+								size_t ** row_idx,
+								size_t ** col_idx,
+								size_t * rank,
+								size_t nrows,
+								size_t ncols){
   Modular<double> F ((double) modulus);
   double * Ad = new double [nrows*ncols];
-  double * X;
   for (size_t i=0; i< nrows; ++i)
     for (size_t j = 0; j < nrows; ++j)
       *(Ad + i * ncols + j) = matrix[i][j];
 
-  FFPACK::ColRankProfileSubmatrix (F, nrows, ncols, Ad, ncols, ans, *rank);
-
+  size_t R;
+  double * X;
+  size_t *rowindices;
+  size_t *colindices;
+  FFPACK::ColRankProfileSubmatrixIndices (F, nrows, ncols, Ad, ncols,
+					  rowindices, colindices, R);
+  rank[0] = R;
+  col_idx[0] = colindices;
+  row_idx[0] = rowindices;
   delete[] Ad;
-  delete[] X;
-  return *rank;
+  return R;
+}
+
+
+
+int linbox_modn_dense_col_rankprofile_submatrix (mod_int modulus,
+						 mod_int** matrix,
+						 double** ans,
+						 size_t* rank,
+						 size_t nrows, size_t ncols){
+  Modular<double> F ((double) modulus);
+  double * Ad = new double [nrows*ncols];
+  for (size_t i=0; i< nrows; ++i)
+    for (size_t j = 0; j < nrows; ++j)
+      *(Ad + i * ncols + j) = matrix[i][j];
+
+  size_t R;
+  double * X;
+  FFPACK::ColRankProfileSubmatrix (F, nrows, ncols, Ad, ncols, X, R);
+  rank[0] = R;
+  ans[0] = X;
+  delete[] Ad;
+  return R;
 }
 
 void linbox_modn_dense_delete_array(mod_int *f) {
+    delete[] f;
+}
+
+void linbox_modn_dense_delete_dbl_array(double *f) {
     delete[] f;
 }
 

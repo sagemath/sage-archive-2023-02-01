@@ -2139,6 +2139,32 @@ def discrete_log_generic(a, base, ord=None, operation='multiplication',
         sage: v.log(w)
         0
 
+        sage: K.<z>=CyclotomicField(230)
+        sage: w=z^50
+        sage: discrete_log_generic(w,z)
+        50
+
+        An example where the order is infinite: note that we must give
+        an upper bound here:
+        sage: K.<a> = QuadraticField(23)
+        sage: eps = K.units()[0]
+        sage: eps.multiplicative_order()
+        +Infinity
+        sage: eta = eps^100
+        sage: discrete_log_generic(eta,eps,1000)
+        100
+
+        In this cases we cannot detect negative powers:
+        sage: eta = eps^(-3)
+        sage: discrete_log_generic(eta,eps,100)
+        Traceback (most recent call last):
+        ...
+        ValueError: Log of -11515*a - 55224 to the base 5*a - 24 does not exist.
+
+        But we can invert the base instead:
+        sage: -discrete_log_generic(eta^-1,eps,100)
+        -3
+
         An additive example: elliptic curve DLOG:
         sage: F=GF(37^2,'a')
         sage: E=EllipticCurve(F,[1,1])
@@ -2159,16 +2185,18 @@ def discrete_log_generic(a, base, ord=None, operation='multiplication',
     Z = integer_ring.ZZ
     b = base
 
+    from operator import inv, mul, neg, add
+
     if operation=='multiplication':
         identity = b.parent()(1)
-        inverse  = lambda x: x**(-1)
-        op = lambda x,y: x*y
+        inverse  = inv
+        op = mul
         if ord==None:
             ord = b.multiplicative_order()
     elif operation=='addition':
         identity = b.parent()(0)
-        inverse  = lambda x: -x
-        op = lambda x,y: x+y
+        inverse  = neg
+        op = add
         if ord==None:
             ord = b.order()
     else:
@@ -2187,15 +2215,19 @@ def discrete_log_generic(a, base, ord=None, operation='multiplication',
     table = dict()     # will hold pairs (b^j,j) for j in range(m)
     g = identity       # will run through b**j
     for j in range(m):
+        if a==g:
+            return Z(j)
         table[g] = j
         g = op(g,b)
+
     g = inverse(g)     # this is now b**(-m)
-    h = a              # will run through a*g**i = a*b**(-i*m)
-    for i in range(m):
+    h = op(a,g)        # will run through a*g**i = a*b**(-i*m)
+    for i in range(1,m):
         j = table.get(h)
         if not j==None:  # then a*b**(-i*m) == b**j
             return Z(i*m + j)
-        h = op(h,g)
+        if i < m-1:
+            h = op(h,g)
 
     raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
 

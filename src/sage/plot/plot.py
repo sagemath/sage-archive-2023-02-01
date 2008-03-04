@@ -2615,8 +2615,8 @@ class GraphicPrimitiveFactory_plot_field(GraphicPrimitiveFactory):
             for y in sage.misc.misc.xsrange(yrange[0], yrange[1], ystep):
                 Lpx.append(float(x))
                 Lpy.append(float(y))
-                Lcx.append(float(f(x)))
-                Lcy.append(float(g(y)))
+                Lcx.append(float(f(x,y)))
+                Lcy.append(float(g(x,y)))
         return self._from_xdata_ydata(Lpx, Lpy, Lcx, Lcy, xrange, yrange, options=options)
 
 class GraphicPrimitiveFactory_disk(GraphicPrimitiveFactory):
@@ -3035,23 +3035,31 @@ matrix_plot = MatrixPlotFactory()
 class PlotFieldFactory(GraphicPrimitiveFactory_plot_field):
     r"""
 
-    \code{plot_field} takes two functions of one variable, $(f(x), g(y))$
+    \code{plot_vector_field} takes two functions of two variables, $(f(x,y), g(x,y))$
     and plots vector arrows of the function over the specified
     xrange and yrange as demonstrated below.
 
-    plot_field((f, g), (xmin, xmax), (ymin, ymax))
+    plot_vector_field((f, g), (xmin, xmax), (ymin, ymax))
 
     EXAMPLES:
 
     Plot the vector field of sin and cos:
-    sage: vf1 = plot_vector_field((lambda x:sin(x), lambda y:cos(y)), (-3,3), (-3,3))
+    sage: vf1 = plot_vector_field((lambda x,y:sin(x), lambda x,y:cos(y)), (-3,3), (-3,3))
+    sage: x,y = var('x y')
+    sage: plot_vector_field((lambda x,y: y, lambda x,y: (cos(x)-2)*sin(x)),(-pi,pi),(-pi,pi))
+
+    Plot a gradient field
+    sage: x,y = var('x y')
+    sage: f(x,y) = exp(-(x^2+y^2))
+    sage: grad_f = [diff(f,var) for var in (x,y)]
+    sage: plot_vector_field(grad_f, (-2,2), (-2,2))
 
     """
     def _reset(self):
         self.options={'plot_points':20, 'cmap':'gray'}
 
     def _repr_(self):
-        return "type contour_plot? for help and examples"
+        return "type plot_vector_field? for help and examples"
 
     def _from_xdata_ydata(self, xpos_array, ypos_array, xvec_array, yvec_array, xrange, yrange, options):
         g = Graphics()

@@ -52,17 +52,6 @@ class ExtendedIntegerRing_class(_uniq0, IntegerRing_class):
     def _latex_(self):
         return "\\mathbf{Z}\\cup\\{\\pm\\infty\\}"
 
-    def __cmp__(self, other):
-        """
-        EXAMPLES:
-            sage: cmp(ExtendedIntegerRing, ExtendedRationalField) #random due to architecture dependence
-            1
-            sage: cmp(ExtendedIntegerRing, ExtendedIntegerRing)
-            0
-        """
-        return cmp(other.__class__, ExtendedIntegerRing_class)
-
-
     def __call__(self, x, base = 0):
         if isinstance(x, sage.rings.infinity.MinusInfinity):
             return self.gen(2)

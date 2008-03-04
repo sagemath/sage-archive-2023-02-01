@@ -190,8 +190,6 @@ def is_Integer(x):
     return PY_TYPE_CHECK(x, Integer)
 
 cdef class IntegerWrapper(Integer):
-    """Python classes have problems inheriting from Integer directly, but
-    they don't have issues with inheriting from IntegerWrapper."""
     pass
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement):

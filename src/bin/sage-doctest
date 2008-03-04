@@ -7,7 +7,7 @@ TIMEOUT_LONG = 1800
 # the timeout for doctests running under valgrind tools: unreasonably long
 TIMEOUT_VALGRIND = 1024*1024
 
-import os, re, sys, signal, time, shutil
+import os, re, sys, signal, time, shutil, tempfile
 
 optional = False
 long_time = False
@@ -342,13 +342,15 @@ def test_file(file):
 
         tm = time.time()
         try:
-            #if verbose or gdb or memcheck or massif or cachegrind:
-            e = os.system(cmd)
-            out = ''; err = ''
-            #else:
-                #e = os.system("%s 1>.doctest/out 2>.doctest/err%s"%(cmd,os.getpid()))
-                #out = open('.doctest/out%s'% os.getpid() ).read()
-                #err = open('.doctest/err%s'% os.getpid() ).read()
+            if verbose or gdb or memcheck or massif or cachegrind:
+                e = os.system(cmd)
+                out = ''; err = ''
+            else:
+                outf = tempfile.NamedTemporaryFile()
+                errf = tempfile.NamedTemporaryFile()
+                e = os.system("%s 1>%s 2>%s"%(cmd,outf.name,errf.name))
+                out = outf.read()
+                err = errf.read()
         except KeyboardInterrupt:
             err += "\n Error -- interrupted after %s seconds!"%tm
             print "Error!!!"

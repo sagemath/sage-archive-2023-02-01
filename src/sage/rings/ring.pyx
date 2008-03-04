@@ -647,9 +647,20 @@ cdef class Ring(ParentWithGens):
         INPUT:
             bound -- integer (default: 2)
 
-
         ALGORITHM:
              -- uses numpy's randint.
+
+        TESTS:
+        The following example returns a NotImplementedError since the generic
+        ring class \code(__call__) function ruturns a NotImplementedError.
+        Note that \code(sage.rings.ring.Ring.random_element) performs a
+        call in the generic ring class by a random integer.
+            sage: R = sage.rings.ring.Ring(ZZ); R
+            <type 'sage.rings.ring.Ring'>
+            sage: R.random_element()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         return self(randint(-bound,bound))
 
@@ -717,7 +728,23 @@ cdef class CommutativeRing(Ring):
         The Krull dimension is the length of the longest ascending chain
         of prime ideals.
 
-        EXAMPLES:
+        TESTS:
+        \code{krull_dimension} is not implemented for generic commutative
+        rings. Fields and PIDs, with Krull dimension equal to 0 and 1,
+        respectively, have naive implementations of \code{krull_dimension}
+            sage: R = CommutativeRing(ZZ)
+            sage: R.krull_dimension()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: QQ.krull_dimension()
+            0
+            sage: ZZ.krull_dimension()
+            1
+            sage: type(R); type(QQ); type(ZZ)
+            <type 'sage.rings.ring.CommutativeRing'>
+            <class 'sage.rings.rational_field.RationalField'>
+            <type 'sage.rings.integer_ring.IntegerRing_class'>
         """
         raise NotImplementedError
 
@@ -825,7 +852,31 @@ cdef class CommutativeRing(Ring):
         Return the quotient of self by the ideal I of self.
         (Synonym for self.quotient(I).)
 
+        INPUT:
+            I     -- an ideal of R
+            names -- (optional) names of the generators of the quotient (if
+                     there are multiple generators, you can specify a single
+                     character string and the generators are named in sequence
+                     starting with 0).
+
+        OUTPUT:
+            R/I   -- the quotient ring of R by the ideal I
+
         EXAMPLES:
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
+            sage: S = R.quotient_ring(I, 'a')
+            sage: S.gens()
+            (a,)
+
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: S.<a,b> = R.quotient_ring((x^2, y))
+            sage: S
+            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2, y)
+            sage: S.gens()
+            (a, 0)
+            sage: a == b
+            False
         """
         return self.quotient(I, names)
 
@@ -838,12 +889,21 @@ cdef class IntegralDomain(CommutativeRing):
         """
         Return True, since this ring is an integral domain.
 
+        (This is a naive implementation for objects with type
+        \code{IntegralDomain})
+
         EXAMPLES:
+            sage: ZZ.is_integral_domain(); QQ.is_integral_domain(); ZZ[x].is_integral_domain()
+            True
+            True
+            True
+            sage: R = ZZ.quotient(ZZ.ideal(10)); R.is_integral_domain()
+            False
         """
         return True
 
     def is_integrally_closed(self):
-        """
+        r"""
         Return True if this ring is integrally closed in its field of
         fractions; otherwise return False.
 
@@ -851,15 +911,41 @@ cdef class IntegralDomain(CommutativeRing):
         function raise a NotImplementedError.
 
         EXAMPLES:
-
+        Note that \code{is_integrally_closed} has a naive implementation
+        in fields. For every field $F$, $F$ is its own field of fractions,
+        hence every element of $F$ is integral over $F$.
+            sage: ZZ.is_integrally_closed()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: QQ.is_integrally_closed()
+            True
+            sage: QQbar.is_integrally_closed()
+            True
         """
         raise NotImplementedError
 
     def is_field(self):
-        """
+        r"""
         Return True if this ring is a field.
 
         EXAMPLES:
+            sage: GF(7).is_field()
+            True
+
+        The following examples have their own \code(is_field) implementations:
+            sage: ZZ.is_field(); QQ.is_field()
+            False
+            True
+            sage: R.<x> = PolynomialRing(QQ); R.is_field()
+            False
+
+        An example where we raise a NotImplementedError:
+            sage: R = IntegralDomain(ZZ)
+            sage: R.is_field()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         if self.is_finite():
             return True
@@ -877,6 +963,8 @@ cdef class NoetherianRing(CommutativeRing):
         Return True since this ring is Noetherian.
 
         EXAMPLES:
+            sage: ZZ.is_noetherian()
+            True
         """
         return True
 
@@ -892,6 +980,30 @@ cdef class DedekindDomain(IntegralDomain):
         Return 1 since Dedekind domains have Krull dimension 1.
 
         EXAMPLES:
+        The following are examples of Dedekind domains (noetherian integral
+        domains of Krull dimension one that are integrally closed over its
+        field of fractions):
+            sage: ZZ.krull_dimension()
+            1
+            sage: K = NumberField(x^2 + 1, 's')
+            sage: OK = K.ring_of_integers()
+            sage: OK.krull_dimension()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        The following are not Dedekind domains but have
+        a \code{krull_dimension} function.
+            sage: QQ.krull_dimension()
+            0
+            sage: T.<x,y> = PolynomialRing(QQ,2); T
+            Multivariate Polynomial Ring in x, y over Rational Field
+            sage: T.krull_dimension()
+            2
+            sage: U.<x,y,z> = PolynomialRing(ZZ,3); U
+            Multivariate Polynomial Ring in x, y, z over Integer Ring
+            sage: U.krull_dimension()
+            4
         """
         return 1
 
@@ -900,6 +1012,28 @@ cdef class DedekindDomain(IntegralDomain):
         Return True since Dedekind domains are integrally closed.
 
         EXAMPLES:
+        The following are examples of Dedekind domains (noetherian integral
+        domains of Krull dimension one that are integrally closed over its
+        field of fractions): (Note that the ring of integers does not have
+        an implemented \code{is_integrally_closed} function.)
+            sage: ZZ.is_integrally_closed()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: K = NumberField(x^2 + 1, 's')
+            sage: OK = K.ring_of_integers()
+            sage: OK.is_integrally_closed()
+            True
+
+        These, however, are not Dedekind domains:
+            sage: QQ.is_integrally_closed()
+            True
+            sage: S = ZZ[sqrt(5)]; S.is_integrally_closed()
+            False
+            sage: T.<x,y> = PolynomialRing(QQ,2); T
+            Multivariate Polynomial Ring in x, y over Rational Field
+            sage: T.is_integral_domain()
+            True
         """
         return True
 
@@ -1161,9 +1295,21 @@ cdef class FiniteField(Field):
 
     def _latex_(self):
         r"""
+        Returns a string denoting the name of the field in LaTeX. Finite fields
+        are typically typeset in the blackboard bold font given by the LaTeX
+        command \code{\mathbb}.
+
+        The \code(misc.latex.latex) funciton calls the \code{_latex_} attribute
+        when available.
+
         EXAMPLES:
+        The \code(latex) command parses the string
+            sage: GF(81, 'a')._latex_()
+            '\\mathbf{F}_{3^{4}}'
             sage: latex(GF(81, 'a'))
             \mathbf{F}_{3^{4}}
+            sage: GF(3)._latex_()
+            '\\mathbf{F}_{3}'
             sage: latex(GF(3))
             \mathbf{F}_{3}
         """

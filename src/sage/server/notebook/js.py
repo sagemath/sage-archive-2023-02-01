@@ -1757,6 +1757,18 @@ function evaluate_cell_callback(status, response_text) {
 }
 
 function cell_output_set_type(id, typ, do_async) {
+    /* We do this specifically because manipulate cells do not work at all when
+       displayed in nowrap mode, which is VERY BAD.  So instead for manipulates
+       one gets a toggle to and from hidden.
+    */
+    if (typ=="nowrap" && get_element("cell-manipulate-" + id)) {
+        /* if the type is nowrap and the cell-manipulate-[id] div exists (i.e., we are manipulating)
+           then just make the thing hidden. */
+        typ = "hidden";
+    }
+
+    /* OK, now set the sell output type.  */
+
     set_class('cell_div_output_' + id,    'cell_div_output_' + typ)
     set_class('cell_output_' + id,        'cell_output_' + typ)
     set_class('cell_output_nowrap_' + id, 'cell_output_nowrap_' + typ)
@@ -1839,6 +1851,11 @@ function cancel_update_check() {
     document.title = original_title;
 }
 
+function contains_jsmath(text) {
+    // TODO: should make this not case sensitive!!  how to .lower() in javascript?
+    return (text.indexOf('class="math"') != -1 || text.indexOf("class='math'") != -1);
+}
+
 function set_output_text(id, text, wrapped_text, output_html, status, introspect_html, no_manip) {
     var cell_manip = get_element("cell-manipulate-" + id);
     if (!no_manip && cell_manip) {
@@ -1849,7 +1866,17 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
             return;
         }
         var new_manip_output = wrapped_text.slice(i+8,j);
-        cell_manip.innerHTML = new_manip_output;
+
+        /* An error occured accessing the data for this cell.  Just force reload
+           of the cell, which will certainly define that data. */
+        if (new_manip_output.indexOf('__SAGE_MANIPULATE_RESTART__') != -1) {
+            evaluate_cell(id, 0);
+        } else {
+            cell_manip.innerHTML = new_manip_output;
+            if (contains_jsmath(new_manip_output)) {
+                jsMath.ProcessBeforeShowing(cell_manip);
+            }
+        }
     } else {
         /* fill in output text got so far */
         var cell_output = get_element('cell_output_' + id);
@@ -1859,12 +1886,19 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
         cell_output.innerHTML = wrapped_text;
         cell_output_nowrap.innerHTML = text;
         cell_output_html.innerHTML = output_html;
+
+        /* Did we just create or evaluate a new manipulate cell? */
+        var cell_manip = get_element("cell-manipulate-" + id);
+        /* If so, trigger it so that we see the evaluated version
+           of the manipulate cell. */
+        if (cell_manip) {
+            manipulate(id, 'sage.server.notebook.manipulate.state[' + id + ']["function"]()');
+        }
     }
 
     if (status == 'd') {
          cell_set_done(id);
-         // TODO: should make this not case sensitive!!  how to .lower() in javascript?
-         if (text.indexOf('class="math"') != -1 || text.indexOf("class='math'") != -1) {
+         if (contains_jsmath(text)) {
              try {
                  /* jsMath.Process(cell_output); */
                  /* jsMath.ProcessBeforeShowing(cell_output_nowrap); */
@@ -2057,6 +2091,7 @@ function slide_mode() {
     }
     slide_show();
 }
+
 
 function cell_mode() {
     in_slide_mode = false;

@@ -305,7 +305,11 @@ class Cell(Cell_generic):
             self.__version = 1+self.version()
             return
         elif self.is_manipulating():
-            del self.manipulate
+            try:
+                del self.manipulate
+                del self._manipulate_output
+            except AttributeError:
+                pass
 
         self.__version = 1+self.version()
         self.__in = input
@@ -408,7 +412,8 @@ class Cell(Cell_generic):
                 try:
                     # Fill in the output template
                     output,html = self._manipulate_output
-                    z = z.replace('<?TEXT>', output.replace('<','&lt;'))
+                    output = self.parse_html(output, ncols)
+                    z = z.replace('<?TEXT>', output)
                     z = z.replace('<?HTML>', html)
                     return z
                 except (ValueError, AttributeError), msg:
@@ -429,37 +434,41 @@ class Cell(Cell_generic):
             return s
 
         if html:
-            def format(x):
-                return word_wrap(x.replace('<','&lt;'), ncols=ncols)
+            s = self.parse_html(s, ncols)
 
-            def format_html(x):
-                x = self.process_cell_urls(x)
-                return x
-
-            # if there is an error in the output,
-            # specially format it.
-            s = format_exception(s, ncols)
-
-            # Everything not wrapped in <html> ... </html>
-            # should have the <'s replaced by &lt;'s
-            # and be word wrapped.
-            t = ''
-            while len(s) > 0:
-                i = s.find('<html>')
-                if i == -1:
-                    t += format(s)
-                    break
-                j = s.find('</html>')
-                if j == -1:
-                    t += format(s[:i])
-                    break
-                t += format(s[:i]) + format_html(s[i+6:j])
-                s = s[j+7:]
-            s = t
-            if not is_manipulate and not self.is_html() and len(s.strip()) > 0:
-                s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
-
+        if not is_manipulate and not self.is_html() and len(s.strip()) > 0:
+            s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
         return s.strip('\n')
+
+    def parse_html(self, s, ncols):
+        def format(x):
+            return word_wrap(x.replace('<','&lt;'), ncols=ncols)
+
+        def format_html(x):
+            return self.process_cell_urls(x)
+
+        # if there is an error in the output,
+        # specially format it.
+        s = format_exception(s, ncols)
+
+        # Everything not wrapped in <html> ... </html>
+        # should have the <'s replaced by &lt;'s
+        # and be word wrapped.
+        t = ''
+        while len(s) > 0:
+            i = s.find('<html>')
+            if i == -1:
+                t += format(s)
+                break
+            j = s.find('</html>')
+            if j == -1:
+                t += format(s[:i])
+                break
+            t += format(s[:i]) + format_html(s[i+6:j])
+            s = s[j+7:]
+        t = t.replace('</html>','')
+        return t
+
 
     def has_output(self):
         return len(self.__out.strip()) > 0
@@ -552,16 +561,6 @@ class Cell(Cell_generic):
             wrap = 68
             div_wrap = 68
         key = (wrap,div_wrap,do_print)
-        #try:
-        #    return self._html_cache[key]
-        #except KeyError:
-        #    pass
-        #except AttributeError:
-        #    self._html_cache = {}
-
-        if self.__in.lstrip()[:8] == '%hideall':
-            #self._html_cache[key] = ''
-            return ''
 
         if wrap is None:
             wrap = self.notebook().conf()['word_wrap_cols']
@@ -577,7 +576,11 @@ class Cell(Cell_generic):
         html_in  = self.html_in(do_print=do_print)
         introspect = "<div id='introspect_div_%s' class='introspection'></div>"%self.id()
         html_out = self.html_out(wrap, do_print=do_print)
-        s = html_in  + introspect + html_out
+
+        if self.__in.lstrip()[:8] == '%hideall':
+            s = html_out
+        else:
+            s = html_in  + introspect + html_out
 
         if div_wrap:
             s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'

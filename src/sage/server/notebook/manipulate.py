@@ -20,16 +20,30 @@ TODO:
    [X] get sliders to work; values after move slider
 
    [x] default values
-   [ ] get everything in the current version to work 100% bug free (including some style). post bundle.
+   [x] get everything in the current version to work 100% bug free (including some style). post bundle.
        BUGS:
           [x] have default values set from the get go
           [x] spacing around sliders; also need to have labels
           [x] when re-evaluate input, make sure to clear output so cell-manipulate-id div is gone.
-          [ ] if you  use a manipulate control after restarting, doesn't work.   Need to reset it.  How?
           [x] two manipulates in one cell -- what to do?
-          [ ] display html parts of output as html
+          [x] draw initial state
+          [x] make manipulate canvas resizable
+          [x] if you  use a manipulate control after restarting, doesn't work.   Need to reset it.  How?
+                (to finish -- fix the error message in js.py:
+                    /* TODO: Make error message more distinct! */
+                    if (new_manip_output.indexOf('KeyError: '+id) != -1) {
+                        evaluate_cell(id, 0);
+                        new_manip_output = "";
+                    }
+          [x] display html parts of output as html
 
-   [ ] implement in non-word wrap mode too.
+   [x] NO -- autoswitch to 1-cell mode:
+           put                  slide_mode(); jump_to_slide(%s);   in wrap_in_outside_frame
+        but feals all wrong.
+
+   [ ] completely get rid of left clicking to switch wrap mode for
+           manipulate objects: always in word wrap mode!
+
    [ ] implement a color object
    [ ] cool looking sliders:
         http://jqueryfordesigners.com/demo/slider-gallery.html
@@ -38,7 +52,7 @@ PLANS and IDEAS:
    [ ] automagically determine the type of control from the default
        value of the variable.  Here is how this will work:
         * u                      blank input field
-        * u = (umin,umax)        slider; umin must not be a string
+        * u = (umin,umax)        slider; umin must not be a sequence
         * u = (umin,umax,du)     discrete slider
         * u = [1,2,3,4]          setter bar: automatically when there are are most 5
                                  elements; otherwise a drop down menu
@@ -105,9 +119,18 @@ def foo(x,y):
     ...
 """
 
+from sage.misc.all import srange, sage_eval
+
 import inspect
 
+
+# Module scope variable that is always set equal to
+# the current cell id (of the executing cell).
+
 SAGE_CELL_ID = 0
+
+# Dictionary that stores the state of all evaluated
+# manipulate cells.
 state = {}
 
 _k = 0
@@ -175,16 +198,27 @@ class ManipulateControl:
     def default_value(self):
         return self.__default_value
 
-    def adapt_user_input(self):
+    def adapt_number(self):
         """
         Return string representation of function that is called to
         adapt the values of this control to Python.
         """
-        state[self.cell_id()]['adapt'][self.__adapt_number] = self._adapt_user_input
-        return 'sage.server.notebook.manipulate.state[%s][\\"adapt\\"][%s]'%(self.cell_id(), self.__adapt_number)
+        return self.__adapt_number
 
-    def _adapt_user_input(self, x):
-        return x
+    def _adaptor(self, value, globs):
+        """
+        Adapt a user input, which is a string, to be an element selected
+        by this control.
+
+        INPUT:
+            value -- the string the user typed in
+            globs -- the globals interpreter variables, e.g.,
+                     globals(), which is useful for evaling value.
+
+        OUTPUT:
+            object
+        """
+        return sage_eval(value, globs)
 
     def manipulate(self):
         """
@@ -195,18 +229,12 @@ class ManipulateControl:
         OUTPUT:
             string -- that is meant to be evaluated in Javascript
         """
-        s = 'manipulate(%s, "sage.server.notebook.manipulate.state[%s][\\"variables\\"][\\"%s\\"]=sage_eval(r\\"\\"\\"%s("+%s+")\\"\\"\\", globals())\\n%s()");'%(
-            self.cell_id(), self.cell_id(), self.var(), self.adapt_user_input(), self.value(), self.function_name())
+        # The following is a crazy line to read because of all the backslashes and try/except.
+        # All it does is run the manipulate function once after setting exactly one
+        # dynamic variable.    If setting the dynamic variable fails, due to a KeyError
+        s = 'manipulate(%s, "sage.server.notebook.manipulate.update(%s, \\"%s\\", %s, \\""+%s+"\\", globals())")'%(
+            self.cell_id(), self.cell_id(), self.var(), self.adapt_number(), self.value_js())
         return s
-
-    def function_name(self):
-        """
-        Returns the name of the function that this control manipulates.
-
-        OUTPUT:
-            string -- name of a function as a string
-        """
-        return 'sage.server.notebook.manipulate.state[%s][\\"function\\"]'%(self.cell_id())
 
     def var(self):
         """
@@ -233,7 +261,7 @@ class InputBox(ManipulateControl):
     def __repr__(self):
         return "A InputBox manipulate control"
 
-    def value(self):
+    def value_js(self):
         """
         Return javascript string that will give the
         value of this control element.
@@ -251,7 +279,7 @@ class InputBox(ManipulateControl):
              string -- html format
         """
         return """
-        %s: <input type='text' value='%r' width=100%% onchange='%s'></input>
+        %s: <input type='text' value='%r' width=200px onchange='%s'></input>
         """%(self.var(), self.default_value(),  self.manipulate())
 
 class Slider(ManipulateControl):
@@ -276,7 +304,7 @@ class Slider(ManipulateControl):
         """
         return self.__default_position
 
-    def value(self):
+    def value_js(self):
         """
         Return javascript string that will give the
         value of this control element.
@@ -286,10 +314,21 @@ class Slider(ManipulateControl):
         """
         return "position"
 
-    def _adapt_user_input(self, position):
-        # Input position is a string that evals to a float between 0 and 100.
-        # we translate it into an index into self.__values
+    def _adaptor(self, position, globs):
+        """
+        Adapt a user input, which is the slider position, to be an
+        element selected by this control.
+
+        INPUT:
+            position -- position of the slider
+            globs -- the globals interpreter variables (not used here).
+
+        OUTPUT:
+            object
+        """
         v = self.__values
+        # We have to cast to int, since it comes back as a float that
+        # is too big.
         return v[int(position)]
 
     def render(self):
@@ -336,11 +375,11 @@ class ManipulateCanvas:
         """
         return """
         <div id='cell-manipulate-%s'><?START>
-        <table border=1 bgcolor='#dcdcdc' cellpadding=3 width=100%% height=100%%>
-        <tr><td bgcolor=white>
+        <table border=0 bgcolor='#white' width=100%% height=100%%>
+        <tr><td bgcolor=white align=center valign=top>
           <?TEXT>
         </td></tr>
-        <tr><td><?HTML></td></tr>
+        <tr><td  align=center valign=top><?HTML></td></tr>
         </table>
         </td></tr></table><?END></div>
         """%self.cell_id()
@@ -356,8 +395,15 @@ class ManipulateCanvas:
         return ''.join([c.render() for c in self.__controls])
 
     def wrap_in_outside_frame(self, inside):
-        #return "<table bgcolor='#c5c5c5' width=100%% height=100%% cellpadding=5><tr><td bgcolor='#f9f9f9'>%s</td></tr></table>"%inside
-        return "<table bgcolor='#c5c5c5' width=800px height=400px cellpadding=5><tr><td bgcolor='#f9f9f9'>%s</td></tr></table>"%inside
+        return """<div padding=6 id='div-manipulate-%s'> <table bgcolor='#c5c5c5'
+                 width=600px height=400px cellpadding=15><tr><td bgcolor='#f9f9f9' valign=top align=center>%s</td>
+                 </tr></table></div>
+                 """%(self.cell_id(), inside)
+##                  <script>
+##                  setTimeout(function() {
+##                  $('#div-manipulate-%s').resizable();
+##                  $('#div-manipulate-%s').draggable();
+##                  }, 1);</script>
 
     def render(self):
         """
@@ -389,16 +435,16 @@ def manipulate(f):
 
     n = len(args) - len(defaults)
     controls = [automatic_control(f, args[i], defaults[i-n] if i >= n else None) for i in range(len(args))]
-    #controls = [automatic_control(f, v) for v in args[:n]] + \
-    #           [defaults[i].render(f, args[i+n]) for i in range(len(defaults))]
 
     C = ManipulateCanvas(controls, SAGE_CELL_ID)
 
     d = {}
-    state[SAGE_CELL_ID] = {'variables':d, 'adapt':{}}
+    ad = {}
+    state[SAGE_CELL_ID] = {'variables':d, 'adapt':ad}
 
     for con in controls:
         d[con.var()] = con.default_value()
+        ad[con.adapt_number()] = con._adaptor
 
     html(C.render())
 
@@ -480,6 +526,36 @@ def automatic_control(f, v, default):
         C = default
     elif isinstance(default, list):
         C = slider(default)
+    elif isinstance(default, tuple):
+        if len(default) == 2:
+            if isinstance(default[0], list):
+                C = slider(default[0], default=default[1])
+            else:
+                C = slider(range(default[0], default[1]))
+        elif len(default) == 3:
+            C = slider(srange(default[0], default[1], default[2]))
+        else:
+            C = slider(list(default))
     else:
         C = input_box(default)
     return C.render(f, v)
+
+
+def update(cell_id, var, adapt, value, globs):
+    """
+    INPUT:
+        cell_id -- the id of a manipulate cell
+        var -- a variable associated to that cell
+        adapt -- the number of the adapt function
+    """
+    try:
+        S = state[cell_id]
+    except KeyError:
+        print "__SAGE_MANIPULATE_RESTART__"
+    else:
+        # Look up the function that adapts inputs to have the right type
+        adapt_function = S["adapt"][adapt]
+        # Apply that function and save the result in the appropriate variables dictionary.
+        S["variables"][var] = adapt_function(value, globs)
+        # Finally call the manipulatable function, which will use the above variables.
+        S['function']()

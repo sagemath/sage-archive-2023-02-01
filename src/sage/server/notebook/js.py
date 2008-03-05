@@ -1859,6 +1859,7 @@ function contains_jsmath(text) {
 function set_output_text(id, text, wrapped_text, output_html, status, introspect_html, no_manip) {
     var cell_manip = get_element("cell-manipulate-" + id);
     if (!no_manip && cell_manip) {
+        if (status  != 'd') return;
         var i = wrapped_text.indexOf('<?START>');
         var j = wrapped_text.indexOf('<?END>');
         if (i == -1 || j == -1) {
@@ -1874,7 +1875,7 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
         } else {
             cell_manip.innerHTML = new_manip_output;
             if (contains_jsmath(new_manip_output)) {
-                jsMath.ProcessBeforeShowing(cell_manip);
+               jsMath.ProcessBeforeShowing(cell_manip);
             }
         }
     } else {
@@ -1892,6 +1893,10 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
         /* If so, trigger it so that we see the evaluated version
            of the manipulate cell. */
         if (cell_manip) {
+            /*****************************************************************
+              This is the first time that the underlying Python manipulate function is
+               actually called!
+             *****************************************************************/
             manipulate(id, 'sage.server.notebook.manipulate.state[' + id + ']["function"]()');
         }
     }

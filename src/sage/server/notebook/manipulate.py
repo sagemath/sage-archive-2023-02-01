@@ -1,88 +1,77 @@
+#############################################################################
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#############################################################################
+
 r"""
 Manipulate Sage functions in the notebook
 
 This module implements a manipulate decorator for function in the Sage
 notebook.
 
-The controls are:
-\begin{itemize}
-    \item InputBox -- a input box
-    \item Slider -- a slider
-\end{itemize}
+AUTHORS:
+    -- William Stein (2008-03-02): version 1.0 at Sage/Enthought Days 8 in Texas
+    -- Jason Grout (2008-03): discussion, and first few prototypes
 
-AUTHOR:
-    -- William Stein (2008-03-02): initial version at Sage/Enthought
-       Days 8 in Texas
-    -- Jason Grout (2008-03): collaborators substantially on the
-       design and prototypes.
+"""
 
-TODO:
+"""
+ ** PLANNING **
+
+BUGS:
+   [x] have default values set from the get go
+   [x] spacing around sliders; also need to have labels
+   [x] when re-evaluate input, make sure to clear output so cell-manipulate-id div is gone.
+   [x] two manipulates in one cell -- what to do?
+   [x] draw initial state
+   [x] make manipulate canvas resizable
+   [x] if you  use a manipulate control after restarting, doesn't work.   Need to reset it.  How?
+   [x] display html parts of output as html
+   [x] default slider pos doesn't work, eg. def cont(q1=(-1,(-3,3)), q2=(1,(-3,3))):
+   [ ] tab completion in manipulate broken formating
+   [ ] error exception reporting broken
+   [ ] edit/save breaks manipulations
+   [ ] problems with html/pre/text formating, e.g., in TEXT mode and in manipulate cells
+   [ ] replace special %manipulate by something very obfuscated to keep from having
+       really weird mistakes that are hard for people to debug.
+   [ ] flicker resize during update (hard???)
+
+
+VERSION 1:
    [X] get sliders to work; values after move slider
-
    [x] default values
-   [x] get everything in the current version to work 100% bug free (including some style). post bundle.
-       BUGS:
-          [x] have default values set from the get go
-          [x] spacing around sliders; also need to have labels
-          [x] when re-evaluate input, make sure to clear output so cell-manipulate-id div is gone.
-          [x] two manipulates in one cell -- what to do?
-          [x] draw initial state
-          [x] make manipulate canvas resizable
-          [x] if you  use a manipulate control after restarting, doesn't work.   Need to reset it.  How?
-                (to finish -- fix the error message in js.py:
-                    /* TODO: Make error message more distinct! */
-                    if (new_manip_output.indexOf('KeyError: '+id) != -1) {
-                        evaluate_cell(id, 0);
-                        new_manip_output = "";
-                    }
-          [x] display html parts of output as html
-
    [x] NO -- autoswitch to 1-cell mode:
            put                  slide_mode(); jump_to_slide(%s);   in wrap_in_outside_frame
         but feals all wrong.
+   [x] completely get rid of left clicking to switch wrap mode for
+           manipulate objects: always in word wrap mode or hide.
+   [ ] shortcut ('label', v)
+   [ ] 100% documentation and doctest coverage
+   [ ] test saving and loading whole notebook to a file
+   [ ] setter bar (buttons)
+   [ ] drop down menu
+   [ ] checkbox
+   [ ] write several paragraps at the top of this file that describe
+       the philosophy and use of these manipulate things
+   [ ] put the docs for this in the reference manul.
+   [ ] collection of about 20 good examples of how to use manipulate (doctested)
+   [ ] make it so slider has width 100%.
+   [ ] line up all the control in a single table so all labels and all
+       controls exactly match up
 
-   [ ] completely get rid of left clicking to switch wrap mode for
-           manipulate objects: always in word wrap mode!
-
-   [ ] implement a color object
-   [ ] cool looking sliders:
-        http://jqueryfordesigners.com/demo/slider-gallery.html
-
-PLANS and IDEAS:
-   [ ] automagically determine the type of control from the default
-       value of the variable.  Here is how this will work:
-        * u                      blank input field
-        * u = (umin,umax)        slider; umin must not be a sequence
-        * u = (umin,umax,du)     discrete slider
-        * u = [1,2,3,4]          setter bar: automatically when there are are most 5
-                                 elements; otherwise a drop down menu
-        * u = ((xmin,xmax),(ymin,ymax))  2d slider
-        * u = Graphic            a locator in a 2d plot  (Graphic is a 2d graphics objects)
-        * u = True or u = False  a checkbox
-        * u = color(...)         a color slider
-        * u = "string"           input field
-        * u = ('label', obj)     obj can be any of the above; control is labeled with
-                                 the given label
-        * u = element            if parent(element)._manipulate_control_(element) is
-                                 defined, then it will be used.  Otherwise make an
-                                 input that coerces input to parent(element)
-   [ ] tag_cell('foo') -- makes it so one can refer to the current cell
-       from elsewhere using the tag foo instead of the cell id number
-       This involves doing something with SAGE_CELL_ID and the cell_id()
-       method.
-   [ ] 100% doctest coverage
-
-JQUERY:
+VERSION 2:
+   [ ] make option for text input that correctly gives something of
+       the same type as the default input.
+   [ ] matrix input control (method of matrix space) -- a spreadsheet like thing
+   [ ] a 2d slider:
+          u = ((xmin,xmax),(ymin,ymax))  2d slider   -- NOT IMPLEMENTED
+   [ ] locator in a 2d graphic
    [ ] tab_view -- represents an object in which clicking the tab
-                     with label lbl[i] displays expr[i]
-   [ ] slide_view -- represents an object in which the a list of objects
-                     are displayed on successive slides.
-   [ ] framed -- put a frame around an object
-   [ ] panel -- put an object in a panel
-   [ ] flot (?)
-
-ELEMENTS:
-   [ ] control: this models the input and other tags in html
+                   with label lbl[i] displays expr[i]
+   [ ] controls: make them easy to customize as below --
+          location -- where to put the slider (?)
           align -- left, right, top, texttop, middle, absmiddle, baseline, bottom, absbottom
           background -- the color of the background for the cell
           frame -- draw a frame around
@@ -95,46 +84,52 @@ ELEMENTS:
           name -- defines a unique name for the input element
           size -- the size of the input element
           type -- button, checkbox, file, password, radio, slider, text, setter_bar, drop_down
-   [ ] setter bar (buttons)
-   [ ] checkbox
-   [ ] color slider:
+
+VERSION 3:
+   [ ] protocol for objects to have their own manipulate function; make
+       it so for any object obj in sage, one can do
+             {{{
+             manipulate(obj)
+             }}}
+       and get something useful as a result.
+   [ ] flot -- some pretty but very simple javascript only graphics  (maybe don't do... unclear)
+   [ ] zorn -- similar (maybe don't do... unclear)
+   [ ] color sliders (?):
+          u = color(...)         a color slider
           http://interface.eyecon.ro/demos/slider_colorpicker.html
-   [ ] blank input field
-   [ ] 2d slider
-   [ ] locator in a graphic
-
-IDEAS for code:
-
-@manipulate
-def foo(x=range(10), y=slider(1,10)):
-    ...
-
-@manipulate
-def foo(x=random_matrix(ZZ,2))
-    ...
+          http://jqueryfordesigners.com/demo/slider-gallery.html
+   [ ] tag_cell('foo') -- makes it so one can refer to the current cell
+       from elsewhere using the tag foo instead of the cell id number
+       This involves doing something with SAGE_CELL_ID and the cell_id() method.
+   [ ] framed -- put a frame around an object
 
 
-@framed
-def foo(x,y):
-    ...
 """
-
-from sage.misc.all import srange, sage_eval
 
 import inspect
 
+from sage.misc.all import srange, sage_eval
 
-# Module scope variable that is always set equal to
-# the current cell id (of the executing cell).
-
+# SAGE_CELL_ID is a module scope variable that is always set equal to
+# the current cell id (of the executing cell).  Code that sets this is
+# inserted by the notebook server each time a worksheet cell is
+# evaluated.
 SAGE_CELL_ID = 0
 
-# Dictionary that stores the state of all evaluated
-# manipulate cells.
+# Dictionary that stores the state of all active manipulate cells.
 state = {}
 
 _k = 0
 def new_adapt_number():
+    """
+    Return an integer, always counting up, and starting with 0.  This
+    is used for saving the adapt methods for controls.  An adapt
+    method is just a function that coerces data into some object,
+    e.g., makes sure the control always produces int's.
+
+    OUTPUT:
+        integer
+    """
     global _k
     _k += 1
     return _k
@@ -154,12 +149,23 @@ def html(s):
     print "<html>%s</html>"%s
 
 def html_slider(label, id, callback, steps, default=0, margin=0):
+    """
+    Return the HTML representation of a jQuery slider.
+
+    INPUT:
+        label   -- string that is inserted just to the left of the slider
+        id      -- string -- the DOM id of the slider (better be unique)
+        callback-- javascript that is executed whenever the slider is done moving
+        steps   -- number of steps from minimum to maximum value.
+        default -- (default: 0) the default position of the slider
+        margin  -- (default: 0) size of margin to insert around the slider
+    """
     s = """<table style='margin:0px;padding:0px;'><tr><td>%s</td><td><div id='%s' class='ui-slider-1' style='padding:0px;margin:%spx;'><span class='ui-slider-handle'></span></div></div></td></tr></table>"""%(
         label, id, int(margin))
 
-    # We now generat javascript that gets run after the above div gets
-    # inserted. This happens because of the setTimeout function below
-    # which gets passed an anonymous function.
+    # We now generate javascript that gets run after the above div
+    # gets inserted. This happens because of the setTimeout function
+    # below which gets passed an anonymous function.
     s += """
     <script>
     setTimeout(function() {
@@ -170,6 +176,7 @@ def html_slider(label, id, callback, steps, default=0, margin=0):
     }, 1);      /* setTimeout might be a hack? This could lead to a bug?  */
     </script>
     """%(id, steps-1, default, id, callback)
+
     return s
 
 
@@ -177,31 +184,93 @@ class ManipulateControl:
     """
     Base class for manipulate controls.
     """
-    def __init__(self, f, var, default_value):
+    def __init__(self, f, var, default_value, label=None):
         """
         Create a new manipulate control.
 
         INPUT:
              f -- a Python function (that's being decorated)
-             var -- name of variable that this control manipulates
-             SAGE_CELL_ID -- uses this global variable
+             var -- string; name of variable that this control manipulates
+             default_value -- the default value of the variable
+                              corresponding to this control.
+             label -- string (default: None) label of this control; if None
+                      then defaults to var.
+
+
+        EXAMPLES:
+            sage: from sage.server.notebook.manipulate import ManipulateControl
+            sage: def f(x): print x
+            ...
+            sage: ManipulateControl(f, 'x', 5)
+            A ManipulateControl (abstract base class)
         """
         self.__var = var
         self.__cell_id = SAGE_CELL_ID
         self.__f = f
         self.__default_value = default_value
         self.__adapt_number = new_adapt_number()
+        if label is None:
+            self.__label = var
+        else:
+            self.__label = label
 
     def __repr__(self):
+        """
+        String representation of manipulate control.
+
+        EXAMPLES:
+            sage: from sage.server.notebook.manipulate import ManipulateControl
+            sage: def f(x): print x
+            ...
+            sage: ManipulateControl(f, 'x', 5).__repr__()
+            'A ManipulateControl (abstract base class)'
+        """
         return "A ManipulateControl (abstract base class)"
 
+    def label(self):
+        """
+        Return the text label of this manipulate control.
+
+        EXAMPLES:
+            sage: from sage.server.notebook.manipulate import ManipulateControl
+            sage: def f(x): print x
+            ...
+            sage: ManipulateControl(f, 'x', 5, label='the x value').label()
+            'the x value'
+        """
+        return self.__label
+
     def default_value(self):
+        """
+        Return the default value of the variable corresponding to this
+        manipulate control.
+
+        OUTPUT:
+            object
+
+        EXAMPLES:
+            sage: from sage.server.notebook.manipulate import ManipulateControl
+            sage: def f(x): print x
+            ...
+            sage: ManipulateControl(f, 'x', 19/3).default_value()
+            19/3
+        """
         return self.__default_value
 
     def adapt_number(self):
         """
-        Return string representation of function that is called to
-        adapt the values of this control to Python.
+        Return integer index into adapt dictionary of function that is
+        called to adapt the values of this control to Python.
+
+        OUTPUT:
+            an integer
+
+        EXAMPLES:
+            sage: from sage.server.notebook.manipulate import ManipulateControl
+            sage: def f(x): print x
+            ...
+            sage: ManipulateControl(f, 'x', 19/3).adapt_number()       # random -- depends on call order
+            2
         """
         return self.__adapt_number
 
@@ -280,23 +349,25 @@ class InputBox(ManipulateControl):
         """
         return """
         %s: <input type='text' value='%r' width=200px onchange='%s'></input>
-        """%(self.var(), self.default_value(),  self.manipulate())
+        """%(self.label(), self.default_value(),  self.manipulate())
 
 class Slider(ManipulateControl):
     """
     A slider manipulate control.
     """
-    def __init__(self, f, var, values, default_position):
+    def __init__(self, f, var, values, default_position, label=None):
         """
         Create a slider manipulate control that takes on the given
         list of values.
         """
-        ManipulateControl.__init__(self, f, var, values[default_position])
+        ManipulateControl.__init__(self, f, var, values[default_position], label=label)
         self.__values = values
         self.__default_position = default_position
 
     def __repr__(self):
-        return "A Slider manipulate control"
+        return "Slider Manipulate Control: %s [%s--|%s|---%s]."%(
+            self.label(), min(self.__values),
+            self.default_value(), max(self.__values))
 
     def default_position(self):
         """
@@ -338,7 +409,7 @@ class Slider(ManipulateControl):
         OUTPUT:
              string -- html format
         """
-        return html_slider('<font color=black>%s</font> '%self.var(), 'slider-%s-%s'%(self.var(), self.cell_id()),
+        return html_slider('<font color=black>%s</font> '%self.label(), 'slider-%s-%s'%(self.var(), self.cell_id()),
                            self.manipulate(), steps=len(self.__values),
                            default=self.default_position())
 
@@ -396,9 +467,11 @@ class ManipulateCanvas:
 
     def wrap_in_outside_frame(self, inside):
         return """<div padding=6 id='div-manipulate-%s'> <table bgcolor='#c5c5c5'
-                 width=600px height=400px cellpadding=15><tr><td bgcolor='#f9f9f9' valign=top align=center>%s</td>
+                 cellpadding=15><tr><td bgcolor='#f9f9f9' valign=top align=left>%s</td>
                  </tr></table></div>
                  """%(self.cell_id(), inside)
+    # The following could be used to make the manipulate frame resizable and/or draggable.
+    # Neither effect is as cool as it sounds!
 ##                  <script>
 ##                  setTimeout(function() {
 ##                  $('#div-manipulate-%s').resizable();
@@ -418,14 +491,117 @@ class ManipulateCanvas:
 
 
 def manipulate(f):
-    """
-    Decorate a function f to make a manipulate version of f.
-        @manipulate
-        def foo(n,m):
-            ...
+    r"""
+    Make a function with controls to enbale interactive manipulatable
+    of the variables.
 
-    Note -- it is safe to make several distinct manipulate cells with functions that
-    have the same name.
+    SOME EXAMPLES:
+    We create a manipulate control with two inputs, a text input for
+    the variable $a$ and a $y$ slider that runs through the range of
+    integers from $0$ to $19$.
+        sage: @manipulate
+        ... def f(a=5, y=range(20)): print a + y
+        ...
+        <html>...
+
+    Draw a plot manipulating the ``continuous'' variable $a$.  By
+    default continuous variables have exactly 50 possibilities.
+        sage: @manipulate
+        ... def example(a=(0,2)):
+        ...     show(plot(sin(x*(1+a*x)), (x,0,6)), figsize=4)
+        <html>...
+
+    Manipulate a variable in steps of 1 (we also use an unnamed
+    function):
+        sage: @manipulate
+        ... def _(n=(10,100,1)):
+        ...     show(factor(x^n - 1))
+        <html>...
+
+    Manipulate two variables:
+        sage: @manipulate
+        ... def _(a=(1,4), b=(0,10)):
+        ...     show(plot(sin(a*x+b), (x,0,6)), figsize=3)
+        <html>...
+
+    DEFAULTS:
+    Defaults for the variables of the input function determine
+    manipulation controls according to the following rules:
+    \begin{itemize}
+        \item u -- blank input field
+        \item u = element -- input eval field with default = element
+        \item u = (umin,umax) -- continuous slider (really 50 steps)
+        \item u = (umin,umax,du) -- slider with step size du
+        \item u = [1,2,3] -- buttons if at most 5; otherwise, drop down
+        \item u = a bool -- a checkbox
+        \item u = "string" -- input field that allows arbitrary strings
+        \item u = ('label', v) -- labeled control with v any of these
+        \item u = (default, (umin, umax[, du]))
+    \end{itemize}
+
+    MORE EXAMPLES:
+    We give defaults and name the variables:
+        sage: @manipulate
+        ... def _(a=('first', (1,4)), b=(0,10)):
+        ...       show(plot(sin(a*x+sin(b*x)), (x,0,6)), figsize=3)
+        <html>...
+
+    Another example involving labels and defaults, and the
+    slider command.
+        sage: @manipulate
+        ... def _(a = slider(1, 4, default=2, label='Multiplier'),
+        ...       b = slider(0, 10, default=0, label='Phase Variable')):
+        ...     show(plot(sin(a*x+b), (x,0,6)), figsize=4)
+        <html>...
+
+    You can rotate and zoom into three graphics while
+    manipulating a variable.
+        sage: @manipulate
+        ... def _(a=(0,1)):
+        ...     x,y = var('x,y')
+        ...     show(plot3d(sin(x*cos(y*a)), (x,0,5), (y,0,5)), figsize=4)
+        <html>...
+
+    A random polygon:
+        sage: pts = [(random(), random()) for _ in xrange(20)]
+        sage: @manipulate
+        ... def _(n = [4..len(pts)]):
+        ...     G = points(pts[:n],pointsize=60) + polygon(pts[:n], rgbcolor='black')
+        ...     show(G, figsize=5, xmin=0, ymin=0)
+        <html>...
+
+    Two "sinks" displayed simultaneously via a contour plot and a 3d
+    interactive plot:
+        sage: @manipulate
+        ... def cont(q1=(-1,(-3,3)), q2=(-2,(-3,3))):
+        ...     x,y = var('x,y')
+        ...     f = q1/sqrt((x+1)^2 + y^2) + q2/sqrt((x-1)^2+(y+0.5)^2)
+        ...     g = f._fast_float_('x','y')   # should not be needed soon
+        ...     C = contour_plot(g, (-2,2), (-2,2), plot_points=30, contours=15, cmap='cool')
+        ...     show(C, figsize=3, aspect_ratio=1)
+        ...     show(plot3d(g, (-2,2), (-2,2)), figsize=4)
+        <html>...
+
+    In the following example, we only generate data for a given n
+    once, so that as one varies p the data doesn't not randomly
+    change.  We do this by simply caching the results for each n
+    in a dictionary.
+        sage: data = {}
+        sage: @manipulate
+        ... def _(n=(500,(100,5000,1)), p=(1,(0.1,10))):
+        ...     n = int(n)
+        ...     if not data.has_key(n):
+        ...         data[n] = [(random(), random()) for _ in xrange(n)]
+        ...     show(points([(x^p,y^p) for x,y in data[n]], rgbcolor='black'), xmin=0, ymin=0, axes=False)
+        <html>...
+
+    A conchoid:
+        sage: @manipulate
+        ... def _(k=(1.2,(1.1,2)), k_2=(1.2,(1.1,2)), a=(1.5,(1.1,2))):
+        ...     u, v = var('u,v')
+        ...     f = (k^u*(1+cos(v))*cos(u), k^u*(1+cos(v))*sin(u), k^u*sin(v)-a*k_2^u)
+        ...     show(parametric_plot3d(f, (u,0,6*pi), (v,0,2*pi), plot_points=[40,40], texture=(0,0.5,0)))
+        <html>...
     """
 
     (args, varargs, varkw, defaults) = inspect.getargspec(f)
@@ -434,7 +610,10 @@ def manipulate(f):
         defaults = []
 
     n = len(args) - len(defaults)
-    controls = [automatic_control(f, args[i], defaults[i-n] if i >= n else None) for i in range(len(args))]
+    controls = [automatic_control(defaults[i-n] if i >= n else None) for i in range(len(args))]
+
+    # Convert the controls to ManipulateControl objects
+    controls = [controls[i].render(f, args[i]) for i in range(len(args))]
 
     C = ManipulateCanvas(controls, SAGE_CELL_ID)
 
@@ -460,15 +639,23 @@ def manipulate(f):
 # Actual control objects that the user passes in
 ######################################################
 class control:
-    pass
+    def __init__(self, label=None):
+        self.__label = label
+
+    def label(self):
+        return self.__label
+
+    def set_label(self, label):
+        self.__label = label
 
 class input_box(control):
-    def __init__(self, default):
+    def __init__(self, default, label=None):
         """
         INPUT:
             default -- string (the default value)
         """
         self.__default = default
+        control.__init__(self, label)
 
     def __repr__(self):
         return "A manipulate input box control with default value '%r'"%self.__default
@@ -479,10 +666,11 @@ class input_box(control):
             f -- a Python function
             var -- a string (variable; one of the variable names input to f)
         """
-        return InputBox(f, var, self.__default)
+        return InputBox(f, var, self.__default, label=self.label())
 
 class slider(control):
-    def __init__(self, vmin, vmax=None, steps=30, default=None):
+    def __init__(self, vmin, vmax=None, steps=30, default=None, label=None):
+        control.__init__(self, label=label)
         if isinstance(vmin, list):
             self.__values = vmin
         else:
@@ -497,19 +685,30 @@ class slider(control):
                 self.__values = [vmin + i*step for i in range(steps)] + [vmax]
         if len(self.__values) == 0:
             self.__values = [0]
+
+        # determine the best choice of index into the list of values
+        # for the user-selected default.
         if default is None:
             self.__default = 0
         else:
             try:
                 i = self.__values.index(default)
             except ValueError:
-                i = 0
+                # here no index matches -- which is best?
+                try:
+                    v = [(abs(default - self.__values[j]), j) for j in range(len(self.__values))]
+                    m = min(v)
+                    i = m[1]
+                except TypeError: # abs not defined on everything, so give up
+                    i = 0
             self.__default = i
 
     def __repr__(self):
-        return "A manipulate slider control [%s - %s]."%(min(self.__values), max(self.__values))
+        return "Slider: %s [%s--|%s|---%s]."%(self.label(),
+                  min(self.__values),
+             self.__values[self.default_index()], max(self.__values))
 
-    def default(self):
+    def default_index(self):
         """
         Return default index into the list of values.
 
@@ -519,26 +718,64 @@ class slider(control):
         return self.__default
 
     def render(self, f, var):
-        return Slider(f, var, self.__values, self.__default)
+        """
+        Render the manipulate control for the given function and
+        variable.
 
-def automatic_control(f, v, default):
+        INPUT:
+            f -- a function
+            var -- string; variable name
+
+        EXAMPLES:
+            sage: S = slider(0,10, default=3, label='theta'); S
+            Slider: theta [0--|3|---10].
+            sage: S.render(lambda x: x^2, 'x')
+            Slider Manipulate Control: theta [0--|3|---10].
+        """
+        return Slider(f, var, self.__values, self.__default, label=self.label())
+
+def automatic_control(default):
+    """
+    Automagically determine the type of control from the default
+    value of the variable.
+
+    INPUT:
+        default -- the default value for v given by the function
+
+    OUTPUT:
+        a manipulate control
+    """
+    label = None
+    default_value = None
     if isinstance(default, control):
         C = default
+        label = C.label()
     elif isinstance(default, list):
         C = slider(default)
     elif isinstance(default, tuple):
         if len(default) == 2:
-            if isinstance(default[0], list):
+            if isinstance(default[1], tuple):
+                default_value = default[0]
+                default = default[1]
+            if isinstance(default[0], str):
+                # recursive call to get automatic control for second part
+                C = automatic_control(default[1])
+                label = default[0]
+            elif isinstance(default[0], list):
                 C = slider(default[0], default=default[1])
             else:
-                C = slider(range(default[0], default[1]))
+                # The default 49.0 below is a sort of "heuristic value" so there are 50 steps
+                C = slider(srange(default[0], default[1], (default[1]-default[0])/49.0,
+                                  include_endpoint=True), default = default_value)
         elif len(default) == 3:
-            C = slider(srange(default[0], default[1], default[2]))
+            C = slider(srange(default[0], default[1], default[2], include_endpoint=True))
         else:
             C = slider(list(default))
     else:
         C = input_box(default)
-    return C.render(f, v)
+
+    C.set_label(label)
+    return C
 
 
 def update(cell_id, var, adapt, value, globs):

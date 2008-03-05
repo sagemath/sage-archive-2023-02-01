@@ -10,6 +10,10 @@
 
 == Changelog ==
 
+=== linbox-1.1.5rc2.p1 (Clement Pernet, March 4th, 2008) ===
+ * Update full rank submatrix wrapper
+ * Set default alg for charpoly to ArithProg, thus avoiding Darwin-static initialization gcc bug (which still has to be addressed)
+
 === linbox-1.1.5rc2.p0 (Michael Abshoff, March 3rd, 2008) ===
  * Apply Clement Pernet's PID_Integer patch (fixed #915)
 

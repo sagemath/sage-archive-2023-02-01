@@ -266,6 +266,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             823543
             sage: ZZ(numpy.ubyte(-7))
             249
+            sage: ZZ(True)
+            1
+            sage: ZZ(False)
+            0
+            sage: ZZ(1==0)
+            0
+
         """
 
         # TODO: All the code below should somehow be in an external
@@ -289,6 +296,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             if PY_TYPE_CHECK(x, Integer):
                 set_from_Integer(self, <Integer>x)
+
+            elif PY_TYPE_CHECK(x,bool):
+                mpz_set_si(self.value, PyInt_AS_LONG(x))
 
             elif PyInt_CheckExact(x):
                 mpz_set_si(self.value, PyInt_AS_LONG(x))

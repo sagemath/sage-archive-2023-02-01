@@ -846,6 +846,7 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
                     new_entries.append( entry )
 
         return self.parent(new_entries)
+
     def fcp(self, var='x'):
         """
         Return the factorization of the characteristic polynomial of self.
@@ -864,5 +865,11 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             (x - 2) * (x - 1)
             sage: [i for i in a.fcp()]
             [(x - 2, 1), (x - 1, 1)]
+            sage: a = matrix(SR, 5, [1..5^2])
+            sage: a.fcp()
+            x^3 * (x^2 - 65*x - 250)
+            sage: list(a.fcp())
+            [(x^2 - 65*x - 250, 1), (x, 3)]
+
         """
         return Factorization(self.charpoly(var).factor_list())

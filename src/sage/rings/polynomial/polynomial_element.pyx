@@ -2770,7 +2770,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     ######################################################################
 
-
     def resultant(self, other):
         r"""
         Returns the resultant of self and other.
@@ -2829,6 +2828,85 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # The 0 flag tells PARI to use exact arithmetic
         res = self._pari_().polresultant(other._pari_(), variable, 0)
         return self.parent().base_ring()(res)
+
+    def discriminant(self):
+        r"""
+        Returns the discrimant of self.
+
+        The discriminant is $$R_n := a_n^{2 n-2} \prod_{1<i<j<n} (r_i-r_j)^2,$$
+        where $n$ is the degree of self, $a_n$ is the leading coefficient of
+        self and the roots of self are $r_1, \ldots, r_n$.
+
+        OUTPUT:
+            An element of the base ring of the polynomial ring.
+
+        NOTES:
+            Uses the identity $R_n(f) := (-1)^(n (n-1)/2) R(f, f') a_n^(n-k-2)$,
+            where $n$ is the degree of self, $a_n$ is the leading coefficient
+            of self, $f'$ is the derivitive of $f$, and $k$ is the degree of $f'$.
+            Calls \code{self.resultant}.
+
+        EXAMPLES:
+
+        In the case of elliptic curves in special form, the discriminant is
+        easy to calculate:
+
+            sage: R.<x> = QQ[]
+            sage: f = x^3 + x + 1
+            sage: d = f.discriminant(); d
+            -31
+            sage: d.parent() is QQ
+            True
+            sage: EllipticCurve([1, 1]).discriminant()/16
+            -31
+
+            sage: R.<x> = QQ[]
+            sage: f = 2*x^3 + x + 1
+            sage: d = f.discriminant(); d
+            -116
+
+        We can also compute discriminants over univariate and
+        multivariate polynomial rings, providing that PARI's variable
+        ordering requirements are respected.  Usually, your discriminants
+        will work if you always ask for them in the variable \code{x}:
+
+            sage: R.<a> = QQ[]
+            sage: S.<x> = R[]
+            sage: f = x^2 + a
+            sage: d = f.discriminant(); d
+            -4*a
+            sage: d.parent() is R
+            True
+
+            sage: R.<a, b> = QQ[]
+            sage: S.<x> = R[]
+            sage: f = x^2 + a + b
+            sage: d = f.discriminant(); d
+            -4*a - 4*b
+            sage: d.parent() is R
+            True
+
+        Unfortunately SAGE does not handle PARI's variable ordering requirements
+        gracefully, so the following fails:
+
+            sage: R.<x, y> = QQ[]
+            sage: S.<a> = R[]
+            sage: f = x^2 + a
+            sage: f.discriminant()
+            Traceback (most recent call last):
+            ...
+            PariError: (8)
+        """
+        n = self.degree()
+        d = self.derivative()
+        k = d.degree()
+
+        r = n % 4
+        u = -1 # (-1)**(n*(n-1)/2)
+        if r == 0 or r == 1:
+            u = 1
+        an = self[n]**(n - k - 2)
+        return u * self.resultant(d) * an
 
     def reverse(self):
         """

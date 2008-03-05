@@ -621,14 +621,17 @@ class MatrixGroup_gens(MatrixGroup_gap):
 
     def _gap_init_(self):
         """
-        Returns the string representation of the corresponding GAP command.
+        Returns a string representation of the corresponding GAP object.
 
         EXAMPLES:
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
-            sage: G._gap_init_()
-            'Group([[Z(5)^0,Z(5)^1],[Z(5)^2,Z(5)^0]],[[Z(5)^0,Z(5)^0],[0*Z(5),Z(5)^0]])'
+            sage: G._gap_init_() # The variable $sage11 belongs to gap(F) and is somehow random
+            'Group([[Z(5)^0,Z(5)^1],[Z(5)^2,Z(5)^0]]*One($sage11),[[Z(5)^0,Z(5)^0],[0*Z(5),Z(5)^0]]*One($sage11))'
+            sage: gap(G._gap_init_())
+            Group([ [ [ Z(5)^0, Z(5) ], [ Z(5)^2, Z(5)^0 ] ],
+              [ [ Z(5)^0, Z(5)^0 ], [ 0*Z(5), Z(5)^0 ] ] ])
         """
         gens_gap = ','.join([x._gap_init_() for x in self._gensG])
         return 'Group(%s)'%gens_gap
@@ -696,7 +699,18 @@ class MatrixGroup_gens(MatrixGroup_gap):
             sage: G = MatrixGroup(gens)
             sage: G.invariant_generators()  ## takes a long time (several mins)
             [x1^20 + x1^16*x2^4 + x1^12*x2^8 + x1^8*x2^12 + x1^4*x2^16 + x2^20, x1^20*x2^4 + x1^16*x2^8 + x1^12*x2^12 + x1^8*x2^16 + x1^4*x2^20]
-
+            sage: F=CyclotomicField(8)
+            sage: z=F.gen()
+            sage: a=z+1/z
+            sage: b=z^2
+            sage: MS=MatrixSpace(F,2,2)
+            sage: g1=MS([[1/a,1/a],[1/a,-1/a]])
+            sage: g2=MS([[1,0],[0,b]])
+            sage: g3=MS([[b,0],[0,1]])
+            sage: G=MatrixGroup([g1,g2,g3])
+            sage: G.invariant_generators()
+            [x1^8 + 14*x1^4*x2^4 + x2^8,
+             x1^24 + 10626/1025*x1^20*x2^4 + 735471/1025*x1^16*x2^8 + 2704156/1025*x1^12*x2^12 + 735471/1025*x1^8*x2^16 + 10626/1025*x1^4*x2^20 + x2^24]
 
         AUTHORS:
            David Joyner, Simon King and Martin Albrecht.
@@ -712,30 +726,47 @@ class MatrixGroup_gens(MatrixGroup_gap):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.interfaces.singular import singular
         gens = self.gens()
+        singular.LIB("finvar.lib")
         n = len((gens[0].matrix()).rows())
         F = self.base_ring()
         q = F.characteristic()
-        singular.LIB("finvar.lib")
-        VarNames=','.join(('x%s'%(i+1) for i in range(n)))
-        R = singular.ring(q,'(%s)'%VarNames,'dp')
+        ## test if the field is admissible
+        if F.gen()==1: # we got the rationals or GF(prime)
+            FieldStr = str(F.characteristic())
+        elif hasattr(F,'polynomial'): # we got an algebraic extension
+            if len(F.gens())>1:
+                raise NotImplementedError, "can only deal with finite fields and (simple algebraic extensions of) the rationals"
+            FieldStr = '(%d,%s)'%(F.characteristic(),str(F.gen()))
+        else: # we have a transcendental extension
+            FieldStr = '(%d,%s)'%(F.characteristic(),','.join([str(p) for p in F.gens()]))
+
+        ## Setting Singular's variable names
+        ## We need to make sure that field generator and variables get different names.
+        if str(F.gen())[0]=='x':
+            VarStr = 'y'
+        else:
+            VarStr = 'x'
+        VarNames='('+','.join((VarStr+str(i+1) for i in range(n)))+')'
+        R=singular.ring(FieldStr,VarNames,'dp')
+        if hasattr(F,'polynomial') and F.gen()!=1: # we have to define minpoly
+            singular.eval('minpoly = '+str(F.polynomial()).replace('x',str(F.gen())))
         A = [singular.matrix(n,n,str((x.matrix()).list())) for x in gens]
-        #print singular(A)
         Lgens = ','.join((x.name() for x in A))
-        # REMARK: This is simpler than making a loop and cutting of the last ','
-        #print "A: ",A,"\n Lgens: ",Lgens
-        PR = PolynomialRing(F,n,["x%s"%i for i in range(1,n+1)])
-        #singular.eval('matrix P,S,IS=invariant_ring((%s))'%Lgens)
+        PR = PolynomialRing(F,n,[VarStr+str(i) for i in range(1,n+1)])
         if q == 0 or (q > 0 and self.order()%q != 0):
-            ReyName = singular._next_var_name()
+            ReyName = 't'+singular._next_var_name()
             singular.eval('list %s=group_reynolds((%s))'%(ReyName,Lgens))
-            IRName = singular._next_var_name()
+            IRName = 't'+singular._next_var_name()
             singular.eval('matrix %s = invariant_algebra_reynolds(%s[1])'%(IRName,ReyName))
-            return [PR(singular(IRName+'[1,%s]'%n)) for n in range(1,1+singular('ncols('+IRName+')'))]
+            OUT = [singular.eval(IRName+'[1,%d]'%(j)) for j in range(1,1+singular('ncols('+IRName+')'))]
+            return [PR(gen) for gen in OUT]
         if self.order()%q == 0:
-            PName = singular._next_var_name()
-            SName = singular._next_var_name()
+            PName = 't'+singular._next_var_name()
+            SName = 't'+singular._next_var_name()
             singular.eval('matrix %s,%s=invariant_ring(%s)'%(PName,SName,Lgens))
-            return [PR(singular(PName+'[1,%s]'%n)) for n in range(1,1+singular('ncols('+PName+')'))]+[PR(singular(SName+'[1,%s]'%n)) for n in range(2,1+singular('ncols('+SName+')'))]
+            OUT = [singular.eval(PName+'[1,%d]'%(j)) for j in range(1,1+singular('ncols('+PName+')'))] + [singular.eval(SName+'[1,%d]'%(j)) for j in range(2,1+singular('ncols('+SName+')'))]
+            return [PR(gen) for gen in OUT]
+
 
 class MatrixGroup_gens_finite_field(MatrixGroup_gens, MatrixGroup_gap_finite_field):
     pass

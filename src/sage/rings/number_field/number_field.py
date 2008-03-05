@@ -1568,6 +1568,27 @@ class NumberField_generic(number_field_base.NumberField):
             self.__pari_bnf_certified = True
         return self.__pari_bnf_certified
 
+    def _gap_init_(self):
+        """
+        Create a gap object representing self and return its name
+
+        EXAMPLE:
+            sage: F=CyclotomicField(8)
+            sage: F.gen()
+            zeta8
+            sage: F._gap_init_() # the following variable name $sage1 represents the F.base_ring() in gap and is somehow random
+            'CallFuncList(function() local x,E; x:=Indeterminate($sage1,"x"); E:=AlgebraicExtension($sage1,x^4 + 1,"zeta8"); return E; end,[])'
+            sage: f=gap(F)
+            sage: f
+            <algebraic extension over the Rationals of degree 4>
+            sage: f.GeneratorsOfDivisionRing()
+            [ (zeta8) ]
+        """
+        if not self.is_absolute():
+            raise NotImplementedError, "Currently, only simple algebraic extensions are implemented in gap"
+        G = sage.interfaces.gap.gap
+        return 'CallFuncList(function() local x,E; x:=Indeterminate(%s,"x"); E:=AlgebraicExtension(%s,%s,"%s"); return E; end,[])'%(G(self.base_ring()).name(),G(self.base_ring()).name(),self.polynomial().__repr__(),str(self.gen()))
+
     def characteristic(self):
         """
         Return the characteristic of this number field, which is

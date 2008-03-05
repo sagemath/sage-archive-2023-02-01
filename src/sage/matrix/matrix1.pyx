@@ -51,10 +51,19 @@ cdef class Matrix(matrix0.Matrix):
 
     def _gap_init_(self):
         """
+        Returns a string defining a gap representation of self
+
         EXAMPLES:
-            sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
-            sage: g = gap(A); g
-            [ [ 1, 2, 3 ], [ 4/3, 5/3, 3/2 ], [ 7, 8, 9 ] ]
+            sage: A = MatrixSpace(QQ,3,3)([0,1,2,3,4,5,6,7,8])
+            sage: g=gap(A)
+            sage: g
+            [ [ 0, 1, 2 ], [ 3, 4, 5 ], [ 6, 7, 8 ] ]
+            sage: g.CharacteristicPolynomial()
+            x_1^3-12*x_1^2-18*x_1
+            sage: A = MatrixSpace(CyclotomicField(4),2,2)([0,1,2,3])
+            sage: g=gap(A)
+            sage: g
+            [ [ !0, !1 ], [ !2, !3 ] ]
             sage: g.IsMatrix()
             true
         """
@@ -65,7 +74,9 @@ cdef class Matrix(matrix0.Matrix):
             for j from 0 <= j < self._ncols:
                 tmp.append(self.get_unsafe(i,j)._gap_init_())
             v.append( '[%s]'%(','.join(tmp)) )
-        return '[%s]'%(','.join(v))
+        # It is needed to multiply with 'One(...)', because
+        # otherwise the result would not be a gap matrix
+        return '[%s]*One(%s)'%(','.join(v),sage.interfaces.gap.gap(self.base_ring()).name())
 
     def _maxima_init_(self):
         """

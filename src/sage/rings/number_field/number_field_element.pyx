@@ -356,6 +356,24 @@ cdef class NumberFieldElement(FieldElement):
         """
         return self.polynomial()._latex_(name=self.number_field().latex_variable_name())
 
+    def _gap_init_(self):
+        """
+        Return gap string representation of self.
+
+        EXAMPLES:
+            sage: F=CyclotomicField(8)
+            sage: p=F.gen()^2+2*F.gen()-3
+            sage: p
+            zeta8^2 + 2*zeta8 - 3
+            sage: p._gap_init_() # The variable name $sage2 belongs to the gap(F) and is somehow random
+            'GeneratorsOfField($sage2)[1]^2 + 2*GeneratorsOfField($sage2)[1] - 3'
+            sage: gap(p._gap_init_())
+            (-3+2*zeta8+zeta8^2)
+        """
+        s = self.__repr__()
+        return s.replace(str(self.parent().gen()), 'GeneratorsOfField(%s)[1]'%sage.interfaces.gap.gap(self.parent()).name())
+
+
     def _pari_(self, var='x'):
         raise NotImplementedError, "NumberFieldElement sub-classes must override _pari_"
 

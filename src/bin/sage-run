@@ -17,12 +17,12 @@ if file[0] == '-':
     print "Try 'sage -h' for more information."
     sys.exit(1)
 
-if file[-5:] == '.sage':
+if file.endswith('.sage'):
     if os.system('sage -preparse %s'%file):
         sys.exit(1)
     e = os.system('"$SAGE_LOCAL/bin/sage-python" %s.py %s'%(file[:-5], options))
     sys.exit(e)
-elif file[-5:] == '.spyx':
+elif file.endswith('.spyx'):
     e = os.system('"$SAGE_LOCAL/bin/sage-sagex" %s'%file)
     sys.exit(e)
 else:

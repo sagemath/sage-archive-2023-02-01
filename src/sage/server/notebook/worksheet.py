@@ -1284,6 +1284,9 @@ class Worksheet:
         # in order to support use of the with statement in the notebook.  Very annoying.
         input = 'from __future__ import with_statement\n' + input
 
+        # This magic comment at the very start of the file allows utf8
+        # characters in the file
+        input = '# -*- coding: utf_8 -*-\n' + input
 
         open(tmp,'w').write(input)
 

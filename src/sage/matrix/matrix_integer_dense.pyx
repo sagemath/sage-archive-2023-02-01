@@ -212,6 +212,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             mpz_init_set(A._entries[i], self._entries[i])
         _sig_off
         A._initialized = True
+        if self.subdivisions is not None:
+            A.subdivide(*self.get_subdivisions())
         return A
 
     def __hash__(self):

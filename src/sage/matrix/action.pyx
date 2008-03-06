@@ -85,6 +85,54 @@ cdef class MatrixMatrixAction(MatrixMulAction):
         return MatrixSpace(base, self.G.nrows(), self.S.ncols(), sparse = self.G.is_sparse() and self.S.is_sparse())
 
     cdef Element _call_c_impl(self, Element g, Element s):
+        """
+        EXAMPLES:
+        Respects compatable subdivisions:
+            sage: M = matrix(5, 5, prime_range(100))
+            sage: M.subdivide(2,3); M
+            [ 2  3  5| 7 11]
+            [13 17 19|23 29]
+            [--------+-----]
+            [31 37 41|43 47]
+            [53 59 61|67 71]
+            [73 79 83|89 97]
+            sage: N = matrix(5,2,[n^2 for n in range(10)])
+            sage: N.subdivide(3,1); N
+            [ 0| 1]
+            [ 4| 9]
+            [16|25]
+            [--+--]
+            [36|49]
+            [64|81]
+            sage: M*N
+            [ 1048| 1388]
+            [ 3056| 4117]
+            [-----+-----]
+            [ 5360| 7303]
+            [ 8168|11143]
+            [11056|15077]
+
+        Note that this is just like block matrix multiplication:
+            sage: M.subdivision(0,0) * N.subdivision(0,0) + M.subdivision(0,1) * N.subdivision(1,0)
+            [1048]
+            [3056]
+
+        If the subdivisions aren't compatable, ignore them.
+            sage: N.subdivide(1,1); N
+            [ 0| 1]
+            [--+--]
+            [ 4| 9]
+            [16|25]
+            [36|49]
+            [64|81]
+            sage: M*N
+            [ 1048  1388]
+            [ 3056  4117]
+            [ 5360  7303]
+            [ 8168 11143]
+            [11056 15077]
+
+        """
         cdef Matrix A = g #<Matrix>g
         cdef Matrix B = s #<Matrix>s
         if A._parent._base is not self._codomain._base:
@@ -96,7 +144,13 @@ cdef class MatrixMatrixAction(MatrixMulAction):
                 B = B.dense_matrix()
             else:
                 A = A.dense_matrix()
-        return A._matrix_times_matrix_c_impl(B)
+        prod = A._matrix_times_matrix_c_impl(B)
+        if A.subdivisions is not None or B.subdivisions is not None:
+            Asubs = A.get_subdivisions()
+            Bsubs = B.get_subdivisions()
+            if Asubs[1] == Bsubs[0]:
+                prod.subdivide(Asubs[0], Bsubs[1])
+        return prod
 
 
 cdef class MatrixVectorAction(MatrixMulAction):

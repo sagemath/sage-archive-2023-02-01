@@ -285,6 +285,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         memcpy(A._entries, self._entries, sizeof(mod_int)*self._nrows*self._ncols)
         A.p = self.p
         A.gather = self.gather
+        if self.subdivisions is not None:
+            A.subdivide(*self.get_subdivisions())
         return A
 
 

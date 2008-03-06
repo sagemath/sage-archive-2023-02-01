@@ -652,6 +652,9 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         result_copy = gsl_matrix_transpose_memcpy(trans._matrix,self._matrix)
         if result_copy !=GSL_SUCCESS:
             raise ValueError, "Error copy matrix"
+        if self.subdivisions is not None:
+            row_divs, col_divs = self.get_subdivisions()
+            trans.subdivide(col_divs, row_divs)
         return trans
 
     def SVD(self, algorithm='gsl'):

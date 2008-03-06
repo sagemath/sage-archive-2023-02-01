@@ -126,7 +126,37 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     ########################################################################
 
     def __copy__(self):
-        return self.__class__(self._parent, self._entries, copy = True, coerce=False)
+        """
+        Creates a copy of self, which may be changed without altering self.
+
+        EXAMPLES:
+            sage: A = matrix(ZZ[['t']], 2,3,range(6)); A
+            [0 1 2]
+            [3 4 5]
+            sage: A.subdivide(1,1); A
+            [0|1 2]
+            [-+---]
+            [3|4 5]
+            sage: B = A.copy(); B
+            [0|1 2]
+            [-+---]
+            [3|4 5]
+            sage: B == A
+            True
+            sage: B[0,0] = 100
+            sage: B
+            [100|  1   2]
+            [---+-------]
+            [  3|  4   5]
+            sage: A
+            [0|1 2]
+            [-+---]
+            [3|4 5]
+        """
+        A = self.__class__(self._parent, self._entries, copy = True, coerce=False)
+        if self.subdivisions is not None:
+            A.subdivide(*self.get_subdivisions())
+        return A
 
     def _multiply_classical(left, matrix.Matrix _right):
         """

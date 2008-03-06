@@ -259,7 +259,10 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         return A
 
     def __copy__(self):
-        return self.__class__(self._parent, self._entries, copy = True, coerce=False)
+        A = self.__class__(self._parent, self._entries, copy = True, coerce=False)
+        if self.subdivisions is not None:
+            A.subdivide(*self.get_subdivisions())
+        return A
 
 
     def _list(self):

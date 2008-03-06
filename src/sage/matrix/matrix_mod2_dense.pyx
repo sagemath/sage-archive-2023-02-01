@@ -555,6 +555,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         memcpy(A._entries.values, self._entries.values, (RADIX>>3) * self._entries.width * self._nrows)
         memcpy(A._entries.rowswap, self._entries.rowswap, self._nrows * sizeof(int))
 
+        if self.subdivisions is not None:
+            A.subdivide(*self.get_subdivisions())
+
         return A
 
     def _list(self):
@@ -812,6 +815,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         destroyPackedMatrix(A._entries)
 
         A._entries = transposePacked(self._entries)
+        if self.subdivisions is not None:
+            A.subdivide(*self.get_subdivisions())
         return A
 
     cdef int _cmp_c_impl(self, Element right) except -2:

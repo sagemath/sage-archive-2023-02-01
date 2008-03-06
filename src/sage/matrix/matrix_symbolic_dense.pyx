@@ -256,6 +256,8 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         """
         cdef Matrix_symbolic_dense M = self._new_c()
         M._maxima = self._maxima.copymatrix()
+        if self.subdivisions is not None:
+            M.subdivide(*self.get_subdivisions())
         return M
 
     def _multiply_classical(left, Matrix_symbolic_dense right):

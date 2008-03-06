@@ -498,6 +498,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             row = self.rows[i]
             for j from 0 <= j < row.num_nonzero:
                 set_entry(&B.rows[row.positions[j]], i, row.entries[j])
+        if self.subdivisions is not None:
+            row_divs, col_divs = self.get_subdivisions()
+            B.subdivide(col_divs, row_divs)
         return B
 
     def matrix_from_rows(self, rows):

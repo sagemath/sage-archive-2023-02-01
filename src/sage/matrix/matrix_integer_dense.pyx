@@ -1102,6 +1102,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [   1    0   52 -133  109]
             [   0    1   19  -47   38]
             [   0    0   69 -178  145]
+
+        TESTS:
+        This example illustrated trac 2398.
+            sage: a = matrix([(0, 0, 3), (0, -2, 2), (0, 1, 2), (0, -2, 5)])
+            sage: a.hermite_form()
+            [0 1 2]
+            [0 0 3]
+            [0 0 0]
+            [0 0 0]
         """
         return self.echelon_form(*args, **kwds)
 
@@ -2923,7 +2932,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         function creates a new matrix that is the echelon form of self
         with row appended to the bottom.
 
-        WARNING: It is assumed that self is in
+        WARNING: It is assumed that self is in echelon form.
 
         INPUT:
             row -- a vector of degree m over ZZ
@@ -2970,9 +2979,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self.nrows() == 0:
             pos = row.nonzero_positions()
             if len(pos) > 0:
-                pivots = [0]
-                i = pos[0]
-                if row[i] < 0:
+                pivots = [pos[0]]
+                if row[pivots[0]] < 0:
                     row *= -1
             else:
                 pivots = []

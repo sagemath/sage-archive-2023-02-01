@@ -390,7 +390,9 @@ class Maxima(Expect):
         if not os.path.exists(STARTUP):
             raise RuntimeError, 'You must get the file local/bin/sage-maxima.lisp'
         if init_code is None:
-            init_code = ['display2d : false'] # no ascii art output
+            # display2d -- no ascii art output
+            # keepfloat -- don't automatically convert floats to rationals
+            init_code = ['display2d : false', 'keepfloat : true']
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',

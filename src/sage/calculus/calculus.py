@@ -264,7 +264,7 @@ import sage.numerical.optimize
 
 # The calculus package uses its own copy of maxima, which is
 # separate from the default system-wide version.
-maxima = Maxima(init_code = ['display2d:false; domain: complex;'])
+maxima = Maxima(init_code = ['display2d:false; domain: complex; keepfloat: true'])
 
 from sage.misc.sage_eval import sage_eval
 
@@ -2406,6 +2406,14 @@ class SymbolicExpression(RingElement):
                         log(x - 4)   / x  + 2 x + 1
                         ---------- - ------------------
                             73               73
+
+        We now show that floats are not converted to rationals
+        automatically since we by default have keepfloat: true in
+        maxima.
+
+            sage: integral(e^(-x^2),x, 0, 0.1)
+            0.0562314580091424*sqrt(pi)
+
 
         ALIASES:
             integral() and integrate() are the same.

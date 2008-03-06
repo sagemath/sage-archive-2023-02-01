@@ -847,7 +847,7 @@ def probable_hnf(A, include_zero_rows, proof):
 
     pivots = pivots_of_hnf_matrix(H)
 
-    # Now H is the HNF of the matrix B
+    # Now H is the HNF of the matrix B.
     # Finally we add all remaining rows of A to H using
     # the add_row function.
 

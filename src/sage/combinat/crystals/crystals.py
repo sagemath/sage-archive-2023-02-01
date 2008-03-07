@@ -57,6 +57,9 @@ high quality LaTeX output of the crystal graph:
     sage: f.write(C.latex())
     sage: f.close()
 
+For rank two crystals, there is an alternative method of getting
+metapost pictures. For more information see C.metapost?
+
 Caveat: this crystal library, although relatively featureful for
 classical crystals, is still in an early development stage, and the
 syntax details may be subject to changes.
@@ -182,6 +185,134 @@ class Crystal(CombinatorialClass, Parent):
         from dot2tex.dot2tex import Dot2TikZConv
         conv = Dot2TikZConv()
         return conv.convert(self.dot_tex())
+
+    def metapost(self, filename, thicklines=False, labels=True, scaling_factor=1.0, tallness=1.0):
+        """Use C.metapost("filename.mp",[options])
+        where options can be:
+
+            thicklines = True (for thicker edges)
+            labels = False (to suppress labeling of the vertices)
+            scaling_factor=value, where value is a floating point
+              number, 1.0 by default. Increasing or decreasing the
+              scaling factor changes the size of the image.
+            tallness=1.0. Increasing makes the image taller without
+              increasing the width.
+
+        Root operators e(1) or f(1) move along red lines, e(2) or
+        f(2) along green. The highest weight is in the lower left.
+        Vertices with the same weight are kept close together. The
+        concise labels on the nodes are strings introduced by Berenstein
+        and Zelevinsky and Littelmann; see Littelmann's paper Cones,
+        Crystals, Patterns, sections 5 and 6.  For Cartan types B2 or
+        C2, the pattern has the form
+
+              a2  a3  a4
+                  a1
+
+        where c*a2 >= a3 >= 2*a4 >=0 and a1>=0, with c=2 for B2, c=1 for C2.
+        Applying e(2) a1 times, e(1) a2 times, e(2) a3 times, e(1) a4 times
+        returns to the highest weight. (Observe that Littelmann writes the
+        roots in opposite of the usual order, so our e(1) is his e(2) for
+        these Cartan types.) For type A2, the pattern has the form
+
+              a3   a2
+                 a1
+
+        where applying e(1) a1 times, e(2) a2 times then e(3) a1 times
+        returns to the highest weight. These data determine the vertex
+        and may be translated into a Gelfand-Tsetlin pattern or tableau.
+        """
+        if self.cartanType[0] == 'B' and self.cartanType[1] == 2:
+            word = [2,1,2,1]
+        elif self.cartanType[0] == 'C' and self.cartanType[1] == 2:
+            word = [2,1,2,1]
+        elif self.cartanType[0] == 'A' and self.cartanType[1] == 2:
+            word = [1,2,1]
+        else:
+            raise NotImplementedError
+        size = self.count()
+        string_data = []
+        for i in range(size):
+            turtle = self.list()[i]
+            string_datum = []
+            for j in word:
+                turtlewalk = 0
+                while not turtle.e(j) == None:
+                    turtle = turtle.e(j)
+                    turtlewalk += 1
+                string_datum.append(turtlewalk)
+            string_data.append(string_datum)
+
+        if self.cartanType[0] == 'A':
+            if labels:
+                c0 = int(55*scaling_factor)
+                c1 = int(-25*scaling_factor)
+                c2 = int(45*tallness*scaling_factor)
+                c3 = int(-12*scaling_factor)
+                c4 = int(-12*scaling_factor)
+            else:
+                c0 = int(45*scaling_factor)
+                c1 = int(-20*scaling_factor)
+                c2 = int(35*tallness*scaling_factor)
+                c3 = int(12*scaling_factor)
+                c4 = int(-12*scaling_factor)
+            outstring = "verbatimtex\n\\magnification=600\netex\n\nbeginfig(-1);\nsx:=35; sy:=30;\n\nz1000=(%d,0);\nz1001=(%d,%d);\nz1002=(%d,%d);\nz2001=(-3,3);\nz2002=(3,3);\nz2003=(0,-3);\nz2004=(7,0);\nz2005=(0,7);\nz2006=(-7,0);\nz2007=(0,7);\n\n"%(c0,c1,c2,c3,c4)
+        else:
+            if labels:
+                outstring = "verbatimtex\n\\magnification=600\netex\n\nbeginfig(-1);\n\nsx := %d;\nsy=%d;\n\nz1000=(2*sx,0);\nz1001=(-sx,sy);\nz1002=(-16,-10);\n\nz2001=(0,-3);\nz2002=(-5,3);\nz2003=(0,3);\nz2004=(5,3);\nz2005=(10,1);\nz2006=(0,10);\nz2007=(-10,1);\nz2008=(0,-8);\n\n"%(int(scaling_factor*40),int(tallness*scaling_factor*40))
+            else:
+                outstring = "beginfig(-1);\n\nsx := %d;\nsy := %d;\n\nz1000=(2*sx,0);\nz1001=(-sx,sy);\nz1002=(-5,-5);\n\nz1003=(10,10);\n\n"%(int(scaling_factor*35),int(tallness*scaling_factor*35))
+        for i in range(size):
+            if self.cartanType[0] == 'A':
+                [a1,a2,a3] = string_data[i]
+            else:
+                [a1,a2,a3,a4] = string_data[i]
+            shift = 0
+            for j in range(i):
+                if self.cartanType[0] == 'A':
+                    [b1,b2,b3] = string_data[j]
+                    if b1+b3 == a1+a3 and b2 == a2:
+                        shift += 1
+                else:
+                    [b1,b2,b3,b4] = string_data[j]
+                    if b1+b3 == a1+a3 and b2+b4 == a2+a4:
+                        shift += 1
+            if self.cartanType[0] == 'A':
+                outstring = outstring +"z%d=%d*z1000+%d*z1001+%d*z1002;\n"%(i,a1+a3,a2,shift)
+            else:
+                outstring = outstring +"z%d=%d*z1000+%d*z1001+%d*z1002;\n"%(i,a1+a3,a2+a4,shift)
+        outstring = outstring + "\n"
+        if thicklines:
+            outstring = outstring +"pickup pencircle scaled 2\n\n"
+        for i in range(size):
+            for j in range(1,3):
+                dest = self.list()[i].f(j)
+                if not dest == None:
+                    dest = self.list().index(dest)
+                    if j == 1:
+                        col = "green;"
+                    else:
+                        col = "red;  "
+                    if self.cartanType[0] == 'A':
+                        [a1,a2,a3] = string_data[i] # included to facilitate hand editing of the .mp file
+                        outstring = outstring+"draw z%d--z%d withcolor %s   %% %d %d %d\n"%(i,dest,col,a1,a2,a3)
+                    else:
+                        [a1,a2,a3,a4] = string_data[i]
+                        outstring = outstring+"draw z%d--z%d withcolor %s   %% %d %d %d %d\n"%(i,dest,col,a1,a2,a3,a4)
+        outstring += "\npickup pencircle scaled 3;\n\n"
+        for i in range(self.count()):
+            if labels:
+                if self.cartanType[0] == 'A':
+                    outstring = outstring+"pickup pencircle scaled 15;\nfill z%d+z2004..z%d+z2006..z%d+z2006..z%d+z2007..cycle withcolor white;\nlabel(btex %d etex, z%d+z2001);\nlabel(btex %d etex, z%d+z2002);\nlabel(btex %d etex, z%d+z2003);\npickup pencircle scaled .5;\ndraw z%d+z2004..z%d+z2006..z%d+z2006..z%d+z2007..cycle;\n"%(i,i,i,i,string_data[i][2],i,string_data[i][1],i,string_data[i][0],i,i,i,i,i)
+                else:
+                    outstring = outstring+"%%%d %d %d %d\npickup pencircle scaled 1;\nfill z%d+z2005..z%d+z2006..z%d+z2007..z%d+z2008..cycle withcolor white;\nlabel(btex %d etex, z%d+z2001);\nlabel(btex %d etex, z%d+z2002);\nlabel(btex %d etex, z%d+z2003);\nlabel(btex %d etex, z%d+z2004);\npickup pencircle scaled .5;\ndraw z%d+z2005..z%d+z2006..z%d+z2007..z%d+z2008..cycle;\n\n"%(string_data[i][0],string_data[i][1],string_data[i][2],string_data[i][3],i,i,i,i,string_data[i][0],i,string_data[i][1],i,string_data[i][2],i,string_data[i][3],i,i,i,i,i)
+            else:
+                outstring += "drawdot z%d;\n"%i
+        outstring += "\nendfig;\n\nend;\n\n"
+
+        f = open(filename, 'w')
+        f.write(outstring)
+        f.close()
 
     def dot_tex(self):
         rank = ranker.from_list(self.list())[0]

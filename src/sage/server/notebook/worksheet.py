@@ -1203,8 +1203,8 @@ class Worksheet:
 
         D = C.directory()
         if not C.introspect():
-            if hasattr(C, 'manipulate'):
-                I = C.manipulate
+            if hasattr(C, 'interact'):
+                I = C.interact
             else:
                 I = C.input_text().strip()
             if I in ['restart', 'quit', 'exit']:
@@ -1244,9 +1244,9 @@ class Worksheet:
         # TODOss
         os.system('chmod -R a+rw "%s"'%absD)
 
-        # This is useful mainly for manipulate -- it allows
+        # This is useful mainly for interact -- it allows
         # a cell to know it's ID.
-        input += 'sage.server.notebook.manipulate.SAGE_CELL_ID=%s\n'%(C.id())
+        input += 'sage.server.notebook.interact.SAGE_CELL_ID=%s\n'%(C.id())
 
         if C.time():
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'

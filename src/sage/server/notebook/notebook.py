@@ -1441,7 +1441,7 @@ class Notebook(SageObject):
 
         if JQUERY:
             # Load the jquery and ui-jquery javascript library.
-            # This is used for manipulate functionality in the notebook, and will be used
+            # This is used for interact functionality in the notebook, and will be used
             # to enable drag and drop, image zoom, etc.
             head += '''
 <script type="text/javascript" src="/javascript/jquery/jquery.js"></script>

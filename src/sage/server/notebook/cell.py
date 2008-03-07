@@ -147,7 +147,19 @@ class Cell(Cell_generic):
             self.set_id(id)
 
     def update_html_output(self, output=''):
-        self.__out_html = self.files_html(output)
+        """
+        Update the list of files with html-style links or embeddings
+        for this cell.
+
+        For interactive cells the html output section is always empty,
+        mainly because there is no good way to distinguish content
+        (e.g., images in the current directory) that goes into the
+        interactive template and content that would go here.
+        """
+        if self.is_interactive_cell():
+            self.__out_html = ""
+        else:
+            self.__out_html = self.files_html(output)
 
     def id(self):
         return self.__id
@@ -244,11 +256,10 @@ class Cell(Cell_generic):
                         break
                 out = '\n'.join(w)
             else:
-                out = self.output_text(ncols, html=False)
+                out = self.output_text(ncols, raw=True, html=False)
         else:
-            out = self.output_text(ncols, html=False)
-            if wiki_out and len(out) > 0:
-                out = '///\n' + out
+            out = self.output_text(ncols, raw=True, html=False)
+            out = '///\n' + out
 
         if not max_out is None and len(out) > max_out:
             out = out[:max_out] + '...'
@@ -290,24 +301,31 @@ class Cell(Cell_generic):
     def computing(self):
         return self in self.__worksheet.queue()
 
-    def is_manipulating(self):
-        return hasattr(self, 'manipulate')
+    def is_interactive_cell(self):
+        # TODO -- this sucks since it would be broke by a line like
+        # "@interact # foo" or @interact in a triple quoted string.
+        # But it is good enough for most cases for now.
+        return '@interact' in ''.join(self.input_text().split())
 
-    def stop_manipulating(self):
-        if self.is_manipulating():
-            del self.manipulate
+
+    def is_interacting(self):
+        return hasattr(self, 'interact')
+
+    def stop_interacting(self):
+        if self.is_interacting():
+            del self.interact
 
     def set_input_text(self, input):
 
-        # Stuff to deal with manipulate
-        if input.startswith('%manipulate'):
-            self.manipulate = input[len('%manipulate')+1:]
+        # Stuff to deal with interact
+        if input.startswith('%interact'):
+            self.interact = input[len('%interact')+1:]
             self.__version = 1+self.version()
             return
-        elif self.is_manipulating():
+        elif self.is_interacting():
             try:
-                del self.manipulate
-                del self._manipulate_output
+                del self.interact
+                del self._interact_output
             except AttributeError:
                 pass
 
@@ -336,13 +354,13 @@ class Cell(Cell_generic):
 
     def set_output_text(self, output, html, sage=None):
         if output.count('<?TEXT>') > 1:
-            html = '<h3><font color="red">WARNING: multiple @manipulates in one cell disabled (not yet implemented).</font></h3>'
+            html = '<h3><font color="red">WARNING: multiple @interacts in one cell disabled (not yet implemented).</font></h3>'
             output = ''
 
-        # In manipulating mode, we just save the computed output
+        # In interacting mode, we just save the computed output
         # (do not overwrite).
-        if self.is_manipulating():
-            self._manipulate_output = (output, html)
+        if self.is_interacting():
+            self._interact_output = (output, html)
             return
 
         if hasattr(self, '_html_cache'):
@@ -401,17 +419,17 @@ class Cell(Cell_generic):
             x = x.replace(s,begin + s[7:-1] + end)
         return x
 
-    def output_text(self, ncols=0, html=True, raw=False, allow_manipulate=True):
-        if allow_manipulate and hasattr(self, '_manipulate_output'):
+    def output_text(self, ncols=0, html=True, raw=False, allow_interact=True):
+        if allow_interact and hasattr(self, '_interact_output'):
             # Get the input template
-            z = self.output_text(ncols, html, raw, allow_manipulate=False)
+            z = self.output_text(ncols, html, raw, allow_interact=False)
             if not '<?TEXT>' in z or not '<?HTML>' in z:
                 return z
             if ncols:
                 # Get the output template
                 try:
                     # Fill in the output template
-                    output,html = self._manipulate_output
+                    output,html = self._interact_output
                     output = self.parse_html(output, ncols)
                     z = z.replace('<?TEXT>', output)
                     z = z.replace('<?HTML>', html)
@@ -420,13 +438,13 @@ class Cell(Cell_generic):
                     print msg
                     pass
             else:
-                # Get rid of the manipulate div to avoid updating the wrong output location
-                # during manipulate.
+                # Get rid of the interact div to avoid updating the wrong output location
+                # during interact.
                 return ''
 
-        is_manipulate = '@manipulate' in ''.join(self.input_text().split())
-        if ncols == 0 and is_manipulate:
-            return '<h2>Click to the left again to hide and once more to show the manipulation window</h2>'
+        is_interact = self.is_interactive_cell()
+        if ncols == 0 and is_interact:
+            return '<h2>Click to the left again to hide and once more to show the dynamic interactive window</h2>'
 
         s = self.__out
 
@@ -436,8 +454,9 @@ class Cell(Cell_generic):
         if html:
             s = self.parse_html(s, ncols)
 
-        if not is_manipulate and not self.is_html() and len(s.strip()) > 0:
+        if not is_interact and not self.is_html() and len(s.strip()) > 0:
             s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
+
         return s.strip('\n')
 
     def parse_html(self, s, ncols):

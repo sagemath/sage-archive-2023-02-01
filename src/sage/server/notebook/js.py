@@ -1757,12 +1757,12 @@ function evaluate_cell_callback(status, response_text) {
 }
 
 function cell_output_set_type(id, typ, do_async) {
-    /* We do this specifically because manipulate cells do not work at all when
-       displayed in nowrap mode, which is VERY BAD.  So instead for manipulates
+    /* We do this specifically because interact cells do not work at all when
+       displayed in nowrap mode, which is VERY BAD.  So instead for interacts
        one gets a toggle to and from hidden.
     */
-    if (typ=="nowrap" && get_element("cell-manipulate-" + id)) {
-        /* if the type is nowrap and the cell-manipulate-[id] div exists (i.e., we are manipulating)
+    if (typ=="nowrap" && get_element("cell-interact-" + id)) {
+        /* if the type is nowrap and the cell-interact-[id] div exists (i.e., we are interacting)
            then just make the thing hidden. */
         typ = "hidden";
     }
@@ -1806,7 +1806,7 @@ function cell_set_not_evaluated(id) {
 }
 
 function cell_set_running(id) {
-    set_output_text(id, '', '', '', '', '', 1);   // the 1 means no manipulation dynamics
+    set_output_text(id, '', '', '', '', '', 1);   // the 1 means no interact dynamics
     cell_output_set_type(id, 'wrap');
     var cell_div = get_element('cell_div_output_' + id);
     cell_div.className = 'cell_output_running';
@@ -1856,26 +1856,26 @@ function contains_jsmath(text) {
     return (text.indexOf('class="math"') != -1 || text.indexOf("class='math'") != -1);
 }
 
-function set_output_text(id, text, wrapped_text, output_html, status, introspect_html, no_manip) {
-    var cell_manip = get_element("cell-manipulate-" + id);
-    if (!no_manip && cell_manip) {
+function set_output_text(id, text, wrapped_text, output_html, status, introspect_html, no_interact) {
+    var cell_interact = get_element("cell-interact-" + id);
+    if (!no_interact && cell_interact) {
         if (status  != 'd') return;
         var i = wrapped_text.indexOf('<?START>');
         var j = wrapped_text.indexOf('<?END>');
         if (i == -1 || j == -1) {
-            alert("bug -- manipulate wrapped text is invalid" + wrapped_text);
+            alert("bug -- interact wrapped text is invalid" + wrapped_text);
             return;
         }
-        var new_manip_output = wrapped_text.slice(i+8,j);
+        var new_interact_output = wrapped_text.slice(i+8,j);
 
         /* An error occured accessing the data for this cell.  Just force reload
            of the cell, which will certainly define that data. */
-        if (new_manip_output.indexOf('__SAGE_MANIPULATE_RESTART__') != -1) {
+        if (new_interact_output.indexOf('__SAGE_INTERACT_RESTART__') != -1) {
             evaluate_cell(id, 0);
         } else {
-            cell_manip.innerHTML = new_manip_output;
-            if (contains_jsmath(new_manip_output)) {
-               jsMath.ProcessBeforeShowing(cell_manip);
+            cell_interact.innerHTML = new_interact_output;
+            if (contains_jsmath(new_interact_output)) {
+               jsMath.ProcessBeforeShowing(cell_interact);
             }
         }
     } else {
@@ -1888,16 +1888,16 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
         cell_output_nowrap.innerHTML = text;
         cell_output_html.innerHTML = output_html;
 
-        /* Did we just create or evaluate a new manipulate cell? */
-        var cell_manip = get_element("cell-manipulate-" + id);
+        /* Did we just create or evaluate a new interact cell? */
+        var cell_interact = get_element("cell-interact-" + id);
         /* If so, trigger it so that we see the evaluated version
-           of the manipulate cell. */
-        if (cell_manip) {
+           of the interact cell. */
+        if (cell_interact) {
             /*****************************************************************
-              This is the first time that the underlying Python manipulate function is
+              This is the first time that the underlying Python interact function is
                actually called!
              *****************************************************************/
-            manipulate(id, 'sage.server.notebook.manipulate.state[' + id + ']["function"]()');
+            interact(id, 'sage.server.notebook.interact.state[' + id + ']["function"]()');
         }
     }
 
@@ -2551,13 +2551,13 @@ function show_help_window(worksheet) {
 
 
 ///////////////////////////////////////////////////////////////////
-// Manipulate
+// Interact
 ///////////////////////////////////////////////////////////////////
 
-function manipulate(id, input) {
+function interact(id, input) {
     active_cell_list = active_cell_list.concat([id]);
     async_request(worksheet_command('eval'), evaluate_cell_callback,
-            'newcell=0' + '&id=' + id + '&input='+escape0('%manipulate\n' + input));
+            'newcell=0' + '&id=' + id + '&input='+escape0('%interact\n' + input));
 }
 
 /********************* js math ***************************/

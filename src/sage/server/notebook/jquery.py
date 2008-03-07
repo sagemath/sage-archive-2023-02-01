@@ -1,10 +1,10 @@
-import manipulate
+import interact
 
 def javascript(s):
     print '<html><script>%s</script></html>'%s
 
 def cell_id():
-    return manipulate.SAGE_CELL_ID
+    return interact.SAGE_CELL_ID
 
 def draggable(option=''):
     """

@@ -518,6 +518,13 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return False
 
     def is_noetherian(self):
+        """
+        Return True - the integers are a Noetherian ring.
+
+        EXAMPLES:
+            sage: ZZ.is_noetherian()
+            True
+        """
         return True
 
     def is_atomic_repr(self):
@@ -530,14 +537,35 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def is_field(self):
         """
-        Return False.
+        Return False - the integers are not a field.
+
+        EXAMPLES:
+            sage: ZZ.is_field()
+            False
         """
         return False
 
     def is_finite(self):
+        """
+        Return False - the integers are an infinite ring.
+
+        EXAMPLES:
+            sage: ZZ.is_finite()
+            False
+        """
         return False
 
     def fraction_field(self):
+        """
+        Returns the field of rational numbers - the fraction field of the
+        integers.
+
+        EXAMPLES:
+            sage: ZZ.fraction_field()
+            Rational Field
+            sage: ZZ.fraction_field() == QQ
+            True
+        """
         return sage.rings.rational_field.Q
 
     def extension(self, poly, names=None):
@@ -583,15 +611,44 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         return sage.rings.integer_mod_ring.IntegerModRing(n)
 
     def gens(self):
+        """
+        Returns the additive generator of the integers, which is 1.
+        (As a two-tuple with empty second entry.)
+
+        EXAMPLES:
+            sage: ZZ.gens(); ZZ.gens()[0]
+            (1,)
+            1
+            sage: type(ZZ.gens()[0])
+            <type 'sage.rings.integer.Integer'>
+        """
         return (self(1), )
 
     def gen(self, n=0):
+        """
+        Returns the additive generator of the integers, which is 1.
+
+        EXAMPLES:
+            sage: ZZ.gen()
+            1
+            sage: type(ZZ.gen())
+            <type 'sage.rings.integer.Integer'>
+        """
         if n == 0:
             return self(1)
         else:
             raise IndexError, "n must be 0"
 
     def ngens(self):
+        """
+        Returns the number of additive generators of the ring, which is 1.
+
+        EXAMPLES:
+            sage: ZZ.ngens()
+            1
+            sage: len(ZZ.gens())
+            1
+        """
         return 1
 
     def degree(self):

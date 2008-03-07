@@ -1101,6 +1101,9 @@ cdef class PrincipalIdealDomain(IntegralDomain):
         Return the greatest common divisor of x and y, as elements
         of self.
 
+        TODO: Perhaps the gcd of elements in a field (particularly in QQ, see
+        below) should be named something else.
+
         EXAMPLES:
         The integers are a principal ideal domain and hence a GCD domain:
             sage: ZZ.gcd(42, 48)
@@ -1113,20 +1116,54 @@ cdef class PrincipalIdealDomain(IntegralDomain):
             sage: 88.factor()
             2^3 * 11
 
-        We can also calculate gcd's in certain fields. (They are trivial
-        PIDs.) Below are several examples in the rationals. Note that when
-        x and y are integers, they are coerced into rationals:
-            sage: QQ.gcd(ZZ(42), ZZ(48))
+        We can also calculate gcd's in certain fields, though, they are not
+        greatest common divisors in a ring-theoretic sense. Since every element
+        in a field is a unit, there are formally no primes in any field.
+        However, we can formulate a notion of least common multiple in the
+        rationals by looking at certain Z-modules.
+        (See rings.rational.Rational.gcd)
+
+        Note that each rational number can be written as a product of (integer)
+        primes with integer (positive or negative) powers. We define the gcd of
+        two rational numbers x and y to be the product of primes occuring in
+        both x and y with the exponent of each prime equal to the min of the
+        exponents of that prime in the factorization of both x and y. Thus,
+        the gcd of x and y is actually a generator for the Z-module generated
+        by x and y:
+
+            If M = (x,y) as a Z-module, then M = (QQ.gcd(x,y)) as a Z-module.
+
+        Some examples below: (note that QQ.gcd is coerced to a rational)
+            sage: QQ.gcd(ZZ(42), ZZ(48)); type(QQ.gcd(ZZ(42), ZZ(48)))
             6
-            sage: QQ.gcd(1/2, 1/4)
-            1/4
-            sage: x = 11/12; y = 11/30
-            sage: QQ.gcd(x,y)
-            11/60
-            sage: factor(x); factor(y); factor(QQ.gcd(x,y))
-            2^-2 * 3^-1 * 11
-            2^-1 * 3^-1 * 5^-1 * 11
-            2^-2 * 3^-1 * 5^-1 * 11
+            <type 'sage.rings.rational.Rational'>
+            sage: QQ.gcd(1/2, 1/3)
+            1/6
+            sage: factor(1/2); factor(1/3); factor(1/6)
+            2^-1
+            3^-1
+            2^-1 * 3^-1
+            sage: a = (2*3)/(7*11); b = (13*17)/(19*23)
+            sage: factor(a); factor(b); factor(QQ.gcd(a,b))
+            2 * 3 * 7^-1 * 11^-1
+            13 * 17 * 19^-1 * 23^-1
+            7^-1 * 11^-1 * 19^-1 * 23^-1
+
+        Note the changes to the second entry
+
+            sage: c = (2*3)/(7*11); d = (13*17)/(7*19*23)
+            sage: factor(c); factor(d); factor(QQ.gcd(c,d))
+            2 * 3 * 7^-1 * 11^-1
+            7^-1 * 13 * 17 * 19^-1 * 23^-1
+            7^-1 * 11^-1 * 19^-1 * 23^-1
+            sage: e = (2*3)/(7*11); f = (13*17)/(7^3*19*23)
+            sage: factor(e); factor(f); factor(QQ.gcd(e,f))
+            2 * 3 * 7^-1 * 11^-1
+            7^-3 * 13 * 17 * 19^-1 * 23^-1
+            7^-3 * 11^-1 * 19^-1 * 23^-1
+
+        You can always multiply QQ.gcd(a,b) by some integer to get either
+        x or y back.
 
         Polynomial rings over fields are GCD domains as well. Here is a simple
         example over the ring of polynomials over the rationals as well as

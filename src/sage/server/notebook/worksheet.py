@@ -656,12 +656,29 @@ class Worksheet:
                 s += '\n\n' + t
         return s
 
+    def reset_interact_state(self):
+        """
+        Reset the interact state of this worksheet.
+        """
+        try:
+            S = self.__sage
+        except AttributeError:
+            return
+        try:
+            S._send('sage.server.notebook.interact.reset_state()')
+        except OSError:
+            # Dosn't matter, since if S is not running, no need
+            # to zero out the state dictionary.
+            return
+
     def edit_save(self, text, ignore_ids=False):
         # Clear any caching.
         try:
             del self.__html
         except AttributeError:
             pass
+
+        self.reset_interact_state()
 
         text.replace('\r\n','\n')
         name, i = extract_name(text)
@@ -728,6 +745,11 @@ class Worksheet:
             cells.append(self._new_cell())
 
         self.__cells = cells
+
+        for c in self.__cells:
+            if c.is_interactive_cell():
+                if not c in self.__queue:
+                    self.enqueue(c)
 
         # This *depends* on self.__cells being set!!
         self.set_cell_counter()
@@ -1168,7 +1190,7 @@ class Worksheet:
             return None
         try:
             S = self.__sage
-            if not S._expect is None:
+            if S._expect is not None:
                 return S
         except AttributeError:
             pass

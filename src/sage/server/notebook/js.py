@@ -118,7 +118,12 @@ function async_callback(id) {
     } catch(e) {
         if(async_oblist[id] != null) //release immediately
             async_release(id);
-        callback("failure", e);
+        try {
+            callback("failure", e);
+        } catch(e) {
+            /* In some cases the failure report can't be done as above because
+               callback itself is not a function. */
+        }
     }
 }
 
@@ -1857,6 +1862,10 @@ function contains_jsmath(text) {
 }
 
 function set_output_text(id, text, wrapped_text, output_html, status, introspect_html, no_interact) {
+    if (id < 0) {
+        /* negative id's come up for special internal usage. */
+        return;
+    }
     var cell_interact = get_element("cell-interact-" + id);
     if (!no_interact && cell_interact) {
         if (status  != 'd') return;
@@ -1881,6 +1890,10 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
     } else {
         /* fill in output text got so far */
         var cell_output = get_element('cell_output_' + id);
+        if (!cell_output) {
+            alert("Bug in notebook -- missing output for cell with id "+id);
+            return;
+        }
         var cell_output_nowrap = get_element('cell_output_nowrap_' + id);
         var cell_output_html = get_element('cell_output_html_' + id);
 

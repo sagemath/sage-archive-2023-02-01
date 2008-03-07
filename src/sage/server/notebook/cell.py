@@ -41,7 +41,8 @@ import notebook
 import worksheet
 
 class Cell_generic:
-    pass
+    def is_interactive_cell(self):
+        return False
 
 class TextCell(Cell_generic):
     def __init__(self, id, text, worksheet):
@@ -258,7 +259,7 @@ class Cell(Cell_generic):
             else:
                 out = self.output_text(ncols, raw=True, html=False)
         else:
-            out = self.output_text(ncols, raw=True, html=False)
+            out = self.output_text(ncols, raw=True, html=False, allow_interact=False)
             out = '///\n' + out
 
         if not max_out is None and len(out) > max_out:
@@ -380,7 +381,8 @@ class Cell(Cell_generic):
             else:
                 output = output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
         self.__out = output
-        self.__out_html = html
+        if not self.is_interactive_cell():
+            self.__out_html = html
         self.__sage = sage
 
     def sage(self):

@@ -31,11 +31,9 @@ BUGS:
    [x] display html parts of output as html
    [x] default slider pos doesn't work, eg. def cont(q1=(-1,(-3,3)), q2=(1,(-3,3))):
    [x] change from interact to interact everywhere.
-
--->  [ ] edit/save breaks interact mode <--
+   [x] edit/save breaks interact mode
           * picking up images that shouldn't.
           * controls completely stop working.
-
    [ ] tab completion in interact broken formating
    [ ] error exception reporting broken
    [ ] problems with html/pre/text formating, e.g., in TEXT mode and in interact cells
@@ -126,6 +124,21 @@ SAGE_CELL_ID = 0
 
 # Dictionary that stores the state of all active interact cells.
 state = {}
+
+def reset_state():
+    """
+    Reset the interact state of this sage process.
+
+    EXAMPLES:
+        sage: sage.server.notebook.interact.state  # random output
+        {1: {'function': <function g at 0x72aaab0>, 'variables': {'m': 3, 'n': 5}, 'adapt': {1: <bound method Slider._adaptor of Slider Interact Control: n [1--|1|---10].>, 2: <bound method Slider._adaptor of Slider Interact Control: m [1--|1|---10].>}}}
+        sage: from sage.server.notebook.interact import reset_state
+        sage: reset_state()
+        sage: sage.server.notebook.interact.state
+        {}
+    """
+    global state
+    state = {}
 
 _k = 0
 def new_adapt_number():
@@ -337,7 +350,7 @@ class InteractControl:
 
         EXAMPLES:
             sage: sage.server.notebook.interact.InteractControl(math.cos, 'x', 1).interact()
-            'interact(0, "sage.server.notebook.interact.update(0, \\"x\\", 5, \\""+NULL+"\\", globals())")'
+            'interact(0, "sage.server.notebook.interact.update(..., \\"x\\", ..., \\""+NULL+"\\", globals())")'
         """
         # The following is a crazy line to read because of all the backslashes and try/except.
         # All it does is run the interact function once after setting exactly one
@@ -529,8 +542,7 @@ class InteractCanvas:
           <?TEXT>
         </td></tr>
         <tr><td  align=center valign=top><?HTML></td></tr>
-        </table>
-        </td></tr></table><?END></div>
+        </table><?END></div>
         """%self.cell_id()
 
     def render_controls(self):
@@ -658,6 +670,19 @@ def interact(f):
         ...     C = contour_plot(g, (-2,2), (-2,2), plot_points=30, contours=15, cmap='cool')
         ...     show(C, figsize=3, aspect_ratio=1)
         ...     show(plot3d(g, (-2,2), (-2,2)), figsize=4)
+        <html>...
+
+    A quadratic roots etch-a-sketch:
+        sage: v = []
+        sage: html('<h2>Quadratic Root Etch-a-sketch</h2>')
+        sage: @interact
+        sage: def _(a=[-10..10], b=[-10..10], c=[-10..10]):
+        ...       f = a*x^2 + b*x + c == 0; show(f)
+        ...       soln = solve(a*x^2 + b*x + c == 0, x)[0].rhs()
+        ...       show(soln)
+        ...       P = tuple(CDF(soln))
+        ...       v.append(P)
+        ...       show(line(v, rgbcolor='purple') + point(P, pointsize=200))
         <html>...
 
     In the following example, we only generate data for a given n

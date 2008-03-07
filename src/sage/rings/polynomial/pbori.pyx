@@ -2082,7 +2082,23 @@ cdef class BooleSet:
         return new_BS_from_PBSet(self._pbset.unite((<BooleSet>rhs)._pbset))
 
     def __iter__(self):
-        return new_BSI_from_PBSetIter(self, get_cring())
+        """
+        Create an iterator over elements of self.
+
+        EXAMPLES:
+            sage: P.<x, y> = BooleanPolynomialRing(2)
+            sage: f = x*y+x+y+1; s = f.set()
+            sage: list(s)
+            [x*y, x, y, 1]
+        """
+        #FIXME: BooleSet iterators don't work for some reason
+        # we use BooleanPolynomial iterators for now to work around the problem
+        cdef BooleanPolynomial p
+        p = new_BP_from_PBSet(get_cring(), self._pbset)
+
+        return new_BPI_from_PBPolyIter(p, p._pbpoly.orderedBegin())
+
+        #return new_BSI_from_PBSetIter(self, get_cring())
 
     def subset0(self, i):
         return new_BS_from_PBSet(self._pbset.subset0(int(i)))

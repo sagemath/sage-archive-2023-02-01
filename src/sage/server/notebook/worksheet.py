@@ -1330,7 +1330,6 @@ class Worksheet:
         # a cell to know it's ID.
         input += 'sage.server.notebook.interact.SAGE_CELL_ID=%s\n'%(C.id())
 
-        print "timing"
         if C.time():
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
         if I.endswith('?'):
@@ -1389,7 +1388,7 @@ class Worksheet:
             self.restart_sage()
             C.set_output_text('The Sage compute process quit (possibly Sage crashed?).\nPlease retry your calculation.','')
 
-    def check_comp(self):
+    def check_comp(self, wait=0.2):
         if len(self.__queue) == 0:
             return 'e', None
         S = self.sage()
@@ -1400,7 +1399,7 @@ class Worksheet:
             return 'd', C
 
         try:
-            done, out, new = S._so_far(wait=0.2, alternate_prompt=SAGE_END+str(self.synchro()))
+            done, out, new = S._so_far(wait=wait, alternate_prompt=SAGE_END+str(self.synchro()))
         except RuntimeError, msg:
             verbose("Computation was interrupted or failed. Restarting.\n%s"%msg)
             self.__comp_is_running = False

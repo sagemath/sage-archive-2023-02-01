@@ -2,6 +2,12 @@ r"""
 This module provides a very simple API for interacting with a Sage session
 over http. It runs in as part of the notebook server.
 
+NOTE:
+    The exact data in the JSON header may vary over time (for example, further
+    data may be added), but should remain backwards compatable if it is being
+    parsed as JSON data.
+
+
 TESTS:
     sage: from sage.server.notebook.notebook_object import test_notebook
     sage: import urllib, re
@@ -31,8 +37,8 @@ Run a command:
     4
 
 Do a longer-running example:
-    sage: n = next_prime(10^80)*next_prime(10^90)
-    sage: print get_url('https://localhost:8095/simple/compute?session=%s&code=factor(%s)' % (session, n))
+    sage: n = next_prime(10^25)*next_prime(10^30)
+    sage: print get_url('https://localhost:8095/simple/compute?session=%s&code=factor(%s)&timeout=0.1' % (session, n))
     {
     "status": "computing",
     "files": [],
@@ -80,7 +86,7 @@ Log out:
 
 import re, random, os.path, shutil, time
 
-from twisted.internet.threads import deferToThread
+from twisted.internet.task import LoopingCall
 from twisted.python import log
 from twisted.internet import defer, reactor
 from twisted.cred import credentials
@@ -208,25 +214,23 @@ class RestartResource(resource.Resource):
 
 class CellResource(resource.Resource):
 
-    def wait_for_comp(self, cell, timeout):
-        """
-        This function polls the worksheet and exits when the computation finishes
-        or timeout seconds have elapsed.
+    def start_comp(self, cell, timeout):
+        start_time = time.time()
+        looper_list = []
+        looper = LoopingCall(self.check_comp, cell, start_time, timeout, looper_list)
+        looper_list.append(looper) # so check_comp has access
+        looper.cell = cell # to pass it on
+        d = looper.start(0.25, now=True)
+        d.addCallback(self.render_cell_result)
+        return d
 
-        It would seem twisted would have a builtin mechanism to do this...
-        """
-        t = time.time()
-        cell.worksheet().check_comp()
-        if not cell.computing() or timeout <= 0:
-            return self.render_cell_result(cell)
-        else:
-            poll_freq = 0.25
-            d = defer.Deferred()
-            d.addCallback(self.wait_for_comp, timeout-poll_freq-(time.time()-t))
-            reactor.callLater(poll_freq, d.callback, cell)
-            return d
+    def check_comp(self, cell, start_time, timeout, looper_list):
+        cell.worksheet().check_comp(wait=0.01) # don't want to block, delay handled by twisted
+        if not cell.computing() or time.time() - start_time > timeout:
+            looper_list[0].stop()
 
-    def render_cell_result(self, cell):
+    def render_cell_result(self, looper):
+        cell = looper.cell
         if cell.interrupted():
             cell_status = 'interrupted'
         elif cell.computing():
@@ -246,13 +250,13 @@ class ComputeResource(CellResource):
         except KeyError:
             return http.Response(stream = "Invalid session.")
         try:
-            timeout = float(sessions[ctx.args['timeout'][0]])
-        except KeyError, ValueError:
+            timeout = float(ctx.args['timeout'][0])
+        except (KeyError, ValueError), msg:
             timeout = session.default_timeout
         cell = session.worksheet.append_new_cell()
         cell.set_input_text(ctx.args['code'][0])
         cell.evaluate(username = session.username)
-        return self.wait_for_comp(cell, timeout)
+        return self.start_comp(cell, timeout)
 
 
 class StatusResource(CellResource):
@@ -266,10 +270,10 @@ class StatusResource(CellResource):
             cell_id = int(ctx.args['cell'][0])
             cell = session.worksheet.get_cell_with_id(cell_id)
             try:
-                timeout = float(sessions[ctx.args['timeout'][0]])
+                timeout = float(ctx.args['timeout'][0])
             except KeyError, ValueError:
                 timeout = -1
-            return self.wait_for_comp(cell, timeout)
+            return self.start_comp(cell, timeout)
         except KeyError:
             status = session.get_status()
             return http.Response(stream = "%s\n%s\n" % (simple_jsonize(status), SEP))

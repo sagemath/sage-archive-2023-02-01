@@ -572,7 +572,7 @@ class MPolynomialIdeal_singular_repr:
         EXAMPLE:
             sage: R.<u,v> = PolynomialRing(QQ)
             sage: g = u^4 + v^4 + u^3 + v^3
-            sage: I = ideal(g) + ideal(g.jacob())
+            sage: I = ideal(g) + ideal(g.gradient())
             sage: I.dimension()
             0
             sage: I.vector_space_dimension()

@@ -3834,7 +3834,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             p = pNext(p)
         return coeffs
 
-    def jacob(self):
+    def gradient(self):
         """
         Return a list of partial derivatives of self, ordered by the
         variables of self.parent().
@@ -3842,7 +3842,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         EXAMPLE:
            sage: P.<x,y,z> = PolynomialRing(QQ,3)
            sage: f= x*y + 1
-           sage: f.jacob()
+           sage: f.gradient()
            [y, x, 0]
         """
         cdef ring *r

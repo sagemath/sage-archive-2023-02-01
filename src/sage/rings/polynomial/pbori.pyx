@@ -80,7 +80,19 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: R = BooleanPolynomialRing(3,'x',order='degrevlex')
             sage: R.term_order()
             Degree reverse lexicographic term order
+
+        TESTS:
+            sage: P.<x,y> = BooleanPolynomialRing(2,order='degrevlex')
+            sage: x > y
+            True
+
+            sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4,order='degrevlex(2),degrevlex(2)')
+            sage: x0 > x1
+            True
+            sage: x2 > x3
+            True
         """
+        cdef Py_ssize_t i, j, bstart, bsize
         try:
             n = int(n)
         except TypeError, msg:
@@ -89,6 +101,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         if n < 1:
             raise ValueError, "Number of variables must be greater than 1."
 
+        self.pbind = <Py_ssize_t*>sage_malloc(n*sizeof(Py_ssize_t))
         cdef char *_n
 
         order = TermOrder(order, n)
@@ -109,6 +122,22 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 if order.blocks[0][0] != order.blocks[i][0]:
                     raise ValueError, "Each block must have the same order type (deglex or degrevlex) for block orderings."
 
+        if (pb_order_code is dlex) or (pb_order_code is lp) or \
+                (pb_order_code is block_dlex):
+            for i from 0 <= i < n:
+                self.pbind[i] = i
+        elif pb_order_code is dp_asc:
+            for i from 0 <= i < n:
+                self.pbind[i] = n - i -1
+        else:
+            # pb_order_code is block_dp_asc:
+            bstart = 0
+            for i from 0 <= i < len(order.blocks):
+                bsize = order.blocks[i][1]
+                for j from 0 <= j < bsize:
+                    self.pbind[bstart + j] = bstart + bsize - j -1
+                bstart += bsize
+
         PBRing_construct(&self._pbring, n, pb_order_code)
 
         MPolynomialRing_generic.__init__(self, GF(2), n, names, order)
@@ -118,8 +147,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             counter += order.blocks[i][1]
             pb_append_ring_block(counter)
 
-        for i in range(self.ngens()):
-            _n = self._names[i]
+        for i from 0 <= i < n:
+            _n = self._names[self.pbind[i]]
             self._pbring.setRingVariableName(i,_n)
 
         self._zero_element = new_BP(self)
@@ -132,6 +161,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         set_cring(self)
 
     def __dealloc__(self):
+        sage_free(self.pbind)
         PBRing_destruct(&self._pbring)
 
     def __reduce__(self):
@@ -171,8 +201,13 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             x
             sage: P.gen(2)
             z
+
+        TESTS:
+            sage: P.<x,y,z> = BooleanPolynomialRing(3, order='dp')
+            sage: P.gen(0)
+            x
         """
-        return new_BP_from_DD(self, self._pbring.variable(n))
+        return new_BP_from_DD(self, self._pbring.variable(self.pbind[n]))
 
     def gens(self):
         """
@@ -186,9 +221,15 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P = BooleanPolynomialRing(10,'x')
             sage: P.gens()
             (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
+
+        TESTS:
+            sage: P.<x,y,z> = BooleanPolynomialRing(3,order='degrevlex')
+            sage: P.gens()
+            (x, y, z)
         """
-        return tuple([new_BP_from_DD(self, self._pbring.variable(i)) \
-                for i in xrange(self.ngens())])
+        return tuple([new_BP_from_DD(self,
+            self._pbring.variable(self.pbind[i])) \
+                for i from 0<= i < self.__ngens])
 
     def _repr_(self):
         """
@@ -1346,7 +1387,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: P.<x,y,z> = BooleanPolynomialRing(3, order='degrevlex')
             sage: p = x + z + x*y + y*z + x*y*z
             sage: list(iter(p))
-            [x*y*z, y*z, x*y, z, x]
+            [z*y*x, y*x, z*y, x, z]
 
         TESTS:
             sage: R = BooleanPolynomialRing(1,'y')
@@ -1634,7 +1675,7 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: P.<a,b,c> = BooleanPolynomialRing(3,order='degrevlex')
             sage: f = a + c*b
             sage: f.monomials()
-            [b*c, a]
+            [c*b, a]
         """
         return list(self)
 

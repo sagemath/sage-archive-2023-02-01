@@ -82,6 +82,20 @@ cimport rational
 import ring
 
 def is_IntegerRing(x):
+    """
+    Internal funtion: returns true iff x is the ring ZZ of integers
+
+    EXAMPLES:
+    sage: from sage.rings.integer_ring import  is_IntegerRing
+    sage: is_IntegerRing(ZZ)
+    True
+    sage: is_IntegerRing(QQ)
+    False
+    sage: is_IntegerRing(parent(3))
+    True
+    sage: is_IntegerRing(parent(1/3))
+    False
+    """
     return PY_TYPE_CHECK(x, IntegerRing_class)
 
 import integer_ring_python
@@ -530,8 +544,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     def is_atomic_repr(self):
         """
         Return True, since elements of the integers do not have
-        to be printed with paranethesis around them, when they
+        to be printed with parentheses around them, when they
         are coefficients, e.g., in a polynomial.
+
+        EXAMPLE:
+            sage: ZZ.is_atomic_repr()
+            True
         """
         return True
 
@@ -612,8 +630,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def gens(self):
         """
-        Returns the additive generator of the integers, which is 1.
-        (As a two-tuple with empty second entry.)
+
+        Returns the tuple (1,) containing a single element, the
+        additive generator of the integers, which is 1.
 
         EXAMPLES:
             sage: ZZ.gens(); ZZ.gens()[0]
@@ -652,33 +671,100 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         return 1
 
     def degree(self):
+        """
+        Return the degree of the integers, which is 1
+
+        EXAMPLE:
+            sage: ZZ.degree()
+            1
+        """
         return 1
 
     def absolute_degree(self):
+        """
+        Return the absolute degree of the integers, which is 1
+
+        EXAMPLE:
+            sage: ZZ.absolute_degree()
+            1
+        """
         return 1
 
     def characteristic(self):
         """
-        Return 0 as a Python int.
+        Return the characteristic of the integers, which is 0
+
+        EXAMPLE:
+            sage: ZZ.characteristic()
+            0
         """
         return 0
 
     def krull_dimension(self):
         """
         Return the Krull dimension of the integers, which is 1.
+
+        EXAMPLE:
+            sage: ZZ.krull_dimension()
+            1
         """
         return 1
 
     def order(self):
+        """
+        Return the order (cardinality) of the integers, which is +Infinity.
+
+        EXAMPLE:
+            sage: ZZ.order()
+            +Infinity
+        """
         return sage.rings.infinity.infinity
 
     def zeta(self, n=2):
+        """
+        Return a primitive n'th root of unity in the integers, or
+        raise an error if none exists
+
+        INPUT:
+            n -- a positive integer (default 2)
+        OUTPUT:
+            an n'th root of unity in ZZ
+
+        EXAMPLE:
+            sage: ZZ.zeta()
+            -1
+            sage: ZZ.zeta(1)
+            1
+            sage: ZZ.zeta(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: no nth root of unity in integer ring
+            sage: ZZ.zeta(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be positive in zeta()
+        """
         if n == 1:
             return sage.rings.integer.Integer(1)
         elif n == 2:
             return sage.rings.integer.Integer(-1)
+        elif n < 1:
+            raise ValueError, "n must be positive in zeta()"
         else:
             raise ValueError, "no nth root of unity in integer ring"
+
+    def parameter(self):
+        """
+        Returns an integer of degree 1 for the Euclidean property of
+        ZZ, namely 1.
+
+        EXAMPLES:
+            sage: ZZ.parameter()
+            1
+        """
+        return self(1)
+
+
 
 
     #################################
@@ -704,12 +790,27 @@ ZZ = IntegerRing_class()
 Z = ZZ
 
 def IntegerRing():
+    """
+    Return the integer ring
+
+    EXAMPLE:
+        sage: IntegerRing()
+        Integer Ring
+        sage: ZZ==IntegerRing()
+        True
+    """
     return ZZ
 
 def factor(n, algorithm='pari', proof=True):
     """
-    Return the factorization of the positive integer $n$ as a list of
-    tuples $(p_i,e_i)$ such that $n=\prod p_i^{e_i}$.
+    Return the factorization of the positive integer $n$ as a sorted
+    list of tuples $(p_i,e_i)$ such that $n=\prod p_i^{e_i}$.
+
+    For further documentation see sage.rings.arith.factor()
+
+    EXAMPLE:
+        sage: sage.rings.integer_ring.factor(420)
+        2^2 * 3 * 5 * 7
     """
     import sage.rings.arith
     return sage.rings.arith.factor(n, algorithm=algorithm, proof=proof)

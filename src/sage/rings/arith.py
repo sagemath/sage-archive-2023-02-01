@@ -1555,6 +1555,9 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         they aren't as optimized).  Thus you might consider using them
         instead for certain numbers.
 
+        The factorization prints in user-friendly format but the (p,e)
+        pairs can easily be accessed -- see examples
+
     EXAMPLES:
         sage: factor(500)
         2^2 * 5^3
@@ -1586,6 +1589,19 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(2^197 + 1)       # takes a long time (e.g., 3 seconds!)
         3 * 197002597249 * 1348959352853811313 * 251951573867253012259144010843
 
+
+    To access the data in a factorization:
+
+        sage: factor(420)
+        2^2 * 3 * 5 * 7
+        sage: [x for x in factor(420)]
+        [(2, 2), (3, 1), (5, 1), (7, 1)]
+        sage: [p for p,e in factor(420)]
+        [2, 3, 5, 7]
+        sage: [e for p,e in factor(420)]
+        [2, 1, 1, 1]
+        sage: [p^e for p,e in factor(420)]
+        [4, 3, 5, 7]
     """
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):

@@ -753,6 +753,10 @@ cdef class CommutativeRing(Ring):
         Return the monoid of ideals of this ring.
 
         EXAMPLES:
+            sage: ZZ.ideal_monoid()
+            Monoid of ideals of Integer Ring
+            sage: R.<x>=QQ[]; R.ideal_monoid()
+            Monoid of ideals of Univariate Polynomial Ring in x over Rational Field
         """
         if self.__ideal_monoid is not None:
             return self.__ideal_monoid
@@ -1133,6 +1137,14 @@ cdef class PrincipalIdealDomain(IntegralDomain):
 
             If M = (x,y) as a Z-module, then M = (QQ.gcd(x,y)) as a Z-module.
 
+        Alternative definitions are:
+
+            z = gcd(x,y) iff z is the unique (positive) rational such
+            that x/z and y/z are coprime integers.
+
+            z = gcd(x,y) iff z=gcd(d*x,d*y)/d where d is any positive
+            integer such that d*x, d*y are integral.
+
         Some examples below: (note that QQ.gcd is coerced to a rational)
             sage: QQ.gcd(ZZ(42), ZZ(48)); type(QQ.gcd(ZZ(42), ZZ(48)))
             6
@@ -1203,7 +1215,10 @@ cdef class EuclideanDomain(PrincipalIdealDomain):
         Return an element of degree 1.
 
         EXAMPLES:
-        """
+            sage: R.<x>=QQ[]
+            sage: R.parameter()
+            x
+       """
         raise NotImplementedError
 
 def is_Field(x):

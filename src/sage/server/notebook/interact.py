@@ -34,16 +34,15 @@ BUGS:
    [x] edit/save breaks interact mode
           * picking up images that shouldn't.
           * controls completely stop working.
-   [ ] tab completion in interact broken formating
-   [ ] error exception reporting broken
-   [ ] problems with html/pre/text formating, e.g., in TEXT mode and in interact cells
-   [ ] replace special %interact by something very obfuscated to keep from having
+   [x] problems with html/pre/text formating, e.g., in TEXT mode and in interact cells
+   [x] tab completion in interact broken formating
+   [x] error exception reporting broken
+   [x] replace special %interact by something very obfuscated to keep from having
        really weird mistakes that are hard for people to debug.
-   [ ] flicker resize during update (hard???)
-   [ ] cross-platform testing.
-   [ ] cell order corruption
-   [ ] slider is too narrow -- need to expand to window width
-
+   [x] cell order corruption
+   [x] cross-platform testing (good enough -- it's jquery)
+   [x] can't enter "foo" in input_box now because of how strings are
+       passed back and forth using single quotes.
 
 VERSION 1:
    [X] get sliders to work; values after move slider
@@ -53,21 +52,26 @@ VERSION 1:
         but feals all wrong.
    [x] completely get rid of left clicking to switch wrap mode for
            interact objects: always in word wrap mode or hide.
-   [ ] shortcut ('label', v)
-   [ ] 100% documentation and doctest coverage
-   [ ] test saving and loading whole notebook to a file
+   [x] shortcut ('label', v)
+   [x] test saving and loading whole notebook to a file
+   [x] collection of about 20 good examples of how to use interact (doctested)
+
    [ ] setter bar (buttons)
    [ ] drop down menu
    [ ] checkbox
-   [ ] write several paragraps at the top of this file that describe
-       the philosophy and use of these interact things
-   [ ] put the docs for this in the reference manul.
-   [ ] collection of about 20 good examples of how to use interact (doctested)
-   [ ] make it so slider has width 100%.
    [ ] line up all the control in a single table so all labels and all
        controls exactly match up
+   [ ] 100% documentation and doctest coverage
+
+   DOCS:
+   [ ] write paragraphs at the top of this file that describe
+       the philosophy and use of these interact things
+   [ ] put the docs for this in the reference manual
+   [ ] put summary doc in notebook help page
 
 VERSION 2:
+   [ ] slider is too narrow -- need to expand to window width?
+   [ ] fix the flicker resize during update (hard???)
    [ ] make option for text input that correctly gives something of
        the same type as the default input.
    [ ] matrix input control (method of matrix space) -- a spreadsheet like thing
@@ -112,8 +116,11 @@ VERSION 3:
 
 """
 
+# Standard system libraries
+from base64 import standard_b64encode, standard_b64decode
 import inspect
 
+# Sage libraries
 from sage.misc.all import srange, sage_eval
 
 # SAGE_CELL_ID is a module scope variable that is always set equal to
@@ -210,6 +217,9 @@ def html_slider(label, id, callback, steps, default=0, margin=0):
     stepping: 1, minValue: 0, maxValue: %s, startValue: %s,
     change: function () { var position = Math.ceil($('#%s').slider('value')); %s; }
 });}, 1);</script>"""%(id, steps-1, default, id, callback)
+    # change 'change' to 'slide' and it changes the slider every time it moves;
+    # needs much more work to actually work, since server gets fludded by
+    # requests.
 
     return s
 
@@ -350,12 +360,12 @@ class InteractControl:
 
         EXAMPLES:
             sage: sage.server.notebook.interact.InteractControl(math.cos, 'x', 1).interact()
-            'interact(0, "sage.server.notebook.interact.update(..., \\"x\\", ..., \\""+NULL+"\\", globals())")'
+            'interact(..., "sage.server.notebook.interact.update(..., \\"x\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(NULL)+"\\"), globals())")'
         """
         # The following is a crazy line to read because of all the backslashes and try/except.
         # All it does is run the interact function once after setting exactly one
         # dynamic variable.    If setting the dynamic variable fails, due to a KeyError
-        s = 'interact(%s, "sage.server.notebook.interact.update(%s, \\"%s\\", %s, \\""+%s+"\\", globals())")'%(
+        s = 'interact(%s, "sage.server.notebook.interact.update(%s, \\"%s\\", %s, sage.server.notebook.interact.standard_b64decode(\\""+encode64(%s)+"\\"), globals())")'%(
             self.cell_id(), self.cell_id(), self.var(), self.adapt_number(), self.value_js())
         return s
 
@@ -426,7 +436,7 @@ class InputBox(InteractControl):
 
         EXAMPLES:
             sage: sage.server.notebook.interact.InputBox(math.cos, 'theta', 1).render()
-            '\n        theta: <input type=\'text\' value=\'1\' width=200px onchange=\'interact(..., "sage.server.notebook.interact.update(..., \\"theta\\", ..., \\""+this.value+"\\", globals())")\'></input>\n        '
+            '\n        theta: <input type=\'text\' value=\'1\' width=200px onchange=\'interact(..., "sage.server.notebook.interact.update(..., \\"theta\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(this.value)+"\\"), globals())")\'></input>\n        '
         """
         return """
         %s: <input type='text' value='%r' width=200px onchange='%s'></input>
@@ -517,11 +527,31 @@ class InteractCanvas:
 
         INPUT:
             controls -- a list of InteractControl instances.
+
+        XAMPLES:
         """
         self.__controls = controls
         self.__cell_id = id
 
+    def __repr__(self):
+        """
+        Print representation of an interactive canvas.
+
+        EXAMPLES:
+        """
+        return "Interactive canvas in cell %s with %s controls"%(
+            self.__cell_id, len(self.__controls))
+
+
     def cell_id(self):
+        """
+        Return the cell id that contains this interactive canvas.
+
+        EXAMPLES:
+            sage: C = sage.server.notebook.interact.InteractCanvas([], 3)
+            sage: C.cell_id()
+            3
+        """
         return self.__cell_id
 
     def render_output(self):
@@ -538,10 +568,8 @@ class InteractCanvas:
         return """
         <div id='cell-interact-%s'><?START>
         <table border=0 bgcolor='#white' width=100%% height=100%%>
-        <tr><td bgcolor=white align=center valign=top>
-          <?TEXT>
-        </td></tr>
-        <tr><td  align=center valign=top><?HTML></td></tr>
+        <tr><td bgcolor=white align=left valign=top><pre><?TEXT></pre></td></tr>
+        <tr><td  align=left valign=top><?HTML></td></tr>
         </table><?END></div>
         """%self.cell_id()
 
@@ -620,7 +648,7 @@ def interact(f):
     \begin{itemize}
         \item u -- blank input field
         \item u = element -- input eval field with default = element
-        \item u = (umin,umax) -- continuous slider (really 50 steps)
+        \item u = (umin,umax) -- continuous slider (really 100 steps)
         \item u = (umin,umax,du) -- slider with step size du
         \item u = [1,2,3] -- buttons if at most 5; otherwise, drop down
         \item u = a bool -- a checkbox
@@ -675,8 +703,9 @@ def interact(f):
     A quadratic roots etch-a-sketch:
         sage: v = []
         sage: html('<h2>Quadratic Root Etch-a-sketch</h2>')
+        <html><font color='black'><h2>Quadratic Root Etch-a-sketch</h2></font></html>
         sage: @interact
-        sage: def _(a=[-10..10], b=[-10..10], c=[-10..10]):
+        ... def _(a=[-10..10], b=[-10..10], c=[-10..10]):
         ...       f = a*x^2 + b*x + c == 0; show(f)
         ...       soln = solve(a*x^2 + b*x + c == 0, x)[0].rhs()
         ...       show(soln)
@@ -867,8 +896,8 @@ def automatic_control(default):
             elif isinstance(default[0], list):
                 C = slider(default[0], default=default[1])
             else:
-                # The default 49.0 below is a sort of "heuristic value" so there are 50 steps
-                C = slider(srange(default[0], default[1], (default[1]-default[0])/49.0,
+                # The default 99.0 below is a sort of "heuristic value" so there are 100 steps
+                C = slider(srange(default[0], default[1], (default[1]-default[0])/99.0,
                                   include_endpoint=True), default = default_value)
         elif len(default) == 3:
             C = slider(srange(default[0], default[1], default[2], include_endpoint=True))

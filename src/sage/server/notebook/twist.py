@@ -977,6 +977,10 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
             if W.owner() != self.username and not (self.username in W.collaborators()):
                return InvalidPage(msg = "can't evaluate worksheet cells", username = self.username)
         cell = W.get_cell_with_id(id)
+
+        if input_text.startswith('%__sage_interact__'):
+            W.interrupt()
+
         cell.set_input_text(input_text)
         cell.evaluate(username = self.username)
 

@@ -1454,6 +1454,8 @@ class Notebook(SageObject):
 <script type="text/javascript" src="/javascript/jqueryui/ui.dialog.js"></script>
 <link rel="stylesheet" href="/javascript/jqueryui/themes/flora/flora.all.css"
    type="text/css" media="screen" title="Flora (Default)">
+<script type="text/javascript" src="/javascript/farbtastic/farbtastic.js"></script>
+<link rel="stylesheet" href="/javascript/farbtastic/farbtastic.css" type="text/css" />
          '''
 
         # This was for syntax hilighting
@@ -1883,7 +1885,7 @@ function save_worksheet_and_close() {
             check=''
         s = """<input type="checkbox" title="Enable/disable pretty_printing"
         onchange="go_pretty_print_check(this);"
-        class="worksheet" value="pretty_print" %s> Typeset output"""%(check)
+        class="worksheet" value="pretty_print" %s>&nbsp;Typeset"""%(check)
         return s
 
 

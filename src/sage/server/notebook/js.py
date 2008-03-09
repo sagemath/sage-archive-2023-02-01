@@ -2591,7 +2591,11 @@ var keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
 function encode64(input) {
    /* I had to add this, since otherwise when input is numeric there are
       errors below. */
-   input = input.toString();
+   try {
+       input = input.toString();
+   } catch(e) {
+       return input;
+   }
    var output = "";
    var chr1, chr2, chr3;
    var enc1, enc2, enc3, enc4;

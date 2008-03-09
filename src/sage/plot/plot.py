@@ -263,7 +263,7 @@ from sage.structure.sage_object import SageObject
 
 import sage.misc.misc
 
-from misc import rgbcolor
+from misc import rgbcolor, Color
 
 ############### WARNING ###
 # Try not to import any matplotlib stuff here -- matplotlib is
@@ -3723,6 +3723,9 @@ def to_mpl_color(c):
         sage: to_mpl_color([1,2,255])   # WARNING -- numbers are reduced mod 1!!
         (1.0, 0.0, 0.0)
     """
+    if isinstance(c, Color):
+        c = c.rgb()
+
     if isinstance(c, str):
         if len(c) > 0 and c[0] == '#':
             # it is some sort of html like color, e.g, #00ffff or #ab0

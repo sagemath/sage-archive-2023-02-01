@@ -20,6 +20,12 @@ AUTHORS:
 """
  ** PLANNING **
 
+NOTES:
+   * There is no testing of pickling anywhere in this file.  This is
+     because there is no reason one would ever pickle anything in this
+     file, since everything is associated with particular state
+     information of a notebook.
+
 BUGS:
    [x] have default values set from the get go
    [x] spacing around sliders; also need to have labels
@@ -43,6 +49,8 @@ BUGS:
    [x] cross-platform testing (good enough -- it's jquery)
    [x] can't enter "foo" in input_box now because of how strings are
        passed back and forth using single quotes.
+   [?] possible issue with page title being undefined; don't know why or if that is
+       connected with interactives
 
 VERSION 1:
    [X] get sliders to work; values after move slider
@@ -58,22 +66,28 @@ VERSION 1:
    [x] interact(f) should also work; i.e., no need to use decorators -- done; won't be advertised, but
        at least fixing this improves code quality.
    [x] obfuscate ?START and ?END much more.
-   [ ] type checked input box
-   [ ] setter bar (buttons)
-   [ ] drop down menu
-   [ ] checkbox
-   [ ] color selector
-   [ ] line up all the control in a single table so all labels and all
+   [x] type checked input box
+   [x] line up all the control in a single table so all labels and all
        controls exactly match up
+   [x] button bar
+   [x] drop down menu
+   [x] checkbox
+   [x] color selector
+   [x] something to avoid server flood, e.g., any %interact request removes all other
+       such requests from the queue in worksheet.py
 
    DOCS:
    [ ] 100% documentation and doctest coverage
-   [ ] write paragraphs at the top of this file that describe
-       the philosophy and use of these interact things
    [ ] put the docs for this in the reference manual
    [ ] put summary doc in notebook help page
 
 VERSION 2:
+   [ ] vertical scroll bars (maybe very easy via jsquery)
+   [ ] small version of color selector
+   [ ] button -- block of code gets run when it is clicked
+   [ ] when click a button in a button bar it is highlighted and
+       other buttons are not (via some sort of javascript)
+   [ ] much more fine control over style of all controls
    [ ] safe/secure evaluation mode
    [ ] slider is too narrow -- need to expand to window width?
    [ ] fix the flicker resize during update (hard???)
@@ -117,17 +131,17 @@ VERSION 3:
        from elsewhere using the tag foo instead of the cell id number
        This involves doing something with SAGE_CELL_ID and the cell_id() method.
    [ ] framed -- put a frame around an object
-
-
 """
 
 # Standard system libraries
 from base64 import standard_b64encode, standard_b64decode
 import inspect
 import math
+import types
 
 # Sage libraries
 from sage.misc.all import srange, sage_eval
+from sage.plot.misc import Color
 
 # SAGE_CELL_ID is a module scope variable that is always set equal to
 # the current cell id (of the executing cell).  Code that sets this is
@@ -190,12 +204,11 @@ def html(s):
     """
     print "<html>%s</html>"%s
 
-def html_slider(label, id, callback, steps, default=0, margin=0):
+def html_slider(id, callback, steps, default=0, margin=0):
     """
     Return the HTML representation of a jQuery slider.
 
     INPUT:
-        label   -- string that is inserted just to the left of the slider
         id      -- string -- the DOM id of the slider (better be unique)
         callback-- javascript that is executed whenever the slider is done moving
         steps   -- number of steps from minimum to maximum value.
@@ -213,8 +226,8 @@ def html_slider(label, id, callback, steps, default=0, margin=0):
         change: function () { var position = Math.ceil($('#slider-007').slider('value')); alert(position); }
         });}, 1);</script></html>
     """
-    s = """<table style='margin:0px;padding:0px;'><tr><td>%s</td><td><div id='%s' class='ui-slider-1' style='padding:0px;margin:%spx;'><span class='ui-slider-handle'></span></div></div></td></tr></table>"""%(
-        label, id, int(margin))
+    s = """<div id='%s' class='ui-slider-1' style='padding:0px;margin:%spx;'><span class='ui-slider-handle'></span></div>"""%(
+        id, int(margin))
 
     # We now generate javascript that gets run after the above div
     # gets inserted. This happens because of the setTimeout function
@@ -227,6 +240,46 @@ def html_slider(label, id, callback, steps, default=0, margin=0):
     # needs much more work to actually work, since server gets fludded by
     # requests.
 
+    return s
+
+def html_color_selector(id, change, input_change, default='000000'):
+    """
+    Return HTML representation of a jQuery color selector.
+
+    INPUT:
+        id -- integer; the id of the html div element that this selector should have
+        change -- javascript code to execute when the color selector changes.
+        default -- string (default: '000000'); default color as a 6-character
+                   HTML hex string.
+
+    OUTPUT:
+        string -- HTML that creates the slider.
+
+    EXAMPLES:
+        sage: sage.server.notebook.interact.html_color_selector(0, 'alert("changed")', default='0afcac')
+        '<table>...'
+    """
+    s = """<table><tr><td><div id='%s-picker'></div></td><td>
+<input type='text' id='%s' name='color' onchange='%s;$.farbtastic("#%s-picker").setColor(this.value);' value='%s'/></td></tr></table>"""%(
+         id,id,input_change,id,default)
+    # We now generate javascript that gets run after the above div
+    # gets inserted. This happens because of the setTimeout function
+    # below which gets passed an anonymous function.
+    # Figuring out the below took understanding jQuery much better,
+    # and took me surprisingly long, especially the part involving
+    # linkTo which sets the callback.
+    s += """<script>setTimeout(function() {
+          $('#%s-picker').farbtastic('#%s');
+          $.farbtastic('#%s-picker').linkTo(function(color) {
+              var t = get_element('%s');
+              if(color!=t.value) {
+                  t.value = color;
+                  t.style.backgroundColor = color;
+                  %s;
+              }
+              return;
+            })
+       }, 1);</script>"""%(id,id,id,id,change)
     return s
 
 
@@ -344,7 +397,7 @@ class InteractControl:
         """
         return sage_eval(value, globs)
 
-    def interact(self):
+    def interact(self, *args):
         """
         Return a string that when evaluated in Javascript calls the
         javascript interact function with appropriate inputs for
@@ -361,7 +414,7 @@ class InteractControl:
         # All it does is run the interact function once after setting exactly one
         # dynamic variable.    If setting the dynamic variable fails, due to a KeyError
         s = 'interact(%s, "sage.server.notebook.interact.update(%s, \\"%s\\", %s, sage.server.notebook.interact.standard_b64decode(\\""+encode64(%s)+"\\"), globals())")'%(
-            self.cell_id(), self.cell_id(), self.var(), self.adapt_number(), self.value_js())
+            self.cell_id(), self.cell_id(), self.var(), self.adapt_number(), self.value_js(*args))
         return s
 
     def var(self):
@@ -392,15 +445,21 @@ class InteractControl:
         return self.__cell_id
 
 class InputBox(InteractControl):
-    """
-    An input box interact control.
+    def __init__(self, var, default_value, label=None, type=None):
+        """
+        An input box interact control.
 
-    InputBox(var, default_value, label)
+        InputBox(var, default_value, label, type)
 
-    EXAMPLES:
-        sage: sage.server.notebook.interact.InputBox('theta', 1)
-        An InputBox interactive control with theta=1 and label 'theta'
-    """
+        EXAMPLES:
+            sage: sage.server.notebook.interact.InputBox('theta', 1, 'theta')
+            An InputBox interactive control with theta=1 and label 'theta'
+            sage: sage.server.notebook.interact.InputBox('theta', 1, 'theta', int)
+            An InputBox interactive control with theta=1 and label 'theta'
+        """
+        InteractControl.__init__(self, var, default_value, label)
+        self.__type = type
+
     def __repr__(self):
         """
         String representation of an InputBox interactive control.
@@ -411,6 +470,31 @@ class InputBox(InteractControl):
         """
         return 'An InputBox interactive control with %s=%r and label %r'%(
             self.var(), self.default_value(), self.label())
+
+    def _adaptor(self, value, globs):
+        """
+        Adapt a user input, which is the text they enter, to be an
+        element selected by this control.
+
+        INPUT:
+            value -- text entered by user
+            globs -- the globals interpreter variables (not used here).
+
+        OUTPUT:
+            object
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.InputBox('theta', Color('red'), type=Color)._adaptor('#aaaaaa',globals())
+            RGB color (0.6640625, 0.6640625, 0.6640625)
+        """
+        if self.__type is None:
+            return sage_eval(value, globs)
+        elif self.__type is str:
+            return value
+        elif self.__type is Color:
+            return Color(value)
+        else:
+            return self.__type(sage_eval(value,globs))
 
     def value_js(self):
         """
@@ -424,7 +508,10 @@ class InputBox(InteractControl):
             sage: sage.server.notebook.interact.InputBox('theta', 1).value_js()
             'this.value'
         """
-        return 'this.value'
+        if self.__type is bool:
+            return 'this.checked'
+        else:
+            return 'this.value'
 
     def render(self):
         """
@@ -437,9 +524,217 @@ class InputBox(InteractControl):
             sage: sage.server.notebook.interact.InputBox('theta', 1).render()
             '\n        theta: <input type=\'text\' value=\'1\' width=200px onchange=\'interact(..., "sage.server.notebook.interact.update(..., \\"theta\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(this.value)+"\\"), globals())")\'></input>\n        '
         """
-        return """
-        %s: <input type='text' value='%r' width=200px onchange='%s'></input>
-        """%(self.label(), self.default_value(),  self.interact())
+        if self.__type is bool:
+            return """<input type='checkbox' %s width=200px onchange='%s'></input>"""%(
+                'checked' if self.default_value() else '',  self.interact())
+        elif self.__type is str:
+            return """<input type='text' value='%s' width=250px onchange='%s'></input>"""%(
+                self.default_value(),  self.interact())
+        else:
+            return """<input type='text' value='%r' width=200px onchange='%s'></input>"""%(
+                self.default_value(),  self.interact())
+
+class ColorInput(InputBox):
+    def value_js(self, n):
+        if n == 0:
+            return 'color'
+        else:
+            return 'this.value'
+
+    def render(self):
+        return html_color_selector('color-selector-%s-%s'%(self.var(), self.cell_id()),
+                     change=self.interact(0), input_change=self.interact(1),
+                     default=self.default_value().html_color())
+
+
+
+
+class Selector(InteractControl):
+    def __init__(self, var, values, label=None, default=0,
+                 nrows=None, ncols=None, width=None, buttons=False):
+        """
+        A drop down menu or a button bar that when pressed sets a
+        variable to a given value.
+
+        Selector(var, values, label=None, nrows=None, ncols=None)
+
+        INPUT:
+            var   -- string; variable name
+            values-- list; button values
+            label -- string (default: None) label off to the left for this button group
+            default -- integer (default: 0) position of default value in values list.
+            nrows -- integer (default: None) number of rows
+            ncols -- integer (default: None) number of columns
+            width -- integer (default: None) width of all the buttons
+            buttons -- bool (default: False) if True use buttons instead of dropdown
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.Selector('x', [1..5], 'alpha', default=2)
+            Selector with 5 options for variable 'x'
+            sage: sage.server.notebook.interact.Selector('x', [1..4], 'alpha', default=2, nrows=2, ncols=2, width=10, buttons=True)
+            Selector with 4 options for variable 'x'
+        """
+        if len(values) > 0 and isinstance(values[0], tuple) and len(values[0]) == 2:
+            vals = [z[0] for z in values]
+            lbls = [str(z[1]) if z[1] is not None else None for z in values]
+        else:
+            vals = values
+            lbls = [None]*len(vals)
+
+        default = int(default)
+        if default < 0 or default >= len(vals):
+            default = 0
+
+        InteractControl.__init__(self, var, vals[default], label)
+
+        self.__default = default
+        self.__buttons = buttons
+        self.__values = vals
+        self.__labels = lbls
+        if nrows is None:
+            if ncols is not None:
+                nrows = len(values)/ncols
+                if ncols * nrows < len(values):
+                    nrows += 1
+            else:
+                nrows = 1 # temporary
+        else:
+            nrows = int(nrows)
+            if nrows <= 0:
+                nrows = 1
+        if ncols is None:
+            ncols = len(values)/nrows
+            if ncols * nrows < len(values):
+                ncols += 1
+
+        self.__nrows = nrows
+        self.__ncols = ncols
+
+        if width is not None:
+            self.__width = "width:%sex;"%width
+        else:
+            self.__width = ''
+
+        self.__selected = 'background-color:orange;'
+
+    def __repr__(self):
+        """
+        String representation of a Selector interactive control.
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.Selector('x', [1..5]).__repr__()
+            "Selector with 5 options for variable 'x'"
+        """
+        return "Selector with %s options for variable '%s'"%(len(self.__values), self.var())
+
+    def _adaptor(self, value, globs):
+        """
+        Adapt value of button or menu selection.
+
+        The button value is just an integer, and this function adapts
+        it to be the value that we associate with that button.
+
+        INPUT:
+            value -- value sent in via javascript
+            globs -- the globals interpreter variables (not used here).
+
+        OUTPUT:
+            object
+
+        EXAMPLES:
+            sage: S = sage.server.notebook.interact.Selector('x', ['first',x^3+5])
+            sage: S._adaptor(0,globals())
+            'first'
+            sage: S._adaptor(1,globals())
+            x^3 + 5
+        """
+        return self.__values[int(value)]
+
+    def use_buttons(self):
+        """
+        Whether or not to use buttons instead of a drop
+        down menu for this select list.
+
+        OUTPUT:
+            bool
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.Selector('x', [1..5]).use_buttons()
+            False
+            sage: sage.server.notebook.interact.Selector('x', [1..5], buttons=True).use_buttons()
+            True
+        """
+        return self.__buttons
+
+    def value_js(self):
+        """
+        Return javascript string that will give the value of this
+        control element.
+
+        OUTPUT:
+             string -- javascript
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.Selector('x', [1..5]).value_js()
+            'this.options[this.selectedIndex].value'
+            sage: sage.server.notebook.interact.Selector('x', [1..5], buttons=True).value_js()
+            'this.value'
+        """
+        if self.use_buttons():
+            return 'this.value'
+        else:
+            # Now we have to use a option selector.
+            return 'this.options[this.selectedIndex].value'
+
+    def render(self):
+        """
+        Render this control as a string.
+
+        OUTPUT:
+             string -- html format
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.Selector('x', [1..5]).render()
+            '<select...</select>'
+            sage: sage.server.notebook.interact.Selector('x', [1..5], buttons=True).render()
+            '<table...</table>'
+        """
+        width = self.__width
+        vals = self.__values
+        lbls = self.__labels
+        default = self.__default
+        label = self.label()
+        use_buttons = self.use_buttons()
+        event = self.interact()
+        if use_buttons:
+            s = '<table style="border:1px solid #dfdfdf;background-color:#efefef">'
+        else:
+            s = "<select onchange='%s;'>"%event
+        i = 0
+        for r in range(self.__nrows):
+            if use_buttons:
+                s += '\n<tr><td>'
+            for c in range(self.__ncols):
+                if i >= len(vals):
+                    i += 1
+                    continue
+                style = width
+                #if i == default:
+                #    style += self.__selected
+                lbl = lbls[i] if lbls[i] is not None else repr(vals[i])
+                if use_buttons:
+                    s += "<button style='%s' value='%s' onclick='%s'>%s</button>\n"%(style, i, event, lbl)
+                else:
+                    s += "<option value='%s'>%s</option>\n"%(i, lbl)
+                i += 1
+            if use_buttons:
+                s += '</td></tr>'
+        if use_buttons:
+            s += '</table>'
+        else:
+            s += '</select>'
+        return s
+
 
 class Slider(InteractControl):
     def __init__(self, var, values, default_position, label=None):
@@ -530,7 +825,7 @@ class Slider(InteractControl):
             sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha').render()
             '<table style=\'margin:0px;padding:0px;\'><tr><td><font color=black>alpha</font> </td><td><div id=\'slider-x-...\' class=\'ui-slider-1\' style=\'padding:0px;margin:0px;\'><span class=\'ui-slider-handle\'></span></div></div></td></tr></table><script>setTimeout(function() { $(\'#slider-x-...\').slider({\n    stepping: 1, minValue: 0, maxValue: 4, startValue: 2,\n    change: function () { var position = Math.ceil($(\'#slider-x-...\').slider(\'value\')); interact(..., "sage.server.notebook.interact.update(..., \\"x\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(position)+"\\"), globals())"); }\n});}, 1);</script>'
         """
-        return html_slider('<font color=black>%s</font> '%self.label(), 'slider-%s-%s'%(self.var(), self.cell_id()),
+        return html_slider('slider-%s-%s'%(self.var(), self.cell_id()),
                            self.interact(), steps=len(self.__values),
                            default=self.default_position())
 
@@ -624,8 +919,9 @@ class InteractCanvas:
             sage: sage.server.notebook.interact.InteractCanvas([B], 3).render_controls()
             '\n        x: <input type=\'text\' value=\'2\' width=200px ...</input>\n        '
         """
-        # This will need some sophisticated layout querying of the c's, maybe.
-        return ''.join([c.render() for c in self.__controls])
+        row = '<tr><td align=right><font color="black">%s&nbsp;</font></td><td>%s</td></tr>\n'
+        tbl_body = ''.join([row%(c.label(), c.render()) for c in self.__controls])
+        return '<table>%s</table>'%tbl_body
 
     def wrap_in_outside_frame(self, inside):
         """
@@ -677,11 +973,22 @@ class InteractCanvas:
 
 def interact(f):
     r"""
-    Make a function with controls to enable interactivity with the
-    variables.
+    Use interact as a decorate to create interactive Sage notebook
+    cells with sliders, text boxes, radio buttons, check boxes, and
+    color selectors.  Simply put @interact on the line before a
+    function definition, and choose appropriate defaults for the
+    variable names to determine the types of controls (see tables
+    below).
 
-    SOME EXAMPLES:
-    We create a interact control with two inputs, a text input for
+    INPUT:
+        f -- a Python function
+
+    EXAMPLES:
+    In each example below we use a single underscore for the function
+    name.  You can use \emph{any} name you want; it does not have to
+    be an underscore.
+
+    We create an interact control with two inputs, a text input for
     the variable $a$ and a $y$ slider that runs through the range of
     integers from $0$ to $19$.
         sage: @interact
@@ -709,25 +1016,36 @@ def interact(f):
         ...     show(plot(sin(a*x+b), (x,0,6)), figsize=3)
         <html>...
 
+    You do not have to use interact as a decorators; you can also
+    simply write \code{interact(f)} where f is any Python function
+    that you have defined, though this is frowned on.  E.g., f can
+    also be a library function as long as it is written in Python:
+
+        sage: interact(matrix)   # put ZZ, 2,2,[1..4] in boxes...
+        <html>...
+
     DEFAULTS:
     Defaults for the variables of the input function determine
     interactive controls.  The standard controls are \code{input_box},
     \code{slider}, \code{button}, \code{checkbox}.
 
     \begin{itemize}
-        \item u = input_box(default, label, optional type)
-                         -- input box with given default
+        \item u = input_box(default, label, type=None)
+                         -- input box with given default; use type=str to
+                            get input as an arbitrary string
         \item u = slider(vmin, vmax,step_size,default,label)
                          -- slider with given list of possible values; vmin an be a list
         \item u = checkbox(default, label)
                          -- a checkbox
-        \item u = buttons(list, nrows=1, ncols=None)
-                         -- a row or rows of buttons with given number of columns
+        \item u = selector(values, label=None, nrows=None, ncols=None, buttons=False)
+                         -- a dropdown menu or buttons (get buttons if nrows,
+                            ncols, or buttons is set, otherwise a dropdown menu)
         \item u = drop_down(list, label)
                          -- a drop down menu
-        \item u = color_selector()
-                         -- a 2d RGB color selector; returns (r,g,b) values with $0 \leq r,g,b<1$.
     \end{itemize}
+
+    You can create a color selector by setting the default value for a
+    variable to Color(...).
 
     There are also some convenient defaults that allow you to make
     controls automatically without having to explicitly specify them.
@@ -742,7 +1060,9 @@ def interact(f):
         \item u = (umin,umax)   -- continuous slider (really 100 steps)
         \item u = (umin,umax,du)-- slider with step size du
         \item u = list          -- buttons if len(list) at most 5; otherwise, drop down
+        \item u = generator     -- a slider (up to 10000 steps)
         \item u = bool          -- a checkbox
+        \item u = Color('blue') -- a 2d RGB color selector; returns Color object
         \item u = (default, v)  -- v as above, with given default value
         \item u = (label, v)    -- v as above, with given label (a string)
     \end{itemize}
@@ -758,6 +1078,26 @@ def interact(f):
         <html>...
 
     MORE EXAMPLES:
+    We give an input box that allows one to enter completely arbitrary strings.
+        sage: @interact
+        ... def _(a=input_box('sage', label="Enter your name", type=str)):
+        ...        print "Hello there %s"%a.capitalize()
+        <html>...
+
+    The scope of variables that you control via interact are local to
+    the scope of the function being interacted with. However, by using
+    the global Python keyword, you can still modify global variables
+    as follows:
+        sage: xyz = 10
+        sage: @interact
+        ... def _(a=('xyz',5)):
+        ...       global xyz
+        ...       xyz = a
+        <html>...
+
+    If you enter the above you obtain an interact campus.  Entering
+    values in the box, changes the global variable xyz.
+
     We give defaults and name the variables:
         sage: @interact
         ... def _(a=('first', (1,4)), b=(0,10)):
@@ -772,6 +1112,12 @@ def interact(f):
         ...     show(plot(sin(a*x+b), (x,0,6)), figsize=4)
         <html>...
 
+    An example using checkboxes, obtained by making the default values bools.
+        sage: @interact
+        ... def _(axes=('Show axes', True), square=False):
+        ...       show(plot(sin, -5,5), axes=axes, aspect_ratio = (1 if square else None))
+        <html>...
+
     You can rotate and zoom into three graphics while
     interacting with a variable.
         sage: @interact
@@ -783,8 +1129,8 @@ def interact(f):
     A random polygon:
         sage: pts = [(random(), random()) for _ in xrange(20)]
         sage: @interact
-        ... def _(n = [4..len(pts)]):
-        ...     G = points(pts[:n],pointsize=60) + polygon(pts[:n], rgbcolor='black')
+        ... def _(n = (4..len(pts)), c=Color('purple') ):
+        ...     G = points(pts[:n],pointsize=60) + polygon(pts[:n], rgbcolor=c)
         ...     show(G, figsize=5, xmin=0, ymin=0)
         <html>...
 
@@ -907,6 +1253,8 @@ class control:
         EXAMPLES:
             sage: sage.server.notebook.interact.control('a control').label()
             'a control'
+            sage: selector([1,2,7], 'alpha').label()
+            'alpha'
         """
         return self.__label
 
@@ -933,12 +1281,16 @@ class input_box(control):
         \code{input_box(default=None, label=None, type=None)}
 
         INPUT:
-            default -- string (the default put in this input box)
+            default -- object; the default put in this input box
             label -- the label rendered to the left of the box.
+            type -- coerce inputs to this; this doesn't have to be
+                    an actual type, since anything callable will do.
 
         EXAMPLES:
             sage: input_box("2+2", 'expression')
             Interact input box labeled 'expression' with default value '2+2'
+            sage: input_box('sage', label="Enter your name", type=str)
+            Interact input box labeled 'Enter your name' with default value 'sage'
         """
         self.__default = default
         self.__type = type
@@ -953,6 +1305,20 @@ class input_box(control):
             "Interact input box labeled 'expression' with default value '2+2'"
         """
         return "Interact input box labeled %r with default value %r"%(self.label(), self.__default)
+
+    def type(self):
+        """
+        Return the type that elements of this input box are coerced to
+        or None if they are not coerced (they have whatever type they
+        evaluate to).
+
+        EXAMPLES:
+            sage: input_box("2+2", 'expression', type=int).type()
+            <type 'int'>
+            sage: input_box("2+2", 'expression').type() is None
+            True
+        """
+        return self.__type
 
     def render(self, var):
         r"""
@@ -970,7 +1336,10 @@ class input_box(control):
             sage: input_box("2+2", 'Exp').render('x')
             An InputBox interactive control with x='2+2' and label 'Exp'
         """
-        return InputBox(var, default_value=self.__default, label=self.label())
+        if self.__type is Color:
+            return ColorInput(var, default_value=self.__default, label=self.label(), type=self.__type)
+        else:
+            return InputBox(var, default_value=self.__default, label=self.label(), type=self.__type)
 
 
 class slider(control):
@@ -1108,6 +1477,141 @@ class slider(control):
         """
         return Slider(var, self.__values, self.__default, label=self.label())
 
+class selector(control):
+    def __init__(self, values, label=None, default=None,
+                 nrows=None, ncols=None, width=None, buttons=False):
+        r"""
+        A drop down menu or a button bar that when pressed sets a
+        variable to a given value.  Use this in conjunction with the
+        interact command.
+
+        \code{selector(values, label=None, nrows=None, ncols=None, buttons=False)}
+
+        We use the same command to create either a drop down menu or
+        selector bar of buttons, since conceptually the two controls
+        do exactly the same thing -- they only look different.  If
+        either nrows or ncols is given, then you get a buttons instead
+        of a drop down menu.
+
+        INPUT:
+            values -- [val0, val1, val2, ...] or
+                      [(val0, lbl0), (val1,lbl1), ...] where all labels must be
+                                                       given or given as None.
+            label -- (default: None); if given, this label is placed to
+                                      the left of the entire button group
+            default -- integer (default: 0) position of default value in values list.
+            nrows -- (default: None); if given determines the number
+                     of rows of buttons; if given buttons option below is set to True
+            ncols -- (default: None); if given determines the number
+                     of columns of buttons; if given buttons option below is set to True
+            width -- (default: None); if given, all buttons are the same
+                     width, equal to this in html ex units's.
+            buttons -- (default: False); if True, use buttons
+
+        EXAMPLES:
+            sage: selector([1..5])
+            Drop down menu with 5 options
+            sage: selector([1,2,7], default=2)
+            Drop down menu with 3 options
+            sage: selector([1,2,7], nrows=2)
+            Button bar with 3 buttons
+            sage: selector([1,2,7], ncols=2)
+            Button bar with 3 buttons
+            sage: selector([1,2,7], width=10)
+            Drop down menu with 3 options
+            sage: selector([1,2,7], buttons=True)
+            Button bar with 3 buttons
+
+        We create an interactive that involves computing charpolys of matrices over various rings:
+            sage: @interact
+            sage: def _(R=selector([ZZ,QQ,GF(17),RDF,RR]), n=(1..10)):
+            ...      M = random_matrix(R, n)
+            ...      show(M)
+            ...      show(matrix_plot(M,cmap='Oranges'))
+            ...      f = M.charpoly()
+            ...      print f
+            <html>...
+
+        Here we create a drop-down
+            sage: @interact
+            sage: def _(a=selector([(2,'second'), (3,'third')])):
+            ...       print a
+            <html>...
+        """
+        if nrows is not None or ncols is not None:
+            buttons = True
+        if default is None: default=0
+        self.__values = values
+        self.__nrows = nrows
+        self.__ncols = ncols
+        self.__width = width
+        self.__default = default
+        self.__buttons = buttons
+        control.__init__(self, label)
+
+    def __repr__(self):
+        """
+        Return print representation of this button.
+
+        EXAMPLES:
+            sage: selector([1,2,7], default=2).__repr__()
+            'Drop down menu with 3 options'
+        """
+        if self.__buttons:
+            return "Button bar with %s buttons"%len(self.__values)
+        else:
+            return "Drop down menu with %s options"%len(self.__values)
+
+    def values(self):
+        """
+        Return the list of values or (val, lbl) pairs that this
+        selector can take on.
+
+        OUTPUT:
+            list
+
+        EXAMPLES:
+            sage: selector([1..5]).values()
+            [1, 2, 3, 4, 5]
+            sage: selector([(5,'fifth'), (8,'eight')]).values()
+            [(5, 'fifth'), (8, 'eight')]
+        """
+        return self.__values
+
+    def default(self):
+        """
+        Return the default choice for this control.
+
+        OUTPUT:
+           int -- an integer, with 0 corresponding to the first choice.
+
+        EXAMPLES:
+            sage: selector([1,2,7], default=2).default()
+            2
+        """
+        return self.__default
+
+    def render(self, var):
+        r"""
+        Return rendering of this button as a Button instance to be
+        used for an interact canvas.
+
+        INPUT:
+            var -- a string (variable; one of the variable names input to f)
+
+        OUTPUT:
+            Button -- a Button instance
+
+        EXAMPLES:
+            sage: selector([1..5]).render('alpha')
+            Selector with 5 options for variable 'alpha'
+        """
+        return Selector(var, values=self.__values, label=self.label(),
+                        default=self.__default,
+                        nrows=self.__nrows, ncols=self.__ncols, width=self.__width,
+                        buttons=self.__buttons)
+
+
 def automatic_control(default):
     """
     Automagically determine the type of control from the default
@@ -1161,8 +1665,16 @@ def automatic_control(default):
         C = default
         if label:
             C.set_label(label)
+    elif isinstance(default, str):
+        C = input_box(default, label=label, type=str)
+    elif isinstance(default, bool):
+        C = input_box(default, label=label, type=bool)
     elif isinstance(default, list):
-        C = slider(default, default=default_value,label=label)
+        C = selector(default, default=default_value, label=label, buttons=len(default) <= 5)
+    elif isinstance(default, types.GeneratorType):
+        C = slider(list_of_first_n(default,10000), default=default_value, label=label)
+    elif isinstance(default, Color):
+        C = input_box(default, label=label, type=Color)
     elif isinstance(default, tuple):
         if len(default) == 2:
             # The default 99.0 below is a sort of "heuristic value" so there are 100 steps
@@ -1176,6 +1688,36 @@ def automatic_control(default):
         C = input_box(default, label=label)
 
     return C
+
+def list_of_first_n(v,n):
+    """
+    Given an iterator v, return first n elements it produces as a list.
+
+    INPUT:
+        v -- an interator
+        n -- an integer
+
+    OUTPUT:
+        list
+
+    EXAMPLES:
+        sage: sage.server.notebook.interact.list_of_first_n(Primes(), 10)
+        [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
+        sage: sage.server.notebook.interact.list_of_first_n((1..5), 10)
+        [1, 2, 3, 4, 5]
+        sage: sage.server.notebook.interact.list_of_first_n(QQ, 10)
+        [0, 1, -1, 1/2, -1/2, 2, -2, 1/3, -1/3, 3/2, -3/2]
+    """
+    if not hasattr(v, 'next'):
+        v = v.__iter__()
+    w = []
+    while n >= 0:
+        try:
+            w.append(v.next())
+        except StopIteration:
+            return w
+        n -= 1
+    return w
 
 
 def update(cell_id, var, adapt, value, globs):
@@ -1207,4 +1749,5 @@ def update(cell_id, var, adapt, value, globs):
     except KeyError:
         # If you change this, make sure to change js.py as well.
         print "__SAGE_INTERACT_RESTART__"
+
 

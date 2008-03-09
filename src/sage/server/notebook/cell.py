@@ -308,8 +308,9 @@ class Cell(Cell_generic):
         Return True if this cell contains the use of interact either
         as a function call or a decorator.
         """
+        # Do *not* cache
         s, _ = strip_string_literals(self.input_text())
-        return re.search('(?<!\w)interact\s*\(.*\).*', s) or re.search('\s*@\s*interact\s*\n', s)
+        return bool(re.search('(?<!\w)interact\s*\(.*\).*', s) or re.search('\s*@\s*interact\s*\n', s))
 
     def is_interacting(self):
         return hasattr(self, 'interact')
@@ -319,7 +320,6 @@ class Cell(Cell_generic):
             del self.interact
 
     def set_input_text(self, input):
-
         # Stuff to deal with interact
         if input.startswith('%__sage_interact__'):
             self.interact = input[len('%__sage_interact__')+1:]
@@ -447,10 +447,14 @@ class Cell(Cell_generic):
                 return ''
 
         is_interact = self.is_interactive_cell()
-        if ncols == 0 and is_interact:
-            return '<h2>Click to the left again to hide and once more to show the dynamic interactive window</h2>'
-
-        s = self.__out
+        if is_interact and ncols == 0:
+            if 'Traceback (most recent call last)' in self.__out:
+                s = self.__out.replace('cell-interact','')
+                is_interact=False
+            else:
+                return '<h2>Click to the left again to hide and once more to show the dynamic interactive window</h2>'
+        else:
+            s = self.__out
 
         if raw:
             return s
@@ -472,7 +476,8 @@ class Cell(Cell_generic):
 
         # if there is an error in the output,
         # specially format it.
-        s = format_exception(s, ncols)
+        if not self.is_interactive_cell():
+            s = format_exception(s, ncols)
 
         # Everything not wrapped in <html> ... </html>
         # should have the <'s replaced by &lt;'s

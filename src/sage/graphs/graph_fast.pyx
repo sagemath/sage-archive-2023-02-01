@@ -71,8 +71,8 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     an object creation) every time we want to add a pair of doubles.
     """
 
-    G = G.to_undirected().networkx_graph()
-    vlist = list(G) # this defines a consistant order
+    G = G.to_undirected()
+    vlist = G.vertices() # this defines a consistant order
 
     cdef int i, j, x
     cdef int n = G.order()
@@ -122,6 +122,10 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     cdef double r, r2, max_r2 = 0
     if rescale:
         cen = <double *>sage_malloc(sizeof(double) * dim)
+        if cen is NULL:
+            sage_free(elist)
+            sage_free(pos)
+            raise MemoryError, "error allocating scratch space for spring layout"
         for x from 0 <= x < dim: cen[x] = 0
         for i from 0 <= i < n:
             for x from 0 <= x < dim:

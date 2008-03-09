@@ -126,11 +126,15 @@ cdef class OrbitPartition:
     def union_find(self, a, b):
         self._union_find(a, b)
 
-    cdef void _union_find(self, int a, int b):
+    cdef int _union_find(self, int a, int b):
         cdef int aRoot, bRoot
         aRoot = self._find(a)
         bRoot = self._find(b)
         self._union_roots(aRoot, bRoot)
+        if aRoot == bRoot:
+            return 0
+        else:
+            return 1
 
     def union_roots(self, a, b):
         self._union_roots(a, b)
@@ -171,6 +175,48 @@ cdef class OrbitPartition:
         if self.elements[i] == -1 and self.sizes[i] == 1:
             return 1
         return 0
+
+    def incorporate_permutation(self, gamma):
+        """
+        Unions the cells of self which contain common elements of some orbit of
+        gamma.
+
+        INPUT:
+        gamma -- a permutation, in list notation
+
+        EXAMPLE:
+            sage: from sage.graphs.graph_isom import OrbitPartition
+            sage: O = OrbitPartition(9)
+            sage: O.incorporate_permutation([0,1,3,2,5,6,7,4,8])
+            sage: for i in range(9):
+            ...    print i, O.find(i)
+            0 0
+            1 1
+            2 2
+            3 2
+            4 4
+            5 4
+            6 4
+            7 4
+            8 8
+
+        """
+        cdef int k, n = len(gamma)
+        cdef int *_gamma = <int *> sage_malloc( n * sizeof(int) )
+        if not _gamma:
+            raise MemoryError("Error allocating memory.")
+        for k from 0 <= k < n:
+            _gamma[k] = gamma[k]
+        self._incorporate_permutation(_gamma, n)
+        sage_free(_gamma)
+
+    cdef int _incorporate_permutation(self, int *gamma, int n):
+        cdef int i, ch = 0, k
+        for i from 0 <= i < n:
+            k = self._union_find(i, gamma[i])
+            if (not ch) and k:
+                ch = 1
+        return ch
 
 cdef OrbitPartition orbit_partition_from_list_perm(int *gamma, int n):
     cdef int i
@@ -769,8 +815,9 @@ def _term_pnest_graph(G, PartitionStack nu):
                 H.add_arc(d[i],d[j])
     return H
 
-def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
-                verbosity=0, use_indicator_function=True, sparse=False):
+def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
+                verbosity=0, use_indicator_function=True, sparse=False,
+                base=False, order=False):
     """
     Assumes that the vertex set of G is {0,1,...,n-1} for some n.
 
@@ -783,7 +830,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
     morphism group.
         dig--       if True, does not use Lemma 2.25 in [1], and the algorithm is
     valid for digraphs and graphs with loops.
-        dict--      if True, explain which vertices are which elements of the set
+        dict_rep--  if True, explain which vertices are which elements of the set
     {1,2,...,n} in the representation of the automorphism group.
         certify--     if True, return the relabeling from G to its canonical
     label. Forces lab=True.
@@ -797,6 +844,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
     (False -> slower)
         sparse -- whether to use sparse or dense representation of the graph
     (ignored if G is already a CGraph - see sage.graphs.base)
+        base -- whether to return the first sequence of split vertices (used in
+    computing the order of the group)
+        order -- whether to return the order of the automorphism group
 
     STATE DIAGRAM:
         sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] } )
@@ -824,7 +874,6 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
     EXAMPLES:
         sage: import sage.graphs.graph_isom
         sage: from sage.graphs.graph_isom import search_tree
-        sage: from sage.graphs.graph import enum
         sage: from sage.graphs.base.sparse_graph import SparseGraph
         sage: from sage.graphs.base.dense_graph import DenseGraph
         sage: from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -848,19 +897,19 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         ...            bsg.add_edge(i,j)
         ...        if bde.has_arc(i,j):
         ...            bdg.add_edge(i,j)
-        sage: print a, enum(b)
-        [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0], [2, 1, 0, 19, 18, 11, 10, 9, 8, 7, 6, 5, 15, 14, 13, 12, 16, 17, 4, 3]] 17318942212009113839976787462421724338461987195898671092180383421848885858584973127639899792828728124797968735273000
+        sage: print a, b.graph6_string()
+        [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0]] S?[PG__OQ@?_?_?P?CO?_?AE?EC?Ac?@O
         sage: a == asp
         True
         sage: a == ade
         True
-        sage: enum(b) == enum(bsg)
+        sage: b == bsg
         True
-        sage: enum(b) == enum(bdg)
+        sage: b == bdg
         True
         sage: c = search_tree(G, Pi, lab=False)
         sage: print c
-        [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0], [2, 1, 0, 19, 18, 11, 10, 9, 8, 7, 6, 5, 15, 14, 13, 12, 16, 17, 4, 3]]
+        [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0]]
         sage: DodecAut = PermutationGroup([perm_group_elt(aa) for aa in a])
         sage: DodecAut.character_table()
         [                     1                      1                      1                      1                      1                      1                      1                      1                      1                      1]
@@ -891,8 +940,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: G = graphs.PetersenGraph()
         sage: Pi=[range(10)]
         sage: a,b = search_tree(G, Pi)
-        sage: print a, enum(b)
-        [[0, 1, 2, 7, 5, 4, 6, 3, 9, 8], [0, 1, 6, 8, 5, 4, 2, 9, 3, 7], [0, 4, 3, 8, 5, 1, 9, 2, 6, 7], [1, 0, 4, 9, 6, 2, 5, 3, 7, 8], [2, 1, 0, 5, 7, 3, 6, 4, 8, 9]] 8715233764864019919698297664
+        sage: print a, b.graph6_string()
+        [[0, 1, 2, 7, 5, 4, 6, 3, 9, 8], [0, 1, 6, 8, 5, 4, 2, 9, 3, 7], [0, 4, 3, 8, 5, 1, 9, 2, 6, 7], [1, 0, 4, 9, 6, 2, 5, 3, 7, 8]] I@OZCMgs?
         sage: c = search_tree(G, Pi, lab=False)
         sage: PAut = PermutationGroup([perm_group_elt(aa) for aa in a])
         sage: PAut.character_table()
@@ -921,8 +970,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         ...
         sage: Pi = [Pi]
         sage: a,b = search_tree(G, Pi)
-        sage: print a, enum(b)
-        [[0, 2, 1, 3, 4, 6, 5, 7], [0, 1, 4, 5, 2, 3, 6, 7], [1, 0, 3, 2, 5, 4, 7, 6]] 520239721777506480
+        sage: print a, b.graph6_string()
+        [[0, 2, 1, 3, 4, 6, 5, 7], [0, 1, 4, 5, 2, 3, 6, 7], [1, 0, 3, 2, 5, 4, 7, 6]] GIQ\T_
         sage: c = search_tree(G, Pi, lab=False)
 
         sage: PermutationGroup([perm_group_elt(aa) for aa in a]).order()
@@ -937,8 +986,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: D = graphs.DodecahedralGraph()
         sage: a,b,c = search_tree(D, [range(20)], certify=True)
         sage: from sage.plot.plot import GraphicsArray
-        sage: import networkx
-        sage: position_D = networkx.spring_layout(D._nxg)
+        sage: from sage.graphs.graph_fast import spring_layout_fast
+        sage: position_D = spring_layout_fast(D)
         sage: position_b = {}
         sage: for vert in position_D:
         ...    position_b[c[vert]] = position_D[vert]
@@ -953,11 +1002,11 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         sage: G = Graph({0:[]})
         sage: Pi = [[0]]
         sage: a,b = search_tree(G, Pi)
-        sage: print a, enum(b)
-        [] 0
+        sage: print a, b.graph6_string()
+        [] @
         sage: a,b = search_tree(G, Pi, dig=True)
-        sage: print a, enum(b)
-        [] 0
+        sage: print a, b.graph6_string()
+        [] @
         sage: search_tree(G, Pi, lab=False)
         []
 
@@ -970,16 +1019,16 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         ...        a,b = search_tree(G, Pi)
         ...        c,d = search_tree(G, Pi, dig=True)
         ...        e = search_tree(G, Pi, lab=False)
-        ...        a = str(a); b = str(enum(b)); c = str(c); d = str(enum(d)); e = str(e)
+        ...        a = str(a); b = b.graph6_string(); c = str(c); d = d.graph6_string(); e = str(e)
         ...        print a.ljust(15), b.ljust(5), c.ljust(15), d.ljust(5), e.ljust(15)
-        []              0     []              0     []
-        []              0     []              0     []
-        [[1, 0]]        0     [[1, 0]]        0     [[1, 0]]
-        [[1, 0]]        0     [[1, 0]]        0     [[1, 0]]
-        []              6     []              6     []
-        []              6     []              6     []
-        [[1, 0]]        6     [[1, 0]]        6     [[1, 0]]
-        [[1, 0]]        6     [[1, 0]]        6     [[1, 0]]
+        []              A?    []              A?    []
+        []              A?    []              A?    []
+        [[1, 0]]        A?    [[1, 0]]        A?    [[1, 0]]
+        [[1, 0]]        A?    [[1, 0]]        A?    [[1, 0]]
+        []              A_    []              A_    []
+        []              A_    []              A_    []
+        [[1, 0]]        A_    [[1, 0]]        A_    [[1, 0]]
+        [[1, 0]]        A_    [[1, 0]]        A_    [[1, 0]]
 
         sage: graph3 = all_labeled_graphs(3)
         sage: part3 = all_ordered_partitions(range(3))
@@ -988,200 +1037,200 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         ...        a,b = search_tree(G, Pi)
         ...        c,d = search_tree(G, Pi, dig=True)
         ...        e = search_tree(G, Pi, lab=False)
-        ...        a = str(a); b = str(enum(b)); c = str(c); d = str(enum(d)); e = str(e)
+        ...        a = str(a); b = b.graph6_string(); c = str(c); d = d.graph6_string(); e = str(e)
         ...        print a.ljust(15), b.ljust(5), c.ljust(15), d.ljust(5), e.ljust(15)
-        []              0     []              0     []
-        []              0     []              0     []
-        [[0, 2, 1]]     0     [[0, 2, 1]]     0     [[0, 2, 1]]
-        [[0, 2, 1]]     0     [[0, 2, 1]]     0     [[0, 2, 1]]
-        []              0     []              0     []
-        []              0     []              0     []
-        [[2, 1, 0]]     0     [[2, 1, 0]]     0     [[2, 1, 0]]
-        [[2, 1, 0]]     0     [[2, 1, 0]]     0     [[2, 1, 0]]
-        []              0     []              0     []
-        []              0     []              0     []
-        [[1, 0, 2]]     0     [[1, 0, 2]]     0     [[1, 0, 2]]
-        [[1, 0, 2]]     0     [[1, 0, 2]]     0     [[1, 0, 2]]
-        [[1, 0, 2]]     0     [[1, 0, 2]]     0     [[1, 0, 2]]
-        [[2, 1, 0]]     0     [[2, 1, 0]]     0     [[2, 1, 0]]
-        [[1, 0, 2]]     0     [[1, 0, 2]]     0     [[1, 0, 2]]
-        [[0, 2, 1]]     0     [[0, 2, 1]]     0     [[0, 2, 1]]
-        [[2, 1, 0]]     0     [[2, 1, 0]]     0     [[2, 1, 0]]
-        [[0, 2, 1]]     0     [[0, 2, 1]]     0     [[0, 2, 1]]
-        [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]]
-        [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]]
-        [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]]
-        [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]]
-        [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]]
-        [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]]
-        []              10    []              10    []
-        []              10    []              10    []
-        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
-        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
-        []              68    []              68    []
-        []              160   []              160   []
-        []              68    []              68    []
-        []              68    []              68    []
-        []              68    []              68    []
-        []              160   []              160   []
-        []              68    []              68    []
-        []              68    []              68    []
-        []              10    []              10    []
-        []              10    []              10    []
-        []              10    []              10    []
-        [[0, 2, 1]]     160   [[0, 2, 1]]     160   [[0, 2, 1]]
-        []              10    []              10    []
-        [[0, 2, 1]]     160   [[0, 2, 1]]     160   [[0, 2, 1]]
-        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
-        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
-        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
-        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
-        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
-        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
-        []              68    []              68    []
-        []              160   []              160   []
-        []              68    []              68    []
-        []              68    []              68    []
-        []              10    []              10    []
-        []              10    []              10    []
-        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
-        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
-        []              160   []              160   []
-        []              68    []              68    []
-        []              68    []              68    []
-        []              68    []              68    []
-        []              10    []              10    []
-        [[2, 1, 0]]     160   [[2, 1, 0]]     160   [[2, 1, 0]]
-        []              10    []              10    []
-        []              10    []              10    []
-        [[2, 1, 0]]     160   [[2, 1, 0]]     160   [[2, 1, 0]]
-        []              10    []              10    []
-        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
-        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
-        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
-        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
-        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
-        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
-        []              78    []              78    []
-        []              170   []              170   []
-        []              78    []              78    []
-        []              78    []              78    []
-        []              78    []              78    []
-        []              170   []              170   []
-        []              78    []              78    []
-        []              78    []              78    []
-        []              228   []              228   []
-        []              228   []              228   []
-        [[1, 0, 2]]     228   [[1, 0, 2]]     228   [[1, 0, 2]]
-        [[1, 0, 2]]     228   [[1, 0, 2]]     228   [[1, 0, 2]]
-        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
-        []              170   []              170   []
-        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
-        []              170   []              170   []
-        []              170   []              170   []
-        []              170   []              170   []
-        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
-        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
-        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
-        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
-        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
-        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
-        []              160   []              160   []
-        []              68    []              68    []
-        []              68    []              68    []
-        []              68    []              68    []
-        []              160   []              160   []
-        []              68    []              68    []
-        []              68    []              68    []
-        []              68    []              68    []
-        []              10    []              10    []
-        []              10    []              10    []
-        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
-        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
-        [[1, 0, 2]]     160   [[1, 0, 2]]     160   [[1, 0, 2]]
-        []              10    []              10    []
-        [[1, 0, 2]]     160   [[1, 0, 2]]     160   [[1, 0, 2]]
-        []              10    []              10    []
-        []              10    []              10    []
-        []              10    []              10    []
-        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
-        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
-        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
-        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
-        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
-        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
-        []              170   []              170   []
-        []              78    []              78    []
-        []              78    []              78    []
-        []              78    []              78    []
-        []              228   []              228   []
-        []              228   []              228   []
-        [[2, 1, 0]]     228   [[2, 1, 0]]     228   [[2, 1, 0]]
-        [[2, 1, 0]]     228   [[2, 1, 0]]     228   [[2, 1, 0]]
-        []              78    []              78    []
-        []              170   []              170   []
-        []              78    []              78    []
-        []              78    []              78    []
-        []              170   []              170   []
-        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
-        []              170   []              170   []
-        []              170   []              170   []
-        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
-        []              170   []              170   []
-        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
-        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
-        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
-        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
-        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
-        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
-        []              228   []              228   []
-        []              228   []              228   []
-        [[0, 2, 1]]     228   [[0, 2, 1]]     228   [[0, 2, 1]]
-        [[0, 2, 1]]     228   [[0, 2, 1]]     228   [[0, 2, 1]]
-        []              170   []              170   []
-        []              78    []              78    []
-        []              78    []              78    []
-        []              78    []              78    []
-        []              170   []              170   []
-        []              78    []              78    []
-        []              78    []              78    []
-        []              78    []              78    []
-        []              170   []              170   []
-        []              170   []              170   []
-        []              170   []              170   []
-        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
-        []              170   []              170   []
-        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
-        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
-        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
-        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
-        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
-        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
-        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
-        []              238   []              238   []
-        []              238   []              238   []
-        [[0, 2, 1]]     238   [[0, 2, 1]]     238   [[0, 2, 1]]
-        [[0, 2, 1]]     238   [[0, 2, 1]]     238   [[0, 2, 1]]
-        []              238   []              238   []
-        []              238   []              238   []
-        [[2, 1, 0]]     238   [[2, 1, 0]]     238   [[2, 1, 0]]
-        [[2, 1, 0]]     238   [[2, 1, 0]]     238   [[2, 1, 0]]
-        []              238   []              238   []
-        []              238   []              238   []
-        [[1, 0, 2]]     238   [[1, 0, 2]]     238   [[1, 0, 2]]
-        [[1, 0, 2]]     238   [[1, 0, 2]]     238   [[1, 0, 2]]
-        [[1, 0, 2]]     238   [[1, 0, 2]]     238   [[1, 0, 2]]
-        [[2, 1, 0]]     238   [[2, 1, 0]]     238   [[2, 1, 0]]
-        [[1, 0, 2]]     238   [[1, 0, 2]]     238   [[1, 0, 2]]
-        [[0, 2, 1]]     238   [[0, 2, 1]]     238   [[0, 2, 1]]
-        [[2, 1, 0]]     238   [[2, 1, 0]]     238   [[2, 1, 0]]
-        [[0, 2, 1]]     238   [[0, 2, 1]]     238   [[0, 2, 1]]
-        [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]]
-        [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]]
-        [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]]
-        [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]]
-        [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]]
-        [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]]
+        []              B?    []              B?    []
+        []              B?    []              B?    []
+        [[0, 2, 1]]     B?    [[0, 2, 1]]     B?    [[0, 2, 1]]
+        [[0, 2, 1]]     B?    [[0, 2, 1]]     B?    [[0, 2, 1]]
+        []              B?    []              B?    []
+        []              B?    []              B?    []
+        [[2, 1, 0]]     B?    [[2, 1, 0]]     B?    [[2, 1, 0]]
+        [[2, 1, 0]]     B?    [[2, 1, 0]]     B?    [[2, 1, 0]]
+        []              B?    []              B?    []
+        []              B?    []              B?    []
+        [[1, 0, 2]]     B?    [[1, 0, 2]]     B?    [[1, 0, 2]]
+        [[1, 0, 2]]     B?    [[1, 0, 2]]     B?    [[1, 0, 2]]
+        [[1, 0, 2]]     B?    [[1, 0, 2]]     B?    [[1, 0, 2]]
+        [[2, 1, 0]]     B?    [[2, 1, 0]]     B?    [[2, 1, 0]]
+        [[1, 0, 2]]     B?    [[1, 0, 2]]     B?    [[1, 0, 2]]
+        [[0, 2, 1]]     B?    [[0, 2, 1]]     B?    [[0, 2, 1]]
+        [[2, 1, 0]]     B?    [[2, 1, 0]]     B?    [[2, 1, 0]]
+        [[0, 2, 1]]     B?    [[0, 2, 1]]     B?    [[0, 2, 1]]
+        [[0, 2, 1], [1, 0, 2]] B?    [[0, 2, 1], [1, 0, 2]] B?    [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] B?    [[0, 2, 1], [1, 0, 2]] B?    [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] B?    [[0, 2, 1], [1, 0, 2]] B?    [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] B?    [[0, 2, 1], [1, 0, 2]] B?    [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] B?    [[0, 2, 1], [1, 0, 2]] B?    [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] B?    [[0, 2, 1], [1, 0, 2]] B?    [[0, 2, 1], [1, 0, 2]]
+        []              BG    []              BG    []
+        []              BG    []              BG    []
+        [[0, 2, 1]]     BG    [[0, 2, 1]]     BG    [[0, 2, 1]]
+        [[0, 2, 1]]     BG    [[0, 2, 1]]     BG    [[0, 2, 1]]
+        []              BO    []              BO    []
+        []              B_    []              B_    []
+        []              BO    []              BO    []
+        []              BO    []              BO    []
+        []              BO    []              BO    []
+        []              B_    []              B_    []
+        []              BO    []              BO    []
+        []              BO    []              BO    []
+        []              BG    []              BG    []
+        []              BG    []              BG    []
+        []              BG    []              BG    []
+        [[0, 2, 1]]     B_    [[0, 2, 1]]     B_    [[0, 2, 1]]
+        []              BG    []              BG    []
+        [[0, 2, 1]]     B_    [[0, 2, 1]]     B_    [[0, 2, 1]]
+        [[0, 2, 1]]     BG    [[0, 2, 1]]     BG    [[0, 2, 1]]
+        [[0, 2, 1]]     BG    [[0, 2, 1]]     BG    [[0, 2, 1]]
+        [[0, 2, 1]]     BG    [[0, 2, 1]]     BG    [[0, 2, 1]]
+        [[0, 2, 1]]     BG    [[0, 2, 1]]     BG    [[0, 2, 1]]
+        [[0, 2, 1]]     BG    [[0, 2, 1]]     BG    [[0, 2, 1]]
+        [[0, 2, 1]]     BG    [[0, 2, 1]]     BG    [[0, 2, 1]]
+        []              BO    []              BO    []
+        []              B_    []              B_    []
+        []              BO    []              BO    []
+        []              BO    []              BO    []
+        []              BG    []              BG    []
+        []              BG    []              BG    []
+        [[2, 1, 0]]     BG    [[2, 1, 0]]     BG    [[2, 1, 0]]
+        [[2, 1, 0]]     BG    [[2, 1, 0]]     BG    [[2, 1, 0]]
+        []              B_    []              B_    []
+        []              BO    []              BO    []
+        []              BO    []              BO    []
+        []              BO    []              BO    []
+        []              BG    []              BG    []
+        [[2, 1, 0]]     B_    [[2, 1, 0]]     B_    [[2, 1, 0]]
+        []              BG    []              BG    []
+        []              BG    []              BG    []
+        [[2, 1, 0]]     B_    [[2, 1, 0]]     B_    [[2, 1, 0]]
+        []              BG    []              BG    []
+        [[2, 1, 0]]     BG    [[2, 1, 0]]     BG    [[2, 1, 0]]
+        [[2, 1, 0]]     BG    [[2, 1, 0]]     BG    [[2, 1, 0]]
+        [[2, 1, 0]]     BG    [[2, 1, 0]]     BG    [[2, 1, 0]]
+        [[2, 1, 0]]     BG    [[2, 1, 0]]     BG    [[2, 1, 0]]
+        [[2, 1, 0]]     BG    [[2, 1, 0]]     BG    [[2, 1, 0]]
+        [[2, 1, 0]]     BG    [[2, 1, 0]]     BG    [[2, 1, 0]]
+        []              BW    []              BW    []
+        []              Bg    []              Bg    []
+        []              BW    []              BW    []
+        []              BW    []              BW    []
+        []              BW    []              BW    []
+        []              Bg    []              Bg    []
+        []              BW    []              BW    []
+        []              BW    []              BW    []
+        []              Bo    []              Bo    []
+        []              Bo    []              Bo    []
+        [[1, 0, 2]]     Bo    [[1, 0, 2]]     Bo    [[1, 0, 2]]
+        [[1, 0, 2]]     Bo    [[1, 0, 2]]     Bo    [[1, 0, 2]]
+        [[1, 0, 2]]     BW    [[1, 0, 2]]     BW    [[1, 0, 2]]
+        []              Bg    []              Bg    []
+        [[1, 0, 2]]     BW    [[1, 0, 2]]     BW    [[1, 0, 2]]
+        []              Bg    []              Bg    []
+        []              Bg    []              Bg    []
+        []              Bg    []              Bg    []
+        [[1, 0, 2]]     BW    [[1, 0, 2]]     BW    [[1, 0, 2]]
+        [[1, 0, 2]]     BW    [[1, 0, 2]]     BW    [[1, 0, 2]]
+        [[1, 0, 2]]     BW    [[1, 0, 2]]     BW    [[1, 0, 2]]
+        [[1, 0, 2]]     BW    [[1, 0, 2]]     BW    [[1, 0, 2]]
+        [[1, 0, 2]]     BW    [[1, 0, 2]]     BW    [[1, 0, 2]]
+        [[1, 0, 2]]     BW    [[1, 0, 2]]     BW    [[1, 0, 2]]
+        []              B_    []              B_    []
+        []              BO    []              BO    []
+        []              BO    []              BO    []
+        []              BO    []              BO    []
+        []              B_    []              B_    []
+        []              BO    []              BO    []
+        []              BO    []              BO    []
+        []              BO    []              BO    []
+        []              BG    []              BG    []
+        []              BG    []              BG    []
+        [[1, 0, 2]]     BG    [[1, 0, 2]]     BG    [[1, 0, 2]]
+        [[1, 0, 2]]     BG    [[1, 0, 2]]     BG    [[1, 0, 2]]
+        [[1, 0, 2]]     B_    [[1, 0, 2]]     B_    [[1, 0, 2]]
+        []              BG    []              BG    []
+        [[1, 0, 2]]     B_    [[1, 0, 2]]     B_    [[1, 0, 2]]
+        []              BG    []              BG    []
+        []              BG    []              BG    []
+        []              BG    []              BG    []
+        [[1, 0, 2]]     BG    [[1, 0, 2]]     BG    [[1, 0, 2]]
+        [[1, 0, 2]]     BG    [[1, 0, 2]]     BG    [[1, 0, 2]]
+        [[1, 0, 2]]     BG    [[1, 0, 2]]     BG    [[1, 0, 2]]
+        [[1, 0, 2]]     BG    [[1, 0, 2]]     BG    [[1, 0, 2]]
+        [[1, 0, 2]]     BG    [[1, 0, 2]]     BG    [[1, 0, 2]]
+        [[1, 0, 2]]     BG    [[1, 0, 2]]     BG    [[1, 0, 2]]
+        []              Bg    []              Bg    []
+        []              BW    []              BW    []
+        []              BW    []              BW    []
+        []              BW    []              BW    []
+        []              Bo    []              Bo    []
+        []              Bo    []              Bo    []
+        [[2, 1, 0]]     Bo    [[2, 1, 0]]     Bo    [[2, 1, 0]]
+        [[2, 1, 0]]     Bo    [[2, 1, 0]]     Bo    [[2, 1, 0]]
+        []              BW    []              BW    []
+        []              Bg    []              Bg    []
+        []              BW    []              BW    []
+        []              BW    []              BW    []
+        []              Bg    []              Bg    []
+        [[2, 1, 0]]     BW    [[2, 1, 0]]     BW    [[2, 1, 0]]
+        []              Bg    []              Bg    []
+        []              Bg    []              Bg    []
+        [[2, 1, 0]]     BW    [[2, 1, 0]]     BW    [[2, 1, 0]]
+        []              Bg    []              Bg    []
+        [[2, 1, 0]]     BW    [[2, 1, 0]]     BW    [[2, 1, 0]]
+        [[2, 1, 0]]     BW    [[2, 1, 0]]     BW    [[2, 1, 0]]
+        [[2, 1, 0]]     BW    [[2, 1, 0]]     BW    [[2, 1, 0]]
+        [[2, 1, 0]]     BW    [[2, 1, 0]]     BW    [[2, 1, 0]]
+        [[2, 1, 0]]     BW    [[2, 1, 0]]     BW    [[2, 1, 0]]
+        [[2, 1, 0]]     BW    [[2, 1, 0]]     BW    [[2, 1, 0]]
+        []              Bo    []              Bo    []
+        []              Bo    []              Bo    []
+        [[0, 2, 1]]     Bo    [[0, 2, 1]]     Bo    [[0, 2, 1]]
+        [[0, 2, 1]]     Bo    [[0, 2, 1]]     Bo    [[0, 2, 1]]
+        []              Bg    []              Bg    []
+        []              BW    []              BW    []
+        []              BW    []              BW    []
+        []              BW    []              BW    []
+        []              Bg    []              Bg    []
+        []              BW    []              BW    []
+        []              BW    []              BW    []
+        []              BW    []              BW    []
+        []              Bg    []              Bg    []
+        []              Bg    []              Bg    []
+        []              Bg    []              Bg    []
+        [[0, 2, 1]]     BW    [[0, 2, 1]]     BW    [[0, 2, 1]]
+        []              Bg    []              Bg    []
+        [[0, 2, 1]]     BW    [[0, 2, 1]]     BW    [[0, 2, 1]]
+        [[0, 2, 1]]     BW    [[0, 2, 1]]     BW    [[0, 2, 1]]
+        [[0, 2, 1]]     BW    [[0, 2, 1]]     BW    [[0, 2, 1]]
+        [[0, 2, 1]]     BW    [[0, 2, 1]]     BW    [[0, 2, 1]]
+        [[0, 2, 1]]     BW    [[0, 2, 1]]     BW    [[0, 2, 1]]
+        [[0, 2, 1]]     BW    [[0, 2, 1]]     BW    [[0, 2, 1]]
+        [[0, 2, 1]]     BW    [[0, 2, 1]]     BW    [[0, 2, 1]]
+        []              Bw    []              Bw    []
+        []              Bw    []              Bw    []
+        [[0, 2, 1]]     Bw    [[0, 2, 1]]     Bw    [[0, 2, 1]]
+        [[0, 2, 1]]     Bw    [[0, 2, 1]]     Bw    [[0, 2, 1]]
+        []              Bw    []              Bw    []
+        []              Bw    []              Bw    []
+        [[2, 1, 0]]     Bw    [[2, 1, 0]]     Bw    [[2, 1, 0]]
+        [[2, 1, 0]]     Bw    [[2, 1, 0]]     Bw    [[2, 1, 0]]
+        []              Bw    []              Bw    []
+        []              Bw    []              Bw    []
+        [[1, 0, 2]]     Bw    [[1, 0, 2]]     Bw    [[1, 0, 2]]
+        [[1, 0, 2]]     Bw    [[1, 0, 2]]     Bw    [[1, 0, 2]]
+        [[1, 0, 2]]     Bw    [[1, 0, 2]]     Bw    [[1, 0, 2]]
+        [[2, 1, 0]]     Bw    [[2, 1, 0]]     Bw    [[2, 1, 0]]
+        [[1, 0, 2]]     Bw    [[1, 0, 2]]     Bw    [[1, 0, 2]]
+        [[0, 2, 1]]     Bw    [[0, 2, 1]]     Bw    [[0, 2, 1]]
+        [[2, 1, 0]]     Bw    [[2, 1, 0]]     Bw    [[2, 1, 0]]
+        [[0, 2, 1]]     Bw    [[0, 2, 1]]     Bw    [[0, 2, 1]]
+        [[0, 2, 1], [1, 0, 2]] Bw    [[0, 2, 1], [1, 0, 2]] Bw    [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] Bw    [[0, 2, 1], [1, 0, 2]] Bw    [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] Bw    [[0, 2, 1], [1, 0, 2]] Bw    [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] Bw    [[0, 2, 1], [1, 0, 2]] Bw    [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] Bw    [[0, 2, 1], [1, 0, 2]] Bw    [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] Bw    [[0, 2, 1], [1, 0, 2]] Bw    [[0, 2, 1], [1, 0, 2]]
 
         sage: C = graphs.CubeGraph(1)
         sage: gens = search_tree(C, [C.vertices()], lab=False)
@@ -1230,8 +1279,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
     """
     cdef int i, j, m # local variables
     cdef int uif = 1 if use_indicator_function else 0
+    cdef int _base = 1 if base else 0
 
-    cdef OrbitPartition Theta, OP
+    cdef OrbitPartition Theta
     cdef int index = 0, size = 1 # see Theorem 2.33 in [1]
 
     cdef int L = 100 # memory limit for storing values from fix and mcr:
@@ -1285,24 +1335,20 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
 
     # trivial case
     if n == 0:
-        if lab:
-            H = G.copy()
-        if dict:
-            ddd = {}
-        if certify:
-            dd = {}
-            if dict:
-                return [[]], ddd, H, dd
-            else:
-                return [[]], H, dd
-        if lab and dict:
-            return [[]], ddd, H
-        elif lab:
-            return [[]], H
-        elif dict:
-            return [[]], ddd
-        else:
+        if not (lab or dict_rep or certify or base or order):
             return [[]]
+        output_tuple = [[[]]]
+        if dict_rep:
+            output_tuple.append({})
+        if lab:
+            output_tuple.append(G.copy())
+        if certify:
+            output_tuple.append({})
+        if base:
+            output_tuple.append([])
+        if order:
+            output_tuple.append(1)
+        return tuple(output_tuple)
 
     # allocate int pointers
     W = <int **> sage_malloc( n * sizeof(int *) )
@@ -1367,15 +1413,12 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
         # mpz fails to allocate, this is not checked for
 
     if isinstance(G, GenericGraph):
-        # create to and from mappings to relabel vertices to the set {0,...,n-1}
-        listto = G.vertices()
-        ffrom = {}
-        for vvv in listto:
-            ffrom[vvv] = listto.index(vvv)
+        # relabel vertices to the set {0,...,n-1}
+        G = G.copy()
+        ffrom = G.relabel(return_map=True)
         to = {}
-        for i from 0 <= i < len(listto):
-            to[i] = listto[i]
-        G.relabel(ffrom)
+        for vvv in ffrom.iterkeys():
+            to[ffrom[vvv]] = vvv
         Pi2 = []
         for cell in Pi:
             Pi2.append([ffrom[c] for c in cell])
@@ -1405,6 +1448,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
     else: _dig = 0
     if certify:
         lab=True
+    if _base:
+        base_set = []
 
     if verbosity > 1:
         t = cputime()
@@ -1568,6 +1613,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
                          # zeta, there are no automorphisms to rule out.
                          # instead we record Lambda to zf and zb
                          # (see state 3)
+            if _base:
+                base_set.append(v[nu.k-1])
             mpz_set(zf_mpz[nu.k], Lambda_mpz[nu.k])
             mpz_set(zb_mpz[nu.k], Lambda_mpz[nu.k])
             state = 4
@@ -1693,22 +1740,27 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
             if l < L - 1:
                 l += 1
 
-            # retrieve the orbit partition, and record the relevant
-            # information
-            # TODO: this step could be optimized. The variable OP is not
-            # really necessary
-            OP = orbit_partition_from_list_perm(gamma, n)
             for i from 0 <= i < n:
-                Omega[l][i] = OP._is_min_cell_rep(i)
-                Phi[l][i] = OP._is_fixed(i)
-
+                if gamma[i] == i:
+                    Phi[l][i] = 1
+                    Omega[l][i] = 1
+                else:
+                    Phi[l][i] = 0
+                    m = i
+                    j = gamma[i]
+                    while j != i:
+                        if j < m: m = j
+                        j = gamma[j]
+                    if m == i:
+                        Omega[l][i] = 1
+                    else:
+                        Omega[l][i] = 0
+            m = Theta._incorporate_permutation(gamma, n)
             # if each orbit of gamma is part of an orbit in Theta, then the
             # automorphism is already in the span of those we have seen
-            if OP._is_finer_than(Theta, n):
+            if not m:
                 state = 11
                 continue
-            # otherwise, incorporate this into Theta
-            Theta._vee_with(OP, n)
 
             # record the automorphism
             output.append([ Integer(gamma[i]) for i from 0 <= i < n ])
@@ -1912,40 +1964,36 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, certify=False,
     sage_free(Phi)
     sage_free(Omega)
 
-    if lab:
-        H = _term_pnest_graph(G, rho)
-    if isinstance(G, GenericGraph):
-        # use to and from mappings to relabel vertices back from the set {0,...,n-1}
-        G.relabel(to)
-        if dict:
+    # prepare output
+    if not (lab or dict_rep or certify or base or order):
+        return output
+    output_tuple = [output]
+    if dict_rep:
+        if isinstance(G, GenericGraph):
             ddd = {}
-            for vvv in G.vertices(): # v is a C variable
+            for vvv in ffrom.iterkeys(): # v is a C variable
                 if ffrom[vvv] != 0:
                     ddd[vvv] = ffrom[vvv]
                 else:
                     ddd[vvv] = n
-    elif dict: # G is a CGraph
+        else: # G is a CGraph
             ddd = {}
             for i from 0 <= i < n:
                 ddd[i] = i
-
-    # prepare output
+        output_tuple.append(ddd)
+    if lab:
+        H = _term_pnest_graph(G, rho)
+        output_tuple.append(H)
     if certify:
         dd = {}
         for i from 0 <= i < n:
             dd[to[rho.entries[i]]] = i
-        if dict:
-            return output, ddd, H, dd
-        else:
-            return output, H, dd
-    if lab and dict:
-        return output, ddd, H
-    elif lab:
-        return output, H
-    elif dict:
-        return output, ddd
-    else:
-        return output
+        output_tuple.append(dd)
+    if base:
+        output_tuple.append(base_set)
+    if order:
+        output_tuple.append(size)
+    return tuple(output_tuple)
 
 # Benchmarking functions
 
@@ -1958,7 +2006,6 @@ def all_labeled_graphs(n):
     EXAMPLE:
         sage: import sage.graphs.graph_isom
         sage: from sage.graphs.graph_isom import search_tree, all_labeled_graphs
-        sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}
         sage: for n in range(1,5):
@@ -1968,7 +2015,7 @@ def all_labeled_graphs(n):
         ...        a, b = search_tree(g, [range(n)])
         ...        inn = False
         ...        for gi in Giso[n]:
-        ...            if enum(b) == enum(gi):
+        ...            if b == gi:
         ...                inn = True
         ...        if not inn:
         ...            Giso[n].append(b)
@@ -1985,7 +2032,7 @@ def all_labeled_graphs(n):
         ...    a, b = search_tree(g, [range(n)])
         ...    inn = False
         ...    for gi in Giso[n]:
-        ...        if enum(b) == enum(gi):
+        ...        if b == gi:
         ...            inn = True
         ...    if not inn:
         ...        Giso[n].append(b)
@@ -2052,7 +2099,6 @@ def all_labeled_digraphs_with_loops(n):
     EXAMPLE:
         sage: import sage.graphs.graph_isom
         sage: from sage.graphs.graph_isom import search_tree, all_labeled_digraphs_with_loops
-        sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}
         sage: for n in range(1,4):
@@ -2062,7 +2108,7 @@ def all_labeled_digraphs_with_loops(n):
         ...        a, b = search_tree(g, [range(n)], dig=True)
         ...        inn = False
         ...        for gi in Giso[n]:
-        ...            if enum(b) == enum(gi):
+        ...            if b == gi:
         ...                inn = True
         ...        if not inn:
         ...            Giso[n].append(b)
@@ -2094,7 +2140,6 @@ def all_labeled_digraphs(n):
     EXAMPLES:
         sage: import sage.graphs.graph_isom
         sage: from sage.graphs.graph_isom import search_tree, all_labeled_digraphs
-        sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}
         sage: for n in range(1,4):
@@ -2104,7 +2149,7 @@ def all_labeled_digraphs(n):
         ...           a, b = search_tree(g, [range(n)], dig=True)
         ...           inn = False
         ...           for gi in Giso[n]:
-        ...               if enum(b) == enum(gi):
+        ...               if b == gi:
         ...                   inn = True
         ...           if not inn:
         ...               Giso[n].append(b)
@@ -2238,34 +2283,9 @@ def number_of_graphs(n, j = None):
     return len(graph_list)
 
 def verify_partition_refinement(G, initial_partition, terminal_partition):
-    if not is_equitable(G, terminal_partition):
+    if not G.is_equitable(terminal_partition):
         raise RuntimeError("Resulting partition is not equitable!!!!!!!!!\n"+\
         str(initial_partition) + "\n" + \
         str(terminal_partition) + "\n" + \
         str(G.am()))
-
-def is_equitable(G, partition):
-    if G.is_directed():
-        for cell1 in partition:
-            for cell2 in partition:
-                for u in cell1:
-                    for v in cell1:
-                        vs_in_neighbors_in_cell2 = set([a for a,_,_ in G.incoming_edges(v)]) & set(cell2)
-                        us_in_neighbors_in_cell2 = set([a for a,_,_ in G.incoming_edges(u)]) & set(cell2)
-                        if len(us_in_neighbors_in_cell2) != len(vs_in_neighbors_in_cell2):
-                            return False
-                        vs_out_neighbors_in_cell2 = set([a for _,a,_ in G.outgoing_edges(v)]) & set(cell2)
-                        us_out_neighbors_in_cell2 = set([a for _,a,_ in G.outgoing_edges(u)]) & set(cell2)
-                        if len(us_out_neighbors_in_cell2) != len(vs_out_neighbors_in_cell2):
-                            return False
-    else:
-        for cell1 in partition:
-            for cell2 in partition:
-                for u in cell1:
-                    for v in cell1:
-                        vs_neighbors_in_cell2 = set(G.neighbors(v)) & set(cell2)
-                        us_neighbors_in_cell2 = set(G.neighbors(u)) & set(cell2)
-                        if len(us_neighbors_in_cell2) != len(vs_neighbors_in_cell2):
-                            return False
-    return True
 

@@ -305,7 +305,7 @@ class SamiGraph(Graph):
         A wrapper around Graph.has_edge since it has a bug which
         ignores the label.
         """
-        return self._nxg.has_edge(u,v,label)
+        return self.has_edge(u,v,label)
 
     def apply_transformation_1(self):
         """

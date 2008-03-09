@@ -24,10 +24,7 @@ from sage.graphs.base.dense_graph cimport DenseGraph
 # parent. Since the tree is unbalanced, the worst case find time is linear.
 #
 # (TODO)
-# Important note: the following are probably suboptimal:
-#  1. The use of the variable OP at all- the involved functions should just be
-#     functions of _gamma. (see graph_isom.pyx:1176:32)
-#  2. If instead, roots are chosen to be those of the larger tree during union
+#     If instead, roots are chosen to be those of the larger tree during union
 #     by keeping track of rank, this together with path compression yield a
 #     running time of O(alpha(n)) for union and find operations, where alpha
 #     is the inverse Ackerman function [2].
@@ -35,7 +32,7 @@ from sage.graphs.base.dense_graph cimport DenseGraph
 #     making any sacrifices. Along with keeping track of rank, we could do the
 #     same for minimal representative and size, whose operations would be
 #     essentially identical.
-# These have not yet been implemented since this structure is not the
+# This has not yet been implemented since this structure is not the
 # bottleneck of the loop.
 #
 # The class itself is simply an integer array, where each entry is the parent
@@ -46,12 +43,13 @@ cdef class OrbitPartition:
     cdef int *sizes
 
     cdef int _find(self, int x)
-    cdef void _union_find(self, int a, int b)
+    cdef int _union_find(self, int a, int b)
     cdef void _union_roots(self, int a, int b)
     cdef int _is_finer_than(self, OrbitPartition other, int n)
     cdef void _vee_with(self, OrbitPartition other, int n)
     cdef int _is_min_cell_rep(self, int i)
     cdef int _is_fixed(self, int i)
+    cdef int _incorporate_permutation(self, int *, int n)
 
 # The class PartitionStack is our main way of investigating the search tree
 # T(G, Pi). At any given time, a PartitionStack contains data for each k from

@@ -50,7 +50,7 @@ class BipartiteGraph(Graph):
 
             sage: import networkx
             sage: G = graphs.OctahedralGraph()
-            sage: N = networkx.cliques.make_clique_bipartite(G._nxg)
+            sage: N = networkx.cliques.make_clique_bipartite(G.networkx_graph())
             sage: B = BipartiteGraph(N)
 
         4. From a graph and a partition. Note that if the input graph is not
@@ -133,7 +133,7 @@ class BipartiteGraph(Graph):
                 try:
                     import networkx.generators.bipartite as nx_bip
                     self.left, self.right = \
-                        nx_bip.bipartite_sets(self._nxg)
+                        nx_bip.bipartite_sets(self.networkx_graph())
                 except:
                     raise TypeError("Input graph is not bipartite!")
 

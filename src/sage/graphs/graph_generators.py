@@ -1636,7 +1636,7 @@ class GraphGenerators():
     def PetersenGraph(self):
         """
         The Petersen Graph is a named graph that consists of 10 vertices
-        and 14 edges, usually drawn as a five-point star embedded in a
+        and 15 edges, usually drawn as a five-point star embedded in a
         pentagon.
 
         The Petersen Graph is a common counterexample.  For example, it is
@@ -1646,8 +1646,7 @@ class GraphGenerators():
         When plotting the Petersen graph with the spring-layout algorithm,
         we see that this graph is not very symmetric and thus the display
         may not be very meaningful. Efficiency of construction and plotting
-        is not an issue, as the Petersen graph only has 10 vertices and 14
-        edges.
+        is not an issue, as the Petersen graph only has 10 vertices.
 
         Our labeling convention here is to start on the outer pentagon from
         the top, moving counterclockwise. Then the nodes on the inner star,

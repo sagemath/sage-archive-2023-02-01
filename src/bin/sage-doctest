@@ -190,7 +190,8 @@ def extract_doc(file_name, module):
 
     n = 0
     i = 0
-    s =  "from sage.all_cmdline import *; \n"
+    s = "# -*- coding: utf-8 -*-\n"
+    s += "from sage.all_cmdline import *; \n"
     s += "import sage.plot.plot; sage.plot.plot.DOCTEST_MODE=True\n"  # turn off image popup
 
     while True:

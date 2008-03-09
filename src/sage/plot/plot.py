@@ -2378,7 +2378,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
         sage: import networkx
         sage: C = graphs.CubeGraph(5)
-        sage: pos = C.__get_pos__()
+        sage: pos = C.get_pos()
         sage: G = C.networkx_graph()
         sage: R = rainbow(5)
         sage: edge_colors = {}
@@ -3674,7 +3674,7 @@ def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_c
         ...    for i in range(5):
         ...        if u[i] != v[i]:
         ...            edge_colors[R[i]].append((u,v,l))
-        sage: networkx_plot(C._nxg, pos=C.__get_pos__(), edge_colors=edge_colors, vertex_labels=False, vertex_size=0)
+        sage: networkx_plot(C._nxg, pos=C.get_pos(), edge_colors=edge_colors, vertex_labels=False, vertex_size=0)
     """
     g = Graphics()
     NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, \

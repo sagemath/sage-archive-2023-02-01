@@ -3107,3 +3107,29 @@ def is_power_of_two(n):
         n = n >> 1
     return n == 1
 
+def differences(lis, n=1):
+    """
+    Returns the $n$ successive differences of the elements in $lis$.
+
+    EXAMPLES:
+        sage: differences(prime_range(50))
+        [1, 2, 2, 4, 2, 4, 2, 4, 6, 2, 6, 4, 2, 4]
+        sage: differences([i^2 for i in range(1,11)])
+        [3, 5, 7, 9, 11, 13, 15, 17, 19]
+        sage: differences([i^3 + 3*i for i in range(1,21)])
+        [10, 22, 40, 64, 94, 130, 172, 220, 274, 334, 400, 472, 550, 634, 724, 820, 922, 1030, 1144]
+        sage: differences([i^3 - i^2 for i in range(1,21)], 2)
+        [10, 16, 22, 28, 34, 40, 46, 52, 58, 64, 70, 76, 82, 88, 94, 100, 106, 112]
+        sage: differences([p - i^2 for i, p in enumerate(prime_range(50))], 3)
+        [-1, 2, -4, 4, -4, 4, 0, -6, 8, -6, 0, 4]
+
+    AUTHOR:
+        -- Timothy Clemans (2008-03-09)
+    """
+    n = integer_ring.ZZ(n)
+    if n < 1:
+        raise ValueError, 'n must be greater than 0'
+    lis = [lis[i + 1] - num for i, num in enumerate(lis[:-1])]
+    if n == 1:
+        return lis
+    return differences(lis, n - 1)

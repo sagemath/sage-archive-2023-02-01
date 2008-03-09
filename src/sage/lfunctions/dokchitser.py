@@ -146,6 +146,13 @@ class Dokchitser(SageObject):
     def __init__(self, conductor, gammaV, weight, eps, \
                        poles=[], residues='automatic', prec=53,
                        init=None):
+        """
+        Initialization of Dokchitser calculator
+        EXAMPLES:
+            sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
+            sage: L.num_coeffs()
+            4
+        """
         self.conductor = conductor
         self.gammaV = gammaV
         self.weight = weight
@@ -258,6 +265,12 @@ class Dokchitser(SageObject):
             max_asymp_coeffs --   (default: 40): at most this many terms are
                                   generated in asymptotic series for phi(t)
                                   and G(s,t).
+
+        EXAMPLES:
+            sage: L = Dokchitser(conductor=1, gammaV=[0,1], weight=12, eps=1)
+            sage: pari_precode = 'tau(n)=(5*sigma(n,3)+7*sigma(n,5))*n/12 - 35*sum(k=1,n-1,(6*k-4*(n-k))*sigma(k,3)*sigma(n-k,5))'
+            sage: L.init_coeffs('tau(k)', pari_precode=pari_precode)
+
         """
         if isinstance(v, tuple) and w is None:
             v, cutoff, w, pari_precode, max_imaginary_part, max_asymp_coeffs = v
@@ -340,6 +353,12 @@ class Dokchitser(SageObject):
 
         WARNING: If $k$ is greater than the order of vanishing of $L$
         at $s$ you may get nonsense.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: L = E.lseries().dokchitser()
+            sage: L.derivative(1,E.rank())
+            1.51863300057685
         """
         self.__check_init()
         s = self.__CC(s)
@@ -465,6 +484,14 @@ class Dokchitser(SageObject):
         INPUT:
             coefgrow -- string that evaluates to a PARI function of n
                         that defines a coefgrow function.
+
+        EXAMPLE:
+            sage: L = Dokchitser(conductor=1, gammaV=[0,1], weight=12, eps=1)
+            sage: pari_precode = 'tau(n)=(5*sigma(n,3)+7*sigma(n,5))*n/12 - 35*sum(k=1,n-1,(6*k-4*(n-k))*sigma(k,3)*sigma(n-k,5))'
+            sage: L.init_coeffs('tau(k)', pari_precode=pari_precode)
+            sage: L.set_coeff_growth('2*n^(11/2)')
+            sage: L(1)
+            0.0374412812685155
         """
         if not isinstance(coefgrow, str):
             raise TypeError, "coefgrow must be a string"

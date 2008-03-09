@@ -678,8 +678,7 @@ class FiniteSubgroup(Module):
         we mean a nondecreasing (immutable) sequence of integers
         $n_i$, $1 \leq i \leq k$, with $n_i$ dividing $n_{i+1}$, and
         such that this group is abstractly isomorphic to
-        $\mathbb{Z}/n_1\mathbb{Z} \times\cdots\times
-        \mathbb{Z}/n_k\mathbb{Z}.$
+        $\ZZ/n_1\ZZ \times\cdots\times \ZZ/n_k\ZZ.$
 
         EXAMPLES:
             sage: J = J0(38)

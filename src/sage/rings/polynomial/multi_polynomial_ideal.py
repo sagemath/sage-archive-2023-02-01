@@ -1093,7 +1093,7 @@ class MPolynomialIdeal_singular_repr:
         return R.ideal([f.sage_poly(R) for f in self._singular_().quotient(J._singular_())])
 
     def variety(self, ring=None):
-        """
+        r"""
         Return the variety of self.
 
         Given a zero-dimensional ideal $I$ (== \code{self}) of a polynomial

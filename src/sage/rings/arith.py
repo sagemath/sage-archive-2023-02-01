@@ -2149,7 +2149,7 @@ def discrete_log_generic(a, base, ord=None, operation='multiplication',
         ...
         ValueError: Log of 2 to the base 1 does not exist.
 
-        See trac#2356:
+        See trac\#2356:
         sage: F.<w> = GF(121)
         sage: v = w^120
         sage: v.log(w)

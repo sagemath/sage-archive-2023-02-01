@@ -20,4 +20,10 @@ Base class for algebra elements
 from sage.structure.element import AlgebraElement
 
 def is_AlgebraElement(x):
+    r"""
+    Return true if x is an AlgebraElement
+
+    EXAMPLES:
+
+    """
     return isinstance(x, AlgebraElement)

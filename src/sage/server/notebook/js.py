@@ -1869,13 +1869,13 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
     var cell_interact = get_element("cell-interact-" + id);
     if (!no_interact && cell_interact) {
         if (status  != 'd') return;
-        var i = wrapped_text.indexOf('<?START>');
-        var j = wrapped_text.indexOf('<?END>');
+        var i = wrapped_text.indexOf('<?__SAGE__START>');
+        var j = wrapped_text.indexOf('<?__SAGE__END>');
         if (i == -1 || j == -1) {
-            alert("bug -- interact wrapped text is invalid" + wrapped_text);
+            alert("Bug in notebook -- interact wrapped text is invalid" + wrapped_text);
             return;
         }
-        var new_interact_output = wrapped_text.slice(i+8,j);
+        var new_interact_output = wrapped_text.slice(i+16,j);
 
         /* An error occured accessing the data for this cell.  Just force reload
            of the cell, which will certainly define that data. */
@@ -2589,6 +2589,9 @@ function interact(id, input) {
 var keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 function encode64(input) {
+   /* I had to add this, since otherwise when input is numeric there are
+      errors below. */
+   input = input.toString();
    var output = "";
    var chr1, chr2, chr3;
    var enc1, enc2, enc3, enc4;

@@ -35,6 +35,7 @@ import os, shutil
 
 from   sage.misc.misc import word_wrap
 from   sage.misc.html import math_parse
+from   sage.misc.preparser import strip_string_literals
 
 import notebook
 
@@ -303,11 +304,12 @@ class Cell(Cell_generic):
         return self in self.__worksheet.queue()
 
     def is_interactive_cell(self):
-        # TODO -- this sucks since it would be broke by a line like
-        # "@interact # foo" or @interact in a triple quoted string.
-        # But it is good enough for most cases for now.
-        return '@interact' in ''.join(self.input_text().split())
-
+        """
+        Return True if this cell contains the use of interact either
+        as a function call or a decorator.
+        """
+        s, _ = strip_string_literals(self.input_text())
+        return re.search('(?<!\w)interact\s*\(.*\).*', s) or re.search('\s*@\s*interact\s*\n', s)
 
     def is_interacting(self):
         return hasattr(self, 'interact')
@@ -354,7 +356,7 @@ class Cell(Cell_generic):
         self.__in = new_text
 
     def set_output_text(self, output, html, sage=None):
-        if output.count('<?TEXT>') > 1:
+        if output.count('<?__SAGE__TEXT>') > 1:
             html = '<h3><font color="red">WARNING: multiple @interacts in one cell disabled (not yet implemented).</font></h3>'
             output = ''
 
@@ -425,7 +427,7 @@ class Cell(Cell_generic):
         if allow_interact and hasattr(self, '_interact_output'):
             # Get the input template
             z = self.output_text(ncols, html, raw, allow_interact=False)
-            if not '<?TEXT>' in z or not '<?HTML>' in z:
+            if not '<?__SAGE__TEXT>' in z or not '<?__SAGE__HTML>' in z:
                 return z
             if ncols:
                 # Get the output template
@@ -433,8 +435,8 @@ class Cell(Cell_generic):
                     # Fill in the output template
                     output,html = self._interact_output
                     output = self.parse_html(output, ncols)
-                    z = z.replace('<?TEXT>', output)
-                    z = z.replace('<?HTML>', html)
+                    z = z.replace('<?__SAGE__TEXT>', output)
+                    z = z.replace('<?__SAGE__HTML>', html)
                     return z
                 except (ValueError, AttributeError), msg:
                     print msg

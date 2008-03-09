@@ -29,7 +29,7 @@ BUGS:
    [x] make interact canvas resizable
    [x] if you  use a interact control after restarting, doesn't work.   Need to reset it.  How?
    [x] display html parts of output as html
-   [x] default slider pos doesn't work, eg. def cont(q1=(-1,(-3,3)), q2=(1,(-3,3))):
+   [x] default slider pos doesn't work, eg. def _(q1=(-1,(-3,3)), q2=(1,(-3,3))):
    [x] change from interact to interact everywhere.
    [x] edit/save breaks interact mode
           * picking up images that shouldn't.
@@ -55,21 +55,26 @@ VERSION 1:
    [x] shortcut ('label', v)
    [x] test saving and loading whole notebook to a file
    [x] collection of about 20 good examples of how to use interact (doctested)
-
+   [x] interact(f) should also work; i.e., no need to use decorators -- done; won't be advertised, but
+       at least fixing this improves code quality.
+   [x] obfuscate ?START and ?END much more.
+   [ ] type checked input box
    [ ] setter bar (buttons)
    [ ] drop down menu
    [ ] checkbox
+   [ ] color selector
    [ ] line up all the control in a single table so all labels and all
        controls exactly match up
-   [ ] 100% documentation and doctest coverage
 
    DOCS:
+   [ ] 100% documentation and doctest coverage
    [ ] write paragraphs at the top of this file that describe
        the philosophy and use of these interact things
    [ ] put the docs for this in the reference manual
    [ ] put summary doc in notebook help page
 
 VERSION 2:
+   [ ] safe/secure evaluation mode
    [ ] slider is too narrow -- need to expand to window width?
    [ ] fix the flicker resize during update (hard???)
    [ ] make option for text input that correctly gives something of
@@ -119,6 +124,7 @@ VERSION 3:
 # Standard system libraries
 from base64 import standard_b64encode, standard_b64decode
 import inspect
+import math
 
 # Sage libraries
 from sage.misc.all import srange, sage_eval
@@ -225,34 +231,27 @@ def html_slider(label, id, callback, steps, default=0, margin=0):
 
 
 class InteractControl:
-    """
-    Base class for interact controls.  These are controls associated
-    with a specific interact instance.  They have internal state
-    information about the specific function being interactd, etc.
-    """
-    def __init__(self, f, var, default_value, label=None):
+    def __init__(self, var, default_value, label=None):
         """
-        Create a new interact control.
+        Abstract base class for interact controls.  These are controls
+        that are used in a specific interact.  They have internal
+        state information about the specific function being interactd,
+        etc.
 
         INPUT:
-             f -- a Python function (that's being decorated)
              var -- string; name of variable that this control interacts
              default_value -- the default value of the variable
                               corresponding to this control.
              label -- string (default: None) label of this control; if None
                       then defaults to var.
 
-
         EXAMPLES:
             sage: from sage.server.notebook.interact import InteractControl
-            sage: def f(x): print x
-            ...
-            sage: InteractControl(f, 'x', 5)
+            sage: InteractControl('x', default_value=5)
             A InteractControl (abstract base class)
         """
         self.__var = var
         self.__cell_id = SAGE_CELL_ID
-        self.__f = f
         self.__default_value = default_value
         self.__adapt_number = new_adapt_number()
         if label is None:
@@ -266,9 +265,7 @@ class InteractControl:
 
         EXAMPLES:
             sage: from sage.server.notebook.interact import InteractControl
-            sage: def f(x): print x
-            ...
-            sage: InteractControl(f, 'x', 5).__repr__()
+            sage: InteractControl('x', default_value=5).__repr__()
             'A InteractControl (abstract base class)'
         """
         return "A InteractControl (abstract base class)"
@@ -280,6 +277,10 @@ class InteractControl:
 
         OUTPUT:
             string -- defaults to NULL -- this should be redefined.
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.InteractControl('x', default_value=5).value_js()
+            'NULL'
         """
         return 'NULL'
 
@@ -289,9 +290,7 @@ class InteractControl:
 
         EXAMPLES:
             sage: from sage.server.notebook.interact import InteractControl
-            sage: def f(x): print x
-            ...
-            sage: InteractControl(f, 'x', 5, label='the x value').label()
+            sage: InteractControl('x', default_value=5, label='the x value').label()
             'the x value'
         """
         return self.__label
@@ -306,9 +305,7 @@ class InteractControl:
 
         EXAMPLES:
             sage: from sage.server.notebook.interact import InteractControl
-            sage: def f(x): print x
-            ...
-            sage: InteractControl(f, 'x', 19/3).default_value()
+            sage: InteractControl('x', 19/3).default_value()
             19/3
         """
         return self.__default_value
@@ -323,9 +320,7 @@ class InteractControl:
 
         EXAMPLES:
             sage: from sage.server.notebook.interact import InteractControl
-            sage: def f(x): print x
-            ...
-            sage: InteractControl(f, 'x', 19/3).adapt_number()       # random -- depends on call order
+            sage: InteractControl('x', 19/3).adapt_number()       # random -- depends on call order
             2
         """
         return self.__adapt_number
@@ -344,7 +339,7 @@ class InteractControl:
             object
 
         EXAMPLES:
-            sage: sage.server.notebook.interact.InteractControl(math.sin, 'x', 1)._adaptor('2/3', globals())
+            sage: sage.server.notebook.interact.InteractControl('x', 1)._adaptor('2/3', globals())
             2/3
         """
         return sage_eval(value, globs)
@@ -359,7 +354,7 @@ class InteractControl:
             string -- that is meant to be evaluated in Javascript
 
         EXAMPLES:
-            sage: sage.server.notebook.interact.InteractControl(math.cos, 'x', 1).interact()
+            sage: sage.server.notebook.interact.InteractControl('x', 1).interact()
             'interact(..., "sage.server.notebook.interact.update(..., \\"x\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(NULL)+"\\"), globals())")'
         """
         # The following is a crazy line to read because of all the backslashes and try/except.
@@ -377,7 +372,7 @@ class InteractControl:
             string -- name of a variable as a string.
 
         EXAMPLES:
-            sage: sage.server.notebook.interact.InteractControl(math.cos, 'theta', 1).var()
+            sage: sage.server.notebook.interact.InteractControl('theta', 1).var()
             'theta'
         """
         return self.__var
@@ -391,7 +386,7 @@ class InteractControl:
 
         EXAMPLES:
         The output below should equal the ID of the current cell.
-            sage: sage.server.notebook.interact.InteractControl(math.cos, 'theta', 1).cell_id()
+            sage: sage.server.notebook.interact.InteractControl('theta', 1).cell_id()
             0
         """
         return self.__cell_id
@@ -399,30 +394,34 @@ class InteractControl:
 class InputBox(InteractControl):
     """
     An input box interact control.
+
+    InputBox(var, default_value, label)
+
     EXAMPLES:
-        sage: sage.server.notebook.interact.InputBox(math.cos, 'theta', 1)
-        A InputBox interact control
+        sage: sage.server.notebook.interact.InputBox('theta', 1)
+        An InputBox interactive control with theta=1 and label 'theta'
     """
     def __repr__(self):
         """
         String representation of an InputBox interactive control.
 
         EXAMPLES:
-            sage: sage.server.notebook.interact.InputBox(math.cos, 'theta', 1).__repr__()
-            'A InputBox interact control'
+            sage: sage.server.notebook.interact.InputBox('theta', 1).__repr__()
+            "An InputBox interactive control with theta=1 and label 'theta'"
         """
-        return "A InputBox interact control"
+        return 'An InputBox interactive control with %s=%r and label %r'%(
+            self.var(), self.default_value(), self.label())
 
     def value_js(self):
         """
-        Return javascript string that will give the
-        value of this control element.
+        Return javascript string that will give the value of this
+        control element.
 
         OUTPUT:
              string -- javascript
 
         EXAMPLES:
-            sage: sage.server.notebook.interact.InputBox(math.cos, 'theta', 1).value_js()
+            sage: sage.server.notebook.interact.InputBox('theta', 1).value_js()
             'this.value'
         """
         return 'this.value'
@@ -435,7 +434,7 @@ class InputBox(InteractControl):
              string -- html format
 
         EXAMPLES:
-            sage: sage.server.notebook.interact.InputBox(math.cos, 'theta', 1).render()
+            sage: sage.server.notebook.interact.InputBox('theta', 1).render()
             '\n        theta: <input type=\'text\' value=\'1\' width=200px onchange=\'interact(..., "sage.server.notebook.interact.update(..., \\"theta\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(this.value)+"\\"), globals())")\'></input>\n        '
         """
         return """
@@ -443,16 +442,12 @@ class InputBox(InteractControl):
         """%(self.label(), self.default_value(),  self.interact())
 
 class Slider(InteractControl):
-    """
-    A slider interact control.
-    """
-    def __init__(self, f, var, values, default_position, label=None):
+    def __init__(self, var, values, default_position, label=None):
         """
-        Create a slider interact control that takes on the given
-        list of values.
+        A slider interact control that takes on the given list of
+        values.
 
         INPUT:
-            f -- function
             var -- string; name of variable being interactd
             values -- list; a list of the values that the slider will take on
             default_position -- int; default location that the slider is set to.
@@ -460,19 +455,32 @@ class Slider(InteractControl):
                      instead of the variable.
 
         EXAMPLES:
+            sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha')
+            Slider Interact Control: alpha [1--|3|---5]
         """
-        InteractControl.__init__(self, f, var, values[default_position], label=label)
+        InteractControl.__init__(self, var, values[default_position], label=label)
         self.__values = values
         self.__default_position = default_position
 
     def __repr__(self):
-        return "Slider Interact Control: %s [%s--|%s|---%s]."%(
+        """
+        Return string representation of this slider control.
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha').__repr__()
+            'Slider Interact Control: alpha [1--|3|---5]'
+        """
+        return "Slider Interact Control: %s [%s--|%s|---%s]"%(
             self.label(), min(self.__values),
             self.default_value(), max(self.__values))
 
     def default_position(self):
         """
         Return the default position (as an integer) of the slider.
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha').default_position()
+            2
         """
         return self.__default_position
 
@@ -483,6 +491,10 @@ class Slider(InteractControl):
 
         OUTPUT:
              string -- javascript
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha').value_js()
+            'position'
         """
         return "position"
 
@@ -497,6 +509,10 @@ class Slider(InteractControl):
 
         OUTPUT:
             object
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha')._adaptor(2,globals())
+            3
         """
         v = self.__values
         # We have to cast to int, since it comes back as a float that
@@ -505,10 +521,14 @@ class Slider(InteractControl):
 
     def render(self):
         """
-        Render this control as a string.
+        Render this control as an HTML string.
 
         OUTPUT:
              string -- html format
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha').render()
+            '<table style=\'margin:0px;padding:0px;\'><tr><td><font color=black>alpha</font> </td><td><div id=\'slider-x-...\' class=\'ui-slider-1\' style=\'padding:0px;margin:0px;\'><span class=\'ui-slider-handle\'></span></div></div></td></tr></table><script>setTimeout(function() { $(\'#slider-x-...\').slider({\n    stepping: 1, minValue: 0, maxValue: 4, startValue: 2,\n    change: function () { var position = Math.ceil($(\'#slider-x-...\').slider(\'value\')); interact(..., "sage.server.notebook.interact.update(..., \\"x\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(position)+"\\"), globals())"); }\n});}, 1);</script>'
         """
         return html_slider('<font color=black>%s</font> '%self.label(), 'slider-%s-%s'%(self.var(), self.cell_id()),
                            self.interact(), steps=len(self.__values),
@@ -516,19 +536,20 @@ class Slider(InteractControl):
 
 
 class InteractCanvas:
-    """
-    Base class for interact canvases. This is where all the controls
-    along with the output of the interactd function are layed out
-    and rendered.
-    """
     def __init__(self, controls, id):
         """
-        Create a interact canvas.
+        Base class for interact canvases. This is where all the controls
+        along with the output of the interactd function are layed out
+        and rendered.
 
         INPUT:
             controls -- a list of InteractControl instances.
+            id -- the id of the cell that contains this InteractCanvas.
 
-        XAMPLES:
+        EXAMPLES:
+            sage: B = sage.server.notebook.interact.InputBox('x',2)
+            sage: sage.server.notebook.interact.InteractCanvas([B], 3)
+            Interactive canvas in cell 3 with 1 controls
         """
         self.__controls = controls
         self.__cell_id = id
@@ -538,18 +559,33 @@ class InteractCanvas:
         Print representation of an interactive canvas.
 
         EXAMPLES:
+            sage: B = sage.server.notebook.interact.InputBox('x',2)
+            sage: sage.server.notebook.interact.InteractCanvas([B], 3).__repr__()
+            'Interactive canvas in cell 3 with 1 controls'
         """
         return "Interactive canvas in cell %s with %s controls"%(
             self.__cell_id, len(self.__controls))
 
+    def controls(self):
+        """
+        Return list of controls in this canvas.
+
+        WARNING: Returns a reference to a mutable list.
+
+        EXAMPLES:
+            sage: B = sage.server.notebook.interact.InputBox('x',2)
+            sage: sage.server.notebook.interact.InteractCanvas([B], 3).controls()
+            [An InputBox interactive control with x=2 and label 'x']
+        """
+        return self.__controls
 
     def cell_id(self):
         """
         Return the cell id that contains this interactive canvas.
 
         EXAMPLES:
-            sage: C = sage.server.notebook.interact.InteractCanvas([], 3)
-            sage: C.cell_id()
+            sage: B = sage.server.notebook.interact.InputBox('x',2)
+            sage: sage.server.notebook.interact.InteractCanvas([B], 3).cell_id()
             3
         """
         return self.__cell_id
@@ -564,14 +600,17 @@ class InteractCanvas:
 
         OUTPUT:
             string -- html
+
+        EXAMPLES:
+            sage: B = sage.server.notebook.interact.InputBox('x',2)
+            sage: sage.server.notebook.interact.InteractCanvas([B], 3).render_output()
+            "<div ...</div>"
         """
-        return """
-        <div id='cell-interact-%s'><?START>
+        return """<div id='cell-interact-%s'><?__SAGE__START>
         <table border=0 bgcolor='#white' width=100%% height=100%%>
-        <tr><td bgcolor=white align=left valign=top><pre><?TEXT></pre></td></tr>
-        <tr><td  align=left valign=top><?HTML></td></tr>
-        </table><?END></div>
-        """%self.cell_id()
+        <tr><td bgcolor=white align=left valign=top><pre><?__SAGE__TEXT></pre></td></tr>
+        <tr><td  align=left valign=top><?__SAGE__HTML></td></tr>
+        </table><?__SAGE__END></div>"""%self.cell_id()
 
     def render_controls(self):
         """
@@ -579,15 +618,37 @@ class InteractCanvas:
 
         OUTPUT:
             string -- html
+
+        EXAMPLES:
+            sage: B = sage.server.notebook.interact.InputBox('x',2)
+            sage: sage.server.notebook.interact.InteractCanvas([B], 3).render_controls()
+            '\n        x: <input type=\'text\' value=\'2\' width=200px ...</input>\n        '
         """
         # This will need some sophisticated layout querying of the c's, maybe.
         return ''.join([c.render() for c in self.__controls])
 
     def wrap_in_outside_frame(self, inside):
+        """
+        Return the entire HTML for the interactive canvas, obtained by
+        wrapping all the inside html of the canvas in a div and a
+        table.
+
+        INPUT:
+            inside -- string (of HTML)
+
+        OUTPUT:
+            string of HTML
+
+        EXAMPLES:
+            sage: B = sage.server.notebook.interact.InputBox('x',2)
+            sage: sage.server.notebook.interact.InteractCanvas([B], 3).wrap_in_outside_frame('<!--inside-->')
+            "<div padding=6 id='div-interact-3'> ...</div>\n                 "
+        """
         return """<div padding=6 id='div-interact-%s'> <table width=800px height=400px bgcolor='#c5c5c5'
                  cellpadding=15><tr><td bgcolor='#f9f9f9' valign=top align=left>%s</td>
                  </tr></table></div>
                  """%(self.cell_id(), inside)
+
     # The following could be used to make the interact frame resizable and/or draggable.
     # Neither effect is as cool as it sounds!
 ##                  <script>
@@ -596,12 +657,18 @@ class InteractCanvas:
 ##                  $('#div-interact-%s').draggable();
 ##                  }, 1);</script>
 
+
     def render(self):
         """
         Render in text (html) the entire interact canvas.
 
         OUTPUT:
             string -- html
+
+        EXAMPLES:
+            sage: B = sage.server.notebook.interact.InputBox('x',2)
+            sage: sage.server.notebook.interact.InteractCanvas([B], 3).render()
+            '<div padding=6 id=\'div-interact-3\'> ...</div>\n                 '
         """
         s = "%s%s"%(self.render_controls(), self.render_output())
         s = self.wrap_in_outside_frame(s)
@@ -618,14 +685,14 @@ def interact(f):
     the variable $a$ and a $y$ slider that runs through the range of
     integers from $0$ to $19$.
         sage: @interact
-        ... def f(a=5, y=range(20)): print a + y
+        ... def _(a=5, y=range(20)): print a + y
         ...
         <html>...
 
     Draw a plot interacting with the ``continuous'' variable $a$.  By
     default continuous variables have exactly 50 possibilities.
         sage: @interact
-        ... def example(a=(0,2)):
+        ... def _(a=(0,2)):
         ...     show(plot(sin(x*(1+a*x)), (x,0,6)), figsize=4)
         <html>...
 
@@ -644,18 +711,51 @@ def interact(f):
 
     DEFAULTS:
     Defaults for the variables of the input function determine
-    interactive controls according to the following rules:
+    interactive controls.  The standard controls are \code{input_box},
+    \code{slider}, \code{button}, \code{checkbox}.
+
     \begin{itemize}
-        \item u -- blank input field
-        \item u = element -- input eval field with default = element
-        \item u = (umin,umax) -- continuous slider (really 100 steps)
-        \item u = (umin,umax,du) -- slider with step size du
-        \item u = [1,2,3] -- buttons if at most 5; otherwise, drop down
-        \item u = a bool -- a checkbox
-        \item u = "string" -- input field that allows arbitrary strings
-        \item u = ('label', v) -- labeled control with v any of these
-        \item u = (default, (umin, umax[, du]))
+        \item u = input_box(default, label, optional type)
+                         -- input box with given default
+        \item u = slider(vmin, vmax,step_size,default,label)
+                         -- slider with given list of possible values; vmin an be a list
+        \item u = checkbox(default, label)
+                         -- a checkbox
+        \item u = buttons(list, nrows=1, ncols=None)
+                         -- a row or rows of buttons with given number of columns
+        \item u = drop_down(list, label)
+                         -- a drop down menu
+        \item u = color_selector()
+                         -- a 2d RGB color selector; returns (r,g,b) values with $0 \leq r,g,b<1$.
     \end{itemize}
+
+    There are also some convenient defaults that allow you to make
+    controls automatically without having to explicitly specify them.
+    E.g., you can make $x$ a continuous slider of values between $u$
+    and $v$ by just writing \code{x=(u,v)} in the argument list of
+    your function.  These are all just convenient shortcuts for
+    creating the controls listed above.
+
+    \begin{itemize}
+        \item u                 -- blank input_box field
+        \item u = element       -- input_box with default=element, if element not below.
+        \item u = (umin,umax)   -- continuous slider (really 100 steps)
+        \item u = (umin,umax,du)-- slider with step size du
+        \item u = list          -- buttons if len(list) at most 5; otherwise, drop down
+        \item u = bool          -- a checkbox
+        \item u = (default, v)  -- v as above, with given default value
+        \item u = (label, v)    -- v as above, with given label (a string)
+    \end{itemize}
+
+    WARNING: Suppose you would like to make a interactive with a
+    default rgb color of (1,0,0), so the function would have signature
+    \code{f(color=(1,0,0))}.  Unfortunately, the above shortcuts reinterpret
+    the (1,0,0) as a discrete slider with step size 0 between 1 and 0.
+    Instead you should do the following:
+        sage: @interact
+        ... def _(v = input_box((1,0,0))):
+        ...       show(plot(sin,color=v))
+        <html>...
 
     MORE EXAMPLES:
     We give defaults and name the variables:
@@ -691,7 +791,7 @@ def interact(f):
     Two "sinks" displayed simultaneously via a contour plot and a 3d
     interactive plot:
         sage: @interact
-        ... def cont(q1=(-1,(-3,3)), q2=(-2,(-3,3))):
+        ... def _(q1=(-1,(-3,3)), q2=(-2,(-3,3))):
         ...     x,y = var('x,y')
         ...     f = q1/sqrt((x+1)^2 + y^2) + q2/sqrt((x-1)^2+(y+0.5)^2)
         ...     g = f._fast_float_('x','y')   # should not be needed soon
@@ -745,7 +845,7 @@ def interact(f):
     controls = [automatic_control(defaults[i-n] if i >= n else None) for i in range(len(args))]
 
     # Convert the controls to InteractControl objects
-    controls = [controls[i].render(f, args[i]) for i in range(len(args))]
+    controls = [controls[i].render(args[i]) for i in range(len(args))]
 
     C = InteractCanvas(controls, SAGE_CELL_ID)
 
@@ -759,12 +859,13 @@ def interact(f):
 
     html(C.render())
 
-    def g():
-        return f(*[d[args[i]] for i in range(len(args))])
+    def _():
+        z = f(*[d[args[i]] for i in range(len(args))])
+        if z: print z
 
-    state[SAGE_CELL_ID]['function'] = g
+    state[SAGE_CELL_ID]['function'] = _
 
-    return g
+    return _
 
 
 ######################################################
@@ -772,36 +873,138 @@ def interact(f):
 ######################################################
 class control:
     def __init__(self, label=None):
+        """
+        An interactive control object used with the interact command.
+        This is the abstract base class.
+
+        INPUTS:
+            label -- a string
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.control('a control')
+            Interative control 'a control' (abstract base class)
+        """
         self.__label = label
 
+    def __repr__(self):
+        """
+        Return string representation of this control.
+        (It just mentions the label and that this is an abstract base class.)
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.control('a control').__repr__()
+            "Interative control 'a control' (abstract base class)"
+        """
+        return "Interative control '%s' (abstract base class)"%self.__label
+
     def label(self):
+        """
+        Return the label of this control.
+
+        OUTPUT:
+            a string
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.control('a control').label()
+            'a control'
+        """
         return self.__label
 
     def set_label(self, label):
+        """
+        Set the label of this control.
+
+        INPUT:
+            label -- a string
+
+        EXAMPLES:
+            sage: C = sage.server.notebook.interact.control('a control')
+            sage: C.set_label('sage'); C
+            Interative control 'sage' (abstract base class)
+        """
         self.__label = label
 
 class input_box(control):
-    def __init__(self, default, label=None):
-        """
+    def __init__(self, default=None, label=None, type=None):
+        r"""
+        An input box interactive control.  Use this in conjunction
+        with the interact command.
+
+        \code{input_box(default=None, label=None, type=None)}
+
         INPUT:
-            default -- string (the default value)
+            default -- string (the default put in this input box)
+            label -- the label rendered to the left of the box.
+
+        EXAMPLES:
+            sage: input_box("2+2", 'expression')
+            Interact input box labeled 'expression' with default value '2+2'
         """
         self.__default = default
+        self.__type = type
         control.__init__(self, label)
 
     def __repr__(self):
-        return "A interact input box control with default value '%r'"%self.__default
+        """
+        Return print representation of this input box.
 
-    def render(self, f, var):
+        EXAMPLES:
+            sage: input_box("2+2", 'expression').__repr__()
+            "Interact input box labeled 'expression' with default value '2+2'"
         """
+        return "Interact input box labeled %r with default value %r"%(self.label(), self.__default)
+
+    def render(self, var):
+        r"""
+        Return rendering of this input box as an InputBox to be used
+        for an interact canvas.  Basically this specializes this
+        input to be used for a specific function and variable.
+
         INPUT:
-            f -- a Python function
             var -- a string (variable; one of the variable names input to f)
+
+        OUTPUT:
+            InputBox -- an InputBox object.
+
+        EXAMPLES:
+            sage: input_box("2+2", 'Exp').render('x')
+            An InputBox interactive control with x='2+2' and label 'Exp'
         """
-        return InputBox(f, var, self.__default, label=self.label())
+        return InputBox(var, default_value=self.__default, label=self.label())
+
 
 class slider(control):
-    def __init__(self, vmin, vmax=None, steps=30, default=None, label=None):
+    def __init__(self, vmin, vmax=None, step_size=1, default=None, label=None):
+        r"""
+        An interactive slider control, which can be used in conjunction
+        with the interact command.
+
+        \code{slider(vmin, vmax=None, step_size=1, default=None, label=None)}
+
+        INPUT:
+            vmin -- object or number
+            vmax -- object or None; if None then vmin must be a list, and the slider
+                    then varies over elements of the list.
+            step_size -- integer (default: 1)
+            default -- object or None; default value is ``closest'' in vmin or range
+                       to this default.
+            label -- string
+
+        EXAMPLES:
+        We specify both vmin and vmax.  We make the default 3, but
+        since 3 isn't one of 3/17-th spaced values between 2 and 5,
+        52/17 is instead chosen as the default (it is closest).
+            sage: slider(2, 5, 3/17, 3, 'alpha')
+            Slider: alpha [2--|52/17|---5]
+
+        Here we give a list:
+            sage: slider([1..10], None, None, 3, 'alpha')
+            Slider: alpha [1--|3|---10]
+
+        The elements of the list can be anything:
+            sage: slider([1, 'x', 'abc', 2/3], None, None, 3, 'alpha')
+            Slider: alpha [abc--|1|---1]
+        """
         control.__init__(self, label=label)
         if isinstance(vmin, list):
             self.__values = vmin
@@ -809,12 +1012,23 @@ class slider(control):
             if vmax is None:
                 vmax = vmin
                 vmin = 0
-            steps = int(steps)
-            if steps <= 0:
-                self.__values = [vmin, vmax]
+            if step_size <= 0:
+                raise ValueError, "invalid negative step size -- step size must be positive"
             else:
-                step = (vmax-vmin)/steps  # hard coded
-                self.__values = [vmin + i*step for i in range(steps)] + [vmax]
+                num_steps = int(math.ceil((vmax-vmin)/float(step_size)))
+                if num_steps <= 2:
+                    self.__values = [vmin, vmax]
+                else:
+                    self.__values = [vmin + i*step_size for i in range(num_steps)]
+                    if self.__values[-1] != vmax:
+                        try:
+                            if self.__values[-1] > vmax:
+                                self.__values[-1] = vmax
+                            else:
+                                self.__values.append(vmax)
+                        except (ValueError, TypeError):
+                            pass
+
         if len(self.__values) == 0:
             self.__values = [0]
 
@@ -836,9 +1050,31 @@ class slider(control):
             self.__default = i
 
     def __repr__(self):
-        return "Slider: %s [%s--|%s|---%s]."%(self.label(),
+        """
+        Return string representation of this slider.
+
+        EXAMPLES:
+            sage: slider(2, 5, 1/5, 3, 'alpha').__repr__()
+            'Slider: alpha [2--|3|---5]'
+        """
+        return "Slider: %s [%s--|%s|---%s]"%(self.label(),
                   min(self.__values),
              self.__values[self.default_index()], max(self.__values))
+
+    def values(self):
+        """
+        Returns list of values that this slider takes on, in order.
+
+        OUTPUT:
+            list -- list of values
+
+        WARNING: This is a reference to a mutable list.
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.slider(1,10,1/2).values()
+            [1, 3/2, 2, 5/2, 3, 7/2, 4, 9/2, 5, 11/2, 6, 13/2, 7, 15/2, 8, 17/2, 9, 19/2, 10]
+        """
+        return self.__values
 
     def default_index(self):
         """
@@ -846,25 +1082,31 @@ class slider(control):
 
         OUTPUT:
             int
+
+        EXAMPLES:
+            sage: slider(2, 5, 1/2, 3, 'alpha').default_index()
+            2
         """
         return self.__default
 
-    def render(self, f, var):
+    def render(self, var):
         """
         Render the interact control for the given function and
         variable.
 
         INPUT:
-            f -- a function
             var -- string; variable name
 
         EXAMPLES:
             sage: S = slider(0,10, default=3, label='theta'); S
-            Slider: theta [0--|3|---10].
-            sage: S.render(lambda x: x^2, 'x')
-            Slider Interact Control: theta [0--|3|---10].
+            Slider: theta [0--|3|---10]
+            sage: S.render('x')
+            Slider Interact Control: theta [0--|3|---10]
+
+            sage: slider(2, 5, 2/7, 3, 'alpha').render('x')
+            Slider Interact Control: alpha [2--|20/7|---5]
         """
-        return Slider(f, var, self.__values, self.__default, label=self.label())
+        return Slider(var, self.__values, self.__default, label=self.label())
 
 def automatic_control(default):
     """
@@ -872,59 +1114,97 @@ def automatic_control(default):
     value of the variable.
 
     INPUT:
-        default -- the default value for v given by the function
+        default -- the default value for v given by the function; see
+                   the documentation to interact? for details.
 
     OUTPUT:
         a interact control
+
+    EXAMPLES:
+        sage: sage.server.notebook.interact.automatic_control('')
+        Interact input box labeled None with default value ''
+        sage: sage.server.notebook.interact.automatic_control(15)
+        Interact input box labeled None with default value 15
+        sage: sage.server.notebook.interact.automatic_control(('start', 15))
+        Interact input box labeled 'start' with default value 15
+        sage: sage.server.notebook.interact.automatic_control((1,100))
+        Slider: None [1.0--|1.0|---100.0]
+        sage: sage.server.notebook.interact.automatic_control(('alpha', (1,100)))
+        Slider: alpha [1.0--|1.0|---100.0]
+        sage: sage.server.notebook.interact.automatic_control((2,(1,100)))
+        Slider: None [1.0--|2.0|---100.0]
+        sage: sage.server.notebook.interact.automatic_control(('alpha label', (2,(1,100))))
+        Slider: alpha label [1.0--|2.0|---100.0]
+        sage: sage.server.notebook.interact.automatic_control((2, ('alpha label',(1,100))))
+        Slider: alpha label [1.0--|2.0|---100.0]
+        sage: C = sage.server.notebook.interact.automatic_control((1,52, 5)); C
+        Slider: None [1--|1|---52]
+        sage: C.values()
+        [1, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 52]
+        sage: sage.server.notebook.interact.automatic_control((17, (1,100,5)))
+        Slider: None [1--|16|---100]
+        sage: sage.server.notebook.interact.automatic_control([1..100])
+        Slider: None [1--|1|---100]
+        sage: sage.server.notebook.interact.automatic_control((5,[1..100]))
+        Slider: None [1--|5|---100]
     """
     label = None
     default_value = None
+
+    for _ in range(2):
+        if isinstance(default, tuple) and len(default) == 2 and isinstance(default[0], str):
+            label, default = default
+        if isinstance(default, tuple) and len(default) == 2 and isinstance(default[1], (tuple, list)):
+            default_value, default = default
+
     if isinstance(default, control):
         C = default
-        label = C.label()
+        if label:
+            C.set_label(label)
     elif isinstance(default, list):
-        C = slider(default)
+        C = slider(default, default=default_value,label=label)
     elif isinstance(default, tuple):
         if len(default) == 2:
-            if isinstance(default[1], tuple):
-                default_value = default[0]
-                default = default[1]
-            if isinstance(default[0], str):
-                # recursive call to get automatic control for second part
-                C = automatic_control(default[1])
-                label = default[0]
-            elif isinstance(default[0], list):
-                C = slider(default[0], default=default[1])
-            else:
-                # The default 99.0 below is a sort of "heuristic value" so there are 100 steps
-                C = slider(srange(default[0], default[1], (default[1]-default[0])/99.0,
-                                  include_endpoint=True), default = default_value)
+            # The default 99.0 below is a sort of "heuristic value" so there are 100 steps
+            C = slider(srange(default[0], default[1], (default[1]-default[0])/99.0,
+                              include_endpoint=True), default = default_value, label=label)
         elif len(default) == 3:
-            C = slider(srange(default[0], default[1], default[2], include_endpoint=True))
+            C = slider(default[0], default[1], default[2], default=default_value, label=label)
         else:
-            C = slider(list(default))
+            C = slider(list(default), default=default_value, label=label)
     else:
-        C = input_box(default)
+        C = input_box(default, label=label)
 
-    C.set_label(label)
     return C
 
 
 def update(cell_id, var, adapt, value, globs):
     """
+    Called when updating the positions of an interactive control.
+
     INPUT:
         cell_id -- the id of a interact cell
         var -- a variable associated to that cell
         adapt -- the number of the adapt function
+        value -- new value of the control
+        globs -- global variables.
+
+    EXAMPLES:
+    The following outputs __SAGE_INTERACT_RESTART__ to indicate that
+    not all the state of the interrupt canvas has been setup yet (this
+    setup happens when javascript calls certain functions).
+        sage: sage.server.notebook.interact.update(0, 'a', 0, '5', globals())
+        __SAGE_INTERACT_RESTART__
     """
     try:
         S = state[cell_id]
-    except KeyError:
-        print "__SAGE_INTERACT_RESTART__"
-    else:
         # Look up the function that adapts inputs to have the right type
         adapt_function = S["adapt"][adapt]
         # Apply that function and save the result in the appropriate variables dictionary.
         S["variables"][var] = adapt_function(value, globs)
         # Finally call the interactive function, which will use the above variables.
         S['function']()
+    except KeyError:
+        # If you change this, make sure to change js.py as well.
+        print "__SAGE_INTERACT_RESTART__"
+

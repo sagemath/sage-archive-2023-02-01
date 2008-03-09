@@ -65,6 +65,15 @@ A difficult conversion:
 TESTS:
     sage: -1e30
     -1.00000000000000e30
+
+Make sure we don't have a new field for every new literal:
+    sage: parent(2.0) is parent(2.0)
+    True
+    sage: RealField(100, rnd='RNDZ') is RealField(100, rnd='RNDD')
+    False
+    sage: RealField(100, rnd='RNDZ') is RealField(100, rnd='RNDZ')
+    True
+
 """
 
 #*****************************************************************************
@@ -87,6 +96,7 @@ TESTS:
 
 import math # for log
 import sys
+import weakref
 
 include '../ext/interrupt.pxi'
 include "../ext/stdsage.pxi"
@@ -159,7 +169,9 @@ def mpfr_prec_max():
 
 _rounding_modes = ['RNDN', 'RNDZ', 'RNDU', 'RNDD']
 
-cdef class RealField(sage.rings.ring.Field):
+cdef object RealField_cache = weakref.WeakValueDictionary()
+
+def RealField_constructor(int prec=53, int sci_not=0, rnd="RNDN"):
     """
     RealField(prec, sci_not, rnd):
 
@@ -199,7 +211,13 @@ cdef class RealField(sage.rings.ring.Field):
        range is much wider and subnormal numbers are not
        implemented.'
     """
+    try:
+        return RealField_cache[prec, sci_not, rnd]
+    except KeyError:
+        RealField_cache[prec, sci_not, rnd] = R = RealField(prec=prec, sci_not=sci_not, rnd=rnd)
+        return R
 
+cdef class RealField(sage.rings.ring.Field):
     def __init__(self, int prec=53, int sci_not=0, rnd="RNDN"):
         cdef RealNumber rn
         if prec < MPFR_PREC_MIN or prec > MY_MPFR_PREC_MAX:
@@ -3494,7 +3512,7 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
         else:
             bits = int(math.log(base,2)*sigfigs)+1
 
-    R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
+    R = RealField_constructor(prec=max(bits+pad, min_prec), rnd=rnd)
     return RealNumber(R, s, base)
 
 
@@ -3508,7 +3526,7 @@ def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
         from real_mpfi import RealIntervalField
         return RealIntervalField(prec, sci_not)
     else:
-        return RealField(prec, sci_not, rnd)
+        return RealField_constructor(prec, sci_not, rnd)
 
 
 def is_RealField(x):

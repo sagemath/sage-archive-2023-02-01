@@ -78,7 +78,7 @@ from padics.all import *
 from padics.padic_printing import _printer_defaults as padic_printing
 
 # Real numbers
-from real_mpfr import (RealField, is_RealField, is_RealNumber, RR,
+from real_mpfr import (RealField_constructor as RealField, is_RealField, is_RealNumber, RR,
                        create_RealNumber as RealNumber)   # this is used by the preparser to wrap real literals -- very important.
 Reals = RealField
 

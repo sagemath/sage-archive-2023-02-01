@@ -418,10 +418,8 @@ if __name__ ==  '__main__':
         omega      = has_opt('omega')
         if long_time:
             TIMEOUT = TIMEOUT_LONG
-            print "\nRaising timeout to %s seconds due to '-long' option"%TIMEOUT_LONG
         if gdb or memcheck or massif or cachegrind or omega:
             TIMEOUT = TIMEOUT_VALGRIND
-            print "\nRaising timeout to %s seconds due to valgrind"%TIMEOUT_VALGRIND
         if argv[1][0] == '-':
             usage()
         try:

@@ -31,14 +31,12 @@ cdef void mpq_randomize_entry_as_int(mpq_t x, mpz_t bound):
     if random() % 2:
         mpz_mul_si(mpq_numref(x), mpq_numref(x), -1)
 
-cdef inline void mpz_randomize_entry_recip_uniform(mpz_t x):
-    # Natrual distribution $Pr(n) = 1/2|n|(|n|+1)$.
-    # This has infinite expected value, but in practice these will always
-    # be a single machine word, heavily concentrated around $\pm 1$.
-    mpz_set_si(x, (RAND_MAX/2) / (random()-RAND_MAX/2))
-
 cdef inline void mpq_randomize_entry_recip_uniform(mpq_t x):
     # Distributes top and bottom according to mpz_randomize_entry_recip_uniform.
-    mpz_set_si(mpq_numref(x), (RAND_MAX/2) / (random()-RAND_MAX/2))
-    mpz_set_si(mpq_denref(x), RAND_MAX / random())
+    cdef int den = random() - RAND_MAX/2
+    if den == 0: den = 1
+    mpz_set_si(mpq_numref(x), (RAND_MAX/2) / den)
+    den = random()
+    if den == 0: den = 1
+    mpz_set_si(mpq_denref(x), RAND_MAX / den)
     mpq_canonicalize(x)

@@ -34,6 +34,83 @@ import sage.structure.parent_gens
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 
 def QuotientRing(R, I, names=None):
+    r"""
+    Creates a quotient ring of the ring R by the ideal I. Variables are
+    labeled by names. (If the quotient ring is a quotient of a polynomial
+    ring.). If names isn't given, 'bar' will be appended to the variable names
+    in R.
+
+    INPUTS:
+        R -- a commutative ring
+        I -- and ideal of R
+        names -- a list of strings to be used as names for the variables in
+                 the quotient ring R/I
+
+    OUTPUTS:
+        R/I -- the quotient ring R mod the ideal I
+
+    EXAMPLES:
+    Some simple quotient rings with the integers:
+        sage: R = QuotientRing(ZZ,7*ZZ); R
+        Quotient of Integer Ring by the ideal (7)
+        sage: R.gens()
+        (1,)
+        sage: 1*R(3); 6*R(3); 7*R(3)
+        3
+        4
+        0
+
+        sage: S = QuotientRing(ZZ,ZZ.ideal(8)); S
+        Quotient of Integer Ring by the ideal (8)
+        sage: 2*S(4)
+        0
+
+    With polynomial rings: (note that the variable name of the quotient ring
+    can be specified as shown below)
+        sage: R.<xx> = QuotientRing(QQ[x], QQ[x].ideal(x^2 + 1)); R
+        Univariate Quotient Polynomial Ring in xx over Rational Field with modulus x^2 + 1
+        sage: R.gens(); R.gen()
+        (xx,)
+        xx
+        sage: for n in range(4): xx^n
+        1
+        xx
+        -1
+        -xx
+
+        sage: S = QuotientRing(QQ[x], QQ[x].ideal(x^2 - 2)); S
+        Univariate Quotient Polynomial Ring in xbar over Rational Field with
+        modulus x^2 - 2
+        sage: xbar = S.gen(); S.gen()
+        xbar
+        sage: for n in range(3): xbar^n
+        1
+        xbar
+        2
+
+    Sage coerces objects into ideals when possible:
+        sage: R = QuotientRing(QQ[x], x^2 + 1); R
+        Univariate Quotient Polynomial Ring in xbar over Rational Field with
+        modulus x^2 + 1
+
+    By Noether's homomorphism theorems, the quotient of a quotient ring in R
+    is just the quotient of R by the sum of the ideals. In this example, we
+    end up modding out the ideal (x) from the ring QQ[x,y]:
+        sage: R.<x,y> = PolynomialRing(QQ,2)
+        sage: S.<a,b> = QuotientRing(R,R.ideal(1 + y^2))
+        sage: T.<c,d> = QuotientRing(S,S.ideal(a))
+        sage: T
+        Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x, y^2 + 1)
+        sage: R.gens(); S.gens(); T.gens()
+        (x, y)
+        (a, b)
+        (0, d)
+        sage: for n in range(4): d^n
+        1
+        d
+        -1
+        -d
+    """
     if not isinstance(R, commutative_ring.CommutativeRing):
         raise TypeError, "R must be a commutative ring."
     if names is None:
@@ -54,7 +131,11 @@ def QuotientRing(R, I, names=None):
         I_lift = S.ideal(G)
         J = R.defining_ideal()
         return QuotientRing_generic(S, I_lift + J, names)
-
+    if R.is_field():
+        if I.is_zero():
+            return R
+        else:
+            return 0
     return QuotientRing_generic(R, I, names)
 
 def is_QuotientRing(x):
@@ -193,12 +274,56 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             return self.__lift
 
     def characteristic(self):
+        r"""
+        Return the characteristic of the quotient ring.
+
+        TODO: Not yet implemented!
+
+        EXAMPLES:
+            sage: Q = QuotientRing(ZZ,7*ZZ)
+            sage: Q.characteristic()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def defining_ideal(self):
+        r"""
+        Returns the ideal generating this quotient ring.
+
+        EXAMPLES:
+        In the integers:
+            sage: Q = QuotientRing(ZZ,7*ZZ)
+            sage: Q.defining_ideal()
+            Principal ideal (7) of Integer Ring
+
+        An example involving a quotient of a quotient. By Noether's
+        homomorphism theorems, this is actually a quotient by a sum of two
+        ideals:
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: S.<a,b> = QuotientRing(R,R.ideal(1 + y^2))
+            sage: T.<c,d> = QuotientRing(S,S.ideal(a))
+            sage: S.defining_ideal()
+            Ideal (y^2 + 1) of Multivariate Polynomial Ring in x, y over Rational Field
+            sage: T.defining_ideal()
+            Ideal (x, y^2 + 1) of Multivariate Polynomial Ring in x, y over Rational Field
+        """
         return self.__I
 
     def is_field(self):
+        r"""
+        Returns True if the quotient ring is a field. Checks to see if the
+        defining ideal is maximal.
+
+        TESTS:
+        Requires the \code{is_maximal} function to be implemented:
+            sage: Q = QuotientRing(ZZ,7*ZZ)
+            sage: Q.is_field()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         return self.defining_ideal().is_maximal()
 
     def is_integral_domain(self):
@@ -228,6 +353,24 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         return self.defining_ideal().is_prime()
 
     def cover_ring(self):
+        r"""
+        Returns the cover ring of the quotient ring: that is, the original
+        ring R from which we modded out an ideal, I.
+
+        TODO: PolynomialQuotientRings_field objects don't have a
+        \code{cover_ring} function.
+
+        EXAMPLES:
+            sage: Q = QuotientRing(ZZ,7*ZZ)
+            sage: Q.cover_ring()
+            Integer Ring
+
+            sage: Q = QuotientRing(QQ[x], x^2 + 1)
+            sage: Q.cover_ring()
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'PolynomialQuotientRing_field' object has no attribute 'cover_ring'
+        """
         return self.__R
 
     def ideal(self, *gens, **kwds):
@@ -299,9 +442,60 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
                    (other.cover_ring(), other.defining_ideal().gens()))
 
     def ngens(self):
+        r"""
+        Returns the number of generators for this quotient ring.
+
+        TODO: Note that \code{ngens} counts 0 as a generator. Does this make
+        sense? That is, since 0 only generates itself and the fact that this
+        is true for all rings, is there a way to "knock it off" of the
+        generators list if a generator of some original ring is modded out?
+
+        EXAMPLES:
+            sage: R = QuotientRing(ZZ,7*ZZ)
+            sage: R.gens(); R.ngens()
+            (1,)
+            1
+
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: S.<a,b> = QuotientRing(R,R.ideal(1 + y^2))
+            sage: T.<c,d> = QuotientRing(S,S.ideal(a))
+            sage: T
+            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x, y^2 + 1)
+            sage: R.gens(); S.gens(); T.gens()
+            (x, y)
+            (a, b)
+            (0, d)
+            sage: R.ngens(); S.ngens(); T.ngens()
+            2
+            2
+            2
+        """
         return self.cover_ring().ngens()
 
     def gen(self, i=0):
+        r"""
+        Returns the ith generator for this quotient ring.
+
+        EXAMPLES:
+            sage: R = QuotientRing(ZZ,7*ZZ)
+            sage: R.gen(0)
+            1
+
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: S.<a,b> = QuotientRing(R,R.ideal(1 + y^2))
+            sage: T.<c,d> = QuotientRing(S,S.ideal(a))
+            sage: T
+            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x, y^2 + 1)
+            sage: R.gen(0); R.gen(1)
+            x
+            y
+            sage: S.gen(0); S.gen(1)
+            a
+            b
+            sage: T.gen(0); T.gen(1)
+            0
+            d
+        """
         return self(self.__R.gen(i))
 
 

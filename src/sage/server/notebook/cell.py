@@ -1,4 +1,4 @@
-r"""nodoctest
+"""nodoctest
 A Cell.
 
 A cell is a single input/output block.  Worksheets are built out of a
@@ -35,13 +35,15 @@ import os, shutil
 
 from   sage.misc.misc import word_wrap
 from   sage.misc.html import math_parse
+from   sage.misc.preparser import strip_string_literals
 
 import notebook
 
 import worksheet
 
 class Cell_generic:
-    pass
+    def is_interactive_cell(self):
+        return False
 
 class TextCell(Cell_generic):
     def __init__(self, id, text, worksheet):
@@ -147,7 +149,19 @@ class Cell(Cell_generic):
             self.set_id(id)
 
     def update_html_output(self, output=''):
-        self.__out_html = self.files_html(output)
+        """
+        Update the list of files with html-style links or embeddings
+        for this cell.
+
+        For interactive cells the html output section is always empty,
+        mainly because there is no good way to distinguish content
+        (e.g., images in the current directory) that goes into the
+        interactive template and content that would go here.
+        """
+        if self.is_interactive_cell():
+            self.__out_html = ""
+        else:
+            self.__out_html = self.files_html(output)
 
     def id(self):
         return self.__id
@@ -244,11 +258,10 @@ class Cell(Cell_generic):
                         break
                 out = '\n'.join(w)
             else:
-                out = self.output_text(ncols, html=False)
+                out = self.output_text(ncols, raw=True, html=False)
         else:
-            out = self.output_text(ncols, html=False)
-            if wiki_out and len(out) > 0:
-                out = '///\n' + out
+            out = self.output_text(ncols, raw=True, html=False, allow_interact=False)
+            out = '///\n' + out
 
         if not max_out is None and len(out) > max_out:
             out = out[:max_out] + '...'
@@ -290,7 +303,35 @@ class Cell(Cell_generic):
     def computing(self):
         return self in self.__worksheet.queue()
 
+    def is_interactive_cell(self):
+        """
+        Return True if this cell contains the use of interact either
+        as a function call or a decorator.
+        """
+        # Do *not* cache
+        s, _ = strip_string_literals(self.input_text())
+        return bool(re.search('(?<!\w)interact\s*\(.*\).*', s) or re.search('\s*@\s*interact\s*\n', s))
+
+    def is_interacting(self):
+        return hasattr(self, 'interact')
+
+    def stop_interacting(self):
+        if self.is_interacting():
+            del self.interact
+
     def set_input_text(self, input):
+        # Stuff to deal with interact
+        if input.startswith('%__sage_interact__'):
+            self.interact = input[len('%__sage_interact__')+1:]
+            self.__version = 1+self.version()
+            return
+        elif self.is_interacting():
+            try:
+                del self.interact
+                del self._interact_output
+            except AttributeError:
+                pass
+
         self.__version = 1+self.version()
         self.__in = input
         if hasattr(self, '_html_cache'):
@@ -315,8 +356,19 @@ class Cell(Cell_generic):
         self.__in = new_text
 
     def set_output_text(self, output, html, sage=None):
+        if output.count('<?__SAGE__TEXT>') > 1:
+            html = '<h3><font color="red">WARNING: multiple @interacts in one cell disabled (not yet implemented).</font></h3>'
+            output = ''
+
+        # In interacting mode, we just save the computed output
+        # (do not overwrite).
+        if self.is_interacting():
+            self._interact_output = (output, html)
+            return
+
         if hasattr(self, '_html_cache'):
             del self._html_cache
+
         output = output.replace('\r','')
         if len(output) > MAX_OUTPUT:
             url = ""
@@ -331,7 +383,8 @@ class Cell(Cell_generic):
             else:
                 output = output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
         self.__out = output
-        self.__out_html = html
+        if not self.is_interactive_cell():
+            self.__out_html = html
         self.__sage = sage
 
     def sage(self):
@@ -370,45 +423,80 @@ class Cell(Cell_generic):
             x = x.replace(s,begin + s[7:-1] + end)
         return x
 
-    def output_text(self, ncols=0, html=True, raw=False):
-        s = self.__out
+    def output_text(self, ncols=0, html=True, raw=False, allow_interact=True):
+        if allow_interact and hasattr(self, '_interact_output'):
+            # Get the input template
+            z = self.output_text(ncols, html, raw, allow_interact=False)
+            if not '<?__SAGE__TEXT>' in z or not '<?__SAGE__HTML>' in z:
+                return z
+            if ncols:
+                # Get the output template
+                try:
+                    # Fill in the output template
+                    output,html = self._interact_output
+                    output = self.parse_html(output, ncols)
+                    z = z.replace('<?__SAGE__TEXT>', output)
+                    z = z.replace('<?__SAGE__HTML>', html)
+                    return z
+                except (ValueError, AttributeError), msg:
+                    print msg
+                    pass
+            else:
+                # Get rid of the interact div to avoid updating the wrong output location
+                # during interact.
+                return ''
+
+        is_interact = self.is_interactive_cell()
+        if is_interact and ncols == 0:
+            if 'Traceback (most recent call last)' in self.__out:
+                s = self.__out.replace('cell-interact','')
+                is_interact=False
+            else:
+                return '<h2>Click to the left again to hide and once more to show the dynamic interactive window</h2>'
+        else:
+            s = self.__out
 
         if raw:
             return s
 
         if html:
-            def format(x):
-                return word_wrap(x.replace('<','&lt;'), ncols=ncols)
+            s = self.parse_html(s, ncols)
 
-            def format_html(x):
-                x = self.process_cell_urls(x)
-                return x
-
-            # if there is an error in the output,
-            # specially format it.
-            s = format_exception(s, ncols)
-
-            # Everything not wrapped in <html> ... </html>
-            # should have the <'s replaced by &lt;'s
-            # and be word wrapped.
-            t = ''
-            while len(s) > 0:
-                i = s.find('<html>')
-                if i == -1:
-                    t += format(s)
-                    break
-                j = s.find('</html>')
-                if j == -1:
-                    t += format(s[:i])
-                    break
-                t += format(s[:i]) + format_html(s[i+6:j])
-                s = s[j+7:]
-            s = t
-            if not self.is_html() and len(s.strip()) > 0:
-                s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
-
+        if not is_interact and not self.is_html() and len(s.strip()) > 0:
+            s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
 
         return s.strip('\n')
+
+    def parse_html(self, s, ncols):
+        def format(x):
+            return word_wrap(x.replace('<','&lt;'), ncols=ncols)
+
+        def format_html(x):
+            return self.process_cell_urls(x)
+
+        # if there is an error in the output,
+        # specially format it.
+        if not self.is_interactive_cell():
+            s = format_exception(s, ncols)
+
+        # Everything not wrapped in <html> ... </html>
+        # should have the <'s replaced by &lt;'s
+        # and be word wrapped.
+        t = ''
+        while len(s) > 0:
+            i = s.find('<html>')
+            if i == -1:
+                t += format(s)
+                break
+            j = s.find('</html>')
+            if j == -1:
+                t += format(s[:i])
+                break
+            t += format(s[:i]) + format_html(s[i+6:j])
+            s = s[j+7:]
+        t = t.replace('</html>','')
+        return t
+
 
     def has_output(self):
         return len(self.__out.strip()) > 0
@@ -501,16 +589,6 @@ class Cell(Cell_generic):
             wrap = 68
             div_wrap = 68
         key = (wrap,div_wrap,do_print)
-        #try:
-        #    return self._html_cache[key]
-        #except KeyError:
-        #    pass
-        #except AttributeError:
-        #    self._html_cache = {}
-
-        if self.__in.lstrip()[:8] == '%hideall':
-            #self._html_cache[key] = ''
-            return ''
 
         if wrap is None:
             wrap = self.notebook().conf()['word_wrap_cols']
@@ -526,7 +604,11 @@ class Cell(Cell_generic):
         html_in  = self.html_in(do_print=do_print)
         introspect = "<div id='introspect_div_%s' class='introspection'></div>"%self.id()
         html_out = self.html_out(wrap, do_print=do_print)
-        s = html_in  + introspect + html_out
+
+        if self.__in.lstrip()[:8] == '%hideall':
+            s = html_out
+        else:
+            s = html_in  + introspect + html_out
 
         if div_wrap:
             s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'
@@ -660,8 +742,8 @@ class Cell(Cell_generic):
 
     def html_out(self, ncols=0, do_print=False):
         out_nowrap = self.output_text(0, html=True)
-        out_html = self.output_html()
 
+        out_html = self.output_html()
         if self.introspect():
             out_wrap = out_nowrap
         else:
@@ -682,13 +764,14 @@ class Cell(Cell_generic):
         else:
             prnt = ""
 
-        out = """<div class="cell_output_%s%s" id="cell_output_%s">%s</div>
-                 <div class="cell_output_%snowrap_%s" id="cell_output_nowrap_%s">%s</div>
-                 <div class="cell_output_html_%s" id="cell_output_html_%s">%s </div>
-                 """%(prnt, typ, self.__id, out_wrap,
-                      prnt, typ, self.__id, out_nowrap,
-                      typ, self.__id, out_html)
+        out_wrap   = '<div class="cell_output_%s%s" id="cell_output_%s">%s</div>'%(
+            prnt, typ,self.__id, out_wrap)
+        out_nowrap = '<div class="cell_output_%snowrap_%s" id="cell_output_nowrap_%s">%s</div>'%(
+            prnt, typ, self.__id, out_nowrap)
+        out_html   = '<div class="cell_output_html_%s" id="cell_output_html_%s">%s </div>'%(
+            typ, self.__id, out_html)
 
+        out = "%s%s%s"%(out_wrap, out_nowrap, out_html)
         s = top + out + '</div>'
 
         r = ''

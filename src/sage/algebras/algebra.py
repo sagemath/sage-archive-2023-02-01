@@ -26,5 +26,6 @@ def is_Algebra(x):
     EXAMPLES:
     sage: R.<x,y> = FreeAlgebra(QQ,2)
     sage: is_Algebra(R)
+    True
     """
     return isinstance(x, Algebra)

@@ -209,6 +209,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ############################################################################
 
+import types
+
 from sage.structure.sage_object import SageObject
 
 ## IMPORTANT: Do *not* import matplotlib at module scope.  It takes a
@@ -260,6 +262,8 @@ import os #for viewing and writing images
 from colorsys import hsv_to_rgb #for the hue function
 from math import sin, cos, modf, pi #for hue and polar_plot
 from sage.structure.sage_object import SageObject
+
+from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
 
 import sage.misc.misc
 
@@ -2572,14 +2576,12 @@ class GraphicPrimitiveFactory_contour_plot(GraphicPrimitiveFactory):
         options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
-        #should the xy_data_array be made right
-        #when contour_plot is called?  Here we go:
-        plot_points = int(options['plot_points'])
-        xstep = abs(float(xrange[0]) - float(xrange[1]))/plot_points
-        ystep = abs(float(yrange[0]) - float(yrange[1]))/plot_points
-        xy_data_array = [[float(f(x, y)) for x in \
+
+        g, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f], xrange, yrange, options['plot_points'])
+        g = g[0]
+        xy_data_array = [[g(x, y) for x in \
                           sage.misc.misc.xsrange(xrange[0], xrange[1], xstep)]
-                         for y in sage.misc.misc.xsrange(yrange[0], yrange[1], ystep)]
+                          for y in sage.misc.misc.xsrange(yrange[0], yrange[1], ystep)]
         return self._from_xdata_ydata(xy_data_array, xrange, yrange, options=options)
 
 class GraphicPrimitiveFactory_matrix_plot(GraphicPrimitiveFactory):
@@ -2606,17 +2608,16 @@ class GraphicPrimitiveFactory_plot_field(GraphicPrimitiveFactory):
         options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
-        #big list loop, again, should this be done here?:
-        plot_points = int(options['plot_points'])
-        xstep = abs(float(xrange[0]) - float(xrange[1]))/plot_points
-        ystep = abs(float(yrange[0]) - float(yrange[1]))/plot_points
+        z, xstep, ystep, xrange, yrange = setup_for_eval_on_grid([f,g], xrange, yrange, options['plot_points'])
+        f,g = z
+
         Lpx,Lpy,Lcx,Lcy = [],[],[],[]
         for x in sage.misc.misc.xsrange(xrange[0], xrange[1], xstep):
             for y in sage.misc.misc.xsrange(yrange[0], yrange[1], ystep):
-                Lpx.append(float(x))
-                Lpy.append(float(y))
-                Lcx.append(float(f(x,y)))
-                Lcy.append(float(g(x,y)))
+                Lpx.append(x)
+                Lpy.append(y)
+                Lcx.append(f(x,y))
+                Lcy.append(g(x,y))
         return self._from_xdata_ydata(Lpx, Lpy, Lcx, Lcy, xrange, yrange, options=options)
 
 class GraphicPrimitiveFactory_disk(GraphicPrimitiveFactory):
@@ -2822,8 +2823,8 @@ class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
 
     INPUT:
         f -- a function of two variables
-        (xmin, xmax) -- 2-tuple, the range of x values
-        (ymin, ymax) -- 2-tuple, the range of y values
+        (xmin, xmax) -- 2-tuple, the range of x values OR 3-tuple (x,xmin,xmax)
+        (ymin, ymax) -- 2-tuple, the range of y values OR 3-tuple (y,ymin,ymax)
     The following inputs must all be passed in as named parameters:
         plot_points  -- integer (default: 25); number of points to plot
                         in each direction of the grid
@@ -2852,6 +2853,15 @@ class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
     An even more complicated plot.
         sage: f = lambda x,y: sin(x^2 + y^2)*cos(x)*sin(y)
         sage: contour_plot(f, (-4, 4), (-4, 4),plot_points=100)
+
+    Some elliptic curves, but with symbolic endpoints.  In the first
+    example, the plot is rotated 90 degrees because we switch the
+    variables x,y.
+        sage: x, y = var('x,y')
+        sage: contour_plot(y^2 + 1 - x^3 - x, (y,-pi,pi), (x,-pi,pi))
+        sage: contour_plot(lambda x,y: y^2 + 1 - x^3 - x, (y,-pi,pi), (x,-pi,pi))
+        sage: contour_plot(y^2 + 1 - x^3 - x, (-pi,pi), (-pi,pi))
+
     """
     def _reset(self):
         self.options={'plot_points':25, 'fill':True, 'cmap':'gray', 'contours':None}
@@ -3042,17 +3052,18 @@ class PlotFieldFactory(GraphicPrimitiveFactory_plot_field):
     plot_vector_field((f, g), (xmin, xmax), (ymin, ymax))
 
     EXAMPLES:
+        sage: x,y = var('x y')
 
     Plot the vector field of sin and cos:
-    sage: vf1 = plot_vector_field((lambda x,y:sin(x), lambda x,y:cos(y)), (-3,3), (-3,3))
-    sage: x,y = var('x y')
-    sage: plot_vector_field((lambda x,y: y, lambda x,y: (cos(x)-2)*sin(x)),(-pi,pi),(-pi,pi))
+        sage: plot_vector_field((lambda x,y:sin(x), lambda x,y:cos(y)), (-3,3), (-3,3))
+
+        sage: x,y = var('x y')
+        sage: plot_vector_field((lambda x,y: y, lambda x,y: (cos(x)-2)*sin(x)),(-pi,pi),(-pi,pi))
 
     Plot a gradient field
-    sage: x,y = var('x y')
-    sage: f(x,y) = exp(-(x^2+y^2))
-    sage: grad_f = [diff(f,var) for var in (x,y)]
-    sage: plot_vector_field(grad_f, (-2,2), (-2,2))
+        sage: f(x,y) = exp(-(x^2+y^2))
+        sage: grad_f = [diff(f,var) for var in (x,y)]
+        sage: plot_vector_field(grad_f, (-2,2), (-2,2))
 
     """
     def _reset(self):
@@ -4173,3 +4184,60 @@ def adjust_figsize_for_aspect_ratio(figsize, aspect_ratio, xmin, xmax, ymin, yma
     f = (figsize[0]*r, figsize[0])
     s = min((mx/f[0], mx/f[1]))
     return f[0]*s, f[1]*s
+
+
+
+def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
+    """
+    INPUT:
+        v -- a list of functions
+        xrange -- 2 or 3 tuple (if 3, first is a variable)
+        yrange -- 2 or 3 tuple
+        plot_points -- a positive integer
+
+    OUTPUT:
+        g -- tuple of fast callable functions
+        xstep -- step size in xdirection
+        ystep -- step size in ydirection
+        xrange -- tuple of 2 floats
+        yrange -- tuple of 2 floats
+
+    EXAMPLES:
+        sage: x,y = var('x,y')
+        sage: sage.plot.plot.setup_for_eval_on_grid([x^2 + y^2], (x,0,5), (y,0,pi), 10)
+        ([<sage.ext.fast_eval.FastDoubleFunc object at ...>],
+         0.5,
+         0.31415926535897931,
+         (0.0, 5.0),
+         (0.0, 3.1415926535897931))
+    """
+    if len(xrange) == 3:
+        xvar = xrange[0]
+        xrange = xrange[1:]
+        yvar = yrange[0]
+        yrange = yrange[1:]
+    else:
+        xvar = None
+    xrange = tuple([float(z) for z in xrange])
+    yrange = tuple([float(z) for z in yrange])
+    plot_points = int(plot_points)
+    if plot_points <= 0:
+        plot_points = 1
+    xstep = abs(xrange[0] - xrange[1])/plot_points
+    ystep = abs(yrange[0] - yrange[1])/plot_points
+
+    g = []
+    for f in v:
+        if isinstance(f, types.FunctionType):
+            g.append(f)
+        else:
+            # This code can be refactored at some point out of plot3d.
+            from sage.plot.plot3d.parametric_plot3d import adapt_to_callable
+            from sage.ext.fast_eval import fast_float
+            if xvar is None:
+                k, _ = adapt_to_callable([f], 2)
+                g.append(k[0])
+            else:
+                g.append(fast_float(f, str(xvar), str(yvar)))
+
+    return g, xstep, ystep, xrange, yrange

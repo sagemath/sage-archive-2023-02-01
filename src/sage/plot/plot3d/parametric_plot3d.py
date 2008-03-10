@@ -461,7 +461,14 @@ def adapt_if_symbolic(f):
 def adapt_to_callable(f, nargs=None):
     """
     Tries to make f into a (fast) callable function, returning
-    f and the number of expected arguments.
+    f and the expected arguments.
+
+    INPUT:
+        f -- a symbolic expression, polynomial, etc.
+        nargs -- number of input args to have in the output function
+
+    OUTPUT:
+        function, expected arguments
     """
     try:
         s = sum(f) # get common universe

@@ -1120,6 +1120,14 @@ def interact(f):
     If you enter the above you obtain an interact campus.  Entering
     values in the box, changes the global variable xyz.
 
+        sage: @interact
+        ... def _(title=["A Plot Demo", "Something silly", "something tricky"], a=input_box(sin(x*sin(x*sin(x))), 'function'),
+        ...     clr = Color('red'), thickness=[1..30], zoom=(1,0.95,..,0.1), plot_points=(200..2000)):
+        ...     html('<h1 align=center>%s</h1>'%title)
+        ...     print plot_points
+        ...     show(plot(a, -zoom*pi,zoom*pi, color=clr, thickness=thickness, plot_points=plot_points))
+        <html>...
+
     We give defaults and name the variables:
         sage: @interact
         ... def _(a=('first', (1,4)), b=(0,10)):
@@ -1162,10 +1170,9 @@ def interact(f):
         ... def _(q1=(-1,(-3,3)), q2=(-2,(-3,3))):
         ...     x,y = var('x,y')
         ...     f = q1/sqrt((x+1)^2 + y^2) + q2/sqrt((x-1)^2+(y+0.5)^2)
-        ...     g = f._fast_float_('x','y')   # should not be needed soon
-        ...     C = contour_plot(g, (-2,2), (-2,2), plot_points=30, contours=15, cmap='cool')
+        ...     C = contour_plot(f, (-2,2), (-2,2), plot_points=30, contours=15, cmap='cool')
         ...     show(C, figsize=3, aspect_ratio=1)
-        ...     show(plot3d(g, (-2,2), (-2,2)), figsize=4)
+        ...     show(plot3d(f, (x,-2,2), (y,-2,2)), figsize=4)
         <html>...
 
     This is similar to above, but you can select the color map from a dropdown menu:
@@ -1175,8 +1182,7 @@ def interact(f):
         ...          'jet', 'pink', 'prism', 'spring', 'summer', 'winter']):
         ...     x,y = var('x,y')
         ...     f = q1/sqrt((x+1)^2 + y^2) + q2/sqrt((x-1)^2+(y+0.5)^2)
-        ...     g = f._fast_float_('x','y')   # should not be needed soon
-        ...     C = contour_plot(g, (-2,2), (-2,2), plot_points=30, contours=15, cmap=cmap)
+        ...     C = contour_plot(f, (x,-2,2), (y,-2,2), plot_points=30, contours=15, cmap=cmap)
         ...     show(C, figsize=3, aspect_ratio=1)
         <html>...
 

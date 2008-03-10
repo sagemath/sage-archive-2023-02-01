@@ -871,7 +871,7 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
             sage: a.fcp()
             x^3 * (x^2 - 65*x - 250)
             sage: list(a.fcp())
-            [(x^2 - 65*x - 250, 1), (x, 3)]
+            [(x, 3), (x^2 - 65*x - 250, 1)]
 
         """
         return Factorization(self.charpoly(var).factor_list())

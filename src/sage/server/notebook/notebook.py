@@ -1452,8 +1452,8 @@ class Notebook(SageObject):
 <script type="text/javascript" src="/javascript/jqueryui/ui.draggable.ext.js"></script>
 <script type="text/javascript" src="/javascript/jqueryui/ui.resizable.js"></script>
 <script type="text/javascript" src="/javascript/jqueryui/ui.dialog.js"></script>
-<link rel="stylesheet" href="/javascript/jqueryui/themes/flora/flora.all.css"
-   type="text/css" media="screen" title="Flora (Default)">
+<link rel="stylesheet" href="/javascript/jqueryui/themes/flora/flora.all.css">
+
 <script type="text/javascript" src="/javascript/farbtastic/farbtastic.js"></script>
 <link rel="stylesheet" href="/javascript/farbtastic/farbtastic.css" type="text/css" />
          '''
@@ -1582,6 +1582,7 @@ class Notebook(SageObject):
             body += '    cell_set_running(active_cell_list[i]); \n'
             body += 'start_update_check();\n'
             body +=' </script>\n'
+
         return body
 
     def html_plain_text_window(self, worksheet, username):

@@ -14,7 +14,6 @@ notebook.
 AUTHORS:
     -- William Stein (2008-03-02): version 1.0 at Sage/Enthought Days 8 in Texas
     -- Jason Grout (2008-03): discussion, and first few prototypes
-
 """
 
 """
@@ -49,8 +48,11 @@ BUGS:
    [x] cross-platform testing (good enough -- it's jquery)
    [x] can't enter "foo" in input_box now because of how strings are
        passed back and forth using single quotes.
-   [?] possible issue with page title being undefined; don't know why or if that is
-       connected with interactives
+   [x] possible issue with page title being undefined; don't know why
+       or if that is connected with interactives
+   [x] autorunning interact cells on load is being injectected into the
+       i/o pexpect stream way too early.
+   [x] what do published worksheets do??
 
 VERSION 1:
    [X] get sliders to work; values after move slider
@@ -77,7 +79,7 @@ VERSION 1:
        such requests from the queue in worksheet.py
 
    DOCS:
-   [ ] 100% documentation and doctest coverage
+   [x] 100% documentation and doctest coverage
    [ ] put the docs for this in the reference manual
    [ ] put summary doc in notebook help page
 
@@ -220,11 +222,8 @@ def html_slider(id, callback, steps, default=0, margin=0):
     you should obtain a slider that when moved pops up a window showing its
     current position.
         sage: from sage.server.notebook.interact import html_slider, html
-        sage: html(html_slider('my slider', 'slider-007', 'alert(position)', steps=5, default=2, margin=5))
-        <html><table style='margin:0px;padding:0px;'><tr><td>my slider</td><td><div id='slider-007' class='ui-slider-1' style='padding:0px;margin:5px;'><span class='ui-slider-handle'></span></div></div></td></tr></table><script>setTimeout(function() { $('#slider-007').slider({
-        stepping: 1, minValue: 0, maxValue: 4, startValue: 2,
-        change: function () { var position = Math.ceil($('#slider-007').slider('value')); alert(position); }
-        });}, 1);</script></html>
+        sage: html(html_slider('slider-007', 'alert(position)', steps=5, default=2, margin=5))
+        <html>...</html>
     """
     s = """<div id='%s' class='ui-slider-1' style='padding:0px;margin:%spx;'><span class='ui-slider-handle'></span></div>"""%(
         id, int(margin))
@@ -256,7 +255,7 @@ def html_color_selector(id, change, input_change, default='000000'):
         string -- HTML that creates the slider.
 
     EXAMPLES:
-        sage: sage.server.notebook.interact.html_color_selector(0, 'alert("changed")', default='0afcac')
+        sage: sage.server.notebook.interact.html_color_selector(0, 'alert("changed")', '', default='0afcac')
         '<table>...'
     """
     s = """<table><tr><td><div id='%s-picker'></div></td><td>
@@ -522,7 +521,7 @@ class InputBox(InteractControl):
 
         EXAMPLES:
             sage: sage.server.notebook.interact.InputBox('theta', 1).render()
-            '\n        theta: <input type=\'text\' value=\'1\' width=200px onchange=\'interact(..., "sage.server.notebook.interact.update(..., \\"theta\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(this.value)+"\\"), globals())")\'></input>\n        '
+            '<input type=\'text\' value=\'1\' width=200px onchange=\'interact(0, "sage.server.notebook.interact.update(0, \\"theta\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(this.value)+"\\"), globals())")\'></input>'
         """
         if self.__type is bool:
             return """<input type='checkbox' %s width=200px onchange='%s'></input>"""%(
@@ -536,12 +535,35 @@ class InputBox(InteractControl):
 
 class ColorInput(InputBox):
     def value_js(self, n):
+        """
+        Return javascript that evaluates to value of this control.
+
+        INPUT:
+            n -- integer, either 0 or 1.
+
+        If n is 0 return code for evaluation by the actual color control.
+        If n is 1, return code for the text area that displays the current color.
+
+        EXAMPLES:
+            sage: C = sage.server.notebook.interact.ColorInput('c', Color('red'))
+            sage: C.value_js(0)
+            'color'
+            sage: C.value_js(1)
+            'this.value'
+        """
         if n == 0:
             return 'color'
         else:
             return 'this.value'
 
     def render(self):
+        """
+        Render this color input box to html.
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.ColorInput('c', Color('red')).render()
+            '<table>...'
+        """
         return html_color_selector('color-selector-%s-%s'%(self.var(), self.cell_id()),
                      change=self.interact(0), input_change=self.interact(1),
                      default=self.default_value().html_color())
@@ -823,7 +845,7 @@ class Slider(InteractControl):
 
         EXAMPLES:
             sage: sage.server.notebook.interact.Slider('x', [1..5], 2, 'alpha').render()
-            '<table style=\'margin:0px;padding:0px;\'><tr><td><font color=black>alpha</font> </td><td><div id=\'slider-x-...\' class=\'ui-slider-1\' style=\'padding:0px;margin:0px;\'><span class=\'ui-slider-handle\'></span></div></div></td></tr></table><script>setTimeout(function() { $(\'#slider-x-...\').slider({\n    stepping: 1, minValue: 0, maxValue: 4, startValue: 2,\n    change: function () { var position = Math.ceil($(\'#slider-x-...\').slider(\'value\')); interact(..., "sage.server.notebook.interact.update(..., \\"x\\", ..., sage.server.notebook.interact.standard_b64decode(\\""+encode64(position)+"\\"), globals())"); }\n});}, 1);</script>'
+            '<div ...'
         """
         return html_slider('slider-%s-%s'%(self.var(), self.cell_id()),
                            self.interact(), steps=len(self.__values),
@@ -917,7 +939,7 @@ class InteractCanvas:
         EXAMPLES:
             sage: B = sage.server.notebook.interact.InputBox('x',2)
             sage: sage.server.notebook.interact.InteractCanvas([B], 3).render_controls()
-            '\n        x: <input type=\'text\' value=\'2\' width=200px ...</input>\n        '
+            '<table>...'
         """
         row = '<tr><td align=right><font color="black">%s&nbsp;</font></td><td>%s</td></tr>\n'
         tbl_body = ''.join([row%(c.label(), c.render()) for c in self.__controls])
@@ -1144,6 +1166,18 @@ def interact(f):
         ...     C = contour_plot(g, (-2,2), (-2,2), plot_points=30, contours=15, cmap='cool')
         ...     show(C, figsize=3, aspect_ratio=1)
         ...     show(plot3d(g, (-2,2), (-2,2)), figsize=4)
+        <html>...
+
+    This is similar to above, but you can select the color map from a dropdown menu:
+        sage: @interact
+        ... def _(q1=(-1,(-3,3)), q2=(-2,(-3,3)),
+        ...    cmap=['autumn', 'bone', 'cool', 'copper', 'gray', 'hot', 'hsv',
+        ...          'jet', 'pink', 'prism', 'spring', 'summer', 'winter']):
+        ...     x,y = var('x,y')
+        ...     f = q1/sqrt((x+1)^2 + y^2) + q2/sqrt((x-1)^2+(y+0.5)^2)
+        ...     g = f._fast_float_('x','y')   # should not be needed soon
+        ...     C = contour_plot(g, (-2,2), (-2,2), plot_points=30, contours=15, cmap=cmap)
+        ...     show(C, figsize=3, aspect_ratio=1)
         <html>...
 
     A quadratic roots etch-a-sketch:
@@ -1524,7 +1558,7 @@ class selector(control):
 
         We create an interactive that involves computing charpolys of matrices over various rings:
             sage: @interact
-            sage: def _(R=selector([ZZ,QQ,GF(17),RDF,RR]), n=(1..10)):
+            ... def _(R=selector([ZZ,QQ,GF(17),RDF,RR]), n=(1..10)):
             ...      M = random_matrix(R, n)
             ...      show(M)
             ...      show(matrix_plot(M,cmap='Oranges'))
@@ -1534,7 +1568,7 @@ class selector(control):
 
         Here we create a drop-down
             sage: @interact
-            sage: def _(a=selector([(2,'second'), (3,'third')])):
+            ... def _(a=selector([(2,'second'), (3,'third')])):
             ...       print a
             <html>...
         """
@@ -1647,9 +1681,13 @@ def automatic_control(default):
         [1, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 52]
         sage: sage.server.notebook.interact.automatic_control((17, (1,100,5)))
         Slider: None [1--|16|---100]
+        sage: sage.server.notebook.interact.automatic_control([1..4])
+        Button bar with 4 buttons
         sage: sage.server.notebook.interact.automatic_control([1..100])
+        Drop down menu with 100 options
+        sage: sage.server.notebook.interact.automatic_control((1..100))
         Slider: None [1--|1|---100]
-        sage: sage.server.notebook.interact.automatic_control((5,[1..100]))
+        sage: sage.server.notebook.interact.automatic_control((5, (1..100)))
         Slider: None [1--|5|---100]
     """
     label = None
@@ -1658,7 +1696,7 @@ def automatic_control(default):
     for _ in range(2):
         if isinstance(default, tuple) and len(default) == 2 and isinstance(default[0], str):
             label, default = default
-        if isinstance(default, tuple) and len(default) == 2 and isinstance(default[1], (tuple, list)):
+        if isinstance(default, tuple) and len(default) == 2 and isinstance(default[1], (tuple, list, types.GeneratorType)):
             default_value, default = default
 
     if isinstance(default, control):

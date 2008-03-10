@@ -5,7 +5,7 @@ Following
 
     [BW93] Thomas Becker and Volker Weispfenning. Groebner Bases - A
            Computational Approach To Commutative Algebra. Springer,
-           1993.
+           New York 1993.
 
 the original Buchberger algorithm (c.f. algorithm GROEBNER in [BW93])
 and an improved version of Buchberger's algorithm (c.g. algorithm

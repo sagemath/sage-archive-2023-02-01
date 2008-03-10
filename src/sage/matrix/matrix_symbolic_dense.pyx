@@ -470,6 +470,12 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
              e^X = \sum_{k=0}^{\infty} \frac{X^k}{k!}.
         $$
 
+        This function depends on maxima's matrix exponentiation
+        function, which does not deal well with floating point
+        numbers.  If the matrix has floating point numbers, they will
+        be rounded automatically to rational numbers during the
+        computation.
+
         EXAMPLES:
             sage: m = matrix(SR,2, [0,x,x,0]); m
             [0 x]
@@ -526,12 +532,15 @@ cdef class Matrix_symbolic_dense(matrix_dense.Matrix_dense):
         if self.nrows() == 0:
             return self
         cdef Matrix_symbolic_dense M = self._new_c()
+        # Maxima's matrixexp function chokes on floating point numbers
+        # so we automatically convert floats to rationals by passing
+        # keepfloat: false
+        z = maxima('matrixexp(%s), keepfloat: false'%self._maxima.name())
         if self.nrows() == 1:
-            z = self._maxima.matrixexp()
             # We do the following, because Maxima stupidly exp's 1x1 matrices into non-matrices!
             M._maxima = maxima('matrix([%s])'%z.name())
         else:
-            M._maxima = self._maxima.matrixexp()
+            M._maxima = z
         return M
 
 

@@ -379,7 +379,7 @@ class Ideal_generic(MonoidElement):
         TODO: Make self.is_prime() work! Write this code!
 
         EXAMPLES:
-            sage: R = ZZ
+            sage: R = ZZ[x]
             sage: I = R.ideal(7)
             sage: I.is_prime()
             Traceback (most recent call last):

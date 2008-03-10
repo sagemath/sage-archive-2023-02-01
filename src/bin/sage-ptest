@@ -86,11 +86,11 @@ def strip_automount_prefix(filename):
             filename = new
     return filename
 
-CUR = abspath(os.curdir)
+CUR = abspath(os.getcwd())
 
 
 def abs(f):
-    return "sage -t %s %s"%(opts, abspath(f)[len(CUR)+1:])
+    return "sage -t %s %s"%(opts, abspath(f)[len(SAGE_ROOT)+1:])
 
 def skip(F):
     G = abspath(F)
@@ -146,7 +146,8 @@ def populatefilelist(filelist):
     filemutex.acquire()
     for FF in filelist:
         if os.path.isfile(FF):
-            files.append(FF)
+            cwd = os.getcwd()
+            files.append(cwd + '/' +  FF)
             continue
         curdir = os.getcwd()
         walkdir = os.path.join(CUR,FF)

@@ -4233,7 +4233,6 @@ def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
         else:
             # This code can be refactored at some point out of plot3d.
             from sage.plot.plot3d.parametric_plot3d import adapt_to_callable
-            from sage.ext.fast_eval import fast_float
             if xvar is None:
                 k, _ = adapt_to_callable([f], 2)
                 g.append(k[0])

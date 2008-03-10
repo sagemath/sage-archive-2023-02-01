@@ -38,12 +38,6 @@ elif [ $UNAME = "Linux" -a -f "${SAGE_LOCAL}/lib/libcblas.so" ]; then
 
     LINBOX_BLAS="-lcblas -latlas"
 
-elif [ $UNAME = "Linux" -a -f "${SAGE_LCOAL}/lib/libcblas.so.3" ]; then
-
-    echo "Linux cblas"
-
-    LINBOX_BLAS=/usr/lib/libcblas.so.3
-
 elif [ $UNAME = "SunOS" -a -f "${SAGE_LOCAL}/lib/libcblas.so" ]; then
 
     echo "Solaris cblas"

@@ -2842,8 +2842,8 @@ class GraphGenerators():
             47
 
         """
-        is_tree = lambda g: g.transitive_reduction() == g
-        for g in self(vertices=vertices, property=is_tree, augment=augment):
+        is_forest = lambda g: g.is_forest()
+        for g in self(vertices=vertices, property=is_forest, augment=augment):
             if g.is_connected():
                 yield g
 

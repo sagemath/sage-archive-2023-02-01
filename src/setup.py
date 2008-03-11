@@ -969,6 +969,10 @@ ext_modules = [ \
               ['sage/graphs/bruhat_sn.pyx']
               ), \
 
+    Extension('sage.graphs.chrompoly',
+              ['sage/graphs/chrompoly.pyx']
+              ), \
+
     Extension('sage.coding.binary_code',
               ['sage/coding/binary_code.pyx']
               ), \

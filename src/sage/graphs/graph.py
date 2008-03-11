@@ -262,11 +262,9 @@ AUTHORS:
 
 from random import random
 from sage.structure.sage_object import SageObject
-from sage.plot.plot import Graphics, GraphicPrimitive_NetworkXGraph
 import sage.graphs.graph_fast as graph_fast
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.graphs.graph_coloring import chromatic_number, chromatic_polynomial
 from sage.rings.rational import Rational
 
 class GenericGraph(SageObject):
@@ -1199,6 +1197,42 @@ class GenericGraph(SageObject):
                 # loops don't matter since they add an even number to the degree
                 if i % 2 != 0:
                     return False
+        return True
+
+    def is_tree(self):
+        """
+        Return True if the graph is a tree.
+
+        EXAMPLES:
+            sage: for g in graphs.trees(6):
+            ...     g.is_tree()
+            True
+            True
+            True
+            True
+            True
+            True
+
+        """
+        if not self.is_connected():
+            return False
+        if self.num_verts() != self.num_edges() + 1:
+            return False
+        return True
+
+    def is_forest(self):
+        """
+        Return True if the graph is a forest, i.e. a disjoint union of trees.
+
+        EXAMPLE:
+            sage: seven_acre_wood = sum(graphs.trees(7), Graph())
+            sage: seven_acre_wood.is_forest()
+            True
+
+        """
+        for g in self.connected_components_subgraphs():
+            if not g.is_tree():
+                return False
         return True
 
     def order(self):
@@ -6481,7 +6515,25 @@ class Graph(GenericGraph):
             sage: G = Graph({0:[1,2,3],1:[2]})
             sage: factor(G.chromatic_polynomial())
             (x - 2) * x * (x - 1)^2
+
+            sage: g = graphs.trees(5).next()
+            sage: g.chromatic_polynomial().factor()
+            x * (x - 1)^4
+
+            sage: seven_acre_wood = sum(graphs.trees(7), Graph())
+            sage: seven_acre_wood.chromatic_polynomial()
+            x^77 - 66*x^76 ... - 2515943049305400*x^60 ... - 66*x^12 + x^11
+
+            sage: for i in range(2,7):
+            ...     graphs.CompleteGraph(i).chromatic_polynomial().factor()
+            (x - 1) * x
+            (x - 2) * (x - 1) * x
+            (x - 3) * (x - 2) * (x - 1) * x
+            (x - 4) * (x - 3) * (x - 2) * (x - 1) * x
+            (x - 5) * (x - 4) * (x - 3) * (x - 2) * (x - 1) * x
+
         """
+        from sage.graphs.chrompoly import chromatic_polynomial
         return chromatic_polynomial(self)
 
     def chromatic_number(self):
@@ -6494,6 +6546,7 @@ class Graph(GenericGraph):
             sage: G.chromatic_number()
             3
         """
+        from sage.graphs.graph_coloring import chromatic_number
         return chromatic_number(self)
 
     ### Centrality

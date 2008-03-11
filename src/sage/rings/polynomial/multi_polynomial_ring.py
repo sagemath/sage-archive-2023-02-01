@@ -421,7 +421,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
                 # empty.  Otherwise pickling won't work after calls to this eval!!!
                 # This took a while to figure out!
                 return self(eval(s, {}, self.gens_dict()))
-            except (AttributeError, TypeError, NameError):
+            except (AttributeError, TypeError, NameError, SyntaxError):
                 raise TypeError, "Unable to coerce macaulay2 object"
             return multi_polynomial_element.MPolynomial_polydict(self, x)
 

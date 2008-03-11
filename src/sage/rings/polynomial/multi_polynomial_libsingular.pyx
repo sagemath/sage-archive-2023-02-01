@@ -518,11 +518,14 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             d = self.gens_dict()
             if PY_TYPE_CHECK(self._base, FiniteField_givaro):
                 d[str(self._base.gen())]=self._base.gen()
-            if '/' in element:
-                element = sage_eval(element,d)
-            else:
-                element = element.replace("^","**")
-                element = eval(element, d, {})
+            try:
+                if '/' in element:
+                    element = sage_eval(element,d)
+                else:
+                    element = element.replace("^","**")
+                    element = eval(element, d, {})
+            except SyntaxError:
+                raise TypeError
 
             # we need to do this, to make sure that we actually get an
             # element in self.

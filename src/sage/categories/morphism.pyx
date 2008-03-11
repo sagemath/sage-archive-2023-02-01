@@ -106,6 +106,27 @@ cdef class Morphism(Element):
         raise NotImplementedError
 
     def __call__(self, x):
+        """
+        Apply this morphism to x.
+
+        INPUT:
+            x -- an element coercible to self; also objects like
+                 ideals are supported in some cases
+
+        OUTPUT:
+            an element (or ideal, etc.)
+
+        EXAMPLES:
+            sage: R.<x,y> = QQ[]; phi=R.hom([y,x])
+            sage: phi(y)
+            x
+
+        We take the image of an ideal:
+            sage: I = ideal(x,y); I
+            Ideal (x, y) of Multivariate Polynomial Ring in x, y over Rational Field
+            sage: phi(I)
+            Ideal (y, x) of Multivariate Polynomial Ring in x, y over Rational Field
+        """
         if not PY_TYPE_CHECK(x, Element):
             try:
                 return self._call_c(x)

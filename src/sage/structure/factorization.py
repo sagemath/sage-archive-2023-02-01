@@ -601,8 +601,8 @@ class Factorization(SageObject):
         We create a polynomial over the real double field and factor it:
             sage: x = polygen(RDF, 'x')
             sage: F = factor(-2*x^2 - 1); F
-            (-2.0) * (1.0*x^2 + 0.5) * (1.0*x^2 + 1.11022302463e-16*x + 0.5)  # 32-bit
-            (-2.0) * (1.0*x^2 - 2.22044604925e-16*x + 0.5) * (1.0*x^2 + 0.5)  # 64-bit
+            (-2.0) * (1.0*x^2 - 1.82173070032e-16*x + 0.5) * (1.0*x^2 + 0.5)    # 32-bit
+            (-2.0) * (1.0*x^2 - 2.22044604925e-16*x + 0.5) * (1.0*x^2 + 0.5)    # 64-bit
 
         Note that the unit part of the factorization is $-2.0$.
             sage: F.unit_part()

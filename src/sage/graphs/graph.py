@@ -2576,7 +2576,7 @@ class GenericGraph(SageObject):
 
         EXAMPLE:
             sage: graphs.PetersenGraph().edges_incident([0,9], labels=False)
-            [(9, 7), (9, 6), (0, 4), (0, 5), (0, 1), (9, 4)]
+            [(0, 1), (0, 4), (0, 5), (9, 4), (9, 6), (9, 7)]
             sage: D = DiGraph({0:[1]})
             sage: D.edges_incident([0])
             [(0, 1, None)]
@@ -2586,7 +2586,9 @@ class GenericGraph(SageObject):
         """
         if vertices in self:
             vertices = [vertices]
-        return list(self.edge_boundary(vertices, labels=labels))
+        v = list(self.edge_boundary(vertices, labels=labels))
+        v.sort()
+        return v
 
     def edge_label(self, u, v=None):
         """
@@ -6266,7 +6268,7 @@ class Graph(GenericGraph):
             sage: g = graphs.CompleteGraph(7)
             sage: edges, vertices = g.eulerian_circuit(return_vertices=True)
             sage: vertices
-            [0, 2, 5, 4, 6, 1, 0, 3, 2, 4, 3, 1, 2, 6, 0, 5, 6, 3, 5, 1, 4, 0]
+            [0, 1, 2, 0, 3, 1, 4, 0, 5, 1, 6, 2, 3, 4, 2, 5, 3, 6, 4, 5, 6, 0]
             sage: graphs.CompleteGraph(4).eulerian_circuit()
             False
 

@@ -411,14 +411,17 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     ########################################################################
 
 
-    def charpoly(self, var='x', algorithm='linbox'):
+    def charpoly(self, var='x', algorithm='generic'):
         """
         Returns the characteristic polynomial of self.
 
-       INPUT:
+        INPUT:
             var -- a variable name
-            algorithm -- 'linbox' (default if self.base_ring() is a field)
-                         'generic'
+            algorithm -- 'generic' (default)
+                         'linbox'
+
+        NOTE: 'linbox' sometimes segfaults, so it is not the default.
+        See trac 2453.
 
         EXAMPLES:
             sage: A = Mat(GF(7),3,3)(range(3)*3)
@@ -444,14 +447,18 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         self.cache('charpoly_%s_%s'%(algorithm, var), g)
         return g
 
-    def minpoly(self, var='x', algorithm='linbox'):
+    def minpoly(self, var='x', algorithm='generic'):
         """
         Returns the minimal polynomial of self.
 
         INPUT:
             var -- a variable name
-            algorithm -- 'linbox' (default if self.base_ring() is a field)
-                         'generic'
+            algorithm -- 'generic' (default)
+                         'linbox'
+
+        NOTE: 'linbox' sometimes segfaults, so it is not the default.
+        See trac 2453.
+
         """
         if algorithm == 'linbox' and (self.p == 2 or not self.base_ring().is_field()):
             algorithm='generic' #LinBox only supports fields

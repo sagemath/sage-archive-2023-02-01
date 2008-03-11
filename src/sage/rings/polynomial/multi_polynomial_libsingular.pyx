@@ -655,25 +655,25 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         """
         return int(self.__ngens)
 
-    def gens(self):
-        """
-        Return the tuple of variables in self.
+    #def gens(self):
+        #"""
+        #Return the tuple of variables in self.
 
-        EXAMPLES:
-            sage: P.<x,y,z> = QQ[]
-            sage: P.gens()
-            (x, y, z)
+        #EXAMPLES:
+            #sage: P.<x,y,z> = QQ[]
+            #sage: P.gens()
+            #(x, y, z)
 
-            sage: P = MPolynomialRing(QQ,10,'x')
-            sage: P.gens()
-            (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
+            #sage: P = MPolynomialRing(QQ,10,'x')
+            #sage: P.gens()
+            #(x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
 
-            sage: P.<SAGE,SINGULAR> = MPolynomialRing(QQ,2) # weird names
-            sage: P.gens()
-            (SAGE, SINGULAR)
+            #sage: P.<SAGE,SINGULAR> = MPolynomialRing(QQ,2) # weird names
+            #sage: P.gens()
+            #(SAGE, SINGULAR)
 
-        """
-        return tuple([self.gen(i) for i in range(self.__ngens)  ])
+        #"""
+        #return tuple([self.gen(i) for i in range(self.__ngens)  ])
 
     def gen(self, int n=0):
         """
@@ -2171,29 +2171,121 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if(r != currRing): rChangeCurrRing(r)
         return pLDeg(p,&l,r)
 
+    def polynomial_coefficient(self, degrees):
+        """
+        Return the coefficient of the variables with the degrees
+        specified in the python dictionary \code{degrees}.  Mathematically,
+        this is the coefficient in the base ring adjoined by the variables
+        of this ring not listed in \code{degrees}.  However, the result
+        has the same parent as this polynomial.
+
+        This function contrasts with the function \code{monomial_coefficient}
+        which returns the coefficient in the base ring of a monomial.
+
+        INPUT:
+            degrees -- a dictionary of degree restrictions
+
+        OUTPUT:
+            element of the parent of self
+
+        SEE ALSO:
+            For coefficients of specific monomials, look at \ref{monomial_coefficient}.
+
+        EXAMPLES:
+            sage: R.<x,y> = QQ[]
+            sage: f=x*y+y+5
+            sage: f.polynomial_coefficient({x:0,y:1})
+            1
+            sage: f.polynomial_coefficient({x:0})
+            y + 5
+            sage: f=(1+y+y^2)*(1+x+x^2)
+            sage: f.polynomial_coefficient({x:0})
+            y^2 + y + 1
+            sage: R.<x,y> = GF(389)[]
+            sage: f=x*y+5
+            sage: c=f.polynomial_coefficient({x:0,y:0}); c
+            5
+            sage: parent(c)
+            Multivariate Polynomial Ring in x, y over Finite Field of size 389
+
+        AUTHOR:
+            -- Joel B. Mohler (2007.10.31)
+        """
+        cdef poly *p = self._poly
+        cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
+        cdef poly *newp = p_ISet(0,r)
+        cdef poly *newptemp
+        cdef int i
+        cdef int flag
+        cdef int gens = self._parent.ngens()
+        cdef int *exps = <int*>sage_malloc(sizeof(int)*gens)
+        for i from 0<=i<gens:
+            exps[i] = -1
+
+        if type(degrees) is list:
+            for i from 0<=i<gens:
+                exps[i] = int(degrees[i])
+        elif type(degrees) is dict:
+            # Extract the ordered list of degree specifications from the dictionary
+            poly_vars = self.parent().gens()
+            for i from 0<=i<gens:
+                try:
+                    exps[i] = degrees[poly_vars[i]]
+                except KeyError:
+                    pass
+        else:
+            raise TypeError, "The input degrees must be a dictionary of variables to exponents."
+
+        # Extract the monomials that match the specifications
+        while(p):
+            flag = 0
+            for i from 0<=i<gens:
+                if exps[i] != -1 and p_GetExp(p,i+1,r)!=exps[i]:
+                    #print i, p_GetExp(p,i+1,r), exps[i]
+                    flag = 1
+            if flag == 0:
+                newptemp = p_LmInit(p,r)
+                p_SetCoeff(newptemp,n_Copy(p_GetCoeff(p,r),r),r)
+                for i from 0<=i<gens:
+                    if exps[i] != -1:
+                        p_SetExp(newptemp,i+1,0,r)
+                p_Setm(newptemp,r)
+                newp = p_Add_q(newp,newptemp,r)
+            p = pNext(p)
+
+        sage_free(exps)
+
+        return co.new_MP(self.parent(),newp)
+
     def monomial_coefficient(self, MPolynomial_libsingular mon):
         """
-        Return the coefficient of the monomial mon in self, where mon
+        Return the coefficient in the base ring of the monomial mon in self, where mon
         must have the same parent as self.
+
+        This function contrasts with the function \code{polynomial_coefficient}
+        which returns the coefficient of a monomial viewing this polynomial in a
+        polynomial ring over a base ring having fewer variables.
 
         INPUT:
             mon -- a monomial
 
         OUTPUT:
-            ring element
+            coefficient in base ring
 
-        EXAMPLE:
-            sage: P.<x,y> = MPolynomialRing(QQ, 2)
+        SEE ALSO:
+            For coefficients in a base ring of fewer variables, look at \ref{polynomial_coefficient}.
 
-        The coefficient returned is an element of the base ring of self; in
-        this case, QQ.
+        EXAMPLES:
+            sage: P.<x,y> = MPolynomialRing(QQ)
+
+            # The parent of the return is a member of the base ring.
             sage: f = 2 * x * y
             sage: c = f.monomial_coefficient(x*y); c
             2
-            sage: c in QQ
-            True
+            sage: c.parent()
+            Rational Field
 
-            sage: f = y^2 - x^9 - 7*x + 5*x*y
+            sage: f = y^2 + y^2*x - x^9 - 7*x + 5*x*y
             sage: f.monomial_coefficient(y^2)
             1
             sage: f.monomial_coefficient(x*y)

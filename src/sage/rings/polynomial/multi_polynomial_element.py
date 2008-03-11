@@ -427,27 +427,33 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
     def monomial_coefficient(self, mon):
         """
-        Return the coefficient of the monomial mon in self, where mon
+        Return the coefficient in the base ring of the monomial mon in self, where mon
         must have the same parent as self.
+
+        This function contrasts with the function \code{polynomial_coefficient}
+        which returns the coefficient of a monomial viewing this polynomial in a
+        polynomial ring over a base ring having fewer variables.
 
         INPUT:
             mon -- a monomial
 
         OUTPUT:
-            ring element
+            coefficient in base ring
 
-        EXAMPLE:
-            sage: x, y = MPolynomialRing(RationalField(), 2, names = ['x','y']).gens()
+        SEE ALSO:
+            For coefficients in a base ring of fewer variables, look at \ref{polynomial_coefficient}.
 
-        The coefficient returned is an element of the base ring of self; in
-        this case, QQ.
+        EXAMPLES:
+            sage: R.<x,y>=ZZ[]
+
+            # The parent of the return is a member of the base ring.
             sage: f = 2 * x * y
             sage: c = f.monomial_coefficient(x*y); c
             2
-            sage: c in QQ
-            True
+            sage: c.parent()
+            Integer Ring
 
-            sage: f = y^2 - x^9 - 7*x + 5*x*y
+            sage: f = y^2 + y^2*x - x^9 - 7*x + 5*x*y
             sage: f.monomial_coefficient(y^2)
             1
             sage: f.monomial_coefficient(x*y)
@@ -456,8 +462,17 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             -1
             sage: f.monomial_coefficient(x^10)
             0
+
+            sage: var('a')
+            a
+            sage: K.<a> = NumberField(a^2+a+1)
+            sage: P.<x,y> = K[]
+            sage: f=(a*x-1)*((a+1)*y-1); f
+            (-1)*x*y + (-a)*x + (-a - 1)*y + 1
+            sage: f.monomial_coefficient(x)
+            -a
         """
-        if not (isinstance(mon, MPolynomial) and mon.parent() == self.parent() and mon.is_monomial()):
+        if not (isinstance(mon, MPolynomial) and mon.parent() is self.parent() and mon.is_monomial()):
             raise TypeError, "mon must be a monomial in the parent of self."
         R = self.parent().base_ring()
         return R(self.element().monomial_coefficient(mon.element().dict()))
@@ -525,6 +540,65 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         except KeyError:
             return self.parent().base_ring()(0)
 
+    def polynomial_coefficient(self, degrees):
+        """
+        Return the coefficient of the variables with the degrees
+        specified in the python dictionary \code{degrees}.  Mathematically,
+        this is the coefficient in the base ring adjoined by the variables
+        of this ring not listed in \code{degrees}.  However, the result
+        has the same parent as this polynomial.
+
+        This function contrasts with the function \code{monomial_coefficient}
+        which returns the coefficient in the base ring of a monomial.
+
+        INPUT:
+            degrees -- a dictionary of degree restrictions
+
+        OUTPUT:
+            element of the parent of self
+
+        SEE ALSO:
+            For coefficients of specific monomials, look at \ref{monomial_coefficient}.
+
+        EXAMPLES:
+            sage: R.<x, y> = ZZ[]
+            sage: f = 2 * x * y
+            sage: c = f.polynomial_coefficient({x:1,y:1}); c
+            2
+            sage: c.parent()
+            Multivariate Polynomial Ring in x, y over Integer Ring
+            sage: c in MPolynomialRing(IntegerRing(), 2, names = ['x','y'])
+            True
+            sage: f = y^2 - x^9 - 7*x + 5*x*y
+            sage: f.polynomial_coefficient({y:1})
+            5*x
+            sage: f.polynomial_coefficient({y:0})
+            -1*x^9 - 7*x
+            sage: f.polynomial_coefficient({x:0,y:0})
+            0
+            sage: R.<x,y> = RR[]
+            sage: f=x*y+5
+            sage: c=f.polynomial_coefficient({x:0,y:0}); c
+            5.00000000000000
+            sage: parent(c)
+            Multivariate Polynomial Ring in x, y over Real Field with 53 bits of precision
+
+        AUTHOR:
+            -- Joel B. Mohler (2007.10.31)
+        """
+        looking_for = None
+        if type(degrees) is list:
+            looking_for = degrees
+        elif type(degrees) is dict:
+            poly_vars = self.parent().gens()
+            looking_for = [None] * len(poly_vars)
+            for d, exp in degrees.items():
+                for i in range(len(poly_vars)):
+                    if d == poly_vars[i]:
+                        looking_for[i] = exp
+        if not looking_for:
+            raise ValueError, "You must pass a dictionary or list."
+        return self.parent()(self.element().polynomial_coefficient(looking_for))
 
     def coefficient(self, mon):
         """
@@ -540,7 +614,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         OUTPUT:
             element of the parent of self
 
-        EXAMPLE:
+        EXAMPLES:
             sage: x, y = MPolynomialRing(RationalField(), 2, names = ['x','y']).gens()
 
         The coefficient returned is an element of the parent of self; in

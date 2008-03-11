@@ -3207,7 +3207,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
 ONE = Integer(1)
-
+Py_INCREF(ONE)
 
 def LCM_list(v):
     """
@@ -3507,7 +3507,7 @@ cdef void (* mpz_free)(void *, size_t)
 #   if there is room, otherwise it will be deallocated.
 
 
-cdef int integer_pool_size = 4096
+cdef int integer_pool_size = 100
 
 cdef PyObject** integer_pool
 cdef int integer_pool_count = 0
@@ -3642,11 +3642,8 @@ cdef void fast_tp_dealloc(PyObject* o):
     # set. If it was set another free function would need to be
     # called.
 
-    # Due to #1337 we need to comment out the following deallocation. This
-    # causes leaks, but is better than segfaults. To counterbalance we will
-    # raise the number of mempool entries to 4096
+    PyObject_FREE(o)
 
-    # PyObject_FREE(o)
 
 hook_fast_tp_functions()
 

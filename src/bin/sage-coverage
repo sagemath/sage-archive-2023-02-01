@@ -38,8 +38,8 @@ def functions_without_doctests(file):
             file = file[i+10:]
             continue
         skip_this = False
-        for skip in ['__dealloc__', '__new__']:
-            if skip in function_name:
+        for skip in ['__dealloc__', '__new__', '_']:
+            if function_name.startswith(skip + '('):
                 file = file[j:]
                 skip_this = True
                 break

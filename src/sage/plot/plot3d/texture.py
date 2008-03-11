@@ -8,6 +8,8 @@ AUTHOR:
 """
 from sage.structure.sage_object import SageObject
 
+from sage.plot.misc import Color
+
 
 uniq_c = 0
 
@@ -24,6 +26,9 @@ def Texture(id=None, **kwds):
         if kwds.has_key('rgbcolor'):
             kwds['color'] = kwds['rgbcolor']
         id = None
+    elif isinstance(id, Color):
+        kwds['color'] = id.rgb()
+        id = None
     elif isinstance(id, str) and colors.has_key(id):
         kwds['color'] = id
         #kwds = {"color": id}
@@ -38,13 +43,15 @@ def Texture(id=None, **kwds):
     return Texture_class(id, **kwds)
 
 def parse_color(info, base=None):
-        if isinstance(info, str):
-            try:
-                return colors[info]
-            except KeyError:
-                raise ValueError, "unknown color '%s'"%info
-        else:
-            return (float(info*base[0]), float(info*base[1]), float(info*base[2]))
+    if isinstance(info, Color):
+        return info.rgb()
+    elif isinstance(info, str):
+        try:
+            return colors[info]
+        except KeyError:
+            raise ValueError, "unknown color '%s'"%info
+    else:
+        return (float(info*base[0]), float(info*base[1]), float(info*base[2]))
 
 
 class Texture_class(SageObject):

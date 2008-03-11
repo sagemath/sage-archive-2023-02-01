@@ -10,6 +10,8 @@ from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange
                   is_32_bit, is_64_bit, newton_method_sizes,
                   running_total)
 
+from html import html
+
 from sage_timeit_class import timeit
 
 from edit_module import edit

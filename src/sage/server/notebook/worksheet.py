@@ -656,12 +656,29 @@ class Worksheet:
                 s += '\n\n' + t
         return s
 
+    def reset_interact_state(self):
+        """
+        Reset the interact state of this worksheet.
+        """
+        try:
+            S = self.__sage
+        except AttributeError:
+            return
+        try:
+            S._send('sage.server.notebook.interact.reset_state()')
+        except OSError:
+            # Dosn't matter, since if S is not running, no need
+            # to zero out the state dictionary.
+            return
+
     def edit_save(self, text, ignore_ids=False):
         # Clear any caching.
         try:
             del self.__html
         except AttributeError:
             pass
+
+        self.reset_interact_state()
 
         text.replace('\r\n','\n')
         name, i = extract_name(text)
@@ -728,6 +745,12 @@ class Worksheet:
             cells.append(self._new_cell())
 
         self.__cells = cells
+
+        if not self.is_published():
+            for c in self.__cells:
+                if c.is_interactive_cell():
+                    if not c in self.__queue:
+                        self.enqueue(c)
 
         # This *depends* on self.__cells being set!!
         self.set_cell_counter()
@@ -796,7 +819,7 @@ class Worksheet:
         if self.is_doc_worksheet():
             return ''
         return """
-        <button name="button_save" title="Save changes" onClick="save_worksheet();">Save</button><button title="Save changes and close window" onClick="save_worksheet_and_close();" name="button_save">Save & close</button><button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard changes</button>
+        <button name="button_save" title="Save changes" onClick="save_worksheet();">Save</button><button title="Save changes and close window" onClick="save_worksheet_and_close();" name="button_save">Save & quit</button><button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard & quit</button>
         """
 
     def html_share_publish_buttons(self, select=None):
@@ -1143,11 +1166,9 @@ class Worksheet:
         return True
 
     def initialize_sage(self):
-        #print "Starting Sage server for worksheet %s..."%self.name()
         self.delete_cell_input_files()
         object_directory = os.path.abspath(self.notebook().object_directory())
         S = self.__sage
-        self._enqueue_auto_cells()
         try:
             cmd = '__DIR__="%s/"; DIR=__DIR__; DATA="%s/"; '%(self.DIR(), os.path.abspath(self.data_directory()))
             #cmd += '_support_.init("%s", globals()); '%object_directory
@@ -1161,20 +1182,29 @@ class Worksheet:
         A = self.attached_files()
         for F in A.iterkeys():
             A[F] = 0  # expire all
+        self._enqueue_auto_cells()
         return S
 
     def sage(self):
+        """
+        Return a started up copy of Sage initialized for computations.
+
+        If this is a published worksheet, just return None, since published
+        worksheets must not have any compute functionality.
+
+        OUTPUT:
+            a Sage interface
+        """
         if self.is_published():
             return None
         try:
             S = self.__sage
-            if not S._expect is None:
+            if S._expect is not None:
                 return S
         except AttributeError:
             pass
         self.__sage = one_prestarted_sage(server = self.notebook().get_server(),
                                           ulimit = self.notebook().get_ulimit())
-        os.environ['PAGER'] = 'cat'
         self.__next_block_id = 0
         self.initialize_sage()
         return self.__sage
@@ -1203,7 +1233,10 @@ class Worksheet:
 
         D = C.directory()
         if not C.introspect():
-            I = C.input_text().strip()
+            if hasattr(C, 'interact'):
+                I = C.interact
+            else:
+                I = C.input_text().strip()
             if I in ['restart', 'quit', 'exit']:
                 self.restart_sage()
                 S = self.system()
@@ -1240,6 +1273,10 @@ class Worksheet:
 
         # TODOss
         os.system('chmod -R a+rw "%s"'%absD)
+
+        # This is useful mainly for interact -- it allows
+        # a cell to know it's ID.
+        input += 'sage.server.notebook.interact.SAGE_CELL_ID=%s\n'%(C.id())
 
         if C.time():
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
@@ -1474,6 +1511,8 @@ class Worksheet:
         the beginning of the queue as possible, but after all asap cells.
         Otherwise, C goes at the end of the queue.
         """
+        if self.is_published():
+            return
         self._record_that_we_are_computing(username)
         if not isinstance(C, Cell):
             raise TypeError

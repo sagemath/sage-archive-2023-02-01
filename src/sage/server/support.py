@@ -33,6 +33,8 @@ def init(object_directory=None, globs={}):
     global sage_globals, globals_at_init, global_names_at_init
     global EMBEDDED_MODE
 
+    os.environ['PAGER'] = 'cat'
+
     sage_globals = globs
     #globals_at_init = set(globs.keys())
     globals_at_init = globs.values()

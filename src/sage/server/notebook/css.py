@@ -1168,7 +1168,6 @@ div.cell_div_output_hidden {
 }
 
 pre.shrunk {
-/*   height:0px; */
   font-size:12pt;
   margin:0px;
 }
@@ -1588,6 +1587,7 @@ span.pingdown {
    color:white;
    background-color: #990000;
 }
+
 """
     if color == 'gmail':
         color1 = '#c3d9ff'

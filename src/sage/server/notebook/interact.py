@@ -1014,7 +1014,7 @@ def interact(f):
     the variable $a$ and a $y$ slider that runs through the range of
     integers from $0$ to $19$.
         sage: @interact
-        ... def _(a=5, y=range(20)): print a + y
+        ... def _(a=5, y=(0..20)): print a + y
         ...
         <html>...
 

@@ -67,6 +67,9 @@ def CrystalOfLetters(type):
     elif type[0] == 'D':
 	return ClassicalCrystalOfLetters(type,
                                          Crystal_of_letters_type_D_element)
+    elif type[0] == 'G':
+	return ClassicalCrystalOfLetters(type,
+                                         Crystal_of_letters_type_G_element)
     else:
 	raise NotImplementedError
 
@@ -83,7 +86,7 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
     subclass ClassicalCrystalOfLetters for the crystal itself.
 
     The basic assumption is that crystals of letters are small, but
-    used intensivelly as building blocks. Therefore, we explicitly
+    used intensively as building blocks. Therefore, we explicitly
     build in memory the list of all elements, the crystal graph and
     its transitive closure, so as to make the following operations
     constant time: list, cmp, (todo: phi, epsilon, e, f with caching)
@@ -426,4 +429,66 @@ class Crystal_of_letters_type_D_element(Letter, CrystalElement):
             return self._parent(-i)
         else:
             return None
+
+#########################
+# Type G2
+#########################
+
+class Crystal_of_letters_type_G_element(Letter, CrystalElement):
+    r"""
+    Type G2 crystal of letters elements
+
+    TEST:
+        sage: C = CrystalOfLetters(['G',2])
+        sage: C.list()
+        [1, 2, 3, 0, -3, -2, -1]
+        sage: C.check()
+        True
+    """
+    def e(self, i):
+        r"""
+        """
+        assert i in self.index_set()
+        if i == 1:
+            if self.value == 2:
+                return self._parent(1)
+            elif self.value == 0:
+                return self._parent(3)
+            elif self.value == -3:
+                return self._parent(0)
+            elif self.value == -1:
+                return self._parent(-2)
+            else:
+                return None
+        else:
+            if self.value == 3:
+                return self._parent(2)
+            elif self.value == -2:
+                return self._parent(-3)
+            else:
+                return None
+
+    def f(self, i):
+        r"""
+        """
+        assert i in self.index_set()
+        if i == 1:
+            if self.value == 1:
+                return self._parent(2)
+            elif self.value == 3:
+                return self._parent(0)
+            elif self.value == 0:
+                return self._parent(-3)
+            elif self.value == -2:
+                return self._parent(-1)
+            else:
+                return None
+        else:
+            if self.value == 2:
+                return self._parent(3)
+            elif self.value == -3:
+                return self._parent(-2)
+            else:
+                return None
+
 

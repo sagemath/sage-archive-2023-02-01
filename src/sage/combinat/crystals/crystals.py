@@ -72,12 +72,12 @@ TODO:
  - More introductory doc explaining the mathematical background
  - Layout instructions for plot() for rank 2 types
  - Streamlining the latex output
- - Litltemann paths and/or alcove paths (this would give us the exceptional types)
+ - Littelmann paths and/or alcove paths (this would give us the exceptional types)
  - RestrictionOfCrystal / DirectSumOfCrystals
  - Crystal.crystal_morphism
  - Affine crystals
 
-Most of the above features (except littelmann/alcove paths) are in
+Most of the above features (except Littelmann/alcove paths) are in
 MuPAD-Combinat (see lib/COMBINAT/crystals.mu), which could provide
 inspiration.
 """

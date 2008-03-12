@@ -37,6 +37,8 @@ def RootSystem(t):
             return RootSystem_c(ct)
         elif type == "D":
             return RootSystem_d(ct)
+        elif type == "G":
+            return RootSystem_g(ct)
     else:
         return RootSystem_generic(ct)
 
@@ -120,6 +122,10 @@ class RootSystem_c(RootSystem_generic):
 class RootSystem_d(RootSystem_generic):
     def ambient_lattice(self):
         return AmbientLattice_d(self.ct)
+
+class RootSystem_g(RootSystem_generic):
+    def ambient_lattice(self):
+        return AmbientLattice_g(self.ct)
 
 
 
@@ -210,13 +216,10 @@ class AmbientLattice_generic(WeightLatticeRealization_class):
     def negative_roots(self):
         raise NotImplementedError
 
-
-
 class AmbientLattice_a(AmbientLattice_generic):
     def __init__(self, ct):
         self.n  = ct.rank()+1
         AmbientLattice_generic.__init__(self, ct)
-
 
     def root(self, i, j):
         return self._term(i) - self._term(j)
@@ -357,7 +360,6 @@ class AmbientLattice_c(AmbientLattice_generic):
                 res.extend([self.root(i,j,0,p) for i in range(j)])
         res.extend([self.root(i,i,0,0) for i in range(self.n)])
         return res
-
     def negative_roots(self):
         """
         EXAMPLES:
@@ -464,14 +466,53 @@ class AmbientLattice_d(AmbientLattice_generic):
 
 
 class AmbientLattice_g(AmbientLattice_generic):
-    def root(self, i, j, p1, p2):
-        raise NotImplementedError
+    """
+    TESTS:
+        sage: [WeylDim(['G',2],[a,b]) for [a,b] in [0,0], [1,0], [0,1], [1,1]]
+        [1, 7, 14, 64]
+    """
+    def __init__(self, ct):
+        self.n = 3
+        AmbientLattice_generic.__init__(self, ct)
 
     def simple_roots(self):
+        """
+        EXAMPLES:
+            sage: CartanType(['G',2]).root_system().ambient_lattice().simple_roots()
+            [(0, 1, -1), (1, -2, 1)]
+         """
         return [ self._term(1)-self._term(2),\
                  self._term(0)-2*self._term(1)+self._term(2)]
 
+    def positive_roots(self):
+        """
+        EXAMPLES:
+            sage: CartanType(['G',2]).root_system().ambient_lattice().positive_roots()
+            [(0, 1, -1), (1, -2, 1), (1, -1, 0), (1, 0, -1), (1, 1, -2), (2, -1, -1)]
+        """
+        return [ c0*self._term(0)+c1*self._term(1)+c2*self._term(2) \
+                 for [c0,c1,c2] in
+                 [[0,1,-1],[1,-2,1],[1,-1,0],[1,0,-1],[1,1,-2],[2,-1,-1]]]
 
+    def negative_roots(self):
+        """
+        EXAMPLES:
+            sage: CartanType(['G',2]).root_system().ambient_lattice().negative_roots()
+            [(0, -1, 1), (-1, 2, -1), (-1, 1, 0), (-1, 0, 1), (-1, -1, 2), (-2, 1, 1)]
+        """
+        return [ c0*self._term(0)+c1*self._term(1)+c2*self._term(2) \
+                 for [c0,c1,c2] in
+                 [[0,-1,1],[-1,2,-1],[-1,1,0],[-1,0,1],[-1,-1,2],[-2,1,1]]]
+
+    def fundamental_weights(self):
+        """
+        EXAMPLES:
+            sage: CartanType(['G',2]).root_system().ambient_lattice().fundamental_weights()
+            [(-1, 0, 1), (-2, 1, 1)]
+        """
+        return [ c0*self._term(0)+c1*self._term(1)+c2*self._term(2) \
+                 for [c0,c1,c2] in
+                 [[-1,0,1],[-2,1,1]]]
 
 def WeylDim(type, coeffs):
     """

@@ -58,6 +58,38 @@ high quality LaTeX output of the crystal graph:
     f.write(C.latex())
     f.close()
 
+
+Here some tips for installing dot2tex within sage:
+ - Install graphviz >= 2.14
+ - Make sure sage-python is >= 2.4
+ - Download pyparsing-1.4.10.tgz pydot-0.9.10.tgz dot2tex-2.7.0.tgz
+   (see the dot2tex web page for download links)
+   Install each of them using the standard python install, but using sage-python:
+
+        sagedir=/opt/sage-2.10-opteron-ubuntu64-x86_64-Linux/  # FIX ACCORDING TO YOUR SAGE INSTALL
+        sagepython=$sagedir/local/bin/sage-python
+	for package in pyparsing-1.4.10 pydot-0.9.10 dot2tex-2.7.0; do\
+            tar zxvf $package.tgz;\
+            cd $package;\
+            sudo $sagepython setup.py install;\
+            cd ..;\
+        done
+
+ - Install pgf-2.00 inside your latex tree
+   In short:
+    - untaring in in /usr/share/texmf/tex/generic
+    - clean out remaining pgf files from older version
+    - run texhash
+
+You should be done!
+To test, go to the dot2tex-2.7.0/examples directory, and type:
+
+	$sagedir//local/bin/dot2tex balls.dot > balls.tex
+        pdflatex balls.tex
+        open balls.pdf # your favorite viewer here
+
+
+
 For rank two crystals, there is an alternative method of getting
 metapost pictures. For more information see C.metapost?
 

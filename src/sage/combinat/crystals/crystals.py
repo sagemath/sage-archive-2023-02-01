@@ -205,11 +205,12 @@ class Crystal(CombinatorialClass, Parent):
 
         Root operators e(1) or f(1) move along red lines, e(2) or
         f(2) along green. The highest weight is in the lower left.
-        Vertices with the same weight are kept close together. The
-        concise labels on the nodes are strings introduced by Berenstein
-        and Zelevinsky and Littelmann; see Littelmann's paper Cones,
-        Crystals, Patterns, sections 5 and 6.  For Cartan types B2 or
-        C2, the pattern has the form
+        Vertices with the same weight are kept close together.
+        The concise labels on the nodes are strings introduced by
+        Berenstein and Zelevinsky and Littelmann; see Littelmann's
+        paper Cones, Crystals, Patterns, sections 5 and 6.
+
+        For Cartan types B2 or C2, the pattern has the form
 
               a2  a3  a4
                   a1
@@ -295,9 +296,9 @@ class Crystal(CombinatorialClass, Parent):
                 if not dest == None:
                     dest = self.list().index(dest)
                     if j == 1:
-                        col = "green;"
+                        col = "red;"
                     else:
-                        col = "red;  "
+                        col = "green;  "
                     if self.cartanType[0] == 'A':
                         [a1,a2,a3] = string_data[i] # included to facilitate hand editing of the .mp file
                         outstring = outstring+"draw z%d--z%d withcolor %s   %% %d %d %d\n"%(i,dest,col,a1,a2,a3)

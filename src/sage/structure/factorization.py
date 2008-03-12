@@ -43,10 +43,6 @@ a copy.
     TypeError: 'Factorization' object does not support item assignment
 
 
-AUTHORS:
-    -- William Stein (2006-01-22): added unit part as suggested by David Kohel.
-    -- Nick Alexander (2008-01-19): added support for non-commuting factors.
-
 EXAMPLES:
 
 This more complicated example involving polynomials also illustrates
@@ -125,6 +121,7 @@ AUTHORS:
     -- William Stein (2006-01-22): added unit part as suggested by David Kohel.
     -- William Stein (2008-01-17): wrote much of the documentation and fixed
                                    a couple of bugs.
+    -- Nick Alexander (2008-01-19): added support for non-commuting factors.
 """
 
 #*****************************************************************************
@@ -601,8 +598,7 @@ class Factorization(SageObject):
         We create a polynomial over the real double field and factor it:
             sage: x = polygen(RDF, 'x')
             sage: F = factor(-2*x^2 - 1); F
-            (-2.0) * (1.0*x^2 - 1.82173070032e-16*x + 0.5) * (1.0*x^2 + 0.5)    # 32-bit
-            (-2.0) * (1.0*x^2 - 2.22044604925e-16*x + 0.5) * (1.0*x^2 + 0.5)    # 64-bit
+            (-2.0) * (1.0*x^2 + 0.5)
 
         Note that the unit part of the factorization is $-2.0$.
             sage: F.unit_part()

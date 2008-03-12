@@ -5,4 +5,4 @@ from spins import CrystalOfSpinsPlus
 from spins import CrystalOfSpinsMinus
 from tensor_product import TensorProductOfCrystals
 from tensor_product import CrystalOfTableaux
-from fast_crystal_experiment import FastCrystal
+from fast_crystals import FastCrystal

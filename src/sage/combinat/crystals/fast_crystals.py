@@ -35,43 +35,55 @@ class FastCrystal(ClassicalCrystal):
     but faster for computation. Implemented for types
     A2, B2 and C2.
 
-    Input: Cartan type, l1, l2. If l1 and l2 are integers,
-    this will produce the a crystal isomorphic to the one
-    obtained by CrystalOfTableaux(type, shape=[l1,l2]).
-    For type ['B',2], l1 and l2 may be half integers but
-    l1-l2 is an integer. If l1 and l2 are integers,
-    FastCrystal(['B', 2], l1+1/2, l2+1/2) produces a crystal
-    isomorphic to the following crystal T:
+    Input: CartanType and a shape. The CartanType is
+    ['A',2], ['B',2] or ['C',2]. The shape is of
+    the form [l1,l2] where l1 and l2 are either integers
+    or (in type B) half integers such that l1-l2 is
+    integral. It is assumed that l1 >= l2 >= 0.  If l1
+    and l2 are integers, this will produce the a crystal
+    isomorphic to the one obtained by
+    CrystalOfTableaux(type, shape=[l1,l2]).  Furthermore
+    FastCrystal(['B', 2], l1+1/2, l2+1/2) produces a
+    crystal isomorphic to the following crystal T:
+
     C = CrystalOfTableaux(['B',2], shape=[l1,l2])
     D = CrystalOfSpins(['B',2])
     T = TensorProductOfCrystals(C,D,C.list()[0],D.list()[0])
 
     TESTS:
-        sage: C = FastCrystal(['A',2],4,1)
+        sage: C = FastCrystal(['A',2],shape=[4,1])
         sage: C.count()
         24
         sage: C.check()
         True
-        sage: C = FastCrystal(['B',2],4,1)
+        sage: C = FastCrystal(['B',2],shape=[4,1])
         sage: C.count()
         154
         sage: C.check()
         True
-        sage: C = FastCrystal(['B',2],3/2,1/2)
+        sage: C = FastCrystal(['B',2],shape=[3/2,1/2])
         sage: C.count()
         16
         sage: C.check()
         True
-        sage: C = FastCrystal(['C',2],2,1)
+        sage: C = FastCrystal(['C',2],shape=[2,1])
         sage: C.count()
         16
-        sage: C = FastCrystal(['C',2],3,1)
+        sage: C = FastCrystal(['C',2],shape=[3,1])
         sage: C.count()
         35
         sage: C.check()
         True
     """
-    def __init__(self, type, l1, l2):
+    def __init__(self, type, shape):
+        if len(shape) == 0:
+            l1 = 0
+        else:
+            l1 = shape[0]
+        if len(shape) < 2:
+            l2 = 0
+        else:
+            l2 = shape[1]
         self.delpat = []
         self.gampat = []
         if not type[1] == 2:

@@ -45,7 +45,7 @@ Here are some more elaborate crystals (see their respective documentations):
     sage: Tens = TensorProductOfCrystals(C, C)
     sage: Spin = CrystalOfSpins(['B', 3])
     sage: Tab  = CrystalOfTableaux(['A', 3], shape = [2,1,1])
-    sage: Fast  = FastCrystal(['B', 2], 3/2, 1/2)
+    sage: Fast  = FastCrystal(['B', 2], shape = [3/2, 1/2])
 
 One can get (currently) crude ploting via:
 

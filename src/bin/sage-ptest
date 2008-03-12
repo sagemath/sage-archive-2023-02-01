@@ -5,190 +5,211 @@ import os, signal, sys, time, thread, threading, tempfile
 ####################################
 
 argv = sys.argv
+try:
+    numiteration = int(os.environ['SAGE_TEST_ITER'])
+except:
+    numiteration = 1
 
 try:
-    i = argv.index('-sage')
-    del argv[i]
-    use_sage_only = True
-except ValueError:
-    use_sage_only = False
+    numglobaliteration = int(os.environ['SAGE_TEST_GLOBAL_ITER'])
+except:
+    numglobaliteration = 1
 
-opts = ' '.join([X for X in argv if X[0] == '-'])
-argv = [X for X in argv if X[0] != '-']
-infiles = argv[2:]
-if len(infiles) == 0:
-    print "Usage: sage -t <files or directories>."
-    print "For more information, type 'sage -help'."
-    sys.exit(1)
+try:
+    checktex = int(os.environ['SAGE_TEST_TEX'])
+except:
+    checktex = 0
 
-infiles.sort()
+print 'Global iterations: ' + str(numglobaliteration)
+print 'File iterations: ' + str(numiteration)
+for gr in range(0,numglobaliteration):
 
-files = list()
+    try:
+        i = argv.index('-sage')
+        del argv[i]
+        use_sage_only = True
+    except ValueError:
+        use_sage_only = False
 
-t0 = time.time()
-filemutex = thread.allocate_lock()
-printmutex = thread. allocate_lock()
-done = False
-threadlist = list()
+    opts = ' '.join([X for X in argv if X[0] == '-'])
+    argv = [X for X in argv if X[0] != '-']
+    infiles = argv[2:]
+    if len(infiles) == 0:
+        print "Usage: sage -t <files or directories>."
+        print "For more information, type 'sage -help'."
+        sys.exit(1)
 
-numthreads = int(argv[1])
+    infiles.sort()
 
-class tester(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-    def run(x):
-        try:
-            while True:
-                filemutex.acquire()
-                if len(files)!=0:
-                    F = files.pop()
-                    filemutex.release()
-                    base, ext = os.path.splitext(F)
-                    if use_sage_only or ext == '.sage':
-                        e = test(F, 'doctest_tex ' + opts)
-                    elif ext in ['.py', '.pyx', '.tex', '.pxi']:
-                        e = test(F, 'doctest '+opts)
-                else:
-                   filemutex.release()
-                   return
-        except KeyboardInterrupt:
-            return
+    files = list()
 
+    t0 = time.time()
+    filemutex = thread.allocate_lock()
+    printmutex = thread. allocate_lock()
+    done = False
+    threadlist = list()
 
-def launchthreads(x):
-    for i in range(0,x):
-        curtester = tester()
-        threadlist.append(curtester)
-        curtester.start()
+    numthreads = int(argv[1])
 
-def abspath(x):
-#     return os.path.abspath(x)
-    return strip_automount_prefix(os.path.abspath(x))
-
-def strip_automount_prefix(filename):
-    """
-    Strip prefixes added on automounted filesystems in some cases,
-    which make the absolute path appear hidden.
-
-    AUTHOR:
-        -- Kate Minola
-    """
-    sep = os.path.sep
-    str = filename.split(sep,2)
-    if len(str) < 2:
-        new = sep
-    else:
-        new = sep + str[1]
-    if os.path.exists(new):
-        inode1 = os.stat(filename)[1]
-        inode2 = os.stat(new)[1]
-        if inode1 == inode2:
-            filename = new
-    return filename
-
-CUR = abspath(os.getcwd())
+    class tester(threading.Thread):
+        def __init__(self):
+            threading.Thread.__init__(self)
+        def run(x):
+            try:
+                while True:
+                    filemutex.acquire()
+                    if len(files)!=0:
+                        F = files.pop()
+                        filemutex.release()
+                        base, ext = os.path.splitext(F)
+                        if use_sage_only or ext == '.sage':
+                            e = test(F, 'doctest_tex ' + opts)
+                        elif ext in ['.py', '.pyx', '.tex', '.pxi']:
+                            e = test(F, 'doctest '+opts)
+                    else:
+                       filemutex.release()
+                       return
+            except KeyboardInterrupt:
+                return
 
 
-def abs(f):
-    return "sage -t %s %s"%(opts, abspath(f)[len(SAGE_ROOT)+1:])
+    def launchthreads(x):
+        for i in range(0,x):
+            curtester = tester()
+            threadlist.append(curtester)
+            curtester.start()
 
-def skip(F):
-    G = abspath(F)
-    i = G.rfind('/')
-    if os.path.exists('%s/nodoctest.py'%G[:i]):
-        printmutex.acquire()
-        print "%s (skipping) -- nodoctest.py file in directory"%abs(F)
-        printmutex.release()
-        return True
+    def abspath(x):
+    #     return os.path.abspath(x)
+        return strip_automount_prefix(os.path.abspath(x))
 
-    if G == "all.py" or "__init__.py" in G \
-          or G[0] == '.' or '/.' in G.lstrip('/.') or \
-          'nodoctest' in open(G).read():
-        return True
+    def strip_automount_prefix(filename):
+        """
+        Strip prefixes added on automounted filesystems in some cases,
+        which make the absolute path appear hidden.
 
-    return False
+        AUTHOR:
+            -- Kate Minola
+        """
+        sep = os.path.sep
+        str = filename.split(sep,2)
+        if len(str) < 2:
+            new = sep
+        else:
+            new = sep + str[1]
+        if os.path.exists(new):
+            inode1 = os.stat(filename)[1]
+            inode2 = os.stat(new)[1]
+            if inode1 == inode2:
+                filename = new
+        return filename
 
-failed = []
+    CUR = abspath(os.getcwd())
 
-SAGE_ROOT=os.environ['SAGE_ROOT']
-TMP=SAGE_ROOT + "/tmp/test/"
-if not os.path.exists(TMP):
-    os.makedirs(TMP)
 
-def test(F, cmd):
-    t = time.time()
-    if not skip(F):
-        outfile = tempfile.NamedTemporaryFile()
-        filestr = "./" + abspath(F)[len(CUR)+1:]
-#        filestr = F
-        filestr = os.path.split(F)[1]
-        os.chdir(os.path.dirname(F))
-        s = 'bash -c "%s/local/bin/sage-%s %s > %s" ' %(SAGE_ROOT, cmd, filestr, outfile.name)
-        ret = os.system(s)
-        ol = outfile.read()
-        if ret != 0:
+    def abs(f):
+        return "sage -t %s %s"%(opts, abspath(f)[len(SAGE_ROOT)+1:])
+
+    def skip(F):
+        G = abspath(F)
+        i = G.rfind('/')
+        if os.path.exists('%s/nodoctest.py'%G[:i]):
             printmutex.acquire()
-            failed.append(abs(F))
+            print "%s (skipping) -- nodoctest.py file in directory"%abs(F)
             printmutex.release()
-    else:
+            return True
+
+        if G == "all.py" or "__init__.py" in G \
+              or G[0] == '.' or '/.' in G.lstrip('/.') or \
+              'nodoctest' in open(G).read():
+            return True
+
         return False
-    printmutex.acquire()
-    print abs(F)
-    if ol!="" and (not ol.isspace()):
-        print ol
-    print "\t [%.1f s]"%(time.time() - t)
-    printmutex.release()
-    return ret
+
+    failed = []
+
+    SAGE_ROOT=os.environ['SAGE_ROOT']
+    TMP=SAGE_ROOT + "/tmp/test/"
+    if not os.path.exists(TMP):
+        os.makedirs(TMP)
+
+    def test(F, cmd):
+        t = time.time()
+        if not skip(F):
+            outfile = tempfile.NamedTemporaryFile()
+            filestr = "./" + abspath(F)[len(CUR)+1:]
+    #        filestr = F
+            filestr = os.path.split(F)[1]
+            for i in range(0,numiteration):
+                os.chdir(os.path.dirname(F))
+                s = 'bash -c "%s/local/bin/sage-%s %s > %s" ' %(SAGE_ROOT, cmd, filestr, outfile.name)
+                ret = os.system(s)
+                ol = outfile.read()
+                if ret != 0:
+                    printmutex.acquire()
+                    failed.append(abs(F))
+                    printmutex.release()
+                    break
+        else:
+            return False
+        printmutex.acquire()
+        print abs(F)
+        if ol!="" and (not ol.isspace()):
+            print ol
+        print "\t [%.1f s]"%(time.time() - t)
+        printmutex.release()
+        return ret
 
 
-def populatefilelist(filelist):
-    global CUR
-    filemutex.acquire()
-    for FF in filelist:
-        if os.path.isfile(FF):
-            cwd = os.getcwd()
-            files.append(cwd + '/' +  FF)
-            continue
-        curdir = os.getcwd()
-        walkdir = os.path.join(CUR,FF)
-        for root, dirs, lfiles in os.walk(walkdir):
-            for F in lfiles:
-                base, ext = os.path.splitext(F)
-                if use_sage_only and ext == '.sage':
-                    continue
-                elif not (ext in ['.py', '.pyx', '.tex', '.pxi']):
-                    continue
-                elif '__nodoctest__' in files:
-                    continue
-                appendstr = os.path.join(root,F)
-                files.append(appendstr)
-            for D in dirs:
-                if '#' in D or '/notes' in D:
-                    dirs.remove(D)
-    files.insert(0,SAGE_ROOT+"/devel/doc/tut/tut.tex")
-    files.insert(0,SAGE_ROOT+"/devel/doc/prog/prog.tex")
-    files.insert(0,SAGE_ROOT+"/devel/doc/const/const.tex")
-    filemutex.release()
-    return 0
+    def populatefilelist(filelist):
+        global CUR
+        filemutex.acquire()
+        for FF in filelist:
+            if os.path.isfile(FF):
+                cwd = os.getcwd()
+                files.append(cwd + '/' +  FF)
+                continue
+            curdir = os.getcwd()
+            walkdir = os.path.join(CUR,FF)
+            for root, dirs, lfiles in os.walk(walkdir):
+                for F in lfiles:
+                    base, ext = os.path.splitext(F)
+                    if use_sage_only and ext == '.sage':
+                        continue
+                    elif not (ext in ['.py', '.pyx', '.tex', '.pxi']):
+                        continue
+                    elif '__nodoctest__' in files:
+                        continue
+                    appendstr = os.path.join(root,F)
+                    files.append(appendstr)
+                for D in dirs:
+                    if '#' in D or '/notes' in D:
+                        dirs.remove(D)
+        if checktex:
+            files.insert(0,SAGE_ROOT+"/devel/doc/tut/tut.tex")
+            files.insert(0,SAGE_ROOT+"/devel/doc/prog/prog.tex")
+            files.insert(0,SAGE_ROOT+"/devel/doc/const/const.tex")
+        filemutex.release()
+        return 0
+    populatefilelist(infiles)
+    launchthreads(numthreads)
 
-populatefilelist(infiles)
-launchthreads(numthreads)
 
 
-
-print " "
-print "-"*int(70)
-
-for t in threadlist:
-    t.join()
-if len(failed) == 0:
-    print "All tests passed!"
-else:
-    print "\nThe following tests failed:\n"
-    for i in range(len(failed)):
-           print "\t", failed[i]
+    print " "
     print "-"*int(70)
 
-print "Total time for all tests: %.1f seconds"%(time.time() - t0)
+    for t in threadlist:
+        t.join()
+    os.chdir(CUR)
+    if len(failed) == 0:
+        print "All tests passed!"
+    else:
+        print "\nThe following tests failed:\n"
+        for i in range(len(failed)):
+               print "\t", failed[i]
+        print "-"*int(70)
+
+    print "Total time for all tests: %.1f seconds"%(time.time() - t0)
 
 

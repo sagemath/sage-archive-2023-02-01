@@ -846,7 +846,7 @@ def round(x, ndigits=0):
         3.0
         sage: b = 5.4999999999999999
         sage: round(b)
-        5.0000000000000000
+        5
 
 
     IMPLEMENTATION: If ndigits is specified, it calls Python's builtin round function,

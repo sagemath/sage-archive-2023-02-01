@@ -335,8 +335,132 @@ class Singular(Expect):
         return 'quit'
 
     def _read_in_file_command(self, filename):
-        #return 'execute(read("%s"))'%filename
         return '< "%s";'%filename
+
+    ###########################################################################
+    # BEGIN Synchronization code.
+    # Everything below will be factored out into a base class
+    # (expect.py) once it is well tested.  There is similar
+    # code in maxima.py that also needs to be factored out.
+    # Also the code below still has things in it that only
+    # make sense in Maxima.
+    ###########################################################################
+
+    def _synchronize(self):
+        """
+        Synchronize pexpect interface.
+
+        This put a random integer (plus one!) into the output stream,
+        then waits for it, thus resynchronizing the stream.  If the
+        random integer doesn't appear within 1 second, Singular is sent
+        interrupt signals.
+
+        EXAMPLES:
+
+        TESTS:
+        This illustrates a synchronization bug being fixed (thanks to Simon King and David Joyner
+        for tracking this down):
+            sage: R.<x> = QQ[]; f = x^3 + x + 1;  g = x^3 - x - 1; r = f.resultant(g); gap(ZZ); singular(R)
+            Integers
+            //   characteristic : 0
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    x
+            //        block   2 : ordering C
+
+        """
+        if self._expect is None: return
+        from random import randrange
+        import pexpect
+        r = randrange(2147483647)
+        s = str(r+1)
+        cmd = "1+%s;\n"%r
+        self._sendstr(cmd)
+        try:
+            self._expect_expr(timeout=0.5)
+            if not s in self._before():
+                self._expect_expr(s,timeout=0.5)
+                self._expect_expr(timeout=0.5)
+        except pexpect.TIMEOUT, msg:
+            self._interrupt()
+        except pexpect.EOF:
+            self._crash_msg()
+            self.quit()
+
+    def _before(self):
+        return self._expect.before
+
+    def _sendstr(self, str):
+        if self._expect is None:
+            self._start()
+        try:
+            os.write(self._expect.child_fd, str)
+        except OSError:
+            self._crash_msg()
+            self.quit()
+            self._sendstr(str)
+
+    def _crash_msg(self):
+        print "Singular crashed -- automatically restarting."
+
+    def _expect_expr(self, expr=None, timeout=None):
+        if expr is None:
+            expr = self._prompt
+        if self._expect is None:
+            self._start()
+        try:
+            if timeout:
+                i = self._expect.expect(expr,timeout=timeout)
+            else:
+                i = self._expect.expect(expr)
+            if i > 0:
+                v = self._expect.before
+                if i >= len(self._ask):
+                    self.quit()
+                    raise ValueError, "%s\nComputation failed due to a bug in Singualr -- NOTE: Singular had to be restarted."%v
+
+                j = v.find('Is ')
+                v = v[j:]
+                msg = "Computation failed since Singular requested additional constraints (use assume):\n" + v + self._ask[i-1]
+                self._sendstr(chr(3))
+                self._sendstr(chr(3))
+                self._expect_expr()
+                raise ValueError, msg
+        except KeyboardInterrupt, msg:
+            i = 0
+            while True:
+                try:
+                    print "Control-C pressed.  Interrupting Singular. Please wait a few seconds..."
+                    self._sendstr('quit;\n'+chr(3))
+                    self._sendstr('quit;\n'+chr(3))
+                    self.interrupt()
+                    self.interrupt()
+                except KeyboardInterrupt:
+                    i += 1
+                    if i > 10:
+                        break
+                    pass
+                else:
+                    break
+            raise KeyboardInterrupt, msg
+
+    def _interrupt(self):
+        for i in range(15):
+            try:
+                self._sendstr('quit;\n'+chr(3))
+                self._expect_expr(timeout=2)
+            except pexpect.TIMEOUT:
+                pass
+            except pexpect.EOF:
+                self._crash_msg()
+                self.quit()
+            else:
+                return
+
+    ###########################################################################
+    # END Synchronization code.
+    ###########################################################################
+
 
     def eval(self, x, allow_semicolon=True, strip=True):
         r"""
@@ -402,6 +526,8 @@ class Singular(Expect):
             sage: o = s.hilb()
 
         """
+        self._synchronize()
+
         # Uncomment the print statements below for low-level debuging of
         # code that involves the singular interfaces.  Everything goes
         # through here.

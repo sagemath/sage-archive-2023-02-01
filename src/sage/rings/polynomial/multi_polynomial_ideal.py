@@ -1691,6 +1691,13 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         The base ring must be $\Q$ or a finite field $\F_p$ of with
         $p <= 32749$.
 
+        EXAMPLES:
+            sage: P.<x,y> = PolynomialRing(QQ)
+            sage: i = ideal(x^2 - y^2 + 1)
+            sage: g = i.groebner_fan()
+            sage: g.reduced_groebner_bases()
+            [[x^2 - y^2 + 1], [-x^2 + y^2 - 1]]
+
         INPUT:
             is_groebner_basis -- bool (default False).  if True, then I.gens() must be
                                  a Groebner basis with respect to the standard

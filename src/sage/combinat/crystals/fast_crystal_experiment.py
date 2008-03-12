@@ -145,7 +145,14 @@ class FastCrystal(ClassicalCrystal):
             self._rootoperators.append([e1,f1,e2,f2])
 
         self.cartanType = CartanType(type)
-        self._name = "The fast crystal for %s2 with shape [%d,%d]"%(type[0],l1,l2)
+        if int(2*l1)%2 == 0:
+            l1_str = "%d"%l1
+            l2_str = "%d"%l2
+        else:
+            assert self.cartanType[0] == 'B' and int(2*l2)%2 == 1
+            l1_str = "%d/2"%int(2*l1)
+            l2_str = "%d/2"%int(2*l2)
+        self._name = "The fast crystal for %s2 with shape [%s,%s]"%(type[0],l1_str,l2_str)
         self.index_set = self.cartanType.index_set()
         self.module_generators = [self(0)]
         self._list = ClassicalCrystal.list(self)

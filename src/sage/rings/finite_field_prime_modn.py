@@ -4,6 +4,11 @@ Finite Prime Fields
 AUTHORS:
      -- William Stein: initial version
      -- Martin Albrecht (2008-01): refactoring
+
+TESTS:
+    sage: k = GF(3)
+    sage: loads(dumps(k)) == k
+    True
 """
 
 #*****************************************************************************
@@ -154,7 +159,12 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 
     def polynomial(self, name=None):
         """
+        Returns the polynomial \var{name}.
 
+        EXAMPLE:
+            sage: k.<a> = GF(3)
+            sage: k.polynomial()
+            x
         """
         if name is None:
             name = self.variable_name()

@@ -1414,18 +1414,18 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: RR(0.49).round()
-            0.000000000000000
+            0
             sage: RR(0.5).round()
-            1.00000000000000
+            1
             sage: RR(-0.49).round()
-            -0.000000000000000
+            0
             sage: RR(-0.5).round()
-            -1.00000000000000
+            -1
          """
         cdef RealNumber x
         x = self._new()
         mpfr_round(x.value, self.value)
-        return x
+        return x.integer_part()
 
     def floor(self):
         """
@@ -1491,16 +1491,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: (2.99).trunc()
-            2.00000000000000
+            2
             sage: (-0.00).trunc()
-            -0.000000000000000
+            0
             sage: (0.00).trunc()
-            0.000000000000000
+            0
         """
         cdef RealNumber x
         x = self._new()
         mpfr_trunc(x.value, self.value)
-        return x
+        return x.integer_part()
 
     def frac(self):
         """

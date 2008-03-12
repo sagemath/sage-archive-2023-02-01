@@ -1,4 +1,4 @@
-"""
+r"""
 Dimensions of spaces of modular forms
 
 AUTHORS:
@@ -9,14 +9,14 @@ ACKNOWLEDGEMENT:
     The dimension formulas and implementations in this module grew out
     of a program that Bruce Kaskel wrote (around 1996) in PARI, which
     Kevin Buzzard subsequently extended.  I (William Stein) then
-    implemented it in C++ for HECKE.  I also implemented it in MAGMA.
+    implemented it in C++ for Hecke.  I also implemented it in Magma.
     Also, the functions for dimensions of spaces with nontrivial
     character are based on a paper (that has no proofs) by Cohen and
     Oesterle (Springer Lecture notes in math, volume 627, pages
     69--78).  The formulas for GammaH(N) were found and implemented by
     Jordi Quer.
 
-The formulas here are more complete than in HECKE or MAGMA.
+The formulas here are more complete than in Hecke or Magma.
 """
 
 ##########################################################################
@@ -41,54 +41,176 @@ import dirichlet
 Z = ZZ  # useful abbreviation.
 
 def mu0(n):
+    r"""
+    Return value of the combinatorial function
+    $$
+       \mu_0(n) = \prod_{p^r|n} (p+1)p^{r-1},
+    $$
+    where the product is over the maximal prime power
+    divisors of $n$.
+
+    INPUT:
+        n -- an integer
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.mu0(n) for n in [1..19]]
+        [1, 3, 4, 6, 6, 12, 8, 12, 12, 18, 12, 24, 14, 24, 24, 24, 18, 36, 20]
+    """
     return mul([(p+1)*(p**(r-1)) for p, r in factor(n)])
 
 def mu20(n):
+    r"""
+    Return value of the arithmetic function $\mu_{2,0}(n)$.
+
+    INPUT:
+        n -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.mu20(n) for n in [1..19]]
+        [1, 1, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 2, 0, 0]
+    """
     if n%4 == 0:
-        return 0
+        return Integer(0)
     return mul([1 + kronecker_symbol(-4,p) for p, _ in factor(n)])
 
 def mu30(n):
+    """
+    Return value of the arithmetic function $\mu_{3,0}(n)$.
+
+    INPUT:
+        n -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.mu30(n) for n in [1..19]]
+        [1, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2]
+    """
     if n%2==0 or n%9==0:
-        return 0
+        return Integer(0)
     return mul([1 + kronecker_symbol(-3,p) for p, _ in factor(n)])
 
 def c0(n):
+    """
+    Return the number of cusps of the modular curve $X_0(n)$.
+
+    INPUT:
+        n -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.c0(n) for n in [1..19]]
+        [1, 2, 2, 3, 2, 4, 2, 4, 4, 4, 2, 6, 2, 4, 4, 6, 2, 8, 2]
+        sage: [sage.modular.dims.c0(n) for n in prime_range(2,100)]
+        [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    """
     return sum([phi(gcd(d,n//d)) for d in divisors(n)])
 
 def g0(n):
-    return int(1 + frac(mu0(n),12) - frac(mu20(n),4) - \
+    """
+    Return the genus of the modular curve $X_0(n)$.
+
+
+    INPUT:
+        n -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.g0(n) for n in [1..23]]
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 2, 2]
+        sage: [n for n in [1..200] if sage.modular.dims.g0(n) == 1]
+        [11, 14, 15, 17, 19, 20, 21, 24, 27, 32, 36, 49]
+    """
+    return Integer(1 + frac(mu0(n),12) - frac(mu20(n),4) - \
                frac(mu30(n),3) - frac(c0(n),2))
 
 def mu1(n):
+    r"""
+    Return value of the combinatorial function $\mu_1(n)$.
+
+    INPUT:
+        n -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.mu1(n) for n in [1..16]]
+        [1, 3, 4, 6, 12, 12, 24, 24, 36, 36, 60, 48, 84, 72, 96, 96]
+    """
     if n <= 2:
         return mu0(n)
     return (phi(n)*mu0(n))/2
 
 def mu21(n):
+    r"""
+    Return value of $\mu_{2,1}(n)$.  This equals $\mu_{2,0}(n)$ if
+    $n<4$ and equals 0 otherwise.
+
+    EXAMPLES:
+    """
     if n<4:
         return mu20(n)
-    return 0
+    return Integer(0)
 
 def mu31(n):
+    r"""
+    Return value of $\mu_{3,1}(n)$.  This equals $\mu_{3,0}(n)$ if
+    $n<4$ and equals 0 otherwise.
+
+    EXAMPLES:
+        sage: [sage.modular.dims.mu31(n) for n in [1..10]]
+        [1, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+    """
     if n<4:
         return mu30(n)
-    return 0
+    return Integer(0)
 
 def c1(n):
+    """
+    Return value of $c_1(n)$, which is the number of cusps on the
+    modular curve $X_1(n)$.
+
+    EXAMPLES:
+        sage: [sage.modular.dims.c1(n) for n in prime_range(2,100)]
+        [2, 2, 4, 6, 10, 12, 16, 18, 22, 28, 30, 36, 40, 42, 46, 52, 58, 60, 66, 70, 72, 78, 82, 88, 96]
+    """
     if n<3:
         return c0(n)
     if n==4:
-        return 3
-    return int(sum([frac(phi(d)*phi(n/d),2) \
+        return Integer(3)
+    return Integer(sum([frac(phi(d)*phi(n/d),2) \
                     for d in divisors(n)]))
 
 def g1(n):
-    return int(1+frac(mu1(n),12)-frac(mu21(n),4)-frac(mu31(n),3) - frac(c1(n),2))
+    """
+    Return the genus of the modular curve $X_1(n)$.
+
+    EXAMPLES:
+        sage: [sage.modular.dims.g1(n) for n in prime_range(2,100)]
+        [0, 0, 0, 0, 1, 2, 5, 7, 12, 22, 26, 40, 51, 57, 70, 92, 117, 126, 155, 176, 187, 222, 247, 287, 345]
+    """
+    return Integer(1+frac(mu1(n),12)-frac(mu21(n),4)-frac(mu31(n),3) - frac(c1(n),2))
 
 def ss0(n,p):
-    assert is_prime(p)
-    assert n%p==0
+    """
+
+    INPUT:
+        n -- integer
+        p -- a prime
+
+    OUTPUT:
+        Integer
+
+    """
+    assert is_prime(p), "p must be prime"
+    assert n%p==0, "n must be divisible by p"
     return g0(n*p) - 2*g0(n) + 1
 
 def muXNp(n,p):
@@ -376,6 +498,23 @@ def dimension_new_cusp_forms_gamma0(N, k=2, p=0):
     r"""
     Dimension of the p-new subspace of $S_k(\Gamma_0(N))$.
     If $p=0$, dimension of the new subspace.
+
+    INPUT:
+        N -- a positive integer
+        k -- an integer
+        p -- a prime number
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.dimension_new_cusp_forms_gamma0(100, 2, 5)
+        5
+
+    Independently compute the dimension 5 above:
+        sage: m = ModularSymbols(100, 2,sign=1).cuspidal_subspace()
+        sage: m.new_subspace(5)
+        Modular Symbols subspace of dimension 5 of Modular Symbols space of dimension 18 for Gamma_0(100) of weight 2 with sign 1 over Rational Field
     """
     if N <= 0:
         raise ArithmeticError, "the level N (=%s) must be positive"%N
@@ -388,7 +527,7 @@ def dimension_new_cusp_forms_gamma0(N, k=2, p=0):
     if p==0 or N%p!=0:
         return sum([dimension_cusp_forms_gamma0(M,k)*mumu(N//M) \
                     for M in divisors(N)])
-    return dimension_new_cusp_forms_gamma0(N,k) - \
+    return dimension_cusp_forms_gamma0(N,k) - \
            2*dimension_new_cusp_forms_gamma0(N//p,k)
 
 def dimension_new_cusp_forms_gamma1(N,k=2,p=0):
@@ -396,6 +535,18 @@ def dimension_new_cusp_forms_gamma1(N,k=2,p=0):
     Return the dimension of the $p$-new subspace of
     $S_k(\Gamma_1(N))$.  If $p=0$, return the dimension of the new
     subspace.
+
+    INPUT:
+        N -- a positive integer
+        k -- an integer
+        p -- a prime number
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.dimension_new_cusp_forms_gamma1(4*25, 2, 5)
+        225
     """
     if N <= 0:
         raise ArithmeticError, "the level N (=%s) must be positive"%N
@@ -409,7 +560,7 @@ def dimension_new_cusp_forms_gamma1(N,k=2,p=0):
     if p==0 or N%p!=0:
         return sum([dimension_cusp_forms_gamma1(M,k)*mumu(N//M) \
                     for M in divisors(N)])
-    return dimension_new_cusp_forms_gamma1(N,k) - \
+    return dimension_cusp_forms_gamma1(N,k) - \
            2*dimension_new_cusp_forms_gamma1(N//p,k)
 
 def dimension_new_cusp_forms_group(group, k=2, p=0):

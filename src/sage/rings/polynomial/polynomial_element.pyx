@@ -3665,15 +3665,19 @@ sage: rts[0][0] == rt2
             (27*x^2 + 54, 1, -x^2 - 3*x - 9)
             sage: u*F + v*G
             27*x^2 + 54
-            sage: x.xgcd(P(0))
-            (1, 0, x)
-            sage: f = P(0)
-            sage: f.xgcd(x)
+
+            sage: g, u, v = x.xgcd(P(0)); g, u, v
+            (x, 1, 0)
+            sage: g == u*x + v*P(0)
+            True
+            sage: g, u, v = P(0).xgcd(x); g, u, v
             (x, 0, 1)
+            sage: g == u*P(0) + v*x
+            True
         """
         if other.is_zero():
             R = self.parent()
-            return R(1), R(0), self
+            return self, R(1), R(0)
         # Algorithm 3.2.2 of Cohen, GTM 138
         R = self.parent()
         A = self

@@ -2655,6 +2655,22 @@ function decode64(input) {
    return output;
 }
 
+///////////////////////////////////////////////////////////////////
+// Trash
+///////////////////////////////////////////////////////////////////
+
+function empty_trash() {
+    /* This asks for confirmation from the user then sends a request back to the
+       server asking that the trash be emptied for this user. The request to the
+       server goes by accessing the url /emptytrash.  After that finishes, the
+       empty trash folder is displayed.  */
+    if(confirm('Emptying the trash will permanently delete all items in the trash. Continue?')) {
+        window.location.replace("/emptytrash");
+        window.location.replace("/?typ=trash");
+    }
+}
+
+
 /********************* js math ***************************/
 
 function jsmath_init() {

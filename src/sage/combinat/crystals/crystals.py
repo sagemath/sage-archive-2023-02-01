@@ -28,7 +28,7 @@ We construct the type $A_5$ crystal on letters
 
 It has a single highest weight element:
     sage: C.module_generators
-    [1]
+   [1]
 
 A crystal is a CombinatorialClass; and we can count and list its elements
 in the usual way:
@@ -50,43 +50,6 @@ Here are some more elaborate crystals (see their respective documentations):
 One can get (currently) crude ploting via:
 
     sage: Tab.plot()
-
-Thanks to graphviz and dot2tex (which need to be installed), one can produce
-high quality LaTeX output of the crystal graph:
-
-    f=open('/tmp/crystal.tex', 'w')
-    f.write(C.latex())
-    f.close()
-
-
-Here some tips for installing dot2tex within sage:
- - Install graphviz >= 2.14
- - Make sure sage-python is >= 2.4
- - Download pyparsing-1.4.10.tgz pydot-0.9.10.tgz dot2tex-2.7.0.tgz
-   (see the dot2tex web page for download links)
-   Install each of them using the standard python install, but using sage-python:
-
-        sagedir=/opt/sage-2.10-opteron-ubuntu64-x86_64-Linux/  # FIX ACCORDING TO YOUR SAGE INSTALL
-        sagepython=$sagedir/local/bin/sage-python
-	for package in pyparsing-1.4.10 pydot-0.9.10 dot2tex-2.7.0; do\
-            tar zxvf $package.tgz;\
-            cd $package;\
-            sudo $sagepython setup.py install;\
-            cd ..;\
-        done
-
- - Install pgf-2.00 inside your latex tree
-   In short:
-    - untaring in in /usr/share/texmf/tex/generic
-    - clean out remaining pgf files from older version
-    - run texhash
-
-You should be done!
-To test, go to the dot2tex-2.7.0/examples directory, and type:
-
-	$sagedir//local/bin/dot2tex balls.dot > balls.tex
-        pdflatex balls.tex
-        open balls.pdf # your favorite viewer here
 
 
 
@@ -214,14 +177,84 @@ class Crystal(CombinatorialClass, Parent):
                 dict[x][child]=i
         return DiGraph(dict)
 
+    def latex_file(self,filename):
+        r"""
+        Exports a file, suitable for pdflatex, to 'filename'.  This requires a proper installation
+        of dot2tex in sage-python.  For more information see the documentation for self.latex().
+        """
+
+        header = r"""\documentclass{article}
+        \usepackage[x11names, rgb]{xcolor}
+        \usepackage[utf8]{inputenc}
+        \usepackage{tikz}
+        \usetikzlibrary{snakes,arrows,shapes}
+        \usepackage{amsmath}
+        \usepackage[active,tightpage]{preview}
+        \newenvironment{bla}{}{}
+        \PreviewEnvironment{bla}
+
+        \begin{document}
+        \begin{bla}"""
+
+        footer = r"""\end{bla}
+        \end{document}"""
+
+        f = open(filename, 'w');
+        f.write(header + self.latex() + footer)
+        f.close()
+
+
     def latex(self):
+        r"""
+        Returns the crystal graph as a bit of latex.  This can be exported to a file with
+        self.latex_file('filename').
+
+        This requires dot2tex to be installed in sage-python.
+
+        Here some tips for installation:
+         - Install graphviz >= 2.14
+         - Make sure sage-python is >= 2.4
+         - Download pyparsing-1.4.11.tar.gz pydot-0.9.10.tar.gz dot2tex-2.7.0.tar.gz
+           (see the dot2tex web page for download links)
+           (note that the most recent version of pydot may not work.  Be sure to install the 0.9.10
+           version.)
+           Install each of them using the standard python install, but using sage-python:
+
+                sagedir=/opt/sage-2.10-opteron-ubuntu64-x86_64-Linux/  # FIX ACCORDING TO YOUR SAGE INSTALL
+                sagepython=$sagedir/local/bin/sage-python
+            for package in pyparsing-1.4.11 pydot-0.9.10 dot2tex-2.7.0; do\  # Use downloaded version nums
+                    tar zxvf $package.tar.gz;\
+                    cd $package;\
+                    sudo $sagepython setup.py install;\
+                    cd ..;\
+                done
+
+         - Install pgf-2.00 inside your latex tree
+           In short:
+            - untaring in /usr/share/texmf/tex/generic
+            - clean out remaining pgf files from older version
+            - run texhash
+
+        You should be done!
+        To test, go to the dot2tex-2.7.0/examples directory, and type:
+
+            $sagedir//local/bin/dot2tex balls.dot > balls.tex
+                pdflatex balls.tex
+                open balls.pdf # your favorite viewer here
+        """
+
         try:
             from dot2tex.dot2tex import Dot2TikZConv
         except ImportError:
             print "dot2tex not available.  Install after running \'sage -sh\'"
             return "Game over, man!"
-        conv = Dot2TikZConv()
-        return conv.convert(self.dot_tex())
+
+        # In MuPAD, 'autosize' is an option, but this doesn't seem to work here.
+        options = {'format':'tikz', 'crop':True, 'usepdflatex':True, 'figonly':True}
+
+        content = (Dot2TikZConv(options)).convert(self.dot_tex())
+
+        return content
 
     def metapost(self, filename, thicklines=False, labels=True, scaling_factor=1.0, tallness=1.0):
         """Use C.metapost("filename.mp",[options])
@@ -362,15 +395,16 @@ class Crystal(CombinatorialClass, Parent):
             # Removing %-style comments, newlines, quotes
             return re.sub("\"|\r|(%[^\n]*)?\n","", latex(x))
 
-        result = "digraph G {\n"
+        result = "digraph G { \n  node [ shape=plaintext ];\n"
+
         for x in self:
-            result += vertex_key(x) + " [ label = \" \", texlbl = \"$"+quoted_latex(x)+"$\" ];\n"
+            result += "  " + vertex_key(x) + " [ label = \" \", texlbl = \"$"+quoted_latex(x)+"$\" ];\n"
         for x in self:
             for i in self.index_set:
                 child = x.f(i)
                 if child is None:
                     continue
-                result += vertex_key(x)+ " -> "+vertex_key(child)+ " [ label = \" \", texlbl = \""+quoted_latex(i)+"\" ];\n"
+                result += "  " + vertex_key(x) + " -> "+vertex_key(child)+ " [ label = \" \", texlbl = \""+quoted_latex(i)+"\" ];\n"
         result+="}"
         return result
 

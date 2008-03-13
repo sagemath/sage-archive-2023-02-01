@@ -70,13 +70,13 @@ class BipartiteGraph(Graph):
             [0, 1, 2, 3, 4]
             sage: B.show()
 
-        TESTS:
-            # test for arbitrary argument handled by Graph class
+        EXAMPLES:
+        Test for arbitrary argument handled by Graph class
             sage: B = BipartiteGraph(None)
             sage: B
             Bipartite graph on 0 vertices
 
-            # "copy constructor"
+        Copy constructor
             sage: G = Graph({0:[5,6], 1:[4,5], 2:[4,6], 3:[4,5,6]})
             sage: B = BipartiteGraph(G)
             sage: B2 = BipartiteGraph(B)
@@ -88,7 +88,7 @@ class BipartiteGraph(Graph):
             sage: B3 == B2
             True
 
-            # make sure "copy constructor" returns the same partition for no edges
+        Make sure "copy constructor" returns the same partition for no edges
             sage: G = Graph({0:[], 1:[], 2:[]})
             sage: part = (range(2), [2])
             sage: B = BipartiteGraph(G, part)
@@ -102,32 +102,10 @@ class BipartiteGraph(Graph):
             return
         arg1 = args[0]
         args = args[1:]
-        import networkx
         if isinstance(arg1, BipartiteGraph):
             Graph.__init__(self, arg1, *args, **kwds)
             self.left, self.right = arg1.left, arg1.right
-        elif isinstance(arg1, (networkx.XGraph, networkx.Graph)):
-            Graph.__init__(self, arg1, *args, **kwds)
-            if hasattr(arg1, 'node_type'):
-                # Assume the graph is bipartite
-                self.left = []
-                self.right = []
-                for v in arg1.nodes_iter():
-                    if arg1.node_type[v] == 'Bottom':
-                        self.left.append(v)
-                    elif arg1.node_type[v] == 'Top':
-                        self.right.append(v)
-                    else:
-                        raise TypeError("NetworkX node_type defies bipartite assumtion (is not 'Top' or 'Bottom')")
-            else:
-                try:
-                    import networkx.generators.bipartite as nx_bip
-                    self.left, self.right = \
-                        nx_bip.bipartite_sets(self.networkx_graph())
-                except:
-                    raise TypeError("Input graph is not bipartite!")
-        else:
-            if isinstance(arg1, Graph) and \
+        elif isinstance(arg1, Graph) and \
              len(args) > 0 and isinstance(args[0], (list,tuple)) and \
              len(args[0]) == 2 and isinstance(args[0][0], (list,tuple)):
                 # Assume that args[0] is a bipartition
@@ -157,11 +135,31 @@ class BipartiteGraph(Graph):
                         if len( a_nbrs ) != 0:
                             self.delete_edges([(a, b) for b in a_nbrs])
                 self.left, self.right = copy(args[0][0]), copy(args[0][1])
+        elif isinstance(arg1, Graph):
+            try:
+                Graph.__init__(self, arg1, *args, **kwds)
+                self.left, self.right = self.bipartite_sets()
+                return
+            except:
+                raise TypeError("Input graph is not bipartite!")
+        else:
+            import networkx
+            Graph.__init__(self, arg1, *args, **kwds)
+            if isinstance(arg1, (networkx.XGraph, networkx.Graph)):
+                if hasattr(arg1, 'node_type'):
+                    # Assume the graph is bipartite
+                    self.left = []
+                    self.right = []
+                    for v in arg1.nodes_iter():
+                        if arg1.node_type[v] == 'Bottom':
+                            self.left.append(v)
+                        elif arg1.node_type[v] == 'Top':
+                            self.right.append(v)
+                        else:
+                            raise TypeError("NetworkX node_type defies bipartite assumtion (is not 'Top' or 'Bottom')")
             else:
                 try:
-                    Graph.__init__(self, arg1, *args, **kwds)
                     self.left, self.right = self.bipartite_sets()
-                    return
                 except:
                     raise TypeError("Input graph is not bipartite!")
 

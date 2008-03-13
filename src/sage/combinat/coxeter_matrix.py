@@ -19,7 +19,7 @@ from sage.rings.all import ZZ
 
 def coxeter_matrix_as_function(t):
     ct = CartanType(t)
-    f = dynkin_diagram_as_function(t)
+    f = dynkin_diagram_as_function(ct)
     index_set = ct.index_set()
 
     def coxeter(i,j):
@@ -81,7 +81,7 @@ def coxeter_matrix(t):
     """
     ct = CartanType(t)
     n = ct.rank()
-    cf = coxeter_matrix_as_function(t)
+    cf = coxeter_matrix_as_function(ct)
     index_set = ct.index_set()
     MS = MatrixSpace(ZZ, len(index_set))
     m = MS(0)

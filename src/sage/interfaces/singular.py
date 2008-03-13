@@ -388,9 +388,26 @@ class Singular(Expect):
             self.quit()
 
     def _before(self):
+        """
+        Return the previous string that was send through the interface.
+
+        EXAMPLES:
+            sage: singular(2+3)
+            5
+            sage: singular._before() # The variable name sage167 is somehow random
+            'print(sage167);\r\n5\r\n'
+        """
         return self._expect.before
 
     def _sendstr(self, str):
+        """
+        Send a string through the interface.
+
+        EXAMPLES:
+            sage: singular._sendstr('int i = 5;')
+            sage: singular('i')
+            5
+        """
         if self._expect is None:
             self._start()
         try:
@@ -401,6 +418,18 @@ class Singular(Expect):
             self._sendstr(str)
 
     def _crash_msg(self):
+        """
+        Show a message if the singular interface crashed.
+
+        EXAMPLE:
+            sage: import os
+            sage: singular(2+3)
+            5
+            sage: os.kill(singular.pid(),9)
+            sage: singular(2+3)
+            Singular crashed -- automatically restarting.
+            5
+        """
         print "Singular crashed -- automatically restarting."
 
     def _expect_expr(self, expr=None, timeout=None):

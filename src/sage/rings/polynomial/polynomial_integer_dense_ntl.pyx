@@ -452,7 +452,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: u*F + v*G
             27*x^2 + 54
             sage: x.xgcd(P(0))
-            (1, 0, x)
+            (x, 1, 0)
             sage: f = P(0)
             sage: f.xgcd(x)
             (x, 0, 1)

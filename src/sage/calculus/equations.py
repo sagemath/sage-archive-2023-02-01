@@ -1203,6 +1203,14 @@ def solve(f, *args, **kwds):
         sage: solve([1==3, 1.00000000000000*x^3 == 0], x)
         []
 
+        sage: var('s,i,b,m,g')
+        (s, i, b, m, g)
+        sage: sys = [ m*(1-s) - b*s*i, b*s*i-g*i ];
+        sage: solve(sys,s,i);
+        [[s == 1, i == 0], [s == g/b, i == (b - g)*m/(b*g)]]
+        sage: solve(sys,[s,i]);
+        [[s == 1, i == 0], [s == g/b, i == (b - g)*m/(b*g)]]
+
     """
     if isinstance(f, (list, tuple)):
         f = [s for s in f if s is not True]
@@ -1211,8 +1219,12 @@ def solve(f, *args, **kwds):
                 return []
 
         m = maxima(list(f))
+
         try:
-            s = m.solve(args)
+            if isinstance(args[0],list):
+                s = m.solve(tuple(args[0]))
+            else:
+                s = m.solve(args)
         except:
             raise ValueError, "Unable to solve %s for %s"%(f, args)
         a = repr(s)

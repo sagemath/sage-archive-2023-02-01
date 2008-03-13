@@ -1219,6 +1219,48 @@ class WorksheetsByUser(resource.Resource):
 ############################
 # Trash can, archive and active
 ############################
+class EmptyTrash(resource.Resource):
+    def __init__(self, username):
+        """
+        This twisted resource empties the trash of the current user when it
+        is rendered.
+
+        EXAMPLES:
+        We create an instance of this resource.
+            sage: E = sage.server.notebook.twist.EmptyTrash('sage'); E
+            <sage.server.notebook.twist.EmptyTrash object at ...>
+        """
+        self.username = username
+
+    def render(self, ctx):
+        """
+        Rendering this resource (1) empties the trash, and (2) returns
+        a message.
+
+        EXAMPLES:
+        We create a notebook with a worksheet, put it in the trash,
+        then empty the trash by creating and rendering this worksheet.
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
+            sage: W.move_to_trash('sage')
+            sage: n.worksheet_names()
+            ['sage/0']
+            sage: sage.server.notebook.twist.notebook = n
+            sage: E = sage.server.notebook.twist.EmptyTrash('sage'); E
+            <sage.server.notebook.twist.EmptyTrash object at ...>
+            sage: E.render(None)
+            <twisted.web2.http.Response code=200, streamlen=603>
+
+        Finally we verify that the trashed worksheet is gone:
+            sage: n.worksheet_names()
+            []
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
+        notebook.empty_trash(self.username)
+        return http.Response(stream = message("Trash emptied."))
+
+
 class SendWorksheetToFolder(resource.PostableResource):
     def __init__(self, username):
         self.username = username
@@ -1766,6 +1808,7 @@ class UserToplevel(Toplevel):
 
     userchild_src = SourceBrowser
     userchild_upload_worksheet = UploadWorksheet
+    userchild_emptytrash = EmptyTrash
 
     def render(self, ctx):
         s = render_worksheet_list(ctx.args, pub=False, username=self.username)

@@ -69,9 +69,9 @@ def kostka_tab_symmetrica(shape, content):
         sage: symmetrica.kostka_tab([1,1,1],[1,1,1])
         [[[1], [2], [3]]]
         sage: symmetrica.kostka_tab([[2,2,1],[1,1]],[1,1,1])
-        [[[None, 1], [None, 2], [3, None]],
-         [[None, 1], [None, 3], [2, None]],
-         [[None, 2], [None, 3], [1, None]]]
+        [[[None, 1], [None, 2], [3]],
+         [[None, 1], [None, 3], [2]],
+         [[None, 2], [None, 3], [1]]]
         sage: symmetrica.kostka_tab([[2,2],[1]],[1,1,1])
         [[[None, 1], [2, 3]], [[None, 2], [1, 3]]]
 

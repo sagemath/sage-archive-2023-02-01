@@ -1069,6 +1069,7 @@ cdef object _py_tableau(OP t):
                     row.append( None )
                     is_skew = 1
             else:
+                added = 1
                 row.append( _py(S_M_IJ(a,i,j)) )
 
         res.append(row)

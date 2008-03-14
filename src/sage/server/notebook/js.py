@@ -1241,8 +1241,6 @@ function cell_blur(id) {
     var cell = get_cell(id);
     if(cell == null) return;
 
-    setTimeout("set_class('eval_button"+id+"','eval_button')", 100); //this is unclickable if we don't add a little delay.
-
     /* Disable coloring and change to div for now */
     cell.className="cell_input";
     cell_input_minimize_size(cell);
@@ -1300,13 +1298,22 @@ function cell_focus(id, bottom) {
         cell_input_resize(cell);
         if (!bottom)
             move_cursor_to_top_of_cell(cell);
-        current_cell = id;
         cell.focus();
     }
-    current_cell = id;
     cell_has_changed = false;
 
     return true;
+}
+
+//this gets called when the cell object has gotten focus
+function cell_focused(cell, id) {
+    cell.className = "cell_input_active";
+    if(current_cell == id) return;
+    if (current_cell != -1) {
+        set_class("eval_button"+current_cell,"eval_button");
+    }
+    current_cell = id;
+    set_class("eval_button"+id,"eval_button_active");
 }
 
 function move_cursor_to_top_of_cell(cell) {

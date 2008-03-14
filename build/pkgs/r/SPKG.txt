@@ -23,6 +23,9 @@
 
 == Changelog ==
 
+=== r-2.6.1.p15 (Josh Kantor, April 12th, 2008) ===
+ * make R help work (#2483)
+
 === r-2.6.1.p14 (Michael Abshoff, Jan. 27th, 2008) ===
  * fix rpy build issue on OSX 10.4 (#1943)
 

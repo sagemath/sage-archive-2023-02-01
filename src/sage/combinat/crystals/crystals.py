@@ -28,7 +28,7 @@ We construct the type $A_5$ crystal on letters
 
 It has a single highest weight element:
     sage: C.module_generators
-   [1]
+    [1]
 
 A crystal is a CombinatorialClass; and we can count and list its elements
 in the usual way:

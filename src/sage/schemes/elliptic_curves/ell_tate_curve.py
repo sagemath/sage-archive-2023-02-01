@@ -72,12 +72,24 @@ class TateCurve(SageObject):
     def originial_curve(self):
         """
         Returns the elliptic curve the Tate curve was constructed from.
+
+        EXAMPLES:
+            sage: eq = EllipticCurve('130a1').tate_curve(5)
+            sage: eq.originial_curve()
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
         """
         return self._E
 
     def prime(self):
         """
         Returns the residual characteristic.
+
+        EXAMPLES:
+            sage: eq = EllipticCurve('130a1').tate_curve(5)
+            sage: eq.originial_curve()
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
+            sage: eq.prime()
+            5
        """
         return self._p
 
@@ -435,7 +447,7 @@ class TateCurve(SageObject):
         # we will have to do it properly with David Harvey's _multiply_point(E, R, Q)
         n = LCM(self._E.tamagawa_numbers()) * (p-1)
 
-        def height(P,check=True):
+        def _height(P,check=True):
             if check:
                 assert P.curve() == self._E, "the point P must lie on the curve from which the height function was created"
             Q = n * P
@@ -446,7 +458,7 @@ class TateCurve(SageObject):
             qEu = self._q/p**nn
             return (log(si*self._Csquare()/cQ) + log(uQ)**2/log(qEu)) / n**2
 
-        return height
+        return _height
 
 
     def padic_regulator(self,prec=20):

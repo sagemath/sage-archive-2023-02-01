@@ -44,7 +44,11 @@ def modular_symbol_space(E, sign, base_ring, bound=None):
         a space of modular symbols
 
     EXAMPLES:
-
+        sage: import sage.schemes.elliptic_curves.ell_modular_symbols
+        sage: E=EllipticCurve('11a1')
+        sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.modular_symbol_space(E,-1,GF(37))
+        sage: M
+        Modular Symbols space of dimension 1 for Gamma_0(11) of weight 2 with sign -1 over Finite Field of size 37
     """
     _sign = int(sign)
     if _sign != sign:
@@ -93,6 +97,11 @@ class ModularSymbol(SageObject):
                 it won't be any faster.
 
         EXAMPLES:
+            sage: E=EllipticCurve('11a1')
+            sage: import sage.schemes.elliptic_curves.ell_modular_symbols
+            sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbol(E,+1)
+            sage: M
+            Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
         """
         _sign = int(sign)
         if _sign != sign:
@@ -115,6 +124,11 @@ class ModularSymbol(SageObject):
         Return the sign of this elliptic curve modular symbol.
 
         EXAMPLES:
+            sage: E=EllipticCurve('11a1')
+            sage: import sage.schemes.elliptic_curves.ell_modular_symbols
+            sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbol(E,+1)
+            sage: M.sign()
+            1
         """
 
         return self._modsym.sign()
@@ -123,10 +137,25 @@ class ModularSymbol(SageObject):
         """
         Return the base ring for this modular symbol.
         EXAMPLES:
-        """
+            sage: E=EllipticCurve('11a1')
+            sage: import sage.schemes.elliptic_curves.ell_modular_symbols
+            sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbol(E,+1)
+            sage: M.base_ring()
+            Rational Field
+       """
         return self._modsym.base_ring()
 
     def elliptic_curve(self):
+        """
+        Return the elliptic curve of this modular symbol
+        EXAMPLES:
+            sage: E=EllipticCurve('11a1')
+            sage: import sage.schemes.elliptic_curves.ell_modular_symbols
+            sage: M=sage.schemes.elliptic_curves.ell_modular_symbols.ModularSymbol(E,+1)
+            sage: M.elliptic_curve()
+            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+
+        """
         return self._E
 
     def _call_with_caching(self, r):

@@ -69,9 +69,21 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
 
 
     def frobenius(self, P=None):
+        """
+        Returns the forbenius as a function on the group of points of
+        this elliptic curve.
 
+        EXAMPLE:
+            sage: Qp=pAdicField(13)
+            sage: E=EllipticCurve(Qp,[1,1])
+            sage: type(E.frobenius())
+            <type 'function'>
+            sage: point=E(0,1)
+            sage: E.frobenius(point)
+            (0 : 1 + O(13^20) : 1 + O(13^20))
+        """
         try:
-            frob = self._frob
+            _frob = self._frob
         except AttributeError:
             K = self.base_field()
             p = K.prime()
@@ -84,7 +96,7 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
             f = x*x*x + a2*x*x + a4*x + a6
             h = (f(x**p) - f**p)
 
-            def frob(P):
+            def _frob(P):
                 x0 = P[0]
                 y0 = P[1]
                 uN = (1 + h(x0)/y0**(2*p)).sqrt()
@@ -94,12 +106,12 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
                     yres=-yres
                 return self.point([xres,yres, K(1)])
 
-            self._frob = frob
+            self._frob = _frob
 
         if P is None:
-            return frob
+            return _frob
         else:
-            return frob(P)
+            return _frob(P)
 
     def coleman_integrals_on_basis(self, P, Q):
         """

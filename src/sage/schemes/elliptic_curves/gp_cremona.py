@@ -25,6 +25,9 @@ R = RealField()
 
 gp = None
 def init():
+    """
+    Function to initialize the gp process
+    """
     global gp
     if gp is None:
         gp = Gp(script_subdirectory='cremona')
@@ -41,6 +44,25 @@ def ellanalyticrank(e):
         e -- five-tuple of integers that define a minimal weierstrass equation
     OUTPUT:
         integer -- the ("computed") analytic rank r of E
+
+    ALGORITHM:
+        Uses Cremona's gp script
+
+    NOTE:
+        Users are commended to use EllipticCurve(ai).analytic_rank() instead.
+
+    EXAMPLES:
+        sage: import sage.schemes.elliptic_curves.gp_cremona
+        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank([0,-1,1,-10,-20])
+        0
+        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank([0,0,1,-1,0])
+        1
+        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank([0,1,1,-2,0])
+        2
+        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank([0,0,1,-7,6])
+        3
+        sage: sage.schemes.elliptic_curves.gp_cremona.ellanalyticrank([0,0,1,-7,36])
+        4
     """
     init()
     cmd = "ellanalyticrank(ellinit(%s),0)"%e
@@ -55,7 +77,25 @@ def ellzp(e, p):
         e -- five-tuple of integers that define an elliptic curve over Z/pZ
         p -- prime
     OUTPUT:
-        ...
+        A string containing information about the elliptic curve
+        modulo p: group structure and generators.
+
+    NOTE: This is an internal function used in the function
+    _abelian_group_data() for curves over finite (prime) field.  Users
+    should instead use higher-level funtions -- see examples.
+
+    WARNING: The algorithm uses random points, so the generators in
+    the second part of the output will vary from run to run.
+
+    EXAMPLES:
+        sage: import sage.schemes.elliptic_curves.gp_cremona
+        sage: sage.schemes.elliptic_curves.gp_cremona.ellzp([0,0,1,-7,6],97) #random
+        '[[46, 2], [[58, 45], [45, 48]]]
+        sage: EllipticCurve(GF(97),[0,0,1,-7,6])._cremona_abgrp_data() #random
+        [[46, 2], [[32, 63], [45, 48]]]
+        sage: EllipticCurve(GF(97),[0,0,1,-7,6]).abelian_group() #random
+        (Multiplicative Abelian Group isomorphic to C46 x C2,
+        ((52 : 13 : 1), (45 : 48 : 1)))
     """
     init()
     cmd = "e=ellzpinit(%s,%s); [e.isotype, lift(e.generators)]"%(e,p)
@@ -70,7 +110,24 @@ def ellinit(e, p):
         e -- five-tuple of integers that define an elliptic curve over Z/pZ
         p -- prime
     OUTPUT:
-        GP/PARI object
+        GP/PARI object representing the elliptic curve modulo p,
+        including the following fields:
+
+        E[14] : the group order n = #E(Fp)
+        E[15] : factorization of the group order n (as a matrix)
+        E[16] : the group structure: [n] if cyclic, or
+                                     [n1,n2] with n=n1*n2 and n2|n1
+        E[17] : the group generators: [P] is cyclic, or
+                                      [P1,P2] with order(Pi)=ni
+
+
+    EXAMPLES:
+        sage: import sage.schemes.elliptic_curves.gp_cremona
+        sage: E = sage.schemes.elliptic_curves.gp_cremona.ellinit([0,0,1,-7,6],97)
+        sage: E # random generators
+        [Mod(0, 97), Mod(0, 97), Mod(1, 97), Mod(90, 97), Mod(6, 97), Mod(0, 97), Mod(83, 97), Mod(25, 97), Mod(48, 97), Mod(45, 97), Mod(32, 97), Mod(33, 97), Mod(63, 97), 92, [2, 2; 23, 1], [46, 2], [[Mod(96, 97), Mod(3, 97)], [Mod(30, 97), Mod(48, 97)]], 0, 0]
+        sage: type(E)
+        <class 'sage.interfaces.gp.GpElement'>
     """
     init()
     return gp("e=ellzpinit(%s,%s);"%(e,p))
@@ -81,6 +138,18 @@ def ellinit(e, p):
 ################
 gp_allisog = None
 def p_isog(e, p):
+    """
+    Return a list of the elliptic curves p-isogenous to e.
+
+    ALGORITHM:
+        Uses Cremona's gp script
+
+    EXAMPLES:
+        sage: import sage.schemes.elliptic_curves.gp_cremona
+        sage: E=EllipticCurve('11a1')
+        sage: sage.schemes.elliptic_curves.gp_cremona.p_isog(E.pari_curve(),5)
+        '[[0, -1, 1, -7820, -263580], [0, -1, 1, 0, 0]]'
+    """
     global gp_allisog
     if gp_allisog is None:
         gp_allisog = Gp(script_subdirectory='cremona')
@@ -92,6 +161,21 @@ def p_isog(e, p):
     return x
 
 def allisog(e):
+    """
+    Return a list of the curves p-isogenous to e for some prime p.
+
+    OUTPUT: A list of lists [p,curves] where curves is a list of
+        elliptic curves p-isogenous to e.
+
+    ALGORITHM:
+        Uses Cremona's gp script
+
+    EXAMPLES:
+        sage: import sage.schemes.elliptic_curves.gp_cremona
+        sage: E=EllipticCurve('14a1')
+        sage: sage.schemes.elliptic_curves.gp_cremona.allisog(E.pari_curve())
+        '[[2, [[1, 0, 1, -36, -70]]], [3, [[1, 0, 1, -171, -874], [1, 0, 1, -1, 0]]]]'
+    """
     global gp_allisog
     if gp_allisog is None:
         gp_allisog = Gp(script_subdirectory='cremona')

@@ -1,4 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 # Install SQLAlchemy
 cd src
@@ -6,3 +12,4 @@ python setup.py install
 
 # Copy over the documentation
 cp -r doc $SAGE_ROOT/local/doc/SQLAlchemy-0.4.3
+

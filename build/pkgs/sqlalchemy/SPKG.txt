@@ -21,13 +21,20 @@ MIT
  * http://www.sqlalchemy.org/community.html
 
 == Dependencies ==
-
- * Setuptools
+ * python
+ * setuptools
 
 == Build Notes ==
 
+Use the standard sources. No changes from the official sources.
 
 == Changelog ==
+
+=== SQLAlchemy-0.4.3.p1 (Michael Abshoff, March 14th, 2008) ===
+ * add hg repo
+ * add .hgignore
+ * make sure SAGE_LOCAL is installed (#633)
+ * use /usr/bin/env bash shebang (#1638)
 
 === SQLAlchemy-0.4.3.p0 (Yi Qiang) ===
  * Initial version

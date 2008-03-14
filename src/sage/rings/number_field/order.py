@@ -454,6 +454,41 @@ class Order(IntegralDomain):
             return self.__ring_generators
 
 
+    def zeta(self, n=2, all=False):
+        r"""
+        Return a primitive n-th root of unity in this order, if it
+        contains one. If all is True, return all of them.
+
+        EXAMPLES:
+            sage: F.<alpha> = NumberField(x**2+3)
+            sage: F.ring_of_integers().zeta(6)
+            1/2*alpha + 1/2
+            sage: O = F.order([3*alpha])
+            sage: O.zeta(3)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: There are no 3-rd roots of unity in self.
+        """
+        roots_in_field = self.number_field().zeta(n, True)
+        roots_in_self = [ self(x) for x in roots_in_field if x in self ]
+        if len(roots_in_self) == 0:
+            if all:
+                return []
+            else:
+                if n == 1:
+                    th = 'st'
+                elif n == 2:
+                    th = 'nd'
+                elif n == 3:
+                    th = 'rd'
+                else:
+                    th = 'th'
+                raise ArithmeticError, "There are no %s-%s roots of unity in self."%(n,th)
+        if all:
+            return roots_in_self
+        else:
+            return roots_in_self[0]
+
 
     def number_field(self):
         """

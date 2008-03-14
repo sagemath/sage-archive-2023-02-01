@@ -32,6 +32,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.categories.morphism cimport Morphism
 
+import number_field
 
 # TODO: this doesn't belong here, but robert thinks it would be nice
 # to have globally available....
@@ -58,12 +59,12 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     def __init__(self, parent, f):
         """
-        Construct a NumberFieldElement_quadratic object as an efficiently
-        represented member of an absolute quadratic field.
+        Construct a NumberFieldElement_quadratic object as an
+        efficiently represented member of an absolute quadratic field.
 
-        Elements are represented internally as triples (a, b, denom) of integers,
-        where gcd(a, b, denom) == 1 and denom > 0, representing the element
-        (a + b*sqrt(disc)) / denom.
+        Elements are represented internally as triples (a, b, denom)
+        of integers, where gcd(a, b, denom) == 1 and denom > 0,
+        representing the element (a + b*sqrt(disc)) / denom.
 
         TESTS:
             sage: from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
@@ -222,6 +223,133 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_set(denom.value, self.denom)
         return __make_NumberFieldElement_quadratic0, (self._parent, a, b, denom)
 
+    def _lift_cyclotomic_element(self, new_parent):
+        """
+        Creates an element of the passed field from this field.  This
+        is specific to creating elements in a cyclotomic field from
+        elements in another cyclotomic field, in the case that
+        self.number_field()._n() divides new_parent()._n().  This
+        function aims to make this common coercion extremely fast!
+
+        More general coercion (i.e. of zeta6 into CyclotomicField(3))
+        is implemented in the _coerce_from_other_cyclotomic_field
+        method of a CyclotomicField.
+
+        EXAMPLES:
+            sage: C.<zeta4>=CyclotomicField(4)
+            sage: CyclotomicField(20)(zeta4+1)  # The function _lift_cyclotomic_element does the heavy lifting in the background
+            zeta20^5 + 1
+            sage: (zeta4+1)._lift_cyclotomic_element(CyclotomicField(40))  # There is rarely a purpose to call this function directly
+            zeta40^10 + 1
+
+            sage: cf3 = CyclotomicField(3) ; z3 = cf3.0
+            sage: cf6 = CyclotomicField(6) ; z6 = cf6.0
+            sage: z6._lift_cyclotomic_element(cf3)
+            Traceback (most recent call last):
+            ...
+            TypeError: The zeta_order of the new field must be a multiple of the zeta_order of the original.
+            sage: cf3(z6)
+            zeta3 + 1
+            sage: z3._lift_cyclotomic_element(cf6)
+            zeta6 - 1
+
+        AUTHOR:
+            -- Joel B. Mohler (original version)
+            -- Craig Citro (reworked for quadratic elements)
+        """
+        if not isinstance(self.number_field(), number_field.NumberField_cyclotomic) \
+               or not isinstance(new_parent, number_field.NumberField_cyclotomic):
+            raise TypeError, "The field and the new parent field must both be cyclotomic fields."
+
+        small_order = self.number_field()._n()
+        large_order = new_parent._n()
+
+        try:
+            _rel = ZZ(large_order / small_order)
+        except TypeError:
+            raise TypeError, "The zeta_order of the new field must be a multiple of the zeta_order of the original."
+
+        cdef NumberFieldElement_quadratic x2
+        cdef int n = int(self.parent()._n())
+
+        if new_parent.degree() == 2:
+            ## since self is a *quadratic* element, we can only get
+            ## here if self.parent() and new_parent are exactly the
+            ## two fields CyclotomicField(3) and CyclotomicField(6)
+            ## or CyclotomicField(4) and CyclotomicField(4)
+            x2 = <NumberFieldElement_quadratic>(self._new())
+            x2._parent = new_parent
+            mpz_set(x2.a, self.a)
+            mpz_set(x2.b, self.b)
+            mpz_set(x2.denom, self.denom)
+            x2.D = self.D
+            return x2
+
+        cdef NumberFieldElement x
+        cdef ZZX_c elt_num
+        cdef ZZ_c elt_den, tmp_coeff
+        cdef mpz_t tmp_mpz
+        cdef long tmp_const
+
+        x = <NumberFieldElement_absolute>PY_NEW(NumberFieldElement_absolute)
+
+        mpz_to_ZZ(&elt_den, &(self.denom))
+
+        mpz_init(tmp_mpz)
+
+        ## set the two terms in the polynomial
+        if n == 4:
+            mpz_to_ZZ(&tmp_coeff, &(self.a))
+            ZZX_SetCoeff(elt_num, 0, tmp_coeff)
+            mpz_to_ZZ(&tmp_coeff, &(self.b))
+            ZZX_SetCoeff(elt_num, 1, tmp_coeff)
+
+        elif n == 3:
+            ## num[0] = a + b
+            mpz_add(tmp_mpz, tmp_mpz, self.a)
+            mpz_add(tmp_mpz, tmp_mpz, self.b)
+            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            ZZX_SetCoeff(elt_num, 0, tmp_coeff)
+
+            ## num[1] = 2*b
+            mpz_sub(tmp_mpz, tmp_mpz, self.a)
+            tmp_const = 2
+            mpz_mul_si(tmp_mpz, tmp_mpz, tmp_const)
+            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            ZZX_SetCoeff(elt_num, 1, tmp_coeff)
+
+        elif n == 6:
+            ## num[0] = a - b
+            mpz_add(tmp_mpz, tmp_mpz, self.a)
+            mpz_sub(tmp_mpz, tmp_mpz, self.b)
+            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            ZZX_SetCoeff(elt_num, 0, tmp_coeff)
+
+            ## num[1] = 2*b
+            mpz_sub(tmp_mpz, tmp_mpz, self.a)
+            tmp_const = -2
+            mpz_mul_si(tmp_mpz, tmp_mpz, tmp_const)
+            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            ZZX_SetCoeff(elt_num, 1, tmp_coeff)
+
+        mpz_clear(tmp_mpz)
+
+        x._parent = <ParentWithBase>new_parent
+        x.__fld_numerator, x.__fld_denominator = new_parent.polynomial_ntl()
+        x.__denominator = elt_den
+        cdef ZZX_c result
+        cdef ZZ_c tmp
+        cdef int i
+        cdef int rel = _rel
+        cdef ntl_ZZX _num
+        cdef ntl_ZZ _den
+        _num, _den = new_parent.polynomial_ntl()
+        for i from 0 <= i <= ZZX_deg(elt_num):
+            tmp = ZZX_coeff(elt_num, i)
+            ZZX_SetCoeff(result, i*rel, tmp)
+        ZZX_rem(x.__numerator, result, _num.x)
+        (<NumberFieldElement_absolute>x)._reduce_c_()
+        return x
 
     def parts(self):
         """

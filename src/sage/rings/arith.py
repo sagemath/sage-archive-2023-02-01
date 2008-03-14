@@ -1801,6 +1801,8 @@ def euler_phi(n):
         0
         sage: euler_phi(0)
         0
+        sage: type(euler_phi(0))
+        <type 'sage.rings.integer.Integer'>
 
     We verify directly that the phi function is correct for 21.
 
@@ -1820,9 +1822,9 @@ def euler_phi(n):
         - Alex Clemesha (2006-01-10): some examples
     """
     if n<=0:
-        return 0
+        return integer_ring.ZZ(0)
     if n<=2:
-        return 1
+        return integer_ring.ZZ(1)
     return integer_ring.ZZ(pari(n).phi())
     #return misc.mul([(p-1)*p**(r-1) for p, r in factor(n)])
 

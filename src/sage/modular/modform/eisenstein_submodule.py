@@ -342,7 +342,7 @@ class EisensteinSubmodule_eps(EisensteinSubmodule_params):
     Space of Eisenstein forms with given Dirichlet character.
 
     EXAMPLES:
-	sage: e = DirichletGroup(27,CyclotomicField(3)).0
+	sage: e = DirichletGroup(27,CyclotomicField(3)).0**2
 	sage: M = ModularForms(e,2,prec=10).eisenstein_subspace()
 	sage: M.dimension()
 	6
@@ -457,9 +457,9 @@ def cyclotomic_restriction_tower(L,K):
     R = K['x']
     x = R.gen()
     g = R(f)
-    h_ls = [ x[0] for x in g.factor() if x[0](L.gen(0)) == 0 ]
+    h_ls = [ t[0] for t in g.factor() if t[0](L.gen(0)) == 0 ]
     if len(h_ls) == 0:
-        raise ValueError, "K (= Q(\zeta_%s)) is not contained in L (= Q(\zeta_%s))"%(K.zeta_order(), L.zeta_order())
+        raise ValueError, "K (= Q(\zeta_%s)) is not contained in L (= Q(\zeta_%s))"%(K._n(), L._n())
     h = h_ls[0]
     def z(a):
         """

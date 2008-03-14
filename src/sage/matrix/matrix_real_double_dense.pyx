@@ -149,9 +149,34 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         return self._richcmp(right, op)
 
     def __hash__(self):
+        """
+        Hash this matrix, if it's immutable.
+
+        EXAMPLES:
+            sage: A = matrix(RDF,3,range(1,10))
+            sage: hash(A)
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
+            sage: A.set_immutable()
+            sage: hash(A)
+            88
+
+        """
         return self._hash()
 
     def LU_valid(self):
+        r"""
+        Returns \code{True} if the LU form of this matrix has
+        already been computed.
+
+        EXAMPLES:
+            sage: A= random_matrix(RDF,3) ; A.LU_valid()
+            False
+            sage: L,U,P = A.LU()
+            sage: A.LU_valid()
+            True
+        """
         return self.fetch('LU_valid') == True
 
     def __init__(self, parent, entries, copy, coerce):
@@ -223,7 +248,13 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         return M
 
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right): #matrix.Matrix right):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+        """
+        EXAMPLES:
+            sage: A = matrix(RDF,3,range(1,10))
+            sage: (A-A).is_zero()
+            True
+        """
         if self._nrows == 0 or self._ncols == 0: return self
 
         cdef Matrix_real_double_dense M,_right,_left
@@ -236,12 +267,23 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         M=Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
         # todo -- check error code
         result_copy = gsl_matrix_memcpy(M._matrix,_left._matrix)
-        result_add = gsl_matrix_sub(M._matrix,_right._matrix)
+        result_sub = gsl_matrix_sub(M._matrix,_right._matrix)
         if result_copy!=GSL_SUCCESS or result_sub !=GSL_SUCCESS:
             raise ValueError, "GSL routine had an error"
         return M
 
     def __neg__(self):
+        """
+        Negate this matrix
+        EXAMPLES:
+            sage: A = matrix(RDF,3,range(1,10))
+            sage: -A
+            [-1.0 -2.0 -3.0]
+            [-4.0 -5.0 -6.0]
+            [-7.0 -8.0 -9.0]
+            sage: B = -A ; (A+B).is_zero()
+            True
+        """
         if self._nrows == 0 or self._ncols == 0: return self
 
         cdef Matrix_real_double_dense M
@@ -282,6 +324,41 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
     # cdef int _cmp_c_impl(self, Matrix right) except -2:
     def __invert__(self):
+        """
+        Invert this matrix.
+        EXAMPLES:
+            sage: A = Matrix(RDF, [[10, 0], [0, 100]])
+            sage: ~A
+            [ 0.1  0.0]
+            [ 0.0 0.01]
+
+            sage: A = matrix(RDF,3,[2,3,5,7,8,9,11,13,17]);A
+            [ 2.0  3.0  5.0]
+            [ 7.0  8.0  9.0]
+            [11.0 13.0 17.0]
+            sage: ~A
+            [ -2.71428571429            -2.0   1.85714285714]
+            [  2.85714285714             3.0  -2.42857142857]
+            [-0.428571428571            -1.0  0.714285714286]
+
+            Note that if this matrix is (nearly) singular, finding
+            its inverse will not help much:
+            sage: A = Matrix(RDF, [[1, 0], [0, 0]])
+            sage: A.inverse()
+            [nan nan]
+            [nan inf]
+            sage: A = matrix(RDF,3,range(1,10));A
+            [1.0 2.0 3.0]
+            [4.0 5.0 6.0]
+            [7.0 8.0 9.0]
+
+            sage: A.determinant()
+            6.66133814775e-16
+            sage: ~A
+            [-4.50359962737e+15  9.00719925474e+15 -4.50359962737e+15]
+            [ 9.00719925474e+15 -1.80143985095e+16  9.00719925474e+15]
+            [-4.50359962737e+15  9.00719925474e+15 -4.50359962737e+15]
+        """
         if self._nrows == 0 or self._ncols == 0: return self
 
         cdef int result_LU, result_invert

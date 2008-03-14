@@ -164,7 +164,7 @@ def cython(filename, verbose=False, compile_message=False,
         try:
             if not os.path.isdir(G):
                 os.unlink(G)
-        except:
+        except OSError:
             pass
 
     # Get the absolute path to the directory that contains the pyx file.

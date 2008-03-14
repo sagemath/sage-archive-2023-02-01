@@ -47,6 +47,8 @@ conductor
 cstest
 darcs
 ecm
+easy_install
+easy_install-2.5
 findinf
 fourier
 fourier_gmp

@@ -22,6 +22,8 @@ except:
 
 print 'Global iterations: ' + str(numglobaliteration)
 print 'File iterations: ' + str(numiteration)
+print 'TeX files: ' + str(checktex)
+
 for gr in range(0,numglobaliteration):
 
     try:

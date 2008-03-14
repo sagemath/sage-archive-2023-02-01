@@ -518,7 +518,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             pi = K.uniformizer(P, 'negative')
             verbose("P is not principal, uniformizer pi = %s"%pi, t, 1)
 
-        def _pval(x):   # cannot be used for x=0
+        def _pval(x):
             """
             Local function returning the valuation of x at P
             """

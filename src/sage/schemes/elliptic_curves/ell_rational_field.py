@@ -2261,17 +2261,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             self.__cremona_label = X.__cremona_label
             return self.cremona_label(space)
 
-    def label(self):
-        r"""
-        Exactly the same as the \code{cremona_label()} command.
-
-        EXAMPLES:
-            sage: E=EllipticCurve('389a1')
-            sage: E.label()
-            '389a1'
-
-        """
-        return self.cremona_label()
+    label = cremona_label
 
     def torsion_order(self):
         """
@@ -2387,7 +2377,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Returns the associated quadratic discriminant if this elliptic
         curve has Complex Multiplication.
 
-        An error is raised if the curve does not have CM (see the
+        A ValueError is raised if the curve does not have CM (see the
         function has_cm())
 
         EXAMPLES:
@@ -2401,13 +2391,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            sage: E.cm_discriminant()
            Traceback (most recent call last):
            ...
-           KeyError: 'Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field does not have CM'
+           ValueError: Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field does not have CM
         """
 
         try:
             return CMJ[self.j_invariant()]
         except KeyError:
-            raise KeyError, "%s does not have CM"%self
+            raise ValueError, "%s does not have CM"%self
 
 
     def quadratic_twist(self, D):

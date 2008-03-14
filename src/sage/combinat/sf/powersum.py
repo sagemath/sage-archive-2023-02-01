@@ -115,6 +115,12 @@ class SymmetricFunctionAlgebraElement_power(classical.SymmetricFunctionAlgebraEl
             a^2 + b^2 + c^2
             sage: p([2,1,1]).expand(2)
             x0^4 + 2*x0^3*x1 + 2*x0^2*x1^2 + 2*x0*x1^3 + x1^4
+            sage: p([7]).expand(4)
+            x0^7 + x1^7 + x2^7 + x3^7
+            sage: p([7]).expand(4,alphabet='t')
+            t0^7 + t1^7 + t2^7 + t3^7
+            sage: p([7]).expand(4,alphabet='x,y,z,t')
+            x^7 + y^7 + z^7 + t^7
         """
         condition = lambda part: False
         return self._expand(condition, n, alphabet)

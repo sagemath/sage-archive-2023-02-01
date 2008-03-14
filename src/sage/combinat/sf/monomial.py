@@ -104,6 +104,10 @@ class SymmetricFunctionAlgebraElement_monomial(classical.SymmetricFunctionAlgebr
             x0^2*x1 + x0*x1^2 + x0^2*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2
             sage: m([1,1,1]).expand(2)
             0
+            sage: m([2,1]).expand(3,alphabet='z')
+            z0^2*z1 + z0*z1^2 + z0^2*z2 + z1^2*z2 + z0*z2^2 + z1*z2^2
+            sage: m([2,1]).expand(3,alphabet='x,y,z')
+            x^2*y + x*y^2 + x^2*z + y^2*z + x*z^2 + y*z^2
         """
         condition = lambda part: len(part) > n
         return self._expand(condition, n, alphabet)

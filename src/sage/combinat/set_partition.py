@@ -49,7 +49,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.sets.set import Set, EnumeratedSet, is_Set
+from sage.sets.set import Set, EnumeratedSet, is_Set, Set_object_enumerated
 import sage.combinat.partition as partition
 import sage.rings.integer
 import __builtin__
@@ -110,6 +110,7 @@ def SetPartitions(s, part=None):
 
 
 class SetPartitions_setparts(CombinatorialClass):
+    object_class = Set_object_enumerated
     def __init__(self, set, parts):
         """
         TESTS:
@@ -185,20 +186,22 @@ class SetPartitions_setparts(CombinatorialClass):
         Returns an iterator for the set partitions with block sizes
         corresponding to the partition part.
 
+        INPUT:
+            part -- a Partition object
+
         EXAMPLES:
             sage: S = SetPartitions(3)
-            sage: it = S._iterator_part([1,1,1])
+            sage: it = S._iterator_part(Partition([1,1,1]))
             sage: list(sorted(map(list, it.next())))
             [[1], [2], [3]]
-            sage: S21 = SetPartitions(3,[2,1])
-            sage: len(list(S._iterator_part([2,1]))) == S21.count()
+            sage: S21 = SetPartitions(3,Partition([2,1]))
+            sage: len(list(S._iterator_part(Partition([2,1])))) == S21.count()
             True
         """
         set = self.set
 
         nonzero = []
-        p = partition.Partition_class(part)
-        expo = p.to_exp()
+        expo = part.to_exp()
 
         for i in range(len(expo)):
             if expo[i] != 0:

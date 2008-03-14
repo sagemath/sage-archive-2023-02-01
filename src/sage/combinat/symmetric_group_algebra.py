@@ -496,7 +496,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             q*T[1, 2, 3] + (q+1)*T[2, 1, 3]
         """
         t_i = lambda x: self.t_action_on_basis(x, i)
-        return self._linearize(a, t_i)
+        return self._apply_module_endomorphism(a, t_i)
 
 
     def _multiply_basis(self, perm1, perm2):

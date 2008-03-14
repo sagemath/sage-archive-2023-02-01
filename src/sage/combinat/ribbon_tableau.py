@@ -24,12 +24,42 @@ import sage.calculus.calculus
 import __builtin__
 
 
+def RibbonTableau(rt=None, expr=None):
+    """
+    Returns a ribbon tableau object.
 
-class RibbonTableau_class(CombinatorialObject):
+    EXAMPLES:
+        sage: rt = RibbonTableau([[None, 1],[2,3]]); rt
+        [[None, 1], [2, 3]]
+        sage: rt.inner_shape()
+        [1]
+        sage: rt.outer_shape()
+        [2, 2]
 
+        sage: RibbonTableau(expr=[[1,1],[[5],[3,4],[1,2]]])
+        [[None, 1, 2], [None, 3, 4], [5]]
+    """
+    if expr is not None:
+        return from_expr(expr)
+
+    for row in rt:
+        if not isinstance(row, list):
+            raise TypeError, "each element of the ribbon tableau must be a list"
+        if row == []:
+            raise TypeError, "a ribbon tableau cannot have an empty list for a row"
+
+    return RibbonTableau_class(rt)
+
+class RibbonTableau_class(skew_tableau.SkewTableau_class):
     def length(self):
         """
         Return the length of the ribbons into a ribbon tableaux.
+
+        EXAMPLES:
+            sage: RibbonTableau([[None, 1],[2,3]]).length()
+            1
+            sage: RibbonTableau([[1,0],[2,0]]).length()
+            2
         """
         if self.to_expr() == [[],[]]:
             return 0
@@ -38,15 +68,42 @@ class RibbonTableau_class(CombinatorialObject):
         l = 0
         t = 0
         for k in range(len(tableau)):
-            t += len( [ x for x in tableau[k] if x > -1 ] )
-            l += len( [ x for x in tableau[k] if x > 0  ] )
+            t += len( [ x for x in tableau[k] if x is not None and x > -1 ] )
+            l += len( [ x for x in tableau[k] if x is not None and x > 0  ] )
 
         if l == 0:
             return t
         else:
             return t/l
 
+    def evaluation(self):
+        """
+        Returns the evaluation of the ribbon tableau
 
+        EXAMPLES:
+            sage: RibbonTableau([[0, 0, 3, 0], [1, 1, 0], [2, 0, 4]]).evaluation()
+            [2, 1, 1, 1]
+        """
+        return word.evaluation([i for i in self.to_word() if i != 0])
+
+def from_expr(l):
+    """
+    Returns a RibbonTableau from a MuPAD-Combinat expr for a
+    skew tableau.  The first list in expr is the inner shape
+    of the skew tableau.  The second list are the entries
+    in the rows of the skew tableau from bottom to top.
+
+    Provided primarily for compatability with MuPAD-Combinat.
+
+    EXAMPLES:
+        sage: import sage.combinat.ribbon_tableau as ribbon_tableau
+        sage: sage.combinat.ribbon_tableau.from_expr([[1,1],[[5],[3,4],[1,2]]])
+        [[None, 1, 2], [None, 3, 4], [5]]
+        sage: type(_)
+        <class 'sage.combinat.ribbon_tableau.RibbonTableau_class'>
+
+    """
+    return RibbonTableau_class(skew_tableau.from_expr(l)._list)
 
 
 #####################
@@ -65,7 +122,7 @@ def RibbonTableaux(shape, weight, length):
     """
     if shape in partition.Partitions():
         shape = partition.Partition(shape)
-        shape = skew_partition.SkewPartition([shape, shape.rcore(length)])
+        shape = skew_partition.SkewPartition([shape, shape.r_core(length)])
     else:
         shape = skew_partition.SkewPartition(shape)
 
@@ -85,19 +142,79 @@ class RibbonTableaux_shapeweightlength(CombinatorialClass):
             sage: r == loads(dumps(r))
             True
         """
-        self._shape = shape
-        self._weight = weight
-        self._length = length
+        self._shape  =  shape
+        self._weight =  weight
+        self._length =  length
         self._name = "Ribbon tableaux of shape %s and weight %s with %s-ribbons"%(shape, weight, length)
+
+
+    def __contains__(self, x):
+        """
+        Note that this just checks to see if x appears in self.list().
+        This should be improved to provide actual checking.
+
+        EXAMPLES:
+            sage: r = RibbonTableaux([[2,2],[]],[1,1],2)
+            sage: [[0, 0], [1, 2]] in r
+            True
+            sage: [[1, 0], [2, 0]] in r
+            True
+            sage: [[0, 1], [2, 0]] in r
+            False
+        """
+        return x in self.list()
 
     def list(self):
         """
         EXAMPLES:
             sage: RibbonTableaux([[2,1],[]],[1,1,1],1).list()
-            [[[], [[2], [1, 3]]], [[], [[3], [1, 2]]]]
+            [[[1, 3], [2]], [[1, 2], [3]]]
+            sage: RibbonTableaux([[2,2],[]],[1,1],2).list()
+            [[[0, 0], [1, 2]], [[1, 0], [2, 0]]]
         """
-        return graph_implementation_rec(self._shape, self._weight, self._length, list_rec)
+        res = graph_implementation_rec(self._shape, self._weight, self._length, list_rec)
+        return [from_expr(x) for x in res]
 
+    def count(self):
+        """
+        EXAMPLES:
+            sage: RibbonTableaux([[2,1],[]],[1,1,1],1).count()
+            2
+            sage: RibbonTableaux([[2,2],[]],[1,1],2).count()
+            2
+            sage: RibbonTableaux([[4,3,3],[]],[2,1,1,1],2).count()
+            5
+
+        TESTS:
+            sage: RibbonTableaux([6,6,6], [4,2], 3).count()
+            6
+            sage: RibbonTableaux([3,3,3,2,1], [3,1], 3).count()
+            1
+            sage: RibbonTableaux([3,3,3,2,1], [2,2], 3).count()
+            2
+            sage: RibbonTableaux([3,3,3,2,1], [2,1,1], 3).count()
+            5
+            sage: RibbonTableaux([3,3,3,2,1], [1,1,1,1], 3).count()
+            12
+            sage: RibbonTableaux([5,4,3,2,1],[2,2,1],3).count()
+            10
+
+            sage: RibbonTableaux([8,7,6,5,1,1],[3,2,2,1],3).count()
+            85
+            sage: RibbonTableaux([5,4,3,2,1,1,1],[2,2,1],3).count()
+            10
+
+            sage: RibbonTableaux([7,7,7,2,1,1],[3,2,0,1,1],3).count()
+            25
+
+          Weights with some zeros in the middle and end
+            sage: RibbonTableaux([3,3,3], [0,1,0,2,0], 3).count()
+            3
+            sage: RibbonTableaux([3,3,3],[1,0,1,0,1,0,0,0],3).count()
+            6
+
+        """
+        return graph_implementation_rec(self._shape, self._weight, self._length, count_rec)[0]
 
 def insertion_tableau(skp, perm, evaluation, tableau, length):
     """
@@ -160,7 +277,37 @@ def insertion_tableau(skp, perm, evaluation, tableau, length):
     return skew_tableau.SkewTableau(expr=[psave.conjugate(),tableau]).conjugate().to_expr()
 
 
+def count_rec(nexts, current, part, weight, length):
+    """
+    INPUT:
+        nexts, current, part -- skew partitions
+        weight -- non-negative integer list
+        length -- integer
 
+    TESTS:
+        sage: from sage.combinat.ribbon_tableau import count_rec
+        sage: count_rec([], [], [[2, 1, 1], []], [2], 2)
+        [0]
+        sage: count_rec([[0], [1]], [[[2, 1, 1], [0, 0, 2, 0]], [[4], [2, 0, 0, 0]]], [[4, 1, 1], []], [2, 1], 2)
+        [1]
+        sage: count_rec([], [[[], [2, 2]]], [[2, 2], []], [2], 2)
+        [1]
+        sage: count_rec([], [[[], [2, 0, 2, 0]]], [[4], []], [2], 2)
+        [1]
+        sage: count_rec([[1], [1]], [[[2, 2], [0, 0, 2, 0]], [[4], [2, 0, 0, 0]]], [[4, 2], []], [2, 1], 2)
+        [2]
+        sage: count_rec([[1], [1], [2]], [[[2, 2, 2], [0, 0, 2, 0]], [[4, 1, 1], [0, 2, 0, 0]], [[4, 2], [2, 0, 0, 0]]], [[4, 2, 2], []], [2, 1, 1], 2)
+        [4]
+        sage: count_rec([[4], [1]], [[[4, 2, 2], [0, 0, 2, 0]], [[4, 3, 1], [0, 2, 0, 0]]], [[4, 3, 3], []], [2, 1, 1, 1], 2)
+        [5]
+
+    """
+    if current == []:
+        return [0]
+    if nexts != []:
+        return [sum(sum(j for j in i) for i in nexts)]
+    else:
+        return [len(current)]
 
 def list_rec(nexts, current, part, weight, length):
     """
@@ -224,31 +371,23 @@ def spin_rec(nexts, current, part, weight, length, t):
     Routine used for constructing the spin polynomial.
 
     INPUT:
-        nexts, current, part -- skew partitions
         weight -- list of non-negative integers
         length -- the length of the ribbons we're tiling with
         t      -- the variable
 
     EXAMPLES:
         sage: from sage.combinat.ribbon_tableau import spin_rec
+        sage: sp = SkewPartition
         sage: t = ZZ['t'].gen()
-        sage: spin_rec([], [[[], [3, 3]]], [[2, 2, 2], []], [2], 3, t)
+        sage: spin_rec([], [[[], [3, 3]]], sp([[2, 2, 2], []]), [2], 3, t)
         [t^4]
-        sage: spin_rec([[0], [t^4]], [[[2, 1, 1, 1, 1], [0, 3]], [[2, 2, 2], [3, 0]]], [[2, 2, 2, 2, 1], []], [2, 1], 3, t)
+        sage: spin_rec([[0], [t^4]], [[[2, 1, 1, 1, 1], [0, 3]], [[2, 2, 2], [3, 0]]], sp([[2, 2, 2, 2, 1], []]), [2, 1], 3, t)
         [t^5]
-        sage: spin_rec([], [[[], [3, 3, 0]]], [[3, 3], []], [2], 3, t)
+        sage: spin_rec([], [[[], [3, 3, 0]]], sp([[3, 3], []]), [2], 3, t)
         [t^2]
-        sage: spin_rec([[0], [t^2]], [[[2, 1, 1, 1, 1], [0, 3, 0]], [[3, 3], [3, 0, 0]]], [[3, 3, 1, 1, 1], []], [2, 1], 3, t)
-        [t^4]
-        sage: spin_rec([], [[[], [3, 3]]], [[2, 2, 2], []], [2], 3, t)
-        [t^4]
-        sage: spin_rec([], [[[], [3, 3, 0]]], [[3, 2, 1], []], [2], 3, t)
-        [t^3]
-        sage: spin_rec([], [[[], [3, 3, 0]]], [[3, 3], []], [2], 3, t)
-        [t^2]
-        sage: spin_rec([[t^4], [t^3], [t^2]], [[[2, 2, 2], [0, 0, 3]], [[3, 2, 1], [0, 3, 0]], [[3, 3], [3, 0, 0]]], [[3, 3, 3], []], [2, 1], 3, t)
+        sage: spin_rec([[t^4], [t^3], [t^2]], [[[2, 2, 2], [0, 0, 3]], [[3, 2, 1], [0, 3, 0]], [[3, 3], [3, 0, 0]]], sp([[3, 3, 3], []]), [2, 1], 3, t)
         [t^6 + t^4 + t^2]
-        sage: spin_rec([[t^5], [t^4], [t^6 + t^4 + t^2]], [[[2, 2, 2, 2, 1], [0, 0, 3]], [[3, 3, 1, 1, 1], [0, 3, 0]], [[3, 3, 3], [3, 0, 0]]], [[3, 3, 3, 2, 1], []], [2, 1, 1], 3, t)
+        sage: spin_rec([[t^5], [t^4], [t^6 + t^4 + t^2]], [[[2, 2, 2, 2, 1], [0, 0, 3]], [[3, 3, 1, 1, 1], [0, 3, 0]], [[3, 3, 3], [3, 0, 0]]], sp([[3, 3, 3, 2, 1], []]), [2, 1, 1], 3, t)
         [2*t^7 + 2*t^5 + t^3]
 
     """
@@ -258,7 +397,7 @@ def spin_rec(nexts, current, part, weight, length, t):
 
     res = R(0)
     tmp = []
-    partp = partition.Partition_class(part[0]).conjugate()
+    partp = part[0].conjugate()
 
     #compute the contribution of the ribbons added at
     #the current node
@@ -300,7 +439,9 @@ def spin_polynomial_square(part, weight, length):
     t = R.gen()
 
     if part in partition.Partitions():
-        part = [part,[]]
+        part = skew_partition.SkewPartition([part,partition.Partition_class([])])
+    elif part in skew_partition.SkewPartitions():
+        part = skew_partition.SkewPartition(part)
 
     if part == [[],[]] and weight == []:
         return t.parent()(1)
@@ -399,11 +540,11 @@ def graph_implementation_rec(skp, weight, length, function):
     """
     TESTS:
         sage: from sage.combinat.ribbon_tableau import graph_implementation_rec, list_rec
-        sage: graph_implementation_rec([[1], []], [1], 1, list_rec)
+        sage: graph_implementation_rec(SkewPartition([[1], []]), [1], 1, list_rec)
         [[[], [[1]]]]
-        sage: graph_implementation_rec([[2, 1], []], [1, 2], 1, list_rec)
+        sage: graph_implementation_rec(SkewPartition([[2, 1], []]), [1, 2], 1, list_rec)
         [[[], [[2], [1, 2]]]]
-        sage: graph_implementation_rec([[], []], [0], 1, list_rec)
+        sage: graph_implementation_rec(SkewPartition([[], []]), [0], 1, list_rec)
         [[[], []]]
 
     """
@@ -412,7 +553,7 @@ def graph_implementation_rec(skp, weight, length, function):
     if sum(weight) == 0:
         weight = []
 
-    partp = partition.Partition_class(skp[0]).conjugate()
+    partp = skp[0].conjugate()
 
     ## Some tests in order to know if the shape and the weight are compatible.
     if weight != [] and weight[-1] <= len(partp):
@@ -457,120 +598,261 @@ def graph_implementation_rec(skp, weight, length, function):
 
 
 ##############################################################
-
-
-class TupleTableaux(CombinatorialClass):
-    pass
-
-def list_ktupletableaux(parts, mu):
+def MultiSkewTableau(x):
     """
-    INPUT:
-        parts -- list of skew partitions
-        mu    -- partition
-    """
-    #Gluing the partitions
-    parttmp = parts[0]
-    i = 1
-    for i in range(1,len(parts)):
-        trans = parttmp[0][0]
-        current_part = parts[i].to_list()
-        current_part[1] += [0]*(len(current_part[0])-len(current_part[1]))
-        inner_current = [ trans + j for j in current_part[1] ]
-        outer_current = [ trans + j for j in current_part[0] ]
-        parttmp = [ outer_current + parttmp[0], inner_current + parttmp[1] ]
-
-    #List the corresponding skew tableaux
-    l = [ st.to_word() for st in SkewTableaux(parttmp, mu) ]
-
-    #Splitting the partition
-    s = [ p.size() for p in parts ]
-
-    res = []
-    for k in range(len(l)):
-        pos = 0  #Double check this
-        restmp = [ skew_tableau.from_shape_and_word(parts[0], [l[k][j] for j in range(s[0])]) ]
-        for i in range(1, len(parts)):
-            w = [l[k][j] for j in range(pos+s[i-1], pos+s[i-1]+s[i])]
-            restmp.append( skew_tableau.from_shape_and_word(parts[i], w) )
-        res.append(restmp)
-    return res
-
-def inversions(tabs):
-    """
-    Returns the number of inverion pairs of tabs.
-
-    INPUT:
-        tabs -- a list of tableaux or skew tableaux
+    Returns a multi skew tableau object which is a tuple of
+    skew tableau.
 
     EXAMPLES:
-        sage: from sage.combinat.ribbon_tableau import inversions
-        sage: t1 = Tableau([[1]])
-        sage: t2 = Tableau([[2]])
-        sage: inversions([t1,t1])
-        0
-        sage: inversions([t1,t2])
-        0
-        sage: inversions([t2,t2])
-        0
-        sage: inversions([t2,t1])
-        1
+        sage: s = MultiSkewTableau([ [[None,1],[2,3]], [[1,2],[2]] ])
+        sage: s.size()
+        6
+        sage: s.weight()
+        [2, 3, 1]
+        sage: s.shape()
+        [[[2, 2], [1]], [[2, 1], []]]
     """
-    inv = 0
-    for k in range(len(tabs)):
-        for i in range(len(tabs[k])):
-            for j in range(len( tabs[k][-i-1] ) ):
-                inv += inversions_from_position(tabs, [k,[i,j]])
-    return inv
+    if isinstance(x, MultiSkewTableau_class):
+        return x
 
-def inversions_from_position(tabs, pos):
+    return MultiSkewTableau_class([skew_tableau.SkewTableau(i) for i in x] )
+
+class MultiSkewTableau_class(CombinatorialObject):
+    def size(self):
+        """
+        Returns the size of self, which is the sum of the sizes
+        of the skew tableaux in self.
+
+        EXAMPLES:
+            sage: s = SemistandardSkewTableaux([[2,2],[1]]).list()
+            sage: a = MultiSkewTableau([s[0],s[1],s[2]])
+            sage: a.size()
+            9
+        """
+        return sum(x.size() for x in self)
+
+    def weight(self):
+        """
+        Returns the weight of self.
+
+        EXAMPLES:
+            sage: s = SemistandardSkewTableaux([[2,2],[1]]).list()
+            sage: a = MultiSkewTableau([s[0],s[1],s[2]])
+            sage: a.weight()
+            [5, 3, 1]
+        """
+        weights = [x.weight() for x in self]
+        m = max([len(x) for x in weights])
+        weight = [0]*m
+        for w in weights:
+            for i in range(len(w)):
+                weight[i] += w[i]
+        return weight
+
+    def shape(self):
+        """
+        Returns the shape of self.
+
+        EXAMPLES:
+            sage: s = SemistandardSkewTableaux([[2,2],[1]]).list()
+            sage: a = MultiSkewTableau([s[0],s[1],s[2]])
+            sage: a.shape()
+            [[[2, 2], [1]], [[2, 2], [1]], [[2, 2], [1]]]
+        """
+        return [x.shape() for x in self]
+
+    def inversion_pairs(self):
+        """
+        Returns a list of the inversion pairs of self.
+
+        EXAMPLES:
+            sage: s = MultiSkewTableau([ [[2,3],[5,5]], [[1,1],[3,3]], [[2],[6]] ])
+            sage: s.inversion_pairs()
+            [((0, (0, 0)), (1, (0, 0))),
+             ((0, (1, 0)), (1, (0, 1))),
+             ((0, (1, 1)), (1, (0, 0))),
+             ((0, (1, 1)), (1, (1, 1))),
+             ((0, (1, 1)), (2, (0, 0))),
+             ((1, (0, 1)), (2, (0, 0))),
+             ((1, (1, 1)), (2, (0, 0)))]
+
+
+        """
+        inv = []
+        for k in range(len(self)):
+            for b in self[k].boxes():
+                inv += self._inversion_pairs_from_position(k,b)
+        return inv
+
+    def inversions(self):
+        """
+        Returns the number of inverion pairs of self.
+
+        EXAMPLES:
+            sage: t1 = SkewTableau([[1]])
+            sage: t2 = SkewTableau([[2]])
+            sage: MultiSkewTableau([t1,t1]).inversions()
+            0
+            sage: MultiSkewTableau([t1,t2]).inversions()
+            0
+            sage: MultiSkewTableau([t2,t2]).inversions()
+            0
+            sage: MultiSkewTableau([t2,t1]).inversions()
+            1
+            sage: s = MultiSkewTableau([ [[2,3],[5,5]], [[1,1],[3,3]], [[2],[6]] ])
+            sage: s.inversions()
+            7
+        """
+        return len(self.inversion_pairs())
+
+    def _inversion_pairs_from_position(self, k, ij):
+        """
+        Returns the number of inversions at the box position i,j
+        in the kth tableaux in self.
+
+        EXAMPLES:
+            sage: s = MultiSkewTableau([ [[2,3],[5,5]], [[1,1],[3,3]], [[2],[6]] ])
+            sage: s._inversion_pairs_from_position(0, (1,1))
+            [((0, (1, 1)), (1, (0, 0))),
+             ((0, (1, 1)), (1, (1, 1))),
+             ((0, (1, 1)), (2, (0, 0)))]
+            sage: s._inversion_pairs_from_position(1, (0,1))
+            [((1, (0, 1)), (2, (0, 0)))]
+
+        """
+        pk = k
+        pi,pj = ij
+        c = pi - pj
+        value = self[pk][pi][pj]
+        pk_boxes = self[pk].boxes_by_content(c)
+        same_diagonal  = [ t.boxes_by_content(c) for t in self[pk+1:] ]
+        above_diagonal = [ t.boxes_by_content(c+1) for t in self[pk+1:] ]
+
+        res = []
+        for i,j in pk_boxes:
+            if pi < i and value > self[pk][i][j]:
+                res.append( ((pk,(pi,pj)), (pk,(i,j))) )
+        for k in range(len(same_diagonal)):
+            for i,j in same_diagonal[k]:
+                if value > self[pk+k+1][i][j]:
+                    res.append( ((pk,(pi,pj)), (pk+k+1,(i,j))) )
+        for k in range(len(above_diagonal)):
+            for i,j in above_diagonal[k]:
+                if value < self[pk+k+1][i][j]:
+                    res.append( ((pk,(pi,pj)), (pk+k+1,(i,j))) )
+        return res
+
+
+def SemistandardMultiSkewTableaux(shape, weight):
     """
-    INPUT:
-        tabs -- a list of tableaux or skew tableaux
+    Returns the combinatorial class of semistandard multi skew tableaux.
+    A multi skew tableau is a k-tuple of skew tableaux of givens shape
+    with a specified total weight.
+
+    EXAMPLES:
+        sage: s = SemistandardMultiSkewTableaux([ [[2,1],[]], [[2,2],[1]] ], [2,2,2]); s
+        Semistandard multi skew tableaux of shape [[[2, 1], []], [[2, 2], [1]]] and weight [2, 2, 2]
+        sage: s.list()
+        [[[[1, 1], [2]], [[None, 2], [3, 3]]],
+         [[[1, 2], [2]], [[None, 1], [3, 3]]],
+         [[[1, 3], [2]], [[None, 2], [1, 3]]],
+         [[[1, 3], [2]], [[None, 1], [2, 3]]],
+         [[[1, 1], [3]], [[None, 2], [2, 3]]],
+         [[[1, 2], [3]], [[None, 2], [1, 3]]],
+         [[[1, 2], [3]], [[None, 1], [2, 3]]],
+         [[[2, 2], [3]], [[None, 1], [1, 3]]],
+         [[[1, 3], [3]], [[None, 1], [2, 2]]],
+         [[[2, 3], [3]], [[None, 1], [1, 2]]]]
+
+
     """
-    pk, (pi, pj) = pos
+    shape = [skew_partition.SkewPartition(x) for x in shape]
+    weight = partition.Partition(weight)
 
-    #Add checking wether tabs is a list of tableau or
-    #skew tableaux
-    pass
+    if sum(weight) != sum(s.size() for s in shape):
+        raise ValueError, "the sum of weight must be the sum of the sizes of shape"
 
-    #Building the list of inner partitions
+    return SemistandardMultiSkewTtableaux_shapeweight(shape, weight)
 
-    if tabs[0] in tableau.SemistandardTableaux():
-        inners = [[0]*len(t) for t in tabs]
+class SemistandardMultiSkewTtableaux_shapeweight(CombinatorialClass):
+    def __init__(self, shape, weight):
+        """
+        TESTS:
+            sage: s = SemistandardMultiSkewTableaux([ [[2,1],[]], [[2,2],[1]] ], [2,2,2])
+            sage: s == loads(dumps(s))
+            True
+        """
+        self._shape  = shape
+        self._weight = weight
+        self._name   = "Semistandard multi skew tableaux of shape %s and weight %s"%(shape, weight)
 
-        #There is no alignment in the case of straight partitions
-        trans = [0]*len(tabs)
+    def __contains__(self, x):
+        """
+        TESTS:
+            sage: s = SemistandardMultiSkewTableaux([ [[2,1],[]], [[2,2],[1]] ], [2,2,2])
+            sage: all(i in s for i in s)
+            True
+        """
+        try:
+            x = MultiSkewTableau(x)
+        except TypeError:
+            return False
 
-    else:
-        #tabs = expr(tabs)
-        inners = [ t.to_list()[0] for t in tabs ]
-        for k in range(len(tabs)):
-            pass
+        if x.weight() != self._weight:
+            return False
 
-        #Computation of the alignment of skew shapes at the
-        #southeast / northeast
+        if x.shape() != self._shape:
+            return False
 
-        skp    = [ t.shape()  for t  in tabs ]
-        outers = [ sp.outer() for sp in skp ]
-        ma     = max( [ x[0] for x in outers if len(x) > 0 ] )
+        if not all( x[i].is_semistandard() for i in range(len(x)) ):
+            return False
 
-        #The translation vector
-        trans  = [ ma - outers[i][0] for i in range(len(outers)) ]
+        return True
 
-        #Extracting just the fillings of the skew tableaux
-        tabs = [ x[1] for x in tabs ]
+    def list(self):
+        """
+        EXAMPLES:
+            sage: sp = SkewPartitions(3).list()
+            sage: SemistandardMultiSkewTableaux([sp[0], sp[-1]],[2,2,2]).list()
+            [[[[1], [2], [3]], [[1, 2, 3]]]]
 
-    inv = 0
+            sage: a = SkewPartition([[8,7,6,5,1,1],[2,1,1]])
+            sage: weight = [3,3,2]
+            sage: k = 3
+            sage: s = SemistandardMultiSkewTableaux(a.r_quotient(k),weight)
+            sage: len(s.list())
+            34
+            sage: RibbonTableaux(a,weight,k).count()
+            34
+        """
+        parts = self._shape
+        mu = self._weight
 
-    #Computation of the inversions
-    for k in range(len(tabs)):
-        for i in range(len(tabs[k])):
-            for j in range(len(tabs[k][-i-1])):
-                if tabs[pk][-pi-1][pj] < tabs[k][-i-1][j]:
-                    #First condition diag(pos) = diag(current) and k < pk
-                    #Second condition diag(pos)-1 = diag(current) and k > pk
-                    if ((k<pk) and inners[k][i]+trans[k]+j-i == inners[pk][pi]+trans[pk]+pj-pi) or \
-                       ((k>pk) and inners[k][i]+trans[k]+j-i == inners[pk][pi]+trans[pk]+pj-pi-1):
-                        inv += 1
-    return inv
+        #Splitting the partition
+        s = [ p.size() for p in parts ]
+        parts = [p.to_list() for p in parts]
+
+        #Gluing the partitions
+        parttmp = parts[0]
+        i = 1
+        for i in range(1,len(parts)):
+            trans = parttmp[0][0]
+            current_part = parts[i]
+            current_part[1] += [0]*(len(current_part[0])-len(current_part[1]))
+            inner_current = [ trans + j for j in current_part[1] ]
+            outer_current = [ trans + j for j in current_part[0] ]
+            parttmp = [ outer_current + parttmp[0], inner_current + parttmp[1] ]
+
+        #List the corresponding skew tableaux
+        l = [ st.to_word() for st in skew_tableau.SemistandardSkewTableaux(parttmp, mu) ]
+
+        res = []
+        for k in range(len(l)):
+            pos = 0  #Double check this
+            restmp = [ skew_tableau.from_shape_and_word(parts[0], [l[k][j] for j in range(s[0])]) ]
+            for i in range(1, len(parts)):
+                w = [l[k][j] for j in range(pos+s[i-1], pos+s[i-1]+s[i])]
+                restmp.append( skew_tableau.from_shape_and_word(parts[i], w) )
+            res.append(MultiSkewTableau_class(restmp))
+        return res
 

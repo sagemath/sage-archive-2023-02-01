@@ -276,8 +276,9 @@ def zee(part):
         sage: zee([2,1,1])
         4
     """
-    p = sage.combinat.partition.Partition_class(part)
-    return p.centralizer_size()
+    if not isinstance(part, sage.combinat.partition.Partition_class):
+        part = sage.combinat.partition.Partition_class(part)
+    return part.centralizer_size()
 
 
 def is_SymmetricFunction(x):
@@ -353,19 +354,6 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
         f = lambda m,c: (m, c*prod([expr_k(k) for k in m]))
         return self(p_x.map_mc(f))
 
-
-    def _change_by_triangularity(self, x, order=None, unitriang=True):
-        x_parent = x.parent()
-        res = self(0)
-        while x != 0:
-            part2 = min(x.monomials())
-            c = x.coefficient(part2)
-            if not unitriang:
-                #c:=c/coeff(domtype(el)(BaseTarget::term(part2)), part2);
-                c = c / x_parent( self(part2) ).coefficient(part2)
-            x = x - x_parent(c*self(part2))
-            res += c*self(part2)
-        return res
 
     def _apply_multi_module_morphism(self, x, y, f, orthogonal=False):
         """
@@ -498,13 +486,117 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
                          to_other_function=None, to_self_function=None, \
                          upper_triangular=False, lower_triangular=False, \
                          ones_on_diagonal=False):
+        """
+
+        Compute the inverse of a morphism between self and other.  In order to
+        use this, you must be able compute the morphism in one direction.  This
+        method assumes that the morphism is indeed invertible.
+
+        INPUT:
+            n -- an integer, the homogeneous component of symmetric functions
+                 for which we want to a morphism's inverse
+            base_ring -- the base ring being worked over
+            self_to_other_cache -- a dictionary which stores the transition
+                                   from self to other
+            other_to_self_cache -- a dictionary which stores the transition
+                                   from other to self
+            to_other_function -- a function which takes in a partition and
+                                 returns a function which gives the coefficients
+                                 of self(part) in the other basis
+            to_self_function -- a function which takes in a partition and
+                                returns a function which gives the coefficients
+                                of other(part) in self
+            upper_triangular -- a boolean, if True, the inverse will be computed
+                                by back substitution
+            lower_triangular -- a boolean, if True, the inverse will be computed
+                                by forward substitution
+            ones_on_diagonal -- a boolean, if True, the entries on the diagonal
+                                of the morphism (and inverse) matrix are assumed
+                                to be one.  This is used to remove divisions from
+                                the forward and back substitute algorithms.
 
 
-        #Do nothing if we've already computed the transition matrices
-        #for degree n.
-        #if n in self_to_other_cache:
-        #    return
+        EXAMPLES:
+          First, we will do an example of inverting the morphism which sends a
+          Schur function to its conjugate Schur function.  Note that this is
+          an involution.
+            sage: s = SFASchur(QQ)
+            sage: conj = lambda p1: lambda p2: QQ(1) if p2 == p1.conjugate() else QQ(0)
+            sage: c1 = {}
+            sage: c2 = {}
+            sage: s._invert_morphism(4, QQ, c1, c2, to_other_function = conj)
+            sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
+            sage: l(c1[4])
+            [([1, 1, 1, 1], [([4], 1)]),
+             ([2, 1, 1], [([3, 1], 1)]),
+             ([2, 2], [([2, 2], 1)]),
+             ([3, 1], [([2, 1, 1], 1)]),
+             ([4], [([1, 1, 1, 1], 1)])]
+            sage: l(c2[4])
+            [([1, 1, 1, 1], [([4], 1)]),
+             ([2, 1, 1], [([3, 1], 1)]),
+             ([2, 2], [([2, 2], 1)]),
+             ([3, 1], [([2, 1, 1], 1)]),
+             ([4], [([1, 1, 1, 1], 1)])]
+            sage: c2 == c1
+            True
 
+          We can check that we get the same results if specify to_self_function = conj.
+            sage: d1 = {}
+            sage: d2 = {}
+            sage: s._invert_morphism(4, QQ, d1, d2, to_self_function = conj)
+            sage: d1 == c1
+            True
+            sage: d2 == c2
+            True
+
+
+          Now we do an example of upper triangularity and check that we get
+          the same thing whether or not we specify ones_on_diagonal.
+            sage: f = lambda p1: lambda p2: QQ(1) if p2 <= p1 else QQ(0)
+            sage: c1 = {}
+            sage: c2 = {}
+            sage: s._invert_morphism(3, QQ, c1, c2, to_other_function = f, upper_triangular=True)
+            sage: l(c1[3])
+            [([1, 1, 1], [([1, 1, 1], 1)]),
+             ([2, 1], [([1, 1, 1], 1), ([2, 1], 1)]),
+             ([3], [([1, 1, 1], 1), ([2, 1], 1), ([3], 1)])]
+            sage: l(c2[3])
+            [([1, 1, 1], [([1, 1, 1], 1)]),
+             ([2, 1], [([1, 1, 1], -1), ([2, 1], 1)]),
+             ([3], [([2, 1], -1), ([3], 1)])]
+
+            sage: d1 = {}
+            sage: d2 = {}
+            sage: s._invert_morphism(3, QQ, d1, d2, to_other_function = f,upper_triangular=True, ones_on_diagonal=True)
+            sage: c1 == d1
+            True
+            sage: c2 == d2
+            True
+
+          Finally, we do the same thing for lower triangular matrices.
+            sage: f = lambda p1: lambda p2: QQ(1) if p2 >= p1 else QQ(0)
+            sage: c1 = {}
+            sage: c2 = {}
+            sage: s._invert_morphism(3, QQ, c1, c2, to_other_function = f, lower_triangular=True)
+            sage: l(c1[3])
+            [([1, 1, 1], [([1, 1, 1], 1), ([2, 1], 1), ([3], 1)]),
+             ([2, 1], [([2, 1], 1), ([3], 1)]),
+             ([3], [([3], 1)])]
+
+            sage: l(c2[3])
+            [([1, 1, 1], [([1, 1, 1], 1), ([2, 1], -1)]),
+             ([2, 1], [([2, 1], 1), ([3], -1)]),
+             ([3], [([3], 1)])]
+
+            sage: d1 = {}
+            sage: d2 = {}
+            sage: s._invert_morphism(3, QQ, d1, d2, to_other_function = f,lower_triangular=True, ones_on_diagonal=True)
+            sage: c1 == d1
+            True
+            sage: c2 == d2
+            True
+        """
         #Decide whether we know how to go from self to other or
         #from other to self
         if to_other_function is not None:
@@ -515,6 +607,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             unknown_cache  = self_to_other_cache  #the known direction
             known_cache    = other_to_self_cache  #the unknown direction
             known_function = to_self_function
+
+        #Do nothing if we've already computed the inverse
+        #for degree n.
+        if n in known_cache and n in unknown_cache:
+            return
 
         #Univariate polynomial arithmetic is faster
         #over ZZ.  Since that is all we need to compute
@@ -559,8 +656,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             #is the ith standard basis vector
             inverse = known_matrix_n.parent().zero_matrix()
 
-            d = {True:one, False:zero}
-            delta = lambda i: lambda j: d[i==j]
+            delta = lambda i: lambda j: one if i == j else zero
 
             for column in range(len_pn):
                 e = delta(column)
@@ -587,8 +683,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
             #is the ith standard basis vector
             inverse = known_matrix_n.parent().zero_matrix()
 
-            d = {True:one, False:zero}
-            delta = lambda i: lambda j: d[i==j]
+
+            delta = lambda i: lambda j: one if i == j else zero
 
             for column in range(len_pn):
                 e = delta(column)
@@ -626,8 +722,10 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
         Returns the prefix on the elements of self.
 
         EXAMPLES:
-            sage: s = SFASchur(QQ)
-            sage: s.prefix()
+            sage: schur = SFASchur(QQ)
+            sage: schur([3,2,1])
+            s[3, 2, 1]
+            sage: schur.prefix()
             's'
         """
         return self._prefix
@@ -724,12 +822,10 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
         """
         BR = self.base_ring(); one = BR(1)
         p = SFAPower(BR)
-        def pscalar(x, y):
-            """
-            Create a function which convets x and y to the power-sum basis and applies
-            the scalar product.
-            """
-            return p._apply_multi_module_morphism(p(x), p(y), lambda a,b:scalar(a), orthogonal=True)
+
+        #Create a function which converts x and y to the power-sum basis and applies
+        #the scalar product.
+        pscalar = lambda x,y: p._apply_multi_module_morphism(p(x), p(y), lambda a,b:scalar(a), orthogonal=True)
 
         if leading_coeff is None:
             leading_coeff = lambda x: one
@@ -766,17 +862,36 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
 
     def dual_basis(self, scalar=None, scalar_name="", prefix=None):
         """
-        Returns the dual basis of the power-sum basis with
-        respect to the scalar product scalar.  If scalar is None,
-        then the standard (Hall) scalar product for the classical
-        symmetric functions is used.
+        Returns the dual basis of self with respect to the scalar
+        product scalar.  If scalar is None, then the standard (Hall)
+        scalar product is used.
 
         EXAMPLES:
+          The duals of the elementary symmetric functions with respect
+          to the Hall scalar product are the forgotten symmetric
+          functions.
             sage: e = SFAElementary(QQ)
             sage: f = e.dual_basis(prefix='f'); f
             Dual basis to Symmetric Function Algebra over Rational Field, Elementary symmetric functions as basis with respect to the Hall scalar product
             sage: f([2,1])^2
             4*f[2, 2, 1, 1] + 6*f[2, 2, 2] + 2*f[3, 2, 1] + 2*f[3, 3] + 2*f[4, 1, 1] + f[4, 2]
+            sage: f([2,1]).scalar(e([2,1]))
+            1
+            sage: f([2,1]).scalar(e([1,1,1]))
+            0
+
+          Since the power-sum symmetric functions are orthogonal, their
+          duals with respect to the Hall scalar product are scalar multiples
+          of themselves.
+            sage: p = SFAPower(QQ)
+            sage: q = p.dual_basis(prefix='q'); q
+            Dual basis to Symmetric Function Algebra over Rational Field, Power symmetric functions as basis with respect to the Hall scalar product
+            sage: q([2,1])^2
+            4*q[2, 2, 1, 1]
+            sage: p([2,1]).scalar(q([2,1]))
+            1
+            sage: p([2,1]).scalar(q([1,1,1]))
+            0
         """
         import dual
         if scalar is None:
@@ -876,7 +991,7 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
              v.sort(key=_lmax)
 
         prefix = self.parent().prefix()
-        mons = [ prefix + str(m) for (m, _) in v ]
+        mons = [ prefix + repr(m) for (m, _) in v ]
         cffs = [ x for (_, x) in v ]
         x = repr_lincomb(mons, cffs).replace("*1 "," ")
         if x[len(x)-2:] == "*1":
@@ -886,12 +1001,14 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
 
     def _latex_(self):
         """
+        Returns a string representing the LaTeX version of self.
+
         EXAMPLES:
             sage: m = SFAMonomial(QQ)
             sage: f = sum([m(p) for p in Partitions(3)])
             sage: m.get_print_style()
             'lex'
-            sage: latex(f)
+            sage: latex(f) #indirect doctest
             m_{1,1,1} + m_{2,1} + m_{3}
             sage: m.set_print_style('length')
             sage: latex(f)
@@ -979,7 +1096,11 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         The default implementation converts to the Schurs performs the
         automorphism and changes back.
 
-        TESTS:
+        EXAMPLES:
+            sage: J = JackPolynomialsP(QQ,1)
+            sage: a = J([2,1]) + J([1,1,1])
+            sage: a.omega()
+            JackP[2, 1] + JackP[3]
         """
         parent = self.parent()
         s = SFASchur(parent.base_ring())
@@ -1122,12 +1243,7 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         parent = self.parent()
         e = eval('symmetrica.compute_' + str(classical.translate[parent.basis_name()]).lower() + '_with_alphabet')
         resPR = PolynomialRing(parent.base_ring(), n, alphabet)
-
-        def f(part):
-            if condition(part):
-                return resPR(0)
-            else:
-                return resPR(e(part, n, alphabet))
+        f = lambda part: resPR(0) if condition(part) else resPR(e(part, n, alphabet))
         return parent._apply_module_morphism(self, f)
 
     def scalar(self, x):

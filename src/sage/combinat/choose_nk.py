@@ -193,7 +193,14 @@ def rank(comb, n):
 
 def _comb_largest(a,b,x):
     """
-    Helper function for from_rank.
+    Returns the largest w < a such that binomial(w,b) <= x.
+
+    EXAMPLES:
+        sage: from sage.combinat.choose_nk import _comb_largest
+        sage: _comb_largest(6,3,10)
+        5
+        sage: _comb_largest(6,3,5)
+        4
     """
     w = a - 1
 

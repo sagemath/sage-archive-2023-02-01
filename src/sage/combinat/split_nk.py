@@ -22,7 +22,7 @@ def SplitNK(n, k):
     """
     Returns the combinatorial class of splits of
     a the set range(n) into a set of size k and a
-    set of size k.
+    set of size n-k.
 
     EXAMPLES:
         sage: from sage.combinat.split_nk import SplitNK

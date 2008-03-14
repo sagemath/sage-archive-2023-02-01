@@ -35,11 +35,24 @@ def Ribbon(r):
     """
     Returns a ribbon tableau object.
 
+    A ribbon is a skew tableau that does not contain a 2x2 box.
+    A ribbon is given by a list of the rows from top to bottom.
+
+
     EXAMPLES:
         sage: Ribbon([[2,3],[1,4,5]])
         [[2, 3], [1, 4, 5]]
+        sage: Ribbon([[2,3],[1,4,5]]).to_skew_tableau()
+        [[None, None, 2, 3], [1, 4, 5]]
+
     """
-    return Ribbon_class(r)
+    if isinstance(r, list):
+        if len(r) == 0:
+            return Ribbon_class(r)
+        if all(isinstance(i, list) for i in r):
+            if all(all(isinstance(j, (int, Integer)) and j>0 for j in i) for i in r):
+                return Ribbon_class(r)
+    raise TypeError, "r must be a list of positive integers"
 
 class Ribbon_class(CombinatorialObject):
     def ribbon_shape(self):
@@ -226,24 +239,17 @@ def StandardRibbons(shape):
         sage: StandardRibbons([2,2])
         Standard ribbon tableaux of shape [2, 2]
         sage: StandardRibbons([2,2]).first()
-        [[1, 3], [2, 4]]
+        [[2, 4], [1, 3]]
         sage: StandardRibbons([2,2]).last()
-        [[3, 4], [1, 2]]
+        [[1, 2], [3, 4]]
         sage: StandardRibbons([2,2]).count()
         5
         sage: StandardRibbons([2,2]).list()
-        [[[1, 3], [2, 4]],
-         [[1, 4], [2, 3]],
+        [[[2, 4], [1, 3]],
          [[2, 3], [1, 4]],
-         [[2, 4], [1, 3]],
-         [[3, 4], [1, 2]]]
-
-        sage: StandardRibbons([2,2]).list()
-        [[[1, 3], [2, 4]],
          [[1, 4], [2, 3]],
-         [[2, 3], [1, 4]],
-         [[2, 4], [1, 3]],
-         [[3, 4], [1, 2]]]
+         [[1, 3], [2, 4]],
+         [[1, 2], [3, 4]]]
         sage: StandardRibbons([3,2,2]).count()
         155
 
@@ -276,8 +282,7 @@ class StandardRibbons_shape(CombinatorialClass):
 
         EXAMPLES:
             sage: StandardRibbons([2,2]).first()
-            [[1, 3], [2, 4]]
-
+            [[2, 4], [1, 3]]
         """
         return from_permutation(permutation.descents_composition_first(self.shape))
 
@@ -288,7 +293,7 @@ class StandardRibbons_shape(CombinatorialClass):
 
         EXAMPLES:
             sage: StandardRibbons([2,2]).last()
-            [[3, 4], [1, 2]]
+            [[1, 2], [3, 4]]
         """
         return from_permutation(permutation.descents_composition_last(self.shape))
 
@@ -300,11 +305,12 @@ class StandardRibbons_shape(CombinatorialClass):
 
         EXAMPLES:
             sage: [t for t in StandardRibbons([2,2])]
-            [[[1, 3], [2, 4]],
-             [[1, 4], [2, 3]],
+            [[[2, 4], [1, 3]],
              [[2, 3], [1, 4]],
-             [[2, 4], [1, 3]],
-             [[3, 4], [1, 2]]]
+             [[1, 4], [2, 3]],
+             [[1, 3], [2, 4]],
+             [[1, 2], [3, 4]]]
+
         """
 
         for p in permutation.descents_composition_list(self.shape):
@@ -319,12 +325,7 @@ def from_permutation(p):
     EXAMPLES:
         sage: import sage.combinat.ribbon as ribbon
         sage: [ribbon.from_permutation(p) for p in Permutations(3)]
-        [[[1, 2, 3]],
-         [[1, 3], [2]],
-         [[2], [1, 3]],
-         [[2, 3], [1]],
-         [[3], [1, 2]],
-         [[3], [2], [1]]]
+        [[[1, 2, 3]], [[2], [1, 3]], [[1, 3], [2]], [[1], [2, 3]], [[1, 2], [3]], [[1], [2], [3]]]
 
     """
     if p == []:
@@ -342,5 +343,5 @@ def from_permutation(p):
     for i in range(len(comp)-1):
         r.append([ p[j] for j in range(comp[i]+1,comp[i+1]+1) ])
     r.append( [ p[j] for j in range(comp[-1]+1, len(p))] )
-
+    r.reverse()
     return Ribbon(r)

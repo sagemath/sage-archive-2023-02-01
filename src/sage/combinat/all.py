@@ -37,7 +37,7 @@ from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk,
 from tableau import Tableau, Tableaux, StandardTableaux, SemistandardTableaux
 from skew_tableau import SkewTableau, StandardSkewTableaux, SemistandardSkewTableaux
 from ribbon import Ribbon, StandardRibbons
-from ribbon_tableau import RibbonTableaux
+from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableau, SemistandardMultiSkewTableaux
 
 #Words
 from word import Words, ShuffleProduct

@@ -237,6 +237,14 @@ class Combinations_msetk(CombinatorialClass):
 
 class Combinations_setk(Combinations_msetk):
     def _iterator(self, items, len_items,  n):
+        """
+        An iterator for all the n-combinations of items.
+
+        EXAMPLES:
+            sage: it = Combinations([1,2,3,4],3)._iterator([1,2,3,4],4,3)
+            sage: list(it)
+            [[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]
+        """
         for i in range(len_items):
             v = items[i:i+1]
             if n == 1:
@@ -247,6 +255,14 @@ class Combinations_setk(Combinations_msetk):
                     yield v + c
 
     def _iterator_zero(self):
+        """
+        An iterator which just returns the empty list.
+
+        EXAMPLES:
+            sage: it = Combinations([1,2,3,4,5],3)._iterator_zero()
+            sage: list(it)
+            [[]]
+        """
         yield []
 
     def iterator(self):

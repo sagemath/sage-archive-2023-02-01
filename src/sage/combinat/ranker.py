@@ -36,18 +36,7 @@ def from_list(l):
         sage: u(0)
         1
     """
-
-    n = len(l)
-    def unrank(j):
-        if j < 0 or j >= n:
-            raise ValueError, "Argument j ( = %s ) must be between 0 and %d"%(str(j), n)
-
-        return l[j]
-
-    def rank(obj):
-        return l.index(obj)
-
-    return [rank, unrank]
+    return [rank_from_list(l), unrank_from_list(l)]
 
 
 def rank_from_list(l):
@@ -63,8 +52,7 @@ def rank_from_list(l):
         sage: r(3)
         2
     """
-    def rank(obj):
-        return l.index(obj)
+    rank = lambda obj: l.index(obj)
 
     return rank
 
@@ -82,11 +70,5 @@ def unrank_from_list(l):
         sage: u(0)
         1
     """
-    n = len(l)
-    def unrank(j):
-        if j < 0 or j >= n:
-            raise ValueError, "Argument j ( = %s ) must be between 0 and %d"%(str(j), n)
-
-        return l[j]
-
+    unrank = lambda j: l[j]
     return unrank

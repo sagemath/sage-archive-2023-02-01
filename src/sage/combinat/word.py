@@ -314,15 +314,8 @@ def standard(w, alphabet = None, ordering = None):
     if ordering == None:
         ordering = lambda x,y: x < y
 
-    def ordering_cmp(x,y):
-        """
-        Returns -1 if x < y under ordering otherwise it returns 1.
-        """
-        if ordering(x,y):
-            return -1
-        else:
-            return 1
-
+    #Returns -1 if x < y under ordering otherwise it returns 1.
+    ordering_cmp = lambda x,y: -1 if ordering(x,y) else 0
 
     d = evaluation_dict(w)
     keys = d.keys()

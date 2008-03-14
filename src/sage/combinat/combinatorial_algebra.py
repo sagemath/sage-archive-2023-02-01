@@ -1,5 +1,45 @@
 r"""
 Combinatorial Algebras
+
+A combinatorial algebra is an algebra whose basis elements are indexed
+by a combinatorial class.  Some examples of combinatorial algebras are
+the symmetric group algebra of order n (indexed by permutations of size n)
+and the algebra of symmetric functions (indexed by integer partitions).
+
+The CombinatorialAlgebra base class makes it easy to define and work
+with new combinatorial algebras in Sage.  For example, the following
+code constructs an algebra which models the power-sum symmetric
+functions.
+
+sage: class PowerSums(CombinatorialAlgebra):
+...     def __init__(self, R):
+...         self._combinatorial_class = Partitions()
+...         self._one = Partition([])
+...         self._name = 'Power-sum symmetric functions'
+...         self._prefix = 'p'
+...         CombinatorialAlgebra.__init__(self, R)
+...     def _multiply_basis(self, a, b):
+...         l = list(a)+list(b)
+...         l.sort(reverse=True)
+...         return Partition(l)
+...
+
+sage: ps = PowerSums(QQ); ps
+Power-sum symmetric functions over Rational Field
+sage: ps([2,1])^2
+p[2, 2, 1, 1]
+sage: ps([2,1])+2*ps([1,1,1])
+2*p[1, 1, 1] + p[2, 1]
+sage: ps(2)
+2*p[]
+
+The important things to define are ._combinatorial_class which specifies
+the combinatorial class that indexes the basis elements, ._one which
+specifies the identity element in the algebra, ._name which specifies
+the name of the algebra, ._prefix which is the string put in front of
+each basis element, and finally a _multiply or _multiply basis method
+that defines the multiplication in the algebra.
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -39,6 +79,13 @@ class CombinatorialAlgebraElement(AlgebraElement):
         Create a combinatorial algebra element x.  This should never
         be called directly, but only through the parent combinatorial
         algebra's __call__ method.
+
+        TESTS:
+            sage: s = SFASchur(QQ)
+            sage: a = s._element_class(s, {Partition([2,1]):QQ(2)}); a
+            2*s[2, 1]
+            sage: a == loads(dumps(a))
+            True
         """
         AlgebraElement.__init__(self, A)
         self._monomial_coefficients = x
@@ -56,6 +103,9 @@ class CombinatorialAlgebraElement(AlgebraElement):
 
     def __contains__(self, x):
         """
+        Returns whether or not a combinatorial object x indexing a basis
+        element is in the support of self.
+
         EXAMPLES:
             sage: s = SFASchur(QQ)
             sage: a = s([2,1]) + s([3])
@@ -64,7 +114,7 @@ class CombinatorialAlgebraElement(AlgebraElement):
             sage: Partition([1,1,1]) in a
             False
         """
-        return x in self._monomial_coefficients
+        return x in self._monomial_coefficients and self._monomial_coefficients[x] != 0
 
     def monomial_coefficients(self):
         """
@@ -96,7 +146,7 @@ class CombinatorialAlgebraElement(AlgebraElement):
         v = self._monomial_coefficients.items()
         v.sort()
         prefix = self.parent().prefix()
-        mons = [ prefix + str(m) for (m, _) in v ]
+        mons = [ prefix + repr(m) for (m, _) in v ]
         cffs = [ x for (_, x) in v ]
         x = repr_lincomb(mons, cffs).replace("*1 "," ")
         if x[len(x)-2:] == "*1":
@@ -128,7 +178,15 @@ class CombinatorialAlgebraElement(AlgebraElement):
 
     def __cmp__(left, right):
         """
-        The ordering is the one on the underlying sorted list of (monomial,coefficients) pairs.
+        The ordering is the one on the underlying sorted list of
+        (monomial,coefficients) pairs.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2,1])
+            sage: b = s([1,1,1])
+            sage: cmp(a,b) #indirect doctest
+            1
         """
         nonzero = lambda mc: mc[1] != 0
         v = filter(nonzero, left._monomial_coefficients.items())
@@ -170,9 +228,8 @@ class CombinatorialAlgebraElement(AlgebraElement):
         for m in del_list:
             del z_elt[m]
 
-        z = A(Integer(0))
-        z._monomial_coefficients = z_elt
-        return z
+        return A._from_dict(z_elt)
+
 
     def _neg_(self):
         """
@@ -213,16 +270,14 @@ class CombinatorialAlgebraElement(AlgebraElement):
         for m in del_list:
             del z_elt[m]
 
-        z = A(Integer(0))
-        z._monomial_coefficients = z_elt
-        return z
+        return A._from_dict(z_elt)
 
     def _mul_(self, y):
         """
         EXAMPLES:
             sage: s = SFASchur(QQ)
             sage: a = s([2])
-            sage: a._mul_(a)
+            sage: a._mul_(a) #indirect doctest
             s[2, 2] + s[3, 1] + s[4]
         """
         return self.parent().multiply(self, y)
@@ -326,8 +381,10 @@ class CombinatorialAlgebraElement(AlgebraElement):
             -2
         """
         p = self.parent()
+        if isinstance(m, p._combinatorial_class.object_class):
+            return self._monomial_coefficients.get(m, p.base_ring().zero_element())
         if m in p._combinatorial_class:
-            return self._monomial_coefficients.get(p._combinatorial_class.object_class(m), p.base_ring()(0))
+            return self._monomial_coefficients.get(p._combinatorial_class.object_class(m), p.base_ring().zero_element())
         else:
             raise TypeError, "you must specify an element of %s"%p._combinatorial_class
 
@@ -576,17 +633,28 @@ class CombinatorialAlgebraElement(AlgebraElement):
         Returns a new element of self.parent() obtained
         by applying the function f to a monomial coefficient
         (m,c) pair.  f returns a (new_m, new_c) pair.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: f = lambda m,c: (m.conjugate(), 2*c)
+            sage: a = s([2,1]) + s([1,1,1])
+            sage: a.map_mc(f)
+            2*s[2, 1] + 2*s[3]
         """
-        res = self.parent()(0)
         z_elt = {}
         for m,c in self.monomial_coefficients().iteritems():
             new_m, new_c = f(m,c)
             z_elt[new_m] = new_c
-        res._monomial_coefficients = z_elt
-        return res
+        return self.parent()._from_dict(z_elt)
 
 class CombinatorialAlgebra(Algebra):
     def __init__(self, R, element_class=None):
+        """
+        TESTS:
+            sage: s = SFASchur(QQ)
+            sage: s == loads(dumps(s))
+            True
+        """
         #Make sure R is a ring with unit element
         if not isinstance(R, Ring):
             raise TypeError, "Argument R must be a ring."
@@ -677,6 +745,8 @@ class CombinatorialAlgebra(Algebra):
             else:
                 return eclass(self, dict([ (e1,R(e2)) for e1,e2 in x._monomial_coefficients.items()]))
         #x is an element of the basis combinatorial class
+        elif isinstance(x, self._combinatorial_class.object_class):
+            return eclass(self, {x:R(1)})
         elif x in self._combinatorial_class:
             return eclass(self, {self._combinatorial_class.object_class(x):R(1)})
         #Coerce elements of the base ring
@@ -684,14 +754,14 @@ class CombinatorialAlgebra(Algebra):
             if x == R(0):
                 return eclass(self, {})
             else:
-                return eclass(self, {self._combinatorial_class.object_class(self._one):x})
+                return eclass(self, {self._one:x})
         #Coerce things that coerce into the base ring
         elif R.has_coerce_map_from(x.parent()):
             rx = R(x)
             if rx == R(0):
                 return eclass(self, {})
             else:
-                return eclass(self, {self._combinatorial_class.object_class(self._one):R(x)})
+                return eclass(self, {self._one:R(x)})
         else:
             if hasattr(self, '_coerce_end'):
                 try:
@@ -712,7 +782,7 @@ class CombinatorialAlgebra(Algebra):
             sage: _.parent() is s
             True
         """
-        return self._element_class(self, {self._combinatorial_class.object_class(self._one):self.base_ring()(1)})
+        return self._element_class(self, {self._one:self.base_ring()(1)})
 
     def __repr__(self):
         """
@@ -834,8 +904,9 @@ class CombinatorialAlgebra(Algebra):
 
         INPUT:
             -- x : a element of self
-            -- f : a function that takes in a partition (basis element)
-                   and returns an element of the target domain
+            -- f : a function that takes in a combinatorial object
+                   indexing a basis element and returns an element
+                   of the target domain
 
         EXAMPLES:
             sage: s = SFASchur(QQ)
@@ -855,15 +926,17 @@ class CombinatorialAlgebra(Algebra):
         return res
 
 
-    def _linearize(self, a, f):
+    def _apply_module_endomorphism(self, a, f):
         """
         This takes in a function from the basis elements
-        to the elements of self.
+        to the elements of self and applies it linearly
+        to a. Note that _apply_module_endomorphism does not
+        require multiplication on self to be defined.
 
         EXAMPLES:
             sage: s = SFASchur(QQ)
             sage: f = lambda part: 2*s(part.conjugate())
-            sage: s._linearize( s([2,1]) + s([1,1,1]), f)
+            sage: s._apply_module_endomorphism( s([2,1]) + s([1,1,1]), f)
             2*s[2, 1] + 2*s[3]
 
         """
@@ -880,6 +953,18 @@ class CombinatorialAlgebra(Algebra):
         return self._from_dict(z_elt)
 
     def multiply(self,left,right):
+        """
+        Returns left*right where left and right are elements of self.
+        multiply() uses either _multiply or _multiply basis to carry
+        out the actual multiplication.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: a = s([2])
+            sage: s.multiply(a,a)
+            s[2, 2] + s[3, 1] + s[4]
+
+        """
         A = left.parent()
         BR = A.base_ring()
         z_elt = {}

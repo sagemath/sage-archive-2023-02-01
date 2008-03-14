@@ -159,16 +159,6 @@ def Permutation(l):
         return Permutation_class(l)
 
 class Permutation_class(CombinatorialObject):
-    def __init__(self, l):
-        """
-        TESTS:
-            sage: p = Permutation([1,2,3])
-            sage: p == loads(dumps(p))
-            True
-        """
-        self.list = l
-        self._hash = None
-
     def __hash__(self):
         """
         TESTS:
@@ -217,7 +207,7 @@ class Permutation_class(CombinatorialObject):
         global permutation_options
         display = permutation_options['display']
         if display == 'list':
-            return repr(self.list)
+            return repr(self._list)
         elif display == 'cycle':
             return self.cycle_string()
         elif display == 'singleton':
@@ -717,6 +707,10 @@ class Permutation_class(CombinatorialObject):
         Returns a string which shows the relative positions of i-1,i,i+1
         in self.  Note that i corresponds to a 2 in the string.
 
+        NOTE: An imove can only be applied when the relative positions are
+        one of '213', '132', '231', or '312'.  None is returned in the
+        other cases to signal that an imove cannot be applied.
+
         EXAMPLES:
             sage: Permutation([2,1,3])._icondition(2)
             ('213', 1, 0, 2)
@@ -759,9 +753,23 @@ class Permutation_class(CombinatorialObject):
         Returns an the i-shift of self.  If an i-shift of self can't be
         performed, then None is returned.
 
+        An i-shift can be applied when i is not in between i-1 and i+1.
+        The i-shift moves i to the other side, and leaves the relative
+        positions of i-1 and i+1 in place.
+
         EXAMPLES:
+          Here, 2 is to the left of both 1 and 3.  A 2-shift can be
+          applied which moves the 2 to the right and leaves 1 and 3
+          in their same relative order.
             sage: Permutation([2,1,3]).ishift(2)
             [1, 3, 2]
+
+          Note that the movement is done in place:
+            sage: Permutation([2,4,1,3]).ishift(2)
+            [1, 4, 3, 2]
+
+          Since 2 is between 1 and 3 in [1,2,3], an 2-shift cannot be
+          applied.
             sage: Permutation([1,2,3]).ishift(2)
             [1, 2, 3]
         """
@@ -801,11 +809,27 @@ class Permutation_class(CombinatorialObject):
         Returns an the i-switch of self.  If an i-switch of self can't be
         performed, then self is returned.
 
+
+        An i-shift can be applied when i is not in between i-1 and i+1.
+        The i-shift moves i to the other side, and switches the relative
+        positions of i-1 and i+1 in place.
+
         EXAMPLES:
+          Here, 2 is to the left of both 1 and 3.  A 2-switch can be
+          applied which moves the 2 to the right and switches the
+          relative order between 1 and 3.
             sage: Permutation([2,1,3]).iswitch(2)
             [3, 1, 2]
+
+          Note that the movement is done in place:
+            sage: Permutation([2,4,1,3]).iswitch(2)
+            [3, 4, 1, 2]
+
+          Since 2 is between 1 and 3 in [1,2,3], an 2-switch cannot be
+          applied.
             sage: Permutation([1,2,3]).iswitch(2)
             [1, 2, 3]
+
         """
         if i not in range(2, len(self)):
             raise ValueError, "i (= %s) must between 2 and n-1"%i
@@ -3263,8 +3287,8 @@ def to_standard(p):
 
 def CyclicPermutations(mset):
     """
-    Returns the combinatorial class of all cyclic permutations of mset in
-    cycle notation.
+    Returns the combinatorial class of all cyclic permutations of mset
+    in cycle notation.  These are the same as necklaces.
 
     EXAMPLES:
         sage: CyclicPermutations(range(4)).list()
@@ -3340,8 +3364,9 @@ class CyclicPermutations_mset(CombinatorialClass):
 
 def CyclicPermutationsOfPartition(partition):
     """
-    Returns the combinatorial class of all combinations of cyclic permutations of
-    each cell of the partition.
+    Returns the combinatorial class of all combinations of cyclic
+    permutations of each cell of the partition.  This is the same
+    as a Cartesian product of necklaces.
 
     EXAMPLES:
         sage: CyclicPermutationsOfPartition([[1,2,3,4],[5,6,7]]).list()

@@ -70,6 +70,10 @@ class SymmetricFunctionAlgebraElement_elementary(classical.SymmetricFunctionAlge
             0
             sage: e([2]).expand(3)
             x0*x1 + x0*x2 + x1*x2
+            sage: e([3]).expand(4,alphabet='x,y,z,t')
+            x*y*z + x*y*t + x*z*t + y*z*t
+            sage: e([3]).expand(4,alphabet='y')
+            y0*y1*y2 + y0*y1*y3 + y0*y2*y3 + y1*y2*y3
         """
         condition = lambda part: max(part) > n
         return self._expand(condition, n, alphabet)

@@ -136,20 +136,20 @@ class LLT_class:
             m = (sum(skp) / self.level()).floor()
             if m == 0:
                 raise ValueError, "level (%=) must divide %s "%(sum(skp), self.level())
-            mu = sage.combinat.partition.Partitions( sum(skp) / self.level() )
+            mu = sage.combinat.partition.Partitions( ZZ(sum(skp) / self.level()) )
 
 
         elif isinstance(skp, list) and skp[0] in sage.combinat.skew_partition.SkewPartitions():
             #skp is a list of skew partitions
             skp =  [sage.combinat.partition.Partition(core_and_quotient=([], skp[i][0])) for i in range(len(skp))]
             skp += [sage.combinat.partition.Partition(core_and_quotient=([], skp[i][1])) for i in range(len(skp))]
-            mu = sage.combinat.partition.Partitions(sum( [ s.size() for s in skp] ) / self.level())
+            mu = sage.combinat.partition.Partitions(ZZ(sum( [ s.size() for s in skp] ) / self.level()))
 
 
         elif isinstance(skp, list) and skp[0] in sage.combinat.partition.Partitions():
             #skp is a list of partitions
             skp = sage.combinat.partition.Partition(core_and_quotient=([], skp))
-            mu = sage.combinat.partition.Partitions( sum(skp) / self.level())
+            mu = sage.combinat.partition.Partitions( ZZ(sum(skp) / self.level() ))
         else:
             raise ValueError, "LLT polynomials not defined for %s"%skp
 

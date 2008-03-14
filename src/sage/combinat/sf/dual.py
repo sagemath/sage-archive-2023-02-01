@@ -499,7 +499,10 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
             2*x0^3 + 3*x0^2*x1 + 3*x0*x1^2 + 2*x1^3
             sage: a.dual().expand(2)
             2*x0^3 + 3*x0^2*x1 + 3*x0*x1^2 + 2*x1^3
-
+            sage: a.expand(2,alphabet='y')
+            2*y0^3 + 3*y0^2*y1 + 3*y0*y1^2 + 2*y1^3
+            sage: a.expand(2,alphabet='x,y')
+            2*x^3 + 3*x^2*y + 3*x*y^2 + 2*y^3
 
         """
         return self._dual.expand(n, alphabet)

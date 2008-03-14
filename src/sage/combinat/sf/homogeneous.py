@@ -81,6 +81,13 @@ class SymmetricFunctionAlgebraElement_homogeneous(classical.SymmetricFunctionAlg
             x0^3 + 3*x0^2*x1 + 3*x0*x1^2 + x1^3
             sage: h([2,1]).expand(3)
             x0^3 + 2*x0^2*x1 + 2*x0*x1^2 + x1^3 + 2*x0^2*x2 + 3*x0*x1*x2 + 2*x1^2*x2 + 2*x0*x2^2 + 2*x1*x2^2 + x2^3
+            sage: h([3]).expand(2,alphabet='y')
+            y0^3 + y0^2*y1 + y0*y1^2 + y1^3
+            sage: h([3]).expand(2,alphabet='x,y')
+            x^3 + x^2*y + x*y^2 + y^3
+            sage: h([3]).expand(3,alphabet='x,y,z')
+            x^3 + x^2*y + x*y^2 + y^3 + x^2*z + x*y*z + y^2*z + x*z^2 + y*z^2 + z^3
+
 
         """
         condition = lambda part: False

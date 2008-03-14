@@ -21,6 +21,7 @@ from sage.rings.all import Integer, gcd, lcm, QQ, is_PolynomialRing, is_Fraction
 import sage.combinat.partition
 from sage.misc.misc import prod
 import sfa
+import copy
 
 def JackPolynomialsP(R, t=None):
     """
@@ -34,6 +35,26 @@ def JackPolynomialsP(R, t=None):
         Jack polynomials in the P basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         sage: JackPolynomialsP(QQ,t=-1)
         Jack polynomials in the P basis with t=-1 over Rational Field
+
+      At t = 1, the Jack polynomials on the P basis are the Schur symmetric functions.
+        sage: P = JackPolynomialsP(QQ,1)
+        sage: s = SFASchur(QQ)
+        sage: P([2,1])^2
+        JackP[2, 2, 1, 1] + JackP[2, 2, 2] + JackP[3, 1, 1, 1] + 2*JackP[3, 2, 1] + JackP[3, 3] + JackP[4, 1, 1] + JackP[4, 2]
+        sage: s([2,1])^2
+        s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
+
+      At t = 2, the Jack polynomials on the P basis are the zonal polynomials.
+        sage: P = JackPolynomialsP(QQ,2)
+        sage: Z = ZonalPolynomials(QQ)
+        sage: P([2])^2
+        64/45*JackP[2, 2] + 16/21*JackP[3, 1] + JackP[4]
+        sage: Z([2])^2
+        64/45*Z[2, 2] + 16/21*Z[3, 1] + Z[4]
+        sage: Z(P([2,1]))
+        Z[2, 1]
+        sage: P(Z([2,1]))
+        JackP[2, 1]
     """
     return cache_p(R,t)
 
@@ -64,6 +85,25 @@ def JackPolynomialsJ(R, t=None):
         Jack polynomials in the J basis over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         sage: JackPolynomialsJ(QQ,t=-1)
         Jack polynomials in the J basis with t=-1 over Rational Field
+
+      At t = 1, the Jack polynomials in the J basis are scalar multiples of the Schur
+      functions with the scalar given by a Partition's hook_product method at 1.
+        sage: J = JackPolynomialsJ(QQ, t=1)
+        sage: s = SFASchur(J.base_ring())
+        sage: p = Partition([3,2,1,1])
+        sage: s(J(p)) == p.hook_product(1)*s(p)
+        True
+
+      At t = 2, the Jack polynomials on the J basis are scalar multiples of the
+      zonal polynomials with the scalar given by a Partition's hook_product method
+      at 1.
+        sage: t = 2
+        sage: J = JackPolynomialsJ(QQ,t=t)
+        sage: Z = ZonalPolynomials(J.base_ring())
+        sage: p = Partition([2,2,1])
+        sage: Z(J(p)) == p.hook_product(t)*Z(p)
+        True
+
     """
     return cache_j(R,t)
 
@@ -103,10 +143,25 @@ def ZonalPolynomials(R):
         sage: Z([2])^2
         64/45*Z[2, 2] + 16/21*Z[3, 1] + Z[4]
     """
+    return cache_z(R)
+
+def _makeZonalPolynomials(R):
+    """
+    A utility function that is used to make the zonal polynomials
+    from the Jack polynomials on the P basis.  This routine is
+    called by the cache.
+
+    EXAMPLES:
+        sage: from sage.combinat.sf.jack import _makeZonalPolynomials
+        sage: _makeZonalPolynomials(QQ)
+        Zonal polynomials over Rational Field
+    """
     res = JackPolynomialsP(R, t=R(2))
+    res = copy.copy(res)
     res._name = "Zonal polynomials"
     res._prefix = "Z"
     return res
+
 
 ###################################################################
 def c1(part, t):
@@ -262,11 +317,7 @@ class JackPolynomial_p(JackPolynomial_generic):
         """
         if isinstance(x, JackPolynomials_p):
             P = self.parent()
-            def f(part1, part2):
-                if part1 == part2:
-                    return c2(part1, P.t)/c1(part1, P.t)
-                else:
-                    return 0
+            f = lambda p1, p2: c2(p1, P.t)/c1(p1, P.t) if p1 == p2 else 0
             return P._apply_multi_module_morphism(self, x, f, orthogonal=True)
         else:
             return JackPolynomial_generic.scalar_jack(self, x)
@@ -319,9 +370,7 @@ class JackPolynomials_p(JackPolynomials_generic):
         """
         BR = self.base_ring()
         if isinstance(x, JackPolynomial_q):
-            def f(part):
-                s = self(part)
-                return (1/s.scalar_jack(s))*s
+            f = lambda part: (1/self(part).scalar_jack(self(part)))*self(part)
             return self._apply_module_morphism(x, f).map_coefficients(self._normalize_coefficients)
         elif isinstance(x, JackPolynomial_j):
             f = lambda part: c1(part, self.t)*self(part)
@@ -537,4 +586,5 @@ from sage.misc.cache import Cache
 cache_p = Cache(JackPolynomials_p)
 cache_j = Cache(JackPolynomials_j)
 cache_q = Cache(JackPolynomials_q)
+cache_z = Cache(_makeZonalPolynomials)
 

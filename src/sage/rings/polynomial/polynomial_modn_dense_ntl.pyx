@@ -365,14 +365,15 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         is defined over: \code{N = self.base_ring().characteristic()}.
         This method returns small roots of this polynomial modulo some
         factor $b$ of $N$ with the constraint that $b >= N^\beta$.
-        Small in this context means that if $x$ is a root of $f$ modulo
-        $b$ then $|x| < X$.  This $X$ is either provided by the user or
-        the maximum $X$ is chosen such that this algorithm terminates in
-        polynomial time. If $X$ is chosen automatically it is $X =
-        N^{\beta^2/\delta - \epsilon}$.`This algorithm` in this context
-        means Coppersmith's algorithm for finding small roots using the
-        LLL algorithm. The implementation of this algorithm follows
-        Alexander May's PhD thesis referenced below.
+        Small in this context means that if $x$ is a root of $f$
+        modulo $b$ then $|x| < X$. This $X$ is either provided by the
+        user or the maximum $X$ is chosen such that this algorithm
+        terminates in polynomial time. If $X$ is chosen automatically
+        it is $X = floor(N^{\beta^2/\delta - \epsilon})$.`This
+        algorithm` in this context means Coppersmith's algorithm for
+        finding small roots using the LLL algorithm. The
+        implementation of this algorithm follows Alexander May's PhD
+        thesis referenced below.
 
         INPUT:
           X -- an absolute bound for the root (default: see above)
@@ -530,8 +531,13 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         g  = [x**j * N**(m-i) * f**i for i in range(m) for j in range(delta) ]
         g.extend([x**i * f**m for i in range(t)]) # h
 
+        # In Alexander May's thesis it is recommended to set X =
+        # ceil(N^(b^2/d - e)) but the proof of correctness is for 1/2
+        # * N^(b^2/d - e). Also, David Joyner provided an example
+        # which doesn't work with ceil(...), floor(...) seems to be
+        # fine though.
         if X is None:
-            X = int( (N**(beta**2/delta - epsilon)).ceil() )
+            X = int( (N**(beta**2/delta - epsilon)).floor() )
         verbose("X = %s"%X, level=2)
 
         B = Matrix(ZZ, len(g), delta*m + max(delta,t) )

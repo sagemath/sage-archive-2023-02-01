@@ -4,27 +4,34 @@
 
 setuptools is a collection of enhancements to the Python distutils (for Python 2.3.5 and up on most platforms; 64-bit platforms require a minimum of Python 2.4) that allow you to more easily build and distribute Python packages, especially ones that have dependencies on other packages.
 
- * http://pypi.python.org/pypi/setuptools/
+Website: http://pypi.python.org/pypi/setuptools/
 
 == License ==
 
-Not yet clear.
-
-# License :: OSI Approved :: Python Software Foundation License
-
-# License :: OSI Approved :: Zope Public License
+PSF or ZPL. i.e Python Software Foundation License or Zope Public License
 
 == SPKG Maintainers ==
- * Jaap Spies, j.spies@hccnet.nl
+
+ * Jaap Spies, (j.spies@hccnet.nl)
+ * Michael Abshoff
 
 == Upstream Contact ==
-
+ * Phillip J. Eby (distutils-sig@python org)
 
 == Dependencies ==
-
+ * python
 
 == Changelog ==
 
- * First release setuptools-0.6.spkg - Jaap Spies
- * Upgraded to setuptools-0.6c8 - Jaap Spies
+=== setuptools-0.6c8.p0 (Michael Abshoff, March 14th, 2008) ===
+ * add hg repo
+ * add .hgignore
+ * clean up SPKG.txt
+ * make setuptools a default spkg
+
+=== setuptools-0.6c8 (Jaap Spies, March 12th, 2008) ===
+ * upgrade to setuptools-0.6c8
+
+=== setuptools-0.6.spkg (Jaap Spies) ===
+ * initial release
 

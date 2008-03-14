@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Install SQLAlchemy
+cd src
+python setup.py install
+
+# Copy over the documentation
+cp -r doc $SAGE_ROOT/local/doc/SQLAlchemy-0.4.3

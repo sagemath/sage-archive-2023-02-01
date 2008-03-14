@@ -1805,6 +1805,24 @@ def permutations(mset):
 
 def permutations_iterator(mset,n=None):
     """
+    Do not use this function. It will be deprecated in future version of
+    Sage and eventually removed. Use Permutations instead; instead of
+
+      for p in permutations_iterator(range(1, m+1), n)
+
+    use
+
+      for p in Permutations(m, n).
+
+    Note that Permutations, unlike this function, treats repeated
+    elements as identical.
+
+    If you insist on using this now:
+
+    Returns an iterator (http://docs.python.org/lib/typeiter.html) which
+    can be used in place of permutations(mset) if all you need it for is
+    a `for' loop.
+
     Posted by Raymond Hettinger, 2006/03/23, to the Python Cookbook:
     http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/474124
 
@@ -1842,6 +1860,17 @@ def permutations_iterator(mset,n=None):
 
 def number_of_permutations(mset):
     """
+    Do not use this function. It will be deprecated in future version of
+    Sage and eventually removed. Use Permutations instead; instead of
+
+      number_of_permutations(mset)
+
+    use
+
+      Permutations(mset).count().
+
+    If you insist on using this now:
+
     Returns the size of permutations(mset).
 
     AUTHOR: Robert L. Miller

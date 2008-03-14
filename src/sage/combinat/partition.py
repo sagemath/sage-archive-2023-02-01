@@ -1386,6 +1386,12 @@ def number_of_partitions_set(S,k):
 
 def number_of_partitions_list(n,k=None):
     r"""
+    This function will be deprecated in a future version of Sage and
+    eventually removed. Use Partitions(n).count() or
+    Partitions(n, length=k).count() instead.
+
+    Original docstring follows.
+
     Returns the size of partitions_list(n,k).
 
     Wraps GAP's NrPartitions.
@@ -1520,7 +1526,7 @@ def ordered_partitions(n,k=None):
     of positive integers and is represented by the list $p = [p_1,p_2,\cdots ,p_k]$.
     If $k$ is omitted then all ordered partitions are returned.
 
-    \code{ordered_partitions(n,k)} returns the set of all (ordered)
+    \code{ordered_partitions(n,k)} returns the list of all (ordered)
     partitions of the positive integer n into sums with k summands.
 
     Do not call \code{ordered_partitions} with an n much larger than
@@ -1692,6 +1698,13 @@ def RestrictedPartitions(n, S, k=None):
     from the set $S$, while for ordinary partitions they may be
     elements from $[1..n]$.
 
+    Returns the list of all restricted partitions of the positive
+    integer n into sums with k summands with the summands of the
+    partition coming from the set S. If k is not given all restricted
+    partitions for all k are returned.
+
+    Wraps GAP's RestrictedPartitions.
+
     EXAMPLES:
         sage: RestrictedPartitions(5,[3,2,1])
         Partitions of 5 restricted to the values [1, 2, 3]
@@ -1734,7 +1747,7 @@ class RestrictedPartitions(CombinatorialClass):
 
     def list(self):
         r"""
-        Returns the set of all restricted partitions of the positive integer
+        Returns the list of all restricted partitions of the positive integer
         n into sums with k summands with the summands of the partition coming
         from the set $S$. If k is not given all restricted partitions for all
         k are returned.
@@ -1890,7 +1903,24 @@ class PartitionTuples_nk(CombinatorialClass):
 
 def Partitions(n=None, **kwargs):
     """
-    Returns a combinatorial class of integer partitions.
+    Partitions(n, **kwargs) returns the combinatorial class of integer
+    partitions of n, subject to the constraints given by the keywords.
+
+    Valid keywords are: starting, ending, min_part, max_part, max_length,
+    min_length, length, max_slope, min_slope, inner, outer. They have the
+    following meanings:
+
+      'starting=p' specifies that the partitions should all be >= p in
+        reverse lex order.
+      'length=k' specifies that the partitions have exactly k parts.
+      'min_length=k' specifies that the partitions have at least k parts.
+      'min_part=k' specifies that all parts of the partitions are at least k.
+      'outer=p' specifies that the partitions be contained inside the partition p.
+      'min_slope=k' specifies that the partition have slope at least k; the
+       slope is the difference between successive parts.
+
+      The 'max_*' versions, along with 'inner' and 'ending', work
+      analogously.
 
     EXAMPLES:
       If no arguments are passed, then the combinatorial class
@@ -1931,6 +1961,11 @@ def Partitions(n=None, **kwargs):
 
         sage: Partitions(3,max_length=2).list()
         [[3], [2, 1]]
+
+        sage: Partitions(10, min_part=2, length=3).list()
+        [[6, 2, 2], [5, 3, 2], [4, 4, 2], [4, 3, 3]]
+
+
 
     """
     if n is None:
@@ -2446,7 +2481,7 @@ def partitions_set(S,k=None, use_file=True):
     nonempty subsets with union $S$ and is represented by a sorted
     list of such subsets.
 
-    partitions_set returns the set of all unordered partitions of the
+    partitions_set returns the list of all unordered partitions of the
     list $S$ of increasing positive integers into k pairwise disjoint
     nonempty sets. If k is omitted then all partitions are returned.
 
@@ -2456,8 +2491,8 @@ def partitions_set(S,k=None, use_file=True):
     WARNING: Wraps GAP -- hence S must be a list of objects that have
     string representations that can be interpreted by the GAP
     intepreter.  If mset consists of at all complicated SAGE objects,
-    this function does *not* do what you expect.  A proper function
-    should be written! (TODO!)
+    this function does *not* do what you expect.  See SetPartitions
+    in \code{combinat/set_partition}.
 
     WARNING: This function is inefficient.  The runtime is dominated
     by parsing the output from GAP.
@@ -2511,13 +2546,19 @@ def number_of_partitions_set(S,k):
 
 def partitions_list(n,k=None):
     r"""
+    This function will be deprecated in a future version of Sage and
+    eventually removed. Use Partitions(n).list() or
+    Partitions(n, length=k).list() instead.
+
+    Original docstring follows.
+
     An {\it unordered partition of $n$} is an unordered sum
     $n = p_1+p_2 +\ldots+ p_k$ of positive integers and is represented by
     the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing order, i.e.,
     $p1\geq p_2 ...\geq p_k$.
 
     INPUT:
-        n -- a positive integer
+        n, k -- positive integer
 
     \code{partitions_list(n,k)} returns the list of all (unordered)
     partitions of the positive integer n into sums with k summands. If
@@ -2529,17 +2570,12 @@ def partitions_list(n,k=None):
 
     Wraps GAP's Partitions.
 
-    The function \code{partitions} (a wrapper for the corresponding
-    PARI function) returns not a list but rather a generator for a
-    list. It is also a function of only one argument.
 
     EXAMPLES:
         sage: partitions_list(10,2)
         [[5, 5], [6, 4], [7, 3], [8, 2], [9, 1]]
         sage: partitions_list(5)
         [[1, 1, 1, 1, 1], [2, 1, 1, 1], [2, 2, 1], [3, 1, 1], [3, 2], [4, 1], [5]]
-
-    However, partitions(5) returns ``<generator object at ...>''.
     """
     n = ZZ(n)
     if n <= 0:
@@ -2845,7 +2881,7 @@ def ordered_partitions(n,k=None):
     of positive integers and is represented by the list $p = [p_1,p_2,\cdots ,p_k]$.
     If $k$ is omitted then all ordered partitions are returned.
 
-    \code{ordered_partitions(n,k)} returns the set of all (ordered)
+    \code{ordered_partitions(n,k)} returns the list of all (ordered)
     partitions of the positive integer n into sums with k summands.
 
     Do not call \code{ordered_partitions} with an n much larger than
@@ -2901,7 +2937,7 @@ def number_of_ordered_partitions(n,k=None):
 
 def partitions_greatest(n,k):
     """
-    Returns the set of all (unordered) ``restricted'' partitions of the integer n having
+    Returns the list of all (unordered) ``restricted'' partitions of the integer n having
     parts less than or equal to the integer k.
 
     Wraps GAP's PartitionsGreatestLE.
@@ -2919,7 +2955,7 @@ def partitions_greatest(n,k):
 
 def partitions_greatest_eq(n,k):
     """
-    Returns the set of all (unordered) ``restricted'' partitions of the
+    Returns the list of all (unordered) ``restricted'' partitions of the
     integer n having at least one part equal to the integer k.
 
     Wraps GAP's PartitionsGreatestEQ.
@@ -2938,6 +2974,12 @@ def partitions_greatest_eq(n,k):
 
 def partitions_restricted(n,S,k=None):
     r"""
+    This function will be deprecated in a future version of Sage and
+    eventually removed. Use RestrictedPartitions(n, S, k).list()
+    instead.
+
+    Original docstring follows.
+
     A {\it restricted partition} is, like an ordinary partition, an
     unordered sum $n = p_1+p_2+\ldots+p_k$ of positive integers and is
     represented by the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing
@@ -2945,7 +2987,7 @@ def partitions_restricted(n,S,k=None):
     from the set $S$, while for ordinary partitions they may be
     elements from $[1..n]$.
 
-    Returns the set of all restricted partitions of the positive integer
+    Returns the list of all restricted partitions of the positive integer
     n into sums with k summands with the summands of the partition coming
     from the set $S$. If k is not given all restricted partitions for all
     k are returned.
@@ -2971,6 +3013,12 @@ def partitions_restricted(n,S,k=None):
 
 def number_of_partitions_restricted(n,S,k=None):
     """
+    This function will be deprecated in a future version of Sage and
+    eventually removed. Use RestrictedPartitions(n, S, k).count()
+    instead.
+
+    Original docstring follows.
+
     Returns the size of partitions_restricted(n,S,k).
     Wraps GAP's NrRestrictedPartitions.
 

@@ -69,9 +69,17 @@ def SetPartitions(s, part=None):
     nonempty subsets with union $S$ and is represented by a sorted
     list of such subsets.
 
-    partitions_set returns the set of all unordered partitions of the
-    list $S$ of increasing positive integers into k pairwise disjoint
-    nonempty sets. If k is omitted then all partitions are returned.
+    SetPartitions(s) returns the class of all set partitions of the set
+    s, which can be a set or a string; if a string, each character is
+    considered an element.
+
+    SetPartitions(n), where n is an integer, returns the class of all
+    set partitions of the set [1, 2,..., n].
+
+    You may specify a second argument k. If k is an integer,
+    SetPartitions returns the class of set partitions into k parts; if
+    it is an integer partition, SetPartitions returns the class of set
+    partitions whose block sizes correspond to that integer partition.
 
     The Bell number $B_n$, named in honor of Eric Temple Bell, is
     the number of different partitions of a set with n elements.
@@ -80,6 +88,17 @@ def SetPartitions(s, part=None):
         sage: S = [1,2,3,4]
         sage: SetPartitions(S,2)
         Set partitions of [1, 2, 3, 4] with 2 parts
+        sage: SetPartitions([1,2,3,4], [3,1]).list()
+        [{{2, 3, 4}, {1}}, {{1, 3, 4}, {2}}, {{3}, {1, 2, 4}}, {{4}, {1, 2, 3}}]
+        sage: SetPartitions(7, [3,3,1]).count()
+        70
+
+      In strings, repeated letters are considered distinct:
+
+        sage: SetPartitions('aabcd').count()
+        52
+        sage: SetPartitions('abcde').count()
+        52
 
 
     REFERENCES:

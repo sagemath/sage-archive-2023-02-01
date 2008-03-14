@@ -1,5 +1,9 @@
 r"""
 Permutations
+
+The Permutations module. Use Permutation? to get information about the
+Permutation class, and Permutations? to get information about the
+combinatorial class of permutations.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -114,6 +118,10 @@ def PermutationOptions(**kwargs):
 
 def Permutation(l):
     """
+    Convert l to a Permutation, where l is a list, tuple of integers,
+    tuple of tuples of integers, or a string in cycle notation. Returns
+    a member of the Permutation class, printed in one-line notation.
+
     EXAMPLES:
         sage: Permutation([2,1])
         [2, 1]
@@ -131,11 +139,16 @@ def Permutation(l):
         [2, 1]
         sage: Permutation( ((1,2),) )
         [2, 1]
+        sage: p = Permutation((1, 2, 5)); p
+        [2, 5, 3, 4, 1]
+        sage: type(p)
+        <class 'sage.combinat.permutation.Permutation_class'>
+
 
     """
-    #if l is a string, then assume it is in cycle notation
     if isinstance(l, Permutation_class):
         return l
+    #if l is a string, then assume it is in cycle notation
     elif isinstance(l, str):
         cycles = l.split(")(")
         cycles[0] = cycles[0][1:]
@@ -3911,6 +3924,35 @@ class StandardPermutations_avoiding_generic(CombinatorialClass):
 def Permutations(n=None,k=None, **kwargs):
     """
     Returns a combinatorial class of permutations.
+
+    Permutations(n) returns the class of permutations of n, if n is an
+    integer, list, set, or string.
+
+    Permutations(n, k) returns the class of permutations of n (where n
+    is any of the above things) of length k; k must be an integer.
+
+    Valid keyword arguments are: 'descents', 'bruhat_smaller',
+    'bruhat_greater', 'recoils_finer', 'recoils_fatter', 'recoils', and
+    'avoiding'. With the exception of 'avoiding', you cannot specify n
+    or k along with a keyword.
+
+    Permutations(descents=list) returns the class of permutations with
+    descents in the positions specified by `list'.
+
+    Permutations(bruhat_{smaller,greater}=p) returns the class of
+    permutations smaller or greater, respectively, than the given
+    permutation in Bruhat order.
+
+    Permutations(recoils=p) returns the class of permutations whose
+    recoils composition is p.
+
+    Permutations(recoils_{fatter,finer}=p) returns the class of
+    permutations whose recoils composition is fatter or finer,
+    respectively, than the given permutation.
+
+    Permutations(n, avoiding=P) returns the class of permutations of n
+    avoiding P. Here P may be a single permutation or a list of
+    permutations; the returned class will avoid all patterns in P.
 
     EXAMPLES:
 

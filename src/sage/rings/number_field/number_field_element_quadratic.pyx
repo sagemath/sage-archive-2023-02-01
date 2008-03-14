@@ -274,9 +274,12 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         if new_parent.degree() == 2:
             ## since self is a *quadratic* element, we can only get
-            ## here if self.parent() and new_parent are exactly the
-            ## two fields CyclotomicField(3) and CyclotomicField(6)
-            ## or CyclotomicField(4) and CyclotomicField(4)
+            ## here if self.parent() and new_parent are:
+            ## - CyclotomicField(3) and CyclotomicField(6)
+            ## - CyclotomicField(3) and CyclotomicField(3)
+            ## - CyclotomicField(6) and CyclotomicField(6)
+            ## - CyclotomicField(4) and CyclotomicField(4)
+            ## In all cases, conversion of elements is trivial!
             x2 = <NumberFieldElement_quadratic>(self._new())
             x2._parent = new_parent
             mpz_set(x2.a, self.a)

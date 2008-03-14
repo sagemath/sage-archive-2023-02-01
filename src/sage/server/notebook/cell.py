@@ -648,7 +648,7 @@ class Cell(Cell_generic):
               onKeyDown  = 'return input_keydown(%s,event);'
               onInput    = 'cell_input_resize(this); return true;'
               onBlur     = 'cell_blur(%s); return true;'
-              onFocus    = 'this.className = "cell_input_active"; set_class("eval_button%s","eval_button_active"); return true;'
+              onFocus    = 'cell_focused(this,%s); return true;'
               %s
            >%s</textarea>
         """%(cls, r, ncols, id, id, id, id, id, 'readonly=1' if do_print else '', t)

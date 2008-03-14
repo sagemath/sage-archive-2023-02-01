@@ -157,11 +157,11 @@ class BipartiteGraph(Graph):
                             self.right.append(v)
                         else:
                             raise TypeError("NetworkX node_type defies bipartite assumtion (is not 'Top' or 'Bottom')")
-            else:
-                try:
-                    self.left, self.right = self.bipartite_sets()
-                except:
-                    raise TypeError("Input graph is not bipartite!")
+                else:
+                    try:
+                        self.left, self.right = self.bipartite_sets()
+                    except:
+                        raise TypeError("Input graph is not bipartite!")
 
     def _repr_(self):
         r"""

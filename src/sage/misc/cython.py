@@ -136,11 +136,17 @@ def cython(filename, verbose=False, compile_message=False,
     if not filename.endswith('pyx'):
         print "File (=%s) should have extension .pyx"%filename
 
-    clean_filename = sanitize(filename)
-    base = os.path.split(os.path.splitext(clean_filename)[0])[1]
-    abs_base = os.path.abspath(os.path.split(os.path.splitext(clean_filename)[0])[0])
+    # base is the name of the .so module that we create.
+    # The main constraint is that it is unique and determined by the file
+    # that we're running Cython on, so that in some cases we can cache
+    # the result (e.g., recompiling the same pyx file during the same session).
+    base = sanitize(os.path.abspath(filename))
 
+    # This is the *temporary* directory where we build the pyx file.
+    # This is deleted when sage exits, which means pyx files must be
+    # rebuilt every time Sage is restarted at present.
     build_dir = '%s/%s'%(SPYX_TMP, base)
+
     if os.path.exists(build_dir):
         # There is already a module here.  Maybe we do not have to rebuild?
         # Find the name.
@@ -155,8 +161,15 @@ def cython(filename, verbose=False, compile_message=False,
         os.makedirs(build_dir)
     for F in os.listdir(build_dir):
         G = '%s/%s'%(build_dir,F)
-        if not os.path.isdir(G):
-            os.unlink(G)
+        try:
+            if not os.path.isdir(G):
+                os.unlink(G)
+        except OSError:
+            pass
+
+    # Get the absolute path to the directory that contains the pyx file.
+    # We will use this only to make some convenient symbolic links.
+    abs_base = os.path.split(os.path.abspath(filename))[0]
 
     cmd = 'cd "%s"; ln -sf "%s"/* .'%(build_dir, abs_base)
     os.system(cmd)

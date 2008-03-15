@@ -27,11 +27,7 @@ def transitive_ideal(f, x):
     transitive_ideal won't return.
 
     EXAMPLES:
-        sage: def f(x):
-        ...       if x > 0:
-        ...           return [x-1]
-        ...       else:
-        ...           return []
+        sage: f = lambda x: [x-1] if x > 0 else []
         sage: sage.combinat.tools.transitive_ideal(f, 10)
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     """

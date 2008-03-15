@@ -252,10 +252,54 @@ cdef class PolyDict:
         return max([-1] + map(sum,self.__repn.keys()))
 
     def monomial_coefficient(PolyDict self, mon):
+        """
+        EXAMPLES:
+            sage: from sage.rings.polynomial.polydict import PolyDict
+            sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
+            sage: f.monomial_coefficient(PolyDict({(2,1):1}).dict())
+            4
+        """
         K = mon.keys()[0]
         if not self.__repn.has_key(K):
             return 0
         return self.__repn[K]
+
+    def polynomial_coefficient(PolyDict self, degrees):
+        """
+        Return a polydict that defines the coefficient in the current
+        polynomial viewed as a tower of polynomial extensions.
+
+        INPUT:
+            degrees -- a list of degree restrictions
+                        list elements are None if the variable in that position should be unrestricted
+
+        EXAMPLES:
+            sage: from sage.rings.polynomial.polydict import PolyDict
+            sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
+            sage: f.polynomial_coefficient([2,None])
+            PolyDict with representation {(0, 3): 2, (0, 1): 4}
+            sage: f = PolyDict({(0,3):2, (0,2):3, (2,1):4})
+            sage: f.polynomial_coefficient([0,None])
+            PolyDict with representation {(0, 3): 2, (0, 2): 3}
+        """
+        nz = []
+        cdef int i
+        for i from 0<=i<len(degrees):
+            if degrees[i] is not None:
+                nz.append(i)
+        ans = {}
+        for S in self.__repn.keys():
+            exactly_divides = True
+            for j in nz:
+                if S[j] != degrees[j]:
+                    exactly_divides = False
+                    break
+            if exactly_divides:
+                t = list(S)
+                for m in nz:
+                    t[m] = 0
+                ans[ETuple(t)] = self.__repn[S]
+        return PolyDict(ans, force_etuples=False)
 
     def coefficient(PolyDict self, mon):
         """
@@ -282,8 +326,6 @@ cdef class PolyDict:
                     t[m] = 0
                 ans[ETuple(t)] = self.__repn[S]
         return PolyDict(ans, force_etuples=False)
-
-
 
     def is_homogeneous(PolyDict self):
         K = self.__repn.keys()

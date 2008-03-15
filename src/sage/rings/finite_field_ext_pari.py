@@ -274,8 +274,13 @@ class FiniteField_ext_pari(FiniteField_generic):
     def gen(self, n=0):
         """
         Return chosen generator of the finite field.  This generator
-        is a root of the defining polynomial of the finite field, and
-        is guaranteed to be a generator for the multiplicative group.
+        is a root of the defining polynomial of the finite field.
+
+        WARNING: The generator is not guaranteed to be a generator for
+            the multiplicative group.  To obtain the latter, use
+            multiplicative_generator().  Both gen() and
+            multiplicative_generator() are random: the elements
+            returned will in general differ between runs.
 
         INPUT:
             nothing
@@ -293,6 +298,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             alpha
             sage: a^4
             alpha^3 + 1
+
         """
         return self.__gen
 

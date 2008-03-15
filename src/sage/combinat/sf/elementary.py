@@ -34,24 +34,9 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
         """
         classical.SymmetricFunctionAlgebra_classical.__init__(self, R, "elementary", SymmetricFunctionAlgebraElement_elementary, 'e')
 
-    def dual_basis(self, scalar=None, prefix=None):
-        """
-        Returns the dual basis of the elementary basis with
-        respect to the scalar product scalar.  If scalar is None,
-        then the standard scalar product for the classical
-        symmetric functions is used.
-
-        EXAMPLES:
-
-        """
-        if scalar is None:
-            scalar = zee
-
-        return dual.SymmetricFunctionAlgebra_dual(self, scalar, prefix=prefix)
-
 
 class SymmetricFunctionAlgebraElement_elementary(classical.SymmetricFunctionAlgebraElement_classical):
-    def frobenius(self):
+    def omega(self):
         """
         Returns the image of self under the Frobenius / omega automorphism.
 
@@ -59,8 +44,6 @@ class SymmetricFunctionAlgebraElement_elementary(classical.SymmetricFunctionAlge
             sage: e = SFAElementary(QQ)
             sage: a = e([2,1]); a
             e[2, 1]
-            sage: a.frobenius()
-            e[1, 1, 1] - e[2, 1]
             sage: a.omega()
             e[1, 1, 1] - e[2, 1]
 
@@ -68,12 +51,10 @@ class SymmetricFunctionAlgebraElement_elementary(classical.SymmetricFunctionAlge
             sage: h(e([2,1]).omega())
             h[2, 1]
         """
-        base_ring = self.parent().base_ring()
-        h = sfa.SFAHomogeneous(base_ring)
-        mcs = self.monomial_coefficients()
-        res = h(0)
-        res._monomial_coefficients = mcs
-        return self.parent()(res)
+        e = self.parent()
+        h = sfa.SFAHomogeneous(e.base_ring())
+        return e( h._from_element(self) )
+
 
     def expand(self, n, alphabet='x'):
         """
@@ -89,13 +70,11 @@ class SymmetricFunctionAlgebraElement_elementary(classical.SymmetricFunctionAlge
             0
             sage: e([2]).expand(3)
             x0*x1 + x0*x2 + x1*x2
+            sage: e([3]).expand(4,alphabet='x,y,z,t')
+            x*y*z + x*y*t + x*z*t + y*z*t
+            sage: e([3]).expand(4,alphabet='y')
+            y0*y1*y2 + y0*y1*y3 + y0*y2*y3 + y1*y2*y3
         """
-        e = eval('symmetrica.compute_' + str(classical.translate[self.parent().basis_name()]).lower() + '_with_alphabet')
-        resPR = PolynomialRing(self.parent().base_ring(), n, alphabet)
-        res = resPR(0)
-        self_mc = self._monomial_coefficients
-        for part in self_mc:
-            if max(part) > n:
-                continue
-            res += self_mc[part] * e(part, n, alphabet)
-        return res
+        condition = lambda part: max(part) > n
+        return self._expand(condition, n, alphabet)
+

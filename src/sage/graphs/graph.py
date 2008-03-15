@@ -409,6 +409,29 @@ class GenericGraph(SageObject):
         else:
             raise TypeError('Multiplication of a graph and something other than an integer is not defined.')
 
+    def __ne__(self, other):
+        """
+        Tests for inequality, complement of __eq__.
+
+        EXAMPLES:
+            sage: g = Graph()
+            sage: g2 = g.copy()
+            sage: g == g
+            True
+            sage: g != g
+            False
+            sage: g2 == g
+            True
+            sage: g2 != g
+            False
+            sage: g is g
+            True
+            sage: g2 is g
+            False
+
+        """
+        return (not (self == other))
+
     def __rmul__(self, n):
         """
         Returns the sum of a graph with itself n times.

@@ -484,6 +484,27 @@ class Sequence(sage.structure.sage_object.SageObject, list):
             return True
 
 
+    def __copy__(self):
+        """
+        Return a copy of this sequence
+
+        EXAMPLES:
+            sage: s = seq(range(10))
+            sage: t = copy(s)
+            sage: t == s
+            True
+            sage: t.is_immutable == s.is_immutable
+            True
+            sage: t.is_mutable == s.is_mutable
+            True
+            sage: t.parent() == s.parent()
+            True
+
+        """
+        return Sequence(self,universe = self.__universe,
+                        check = False,
+                        immutable = self._is_immutable,
+                        cr = self.__cr_str)
 
 seq = Sequence
 

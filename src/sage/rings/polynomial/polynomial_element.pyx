@@ -1871,6 +1871,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = (x-1)^3
             sage: f.factor() # random output (unfortunately)
             (1.0*x - 1.00000859959) * (1.0*x^2 - 1.99999140041*x + 0.999991400484)
+            sage: (-2*x^2 - 1).factor()
+            (-2.0) * (1.0*x^2 + 0.5)
+            sage: (-2*x^2 - 1).factor().expand()
+            -2.0*x^2 - 1.0
 
         Note that this factorization suffers from the roots function:
             sage: f.roots() # random output (unfortunately)
@@ -2024,14 +2028,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             unit = self.leading_coefficient()
             f = (~unit)*self
             roots = f.roots(multiplicities=False)
-            assert len(roots) == self.degree()   # all roots appear with multiplicity...
+            assert len(roots) == self.degree() # all roots appear with multiplicity one
             x = self.parent().gen()
             v = [(x - a, 1) for a in roots]
             return Factorization(v, unit)
 
         elif sage.rings.real_double.is_RealDoubleField(R):
-            roots = self.change_ring(sage.rings.complex_double.CDF).roots(multiplicities=False)
-            assert len(roots) == self.degree()   # all roots appear with multiplicity...
+            roots = self.roots(sage.rings.complex_double.CDF, multiplicities=False)
+            assert len(roots) == self.degree() # all roots appear with multiplicity one
             G = [[],[]]
             real_roots = []
             non_real_roots = []
@@ -2060,7 +2064,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 a = ( z[0] + z[0].conj() ).real()
                 b = ( z[0]*(z[0].conj()) ).real()
                 G[0].append( x**2 - a*x + b )
-                G[1].append( z[1] )
+                assert z[1] % 2 == 0, "Bug in root finding code over RDF"
+                G[1].append( z[1] // 2 )
 
         elif sage.rings.complex_field.is_ComplexField(R):
             # This is a hack to make the polynomial have complex coefficients, since
@@ -3660,15 +3665,19 @@ sage: rts[0][0] == rt2
             (27*x^2 + 54, 1, -x^2 - 3*x - 9)
             sage: u*F + v*G
             27*x^2 + 54
-            sage: x.xgcd(P(0))
-            (1, 0, x)
-            sage: f = P(0)
-            sage: f.xgcd(x)
+
+            sage: g, u, v = x.xgcd(P(0)); g, u, v
+            (x, 1, 0)
+            sage: g == u*x + v*P(0)
+            True
+            sage: g, u, v = P(0).xgcd(x); g, u, v
             (x, 0, 1)
+            sage: g == u*P(0) + v*x
+            True
         """
         if other.is_zero():
             R = self.parent()
-            return R(1), R(0), self
+            return self, R(1), R(0)
         # Algorithm 3.2.2 of Cohen, GTM 138
         R = self.parent()
         A = self

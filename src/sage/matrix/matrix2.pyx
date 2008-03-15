@@ -1131,19 +1131,26 @@ cdef class Matrix(matrix1.Matrix):
     def nullity(self):
         """
         Return the nullity of this matrix, which is the dimension
-        of the kernel.
+        of the kernel of this matrix acting from the right on
+        row vectors.
 
         EXAMPLES:
-            sage: A = matrix(QQ,3,range(9))
+            sage: M = Matrix(QQ,[[1,0,0,1],[0,1,1,0],[1,1,1,0]])
+            sage: M.nullity()
+            0
+            sage: A = M.transpose()
             sage: A.nullity()
             1
-
-            sage: A = matrix(ZZ,3,range(9))
+            sage: M = M.change_ring(ZZ)
+            sage: M.nullity()
+            0
+            sage: A = M.transpose()
             sage: A.nullity()
             1
         """
-        # Use that rank + nullity = number of columns
-        return self.ncols() - self.rank()
+        # Use that rank + nullity = number of rows, since matrices act
+        # from the right on row vectors.
+        return self.nrows() - self.rank()
 
     def kernel(self, *args, **kwds):
         r"""
@@ -2378,7 +2385,7 @@ cdef class Matrix(matrix1.Matrix):
            sage: C.rank()
            2
            sage: C.nullity()
-           1
+           0
            sage: C.echelon_form()
            [ 1  0 18]
            [ 0  1  2]

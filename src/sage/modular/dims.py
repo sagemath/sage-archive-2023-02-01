@@ -63,7 +63,12 @@ def mu0(n):
 
 def mu20(n):
     r"""
-    Return value of the arithmetic function $\mu_{2,0}(n)$.
+    Return value of the arithmetic function $\mu_{2,0}(n)$,
+    where $\mu_{2,0}(n) = 0$ if $n$ is divisible by 4, and
+    $$
+     \mu_{2,0}(n) = \prod_{p|n} \left(1 + \left(\frac{-4}{p}\right)\right)
+    $$
+    otherwise.
 
     INPUT:
         n -- an integer
@@ -80,7 +85,13 @@ def mu20(n):
 
 def mu30(n):
     """
-    Return value of the arithmetic function $\mu_{3,0}(n)$.
+    Return value of the arithmetic function $\mu_{3,0}(n)$,
+    where $\mu_{3,0}(n) = 0$ if $n$ is divisible by 2 or 9,
+    and
+    $$
+     \mu_{3,0}(n) = \left(1 + \left(\frac{-3}{p}\right)\right)
+    $$
+    otherwise.
 
     INPUT:
         n -- an integer
@@ -116,7 +127,6 @@ def g0(n):
     """
     Return the genus of the modular curve $X_0(n)$.
 
-
     INPUT:
         n -- an integer
     OUTPUT:
@@ -133,7 +143,12 @@ def g0(n):
 
 def mu1(n):
     r"""
-    Return value of the combinatorial function $\mu_1(n)$.
+    Return value of the combinatorial function $\mu_1(n)$,
+    where for $n = 1,2$, $\mu_1(n) = \mu_0(n)$, and for
+    $n > 2$,
+    $$
+     \mu_{1}(n) = \frac{\phi(n) \cdot \mu_0(n)}{2}.
+    $$
 
     INPUT:
         n -- an integer
@@ -150,8 +165,8 @@ def mu1(n):
 
 def mu21(n):
     r"""
-    Return value of $\mu_{2,1}(n)$.  This equals $\mu_{2,0}(n)$ if
-    $n<4$ and equals 0 otherwise.
+    Return value of $\mu_{2,1}(n)$. By definition, this equals
+    $\mu_{2,0}(n)$ for $n<4$ and equals 0 otherwise.
 
     EXAMPLES:
         sage: [sage.modular.dims.mu21(n) for n in [1..16]]
@@ -163,8 +178,8 @@ def mu21(n):
 
 def mu31(n):
     r"""
-    Return value of $\mu_{3,1}(n)$.  This equals $\mu_{3,0}(n)$ if
-    $n<4$ and equals 0 otherwise.
+    Return value of $\mu_{3,1}(n)$. By definition, this equals
+    $\mu_{3,0}(n)$ for $n<4$ and equals 0 otherwise.
 
     EXAMPLES:
         sage: [sage.modular.dims.mu31(n) for n in [1..10]]
@@ -283,7 +298,7 @@ def S1(n,k):
     if k<=0 or (n<=2 and k%2!=0):
         return Integer(0)
     if k == 1:
-        raise ValueError, "weight 1 dimension not programmed"
+        raise NotImplementedError, "Computation of dimensions of spaces of weight 1 modular forms not implemented."
     if k==2:
         return g1(n)
     if n<=2:
@@ -339,8 +354,8 @@ def idxG1(N):
 
 def CO_delta(r,p,N,eps):
     r"""
-    Compute the function $\delta$ in the paper of Cohen and Oesterle on
-    dimension formulas.
+    This is used as an intermediate value in computations related to
+    the paper of Cohen-Oesterle.
 
     INPUT:
         r -- positive integer
@@ -380,8 +395,8 @@ def CO_delta(r,p,N,eps):
 
 def CO_nu(r, p, N, eps):
     r"""
-    The function $\nu$ from the Cohen and Oesterle paper on
-    dimension formulas.
+    This is used as an intermediate value in computations related to
+    the paper of Cohen-Oesterle.
 
     INPUT:
         r -- positive integer
@@ -1035,7 +1050,10 @@ def genus_H(H):
 
 def lambda4(k):
     """
-    Return one of the $k$th coefficient of the numbers of elliptic points in the formulas.
+    Return 0 if $k$ is odd, 3 if $k$ is divisible by 4, and -3 if $k$
+    is even but not divisible by 4.
+
+    This is used for computations of the Cohen-Oesterle formulas.
 
     INPUT:
         k -- an integer
@@ -1055,7 +1073,10 @@ def lambda4(k):
 
 def lambda3(k):
     """
-    Return one of the $k$th coefficient of the numbers of elliptic points in the formulas.
+    Return 0 if $k$ is odd, 4 if $k$ is divisible by 4, and -4 if $k$
+    is even but not divisible by 4.
+
+    This is used for computations of the Cohen-Oesterle formulas.
 
     INPUT:
         k -- an integer
@@ -1078,7 +1099,8 @@ def lambda3(k):
 ###############################################################
 def dimension_cusp_forms_H(G,k):
     r"""
-    Return the dimension of the space of weight $k$ cusp forms for the group $G = \Gamma_H$
+    Return the dimension of the space of weight $k$ cusp forms for the
+    group $G = \Gamma_H$.
 
     INPUT:
         G -- a congruence subgroup GammaH
@@ -1117,7 +1139,7 @@ def dimension_cusp_forms_H(G,k):
 def dimension_eis_H(G,k):
     r"""
     Return the dimension of the space of weight $k$ Eisenstein series
-    for the group $G = \Gamma_H$
+    for the group $G = \Gamma_H$.
 
     INPUT:
         G -- a congruence subgroup GammaH
@@ -1146,8 +1168,9 @@ def dimension_eis_H(G,k):
     return dim
 
 def dimension_new_cusp_forms_H(G,k, p=0):
-    """
-    Return the dimension of the space of new (or $p$-new) weight $k$ cusp forms for $G$.
+    r"""
+    Return the dimension of the space of new (or $p$-new) weight $k$
+    cusp forms for $G$.
 
     INPUT:
         G -- group of the form Gamma_H(N)
@@ -1238,8 +1261,8 @@ def dimension_modular_forms_fromH(chi,k):
 
 def dimension_new_cusp_forms(X, k=2, p=0):
     """
-    Return the dimension of the new (or $p$-new) subspace of
-    cusp forms for the character or group $X$.
+    Return the dimension of the new (or $p$-new) subspace of cusp
+    forms for the character or group $X$.
 
     INPUT:
         X -- integer, congruence subgroup or Dirichlet character

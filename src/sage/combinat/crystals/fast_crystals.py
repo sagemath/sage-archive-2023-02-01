@@ -50,6 +50,16 @@ class FastCrystal(ClassicalCrystal):
     D = CrystalOfSpins(['B',2])
     T = TensorProductOfCrystals(C,D,C.list()[0],D.list()[0])
 
+    The representation of elements is in term of the
+    Berenstein-Zelevinsky-Littelmann strings [a1, a2, ...]
+    described under metapost in crystals.py. Alternative
+    representations may be obtained by the options format="dual_string"
+    or format="simple". In the simple format, the element is
+    represented by and integer, and in the dual_string format,
+    it is represented by the Berenstein-Zelevinsky-Littelmann
+    string, but the underlying decomposition of the long Weyl
+    group element into simple reflections is changed.
+
     TESTS:
         sage: C = FastCrystal(['A',2],shape=[4,1])
         sage: C.count()
@@ -75,7 +85,7 @@ class FastCrystal(ClassicalCrystal):
         sage: C.check()
         True
     """
-    def __init__(self, type, shape):
+    def __init__(self, type, shape, format="string"):
         if len(shape) == 0:
             l1 = 0
         else:
@@ -126,6 +136,7 @@ class FastCrystal(ClassicalCrystal):
         else:
             raise NotImplementedError
 
+        self.format = format
         self.size = len(self.delpat)
         self._rootoperators = []
         for i in range(self.size):
@@ -172,7 +183,7 @@ class FastCrystal(ClassicalCrystal):
         self._digraph_closure = self.digraph().transitive_closure()
 
     def __call__(self, value):
-        return FastCrystalElement(self, value)
+        return FastCrystalElement(self, value, self.format)
 
     def list(self):
         return self._list
@@ -194,20 +205,32 @@ class FastCrystal(ClassicalCrystal):
 
 class FastCrystalElement(CrystalElement):
 
-    def __init__(self, parent, value):
+    def __init__(self, parent, value, format):
         self._parent = parent
         self.value = value
+        self.format = format
 
     def parent(self):
         return self._parent
 
     def __repr__(self):
-        return str(self._parent.delpat[self.value])
+        if self.format == "string":
+            return str(self._parent.delpat[self.value])
+        elif self.format == "dual_string":
+            return str(self._parent.gampat[self.value])
+        elif self.format == "simple":
+            return str(self.value)
+        else:
+            raise NotImplementedError
 
     def __eq__(self, other):
         return self.__class__ == other.__class__ and \
                self.parent()  == other.parent()   and \
                self.value     == other.value
+
+    def __cmp__(self, other):
+        assert self.parent() == other.parent()
+        return self.parent().cmp_elements(self, other)
 
     def e(self, i):
         assert i in self.index_set()

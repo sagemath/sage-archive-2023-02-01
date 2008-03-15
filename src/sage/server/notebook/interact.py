@@ -743,11 +743,17 @@ class Selector(InteractControl):
                 style = width
                 #if i == default:
                 #    style += self.__selected
-                lbl = lbls[i] if lbls[i] is not None else repr(vals[i])
+                if lbls[i] is None:
+                    if isinstance(vals[i], str):
+                        lbl = vals[i]
+                    else:
+                        lbl = repr(vals[i])
+                else:
+                    lbl = lbls[i]
                 if use_buttons:
                     s += "<button style='%s' value='%s' onclick='%s'>%s</button>\n"%(style, i, event, lbl)
                 else:
-                    s += "<option value='%s'>%s</option>\n"%(i, lbl)
+                    s += "<option value='%s' %s>%s</option>\n"%(i, 'selected' if i==default else '', lbl)
                 i += 1
             if use_buttons:
                 s += '</td></tr>'
@@ -1539,7 +1545,7 @@ class selector(control):
                                                        given or given as None.
             label -- (default: None); if given, this label is placed to
                                       the left of the entire button group
-            default -- integer (default: 0) position of default value in values list.
+            default -- object (default: 0) default value in values list
             nrows -- (default: None); if given determines the number
                      of rows of buttons; if given buttons option below is set to True
             ncols -- (default: None); if given determines the number
@@ -1580,7 +1586,13 @@ class selector(control):
         """
         if nrows is not None or ncols is not None:
             buttons = True
-        if default is None: default=0
+        if default is None:
+            default=0
+        else:
+            try:
+                default = values.index(default)
+            except IndexError:
+                default = 0
         self.__values = values
         self.__nrows = nrows
         self.__ncols = ncols

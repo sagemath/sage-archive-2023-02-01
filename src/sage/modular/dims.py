@@ -84,7 +84,7 @@ def mu20(n):
     return mul([1 + kronecker_symbol(-4,p) for p, _ in factor(n)])
 
 def mu30(n):
-    """
+    r"""
     Return value of the arithmetic function $\mu_{3,0}(n)$,
     where $\mu_{3,0}(n) = 0$ if $n$ is divisible by 2 or 9,
     and

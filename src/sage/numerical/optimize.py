@@ -167,67 +167,65 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
     a function of several variables.
 
     INPUT:
-       func - Either a symbolic function, or a python function whose argument is a tuple with n components
+       func - Either a symbolic function or a Python function whose argument is a tuple with n components
 
        x0 - Initial point for finding minimum.
 
        gradient - Optional gradient function. This will be computed automatically for symbolic functions.
 
-                  For python functions it allows the use of algorithms requiring derivatives. It should accept a tuple
-                  or arguments and return a numpy array containing the partial derivatives at that point.
+                  For Python functions, it allows the use of algorithms requiring derivatives.  It should
+                  accept a tuple of arguments and return a numpy array containing the partial derivatives
+                  at that point.
 
        hessian -  Optional hessian function. This will be computed automatically for symbolic functions.
 
-                  For python functions it allows the use of algorithms requiring derivatives. It should accept
-                  a tuple of arguments and return a numpy array containing the 2nd partial derivatives of the function.
+                  For Python functions, it allows the use of algorithms requiring derivatives. It should accept
+                  a tuple of arguments and return a numpy array containing the 2nd partial derivatives
+                  of the function.
 
        algorithm - String specifying algorithm to use. Options are
-                   "default" (for python's funcions the simplex method is the default)
+                   "default" (for Python functions, the simplex method is the default)
                              (for symbolic functions bfgs is the default)
                    "simplex"
                    "powell"
-                   "bfgs" (broyden-fletcher-goldfarb-shannon) - requires gradient
+                   "bfgs" - (broyden-fletcher-goldfarb-shannon) - requires gradient
                    "cg" - (conjugate-gradient) -requires gradient
                    "ncg" - (newton-conjugate gradient) - requires gradient and hessian
 
 
     EXAMPLES:
-       sage: vars=var('x y z')
-       sage: f=100*(y-x^2)^2+(1-x)^2+100*(z-y^2)^2+(1-y)^2
-       sage: minimize(f,[.1,.3,.4],disp=0)
-       (1.00..., 1.00..., 1.00...)
+        sage: vars=var('x y z')
+        sage: f=100*(y-x^2)^2+(1-x)^2+100*(z-y^2)^2+(1-y)^2
+        sage: minimize(f,[.1,.3,.4],disp=0)
+        (1.00..., 1.00..., 1.00...)
 
-       sage: minimize(f,[.1,.3,.4],algorithm="ncg",disp=0)
-       (0.9999999..., 0.999999..., 0.999999...)
+        sage: minimize(f,[.1,.3,.4],algorithm="ncg",disp=0)
+        (0.9999999..., 0.999999..., 0.999999...)
 
-       Same example with just python function
+      Same example with just Python functions:
 
+        sage: def rosen(x): # The Rosenbrock function
+        ...      return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
+        sage: minimize(rosen,[.1,.3,.4],disp=0)
+        (1.00..., 1.00..., 1.00...)
 
-       sage: def rosen(x): # The Rosenbrock function
-       ...      return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
-       sage: minimize(rosen,[.1,.3,.4],disp=0)
-       (1.00..., 1.00..., 1.00...)
+      Same example with a pure Python function and a Python function to compute the gradient
 
-       Same example with a pure python function and python function to compute the gradient
-
-       sage: def rosen(x): # The Rosenbrock function
-       ...      return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
-       sage: import numpy
-       sage: from numpy import zeros
-       sage: def rosen_der(x):
-       ...      xm = x[1r:-1r]
-       ...      xm_m1 = x[:-2r]
-       ...      xm_p1 = x[2r:]
-       ...      der = zeros(x.shape,dtype=float)
-       ...      der[1r:-1r] = 200r*(xm-xm_m1**2r) - 400r*(xm_p1 - xm**2r)*xm - 2r*(1r-xm)
-       ...      der[0] = -400r*x[0r]*(x[1r]-x[0r]**2r) - 2r*(1r-x[0])
-       ...      der[-1] = 200r*(x[-1r]-x[-2r]**2r)
-       ...      return der
-       sage: minimize(rosen,[.1,.3,.4],gradient=rosen_der,algorithm="bfgs",disp=0)
-       (1.00...,  1.00..., 1.00...)
-
-
-
+        sage: def rosen(x): # The Rosenbrock function
+        ...      return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
+        sage: import numpy
+        sage: from numpy import zeros
+        sage: def rosen_der(x):
+        ...      xm = x[1r:-1r]
+        ...      xm_m1 = x[:-2r]
+        ...      xm_p1 = x[2r:]
+        ...      der = zeros(x.shape,dtype=float)
+        ...      der[1r:-1r] = 200r*(xm-xm_m1**2r) - 400r*(xm_p1 - xm**2r)*xm - 2r*(1r-xm)
+        ...      der[0] = -400r*x[0r]*(x[1r]-x[0r]**2r) - 2r*(1r-x[0])
+        ...      der[-1] = 200r*(x[-1r]-x[-2r]**2r)
+        ...      return der
+        sage: minimize(rosen,[.1,.3,.4],gradient=rosen_der,algorithm="bfgs",disp=0)
+        (1.00...,  1.00..., 1.00...)
 
     """
     from sage.calculus.calculus import SymbolicExpression
@@ -269,53 +267,49 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
 
 def minimize_constrained(func,cons,x0,gradient=None, **args):
     r"""
-       INPUT:
-       func - Either a symbolic function, or a python function whose argument is a tuple with n components
+    Minimize a function with constraints.
 
-       x0 - Initial point for finding minium
+    INPUT:
+       func - Either a symbolic function, or a Python function whose argument is a tuple with n components
+
+       x0 - Initial point for finding minimum
 
        cons - constraints. This should be either a function or list of functions that must be positive.
-              Alternatively the constraints can be specified as a
-              list of intervals that define the region we are minimizing in.
+              Alternatively, the constraints can be specified as a list of intervals that define the
+              region we are minimizing in.
 
-              If the constraints are specified as  functions, the functions
-              should be functions of a tuple with n components (assuming n variables).
+              If the constraints are specified as functions, the functions should be functions of a tuple
+              with n components (assuming n variables).
 
-              If specifed as a list of intervals and there are no constraints for a given variable that component can be [None,None].
+              If the constraints are specifed as a list of intervals and there are no constraints for a given
+              variable, that component can be [None,None].
 
 
        gradient - Optional gradient function. This will be computed automatically for symbolic functions.
                   This is only used when the constraints are specified as a list of intervals.
 
       EXAMPLES:
-        Let us maximize
-        x+y-50
+        Let us maximize $x+y-50$  subject to the following constraints: $50*x+24*y<=2400$,
+        $30*x+33*y<=2100$, $x>=45$, and $y>=5$.
 
-        subject to
-        50*x+24*y<=2400
-        30*x+33*y<=2100
-        x>=45
-        y>=5
+          sage: y = var('y')
+          sage: f = lambda p: -p[0]-p[1]+50
+          sage: c_1 = lambda p: p[0]-45
+          sage: c_2 = lambda p: p[1]-5
+          sage: c_3 = lambda p: -50*p[0]-24*p[1]+2400
+          sage: c_4 = lambda p: -30*p[0]-33*p[1]+2100
+          sage: a = minimize_constrained(f,[c_1,c_2,c_3,c_4],[2,3])
+          sage: a
+          (45.0, 6.25)
 
-        sage: vars=var('y')
-        sage: f=lambda p: -p[0]-p[1]+50
-        sage: c_1=lambda p: p[0]-45
-        sage: c_2=lambda p: p[1]-5
-        sage: c_3=lambda p: -50*p[0]-24*p[1]+2400
-        sage: c_4=lambda p: -30*p[0]-33*p[1]+2100
-        sage: a=minimize_constrained(f,[c_1,c_2,c_3,c_4],[2,3])
-        sage: a
-        (45.0, 6.25)
+        Let's find a minimum of sin(x*y):
 
-        Lets us fined a minimum of sin(xy)
+          sage: x,y = var('x y')
+          sage: f = sin(x*y)
+          sage: minimize_constrained(f, [[None,None],[4,10]],[5,5])
+          (4.854..., 4.854...)
 
-        sage: vars=var('x y')
-        sage: f=sin(x*y)
-        sage: minimize_constrained(f, [[None,None],[4,10]],[5,5])
-        (4.854..., 4.854...)
-
-
-     """
+    """
     from sage.calculus.calculus import SymbolicExpression
     import scipy
     from scipy import optimize
@@ -347,59 +341,48 @@ def minimize_constrained(func,cons,x0,gradient=None, **args):
 
 def linear_program(c,G,h,A=None,b=None):
     """
-     Solves the dual linear programs
+     Solves the dual linear programs:
 
-     minimize    c'*x              maximize    -h'*z - b'*y
-     subject to  G*x + s = h       subject to  G'*z + A'*y + c = 0
-     A*x = b                       z >= 0.
-                      s >= 0
-
-    (here ' denotes transpose).
+     \begin{itemize}
+       \item Minimize  $c'*x$ subject to $G*x + s = h$, $A*x=b$, and $s>=0$ where
+       ' denotes transpose.
+       \item Maximize  $-h'*z - b'*y$ subject to $G'*z + A'*y + c = 0$ and $z>=0$.
+     \end{itemize}
 
     INPUT:
-       c - a vector
-       G - a matrix
-       h - a vector
-       A - a matrix
-       b - a vector
+        c - a vector
+        G - a matrix
+        h - a vector
+        A - a matrix
+        b - a vector
 
-       these can be over any field that can be turned to a float.
+        These can be over any field that can be turned into a floating point number.
+
     OUTPUT:
-       A dictionary sol with keys x,s,y,z corresponding to the variables above
+        A dictionary sol with keys x,s,y,z corresponding to the variables above
 
-       sol['x'] - the solution to the linear program
-       sol['s'] - the slack variables for the solution
-       sol['z'] , sol['y'] - solutions to the dual program
+        sol['x'] - the solution to the linear program
+        sol['s'] - the slack variables for the solution
+        sol['z'] , sol['y'] - solutions to the dual program
 
-    EXAMPLE:
-       To minimize
-            -4x_1 - 5x_2
-       subject to
-            2x_1 + x_2 <=3
-            x_1 +  2x_2 <=3
-            x_1 >= 0
-            x_2 >= 0
+    EXAMPLES:
+      First, we minimize $-4x_1 - 5x_2$ subject to $2x_1 + x_2 <=3$,  $x_1 +  2x_2 <=3$,
+      $x_1 >= 0$, and $x_2 >= 0$.
+        sage: c=vector(RDF,[-4,-5])
+        sage: G=matrix(RDF,[[2,1],[1,2],[-1,0],[0,-1]])
+        sage: h=vector(RDF,[3,3,0,0])
+        sage: sol=linear_program(c,G,h)
+        sage: sol['x']
+        (0.999..., 1.000...)
 
-       sage: c=vector(RDF,[-4,-5])
-       sage: G=matrix(RDF,[[2,1],[1,2],[-1,0],[0,-1]])
-       sage: h=vector(RDF,[3,3,0,0])
-       sage: sol=linear_program(c,G,h)
-       sage: sol['x']
-       (0.999..., 1.000...)
-
-       To maximize
-           x+y-50
-       subject to
-         50*x+24*y<=2400
-         30*x+33*y<=2100
-         x>=45
-         y>=5
-       sage: v=vector([-1.0,-1.0,-1.0])
-       sage: m=matrix([[50.0,24.0,0.0],[30.0,33.0,0.0],[-1.0,0.0,0.0],[0.0,-1.0,0.0],[0.0,0.0,1.0],[0.0,0.0,-1.0]])
-       sage: h=vector([2400.0,2100.0,-45.0,-5.0,1.0,-1.0])
-       sage: sol=linear_program(v,m,h)
-       sage: sol['x']
-       (45.000000..., 6.2499999...3, 1.00000000...)
+      Next, we maximize $x+y-50$ subject to $50*x+24*y<=2400$, $30*x+33*y<=2100$, $x>=45$,
+      and $y>=5$.
+        sage: v=vector([-1.0,-1.0,-1.0])
+        sage: m=matrix([[50.0,24.0,0.0],[30.0,33.0,0.0],[-1.0,0.0,0.0],[0.0,-1.0,0.0],[0.0,0.0,1.0],[0.0,0.0,-1.0]])
+        sage: h=vector([2400.0,2100.0,-45.0,-5.0,1.0,-1.0])
+        sage: sol=linear_program(v,m,h)
+        sage: sol['x']
+        (45.000000..., 6.2499999...3, 1.00000000...)
 
     """
     from cvxopt.base import matrix as m

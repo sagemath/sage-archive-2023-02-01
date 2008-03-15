@@ -2007,12 +2007,12 @@ class SymbolicExpression(RingElement):
         Compute the gradient of a symbolic function.
         This function returns a vector whose components are the
         derivatives of the original function.
-          sage: var('x y')
-          (x, y)
-          sage: f=x^2+y^2
-          sage: f.gradient()
-          (2*x, 2*y)
 
+        EXAMPLES:
+            sage: x,y = var('x y')
+            sage: f = x^2+y^2
+            sage: f.gradient()
+            (2*x, 2*y)
         """
 
         from sage.modules.free_module_element import vector
@@ -2025,12 +2025,11 @@ class SymbolicExpression(RingElement):
         components are the 2nd partial derivatives of the original function.
 
         EXAMPLES:
-          sage: var('x y')
-          (x, y)
-          sage: f=x^2+y^2
-          sage: f.hessian()
-          [2 0]
-          [0 2]
+            sage: x,y = var('x y')
+            sage: f = x^2+y^2
+            sage: f.hessian()
+            [2 0]
+            [0 2]
 
         """
 

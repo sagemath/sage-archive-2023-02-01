@@ -30,7 +30,10 @@ from hecke_operator             import HeckeOperator
 from torsion_subgroup           import TorsionSubgroup
 from finite_subgroup            import FiniteSubgroup_gens
 from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup
-from sage.rings.all             import ZZ, QQ, QQbar, is_Field
+from sage.rings.all             import ZZ, QQ, QQbar, is_Ring, LCM
+from sage.modules.all           import is_FreeModule
+from sage.modular.congroup      import is_CongruenceSubgroup
+from sage.modular.modsym.all    import ModularSymbols
 
 import homology
 import homspace
@@ -57,21 +60,65 @@ def is_ModularAbelianVariety(x):
     return isinstance(x, ModularAbelianVariety)
 
 class ModularAbelianVariety(ParentWithBase):
-    """
-    A modular abelian variety.
-    """
-    def __init__(self, level, base_field):
-        """
+    def __init__(self, levels, lattice, base_field, check=True):
+        r"""
         Create a modular abelian variety with given level and base field.
+
+        INPUT:
+            levels -- a tuple of congruence subgroups
+            lattice -- a full lattice in $\ZZ^n$, where $n$ is the sum of
+                       the dimensions of the spaces of cuspidal modular
+                       symbols corresponding to each $\Gamma \in$ levels
+            base_field -- a field
 
         EXAMPLES:
             sage: J0(23)
             Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
         """
-        self.__level = level
-        if not is_Field(base_field):
+        if check:
+            if not isinstance(levels, tuple):
+                raise TypeError, "levels must be a tuple"
+            for G in levels:
+                if not is_CongruenceSubgroup(G):
+                    raise TypeError, "each element of levels must be a congruence subgroup"
+        self.__levels = levels
+
+        if check:
+            n = self._ambient_dimension()
+            if not is_FreeModule(lattice):
+                raise TypeError, "lattice must be a free module"
+            if lattice.base_ring() != ZZ:
+                raise TypeError, "lattice must be over ZZ"
+            if lattice.degree() != n:
+                raise ValueError, "lattice must have degree n (=%s)"%n
+            if not lattice.saturation().is_submodule(lattice):  # potentially expensive
+                raise ValueError, "lattice must be full"
+        self.__lattice = lattice
+
+        if not is_Ring(base_field) and base_field.is_field():
             raise TypeError, "base_field must be a field"
+
         ParentWithBase.__init__(self, base_field)
+
+    def _ambient_dimension(self):
+        try:
+            return self.__ambient_dimension
+        except AttributeError:
+            self.__ambient_dimension = sum([S.dimension() for S in self._ambient_modular_symbols_spaces()])
+            return self.__ambient_dimension
+
+    def _ambient_modular_symbols_spaces(self):
+        try:
+            return self.__ambient_modular_symbols_spaces
+        except AttributeError:
+            self.__ambient_modular_symbols_spaces = tuple([ModularSymbols(G).cuspidal_subspace() for G in self.levels()])
+            return self.__ambient_modular_symbols_spaces
+
+    def levels(self):
+        return self.__levels
+
+    def lattice(self):
+        return self.__lattice
 
     def _repr_(self):
         """
@@ -85,7 +132,9 @@ class ModularAbelianVariety(ParentWithBase):
             sage: abvar.ModularAbelianVariety._repr_(A)
             'Modular abelian variety of level 23 over Rational Field'
         """
-        return "Modular abelian variety of level %s over %s"%(self.__level, self.base_ring())
+        return "Modular abelian variety of level %s over %s defined by the lattice\n:%s"%(
+            self.levels(), self.base_field(), self.lattice())
+        #return "Modular abelian variety of level %s over %s"%(self.__level, self.base_ring())
 
     def _rational_homology_space(self):
         """
@@ -147,6 +196,7 @@ class ModularAbelianVariety(ParentWithBase):
 
     def level(self):
         """
+        TODO: Rewrite
         Return the level of this modular abelian variety, which is an integer
         N (usually minimal) such that this modular abelian variety is a quotient
         of $J_1(N)$.
@@ -157,7 +207,11 @@ class ModularAbelianVariety(ParentWithBase):
             sage: JH(389,[4]).level()
             389
         """
-        return self.__level
+        try:
+            return self.__level
+        except AttributeError:
+            self.__level = LCM([G.level() for G in self.levels()])
+            return self.__level
 
     def base_field(self):
         r"""

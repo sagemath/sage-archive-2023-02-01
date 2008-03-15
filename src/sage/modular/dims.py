@@ -89,7 +89,7 @@ def mu30(n):
     where $\mu_{3,0}(n) = 0$ if $n$ is divisible by 2 or 9,
     and
     $$
-     \mu_{3,0}(n) = \left(1 + \left(\frac{-3}{p}\right)\right)
+     \mu_{3,0}(n) = \prod_{p|n} \left(1 + \left(\frac{-3}{p}\right)\right)
     $$
     otherwise.
 

@@ -780,31 +780,34 @@ cdef class Matrix(matrix0.Matrix):
 
         AUTHOR:
             -- Jaap Spies (2006-02-18)
+            -- didier deshommes: some pyrex speedups implemented
         """
-        if not isinstance(rows, list):
+        if not PY_TYPE_CHECK(rows, list):
             raise TypeError, "rows must be a list of integers"
-        if not isinstance(columns, list):
+        if not PY_TYPE_CHECK(columns, list):
             raise TypeError, "columns must be a list of integers"
+
         cdef Matrix A
-        A = self.new_matrix(nrows = len(rows), ncols = len(columns))
+        cdef Py_ssize_t nrows, ncols,k,r,i,j
+
         r = 0
-        c = len(columns)
-        tmp = []
-        for j in columns:
-            if j >= 0 and j < self.ncols():
-                tmp.append(int(j))
+        ncols = PyList_GET_SIZE(columns)
+        nrows = PyList_GET_SIZE(rows)
+        A = self.new_matrix(nrows = nrows, ncols = ncols)
+
+        tmp = [el for el in columns if el >= 0 and el < self._ncols]
         columns = tmp
-        if c != len(columns):
+        if ncols != PyList_GET_SIZE(columns):
             raise IndexError, "column index out of range"
-        for i in rows:
-            i = int(i)
-            if i < 0 or i >= self.nrows():
+
+        for i from 0 <= i < nrows:
+            if rows[i] < 0 or rows[i] >= self._nrows:
                 raise IndexError, "row %s out of range"%i
             k = 0
-            for j in columns:
-                A.set_unsafe(r,k, self.get_unsafe(i,j))
-                k = k + 1
-            r = r + 1
+            for j from 0 <= j < ncols:
+                A.set_unsafe(r,k, self.get_unsafe(rows[i],columns[j]))
+                k += 1
+            r += 1
         return A
 
     def submatrix(self, Py_ssize_t row=0, Py_ssize_t col=0,

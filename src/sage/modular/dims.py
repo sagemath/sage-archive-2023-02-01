@@ -17,6 +17,12 @@ ACKNOWLEDGEMENT:
     Jordi Quer.
 
 The formulas here are more complete than in Hecke or Magma.
+
+Currently the input to each function below is an integer and either a
+Dirichlet character $\eps$ or a congruence subgroup, which must be
+either $\Gamma_0(N)$ or $\Gamma_1(N)$.  If the input is a Dirichlet
+character $\eps$, the dimensions are for subspaces of
+$M_k(\Gamma_1(N), \eps)$, where $N$ is the modulus of $\eps$.
 """
 
 ##########################################################################

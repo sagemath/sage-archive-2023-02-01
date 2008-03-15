@@ -13,7 +13,7 @@ ACKNOWLEDGEMENT:
     Also, the functions for dimensions of spaces with nontrivial
     character are based on a paper (that has no proofs) by Cohen and
     Oesterle (Springer Lecture notes in math, volume 627, pages
-    69--78).  The formulas for GammaH(N) were found and implemented by
+    69--78).  The formulas for $\Gamma_H(N)$ were found and implemented by
     Jordi Quer.
 
 The formulas here are more complete than in Hecke or Magma.
@@ -338,15 +338,15 @@ def idxG1(N):
 #    Buzzard, are used only by the function CohenOesterle.
 
 def CO_delta(r,p,N,eps):
-    """
-    Compute the delta function in the paper of Cohen and Oesterle on
+    r"""
+    Compute the function $\delta$ in the paper of Cohen and Oesterle on
     dimension formulas.
 
     INPUT:
         r -- positive integer
         p -- a prime
         N -- positive integer
-        eps -- character
+        $\epsilon$ -- character
 
     OUTPUT:
         element of the base ring of the character
@@ -379,8 +379,8 @@ def CO_delta(r,p,N,eps):
     return K(0)
 
 def CO_nu(r, p, N, eps):
-    """
-    The function nu from the Cohen and Oesterle paper on
+    r"""
+    The function $\nu$ from the Cohen and Oesterle paper on
     dimension formulas.
 
     INPUT:
@@ -419,7 +419,7 @@ def CohenOesterle(eps, k):
     r"""
     Compute the Cohen-Oesterle function associate to eps, $k$.  This is
     a summand in the formula for the dimension of the space of cusp
-    forms of weight $2$ with character $\epsilon.
+    forms of weight $2$ with character $\epsilon$.
 
     INPUT:
         eps -- Dirichlet character
@@ -475,13 +475,13 @@ def CohenOesterle(eps, k):
                 mu_k    * mul([CO_nu(r,p,N,eps)            for p, r in facN]))
 
 def dimension_cusp_forms_eps(eps, k=2):
-    """
-    The dimension of the space of cusp forms of weight k and character
-    eps.
+    r"""
+    The dimension of the space of cusp forms of weight $k$ and character
+    $\epsilon$.
 
     INPUT:
-        eps -- a Dirichlet character
-        k -- integer, a weight >= 2.
+        $\epsilon$ -- a Dirichlet character
+        k -- integer, a weight $\geq 2$.
 
     OUTPUT:
         integer -- the dimension
@@ -668,7 +668,7 @@ def mumu(N):
 
 def dimension_new_cusp_forms_gamma0(N, k=2, p=0):
     r"""
-    Dimension of the p-new subspace of $S_k(\Gamma_0(N))$.
+    Dimension of the $p$-new subspace of $S_k(\Gamma_0(N))$.
     If $p=0$, dimension of the new subspace.
 
     INPUT:
@@ -738,13 +738,13 @@ def dimension_new_cusp_forms_gamma1(N,k=2,p=0):
 def dimension_new_cusp_forms_group(group, k=2, p=0):
     """
     Return the dimension of the new space of cusp forms for the
-    congruence subgroup group.  If p is given, return the
-    p-new subspace.
+    congruence subgroup group.  If $p$ is given, return the
+    $p$-new subspace.
 
     INPUT:
         group -- a congruence subgroup
-        k -- an integer (ddefault: 2)
-        p -- a prime (default: 0); just the p-new subspace if given
+        k -- an integer (default: 2)
+        p -- a prime (default: 0); just the $p$-new subspace if given
 
     OUTPUT:
         Integer
@@ -777,14 +777,14 @@ def dimension_new_cusp_forms_group(group, k=2, p=0):
 
 
 def dimension_new_cusp_forms_eps(eps, k=2, p=0):
-    """
-    Dimension of the new subspace (or p-new subspace) of cusp forms of
-    weight k and character eps.
+    r"""
+    Dimension of the new subspace (or $p$-new subspace) of cusp forms of
+    weight $k$ and character $\epsilon$.
 
     INPUT:
         eps -- a Dirichlet character
         k -- an integer (ddefault: 2)
-        p -- a prime (default: 0); just the p-new subspace if given
+        p -- a prime (default: 0); just the $p$-new subspace if given
 
     OUTPUT:
         Integer
@@ -858,7 +858,7 @@ def muH(N,H):
 
     INPUT:
         N -- an integer
-        H -- list of elements in ZZ of a subgroup of (Z/NZ)*
+        H -- list of elements in $\ZZ$ of a subgroup of $(\ZZ/N\ZZ)^*$
 
     OUTPUT:
         Integer
@@ -879,7 +879,7 @@ def nu2H(N,H):
 
     INPUT:
         N -- an integer
-        H -- list of elements in ZZ of a subgroup of (Z/NZ)*
+        H -- list of elements in $\ZZ$ of a subgroup of $(\ZZ/N\ZZ)^*$
 
     OUTPUT:
         Integer
@@ -903,7 +903,7 @@ def nu3H(N,H):
 
     INPUT:
         N -- an integer
-        H -- list of elements in ZZ of a subgroup of (Z/NZ)*
+        H -- list of elements in $\ZZ$ of a subgroup of $(\ZZ/N\ZZ)^*$
 
     OUTPUT:
         Integer
@@ -929,7 +929,7 @@ def nuinfH(N,H):
 
     INPUT:
         N -- an integer
-        H -- list of elements in ZZ of a subgroup of (Z/NZ)*
+        H -- list of elements in $\ZZ$ of a subgroup of $(\ZZ/N\ZZ)^*$
 
     OUTPUT:
         Integer
@@ -959,7 +959,7 @@ def nuinfHreg(N,H):
 
     INPUT:
         N -- an integer
-        H -- list of elements in ZZ of a subgroup of (Z/NZ)*
+        H -- list of elements in $\ZZ$ of a subgroup of $(\ZZ/N\ZZ)^*$
     OUTPUT:
         Integer
 
@@ -990,7 +990,7 @@ def gH(N,H):
 
     INPUT:
         N -- an integer
-        H -- list of elements in ZZ of a subgroup of (Z/NZ)*
+        H -- list of elements in $\ZZ$ of a subgroup of $(\ZZ/N\ZZ)^*$
     OUTPUT:
         Integer
 
@@ -1014,12 +1014,12 @@ def gH(N,H):
     return (Integer(12) + muH(N,H) - Integer(3)*nu2H(N,H) - Integer(4)*nu3H(N,H) - Integer(6)*nuinfH(N,H))//Integer(12)
 
 def genus_H(H):
-    """
+    r"""
     Return the genus of the modular curve $X_H(N)$, where $H$ is a
-    congruence subgroup of the form GammaH(N).
+    congruence subgroup of the form $\Gamma_H(N)$.
 
     INPUT:
-        H -- a congruence subgroup GammaH(N).
+        H -- a congruence subgroup $\Gamma_H(N)$
     OUTPUT:
         Integer
 
@@ -1152,7 +1152,7 @@ def dimension_new_cusp_forms_H(G,k, p=0):
     INPUT:
         G -- group of the form Gamma_H(N)
         k -- an integer at least 2 (the weight)
-        p -- integer (default: 0); if nonzero, compute the p-new subspace.
+        p -- integer (default: 0); if nonzero, compute the $p$-new subspace.
 
     OUTPUT:
         Integer
@@ -1238,8 +1238,8 @@ def dimension_modular_forms_fromH(chi,k):
 
 def dimension_new_cusp_forms(X, k=2, p=0):
     """
-    Return the dimension of the new (or p-new) subspace of
-    cusp forms for the character or group X.
+    Return the dimension of the new (or $p$-new) subspace of
+    cusp forms for the character or group $X$.
 
     INPUT:
         X -- integer, congruence subgroup or Dirichlet character
@@ -1513,15 +1513,16 @@ def sturm_bound(level, weight):
         sage: sturm_bound(1,36)
         3
 
-    FURTHER DETAILS: Returns a positive integer~$n$ such that the
-    Hecke operators $T_1,\ldots, T_n$ acting on \emph{cusp forms}
-    generate the Hecke algebra as a $\Z$-module when the character is
-    trivial or quadratic.  Otherwise, $T_1,\ldots,T_n$ generate the
-    Hecke algebra at least as a $\Z[\eps]$-module, where $\Z[\eps]$ is
-    the ring generated by the values of the Dirichlet character
-    $\eps$.  Alternatively, this is a bound such that if two cusp
-    forms associated to this space of modular symbols are congruent
-    modulo $(\lambda, q^n)$, then they are congruent modulo $\lambda$.
+    FURTHER DETAILS: This function returns a positive integer~$n$ such
+    that the Hecke operators $T_1,\ldots, T_n$ acting on \emph{cusp
+    forms} generate the Hecke algebra as a $\Z$-module when the
+    character is trivial or quadratic.  Otherwise, $T_1,\ldots,T_n$
+    generate the Hecke algebra at least as a $\Z[\eps]$-module, where
+    $\Z[\eps]$ is the ring generated by the values of the Dirichlet
+    character $\eps$.  Alternatively, this is a bound such that if two
+    cusp forms associated to this space of modular symbols are
+    congruent modulo $(\lambda, q^n)$, then they are congruent modulo
+    $\lambda$.
 
     REFERENCES:
     See the Agashe-Stein appendix to Lario and Schoof, \emph{Some

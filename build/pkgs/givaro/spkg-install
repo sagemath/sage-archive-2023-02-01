@@ -1,11 +1,18 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-# patch
-cp patches/givgfq.inl src/src/kernel/zpz/
-cp patches/givgfq.h src/src/kernel/zpz/
-cp patches/givpoly1factor.h src/src/library/poly1/
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 cd src
+
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel"
+   CFLAGS="-O2 -g -m64 "; export CFLAGS
+   CPPFLAGS="-O2 -g -m64 "; export CPPFLAGS
+fi
 
 CFLAGS="$CFLAGS -fPIC -I\"$SAGE_LOCAL/include\""
 CXXFLAGS="$CXXFLAGS -fPIC -I\"$SAGE_LOCAL/include\""

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+    echo "SAGE_LOCAL undefined ... exiting";
+    exit 1
+fi
+
+cd src
+make check
+
+if [ $? -ne 0 ]; then
+    echo "Error while running the R testsuite ... exiting"
+    exit 1
+fi
+

@@ -1,32 +1,50 @@
 = givaro =
 
-== ToDo ==
+== Description ==
 
- * Remove extra patches from repo
- * use clean, vanilla sources
+Givaro is a C++ library for arithmetic and algebraic computations. Its main features are implementations of the basic arithmetic of many mathematical entities: Primes fields, Extensions Fields, Finite Fields, Finite Rings, Polynomials, Algebraic numbers, Arbitrary precision integers and rationals (C++ wrappers over gmp) It also provides data-structures and templated classes for the manipulation of basic algebraic objects, such as vectors, matrices (dense, sparse, structured), univariate polynomials (and therefore recursive multivariate).
+
+Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
+
+== License ==
+ * GPL
+
+== Upstream Contact ==
+ * Clement Pernet
+
+== Dependencies ==
+ * gmp
 
 == Maintainers  ==
   * Martin Albrecht
   * Clement Pernet
+  * Martin Albrecht <malb@informatik.uni-bremen.de>
+
+=== givaro-3.2.10.rc3 (Michael Abshoff, March 15th, 2008) ===
+  * update to upstream 3.2.10.rc3
+  * add 64 bit OSX 10.5 support
+  * remove all patches since they were integrated upstream
+  * add spkg-check
 
 === givaro-3.2.10 (Clement Pernet, March 2nd, 2008)  ===
   * Updated to upstream 3.2.10
   * removed most patches
+  * Note: this was based on 3.2.10.rc2
 
 === givaro-3.2.6.p5 (Michael Abshoff) ===
   * fix #1091. This copies over updated version of givintrsa.h,
     givintfactor.h and givintnumtheo.h into src/src/kernel/integer.
     I also keft the patch itself in the patches directory.
 
--- 2007-12-06:
+=== 2007-12-06 ===
   * include <cstring> in givaromm.C to fix gcc 4.3 issue
 
--- 2007-11-02 Michael Abshoff
+=== 2007-11-02 (Michael Abshoff) ===
   * apply rpw's work aorund for OSX 10.5
   * apply the same fix to givzpz32std.inl
   * add .hgignore
 
--- 2007-02-03 Martin Albrecht <malb@informatik.uni-bremen.de>
+=== 2007-02-03 (Martin Albrecht) ===
   * new upstream release: 3.2.6
   * Changes to upstream (everything else below is irrelevant):
    ./src/library/poly1/givpoly1factor.h (2006-10-21 fix)
@@ -35,26 +53,19 @@
    ./aclocal.m4 64-bit (2006-10-29 fix)
    ./src/library/poly1/givpoly1padic.h (2006-11-09 fix)
 
--- 2006-12-15 William Stein
-   I don't know why, but I had to comment out
-   Rep& amxy( Rep& r, const Rep& a, const Rep& b, const Rep& c ) const
-   { return Integer::amxy(r,a,b,c); }
-in
-   src/kernel/integer/givinteger.h
-in order to get Givaro to compile on my computer.  I'm guessing maybe
-amxy was deprecated from the C++ stl?
+=== 2006-12-15 William Stein ===
+   * I don't know why, but I had to comment out "Rep& amxy( Rep& r, const Rep& a, const Rep& b, const Rep& c ) const { return Integer::amxy(r,a,b,c); }" in src/kernel/integer/givinteger.h in order to get Givaro to compile on my computer.  I'm guessing maybe amxy was deprecated from the C++ stl?
 
--- 2006-12-10 Martin Albrecht <malb@informatik.uni-bremen.de>
+=== 2006-12-10 (Martin Albrecht) ===
  * delete[] not delete where new[] in GivaroMM
 
--- 2006-11-09 Martin Albrecht <malb@informatik.uni-bremen.de>
- * GCC 4.0.0 on OSX PPC boxes doesn't seem to like "using Poly1Dom<Domain,Dense>::_domain" so we work around this
-   in givpoly1padic.h
+=== 2006-11-09 (Martin Albrecht) ===
+ * GCC 4.0.0 on OSX PPC boxes doesn't seem to like "using Poly1Dom<Domain,Dense>::_domain" so we work around this in givpoly1padic.h
 
--- 2006-10-29 Martin Albrecht <malb@informatik.uni-bremen.de>
-  * replaced macro AC_LIBTOOL_SYS_DYNAMIC_LINKER with same macro from libtool 1.5.23a in aclocal.m4 to fix build
-     on x86-64 systems as suggested by Kate Minola
+=== 2006-10-29 (Martin Albrecht) ===
+  * replaced macro AC_LIBTOOL_SYS_DYNAMIC_LINKER with same macro from libtool 1.5.23a in aclocal.m4 to fix build on x86-64 systems as suggested by Kate Minola
 
--- 2006-10-21 Martin Albrecht <malb@informatik.uni-bremen.de>
+=== 2006-10-21 (Martin Albrecht) ===
  * ported constructor with modulus parameter from linbox to givaro
  * added sage_generator() which returns the generator == cardinality if interpreted as an integer not a random one
+

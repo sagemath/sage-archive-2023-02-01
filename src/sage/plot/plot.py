@@ -3305,6 +3305,13 @@ class PlotFactory(GraphicPrimitiveFactory):
         80
         sage: P          # render
 
+    We plot with randomize=False, which makes the initial sample
+    points evenly spaced (hence always the same).  Adaptive plotting
+    might insert other points, however.
+        sage: p = plot(sin,-1,1,plot_points=3,plot_division=0,randomize=False)
+        sage: p[0][1][0]
+        -0.66666666666666...
+
     Some colored functions:
 
         sage: plot(sin, 0, 10, rgbcolor='#ff00ff')
@@ -3395,7 +3402,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         return G
 
     def _call(self, funcs, xrange, parametric=False,
-              polar=False, label='', **kwds):
+              polar=False, label='', randomize=True, **kwds):
         options = dict(self.options)
         if kwds.has_key('color') and not kwds.has_key('rgbcolor'):
             kwds['rgbcolor'] = kwds['color']
@@ -3439,9 +3446,11 @@ class PlotFactory(GraphicPrimitiveFactory):
         exceptions = 0; msg=''
         for i in range(plot_points):
             xi = xmin + i*delta
-            # Slightly randomize points except for the first and last
+            # Slightly randomize the interior sample points if
+            # randomize is true
             if i > 0 and i < plot_points-1:
-                xi += delta*random.random()
+                if randomize:
+                    xi += delta*random.random()
                 if xi > xmax:
                     xi = xmax
             elif i == plot_points-1:
@@ -3462,7 +3471,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         del options['plot_division']
         while i < len(data) - 1:
             if abs(data[i+1][1] - data[i][1]) > max_bend:
-                x = (data[i+1][0] + data[i][0])/2
+                x = float((data[i+1][0] + data[i][0])/2)
                 try:
                     y = float(f(x))
                     data.insert(i+1, (x, y))

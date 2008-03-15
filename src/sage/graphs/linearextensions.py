@@ -5,7 +5,6 @@
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import networkx as NX
 import sys
 
 class GenerateLinearExtensionsStruct:
@@ -52,8 +51,7 @@ def Move(element, gles, direction):
 
 
 def incomparable(x, y, dag):
-   if (not NX.path.shortest_path(dag, x, y)) and (not
-NX.path.shortest_path(dag, y, x)):
+   if (not dag.shortest_path(x, y)) and (not dag.shortest_path(y, x)):
        return True
    return False
 
@@ -133,15 +131,15 @@ def linearExtensions(dag):
    le = []
    a  = []
    b  = []
-   while dagCopy.number_of_nodes() != 0:
+   while dagCopy.num_verts() != 0:
        #Find all the minimal elements of dagCopy
        minimalElements = []
-       for node in dagCopy.nodes():
-           if len(dagCopy.in_edges(node)) == 0:
+       for node in dagCopy.vertices():
+           if len(dagCopy.incoming_edges(node)) == 0:
                minimalElements.append(node)
        if len(minimalElements) == 1:
            le.append(minimalElements[0])
-           dagCopy.delete_node(minimalElements[0])
+           dagCopy.delete_vertex(minimalElements[0])
        else:
            ap = minimalElements[0]
            bp = minimalElements[1]
@@ -149,8 +147,8 @@ def linearExtensions(dag):
            b.append(bp)
            le.append(ap)
            le.append(bp)
-           dagCopy.delete_node(ap)
-           dagCopy.delete_node(bp)
+           dagCopy.delete_vertex(ap)
+           dagCopy.delete_vertex(bp)
    maxPair = len(a) - 1
 
    gles = GenerateLinearExtensionsStruct(le, a, b, dag)

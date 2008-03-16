@@ -34,8 +34,8 @@ Set timeout to 30 seconds so it will not hang the doctests indefinitely.
     10
     sage: t = DistributedFunctionTest(d, 5) # long time
     sage: t.wait(timeout=60) # long time
-    sage: t.done
+    sage: t.done # long time
     True
-    sage: t.result
+    sage: t.result # long time
     15
 """

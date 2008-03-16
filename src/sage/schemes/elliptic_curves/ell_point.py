@@ -738,7 +738,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
                 plist = M.prime_divisors()
                 E._prime_factors_of_order = plist
             else:
-                M = self._bsgs(E(0),1,ub)
+                M = self._bsgs(E(0),lb,ub)
                 plist = M.prime_divisors()
 
         # Now M is a multiple of the order and plist is a list of

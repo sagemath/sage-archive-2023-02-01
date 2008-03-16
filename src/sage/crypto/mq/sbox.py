@@ -4,7 +4,7 @@ S-Boxes
 A substitution box or S-box is one of the basic components of
 symmetric key cryptography. In general, an S-box takes $m$ input bits
 and transforms them into some $n$ output bits. This is then called an
-$m×n$ S-box and is often implemented as a lookup table. These S-boxes
+$mxn$ S-box and is often implemented as a lookup table. These S-boxes
 are carefully chosen to resist linear and differential cryptanalysis.
 
 This module implements an S-box class which allows an algebraic

@@ -46,6 +46,23 @@ class Animation(SageObject):
         Animation with 5 frames
         sage: a.show()          # optional
         sage: a[:5].show()      # optional
+
+    We draw an animation of drawing a parabola:
+        sage: step = 0.1
+        sage: L = Graphics()
+        sage: v = []
+        sage: for i in srange(0,1,step):
+        ...       L += line([(i,i^2),(i+step,(i+step)^2)], rgbcolor=(1,0,0), thickness=2)
+        ...       v.append(L)
+        ...
+        sage: a = animate(v, xmin=0, ymin=0)
+        sage: a.show()
+        sage: show(L)
+
+    TESTS:
+    This illustrates ticket \#2066 is fixed (setting axes ranges when an endpoint is 0):
+        sage: animate(plot(sin, -1,1), xmin=0, ymin=0)._Animation__xmin
+        0
     """
     def __init__(self, v,
                  xmin=None, xmax=None, ymin=None, ymax=None,
@@ -53,19 +70,23 @@ class Animation(SageObject):
         w = []
         for x in v:
             if not isinstance(x, plot.Graphics):
-                x = plot.plot(x, xmin=xmin, xmax=xmax)
+                if xmin is None:
+                    xmin = 0
+                if xmax is None:
+                    xmax = 1
+                x = plot.plot(x, (xmin, xmax))
             w.append(x)
         if len(w) == 0:
             w = [plot.Graphics()]
         self.__frames = w
         G = w[0]
-        if not xmin:
+        if xmin is None:
             xmin = G.xmin()
-        if not xmax:
+        if xmax is None:
             xmax = G.xmax()
-        if not ymin:
+        if ymin is None:
             ymin = G.ymin()
-        if not ymax:
+        if ymax is None:
             ymax = G.ymax()
         self.__xmin = xmin
         self.__xmax = xmax
@@ -227,12 +248,12 @@ class Animation(SageObject):
             sage: a.show()        # optional
 
             sage: g = a.graphics_array() # optional
-            sage: g # optional
+            sage: print g # optional
             Graphics Array of size 1 x 3
             sage: g.show(figsize=[4,1]) # optional
 
             sage: g = a.graphics_array(ncols=2) # optional
-            sage: g # optional
+            sage: print g # optional
             Graphics Array of size 2 x 2
             sage: g.show('sage.png')         # optional
         """

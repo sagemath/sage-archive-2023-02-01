@@ -97,6 +97,15 @@ IR = rings.RealIntervalField(20)
 
 _MAX_HEIGHT=21
 
+# CMJ is a dict of pairs (j,D) where j is a rational CM j-invariant
+# and D is the corresponding quadratic discriminant
+
+CMJ={ 0: -3, 54000: -12, -12288000: -27, 1728: -4, 287496: -16,
+      -3375: -7, 16581375: -28, 8000: -8, -32768: -11, -884736: -19,
+      -884736000: -43, -147197952000: -67, -262537412640768000: -163}
+
+
+
 class EllipticCurve_rational_field(EllipticCurve_number_field):
     """
     Elliptic curve over the Rational Field.
@@ -123,23 +132,144 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             raise TypeError, "Base field (=%s) must be the Rational Field."%self.base_ring()
 
     def _set_rank(self, r):
+        """
+        Internal function to set the cached rank of this elliptic curve to r.
+
+        WARNING:  No checking is done!  Not intended for use by users.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E._set_rank(99)  # bogus value -- not checked
+            sage: E.rank()         # returns bogus cached value
+            99
+            sage: E.gens()         # causes actual rank to be computed
+            [(0 : -1 : 1)]
+            sage: E.rank()         # the correct rank
+            1
+        """
         self.__rank = {}
         self.__rank[True] = Integer(r)
+
     def _set_torsion_order(self, t):
+        """
+        Internal function to set the cached torsion order of this elliptic curve to t.
+
+        WARNING:  No checking is done!  Not intended for use by users.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E._set_torsion_order(99)  # bogus value -- not checked
+            sage: E.torsion_order()         # returns bogus cached value
+            99
+            sage: T = E.torsion_subgroup()  # causes actual torsion to be computed
+            sage: E.torsion_order()         # the correct value
+            1
+        """
         self.__torsion_order = Integer(t)
+
     def _set_cremona_label(self, L):
+        """
+        Internal function to set the cached label of this elliptic curve to L.
+
+        WARNING:  No checking is done!  Not intended for use by users.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E._set_cremona_label('bogus')
+            sage: E.label()
+            'bogus'
+            sage: E.database_curve().label()
+            '37a1'
+            sage: E.label() # no change
+            'bogus'
+            sage: E._set_cremona_label(E.database_curve().label())
+            sage: E.label() # now it is correct
+            '37a1'
+        """
         self.__cremona_label = L
+
     def _set_conductor(self, N):
+        """
+        Internal function to set the cached conductor of this elliptic curve to N.
+
+        WARNING: No checking is done!  Not intended for use by users.
+        Setting to the wrong value will cause strange problems (see
+        examples).
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E._set_conductor(99)      # bogus value -- not checked
+            sage: E.conductor()             # returns bogus cached value
+            99
+
+        This will not work since the conductor is used when searching
+        the database:
+            sage: E._set_conductor(E.database_curve().conductor())
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Elliptic curve ... not in the database.
+            sage: E._set_conductor(EllipticCurve(E.a_invariants()).database_curve().conductor())
+            sage: E.conductor()             # returns correct value
+            37
+        """
         self.__conductor_pari = Integer(N)
+
     def _set_modular_degree(self, deg):
+        """
+        Internal function to set the cached modular degree of this elliptic curve to deg.
+
+        WARNING:  No checking is done!
+
+        EXAMPLES:
+            sage: E=EllipticCurve('5077a1')
+            sage: E.modular_degree()
+            1984
+            sage: E._set_modular_degree(123456789)
+            sage: E.modular_degree()
+            123456789
+            sage: E._set_modular_degree(E.database_curve().modular_degree())
+            sage: E.modular_degree()
+            1984
+        """
         self.__modular_degree = Integer(deg)
 
     def _set_gens(self, gens):
+        """
+        Internal function to set the cached generators of this elliptic curve to gens.
+
+        WARNING:  No checking is done!
+
+        EXAMPLES:
+            sage: E=EllipticCurve('5077a1')
+            sage: E.rank()
+            3
+            sage: E.gens() # random
+            [(-2 : 3 : 1), (-7/4 : 25/8 : 1), (1 : -1 : 1)]
+            sage: E._set_gens([]) # bogus list
+            sage: E.rank()        # unchanged
+            3
+            sage: E._set_gens(E.database_curve().gens())
+            sage: E.gens()
+            [(-2 : 3 : 1), (-7/4 : 25/8 : 1), (1 : -1 : 1)]
+        """
         self.__gens = {}
         self.__gens[True] = [self.point(x, check=True) for x in gens]
         self.__gens[True].sort()
 
     def is_integral(self):
+        """
+        Returns True if this elliptic curve has integral coefficients (in Z)
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1]); E
+            Elliptic Curve defined by y^2  = x^3 + x +1 over Rational Field
+            sage: E.is_integral()
+            True
+            sage: E2=E.change_weierstrass_model(2,0,0,0); E2
+            Elliptic Curve defined by y^2  = x^3 + 1/16*x + 1/64 over Rational Field
+            sage: E2.is_integral()
+            False
+         """
         try:
             return self.__is_integral
         except AttributeError:
@@ -159,6 +289,41 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         OUTPUT:
             string -- output of mwrank on this curve
+
+        NOTE: The output is a raw string and completely illegible
+            using automatic display, so it is recommended to use print
+            for legible outout
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a1')
+            sage: E.mwrank() #random
+            ...
+            sage: print E.mwrank()
+            Curve [0,0,1,-1,0] :        Basic pair: I=48, J=-432
+            disc=255744
+            ...
+            Generator 1 is [0:-1:1]; height 0.05111...
+            <BLANKLINE>
+            Regulator = 0.05111...
+            <BLANKLINE>
+            The rank and full Mordell-Weil basis have been determined unconditionally.
+            ...
+
+        Options to mwrank can be passed:
+            sage: E = EllipticCurve([0,0,0,877,0])
+
+        Run mwrank with 'verbose' flag set to 0 but list generators if found
+            sage: print E.mwrank('-v0 -l')
+            Curve [0,0,0,877,0] :   0 <= rank <= 1
+            Regulator = 1
+
+        Run mwrank again, this time with a higher bound for point
+        searching on homogeneous spaces:
+
+            sage: print E.mwrank('-v0 -l -b11')
+            Curve [0,0,0,877,0] :   Rank = 1
+            Generator 1 is [29604565304828237474403861024284371796799791624792913256602210:-256256267988926809388776834045513089648669153204356603464786949:490078023219787588959802933995928925096061616470779979261000]; height 95.980371987964
+            Regulator = 95.980371987964
         """
         if options == "":
             from sage.interfaces.all import mwrank
@@ -421,6 +586,23 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     #  Access to mwrank
     ####################################################################
     def mwrank_curve(self, verbose=False):
+        """
+        Construct an mwrank_EllipticCurve from this elliptic curve
+
+        The resulting mwrank_EllipticCurve has available methods from
+        John Cremona's eclib library.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('11a1')
+            sage: EE=E.mwrank_curve()
+            sage: EE
+            y^2+ y = x^3 - x^2 - 10*x - 20
+            sage: type(EE)
+            <class 'sage.libs.mwrank.interface.mwrank_EllipticCurve'>
+            sage: EE.isogeny_class()
+            ([[0, -1, 1, -10, -20], [0, -1, 1, -7820, -263580], [0, -1, 1, 0, 0]],
+            [[0, 5, 5], [5, 0, 0], [5, 0, 0]])
+        """
         try:
             return self.__mwrank_curve
         except AttributeError:
@@ -440,6 +622,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
             verbose     -- (default: True) print what mwrank is doing
+                           If False, *no output* is
             selmer_only -- (default: False) selmer_only switch
             first_limit -- (default: 20) firstlim is bound on |x|+|z|
             second_limit-- (default: 8)  secondlim is bound on log max {|x|,|z| },
@@ -450,7 +633,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             second_descent -- (default: True) second_descent only relevant for
                            descent via 2-isogeny
         OUTPUT:
-            Nothing -- nothing is returned (though much is printed)
+
+            Nothing -- nothing is returned (though much is printed
+                                            unless verbose=False)
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E.two_descent(verbose=False) # no output
         """
         self.mwrank_curve().two_descent(verbose, selmer_only,
                                         first_limit, second_limit,
@@ -576,12 +765,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         #
 
     def q_expansion(self, prec):
-        """
-        Return the q-expansion to precision prec of the newform attached to this
-        elliptic curve.
+        r"""
+        Return the $q$-expansion to precision prec of the newform
+        attached to this elliptic curve.
 
         INPUT:
             prec -- an integer
+
+        OUTPUT:
+            a power series (in th evariable 'q')
+
+        NOTE: If you want the output to be a modular form and not just
+        a $q$-expansion, use \code{self.modular_form()}.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E.q_expansion(20)
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + 6*q^6 - q^7 + 6*q^9 + 4*q^10 - 5*q^11 - 6*q^12 - 2*q^13 + 2*q^14 + 6*q^15 - 4*q^16 - 12*q^18 + O(q^20)
+
         """
         return PowerSeriesRing(Q, 'q')(self.anlist(prec), prec, check=True)
 
@@ -594,6 +795,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: f = E.modular_form()
             sage: f
             q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + O(q^6)
+
+            If you need to see more terms in the $q$-expansion:
+            sage: f.q_expansion(20)
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + 6*q^6 - q^7 + 6*q^9 + 4*q^10 - 5*q^11 - 6*q^12 - 2*q^13 + 2*q^14 + 6*q^15 - 4*q^16 - 12*q^18 + O(q^20)
+
 
         NOTE: If you just want the $q$-expansion, use
         \code{self.q_expansion(prec)}.
@@ -663,7 +869,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 it won't be any faster.
 
         EXAMPLES:
-
+            sage: E=EllipticCurve('37a1')
+            sage: M=E.modular_symbol(); M
+            Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: M(1/2)
+            0
+            sage: M(1/5)
+            1/2
         """
         typ = (sign, normalize)
         try:
@@ -681,12 +893,26 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def newform(self):
         r"""
         Same as \code{self.modular_form()}.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E.newform()
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + O(q^6)
+            sage: E.newform() == E.modular_form()
+            True
         """
         return self.modular_form()
 
     def q_eigenform(self, prec):
         r"""
         Synonym for \code{self.q_expansion(prec)}.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E.q_eigenform(10)
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + 6*q^6 - q^7 + 6*q^9 + O(q^10)
+            sage: E.q_eigenform(10) == E.q_expansion(10)
+            True
         """
         return self.q_expansion(prec)
 
@@ -1026,14 +1252,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Compute and return generators for the Mordell-Weil group E(Q)
         *modulo* torsion.
 
-        HINT: If you would like to control the height bounds used
-        in the 2-descent, first call the two_descent function with
-        those height bounds.
+        HINT: If you would like to control the height bounds used in
+        the 2-descent, first call the two_descent function with those
+        height bounds. However that function, while it displays a lot
+        of output, returns no values.
 
-        TODO: Right now this function assumes that the input curve is
-        in minimal Weierstrass form.  This restriction will be removed
-        in the future.  This function raises a
+        TODO: (1) Right now this function assumes that the input curve
+        is in minimal Weierstrass form.  This restriction will be
+        removed in the future.  This function raises a
         NotImplementedError if a non-minimal curve is given as input.
+
+              (2) Allow passing of command-line parameters to mwrank.
 
         WARNING: If the program fails to give a provably correct
         result, it prints a warning message, but does not raise an
@@ -1150,10 +1379,41 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     def gens_certain(self):
         """
         Return True if the generators have been proven correct.
-        """
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E.gens()
+            [(0 : -1 : 1)]
+            sage: E.gens_certain()
+            True
+       """
         return self.__gens.has_key(True)
 
     def ngens(self, proof = None):
+        """
+        Return the number of generators of this elliptic curve.
+
+        NOTE: See gens() for further documentation.  The function
+        ngens() calls gens() if not already done, but only with
+        default parameters.  Better results may be obtained by calling
+        mwrank() with carefully chosen parameters.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E.ngens()
+            1
+
+        TO DO: This example should not cause a run-time error.
+            sage: E=EllipticCurve([0,0,0,877,0])
+            sage: # E.ngens()  ######## causes run-time error
+
+            sage: print E.mwrank('-v0 -b12 -l')
+            Curve [0,0,0,877,0] :   Rank = 1
+            Generator 1 is [29604565304828237474403861024284371796799791624792913256602210:-256256267988926809388776834045513089648669153204356603464786949:490078023219787588959802933995928925096061616470779979261000]; height 95.980371987964
+            Regulator = 95.980...
+
+
+        """
         return len(self.gens(proof = proof))
 
     def regulator(self, use_database=True, verbose=None, proof=None):
@@ -1233,13 +1493,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         OUTPUT:
             saturation (list) -- points that form a basis for the saturation
-            index (int) -- the index of the group generated by points in their saturation
+            index (int) -- the index of the group generated by points
+                           in their saturation
             regulator (float) -- regulator of saturated points.
 
-        IMPLEMENTATION: Uses Cremona's mwrank package.  With max_prime=0, we call
-            mwrank with successively larger prime bounds until the full saturation is
-            provably found.  The results of saturation at the previous primes is stored
-            in each case, so this should be reasonably fast.
+        IMPLEMENTATION:
+            Uses Cremona's mwrank package.  With max_prime=0, we call
+            mwrank with successively larger prime bounds until the
+            full saturation is provably found.  The results of
+            saturation at the previous primes is stored in each case,
+            so this should be reasonably fast.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: P=E.gens()[0]
+            sage: Q=5*P; Q
+            (1/4 : -3/8 : 1)
+            sage: E.saturation([Q])
+            ([(0 : -1 : 1)], '5', 0.0511114075779915)
         """
         if not isinstance(points, list):
             raise TypeError, "points (=%s) must be a list."%points
@@ -1306,30 +1577,84 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
 
     def silverman_height_bound(self):
-        """
-        Return the Silverman height bound.  This is a floating point
-        number B such that if P is a point on the curve, then the
-        naive logarithmetic height of P is off from the canonical
-        height by at most B.
+        r""" Return the Silverman height bound.  This is a positive real
+        (floating point) number B such that for all rational points
+        $P$ on the curve,
+        $$
+             h(P) \le \hat{h}(P) + B
+        $$
+        where h(P) is the logarithmic height of $P$ and $\hat{h}(P)$
+        is the canonical height.
 
-        Note that the CPS_height_bound is typically much better than
-        the Silverman bound.
+        Note that the CPS_height_bound is often better (i.e. smaller)
+        than the Silverman bound.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E.silverman_height_bound()
+            4.8254007581809182
+            sage: E.CPS_height_bound()
+            0.16397076103046915
         """
         return self.mwrank_curve().silverman_bound()
 
 
     def point_search(self, height_limit, verbose=True):
         """
-        Search for points on a curve up to an input bound on the naive logarithmic height.
+        Search for points on a curve up to an input bound on the naive
+        logarithmic height.
 
         INPUT:
-            height_limit (float) -- bound on naive height (at most 21, or mwrank overflows)
-            verbose  (bool) -- (default: True)
 
-        OUTPUT:
-            points (list) -- list of points found
+            height_limit (float) -- bound on naive height (at most 21,
+                                    or mwrank overflows -- see below)
 
-        IMPLEMENTATION: Uses Cremona's mwrank package.
+            verbose (bool) -- (default: True)
+
+                              If True, report on each point as found
+                              together with linear relations between
+                              the points found and the saturation
+                              process.
+
+                              If False, just return the result.
+
+        OUTPUT: points (list) -- list of independent points which
+            generate the subgroup of the Mordell-Weil group generated
+            by the points found and then p-saturated for p<20.
+
+        WARNING:
+            height_limit is logarithmic, so increasing by 1 will cause
+            the running time to increase by a factor of approximately
+            4.5 (=exp(1.5)).  The limit of 21 is to prevent overflow,
+            but in any case using height_limit=20 takes rather a long
+            time!
+
+        IMPLEMENTATION: Uses Cremona's mwrank package. At the heart of
+        this function is Cremona's port of Stoll's ratpoints program
+        (version 1.4).
+
+        EXAMPLES:
+            sage: E=EllipticCurve('389a1')
+            sage: E.point_search(5, verbose=False)
+            [(0 : -1 : 1), (-1 : 1 : 1)]
+
+        Increasing the height_limit takes longer, but finds no more points:
+            sage: E.point_search(10, verbose=False)
+            [(0 : -1 : 1), (-1 : 1 : 1)]
+
+        In fact this curve has rank 2 so no more than 2 points will
+        ever be output, but we are not using this fact.
+
+            sage: E.saturation(_)
+            ([(0 : -1 : 1), (-1 : 1 : 1)], '1', 0.152460172772408)
+
+        What this shows is that if the rank is 2 then the points
+        listed do generate the Mordell-Weil group (mod torsion).
+        Finally,
+
+            sage: E.rank()
+            2
+
         """
         height_limit = float(height_limit)
         if height_limit > _MAX_HEIGHT:
@@ -1344,7 +1669,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         r"""
         Return the dimension of the 2-torsion subgroup of $E(\Q)$.
 
+        This will be 0, 1 or 2.
+
+        NOTE: As s side-effect of calling this function, the full
+        torsion subgroup of the curve is computed (if not already
+        cached).  A simpler implementation of this function would be
+        possible (by counting the roots of the 2-division polynomial),
+        but the full torsion subgroup computation is not expensive.
+
         EXAMPLES:
+            sage: EllipticCurve('11a1').two_torsion_rank()
+            0
+            sage: EllipticCurve('14a1').two_torsion_rank()
+            1
+            sage: EllipticCurve('15a1').two_torsion_rank()
+            2
         """
         A = self.torsion_subgroup().invariants()
         if len(A) == 2:
@@ -1391,6 +1730,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         The n-th Fourier coefficient of the modular form corresponding
         to this elliptic curve, where n is a positive integer.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: [E.an(n) for n in range(20) if n>0]
+            [1, -2, -3, 2, -2, 6, -1, 0, 6, 4, -5, -6, -2, 2, 6, -4, 0, -12, 0]
         """
         return Integer(self.pari_mincurve().ellak(n))
 
@@ -1398,12 +1742,35 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         The p-th Fourier coefficient of the modular form corresponding
         to this elliptic curve, where p is prime.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: [E.ap(p) for p in prime_range(50)]
+            [-2, -3, -2, -1, -5, -2, 0, 0, 2, 6, -4, -1, -9, 2, -9]
+
         """
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
         return Integer(self.pari_mincurve().ellap(p))
 
     def quadratic_twist(self, D):
+        """
+        Return the quadratic twist of this elliptic curve by D.
+
+        D must be a nonzero rational number.
+
+        NOTE: This function overrides the generic quadratic_twist()
+            function for elliptic curves, returning a minimal model
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E2=E.quadratic_twist(2); E2
+            Elliptic Curve defined by y^2  = x^3 - 4*x + 2 over Rational Field
+            sage: E2.conductor()
+            2368
+            sage: E2.quadratic_twist(2) == E
+            True
+       """
         return EllipticCurve_number_field.quadratic_twist(self, D).minimal_model()
 
     def minimal_model(self):
@@ -1411,6 +1778,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Return the unique minimal Weierstrass equation for this
         elliptic curve.  This is the model with minimal discriminant
         and $a_1,a_2,a_3 \in \{0,\pm 1\}$.
+
+        EXAMPLES:
+            sage: E=EllipticCurve([10,100,1000,10000,1000000])
+            sage: E.minimal_model()
+            Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + x +1 over Rational Field
         """
         try:
             return self.__minimal_model
@@ -1420,13 +1792,34 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__minimal_model
 
     def is_minimal(self):
+        r"""
+        Return True iff this elliptic curve is a reduced minimal model.
+
+        the unique minimal Weierstrass equation for this
+        elliptic curve.  This is the model with minimal discriminant
+        and $a_1,a_2,a_3 \in \{0,\pm 1\}$.
+
+        TO DO: This is not very efficient since it just computes the
+        minimal model and compares.  A better implementation using the
+        Kraus conditions would be preferable.
+
+        EXAMPLES:
+            sage: E=EllipticCurve([10,100,1000,10000,1000000])
+            sage: E.is_minimal()
+            False
+            sage: E=E.minimal_model()
+            sage: E.is_minimal()
+            True
+        """
         return self.ainvs() == self.minimal_model().ainvs()
 
-    def is_integral(self):
-        for n in self.ainvs():
-            if n.denominator() != 1:
-                return False
-        return True
+#    Duplicate!
+#
+#    def is_integral(self):
+#        for n in self.ainvs():
+#            if n.denominator() != 1:
+#                return False
+#        return True
 
     def kodaira_type(self, p):
         """
@@ -1541,6 +1934,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return PeriodLattice_ell(self)
 
     def lseries(self):
+        """
+        Returns the L-series of this elliptic curve.
+
+        Further documentation is available for the functions which
+        apply to the L-series.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E.lseries()
+            Complex L-series of the Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+        """
         try:
             return self.__lseries
         except AttributeError:
@@ -1571,9 +1975,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         a = self.anlist(prec)
         eps = self.root_number()
         sqrtN = float(N.sqrt())
-        def F(n, t):
+        def _F(n, t):
             return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
-        return sum([a[n]*(F(n,s-1) + eps*F(n,1-s)) for n in xrange(1,prec+1)])
+        return sum([a[n]*(_F(n,s-1) + eps*_F(n,1-s)) for n in xrange(1,prec+1)])
 
     def is_local_integral_model(self,*p):
         r"""
@@ -1784,15 +2188,66 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return m
 
     def modular_parametrization(self):
+        r"""
+        Computes and returns the modular parametrization of this elliptic curve.
+
+        The curve is converted to a minimal model.
+
+        OUTPUT: A list of two Larent series [X(x),Y(x)] of degrees -2,
+        -3 respectively, which satisfy the equation of the (minimal
+        model of the) elliptic curve.  The are modular functions on
+        $\Gamma_0(N)$ where $N$ is the conductor.
+
+        X.deriv()/(2*Y+a1*X+a3) should equal f(q)dq/q where f is
+        self.q_expansion().
+
+        EXAMPLES:
+            sage: E=EllipticCurve('389a1')
+            sage: X,Y=E.modular_parametrization()
+            sage: X
+            q^-2 + 2*q^-1 + 4 + 7*q + 13*q^2 + 18*q^3 + 31*q^4 + 49*q^5 + 74*q^6 + 111*q^7 + 173*q^8 + 251*q^9 + 379*q^10 + 560*q^11 + 824*q^12 + 1199*q^13 + 1773*q^14 + 2365*q^15 + 3463*q^16 + 4508*q^17 + O(q^18)
+            sage: Y
+            -q^-3 - 3*q^-2 - 8*q^-1 - 17 - 33*q - 61*q^2 - 110*q^3 - 186*q^4 - 320*q^5 - 528*q^6 - 861*q^7 - 1383*q^8 - 2218*q^9 - 3472*q^10 - 5451*q^11 - 8447*q^12 - 13020*q^13 - 20083*q^14 - 29512*q^15 - 39682*q^16 + O(q^17)
+
+            The following should give 0, but only approximately:
+            sage: q = X.parent().gen()
+            sage: E.defining_polynomial()(X,Y,1) + O(q^11) == 0
+            True
+
+            Note that below we have to change variable from x to q
+            sage: a1,_,a3,_,_=E.a_invariants()
+            sage: f=E.q_expansion(17)
+            sage: q=f.parent().gen()
+            sage: f/q == (X.derivative()/(2*Y+a1*X+a3))
+            True
+
         """
-        Computes and returns ...
-        """
-        return self.pari_mincurve().elltaniyama()
+        R = LaurentSeriesRing(RationalField(),'q')
+        XY = self.pari_mincurve().elltaniyama()
+        return [1/R(1/XY[0]),1/R(1/XY[1])]
 
     def cremona_label(self, space=False):
         """
-        Return the Cremona label associated to (the minimal model) of this curve,
-        if it is known.  If not, raise a RuntimeError exception.
+        Return the Cremona label associated to (the minimal model) of
+        this curve, if it is known.  If not, raise a RuntimeError
+        exception.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('389a1')
+            sage: E.cremona_label()
+            '389a1'
+
+        The default database only contains conductors up to 10000, so
+        any curve with conductor greater than that will cause an error
+        to be raised:
+
+            sage: E=EllipticCurve([1,2,3,4,5]);
+            sage: E.conductor()
+            10351
+            sage: E.cremona_label()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Cremona label not known for Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Rational Field.
         """
         try:
             if not space:
@@ -1806,11 +2261,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             self.__cremona_label = X.__cremona_label
             return self.cremona_label(space)
 
-    def label(self):
-        r"""
-        Exactly the same as the \code{cremona_label()} command.
-        """
-        return self.cremona_label()
+    label = cremona_label
 
     def torsion_order(self):
         """
@@ -1870,6 +2321,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__torsion_subgroup
         except AttributeError:
             self.__torsion_subgroup = rational_torsion.EllipticCurveTorsionSubgroup(self, flag)
+            self.__torsion_order = self.__torsion_subgroup.order()
             return self.__torsion_subgroup
 
     ## def newform_eval(self, z, prec):
@@ -1887,8 +2339,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         This is 1 if the order of vanishing of the L-function L(E,s)
         at 1 is even, and -1 if it is odd.
-        """
 
+        EXAMPLES:
+            sage: EllipticCurve('11a1').root_number()
+            1
+            sage: EllipticCurve('37a1').root_number()
+            -1
+            sage: EllipticCurve('389a1').root_number()
+            1
+        """
         try:
             return self.__root_number
         except AttributeError:
@@ -1897,14 +2356,63 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
 
     def has_cm(self):
-        return self.j_invariant() in [0, 54000, -12288000, 1728, \
-                                      287496, -3375, 16581375, 8000, \
-                                      -32768,  -884736, -884736000,\
-                                      -147197952000, -262537412640768000]
+        """
+        Returns True iff this elliptic curve has Complex Multiplication
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E.has_cm()
+            False
+            sage: E=EllipticCurve('32a1')
+            sage: E.has_cm()
+            True
+            sage: E.j_invariant()
+            1728
+        """
+
+        return CMJ.has_key(self.j_invariant())
+
+    def cm_discriminant(self):
+        """
+        Returns the associated quadratic discriminant if this elliptic
+        curve has Complex Multiplication.
+
+        A ValueError is raised if the curve does not have CM (see the
+        function has_cm())
+
+        EXAMPLES:
+            sage: E=EllipticCurve('32a1')
+            sage: E.cm_discriminant()
+            -4
+            sage: E=EllipticCurve('121b1')
+            sage: E.cm_discriminant()
+            -11
+            sage: E=EllipticCurve('37a1')
+           sage: E.cm_discriminant()
+           Traceback (most recent call last):
+           ...
+           ValueError: Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field does not have CM
+        """
+
+        try:
+            return CMJ[self.j_invariant()]
+        except KeyError:
+            raise ValueError, "%s does not have CM"%self
+
 
     def quadratic_twist(self, D):
         """
-        Return the global minimal model of the quadratic twist of this curve by D.
+        Return the global minimal model of the quadratic twist of this
+        curve by D.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E7=E.quadratic_twist(7); E7
+            Elliptic Curve defined by y^2  = x^3 - 784*x + 5488 over Rational Field
+            sage: E7.conductor()
+            29008
+            sage: E7.quadratic_twist(7) == E
+            True
         """
         return EllipticCurve_number_field.quadratic_twist(self, D).minimal_model()
 
@@ -2266,6 +2774,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return False, signs
 
     def is_semistable(self):
+        """
+        Return True iff this elliptic curve is semi-stable at all primes.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E.is_semistable()
+            True
+            sage: E=EllipticCurve('90a1')
+            sage: E.is_semistable()
+            False
+        """
         if self.base_ring() != Q:
             raise NotImplementedError, "is_semistable only implemented for curves over the rational numbers."
         return self.conductor().is_squarefree()
@@ -2367,6 +2886,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         OUTPUT:
             bool
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E.is_ordinary(37)
+            True
+            sage: E=EllipticCurve('32a1')
+            sage: E.is_ordinary(2)
+            False
+            sage: [p for p in prime_range(50) if E.is_ordinary(p)]
+            [5, 13, 17, 29, 37, 41]
         """
         if ell is None:
             ell = p
@@ -2399,9 +2928,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
     def is_supersingular(self, p, ell=None):
         """
-        Return True precisely when p is a prime of good reduction so
-        that the mod-p representation attached to this elliptic curve
-        is supersingular at ell.
+        Return True precisely when p is a prime of good reduction and
+        the mod-p representation attached to this elliptic curve is
+        supersingular at ell.
 
         INPUT:
             p -- a prime
@@ -2409,6 +2938,18 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         OUTPUT:
             bool
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E.is_supersingular(37)
+            False
+            sage: E=EllipticCurve('32a1')
+            sage: E.is_supersingular(2)
+            False
+            sage: E.is_supersingular(7)
+            True
+            sage: [p for p in prime_range(50) if E.is_supersingular(p)]
+            [3, 7, 11, 19, 23, 31, 43, 47]
         """
         if ell is None:
             ell = p
@@ -2477,6 +3018,23 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                [P[i] for i in range(2,len(v)) if v[i] != 0]
 
     def eval_modular_form(self, points, prec):
+        """
+        Evaluate the L-series of this elliptic curve at points in CC
+
+        INPUT:
+              points--  a list of points in the half-plane of convergence
+              prec--    precision
+
+        OUTPUT:
+              A list of values L(E,s) for s in points
+
+        NOTE:  Better examples are welcome.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I],0.000001)
+            [0, 0, 0]
+        """
         if not isinstance(points, (list,xrange)):
             try:
                 points = list(points)
@@ -2499,6 +3057,22 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return ans
 
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
+        """
+        Internal function returning an integer m such that the degree of
+        the isogeny between this curve and the optimal curve in its
+        isogeny class is a divisor of m.
+
+        EXAMPLES:
+            sage: E=EllipticCurve('11a1')
+            sage: E._multiple_of_degree_of_isogeny_to_optimal_curve()
+            25
+            sage: E=EllipticCurve('11a2')
+            sage: E._multiple_of_degree_of_isogeny_to_optimal_curve()
+            5
+            sage: E=EllipticCurve('11a3')
+            sage: E._multiple_of_degree_of_isogeny_to_optimal_curve()
+            5
+        """
         M = self.isogeny_class()[1]
         return Integer(misc.prod([x for x in M.row(0) if x], 1))
 
@@ -2508,6 +3082,22 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
     ########################################################################
 
     def sha(self):
+        """
+        Return an object of class
+        'sage.schemes.elliptic_curves.sha.Sha' attached to this
+        elliptic curve.
+
+        This can be used in functions related to bounding the order of
+        Sha (The Tate-Shafarevich group of the curve).
+
+        EXAMPLES:
+            sage: E=EllipticCurve('37a1')
+            sage: S=E.sha()
+            sage: S
+            <class 'sage.schemes.elliptic_curves.sha.Sha'>
+            sage: S.bound_kolyvagin()
+            ([2], 1)
+        """
         try:
             return self.__sha
         except AttributeError:
@@ -2887,6 +3477,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         Return the family of all elliptic curves with the same mod-5
         representation as self.
+
+        EXAMPLES:
+        sage: E=EllipticCurve('32a1')
+        sage: E.mod5family()
+        Elliptic Curve defined by y^2  = x^3 + 4*x over Fraction Field of Univariate Polynomial Ring in t over Rational Field
         """
         E = self.short_weierstrass_model()
         a = E.a4()
@@ -2947,6 +3542,29 @@ def cremona_curves(conductors):
     """
     Return iterator over all known curves (in database) with conductor
     in the list of conductors.
+
+    EXAMPLES:
+        sage: [(E.label(), E.rank()) for E in cremona_curves(srange(35,40))]
+        [('35a1', 0),
+        ('35a2', 0),
+        ('35a3', 0),
+        ('36a1', 0),
+        ('36a2', 0),
+        ('36a3', 0),
+        ('36a4', 0),
+        ('37a1', 1),
+        ('37b1', 0),
+        ('37b2', 0),
+        ('37b3', 0),
+        ('38a1', 0),
+        ('38a2', 0),
+        ('38a3', 0),
+        ('38b1', 0),
+        ('38b2', 0),
+        ('39a1', 0),
+        ('39a2', 0),
+        ('39a3', 0),
+        ('39a4', 0)]
     """
     if isinstance(conductors, (int,long, rings.RingElement)):
         conductors = [conductors]
@@ -2956,6 +3574,16 @@ def cremona_optimal_curves(conductors):
     """
     Return iterator over all known optimal curves (in database) with
     conductor in the list of conductors.
+
+    EXAMPLES:
+        sage: [(E.label(), E.rank()) for E in cremona_optimal_curves(srange(35,40))]
+        [('35a1', 0),
+        ('36a1', 0),
+        ('37a1', 1),
+        ('37b1', 0),
+        ('38a1', 0),
+        ('38b1', 0),
+        ('39a1', 0)]
     """
     if isinstance(conductors, (int,long,rings.RingElement)):
         conductors = [conductors]

@@ -24,8 +24,9 @@ def from_list(l):
         [rank, unrank] -- functions
 
     EXAMPLES:
+        sage: import sage.combinat.ranker as ranker
         sage: l = [1,2,3]
-        sage: r,u = sage.combinat.ranker.from_list(l)
+        sage: r,u = ranker.from_list(l)
         sage: r(1)
         0
         sage: r(3)
@@ -35,18 +36,7 @@ def from_list(l):
         sage: u(0)
         1
     """
-
-    n = len(l)
-    def unrank(j):
-        if j < 0 or j >= n:
-            raise ValueError, "Argument j ( = %s ) must be between 0 and %d"%(str(j), n)
-
-        return l[j]
-
-    def rank(obj):
-        return l.index(obj)
-
-    return [rank, unrank]
+    return [rank_from_list(l), unrank_from_list(l)]
 
 
 def rank_from_list(l):
@@ -54,15 +44,15 @@ def rank_from_list(l):
     Returns a rank function given a list l.
 
     EXAMPLES:
+        sage: import sage.combinat.ranker as ranker
         sage: l = [1,2,3]
-        sage: r = sage.combinat.ranker.rank_from_list(l)
+        sage: r = ranker.rank_from_list(l)
         sage: r(1)
         0
         sage: r(3)
         2
     """
-    def rank(obj):
-        return l.index(obj)
+    rank = lambda obj: l.index(obj)
 
     return rank
 
@@ -72,18 +62,13 @@ def unrank_from_list(l):
     Returns an unrank function from a list.
 
     EXAMPLES:
+        sage: import sage.combinat.ranker as ranker
         sage: l = [1,2,3]
-        sage: u = sage.combinat.ranker.unrank_from_list(l)
+        sage: u = ranker.unrank_from_list(l)
         sage: u(2)
         3
         sage: u(0)
         1
     """
-    n = len(l)
-    def unrank(j):
-        if j < 0 or j >= n:
-            raise ValueError, "Argument j ( = %s ) must be between 0 and %d"%(str(j), n)
-
-        return l[j]
-
+    unrank = lambda j: l[j]
     return unrank

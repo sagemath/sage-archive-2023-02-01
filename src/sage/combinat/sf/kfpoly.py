@@ -55,9 +55,21 @@ def KostkaFoulkesPolynomial(mu, nu, t=None):
 
 def kfpoly(mu, nu, t=None):
     """
-     kfpoly(mu,nu,t) computes the Kostka-Foulkes polynomial K[mu,nu](t)
-     by generating all rigging sequences for the shape mu, and then
-     selecting those of content nu.
+    kfpoly(mu,nu,t) computes the Kostka-Foulkes polynomial K[mu,nu](t)
+    by generating all rigging sequences for the shape mu, and then
+    selecting those of content nu.
+
+    EXAMPLES:
+        sage: from sage.combinat.sf.kfpoly import kfpoly
+        sage: kfpoly([2,2], [2,1,1])
+        t
+        sage: kfpoly([4], [2,1,1])
+        t^3
+        sage: kfpoly([4], [2,2])
+        t^2
+        sage: kfpoly([1,1,1,1], [2,2])
+        0
+
     """
     if mu == nu:
         return 1
@@ -69,11 +81,7 @@ def kfpoly(mu, nu, t=None):
 
     nuc = sage.combinat.partition.Partition(nu).conjugate()
 
-    def f(x):
-        if x[0] == nuc:
-            return weight(x, t)
-        else:
-            return 0
+    f = lambda x: weight(x, t) if x[0] == nuc else 0
 
     res = sum([f(rg) for rg in riggings(mu)])
     return res
@@ -225,6 +233,21 @@ def compat(n, mu, nu):
         return [x.conjugate() for x in sp[i].conjugate().dominate()]
 
 def dom(mu, snu):
+    """
+    Returns True if sum(mu[:i+1]) >= snu[i] for all
+    0 <= i < len(snu); otherwise, it returns False.
+
+    EXAMPLES:
+        sage: from sage.combinat.sf.kfpoly import *
+        sage: dom([3,2,1],[2,4,5])
+        True
+        sage: dom([3,2,1],[2,4,7])
+        False
+        sage: dom([3,2,1],[2,6,5])
+        False
+        sage: dom([3,2,1],[4,4,4])
+        False
+    """
     l = len(snu)
     mmu = list(mu)+[0]*l
     sa = 0

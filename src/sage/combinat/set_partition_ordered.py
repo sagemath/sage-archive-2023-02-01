@@ -383,17 +383,15 @@ class OrderedSetPartitions_scomp(CombinatorialClass):
         l = len(self.c)
         dcomp = [-1] + comp.descents(final_descent=True)
 
-        def f(perm):
-            res = permutation.Permutation(range(1,len(lset)))*word.standard(perm).inverse()
-            res = map(lambda x: lset[x-1], res)
-            return [ Set( res[dcomp[i]+1:dcomp[i+1]+1] ) for i in range(l)]
-
         p = []
         for j in range(l):
             p += [j+1]*comp[j]
 
         for x in permutation.Permutations(p):
-            yield f(x)
+            res = permutation.Permutation_class(range(1,len(lset)))*word.standard(x).inverse()
+            res =[lset[x-1] for x in res]
+            yield [ Set( res[dcomp[i]+1:dcomp[i+1]+1] ) for i in range(l)]
+
 
 
 

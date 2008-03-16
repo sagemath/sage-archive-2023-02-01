@@ -195,10 +195,13 @@ def Composition(co=None, descents=None, code=None):
     elif code is not None:
         return from_code(code)
     else:
-        if co not in Compositions():
-            raise ValueError, "invalid composition"
+        if isinstance(co, Composition_class):
+            return co
+        elif co in Compositions():
+           return Composition_class(co)
         else:
-            return Composition_class(co)
+            raise ValueError, "invalid composition"
+
 
 class Composition_class(CombinatorialObject):
     def conjugate(self):
@@ -325,7 +328,9 @@ class Composition_class(CombinatorialObject):
 
     def to_code(self):
         """
-        Returns the code of the composition self.
+        Returns the code of the composition self. The code of a composition
+        is a list of length self.size() of 1s and 0s such that there is a 1
+        wherever a new part starts.
 
         EXAMPLES:
             sage: Composition([4,1,2,3,5]).to_code()
@@ -740,17 +745,21 @@ def from_descents(descents, nps=None):
 
 def from_code(code):
     """
-    Return the composition from its code.
+    Return the composition from its code.The code of a composition
+    is a list of length self.size() of 1s and 0s such that there is a 1
+    wherever a new part starts.
+
 
     EXAMPLES:
-    sage: Composition([4,1,2,3,5]).to_code()
-    [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
-    sage: composition.from_code(_)
-    [4, 1, 2, 3, 5]
-    sage: Composition([3,1,2,3,5]).to_code()
-    [1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
-    sage: composition.from_code(_)
-    [3, 1, 2, 3, 5]
+        sage: import sage.combinat.composition as composition
+        sage: Composition([4,1,2,3,5]).to_code()
+        [1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
+        sage: composition.from_code(_)
+        [4, 1, 2, 3, 5]
+        sage: Composition([3,1,2,3,5]).to_code()
+        [1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0]
+        sage: composition.from_code(_)
+        [3, 1, 2, 3, 5]
 
     """
     if code == [0]:

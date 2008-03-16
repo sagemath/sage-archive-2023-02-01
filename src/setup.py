@@ -427,7 +427,7 @@ complex_double = Extension('sage.rings.complex_double',
                            libraries = ['gsl', BLAS, BLAS2, 'pari', 'gmp'])
 
 real_double_vector = Extension('sage.modules.real_double_vector',['sage/modules/real_double_vector.pyx'],
-                              libraries = ['gsl', BLAS, BLAS2, 'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECAED','1')],include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+                              libraries = ['gsl', BLAS, BLAS2, 'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECATED','1')],include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 complex_double_vector = Extension('sage.modules.complex_double_vector',['sage/modules/complex_double_vector.pyx'],
                            libraries = ['gsl', BLAS, BLAS2, 'pari', 'gmp'],define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=debian_include_dirs + [SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
@@ -969,6 +969,10 @@ ext_modules = [ \
               ['sage/graphs/bruhat_sn.pyx']
               ), \
 
+    Extension('sage.graphs.chrompoly',
+              ['sage/graphs/chrompoly.pyx']
+              ), \
+
     Extension('sage.coding.binary_code',
               ['sage/coding/binary_code.pyx']
               ), \
@@ -1398,8 +1402,7 @@ code = setup(name        = 'sage',
                      'sage.dsage.scripts',
                      ],
 
-      scripts = ['sage/dsage/scripts/dsage_server.py',
-                 'sage/dsage/scripts/dsage_worker.py',
+      scripts = ['sage/dsage/scripts/dsage_worker.py',
                  'sage/dsage/scripts/dsage_setup.py',
                  'spkg-debian-maybe',
                  'debian/changelog',
@@ -1415,7 +1418,7 @@ code = setup(name        = 'sage',
       data_files = [('dsage/web/static',
                     ['sage/dsage/web/static/dsage_web.css',
                      'sage/dsage/web/static/dsage_web.js',
-                     'sage/dsage/web/static/jquery-latest.js',
+                     'sage/dsage/web/static/jquery.js',
                      'sage/dsage/web/static/jquery.tablesorter.pack.js',
                      'sage/dsage/web/static/jquery.history.js',
                      'sage/dsage/web/static/asc.gif',

@@ -703,17 +703,19 @@ cdef class Matrix(matrix0.Matrix):
             [5 4]
             [0 7]
         """
-        if not isinstance(columns, (list, tuple)):
+        if not (PY_TYPE_CHECK(columns, list) or PY_TYPE_CHECK(columns, tuple)):
             raise TypeError, "columns (=%s) must be a list of integers"%columns
         cdef Matrix A
-        A = self.new_matrix(ncols = len(columns))
+        cdef Py_ssize_t ncols,k,r
+
+        ncols = PyList_GET_SIZE(columns)
+        A = self.new_matrix(ncols = ncols)
         k = 0
-        for i in columns:
-            i = int(i)
-            if i < 0 or i >= self.ncols():
-                raise IndexError, "column %s out of range"%i
-            for r in xrange(self.nrows()):
-                A.set_unsafe(r,k, self.get_unsafe(r,i))
+        for i from 0 <= i < ncols:
+            if columns[i] < 0 or columns[i] >= self._ncols:
+                raise IndexError, "column %s out of range"%columns[i]
+            for r from 0 <= r < self._nrows:
+                A.set_unsafe(r,k, self.get_unsafe(r,columns[i]))
             k = k + 1
         return A
 
@@ -732,25 +734,26 @@ cdef class Matrix(matrix0.Matrix):
             [6 7 0]
             [3 4 5]
         """
-        if not isinstance(rows, (list, tuple)):
+        if not (PY_TYPE_CHECK(rows, list) or PY_TYPE_CHECK(rows, tuple)):
             raise TypeError, "rows must be a list of integers"
         cdef Matrix A
-        A = self.new_matrix(nrows = len(rows))
+        cdef Py_ssize_t nrows,k,c
+
+        nrows = PyList_GET_SIZE(rows)
+        A = self.new_matrix(nrows = nrows)
         k = 0
-        for i in rows:
-            i = int(i)
-            if i < 0 or i >= self.nrows():
-                raise IndexError, "row %s out of range"%i
-            for c in xrange(self.ncols()):
-                A.set_unsafe(k,c, self.get_unsafe(i,c))
-            k = k + 1
+        for i from 0 <= i < nrows:
+            if rows[i] < 0 or rows[i] >= self._nrows:
+                raise IndexError, "row %s out of range"%rows[i]
+            for c from 0 <= c < self._ncols:
+                A.set_unsafe(k,c, self.get_unsafe(rows[i],c))
+            k += 1
         return A
 
     def matrix_from_rows_and_columns(self, rows, columns):
         """
         Return the matrix constructed from self from the given
         rows and columns.
-
         EXAMPLES:
             sage: M = MatrixSpace(Integers(8),3,3)
             sage: A = M(range(9)); A
@@ -777,31 +780,34 @@ cdef class Matrix(matrix0.Matrix):
 
         AUTHOR:
             -- Jaap Spies (2006-02-18)
+            -- didier deshommes: some pyrex speedups implemented
         """
-        if not isinstance(rows, list):
+        if not PY_TYPE_CHECK(rows, list):
             raise TypeError, "rows must be a list of integers"
-        if not isinstance(columns, list):
+        if not PY_TYPE_CHECK(columns, list):
             raise TypeError, "columns must be a list of integers"
+
         cdef Matrix A
-        A = self.new_matrix(nrows = len(rows), ncols = len(columns))
+        cdef Py_ssize_t nrows, ncols,k,r,i,j
+
         r = 0
-        c = len(columns)
-        tmp = []
-        for j in columns:
-            if j >= 0 and j < self.ncols():
-                tmp.append(int(j))
+        ncols = PyList_GET_SIZE(columns)
+        nrows = PyList_GET_SIZE(rows)
+        A = self.new_matrix(nrows = nrows, ncols = ncols)
+
+        tmp = [el for el in columns if el >= 0 and el < self._ncols]
         columns = tmp
-        if c != len(columns):
+        if ncols != PyList_GET_SIZE(columns):
             raise IndexError, "column index out of range"
-        for i in rows:
-            i = int(i)
-            if i < 0 or i >= self.nrows():
+
+        for i from 0 <= i < nrows:
+            if rows[i] < 0 or rows[i] >= self._nrows:
                 raise IndexError, "row %s out of range"%i
             k = 0
-            for j in columns:
-                A.set_unsafe(r,k, self.get_unsafe(i,j))
-                k = k + 1
-            r = r + 1
+            for j from 0 <= j < ncols:
+                A.set_unsafe(r,k, self.get_unsafe(rows[i],columns[j]))
+                k += 1
+            r += 1
         return A
 
     def submatrix(self, Py_ssize_t row=0, Py_ssize_t col=0,

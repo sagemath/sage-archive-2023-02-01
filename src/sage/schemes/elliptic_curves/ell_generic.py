@@ -154,6 +154,18 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint
 
     def _defining_params_(self):
+        """
+        Internal function.  Returns a tuple of the base ring of this
+        elliptic curve and its a-invariants, from which it can be
+        reconstructed.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: E._defining_params_()
+            (Rational Field, [0, 0, 0, 1, 1])
+            sage: EllipticCurve(*E._defining_params_()) == E
+            True
+        """
         return (self.__base_ring, self.__ainvs)
 
     def _repr_(self):
@@ -213,6 +225,17 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         return s
 
     def _latex_(self):
+        """
+        Internal function.  Returns a latex string for this elliptic
+        curve.  Users will normally use latex() instead.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: E._latex_()
+            'y^2  = x^3 + x +1 '
+            sage: latex(E)
+            y^2  = x^3 + x +1
+        """
         b = self.ainvs()
         a = [z._latex_coeff_repr() for z in b]
         s = "y^2 "
@@ -251,9 +274,27 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         return s
 
     def _pari_init_(self):
+        """
+        Internal function.  Returns a string to initialize this
+        elliptic curve in the pari system.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: E._pari_init_()
+            'ellinit([0/1,0/1,0/1,1/1,1/1])'
+        """
         return 'ellinit([%s])'%(','.join([x._pari_init_() for x in self.ainvs()]))
 
     def _magma_init_(self):
+        """
+        Internal function.  Returns a string to initialize this
+        elliptic curve in the Magma subsystem.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: E._magma_init_()
+            'EllipticCurve([0/1,0/1,0/1,1/1,1/1])'
+        """
         return 'EllipticCurve([%s])'%(','.join([x._magma_init_() for x in self.ainvs()]))
 
     def _symbolic_(self, SR):
@@ -336,6 +377,16 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         return y**2 + a[0]*x*y + a[2]*y == x**3 + a[1]*x**2 + a[3]*x + a[4]
 
     def __cmp__(self, other):
+        """
+        Standard comparison function for elliptic curves, to allow
+        sorting and equality testing.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: F=EllipticCurve(QQ,[0,0,0,1,1])
+            sage: E==F
+            True
+        """
         if not isinstance(other, EllipticCurve_generic):
             return -1
         t = cmp(self.base_ring(), other.base_ring())
@@ -548,14 +599,43 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             raise ValueError, "No point with x-coordinate %s on %s"%(x, self)
 
     def _homset_class(self, *args, **kwds):
+        """
+        Internal function.  Returns the (abstract) group of points on
+        this elliptic curve over a ring.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(GF(5),[1,1])
+            sage: E._homset_class(GF(5^10,'a'),GF(5))
+            Abelian group of points on Finite Field in a of size 5^10
+        """
         return homset.SchemeHomsetModule_abelian_variety_coordinates_field(*args, **kwds)
 
     def __getitem__(self, n):
         """
+        Placeholder for standard indexing function.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: E[2]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented.
         """
         raise NotImplementedError, "not implemented."
 
     def __is_over_RationalField(self):
+        """
+        Internal function.  Returns true iff the base ring of this
+        elliptic curve is the field of rational numbers.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: E._EllipticCurve_generic__is_over_RationalField()
+            True
+            sage: E=EllipticCurve(GF(5),[1,1])
+            sage: E._EllipticCurve_generic__is_over_RationalField()
+            False
+        """
         return isinstance(self.base_ring(), rings.RationalField)
 
     def change_ring(self, R):
@@ -579,6 +659,13 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def is_on_curve(self, x, y):
         """
         Returns True if the (x,y) is an affine point on this curve.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: E.is_on_curve(0,1)
+            True
+            sage: E.is_on_curve(1,1)
+            False
         """
         a = self.ainvs()
         return y**2 +a[0]*x*y + a[2]*y == x**3 + a[1]*x**2 + a[3]*x + a[4]
@@ -831,9 +918,37 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         return self.__ainvs[4]
 
     def gens(self):
-        raise NotImplementedError
+        """
+        Placeholder function to return generators of an elliptic
+        curve: derived classes such as EllipticCurve_rational_field
+        implement this functionality
+
+        EXAMPLES:
+            sage: R.<a1,a2,a3,a4,a6>=QQ[]
+            sage: E=EllipticCurve([a1,a2,a3,a4,a6])
+            sage: E.gens()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented.
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: E.gens()
+            [(0 : 1 : 1)]
+        """
+        raise NotImplementedError, "not implemented."
 
     def gen(self, i):
+        """
+        Function returning the i'th generator of this elliptic curve.
+        Relies on gens() being implemented.
+
+        EXAMPLES:
+            sage: R.<a1,a2,a3,a4,a6>=QQ[]
+            sage: E=EllipticCurve([a1,a2,a3,a4,a6])
+            sage: E.gen(0)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented.
+        """
         return self.gens()[i]
 
 
@@ -1721,8 +1836,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         x = R.gen()
         d = 4*x**3 + (a1**2 + 4*a2)*x**2 + (2*a3*a1 + 4*a4)*x + (a3**2 + 4*a6)
         def f1(z):
+            """
+            Internal function for plotting first branch of the curve
+            """
             return (-(a1*z + a3) + sqrt(abs(d(z))))/2
         def f2(z):
+            """
+            Internal function for plotting second branch of the curve
+            """
             return (-(a1*z + a3) - sqrt(abs(d(z))))/2
         r = d.roots(multiplicities=False)
         r.sort()
@@ -1783,6 +1904,16 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
 
     def hyperelliptic_polynomials(self):
+        r""" Returns a pair of polynomials g(x), h(x) such that this elliptic
+        curve can be defined by the standard hyperelliptic equation
+        $$y^2 + h(x)y = g(x)$$.
+
+        EXAMPLES:
+            sage: R.<a1,a2,a3,a4,a6>=QQ[]
+            sage: E=EllipticCurve([a1,a2,a3,a4,a6])
+            sage: E.hyperelliptic_polynomials()
+            (x^3 + a2*x^2 + a4*x + a6, a1*x + a3)
+        """
         K = self.base_ring()
         R = PolynomialRing(K, 'x')
         x = R.gen(0)

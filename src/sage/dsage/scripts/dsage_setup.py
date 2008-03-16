@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 ############################################################################
 #
 #   DSAGE: Distributed SAGE
@@ -23,10 +22,12 @@ import socket
 import ConfigParser
 import subprocess
 import sys
+import sqlite3
 
-from sage.dsage.database.clientdb import ClientDatabase
-from sage.dsage.misc.constants import DELIMITER as DELIMITER
-from sage.dsage.misc.constants import DSAGE_DIR
+from sage.dsage.database.clientdb import ClientDatabaseSA as ClientDatabase
+from sage.dsage.database.db_config import create_schema
+from sage.dsage.misc.constants import (DELIMITER, DSAGE_DIR, DSAGE_DB_DIR,
+                                       DSAGE_DB)
 from sage.dsage.misc.config import check_dsage_dir
 from sage.dsage.__version__ import version
 
@@ -55,9 +56,9 @@ def get_config(type):
         config.add_section('db_log')
     return config
 
-def add_default_user():
+def add_default_client(Session):
     """
-    Adds the default user.
+    Adds the default client.
 
     """
 
@@ -65,19 +66,20 @@ def add_default_user():
     import base64
     from getpass import getuser
 
+    clientdb = ClientDatabase(Session)
+
     username = getuser()
     pubkey_file = os.path.join(DSAGE_DIR, 'dsage_key.pub')
-    clientdb = ClientDatabase()
     pubkey = base64.encodestring(
                     keys.getPublicKeyString(filename=pubkey_file).strip())
-    if clientdb.get_user(username) is None:
-        clientdb.add_user(username, pubkey)
+    if clientdb.get_client(username) is None:
+        clientdb.add_client(username, pubkey)
         print 'Added user %s.\n' % (username)
     else:
-        user, key = clientdb.get_user_and_key(username)
-        if key != pubkey:
-            clientdb.del_user(username)
-            clientdb.add_user(username, pubkey)
+        client = clientdb.get_client(username)
+        if client.public_key != pubkey:
+            clientdb.del_client(username)
+            clientdb.add_client(username, pubkey)
             print "User %s's pubkey changed, setting to new one." % (username)
         else:
             print 'User %s already exists.' % (username)
@@ -173,7 +175,7 @@ def setup_server(template=None):
     print DELIMITER
     print "Generating SSL certificate for server..."
 
-    if os.uname()[0] != 'Darwin' and cmd_exists('openssl'):
+    if False and os.uname()[0] != 'Darwin' and cmd_exists('openssl'):
         # We use openssl by default if it exists, since it is *vastly*
         # faster on Linux.
         cmd = ['openssl genrsa > %s' % privkey_file]
@@ -187,9 +189,6 @@ def setup_server(template=None):
         # cmd = ['openssl genrsa > %s' % privkey_file]
         subprocess.call(cmd, shell=True)
 
-    # cmd = ['openssl req  -config %s -new -x509 -key %s -out %s -days \
-    #        1000' % (os.path.join(SAGE_ROOT,'local/openssl/openssl.cnf'),
-    #                 privkey_file, pubkey_file)]
     cmd = ['certtool --generate-self-signed --template %s --load-privkey %s \
            --outfile %s' % (template_file, privkey_file, pubkey_file)]
     subprocess.call(cmd, shell=True)
@@ -198,8 +197,12 @@ def setup_server(template=None):
     # Set read only permissions on cert
     os.chmod(os.path.join(DSAGE_DIR, 'cacert.pem'), 0600)
 
+    # create database schemas
+    from sage.dsage.database.db_config import init_db_sa as init_db
+    Session = init_db(DSAGE_DB)
+
     # add default user
-    add_default_user()
+    add_default_client(Session)
 
     print "Server configuration finished.\n\n"
 

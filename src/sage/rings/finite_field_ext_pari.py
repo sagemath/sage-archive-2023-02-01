@@ -226,14 +226,25 @@ class FiniteField_ext_pari(FiniteField_generic):
         self._one_element = self(1)
 
     def __cmp__(self, other):
+        """
+        EXAMPLE:
+            sage: k = GF(7^20,'a')
+            sage: k == loads(dumps(k))
+            True
+        """
         if not isinstance(other, FiniteField_ext_pari):
             return cmp(type(self), type(other))
         return cmp((self.__order, self.variable_name()), (other.__order, other.variable_name()))
 
     def _pari_one(self):
-        """
-        The PARI object Mod(1,p).  This is implementation specific
+        r"""
+        The \PARI object Mod(1,p).  This is implementation specific
         and should be ignored by users.
+
+        EXAMPLE:
+            sage: k = GF(7^20,'a')
+            sage: k._pari_one()
+            Mod(1, 7)
         """
         return self.__pari_one
 
@@ -265,17 +276,16 @@ class FiniteField_ext_pari(FiniteField_generic):
         """
         return self.__pari_modulus
 
-    def is_prime_field(self):
-        return False
-
-    def is_prime(self):
-        return False
-
     def gen(self, n=0):
         """
         Return chosen generator of the finite field.  This generator
-        is a root of the defining polynomial of the finite field, and
-        is guaranteed to be a generator for the multiplicative group.
+        is a root of the defining polynomial of the finite field.
+
+        WARNING: The generator is not guaranteed to be a generator for
+            the multiplicative group.  To obtain the latter, use
+            multiplicative_generator().  Both gen() and
+            multiplicative_generator() are random: the elements
+            returned will in general differ between runs.
 
         INPUT:
             nothing
@@ -293,6 +303,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             alpha
             sage: a^4
             alpha^3 + 1
+
         """
         return self.__gen
 
@@ -310,6 +321,18 @@ class FiniteField_ext_pari(FiniteField_generic):
         return self.__char
 
     def modulus(self):
+        r"""
+        Return the minimal polynomial of the generator of self in
+        \code{self.polynomial_ring('x')}.
+
+        EXAMPLES:
+            sage: F.<a> = GF(7^20, 'a')
+            sage: f = F.modulus(); f
+            x^20 + x^12 + 6*x^11 + 2*x^10 + 5*x^9 + 2*x^8 + 3*x^7 + x^6 + 3*x^5 + 3*x^3 + x + 3
+
+            sage: f(a)
+            0
+        """
         return self.__modulus
 
     def degree(self):
@@ -474,12 +497,12 @@ class FiniteField_ext_pari(FiniteField_generic):
             raise TypeError, "%s\nno coercion defined"%msg
 
     def _coerce_impl(self, x):
-        """
-        Canonical coercion to self.
+        r"""
+        Canonical coercion to \code{self}.
 
         EXAMPLES:
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: FiniteField_ext_pari(4,'a')._coerce_(GF(2)(1))
+            sage: FiniteField_ext_pari(4,'a')._coerce_(GF(2)(1)) # indirect doctest
             1
             sage: k = FiniteField_ext_pari(4,'a')
             sage: k._coerce_(k.0)

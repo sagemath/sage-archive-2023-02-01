@@ -26,6 +26,9 @@ _KeyboardInterrupt = KeyboardInterrupt   # bug in Python requires this???
 
 magma = None
 def init():
+    """
+    Start up Magma (if necessary) and load the relevant files
+    """
     global magma
     if magma is None:
         magma = Magma(script_subdirectory='ell_padic')

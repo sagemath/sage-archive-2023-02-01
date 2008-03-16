@@ -174,6 +174,26 @@ class ContreTableaux_n(CombinatorialClass):
         """
         return prod( [ factorial(3*k+1)/factorial(self.n+k) for k in range(self.n)] )
 
+    def _iterator_rec(self, i):
+        """
+        TESTS:
+            sage: c = ContreTableaux(2)
+            sage: list(c._iterator_rec(0))
+            [[]]
+            sage: list(c._iterator_rec(1))
+            [[[1, 2]]]
+            sage: list(c._iterator_rec(2))
+            [[[1, 2], [1]], [[1, 2], [2]]]
+        """
+        if i == 0:
+            yield []
+        elif i == 1:
+            yield [range(1, self.n+1)]
+        else:
+            for columns in self._iterator_rec(i-1):
+                previous_column = columns[-1]
+                for column in _next_column_iterator(previous_column, len(previous_column)-1):
+                    yield columns + [ column ]
 
     def iterator(self):
         """
@@ -193,19 +213,8 @@ class ContreTableaux_n(CombinatorialClass):
              [[1, 2, 3], [2, 3], [2]],
              [[1, 2, 3], [2, 3], [3]]]
         """
-        def proc(i):
-            if i == 0:
-                yield []
-            elif i == 1:
-                yield [range(1, self.n+1)]
 
-            else:
-                for columns in proc(i-1):
-                    previous_column = columns[-1]
-                    for column in _next_column_iterator(previous_column, len(previous_column)-1):
-                        yield columns + [ column ]
-
-        for z in proc(self.n):
+        for z in self._iterator_rec(self.n):
             yield z
 
 
@@ -290,25 +299,35 @@ class TruncatedStaircases_nlastcolumn(CombinatorialClass):
         """
         return "Truncated staircases of size %s with last column %s"%(self.n, self.last_column)
 
-    def iterator(self):
+    def _iterator_rec(self, i):
         """
         TESTS:
+            sage: t = TruncatedStaircases(3, [2,3])
+            sage: list(t._iterator_rec(1))
+            []
+            sage: list(t._iterator_rec(2))
+            [[[2, 3]]]
+            sage: list(t._iterator_rec(3))
+            [[[1, 2, 3], [2, 3]]]
+        """
+        if i < len(self.last_column):
+            return
+        elif i == len(self.last_column):
+            yield [self.last_column]
+        else:
+            for columns in self._iterator_rec(i-1):
+                previous_column = columns[0]
+                for column in _previous_column_iterator(previous_column, len(previous_column)+1, self.n):
+                    yield [column] + columns
+
+    def iterator(self):
+        """
+        EXAMPLES::
             sage: TruncatedStaircases(4, [2,3]).list() #indirect test
             [[[4, 3, 2, 1], [3, 2, 1], [3, 2]], [[4, 3, 2, 1], [4, 2, 1], [3, 2]], [[4, 3, 2, 1], [4, 3, 1], [3, 2]], [[4, 3, 2, 1], [4, 3, 2], [3, 2]]]
 
         """
-        def proc(i):
-            if i < len(self.last_column):
-                return
-            elif i == len(self.last_column):
-                yield [self.last_column]
-            else:
-                for columns in proc(i-1):
-                    previous_column = columns[0]
-                    for column in _previous_column_iterator(previous_column, len(previous_column)+1, self.n):
-                        yield [column] + columns
-
-        for z in proc(self.n):
+        for z in self._iterator_rec(self.n):
             yield map(lambda x: list(reversed(x)), z)
 
 

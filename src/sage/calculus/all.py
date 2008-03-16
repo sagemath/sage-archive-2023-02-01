@@ -18,7 +18,6 @@ from calculus import (SymbolicExpressionRing,
                       arcsin, arccos, arctan,
                       arcsinh, arccosh, arctanh, arccoth, arcsech, arccsch,
                       arccot, arccsc, arcsec,
-
                       ceil, floor,
                       polylog,
                       abs_symbolic, exp,
@@ -33,6 +32,8 @@ from functional import (diff, derivative,
                         expand,
                         integrate, limit, lim,
                         taylor, simplify)
+
+from functions import (wronskian,)
 
 from desolvers import (desolve, desolve_laplace, desolve_system,
                        eulers_method, eulers_method_2x2,

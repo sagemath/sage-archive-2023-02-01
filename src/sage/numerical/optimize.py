@@ -4,6 +4,8 @@ Numerical Root Finding and Optimization
 AUTHOR:
     -- William Stein (2007)
 """
+from sage.modules.free_module_element import vector
+from sage.rings.real_double import RDF
 
 def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False):
     """
@@ -157,3 +159,264 @@ def find_minimum_on_interval(f, a, b, tol=1.48e-08, maxfun=500):
     import scipy.optimize
     xmin, fval, iter, funcalls = scipy.optimize.fminbound(f, a, b, full_output=1, xtol=tol, maxfun=maxfun)
     return fval, xmin
+
+
+def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
+    r"""
+    This function is an interface to a variety of algorithms for computing the minimum of
+    a function of several variables.
+
+    INPUT:
+       func - Either a symbolic function, or a python function whose argument is a tuple with n components
+
+       x0 - Initial point for finding minimum.
+
+       gradient - Optional gradient function. This will be computed automatically for symbolic functions.
+
+                  For python functions it allows the use of algorithms requiring derivatives. It should accept a tuple
+                  or arguments and return a numpy array containing the partial derivatives at that point.
+
+       hessian -  Optional hessian function. This will be computed automatically for symbolic functions.
+
+                  For python functions it allows the use of algorithms requiring derivatives. It should accept
+                  a tuple of arguments and return a numpy array containing the 2nd partial derivatives of the function.
+
+       algorithm - String specifying algorithm to use. Options are
+                   "default" (for python's funcions the simplex method is the default)
+                             (for symbolic functions bfgs is the default)
+                   "simplex"
+                   "powell"
+                   "bfgs" (broyden-fletcher-goldfarb-shannon) - requires gradient
+                   "cg" - (conjugate-gradient) -requires gradient
+                   "ncg" - (newton-conjugate gradient) - requires gradient and hessian
+
+
+    EXAMPLES:
+       sage: vars=var('x y z')
+       sage: f=100*(y-x^2)^2+(1-x)^2+100*(z-y^2)^2+(1-y)^2
+       sage: minimize(f,[.1,.3,.4],disp=0)
+       (1.00..., 1.00..., 1.00...)
+
+       sage: minimize(f,[.1,.3,.4],algorithm="ncg",disp=0)
+       (0.9999999..., 0.999999..., 0.999999...)
+
+       Same example with just python function
+
+
+       sage: def rosen(x): # The Rosenbrock function
+       ...      return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
+       sage: minimize(rosen,[.1,.3,.4],disp=0)
+       (1.00..., 1.00..., 1.00...)
+
+       Same example with a pure python function and python function to compute the gradient
+
+       sage: def rosen(x): # The Rosenbrock function
+       ...      return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
+       sage: import numpy
+       sage: from numpy import zeros
+       sage: def rosen_der(x):
+       ...      xm = x[1r:-1r]
+       ...      xm_m1 = x[:-2r]
+       ...      xm_p1 = x[2r:]
+       ...      der = zeros(x.shape,dtype=float)
+       ...      der[1r:-1r] = 200r*(xm-xm_m1**2r) - 400r*(xm_p1 - xm**2r)*xm - 2r*(1r-xm)
+       ...      der[0] = -400r*x[0r]*(x[1r]-x[0r]**2r) - 2r*(1r-x[0])
+       ...      der[-1] = 200r*(x[-1r]-x[-2r]**2r)
+       ...      return der
+       sage: minimize(rosen,[.1,.3,.4],gradient=rosen_der,algorithm="bfgs",disp=0)
+       (1.00...,  1.00..., 1.00...)
+
+
+
+
+    """
+    from sage.calculus.calculus import SymbolicExpression
+    import scipy
+    from scipy import optimize
+    if isinstance(func,SymbolicExpression):
+        var_list=func.variables()
+        var_names=map(str,var_list)
+        fast_f=func._fast_float_(*var_names)
+        f=lambda p: fast_f(*p)
+        gradient_list=func.gradient()
+        fast_gradient_functions=[gradient_list[i]._fast_float_(*var_names)  for i in xrange(len(gradient_list))]
+        gradient=lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
+    else:
+        f=func
+
+    if algorithm=="default":
+        if gradient==None:
+            min=optimize.fmin(f,map(float,x0),**args)
+        else:
+            min= optimize.fmin_bfgs(f,map(float,x0),fprime=gradient,**args)
+    else:
+        if algorithm=="simplex":
+            min= optimize.fmin(f,map(float,x0),**args)
+        elif algorithm=="bfgs":
+            min= optimize.fmin_bfgs(f,map(float,x0),fprime=gradient,**args)
+        elif algorithm=="cg":
+            min= optimize.fmin_cg(f,map(float,x0),fprime=gradient,**args)
+        elif algorithm=="powell":
+            min= optimize.fmin_powell(f,map(float,x0),**args)
+        elif algorithm=="ncg":
+            if isinstance(func,SymbolicExpression):
+                hess=func.hessian()
+                hess_fast= [ [a._fast_float_(*var_names) for a in row] for row in hess]
+                hessian=lambda p: [[a(*p) for a in row] for row in hess_fast]
+                hessian_p=lambda p,v: scipy.dot(scipy.array(hessian(p)),v)
+                min= optimize.fmin_ncg(f,map(float,x0),fprime=gradient,fhess=hessian,fhess_p=hessian_p,**args)
+    return vector(RDF,min)
+
+def minimize_constrained(func,cons,x0,gradient=None, **args):
+    r"""
+       INPUT:
+       func - Either a symbolic function, or a python function whose argument is a tuple with n components
+
+       x0 - Initial point for finding minium
+
+       cons - constraints. This should be either a function or list of functions that must be positive.
+              Alternatively the constraints can be specified as a
+              list of intervals that define the region we are minimizing in.
+
+              If the constraints are specified as  functions, the functions
+              should be functions of a tuple with n components (assuming n variables).
+
+              If specifed as a list of intervals and there are no constraints for a given variable that component can be [None,None].
+
+
+       gradient - Optional gradient function. This will be computed automatically for symbolic functions.
+                  This is only used when the constraints are specified as a list of intervals.
+
+      EXAMPLES:
+        Let us maximize
+        x+y-50
+
+        subject to
+        50*x+24*y<=2400
+        30*x+33*y<=2100
+        x>=45
+        y>=5
+
+        sage: vars=var('y')
+        sage: f=lambda p: -p[0]-p[1]+50
+        sage: c_1=lambda p: p[0]-45
+        sage: c_2=lambda p: p[1]-5
+        sage: c_3=lambda p: -50*p[0]-24*p[1]+2400
+        sage: c_4=lambda p: -30*p[0]-33*p[1]+2100
+        sage: a=minimize_constrained(f,[c_1,c_2,c_3,c_4],[2,3])
+        sage: a
+        (45.0, 6.25)
+
+        Lets us fined a minimum of sin(xy)
+
+        sage: vars=var('x y')
+        sage: f=sin(x*y)
+        sage: minimize_constrained(f, [[None,None],[4,10]],[5,5])
+        (4.854..., 4.854...)
+
+
+     """
+    from sage.calculus.calculus import SymbolicExpression
+    import scipy
+    from scipy import optimize
+    function_type=type(lambda x,y: x+y)
+
+    if isinstance(func,SymbolicExpression):
+        var_list=func.variables()
+        var_names=map(str,var_list)
+        fast_f=func._fast_float_(*var_names)
+        f=lambda p: fast_f(*p)
+        gradient_list=func.gradient()
+        fast_gradient_functions=[gradient_list[i]._fast_float_(*var_names)  for i in xrange(len(gradient_list))]
+        gradient=lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
+    else:
+        f=func
+
+    if isinstance(cons,list):
+        if isinstance(cons[0],tuple) or isinstance(cons[0],list) or cons[0]==None:
+            if gradient!=None:
+                min= optimize.fmin_tnc(f,x0,gradient,bounds=cons,messages=0,**args)[0]
+            else:
+                min= optimize.fmin_tnc(f,x0,approx_grad=True,bounds=cons,messages=0,**args)[0]
+        elif isinstance(cons[0],function_type):
+            min= optimize.fmin_cobyla(f,x0,cons,iprint=0,**args)
+    elif isinstance(cons, function_type):
+        min= optimize.fmin_cobyla(f,x0,cons,iprint=0,**args)
+    return vector(RDF,min)
+
+
+def linear_program(c,G,h,A=None,b=None):
+    """
+     Solves the dual linear programs
+
+     minimize    c'*x              maximize    -h'*z - b'*y
+     subject to  G*x + s = h       subject to  G'*z + A'*y + c = 0
+     A*x = b                       z >= 0.
+                      s >= 0
+
+    (here ' denotes transpose).
+
+    INPUT:
+       c - a vector
+       G - a matrix
+       h - a vector
+       A - a matrix
+       b - a vector
+
+       these can be over any field that can be turned to a float.
+    OUTPUT:
+       A dictionary sol with keys x,s,y,z corresponding to the variables above
+
+       sol['x'] - the solution to the linear program
+       sol['s'] - the slack variables for the solution
+       sol['z'] , sol['y'] - solutions to the dual program
+
+    EXAMPLE:
+       To minimize
+            -4x_1 - 5x_2
+       subject to
+            2x_1 + x_2 <=3
+            x_1 +  2x_2 <=3
+            x_1 >= 0
+            x_2 >= 0
+
+       sage: c=vector(RDF,[-4,-5])
+       sage: G=matrix(RDF,[[2,1],[1,2],[-1,0],[0,-1]])
+       sage: h=vector(RDF,[3,3,0,0])
+       sage: sol=linear_program(c,G,h)
+       sage: sol['x']
+       (0.999..., 1.000...)
+
+       To maximize
+           x+y-50
+       subject to
+         50*x+24*y<=2400
+         30*x+33*y<=2100
+         x>=45
+         y>=5
+       sage: v=vector([-1.0,-1.0,-1.0])
+       sage: m=matrix([[50.0,24.0,0.0],[30.0,33.0,0.0],[-1.0,0.0,0.0],[0.0,-1.0,0.0],[0.0,0.0,1.0],[0.0,0.0,-1.0]])
+       sage: h=vector([2400.0,2100.0,-45.0,-5.0,1.0,-1.0])
+       sage: sol=linear_program(v,m,h)
+       sage: sol['x']
+       (45.000000..., 6.2499999...3, 1.00000000...)
+
+    """
+    from cvxopt.base import matrix as m
+    from cvxopt import solvers
+    solvers.options['show_progress']=False
+    c_=m(c.base_extend(RDF).numpy())
+    G_=m(G.base_extend(RDF).numpy())
+    h_=m(h.base_extend(RDF).numpy())
+    if A!=None and b!=None:
+        A_=m(A.base_extend(RDF).numpy())
+        b_=m(b.base_extend(RDF).numpy())
+        sol=solvers.lp(c_,G_,h_,A_,b_)
+    else:
+        sol=solvers.lp(c_,G_,h_)
+    x=vector(RDF,list(sol['x']))
+    s=vector(RDF,list(sol['s']))
+    y=vector(RDF,list(sol['y']))
+    z=vector(RDF,list(sol['z']))
+    return  {'x':x,'s':s,'y':y,'z':z}
+

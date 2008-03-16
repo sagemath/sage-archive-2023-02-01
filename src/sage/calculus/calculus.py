@@ -2002,6 +2002,45 @@ class SymbolicExpression(RingElement):
     differentiate = derivative
     diff = derivative
 
+    def gradient(self):
+        r"""
+        Compute the gradient of a symbolic function.
+        This function returns a vector whose components are the
+        derivatives of the original function.
+          sage: var('x y')
+          (x, y)
+          sage: f=x^2+y^2
+          sage: f.gradient()
+          (2*x, 2*y)
+
+        """
+
+        from sage.modules.free_module_element import vector
+        l=[self.derivative(x) for x in self.variables()]
+        return vector(l)
+
+    def hessian(self):
+        r"""
+        Compute the hessian of a function. This returns a matrix
+        components are the 2nd partial derivatives of the original function.
+
+        EXAMPLES:
+          sage: var('x y')
+          (x, y)
+          sage: f=x^2+y^2
+          sage: f.hessian()
+          [2 0]
+          [0 2]
+
+        """
+
+        from sage.matrix  import constructor
+        grad=self.gradient()
+        var_list=self.variables()
+        l=[ [grad[i].derivative(x) for x in var_list] for i in xrange(len(grad))]
+        return constructor.matrix(l)
+
+
 
     ###################################################################
     # Taylor series

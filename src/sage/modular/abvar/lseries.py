@@ -147,7 +147,7 @@ class Lseries_padic(Lseries):
 
         EXAMPLES:
             sage: J0(37)[0].padic_lseries(389)
-            389-adic L-series attached to Modular abelian variety quotient of dimension 1 and level 37
+            389-adic L-series attached to Abelian variety factor of dimension 1 of J0(37)
         """
         Lseries.__init__(self, abvar)
         p = Integer(p)
@@ -227,7 +227,7 @@ class Lseries_padic(Lseries):
         EXAMPLES:
             sage: L = J0(37)[0].padic_lseries(5)
             sage: L._repr_()
-            '5-adic L-series attached to Modular abelian variety quotient of dimension 1 and level 37'
+            '5-adic L-series attached to Abelian variety factor of dimension 1 of J0(37)'
         """
         return "%s-adic L-series attached to %s"%(self.__p, self.abelian_variety())
 

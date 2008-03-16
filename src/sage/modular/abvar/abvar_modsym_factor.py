@@ -6,7 +6,7 @@ AUTHOR:
 
 EXAMPLES:
     sage: A = J0(389)[0]; A
-    Modular abelian variety quotient of dimension 1 and level 389
+    Abelian variety factor of dimension 1 of J0(389)
     sage: loads(dumps(A)) == A
     True
 """
@@ -35,7 +35,7 @@ class ModAbVar_modsym_factor(ModularAbelianVariety_modsym):
 
         EXAMPLES:
             sage: A = J0(389)[0]; A
-            Modular abelian variety quotient of dimension 1 and level 389
+            Abelian variety quotient of dimension 1 and level 389
             sage: type(A)
             <class 'sage.modular.abvar.abvar_modsym_factor.ModAbVar_modsym_factor'>
         """

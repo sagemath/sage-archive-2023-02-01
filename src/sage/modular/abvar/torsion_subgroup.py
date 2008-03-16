@@ -28,8 +28,8 @@ First we consider $J_0(50)$ where everything works out nicely:
     [15]
     sage: d = J.decomposition(); d
     [
-    Modular abelian variety quotient of dimension 1 and level 50,
-    Modular abelian variety quotient of dimension 1 and level 50
+    Abelian variety factor of dimension 1 of J0(50),
+    Abelian variety factor of dimension 1 of J0(50)
     ]
     sage: d[0].torsion_subgroup().order()
     3

@@ -1639,7 +1639,7 @@ class selector(control):
 
         EXAMPLES:
             sage: selector([1,2,7], default=2).default()
-            2
+            1
         """
         return self.__default
 

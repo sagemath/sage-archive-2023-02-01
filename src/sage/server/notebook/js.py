@@ -903,6 +903,8 @@ function rename_worksheet() {
    }
    T.innerHTML = set_name;
    worksheet_name = new_worksheet_name;
+   original_title = worksheet_name + ' (Sage)';
+   document.title = original_title;
    async_request(worksheet_command('rename'), null, 'name='+escape0(new_worksheet_name));
 }
 

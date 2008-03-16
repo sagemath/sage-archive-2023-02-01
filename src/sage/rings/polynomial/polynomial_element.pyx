@@ -1667,8 +1667,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f._derivative(x)
             3*x^2
 
+            sage: R = ZZ['x']
+            sage: S = R.fraction_field(); x = S.gen()
+            sage: R(1).derivative(R(x))
+            0
         """
-        if var is not None and var is not self._parent.gen():
+        if var is not None and var != self._parent.gen():
             # call _derivative() recursively on coefficients
             return self.polynomial([coeff._derivative(var) for coeff in self.list()])
 

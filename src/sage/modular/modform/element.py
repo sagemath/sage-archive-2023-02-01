@@ -503,6 +503,14 @@ class Newform(ModularForm_abstract):
             else:
                 return -1
 
+    def abelian_variety(self):
+        try:
+            return self.__abelian_variety
+        except AttributeError:
+            from sage.modular.abvar.abvar_newform import ModularAbelianVariety_newform
+            self.__abelian_variety = ModularAbelianVariety_newform(self)
+            return self.__abelian_variety
+
     def hecke_eigenvalue_field(self):
         r"""
         Return the field generated over the rationals by the
@@ -540,7 +548,7 @@ class Newform(ModularForm_abstract):
             return sum([ ls[i] * alpha**i for i in range(degree) ])
 
 
-    def modular_symbols(self, sign):
+    def modular_symbols(self, sign=0):
         """
         Return the subspace with the specified sign of the space of
         modular symbols corresponding to this newform.

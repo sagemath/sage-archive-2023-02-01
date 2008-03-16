@@ -12,9 +12,11 @@ TODO
 
 from sage.rings.all  import QQ, ZZ
 
-import abvar
+from sage.modular.modform.element import Newform
 
-class ModularAbelianVariety_newform(abvar.ModularAbelianVariety):
+from abvar import ModularAbelianVariety_modsym_abstract
+
+class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
     """
     A modular abelian variety attached to a specific newform.
     """
@@ -26,31 +28,32 @@ class ModularAbelianVariety_newform(abvar.ModularAbelianVariety):
         INPUT:
             f -- a newform
 
-        This class is not used anywhere else yet!
-
         EXAMPLES:
-            sage: from sage.modular.abvar.abvar_newform import ModularAbelianVariety_newform
-            sage: f = CuspForms(11).0
-            sage: Af = ModularAbelianVariety_newform(f); Af
-            Modular abelian variety attached to the newform q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: S = CuspForms(37)
+            sage: f = sage.modular.modform.element.Newform(S, S.modular_symbols(1)[1])
+            sage: f.abelian_variety()
+            Modular abelian variety attached to the newform q + q^3 - 2*q^4 + O(q^6)
         """
-        # todo: check that f is is newform -- need a newform class.
+        if not isinstance(f, Newform):
+            raise TypeError, "f must be a newform"
         self.__f = f
-        levels = (f.group(),)
-        L = f.modular_symbols(sign=0).free_module()
-        lattice = L.intersection(ZZ**L.degree())
-        abvar.ModularAbelianVariety(self, levels, lattice, QQ)
+        ModularAbelianVariety_modsym_abstract.__init__(self, QQ)
+
+    def _modular_symbols(self):
+        return self.__f.modular_symbols()
 
     def newform(self):
         """
         Return the newform that this modular abelian variety is attached to.
 
         EXAMPLES:
-            sage: from sage.modular.abvar.abvar_newform import ModularAbelianVariety_newform
-            sage: f = CuspForms(11).0
-            sage: Af = ModularAbelianVariety_newform(f)
-            sage: Af.newform()
-            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: S = CuspForms(37)
+            sage: f = sage.modular.modform.element.Newform(S, S.modular_symbols(1)[1])
+            sage: A = f.abelian_variety()
+            sage: A.newform()
+            q + q^3 - 2*q^4 + O(q^6)
+            sage: A.newform() is f
+            True
         """
         return self.__f
 
@@ -59,11 +62,6 @@ class ModularAbelianVariety_newform(abvar.ModularAbelianVariety):
         String representation of this modular abelian variety.
 
         EXAMPLES:
-            sage: from sage.modular.abvar.abvar_newform import ModularAbelianVariety_newform
-            sage: f = CuspForms(11).0
-            sage: Af = ModularAbelianVariety_newform(f)
-            sage: Af._repr_()
-            'Modular abelian variety attached to the newform q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)'
         """
         return "Modular abelian variety attached to the newform %s"%self.newform()
 

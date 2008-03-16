@@ -36,10 +36,12 @@ from hecke_operator             import HeckeOperator
 from torsion_subgroup           import TorsionSubgroup
 from finite_subgroup            import FiniteSubgroup_gens
 from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup
-from sage.rings.all             import ZZ, QQ, QQbar, is_Ring, LCM
+from sage.rings.all             import ZZ, QQ, QQbar, is_Ring, LCM, divisors
 from sage.modules.all           import is_FreeModule
 from sage.modular.congroup      import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
 from sage.modular.modsym.all    import ModularSymbols
+from sage.matrix.all            import matrix
+from sage.groups.all            import AbelianGroup
 
 import homology
 import homspace
@@ -138,6 +140,92 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             cat = ModularAbelianVarieties(F)
         return homspace.Homspace(self, B, cat)
 
+    def intersection(self, other):
+        """
+        Returns the intersection of self and other inside the ambient
+        Jacobian product.  self and other must be abelian subvarieties
+        of the ambient Jacobian product.
+
+        The intersection of two abelian varieties is an extension of a
+        finite group $G$ of components by an abelian variety $A$.
+        This function returns both $G$ and $A$.
+
+        INPUT:
+            other -- a modular abelian variety
+
+        OUTPUT:
+            G -- finite abelian group
+            A -- abelian variety
+
+        EXAMPLES:
+        We intersect some abelian varieties with finite intersection.
+            sage: J = J0(37)
+            sage: J[0].intersection(J[1])
+            (Multiplicative Abelian Group isomorphic to C2 x C2,
+             Abelian variety factor of dimension 0 of J0(37) defined by [])
+            sage: J = J0(33)
+            sage: J[0].intersection(J[1])
+            (Multiplicative Abelian Group isomorphic to C3 x C3,
+             Abelian variety factor of dimension 0 of J0(33) defined by [])
+
+        Next we intersect two abelian varieties with non-finite intersection:
+            sage: J = J0(67); D = J.decomposition(); D
+            [
+            Abelian variety factor of dimension 1 of J0(67) defined by
+            ...
+            Abelian variety factor of dimension 2 of J0(67) defined by
+            ...
+            Abelian variety factor of dimension 2 of J0(67) defined by
+            ...
+            ]
+            sage: (D[0] + D[1]).intersection(D[1] + D[2])
+            (Multiplicative Abelian Group isomorphic to C2 x C2 x C10 x C10,
+             Abelian variety factor of dimension 2 of J0(67) defined by
+            [ 1  0  0  0  0  2  0 -1 -1  1]
+            [ 0  1  0  0 -1  2  0 -1  0  1]
+            [ 0  0  1  0  0  1 -1  0 -1  1]
+            [ 0  0  0  1 -1  1  1 -1  0  0])
+
+        """
+        if not is_ModularAbelianVariety(other):
+            raise TypeError, "other must be a modular abelian variety"
+        if self.groups() != other.groups():
+            raise ValueError, "incompatible ambient Jacobians"
+        if not self.is_subvariety_of_ambient_jacobian() or not other.is_subvariety_of_ambient_jacobian():
+            raise ValueError, "self and other must be subvarieties of the ambient product Jacobian"
+
+        # 1. find the abvar part
+        L = self.lattice().intersection(other.lattice())
+        if L.dimension() > 0:
+            L = L.intersection(self._ambient_lattice())
+        A = ModularAbelianVariety(self.groups(), L, self.base_field(), check=False)
+
+        # 2. find the finite component group
+        L = self.lattice() + other.lattice()
+        G = AbelianGroup(L.basis_matrix().change_ring(ZZ).elementary_divisors())
+
+        return G, A
+
+
+    def __add__(self, other):
+        """
+        Returns the sum of the images of self and other inside the
+        ambient Jacobian product.   self and other must be abelian subvarieties
+        of the ambient Jacobian product.
+
+        EXAMPLES:
+
+        """
+        if not is_ModularAbelianVariety(other):
+            raise TypeError, "other must be a modular abelian variety"
+        if self.groups() != other.groups():
+            raise ValueError, "incompatible ambient Jacobians"
+        if not self.is_subvariety_of_ambient_jacobian() or not other.is_subvariety_of_ambient_jacobian():
+            raise ValueError, "self and other must be subvarieties of the ambient product Jacobian"
+        L = self.lattice() + other.lattice()
+        M = L.intersection(self._ambient_lattice())
+        return ModularAbelianVariety(self.groups(), M, self.base_field(), check=False)
+
     def __mul__(self, other):
         """
         Compute the direct product of modular abelian varieties.
@@ -152,7 +240,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         We multiply some factors of $J_0(65)$:
             sage: d = J0(65).hecke_decomposition()
             sage: d[0] * d[1] * J0(11)
-            Abelian variety factor of dimension 11 of J0(65) x J0(65) x J0(11) defined by
+            Abelian variety factor of dimension 4 of J0(65) x J0(65) x J0(11) defined by
             [ 1  0  0  0 -1  0  0  0 -1  1  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  1  0 -1  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  0  0  0  0  1  0  0  0 -1  0  0 -1  0  0  0  0]
@@ -170,6 +258,13 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         lattice = self.lattice().direct_sum(other.lattice())
         base_field = self.base_ring()
         return ModularAbelianVariety(groups, lattice, base_field, check=False)
+
+    def is_subvariety_of_ambient_jacobian(self):
+        try:
+            return self.__is_sub_ambient
+        except AttributeError:
+            self.__is_sub_ambient = (self.lattice().denominator() == 1)
+            return self.__is_sub_ambient
 
     def ambient_variety(self):
         """
@@ -198,7 +293,19 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: A.dimension()
             2
         """
-        return self.lattice().degree() // 2
+        return self.lattice().rank() // 2
+
+    def degree(self):
+        """
+        Return the degree of this abelian variety, which
+        is the dimension of the ambient Jacobian product.
+
+        EXAMPLES:
+            sage: A = J0(23)
+            sage: A.dimension()
+            2
+        """
+        return self._ambient_dimension()
 
     def is_subvariety(self, other):
         """
@@ -296,6 +403,13 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 v.append('JH(%s,%s)'%(G.level(), G._generators_for_H()))
         return ' x '.join(v)
 
+    def _ambient_lattice(self):
+        try:
+            return self.__ambient_lattice
+        except AttributeError:
+            self.__ambient_lattice = ZZ**(2*self.degree())
+            return self.__ambient_lattice
+
     def _ambient_modular_symbols_spaces(self):
         try:
             return self.__ambient_modular_symbols_spaces
@@ -307,7 +421,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         try:
             return self.__ambient_dimension
         except AttributeError:
-            self.__ambient_dimension = sum([S.dimension() for S in self._ambient_modular_symbols_spaces()])
+            self.__ambient_dimension = sum([S.dimension() for S in self._ambient_modular_symbols_spaces()]) // 2
             return self.__ambient_dimension
 
     def _ambient_hecke_matrix_on_modular_symbols(self, n):
@@ -700,7 +814,59 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     # Decomposition
     ###############################################################################
     def decomposition(self):
-        raise NotImplementedError, "TODO!!"
+        """
+        Return a sequence of abelian subvarieties of self that are all simple,
+        have finite intersection and sum to self.
+        """
+        try:
+            return self.__decomposition
+        except AttributeError:
+            pass
+
+
+        intersect = (self.dimension() < self._ambient_dimension())
+
+        L = self.lattice()
+
+        lattices = []
+        S = self._ambient_modular_symbols_spaces()
+
+        for i in range(len(S)):
+            before = sum(S[j].dimension() for j in range(i))
+            after  = sum(S[j].dimension()  for j in range(i+1,len(S)))
+            M = S[i]
+            for N in divisors(M.level()):
+                P = M.ambient_module().modular_symbols_of_level(N)
+                PS = P.cuspidal_subspace()
+                zero_module = (QQ**M.ambient_module().dimension()).zero_submodule()
+                D = PS.new_subspace().decomposition()
+                for A in D:
+                    # Now let B be the sum in the big ambient space
+                    if N == M.level():
+                        B = A
+                    else:
+                        # take all images of A at higher level
+                        B = zero_module
+                        for t in divisors(M.level()//N):
+                            delta = A.degeneracy_map(M.level(), t).matrix()
+                            B += delta.image()
+                    # Figure out coordinates of this sum of images of A
+                    # in terms of coordinates for the cuspidal subspace
+                    # of modular symbols.
+                    V = M.free_module().coordinate_module(B.free_module())
+                    # Embed V in the space with 0's everywhere except at
+                    # M factor.
+                    AV = V.basis_matrix()
+                    big = matrix(QQ,AV.nrows(), before).augment(AV).augment(matrix(QQ,AV.nrows(),after))
+                    V_embed = big.row_module(QQ)
+                    Z = V_embed.intersection(L)
+                    if Z.dimension() > 0:
+                        lattices.append((Z, Z.dimension() // A.dimension()))
+
+        groups = self.groups()
+        X = [ModularAbelianVariety(groups, L, QQ, check=False) for L, i in lattices]
+        self.__decomposition = Sequence(X, immutable=True, cr=True, universe=self.category())
+        return self.__decomposition
 
     def __getitem__(self, i):
         """
@@ -710,16 +876,23 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: J = J0(389)
             sage: J.decomposition()
             [
-            Modular abelian variety quotient of dimension 1 and level 389,
-            Modular abelian variety quotient of dimension 2 and level 389,
-            Modular abelian variety quotient of dimension 3 and level 389,
-            Modular abelian variety quotient of dimension 6 and level 389,
-            Modular abelian variety quotient of dimension 20 and level 389
+            Abelian variety factor of dimension 1 of J0(389) defined by
+            2 x 64 dense matrix over Rational Field,
+            Abelian variety factor of dimension 2 of J0(389) defined by
+            4 x 64 dense matrix over Rational Field,
+            Abelian variety factor of dimension 3 of J0(389) defined by
+            6 x 64 dense matrix over Rational Field,
+            Abelian variety factor of dimension 6 of J0(389) defined by
+            12 x 64 dense matrix over Rational Field,
+            Abelian variety factor of dimension 20 of J0(389) defined by
+            40 x 64 dense matrix over Rational Field
             ]
             sage: J[2]
-            Modular abelian variety quotient of dimension 3 and level 389
+            Abelian variety factor of dimension 3 of J0(389) defined by
+            6 x 64 dense matrix over Rational Field
             sage: J[-1]
-            Modular abelian variety quotient of dimension 20 and level 389
+            Abelian variety factor of dimension 20 of J0(389) defined by
+            40 x 64 dense matrix over Rational Field
         """
         return self.decomposition()[i]
 
@@ -730,19 +903,19 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: J = J0(125); J.decomposition()
             [
-            Modular abelian variety quotient of dimension 2 and level 125,
-            Modular abelian variety quotient of dimension 2 and level 125,
-            Modular abelian variety quotient of dimension 4 and level 125
+            Abelian variety factor of dimension 2 of J0(125) defined by
+            ...
+            Abelian variety factor of dimension 2 of J0(125) defined by
+            ...
+            Abelian variety factor of dimension 4 of J0(125) defined by
+            ...
             ]
             sage: J[:2]
             [
-            Modular abelian variety quotient of dimension 2 and level 125,
-            Modular abelian variety quotient of dimension 2 and level 125
-            ]
-            sage: J[1:]
-            [
-            Modular abelian variety quotient of dimension 2 and level 125,
-            Modular abelian variety quotient of dimension 4 and level 125
+            Abelian variety factor of dimension 2 of J0(125) defined by
+            ...
+            Abelian variety factor of dimension 2 of J0(125) defined by
+            ...
             ]
         """
         return self.decomposition()[i:j]
@@ -964,8 +1137,8 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             Congruence Subgroup Gamma1(997)
             sage: JH(37,[3]).group()
             Congruence Subgroup Gamma_H(37) with H generated by [3]
-            sage: J0(37)[1].group()
-            Congruence Subgroup Gamma0(37)
+            sage: J0(37)[1].groups()
+            (Congruence Subgroup Gamma0(37),)
         """
         return self.modular_symbols(1).group()
 

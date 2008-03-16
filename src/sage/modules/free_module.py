@@ -1745,6 +1745,9 @@ class FreeModule_generic_pid(FreeModule_generic):
         """
         return FreeModule_submodule_pid(self.ambient_module(),[], check=False)
 
+    def denominator(self):
+        return self.basis_matrix().denominator()
+
     def index_in_saturation(self):
         r"""
         Return the index of this module in its saturation, i.e., its

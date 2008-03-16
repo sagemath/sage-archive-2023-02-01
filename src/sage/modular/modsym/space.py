@@ -1495,6 +1495,8 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         if not self.is_cuspidal():
             raise ValueError, "self must be cuspidal for modular symbols space with given sign to be defined."
         d = self.dimension()
+        if d == 0:
+            return self
         if sign != 0:
             if self.sign() == 0:
                 d = d//2

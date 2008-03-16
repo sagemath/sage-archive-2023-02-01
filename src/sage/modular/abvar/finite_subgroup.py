@@ -124,7 +124,7 @@ class FiniteSubgroup(Module):
         """
         if not is_Field(base_field):
             raise TypeError, "base_field must be a field"
-        if not isinstance(abvar, abelian_variety.ModularAbelianVariety):
+        if not abelian_variety.is_ModularAbelianVariety(abvar):
             raise TypeError, "abvar must be a modular abelian variety"
         Module.__init__(self, base_field)
         self.__abvar = abvar
@@ -205,7 +205,7 @@ class FiniteSubgroup(Module):
             True
         """
         if not isinstance(other, FiniteSubgroup):
-            if isinstance(other, abelian_variety.ModularAbelianVariety):
+            if abelian_variety.is_ModularAbelianVariety(other):
                 if self.abelian_variety().is_subvariety(other):
                     return True
                 raise NotImplementedError, "determining general inclusions not completely implemented yet."

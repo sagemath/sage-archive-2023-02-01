@@ -786,6 +786,33 @@ class FreeModule_generic(module.Module):
         """
         return self.basis_matrix()
 
+    def direct_sum(self, other):
+        """
+        Return the direct sum of self and other as a free module.
+
+        EXAMPLES:
+            sage: V = (ZZ^3).span([[1/2,3,5], [0,1,-3]]); V
+            Free module of degree 3 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1/2   0  14]
+            [  0   1  -3]
+            sage: W = (ZZ^3).span([[1/2,4,2]]); W
+            Free module of degree 3 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [1/2   4   2]
+            sage: V.direct_sum(W)
+            Free module of degree 6 and rank 3 over Integer Ring
+            Echelon basis matrix:
+            [1/2   0  14   0   0   0]
+            [  0   1  -3   0   0   0]
+            [  0   0   0 1/2   4   2]
+        """
+        if not is_FreeModule(other):
+            raise TypeError, "other must be a free module"
+        if other.base_ring() != self.base_ring():
+            raise TypeError, "base rins of self and other must be the same"
+        return self.basis_matrix().block_sum(other.basis_matrix()).row_module(self.base_ring())
+
     def coordinates(self, v, check=True):
         """
         Write $v$ in terms of the basis for self.
@@ -828,6 +855,70 @@ class FreeModule_generic(module.Module):
             (2, -1)
         """
         raise NotImplementedError
+
+    def coordinate_module(self, V):
+        r"""
+        Suppose V is a submodule of self (or a module comeasurable
+        with self), and that self is a free module over $R$ of rank
+        $n$.  Let $\phi$ be the map from self to $R^n$ that sends the
+        basis vectors of self in order to the standard basis of $R^n$.
+        This function returns the image $\phi(V)$.
+
+        WARNING: If there is no integer $d$ such that $dV$ is a submodule
+        of self, then this function will give total nonsense.
+
+        EXAMPLES:
+        We illustrate this function with some $\ZZ$-submodules of $\QQ^3$.
+            sage: V = (ZZ^3).span([[1/2,3,5], [0,1,-3]])
+            sage: W = (ZZ^3).span([[1/2,4,2]])
+            sage: V.coordinate_module(W)
+            Free module of degree 2 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [1 4]
+            sage: V.0 + 4*V.1
+            (1/2, 4, 2)
+
+        In this example, the coordinate module isn't even in $\ZZ^3$.
+            sage: W = (ZZ^3).span([[1/4,2,1]])
+            sage: V.coordinate_module(W)
+            Free module of degree 2 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [1/2   2]
+
+        The following more elaborate example illustrates using this function
+        to write a submodule in terms of integral cuspidal modular symbols:
+            sage: M = ModularSymbols(54)
+            sage: S = M.cuspidal_subspace()
+            sage: K = S.integral_structure(); K
+            Free module of degree 19 and rank 8 over Integer Ring
+            Echelon basis matrix:
+            [ 0  1  0  0 -1  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+            ...
+            sage: L = M[0].integral_structure(); L
+            Free module of degree 19 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 0  1  1  0 -2  1 -1  1 -1 -2  2  0  0  0  0  0  0  0  0]
+            [ 0  0  3  0 -3  2 -1  2 -1 -4  2 -1 -2  1  2  0  0 -1  1]
+            sage: K.coordinate_module(L)
+            Free module of degree 8 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 1  1  1 -1  1 -1  0  0]
+            [ 0  3  2 -1  2 -1 -1 -2]
+            sage: K.coordinate_module(L).basis_matrix() * K.basis_matrix()
+            [ 0  1  1  0 -2  1 -1  1 -1 -2  2  0  0  0  0  0  0  0  0]
+            [ 0  0  3  0 -3  2 -1  2 -1 -4  2 -1 -2  1  2  0  0 -1  1]
+        """
+        if not is_FreeModule(V):
+            raise ValueError, "V must be a free module"
+        if self.base_ring() != V.base_ring():
+            raise ValueError, "self and V must have the same base ring"
+        A = self.basis_matrix()
+        A = A.matrix_from_columns(A.pivots()).transpose()
+        B = V.basis_matrix()
+        B = B.matrix_from_columns(self.basis_matrix().pivots()).transpose()
+        S = A.solve_right(B).transpose()
+        return S.row_module(self.base_ring())
+
 
     def degree(self):
         """

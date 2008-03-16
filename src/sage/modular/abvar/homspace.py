@@ -35,9 +35,9 @@ class Homspace(HomsetWithBase):
             sage: H.homset_category()
             Category of modular abelian varieties over Rational Field
         """
-        if not isinstance(domain, abelian_variety.ModularAbelianVariety):
+        if not abelian_variety.is_ModularAbelianVariety(domain):
             raise TypeError, "domain must be a modular abelian variety"
-        if not isinstance(codomain, abelian_variety.ModularAbelianVariety):
+        if not abelian_variety.is_ModularAbelianVariety(codomain):
             raise TypeError, "codomain must be a modular abelian variety"
         HomsetWithBase.__init__(self, domain, codomain, cat)
 

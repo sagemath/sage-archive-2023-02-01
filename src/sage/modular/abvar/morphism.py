@@ -13,7 +13,7 @@ AUTHOR:
 
 import sage.categories.morphism
 
-class Morphism(sage.categories.morphism.Morphism):
+class Morphism_abstract(sage.categories.morphism.Morphism):
     """
     A morphism between modular abelian varieties.
     """
@@ -26,9 +26,22 @@ class Morphism(sage.categories.morphism.Morphism):
 
         EXAMPLES:
             sage: t = J0(11).hecke_operator(2)
-            sage: from sage.modular.abvar.morphism import Morphism
-            sage: isinstance(t, Morphism)
+            sage: from sage.modular.abvar.morphism import Morphism_abstract
+            sage: isinstance(t, Morphism_abstract)
             True
         """
         sage.categories.morphism.Morphism.__init__(self, parent)
+
+    def matrix(self):
+        raise NotImplementedError
+
+class Morphism(Morphism_abstract):
+    def __init__(self, parent, matrix):
+        self.__matrix = matrix
+        Morphism_abstract.__init__(self, parent)
+
+    def matrix(self):
+        return self.__matrix
+
+
 

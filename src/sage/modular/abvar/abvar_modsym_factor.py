@@ -17,7 +17,7 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
-from abvar             import ModularAbelianVariety_modsym, ModularAbelianVariety
+from abvar             import ModularAbelianVariety_modsym, is_ModularAbelianVariety
 from sage.rings.all    import QQ
 
 class ModAbVar_modsym_factor(ModularAbelianVariety_modsym):
@@ -142,7 +142,7 @@ class ModAbVar_modsym_factor(ModularAbelianVariety_modsym):
             sage: sum(D, D[0]) == A
             True
         """
-        if not isinstance(other, ModularAbelianVariety):
+        if not is_ModularAbelianVariety(other):
             raise TypeError, "sum not defined"
         if not isinstance(other, ModularAbelianVariety_modsym):
             raise NotImplementedError, "general sum not implemented"
@@ -170,7 +170,7 @@ class ModAbVar_modsym_factor(ModularAbelianVariety_modsym):
             sage: D[2].is_subvariety(D[0] + D[1])
             False
         """
-        if not isinstance(other, ModularAbelianVariety):
+        if not is_ModularAbelianVariety(other):
             return False
         A = self.ambient_variety()
         if A == other:
@@ -182,9 +182,3 @@ class ModAbVar_modsym_factor(ModularAbelianVariety_modsym):
             raise NotImplementedError, "general is_subvariety not implemented"
         return self.modular_symbols(1).is_submodule(other.modular_symbols(1))
 
-
-## class ModAbVar_modsym_simple_new_factor(ModAbVar_modsym_factor):
-
-##     def _repr_(self):
-##         return "New simple modular abelian variety quotient of dimension %s and level %s"%(\
-##             self.dimension(), self.level())

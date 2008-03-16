@@ -20,8 +20,16 @@ EXAMPLES:
     (x - 3)^2 * (x + 3)^2 * x^4
     sage: B = A.new_quotient(); B
     Modular abelian variety quotient of dimension 2 and level 54
+    [ 1  0  0  0  1 -1  0  0]
+    [ 0  1  0  0  1  0  0 -1]
+    [ 0  0  1  0  0 -1 -1  0]
+    [ 0  0  0  1  1 -1 -1 -1]
     sage: t5 = B.hecke_operator(5); t5
-    Hecke operator T_5 on Modular abelian variety quotient of dimension 2 and level 54
+    Hecke operator T_5 on Abelian variety factor of dimension 2 of J0(54) defined by
+    [ 1  0  0  0  1 -1  0  0]
+    [ 0  1  0  0  1  0  0 -1]
+    [ 0  0  1  0  0 -1 -1  0]
+    [ 0  0  0  1  1 -1 -1 -1]
     sage: t5.charpoly().factor()
     (x - 3)^2 * (x + 3)^2
     sage: t5.action_on_homology().matrix()
@@ -38,10 +46,10 @@ EXAMPLES:
 ###########################################################################
 
 from sage.rings.all import ZZ
-from morphism import Morphism
+from morphism import Morphism_abstract
 import abvar as abelian_variety
 
-class HeckeOperator(Morphism):
+class HeckeOperator(Morphism_abstract):
     """
     A Hecke operator acting on a modular abelian variety.
     """
@@ -62,11 +70,11 @@ class HeckeOperator(Morphism):
         n = ZZ(n)
         if n <= 0:
             raise ValueError, "n must be positive"
-        if not isinstance(abvar, abelian_variety.ModularAbelianVariety):
+        if not abelian_variety.is_ModularAbelianVariety(abvar):
             raise TypeError, "abvar must be a modular abelian variety"
         self.__abvar = abvar
-        self._n = n
-        Morphism.__init__(self, abvar._Hom_(abvar))
+        self.__n = n
+        Morphism_abstract.__init__(self, abvar._Hom_(abvar))
 
     def _repr_(self):
         """
@@ -77,7 +85,7 @@ class HeckeOperator(Morphism):
             sage: J.hecke_operator(2)._repr_()
             'Hecke operator T_2 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)'
         """
-        return "Hecke operator T_%s on %s"%(self._n, self.__abvar)
+        return "Hecke operator T_%s on %s"%(self.__n, self.__abvar)
 
     def index(self):
         """
@@ -97,7 +105,7 @@ class HeckeOperator(Morphism):
             sage: type(t.index())
             <type 'sage.rings.integer.Integer'>
         """
-        return self._n
+        return self.__n
 
     def characteristic_polynomial(self, var='x'):
         """
@@ -124,7 +132,7 @@ class HeckeOperator(Morphism):
             sage: t2.characteristic_polynomial('y')
             y^4 - 4*y^2 + 4
         """
-        return self.__abvar.rational_homology().hecke_polynomial(self._n, var).change_ring(ZZ)
+        return self.__abvar.rational_homology().hecke_polynomial(self.__n, var).change_ring(ZZ)
 
     def charpoly(self, var='x'):
         r"""
@@ -175,3 +183,6 @@ class HeckeOperator(Morphism):
             [0 1 0 1 0 1]
         """
         return self.__abvar.homology(R).hecke_operator(self.index())
+
+    def matrix(self):
+        return self.action_on_homology().matrix()

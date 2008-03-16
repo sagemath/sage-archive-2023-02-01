@@ -5,54 +5,32 @@ cdef extern from 'symmetrica/def.h':
     ctypedef int INT
     ctypedef INT OBJECTKIND
 
-    ctypedef struct vector:
+    cdef struct vector:
         pass
-    ctypedef struct bruch:
+    cdef struct bruch:
         pass
-    ctypedef struct graph:
+    cdef struct graph:
         pass
-    ctypedef struct list:
+    cdef struct list:
         pass
-    ctypedef struct longint:
+    cdef struct matrix:
         pass
-    ctypedef struct matrix:
+    cdef struct monom:
         pass
-    ctypedef struct monom:
+    cdef struct number:
         pass
-    ctypedef struct number:
+    cdef struct partition:
         pass
-    ctypedef struct partition:
+    cdef struct permutation:
         pass
-    ctypedef struct permutation:
+    cdef struct reihe:
         pass
-    ctypedef struct reihe:
+    cdef struct skewpartition:
         pass
-    ctypedef struct skewpartition:
+    cdef struct symchar:
         pass
-    ctypedef struct symchar:
+    cdef struct tableaux:
         pass
-    ctypedef struct tableaux:
-        pass
-
-    ctypedef union OBJECTSELF:
-        INT ob_INT
-        INT *ob_INTpointer
-        char *ob_charpointer
-        bruch *ob_bruch
-        graph *ob_graph
-        list *ob_list
-        longint *ob_longint
-        matrix *ob_matrix
-        monom *ob_monom
-        number *ob_number
-        partition *ob_partition
-        permutation *ob_permutation
-        reihe *ob_reihe
-        skewpartition *ob_skewpartition
-        symchar *ob_symchar
-        tableaux *ob_tableaux
-        vector *ob_vector
-
 
     cdef enum:
         INFREELIST = -1
@@ -127,54 +105,69 @@ cdef extern from 'symmetrica/def.h':
         HASHTABLE  =120199
 
 
-
-    ctypedef struct loc:
+    cdef struct loc:
         INT w2, w1, w0
         loc *nloc
 
-    ctypedef struct longint:
+    cdef struct longint:
         loc *floc
         signed char signum #-1,0,+1
         INT laenge
 
+    ctypedef union OBJECTSELF:
+        INT ob_INT
+        INT *ob_INTpointer
+        char *ob_charpointer
+        bruch *ob_bruch
+        graph *ob_graph
+        list *ob_list
+        longint *ob_longint
+        matrix *ob_matrix
+        monom *ob_monom
+        number *ob_number
+        partition *ob_partition
+        permutation *ob_permutation
+        reihe *ob_reihe
+        skewpartition *ob_skewpartition
+        symchar *ob_symchar
+        tableaux *ob_tableaux
+        vector *ob_vector
 
+    cdef struct obj:
+        OBJECTKIND ob_kind
+        OBJECTSELF ob_self
 
-    ctypedef struct ganzdaten:
+    cdef struct ganzdaten:
         INT basis, basislaenge, auspos, auslaenge, auszz
 
-    ctypedef struct zahldaten:
+    cdef struct zahldaten:
         char ziffer[13]
         INT mehr
         INT ziffernzhal
         loc *fdez
 
-
-    ctypedef struct obj:
-        OBJECTKIND ob_kind
-        OBJECTSELF ob_self
-
     ctypedef obj *OP
 
-    ctypedef struct vector:
+    cdef struct vector:
         OP v_length
         OP v_self
 
-    ctypedef struct REIHE_variablen:
+    cdef struct REIHE_variablen:
         INT index
         INT potenz
         REIHE_variablen *weiter
 
-    ctypedef struct REIHE_mon:
+    cdef struct REIHE_mon:
         OP coeff
         REIHE_variablen *zeiger
         REIHE_mon *ref
 
-    ctypedef struct REIHE_poly:
+    cdef struct REIHE_poly:
         INT grad
         REIHE_mon *uten
         REIHE_poly *rechts
 
-    ctypedef struct reihe:
+    cdef struct reihe:
         INT exist
         INT reihenart
         INT z
@@ -186,53 +179,53 @@ cdef extern from 'symmetrica/def.h':
 
     ctypedef reihe* REIHE_ZEIGER
 
-    ctypedef struct list:
+    cdef struct list:
         OP l_self
         OP l_next
 
-    ctypedef struct partition:
+    cdef struct partition:
         OBJECTKIND pa_kind
         OP pa_self
 
-    ctypedef struct permutation:
+    cdef struct permutation:
         OBJECTKIND p_kind
         OP p_self
 
-    ctypedef struct monom:
+    cdef struct monom:
         OP mo_self
         OP mo_koeff
 
-    ctypedef struct bruch:
+    cdef struct bruch:
         OP b_oben
         OP b_uten
         INT b_info
 
-    ctypedef struct matrix:
+    cdef struct matrix:
         OP m_length
         OP m_height
         OP m_self
 
-    ctypedef struct skewpartition:
+    cdef struct skewpartition:
         OP spa_gross
         OP spa_klein
 
-    ctypedef struct tableaux:
+    cdef struct tableaux:
         OP t_umriss
         OP t_self
 
-    ctypedef struct symchar:
+    cdef struct symchar:
         OP sy_werte
         OP sy_parlist
         OP sy_dimension
 
-    ctypedef struct graph:
+    cdef struct graph:
         OBJECTKIND gr_kind
         OP gr_self
 
-    ctypedef struct CYCLO_DATA:
+    cdef struct CYCLO_DATA:
         OP index, deg, poly, autos
 
-    ctypedef struct FIELD_DATA:
+    cdef struct FIELD_DATA:
         OP index, deg, poly
 
     ctypedef union data:
@@ -240,21 +233,30 @@ cdef extern from 'symmetrica/def.h':
         FIELD_DATA *f_data
         OP o_data
 
-    ctypedef struct number:
+    cdef struct number:
         OP n_self
         data n_data
+
 
 
     #MACROS
     #S_PA_I(OP a, INT i)
     OBJECTKIND s_o_k(OP a)
     void* c_o_k(OP a, OBJECTKIND k)
+    OBJECTSELF S_O_S(OP a)
+
+    void* add(OP a, OP b, OP c)
+    void* mult(OP a, OP b, OP c)
+    void* sub(OP a, OP b, OP c)
 
 
     #Integers
     void* m_i_i(INT n, OP a)
     void* M_I_I(INT n, OP a)
     INT S_I_I(OP a)
+    t_int_longint(OP a, OP b)
+    void* m_i_longint(INT n, OP a)
+
 
     #Fractions
     OP S_B_O(OP a)
@@ -377,6 +379,9 @@ cdef object ZZ
 cdef object SymmetricFunctionAlgebra
 cdef object PolynomialRing
 cdef object SchubertPolynomialRing
+cdef object two, fifteen, thirty, zero, sage_maxint
+
+cdef int maxint = 2147483647
 
 cdef void late_import():
     global matrix_constructor, \
@@ -399,7 +404,8 @@ cdef void late_import():
            sqrt, \
            builtinlist, \
            MPolynomialRing_generic, \
-           SchubertPolynomialRing
+           SchubertPolynomialRing, \
+           two, fifteen, thirty, zero, sage_maxint
 
     if matrix_constructor is not None:
         return
@@ -456,13 +462,21 @@ cdef void late_import():
     import sage.combinat.schubert_polynomial
     SchubertPolynomialRing = sage.combinat.schubert_polynomial.SchubertPolynomialRing
 
+    two = Integer(2)
+    fifteen = Integer(15)
+    thirty = Integer(30)
+    zero = Integer(0)
+    sage_maxint = Integer(maxint)
+
 ##########################################
 cdef object _py(OP a):
     cdef OBJECTKIND objk
     objk = s_o_k(a)
     #print objk
-    if objk == INTEGER or objk == LONGINT:
-        return _py_integer(a)
+    if objk == INTEGER:
+        return _py_int(a)
+    elif objk == LONGINT:
+        return _py_longint(a)
     elif objk == PARTITION:
         return _py_partition(a)
     elif objk == PERMUTATION:
@@ -501,7 +515,7 @@ cdef object _py(OP a):
         #println(a)
         raise NotImplementedError, str(objk)
 
-cdef void* _op(object a, OP result):
+cdef int _op(object a, OP result) except -1:
     late_import()
     if PyObject_TypeCheck(a, Integer):
         _op_integer(a, result)
@@ -512,27 +526,79 @@ cdef void* _op(object a, OP result):
     else:
         raise TypeError, "cannot convert a (= %s) to OP"%a
 
+def test(object x):
+    cdef OP a = callocobject()
+    _op_longint(x, a)
+    return None
+
 ##########
 #Integers#
 ##########
-cdef void* _op_integer(object x, OP a):
-    #a.ob_kind = INTEGER
-    #a.ob_self = <OBJECTSELF>x
+
+cdef int _op_integer(object x, OP a) except -1:
+    try:
+        _op_int(x, a)
+    except OverflowError:
+        _op_longint(x, a)
+    return 0
+
+
+cdef int _op_int(object x, OP a) except -1:
     M_I_I(x, a)
+    return 0
 
-cdef object _py_integer(OP a):
+cdef object _py_int(OP a):
     late_import()
-
     return Integer(S_I_I(a))
+
+
+cdef int _op_longint(object x, OP a) except -1:
+    late_import()
+    cdef OP op_maxint_long = callocobject(),
+    cdef OP quo_long = callocobject()
+    cdef OP rem_long = callocobject()
+
+    qr = x.quo_rem(sage_maxint)
+
+    m_i_longint(maxint, op_maxint_long)
+    _op_integer(qr[0], a)
+    _op_integer(qr[1], rem_long)
+
+    #Multiply a by op_maxint_long
+    mult(op_maxint_long, a, a)
+
+    #Add rem to a
+    add(a, rem_long, a)
+
+    freeall(rem_long)
+    freeall(quo_long)
+    freeall(op_maxint_long)
+    return 0
+
+cdef object _py_longint(OP a):
+    late_import()
+    cdef longint *x = S_O_S(a).ob_longint
+    cdef loc *l = x.floc
+    res = zero
+    n = zero
+    while l != NULL:
+        res += Integer( l.w0 ) * two**n
+        res += Integer( l.w1 ) * two**(n+fifteen)
+        res += Integer( l.w2 ) * two**(n+thirty)
+        n += thirty + fifteen
+        l = l.nloc
+
+    return res
+
 
 
 ###########
 #Fractions#
 ###########
 cdef object _py_fraction(OP a):
-    return _py_integer(S_B_O(a))/_py_integer(S_B_U(a))
+    return _py(S_B_O(a))/_py(S_B_U(a))
 
-cdef void* _op_fraction(object f, OP a):
+cdef int _op_fraction(object f, OP a) except -1:
     cdef OP o = callocobject(), u = callocobject()
     _op_integer(f.numerator(), o)
     _op_integer(f.denominator(), u)

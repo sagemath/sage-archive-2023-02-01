@@ -25,7 +25,7 @@ def dimension_symmetrization_symmetrica(n, part):
     _op_integer(n, cn)
 
     dimension_symmetrization(cn, cpart, cres)
-    res = _py_integer(cres)
+    res = _py(cres)
 
     freeall(cn)
     freeall(cpart)

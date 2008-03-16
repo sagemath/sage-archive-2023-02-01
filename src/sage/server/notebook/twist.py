@@ -1521,12 +1521,11 @@ class RegConfirmation(resource.Resource):
     def render(self, request):
         key = request.args['key'][0]
         global notebook
-        url_prefix = "https" if notebook.secure else "http"
         invalid_confirm_key = """\
 <h1>Invalid confirmation key</h1>
 <p>You are reporting a confirmation key that has not been assigned by this
-server. Please <a href="%s://%s:%s/register">register</a> with the server.</p>
-""" % (url_prefix, notebook.address, notebook.port)
+server. Please <a href="/register">register</a> with the server.</p>
+"""
         key = int(key)
         global waiting
         try:
@@ -1631,12 +1630,11 @@ class RegistrationPage(resource.PostableResource):
                 </html>
                 """
         else:
-            url_prefix = "https" if notebook.secure else "http"
             s = """<html><h1 align=center>Sign up for the Sage Notebook.</h1>
             <br>
             <hr>
             <br>
-            <form method="POST" action="%s://%s:%s/register">
+            <form method="POST" action="/register">
             <br><br>
             <table align=center><tr>
             <td align=right>Username:</td><td><input type="text" name="username" size="15" /></td></tr>
@@ -1653,7 +1651,7 @@ class RegistrationPage(resource.PostableResource):
             <div align=center><a href="/">Cancel and return to the login page</a></div>
             <br>
 
-            </html>""" % (url_prefix, notebook.address, notebook.port)
+            </html>"""
         return http.Response(stream=s)
 
 class InvalidPage(resource.Resource):

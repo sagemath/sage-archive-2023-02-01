@@ -423,7 +423,7 @@ class ModularForm_abstract(ModuleElement):
 
 
 class Newform(ModularForm_abstract):
-    def __init__(self, parent, component, check=True):
+    def __init__(self, parent, component, names, check=True):
         r"""
         TODO
 
@@ -454,16 +454,22 @@ class Newform(ModularForm_abstract):
                 raise ValueError, "component must be cuspidal"
             if not component.is_simple():
                 raise ValueError, "component must be simple"
-        number_field = component.eigenvalue(1).parent()
-        ModuleElement.__init__(self, parent.base_extend(number_field))
+        extension_field = component.eigenvalue(1).parent()
+        if extension_field.degree() != 1 and rings.is_NumberField(extension_field):
+            extension_field = extension_field.change_names(names)
+        self.__name = names
+        ModuleElement.__init__(self, parent.base_extend(extension_field))
         self.__modsym_space = component
-        self.__hecke_eigenvalue_field = number_field
+        self.__hecke_eigenvalue_field = extension_field
+
+    def _name(self):
+        return self.__name
 
     def _compute_q_expansion(self, prec):
         """
         Return the q-expansion of self.
         """
-        return self.modular_symbols(1).q_eigenform(prec)
+        return self.modular_symbols(1).q_eigenform(prec, names=self._name())
 
     def __eq__(self, other):
         try:

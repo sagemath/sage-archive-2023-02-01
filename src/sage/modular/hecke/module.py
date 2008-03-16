@@ -359,7 +359,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             raise TypeError, "x must be a Hecke module element."
         if not x in self.ambient_hecke_module():
             raise ArithmeticError, "x must be in the ambient Hecke module."
-        v = self.dual_eigenvector(name=name)
+        v = self.dual_eigenvector(names=name)
         return v.dot_product(x.element())
 
     def _is_hecke_equivariant_free_module(self, submodule):
@@ -614,7 +614,7 @@ class HeckeModule_free_module(HeckeModule_generic):
     def degree(self):
         return self.free_module().degree()
 
-    def dual_eigenvector(self, name='alpha'):
+    def dual_eigenvector(self, names='alpha'):
         """
         Return an eigenvector for the Hecke operators acting on the
         linear dual of this space.  This eigenvector will have entries
@@ -646,7 +646,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             functionals.
         """
         try:
-            return self.__dual_eigenvector[name]
+            return self.__dual_eigenvector[names]
         except KeyError:
             pass
         except AttributeError:
@@ -671,7 +671,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         n = f.degree()
         if n > 1:
             R = f.parent()
-            K = R.base_ring().extension(f, name)
+            K = R.base_ring().extension(f, names=names)
             alpha = K.gen()
             beta = ~alpha   # multiplicative inverse of alpha
             c = [-f[0]*beta]
@@ -709,7 +709,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         alpha = w_lift.dot_product(self._eigen_nonzero_element().element())
         w_lift = w_lift * (~alpha)
 
-        self.__dual_eigenvector[name] = w_lift
+        self.__dual_eigenvector[names] = w_lift
         return w_lift
 
     def dual_hecke_matrix(self, n):

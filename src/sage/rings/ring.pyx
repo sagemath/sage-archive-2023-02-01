@@ -821,7 +821,7 @@ cdef class CommutativeRing(Ring):
         """
         return self.quotient(I, names=names)
 
-    def extension(self, poly, name=None):
+    def extension(self, poly, name=None, names=None):
         """
         Algebraically extends self by taking the quotient self[x] / (f(x)).
 
@@ -835,7 +835,9 @@ cdef class CommutativeRing(Ring):
             sage: R.extension(y^2-5, 'a')
             Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in x over Rational Field with modulus a^2 - 5
         """
-        if name is None:
+        if name is None and names is not None:
+            name = names
+        elif name is None:
             name = str(poly.parent().gen(0))
         R = self[str(name)]
         I = R.ideal(R(poly.list()))

@@ -2816,7 +2816,6 @@ cdef class BinaryCodeClassifier:
                         # there is no new split at this level
                         state = 16; continue
                     # new split column better be a minimal representative in Theta, or wasted effort
-#                    print "IS THIS WHERE IT'S FUCKING UP???"
 #                    print 'checking whether v[k] is a minimum cell rep of theta'
 #                    print 'Theta.col_find(v[k]) = ', Theta.col_find(v[k])
 #                    print 'Theta.col_min_cell_rep(^)', Theta.col_min_cell_rep[Theta.col_find(v[k])]

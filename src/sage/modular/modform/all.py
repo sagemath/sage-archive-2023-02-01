@@ -8,6 +8,8 @@
 
 from constructor import ModularForms, CuspForms, EisensteinForms
 
+from space import is_ModularFormsSpace
+
 from eis_series import eisenstein_series_qexp, eisenstein_series_lseries
 
 from half_integral import half_integral_weight_modform_basis

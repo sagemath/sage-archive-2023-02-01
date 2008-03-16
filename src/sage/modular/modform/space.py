@@ -56,9 +56,25 @@ import submodule
 
 import sage.modular.dims as dims
 
+import sage.modular.modform.constructor
+
 from math import ceil
 
 WARN=False
+
+def is_ModularFormsSpace(x):
+    r"""
+    Return True if x is a $\code{ModularFormsSpace}$.
+
+    EXAMPLES:
+        sage: is_ModularFormsSpace(ModularForms(11,2))
+        True
+        sage: is_ModularFormsSpace(CuspForms(11,2))
+        True
+        sage: is_ModularFormsSpace(3)
+        False
+    """
+    return isinstance(x, ModularFormsSpace)
 
 class ModularFormsSpace(hecke.HeckeModule_generic):
     """
@@ -316,6 +332,14 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if prec < 0:
             raise ValueError, "prec (=%s) must be at least 0"%prec
         return prec
+
+    def base_extend(self, base_ring):
+        """
+        Return the base extension of self to base_ring.
+
+        EXAMPLES:
+        """
+        return sage.modular.modform.constructor.ModularForms(self.group(), self.weight(), base_ring, prec=self.prec())
 
     def echelon_form(self):
         r"""
@@ -978,7 +1002,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if self is x:
             return 0
         if not isinstance(x, ModularFormsSpace):
-            return cmp( type(self), type(other) )
+            return cmp( type(self), type(x) )
 
         left_ambient = self.ambient()
         right_ambient = x.ambient()

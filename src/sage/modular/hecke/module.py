@@ -671,8 +671,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         n = f.degree()
         if n > 1:
             R = f.parent()
-            K = R.quotient(f, name)    # Let K be the quotient R/(f),
-                                       # with generator printed name
+            K = R.base_ring().extension(f, name)
             alpha = K.gen()
             beta = ~alpha   # multiplicative inverse of alpha
             c = [-f[0]*beta]
@@ -1015,7 +1014,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             sage: v = M.system_of_eigenvalues(10); v
             [1, alpha, -2*alpha - 1, -alpha - 1, 2*alpha, alpha - 2, 2*alpha + 2, -2*alpha - 1, 2, -2*alpha + 2]
             sage: v[0].parent()
-            Univariate Quotient Polynomial Ring in alpha over Rational Field with modulus x^2 + x - 1
+            Number Field in alpha with defining polynomial x^2 + x - 1
 
         This example illustrates setting the print name of the eigenvalue field.
             sage: A = ModularSymbols(125,sign=1).new_subspace()[0]

@@ -194,13 +194,17 @@ var active_cell_list = [];
 var browser_op, browser_saf, browser_konq, browser_moz, browser_ie, browser_ie5;
 var os_mac, os_lin, os_win;
 
+var update_count = 0;
+var update_falloff_threshold = 20;
+var update_falloff_level = 0;
+var update_falloff_deltas = [250, 500, 1000, 5000];
+
 var update_error_count = 0;
 var update_error_threshold = 30;
 
 // in milliseconds
 var update_error_delta = 1024;
-//var update_normal_delta = 256;
-var update_normal_delta = 512;
+var update_normal_delta = update_falloff_deltas[0];
 var cell_output_delta = update_normal_delta;
 
 var server_ping_time = 30000;  /* Is once very 30 seconds way too fast?  Is it just right?  */
@@ -1844,6 +1848,9 @@ function check_for_cell_update() {
 function start_update_check() {
     if(updating) return;
     updating = true;
+    update_count = 0;
+    update_falloff_level = 0;
+    cell_output_delta = update_falloff_deltas[0];
     check_for_cell_update();
     set_class('interrupt', 'interrupt')
 }
@@ -2016,8 +2023,12 @@ function check_for_cell_update_callback(status, response_text) {
         continue_update_check();
         return;
     } else {
-        update_error_count = 0;
-        cell_output_delta = update_normal_delta;
+        if(update_error_count > 0) {
+            update_error_count = 0;
+            update_count = 0;
+            update_falloff_level = 1;
+            cell_output_delta = update_falloff_deltas[1];
+        }
     }
 
     var i = response_text.indexOf(' ');
@@ -2077,8 +2088,18 @@ function check_for_cell_update_callback(status, response_text) {
             set_input_text(id, new_cell_input);
         }
 
-        set_object_list(object_list);
-        set_attached_files_list(attached_files_list);
+        update_count = 0;
+        update_falloff_level = 0;
+        cell_output_delta = update_falloff_deltas[0];
+    } else {
+        if(  update_count > update_falloff_threshold &&
+             update_falloff_level+1 < update_falloff_deltas.length) {
+            update_falloff_level+= 1;
+            update_count = 0;
+            cell_output_delta = update_falloff_deltas[update_falloff_level];
+        } else {
+            update_count += 1;
+        }
     }
 
     continue_update_check();

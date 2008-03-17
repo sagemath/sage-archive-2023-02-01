@@ -226,9 +226,21 @@ class ModularForm_abstract(ModuleElement):
         else:
             return -1
 
+    def _compute(self, X):
+        """
+        Compute the coefficients of $q^n$ of the power series of self,
+        for $n$ in the list $X$.  The results are not cached.  (Use
+        coefficients for cached results).
+        """
+        bound = max(X)
+        q_exp = self.q_expansion(bound+1)
+        return [q_exp[i] for i in X]
+
     def coefficients(self, X):
         """
-        The coefficients a_n of self, for integers n>=0 in the list X.
+        The coefficients a_n of self, for integers n>=0 in the list
+        X. If X is an Integer, return coefficients for indices from 1
+        to X.
 
         This function caches the results of the compute function.
 
@@ -251,6 +263,8 @@ class ModularForm_abstract(ModuleElement):
             self.__coefficients
         except AttributeError:
             self.__coefficients = {}
+        if isinstance(X, rings.Integer):
+            X = range(1,X+1)
         Y = [n for n in X   if  not (n in self.__coefficients.keys())]
         v = self._compute(Y)
         for i in range(len(v)):
@@ -517,6 +531,15 @@ class Newform(ModularForm_abstract):
         coefficients of this newform.
         """
         return self.__hecke_eigenvalue_field
+
+    def _compute(self, X):
+        """
+        Compute the coefficients of $q^n$ of the power series of self,
+        for $n$ in the list $X$.  The results are not cached.  (Use
+        coefficients for cached results).
+        """
+        M = self.modular_symbols(1)
+        return [M.eigenvalue(x) for x in X]
 
     def element(self):
         """

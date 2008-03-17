@@ -5,7 +5,7 @@ echo "---------------------" > "$SAGE_ROOT"/tmp/test.log
 echo `date` >> "$SAGE_ROOT"/tmp/test.log
 
 # Run DSAGE unit tests
-sage-dsage-trial 2>&1 | tee .test-dsage.log | tee -a "$SAGE_ROOT"/tmp/test.log
+#sage-dsage-trial 2>&1 | tee .test-dsage.log | tee -a "$SAGE_ROOT"/tmp/test.log
 
 if [ -d $SAGE_ROOT/examples ]; then
    cd "$SAGE_ROOT"/examples

@@ -8,8 +8,8 @@ TESTS:
     sage: A = J0(33)
     sage: D = A.decomposition(); D
     [
-    Abelian variety factor of dimension 1 of J0(33)
-    Abelian variety factor of dimension 2 of J0(33),
+    Abelian variety factor of dimension 1 of J0(33),
+    Abelian variety factor of dimension 2 of J0(33)
     ]
     sage: loads(dumps(D)) == D
     True
@@ -34,6 +34,7 @@ from sage.rings.all             import ZZ, QQ, QQbar, is_Ring, LCM, divisors
 from sage.modules.all           import is_FreeModule
 from sage.modular.congroup      import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
 from sage.modular.modsym.all    import ModularSymbols
+from sage.modular.modsym.space  import ModularSymbolsSpace
 from sage.matrix.all            import matrix
 from sage.groups.all            import AbelianGroup
 
@@ -1321,11 +1322,17 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
 
 class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
 
-    def __init__(self, modsym):
+    def __init__(self, modsym, check=True):
         """
         Modular abelian variety that corresponds to a Hecke stable
         space of cuspidal modular symbols.
         """
+        if check:
+            if not isinstance(modsym, ModularSymbolsSpace):
+                raise TypeError, "modsym must be a modular symbols space"
+            if not modsym.is_cuspidal():
+                raise ValueError, "modsym must be cuspidal"
+
         ModularAbelianVariety_abstract.__init__(self, modsym.base_ring())
         self.__modsym = modsym
 

@@ -40,30 +40,30 @@ Next we make a table of the upper and lower bounds for each new factor.
     sage: for N in range(1,38):
     ...    for A in J0(N).new_quotient().decomposition():
     ...        T = A.torsion_subgroup()
-    ...        print '%-5s%-5s%-5s%-5s%-5s'%(N, A.dimension(), A.factor_number(), T.divisor_of_order(), T.multiple_of_order())
-    11   1    0    5    5
-    14   1    0    6    6
-    15   1    0    8    8
-    17   1    0    4    4
-    19   1    0    3    3
-    20   1    0    6    6
-    21   1    0    8    8
-    23   2    0    11   11
-    24   1    0    8    8
-    26   1    0    3    3
-    26   1    1    7    7
-    27   1    0    3    3
-    29   2    0    7    7
-    30   1    0    6    12
-    31   2    0    5    5
-    32   1    0    4    4
-    33   1    0    4    4
-    34   1    0    3    6
-    35   1    0    3    3
-    35   2    1    16   16
-    36   1    0    6    6
-    37   1    0    1    1
-    37   1    1    3    3
+    ...        print '%-5s%-5s%-5s%-5s'%(N, A.dimension(), T.divisor_of_order(), T.multiple_of_order())
+    11   1    5    5
+    14   1    6    6
+    15   1    8    8
+    17   1    4    4
+    19   1    3    3
+    20   1    6    6
+    21   1    8    8
+    23   2    11   11
+    24   1    8    8
+    26   1    3    3
+    26   1    7    7
+    27   1    3    3
+    29   2    7    7
+    30   1    6    12
+    31   2    5    5
+    32   1    4    4
+    33   1    4    4
+    34   1    3    6
+    35   1    3    3
+    35   2    16   16
+    36   1    6    6
+    37   1    1    1
+    37   1    3    3
 
 TESTS:
     sage: T = J0(54).torsion_subgroup()

@@ -14,6 +14,7 @@ from sage.databases.cremona import cremona_letter_code
 from sage.rings.all  import QQ, ZZ
 
 from sage.modular.modform.element import Newform
+from sage.modular.congroup import is_Gamma0, is_Gamma1, is_GammaH
 
 from abvar import ModularAbelianVariety_modsym_abstract
 import homspace
@@ -31,10 +32,9 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             f -- a newform
 
         EXAMPLES:
-            sage: S = CuspForms(37)
-            sage: f = sage.modular.modform.element.Newform(S, S.modular_symbols(1)[1])
+            sage: f = CuspForms(37).newforms('a')[0]
             sage: f.abelian_variety()
-            Modular abelian variety attached to the newform q + q^3 - 2*q^4 + O(q^6)
+            Modular abelian variety attached to the newform q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + O(q^6)
         """
         if not isinstance(f, Newform):
             raise TypeError, "f must be a newform"
@@ -49,11 +49,10 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         Return the newform that this modular abelian variety is attached to.
 
         EXAMPLES:
-            sage: S = CuspForms(37)
-            sage: f = sage.modular.modform.element.Newform(S, S.modular_symbols(1)[1])
+            sage: f = CuspForms(37).newforms('a')[0]
             sage: A = f.abelian_variety()
             sage: A.newform()
-            q + q^3 - 2*q^4 + O(q^6)
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + O(q^6)
             sage: A.newform() is f
             True
         """
@@ -70,7 +69,14 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         EXAMPLES:
 
         """
-        return '%s%s'(self.level(), cremona_letter_code(self.factor_number()))
+        G = self.__f.group()
+        if is_Gamma0(G):
+            group = ''
+        elif is_Gamma1(G):
+            group = 'G1'
+        elif is_GammaH(G):
+            group = 'GH[' + ','.join([str(z) for z in G._generators_for_H()]) + ']'
+        return '%s%s%s'(self.level(), cremona_letter_code(self.factor_number()), group)
 
     def factor_number(self):
         """

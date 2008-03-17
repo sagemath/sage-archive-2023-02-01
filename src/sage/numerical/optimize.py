@@ -307,7 +307,7 @@ def minimize_constrained(func,cons,x0,gradient=None, **args):
           sage: x,y = var('x y')
           sage: f = sin(x*y)
           sage: minimize_constrained(f, [[None,None],[4,10]],[5,5])
-          (4.854..., 4.854...)
+          (4.8..., 4.8...)
 
     """
     from sage.calculus.calculus import SymbolicExpression

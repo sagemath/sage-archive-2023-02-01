@@ -444,9 +444,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             For coefficients in a base ring of fewer variables, look at \ref{polynomial_coefficient}.
 
         EXAMPLES:
+        The parent of the return is a member of the base ring.
             sage: R.<x,y>=ZZ[]
-
-            # The parent of the return is a member of the base ring.
             sage: f = 2 * x * y
             sage: c = f.monomial_coefficient(x*y); c
             2

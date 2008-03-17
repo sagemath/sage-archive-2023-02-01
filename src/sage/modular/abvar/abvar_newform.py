@@ -9,6 +9,7 @@ TODO
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
+from sage.databases.cremona import cremona_letter_code
 
 from sage.rings.all  import QQ, ZZ
 
@@ -57,6 +58,32 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             True
         """
         return self.__f
+
+    def label(self):
+        """
+        Return canonical label that defines this newform modular
+        abelian variety.
+
+        OUTPUT:
+            string
+
+        EXAMPLES:
+
+        """
+        return '%s%s'(self.level(), cremona_letter_code(self.factor_number()))
+
+    def factor_number(self):
+        """
+        Return factor number.
+
+        OUTPUT:
+            int
+        """
+        try:
+            return self.__factor_number
+        except AttributeError:
+            self.__factor_number = self.__f.number()
+            return self.__factor_number
 
     def _repr_(self):
         """

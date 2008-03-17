@@ -325,6 +325,7 @@ def redSB(func):
         """
         with RedSBContext():
             return func(*args, **kwds)
+    wrapper.__doc__=func.__doc__
     return wrapper
 
 class MPolynomialIdeal_singular_repr:

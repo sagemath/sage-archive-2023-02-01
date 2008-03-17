@@ -578,6 +578,12 @@ class Newform(ModularForm_abstract):
         """
         return self.__modsym_space.modular_symbols_of_sign(sign)
 
+    def _defining_modular_symbols(self):
+        return self.__modsym_space
+
+    def number(self):
+        return self._defining_modular_symbols().ambient().cuspidal_subspace().decomposition().index(self._defining_modular_symbols())
+
     def __nonzero__(self):
         """
         Return True, as newforms are never zero.

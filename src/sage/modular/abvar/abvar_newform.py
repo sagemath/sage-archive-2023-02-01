@@ -41,8 +41,19 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         self.__f = f
         ModularAbelianVariety_modsym_abstract.__init__(self, QQ)
 
-    def _modular_symbols(self):
-        return self.__f.modular_symbols()
+    def _modular_symbols(self,sign=0):
+        """
+        EXAMPLES:
+            sage: f = CuspForms(52).newforms('a')[0]
+            sage: A = f.abelian_variety()
+            sage: A._modular_symbols()
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 15 for Gamma_0(52) of weight 2 with sign 0 over Rational Field
+            sage: A._modular_symbols(1)
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 10 for Gamma_0(52) of weight 2 with sign 1 over Rational Field
+            sage: A._modular_symbols(-1)
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(52) of weight 2 with sign -1 over Rational Field
+        """
+        return self.__f.modular_symbols(sign=sign)
 
     def newform(self):
         """
@@ -67,7 +78,10 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             string
 
         EXAMPLES:
-
+            sage: f = CuspForms(43).newforms('a')[1]
+            sage: A = f.abelian_variety()
+            sage: A.label()
+            '43b'
         """
         G = self.__f.group()
         if is_Gamma0(G):
@@ -76,7 +90,7 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             group = 'G1'
         elif is_GammaH(G):
             group = 'GH[' + ','.join([str(z) for z in G._generators_for_H()]) + ']'
-        return '%s%s%s'(self.level(), cremona_letter_code(self.factor_number()), group)
+        return '%s%s%s'%(self.level(), cremona_letter_code(self.factor_number()), group)
 
     def factor_number(self):
         """
@@ -84,6 +98,12 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
 
         OUTPUT:
             int
+
+        EXAMPLES:
+            sage: f = CuspForms(43).newforms('a')[1]
+            sage: A = f.abelian_variety()
+            sage: A.factor_number()
+            1
         """
         try:
             return self.__factor_number
@@ -96,6 +116,10 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         String representation of this modular abelian variety.
 
         EXAMPLES:
+            sage: f = CuspForms(43).newforms('a')[1]
+            sage: A = f.abelian_variety()
+            sage: A._repr_()
+            'Modular abelian variety attached to the newform q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6)'
         """
         return "Modular abelian variety attached to the newform %s"%self.newform()
 

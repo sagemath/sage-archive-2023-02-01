@@ -10,8 +10,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
     cdef ZZ_pX_c value
     cdef long absprec
 
-    cdef bint _set_prec_both_with_ordp(self, long ordp, long absprec, long relprec)
-    cdef void _set(self, ZZ_pX_c* value, long absprec)
+    cdef bint _set_prec_both_with_ordp(self, long ordp, long absprec, long relprec) except -1
+    cdef int _set(self, ZZ_pX_c* value, long absprec) except -1
     cdef int _set_from_mpq_part2(self, mpq_t x) except -1
 
     cpdef pAdicZZpXCRElement to_fraction_field(self)

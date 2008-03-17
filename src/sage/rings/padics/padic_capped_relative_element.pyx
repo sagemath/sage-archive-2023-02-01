@@ -462,17 +462,17 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             self._normalized = 1
         return 0
 
-    cdef void _set_exact_zero(pAdicCappedRelativeElement self):
+    cdef int _set_exact_zero(pAdicCappedRelativeElement self) except -1:
         mpz_set_si(self.unit, -1)
         self._normalized = 1
 
-    cdef void _set_inexact_zero(pAdicCappedRelativeElement self, long absprec):
+    cdef int _set_inexact_zero(pAdicCappedRelativeElement self, long absprec) except -1:
         self.relprec = 0
         mpz_set_ui(self.unit, 0)
         self.ordp = absprec
         self._normalized = 1
 
-    cdef void _set_zero(pAdicCappedRelativeElement self, absprec):
+    cdef int _set_zero(pAdicCappedRelativeElement self, absprec) except -1:
         if absprec is infinity:
             mpz_set_si(self.unit, -1)
         else:
@@ -481,10 +481,10 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             self.ordp = mpz_get_si((<Integer>absprec).value)
         self._normalized = 1
 
-    cdef void _set_prec(pAdicCappedRelativeElement self, long relprec):
+    cdef int _set_prec(pAdicCappedRelativeElement self, long relprec) except -1:
         self.relprec = relprec
 
-    cdef void _set(pAdicCappedRelativeElement self, long ordp, mpz_t unit, long relprec):
+    cdef int _set(pAdicCappedRelativeElement self, long ordp, mpz_t unit, long relprec) except -1:
         self.relprec = relprec
         self.ordp = ordp
         mpz_set(self.unit, unit)
@@ -528,7 +528,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         mpz_init(ans.unit)
         return ans
 
-    cdef void _normalize(pAdicCappedRelativeElement self):
+    cdef int _normalize(pAdicCappedRelativeElement self) except -1:
         cdef long diff
         if self._normalized == 0:
             if mpz_sgn(self.unit) > 0:
@@ -1151,10 +1151,10 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     def gamma(self):
         raise NotImplementedError
 
-    cpdef bint _is_exact_zero(self):
+    cpdef bint _is_exact_zero(self) except -1:
         return mpz_sgn(self.unit) == -1
 
-    cpdef bint _is_inexact_zero(self):
+    cpdef bint _is_inexact_zero(self) except -1:
         self._normalize()
         return self.relprec == 0 and not self._is_exact_zero()
 

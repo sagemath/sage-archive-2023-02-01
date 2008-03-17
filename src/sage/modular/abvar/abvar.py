@@ -328,6 +328,19 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         INPUT:
             other -- a finite subgroup or subvariety
+
+        EXAMPLES:
+            sage: J = J0(67); G = (J[0] + J[1]).intersection(J[1] + J[2])
+            sage: Q = J/G[0]; Q
+            Abelian variety factor of dimension 5 of J0(67) over Algebraic Field
+            sage: Q.base_field()
+            Algebraic Field
+            sage: Q.lattice()
+            Free module of degree 10 and rank 10 over Integer Ring
+            Echelon basis matrix:
+            [1/10 1/10 3/10  1/2    0    0    0 3/10    0  1/2]
+            [   0  1/5  4/5  4/5    0    0    0    0    0  3/5]
+            ...
         """
         if isinstance(other, FiniteSubgroup):
             if other.abelian_variety() != self:
@@ -335,7 +348,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             return self._quotient_by_finite_subgroup(other)
         elif isinstance(other, ModularAbelianVariety_abstract):
             if other.is_subvariety(self):
-                return self._quotient_by_abelan_subvariety(other)
+                return self._quotient_by_abelian_subvariety(other)
         else:
             raise TypeError, "other must be a subgroup or abelian subvariety"
 

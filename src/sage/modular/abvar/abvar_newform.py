@@ -101,6 +101,22 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
 
     def endomorphism_ring(self):
         """
+        EXAMPLES:
+            sage: f = CuspForms(43).newforms('a')[1]
+            sage: f
+            q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6)
+            sage: A = f.abelian_variety()
+            sage: B = A.endomorphism_ring(); B
+            Subring of endomorphism ring of Modular abelian variety attached to the newform q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6)
+            sage: B.gens()
+            ([1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1],
+             [ 0  1  0  0]
+            [ 1 -2  0  0]
+            [ 1  0 -2 -1]
+            [ 0  1 -1  0])
         """
         try:
             return self.__endomorphism_ring

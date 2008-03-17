@@ -1101,6 +1101,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         cdef IntegerMod_gmp x
         x = self._new_c()
         mpz_set(x.value, self.value)
+        return x
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """

@@ -1,6 +1,8 @@
 r"""
+Distributed Sage
+
 Distributed Sage \code{dsage} is a distributed computing framework suitable
-for `coarse' distributed compuatations.
+for coarse distributed compuatations.
 
 """
 ##############################################################################

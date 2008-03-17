@@ -703,7 +703,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return l
 
     def digits(self, base=2, digits=None):
-        """
+        r"""
         Return a list of digits for self in the given base in little
         endian order.
 
@@ -735,7 +735,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (-12).digits(2)
             [0, 0, -1, -1]
 
-            # We support large bases
+        We support large bases
             sage: n=2^6000
             sage: n.digits(2^3000)
             [0, 0, 1]
@@ -748,15 +748,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: base=3; n=-30; l=n.digits(base); sum(base^i*l[i] for i in range(len(l)))==n
             True
 
-            # Note:  In some cases it is faster to give a digits collection.
-            # This would be particularly true for computing the digits of a series of small numbers.
-            # In these cases, the code is careful to allocate as few python objects as reasonably possible.
+        Note:  In some cases it is faster to give a digits collection.
+        This would be particularly true for computing the digits of a series of small numbers.
+        In these cases, the code is careful to allocate as few python objects as reasonably possible.
             sage: digits = range(15)
             sage: l=[ZZ(i).digits(15,digits) for i in range(100)]
             sage: l[16]
             [1, 1]
 
-            # This function is comparable to \code{str} for speed.
+        This function is comparable to \code{str} for speed.
             sage: n=3^100000
             sage: n.digits(base=10)[-1]  # slightly slower than str
             1

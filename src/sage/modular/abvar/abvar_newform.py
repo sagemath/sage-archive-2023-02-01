@@ -15,6 +15,7 @@ from sage.rings.all  import QQ, ZZ
 from sage.modular.modform.element import Newform
 
 from abvar import ModularAbelianVariety_modsym_abstract
+import homspace
 
 class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
     """
@@ -64,4 +65,37 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         EXAMPLES:
         """
         return "Modular abelian variety attached to the newform %s"%self.newform()
+
+    def endomorphism_ring(self):
+        """
+        """
+        try:
+            return self.__endomorphism_ring
+        except AttributeError:
+            pass
+
+        A = self.ambient_variety()
+        M = self.modular_symbols()
+        bound = M.sturm_bound()
+
+        d = self.dimension()
+        EndVecZ = ZZ**(4*d**2)
+        T1 = M.hecke_matrix(1)
+        V = EndVecZ.submodule([T1.list()])
+        n = 2
+
+        while V.dimension() < d:
+            W = EndVecZ.submodule([((M.hecke_matrix(n))**i).list()
+                                   for i in range(1,d+1)])
+            V = V+W
+            n += 1
+
+        R = T1.parent()
+        E = homspace.EndomorphismSubring(self)
+        E._set_generators(V.saturation().basis())
+        self.__endomorphism_ring = E
+
+        return self.__endomorphism_ring
+
+
 

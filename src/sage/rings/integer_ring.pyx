@@ -209,8 +209,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def __getitem__(self, x):
         """
-        Return the ring ZZ[...] got by adjoing to the integers
-        an element of several elements.
+        Return the ring ZZ[...] obtained by adjoing to the integers
+        a list x of several elements.
 
         EXAMPLES:
             sage: ZZ[ sqrt(2), sqrt(3) ]

@@ -1519,12 +1519,17 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 if contains_each(V, B)]
 
 
-    def newforms(self, names):
+    def newforms(self, names=None):
         """
         Return all cusp forms in the cuspidal subspace of self.
         """
         M = self.modular_symbols(sign=1)
         factors = M.cuspidal_subspace().new_subspace().decomposition()
+        large_dims = [ X.dimension() for X in factors if X.dimension() != 1 ]
+        if len(large_dims) > 0 and names is None:
+            raise ValueError, "Please specify a name to be used when generating names for generators of Hecke eigenvalue fields corresponding to the newforms."
+        else:
+            names = 'a'
         return [ element.Newform(self, factors[i], names=(names+str(i)) )
                  for i in range(len(factors)) ]
 

@@ -126,5 +126,6 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         return self._genus
 
     def jacobian(self):
+        import jacobian_generic
         return jacobian_generic.HyperellipticJacobian_generic(self)
 

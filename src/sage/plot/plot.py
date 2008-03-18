@@ -3471,7 +3471,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         sage: plot([sin(n*x) for n in [1..4]], (0, pi))
 
 
-    The function $\sin(1/x)$ wiggles wildtly near $0$, so the
+    The function $\sin(1/x)$ wiggles wildly near $0$, so the
     first plot below won't look perfect.  Sage adapts to this
     and plots extra points near the origin.
         sage: plot(sin(1/x), (x, -1, 1))
@@ -3502,6 +3502,13 @@ class PlotFactory(GraphicPrimitiveFactory):
     We can change the line style to one of '--' (dashed), '-.' (dash dot),
     '-' (solid), 'steps', ':' (dotted):
         sage: plot(sin(x), 0, 10, linestyle='-.')
+
+    Sage currently ignores points that cannot be evaluated
+        sage: plot(-x*log(x), (x,0,1))
+        sage: plot(x^(1/3), (x,-1,1))
+
+    To plot the negative real cube root, use something like the following.
+        sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1) )
 
     TESTS:
     We do not randomize the endpoints:
@@ -3546,7 +3553,7 @@ class PlotFactory(GraphicPrimitiveFactory):
             elif n == 1:
                 G = self._call(funcs, *args, **kwds)
             elif n == 2:
-            # if ther eare two extra args, then pull them out and pass them as a tuple
+            # if there are two extra args, then pull them out and pass them as a tuple
                 xmin = args[0]
                 xmax = args[1]
                 args = args[2:]
@@ -3600,6 +3607,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         dd = delta
 
         exceptions = 0; msg=''
+        exception_indices = []
         for i in range(plot_points):
             xi = xmin + i*delta
             # Slightly randomize the interior sample points if
@@ -3613,11 +3621,12 @@ class PlotFactory(GraphicPrimitiveFactory):
                 xi = xmax  # guarantee that we get the last point.
 
             try:
-                y = f(xi)
-                data[i] = (float (xi), float(y))
-            except (ZeroDivisionError, TypeError, ValueError), msg:
+                data[i] = (float(xi), float(f(xi)))
+            except (ZeroDivisionError, TypeError, ValueError,OverflowError), msg:
                 sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                 exceptions += 1
+                exception_indices.append(i)
+        data = [data[i] for i in range(len(data)) if i not in exception_indices]
 
         # adaptive refinement
         i, j = 0, 0

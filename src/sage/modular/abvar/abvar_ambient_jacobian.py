@@ -15,6 +15,7 @@ from sage.rings.all    import QQ
 from sage.modular.dims import dimension_cusp_forms
 
 from sage.modular.modsym.modsym import ModularSymbols
+import morphism
 
 _cache = {}
 
@@ -76,6 +77,7 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         """
         ModularAbelianVariety_modsym_abstract.__init__(self, QQ)
         self.__group = group
+        self._is_hecke_stable = True
 
     def _modular_symbols(self):
         try:
@@ -140,6 +142,25 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
 
     def groups(self):
         return (self.__group,)
+
+    def degeneracy_map(self, level, t=1):
+        """
+        Return the t-th degeneracy map from self to J0(level).
+        Here t must be a divisor of level/self.level().
+        """
+        if not self.level().divides(level):
+            raise ValueError, "level must be divisible by level of self"
+        if not t.divides(self.level().div(level)):
+            raise ValueError, "t must divide the quotient of the two levels"
+
+        Jdest = J0(level)
+        Mself = self.modular_symbols()
+        Mdest = Jdest.modular_symbols()
+
+        symbol_map = Mself.degeneracy_map(level, t).restrict_codomain(Mdest)
+        H = self.Hom(Jdest)
+
+        return H(morphism.Morphism(H,symbol_map.matrix()))
 
     def dimension(self):
         """

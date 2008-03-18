@@ -419,6 +419,31 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         self.__endomorphism_ring = homspace.EndomorphismSubring(self)
         return self.__endomorphism_ring
 
+    def is_hecke_stable(self):
+        """
+        Return True if self is stable under the Hecke operators of
+        its ambient Jacobian.
+        """
+        try:
+            return self._is_hecke_stable
+        except AttributeError:
+            pass
+
+        b = self.modular_symbols().sturm_bound()
+        J = self.ambient_variety()
+        L = self.lattice()
+        B = self.lattice().basis()
+
+        for n in range(1,b+1):
+            Tn_matrix = J.hecke_operator(n).matrix()
+            for v in B:
+                if not (v*Tn_matrix in L):
+                    self._is_hecke_stable = False
+                    return False
+
+        self._is_hecke_stable = True
+        return True
+
     def is_subvariety(self, other):
         """
         Return True if self is a subvariety of other as they sit in a

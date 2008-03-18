@@ -75,8 +75,7 @@ class MatrixMorphism(sage.categories.all.Morphism):
             A = matrix.MatrixSpace(parent.category().base_ring(), parent.domain().rank(), parent.codomain().rank())(A)
         R = A.base_ring()
         if A.nrows() != parent.domain().rank():
-            raise ArithmeticError, "number of rows of matrix (=%s) must equal rank of domain (=%s)"%(
-                A.nrows(), parent.domain().rank())
+            raise ArithmeticError, "number of rows of matrix (=%s) must equal rank of domain (=%s)"%(A.nrows(), parent.domain().rank())
         if A.ncols() != parent.codomain().rank():
                 raise ArithmeticError, "number of columns of matrix (=%s) must equal rank of codomain (=%s)"%(
                     A.ncols(), parent.codomain().rank())
@@ -253,8 +252,6 @@ class MatrixMorphism(sage.categories.all.Morphism):
 
         The resulting morphism has the same codomain as before, but
         a new domain.
-
-
         """
         D  = self.domain()
         B  = sub.basis()
@@ -269,6 +266,17 @@ class MatrixMorphism(sage.categories.all.Morphism):
 	#M  = self.matrix()
 	#Mr = M.restrict_domain(sub)
 	#return sub.Hom(C)(Mr)
+
+    def restrict_codomain(self, sub):
+        """
+        Restrict this matrix morphism to a subspace sub of the codomain.
+
+        The resulting morphism has the same domain as before, but
+        a new codomain.
+	"""
+	A = self.matrix().restrict_codomain(sub.free_module())
+        H = sage.categories.homset.Hom(self.domain(), sub, self.domain().category())
+        return H(A)
 
     def restrict(self, sub):
         """

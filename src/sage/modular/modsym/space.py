@@ -791,12 +791,15 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     #
     #########################################################################
 
-    def q_eigenform(self, prec, names):
+    def q_eigenform(self, prec, names=None):
         """
         Returns the q-expansion to precision prec of a new eigenform
         associated to self, where self must be new, cuspidal, and
         simple.
         """
+        if self.dimension() > 1 and names is None:
+            raise ValueError, "please specify a name to use for the field of eigenvalues"
+
         if prec is None:
             prec = self.default_prec()
         try:

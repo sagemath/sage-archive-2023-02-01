@@ -39,6 +39,7 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         if not isinstance(f, Newform):
             raise TypeError, "f must be a newform"
         self.__f = f
+        self._is_hecke_stable = True
         ModularAbelianVariety_modsym_abstract.__init__(self, QQ)
 
     def _modular_symbols(self,sign=0):

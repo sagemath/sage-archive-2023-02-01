@@ -104,9 +104,8 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
             sage: import sage.modular.abvar.abvar_ambient_jacobian as abvar_ambient_jacobian
             sage: abvar_ambient_jacobian._cache = {}
         """
-        g = str(self.__group)
-        g = g.replace('Congruence','congruence').replace('Subgroup','subgroup')
-        return "Jacobian of the modular curve associated to the %s"%g
+        return 'Abelian variety %s of dimension %s%s'%(self._ambient_repr(), self.dimension(),
+                                    '' if self.base_field() == QQ else ' over %s'%self.base_field())
 
     def ambient_variety(self):
         """

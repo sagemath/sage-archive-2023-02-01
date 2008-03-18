@@ -1450,6 +1450,23 @@ class FreeModule_generic_pid(FreeModule_generic):
             return self
         return self.span([v*other for v in self.basis()])
 
+    def __radd__(self, other):
+        """
+        EXAMPLES:
+            sage: int(0) + QQ^3
+            Vector space of dimension 3 over Rational Field
+            sage: sum([QQ^3, QQ^3])
+            Vector space of degree 3 and dimension 3 over Rational Field
+            Basis matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        if other == 0:
+            return self
+        else:
+            raise TypeError
+
     def __add__(self, other):
         r"""
         Return the sum of self and other, where both self and other
@@ -1503,8 +1520,14 @@ class FreeModule_generic_pid(FreeModule_generic):
             [5 0 0]
             [0 1 0]
             [0 0 1]
+
+        We add a module to 0:
+            sage: ZZ^3 + 0
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
         if not isinstance(other, FreeModule_generic):
+            if other == 0:
+                return self
             raise TypeError, "other (=%s) must be a free module"%other
         if not (self.ambient_vector_space() == other.ambient_vector_space()):
             raise TypeError, "ambient vector spaces must be equal"
@@ -2120,8 +2143,12 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Basis matrix:
             [1 0 0]
             [0 0 1]
+            sage: QQ^3 + 0
+            Vector space of dimension 3 over Rational Field
         """
         if not isinstance(other, FreeModule_generic_field):
+            if other == 0:
+                return self
             raise TypeError, "other must be a Vector Space"
         V = self.ambient_vector_space()
         if V != other.ambient_vector_space():

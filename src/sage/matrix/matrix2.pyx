@@ -2061,9 +2061,8 @@ cdef class Matrix(matrix1.Matrix):
         SEE ALSO: restrict()
 
         EXAMPLES:
-            sage: V = VectorSpace(QQ, 3)
-            sage: M = MatrixSpace(QQ, 3)
-            sage: A = M([1,2,0, 3,4,0, 0,0,0])
+            sage: V = QQ^3
+            sage: A = matrix(QQ,3,[1,2,0, 3,4,0, 0,0,0])
             sage: W = V.subspace([[1,0,0], [1,2,3]])
             sage: A.restrict_domain(W)
             [1 2 0]
@@ -2073,36 +2072,44 @@ cdef class Matrix(matrix1.Matrix):
             [ 1  2  0]
             [ 7 10  0]
         """
-        e = [b*self for b in V.basis()]
-        return self.new_matrix(V.dimension(), self.ncols(), e)
+        return V.basis_matrix() * self
 
     def restrict_codomain(self, V):
-        """
-        Compute the matrix relative to the basis for V on the domain
-        obtained by restricting self to V, but not changing the
-        codomain of the matrix.  This is the matrix whose rows are the
-        images of the basis for V.
+        r"""
+        Suppose that self defines a linear map from some domain to a
+        codomain that contains $V$ and that the image of self is
+        contained in $V$.  This function returns a new matrix $A$ that
+        represents this linear map but as a map to $V$, in the sense
+        that if $x$ is in the domain, then $xA$ is the linear
+        combination of the elements of the basis of $V$ that equals
+        v*self.
 
         INPUT:
-            V -- vector space (subspace of ambient space on which self acts)
+            V -- vector space (space of degree \code{self.ncols()})
+                 that contains the image of self.
 
-        SEE ALSO: restrict()
+        SEE ALSO: \code{restrict()}, \code{restrict_domain()}
 
         EXAMPLES:
-            sage: V = VectorSpace(QQ, 3)
-            sage: M = MatrixSpace(QQ, 3)
-            sage: A = M([1,2,0, 3,4,0, 0,0,0])
-            sage: W = V.subspace([[1,0,0], [1,2,3]])
-            sage: A.restrict_domain(W)
-            [1 2 0]
-            [3 4 0]
-            sage: W2 = V.subspace_with_basis([[1,0,0], [1,2,3]])
-            sage: A.restrict_domain(W2)
-            [ 1  2  0]
-            [ 7 10  0]
+            sage: A = matrix(QQ,3,[1..9])
+            sage: V = (QQ^3).span([[1,2,3], [7,8,9]]); V
+            Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1]
+            [ 0  1  2]
+            sage: z = vector(QQ,[1,2,5])
+            sage: B = A.restrict_codomain(V); B
+            [1 2]
+            [4 5]
+            [7 8]
+            sage: z*B
+            (44, 52)
+            sage: z*A
+            (44, 52, 60)
+            sage: 44*V.0 + 52*V.1
+            (44, 52, 60)
         """
-        e = [b*self for b in V.basis()]
-        return self.new_matrix(V.dimension(), self.ncols(), e)
+        return V.basis_matrix().solve_left(self)
 
     def maxspin(self, v):
         """

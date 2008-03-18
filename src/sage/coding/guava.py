@@ -1,10 +1,15 @@
 r"""
+This module only contains Guava wrappers.
+
 AUTHOR:
     -- David Joyner (2005-11-22, 2006-12-03): initial version
     -- Nick Alexander (2006-12-10): factor GUAVA code to guava.py
     -- David Joyner (2007-05): removed Golay codes, toric and trivial
-                                codes and placed them in code_constructions;
-                                renamed RandomLinearCode->RandomLinearCodeGuava
+                               codes and placed them in code_constructions;
+                               renamed RandomLinearCode->RandomLinearCodeGuava
+    -- David Joyner (2008-03): removed QR, XQR, cyclic and ReedSolomon codes
+
+
 """
 
 #*****************************************************************************
@@ -32,113 +37,6 @@ from sage.misc.functional import log
 from sage.rings.rational_field import QQ
 from sage.structure.parent_gens import ParentWithGens
 from linear_code import *
-
-def QuadraticResidueCode(n,F):
-    r"""
-    A quadratic residue code (or QR code) is a cyclic code whose
-    generator polynomial is the product of the polynomials $x-\alpha^i$
-    ($\alpha$ is a primitive $n^{th}$ root of unity; $i$ ranges over
-    the set of quadratic residues modulo $n$).
-
-    INPUT:
-        n -- an odd prime
-        F -- a finite prime field F whose order must be a quadratic
-             residue modulo n.
-
-    OUTPUT:
-        Returns a quadratic residue code.
-
-    EXAMPLES:
-        sage: C = QuadraticResidueCode(7,GF(2))
-        sage: C
-        Linear code of length 7, dimension 4 over Finite Field of size 2
-        sage: C = QuadraticResidueCode(17,GF(2))
-        sage: C
-        Linear code of length 17, dimension 9 over Finite Field of size 2
-
-    AUTHOR: David Joyner (11-2005)
-    """
-    q = F.order()
-    gap.eval("C:=QRCode("+str(n)+", GF("+str(q)+"))")
-    gap.eval("G:=GeneratorMat(C)")
-    k = eval(gap.eval("Length(G)"))
-    n = eval(gap.eval("Length(G[1])"))
-    G = [[gfq_gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
-    MS = MatrixSpace(F,k,n)
-    return LinearCode(MS(G))
-
-def ExtendedQuadraticResidueCode(n,F):
-    """
-    The extended quadratic residue code (or XQR code) is obtained from
-    a QR code by adding a check bit to the last coordinate. (These codes
-    have very remarkable properties such as large automorphism groups and
-    duality properties - see [HP], \S 6.6.3-6.6.4.)
-
-    INPUT:
-        n -- an odd prime
-        F -- a finite prime field F whose order must be a quadratic
-             residue modulo n.
-
-    OUTPUT:
-        Returns an extended quadratic residue code.
-
-    EXAMPLES:
-        sage: C = ExtendedQuadraticResidueCode(7,GF(2))
-        sage: C
-        Linear code of length 8, dimension 4 over Finite Field of size 2
-        sage: C = ExtendedQuadraticResidueCode(17,GF(2))
-        sage: C
-        Linear code of length 18, dimension 9 over Finite Field of size 2
-
-    AUTHOR: David Joyner (07-2006)
-    """
-    q = F.order()
-    gap.eval("C:=QRCode("+str(n)+", GF("+str(q)+"))")
-    gap.eval("XC:=ExtendedCode(C)")
-    gap.eval("G:=GeneratorMat(XC)")
-    k = eval(gap.eval("Length(G)"))
-    n = eval(gap.eval("Length(G[1])"))
-    G = [[gfq_gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
-    MS = MatrixSpace(F,k,n)
-    return LinearCode(MS(G))
-
-def QuasiQuadraticResidueCode(p):
-    r"""
-    A (binary) quasi-quadratic residue code (or QQR code), as defined by
-    Proposition 2.2 in [BM], has a generator matrix in the block form $G=(Q,N)$.
-    Here $Q$ is a $p \\times p$ circulant matrix whose top row
-    is $(0,x_1,...,x_{p-1})$, where $x_i=1$ if and only if $i$
-    is a quadratic residue $\mod p$, and $N$ is a $p \\times p$ circulant matrix whose top row
-    is $(0,y_1,...,y_{p-1})$, where $x_i+y_i=1$ for all i.
-
-    INPUT:
-        p -- a prime >2.
-
-    OUTPUT:
-        Returns a QQR code of length 2p.
-
-    EXAMPLES:
-        sage: C = QuasiQuadraticResidueCode(11)
-        sage: C
-        Linear code of length 22, dimension 11 over Finite Field of size 2
-
-    REFERENCES:
-        [BM] Bazzi and Mitter, {\it Some constructions of codes from group actions}, (preprint
-             March 2003, available on Mitter's MIT website).
-        [J]  D. Joyner, {\it On quadratic residue codes and hyperelliptic curves}, (preprint 2006)
-
-    These are self-orthogonal in general and self-dual when $p \\equiv 3 \\pmod 4$.
-
-    AUTHOR: David Joyner (11-2005)
-    """
-    F = GF(2)
-    gap.eval("C:=QQRCode("+str(p)+")")
-    gap.eval("G:=GeneratorMat(C)")
-    k = eval(gap.eval("Length(G)"))
-    n = eval(gap.eval("Length(G[1])"))
-    G = [[gfq_gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
-    MS = MatrixSpace(F,k,n)
-    return LinearCode(MS(G))
 
 def BinaryReedMullerCode(r,k):
     """
@@ -184,6 +82,46 @@ def BinaryReedMullerCode(r,k):
     G = [[gfq_gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
+
+def QuasiQuadraticResidueCode(p):
+    r"""
+    A (binary) quasi-quadratic residue code (or QQR code), as defined by
+    Proposition 2.2 in [BM], has a generator matrix in the block form $G=(Q,N)$.
+    Here $Q$ is a $p \\times p$ circulant matrix whose top row
+    is $(0,x_1,...,x_{p-1})$, where $x_i=1$ if and only if $i$
+    is a quadratic residue $\mod p$, and $N$ is a $p \\times p$ circulant matrix whose top row
+    is $(0,y_1,...,y_{p-1})$, where $x_i+y_i=1$ for all i.
+
+    INPUT:
+        p -- a prime >2.
+
+    OUTPUT:
+        Returns a QQR code of length 2p.
+
+    EXAMPLES:
+        sage: C = QuasiQuadraticResidueCode(11)
+        sage: C
+        Linear code of length 22, dimension 11 over Finite Field of size 2
+
+    REFERENCES:
+        [BM] Bazzi and Mitter, {\it Some constructions of codes from group actions}, (preprint
+             March 2003, available on Mitter's MIT website).
+        [J]  D. Joyner, {\it On quadratic residue codes and hyperelliptic curves}, (preprint 2006)
+
+    These are self-orthogonal in general and self-dual when $p \\equiv 3 \\pmod 4$.
+
+    AUTHOR: David Joyner (11-2005)
+    """
+    F = GF(2)
+    gap.eval("C:=QQRCode("+str(p)+")")
+    gap.eval("G:=GeneratorMat(C)")
+    k = eval(gap.eval("Length(G)"))
+    n = eval(gap.eval("Length(G[1])"))
+    G = [[gfq_gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
+    MS = MatrixSpace(F,k,n)
+    return LinearCode(MS(G))
+
+
 
 def RandomLinearCodeGuava(n,k,F):
     """

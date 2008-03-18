@@ -11,6 +11,10 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
+from sage.modular.congroup import is_CongruenceSubgroup
+from sage.modular.modsym.space import is_ModularSymbolsSpace
+from sage.misc.misc import prod
+
 def J0(N):
     """
     Return the Jacobian $J_0(N)$ of the modular curve $X_0(N)$.
@@ -43,3 +47,19 @@ def JH(N, H):
     """
     from sage.modular.congroup import GammaH
     return GammaH(N, H).modular_abelian_variety()
+
+def AbelianVariety(groups=None, lattice=None, modsym=None, base_field=None):
+    """
+    Create the abelian variety corresponding to the given definining data.
+    """
+
+    if is_CongruenceSubgroup(groups):
+        groups = [groups]
+
+    if groups is not None and all([is_CongruenceSubgroup(G) for G in groups]):
+        return prod([G.modular_abelian_variety() for G in groups])
+
+    if modsym is not None and is_ModularSymbolsSpace(modsym):
+        return modsym.modular_abelian_variety()
+
+    raise NotImplementedError, "arguments to AbelianVariety not recognized"

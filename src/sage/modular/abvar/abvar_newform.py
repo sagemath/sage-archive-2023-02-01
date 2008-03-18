@@ -148,27 +148,24 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         except AttributeError:
             pass
 
-        A = self.ambient_variety()
         M = self.modular_symbols()
         bound = M.sturm_bound()
 
         d = self.dimension()
-        EndVecZ = ZZ**(4*d**2)
-        T1 = M.hecke_matrix(1)
-        V = EndVecZ.submodule([T1.list()])
+        T1list = self.hecke_operator(1).matrix().list()
+        EndVecZ = ZZ**(len(T1list))
+        V = EndVecZ.submodule([T1list])
         n = 2
 
         while V.dimension() < d:
-            W = EndVecZ.submodule([((M.hecke_matrix(n))**i).list()
+            W = EndVecZ.submodule([((self.hecke_operator(n).matrix())**i).list()
                                    for i in range(1,d+1)])
             V = V+W
             n += 1
 
-        R = T1.parent()
         E = homspace.EndomorphismSubring(self)
         E._set_generators(V.saturation().basis())
         self.__endomorphism_ring = E
-
         return self.__endomorphism_ring
 
 

@@ -26,7 +26,7 @@ TESTS:
 from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence
 from sage.structure.parent_base import ParentWithBase
-from hecke_operator             import HeckeOperator
+from morphism                   import HeckeOperator
 from torsion_subgroup           import TorsionSubgroup
 from finite_subgroup            import FiniteSubgroup_gens, FiniteSubgroup, FiniteSubgroupElement
 from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup
@@ -397,6 +397,21 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             2
         """
         return self.lattice().rank() // 2
+
+    def rank(self):
+        """
+        Return the rank of the underlying lattice of self.
+
+        EXAMPLES:
+            sage: J = J0(33)
+            sage: J.rank()
+            6
+            sage: J[1]
+            Abelian variety factor of dimension 2 of J0(33)
+            sage: (J[1] * J[1]).rank()
+            8
+        """
+        return self.lattice().rank()
 
     def degree(self):
         """

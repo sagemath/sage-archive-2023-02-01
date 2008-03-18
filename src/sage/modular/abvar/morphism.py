@@ -1,8 +1,34 @@
-"""
-Morphisms between modular abelian varieties.
+r"""
+Morphisms between modular abelian varieties, including Hecke operators
+acting on modular abelian varieties.
+
+\sage can compute with Hecke operators on modular abelian varieties.
+A Hecke operator is defined by given a modular abelian variety and an
+index.  Given a Hecke operator, \sage can compute the characteristic
+polynomial, and the action of the Hecke operator on various homology
+groups.
 
 AUTHOR:
     -- William Stein (2007-03)
+    -- Craig Citro (2008-03)
+
+EXAMPLES:
+    sage: A = J0(54)
+    sage: t5 = A.hecke_operator(5); t5
+    Hecke operator T_5 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(54)
+    sage: t5.charpoly().factor()
+    (x - 3)^2 * (x + 3)^2 * x^4
+    sage: B = A.new_quotient(); B
+    Abelian variety factor of dimension 2 of J0(54)
+    sage: t5 = B.hecke_operator(5); t5
+    Hecke operator T_5 on Abelian variety factor of dimension 2 of J0(54)
+    sage: t5.charpoly().factor()
+    (x - 3)^2 * (x + 3)^2
+    sage: t5.action_on_homology().matrix()
+    [ 0  3  3 -3]
+    [-3  3  3  0]
+    [ 3  3  0 -3]
+    [-3  6  3 -3]
 """
 
 ###########################################################################
@@ -11,37 +37,192 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
-import sage.categories.morphism
+from sage.rings.all import ZZ
+import abvar as abelian_variety
+import sage.modules.matrix_morphism
+import sage.structure.element
 
-class Morphism_abstract(sage.categories.morphism.Morphism):
+class Morphism(sage.modules.matrix_morphism.MatrixMorphism):
     """
     A morphism between modular abelian varieties.
     """
-    def __init__(self, parent):
+    def __init__(self, parent, M):
         """
         Create a morphism between modular abelian varieties.
 
         INPUT:
              parent -- a homset
+             M -- a matrix
 
         EXAMPLES:
             sage: t = J0(11).hecke_operator(2)
-            sage: from sage.modular.abvar.morphism import Morphism_abstract
-            sage: isinstance(t, Morphism_abstract)
+            sage: from sage.modular.abvar.morphism import Morphism
+            sage: isinstance(t, Morphism)
             True
         """
-        sage.categories.morphism.Morphism.__init__(self, parent)
+        sage.modules.matrix_morphism.MatrixMorphism.__init__(self, parent, M)
+
+
+class HeckeOperator(Morphism):
+    """
+    A Hecke operator acting on a modular abelian variety.
+    """
+    def __init__(self, abvar, n):
+        """
+        Create the Hecke operator of index $n$ acting on the abelian
+        variety abvar.
+
+        INPUT:
+            abvar -- a modular abelian variety
+            n -- a positive integer
+
+        EXAMPLES:
+            sage: J = J0(37)
+            sage: T2 = J.hecke_operator(2); T2
+            Hecke operator T_2 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+        """
+        n = ZZ(n)
+        if n <= 0:
+            raise ValueError, "n must be positive"
+        if not abelian_variety.is_ModularAbelianVariety(abvar):
+            raise TypeError, "abvar must be a modular abelian variety"
+        self.__abvar = abvar
+        self.__n = n
+        Morphism.__init__(self, abvar._Hom_(abvar), abvar._integral_hecke_matrix(n))
+
+    def _repr_(self):
+        """
+        String representation of this Hecke operator.
+
+        EXAMPLES:
+            sage: J = J0(37)
+            sage: J.hecke_operator(2)._repr_()
+            'Hecke operator T_2 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)'
+        """
+        return "Hecke operator T_%s on %s"%(self.__n, self.__abvar)
+
+    def index(self):
+        """
+        Return the index of this Hecke operator. (For example, if this
+        is the operator $T_n$, then the index is the integer $n$.)
+
+        OUTPUT:
+            n -- a (Sage) Integer
+
+        EXAMPLES:
+            sage: J = J0(15)
+            sage: t = J.hecke_operator(53)
+            sage: t
+            Hecke operator T_53 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(15)
+            sage: t.index()
+            53
+            sage: t = J.hecke_operator(54)
+            sage: t
+            Hecke operator T_54 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(15)
+            sage: t.index()
+            54
+
+        TODO
+        This is an EXTREMELY long doctest in the current model, but
+        instant in the previous model.
+            J = J1(12345)
+            t = J.hecke_operator(997)
+            t
+            Hecke operator T_997 on Jacobian of the modular curve associated to the congruence subgroup Gamma1(12345)
+            t.index()
+            997
+            type(t.index())
+            <type 'sage.rings.integer.Integer'>
+        """
+        return self.__n
+
+    def n(self):
+        r"""
+        Alias for \code{self.index()}.
+
+        EXAMPLES:
+            sage: J = J0(17)
+            sage: J.hecke_operator(5).n()
+            5
+        """
+        return self.index()
+
+    def characteristic_polynomial(self, var='x'):
+        """
+        Return the characteristic polynomial of this Hecke operator in
+        the given variable.
+
+        INPUT:
+            var -- a string (default: 'x')
+
+        OUTPUT:
+            a polynomial in var over the rational numbers.
+
+        EXAMPLES:
+            sage: A = J0(43)[1]; A
+            Abelian variety factor of dimension 2 of J0(43)
+            sage: t2 = A.hecke_operator(2); t2
+            Hecke operator T_2 on Abelian variety factor of dimension 2 of J0(43)
+            sage: f = t2.characteristic_polynomial(); f
+            x^4 - 4*x^2 + 4
+            sage: f.parent()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: f.factor()
+            (x^2 - 2)^2
+            sage: t2.characteristic_polynomial('y')
+            y^4 - 4*y^2 + 4
+        """
+        return self.__abvar.rational_homology().hecke_polynomial(self.__n, var).change_ring(ZZ)
+
+    def charpoly(self, var='x'):
+        r"""
+        Synonym for \code{self.characteristic_polynomial(var)}.
+
+        INPUT:
+            var -- string (default: 'x')
+
+        EXAMPLES:
+            sage: A = J1(13)
+            sage: t2 = A.hecke_operator(2); t2
+            Hecke operator T_2 on Jacobian of the modular curve associated to the congruence subgroup Gamma1(13)
+            sage: f = t2.charpoly(); f
+            x^4 + 6*x^3 + 15*x^2 + 18*x + 9
+            sage: f.factor()
+            (x^2 + 3*x + 3)^2
+            sage: t2.charpoly('y')
+            y^4 + 6*y^3 + 15*y^2 + 18*y + 9
+        """
+        return self.characteristic_polynomial(var)
+
+    def action_on_homology(self, R=ZZ):
+        """
+        Return the action of this Hecke operator on the homology
+        $H_1(A; R)$ of this abelian variety with coefficients in $R$.
+
+        EXAMPLES:
+            sage: A = J0(43)
+            sage: t2 = A.hecke_operator(2); t2
+            Hecke operator T_2 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+            sage: h2 = t2.action_on_homology(); h2
+            Hecke operator T_2 on Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+            sage: h2.matrix()
+            [-2  1  0  0  0  0]
+            [-1  1  1  0 -1  0]
+            [-1  0 -1  2 -1  1]
+            [-1  0  1  1 -1  1]
+            [ 0 -2  0  2 -2  1]
+            [ 0 -1  0  1  0 -1]
+            sage: h2 = t2.action_on_homology(GF(2)); h2
+            Hecke operator T_2 on Homology with coefficients in Finite Field of size 2 of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+            sage: h2.matrix()
+            [0 1 0 0 0 0]
+            [1 1 1 0 1 0]
+            [1 0 1 0 1 1]
+            [1 0 1 1 1 1]
+            [0 0 0 0 0 1]
+            [0 1 0 1 0 1]
+        """
+        return self.__abvar.homology(R).hecke_operator(self.index())
 
     def matrix(self):
-        raise NotImplementedError
-
-class Morphism(Morphism_abstract):
-    def __init__(self, parent, matrix):
-        self.__matrix = matrix
-        Morphism_abstract.__init__(self, parent)
-
-    def matrix(self):
-        return self.__matrix
-
-
-
+        return self.action_on_homology().matrix()

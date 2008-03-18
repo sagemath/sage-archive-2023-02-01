@@ -143,18 +143,20 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
     def groups(self):
         return (self.__group,)
 
-    def degeneracy_map(self, level, t=1):
+    def degeneracy_map(self, level, t=1, check=True):
         """
         Return the t-th degeneracy map from self to J0(level).
         Here t must be a divisor of level/self.level().
         """
-        if not self.level().divides(level):
-            raise ValueError, "level must be divisible by level of self"
-        if not t.divides(self.level().div(level)):
-            raise ValueError, "t must divide the quotient of the two levels"
+        if check:
+            if (level % self.level()):
+                raise ValueError, "level must be divisible by level of self"
+            if (level / (self.level()) % t):
+                raise ValueError, "t must divide the quotient of the two levels"
 
-        Jdest = J0(level)
         Mself = self.modular_symbols()
+        #Jdest = Mself.ambient_module().modular_symbols_of_level(level).cuspidal_subspace().abelian_variety()
+        Jdest = (type(Mself.group()))(level).modular_abelian_variety()
         Mdest = Jdest.modular_symbols()
 
         symbol_map = Mself.degeneracy_map(level, t).restrict_codomain(Mdest)

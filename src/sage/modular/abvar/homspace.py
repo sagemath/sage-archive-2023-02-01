@@ -138,9 +138,27 @@ class EndomorphismSubring(Homspace, Ring):
         return morphism.Morphism(self._End(), M)
 
     def image_of_hecke_algebra(self):
+
+        try:
+            return self.__hecke_algebra_image
+        except AttributeError:
+            pass
+
         A = self.abelian_variety()
-        #if A.is_hecke_stable():
-        return
+        if not A.is_hecke_stable():
+            raise ValueError, "ambient variety is not Hecke stable"
+
+        M = A.modular_symbols()
+
+        d = A.dimension()
+        EndVecZ = ZZ**(4*d**2)
+        T_matrices = [ A.hecke_operator(n).matrix().list() for n in range(1,M.sturm_bound()+1) ]
+        W = EndVecZ.submodule(T_matrices)
+
+        T = EndomorphismSubring(A)
+        T._set_generators( W.basis() )
+        self.__hecke_algebra_image = T
+        return self.__hecke_algebra_image
 
 class EndomorphismSubAlgebra(EndomorphismSubring):
     def __init__(self, A):

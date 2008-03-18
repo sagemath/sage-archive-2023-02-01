@@ -2839,6 +2839,34 @@ class AlgebraicReal(AlgebraicNumber_base):
         result_max = max(range.upper(), 1)
         return AlgebraicReal(ANRoot(poly, RIF(result_min, result_max)))
 
+    def real(self):
+        """
+        Returns the real part of this algebraic real (so it always returns
+        \code{self}).
+
+        EXAMPLES:
+            sage: a = AA(sqrt(2) + sqrt(3))
+            sage: a.real()
+            [3.1462643699419721 .. 3.1462643699419726]
+            sage: a.real() is a
+            True
+        """
+        return self
+
+    def imag(self):
+        """
+        Returns the imaginary part of this algebraic real (so it always
+        returns 0).
+
+        EXAMPLES:
+            sage: a = AA(sqrt(2) + sqrt(3))
+            sage: a.imag()
+            0
+            sage: parent(a.imag())
+            Algebraic Real Field
+        """
+        return AA_0
+
     def sign(self):
         """
         Compute the sign of this algebraic number (return -1 if negative,
@@ -4441,6 +4469,8 @@ QQ_0 = QQ(0)
 QQ_1 = QQ(1)
 QQ_1_2 = QQ(1)/2
 QQ_1_4 = QQ(1)/4
+
+AA_0 = AA(0)
 
 QQbar_I_nf = QuadraticField(-1, 'I')
 # XXX change ANRoot to ANRootOfUnity below

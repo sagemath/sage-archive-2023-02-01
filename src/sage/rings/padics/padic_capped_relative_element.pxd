@@ -26,15 +26,13 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef long relprec
     cdef bint _normalized
 
-    cdef void _set_exact_zero(pAdicCappedRelativeElement self)
-    cdef void _set_inexact_zero(pAdicCappedRelativeElement self, long absprec)
-    cdef void _set_zero(pAdicCappedRelativeElement self, absprec)
-    cdef void _set_prec(pAdicCappedRelativeElement self, long relprec)
-    cdef void _set(pAdicCappedRelativeElement self, long ordp, mpz_t unit, long relprec)
+    cdef int _set_zero(pAdicCappedRelativeElement self, absprec) except -1
+    cdef int _set_prec(pAdicCappedRelativeElement self, long relprec) except -1
+    cdef int _set(pAdicCappedRelativeElement self, long ordp, mpz_t unit, long relprec) except -1
     cdef int _set_from_CR(pAdicCappedRelativeElement self, pAdicCappedRelativeElement other) except -1
 
     cdef pAdicCappedRelativeElement _new_c(pAdicCappedRelativeElement self)
-    cdef void _normalize(pAdicCappedRelativeElement self)
+    cdef int _normalize(pAdicCappedRelativeElement self) except -1
 
     cdef int _set_from_Integer( pAdicCappedRelativeElement self, Integer x, absprec, relprec) except -1
     cdef int _set_from_Rational( pAdicCappedRelativeElement self, Rational x, absprec, relprec) except -1

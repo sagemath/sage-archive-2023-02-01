@@ -352,15 +352,15 @@ class ModularFormElement(element.HeckeModuleElement):
         currently known. Note that this may be 0.
 
         EXAMPLES:
-            sage: M = ModularForms(25,4)
+            sage: M = ModularForms(2,14)
             sage: f = M.0
             sage: f.prec()
-            6
+            0
 
             sage: M.prec(20)
             20
             sage: f.prec()
-            6
+            0
             sage: x = f.q_expansion() ; f.prec()
             20
         """

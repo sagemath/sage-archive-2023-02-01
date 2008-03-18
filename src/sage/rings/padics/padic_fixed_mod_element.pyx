@@ -235,7 +235,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         x.prime_pow = self.prime_pow
         return x
 
-    cpdef bint _is_inexact_zero(self):
+    cpdef bint _is_inexact_zero(self) except -1:
         return mpz_sgn(self.value) == 0
 
     def __richcmp__(left, right, op):

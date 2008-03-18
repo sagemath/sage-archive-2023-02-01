@@ -22,6 +22,11 @@ from sage.matrix.all import matrix
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, dual_basis, scalar, scalar_name="", prefix=None):
         """
+        TESTS:
+            sage: e = SFAElementary(QQ)
+            sage: f = e.dual_basis()
+            sage: f == loads(dumps(f))
+            True
         """
         self._dual_basis = dual_basis
         self._scalar = scalar
@@ -48,16 +53,43 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         classical.SymmetricFunctionAlgebra_classical.__init__(self, scalar_target, "dual_"+dual_basis.basis_name(), SymmetricFunctionAlgebraElement_dual, prefix)
 
 
-    def dual_basis(self, scalar=None, scalar_name=None):
+    def dual_basis(self, scalar=None, scalar_name="", prefix=None):
         """
+        Return the dual basis to self.  If a the scalar option is not passed,
+        then it returns the dual basis with respect to the scalar product used
+        to define self.
+
+        EXAMPLES:
+            sage: m = SFAMonomial(QQ)
+            sage: zee = sage.combinat.sf.sfa.zee
+            sage: h = m.dual_basis(scalar=zee)
+            sage: h.dual_basis()
+            Symmetric Function Algebra over Rational Field, Monomial symmetric functions as basis
+            sage: m2 = h.dual_basis(zee, prefix='m2')
+            sage: m([2])^2
+            2*m[2, 2] + m[4]
+            sage: m2([2])^2
+            2*m2[2, 2] + m2[4]
         """
         if scalar is None:
             return self._dual_basis
         else:
-            return SymmetricFrunctionAlgebra_dual(self, scalar, scalar_name=scalar_name)
+            return SymmetricFunctionAlgebra_dual(self, scalar, scalar_name, prefix)
 
     def __repr__(self):
-        return "Dual basis to %s"%self._dual_basis
+        """
+        EXAMPLES:
+            sage: m = SFAMonomial(QQ)
+            sage: zee = sage.combinat.sf.sfa.zee
+            sage: h = m.dual_basis(scalar=zee); h #indirect doctests
+            Dual basis to Symmetric Function Algebra over Rational Field, Monomial symmetric functions as basis
+            sage: h = m.dual_basis(scalar=zee, scalar_name='Hall scalar product'); h #indirect doctest
+            Dual basis to Symmetric Function Algebra over Rational Field, Monomial symmetric functions as basis with respect to the Hall scalar product
+        """
+        if self._scalar_name:
+            return "Dual basis to %s"%self._dual_basis + " with respect to the " + self._scalar_name
+        else:
+            return "Dual basis to %s"%self._dual_basis
 
 
     def __call__(self, x):
@@ -88,8 +120,26 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
     def _precompute(self, n):
         """
-        """
+        Computes the transition matrix between self and its dual basis
+        for the homogenous component of size n.
 
+        EXAMPLES:
+            sage: e = SFAElementary(QQ)
+            sage: f = e.dual_basis()
+            sage: f._precompute(2)
+            sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
+            sage: l(f._to_self_cache)
+            [([1, 1], [([1, 1], 2), ([2], 1)]), ([2], [([1, 1], 1), ([2], 1)])]
+            sage: l(f._from_self_cache)
+            [([1, 1], [([1, 1], 1), ([2], -1)]), ([2], [([1, 1], -1), ([2], 2)])]
+            sage: f._transition_matrices[2]
+            [1 1]
+            [1 2]
+            sage: f._inverse_transition_matrices[2]
+            [ 2 -1]
+            [-1  1]
+
+        """
         base_ring = self.base_ring()
         zero = base_ring(0)
 
@@ -164,6 +214,27 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         r"""
         Returns the transition matrix between the $n^th$ homogeneous
         component of self and basis.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: e = SFAElementary(QQ)
+            sage: f = e.dual_basis()
+            sage: f.transition_matrix(s, 5)
+            [ 1 -1  0  1  0 -1  1]
+            [-2  1  1 -1 -1  1  0]
+            [-2  2 -1 -1  1  0  0]
+            [ 3 -1 -1  1  0  0  0]
+            [ 3 -2  1  0  0  0  0]
+            [-4  1  0  0  0  0  0]
+            [ 1  0  0  0  0  0  0]
+            sage: e.transition_matrix(s, 5).inverse().transpose()
+            [ 1 -1  0  1  0 -1  1]
+            [-2  1  1 -1 -1  1  0]
+            [-2  2 -1 -1  1  0  0]
+            [ 3 -1 -1  1  0  0  0]
+            [ 3 -2  1  0  0  0  0]
+            [-4  1  0  0  0  0  0]
+            [ 1  0  0  0  0  0  0]
         """
         if n not in self._transition_matrices:
             self._precompute(n)
@@ -199,6 +270,34 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
 class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraElement_classical):
     def __init__(self, A, dictionary=None, dual=None):
+        """
+        Create an element of a dual basis.
+
+        INPUT:
+          At least one of the following must be specified.  The one (if any)
+          which is not provided will be computed.
+            dictionary -- an internal dictionary for the monomials and coefficents
+                         of self
+            dual -- self as an element of the dual basis.
+
+        TESTS:
+            sage: m = SFAMonomial(QQ)
+            sage: zee = sage.combinat.sf.sfa.zee
+            sage: h = m.dual_basis(scalar=zee, prefix='h')
+            sage: a = h([2])
+            sage: ec = h._element_class
+            sage: ec(h, dual=m([2]))
+            -h[1, 1] + 2*h[2]
+            sage: h(m([2]))
+            -h[1, 1] + 2*h[2]
+            sage: h([2])
+            h[2]
+            sage: h([2])._dual
+            m[1, 1] + m[2]
+            sage: m(h([2]))
+            m[1, 1] + m[2]
+
+        """
         if dictionary is None and dual is None:
             raise ValueError, "you must specify either x or dual"
 
@@ -227,10 +326,10 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
                 for part in from_dictionary:
                     dual_dict[ part ] = dual_dict.get(part, zero) + base_ring(s_mcs[s_part]*from_dictionary[part])
 
-            dual = parent._dual_basis(0)
-            dual._monomial_coefficients = dual_dict
+            dual = parent._dual_basis._from_dict(dual_dict)
 
-        else:
+
+        if dictionary is None:
             #We need to compute the monomial coefficients dictionary
             dictionary = {}
             to_self_cache = parent._to_self_cache
@@ -272,7 +371,7 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
         """
         return self._dual
 
-    def frobenius(self):
+    def omega(self):
         """
         Returns the image of self under the Frobenius / omega
         automorphism.
@@ -282,13 +381,13 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(zee)
             sage: hh = SFAHomogeneous(QQ)
-            sage: hh([2,1]).frobenius()
+            sage: hh([2,1]).omega()
             h[1, 1, 1] - h[2, 1]
-            sage: h([2,1]).frobenius()
+            sage: h([2,1]).omega()
             d_m[1, 1, 1] - d_m[2, 1]
         """
         eclass = self.__class__
-        return eclass(self.parent(), dual=self._dual.frobenius() )
+        return eclass(self.parent(), dual=self._dual.omega() )
 
     def scalar(self, x):
         """
@@ -389,8 +488,21 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
         eclass = self.__class__
         return eclass(self.parent(), dual=~self.dual())
 
-    def expand(self, n):
+    def expand(self, n, alphabet='x'):
         """
+        EXAMPLES:
+            sage: m = SFAMonomial(QQ)
+            sage: zee = sage.combinat.sf.sfa.zee
+            sage: h = m.dual_basis(zee)
+            sage: a = h([2,1])+h([3])
+            sage: a.expand(2)
+            2*x0^3 + 3*x0^2*x1 + 3*x0*x1^2 + 2*x1^3
+            sage: a.dual().expand(2)
+            2*x0^3 + 3*x0^2*x1 + 3*x0*x1^2 + 2*x1^3
+            sage: a.expand(2,alphabet='y')
+            2*y0^3 + 3*y0^2*y1 + 3*y0*y1^2 + 2*y1^3
+            sage: a.expand(2,alphabet='x,y')
+            2*x^3 + 3*x^2*y + 3*x*y^2 + 2*y^3
 
         """
-        return self._dual.expand(n)
+        return self._dual.expand(n, alphabet)

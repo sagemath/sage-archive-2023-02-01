@@ -1128,26 +1128,61 @@ cdef class Matrix(matrix1.Matrix):
     #####################################################################################
     # Decomposition: kernel, image, decomposition
     #####################################################################################
-    def nullity(self):
+    nullity = left_nullity
+
+    def left_nullity(self):
         """
-        Return the nullity of this matrix, which is the dimension
-        of the kernel.
+        Return the (left) nullity of this matrix, which is the dimension
+        of the (left) kernel of this matrix acting from the right on
+        row vectors.
 
         EXAMPLES:
-            sage: A = matrix(QQ,3,range(9))
+            sage: M = Matrix(QQ,[[1,0,0,1],[0,1,1,0],[1,1,1,0]])
+            sage: M.nullity()
+            0
+            sage: M.left_nullity()
+            0
+
+            sage: A = M.transpose()
             sage: A.nullity()
             1
+            sage: A.left_nullity()
+            1
 
-            sage: A = matrix(ZZ,3,range(9))
+            sage: M = M.change_ring(ZZ)
+            sage: M.nullity()
+            0
+            sage: A = M.transpose()
             sage: A.nullity()
             1
         """
-        # Use that rank + nullity = number of columns
-        return self.ncols() - self.rank()
+        # Use that rank + nullity = number of rows, since matrices act
+        # from the right on row vectors.
+        return self.nrows() - self.rank()
 
-    def kernel(self, *args, **kwds):
+    def right_nullity(self):
+        """
+        Return the right nullity of this matrix, which is the dimension
+        of the right kernel.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(QQ,3,2)(range(6))
+            sage: A.right_nullity()
+            0
+
+            sage: A = matrix(ZZ,3,range(9))
+            sage: A.right_nullity()
+            1
+        """
+        return self.transpose().nullity()
+
+    kernel = left_kernel
+
+    def left_kernel(self, *args, **kwds):
         r"""
-        Return the kernel of this matrix, as a vector space.
+        Return the (left) kernel of this matrix, as a vector space.
+        This is the space of vectors x such that x*self=0.
+        Use self.right_kernel() for the right kernel.
 
         INPUT:
             -- all additional arguments to the kernel function
@@ -1226,7 +1261,7 @@ cdef class Matrix(matrix1.Matrix):
             Basis matrix:
             [ 1 -1]
         """
-        K = self.fetch('kernel')
+        K = self.fetch('left_kernel')
         if not K is None:
             return K
         R = self._base_ring
@@ -1234,12 +1269,12 @@ cdef class Matrix(matrix1.Matrix):
         if self._nrows == 0:    # from a degree-0 space
             V = sage.modules.free_module.VectorSpace(R, self._nrows)
             Z = V.zero_subspace()
-            self.cache('kernel', Z)
+            self.cache('left_kernel', Z)
             return Z
 
         elif self._ncols == 0:  # to a degree-0 space
             Z = sage.modules.free_module.VectorSpace(R, self._nrows)
-            self.cache('kernel', Z)
+            self.cache('left_kernel', Z)
             return Z
 
         if is_NumberField(R):
@@ -1249,7 +1284,7 @@ cdef class Matrix(matrix1.Matrix):
             V = sage.modules.free_module.VectorSpace(R, n)
             basis = [V([R(x) for x in b]) for b in B]
             Z = V.subspace(basis)
-            self.cache('kernel', Z)
+            self.cache('left_kernel', Z)
             return Z
 
         E = self.transpose().echelon_form(*args, **kwds)
@@ -1268,9 +1303,84 @@ cdef class Matrix(matrix1.Matrix):
                 basis.append(v)
         W = V.subspace(basis)
         if W.dimension() != len(basis):
-            raise RuntimeError, "bug in kernel function in matrix.pyx -- basis got from echelon form not a basis."
-        self.cache('kernel', W)
+            raise RuntimeError, "bug in kernel function in matrix2.pyx -- basis got from echelon form not a basis."
+        self.cache('left_kernel', W)
         return W
+
+    def right_kernel(self, *args, **kwds):
+        r"""
+        Return the right kernel of this matrix, as a vector space.
+        This is the space of vectors x such that self*x=0.
+
+        INPUT:
+            -- all additional arguments to the kernel function
+               are passed directly onto the echelon call.
+
+        By convention if self has 0 columns, the kernel is of dimension
+        0, whereas the kernel is whole domain if self has 0 rows.
+
+        EXAMPLES:
+
+        A kernel of dimension one over $\Q$:
+            sage: A = MatrixSpace(QQ, 3)(range(9))
+            sage: A.right_kernel()
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -2  1]
+
+        A trivial kernel:
+            sage: A = MatrixSpace(QQ, 2)([1,2,3,4])
+            sage: A.right_kernel()
+            Vector space of degree 2 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+
+        Kernel of a zero matrix:
+            sage: A = MatrixSpace(QQ, 2)(0)
+            sage: A.right_kernel()
+            Vector space of degree 2 and dimension 2 over Rational Field
+            Basis matrix:
+            [1 0]
+            [0 1]
+
+        Kernel of a non-square matrix:
+            sage: A = MatrixSpace(QQ,2,3)(range(6))
+            sage: A.right_kernel()
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -2  1]
+
+        The 2-dimensional kernel of a matrix over a cyclotomic field:
+            sage: K = CyclotomicField(12); a=K.0
+            sage: M = MatrixSpace(K,2,4)([1,-1, 0,-2, 0,-a**2-1, 0,a**2-1])
+            sage: M
+            [            1            -1             0            -2]
+            [            0 -zeta12^2 - 1             0  zeta12^2 - 1]
+            sage: M.right_kernel()
+            Vector space of degree 4 and dimension 2 over Cyclotomic Field of order 12 and degree 4
+            Basis matrix:
+            [      1  4/13*zeta12^2 - 1/13      0 -2/13*zeta12^2 + 7/13]
+            [      0                     0      1                     0]
+
+        A nontrivial kernel over a complicated base field.
+            sage: K = FractionField(MPolynomialRing(QQ, 2, 'x'))
+            sage: M = MatrixSpace(K, 2)([[K.1, K.0], [K.1, K.0]])
+            sage: M
+            [x1 x0]
+            [x1 x0]
+            sage: M.right_kernel()
+            Vector space of degree 2 and dimension 1 over Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
+            Basis matrix:
+            [ 1 x1/(-x0)]
+        """
+        K = self.fetch('right_kernel')
+        if not K is None:
+            return K
+
+        K = self.transpose().kernel(*args, **kwds)
+        self.cache('right_kernel', K)
+        return K
+
 
     def kernel_on(self, V, poly=None, check=True):
         """
@@ -1281,7 +1391,7 @@ cdef class Matrix(matrix1.Matrix):
         INPUT:
             V -- vector subspace
             check -- (optional) default: True; whether to check that
-                     V is invariante under the action of self.
+                     V is invariant under the action of self.
             poly -- (optional) default: None; if not None, compute instead
                     the kernel of poly(self) on V.
 
@@ -2378,7 +2488,7 @@ cdef class Matrix(matrix1.Matrix):
            sage: C.rank()
            2
            sage: C.nullity()
-           1
+           0
            sage: C.echelon_form()
            [ 1  0 18]
            [ 0  1  2]

@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 A Worksheet.
 
 A worksheet is embedded in a webpage that is served by the \sage server.
@@ -474,6 +474,58 @@ class Worksheet:
         except AttributeError:
             return True
 
+    def delete_user(self, user):
+        """
+        Delete a user from having any view or ownership of this worksheet.
+
+        INPUT:
+            user -- string; the name of a user
+
+        EXAMPLES:
+        We create a notebook with 2 users and 1 worksheet that both view.
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.add_user('wstein','sage','wstein@sagemath.org',force=True)
+            sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
+            sage: W.add_viewer('wstein')
+            sage: W.owner()
+            'sage'
+            sage: W.viewers()
+            ['wstein']
+
+        We delete the sage user from the worksheet W.   This makes wstein the
+        new owner.
+            sage: W.delete_user('sage')
+            sage: W.viewers()
+            ['wstein']
+            sage: W.owner()
+            'wstein'
+
+        Then we delete wstein from W, which makes the owner None:
+            sage: W.delete_user('wstein')
+            sage: W.owner() is None
+            True
+            sage: W.viewers()
+            []
+
+        Finally, we clean up.
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
+        if user in self.__collaborators:
+            self.__collaborators.remove(user)
+        if user in self.__viewers:
+            self.__viewers.remove(user)
+        if self.__owner == user:
+            if len(self.__collaborators) > 0:
+                self.__owner = self.__collaborators[0]
+            elif len(self.__viewers) > 0:
+                self.__owner = self.__viewers[0]
+            else:
+                # Now there is nobody to take over ownership.  We
+                # assign the owner None, which means nobody owns it.
+                # It will get purged elsewhere.
+                self.__owner = None
+
 
     def add_viewer(self, user):
         try:
@@ -488,6 +540,7 @@ class Worksheet:
                 self.__collaborators.append(user)
         except AttributeError:
             self.__collaborators = [user]
+
 
     ##########################################################
     # Searching

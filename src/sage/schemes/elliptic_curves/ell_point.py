@@ -81,6 +81,21 @@ class EllipticCurvePoint(SchemeMorphism_projective_coordinates_ring):
     A point on an elliptic curve.
     """
     def __cmp__(self, other):
+        """
+        Standard comparison function for points on elliptic curves, to
+        allow sorting and equality testing.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: P=E(0,1)
+            sage: P.order()
+            +Infinity
+            sage: Q=P+P
+            sage: P==Q
+            False
+            sage: Q+Q == 4*P
+            True
+        """
         if isinstance(other, (int, long, rings.Integer)) and other == 0:
             if self.is_zero():
                 return 0
@@ -131,6 +146,15 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         True
     """
     def __init__(self, curve, v, check=True):
+        """
+        Constructor for a point on an elliptic curve
+
+        INPUT:
+            curve -- an elliptic curve
+            v -- data determining a point (another point, the integer
+                 0, or a tuple of coordinates)
+
+        """
         point_homset = curve.point_homset()
         AdditiveGroupElement.__init__(self, point_homset)
         if check:
@@ -169,21 +193,39 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
 
     def _repr_(self):
+        """
+        Return a string representation of this point
+        """
         return self.codomain().ambient_space()._repr_generic_point(self._coords)
 
     def _latex_(self):
+        """
+        Return a latex representation of this point
+        """
         return self.codomain().ambient_space()._latex_generic_point(self._coords)
 
     def __getitem__(self, n):
+        """
+        Return the n'th coordinate of this point
+        """
         return self._coords[n]
 
     def __list__(self):
+        """
+        Return the coordinates of this point as a list
+        """
         return list(self._coords)
 
     def __tuple__(self):
+        """
+        Return the coordinates of this point as a tuple
+        """
         return self._coords
 
     def __cmp__(self, other):
+        """
+        Comparison function for points to allow sorting and equality testing
+        """
         if not isinstance(other, EllipticCurvePoint_field):
             try:
                 other = self.codomain().ambient_space()(other)
@@ -192,12 +234,63 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         return cmp(self._coords, other._coords)
 
     def scheme(self):
+        """
+        Return the scheme of this point, i.e. the curve it is on.
+        This is synonmous with curve() which is perhaps more
+        intuituve.
+
+        Technically, points on curves in Sage are scheme maps from the
+        domain Spec(F) where F is the base field of the curve to the
+        codomain which is the curve.  See also domain() and codomain().
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: P=E(0,1)
+            sage: P.scheme()
+            Elliptic Curve defined by y^2  = x^3 + x +1 over Rational Field
+            sage: P.scheme() == P.curve()
+            True
+            sage: K.<a>=NumberField(x^2-3,'a')
+            sage: P=E.base_extend(K)(1,a)
+            sage: P.scheme()
+            Elliptic Curve defined by y^2  = x^3 + x +1 over Number Field in a with defining polynomial x^2 - 3
+       """
         return self.codomain()
 
     def domain(self):
+        """
+        Return the domain of this point, which is Spec(F) where F is
+        the field of definition.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: P=E(0,1)
+            sage: P.domain()
+            Spectrum of Rational Field
+            sage: K.<a>=NumberField(x^2-3,'a')
+            sage: P=E.base_extend(K)(1,a)
+            sage: P.domain()
+            Spectrum of Number Field in a with defining polynomial x^2 - 3
+       """
         return self.parent().domain()
 
     def codomain(self):
+        """
+        Return the codomain of this point, which is the curve it is
+        on.  Synonymous with curve() which is perhaps more intuituve.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: P=E(0,1)
+            sage: P.domain()
+            Spectrum of Rational Field
+            sage: K.<a>=NumberField(x^2-3,'a')
+            sage: P=E.base_extend(K)(1,a)
+            sage: P.codomain()
+            Elliptic Curve defined by y^2  = x^3 + x +1 over Number Field in a with defining polynomial x^2 - 3
+            sage: P.codomain() == P.curve()
+            True
+       """
         return self.parent().codomain()
 
     def order(self):
@@ -437,8 +530,6 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         else:
             return self[0]/self[2], self[1]/self[2]
 
-
-
 class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
     def _magma_init_(self):
         """
@@ -647,7 +738,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
                 plist = M.prime_divisors()
                 E._prime_factors_of_order = plist
             else:
-                M = self._bsgs(E(0),1,ub)
+                M = self._bsgs(E(0),lb,ub)
                 plist = M.prime_divisors()
 
         # Now M is a multiple of the order and plist is a list of

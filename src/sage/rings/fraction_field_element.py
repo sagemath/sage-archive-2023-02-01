@@ -30,6 +30,7 @@ import integer_ring
 
 import sage.misc.latex as latex
 from sage.misc.misc import prod
+from sage.misc.derivative import multi_derivative
 
 def is_FractionFieldElement(x):
     return isinstance(x, FractionFieldElement)
@@ -317,6 +318,70 @@ class FractionFieldElement(field_element.FieldElement):
         return FractionFieldElement(self.parent(),
            self.__numerator*right.__denominator,
            self.__denominator*right.__numerator, coerce=False, reduce=True)
+
+    def derivative(self, *args):
+        r"""
+        The derivative of this rational function, with respect to variables
+        supplied in args.
+
+        Multiple variables and iteration counts may be supplied; see
+        documentation for the global derivative() function for more details.
+
+        SEE ALSO:
+            self._derivative()
+
+        EXAMPLES:
+            sage: F = FractionField(PolynomialRing(RationalField(),'x'))
+            sage: x = F.gen()
+            sage: (1/x).derivative()
+            -1/x^2
+
+            sage: (x+1/x).derivative(x, 2)
+            2/x^3
+
+            sage: F = FractionField(PolynomialRing(RationalField(),'x,y'))
+            sage: x,y = F.gens()
+            sage: (1/(x+y)).derivative(x,y)
+            2/(x^3 + 3*x^2*y + 3*x*y^2 + y^3)
+
+        """
+        return multi_derivative(self, args)
+
+    def _derivative(self, var=None):
+        r"""
+        Return the derivative of this rational function with respect to the
+        variable var.
+
+        SEE ALSO:
+            self.derivative()
+
+        EXAMPLES:
+            sage: F = FractionField(PolynomialRing(RationalField(),'x'))
+            sage: x = F.gen()
+            sage: t = 1/x^2
+            sage: t._derivative(x)
+            -2/x^3
+            sage: t.derivative()
+            -2/x^3
+
+            sage: F = FractionField(PolynomialRing(RationalField(),'x,y'))
+            sage: x,y = F.gens()
+            sage: t = (x*y/(x+y))
+            sage: t._derivative(x)
+            y^2/(x^2 + 2*x*y + y^2)
+            sage: t._derivative(y)
+            x^2/(x^2 + 2*x*y + y^2)
+        """
+        if var is None:
+            bvar = None
+        elif var in self.parent().gens():
+            bvar = self.parent().ring()(var)
+        else:
+            bvar = var
+
+        return (self.__numerator._derivative(bvar)*self.__denominator \
+                    - self.__numerator*self.__denominator._derivative(bvar))/\
+                    self.__denominator**2
 
     def __int__(self):
         if self.__denominator == 1:

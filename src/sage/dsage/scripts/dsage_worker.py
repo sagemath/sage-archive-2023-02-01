@@ -17,6 +17,7 @@
 #                  http://www.gnu.org/licenses/
 #
 ############################################################################
+__docformat__ = "restructuredtext en"
 
 import sys
 import os
@@ -24,7 +25,6 @@ import cPickle
 import zlib
 import pexpect
 import datetime
-import uuid
 from math import ceil
 from getpass import getuser
 
@@ -43,37 +43,46 @@ from sage.interfaces.sage0 import Sage
 from sage.misc.preparser import preparse_file
 
 from sage.dsage.database.job import Job, expand_job
-from sage.dsage.misc.hostinfo import ClassicHostInfo
+from sage.dsage.misc.hostinfo import HostInfo
 from sage.dsage.errors.exceptions import NoJobException
-from sage.dsage.twisted.pb import PBClientFactory
+from sage.dsage.twisted.pb import ClientFactory
 from sage.dsage.misc.constants import DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.misc.constants import TMP_WORKER_FILES
-from sage.dsage.misc.misc import random_str
+from sage.dsage.misc.misc import random_str, get_uuid
 
-START_MARKER = '___BEGIN___'
-END_MARKER = '___END___'
+START_MARKER = '\x01r\x01e'
+END_MARKER = '\x01r\x01b'
 LOG_PREFIX = "[Worker %s] "
-
-def unpickle(pickled_job):
-    return cPickle.loads(zlib.decompress(pickled_job))
 
 class Worker(object):
     """
-    This class represents a worker object that does the actual calculation.
-
-    Parameters:
-    remoteobj -- reference to the remote PB server
+    Workers perform the computation of dsage jobs.
 
     """
 
     def __init__(self, remoteobj, id, log_level=0, poll=1.0):
+        """
+        :type remoteobj: remoteobj
+        :param remoteobj: Reference to the remote dsage server
+
+        :type id: integer
+        :param id: numerical identifier of worker
+
+        :type log_level: integer
+        :param log_level: log level, higher means more verbose
+
+        :type poll: integer
+        :param poll: rate (in seconds) a worker talks to the server
+
+        """
+
         self.remoteobj = remoteobj
         self.id = id
         self.free = True
         self.job = None
         self.log_level = log_level
-        self.poll = poll
+        self.poll_rate = poll
         self.checker_task = task.LoopingCall(self.check_work)
         self.checker_timeout = 0.5
         self.got_output = False
@@ -81,13 +90,21 @@ class Worker(object):
         self.orig_poll = poll
         self.start()
 
-        # import some basic modules into our Sage() instance
-        self.sage.eval('import time')
-        self.sage.eval('import os')
-
     def _catch_failure(self, failure):
         log.msg("Error: ", failure.getErrorMessage())
         log.msg("Traceback: ", failure.printTraceback())
+
+    def _increase_poll_rate(self):
+        if self.poll_rate >= 15: # Cap the polling interval to 15 seconds
+            self.poll_rate = 15
+            if self.log_level > 3:
+                log.msg('[Worker %s] Capping poll rate to %s'
+                         % (self.id, self.poll_rate))
+        else:
+            self.poll_rate = ceil(self.poll_rate * 1.5)
+            if self.log_level > 3:
+                log.msg('[Worker %s] Increased polling rate to %s'
+                        % (self.id, self.poll_rate))
 
     def get_job(self):
         try:
@@ -97,7 +114,8 @@ class Worker(object):
         except Exception, msg:
             log.msg(msg)
             log.msg(LOG_PREFIX % self.id +  'Disconnected...')
-            reactor.callLater(5.0, self.get_job)
+            self._increase_poll_rate()
+            reactor.callLater(self.poll_rate, self.get_job)
             return
         d.addCallback(self.gotJob)
         d.addErrback(self.noJob)
@@ -106,10 +124,10 @@ class Worker(object):
 
     def gotJob(self, jdict):
         """
-        gotJob is a callback for the remoteobj's get_job method.
+        callback for the remoteobj's get_job method.
 
-        Parameters:
-        job -- Job object returned by remote's 'get_job' method
+        :type jdict: dict
+        :param jdict: job dictionary
 
         """
 
@@ -123,7 +141,7 @@ class Worker(object):
         if not isinstance(self.job, Job):
             raise NoJobException
         try:
-            self.poll = self.orig_poll
+            self.poll_rate = self.orig_poll
             self.doJob(self.job)
         except Exception, msg:
             log.msg(msg)
@@ -132,57 +150,61 @@ class Worker(object):
 
     def job_done(self, output, result, completed, cpu_time):
         """
-        job_done is a callback for doJob.  Called when a job completes.
+        Reports to the server that a job has finished. It also reports partial
+        completeness by presenting the server with new output.
 
         Parameters:
-        output -- the output of the command
-        result -- the result of processing the job, a pickled object
-        completed -- whether or not the job is completely finished (bool)
+        :type output: string
+        :param output: output of command (to sys.stdout)
+
+        :type result: python pickle
+        :param result: result of the job
+
+        :type completed: bool
+        :param completed: whether or not the job is finished
+
+        :type cpu_time: string
+        :param cpu_time: how long the job took
 
         """
 
+        job_id = self.job.job_id
+        wait = 5.0
         try:
-            d = self.remoteobj.callRemote('job_done',
-                                          self.job.job_id,
-                                          output,
-                                          result,
-                                          completed,
-                                          cpu_time)
+            d = self.remoteobj.callRemote('job_done', job_id, output, result,
+                                          completed, cpu_time)
         except Exception, msg:
-            log.msg(msg)
-            log.msg('[Worker: %s, job_done] Disconnected, reconnecting in %s'\
-                    % (self.id, 5.0))
-            reactor.callLater(5.0, self.job_done,
-                              output, result, completed)
+            log.msg('Error trying to submit job status...')
+            log.msg('Retrying to submit again in %s seconds...' % wait)
+            log.err(msg)
+            reactor.callLater(wait, self.job_done, output, result,
+                              completed, cpu_time)
             d = defer.Deferred()
             d.errback(error.ConnectionLost())
-
             return d
 
         if completed:
-            log.msg('[Worker %s] Finished job %s' % (self.id,
-                                                     self.job.job_id))
+            log.msg('[Worker %s] Finished job %s' % (self.id, job_id))
             self.restart()
 
         return d
 
+
     def noJob(self, failure):
         """
-        noJob is an errback that catches the NoJobException.
+        Errback that catches the NoJobException.
 
-        Parameters:
-        failure -- a twisted.python.failure object (twisted.python.failure)
+        :type failure: twisted.python.failure
+        :param failure: a twisted failure object
 
         """
 
         if failure.check(NoJobException):
-            if self.poll >= 15:
-                self.poll = 15
             if self.log_level > 1:
-                msg = 'Sleeping for %s seconds' % self.poll
+                msg = 'Sleeping for %s seconds' % self.poll_rate
                 log.msg(LOG_PREFIX % self.id + msg)
-            self.poll = ceil(self.poll * 1.5)
-            reactor.callLater(self.poll, self.get_job)
+            self._increase_poll_rate()
+            reactor.callLater(self.poll_rate, self.get_job)
         else:
             log.msg("Error: ", failure.getErrorMessage())
             log.msg("Traceback: ", failure.printTraceback())
@@ -190,6 +212,9 @@ class Worker(object):
     def setup_tmp_dir(self, job):
         """
         Creates the temporary directory for the worker.
+
+        :type job: sage.dsage.database.job.Job
+        :param job: a Job object
 
         """
 
@@ -207,6 +232,9 @@ class Worker(object):
     def extract_and_load_job_data(self, job):
         """
         Extracts all the data that is in a job object.
+
+        :type job: sage.dsage.database.job.Job
+        :param job: a Job object
 
         """
 
@@ -249,6 +277,9 @@ class Worker(object):
         """
         Writes out the job file to be executed to disk.
 
+        :type job: sage.dsage.database.job.Job
+        :param job: A Job object
+
         """
 
         parsed_file = preparse_file(job.code, magic=True,
@@ -284,10 +315,10 @@ except:
 
     def doJob(self, job):
         """
-        doJob is the method that drives the execution of a job.
+        Executes a job
 
-        Parameters:
-        job -- a Job object (dsage.database.Job)
+        :type job: sage.dsage.database.job.Job
+        :param job: A Job object
 
         """
 
@@ -368,20 +399,23 @@ except:
             return
         except IOError, msg: # File does not exist yet
             done = False
+
         if done:
             try:
                 cpu_time = cPickle.loads(open('cpu_time.sobj', 'rb').read())
             except IOError:
-                cpu_time = -1 # This means that we could not get a cpu_time.
+                cpu_time = -1
             self.free = True
             self.reset_checker()
         else:
             result = cPickle.dumps('Job not done yet.', 2)
             cpu_time = None
+
         if self.check_failure(new):
             self.report_failure(new)
             self.restart()
             return
+
         sanitized_output = self.clean_output(new)
         if self.log_level > 3:
             print 'Output before sanitizing: \n' , sanitized_output
@@ -396,6 +430,9 @@ except:
     def report_failure(self, failure):
         """
         Reports failure of a job.
+
+        :type failure: twisted.python.failure
+        :param failure: A twisted failure object
 
         """
 
@@ -434,6 +471,9 @@ except:
         """
         clean_output attempts to clean up the output string from sage.
 
+        :type sage_output: string
+        :param sage_output: sys.stdout output from the child sage instance
+
         """
 
         begin = sage_output.find(START_MARKER)
@@ -462,6 +502,9 @@ except:
     def check_failure(self, sage_output):
         """
         Checks for signs of exceptions or errors in the output.
+
+        :type sage_output: string
+        :param sage_output: output from the sage instance
 
         """
 
@@ -495,6 +538,9 @@ except:
     def stop(self, hard_reset=False):
         """
         Stops the current worker and resets it's internal state.
+
+        :type hard_reset: boolean
+        :param hard_reset: Specifies whether to kill -9 the sage instances
 
         """
 
@@ -538,6 +584,7 @@ except:
 
         """
 
+        log.msg('[Worker %s] Started...' % (self.id))
         if not hasattr(self, 'sage'):
             if self.log_level > 3:
                 logfile = DSAGE_DIR + '/%s-pexpect.log' % self.id
@@ -557,7 +604,16 @@ except:
         cmd = 'from sage.all import *;'
         cmd += 'from sage.all_notebook import *;'
         cmd += 'import sage.server.support as _support_; '
+        cmd += 'import time;'
+        cmd += 'import os;'
         E.sendline(cmd)
+
+        if os.uname()[0].lower() == 'linux':
+            try:
+                self.base_mem = int(self.sage.get_memory_usage())
+            except:
+                pass
+
         self.get_job()
 
     def restart(self):
@@ -566,50 +622,86 @@ except:
 
         """
 
+        log.msg('[Worker: %s] Restarting...' % (self.id))
+
+        if hasattr(self, 'base_mem'):
+            try:
+                cur_mem = int(self.sage.get_memory_usage())
+            except:
+                cur_mem = 0
         try:
-            delta = datetime.datetime.now() - self.job_start_time
-            if delta.seconds >= (3*60): # more than 3 minutes, do a hard reset
-                self.stop(hard_reset=True)
+            if hasattr(self, 'base_mem'):
+                if cur_mem >= (2 * self.base_mem):
+                    self.stop(hard_reset=True)
             else:
-                self.stop(hard_reset=False)
+                from sage.dsage.misc.misc import timedelta_to_seconds
+                delta = datetime.datetime.now() - self.job_start_time
+                secs = timedelta_to_seconds(delta)
+                if secs >= (3*60): # more than 3 minutes, do a hard reset
+                    self.stop(hard_reset=True)
+                else:
+                    self.stop(hard_reset=False)
         except TypeError:
             self.stop(hard_reset=True)
         self.job_start_time = None
         self.start()
         self.reset_checker()
-        log.msg('[Worker: %s] Restarting...' % (self.id))
 
-class Monitor(object):
+
+class Monitor(pb.Referenceable):
     """
-    This class represents a monitor that controls workers.
-
-    It monitors the workers and checks on their status
-
-    Parameters:
-    hostname -- the hostname of the server we want to connect to (str)
-    port -- the port of the server we want to connect to (int)
+    Monitors control workers.
+    They are able to shutdown workers and spawn them, as well as check on
+    their status.
 
     """
 
-    def __init__(self, server='localhost', port=8081,
-                 username=getuser(),
-                 ssl=True,
-                 workers=2,
-                 anonymous=False,
-                 priority=20,
-                 poll=1.0,
-                 log_level=0,
+    def __init__(self, server='localhost', port=8081, username=getuser(),
+                 ssl=True, workers=2, authenticate=False, priority=20,
+                 poll=1.0, log_level=0,
                  log_file=os.path.join(DSAGE_DIR, 'worker.log'),
-                 pubkey_file=None,
-                 privkey_file=None):
+                 pubkey_file=None, privkey_file=None):
+        """
+        :type server: string
+        :param server: hostname of remote server
+
+        :type port: integer
+        :param port: port of remote server
+
+        :type username: string
+        :param username: username to use for authentication
+
+        :type ssl: boolean
+        :param ssl: specify whether or not to use SSL for the connection
+
+        :type workers: integer
+        :param workers: specifies how many workers to launch
+
+        :type authenticate: boolean
+        :param authenticate: specifies whether or not to authenticate
+
+        :type priority: integer
+        :param priority: specifies the UNIX priority of the workers
+
+        :type poll: float
+        :param poll: specifies how fast workers talk to the server in seconds
+
+        :type log_level: integer
+        :param log_level: specifies verbosity of logging, higher equals more
+
+        :type log_file: string
+        :param log_file: specifies the location of the log_file
+
+        """
+
         self.server = server
         self.port = port
         self.username = username
         self.ssl = ssl
         self.workers = workers
-        self.anonymous = anonymous
+        self.authenticate = authenticate
         self.priority = priority
-        self.poll = poll
+        self.poll_rate = poll
         self.log_level = log_level
         self.log_file = log_file
         self.pubkey_file = pubkey_file
@@ -621,11 +713,11 @@ class Monitor(object):
         self.worker_pool = None
         self.sleep_time = 1.0
 
-        self.host_info = ClassicHostInfo().host_info
+        self.host_info = HostInfo().host_info
 
-        uuid_ = str(uuid.uuid1())
-        self.host_info['uuid'] = uuid_
+        self.host_info['uuid'] = get_uuid()
         self.host_info['workers'] = self.workers
+        self.host_info['username'] = self.username
 
         self._startLogging(self.log_file)
 
@@ -634,7 +726,7 @@ class Monitor(object):
         except OSError, msg:
             log.msg('Error setting priority: %s' % (self.priority))
             pass
-        if not self.anonymous:
+        if self.authenticate:
             from twisted.cred import credentials
             from twisted.conch.ssh import keys
             self.DATA =  random_str(500)
@@ -659,6 +751,12 @@ class Monitor(object):
                                                    self.signature)
 
     def _startLogging(self, log_file):
+        """
+        :type log_file: string
+        :param log_file: file name to log to
+
+        """
+
         if log_file == 'stdout':
             log.startLogging(sys.stdout)
             log.msg('WARNING: Only loggint to stdout!')
@@ -675,26 +773,47 @@ class Monitor(object):
         return passphrase
 
     def _connected(self, remoteobj):
+        """
+        Callback for connect.
+
+        :type remoteobj: remote object
+        :param remoteobj: remote obj
+
+        """
+
         self.remoteobj = remoteobj
         self.remoteobj.notifyOnDisconnect(self._disconnected)
         self.connected = True
-        self.reconnecting = False
 
         if self.worker_pool == None: # Only pool workers the first time
             self.pool_workers(self.remoteobj)
         else:
             for worker in self.worker_pool:
                 worker.remoteobj = self.remoteobj # Update workers
+                if worker.job == None:
+                    worker.restart()
 
     def _disconnected(self, remoteobj):
-        log.msg('Lost connection to the server.')
+        """
+        :type remoteobj: remote object
+        :param remoteobj: remote obj
+
+        """
+
+        log.msg('Closed connection to the server.')
         self.connected = False
-        self._retryConnect()
 
     def _got_killed_jobs(self, killed_jobs):
+        """
+        Callback for check_killed_jobs.
+
+        :type killed_jobs: dict
+        :param killed_jobs: dict of job jdicts which were killed
+
+        """
+
         if killed_jobs == None:
             return
-        # reconstruct the Job objects from the jdicts
         killed_jobs = [expand_job(jdict) for jdict in killed_jobs]
         for worker in self.worker_pool:
             if worker.job is None:
@@ -732,41 +851,32 @@ class Monitor(object):
         if self.connected: # Don't connect multiple times
             return
 
-        self.factory = PBClientFactory()
-        try:
-            if self.ssl:
-                # For OpenSSL, SAGE uses GNUTLS now
-                # from twisted.internet import ssl
-                # contextFactory = ssl.ClientContextFactory()
-                # reactor.connectSSL(self.server, self.port,
-                #                    self.factory, contextFactory)
-                cred = X509Credentials()
-                reactor.connectTLS(self.server, self.port, self.factory,
-                                   cred)
-            else:
-                reactor.connectTCP(self.server, self.port, self.factory)
-        except Exception, msg:
-            self._retryConnect()
+        self.factory = ClientFactory(self._login, (), {})
+        cred = None
+        if self.ssl:
+            cred = X509Credentials()
+            reactor.connectTLS(self.server, self.port, self.factory, cred)
+        else:
+            reactor.connectTCP(self.server, self.port, self.factory)
 
         log.msg(DELIMITER)
         log.msg('DSAGE Worker')
         log.msg('Started with PID: %s' % (os.getpid()))
         log.msg('Connecting to %s:%s' % (self.server, self.port))
-        if self.ssl:
+        if cred is not None:
             log.msg('Using SSL: True')
         else:
             log.msg('Using SSL: False')
         log.msg(DELIMITER)
 
-        if not self.anonymous:
+    def _login(self, *args, **kwargs):
+        if self.authenticate:
             log.msg('Connecting as authenticated worker...\n')
-            d = self.factory.login(self.creds,
-                                   (pb.Referenceable(), self.host_info))
+            d = self.factory.login(self.creds, (self, self.host_info))
         else:
             from twisted.cred.credentials import Anonymous
-            log.msg('Connecting as anonymous worker...\n')
-            d = self.factory.login(Anonymous(),
-                                   (pb.Referenceable(), self.host_info))
+            log.msg('Connecting as unauthenticated worker...\n')
+            d = self.factory.login(Anonymous(), (self, self.host_info))
         d.addCallback(self._connected)
         d.addErrback(self._catchConnectionFailure)
 
@@ -774,49 +884,56 @@ class Monitor(object):
 
     def pool_workers(self, remoteobj):
         """
-        pool_workers creates as many workers as specified in worker.conf.
+        Creates the worker pool.
 
         """
 
         log.msg('[Monitor] Starting %s workers...' % (self.workers))
-        self.worker_pool = [Worker(remoteobj, x, self.log_level, self.poll)
+        self.worker_pool = [Worker(remoteobj, x, self.log_level,
+                            self.poll_rate)
                             for x in range(self.workers)]
 
-    def check_killed_jobs(self):
+
+    def remote_set_uuid(self, uuid):
         """
-        check_killed_jobs retrieves a list of killed job ids.
-
-        """
-
-        if not self.connected:
-            return
-
-        killed_jobs = self.remoteobj.callRemote('get_killed_jobs_list')
-        killed_jobs.addCallback(self._got_killed_jobs)
-        killed_jobs.addErrback(self._catch_failure)
-
-    def start_looping_calls(self):
-        """
-        start_looping_calls prepares and starts our periodic checking methods.
-
-        """
-        #
-        # self.check_output_timeout = 1
-        # self.tsk1 = task.LoopingCall(self.check_output)
-        # self.tsk1.start(self.check_output_timeout, now=False)
-
-        interval = 5.0
-        self.tsk2 = task.LoopingCall(self.check_killed_jobs)
-        self.tsk2.start(interval, now=False)
-
-    def stop_looping_calls(self):
-        """
-        stops the looping calls.
+        Sets the workers uuid.
+        This is called by the server.
 
         """
 
-        # self.tsk1.stop()
-        self.tsk2.stop()
+        from sage.dsage.misc.misc import set_uuid
+        set_uuid(uuid)
+
+
+    def remote_calc_score(self, script):
+        """
+        Calculuates the worker score.
+
+        :type script: string
+        :param script: script to score the worker
+
+        """
+
+        from sage.dsage.misc.misc import exec_wrs
+
+        return exec_wrs(script)
+
+
+    def remote_kill_job(self, job_id):
+        """
+        Kills the job given the job id.
+
+        :type job_id: string
+        :param job_id: the unique job identifier.
+
+        """
+
+        print 'Killing %s' % (job_id)
+        for worker in self.worker_pool:
+            if worker.job != None:
+                if worker.job.job_id == job_id:
+                    worker.restart()
+
 
 def usage():
     """
@@ -843,11 +960,11 @@ def usage():
                       type='float',
                       default=5.0,
                       help='poll rate before checking for new job. default=5')
-    parser.add_option('-a', '--anonymous',
-                      dest='anonymous',
+    parser.add_option('-a', '--authenticate',
+                      dest='authenticate',
                       default=False,
                       action='store_true',
-                      help='Connect as anonymous worker. default=False')
+                      help='Connect as authenticate worker. default=True')
     parser.add_option('-f', '--logfile',
                       dest='logfile',
                       default=os.path.join(DSAGE_DIR, 'worker.log'),
@@ -899,20 +1016,16 @@ def usage():
 def main():
     options = usage()
     SSL = options.ssl
-    monitor = Monitor(server=options.server,
-                      port=options.port,
-                      username=options.username,
-                      ssl=SSL,
+    monitor = Monitor(server=options.server, port=options.port,
+                      username=options.username, ssl=SSL,
                       workers=options.workers,
-                      anonymous=options.anonymous,
-                      priority=options.priority,
-                      poll=options.poll,
+                      authenticate=options.authenticate,
+                      priority=options.priority, poll=options.poll,
                       log_file=options.logfile,
                       log_level=options.loglevel,
                       pubkey_file=options.pubkey_file,
                       privkey_file=options.privkey_file)
     monitor.connect()
-    monitor.start_looping_calls()
     try:
         if options.noblock:
             reactor.run(installSignalHandlers=0)

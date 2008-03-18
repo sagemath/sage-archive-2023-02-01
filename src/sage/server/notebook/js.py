@@ -194,13 +194,17 @@ var active_cell_list = [];
 var browser_op, browser_saf, browser_konq, browser_moz, browser_ie, browser_ie5;
 var os_mac, os_lin, os_win;
 
+var update_count = 0;
+var update_falloff_threshold = 20;
+var update_falloff_level = 0;
+var update_falloff_deltas = [250, 500, 1000, 5000];
+
 var update_error_count = 0;
 var update_error_threshold = 30;
 
 // in milliseconds
 var update_error_delta = 1024;
-//var update_normal_delta = 256;
-var update_normal_delta = 512;
+var update_normal_delta = update_falloff_deltas[0];
 var cell_output_delta = update_normal_delta;
 
 var server_ping_time = 30000;  /* Is once very 30 seconds way too fast?  Is it just right?  */
@@ -903,6 +907,8 @@ function rename_worksheet() {
    }
    T.innerHTML = set_name;
    worksheet_name = new_worksheet_name;
+   original_title = worksheet_name + ' (Sage)';
+   document.title = original_title;
    async_request(worksheet_command('rename'), null, 'name='+escape0(new_worksheet_name));
 }
 
@@ -1235,11 +1241,13 @@ function cell_blur(id) {
     var cell = get_cell(id);
     if(cell == null) return;
 
-    setTimeout("set_class('eval_button"+id+"','eval_button')", 100); //this is unclickable if we don't add a little delay.
-
     /* Disable coloring and change to div for now */
     cell.className="cell_input";
     cell_input_minimize_size(cell);
+
+    if(cell_has_changed)
+        send_cell_input(id);
+
     return true;  /* disable for now */
 
     cell.className="hidden";
@@ -1249,8 +1257,6 @@ function cell_blur(id) {
 
     var t = cell.value.replaceAll("<","&lt;");
 
-    if(cell_has_changed)
-        send_cell_input(id);
     return true;
 }
 
@@ -1258,7 +1264,7 @@ function send_cell_input(id) {
     cell = get_cell(id)
     if(cell == null) return;
 
-    async_request("/set_cell_input", generic_callback, "cell_id="+id+"&input="+cell.value);
+    async_request(worksheet_command('eval'), generic_callback, "save_only=1&id="+id+"&input="+cell.value);
 }
 
 function debug_focus() {
@@ -1294,13 +1300,22 @@ function cell_focus(id, bottom) {
         cell_input_resize(cell);
         if (!bottom)
             move_cursor_to_top_of_cell(cell);
-        current_cell = id;
         cell.focus();
     }
-    current_cell = id;
     cell_has_changed = false;
 
     return true;
+}
+
+//this gets called when the cell object has gotten focus
+function cell_focused(cell, id) {
+    cell.className = "cell_input_active";
+    if(current_cell == id) return;
+    if (current_cell != -1) {
+        set_class("eval_button"+current_cell,"eval_button");
+    }
+    current_cell = id;
+    set_class("eval_button"+id,"eval_button_active");
 }
 
 function move_cursor_to_top_of_cell(cell) {
@@ -1842,6 +1857,9 @@ function check_for_cell_update() {
 function start_update_check() {
     if(updating) return;
     updating = true;
+    update_count = 0;
+    update_falloff_level = 0;
+    cell_output_delta = update_falloff_deltas[0];
     check_for_cell_update();
     set_class('interrupt', 'interrupt')
 }
@@ -2014,8 +2032,12 @@ function check_for_cell_update_callback(status, response_text) {
         continue_update_check();
         return;
     } else {
-        update_error_count = 0;
-        cell_output_delta = update_normal_delta;
+        if(update_error_count > 0) {
+            update_error_count = 0;
+            update_count = 0;
+            update_falloff_level = 1;
+            cell_output_delta = update_falloff_deltas[1];
+        }
     }
 
     var i = response_text.indexOf(' ');
@@ -2075,8 +2097,18 @@ function check_for_cell_update_callback(status, response_text) {
             set_input_text(id, new_cell_input);
         }
 
-        set_object_list(object_list);
-        set_attached_files_list(attached_files_list);
+        update_count = 0;
+        update_falloff_level = 0;
+        cell_output_delta = update_falloff_deltas[0];
+    } else {
+        if(  update_count > update_falloff_threshold &&
+             update_falloff_level+1 < update_falloff_deltas.length) {
+            update_falloff_level+= 1;
+            update_count = 0;
+            cell_output_delta = update_falloff_deltas[update_falloff_level];
+        } else {
+            update_count += 1;
+        }
     }
 
     continue_update_check();
@@ -2652,6 +2684,22 @@ function decode64(input) {
 
    return output;
 }
+
+///////////////////////////////////////////////////////////////////
+// Trash
+///////////////////////////////////////////////////////////////////
+
+function empty_trash() {
+    /* This asks for confirmation from the user then sends a request back to the
+       server asking that the trash be emptied for this user. The request to the
+       server goes by accessing the url /emptytrash.  After that finishes, the
+       empty trash folder is displayed.  */
+    if(confirm('Emptying the trash will permanently delete all items in the trash. Continue?')) {
+        window.location.replace("/emptytrash");
+        window.location.replace("/?typ=trash");
+    }
+}
+
 
 /********************* js math ***************************/
 

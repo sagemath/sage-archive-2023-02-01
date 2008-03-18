@@ -18,68 +18,96 @@
 ##############################################################################
 
 import datetime
-import os
-import sqlite3
 
-from twisted.python import log
+from sage.dsage.misc.constants import SERVER_LOG
+from sage.dsage.database.worker import Worker
 
-import sage.dsage.database.sql_functions as sql_functions
-from sage.dsage.misc.constants import DSAGE_DIR
+class WorkerDatabaseSA(object):
+    def __init__(self, Session):
+        self.sess = Session()
+        self._set_initial_state()
 
-class MonitorDatabase(object):
+    def _set_initial_state(self):
+        w = self.sess.query(Worker).all()
+        for _w in w:
+            _w.connected = False
+            self.sess.save_or_update(_w)
+        self.sess.commit()
+
+    def set_authenticated(self, uuid, authenticated):
+        w = self.sess.query(Worker).filter_by(uuid=uuid).first()
+        w.authenticated = authenticated
+        self.sess.save_or_update(w)
+        self.sess.commit()
+
+    def set_busy(self, uuid, busy):
+        w = self.sess.query(Worker).filter_by(uuid=uuid).first()
+        w.busy = busy
+        self.sess.save_or_update(w)
+        self.sess.commit()
+
+    def add_worker(self, host_info):
+        w = Worker(host_info)
+        self.sess.save(w)
+        self.sess.commit()
+
+    def update_worker(self, host_info):
+        uuid = host_info['uuid']
+        w = self.sess.query(Worker).filter_by(uuid=uuid).first()
+        for k, v in host_info.iteritems():
+            setattr(w, k, v)
+        self.sess.save_or_update(w)
+        self.sess.commit()
+
+    def get_worker(self, uuid):
+        w = self.sess.query(Worker).filter_by(uuid=uuid).first()
+
+        return w
+
+    def get_worker_list(self):
+        w = self.sess.query(Worker).all()
+
+        return w
+
+    def get_worker_by_job_id(self, job_id):
+        w = self.sess.query(Worker).filter_by(job_id=job_id)
+
+    def get_online_workers(self):
+        w = self.sess.query(Worker).filter_by(connected=True).all()
+
+        return w
+
+    def get_worker_count(self, connected, busy):
+        q = self.sess.query(Worker).filter_by(connected=connected,busy=busy)
+        workers = q.all()
+
+        count = sum([w.workers for w in workers])
+
+        return count
+
+    def get_cpu_speed(self, connected, busy):
+        w = self.sess.query(Worker).all()
+
+        return sum([_w.cpu_speed * _w.cpus for _w in w])
+
+    def set_connected(self, uuid, connected):
+        w = self.sess.query(Worker).filter_by(uuid=uuid).first()
+        w.connected = connected
+        self.sess.save_or_update(w)
+        self.sess.commit()
+
+
+class WorkerDatabase(object):
     """
     This table keeps track of workers.
 
     """
 
-    CREATE_MONITOR_TABLE = """CREATE TABLE monitors
-    (
-     uuid text NOT NULL UNIQUE,
-     hostname TEXT,
-     ip TEXT,
-     workers INTEGER,
-     sage_version text,
-     os text,
-     kernel_version TEXT,
-     cpus INTEGER,
-     cpu_speed INTEGER,
-     cpu_model TEXT,
-     mem_total INTEGER,
-     mem_free INTEGER,
-     connected BOOL,
-     busy BOOL,
-     anonymous BOOL DEFAULT 0,
-     last_connection timestamp
-    )
-    """
-
-    def __init__(self, db_file=os.path.join(DSAGE_DIR, 'db', 'dsage.db'),
-                 log_file=os.path.join(DSAGE_DIR, 'server.log'), log_level=0,
-                 test=False):
+    def __init__(self, db_conn, log_file=SERVER_LOG, log_level=0):
+        self.log_file = log_file
+        self.log_level = log_level
+        self.con = db_conn
         self.tablename = 'monitors'
-        if test:
-            self.db_file = 'monitordb_test.db'
-            self.log_level = 5
-            self.log_file = 'monitordb_test.log'
-        else:
-            self.db_file = db_file
-            self.log_file = log_file
-            self.log_level = log_level
-            if not os.path.exists(self.db_file):
-                dir_, file_ = os.path.split(self.db_file)
-                if not os.path.isdir(dir_):
-                    os.mkdir(dir_)
-        self.con = sqlite3.connect(self.db_file,
-                isolation_level=None,
-                detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
-        sql_functions.optimize_sqlite(self.con)
-        self.con.text_factory = str
-
-        if sql_functions.table_exists(self.con, self.tablename) is None:
-            sql_functions.create_table(self.con,
-                                       self.tablename,
-                                       self.CREATE_MONITOR_TABLE)
-            self.con.commit()
 
     def _set_parameter(self, uuid, key, value):
         query = """UPDATE monitors
@@ -89,12 +117,13 @@ class MonitorDatabase(object):
         cur.execute(query, (value, uuid))
         self.con.commit()
 
-    def set_anonymous(self, uuid, anonymous=True):
-        return self._set_parameter(uuid, 'anonymous', anonymous)
+    def set_authenticated(self, uuid, authenticated):
+        return self._set_parameter(uuid, 'authenticated', authenticated)
 
-    def add_monitor(self, host_info):
+    def add_worker(self, host_info):
         query = """INSERT INTO monitors
         (uuid,
+         username,
          hostname,
          ip,
          workers,
@@ -106,10 +135,11 @@ class MonitorDatabase(object):
          cpu_model,
          mem_total,
          mem_free)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         uuid = host_info['uuid']
+        username = host_info['username']
         hostname = host_info['hostname']
         ip = host_info['ip']
         workers = host_info['workers']
@@ -123,20 +153,20 @@ class MonitorDatabase(object):
         mem_free = host_info['mem_free']
 
         cur = self.con.cursor()
-        cur.execute(query, (uuid, hostname, ip, workers, sage_version, os_,
-                            kernel_version, cpus, cpu_speed, cpu_model,
-                            mem_total, mem_free))
+        cur.execute(query, (uuid, username, hostname, ip, workers,
+                            sage_version, os_, kernel_version, cpus,
+                            cpu_speed, cpu_model, mem_total, mem_free))
         self.con.commit()
 
-    def update_monitor(self, host_info):
+    def update_worker(self, host_info):
         query = """UPDATE monitors
-        SET hostname = ?, ip = ?, workers = ?, sage_version = ?, os = ?,
-        kernel_version = ?, cpus = ?, cpu_speed = ?, cpu_model = ?, mem_total
-        = ?, mem_free = ?
-        WHERE uuid = ?
+        SET hostname = ?, username = ?, ip = ?, workers = ?, sage_version = ?,
+        os = ?, kernel_version = ?, cpus = ?, cpu_speed = ?, cpu_model = ?,
+        mem_total = ?, mem_free = ? WHERE uuid = ?
         """
 
         uuid = host_info['uuid']
+        username = host_info['username']
         hostname = host_info['hostname']
         ip = host_info['ip']
         workers = host_info['workers']
@@ -150,17 +180,17 @@ class MonitorDatabase(object):
         mem_free = host_info['mem_free']
 
         cur = self.con.cursor()
-        cur.execute(query, (hostname, ip, workers, sage_version, os_,
-                            kernel_version, cpus, cpu_speed, cpu_model,
+        cur.execute(query, (hostname, username, ip, workers, sage_version,
+                            os_, kernel_version, cpus, cpu_speed, cpu_model,
                             mem_total, mem_free, uuid))
 
-    def get_monitor(self, uuid):
+    def get_worker(self, uuid):
         query = """SELECT
         uuid,
         workers,
         hostname,
         ip,
-        anonymous,
+        authenticated,
         sage_version,
         os
         FROM monitors
@@ -174,20 +204,18 @@ class MonitorDatabase(object):
         columns = [desc[0] for desc in cur.description]
         monitor = dict(zip(columns, result))
         for k, v in monitor.iteritems():
-            if k == 'anonymous':
+            if k == 'authenticated':
                 monitor[k] = bool(v)
 
         return monitor
 
-    def get_monitor_list(self):
+    def get_worker_list(self):
         """
         Returns a list of connected monitors.
 
         """
 
-        query = """SELECT uuid, hostname, ip, anonymous, sage_version, os
-                   FROM monitors
-                   WHERE connected"""
+        query = """SELECT * FROM monitors"""
         cur = self.con.cursor()
         cur.execute(query)
         result = cur.fetchall()
@@ -195,7 +223,8 @@ class MonitorDatabase(object):
         monitors = [dict(zip(columns, monitor)) for monitor in result]
         for monitor in monitors:
             for k, v in monitor.iteritems():
-                if k == 'anonymous':
+                 # Convert from 1/0 to python bool
+                if k in ('authenticated', 'connected', 'busy'):
                     monitor[k] = bool(v)
 
         return monitors

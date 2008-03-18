@@ -137,6 +137,42 @@ cdef set_from_int(Integer self, int other):
 cdef public mpz_t* get_value(Integer self):
     return &self.value
 
+cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
+    """
+        Parameters:
+            v -- the value whose digits we want to put into the list
+            l -- the list to file
+            offset -- offset from the beginning of the list that we want to fill at
+            power_index -- a measure of size to fill and index to power_list
+                            we're filling 1<<(power_index+1) digits
+            power_list -- a list of powers of the base, precomputed in method digits
+            digits -- a python sequence type with objects to use for digits
+                        note that python negative index semantics are relied upon
+    """
+    cdef mpz_t mpz_res
+    cdef mpz_t mpz_quot
+    cdef Integer temp
+    cdef int v_int
+    if power_index == -1:
+        if digits is None:
+            temp = PY_NEW(Integer)
+            mpz_set(temp.value, v)
+            l[offset] = temp
+        else:
+            v_int = mpz_get_si(v)
+            l[offset] = digits[v_int]
+    else:
+        mpz_init(mpz_quot)
+        mpz_init(mpz_res)
+        temp = power_list[power_index]
+        mpz_tdiv_qr(mpz_quot, mpz_res, v, temp.value)
+        if mpz_sgn(mpz_res) != 0:
+            _digits_internal(mpz_res,l,offset,power_index-1,power_list,digits)
+        if mpz_sgn(mpz_quot) != 0:
+            _digits_internal(mpz_quot,l,offset+(1<<power_index),power_index-1,power_list,digits)
+        mpz_clear(mpz_quot)
+        mpz_clear(mpz_res)
+
 arith = None
 cdef void late_import():
     global arith
@@ -630,10 +666,48 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return int(mpz_sizeinbase(self.value, 2))
 
-    def digits(self, int base=2, digits=None):
+    cdef _digits_naive(self,Integer base,digits):
         """
+        This function should have identical semantics to the \code{digits} method of \code{self}.
+
+        Although, the name may imply the opposite, it can actually be quite fast for small values!
+
+        EXAMPLE:
+            sage: 9346184691964619824.digits(base=1000) #indirect doc-test
+            [824, 619, 964, 691, 184, 346, 9]
+        """
+        cdef mpz_t mpz_value
+        cdef mpz_t mpz_res  # used on one side of the 'if'
+        cdef Integer z      # used on the other side of the 'if'
+        cdef object l = []
+
+        mpz_init(mpz_value)
+        mpz_set(mpz_value, self.value)
+
+        l = []
+        # we aim to avoid sage Integer creation if possible
+        if digits is None:
+            while mpz_cmp_si(mpz_value,0):
+                z = PY_NEW(Integer)
+                mpz_tdiv_qr(mpz_value, z.value, mpz_value, base.value)
+                PyList_Append(l, z)
+        else:
+            mpz_init(mpz_res)
+            while mpz_cmp_si(mpz_value,0):
+                mpz_tdiv_qr(mpz_value, mpz_res, mpz_value, base.value)
+                PyList_Append(l, digits[mpz_get_si(mpz_res)])
+            mpz_clear(mpz_res)
+
+        mpz_clear(mpz_value)
+
+        return l
+
+    def digits(self, base=2, digits=None):
+        r"""
         Return a list of digits for self in the given base in little
         endian order.
+
+        The return is unspecified if self is a negative number and the digits are given.
 
         INPUT:
             base -- integer (default: 2)
@@ -642,73 +716,147 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         EXAMPLE:
             sage: 5.digits()
             [1, 0, 1]
+            sage: 5.digits(digits=["zero","one"])
+            ['one', 'zero', 'one']
             sage: 5.digits(3)
             [2, 1]
+            sage: 0.digits(base=10)  # 0 has 0 digits
+            []
+            sage: 0.digits(base=2)  # 0 has 0 digits
+            []
             sage: 10.digits(16,'0123456789abcdef')
             ['a']
+            sage: a=9939082340; a.digits(10)
+            [0, 4, 3, 2, 8, 0, 9, 3, 9, 9]
+            sage: a.digits(512)
+            [100, 302, 26, 74]
+            sage: (-12).digits(10)
+            [-2, -1]
+            sage: (-12).digits(2)
+            [0, 0, -1, -1]
 
+        We support large bases
+            sage: n=2^6000
+            sage: n.digits(2^3000)
+            [0, 0, 1]
+
+            sage: base=3; n=25
+            sage: l=n.digits(base)
+            sage: # the next relationship should hold for all n,base
+            sage: sum(base^i*l[i] for i in range(len(l)))==n
+            True
+            sage: base=3; n=-30; l=n.digits(base); sum(base^i*l[i] for i in range(len(l)))==n
+            True
+
+        Note:  In some cases it is faster to give a digits collection.
+        This would be particularly true for computing the digits of a series of small numbers.
+        In these cases, the code is careful to allocate as few python objects as reasonably possible.
+            sage: digits = range(15)
+            sage: l=[ZZ(i).digits(15,digits) for i in range(100)]
+            sage: l[16]
+            [1, 1]
+
+        This function is comparable to \code{str} for speed.
+            sage: n=3^100000
+            sage: n.digits(base=10)[-1]  # slightly slower than str
+            1
+            sage: n=10^10000
+            sage: n.digits(base=10)[-1]  # slightly faster than str
+            1
+
+        AUTHOR:
+            -- Joel B. Mohler significantly rewrote this entire function (2008-03-02)
         """
         if base < 2:
             raise ValueError, "base must be >= 2"
 
-        cdef mpz_t mpz_value
-        cdef mpz_t mpz_base
-        cdef mpz_t mpz_res
-        cdef object l = PyList_New(0)
-        cdef Integer z
+        cdef Integer _base
+        cdef Integer self_abs = self
+        cdef int power_index = 0
+        cdef int i
         cdef size_t s
 
-        if base == 2 and digits is None:
+        if mpz_sgn(self.value) < 0:
+            self_abs = -self
+
+        if mpz_sgn(self.value) == 0:
+            l = []
+        elif base == 2:
             s = mpz_sizeinbase(self.value, 2)
-            o = the_integer_ring._one_element
-            z = the_integer_ring._zero_element
+            if digits:
+                o = digits[1]
+                z = digits[0]
+            else:
+                o = the_integer_ring._one_element if self > 0 else -the_integer_ring._one_element
+                z = the_integer_ring._zero_element
+            l = [z]*s
             for i from 0<= i < s:
-                if mpz_tstbit(self.value,i):
-                    PyList_Append(l,o)
-                else:
-                    PyList_Append(l,z)
+                if mpz_tstbit(self_abs.value,i):  # mpz_tstbit seems to return 0 for the high-order bit of negative numbers?!
+                    l[i] = o
         else:
             s = mpz_sizeinbase(self.value, 2)
             if s > 256:
                 _sig_on
-            mpz_init(mpz_value)
-            mpz_init(mpz_base)
-            mpz_init(mpz_res)
 
-            mpz_set(mpz_value, self.value)
-            mpz_set_ui(mpz_base, base)
-
-            if digits:
-                while mpz_cmp_si(mpz_value,0):
-                    mpz_tdiv_qr(mpz_value, mpz_res, mpz_value, mpz_base)
-                    PyList_Append(l, digits[mpz_get_ui(mpz_res)])
+            if PY_TYPE_CHECK(base, Integer):
+                _base = <Integer>base
             else:
-                if base < 10:
-                    for e in reversed(self.str(base)):
-                        PyList_Append(l,the_integer_ring(e))
-                else:
-                    while mpz_cmp_si(mpz_value,0):
-                        # TODO: Use a divide and conquer approach
-                        # here: for base b, compute b^2, b^4, b^8,
-                        # ... (repeated squaring) until you get larger
-                        # than your number; then compute (n // b^256,
-                        # n % b ^ 256) (if b^512 > number) to split
-                        # the number in half and recurse
-                        mpz_tdiv_qr(mpz_value, mpz_res, mpz_value, mpz_base)
-                        z = PY_NEW(Integer)
-                        mpz_set(z.value, mpz_res)
-                        PyList_Append(l, z)
+                _base = Integer(base)
 
-            mpz_clear(mpz_value)
-            mpz_clear(mpz_res)
-            mpz_clear(mpz_base)
+            #    It turns out that it is much faster to use simple divison for small numbers.  Some
+            # benchmarking helps to define what "small" means in this case.  Here's a very simplistic
+            # interpretation of what the benchmark told me, but I think it actually should cut off
+            # depending on some ratio of bit-size of self to bit-size of base.
+            if s > 2500:
+                #   We use a divide and conquer approach (suggested
+                # by the prior author, malb?, of the digits method)
+                # here: for base b, compute b^2, b^4, b^8,
+                # ... (repeated squaring) until you get larger
+                # than your number; then compute (n // b^256,
+                # n % b ^ 256) (if b^512 > number) to split
+                # the number in half and recurse
+
+                # set up digits for optimal access once we get inside the worker functions
+                if not digits is None:
+                    # list objects have fastest access in the innermost loop
+                    if not PyList_CheckExact(digits):
+                        digits = [digits[i] for i in range(_base)]
+                elif base < 100:  # 100 is arbitrary -- we get a speed boost by pre-allocating digit values in big cases
+                    if mpz_sgn(self.value) > 0:
+                        digits = [Integer(i) for i in range(_base)]
+                    else:
+                        # All the digits will be negated in the recursive function.
+                        # we'll just compensate for python index semantics
+                        digits = [Integer(i) for i in range(-_base,0)]
+                        digits[0] = the_integer_ring._zero_element
+
+                power_list = []
+                bp = _base
+                while bp <= self_abs:
+                    power_index += 1
+                    #print power_list
+                    power_list.append(bp)
+                    bp = bp**2
+
+                #   Note that it may appear that the recursive calls to _digit_internal would be assigning
+                # list elements i in l for anywhere from 0<=i<(1<<power_index).  However, this is not
+                # the case due to the optimization of skipping assigns assigning zero.
+                #   Pre-computing the exact number of digits up-front is actually faster (for large values of self)
+                # than trimming off trailing zeros after the fact.  It also seems that it would avoid duplicating
+                # the list in memory with a list-slice.
+                z = the_integer_ring._zero_element if digits is None else digits[0]
+                l = [z]*self.ndigits(_base)
+
+                _digits_internal(self.value,l,0,power_index-1,power_list,digits)
+            else:
+                l = self._digits_naive(_base,digits)
 
             if s > 256:
                 _sig_off
 
         return l # should we return a tuple?
 
-    def ndigits(self, int base=10):
+    def ndigits(self, base=10):
         """
         Return the number of digits of self expressed in the given base.
 
@@ -1161,12 +1309,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            sage: x.exact_log(2.5)
            Traceback (most recent call last):
            ...
-           ValueError: base of log must be an integer
+           TypeError: Attempt to coerce non-integral RealNumber to Integer
         """
-        _m = int(m)
-        if _m != m:
-            raise ValueError, "base of log must be an integer"
-        m = _m
+        m = Integer(m)
         if mpz_sgn(self.value) <= 0:
             raise ValueError, "self must be positive"
         if m < 2:

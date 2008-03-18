@@ -16,6 +16,7 @@ AUTHORS:
 from sage.combinat.dlx import DLXMatrix
 from sage.all import Matrix, vector, QQ
 from sage.plot.plot import rainbow
+from chrompoly import chromatic_polynomial
 
 def all_graph_colorings(G,n,count_only=False):
     """
@@ -181,23 +182,6 @@ def numbers_of_colorings(G):
     """
     o = G.order()
     return [number_of_n_colorings(G,i) for i in range(0,o+1)]
-
-def chromatic_polynomial(G):
-    """
-    Returns the chromatic polynomial of the graph G.
-
-    EXAMPLES:
-        sage: from sage.graphs.graph_coloring import chromatic_polynomial
-        sage: G = Graph({0:[1,2,3],1:[2]})
-        sage: factor(chromatic_polynomial(G))
-        (x - 2) * x * (x - 1)^2
-    """
-    v = numbers_of_colorings(G)
-    n = G.order()
-    m = [[i**j for j in range(n+1)] for i in range(0,n+1)]
-    M = Matrix(QQ, m)
-    V = vector(QQ, v)
-    return QQ['x'](list((M**-1)*V))
 
 def chromatic_number(G):
     """

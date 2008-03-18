@@ -203,6 +203,19 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         _sig_off
 
     def __copy__(self):
+        r"""
+        Returns a new copy of this matrix.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ,1,3, [1,2,-3]); a
+            [ 1  2 -3]
+            sage: b = a.__copy__(); b
+            [ 1  2 -3]
+            sage: b is a
+            False
+            sage: b == a
+            True
+        """
         cdef Matrix_integer_dense A
         A = Matrix_integer_dense.__new__(Matrix_integer_dense, self._parent,
                                          0, 0, 0)
@@ -217,6 +230,22 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return A
 
     def __hash__(self):
+        r"""
+        Returns hash of self.
+
+        self must be immutable.
+
+        EXAMPLES:
+            sage: a = Matrix(ZZ,2,[1,2,3,4])
+            sage: hash(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
+
+            sage: a.set_immutable()
+            sage: hash(a)
+            8
+        """
         return self._hash()
 
     def __dealloc__(self):
@@ -372,6 +401,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
+        Returns (j, i) entry of self as a new Integer.
+
+        WARNING: this is very unsafe; it assumes i and j are in the right range.
+
         EXAMPLES:
             sage: a = MatrixSpace(ZZ,3)(range(9)); a
             [0 1 2]
@@ -465,10 +498,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         Set this matrix to be the zero matrix.
         This is only for internal use.
+        (Note: this matrix must NOT already have initialised entries.)
         """
         # TODO: This is about 6-10 slower than MAGMA doing what seems to be the same thing.
         # Moreover, NTL can also do this quickly.  Why?   I think both have specialized
-        # small integer classes.
+        # small integer classes. (dmharvey: yes, NTL does not allocate any memory when
+        # intialising a ZZ to zero.)
         _sig_on
         cdef Py_ssize_t i
         for i from 0 <= i < self._nrows * self._ncols:
@@ -509,11 +544,34 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # def _dict(self):
 
     def __nonzero__(self):
+        r"""
+        Tests whether self is the zero matrix.
+
+        EXAMPLES:
+            sage: a = MatrixSpace(ZZ, 2, 3)(range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.__nonzero__()
+            True
+            sage: (a - a).__nonzero__()
+            False
+
+            sage: a = MatrixSpace(ZZ, 0, 3)()
+            sage: a.__nonzero__()
+            False
+            sage: a = MatrixSpace(ZZ, 3, 0)()
+            sage: a.__nonzero__()
+            False
+            sage: a = MatrixSpace(ZZ, 0, 0)()
+            sage: a.__nonzero__()
+            False
+
+        """
         cdef mpz_t *a, *b
         cdef Py_ssize_t i, j
         cdef int k
         for i from 0 <= i < self._nrows * self._ncols:
-            if mpz_cmp_si(self._entries[i], 0):
+            if mpz_sgn(self._entries[i]):
                 return True
         return False
 
@@ -547,10 +605,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         EXAMPLE:
             sage: n = 3
             sage: a = MatrixSpace(ZZ,n,n)(range(n^2))
-            sage: a*a
-            [ 15  18  21]
-            [ 42  54  66]
-            [ 69  90 111]
+            sage: b = MatrixSpace(ZZ,n,n)(range(1, n^2 + 1))
+            sage: a._multiply_classical(b)
+            [ 18  21  24]
+            [ 54  66  78]
+            [ 90 111 132]
         """
         if self._ncols != right._nrows:
             raise IndexError, "Number of columns of self must equal number of rows of right."
@@ -702,9 +761,24 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
 
     cdef int _cmp_c_impl(self, Element right) except -2:
+        r"""
+        Compares self with right, examining entries in lexicographic
+        (row major) ordering.
+
+        EXAMPLES:
+            sage: Matrix(ZZ, [[0, 10], [20, 30]]).__cmp__(Matrix(ZZ, [[0, 10], [20, 30]]))
+            0
+            sage: Matrix(ZZ, [[0, 10], [20, 30]]).__cmp__(Matrix(ZZ, [[0, 15], [20, 30]]))
+            -1
+            sage: Matrix(ZZ, [[5, 10], [20, 30]]).__cmp__(Matrix(ZZ, [[0, 15], [20, 30]]))
+            1
+            sage: Matrix(ZZ, [[5, 10], [20, 30]]).__cmp__(Matrix(ZZ, [[0, 10], [25, 30]]))
+            1
+        """
         cdef mpz_t *a, *b
         cdef Py_ssize_t i, j
         cdef int k
+
         for i from 0 <= i < self._nrows:
             a = self._matrix[i]
             b = (<Matrix_integer_dense>right)._matrix[i]

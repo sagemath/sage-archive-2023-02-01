@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 The \sage Notebook object
 """
 
@@ -331,10 +331,7 @@ class Notebook(SageObject):
             raise KeyError, "Attempt to delete missing worksheet '%s'"%filename
         W = self.__worksheets[filename]
         W.quit()
-        cmd = 'rm -rf "%s"'%(W.directory())
-        #print cmd
-        os.system(cmd)
-
+        shutil.rmtree(W.directory())
         self.deleted_worksheets()[filename] = W
         del self.__worksheets[filename]
 
@@ -345,7 +342,53 @@ class Notebook(SageObject):
             self.__deleted_worksheets = {}
             return self.__deleted_worksheets
 
+    def empty_trash(self, username):
+        """
+        Empty the trash for the given user.
+
+        INPUT:
+            username -- a string
+
+        This empties the trash for the given user and cleans up all
+        files associated with the worksheets that are in the trash.
+
+        EXAMPLES:
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
+            sage: W.move_to_trash('sage')
+            sage: n.worksheet_names()
+            ['sage/0']
+            sage: n.empty_trash('sage')
+            sage: n.worksheet_names()
+            []
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
+        X = self.get_worksheets_with_viewer(username)
+        X = [W for W in X if W.is_trashed(username)]
+        for W in X:
+            W.delete_user(username)
+            if W.owner() is None:
+                self.delete_worksheet(W.filename())
+
     def worksheet_names(self):
+        """
+        Return a list of all the names of worksheets in this notebook.
+
+        OUTPUT:
+            list of strings.
+
+        EXAMPLES:
+        We make a new notebook with two users and two worksheets, then list their names:
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
+            sage: n.add_user('wstein','sage','wstein@sagemath.org',force=True)
+            sage: W2 = n.new_worksheet_with_title_from_text('Elliptic Curves', owner='wstein')
+            sage: n.worksheet_names()
+            ['sage/0', 'wstein/0']
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
         W = self.__worksheets.keys()
         W.sort()
         return W
@@ -998,6 +1041,8 @@ class Notebook(SageObject):
             s += '&nbsp;<a class="%susercontrol" href=".">Active</a>'%('bold' if typ=='active' else '')
             s += '&nbsp;<a class="%susercontrol" href=".?typ=archive">Archived</a>'%('bold' if typ=='archive' else '')
             s += '&nbsp;<a class="%susercontrol" href=".?typ=trash">Trash</a>&nbsp;&nbsp;'%('bold' if typ=='trash' else '')
+            if typ == 'trash':
+                s += '&nbsp;<a class="boldusercontrol" onClick="empty_trash();return false;" href="">(Empty Trash)</a>'
             s += '</span>'
         return s
 

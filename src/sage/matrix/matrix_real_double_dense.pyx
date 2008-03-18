@@ -1141,7 +1141,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         memcpy(data,_M._matrix.data,sizeof(double)*dims[0]*dims[1])
         temp = PyArray_FromDimsAndData(2, dims, 12,data)
         _n = temp
-        _n.flags = _n.flags|(NPY_OWNDATA) # this sets the ownership bug
+        _n.flags = _n.flags|(NPY_OWNDATA) # this sets the ownership bit
         return _n
 
     def _replace_self_with_numpy(self,numpy_matrix):

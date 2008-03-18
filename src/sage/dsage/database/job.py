@@ -24,294 +24,70 @@ import bz2
 import os
 import copy
 from getpass import getuser
-from persistent import Persistent
 
-class Job(Persistent):
+
+class Job(object):
     """
     Defines a Job that gets distributed to clients.
 
     """
 
-    def __init__(self, id_=None, name=None, code=None, parent=None,
-                 username=getuser(), timeout=600, priority=5, type_='sage'):
+    def __init__(self, job_id=None, name='Unamed', username=getuser(),
+                 code='', timeout=0, kind='sage', priority=5):
         """
-        Creates a new job.
+        Represents a job.
 
-        Parameters:
-        id -- (str, default: None) job id (must be unique)
-        name -- (str, default: None) job name
-        code -- (str, default: None) literal string of the code to execute
-        parent -- (str, default: None) a job's parent job
-        username -- (str, default: $USER) username of person who created job
-        timeout -- (int, default: 600) how long to wait before a job timesout
-        priority -- (int, default: 5) 0 to 5, 0 = highest and 5 = lowest
-        type -- (str, default: 'sage') type of the job (file, string,
-                generator) defaults to string
+        :type job_id: string
+        :param job_id: unique identifier for a job
+
+        :type name: string
+        :param name: name given to a job, not unique
+
+        :type code: string
+        :param code: the code that needs to be executed
+
+        :type parent: string
+        :param parent: the job_id of another job
+
+        :type username: string
+        :param username: username of person who created job
+
+        :type timeout: integer
+        :param timeout: upper bound for number of seconds this job takes
+
+        :type priority: integer
+        :param priority: a jobs priority from 1-5, 1 being the highest
+
+        :type kind: string
+        :param kind: kind of the job (file, string, generator)
 
         """
 
-        self.jdict = {}
-
-        # Job keywords
-        self.jdict['job_id'] = id_
-        self.jdict['name'] = name
-        self.jdict['code'] = code
-        self.jdict['username'] = username
-        self.jdict['data'] = []
-        self.jdict['output'] = ''
-        self.jdict['worker_info'] = None
-        # Valid status keywords:
-        # new, completed, incomplete, processing
-        self.jdict['status'] = 'new'
-        self.jdict['creation_time'] = datetime.datetime.now()
-        self.jdict['cpu_time'] = None
-        self.jdict['start_time'] = None
-        self.jdict['wall_time'] = None
-        self.jdict['update_time'] = None
-        self.jdict['finish_time'] = None
-        self.jdict['killed'] = False
-        self.jdict['type'] = type_
-        self.jdict['result'] = None # result should be a pickled object
-        self.jdict['failures'] = 0
-        self.jdict['verifiable'] = False # is this job easily verified?
-        self.jdict['timeout'] = int(timeout) # default timeout for jobs in
-                                             # seconds.  Coerced to a python
-                                             # int
-        self.jdict['priority'] = int(priority)
-        self.jdict['private'] = False
-        self.jdict['depends'] = {}
-        # These might become deprecated
-        self.jdict['parent'] = parent
-        self.jdict['children'] = []
+        self.job_id = job_id
+        self.name = name
+        self.username = username
+        self.code = code
+        self.timeout = timeout
+        self.priority = 5
+        self.kind = kind
+        self.status = 'new'
+        self.data = []
+        self.output = ''
+        self.result = None
+        self.creation_time = datetime.datetime.now()
+        self.start_time = None
+        self.wall_time = None
+        self.update_time = None
+        self.finish_time = None
+        self.killed = False
+        self.failures = 0
+        self.uuid = ''
 
     def __str__(self):
-        return str(self.jdict)
+        return "<Job('%s', %s)>" % (self.job_id, self.username)
 
-    def __setattr__(self, name, value):
-        if name == 'jdict':
-            if not self.__dict__.has_key('jdict'):
-                self.__dict__[name] = value
-            else:
-                raise ValueError('Do not reassign Job.jdict.')
-        else:
-            Persistent.__setattr__(self, name, value)
-
-    def num_of_children(self):
-        return len(self.jdict['children'])
-
-    def get_name(self):
-        return self.jdict['name']
-    def set_name(self, value):
-        if not isinstance(value, str):
-            raise TypeError
-        self.jdict['name'] = value
-    name = property(fget=get_name, fset=set_name, fdel=None, doc='Job name')
-
-    def get_code(self):
-        return self.jdict['code']
-    def set_code(self, value):
-        if not isinstance(value, str):
-            raise TypeError
-        self.jdict['code'] = value
-    code = property(fget=get_code, fset=set_code, fdel=None,
-                    doc='Job code')
-
-    def get_id(self):
-        return self.jdict['job_id']
-    def set_id(self, value):
-        if not isinstance(value, str):
-            raise TypeError
-        self.jdict['job_id'] = value
-    job_id = property(fget=get_id, fset=set_id, fdel=None, doc='Job ID')
-
-    def get_status(self):
-        return self.jdict['status']
-    def set_status(self, value):
-        # statuses = ['new', 'completed', 'incomplete', 'processing']
-        # if not value in statuses:
-        #    raise TypeError
-        #if value == 'completed':
-        #    self.finish_time = datetime.datetime.now()
-        self.jdict['status'] = value
-    status = property(fget=get_status, fset=set_status, fdel=None,
-                      doc='Job status')
-
-    def get_result(self):
-        # loads the result
-        try:
-            result = cPickle.loads(self.jdict['result'])
-        except Exception, msg1:
-            try:
-                result = cPickle.loads(zlib.decompress(self.jdict['result']))
-            except Exception, msg2:
-                try:
-                    result = cPickle.loads(
-                                bz2.decompress(self.jdict['result']))
-                except:
-                    result = self.jdict['result']
-        return result
-    def set_result(self, value):
-        self.jdict['result'] = value
-    result = property(fget=get_result, fset=set_result, fdel=None,
-                      doc='Job result')
-
-    def get_data(self):
-        return self.jdict['data']
-    def set_data(self, value):
-        self.jdict['data'] = value
-    data = property(fget=get_data, fset=set_data, fdel=None,
-                    doc='Job data')
-
-    def get_output(self):
-        return self.jdict['output']
-    def set_output(self, value):
-        self.jdict['output'] = value
-    output = property(fget=get_output, fset=set_output, fdel=None,
-                      doc='Job output')
-
-    def get_username(self):
-        return self.jdict['username']
-    def set_username(self, value):
-        self.jdict['username'] = value
-    username = property(fget=get_username, fset=set_username, fdel=None,
-                      doc='Job author')
-
-    def get_finish_time(self):
-        return self.jdict['finish_time']
-    def set_finish_time(self, value):
-        if not isinstance(value, datetime.datetime):
-            raise TypeError
-        self.jdict['finish_time'] = value
-    finish_time = property(fget=get_finish_time, fset=set_finish_time,
-                           fdel=None, doc='Job finish time')
-
-    def get_update_time(self):
-        return self.jdict['update_time']
-    def set_update_time(self, value):
-        if not isinstance(value, datetime.datetime):
-            raise TypeError
-        self.jdict['update_time'] = value
-    update_time = property(fget=get_update_time, fset=set_update_time,
-                            fdel=None, doc='Job updated time')
-
-    def get_creation_time(self):
-        return self.jdict['creation_time']
-
-    def set_creation_time(self, value):
-        if not isinstance(value, datetime.datetime):
-            raise TypeError
-        self.jdict['creation_time'] = value
-    creation_time = property(fget=get_creation_time, fset=set_creation_time,
-                             fdel=None, doc='Job creation time')
-
-    def get_type(self):
-        return self.jdict['type']
-    def set_type(self, value):
-        self.jdict['type'] = value
-    type = property(fget=get_type, fset=set_type,
-                    fdel=None, doc='Job type')
-
-    def get_failures(self):
-        return self.jdict['failures']
-    def set_failures(self, value):
-        if not isinstance(value, int):
-            raise TypeError
-        self.jdict['failures'] = value
-    failures = property(fget=get_failures, fset=set_failures,
-                        fdel=None, doc='Number of failures')
-
-    def get_killed(self):
-        return self.jdict['killed']
-    def set_killed(self, value):
-        if not isinstance(value, bool):
-            raise TypeError
-        self.jdict['killed'] = value
-    killed = property(fget=get_killed, fset=set_killed,
-                      fdel=None, doc='Job killed status')
-
-    def get_worker_info(self):
-        return self.jdict['worker_info']
-    def set_worker_info(self, value):
-        self.jdict['worker_info'] = value
-    worker_info = property(fget=get_worker_info, fset=set_worker_info,
-                           fdel=None, doc='Worker info')
-
-    def get_verifiable(self):
-        return self.jdict['verifiable']
-    def set_verifiable(self, value):
-        if not isinstance(value, bool):
-            raise TypeError
-        self.jdict['verifiable'] = value
-
-    def timeout():
-        doc = "Job timeout in seconds. Set to 0 to disable."
-        def fget(self):
-            return self.jdict['timeout']
-        def fset(self, value):
-            if not isinstance(value, int):
-                try:
-                    value = int(value)
-                except:
-                    raise TypeError('Timeout must be an integer.')
-            self.jdict['timeout']  = value
-        return locals()
-    timeout = property(**timeout())
-
-    def private():
-        doc = "Sets whether a job is private or not."
-        def fget(self):
-            return self.jdict['private']
-        def fset(self, value):
-            self.jdict['private'] = value
-        return locals()
-    private = property(**private())
-
-    def depends():
-        doc = "The depends property."
-        def fget(self):
-            return self.jdict['depends']
-        def fset(self, value):
-            self.jdict['depends'] = value
-        def fdel(self):
-            del self.jdict['depends']
-        return locals()
-    depends = property(**depends())
-
-    def cpu_time():
-        doc = "Amount of time the computation took."
-        def fget(self):
-            return self.jdict['cpu_time']
-        def fset(self, value):
-            self.jdict['cpu_time'] = value
-        return locals()
-    cpu_time = property(**cpu_time())
-
-    def wall_time():
-        doc = "The wall_time property."
-        def fget(self):
-            return self.jdict['wall_time']
-        def fset(self, value):
-            self.jdict['wall_time'] = value
-        return locals()
-    wall_time = property(**wall_time())
-
-    def start_time():
-        doc = "The start_time property."
-        def fget(self):
-            return self.jdict['start_time']
-        def fset(self, value):
-            self.jdict['start_time'] = value
-        return locals()
-    start_time = property(**start_time())
-
-    def priority():
-        doc = "The priority property."
-        def fget(self):
-            return self.jdict['priority']
-        def fset(self, value):
-            self.jdict['priority'] = value
-        return locals()
-    priority = property(**priority())
+    def __repr__(self):
+        return self.__str__()
 
     def attach(self, var, obj, file_name=None):
         """
@@ -324,7 +100,7 @@ class Job(Persistent):
 
         """
 
-        if file_name:
+        if file_name is not None:
             try:
                 s = open(file_name, 'rb').read()
                 s = zlib.compress(s)
@@ -337,8 +113,7 @@ class Job(Persistent):
                 s = zlib.compress(s)
             except cPickle.PicklingError:
                 print 'Unable to attach your object.'
-                return
-        self.jdict['data'].append((var, s, 'object'))
+        self.data.append((var, s, 'object'))
 
     def attach_file(self, file_name):
         """
@@ -354,39 +129,25 @@ class Job(Persistent):
 
         # Strip out any hard coded path in the file name
         file_name = os.path.split(file_name)[1]
-        self.jdict['data'].append((file_name, f, 'file'))
+        self.data.append((file_name, f, 'file'))
 
-    def pickle(self):
+    def _reduce(self):
         """
-        Returns a pickled representation of self.
-
-        """
-
-        s = cPickle.dumps(self, 2)
-        s = zlib.compress(s)
-
-        return s
-
-    def unpickle(self, pickled_job):
-        """
-        Returns the unpickled version of myself.
+        Returns a _reduced form of Job.jdict to be sent over the network.
 
         """
-
-        return cPickle.loads(zlib.decompress(pickled_job))
-
-    def reduce(self):
-        """
-        Returns a reduced form of Job.jdict to be sent over the network.
-
-        """
-
-        # TODO: Figure out what attributes are safe to delete
 
         # dump and compress the data of the job
-        jdict = copy.deepcopy(self.jdict)
-        jdict['data'] = cPickle.dumps(self.jdict['data'], 2)
+        jdict = copy.deepcopy(self.__dict__)
+        jdict['data'] = cPickle.dumps(self.data, 2)
         jdict['data'] = zlib.compress(jdict['data'])
+        # We do not compress jdict['result'] since it's already compressed
+        jdict['result'] = self.result
+
+        # Remove attributes that sqlalchemy put there for us
+        for key in jdict.keys():
+            if key.startswith('_'):
+                del jdict[key]
 
         return jdict
 
@@ -394,19 +155,31 @@ def expand_job(jdict):
     """
     This method recreates a Job object given a jdict.
 
+    :type jdict: dictionary
+    :param jdict: the job dictionary
+
     """
 
     if jdict is None:
         return None
 
-    job = Job()
+    job_id = jdict['job_id']
+    job = Job(job_id=job_id)
 
     # decompress and load data
     try:
         jdict['data'] = zlib.decompress(jdict['data'])
         jdict['data'] = cPickle.loads(jdict['data'])
-    except:
+    except (KeyError, TypeError):
         jdict['data'] = None
-    job.jdict.update(jdict)
+
+    try:
+        jdict['result'] = zlib.decompress(jdict['result'])
+        jdict['result'] = cPickle.loads(jdict['result'])
+    except (KeyError, TypeError):
+        jdict['result'] = None
+
+    for k, v in jdict.iteritems():
+        setattr(job, k, v)
 
     return job

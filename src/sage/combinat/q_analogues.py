@@ -29,6 +29,7 @@ def q_int(n, p=None):
     ring over the integers.
 
     EXAMPLES:
+        sage: import sage.combinat.q_analogues as q_analogues
         sage: q_analogues.q_int(3)
         q^2 + q + 1
         sage: p = ZZ['p'].0
@@ -49,6 +50,7 @@ def q_factorial(n, p=None):
     ring over the integers.
 
     EXAMPLES:
+        sage: import sage.combinat.q_analogues as q_analogues
         sage: q_analogues.q_factorial(3)
         q^3 + 2*q^2 + 2*q + 1
         sage: p = ZZ['p'].0
@@ -66,6 +68,7 @@ def q_binomial(n,k,p=None):
     ring over the integers.
 
     EXAMPLES:
+        sage: import sage.combinat.q_analogues as q_analogues
         sage: q_analogues.q_binomial(4,2)
         q^4 + q^3 + 2*q^2 + q + 1
         sage: p = ZZ['p'].0
@@ -81,6 +84,7 @@ def qt_catalan_number(n):
     Returns the q,t-Catalan number.
 
     EXAMPLES:
+        sage: import sage.combinat.q_analogues as q_analogues
         sage: q_analogues.qt_catalan_number(1)
         1
         sage: q_analogues.qt_catalan_number(2)

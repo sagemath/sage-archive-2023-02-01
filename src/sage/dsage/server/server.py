@@ -15,106 +15,127 @@
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-
-import zlib
-import cPickle
 import datetime
+import os
 
 from twisted.spread import pb
 from twisted.python import log
+from subprocess import Popen
 
-from sage.dsage.errors.exceptions import BadTypeError
 from sage.dsage.database.job import expand_job
 from sage.dsage.misc.misc import timedelta_to_seconds
-
+from sage.dsage.misc.constants import SERVER_LOG, WORKER_LOG
 
 class DSageServer(pb.Root):
     """
-    This class represents Distributed Sage server which does all the
-    coordination of distributing jobs, creating new jobs and accepting job
-    submissions.
+    Distributed Sage server which does all the coordination of distributing
+    jobs, creating new jobs and accepting job submissions.
 
     """
 
-    def __init__(self, jobdb, monitordb, clientdb, log_level=0):
+    def __init__(self, jobdb, workerdb, clientdb, log_level=0):
         """
         Initializes the Distributed Sage PB Server.
 
-        Parameters:
-        jobdb -- pass in the Database object
-        log_level -- specifies the amount of logging to be done (default=0)
+        :type jobdb: sage.dsage.database.jobdb.JobDatabaseSQLite
+        :param jobdb: a instance of the job database
+
+        :type workerdb: sage.dsage.database.workerdb.WorkerDatabase
+        :param workerdb: instance of the monitor database
+
+        :type log_level: integer
+        :param log_level: level of logging verbosity, higher is more verbose
 
         """
 
         self.jobdb = jobdb
-        self.monitordb = monitordb
+        self.workerdb = workerdb
         self.clientdb = clientdb
         self.log_level = log_level
+        self.clients = []
+        self.workers = {}
 
-    def register_client_factory(self, client_factory):
-        self.client_factory = client_factory
+        # Setting this to true results in NO authentication being made.
+        self._testing = False
 
-    def unpickle(self, pickled_job):
-        return cPickle.loads(zlib.decompress(pickled_job))
-
-    def get_job(self, anonymous=False):
+    def get_job(self):
         """
         Returns a job to the client.
 
         This method returns the first job that has not been completed
         in our job database.
 
+        :type authenticated: boolean
+        :param authenticated: whether or not the requester is authenticated
+
         """
 
-        if anonymous:
-            jdict = self.jobdb.get_job(anonymous=True)
-        else:
-            jdict = self.jobdb.get_job(anonymous=False)
-        if jdict == None:
+        job = self.jobdb.get_job()
+        if job == None:
             if self.log_level > 3:
-                log.msg('[DSage, get_job]' + ' Job db is empty.')
+                log.msg('[dsage, get_job]' + ' Job db is empty.')
             return None
         else:
-            job_id = jdict['job_id']
+            job_id = job.job_id
             if self.log_level > 3:
-                log.msg('[DSage, get_job]' + ' Sending job %s' % job_id)
-            jdict['status'] = 'processing'
-            jdict['start_time'] = datetime.datetime.now()
-            self.jobdb.store_job(jdict)
+                log.msg('[dsage, get_job]' + ' Returning job %s' % job_id)
+            job.status = 'processing'
+            job.start_time = datetime.datetime.now()
+            self.jobdb.update_job(job)
 
-        return jdict
+        return job._reduce()
 
     def set_job_uuid(self, job_id, uuid):
+        """
+        Sets the job's universal unique identifer, which identifies the worker
+        that processed the job.
+
+        :type job_id: string
+        :param job_id: unique job identifier
+
+        :type uuid: string
+        :param uuid: universial unique identifier for the worker
+
+        """
+
         return self.jobdb.set_job_uuid(job_id, uuid)
 
     def set_busy(self, uuid, busy):
-        return self.monitordb.set_busy(uuid, busy=busy)
+        """
+        Sets whether or not a particular worker is busy.
+
+        :type uuid: string
+        :param uuid: universial unique identifier
+
+        :type busy: boolean
+        :param busy: Whether or not the worker is busy
+
+        """
+
+        return self.workerdb.set_busy(uuid, busy=busy)
 
     def get_job_by_id(self, job_id):
         """
         Returns a job by the job id.
 
-        Parameters:
-        id -- the job id
+        :type job_id: string
+        :param job_id: unique job identifier
 
         """
 
-        jdict = self.jobdb.get_job_by_id(job_id)
-        uuid = jdict['monitor_id']
-        jdict['worker_info'] = self.monitordb.get_monitor(uuid)
+        jdict = self.jobdb.get_job_by_id(job_id)._reduce()
 
         return jdict
 
     def get_job_result_by_id(self, job_id):
         """Returns the job result.
 
-        Parameters:
-        id -- the job id (str)
+        :type job_id: string
+        :param job_id: unique job identifier
 
         """
 
-        jdict = self.jobdb.get_job_by_id(job_id)
-        job = expand_job(jdict)
+        job = self.jobdb.get_job_by_id(job_id)
 
         return job.result
 
@@ -133,23 +154,18 @@ class DSageServer(pb.Root):
     def sync_job(self, job_id):
         raise NotImplementedError
 
-    def get_jobs_by_username(self, username, active=False):
+    def get_jobs_by_username(self, username, status):
         """
         Returns jobs created by username.
 
         Parameters:
         username -- the username (str)
-        active -- when set to True, only return active jobs (bool)
-        job_name -- the job name (optional)
 
         """
 
-        jobs = self.jobdb.get_jobs_by_username(username, active)
+        jobs = self.jobdb.get_jobs_by_username(username, status)
 
-        if self.log_level > 3:
-            log.msg(jobs)
-
-        return jobs
+        return [job._reduce() for job in jobs]
 
     def submit_job(self, jdict):
         """
@@ -161,18 +177,15 @@ class DSageServer(pb.Root):
         """
 
         if self.log_level > 3:
-            log.msg('[DSage, submit_job] %s' % (jdict))
+            log.msg('[submit_job] %s' % (jdict))
         if jdict['code'] is None:
             return False
         if jdict['name'] is None:
             jdict['name'] = 'Default'
 
-        # New jobs should not have a job_id
-        jdict['job_id'] = None
-
         jdict['update_time'] = datetime.datetime.now()
 
-        job_id = self.jobdb.store_job(jdict)
+        job_id = self.jobdb.store_jdict(jdict)
         log.msg('Received job %s' % job_id)
 
         return job_id
@@ -182,7 +195,8 @@ class DSageServer(pb.Root):
         Returns a list of all jobs in the database.
 
         """
-        return self.jobdb.get_all_jobs()
+
+        return [job._reduce() for job in self.jobdb.get_all_jobs()]
 
     def get_active_jobs(self):
         """
@@ -206,7 +220,7 @@ class DSageServer(pb.Root):
 
         killed_jobs = self.jobdb.get_killed_jobs_list()
 
-        return killed_jobs
+        return [job._reduce() for job in killed_jobs]
 
     def get_next_job_id(self):
         """
@@ -238,24 +252,20 @@ class DSageServer(pb.Root):
             log.msg('[DSage, job_done] output: %s ' % output)
             log.msg('[DSage, job_done] completed: %s ' % completed)
 
-        jdict = self.get_job_by_id(job_id)
         output = str(output)
-        if jdict['output'] is not None: # Append new output to existing output
-            jdict['output'] += output
-        else:
-            jdict['output'] = output
+        job = self.jobdb.get_job_by_id(job_id)
+        job.output += output
+        job.wall_time = datetime.datetime.now() - job.start_time
+        job.update_time = datetime.datetime.now()
         if completed:
-            jdict['result'] = result
-            jdict['cpu_time'] = cpu_time
-            delta = timedelta_to_seconds(datetime.datetime.now() -
-                                         jdict['start_time'])
-            jdict['wall_time'] = delta
-            jdict['status'] = 'completed'
-            log.msg('%s completed!' % job_id)
+            job.result = result
+            job.cpu_time = cpu_time
+            job.status = 'completed'
+            job.finish_time = datetime.datetime.now()
+        self.jobdb.sess.save_or_update(job)
+        self.jobdb.sess.commit()
 
-        jdict['update_time'] = datetime.datetime.now()
-
-        return self.jobdb.store_job(jdict)
+        return job_id
 
     def job_failed(self, job_id, traceback):
         """
@@ -266,11 +276,11 @@ class DSageServer(pb.Root):
 
         """
 
-        job = expand_job(self.jobdb.get_job_by_id(job_id))
+        job = self.jobdb.get_job_by_id(job_id)
         job.failures += 1
         job.output = traceback
 
-        if job.failures > self.jobdb.job_failure_threshold:
+        if job.failures > self.jobdb.failure_threshold:
             job.status = 'failed'
         else:
             job.status = 'new' # Put job back in the queue
@@ -285,9 +295,9 @@ class DSageServer(pb.Root):
 
         job.update_time = datetime.datetime.now()
 
-        return self.jobdb.store_job(job.reduce())
+        return self.jobdb.store_jdict(job._reduce())
 
-    def kill_job(self, job_id, reason):
+    def kill_job(self, job_id):
         """
         Kills a job.
 
@@ -295,22 +305,23 @@ class DSageServer(pb.Root):
 
         """
 
-        if job_id == None:
+        try:
+            job = self.jobdb.set_killed(job_id, killed=True)
             if self.log_level > 0:
-                log.msg('[DSage, kill_job] Invalid job id')
+                log.msg('Killed job %s' % (job_id))
+        except Exception, msg:
+            log.err(msg)
+            log.msg('Failed to kill job %s' % job_id)
             return None
-        else:
-            try:
-                self.jobdb.set_killed(job_id, killed=True)
-                if self.log_level > 0:
-                    log.msg('Killed job %s' % (job_id))
-            except Exception, msg:
-                log.err(msg)
-                log.msg('Failed to kill job %s' % job_id)
+
+        try:
+            self.workers[job.uuid].callRemote('kill_job', job_id)
+        except KeyError:
+            pass
 
         return job_id
 
-    def get_monitor_list(self):
+    def get_worker_list(self):
         """
         Returns a list of workers as a 3 tuple.
 
@@ -320,7 +331,7 @@ class DSageServer(pb.Root):
 
         """
 
-        return self.monitordb.get_monitor_list()
+        return self.workerdb.get_worker_list()
 
     def get_client_list(self):
         """
@@ -328,7 +339,7 @@ class DSageServer(pb.Root):
 
         """
 
-        return self.clientdb.get_client_list()
+        return [c.username for c in self.clientdb.get_client_list()]
 
     def get_cluster_speed(self):
         """
@@ -345,9 +356,9 @@ class DSageServer(pb.Root):
         """
 
         count = {}
-        free_workers = self.monitordb.get_worker_count(connected=True,
+        free_workers = self.workerdb.get_worker_count(connected=True,
                                                        busy=False)
-        working_workers = self.monitordb.get_worker_count(connected=True,
+        working_workers = self.workerdb.get_worker_count(connected=True,
                                                           busy=True)
 
         count['free'] = free_workers
@@ -355,28 +366,27 @@ class DSageServer(pb.Root):
 
         return count
 
-class DSageWorkerServer(DSageServer):
-    """
-    Exposes methods to workers.
-    """
+    def upgrade_workers(self):
+        """
+        Upgrades the connected workers to the latest SAGE version.
 
-    def remote_get_job(self):
-        return DSageServer.get_job(self)
+        """
 
-    def remote_job_done(self, job_id, output, result, completed, worker_info):
-        if not (isinstance(job_id, str) or isinstance(completed, bool)):
-            log.msg('BadType in remote_job_done')
-            raise BadTypeError()
+        raise NotImplementedError
 
-        return DSageServer.job_done(self, job_id, output, result,
-                             completed, worker_info)
+    def read_log(self, n, kind):
+        """
+        Returns the last n lines of the server log.
+        Defaults to returning the last 50 lines of the server log.
+        """
 
-    def remote_job_failed(self, job_id, traceback):
-        if not isinstance(job_id, str):
-            log.msg('BadType in remote_job_failed')
-            raise BadTypeError()
+        if kind == 'server':
+            log_file = SERVER_LOG
+        elif kind == 'worker':
+            log_file = WORKER_LOG
+        try:
+            log = os.popen('tail -n %s %s' % (n, log_file)).read()
+        except:
+            log = "Error reading %s" % log_file
 
-        return DSageServer.job_failed(self, job_id, traceback)
-
-    def remote_get_killed_jobs_list(self):
-        return DSageServer.get_killed_jobs_list(self)
+        return log

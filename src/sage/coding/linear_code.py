@@ -942,7 +942,10 @@ class LinearCode(module.Module):
               if not(self.is_permutation_automorphism(x)):
                   stop = 0
                   break
-        G = PermutationGroup(gens)
+        if len(gens) == 0:
+            G = PermutationGroup([[]])
+        else:
+            G = PermutationGroup(gens)
         return G
 
     def permuted_code(self,p):

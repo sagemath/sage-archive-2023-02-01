@@ -151,13 +151,13 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         return make_pAdicCappedAbsoluteElement, (self.parent(), self.lift(), self.absprec)
 
-    cdef bint _set_prec_abs(self, long absprec):
+    cdef bint _set_prec_abs(self, long absprec) except -1:
         """
         Sets self.absprec
         """
         self.absprec = absprec
 
-    cdef bint _set_prec_both(self, long absprec, long relprec):
+    cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         """
         Sets self.absprec.
         """
@@ -285,7 +285,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         mpz_init(x.value)
         return x
 
-    cpdef bint _is_inexact_zero(self):
+    cpdef bint _is_inexact_zero(self) except -1:
         """
         EXAMPLES:
             sage: R = ZpCA(7, 5)

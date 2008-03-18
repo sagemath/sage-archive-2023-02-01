@@ -42,7 +42,8 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
     ################################
     # Special Methods
     ################################
-    def __init__(self, ambient_hecke_module, submodule, dual_free_module=None, check=False):
+    def __init__(self, ambient_hecke_module, submodule,
+                 dual_free_module=None, check=False):
         """
         INPUT:
             ambient_hecke_module -- the ambient space of modular
@@ -52,6 +53,22 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
                       the submodule (optional)
             check -- (default: False) whether to check that the
                      submodule is invariant under all Hecke operators T_p.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(15,4) ; S = M.cuspidal_submodule() # indirect doctest
+            sage: S
+            Modular Symbols subspace of dimension 8 of Modular Symbols space of dimension 12 for Gamma_0(15) of weight 4 with sign 0 over Rational Field
+            sage: S == loads(dumps(S))
+            True
+            sage: M = ModularSymbols(1,24)
+            sage: A = M.ambient_hecke_module()
+            sage: B = A.submodule([ x.element() for x in M.cuspidal_submodule().gens() ])
+            sage: S = sage.modular.modsym.subspace.ModularSymbolsSubspace(A, B.free_module())
+            sage: S
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 5 for Gamma_0(1) of weight 24 with sign 0 over Rational Field
+            sage: S == loads(dumps(S))
+            True
+
         """
         self.__ambient_hecke_module = ambient_hecke_module
         A = ambient_hecke_module
@@ -60,6 +77,13 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         hecke.HeckeSubmodule.__init__(self, A, submodule, dual_free_module = dual_free_module, check=check)
 
     def _repr_(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: ModularSymbols(24,4).cuspidal_subspace()._repr_()
+            'Modular Symbols subspace of dimension 16 of Modular Symbols space of dimension 24 for Gamma_0(24) of weight 4 with sign 0 over Rational Field'
+        """
         return "Modular Symbols subspace of dimension %s of %s"%(
                     self.rank(), self.ambient_module())
 
@@ -71,6 +95,34 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         The boundary map to the corresponding space of boundary
         modular symbols.  (This is the restriction of the map on the
         ambient space.)
+
+        EXAMPLES:
+            sage: M = ModularSymbols(1, 24, sign=1) ; M
+            Modular Symbols space of dimension 3 for Gamma_0(1) of weight 24 with sign 1 over Rational Field
+            sage: M.basis()
+            ([X^18*Y^4,(0,0)], [X^20*Y^2,(0,0)], [X^22,(0,0)])
+            sage: M.cuspidal_submodule().basis()
+            ([X^18*Y^4,(0,0)], [X^20*Y^2,(0,0)])
+            sage: M.eisenstein_submodule().basis()
+            ([X^18*Y^4,(0,0)] + 166747/324330*[X^20*Y^2,(0,0)] + 236364091/6742820700*[X^22,(0,0)],)
+            sage: M.boundary_map()
+            Hecke module morphism boundary map defined by the matrix
+            [ 0]
+            [ 0]
+            [-1]
+            Domain: Modular Symbols space of dimension 3 for Gamma_0(1) of weight ...
+            Codomain: Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(1) ...
+            sage: M.cuspidal_subspace().boundary_map()
+            Hecke module morphism defined by the matrix
+            [0]
+            [0]
+            Domain: Modular Symbols subspace of dimension 2 of Modular Symbols space ...
+            Codomain: Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(1) ...
+            sage: M.eisenstein_submodule().boundary_map()
+            Hecke module morphism defined by the matrix
+            [-236364091/6742820700]
+            Domain: Modular Symbols subspace of dimension 1 of Modular Symbols space ...
+            Codomain: Space of Boundary Modular Symbols for Congruence Subgroup Gamma0(1) ...
         """
         try:
             return self.__boundary_map
@@ -82,7 +134,19 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
 
     def cuspidal_submodule(self):
         """
-        Return the cuspidal subspace of this space of modular symbols.
+        Return the cuspidal subspace of this subspace of modular symbols.
+
+        EXAMPLES:
+            sage: S = ModularSymbols(42,4).cuspidal_submodule() ; S
+            Modular Symbols subspace of dimension 40 of Modular Symbols space of dimension 48 for Gamma_0(42) of weight 4 with sign 0 over Rational Field
+            sage: S.is_cuspidal()
+            True
+            sage: S.cuspidal_submodule()
+            Modular Symbols subspace of dimension 40 of Modular Symbols space of dimension 48 for Gamma_0(42) of weight 4 with sign 0 over Rational Field
+            sage: S.cuspidal_submodule() is S
+            False
+            sage: S.cuspidal_submodule() == S
+            True
         """
         try:
             return self.__cuspidal_submodule
@@ -97,6 +161,17 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         Return the matrix of the dual star involution, which is
         induced by complex conjugation on the linear dual of modular
         symbols.
+
+        EXAMPLES:
+            sage: S = ModularSymbols(6,4) ; S.dual_star_involution_matrix()
+            [ 1  0  0  0  0  0]
+            [ 0  1  0  0  0  0]
+            [ 0 -2  1  2  0  0]
+            [ 0  2  0 -1  0  0]
+            [ 0 -2  0  2  1  0]
+            [ 0  2  0 -2  0  1]
+            sage: S.star_involution().matrix().transpose() == S.dual_star_involution_matrix()
+            True
         """
         try:
             return self.__dual_star_involution
@@ -110,6 +185,12 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
     def eisenstein_subspace(self):
         """
         Return the Eisenstein subspace of this space of modular symbols.
+
+        EXAMPLES:
+            sage: ModularSymbols(24,4).eisenstein_subspace()
+            Modular Symbols subspace of dimension 8 of Modular Symbols space of dimension 24 for Gamma_0(24) of weight 4 with sign 0 over Rational Field
+            sage: ModularSymbols(20,2).cuspidal_subspace().eisenstein_subspace()
+            Modular Symbols subspace of dimension 0 of Modular Symbols space of dimension 7 for Gamma_0(20) of weight 2 with sign 0 over Rational Field
         """
         try:
             return self.__eisenstein_subspace
@@ -203,12 +284,34 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         return self._factorization
 
     def hecke_bound(self):
+        """
+        Compute the Hecke bound for self; that is, a number n such
+        that the T_m for m <= n generate the Hecke algebra.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(24,8)
+            sage: M.hecke_bound()
+            53
+            sage: M.cuspidal_submodule().hecke_bound()
+            32
+            sage: M.eisenstein_submodule().hecke_bound()
+            53
+        """
         if self.is_cuspidal():
             return self.sturm_bound()
         else:
             return self.ambient_hecke_module().hecke_bound()
 
     def is_cuspidal(self):
+        """
+        Return True if self is cuspidal.
+
+        EXAMPLES:
+            sage: ModularSymbols(42,4).cuspidal_submodule().is_cuspidal()
+            True
+            sage: ModularSymbols(12,6).eisenstein_submodule().is_cuspidal()
+            False
+        """
         try:
             return self.__is_cuspidal
         except AttributeError:
@@ -217,6 +320,15 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             return self.__is_cuspidal
 
     def is_eisenstein(self):
+        """
+        Return True if self is an Eisenstein subspace.
+
+        EXAMPLES:
+            sage: ModularSymbols(22,6).cuspidal_submodule().is_eisenstein()
+            False
+            sage: ModularSymbols(22,6).eisenstein_submodule().is_eisenstein()
+            True
+        """
         try:
             return self.__is_eisenstien
         except AttributeError:
@@ -236,6 +348,15 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         OUTPUT:
             subspace of modular symbols
 
+        EXAMPLES:
+            sage: S = ModularSymbols(100,2).cuspidal_submodule() ; S
+            Modular Symbols subspace of dimension 14 of Modular Symbols space of dimension 31 for Gamma_0(100) of weight 2 with sign 0 over Rational Field
+            sage: S._compute_sign_subspace(1)
+            Modular Symbols subspace of dimension 7 of Modular Symbols space of dimension 31 for Gamma_0(100) of weight 2 with sign 0 over Rational Field
+            sage: S._compute_sign_subspace(-1)
+            Modular Symbols subspace of dimension 7 of Modular Symbols space of dimension 31 for Gamma_0(100) of weight 2 with sign 0 over Rational Field
+            sage: S._compute_sign_subspace(-1).sign()
+            -1
         """
         S = self.star_involution().matrix() - sign
         V = S.kernel()
@@ -244,12 +365,47 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             Vdual = Sdual.kernel()
         else:
             Vdual = None
-        return self.submodule_from_nonembedded_module(V, Vdual)
+        res = self.submodule_from_nonembedded_module(V, Vdual)
+        res._set_sign(sign)
+        return res
 
     def star_involution(self):
         """
         Return the star involution on self, which is induced by complex
         conjugation on modular symbols.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(1,24)
+            sage: M.star_involution()
+            Hecke module morphism Star involution on Modular Symbols space of dimension 5 for Gamma_0(1) of weight 24 with sign 0 over Rational Field defined by the matrix
+            [ 1  0  0  0  0]
+            [ 0 -1  0  0  0]
+            [ 0  0  1  0  0]
+            [ 0  0  0 -1  0]
+            [ 0  0  0  0  1]
+            Domain: Modular Symbols space of dimension 5 for Gamma_0(1) of weight ...
+            Codomain: Modular Symbols space of dimension 5 for Gamma_0(1) of weight ...
+            sage: M.cuspidal_subspace().star_involution()
+            Hecke module morphism defined by the matrix
+            [ 1  0  0  0]
+            [ 0 -1  0  0]
+            [ 0  0  1  0]
+            [ 0  0  0 -1]
+            Domain: Modular Symbols subspace of dimension 4 of Modular Symbols space ...
+            Codomain: Modular Symbols subspace of dimension 4 of Modular Symbols space ...
+            sage: M.plus_submodule().star_involution()
+            Hecke module morphism defined by the matrix
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            Domain: Modular Symbols subspace of dimension 3 of Modular Symbols space ...
+            Codomain: Modular Symbols subspace of dimension 3 of Modular Symbols space ...
+            sage: M.minus_submodule().star_involution()
+            Hecke module morphism defined by the matrix
+            [-1  0]
+            [ 0 -1]
+            Domain: Modular Symbols subspace of dimension 2 of Modular Symbols space ...
+            Codomain: Modular Symbols subspace of dimension 2 of Modular Symbols space ...
         """
         try:
             return self.__star_involution

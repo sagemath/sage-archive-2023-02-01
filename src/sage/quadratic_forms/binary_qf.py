@@ -1,14 +1,29 @@
 """
-Binary Quadratic Forms
+Binary Quadratic Forms with integer coefficients.
+
+The form $a x^2 + b x y + d y^2$ is stored as a triple (a, b, c) of integers.
+
+EXAMPLES:
+    sage: Q = BinaryQF([1,2,3])
+    sage: Q
+    x^2 + 2*x*y  + 3*y^2
+    sage: Q.discriminant()
+    -8
+    sage: Q.reduce()
+    x^2 + 2*y^2
+    sage: Q(1, 1)
+    6
+
+TESTS:
+    sage: Q == loads(dumps(Q))
+    True
 
 AUTHORS:
     -- Jon Hanke (2006-08-08):
         * Appended to add the reduced_representatives, dyadic_trace,
           is_reduced, and + on 8-3-2006 for Coding Sprint #2.
         * Added Documentation and complex_point() method on 8-8-2006.
-
-NOTE: This code is mainly inspired by an application to computing
-Siegel modular forms.
+    -- Nick Alexander: add doctests and clean code for Doc Days 2
 """
 
 #*****************************************************************************
@@ -45,7 +60,7 @@ class BinaryQF(SageObject):
         sage: b.discriminant()
         -8
     """
-    ## Initializes the form with a 3-element list
+    # Initializes the form with a 3-element list
     def __init__(self, abc_triple):
         """
         Creates the binary quadratic form $ax^2 + bxy + cy^2$ from the
@@ -54,90 +69,150 @@ class BinaryQF(SageObject):
         EXAMPLES:
             sage: Q = BinaryQF([1,2,3])
             sage: Q
-            x^2  + 2xy  + 3y^2
+            x^2 + 2*x*y  + 3*y^2
+            sage: Q = BinaryQF([1,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: Binary quadratic form must be given by a list of three coefficients
         """
-        assert len(abc_triple) == 3  ## Check we have three coefficients
+        if len(abc_triple) != 3:
+            # Check we have three coefficients
+            raise ValueError, "Binary quadratic form must be given by a list of three coefficients"
         self.a = ZZ(abc_triple[0])
         self.b = ZZ(abc_triple[1])
         self.c = ZZ(abc_triple[2])
+        self._reduced_form = None
 
     def __getitem__(self, n):
         """
+        Return the n-th component of this quadratic form.
+
+        If this form is $a x^2 + b x y + c y^2$, the 0-th component is $a$,
+        the 1-st component is $b$, and $2$-nd component is $c$.
+
+        Indexing is like lists -- negative indices and slices are allowed.
+
         EXAMPLES:
             sage: Q = BinaryQF([2,3,4])
             sage: Q[0]
             2
             sage: Q[2]
             4
+            sage: Q[:2]
+            (2, 3)
             sage: tuple(Q)
             (2, 3, 4)
             sage: list(Q)
             [2, 3, 4]
         """
-        if n == 0:
-            return self.a
-        elif n == 1:
-            return self.b
-        elif n == 2:
-            return self.c
-        else:
-            raise IndexError
+        return (self.a, self.b, self.c)[n]
+
+    def __call__(self, *args):
+        r"""
+        Evaluate this quadratic form at a point.
+
+        INPUT:
+            args -- x and y values, often as a pair x, y or a list [x, y]
+
+        EXAMPLES:
+            sage: Q = BinaryQF([2,3,4])
+            sage: Q(1, 2)
+            24
+        """
+        return self.polynomial()(*args)
 
     def __cmp__(self, right):
+        """
+        Returns True if self and right are identical: the same coefficients.
+
+        EXAMPLES:
+            sage: P = BinaryQF([2,2,3])
+            sage: Q = BinaryQF([2,2,3])
+            sage: R = BinaryQF([1,2,3])
+            sage: P == Q # indirect doctest
+            True
+            sage: P == R # indirect doctest
+            False
+
+        TESTS:
+            sage: P == P
+            True
+            sage: Q == P
+            True
+            sage: R == P
+            False
+            sage: P == 2
+            False
+        """
         if not isinstance(right, BinaryQF):
             return cmp(type(self), type(right))
         return cmp((self.a,self.b,self.c), (right.a,right.b,right.c))
 
     def __add__(self, Q):
         """
-        Returns the sum of the two forms (componentwise).
+        Returns the component-wise sum of two forms.
+
+        That is, given $a_1 x^2 + b_1 x y + c_1 y^2$ and $a_2 x^2 + b_2 x y +
+        c_2 y^2$, returns the form
+        $$(a_1 + a_2) x^2 + (b_1 + b_2) x y + (c_1 + c_2) y^2 .$$
+
+        EXAMPLES:
+            sage: P = BinaryQF([2,2,3]); P
+            2*x^2 + 2*x*y + 3*y^2
+            sage: Q = BinaryQF([-1,2,2]); Q
+            -1*x^2 + 2*x*y + 2*y^2
+            sage: P + Q
+            x^2 + 4*x*y + 5*y^2
+            sage: P + Q == BinaryQF([1,4,5]) # indirect doctest
+            True
+
+        TESTS:
+            sage: Q + P == BinaryQF([1,4,5]) # indirect doctest
+            True
         """
         return BinaryQF([self.a + Q.a, self.b + Q.b, self.c + Q.c])
 
+    def __sub__(self, Q):
+        """
+        Returns the component-wise difference of two forms.
+
+        That is, given $a_1 x^2 + b_1 x y + c_1 y^2$ and $a_2 x^2 + b_2 x y +
+        c_2 y^2$, returns the form
+        $$(a_1 - a_2) x^2 + (b_1 - b_2) x y + (c_1 - c_2) y^2 .$$
+
+        EXAMPLES:
+            sage: P = BinaryQF([2,2,3]); P
+            2*x^2 + 2*x*y + 3*y^2
+            sage: Q = BinaryQF([-1,2,2]); Q
+            -1*x^2 + 2*x*y + 2*y^2
+            sage: P - Q
+            3*x^2 + y^2
+            sage: P - Q == BinaryQF([3,0,1]) # indirect doctest
+            True
+
+        TESTS:
+            sage: Q - P == BinaryQF([3,0,1]) # indirect doctest
+            False
+            sage: Q - P != BinaryQF([3,0,1]) # indirect doctest
+            True
+        """
+        return BinaryQF([self.a - Q.a, self.b - Q.b, self.c - Q.c])
 
     def _repr_(self):
         """
         Display the quadratic form.
+
+        EXAMPLES:
+            sage: Q = BinaryQF([1,2,3]); Q # indirect doctest
+            x^2 + 2*x*y + 3*y^2
+
+            sage: Q = BinaryQF([-1,2,3]); Q
+            -1*x^2 + 2*x*y + 3*y^2
+
+            sage: Q = BinaryQF([0,0,0]); Q
+            0
         """
-        ## Deal with the zero form
-        if self.a==0 and self.b==0 and self.c==0:
-            return "0"
-
-        ## Account for leading coeff
-        lc_flag = True
-
-        ## Print the first coefficient
-        out_str = ""
-        if abs(self.a) > 1:
-            out_str +=  str(self.a)
-        if self.a != 0:
-            out_str += "x^2 "
-            lc_flag = False
-
-        ## Print the second coefficient
-        if self.b < 0:
-            out_str += " - "
-        elif self.b > 0 and lc_flag == False:
-            out_str += " + "
-        if abs(self.b) > 1:
-            out_str += str(abs(self.b))
-        if self.b != 0:
-            out_str += "xy "
-            lc_flag = False
-
-        ## Print the third coefficient
-        if self.c < 0:
-            out_str += " - "
-        elif self.c > 0 and lc_flag == False:
-            out_str += " + "
-        if abs(self.c) > 1:
-            out_str += str(abs(self.c))
-        if self.c != 0:
-            out_str += "y^2 "
-            lc_flag = False
-
-        return out_str
-
+        return repr(self.polynomial())
 
     def polynomial(self):
         """
@@ -148,25 +223,18 @@ class BinaryQF(SageObject):
             sage: Q = BinaryQF([1,2,3])
             sage: Q.polynomial()
             x^2 + 2*x*y + 3*y^2
+
+            sage: Q = BinaryQF([-1,-2,3])
+            sage: Q.polynomial()
+            -1*x^2 - 2*x*y + 3*y^2
+
+            sage: Q = BinaryQF([0,0,0])
+            sage: Q.polynomial()
+            0
         """
         M = ZZ['x,y']
         (x,y) = M.gens()
         return self.a * x**2  + self.b* x*y + self.c * y**2
-
-    def dyadic_trace(self):
-        """
-        Returns the"dyadic trace" of $ac - b^2$ of the
-        binary form $ax^2 + bxy + cy^2$.
-
-        EXAMPLES:
-            sage: Q = BinaryQF([1,2,3])
-            sage: Q.dyadic_trace()
-            2
-
-        WARNING: Hopefully this is correct?!? =)
-        """
-        return self.a + self.c - self.b
-
 
     def discriminant(self):
         """
@@ -231,12 +299,14 @@ class BinaryQF(SageObject):
             sage: a.is_reduced()
             False
             sage: b = a.reduce(); b
-            x^2  + xy  + 2y^2
+            x^2 + x*y + 2*y^2
             sage: b.is_reduced()
             True
         """
-        v = eval(repr(pari('Vec(qfbred(Qfb(%s,%s,%s)))'%(self.a,self.b,self.c))))
-        return BinaryQF(v)
+        if self._reduced_form is None:
+            v = list(pari('Vec(qfbred(Qfb(%s,%s,%s)))'%(self.a,self.b,self.c)))
+            self._reduced_form = BinaryQF(v)
+        return self._reduced_form
 
     def is_reduced(self):
         """
@@ -262,24 +332,15 @@ class BinaryQF(SageObject):
             True
         """
         return self.reduce() == self
-        #if self.discriminant() >= 0:
-        #    raise NotImplementedError, "discriminant must be negative (for now)"
-
-        ## Check that the form is weakly reduced
-        #if self.is_weakly_reduced() == False:
-        #    return False
-
-        ## Check that b >= 0 when a = |b| or c = |b|, since it's weakly reduced
-        #if self.b >= 0:
-        #    return True
-        #else:
-        #    return (self.a != abs(self.b)) and (self.c != abs(self.b))
-
 
     def complex_point(self):
         """
         Returns the point in the complex upper half-plane associated
         to this (positive definite) quadratic form).
+
+        For positive definite forms with negative discriminants, this is a
+        root $\tau$ of $a x^2 + b x + c$ with the imaginary part of $\tau$
+        greater than 0.
 
         EXAMPLES:
             sage: Q = BinaryQF([1,0,1])
@@ -296,44 +357,57 @@ class BinaryQF(SageObject):
 
 def BinaryQF_reduced_representatives(D):
     """
-    Returns inequivalent reduced representatives for the equivalence
+    Returns a list of inequivalent reduced representatives for the equivalence
     classes of positive definite binary forms of discriminant D.
 
-    Note: These representatives are not necessarily primitive, unless
-    the discriminant is fundamental!
+    NOTE: The order of the representatives is unspecified but deterministic.
+
+    WARNING: The representatives are not necessarily primitive, unless the
+    discriminant is fundamental!
 
     EXAMPLES:
         sage: BinaryQF_reduced_representatives(-4)
-        [x^2  + y^2 ]
+        [x^2 + y^2]
 
         sage: BinaryQF_reduced_representatives(-163)
-        [x^2  + xy  + 41y^2 ]
+        [x^2 + x*y + 41*y^2]
 
         sage: BinaryQF_reduced_representatives(-12)
-        [x^2  + 3y^2 , 2x^2  + 2xy  + 2y^2 ]
+        [x^2 + 3*y^2, 2*x^2 + 2*x*y + 2*y^2]
 
         sage: BinaryQF_reduced_representatives(-16)
-        [x^2  + 4y^2 , 2x^2  + 2y^2 ]
+        [x^2 + 4*y^2, 2*x^2 + 2*y^2]
+
+        The number of inequivalent reduced binary forms with a fixed negative
+        fundamental discriminant D is the class number of the quadratic field
+        $Q(\sqrt{D})$.
+
+        sage: len(BinaryQF_reduced_representatives(-13*4))
+        2
+        sage: QuadraticField(-13*4, 'a').class_number()
+        2
     """
     if not ( D < 0  and  D in ZZ  and ((D % ZZ(4) == 0) or (D % ZZ(4) == 1))):
         raise ValueError, "discriminant is not valid and positive definite"
 
-    ## Find the range of allowed b's
+    # Find the range of allowed b's
     bmax = (-D / ZZ(3)).sqrt_approx().ceil()
     b_range = range(-bmax, bmax+1)
 
-    ## Find the set of all (possibly mutually equivalent) quadratic forms
+    # Find the set of all (possibly mutually equivalent) quadratic forms
     form_list = []
     for b in b_range:
         b_plus = abs(b)
         tmp_num = b**2 - D
         if (b**2 - D) % ZZ(4) == 0:
             tmp_num_4 = tmp_num / ZZ(4)
-            b_divs__a = [a  for a in divisors(tmp_num_4) if a <= tmp_num_4.sqrt() and b_plus <= a]   ## Look for |b| <= a <= c
+            # Look for |b| <= a <= c
+            b_divs__a = [a for a in divisors(tmp_num_4) if
+                         a <= tmp_num_4.sqrt() and
+                         b_plus <= a]
             for a in b_divs__a:
                 c = tmp_num_4 / a
-                if (a != b_plus and c != b_plus) or (b >= 0):         ## Require b>0 if a = c
+                if (a != b_plus and c != b_plus) or (b >= 0):
+                    # Require b>0 if a = c
                     form_list.append(BinaryQF([a,b,c]))
-
-    ## Return the list
     return form_list

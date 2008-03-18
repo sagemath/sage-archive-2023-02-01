@@ -28,13 +28,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     cdef int _cmp_units(left, pAdicGenericElement right) except -2
 
-    cdef void _set_inexact_zero(self, long absprec)
-    cdef void _set_exact_zero(self)
+    cdef int _set_inexact_zero(self, long absprec) except -1
+    cdef int _set_exact_zero(self) except -1
 
-    cpdef bint _is_exact_zero(self)
-    cpdef bint _is_inexact_zero(self)
-    cpdef bint _is_zero_rep(self)
+    cpdef bint _is_exact_zero(self) except -1
+    cpdef bint _is_inexact_zero(self) except -1
+    cpdef bint _is_zero_rep(self) except -1
 
-    cdef bint _set_prec_abs(self, long absprec)
-    cdef bint _set_prec_rel(self, long relprec)
-    cdef bint _set_prec_both(self, long absprec, long relprec)
+    cdef bint _set_prec_abs(self, long absprec) except -1
+    cdef bint _set_prec_rel(self, long relprec) except -1
+    cdef bint _set_prec_both(self, long absprec, long relprec) except -1

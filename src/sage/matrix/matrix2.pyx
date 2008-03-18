@@ -75,7 +75,28 @@ cdef class Matrix(matrix1.Matrix):
         v = [a.subs(in_dict, **kwds) for a in self.list()]
         return self.new_matrix(self.nrows(), self.ncols(), v)
 
-    def solve_right(self, B):
+    def solve_left(self, B, check=True):
+        """
+        If self is a matrix $A$, then this function returns a vector
+        or matrix $X$ such that $X A = B$.  If $B$ is a vector then
+        $X$ is a vector and if $B$ is a matrix, then $X$ is a matrix.
+
+        INPUT:
+            B -- a matrix
+            check -- bool (default: True) -- if False and self is nonsquare,
+                     may not raise an error message even if there is no solution.
+                     This is faster but more dangerous.
+
+        EXAMPLES:
+            sage: A = matrix(QQ,4,2, [0, -1, 1, 0, -2, 2, 1, 0])
+            sage: B = matrix(QQ,2,2, [1, 0, 1, -1])
+            sage: X = A.solve_left(B)
+            sage: X*A == B
+            True
+        """
+        return self.transpose().solve_right(B.transpose(), check=check).transpose()
+
+    def solve_right(self, B, check=True):
         r"""
         If self is a matrix $A$, then this function returns a vector
         or matrix $X$ such that $A X = B$.  If $B$ is a vector then
@@ -87,9 +108,14 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
             B -- a matrix or vector
+            check -- bool (default: True) -- if False and self is nonsquare,
+                     may not raise an error message even if there is no solution.
+                     This is faster but more dangerous.
 
         OUTPUT:
             a matrix or vector
+
+        SEE ALSO: solve_left
 
         EXAMPLES:
             sage: A = matrix(QQ, 3, [1,2,3,-1,2,5,2,3,1])
@@ -98,6 +124,48 @@ cdef class Matrix(matrix1.Matrix):
             (-13/12, 23/12, -7/12)
             sage: A * x
             (1, 2, 3)
+
+        We solve with A nonsquare:
+            sage: A = matrix(QQ,2,4, [0, -1, 1, 0, -2, 2, 1, 0]); B = matrix(QQ,2,2, [1, 0, 1, -1])
+            sage: X = A.solve_right(B); X
+            [-3/2  1/2]
+            [  -1    0]
+            [   0    0]
+            [   0    0]
+            sage: A*X == B
+            True
+
+        Another nonsingular example:
+            sage: A = matrix(QQ,2,3, [1,2,3,2,4,6]); v = vector([-1/2,-1])
+            sage: x = A \ v; x
+            (-1/2, 0, 0)
+            sage: A*x == v
+            True
+
+        An example in which there is no solution:
+            sage: A = matrix(QQ,2,3, [1,2,3,2,4,6]); v = vector([1,1])
+            sage: A \ v
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+        A ValueError is raised if the input is invalid:
+            sage: A = matrix(QQ,4,2, [0, -1, 1, 0, -2, 2, 1, 0])
+            sage: B = matrix(QQ,2,2, [1, 0, 1, -1])
+            sage: X = A.solve_right(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of rows of self must equal number of rows of B
+
+
+        We solve with A singular:
+            sage: A = matrix(QQ,2,3, [1,2,3,2,4,6]); B = matrix(QQ,2,2, [6, -6, 12, -12])
+            sage: X = A.solve_right(B); X
+            [ 6 -6]
+            [ 0  0]
+            [ 0  0]
+            sage: A*X == B
+            True
 
         We illustrate left associativity, etc., of the backslash operator.
             sage: A = matrix(QQ, 2, [1,2,3,4])
@@ -142,8 +210,13 @@ cdef class Matrix(matrix1.Matrix):
             sage: a * x == v
             True
         """
-        if not self.is_square():
-            raise NotImplementedError, "input matrix must be square"
+
+        if is_Vector(B):
+            if self.nrows() != B.degree():
+                raise ValueError, "number of rows of self must equal degree of B"
+        else:
+            if self.nrows() != B.nrows():
+                raise ValueError, "number of rows of self must equal number of rows of B"
 
         K = self.base_ring()
         if not K.is_integral_domain():
@@ -152,15 +225,25 @@ cdef class Matrix(matrix1.Matrix):
             K = K.fraction_field()
             self = self.change_ring(K)
 
-        if self.rank() != self.nrows():
-            raise ValueError, "input matrix must have full rank but it doesn't"
-
         matrix = True
         if is_Vector(B):
             matrix = False
             C = self.matrix_space(self.nrows(), 1)(B.list())
         else:
             C = B
+
+        if not self.is_square():
+            X = self._solve_right_general(C, check=check)
+            if not matrix:
+                # Convert back to a vector
+                return (X.base_ring() ** X.nrows())(X.list())
+            else:
+                return X
+
+
+        if self.rank() != self.nrows():
+            return self._solve_right_general(B, check=check)
+
 
         D = self.augment(C).echelon_form()
         X = D.matrix_from_columns(range(self.ncols(),D.ncols()))
@@ -171,6 +254,71 @@ cdef class Matrix(matrix1.Matrix):
             return X
 
 
+    def pivot_rows(self):
+        """
+        Return the pivot row positions for this matrix, which are a
+        topmost subset of the rows that span the row space and are
+        linearly independent.
+
+        OUTPUT:
+            list -- a list of integers
+
+        EXAMPLES:
+            sage: A = matrix(QQ,3,3, [0,0,0,1,2,3,2,4,6]); A
+            [0 0 0]
+            [1 2 3]
+            [2 4 6]
+            sage: A.pivot_rows()
+            [1]
+        """
+        v = self.fetch('pivot_rows')
+        if v is not None:
+            return list(v)
+        v = self.transpose().pivots()
+        self.cache('pivot_rows', v)
+        return v
+
+    def _solve_right_general(self, B, check=True):
+        r"""
+        This is used internally by the \code{solve_right} command to
+        solve for self*X = B when self is not square or not of full
+        rank.  It does some linear algebra, then solves a full-rank
+        square system.
+
+        INPUT:
+            B -- a matrix
+            check -- bool (default: True); if False, if there is no
+                     solution this function will not detect that fact.
+
+        OUTPUT:
+            matrix
+
+        EXAMPLES:
+            sage: A = matrix(QQ,2,3, [1,2,3,2,4,6]); B = matrix(QQ,2,2, [6, -6, 12, -12])
+            sage: A._solve_right_general(B)
+            [ 6 -6]
+            [ 0  0]
+            [ 0  0]
+        """
+        pivot_cols = self.pivots()
+        A = self.matrix_from_columns(pivot_cols)
+        pivot_rows = A.pivot_rows()
+        A = A.matrix_from_rows(pivot_rows)
+        X = A.solve_right(B.matrix_from_rows(pivot_rows), check=False)
+        if len(pivot_cols) < self.ncols():
+            # Now we have to put in zeros for the non-pivot ROWS, i.e.,
+            # make a matrix from X with the ROWS of X interspersed with
+            # 0 ROWS.
+            Y = X.new_matrix(self.ncols(), X.ncols())
+            # Put the columns of X into the matrix Y at the pivot_cols positions
+            for i, c in enumerate(pivot_cols):
+                Y.set_row(c, X.row(i))
+            X = Y
+        if check:
+            # Have to check that we actually solved the equation.
+            if self*X != B:
+                raise ValueError, "matrix equation has no solutions"
+        return X
 
     def prod_of_row_sums(self, cols):
         r"""
@@ -1901,6 +2049,34 @@ cdef class Matrix(matrix1.Matrix):
             return self.new_matrix(n, n, C, sparse=False)
 
     def restrict_domain(self, V):
+        """
+        Compute the matrix relative to the basis for V on the domain
+        obtained by restricting self to V, but not changing the
+        codomain of the matrix.  This is the matrix whose rows are the
+        images of the basis for V.
+
+        INPUT:
+            V -- vector space (subspace of ambient space on which self acts)
+
+        SEE ALSO: restrict()
+
+        EXAMPLES:
+            sage: V = VectorSpace(QQ, 3)
+            sage: M = MatrixSpace(QQ, 3)
+            sage: A = M([1,2,0, 3,4,0, 0,0,0])
+            sage: W = V.subspace([[1,0,0], [1,2,3]])
+            sage: A.restrict_domain(W)
+            [1 2 0]
+            [3 4 0]
+            sage: W2 = V.subspace_with_basis([[1,0,0], [1,2,3]])
+            sage: A.restrict_domain(W2)
+            [ 1  2  0]
+            [ 7 10  0]
+        """
+        e = [b*self for b in V.basis()]
+        return self.new_matrix(V.dimension(), self.ncols(), e)
+
+    def restrict_codomain(self, V):
         """
         Compute the matrix relative to the basis for V on the domain
         obtained by restricting self to V, but not changing the

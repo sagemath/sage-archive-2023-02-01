@@ -498,7 +498,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: sum(c*m for c,m in f) == f
             True
         """
-        exps = self.element().exponents()
+        exps = self.exponents()
         parent = self.parent()
         for exp in exps:
             yield self.element()[exp], MPolynomial_polydict(parent, {exp: 1})
@@ -655,7 +655,18 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
            sage: f.exponents()
            [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
         """
-        return [m.element().dict().keys()[0] for m in self.monomials()]
+        try:
+            return self.__exponents
+        except AttributeError:
+            self.__exponents = self.element().dict().keys()
+            try:
+                self.__exponents.sort(cmp=self.parent().term_order().compare_tuples, reverse=True)
+            except AttributeError:
+                pass
+            return self.__exponents
+        #return self.element().poly_repr(self.parent().variable_names(),
+                                        #atomic_coefficients=self.parent().base_ring().is_atomic_repr(),cmpfn=cmpfn )
+        #return [m.element().dict().keys()[0] for m in self.monomials()]
 
     def is_unit(self):
         """
@@ -804,6 +815,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: sum(map(mul,zip(F.coefficients(),F.monomials()))) == F
             True
         """
+        ring = self.parent()
+        one = ring.base_ring()(1)
+        return [MPolynomial_polydict(ring, polydict.PolyDict({m:one}, force_int_exponents=False, force_etuples=False)) for m in self.exponents()]
         try:
             return self.__monomials
         except AttributeError:
@@ -1470,6 +1484,11 @@ def degree_lowest_rational_function(r,x):
         integer -- the degree of r in x and its "leading"
                    (in the x-adic sense) coefficient.
 
+    NOTES:
+        This function is dependent on the ordering of a python dict.  Thus,
+        it isn't really mathematically well-defined.  I think that it should
+        made a method of the FractionFieldElement class and rewritten.
+
     EXAMPLES:
         sage: R1 = MPolynomialRing(FiniteField(5), 3, names = ["a","b","c"])
         sage: F = FractionField(R1)
@@ -1482,11 +1501,11 @@ def degree_lowest_rational_function(r,x):
         sage: r = f/g; r
         (-2*b*c^2 - 1)/(2*a*b^3*c^6 + a*c)
         sage: degree_lowest_rational_function(r,a)
-              (-1, 4)
+        (-1, 3)
         sage: degree_lowest_rational_function(r,b)
-              (0, 4)
+        (0, 4)
         sage: degree_lowest_rational_function(r,c)
-              (-1, 4)
+        (-1, 4)
     """
     from sage.rings.fraction_field import FractionField
     R = r.parent()

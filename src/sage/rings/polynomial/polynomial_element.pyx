@@ -1451,7 +1451,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             {}
             sage: f = 7*x^5 + x^2 - 2*x - 3
             sage: f._mpoly_dict_recursive()
-            {(0,): -3, (1,): -2, (2,): 1, (5,): 7}
+            {(0,): -3, (1,): -2, (5,): 7, (2,): 1}
         """
         if not self:
             return {}

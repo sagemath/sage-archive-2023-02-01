@@ -93,6 +93,16 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.coefficients()
             [6, 23, 1]
 
+            # Test the same stuff with ZZ -- different implementation
+            sage: R.<x,y,z> = MPolynomialRing(ZZ,3,order='degrevlex')
+            sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: f.coefficients()
+            [23, 6, 1]
+            sage: R.<x,y,z> = MPolynomialRing(ZZ,3,order='lex')
+            sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: f.coefficients()
+            [6, 23, 1]
+
         AUTHOR:
             -- didier deshommes
         """
@@ -144,7 +154,7 @@ cdef class MPolynomial(CommutativeRingElement):
         monomial at a time, with no sharing of repeated computations and
         with useless additions of 0 and multiplications by 1:
             sage: list(ff)
-            ['push 0.0', 'push 4.0', 'load 1', 'dup', 'mul', 'mul', 'add', 'push 6.0', 'load 0', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 9.0', 'load 2', 'dup', 'mul', 'dup', 'mul', 'mul', 'add', 'push 4.0', 'load 0', 'load 1', 'mul', 'mul', 'add', 'push 12.0', 'load 1', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 1.0', 'load 0', 'dup', 'mul', 'mul', 'add', 'push 42.0', 'add']
+            ['push 0.0', 'push 12.0', 'load 1', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 0', 'load 1', 'mul', 'mul', 'add', 'push 42.0', 'add', 'push 1.0', 'load 0', 'dup', 'mul', 'mul', 'add', 'push 9.0', 'load 2', 'dup', 'mul', 'dup', 'mul', 'mul', 'add', 'push 6.0', 'load 0', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 1', 'dup', 'mul', 'mul', 'add']
 
         TESTS:
             sage: from sage.ext.fast_eval import fast_float

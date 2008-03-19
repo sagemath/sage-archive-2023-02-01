@@ -3177,21 +3177,19 @@ class PlotFieldFactory(GraphicPrimitiveFactory_plot_field):
     and plots vector arrows of the function over the specified
     xrange and yrange as demonstrated below.
 
-    plot_vector_field((f, g), (xmin, xmax), (ymin, ymax))
+    plot_vector_field((f, g), (xvar, xmin, xmax), (yvar, ymin, ymax))
 
     EXAMPLES:
+    Plot the vector fields involving sin and cos
         sage: x,y = var('x y')
-
-    Plot the vector field of sin and cos:
-        sage: plot_vector_field((lambda x,y:sin(x), lambda x,y:cos(y)), (-3,3), (-3,3))
-
-        sage: x,y = var('x y')
-        sage: plot_vector_field((lambda x,y: y, lambda x,y: (cos(x)-2)*sin(x)),(-pi,pi),(-pi,pi))
+        sage: plot_vector_field((sin(x), cos(y)), (x,-3,3), (y,-3,3))
+        sage: plot_vector_field(( y, (cos(x)-2)*sin(x)), (x,-pi,pi), (y,-pi,pi))
 
     Plot a gradient field
-        sage: f(x,y) = exp(-(x^2+y^2))
-        sage: grad_f = [diff(f,var) for var in (x,y)]
-        sage: plot_vector_field(grad_f, (-2,2), (-2,2))
+        sage: u,v = var('u v')
+        sage: f = exp(-(u^2+v^2))
+        sage: plot_vector_field(f.gradient(), (u,-2,2), (v,-2,2))
+
 
     """
     def _reset(self):

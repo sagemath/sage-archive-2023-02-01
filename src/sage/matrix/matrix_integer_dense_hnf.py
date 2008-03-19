@@ -189,7 +189,7 @@ def det_padic(A, proof=True, stabilize=2):
     if r < A.nrows():
         return ZZ(0)
     v = random_matrix(ZZ, A.nrows(), 1)
-    d = A.solve_right(v, check_rank=False).denominator()
+    d = A._solve_right_nonsingular_square(v, check_rank=False).denominator()
     return det_given_divisor(A, d, proof=proof, stabilize=stabilize)
 
 def double_det (A, b, c, proof):
@@ -232,7 +232,7 @@ def double_det (A, b, c, proof):
     c = c.transpose()
     t = verbose('starting double det')
     B = A.augment(b)
-    v = B.solve_right(-c, check_rank=True)  # infinite loop if not full rank and don't do this.
+    v = B.solve_right(-c)
 
     db = det_given_divisor(B, v.denominator(), proof=proof)
 

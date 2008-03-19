@@ -359,7 +359,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         return polynomial_singular_interface.resultant_func(self, other, variable)
 
 
-    def small_roots(self, X=None, beta=1.0, **kwds):
+    def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
         r"""
         Let $N$ be the characteristic of the base ring this polynomial
         is defined over: \code{N = self.base_ring().characteristic()}.
@@ -369,7 +369,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         modulo $b$ then $|x| < X$. This $X$ is either provided by the
         user or the maximum $X$ is chosen such that this algorithm
         terminates in polynomial time. If $X$ is chosen automatically
-        it is $X = floor(N^{\beta^2/\delta - \epsilon})$.`This
+        it is $X = ceil(1/2 N^{\beta^2/\delta - \epsilon})$.`This
         algorithm` in this context means Coppersmith's algorithm for
         finding small roots using the LLL algorithm. The
         implementation of this algorithm follows Alexander May's PhD
@@ -379,6 +379,8 @@ cdef class Polynomial_dense_mod_n(Polynomial):
           X -- an absolute bound for the root (default: see above)
           beta -- compute a root mod $b$ where $b$ is a factor of $N$
                    and $b >= N^\beta$.  (default: 1.0 => $b = N$)
+          epsilon -- the parameter $\epsilon$ described above
+                     (default: beta/8)
           **kwds -- passed through to LLL method of
                     \code{Matrix_integer_dense}.
 
@@ -511,34 +513,37 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
         N = self.parent().characteristic()
 
-        f = self.change_ring(ZZ)
-        P,(x,) = f.parent().objgens()
+        if not self.is_monic():
+            raise ArithmeticError, "Polynomial must be monic."
 
         beta = RR(beta)
+        if beta <= 0.0 or beta > 1.0:
+            raise ValueError, "0.0 < beta <= 1.0 not satisfied."
+
+        f = self.change_ring(ZZ)
+
+        P,(x,) = f.parent().objgens()
 
         delta = f.degree()
-        epsilon = beta/8
 
-        # our choice of epsilon simplifies
-        #  m = ceil( max(beta^2/(delta * epsilon), 7*beta/delta) )
-        # to
-        m = int( ( beta**2/(delta * epsilon) ).ceil() )
+        if epsilon is None:
+            epsilon = beta/7
+        verbose("epsilon = %d"%epsilon, level=2)
+
+        m = max(beta**2/(delta * epsilon), 7*beta/delta).ceil()
         verbose("m = %d"%m, level=2)
 
         t = int( ( delta*m*(1/beta -1) ).floor() )
         verbose("t = %d"%t, level=2)
 
+        if X is None:
+            X = (0.5 * N**(beta**2/delta - epsilon)).ceil()
+        verbose("X = %s"%X, level=2)
+
+        # we could do this much faster, but this is a cheap step
+        # compared to LLL
         g  = [x**j * N**(m-i) * f**i for i in range(m) for j in range(delta) ]
         g.extend([x**i * f**m for i in range(t)]) # h
-
-        # In Alexander May's thesis it is recommended to set X =
-        # ceil(N^(b^2/d - e)) but the proof of correctness is for 1/2
-        # * N^(b^2/d - e). Also, David Joyner provided an example
-        # which doesn't work with ceil(...), floor(...) seems to be
-        # fine though.
-        if X is None:
-            X = int( (N**(beta**2/delta - epsilon)).floor() )
-        verbose("X = %s"%X, level=2)
 
         B = Matrix(ZZ, len(g), delta*m + max(delta,t) )
         for i in range(B.nrows()):
@@ -551,7 +556,9 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         R = f.roots()
 
         ZmodN = self.base_ring()
-        return list(set([ZmodN(r) for r,m in R if r<=X]))
+        roots = set([ZmodN(r) for r,m in R])
+        Nbeta = N**beta
+        return [root for root in roots if N.gcd(ZZ(self(root))) >= Nbeta]
 
 cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 

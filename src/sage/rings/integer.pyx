@@ -309,6 +309,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(1==0)
             0
 
+            sage: k = GF(2)
+            sage: ZZ( (k(0),k(1)), 2)
+            2
         """
 
         # TODO: All the code below should somehow be in an external
@@ -377,11 +380,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 # then how do we make Pyrex handle the reference counting?
                 set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))())
 
-            elif PY_TYPE_CHECK(x, list) and base > 1:
+            elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
                 b = the_integer_ring(base)
                 tmp = the_integer_ring(0)
                 for i in range(len(x)):
-                    tmp += x[i]*b**i
+                    tmp += the_integer_ring(x[i])*b**i
                 mpz_set(self.value, tmp.value)
 
             else:

@@ -36,6 +36,7 @@ import tableau
 import sage.combinat.partition
 from permutation_nk import PermutationsNK
 import sage.rings.integer
+from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from random import randint, sample
 from sage.interfaces.all import gap
@@ -431,13 +432,17 @@ class Permutation_class(CombinatorialObject):
         Returns a PermutationGroupElement equal to self.
 
         EXAMPLES:
-            sage: p = Permutation([2,1,4,3])
-            sage: pge = p.to_permutation_group_element()
-            sage: pge
+            sage: Permutation([2,1,4,3]).to_permutation_group_element()
             (1,2)(3,4)
+            sage: Permutation([1,2,3]).to_permutation_group_element()
+            ()
         """
-
-        return PermutationGroupElement(self.to_cycles(singletons=False))
+        cycles = self.to_cycles(singletons=False)
+        grp = SymmetricGroup(len(self))
+        if cycles == []:
+            return PermutationGroupElement( '()', parent=grp )
+        else:
+            return PermutationGroupElement( cycles , parent=grp)
 
     def signature(p):
         r"""

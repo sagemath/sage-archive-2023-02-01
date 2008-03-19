@@ -1545,6 +1545,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             q   -- the quotient of self/other
 
         EXAMPLES:
+            sage: z = Integer(-231)
+            sage: z.div(2)
+            -116
             sage: z = Integer(231)
             sage: z.div(2)
             115
@@ -1555,20 +1558,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             ZeroDivisionError: other (=0) must be nonzero
         """
-        cdef Integer _other, _self
-        _other = integer(other)
-        if not _other:
-            raise ZeroDivisionError, "other (=%s) must be nonzero"%other
-        _self = integer(self)
-
-        cdef Integer q, r
-        q = PY_NEW(Integer)
-        r = PY_NEW(Integer)
-
-        _sig_on
-        mpz_tdiv_qr(q.value, r.value, _self.value, _other.value)
-        _sig_off
-
+        q,_=self.quo_rem(other)
         return q
 
 

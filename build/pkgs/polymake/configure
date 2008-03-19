@@ -1,0 +1,13 @@
+#!/bin/sh
+if [ $# -gt 0 ]; then
+  cat INSTALL >&2
+  echo "Proceed with 'make configure'"
+  exit
+fi
+cat >&2 <<'.'
+****************************************************
+Please be sure to read the installation instructions
+before proceeding with the configuration procedure!
+****************************************************
+.
+make configure

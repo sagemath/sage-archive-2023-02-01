@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+
+import os, sys, time
+
+SAGE_GMP_VERSION="4.2.1.p12"
+CDDLIB_VERSION='094b.p1'
+
+# For some reason, e.g., "make -j4" breaks the build.
+if os.environ.has_key('MAKE'):
+    del os.environ['MAKE']
+
+SAGE_LOCAL=os.environ['SAGE_LOCAL']
+SAGE_ROOT=os.environ['SAGE_ROOT']
+
+os.system('make distclean')
+
+cddlib='cddlib-%s'%CDDLIB_VERSION
+if os.path.exists('%s/spkg/build/cddlib-094b'%SAGE_ROOT):
+    os.system('cd external; ln -s %s/spkg/build/%s .'%(SAGE_ROOT,cddlib))
+else:
+    e = os.system('cd external; tar jxvf %s/spkg/standard/%s.spkg'%(SAGE_ROOT,cddlib))
+    if e:
+        os.system('sage -f cddlib-%s'%CDDLIB_VERSION)
+        e = os.system('cd external; tar jxvf %s/spkg/standard/%s.spkg'%(SAGE_ROOT,cddlib))
+        if e:
+            print "Download the %s.spkg and place it in '%s/spkg/standard/'"%(cddlib, SAGE_ROOT)
+            sys.exit(1)
+    os.system('cd external; mv cddlib-%s/src/* cddlib-%s/'%(CDDLIB_VERSION, CDDLIB_VERSION))
+
+gmp='gmp-' + SAGE_GMP_VERSION
+if os.path.exists('%s/spkg/build/%s'%(SAGE_ROOT,gmp)):
+    os.system('cd external; ln -s %s/spkg/build/%s ./gmp-4.1.4'%(
+        SAGE_ROOT,gmp))
+else:
+    e = os.system('cd external; tar jxvf %s/spkg/standard/%s.spkg; ln -s %s gmp-4.1.4'%(SAGE_ROOT, gmp, gmp))
+    if e:
+        os.system('sage -i %s'%gmp)
+        e = os.system('cd external; tar jxvf %s/spkg/standard/%s.spkg'%(gmp,SAGE_ROOT))
+        if e:
+            print "Download the %s.spkg and place it in '%s/spkg/standard/'"%(gmp,SAGE_ROOT)
+            sys.exit(1)
+
+# Use echo below so it goes into non-interactive mode (since not stdin).
+os.system('echo "" | make')
+
+# sometimes it outputs an error code (with no error message) once, so
+# we ignore the error.  This is probably just an error in their build
+# system.
+os.system('make install')
+os.system('make install')
+print "Do not worry if there is an error message above, as long as the build says it worked below."
+
+# Have to remove then copy since we don't have write permission
+os.system('rm -f %s/polymake/bin/polymake'%SAGE_LOCAL)
+if os.system('cp polymake %s/polymake/bin/'%SAGE_LOCAL):
+    print "Error building and installing polymake"
+    sys.exit(1)

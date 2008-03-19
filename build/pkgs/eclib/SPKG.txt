@@ -28,15 +28,21 @@ over 25 years of hard work.
 == Distribution ==
 
 === Padus ===
+
  * Contact: Ismail Dönmez
  * EMail: ismail@pardus.org.tr
  * Website: N/A
+
+=== Special Update/Build Instructions ===
+
+ * The makefiles do use GNU extensions. This causes build failures on systems like FreeBSD where GNU's make is usually called gmake. A workaround is to create a symlink from gmake to make in {{{~/bin}}} and to add that directory to {{{$PATH}}} before the directory that contains the BSD make
 
 == Changelog ==
 
 === eclib-20080319 (Tom Boothby, March 19th, 2008) ===
  * fix directory name
  * update SPKG.txt
+ * fix permissions
 
 === eclib-20080310 (Tom Boothby, March 10th, 2008) ===
  * Applied patch from John Cremona to compute modular symbols of elliptic curves.

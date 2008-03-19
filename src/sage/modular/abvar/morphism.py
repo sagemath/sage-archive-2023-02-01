@@ -45,25 +45,15 @@ import sage.structure.element
 class Morphism(sage.modules.matrix_morphism.MatrixMorphism):
     """
     A morphism between modular abelian varieties.
+    EXAMPLES:
+        sage: t = J0(11).hecke_operator(2)
+        sage: from sage.modular.abvar.morphism import Morphism
+        sage: isinstance(t, Morphism)
+        True
     """
-    def __init__(self, parent, M):
-        """
-        Create a morphism between modular abelian varieties.
+    pass
 
-        INPUT:
-             parent -- a homset
-             M -- a matrix
-
-        EXAMPLES:
-            sage: t = J0(11).hecke_operator(2)
-            sage: from sage.modular.abvar.morphism import Morphism
-            sage: isinstance(t, Morphism)
-            True
-        """
-        sage.modules.matrix_morphism.MatrixMorphism.__init__(self, parent, M)
-
-
-class HeckeOperator(Morphism):
+class HeckeOperator(sage.modules.matrix_morphism.MatrixMorphism_abstract):
     """
     A Hecke operator acting on a modular abelian variety.
     """
@@ -88,7 +78,7 @@ class HeckeOperator(Morphism):
             raise TypeError, "abvar must be a modular abelian variety"
         self.__abvar = abvar
         self.__n = n
-        Morphism.__init__(self, abvar._Hom_(abvar), abvar._integral_hecke_matrix(n))
+        sage.modules.matrix_morphism.MatrixMorphism_abstract.__init__(self, abvar._Hom_(abvar))
 
     def _repr_(self):
         """
@@ -225,4 +215,9 @@ class HeckeOperator(Morphism):
         return self.__abvar.homology(R).hecke_operator(self.index())
 
     def matrix(self):
-        return self.action_on_homology().matrix()
+        try:
+            return self._matrix
+        except AttributeError:
+            pass
+        self._matrix = self.action_on_homology().matrix()
+        return self._matrix

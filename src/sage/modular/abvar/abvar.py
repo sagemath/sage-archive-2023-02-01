@@ -26,7 +26,7 @@ TESTS:
 from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence
 from sage.structure.parent_base import ParentWithBase
-from morphism                   import HeckeOperator
+from morphism                   import HeckeOperator, Morphism
 from torsion_subgroup           import TorsionSubgroup
 from finite_subgroup            import FiniteSubgroup_gens, FiniteSubgroup, FiniteSubgroupElement
 from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup
@@ -38,6 +38,7 @@ from sage.modular.modsym.space  import ModularSymbolsSpace
 from sage.matrix.all            import matrix, block_diagonal_matrix
 from sage.groups.all            import AbelianGroup
 from sage.databases.cremona     import cremona_letter_code
+from sage.misc.misc             import prod
 
 import homology
 import homspace
@@ -190,6 +191,34 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         return '%s%s%s'%(self.newform_level(), cremona_letter_code(self.isogeny_number()), degen)
 
 
+    def _isogeny_to_newform_abelian_variety(self):
+        D = self.decomposition()
+        if len(D) > 1:
+            raise ValueError, "self is not simple"
+
+        t, N = D[0].number()
+        return self.degeneracy_map(self.newform_level(),t)
+
+    def _simple_isogeny(self, other):
+        """
+        Given self and other, if both are simple, and correspond to
+        the same newform, return an isogeny. Otherwise, raise a
+        ValueError.
+        """
+        D = self.decomposition()
+        if len(D) > 1:
+            raise ValueError, "self is not simple"
+
+        E = other.decomposition()
+        if len(E) > 1:
+            raise ValueError, "other is not simple"
+
+        if (self.newform_level() != other.newform_level()) or \
+           (self.isogeny_number() != other.isogeny_number()):
+            raise ValueError, "self and other do not correspond to the same newform"
+
+        return other._isogeny_to_newform_abelian_variety().complementary_isogeny() * \
+               self._isogeny_to_newform_abelian_variety()
 
     def _Hom_(self, B, cat=None):
         """
@@ -321,8 +350,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def __add__(self, other):
         """
         Returns the sum of the images of self and other inside the
-        ambient Jacobian product.   self and other must be abelian subvarieties
-        of the ambient Jacobian product.
+        ambient Jacobian product.  self and other must be abelian
+        subvarieties of the ambient Jacobian product.
 
         EXAMPLES:
 
@@ -431,6 +460,39 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         else:
             raise TypeError, "other must be a subgroup or abelian subvariety"
 
+    def degeneracy_map(self, M_ls, t_ls):
+        """
+        TODO
+        Return the degeneracy map from self to the right thing.
+        """
+        if not isinstance(M_ls, list):
+            M_ls = [M_ls]
+        if not isinstance(t_ls, list):
+            t_ls = [t_ls]
+
+        length = len(M_ls)
+        if length != len(t_ls):
+            raise ValueError, "must have same number of Ms and ts"
+        if length != len(self.groups()):
+            raise ValueError, "must have same number of Ms and groups in ambient variety"
+        for i in range(length):
+            N = self.groups()[i].level()
+            if (M_ls[i]%N) and (N%M_ls[i]):
+                raise ValueError, "one level must divide the other in %s-th component"%i
+            if (( max(M_ls[i],N) // min(M_ls[i],N) ) % t_ls[i]):
+                print M_ls[i], N, t_ls[i]
+                raise ValueError, "each t must divide the quotient of the levels"
+
+        G = self.groups()
+        ls = [ self.groups()[i].modular_abelian_variety().degeneracy_map(M_ls[i], t_ls[i]).matrix() for i in range(length) ]
+
+        new_codomain = prod([ self.groups()[i]._new_group_from_level(M_ls[i]).modular_abelian_variety()
+                              for i in range(length) ])
+
+        H = self.Hom(new_codomain)
+
+        return H(Morphism(H,block_diagonal_matrix(ls, subdivide=False).restrict_domain(self.lattice())))
+
     def _quotient_by_finite_subgroup(self, G):
         if G.order() == 1:
             return self
@@ -494,8 +556,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
     def degree(self):
         """
-        Return the degree of this abelian variety, which
-        is the dimension of the ambient Jacobian product.
+        Return the degree of this abelian variety, which is the
+        dimension of the ambient Jacobian product.
 
         EXAMPLES:
             sage: A = J0(23)
@@ -693,8 +755,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
     def _ambient_hecke_matrix_on_modular_symbols(self, n):
         r"""
-        Return block direct sum of the matrix of the Hecke operator $T_n$ acting
-        on each of the ambient modular symbols spaces.
+        Return block direct sum of the matrix of the Hecke operator
+        $T_n$ acting on each of the ambient modular symbols spaces.
 
         INPUT:
             n -- an integer $\geq 1$.

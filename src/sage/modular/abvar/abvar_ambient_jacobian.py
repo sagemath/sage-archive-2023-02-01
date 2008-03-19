@@ -144,13 +144,17 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
 
     def degeneracy_map(self, level, t=1, check=True):
         """
-        Return the t-th degeneracy map from self to J0(level).
-        Here t must be a divisor of level/self.level().
+        Return the t-th degeneracy map from self to J(level).  Here t
+        must be a divisor of either level/self.level() or
+        self.level()/level.
+
+        EXAMPLES:
+
         """
         if check:
-            if (level % self.level()):
+            if (level % self.level()) and (self.level() % level):
                 raise ValueError, "level must be divisible by level of self"
-            if (level / (self.level()) % t):
+            if (max(level,self.level()) // min(self.level(),level)) % t:
                 raise ValueError, "t must divide the quotient of the two levels"
 
         Mself = self.modular_symbols()

@@ -20,6 +20,7 @@ import sage.rings.integer_ring
 
 from sage.rings.ring import Ring
 from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.constructor import Matrix
 from sage.structure.element import is_Matrix
 
 ZZ = sage.rings.integer_ring.ZZ
@@ -107,6 +108,11 @@ class EndomorphismSubring(Homspace, Ring):
         N = other.free_module()
         return M.index_in(N)
 
+    def discriminant(self):
+        g = self.gens()
+        M = Matrix(ZZ,len(g), [ (g[i]*g[j]).trace()
+                                for i in range(len(g)) for j in range(len(g)) ])
+        return M.determinant()
 
     def free_module(self):
         if not self._gens_set:

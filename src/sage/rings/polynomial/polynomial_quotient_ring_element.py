@@ -150,7 +150,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             sage: R.<x> = QQ[]
             sage: S.<a> = R.quotient(3*x^3 + 3/2*x -1/3)
             sage: latex(a*(3 * a^3) + S.modulus())
-            -\frac{3}{2}a^{2} + \frac{1}{3}a
+            -\frac{3}{2} a^{2} + \frac{1}{3} a
         """
         return self._polynomial._latex_(self.parent().variable_name())
 

@@ -1032,9 +1032,9 @@ class NumberField_generic(number_field_base.NumberField):
         EXAMPLES:
             sage: k.<a> = NumberField(x^13 - (2/3)*x + 3)
             sage: k._latex_()
-            '\\mathbf{Q}[a]/(a^{13} - \\frac{2}{3}a + 3)'
+            '\\mathbf{Q}[a]/(a^{13} - \\frac{2}{3} a + 3)'
             sage: latex(k)
-            \mathbf{Q}[a]/(a^{13} - \frac{2}{3}a + 3)
+            \mathbf{Q}[a]/(a^{13} - \frac{2}{3} a + 3)
 
         Numbered variables are often correctly typeset:
             sage: k.<theta25> = NumberField(x^25+x+1)

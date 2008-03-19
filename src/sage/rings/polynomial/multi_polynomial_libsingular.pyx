@@ -1912,7 +1912,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: P.<x,y,z> = MPolynomialRing(QQ,3)
             sage: f = - 1*x^2*y - 25/27 * y^3 - z^2
             sage: latex(f)
-            - x^{2}y - \frac{25}{27} y^{3} - z^{2}
+            - x^{2} y - \frac{25}{27} y^{3} - z^{2}
 
         """
         cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
@@ -1931,9 +1931,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             for j from 1 <= j <= n:
                 e = p_GetExp(p, j, _ring)
                 if e > 0:
-                    multi += gens[j-1]
+                    multi += " "+gens[j-1]
                 if e > 1:
                     multi += "^{%d}"%e
+            multi = multi.lstrip().rstrip()
 
             # Next determine coefficient of multinomial
             c =  co.si2sa( p_GetCoeff(p, _ring), _ring, base)

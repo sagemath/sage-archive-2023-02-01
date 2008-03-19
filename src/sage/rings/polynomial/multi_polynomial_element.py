@@ -44,7 +44,7 @@ import operator
 
 import sage.rings.arith
 
-from sage.structure.element import CommutativeRingElement, Element, is_Element
+from sage.structure.element import CommutativeRingElement, Element, is_Element, canonical_coercion
 
 from sage.interfaces.all import singular, macaulay2
 
@@ -76,8 +76,6 @@ class MPolynomial_element(MPolynomial):
 
     def _repr_(self):
         return "%s"%self.__element
-
-
 
     ####################
 
@@ -1103,15 +1101,34 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def __floordiv__(self,right):
         """
         Quotient of division of self by other.  This is denoted //.
+
+        NOTES:
+            It's not clear to me that this is well-defined if self is not exactly
+            divisible by other.
+
+        EXAMPLES:
+            sage: R.<x,y>=ZZ[]
+            sage: 2*x*y//y
+            2*x
+            sage: 2*x//y
+            0
+            sage: 2*x//4
+            0
+            sage: type(0//y)
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
         """
+        if type(self) is not type(right) or self.parent() is not right.parent():
+            self, right = canonical_coercion(self, right)
+            return self // right  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
         # handle division by monomials without using Singular
         if len(right.dict()) == 1:
             P = self.parent()
-            ret = 0
+            ret = P(0)
+            denC,denM = iter(right).next()
             for c,m in self:
                 t = c*m
-                if P.monomial_divides(right, t):
-                    ret += P.monomial_quotient(t, right)
+                if denC.divides(c) and P.monomial_divides(denM, m):
+                    ret += P.monomial_quotient(t, right, coeff=True)
             return ret
 
         Q, _ = self.quo_rem(right)
@@ -1298,9 +1315,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: gcd(p,q)
             x^3 + (u + 1)*y^3 + z^3
         """
-        if not isinstance(f, MPolynomial) and self.parent() is f.parent():
-            raise TypeError, "self and f must have the same parent"
-
+        if type(self) is not type(f) or self.parent() is not f.parent():
+            self, f = canonical_coercion(self, f)
+            return self.gcd(f)  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
 
         # Singular ignores coefficents anyway, thus it is okay to work over Z here
         # PARI uses the coefficents btw.
@@ -1321,8 +1338,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         ALGORITHM: Use Singular.
         """
-        if not isinstance(right, MPolynomial) or right.parent() != self.parent():
-            right = self.parent()(right)
+        if type(self) is not type(right) or self.parent() is not right.parent():
+            self, right = canonical_coercion(self, right)
+            return self.quo_rem(right)  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
         R = self.parent()
         R._singular_().set_ring()
         X = self._singular_().division(right._singular_())

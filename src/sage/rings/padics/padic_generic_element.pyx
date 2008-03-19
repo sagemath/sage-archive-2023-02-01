@@ -569,7 +569,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             x = Integer(1) - self
             from sage.rings.padics.factory import Zp
-            working_ring = Zp(p, prec + extra_prec, type = 'capped-abs')
+            working_ring = Zp(p, prec + extra_prec, type = 'capped-abs', check=False)
             x = working_ring(x.lift())
             xpow = x
             ans = working_ring(Integer(0))

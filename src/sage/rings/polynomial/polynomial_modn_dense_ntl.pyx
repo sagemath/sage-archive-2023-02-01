@@ -527,7 +527,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         delta = f.degree()
 
         if epsilon is None:
-            epsilon = beta/7
+            epsilon = beta/8
         verbose("epsilon = %d"%epsilon, level=2)
 
         m = max(beta**2/(delta * epsilon), 7*beta/delta).ceil()

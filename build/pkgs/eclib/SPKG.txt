@@ -34,6 +34,13 @@ over 25 years of hard work.
 
 == Changelog ==
 
+=== eclib-20080319 (Tom Boothby, March 19th, 2008) ===
+ * fix directory name
+ * update SPKG.txt
+
+=== eclib-20080310 (Tom Boothby, March 10th, 2008) ===
+ * Applied patch from John Cremona to compute modular symbols of elliptic curves.
+
 === eclib-20080127 (William Stein and John Cremona) ===
  * Fix osx build and check issues
 

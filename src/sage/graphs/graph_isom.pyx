@@ -131,10 +131,7 @@ cdef class OrbitPartition:
         aRoot = self._find(a)
         bRoot = self._find(b)
         self._union_roots(aRoot, bRoot)
-        if aRoot == bRoot:
-            return 0
-        else:
-            return 1
+        return aRoot != bRoot
 
     def union_roots(self, a, b):
         self._union_roots(a, b)
@@ -1276,13 +1273,20 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
         sage: Graph('Fll^G').canonical_label()
         Graph on 7 vertices
 
+        sage: g = Graph()
+        sage: g.add_vertices(xrange(21))
+        sage: g.automorphism_group(return_group=False, order=True)
+        51090942171709440000
+
+
     """
     cdef int i, j, m # local variables
     cdef int uif = 1 if use_indicator_function else 0
     cdef int _base = 1 if base else 0
 
     cdef OrbitPartition Theta
-    cdef int index = 0, size = 1 # see Theorem 2.33 in [1]
+    cdef int index = 0 # see Theorem 2.33 in [1]
+    size = Integer(1)
 
     cdef int L = 100 # memory limit for storing values from fix and mcr:
                      # Phi and Omega store specific information about some
@@ -1874,7 +1878,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
             for i from 0 <= i < n:
                 if W[nu.k][i]: j += 1
             if j == index and ht == nu.k+1: ht = nu.k
-            size = size*index
+            size *= index
             index = 0
             nu.k -= 1
 

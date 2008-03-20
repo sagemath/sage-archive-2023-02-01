@@ -164,7 +164,7 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         self.__endomorphism_ring = E
         return self.__endomorphism_ring
 
-    def _endomorphism_ring_generators(self):
+    def _calculate_endomorphism_generators(self):
         """
         EXAMPLES:
             sage: f = CuspForms(43).newforms('a')[1]

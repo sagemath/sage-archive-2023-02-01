@@ -35,7 +35,6 @@ import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 
-
 from random import randint
 
 cdef class Matrix(matrix1.Matrix):
@@ -2896,6 +2895,26 @@ cdef class Matrix(matrix1.Matrix):
         if ncols == -1:
             ncols = self._ncols - col
         return matrix_window.MatrixWindow(self, row, col, nrows, ncols)
+
+    def set_block(self, row, col, block):
+        """
+        Sets the sub-matrix of self, with upper left corner given by row, col
+        to block.
+
+        EXAMPLES:
+            sage: A = matrix(QQ, 3, 3, range(9))/2
+            sage: B = matrix(ZZ, 2, 1, [100,200])
+            sage: A.set_block(0, 1, B)
+            sage: A
+            [  0 100   2]
+            [  3 200   5]
+            [  6   7   8]
+        """
+        self.check_mutability()
+        if block.base_ring() is not self.base_ring():
+            block = block.change_ring(self.base_ring())
+        window = self.matrix_window(row, col, block.nrows(), block.ncols())
+        window.set(block.matrix_window())
 
     def subdivide(self, row_lines=None, col_lines=None):
         """

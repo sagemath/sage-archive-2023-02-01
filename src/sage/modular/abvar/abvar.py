@@ -87,6 +87,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def lattice(self):
         raise NotImplementedError
 
+    def free_module(self):
+        return self.lattice()
+
     def vector_space(self):
         try:
             return self.__vector_space
@@ -205,6 +208,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         t, N = D[0].number()
         m = self.degeneracy_map(self.newform_level(),t)
+        from constructor import AbelianVariety
         Af = AbelianVariety(self.newform_label())
 
         return m.restrict_codomain(Af)
@@ -491,13 +495,21 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         if not isinstance(t_ls, list):
             t_ls = [t_ls]
 
+        single_group_image = False
+        groups = self.groups()
         length = len(M_ls)
         if length != len(t_ls):
             raise ValueError, "must have same number of Ms and ts"
-        if length != len(self.groups()):
-            raise ValueError, "must have same number of Ms and groups in ambient variety"
+        if length != len(groups):
+            if length == 1:
+                t_ls = t_ls * len(groups)
+                M_ls = M_ls * len(groups)
+                length = len(groups)
+                single_group_image = True
+            else:
+                raise ValueError, "must have same number of Ms and groups in ambient variety"
         for i in range(length):
-            N = self.groups()[i].level()
+            N = groups[i].level()
             if (M_ls[i]%N) and (N%M_ls[i]):
                 raise ValueError, "one level must divide the other in %s-th component"%i
             if (( max(M_ls[i],N) // min(M_ls[i],N) ) % t_ls[i]):
@@ -507,12 +519,22 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         G = self.groups()
         ls = [ self.groups()[i].modular_abelian_variety().degeneracy_map(M_ls[i], t_ls[i]).matrix() for i in range(length) ]
 
-        new_codomain = prod([ self.groups()[i]._new_group_from_level(M_ls[i]).modular_abelian_variety()
-                              for i in range(length) ])
+        if single_group_image:
+            new_codomain = self.groups()[i]._new_group_from_level(M_ls[0]).modular_abelian_variety()
+            M = matrix(ZZ, 2 * new_codomain.dimension(), 2 * self.ambient_variety().dimension())
+            while M.is_zero():
+                ix = 0
+                for sub_matrix in ls:
+                    M.set_block(0, ix, ZZ.random_element() * sub_matrix)
+                    ix += sub_matrix.ncols()
+        else:
+            new_codomain = prod([ self.groups()[i]._new_group_from_level(M_ls[i]).modular_abelian_variety()
+                                  for i in range(length) ])
+            M = block_diagonal_matrix(ls, subdivide=False)
 
         H = self.Hom(new_codomain)
 
-        return H(Morphism(H,block_diagonal_matrix(ls, subdivide=False).restrict_domain(self.lattice())))
+        return H(Morphism(H,M.restrict_domain(self.lattice())))
 
     def _quotient_by_finite_subgroup(self, G):
         if G.order() == 1:
@@ -1366,7 +1388,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         except AttributeError:
             if none_if_not_known:
                 return None
-            raise ValueError, "factor isogeny number not defined"
+            elif self.is_simple():
+                return self.decomposition()[0].isogeny_number()
+            else:
+                raise ValueError, "factor isogeny number not defined"
 
 
     def is_simple(self, none_if_not_known=False):
@@ -1441,6 +1466,21 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                                                        number=B.number(none_if_not_known=True)))
                     if len(C) > 0:
                         i += L.ncols()
+        elif not simple:
+            # In this case decompose the ambient space into powers of simple
+            # abelian varieties (i.e. with \code{simple=False)}, and then
+            # intersect the lattice corresponding to self with each of these
+            # factors.
+            D = []
+            L = self.lattice()
+            groups = self.groups()
+            K = self.base_ring()
+            for X in self.ambient_variety().decomposition(simple=False):
+                lattice = L.intersection(X.vector_space())
+                if lattice.rank() > 0:
+                    the_factor = ModularAbelianVariety(groups, lattice, K)
+                    D.append(the_factor)
+
         else:
             # See the documentation for self._classify_ambient_factors in order
             # to understand what we're doing here.

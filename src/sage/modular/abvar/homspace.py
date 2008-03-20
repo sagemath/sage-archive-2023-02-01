@@ -51,6 +51,7 @@ class Homspace(HomsetWithBase):
         if not abelian_variety.is_ModularAbelianVariety(codomain):
             raise TypeError, "codomain must be a modular abelian variety"
         self._matrix_space = MatrixSpace(ZZ,2*domain.dimension(), 2*codomain.dimension())
+        self._gens = None
         HomsetWithBase.__init__(self, domain, codomain, cat)
 
     def __call__(self, M):
@@ -113,10 +114,21 @@ class Homspace(HomsetWithBase):
         self.calculate_generators()
         return len(self._gens)
 
+    def gens(self):
+        try:
+            return self._gen_morphisms
+        except AttributeError:
+            self.calculate_generators()
+            self._gen_morphisms = tuple([self.gen(i) for i in range(self.ngens())])
+            return self._gen_morphisms
+
     def matrix_space(self):
         return self._matrix_space
 
     def calculate_generators(self):
+        if self._gens is not None:
+            return
+
         Afactors = self.domain().decomposition(simple=False)
         Bfactors = self.codomain().decomposition(simple=False)
         matrix_space = self.matrix_space()
@@ -130,8 +142,8 @@ class Homspace(HomsetWithBase):
             else:
                 # Handle the case of A, B simple powers
                 gens = []
-                for i in len(Asimples):
-                    for j in len(Bsimples):
+                for i in range(len(Asimples)):
+                    for j in range(len(Bsimples)):
                         hom_gens = Asimples[i].Hom(Bsimples[j]).gens()
                         for sub_gen in hom_gens:
                             sub_mat = sub_gen.matrix()
@@ -144,10 +156,10 @@ class Homspace(HomsetWithBase):
             gens = []
             cur_row = 0
             for Afactor in Afactors:
-                cur_row = A.dimension() * 2
+                cur_row += Afactor.dimension() * 2
                 cur_col = 0
                 for Bfactor in Bfactors:
-                    cur_col += B.dimension() * 2
+                    cur_col += Bfactor.dimension() * 2
                     Asimple = Afactor[0]
                     Bsimple = Bfactor[0]
                     if Asimple.newform_label() == Bsimple.newform_label():
@@ -158,9 +170,12 @@ class Homspace(HomsetWithBase):
                             gens.append(M)
 
         # set the gens
-        self._gens = gen
+        self._gens = gens
 
-    def _calculate_simple_gens(self, A, B):
+    def _calculate_simple_gens(self):
+
+        A = self.domain()
+        B = self.codomain()
 
         if A.newform_label() != B.newform_label():
             return []
@@ -174,7 +189,7 @@ class Homspace(HomsetWithBase):
         Mf = f.matrix()
         Mg = g.matrix()
 
-        return [ Mf * e * Mg for e in ls ]
+        return [ Mf * self._get_matrix(e) * Mg for e in ls ]
 
 class EndomorphismSubring(Homspace, Ring):
 

@@ -1,19 +1,119 @@
 r"""
-Boolean Polynomials via PolyBoRi.
+Boolean Polynomials.
 
-We call boolean polynomials elements of the quotient ring
+Elements of the quotient ring
 
-    $F_2[x_1,...,x_n]/<x_1^2+x_1,...,x_n^2+x_n>$.
+    $$\F_2[x_1,...,x_n]/<x_1^2+x_1,...,x_n^2+x_n>.$$
 
-AUTHOR:
-    -- Burcin Erocal <burcin@erocal.org>
-    -- Martin Albrecht <malb@informatik.uni-bremen.de>
+are called boolean polynomials. Boolean polynomials arise naturally in
+cryptography, coding theory, formal logic, chip design and other
+areas. This implementation is a thin wrapper around the \PolyBoRi
+library by Michael Brickenstein and Alexander Dreyer.
+
+``Boolean polynomials can be modelled in a rather simple way, with
+both coefficients and degree per variable lying in $\{0, 1\}$. The
+ring of Boolean polynomials is, however, not a polynomial ring, but
+rather the quotient ring of the polynomial ring over the field with
+two elements modulo the field equations $x^2=x$ for each
+variable $x$. Therefore, the usual polynomial data structures seem not
+to be appropriate for fast Groebner basis computations.  We introduce
+a specialised data structure for Boolean polynomials based on
+zero-suppressed binary decision diagrams (ZDDs), which is capable of
+handling these polynomials more efficiently with respect to memory
+consumption and also computational speed.  Furthermore, we concentrate
+on high-level algorithmic aspects, taking into account the new data
+structures as well as structural properties of Boolean
+polynomials.'' -- [BD07]
+
+AUTHORS:
+    -- Michael Brickenstein: \PolyBoRi author
+    -- Alexander Dreyer: \PolyBoRi author
+    -- Burcin Erocal <burcin@erocal.org>: main \SAGE wrapper author
+    -- Martin Albrecht <malb@informatik.uni-bremen.de>: some contributions to the \SAGE wrapper
+
+EXAMPLES:
+
+Consider the ideal
+
+  $$<ab + cd + 1, ace + de, abe + ce, bc + cde + 1>.$$
+
+First, we compute the lexicographical Groebner basis in the polynomial
+ring $$R = \F_2[a,b,c,d,e].$$
+
+    sage: P.<a,b,c,d,e> = PolynomialRing(GF(2), 5, order='lex')
+    sage: I1 = ideal([a*b + c*d + 1, a*c*e + d*e, a*b*e + c*e, b*c + c*d*e + 1])
+    sage: for f in I1.groebner_basis():
+    ...     f
+    d^4*e^2 + d^4*e + d^3*e + d^2*e^2 + d^2*e + d*e + e
+    c*e + d^3*e^2 + d^3*e + d^2*e^2 + d*e
+    b*e + d*e^2 + d*e + e
+    b*c + d^3*e^2 + d^3*e + d^2*e^2 + d*e + e + 1
+    a + c^2*d + c + d^2*e
+
+If one wants to solve this system over the algebraic closure of $\F_2$
+then this Groebner basis was the one to consider. If one wants
+solutions over $\F_2$ only then one adds the field polynomials to the
+ideal to force the solutions in $\F_2$.
+
+    sage: J = I1 + sage.rings.ideal.FieldIdeal(P)
+    sage: for f in J.groebner_basis():
+    ...     f
+    e
+    d^2 + d
+    c + 1
+    b + 1
+    a + d + 1
+
+So the solutions over $\F_2$ are $\{e=0, d=1, c=1, b=1, a=0\}$ and $\{e=0,
+d=0, c=1, b=1, a=1\}$.
+
+We can express the restriction to $\F_2$ by considering the quotient
+ring. If $I$ is an ideal in $\F[x_1, ..., x_n]$ then the ideals in the
+quotient ring $\F[x_1, ..., x_n]/I$ are in one-to-one correspondence
+with the ideals of $\F[x_0, ..., x_n]$ containing $I$ (that is, the
+ideals $J$ satisfying $I \subset J \subset P$).
+
+    sage: Q = P.quotient( sage.rings.ideal.FieldIdeal(P) )
+    sage: I2 = ideal([Q(f) for f in I1.gens()])
+    sage: for f in I2.groebner_basis():
+    ...     f
+    ebar
+    cbar + 1
+    bbar + 1
+    abar + dbar + 1
+
+This quotient ring is exactly what \PolyBoRi handles well.
+
+    sage: B.<a,b,c,d,e> = BooleanPolynomialRing(5, order='lex')
+    sage: I2 = ideal([B(f) for f in I1.gens()])
+    sage: for f in I2.groebner_basis():
+    ...     f
+    a + d + 1
+    b + 1
+    c + 1
+    e
+
+Note that $d^2 + d$ is not representable in $B == Q$. Also note, that
+\PolyBoRi cannot play out its strength in such small examples,
+i.e. working in the polynomial ring might be faster for small examples
+like this.
+
+\subsection{Implementation Specific Notes}
+
+\PolyBoRi comes with a Python wrapper. However this wrapper does not
+match \SAGE's style and is written using Boost. Thus \SAGE's wrapper
+is a reimplementation of Python bindings to \PolyBoRi's C++
+library. This interface is written in Cython like all of \SAGE's C/C++
+library interfaces. An interface in \PolyBoRi style is also provided
+which is effectively a reimplementation of the official Boost wrapper
+in Cython. This means that some functionality of the official wrapper
+might be missing from this wrapper and this wrapper might have bugs
+not present in the offical Python interface.
 
 REFERENCES:
-    Michael Brickenstein, Alexander Dreyer; 'POLYBORI: A Groebner basis
-    framework for Boolean polynomials';
+    [BD07] Michael Brickenstein, Alexander Dreyer; '\PolyBoRi: A
+    Groebner basis framework for Boolean polynomials';
     http://www.itwm.fraunhofer.de/zentral/download/berichte/bericht122.pdf
-
 """
 
 include "../../ext/interrupt.pxi"
@@ -21,21 +121,21 @@ include "../../ext/stdsage.pxi"
 include "../../ext/cdefs.pxi"
 include '../../libs/polybori/decl.pxi'
 
+from sage.rings.integer import Integer
+from sage.rings.finite_field import FiniteField as GF
+
+from sage.rings.polynomial.polynomial_element cimport Polynomial
+from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
+from sage.rings.polynomial.term_order import TermOrder
+
 from sage.structure.element cimport Element
 from sage.structure.element cimport RingElement
 from sage.structure.element cimport ModuleElement
 
 from sage.structure.parent cimport Parent
-
-from sage.rings.polynomial.polynomial_element cimport Polynomial
-from sage.rings.integer import Integer
-
-from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
-from sage.rings.polynomial.term_order import TermOrder
-from sage.rings.finite_field import FiniteField as GF
-from sage.monoids.monoid import Monoid_class
-
 from sage.structure.sequence import Sequence
+
+from sage.monoids.monoid import Monoid_class
 
 order_dict= {"lp":      lp,
              "dlex":    dlex,
@@ -49,9 +149,6 @@ order_mapping = {'lp':   lp,
                  'dp':   dp_asc}
 
 cdef class BooleanPolynomialRing(MPolynomialRing_generic):
-    """
-    Boolean Polynomial Ring.
-    """
     def __init__(self, n, names, order='lex'):
         """
         Construct a BooleanPolynomialRing with the following parameters:
@@ -1291,9 +1388,6 @@ cdef inline BooleanMonomialIterator new_BMI_from_PBMonomIter(\
     return m
 
 cdef class BooleanPolynomial(MPolynomial):
-    """
-    BooleanPolynomial
-    """
     def __init__(self, parent):
         """
         Construct a BooleanPolynomial object in the given BooleanPolynomialRing.

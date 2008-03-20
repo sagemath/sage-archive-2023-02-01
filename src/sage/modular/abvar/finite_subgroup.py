@@ -917,7 +917,8 @@ class FiniteSubgroup_gens(FiniteSubgroup):
                     # but not in this subgroup.
                     g = g.element()
                 # done
-                v.append(g)
+                if g.denominator() > 1:
+                    v.append(g)
         else:
             v = gens
 

@@ -199,7 +199,7 @@ class RationalCuspidalSubgroup(CuspidalSubgroup_generic):
         EXAMPLES:
             sage: G = J0(27).rational_cusp_subgroup()
             sage: G._generators()
-            ((1/3, 0), (0, 1))
+            ((1/3, 0),)
 
         Test that the result is cached.
             sage: G._generators() is G._generators()

@@ -130,15 +130,6 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             raise ZeroDivisionError, "Inverse does not exist."
         return self.parent().reversed()(B)
 
-    def _mul_function(self, other):
-        return other.matrix() * self.matrix()
-
-    def _add_function(self, other):
-        return self.matrix() + other.matrix()
-
-    def _sub_function(self, other):
-        return self.matrix() - other.matrix()
-
     def __rmul__(self, left):
         R = self.base_ring()
         return self.parent()(R(left) * self.matrix())
@@ -242,6 +233,12 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             return self.parent()(self.matrix() + R(right))
         M = self.matrix() + right.matrix()
         return self.domain().Hom(right.codomain())(M)
+
+    def __neg__(self):
+        return self.parent()(-self.matrix())
+
+    def __sub__(self, other):
+        return self + (-other)
 
     def base_ring(self):
         """

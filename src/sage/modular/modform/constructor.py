@@ -25,7 +25,7 @@ EXAMPLES:
 #########################################################################
 
 import weakref
-
+import re
 
 import sage.modular.congroup as congroup
 import sage.modular.dirichlet as dirichlet
@@ -301,3 +301,79 @@ def EisensteinForms(group  = 1,
     """
     return ModularForms(group, weight, base_ring,
                         use_cache=use_cache, prec=prec).eisenstein_submodule()
+
+
+
+def Newforms(group, weight=2, base_ring=rings.QQ, names=None):
+    """
+    INPUT:
+       group      -- the congruence subgroup of the newform
+       weight     -- the weight of the newform (default 2)
+       base_ring  -- the base ring
+       names      -- if the newform has coefficients in a number field, a
+                     generator name must be specified
+
+    EXAMPLES:
+        sage: Newforms(11, 2)
+        [q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)]
+        sage: Newforms(65, names='a')
+        [q - q^2 - 2*q^3 - q^4 - q^5 + O(q^6),
+         q + a1*q^2 + (a1 + 1)*q^3 + (-2*a1 - 1)*q^4 + q^5 + O(q^6),
+         q + a2*q^2 + (-a2 + 1)*q^3 + q^4 - q^5 + O(q^6)]
+    """
+    return CuspForms(group, weight, base_ring).newforms(names)
+
+
+def Newform(identifier, group=None, weight=2, base_ring=rings.QQ, names=None):
+    """
+    INPUT:
+       identifier -- a cannonical label, or the index of the specific
+                     newform desired
+       group      -- the congruence subgroup of the newform
+       weight     -- the weight of the newform (default 2)
+       base_ring  -- the base ring
+       names      -- if the newform has coefficients in a number field, a
+                     generator name must be specified
+
+    EXAMPLES:
+        sage: Newform('67a', names='a')
+        q + 2*q^2 - 2*q^3 + 2*q^4 + 2*q^5 + O(q^6)
+        sage: Newform('67b', names='a')
+        q + a1*q^2 + (-a1 - 3)*q^3 + (-3*a1 - 3)*q^4 - 3*q^5 + O(q^6)
+    """
+    if isinstance(group, str) and names is None:
+        names = group
+    if isinstance(identifier, str):
+        group, identifier = parse_label(identifier)
+        if weight != 2:
+            raise ValueError, "Cannonical label not implemented for higher weight forms."
+        elif base_ring != rings.QQ:
+            raise ValueError, "Cannonical label not implemented except for over Q."
+    elif group is None:
+        raise ValueError, "Must specify a group or a label."
+    return Newforms(group, weight, base_ring, names=names)[identifier]
+
+
+def parse_label(s):
+    m = re.match(r'(\d+)([a-z]+)((?:G.*)?)$', s)
+    if not m:
+        raise ValueError, "Invalid label: %s" % s
+    N, order, G = m.groups()
+    N = int(N)
+    index = 0
+    for c in reversed(order):
+        index = 26*index + ord(c)-ord('a')
+    if G == '' or G == 'G0':
+        G = congroup.Gamma0(N)
+    elif G == 'G1':
+        G = congroup.Gamma1(N)
+    elif G[:2] == 'GH':
+        if G[2] != '[' or G[-1] != ']':
+            raise ValueError, "Invalid congruence subgroup label: %s" % G
+        gens = [int(g.strip()) for g in G[3:-1].split(',')]
+        return congroup.GammaH(N, gens)
+    else:
+        raise ValueError, "Invalid congruence subgroup label: %s" % G
+    return G, index
+
+

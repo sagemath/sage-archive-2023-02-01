@@ -14,6 +14,8 @@ AUTHOR:
 from sage.modular.congroup import is_CongruenceSubgroup
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.misc.misc import prod
+from abvar_newform import ModularAbelianVariety_newform
+import sage.modular.modform.element
 
 def J0(N):
     """
@@ -55,6 +57,14 @@ def AbelianVariety(groups=None, lattice=None, modsym=None, base_field=None):
 
     if is_CongruenceSubgroup(groups):
         groups = [groups]
+
+    if isinstance(groups, str):
+        from sage.modular.modform.constructor import Newform
+        f = Newform(groups, names='a')
+        return ModularAbelianVariety_newform(f, internal_name=True)
+
+    elif isinstance(f, sage.modular.modform.element.Newform):
+        return ModularAbelianVariety_newform(f)
 
     if groups is not None and all([is_CongruenceSubgroup(G) for G in groups]):
         return prod([G.modular_abelian_variety() for G in groups])

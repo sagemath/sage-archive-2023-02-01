@@ -2576,7 +2576,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 raise ZeroDivisionError, "input matrix must be nonsingular"
             return self._solve_iml(P.identity_matrix(), right=True)
 
-    def solve_right(self, B, check_rank=True):
+    def _solve_right_nonsingular_square(self, B, check_rank=True):
         r"""
         If self is a matrix $A$ of full rank, then this function
         returns a vector or matrix $X$ such that $A X = B$.  If $B$ is
@@ -2593,16 +2593,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
             B -- a matrix or vector
+            check_rank -- bool (default: True); if True verify that in
+                          fact the rank is full.
         OUTPUT:
-            a matrix or vector
+            a matrix or vector over $\QQ$
 
         EXAMPLES:
             sage: a = matrix(ZZ, 2, [0, -1, 1, 0])
             sage: v = vector(ZZ, [2, 3])
             sage: a \ v
             (3, -2)
+
+        Note that the output vector or matrix is always over $\QQ$.
             sage: parent(a\v)
-            Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            Vector space of dimension 2 over Rational Field
 
         We solve a bigger system where the answer is over the rationals.
             sage: a = matrix(ZZ, 3, 3, [1,2,3,4, 5, 6, 8, -2, 3])

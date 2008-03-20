@@ -51,6 +51,13 @@ class Homspace(HomsetWithBase):
             raise TypeError, "codomain must be a modular abelian variety"
         HomsetWithBase.__init__(self, domain, codomain, cat)
 
+    def __call__(self, M, check=True):
+        if check:
+            M = M.change_ring(ZZ)
+            if M.nrows() != 2*self.domain().dimension() or M.ncols() != 2*self.codomain().dimension():
+                raise TypeError
+        return morphism.Morphism(self, M)
+
     def _repr_(self):
         """
         String representation of a modular abelian variety homspace.

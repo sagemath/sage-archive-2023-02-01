@@ -1036,10 +1036,10 @@ cdef class Matrix(matrix0.Matrix):
         AUTHORS:
             -- Naqi Jaffery (2006-01-24): examples
         """
-        if not (self._base_ring is other.base_ring()):
-            raise TypeError, "base rings must be the same"
         if self._nrows != other._nrows:
             raise TypeError, "number of rows must be the same"
+        if not (self._base_ring is other.base_ring()):
+            other = other.change_ring(self._base_ring)
 
         cdef Matrix Z
         Z = self.new_matrix(ncols = self._ncols + other._ncols)

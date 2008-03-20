@@ -142,6 +142,11 @@ cdef class Matrix(matrix1.Matrix):
             sage: A*x == v
             True
 
+        Same example but over $\ZZ$:
+            sage: A = matrix(ZZ,2,3, [1,2,3,2,4,6]); v = vector([-1,-2])
+            sage: A \ v
+            (-1, 0, 0)
+
         An example in which there is no solution:
             sage: A = matrix(QQ,2,3, [1,2,3,2,4,6]); v = vector([1,1])
             sage: A \ v
@@ -240,18 +245,48 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 return X
 
-
         if self.rank() != self.nrows():
-            return self._solve_right_general(B, check=check)
+            X = self._solve_right_general(C, check=check)
+        else:
+            X = self._solve_right_nonsingular_square(C, check_rank=False)
 
-
-        D = self.augment(C).echelon_form()
-        X = D.matrix_from_columns(range(self.ncols(),D.ncols()))
         if not matrix:
             # Convert back to a vector
-            return (X.base_ring() ** X.nrows())(X.list())
+            return X.column(0)
         else:
             return X
+
+    def _solve_right_nonsingular_square(self, B, check_rank=True):
+        r"""
+        If self is a matrix $A$ of full rank, then this function
+        returns a matrix $X$ such that $A X = B$.
+
+        SEE ALSO: \code{self.solve_right} and \code{self.solve_left}
+
+        INPUT:
+            B -- a matrix
+            check_rank -- bool (default: True)
+
+        OUTPUT:
+            matrix
+
+        EXAMPLES:
+            sage: A = matrix(QQ,3,[1,2,4,5,3,1,1,2,-1])
+            sage: B = matrix(QQ,3,2,[1,5,1,2,1,5])
+            sage: A._solve_right_nonsingular_square(B)
+            [ -1/7 -11/7]
+            [  4/7  23/7]
+            [    0     0]
+            sage: A._solve_right_nonsingular_square(B, check_rank=False)
+            [ -1/7 -11/7]
+            [  4/7  23/7]
+            [    0     0]
+            sage: X = A._solve_right_nonsingular_square(B, check_rank=False)
+            sage: A*X == B
+            True
+        """
+        D = self.augment(B).echelon_form()
+        return D.matrix_from_columns(range(self.ncols(),D.ncols()))
 
 
     def pivot_rows(self):

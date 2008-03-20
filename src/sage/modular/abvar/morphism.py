@@ -37,12 +37,12 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQ
 import abvar as abelian_variety
 import sage.modules.matrix_morphism
 import sage.structure.element
 
-class Morphism(sage.modules.matrix_morphism.MatrixMorphism):
+class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
     """
     A morphism between modular abelian varieties.
     EXAMPLES:
@@ -51,9 +51,223 @@ class Morphism(sage.modules.matrix_morphism.MatrixMorphism):
         sage: isinstance(t, Morphism)
         True
     """
+    def complementary_isogeny(self):
+        """
+        Returns the complementary isogeny of self.
+
+        EXAMPLES:
+            sage: J = J0(43)
+            sage: A = J[1]
+            sage: T5 = A.hecke_operator(5)
+            sage: T5.is_isogeny()
+            True
+            sage: T5.complementary_isogeny()
+            Morphism defined by the matrix
+            [ 1 -1  0  0]
+            [-1  3  0  0]
+            [-1  0  3  1]
+            [ 0 -1  1  1]
+            sage: T5.complementary_isogeny() * T5
+            Morphism defined by the matrix
+            [2 0 0 0]
+            [0 2 0 0]
+            [0 0 2 0]
+            [0 0 0 2]
+        """
+        if not self.is_isogeny():
+            raise ValueError, "self is not an isogeny"
+        M = self.matrix()
+        try:
+            iM, denom = M._invert_iml()
+        except AttributeError:
+            iM = M.matrix_over_field().invert()
+            iM, denom = iM._clear_denom()
+        return Morphism(self.parent().reversed(), iM)
+
+    def is_isogeny(self):
+        """
+        Return True if this morphism is an isogeny of abelian varieties.
+
+        EXAMPLES:
+            sage: J = J0(39)
+            sage: Id = J.hecke_operator(1)
+            sage: Id.is_isogeny()
+            True
+            sage: J.hecke_operator(19).is_isogeny()
+            False
+        """
+        M = self.matrix()
+        return M.nrows() == M.ncols() == M.rank()
+
+    def kernel(self):
+        """
+        Return the kernel of this morphism.
+
+        OUTPUT:
+            G -- a finite group
+            A -- an abelian variety (identity component of the kernel)
+
+        EXAMPLES:
+        We compute the kernel of a projection map.  Notice that the
+        kernel has a nontrivial abelian variety part.
+            sage: A, B, C = J0(33)
+            sage: pi = J0(33).projection(B)
+            sage: pi.kernel()
+            (Finite subgroup with invariants [20] over QQbar of Abelian variety J0(33) of dimension 3,
+             Abelian subvariety of dimension 2 of J0(33))
+
+        We compute the kernels of some Hecke operators:
+            sage: t2 = J0(33).hecke_operator(2)
+            sage: t2
+            Hecke operator T_2 on Abelian variety J0(33) of dimension 3
+            sage: t2.kernel()
+            (Finite subgroup with invariants [2, 2, 2, 2] over QQ of Abelian variety J0(33) of dimension 3,
+             Abelian subvariety of dimension 0 of J0(33))
+            sage: t3 = J0(33).hecke_operator(3)
+            sage: t3.kernel()
+            (Finite subgroup with invariants [3, 3] over QQ of Abelian variety J0(33) of dimension 3,
+             Abelian subvariety of dimension 0 of J0(33))
+        """
+        A = self.matrix()
+        L = A.image()  # over QQ
+        # Saturate the image of the matrix corresponding to self.
+        Lsat = L.saturation()
+        # Now find a matrix whose rows map exactly onto the
+        # saturation of L.
+        X = A.solve_left(Lsat.basis_matrix())
+        D = self.domain()
+        Lambda = A.kernel().intersection(D._ambient_lattice())
+        from abvar import ModularAbelianVariety
+        abvar = ModularAbelianVariety(D.groups(), Lambda, D.base_ring())
+
+        if Lambda.rank() == 0:
+            base_field = QQ
+        else:
+            base_field = None
+        K = D.finite_subgroup(X.rows(), base_field=base_field)
+
+        return K, abvar
+
+    def factor_out_component_group(self):
+        r"""
+        View self as a morphism $f:A \to B$.  Then $\ker(f)$ is an
+        extension of an abelian variety $C$ by a finite component
+        group $G$.  This function constructs a morphism $g$ with
+        domain $A$ and codomain Q isogenous to $C$ such that $\ker(g)$
+        is equal to $C$.
+
+        OUTPUT:
+            a morphism
+
+        EXAMPLES:
+            sage: A,B,C = J0(33)
+            sage: pi = J0(33).projection(A)
+            sage: pi.kernel()
+            (Finite subgroup with invariants [5] over QQbar of Abelian variety J0(33) of dimension 3,
+             Abelian subvariety of dimension 2 of J0(33))
+            sage: psi = pi.factor_out_component_group()
+            sage: psi.kernel()
+            (Finite subgroup with invariants [] over QQbar of Abelian variety J0(33) of dimension 3,
+             Abelian subvariety of dimension 2 of J0(33))
+
+
+        ALGORITHM: We compute a subgroup $G$ of $B$ so that the
+        composition $h: A\to B \to B/G$ has kernel that contains
+        $A[n]$ and component group isomorphic to $(\ZZ/n\ZZ)^{2d}$,
+        where $d$ is the dimension of $A$.  Then $h$ factors through
+        multiplication by $n$, so there is a morphism $g: A\to B/G$
+        such that $g \circ [n] = h$.  Then $g$ is the desired
+        morphism.  We give more details below about how to transform
+        this into linear algebra.
+        """
+        try:
+            return self.__factor_out
+        except AttributeError:
+            A = self.matrix()
+            L = A.image()
+            # Saturate the image of the matrix corresponding to self.
+            Lsat = L.saturation()
+            if L == Lsat: # easy case
+                self.__factor_out = self
+                return self
+            # Now find a matrix whose rows map exactly onto the
+            # saturation of L.
+            X = A.solve_left(Lsat.basis_matrix())
+
+            # Find an integer n such that 1/n times the lattice Lambda of A
+            # contains the row span of X.
+            n = X.denominator()
+
+            # Let M be the lattice of the codomain B of self.
+            # Now 1/n * Lambda contains Lambda and maps
+            # via the matrix of self to a lattice L' that
+            # contains Lsat.   Consider the lattice
+            #                R = M + L'.
+            # This is a lattice that contains the lattice M of B.
+            # Also 1/n*Lambda maps exactly to L' in R.
+            # We have
+            #     R/L' = (M+L')/L' = M/(L'/\M) = M/Lsat
+            # which is torsion free!
+
+            Q      = self.codomain()
+            M      = Q.lattice()
+            one_over_n = ZZ(1)/n
+            Lprime = (one_over_n * self.matrix() * M.basis_matrix()).row_module(ZZ)
+
+            # This R is a lattice in the ambient space for B.
+            R = Lprime + M
+
+            from abvar import ModularAbelianVariety
+            C = ModularAbelianVariety(Q.groups(), R, Q.base_field())
+
+            # We have to change the basis of the representation of A
+            # to the basis for R instead of the basis for M.  Each
+            # row of A is written in terms of M, but needs to be
+            # in terms of R's basis, which contains M with finite index.
+            change_basis_from_M_to_R = R.basis_matrix().solve_left(M.basis_matrix())
+            matrix = one_over_n * A * change_basis_from_M_to_R
+
+            # Finally
+            g = Morphism(self.domain().Hom(C), matrix)
+            self.__factor_out = g
+            return g
+
+    def image(self):
+        return self(self.domain())
+
+    def __call__(self, X):
+        """
+        INPUT:
+            X -- abelian variety or finite group
+        """
+        from abvar import is_ModularAbelianVariety
+        from finite_subgroup import FiniteSubgroup
+        if is_ModularAbelianVariety(X):
+            return self._image_of_abvar(X)
+        elif isinstance(X, FiniteSubgroup):
+            return self._image_of_finite_subgroup(X)
+        else:
+            raise TypeError, "X must be an abelian variety or finite subgroup"
+
+    def _image_of_abvar(self, A):
+        raise NotImplementedError
+##         D = self.domain()
+##         if A is D:
+##             V = self.matrix().row_span(QQ)
+##         else:
+##             if not A.is_subvariety(D):
+##                 raise ValueError, "A must be an abelian subvariety of self."
+##             # Write the vector space corresponding to A in terms of self's
+##             # vector space, then take the image under self.
+##             V = D.vector_space().coordinate_module(A.vector_space()).basis_matrix() * self.matrix()
+
+    def _image_of_finite_subgroup(self, G):
+        raise NotImplementedError
+
+class Morphism(Morphism_abstract, sage.modules.matrix_morphism.MatrixMorphism):
     pass
 
-class HeckeOperator(sage.modules.matrix_morphism.MatrixMorphism_abstract):
+class HeckeOperator(Morphism):
     """
     A Hecke operator acting on a modular abelian variety.
     """

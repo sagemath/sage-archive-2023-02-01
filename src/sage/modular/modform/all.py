@@ -6,7 +6,7 @@
 #                  http://www.gnu.org/licenses/
 #########################################################################
 
-from constructor import ModularForms, CuspForms, EisensteinForms
+from constructor import ModularForms, CuspForms, EisensteinForms, Newforms, Newform
 
 from space import is_ModularFormsSpace
 

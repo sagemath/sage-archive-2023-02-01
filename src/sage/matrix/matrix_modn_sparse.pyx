@@ -649,7 +649,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         else:
             return Matrix2.rank(self)
 
-    def solve_right(self, B, algorithm=None, check_rank = True):
+    def _solve_right_nonsingular_square(self, B, algorithm=None, check_rank = True):
         """
         If self is a matrix $A$, then this function returns a vector
         or matrix $X$ such that $A X = B$.  If $B$ is a vector then
@@ -686,11 +686,17 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef Matrix_modn_sparse X
         cdef c_vector_modint *x
 
+        if self.base_ring() != B.base_ring():
+            B = B.change_ring(self.base_ring())
+
         if algorithm == "generic" or not is_prime(self.p):
             return Matrix2.solve_right(self, B)
 
         if check_rank and self.rank() < self.nrows():
             raise ValueError, "self must be of full rank."
+
+        if self.nrows() != B.nrows():
+            raise ValueError, "input matrices must have the same number of rows."
 
         if not self.is_square():
             raise NotImplementedError, "input matrix must be square"
@@ -700,19 +706,16 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         matrix = True
         if is_Vector(B):
             matrix = False
-            b = <Matrix_modn_sparse>self.matrix_space(1, self.ncols(),sparse=True)(B.list())
-        if PY_TYPE_CHECK(B,Matrix_modn_sparse) and B.base_ring() == self.base_ring():
-            b = <Matrix_modn_sparse>B
+            b = self.matrix_space(1, self.ncols(),sparse=True)(B.list())
         else:
-            try:
-                b = <Matrix_modn_sparse>self.matrix_space(1, self.ncols(),sparse=True)(B.list())
-            except (TypeError, AttributeError):
-                raise TypeError, "parameter 'b' not understood."
+            if not B.is_sparse():
+                B = B.sparse_matrix()
+            if PY_TYPE_CHECK(B, Matrix_modn_sparse):
+                b = B
+            else:
+                raise TypeError, "B must be a matrix or vector over the same base as self"
 
-        X = self.new_matrix(b.nrows(),A.ncols())
-
-        if b.nrows() > 1: # such that we can walk through it easily
-            b = b.transpose()
+        X = self.new_matrix(b.ncols(), A.ncols())
 
         if algorithm is None:
             algorithm = 0
@@ -725,6 +728,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         else:
             raise TypeError, "parameter 'algorithm' not understood"
 
+        b = b.transpose() # to make walking the rows easier
         for i in range(X.nrows()):
             _sig_on
             x = &X.rows[i]

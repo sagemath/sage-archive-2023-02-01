@@ -15,6 +15,8 @@ from sage.rings.all  import QQ, ZZ
 
 from sage.modular.modform.element import Newform
 from sage.modular.congroup import is_Gamma0, is_Gamma1, is_GammaH
+from sage.modular.congroup import Gamma0, Gamma1, GammaH
+
 
 from abvar import ModularAbelianVariety_modsym_abstract
 import homspace
@@ -23,7 +25,7 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
     """
     A modular abelian variety attached to a specific newform.
     """
-    def __init__(self, f):
+    def __init__(self, f, internal_name=False):
         """
         Create the modular abelian variety $A_f$ attached to the
         newform $f$.
@@ -40,6 +42,14 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             raise TypeError, "f must be a newform"
         self.__f = f
         self._is_hecke_stable = True
+        K = f.qexp().base_ring()
+        if K == QQ:
+            variable_name = None
+        else:
+            variable_name = K.variable_name()
+        self.__named_newforms = { variable_name: self.__f }
+        if not internal_name:
+            self.__named_newforms[None] = self.__f
         ModularAbelianVariety_modsym_abstract.__init__(self, QQ)
 
     def _modular_symbols(self,sign=0):
@@ -56,8 +66,8 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         """
         return self.__f.modular_symbols(sign=sign)
 
-    def newform(self):
-        """
+    def newform(self, names=None):
+        r"""
         Return the newform that this modular abelian variety is attached to.
 
         EXAMPLES:
@@ -67,8 +77,27 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + O(q^6)
             sage: A.newform() is f
             True
+
+        If the a variable name has not ben specified, we must specify one:
+            sage: A = AbelianVariety('67b')
+            sage: A.newform()
+            Traceback (most recent call last):
+            ...
+            TypeError: You must specify the name of the generator.
+            sage: A.newform('alpha')
+            q + alpha*q^2 + (-alpha - 3)*q^3 + (-3*alpha - 3)*q^4 - 3*q^5 + O(q^6)
+
+        If the eigenform is actulaly over $\Q$ then we don't have to specify
+        the name:
+            sage: A = AbelianVariety('67a')
+            sage: A.newform()
+            q + 2*q^2 - 2*q^3 + 2*q^4 + 2*q^5 + O(q^6)
         """
-        return self.__f
+        try:
+            return self.__named_newforms[names]
+        except KeyError:
+            self.__named_newforms[names] = Newform(self.__f.parent(), self.__f.modular_symbols(1), names=names, check=False)
+            return self.__named_newforms[names]
 
     def label(self):
         """
@@ -120,9 +149,9 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             sage: f = CuspForms(43).newforms('a')[1]
             sage: A = f.abelian_variety()
             sage: A._repr_()
-            'Modular abelian variety attached to the newform q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6)'
+            'Modular abelian variety attached to a newform of level 43'
         """
-        return "Modular abelian variety attached to the newform %s"%self.newform()
+        return "Modular abelian variety attached to a newform of level %s" % self.__f.level()
 
     def endomorphism_ring(self):
         """
@@ -167,6 +196,4 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         E._set_generators(V.saturation().basis())
         self.__endomorphism_ring = E
         return self.__endomorphism_ring
-
-
 

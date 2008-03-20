@@ -910,8 +910,8 @@ class FreeModule_generic(module.Module):
         """
         if not is_FreeModule(V):
             raise ValueError, "V must be a free module"
-        if self.base_ring() != V.base_ring():
-            raise ValueError, "self and V must have the same base ring"
+        #if self.base_ring() != V.base_ring():
+        #    raise ValueError, "self and V must have the same base ring"
         A = self.basis_matrix()
         A = A.matrix_from_columns(A.pivots()).transpose()
         B = V.basis_matrix()

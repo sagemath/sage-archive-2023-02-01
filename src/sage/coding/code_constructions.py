@@ -542,8 +542,8 @@ def BinaryGolayCode():
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0],\
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0],\
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1]]
-    #MS = MatrixSpace(F,12,23)
-    #V = VectorSpace(F,23)
+    # MS = MatrixSpace(F,12,23)
+    # V = VectorSpace(F,23)
     V = span(F, B)
     return LinearCodeFromVectorSpace(V)
 
@@ -780,8 +780,8 @@ def ExtendedBinaryGolayCode():
          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1]]
     V = span(GF(2), B)
     return LinearCodeFromVectorSpace(V)
-    #C = BinaryGolayCode()
-    #return C.extended_code()
+    # C = BinaryGolayCode()
+    # return C.extended_code()
 
 
 def ExtendedQuadraticResidueCode(n,F):
@@ -841,8 +841,8 @@ def ExtendedTernaryGolayCode():
          [0, 0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 1]]
     V = span(GF(3), B)
     return LinearCodeFromVectorSpace(V)
-    #C = TernaryGolayCode()
-    #return C.extended_code()
+    # C = TernaryGolayCode()
+    # return C.extended_code()
 
 def HammingCode(r,F):
     r"""
@@ -1244,14 +1244,14 @@ def ToricCode(P,F):
     mset = [x for x in F if x!=0]
     d = len(P[0])
     pts = Tuples(mset,d).list()
-    n = len(pts) ## (q-1)^d
+    n = len(pts) # (q-1)^d
     k = len(P)
     e = P[0]
     B = []
     for e in P:
        tmpvar = [prod([t[i]**e[i] for i in range(d)]) for t in pts]
        B.append(tmpvar)
-    ## now B0 *should* be a full rank matrix
+    # now B0 *should* be a full rank matrix
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(B))
 

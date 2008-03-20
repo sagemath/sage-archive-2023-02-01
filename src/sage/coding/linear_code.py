@@ -3,7 +3,7 @@ Linear Codes
 
 VERSION: 0.11
 
-Let $F$ be a finite field (we denote the finite field with $q$ elements
+Let $ F$ be a finite field (we denote the finite field with $q$ elements
 $GF(q)$ by $\FF_q$). A subspace of $ F^n$ (with the standard basis)
 is called a {\it linear code} of length $ n$. If its
 dimension is denoted $k$ then we typically store a basis
@@ -12,7 +12,8 @@ called the {\it generator matrix} of $C$.
 The rows of the {\it parity check matrix} of $C$ are a basis
 for the code,
 
-\[ C^* = \{ v \in GF(q)^n\ |\ v\cdot c = 0,\ for \ all\ c \in C \},
+\[
+C^* = \{ v \in GF(q)^n\ |\ v\cdot c = 0,\ for \ all\ c \in C \},
 \]
 called the {\it dual space} of  $C$.
 
@@ -29,8 +30,7 @@ The (permutation) automorphism group is denoted $Aut(C)$.
 This file contains
 \begin{enumerate}
 \item
-LinearCode, Codeword class definitions; LinearCodeFromVectorspace
-conversion function
+LinearCode class definition; LinearCodeFromVectorspace conversion function,
 \item
 The spectrum (weight distribution), minimum distance
 programs (calling Steve Linton's C programs), characteristic_function,
@@ -41,7 +41,7 @@ for example),
 interface with best_known_linear_code_www (interface with codetables.de since
 A. Brouwer's online tables have been disabled), bounds_minimum_distance
 which call tables in GUAVA (updated May 2006) created by Cen Tjhai instead
-of the online internet tables.
+of the online internet tables,
 \item
 gen_mat, list, check_mat, decode, dual_code, extended_code,  shortened, punctured,
 genus, binomial_moment, and divisor methods for LinearCode,
@@ -61,6 +61,7 @@ code constructions, such as HammingCode and ToricCode, are in a separate
 you will find constructions, such as RandomLinearCodeGuava and
 BinaryReedMullerCode, wrapped from the corresponding GUAVA codes.
 \end{enumerate}
+
 
     EXAMPLES:
         sage: MS = MatrixSpace(GF(2),4,7)
@@ -127,6 +128,7 @@ and a new function, LinearCodeFromVectorSpace.
                  Robert Miller's code), added direct_sum_code, is_subcode,
                  is_self_dual, is_self_orthogonal, redundancy_matrix, did some
                  alphabetical reorganizing to make the file more readable.
+                 Fixed a bug in permutation_automorphism_group which caused it to crash.
 
 TESTS:
    sage: MS = MatrixSpace(GF(2),4,7)
@@ -166,7 +168,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import IntegerRing
 from sage.combinat.set_partition import SetPartitions
-from sage.rings.real_mpfr import RR      ## RealField
+from sage.rings.real_mpfr import RR      # RealField
 
 ZZ = IntegerRing()
 VectorSpace = fm.VectorSpace
@@ -206,12 +208,12 @@ def wtdist(Gmat, F):
     n = int(C.WordLength())
     z = 'Z(%s)*%s'%(q, [0]*n)     # GAP zero vector as a string
     dist = gap.eval("w:=DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
-    ## for some reason, this commented code doesn't work:
+    # for some reason, this commented code doesn't work:
     #dist0 = gap("DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
     #v0 = dist0._matrix_(F)
     #print dist0,v0
     #d = G.DistancesDistributionMatFFEVecFFE(k, z)
-    v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,n+2)] ## because GAP returns vectors in compressed form
+    v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,n+2)] # because GAP returns vectors in compressed form
     return v
 
 def min_wt_vec(Gmat,F):
@@ -246,7 +248,7 @@ def min_wt_vec(Gmat,F):
     c = [gfq_gap_to_sage(cg[j],F) for j in range(1,n+1)]
     V = VectorSpace(F,n)
     return V(c)
-    ## this older code returns more info but may be slower:
+    # this older code returns more info but may be slower:
     #zerovec = [0 for i in range(n)]
     #zerovecstr = "Z("+qstr+")*"+str(zerovec)
     #all = []
@@ -444,7 +446,7 @@ class LinearCode(module.Module):
 
     def automorphism_group_binary_code(self):
         r"""
-        ** Experimental Interface with Robert Miller's program.**
+        ** Experimental Interface with Robert Miller's program \code{aut_gp_and_can_label}.**
 
         This only applies to linear binary codes and returns its
         (permutation) automorphism group. In other words, if
@@ -581,7 +583,7 @@ class LinearCode(module.Module):
             sage: C.assmus_mattson_designs(6)
             0
             sage: X = range(24)                           #  example 2
-            sage: blocks = [c.support() for c in C if hamming_weight(c)==8]; len(blocks)  ## long time computation
+            sage: blocks = [c.support() for c in C if hamming_weight(c)==8]; len(blocks)  # long time computation
             759
 
         REFERENCE:
@@ -595,7 +597,7 @@ class LinearCode(module.Module):
         G = C.gen_mat()
         n = len(G.columns())
         Cp = C.dual_code()
-        k = len(G.rows())  ## G is always full rank
+        k = len(G.rows())  # G is always full rank
         wts = C.spectrum()
         d = min([i for i in range(1,len(wts)) if wts[i]!=0])
         if t>=d:
@@ -746,9 +748,9 @@ class LinearCode(module.Module):
         dperp = Cd.minimum_distance()
         if dperp > d:
             P = RT(C.zeta_polynomial())
-            ## SAGE does not find dealing with sqrt(int) *as an algebraic object*
-            ## an easy thing to do. Some tricky gymnastics are used to
-            ## make SAGE deal with objects over QQ(sqrt(q)) nicely.
+            # SAGE does not find dealing with sqrt(int) *as an algebraic object*
+            # an easy thing to do. Some tricky gymnastics are used to
+            # make SAGE deal with objects over QQ(sqrt(q)) nicely.
             if is_even(n):
                 Pd = q**(k-n/2)*RT(Cd.zeta_polynomial())*T**(dperp - d)
             if not(is_even(n)):
@@ -1283,50 +1285,6 @@ class LinearCode(module.Module):
         Gstr = "%s*Z(%s)^0"%(gapG, q)
         return hamming_weight(min_wt_vec(Gstr,F))
 
-#     def minimum_distance_lower_bound(self):
-#         r"""
-#         Connects to \verb+http://www.win.tue.nl/~aeb/voorlincod.html+
-#         Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
-
-#         Obviously requires an internet connection
-#         """
-#         q = (self.base_ring()).order()
-#         n = self.length()
-#         k = self.dimension()
-#         bounds = linear_code_bound(q,n,k)
-#         return bounds[0]
-
-#     def minimum_distance_upper_bound(self):
-#         r"""
-#         Connects to http://www.win.tue.nl/~aeb/voorlincod.html
-#         Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
-
-#         Obviously requires an internet connection
-#         """
-#         q = (self.base_ring()).order()
-#         n = self.length()
-#         k = self.dimension()
-#         bounds = linear_code_bound(q,n,k)
-#         return bounds[1]
-
-#     def minimum_distance_why(self):
-#         r"""
-#         Connects to http://www.win.tue.nl/~aeb/voorlincod.html
-#         Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
-
-#         Obviously requires an internet connection.
-#         """
-#         q = (self.base_ring()).order()
-#         n = self.length()
-#         k = self.dimension()
-#         bounds = linear_code_bound(q,n,k)
-#         lines = bounds[2].split("\n")
-#         for line in lines:
-#             if len(line)>0:
-#                 if line[0] == "U":
-#                     print line
-
-
     def module_composition_factors(self,gp):
         r"""
         Prints the GAP record of the Meataxe composition factors module in
@@ -1359,81 +1317,80 @@ class LinearCode(module.Module):
         gap.eval("M:=GModuleByMats("+mats_str+", GF("+str(q)+"))")
         print gap("MTX.CompositionFactors( M )")
 
-    # def permutation_automorphism_group(self,mode=None):
-    #     r"""
-    #     If $C$ is an $[n,k,d]$ code over $F$, this function computes
-    #     the subgroup $Aut(C) \subset S_n$ of all permutation
-    #     automorphisms of $C$.  If mode="verbose" then
-    #     code-theoretic data is printed out at several stages
-    #     of the computation.
-    #
-    #     Combines an idea of mine with an improvement suggested by Cary
-    #     Huffman.
-    #
-    #    EXAMPLES:
-    #        sage: MS = MatrixSpace(GF(2),4,8)
-    #        sage: G  = MS([[1,0,0,0,1,1,1,0],[0,1,1,1,0,0,0,0],[0,0,0,0,0,0,0,1],[0,0,0,0,0,1,0,0]])
-    #        sage: C  = LinearCode(G)
-    #        sage: C
-    #        Linear code of length 8, dimension 4 over Finite Field of size 2
-    #        sage: G = C.permutation_automorphism_group()   # long time
-    #        sage: G.order()                                # long time
-    #        144
-    #
-    #   A less easy example involves showing that the permutation automorphism
-    #    group of the extended ternary Golay code is the Mathieu group $M_{11}$.
-    #
-    #       sage: C = ExtendedTernaryGolayCode()
-    #       sage: M11 = MathieuGroup(11)
-    #       sage: G = C.permutation_automorphism_group()  # this should take < 15 seconds  # long time
-    #       sage: G.is_isomorphic(M11)        # long time
-    #       True
-    #
-    #   WARNING: - *Ugly code, which should be replaced by a call to Robert Miller's nice program.*
-    #            - Known to mysteriously crash in one example.
-    #   """
-    #   F = self.base_ring()
-    #   q = F.order()
-    #   G = self.gen_mat()
-    #   n = len(G.columns())
-    #   k = len(G.rows())                                 # G is always full rank
-    #   gap.eval("Gp:=SymmetricGroup(%s)"%n)               # initializing G in gap
-    #   Sn = SymmetricGroup(n)
-    #   wts = self.spectrum()                                            # bottleneck 1
-    #   Gstr = str(gap(G))
-    #   gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
-    #   gap.eval("eltsC:=Elements(C)")
-    #   nonzerowts = [i for i in range(len(wts)) if wts[i]!=0]
-    #   if mode=="verbose":
-    #       print "\n Minimum distance: %s \n Weight distribution: \n %s"%(nonzerowts[1],wts)
-    #   stop = 0                                          # only stop if all gens are autos
-    #   for i in range(1,len(nonzerowts)):
-    #     if stop == 1:
-    #         break
-    #     wt = nonzerowts[i]
-    #     if mode=="verbose":
-    #         size = eval(gap.eval("Size(Gp)"))
-    #         print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
-    #     gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   # bottleneck 2 (repeated
-    #     gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            #        for each i until stop = 1)
-    #     gap.eval("A:=MatrixAutomorphisms(matCwt); GG:=Intersection(Gp,A)")    # bottleneck 3
-    #     #print i," = i \n",gap.eval("matCwt")," = matCwt\n"
-    #     #print gap.eval("A")," = A \n",gap.eval("GG")," = GG\n\n"
-    #     if eval(gap.eval("Size(GG)"))==0:
-    #         #print gap.eval("GG; Size(GG)")
-    #         #print "GG=0 ", gap.eval("A; Gp")
-    #        return PermutationGroup([()])
-    #     gap.eval("autgp_gens:=GeneratorsOfGroup(GG); Gp:=GG")
-    #     #gap.eval("autgp_gens:=GeneratorsOfGroup(G)")
-    #     N = eval(gap.eval("Length(autgp_gens)"))
-    #    gens = [Sn(gap.eval("autgp_gens[%s]"%i).replace("\n","")) for i in range(1,N+1)]
-    #    stop = 1                                        # get ready to stop
-    #    for x in gens:                                  # if one of these gens is not an auto then don't stop
-    #        if not(self.is_permutation_automorphism(x)):
-    #             stop = 0
-    #             break
-    #   G = PermutationGroup(gens)
-    #   return G
+    def permutation_automorphism_group(self,mode=None):
+        r"""
+        If $C$ is an $[n,k,d]$ code over $F$, this function computes
+        the subgroup $Aut(C) \subset S_n$ of all permutation
+        automorphisms of $C$.  If mode="verbose" then
+        code-theoretic data is printed out at several stages
+        of the computation.
+
+        Combines an idea of mine with an improvement suggested by Cary
+        Huffman.
+
+        EXAMPLES:
+            sage: MS = MatrixSpace(GF(2),4,8)
+            sage: G  = MS([[1,0,0,0,1,1,1,0],[0,1,1,1,0,0,0,0],[0,0,0,0,0,0,0,1],[0,0,0,0,0,1,0,0]])
+            sage: C  = LinearCode(G)
+            sage: C
+            Linear code of length 8, dimension 4 over Finite Field of size 2
+            sage: G = C.permutation_automorphism_group()
+            sage: G.order()
+            144
+
+        A less easy example involves showing that the permutation automorphism
+        group of the extended ternary Golay code is the Mathieu group $M_{11}$.
+
+            sage: C = ExtendedTernaryGolayCode()
+            sage: M11 = MathieuGroup(11)
+            sage: M11.order()
+            7920
+            sage: G = C.permutation_automorphism_group()  # this should take < 5 seconds
+            sage: G.is_isomorphic(M11)                    # this should take < 5 seconds
+            True
+
+        WARNING: - *Ugly code, which should be replaced by a call to Robert Miller's nice program.*
+
+        """
+        F = self.base_ring()
+        q = F.order()
+        G = self.gen_mat()
+        n = len(G.columns())
+        k = len(G.rows())                                 # G is always full rank
+        Gp = gap("SymmetricGroup(%s)"%n)               # initializing G in gap
+        Sn = SymmetricGroup(n)
+        wts = self.spectrum()                                            # bottleneck 1
+        Gstr = str(gap(G))
+        gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
+        gap.eval("eltsC:=Elements(C)")
+        nonzerowts = [i for i in range(len(wts)) if wts[i]!=0]
+        if mode=="verbose":
+            print "\n Minimum distance: %s \n Weight distribution: \n %s"%(nonzerowts[1],wts)
+        stop = 0                                          # only stop if all gens are autos
+        for i in range(1,len(nonzerowts)):
+            if stop == 1:
+                break
+            wt = nonzerowts[i]
+            if mode=="verbose":
+                size = Gp.Size()
+                print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
+            gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   # bottleneck 2 (repeated
+            gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            #        for each i until stop = 1)
+            A = gap("MatrixAutomorphisms(matCwt)")
+            #print "A = ",A, "\n Gp = ", Gp, "\n strGp = ", str(Gp)
+            G2 = gap("Intersection2(%s,%s)"%(str(A).replace("\n",""),str(Gp).replace("\n",""))) #  bottleneck 3
+            Gp = G2
+            if Gp.Size()==1:
+                return PermutationGroup([()])
+            autgp_gens = Gp.GeneratorsOfGroup()
+            gens = [Sn(str(x).replace("\n","")) for x in autgp_gens]
+            stop = 1                         # get ready to stop
+            for x in gens:                   # if one of these gens is not an auto then don't stop
+                if not(self.is_permutation_automorphism(x)):
+                    stop = 0
+                    break
+        G = PermutationGroup(gens)
+        return G
 
     def permuted_code(self,p):
         r"""
@@ -1638,7 +1595,7 @@ class LinearCode(module.Module):
             q = PR(qc)
         if i == 3:
             F = (3*T^2+4*T+1)**v*(1+3*T^2)**v
-            ## Note that: (3*T^2+4*T+1)(1+3*T^2)=(T+1)**4+8*T**3*(T+1)
+            # Note that: (3*T^2+4*T+1)(1+3*T^2)=(T+1)**4+8*T**3*(T+1)
             coefs = (c0*(1+3*T+3*T**2)**m*F).coeffs()
             qc = [coefs[j]/binomial(4*m+4*v,m+j) for j in range(2*m+4*v+1)]
             q = PR(qc)
@@ -1838,9 +1795,9 @@ class LinearCode(module.Module):
 
     def zeta_polynomial(self,name = "T"):
         r"""
-        Returns the Duursma zeta polynomial of the code.
+        Returns the Duursma zeta polynomial of the code C.
 
-        Assumes minimum_distance(C) > 1 and minimum_distance$(C^\perp) > 1$.
+        Assumes \code{C.minimum_distance()} > 1 and minimum_distance$(C^\perp) > 1$.
 
         EXAMPLES:
             sage: C = HammingCode(3,GF(2))
@@ -1913,6 +1870,7 @@ class LinearCode(module.Module):
 
 def LinearCodeFromVectorSpace(self):
     """
+    Simply converts a vector subspace V of $GF(q)^n$ into a LinearCode.
     """
     F = self.base_ring()
     B = self.basis()

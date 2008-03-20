@@ -323,7 +323,6 @@ def best_known_linear_code_www(n, k, F, verbose=False):
         x^10 + x^8 + x^7 + x^5 + x^3 + 1
         [2]:  [72, 36, 15] Linear Code over GF(2)
              Puncturing of [1] at 1
-        <BLANKLINE>
         last modified: 2002-03-20
 
 

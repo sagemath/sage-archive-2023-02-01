@@ -4,8 +4,6 @@
 ## ATLAS
 ###########################################
 
-# we need to disable parallel builds
-MAKE=make
 FCOMPILER="$SAGE_LOCAL"/bin/sage_fortran
 bitwidth=`python ./bitwidth.py`
 echo "Platform detected to be $bitwidth bits"
@@ -44,6 +42,8 @@ build()
 	cd $CUR/ATLAS-build
 	make
 
+        # we need to disable parallel builds for the libraries and install
+        MAKE=make
 	# now build the shared libraries
 	cd lib
 	make shared cshared
@@ -62,6 +62,12 @@ CUR=`pwd`
 echo $CUR
 echo Updating archinfo_x86.c
 cp patches/archinfo_x86.c src/ATLAS/CONFIG/src/backend/
+echo Updating atlconf.h
+cp patches/atlconf.h  src/ATLAS/CONFIG/include/
+echo Updating atlcomp.txt
+cp patches/atlcomp.txt src/ATLAS/CONFIG/src/
+echo Updating Make.top
+cp -i patches/Make.top src/ATLAS/
 
 config
 

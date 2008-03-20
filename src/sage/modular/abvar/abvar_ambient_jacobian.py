@@ -107,11 +107,28 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         return 'Abelian variety %s of dimension %s%s'%(self._ambient_repr(), self.dimension(),
                                     '' if self.base_field() == QQ else ' over %s'%self.base_field())
 
+    def _latex_(self):
+        """
+        Return Latex representation of self.
+
+        EXAMPLES:
+            sage: latex(J0(37))
+            J_0(37)
+            sage: latex(J1(13))
+            J_1(13)
+            sage: latex(JH(389,[2]))
+            J_H(389,[2])
+        """
+        return self._ambient_latex_repr()
+
     def ambient_variety(self):
         """
         Return the ambient modular abelian variety that contains self.
         Since self is a Jacobian modular abelian variety, this is just
         self.
+
+        OUTPUT:
+            abelian variety
 
         EXAMPLES:
             sage: A = J0(11)

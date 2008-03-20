@@ -17,19 +17,19 @@ EXAMPLES:
 First we consider $J_0(50)$ where everything works out nicely:
     sage: J = J0(50)
     sage: T = J.torsion_subgroup(); T
-    Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(50)
+    Torsion subgroup of Abelian variety J0(50) of dimension 2
     sage: T.multiple_of_order()
     15
     sage: T.divisor_of_order()
     15
     sage: T.gens()
-    [[(1/15, 3/5, -3/5, -1/15)]]
+    [[(1/15, 3/5, 2/5, 14/15)]]
     sage: T.invariants()
     [15]
     sage: d = J.decomposition(); d
     [
-    Abelian variety factor of dimension 1 of J0(50),
-    Abelian variety factor of dimension 1 of J0(50)
+    Simple abelian subvariety 50a(1,50) of dimension 1 of J0(50),
+    Simple abelian subvariety 50b(1,50) of dimension 1 of J0(50)
     ]
     sage: d[0].torsion_subgroup().order()
     3
@@ -58,7 +58,7 @@ Next we make a table of the upper and lower bounds for each new factor.
     31   2    5    5
     32   1    4    4
     33   1    4    4
-    34   1    3    6
+    34   1    6    6
     35   1    3    3
     35   2    16   16
     36   1    6    6
@@ -98,7 +98,7 @@ class TorsionSubgroup(FiniteSubgroup):
 
         EXAMPLES:
             sage: T = J0(14).torsion_subgroup(); T
-            Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(14)
+            Torsion subgroup of Abelian variety J0(14) of dimension 1
             sage: type(T)
             <class 'sage.modular.abvar.torsion_subgroup.TorsionSubgroup'>
         """
@@ -110,9 +110,9 @@ class TorsionSubgroup(FiniteSubgroup):
 
         EXAMPLES:
             sage: T = J1(13).torsion_subgroup(); T
-            Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma1(13)
+            Torsion subgroup of Abelian variety J1(13) of dimension 2
             sage: T._repr_()
-            'Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma1(13)'
+            'Torsion subgroup of Abelian variety J1(13) of dimension 2'
         """
         return "Torsion subgroup of %s"%self.abelian_variety()
 
@@ -273,7 +273,7 @@ class TorsionSubgroup(FiniteSubgroup):
             5
             sage: J = J0(389)
             sage: G = J.torsion_subgroup(); G
-            Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(389)
+            Torsion subgroup of Abelian variety J0(389) of dimension 32
             sage: G.multiple_of_order()
             97
             sage: [G.multiple_of_order(p) for p in prime_range(3,11)]

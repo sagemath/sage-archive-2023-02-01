@@ -15,13 +15,13 @@ AUTHOR:
 EXAMPLES:
     sage: A = J0(54)
     sage: t5 = A.hecke_operator(5); t5
-    Hecke operator T_5 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(54)
+    Hecke operator T_5 on Abelian variety J0(54) of dimension 4
     sage: t5.charpoly().factor()
     (x - 3)^2 * (x + 3)^2 * x^4
     sage: B = A.new_subvariety(); B
-    Abelian variety factor of dimension 2 of J0(54)
+    Abelian subvariety of dimension 2 of J0(54)
     sage: t5 = B.hecke_operator(5); t5
-    Hecke operator T_5 on Abelian variety factor of dimension 2 of J0(54)
+    Hecke operator T_5 on Abelian subvariety of dimension 2 of J0(54)
     sage: t5.charpoly().factor()
     (x - 3)^2 * (x + 3)^2
     sage: t5.action_on_homology().matrix()
@@ -72,13 +72,8 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             sage: T5.is_isogeny()
             True
             sage: T5.complementary_isogeny()
-            Morphism defined by the matrix
-            [ 1 -1  0  0]
-            [-1  3  0  0]
-            [-1  0  3  1]
-            [ 0 -1  1  1]
-            sage: T5.complementary_isogeny() * T5
-            Morphism defined by the matrix
+            Abelian variety endomorphism of Simple abelian subvariety 43b(1,43) of dimension 2 of J0(43)
+            sage: (T5.complementary_isogeny() * T5).matrix()
             [2 0 0 0]
             [0 2 0 0]
             [0 0 2 0]
@@ -435,7 +430,7 @@ class HeckeOperator(Morphism):
         EXAMPLES:
             sage: J = J0(37)
             sage: T2 = J.hecke_operator(2); T2
-            Hecke operator T_2 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+            Hecke operator T_2 on Abelian variety J0(37) of dimension 2
         """
         n = ZZ(n)
         if n <= 0:
@@ -453,7 +448,7 @@ class HeckeOperator(Morphism):
         EXAMPLES:
             sage: J = J0(37)
             sage: J.hecke_operator(2)._repr_()
-            'Hecke operator T_2 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)'
+            'Hecke operator T_2 on Abelian variety J0(37) of dimension 2'
         """
         return "Hecke operator T_%s on %s"%(self.__n, self.__abvar)
 
@@ -469,12 +464,12 @@ class HeckeOperator(Morphism):
             sage: J = J0(15)
             sage: t = J.hecke_operator(53)
             sage: t
-            Hecke operator T_53 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(15)
+            Hecke operator T_53 on Abelian variety J0(15) of dimension 1
             sage: t.index()
             53
             sage: t = J.hecke_operator(54)
             sage: t
-            Hecke operator T_54 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(15)
+            Hecke operator T_54 on Abelian variety J0(15) of dimension 1
             sage: t.index()
             54
 
@@ -516,9 +511,9 @@ class HeckeOperator(Morphism):
 
         EXAMPLES:
             sage: A = J0(43)[1]; A
-            Abelian variety factor of dimension 2 of J0(43)
+            Simple abelian subvariety 43b(1,43) of dimension 2 of J0(43)
             sage: t2 = A.hecke_operator(2); t2
-            Hecke operator T_2 on Abelian variety factor of dimension 2 of J0(43)
+            Hecke operator T_2 on Simple abelian subvariety 43b(1,43) of dimension 2 of J0(43)
             sage: f = t2.characteristic_polynomial(); f
             x^4 - 4*x^2 + 4
             sage: f.parent()
@@ -540,7 +535,7 @@ class HeckeOperator(Morphism):
         EXAMPLES:
             sage: A = J1(13)
             sage: t2 = A.hecke_operator(2); t2
-            Hecke operator T_2 on Jacobian of the modular curve associated to the congruence subgroup Gamma1(13)
+            Hecke operator T_2 on Abelian variety J1(13) of dimension 2
             sage: f = t2.charpoly(); f
             x^4 + 6*x^3 + 15*x^2 + 18*x + 9
             sage: f.factor()
@@ -558,9 +553,9 @@ class HeckeOperator(Morphism):
         EXAMPLES:
             sage: A = J0(43)
             sage: t2 = A.hecke_operator(2); t2
-            Hecke operator T_2 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+            Hecke operator T_2 on Abelian variety J0(43) of dimension 3
             sage: h2 = t2.action_on_homology(); h2
-            Hecke operator T_2 on Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+            Hecke operator T_2 on Integral Homology of Abelian variety J0(43) of dimension 3
             sage: h2.matrix()
             [-2  1  0  0  0  0]
             [-1  1  1  0 -1  0]
@@ -569,7 +564,7 @@ class HeckeOperator(Morphism):
             [ 0 -2  0  2 -2  1]
             [ 0 -1  0  1  0 -1]
             sage: h2 = t2.action_on_homology(GF(2)); h2
-            Hecke operator T_2 on Homology with coefficients in Finite Field of size 2 of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+            Hecke operator T_2 on Homology with coefficients in Finite Field of size 2 of Abelian variety J0(43) of dimension 3
             sage: h2.matrix()
             [0 1 0 0 0 0]
             [1 1 1 0 1 0]

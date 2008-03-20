@@ -40,7 +40,7 @@ class Homspace(HomsetWithBase):
 
         EXAMPLES:
             sage: H = Hom(J0(11), J0(22)); H
-            Space of homomorphisms from Jacobian of the modular curve associated to the congruence subgroup Gamma0(11) to Jacobian of the modular curve associated to the congruence subgroup Gamma0(22)
+            Space of homomorphisms from Abelian variety J0(11) of dimension 1 to Abelian variety J0(22) of dimension 2
             sage: type(H)
             <class 'sage.modular.abvar.homspace.Homspace'>
             sage: H.homset_category()
@@ -86,7 +86,7 @@ class Homspace(HomsetWithBase):
         EXAMPLES:
             sage: J = J0(11)
             sage: End(J)._repr_()
-            'Space of homomorphisms from Jacobian of the modular curve associated to the congruence subgroup Gamma0(11) to Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)'
+            'Space of homomorphisms from Abelian variety J0(11) of dimension 1 to Abelian variety J0(11) of dimension 1'
         """
         return "Space of homomorphisms from %s to %s"%\
                (self.domain(), self.codomain())

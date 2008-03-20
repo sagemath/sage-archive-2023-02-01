@@ -13,7 +13,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
     # relprec > 0 if self.unit is constucted and self is normalized
     # relprec < 0 if self.unit is constructed but self is not normalized.  The actual relprec is -self.relprec
 
-    cdef void _set(self, ZZ_pX_c* unit, long ordp, long relprec)
+    cdef int _set(self, ZZ_pX_c* unit, long ordp, long relprec) except -1
     cdef int _set_from_mpq_part1(self, mpz_t num_unit, mpz_t den_unit, mpq_t x) except -1
     cdef int _set_from_mpq_part2(self, mpz_t num_unit, mpz_t den_unit) except -1
     cdef int _set_from_ZZX_part1(self, ZZX_c poly, long absprec, long relprec) except -1

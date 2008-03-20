@@ -629,7 +629,7 @@ cdef class Ring(ParentWithGens):
 
         EXAMPLES:
             sage: CyclotomicField(19).zeta_order()
-            19
+            38
             sage: GF(19).zeta_order()
             18
             sage: GF(5^3,'a').zeta_order()

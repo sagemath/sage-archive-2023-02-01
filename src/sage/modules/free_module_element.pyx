@@ -449,22 +449,30 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         return sum([x**2 for x in self.list()]).sqrt()
 
-    def norm(self, p):
+    def norm(self, p=sage.rings.integer.Integer(2)):
         """
         Return the p-norm of this vector, where p can be a real
         number >= 1, Infinity, or a symbolic expression.
-        If p=2, this is the usual Euclidean norm; if p=Infinity,
-        this is the maximum norm; if p=1, this is the taxicab
-        (Manhattan) norm.
+        If p=2 (default), this is the usual Euclidean norm;
+        if p=Infinity, this is the maximum norm; if p=1, this is
+        the taxicab (Manhattan) norm.
 
         EXAMPLES:
-            sage: v = vector([1,2,3])
+            sage: v = vector([1,2,-3])
             sage: v.norm(5)
             276^(1/5)
+
+        The default is the usual Euclidean norm:
+            sage: v.norm()
+            sqrt(14)
             sage: v.norm(2)
             sqrt(14)
+
+        The infinity norm is the maximum size of any entry:
             sage: v.norm(Infinity)
             3
+
+        Any real or symbolic value works:
             sage: v=vector(RDF,[1,2,3])
             sage: v.norm(5)
             3.07738488539
@@ -474,10 +482,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (a, b, c, d, p)
             sage: v=vector([a, b, c, d])
             sage: v.norm(p)
-            (d^p + c^p + b^p + a^p)^(1/p)
+            (abs(d)^p + abs(c)^p + abs(b)^p + abs(a)^p)^(1/p)
         """
+        abs_self = [abs(x) for x in self]
         if p == Infinity:
-            return max(self)
+            return max(abs_self)
         try:
             pr = RDF(p)
             if pr < 1:
@@ -485,7 +494,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         except TypeError:
             pass
 
-        s = sum([a**p for a in self])
+        s = sum([a**p for a in abs_self])
         return s**(1/p)
 
     cdef int _cmp_c_impl(left, Element right) except -2:

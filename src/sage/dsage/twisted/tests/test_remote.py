@@ -15,14 +15,9 @@
 #
 #                  http://www.gnu.org/licenses/
 ############################################################################
-
-import ConfigParser
 import os
 import random
 from glob import glob
-import cPickle
-import zlib
-import uuid
 import base64
 
 from twisted.trial import unittest
@@ -35,24 +30,25 @@ from twisted.python import log
 from sage.dsage.twisted.pb import Realm
 from sage.dsage.server.server import DSageServer
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
-from sage.dsage.twisted.pb import PBClientFactory
+from sage.dsage.twisted.pb import ClientFactory
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
-from sage.dsage.database.jobdb import JobDatabaseSQLite
-from sage.dsage.database.monitordb import MonitorDatabase
-from sage.dsage.database.clientdb import ClientDatabase
+from sage.dsage.database.jobdb import JobDatabaseSA as JobDatabase
+from sage.dsage.database.workerdb import WorkerDatabaseSA as WorkerDatabase
+from sage.dsage.database.clientdb import ClientDatabaseSA as ClientDatabase
+from sage.dsage.database.db_config import init_db_sa as init_db
 from sage.dsage.database.job import Job
 from sage.dsage.errors.exceptions import BadJobError
-from sage.dsage.misc.hostinfo import ClassicHostInfo
+from sage.dsage.misc.hostinfo import HostInfo
 from sage.dsage.twisted.tests.test_pubkeyauth import TEST_PUB_KEY
 from sage.dsage.twisted.tests.test_pubkeyauth import TEST_PRIV_KEY
 
-DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-hf = ClassicHostInfo().host_info
+hf = HostInfo().host_info
 hf['uuid'] = ''
 hf['workers'] = 2
 
 RANDOM_DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
                        range(500)]])
+
 
 class ClientRemoteCallsTest(unittest.TestCase):
     """
@@ -60,20 +56,17 @@ class ClientRemoteCallsTest(unittest.TestCase):
 
     """
 
-    def unpickle(self, pickled_job):
-        return cPickle.loads(zlib.decompress(pickled_job))
-
     def setUp(self):
-        self.jobdb = JobDatabaseSQLite(test=True)
-        self.monitordb = MonitorDatabase(test=True)
-        self.clientdb = ClientDatabase(test=True)
+        Session = init_db('test.db')
+        self.jobdb = JobDatabase(Session)
+        self.workerdb = WorkerDatabase(Session)
+        self.clientdb = ClientDatabase(Session)
         self.dsage_server = DSageServer(self.jobdb,
-                                        self.monitordb,
+                                        self.workerdb,
                                         self.clientdb,
                                         log_level=5)
         self.realm = Realm(self.dsage_server)
         self.p = _SSHKeyPortalRoot(portal.Portal(self.realm))
-        self.clientdb = ClientDatabase(test=True)
         self.p.portal.registerChecker(
                             PublicKeyCredentialsCheckerDB(self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)
@@ -100,17 +93,18 @@ class ClientRemoteCallsTest(unittest.TestCase):
                                                self.signature)
         pubkey = base64.encodestring(self.public_key_str).strip()
         try:
-            self.clientdb.del_user(self.username)
-            self.clientdb.add_user(self.username, pubkey)
+            self.clientdb.del_client(self.username)
+            self.clientdb.add_client(self.username, pubkey)
         except:
-            self.clientdb.add_user(self.username, pubkey)
+            self.clientdb.add_client(self.username, pubkey)
 
     def tearDown(self):
-        self.connection.disconnect()
+        from sqlalchemy.orm import clear_mappers
         self.jobdb._shutdown()
-        files = glob('*.db*')
-        for file in files:
-            os.remove(file)
+        clear_mappers()
+        self.connection.disconnect()
+        os.remove('test.db')
+
         return self.server.stopListening()
 
     def _catch_failure(self, failure, *args):
@@ -121,19 +115,21 @@ class ClientRemoteCallsTest(unittest.TestCase):
         """tests perspective_submit_job"""
         jobs = self.create_jobs(1)
 
-        factory = PBClientFactory()
+        def _login(self, *args, **kwargs):
+            d = self.factory.login(self.creds, None)
+            d.addCallback(self._LoginConnected2, args[0])
+
+            return d
+        factory = ClientFactory(_login, (jobs), {})
+        factory.continueTrying = False
         self.connection = reactor.connectTCP(self.hostname,
                                              self.port,
                                              factory)
 
-        d = factory.login(self.creds, None)
-        d.addCallback(self._LoginConnected2, jobs)
-        return d
-
     def _LoginConnected2(self, remoteobj, jobs):
         job = jobs[0]
         job.code = "2+2"
-        d = remoteobj.callRemote('submit_job', job.reduce())
+        d = remoteobj.callRemote('submit_job', job._reduce())
         d.addCallback(self._got_job_id)
         return d
 
@@ -143,14 +139,17 @@ class ClientRemoteCallsTest(unittest.TestCase):
     def testremoteSubmitBadJob(self):
         """tests perspective_submit_job"""
 
-        factory = PBClientFactory()
+        def _login(self, *args, **kwargs):
+            d = self.factory.login(self.creds, None)
+            d.addCallback(self._LoginConnected3)
+
+            return d
+
+        factory = ClientFactory(_login, (), {})
+        factory.continueTrying = False
         self.connection = reactor.connectTCP(self.hostname,
                                              self.port,
                                              factory)
-
-        d = factory.login(self.creds, None)
-        d.addCallback(self._LoginConnected3)
-        return d
 
     def _LoginConnected3(self, remoteobj):
         d = remoteobj.callRemote('submit_job', None)
@@ -169,24 +168,25 @@ class ClientRemoteCallsTest(unittest.TestCase):
 
         return jobs
 
-class MonitorRemoteCallsTest(unittest.TestCase):
+class WorkerRemoteCallsTest(unittest.TestCase):
     """
     Tests remote calls for monitors.
 
     """
 
     def setUp(self):
-        self.jobdb = JobDatabaseSQLite(test=True)
-        self.monitordb = MonitorDatabase(test=True)
-        self.clientdb = ClientDatabase(test=True)
+        Session = init_db('test.db')
+        self.jobdb = JobDatabase(Session)
+        self.workerdb = WorkerDatabase(Session)
+        self.clientdb = ClientDatabase(Session)
         self.dsage_server = DSageServer(self.jobdb,
-                                        self.monitordb,
+                                        self.workerdb,
                                         self.clientdb,
                                         log_level=5)
         self.realm = Realm(self.dsage_server)
         self.p = _SSHKeyPortalRoot(portal.Portal(self.realm))
         self.p.portal.registerChecker(
-        PublicKeyCredentialsCheckerDB(self.clientdb))
+                            PublicKeyCredentialsCheckerDB(self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)
         self.hostname = 'localhost'
         self.server = reactor.listenTCP(0, self.client_factory)
@@ -211,32 +211,36 @@ class MonitorRemoteCallsTest(unittest.TestCase):
                                                self.signature)
         pubkey = base64.encodestring(self.public_key_str).strip()
         try:
-            self.clientdb.del_user(self.username)
-            self.clientdb.add_user(self.username, pubkey)
+            self.clientdb.del_client(self.username)
+            self.clientdb.add_client(self.username, pubkey)
         except:
-            self.clientdb.add_user(self.username, pubkey)
+            self.clientdb.add_client(self.username, pubkey)
 
     def tearDown(self):
-        self.connection.disconnect()
+        from sqlalchemy.orm import clear_mappers
         self.jobdb._shutdown()
-        files = glob('*.db*')
-        for file in files:
-            os.remove(file)
+        clear_mappers()
+        self.connection.disconnect()
+        os.remove('test.db')
+
         return self.server.stopListening()
 
     def testremote_get_job(self):
         job = Job()
         job.code = "2+2"
-        self.dsage_server.submit_job(job.reduce())
-        factory = PBClientFactory()
+        self.dsage_server.submit_job(job._reduce())
+
+        def _login(self, *args, **kwargs):
+            d = self.factory.login(self.creds, (pb.Referenceable(), hf))
+            d.addCallback(self._logged_in)
+            d.addCallback(self._get_job)
+
+            return d
+        factory = ClientFactory(_login, (), {})
+        factory.continueTrying = False
         self.connection = reactor.connectTCP(self.hostname,
                                              self.port,
                                              factory)
-        d = factory.login(self.creds, (pb.Referenceable(), hf))
-        d.addCallback(self._logged_in)
-        d.addCallback(self._get_job)
-
-        return d
 
     def _logged_in(self, remoteobj):
         self.assert_(remoteobj is not None)
@@ -253,18 +257,21 @@ class MonitorRemoteCallsTest(unittest.TestCase):
         self.assertEquals(type(jdict), dict)
 
     def testremote_job_done(self):
-        factory = PBClientFactory()
+        def _login(self, *args, **kwargs):
+            d = self.factory.login(args[0], (pb.Referenceable(), hf))
+            d.addCallback(self._logged_in)
+            d.addCallback(self._job_done, jdict)
+
+            return d
+        factory = ClientFactory(_login, (self.creds), {})
+        factory.continueTrying = False
+
         self.connection = reactor.connectTCP(self.hostname, self.port,
                                              factory)
-        d = factory.login(self.creds, (pb.Referenceable(), hf))
         job = Job()
         job.code = "2+2"
-        job_id = self.dsage_server.submit_job(job.reduce())
+        job_id = self.dsage_server.submit_job(job._reduce())
         jdict = self.dsage_server.get_job_by_id(job_id)
-        d.addCallback(self._logged_in)
-        d.addCallback(self._job_done, jdict)
-
-        return d
 
     def _job_done(self, remoteobj, jdict):
         import time
@@ -284,19 +291,22 @@ class MonitorRemoteCallsTest(unittest.TestCase):
         self.assertEquals(jdict['output'], 'Nothing.')
 
     def testremote_job_failed(self):
-        factory = PBClientFactory()
+        job = Job()
+        job.code = "2+2"
+        job_id = self.dsage_server.submit_job(job._reduce())
+        jdict = self.dsage_server.get_job_by_id(job_id)
+
+        def _login(self, *args, **kwargs):
+            d = self.factory.login(self.creds, (pb.Referenceable(), hf))
+            d.addCallback(self._logged_in)
+            d.addCallback(self._job_failed, args[0])
+
+            return d
+        factory = ClientFactory(_login, (jdict), {})
+        factory.continueTrying = False
         self.connection = reactor.connectTCP(self.hostname,
                                              self.port,
                                              factory)
-        job = Job()
-        job.code = "2+2"
-        job_id = self.dsage_server.submit_job(job.reduce())
-        jdict = self.dsage_server.get_job_by_id(job_id)
-        d = factory.login(self.creds, (pb.Referenceable(), hf))
-        d.addCallback(self._logged_in)
-        d.addCallback(self._job_failed, jdict)
-
-        return d
 
     def _job_failed(self, remoteobj, jdict):
         d = remoteobj.callRemote('job_failed', jdict['job_id'], 'Failure')
@@ -311,22 +321,24 @@ class MonitorRemoteCallsTest(unittest.TestCase):
         self.assertEquals(jdict['output'], 'Failure')
 
     def testget_killed_jobs_list(self):
-        factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname,
-                                             self.port,
-                                             factory)
-
         job = Job()
         job.code = "2+2"
         job.killed = True
-        job_id = self.dsage_server.submit_job(job.reduce())
+        job_id = self.dsage_server.submit_job(job._reduce())
         jdict = self.dsage_server.get_job_by_id(job_id)
-        d = factory.login(self.creds, (pb.Referenceable(), hf))
-        d.addCallback(self._logged_in)
-        d.addCallback(self._get_killed_jobs_list)
-        d.addCallback(self._got_killed_jobs_list, jdict)
 
-        return d
+        def _login(self, *args, **kwargs):
+            d = self.factory.login(self.creds, (pb.Referenceable(), hf))
+            d.addCallback(self._logged_in)
+            d.addCallback(self._get_killed_jobs_list)
+            d.addCallback(self._got_killed_jobs_list, args[0])
+
+            return d
+        factory = ClientFactory(_login, (jdict), {})
+        factory.continueTrying = False
+        self.connection = reactor.connectTCP(self.hostname,
+                                             self.port,
+                                             factory)
 
     def _get_killed_jobs_list(self, remoteobj):
         d = remoteobj.callRemote('get_killed_jobs_list')

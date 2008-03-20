@@ -22,47 +22,30 @@ from twisted.spread import banana
 banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
 
 from zope.interface import implements
+
+from twisted.internet import reactor
 from twisted.cred import portal, credentials
 from twisted.cred.credentials import ISSHPrivateKey
 from twisted.cred.credentials import IAnonymous
 from twisted.cred.credentials import Anonymous
+from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.spread.interfaces import IJellyable
-from twisted.spread.pb import IPerspective, AsReferenceable
+from twisted.spread.pb import (IPerspective, AsReferenceable, PBClientFactory)
 from twisted.python import log
 
-from sage.dsage.misc.hostinfo import HostInfo
 from sage.dsage.errors.exceptions import BadTypeError, BadJobError
+from sage.dsage.misc.misc import gen_uuid, check_uuid
 
-pb.setUnjellyableForClass(HostInfo, HostInfo)
-
-class WorkerPBServerFactory(pb.PBServerFactory):
+class ClientFactory(PBClientFactory, ReconnectingClientFactory):
     """
-    This factory serves workers requests.
-
-    """
-
-    def __init__(self, root):
-        pb.PBServerFactory.__init__(self, root)
-
-    def clientConnectionMade(self, broker):
-        """Keeps a 3-tuple of connected workers.
-        tuple[0] - the broker
-        tuple[1] - the worker ip
-        tuple[2] - the worker port
-
-        """
-
-        broker.notifyOnDisconnect(self.clientConnectionLost)
-
-    def clientConnectionLost(self):
-        pass
-
-class PBClientFactory(pb.PBClientFactory):
-    """
-    Custom implementation of the PBClientFactory that supports logging in
-    with public key as well as anonymous credentials.
+    Custom implementation of the ClientFactory that supports logging in
+    with public key as well as unauthenticated credentials.
 
     """
+
+    def __init__(self, cb, args, kwargs):
+        PBClientFactory.__init__(self)
+        self._observer = (cb, args, kwargs)
 
     def login(self, creds, mind=None):
         if ISSHPrivateKey.providedBy(creds):
@@ -89,13 +72,32 @@ class PBClientFactory(pb.PBClientFactory):
         return d
 
     def _cbAnonymousLogin(self, root, mind):
-        d = root.callRemote("login_anonymous", mind)
+        d = root.callRemote("login_authenticate", mind)
 
         return d
 
-    # We should override this in the future to do something useful...
-    # def startedConnecting(self, connector):
-    #     pass
+    def startConnecting(self, server, port, cred=None):
+        if cred:
+            reactor.connectTLS(self.server, self.port, self.factory,
+                               cred)
+        else:
+            reactor.connectTCP(self.server, self.port, self.factory)
+
+    def clientConnectionMade(self, broker):
+        PBClientFactory.clientConnectionMade(self, broker)
+        cb, args, kwargs = self._observer
+        cb(self._root, *args, **kwargs)
+
+    def clientConnectionLost(self, connector, reason, reconnecting=0):
+        PBClientFactory.clientConnectionLost(self, connector, reason,
+                                             reconnecting=1)
+        ReconnectingClientFactory.clientConnectionLost(self, connector,
+                                                       reason)
+
+    def clientConnectionFailed(self, connector, reason):
+        PBClientFactory.clientConnectionFailed(self, connector, reason)
+        ReconnectingClientFactory.clientConnectionFailed(self, connector,
+                                                         reason)
 
 class _SSHKeyPortalRoot(pb._PortalRoot):
     def rootObject(self, broker):
@@ -114,7 +116,7 @@ class _SSHKeyPortalWrapper(pb._PortalWrapper):
 
         return d
 
-    def remote_login_anonymous(self, mind):
+    def remote_login_authenticate(self, mind):
         d = self.portal.login(Anonymous(), mind, IPerspective)
         d.addCallback(self._loggedIn)
 
@@ -133,11 +135,17 @@ class DefaultPerspective(pb.Avatar):
 
     """
 
-    def __init__(self, DSageServer, avatarID):
-        self.DSageServer = DSageServer
+    def __init__(self, dsage_server, avatarID):
+        self.dsage_server = dsage_server
         self.avatarID = avatarID
         self.connections = 0
-        self.monitordb = self.DSageServer.monitordb
+        self.workerdb = self.dsage_server.workerdb
+        self.clientdb = self.dsage_server.clientdb
+        self.kind = ''
+        self.host_info = []
+
+    def __repr__(self):
+        return "<%s:'%s'>" % (self.kind, self.avatarID)
 
     def perspectiveMessageReceived(self, broker, message, args, kw):
         self.broker = broker
@@ -145,82 +153,85 @@ class DefaultPerspective(pb.Avatar):
         return pb.Avatar.perspectiveMessageReceived(self, broker,
                                                     message, args, kw)
 
+
     def attached(self, avatar, mind):
         self.connections += 1
-        if isinstance(mind, tuple):
-            self.mind = mind
-            self.host_info = mind[1]
-            self.host_info['ip'] = mind[0].broker.transport.getPeer().host
-            self.host_info['port'] = mind[0].broker.transport.getPeer().port
-            uuid = self.host_info['uuid']
-            if self.monitordb.get_monitor(uuid) is None:
-                self.monitordb.add_monitor(self.host_info)
-            else:
-                self.monitordb.update_monitor(self.host_info)
-            self.monitordb.set_connected(uuid, connected=True)
-            return uuid
-        else:
-            self.DSageServer.clientdb.update_login_time(self.avatarID)
-            self.DSageServer.clientdb.set_connected(self.avatarID,
-                                                    connected=True)
+        log.msg('%s connected' % avatar)
+
 
     def detached(self, avatar, mind):
         self.connections -= 1
-        log.msg('%s disconnected' % (self.avatarID))
-        if isinstance(mind, tuple):
-            uuid = self.host_info['uuid']
-            self.monitordb.set_connected(uuid, connected=False)
-        else:
-            self.DSageServer.clientdb.set_connected(self.avatarID,
-                                                    connected=False)
+        log.msg('%s disconnected' % avatar)
 
-class AnonymousMonitorPerspective(DefaultPerspective):
+
+
+class AnonymousWorker(DefaultPerspective):
     """
-    Defines the perspective of an anonymous worker.
+    Defines the perspective of an authenticate worker.
 
     """
 
-    def __init__(self, DSageServer, avatarID):
-        DefaultPerspective.__init__(self, DSageServer, avatarID)
+    def __init__(self, dsage_server, avatarID):
+        DefaultPerspective.__init__(self, dsage_server, avatarID)
 
     def attached(self, avatar, mind):
-        uuid = DefaultPerspective.attached(self, avatar, mind)
-        self.monitordb.set_anonymous(uuid, anonymous=True)
+        DefaultPerspective.attached(self, avatar, mind)
+        self.monitor = mind[0]
+        self.host_info = mind[1]
+        self.host_info['ip'] = mind[0].broker.transport.getPeer().host
+        self.host_info['port'] = mind[0].broker.transport.getPeer().port
+        if check_uuid(self.host_info['uuid']):
+            uuid = self.host_info['uuid']
+            if self.workerdb.get_worker(uuid) is None:
+                self.workerdb.add_worker(self.host_info)
+            else:
+                self.workerdb.update_worker(self.host_info)
+        else:
+            uuid = gen_uuid()
+            if isinstance(self.monitor, pb.RemoteReference):
+                d = self.monitor.callRemote('set_uuid', uuid)
+                self.host_info['uuid'] = uuid
+                self.workerdb.add_worker(self.host_info)
+        self.uuid = uuid
+        self.workerdb.set_connected(uuid, connected=True)
+        self.workerdb.set_authenticated(uuid, False)
+        self.dsage_server.workers[uuid] = mind[0]
 
         return uuid
 
     def detached(self, avatar, mind):
         DefaultPerspective.detached(self, avatar, mind)
+        self.workerdb.set_connected(self.uuid, connected=False)
+        del self.dsage_server.workers[self.uuid]
 
     def perspective_get_job(self):
         """
-        Returns jobs only marked as doable by anonymous workers.
+        Returns jobs only marked as doable by authenticate workers.
 
         """
 
-        uuid = self.mind[1]['uuid']
-        jdict = self.DSageServer.get_job(anonymous=True)
+        uuid = self.host_info['uuid']
+        jdict = self.dsage_server.get_job()
         if jdict is not None:
-            self.DSageServer.set_job_uuid(jdict['job_id'], uuid)
-            self.DSageServer.set_busy(uuid, busy=True)
+            self.dsage_server.set_job_uuid(jdict['job_id'], uuid)
+            self.dsage_server.set_busy(uuid, True)
         else:
-            self.DSageServer.set_busy(uuid, busy=False)
+            self.dsage_server.set_busy(uuid, False)
 
         return jdict
 
     def perspective_get_killed_jobs_list(self):
-        return self.DSageServer.get_killed_jobs_list()
-
+        return self.dsage_server.get_killed_jobs_list()
 
     def perspective_job_failed(self, job_id, traceback):
         if not isinstance(job_id, str):
             log.msg('Bad job_id %s' % (job_id))
             raise BadTypeError()
 
-        uuid = self.mind[1]['uuid']
-        self.DSageServer.set_busy(uuid, busy=False)
+        uuid = self.host_info['uuid']
+        self.dsage_server.set_busy(uuid, False)
 
-        return self.DSageServer.job_failed(job_id, traceback)
+        return self.dsage_server.job_failed(job_id, traceback)
 
     def perspective_job_done(self, job_id, output, result, completed,
                              cpu_time):
@@ -231,23 +242,24 @@ class AnonymousMonitorPerspective(DefaultPerspective):
             log.msg('completed: %s' % (completed))
             raise BadTypeError()
         if completed:
-            uuid = self.mind[1]['uuid']
-            self.DSageServer.set_busy(uuid, busy=False)
+            uuid = self.host_info['uuid']
+            self.dsage_server.set_busy(uuid, False)
 
-        return self.DSageServer.job_done(job_id, output, result, completed,
+        return self.dsage_server.job_done(job_id, output, result, completed,
                                          cpu_time)
 
-class MonitorPerspective(AnonymousMonitorPerspective):
+class Worker(AnonymousWorker):
     """
     Defines the perspective of an authenticated worker to the server.
 
     """
-    def __init__(self, DSageServer, avatarID):
-        DefaultPerspective.__init__(self, DSageServer, avatarID)
+    def __init__(self, dsage_server, avatarID):
+        DefaultPerspective.__init__(self, dsage_server, avatarID)
 
     def attached(self, avatar, mind):
-        uuid = DefaultPerspective.attached(self, avatar, mind)
-        self.monitordb.set_anonymous(uuid, anonymous=False)
+        uuid = AnonymousWorker.attached(self, avatar, mind)
+        self.workerdb.set_authenticated(uuid, True)
+        return uuid
 
     def perspective_get_job(self):
         """
@@ -256,44 +268,52 @@ class MonitorPerspective(AnonymousMonitorPerspective):
         """
 
         try:
-            uuid = self.mind[1]['uuid']
+            uuid = self.host_info['uuid']
         except Exception, msg:
             raise ValueError("Could not match a uuid to the monitor.")
 
-        jdict = self.DSageServer.get_job(anonymous=False)
+        jdict = self.dsage_server.get_job()
         if jdict is not None:
-            self.DSageServer.set_job_uuid(jdict['job_id'], uuid)
-            self.DSageServer.set_busy(uuid, busy=True)
-        else:
-            self.DSageServer.set_busy(uuid, busy=False)
+            self.dsage_server.set_job_uuid(jdict['job_id'], uuid)
+            self.dsage_server.set_busy(uuid, True)
 
         return jdict
 
-class UserPerspective(DefaultPerspective):
+class Client(DefaultPerspective):
     """
     Defines the perspective of a regular user to the server.
 
     """
 
-    def __init__(self, DSageServer, avatarID):
-        DefaultPerspective.__init__(self, DSageServer, avatarID)
+    def __init__(self, dsage_server, avatarID):
+        DefaultPerspective.__init__(self, dsage_server, avatarID)
+
+    def attached(self, avatar, mind):
+        DefaultPerspective.attached(self, avatar, mind)
+        self.clientdb.set_connected(self.avatarID, connected=True)
+        self.clientdb.update_login_time(self.avatarID)
+        self.dsage_server.clients.append(self)
+
+    def detached(self, avatar, mind):
+        DefaultPerspective.detached(self, avatar, mind)
+        self.clientdb.set_connected(self.avatarID, connected=False)
+        self.dsage_server.clients.remove(self)
 
     def perspective_get_job_by_id(self, job_id):
         if not isinstance(job_id, str):
             log.msg('Bad job_id [%s] passed to get_job_by_id' % (job_id))
             raise BadTypeError()
-        # log.msg('Returning job %s to %s' % (job_id, self.avatarID))
-        job = self.DSageServer.get_job_by_id(job_id)
+        job = self.dsage_server.get_job_by_id(job_id)
 
         return job
 
-    def perspective_get_jobs_by_username(self, username, active=True):
+    def perspective_get_jobs_by_username(self, username, status):
         if not (isinstance(username, str)):
             log.msg('Bad username [%s] passed to ' +
                     'perspective_get_jobs_by_username' % (username))
             raise BadTypeError()
 
-        jobs = self.DSageServer.get_jobs_by_username(username, active)
+        jobs = self.dsage_server.get_jobs_by_username(username, status)
 
         return jobs
 
@@ -303,7 +323,7 @@ class UserPerspective(DefaultPerspective):
                     'perspective_get_job_result_by_id' % (job_id))
             raise BadTypeError()
 
-        return self.DSageServer.get_job_result_by_id(job_id)
+        return self.dsage_server.get_job_result_by_id(job_id)
 
     def perspective_get_job_output_by_id(self, job_id):
         if not isinstance(job_id, str):
@@ -311,95 +331,117 @@ class UserPerspective(DefaultPerspective):
                     'get_job_output_by_id' % (job_id))
             raise BadTypeError()
 
-        return self.DSageServer.get_job_output_by_id(job_id)
+        return self.dsage_server.get_job_output_by_id(job_id)
 
     def perspective_sync_job(self, job_id):
         if not isinstance(job_id, str):
             return None
 
-        return self.DSageServer.sync_job(job_id)
+        return self.dsage_server.sync_job(job_id)
 
     def perspective_submit_job(self, jdict):
         if jdict is None:
             raise BadJobError()
-        if jdict['username'] != self.avatarID:
-            log.msg('username does not match credentials')
-            log.msg('claim: %s' % jdict['username'])
-            log.msg('actual: %s' % self.avatarID)
-            raise BadJobError()
 
-        return self.DSageServer.submit_job(jdict)
+        return self.dsage_server.submit_job(jdict)
 
-    def perspective_kill_job(self, job_id, reason=None):
+    def perspective_web_server_url(self):
+        return "http://localhost:%s" % self.dsage_server.web_port
+
+    def perspective_kill_job(self, job_id):
         if not isinstance(job_id, str):
             log.msg('Bad job_id [%s] passed to perspective_kill_job' % job_id)
             raise BadTypeError()
 
-        return self.DSageServer.kill_job(job_id, reason)
+        return self.dsage_server.kill_job(job_id)
 
     def perspective_get_cluster_speed(self):
-        return self.DSageServer.get_cluster_speed()
+        return self.dsage_server.get_cluster_speed()
 
-    def perspective_get_monitor_list(self):
-        # return [x[1] for x in self.DSageServer.get_worker_list()]
-        return self.DSageServer.get_monitor_list()
+    def perspective_get_worker_list(self):
+        # return [x[1] for x in self.dsage_server.get_worker_list()]
+        return self.dsage_server.get_worker_list()
 
     def perspective_get_client_list(self):
-        return self.DSageServer.get_client_list()
+        return self.dsage_server.get_client_list()
 
     def perspective_get_worker_count(self):
-        return self.DSageServer.get_worker_count()
+        return self.dsage_server.get_worker_count()
 
     def perspective_get_killed_jobs_list(self):
-        return self.DSageServer.get_killed_jobs_list()
+        return self.dsage_server.get_killed_jobs_list()
 
-class AdminPerspective(UserPerspective):
+    def perspective_read_log(self, n, kind):
+        return self.dsage_server.read_log(n, kind)
+
+
+class Admin(Client, Worker):
     """
     Defines the perspective of the admin.
 
     """
 
-    def __init__(self, DSageServer, avatarID):
-        UserPerspective.__init__(self, DSageServer, avatarID)
+    def __init__(self, dsage_server, avatarID):
+        Client.__init__(self, dsage_server, avatarID)
+
+class Tester(Client, Worker):
+    def __init__(self, dsage_server, avatarID):
+        DefaultPerspective.__init__(self, dsage_server, avatarID)
+
+    def attached(self, avatar, mind):
+        try:
+            Worker.attached(self, avatar, mind)
+        except:
+            Client.attached(self, avatar, mind)
+
+    def detached(self, avatar, mind):
+        try:
+            Worker.detached(self, avatar, mind)
+        except:
+            Client.attached(self, avatar, mind)
 
 class Realm(object):
     implements(portal.IRealm)
 
-    def __init__(self, DSageServer):
-        self.DSageServer = DSageServer
-        self.max_connections = 100
+    def __init__(self, dsage_server):
+        self.dsage_server = dsage_server
+        self.max_connections = 1000
+        self.client_avatars = {}
 
     def requestAvatar(self, avatarID, mind, *interfaces):
         if not pb.IPerspective in interfaces:
             raise NotImplementedError("No supported avatar interface.")
         else:
-            if avatarID == 'admin':
-                kind = 'admin'
-            elif avatarID == 'Anonymous' and mind:
-                kind = 'anonymous_monitor'
-            elif mind:
-                kind = 'monitor'
+            if self.dsage_server._testing:
+                kind = 'tester'
+                avatarID = 'tester'
+                avatar = Tester(self.dsage_server, avatarID)
             else:
-                kind = 'client'
-            if kind == 'admin':
-                avatar = AdminPerspective(self.DSageServer, avatarID)
-            elif kind == 'anonymous_monitor':
-                avatar = AnonymousMonitorPerspective(self.DSageServer,
-                                                     avatarID)
-            elif kind == 'monitor':
-                avatar = MonitorPerspective(self.DSageServer, avatarID)
-            elif kind == 'client':
-                avatar = UserPerspective(self.DSageServer, avatarID)
-        if avatar.connections >= self.max_connections:
-            raise ValueError('Too many connections for user %s' % avatarID)
-
+                if avatarID == 'admin':
+                    kind = 'admin'
+                elif avatarID == 'Anonymous':
+                    kind = 'unauthenticated_worker'
+                elif mind:
+                    kind = 'worker'
+                else:
+                    kind = 'client'
+                if kind == 'admin':
+                    avatar = Admin(self.dsage_server, avatarID)
+                elif kind == 'client':
+                    if avatarID in self.client_avatars:
+                        avatar = self.client_avatars[avatarID]
+                    else:
+                        avatar = Client(self.dsage_server, avatarID)
+                        self.client_avatars[avatarID] = avatar
+                elif kind == 'unauthenticated_worker':
+                    avatar = AnonymousWorker(self.dsage_server, avatarID)
+                elif kind == 'worker':
+                    avatar = Worker(self.dsage_server, avatarID)
+        avatar.kind = kind
         avatar.attached(avatar, mind)
-
-        if kind == 'monitor':
-            log.msg('(%s, %s) id: %s connected' % (avatarID, kind,
-                                                   mind[1]['uuid']))
-        else:
-            log.msg('(%s, %s) connected' % (avatarID, kind))
+        self.max_connections += 1
+        if avatar.connections >= self.max_connections:
+            raise ValueError('Too many connections.')
 
         return pb.IPerspective, avatar, lambda a = avatar:a.detached(avatar,
                                                                      mind)

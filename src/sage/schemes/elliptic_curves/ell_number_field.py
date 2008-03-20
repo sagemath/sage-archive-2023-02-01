@@ -518,22 +518,38 @@ class EllipticCurve_number_field(EllipticCurve_field):
             pi = K.uniformizer(P, 'negative')
             verbose("P is not principal, uniformizer pi = %s"%pi, t, 1)
 
-        def val(x):   # cannot be used for x=0
+        def _pval(x):
+            """
+            Local function returning the valuation of x at P
+            """
             if x==0: return Infinity
             return K.ideal(x).valuation(P)
-        def pdiv(x):
-            return x==0 or val(x) > 0
-        def inv_mod(x):
+        def _pdiv(x):
+            """
+            Local function returning True iff P divides x
+            """
+            return x==0 or _pval(x) > 0
+        def _pinv(x):
+            """
+            Local function returning an inverse of x mod P
+            """
             return F.lift(~F(x))
-        def root_mod(x, e):
+        def _proot(x, e):
+            """
+            Local function returning an e'th root of x mod P
+            """
             L = F(x).nth_root(e, extend = False, all = True)
             assert len(L) > 0, "no e'th root exists mod P"
             return F.lift(L[0])
-
-        def red_mod(x):
+        def _preduce(x):
+            """
+            Local function returning x reduced modulo P
+            """
             return F.lift(F(x))
-        def roots_exist(a, b, c):
-            #returns true if ax^2 + bx + c has roots.
+        def _pquadroots(a, b, c):
+            r"""
+            Local function returning True iff $ax^2 + bx + c$ has roots modulo P
+            """
             (a, b, c) = (F(a), F(b), F(c))
             if a == 0:
                 return (b != 0) or (c == 0)
@@ -541,34 +557,32 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 return len(PolynomialRing(F, "x")([c,b,a]).roots()) > 0
             else:
                 return (b**2 - 4*a*c).is_square()
-        def nroots_cubic(b, c, d):
-            # returns the number of roots of x^3 + b*x^2 + c*x + d
-            roots = PolynomialRing(F, 'x')([d, c, b, 1]).roots()
-            ans = 0
-            for L in roots:
-                ans += L[1]
-            return ans
-        def pad_A(A):
-            return [0, A[0], A[1], A[2], A[3], 0, A[4]]
+        def _pcubicroots(b, c, d):
+            r"""
+            Local function returning the number of roots of $x^3 +
+            b*x^2 + c*x + d$ modulo P, counting multiplicities
+            """
+            return sum([rr[1] for rr in PolynomialRing(F, 'x')([d, c, b, 1]).roots()],0)
 
         if p == 2:
             halfmodp = OK(Integer(0))
         else:
-            halfmodp = inv_mod(Integer(2))
+            halfmodp = _pinv(Integer(2))
 
-        A = pad_A(self.a_invariants())
+        A = self.a_invariants()
+        A = [0, A[0], A[1], A[2], A[3], 0, A[4]]
         indices = [1,2,3,4,6]
-        if min([val(a) for a in A if a != 0]) < 0:
-            verbose("Non-integral model at P: valuations are %s; making integral"%([val(a) for a in A if a != 0]), t, 1)
+        if min([_pval(a) for a in A if a != 0]) < 0:
+            verbose("Non-integral model at P: valuations are %s; making integral"%([_pval(a) for a in A if a != 0]), t, 1)
             e = 0
             for i in range(7):
                 if A[i] != 0:
-                    e = max(e, (-val(A[i])/i).ceil())
+                    e = max(e, (-_pval(A[i])/i).ceil())
             pie = pi**e
             for i in range(7):
                 if A[i] != 0:
                     A[i] *= pie**i
-            verbose("P-integral model is %s, with valuations %s"%([A[i] for i in indices], [val(A[i]) for i in indices]), t, 1)
+            verbose("P-integral model is %s, with valuations %s"%([A[i] for i in indices], [_pval(A[i]) for i in indices]), t, 1)
 
         (a1, a2, a3, a4, a6) = (A[1], A[2], A[3], A[4], A[6])
         while True:
@@ -576,7 +590,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             (b2, b4, b6, b8) = C.b_invariants()
             (c4, c6) = C.c_invariants()
             delta = C.discriminant()
-            vpd = val(delta)
+            vpd = _pval(delta)
 
             if vpd == 0:
                 ## Good reduction already
@@ -587,47 +601,47 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             # Otherwise, we change coordinates so that p | a3, a4, a6
             if p == 2:
-                if pdiv(b2):
-                    r = root_mod(a4, 2)
-                    t = root_mod(((r + a2)*r + a4)*r + a6, 2)
+                if _pdiv(b2):
+                    r = _proot(a4, 2)
+                    t = _proot(((r + a2)*r + a4)*r + a6, 2)
                 else:
-                    temp = inv_mod(a1)
+                    temp = _pinv(a1)
                     r = temp * a3
                     t = temp * (a4 + r*r)
             elif p == 3:
-                if pdiv(b2):
-                    r = root_mod(-b6, 3)
+                if _pdiv(b2):
+                    r = _proot(-b6, 3)
                 else:
-                    r = -inv_mod(b2) * b4
+                    r = -_pinv(b2) * b4
                 t = a1 * r + a3
             else:
-                if pdiv(c4):
-                    r = -inv_mod(12) * b2
+                if _pdiv(c4):
+                    r = -_pinv(12) * b2
                 else:
-                    r = -inv_mod(12*c4) * (c6 + b2 * c4)
+                    r = -_pinv(12*c4) * (c6 + b2 * c4)
                 t = -halfmodp * (a1 * r + a3)
-            r = red_mod(r)
-            t = red_mod(t)
+            r = _preduce(r)
+            t = _preduce(t)
             # print "Before first tranform C = %s"%C
             # print "[a1,a2,a3,a4,a6] = %s"%([a1, a2, a3, a4, a6])
             C = C.rst_transform(r, 0, t)
             (a1, a2, a3, a4, a6) = C.a_invariants()
             (b2, b4, b6, b8) = C.b_invariants()
-            if min([val(a) for a in (a1, a2, a3, a4, a6) if a != 0]) < 0:
+            if min([_pval(a) for a in (a1, a2, a3, a4, a6) if a != 0]) < 0:
                 raise RuntimeError, "Non-integral model after first transform!"
-            verbose("After first transform %s\n, [a1,a2,a3,a4,a6] = %s\n, valuations = %s"%([r, 0, t], [a1, a2, a3, a4, a6], [val(a1), val(a2), val(a3), val(a4), val(a6)]), t, 2)
-            if val(a3) == 0:
+            verbose("After first transform %s\n, [a1,a2,a3,a4,a6] = %s\n, valuations = %s"%([r, 0, t], [a1, a2, a3, a4, a6], [_pval(a1), _pval(a2), _pval(a3), _pval(a4), _pval(a6)]), t, 2)
+            if _pval(a3) == 0:
                 raise RuntimeError, "p does not divide a3 after first transform!"
-            if val(a4) == 0:
+            if _pval(a4) == 0:
                 raise RuntimeError, "p does not divide a4 after first transform!"
-            if val(a6) == 0:
+            if _pval(a6) == 0:
                 raise RuntimeError, "p does not divide a6 after first transform!"
 
             # Now we test for Types In, II, III, IV
             # Do we not have to update the c invariants?
-            if not pdiv(c4):
+            if not _pdiv(c4):
                 ## Type In (n = vpd)
-                if roots_exist(1, a1, -a2):
+                if _pquadroots(1, a1, -a2):
                     cp = vpd
                 elif Integer(2).divides(vpd):
                     cp = 2
@@ -636,21 +650,21 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 KS = KodairaSymbol("I%s"%vpd)
                 fp = 1
                 break #return
-            if val(a6) < 2:
+            if _pval(a6) < 2:
                 ## Type II
                 KS = KodairaSymbol("II")
                 fp = vpd
                 cp = 1
                 break #return
-            if val(b8) < 3:
+            if _pval(b8) < 3:
                 ## Type III
                 KS = KodairaSymbol("III")
                 fp = vpd - 1
                 cp = 2
                 break #return
-            if val(b6) < 3:
+            if _pval(b6) < 3:
                 ## Type IV
-                if roots_exist(1, a3 / pi, -a6/(pi*pi)):
+                if _pquadroots(1, a3 / pi, -a6/(pi*pi)):
                     cp = 3
                 else:
                     cp = 1
@@ -660,8 +674,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             # If our curve is none of these types, we change types so that p | a1, a2 and p^2 | a3, a4 and p^3 | a6
             if p == 2:
-                s = root_mod(a2, 2)
-                t = pi*root_mod(a6/(pi*pi), 2)
+                s = _proot(a2, 2)
+                t = pi*_proot(a6/(pi*pi), 2)
             elif p == 3:
                 s = a1
                 t = a3
@@ -671,18 +685,18 @@ class EllipticCurve_number_field(EllipticCurve_field):
             C = C.rst_transform(0, s, t)
             (a1, a2, a3, a4, a6) = C.a_invariants()
             (b2, b4, b6, b8) = C.b_invariants()
-            verbose("After second transform %s\n[a1, a2, a3, a4, a6] = %s\nValuations: %s"%([0, s, t], [a1,a2,a3,a4,a6],[val(a1),val(a2),val(a3),val(a4),val(a6)]), t, 2)
-            if val(a1) == 0:
+            verbose("After second transform %s\n[a1, a2, a3, a4, a6] = %s\nValuations: %s"%([0, s, t], [a1,a2,a3,a4,a6],[_pval(a1),_pval(a2),_pval(a3),_pval(a4),_pval(a6)]), t, 2)
+            if _pval(a1) == 0:
                 raise RuntimeError, "p does not divide a1 after second transform!"
-            if val(a2) == 0:
+            if _pval(a2) == 0:
                 raise RuntimeError, "p does not divide a2 after second transform!"
-            if val(a3) < 2:
+            if _pval(a3) < 2:
                 raise RuntimeError, "p^2 does not divide a3 after second transform!"
-            if val(a4) < 2:
+            if _pval(a4) < 2:
                 raise RuntimeError, "p^2 does not divide a4 after second transform!"
-            if val(a6) < 3:
+            if _pval(a6) < 3:
                 raise RuntimeError, "p^3 does not divide a6 after second transform!"
-            if min(val(a1), val(a2), val(a3), val(a4), val(a6)) < 0:
+            if min(_pval(a1), _pval(a2), _pval(a3), _pval(a4), _pval(a6)) < 0:
                 raise RuntimeError, "Non-integral model after second transform!"
 
             # Analyze roots of the cubic T^3 + bT^2 + cT + d = 0, where b = a2/p, c = a4/p^2, d = a6/p^3
@@ -694,8 +708,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             bc = b*c
             w = 27*d*d - bb*cc + 4*b*bb*d - 18*bc*d + 4*c*cc
             x = 3*c - bb
-            if pdiv(w):
-                if pdiv(x):
+            if _pdiv(w):
+                if _pdiv(x):
                     sw = 3
                 else:
                     sw = 2
@@ -706,7 +720,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 ## Three distinct roots - Type I*0
                 verbose("Distinct roots", t, 1)
                 KS = KodairaSymbol("I0*")
-                cp = 1 + nroots_cubic(b, c, d)
+                cp = 1 + _pcubicroots(b, c, d)
                 fp = vpd - 4
                 break #return
             elif sw == 2:
@@ -714,12 +728,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 verbose("One double root", t, 1)
                 ## Change coords so that the double root is T = 0 mod p
                 if p == 2:
-                    r = root_mod(c, 2)
+                    r = _proot(c, 2)
                 elif p == 3:
-                    r = c * inv_mod(b)
+                    r = c * _pinv(b)
                 else:
-                    r = (bc - 9*d)*inv_mod(2*x)
-                r = pi * red_mod(r)
+                    r = (bc - 9*d)*_pinv(2*x)
+                r = pi * _preduce(r)
                 C = C.rst_transform(r, 0, 0)
                 (a1, a2, a3, a4, a6) = C.a_invariants()
                 (b2, b4, b6, b8) = C.b_invariants()
@@ -729,11 +743,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
                     a3t = a3 / my
                     a4t = a4 / (pi*mx)
                     a6t = a6 / (mx*my)
-                    if pdiv(a3t*a3t + 4*a6t):
+                    if _pdiv(a3t*a3t + 4*a6t):
                         if p == 2:
-                            t = my*root_mod(a6t, 2)
+                            t = my*_proot(a6t, 2)
                         else:
-                            t = my*red_mod(-a3t*halfmodp)
+                            t = my*_preduce(-a3t*halfmodp)
                         C = C.rst_transform(0, 0, t)
                         (a1, a2, a3, a4, a6) = C.a_invariants()
                         (b2, b4, b6, b8) = C.b_invariants()
@@ -743,24 +757,24 @@ class EllipticCurve_number_field(EllipticCurve_field):
                         a3t = a3/my
                         a4t = a4/(pi*mx)
                         a6t = a6/(mx*my)
-                        if pdiv(a4t*a4t - 4*a6t*a2t):
+                        if _pdiv(a4t*a4t - 4*a6t*a2t):
                             if p == 2:
-                                r = mx*root_mod(a6t*inv_mod(a2t), 2)
+                                r = mx*_proot(a6t*_pinv(a2t), 2)
                             else:
-                                r = mx*red_mod(-a4t*inv_mod(2*a2t))
+                                r = mx*_preduce(-a4t*_pinv(2*a2t))
                             C = C.rst_transform(r, 0, 0)
                             (a1, a2, a3, a4, a6) = C.a_invariants()
                             (b2, b4, b6, b8) = C.b_invariants()
                             mx = mx*pi
                             ix += 1 # and stay in loop
                         else:
-                            if roots_exist(a2t, a4t, a6t):
+                            if _pquadroots(a2t, a4t, a6t):
                                 cp = 4
                             else:
                                 cp = 2
                             break # exit loop
                     else:
-                        if roots_exist(1, a3t, -a6t):
+                        if _pquadroots(1, a3t, -a6t):
                             cp = 4
                         else:
                             cp = 2
@@ -775,40 +789,40 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 if p == 2:
                     r = b
                 elif p == 3:
-                    r = root_mod(-d, 3)
+                    r = _proot(-d, 3)
                 else:
-                    r = -b * inv_mod(3)
-                r = pi*red_mod(r)
+                    r = -b * _pinv(3)
+                r = pi*_preduce(r)
                 C = C.rst_transform(r, 0, 0)
                 (a1, a2, a3, a4, a6) = C.a_invariants()
                 (b2, b4, b6, b8) = C.b_invariants()
-                verbose("After third transform %s\n[a1,a2,a3,a4,a6] = %s\nValuations: %s"%([r,0,0],[a1,a2,a3,a4,a6],[val(ai) for ai in [a1,a2,a3,a4,a6]]), t, 2)
-                if min(val(ai) for ai in [a1,a2,a3,a4,a6]) < 0:
+                verbose("After third transform %s\n[a1,a2,a3,a4,a6] = %s\nValuations: %s"%([r,0,0],[a1,a2,a3,a4,a6],[_pval(ai) for ai in [a1,a2,a3,a4,a6]]), t, 2)
+                if min(_pval(ai) for ai in [a1,a2,a3,a4,a6]) < 0:
                     raise RuntimeError, "Non-integral model after third transform!"
-                if val(a2) < 2 or val(a4) < 3 or val(a6) < 4:
+                if _pval(a2) < 2 or _pval(a4) < 3 or _pval(a6) < 4:
                     raise RuntimeError, "Cubic after transform does not have a triple root at 0"
                 a3t = a3/(pi*pi)
                 a6t = a6/(pi**4)
                 # We test for Type IV*
-                if not pdiv(a3t*a3t + 4*a6t):
-                    cp = 3 if roots_exist(1, a3t, -a6t) else 1
+                if not _pdiv(a3t*a3t + 4*a6t):
+                    cp = 3 if _pquadroots(1, a3t, -a6t) else 1
                     KS = KodairaSymbol("IV*")
                     fp = vpd - 6
                     break #return
                 # Now change coordinates so that p^3|a3, p^5|a6
-                t =        -pi*pi*root_mod(a6t, 2) if p==2 \
-                      else  pi*pi*red_mod(-a3t*halfmodp)
+                t =        -pi*pi*_proot(a6t, 2) if p==2 \
+                      else  pi*pi*_preduce(-a3t*halfmodp)
                 C = C.rst_transform(0, 0, t)
                 (a1, a2, a3, a4, a6) = C.a_invariants()
                 (b2, b4, b6, b8) = C.b_invariants()
                 # We test for types III* and II*
-                if val(a4) < 4:
+                if _pval(a4) < 4:
                     ## Type III*
                     KS = KodairaSymbol("III*")
                     fp = vpd - 7
                     cp = 2
                     break #return
-                if val(a6) < 6:
+                if _pval(a6) < 6:
                     ## Type II*
                     KS = KodairaSymbol("II*")
                     fp = vpd - 8

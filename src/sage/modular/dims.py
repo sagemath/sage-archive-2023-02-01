@@ -1,4 +1,4 @@
-"""
+r"""
 Dimensions of spaces of modular forms
 
 AUTHORS:
@@ -9,18 +9,24 @@ ACKNOWLEDGEMENT:
     The dimension formulas and implementations in this module grew out
     of a program that Bruce Kaskel wrote (around 1996) in PARI, which
     Kevin Buzzard subsequently extended.  I (William Stein) then
-    implemented it in C++ for HECKE.  I also implemented it in MAGMA.
+    implemented it in C++ for Hecke.  I also implemented it in Magma.
     Also, the functions for dimensions of spaces with nontrivial
     character are based on a paper (that has no proofs) by Cohen and
     Oesterle (Springer Lecture notes in math, volume 627, pages
-    69--78).  The formulas for GammaH(N) were found and implemented by
+    69--78).  The formulas for $\Gamma_H(N)$ were found and implemented by
     Jordi Quer.
 
-The formulas here are more complete than in HECKE or MAGMA.
+The formulas here are more complete than in Hecke or Magma.
+
+Currently the input to each function below is an integer and either a
+Dirichlet character $\eps$ or a congruence subgroup, which must be
+either $\Gamma_0(N)$ or $\Gamma_1(N)$.  If the input is a Dirichlet
+character $\eps$, the dimensions are for subspaces of
+$M_k(\Gamma_1(N), \eps)$, where $N$ is the modulus of $\eps$.
 """
 
 ##########################################################################
-#       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2004,2005,2006,2007,2008 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -35,104 +41,270 @@ from sage.rings.arith import (factor, euler_phi as phi, divisors, is_prime,
                               valuation, kronecker_symbol, gcd, euler_phi, lcm)
 import sage.modular.congroup as congroup
 from sage.misc.misc import mul
-from sage.rings.all import Mod, Integer, IntegerRing, IntegerModRing, ZZ
+from sage.rings.all import Mod, Integer, IntegerRing, IntegerModRing, ZZ, moebius
 from sage.rings.rational_field import frac
 import dirichlet
 Z = ZZ  # useful abbreviation.
 
 def mu0(n):
+    r"""
+    Return value of the combinatorial function
+    $$
+       \mu_0(n) = \prod_{p^r|n} (p+1)p^{r-1},
+    $$
+    where the product is over the maximal prime power
+    divisors of $n$.
+
+    INPUT:
+        n -- an integer
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.mu0(n) for n in [1..19]]
+        [1, 3, 4, 6, 6, 12, 8, 12, 12, 18, 12, 24, 14, 24, 24, 24, 18, 36, 20]
+    """
     return mul([(p+1)*(p**(r-1)) for p, r in factor(n)])
 
 def mu20(n):
+    r"""
+    Return value of the arithmetic function $\mu_{2,0}(n)$,
+    where $\mu_{2,0}(n) = 0$ if $n$ is divisible by 4, and
+    $$
+     \mu_{2,0}(n) = \prod_{p|n} \left(1 + \left(\frac{-4}{p}\right)\right)
+    $$
+    otherwise.
+
+    INPUT:
+        n -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.mu20(n) for n in [1..19]]
+        [1, 1, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 2, 0, 0]
+    """
     if n%4 == 0:
-        return 0
+        return Integer(0)
     return mul([1 + kronecker_symbol(-4,p) for p, _ in factor(n)])
 
 def mu30(n):
+    r"""
+    Return value of the arithmetic function $\mu_{3,0}(n)$,
+    where $\mu_{3,0}(n) = 0$ if $n$ is divisible by 2 or 9,
+    and
+    $$
+     \mu_{3,0}(n) = \prod_{p|n} \left(1 + \left(\frac{-3}{p}\right)\right)
+    $$
+    otherwise.
+
+    INPUT:
+        n -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.mu30(n) for n in [1..19]]
+        [1, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2]
+    """
     if n%2==0 or n%9==0:
-        return 0
+        return Integer(0)
     return mul([1 + kronecker_symbol(-3,p) for p, _ in factor(n)])
 
 def c0(n):
+    """
+    Return the number of cusps of the modular curve $X_0(n)$.
+
+    INPUT:
+        n -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.c0(n) for n in [1..19]]
+        [1, 2, 2, 3, 2, 4, 2, 4, 4, 4, 2, 6, 2, 4, 4, 6, 2, 8, 2]
+        sage: [sage.modular.dims.c0(n) for n in prime_range(2,100)]
+        [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    """
     return sum([phi(gcd(d,n//d)) for d in divisors(n)])
 
 def g0(n):
-    return int(1 + frac(mu0(n),12) - frac(mu20(n),4) - \
+    """
+    Return the genus of the modular curve $X_0(n)$.
+
+    INPUT:
+        n -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.g0(n) for n in [1..23]]
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 2, 2]
+        sage: [n for n in [1..200] if sage.modular.dims.g0(n) == 1]
+        [11, 14, 15, 17, 19, 20, 21, 24, 27, 32, 36, 49]
+    """
+    return Integer(1 + frac(mu0(n),12) - frac(mu20(n),4) - \
                frac(mu30(n),3) - frac(c0(n),2))
 
 def mu1(n):
+    r"""
+    Return value of the combinatorial function $\mu_1(n)$,
+    where for $n = 1,2$, $\mu_1(n) = \mu_0(n)$, and for
+    $n > 2$,
+    $$
+     \mu_{1}(n) = \frac{\phi(n) \cdot \mu_0(n)}{2}.
+    $$
+
+    INPUT:
+        n -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.mu1(n) for n in [1..16]]
+        [1, 3, 4, 6, 12, 12, 24, 24, 36, 36, 60, 48, 84, 72, 96, 96]
+    """
     if n <= 2:
         return mu0(n)
     return (phi(n)*mu0(n))/2
 
 def mu21(n):
+    r"""
+    Return value of $\mu_{2,1}(n)$. By definition, this equals
+    $\mu_{2,0}(n)$ for $n<4$ and equals 0 otherwise.
+
+    EXAMPLES:
+        sage: [sage.modular.dims.mu21(n) for n in [1..16]]
+        [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    """
     if n<4:
         return mu20(n)
-    return 0
+    return Integer(0)
 
 def mu31(n):
+    r"""
+    Return value of $\mu_{3,1}(n)$. By definition, this equals
+    $\mu_{3,0}(n)$ for $n<4$ and equals 0 otherwise.
+
+    EXAMPLES:
+        sage: [sage.modular.dims.mu31(n) for n in [1..10]]
+        [1, 0, 1, 0, 0, 0, 0, 0, 0, 0]
+    """
     if n<4:
         return mu30(n)
-    return 0
+    return Integer(0)
 
 def c1(n):
+    """
+    Return value of $c_1(n)$, which is the number of cusps on the
+    modular curve $X_1(n)$.
+
+    EXAMPLES:
+        sage: [sage.modular.dims.c1(n) for n in prime_range(2,100)]
+        [2, 2, 4, 6, 10, 12, 16, 18, 22, 28, 30, 36, 40, 42, 46, 52, 58, 60, 66, 70, 72, 78, 82, 88, 96]
+    """
     if n<3:
         return c0(n)
     if n==4:
-        return 3
-    return int(sum([frac(phi(d)*phi(n/d),2) \
+        return Integer(3)
+    return Integer(sum([frac(phi(d)*phi(n/d),2) \
                     for d in divisors(n)]))
 
 def g1(n):
-    return int(1+frac(mu1(n),12)-frac(mu21(n),4)-frac(mu31(n),3) - frac(c1(n),2))
+    """
+    Return the genus of the modular curve $X_1(n)$.
 
-def ss0(n,p):
-    assert is_prime(p)
-    assert n%p==0
-    return g0(n*p) - 2*g0(n) + 1
+    EXAMPLES:
+        sage: [sage.modular.dims.g1(n) for n in prime_range(2,100)]
+        [0, 0, 0, 0, 1, 2, 5, 7, 12, 22, 26, 40, 51, 57, 70, 92, 117, 126, 155, 176, 187, 222, 247, 287, 345]
+    """
+    return Integer(1+frac(mu1(n),12)-frac(mu21(n),4)-frac(mu31(n),3) - frac(c1(n),2))
 
-def muXNp(n,p):
-    return mu1(n)*mu0(p)
-
-def mu2XNp(n,p):
-    return 0
-
-def mu3XNp(n,p):
-    return 0
-
-def cXNp(n):
-    return 2*c1(n)
-
-def gXNp(n,p):
-    if n<4:
-        return g0(n*p)
-    return int(1+frac(muXNp(n,p),12)-frac(mu2XNp(n,p),4) \
-               - frac(mu3XNp(n,p),3) - frac(cXNp(n),2))
-
-def ss1(n,p):
-    assert is_prime(p) and (n%p != 0)
-    return gXNp(n,p) - 2*g1(n) + 1
 
 def eisen(p):
-   assert is_prime(p)
-   return frac(p-1,12).numerator()
+    """
+    Return the Eisenstein number $n$ which is the numerator of $(p-1)/12$.
+
+    INPUT:
+        p -- a prime
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [(p,sage.modular.dims.eisen(p)) for p in prime_range(24)]
+        [(2, 1), (3, 1), (5, 1), (7, 1), (11, 5), (13, 1), (17, 4), (19, 3), (23, 11)]
+    """
+    if not is_prime(p):
+        raise ValueError, "p must be prime"
+    return frac(p-1,12).numerator()
 
 def S0(n,k):
-    n = int(n); k = int(k)
-    assert n>0
+    r"""
+    Return the dimension of the space of level $n$ weight $k$
+    cuspforms on $\Gamma_0(n)$.
+
+    INPUT:
+        n -- an integer
+        k -- an integer
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.S0(11,2)
+        1
+        sage: a = sage.modular.dims.S0(1,2); a
+        0
+        sage: type(a)
+        <type 'sage.rings.integer.Integer'>
+        sage: sage.modular.dims.S0(5,0)
+        0
+        sage: sage.modular.dims.S0(20,1)
+        0
+        sage: sage.modular.dims.S0(20,4)
+        6
+    """
+    n = Integer(n); k = Integer(k)
+    if n <= 0:
+        raise ValueError, "n must be positive"
     if k<=0 or k%2!=0:
-        return 0
+        return Integer(0)
     if k==2:
         return g0(n)
-    return int((k-1)*(g0(n)-1) + \
+    return Integer((k-1)*(g0(n)-1) + \
                (frac(k,2)-1)*c0(n)+mu20(n)*(k//4)+mu30(n)*(k//3))  # // is floor div
 
 def S1(n,k):
-    n = int(n); k = int(k)
-    assert n>0
+    """
+    Return the dimension of the space of level $n$ weight $k$
+    cuspforms on $\Gamma_1(n)$.
+
+    INPUT:
+        n -- an integer
+        k -- an integer
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.S1(11,2)
+        1
+        sage: a = sage.modular.dims.S1(13,2); a
+        2
+        sage: type(a)
+        <type 'sage.rings.integer.Integer'>
+        sage: sage.modular.dims.S1(20,4)
+        26
+    """
+    n = Integer(n); k = Integer(k)
+    if n <= 0:
+        raise ValueError, "n must be positive"
     if k<=0 or (n<=2 and k%2!=0):
-        return 0
-    assert k!=1, "weight 1 dimension not programmed"
+        return Integer(0)
+    if k == 1:
+        raise NotImplementedError, "Computation of dimensions of spaces of weight 1 modular forms not implemented."
     if k==2:
         return g1(n)
     if n<=2:
@@ -142,27 +314,71 @@ def S1(n,k):
         a += frac(1,2)
     elif n == 3:
         a += k//3  # // is floor div
-    return int(a)
+    return Integer(a)
 
 def idxG0(N):
     r"""
-    The index $[\Gamma_0(N):\SL_2(\Z)]$.
+    Return the index $[\SL_2(\Z):\Gamma_0(N)]$ of $\Gamma_0(N)$ in $\SL_2(\Z)$.
+
+    INPUT:
+        N -- a positive integer
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.idxG0(N) for N in [1..10]]
+        [1, 3, 4, 6, 6, 12, 8, 12, 12, 18]
+        sage: type(sage.modular.dims.idxG0(15))
+        <type 'sage.rings.integer.Integer'>
     """
-    return mul([(p+1)*p**(e-1) for p, e in factor(N)])
+    N = Integer(N)
+    if N <= 0:
+        raise ValueError, "N must be positive"
+    return mul([(p+1)*p**(e-1) for p, e in N.factor()])
 
 def idxG1(N):
     r"""
-    The index $[\Gamma_1(N):\SL_2(\Z)]$.
+    The index $[\SL_2(\Z):\Gamma_1(N)]$ of $\Gamma_1(N)$ in $\SL_2(\Z)$.
+
+    INPUT:
+        N -- a positive integer
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.idxG1(N) for N in [1..10]]
+        [1, 3, 8, 12, 24, 24, 48, 48, 72, 72]
     """
     return phi(N)*idxG0(N)
 
-#    Formula of Cohen-Oesterle for dim S_k(Gamma_1(N),eps).
-#    REF: Springer Lecture notes in math, volume 627, pages 69--78.
-#    The functions CO_delta and CO_nu, which were first written by Kevin Buzzard,
-#    are used only by the function CohenOesterle.
+#    Formula of Cohen-Oesterle for dim S_k(Gamma_1(N),eps).  REF:
+#    Springer Lecture notes in math, volume 627, pages 69--78.  The
+#    functions CO_delta and CO_nu, which were first written by Kevin
+#    Buzzard, are used only by the function CohenOesterle.
 
 def CO_delta(r,p,N,eps):
-    assert is_prime(p)
+    r"""
+    This is used as an intermediate value in computations related to
+    the paper of Cohen-Oesterle.
+
+    INPUT:
+        r -- positive integer
+        p -- a prime
+        N -- positive integer
+        $\epsilon$ -- character
+
+    OUTPUT:
+        element of the base ring of the character
+
+    EXAMPLES:
+        sage: G.<eps> = DirichletGroup(7)
+        sage: sage.modular.dims.CO_delta(1,5,7,eps^3)
+        2
+    """
+    if not is_prime(p):
+        raise ValueError, "p must be prime"
     K = eps.base_ring()
     if p%4 == 3:
         return K(0)
@@ -184,6 +400,25 @@ def CO_delta(r,p,N,eps):
     return K(0)
 
 def CO_nu(r, p, N, eps):
+    r"""
+    This is used as an intermediate value in computations related to
+    the paper of Cohen-Oesterle.
+
+    INPUT:
+        r -- positive integer
+        p -- a prime
+        N -- positive integer
+        eps -- character
+
+    OUTPUT:
+        element of the base ring of the character
+
+    EXAMPLES:
+        sage: G.<eps> = DirichletGroup(7)
+        sage: G.<eps> = DirichletGroup(7)
+        sage: sage.modular.dims.CO_nu(1,7,7,eps)
+        -1
+    """
     K = eps.base_ring()
     if p%3==2:
         return K(0)
@@ -201,14 +436,26 @@ def CO_nu(r, p, N, eps):
         return K(2)
     return K(-1)
 
-#todo: I had the following comment in my magma code.  check it.
-# Kevin's clever function has a bug, so I'm not using it now:
-#  K := CyclotomicField(3);
-#  eps := DirichletGroup(7*43,K).1^2;
-#  CuspidalSubspace(ModularForms([eps],2));
-#  boom!
-
 def CohenOesterle(eps, k):
+    r"""
+    Compute the Cohen-Oesterle function associate to eps, $k$.  This is
+    a summand in the formula for the dimension of the space of cusp
+    forms of weight $2$ with character $\epsilon$.
+
+    INPUT:
+        eps -- Dirichlet character
+        k -- integer
+
+    OUTPUT:
+        element of the base ring of eps.
+
+    EXAMPLES:
+        sage: G.<eps> = DirichletGroup(7)
+        sage: sage.modular.dims.CohenOesterle(eps, 2)
+        -2/3
+        sage: sage.modular.dims.CohenOesterle(eps, 4)
+        -1
+    """
     N    = eps.modulus()
     facN = factor(N)
     f    = eps.conductor()
@@ -223,6 +470,20 @@ def CohenOesterle(eps, k):
     elif k%3==0:
         mu_k = frac(1,3)
     def _lambda(r,s,p):
+        """
+        Used internally by the CohenOesterle function.
+
+        INPUT:
+            r, s, p -- integers
+        OUTPUT:
+            Integer
+
+        EXAMPLES:   (indirect doctest)
+            sage: K = CyclotomicField(3)
+            sage: eps = DirichletGroup(7*43,K).0^2
+            sage: sage.modular.dims.CohenOesterle(eps,2)
+            -4/3
+        """
         if 2*s<=r:
             if r%2==0:
                 return p**(r//2) + p**((r//2)-1)
@@ -235,16 +496,23 @@ def CohenOesterle(eps, k):
                 mu_k    * mul([CO_nu(r,p,N,eps)            for p, r in facN]))
 
 def dimension_cusp_forms_eps(eps, k=2):
-    """
-    The dimension of the space of cusp forms of weight k and character
-    eps.
+    r"""
+    The dimension of the space of cusp forms of weight $k$ and character
+    $\epsilon$.
 
     INPUT:
-        eps -- a Dirichlet character
-        k -- integer, a weight >= 2.
+        $\epsilon$ -- a Dirichlet character
+        k -- integer, a weight $\geq 2$.
 
     OUTPUT:
         integer -- the dimension
+
+    EXAMPLES:
+        sage: G.<eps> = DirichletGroup(9)
+        sage: [sage.modular.dims.dimension_cusp_forms_eps(eps, k) for k in [2..10]]
+        [0, 1, 0, 3, 0, 5, 0, 7, 0]
+        sage: [sage.modular.dims.dimension_cusp_forms_eps(eps^2, k) for k in [2..10]]
+        [0, 0, 2, 0, 4, 0, 6, 0, 8]
     """
     if isinstance(eps, (int,long) ):
         return dimension_cusp_forms_gamma0(eps,k)
@@ -282,6 +550,13 @@ def dimension_eis_eps(eps, k=2):
 
     OUTPUT:
         integer -- the dimension
+
+    EXAMPLES:
+        sage: G.<eps> = DirichletGroup(9)
+        sage: [sage.modular.dims.dimension_eis_eps(eps, k) for k in [2..10]]
+        [0, 2, 0, 2, 0, 2, 0, 2, 0]
+        sage: [sage.modular.dims.dimension_eis_eps(eps^2, k) for k in [2..10]]
+        [2, 0, 2, 0, 2, 0, 2, 0, 2]
     """
     if isinstance(eps, (int,long) ):
         return dimension_eis_gamma0(eps,k)
@@ -322,11 +597,21 @@ def dimension_cusp_forms_gamma0(N,k=2):
     The dimension of the space $S_k(\Gamma_0(N))$ of cusp forms.
 
     INPUT:
-        N -- integer
-        k -- integer, weight >= 2
+        N -- integer (the level)
+        k -- integer (the weight)
 
     OUTPUT:
-        integer -- the dimension
+        Integer -- the dimension
+
+    EXAMPLES:
+        sage: sage.modular.dims.dimension_cusp_forms_gamma0(23,2)
+        2
+        sage: sage.modular.dims.dimension_cusp_forms_gamma0(1,24)
+        2
+        sage: sage.modular.dims.dimension_cusp_forms_gamma0(11,3)
+        0
+        sage: sage.modular.dims.dimension_cusp_forms_gamma0(11,-1)
+        0
     """
     if N <= 0:
         raise ArithmeticError, "the level N (=%s) must be positive"%N
@@ -344,12 +629,20 @@ def dimension_cusp_forms_gamma1(N,k=2):
 
     INPUT:
         N -- integer
-        k -- integer, weight >= 2
+        k -- integer
 
     OUTPUT:
         integer -- the dimension
 
     EXAMPLES:
+        sage: sage.modular.dims.dimension_cusp_forms_gamma1(23,2)
+        12
+        sage: sage.modular.dims.dimension_cusp_forms_gamma1(1,24)
+        2
+        sage: sage.modular.dims.dimension_cusp_forms_gamma1(11,-1)
+        0
+        sage: sage.modular.dims.dimension_cusp_forms_gamma1(11,0)
+        0
     """
     if N <= 0:
         raise ArithmeticError, "the level N (=%s) must be positive"%N
@@ -363,7 +656,29 @@ def dimension_cusp_forms_gamma1(N,k=2):
 
 
 def mumu(N):
-    assert N>=1
+    """
+    Return 0 if any cube divides $N$.  Otherwise return $(-2)^v$ where
+    $v$ is the number of primes that exactly divide $N$.
+
+    This is similar to the Moebius function.
+
+    INPUT:
+        N -- an integer at least 1
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.mumu(27)
+        0
+        sage: sage.modular.dims.mumu(6*25)
+        4
+        sage: sage.modular.dims.mumu(7*9*25)
+        -2
+        sage: sage.modular.dims.mumu(9*25)
+        1
+    """
+    if N < 1:
+        raise ValueError, "N must be at least 1"
     p = 1
     for _,r in factor(N):
         if r > 2:
@@ -374,8 +689,25 @@ def mumu(N):
 
 def dimension_new_cusp_forms_gamma0(N, k=2, p=0):
     r"""
-    Dimension of the p-new subspace of $S_k(\Gamma_0(N))$.
+    Dimension of the $p$-new subspace of $S_k(\Gamma_0(N))$.
     If $p=0$, dimension of the new subspace.
+
+    INPUT:
+        N -- a positive integer
+        k -- an integer
+        p -- a prime number
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.dimension_new_cusp_forms_gamma0(100, 2, 5)
+        5
+
+    Independently compute the dimension 5 above:
+        sage: m = ModularSymbols(100, 2,sign=1).cuspidal_subspace()
+        sage: m.new_subspace(5)
+        Modular Symbols subspace of dimension 5 of Modular Symbols space of dimension 18 for Gamma_0(100) of weight 2 with sign 1 over Rational Field
     """
     if N <= 0:
         raise ArithmeticError, "the level N (=%s) must be positive"%N
@@ -388,7 +720,7 @@ def dimension_new_cusp_forms_gamma0(N, k=2, p=0):
     if p==0 or N%p!=0:
         return sum([dimension_cusp_forms_gamma0(M,k)*mumu(N//M) \
                     for M in divisors(N)])
-    return dimension_new_cusp_forms_gamma0(N,k) - \
+    return dimension_cusp_forms_gamma0(N,k) - \
            2*dimension_new_cusp_forms_gamma0(N//p,k)
 
 def dimension_new_cusp_forms_gamma1(N,k=2,p=0):
@@ -396,6 +728,18 @@ def dimension_new_cusp_forms_gamma1(N,k=2,p=0):
     Return the dimension of the $p$-new subspace of
     $S_k(\Gamma_1(N))$.  If $p=0$, return the dimension of the new
     subspace.
+
+    INPUT:
+        N -- a positive integer
+        k -- an integer
+        p -- a prime number
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.dimension_new_cusp_forms_gamma1(4*25, 2, 5)
+        225
     """
     if N <= 0:
         raise ArithmeticError, "the level N (=%s) must be positive"%N
@@ -407,15 +751,38 @@ def dimension_new_cusp_forms_gamma1(N,k=2,p=0):
         raise NotImplementedError, "Computation of dimensions of spaces of weight 1 modular forms not implemented."
 
     if p==0 or N%p!=0:
-        return sum([dimension_cusp_forms_gamma1(M,k)*mumu(N//M) \
-                    for M in divisors(N)])
-    return dimension_new_cusp_forms_gamma1(N,k) - \
+        return Integer(sum([dimension_cusp_forms_gamma1(M,k)*mumu(N//M) \
+                    for M in divisors(N)]))
+    return dimension_cusp_forms_gamma1(N,k) - \
            2*dimension_new_cusp_forms_gamma1(N//p,k)
 
 def dimension_new_cusp_forms_group(group, k=2, p=0):
     """
     Return the dimension of the new space of cusp forms for the
-    congruence subgroup group.
+    congruence subgroup group.  If $p$ is given, return the
+    $p$-new subspace.
+
+    INPUT:
+        group -- a congruence subgroup
+        k -- an integer (default: 2)
+        p -- a prime (default: 0); just the $p$-new subspace if given
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.dimension_new_cusp_forms_group(Gamma0(33),2)
+        1
+        sage: sage.modular.dims.dimension_new_cusp_forms_group(Gamma0(33),2,3)
+        1
+        sage: sage.modular.dims.dimension_new_cusp_forms_group(Gamma0(33),2,11)
+        3
+        sage: sage.modular.dims.dimension_new_cusp_forms_group(Gamma1(33),2)
+        19
+        sage: sage.modular.dims.dimension_new_cusp_forms_group(Gamma1(33),2,11)
+        21
+        sage: sage.modular.dims.dimension_new_cusp_forms_group(GammaH(33,[1,2]),2)
+        3
     """
     assert isinstance(group, congroup.CongruenceSubgroup), \
            "Argument 1 must be a congruence subgroup."
@@ -431,9 +798,47 @@ def dimension_new_cusp_forms_group(group, k=2, p=0):
 
 
 def dimension_new_cusp_forms_eps(eps, k=2, p=0):
-    """
-    Dimension of the new subspace (or p-new subspace) of cusp forms of
-    weight k and character eps.
+    r"""
+    Dimension of the new subspace (or $p$-new subspace) of cusp forms of
+    weight $k$ and character $\epsilon$.
+
+    INPUT:
+        eps -- a Dirichlet character
+        k -- an integer (ddefault: 2)
+        p -- a prime (default: 0); just the $p$-new subspace if given
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: G = DirichletGroup(9)
+        sage: eps = G.0^3
+        sage: eps.conductor()
+        3
+        sage: [sage.modular.dims.dimension_new_cusp_forms_eps(eps, k) for k in [2..10]]
+        [0, 0, 0, 2, 0, 2, 0, 2, 0]
+        sage: [sage.modular.dims.dimension_cusp_forms_eps(eps, k) for k in [2..10]]
+        [0, 0, 0, 2, 0, 4, 0, 6, 0]
+        sage: [sage.modular.dims.dimension_new_cusp_forms_eps(eps, k, 3) for k in [2..10]]
+        [0, 0, 0, 2, 0, 2, 0, 2, 0]
+
+    Double check using modular symbols (independent calculation):
+        sage: [ModularSymbols(eps,k,sign=1).cuspidal_subspace().new_subspace().dimension()  for k in [2..10]]
+        [0, 0, 0, 2, 0, 2, 0, 2, 0]
+        sage: [ModularSymbols(eps,k,sign=1).cuspidal_subspace().new_subspace(3).dimension()  for k in [2..10]]
+        [0, 0, 0, 2, 0, 2, 0, 2, 0]
+
+    Another example at level 33:
+        sage: G = DirichletGroup(33)
+        sage: eps = G.1
+        sage: eps.conductor()
+        11
+        sage: [sage.modular.dims.dimension_new_cusp_forms_eps(G.1, k) for k in [2..4]]
+        [0, 4, 0]
+        sage: [sage.modular.dims.dimension_new_cusp_forms_eps(G.1^2, k) for k in [2..4]]
+        [2, 0, 6]
+        sage: [sage.modular.dims.dimension_new_cusp_forms_eps(G.1^2, k, 3) for k in [2..4]]
+        [2, 0, 6]
     """
     if not isinstance(eps, dirichlet.DirichletCharacter):
         raise TypeError, "eps = (%s) must be a DirichletCharacter"%eps
@@ -458,7 +863,7 @@ def dimension_new_cusp_forms_eps(eps, k=2, p=0):
         return sum([dimension_cusp_forms_eps(eps.restrict(M), k)*mumu(N//M) for M in D])
     eps_p = eps.restrict(N//p)
     old = dimension_cusp_forms(eps_p, k)
-    return dimension_new_cusp_forms(eps, k) - 2*old
+    return dimension_cusp_forms(eps, k) - 2*old
 
 
 
@@ -467,21 +872,71 @@ def dimension_new_cusp_forms_eps(eps, k=2, p=0):
 # Computing dimensions of modular forms spaces for Gamma_H.
 # Algorithms found and implemented by Jordi Quer.
 ######################################################################
-# degree of the covering $X_H(N)->X$
+
 def muH(N,H):
+    r"""
+    Return the degree of the covering map $X_H(N) \rightarrow X_0(1)$.
+
+    INPUT:
+        N -- an integer
+        H -- list of elements in $\ZZ$ of a subgroup of $(\ZZ/N\ZZ)^*$
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.muH(33, GammaH(33,[2])._list_of_elements_in_H())
+        96
+
+    AUTHOR: Jordi Quer
+    """
     lenHpm = len(H)
     if N-Integer(1) not in H: lenHpm*=Integer(2)
     return mul([(p**Integer(2)-Integer(1))*(p**(Integer(2)*r-Integer(2))) for p, r in factor(N)])//lenHpm
 
-# number of elliptic points of order 2 for the group $\Gamma_H(N)$
 def nu2H(N,H):
+    r"""
+    Number of elliptic points of order 2 for the group $\Gamma_H(N)$
+
+    INPUT:
+        N -- an integer
+        H -- list of elements in $\ZZ$ of a subgroup of $(\ZZ/N\ZZ)^*$
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.nu2H(33, GammaH(33,[2])._list_of_elements_in_H())
+        0
+        sage: sage.modular.dims.nu2H(5, GammaH(5,[2])._list_of_elements_in_H())
+        2
+
+    AUTHOR: Jordi Quer
+    """
     if N%Integer(4) == Integer(0): return Integer(0)
     for p, r in factor(N):
         if p%Integer(4) ==Integer(3): return Integer(0)
     return (euler_phi(N)//len(H))*len([x for x in H if (x**Integer(2)+Integer(1))%N == Integer(0)])
 
-# number of elliptic points of order 3 for the group $\Gamma_H(N)$
 def nu3H(N,H):
+    r"""
+    Number of elliptic points of order 3 for the group $\Gamma_H(N)$
+
+    INPUT:
+        N -- an integer
+        H -- list of elements in $\ZZ$ of a subgroup of $(\ZZ/N\ZZ)^*$
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.nu3H(33, GammaH(33,[2])._list_of_elements_in_H())
+        0
+        sage: sage.modular.dims.nu3H(7, GammaH(7,[2])._list_of_elements_in_H())
+        2
+
+    AUTHOR: Jordi Quer
+    """
     if N%Integer(9) == Integer(0): return Integer(0)
     for p, r in factor(N):
         if p%Integer(3) == Integer(2): return Integer(0)
@@ -489,8 +944,23 @@ def nu3H(N,H):
     if N-Integer(1) not in H: lenHpm*=Integer(2)
     return (euler_phi(N)//lenHpm)*len([x for x in H if (x**Integer(2)+x+Integer(1))%N == Integer(0)])
 
-# number of cusps for the group $\Gamma_H(N)$
 def nuinfH(N,H):
+    r"""
+    Number of cusps for the group $\Gamma_H(N)$
+
+    INPUT:
+        N -- an integer
+        H -- list of elements in $\ZZ$ of a subgroup of $(\ZZ/N\ZZ)^*$
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.nuinfH(33, GammaH(33,[2])._list_of_elements_in_H())
+        8
+
+    AUTHOR: Jordi Quer
+    """
     c = Integer(0)
     for d in [d for d in divisors(N) if d**Integer(2)<=N]:
         Nd = lcm(d,N//d)
@@ -504,8 +974,24 @@ def nuinfH(N,H):
             c = c + Integer(2)*sumand
     return c
 
-# number of regular cusps for the group $\Gamma_H(N)$
 def nuinfHreg(N,H):
+    r"""
+    Number of regular cusps for the group $\Gamma_H(N)$
+
+    INPUT:
+        N -- an integer
+        H -- list of elements in $\ZZ$ of a subgroup of $(\ZZ/N\ZZ)^*$
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.nuinfHreg(33, GammaH(33,[2])._list_of_elements_in_H())
+        0
+        sage: sage.modular.dims.nuinfHreg(7, GammaH(7,[2])._list_of_elements_in_H())
+        2
+
+    AUTHOR: Jordi Quer
+    """
     c = Integer(0)
     for d in [d for d in divisors(N) if d**Integer(2)<=N]:
         Nd = lcm(d,N//d)
@@ -519,16 +1005,71 @@ def nuinfHreg(N,H):
     return c
 
 
-# genus of the curve $X_H(N)$
-# (formulas are multiplied by 12 so that everything is an integer)
 def gH(N,H):
+    r"""
+    Return the genus of the curve $X_H(N)$.
+
+    INPUT:
+        N -- an integer
+        H -- list of elements in $\ZZ$ of a subgroup of $(\ZZ/N\ZZ)^*$
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.gH(33, GammaH(33,[2])._list_of_elements_in_H())
+        5
+        sage: sage.modular.dims.gH(7, GammaH(7,[2])._list_of_elements_in_H())
+        0
+        sage: sage.modular.dims.gH(23, [1..22])
+        2
+        sage: sage.modular.dims.g0(23)
+        2
+        sage: sage.modular.dims.gH(23, [1])
+        12
+        sage: sage.modular.dims.g1(23)
+        12
+
+    AUTHOR: Jordi Quer
+    """
+    # (formulas are multiplied by 12 so that everything is an integer)
     return (Integer(12) + muH(N,H) - Integer(3)*nu2H(N,H) - Integer(4)*nu3H(N,H) - Integer(6)*nuinfH(N,H))//Integer(12)
 
-def genus_H(G):
-    return gH(G.level(),G._list_of_elements_in_H())
+def genus_H(H):
+    r"""
+    Return the genus of the modular curve $X_H(N)$, where $H$ is a
+    congruence subgroup of the form $\Gamma_H(N)$.
 
-# coefficients of the numbers of elliptic points in the formulas
+    INPUT:
+        H -- a congruence subgroup $\Gamma_H(N)$
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.genus_H(GammaH(33,[2]))
+        5
+
+    AUTHOR: Jordi Quer
+    """
+    if not congroup.is_GammaH(H):
+        raise TypeError, "H must be a congruence subgroup GammaH(N)"
+    return gH(H.level(),H._list_of_elements_in_H())
+
 def lambda4(k):
+    """
+    Return 0 if $k$ is odd, 3 if $k$ is divisible by 4, and -3 if $k$
+    is even but not divisible by 4.
+
+    This is used for computations of the Cohen-Oesterle formulas.
+
+    INPUT:
+        k -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.lambda4(k) for k in [0..10]]
+        [3, 0, -3, 0, 3, 0, -3, 0, 3, 0, -3]
+    """
     if k%Integer(2) == Integer(1):
         return Integer(0)
     elif k%Integer(4) == Integer(2):
@@ -537,6 +1078,21 @@ def lambda4(k):
         return Integer(3)
 
 def lambda3(k):
+    """
+    Return 0 if $k$ is odd, 4 if $k$ is divisible by 4, and -4 if $k$
+    is even but not divisible by 4.
+
+    This is used for computations of the Cohen-Oesterle formulas.
+
+    INPUT:
+        k -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: [sage.modular.dims.lambda3(k) for k in [0..10]]
+        [4, 0, -4, 4, 0, -4, 4, 0, -4, 4, 0]
+    """
     if k%Integer(3) == Integer(1):
         return Integer(0)
     elif k%Integer(3) == Integer(2):
@@ -544,8 +1100,31 @@ def lambda3(k):
     else:
         return Integer(4)
 
-# dimensions of spaces of cusp and modular forms
+###############################################################
+# dimensions of spaces of cusp and modular forms for Gamma_H
+###############################################################
 def dimension_cusp_forms_H(G,k):
+    r"""
+    Return the dimension of the space of weight $k$ cusp forms for the
+    group $G = \Gamma_H$.
+
+    INPUT:
+        G -- a congruence subgroup GammaH
+        k -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.dimension_cusp_forms_H(GammaH(33,[2]),2)
+        5
+        sage: sage.modular.dims.dimension_cusp_forms_H(GammaH(33,[2]),3)
+        0
+        sage: sage.modular.dims.dimension_cusp_forms_H(GammaH(33,[2,5]),2)
+        3
+    """
+    if not congroup.is_GammaH(G):
+        raise TypeError, "H must be a congruence subgroup GammaH(N)"
+
     N = G.level()
     H = G._list_of_elements_in_H()
     if k%Integer(2) == Integer(1) and N-Integer(1) in H:
@@ -564,6 +1143,24 @@ def dimension_cusp_forms_H(G,k):
     return dim//Integer(12)
 
 def dimension_eis_H(G,k):
+    r"""
+    Return the dimension of the space of weight $k$ Eisenstein series
+    for the group $G = \Gamma_H$.
+
+    INPUT:
+        G -- a congruence subgroup GammaH
+        k -- an integer
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: sage.modular.dims.dimension_eis_H(GammaH(33,[2]),2)
+        7
+        sage: sage.modular.dims.dimension_eis_H(GammaH(33,[2]),3)
+        0
+        sage: sage.modular.dims.dimension_eis_H(GammaH(33,[2,5]),2)
+        3
+    """
     N = G.level()
     H = G._list_of_elements_in_H()
     if k%Integer(2) == Integer(1) and N-Integer(1) in H:
@@ -577,11 +1174,14 @@ def dimension_eis_H(G,k):
     return dim
 
 def dimension_new_cusp_forms_H(G,k, p=0):
-    """
+    r"""
+    Return the dimension of the space of new (or $p$-new) weight $k$
+    cusp forms for $G$.
+
     INPUT:
         G -- group of the form Gamma_H(N)
         k -- an integer at least 2 (the weight)
-        p -- integer (default: 0); if nonzero, compute the p-new subspace.
+        p -- integer (default: 0); if nonzero, compute the $p$-new subspace.
 
     OUTPUT:
         Integer
@@ -596,41 +1196,79 @@ def dimension_new_cusp_forms_H(G,k, p=0):
         return sum([dimension_cusp_forms_H(H,k) * mumu(N // H.level()) \
                 for H in G.divisor_subgroups()])
     else:
-        return dimension_new_cusp_forms_H(G,k) - \
+        return dimension_cusp_forms_H(G,k) - \
                2*dimension_new_cusp_forms_H(G.restrict(N//p),k)
 
 
-#######
-
-def multgroup(N):
-    return [x for x in range(N) if gcd(x,N) == Integer(1)]
-
 def dimension_cusp_forms_fromH(chi,k):
+    r"""
+    Compute the dimension of the space of cusp forms of weight $k$ and
+    character $\chi$ using formulas for dimensions for congruence
+    subgroups $\Gamma_H(N)$ instead of the formulas of Cohen-Oesterle.
+
+    INPUT:
+        chi -- Dirichlet character
+        k -- integer (weight)
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: K = CyclotomicField(3)
+        sage: eps = DirichletGroup(7*43,K).0^2
+
+    The following two calculations use different algorithms.
+        sage: dimension_cusp_forms(eps,2)
+        28
+        sage: sage.modular.dims.dimension_cusp_forms_fromH(eps,2)
+        28
+    """
     N = chi.modulus()
     n = chi.order()
     dim = Integer(0)
     for d in divisors(n):
-        G = GammaH(N,ker(chi**d))
-        dim = dim + moebius(d)*dimension_cusp_formsH(G,k)
+        G = congroup.GammaH(N,(chi**d).kernel())
+        dim = dim + moebius(d)*dimension_cusp_forms_H(G,k)
     return dim//euler_phi(n)
 
 def dimension_modular_forms_fromH(chi,k):
+    r"""
+    Compute the dimension of the space of modular forms of weight $k$
+    and character $\chi$ using formulas for dimensions for congruence
+    subgroups $\Gamma_H(N)$ instead of the formulas of Cohen-Oesterle.
+
+    INPUT:
+        chi -- Dirichlet character
+        k -- integer (weight)
+
+    OUTPUT:
+        Integer
+
+    EXAMPLES:
+        sage: K = CyclotomicField(3)
+        sage: eps = DirichletGroup(7*43,K).0^2
+        sage: dimension_modular_forms(eps,2)
+        32
+        sage: sage.modular.dims.dimension_modular_forms_fromH(eps,2)
+        32
+    """
     N = chi.modulus()
     n = chi.order()
     dim = Integer(0)
     for d in divisors(n):
-        G = GammaH(N,ker(chi**d))
-        dim = dim + moebius(d)*dimension_modular_formsH(G,k)
+        G = congroup.GammaH(N,(chi**d).kernel())
+        dim = dim + moebius(d)*(dimension_eis_H(G,k) + dimension_cusp_forms_H(G,k))
     return dim//euler_phi(n)
 
 ####################################################################
-# Exported Functions
+# Functions exported to the global namespace.
+# These have very flexible inputs.
 ####################################################################
 
 def dimension_new_cusp_forms(X, k=2, p=0):
     """
-    Return the dimension of the new (or p-new) subspace of
-    cusp forms for the character or group X.
+    Return the dimension of the new (or $p$-new) subspace of cusp
+    forms for the character or group $X$.
 
     INPUT:
         X -- integer, congruence subgroup or Dirichlet character
@@ -904,15 +1542,16 @@ def sturm_bound(level, weight):
         sage: sturm_bound(1,36)
         3
 
-    FURTHER DETAILS: Returns a positive integer~$n$ such that the
-    Hecke operators $T_1,\ldots, T_n$ acting on \emph{cusp forms}
-    generate the Hecke algebra as a $\Z$-module when the character is
-    trivial or quadratic.  Otherwise, $T_1,\ldots,T_n$ generate the
-    Hecke algebra at least as a $\Z[\eps]$-module, where $\Z[\eps]$ is
-    the ring generated by the values of the Dirichlet character
-    $\eps$.  Alternatively, this is a bound such that if two cusp
-    forms associated to this space of modular symbols are congruent
-    modulo $(\lambda, q^n)$, then they are congruent modulo $\lambda$.
+    FURTHER DETAILS: This function returns a positive integer~$n$ such
+    that the Hecke operators $T_1,\ldots, T_n$ acting on \emph{cusp
+    forms} generate the Hecke algebra as a $\Z$-module when the
+    character is trivial or quadratic.  Otherwise, $T_1,\ldots,T_n$
+    generate the Hecke algebra at least as a $\Z[\eps]$-module, where
+    $\Z[\eps]$ is the ring generated by the values of the Dirichlet
+    character $\eps$.  Alternatively, this is a bound such that if two
+    cusp forms associated to this space of modular symbols are
+    congruent modulo $(\lambda, q^n)$, then they are congruent modulo
+    $\lambda$.
 
     REFERENCES:
     See the Agashe-Stein appendix to Lario and Schoof, \emph{Some

@@ -30,14 +30,9 @@ AUTHORS:
     -- William Stein (2006-01-07): added more examples
     -- William Stein (2006-05-21): added examples of everything; fix a *lot* of tiny
                      bugs and design problem that became clear when creating examples.
+    -- Craig Citro   (2008-02-16): speed up __call__ method for Dirichlet
+                     characters, miscellaneous fixes
 
-TODO: Optimization needed.  Store a list of the powers of the root of unity.
-      Then exponentiation and arithmetic of actual characters will be a lookup
-      into a table and arithmetic modulo n.  Moreover, storage will be much
-      more efficient, since we'll always be storing pointers to powers of
-      roots of unity, rather than the actual polynomials that the define.
-      Finally, evaluation will be even faster.
-      This would also be a big plus memory-wise for the values() function.
 """
 
 ########################################################################
@@ -175,13 +170,13 @@ class DirichletCharacter(MultiplicativeGroupElement):
     def __eval_at_minus_one(self):
         r"""
         Efficiently evalute the character at -1 using knowledge of its
-        order.   This is potentially much more efficient than computing
+        order. This is potentially much more efficient than computing
         the value of -1 directly using dlog and a large power of the
         image root of unity.
 
         We use the following.
-        Proposition: Suppose eps is a character mod $p^n$, where $p$ is a prime.
-        Then $\varepsilon(-1) = -1$ if and only if
+        Proposition: Suppose eps is a character mod $p^n$, where $p$
+        is a prime.  Then $\varepsilon(-1) = -1$ if and only if
                $p = 2$ and the factor of eps at 4 is nontrivial
            or
                $p > 2$ and 2 does not divide $\phi(p^n)/\mbox{\rm ord}(\varepsilon)$.
@@ -204,8 +199,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
         Return the value of this character at the integer $m$.
 
         WARNING: A table of values of the character is made the first
-        time you call this.  This table is currently constructed in
-        a somewhat stupid way, though it is still pretty fast.
+        time you call this.  This table is currently constructed in a
+        somewhat stupid way, though it is still pretty fast.
 
         EXAMPLES:
             sage: G = DirichletGroup(60)
@@ -226,16 +221,25 @@ class DirichletCharacter(MultiplicativeGroupElement):
             zeta4
             sage: e(31*37)
             -zeta4
+            sage: parent(e(31*37))
+            Cyclotomic Field of order 4 and degree 2
         """
         m = int(m%self.__modulus)
         try:
             return self.__values[m]
         except AttributeError:
             pass
-        if m == self.__modulus - 1:
+
+        val = self.__modulus - 1
+        if not val:
+            one = self.base_ring()(1)
+            self.__values = [self.base_ring()(1)]
+            return self.__values[0]
+        elif m == val:
             return self.__eval_at_minus_one()
-        self.values()  # compute all values
-        return self.__values[m]
+        else:
+            self.values()  # compute all values
+            return self.__values[m]
 
     def change_ring(self, R):
         """
@@ -1003,73 +1007,73 @@ class DirichletCharacter(MultiplicativeGroupElement):
         # Build cache of all values of the Dirichlet character.
         # I'm going to do it this way, since in my app the modulus
         # is *always* small and we want to evaluate the character
-        # *a* *lot*.
-        R = self.parent().base_ring()
+        # a *lot*.
+        G = self.parent()
+        R = G.base_ring()
         zero = R(0)
+        one = R(1)
         mod = self.__modulus
-        x = [zero for _ in range(mod)]
+
         if self.is_trivial():  # easy special case
-            for n in range(mod):
-                # todo: optimization idea -- factor phi(n), then
-                # "cross out" all multiples of each prime factor of phi(n).
-                if arith.GCD(n,mod) == 1:
-                    x[n] = 1
+            x = [ one ] * int(mod)
+            x[0] = zero
+            for p in mod.prime_divisors():
+                p_mult = p
+                while p_mult < mod:
+                    x[p_mult] = zero
+                    p_mult += p
             self.__values = x
             return x
-        #end
-        # we lift the gens to the int type here, since it is a lot faster
-        gens = [z.lift() for z in self.parent().unit_gens()]
-        exponents = [0 for _ in range(len(gens))]
-        Z = self.parent().integers_mod()
-        n = 1
-        last = [g.multiplicative_order()-1 for g in self.parent().unit_gens()]
-        stop = list(last)
-        stop[len(stop)-1] += 1
-        value = R(1)
-        val_on_gen = self.values_on_gens()
-        only_int_vals = True
-        tmp = []
-        for z in val_on_gen:
-            if z == R(1):
-                tmp.append(1)
-            elif z == R(-1):
-                tmp.append(-1)
-            else:
-                only_int_vals = False
-                break
-        #end
-        if only_int_vals:
-            val_on_gen = tmp
-            value = 1
-        while exponents != stop:
-            ########################
-            # TODO TODO -- rewrite this to use
-            #              the underlying element and table of powers of zeta
-            #              instead of doing arithmetic in cyclotomic field.
+
+        result_list = [zero] * mod
+
+        zeta_order = R.zeta_order()
+        zeta = R.zeta()
+        A = rings.Integers(zeta_order)
+        A_zero = A.zero_element()
+        A_one = A.one_element()
+        ZZ = rings.ZZ
+
+        S = G._integers
+
+        R_values = G._zeta_powers
+
+        gens = G.unit_gens()
+        ## gens = [ S(z) for z in self._parent.unit_gens() ]
+        last = [ x.multiplicative_order()-1 for x in G.unit_gens() ]
+
+        ngens = len(gens)
+        exponents = [0] * ngens
+        n = S(1) ## rings.ZZ(1)
+
+        value = A_zero
+        val_on_gen = [ A(R_values.index(x)) for x in self.values_on_gens() ]
+
+        final_index = ngens-1
+        stop = last[-1]
+        while exponents[-1] <= stop:
+
             ########################
             # record character value on n
-            x[int(n)] = value
+            result_list[n.ivalue] = R_values[value.ivalue]
             # iterate:
             #   increase the exponent vector by 1,
             #   increase n accordingly, and increase value
             exponents[0] += 1   # inc exponent
-            value *= val_on_gen[0]  # inc value
+            value += val_on_gen[0]  # inc value
             n *= gens[0]
-            n %= mod
+            ## n %= mod
             i = 0
-            while i < len(exponents)-1 and exponents[i] > last[i]:
+            while i < final_index and exponents[i] > last[i]:
                 exponents[i] = 0
                 # now increment position i+1:
                 exponents[i+1] += 1
-                value *= val_on_gen[i+1]
+                value += val_on_gen[i+1]
                 n *= gens[i+1]
-                n %= mod
+                ## n %= mod
                 i += 1
-            #end
-        #end
-        if only_int_vals:
-            x = [R(z) for z in x]
-        self.__values = x
+
+        self.__values = result_list
         return self.__values
 
     def values_on_gens(self):
@@ -1092,7 +1096,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
     def element(self):
         r"""
-        Return the underlyilng $\ZZ/n\ZZ$-module vector
+        Return the underlying $\ZZ/n\ZZ$-module vector
         of exponents.
 
         WARNING/TODO: Please do not change the entries of the returned
@@ -1111,72 +1115,79 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
 
 _cache = {}
-def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None, names=None):
+def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None,
+                   names=None, integral=False):
     r"""
-    The group of Dirichlet characters modulo~$N$ with values in
-    the subgroup $\langle \zeta_n\rangle$ of the multiplicative
-    group of the \code{base_ring}.  If the base_ring is omitted
-    then we use $\Q(\zeta_n)$, where $n$ is the exponent of
-    $(\Z/N\Z)^*$.  If $\zeta$ is omitted then we compute and use a
-    maximal-order zeta in base_ring, if possible.
+    The group of Dirichlet characters modulo~$N$ with values in the
+    subgroup $\langle \zeta_n\rangle$ of the multiplicative group of
+    the \code{base_ring}.  If the base_ring is omitted then we use
+    $\Q(\zeta_n)$, where $n$ is the exponent of $(\Z/N\Z)^*$.  If
+    $\zeta$ is omitted then we compute and use a maximal-order zeta in
+    base_ring, if possible.
 
     INPUT:
         modulus -- int
-        base_ring -- Ring (optional), where characters take their values
-                     (should be an integral domain).
-        zeta -- Element (optional), element of base_ring; zeta is a root of unity
+        base_ring -- Ring (optional), where characters take their
+                     values (should be an integral domain).
+        zeta -- Element (optional), element of base_ring; zeta is a
+                     root of unity
         zeta_order -- int (optional), the order of zeta
-        names -- ignored (needed so G.<...> = DirichletGroup(...) notation works)
+        names -- ignored (needed so G.<...> = DirichletGroup(...)
+                     notation works)
+        integral -- boolean (default: \code{False}). If \code{True},
+                     return the group with base_ring the ring of
+                     integers in the smallest choice of
+                     CyclotomicField. Ignored if base_ring is
+                     not \code{None}.
 
     OUTPUT:
         DirichletGroup -- a group of Dirichlet characters.
 
     EXAMPLES:
-        The default base ring is a cyclotomic field of order the exponent
-        of $(\Z/N\Z)^*$.
 
-            sage: DirichletGroup(20)
-            Group of Dirichlet characters of modulus 20 over Cyclotomic Field of order 4 and degree 2
+    The default base ring is a cyclotomic field of order the exponent
+    of $(\Z/N\Z)^*$.
+        sage: DirichletGroup(20)
+        Group of Dirichlet characters of modulus 20 over Cyclotomic Field of order 4 and degree 2
 
-        We create the group of Dirichlet character mod 20 with values
-        in the rational numbers:
-            sage: G = DirichletGroup(20, QQ); G
-            Group of Dirichlet characters of modulus 20 over Rational Field
-            sage: G.order()
-            4
-            sage: G.base_ring()
-            Rational Field
+    We create the group of Dirichlet character mod 20 with values in
+    the rational numbers:
+        sage: G = DirichletGroup(20, QQ); G
+        Group of Dirichlet characters of modulus 20 over Rational Field
+        sage: G.order()
+        4
+        sage: G.base_ring()
+        Rational Field
 
-        The elements of G print as lists giving the values of the
-        character on the generators of $(Z/NZ)^*$:
-            sage: list(G)
-            [[1, 1], [-1, 1], [1, -1], [-1, -1]]
+    The elements of G print as lists giving the values of the
+    character on the generators of $(Z/NZ)^*$:
+        sage: list(G)
+        [[1, 1], [-1, 1], [1, -1], [-1, -1]]
 
-        Next we construct the group of Dirichlet character mod 20, but
-        with values in Q(zeta_n):
-            sage: G = DirichletGroup(20)
-            sage: G.list()
-            [[1, 1], [-1, 1], [1, zeta4], [-1, zeta4], [1, -1], [-1, -1], [1, -zeta4], [-1, -zeta4]]
+    Next we construct the group of Dirichlet character mod 20, but
+    with values in Q(zeta_n):
+        sage: G = DirichletGroup(20)
+        sage: G.list()
+        [[1, 1], [-1, 1], [1, zeta4], [-1, zeta4], [1, -1], [-1, -1], [1, -zeta4], [-1, -zeta4]]
 
-        We next compute several invariants of G:
-            sage: G.gens()
-            ([-1, 1], [1, zeta4])
-            sage: G.unit_gens()
-            [11, 17]
-            sage: G.zeta()
-            zeta4
-            sage: G.zeta_order()
-            4
+    We next compute several invariants of G:
+        sage: G.gens()
+        ([-1, 1], [1, zeta4])
+        sage: G.unit_gens()
+        [11, 17]
+        sage: G.zeta()
+        zeta4
+        sage: G.zeta_order()
+        4
 
-        In this example we create a Dirichlet character with values in a
-        number field.  We have to give zeta, but not its order.
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: K.<a> = NumberField(x^4 + 1)
-            sage: G = DirichletGroup(5, K, a); G
-            Group of Dirichlet characters of modulus 5 over Number Field in a with defining polynomial x^4 + 1
-            sage: G.list()
-            [[1], [a^2], [-1], [-a^2]]
-
+    In this example we create a Dirichlet character with values in a
+    number field.  We have to give zeta, but not its order.
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: K.<a> = NumberField(x^4 + 1)
+        sage: G = DirichletGroup(5, K, a); G
+        Group of Dirichlet characters of modulus 5 over Number Field in a with defining polynomial x^4 + 1
+        sage: G.list()
+        [[1], [a^2], [-1], [-a^2]]
 
         sage: G.<e> = DirichletGroup(13)
         sage: loads(G.dumps()) == G
@@ -1191,10 +1202,32 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None, names=No
         sage: g = DirichletGroup(19, GF(p)); g
         Group of Dirichlet characters of modulus 19 over Finite Field of size 10000000000000000000000000000000000000121
 
-    Note that the root of unity has small order, i.e., it is not the bigest
-    order root of unity in the field.
+    Note that the root of unity has small order, i.e., it is not the
+    largest order root of unity in the field.
         sage: g.zeta_order()
         2
+
+        sage: r4 = CyclotomicField(4).ring_of_integers()
+        sage: G = DirichletGroup(60, r4)
+        sage: G.gens()
+        ([-1, 1, 1], [1, -1, 1], [1, 1, zeta4])
+        sage: val = G.gens()[2].values_on_gens()[2] ; val
+        zeta4
+        sage: parent(val)
+        Maximal Order in Cyclotomic Field of order 4 and degree 2
+        sage: r4.residue_field(r4.ideal(29).factor()[0][0])(val)
+        17
+        sage: r4.residue_field(r4.ideal(29).factor()[0][0])(val) * GF(29)(3)
+        22
+        sage: r4.residue_field(r4.ideal(29).factor()[0][0])(G.gens()[2].values_on_gens()[2]) * 3
+        22
+        sage: parent(r4.residue_field(r4.ideal(29).factor()[0][0])(G.gens()[2].values_on_gens()[2]) * 3)
+        Residue field of Fractional ideal (-2*zeta4 + 5)
+
+        sage: DirichletGroup(60, integral=True)
+        Group of Dirichlet characters of modulus 60 over Maximal Order in Cyclotomic Field of order 4 and degree 2
+        sage: parent(DirichletGroup(60, integral=True).gens()[2].values_on_gens()[2])
+        Maximal Order in Cyclotomic Field of order 4 and degree 2
     """
     modulus = rings.Integer(modulus)
 
@@ -1203,6 +1236,8 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None, names=No
             raise ValueError, "zeta and zeta_order must be None if base_ring not specified."
         e = rings.IntegerModRing(modulus).unit_group_exponent()
         base_ring = rings.CyclotomicField(e)
+        if integral:
+            base_ring = base_ring.ring_of_integers()
 
     if not rings.is_Ring(base_ring):
         raise TypeError, "base_ring (=%s) must be a ring"%base_ring
@@ -1213,7 +1248,7 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None, names=No
             zeta = base_ring.zeta(e)
             zeta_order = zeta.multiplicative_order()
         except (TypeError, ValueError, ArithmeticError):
-            zeta = base_ring.zeta()
+            zeta = base_ring.zeta(base_ring.zeta_order())
             n = zeta.multiplicative_order()
             zeta_order = arith.GCD(e,n)
             zeta = zeta**(n//zeta_order)

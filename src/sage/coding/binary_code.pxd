@@ -88,7 +88,7 @@ cdef class BinaryCodeClassifier:
     cdef int alpha_size
     cdef int *v, *e
     cdef int *aut_gp_gens, *labeling
-    cdef int aut_gp_index, aut_gens_size
+    cdef int aut_gp_index, aut_gens_size, aut_gp_size
 
     cdef int Phi_size
     cdef int *new_Phi

@@ -83,7 +83,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         elif x_ordp > y_ordp:
             return 1
         else:  # equal ordp
-            if x_ordp == infinity:
+            if x_ordp is infinity:
                 return 0 # since both are zero
             else:
                 return (<pAdicGenericElement>left.unit_part())._cmp_units(right.unit_part())
@@ -116,24 +116,24 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef int _pshift_self(self, long shift) except -1:
         raise NotImplementedError
 
-    cdef void _set_inexact_zero(self, long absprec):
+    cdef int _set_inexact_zero(self, long absprec) except -1:
         raise NotImplementedError
-    cdef void _set_exact_zero(self):
+    cdef int _set_exact_zero(self) except -1:
         raise TypeError, "this type of p-adic does not support exact zeros"
-    cpdef bint _is_exact_zero(self):
+    cpdef bint _is_exact_zero(self) except -1:
         return False
-    cpdef bint _is_inexact_zero(self):
+    cpdef bint _is_inexact_zero(self) except -1:
         raise NotImplementedError
-    cpdef bint _is_zero_rep(self):
+    cpdef bint _is_zero_rep(self) except -1:
         return self._is_inexact_zero() or self._is_exact_zero()
 
-    cdef bint _set_prec_abs(self, long absprec):
+    cdef bint _set_prec_abs(self, long absprec) except -1:
         self._set_prec_both(absprec, (<PowComputer_class>self.parent().prime_pow).prec_cap)
 
-    cdef bint _set_prec_rel(self, long relprec):
+    cdef bint _set_prec_rel(self, long relprec) except -1:
         self._set_prec_both((<PowComputer_class>self.parent().prime_pow).prec_cap, relprec)
 
-    cdef bint _set_prec_both(self, long absprec, long relprec):
+    cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         return 0
 
     def _pari_(self):

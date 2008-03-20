@@ -1995,12 +1995,15 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
                 'cmap':"""The colormap, one of (autumn, bone, cool, copper,
                        gray, hot, hsv, jet, pink, prism, spring, summer, winter)""",
                        'fill':'Fill contours or not',
-                'contours':'Number of contour levels.'}
+                'contours':"""Either an integer specifying the number of
+                       contour levels, or a sequence of numbers giving
+                       the actual contours to use."""}
 
     def _repr_(self):
         return "ContourPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)
 
     def _render_on_subplot(self, subplot):
+        from sage.rings.integer import Integer
         options = self.options()
         fill = options['fill']
         cmap = options['cmap']
@@ -2021,13 +2024,17 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
         if fill:
             if contours is None:
                 subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
-            else:
+            elif isinstance(contours, (int, Integer)):
                 subplot.contourf(self.xy_data_array, int(contours), cmap=cmap, extent=(x0,x1,y0,y1))
+            else:
+                subplot.contourf(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1))
         else:
             if contours is None:
                 subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
-            else:
+            elif isinstance(contours, (int, Integer)):
                 subplot.contour(self.xy_data_array, int(contours), cmap=cmap, extent=(x0,x1,y0,y1))
+            else:
+                subplot.contour(self.xy_data_array, contours, cmap=cmap, extent=(x0,x1,y0,y1))
 
 
 class GraphicPrimitive_MatrixPlot(GraphicPrimitive):
@@ -2712,7 +2719,14 @@ class ArrowFactory(GraphicPrimitiveFactory_arrow):
     def _reset(self):
         self.options={'width':0.02,'rgbcolor':(0, 0, 1)}
 
-    def _repr_(self):
+    def __repr__(self):
+        """
+        Returns a string representation of this ArrowFactory object.
+
+        TESTS:
+            sage: arrow
+            type arrow? for help and examples
+        """
         return "type arrow? for help and examples"
 
     def _from_xdata_ydata(self, xmin, ymin, xmax, ymax, options):
@@ -2741,7 +2755,14 @@ class BarChartFactory(GraphicPrimitiveFactory_bar_chart):
     def _reset(self):
         self.options={'width':0.5,'rgbcolor':(0, 0, 1)}
 
-    def _repr_(self):
+    def __repr__(self):
+        """
+        Returns a string representation of this BarChartFactory object.
+
+        TESTS:
+            sage: bar_chart
+            type bar_chart? for help and examples
+        """
         return "type bar_chart? for help and examples"
 
     def _from_xdata_ydata(self, ind, datalist, xrange, yrange, options):
@@ -2800,7 +2821,14 @@ class CircleFactory(GraphicPrimitiveFactory_circle):
     def _reset(self):
         self.options={'alpha':1,'fill':False,'thickness':1,'rgbcolor':(0, 0, 1)}
 
-    def _repr_(self):
+    def __repr__(self):
+        """
+        Returns a string representation of this CircleFactory object.
+
+        TESTS:
+            sage: circle
+            type circle? for help and examples
+        """
         return "type circle? for help and examples"
 
     def _from_xdata_ydata(self, point, r, options):
@@ -2833,9 +2861,14 @@ class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
         cmap         -- string (default: 'gray'), the color map to use:
                         autumn, bone, cool, copper, gray, hot, hsv,
                         jet, pink, prism, spring, summer, winter
-        contours     -- integer (default: None), the number of contour
-                        lines to draw.  If None, determined automatically,
-                        and usually about 5.
+        contours     -- integer or list of numbers (default: None):
+                        If a list of numbers is given, then this specifies
+                        the contour levels to use.  If an integer is given,
+                        then this many contour lines are used, but the
+                        exact levels are determined automatically.
+                        If None is passed (or the option is not given),
+                        then the number of contour lines is determined
+                        automatically, and is usually about 5.
 
 
     EXAMPLES:
@@ -2862,11 +2895,26 @@ class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
         sage: contour_plot(lambda x,y: y^2 + 1 - x^3 - x, (y,-pi,pi), (x,-pi,pi))
         sage: contour_plot(y^2 + 1 - x^3 - x, (-pi,pi), (-pi,pi))
 
+
+    We can play with the contour levels.
+        sage: f = lambda x,y: x^2 + y^2
+        sage: contour_plot(f, (-2, 2), (-2, 2))
+        sage: contour_plot(f, (-2, 2), (-2, 2), contours=2)
+        sage: contour_plot(f, (-2, 2), (-2, 2), contours=(0.1, 1.0, 1.2, 1.4), cmap='hsv')
+        sage: contour_plot(f, (-2, 2), (-2, 2), contours=(1.0,), fill=False)
+
     """
     def _reset(self):
         self.options={'plot_points':25, 'fill':True, 'cmap':'gray', 'contours':None}
 
-    def _repr_(self):
+    def __repr__(self):
+        """
+        Returns a string representation of this ContourPlotFactory object.
+
+        TESTS:
+            sage: contour_plot
+            type contour_plot? for help and examples
+        """
         return "type contour_plot? for help and examples"
 
     def _from_xdata_ydata(self, xy_data_array, xrange, yrange, options):
@@ -2876,6 +2924,72 @@ class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
 
 #unique contour_plot instance
 contour_plot = ContourPlotFactory()
+
+class ImplicitPlotFactory(ContourPlotFactory):
+    r"""
+    \code{implicit_plot} takes a function of two variables, $f(x,y)$
+    and plots the curve $f(x,y)=0$ over the specified
+    xrange and yrange as demonstrated below.
+
+      implicit_plot(f, (xmin, xmax), (ymin, ymax), ...)
+
+    INPUT:
+        f -- a function of two variables
+        (xmin, xmax) -- 2-tuple, the range of x values
+        (ymin, ymax) -- 2-tuple, the range of y values
+    The following inputs must all be passed in as named parameters:
+        plot_points  -- integer (default: 25); number of points to plot
+                        in each direction of the grid
+
+
+    EXAMPLES:
+
+    We can define a level-$n$ approximation of the boundary of the
+    Mandelbrot set.
+        sage: def mandel(n):
+        ...       c = polygen(CDF, 'c')
+        ...       z = 0
+        ...       for i in range(n):
+        ...           z = z*z + c
+        ...       def f(x, y):
+        ...           val = z(CDF(x, y))
+        ...           return val.norm() - 4
+        ...       return f
+
+    The first-level approximation is just a circle.
+        sage: implicit_plot(mandel(1), (-3, 3), (-3, 3)).show(aspect_ratio=1)
+
+    A third-level approximation starts to get interesting.
+        sage: implicit_plot(mandel(3), (-2, 1), (-1.5, 1.5)).show(aspect_ratio=1)
+
+    The seventh-level approximation is a degree 64 polynomial, and
+    implicit_plot does a pretty good job on this part of the curve.
+    (plot_points=200 looks even better, but it's about 16 times slower.)
+        sage: implicit_plot(mandel(7), (-0.3, 0.05), (-1.15, -0.9),plot_points=50).show(aspect_ratio=1)
+    """
+    def _reset(self):
+        """
+        Sets the default options for this ImplicitPlotFactory object.
+
+        TESTS:
+            sage: implicit_plot._reset()
+            sage: implicit_plot.options['contours']
+            (0.0,)
+        """
+        self.options={'plot_points':25, 'fill':False, 'cmap':'gray', 'contours':(0.0,)}
+
+    def __repr__(self):
+        """
+        Returns a string representation of this ImplicitPlotFactory object.
+
+        TESTS:
+            sage: implicit_plot
+            type implicit_plot? for help and examples
+        """
+        return "type implicit_plot? for help and examples"
+
+#unique implicit_plot instance
+implicit_plot = ImplicitPlotFactory()
 
 class LineFactory(GraphicPrimitiveFactory_from_point_list):
     r"""
@@ -2977,8 +3091,15 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
     def _reset(self):
         self.options = {'alpha':1,'rgbcolor':(0,0,1),'thickness':1}
 
-    def _repr_(self):
-        return "type line? for help and examples."
+    def __repr__(self):
+        """
+        Returns a string representation of this LineFactory object.
+
+        TESTS:
+            sage: line
+            type line? for help and examples
+        """
+        return "type line? for help and examples"
 
     def _from_xdata_ydata(self, xdata, ydata, coerce, options):
         if coerce:
@@ -3026,7 +3147,14 @@ class MatrixPlotFactory(GraphicPrimitiveFactory_matrix_plot):
     def _reset(self):
         self.options={'cmap':'gray'}
 
-    def _repr_(self):
+    def __repr__(self):
+        """
+        Returns a string representation of this MatrixPlotFactory object.
+
+        TESTS:
+            sage: matrix_plot
+            type matrix_plot? for help and examples
+        """
         return "type matrix_plot? for help and examples"
 
     def _from_xdata_ydata(self, xy_data_array, xrange, yrange, options):
@@ -3102,7 +3230,14 @@ class DiskFactory(GraphicPrimitiveFactory_disk):
     def _reset(self):
         self.options={'alpha':1,'fill':True,'rgbcolor':(0,0,1),'thickness':0}
 
-    def _repr_(self):
+    def __repr__(self):
+        """
+        Returns a string representation of this DiskFactory object.
+
+        TESTS:
+            sage: disk
+            type disk? for help and examples
+        """
         return "type disk? for help and examples"
 
     def _from_xdata_ydata(self, point, r, angle, options):
@@ -3131,8 +3266,15 @@ class PointFactory(GraphicPrimitiveFactory_from_point_list):
     def _reset(self):
         self.options = {'alpha':1,'pointsize':10,'faceted':False,'rgbcolor':(0,0,1)}
 
-    def _repr_(self):
-        return "type point? for options help"
+    def __repr__(self):
+        """
+        Returns a string representation of this PointFactory object.
+
+        TESTS:
+            sage: point
+            type point? for help and examples
+        """
+        return "type point? for help and examples"
 
     def _from_xdata_ydata(self, xdata, ydata, coerce, options):
         if coerce:
@@ -3214,8 +3356,15 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
     def _reset(self):
         self.options={'alpha':1,'rgbcolor':(0,0,1),'thickness':0}
 
-    def _repr_(self):
-        return "Sage polygon; type polygon? for help and examples."
+    def __repr__(self):
+        """
+        Returns a string representation of this PolygonFactory object.
+
+        TESTS:
+            sage: polygon
+            Sage polygon; type polygon? for help and examples
+        """
+        return "Sage polygon; type polygon? for help and examples"
 
     def _from_xdata_ydata(self, xdata, ydata, coerce, options):
         if coerce:
@@ -3305,6 +3454,13 @@ class PlotFactory(GraphicPrimitiveFactory):
         80
         sage: P          # render
 
+    We plot with randomize=False, which makes the initial sample
+    points evenly spaced (hence always the same).  Adaptive plotting
+    might insert other points, however.
+        sage: p = plot(sin,-1,1,plot_points=3,plot_division=0,randomize=False)
+        sage: p[0][1][0]
+        -0.66666666666666...
+
     Some colored functions:
 
         sage: plot(sin, 0, 10, rgbcolor='#ff00ff')
@@ -3363,8 +3519,15 @@ class PlotFactory(GraphicPrimitiveFactory):
         o['max_bend'] = 0.1
         o['rgbcolor'] = (0,0,1)
 
-    def _repr_(self):
-        return "plot; type plot? for help and examples."
+    def __repr__(self):
+        """
+        Returns a string representation of this PlotFactory object.
+
+        TESTS:
+            sage: plot
+            type plot? for help and examples
+        """
+        return "type plot? for help and examples"
 
     def __call__(self, funcs, *args, **kwds):
         do_show = False
@@ -3395,7 +3558,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         return G
 
     def _call(self, funcs, xrange, parametric=False,
-              polar=False, label='', **kwds):
+              polar=False, label='', randomize=True, **kwds):
         options = dict(self.options)
         if kwds.has_key('color') and not kwds.has_key('rgbcolor'):
             kwds['rgbcolor'] = kwds['color']
@@ -3439,9 +3602,11 @@ class PlotFactory(GraphicPrimitiveFactory):
         exceptions = 0; msg=''
         for i in range(plot_points):
             xi = xmin + i*delta
-            # Slightly randomize points except for the first and last
+            # Slightly randomize the interior sample points if
+            # randomize is true
             if i > 0 and i < plot_points-1:
-                xi += delta*random.random()
+                if randomize:
+                    xi += delta*random.random()
                 if xi > xmax:
                     xi = xmax
             elif i == plot_points-1:
@@ -3462,7 +3627,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         del options['plot_division']
         while i < len(data) - 1:
             if abs(data[i+1][1] - data[i][1]) > max_bend:
-                x = (data[i+1][0] + data[i][0])/2
+                x = float((data[i+1][0] + data[i][0])/2)
                 try:
                     y = float(f(x))
                     data.insert(i+1, (x, y))
@@ -3545,7 +3710,14 @@ class TextFactory(GraphicPrimitiveFactory_text):
                         'vertical_alignment':'center',
                         'axis_coords':False}
 
-    def _repr_(self):
+    def __repr__(self):
+        """
+        Returns a string representation of this TextFactory object.
+
+        TESTS:
+            sage: text
+            type text? for help and examples
+        """
         return "type text? for help and examples"
 
     def _from_xdata_ydata(self, string, point, options):

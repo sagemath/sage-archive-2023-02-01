@@ -264,7 +264,7 @@ import sage.numerical.optimize
 
 # The calculus package uses its own copy of maxima, which is
 # separate from the default system-wide version.
-maxima = Maxima(init_code = ['display2d:false; domain: complex;'])
+maxima = Maxima(init_code = ['display2d:false; domain: complex; keepfloat: true'])
 
 from sage.misc.sage_eval import sage_eval
 
@@ -2002,6 +2002,44 @@ class SymbolicExpression(RingElement):
     differentiate = derivative
     diff = derivative
 
+    def gradient(self):
+        r"""
+        Compute the gradient of a symbolic function.
+        This function returns a vector whose components are the
+        derivatives of the original function.
+
+        EXAMPLES:
+            sage: x,y = var('x y')
+            sage: f = x^2+y^2
+            sage: f.gradient()
+            (2*x, 2*y)
+        """
+
+        from sage.modules.free_module_element import vector
+        l=[self.derivative(x) for x in self.variables()]
+        return vector(l)
+
+    def hessian(self):
+        r"""
+        Compute the hessian of a function. This returns a matrix
+        components are the 2nd partial derivatives of the original function.
+
+        EXAMPLES:
+            sage: x,y = var('x y')
+            sage: f = x^2+y^2
+            sage: f.hessian()
+            [2 0]
+            [0 2]
+
+        """
+
+        from sage.matrix  import constructor
+        grad=self.gradient()
+        var_list=self.variables()
+        l=[ [grad[i].derivative(x) for x in var_list] for i in xrange(len(grad))]
+        return constructor.matrix(l)
+
+
 
     ###################################################################
     # Taylor series
@@ -2406,6 +2444,14 @@ class SymbolicExpression(RingElement):
                         log(x - 4)   / x  + 2 x + 1
                         ---------- - ------------------
                             73               73
+
+        We now show that floats are not converted to rationals
+        automatically since we by default have keepfloat: true in
+        maxima.
+
+            sage: integral(e^(-x^2),x, 0, 0.1)
+            0.0562314580091424*sqrt(pi)
+
 
         ALIASES:
             integral() and integrate() are the same.

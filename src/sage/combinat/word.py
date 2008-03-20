@@ -59,56 +59,135 @@ def Words(*args):
 
 class Words_all(CombinatorialClass):
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: Words().__repr__()
+            'Words'
+        """
         return "Words"
 
     def count(self):
+        """
+        EXAMPLES:
+            sage: Words().count()
+            +Infinity
+        """
         return infinity
 
     def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: 2 in Words()
+            False
+            sage: [1,2] in Words()
+            True
+        """
         return isinstance(x, list)
 
-    def list(self):
-        raise NotImplementedError
-
     def iterator(self):
+        """
+        EXAMPLES:
+            sage: Words().list() #indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
 class Words_n(CombinatorialClass):
     def __init__(self, n):
+        """
+        EXAMPLES:
+            sage: w = Words(3)
+            sage: w == loads(dumps(w))
+            True
+        """
         self.n = n
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: Words(3).__repr__()
+            'Words of length 3'
+        """
         return "Words of length %s"%self.n
 
     def count(self):
+        """
+        EXAMPLES:
+            sage: Words(3).count()
+            +Infinity
+        """
         return infinity
 
     def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: 2 in Words(3)
+            False
+            sage: [1,'a',3] in Words(3)
+            True
+            sage: [1,2] in Words(3)
+            False
+        """
         return isinstance(x, list) and len(x) == self.n
 
-    def list(self):
-        raise NotImplementedError
-
     def iterator(self):
+        """
+        EXAMPLES:
+            sage: Words(3).list() #indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
 class Words_alphabet(CombinatorialClass):
     def __init__(self, alphabet):
+        """
+        EXAMPLES:
+            sage: w = Words([1,2,3])
+            sage: w == loads(dumps(w))
+            True
+        """
         self.alphabet = alphabet
 
     def __repr__(self):
-        return "Words of from the alphabet %s"%self.alphabet
+        """
+        EXAMPLES:
+            sage: Words([1,2,3]).__repr__()
+            'Words from the alphabet [1, 2, 3]'
+        """
+        return "Words from the alphabet %s"%self.alphabet
 
     def count(self):
+        """
+        EXAMPLES:
+            sage: Words([1,2,3]).count()
+            +Infinity
+        """
         return infinity
 
     def __contains__(self, x):
-        return isinstance(x, list) and all(map(lambda i: i in alphabet, x))
-
-    def list(self):
-        raise NotImplementedError
+        """
+        EXAMPLES:
+            sage: 2 in Words([1,2,3])
+            False
+            sage: [2] in Words([1,2,3])
+            True
+            sage: [1, 'a'] in Words([1,2,3])
+            False
+        """
+        return isinstance(x, list) and all(map(lambda i: i in self.alphabet, x))
 
     def iterator(self):
+        """
+        EXAMPLES:
+            sage: Words([1,2,3]).list() #indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
 class Words_alphabetk(CombinatorialClass):
@@ -197,6 +276,7 @@ def alphabet_order(alphabet):
     returns True if x occurs before y in A.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: f = word.alphabet_order(['a','b','c'])
         sage: f('a', 'b')
         True
@@ -223,6 +303,7 @@ def standard(w, alphabet = None, ordering = None):
     ordering function into ordering.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.standard([1,2,3,2,2,1,2,1])
         [1, 4, 8, 5, 6, 2, 7, 3]
     """
@@ -233,15 +314,8 @@ def standard(w, alphabet = None, ordering = None):
     if ordering == None:
         ordering = lambda x,y: x < y
 
-    def ordering_cmp(x,y):
-        """
-        Returns -1 if x < y under ordering otherwise it returns 1.
-        """
-        if ordering(x,y):
-            return -1
-        else:
-            return 1
-
+    #Returns -1 if x < y under ordering otherwise it returns 1.
+    ordering_cmp = lambda x,y: -1 if ordering(x,y) else 0
 
     d = evaluation_dict(w)
     keys = d.keys()
@@ -268,6 +342,7 @@ def evaluation_dict(w):
     of the word w.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.evaluation_dict([2,1,4,2,3,4,2])
         {1: 1, 2: 3, 3: 1, 4: 2}
         sage: d = word.evaluation_dict(['b','a','d','b','c','d','b'])
@@ -291,6 +366,7 @@ def evaluation_sparse(w):
     """
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.evaluation_sparse([4,4,2,5,2,1,4,1])
         [[1, 2], [2, 2], [4, 3], [5, 1]]
     """
@@ -304,6 +380,7 @@ def evaluation_partition(w):
     Returns the evaluation of the word w as a partition.
 
     EXAMPLE:
+        sage: import sage.combinat.word as word
         sage: word.evaluation_partition([2,1,4,2,3,4,2])
         [3, 2, 1, 1]
     """
@@ -320,6 +397,7 @@ def evaluation(w, alphabet=None):
     must provide the alphabet as a list.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.evaluation(['b','a','d','b','c','d','b'],['a','b','c','d','e'])
         [1, 3, 1, 2, 0]
         sage: word.evaluation([1,2,2,1,3])
@@ -355,6 +433,7 @@ def from_standard_and_evaluation(sp, e, alphabet=None):
     sp and the evaluation e.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: a = [1,2,3,2,2,1,2,1]
         sage: e = word.evaluation(a)
         sage: sp = word.standard(a)
@@ -394,6 +473,7 @@ def swap(w,i,j=None):
    j swapped.  By default, j = i+1.
 
    EXAMPLES:
+       sage: import sage.combinat.word as word
        sage: word.swap([1,2,3],0,2)
        [3, 2, 1]
        sage: word.swap([1,2,3],1)
@@ -411,6 +491,7 @@ def swap_increase(w, i):
     if w[i] > w[i+1].  Otherwise, it returns w.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.swap_increase([1,3,2],0)
         [1, 3, 2]
         sage: word.swap_increase([1,3,2],1)
@@ -429,6 +510,7 @@ def swap_decrease(w, i):
     if w[i] < w[i+1].  Otherwise, it returns w.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.swap_decrease([1,3,2],0)
         [3, 1, 2]
         sage: word.swap_decrease([1,3,2],1)
@@ -448,6 +530,7 @@ def lex_less(w1,w2):
     letters can be compared by <.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.lex_less([1,2,3],[1,3,2])
         True
         sage: word.lex_less([3,2,1],[1,2,3])
@@ -475,6 +558,7 @@ def lex_cmp(w1,w2):
     Useful to pass into Python's sort()
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.lex_cmp([1,2,3],[1,3,2])
         -1
         sage: word.lex_cmp([3,2,1],[1,2,3])
@@ -493,6 +577,7 @@ def deg_lex_less(w1,w2):
     compared by < as well as summed.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.deg_lex_less([1,2,3],[1,3,2])
         True
         sage: word.deg_lex_less([1,2,4],[1,3,2])
@@ -517,6 +602,7 @@ def inv_lex_less(w1, w2):
     compared by <.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.inv_lex_less([1,2,4],[1,3,2])
         False
         sage: word.inv_lex_less([3,2,1],[1,2,3])
@@ -541,6 +627,7 @@ def deg_inv_lex_less(w1,w2):
     compared by < as well as summed.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.deg_inv_lex_less([1,2,4],[1,3,2])
         False
         sage: word.deg_inv_lex_less([3,2,1],[1,2,3])
@@ -564,6 +651,7 @@ def rev_lex_less(w1,w2):
     compared by <.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.rev_lex_less([1,2,4],[1,3,2])
         True
         sage: word.rev_lex_less([3,2,1],[1,2,3])
@@ -588,6 +676,7 @@ def deg_rev_lex_less(w1, w2):
     compared by < as well as summed.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.deg_rev_lex_less([1,2,4],[1,3,2])
         False
         sage: word.deg_rev_lex_less([3,2,1],[1,2,3])
@@ -608,6 +697,7 @@ def min_lex(l):
     order of a l of words.
 
     EXAMPLES:
+        sage: import sage.combinat.word as word
         sage: word.min_lex([[1,2,3],[1,3,2],[3,2,1]])
         [1, 2, 3]
     """
@@ -645,13 +735,26 @@ def ShuffleProduct(w1, w2, shifted=False, overlapping=False):
     if shifted is True:
         return ShuffleProduct_shifted(w1, w2)
 
-    if overlapping is True:
+    if overlapping is False:
+        pass
+    elif overlapping is True:
         return ShuffleProduct_overlapping(w1, w2)
+    elif isinstance(overlapping, (int, Integer)) and overlapping:
+        return ShuffleProduct_overlapping_r(w1, w2, overlapping)
+    else:
+        raise ValueError, 'overlapping must be True or an integer'
 
     return ShuffleProduct_w1w2(w1, w2)
 
 class ShuffleProduct_w1w2(CombinatorialClass):
     def __init__(self, w1, w2):
+        """
+        EXAMPLES:
+            sage: s = ShuffleProduct([1,2],[3,4])
+            sage: s == loads(dumps(s))
+            True
+
+        """
         self.w1 = w1
         self.w2 = w2
 
@@ -715,23 +818,50 @@ class ShuffleProduct_w1w2(CombinatorialClass):
 
 class ShuffleProduct_shifted(ShuffleProduct_w1w2):
     def __init__(self, w1, w2):
+        """
+        EXAMPLES:
+            sage: s = ShuffleProduct([1,2],[3,4], shifted=True)
+            sage: s == loads(dumps(s))
+            True
+        """
         self.w1 = w1
         self.w2 = [x+len(w1) for x in w2]
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: ShuffleProduct([1,2],[3,4], shifted=True).__repr__()
+            'Shifted shuffle product of [1, 2] and [5, 6]'
+        """
         return "Shifted shuffle product of %s and %s"%(self.w1, self.w2)
 
 
 class ShuffleProduct_overlapping_r(CombinatorialClass):
     def __init__(self, w1, w2, r):
+        """
+        EXAMPLES:
+            sage: s = ShuffleProduct([1,2],[3,4], overlapping=1)
+            sage: s == loads(dumps(s))
+            True
+        """
         self.w1 = w1
         self.w2 = w2
         self.r  = r
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: ShuffleProduct([1,2],[3,4], overlapping=1).__repr__()
+            'Overlapping shuffle product of [1, 2] and [3, 4] with 1 overlaps'
+        """
         return "Overlapping shuffle product of %s and %s with %s overlaps"%(self.w1, self.w2, self.r)
 
     def iterator(self):
+        """
+        EXAMPLES:
+            sage: ShuffleProduct([1,2],[3,4], overlapping=1).list() #indirect doctest
+            [[4, 2, 4], [1, 5, 4], [4, 4, 2], [1, 3, 6], [3, 5, 2], [3, 1, 6]]
+        """
         m = len(self.w1)
         n = len(self.w2)
         r = self.r
@@ -767,13 +897,41 @@ class ShuffleProduct_overlapping_r(CombinatorialClass):
 
 class ShuffleProduct_overlapping(CombinatorialClass):
     def __init__(self, w1, w2):
+        """
+        EXAMPLES:
+            sage: s = ShuffleProduct([1,2],[3,4],overlapping=True)
+            sage: s == loads(dumps(s))
+            True
+        """
         self.w1 = w1
         self.w2 = w2
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: ShuffleProduct([1,2],[3,4],overlapping=True).__repr__()
+            'Overlapping shuffle product of [1, 2] and [3, 4]'
+        """
         return "Overlapping shuffle product of %s and %s"%(self.w1, self.w2)
 
     def iterator(self):
+        """
+        EXAMPLES:
+            sage: ShuffleProduct([1,2],[3,4],overlapping=True).list() #indirect doctest
+            [[1, 2, 3, 4],
+             [1, 3, 2, 4],
+             [1, 3, 4, 2],
+             [3, 1, 2, 4],
+             [3, 1, 4, 2],
+             [3, 4, 1, 2],
+             [4, 2, 4],
+             [1, 5, 4],
+             [4, 4, 2],
+             [1, 3, 6],
+             [3, 5, 2],
+             [3, 1, 6],
+             [4, 6]]
+        """
         m = len(self.w1)
         n = len(self.w2)
 

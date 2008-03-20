@@ -981,7 +981,6 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
     respectively.
     """
     def render(self, ctx):
-        newcell = int(ctx.args['newcell'][0])  # whether to insert a new cell or not
         id = self.id(ctx)
         if not ctx.args.has_key('input'):
             input_text = ''
@@ -997,6 +996,13 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
         cell = W.get_cell_with_id(id)
 
         cell.set_input_text(input_text)
+
+        if ctx.args.has_key('save_only') and ctx.args['save_only'][0] == '1':
+            notebook_updates()
+            return http.Response(stream='')
+        else:
+            newcell = int(ctx.args['newcell'][0])  # whether to insert a new cell or not
+
         cell.evaluate(username = self.username)
 
         if cell.is_last():
@@ -1219,6 +1225,48 @@ class WorksheetsByUser(resource.Resource):
 ############################
 # Trash can, archive and active
 ############################
+class EmptyTrash(resource.Resource):
+    def __init__(self, username):
+        """
+        This twisted resource empties the trash of the current user when it
+        is rendered.
+
+        EXAMPLES:
+        We create an instance of this resource.
+            sage: E = sage.server.notebook.twist.EmptyTrash('sage'); E
+            <sage.server.notebook.twist.EmptyTrash object at ...>
+        """
+        self.username = username
+
+    def render(self, ctx):
+        """
+        Rendering this resource (1) empties the trash, and (2) returns
+        a message.
+
+        EXAMPLES:
+        We create a notebook with a worksheet, put it in the trash,
+        then empty the trash by creating and rendering this worksheet.
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
+            sage: W.move_to_trash('sage')
+            sage: n.worksheet_names()
+            ['sage/0']
+            sage: sage.server.notebook.twist.notebook = n
+            sage: E = sage.server.notebook.twist.EmptyTrash('sage'); E
+            <sage.server.notebook.twist.EmptyTrash object at ...>
+            sage: E.render(None)
+            <twisted.web2.http.Response code=200, streamlen=603>
+
+        Finally we verify that the trashed worksheet is gone:
+            sage: n.worksheet_names()
+            []
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
+        notebook.empty_trash(self.username)
+        return http.Response(stream = message("Trash emptied."))
+
+
 class SendWorksheetToFolder(resource.PostableResource):
     def __init__(self, username):
         self.username = username
@@ -1479,12 +1527,11 @@ class RegConfirmation(resource.Resource):
     def render(self, request):
         key = request.args['key'][0]
         global notebook
-        url_prefix = "https" if notebook.secure else "http"
         invalid_confirm_key = """\
 <h1>Invalid confirmation key</h1>
 <p>You are reporting a confirmation key that has not been assigned by this
-server. Please <a href="%s://%s:%s/register">register</a> with the server.</p>
-""" % (url_prefix, notebook.address, notebook.port)
+server. Please <a href="/register">register</a> with the server.</p>
+"""
         key = int(key)
         global waiting
         try:
@@ -1589,12 +1636,11 @@ class RegistrationPage(resource.PostableResource):
                 </html>
                 """
         else:
-            url_prefix = "https" if notebook.secure else "http"
             s = """<html><h1 align=center>Sign up for the Sage Notebook.</h1>
             <br>
             <hr>
             <br>
-            <form method="POST" action="%s://%s:%s/register">
+            <form method="POST" action="/register">
             <br><br>
             <table align=center><tr>
             <td align=right>Username:</td><td><input type="text" name="username" size="15" /></td></tr>
@@ -1611,7 +1657,7 @@ class RegistrationPage(resource.PostableResource):
             <div align=center><a href="/">Cancel and return to the login page</a></div>
             <br>
 
-            </html>""" % (url_prefix, notebook.address, notebook.port)
+            </html>"""
         return http.Response(stream=s)
 
 class InvalidPage(resource.Resource):
@@ -1766,6 +1812,7 @@ class UserToplevel(Toplevel):
 
     userchild_src = SourceBrowser
     userchild_upload_worksheet = UploadWorksheet
+    userchild_emptytrash = EmptyTrash
 
     def render(self, ctx):
         s = render_worksheet_list(ctx.args, pub=False, username=self.username)

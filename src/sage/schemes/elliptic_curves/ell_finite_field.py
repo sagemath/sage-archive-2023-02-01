@@ -165,17 +165,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         ni = G.invariants()
 
-        def multiples(P,n):
-            H=[self(0)]
-            for m in range(1,n):
-                H.append(H[-1]+P)
-            return H
-
-        H0=multiples(pts[0], ni[0])
+        H0=[self(0)]
+        for m in range(1,ni[0]): H0.append(H0[-1]+pts[0])
         if len(ni)==1:   # cyclic case
             return H0
         else:            # noncyclic
-            H1=multiples(pts[1], ni[1])
+            H1=[self(0)]
+            for m in range(1,ni[1]): H1.append(H1[-1]+pts[1])
             return [P+Q for P in H0 for Q in H1]
 
     def points(self):

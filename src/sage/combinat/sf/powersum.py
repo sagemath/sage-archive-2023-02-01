@@ -28,23 +28,10 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
         classical.SymmetricFunctionAlgebra_classical.__init__(self, R, "power", SymmetricFunctionAlgebraElement_power, 'p')
 
 
-    def dual_basis(self, scalar=None, prefix=None):
-        """
-        Returns the dual basis of the power-sum basis with
-        respect to the scalar product scalar.  If scalar is None,
-        then the standard scalar product for the classical
-        symmetric functions is used.
 
-        EXAMPLES:
-
-        """
-        if scalar is None:
-            scalar = sfa.zee
-
-        return dual.SymmetricFunctionAlgebra_dual(self, scalar, prefix=prefix)
 
 class SymmetricFunctionAlgebraElement_power(classical.SymmetricFunctionAlgebraElement_classical):
-    def frobenius(self):
+    def omega(self):
         """
         Returns the image of self under the Frobenius / omega automorphism.
 
@@ -52,20 +39,11 @@ class SymmetricFunctionAlgebraElement_power(classical.SymmetricFunctionAlgebraEl
             sage: p = SFAPower(QQ)
             sage: a = p([2,1]); a
             p[2, 1]
-            sage: a.frobenius()
-            -p[2, 1]
             sage: a.omega()
             -p[2, 1]
         """
-        parent = self.parent()
-        base_ring = parent.base_ring()
-        z = {}
-        mcs = self.monomial_coefficients()
-        for part in mcs:
-            z[part] = (-1)**(sum(part)-len(part))*mcs[part]
-        res = parent(0)
-        res._monomial_coefficients = z
-        return res
+        f = lambda part, coeff: (part, (-1)**(sum(part)-len(part))*coeff)
+        return self.map_mc(f)
 
     def scalar(self, x):
         """
@@ -86,27 +64,63 @@ class SymmetricFunctionAlgebraElement_power(classical.SymmetricFunctionAlgebraEl
             [ 0  0  0  4  0]
             [ 0  0  0  0 24]
         """
+        parent = self.parent()
+        R = parent.base_ring()
+        x = parent(x)
+        f = lambda part1, part2:  sfa.zee(part1)
+        return parent._apply_multi_module_morphism(self, x, f, orthogonal=True)
 
-        R = self.parent().base_ring()
+    def _derivative(self, part):
+        """
+        Returns the 'derivative' of p([part]) with respect to p([1]).
 
-        if self.parent() != x.parent():
-            try:
-                x = self.parent()( x )
-            except:
-                raise TypeError, "cannot compute the scalar product of self and x (= %s)"%x
-
-        if len(self) < len(x):
-            smaller = self
-            greater = x
+        EXAMPLES:
+            sage: p = SFAPower(QQ)
+            sage: a = p([2,1])
+            sage: a._derivative(Partition([2,1]))
+            p[2]
+            sage: a._derivative(Partition([1,1,1]))
+            3*p[1, 1]
+        """
+        p = self.parent()
+        if 1 not in part:
+            return 0
         else:
-            smaller = x
-            greater = self
+            return len([i for i in part if i == 1])*p(part[:-1])
 
-        res = R(0)
-        smcs = smaller._monomial_coefficients
-        gmcs = greater._monomial_coefficients
-        for s_part in smcs :
-            if s_part in gmcs:
-                res += smcs[s_part]*gmcs[s_part]*sfa.zee(s_part)
+    def _derivative_with_respect_to_p1(self):
+        """
+        EXAMPLES:
+            sage: p = SFAPower(QQ)
+            sage: a = p([1,1,1])
+            sage: a._derivative_with_respect_to_p1()
+            3*p[1, 1]
+            sage: a = p([3,2])
+            sage: a._derivative_with_respect_to_p1()
+            0
+        """
+        p = self.parent()
+        return p._apply_module_morphism(self, self._derivative)
 
-        return res
+    def expand(self, n, alphabet='x'):
+        """
+        Expands the symmetric function as a symmetric polynomial in n variables.
+
+        EXAMPLES:
+            sage: p = SFAPower(QQ)
+            sage: a = p([2])
+            sage: a.expand(2)
+            x0^2 + x1^2
+            sage: a.expand(3, alphabet=['a','b','c'])
+            a^2 + b^2 + c^2
+            sage: p([2,1,1]).expand(2)
+            x0^4 + 2*x0^3*x1 + 2*x0^2*x1^2 + 2*x0*x1^3 + x1^4
+            sage: p([7]).expand(4)
+            x0^7 + x1^7 + x2^7 + x3^7
+            sage: p([7]).expand(4,alphabet='t')
+            t0^7 + t1^7 + t2^7 + t3^7
+            sage: p([7]).expand(4,alphabet='x,y,z,t')
+            x^7 + y^7 + z^7 + t^7
+        """
+        condition = lambda part: False
+        return self._expand(condition, n, alphabet)

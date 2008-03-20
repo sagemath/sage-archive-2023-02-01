@@ -551,6 +551,27 @@ def CyclotomicField(n, names=None):
     The special case $n=1$ does \emph{not} return the rational numbers:
         sage: CyclotomicField(1)
         Cyclotomic Field of order 1 and degree 1
+
+        sage: cf6 = CyclotomicField(6) ; z6 = cf6.0
+        sage: cf3 = CyclotomicField(3) ; z3 = cf3.0
+        sage: cf3(z6)
+        zeta3 + 1
+        sage: cf6(z3)
+        zeta6 - 1
+        sage: cf9 = CyclotomicField(9) ; z9 = cf9.0
+        sage: cf18 = CyclotomicField(18) ; z18 = cf18.0
+        sage: cf18(z9)
+        zeta18^2
+        sage: cf9(z18)
+        -zeta9^5
+        sage: cf18(z3)
+        zeta18^3 - 1
+        sage: cf18(z6)
+        zeta18^3
+        sage: cf18(z6)**2
+        zeta18^3 - 1
+        sage: cf9(z3)
+        zeta9^3
     """
     n = ZZ(n)
     if n <= 0:
@@ -2682,10 +2703,13 @@ class NumberField_generic(number_field_base.NumberField):
     def zeta(self, n=2, all=False):
         """
         If all is False, return a primitive n-th root of unity in this
-        field, or rais an ArithmeticError exception if there are none.
+        field, or raise an ArithmeticError exception if there are none.
 
-        If all is True, return a list of all primitive n-th root of
+        If all is True, return a list of all primitive n-th roots of
         unity in this field (possibly empty).
+
+        Note that if one wants to know the maximal root of unity
+        in this field, one can use self.zeta_order().
 
         INPUT:
             n -- positive integer
@@ -2706,7 +2730,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
-            ArithmeticError: There are no 4-th roots of unity self.
+            ArithmeticError: There are no 4-th roots of unity in self.
 
             sage: r.<x> = QQ[]
             sage: K.<b> = NumberField(x^2+1)
@@ -2717,7 +2741,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(3)
             Traceback (most recent call last):
             ...
-            ArithmeticError: There are no 3-rd roots of unity self.
+            ArithmeticError: There are no 3-rd roots of unity in self.
             sage: K.zeta(3,all=True)
             []
         """
@@ -2752,22 +2776,37 @@ class NumberField_generic(number_field_base.NumberField):
                         th = 'rd'
                     else:
                         th = 'th'
-                    raise ArithmeticError, "There are no %s-%s roots of unity self."%(n,th)
+                    raise ArithmeticError, "There are no %s-%s roots of unity in self."%(n,th)
             if all:
                 return [from_field(r[0]) for r in R]
             else:
                 return from_field(R[0][0])
 
+    def zeta_order(self):
+        r"""
+        Return the number of roots of unity in this field.
+
+        EXAMPLES:
+            sage: F.<alpha> = NumberField(x**22+3)
+            sage: F.zeta_order()
+            6
+            sage: F.<alpha> = NumberField(x**2-7)
+            sage: F.zeta_order()
+            2
+        """
+        return ZZ(self.pari_nf().nfrootsof1()[0])
+
     def number_of_roots_of_unity(self):
         """
         Return number of roots of unity in this field.
 
-        sage: K.<b> = NumberField(x^2+1)
-        sage: K.number_of_roots_of_unity()
-        4
-        sage: K.<a> = CyclotomicField(3)
-        sage: K.number_of_roots_of_unity()
-        6
+        EXAMPLES:
+            sage: K.<b> = NumberField(x^2+1)
+            sage: K.number_of_roots_of_unity()
+            4
+            sage: K.<a> = CyclotomicField(3)
+            sage: K.number_of_roots_of_unity()
+            6
         """
         return ZZ(self.pari_nf().nfrootsof1()[0])
 
@@ -4642,8 +4681,7 @@ class NumberField_cyclotomic(NumberField_absolute):
     Create a cyclotomic extension of the rational field.
 
     The command CyclotomicField(n) creates the n-th cyclotomic field,
-    got by adjoining a primitive n-th root of unity to the rational
-    field.
+    obtained by adjoining an n-th root of unity to the rational field.
 
     EXAMPLES:
         sage: CyclotomicField(3)
@@ -4671,6 +4709,20 @@ class NumberField_cyclotomic(NumberField_absolute):
         sage: x = FF.0
         sage: print z6*x^3/(z6 + x)
         zeta12^2*x^3/(x + zeta12^2)
+
+        sage: cf6 = CyclotomicField(6) ; z6 = cf6.gen(0)
+        sage: cf3 = CyclotomicField(3) ; z3 = cf3.gen(0)
+        sage: cf3(z6)
+        zeta3 + 1
+        sage: cf6(z3)
+        zeta6 - 1
+        sage: type(cf6(z3))
+        <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+        sage: cf1 = CyclotomicField(1) ; z1 = cf1.0
+        sage: cf3(z1)
+        1
+        sage: type(cf3(z1))
+        <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
     """
     def __init__(self, n, names):
         """
@@ -4688,14 +4740,31 @@ class NumberField_cyclotomic(NumberField_absolute):
         else:
             latex_name = None
         NumberField_absolute.__init__(self, f,
-                                     name= names,
-                                     latex_name=latex_name,
-                                     check=False)
-#        self._element_class = NumberFieldElement_cyclotomic
+                                      name= names,
+                                      latex_name=latex_name,
+                                      check=False)
         n = integer.Integer(n)
+        self.__n = n
+        if n%2:
+            self.__zeta_order = 2*n
+        else:
+            self.__zeta_order = n
+        ## quadratic number fields require this:
+        if f.degree() == 2:
+            self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
+            if n == 4:
+                self._D = ZZ(-1)
+                self._NumberField_generic__gen = self._element_class(self, (QQ(0), QQ(1)))
+            else:
+                ## n is 3 or 6
+                self._D = ZZ(-3)
+                one_half = ZZ(1)/ZZ(2)
+                if n == 3:
+                    self._NumberField_generic__gen = self._element_class(self, (one_half-1, one_half))
+                else:
+                    self._NumberField_generic__gen = self._element_class(self, (one_half, one_half))
         zeta = self.gen()
         zeta._set_multiplicative_order(n)
-        self.__zeta_order = n
 
     def __reduce__(self):
         """
@@ -4707,7 +4776,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: print L == K
             True
         """
-        return NumberField_cyclotomic_v1, (self.__zeta_order, self.variable_name())
+        return NumberField_cyclotomic_v1, (self.__n, self.variable_name())
 
     def _repr_(self):
         r"""
@@ -4725,7 +4794,19 @@ class NumberField_cyclotomic(NumberField_absolute):
             'Cyclotomic Field of order 400 and degree 160'
         """
         return "Cyclotomic Field of order %s and degree %s"%(
-                self.zeta_order(), self.degree())
+                self.__n, self.degree())
+
+    def _n(self):
+        """
+        Return the n used to create this cyclotomic field.
+
+        EXAMPLES:
+            sage: CyclotomicField(3).zeta_order()
+            6
+            sage: CyclotomicField(3)._n()
+            3
+        """
+        return self.__n
 
     def _latex_(self):
         """
@@ -4843,7 +4924,8 @@ class NumberField_cyclotomic(NumberField_absolute):
 
 ##         if m % n == 0:   # easy case
 ##             # pass this off to a method in the element class
-##             # it can be done very quickly and easily by the pyrex<->NTL interface there
+##             # it can be done very quickly and easily by the cython<->NTL
+##             # interface there
 ##             return x._lift_cyclotomic_element(self)
 
 ##         # Whatever happens below, it has to be consistent with
@@ -4895,22 +4977,31 @@ class NumberField_cyclotomic(NumberField_absolute):
             only_canonical -- bool (default: False); Attempt to work, even in some
                    cases when x is not in a subfield of the cyclotomics (as long as x is
                    a root of unity).
+
+        EXAMPLES:
+            sage: K = CyclotomicField(24) ; L = CyclotomicField(48)
+            sage: L._coerce_from_other_cyclotomic_field(K.0+1)
+            zeta48^2 + 1
+            sage: K(L.0**2)
+            zeta24
         """
         K = x.parent()
         if K is self:
             return x
         elif K == self:
             return self._element_class(self, x.polynomial())
-        n = K.zeta_order()
-        m = self.zeta_order()
+        n = K._n()
+        m = self._n()
         if m % n == 0:   # easy case
             # pass this off to a method in the element class
-            # it can be done very quickly and easily by the pyrex<->NTL interface there
+            # it can be done very quickly and easily by the
+            # Cython<->NTL interface there
             return x._lift_cyclotomic_element(self)
         else:
             if only_canonical:
                 raise TypeError
             n = x.multiplicative_order()
+            m = self.zeta_order()
             if m % n == 0:
                 # Harder case.  E.g., x = (zeta_42)^7 and
                 # self.__zeta = zeta_6, so it is possible to
@@ -4921,11 +5012,11 @@ class NumberField_cyclotomic(NumberField_absolute):
                 #    2. Write x as a power r of y.
                 #       TODO: we do step two STUPIDLY.
                 #    3. Return self.__zeta to the power r.
-                y = K(self.zeta())
+                y = K(self.zeta(m))
                 z = y
                 for r in xrange(y.multiplicative_order()):
                     if z == x:
-                        return self.zeta()**(r+1)
+                        return self.zeta(m)**(r+1)
                     z *= y
             raise TypeError, "Cannot coerce %s into %s"%(x,self)
         return self._element_class(self, g)
@@ -5013,7 +5104,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         number after the decimal point are valid.
 
             sage: K = CyclotomicField(3)
-            sage: phi = K.complex_embedding (10)
+            sage: phi = K.complex_embedding(10)
             sage: phi(K.0)
             -0.50 + 0.87*I
             sage: phi(K.0^3)
@@ -5024,7 +5115,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             8.0
         """
         CC = sage.rings.complex_field.ComplexField(prec)
-        return self.hom([CC.zeta(self.zeta_order())], check=False)
+        return self.hom([CC.zeta(self._n())], check=False)
 
     def complex_embeddings(self, prec=53):
         r"""
@@ -5043,8 +5134,8 @@ class NumberField_cyclotomic(NumberField_absolute):
              Defn: zeta4 |--> -1.83697019872103e-16 - 1.00000000000000*I]
         """
         CC = sage.rings.complex_field.ComplexField(prec)
-        n = self.zeta_order()
-        z = CC.zeta(self.zeta_order())
+        n = self._n()
+        z = CC.zeta(n)
         X = [m for m in range(n) if sage.rings.arith.gcd(m,n) == 1]
         return [self.hom([z**n], check=False) for n in X]
 
@@ -5058,7 +5149,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: K.next_split_prime(7)
             13
         """
-        n = self.zeta_order()
+        n = self._n()
         while True:
             p = sage.rings.arith.next_prime(p)
             if p % n == 1:
@@ -5092,18 +5183,20 @@ class NumberField_cyclotomic(NumberField_absolute):
 
     def zeta_order(self):
         """
-        Return the order of the root of unity that generates this
-        cyclotomic field.
+        Return the order of the maximal root of unity contained in
+        this cyclotomic field.
 
         EXAMPLES:
             sage: CyclotomicField(1).zeta_order()
-            1
+            2
             sage: CyclotomicField(4).zeta_order()
             4
             sage: CyclotomicField(5).zeta_order()
+            10
+            sage: CyclotomicField(5)._n()
             5
             sage: CyclotomicField(389).zeta_order()
-            389
+            778
         """
         return self.__zeta_order
 
@@ -5125,7 +5218,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             x = self(1)
             n = self.zeta_order()
             m = 0
-            zeta = self.zeta()
+            zeta = self.zeta(n)
             # todo: this desperately needs to be optimized!!!
             for i in range(n):
                 t[x.polynomial()] = n//arith.GCD(m,n)   # multiplicative_order of (zeta_n)**m
@@ -5137,8 +5230,8 @@ class NumberField_cyclotomic(NumberField_absolute):
     def zeta(self, n=None, all=False):
         """
         Returns an element of multiplicative order $n$ in this this
-        number field, if there is one.  Raises a ValueError if there
-        is not.
+        cyclotomic field, if there is one.  Raises a ValueError if
+        there is not.
 
         INPUT:
             n -- integer (default: None, returns element of maximal order)
@@ -5166,7 +5259,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
             sage: K.<a> = CyclotomicField(7)
             sage: K.zeta(14, all=True)
-            [-a, -a^3, -a^5, -a^2, -a^4, a^5 + a^4 + a^3 + a^2 + a + 1]
+            [-a^4, -a^5, a^5 + a^4 + a^3 + a^2 + a + 1, -a, -a^2, -a^3]
             sage: K.<a> = CyclotomicField(10)
             sage: K.zeta(20, all=True)
             Traceback (most recent call last):
@@ -5190,9 +5283,9 @@ class NumberField_cyclotomic(NumberField_absolute):
             z = self.gen()
             m = z.multiplicative_order()
             if n % 2 == 0 and m % 2 == 1:
-                # In the p-th cyclotomic field, p odd, there are actually
-                # 2*p-th roots of unity, so we include them.
-                z = -z
+                # In the n-th cyclotomic field, n odd, there are
+                # actually 2*n-th roots of unity, so we include them.
+                z = -z**((m+1)//2) # -z
                 m = 2*m
             if m % n != 0:
                 raise ValueError, "n (=%s) does not divide order of generator"%n
@@ -5241,7 +5334,7 @@ class NumberField_quadratic(NumberField_absolute):
         # set the generator
         Dpoly = b*b - 4*a*c
         D = Dpoly.numer() * Dpoly.denom()
-        # this could be done extreemly in pyrex
+        # this could be done extremely quickly in cython
         for p in sage.rings.arith.primes(100):
             p2 = p*p
             while D % p2 == 0:

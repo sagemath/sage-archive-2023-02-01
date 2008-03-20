@@ -323,13 +323,10 @@ cdef class BinaryCode:
             1
 
         """
-        return self.is_one(word, col)
+        return self.is_one(word, col) != 0
 
     cdef int is_one(self, int word, int column):
-        if self.words[word] & (1 << column):
-            return 1
-        else:
-            return 0
+        return (self.words[word] & (1 << column)) >> column
 
     def _is_automorphism(self, col_gamma, word_gamma):
         """
@@ -457,12 +454,22 @@ cdef class OrbitPartition:
         """
         cdef int i
         cdef int j
-        s = 'OrbitPartition on %d words and %d columns. Data:\nWords:\n'%(self.nwords, self.ncols)
+        s = 'OrbitPartition on %d words and %d columns. Data:\n'%(self.nwords, self.ncols)
+#        s += 'Parents::\n'
+        s += 'Words:\n'
         for i from 0 <= i < self.nwords:
             s += '%d,'%self.wd_parent[i]
         s = s[:-1] + '\nColumns:\n'
         for j from 0 <= j < self.ncols:
             s += '%d,'%self.col_parent[j]
+#        s = s[:-1] + '\n'
+#        s += 'Min Cell Reps::\n'
+#        s += 'Words:\n'
+#        for i from 0 <= i < self.nwords:
+#            s += '%d,'%self.wd_min_cell_rep[i]
+#        s = s[:-1] + '\nColumns:\n'
+#        for j from 0 <= j < self.ncols:
+#            s += '%d,'%self.col_min_cell_rep[j]
         return s[:-1]
 
     def _wd_find(self, word):
@@ -486,6 +493,7 @@ cdef class OrbitPartition:
         return self.wd_find(word)
 
     cdef int wd_find(self, int word):
+#        print 'wd_find', word
         if self.wd_parent[word] == word:
             return word
         else:
@@ -520,21 +528,22 @@ cdef class OrbitPartition:
         self.wd_union(x, y)
 
     cdef void wd_union(self, int x, int y):
+#        print 'wd_union', x, y
         cdef int x_root, y_root
         x_root = self.wd_find(x)
         y_root = self.wd_find(y)
         if self.wd_rank[x_root] > self.wd_rank[y_root]:
             self.wd_parent[y_root] = x_root
-            self.wd_min_cell_rep[y_root] = min(self.wd_min_cell_rep[x_root],self.wd_min_cell_rep[y_root])
-            self.wd_size[y_root] += self.wd_size[x_root]
-        elif self.wd_rank[x_root] < self.wd_rank[y_root]:
-            self.wd_parent[x_root] = y_root
             self.wd_min_cell_rep[x_root] = min(self.wd_min_cell_rep[x_root],self.wd_min_cell_rep[y_root])
             self.wd_size[x_root] += self.wd_size[y_root]
-        elif x_root != y_root:
-            self.wd_parent[y_root] = x_root
+        elif self.wd_rank[x_root] < self.wd_rank[y_root]:
+            self.wd_parent[x_root] = y_root
             self.wd_min_cell_rep[y_root] = min(self.wd_min_cell_rep[x_root],self.wd_min_cell_rep[y_root])
             self.wd_size[y_root] += self.wd_size[x_root]
+        elif x_root != y_root:
+            self.wd_parent[y_root] = x_root
+            self.wd_min_cell_rep[x_root] = min(self.wd_min_cell_rep[x_root],self.wd_min_cell_rep[y_root])
+            self.wd_size[x_root] += self.wd_size[y_root]
             self.wd_rank[x_root] += 1
 
     def _col_find(self, col):
@@ -558,6 +567,7 @@ cdef class OrbitPartition:
         return self.col_find(col)
 
     cdef int col_find(self, int col):
+#        print 'col_find', col
         if self.col_parent[col] == col:
             return col
         else:
@@ -592,21 +602,22 @@ cdef class OrbitPartition:
         self.col_union(x, y)
 
     cdef void col_union(self, int x, int y):
+#        print 'col_union', x, y
         cdef int x_root, y_root
         x_root = self.col_find(x)
         y_root = self.col_find(y)
         if self.col_rank[x_root] > self.col_rank[y_root]:
             self.col_parent[y_root] = x_root
-            self.col_min_cell_rep[y_root] = min(self.col_min_cell_rep[x_root],self.col_min_cell_rep[y_root])
-            self.col_size[y_root] += self.col_size[x_root]
-        elif self.col_rank[x_root] < self.col_rank[y_root]:
-            self.col_parent[x_root] = y_root
             self.col_min_cell_rep[x_root] = min(self.col_min_cell_rep[x_root],self.col_min_cell_rep[y_root])
             self.col_size[x_root] += self.col_size[y_root]
-        elif x_root != y_root:
-            self.col_parent[y_root] = x_root
+        elif self.col_rank[x_root] < self.col_rank[y_root]:
+            self.col_parent[x_root] = y_root
             self.col_min_cell_rep[y_root] = min(self.col_min_cell_rep[x_root],self.col_min_cell_rep[y_root])
             self.col_size[y_root] += self.col_size[x_root]
+        elif x_root != y_root:
+            self.col_parent[y_root] = x_root
+            self.col_min_cell_rep[x_root] = min(self.col_min_cell_rep[x_root],self.col_min_cell_rep[y_root])
+            self.col_size[x_root] += self.col_size[y_root]
             self.col_rank[x_root] += 1
 
     def _merge_perm(self, col_gamma, wd_gamma):
@@ -658,6 +669,9 @@ cdef class OrbitPartition:
         cdef int j, gamma_j_root, return_value = 0
         cdef int *self_wd_parent = self.wd_parent
         cdef int *self_col_parent = self.col_parent
+#        print 'merge_perm'
+#        print 'col_gamma:', [col_gamma[i] for i from 0 <= i < self.ncols]
+#        print 'wd_gamma:', [wd_gamma[i] for i from 0 <= i < self.nwords]
         for i from 0 <= i < self.nwords:
             if self_wd_parent[i] == i:
                 gamma_i_root = self.wd_find(wd_gamma[i])
@@ -911,39 +925,36 @@ cdef class PartitionStack:
             sage: P = PartitionStack(2, 6)
             sage: P
             ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
 
         """
         cdef int i, j, k
         s = ''
-        for i from 0 <= i < 2*self.ncols:
-            if i == 0 or not self.is_discrete(i-1):
-                s += '({'
-                for j from 0 <= j < self.nwords:
-                    s += str(self.wd_ents[j])
-                    if self.wd_lvls[j] <= i:
-                        s += '},{'
-                    else:
-                        s += ','
-                s = s[:-2] + ')  '
-                s += '({'
-                for j from 0 <= j < self.ncols:
-                    s += str(self.col_ents[j])
-                    if self.col_lvls[j] <= i:
-                        s += '},{'
-                    else:
-                        s += ','
-                s = s[:-2] + ')\n'
+        last = ''
+        current = ''
+        for k from 0 <= k < 2*self.ncols:
+            current = self._repr_at_k(k)
+            if current == last: break
+            s += current
+            last = current
+        return s
+
+    def _repr_at_k(self, k):
+        s = '({'
+        for j from 0 <= j < self.nwords:
+            s += str(self.wd_ents[j])
+            if self.wd_lvls[j] <= k:
+                s += '},{'
+            else:
+                s += ','
+        s = s[:-2] + ')  '
+        s += '({'
+        for j from 0 <= j < self.ncols:
+            s += str(self.col_ents[j])
+            if self.col_lvls[j] <= k:
+                s += '},{'
+            else:
+                s += ','
+        s = s[:-2] + ')\n'
         return s
 
     def _is_discrete(self, k):
@@ -956,13 +967,15 @@ cdef class PartitionStack:
             sage: P = PartitionStack(2, 6)
             sage: [P._split_vertex(i,i+1) for i in range(5)]
             [0, 1, 2, 3, 4]
+            sage: P._sort_wds(0, [0,2,3,1], 5)
+            0
             sage: P
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0},{1,2,3,4,5})
-            ({0,1,2,3})  ({0},{1},{2,3,4,5})
-            ({0,1,2,3})  ({0},{1},{2},{3,4,5})
-            ({0,1,2,3})  ({0},{1},{2},{3},{4,5})
-            ({0,1,2,3})  ({0},{1},{2},{3},{4},{5})
+            ({0,3,1,2})  ({0,1,2,3,4,5})
+            ({0,3,1,2})  ({0},{1,2,3,4,5})
+            ({0,3,1,2})  ({0},{1},{2,3,4,5})
+            ({0,3,1,2})  ({0},{1},{2},{3,4,5})
+            ({0,3,1,2})  ({0},{1},{2},{3},{4,5})
+            ({0},{3},{1},{2})  ({0},{1},{2},{3},{4},{5})
             sage: P._is_discrete(4)
             0
             sage: P._is_discrete(5)
@@ -972,10 +985,14 @@ cdef class PartitionStack:
         return self.is_discrete(k)
 
     cdef int is_discrete(self, int k):
-        cdef int i
+        cdef int i, self_ncols = self.ncols, self_nwords = self.nwords
         cdef int *self_col_lvls = self.col_lvls
-        for i from 0 <= i < self.ncols:
+        cdef int *self_wd_lvls = self.wd_lvls
+        for i from 0 <= i < self_ncols:
             if self_col_lvls[i] > k:
+                return 0
+        for i from 0 <= i < self_nwords:
+            if self_wd_lvls[i] > k:
                 return 0
         return 1
 
@@ -1310,25 +1327,12 @@ cdef class PartitionStack:
             sage: P = PartitionStack(2, 6)
             sage: P
             ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
-            ({0,1,2,3})  ({0,1,2,3,4,5})
             sage: P._dangerous_dont_use_set_ents_lvls([99]*6, [0,3,2,3,5,-1], [4,3,5,6], [3,2,1,-1])
             sage: P
             ({4,3,5,6})  ({99},{99,99,99,99,99})
             ({4,3,5},{6})  ({99},{99,99,99,99,99})
             ({4,3},{5},{6})  ({99},{99,99},{99,99,99})
             ({4},{3},{5},{6})  ({99},{99},{99},{99},{99,99})
-            ({4},{3},{5},{6})  ({99},{99},{99},{99},{99,99})
-            ({4},{3},{5},{6})  ({99},{99},{99},{99},{99},{99})
 
         """
         cdef int i
@@ -1633,10 +1637,6 @@ cdef class PartitionStack:
             sage: P
             ({0,1,2,3})  ({0,1,4,5,2,3})
             ({0,1,2,3})  ({0},{1},{4,5},{2,3})
-            ({0,1,2,3})  ({0},{1},{4,5},{2,3})
-            ({0,1,2,3})  ({0},{1},{4},{5},{2,3})
-            ({0,1,2,3})  ({0},{1},{4},{5},{2,3})
-            ({0,1,2,3})  ({0},{1},{4},{5},{2},{3})
 
         """
         cdef int i
@@ -1704,16 +1704,6 @@ cdef class PartitionStack:
             4
             sage: P
             ({0,1,6,7,2,3,4,5})  ({0,1,2,3,4,5})
-            ({0,1},{6,7},{2,3,4,5})  ({0,1,2,3,4,5})
-            ({0,1},{6,7},{2,3,4,5})  ({0,1,2,3,4,5})
-            ({0,1},{6,7},{2,3,4,5})  ({0,1,2,3,4,5})
-            ({0,1},{6,7},{2,3,4,5})  ({0,1,2,3,4,5})
-            ({0,1},{6,7},{2,3,4,5})  ({0,1,2,3,4,5})
-            ({0,1},{6,7},{2,3,4,5})  ({0,1,2,3,4,5})
-            ({0,1},{6,7},{2,3,4,5})  ({0,1,2,3,4,5})
-            ({0,1},{6,7},{2,3,4,5})  ({0,1,2,3,4,5})
-            ({0,1},{6,7},{2,3,4,5})  ({0,1,2,3,4,5})
-            ({0,1},{6,7},{2,3,4,5})  ({0,1,2,3,4,5})
             ({0,1},{6,7},{2,3,4,5})  ({0,1,2,3,4,5})
 
         """
@@ -1936,11 +1926,6 @@ cdef class PartitionStack:
             sage: P
             ({0,1,2,3})  ({0,1,2,3,4,5})
             ({0,1,2,3})  ({0},{1,2,3,4,5})
-            ({0,1,2,3})  ({0},{1,2,3,4,5})
-            ({0,1,2,3})  ({0},{1},{2,3,4,5})
-            ({0,1,2,3})  ({0},{1},{2},{3,4,5})
-            ({0,1,2,3})  ({0},{1},{2},{3},{4,5})
-            ({0,1,2,3})  ({0},{1},{2},{3},{4},{5})
 
         """
         self.clear(k)
@@ -2247,14 +2232,15 @@ cdef class BinaryCodeClassifier:
             verbosity - a nonnegative integer
 
         OUTPUT:
-            a tuple, (gens, labeling)
+            a tuple, (gens, labeling, size)
             gens -- a list of permutations (in list form) representing generators
-                of the permutation automorphism group of the code CC
+                of the permutation automorphism group of the code CC.
             labeling -- a permutation representing the canonical labeling of the
                 code. mostly for internal use; if the dimension of the code is k
                 and the degree (number of columns) is n, then the first n entries
                 describe the relabeling on the columns, and the next k describe
                 where the basis is sent.
+            size -- the order of the automorphism group.
 
         EXAMPLES:
             sage: import sage.coding.binary_code
@@ -2268,10 +2254,12 @@ cdef class BinaryCodeClassifier:
             ... [0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1],\
             ... [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1]])
             sage: B = BinaryCode(M)
-            sage: gens, labeling = BC._aut_gp_and_can_label(B)
+            sage: gens, labeling, size = BC._aut_gp_and_can_label(B)
             sage: S = SymmetricGroup(M.ncols())
             sage: L = [S([x+1 for x in g]) for g in gens]
             sage: PermutationGroup(L).order()
+            322560
+            sage: size
             322560
 
             sage: M = Matrix(GF(2),[\
@@ -2280,11 +2268,60 @@ cdef class BinaryCodeClassifier:
             ... [0,0,0,0,0,1,0,1,0,0,0,1,1,1,1,1,1],\
             ... [0,0,0,1,1,0,0,0,0,1,1,0,1,1,0,1,1]])
             sage: B = BinaryCode(M)
-            sage: gens, labeling = BC._aut_gp_and_can_label(B)
+            sage: gens, labeling, size = BC._aut_gp_and_can_label(B)
             sage: S = SymmetricGroup(M.ncols())
             sage: L = [S([x+1 for x in g]) for g in gens]
             sage: PermutationGroup(L).order()
             2304
+            sage: size
+            2304
+
+            sage: M=Matrix(GF(2),[\
+            ... [1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0,0],\
+            ... [0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0,0],\
+            ... [0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0,0],\
+            ... [0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0,0],\
+            ... [0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0,0],\
+            ... [0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0,0],\
+            ... [0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1,0],\
+            ... [0,0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,1]])
+            sage: B = BinaryCode(M)
+            sage: gens, labeling, size = BC._aut_gp_and_can_label(B)
+            sage: S = SymmetricGroup(M.ncols())
+            sage: L = [S([x+1 for x in g]) for g in gens]
+            sage: PermutationGroup(L).order()
+            136
+            sage: size
+            136
+
+            sage: M=Matrix(GF(2),[\
+            ... [0,1,0,1,1,1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1],\
+            ... [1,0,1,1,1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,0,1,0],\
+            ... [0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,1,1,1,0,1,0,0],\
+            ... [1,1,1,0,0,0,1,0,0,1,0,0,0,0,1,1,1,0,1,0,0,1],\
+            ... [1,1,0,0,0,1,0,0,1,0,1,0,0,1,1,1,0,1,0,0,1,0],\
+            ... [1,0,0,0,1,0,0,1,0,1,1,0,1,1,1,0,1,0,0,1,0,0],\
+            ... [0,0,0,1,0,0,1,0,1,1,1,1,1,1,0,1,0,0,1,0,0,0],\
+            ... [0,0,1,0,0,1,0,1,1,1,0,1,1,0,1,0,0,1,0,0,0,1],\
+            ... [0,1,0,0,1,0,1,1,1,0,0,1,0,1,0,0,1,0,0,0,1,1],\
+            ... [1,0,0,1,0,1,1,1,0,0,0,0,1,0,0,1,0,0,0,1,1,1],\
+            ... [0,0,1,0,1,1,1,0,0,0,1,1,0,0,1,0,0,0,1,1,1,0]])
+            sage: B = BinaryCode(M)
+            sage: gens, labeling, size = BC._aut_gp_and_can_label(B)
+            sage: S = SymmetricGroup(M.ncols())
+            sage: L = [S([x+1 for x in g]) for g in gens]
+            sage: PermutationGroup(L).order()
+            887040
+            sage: size
+            887040
+
+            sage: B = BinaryCode(Matrix(GF(2),[[1,0,1],[0,1,1]]))
+            sage: BC._aut_gp_and_can_label(B)
+            ([[0, 2, 1], [1, 0, 2]], [0, 1, 2, 2, 1], 6)
+
+            sage: B = BinaryCode(Matrix(GF(2),[[1,1,1,1]]))
+            sage: BC._aut_gp_and_can_label(B)
+            ([[0, 1, 3, 2], [0, 2, 1, 3], [1, 0, 2, 3]], [0, 1, 2, 3, 1], 24)
 
         """
         cdef int i, j
@@ -2298,7 +2335,8 @@ cdef class BinaryCodeClassifier:
             i += C.ncols
         py_labeling = [self.labeling[i] for i from 0 <= i < C.ncols] \
                     + [self.labeling[i+C.ncols] for i from 0 <= i < C.nrows]
-        return py_aut_gp_gens, py_labeling
+        aut_gp_size = self.aut_gp_size
+        return py_aut_gp_gens, py_labeling, aut_gp_size
 
     cdef void aut_gp_and_can_label(self, BinaryCode C, int verbosity):
 
@@ -2383,6 +2421,8 @@ cdef class BinaryCodeClassifier:
             if False:
                 print '-----'
                 print "k:", k
+                print "h:", h
+            if False:
                 if k != -1:
                     if v[k]&nu.flag:
                         print "v[k]: word ", v[k]^nu.flag
@@ -2412,19 +2452,32 @@ cdef class BinaryCodeClassifier:
                                 else:
                                     L += '0'
                         print "W[k]: words", L#[Integer(W[self.Phi_size * k + 1 + i]).binary() for i from 0 <= i < j]
+            if False:
+                print 'nu'
                 print nu
+                if tvc&nu.flag:
+                    print 'tvc is word', tvc^nu.flag
+                else:
+                    print 'tvc is col', tvc
+                if v[k]&nu.flag:
+                    print 'v[k] is word', v[k]^nu.flag
+                else:
+                    print 'v[k] is col', v[k]
+            if False:
                 if h != -1:
+                    print 'zeta'
                     print zeta
+                    print 'rho'
                     print rho
-                print "h:", h
                 print "hzf:", hzf__h_zeta
                 print "aut_gp_index", self.aut_gp_index
                 print 'hh', hh
                 print 'ht', ht
                 print 'hzf__h_zeta', hzf__h_zeta
                 print 'qzb', qzb
-                print "state:", state
+            if False:
                 print '-----'
+                print "state:", state
 
             if state == 1: # Entry point: once only
                 alpha[0] = 0
@@ -2450,7 +2503,6 @@ cdef class BinaryCodeClassifier:
                 nu.clear(k)
 
                 alpha[0] = nu.split_vertex(v[k-1], k)
-#                print nu
                 Lambda[k] = nu.refine(k, alpha, 1, C, ham_wts) # store the invariant to Lambda[k]
                 # only if this is the first time moving down the search tree:
                 if h == -1: state = 5; continue
@@ -2722,13 +2774,20 @@ cdef class BinaryCodeClassifier:
                 state = 14
 
             elif state == 14: # see if there are any more splits to make from this level of zeta (see state 17)
+#                print Theta
                 if v[k]&nu.flag == tvc&nu.flag:
                     if tvc&nu.flag:
+ #                       print 'v[k] is word', v[k]^nu.flag
+  #                      print 'tvc is word', tvc^nu.flag
                         if Theta.wd_find(v[k]^nu.flag) == Theta.wd_find(tvc^nu.flag):
                             index += 1
+   #                         print 'index', index
                     else:
+    #                    print 'v[k] is col', v[k]
+     #                   print 'tvc is col', tvc
                         if Theta.col_find(v[k]) == Theta.col_find(tvc):
                             index += 1
+      #                      print 'index', index
                             # keep tabs on how many elements are in the same cell of Theta as tvc
                 # find the next split
                 jj = self.Phi_size*k
@@ -2757,6 +2816,10 @@ cdef class BinaryCodeClassifier:
                         # there is no new split at this level
                         state = 16; continue
                     # new split column better be a minimal representative in Theta, or wasted effort
+#                    print 'checking whether v[k] is a minimum cell rep of theta'
+#                    print 'Theta.col_find(v[k]) = ', Theta.col_find(v[k])
+#                    print 'Theta.col_min_cell_rep(^)', Theta.col_min_cell_rep[Theta.col_find(v[k])]
+#                    print 'v[k]', v[k]
                     if Theta.col_min_cell_rep[Theta.col_find(v[k])] == v[k]:
                         state = 15
                     else:
@@ -2789,6 +2852,7 @@ cdef class BinaryCodeClassifier:
                         j += ham_wts[iii & 65535] + ham_wts[(iii >> 16) & 65535]
                         i += 1
                 if j == index and ht == k + 1: ht = k
+#                print "POINT A, index =", index
                 size = size*index
                 # (POINT A)
                 index = 0
@@ -2853,6 +2917,7 @@ cdef class BinaryCodeClassifier:
                 ht = k # nodes descended from zeta[ht] are all equivalent
                 hzf__h_zeta = k # max such that indicators for zeta and nu agree
                 zeta = PartitionStack(nu)
+                zeta.find_basis(ham_wts)
                 # (POINT B)
                 k -= 1
                 rho = PartitionStack(nu)
@@ -2869,7 +2934,7 @@ cdef class BinaryCodeClassifier:
             self.labeling[rho.col_ents[i]] = i
         for i from 0 <= i < nrows:
             self.labeling[i+ncols] = rho.basis_locations[i]
-
+        self.aut_gp_size = size
 
 
 

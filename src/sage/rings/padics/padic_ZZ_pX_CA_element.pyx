@@ -300,7 +300,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                     raise TypeError, "cannot convert x to a p-adic element"
             self._set_from_list_both(x, aprec, rprec)
 
-    cdef void _set_inexact_zero(self, long absprec):
+    cdef int _set_inexact_zero(self, long absprec) except -1:
         """
         Sets self to be zero with valuation absprec.
 
@@ -323,7 +323,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         else:
             self._set_prec_abs(absprec)
 
-    cpdef bint _is_inexact_zero(self):
+    cpdef bint _is_inexact_zero(self) except -1:
         """
         Tests if self is an inexact zero.
 
@@ -339,9 +339,9 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         sage: z._is_inexact_zero()
         True
         """
-        return ZZ_pX_IsZero(self.value) or self.valuation_c() == self.absprec
+        return self.absprec == 0 or ZZ_pX_IsZero(self.value) or self.valuation_c() == self.absprec
 
-    cdef void _set(self, ZZ_pX_c* value, long absprec):
+    cdef int _set(self, ZZ_pX_c* value, long absprec) except -1:
         """
         Sets value and absprec directly.
 
@@ -359,7 +359,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         20
         """
         self._set_prec_abs(absprec) # restores context
-        ZZ_pX_conv_modulus(self.value, value[0], self.prime_pow.get_context_capdiv(absprec).x)
+        if self.absprec != 0:
+            ZZ_pX_conv_modulus(self.value, value[0], self.prime_pow.get_context_capdiv(absprec).x)
 
     cdef int _set_from_mpz_abs(self, mpz_t x, long absprec) except -1:
         """
@@ -372,14 +373,19 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         sage: W.<w> = R.ext(f)
         sage: W(70, absprec = 13) # indirect doctest
         4*w^5 + 3*w^7 + w^9 + 2*w^10 + 2*w^11 + O(w^13)
+        sage: W(70, absprec = 4)
+        O(w^4)
+        sage: W(70, absprec = 0)
+        O(w^0)
         """
         self._set_prec_abs(absprec) # restores context
         cdef mpz_t tmp_m
         cdef ZZ_c tmp_z
-        mpz_init_set(tmp_m, x)
-        mpz_to_ZZ(&tmp_z, &tmp_m)
-        mpz_clear(tmp_m)
-        ZZ_pX_SetCoeff(self.value, 0, ZZ_to_ZZ_p(tmp_z))
+        if self.absprec != 0:
+            mpz_init_set(tmp_m, x)
+            mpz_to_ZZ(&tmp_z, &tmp_m)
+            mpz_clear(tmp_m)
+            ZZ_pX_SetCoeff(self.value, 0, ZZ_to_ZZ_p(tmp_z))
 
     cdef int _set_from_mpz_both(self, mpz_t x, long absprec, long relprec) except -1:
         """
@@ -393,6 +399,10 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         sage: W.<w> = R.ext(f)
         sage: W(70, relprec = 3) # indirect doctest
         4*w^5 + 3*w^7 + O(w^8)
+        sage: W(70, absprec = 4, relprec = 2)
+        O(w^4)
+        sage: W(70, absprec = 0, relprec = 3)
+        O(w^0)
         """
         if mpz_sgn(x) == 0:
             self._set_inexact_zero(absprec)
@@ -408,7 +418,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         self._set_prec_both_with_ordp(shift * self.prime_pow.e, absprec, relprec)
         mpz_to_ZZ(&tmp_z, &tmp_m)
         mpz_clear(tmp_m)
-        ZZ_pX_SetCoeff(self.value, 0, ZZ_to_ZZ_p(tmp_z))
+        if self.absprec != 0:
+            ZZ_pX_SetCoeff(self.value, 0, ZZ_to_ZZ_p(tmp_z))
 
     cdef int _set_from_mpq_abs(self, mpq_t x, long absprec) except -1:
         """
@@ -425,6 +436,10 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         4*w^5 + 3*w^7 + w^9 + 2*w^10 + 2*w^11 + w^13 + O(w^14)
         sage: W(70)
         4*w^5 + 3*w^7 + w^9 + 2*w^10 + 2*w^11 + w^13 + 3*w^16 + w^17 + w^18 + 4*w^20 + 4*w^21 + w^22 + 2*w^23 + O(w^25)
+        sage: W(70/3, absprec = 4)
+        O(w^4)
+        sage: W(70/3, absprec = 0)
+        O(w^0)
         """
         if mpq_sgn(x) == 0:
             self._set_inexact_zero(absprec)
@@ -449,6 +464,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         4*w^5 + 3*w^7 + w^9 + 2*w^10 + 2*w^11 + w^13 + O(w^14)
         sage: W(70)
         4*w^5 + 3*w^7 + w^9 + 2*w^10 + 2*w^11 + w^13 + 3*w^16 + w^17 + w^18 + 4*w^20 + 4*w^21 + w^22 + 2*w^23 + O(w^25)
+        sage: W(70/3, absprec = 0, relprec = 1)
+        O(w^0)
         """
         if mpq_sgn(x) == 0:
             self._set_inexact_zero(absprec)
@@ -480,13 +497,14 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         cdef mpz_t tmp_m
         cdef ZZ_c den_z, num_z
         cdef ZZ_p_c value
-        mpz_init_set(tmp_m, mpq_numref(x))
-        mpz_to_ZZ(&num_z, &tmp_m)
-        mpz_set(tmp_m, mpq_denref(x))
-        mpz_to_ZZ(&den_z, &tmp_m)
-        mpz_clear(tmp_m)
-        ZZ_p_div(value, ZZ_to_ZZ_p(num_z), ZZ_to_ZZ_p(den_z))
-        ZZ_pX_SetCoeff(self.value, 0, value)
+        if self.absprec != 0:
+            mpz_init_set(tmp_m, mpq_numref(x))
+            mpz_to_ZZ(&num_z, &tmp_m)
+            mpz_set(tmp_m, mpq_denref(x))
+            mpz_to_ZZ(&den_z, &tmp_m)
+            mpz_clear(tmp_m)
+            ZZ_p_div(value, ZZ_to_ZZ_p(num_z), ZZ_to_ZZ_p(den_z))
+            ZZ_pX_SetCoeff(self.value, 0, value)
 
     cdef int _set_from_ZZX_abs(self, ZZX_c poly, long absprec) except -1:
         """
@@ -497,15 +515,18 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         sage: S.<x> = ZZ[]
         sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
         sage: W.<w> = R.ext(f)
-        sage: z = W(ntl.ZZX([4,1,16]), relprec = 14); z # indirect doctest
+        sage: z = W(ntl.ZZX([4,1,16]), absprec = 14); z # indirect doctest
         4 + w + w^2 + 3*w^7 + w^9 + 2*w^11 + 4*w^13 + O(w^14)
         sage: z._ntl_rep()
         [4 1 16]
+        sage: W(ntl.ZZX([4,1,16]), absprec = 0)
+        O(w^0)
         """
-        self.prime_pow.restore_context_capdiv(absprec)
+        self._set_prec_abs(absprec)
         cdef ZZ_pX_c poly_p
-        ZZX_to_ZZ_pX(poly_p, poly)
-        self._set_from_ZZ_pX_abs(&poly_p, None, absprec)
+        if self.absprec != 0:
+            ZZX_to_ZZ_pX(poly_p, poly)
+            self._set_from_ZZ_pX_abs(&poly_p, None, absprec)
 
     cdef int _set_from_ZZX_both(self, ZZX_c poly, long absprec, long relprec) except -1:
         """
@@ -520,11 +541,14 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         4 + w + w^2 + 3*w^7 + w^9 + 2*w^11 + O(w^12)
         sage: z._ntl_rep()
         [4 1 16]
+        sage: W(ntl.ZZX([4,1,16]), absprec = 0, relprec = 4)
+        O(w^0)
         """
-        self.prime_pow.restore_context_capdiv(absprec)
+        self._set_prec_abs(absprec)
         cdef ZZ_pX_c poly_p
-        ZZX_to_ZZ_pX(poly_p, poly)
-        self._set_from_ZZ_pX_both(&poly_p, None, absprec, relprec)
+        if self.absprec != 0:
+            ZZX_to_ZZ_pX(poly_p, poly)
+            self._set_from_ZZ_pX_both(&poly_p, None, absprec, relprec)
 
     cdef int _set_from_ZZ_pX_abs(self, ZZ_pX_c* poly, ntl_ZZ_pContext_class ctx, long absprec) except -1:
         """
@@ -539,6 +563,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         4 + w + w^2 + 3*w^7 + w^9 + O(w^10)
         sage: z._ntl_rep()
         [4 1 16]
+        sage: W(ntl.ZZ_pX([4,1,16],5^2), absprec = 0)
+        O(w^0)
         """
         cdef long ctx_prec = -1
         if ctx is not None:
@@ -549,7 +575,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             self._set_inexact_zero(absprec)
             return 0
         self._set_prec_abs(absprec) # restores context
-        ZZ_pX_conv_modulus(self.value, poly[0], self.prime_pow.get_context_capdiv(absprec).x)
+        if self.absprec != 0:
+            ZZ_pX_conv_modulus(self.value, poly[0], self.prime_pow.get_context_capdiv(absprec).x)
 
     cdef int _set_from_ZZ_pX_both(self, ZZ_pX_c* poly, ntl_ZZ_pContext_class ctx, long absprec, long relprec) except -1:
         """
@@ -564,6 +591,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         4 + w + w^2 + 3*w^7 + O(w^8)
         sage: z._ntl_rep()
         [4 1 16]
+        sage: W(ntl.ZZ_pX([4,1,16],5^2), absprec = 0, relprec = 5)
+        O(w^0)
         """
         cdef long ctx_prec
         if ctx is not None:
@@ -579,9 +608,10 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             self._set_prec_both_with_ordp(val, absprec, relprec) #restores context
         else:
             self._set_prec_both_with_ordp(val * self.prime_pow.e + index, absprec, relprec) # restores context
-        ZZ_pX_conv_modulus(self.value, poly[0], self.prime_pow.get_context_capdiv(self.absprec).x)
+        if self.absprec != 0:
+            ZZ_pX_conv_modulus(self.value, poly[0], self.prime_pow.get_context_capdiv(self.absprec).x)
 
-    cdef bint _set_prec_abs(self, long absprec):
+    cdef bint _set_prec_abs(self, long absprec) except -1:
         """
         Safely sets the absolute precision of self to absprec.
 
@@ -612,16 +642,16 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             return False
         if self.absprec > 0:
             ZZ_pX_destruct(&self.value)
-        self.prime_pow.restore_context_capdiv(absprec)
         if absprec > 0:
+            self.prime_pow.restore_context_capdiv(absprec)
             ZZ_pX_construct(&self.value)
         self.absprec = absprec
         return True
 
-    cdef bint _set_prec_both(self, long absprec, long relprec):
+    cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         raise TypeError, "use _set_prec_both_with_ord"
 
-    cdef bint _set_prec_both_with_ordp(self, long ordp, long absprec, long relprec):
+    cdef bint _set_prec_both_with_ordp(self, long ordp, long absprec, long relprec) except -1:
         """
         Sets the absolute precision of self to the minimum of absprec and ordp + relprec.
 
@@ -700,13 +730,15 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         sage: loads(dumps(z)) == z
         True
         """
+        cdef Integer absprec
+        absprec = PY_NEW(Integer)
+        mpz_set_si(absprec.value, self.absprec)
+        if self.absprec == 0:
+            return make_ZZpXCAElement, (self.parent(), None, absprec, 0)
         self.prime_pow.restore_context_capdiv(self.absprec)
         cdef ntl_ZZ_pX holder = PY_NEW(ntl_ZZ_pX)
         holder.c = self.prime_pow.get_context_capdiv(self.absprec)
         holder.x = self.value
-        cdef Integer absprec
-        absprec = PY_NEW(Integer)
-        mpz_set_si(absprec.value, self.absprec)
         return make_ZZpXCAElement, (self.parent(), holder, absprec, 0)
 
     cdef int _cmp_units(left, pAdicGenericElement right) except -2:
@@ -798,9 +830,10 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         ans.prime_pow = ans._parent.prime_pow
         ans.ordp = 0
         ans.relprec = -self.absprec
-        self.prime_pow.restore_context_capdiv(self.absprec)
-        ZZ_pX_construct(&ans.unit)
-        ans.unit = self.value
+        if self.absprec != 0:
+            self.prime_pow.restore_context_capdiv(self.absprec)
+            ZZ_pX_construct(&ans.unit)
+            ans.unit = self.value
         return ans
 
     cdef pAdicZZpXCAElement _lshift_c(self, long n):
@@ -1386,6 +1419,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         sage: c = a + b; c._ntl_rep() # indirect doctest
         [775]
         """
+        if self.absprec == 0:
+            raise ValueError, "self has 0 absolute precision"
         self.prime_pow.restore_context_capdiv(self.absprec)
         cdef ntl_ZZ_pX ans = PY_NEW(ntl_ZZ_pX)
         ans.c = self.prime_pow.get_context_capdiv(self.absprec)
@@ -1804,9 +1839,12 @@ def make_ZZpXCAElement(parent, value, absprec, version):
     cdef ZZ_pX_c poly
     if version == 0:
         ans = pAdicZZpXCAElement(parent, [], empty = True)
-        ans.prime_pow.restore_context_capdiv(mpz_get_si((<Integer>absprec).value))
-        poly = (<ntl_ZZ_pX>value).x
-        ans._set(&poly, mpz_get_si((<Integer>absprec).value))
+        if mpz_sgn((<Integer>absprec).value) == 0:
+            ans._set_inexact_zero(0)
+        else:
+            ans.prime_pow.restore_context_capdiv(mpz_get_si((<Integer>absprec).value))
+            poly = (<ntl_ZZ_pX>value).x
+            ans._set(&poly, mpz_get_si((<Integer>absprec).value))
         return ans
     else:
         raise ValueError, "unknown unpickling version"

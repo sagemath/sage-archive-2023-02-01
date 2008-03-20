@@ -68,6 +68,13 @@ def kostka_tab_symmetrica(shape, content):
         [[[1, 2], [3]], [[1, 3], [2]]]
         sage: symmetrica.kostka_tab([1,1,1],[1,1,1])
         [[[1], [2], [3]]]
+        sage: symmetrica.kostka_tab([[2,2,1],[1,1]],[1,1,1])
+        [[[None, 1], [None, 2], [3]],
+         [[None, 1], [None, 3], [2]],
+         [[None, 2], [None, 3], [1]]]
+        sage: symmetrica.kostka_tab([[2,2],[1]],[1,1,1])
+        [[[None, 1], [2, 3]], [[None, 2], [1, 3]]]
+
 
     """
     late_import()
@@ -82,7 +89,7 @@ def kostka_tab_symmetrica(shape, content):
             shape = Partition(shape)
 
 
-    if PyObject_TypeCheck(shape, SkewPartition):
+    if PyObject_TypeCheck(shape, SkewPartition_class):
         _op_skew_partition(shape, cshape)
     else:
         _op_partition(shape, cshape)

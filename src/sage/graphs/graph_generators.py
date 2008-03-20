@@ -2577,21 +2577,19 @@ class GraphGenerators():
 #   Graphs with a given degree sequence
 ################################################################################
 
-    def DegreeSequence(self, deg_sequence, seed=None):
+    def DegreeSequence(self, deg_sequence):
         """
-        Returns a random graph with expected given degree sequence. Raises a
-        NetworkX error if the proposed degree sequence cannot be that of a
-        graph.
+        Returns a graph with the given degree sequence. Raises a NetworkX
+        error if the proposed degree sequence cannot be that of a graph.
 
-        Uses the Havel-Hakimi algorithm, which constructs a simple graph by
-        connecting vertices of highest to other vertices of highest degree,
-        resorting the remaining vertices by degree and repeating the process.
-        See Theorem 1.4 in [1].
+        Graph returned is the one returned by the Havel-Hakimi algorithm,
+        which constructs a simple graph by connecting vertices of highest
+        degree to other vertices of highest degree, resorting the remaining
+        vertices by degree and repeating the process.  See Theorem 1.4 in [1].
 
         INPUT:
             deg_sequence -- a list of integers with each entry corresponding
         to the degree of a different vertex.
-            seed -- for the random number generator.
 
         EXAMPLES:
             sage: G = graphs.DegreeSequence([3,3,3,3])
@@ -2612,7 +2610,7 @@ class GraphGenerators():
 
         """
         import networkx
-        return graph.Graph(networkx.havel_hakimi_graph([int(i) for i in deg_sequence], seed))
+        return graph.Graph(networkx.havel_hakimi_graph([int(i) for i in deg_sequence]))
 
     def DegreeSequenceConfigurationModel(self, deg_sequence, seed=None):
         """
@@ -2621,8 +2619,7 @@ class GraphGenerators():
         graph with multiple edges and loops.
 
         One requirement is that the sum of the degrees must be even, since
-        every edge must be incident with two vertices. (The notion of quantum
-        graphs allows for edges incident to only one vertex.)
+        every edge must be incident with two vertices.
 
         INPUT:
             deg_sequence -- a list of integers with each entry corresponding
@@ -2649,18 +2646,15 @@ class GraphGenerators():
 
     def DegreeSequenceTree(self, deg_sequence):
         """
-        Returns a random tree with the given degree sequence. Raises a
-        NetworkX error if the proposed degree sequence cannot be that of a
-        tree.
+        Returns a tree with the given degree sequence. Raises a NetworkX error
+        if the proposed degree sequence cannot be that of a tree.
 
-        One requirement is that the sum of the degrees must be even, since
-        every edge must be incident with two vertices. (The notion of quantum
-        graphs allows for edges incident to only one vertex.)
+        Since every tree has one more vertex than edge, the degree sequence
+        must satisfy len(deg_sequence) - sum(deg_sequence)/2 == 1.
 
         INPUT:
             deg_sequence -- a list of integers with each entry corresponding
         to the expected degree of a different vertex.
-            seed -- for the random number generator.
 
         EXAMPLE:
             sage: G = graphs.DegreeSequenceTree([3,1,3,3,1,1,1,2,1])
@@ -2674,10 +2668,10 @@ class GraphGenerators():
         """
         Returns a random graph with expected given degree sequence. Raises a
         NetworkX error if the proposed degree sequence cannot be that of a
-        tree.
+        graph.
 
-        Since every tree has one more vertex than edge, the degree sequence
-        must satisfy len(deg_sequence) - sum(deg_sequence)/2 == 1.
+        One requirement is that the sum of the degrees must be even, since
+        every edge must be incident with two vertices.
 
         INPUT:
             deg_sequence -- a list of integers with each entry corresponding
@@ -2695,7 +2689,7 @@ class GraphGenerators():
 
         """
         import networkx
-        return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence]))
+        return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence], seed))
 
 ################################################################################
 #   Graph Iterators
@@ -2848,8 +2842,8 @@ class GraphGenerators():
             47
 
         """
-        is_tree = lambda g: g.transitive_reduction() == g
-        for g in self(vertices=vertices, property=is_tree, augment=augment):
+        is_forest = lambda g: g.is_forest()
+        for g in self(vertices=vertices, property=is_forest, augment=augment):
             if g.is_connected():
                 yield g
 

@@ -38,7 +38,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
         """
         return True
 
-    def dual_basis(self, scalar=None, prefix=None):
+    def dual_basis(self, scalar=None, scalar_name="",  prefix=None):
         """
         The dual basis to the Schur basis with respect to
         the standard scalar product is the Schur basis since
@@ -53,7 +53,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
         if scalar is None:
             return self
         else:
-            return dual.SymmetricFunctionAlgebra_dual(self, scalar, prefix=None)
+            return dual.SymmetricFunctionAlgebra_dual(self, scalar, scalar_name, prefix)
 
 
     def _multiply(self, left, right):
@@ -93,36 +93,22 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
                         z_elt[ m ] = z_elt[m] + left_c * right_c * d[m]
                     else:
                         z_elt[ m ] = left_c * right_c * d[m]
-        z = A(Integer(0))
-        z._monomial_coefficients = z_elt
-        return z
+        return A._from_dict(z_elt)
 
 class SymmetricFunctionAlgebraElement_schur(classical.SymmetricFunctionAlgebraElement_classical):
-    def frobenius(self):
+    def omega(self):
         """
         Returns the image of self under the Frobenius / omega automorphism.
 
         EXAMPLES:
             sage: s = SFASchur(QQ)
-            sage: a = s([2,1]); a
+            sage: s([2,1]).omega()
             s[2, 1]
-            sage: a.frobenius()
-            s[2, 1]
-            sage: a.omega()
-            s[2, 1]
-
-            sage: a = s([2,1,1])
-            sage: a.omega()
+            sage: s([2,1,1]).omega()
             s[3, 1]
         """
-        parent = self.parent()
-        z = {}
-        mcs = self.monomial_coefficients()
-        for part in mcs:
-            z[part.conjugate()] = mcs[part]
-        res = parent(0)
-        res._monomial_coefficients = z
-        return res
+        conj = lambda part: part.conjugate()
+        return self.map_basis(conj)
 
 
     def scalar(self, x):
@@ -167,29 +153,12 @@ class SymmetricFunctionAlgebraElement_schur(classical.SymmetricFunctionAlgebraEl
             [ 1 -1 -1  1  0]
             [-1  2  1 -3  1]
         """
-        R = self.parent().base_ring()
-
-        if self.parent() != x.parent():
-            try:
-                x = self.parent()( x )
-            except:
-                raise TypeError, "cannot compute the scalar product of self and x (= %s)"%x
-
-        if len(self) < len(x):
-            smaller = self
-            greater = x
-        else:
-            smaller = x
-            greater = self
-
-        res = R(0)
-        smcs = smaller._monomial_coefficients
-        gmcs = greater._monomial_coefficients
-        for s_part in smcs :
-            if s_part in gmcs:
-                res += smcs[s_part]*gmcs[s_part]
-
-        return res
+        s = self.parent()
+        R = s.base_ring()
+        one = R(1)
+        f = lambda p1, p2: one
+        x = s(x)
+        return s._apply_multi_module_morphism(self, x, f, orthogonal=True)
 
     def expand(self, n, alphabet='x'):
         """
@@ -211,13 +180,6 @@ class SymmetricFunctionAlgebraElement_schur(classical.SymmetricFunctionAlgebraEl
             sage: s([1,1,1,1]).expand(3)
             0
         """
-        e = eval('symmetrica.compute_' + str(classical.translate[self.parent().basis_name()]).lower() + '_with_alphabet')
-        resPR = PolynomialRing(self.parent().base_ring(), n, alphabet)
-        res = resPR(0)
-        self_mc = self._monomial_coefficients
-        for part in self_mc:
-            if len(part) > n:
-                continue
-            res += self_mc[part] * resPR(e(part, n, alphabet))
-        return res
+        condition = lambda part: len(part) > n
+        return self._expand(condition, n, alphabet)
 

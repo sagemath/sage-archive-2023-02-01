@@ -21,7 +21,7 @@ import permutation
 import partition
 from tableau import Tableau, StandardTableaux_n, StandardTableaux_partition, StandardTableaux
 from sage.interfaces.all import gap
-from sage.rings.all import factorial, QQ
+from sage.rings.all import factorial, QQ, PolynomialRing
 from sage.matrix.all import matrix
 from sage.modules.all import vector
 
@@ -379,3 +379,199 @@ def seminormal_test(n):
                     if e_hat(tab2)*e_hat(tab) != 0:
                         raise ValueError, "3.1.20 - %s, %s"%(tab, tab2)
 
+
+#######################
+
+
+def HeckeAlgebraSymmetricGroupT(R, n, q=None):
+    """
+    Returns the Hecke algebra of the symmetric group on the T basis.
+
+    EXAMPLES:
+        sage: HeckeAlgebraSymmetricGroupT(QQ, 3)
+        Hecke algebra of the symmetric group of order 3 on the T basis over Univariate Polynomial Ring in q over Rational Field
+
+        sage: HeckeAlgebraSymmetricGroupT(QQ, 3, 2)
+        Hecke algebra of the symmetric group of order 3 on the T basis over Rational Field
+
+    """
+
+    return HeckeAlgebraSymmetricGroup_t(R, n, q)
+
+class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
+    def __init__(self, R, n, q=None):
+        self.n = n
+        self._combinatorial_class = permutation.Permutations(n)
+        self._name = "Hecke algebra of the symmetric group of order %s"%self.n
+        self._one = permutation.Permutation(range(1,n+1))
+        self._prefix = ""
+
+        if q is None:
+            q = PolynomialRing(R, 'q').gen()
+            R = q.parent()
+        else:
+            if q not in R:
+                raise ValueError, "q must be in R (= %s)"%R
+
+
+        self._q = q
+
+        CombinatorialAlgebra.__init__(self, R)
+
+    def q(self):
+        """
+        EXAMPLES:
+            sage: HeckeAlgebraSymmetricGroupT(QQ, 3).q()
+            q
+            sage: HeckeAlgebraSymmetricGroupT(QQ, 3, 2).q()
+            2
+        """
+        return self._q
+
+
+    def _coerce_start(self, x):
+        """
+        EXAMPLES:
+            sage: H3 = HeckeAlgebraSymmetricGroupT(QQ, 3)
+            sage: H3._coerce_start([2,1])
+            T[2, 1, 3]
+
+        """
+        ###################################################
+        # Coerce permutations of size smaller that self.n #
+        ###################################################
+        if x == []:
+            return self( self._one )
+        if len(x) < self.n and x in permutation.Permutations():
+            return self( list(x) + range(len(x)+1, self.n+1) )
+        raise TypeError
+
+
+
+class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
+    def __init__(self, R, n, q=None):
+        HeckeAlgebraSymmetricGroup_generic.__init__(self, R, n, q)
+        self._prefix = "T"
+        self._name += " on the T basis"
+
+    def t_action_on_basis(self, perm, i):
+        """
+        EXAMPLES:
+            sage: H3 = HeckeAlgebraSymmetricGroupT(QQ, 3)
+            sage: H3.t_action_on_basis(Permutation([2,1,3]), 1)
+            q*T[1, 2, 3] + (q-1)*T[2, 1, 3]
+            sage: H3.t_action_on_basis(Permutation([1,2,3]), 1)
+            T[2, 1, 3]
+            sage: H3 = HeckeAlgebraSymmetricGroupT(QQ, 3, 1)
+            sage: H3.t_action_on_basis(Permutation([2,1,3]), 1)
+            T[1, 2, 3]
+            sage: H3.t_action_on_basis(Permutation([1,3,2]), 2)
+            T[1, 2, 3]
+
+        """
+        if i not in range(1, self.n):
+            raise ValueError, "i must be between 1 and n (= %s)"%self.n
+        t_i = permutation.Permutation( (i, i+1) )
+        perm_i = t_i * perm
+
+        if perm[i-1] < perm[i]:
+            return self(perm_i)
+        else:
+            #Ti^2 = (q - q^(-1))*Ti - q1*q2
+            q = self.q()
+            z_elt = {perm_i:q, perm:q-1}
+            return self._from_dict(z_elt)
+
+
+    def t_action(self, a, i):
+        """
+        Return the action of T_i on a.
+
+        EXAMPLES:
+            sage: H3 = HeckeAlgebraSymmetricGroupT(QQ, 3)
+            sage: a = H3([2,1,3])+2*H3([1,2,3])
+            sage: H3.t_action(a, 1)
+            q*T[1, 2, 3] + (q+1)*T[2, 1, 3]
+            sage: H3.t(1)*a
+            q*T[1, 2, 3] + (q+1)*T[2, 1, 3]
+        """
+        t_i = lambda x: self.t_action_on_basis(x, i)
+        return self._apply_module_endomorphism(a, t_i)
+
+
+    def _multiply_basis(self, perm1, perm2):
+        """
+        EXAMPLES:
+            sage: H3 = HeckeAlgebraSymmetricGroupT(QQ, 3, 1)
+            sage: a = H3([2,1,3])+2*H3([1,2,3])-H3([3,2,1])
+            sage: a^2 #indirect doctest
+            6*T[1, 2, 3] + 4*T[2, 1, 3] - T[2, 3, 1] - T[3, 1, 2] - 4*T[3, 2, 1]
+
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: a = QS3([2,1,3])+2*QS3([1,2,3])-QS3([3,2,1])
+            sage: a^2
+            6*[1, 2, 3] + 4*[2, 1, 3] - [2, 3, 1] - [3, 1, 2] - 4*[3, 2, 1]
+        """
+        res = self(perm1)
+        for i in perm2.reduced_word():
+            res = self.t_action(res, i)
+        return res
+
+    def t(self, i):
+        """
+        EXAMPLES:
+            sage: H3 = HeckeAlgebraSymmetricGroupT(QQ,3)
+            sage: H3.t(1)
+            T[2, 1, 3]
+            sage: H3.t(2)
+            T[1, 3, 2]
+            sage: H3.t(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: i must be between 1 and n-1 (= 2)
+        """
+        if i not in range(1, self.n):
+            raise ValueError, "i must be between 1 and n-1 (= %s)"%(self.n-1)
+
+        return self( permutation.Permutation( (i, i+1) ) )
+
+    def algebra_generators(self):
+        """
+        Return the generators of the algebra.
+
+        EXAMPLES:
+            sage: HeckeAlgebraSymmetricGroupT(QQ,3).algebra_generators()
+            [T[2, 1, 3], T[1, 3, 2]]
+
+        """
+        return map(self.t, range(1, self.n))
+
+    def jucys_murphy(self, k):
+        """
+        Returns the Jucys-Murphy element J_k of the Hecke algebra.
+        The Jucys-Murphy elements generate the maximal commutative
+        sub-algebra of the Hecke algebra.
+
+        EXAMPLES:
+            sage: H3 = HeckeAlgebraSymmetricGroupT(QQ,3)
+            sage: j2 = H3.jucys_murphy(2); j2
+            q*T[1, 2, 3] + (q-1)*T[2, 1, 3]
+            sage: j3 = H3.jucys_murphy(3); j3
+            q^2*T[1, 2, 3] + (q^2-q)*T[1, 3, 2] + (q-1)*T[3, 2, 1]
+            sage: j2*j3 == j3*j2
+            True
+            sage: H3.jucys_murphy(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: k must be between 2 and n (= 3)
+        """
+        if k not in range(2, self.n+1):
+            raise ValueError, "k must be between 2 and n (= %s)"%self.n
+
+        left = 1
+        right = 1
+        for j in range(1, k):
+            left *= self.t(k-j)
+            right *= self.t(j)
+
+        return left*right

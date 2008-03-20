@@ -64,7 +64,6 @@ QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
 Integer_sage = sage.rings.integer.Integer
 
-
 def is_NumberFieldElement(x):
     """
     Return True if x is of type NumberFieldElement, i.e., an
@@ -248,8 +247,13 @@ cdef class NumberFieldElement(FieldElement):
         """
         Creates an element of the passed field from this field.  This
         is specific to creating elements in a cyclotomic field from
-        elements in another cyclotomic field.  This function aims to
-        make this common coercion extremely fast!
+        elements in another cyclotomic field, in the case that
+        self.number_field()._n() divides new_parent()._n().  This
+        function aims to make this common coercion extremely fast!
+
+        More general coercion (i.e. of zeta6 into CyclotomicField(3))
+        is implemented in the _coerce_from_other_cyclotomic_field
+        method of a CyclotomicField.
 
         EXAMPLES:
             sage: C.<zeta5>=CyclotomicField(5)
@@ -257,25 +261,44 @@ cdef class NumberFieldElement(FieldElement):
             zeta10^2 + 1
             sage: (zeta5+1)._lift_cyclotomic_element(CyclotomicField(10))  # There is rarely a purpose to call this function directly
             zeta10^2 + 1
+            sage: cf4 = CyclotomicField(4)
+            sage: cf1 = CyclotomicField(1) ; one = cf1.0
+            sage: cf4(one)
+            1
+            sage: type(cf4(1))
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            sage: cf33 = CyclotomicField(33) ; z33 = cf33.0
+            sage: cf66 = CyclotomicField(66) ; z66 = cf66.0
+            sage: z33._lift_cyclotomic_element(cf66)
+            zeta66^2
+            sage: z66._lift_cyclotomic_element(cf33)
+            Traceback (most recent call last):
+            ...
+            TypeError: The zeta_order of the new field must be a multiple of the zeta_order of the original.
+            sage: cf33(z66)
+            -zeta33^17
 
         AUTHOR:
-            Joel B. Mohler
+            -- Joel B. Mohler
+            -- Craig Citro (fixed behavior for different representation of
+                            quadratic field elements)
         """
-        # Right now, I'm a little confused why quadratic extension fields have a zeta_order function
-        # I would rather they not have this function since I don't want to do this isinstance check here.
-        if not isinstance(self.number_field(), number_field.NumberField_cyclotomic) or not isinstance(new_parent, number_field.NumberField_cyclotomic):
+        if not isinstance(self.number_field(), number_field.NumberField_cyclotomic) \
+               or not isinstance(new_parent, number_field.NumberField_cyclotomic):
             raise TypeError, "The field and the new parent field must both be cyclotomic fields."
 
-        try:
-            small_order = self.number_field().zeta_order()
-            large_order = new_parent.zeta_order()
-        except AttributeError:
-            raise TypeError, "The field and the new parent field must both be cyclotomic fields."
+        small_order = self.number_field()._n()
+        large_order = new_parent._n()
 
         try:
             _rel = ZZ(large_order / small_order)
         except TypeError:
             raise TypeError, "The zeta_order of the new field must be a multiple of the zeta_order of the original."
+
+        ## degree 2 is handled differently, because elements are
+        ## represented differently
+        if new_parent.degree() == 2:
+            return new_parent._element_class(new_parent, self)
 
         cdef NumberFieldElement x = <NumberFieldElement>PY_NEW_SAME_TYPE(self)
         x._parent = <ParentWithBase>new_parent
@@ -287,11 +310,10 @@ cdef class NumberFieldElement(FieldElement):
         cdef int rel = _rel
         cdef ntl_ZZX _num
         cdef ntl_ZZ _den
-        _num, _den = new_parent.polynomial_ntl()
         for i from 0 <= i <= ZZX_deg(self.__numerator):
             tmp = ZZX_coeff(self.__numerator, i)
             ZZX_SetCoeff(result, i*rel, tmp)
-        ZZX_rem(x.__numerator, result, _num.x)
+        ZZX_rem(x.__numerator, result, x.__fld_numerator.x)
         return x
 
     def __reduce__(self):
@@ -844,7 +866,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: I/0
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Number field element division by zero
+            ZeroDivisionError: rational division by zero
 
             sage: G.<a> = NumberField(x^3 + 2/3*x + 1)
             sage: a/a
@@ -994,13 +1016,13 @@ cdef class NumberFieldElement(FieldElement):
 
     cdef void _invert_c_(self, ZZX_c *num, ZZ_c *den):
         """
-        Computes the numerator and denominator of the multiplicative inverse of this element.
+        Computes the numerator and denominator of the multiplicative
+        inverse of this element.
 
-        Suppose that this element is x/d and the parent mod'ding polynomial is M/D.  The NTL function
-        XGCD( r, s, t, a, b ) computes r,s,t such that $r=s*a+t*b$.  We compute
-        XGCD( r, s, t, x*D, M*d ) and set
-        num=s*D*d
-        den=r
+        Suppose that this element is x/d and the parent mod'ding
+        polynomial is M/D.  The NTL function XGCD( r, s, t, a, b )
+        computes r,s,t such that $r=s*a+t*b$.  We compute XGCD( r, s,
+        t, x*D, M*d ) and set num=s*D*d den=r
 
         EXAMPLES:
             I'd love to, but since we are dealing with c-types, I can't at this level.
@@ -1183,8 +1205,8 @@ cdef class NumberFieldElement(FieldElement):
 
     def _coefficients(self):
         """
-        Return the coefficients of the underlying polynomial corresponding to this
-        number field element.
+        Return the coefficients of the underlying polynomial
+        corresponding to this number field element.
 
         OUTPUT:
              -- a list whose length corresponding to the degree of this element
@@ -1273,10 +1295,13 @@ cdef class NumberFieldElement(FieldElement):
             return self.__multiplicative_order
 
         if isinstance(self.number_field(), number_field.NumberField_cyclotomic):
-            t = self.parent()._multiplicative_order_table()
+            t = self.number_field()._multiplicative_order_table()
             f = self.polynomial()
             if t.has_key(f):
                 self.__multiplicative_order = t[f]
+                return self.__multiplicative_order
+            else:
+                self.__multiplicative_order = sage.rings.infinity.infinity
                 return self.__multiplicative_order
 
         ####################################################################

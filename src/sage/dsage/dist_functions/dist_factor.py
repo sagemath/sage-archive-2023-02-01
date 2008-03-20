@@ -1,6 +1,7 @@
 from sage.dsage.database.job import Job
 from sage.dsage.dist_functions.dist_function import DistributedFunction
 from sage.dsage.interface.dsage_interface import JobWrapper
+import sage.structure.factorization as factorization
 
 from sage.all import *
 
@@ -14,14 +15,32 @@ class DistributedFactor(DistributedFunction):
        AUTHORS:
            Robert Bradshaw
            Yi Qiang
+
+
+    sage: d = dsage.start_all(verbose=False, workers=4) # long time
+    Going into testing mode...
+    sage: sleep(5) # long time
+    sage: f = DistributedFactor(d, 2^125-1) # long time
+    sage: print f # long time
+    Factoring "42535295865117307932921825928971026431"
+    Prime factors found so far: [31, 601, 1801]
+    sage: f.done # long time
+    False
+    sage: f.wait(timeout=60) # long time
+    sage: f.done # long time
+    True
+    sage: print f # long time
+    Factoring "42535295865117307932921825928971026431"
+    Prime factors found so far: [31, 601, 1801, 269089806001, 4710883168879506001]
+
     """
 
-    def __init__(self, DSage, n, concurrent=10, B1=2000, curves=50,
+    def __init__(self, dsage, n, concurrent=10, B1=2000, curves=50,
                  trial_division_limit=1000000, name='DistributedFactor',
                  use_qsieve=False, verbosity=0):
         """
         Parameters:
-            DSage -- an instance of a dsage connection
+            dsage -- an instance of a dsage connection
             n -- the square-free number to be factored
             concurrent -- number of parallel jobs to run
             trial_division_limit -- perform trial division up to this number
@@ -33,7 +52,7 @@ class DistributedFactor(DistributedFunction):
 
         """
 
-        DistributedFunction.__init__(self, DSage)
+        DistributedFunction.__init__(self, dsage)
         self.n = n
         self.prime_factors = []
         self.composite_factors = []
@@ -50,18 +69,30 @@ class DistributedFactor(DistributedFunction):
                 n = n // d
         if n == 1:
             self.done = True
+            self.result = self.prime_factors
         elif is_prime(n): # The last value might be prime
             self.done = True
             self.prime_factors.append(n)
+            self.result = self.prime_factors
         else:
             self.composite_factors.append(n)
             if self.use_qsieve:
                 self.outstanding_jobs = [self.qsieve_job()]
             for i in range(concurrent-1):
                 self.outstanding_jobs.append(self.ecm_job())
+        self.start()
+
+
+    def __str__(self):
+        s = 'Factoring "%s"' % (self.n)
+        s += '\n'
+        s += 'Prime factors found so far: %s' % (self.prime_factors)
+        return s
+
 
     def next_job(self):
         return self.ecm_job()
+
 
     def qsieve_job(self):
         n = max(self.composite_factors)
@@ -78,17 +109,18 @@ else:
         job.n = int(n) # otherwise cPickle will crash
         job.algorithm = 'qsieve'
         job.verifiable = True
-        job.type = 'qsieve'
+        job.kind = 'qsieve'
         job.timeout = 60*60*24
 
         return job
 
+
     def ecm_job(self):
         try:
-            self.i += 1
+            self._i += 1
         except AttributeError:
-            self.i = 0
-        n = self.composite_factors[self.i % len(self.composite_factors)]
+            self._i = 0
+        n = self.composite_factors[self._i % len(self.composite_factors)]
         rate_multiplier = float(self.concurrent / len(self.composite_factors))
         job = Job(code="""
 n = %s
@@ -102,7 +134,7 @@ else:
         job.n = int(n)
         job.algorithm = 'ecm'
         job.verifiable = True
-        job.type = 'ecm'
+        job.kind = 'ecm'
         job.timeout = 60*60*24
 
         return job
@@ -214,3 +246,5 @@ else:
 
         self.prime_factors.sort()
         self.composite_factors.sort()
+        self.result = factorization.Factorization(zip(
+            self.prime_factors, [self.result.count(i) for i in self.prime_factors]))

@@ -379,7 +379,8 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             \left(1\right)
             sage: Q = J(H.lift_x(F(1))); print latex(Q) # indirect doctest
             \left(x + 6, y + 2\alpha + 2\right)
-	The following is a bug - see trac ticket 2586
+
+            The following is a bug - see trac ticket 2586:
             sage: print latex(Q + Q)
             \left(x^{2} + 5x + 1, y + 3\alphax + 6\alpha + 2\right)
         """

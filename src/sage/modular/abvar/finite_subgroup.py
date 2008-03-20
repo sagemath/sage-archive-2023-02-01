@@ -91,130 +91,18 @@ TESTS:
 ###########################################################################
 
 from sage.modules.module      import Module
+from sage.modules.free_module import is_FreeModule
 from sage.structure.element   import ModuleElement
 from sage.structure.sequence  import Sequence
-from sage.rings.all           import gcd, lcm, QQ, ZZ, QQbar, is_Field, Integer
+from sage.rings.all           import gcd, lcm, QQ, ZZ, QQbar, is_Field, Integer, composite_field
 from sage.misc.misc           import prod
 
 import abvar as abelian_variety
 
-# TODO: obviously this goes somewhere else in the rings module.
-def composite_field(K,L):
-    """
-    Return a field that contains both $K$ and $L$.
-
-    INPUT:
-        K -- field
-        L -- field
-    OUTPUT:
-        field
-
-    EXAMPLES:
-        sage: sage.modular.abvar.finite_subgroup.composite_field(QQ,QQbar)
-        Algebraic Field
-        sage: sage.modular.abvar.finite_subgroup.composite_field(QQ,QQ[sqrt(2)])
-        Number Field in sqrt2 with defining polynomial x^2 - 2
-        sage: sage.modular.abvar.finite_subgroup.composite_field(QQ,QQ)
-        Rational Field
-    """
-    if K == L:
-        return K
-    if K == QQbar or L==QQbar:
-        return QQbar
-    if K.is_prime_field():
-        return L
-    if L.is_prime_field():
-        return K
-    try:
-        return K.composite_fields(L)[0]
-    except AttributeError:
-        raise NotImplementedError, "need to implement this"
-
-class QQbarTorsionSubgroup(Module):
-    def __init__(self, abvar):
-        """
-        Group of all torsion points over the algebraic
-        closure on an abelian variety.
-
-        INPUT:
-            abvar -- an abelian variety
-
-        EXAMPLES:
-            sage: A = J0(23)
-            sage: A.qbar_torsion_subgroup()
-            Group of all torsion points in QQbar on Abelian variety J0(23) of dimension 2
-        """
-        self.__abvar = abvar
-        Module.__init__(self, ZZ)
-
-    def _repr_(self):
-        """
-        Print representation of QQbar points.
-
-        OUTPUT:
-            string
-
-        EXAMPLES:
-            sage: J0(23).qbar_torsion_subgroup()._repr_()
-            'Group of all torsion points in QQbar on Abelian variety J0(23) of dimension 2'
-        """
-        return 'Group of all torsion points in QQbar on %s'%self.__abvar
-
-    def field_of_definition(self):
-        """
-        Return the field of definition of this subgroup.  Since this
-        is the group of all torsion it is defined over the base field of this
-        abelian variety.
-
-        OUTPUT:
-            a field
-
-        EXAMPLES:
-            sage: J0(23).qbar_torsion_subgroup().field_of_definition()
-            Rational Field
-        """
-        return self.__abvar.base_field()
-
-    def __call__(self, x):
-        r"""
-        Create an element in this finite group.
-
-        INPUT:
-            x -- vector in $\QQ^{2d}$
-        OUTPUT:
-            torsion point
-
-        EXAMPLES:
-            sage: P = J0(23).qbar_torsion_subgroup()([1,1/2,3/4,2]); P
-            [(1, 1/2, 3/4, 2)]
-            sage: P.order()
-            4
-        """
-        v = self.__abvar.vector_space()(x)
-        return FiniteSubgroupElement(self, v)
-
-    def abelian_variety(self):
-        """
-        Return the abelian variety that this is the set of all torsion
-        points on.
-
-        OUTPUT:
-            abelian variety
-
-        EXAMPLES:
-            sage: J0(23).qbar_torsion_subgroup().abelian_variety()
-            Abelian variety J0(23) of dimension 2
-        """
-        return self.__abvar
-
-
 class FiniteSubgroup(Module):
-    """
-    A finite subgroup of a modular abelian variety.
-    """
     def __init__(self, abvar, field_of_definition=QQ):
         """
-        Create a finite subgroup of a modular abelian variety.
+        A finite subgroup of a modular abelian variety.
 
         INPUT:
             abvar -- a modular abelian variety
@@ -227,7 +115,7 @@ class FiniteSubgroup(Module):
             sage: G = A.n_torsion_subgroup(3); G
             Finite subgroup with invariants [3, 3, 3, 3] over QQ of Abelian variety J0(37) of dimension 2
             sage: type(G)
-            <class 'sage.modular.abvar.finite_subgroup.FiniteSubgroup_gens'>
+            <class 'sage.modular.abvar.finite_subgroup.FiniteSubgroup_lattice'>
             sage: from sage.modular.abvar.finite_subgroup import FiniteSubgroup
             sage: isinstance(G, FiniteSubgroup)
             True
@@ -240,6 +128,21 @@ class FiniteSubgroup(Module):
         self.__abvar = abvar
         self.__field_of_definition = field_of_definition
 
+    ################################################################
+    # DERIVED CLASS MUST OVERRIDE THE lattice METHOD
+    ################################################################
+    def lattice(self):
+        raise NotImplementedError
+
+    def _relative_basis_matrix(self):
+        try:
+            return self.__relative_basis_matrix
+        except AttributeError:
+            M = self.__abvar.lattice().coordinate_module(self.lattice()).basis_matrix()
+            self.__relative_basis_matrix = M
+            return M
+
+    # General functionality
     def __cmp__(self, other):
         """
         Compare this finite subgroup to other.
@@ -284,17 +187,11 @@ class FiniteSubgroup(Module):
             return cmp(type(self), type(other))
         A = self.abelian_variety()
         B = other.abelian_variety()
-        c = cmp(A,B)
-        if c == 0:
-            # Minus sign because order gets reversed in passing to lattices.
-            return -cmp(self.full_module(), other.full_module())
-        c = cmp(A.ambient_variety(), B.ambient_variety())
-        if c:
-            return c
-        # Ambient varieties are the same, but the varieties that
-        # contain these groups aren't -- we should embed each group
-        # into ambient variety, but this isn't implemented yet.
-        raise NotImplementedError
+        if not A.in_same_ambient_variety(B):
+            return False
+        L = A.lattice() + B.lattice()
+        # Minus sign because order gets reversed in passing to lattices.
+        return -cmp(self.lattice() + L, other.lattice() + L)
 
     def is_subgroup(self, other):
         """
@@ -314,17 +211,13 @@ class FiniteSubgroup(Module):
             sage: H.is_subgroup(C)
             True
         """
-        if not isinstance(other, FiniteSubgroup):
-            if abelian_variety.is_ModularAbelianVariety(other):
-                if self.abelian_variety().is_subvariety(other):
-                    return True
-                raise NotImplementedError, "determining general inclusions not completely implemented yet."
+        # We use that self is contained in other, whether other is
+        # either a finite group or an abelian variety, if and only
+        # if self doesn't shrink when intersected with other.
+        try:
+            return self.intersection(other).order() == self.order()
+        except TypeError:
             return False
-        if self.abelian_variety() != other.abelian_variety():
-            return False
-        if self.full_module().is_submodule(other.full_module()):
-            return True
-        return False
 
     def __add__(self, other):
         """
@@ -340,11 +233,16 @@ class FiniteSubgroup(Module):
         """
         if not isinstance(other, FiniteSubgroup):
             raise TypeError, "only addition of two finite subgroups is defined"
-        if self.abelian_variety() != other.abelian_variety():
-            raise TypeError, "finite subgroups must be in the same ambient abelian variety"
-        K = Sequence([self.field_of_definition()(0), other.field_of_definition()(0)]).universe()
-        return FiniteSubgroup_gens(self.abelian_variety(),
-                        self._generators() + other._generators(), field_of_definition=K)
+        A = self.abelian_variety()
+        B = other.abelian_variety()
+        if not A.in_same_ambient_variety(B):
+            return ValueError, "self and other must be in the same ambient Jacobian"
+        K = composite_field(self.field_of_definition(), other.field_of_definition())
+        lattice = self.lattice() + other.lattice()
+        if A != B:
+            lattice += C.lattice()
+
+        return FiniteSubgroup_lattice(self.abelian_variety(), lattice, field_of_definition=K)
 
     def exponent(self):
         """
@@ -435,10 +333,8 @@ class FiniteSubgroup(Module):
             C = A + B
             L = L + C.lattice()
             M = M + C.lattice()
-        W = L.intersection(M).intersection(A.vector_space())
-        # Now write each of a basis for W in terms of the basis for L.
-        gens = amb.lattice().coordinate_module(W).basis()
-        return FiniteSubgroup_gens(amb, gens, field_of_definition=K)
+        W = L.intersection(M).intersection(amb.vector_space())
+        return FiniteSubgroup_lattice(amb, W, field_of_definition=K)
 
     def __mul__(self, right):
         """
@@ -466,14 +362,19 @@ class FiniteSubgroup(Module):
             True
             sage: G = H*(3/2); G.order()
             16
+            sage: J = J0(42)
+            sage: G = J.cuspidal_subgroup(); factor(G.order())
+            2^8 * 3^2
+            sage: (G * 3).order()
+            256
+            sage: (G * 0).order()
+            1
+            sage: (G * (1/5)).order()
+            22500000000
         """
-        r = QQ(right)
-        G = [r*v for v in self._generators()]
-        if r.denominator() != 1:
-            L = self._ambient_lattice()
-            d = 1/r.denominator()
-            G += [d * v for v in L.basis()]
-        return FiniteSubgroup_gens(self.abelian_variety(), G, field_of_definition = self.field_of_definition())
+        lattice = self.lattice() * right
+        return FiniteSubgroup_lattice(self.abelian_variety(), lattice,
+                                      field_of_definition = self.field_of_definition())
 
     def __rmul__(self, left):
         """
@@ -490,50 +391,6 @@ class FiniteSubgroup(Module):
             Finite subgroup with invariants [6, 24] over QQ of Abelian variety J0(42) of dimension 5
         """
         return self * left
-
-    def multiply(self, right):
-        """
-        Multiply this finite group by the rational number right.
-
-        INPUT:
-            right -- rational number
-
-        OUTPUT:
-            a new finite group
-
-        EXAMPLES:
-            sage: J = J0(42)
-            sage: G = J.cuspidal_subgroup(); factor(G.order())
-            2^8 * 3^2
-            sage: G.multiply(3).order()
-            256
-            sage: G.multiply(0).order()
-            1
-            sage: G.multiply(1/5).order()
-            22500000000
-        """
-
-        return self * right
-
-    def _generators(self):
-        """
-        Return a tuple of vectors that define elements of the rational
-        homology that generate this finite subgroup.
-
-        Raises a ValueError if no explicit presentation of this finite
-        subgroup is known, i.e., if this function hasn't been
-        overridden in a derived class.
-
-        EXAMPLES:
-            sage: J = J0(42)
-            sage: G = J.torsion_subgroup(); G
-            Torsion subgroup of Abelian variety J0(42) of dimension 5
-            sage: G._generators()
-            Traceback (most recent call last):
-            ...
-            ValueError: no explicit presentation of this finite subgroup is known (unable to compute explicitly)
-        """
-        raise ValueError, "no explicit presentation of this finite subgroup is known"
 
     def abelian_variety(self):
         """
@@ -705,53 +562,6 @@ class FiniteSubgroup(Module):
             return self.__lattice
 
 
-
-    def rescaled_module(self):
-        r"""
-        Return d * M and the integer d as a module, where M is the
-        ZZ-module generated by gens modulo $\ZZ^n$.  This is the
-        analogue of \code{full_module}, except it returns a
-        not-necessarily full rank integral full_module and the denominator
-        instead of a (possibly) non-integral full rank full_module.
-
-        EXAMPLES:
-            sage: J = J0(23)
-            sage: C = J.cuspidal_subgroup()
-            sage: C.full_module()
-            Free module of degree 4 and rank 4 over Integer Ring
-            Echelon basis matrix:
-            [ 1/11 10/11     0  8/11]
-            [    0     1     0     0]
-            [    0     0     1     0]
-            [    0     0     0     1]
-            sage: C.rescaled_module()
-            (Free module of degree 4 and rank 1 over Integer Ring
-            Echelon basis matrix:
-            [ 1 10  0  8], 11)
-        """
-        try:
-            return self.__rescaled_module, self.__denom
-        except AttributeError:
-            pass
-        G = self._generators()
-        V = self._ambient_lattice()
-        if len(G) == 0:
-            self.__rescaled_module = V
-            self.__denom = ZZ(1)
-            return self.__rescaled_module, self.__denom
-
-        d = lcm([v.denominator() for v in G])
-        self.__denom = d
-
-        if d == 1:
-            B = G
-        else:
-            B = [d*v for v in G]
-
-        W = V.span(B)
-        self.__rescaled_module = W
-        return W, d
-
     def gens(self):
         """
         Return generators for this finite subgroup.
@@ -766,20 +576,15 @@ class FiniteSubgroup(Module):
             [[(0, 1/7, 0, 6/7, 0, 5/7)]]
             sage: J1(13).cuspidal_subgroup().gens()
             [[(1/19, 0, 0, 9/19)], [(0, 1/19, 1/19, 18/19)]]
+            sage: J0(22).torsion_subgroup(6).gens()
+            [[(1/6, 0, 0, 0)], [(0, 1/6, 0, 0)], [(0, 0, 1/6, 0)], [(0, 0, 0, 1/6)]]
         """
-
         try:
             return self.__gens
         except AttributeError:
             pass
 
-        W, d = self.rescaled_module()
-
-        e = 1/d
-        B = [FiniteSubgroupElement(self, e*v, check=False) for
-                 v in W.basis() if gcd(v.list()) % d != 0]
-
-        #endif
+        B = [FiniteSubgroupElement(self, v) for v in self.lattice().basis() if v.denominator() > 1]
         self.__gens = Sequence(B, immutable=True)
         return self.__gens
 
@@ -904,10 +709,10 @@ class FiniteSubgroup(Module):
         if not isinstance(gens, (tuple, list)):
             raise TypeError, "gens must be a list or tuple"
         G = [self(g).element() for g in gens]
-        return FiniteSubgroup_gens(self.abelian_variety(), G)
+        return FiniteSubgroup_lattice(self.abelian_variety(), G)
 
     def invariants(self):
-        """
+        r"""
         Return elementary invariants of this abelian group, by which
         we mean a nondecreasing (immutable) sequence of integers
         $n_i$, $1 \leq i \leq k$, with $n_i$ dividing $n_{i+1}$, and
@@ -929,44 +734,46 @@ class FiniteSubgroup(Module):
 
             sage: 3*C
             Finite subgroup with invariants [15] over QQ of Abelian variety J0(38) of dimension 4
+
+        An example involving another cuspidal subgroup:
+            sage: C = J0(22).cuspidal_subgroup(); C
+            Finite subgroup with invariants [5, 5] over QQ of Abelian variety J0(22) of dimension 2
+            sage: C.lattice()
+            Free module of degree 4 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [1/5 1/5 4/5   0]
+            [  0   1   0   0]
+            [  0   0   1   0]
+            [  0   0   0 1/5]
+            sage: C.invariants()
+            [5, 5]
         """
         try:
             return self.__invariants
         except AttributeError:
             pass
-        W, d = self.rescaled_module()
-        B = W.basis_matrix().change_ring(ZZ)
-        E = B.elementary_divisors()
-        # That the formula below is right is a somewhat tricky diagram
-        # chase involving the snake lemma and commutative algebra over
-        # ZZ.  The key conclusion is that the structure of the group
-        # is realized as the kernel of a natural map
-        #   (Z^n)/(d*Z^n) ---> (Z^n)/(d*Lambda + d*Z^n)
-        #
-        v = [d // gcd(e,d) for e in E if e != 0 and e != d]
-        v = [x for x in v if x != 1]
+        M = self.lattice().coordinate_module(self.abelian_variety().lattice())
+        E = M.basis_matrix().change_ring(ZZ).elementary_divisors()
+        v = [x for x in E if x != 1]
         I = Sequence(v)
         I.sort()
         I.set_immutable()
         self.__invariants = I
         return I
 
-
-class FiniteSubgroup_gens(FiniteSubgroup):
-    """
-    A finite subgroup of a modular abelian variety that is generated
-    by given generators.
-    """
-    def __init__(self, abvar, gens, field_of_definition=QQbar, check=True):
+class FiniteSubgroup_lattice(FiniteSubgroup):
+    def __init__(self, abvar, lattice, field_of_definition=QQbar, check=True):
         """
-        Create a finite subgroup with given generators.
+        A finite subgroup of a modular abelian variety that is defined
+        by a given lattice.
 
         INPUT:
             abvar -- a modular abelian variety
-            gens -- a list or tuple of generators of a subgroup
-            check -- bool (default: True) whether or not to check that each
-                     generator is a FiniteSubgroupElement with
-                     the abvar as abelian variety.
+            lattice -- a lattice that contains the lattice of abvar
+            field_of_definition -- the field of definition of
+                       this finite group scheme
+            check -- bool (default: True) whether or not to check that
+                     lattice contains the abvar lattice.
 
         EXAMPLES:
             sage: J = J0(11)
@@ -974,45 +781,33 @@ class FiniteSubgroup_gens(FiniteSubgroup):
             Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
         """
         if check:
-            HQ = abvar._rational_homology_space()
-            v = []
-            for g in gens:
-                if not isinstance(g, FiniteSubgroupElement):
-                    g = HQ(g)
-                else:
-                    # it is a FiniteSubgroupElement
-                    if g.parent().abelian_variety() != abvar:
-                        # TODO
-                        raise NotImplementedError, "coercion of elements into abelian varieties not implemented in general"
-                    # Now g is a FiniteSubgroupElement with correct ambient variety
-                    # but not in this subgroup.
-                    g = g.element()
-                # done
-                if g.denominator() > 1:
-                    v.append(g)
-        else:
-            v = gens
-
+            if not is_FreeModule(lattice) or lattice.base_ring() != ZZ:
+                raise TypeError, "lattice must be a free module over ZZ"
+            if not abelian_variety.is_ModularAbelianVariety(abvar):
+                raise TypeError, "abvar must be a modular abelian variety"
+            if not abvar.lattice().is_submodule(lattice):
+                lattice += abvar.lattice()
+            if lattice.rank() != abvar.lattice().rank():
+                raise ValueError, "lattice must contain the lattice of abvar with finite index"
         FiniteSubgroup.__init__(self, abvar, field_of_definition)
-        self.__v = tuple(v)
+        self.__lattice = lattice
 
-    def _generators(self):
+    def lattice(self):
         r"""
-        Return a tuple of elements of the vector space underlying the
-        rational homology that together generator this abelian
-        variety. They need not be independent.  This is mainly for
-        internal use; use the \code{gens()} method for independent
-        \code{FiniteSubgroupElement}s.
+        Return lattice that defines this finite subgroup.
 
         EXAMPLES:
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
             Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
-            sage: G._generators()
+            sage: G.lattice()
             ((1/3, 0), (0, 1/5))
         """
-        return self.__v
+        return self.__lattice
 
+###########################################################################
+# Elements of finite order
+###########################################################################
 
 class FiniteSubgroupElement(ModuleElement):
     def __init__(self, parent, element, check=True):
@@ -1022,8 +817,7 @@ class FiniteSubgroupElement(ModuleElement):
         INPUT:
             parent  -- a finite subgroup of a modular abelian variety
             element -- a QQ vector space element that represents this
-                       element in rational homology modulo integral
-                       homology.
+                       element in terms of the ambient rational homology
             check   -- bool (default: True) whether to check that element
                        is in the appropriate vector space
 
@@ -1036,32 +830,18 @@ class FiniteSubgroupElement(ModuleElement):
             <class 'sage.modular.abvar.finite_subgroup.FiniteSubgroupElement'>
         """
         ModuleElement.__init__(self, parent)
-        # TODO: check
+        if check:
+            if not element in parent.abelian_variety().vector_space():
+                raise TypeError, "element must be a vector in the abelian variety's rational homology (embedded in the ambient Jacobian product)"
         if element.denominator() == 1:
             element = element.parent().zero_vector()
         self.__element = element
 
-    def ambient_element(self):
-        r"""
-        Return vector that represents this element with respect to the
-        ambient Jacobian product lattice.
-
-        OUTPUT:
-            vector over $\QQ$
-
-        EXAMPLES:
-        """
-        try:
-            return self.__ambient_element
-        except AttributeError:
-            B = self.parent().abelian_variety().lattice().basis_matrix()
-            self.__ambient_element = self.__element * B
-            return self.__ambient_element
-
     def element(self):
         """
         Return an underlying QQ-vector space element that defines this
-        element of a modular abelian variety.
+        element of a modular abelian variety.  This is a vector in the
+        ambient Jacobian variety's rational homology.
 
         EXAMPLES:
         We create some elements of $J_0(11)$:
@@ -1170,7 +950,7 @@ class FiniteSubgroupElement(ModuleElement):
             sage: G.0 * 2
             [(2/3, 0)]
         """
-        return FiniteSubgroupElement(self.parent(), self.__element * ZZ(right), check=False)
+        return FiniteSubgroupElement(self.parent(), self.__element * right, check=False)
 
     def __cmp__(self, right):
         """
@@ -1205,13 +985,16 @@ class FiniteSubgroupElement(ModuleElement):
             sage: H.0
             [(1/3, 0)]
         """
-        if self.parent() != right.parent():
-            return cmp(self.parent(), right.parent())
-        v = self.__element - right.__element
-        if v.denominator() == 1:
-            # two elements are equal if they are equal modulo the lattice
+        if not isinstance(right, FiniteSubgroupElement):
+            return cmp(type(self), type(right))
+        A = self.parent().abelian_variety()
+        B = right.parent().abelian_variety()
+        if not A.in_same_ambient_variety(B):
+            return cmp(A, B)
+        if self.__element - right.__element in A.lattice() + B.lattice():
             return 0
-        return cmp(self.__element, right.__element)
+        else:
+            cmp(self.__element, right.__element)
 
     def additive_order(self):
         """
@@ -1228,4 +1011,17 @@ class FiniteSubgroupElement(ModuleElement):
             sage: (3*G.0).additive_order()
             1
         """
-        return self.__element.denominator()
+        return self._relative_element().denominator()
+
+    def _relative_element(self):
+        """
+        Return coordinates of this element in terms of basis for the
+        integral homology of the containing abelian variety.
+
+        OUTPUT:
+            vector
+
+        EXAMPLES:
+        """
+        return self.parent().abelian_variety().lattice().coordinate_vector(self.__element)
+

@@ -58,13 +58,13 @@ TESTS:
 ###########################################################################
 
 from finite_subgroup         import FiniteSubgroup
-from sage.rings.all          import infinity, QQ, gcd
+from sage.rings.all          import infinity, QQ, gcd, ZZ
 from sage.matrix.all         import matrix
 from sage.modular.congroup   import is_Gamma0
 from sage.modular.cusps      import Cusp
 
 class CuspidalSubgroup_generic(FiniteSubgroup):
-    def _compute_generators(self, rational_only=False):
+    def _compute_lattice(self, rational_only=False):
         r"""
         Return a list of vectors that define elements of the rational
         homology that generate this finite subgroup.
@@ -104,9 +104,10 @@ class CuspidalSubgroup_generic(FiniteSubgroup):
             [(1/3, 0)]
         """
         A = self.abelian_variety()
-        M = A.modular_symbols()
-        I = M.integral_period_mapping().matrix()
-        Amb = M.ambient_module()
+        Cusp = A.modular_symbols()
+        Amb  = Cusp.ambient_module()
+        Eis  = Amb.eisenstein_submodule()
+
         C = Amb.cusps()
         N = Amb.level()
         if rational_only:
@@ -116,36 +117,16 @@ class CuspidalSubgroup_generic(FiniteSubgroup):
                 data = [n for n in range(2,N) if gcd(n,N) == 1]
                 C = [c for c in C if is_rational_cusp_gamma0(c, N, data)]
 
-        G = [Amb([infinity, alpha]).element() for alpha in C]
-        J = matrix(QQ, len(G), Amb.dimension(), G)
-        R = (J * I).rows()
-        return [x for x in R if x.denominator() != 1]
+        v = [Amb([infinity, alpha]).element() for alpha in C]
+        cusp_matrix = matrix(QQ, len(v), Amb.dimension(), v)
 
-    def _generators(self):
-        """
-        Returned cached tuple of vectors that define elements of the
-        rational homology that generate this finite subgroup.
-
-        OUTPUT:
-            tuple -- cached
-
-        EXAMPLES:
-            sage: J = J0(27)
-            sage: G = J.cuspidal_subgroup()
-            sage: G._generators()
-            ((1/3, 0), (0, 1/3))
-
-        Test that the result is cached.
-            sage: G._generators() is G._generators()
-            True
-        """
-        try:
-            return self.__gens
-        except AttributeError:
-            pass
-        G = tuple(self._compute_generators(rational_only = False))
-        self.__gens = G
-        return G
+        # TODO -- refactor something out here
+        # Now we project onto the cuspidal part.
+        B = Cusp.free_module().basis_matrix().stack(Eis.free_module().basis_matrix())
+        X = B.solve_left(cusp_matrix)
+        X = X.matrix_from_columns(range(Cusp.dimension()))
+        lattice = X.row_module(ZZ) + A.lattice()
+        return lattice
 
 class CuspidalSubgroup(CuspidalSubgroup_generic):
     """
@@ -167,6 +148,31 @@ class CuspidalSubgroup(CuspidalSubgroup_generic):
         return "Cuspidal subgroup %sover QQ of %s"%(self._invariants_repr(), self.abelian_variety())
 
 
+    def lattice(self):
+        """
+        Returned cached tuple of vectors that define elements of the
+        rational homology that generate this finite subgroup.
+
+        OUTPUT:
+            tuple -- cached
+
+        EXAMPLES:
+            sage: J = J0(27)
+            sage: G = J.cuspidal_subgroup()
+            sage: G.lattice()
+            ((1/3, 0), (0, 1/3))
+
+        Test that the result is cached:
+            sage: G.lattice() is G.lattice()
+            True
+        """
+        try:
+            return self.__lattice
+        except AttributeError:
+            lattice = self._compute_lattice(rational_only = False)
+            self.__lattice = lattice
+            return lattice
+
 class RationalCuspidalSubgroup(CuspidalSubgroup_generic):
     """
     EXAMPLES:
@@ -187,13 +193,13 @@ class RationalCuspidalSubgroup(CuspidalSubgroup_generic):
         """
         return "Rational cuspidal subgroup %sover QQ of %s"%(self._invariants_repr(), self.abelian_variety())
 
-    def _generators(self):
+
+    def lattice(self):
         """
-        Returned cached tuple of vectors that define elements of the
-        rational homology that generate this finite subgroup.
+        Return lattice that defines this group.
 
         OUTPUT:
-            tuple -- cached
+            lattice
 
         EXAMPLES:
             sage: G = J0(27).rational_cusp_subgroup()
@@ -205,13 +211,11 @@ class RationalCuspidalSubgroup(CuspidalSubgroup_generic):
             True
         """
         try:
-            return self.__gens
+            return self.__lattice
         except AttributeError:
-            pass
-        G = tuple(self._compute_generators(rational_only = True))
-        self.__gens = G
-        return G
-
+            lattice = self._compute_lattice(rational_only = True)
+            self.__lattice = lattice
+            return lattice
 
 def is_rational_cusp_gamma0(c, N, data):
     """

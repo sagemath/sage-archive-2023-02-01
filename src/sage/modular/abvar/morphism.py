@@ -334,6 +334,23 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             False
             sage: t3(E11a0 + E11a1) == E11a0 + E11a1
             True
+
+        We apply some Hecke operators to the cuspidal subgroup and split it up:
+            sage: C = J0(33).cuspidal_subgroup(); C
+            Finite subgroup with invariants [10, 10] over QQ of Abelian variety J0(33) of dimension 3
+            sage: t2 = J0(33).hecke_operator(2); t2.fcp()
+            (x - 1)^2 * (x + 2)^4
+            sage: (t2 - 1)(C)
+            Finite subgroup with invariants [5, 5] over QQ of Abelian variety J0(33) of dimension 3
+            sage: (t2 + 2)(C)
+            Finite subgroup with invariants [2, 2] over QQ of Abelian variety J0(33) of dimension 3
+
+        Same but on a simple new factor:
+            sage: C = J0(33)[2].cuspidal_subgroup(); C
+            Finite subgroup with invariants [2, 2] over QQ of Abelian variety J0(33) of dimension 3
+            sage: t2 = J0(33)[2].hecke_operator(2); t2.fcp()
+            (x - 1)^2
+            sage: t2(C)
         """
         from abvar import is_ModularAbelianVariety
         from finite_subgroup import FiniteSubgroup
@@ -361,7 +378,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
 
         EXAMPLES:
         """
-        v = x.element() * self.matrix()
+        v = x._relative_element() * self.matrix() * self.codomain().lattice().basis_matrix()
         T = self.codomain().qbar_torsion_subgroup()
         return T(v)
 
@@ -375,8 +392,10 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         OUTPUT:
             a finite subgroup of the codomain
         """
-        H = [self._image_of_element(x) for x in G.gens()]
-        return self.codomain().finite_subgroup(H, field_of_definition = G.field_of_definition())
+        B = G._relative_basis_matrix() * self.matrix() * self.codomain().lattice().basis_matrix()
+        lattice = B.row_module(ZZ)
+        return self.codomain().finite_subgroup(lattice,
+                             field_of_definition = G.field_of_definition())
 
     def _image_of_abvar(self, A):
         D = self.domain()

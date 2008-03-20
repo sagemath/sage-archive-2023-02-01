@@ -28,9 +28,8 @@ from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence
 from sage.structure.parent_base import ParentWithBase
 from morphism                   import HeckeOperator, Morphism
-from torsion_subgroup           import TorsionSubgroup
-from finite_subgroup            import (FiniteSubgroup_gens, FiniteSubgroup,
-                                        FiniteSubgroupElement, QQbarTorsionSubgroup)
+from torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
+from finite_subgroup            import (FiniteSubgroup_lattice, FiniteSubgroup, FiniteSubgroupElement)
 from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup
 from sage.rings.all             import ZZ, QQ, QQbar, is_Ring, LCM, divisors, Integer
 from sage.modules.all           import is_FreeModule
@@ -287,16 +286,16 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             cat = ModularAbelianVarieties(F)
         return homspace.Homspace(self, B, cat)
 
-    def in_same_ambient_spaces(self, other):
+    def in_same_ambient_variety(self, other):
         """
         Return True if self and other are abelian subvarieties
         of the same ambient product Jacobian.
 
         EXAMPLES:
             sage: A,B,C = J0(33)
-            sage: A.in_same_ambient_spaces(B)
+            sage: A.in_same_ambient_variety(B)
             True
-            sage: A.in_same_ambient_spaces(J0(11))
+            sage: A.in_same_ambient_variety(J0(11))
             False
         """
         if not is_ModularAbelianVariety(other):
@@ -397,7 +396,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         if isinstance(other, FiniteSubgroup):
             return other.intersection(self)
 
-        if not self.in_same_ambient_spaces(other):
+        if not self.in_same_ambient_variety(other):
             raise TypeError, "other must be an abelian variety in the same ambient space"
 
         L = self.lattice().basis_matrix()
@@ -1443,14 +1442,14 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             self.__qbar_torsion_subgroup = G
             return G
 
-    def torsion_subgroup(self):
+    def rational_torsion_subgroup(self):
         """
         EXAMPLES:
             sage: J = J0(33)
             sage: A = J.new_subvariety()
             sage: A
             Abelian subvariety of dimension 1 of J0(33)
-            sage: t = A.torsion_subgroup()
+            sage: t = A.rational_torsion_subgroup()
             sage: t.multiple_of_order()
             4
             sage: t.divisor_of_order()
@@ -1463,10 +1462,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Torsion subgroup of Abelian subvariety of dimension 1 of J0(33)
         """
         try:
-            return self._torsion_subgroup
+            return self.__rational_torsion_subgroup
         except AttributeError:
-            T = TorsionSubgroup(self)
-            self._torsion_subgroup = T
+            T = RationalTorsionSubgroup(self)
+            self.__rational_torsion_subgroup = T
             return T
 
     def cuspidal_subgroup(self):
@@ -1520,7 +1519,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Z_right = matrix(QQ,L.nrows(),n-i-L.ncols())
             lattice += (Z_left.augment(L).augment(Z_right)).row_module(ZZ)
             i += L.ncols()
-        return self.finite_subgroup(lattice.basis(), field_of_definition=self.base_field())
+        return FiniteSubgroup_lattice(self, lattice, field_of_definition=self.base_field())
 
     def rational_cusp_subgroup(self):
         r"""
@@ -1583,13 +1582,13 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             True
         """
         try:
-            return self._zero_subgroup
+            return self.__zero_subgroup
         except AttributeError:
-            G = FiniteSubgroup_gens(self, [], field_of_definition=QQ)
-            self._zero_subgroup = G
+            G = FiniteSubgroup_lattice(self, self.lattice(), field_of_definition=QQ)
+            self.__zero_subgroup = G
             return G
 
-    def finite_subgroup(self, X, field_of_definition=None):
+    def finite_subgroup(self, X, field_of_definition=None, check=True):
         """
         Return a finite subgroup of this modular abelian variety.
 
@@ -1637,41 +1636,46 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 except ValueError:
                     raise TypeError, "unable to coerce subgroup into abelian variety."
 
+        ## TODO TODO --/\  make the above construct a lattice.
+
         if field_of_definition is None:
             field_of_definition = QQbar
         else:
             field_of_definition = field_of_definition
 
-        return FiniteSubgroup_gens(self, X, field_of_definition=field_of_definition, check=True)
+        return FiniteSubgroup_lattice(self, X, field_of_definition=field_of_definition, check=check)
 
 
-    def n_torsion_subgroup(self, n):
+    def torsion_subgroup(self, n):
         """
+        If n is an integer, return the subgroup of points of order n.
         Return the $n$-torsion subgroup of elements of order dividing $n$
         of this modular abelian variety $A$, i.e., the group $A[n]$.
 
         EXAMPLES:
+            sage: J1(13).torsion_subgroup(19)
+            Finite subgroup with invariants [19, 19, 19, 19] over QQ of Abelian variety J1(13) of dimension 2
+
             sage: A = J0(23)
-            sage: G = A.n_torsion_subgroup(5); G
+            sage: G = A.torsion_subgroup(5); G
             Finite subgroup with invariants [5, 5, 5, 5] over QQ of Abelian variety J0(23) of dimension 2
             sage: G.order()
             625
             sage: G.gens()
             [[(1/5, 0, 0, 0)], [(0, 1/5, 0, 0)], [(0, 0, 1/5, 0)], [(0, 0, 0, 1/5)]]
             sage: A = J0(23)
-            sage: A.n_torsion_subgroup(2).order()
+            sage: A.torsion_subgroup(2).order()
             16
         """
-        n = ZZ(n)
         try:
-            return self.__n_torsion_subgroup[n]
+            return self.__torsion_subgroup[n]
         except KeyError:
             pass
         except AttributeError:
-            self.__n_torsion_subgroup = {}
-        G = self.zero_subgroup()
-        H = G.multiply(1/n)
-        self.__n_torsion_subgroup[n] = H
+            self.__torsion_subgroup = {}
+        lattice = self.lattice().scale(1/Integer(n))
+        H = FiniteSubgroup_lattice(self, lattice, field_of_definition=self.base_field())
+        self.__torsion_subgroup[n] = H
         return H
 
 

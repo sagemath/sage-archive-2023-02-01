@@ -455,7 +455,7 @@ class FiniteSubgroup(Module):
         EXAMPLES:
             sage: J = J0(42)
             sage: G = J.torsion_subgroup(); G
-            Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)
+            Torsion subgroup of Abelian variety J0(42) of dimension 5
             sage: G._generators()
             Traceback (most recent call last):
             ...
@@ -470,9 +470,9 @@ class FiniteSubgroup(Module):
         EXAMPLES:
             sage: J = J0(42)
             sage: G = J.torsion_subgroup(); G
-            Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)
+            Torsion subgroup of Abelian variety J0(42) of dimension 5
             sage: G.abelian_variety()
-            Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)
+            Abelian variety J0(42) of dimension 5
         """
         return self.__abvar
 
@@ -485,7 +485,7 @@ class FiniteSubgroup(Module):
         EXAMPLES:
             sage: J = J0(42)
             sage: G = J.torsion_subgroup(); G
-            Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)
+            Torsion subgroup of Abelian variety J0(42) of dimension 5
             sage: G.field_of_definition()
             Rational Field
         """
@@ -498,7 +498,8 @@ class FiniteSubgroup(Module):
         EXAMPLES:
             sage: J = J0(42)
             sage: G = J.n_torsion_subgroup(3); G._repr_()
-            'Finite subgroup with invariants [3, 3, 3, 3, 3, 3, 3, 3, 3, 3] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)'
+            'Finite subgroup with invariants [3, 3, 3, 3, 3, 3, 3, 3, 3, 3] over QQ of Abelian variety J0
+(42) of dimension 5'
         """
         K = self.__field_of_definition
         if K == QQbar:
@@ -617,7 +618,7 @@ class FiniteSubgroup(Module):
 
         EXAMPLES:
             sage: J = J0(33); C = J[0].cuspidal_subgroup(); C
-            Cuspidal subgroup with invariants [2, 2] over QQ of Abelian variety factor of dimension 1 of J0(33)
+            Finite subgroup with invariants [5] over QQbar of Abelian variety J0(33) of dimension 3
             sage: C.lattice()
             Free module of degree 6 and rank 2 over Integer Ring
             Echelon basis matrix:
@@ -691,7 +692,7 @@ class FiniteSubgroup(Module):
             sage: J0(37).cuspidal_subgroup().gens()
             [[(0, 0, 0, 1/3)]]
             sage: J0(43).cuspidal_subgroup().gens()
-            [[(0, 1/7, 0, -1/7, 0, -2/7)]]
+            [[(0, 1/7, 0, 6/7, 0, 5/7)]]
             sage: J1(13).cuspidal_subgroup().gens()
             [[(1/19, 0, 0, 9/19)], [(0, 1/19, 1/19, 18/19)]]
         """
@@ -815,12 +816,12 @@ class FiniteSubgroup(Module):
         EXAMPLES:
             sage: J = J0(23)
             sage: G = J.n_torsion_subgroup(11); G
-            Finite subgroup with invariants [11, 11, 11, 11] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+            Finite subgroup with invariants [11, 11, 11, 11] over QQ of Abelian variety J0(23) of dimension 2
 
         We create the subgroup of the 11-torsion subgroup of $J_0(23)$ generated
         by the first $11$-torsion point:
             sage: H = G.subgroup([G.0]); H
-            Finite subgroup with invariants [11] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+            Finite subgroup with invariants [11] over QQbar of Abelian variety J0(23) of dimension 2
             sage: H.invariants()
             [11]
 
@@ -845,7 +846,7 @@ class FiniteSubgroup(Module):
         EXAMPLES:
             sage: J = J0(38)
             sage: C = J.cuspidal_subgroup(); C
-            Cuspidal subgroup with invariants [3, 45] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(38)
+            Finite subgroup with invariants [3, 45] over QQbar of Abelian variety J0(38) of dimension 4
             sage: v = C.invariants(); v
             [3, 45]
             sage: v[0] = 5

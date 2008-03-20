@@ -129,14 +129,15 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
              Abelian subvariety of dimension 0 of J0(33))
         """
         A = self.matrix()
-        L = A.image()  # over QQ
+        L = A.image().change_ring(ZZ)
         # Saturate the image of the matrix corresponding to self.
         Lsat = L.saturation()
         # Now find a matrix whose rows map exactly onto the
         # saturation of L.
         X = A.solve_left(Lsat.basis_matrix())
         D = self.domain()
-        Lambda = A.kernel().intersection(D._ambient_lattice())
+        V = (A.kernel().basis_matrix() * D.vector_space().basis_matrix()).row_module()
+        Lambda = V.intersection(D._ambient_lattice())
         from abvar import ModularAbelianVariety
         abvar = ModularAbelianVariety(D.groups(), Lambda, D.base_ring())
 

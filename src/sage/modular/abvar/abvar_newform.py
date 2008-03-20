@@ -50,7 +50,9 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         self.__named_newforms = { variable_name: self.__f }
         if not internal_name:
             self.__named_newforms[None] = self.__f
-        ModularAbelianVariety_modsym_abstract.__init__(self, QQ)
+        ModularAbelianVariety_modsym_abstract.__init__(self, QQ,
+                  is_simple=True, newform_level = f.level(), isogeny_number=0,
+                  number=f.number())
 
     def _modular_symbols(self,sign=0):
         """
@@ -146,12 +148,11 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         String representation of this modular abelian variety.
 
         EXAMPLES:
-            sage: f = CuspForms(43).newforms('a')[1]
-            sage: A = f.abelian_variety()
-            sage: A._repr_()
-            'Modular abelian variety attached to a newform of level 43'
+            sage: AbelianVariety('37a')._repr_()
+            'Newform abelian subvariety 37a and dimension 1 of J0(37)'
         """
-        return "Modular abelian variety attached to a newform of level %s" % self.__f.level()
+        return "Newform abelian subvariety %s and dimension %s of %s" % (
+            self.newform_label(), self.dimension(), self._ambient_repr())
 
     def endomorphism_ring(self):
         try:

@@ -8,8 +8,9 @@ TESTS:
     sage: A = J0(33)
     sage: D = A.decomposition(); D
     [
-    Abelian variety factor of dimension 1 of J0(33),
-    Abelian variety factor of dimension 2 of J0(33)
+    Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33),
+    Simple abelian subvariety 11a(3,33) of dimension 1 of J0(33),
+    Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
     ]
     sage: loads(dumps(D)) == D
     True
@@ -120,7 +121,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         """
             sage: J = J0(67); G = (J[0] + J[1]).intersection(J[1] + J[2])
             sage: G[0]
-            Finite subgroup with invariants [5, 10] over QQbar of Abelian variety factor of dimension 3 of J0(67)
+            Finite subgroup with invariants [5, 10] over QQbar of Abelian subvariety of dimension 3 of J0(67)
             sage: a = G[0].0; a
             [(1/10, 1/10, 3/10, 1/2, 1/5, 4/5)]
             sage: a in J[0]
@@ -194,6 +195,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         degen = str(self.number()).replace(' ','')
         return '%s%s%s'%(self.newform_level(), cremona_letter_code(self.isogeny_number()), degen)
 
+    def newform_label(self):
+        return '%s%s'%(self.newform_level(), cremona_letter_code(self.isogeny_number()))
+
     def _isogeny_to_newform_abelian_variety(self):
         D = self.decomposition()
         if len(D) > 1:
@@ -234,7 +238,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES:
             sage: J0(37)._Hom_(J1(37))
-            Space of homomorphisms from Jacobian of the modular curve associated to the congruence subgroup Gamma0(37) to Jacobian of the modular curve associated to the congruence subgroup Gamma1(37)
+            Space of homomorphisms from Abelian variety J0(37) of dimension 2 to Abelian variety J1(37) of dimension 40
         """
         if cat is None:
             K = self.base_field(); L = B.base_field()
@@ -272,32 +276,28 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         We intersect some abelian varieties with finite intersection.
             sage: J = J0(37)
             sage: J[0].intersection(J[1])
-            Finite subgroup with invariants [2, 2] over QQ of Abelian variety factor of dimension 1 of J0(37)
+            (Finite subgroup with invariants [2, 2] over QQ of Simple abelian subvariety 37a(1,37) of dimension 1 of J0(37), Abelian subvariety of dimension 0 of J0(37))
 
             sage: D = list(J0(65)); D
-            [
-            Simple abelian variety factor 65a(1,65) of dimension 1 of J0(65),
-            Simple abelian variety factor 65b(1,65) of dimension 2 of J0(65),
-            Simple abelian variety factor 65c(1,65) of dimension 2 of J0(65)
-            ]
+            [Simple abelian subvariety 65a(1,65) of dimension 1 of J0(65), Simple abelian subvariety 65b(1,65) of dimension 2 of J0(65), Simple abelian subvariety 65c(1,65) of dimension 2 of J0(65)]
             sage: D[0].intersection(D[1])
-            Finite subgroup with invariants [2] over QQ of Simple abelian variety factor 65a(1,65) of dimension 1 of J0(65)
+            (Finite subgroup with invariants [2] over QQ of Simple abelian subvariety 65a(1,65) of dimension 1 of J0(65), Abelian subvariety of dimension 0 of J0(65))
             sage: (D[0]+D[1]).intersection(D[1]+D[2])
-            Finite subgroup with invariants [2] over QQbar of Abelian variety factor of dimension 3 of J0(65)
+            (Finite subgroup with invariants [2] over QQbar of Abelian subvariety of dimension 3 of J0(65), Abelian subvariety of dimension 2 of J0(65))
 
             sage: J = J0(33)
             sage: J[0].intersection(J[1])
-            (Finite subgroup with invariants [3, 3] over QQ of Abelian variety factor of dimension 1 of J0(33), Abelian variety factor of dimension 0 of J0(33))
+            (Finite subgroup with invariants [5] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33), Abelian subvariety of dimension 0 of J0(33))
 
         Next we intersect two abelian varieties with non-finite intersection:
             sage: J = J0(67); D = J.decomposition(); D
             [
-            Abelian variety factor of dimension 1 of J0(67),
-            Abelian variety factor of dimension 2 of J0(67),
-            Abelian variety factor of dimension 2 of J0(67)
+            Simple abelian subvariety 67a(1,67) of dimension 1 of J0(67),
+            Simple abelian subvariety 67b(1,67) of dimension 2 of J0(67),
+            Simple abelian subvariety 67c(1,67) of dimension 2 of J0(67)
             ]
             sage: (D[0] + D[1]).intersection(D[1] + D[2])
-            (Finite subgroup with invariants [5, 10] over QQbar of Abelian variety factor of dimension 3 of J0(67), Abelian variety factor of dimension 2 of J0(67))
+            (Finite subgroup with invariants [5, 10] over QQbar of Abelian subvariety of dimension 3 of J0(67), Abelian subvariety of dimension 2 of J0(67))
 
         """
         if not self.in_same_ambient_spaces(other):
@@ -370,9 +370,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: J = J0(37)
             sage: J^0
-            Abelian variety factor of dimension 0 of J0(37)
+            Simple abelian subvariety of dimension 0 of J0(37)
             sage: J^1
-            Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+            Abelian variety J0(37) of dimension 2
             sage: J^1 is J
             True
         """
@@ -402,7 +402,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         We multiply some factors of $J_0(65)$:
             sage: d = J0(65).decomposition()
             sage: d[0] * d[1] * J0(11)
-            Abelian variety factor of dimension 4 of J0(65) x J0(65) x J0(11)
+            Abelian subvariety of dimension 4 of J0(65) x J0(65) x J0(11)
         """
         if not is_ModularAbelianVariety(other):
             raise TypeError, "other must be a modular abelian variety"
@@ -628,7 +628,80 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             self.__ambient_variety = A
             return A
 
+    def ambient_morphism(self):
+        """
+        Return the morphism from self to the ambient variety.  This is
+        injective if self is natural a subvariety of the ambient
+        product Jacobian.
+
+        OUTPUT:
+            morphism
+
+        The output is cached.
+
+        EXAMPLES:
+        We compute the ambient structure morphism for an abelian
+        subvariety of $J_0(33)$:
+            sage: A,B,C = J0(33)
+            sage: phi = A.ambient_morphism()
+            sage: phi.domain()
+            Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
+            sage: phi.codomain()
+            Abelian variety J0(33)
+            sage: phi.matrix()
+            [ 1  1 -2  0  2 -1]
+            [ 0  3 -2 -1  2  0]
+
+        phi is of course injective
+            sage: phi.kernel()
+            (Finite subgroup with invariants [] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33),
+             Abelian subvariety of dimension 0 of J0(33))
+
+        This is the same as the basis matrix for the lattice corresponding
+        to self:
+            sage: A.lattice()
+            Free module of degree 6 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 1  1 -2  0  2 -1]
+            [ 0  3 -2 -1  2  0]
+
+        We compute a non-injecture map to an ambient space:
+            sage: Q,pi = J0(33)/A
+            sage: phi = Q.ambient_morphism()
+            sage: phi.matrix()
+            [  1   4   1   9  -1  -1]
+            [  0  15   0   0  30 -75]
+            [  0   0   5  10  -5  15]
+            [  0   0   0  15 -15  30]
+            sage: phi.kernel()[0]
+            Finite subgroup with invariants [5, 15, 15] over QQ of Abelian variety factor of dimension 2 of J0(33)
+        """
+        try:
+            return self.__ambient_morphism
+        except AttributeError:
+            matrix,_ = self.lattice().basis_matrix()._clear_denom()
+            phi = Morphism(self.Hom(self.ambient_variety()), matrix)
+            self.__ambient_morphism = phi
+            return phi
+
     def is_ambient(self):
+        """
+        Return True if self equals the ambient product Jacobian.
+
+        OUTPUT:
+            bool
+
+        EXAMPLES:
+            sage: A,B,C = J0(33)
+            sage: A.is_ambient()
+            False
+            sage: J0(33).is_ambient()
+            True
+            sage: (A+B).is_ambient()
+            False
+            sage: (A+B+C).is_ambient()
+            True
+        """
         try:
             return self.__is_ambient
         except AttributeError:
@@ -657,9 +730,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: J.rank()
             6
             sage: J[1]
-            Abelian variety factor of dimension 2 of J0(33)
+            Simple abelian subvariety 11a(3,33) of dimension 1 of J0(33)
             sage: (J[1] * J[1]).rank()
-            8
+            4
         """
         return self.lattice().rank()
 
@@ -718,9 +791,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES:
             sage: J = J0(37); J
-            Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+            Abelian variety J0(37) of dimension 2
             sage: A = J[0]; A
-            Abelian variety factor of dimension 1 of J0(37)
+            Simple abelian subvariety 37a(1,37) of dimension 1 of J0(37)
             sage: A.is_subvariety(A)
             True
             sage: A.is_subvariety(J)
@@ -810,10 +883,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: J = J0(37)
             sage: J.zero_subvariety()
-            Abelian variety factor of dimension 0 of J0(37)
+            Simple abelian subvariety of dimension 0 of J0(37)
             sage: J.zero_subvariety().level()
             37
-            sage:
             sage: J.zero_subvariety().newform_level()
             1
         """
@@ -921,11 +993,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES:
             sage: J0(389).homology(GF(7))
-            Homology with coefficients in Finite Field of size 7 of Jacobian of the modular curve associated to the congruence subgroup Gamma0(389)
+            Homology with coefficients in Finite Field of size 7 of Abelian variety J0(389) of dimension 32
             sage: J0(389).homology(QQ)
-            Rational Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(389)
+            Rational Homology of Abelian variety J0(389) of dimension 32
             sage: J0(389).homology(ZZ)
-            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(389)
+            Integral Homology of Abelian variety J0(389) of dimension 32
         """
         try:
             return self._homology[base_ring]
@@ -948,18 +1020,18 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES:
             sage: H = J0(43).integral_homology(); H
-            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+            Integral Homology of Abelian variety J0(43) of dimension 3
             sage: H.rank()
             6
             sage: H = J1(17).integral_homology(); H
-            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma1(17)
+            Integral Homology of Abelian variety J1(17) of dimension 5
             sage: H.rank()
             10
 
         If you just ask for the rank of the homology, no serious
         calculations are done, so the following is fast:
             sage: H = J0(50000).integral_homology(); H
-            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(50000)
+            Integral Homology of Abelian variety J0(50000) of dimension 7351
             sage: H.rank()
             14702
         """
@@ -971,13 +1043,13 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES:
             sage: H = J0(37).rational_homology(); H
-            Rational Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+            Rational Homology of Abelian variety J0(37) of dimension 2
             sage: H.rank()
             4
             sage: H.base_ring()
             Rational Field
             sage: H = J1(17).rational_homology(); H
-            Rational Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma1(17)
+            Rational Homology of Abelian variety J1(17) of dimension 5
             sage: H.rank()
             10
             sage: H.base_ring()
@@ -995,7 +1067,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: A = J0(37)
             sage: A.lseries()
-            Complex L-series attached to Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+            Complex L-series attached to Abelian variety J0(37) of dimension 2
         """
         try:
             return self.__lseries
@@ -1011,7 +1083,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: A = J0(37)
             sage: A.padic_lseries(7)
-            7-adic L-series attached to Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+            7-adic L-series attached to Abelian variety J0(37) of dimension 2
         """
         p = int(p)
         try:
@@ -1035,7 +1107,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
         We compute $T_2$ on $J_0(37)$.
             sage: t2 = J0(37).hecke_operator(2); t2
-            Hecke operator T_2 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+            Hecke operator T_2 on Abelian variety J0(37) of dimension 2
             sage: t2.charpoly().factor()
             x^2 * (x + 2)^2
             sage: t2.index()
@@ -1111,7 +1183,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: J = J0(33)
             sage: A = J.new_quotient()
             sage: A
-            Abelian variety factor of dimension 1 of J0(33)
+            Abelian subvariety of dimension 1 of J0(33)
             sage: t = A.torsion_subgroup()
             sage: t.multiple_of_order()
             4
@@ -1122,7 +1194,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: t.gens()
             [[(1/2, 0)], [(0, 1/2)]]
             sage: t
-            Torsion subgroup of Abelian variety factor of dimension 1 of J0(33)
+            Torsion subgroup of Abelian subvariety of dimension 1 of J0(33)
         """
         try:
             return self._torsion_subgroup
@@ -1159,7 +1231,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: J = J0(54)
             sage: CQ = J.rational_cuspidal_subgroup(); CQ
-            Rational cuspidal subgroup with invariants [3, 3, 9] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(54)
+            Rational cuspidal subgroup with invariants [3, 3, 9] over QQ of Abelian variety J0(54) of dimension 4
             sage: CQ.gens()
             [[(1/3, 0, 0, 1/3, -1/3, -2/3, 1/3, 0)], [(0, 0, 1/9, 1/9, -2/9, -2/9, 1/9, -1/9)], [(0, 0, 0, 1, -1, -1, 2/3, -2/3)]]
 
@@ -1182,7 +1254,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES:
             sage: A =J0(54); G = A.zero_subgroup(); G
-            Finite subgroup with invariants [] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(54)
+            Finite subgroup with invariants [] over QQ of Abelian variety J0(54) of dimension 4
             sage: G.is_subgroup(A)
             True
         """
@@ -1214,12 +1286,12 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: J = J0(11)
             sage: J.finite_subgroup([[1/5,0], [0,1/3]])
-            Finite subgroup with invariants [15] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+            Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
 
             sage: J = J0(33); C = J[0].cuspidal_subgroup(); C
             Cuspidal subgroup with invariants [2, 2] over QQ of Abelian variety factor of dimension 1 of J0(33)
             sage: J.finite_subgroup([[0,0,0,0,0,1/6]])
-            Finite subgroup with invariants [6] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(33)
+            Finite subgroup with invariants [6] over QQbar of Abelian variety J0(33) of dimension 3
             sage: J.finite_subgroup(C)
             Finite subgroup with invariants [2, 2] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(33)
 
@@ -1255,7 +1327,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: A = J0(23)
             sage: G = A.n_torsion_subgroup(5); G
-            Finite subgroup with invariants [5, 5, 5, 5] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+            Finite subgroup with invariants [5, 5, 5, 5] over QQ of Abelian variety J0(23) of dimension 2
             sage: G.order()
             625
             sage: G.gens()
@@ -1494,7 +1566,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: a,b,c = J0(33)
             sage: (a+b).complement()
-            Simple abelian variety factor 33a(1,33) of dimension 1 of J0(33)
+            Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
             sage: (a+b).complement() == c
             True
             sage: a.complement(a+b)
@@ -1521,6 +1593,103 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             if A is not None:
                 C = C.intersection(A)[1]
         return C
+
+    def dual(self):
+        r"""
+        Return the dual of this abelian variety.
+
+        OUTPUT:
+            abelian variety
+
+        WARNING: This is currently only implemented when self is an
+        abelian subvariety of the ambient Jacobian product, and the
+        complement of self in the ambient product Jacobian share no
+        common factors.  A more general implementation will require
+        implementing computation of the intersection pairing on
+        integral homology and resulting Weil pairing on torsion.
+
+        EXAMPLES:
+        First we compute the dual of the image of an old simple factor
+        of $J_0(33)$.
+            sage: A,B,C = J0(33)
+            sage: Ad, f = A.dual()
+            sage: f.matrix()
+            [15 -3]
+            [ 0  3]
+            sage: f.domain()
+            Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
+            sage: f.codomain()
+            Abelian variety factor of dimension 1 of J0(33)
+            sage: f.kernel()
+            (Finite subgroup with invariants [3, 15] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33),
+             Abelian subvariety of dimension 0 of J0(33))
+
+        Next we compute the dual of the elliptic curve newform abelian variety of
+        level $33$, and find the kernel of the modular map, which has structure
+        $(\ZZ/3)^2$.
+
+            sage: C
+            Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
+            sage: Cd, f = C.dual()
+            sage: f
+            Morphism defined by the matrix
+            [3 0]
+            [0 3]
+            sage: f.kernel()[0]
+            Finite subgroup with invariants [3, 3] over QQ of Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
+
+        By a theorem the modular degree must thus be $3$:
+            sage: E = EllipticCurve('33a')
+            sage: E.modular_degree()
+            3
+
+        Next we compute the dual of a $2$-dimensional new simple
+        abelian subvariety of $J_0(43)$.
+            sage: A = AbelianVariety('43b'); A
+            Modular abelian variety attached to a newform of level 43
+            sage: Ad, f = A.dual()
+
+        The kernel shows that the modular degree is $2$:
+            sage: f.kernel()[0]
+            Finite subgroup with invariants [2, 2] over QQ of Modular abelian variety attached to a newform of level 43
+
+        Unfortunately, the dual is not implemented in general:
+            sage: A = J0(22)[0]; A
+            Simple abelian subvariety 11a(1,22) of dimension 1 of J0(22)
+            sage: A.dual()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: dual not implemented unless complement shares no simple factors with self.
+        """
+        try:
+            return self.__dual
+        except AttributeError:
+            if not self.is_subvariety_of_ambient_jacobian():
+                raise NotImplementedError, "dual not implemented unless abelian variety is a subvariety of the ambient Jacobian product"
+            if not self._complement_shares_no_simple_factors():
+                raise NotImplementedError, "dual not implemented unless complement shares no simple factors with self."
+            C = self.complement()
+            Q, phi = self.ambient_variety().quotient(C)
+            psi = self.ambient_morphism()
+            self.__dual = Q, phi*psi
+            return self.__dual
+
+    def common_simple_factors(self, other):
+        if not isinstance(other, ModularAbelianVariety_abstract):
+            raise TypeError, "other must be an abelian variety"
+        D = self.decomposition()
+        C = set([A.newform_label() for A in self.complement().decomposition()])
+        Z = [X for X in D if X.newform_label() in C]
+        Z.sort()
+        return Z
+
+    def _complement_shares_no_simple_factors(self):
+        try:
+            return self.__complement_shares_no_simple_factors
+        except AttributeError:
+            t = len(self.common_simple_factors(self.complement())) == 0
+            self.__complement_shares_no_simple_factors = t
+            return t
 
     def xxx_decomposition(self, simple=True, bound=None):
         """
@@ -1597,16 +1766,16 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: J = J0(389)
             sage: J.decomposition()
             [
-            Abelian variety factor of dimension 1 of J0(389),
-            Abelian variety factor of dimension 2 of J0(389),
-            Abelian variety factor of dimension 3 of J0(389),
-            Abelian variety factor of dimension 6 of J0(389),
-            Abelian variety factor of dimension 20 of J0(389)
+            Simple abelian subvariety 389a(1,389) of dimension 1 of J0(389),
+            Simple abelian subvariety 389b(1,389) of dimension 2 of J0(389),
+            Simple abelian subvariety 389c(1,389) of dimension 3 of J0(389),
+            Simple abelian subvariety 389d(1,389) of dimension 6 of J0(389),
+            Simple abelian subvariety 389e(1,389) of dimension 20 of J0(389)
             ]
             sage: J[2]
-            Abelian variety factor of dimension 3 of J0(389)
+            Simple abelian subvariety 389c(1,389) of dimension 3 of J0(389)
             sage: J[-1]
-            Abelian variety factor of dimension 20 of J0(389)
+            Simple abelian subvariety 389e(1,389) of dimension 20 of J0(389)
         """
         return self.decomposition()[i]
 
@@ -1617,14 +1786,14 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: J = J0(125); J.decomposition()
             [
-            Abelian variety factor of dimension 2 of J0(125),
-            Abelian variety factor of dimension 2 of J0(125),
-            Abelian variety factor of dimension 4 of J0(125)
+            Simple abelian subvariety 125a(1,125) of dimension 2 of J0(125),
+            Simple abelian subvariety 125b(1,125) of dimension 2 of J0(125),
+            Simple abelian subvariety 125c(1,125) of dimension 4 of J0(125)
             ]
             sage: J[:2]
             [
-            Abelian variety factor of dimension 2 of J0(125),
-            Abelian variety factor of dimension 2 of J0(125)
+            Simple abelian subvariety 125a(1,125) of dimension 2 of J0(125),
+            Simple abelian subvariety 125b(1,125) of dimension 2 of J0(125)
             ]
         """
         return self.decomposition()[i:j]
@@ -1646,7 +1815,7 @@ class ModularAbelianVariety(ModularAbelianVariety_abstract):
 
         EXAMPLES:
             sage: J0(23)
-            Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+            Abelian variety J0(23) of dimension 2
         """
         if check:
             if not isinstance(groups, tuple):
@@ -1692,18 +1861,20 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
         EXAMPLES:
             sage: A = J0(42); D = A.decomposition(); D
             [
-            Abelian variety factor of dimension 1 of J0(42),
-            Abelian variety factor of dimension 2 of J0(42),
-            Abelian variety factor of dimension 2 of J0(42)
+            Simple abelian subvariety 21a(2,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 14a(1,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 14a(3,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 42a(1,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 21a(1,42) of dimension 1 of J0(42)
             ]
             sage: D[0] + D[1]
-            Abelian variety factor of dimension 3 of J0(42)
+            Abelian subvariety of dimension 2 of J0(42)
             sage: D[1].is_subvariety(D[0] + D[1])
             True
             sage: D[0] + D[1] + D[2]
-            Abelian variety J0(42)
+            Abelian subvariety of dimension 3 of J0(42)
             sage: D[0] + D[0]
-            Abelian variety factor of dimension 1 of J0(42)
+            Abelian subvariety of dimension 1 of J0(42)
             sage: D[0] + D[0] == D[0]
             True
             sage: sum(D, D[0]) == A
@@ -1765,9 +1936,9 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
 
         Even more examples:
             sage: A = J0(33)[1]; A
-            Abelian variety factor of dimension 2 of J0(33)
+            Simple abelian subvariety 11a(3,33) of dimension 1 of J0(33)
             sage: A.modular_symbols()
-            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
             sage: A.modular_symbols(1)
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field
             sage: A.modular_symbols(-1)
@@ -1907,9 +2078,9 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
 
         EXAMPLES:
             sage: J = J0(37); J
-            Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+            Abelian variety J0(37) of dimension 2
             sage: A = J[0]; A
-            Abelian variety factor of dimension 1 of J0(37)
+            Simple abelian subvariety 37a(1,37) of dimension 1 of J0(37)
             sage: A.is_subvariety(J)
             True
             sage: A.is_subvariety(J0(11))
@@ -1930,9 +2101,11 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
         More examples:
             sage: A = J0(42); D = A.decomposition(); D
             [
-            Abelian variety factor of dimension 1 of J0(42),
-            Abelian variety factor of dimension 2 of J0(42),
-            Abelian variety factor of dimension 2 of J0(42)
+            Simple abelian subvariety 21a(2,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 14a(1,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 14a(3,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 42a(1,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 21a(1,42) of dimension 1 of J0(42)
             ]
             sage: D[0].is_subvariety(A)
             True
@@ -1985,9 +2158,9 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
 
         EXAMPLES:
             sage: J0(33).new_quotient()
-            Abelian variety factor of dimension 1 of J0(33)
+            Abelian subvariety of dimension 1 of J0(33)
             sage: J0(100).new_quotient()
-            Abelian variety factor of dimension 1 of J0(100)
+            Abelian subvariety of dimension 1 of J0(100)
             sage: J1(13).new_quotient()
             Abelian variety J1(13)
         """
@@ -2015,11 +2188,11 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
 
         EXAMPLES:
             sage: J0(33).old_quotient()
-            Abelian variety factor of dimension 2 of J0(33)
+            Abelian subvariety of dimension 2 of J0(33)
             sage: J0(100).old_quotient()
-            Abelian variety factor of dimension 6 of J0(100)
+            Abelian subvariety of dimension 6 of J0(100)
             sage: J1(13).old_quotient()
-            Abelian variety factor of dimension 0 of J1(13)
+            Abelian subvariety of dimension 0 of J1(13)
         """
         try:
             return self.__old_quotient[p]
@@ -2051,13 +2224,14 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             sage: J = J0(33)
             sage: J.decomposition()
             [
-            Abelian variety factor of dimension 1 of J0(33),
-            Abelian variety factor of dimension 2 of J0(33)
+            Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33),
+            Simple abelian subvariety 11a(3,33) of dimension 1 of J0(33),
+            Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
             ]
             sage: J1(17).decomposition()
             [
-            Abelian variety factor of dimension 1 of J1(17),
-            Abelian variety factor of dimension 4 of J1(17)
+            Simple abelian subvariety 17a(1,17) of dimension 1 of J1(17),
+            Simple abelian subvariety 17b(1,17) of dimension 4 of J1(17)
             ]
         """
         try:

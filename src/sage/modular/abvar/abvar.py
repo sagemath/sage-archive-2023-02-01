@@ -32,11 +32,12 @@ from torsion_subgroup           import TorsionSubgroup
 from finite_subgroup            import (FiniteSubgroup_gens, FiniteSubgroup,
                                         FiniteSubgroupElement, QQbarTorsionSubgroup)
 from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup
-from sage.rings.all             import ZZ, QQ, QQbar, is_Ring, LCM, divisors
+from sage.rings.all             import ZZ, QQ, QQbar, is_Ring, LCM, divisors, Integer
 from sage.modules.all           import is_FreeModule
 from sage.modular.congroup      import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
 from sage.modular.modsym.all    import ModularSymbols
 from sage.modular.modsym.space  import ModularSymbolsSpace
+from sage.modular.dims          import dimension_cusp_forms
 from sage.matrix.all            import matrix, block_diagonal_matrix
 from sage.groups.all            import AbelianGroup
 from sage.databases.cremona     import cremona_letter_code
@@ -491,9 +492,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             other -- a finite subgroup or subvariety
 
         OUTPUT:
-            if other is finite: an abelian variety if other is finite
-            if other is infinite: a pair (A, phi) with phi the
-            quotient map from self to A
+            a pair (A, phi) with phi the quotient map from self to A
         """
         return self.__div__(other)
 
@@ -604,7 +603,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def _quotient_by_finite_subgroup(self, G):
         if G.order() == 1:
             return self
-        return ModularAbelianVariety(self.groups(), self.lattice() + G.lattice(), G.base_field())
+        L = self.lattice() + G.lattice()
+        A = ModularAbelianVariety(self.groups(), L, G.field_of_definition())
+        M = L.coordinate_module(self.lattice()).basis_matrix()
+        phi = self.Hom(A)(M)
+        return A, phi
 
     def _quotient_by_abelian_subvariety(self, B):
 
@@ -692,9 +695,31 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         return Morphism(self.Hom(A), X)
 
-
-
     def is_subvariety_of_ambient_jacobian(self):
+        """
+        Return True if self is (presented as) a subvariety of the
+        ambient product Jacobian.
+
+        Every abelian variety in Sage is a quotient of a subvariety of
+        an ambient Jacobian product by a finite subgroup.
+
+        EXAMPLES:
+            sage: J0(33).is_subvariety_of_ambient_jacobian()
+            True
+            sage: A = J0(33)[0]; A
+            Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
+            sage: A.is_subvariety_of_ambient_jacobian()
+            True
+            sage: B, phi = A / A.n_torsion_subgroup(2)
+            sage: B
+            Abelian variety factor of dimension 1 of J0(33)
+            sage: phi
+            Morphism defined by the matrix
+            [2 0]
+            [0 2]
+            sage: B.is_subvariety_of_ambient_jacobian()
+            False
+        """
         try:
             return self.__is_sub_ambient
         except AttributeError:
@@ -706,6 +731,15 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         Return the ambient modular abelian variety that contains this
         abelian variety.  The ambient variety is always a product of
         Jacobians of modular curves.
+
+        OUTPUT:
+            abelian variety
+
+        EXAMPLES:
+            sage: A = J0(33)[0]; A
+            Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
+            sage: A.ambient_variety()
+            Abelian variety J0(33)
         """
         try:
             return self.__ambient_variety
@@ -1027,18 +1061,75 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             return self.__ambient_lattice
 
     def _ambient_modular_symbols_spaces(self):
+        """
+        Return a tuple of the ambient cuspidal modular symbols spaces
+        that make up the Jacobian product that contains self.
+
+        OUTPUT:
+            tuple of cuspidal modular symbols spaces
+
+        EXAMPLES:
+            sage: (J0(11) * J0(33))._ambient_modular_symbols_spaces()
+            (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field,
+             Modular Symbols subspace of dimension 6 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field)
+            sage: (J0(11) * J0(33)[0])._ambient_modular_symbols_spaces()
+            (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field,
+             Modular Symbols subspace of dimension 6 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field)
+        """
+        if not self.is_ambient():
+            return self.ambient_variety()._ambient_modular_symbols_spaces()
         try:
             return self.__ambient_modular_symbols_spaces
         except AttributeError:
-            self.__ambient_modular_symbols_spaces = tuple([ModularSymbols(G).cuspidal_subspace() for G in self.groups()])
-            return self.__ambient_modular_symbols_spaces
+            X = tuple([ModularSymbols(G).cuspidal_subspace() for G in self.groups()])
+            self.__ambient_modular_symbols_spaces = X
+            return X
+
+    def _ambient_modular_symbols_abvars(self):
+        """
+        Return a tuple of the ambient modular symbols abelian varieties
+        that make up the Jacobian product that contains self.
+
+        OUTPUT:
+            tuple of modular symbols abelian varieties
+
+        EXAMPLES:
+            sage: (J0(11) * J0(33))._ambient_modular_symbols_abvars()
+            (Abelian variety J0(11), Abelian variety J0(33))
+        """
+        if not self.is_ambient():
+            return self.ambient_variety()._ambient_modular_symbols_abvars()
+        try:
+            return self.__ambient_modular_symbols_abvars
+        except AttributeError:
+            X = tuple([ModularAbelianVariety_modsym(M) for M in self._ambient_modular_symbols_spaces()])
+            self.__ambient_modular_symbols_abvars = X
+            return X
 
     def _ambient_dimension(self):
+        """
+        Return the dimension of the ambient Jacobian product.
+
+        EXAMPLES:
+            sage: A = J0(37) * J1(13); A
+            Abelian variety J0(37) x J1(13)
+            sage: A._ambient_dimension()
+            4
+            sage: B = A[0]; B
+            Simple abelian subvariety 37a(1,37) of dimension 1 of J0(37) x J1(13)
+            sage: B._ambient_dimension()
+            4
+
+        This example is fast because it implicitly calls _ambient_dimension.
+            sage: J0(902834082394)
+            Abelian variety J0(902834082394) of dimension 113064825881
+        """
         try:
             return self.__ambient_dimension
         except AttributeError:
-            self.__ambient_dimension = sum([S.dimension() for S in self._ambient_modular_symbols_spaces()]) // 2
-            return self.__ambient_dimension
+            d = sum([dimension_cusp_forms(G,2) for G in self.groups()], Integer(0))
+            self.__ambient_dimension = d
+            return d
 
     def _ambient_hecke_matrix_on_modular_symbols(self, n):
         r"""
@@ -1050,7 +1141,18 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         OUTPUT:
             a matrix
+
+        EXAMPLES:
+            sage: (J0(11) * J1(13))._ambient_hecke_matrix_on_modular_symbols(2)
+            [-2  0  0  0  0  0]
+            [ 0 -2  0  0  0  0]
+            [ 0  0 -2  0 -1  1]
+            [ 0  0  1 -1  0 -1]
+            [ 0  0  1  1 -2  0]
+            [ 0  0  0  1 -1 -1]
         """
+        if not self.is_ambient():
+            return self.ambient_variety()._ambient_hecke_matrix_on_modular_symbols(n)
         try:
             return self.__ambient_hecke_matrix_on_modular_symbols[n]
         except AttributeError:
@@ -1140,6 +1242,18 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Integral Homology of Abelian variety J0(50000) of dimension 7351
             sage: H.rank()
             14702
+
+        A product:
+            sage: H = (J0(11) * J1(13)).integral_homology()
+            sage: H.hecke_operator(2)
+            Hecke operator T_2 on Integral Homology of Abelian variety J0(11) x J1(13)
+            sage: H.hecke_operator(2).matrix()
+            [-2  0  0  0  0  0]
+            [ 0 -2  0  0  0  0]
+            [ 0  0 -2  0 -1  1]
+            [ 0  0  1 -1  0 -1]
+            [ 0  0  1  1 -2  0]
+            [ 0  0  0  1 -1 -1]
         """
         return self.homology(ZZ)
 
@@ -1312,7 +1426,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         """
         EXAMPLES:
             sage: J = J0(33)
-            sage: A = J.new_quotient()
+            sage: A = J.new_subvariety()
             sage: A
             Abelian subvariety of dimension 1 of J0(33)
             sage: t = A.torsion_subgroup()
@@ -1346,13 +1460,27 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             [[(1/3, 0, 0, 0, 0, 1/3, 0, 2/3)], [(0, 1/3, 0, 0, 0, 2/3, 0, 1/3)], [(0, 0, 1/9, 1/9, 1/9, 1/9, 1/9, 2/9)], [(0, 0, 0, 1/3, 0, 1/3, 0, 0)], [(0, 0, 0, 0, 1/3, 1/3, 0, 1/3)], [(0, 0, 0, 0, 0, 0, 1/3, 2/3)]]
             sage: C.invariants()
             [3, 3, 3, 3, 3, 9]
+
+            sage: A = J0(33)[0]
+            sage: A.cuspidal_subgroup().intersection(J[0])
+            Finite subgroup with invariants [5] over QQ of Abelian variety J0(33) of dimension 3
         """
         try:
             return self._cuspidal_subgroup
         except AttributeError:
-            T = CuspidalSubgroup(self)
+            if not self.is_subvariety_of_ambient_jacobian():
+                raise ValueError, "self must be a subvariety of the ambient variety"
+            if self.is_ambient():
+                T = self._ambient_cuspidal_subgroup(rational_only=False)
+            else:
+                T = self.ambient_variety().cuspidal_subgroup().intersection(self)
             self._cuspidal_subgroup = T
             return T
+
+    def _ambient_cuspidal_subgroup(self, rational_only=False):
+        M = A._ambient_modular_symbols_abvars()
+        C = [CuspidalSubgroup(J) for J in M]
+        return C
 
     def rational_cuspidal_subgroup(self):
         """
@@ -1761,25 +1889,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         integral homology and resulting Weil pairing on torsion.
 
         EXAMPLES:
-        First we compute the dual of the image of an old simple factor
-        of $J_0(33)$.
-            sage: A,B,C = J0(33)
-            sage: Ad, f = A.dual()
-            sage: f.matrix()
-            [15 -3]
-            [ 0  3]
-            sage: f.domain()
-            Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
-            sage: f.codomain()
-            Abelian variety factor of dimension 1 of J0(33)
-            sage: f.kernel()
-            (Finite subgroup with invariants [3, 15] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33),
-             Abelian subvariety of dimension 0 of J0(33))
-
-        Next we compute the dual of the elliptic curve newform abelian variety of
+        We compute the dual of the elliptic curve newform abelian variety of
         level $33$, and find the kernel of the modular map, which has structure
         $(\ZZ/3)^2$.
 
+            sage: A,B,C = J0(33)
             sage: C
             Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
             sage: Cd, f = C.dual()

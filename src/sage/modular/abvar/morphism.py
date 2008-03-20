@@ -18,7 +18,7 @@ EXAMPLES:
     Hecke operator T_5 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(54)
     sage: t5.charpoly().factor()
     (x - 3)^2 * (x + 3)^2 * x^4
-    sage: B = A.new_quotient(); B
+    sage: B = A.new_subvariety(); B
     Abelian variety factor of dimension 2 of J0(54)
     sage: t5 = B.hecke_operator(5); t5
     Hecke operator T_5 on Abelian variety factor of dimension 2 of J0(54)

@@ -36,7 +36,7 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         EXAMPLES:
             sage: f = CuspForms(37).newforms('a')[0]
             sage: f.abelian_variety()
-            Modular abelian variety attached to the newform q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + O(q^6)
+            Newform abelian subvariety 37a of dimension 1 of J0(37)
         """
         if not isinstance(f, Newform):
             raise TypeError, "f must be a newform"
@@ -51,8 +51,8 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         if not internal_name:
             self.__named_newforms[None] = self.__f
         ModularAbelianVariety_modsym_abstract.__init__(self, QQ,
-                  is_simple=True, newform_level = f.level(), isogeny_number=0,
-                  number=f.number())
+                  is_simple=True, newform_level = f.level(),
+                  isogeny_number=f.number(), number=0)
 
     def _modular_symbols(self,sign=0):
         """
@@ -73,7 +73,7 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         Return the newform that this modular abelian variety is attached to.
 
         EXAMPLES:
-            sage: f = CuspForms(37).newforms('a')[0]
+            sage: f = Newform('37a')
             sage: A = f.abelian_variety()
             sage: A.newform()
             q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + O(q^6)
@@ -110,8 +110,7 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             string
 
         EXAMPLES:
-            sage: f = CuspForms(43).newforms('a')[1]
-            sage: A = f.abelian_variety()
+            sage: A = AbelianVariety('43b')
             sage: A.label()
             '43b'
         """
@@ -132,8 +131,7 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             int
 
         EXAMPLES:
-            sage: f = CuspForms(43).newforms('a')[1]
-            sage: A = f.abelian_variety()
+            sage: A = AbelianVariety('43b')
             sage: A.factor_number()
             1
         """
@@ -149,9 +147,9 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
 
         EXAMPLES:
             sage: AbelianVariety('37a')._repr_()
-            'Newform abelian subvariety 37a and dimension 1 of J0(37)'
+            'Newform abelian subvariety 37a of dimension 1 of J0(37)'
         """
-        return "Newform abelian subvariety %s and dimension %s of %s" % (
+        return "Newform abelian subvariety %s of dimension %s of %s" % (
             self.newform_label(), self.dimension(), self._ambient_repr())
 
     def endomorphism_ring(self):
@@ -167,23 +165,19 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
     def _calculate_endomorphism_generators(self):
         """
         EXAMPLES:
-            sage: f = CuspForms(43).newforms('a')[1]
-            sage: f
-            q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6)
-            sage: A = f.abelian_variety()
+            sage: A = AbelianVariety('43b')
             sage: B = A.endomorphism_ring(); B
-            Subring of endomorphism ring of Modular abelian variety attached to the newform q + a1*q^2 - a1*q^3 + (-a1 + 2)*q^5 + O(q^6)
-            sage: B.gens()
-            ([1 0 0 0]
+            Endomorphism ring of Newform abelian subvariety 43b of dimension 2 of J0(43)
+            sage: [b.matrix() for b in B.gens()]
+            [[1 0 0 0]
             [0 1 0 0]
             [0 0 1 0]
             [0 0 0 1],
-             [ 0  1  0  0]
+            [ 0  1  0  0]
             [ 1 -2  0  0]
             [ 1  0 -2 -1]
-            [ 0  1 -1  0])
+            [ 0  1 -1  0]]
         """
-
         M = self.modular_symbols()
         bound = M.sturm_bound()
 

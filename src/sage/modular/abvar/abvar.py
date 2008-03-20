@@ -208,6 +208,16 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         t, N = D[0].number()
         m = self.degeneracy_map(self.newform_level(),t)
+        if isinstance(m, list):
+            basis = self.lattice().matrix()
+            ix = 0
+            for mor in m:
+                mat = mor.matrix()
+                if basis.submatrix(0, ix, basis.nrows(), mat.ncols()) * mat != 0:
+                    break
+                ix += mat.ncols()
+            m = self.Hom(mor.codomain())(mat)
+
         from constructor import AbelianVariety
         Af = AbelianVariety(self.newform_label())
 
@@ -516,25 +526,19 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 print M_ls[i], N, t_ls[i]
                 raise ValueError, "each t must divide the quotient of the levels"
 
-        G = self.groups()
         ls = [ self.groups()[i].modular_abelian_variety().degeneracy_map(M_ls[i], t_ls[i]).matrix() for i in range(length) ]
 
         if single_group_image:
-            new_codomain = self.groups()[i]._new_group_from_level(M_ls[0]).modular_abelian_variety()
-            M = matrix(ZZ, 2 * new_codomain.dimension(), 2 * self.ambient_variety().dimension())
-            while M.is_zero():
-                ix = 0
-                for sub_matrix in ls:
-                    M.set_block(0, ix, ZZ.random_element() * sub_matrix)
-                    ix += sub_matrix.ncols()
+            new_codomains = [g._new_group_from_level(M_ls[0]).modular_abelian_variety() for g in groups]
+            new_Homs = [g.modular_abelian_variety().Hom(codomain) for g, codomain in zip(groups, new_codomains)]
+            return [hom(m) for hom, m in zip(new_Homs, ls)]
         else:
             new_codomain = prod([ self.groups()[i]._new_group_from_level(M_ls[i]).modular_abelian_variety()
                                   for i in range(length) ])
             M = block_diagonal_matrix(ls, subdivide=False)
 
-        H = self.Hom(new_codomain)
-
-        return H(Morphism(H,M.restrict_domain(self.lattice())))
+            H = self.Hom(new_codomain)
+            return H(Morphism(H,M.restrict_domain(self.lattice())))
 
     def _quotient_by_finite_subgroup(self, G):
         if G.order() == 1:

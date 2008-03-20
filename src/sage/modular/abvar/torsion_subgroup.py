@@ -38,7 +38,7 @@ First we consider $J_0(50)$ where everything works out nicely:
 
 Next we make a table of the upper and lower bounds for each new factor.
     sage: for N in range(1,38):
-    ...    for A in J0(N).new_quotient().decomposition():
+    ...    for A in J0(N).new_subvariety().decomposition():
     ...        T = A.torsion_subgroup()
     ...        print '%-5s%-5s%-5s%-5s'%(N, A.dimension(), T.divisor_of_order(), T.multiple_of_order())
     11   1    5    5

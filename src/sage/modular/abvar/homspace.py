@@ -217,7 +217,7 @@ class EndomorphismSubring(Homspace, Ring):
 
     def calculate_generators(self):
         if self._gens is None:
-            gens = self._A._endomorphism_ring_generators()
+            gens = self._A._calculate_endomorphism_generators()
             self._gens = tuple([ self._get_matrix(g) for g in gens ])
 
     def index_in(self, other, check=True):

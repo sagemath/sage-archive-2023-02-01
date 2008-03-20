@@ -854,9 +854,11 @@ class FiniteSubgroup(Module):
             ValueError: object is immutable; please change a copy instead.
             sage: type(v[0])
             <type 'sage.rings.integer.Integer'>
+
+            sage: 3*C
+            Finite subgroup with invariants [15] over QQbar of Abelian variety J0(38) of dimension 4
         """
         try:
-            #print "getting", self.__invariants
             return self.__invariants
         except AttributeError:
             pass
@@ -870,11 +872,10 @@ class FiniteSubgroup(Module):
         #   (Z^n)/(d*Z^n) ---> (Z^n)/(d*Lambda + d*Z^n)
         #
         v = [d // gcd(e,d) for e in E if e != 0 and e != d]
-        v = [x for x in v if v != 1]
+        v = [x for x in v if x != 1]
         I = Sequence(v)
         I.sort()
         I.set_immutable()
-        print "setting", I
         self.__invariants = I
         return I
 

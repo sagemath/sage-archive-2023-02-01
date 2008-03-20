@@ -1,14 +1,31 @@
-About
+= ATLAS =
 
-This spkg builds ATLAS for Sage. It is build per default on Linux,
-but should also work on OSX and Solaris. The build is currently
-disabled on OSX until we sort out some linking issues on OSX.
-On FreeBSD dynamic libraries don't won since the wrong flags are
-paased to the linker. THis will be fixed soon.
+== Description ==
 
-Maintainers: Michael Abshoff, Josh Kantor
+This spkg builds ATLAS for Sage. It is build per default on Linux, but should also work on OSX and Solaris. The build is currently disabled on OSX until we sort out some linking issues on OSX. On FreeBSD dynamic libraries don't won since the wrong flags are passed to the linker. This will be fixed soon.
 
-ChangeLog
+== License ==
+
+3-clause BSD
+
+== SPKG Maintainers ==
+ * Michael Abshoff
+ * Josh Kantor
+
+== Upstream Contact ==
+
+Atlas devel mainling list.
+
+== Dependencies ==
+ * None
+
+== ChangeLog ==
+
+=== atlas-3.8 (Michael Abshoff, March 19th, 2008) ===
+ * update to 3.8.1 release
+ * add tuning info for G4 on Linux
+ * add tuning and detection for Pentium D process (together with Burcin Erocal)
+ * clean up SPKG.txt
 
 === atlas-3.8.p11 (Michael Abshoff, Feb. 2nd, 2008) ===
  * add pre-tuned information for Pentium M, Athlon MP
@@ -21,40 +38,35 @@ ChangeLog
  * also link the headers which is the prime motivation for the change above
  * Apply row-major GEMM major ATLAS errata (#1787)
 
-*20080119: Josh Kantor (3.8.p8)
-  + Added optional environment variable SAGE_ATLAS_LIB. This should be a directory that
-    contains liblapack.so,libcblas.so, libf77blas.so, libatlas.so. Instead of building
-    atlas we make symlinks to these libraries in $SAGE_LOCAL/lib
+=== atlas-3.8.p8 (Josh Kantor, Jan. 19th, 2008) ===
+ * Added optional environment variable SAGE_ATLAS_LIB. This should be a directory that contains liblapack.so,libcblas.so, libf77blas.so, libatlas.so. Instead of building atlas we make symlinks to these libraries in $SAGE_LOCAL/lib
 
+=== atlas-3.8.p6 (Josh Kantor, Dec. 15th, 2007) ===
+ * check if ATLAS bailed out due to unprecise timings. This happens if the system is too loaded.
 
-* 20071215: Josh Kantor (3.8.p6)
-  + check if ATLAS bailed out due to unprecise timings. This happens
-    if the system is too loaded.
+=== atlas-3.8.p5 (Josh Kantor, Dec. 14th, 2007) ===
+ * introduce workaround for 32 bit userspace build on 64 bit CPUs - see #1497
 
-* 20071214: Josh Kantor (3.8.p5)
-  + introduce workaround for 32 bit userspace build on 64 bit CPUs -
-    see #1497
+=== atlas-3.8.p4 (Michael Abshoff, Dec. 13th, 2007) ===
+ * disable parallel make
 
-* 20071213: Michael Abshoff (3.8.p4)
-  + disable parallel make
+=== atlas-3.8.p3 (Josh Kantor, Dec. 11th, 2007) ===
+ * disable build on OSX for now
 
-* 20071211 Josh Kantor (3.8.p3)
-  + disable build on OSX for now
+=== atlas-3.8 (Josh Kantor, Nov. 28th, 2007) ===
+ * updated to version 3.8
+ * applied patch so that shared libraries are copied
+ * fortran wrapper uses sage_fortran
+ * ATLAS produces borked lapack.so which has missing symbols
+ * liblapack.so is around 100k while liblapack.a is 8 mb
+ * manually create a full liblapack.so
 
-* 20071128: Josh kantor <jkantor@math.washington.edu>
-  + updated to version 3.8
-  + applied patch so that shared libraries are copied
-  + fortran wrapper uses sage_fortran
-  + ATLAS produces borked lapack.so which has missing symbols
-  + liblapack.so is around 100k while liblapack.a is 8 mb
-  + I manually create a full liblapack.so
+=== atlas-3.7.38 (Michael Abshoff, Oct. 6th, 2007) ===
+ * update to 3.7.38
 
-* 20071006: Michael Abshoff <mashoff@fsmath.mathematik.uni-dortmund.de>
- + update to 3.7.38
-
-* 20070815: Michael Abshoff <mashoff@fsmath.mathematik.uni-dortmund.de>
- + new upstream release (3.7.37), initial release
- + "make check" added in spkg-check
+=== atlas-3.7.37 (Michael Abshoff, Aug. 15th, 2007) ===
+ * new upstream release (3.7.37), initial release
+ * {{{make check}}} added in spkg-check
 
 ToDo
 

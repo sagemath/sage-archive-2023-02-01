@@ -3554,6 +3554,122 @@ class GenericGraph(SageObject):
 
     ### Paths
 
+    def interior_paths(self, start, end):
+        """
+        Returns an exhaustive list of paths (also lists) through
+        only interior vertices from vertex start to vertex end in the
+        graph.
+
+        Note -- start and end do not necessarily have to be boundary
+                vertices.
+
+        INPUT:
+            start -- the vertex of the graph to search for paths from
+            end -- the vertex of the graph to search for paths to
+
+        EXAMPLES:
+            sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
+            sage: eg1.all_paths(0,6)
+            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
+            sage: eg2 = eg1.copy()
+            sage: eg2.set_boundary([0,1,3])
+            sage: eg2.interior_paths(0,6)
+            [[0, 2, 4, 5, 6]]
+            sage: eg2.all_paths(0,6)
+            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
+            sage: eg3 = graphs.PetersenGraph()
+            sage: eg3.set_boundary([0,1,2,3,4])
+            sage: eg3.all_paths(1,4)
+            [[1, 0, 4],
+             [1, 0, 5, 8, 3, 2, 7, 9, 4],
+             [1, 0, 5, 8, 3, 4],
+             [1, 0, 5, 8, 6, 9, 4],
+             [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
+             [1, 0, 5, 7, 9, 4],
+             [1, 0, 5, 7, 9, 6, 8, 3, 4],
+             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
+             [1, 0, 5, 7, 2, 3, 4],
+             [1, 2, 3, 8, 5, 0, 4],
+             [1, 2, 3, 8, 5, 7, 9, 4],
+             [1, 2, 3, 8, 6, 9, 4],
+             [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
+             [1, 2, 3, 4],
+             [1, 2, 7, 9, 4],
+             [1, 2, 7, 9, 6, 8, 3, 4],
+             [1, 2, 7, 9, 6, 8, 5, 0, 4],
+             [1, 2, 7, 5, 0, 4],
+             [1, 2, 7, 5, 8, 3, 4],
+             [1, 2, 7, 5, 8, 6, 9, 4],
+             [1, 6, 8, 3, 2, 7, 9, 4],
+             [1, 6, 8, 3, 2, 7, 5, 0, 4],
+             [1, 6, 8, 3, 4],
+             [1, 6, 8, 5, 0, 4],
+             [1, 6, 8, 5, 7, 9, 4],
+             [1, 6, 8, 5, 7, 2, 3, 4],
+             [1, 6, 9, 4],
+             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
+             [1, 6, 9, 7, 2, 3, 4],
+             [1, 6, 9, 7, 5, 0, 4],
+             [1, 6, 9, 7, 5, 8, 3, 4]]
+            sage: eg3.interior_paths(1,4)
+            [[1, 6, 8, 5, 7, 9, 4], [1, 6, 9, 4]]
+        """
+        H = self.copy()
+        for vertex in self.get_boundary():
+            if (vertex != start and vertex != end):
+                H.delete_vertex(vertex)
+        return H.all_paths(start, end)
+
+    def all_paths(self, start, end):
+        """
+        Returns a list of all paths (also lists) between a pair of
+        vertices (start, end) in the (di)graph.
+
+        EXAMPLES:
+            sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
+            sage: eg1.all_paths(0,6)
+            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
+            sage: eg2 = graphs.PetersenGraph()
+            sage: eg2.all_paths(1,4)
+            [[1, 0, 4],
+             [1, 0, 5, 8, 3, 2, 7, 9, 4],
+             [1, 0, 5, 8, 3, 4],
+             [1, 0, 5, 8, 6, 9, 4],
+             [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
+             [1, 0, 5, 7, 9, 4],
+             [1, 0, 5, 7, 9, 6, 8, 3, 4],
+             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
+             [1, 0, 5, 7, 2, 3, 4],
+             [1, 2, 3, 8, 5, 0, 4],
+             [1, 2, 3, 8, 5, 7, 9, 4],
+             [1, 2, 3, 8, 6, 9, 4],
+             [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
+             [1, 2, 3, 4],
+             [1, 2, 7, 9, 4],
+             [1, 2, 7, 9, 6, 8, 3, 4],
+             [1, 2, 7, 9, 6, 8, 5, 0, 4],
+             [1, 2, 7, 5, 0, 4],
+             [1, 2, 7, 5, 8, 3, 4],
+             [1, 2, 7, 5, 8, 6, 9, 4],
+             [1, 6, 8, 3, 2, 7, 9, 4],
+             [1, 6, 8, 3, 2, 7, 5, 0, 4],
+             [1, 6, 8, 3, 4],
+             [1, 6, 8, 5, 0, 4],
+             [1, 6, 8, 5, 7, 9, 4],
+             [1, 6, 8, 5, 7, 2, 3, 4],
+             [1, 6, 9, 4],
+             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
+             [1, 6, 9, 7, 2, 3, 4],
+             [1, 6, 9, 7, 5, 0, 4],
+             [1, 6, 9, 7, 5, 8, 3, 4]]
+        """
+        all_paths = []
+        if self.is_directed():
+          paths_helper(start, end, self, all_paths, directed=True)
+        else:
+          paths_helper(start, end, self, all_paths, directed=False)
+        return all_paths
+
     def shortest_path(self, u, v, by_weight=False, bidirectional=True):
         """
         Returns a list of vertices representing some shortest path from u to
@@ -6637,121 +6753,6 @@ class Graph(GenericGraph):
         import networkx
         return networkx.closeness_centrality(self.networkx_graph(copy=False), v)
 
-    ### Paths
-
-    def interior_paths(self, start, end):
-        """
-        Returns an exhaustive list of paths (also lists) through
-        only interior vertices from vertex start to vertex end in the
-        graph.
-
-        Note -- start and end do not necessarily have to be boundary
-                vertices.
-
-        INPUT:
-            start -- the vertex of the graph to search for paths from
-            end -- the vertex of the graph to search for paths to
-
-        EXAMPLES:
-            sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
-            sage: eg1.all_paths(0,6)
-            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
-            sage: eg2 = eg1.copy()
-            sage: eg2.set_boundary([0,1,3])
-            sage: eg2.interior_paths(0,6)
-            [[0, 2, 4, 5, 6]]
-            sage: eg2.all_paths(0,6)
-            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
-            sage: eg3 = graphs.PetersenGraph()
-            sage: eg3.set_boundary([0,1,2,3,4])
-            sage: eg3.all_paths(1,4)
-            [[1, 0, 4],
-             [1, 0, 5, 8, 3, 2, 7, 9, 4],
-             [1, 0, 5, 8, 3, 4],
-             [1, 0, 5, 8, 6, 9, 4],
-             [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
-             [1, 0, 5, 7, 9, 4],
-             [1, 0, 5, 7, 9, 6, 8, 3, 4],
-             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
-             [1, 0, 5, 7, 2, 3, 4],
-             [1, 2, 3, 8, 5, 0, 4],
-             [1, 2, 3, 8, 5, 7, 9, 4],
-             [1, 2, 3, 8, 6, 9, 4],
-             [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
-             [1, 2, 3, 4],
-             [1, 2, 7, 9, 4],
-             [1, 2, 7, 9, 6, 8, 3, 4],
-             [1, 2, 7, 9, 6, 8, 5, 0, 4],
-             [1, 2, 7, 5, 0, 4],
-             [1, 2, 7, 5, 8, 3, 4],
-             [1, 2, 7, 5, 8, 6, 9, 4],
-             [1, 6, 8, 3, 2, 7, 9, 4],
-             [1, 6, 8, 3, 2, 7, 5, 0, 4],
-             [1, 6, 8, 3, 4],
-             [1, 6, 8, 5, 0, 4],
-             [1, 6, 8, 5, 7, 9, 4],
-             [1, 6, 8, 5, 7, 2, 3, 4],
-             [1, 6, 9, 4],
-             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
-             [1, 6, 9, 7, 2, 3, 4],
-             [1, 6, 9, 7, 5, 0, 4],
-             [1, 6, 9, 7, 5, 8, 3, 4]]
-            sage: eg3.interior_paths(1,4)
-            [[1, 6, 8, 5, 7, 9, 4], [1, 6, 9, 4]]
-        """
-        H = self.copy()
-        for vertex in self.get_boundary():
-            if (vertex != start and vertex != end):
-                H.delete_vertex(vertex)
-        return H.all_paths(start, end)
-
-    def all_paths(self, start, end):
-        """
-        Returns a list of all paths (also lists) between a pair of
-        vertices (start, end) in the graph.
-
-        EXAMPLES:
-            sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
-            sage: eg1.all_paths(0,6)
-            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
-            sage: eg2 = graphs.PetersenGraph()
-            sage: eg2.all_paths(1,4)
-            [[1, 0, 4],
-             [1, 0, 5, 8, 3, 2, 7, 9, 4],
-             [1, 0, 5, 8, 3, 4],
-             [1, 0, 5, 8, 6, 9, 4],
-             [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
-             [1, 0, 5, 7, 9, 4],
-             [1, 0, 5, 7, 9, 6, 8, 3, 4],
-             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
-             [1, 0, 5, 7, 2, 3, 4],
-             [1, 2, 3, 8, 5, 0, 4],
-             [1, 2, 3, 8, 5, 7, 9, 4],
-             [1, 2, 3, 8, 6, 9, 4],
-             [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
-             [1, 2, 3, 4],
-             [1, 2, 7, 9, 4],
-             [1, 2, 7, 9, 6, 8, 3, 4],
-             [1, 2, 7, 9, 6, 8, 5, 0, 4],
-             [1, 2, 7, 5, 0, 4],
-             [1, 2, 7, 5, 8, 3, 4],
-             [1, 2, 7, 5, 8, 6, 9, 4],
-             [1, 6, 8, 3, 2, 7, 9, 4],
-             [1, 6, 8, 3, 2, 7, 5, 0, 4],
-             [1, 6, 8, 3, 4],
-             [1, 6, 8, 5, 0, 4],
-             [1, 6, 8, 5, 7, 9, 4],
-             [1, 6, 8, 5, 7, 2, 3, 4],
-             [1, 6, 9, 4],
-             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
-             [1, 6, 9, 7, 2, 3, 4],
-             [1, 6, 9, 7, 5, 0, 4],
-             [1, 6, 9, 7, 5, 8, 3, 4]]
-        """
-        all_paths = []
-        paths_helper(start, end, self, all_paths)
-        return all_paths
-
     ### Constructors
 
     def to_directed(self):
@@ -8015,7 +8016,7 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
 
     return TT, pos3d
 
-def paths_helper(start, end, G, all_paths, p=None):
+def paths_helper(start, end, G, all_paths, directed=False, p=None):
     """
     The recursive helper for path finding calls.  (i.e.: all_paths
     and interior_paths).  Spawns a potential path for each unvisited
@@ -8027,6 +8028,8 @@ def paths_helper(start, end, G, all_paths, p=None):
         end -- the vertex to find a path to
         all_paths -- the list (should initially be empty) to append
                      all successful paths to
+        directed -- if True the paths move along successors of vertices,
+                    if False the paths consider all neighbors
         p -- the current path to update (via appending a vertex)
     """
 
@@ -8035,10 +8038,15 @@ def paths_helper(start, end, G, all_paths, p=None):
         p = [start]
 
     plist = []
-    # At each vertex, fill list of spawning paths (i.e. all neighbors)
-    for i in range(len(G[p[-1]])):
-        if G[p[-1]][i] not in p:
-            plist.append(p + [G[p[-1]][i]])
+    # At each vertex, fill list of spawning paths (i.e. all neighbors or successors respectively)
+    if directed==True:
+      for s in G.successor_iterator(p[-1]):
+          if s not in p:
+              plist.append(p + [s])
+    else:
+      for s in G.neighbor_iterator(p[-1]):
+          if s not in p:
+              plist.append(p + [s])
 
     # If path completes, add to list
     if (p[-1] == end):
@@ -8046,7 +8054,7 @@ def paths_helper(start, end, G, all_paths, p=None):
 
     # Recursion: (look at all neighbors of all neighbors)
     for p in plist:
-        paths_helper(start, end, G, all_paths, p)
+        paths_helper(start, end, G, all_paths, directed, p)
 
 
 def graph_isom_equivalent_non_multi_graph(g, partition):

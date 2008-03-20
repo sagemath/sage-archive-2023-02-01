@@ -19,19 +19,19 @@ EXAMPLES:
     sage: J = J0(33)
     sage: C = J.cuspidal_subgroup()
     sage: C
-    Cuspidal subgroup with invariants [10, 10] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(33)
+    Finite subgroup with invariants [10, 10] over QQbar of Abelian variety J0(33) of dimension 3
     sage: C.order()
     100
     sage: C.gens()
-    [[(1/10, 0, 1/10, 1/10, 1/10, -7/10)], [(0, 1/5, 1/10, 0, 1/10, -1/10)]]
+    [[(1/10, 0, 1/10, 1/10, 1/10, 3/10)], [(0, 1/5, 1/10, 0, 1/10, 9/10)], [(0, 0, 1/2, 0, 1/2, 1/2)]]
     sage: C.0 + C.1
-    [(1/10, 1/5, 1/5, 1/10, 1/5, -4/5)]
+    [(1/10, 1/5, 1/5, 1/10, 1/5, 6/5)]
     sage: 10*(C.0 + C.1)
     [(0, 0, 0, 0, 0, 0)]
     sage: G = C.subgroup([C.0 + C.1]); G
-    Finite subgroup with invariants [10] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(33)
+    Finite subgroup with invariants [10] over QQbar of Abelian variety J0(33) of dimension 3
     sage: G.gens()
-    [[(1/10, 1/5, 1/5, 1/10, 1/5, -4/5)]]
+    [[(1/10, 1/5, 1/5, 1/10, 1/5, 6/5)]]
     sage: G.order()
     10
     sage: G <= C
@@ -77,7 +77,7 @@ few levels:
 
 TESTS:
     sage: G = J0(11).finite_subgroup([[1/3,0], [0,1/5]]); G
-    Finite subgroup with invariants [15] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+    Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
     sage: loads(dumps(G)) == G
     True
     sage: loads(dumps(G.0)) == G.0
@@ -414,8 +414,8 @@ class FiniteSubgroup(Module):
             2^4 * 3^2
 
         Automatic calling is currently broken because of trac \#2283.
-            sage: 2*G  # desired output should be not an error.
-            Finite subgroup with invariants [1, 1, 1, 6, 24] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)
+            sage: 2*G
+            Finite subgroup with invariants [6, 24] over QQbar of Abelian variety J0(42) of dimension 5
         """
         return self * left
 
@@ -856,6 +856,7 @@ class FiniteSubgroup(Module):
             <type 'sage.rings.integer.Integer'>
         """
         try:
+            #print "getting", self.__invariants
             return self.__invariants
         except AttributeError:
             pass
@@ -868,9 +869,12 @@ class FiniteSubgroup(Module):
         # is realized as the kernel of a natural map
         #   (Z^n)/(d*Z^n) ---> (Z^n)/(d*Lambda + d*Z^n)
         #
-        I = Sequence([d // gcd(e,d) for e in E if e != 0 and e != d])
+        v = [d // gcd(e,d) for e in E if e != 0 and e != d]
+        v = [x for x in v if v != 1]
+        I = Sequence(v)
         I.sort()
         I.set_immutable()
+        print "setting", I
         self.__invariants = I
         return I
 

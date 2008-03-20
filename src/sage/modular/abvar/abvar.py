@@ -75,7 +75,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         if newform_level is not None:
             self.__newform_level = newform_level
         if number is not None:
-            self.__number = number
+            self.__degen_t = number
         if isogeny_number is not None:
             self.__isogeny_number = isogeny_number
         if check and not is_Ring(base_field) and base_field.is_field():
@@ -161,6 +161,20 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             return 0
         c = cmp(self.groups(), other.groups())
         if c: return c
+        try:
+            c = cmp(self.__newform_level, other.__newform_level)
+        except AttributeError:
+            pass
+        if c: return c
+        try:
+            c = cmp(self.__isogeny_number, other.__isogeny_number)
+        except AttributeError:
+            pass
+        if c: return c
+        try:
+            return cmp(self.__degen_t, other.__degen_t)
+        except AttributeError:
+            pass
         return cmp(self.lattice(), other.lattice())
 
     def __radd__(self,other):
@@ -179,6 +193,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: import sage.modular.abvar.abvar as abvar
             sage: abvar.ModularAbelianVariety_abstract._repr_(A)
             'Abelian variety J0(23)'
+
+            sage: (J0(11) * J0(33))._repr_()
+            'Abelian variety J0(11) x J0(33) of dimension 4'
         """
         field = '' if self.base_field() == QQ else ' over %s'%self.base_field()
         try:
@@ -188,7 +205,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         simple = self.is_simple(none_if_not_known=True)
         simple = 'Simple a' if simple else 'A'
         if self.is_ambient():
-            return '%sbelian variety %s%s'%(simple, self._ambient_repr(), field)
+            return '%sbelian variety %s%s of dimension %s'%(simple, self._ambient_repr(), field, self.dimension())
 
         if self.is_subvariety_of_ambient_jacobian():
             sub = 'subvariety'
@@ -199,7 +216,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
 
     def label(self):
-        degen = str(self.number()).replace(' ','')
+        degen = str(self.degen_t()).replace(' ','')
         return '%s%s%s'%(self.newform_level(), cremona_letter_code(self.isogeny_number()), degen)
 
     def newform_label(self):
@@ -210,7 +227,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         if len(D) > 1:
             raise ValueError, "self is not simple"
 
-        t, N = D[0].number()
+        t, N = D[0].degen_t()
         m = self.degeneracy_map(self.newform_level(),t)
         if isinstance(m, list):
             basis = self.lattice().matrix()
@@ -1464,10 +1481,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             [[(1/3, 0, 0, 0, 0, 1/3, 0, 2/3)], [(0, 1/3, 0, 0, 0, 2/3, 0, 1/3)], [(0, 0, 1/9, 1/9, 1/9, 1/9, 1/9, 2/9)], [(0, 0, 0, 1/3, 0, 1/3, 0, 0)], [(0, 0, 0, 0, 1/3, 1/3, 0, 1/3)], [(0, 0, 0, 0, 0, 0, 1/3, 2/3)]]
             sage: C.invariants()
             [3, 3, 3, 3, 3, 9]
-
+            sage: J1(13).cuspidal_subgroup()
+            Finite subgroup with invariants [19, 19] over QQbar of Abelian variety J1(13) of dimension 2
             sage: A = J0(33)[0]
-            sage: A.cuspidal_subgroup().intersection(J[0])
-            Finite subgroup with invariants [5] over QQ of Abelian variety J0(33) of dimension 3
+            sage: A.cuspidal_subgroup()
+            Finite subgroup with invariants [5] over QQbar of Abelian variety J0(33)
         """
         try:
             return self._cuspidal_subgroup
@@ -1482,32 +1500,74 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             return T
 
     def _ambient_cuspidal_subgroup(self, rational_only=False):
-        M = A._ambient_modular_symbols_abvars()
-        C = [CuspidalSubgroup(J) for J in M]
-        return C
-
-    def rational_cuspidal_subgroup(self):
         """
+        EXAMPLES:
+            sage: (J1(13)*J0(11))._ambient_cuspidal_subgroup()
+            Finite subgroup with invariants [19, 95] over QQbar of Abelian variety J1(13) x J0(11)
+            sage: (J0(33))._ambient_cuspidal_subgroup()
+            Finite subgroup with invariants [10, 10] over QQbar of Abelian variety J0(33) of dimension 3
+            sage: (J0(33)*J0(33))._ambient_cuspidal_subgroup()
+            Finite subgroup with invariants [10, 10, 10, 10] over QQbar of Abelian variety J0(33) x J0(33)
+        """
+        n = 2 * self.degree()
+        i = 0
+        lattice = (ZZ**n).zero_submodule()
+        CS = RationalCuspidalSubgroup if rational_only else CuspidalSubgroup
+        for J in self._ambient_modular_symbols_abvars():
+            L = CS(J).lattice().basis_matrix()
+            Z_left = matrix(QQ,L.nrows(),i)
+            Z_right = matrix(QQ,L.nrows(),n-i-L.ncols())
+            lattice += (Z_left.augment(L).augment(Z_right)).row_module(ZZ)
+            i += L.ncols()
+        return self.finite_subgroup(lattice.basis())
+
+    def rational_cusp_subgroup(self):
+        r"""
         Return the subgroup of this modular abelian variety generated
         by rational cusps.
 
+        This is a subgroup of the group of rational points in the
+        cuspidal subgroup.
+
+        WARNING: This is only currently implemented for $\Gamma_0(N)$.
+
         EXAMPLES:
             sage: J = J0(54)
-            sage: CQ = J.rational_cuspidal_subgroup(); CQ
+            sage: CQ = J.rational_cusp_subgroup(); CQ
             Rational cuspidal subgroup with invariants [3, 3, 9] over QQ of Abelian variety J0(54) of dimension 4
             sage: CQ.gens()
             [[(1/3, 0, 0, 1/3, -1/3, -2/3, 1/3, 0)], [(0, 0, 1/9, 1/9, -2/9, -2/9, 1/9, -1/9)], [(0, 0, 0, 1, -1, -1, 2/3, -2/3)]]
-
             sage: factor(CQ.order())
             3^4
             sage: CQ.invariants()
             [3, 3, 9]
+
+        In this example the rational cuspidal subgroup and the cuspidal subgroup differ by a lot.
+            sage: J = J0(49)
+            sage: J.cuspidal_subgroup()
+            Finite subgroup with invariants [2, 14] over QQbar of Abelian variety J0(49) of dimension 1
+            sage: J.rational_cusp_subgroup()
+            Finite subgroup with invariants [2] over QQbar of Abelian variety J0(49) of dimension 1
+
+        Note that computation of the rational cusp subgroup isn't implemented for $\Gamma_1$.
+            sage: J = J1(13)
+            sage: J.cuspidal_subgroup()
+            Finite subgroup with invariants [19, 19] over QQbar of Abelian variety J1(13) of dimension 2
+            sage: J.rational_cusp_subgroup()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: computation of rational cusps only implemented in Gamma0 case.
         """
         try:
-            return self._rational_cuspidal_subgroup
+            return self._rational_cusp_subgroup
         except AttributeError:
-            T = RationalCuspidalSubgroup(self)
-            self._rational_cuspidal_subgroup = T
+            if not self.is_subvariety_of_ambient_jacobian():
+                raise ValueError, "self must be a subvariety of the ambient variety"
+            if self.is_ambient():
+                T = self._ambient_cuspidal_subgroup(rational_only=True)
+            else:
+                T = self.ambient_variety().rational_cusp_subgroup().intersection(self)
+            self._rational_cusp_subgroup = T
             return T
 
     def zero_subgroup(self):
@@ -1617,9 +1677,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     ###############################################################################
     # Decomposition
     ###############################################################################
-    def number(self, none_if_not_known=False):
+    def degen_t(self, none_if_not_known=False):
         try:
-            return self.__number
+            return self.__degen_t
         except AttributeError:
             if none_if_not_known:
                 return None
@@ -1675,6 +1735,15 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             ]
             sage: sum(dd) == B
             True
+
+        We decompose a product of two Jacobians:
+            sage: (J0(33) * J0(11)).decomposition()
+            [
+            Simple abelian subvariety 11a(1,11) of dimension 1 of J0(33) x J0(11),
+            Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33) x J0(11),
+            Simple abelian subvariety 11a(3,33) of dimension 1 of J0(33) x J0(11),
+            Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33) x J0(11)
+            ]
         """
         try:
             return self.__decomposition[(simple, bound)]
@@ -1704,9 +1773,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                     for B in C:
                         L = B.lattice().basis_matrix()
                         lattice = matrix(QQ,L.nrows(),i).augment(L).augment(matrix(QQ,L.nrows(),n-i-L.ncols())).row_module(ZZ)
-                        D.append(ModularAbelianVariety(G, lattice, K, is_simple=True, newform_level=B.level(),
+                        D.append(ModularAbelianVariety(G, lattice, K, is_simple=True, newform_level=B.newform_level(),
                                                        isogeny_number=B.isogeny_number(none_if_not_known=True),
-                                                       number=B.number(none_if_not_known=True)))
+                                                       number=B.degen_t(none_if_not_known=True)))
                     if len(C) > 0:
                         i += L.ncols()
         elif not simple:
@@ -1786,7 +1855,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                     M = M * L_B.basis_matrix()
                     lattice = M.row_module(ZZ)
                     the_factor = ModularAbelianVariety(groups, lattice, K, is_simple=True, newform_level=A.newform_level(),
-                                                       isogeny_number=A.isogeny_number(), number=A.number())
+                                                       isogeny_number=A.isogeny_number(), number=A.degen_t())
                     D.append(the_factor)
 
         ################

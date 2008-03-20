@@ -12,6 +12,7 @@ AUTHOR:
 ###########################################################################
 
 from sage.categories.homset import HomsetWithBase
+from sage.misc.functional import parent
 
 import abvar as abelian_variety
 import morphism
@@ -49,14 +50,34 @@ class Homspace(HomsetWithBase):
             raise TypeError, "domain must be a modular abelian variety"
         if not abelian_variety.is_ModularAbelianVariety(codomain):
             raise TypeError, "codomain must be a modular abelian variety"
+        self._matrix_space = MatrixSpace(ZZ,2*domain.dimension(), 2*codomain.dimension())
+        self._gens = None
         HomsetWithBase.__init__(self, domain, codomain, cat)
 
-    def __call__(self, M, check=True):
-        if check:
-            M = M.change_ring(ZZ)
+    def __call__(self, M):
+        if isinstance(M, morphism.Morphism):
+            if M.parent() is self:
+                return M
+            elif M.domain() == self.domain() and M.codomain() == self.codomain():
+                M = M.matrix()
+            else:
+                raise ValueError, "cannot convert %s into %s" % (M, self)
+        elif is_Matrix(M):
+            if M.base_ring() != ZZ:
+                M = M.change_ring(ZZ)
             if M.nrows() != 2*self.domain().dimension() or M.ncols() != 2*self.codomain().dimension():
-                raise TypeError
+                raise TypeError, "matrix has wrong dimension"
+        elif self.matrix_space().has_coerce_map_from(parent(M)):
+            M = self.matrix_space()(M)
+        else:
+            raise TypeError, "can only coerce in matrices or morphisms"
         return morphism.Morphism(self, M)
+
+    def _coerce_impl(self, x):
+        if self.matrix_space().has_coerce_map_from(parent(x)):
+            return self(x)
+        else:
+            return HomsetWithBase._coerce_impl(self, x)
 
     def _repr_(self):
         """
@@ -70,39 +91,134 @@ class Homspace(HomsetWithBase):
         return "Space of homomorphisms from %s to %s"%\
                (self.domain(), self.codomain())
 
+    def _get_matrix(self, g):
+        if g.parent() is self.matrix_space():
+            return g
+        elif isinstance(g, morphism.Morphism):
+            return g.matrix()
+        else:
+            return self.matrix_space()(g.list())
 
-class EndomorphismSubring(Homspace, Ring):
+    def free_module(self):
+        self.calculate_generators()
+        V = ZZ**(4*self.abelian_variety().dimension())
+        return V.submodule([ V(m.list()) for m in self.gens() ])
 
-    def __init__(self, A):
-        """
-        """
-        self._J = A.ambient_variety()
-        self._A = A
-        self._E = A.Hom(A)
-        self._gens_set = False
-        self._matrix_space = MatrixSpace(ZZ,2*A.dimension())
+    def gen(self, i=0):
+        self.calculate_generators()
+        if i > self.ngens():
+            raise ValueError, "self only has %s generators"%self.ngens()
+        return morphism.Morphism(self, self._gens[i])
 
-    def _repr_(self):
-        return "Subring of endomorphism ring of %s"%self._A
+    def ngens(self):
+        self.calculate_generators()
+        return len(self._gens)
 
-    def domain(self):
-        return self._A
-
-    def codomain(self):
-        return self._A
-
-    def abelian_variety(self):
-        return self._A
-
-    def _End(self):
-        return self._E
+    def gens(self):
+        try:
+            return self._gen_morphisms
+        except AttributeError:
+            self.calculate_generators()
+            self._gen_morphisms = tuple([self.gen(i) for i in range(self.ngens())])
+            return self._gen_morphisms
 
     def matrix_space(self):
         return self._matrix_space
 
-    def _set_generators(self, gens):
-        self._gens_set = True
-        self._gens = tuple([ self.matrix_space()(g.list()) for g in gens ])
+    def calculate_generators(self):
+        if self._gens is not None:
+            return
+
+        Afactors = self.domain().decomposition(simple=False)
+        Bfactors = self.codomain().decomposition(simple=False)
+        matrix_space = self.matrix_space()
+        if len(Afactors) == 1 and len(Bfactors) == 1:
+            Asimples = Afactors[0].decomposition()
+            Bsimples = Bfactors[0].decomposition()
+            if len(Asimples) == 1 and len(Bsimples) == 1:
+                # Handle the base case of A, B simple
+                gens = self._calculate_simple_gens()
+
+            else:
+                # Handle the case of A, B simple powers
+                gens = []
+                for i in range(len(Asimples)):
+                    for j in range(len(Bsimples)):
+                        hom_gens = Asimples[i].Hom(Bsimples[j]).gens()
+                        for sub_gen in hom_gens:
+                            sub_mat = sub_gen.matrix()
+                            M = self.matrix_space()(0)
+                            M.set_block(sub_mat.nrows()*i, sub_mat.ncols()*j, sub_mat)
+                            gens.append(M)
+
+        else:
+            # Handle the case of A, B generic
+            gens = []
+            cur_row = 0
+            for Afactor in Afactors:
+                cur_row += Afactor.dimension() * 2
+                cur_col = 0
+                for Bfactor in Bfactors:
+                    cur_col += Bfactor.dimension() * 2
+                    Asimple = Afactor[0]
+                    Bsimple = Bfactor[0]
+                    if Asimple.newform_label() == Bsimple.newform_label():
+                        for sub_gen in Afactor.Hom(Bfactor).gens():
+                            sub_mat = sub_gen.matrix()
+                            M = self.matrix_space()(0)
+                            M.set_block(cur_row - sub_mat.nrows(), cur_col - sub_mat.ncols(), sub_mat)
+                            gens.append(M)
+
+        # set the gens
+        self._gens = gens
+
+    def _calculate_simple_gens(self):
+
+        A = self.domain()
+        B = self.codomain()
+
+        if A.newform_label() != B.newform_label():
+            return []
+
+        f = A._isogeny_to_newform_abelian_variety()
+        g = B._isogeny_to_newform_abelian_variety().complementary_isogeny()
+
+        Af = f.codomain()
+        ls = Af._calculate_endomorphism_generators()
+
+        Mf = f.matrix()
+        Mg = g.matrix()
+
+        return [ Mf * self._get_matrix(e) * Mg for e in ls ]
+
+class EndomorphismSubring(Homspace, Ring):
+
+    def __init__(self, A, gens=None):
+        """
+        """
+        self._J = A.ambient_variety()
+        self._A = A
+        if gens is None:
+            self._gens = None
+        else:
+            self._gens = tuple([ self._get_matrix(g) for g in gens ])
+        self._is_full_ring = gens is None
+        Homspace.__init__(self, A, A, A.category())
+        Ring.__init__(self, A.base_ring())
+
+    def _repr_(self):
+        if self._is_full_ring:
+            return "Endomorphism ring of %s" % self._A
+        else:
+            return "Subring of endomorphism ring of %s" % self._A
+
+    def abelian_variety(self):
+        return self._A
+
+    def calculate_generators(self):
+        if self._gens is None:
+            gens = self._A._endomorphism_ring_generators()
+            self._gens = tuple([ self._get_matrix(g) for g in gens ])
 
     def index_in(self, other, check=True):
         if check:
@@ -120,35 +236,6 @@ class EndomorphismSubring(Homspace, Ring):
         M = Matrix(ZZ,len(g), [ (g[i]*g[j]).trace()
                                 for i in range(len(g)) for j in range(len(g)) ])
         return M.determinant()
-
-    def free_module(self):
-        if not self._gens_set:
-            raise ValueError, "generators of self unknown"
-        V = ZZ**(4*self.abelian_variety().dimension())
-        return V.submodule([ V(m.list()) for m in self.gens() ])
-
-    def gen(self, i=0):
-        if not self._gens_set:
-            raise ValueError, "generators of self unknown"
-        if i > self.ngens():
-            raise ValueError, "self only has %s generators"%self.ngens()
-        return self._gens[i]
-
-    def ngens(self):
-        if not self._gens_set:
-            raise ValueError, "number of generators unknown"
-        return len(self._gens)
-
-    def __call__(self, M, check=True):
-        if check:
-            if not is_Matrix(M):
-                raise ValueError, "can only coerce in matrices"
-            if (M.nrows() != M.ncols()) or (M.nrows() != 2*self.abelian_variety().dimension()):
-                raise ValueError, "incorrect matrix dimensions"
-            if M.base_ring() != ZZ:
-                M = M.change_ring(ZZ)
-
-        return morphism.Morphism(self._End(), M)
 
     def image_of_hecke_algebra(self):
 
@@ -168,8 +255,7 @@ class EndomorphismSubring(Homspace, Ring):
         T_matrices = [ A.hecke_operator(n).matrix().list() for n in range(1,M.sturm_bound()+1) ]
         W = EndVecZ.submodule(T_matrices)
 
-        T = EndomorphismSubring(A)
-        T._set_generators( W.basis() )
+        T = EndomorphismSubring(A, W.basis())
         self.__hecke_algebra_image = T
         return self.__hecke_algebra_image
 

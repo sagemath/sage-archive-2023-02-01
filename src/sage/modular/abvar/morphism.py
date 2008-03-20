@@ -37,6 +37,7 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
+from sage.categories.morphism import Morphism as base_Morphism
 from sage.rings.all import ZZ, QQ
 import abvar as abelian_variety
 import sage.modules.matrix_morphism
@@ -53,6 +54,13 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         sage: isinstance(t, Morphism)
         True
     """
+
+    def _repr_(self):
+        return base_Morphism._repr_(self)
+
+    def _repr_type(self):
+        return "Abelian variety"
+
     def complementary_isogeny(self):
         """
         Returns the complementary isogeny of self.
@@ -396,6 +404,20 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
 
 class Morphism(Morphism_abstract, sage.modules.matrix_morphism.MatrixMorphism):
     pass
+
+class DegeneracyMap(Morphism):
+    def __init__(self, parent, A, t):
+        self._t = t
+        Morphism.__init__(self, parent, A)
+
+    def t(self):
+        return self._t
+
+    def signature(self):
+        return (self.t(), self.codomain().level())
+
+    def _repr_(self):
+        return "Degeneracy map with signature %s from %s to %s"%(self.signature(), self.domain(), self.codomain())
 
 class HeckeOperator(Morphism):
     """

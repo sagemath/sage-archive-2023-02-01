@@ -234,7 +234,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             ix = 0
             for mor in m:
                 mat = mor.matrix()
-                if basis.submatrix(0, ix, basis.nrows(), mat.ncols()) * mat != 0:
+                if basis.submatrix(0, ix, basis.nrows(), mat.nrows()) * mat != 0:
                     break
                 ix += mat.ncols()
             m = self.Hom(mor.codomain())(mat)
@@ -604,7 +604,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             if (M_ls[i]%N) and (N%M_ls[i]):
                 raise ValueError, "one level must divide the other in %s-th component"%i
             if (( max(M_ls[i],N) // min(M_ls[i],N) ) % t_ls[i]):
-                print M_ls[i], N, t_ls[i]
                 raise ValueError, "each t must divide the quotient of the levels"
 
         ls = [ self.groups()[i].modular_abelian_variety().degeneracy_map(M_ls[i], t_ls[i]).matrix() for i in range(length) ]

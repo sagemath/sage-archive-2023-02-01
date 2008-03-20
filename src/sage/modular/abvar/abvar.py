@@ -29,7 +29,8 @@ from sage.structure.sequence    import Sequence
 from sage.structure.parent_base import ParentWithBase
 from morphism                   import HeckeOperator, Morphism
 from torsion_subgroup           import TorsionSubgroup
-from finite_subgroup            import FiniteSubgroup_gens, FiniteSubgroup, FiniteSubgroupElement
+from finite_subgroup            import (FiniteSubgroup_gens, FiniteSubgroup,
+                                        FiniteSubgroupElement, QQbarTorsionSubgroup)
 from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup
 from sage.rings.all             import ZZ, QQ, QQbar, is_Ring, LCM, divisors
 from sage.modules.all           import is_FreeModule
@@ -80,12 +81,14 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             raise TypeError, "base_field must be a field"
         ParentWithBase.__init__(self, base_field)
 
+    #############################################################################
     # groups() and lattice() *must* be defined by every derived class!!!!
     def groups(self):
         raise NotImplementedError
 
     def lattice(self):
         raise NotImplementedError
+    #############################################################################
 
     def vector_space(self):
         try:
@@ -250,6 +253,17 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         return homspace.Homspace(self, B, cat)
 
     def in_same_ambient_spaces(self, other):
+        """
+        Return True if self and other are abelian subvarieties
+        of the same ambient product Jacobian.
+
+        EXAMPLES:
+            sage: A,B,C = J0(33)
+            sage: A.in_same_ambient_spaces(B)
+            True
+            sage: A.in_same_ambient_spaces(J0(11))
+            False
+        """
         if not is_ModularAbelianVariety(other):
             return False
         if self.groups() != other.groups():
@@ -257,6 +271,51 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         if not self.is_subvariety_of_ambient_jacobian() or not other.is_subvariety_of_ambient_jacobian():
             return False
         return True
+
+    def modular_kernel(self):
+        """
+        Return the modular kernel of this abelian variety, which is the
+        kernel of the canonical polarization of self.
+
+        EXAMPLES:
+            sage: A = AbelianVariety('33a'); A
+            Newform abelian subvariety 33a and dimension 1 of J0(33)
+            sage: A.modular_kernel()
+            Finite subgroup with invariants [3, 3] over QQ of Newform abelian subvariety 33a and dimension 1 of J0(33)
+            sage: A = AbelianVariety('71a'); A
+            Newform abelian subvariety 71a and dimension 3 of J0(71)
+            sage: A.modular_kernel()
+            Finite subgroup with invariants [9, 9] over QQ of Newform abelian subvariety 71a and dimension 3 of J0(71)
+        """
+        try:
+            return self.__modular_kernel
+        except AttributeError:
+            _, f = self.dual()
+            G = f.kernel()[0]
+            self.__modular_kernel = G
+            return G
+
+    def modular_degree(self):
+        """
+        Return the modular degree of this abelian variety, which is the
+        square root of the degree of the modular kernel.
+
+        EXAMPLES:
+            sage: A = AbelianVariety('37a')
+            sage: A.modular_degree()
+            2
+            sage: A = AbelianVariety('43b'); A
+            Newform abelian subvariety 43a and dimension 2 of J0(43)
+            sage: A.modular_degree()
+            2
+            sage: A = AbelianVariety('71a'); A
+            Newform abelian subvariety 71a and dimension 3 of J0(71)
+            sage: A.modular_degree()
+            9
+        """
+        n = self.modular_kernel().order()
+        return ZZ(n.sqrt())
+
 
     def intersection(self, other):
         """
@@ -1172,8 +1231,33 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         return self._integral_hecke_matrix(n)
 
     ###############################################################################
-    # Finite Subgroups
+    # Subgroups
     ###############################################################################
+    def qbar_torsion_subgroup(self):
+        r"""
+        Return the group of all points of finite order in the
+        algebraic closure of this abelian variety.
+
+        EXAMPLES:
+            sage: T = J0(33).qbar_torsion_subgroup(); T
+            Group of all torsion points in QQbar on Abelian variety J0(33) of dimension 3
+
+        The field of definition is the same as the base field of the
+        abelian variety.
+            sage: T.field_of_definition()
+            Rational Field
+
+        On the other hand, T is a module over $\ZZ$.
+            sage: T.base_ring()
+            Integer Ring
+        """
+        try:
+            return self.__qbar_torsion_subgroup
+        except AttributeError:
+            G = QQbarTorsionSubgroup(self)
+            self.__qbar_torsion_subgroup = G
+            return G
+
     def torsion_subgroup(self):
         """
         EXAMPLES:
@@ -1258,11 +1342,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         try:
             return self._zero_subgroup
         except AttributeError:
-            G = FiniteSubgroup_gens(self, [], base_field=QQ)
+            G = FiniteSubgroup_gens(self, [], field_of_definition=QQ)
             self._zero_subgroup = G
             return G
 
-    def finite_subgroup(self, X, base_field=None):
+    def finite_subgroup(self, X, field_of_definition=None):
         """
         Return a finite subgroup of this modular abelian variety.
 
@@ -1273,9 +1357,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                  a rational vector space); also X could be
                  a finite subgroup itself that is contained
                  in this abelian variety.
-            base_field -- (default: None) field over which this
-                 group is defined.  If None try to figure out
-                 the best base field.
+            field_of_definition -- (default: None) field over which
+                 this group is defined.  If None try to figure out the
+                 best base field.
 
         OUTPUT:
             a finite subgroup of a modular abelian variety
@@ -1294,8 +1378,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         """
         if isinstance(X, FiniteSubgroup):
-            if base_field is None:
-                base_field = X.base_field()
+            if field_of_definition is None:
+                field_of_definition = X.field_of_definition()
             A = X.abelian_variety()
             if A.groups() != self.groups():
                 raise ValueError, "ambient product Jacobians must be equal"
@@ -1310,10 +1394,12 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 except ValueError:
                     raise TypeError, "unable to coerce subgroup into abelian variety."
 
-        if base_field is None:
-            base_field = QQbar
+        if field_of_definition is None:
+            field_of_definition = QQbar
+        else:
+            field_of_definition = field_of_definition
 
-        return FiniteSubgroup_gens(self, X, base_field=base_field, check=True)
+        return FiniteSubgroup_gens(self, X, field_of_definition=field_of_definition, check=True)
 
 
     def n_torsion_subgroup(self, n):
@@ -1485,6 +1571,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 proj = X.matrix_from_columns(range(n-L_F.rank(), n))
                 # Now proj is the matrix of projection that goes from L_B to L_F, wrt the basis of those spaces.
                 section = proj**(-1)
+
                 # Now section maps L_F to L_B (tensor QQ).
                 # Now we just take each factor of F, which corresponds to a submodule of L_F,
                 # and map it over to L_B tensor QQ and saturate.

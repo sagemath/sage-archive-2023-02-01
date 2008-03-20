@@ -42,6 +42,8 @@ import abvar as abelian_variety
 import sage.modules.matrix_morphism
 import sage.structure.element
 
+from finite_subgroup import FiniteSubgroupElement
+
 class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
     """
     A morphism between modular abelian varieties.
@@ -98,6 +100,16 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         """
         M = self.matrix()
         return M.nrows() == M.ncols() == M.rank()
+
+    def cokernel(self):
+        try:
+            return self.__cokernel
+        except AttributeError:
+            I = self.image()
+            C = self.codomain().quotient(I)
+            self.__cokernel = C
+            return C
+
 
     def kernel(self):
         """
@@ -234,36 +246,153 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             return g
 
     def image(self):
+        """
+        Return the image of this morphism.
+
+        OUTPUT:
+            an abelian variety
+
+        EXAMPLES:
+        We compute the image of projection onto a factor of $J_0(33)$:
+            sage: A,B,C = J0(33)
+            sage: A
+            Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
+            sage: f = J0(33).projection(A)
+            sage: f.image()
+            Abelian subvariety of dimension 1 of J0(33)
+            sage: f.image() == A
+            True
+
+        We compute the image of a Hecke operator:
+            sage: t2 = J0(33).hecke_operator(2); t2.fcp()
+            (x - 1)^2 * (x + 2)^4
+            sage: phi = t2 + 2
+            sage: phi.image()
+            Abelian subvariety of dimension 1 of J0(33)
+
+        The sum of the image and the kernel is the whole space:
+            sage: phi.kernel()[1] + phi.image() == J0(33)
+            True
+        """
         return self(self.domain())
 
     def __call__(self, X):
         """
         INPUT:
-            X -- abelian variety or finite group
+            X -- abelian variety, finite group, or torsion element
+
+        OUTPUT:
+            abelian variety, finite group, torsion element
+
+        EXAMPLES:
+        We apply morphisms to elements:
+            sage: t2 = J0(33).hecke_operator(2)
+            sage: G  = J0(33).n_torsion_subgroup(2); G
+            Finite subgroup with invariants [2, 2, 2, 2, 2, 2] over QQ of Abelian variety J0(33) of dimension 3
+            sage: t2(G.0)
+            [(-1/2, 0, 1/2, -1/2, 1/2, -1/2)]
+            sage: t2(G.0) in G
+            True
+            sage: t2(G.1)
+            [(0, -1, 1/2, 0, 1/2, -1/2)]
+            sage: t2(G.2)
+            [(0, 0, 0, 0, 0, 0)]
+            sage: K = t2.kernel()[0]; K
+            Finite subgroup with invariants [2, 2, 2, 2] over QQ of Abelian variety J0(33) of dimension 3
+            sage: t2(K.0)
+            [(0, 0, 0, 0, 0, 0)]
+
+        We apply morphisms to subgroups:
+            sage: t2 = J0(33).hecke_operator(2)
+            sage: G  = J0(33).n_torsion_subgroup(2); G
+            Finite subgroup with invariants [2, 2, 2, 2, 2, 2] over QQ of Abelian variety J0(33) of dimension 3
+            sage: t2(G)
+            Finite subgroup with invariants [2, 2] over QQ of Abelian variety J0(33) of dimension 3
+            sage: t2.fcp()
+            (x - 1)^2 * (x + 2)^4
+
+        We apply morphisms to abelian subvarieties:
+            sage: E11a0, E11a1, B = J0(33)
+            sage: t2 = J0(33).hecke_operator(2)
+            sage: t3 = J0(33).hecke_operator(3)
+            sage: E11a0
+            Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
+            sage: t3(E11a0)
+            Abelian subvariety of dimension 1 of J0(33)
+            sage: t3(E11a0).decomposition()
+            [
+            Simple abelian subvariety 11a(3,33) of dimension 1 of J0(33)
+            ]
+            sage: t3(E11a0) == E11a1
+            True
+            sage: t2(E11a0) == E11a0
+            True
+            sage: t3(E11a0) == E11a0
+            False
+            sage: t3(E11a0 + E11a1) == E11a0 + E11a1
+            True
         """
         from abvar import is_ModularAbelianVariety
         from finite_subgroup import FiniteSubgroup
-        if is_ModularAbelianVariety(X):
+        if isinstance(X, FiniteSubgroupElement):
+            return self._image_of_element(X)
+        elif is_ModularAbelianVariety(X):
             return self._image_of_abvar(X)
         elif isinstance(X, FiniteSubgroup):
             return self._image_of_finite_subgroup(X)
         else:
             raise TypeError, "X must be an abelian variety or finite subgroup"
 
-    def _image_of_abvar(self, A):
-        raise NotImplementedError
-##         D = self.domain()
-##         if A is D:
-##             V = self.matrix().row_span(QQ)
-##         else:
-##             if not A.is_subvariety(D):
-##                 raise ValueError, "A must be an abelian subvariety of self."
-##             # Write the vector space corresponding to A in terms of self's
-##             # vector space, then take the image under self.
-##             V = D.vector_space().coordinate_module(A.vector_space()).basis_matrix() * self.matrix()
+    def _image_of_element(self, x):
+        """
+        Return the image of the torsion point x under this morphism.
+
+        The parent of the image element is always the group of all
+        torsion elements of the abelian variety.
+
+        INPUT:
+            x -- a torsion point on an abelian variety
+
+        OUTPUT:
+            a torsion point
+
+        EXAMPLES:
+        """
+        v = x.element() * self.matrix()
+        T = self.codomain().qbar_torsion_subgroup()
+        return T(v)
 
     def _image_of_finite_subgroup(self, G):
-        raise NotImplementedError
+        """
+        Return the image of the finite group $G$ under this morphism.
+
+        INPUT:
+            G -- a finite subgroup of the domain of this morphism
+
+        OUTPUT:
+            a finite subgroup of the codomain
+        """
+        H = [self._image_of_element(x) for x in G.gens()]
+        return self.codomain().finite_subgroup(H, field_of_definition = G.field_of_definition())
+
+    def _image_of_abvar(self, A):
+        D = self.domain()
+        C = self.codomain()
+        if A is D:
+            B = self.matrix()
+        else:
+            if not A.is_subvariety(D):
+                raise ValueError, "A must be an abelian subvariety of self."
+            # Write the vector space corresponding to A in terms of self's
+            # vector space, then take the image under self.
+            B = D.vector_space().coordinate_module(A.vector_space()).basis_matrix() * self.matrix()
+
+        V = (B * C.vector_space().basis_matrix()).row_module(QQ)
+
+        lattice = V.intersection(C.lattice())
+        base_field = C.base_field()
+        return abelian_variety.ModularAbelianVariety(C.groups(), lattice, base_field)
+
 
 class Morphism(Morphism_abstract, sage.modules.matrix_morphism.MatrixMorphism):
     pass

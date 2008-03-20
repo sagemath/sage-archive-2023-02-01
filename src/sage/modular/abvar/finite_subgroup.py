@@ -98,17 +98,36 @@ from sage.misc.misc           import prod
 
 import abvar as abelian_variety
 
+class QQbarTorsionSubgroup(Module):
+    def __init__(self, abvar):
+        self.__abvar = abvar
+        Module.__init__(self, ZZ)
+
+    def _repr_(self):
+        return 'Group of all torsion points in QQbar on %s'%self.__abvar
+
+    def field_of_definition(self):
+        return self.__abvar.base_field()
+
+    def __call__(self, x):
+        v = self.__abvar.vector_space()(x)
+        return FiniteSubgroupElement(self, v)
+
+    def abelian_variety(self):
+        return self.__abvar
+
+
 class FiniteSubgroup(Module):
     """
     A finite subgroup of a modular abelian variety.
     """
-    def __init__(self, abvar, base_field=QQ):
+    def __init__(self, abvar, field_of_definition=QQ):
         """
         Create a finite subgroup of a modular abelian variety.
 
         INPUT:
             abvar -- a modular abelian variety
-            base_field -- a field over which this group is defined.
+            field_of_definition -- a field over which this group is defined.
 
         EXAMPLES:
         This is an abstract base class, so there are no instances
@@ -122,13 +141,13 @@ class FiniteSubgroup(Module):
             sage: isinstance(G, FiniteSubgroup)
             True
         """
-        if not is_Field(base_field):
-            raise TypeError, "base_field must be a field"
+        if not is_Field(field_of_definition):
+            raise TypeError, "field_of_definition must be a field"
         if not abelian_variety.is_ModularAbelianVariety(abvar):
             raise TypeError, "abvar must be a modular abelian variety"
-        Module.__init__(self, base_field)
+        Module.__init__(self, ZZ)
         self.__abvar = abvar
-        self.__base_field = base_field
+        self.__field_of_definition = field_of_definition
 
     def __cmp__(self, other):
         """
@@ -232,9 +251,9 @@ class FiniteSubgroup(Module):
             raise TypeError, "only addition of two finite subgroups is defined"
         if self.abelian_variety() != other.abelian_variety():
             raise TypeError, "finite subgroups must be in the same ambient abelian variety"
-        K = Sequence([self.base_field()(0), other.base_field()(0)]).universe()
+        K = Sequence([self.field_of_definition()(0), other.field_of_definition()(0)]).universe()
         return FiniteSubgroup_gens(self.abelian_variety(),
-                        self._generators() + other._generators(), base_field=K)
+                        self._generators() + other._generators(), field_of_definition=K)
 
     def __mul__(self, right):
         """
@@ -269,7 +288,7 @@ class FiniteSubgroup(Module):
             L = self._ambient_lattice()
             d = 1/r.denominator()
             G += [d * v for v in L.basis()]
-        return FiniteSubgroup_gens(self.abelian_variety(), G, base_field = self.base_field())
+        return FiniteSubgroup_gens(self.abelian_variety(), G, field_of_definition = self.field_of_definition())
 
     def __rmul__(self, left):
         """
@@ -346,7 +365,7 @@ class FiniteSubgroup(Module):
         """
         return self.__abvar
 
-    def base_field(self):
+    def field_of_definition(self):
         """
         Return the field over which this finite modular abelian
         variety subgroup is defined.  This is a field over which
@@ -356,12 +375,10 @@ class FiniteSubgroup(Module):
             sage: J = J0(42)
             sage: G = J.torsion_subgroup(); G
             Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)
-            sage: G.base_field()
+            sage: G.field_of_definition()
             Rational Field
         """
-        return self.__base_field
-
-    base_ring = base_field
+        return self.__field_of_definition
 
     def _repr_(self):
         """
@@ -372,7 +389,7 @@ class FiniteSubgroup(Module):
             sage: G = J.n_torsion_subgroup(3); G._repr_()
             'Finite subgroup with invariants [3, 3, 3, 3, 3, 3, 3, 3, 3, 3] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(42)'
         """
-        K = self.__base_field
+        K = self.__field_of_definition
         if K == QQbar:
             field = "QQbar"
         elif K == QQ:
@@ -656,7 +673,7 @@ class FiniteSubgroup(Module):
                 return x
             elif x.parent() == self:
                 return FiniteSubgroupElement(self, x.element(), check=False)
-            elif x.parent().__abvar == self.__abvar:
+            elif x.parent().abelian_variety() == self.abelian_variety():
                 return self(x.element())
             else:
                 raise TypeError, "x does not define an element of self"
@@ -667,6 +684,13 @@ class FiniteSubgroup(Module):
                 return FiniteSubgroupElement(self, x, check=False)
             else:
                 raise TypeError, "x does not define an element of self"
+
+    def __contains__(self, x):
+        try:
+            self(x)
+        except TypeError:
+            return False
+        return True
 
     def subgroup(self, gens):
         """
@@ -741,7 +765,7 @@ class FiniteSubgroup_gens(FiniteSubgroup):
     A finite subgroup of a modular abelian variety that is generated
     by given generators.
     """
-    def __init__(self, abvar, gens, base_field=QQbar, check=True):
+    def __init__(self, abvar, gens, field_of_definition=QQbar, check=True):
         """
         Create a finite subgroup with given generators.
 
@@ -776,7 +800,7 @@ class FiniteSubgroup_gens(FiniteSubgroup):
         else:
             v = gens
 
-        FiniteSubgroup.__init__(self, abvar, base_field)
+        FiniteSubgroup.__init__(self, abvar, field_of_definition)
         self.__v = tuple(v)
 
     def _generators(self):

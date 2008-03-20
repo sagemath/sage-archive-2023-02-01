@@ -4,6 +4,10 @@
 ## ATLAS
 ###########################################
 
+
+# we need to disable parallel builds
+MAKE=make
+
 FCOMPILER="$SAGE_LOCAL"/bin/sage_fortran
 bitwidth=`python ./bitwidth.py`
 echo "Platform detected to be $bitwidth bits"
@@ -32,7 +36,7 @@ config()
 	# -Fa alg -fPIC: set flags so we can build dynamic libraries
 	# -t 0: disable threading for now.
 	../src/ATLAS/configure --prefix="$SAGE_LOCAL" --with-netlib-lapack="$SAGE_LOCAL"/lib/liblapack.a  \
-	-Si cputhrchk 0 -Fa alg -fPIC -t 0 -C if $FCOMPILER -b $bitwidth
+	-Fa alg -fPIC -t 0 -C if $FCOMPILER -b $bitwidth
 }
 
 
@@ -42,8 +46,6 @@ build()
 	cd $CUR/ATLAS-build
 	make
 
-        # we need to disable parallel builds for the libraries and install
-        MAKE=make
 	# now build the shared libraries
 	cd lib
 	make shared cshared

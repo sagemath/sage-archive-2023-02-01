@@ -166,6 +166,21 @@ class Homspace(HomsetWithBase):
 
 
 
+    def _calculate_simple_gens(self, A, B):
+
+        if A.newform_label() != B.newform_label():
+            return []
+
+        f = A._isogeny_to_newform_abelian_variety()
+        g = B._isogeny_to_newform_abelian_variety().complementary_isogeny()
+
+        Af = f.codomain()
+        ls = Af._calculate_endomorphism_generators()
+
+        Mf = f.matrix()
+        Mg = g.matrix()
+
+        return [ Mf * e * Mg for e in ls ]
 
 class EndomorphismSubring(Homspace, Ring):
 

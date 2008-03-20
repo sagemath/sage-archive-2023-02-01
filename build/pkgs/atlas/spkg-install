@@ -60,14 +60,14 @@ fi
 
 CUR=`pwd`
 echo $CUR
-echo Updating archinfo_x86.c
-cp patches/archinfo_x86.c src/ATLAS/CONFIG/src/backend/
+echo Updating archinfo_linux.c
+cp patches/archinfo_linux.c src/ATLAS/CONFIG/src/backend/
 echo Updating atlconf.h
 cp patches/atlconf.h  src/ATLAS/CONFIG/include/
 echo Updating atlcomp.txt
 cp patches/atlcomp.txt src/ATLAS/CONFIG/src/
 echo Updating Make.top
-cp -i patches/Make.top src/ATLAS/
+cp patches/Make.top src/ATLAS/
 
 config
 

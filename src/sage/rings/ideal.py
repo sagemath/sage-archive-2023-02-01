@@ -1,9 +1,9 @@
 r"""
 Ideals
 
-SAGE provides functionality for computing with ideals.  One can create
-an ideal in any commutative ring $R$ by giving a list of generators,
-using the notation \code{R.ideal([a,b,...])}.
+\SAGE provides functionality for computing with ideals.  One can
+create an ideal in any commutative ring $R$ by giving a list of
+generators, using the notation \code{R.ideal([a,b,...])}.
 """
 
 #*****************************************************************************
@@ -21,6 +21,8 @@ using the notation \code{R.ideal([a,b,...])}.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from types import GeneratorType
+
 import sage.misc.latex as latex
 import sage.rings.ring
 import sage.rings.principal_ideal_domain
@@ -31,12 +33,15 @@ from sage.interfaces.singular import singular as singular_default, is_SingularEl
 import sage.rings.infinity
 from sage.structure.sequence import Sequence
 
+
+
 def Ideal(R, gens=[], coerce=True):
     r"""
     Create the ideal in ring with given generators.
 
-    There are some shorthand notations for creating an ideal, in addition
-    to use the Ideal function:
+    There are some shorthand notations for creating an ideal, in
+    addition to use the Ideal function:
+
     \begin{verbatim}
         --  R.ideal(gens, coerce=True)
         --  gens*R
@@ -69,10 +74,14 @@ def Ideal(R, gens=[], coerce=True):
         Ideal (x^2 - 1, x^2 - 2*x + 1) of Univariate Polynomial Ring in x over Integer Ring
         sage: ideal([x^2-2*x+1, x^2-1])
         Ideal (x^2 - 1, x^2 - 2*x + 1) of Univariate Polynomial Ring in x over Integer Ring
+        sage: l = [x^2-2*x+1, x^2-1]
+        sage: ideal(f^2 for f in l)
+        Ideal (x^4 - 4*x^3 + 6*x^2 - 4*x + 1, x^4 - 2*x^2 + 1) of
+        Univariate Polynomial Ring in x over Integer Ring
 
+    This example illustrates how \SAGE finds a common ambient ring for
+    the ideal, even though 1 is in the integers (in this case).
 
-    This example illustrates how SAGE finds a common ambient ring for the ideal, even though
-    1 is in the integers (in this case).
         sage: R.<t> = ZZ['t']
         sage: i = ideal(1,t,t^2)
         sage: i
@@ -98,7 +107,13 @@ def Ideal(R, gens=[], coerce=True):
     if isinstance(R, Ideal_generic):
         return Ideal(R.ring(), R.gens())
 
-    if isinstance(R, (list, tuple)) and len(R) > 0:
+    if isinstance(R, tuple) and len(R) == 1 and isinstance(R[0], GeneratorType):
+        R = Sequence(R[0])
+        if not isinstance(R.universe(), sage.rings.ring.Ring):
+            raise TypeError, "unable to find common ring into which all ideal generators map"
+        return R[0].parent().ideal(R)
+
+    if isinstance(R, (list, tuple, GeneratorType)) and len(R) > 0:
         R = Sequence(R)
         if not isinstance(R.universe(), sage.rings.ring.Ring):
             raise TypeError, "unable to find common ring into which all ideal generators map"

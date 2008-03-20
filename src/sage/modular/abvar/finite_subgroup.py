@@ -19,7 +19,7 @@ EXAMPLES:
     sage: J = J0(33)
     sage: C = J.cuspidal_subgroup()
     sage: C
-    Finite subgroup with invariants [10, 10] over QQbar of Abelian variety J0(33) of dimension 3
+    Finite subgroup with invariants [10, 10] over QQ of Abelian variety J0(33) of dimension 3
     sage: C.order()
     100
     sage: C.gens()
@@ -153,7 +153,7 @@ class FiniteSubgroup(Module):
         of this class itself.
             sage: A = J0(37)
             sage: G = A.n_torsion_subgroup(3); G
-            Finite subgroup with invariants [3, 3, 3, 3] over QQ of Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+            Finite subgroup with invariants [3, 3, 3, 3] over QQ of Abelian variety J0(37) of dimension 2
             sage: type(G)
             <class 'sage.modular.abvar.finite_subgroup.FiniteSubgroup_gens'>
             sage: from sage.modular.abvar.finite_subgroup import FiniteSubgroup
@@ -261,7 +261,7 @@ class FiniteSubgroup(Module):
         EXAMPLES:
             sage: C = J0(22).cuspidal_subgroup()
             sage: C.gens()
-            [[(1/5, 1/5, -1/5, 0)], [(0, 0, 0, 1/5)]]
+            [[(1/5, 1/5, 4/5, 0)], [(0, 0, 0, 1/5)]]
             sage: A = C.subgroup([C.0]); B = C.subgroup([C.1])
             sage: A + B == C
             True
@@ -311,7 +311,7 @@ class FiniteSubgroup(Module):
             Finite subgroup with invariants [3, 3] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
             sage: W = E11a1.n_torsion_subgroup(15)
             sage: G.intersection(W)
-            Finite subgroup with invariants [3] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
+            Finite subgroup with invariants [] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
             sage: E11a0.intersection(E11a1)[0]
             Finite subgroup with invariants [5] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
 
@@ -329,12 +329,12 @@ class FiniteSubgroup(Module):
             Finite subgroup with invariants [2, 2, 2, 2, 4, 4] over QQ of Abelian variety J0(33) of dimension 3
             sage: A = J0(33).old_subvariety()
             sage: A.intersection(G)
-            Finite subgroup with invariants [2, 2, 2, 2] over QQ of Abelian variety J0(33) of dimension 3
+            Finite subgroup with invariants [2, 2, 2, 2] over QQ of Abelian subvariety of dimension 2 of J0(33)
             sage: A.hecke_operator(7).kernel()[0]
             Finite subgroup with invariants [2, 2, 2, 2] over QQ of Abelian subvariety of dimension 2 of J0(33)
             sage: B = J0(33).new_subvariety()
             sage: B.intersection(G)
-            Finite subgroup with invariants [4, 4] over QQ of Abelian variety J0(33) of dimension 3
+            Finite subgroup with invariants [4, 4] over QQ of Abelian subvariety of dimension 1 of J0(33)
             sage: B.hecke_operator(7).kernel()[0]
             Finite subgroup with invariants [4, 4] over QQ of Abelian subvariety of dimension 1 of J0(33)
             sage: A.intersection(B)[0]
@@ -342,10 +342,12 @@ class FiniteSubgroup(Module):
         """
         A = self.abelian_variety()
         if abelian_variety.is_ModularAbelianVariety(other):
+            amb = other
             B = other
             M = B.lattice().scale(Integer(1)/self.exponent())
             K = composite_field(self.field_of_definition(), other.base_field())
         else:
+            amb = A
             if not isinstance(other, FiniteSubgroup):
                 raise TypeError, "only addition of two finite subgroups is defined"
             B = other.abelian_variety()
@@ -363,8 +365,8 @@ class FiniteSubgroup(Module):
             M = M + C.lattice()
         W = L.intersection(M).intersection(A.vector_space())
         # Now write each of a basis for W in terms of the basis for L.
-        gens = A.lattice().coordinate_module(W).basis()
-        return FiniteSubgroup_gens(self.abelian_variety(), gens, field_of_definition=K)
+        gens = amb.lattice().coordinate_module(W).basis()
+        return FiniteSubgroup_gens(amb, gens, field_of_definition=K)
 
     def __mul__(self, right):
         """
@@ -412,10 +414,8 @@ class FiniteSubgroup(Module):
             sage: H = G.__rmul__(2)
             sage: H.order().factor()
             2^4 * 3^2
-
-        Automatic calling is currently broken because of trac \#2283.
             sage: 2*G
-            Finite subgroup with invariants [6, 24] over QQbar of Abelian variety J0(42) of dimension 5
+            Finite subgroup with invariants [6, 24] over QQ of Abelian variety J0(42) of dimension 5
         """
         return self * left
 
@@ -498,8 +498,7 @@ class FiniteSubgroup(Module):
         EXAMPLES:
             sage: J = J0(42)
             sage: G = J.n_torsion_subgroup(3); G._repr_()
-            'Finite subgroup with invariants [3, 3, 3, 3, 3, 3, 3, 3, 3, 3] over QQ of Abelian variety J0
-(42) of dimension 5'
+            'Finite subgroup with invariants [3, 3, 3, 3, 3, 3, 3, 3, 3, 3] over QQ of Abelian variety J0(42) of dimension 5'
         """
         K = self.__field_of_definition
         if K == QQbar:
@@ -618,12 +617,12 @@ class FiniteSubgroup(Module):
 
         EXAMPLES:
             sage: J = J0(33); C = J[0].cuspidal_subgroup(); C
-            Finite subgroup with invariants [5] over QQbar of Abelian variety J0(33) of dimension 3
+            Finite subgroup with invariants [15] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
             sage: C.lattice()
             Free module of degree 6 and rank 2 over Integer Ring
             Echelon basis matrix:
-            [ 1/2    0    0 -1/2    0    0]
-            [   0    0  1/2    0  1/2 -1/2]
+            [  1/5   3/5  -2/3 -2/15   2/3  -1/5]
+            [    0     1  -2/3  -1/3   2/3     0]
         """
         try:
             return self.__lattice
@@ -656,7 +655,7 @@ class FiniteSubgroup(Module):
             sage: C.rescaled_module()
             (Free module of degree 4 and rank 1 over Integer Ring
             Echelon basis matrix:
-            [ 1 -1  0 -3], 11)
+            [ 1 10  0  8], 11)
         """
         try:
             return self.__rescaled_module, self.__denom
@@ -763,7 +762,7 @@ class FiniteSubgroup(Module):
         We coerce an element from the cuspidal subgroup into the
         $11$-torsion subgroup:
             sage: z = G(C.0); z
-            [(1/11, -1/11, 0, -3/11)]
+            [(1/11, 10/11, 0, 8/11)]
             sage: z.parent() == G
             True
 
@@ -846,7 +845,7 @@ class FiniteSubgroup(Module):
         EXAMPLES:
             sage: J = J0(38)
             sage: C = J.cuspidal_subgroup(); C
-            Finite subgroup with invariants [3, 45] over QQbar of Abelian variety J0(38) of dimension 4
+            Finite subgroup with invariants [3, 45] over QQ of Abelian variety J0(38) of dimension 4
             sage: v = C.invariants(); v
             [3, 45]
             sage: v[0] = 5
@@ -857,7 +856,7 @@ class FiniteSubgroup(Module):
             <type 'sage.rings.integer.Integer'>
 
             sage: 3*C
-            Finite subgroup with invariants [15] over QQbar of Abelian variety J0(38) of dimension 4
+            Finite subgroup with invariants [15] over QQ of Abelian variety J0(38) of dimension 4
         """
         try:
             return self.__invariants
@@ -900,7 +899,7 @@ class FiniteSubgroup_gens(FiniteSubgroup):
         EXAMPLES:
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
-            Finite subgroup with invariants [15] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+            Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
         """
         if check:
             HQ = abvar._rational_homology_space()
@@ -936,7 +935,7 @@ class FiniteSubgroup_gens(FiniteSubgroup):
         EXAMPLES:
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
-            Finite subgroup with invariants [15] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+            Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
             sage: G._generators()
             ((1/3, 0), (0, 1/5))
         """
@@ -963,7 +962,7 @@ class FiniteSubgroupElement(ModuleElement):
         The following calls the FiniteSubgroupElement constructor implicitly:
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
-            Finite subgroup with invariants [15] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+            Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
             sage: type(G.0)
             <class 'sage.modular.abvar.finite_subgroup.FiniteSubgroupElement'>
         """
@@ -990,7 +989,7 @@ class FiniteSubgroupElement(ModuleElement):
         We create some elements of $J_0(11)$:
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
-            Finite subgroup with invariants [15] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+            Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
             sage: G.0.element()
             (1/3, 0)
 
@@ -1012,7 +1011,7 @@ class FiniteSubgroupElement(ModuleElement):
         EXAMPLES:
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
-            Finite subgroup with invariants [15] over QQbar of Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+            Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
             sage: G.0._repr_()
             '[(1/3, 0)]'
         """

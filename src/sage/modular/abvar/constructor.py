@@ -47,7 +47,7 @@ def J0(N):
         sage: J0(33) is J0(33)
         True
     """
-    key = 'J1(%s)'%N
+    key = 'J0(%s)'%N
     try:
         return _get(key)
     except ValueError:

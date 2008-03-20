@@ -314,13 +314,13 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES:
             sage: A = AbelianVariety('33a'); A
-            Newform abelian subvariety 33a and dimension 1 of J0(33)
+            Newform abelian subvariety 33a of dimension 1 of J0(33)
             sage: A.modular_kernel()
-            Finite subgroup with invariants [3, 3] over QQ of Newform abelian subvariety 33a and dimension 1 of J0(33)
+            Finite subgroup with invariants [3, 3] over QQ of Newform abelian subvariety 33a of dimension 1 of J0(33)
             sage: A = AbelianVariety('71a'); A
-            Newform abelian subvariety 71a and dimension 3 of J0(71)
+            Newform abelian subvariety 71a of dimension 3 of J0(71)
             sage: A.modular_kernel()
-            Finite subgroup with invariants [9, 9] over QQ of Newform abelian subvariety 71a and dimension 3 of J0(71)
+            Finite subgroup with invariants [9, 9] over QQ of Newform abelian subvariety 71a of dimension 3 of J0(71)
         """
         try:
             return self.__modular_kernel
@@ -534,7 +534,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
         Quotient out by a finite group:
             sage: J = J0(67); G = (J[0] + J[1]).intersection(J[1] + J[2])
-            sage: Q, _ = J/G[0]
+            sage: Q, _ = J/G[0]; Q
             Abelian variety factor of dimension 5 of J0(67) over Algebraic Field
             sage: Q.base_field()
             Algebraic Field
@@ -1482,10 +1482,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: C.invariants()
             [3, 3, 3, 3, 3, 9]
             sage: J1(13).cuspidal_subgroup()
-            Finite subgroup with invariants [19, 19] over QQbar of Abelian variety J1(13) of dimension 2
+            Finite subgroup with invariants [19, 19] over QQ of Abelian variety J1(13) of dimension 2
             sage: A = J0(33)[0]
             sage: A.cuspidal_subgroup()
-            Finite subgroup with invariants [5] over QQbar of Abelian variety J0(33) of dimension 3
+            Finite subgroup with invariants [15] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
 
         """
         try:
@@ -1504,11 +1504,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         """
         EXAMPLES:
             sage: (J1(13)*J0(11))._ambient_cuspidal_subgroup()
-            Finite subgroup with invariants [19, 95] over QQbar of Abelian variety J1(13) x J0(11) of dimension 3
+            Finite subgroup with invariants [19, 95] over QQ of Abelian variety J1(13) x J0(11) of dimension 3
             sage: (J0(33))._ambient_cuspidal_subgroup()
-            Finite subgroup with invariants [10, 10] over QQbar of Abelian variety J0(33) of dimension 3
+            Finite subgroup with invariants [10, 10] over QQ of Abelian variety J0(33) of dimension 3
             sage: (J0(33)*J0(33))._ambient_cuspidal_subgroup()
-            Finite subgroup with invariants [10, 10, 10, 10] over QQbar of Abelian variety J0(33) x J0(33) of dimension 6
+            Finite subgroup with invariants [10, 10, 10, 10] over QQ of Abelian variety J0(33) x J0(33) of dimension 6
         """
         n = 2 * self.degree()
         i = 0
@@ -1520,7 +1520,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Z_right = matrix(QQ,L.nrows(),n-i-L.ncols())
             lattice += (Z_left.augment(L).augment(Z_right)).row_module(ZZ)
             i += L.ncols()
-        return self.finite_subgroup(lattice.basis())
+        return self.finite_subgroup(lattice.basis(), field_of_definition=self.base_field())
 
     def rational_cusp_subgroup(self):
         r"""
@@ -1535,7 +1535,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: J = J0(54)
             sage: CQ = J.rational_cusp_subgroup(); CQ
-            Finite subgroup with invariants [3, 3, 9] over QQbar of Abelian variety J0(54) of dimension 4
+            Finite subgroup with invariants [3, 3, 9] over QQ of Abelian variety J0(54) of dimension 4
             sage: CQ.gens()
             [[(1/3, 0, 0, 1/3, 2/3, 1/3, 0, 1/3)], [(0, 0, 1/9, 1/9, 7/9, 7/9, 1/9, 8/9)], [(0, 0, 0, 0, 0, 0, 1/3, 2/3)]]
             sage: factor(CQ.order())
@@ -1546,14 +1546,14 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         In this example the rational cuspidal subgroup and the cuspidal subgroup differ by a lot.
             sage: J = J0(49)
             sage: J.cuspidal_subgroup()
-            Finite subgroup with invariants [2, 14] over QQbar of Abelian variety J0(49) of dimension 1
+            Finite subgroup with invariants [2, 14] over QQ of Abelian variety J0(49) of dimension 1
             sage: J.rational_cusp_subgroup()
-            Finite subgroup with invariants [2] over QQbar of Abelian variety J0(49) of dimension 1
+            Finite subgroup with invariants [2] over QQ of Abelian variety J0(49) of dimension 1
 
         Note that computation of the rational cusp subgroup isn't implemented for $\Gamma_1$.
             sage: J = J1(13)
             sage: J.cuspidal_subgroup()
-            Finite subgroup with invariants [19, 19] over QQbar of Abelian variety J1(13) of dimension 2
+            Finite subgroup with invariants [19, 19] over QQ of Abelian variety J1(13) of dimension 2
             sage: J.rational_cusp_subgroup()
             Traceback (most recent call last):
             ...
@@ -1610,14 +1610,14 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: J = J0(11)
             sage: J.finite_subgroup([[1/5,0], [0,1/3]])
-            Finite subgroup with invariants [5] over QQbar of Abelian variety J0(33) of dimension 3
+            Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
 
             sage: J = J0(33); C = J[0].cuspidal_subgroup(); C
-            Finite subgroup with invariants [5] over QQ of Abelian variety J0(33) of dimension 3
+            Finite subgroup with invariants [15] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
             sage: J.finite_subgroup([[0,0,0,0,0,1/6]])
             Finite subgroup with invariants [6] over QQbar of Abelian variety J0(33) of dimension 3
             sage: J.finite_subgroup(C)
-            Finite subgroup with invariants [5] over QQ of Abelian variety J0(33) of dimension 3
+            Finite subgroup with invariants [15] over QQ of Abelian variety J0(33) of dimension 3
 
         """
         if isinstance(X, FiniteSubgroup):
@@ -1985,12 +1985,12 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         Next we compute the dual of a $2$-dimensional new simple
         abelian subvariety of $J_0(43)$.
             sage: A = AbelianVariety('43b'); A
-            Modular abelian variety attached to a newform of level 43
+            Newform abelian subvariety 43b of dimension 2 of J0(43)
             sage: Ad, f = A.dual()
 
         The kernel shows that the modular degree is $2$:
             sage: f.kernel()[0]
-            Finite subgroup with invariants [2, 2] over QQ of Modular abelian variety attached to a newform of level 43
+            Finite subgroup with invariants [2, 2] over QQ of Newform abelian subvariety 43b of dimension 2 of J0(43)
 
         Unfortunately, the dual is not implemented in general:
             sage: A = J0(22)[0]; A
@@ -2278,10 +2278,18 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             Simple abelian subvariety 11a(3,33) of dimension 1 of J0(33)
             sage: A.modular_symbols()
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
+
+        It is not always possible to determine the sign subspaces:
             sage: A.modular_symbols(1)
-            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field
+            Traceback (most recent call last):
+            ...
+            RuntimeError: unable to determine sign (=1) space of modular symbols
+
             sage: A.modular_symbols(-1)
-            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 3 for Gamma_0(33) of weight 2 with sign -1 over Rational Field
+            Traceback (most recent call last):
+            ...
+            RuntimeError: unable to determine sign (=-1) space of modular symbols
+
         """
         M = self._modular_symbols().modular_symbols_of_sign(sign)
         if (sign != 0 and M.dimension() != self.dimension()) or (sign == 0 and M.dimension() != 2*self.dimension()):
@@ -2501,7 +2509,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             sage: J0(100).new_subvariety()
             Abelian subvariety of dimension 1 of J0(100)
             sage: J1(13).new_subvariety()
-            Abelian variety J1(13)
+            Abelian variety J1(13) of dimension 2
         """
         try:
             return self.__new_subvariety[p]

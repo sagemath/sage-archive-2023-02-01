@@ -116,7 +116,6 @@ class CuspidalSubgroup_generic(FiniteSubgroup):
                 data = [n for n in range(2,N) if gcd(n,N) == 1]
                 C = [c for c in C if is_rational_cusp_gamma0(c, N, data)]
 
-
         G = [Amb([infinity, alpha]).element() for alpha in C]
         J = matrix(QQ, len(G), Amb.dimension(), G)
         R = (J * I).rows()

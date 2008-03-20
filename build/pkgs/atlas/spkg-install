@@ -36,7 +36,7 @@ config()
 	# -Fa alg -fPIC: set flags so we can build dynamic libraries
 	# -t 0: disable threading for now.
 	../src/ATLAS/configure --prefix="$SAGE_LOCAL" --with-netlib-lapack="$SAGE_LOCAL"/lib/liblapack.a  \
-	-Fa alg -fPIC -t 0 -C if $FCOMPILER -b $bitwidth
+	-Si cputhrchk 0 -Fa alg -fPIC -t 0 -C if $FCOMPILER -b $bitwidth
 }
 
 

@@ -24,6 +24,8 @@ print 'Global iterations: ' + str(numglobaliteration)
 print 'File iterations: ' + str(numiteration)
 print 'TeX files: ' + str(checktex)
 
+abort = False
+
 for gr in range(0,numglobaliteration):
 
     try:
@@ -57,10 +59,11 @@ for gr in range(0,numglobaliteration):
         def __init__(self):
             threading.Thread.__init__(self)
         def run(x):
+            global abort
             try:
                 while True:
                     filemutex.acquire()
-                    if len(files)!=0:
+                    if len(files)!=0 and abort==False:
                         F = files.pop()
                         filemutex.release()
                         base, ext = os.path.splitext(F)
@@ -68,10 +71,13 @@ for gr in range(0,numglobaliteration):
                             e = test(F, 'doctest_tex ' + opts)
                         elif ext in ['.py', '.pyx', '.tex', '.pxi']:
                             e = test(F, 'doctest '+opts)
+                        if e==-2:
+                            raise KeyboardInterrupt
                     else:
                        filemutex.release()
                        return
             except KeyboardInterrupt:
+                abort = True
                 return
 
 
@@ -145,15 +151,35 @@ for gr in range(0,numglobaliteration):
             for i in range(0,numiteration):
                 os.chdir(os.path.dirname(F))
                 s = 'bash -c "%s/local/bin/sage-%s %s > %s" ' %(SAGE_ROOT, cmd, filestr, outfile.name)
-                ret = os.system(s)
-                ol = outfile.read()
-                if ret != 0:
+                try:
+                    ret = os.system(s)
+                    if ret>=256:
+                        ret=ret/256
+                    ret = -ret
+                except:
                     printmutex.acquire()
                     failed.append(abs(F))
                     printmutex.release()
                     break
+                ol = outfile.read()
+                if ret != 0:
+                    printmutex.acquire()
+                    if ret == -4:
+                        numfail = ol.count('Expected:')
+                        failed.append(abs(F)+(": %s doctests failed" % numfail))
+                        ret = numfail
+                    elif ret == -3:
+                        failed.append(abs(F)+": Segfault")
+                    elif ret == -2:
+                        failed.append(abs(F)+": KeyboardInterrupt")
+                    elif ret == -1:
+                        failed.append(abs(F)+": File not found")
+                    else:
+                        failed.append(abs(F))
+                    printmutex.release()
+                    break
         else:
-            return False
+            return 0
         printmutex.acquire()
         print abs(F)
         if ol!="" and (not ol.isspace()):

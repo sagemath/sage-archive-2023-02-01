@@ -353,11 +353,11 @@ def test_file(file):
         except KeyboardInterrupt:
             err += "\n Error -- interrupted after %s seconds!"%tm
             print "Error!!!"
-            sys.exit(1)
+            sys.exit(2)
 
         if not verbose and 'raise KeyboardInterrupt' in err:
             print "\n" + "*"*80 + "\nControl-C pressed -- interrupting doctests.\n" + "*"*80
-            sys.exit(1)
+            sys.exit(2)
 
         if time.time() - tm >= TIMEOUT:
             err += "*** *** Error: TIMED OUT! *** ***"
@@ -365,13 +365,14 @@ def test_file(file):
 
         s = post_process(out, file)  + err
         print s
-        if 'Failed' in s or 'Error' in s:
+        numfail = s.count('Failed') + s.count('Error')
+        if numfail > 0:
             delete_tmpfiles()
-            sys.exit(1)
+            sys.exit(4)
         elif e != 0:
             if not verbose:
                 print "A mysterious error (perphaps a memory error?) occurred, which may have crashed doctest."
-            sys.exit(1)
+            sys.exit(3)
         else:
             delete_tmpfiles()
             sys.exit(0)

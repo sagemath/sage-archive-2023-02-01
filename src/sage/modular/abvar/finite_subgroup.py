@@ -110,29 +110,101 @@ def composite_field(K,L):
         field
 
     EXAMPLES:
+        sage: sage.modular.abvar.finite_subgroup.composite_field(QQ,QQbar)
+        Algebraic Field
+        sage: sage.modular.abvar.finite_subgroup.composite_field(QQ,QQ[sqrt(2)])
+        Number Field in sqrt2 with defining polynomial x^2 - 2
+        sage: sage.modular.abvar.finite_subgroup.composite_field(QQ,QQ)
+        Rational Field
     """
     if K == L:
         return K
-    if K == QQbar:
+    if K == QQbar or L==QQbar:
         return QQbar
-    raise NotImplementedError, "need to implement this"
+    if K.is_prime_field():
+        return L
+    if L.is_prime_field():
+        return K
+    try:
+        return K.composite_fields(L)[0]
+    except AttributeError:
+        raise NotImplementedError, "need to implement this"
 
 class QQbarTorsionSubgroup(Module):
     def __init__(self, abvar):
+        """
+        Group of all torsion points over the algebraic
+        closure on an abelian variety.
+
+        INPUT:
+            abvar -- an abelian variety
+
+        EXAMPLES:
+            sage: A = J0(23)
+            sage: A.qbar_torsion_subgroup()
+            Group of all torsion points in QQbar on Abelian variety J0(23) of dimension 2
+        """
         self.__abvar = abvar
         Module.__init__(self, ZZ)
 
     def _repr_(self):
+        """
+        Print representation of QQbar points.
+
+        OUTPUT:
+            string
+
+        EXAMPLES:
+            sage: J0(23).qbar_torsion_subgroup()._repr_()
+            'Group of all torsion points in QQbar on Abelian variety J0(23) of dimension 2'
+        """
         return 'Group of all torsion points in QQbar on %s'%self.__abvar
 
     def field_of_definition(self):
+        """
+        Return the field of definition of this subgroup.  Since this
+        is the group of all torsion it is defined over the base field of this
+        abelian variety.
+
+        OUTPUT:
+            a field
+
+        EXAMPLES:
+            sage: J0(23).qbar_torsion_subgroup().field_of_definition()
+            Rational Field
+        """
         return self.__abvar.base_field()
 
     def __call__(self, x):
+        r"""
+        Create an element in this finite group.
+
+        INPUT:
+            x -- vector in $\QQ^{2d}$
+        OUTPUT:
+            torsion point
+
+        EXAMPLES:
+            sage: P = J0(23).qbar_torsion_subgroup()([1,1/2,3/4,2]); P
+            [(1, 1/2, 3/4, 2)]
+            sage: P.order()
+            4
+        """
         v = self.__abvar.vector_space()(x)
         return FiniteSubgroupElement(self, v)
 
     def abelian_variety(self):
+        """
+        Return the abelian variety that this is the set of all torsion
+        points on.
+
+        OUTPUT:
+            abelian variety
+
+        EXAMPLES:
+            sage: J0(23).qbar_torsion_subgroup().abelian_variety()
+            Abelian variety J0(23) of dimension 2
+        """
         return self.__abvar
 
 
@@ -609,11 +681,11 @@ class FiniteSubgroup(Module):
 
     def lattice(self):
         """
-        Return the lattice in the homology the modular Jacobian
-        product corresponding to this subgroup.  The elements of the
-        subgroup are represented by vecotrs in the ambient vector
-        space (the rational homology), and this returns the lattice
-        they span.
+        Return the lattice in the rational homology of the modular
+        Jacobian product corresponding to this subgroup.  The elements
+        of the subgroup are represented by vecotors in the ambient
+        vector space (the rational homology), and this returns the
+        lattice they span.
 
         EXAMPLES:
             sage: J = J0(33); C = J[0].cuspidal_subgroup(); C
@@ -943,12 +1015,9 @@ class FiniteSubgroup_gens(FiniteSubgroup):
 
 
 class FiniteSubgroupElement(ModuleElement):
-    """
-    An element of a finite subgroup of a modular abelian variety.
-    """
     def __init__(self, parent, element, check=True):
         """
-        Create a finite subgroup element.
+        An element of a finite subgroup of a modular abelian variety.
 
         INPUT:
             parent  -- a finite subgroup of a modular abelian variety
@@ -973,6 +1042,15 @@ class FiniteSubgroupElement(ModuleElement):
         self.__element = element
 
     def ambient_element(self):
+        r"""
+        Return vector that represents this element with respect to the
+        ambient Jacobian product lattice.
+
+        OUTPUT:
+            vector over $\QQ$
+
+        EXAMPLES:
+        """
         try:
             return self.__ambient_element
         except AttributeError:

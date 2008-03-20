@@ -571,7 +571,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f.polynomial_coefficient({y:1})
             5*x
             sage: f.polynomial_coefficient({y:0})
-            -1*x^9 - 7*x
+            -x^9 - 7*x
             sage: f.polynomial_coefficient({x:0,y:0})
             0
             sage: R.<x,y> = RR[]
@@ -807,7 +807,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: R.<fx,fy,gx,gy> = ZZ[]
             sage: F = ((fx*gy - fy*gx)^3)
             sage: F
-            -1*fy^3*gx^3 + 3*fx*fy^2*gx^2*gy - 3*fx^2*fy*gx*gy^2 + fx^3*gy^3
+            -fy^3*gx^3 + 3*fx*fy^2*gx^2*gy - 3*fx^2*fy*gx*gy^2 + fx^3*gy^3
             sage: F.monomials()
             [fy^3*gx^3, fx*fy^2*gx^2*gy, fx^2*fy*gx*gy^2, fx^3*gy^3]
             sage: F.coefficients()

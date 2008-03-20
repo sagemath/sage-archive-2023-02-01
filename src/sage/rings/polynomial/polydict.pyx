@@ -449,9 +449,16 @@ cdef class PolyDict:
             E.sort(cmp = cmpfn, reverse=True)
         else:
             E.sort(reverse=True)
+        try:
+            pos_one = self.__zero.parent()(1)
+            neg_one = -pos_one
+        except AttributeError:
+            # probably self.__zero is not a ring element
+            pos_one = 1
+            neg_one = -1
         for e in E:
             c = self.__repn[e]
-            if c != 0:
+            if c != self.__zero:
                 sign_switch = False
                 # First determine the multinomial:
                 multi = ""
@@ -467,15 +474,18 @@ cdef class PolyDict:
                 # Next determine coefficient of multinomial
                 if len(multi) == 0:
                     multi = str(c)
-                elif c != 1:
+                elif c != pos_one:
                     if not atomic_coefficients:
                         c = str(c)
                         if c.find("+") != -1 or c.find("-") != -1 or c.find(" ") != -1:
                             c = "(%s)"%c
-                    if len(poly) > 0 and c == -1:
+                    if len(poly) > 0 and c == neg_one:
                         sign_switch = True
                     else:
-                        multi = "%s*%s"%(c,multi)
+                        if c == neg_one:
+                            multi = "-%s"%(multi)
+                        else:
+                            multi = "%s*%s"%(c,multi)
 
                 # Now add on coefficiented multinomials
                 if len(poly) > 0:

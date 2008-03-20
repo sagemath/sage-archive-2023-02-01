@@ -154,10 +154,10 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         abvar = ModularAbelianVariety(D.groups(), Lambda, D.base_ring())
 
         if Lambda.rank() == 0:
-            base_field = QQ
+            field_of_definition = QQ
         else:
-            base_field = None
-        K = D.finite_subgroup(X.rows(), base_field=base_field)
+            field_of_definition = None
+        K = D.finite_subgroup(X.rows(), field_of_definition=field_of_definition)
 
         return K, abvar
 

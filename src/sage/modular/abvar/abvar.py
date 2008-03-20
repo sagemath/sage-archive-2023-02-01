@@ -323,10 +323,13 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         ambient Jacobian product.
 
         INPUT:
-            other -- a modular abelian variety
+            other -- a modular abelian variety or a finite group
         OUTPUT:
+        If other is a modular abelian variety:
             G -- finite subgroup of self
             A -- abelian variety (identity component of intersection)
+        If other is a finite group:
+            G -- a finite group
 
         EXAMPLES:
         We intersect some abelian varieties with finite intersection.
@@ -356,6 +359,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             (Finite subgroup with invariants [5, 10] over QQbar of Abelian subvariety of dimension 3 of J0(67), Abelian subvariety of dimension 2 of J0(67))
 
         """
+        if isinstance(other, FiniteSubgroup):
+            return other.intersection(self)
+
         if not self.in_same_ambient_spaces(other):
             raise TypeError, "other must be an abelian variety in the same ambient space"
 
@@ -374,7 +380,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         n = self.lattice().rank()
         gens = [v.list()[:n] for v in V.coordinate_module(S).basis()]
 
-        G = self.finite_subgroup(gens, base_field=finitegroup_base_field)
+        G = self.finite_subgroup(gens, field_of_definition=finitegroup_base_field)
 
         L = self.lattice().intersection(other.lattice())
         if L.dimension() > 0:
@@ -2230,64 +2236,64 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             self._dimension = d
             return d
 
-    def new_quotient(self, p=None):
+    def new_subvariety(self, p=None):
         """
-        Return the new or $p$-new quotient variety of self.
+        Return the new or $p$-new subvariety of self.
 
         INPUT:
             self -- a modular abelian variety
             p -- prime number or None (default); if p is a prime,
-                 return the p-new quotient.  Otherwise return the
-                 full new quotient.
+                 return the p-new subvariety.  Otherwise return the
+                 full new subvariety.
 
         EXAMPLES:
-            sage: J0(33).new_quotient()
+            sage: J0(33).new_subvariety()
             Abelian subvariety of dimension 1 of J0(33)
-            sage: J0(100).new_quotient()
+            sage: J0(100).new_subvariety()
             Abelian subvariety of dimension 1 of J0(100)
-            sage: J1(13).new_quotient()
+            sage: J1(13).new_subvariety()
             Abelian variety J1(13)
         """
         try:
-            return self.__new_quotient[p]
+            return self.__new_subvariety[p]
         except AttributeError:
-            self.__new_quotient = {}
+            self.__new_subvariety = {}
         except KeyError:
             pass
         A = self.modular_symbols()
         N = A.new_submodule(p=p)
         B = ModularAbelianVariety_modsym(N)
-        self.__new_quotient[p] = B
+        self.__new_subvariety[p] = B
         return B
 
-    def old_quotient(self, p=None):
+    def old_subvariety(self, p=None):
         """
-        Return the old or $p$-old quotient variety of self.
+        Return the old or $p$-old abelian variety of self.
 
         INPUT:
             self -- a modular abelian variety
             p -- prime number or None (default); if p is a prime,
-                 return the p-old quotient.  Otherwise return the
-                 full old quotient.
+                 return the p-old subvariety.  Otherwise return the
+                 full old subvariety.
 
         EXAMPLES:
-            sage: J0(33).old_quotient()
+            sage: J0(33).old_subvariety()
             Abelian subvariety of dimension 2 of J0(33)
-            sage: J0(100).old_quotient()
+            sage: J0(100).old_subvariety()
             Abelian subvariety of dimension 6 of J0(100)
-            sage: J1(13).old_quotient()
+            sage: J1(13).old_subvariety()
             Abelian subvariety of dimension 0 of J1(13)
         """
         try:
-            return self.__old_quotient[p]
+            return self.__old_subvariety[p]
         except AttributeError:
-            self.__old_quotient = {}
+            self.__old_subvariety = {}
         except KeyError:
             pass
         A = self.modular_symbols()
         N = A.old_submodule(p=p)
         B = ModularAbelianVariety_modsym(N)
-        self.__old_quotient[p] = B
+        self.__old_subvariety[p] = B
         return B
 
     def decomposition(self, simple=True, bound=None):

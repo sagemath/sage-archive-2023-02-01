@@ -790,8 +790,8 @@ ext_modules = [ \
                             'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_zn_poly.cpp'],
                  libraries = ['ntl', 'stdc++', 'gmp', 'zn_poly'],
                  language = 'c++',
-                 include_dirs=debian_include_dirs + ['sage/libs/ntl/'],
-                 'sage/schemes/hyperelliptic_curves/hypellfrob/'), \
+                 include_dirs=debian_include_dirs + ['sage/libs/ntl/',
+                 'sage/schemes/hyperelliptic_curves/hypellfrob/']), \
 
     Extension('sage.rings.polynomial.polynomial_compiled',
                sources = ['sage/rings/polynomial/polynomial_compiled.pyx']), \

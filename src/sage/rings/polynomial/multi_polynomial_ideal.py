@@ -374,10 +374,18 @@ class MPolynomialIdeal_singular_repr:
             return I
         except (AttributeError, ValueError):
             self.ring()._singular_(singular).set_ring()
-            gens = [str(x) for x in self.gens()]
-            if len(gens) == 0:
-                gens = ['0']
-            self.__singular = singular.ideal(gens)
+            try:
+                # this may fail for quotient ring elements, but is
+                # faster
+                gens = [str(x) for x in self.gens()]
+                if len(gens) == 0:
+                    gens = ['0']
+                self.__singular = singular.ideal(gens)
+            except TypeError:
+                gens = [str(x.lift()) for x in self.gens()]
+                if len(gens) == 0:
+                    gens = ['0']
+                self.__singular = singular.ideal(gens)
         return self.__singular
 
     def _contains_(self, f):

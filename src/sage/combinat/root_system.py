@@ -19,7 +19,6 @@ from sage.modules.free_module import FreeModule
 from sage.rings.all import ZZ
 from sage.misc.misc import prod
 
-
 def RootSystem(t):
     """
     EXAMPLES:
@@ -159,7 +158,7 @@ class RootSystemRealization_generic:
     """
     ## Realization of a root system (that is of the
     ## (positive/negative/simple) roots inside some space, not necessarily
-    ## with any particular structure
+    ## with any particular structure)
 
 
 class WeightLatticeRealization_class:
@@ -468,68 +467,88 @@ class AmbientLattice_d(AmbientLattice_generic):
 
 class AmbientLattice_f(AmbientLattice_generic):
     """
-    The lattice behind F4.
+    The lattice behind F4.  The computations are based on Bourbaki, Groupes et Algebres de Lie,
+    Ch. 4,5,6 (planche VIII).
     """
     def __init__(self, ct):
+        """
+        Create the ambient lattice for the root system for F4.
+        Specify the Base, i.e., the simple roots w.r. to the canonical
+        basis for R^4.
+        """
         from sage.rings.rational import Rational
         v = Rational(1)/Rational(2)
         AmbientLattice_generic.__init__(self, ct)
-        self.Base = [self.root(1,2,1), self.root(2,3,1), self.root(3), v*(self.root(0)-self.root(1)-self.root(2)-self.root(3))]
+        self.Base = [self.root(1,2,p2=1), self.root(2,3,p2=1), self.root(3), v*(self.root(0)-self.root(1)-self.root(2)-self.root(3))]
 
-    def root(self, i, j=None, p1=0):
+    def root(self, i, j=None, k=None, l=None, p1=0, p2=0, p3=0, p4=0):
         """
-        ???
+        Compute a root from base elements of the underlying lattice.
+        The arguments specify the basis elements and the signs.
+        Sadly, the base elements are indexed zero-based.
+        We assume that if one of the indices is not given, the rest are not as well.
+        EXAMPLES:
+            sage: F4=RootSystem(['F',4])
+            sage: LF4=F4.ambient_lattice()
+            sage: [ LF4.root(i,j,p2=1) for i in xrange(LF4.n) for j in xrange(i+1,LF4.n) ]
+            [(1, -1, 0, 0), (1, 0, -1, 0), (1, 0, 0, -1), (0, 1, -1, 0), (0, 1, 0, -1), (0, 0, 1, -1)]
         """
         if i == j or j == None:
-            return self._term(i)
-        return self._term(i) + (-1)**p1*self._term(j)
+            return (-1)**p1*self._term(i)
+        if k == None:
+            return (-1)**p1*self._term(i) + (-1)**p2*self._term(j)
+        if l == None:
+            return (-1)**p1*self._term(i) + (-1)**p2*self._term(j)+(-1)**p3*self._term(k)
+        return (-1)**p1*self._term(i) + (-1)**p2*self._term(j)+(-1)**p3*self._term(k)+(-1)**p4*self._term(l)
 
     def simple_roots(self):
         """
-        There are computed with respect to the 'canonical' (i.e., Bourbaki) base
+        There are computed as what Bourbaki calls the Base:
             a1 = e2-e3, a2 = e3-e4, a3 = e4, a4 = 1/2*(e1-e2-e3-e4)
         EXAMPLES:
-            sage: F4 =  RootSystem(['F',4]).ambient_lattice()
-            sage: F4.simple_roots()
-            [(1, -1, 0, 0), (0, 1, -1, 0), (0, 0, 1, -1), (0, 0, 0, 1)]
-            sage: e.positive_roots()
-            [(1, -1, 0, 0),
-            (1, 1, 0, 0),
-            (1, 0, -1, 0),
-            (1, 0, 1, 0),
-            (1, 0, 0, -1),
-            (1, 0, 0, 1),
-            (0, 1, -1, 0),
-            (0, 1, 1, 0),
-            (0, 1, 0, -1),
-            (0, 1, 0, 1),
-            (0, 0, 1, -1),
-            (0, 0, 1, 1),
-            (1, 0, 0, 0),
-            (0, 1, 0, 0),
-            (0, 0, 1, 0),
-            (0, 0, 0, 1)]
-            sage: e.fundamental_weights()
-            [(1, 0, 0, 0), (1, 1, 0, 0), (1, 1, 1, 0), (1/2, 1/2, 1/2, 1/2)]
+            sage: LF4 = RootSystem(['F',4]).ambient_lattice()
+            sage: LF4.simple_roots()
+            [(0, 1, -1, 0), (0, 0, 1, -1), (0, 0, 0, 1), (1/2, -1/2, -1/2, -1/2)]
         """
+        return self.Base
 
     def negative_roots(self):
+        """
+        The negative postive roots.
+        EXAMPLES:
+            sage: LF4 =  RootSystem(['F',4]).ambient_lattice()
+            sage: LF4.negative_roots()
+            [(-1, 0, 0, 0), (0, -1, 0, 0), (0, 0, -1, 0), (0, 0, 0, -1), (-1, -1, 0, 0), (-1, 0, -1, 0), (-1, 0, 0, -1), (0, -1, -1, 0), (0, -1, 0, -1), (0, 0, -1, -1), (-1, 1, 0, 0), (-1, 0, 1, 0), (-1, 0, 0, 1), (0, -1, 1, 0), (0, -1, 0, 1), (0, 0, -1, 1), (-1/2, -1/2, -1/2, -1/2), (-1/2, -1/2, -1/2, 1/2), (-1/2, -1/2, 1/2, -1/2), (-1/2, -1/2, 1/2, 1/2), (-1/2, 1/2, -1/2, -1/2), (-1/2, 1/2, -1/2, 1/2), (-1/2, 1/2, 1/2, -1/2), (-1/2, 1/2, 1/2, 1/2)]
+        """
         return [ -a for a in self.positive_roots()]
 
     def positive_roots(self):
+        """
+        These are the roots positive w.r. to lexicographic ordering of the
+        basis elements (e1<...<e4).
+        EXAMPLES:
+            sage: LF4 =  RootSystem(['F',4]).ambient_lattice()
+            sage: LF4.positive_roots()
+            [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1), (1, 1, 0, 0), (1, 0, 1, 0), (1, 0, 0, 1), (0, 1, 1, 0), (0, 1, 0, 1), (0, 0, 1, 1), (1, -1, 0, 0), (1, 0, -1, 0), (1, 0, 0, -1), (0, 1, -1, 0), (0, 1, 0, -1), (0, 0, 1, -1), (1/2, 1/2, 1/2, 1/2), (1/2, 1/2, 1/2, -1/2), (1/2, 1/2, -1/2, 1/2), (1/2, 1/2, -1/2, -1/2), (1/2, -1/2, 1/2, 1/2), (1/2, -1/2, 1/2, -1/2), (1/2, -1/2, -1/2, 1/2), (1/2, -1/2, -1/2, -1/2)]
+            sage: LF4.rho()
+            (11/2, 5/2, 3/2, 1/2)
+        """
         from sage.rings.rational import Rational
         v = Rational(1)/Rational(2)
         if not hasattr(self, 'PosRoots'):
             self.PosRoots = ([ self._term(i) for i in xrange(self.n) ] +
-                            [ self.root(i,j,0) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
-                            [ self.root(i,j,1) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
-                            [ v*(self._term(0)+p2*self._term(1)+p3*self._term(2)+p4*self._term(3)) for p2 in [-1,1] for p3 in [-1,1] for p4 in [-1,1] ])
+                            [ self.root(i,j,p2=0) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
+                            [ self.root(i,j,p2=1) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
+                            [ v*self.root(0,1,2,3,0,p2,p3,p4) for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] ])
         return self.PosRoots
 
-    def simple_roots(self):
-        return self.Base
-
     def fundamental_weights(self):
+        """
+        EXAMPLES:
+            sage: LF4 =  RootSystem(['F',4]).ambient_lattice()
+            sage: LF4.fundamental_weights()
+            [(1, 1, 0, 0), (2, 1, 1, 0), (3/2, 1/2, 1/2, 1/2), (1, 0, 0, 0)]
+        """
         from sage.rings.rational import Rational
         v = Rational(1)/Rational(2)
         return [ self._term(0)+self._term(1), 2*self._term(0)+self._term(1)+self._term(2), v*(3*self._term(0)+self._term(1)+self._term(2)+self._term(3)), self._term(0)]

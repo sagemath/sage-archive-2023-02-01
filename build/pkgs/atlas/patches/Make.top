@@ -1,0 +1,308 @@
+include Make.inc
+
+error_report:
+	- uname -a 2>&1 >> bin/INSTALL_LOG/ERROR.LOG
+	- $(ICC) -v 2>&1  >> bin/INSTALL_LOG/ERROR.LOG
+	- $(ICC) -V 2>&1  >> bin/INSTALL_LOG/ERROR.LOG
+	- $(ICC) --version 2>&1  >> bin/INSTALL_LOG/ERROR.LOG
+	$(TAR) cf error_$(ARCH).tar Make.inc bin/INSTALL_LOG/*
+	$(GZIP) --best error_$(ARCH).tar
+	mv error_$(ARCH).tar.gz error_$(ARCH).tgz
+
+leafstart:
+	cd $(leaf) ; ln -s $(BLDdir)/Make.inc Make.inc
+
+build:
+	cd bin/ ; $(MAKE) xatlas_install
+	cd bin/ ; ./xatlas_install $(INSTFLAGS)
+time:
+	./xatlbench -dc $(BLDdir)/bin/INSTALL_LOG -dp $(BLDdir)/ARCHS/$(ARCH)
+C_sanity_test:
+	@ echo "BUILDING C TESTERS ONLY (GET F77 FOR MORE COMPLETE TESTING):"
+	cd bin ; $(MAKE) sanity_test
+	@ echo "SCOPING FOR FAILURES IN BIN TESTS:"
+	- fgrep -e fault -e FAULT -e error -e ERROR -e fail -e FAIL \
+	        bin/sanity.out
+	@ echo "DONE"
+sanity_test :
+	@ echo "BUILDING TESTERS:"
+	cd bin ; $(MAKE) sanity_test
+	cd interfaces/blas/C/testing ; $(MAKE) sanity_test
+	cd interfaces/blas/F77/testing ; $(MAKE) sanity_test
+	@ echo "   "
+	@ echo "DONE BUILDING TESTERS, RUNNING:"
+	@ echo "SCOPING FOR FAILURES IN BIN TESTS:"
+	- fgrep -e fault -e FAULT -e error -e ERROR -e fail -e FAIL \
+	        bin/sanity.out
+	@ echo "DONE"
+	@ echo "SCOPING FOR FAILURES IN CBLAS TESTS:"
+	- fgrep -e fault -e FAULT -e error -e ERROR -e fail -e FAIL \
+	        interfaces/blas/C/testing/sanity.out | \
+                fgrep -v PASSED
+	@ echo "DONE"
+	@ echo "SCOPING FOR FAILURES IN F77BLAS TESTS:"
+	- fgrep -e fault -e FAULT -e error -e ERROR -e fail -e FAIL \
+	        interfaces/blas/F77/testing/sanity.out | \
+                fgrep -v PASSED
+	@ echo "DONE"
+C_ptsanity_test:
+	@ echo "BUILDING C TESTERS ONLY (GET F77 FOR MORE COMPLETE TESTING):"
+	cd bin ; $(MAKE) ptsanity_test
+	@ echo "SCOPING FOR FAILURES IN PTBIN TESTS:"
+	- fgrep -e fault -e FAULT -e error -e ERROR -e fail -e FAIL \
+	        bin/ptsanity.out
+	@ echo "DONE"
+ptsanity_test :
+	@ echo "BUILDING TESTERS:"
+	cd bin ; $(MAKE) ptsanity_test
+	cd interfaces/blas/C/testing ; $(MAKE) ptsanity_test
+	cd interfaces/blas/F77/testing ; $(MAKE) ptsanity_test
+	@ echo "   "
+	@ echo "DONE BUILDING TESTERS, RUNNING:"
+	@ echo "SCOPING FOR FAILURES IN PTBIN TESTS:"
+	- fgrep -e fault -e FAULT -e error -e ERROR -e fail -e FAIL \
+	        bin/ptsanity.out
+	@ echo "DONE"
+	@ echo "SCOPING FOR FAILURES IN PTCBLAS TESTS:"
+	- fgrep -e fault -e FAULT -e error -e ERROR -e fail -e FAIL \
+	        interfaces/blas/C/testing/ptsanity.out | \
+                fgrep -v PASSED
+	@ echo "DONE"
+	@ echo "SCOPING FOR FAILURES IN PTF77BLAS TESTS:"
+	- fgrep -e fault -e FAULT -e error -e ERROR -e fail -e FAIL \
+	        interfaces/blas/F77/testing/ptsanity.out | \
+                fgrep -v PASSED
+	@ echo "DONE"
+$(ARCH)_defs : $(SRCdir)/CONFIG/$(ARCH).tar.gz
+	cd $(BLDdir) ; \
+           $(GUNZIP) -c $(SRCdir)/CONFIG/$(ARCH).tar.gz | $(TAR) xvf -
+ISetL1 :
+	rm -f $(SYSdir)/res/L1CacheSize
+	echo $(L1Size) > $(SYSdir)/res/L1CacheSize
+
+startup : lib include/
+	$(MAKE) -f Make.top leafstart leaf=interfaces/lapack/F77/src
+	$(MAKE) -f Make.top leafstart leaf=interfaces/lapack/C/src
+	$(MAKE) -f Make.top leafstart leaf=interfaces/blas/F77/testing
+	$(MAKE) -f Make.top leafstart leaf=interfaces/blas/F77/src
+	$(MAKE) -f Make.top leafstart leaf=interfaces/blas/C/testing
+	$(MAKE) -f Make.top leafstart leaf=interfaces/blas/C/src
+	$(MAKE) -f Make.top leafstart leaf=tune/sysinfo
+	$(MAKE) -f Make.top leafstart leaf=tune/blas/level3
+	$(MAKE) -f Make.top leafstart leaf=tune/blas/level1
+	$(MAKE) -f Make.top leafstart leaf=tune/blas/ger
+	$(MAKE) -f Make.top leafstart leaf=tune/blas/gemv
+	$(MAKE) -f Make.top leafstart leaf=tune/blas/gemm
+	$(MAKE) -f Make.top leafstart leaf=src/pthreads/misc
+	$(MAKE) -f Make.top leafstart leaf=src/pthreads/blas/level3
+	$(MAKE) -f Make.top leafstart leaf=src/pthreads/blas/level2
+	$(MAKE) -f Make.top leafstart leaf=src/pthreads/blas/level1
+	$(MAKE) -f Make.top leafstart leaf=src/lapack
+	$(MAKE) -f Make.top leafstart leaf=src/blas/level3/kernel
+	$(MAKE) -f Make.top leafstart leaf=src/blas/level3/rblas
+	$(MAKE) -f Make.top leafstart leaf=src/blas/level3
+	$(MAKE) -f Make.top leafstart leaf=src/blas/pklevel3/sprk
+	$(MAKE) -f Make.top leafstart leaf=src/blas/pklevel3/gpmm
+	$(MAKE) -f Make.top leafstart leaf=src/blas/pklevel3
+	$(MAKE) -f Make.top leafstart leaf=src/blas/level2/kernel
+	$(MAKE) -f Make.top leafstart leaf=src/blas/level2
+	$(MAKE) -f Make.top leafstart leaf=src/blas/level1
+	$(MAKE) -f Make.top leafstart leaf=src/blas/gemm
+	$(MAKE) -f Make.top leafstart leaf=src/blas/ger
+	$(MAKE) -f Make.top leafstart leaf=src/blas/gemv
+	$(MAKE) -f Make.top leafstart leaf=src/blas/reference/level3
+	$(MAKE) -f Make.top leafstart leaf=src/blas/reference/level2
+	$(MAKE) -f Make.top leafstart leaf=src/blas/reference/level1
+	$(MAKE) -f Make.top leafstart leaf=src/auxil
+	$(MAKE) -f Make.top leafstart leaf=src/testing
+	$(MAKE) -f Make.top leafstart leaf=lib
+	$(MAKE) -f Make.top leafstart leaf=bin
+	cd src/blas/gemm ; mkdir KERNEL
+	cd tune/blas/gemm ; mkdir KERNEL
+	cd tune/blas/gemm ; mkdir res
+	cd tune/blas/gemv ; mkdir res
+	cd tune/blas/ger ; mkdir res
+	cd tune/blas/level1 ; mkdir res
+	cd tune/blas/level1 ; mkdir GEN
+	cd tune/blas/level3 ; mkdir res
+	cd tune/sysinfo ; mkdir res
+	cd bin ; mkdir INSTALL_LOG
+	cd tune/blas/gemv ; ln -s $(SRCdir)/tune/blas/gemv/CASES CASES
+	cd tune/blas/ger ; ln -s $(SRCdir)/tune/blas/ger/CASES CASES
+	cd tune/blas/gemm ; ln -s $(SRCdir)/tune/blas/gemm/CASES CASES
+	cd tune/blas/level1 ; ln -s $(SRCdir)/tune/blas/level1/SWAP SWAP
+	cd tune/blas/level1 ; ln -s $(SRCdir)/tune/blas/level1/SET SET
+	cd tune/blas/level1 ; ln -s $(SRCdir)/tune/blas/level1/SCAL SCAL
+	cd tune/blas/level1 ; ln -s $(SRCdir)/tune/blas/level1/ROT ROT
+	cd tune/blas/level1 ; ln -s $(SRCdir)/tune/blas/level1/NRM2 NRM2
+	cd tune/blas/level1 ; ln -s $(SRCdir)/tune/blas/level1/IAMAX IAMAX
+	cd tune/blas/level1 ; ln -s $(SRCdir)/tune/blas/level1/DOT DOT
+	cd tune/blas/level1 ; ln -s $(SRCdir)/tune/blas/level1/CPSC CPSC
+	cd tune/blas/level1 ; ln -s $(SRCdir)/tune/blas/level1/COPY COPY
+	cd tune/blas/level1 ; ln -s $(SRCdir)/tune/blas/level1/AXPY AXPY
+	cd tune/blas/level1 ; ln -s $(SRCdir)/tune/blas/level1/AXPBY AXPBY
+	cd tune/blas/level1 ; ln -s $(SRCdir)/tune/blas/level1/ASUM ASUM
+	$(MAKE) -f Make.top refresh arch=$(arch)
+
+refresh :
+	cp $(SRCdir)/makes/Make.bin bin/Makefile
+	cp $(SRCdir)/makes/Make.lib lib/Makefile
+	cp $(SRCdir)/makes/Make.aux src/auxil/Makefile
+	cp $(SRCdir)/makes/Make.l1ref src/blas/reference/level1/Makefile
+	cp $(SRCdir)/makes/Make.l2ref src/blas/reference/level2/Makefile
+	cp $(SRCdir)/makes/Make.l3ref src/blas/reference/level3/Makefile
+	cp $(SRCdir)/makes/Make.tstsrc src/testing/Makefile
+	cp $(SRCdir)/makes/Make.mvsrc src/blas/gemv/Makefile
+	cp $(SRCdir)/makes/Make.r1src src/blas/ger/Makefile
+	cp $(SRCdir)/makes/Make.mmsrc src/blas/gemm/Makefile
+	cp $(SRCdir)/makes/Make.l1src src/blas/level1/Makefile
+	cp $(SRCdir)/makes/Make.l2 src/blas/level2/Makefile
+	cp $(SRCdir)/makes/Make.l2aux src/blas/level2/kernel/Makefile
+	cp $(SRCdir)/makes/Make.lpsrc src/lapack/Makefile
+	cp $(SRCdir)/makes/Make.l3tune tune/blas/level3/Makefile
+	cp $(SRCdir)/makes/Make.mmtune tune/blas/gemm/Makefile
+	cp $(SRCdir)/makes/Make.mvtune tune/blas/gemv/Makefile
+	cp $(SRCdir)/makes/Make.r1tune tune/blas/ger/Makefile
+	cp $(SRCdir)/makes/Make.l1tune tune/blas/level1/Makefile
+	cp $(SRCdir)/makes/Make.sysinfo tune/sysinfo/Makefile
+	cp $(SRCdir)/makes/Make.cblas interfaces/blas/C/src/Makefile
+	cp $(SRCdir)/makes/Make.f77blas interfaces/blas/F77/src/Makefile
+	cp $(SRCdir)/makes/Make.cblastst interfaces/blas/C/testing/Makefile
+	cp $(SRCdir)/makes/Make.f77blastst interfaces/blas/F77/testing/Makefile
+	cp $(SRCdir)/makes/Make.Clp interfaces/lapack/C/src/Makefile
+	cp $(SRCdir)/makes/Make.Flp interfaces/lapack/F77/src/Makefile
+	cp $(SRCdir)/makes/Make.l3ptblas src/pthreads/blas/level3/Makefile
+	cp $(SRCdir)/makes/Make.l2ptblas src/pthreads/blas/level2/Makefile
+	cp $(SRCdir)/makes/Make.l1ptblas src/pthreads/blas/level1/Makefile
+	cp $(SRCdir)/makes/Make.miptblas src/pthreads/misc/Makefile
+	cp $(SRCdir)/makes/Make.pkl3 src/blas/pklevel3/Makefile
+	cp $(SRCdir)/makes/Make.gpmm src/blas/pklevel3/gpmm/Makefile
+	cp $(SRCdir)/makes/Make.sprk src/blas/pklevel3/sprk/Makefile
+	cp $(SRCdir)/makes/Make.l3 src/blas/level3/Makefile
+	cp $(SRCdir)/makes/Make.l3aux src/blas/level3/rblas/Makefile
+	cp $(SRCdir)/makes/Make.l3kern src/blas/level3/kernel/Makefile
+#	cp $(SRCdir)/makes/Make.Clptst interfaces/lapack/C/testing/Makefile
+#	cp $(SRCdir)/makes/Make.Flptst interfaces/lapack/F77/testing/Makefile
+	cp $(SRCdir)/makes/atlas_trsmNB.h include/.
+	cp $(SRCdir)/CONFIG/ARCHS/Makefile ARCHS/.
+
+clean :
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+	cd $(archdir) ; $(MAKE) clean
+
+kill :
+	rm -rf src bin tune interfaces
+
+killall :
+	$(MAKE) -f Make.top kill
+	rm -rf include lib
+
+killgrd :
+	cd interfaces/lapack/F77/src ; rm -f *.grd
+	cd interfaces/lapack/C/src ; rm -f *.grd
+	cd interfaces/blas/F77/testing ; rm -f *.grd
+	cd interfaces/blas/F77/src ; rm -f *.grd
+	cd interfaces/blas/C/testing ; rm -f *.grd
+	cd interfaces/blas/C/src ; rm -f *.grd
+	cd tune/sysinfo ; rm -f *.grd
+	cd tune/blas/level3 ; rm -f *.grd
+	cd tune/blas/level1 ; rm -f *.grd
+	cd tune/blas/ger ; rm -f *.grd
+	cd tune/blas/gemv ; rm -f *.grd
+	cd tune/blas/gemm ; rm -f *.grd
+	cd src/pthreads/misc ; rm -f *.grd
+	cd src/pthreads/blas/level3 ; rm -f *.grd
+	cd src/pthreads/blas/level2 ; rm -f *.grd
+	cd src/pthreads/blas/level1 ; rm -f *.grd
+	cd src/lapack ; rm -f *.grd
+	cd src/blas/level3/kernel ; rm -f *.grd
+	cd src/blas/level3/rblas ; rm -f *.grd
+	cd src/blas/level3 ; rm -f *.grd
+	cd src/blas/pklevel3/sprk ; rm -f *.grd
+	cd src/blas/pklevel3/gpmm ; rm -f *.grd
+	cd src/blas/pklevel3 ; rm -f *.grd
+	cd src/blas/level2/kernel ; rm -f *.grd
+	cd src/blas/level2 ; rm -f *.grd
+	cd src/blas/level1 ; rm -f *.grd
+	cd src/blas/gemm ; rm -f *.grd
+	cd src/blas/ger ; rm -f *.grd
+	cd src/blas/gemv ; rm -f *.grd
+	cd src/blas/reference/level3 ; rm -f *.grd
+	cd src/blas/reference/level2 ; rm -f *.grd
+	cd src/blas/reference/level1 ; rm -f *.grd
+	cd src/auxil ; rm -f *.grd
+	cd src/testing ; rm -f *.grd
+	cd lib ; rm -f *.grd
+	cd bin ; rm -f *.grd
+
+lib :
+	mkdir lib
+
+include/:
+	mkdir include
+	touch include/atlas_cacheedge.h
+	touch include/atlas_zdNKB.h
+	touch include/atlas_csNKB.h
+	touch include/zXover.h
+	touch include/cXover.h
+	touch include/dXover.h
+	touch include/sXover.h
+
+install_inc:
+	cp $(INCSdir)/cblas.h $(INSTdir)/.
+	cp $(INCSdir)/clapack.h $(INSTdir)/.
+	chmod 0644 $(INSTdir)/cblas.h $(INSTdir)/clapack.h
+	cp $(INCAdir)/* $(INSTdir)/atlas/.
+	- chmod 0644 $(INSTdir)/atlas/*
+install_lib:
+	cp $(LIBdir)/libatlas.a $(INSTdir)/.
+	cp $(LIBdir)/libcblas.a $(INSTdir)/.
+	cp $(LIBdir)/liblapack.a $(INSTdir)/.
+	chmod 0644 $(INSTdir)/libatlas.a  $(INSTdir)/liblapack.a \
+                   $(INSTdir)/libcblas.a
+	- cp $(LIBdir)/libf77blas.a $(INSTdir)/.
+	- chmod 0644 $(INSTdir)/libf77blas.a
+	- cp $(LIBdir)/libptcblas.a $(INSTdir)/.
+	- cp $(LIBdir)/libptf77blas.a $(INSTdir)/.
+	- cp $(LIBdir)/libatlas.so $(INSTdir)/.
+	- cp $(LIBdir)/libcblas.so $(INSTdir)/.
+	- cp $(LIBdir)/libf77blas.so $(INSTdir)/.
+	- cp $(LIBdir)/liblapack.so $(INSTdir)/.
+	- chmod 0644 $(INSTdir)/libatlas.so $(INSTdir)/liblapack.so \
+		     $(INSTdir)/libcblas.so $(INSTdir)/libcblas.so
+	- chmod 0644 $(INSTdir)/libptcblas.a $(INSTdir)/libptf77blas.a
+

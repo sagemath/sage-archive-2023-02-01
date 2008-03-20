@@ -1,0 +1,14 @@
+--- ATLAS/Make.top	2008-03-20 02:03:52.000000000 -0700
++++ ATLAS-foo/Make.top	2008-03-20 02:25:42.000000000 -0700
+@@ -298,5 +298,11 @@
+ 	- chmod 0644 $(INSTdir)/libf77blas.a
+ 	- cp $(LIBdir)/libptcblas.a $(INSTdir)/.
+ 	- cp $(LIBdir)/libptf77blas.a $(INSTdir)/.
++	- cp $(LIBdir)/libatlas.so $(INSTdir)/.
++	- cp $(LIBdir)/libcblas.so $(INSTdir)/.
++	- cp $(LIBdir)/libf77blas.so $(INSTdir)/.
++	- cp $(LIBdir)/liblapack.so $(INSTdir)/.
++	- chmod 0644 $(INSTdir)/libatlas.so $(INSTdir)/liblapack.so \
++		     $(INSTdir)/libcblas.so $(INSTdir)/libcblas.so
+ 	- chmod 0644 $(INSTdir)/libptcblas.a $(INSTdir)/libptf77blas.a
+ 

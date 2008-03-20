@@ -443,8 +443,8 @@ class LinearCode(module.Module):
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
 
     def automorphism_group_binary_code(self):
-        """
-        ** Experimental Interface with Robert Miller's program \code{aut_gp_and_can_label}.**
+        r"""
+        ** Experimental Interface with Robert Miller's program.**
 
         This only applies to linear binary codes and returns its
         (permutation) automorphism group. In other words, if

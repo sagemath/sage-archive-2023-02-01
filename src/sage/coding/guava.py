@@ -39,7 +39,7 @@ from sage.structure.parent_gens import ParentWithGens
 from linear_code import *
 
 def BinaryReedMullerCode(r,k):
-    """
+    r"""
     The binary 'Reed-Muller code' with dimension k and
     order r is a code with length $2^k$ and minimum distance $2^k-r$
     (see for example, section 1.10 in [HP]). By definition, the
@@ -124,7 +124,7 @@ def QuasiQuadraticResidueCode(p):
 
 
 def RandomLinearCodeGuava(n,k,F):
-    """
+    r"""
     The method used is to first construct a $k \\times n$ matrix of the block form $(I,A)$,
     where $I$ is a $k \\times k$ identity matrix and $A$ is a $k \\times (n-k)$ matrix
     constructed using random elements of $F$. Then the columns are permuted

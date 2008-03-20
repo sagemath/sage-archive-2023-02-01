@@ -140,7 +140,7 @@ from sage.rings.arith import factorial
 from sage.misc.functional import log, sqrt
 
 def codesize_upper_bound(n,d,q):
-    """
+    r"""
     Returns the best known upper bound $A(n,d)=A_q(n,d)$ for the size of a code of length n,
     minimum distance d over a field of size q. The function first checks for trivial cases
     (like d=1 or n=d), and if the value is in the built-in table. Then it calculates the
@@ -158,7 +158,7 @@ def codesize_upper_bound(n,d,q):
     return eval(gap.eval("UpperBound(%s,%s,%s)"%( n, d, q )))
 
 def dimension_upper_bound(n,d,q):
-    """
+    r"""
     Returns an upper bound $B(n,d) = B_q(n,d)$ for the dimension of a linear code of length n,
     minimum distance d over a field of size q.
 
@@ -171,7 +171,7 @@ def dimension_upper_bound(n,d,q):
     return int(log(codesize_upper_bound(n,d,q),q))
 
 def volume_hamming(n,q,r):
-    """
+    r"""
     Returns number of elements in a Hamming ball of radius r in $\FF_q^n$.
 
     EXAMPLES:
@@ -183,7 +183,7 @@ def volume_hamming(n,q,r):
     return ans
 
 def gilbert_lower_bound(n,q,d):
-    """
+    r"""
     Returns lower bound for number of elements in
     the largest code of minimum distance d in $\FF_q^n$.
 
@@ -196,7 +196,7 @@ def gilbert_lower_bound(n,q,d):
     return ans
 
 def plotkin_upper_bound(n,q,d):
-    """
+    r"""
     Returns Plotkin upper bound for number of elements in
     the largest code of minimum distance d in $\FF_q^n$. Wraps GAP's
     UpperBoundPlotkin.
@@ -211,7 +211,7 @@ def plotkin_upper_bound(n,q,d):
     return QQ(ans)
 
 def griesmer_upper_bound(n,q,d):
-    """
+    r"""
     Returns the Griesmer upper bound for number of elements in
     the largest code of minimum distance d in $\FF_q^n$. Wraps GAP's
     UpperBoundGriesmer.
@@ -226,7 +226,7 @@ def griesmer_upper_bound(n,q,d):
     return QQ(ans)
 
 def elias_upper_bound(n,q,d):
-    """
+    r"""
     Returns the Elias upper bound for number of elements in
     the largest code of minimum distance d in $\FF_q^n$. Wraps GAP's
     UpperBoundElias.
@@ -241,7 +241,7 @@ def elias_upper_bound(n,q,d):
     return QQ(ans)
 
 def hamming_upper_bound(n,q,d):
-    """
+    r"""
     Returns the Hamming upper bound for number of elements in
     the largest code of minimum distance d in $\FF_q^n$. Wraps GAP's
     UpperBoundHamming.
@@ -270,7 +270,7 @@ def hamming_upper_bound(n,q,d):
     return QQ(ans)
 
 def singleton_upper_bound(n,q,d):
-    """
+    r"""
     Returns the Singleton upper bound for number of elements in
     the largest code of minimum distance d in $\FF_q^n$. Wraps GAP's
     UpperBoundSingleton.

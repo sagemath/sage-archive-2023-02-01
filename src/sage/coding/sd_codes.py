@@ -1,4 +1,4 @@
-"""
+r"""
 This module implements functions useful for studying binary self-dual codes.
 
 The main function is \code{self_dual_codes_binary}, which is a
@@ -133,7 +133,7 @@ H8 = MS8([[1, 1, 1, 1, 1, 1, 1, 1],\
 ############## main functions ##############
 
 def self_dual_codes_binary(n):
-    """
+    r"""
     Returns the dictionary of inequivalent sd codes of length n.
 
     For n>=4 even, returns the sd codes of a given length, up to (perm)

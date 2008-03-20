@@ -73,17 +73,33 @@ class Homspace(HomsetWithBase):
 
 class EndomorphismSubring(Homspace, Ring):
 
-    def __init__(self, A):
+    def __init__(self, A, gens=None):
         """
         """
         self._J = A.ambient_variety()
         self._A = A
-        self._E = A.Hom(A)
-        self._gens_set = False
+        if gens is None:
+            self._gens = None
+        else:
+            self._gens = tuple([ self._get_matrix(g) for g in gens ])
+        self._is_full_ring = gens is None
         self._matrix_space = MatrixSpace(ZZ,2*A.dimension())
+        Homspace.__init__(self, A, A, A.category())
+        Ring.__init__(self, A.base_ring())
+
+    def _get_matrix(self, g):
+        if g.parent() is self.matrix_space():
+            return g
+        elif isinstance(g, morphism.Morphism):
+            return g.matrix()
+        else:
+            return self.matrix_space()(g.list())
 
     def _repr_(self):
-        return "Subring of endomorphism ring of %s"%self._A
+        if self._is_full_ring:
+            return "Endomorphism ring of %s" % self._A
+        else:
+            return "Subring of endomorphism ring of %s" % self._A
 
     def domain(self):
         return self._A
@@ -94,15 +110,13 @@ class EndomorphismSubring(Homspace, Ring):
     def abelian_variety(self):
         return self._A
 
-    def _End(self):
-        return self._E
-
     def matrix_space(self):
         return self._matrix_space
 
-    def _set_generators(self, gens):
-        self._gens_set = True
-        self._gens = tuple([ self.matrix_space()(g.list()) for g in gens ])
+    def calculate_generators(self):
+        if self._gens is None:
+            gens = self._A._endomorphism_ring_generators()
+            self._gens = tuple([ self._get_matrix(g) for g in gens ])
 
     def index_in(self, other, check=True):
         if check:
@@ -122,21 +136,18 @@ class EndomorphismSubring(Homspace, Ring):
         return M.determinant()
 
     def free_module(self):
-        if not self._gens_set:
-            raise ValueError, "generators of self unknown"
+        self.calculate_generators()
         V = ZZ**(4*self.abelian_variety().dimension())
         return V.submodule([ V(m.list()) for m in self.gens() ])
 
     def gen(self, i=0):
-        if not self._gens_set:
-            raise ValueError, "generators of self unknown"
+        self.calculate_generators()
         if i > self.ngens():
             raise ValueError, "self only has %s generators"%self.ngens()
-        return self._gens[i]
+        return morphism.Morphism(self, self._gens[i])
 
     def ngens(self):
-        if not self._gens_set:
-            raise ValueError, "number of generators unknown"
+        self.calculate_generators()
         return len(self._gens)
 
     def __call__(self, M, check=True):
@@ -148,7 +159,7 @@ class EndomorphismSubring(Homspace, Ring):
             if M.base_ring() != ZZ:
                 M = M.change_ring(ZZ)
 
-        return morphism.Morphism(self._End(), M)
+        return morphism.Morphism(self, M)
 
     def image_of_hecke_algebra(self):
 
@@ -168,8 +179,7 @@ class EndomorphismSubring(Homspace, Ring):
         T_matrices = [ A.hecke_operator(n).matrix().list() for n in range(1,M.sturm_bound()+1) ]
         W = EndVecZ.submodule(T_matrices)
 
-        T = EndomorphismSubring(A)
-        T._set_generators( W.basis() )
+        T = EndomorphismSubring(A, W.basis())
         self.__hecke_algebra_image = T
         return self.__hecke_algebra_image
 

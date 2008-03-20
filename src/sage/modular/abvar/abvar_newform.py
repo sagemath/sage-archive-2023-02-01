@@ -154,6 +154,16 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         return "Modular abelian variety attached to a newform of level %s" % self.__f.level()
 
     def endomorphism_ring(self):
+        try:
+            return self.__endomorphism_ring
+        except AttributeError:
+            pass
+
+        E = homspace.EndomorphismSubring(self)
+        self.__endomorphism_ring = E
+        return self.__endomorphism_ring
+
+    def _endomorphism_ring_generators(self):
         """
         EXAMPLES:
             sage: f = CuspForms(43).newforms('a')[1]
@@ -172,10 +182,6 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             [ 1  0 -2 -1]
             [ 0  1 -1  0])
         """
-        try:
-            return self.__endomorphism_ring
-        except AttributeError:
-            pass
 
         M = self.modular_symbols()
         bound = M.sturm_bound()
@@ -192,8 +198,5 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             V = V+W
             n += 1
 
-        E = homspace.EndomorphismSubring(self)
-        E._set_generators(V.saturation().basis())
-        self.__endomorphism_ring = E
-        return self.__endomorphism_ring
+        return V.saturation().basis()
 

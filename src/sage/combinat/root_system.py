@@ -37,6 +37,8 @@ def RootSystem(t):
             return RootSystem_c(ct)
         elif type == "D":
             return RootSystem_d(ct)
+        elif type == "F":
+            return RootSystem_f(ct)
         elif type == "G":
             return RootSystem_g(ct)
     else:
@@ -123,12 +125,13 @@ class RootSystem_d(RootSystem_generic):
     def ambient_lattice(self):
         return AmbientLattice_d(self.ct)
 
+class RootSystem_f(RootSystem_generic):
+    def ambient_lattice(self):
+        return AmbientLattice_f(self.ct)
+
 class RootSystem_g(RootSystem_generic):
     def ambient_lattice(self):
         return AmbientLattice_g(self.ct)
-
-
-
 
 class RootSystem_affine(RootSystem_generic):
     def weight_lattice(self):
@@ -136,8 +139,6 @@ class RootSystem_affine(RootSystem_generic):
 
     def dual_weight_lattice(self):
         raise NotImplementedError
-
-
 
 class CorootLattice_generic(CombinatorialAlgebra):
     def __init__(self, ct):
@@ -465,6 +466,75 @@ class AmbientLattice_d(AmbientLattice_generic):
                [ sum(self._term(j) for j in range(self.n))/2 ]
 
 
+class AmbientLattice_f(AmbientLattice_generic):
+    """
+    The lattice behind F4.
+    """
+    def __init__(self, ct):
+        from sage.rings.rational import Rational
+        v = Rational(1)/Rational(2)
+        AmbientLattice_generic.__init__(self, ct)
+        self.Base = [self.root(1,2,1), self.root(2,3,1), self.root(3), v*(self.root(0)-self.root(1)-self.root(2)-self.root(3))]
+
+    def root(self, i, j=None, p1=0):
+        """
+        ???
+        """
+        if i == j or j == None:
+            return self._term(i)
+        return self._term(i) + (-1)**p1*self._term(j)
+
+    def simple_roots(self):
+        """
+        There are computed with respect to the 'canonical' (i.e., Bourbaki) base
+            a1 = e2-e3, a2 = e3-e4, a3 = e4, a4 = 1/2*(e1-e2-e3-e4)
+        EXAMPLES:
+            sage: F4 =  RootSystem(['F',4]).ambient_lattice()
+            sage: F4.simple_roots()
+            [(1, -1, 0, 0), (0, 1, -1, 0), (0, 0, 1, -1), (0, 0, 0, 1)]
+            sage: e.positive_roots()
+            [(1, -1, 0, 0),
+            (1, 1, 0, 0),
+            (1, 0, -1, 0),
+            (1, 0, 1, 0),
+            (1, 0, 0, -1),
+            (1, 0, 0, 1),
+            (0, 1, -1, 0),
+            (0, 1, 1, 0),
+            (0, 1, 0, -1),
+            (0, 1, 0, 1),
+            (0, 0, 1, -1),
+            (0, 0, 1, 1),
+            (1, 0, 0, 0),
+            (0, 1, 0, 0),
+            (0, 0, 1, 0),
+            (0, 0, 0, 1)]
+            sage: e.fundamental_weights()
+            [(1, 0, 0, 0), (1, 1, 0, 0), (1, 1, 1, 0), (1/2, 1/2, 1/2, 1/2)]
+        """
+
+    def negative_roots(self):
+        return [ -a for a in self.positive_roots()]
+
+    def positive_roots(self):
+        from sage.rings.rational import Rational
+        v = Rational(1)/Rational(2)
+        if not hasattr(self, 'PosRoots'):
+            self.PosRoots = ([ self._term(i) for i in xrange(self.n) ] +
+                            [ self.root(i,j,0) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
+                            [ self.root(i,j,1) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
+                            [ v*(self._term(0)+p2*self._term(1)+p3*self._term(2)+p4*self._term(3)) for p2 in [-1,1] for p3 in [-1,1] for p4 in [-1,1] ])
+        return self.PosRoots
+
+    def simple_roots(self):
+        return self.Base
+
+    def fundamental_weights(self):
+        from sage.rings.rational import Rational
+        v = Rational(1)/Rational(2)
+        return [ self._term(0)+self._term(1), 2*self._term(0)+self._term(1)+self._term(2), v*(3*self._term(0)+self._term(1)+self._term(2)+self._term(3)), self._term(0)]
+
+
 class AmbientLattice_g(AmbientLattice_generic):
     """
     TESTS:
@@ -513,6 +583,7 @@ class AmbientLattice_g(AmbientLattice_generic):
         return [ c0*self._term(0)+c1*self._term(1)+c2*self._term(2) \
                  for [c0,c1,c2] in
                  [[-1,0,1],[-2,1,1]]]
+
 
 def WeylDim(type, coeffs):
     """

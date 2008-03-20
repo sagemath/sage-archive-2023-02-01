@@ -783,12 +783,15 @@ ext_modules = [ \
               language = 'c++',
               include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
 
-    Extension('sage.schemes.hyperelliptic_curves.frobenius',
-                 sources = ['sage/schemes/hyperelliptic_curves/frobenius.pyx',
-                            'sage/schemes/hyperelliptic_curves/frobenius_cpp.cpp'],
-                 libraries = ['ntl', 'stdc++', 'gmp'],
+    Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
+                 sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',
+                            'sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp',
+                            'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_ntl.cpp',
+                            'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_zn_poly.cpp'],
+                 libraries = ['ntl', 'stdc++', 'gmp', 'zn_poly'],
                  language = 'c++',
-                 include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
+                 include_dirs=debian_include_dirs + ['sage/libs/ntl/'],
+                 'sage/schemes/hyperelliptic_curves/hypellfrob/'), \
 
     Extension('sage.rings.polynomial.polynomial_compiled',
                sources = ['sage/rings/polynomial/polynomial_compiled.pyx']), \

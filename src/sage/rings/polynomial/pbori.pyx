@@ -1788,9 +1788,19 @@ cdef class BooleanPolynomial(MPolynomial):
             1
             sage: x.monomial_coefficient(y)
             0
+            sage: R.<x,y,z,a,b,c>=BooleanPolynomialRing(6)
+            sage: f=(1-x)*(1+y); f
+            x*y + x + y + 1
+
+            sage: f.monomial_coefficient(1)
+            1
+
+            sage: f.monomial_coefficient(0)
+            0
         """
         cdef BooleanPolynomialRing B = <BooleanPolynomialRing>self._parent
         k = B._base
+        mon = B._coerce_c(mon)
         if mon in self.set():
             return k._one_element
         else:

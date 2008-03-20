@@ -160,12 +160,6 @@ class Homspace(HomsetWithBase):
         # set the gens
         self._gens = gen
 
-
-    def _calculate_simple_gens(self):
-        pass
-
-
-
     def _calculate_simple_gens(self, A, B):
 
         if A.newform_label() != B.newform_label():

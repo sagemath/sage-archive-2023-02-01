@@ -1773,6 +1773,29 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return list(self)
 
+    def monomial_coefficient(self, mon):
+        r"""
+        Return the coefficient of the monomial \var{mon} in
+        \code{self}, where \var{mon} must have the same parent as
+        \code{self}.
+
+        INPUT:
+            mon -- a monomial
+
+        EXAMPLE:
+            sage: P.<x,y> = BooleanPolynomialRing(2)
+            sage: x.monomial_coefficient(x)
+            1
+            sage: x.monomial_coefficient(y)
+            0
+        """
+        cdef BooleanPolynomialRing B = <BooleanPolynomialRing>self._parent
+        k = B._base
+        if mon in self.set():
+            return k._one_element
+        else:
+            return k._zero_element
+
     def __hash__(self):
         """
         Return hash for self.

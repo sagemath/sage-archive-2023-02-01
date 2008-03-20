@@ -1,0 +1,33 @@
+= zn_poly =
+
+== Description ==
+
+zn_poly is a C library for polynomial arithmetic in Z/nZ[x], where n is any modulus that fits into an unsigned long.
+
+Website: http://math.harvard.edu/~dmharvey/zn_poly/
+
+== License ==
+
+GPL V2 or V3. Some of the code has been copied from other projects - see src/COPYING for details.
+
+== SPKG Maintainers ==
+
+ * David Harvey
+
+== Upstream Contact ==
+
+ * David Harvey
+
+== Dependencies ==
+
+ * gmp
+
+== Changelog ==
+
+=== zn_poly-0.4.1.p0 (Michael Abshoff, March 19th, 2008) ===
+ * updated SPKG.txt
+ * add hg repo, hg ignore
+ * cleaned up spkg-install
+
+=== zn_poly-0.4.1 (David Harvey, Dec. 18th, 2007) ===
+ * created spkg from zn_poly-0.4.1

@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+################################################################
+#
+#  zn_poly sage install script
+#
+################################################################
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+
+cd src
+
+./configure --gmp-prefix="$SAGE_LOCAL/" --ntl-prefix="$SAGE_LOCAL/" \
+            --prefix="$SAGE_LOCAL/" --cflags="-fPIC -O3"
+
+make tune    # optional, but only takes 20 seconds or so
+
+# UNIX
+if [ $UNAME != "Darwin" ]; then
+    $MAKE libzn_poly.so
+    if [ $? -ne 0 ]; then
+        echo "Error building zn_poly shared library."
+        exit 1
+    fi
+    $CP libzn_poly.so "$SAGE_LOCAL/lib/"
+fi
+
+
+# OS X
+if [ $UNAME = "Darwin" ]; then
+    $MAKE libzn_poly.dylib
+    if [ ! -f libzn_poly.dylib ]; then
+        echo "Failed to build zn_poly dylib."
+        exit 1
+    fi
+    $CP libzn_poly.dylib "$SAGE_LOCAL/lib/"
+fi
+
+# copy header files
+
+mkdir -p $SAGE_LOCAL/include/zn_poly
+$CP zn_poly.h $SAGE_LOCAL/include/zn_poly
+$CP wide_arith.h $SAGE_LOCAL/include/zn_poly
+
+
+if [ $? -ne 0 ]; then
+    echo "Error building zn_poly"
+    exit 1
+fi

@@ -198,8 +198,8 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
         if not isinstance(right, MatrixMorphism):
             R = self.base_ring()
             return self.parent()(self.matrix() * R(right))
-        M = self.matrix() * right.matrix()
-        return self.domain().Hom(right.codomain())(M)
+        M = right.matrix() * self.matrix()
+        return right.domain().Hom(self.codomain())(M)
 
     def __add__(self, right):
         """

@@ -194,6 +194,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         degen = str(self.number()).replace(' ','')
         return '%s%s%s'%(self.newform_level(), cremona_letter_code(self.isogeny_number()), degen)
 
+    def newform_label(self):
+        return '%s%s'%(self.newform_level(), cremona_letter_code(self.isogeny_number()))
 
     def _isogeny_to_newform_abelian_variety(self):
         D = self.decomposition()
@@ -626,7 +628,80 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             self.__ambient_variety = A
             return A
 
+    def ambient_morphism(self):
+        """
+        Return the morphism from self to the ambient variety.  This is
+        injective if self is natural a subvariety of the ambient
+        product Jacobian.
+
+        OUTPUT:
+            morphism
+
+        The output is cached.
+
+        EXAMPLES:
+        We compute the ambient structure morphism for an abelian
+        subvariety of $J_0(33)$:
+            sage: A,B,C = J0(33)
+            sage: phi = A.ambient_morphism()
+            sage: phi.domain()
+            Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
+            sage: phi.codomain()
+            Abelian variety J0(33)
+            sage: phi.matrix()
+            [ 1  1 -2  0  2 -1]
+            [ 0  3 -2 -1  2  0]
+
+        phi is of course injective
+            sage: phi.kernel()
+            (Finite subgroup with invariants [] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33),
+             Abelian subvariety of dimension 0 of J0(33))
+
+        This is the same as the basis matrix for the lattice corresponding
+        to self:
+            sage: A.lattice()
+            Free module of degree 6 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 1  1 -2  0  2 -1]
+            [ 0  3 -2 -1  2  0]
+
+        We compute a non-injecture map to an ambient space:
+            sage: Q,pi = J0(33)/A
+            sage: phi = Q.ambient_morphism()
+            sage: phi.matrix()
+            [  1   4   1   9  -1  -1]
+            [  0  15   0   0  30 -75]
+            [  0   0   5  10  -5  15]
+            [  0   0   0  15 -15  30]
+            sage: phi.kernel()[0]
+            Finite subgroup with invariants [5, 15, 15] over QQ of Abelian variety factor of dimension 2 of J0(33)
+        """
+        try:
+            return self.__ambient_morphism
+        except AttributeError:
+            matrix,_ = self.lattice().basis_matrix()._clear_denom()
+            phi = Morphism(self.Hom(self.ambient_variety()), matrix)
+            self.__ambient_morphism = phi
+            return phi
+
     def is_ambient(self):
+        """
+        Return True if self equals the ambient product Jacobian.
+
+        OUTPUT:
+            bool
+
+        EXAMPLES:
+            sage: A,B,C = J0(33)
+            sage: A.is_ambient()
+            False
+            sage: J0(33).is_ambient()
+            True
+            sage: (A+B).is_ambient()
+            False
+            sage: (A+B+C).is_ambient()
+            True
+        """
         try:
             return self.__is_ambient
         except AttributeError:
@@ -1519,6 +1594,103 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             if A is not None:
                 C = C.intersection(A)[1]
         return C
+
+    def dual(self):
+        r"""
+        Return the dual of this abelian variety.
+
+        OUTPUT:
+            abelian variety
+
+        WARNING: This is currently only implemented when self is an
+        abelian subvariety of the ambient Jacobian product, and the
+        complement of self in the ambient product Jacobian share no
+        common factors.  A more general implementation will require
+        implementing computation of the intersection pairing on
+        integral homology and resulting Weil pairing on torsion.
+
+        EXAMPLES:
+        First we compute the dual of the image of an old simple factor
+        of $J_0(33)$.
+            sage: A,B,C = J0(33)
+            sage: Ad, f = A.dual()
+            sage: f.matrix()
+            [15 -3]
+            [ 0  3]
+            sage: f.domain()
+            Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
+            sage: f.codomain()
+            Abelian variety factor of dimension 1 of J0(33)
+            sage: f.kernel()
+            (Finite subgroup with invariants [3, 15] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33),
+             Abelian subvariety of dimension 0 of J0(33))
+
+        Next we compute the dual of the elliptic curve newform abelian variety of
+        level $33$, and find the kernel of the modular map, which has structure
+        $(\ZZ/3)^2$.
+
+            sage: C
+            Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
+            sage: Cd, f = C.dual()
+            sage: f
+            Morphism defined by the matrix
+            [3 0]
+            [0 3]
+            sage: f.kernel()[0]
+            Finite subgroup with invariants [3, 3] over QQ of Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
+
+        By a theorem the modular degree must thus be $3$:
+            sage: E = EllipticCurve('33a')
+            sage: E.modular_degree()
+            3
+
+        Next we compute the dual of a $2$-dimensional new simple
+        abelian subvariety of $J_0(43)$.
+            sage: A = AbelianVariety('43b'); A
+            Modular abelian variety attached to a newform of level 43
+            sage: Ad, f = A.dual()
+
+        The kernel shows that the modular degree is $2$:
+            sage: f.kernel()[0]
+            Finite subgroup with invariants [2, 2] over QQ of Modular abelian variety attached to a newform of level 43
+
+        Unfortunately, the dual is not implemented in general:
+            sage: A = J0(22)[0]; A
+            Simple abelian subvariety 11a(1,22) of dimension 1 of J0(22)
+            sage: A.dual()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: dual not implemented unless complement shares no simple factors with self.
+        """
+        try:
+            return self.__dual
+        except AttributeError:
+            if not self.is_subvariety_of_ambient_jacobian():
+                raise NotImplementedError, "dual not implemented unless abelian variety is a subvariety of the ambient Jacobian product"
+            if not self._complement_shares_no_simple_factors():
+                raise NotImplementedError, "dual not implemented unless complement shares no simple factors with self."
+            C = self.complement()
+            Q, phi = self.ambient_variety().quotient(C)
+            psi = self.ambient_morphism()
+            self.__dual = Q, phi*psi
+            return self.__dual
+
+    def common_simple_factors(self, other):
+        if not isinstance(other, ModularAbelianVariety_abstract):
+            raise TypeError, "other must be an abelian variety"
+        D = self.decomposition()
+        C = set([A.newform_label() for A in self.complement().decomposition()])
+        Z = [X for X in D if X.newform_label() in C]
+        Z.sort()
+        return Z
+
+    def _complement_shares_no_simple_factors(self):
+        try:
+            return self.__complement_shares_no_simple_factors
+        except AttributeError:
+            t = len(self.common_simple_factors(self.complement())) == 0
+            self.__complement_shares_no_simple_factors = t
+            return t
 
     def xxx_decomposition(self, simple=True, bound=None):
         """

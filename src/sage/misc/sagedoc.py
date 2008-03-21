@@ -18,9 +18,9 @@ Format SAGE documentation for viewing with IPython
 #*****************************************************************************
 
 import os
-
-substitutes = [('\\item', '*'), \
-               ('\\_','_'),\
+#('\\item', '*'), \
+substitutes = [('\\_','_'),\
+               ('\\item', '* '), \
                ('\\to', '-->'), \
                ('<BLANKLINE>',''), \
                ('\\leq', '<='), \
@@ -35,6 +35,7 @@ substitutes = [('\\item', '*'), \
                ('\\cdot', ' *'), \
                ('$',''), ('\\',''), ('backslash','\\'), \
                ('begin{enumerate}',''), ('end{enumerate}',''), \
+               ('begin{description}',''), ('end{description}',''), \
                ('begin{itemize}',''), ('end{itemize}',''), \
                ('begin{verbatim}',''), ('end{verbatim}',''), \
                ('mapsto', ' |--> '), \
@@ -79,9 +80,14 @@ def _rmcmd(s, cmd, left='', right=''):
 ##             + right + s[m.end():]
 ##     return s
 
+import re
+itempattern = re.compile(r"\\item\[?([^]]*)\]? *(.*)")
+itemreplace = r"* \1 \2"
+
 def detex(s):
     s = _rmcmd(s, 'url')
     s = _rmcmd(s, 'code')
+    s = _rmcmd(s, 'class')
     s = _rmcmd(s, 'mbox')
     s = _rmcmd(s, 'text')
     s = _rmcmd(s, 'section')
@@ -89,6 +95,9 @@ def detex(s):
     s = _rmcmd(s, 'subsubsection')
     s = _rmcmd(s, 'note', 'NOTE: ', '')
     s = _rmcmd(s, 'emph', '*', '*')
+
+    s = re.sub(itempattern, itemreplace, s)
+
     for a,b in substitutes:
         s = s.replace(a,b)
     return s

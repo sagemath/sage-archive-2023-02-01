@@ -315,8 +315,8 @@ class SchemeMorphism_coordinates(SchemeMorphism):
     def __getitem__(self, n):
         return self._coords[n]
 
-    def __list__(self):
-        return list(self._coords)
+    def __iter__(self):
+        return iter(self._coords)
 
     def __tuple__(self):
         return self._coords

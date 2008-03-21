@@ -36,6 +36,8 @@ def RootSystem(t):
             return RootSystem_c(ct)
         elif type == "D":
             return RootSystem_d(ct)
+        elif type == "E":
+            return RootSystem_e(ct)
         elif type == "F":
             return RootSystem_f(ct)
         elif type == "G":
@@ -123,6 +125,10 @@ class RootSystem_c(RootSystem_generic):
 class RootSystem_d(RootSystem_generic):
     def ambient_lattice(self):
         return AmbientLattice_d(self.ct)
+
+class RootSystem_e(RootSystem_generic):
+    def ambient_lattice(self):
+        return AmbientLattice_e(self.ct)
 
 class RootSystem_f(RootSystem_generic):
     def ambient_lattice(self):
@@ -465,6 +471,129 @@ class AmbientLattice_d(AmbientLattice_generic):
                [ sum(self._term(j) for j in range(self.n))/2 ]
 
 
+class AmbientLattice_e(AmbientLattice_generic):
+    """
+    The lattice behind E6, E7, or E8.  The computations are based on Bourbaki,
+    Groupes et Algebres de Lie, Ch. 4,5,6 (planche V-VII).
+    """
+    def __init__(self, ct):
+        """
+        Create the ambient lattice for the root system for E6, E7, E8.
+        Specify the Base, i.e., the simple roots w.r. to the canonical
+        basis for R^8.
+        EXAMPLES:
+            sage: E6=RootSystem(['E',6])
+            sage: E6.cartan_matrix()
+            [ 2  0 -1  0  0  0]
+            [ 0  2  0 -1  0  0]
+            [-1  0  2 -1  0  0]
+            [ 0 -1 -1  2 -1  0]
+            [ 0  0  0 -1  2 -1]
+            [ 0  0  0  0 -1  2]
+        """
+        from sage.rings.rational import Rational
+        v = Rational(1)/Rational(2)
+        self.n = 8          # We're always in R^8, but not always the whole space.
+        AmbientLattice_generic.__init__(self, ct)
+        if ct.n == 6:
+            self.codim = 5
+            self.Base = [v*(self.root(0,7)-self.root(1,2,3,4,5,6)),
+                         self.root(0,1),
+                         self.root(0,1,p0=1),
+                         self.root(1,2,p0=1),
+                         self.root(2,3,p0=1),
+                         self.root(3,4,p0=1)]
+#            self._sub_module=self._free_module.submodule(
+        else:
+            raise NotImplementedError
+
+    def root(self, i, j=None, k=None, l=None, m=None, n=None, p=None, q=None, p0=0, p1=0, p2=0, p3=0, p4=0, p5=0, p6=0, p7=0):
+        """
+        Compute a root from base elements of the underlying lattice.
+        The arguments specify the basis elements and the signs.
+        We rely on the caller to provide the correct arguments, and we don't
+        handle multipliers like "1/2".  So this really doesn't compute "roots".
+        Sadly, the base elements are indexed zero-based.
+        We assume that if one of the indices is not given, the rest are not as well.
+        EXAMPLES:
+            sage: E6=RootSystem(['E',6])
+            sage: LE6=E6.ambient_lattice()
+            sage: [ LE6.root(i,j,p2=1) for i in xrange(LE6.n) for j in xrange(i+1,LE6.n) ]
+            [(1, 1, 0, 0, 0, 0, 0, 0), (1, 0, 1, 0, 0, 0, 0, 0), (1, 0, 0, 1, 0, 0, 0, 0), (1, 0, 0, 0, 1, 0, 0, 0), (1, 0, 0, 0, 0, 1, 0, 0), (1, 0, 0, 0, 0, 0, 1, 0), (1, 0, 0, 0, 0, 0, 0, 1), (0, 1, 1, 0, 0, 0, 0, 0), (0, 1, 0, 1, 0, 0, 0, 0), (0, 1, 0, 0, 1, 0, 0, 0), (0, 1, 0, 0, 0, 1, 0, 0), (0, 1, 0, 0, 0, 0, 1, 0), (0, 1, 0, 0, 0, 0, 0, 1), (0, 0, 1, 1, 0, 0, 0, 0), (0, 0, 1, 0, 1, 0, 0, 0), (0, 0, 1, 0, 0, 1, 0, 0), (0, 0, 1, 0, 0, 0, 1, 0), (0, 0, 1, 0, 0, 0, 0, 1), (0, 0, 0, 1, 1, 0, 0, 0), (0, 0, 0, 1, 0, 1, 0, 0), (0, 0, 0, 1, 0, 0, 1, 0), (0, 0, 0, 1, 0, 0, 0, 1), (0, 0, 0, 0, 1, 1, 0, 0), (0, 0, 0, 0, 1, 0, 1, 0), (0, 0, 0, 0, 1, 0, 0, 1), (0, 0, 0, 0, 0, 1, 1, 0), (0, 0, 0, 0, 0, 1, 0, 1), (0, 0, 0, 0, 0, 0, 1, 1)]
+        """
+        if i == j or j == None:
+            return (-1)**p0*self._term(i)
+        if k == None:
+            return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)
+        if l == None:
+            return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)+(-1)**p2*self._term(k)
+        if m == None:
+            return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)+(-1)**p2*self._term(k)+(-1)**p3*self._term(l)
+        if n == None:
+            return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)+(-1)**p2*self._term(k)+(-1)**p3*self._term(l)+(-1)**p4*self._term(m)
+        if p == None:
+            return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)+(-1)**p2*self._term(k)+(-1)**p3*self._term(l)+(-1)**p4*self._term(m)+(-1)**p5*self._term(n)
+        if q == None:
+            return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)+(-1)**p2*self._term(k)+(-1)**p3*self._term(l)+(-1)**p4*self._term(m)+(-1)**p5*self._term(n)+(-1)**p6*self._term(p)
+        return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)+(-1)**p2*self._term(k)+(-1)**p3*self._term(l)+(-1)**p4*self._term(m)+(-1)**p5*self._term(n)+(-1)**p6*self._term(p)+(-1)**p7*self._term(q)
+
+    def simple_roots(self):
+        """
+        There are computed as what Bourbaki calls the Base:
+            a1 = e2-e3, a2 = e3-e4, a3 = e4, a4 = 1/2*(e1-e2-e3-e4)
+        EXAMPLES:
+            sage: LE6 = RootSystem(['E',6]).ambient_lattice()
+            sage: LE6.simple_roots()
+            [(1/2, -1/2, -1/2, -1/2, -1/2, -1/2, -1/2, 1/2), (1, 1, 0, 0, 0, 0, 0, 0), (-1, 1, 0, 0, 0, 0, 0, 0), (0, -1, 1, 0, 0, 0, 0, 0), (0, 0, -1, 1, 0, 0, 0, 0), (0, 0, 0, -1, 1, 0, 0, 0)]
+        """
+        return self.Base
+
+    def negative_roots(self):
+        """
+        The negative postive roots.
+        EXAMPLES:
+            sage: LE6 =  RootSystem(['E',6]).ambient_lattice()
+            sage: LE6.negative_roots()
+            [(-1, -1, 0, 0, 0, 0, 0, 0), (-1, 0, -1, 0, 0, 0, 0, 0), (-1, 0, 0, -1, 0, 0, 0, 0), (-1, 0, 0, 0, -1, 0, 0, 0), (0, -1, -1, 0, 0, 0, 0, 0), (0, -1, 0, -1, 0, 0, 0, 0), (0, -1, 0, 0, -1, 0, 0, 0), (0, 0, -1, -1, 0, 0, 0, 0), (0, 0, -1, 0, -1, 0, 0, 0), (0, 0, 0, -1, -1, 0, 0, 0), (1, -1, 0, 0, 0, 0, 0, 0), (1, 0, -1, 0, 0, 0, 0, 0), (1, 0, 0, -1, 0, 0, 0, 0), (1, 0, 0, 0, -1, 0, 0, 0), (0, 1, -1, 0, 0, 0, 0, 0), (0, 1, 0, -1, 0, 0, 0, 0), (0, 1, 0, 0, -1, 0, 0, 0), (0, 0, 1, -1, 0, 0, 0, 0), (0, 0, 1, 0, -1, 0, 0, 0), (0, 0, 0, 1, -1, 0, 0, 0), (-1/2, -1/2, -1/2, -1/2, -1/2, 1/2, 1/2, -1/2), (-1/2, -1/2, -1/2, 1/2, 1/2, 1/2, 1/2, -1/2), (-1/2, -1/2, 1/2, -1/2, 1/2, 1/2, 1/2, -1/2), (-1/2, -1/2, 1/2, 1/2, -1/2, 1/2, 1/2, -1/2), (-1/2, 1/2, -1/2, -1/2, 1/2, 1/2, 1/2, -1/2), (-1/2, 1/2, -1/2, 1/2, -1/2, 1/2, 1/2, -1/2), (-1/2, 1/2, 1/2, -1/2, -1/2, 1/2, 1/2, -1/2), (-1/2, 1/2, 1/2, 1/2, 1/2, 1/2, 1/2, -1/2), (1/2, -1/2, -1/2, -1/2, 1/2, 1/2, 1/2, -1/2), (1/2, -1/2, -1/2, 1/2, -1/2, 1/2, 1/2, -1/2), (1/2, -1/2, 1/2, -1/2, -1/2, 1/2, 1/2, -1/2), (1/2, -1/2, 1/2, 1/2, 1/2, 1/2, 1/2, -1/2), (1/2, 1/2, -1/2, -1/2, -1/2, 1/2, 1/2, -1/2), (1/2, 1/2, -1/2, 1/2, 1/2, 1/2, 1/2, -1/2), (1/2, 1/2, 1/2, -1/2, 1/2, 1/2, 1/2, -1/2), (1/2, 1/2, 1/2, 1/2, -1/2, 1/2, 1/2, -1/2)]
+        """
+        return [ -a for a in self.positive_roots()]
+
+    def positive_roots(self):
+        """
+        These are the roots positive w.r. to lexicographic ordering of the
+        basis elements (e1<...<e4).
+        EXAMPLES:
+            sage: LE6 =  RootSystem(['E',6]).ambient_lattice()
+            sage: LE6.positive_roots()
+            [(1, 1, 0, 0, 0, 0, 0, 0), (1, 0, 1, 0, 0, 0, 0, 0), (1, 0, 0, 1, 0, 0, 0, 0), (1, 0, 0, 0, 1, 0, 0, 0), (0, 1, 1, 0, 0, 0, 0, 0), (0, 1, 0, 1, 0, 0, 0, 0), (0, 1, 0, 0, 1, 0, 0, 0), (0, 0, 1, 1, 0, 0, 0, 0), (0, 0, 1, 0, 1, 0, 0, 0), (0, 0, 0, 1, 1, 0, 0, 0), (-1, 1, 0, 0, 0, 0, 0, 0), (-1, 0, 1, 0, 0, 0, 0, 0), (-1, 0, 0, 1, 0, 0, 0, 0), (-1, 0, 0, 0, 1, 0, 0, 0), (0, -1, 1, 0, 0, 0, 0, 0), (0, -1, 0, 1, 0, 0, 0, 0), (0, -1, 0, 0, 1, 0, 0, 0), (0, 0, -1, 1, 0, 0, 0, 0), (0, 0, -1, 0, 1, 0, 0, 0), (0, 0, 0, -1, 1, 0, 0, 0), (1/2, 1/2, 1/2, 1/2, 1/2, -1/2, -1/2, 1/2), (1/2, 1/2, 1/2, -1/2, -1/2, -1/2, -1/2, 1/2), (1/2, 1/2, -1/2, 1/2, -1/2, -1/2, -1/2, 1/2), (1/2, 1/2, -1/2, -1/2, 1/2, -1/2, -1/2, 1/2), (1/2, -1/2, 1/2, 1/2, -1/2, -1/2, -1/2, 1/2), (1/2, -1/2, 1/2, -1/2, 1/2, -1/2, -1/2, 1/2), (1/2, -1/2, -1/2, 1/2, 1/2, -1/2, -1/2, 1/2), (1/2, -1/2, -1/2, -1/2, -1/2, -1/2, -1/2, 1/2), (-1/2, 1/2, 1/2, 1/2, -1/2, -1/2, -1/2, 1/2), (-1/2, 1/2, 1/2, -1/2, 1/2, -1/2, -1/2, 1/2), (-1/2, 1/2, -1/2, 1/2, 1/2, -1/2, -1/2, 1/2), (-1/2, 1/2, -1/2, -1/2, -1/2, -1/2, -1/2, 1/2), (-1/2, -1/2, 1/2, 1/2, 1/2, -1/2, -1/2, 1/2), (-1/2, -1/2, 1/2, -1/2, -1/2, -1/2, -1/2, 1/2), (-1/2, -1/2, -1/2, 1/2, -1/2, -1/2, -1/2, 1/2), (-1/2, -1/2, -1/2, -1/2, 1/2, -1/2, -1/2, 1/2)]
+            sage: LE6.rho()
+            (0, 1, 2, 3, 4, -4, -4, 4)
+        """
+        from sage.rings.rational import Rational
+        v = Rational(1)/Rational(2)
+        if not hasattr(self, 'PosRoots'):
+            self.PosRoots = ( [ self.root(i,j,p0=0) for i in xrange(self.codim) for j in xrange(i+1,self.codim) ] +
+                            [ self.root(i,j,p0=1) for i in xrange(self.codim) for j in xrange(i+1,self.codim) ] +
+                            [ v*(self.root(7)-self.root(6)-self.root(5)+self.root(0,1,2,3,4,p0=p0,p1=p1,p2=p2,p3=p3,p4=p4)) for p0 in [0,1] for p1 in [0,1] for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] if (p0+p1+p2+p3+p4)%2 == 0 ])
+        return self.PosRoots
+
+    def fundamental_weights(self):
+        """
+        EXAMPLES:
+            sage: LE6 = RootSystem(['E',6]).ambient_lattice()
+            sage: LE6.fundamental_weights()
+            [(0, 0, 0, 0, 0, -2/3, -2/3, 2/3), (1/2, 1/2, 1/2, 1/2, 1/2, -1/2, -1/2, 1/2), (-1/2, 1/2, 1/2, 1/2, 1/2, -5/6, -5/6, 5/6), (0, 0, 1, 1, 1, -1, -1, 1), (0, 0, 0, 1, 1, -2/3, -2/3, 2/3), (0, 0, 0, 0, 1, -1/3, -1/3, 1/3)]
+        """
+        from sage.rings.rational import Rational
+        v2 = Rational(1)/Rational(2)
+        v3 = Rational(1)/Rational(3)
+        return [ 2*v3*self.root(7,6,5,p1=1,p2=1),
+                 v2*self.root(0,1,2,3,4,5,6,7,p5=1,p6=1),
+                 5*v2*v3*self.root(7,6,5,p1=1,p2=1)+v2*self.root(0,1,2,3,4,p0=1),
+                 self.root(2,3,4,5,6,7,p3=1,p4=1),
+                 2*v3*self.root(7,6,5,p1=1,p2=1)+self.root(3,4),
+                 v3*self.root(7,6,5,p1=1,p2=1)+self.root(4)]
+
 class AmbientLattice_f(AmbientLattice_generic):
     """
     The lattice behind F4.  The computations are based on Bourbaki, Groupes et Algebres de Lie,
@@ -553,7 +682,6 @@ class AmbientLattice_f(AmbientLattice_generic):
         v = Rational(1)/Rational(2)
         return [ self._term(0)+self._term(1), 2*self._term(0)+self._term(1)+self._term(2), v*(3*self._term(0)+self._term(1)+self._term(2)+self._term(3)), self._term(0)]
 
-
 class AmbientLattice_g(AmbientLattice_generic):
     """
     TESTS:
@@ -621,6 +749,8 @@ def WeylDim(type, coeffs):
         8
         sage: WeylDim(['B',3],[1,0,1]) # sum of the first and third fundamental weights
         48
+        sage: [WeylDim(['F',4],x) for x in [1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
+        [52, 1274, 273, 26]
     """
     lattice = RootSystem(type).ambient_lattice()
     rank = type[1]

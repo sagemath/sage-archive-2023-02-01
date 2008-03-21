@@ -165,7 +165,7 @@ for gr in range(0,numglobaliteration):
                 if ret != 0:
                     printmutex.acquire()
                     if ret == -4:
-                        numfail = ol.count('Expected:')
+                        numfail = ol.count('Expected:') + ol.count('Expected nothing')
                         failed.append(abs(F)+(": %s doctests failed" % numfail))
                         ret = numfail
                     elif ret == -3:

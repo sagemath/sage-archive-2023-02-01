@@ -1,5 +1,15 @@
 #!/bin/sh
 
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+# remove the old dik binary since the has a name collision
+# with polynmake - see #2595
+rm -f $SAGE_LOCAL/bin/cube
+
 CXXFLAGS="$CFLAGS -O2 -g -Wa,-W -fno-exceptions -Wno-deprecated"
 export CXXFLAGS
 export CC=gcc
@@ -8,3 +18,4 @@ cd src
 
 echo "Building Rubiks cube solvers"
 make install PREFIX="$SAGE_LOCAL"
+

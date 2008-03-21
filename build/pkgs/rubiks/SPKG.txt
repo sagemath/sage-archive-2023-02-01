@@ -25,7 +25,16 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
 
 == Changelog ==
 
-=== rubiks-20070912.p1 (Michael Abshoff, Jan. 28h, 2008) ===
+=== rubiks-20070912.p3 (Michael Abshoff, March 21st, 2008) ===
+ * SAGE_LOCAL check (#633)
+ * remove binary crap
+ * rename cube to dikcube to avoid name clash with polymake (#2595)
+ * detect the location of install instead of hardcoding it (#2287)
+
+=== rubiks-20070912.p2 (Tim Abbott, Feb. 17th, 2008) ===
+ * Convert normal spkg-install to using new Makefile
+
+=== rubiks-20070912.p1 (Michael Abshoff, Jan. 28th, 2008) ===
  * fix Solaris build by setting CC to gcc and changing Dik's makefile to use $CC instead of cc
 
 === rubiks-20070912.p0 (Michael Abshoff) ===

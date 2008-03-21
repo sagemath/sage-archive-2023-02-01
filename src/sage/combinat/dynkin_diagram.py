@@ -264,10 +264,12 @@ def dynkin_diagram(t):
     EXAMPLES:
 
     """
+    import cartan_type
     f = "type_"
     letter = t[0].lower()
     affine = ""
-    if t.is_affine():
+    ct = cartan_type.CartanType(t)
+    if ct.is_affine():
         affine = "_affine"
 
     function = eval(f+letter+affine)

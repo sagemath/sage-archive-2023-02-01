@@ -496,7 +496,7 @@ class AmbientLattice_e(AmbientLattice_generic):
         self.n = 8          # We're always in R^8, but not always the whole space.
         AmbientLattice_generic.__init__(self, ct)
         if ct.n == 6:
-            self.codim = 5
+            self.dim = 5
             self.Base = [v*(self.root(0,7)-self.root(1,2,3,4,5,6)),
                          self.root(0,1),
                          self.root(0,1,p0=1),
@@ -505,7 +505,7 @@ class AmbientLattice_e(AmbientLattice_generic):
                          self.root(3,4,p0=1)]
 #            self._sub_module=self._free_module.submodule(
         else:
-            raise NotImplementedError
+            raise NotImplementedError, "To appear; film at 11"
 
     def root(self, i, j=None, k=None, l=None, m=None, n=None, p=None, q=None, p0=0, p1=0, p2=0, p3=0, p4=0, p5=0, p6=0, p7=0):
         """
@@ -572,8 +572,8 @@ class AmbientLattice_e(AmbientLattice_generic):
         from sage.rings.rational import Rational
         v = Rational(1)/Rational(2)
         if not hasattr(self, 'PosRoots'):
-            self.PosRoots = ( [ self.root(i,j,p0=0) for i in xrange(self.codim) for j in xrange(i+1,self.codim) ] +
-                            [ self.root(i,j,p0=1) for i in xrange(self.codim) for j in xrange(i+1,self.codim) ] +
+            self.PosRoots = ( [ self.root(i,j,p0=0) for i in xrange(self.dim) for j in xrange(i+1,self.dim) ] +
+                            [ self.root(i,j,p0=1) for i in xrange(self.dim) for j in xrange(i+1,self.dim) ] +
                             [ v*(self.root(7)-self.root(6)-self.root(5)+self.root(0,1,2,3,4,p0=p0,p1=p1,p2=p2,p3=p3,p4=p4)) for p0 in [0,1] for p1 in [0,1] for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] if (p0+p1+p2+p3+p4)%2 == 0 ])
         return self.PosRoots
 
@@ -751,6 +751,8 @@ def WeylDim(type, coeffs):
         48
         sage: [WeylDim(['F',4],x) for x in [1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
         [52, 1274, 273, 26]
+        sage: [WeylDim(['E', 6], x) for x in [0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 2], [0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1], [2, 0, 0, 0, 0, 0]]
+        [1, 78, 27, 351, 351, 351, 27, 650, 351]
     """
     lattice = RootSystem(type).ambient_lattice()
     rank = type[1]

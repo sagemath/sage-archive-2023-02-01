@@ -210,11 +210,16 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         """
         return self._coords[n]
 
-    def __list__(self):
+    def __iter__(self):
         """
         Return the coordinates of this point as a list
+
+        EXAMPLE:
+            sage: E = EllipticCurve('37a')
+            sage: list(E([0,0]))
+            [0, 0, 1]
         """
-        return list(self._coords)
+        return iter(self._coords)
 
     def __tuple__(self):
         """

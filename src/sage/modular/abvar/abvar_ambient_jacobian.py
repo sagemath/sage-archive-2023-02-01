@@ -75,7 +75,7 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
             sage: A.group()
             Congruence Subgroup Gamma0(37)
         """
-        ModularAbelianVariety_modsym_abstract.__init__(self, QQ)
+        ModularAbelianVariety_modsym_abstract.__init__(self, (group,), QQ)
         self.__group = group
         self._is_hecke_stable = True
 

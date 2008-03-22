@@ -28,9 +28,8 @@ from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence
 from sage.structure.parent_base import ParentWithBase
 from morphism                   import HeckeOperator, Morphism
-from torsion_subgroup           import TorsionSubgroup
-from finite_subgroup            import (FiniteSubgroup_gens, FiniteSubgroup,
-                                        FiniteSubgroupElement, QQbarTorsionSubgroup)
+from torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
+from finite_subgroup            import (FiniteSubgroup_lattice, FiniteSubgroup, TorsionPoint)
 from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup
 from sage.rings.all             import ZZ, QQ, QQbar, is_Ring, LCM, divisors, Integer
 from sage.modules.all           import is_FreeModule
@@ -69,7 +68,15 @@ def is_ModularAbelianVariety(x):
 
 
 class ModularAbelianVariety_abstract(ParentWithBase):
-    def __init__(self, base_field, is_simple=None, newform_level=None, isogeny_number=None, number=None, check=True):
+    def __init__(self, groups, base_field, is_simple=None, newform_level=None,
+                 isogeny_number=None, number=None, check=True):
+        if check:
+            if not isinstance(groups, tuple):
+                raise TypeError, "groups must be a tuple"
+            for G in groups:
+                if not is_CongruenceSubgroup(G):
+                    raise TypeError, "each element of groups must be a congruence subgroup"
+        self.__groups = groups
         if is_simple is not None:
             self.__is_simple = is_simple
         if newform_level is not None:
@@ -82,11 +89,25 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             raise TypeError, "base_field must be a field"
         ParentWithBase.__init__(self, base_field)
 
-    #############################################################################
-    # groups() and lattice() *must* be defined by every derived class!!!!
     def groups(self):
-        raise NotImplementedError
+        r"""
+        Return an ordered tuple of the congruence subgroups that the
+        ambient product Jacobian is attached to.
 
+        Every modular abelian variety is a finite quotient of an abelian
+        subvariety of a product of modular Jacobians $J_\Gamma$.  This
+        function returns a tuple containing the groups $\Gamma$.
+
+        EXAMPLES:
+            sage: A = (J0(37) * J1(13))[0]; A
+            Simple abelian subvariety 13a(1,13) of dimension 2 of J0(37) x J1(13)
+            sage: A.groups()
+            (Congruence Subgroup Gamma0(37), Congruence Subgroup Gamma1(13))
+        """
+        return self.__groups
+
+    #############################################################################
+    # lattice() *must* be defined by every derived class!!!!
     def lattice(self):
         raise NotImplementedError
     #############################################################################
@@ -130,7 +151,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: G[0]
             Finite subgroup with invariants [5, 10] over QQbar of Abelian subvariety of dimension 3 of J0(67)
             sage: a = G[0].0; a
-            [(1/10, 1/10, 3/10, 1/2, 1/5, 4/5)]
+            [(1/10, 1/10, 3/10, 1/2, 1, -2, -3, 33/10, 0, -1/2)]
             sage: a in J[0]
             False
             sage: a in (J[0]+J[1])
@@ -139,17 +160,17 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             True
             sage: C = G[1]   # abelian variety in kernel
             sage: G[0].0
-            [(1/10, 1/10, 3/10, 1/2, 1/5, 4/5)]
+            [(1/10, 1/10, 3/10, 1/2, 1, -2, -3, 33/10, 0, -1/2)]
             sage: 5*G[0].0
-            [(1/2, 1/2, 3/2, 5/2, 1, 4)]
+            [(1/2, 1/2, 3/2, 5/2, 5, -10, -15, 33/2, 0, -5/2)]
             sage: 5*G[0].0 in C
             True
         """
-        if not isinstance(x, FiniteSubgroupElement):
+        if not isinstance(x, TorsionPoint):
             return False
         if x.parent().abelian_variety().groups() != self.groups():
             return False
-        v = x.ambient_element()
+        v = x.element()
         n = v.denominator()
         nLambda = self.ambient_variety().lattice().scale(n)
         return n*v in self.lattice() + nLambda
@@ -287,16 +308,16 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             cat = ModularAbelianVarieties(F)
         return homspace.Homspace(self, B, cat)
 
-    def in_same_ambient_spaces(self, other):
+    def in_same_ambient_variety(self, other):
         """
         Return True if self and other are abelian subvarieties
         of the same ambient product Jacobian.
 
         EXAMPLES:
             sage: A,B,C = J0(33)
-            sage: A.in_same_ambient_spaces(B)
+            sage: A.in_same_ambient_variety(B)
             True
-            sage: A.in_same_ambient_spaces(J0(11))
+            sage: A.in_same_ambient_variety(J0(11))
             False
         """
         if not is_ModularAbelianVariety(other):
@@ -314,13 +335,13 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES:
             sage: A = AbelianVariety('33a'); A
-            Newform abelian subvariety 33a and dimension 1 of J0(33)
+            Newform abelian subvariety 33a of dimension 1 of J0(33)
             sage: A.modular_kernel()
-            Finite subgroup with invariants [3, 3] over QQ of Newform abelian subvariety 33a and dimension 1 of J0(33)
+            Finite subgroup with invariants [3, 3] over QQ of Newform abelian subvariety 33a of dimension 1 of J0(33)
             sage: A = AbelianVariety('71a'); A
-            Newform abelian subvariety 71a and dimension 3 of J0(71)
+            Newform abelian subvariety 71a of dimension 3 of J0(71)
             sage: A.modular_kernel()
-            Finite subgroup with invariants [9, 9] over QQ of Newform abelian subvariety 71a and dimension 3 of J0(71)
+            Finite subgroup with invariants [9, 9] over QQ of Newform abelian subvariety 71a of dimension 3 of J0(71)
         """
         try:
             return self.__modular_kernel
@@ -370,18 +391,18 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         We intersect some abelian varieties with finite intersection.
             sage: J = J0(37)
             sage: J[0].intersection(J[1])
-            (Finite subgroup with invariants [2, 2] over QQ of Simple abelian subvariety 37a(1,37) of dimension 1 of J0(37), Abelian subvariety of dimension 0 of J0(37))
+            (Finite subgroup with invariants [2, 2] over QQ of Simple abelian subvariety 37a(1,37) of dimension 1 of J0(37), Simple abelian subvariety of dimension 0 of J0(37))
 
             sage: D = list(J0(65)); D
             [Simple abelian subvariety 65a(1,65) of dimension 1 of J0(65), Simple abelian subvariety 65b(1,65) of dimension 2 of J0(65), Simple abelian subvariety 65c(1,65) of dimension 2 of J0(65)]
             sage: D[0].intersection(D[1])
-            (Finite subgroup with invariants [2] over QQ of Simple abelian subvariety 65a(1,65) of dimension 1 of J0(65), Abelian subvariety of dimension 0 of J0(65))
+            (Finite subgroup with invariants [2] over QQ of Simple abelian subvariety 65a(1,65) of dimension 1 of J0(65), Simple abelian subvariety of dimension 0 of J0(65))
             sage: (D[0]+D[1]).intersection(D[1]+D[2])
             (Finite subgroup with invariants [2] over QQbar of Abelian subvariety of dimension 3 of J0(65), Abelian subvariety of dimension 2 of J0(65))
 
             sage: J = J0(33)
             sage: J[0].intersection(J[1])
-            (Finite subgroup with invariants [5] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33), Abelian subvariety of dimension 0 of J0(33))
+            (Finite subgroup with invariants [5] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33), Simple abelian subvariety of dimension 0 of J0(33))
 
         Next we intersect two abelian varieties with non-finite intersection:
             sage: J = J0(67); D = J.decomposition(); D
@@ -394,33 +415,57 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             (Finite subgroup with invariants [5, 10] over QQbar of Abelian subvariety of dimension 3 of J0(67), Abelian subvariety of dimension 2 of J0(67))
 
         """
+        # First check whether we are intersecting an abelian
+        # variety with a finite subgroup.  If so, call the
+        # intersection method for the finite group, which does
+        # know how to intersect with an abelian variety.
         if isinstance(other, FiniteSubgroup):
             return other.intersection(self)
 
-        if not self.in_same_ambient_spaces(other):
+        # Now both self and other are abelian varieties.
+        # We require at least that the ambient Jacobian
+        # product is the same for them.
+        if not self.in_same_ambient_variety(other):
             raise TypeError, "other must be an abelian variety in the same ambient space"
 
+        # 1. Compute the abelian variety (connected) part of the intersection
+        V = self.vector_space().intersection(other.vector_space())
+        if V.dimension() > 0:
+            # If there is a nonzero abelian variety, get the actual lattice
+            # that defines it.  We intersect (=saturate) in the sum
+            # of the lattices, to ensure that the intersection is an
+            # abelian subvariety of both self and other (even if
+            # they aren't subvarieties of the ambient Jacobian).
+            lattice = V.intersection(self.lattice() + other.lattice())
+            A = ModularAbelianVariety(self.groups(), lattice, self.base_field(), check=False)
+        else:
+            A = self.zero_subvariety()
+
+        # 2. Compute the finite intersection group when the
+        # intersection is finite, or a group that maps surjectively
+        # onto the component group in general.
+
+        # First we get basis matrices for the lattices that define
+        # both abelian varieties.
         L = self.lattice().basis_matrix()
         M = other.lattice().basis_matrix()
 
+        # Then we stack matrices and find a subsect that forms a basis.
         LM = L.stack(M)
         P = LM.pivot_rows()
-        if len(P) < LM.nrows():
-            finitegroup_base_field = QQbar
-        else:
-            finitegroup_base_field = self.base_field()
-
         V = (ZZ**L.ncols()).span_of_basis([LM.row(p) for p in P])
         S = (self.lattice() + other.lattice()).saturation()
         n = self.lattice().rank()
-        gens = [v.list()[:n] for v in V.coordinate_module(S).basis()]
+        # Finally we project onto the L factor.
+        gens = [L.linear_combination_of_rows(v.list()[:n])
+                for v in V.coordinate_module(S).basis()]
 
+        if A.dimension() > 0:
+            finitegroup_base_field = QQbar
+        else:
+            finitegroup_base_field = self.base_field()
         G = self.finite_subgroup(gens, field_of_definition=finitegroup_base_field)
 
-        L = self.lattice().intersection(other.lattice())
-        if L.dimension() > 0:
-            L = L.intersection(self._ambient_lattice())
-        A = ModularAbelianVariety(self.groups(), L, self.base_field(), check=False)
 
         return G, A
 
@@ -534,7 +579,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
         Quotient out by a finite group:
             sage: J = J0(67); G = (J[0] + J[1]).intersection(J[1] + J[2])
-            sage: Q, _ = J/G[0]
+            sage: Q, _ = J/G[0]; Q
             Abelian variety factor of dimension 5 of J0(67) over Algebraic Field
             sage: Q.base_field()
             Algebraic Field
@@ -732,7 +777,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
             sage: A.is_subvariety_of_ambient_jacobian()
             True
-            sage: B, phi = A / A.n_torsion_subgroup(2)
+            sage: B, phi = A / A.torsion_subgroup(2)
             sage: B
             Abelian variety factor of dimension 1 of J0(33)
             sage: phi.matrix()
@@ -1443,14 +1488,14 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             self.__qbar_torsion_subgroup = G
             return G
 
-    def torsion_subgroup(self):
+    def rational_torsion_subgroup(self):
         """
         EXAMPLES:
             sage: J = J0(33)
             sage: A = J.new_subvariety()
             sage: A
             Abelian subvariety of dimension 1 of J0(33)
-            sage: t = A.torsion_subgroup()
+            sage: t = A.rational_torsion_subgroup()
             sage: t.multiple_of_order()
             4
             sage: t.divisor_of_order()
@@ -1458,15 +1503,15 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: t.order()
             4
             sage: t.gens()
-            [[(1/2, 0)], [(0, 1/2)]]
+            [[(1/2, 0, 0, -1/2, 0, 0)], [(0, 0, 1/2, 0, 1/2, -1/2)]]
             sage: t
             Torsion subgroup of Abelian subvariety of dimension 1 of J0(33)
         """
         try:
-            return self._torsion_subgroup
+            return self.__rational_torsion_subgroup
         except AttributeError:
-            T = TorsionSubgroup(self)
-            self._torsion_subgroup = T
+            T = RationalTorsionSubgroup(self)
+            self.__rational_torsion_subgroup = T
             return T
 
     def cuspidal_subgroup(self):
@@ -1482,11 +1527,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: C.invariants()
             [3, 3, 3, 3, 3, 9]
             sage: J1(13).cuspidal_subgroup()
-            Finite subgroup with invariants [19, 19] over QQbar of Abelian variety J1(13) of dimension 2
+            Finite subgroup with invariants [19, 19] over QQ of Abelian variety J1(13) of dimension 2
             sage: A = J0(33)[0]
             sage: A.cuspidal_subgroup()
-            Finite subgroup with invariants [5] over QQbar of Abelian variety J0(33) of dimension 3
-
+            Finite subgroup with invariants [5] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
         """
         try:
             return self._cuspidal_subgroup
@@ -1504,11 +1548,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         """
         EXAMPLES:
             sage: (J1(13)*J0(11))._ambient_cuspidal_subgroup()
-            Finite subgroup with invariants [19, 95] over QQbar of Abelian variety J1(13) x J0(11) of dimension 3
+            Finite subgroup with invariants [19, 95] over QQ of Abelian variety J1(13) x J0(11) of dimension 3
             sage: (J0(33))._ambient_cuspidal_subgroup()
-            Finite subgroup with invariants [10, 10] over QQbar of Abelian variety J0(33) of dimension 3
+            Finite subgroup with invariants [10, 10] over QQ of Abelian variety J0(33) of dimension 3
             sage: (J0(33)*J0(33))._ambient_cuspidal_subgroup()
-            Finite subgroup with invariants [10, 10, 10, 10] over QQbar of Abelian variety J0(33) x J0(33) of dimension 6
+            Finite subgroup with invariants [10, 10, 10, 10] over QQ of Abelian variety J0(33) x J0(33) of dimension 6
         """
         n = 2 * self.degree()
         i = 0
@@ -1520,7 +1564,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Z_right = matrix(QQ,L.nrows(),n-i-L.ncols())
             lattice += (Z_left.augment(L).augment(Z_right)).row_module(ZZ)
             i += L.ncols()
-        return self.finite_subgroup(lattice.basis())
+        return FiniteSubgroup_lattice(self, lattice, field_of_definition=self.base_field())
 
     def rational_cusp_subgroup(self):
         r"""
@@ -1535,7 +1579,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: J = J0(54)
             sage: CQ = J.rational_cusp_subgroup(); CQ
-            Finite subgroup with invariants [3, 3, 9] over QQbar of Abelian variety J0(54) of dimension 4
+            Finite subgroup with invariants [3, 3, 9] over QQ of Abelian variety J0(54) of dimension 4
             sage: CQ.gens()
             [[(1/3, 0, 0, 1/3, 2/3, 1/3, 0, 1/3)], [(0, 0, 1/9, 1/9, 7/9, 7/9, 1/9, 8/9)], [(0, 0, 0, 0, 0, 0, 1/3, 2/3)]]
             sage: factor(CQ.order())
@@ -1546,14 +1590,14 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         In this example the rational cuspidal subgroup and the cuspidal subgroup differ by a lot.
             sage: J = J0(49)
             sage: J.cuspidal_subgroup()
-            Finite subgroup with invariants [2, 14] over QQbar of Abelian variety J0(49) of dimension 1
+            Finite subgroup with invariants [2, 14] over QQ of Abelian variety J0(49) of dimension 1
             sage: J.rational_cusp_subgroup()
-            Finite subgroup with invariants [2] over QQbar of Abelian variety J0(49) of dimension 1
+            Finite subgroup with invariants [2] over QQ of Abelian variety J0(49) of dimension 1
 
         Note that computation of the rational cusp subgroup isn't implemented for $\Gamma_1$.
             sage: J = J1(13)
             sage: J.cuspidal_subgroup()
-            Finite subgroup with invariants [19, 19] over QQbar of Abelian variety J1(13) of dimension 2
+            Finite subgroup with invariants [19, 19] over QQ of Abelian variety J1(13) of dimension 2
             sage: J.rational_cusp_subgroup()
             Traceback (most recent call last):
             ...
@@ -1583,13 +1627,13 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             True
         """
         try:
-            return self._zero_subgroup
+            return self.__zero_subgroup
         except AttributeError:
-            G = FiniteSubgroup_gens(self, [], field_of_definition=QQ)
-            self._zero_subgroup = G
+            G = FiniteSubgroup_lattice(self, self.lattice(), field_of_definition=QQ)
+            self.__zero_subgroup = G
             return G
 
-    def finite_subgroup(self, X, field_of_definition=None):
+    def finite_subgroup(self, X, field_of_definition=None, check=True):
         """
         Return a finite subgroup of this modular abelian variety.
 
@@ -1610,68 +1654,71 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         EXAMPLES:
             sage: J = J0(11)
             sage: J.finite_subgroup([[1/5,0], [0,1/3]])
-            Finite subgroup with invariants [5] over QQbar of Abelian variety J0(33) of dimension 3
+            Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
 
             sage: J = J0(33); C = J[0].cuspidal_subgroup(); C
-            Finite subgroup with invariants [5] over QQ of Abelian variety J0(33) of dimension 3
+            Finite subgroup with invariants [5] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
             sage: J.finite_subgroup([[0,0,0,0,0,1/6]])
             Finite subgroup with invariants [6] over QQbar of Abelian variety J0(33) of dimension 3
             sage: J.finite_subgroup(C)
             Finite subgroup with invariants [5] over QQ of Abelian variety J0(33) of dimension 3
 
         """
-        if isinstance(X, FiniteSubgroup):
+        if isinstance(X, (list, tuple)):
+            X = self._ambient_lattice().span(X)
+        elif isinstance(X, FiniteSubgroup):
             if field_of_definition is None:
                 field_of_definition = X.field_of_definition()
             A = X.abelian_variety()
             if A.groups() != self.groups():
                 raise ValueError, "ambient product Jacobians must be equal"
             if A == self:
-                X = [v.element() for v in X.gens()]
+                X = X.lattice()
             else:
-                L = self.lattice()
-                B = A.lattice().matrix()
-                try:
-                    # BROKEN
-                    X = [L.coordinates(v.element()*B) for v in X.gens()]
-                except ValueError:
-                    raise TypeError, "unable to coerce subgroup into abelian variety."
+                if X.is_subgroup(self):
+                    X = (X.lattice() + self.lattice()).intersection(self.vector_space())
+                else:
+                    raise ValueError, "X must be a subgroup of self."
+
 
         if field_of_definition is None:
             field_of_definition = QQbar
         else:
             field_of_definition = field_of_definition
 
-        return FiniteSubgroup_gens(self, X, field_of_definition=field_of_definition, check=True)
+        return FiniteSubgroup_lattice(self, X, field_of_definition=field_of_definition, check=check)
 
 
-    def n_torsion_subgroup(self, n):
+    def torsion_subgroup(self, n):
         """
+        If n is an integer, return the subgroup of points of order n.
         Return the $n$-torsion subgroup of elements of order dividing $n$
         of this modular abelian variety $A$, i.e., the group $A[n]$.
 
         EXAMPLES:
+            sage: J1(13).torsion_subgroup(19)
+            Finite subgroup with invariants [19, 19, 19, 19] over QQ of Abelian variety J1(13) of dimension 2
+
             sage: A = J0(23)
-            sage: G = A.n_torsion_subgroup(5); G
+            sage: G = A.torsion_subgroup(5); G
             Finite subgroup with invariants [5, 5, 5, 5] over QQ of Abelian variety J0(23) of dimension 2
             sage: G.order()
             625
             sage: G.gens()
             [[(1/5, 0, 0, 0)], [(0, 1/5, 0, 0)], [(0, 0, 1/5, 0)], [(0, 0, 0, 1/5)]]
             sage: A = J0(23)
-            sage: A.n_torsion_subgroup(2).order()
+            sage: A.torsion_subgroup(2).order()
             16
         """
-        n = ZZ(n)
         try:
-            return self.__n_torsion_subgroup[n]
+            return self.__torsion_subgroup[n]
         except KeyError:
             pass
         except AttributeError:
-            self.__n_torsion_subgroup = {}
-        G = self.zero_subgroup()
-        H = G.multiply(1/n)
-        self.__n_torsion_subgroup[n] = H
+            self.__torsion_subgroup = {}
+        lattice = self.lattice().scale(1/Integer(n))
+        H = FiniteSubgroup_lattice(self, lattice, field_of_definition=self.base_field())
+        self.__torsion_subgroup[n] = H
         return H
 
 
@@ -1985,12 +2032,12 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         Next we compute the dual of a $2$-dimensional new simple
         abelian subvariety of $J_0(43)$.
             sage: A = AbelianVariety('43b'); A
-            Modular abelian variety attached to a newform of level 43
+            Newform abelian subvariety 43b of dimension 2 of J0(43)
             sage: Ad, f = A.dual()
 
         The kernel shows that the modular degree is $2$:
             sage: f.kernel()[0]
-            Finite subgroup with invariants [2, 2] over QQ of Modular abelian variety attached to a newform of level 43
+            Finite subgroup with invariants [2, 2] over QQ of Newform abelian subvariety 43b of dimension 2 of J0(43)
 
         Unfortunately, the dual is not implemented in general:
             sage: A = J0(22)[0]; A
@@ -2156,14 +2203,8 @@ class ModularAbelianVariety(ModularAbelianVariety_abstract):
             sage: J0(23)
             Abelian variety J0(23) of dimension 2
         """
-        if check:
-            if not isinstance(groups, tuple):
-                raise TypeError, "groups must be a tuple"
-            for G in groups:
-                if not is_CongruenceSubgroup(G):
-                    raise TypeError, "each element of groups must be a congruence subgroup"
-        self.__groups = groups
-
+        ModularAbelianVariety_abstract.__init__(self, groups, base_field, is_simple=is_simple, newform_level=newform_level,
+                                                isogeny_number=isogeny_number, number=number, check=check)
         if check:
             n = self._ambient_dimension()
             if not is_FreeModule(lattice):
@@ -2176,11 +2217,6 @@ class ModularAbelianVariety(ModularAbelianVariety_abstract):
                 raise ValueError, "lattice must be full"
         self.__lattice = lattice
 
-        ModularAbelianVariety_abstract.__init__(self, base_field, is_simple=is_simple, newform_level=newform_level,
-                                                isogeny_number=isogeny_number, number=number, check=check)
-
-    def groups(self):
-        return self.__groups
 
     def lattice(self):
         return self.__lattice
@@ -2278,10 +2314,18 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             Simple abelian subvariety 11a(3,33) of dimension 1 of J0(33)
             sage: A.modular_symbols()
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
+
+        It is not always possible to determine the sign subspaces:
             sage: A.modular_symbols(1)
-            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field
+            Traceback (most recent call last):
+            ...
+            RuntimeError: unable to determine sign (=1) space of modular symbols
+
             sage: A.modular_symbols(-1)
-            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 3 for Gamma_0(33) of weight 2 with sign -1 over Rational Field
+            Traceback (most recent call last):
+            ...
+            RuntimeError: unable to determine sign (=-1) space of modular symbols
+
         """
         M = self._modular_symbols().modular_symbols_of_sign(sign)
         if (sign != 0 and M.dimension() != self.dimension()) or (sign == 0 and M.dimension() != 2*self.dimension()):
@@ -2501,7 +2545,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             sage: J0(100).new_subvariety()
             Abelian subvariety of dimension 1 of J0(100)
             sage: J1(13).new_subvariety()
-            Abelian variety J1(13)
+            Abelian variety J1(13) of dimension 2
         """
         try:
             return self.__new_subvariety[p]
@@ -2624,7 +2668,7 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
             if not modsym.is_cuspidal():
                 raise ValueError, "modsym must be cuspidal"
 
-        ModularAbelianVariety_abstract.__init__(self, modsym.base_ring(),
+        ModularAbelianVariety_abstract.__init__(self, (modsym.group(), ), modsym.base_ring(),
                              newform_level=newform_level, is_simple=is_simple,
                              isogeny_number=isogeny_number, number=number, check=check)
         self.__modsym = modsym

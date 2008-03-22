@@ -3364,7 +3364,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
     def _denominator(self, B):  # for internal use only!
         if len(B) == 0:
             return 1
-        d = B[0].denominator()
+        d = sage.rings.integer.Integer(B[0].denominator())
         for x in B[1:]:
             d = d.lcm(x.denominator())
         return d

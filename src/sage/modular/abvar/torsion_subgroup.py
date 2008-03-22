@@ -16,7 +16,7 @@ AUTHOR:
 EXAMPLES:
 First we consider $J_0(50)$ where everything works out nicely:
     sage: J = J0(50)
-    sage: T = J.torsion_subgroup(); T
+    sage: T = J.rational_torsion_subgroup(); T
     Torsion subgroup of Abelian variety J0(50) of dimension 2
     sage: T.multiple_of_order()
     15
@@ -31,15 +31,15 @@ First we consider $J_0(50)$ where everything works out nicely:
     Simple abelian subvariety 50a(1,50) of dimension 1 of J0(50),
     Simple abelian subvariety 50b(1,50) of dimension 1 of J0(50)
     ]
-    sage: d[0].torsion_subgroup().order()
+    sage: d[0].rational_torsion_subgroup().order()
     3
-    sage: d[1].torsion_subgroup().order()
+    sage: d[1].rational_torsion_subgroup().order()
     5
 
 Next we make a table of the upper and lower bounds for each new factor.
     sage: for N in range(1,38):
     ...    for A in J0(N).new_subvariety().decomposition():
-    ...        T = A.torsion_subgroup()
+    ...        T = A.rational_torsion_subgroup()
     ...        print '%-5s%-5s%-5s%-5s'%(N, A.dimension(), T.divisor_of_order(), T.multiple_of_order())
     11   1    5    5
     14   1    6    6
@@ -66,7 +66,7 @@ Next we make a table of the upper and lower bounds for each new factor.
     37   1    3    3
 
 TESTS:
-    sage: T = J0(54).torsion_subgroup()
+    sage: T = J0(54).rational_torsion_subgroup()
     sage: loads(dumps(T)) == T
     True
 """
@@ -96,7 +96,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             abvar -- a modular abelian variety
 
         EXAMPLES:
-            sage: T = J0(14).torsion_subgroup(); T
+            sage: T = J0(14).rational_torsion_subgroup(); T
             Torsion subgroup of Abelian variety J0(14) of dimension 1
             sage: type(T)
             <class 'sage.modular.abvar.torsion_subgroup.TorsionSubgroup'>
@@ -108,7 +108,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         Return string representation of this torsion subgroup.
 
         EXAMPLES:
-            sage: T = J1(13).torsion_subgroup(); T
+            sage: T = J1(13).rational_torsion_subgroup(); T
             Torsion subgroup of Abelian variety J1(13) of dimension 2
             sage: T._repr_()
             'Torsion subgroup of Abelian variety J1(13) of dimension 2'
@@ -127,7 +127,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         variety subgroups is used.
 
         EXAMPLE:
-            sage: G = J0(11).torsion_subgroup(); H = J0(13).torsion_subgroup()
+            sage: G = J0(11).rational_torsion_subgroup(); H = J0(13).rational_torsion_subgroup()
             sage: G == G
             True
             sage: G < H   # since 11 < 13
@@ -152,12 +152,12 @@ class RationalTorsionSubgroup(FiniteSubgroup):
 
         EXAMPLES:
             sage: a = J0(11)
-            sage: a.torsion_subgroup().order()
+            sage: a.rational_torsion_subgroup().order()
             5
             sage: a = J0(23)
-            sage: a.torsion_subgroup().order()
+            sage: a.rational_torsion_subgroup().order()
             11
-            sage: t = J0(37)[1].torsion_subgroup()
+            sage: t = J0(37)[1].rational_torsion_subgroup()
             sage: t.order()
             3
         """
@@ -178,12 +178,12 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         representative elements of the rational homology.
 
         EXAMPLES:
-            sage: J0(11).torsion_subgroup()._generators()
+            sage: J0(11).rational_torsion_subgroup()._generators()
             ((0, 1/5),)
 
         The following fails because in fact I know of no (reasonable)
         algorithm to provably compute the torsion subgroup in general.
-            sage: T = J0(33).torsion_subgroup()
+            sage: T = J0(33).rational_torsion_subgroup()
             sage: T._generators()
             Traceback (most recent call last):
             ...
@@ -212,15 +212,15 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         a known divisor and multiple of the order.
 
         EXAMPLES:
-            sage: J0(11).torsion_subgroup().possible_orders()
+            sage: J0(11).rational_torsion_subgroup().possible_orders()
             [5]
-            sage: J0(33).torsion_subgroup().possible_orders()
+            sage: J0(33).rational_torsion_subgroup().possible_orders()
             [100, 200]
 
         Note that this function has been implemented for $J_1(N)$,
         though it should be reasonably easy to do so soon (see Conrad,
         Edixhoven, Stein):
-            sage: J1(13).torsion_subgroup().possible_orders()
+            sage: J1(13).rational_torsion_subgroup().possible_orders()
             Traceback (most recent call last):
             ...
             NotImplementedError: torsion multiple only implemented for Gamma0
@@ -242,7 +242,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         modular abelian variety.
 
         EXAMPLES:
-           sage: t = J0(37)[1].torsion_subgroup()
+           sage: t = J0(37)[1].rational_torsion_subgroup()
            sage: t.divisor_of_order()
            3
         """
@@ -267,11 +267,11 @@ class RationalTorsionSubgroup(FiniteSubgroup):
 
         EXAMPLES:
             sage: J = J0(11)
-            sage: G = J.torsion_subgroup()
+            sage: G = J.rational_torsion_subgroup()
             sage: G.multiple_of_order(11)
             5
             sage: J = J0(389)
-            sage: G = J.torsion_subgroup(); G
+            sage: G = J.rational_torsion_subgroup(); G
             Torsion subgroup of Abelian variety J0(389) of dimension 32
             sage: G.multiple_of_order()
             97

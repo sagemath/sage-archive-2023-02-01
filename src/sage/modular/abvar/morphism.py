@@ -160,7 +160,10 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             field_of_definition = QQ
         else:
             field_of_definition = None
-        K = D.finite_subgroup(X.rows(), field_of_definition=field_of_definition)
+
+        lattice = (X * self.domain().lattice().basis_matrix()).row_module(ZZ)
+
+        K = D.finite_subgroup(lattice, field_of_definition=field_of_definition)
 
         return K, abvar
 
@@ -290,7 +293,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         EXAMPLES:
         We apply morphisms to elements:
             sage: t2 = J0(33).hecke_operator(2)
-            sage: G  = J0(33).n_torsion_subgroup(2); G
+            sage: G  = J0(33).torsion_subgroup(2); G
             Finite subgroup with invariants [2, 2, 2, 2, 2, 2] over QQ of Abelian variety J0(33) of dimension 3
             sage: t2(G.0)
             [(-1/2, 0, 1/2, -1/2, 1/2, -1/2)]
@@ -307,7 +310,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
 
         We apply morphisms to subgroups:
             sage: t2 = J0(33).hecke_operator(2)
-            sage: G  = J0(33).n_torsion_subgroup(2); G
+            sage: G  = J0(33).torsion_subgroup(2); G
             Finite subgroup with invariants [2, 2, 2, 2, 2, 2] over QQ of Abelian variety J0(33) of dimension 3
             sage: t2(G)
             Finite subgroup with invariants [2, 2] over QQ of Abelian variety J0(33) of dimension 3

@@ -393,33 +393,57 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             (Finite subgroup with invariants [5, 10] over QQbar of Abelian subvariety of dimension 3 of J0(67), Abelian subvariety of dimension 2 of J0(67))
 
         """
+        # First check whether we are intersecting an abelian
+        # variety with a finite subgroup.  If so, call the
+        # intersection method for the finite group, which does
+        # know how to intersect with an abelian variety.
         if isinstance(other, FiniteSubgroup):
             return other.intersection(self)
 
+        # Now both self and other are abelian varieties.
+        # We require at least that the ambient Jacobian
+        # product is the same for them.
         if not self.in_same_ambient_variety(other):
             raise TypeError, "other must be an abelian variety in the same ambient space"
 
+        # 1. Compute the abelian variety (connected) part of the intersection
+        V = self.vector_space().intersection(other.vector_space())
+        if V.dimension() > 0:
+            # If there is a nonzero abelian variety, get the actual lattice
+            # that defines it.  We intersect (=saturate) in the sum
+            # of the lattices, to ensure that the intersection is an
+            # abelian subvariety of both self and other (even if
+            # they aren't subvarieties of the ambient Jacobian).
+            lattice = V.intersection(self.lattice() + other.lattice())
+            A = ModularAbelianVariety(self.groups(), lattice, self.base_field(), check=False)
+        else:
+            A = self.zero_subvariety()
+
+        # 2. Compute the finite intersection group when the
+        # intersection is finite, or a group that maps surjectively
+        # onto the component group in general.
+
+        # First we get basis matrices for the lattices that define
+        # both abelian varieties.
         L = self.lattice().basis_matrix()
         M = other.lattice().basis_matrix()
 
+        # Then we stack matrices and find a subsect that forms a basis.
         LM = L.stack(M)
         P = LM.pivot_rows()
-        if len(P) < LM.nrows():
-            finitegroup_base_field = QQbar
-        else:
-            finitegroup_base_field = self.base_field()
-
         V = (ZZ**L.ncols()).span_of_basis([LM.row(p) for p in P])
         S = (self.lattice() + other.lattice()).saturation()
         n = self.lattice().rank()
-        gens = [v.list()[:n] for v in V.coordinate_module(S).basis()]
+        # Finally we project onto the L factor.
+        gens = [L.linear_combination_of_rows(v.list()[:n])
+                for v in V.coordinate_module(S).basis()]
 
+        if A.dimension() > 0:
+            finitegroup_base_field = QQbar
+        else:
+            finitegroup_base_field = self.base_field()
         G = self.finite_subgroup(gens, field_of_definition=finitegroup_base_field)
 
-        L = self.lattice().intersection(other.lattice())
-        if L.dimension() > 0:
-            L = L.intersection(self._ambient_lattice())
-        A = ModularAbelianVariety(self.groups(), L, self.base_field(), check=False)
 
         return G, A
 
@@ -731,7 +755,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
             sage: A.is_subvariety_of_ambient_jacobian()
             True
-            sage: B, phi = A / A.n_torsion_subgroup(2)
+            sage: B, phi = A / A.torsion_subgroup(2)
             sage: B
             Abelian variety factor of dimension 1 of J0(33)
             sage: phi.matrix()
@@ -1619,7 +1643,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Finite subgroup with invariants [15] over QQ of Abelian variety J0(33) of dimension 3
 
         """
-        if isinstance(X, FiniteSubgroup):
+        if isinstance(X, (list, tuple)):
+            X = self._ambient_lattice().span(X)
+        elif isinstance(X, FiniteSubgroup):
             if field_of_definition is None:
                 field_of_definition = X.field_of_definition()
             A = X.abelian_variety()

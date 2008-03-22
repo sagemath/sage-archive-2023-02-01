@@ -366,8 +366,9 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         modulo $b$ then $|x| < X$. This $X$ is either provided by the
         user or the maximum $X$ is chosen such that this algorithm
         terminates in polynomial time. If $X$ is chosen automatically
-        it is $X = ceil(1/2 N^{\beta^2/\delta - \epsilon})$.`This
-        algorithm` in this context means Coppersmith's algorithm for
+        it is $X = ceil(1/2 N^{\beta^2/\delta - \epsilon})$.
+        The algorithm may also return some roots which are larger than $X$.
+        `This algorithm' in this context means Coppersmith's algorithm for
         finding small roots using the LLL algorithm. The
         implementation of this algorithm follows Alexander May's PhD
         thesis referenced below.

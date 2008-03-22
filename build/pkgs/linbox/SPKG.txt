@@ -1,14 +1,33 @@
-= linbox =
+= LinBox =
+
+== Description ==
+
+From http://linalg.org/: LinBox is a C++ template library for exact, high-performance linear algebra computation with dense, sparse, and structured matrices over the integers and over finite fields.
+
+== License ==
+LGPL V2 or later
 
 == Maintainers ==
  * Clement Pernet
  * Michael Abshoff
  * William Stein
 
-== ToDo ==
- * resolve uncommitted changes
+== Upstream Contact ==
+ * Clement Pernet
+ * The Google group linbox-devel and linbox-use
+
+== Dependencies ==
+ * gmp
+ * NTL
+ * Givaro
+ * ATLAS (non-OSX)/The Accelerate FrameWork (on OSX)
 
 == Changelog ==
+
+=== linbox-1.1.5rc2.p6 (Michael Abshoff, March 22nd, 2008) ===
+ * integrate Debian build infrastructure (Tim Abbott, #2647)
+ * clean up SPKG.txt
+ * commit all outstanding changes
 
 === linbox-1.1.5rc2.p5 (William Stein, March 17th, 2008) ===
  * bump version number to force rebuild on upgrade due to updated Givaro
@@ -16,7 +35,7 @@
 === linbox-1.1.5rc2.p4 (Clement Pernet) ===
  * revert to a better commentator.h, which now works on PPC, and still uses static
 
-=== linbox-1.1.5rc2.p3 (Clement Pernet, William Stein, March 10th, 2008)
+=== linbox-1.1.5rc2.p3 (Clement Pernet, William Stein, March 10th, 2008) ===
  * fix the bug with static_initialization of commentator on PPC. (ticket 2463)
 
 === linbox-1.1.5rc2.p2 (Michael Abshoff, March 10th, 2008) ===
@@ -33,34 +52,18 @@
  * updated to upstream 1.1.5rc2
  * added additional funcionality in linbox_wrap
 
+=== 2007-12-16 (Michael Abshoff) ===
+ * detect internal ATLAS and link against it per default on non-OSX
 
+=== 2007-11-13 (Michael Abshoff) ===
+ * Apply Clement Pernet's charpoly leak fix, i.e. the dreaded BLAS:MatrixHom
 
-* 2007-12-16 (mabshoff)
- + detect internal ATLAS and link against it per default on non-OSX
+=== 2007-10-29: (Michael Abshoff) ===
+ * added fix for #1026
+ * add "-g" to CXXFLAGS and CFLAGS for better valgrind output
+ * add .hgignore
+ *  add all files under patches and linbox_wrap to hg repo
 
-* 2007-11-13: (mabshoff)
- + Apply Clement Pernet's charpoly leak fix, i.e. the dreaded BLAS:MatrixHom
+=== 2007-09-03 (Michael Abshoff) ===
+ * merged LinBox ChangeSet 2803, which fixes #498 without the performance regression of the initial workaround
 
-*2007-10-29: (mabshoff)
-
-  + added fix for #1026
-  + add "-g" to CXXFLAGS and CFLAGS for better valgrind output
-  + add .hgignore
-  + add all under patches and linbox_wrap to hg repo
-
-* 2007-09-03: merged LinBox ChangeSet 2803, which fixes #498 without the
-             performance regression of the initial workaround
-             (mabshoff)
-
-
-1. Modified charpoly.h and commentator.C
-
-2. Added linboxwrap (malb)
-
-3. Change the line in configure so tuning doesn't take like 30 minutes
-   and crash the host computer!
-
-       size_t n=300, nmax=2000, prec=512, nbest=0, count=0;
-
-4. Change a line in linbox/Makefile.in so we don't build interfaces
-   (which requires Maple, etc., -- way too many requirements).

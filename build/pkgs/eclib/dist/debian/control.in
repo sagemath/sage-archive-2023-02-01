@@ -1,4 +1,5 @@
 Source: eclib
+Section: libs
 Priority: extra
 Maintainer: Tim Abbott <tabbott@mit.edu>
 Build-Depends: @cdbs@, libntl-dev, libgmp3-dev, libpari-dev

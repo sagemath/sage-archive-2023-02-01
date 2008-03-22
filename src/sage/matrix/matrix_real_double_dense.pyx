@@ -342,7 +342,9 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             [-0.428571428571            -1.0  0.714285714286]
 
             Note that if this matrix is (nearly) singular, finding
-            its inverse will not help much:
+            its inverse will not help much and will give slightly different
+            answers on similar platforms depending on the hardware
+            and tuning options given to ATLAS:
             sage: A = Matrix(RDF, [[1, 0], [0, 0]])
             sage: A.inverse()
             [nan nan]
@@ -352,9 +354,9 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             [4.0 5.0 6.0]
             [7.0 8.0 9.0]
 
-            sage: A.determinant()
-            6.66133814775e-16
-            sage: ~A
+            sage: A.determinant() < 10e-12
+            True
+            sage: ~A              # slightly random
             [-4.50359962737e+15  9.00719925474e+15 -4.50359962737e+15]
             [ 9.00719925474e+15 -1.80143985095e+16  9.00719925474e+15]
             [-4.50359962737e+15  9.00719925474e+15 -4.50359962737e+15]

@@ -79,29 +79,56 @@ class CuspidalSubgroup_generic(FiniteSubgroup):
         EXAMPLES:
             sage: J = J0(37)
             sage: C = sage.modular.abvar.cuspidal_subgroup.CuspidalSubgroup(J)
-            sage: C._compute_generators()
-            [(0, 0, 0, 1/3)]
+            sage: C._compute_lattice()
+            Free module of degree 4 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [  1   0   0   0]
+            [  0   1   0   0]
+            [  0   0   1   0]
+            [  0   0   0 1/3]
             sage: J = J0(43)
             sage: C = sage.modular.abvar.cuspidal_subgroup.CuspidalSubgroup(J)
-            sage: C._compute_generators()
-            [(0, -1/7, 0, 1/7, 0, 2/7)]
+            sage: C._compute_lattice()
+            Free module of degree 6 and rank 6 over Integer Ring
+            Echelon basis matrix:
+            [  1   0   0   0   0   0]
+            [  0 1/7   0 6/7   0 5/7]
+            [  0   0   1   0   0   0]
+            [  0   0   0   1   0   0]
+            [  0   0   0   0   1   0]
+            [  0   0   0   0   0   1]
             sage: J = J0(22)
             sage: C = sage.modular.abvar.cuspidal_subgroup.CuspidalSubgroup(J)
-            sage: C._compute_generators()
-            [(0, 0, 0, -1/5), (-1/5, -1/5, 1/5, 2/5), (-1/5, -1/5, 1/5, -2/5)]
+            sage: C._compute_lattice()
+            Free module of degree 4 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [1/5 1/5 4/5   0]
+            [  0   1   0   0]
+            [  0   0   1   0]
+            [  0   0   0 1/5]
             sage: J = J1(13)
             sage: C = sage.modular.abvar.cuspidal_subgroup.CuspidalSubgroup(J)
-            sage: len(C._compute_generators())
-            11
-            sage: C._compute_generators()[:3]
-            [(0, 1/19, 1/19, -1/19), (6/19, -2/19, -2/19, -1/19), (4/19, -2/19, -2/19, 0)]
+            sage: C._compute_lattice()
+            Free module of degree 4 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [ 1/19     0     0  9/19]
+            [    0  1/19  1/19 18/19]
+            [    0     0     1     0]
+            [    0     0     0     1]
+
 
         We compute with and without the optional \code{rational_only} option.
             sage: J = J0(27); G = sage.modular.abvar.cuspidal_subgroup.CuspidalSubgroup(J)
-            sage: G._compute_generators()
-            [(1/3, 0), (0, -1/3), (-1/3, 1/3), (1/3, 1/3), (-1/3, -1/3)]
-            sage: G._compute_generators(rational_only=True)
-            [(1/3, 0)]
+            sage: G._compute_lattice()
+            Free module of degree 2 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1/3   0]
+            [  0 1/3]
+            sage: G._compute_lattice(rational_only=True)
+            Free module of degree 2 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1/3   0]
+            [  0   1]
         """
         A = self.abelian_variety()
         Cusp = A.modular_symbols()
@@ -160,7 +187,10 @@ class CuspidalSubgroup(CuspidalSubgroup_generic):
             sage: J = J0(27)
             sage: G = J.cuspidal_subgroup()
             sage: G.lattice()
-            ((1/3, 0), (0, 1/3))
+            Free module of degree 2 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1/3   0]
+            [  0 1/3]
 
         Test that the result is cached:
             sage: G.lattice() is G.lattice()
@@ -203,11 +233,14 @@ class RationalCuspidalSubgroup(CuspidalSubgroup_generic):
 
         EXAMPLES:
             sage: G = J0(27).rational_cusp_subgroup()
-            sage: G._generators()
-            ((1/3, 0),)
+            sage: G.lattice()
+            Free module of degree 2 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1/3   0]
+            [  0   1]
 
         Test that the result is cached.
-            sage: G._generators() is G._generators()
+            sage: G.lattice() is G.lattice()
             True
         """
         try:

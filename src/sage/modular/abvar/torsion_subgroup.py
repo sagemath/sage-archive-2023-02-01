@@ -79,7 +79,7 @@ TESTS:
 
 from sage.modules.module      import Module
 
-from finite_subgroup            import FiniteSubgroup, FiniteSubgroupElement
+from finite_subgroup            import FiniteSubgroup, TorsionPoint
 from sage.rings.all             import divisors, gcd, ZZ, prime_range
 from sage.sets.primes           import Primes
 from sage.modular.congroup      import is_Gamma0
@@ -99,7 +99,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             sage: T = J0(14).rational_torsion_subgroup(); T
             Torsion subgroup of Abelian variety J0(14) of dimension 1
             sage: type(T)
-            <class 'sage.modular.abvar.torsion_subgroup.TorsionSubgroup'>
+            <class 'sage.modular.abvar.torsion_subgroup.RationalTorsionSubgroup'>
         """
         FiniteSubgroup.__init__(self, abvar)
 
@@ -172,22 +172,28 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             return n
         raise RuntimeError, "Unable to compute order of torsion subgroup (it is in %s)"%O
 
-    def _generators(self):
+    def lattice(self):
         """
-        Return generators for this torsion subgroup, but as
-        representative elements of the rational homology.
+        Return lattice that defines this torsion subgroup, if possible.
+
+        WARNING: There is no known algorithm in general to compute the
+        rational torsion subgroup.  Use rational_cusp_group to obtain
+        a subgroup of the rational torsion subgroup in general.
 
         EXAMPLES:
-            sage: J0(11).rational_torsion_subgroup()._generators()
-            ((0, 1/5),)
+            sage: J0(11).rational_torsion_subgroup().lattice()
+            Free module of degree 2 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [  1   0]
+            [  0 1/5]
 
         The following fails because in fact I know of no (reasonable)
         algorithm to provably compute the torsion subgroup in general.
             sage: T = J0(33).rational_torsion_subgroup()
-            sage: T._generators()
+            sage: T.lattice()
             Traceback (most recent call last):
             ...
-            ValueError: no explicit presentation of this finite subgroup is known (unable to compute explicitly)
+            NotImplementedError: unable to compute the rational torsion subgroup in this case (there is no known general algorithm yet)
 
         The problem is that the multiple of the order obtained by
         counting points over finite fields is twice the divisor of the
@@ -202,9 +208,9 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             return []
         R = A.rational_cusp_subgroup()
         if R.order() == self.multiple_of_order():
-            return R._generators()
+            return R.lattice()
         else:
-            raise ValueError, "no explicit presentation of this finite subgroup is known (unable to compute explicitly)"
+            raise NotImplementedError, "unable to compute the rational torsion subgroup in this case (there is no known general algorithm yet)"
 
     def possible_orders(self):
         """
@@ -387,7 +393,7 @@ class QQbarTorsionSubgroup(Module):
             4
         """
         v = self.__abvar.vector_space()(x)
-        return FiniteSubgroupElement(self, v)
+        return TorsionPoint(self, v)
 
     def abelian_variety(self):
         """

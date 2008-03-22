@@ -507,7 +507,7 @@ class FiniteSubgroup(Module):
         except AttributeError:
             pass
 
-        B = [FiniteSubgroupElement(self, v) for v in self.lattice().basis() if v.denominator() > 1]
+        B = [TorsionPoint(self, v) for v in self.lattice().basis() if v.denominator() > 1]
         self.__gens = Sequence(B, immutable=True)
         return self.__gens
 
@@ -580,11 +580,11 @@ class FiniteSubgroup(Module):
             ...
             TypeError: x does not define an element of self
         """
-        if isinstance(x, FiniteSubgroupElement):
+        if isinstance(x, TorsionPoint):
             if x.parent() is self:
                 return x
             elif x.parent() == self:
-                return FiniteSubgroupElement(self, x.element(), check=False)
+                return TorsionPoint(self, x.element(), check=False)
             elif x.parent().abelian_variety() == self.abelian_variety():
                 return self(x.element())
             else:
@@ -593,7 +593,7 @@ class FiniteSubgroup(Module):
             z = self.abelian_variety().vector_space()(x)
             if not z in self.lattice():
                 raise TypeError, "x does not define an element of self"
-            return FiniteSubgroupElement(self, z, check=False)
+            return TorsionPoint(self, z, check=False)
 
 
     def __contains__(self, x):
@@ -732,7 +732,7 @@ class FiniteSubgroup_lattice(FiniteSubgroup):
 # Elements of finite order
 ###########################################################################
 
-class FiniteSubgroupElement(ModuleElement):
+class TorsionPoint(ModuleElement):
     def __init__(self, parent, element, check=True):
         """
         An element of a finite subgroup of a modular abelian variety.
@@ -745,12 +745,12 @@ class FiniteSubgroupElement(ModuleElement):
                        is in the appropriate vector space
 
         EXAMPLES:
-        The following calls the FiniteSubgroupElement constructor implicitly:
+        The following calls the TorsionPoint constructor implicitly:
             sage: J = J0(11)
             sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
             Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
             sage: type(G.0)
-            <class 'sage.modular.abvar.finite_subgroup.FiniteSubgroupElement'>
+            <class 'sage.modular.abvar.finite_subgroup.TorsionPoint'>
         """
         ModuleElement.__init__(self, parent)
         if check:
@@ -804,10 +804,10 @@ class FiniteSubgroupElement(ModuleElement):
         is called implicitly by +.
 
         INPUT:
-            other -- a FiniteSubgroupElement with the same parent as self
+            other -- a TorsionPoint with the same parent as self
 
         OUTPUT:
-            a FiniteSubgroupElement
+            a TorsionPoint
 
         EXAMPLES:
             sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
@@ -816,7 +816,7 @@ class FiniteSubgroupElement(ModuleElement):
             sage: G.0 + G.1
             [(1/3, 1/5)]
         """
-        return FiniteSubgroupElement(self.parent(), self.__element + other.__element, check=False)
+        return TorsionPoint(self.parent(), self.__element + other.__element, check=False)
 
     def _sub_(self, other):
         """
@@ -824,10 +824,10 @@ class FiniteSubgroupElement(ModuleElement):
         is called implicitly by +.
 
         INPUT:
-            other -- a FiniteSubgroupElement with the same parent as self
+            other -- a TorsionPoint with the same parent as self
 
         OUTPUT:
-            a FiniteSubgroupElement
+            a TorsionPoint
 
         EXAMPLES:
             sage: J = J0(11); G = J.finite_subgroup([[1/3,0], [0,1/5]])
@@ -836,7 +836,7 @@ class FiniteSubgroupElement(ModuleElement):
             sage: G.0 - G.1
             [(1/3, -1/5)]
         """
-        return FiniteSubgroupElement(self.parent(), self.__element - other.__element, check=False)
+        return TorsionPoint(self.parent(), self.__element - other.__element, check=False)
 
     def _neg_(self):
         """
@@ -847,7 +847,7 @@ class FiniteSubgroupElement(ModuleElement):
             sage: G.0._neg_()
             [(-1/3, 0)]
         """
-        return FiniteSubgroupElement(self.parent(), -self.__element, check=False)
+        return TorsionPoint(self.parent(), -self.__element, check=False)
 
     def _rmul_(self, left):
         """
@@ -860,7 +860,7 @@ class FiniteSubgroupElement(ModuleElement):
             sage: 2*G.0
             [(2/3, 0)]
         """
-        return FiniteSubgroupElement(self.parent(), ZZ(left) * self.__element, check=False)
+        return TorsionPoint(self.parent(), ZZ(left) * self.__element, check=False)
 
     def _lmul_(self, right):
         """
@@ -873,7 +873,7 @@ class FiniteSubgroupElement(ModuleElement):
             sage: G.0 * 2
             [(2/3, 0)]
         """
-        return FiniteSubgroupElement(self.parent(), self.__element * right, check=False)
+        return TorsionPoint(self.parent(), self.__element * right, check=False)
 
     def __cmp__(self, right):
         """
@@ -908,7 +908,7 @@ class FiniteSubgroupElement(ModuleElement):
             sage: H.0
             [(1/3, 0)]
         """
-        if not isinstance(right, FiniteSubgroupElement):
+        if not isinstance(right, TorsionPoint):
             return cmp(type(self), type(right))
         A = self.parent().abelian_variety()
         B = right.parent().abelian_variety()

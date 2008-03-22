@@ -43,7 +43,7 @@ import abvar as abelian_variety
 import sage.modules.matrix_morphism
 import sage.structure.element
 
-from finite_subgroup import FiniteSubgroupElement
+from finite_subgroup import TorsionPoint
 
 class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
     """
@@ -350,14 +350,15 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
 
         Same but on a simple new factor:
             sage: C = J0(33)[2].cuspidal_subgroup(); C
-            Finite subgroup with invariants [2, 2] over QQ of Abelian variety J0(33) of dimension 3
+            Finite subgroup with invariants [2, 2] over QQ of Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
             sage: t2 = J0(33)[2].hecke_operator(2); t2.fcp()
             (x - 1)^2
             sage: t2(C)
+            Finite subgroup with invariants [2, 2] over QQ of Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
         """
         from abvar import is_ModularAbelianVariety
         from finite_subgroup import FiniteSubgroup
-        if isinstance(X, FiniteSubgroupElement):
+        if isinstance(X, TorsionPoint):
             return self._image_of_element(X)
         elif is_ModularAbelianVariety(X):
             return self._image_of_abvar(X)

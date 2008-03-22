@@ -496,25 +496,36 @@ class AmbientLattice_e(AmbientLattice_generic):
         self.n = 8          # We're always in R^8, but not always the whole space.
         AmbientLattice_generic.__init__(self, ct)
         if ct.n == 6:
-            self.dim = 5
+            self.dim = 6
             self.Base = [v*(self.root(0,7)-self.root(1,2,3,4,5,6)),
                          self.root(0,1),
                          self.root(0,1,p0=1),
                          self.root(1,2,p0=1),
                          self.root(2,3,p0=1),
                          self.root(3,4,p0=1)]
-#            self._sub_module=self._free_module.submodule(
+#            self._sub_module=self._free_module.submodule()
+        elif ct.n == 7:
+            self.dim = 7
+            self.Base = [v*(self.root(0,7)-self.root(1,2,3,4,5,6)),
+                         self.root(0,1),
+                         self.root(0,1,p0=1),
+                         self.root(1,2,p0=1),
+                         self.root(2,3,p0=1),
+                         self.root(3,4,p0=1),
+                         self.root(4,5,p0=1)]
+#            self._sub_module=self._free_module.submodule()
         else:
             raise NotImplementedError, "To appear; film at 11"
 
     def root(self, i, j=None, k=None, l=None, m=None, n=None, p=None, q=None, p0=0, p1=0, p2=0, p3=0, p4=0, p5=0, p6=0, p7=0):
         """
-        Compute a root from base elements of the underlying lattice.
-        The arguments specify the basis elements and the signs.
-        We rely on the caller to provide the correct arguments, and we don't
-        handle multipliers like "1/2".  So this really doesn't compute "roots".
-        Sadly, the base elements are indexed zero-based.
+        Compute an element of the underlying lattice, using the specified elements of
+        the standard basis, with signs dictated by the corresponding 'pi' arguments.
+        We rely on the caller to provide the correct arguments.
+        This is typically used to generate roots, although the generated elements
+        need not be roots themselves.
         We assume that if one of the indices is not given, the rest are not as well.
+        This should work for E6, E7, E8.
         EXAMPLES:
             sage: E6=RootSystem(['E',6])
             sage: LE6=E6.ambient_lattice()
@@ -572,9 +583,19 @@ class AmbientLattice_e(AmbientLattice_generic):
         from sage.rings.rational import Rational
         v = Rational(1)/Rational(2)
         if not hasattr(self, 'PosRoots'):
-            self.PosRoots = ( [ self.root(i,j,p0=0) for i in xrange(self.dim) for j in xrange(i+1,self.dim) ] +
-                            [ self.root(i,j,p0=1) for i in xrange(self.dim) for j in xrange(i+1,self.dim) ] +
-                            [ v*(self.root(7)-self.root(6)-self.root(5)+self.root(0,1,2,3,4,p0=p0,p1=p1,p2=p2,p3=p3,p4=p4)) for p0 in [0,1] for p1 in [0,1] for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] if (p0+p1+p2+p3+p4)%2 == 0 ])
+            if self.dim == 6:
+                self.PosRoots = ( [ self.root(i,j) for i in xrange(self.dim-1) for j in xrange(i+1,self.dim-1) ] +
+                                  [ self.root(i,j,p0=1) for i in xrange(self.dim-1) for j in xrange(i+1,self.dim-1) ] +
+                                  [ v*(self.root(7)-self.root(6)-self.root(5)+self.root(0,1,2,3,4,p0=p0,p1=p1,p2=p2,p3=p3,p4=p4))
+                                    for p0 in [0,1] for p1 in [0,1] for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] if (p0+p1+p2+p3+p4)%2 == 0 ])
+            elif self.dim == 7:
+                self.PosRoots = ( [ self.root(i,j) for i in xrange(self.dim-1) for j in xrange(i+1,self.dim-1) ] +
+                                  [ self.root(i,j,p0=1) for i in xrange(self.dim-1) for j in xrange(i+1,self.dim-1) ] +
+                                  [ self.root(6,7,p0=1) ] +
+                                  [ v*(self.root(7)-self.root(6)+self.root(0,1,2,3,4,5,p0=p0,p1=p1,p2=p2,p3=p3,p4=p4,p5=p5))
+                                    for p0 in [0,1] for p1 in [0,1] for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] for p5 in [0,1] if (p0+p1+p2+p3+p4+p5)%2 == 1 ])
+            else:
+                raise NotImplementedError, "E8 to appear; stay tuned."
         return self.PosRoots
 
     def fundamental_weights(self):
@@ -587,12 +608,22 @@ class AmbientLattice_e(AmbientLattice_generic):
         from sage.rings.rational import Rational
         v2 = Rational(1)/Rational(2)
         v3 = Rational(1)/Rational(3)
-        return [ 2*v3*self.root(7,6,5,p1=1,p2=1),
-                 v2*self.root(0,1,2,3,4,5,6,7,p5=1,p6=1),
-                 5*v2*v3*self.root(7,6,5,p1=1,p2=1)+v2*self.root(0,1,2,3,4,p0=1),
-                 self.root(2,3,4,5,6,7,p3=1,p4=1),
-                 2*v3*self.root(7,6,5,p1=1,p2=1)+self.root(3,4),
-                 v3*self.root(7,6,5,p1=1,p2=1)+self.root(4)]
+        if self.dim == 6:
+            return [ 2*v3*self.root(7,6,5,p1=1,p2=1),
+                     v2*self.root(0,1,2,3,4,5,6,7,p5=1,p6=1),
+                     5*v2*v3*self.root(7,6,5,p1=1,p2=1)+v2*self.root(0,1,2,3,4,p0=1),
+                     self.root(2,3,4,5,6,7,p3=1,p4=1),
+                     2*v3*self.root(7,6,5,p1=1,p2=1)+self.root(3,4),
+                     v3*self.root(7,6,5,p1=1,p2=1)+self.root(4)]
+        elif self.dim == 7:
+            return [ self.root(7,6,p1=1),
+                     v2*self.root(0,1,2,3,4,5)+self.root(6,7,p0=1),
+                     v2*(self.root(0,1,2,3,4,5,p0=1)+3*self.root(6,7,p0=1)),
+                     self.root(2,3,4,5)+2*self.root(6,7,p0=1),
+                     3*v2*self.root(6,7,p0=1)+self.root(3,4,5),
+                     self.root(4,5,6,7,p2=1),
+                     self.root(5)+v2*self.root(6,7,p0=1)]
+
 
 class AmbientLattice_f(AmbientLattice_generic):
     """

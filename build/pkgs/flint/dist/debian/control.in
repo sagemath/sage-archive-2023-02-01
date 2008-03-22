@@ -1,4 +1,5 @@
 Source: flint
+Section: libs
 Priority: extra
 Maintainer: Tim Abbott <tabbott@mit.edu>
 Build-Depends: @cdbs@, libgmp3-dev, libqd-dev

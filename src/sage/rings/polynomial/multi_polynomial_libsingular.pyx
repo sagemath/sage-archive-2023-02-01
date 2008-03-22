@@ -226,25 +226,28 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             if base_ring.characteristic() <= 2147483629:
                 characteristic = base_ring.characteristic()
             else:
-                raise TypeError, "p must be <= 2147483629"
+                raise TypeError, "p must be <= 2147483629."
 
         elif PY_TYPE_CHECK(base_ring, RationalField):
             characteristic = 0
 
         elif PY_TYPE_CHECK(base_ring, FiniteField_generic):
-            characteristic = -base_ring.characteristic() # note the negative characteristic
+            if base_ring.characteristic() <= 2147483629:
+                characteristic = -base_ring.characteristic() # note the negative characteristic
+            else:
+                raise TypeError, "characteristic must be <= 2147483629."
             k = MPolynomialRing_libsingular(base_ring.prime_subfield(), 1, base_ring.variable_name(), 'lex')
             minpoly = base_ring.polynomial()(k.gen())
             is_extension = True
 
         elif PY_TYPE_CHECK(base_ring, NumberField_generic):
+            raise NotImplementedError, "Number fields are not fully support yet."
             characteristic = 1
             k = MPolynomialRing_libsingular(RationalField(), 1, base_ring.variable_name(), 'lex')
             minpoly = base_ring.polynomial()(k.gen())
             is_extension = True
-
         else:
-            raise NotImplementedError, "Only GF(q), QQ, and Number Fields are supported."
+            raise NotImplementedError, "Only GF(q) and QQ are supported."
 
         self._ring = <ring*>omAlloc0Bin(sip_sring_bin)
         self._ring.ch = characteristic

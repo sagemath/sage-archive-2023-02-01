@@ -1,0 +1,32 @@
+Source: linbox-wrap
+Section: libs
+Priority: extra
+Maintainer: Tim Abbott <tabbott@mit.edu>
+Build-Depends: @cdbs@, atlas3-base-dev, liblinbox-dev, libgmp3-dev, libntl-dev, libgivaro-dev
+Standards-Version: 3.7.2
+
+Package: liblinbox-wrap-dev
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, liblinbox-wrap0
+Description: C wrapper for Linbox, development files
+ LinBox is a C++ template library for exact, high-performance
+ linear algebra computation with dense, sparse, and structured
+ matrices over the integers and over finite fields.
+ .
+ This wrapper was written for the inclusion of Linbox into Sage.
+ .
+ Homepages: http://www.linalg.org/
+            http://www.sagemath.org
+
+Package: liblinbox-wrap0
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: C wrapper for Linbox, shared library
+ LinBox is a C++ template library for exact, high-performance
+ linear algebra computation with dense, sparse, and structured
+ matrices over the integers and over finite fields.
+ .
+ This wrapper was written for the inclusion of Linbox into Sage.
+ .
+ Homepages: http://www.linalg.org/
+            http://www.sagemath.org

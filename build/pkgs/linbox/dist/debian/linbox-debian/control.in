@@ -1,0 +1,18 @@
+Source: linbox
+Section: libs
+Priority: extra
+Maintainer: Tim Abbott <tabbott@mit.edu>
+Build-Depends: @cdbs@, libgivaro-dev, libntl-dev, libgmp3-dev, atlas3-base-dev, libgsl0-dev
+Standards-Version: 3.7.2
+
+Package: liblinbox-dev
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Library for exact linear algebra
+ This version of Linbox is heavily modified for use with SAGE.
+ .
+ LinBox is a C++ template library for exact, high-performance
+ linear algebra computation with dense, sparse, and structured
+ matrices over the integers and over finite fields.
+ .
+ Homepage: http://www.linalg.org/

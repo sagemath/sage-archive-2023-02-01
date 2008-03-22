@@ -1,0 +1,15 @@
+#!/bin/sh -xe
+echo "Building Linbox and its wrapper"
+mv dist/debian dist/debian-tmp
+
+echo "Build Linbox"
+mv linbox src
+mv dist/debian-tmp/linbox-debian dist/debian
+${SAGE_LOCAL}/bin/sage-build-debian
+
+echo "Moving on the the Linbox wrapper"
+mv linbox_wrap src
+mv dist/debian-tmp/linbox_wrap-debian dist/debian
+${SAGE_LOCAL}/bin/sage-build-debian
+
+echo "Done with Linbox wrapper!"

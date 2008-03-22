@@ -1,0 +1,24 @@
+Index: linbox/Makefile.am
+===================================================================
+--- linbox.orig/Makefile.am	2008-02-07 04:10:32.000000000 -0500
++++ linbox/Makefile.am	2008-02-07 04:10:51.000000000 -0500
+@@ -12,6 +12,6 @@
+ 
+ bin_SCRIPTS=linbox-config
+ 
+-include_HEADERS= HACKING
++#include_HEADERS= HACKING
+ 
+ VERSION=1.1.4
+Index: linbox/linbox/field/Makefile.am
+===================================================================
+--- linbox.orig/linbox/field/Makefile.am	2008-02-07 04:10:33.000000000 -0500
++++ linbox/linbox/field/Makefile.am	2008-02-07 04:10:51.000000000 -0500
+@@ -10,6 +10,7 @@
+ 	unparametric.h		\
+ 	param-fuzzy.h		\
+ 	gmp-rational.h		\
++	gmp-integers.h		\
+ 	modular.h		\
+ 	modular.inl		\
+ 	modular-int.h		\

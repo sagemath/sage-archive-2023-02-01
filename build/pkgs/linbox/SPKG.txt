@@ -10,6 +10,15 @@
 
 == Changelog ==
 
+=== linbox-1.1.5rc2.p5 (William Stein, March 17th, 2008) ===
+ * bump version number to force rebuild on upgrade due to updated Givaro
+
+=== linbox-1.1.5rc2.p4 (Clement Pernet) ===
+ * revert to a better commentator.h, which now works on PPC, and still uses static
+
+=== linbox-1.1.5rc2.p3 (Clement Pernet, William Stein, March 10th, 2008)
+ * fix the bug with static_initialization of commentator on PPC. (ticket 2463)
+
 === linbox-1.1.5rc2.p2 (Michael Abshoff, March 10th, 2008) ===
  * remove buggy case in libcblas detect (#2458)
 

@@ -1,4 +1,5 @@
 Source: libm4ri
+Section: libs
 Priority: extra
 Maintainer: Tim Abbott <tabbott@mit.edu>
 Build-Depends: @cdbs@

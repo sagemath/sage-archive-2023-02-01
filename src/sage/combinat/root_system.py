@@ -499,25 +499,25 @@ class AmbientLattice_e(AmbientLattice_generic):
             self.dim = 6
             self.Base = [v*(self.root(0,7)-self.root(1,2,3,4,5,6)),
                          self.root(0,1),
-                         self.root(0,1,p0=1),
-                         self.root(1,2,p0=1),
-                         self.root(2,3,p0=1),
-                         self.root(3,4,p0=1)]
+                         self.root(0,1,p1=1),
+                         self.root(1,2,p1=1),
+                         self.root(2,3,p1=1),
+                         self.root(3,4,p1=1)]
 #            self._sub_module=self._free_module.submodule()
         elif ct.n == 7:
             self.dim = 7
             self.Base = [v*(self.root(0,7)-self.root(1,2,3,4,5,6)),
                          self.root(0,1),
-                         self.root(0,1,p0=1),
-                         self.root(1,2,p0=1),
-                         self.root(2,3,p0=1),
-                         self.root(3,4,p0=1),
-                         self.root(4,5,p0=1)]
+                         self.root(0,1,p1=1),
+                         self.root(1,2,p1=1),
+                         self.root(2,3,p1=1),
+                         self.root(3,4,p1=1),
+                         self.root(4,5,p1=1)]
 #            self._sub_module=self._free_module.submodule()
         else:
             raise NotImplementedError, "To appear; film at 11"
 
-    def root(self, i, j=None, k=None, l=None, m=None, n=None, p=None, q=None, p0=0, p1=0, p2=0, p3=0, p4=0, p5=0, p6=0, p7=0):
+    def root(self, i1, i2=None, i3=None, i4=None, i5=None, i6=None, i7=None, i8=None, p1=0, p2=0, p3=0, p4=0, p5=0, p6=0, p7=0, p8=0):
         """
         Compute an element of the underlying lattice, using the specified elements of
         the standard basis, with signs dictated by the corresponding 'pi' arguments.
@@ -529,24 +529,24 @@ class AmbientLattice_e(AmbientLattice_generic):
         EXAMPLES:
             sage: E6=RootSystem(['E',6])
             sage: LE6=E6.ambient_lattice()
-            sage: [ LE6.root(i,j,p2=1) for i in xrange(LE6.n) for j in xrange(i+1,LE6.n) ]
+            sage: [ LE6.root(i,j,p3=1) for i in xrange(LE6.n) for j in xrange(i+1,LE6.n) ]
             [(1, 1, 0, 0, 0, 0, 0, 0), (1, 0, 1, 0, 0, 0, 0, 0), (1, 0, 0, 1, 0, 0, 0, 0), (1, 0, 0, 0, 1, 0, 0, 0), (1, 0, 0, 0, 0, 1, 0, 0), (1, 0, 0, 0, 0, 0, 1, 0), (1, 0, 0, 0, 0, 0, 0, 1), (0, 1, 1, 0, 0, 0, 0, 0), (0, 1, 0, 1, 0, 0, 0, 0), (0, 1, 0, 0, 1, 0, 0, 0), (0, 1, 0, 0, 0, 1, 0, 0), (0, 1, 0, 0, 0, 0, 1, 0), (0, 1, 0, 0, 0, 0, 0, 1), (0, 0, 1, 1, 0, 0, 0, 0), (0, 0, 1, 0, 1, 0, 0, 0), (0, 0, 1, 0, 0, 1, 0, 0), (0, 0, 1, 0, 0, 0, 1, 0), (0, 0, 1, 0, 0, 0, 0, 1), (0, 0, 0, 1, 1, 0, 0, 0), (0, 0, 0, 1, 0, 1, 0, 0), (0, 0, 0, 1, 0, 0, 1, 0), (0, 0, 0, 1, 0, 0, 0, 1), (0, 0, 0, 0, 1, 1, 0, 0), (0, 0, 0, 0, 1, 0, 1, 0), (0, 0, 0, 0, 1, 0, 0, 1), (0, 0, 0, 0, 0, 1, 1, 0), (0, 0, 0, 0, 0, 1, 0, 1), (0, 0, 0, 0, 0, 0, 1, 1)]
         """
-        if i == j or j == None:
-            return (-1)**p0*self._term(i)
-        if k == None:
-            return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)
-        if l == None:
-            return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)+(-1)**p2*self._term(k)
-        if m == None:
-            return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)+(-1)**p2*self._term(k)+(-1)**p3*self._term(l)
-        if n == None:
-            return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)+(-1)**p2*self._term(k)+(-1)**p3*self._term(l)+(-1)**p4*self._term(m)
-        if p == None:
-            return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)+(-1)**p2*self._term(k)+(-1)**p3*self._term(l)+(-1)**p4*self._term(m)+(-1)**p5*self._term(n)
-        if q == None:
-            return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)+(-1)**p2*self._term(k)+(-1)**p3*self._term(l)+(-1)**p4*self._term(m)+(-1)**p5*self._term(n)+(-1)**p6*self._term(p)
-        return (-1)**p0*self._term(i) + (-1)**p1*self._term(j)+(-1)**p2*self._term(k)+(-1)**p3*self._term(l)+(-1)**p4*self._term(m)+(-1)**p5*self._term(n)+(-1)**p6*self._term(p)+(-1)**p7*self._term(q)
+        if i1 == i2 or i2 == None:
+            return (-1)**p1*self._term(i1)
+        if i3 == None:
+            return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)
+        if i4 == None:
+            return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)+(-1)**p3*self._term(i3)
+        if i5 == None:
+            return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)+(-1)**p3*self._term(i3)+(-1)**p4*self._term(i4)
+        if i6 == None:
+            return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)+(-1)**p3*self._term(i3)+(-1)**p4*self._term(i4)+(-1)**p5*self._term(i5)
+        if i7 == None:
+            return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)+(-1)**p3*self._term(i3)+(-1)**p4*self._term(i4)+(-1)**p5*self._term(i5)+(-1)**p6*self._term(i6)
+        if i8 == None:
+            return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)+(-1)**p3*self._term(i3)+(-1)**p4*self._term(i4)+(-1)**p5*self._term(i5)+(-1)**p6*self._term(i6)+(-1)**p7*self._term(i7)
+        return (-1)**p1*self._term(i1) + (-1)**p2*self._term(i2)+(-1)**p3*self._term(i3)+(-1)**p4*self._term(i4)+(-1)**p5*self._term(i5)+(-1)**p6*self._term(i6)+(-1)**p7*self._term(i7)+(-1)**p8*self._term(i8)
 
     def simple_roots(self):
         """
@@ -585,15 +585,15 @@ class AmbientLattice_e(AmbientLattice_generic):
         if not hasattr(self, 'PosRoots'):
             if self.dim == 6:
                 self.PosRoots = ( [ self.root(i,j) for i in xrange(self.dim-1) for j in xrange(i+1,self.dim-1) ] +
-                                  [ self.root(i,j,p0=1) for i in xrange(self.dim-1) for j in xrange(i+1,self.dim-1) ] +
-                                  [ v*(self.root(7)-self.root(6)-self.root(5)+self.root(0,1,2,3,4,p0=p0,p1=p1,p2=p2,p3=p3,p4=p4))
-                                    for p0 in [0,1] for p1 in [0,1] for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] if (p0+p1+p2+p3+p4)%2 == 0 ])
+                                  [ self.root(i,j,p1=1) for i in xrange(self.dim-1) for j in xrange(i+1,self.dim-1) ] +
+                                  [ v*(self.root(7)-self.root(6)-self.root(5)+self.root(0,1,2,3,4,p1=p1,p2=p2,p3=p3,p4=p4,p5=p5))
+                                    for p1 in [0,1] for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] for p5 in [0,1] if (p1+p2+p3+p4+p5)%2 == 0 ])
             elif self.dim == 7:
                 self.PosRoots = ( [ self.root(i,j) for i in xrange(self.dim-1) for j in xrange(i+1,self.dim-1) ] +
-                                  [ self.root(i,j,p0=1) for i in xrange(self.dim-1) for j in xrange(i+1,self.dim-1) ] +
-                                  [ self.root(6,7,p0=1) ] +
-                                  [ v*(self.root(7)-self.root(6)+self.root(0,1,2,3,4,5,p0=p0,p1=p1,p2=p2,p3=p3,p4=p4,p5=p5))
-                                    for p0 in [0,1] for p1 in [0,1] for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] for p5 in [0,1] if (p0+p1+p2+p3+p4+p5)%2 == 1 ])
+                                  [ self.root(i,j,p1=1) for i in xrange(self.dim-1) for j in xrange(i+1,self.dim-1) ] +
+                                  [ self.root(6,7,p1=1) ] +
+                                  [ v*(self.root(7)-self.root(6)+self.root(0,1,2,3,4,5,p1=p1,p2=p2,p3=p3,p4=p4,p5=p5,p6=p6))
+                                    for p1 in [0,1] for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] for p5 in [0,1] for p6 in [0,1] if (p1+p2+p3+p4+p5+p6)%2 == 1 ])
             else:
                 raise NotImplementedError, "E8 to appear; stay tuned."
         return self.PosRoots
@@ -609,20 +609,20 @@ class AmbientLattice_e(AmbientLattice_generic):
         v2 = Rational(1)/Rational(2)
         v3 = Rational(1)/Rational(3)
         if self.dim == 6:
-            return [ 2*v3*self.root(7,6,5,p1=1,p2=1),
-                     v2*self.root(0,1,2,3,4,5,6,7,p5=1,p6=1),
-                     5*v2*v3*self.root(7,6,5,p1=1,p2=1)+v2*self.root(0,1,2,3,4,p0=1),
-                     self.root(2,3,4,5,6,7,p3=1,p4=1),
-                     2*v3*self.root(7,6,5,p1=1,p2=1)+self.root(3,4),
-                     v3*self.root(7,6,5,p1=1,p2=1)+self.root(4)]
+            return [ 2*v3*self.root(7,6,5,p2=1,p3=1),
+                     v2*self.root(0,1,2,3,4,5,6,7,p6=1,p7=1),
+                     5*v2*v3*self.root(7,6,5,p2=1,p3=1)+v2*self.root(0,1,2,3,4,p1=1),
+                     self.root(2,3,4,5,6,7,p4=1,p5=1),
+                     2*v3*self.root(7,6,5,p2=1,p3=1)+self.root(3,4),
+                     v3*self.root(7,6,5,p2=1,p3=1)+self.root(4)]
         elif self.dim == 7:
-            return [ self.root(7,6,p1=1),
-                     v2*self.root(0,1,2,3,4,5)+self.root(6,7,p0=1),
-                     v2*(self.root(0,1,2,3,4,5,p0=1)+3*self.root(6,7,p0=1)),
-                     self.root(2,3,4,5)+2*self.root(6,7,p0=1),
-                     3*v2*self.root(6,7,p0=1)+self.root(3,4,5),
-                     self.root(4,5,6,7,p2=1),
-                     self.root(5)+v2*self.root(6,7,p0=1)]
+            return [ self.root(7,6,p2=1),
+                     v2*self.root(0,1,2,3,4,5)+self.root(6,7,p1=1),
+                     v2*(self.root(0,1,2,3,4,5,p1=1)+3*self.root(6,7,p1=1)),
+                     self.root(2,3,4,5)+2*self.root(6,7,p1=1),
+                     3*v2*self.root(6,7,p1=1)+self.root(3,4,5),
+                     self.root(4,5,6,7,p3=1),
+                     self.root(5)+v2*self.root(6,7,p1=1)]
 
 
 class AmbientLattice_f(AmbientLattice_generic):

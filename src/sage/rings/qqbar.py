@@ -2565,6 +2565,58 @@ class AlgebraicNumber(AlgebraicNumber_base):
     def _interval_fast(self, prec):
         return self.interval_fast(ComplexIntervalField(prec))
 
+    def _integer_(self):
+        """
+        Return \code{self} as an Integer.
+
+        EXAMPLES:
+            sage: QQbar(0)._integer_()
+            0
+            sage: QQbar(0)._integer_().parent()
+            Integer Ring
+            sage: QQbar.zeta(6)._integer_()
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            sage: QQbar(sqrt(17))._integer_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce non-integral Algebraic Real [4.1231056256176596 .. 4.1231056256176606] to Integer
+            sage: QQbar(sqrt(16))._integer_()
+            4
+            sage: v = QQbar(1 + I*sqrt(3))^5 + QQbar(16*sqrt(3)*I); v
+            [15.999999999999998 .. 16.000000000000004] + [-6.9388939039072284e-18 .. 8.6736173798840355e-18]*I
+            sage: v._integer_()
+            16
+        """
+        return AA(self)._integer_()
+
+    def _rational_(self):
+        """
+        Return \code{self} as a Rational.
+
+        EXAMPLES:
+            sage: QQbar(-22/7)._rational_()
+            -22/7
+            sage: QQbar(3)._rational_().parent()
+            Rational Field
+            sage: (QQbar.zeta(7)^3)._rational_()
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            sage: QQbar(sqrt(2))._rational_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce irrational Algebraic Real [1.4142135623730949 .. 1.4142135623730952] to Rational
+            sage: v1 = QQbar(1/3 + I*sqrt(5))^7
+            sage: v2 = QQbar(100336/729*golden_ratio - 50168/729)*I
+            sage: v = v1 + v2; v
+            [-259.69090077732057 .. -259.69090077732050] + [-2.6367796834847468e-16 .. 3.8857805861880479e-16]*I
+            sage: v._rational_()
+            -567944/2187
+        """
+        return AA(self)._rational_()
+
     def real(self):
         return AlgebraicReal(self._descr.real(self))
 
@@ -2838,6 +2890,60 @@ class AlgebraicReal(AlgebraicNumber_base):
             result_min = min(range.lower(), -1)
         result_max = max(range.upper(), 1)
         return AlgebraicReal(ANRoot(poly, RIF(result_min, result_max)))
+
+    def _integer_(self):
+        """
+        Return \code{self} as an Integer.
+
+        EXAMPLES:
+            sage: AA(42)._integer_()
+            42
+            sage: AA(42)._integer_().parent()
+            Integer Ring
+            sage: AA(golden_ratio)._integer_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce non-integral Algebraic Real [1.6180339887498946 .. 1.6180339887498950] to Integer
+            sage: (AA(golden_ratio)^10 + AA(1-golden_ratio)^10)._integer_()
+            123
+            sage: AA(-22/7)._integer_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce non-integral Algebraic Real -22/7 to Integer
+        """
+        if self._value.lower().ceiling() > self._value.upper().floor():
+            # The value is known to be non-integral.
+            raise ValueError, "Cannot coerce non-integral Algebraic Real %s to Integer" % self
+
+        self.exactify()
+        if not self._descr.is_rational():
+            raise ValueError, "Cannot coerce irrational Algebraic Real %s to Integer" % self
+
+        return ZZ(self._descr.rational_value())
+
+    def _rational_(self):
+        """
+        Return \code{self} as a Rational.
+
+        EXAMPLES:
+            sage: AA(42)._rational_().parent()
+            Rational Field
+            sage: AA(-22/7)._rational_()
+            -22/7
+            sage: AA(sqrt(7))._rational_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce irrational Algebraic Real [2.6457513110645902 .. 2.6457513110645908] to Rational
+            sage: v = AA(1/2 + sqrt(2))^3 - AA(11/4*sqrt(2)); v
+            [3.1249999999999995 .. 3.1250000000000005]
+            sage: v._rational_()
+            25/8
+        """
+        self.exactify()
+        if not self._descr.is_rational():
+            raise ValueError, "Cannot coerce irrational Algebraic Real %s to Rational" % self
+
+        return QQ(self._descr.rational_value())
 
     def real(self):
         """

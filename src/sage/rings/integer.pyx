@@ -285,6 +285,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             -901824309821093821093812093810928309183091832091
             sage: ZZ(RR(2.0)^80)
             1208925819614629174706176
+            sage: ZZ(QQbar(sqrt(28-10*sqrt(3)) + sqrt(3)))
+            5
+            sage: ZZ(AA(32).nth_root(5))
+            2
             sage: ZZ(pari('Mod(-3,7)'))
             4
             sage: ZZ('sage')

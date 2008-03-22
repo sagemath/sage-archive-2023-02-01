@@ -148,7 +148,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         1/2
         sage: Rational(("2", "10"), 16)
         1/8
-
+        sage: Rational(QQbar(125/8).nth_root(3))
+        5/2
+        sage: Rational(AA(209735/343 - 17910/49*golden_ratio).nth_root(3) + 3*golden_ratio)
+        53/7
     """
     def __new__(self, x=None, int base=0):
         global the_rational_ring

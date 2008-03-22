@@ -8,7 +8,7 @@ Standards-Version: 3.7.2
 Package: libfplll0
 Architecture: any
 Section: libs
-Depends: ${shlibs:Depends}, ${misc:Depends}, libgmpxx4
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: A library for LLL-reduction of euclidean lattices
  fpLLL contains different implementations of the floating-point LLL
  reduction algorithm, offering different speed/guarantees ratios. It

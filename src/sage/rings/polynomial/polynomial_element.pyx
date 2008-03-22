@@ -1753,7 +1753,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def factor(self):
         r"""
-        Return the factorization of self over the base field of this polynomial.
+        Return the factorization of self over the base ring of this polynomial.
+        Factoring polynomials over $\Z/n\Z$ for $n$ composite is at the moment
+        not implemented.
 
         INPUT:
             a polynomial
@@ -1906,6 +1908,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x^8 + x^6 + a*x^5 + x^4 + zeta3*x^3 + x^2 + (a + zeta3)*x + zeta3*a
             sage: f.factor()
             (x^3 + x + a) * (x^5 + x + zeta3)
+
+        Factoring polynomials over $\Z/n\Z$ for composite $n$ is not
+        implemented:
+            sage: R.<x> = PolynomialRing(Integers(35))
+            sage: f = (x^2+2*x+2)*(x^2+3*x+9)
+            sage: f.factor()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: factorization of polynomials over rings with composite characteristic is not implemented
         """
 
         # PERFORMANCE NOTE:
@@ -1947,14 +1958,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             raise ValueError, "factorization of 0 not defined"
         G = None
 
+        ch = R.characteristic()
+        if not (ch == 0 or sage.rings.arith.is_prime(ch)):
+            raise NotImplementedError, "factorization of polynomials over rings with composite characteristic is not implemented"
+
         from sage.rings.number_field.all import is_NumberField, \
              is_RelativeNumberField, NumberField
         from sage.rings.finite_field import is_FiniteField
+        from sage.rings.integer_mod_ring import is_IntegerModRing
+        from sage.rings.integer_ring import is_IntegerRing
+        from sage.rings.rational_field import is_RationalField
 
         n = None
-        if sage.rings.integer_mod_ring.is_IntegerModRing(R) or \
-              sage.rings.integer_ring.is_IntegerRing(R) or \
-              sage.rings.rational_field.is_RationalField(R):
+        if is_IntegerModRing(R) or is_IntegerRing(R) or is_RationalField(R):
 
             try:
                 G = list(self._pari_with_name('x').factor())
@@ -3706,7 +3722,9 @@ sage: rts[0][0] == rt2
 
     def is_irreducible(self):
         """
-        Return True precisely if this polynomial is irreducible.
+        Return True precisely if this polynomial is irreducible over
+        its base ring.  Testing irreducibility over $\Z/n\Z$ for
+        composite $n$ is not implemented.
 
         EXAMPLES:
             sage: R.<x> = ZZ[]

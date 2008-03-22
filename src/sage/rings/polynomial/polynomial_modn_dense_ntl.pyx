@@ -285,9 +285,6 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         """
         return max(self.__poly.degree(), -1)
 
-    def is_irreducible(self):
-        return bool(self._pari_().polisirreducible())
-
     def list(self):
         """
         Return a new copy of the list of the underlying

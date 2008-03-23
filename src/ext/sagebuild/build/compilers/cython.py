@@ -36,13 +36,13 @@ def _get_cython_file(curfile, modulename,includelist):
     splitname = modulename.split(".")
     dirname = os.path.dirname(curfile)
     if len(splitname)==1:
-        newpath = dirname+'/'+splitname[0]+'.pyx'
+        newpath = dirname+'/'+splitname[0]+'.pxd'
         return newpath
 
     newpath = includelist[0]
     for x in range(0,len(splitname)):
         newpath = newpath+'/'+splitname[x]
-    newpath = newpath + '.pyx'
+    newpath = newpath + '.pxd'
     return newpath
 
 def _parse_file(filenm, includelist):

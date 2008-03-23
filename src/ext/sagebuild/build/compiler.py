@@ -79,7 +79,7 @@ class Compiler_action(Action):
             TM.putsafe(ol)
         TM.putsafe(oldcmd)
         TM.endput()
-        return ret
+        return ret==0
 
 def ext_list_to_primary_src(extnlist):
     srclist = [ ]

@@ -47,7 +47,7 @@ class ImmutableListWithParent(CombinatorialObject, Element):
 
     TESTS:
 
-    sage: l.list == [1, 2, 3]
+    sage: l._list == [1, 2, 3]
     True
     sage: l.parent() == list
     True
@@ -71,22 +71,22 @@ class ImmutableListWithParent(CombinatorialObject, Element):
         return self._parent  # Should be inherited from Element!
 
     def __repr__(self):
-        return "%s"%self.list
+        return "%s"%self._list
 
     def __eq__(self, other):
         return self.__class__ == other.__class__ and \
                self.parent()  == self.parent()   and \
-               self.list      == other.list
+               self._list      == other._list
 
     def sibling(self, list): # Makes some hypothesis on the constructor!
                              # of subclasses
         return self.__class__(self.parent(), list=list)
 
     def reverse(self):
-        return self.sibling([ i for i in reversed(self.list)])
+        return self.sibling([ i for i in reversed(self._list)])
 
     def set_index(self, k, value):
-        l = [i for i in self.list]
+        l = [i for i in self._list]
         l[k] = value
         return self.sibling(l)
 
@@ -276,7 +276,7 @@ class CrystalOfTableaux(TensorProductOfCrystals):
 	sage: T = CrystalOfTableaux(['A',2], shape = [3,2])
 	sage: T.module_generators[0]
 	[[1, 1, 1], [2, 2]]
-	sage: T.module_generators[0].list
+	sage: T.module_generators[0]._list
 	[2, 1, 2, 1, 1]
 
         To create a tableau, one can use:
@@ -308,17 +308,17 @@ class CrystalOfTableaux(TensorProductOfCrystals):
 
         sage: Tab = CrystalOfTableaux(['A',3], shape = [2,2])
         sage: C = Tab.letters
-        sage: Tab(rows    = [[1,2],[3,4]]).list == [C(3),C(1),C(4),C(2)]
+        sage: Tab(rows    = [[1,2],[3,4]])._list == [C(3),C(1),C(4),C(2)]
         True
-        sage: Tab(columns = [[3,1],[4,2]]).list == [C(3),C(1),C(4),C(2)]
+        sage: Tab(columns = [[3,1],[4,2]])._list == [C(3),C(1),C(4),C(2)]
         True
 
         And for compatibility with TensorProductOfCrystal we should
         also allow as input the internal list / sequence of elements:
 
-        sage: Tab(list    = [3,1,4,2]).list     == [C(3),C(1),C(4),C(2)]
+        sage: Tab(list    = [3,1,4,2])._list     == [C(3),C(1),C(4),C(2)]
         True
-        sage: Tab(3,1,4,2).list                 == [C(3),C(1),C(4),C(2)]
+        sage: Tab(3,1,4,2)._list                 == [C(3),C(1),C(4),C(2)]
         True
     """
     def __init__(self, type, shape):

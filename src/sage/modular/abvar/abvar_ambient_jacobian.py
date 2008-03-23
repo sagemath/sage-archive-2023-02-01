@@ -80,6 +80,18 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         self._is_hecke_stable = True
 
     def _modular_symbols(self):
+        """
+        Return the modular symbols space associated to this ambient Jacobian.
+
+        OUTPUT:
+            modular symbols space
+
+        EXAMPLES:
+            sage: M = J0(33)._modular_symbols(); M
+            Modular Symbols subspace of dimension 6 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
+            sage: J0(33)._modular_symbols() is M
+            True
+        """
         try:
             return self.__modsym
         except AttributeError:
@@ -114,8 +126,8 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         EXAMPLES:
             sage: latex(J0(37))
             J_0(37)
-            sage: latex(J1(13))
-            J_1(13)
+            sage: J1(13)._latex_()
+            'J_1(13)'
             sage: latex(JH(389,[2]))
             J_H(389,[2])
         """
@@ -157,6 +169,17 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         return self.__group
 
     def groups(self):
+        """
+        Return the tuple of congruence subgroups attached to this
+        ambient Jacobian.  This is always a tuple of length 1.
+
+        OUTPUT:
+            tuple
+
+        EXAMPLES:
+            sage: J0(37).groups()
+            (Congruence Subgroup Gamma0(37),)
+        """
         return (self.__group,)
 
     def degeneracy_map(self, level, t=1, check=True):
@@ -165,8 +188,35 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         must be a divisor of either level/self.level() or
         self.level()/level.
 
-        EXAMPLES:
+        INPUT:
+            level -- integer (multiple or divisor of level of self)
+            t -- divisor of quotient of level of self and level
+            check -- bool (default: True); if True do some checks on the input
 
+        OUTPUT:
+            a morphism
+
+        EXAMPLES:
+            sage: J0(11).degeneracy_map(33)
+            Abelian variety morphism:
+              From: Abelian variety J0(11) of dimension 1
+              To:   Abelian variety J0(33) of dimension 3
+            sage: J0(11).degeneracy_map(33).matrix()
+            [ 0 -3  2  1 -2  0]
+            [ 1 -2  0  1  0 -1]
+            sage: J0(11).degeneracy_map(33,3).matrix()
+            [-1  0  0  0  1 -2]
+            [-1 -1  1 -1  1  0]
+            sage: J0(33).degeneracy_map(11,1).matrix()
+            [ 0  1]
+            [ 0 -1]
+            [ 1 -1]
+            [ 0  1]
+            [-1  1]
+            [ 0  0]
+            sage: J0(11).degeneracy_map(33,1).matrix() * J0(33).degeneracy_map(11,1).matrix()
+            [4 0]
+            [0 4]
         """
         if check:
             if (level % self.level()) and (self.level() % level):

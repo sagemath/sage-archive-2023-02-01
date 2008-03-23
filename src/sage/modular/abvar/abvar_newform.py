@@ -1,5 +1,10 @@
 """
-TODO
+Abelian varieties attached to newforms.
+
+TESTS:
+    sage: A = AbelianVariety('23a')
+    sage: loads(dumps(A)) == A
+    True
 """
 
 
@@ -153,6 +158,30 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
             self.newform_label(), self.dimension(), self._ambient_repr())
 
     def endomorphism_ring(self):
+        """
+        Return the endomorphism ring of this newform abelian variety.
+
+        EXAMPLES:
+            sage: A = AbelianVariety('23a')
+            sage: E = A.endomorphism_ring(); E
+            Endomorphism ring of Newform abelian subvariety 23a of dimension 2 of J0(23)
+
+        We display the matrices of these two basis matrices:
+            sage: E.0.matrix()
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            sage: E.1.matrix()
+            [ 0  1 -1  0]
+            [ 0  1 -1  1]
+            [-1  2 -2  1]
+            [-1  1  0 -1]
+
+        The result is cached:
+            sage: E is A.endomorphism_ring()
+            True
+        """
         try:
             return self.__endomorphism_ring
         except AttributeError:
@@ -166,7 +195,7 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         """
         EXAMPLES:
             sage: A = AbelianVariety('43b')
-            sage: B = A.endomorphism_ring(); B
+            sage: B = A.endomorphism_ring(); B   # indirect doctest
             Endomorphism ring of Newform abelian subvariety 43b of dimension 2 of J0(43)
             sage: [b.matrix() for b in B.gens()]
             [[1 0 0 0]

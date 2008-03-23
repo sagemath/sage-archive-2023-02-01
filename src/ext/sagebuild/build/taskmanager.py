@@ -43,8 +43,11 @@ class taskthread(threading.Thread):
                 if act == None:
                     wasexecuting=False
                 else:
-                    act.execute()
-                    act.post_process()
+                    ret = act.execute()
+                    if ret == True:
+                        act.post_process()
+                    else:
+                        TM.exit()
                     wasexecuting=True
         except KeyboardInterrupt:
            TM.exit()
@@ -61,6 +64,7 @@ class taskmanager:
         self.available = threading.Event()
         self._threads = list()
         self._finishtasks = list()
+        self.abort = False
 
     def _action_become_ready(self, act):
         self.queuemutex.acquire()
@@ -70,6 +74,8 @@ class taskmanager:
         self.queuemutex.release()
     def _get_action(self, wasexecuting):
 #        self.available.wait(.01)
+        if self.abort == True:
+            thread.exit()
         self.queuemutex.acquire()
         if wasexecuting:
             self.numexecuting-=1
@@ -119,10 +125,12 @@ class taskmanager:
                 t.join()
         except:
             sys.exit(0)
-        for x in self._finishtasks:
-            x()
+        if self.abort == False:
+            for x in self._finishtasks:
+                x()
         sys.exit(0)
 
     def exit(self,x=0):
+        self.abort = True
         thread.exit()
 

@@ -933,6 +933,12 @@ ext_modules = [ \
               language='c++'
               ), \
 
+    Extension('sage.combinat.matrices.dancing_links',
+              ['sage/combinat/matrices/dancing_links.pyx'],
+              libraries = ["stdc++"],
+              language='c++'
+              ), \
+
     Extension('sage.graphs.base.c_graph',
               ['sage/graphs/base/c_graph.pyx']
               ), \

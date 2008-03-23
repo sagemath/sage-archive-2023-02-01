@@ -270,8 +270,6 @@ def buildsage(env, gccc):
 
     config_gcc_file(env,pyx_pextn_dict, abs_sage_path(env,'sage/rings/polynomial/pbori.pyx'),language='C++', include_dirs = [abs_sage_local(env,'include/cudd'),abs_sage_local(env,'include/polybori'), abs_sage_local(env,'include/polybori/groebner')], libraries=['polybori','pboriCudd','groebner'])
 
-#    config_gcc_file(env,pyx_pextn_dict, abs_sage_path(env,'/sage/graphs/planarity.pyx'),libraries = ['pari'])
-
     tempdir = os.path.realpath(env.options['SAGE_ROOT']+'/devel/sage/build/temp')
 
     gcceo_dict = { }
@@ -285,14 +283,6 @@ def buildsage(env, gccc):
     recurrences_ntl = GCC_extension_object(gccc, env,[abs_sage_path(env,"sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_ntl.cpp")], tempdir+"/sage/schemes/hyperelliptic_curves/hypellfrob/", language='C++', include_dirs=[abs_sage_path(env, 'sage/libs/ntl'), abs_sage_path(env, 'sage/schemes/hyperelliptic_curves/hypellfrob/') ], options = { '-fPIC':None } )
 
     partitions_c = GCC_extension_object(gccc, env,[abs_sage_path(env,"sage/combinat/partitions_c.cc")], tempdir+"/sage/combinat", language='C++', options = { '-fPIC':None } )
-    efwplan = extfilewalker()
-    efwplan.addcallback('.c',lambda x: True)
-    planarity_list = efwplan.walk('devel/sage/sage/graphs/planarity')
-    planarity_ext = list()
-    for x in planarity_list:
-        ext =  GCC_extension_object(gccc, env, [x], tempdir+"/sage/graphs/planarity", options = { '-fPIC':None } )
-        ext.generate_action(env).enable()
-        planarity_ext.append(ext)
     try:
         os.makedirs(tempdir+"/sage/graphs/planarity")
     except:
@@ -317,6 +307,15 @@ def buildsage(env, gccc):
         print '---------------PYX_EXT_DICT------------'
         print pyx_ext_dict
         print '----------------------------------------'
+    if pyx_ext_dict.has_key(abs_sage_path(env,'/sage/graphs/planarity.pyx')):
+        efwplan = extfilewalker()
+        efwplan.addcallback('.c',lambda x: True)
+        planarity_list = efwplan.walk('devel/sage/sage/graphs/planarity')
+        planarity_ext = list()
+        for x in planarity_list:
+            ext =  GCC_extension_object(gccc, env, [x], tempdir+"/sage/graphs/planarity", options = { '-fPIC':None } )
+            ext.generate_action(env).enable()
+            planarity_ext.append(ext)
     if pyx_ext_dict.has_key(abs_sage_path(env,"sage/libs/mwrank/mwrank.pyx")):
         mwrankcc.generate_action(env).enable()
     if pyx_ext_dict.has_key(abs_sage_path(env,'sage/schemes/hyperelliptic_curves/hypellfrob.pyx')):
@@ -352,17 +351,27 @@ def buildsage(env, gccc):
         gcceso_dict[gcceso.sources[0] ] = gcceso
         gcceso.generate_action(env).dep_register(gcceo.generate_action(env))
     dict_insert_src(gcceso_dict, tempdir+"/sage/libs/mwrank/mwrank.o", mwrankcc.outfile)
-    gcceso_dict[tempdir+"/sage/libs/mwrank/mwrank.o"].generate_action(env).dep_register(mwrankcc.generate_action(env))
+    try:
+        gcceso_dict[tempdir+"/sage/libs/mwrank/mwrank.o"].generate_action(env).dep_register(mwrankcc.generate_action(env))
+    except KeyError:
+        pass
     dict_insert_src(gcceso_dict, tempdir+"/sage/schemes/hyperelliptic_curves/hypellfrob.o", hypellfrob_cpp.outfile)
     dict_insert_src(gcceso_dict, tempdir+"/sage/schemes/hyperelliptic_curves/hypellfrob.o", recurrences_ntl.outfile)
     dict_insert_src(gcceso_dict, tempdir+"/sage/schemes/hyperelliptic_curves/hypellfrob.o", recurrences_zn_poly.outfile)
-    gcceso_dict[tempdir+"/sage/schemes/hyperelliptic_curves/hypellfrob.o"].generate_action(env).dep_register(hypellfrob_cpp.generate_action(env))
-    gcceso_dict[tempdir+"/sage/schemes/hyperelliptic_curves/hypellfrob.o"].generate_action(env).dep_register(recurrences_ntl.generate_action(env))
-    gcceso_dict[tempdir+"/sage/schemes/hyperelliptic_curves/hypellfrob.o"].generate_action(env).dep_register(recurrences_zn_poly.generate_action(env))
+    try:
+        gcceso_dict[tempdir+"/sage/schemes/hyperelliptic_curves/hypellfrob.o"].generate_action(env).dep_register(hypellfrob_cpp.generate_action(env))
+        gcceso_dict[tempdir+"/sage/schemes/hyperelliptic_curves/hypellfrob.o"].generate_action(env).dep_register(recurrences_ntl.generate_action(env))
+        gcceso_dict[tempdir+"/sage/schemes/hyperelliptic_curves/hypellfrob.o"].generate_action(env).dep_register(recurrences_zn_poly.generate_action(env))
+    except KeyError:
+        pass
     dict_insert_src(gcceso_dict, tempdir+"/sage/combinat/partitions.o", partitions_c.outfile)
-    gcceso_dict[tempdir+"/sage/combinat/partitions.o"].generate_action(env).dep_register(mwrankcc.generate_action(env))
-    for x in planarity_ext:
-        dict_insert_src(gcceso_dict, tempdir+"/sage/graphs/planarity.o",x.outfile)
+    try:
+        gcceso_dict[tempdir+"/sage/combinat/partitions.o"].generate_action(env).dep_register(mwrankcc.generate_action(env))
+    except KeyError:
+        pass
+    if pyx_ext_dict.has_key(abs_sage_path(env,'/sage/graphs/planarity.pyx')):
+        for x in planarity_ext:
+            dict_insert_src(gcceso_dict, tempdir+"/sage/graphs/planarity.o",x.outfile)
 
 
     for gcceso in gcceso_dict.values():

@@ -349,7 +349,7 @@ class Permutation_class(CombinatorialObject):
         EXAMPLES:
             sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2])
             [[1, 2, 5], [3, 4]]
-            sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2]).to_permutation_by_reading_order()
+            sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2]).to_permutation()
             [3, 4, 1, 2, 5]
         """
         if sum(shape) != len(self):

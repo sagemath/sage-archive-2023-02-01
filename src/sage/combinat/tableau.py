@@ -67,6 +67,18 @@ class Tableau_class(CombinatorialObject):
         """
         CombinatorialObject.__init__(self,t)
 
+    def _latex_(self):
+        return self._tex_from_array()
+
+    def _tex_from_array(self):
+        import output
+        m = max(len(self), len(self[0]))
+        array = [[None for _ in range(m)] for _ in range(m)]
+        for i in range(len(self)):
+            for j in range(len(self[i])):
+                array[i][j] = self[i][j]
+        return output.tex_from_array(array)
+
     def __div__(self, t):
         """
         Returns the skew partition self/t.
@@ -173,12 +185,12 @@ class Tableau_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Tableau([[1,2],[3,4]]).to_word_by_row()
-            [1, 2, 3, 4]
+            [3, 4, 1, 2]
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_row()
-            [1, 4, 6, 2, 5, 3]
+            [3, 2, 5, 1, 4, 6]
         """
         word = []
-        for row in self:
+        for row in reversed(self):
             word += row
 
         return word
@@ -190,14 +202,14 @@ class Tableau_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Tableau([[1,2],[3,4]]).to_word_by_column()
-            [1, 3, 2, 4]
+            [3, 1, 4, 2]
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_column()
-            [1, 2, 3, 4, 5, 6]
+            [3, 2, 1, 5, 4, 6]
         """
         word = []
         conj = self.conjugate()
         for row in conj:
-            word += row
+            word += reversed(row)
 
         return word
 
@@ -207,36 +219,23 @@ class Tableau_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Tableau([[1,2],[3,4]]).to_word()
-            [1, 2, 3, 4]
+            [3, 4, 1, 2]
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word()
-            [1, 4, 6, 2, 5, 3]
+            [3, 2, 5, 1, 4, 6]
         """
         return self.to_word_by_row()
 
-    def to_word_by_reading_order(self):
-        """
-        Returns a word with the entries of self obtained by
-        reading self in the reading order.
 
-        EXAMPLES:
-            sage: Tableau([[1,2],[3,4]]).to_word_by_reading_order()
-            [3, 4, 1, 2]
-        """
-        word = []
-        for row in self:
-            word = row + word
-        return word
-
-    def to_permutation_by_reading_order(self):
+    def to_permutation(self):
         """
         Returns a permutation with the entries of self obtained by
         reading self in the reading order.
 
         EXAMPLES:
-            sage: Tableau([[1,2],[3,4]]).to_permutation_by_reading_order()
+            sage: Tableau([[1,2],[3,4]]).to_permutation()
             [3, 4, 1, 2]
         """
-        return permutation.Permutation(self.to_word_by_reading_order())
+        return permutation.Permutation(self.to_word())
 
 ##     def descents(self):
 ##         """

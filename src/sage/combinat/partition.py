@@ -550,7 +550,7 @@ class Partition_class(CombinatorialObject):
             [[1, 3, 6], [2, 5], [4]]
         """
         st = tableau.StandardTableaux(self).first()
-        word = st.to_word_by_reading_order()
+        word = st.to_word()
         perm = permutation.Permutation(word)
         return perm.robinson_schensted()[1]
 

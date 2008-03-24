@@ -1,4 +1,4 @@
 \.dat$
 \.sig$
-.DS_Store$
 magma/stoll/polys
+\.pyc

@@ -399,7 +399,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         To compute its roots we need to factor the modulus $N$ and use
         the chinese remainder theorem:
 
-            sage: p,q = map(lambda (r,m): r, N.factor())
+            sage: p,q = N.prime_divisors()
             sage: f.change_ring(GF(p)).roots()
             [(4, 1)]
             sage: f.change_ring(GF(q)).roots()
@@ -553,7 +553,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         R = f.roots()
 
         ZmodN = self.base_ring()
-        roots = set([ZmodN(r) for r,m in R])
+        roots = set([ZmodN(r) for r,m in R if abs(r) <= X])
         Nbeta = N**beta
         return [root for root in roots if N.gcd(ZZ(self(root))) >= Nbeta]
 

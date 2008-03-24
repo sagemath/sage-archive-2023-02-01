@@ -32,7 +32,6 @@ from action import Action
 import taskmanager
 import optionmanager
 from optionmanager import option, argument
-from targetmanager import targetmanager
 from enviroment import enviroment
 from filewalker import filewalker, extfilewalker
 from compilers.all import *

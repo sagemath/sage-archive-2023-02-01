@@ -61,7 +61,6 @@ class taskmanager:
         self.queue = list()
         self.queuemutex = thread.allocate_lock()
         self.printmutex = thread.allocate_lock()
-        self.available = threading.Event()
         self._threads = list()
         self._finishtasks = list()
         self.abort = False
@@ -69,11 +68,8 @@ class taskmanager:
     def _action_become_ready(self, act):
         self.queuemutex.acquire()
         self.queue.insert(0,act)
-#        if(len(self.queue)==1):
-#            self.available.set()
         self.queuemutex.release()
     def _get_action(self, wasexecuting):
-#        self.available.wait(.01)
         if self.abort == True:
             thread.exit()
         self.queuemutex.acquire()
@@ -88,10 +84,7 @@ class taskmanager:
             if ret!=None:
                 raise TypeError
             self.queuemutex.release()
-            self.available.set()
             thread.exit()
-#        if (len(self.queue)==0) and (ret==None) and (self.numaction!=0):
- #           self.available.clear()
         self.queuemutex.release()
         return ret
     def _init_action(self,act):

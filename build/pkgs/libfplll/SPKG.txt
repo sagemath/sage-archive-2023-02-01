@@ -29,12 +29,12 @@ Website: http://perso.ens-lyon.fr/damien.stehle/english.html
  * add 64 bit MacOSX build support (#1006)
  * verify that SAGE_LOCAL is defined (#633)
 
-=== libfplll-2.1.6-20071129.p0 (Michael Abshoff, Jan. 28th, 2008 ===
+=== libfplll-2.1.6-20071129.p0 (Michael Abshoff, Jan. 28th, 2008) ===
  * Solaris 9 build fixes
 
 === 2007-11-08 (Michael Abshoff) ===
  * fix #1126
 
-==  2007-10-24 (Martin Albrecht) ===
+===  2007-10-24 (Martin Albrecht) ===
  * initial version
 

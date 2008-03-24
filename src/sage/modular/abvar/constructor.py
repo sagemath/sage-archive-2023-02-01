@@ -15,22 +15,55 @@ import weakref
 
 from sage.rings.integer import Integer
 
-from sage.modular.congroup import is_CongruenceSubgroup
+from sage.modular.congroup import is_CongruenceSubgroup, Gamma0
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.misc.misc import prod
 from abvar_newform import ModularAbelianVariety_newform
 import sage.modular.modform.element
+import abvar
 
 _cache = {}
 
 def _get(key):
+    """
+    Returns the cached abelian variety with given key.  This is used
+    internally by the abelian varieties constructor.
+
+    INPUT:
+        key -- hashable
+
+    EXAMPLE:
+        sage: sage.modular.abvar.constructor._saved('a', J0(37))
+        Abelian variety J0(37) of dimension 2
+        sage: sage.modular.abvar.constructor._get('a')
+        Abelian variety J0(37) of dimension 2
+        sage: sage.modular.abvar.constructor._get('b')
+        Traceback (most recent call last):
+        ...
+        ValueError: element not in cache
+    """
     if _cache.has_key(key):
         z = _cache[key]()
         if z is not None:
             return z
-    raise ValueError
+    raise ValueError, "element not in cache"
 
 def _saved(key, J):
+    """
+    Returns the cached abelian variety with given key.  This is used
+    internally by the abelian varieties constructor.
+
+    INPUT:
+        key -- hashable
+        J -- modular abelian variety
+
+    OUTPUT:
+        J -- returns the modabvar, to make code that uses this simpler
+
+    EXAMPLES:
+        sage: sage.modular.abvar.constructor._saved('37', J0(37))
+        Abelian variety J0(37) of dimension 2
+    """
     _cache[key] = weakref.ref(J)
     return J
 
@@ -85,26 +118,50 @@ def JH(N, H):
         from sage.modular.congroup import GammaH
         return _saved(key, GammaH(N, H).modular_abelian_variety())
 
-def AbelianVariety(groups=None, lattice=None, modsym=None, base_field=None):
+def AbelianVariety(X):
     """
     Create the abelian variety corresponding to the given definining data.
+
+    INPUT:
+        X -- an integer, string, newform, modsym space, congruence subgroup or
+             tuple of congruence subgroups
+
+    OUTPUT:
+        a modular abelian variety
+
+    EXAMPLES:
+        sage: AbelianVariety(Gamma0(37))
+        Abelian variety J0(37) of dimension 2
+        sage: AbelianVariety('37a')
+        Newform abelian subvariety 37a of dimension 1 of J0(37)
+        sage: AbelianVariety(Newform('37a'))
+        Newform abelian subvariety 37a of dimension 1 of J0(37)
+        sage: AbelianVariety(ModularSymbols(37).cuspidal_submodule())
+        Abelian variety J0(37) of dimension 2
+        sage: AbelianVariety((Gamma0(37), Gamma0(11)))
+        Abelian variety J0(37) x J0(11) of dimension 3
+        sage: AbelianVariety(37)
+        Abelian variety J0(37) of dimension 2
+        sage: AbelianVariety([1,2,3])
+        Traceback (most recent call last):
+        ...
+        TypeError: X must be an integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups
     """
-
-    if is_CongruenceSubgroup(groups):
-        groups = [groups]
-
-    if isinstance(groups, str):
+    if isinstance(X, (int, long, Integer)):
+        X = Gamma0(X)
+    if is_CongruenceSubgroup(X):
+        X = X.modular_symbols().cuspidal_submodule()
+    elif isinstance(X, str):
         from sage.modular.modform.constructor import Newform
-        f = Newform(groups, names='a')
+        f = Newform(X, names='a')
         return ModularAbelianVariety_newform(f, internal_name=True)
+    elif isinstance(X, sage.modular.modform.element.Newform):
+        return ModularAbelianVariety_newform(X)
 
-    elif isinstance(f, sage.modular.modform.element.Newform):
-        return ModularAbelianVariety_newform(f)
+    if is_ModularSymbolsSpace(X):
+        return abvar.ModularAbelianVariety_modsym(X)
 
-    if groups is not None and all([is_CongruenceSubgroup(G) for G in groups]):
-        return prod([G.modular_abelian_variety() for G in groups])
+    if isinstance(X, (tuple,list)) and all([is_CongruenceSubgroup(G) for G in X]):
+        return abvar.ModularAbelianVariety(X)
 
-    if modsym is not None and is_ModularSymbolsSpace(modsym):
-        return modsym.modular_abelian_variety()
-
-    raise NotImplementedError, "arguments to AbelianVariety not recognized"
+    raise TypeError, "X must be an integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups"

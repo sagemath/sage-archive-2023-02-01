@@ -70,6 +70,35 @@ def is_ModularAbelianVariety(x):
 class ModularAbelianVariety_abstract(ParentWithBase):
     def __init__(self, groups, base_field, is_simple=None, newform_level=None,
                  isogeny_number=None, number=None, check=True):
+        """
+        Abstract base class for modular abelian varieties.
+
+        INPUT:
+            groups -- a tuple of congruence subgroups
+            base_field -- a field
+            is_simple  -- bool; whether or not self is simple
+            newform_level -- if self is isogeneous to a newform abelian variety, returns
+                      the level of that abelian variety
+            isogeny_number -- which isogeny class the corresponding newform is in; this
+                      corresponds to the Cremona letter code
+            number -- the t number of the degeneracy map that this abelian variety is
+                      the image under
+            check --  whether to do some type checking on the defining data
+
+        EXAMPLES:
+
+        One should not create an instance of this class, but we do so
+        anyways here as an example.
+            sage: A = sage.modular.abvar.abvar.ModularAbelianVariety_abstract((Gamma0(37),), QQ)
+            sage: type(A)
+            <class 'sage.modular.abvar.abvar.ModularAbelianVariety_abstract'>
+
+        All hell breaks loose if you try to do anything with $A$:
+            sage: A
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: BUG -- lattice method must be defined in derived class
+        """
         if check:
             if not isinstance(groups, tuple):
                 raise TypeError, "groups must be a tuple"
@@ -109,13 +138,58 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     #############################################################################
     # lattice() *must* be defined by every derived class!!!!
     def lattice(self):
-        raise NotImplementedError
+        """
+        Return lattice in ambient cuspidal modular symbols product that defines
+        this modular abelian variety.
+
+        This must be defined in each derived class.
+
+        OUTPUT:
+            a free module over $\ZZ$
+
+        EXAMPLES:
+            sage: A = sage.modular.abvar.abvar.ModularAbelianVariety_abstract((Gamma0(37),), QQ)
+            sage: A
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: BUG -- lattice method must be defined in derived class
+        """
+        raise NotImplementedError, "BUG -- lattice method must be defined in derived class"
     #############################################################################
 
     def free_module(self):
+        r"""
+        Synonym for \code{self.lattice()}.
+
+        OUTPUT:
+            a free module over $\ZZ$
+
+        EXAMPLES:
+            sage: J0(37).free_module()
+            Ambient free module of rank 4 over the principal ideal domain Integer Ring
+            sage: J0(37)[0].free_module()
+            Free module of degree 4 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 1 -1  1  0]
+            [ 0  0  2 -1]
+        """
         return self.lattice()
 
     def vector_space(self):
+        r"""
+        Return vector space corresponding to the modular abelian variety.
+
+        This is the lattice tensored with $\QQ$.
+
+        EXAMPLES:
+            sage: J0(37).vector_space()
+            Vector space of dimension 4 over Rational Field
+            sage: J0(37)[0].vector_space()
+            Vector space of degree 4 and dimension 2 over Rational Field
+            Basis matrix:
+            [   1   -1    0  1/2]
+            [   0    0    1 -1/2]
+        """
         try:
             return self.__vector_space
         except AttributeError:
@@ -176,6 +250,24 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         return n*v in self.lattice() + nLambda
 
     def __cmp__(self, other):
+        """
+        Compare two modular abelian variety.
+
+        If other is not a modular abelian variety, compares the types
+        of self and other.  If other is a modular abelian variety,
+        compares the groups, then if those are the same, compares the
+        newform level and isogeny class number and degeneracy map
+        numbers.  If those are not defined or matched up, compare
+        the underlying lattices.
+
+        EXAMPLES:
+            sage: cmp(J0(37)[0], J0(37)[1])
+            -1
+            sage: cmp(J0(33)[0], J0(33)[1])
+            -1
+            sage: cmp(J0(37), 5)
+            1
+        """
         if not isinstance(other, ModularAbelianVariety_abstract):
             return cmp(type(self), type(other))
         if self is other:
@@ -199,6 +291,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         return cmp(self.lattice(), other.lattice())
 
     def __radd__(self,other):
+        """
+        Return other + self when other is 0.  Otherwise raise a TypeError.
+
+        EXAMPLES:
+        """
         if other == 0:
             return self
         raise TypeError
@@ -2187,17 +2284,17 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
 
 class ModularAbelianVariety(ModularAbelianVariety_abstract):
-    def __init__(self, groups, lattice, base_field, is_simple=None, newform_level=None,
+    def __init__(self, groups, lattice=None, base_field=QQ, is_simple=None, newform_level=None,
                  isogeny_number=None, number=None, check=True):
         r"""
         Create a modular abelian variety with given level and base field.
 
         INPUT:
             groups -- a tuple of congruence subgroups
-            lattice -- a full lattice in $\ZZ^n$, where $n$ is the sum of
+            lattice -- (default: $\ZZ^n$) a full lattice in $\ZZ^n$, where $n$ is the sum of
                        the dimensions of the spaces of cuspidal modular
                        symbols corresponding to each $\Gamma \in$ groups
-            base_field -- a field
+            base_field -- a field (default: $\QQ$)
 
         EXAMPLES:
             sage: J0(23)
@@ -2205,6 +2302,8 @@ class ModularAbelianVariety(ModularAbelianVariety_abstract):
         """
         ModularAbelianVariety_abstract.__init__(self, groups, base_field, is_simple=is_simple, newform_level=newform_level,
                                                 isogeny_number=isogeny_number, number=number, check=check)
+        if lattice is None:
+            lattice = ZZ**(2*self._ambient_dimension())
         if check:
             n = self._ambient_dimension()
             if not is_FreeModule(lattice):

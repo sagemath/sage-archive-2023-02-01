@@ -150,6 +150,21 @@ class FiniteSubgroup(Module):
         raise NotImplementedError
 
     def _relative_basis_matrix(self):
+        """
+        Return matrix of this finite subgroup, but relative to the
+        homology of the parent abelian variety.
+
+        EXAMPLES:
+            sage: A = J0(43)[1]; A
+            Simple abelian subvariety 43b(1,43) of dimension 2 of J0(43)
+            sage: C = A.cuspidal_subgroup(); C
+            Finite subgroup with invariants [7] over QQ of Simple abelian subvariety 43b(1,43) of dimension 2 of J0(43)
+            sage: C._relative_basis_matrix()
+            [  1   0   0   0]
+            [  0 1/7 6/7 5/7]
+            [  0   0   1   0]
+            [  0   0   0   1]
+        """
         try:
             return self.__relative_basis_matrix
         except AttributeError:
@@ -597,6 +612,41 @@ class FiniteSubgroup(Module):
 
 
     def __contains__(self, x):
+        """
+        Returns True if x is contained in this finite subgroup.
+
+        EXAMPLES:
+        We define two distinct finite subgroups of $J_0(27)$:
+            sage: G1 = J0(27).rational_cusp_subgroup(); G1
+            Finite subgroup with invariants [3] over QQ of Abelian variety J0(27) of dimension 1
+            sage: G1.0
+            [(1/3, 0)]
+            sage: G2 = J0(27).cuspidal_subgroup(); G2
+            Finite subgroup with invariants [3, 3] over QQ of Abelian variety J0(27) of dimension 1
+            sage: G2.gens()
+            [[(1/3, 0)], [(0, 1/3)]]
+
+        Now we check whether various elements are in $G_1$ and $G_2$:
+            sage: G2.0 in G1
+            True
+            sage: G2.1 in G1
+            False
+            sage: G1.0 in G1
+            True
+            sage: G1.0 in G2
+            True
+
+        The integer $0$ is in, since it coerces in:
+            sage: 0 in G1
+            True
+
+        Elements that have a completely different ambient product Jacobian
+        are never in $G$:
+            sage: J0(23).cuspidal_subgroup().0 in G1
+            False
+            sage: J0(23).cuspidal_subgroup()(0) in G1
+            False
+        """
         try:
             self(x)
         except TypeError:
@@ -945,6 +995,14 @@ class TorsionPoint(ModuleElement):
             vector
 
         EXAMPLES:
+            sage: A = J0(43)[1]; A
+            Simple abelian subvariety 43b(1,43) of dimension 2 of J0(43)
+            sage: C = A.cuspidal_subgroup(); C
+            Finite subgroup with invariants [7] over QQ of Simple abelian subvariety 43b(1,43) of dimension 2 of J0(43)
+            sage: x = C.0; x
+            [(0, 1/7, 0, 6/7, 0, 5/7)]
+            sage: x._relative_element()
+            (0, 1/7, 6/7, 5/7)
         """
         return self.parent().abelian_variety().lattice().coordinate_vector(self.__element)
 

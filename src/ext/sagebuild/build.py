@@ -4,7 +4,7 @@ from build.all import *
 from sagebuild import buildsage, build_sage_clean
 from clib import buildclib, build_clib_clean
 argv = sys.argv
-numthreads = 4
+numthreads = 2
 try:
     numthreads = int(os.environ['SAGE_BUILD_THREADS'])
 except:

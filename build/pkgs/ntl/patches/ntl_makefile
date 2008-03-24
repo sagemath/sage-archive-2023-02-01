@@ -7,6 +7,9 @@ lib:
 libntl.dylib: $(OBJ)
 	$(CXX) -fPIC -dynamiclib -undefined dynamic_lookup -o libntl.dylib $(OBJ) $(GMP_LIBDIR) $(GMP_LIB)
 
+libntl.dylib64: $(OBJ)
+	$(CXX) -fPIC -m64 -dynamiclib -undefined dynamic_lookup -o libntl.dylib $(OBJ) $(GMP_LIBDIR) $(GMP_LIB)
+
 libntl.dll: $(OBJ)
 	$(CXX) -fPIC -shared -o libntl.dll $(OBJ) -lgmp
 

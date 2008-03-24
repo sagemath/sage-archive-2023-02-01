@@ -1,6 +1,35 @@
-= ntl =
+= NTL =
 
-FIXME
+== Description ==
+
+NTL is a high-performance, portable C++ library providing data structures and algorithms for manipulating signed, arbitrary length integers, and for vectors, matrices, and polynomials over the integers and over finite fields.
+
+Website: http://www.shoup.net/ntl/
+
+== License ==
+
+GPL
+
+== SPKG Maintainers ==
+ * Michael Abshoff
+ * William Stein
+
+== Upstream Contact ==
+ * Vicor Shoup - for contact info see http://www.shoup.net/
+
+== Dependencies ==
+ * gmp
+
+== Special Update/Build Instructions ==
+ * We need to modfiy new.h to accomodate Singular
+ * ntl_makefile adds the needed bits to the makefile to enable the building of dynamic libraries on OSX, Cygwin and Linux
+
+== Changelog ==
+
+=== ntl-5.4.2 (Michael Abshoff, March 24th, 2008) ===
+ * update to the 5.4.2 upstream release
+ * clean up SPKG.txt
+ * add 64 bit OSX 10.5 support
 
 === ntl-5.4.1.p11 (Tim Abbott, Feb. 7th, 2008) ===
  * add Debian package build support
@@ -9,50 +38,6 @@ FIXME
  * add "-g" to CFLAGS and CXXFLAGS for debugging purposes
 
 === ntl-5.4.1.p1 ===
+ * bump version to force a rebuild.
 
-5.4.1.p1 is an artificial increment to force a rebuild.
-
-== Special Update/Build Instructions ==
-
-[This section and the following below need some serious cleanup!]
-
-I had to create some extra lines for the Makefile in
-order to build a dynamic library. The trickiest
-was the one for OS X.
-
-It's *crucial* that NTL be built as a dynamic library; otherwise
-SAGE loads multiple huge copies of NTL, and the code, e.g., to
-set the modulus only sets the modulus for *it's* local copy
-of ntl.  Perhaps I should put all my pyrex ntl code together
-into one module so building dynamic isn't necessary...?
-
----------
-
-Some notes about finding the ntl bug:
-
-  (1) The NTL build failed to correctly create a "libntl.dylib"
-      dynamic library for NTL, and instead made only a "libntl.a"
-      library.  This didn't result in a sufficiently strong error
-      message to halt the SAGE build process.
-
-  (2) When SAGE built the NTL modules it linked in a completely
-      separate copy of libntl with each module.  This didn't result
-      in errors, because libntl.a was successfully built.
-
-  (3) The SAGE code for setting the NTL modulus is in a different
-      Python module than the code for creating polynomials over finite
-      fields.  When SAGE ran it thus had, in some sense, several copies
-      of the NTL library in memory at once.  The set modulus function
-      changed one copy while the the "make a polynomial" function
-      changed another.  The result was the bug we saw.
-
-
----------
-
-[The comment below is outdated and probably due to a crappy gcc]
-
-On Solaris I have to use
-
-libntl.so: $(OBJ)
-	$(CXX) -G -h  -o libntl.so $(OBJ)
 

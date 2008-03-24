@@ -51,6 +51,11 @@ build()
      CFLAGS="-O2 -g $CFLAGS"
      CXXFLAGS="-O2 -g $CXXFLAGS"
 
+     if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+         CFLAGS=" -m64 $CFLAGS"
+         CXXFLAGS=" -m64 $CXXFLAGS"
+     fi
+
      ./configure PREFIX="$SAGE_LOCAL" CC="$CC" CFLAGS="$CFLAGS $SHAREDFLAGS" CXX="$CXX" \
                  CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" LDFLAGS="$LDFLAGS" \
                  GMP_PREFIX="$SAGE_LOCAL" NTL_GMP_LIP=on NTL_STD_CXX=on
@@ -59,8 +64,6 @@ build()
         echo "Unable to configure NTL build."
         exit 1
     fi
-
-
 
 
     # We add some lines to the end of the NTL makefile so we
@@ -79,7 +82,12 @@ build()
 
     if [ $UNAME = "Darwin" ]; then
         # OS X
-	$MAKE libntl.dylib
+	if [ "$SAGE64" = "yes" ]; then
+            $MAKE libntl.dylib64
+        else
+            $MAKE libntl.dylib
+        fi
+
         if [ ! -f libntl.dylib ]; then
             echo "Failed to build NTL dylib."
             exit 1

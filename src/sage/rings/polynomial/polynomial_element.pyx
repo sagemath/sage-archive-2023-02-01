@@ -2821,7 +2821,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
 
         We can also compute resultants over univariate and
-        multivariate polynomial rings, providing that PARI's variable
+        multivariate polynomial rings, provided that PARI's variable
         ordering requirements are respected.  Usually, your resultants
         will work if you always ask for them in the variable \code{x}:
 
@@ -2872,7 +2872,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         NOTES:
             Uses the identity $R_n(f) := (-1)^(n (n-1)/2) R(f, f') a_n^(n-k-2)$,
             where $n$ is the degree of self, $a_n$ is the leading coefficient
-            of self, $f'$ is the derivitive of $f$, and $k$ is the degree of $f'$.
+            of self, $f'$ is the derivative of $f$, and $k$ is the degree of $f'$.
             Calls \code{self.resultant}.
 
         EXAMPLES:
@@ -2895,15 +2895,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -116
 
         We can also compute discriminants over univariate and
-        multivariate polynomial rings, providing that PARI's variable
+        multivariate polynomial rings, provided that PARI's variable
         ordering requirements are respected.  Usually, your discriminants
         will work if you always ask for them in the variable \code{x}:
 
             sage: R.<a> = QQ[]
             sage: S.<x> = R[]
-            sage: f = x^2 + a
+            sage: f = a*x + x + a + 1
             sage: d = f.discriminant(); d
-            -4*a
+            1
             sage: d.parent() is R
             True
 
@@ -2935,7 +2935,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if r == 0 or r == 1:
             u = 1
         an = self[n]**(n - k - 2)
-        return u * self.resultant(d) * an
+        return self.base_ring()(u * self.resultant(d) * an)
 
     def reverse(self):
         """

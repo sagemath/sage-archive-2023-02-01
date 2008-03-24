@@ -3190,6 +3190,35 @@ class SymbolicExpression(RingElement):
             self._simp = S
             return S
 
+    def simplify_full(self):
+        """
+        Applies simplify_trig, simplify_rational, and simplify_radical
+        to self (in that order).
+
+        ALIAS: simplfy_full and full_simplify are the same.
+
+        EXAMPLES:
+            sage: a = log(8)/log(2)
+            sage: a.simplify_full()
+            3
+
+            sage: f = sin(x)^2 + cos(x)^2
+            sage: f.simplify_full()
+            1
+
+            sage: f = sin(x/(x^2 + x))
+            sage: f.simplify_full()
+            sin(1/(x + 1))
+        """
+        x = self
+        x = x.simplify_trig()
+        x = x.simplify_rational()
+        x = x.simplify_radical()
+        return x
+
+
+    full_simplify = simplify_full
+
     def simplify_trig(self):
         r"""
         First expands using trig_expand, then employs the identities
@@ -6219,17 +6248,21 @@ class Function_ceil(PrimitiveFunction):
 
     The ceiling of $x$ is computed in the following manner.
     \begin{enumerate}
+
     \item The \code{x.ceil()} method is called and returned if it is there.
          If it is not, then \sage checks if $x$ is one of Python's
          native numeric data types.  If so, then it calls
          and returns \code{Integer(int(math.ceil(x)))}.
-    \item \sage tries to convert $x$ into a \class{RealIntervalField}.  The
-         ceilings of the endpoints are computed.  If they are the same,
-         then that value is returned.  Otherwise, the precision of
-         the \class{RealIntervalField} is increased until they do match up
-         or it reaches \code{maximum_bits} of precision.
+
+    \item \sage tries to convert $x$ into a \class{RealIntervalField} with 53
+          bits of precision. Next, the ceilings of the endpoints are computed.
+          If they are the same, then that value is returned.  Otherwise, the
+          precision of the \class{RealIntervalField} is increased until they
+          do match up or it reaches \code{maximum_bits} of precision.
+
     \item If none of the above work, \sage returns a \class{SymbolicComposition}
          object.
+
     \end{enumerate}
 
     EXAMPLES:
@@ -6247,6 +6280,9 @@ class Function_ceil(PrimitiveFunction):
         ceil(x^3 + x + 1/2) + 2
         sage: a(x=2)
         13
+
+        sage: ceil(log(8)/log(2))
+        3
 
         sage: ceil(5.4)
         6
@@ -6278,6 +6314,10 @@ class Function_ceil(PrimitiveFunction):
             if isinstance(x, (float, int, long, complex)):
                 return Integer(int(math.ceil(x)))
 
+        x_original = x
+        if isinstance(x, SymbolicExpression):
+            x = x.full_simplify()
+
         #If x can be coerced into a real interval, then we should
         #try increasing the number of bits of precision until
         #we get the ceiling at each of the endpoints is the same.
@@ -6288,6 +6328,7 @@ class Function_ceil(PrimitiveFunction):
             x_interval = RealIntervalField(bits)(x)
             upper_ceil = x_interval.upper().ceil()
             lower_ceil = x_interval.lower().ceil()
+
             while upper_ceil != lower_ceil and bits < maximum_bits:
                 bits += 100
                 x_interval = RealIntervalField(bits)(x)
@@ -6302,7 +6343,7 @@ class Function_ceil(PrimitiveFunction):
         except TypeError:
             #If x cannot be coerced into a RealField, then
             #it should be left as a symbolic expression.
-            return SymbolicComposition(self, SR(x))
+            return SymbolicComposition(self, SR(x_original))
 
 ceil = Function_ceil()
 _syms['ceiling'] = ceil   # spelled ceiling in maxima
@@ -6318,13 +6359,16 @@ class Function_floor(PrimitiveFunction):
          If it is not, then \sage checks if $x$ is one of Python's
          native numeric data types.  If so, then it calls
          and returns \code{Integer(int(math.floor(x)))}.
-    \item \sage tries to convert $x$ into a \class{RealIntervalField}.  The
-         floors of the endpoints are computed.  If they are the same,
-         then that value is returned.  Otherwise, the precision of
-         the \class{RealIntervalField} is increased until they do match up
-         or it reaches \code{maximum_bits} of precision.
+
+    \item \sage tries to convert $x$ into a \class{RealIntervalField} with
+          53 bits of precision. Next, the floors of the endpoints are computed.
+          If they are the same, then that value is returned.  Otherwise,
+          the precision of the \class{RealIntervalField} is increased
+          until they do match up or it reaches \code{maximum_bits} of precision.
+
     \item If none of the above work, \sage returns a \class{SymbolicComposition}
          object.
+
     \end{enumerate}
 
     EXAMPLES:
@@ -6338,6 +6382,10 @@ class Function_floor(PrimitiveFunction):
         floor(x + 0.400000000000000) + 5
         sage: a(2)
         7
+
+        sage: floor(log(8)/log(2))
+        3
+
         sage: floor(factorial(50)/exp(1))
         11188719610782480504630258070757734324011354208865721592720336800
         sage: floor(SR(10^50 + 10^(-50)))
@@ -6363,6 +6411,10 @@ class Function_floor(PrimitiveFunction):
             if isinstance(x, (float, int, long, complex)):
                 return Integer(int(math.floor(x)))
 
+        x_original = x
+        if isinstance(x, SymbolicExpression):
+            x = x.full_simplify()
+
         #If x can be coerced into a real interval, then we should
         #try increasing the number of bits of precision until
         #we get the floor at each of the endpoints is the same.
@@ -6373,6 +6425,7 @@ class Function_floor(PrimitiveFunction):
             x_interval = RealIntervalField(bits)(x)
             upper_floor = x_interval.upper().floor()
             lower_floor = x_interval.lower().floor()
+
             while upper_floor != lower_floor and bits < maximum_bits:
                 bits += 100
                 x_interval = RealIntervalField(bits)(x)
@@ -6387,7 +6440,7 @@ class Function_floor(PrimitiveFunction):
         except TypeError:
             #If x cannot be coerced into a RealField, then
             #it should be left as a symbolic expression.
-            return SymbolicComposition(self, SR(x))
+            return SymbolicComposition(self, SR(x_original))
 
 
 floor = Function_floor()

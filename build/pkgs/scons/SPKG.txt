@@ -29,6 +29,7 @@ If Intel's ifort is installed a broken linker flag is added. Hence we copy over 
 === scons-0.97.0d20071212 (Michael Abshoff, March 24th, 2008) ===
  * update to latest 0.97 snapshot release
  * remove "-no_archive" from ifort.py (#1618)
+ * make sure SAGE_LOCAL is defined (#633)
 
 === scons-0.97 (Joel B. Mohler) ===
  * initial version

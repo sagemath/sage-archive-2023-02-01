@@ -1,8 +1,16 @@
 #!/bin/sh
 
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
 cd src/
 
 cp ../patch/ifort.py engine/SCons/Tool
+
+rm -rf $SAGE_LOCAL/lib/scons-0.97
 
 python setup.py install
 

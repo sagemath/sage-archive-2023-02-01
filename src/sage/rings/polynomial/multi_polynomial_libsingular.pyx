@@ -241,7 +241,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             is_extension = True
 
         elif PY_TYPE_CHECK(base_ring, NumberField_generic):
-            raise NotImplementedError, "Number fields are not fully support yet."
+            raise NotImplementedError, "Number fields are not fully supported yet."
             characteristic = 1
             k = MPolynomialRing_libsingular(RationalField(), 1, base_ring.variable_name(), 'lex')
             minpoly = base_ring.polynomial()(k.gen())

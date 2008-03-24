@@ -361,10 +361,13 @@ def _multi_variate(base_ring, names, n, sparse, order):
 
     from multi_polynomial_libsingular import MPolynomialRing_libsingular
     if m.integral_domain.is_IntegralDomain(base_ring):
-        try:
-            R = MPolynomialRing_libsingular(base_ring, n, names, order)
-        except ( TypeError, NotImplementedError ):
+        if n < 1:
             R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
+        else:
+            try:
+                R = MPolynomialRing_libsingular(base_ring, n, names, order)
+            except ( TypeError, NotImplementedError ):
+                R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
     else:
         R = m.MPolynomialRing_polydict(base_ring, n, names, order)
 

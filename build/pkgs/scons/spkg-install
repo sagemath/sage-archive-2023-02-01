@@ -2,6 +2,8 @@
 
 cd src/
 
+cp ../patch/ifort.py engine/SCons/Tool
+
 python setup.py install
 
 if [ $? -ne 0 ]; then

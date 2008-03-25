@@ -1771,11 +1771,11 @@ class SR_gf2(SR_generic):
         if d is None:
             return Matrix(k, r*c*e, 1)
         elif is_Matrix(d) and d.ncols() == c and d.nrows() == r and d.base_ring() == self.k:
-            l = flatten([self.phi(x) for x in d.transpose().list()], Vector_modn_dense)
+            l = flatten([self.phi(x) for x in d.transpose().list()], (Vector_modn_dense,list,tuple))
             return Matrix(k, r*c*e, 1,l)
         elif isinstance(d,(list,tuple)):
             if len(d) == self.r*self.c:
-                l = flatten([self.phi(x) for x in d], Vector_modn_dense)
+                l = flatten([self.phi(x) for x in d], (Vector_modn_dense,list,tuple))
                 return Matrix(k, r*c*e, 1,l)
             elif len(d) == self.r*self.c*self.e:
                 return Matrix(k, r*c*e, 1, d)

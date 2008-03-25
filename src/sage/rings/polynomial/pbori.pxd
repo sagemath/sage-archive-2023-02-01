@@ -16,6 +16,7 @@ cdef class BooleanPolynomial(MPolynomial):
     cdef PBPoly _pbpoly
 
 cdef class BooleSet:
+    cdef BooleanPolynomialRing ring
     cdef PBSet _pbset
 
 cdef class CCuddNavigator:
@@ -26,6 +27,13 @@ cdef class DD:
 
 cdef class BooleanMonomial(MonoidElement):
     cdef PBMonom _pbmonom
+    cdef BooleanPolynomialRing ring
+
+cdef class BooleanMonomialVariableIterator:
+    cdef object parent
+    cdef BooleanPolynomialRing ring
+    cdef PBMonom obj
+    cdef PBMonomVarIter iter
 
 cdef class BooleanMonomialIterator:
     cdef PBMonom _obj
@@ -36,9 +44,10 @@ cdef class BooleanPolynomialIterator:
     cdef PBPolyIter _iter
 
 cdef class BooleSetIterator:
+    cdef object _parent
+    cdef BooleanPolynomialRing ring
     cdef PBSetIter _iter
-    cdef BooleSet _obj
-    cdef BooleanPolynomialRing _ring
+    cdef PBSet _obj
 
 cdef class GroebnerStrategy:
     cdef GBStrategy _strat
@@ -54,6 +63,7 @@ cdef class BooleanPolynomialVectorIterator:
     cdef PBPolyVector _obj
 
 cdef class VariableBlock_base:
+    cdef BooleanPolynomialRing ring
     cdef int size
     cdef int start_index
     cdef int offset

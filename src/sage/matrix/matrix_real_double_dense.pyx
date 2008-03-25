@@ -690,7 +690,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             0.69314718056
             sage: m.log_determinant()
             0.69314718056
-            sage: m = matrix(RDF,0,0,range(4)); m
+            sage: m = matrix(RDF,0,0,[]); m
             []
             sage: m.log_determinant()
             0.0

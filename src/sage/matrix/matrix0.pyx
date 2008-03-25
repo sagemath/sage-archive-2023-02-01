@@ -42,6 +42,10 @@ import sage.modules.free_module
 
 import matrix_misc
 
+cdef extern from "Python.h":
+    bint PyList_CheckExact(PyObject* p)
+    bint PySlice_Check(PyObject* ob)
+
 cdef class Matrix(sage.structure.element.Matrix):
     r"""
     A generic matrix.
@@ -579,32 +583,41 @@ cdef class Matrix(sage.structure.element.Matrix):
             4
 
         """
+        cdef PyObject* ts1
+        cdef PyObject* ts2
+        cdef object s1, s2
+        cdef Py_ssize_t ss1, ss2
 
-        if PyTuple_Check(key):
+        if PyTuple_CheckExact(key):
             if PyTuple_GET_SIZE(key) != 2:
                 raise IndexError, "index must be an integer or pair of integers"
 
-            s1 = key[0]
-            s2 = key[1]
+            ts1 = PyTuple_GET_ITEM(key, 0)
+            ts2 = PyTuple_GET_ITEM(key, 1)
 
-            if not (PyList_Check(s1) | PySlice_Check(s1) ) and \
-                    not (PyList_Check(s2) | PySlice_Check(s2)):
-                    self.check_bounds(s1, s2)
-                    return self.get_unsafe(s1, s2)
+            if not (PyList_CheckExact(ts1) | PySlice_Check(ts1) ) and \
+                    not (PyList_CheckExact(ts2) | PySlice_Check(ts2)):
+                    ss1 = <object>ts1
+                    ss2 = <object>ts2
+                    if ss1<0 or ss1 >= self._nrows or ss2<0 or ss2 >= self._ncols:
+                        raise IndexError, "matrix index out of range"
+                    return self.get_unsafe(ss1, ss2)
+            s1 = <object>ts1
+            s2 = <object>ts2
 
-            if PY_TYPE_CHECK(s1,list):
+            if PyList_CheckExact(ts1):
                 row_range = list(set(s1))
 
-            elif PY_TYPE_CHECK(s1,slice):
+            elif PySlice_Check(ts1):
                 row_range = range(s1.start or 0 ,s1.stop or self._nrows ,1 or s1.step )
 
             else:
                 row_range = [s1]
 
-            if PY_TYPE_CHECK(s2,list):
+            if PyList_CheckExact(ts2):
                 col_range = list(set(s2))
 
-            elif PY_TYPE_CHECK(s2,slice):
+            elif PySlice_Check(ts2):
                 col_range = range(s2.start or 0,s2.stop or self._ncols, 1 or s2.step )
 
             else:

@@ -1,0 +1,80 @@
+#!/bin/sh
+###########################################
+## PolyBoRi
+###########################################
+
+BOOSTDIR=boost_1_34_1.cropped
+PBDIR=polybori-0.3
+WORKDIR=${PWD}/src
+SCONS=scons
+
+patch()
+{
+cp patches/custom.py src/${PBDIR}
+cp patches/PyPolyBoRi.py src/${PBDIR}/pyroot/polybori
+}
+
+install_boost()
+{
+    cp -r ${BOOSTDIR}/boost ${SAGE_LOCAL}/include/
+}
+
+clean_boost()
+{
+    rm -f ${SAGE_LOCAL}/include/boost
+}
+
+build_polybori()
+{
+    cd ${PBDIR}
+    BOOSTINCDIR=${WORKDIR}/${BOOSTDIR} ${SCONS} prepare-devel ${MAKEOPTS}
+    if [ $? -ne 0 ]; then
+        echo "Error building PolyBoRi."
+        exit 1
+    fi
+    cd ${WORKDIR}
+}
+
+install_polybori()
+{
+    cd ${PBDIR}
+    BOOSTINCDIR=${WORKDIR}/${BOOSTDIR} ${SCONS} devel-install install PREFIX=${SAGE_LOCAL} INSTALLDIR=${SAGE_LOCAL}/share/polybori
+    if [ $? -ne 0 ]; then
+        echo "Error installing PolyBoRi."
+        exit 1
+    fi
+    if [ -e ${SAGE_LOCAL}/lib/python/site-packages/polybori ] ; then
+        rm  ${SAGE_LOCAL}/lib/python/site-packages/polybori
+    fi
+    cd ${SAGE_LOCAL}/lib/python/site-packages/
+    ln -s ../../../share/polybori/pyroot/polybori polybori
+    cd ${WORKDIR}
+}
+
+clean_polybori()
+{
+    rm -f ${SAGE_LOCAL}/lib/libpolybori*
+    rm -f ${SAGE_LOCAL}/lib/libpboriCudd*
+    rm -f ${SAGE_LOCAL}/lib/libgroebner*
+    rm -rf ${SAGE_LOCAL}/include/polybori
+    rm -rf ${SAGE_LOCAL}/include/cudd
+}
+
+patch
+
+
+cd src
+
+echo "Starting build..."
+echo "Running build_polybori..."
+build_polybori
+echo "Done build_polybori."
+
+echo "Installing boost..."
+install_boost
+echo "Done installing boost."
+
+echo "Installing PolyBoRi..."
+install_polybori
+echo "Done installing PolyBoRi."
+

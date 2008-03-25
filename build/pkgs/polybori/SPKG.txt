@@ -1,0 +1,15 @@
+=== polybori-0.3.1 (Burcin Erocal) ===
+ * update to PolyBoRi-0.3.1 release
+ * remove patches required for the previous version
+ * reset hg repository
+
+=== polybori-0.1-r7 (Ralf-Philipp Weinmann) ===
+ * pulled in memleak fix in groebner/src/nf.cc from PolyBoRi repo
+ * comment changes on precomputed Groebner base tables pulled in from repo
+   these remove claims about possible patents.
+
+=== polybori-0.1-r6 (Michael Abshoff) ===
+ * add ENV = os.environ to SConstruct (fixes #1553)
+
+=== prior releases ===
+ * lost in the dark ages

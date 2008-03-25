@@ -35,7 +35,6 @@ import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 
-
 from random import randint
 
 cdef class Matrix(matrix1.Matrix):
@@ -3542,7 +3541,56 @@ cdef class Matrix(matrix1.Matrix):
                 blocks.extend([(eval,i) for i in Partition(diagram).conjugate()])
         return block_diagonal_matrix([jordan_block(eval,size, sparse=sparse) for (eval,size) in blocks],subdivide=subdivide)
 
+    def symplectic_form(self):
+        r"""
+        Find a symplectic form for self if self is an anti-symmetric,
+        alternating matrix defined over a field.
 
+        Returns a pair (F, C) such that the rows of C form a symplectic
+        basis for self and F = C * self * C.transpose().
+
+        Raises a ValueError if not over a field, or self is not
+        anti-symmetric, or self is not alternating.
+
+        Anti-symmetric means that $M = -M^t$.  Alternating means that the
+        diagonal of $M$ is identically zero.
+
+        A symplectic basis is a basis of the form $z_1, \ldots, z_i, e_1,
+        \ldots, e_j, f_1, \ldots f_j$ such that
+            * $z_i M v^t$ = 0 for all vectors $v$;
+            * $e_i M {e_j}^t = 0$ for all $i, j$;
+            * $f_i M {f_j}^t = 0$ for all $i, j$;
+            * $e_i M {f_i}^t = 1$ for all $i$;
+            * $e_i M {f_j}^t = 0$ for all $i$ not equal $j$.
+
+        See the example for a pictorial description of such a basis.
+
+        EXAMPLES:
+            sage: E = matrix(QQ, 8, 8, [0, -1/2, -2, 1/2, 2, 0, -2, 1, 1/2, 0, -1, -3, 0, 2, 5/2, -3, 2, 1, 0, 3/2, -1, 0, -1, -2, -1/2, 3, -3/2, 0, 1, 3/2, -1/2, -1/2, -2, 0, 1, -1, 0, 0, 1, -1, 0, -2, 0, -3/2, 0, 0, 1/2, -2, 2, -5/2, 1, 1/2, -1, -1/2, 0, -1, -1, 3, 2, 1/2, 1, 2, 1, 0]); E
+            [   0 -1/2   -2  1/2    2    0   -2    1]
+            [ 1/2    0   -1   -3    0    2  5/2   -3]
+            [   2    1    0  3/2   -1    0   -1   -2]
+            [-1/2    3 -3/2    0    1  3/2 -1/2 -1/2]
+            [  -2    0    1   -1    0    0    1   -1]
+            [   0   -2    0 -3/2    0    0  1/2   -2]
+            [   2 -5/2    1  1/2   -1 -1/2    0   -1]
+            [  -1    3    2  1/2    1    2    1    0]
+            sage: F, C = E.symplectic_form(); F
+            [ 0  0  0  0  1  0  0  0]
+            [ 0  0  0  0  0  1  0  0]
+            [ 0  0  0  0  0  0  1  0]
+            [ 0  0  0  0  0  0  0  1]
+            [-1  0  0  0  0  0  0  0]
+            [ 0 -1  0  0  0  0  0  0]
+            [ 0  0 -1  0  0  0  0  0]
+            [ 0  0  0 -1  0  0  0  0]
+            sage: F == C * E * C.transpose()
+            True
+            """
+        import sage.matrix.symplectic_basis
+        return sage.matrix.symplectic_basis.symplectic_basis_over_field(self)
+
+    alternating_form = symplectic_form
 
     def hadamard_bound(self):
         r"""

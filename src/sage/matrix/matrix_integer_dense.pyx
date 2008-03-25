@@ -1152,6 +1152,60 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     def _echelon_strassen(self):
         raise NotImplementedError
 
+    def symplectic_form(self):
+        r"""
+        Find a symplectic basis for self if self is an anti-symmetric,
+        alternating matrix.
+
+        Returns a pair (F, C) such that the rows of C form a symplectic
+        basis for self and F = C * self * C.transpose().
+
+        Raises a ValueError if self is not anti-symmetric, or self is not
+        alternating.
+
+        Anti-symmetric means that $M = -M^t$.  Alternating means that the
+        diagonal of $M$ is identically zero.
+
+        A symplectic basis is a basis of the form $z_1, \ldots, z_i, e_1,
+        \ldots, e_j, f_1, \ldots f_j$ such that
+            * $z_i M v^t$ = 0 for all vectors $v$;
+            * $e_i M {e_j}^t = 0$ for all $i, j$;
+            * $f_i M {f_j}^t = 0$ for all $i, j$;
+            * $e_i M {f_i}^t = d_i$ for all $i$, and $d_{i+1} | d_{i}$ for all $i$;
+            * $e_i M {f_j}^t = 0$ for all $i$ not equal $j$.
+
+        The ordering for the factors $d_{i+1} | d_{i}$ and for the
+        placement of zeroes was chosen to agree with the output of
+        \code{smith_form}.
+
+        See the example for a pictorial description of such a basis.
+
+        EXAMPLES:
+            sage: E = matrix(ZZ, 5, 5, [0, 14, 0, -8, -2, -14, 0, -3, -11, 4, 0, 3, 0, 0, 0, 8, 11, 0, 0, 8, 2, -4, 0, -8, 0]); E
+            [  0  14   0  -8  -2]
+            [-14   0  -3 -11   4]
+            [  0   3   0   0   0]
+            [  8  11   0   0   8]
+            [  2  -4   0  -8   0]
+            sage: F, C = E.symplectic_form()
+            sage: F
+            [ 0  0  0  0  0]
+            [ 0  0  0  2  0]
+            [ 0  0  0  0  1]
+            [ 0 -2  0  0  0]
+            [ 0  0 -1  0  0]
+            sage: F == C * E * C.transpose()
+            True
+            sage: E.smith_form()[0]
+            [0 0 0 0 0]
+            [0 2 0 0 0]
+            [0 0 2 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+            """
+        import sage.matrix.symplectic_basis
+        return sage.matrix.symplectic_basis.symplectic_basis_over_ZZ(self)
+
     def hermite_form(self, *args, **kwds):
         r"""
         Return the Hermite normal form of self.

@@ -52,8 +52,8 @@ patch()
 {
     # The following patch for fixing broken readline behavior on
     # Itanium Linux definitely does *not* work on anything else.
-    echo "Updating readline.c for Linux/Itanium"
     if [ "`uname -m`" = "ia64" -a "`uname`" = "Linux" ]; then
+        echo "Updating readline.c for Linux/Itanium"
 	cp ../patches/readline.c Modules/readline.c
     fi
 }

@@ -131,6 +131,7 @@ cdef class dancing_linksWrapper:
         initialised using the same row list.
 
         TESTS:
+	    sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
             sage: X = dlx_solver(rows)
             sage: Z = dlx_solver(rows)
@@ -155,6 +156,7 @@ cdef class dancing_linksWrapper:
     def dumps(self):
         """
         TESTS:
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
             sage: X = dlx_solver(rows)
             sage: X == loads(dumps(X))
@@ -174,6 +176,7 @@ cdef class dancing_linksWrapper:
         This doctest tests add_rows vicariously!
 
         TESTS:
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
             sage: rows+= [[0,2]]
             sage: rows+= [[1]]
@@ -209,6 +212,7 @@ cdef class dancing_linksWrapper:
         listing the rows that make up the current solution.
 
         TESTS:
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
             sage: rows+= [[0,2]]
             sage: rows+= [[1]]
@@ -229,6 +233,7 @@ cdef class dancing_linksWrapper:
     def search(self):
         """
         TESTS:
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
             sage: rows+= [[0,2]]
             sage: rows+= [[1]]
@@ -249,6 +254,7 @@ def dlx_solver(rows):
     Internal-use wrapper for the dancing links C++ code.
 
     EXAMPLES:
+        sage: from sage.combinat.matrices.dancing_links import dlx_solver
         sage: rows = [[0,1,2]]
         sage: rows+= [[0,2]]
         sage: rows+= [[1]]

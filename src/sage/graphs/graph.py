@@ -5592,11 +5592,25 @@ class GenericGraph(SageObject):
             [1 0 2]
             [0 2 1]
 
+            sage: ss = (graphs.WheelGraph(6)).line_graph(labels=False)
+            sage: prt = [[(0, 1)], [(0, 2), (0, 3), (0, 4), (1, 2), (1, 4)], [(2, 3), (3, 4)]]
+
+            sage: ss.is_equitable(prt)
+            Traceback (most recent call last):
+            ...
+            TypeError: Partition ([[(0, 1)], [(0, 2), (0, 3), (0, 4), (1, 2), (1, 4)], [(2, 3), (3, 4)]]) is not valid for this graph: vertices are incorrect.
+
+            sage: ss = (graphs.WheelGraph(5)).line_graph(labels=False)
+            sage: ss.is_equitable(prt)
+            False
+
         """
         from sage.misc.flatten import flatten
         from sage.misc.misc import uniq
-        if sorted(flatten(partition)) != self.vertices() or any(len(cell)==0 for cell in partition):
-            raise TypeError("Partition (%s) is not valid for this graph."%partition)
+        if sorted(flatten(partition, max_level=1)) != self.vertices():
+            raise TypeError("Partition (%s) is not valid for this graph: vertices are incorrect."%partition)
+        if any(len(cell)==0 for cell in partition):
+            raise TypeError("Partition (%s) is not valid for this graph: there is a cell of length 0."%partition)
         if quotient_matrix:
             from sage.matrix.constructor import Matrix
             from sage.rings.integer_ring import IntegerRing

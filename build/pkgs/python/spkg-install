@@ -1,4 +1,4 @@
- #!/bin/sh
+#!/bin/sh
 ###########################################
 ## Python
 ###########################################
@@ -7,23 +7,22 @@
 
 cp patches/ctypes__init__.py src/Lib/ctypes/__init__.py
 
-cp patches/locale.py src/Lib/
-
-if [ `uname` = "Darwin" -a `uname -r | sed s/9\.[0-9]\.0/9\.0\.0/` = "9.0.0" ]; then
-    echo "Patching posixmodules for Leopard."
-    cp patches/posixmodule.c.osx_leopard src/Modules/posixmodule.c
+if [ $? -ne 0 ]; then
+    echo "Error copying patched ctypes"
+    exit 1
 fi
 
+cp patches/locale.py src/Lib/
 
 if [ $? -ne 0 ]; then
-    echo "Error patching ctypes"
+    echo "Error copying patched locale.py"
     exit 1
 fi
 
 cp patches/pkgutil.py src/Lib/pkgutil.py
 
 if [ $? -ne 0 ]; then
-    echo "Error patching pkgutil.py"
+    echo "Error copying patched pkgutil.py"
     exit 1
 fi
 
@@ -50,6 +49,7 @@ patch()
 {
     # The following patch for fixing broken readline behavior on
     # Itanium Linux definitely does *not* work on anything else.
+    echo "Updating readline.c for Linux/Itanium"
     if [ "`uname -m`" = "ia64" -a "`uname`" = "Linux" ]; then
 	cp ../patches/readline.c Modules/readline.c
     fi

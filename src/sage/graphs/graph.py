@@ -5665,6 +5665,13 @@ class GenericGraph(SageObject):
             sage: G.coarsest_equitable_refinement(Pi)
             [['000'], ['011', '101', '110'], ['111'], ['001', '010', '100']]
 
+        Note that given an equitable partition, this function returns that
+        partition:
+            sage: P = graphs.PetersenGraph()
+            sage: prt = [[0], [1, 4, 5], [2, 3, 6, 7, 8, 9]]
+            sage: P.coarsest_equitable_refinement(prt)
+            [[0], [1, 4, 5], [2, 3, 6, 7, 8, 9]]
+
         ALGORITHM:
             Brendan D. McKay's Master's Thesis, University of Melbourne, 1976.
 
@@ -5691,7 +5698,9 @@ class GenericGraph(SageObject):
                     CG.add_arc(i,j)
         from sage.graphs.graph_isom import PartitionStack
         nu = PartitionStack(partition)
-        alpha = range(len(partition))
+        alpha = []
+        for i in xrange(len(partition)):
+            alpha.append(sum([len(cell) for cell in partition[:i]]))
         nu.refine(CG, alpha, n, (self._directed or self.loops()), True)
         repr = nu.repr_at_k(1)
         result = [[int(b) for b in a.split(',')] for a in repr[1:-1].split('|')]

@@ -328,9 +328,8 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         Invert this matrix.
         EXAMPLES:
             sage: A = Matrix(RDF, [[10, 0], [0, 100]])
-            sage: ~A
-            [ 0.1  0.0]
-            [ 0.0 0.01]
+            sage: (~A).det()
+            0.001
 
             sage: A = matrix(RDF,3,[2,3,5,7,8,9,11,13,17]);A
             [ 2.0  3.0  5.0]
@@ -346,9 +345,8 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             answers on similar platforms depending on the hardware
             and tuning options given to ATLAS:
             sage: A = Matrix(RDF, [[1, 0], [0, 0]])
-            sage: A.inverse()
-            [nan nan]
-            [nan inf]
+            sage: A.inverse().det()
+            nan
             sage: A = matrix(RDF,3,range(1,10));A
             [1.0 2.0 3.0]
             [4.0 5.0 6.0]

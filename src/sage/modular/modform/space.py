@@ -678,8 +678,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         self.__q_echelon_basis = (prec, S)
         return S
 
-
-
     def q_integral_basis(self, prec=None):
         r"""
         Return a $\Z$-reduced echelon basis of $q$-expansions for self.
@@ -868,6 +866,41 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             return f.parent()(e) == f
         raise NotImplementedError
 
+    def has_coerce_map_from_impl(self, from_par):
+        """
+        Code to make ModularFormsSpace work well with coercion
+        framework.
+
+        EXAMPLES:
+            sage: M = ModularForms(22,2)
+            sage: M.has_coerce_map_from_impl(M.cuspidal_subspace())
+            True
+            sage: M.has_coerce_map_from(ModularForms(22,4))
+            False
+        """
+        if isinstance(from_par, ModularFormsSpace) and from_par.ambient() == self:
+            return True
+
+        return False
+
+    def _coerce_impl(self, x):
+        """
+        Code to coerce an element into self.
+
+        EXAMPLES:
+            sage: M = ModularForms(22,2) ; S = CuspForms(22,2)
+            sage: sum(S.basis())
+            q + q^2 - q^3 - 4*q^4 + q^5 + O(q^6)
+            sage: sum(S.basis() + M.basis())
+            1 + 3*q + 3*q^2 + 2*q^3 - 7*q^4 + 8*q^5 + O(q^6)
+            sage: M._coerce_impl(S.basis()[0])
+            q - q^3 - 2*q^4 + q^5 + O(q^6)
+        """
+        if isinstance(x, element.ModularFormElement) and x.parent().ambient() == self:
+            return self(x.element())
+
+        raise TypeError, "no known coercion to modular form"
+
     def __call__(self, x, check=True):
         """
         Try to coerce x into self. If x is a vector of length
@@ -978,7 +1011,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if self is x:
             return 0
         if not isinstance(x, ModularFormsSpace):
-            return cmp( type(self), type(other) )
+            return cmp( type(self), type(x) )
 
         left_ambient = self.ambient()
         right_ambient = x.ambient()

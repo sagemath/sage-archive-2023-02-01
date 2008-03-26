@@ -37,7 +37,7 @@ from sage.modular.congroup      import is_CongruenceSubgroup, is_Gamma0, is_Gamm
 from sage.modular.modsym.all    import ModularSymbols
 from sage.modular.modsym.space  import ModularSymbolsSpace
 from sage.modular.dims          import dimension_cusp_forms
-from sage.matrix.all            import matrix, block_diagonal_matrix
+from sage.matrix.all            import matrix, block_diagonal_matrix, identity_matrix
 from sage.groups.all            import AbelianGroup
 from sage.databases.cremona     import cremona_letter_code
 from sage.misc.misc             import prod
@@ -341,26 +341,38 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         return '%s%s'%(self.newform_level(), cremona_letter_code(self.isogeny_number()))
 
     def _isogeny_to_newform_abelian_variety(self):
-        D = self.decomposition()
-        if len(D) > 1:
+        r"""
+        Given a simple abelian variety corresponding to a newform,
+        return a pair of morphisms $(\phi, \psi)$. $\phi$ is a map
+        from the ambient variety of self to the Jacobian where self
+        occurs as a newform, and such that the image of self is
+        contained in the abelian subvariety of that Jacobian
+        corresponding to the newform. The map $\psi$ is simply the
+        isogeny given by restriction of $\phi$ to a map from self to
+        the newform abelian variety.
+        """
+        if not self.is_simple():
             raise ValueError, "self is not simple"
 
-        t, N = D[0].degen_t()
-        m = self.degeneracy_map(self.newform_level(),t)
-        if isinstance(m, list):
-            basis = self.lattice().matrix()
-            ix = 0
-            for mor in m:
-                mat = mor.matrix()
-                if basis.submatrix(0, ix, basis.nrows(), mat.nrows()) * mat != 0:
+        ls = []
+
+        t, N = self.decomposition()[0].degen_t()
+        A = self.ambient_variety()
+        for i in range(len(self.groups())):
+            g = self.groups()[i]
+            if N == g.level():
+                J = g.modular_abelian_variety()
+                d = J.degeneracy_map(self.newform_level(), t)
+                p = A.project_to_factor(i)
+                mat = p.matrix() * d.matrix()
+                if not (self.lattice().matrix() * mat).is_zero():
                     break
-                ix += mat.ncols()
-            m = self.Hom(mor.codomain())(mat)
 
         from constructor import AbelianVariety
         Af = AbelianVariety(self.newform_label())
-
-        return m.restrict_codomain(Af)
+        H = A.Hom(Af.ambient_variety())
+        m = H(Morphism(H, mat))
+        return (m, m.restrict_domain(self).restrict_codomain(Af))
 
     def _simple_isogeny(self, other):
         """
@@ -380,8 +392,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
            (self.isogeny_number() != other.isogeny_number()):
             raise ValueError, "self and other do not correspond to the same newform"
 
-        return other._isogeny_to_newform_abelian_variety().complementary_isogeny() * \
-               self._isogeny_to_newform_abelian_variety()
+        return other._isogeny_to_newform_abelian_variety()[1].complementary_isogeny() * \
+               self._isogeny_to_newform_abelian_variety()[1]
 
     def _Hom_(self, B, cat=None):
         """
@@ -728,6 +740,40 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         if not isinstance(t_ls, list):
             t_ls = [t_ls]
 
+        groups = self.groups()
+        length = len(M_ls)
+        if length != len(t_ls):
+            raise ValueError, "must have same number of Ms and ts"
+        if length != len(groups):
+            raise ValueError, "must have same number of Ms and groups in ambient variety"
+
+        for i in range(length):
+            N = groups[i].level()
+            if (M_ls[i]%N) and (N%M_ls[i]):
+                raise ValueError, "one level must divide the other in %s-th component"%i
+            if (( max(M_ls[i],N) // min(M_ls[i],N) ) % t_ls[i]):
+                raise ValueError, "each t must divide the quotient of the levels"
+
+        ls = [ self.groups()[i].modular_abelian_variety().degeneracy_map(M_ls[i], t_ls[i]).matrix() for i in range(length) ]
+
+
+        new_codomain = prod([ self.groups()[i]._new_group_from_level(M_ls[i]).modular_abelian_variety()
+                              for i in range(length) ])
+        M = block_diagonal_matrix(ls, subdivide=False)
+
+        H = self.Hom(new_codomain)
+        return H(Morphism(H,M.restrict_domain(self.lattice())))
+
+    def xxx_degeneracy_map(self, M_ls, t_ls):
+        """
+        TODO
+        Return the degeneracy map from self to the right thing.
+        """
+        if not isinstance(M_ls, list):
+            M_ls = [M_ls]
+        if not isinstance(t_ls, list):
+            t_ls = [t_ls]
+
         single_group_image = False
         groups = self.groups()
         length = len(M_ls)
@@ -858,6 +904,31 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         X, _ = X._clear_denom()
 
         return Morphism(self.Hom(A), X)
+
+    def project_to_factor(self, n):
+        """
+        If self is an ambient product of Jacobians, return a
+        projection from self to the nth such Jacobian.
+
+        EXAMPLES:
+
+        """
+        if not self.is_ambient():
+            raise ValueError, "self is not ambient"
+        if n >= len(self.groups()):
+            raise IndexError, "index (=%s) too large (max = %s)"%(n, len(self.groups()))
+
+        G = self.groups()[n]
+        A = G.modular_abelian_variety()
+        index = sum([ gp.modular_symbols().cuspidal_subspace().dimension()
+                      for gp in self.groups()[0:n] ])
+
+        H = self.Hom(A)
+        mat = H.matrix_space()(0)
+        mat.set_block(index, 0, identity_matrix(2*A.dimension()))
+
+        return H(Morphism(H, mat))
+
 
     def is_subvariety_of_ambient_jacobian(self):
         """
@@ -1051,7 +1122,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         except AttributeError:
             pass
 
-        b = self.modular_symbols().sturm_bound()
+        #b = self.modular_symbols().sturm_bound()
+        b = max([ m.sturm_bound() for m in self._ambient_modular_symbols_space() ])
         J = self.ambient_variety()
         L = self.lattice()
         B = self.lattice().basis()

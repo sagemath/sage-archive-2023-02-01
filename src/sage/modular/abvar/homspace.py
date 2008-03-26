@@ -180,8 +180,8 @@ class Homspace(HomsetWithBase):
         if A.newform_label() != B.newform_label():
             return []
 
-        f = A._isogeny_to_newform_abelian_variety()
-        g = B._isogeny_to_newform_abelian_variety().complementary_isogeny()
+        f = A._isogeny_to_newform_abelian_variety()[1]
+        g = B._isogeny_to_newform_abelian_variety()[1].complementary_isogeny()
 
         Af = f.codomain()
         ls = Af._calculate_endomorphism_generators()

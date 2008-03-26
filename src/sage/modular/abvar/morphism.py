@@ -42,6 +42,7 @@ from sage.rings.all import ZZ, QQ
 import abvar as abelian_variety
 import sage.modules.matrix_morphism
 import sage.structure.element
+import sage.matrix.matrix_space as matrix_space
 
 from finite_subgroup import TorsionPoint
 
@@ -166,6 +167,14 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         K = D.finite_subgroup(lattice, field_of_definition=field_of_definition)
 
         return K, abvar
+
+    def restrict_domain(self, sub):
+        L = self.domain().lattice()
+        B = sub.lattice().basis()
+        ims = sum([ (L(b)*self.matrix()).list() for b in B], [])
+        MS = matrix_space.MatrixSpace(self.base_ring(), len(B), self.codomain().rank())
+        H = sub.Hom(self.codomain(), self.category())
+        return H(MS(ims))
 
     def factor_out_component_group(self):
         r"""

@@ -539,7 +539,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         prec = self.sturm_bound()
         C = self.q_expansion_basis(prec)
-##        prec = C[0].prec() if (len(C) > 0) else 0
         V = self.base_ring()**prec
         W = V.span_of_basis([f.padded_list(prec) for f in C])
         self.__q_expansion_module = W
@@ -878,8 +877,11 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: M.has_coerce_map_from(ModularForms(22,4))
             False
         """
-        if isinstance(from_par, ModularFormsSpace) and from_par.ambient() == self:
-            return True
+        if isinstance(from_par, ModularFormsSpace):
+            if from_par.ambient() == self:
+                return True
+            elif self.is_ambient() and self.group().is_subgroup(from_par.group()) and self.weight() == from_par.weight():
+                return True
 
         return False
 
@@ -895,9 +897,20 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             1 + 3*q + 3*q^2 + 2*q^3 - 7*q^4 + 8*q^5 + O(q^6)
             sage: M._coerce_impl(S.basis()[0])
             q - q^3 - 2*q^4 + q^5 + O(q^6)
+
+            sage: M = ModularForms(Gamma0(22)) ; N = ModularForms(Gamma0(44))
+            sage: M.basis()[0]
+            q - q^3 - 2*q^4 + q^5 + O(q^6)
+            sage: N(M.basis()[0])
+            q - q^3 - 2*q^4 + q^5 + O(q^6)
         """
-        if isinstance(x, element.ModularFormElement) and x.parent().ambient() == self:
-            return self(x.element())
+        if isinstance(x, element.ModularFormElement):
+            if x.parent().ambient() == self:
+                return self(x.element())
+            elif self.group().is_subgroup(x.parent().group()):
+                ## This is a coercion M_k(Gamma) --> M_k(Gamma'),
+                ## where Gamma' is contained in Gamma.
+                return self(x.q_expansion(self._q_expansion_module().degree()))
 
         raise TypeError, "no known coercion to modular form"
 

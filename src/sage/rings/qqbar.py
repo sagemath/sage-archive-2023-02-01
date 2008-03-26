@@ -295,6 +295,42 @@ verify it.
     0
     sage: lhs._exact_value()
     -242494609856316402264822833062350847769474540*a^9 + 862295472068289472491654837785947906234680703*a^8 - 829559238431038252116584538075753012193290520*a^7 - 125882239615006638366472766103700441555126185*a^6 + 1399067970863104691667276008776398309383579345*a^5 - 1561176687069361567616835847286958553574223422*a^4 + 761706318888840943058230840550737823821027895*a^3 + 580740464974951394762758666210754821723780266*a^2 - 954587496403409756503464154898858512440951323*a + 546081123623099782018260884934770383777092602 where a^10 - 4*a^9 + 5*a^8 - a^7 - 6*a^6 + 9*a^5 - 6*a^4 - a^3 + 5*a^2 - 4*a + 1 = 0 and a in [0.44406334400909258 .. 0.44406334400909265]
+
+We can pickle and unpickle algebraic fields (and they are globally unique):
+
+    sage: loads(dumps(AlgebraicField())) is AlgebraicField()
+    True
+    sage: loads(dumps(AlgebraicRealField())) is AlgebraicRealField()
+    True
+
+We can pickle and unpickle algebraic numbers:
+
+    sage: loads(dumps(QQbar(10))) == QQbar(10)
+    True
+    sage: loads(dumps(QQbar(5/2))) == QQbar(5/2)
+    True
+    sage: loads(dumps(QQbar.zeta(5))) == QQbar.zeta(5)
+    True
+
+    sage: t = QQbar(sqrt(2)); type(t._descr)
+    <class 'sage.rings.qqbar.ANRoot'>
+    sage: loads(dumps(t)) == QQbar(sqrt(2))
+    True
+
+    sage: t.exactify(); type(t._descr)
+    <class 'sage.rings.qqbar.ANExtensionElement'>
+    sage: loads(dumps(t)) == QQbar(sqrt(2))
+    True
+
+    sage: t = ~QQbar(sqrt(2)); type(t._descr)
+    <class 'sage.rings.qqbar.ANUnaryExpr'>
+    sage: loads(dumps(t)) == 1/QQbar(sqrt(2))
+    True
+
+    sage: t = QQbar(sqrt(2)) + QQbar(sqrt(3)); type(t._descr)
+    <class 'sage.rings.qqbar.ANBinaryExpr'>
+    sage: loads(dumps(t)) == QQbar(sqrt(2)) + QQbar(sqrt(3))
+    True
 """
 
 import sage.rings.ring
@@ -1186,6 +1222,9 @@ class AlgebraicGenerator(SageObject):
         global algebraic_generator_counter
         self._index = algebraic_generator_counter
         algebraic_generator_counter += 1
+
+    def __reduce__(self):
+        return (AlgebraicGenerator, (self._field, self._root))
 
     def __hash__(self):
         return self._index
@@ -2365,6 +2404,9 @@ class AlgebraicNumber(AlgebraicNumber_base):
     def __init__(self, x):
         AlgebraicNumber_base.__init__(self, QQbar, x)
 
+    def __reduce__(self):
+        return (AlgebraicNumber, (self._descr, ))
+
     def __cmp__(self, other):
         """
         Compare two algebraic numbers, lexicographically.  (That is,
@@ -2788,6 +2830,9 @@ class AlgebraicNumber(AlgebraicNumber_base):
 class AlgebraicReal(AlgebraicNumber_base):
     def __init__(self, x):
         AlgebraicNumber_base.__init__(self, AA, x)
+
+    def __reduce__(self):
+        return (AlgebraicReal, (self._descr, ))
 
     def __cmp__(self, other):
         """
@@ -3253,6 +3298,9 @@ class ANRational(ANDescr):
         else:
             raise TypeError, "Illegal initializer for algebraic number rational"
 
+    def __reduce__(self):
+        return (ANRational, (self._value, ))
+
     def _repr_(self):
         return repr(self._value)
 
@@ -3375,6 +3423,9 @@ class ANRootOfUnity(ANDescr):
             scale = -scale
         self._angle = angle
         self._scale = scale
+
+    def __reduce__(self):
+        return (ANRootOfUnity, (self._angle, self._scale))
 
     def _repr_(self):
         return "%s*e^(2*pi*I*%s)"%(self._scale, self._angle)
@@ -3529,6 +3580,9 @@ class AlgebraicPolynomialTracker(SageObject):
         self._exact = False
         self._roots_cache = {}
 
+    def __reduce__(self):
+        return (AlgebraicPolynomialTracker, (self._poly, ))
+
     def _repr_(self):
         return repr(self._poly)
 
@@ -3615,6 +3669,9 @@ class ANRoot(ANDescr):
         self._complex = is_ComplexIntervalFieldElement(interval)
         self._complex_poly = poly.is_complex()
         self._interval = self.refine_interval(interval, 64)
+
+    def __reduce__(self):
+        return (ANRoot, (self._poly, self._interval, self._multiplicity))
 
     def _repr_(self):
         return 'Root %s of %s'%(self._interval, self._poly)
@@ -4170,6 +4227,9 @@ class ANExtensionElement(ANDescr):
         self._value = value
         self._exactly_real = not generator.is_complex()
 
+    def __reduce__(self):
+        return (ANExtensionElement, (self._generator, self._value))
+
     def _repr_(self):
         return '%s where %s = 0 and a in %s'%(self._value,
                                               self._generator.field().polynomial()._repr(name='a'),
@@ -4359,6 +4419,9 @@ class ANUnaryExpr(ANDescr):
         self._arg = arg
         self._op = op
 
+    def __reduce__(self):
+        return (ANUnaryExpr, (self._arg, self._op))
+
     def kind(self):
         return 'other'
 
@@ -4464,6 +4527,9 @@ class ANBinaryExpr(ANDescr):
         self._right = right
         self._op = op
         self._complex = True
+
+    def __reduce__(self):
+        return (ANBinaryExpr, (self._left, self._right, self._op))
 
     def kind(self):
         return 'other'

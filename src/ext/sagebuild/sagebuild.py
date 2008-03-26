@@ -266,6 +266,8 @@ def buildsage(env, gccc):
 
     config_gcc_file(env,pyx_pextn_dict, abs_sage_path(env,'sage/combinat/partitions.pyx'),language='C++', libraries = ['qd', 'gmp', 'mpfr'])
 
+    config_gcc_file(env,pyx_pextn_dict, abs_sage_path(env,"sage/combinat/matrices/dancing_links.pyx"),language="C++")
+
     config_gcc_file(env,pyx_pextn_dict, abs_sage_path(env,'sage/graphs/graph_fast.pyx'),libraries = ['gmp'])
 
     config_gcc_file(env,pyx_pextn_dict, abs_sage_path(env,'sage/rings/polynomial/pbori.pyx'),language='C++', include_dirs = [abs_sage_local(env,'include/cudd'),abs_sage_local(env,'include/polybori'), abs_sage_local(env,'include/polybori/groebner')], libraries=['polybori','pboriCudd','groebner'])

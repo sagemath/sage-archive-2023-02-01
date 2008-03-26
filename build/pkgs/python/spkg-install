@@ -1,26 +1,29 @@
-#!/bin/sh
+#!/usr/bin/env bash
 ###########################################
 ## Python
 ###########################################
 
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
 # PATCH
 
 cp patches/ctypes__init__.py src/Lib/ctypes/__init__.py
-
 if [ $? -ne 0 ]; then
     echo "Error copying patched ctypes"
     exit 1
 fi
 
 cp patches/locale.py src/Lib/
-
 if [ $? -ne 0 ]; then
     echo "Error copying patched locale.py"
     exit 1
 fi
 
 cp patches/pkgutil.py src/Lib/pkgutil.py
-
 if [ $? -ne 0 ]; then
     echo "Error copying patched pkgutil.py"
     exit 1
@@ -61,7 +64,14 @@ build()
     # shared extension modules, at least in Python 2.5.
     rm -f "$SAGE_LOCAL"/lib/libpython*
 
-    ./configure --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4
+    EXTRAFLAGS="";
+
+    if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+        echo "64 bit OSX 10.5 build enabled"
+        EXTRAFLAGS="--with-gmp=\"gcc -m64\""
+    fi
+
+    ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4
 
     if [ $? -ne 0 ]; then
         echo "Error configuring Python."

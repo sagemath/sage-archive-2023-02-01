@@ -5672,13 +5672,26 @@ class GenericGraph(SageObject):
             sage: P.coarsest_equitable_refinement(prt)
             [[0], [1, 4, 5], [2, 3, 6, 7, 8, 9]]
 
+            sage: ss = (graphs.WheelGraph(6)).line_graph(labels=False)
+            sage: prt = [[(0, 1)], [(0, 2), (0, 3), (0, 4), (1, 2), (1, 4)], [(2, 3), (3, 4)]]
+            sage: ss.coarsest_equitable_refinement(prt)
+            Traceback (most recent call last):
+            ...
+            TypeError: Partition ([[(0, 1)], [(0, 2), (0, 3), (0, 4), (1, 2), (1, 4)], [(2, 3), (3, 4)]]) is not valid for this graph: vertices are incorrect.
+
+            sage: ss = (graphs.WheelGraph(5)).line_graph(labels=False)
+            sage: ss.coarsest_equitable_refinement(prt)
+            [[(0, 1)], [(1, 2), (1, 4)], [(0, 3)], [(0, 2), (0, 4)], [(2, 3), (3, 4)]]
+
         ALGORITHM:
             Brendan D. McKay's Master's Thesis, University of Melbourne, 1976.
 
         """
         from sage.misc.flatten import flatten
-        if sorted(flatten(partition)) != self.vertices():
-            raise TypeError("Partition (%s) is not valid for this graph."%partition)
+        if sorted(flatten(partition, max_level=1)) != self.vertices():
+            raise TypeError("Partition (%s) is not valid for this graph: vertices are incorrect."%partition)
+        if any(len(cell)==0 for cell in partition):
+            raise TypeError("Partition (%s) is not valid for this graph: there is a cell of length 0."%partition)
         if self.multiple_edges():
             raise TypeError("Refinement function does not support multiple edges.")
         G = self.copy()

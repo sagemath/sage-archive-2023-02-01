@@ -1,0 +1,36 @@
+--- src-2.5.1/Lib/locale.py	2006-05-17 19:06:40.000000000 -0700
++++ patches/locale.py	2008-01-20 22:23:57.000000000 -0800
+@@ -26,10 +26,12 @@
+ try:
+ 
+     from _locale import *
++    EMULATE = False
+ 
+ except ImportError:
+ 
+     # Locale emulation
++    EMULATE = True
+ 
+     CHAR_MAX = 127
+     LC_ALL = 6
+@@ -485,7 +487,7 @@
+     """
+     _setlocale(category, _build_localename(getdefaultlocale()))
+ 
+-if sys.platform in ('win32', 'darwin', 'mac'):
++if not EMULATE and sys.platform in ('win32', 'darwin', 'mac'):
+     # On Win32, this will return the ANSI code page
+     # On the Mac, it should return the system encoding;
+     # it might return "ascii" instead
+@@ -509,7 +511,10 @@
+             according to the system configuration."""
+             if do_setlocale:
+                 oldloc = setlocale(LC_CTYPE)
+-                setlocale(LC_CTYPE, "")
++                try:
++                 setlocale(LC_CTYPE, "")
++                except:
++                 return nl_langinfo(CODESET)
+                 result = nl_langinfo(CODESET)
+                 setlocale(LC_CTYPE, oldloc)
+                 return result

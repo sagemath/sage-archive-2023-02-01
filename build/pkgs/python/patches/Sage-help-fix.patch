@@ -1,0 +1,13 @@
+--- src-2.5.1/Lib/pkgutil.py	2006-07-28 14:12:07.000000000 -0700
++++ patches/pkgutil.py	2007-08-18 16:46:20.000000000 -0700
+@@ -114,8 +114,8 @@
+             except Exception:
+                 if onerror is not None:
+                     onerror(name)
+-                else:
+-                    raise
++                #else:        # These break the help() command in SAGE
++                #    raise    # with them commented out it works again :-). -- was
+             else:
+                 path = getattr(sys.modules[name], '__path__', None) or []
+ 

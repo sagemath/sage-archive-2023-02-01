@@ -1,0 +1,26 @@
+--- src-2.5.1/Lib/ctypes/__init__.py	2007-03-09 12:21:16.000000000 -0800
++++ patches/ctypes__init__.py	2007-05-29 13:45:13.000000000 -0700
+@@ -23,8 +23,10 @@
+     from _ctypes import FormatError
+ 
+ DEFAULT_MODE = RTLD_LOCAL
+-if _os.name == "posix" and _sys.platform == "darwin":
+-    import gestalt
++
++# We don't care about this, since SAGE always uses Python >= 2.5. 
++#if _os.name == "posix" and _sys.platform == "darwin":
++#    import gestalt
+ 
+     # gestalt.gestalt("sysv") returns the version number of the
+     # currently active system file as BCD.
+@@ -36,8 +38,8 @@
+     # because RTLD_LOCAL does not work at least on some
+     # libraries.
+ 
+-    if gestalt.gestalt("sysv") < 0x1040:
+-        DEFAULT_MODE = RTLD_GLOBAL
++#    if gestalt.gestalt("sysv") < 0x1040:
++#        DEFAULT_MODE = RTLD_GLOBAL
+ 
+ from _ctypes import FUNCFLAG_CDECL as _FUNCFLAG_CDECL, \
+      FUNCFLAG_PYTHONAPI as _FUNCFLAG_PYTHONAPI

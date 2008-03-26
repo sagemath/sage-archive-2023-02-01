@@ -1,0 +1,44 @@
+--- src-2.5.1/Modules/readline.c	2007-01-22 08:10:27.000000000 -0800
++++ patches/readline.c	2007-08-28 20:45:36.000000000 -0700
+@@ -31,10 +31,8 @@
+ #include <readline/readline.h>
+ #include <readline/history.h>
+ 
+-#ifdef HAVE_RL_COMPLETION_MATCHES
+-#define completion_matches(x, y) \
+-	rl_completion_matches((x), ((rl_compentry_func_t *)(y)))
+-#endif
++/* SAGE: The else clause above added by Kate Minola for SAGE. */
++extern char ** completion_matches(const char *,rl_compentry_func_t *);
+ 
+ 
+ /* Exported function to send one line to readline's init file parser */
+@@ -678,7 +676,9 @@
+ 	Py_XDECREF(endidx);
+ 	begidx = PyInt_FromLong((long) start);
+ 	endidx = PyInt_FromLong((long) end);
+-	return completion_matches(text, *on_completion);
++	/* return completion_matches(text, *on_completion); */
++	/* SAGE: Fix by Kate Minola <kate01123@gmail.com> */
++	return (char **) completion_matches(text, (rl_compentry_func_t *)*on_completion);
+ }
+ 
+ 
+@@ -768,16 +768,10 @@
+ 
+ 		while (!has_input)
+ 		{	struct timeval timeout = {0, 100000}; /* 0.1 seconds */
+-
+-			/* [Bug #1552726] Only limit the pause if an input hook has been 
+-			   defined.  */
+-		 	struct timeval *timeoutp = NULL;
+-			if (PyOS_InputHook) 
+-				timeoutp = &timeout;
+ 			FD_SET(fileno(rl_instream), &selectset);
+ 			/* select resets selectset if no input was available */
+ 			has_input = select(fileno(rl_instream) + 1, &selectset,
+-					   NULL, NULL, timeoutp);
++					   NULL, NULL, &timeout);
+ 			if(PyOS_InputHook) PyOS_InputHook();
+ 		}
+ 

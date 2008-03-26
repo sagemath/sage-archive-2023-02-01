@@ -5,7 +5,7 @@
 
 import os as _os, sys as _sys
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 from _ctypes import Union, Structure, Array
 from _ctypes import _Pointer
@@ -228,6 +228,14 @@ _check_size(c_char)
 
 class c_char_p(_SimpleCData):
     _type_ = "z"
+    if _os.name == "nt":
+        def __repr__(self):
+            if not windll.kernel32.IsBadStringPtrA(self, -1):
+                return "%s(%r)" % (self.__class__.__name__, self.value)
+            return "%s(%s)" % (self.__class__.__name__, cast(self, c_void_p).value)
+    else:
+        def __repr__(self):
+            return "%s(%s)" % (self.__class__.__name__, cast(self, c_void_p).value)
 _check_size(c_char_p, "P")
 
 class c_void_p(_SimpleCData):

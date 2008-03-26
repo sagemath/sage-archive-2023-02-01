@@ -983,7 +983,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         R = QQ[var]
         return R([self.norm(), -self.trace(), 1])
 
-
     def minpoly(self, var='x'):
         r"""
         The minimal polynomial of this element over $\Q$.
@@ -1018,6 +1017,76 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         K = order.number_field()
         NumberFieldElement_quadratic.__init__(self, K, f)
         (<Element>self)._parent = order
+
+    def norm(self):
+        """
+        The norm of an element of the ring of integers is an Integer.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 3)
+            sage: O2 = K.order(2*a)
+            sage: w = O2.gen(1); w
+            2*a
+            sage: w.norm()
+            12
+            sage: parent(w.norm())
+            Integer Ring
+        """
+        return ZZ(NumberFieldElement_quadratic.norm(self))
+
+    def trace(self):
+        """
+        The trace of an element of the ring of integers is an Integer.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 - 5)
+            sage: R = K.ring_of_integers()
+            sage: b = R((1+a)/2)
+            sage: b.trace()
+            1
+            sage: parent(b.trace())
+            Integer Ring
+        """
+        return ZZ(NumberFieldElement_quadratic.trace(self))
+
+    def charpoly(self, var='x'):
+        r"""
+        The characteristic polynomial of this element, which is over $\Z$
+        because this element is an algebraic integer.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 - 5)
+            sage: R = K.ring_of_integers()
+            sage: b = R((5+a)/2)
+            sage: f = b.charpoly('x'); f
+            x^2 - 5*x + 5
+            sage: f.parent()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: f(b)
+            0
+        """
+        R = ZZ[var]
+        return R([self.norm(), -self.trace(), 1])
+
+    def minpoly(self, var='x'):
+        r"""
+        The minimal polynomial of this element over $\Z$.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 163)
+            sage: R = K.ring_of_integers()
+            sage: f = R(a).minpoly('x'); f
+            x^2 + 163
+            sage: f.parent()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: R(5).minpoly()
+            x - 5
+        """
+        if self.is_rational_c():
+            R = ZZ[var]
+            return R([-self._rational_(), 1])
+        else:
+            return self.charpoly()
 
     cdef number_field(self):
         # So few functions actually use self.number_field() for quadratic elements, so

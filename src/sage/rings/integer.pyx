@@ -337,6 +337,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         #     mpz_init_set_sage(self.value, x)
 
         cdef Integer tmp
+        cdef char* xs
 
         if x is None:
             if mpz_sgn(self.value) != 0:
@@ -348,7 +349,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if PY_TYPE_CHECK(x, Integer):
                 set_from_Integer(self, <Integer>x)
 
-            elif PY_TYPE_CHECK(x,bool):
+            elif PY_TYPE_CHECK(x, bool):
                 mpz_set_si(self.value, PyInt_AS_LONG(x))
 
             elif PyInt_CheckExact(x):
@@ -378,7 +379,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             elif PyString_Check(x):
                 if base < 0 or base > 36:
                     raise ValueError, "base (=%s) must be between 2 and 36"%base
-                if mpz_set_str(self.value, x, base) != 0:
+
+                xs = x
+                if xs[0] == c'+':
+                    xs += 1
+                if mpz_set_str(self.value, xs, base) != 0:
                     raise TypeError, "unable to convert x (=%s) to an integer"%x
 
             elif PyObject_HasAttrString(x, "_integer_"):

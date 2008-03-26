@@ -33,6 +33,7 @@ There are a large number of cimmunity resources. For more details see http://www
  * upgrade to the 2.5.2 release
  * clean up SPKG.txt
  * add 64 bit OSX 10.5 build support
+ * make sure SAGE_LOCAL is set (#633)
 
 === python-2.5.1.p13 (Michael Abshoff, Jan. 22st, 2008) ===
  * remove executables from tarball

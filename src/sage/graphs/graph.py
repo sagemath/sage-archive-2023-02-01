@@ -3519,6 +3519,58 @@ class GenericGraph(SageObject):
             return 0
         return max(e)
 
+    def girth(self):
+        """
+        Computes the girth of the graph. For directed graphs, computes the girth
+        of the undirected graph.
+
+        The girth is the length of the shortest cycle in the graph. Graphs
+        without cycles have infinite girth.
+
+        EXAMPLES:
+            sage: graphs.TetrahedralGraph().girth()
+            3
+            sage: graphs.CubeGraph(3).girth()
+            4
+            sage: graphs.PetersenGraph().girth()
+            5
+            sage: graphs.HeawoodGraph().girth()
+            6
+            sage: graphs.trees(9).next().girth()
+            +Infinity
+
+        """
+        G = self.to_undirected()
+        G.relabel() # vertices are now {0, ..., n-1}
+        n = G.num_verts()
+        best = n+1
+        for i in range(n-2):
+            span = [0]*n
+            span[i] = 1
+            depth = 1
+            thisList = [i]
+            while 2*depth <= best and 3 < best:
+                nextList = []
+                for v in thisList:
+                    for u in G.neighbors(v):
+                        if not span[u]:
+                            span[u] = 1
+                            nextList.append(u)
+                        else:
+                            if u in thisList:
+                                best = depth*2-1
+                                break
+                            if u in nextList:
+                                best = depth*2
+                thisList = nextList
+                depth += 1
+        if best == n+1:
+            from sage.rings.infinity import Infinity
+            return Infinity
+        return best
+
+
+
     def periphery(self):
         """
         Returns the set of vertices in the periphery, i.e. whose eccentricity

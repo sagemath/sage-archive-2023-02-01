@@ -75,20 +75,13 @@ def prod(x, z=None, Py_ssize_t recursion_cutoff = 5):
     AUTHORS:
         Joel B. Mohler (2007-10-03 -- Reimplemented in Cython and optimized)
         Robert Bradshaw (2007-10-26) -- Balanced product tree, other optimizations, (lazy) generator support
+        Robert Bradshaw (2008-03-26) -- Balanced product tree for generators and iterators
     """
+    cdef Py_ssize_t n
+
     if not PyList_CheckExact(x) and not PyTuple_CheckExact(x):
 
-        if PyGen_Check(x):
-            # lazy list, do lazy product
-            try:
-                prod = x.next() if z is None else z * x.next()
-                for a in x:
-                    prod *= a
-                return prod
-            except StopIteration:
-                x = []
-
-        else:
+        if not PyGen_Check(x):
 
             try:
                 return x.prod()
@@ -100,9 +93,20 @@ def prod(x, z=None, Py_ssize_t recursion_cutoff = 5):
             except AttributeError:
                 pass
 
-            x = list(x)
+            try:
+                n = len(x)
+                if n < 1000: # arbitrary limit
+                    x = list(x)
+            except TypeError:
+                pass
 
-    cdef Py_ssize_t n = len(x)
+        if not PyList_CheckExact(x):
+            try:
+                return iterator_prod(x, z)
+            except StopIteration:
+                x = []
+
+    n = len(x)
 
     if n == 0:
         if z is None:
@@ -148,6 +152,68 @@ cdef balanced_list_prod(L, Py_ssize_t offset, Py_ssize_t count, Py_ssize_t cutof
     else:
         k = (1+count) >> 1
         return balanced_list_prod(L, offset, k, cutoff) * balanced_list_prod(L, offset+k, count-k, cutoff)
+
+
+cpdef iterator_prod(L, z=None):
+    """
+    Attempts to do a balanced product of an arbitrary and unknown length
+    sequence (such as a generator). Intermediate multiplications are always
+    done with subproducts of the same size (measured by the number of original
+    factors) up until the iterator terminates. This is optimal when and only
+    when there are exactly a power of two number of terms.
+
+    A StopIteration is raised if the iterator is empty and z is not given.
+
+    EXAMPLES:
+        sage: from sage.misc.misc_c import iterator_prod
+        sage: iterator_prod(1..5)
+        120
+        sage: iterator_prod([], z='anything')
+        'anything'
+
+        sage: from sage.misc.misc_c import NonAssociative
+        sage: L = [NonAssociative(label) for label in 'abcdef']
+        sage: iterator_prod(L)
+        (((a*b)*(c*d))*(e*f))
+    """
+    # TODO: declaring sub_prods as a list should speed much of this up.
+    L = iter(L)
+    if z is None:
+        sub_prods = [L.next()] * 10
+    else:
+        sub_prods = [z] * 10
+
+    cdef Py_ssize_t j
+    cdef Py_ssize_t i = 1
+    cdef Py_ssize_t tip = 0
+
+    for x in L:
+        i += 1
+        if i & 1:
+            # for odd i we extend the stack
+            tip += 1
+            if len(sub_prods) == tip:
+                sub_prods.append(x)
+            else:
+                sub_prods[tip] = x
+            continue
+        else:
+            # for even i we multiply the stack down
+            # by the number of factors of 2 in i
+            x = sub_prods[tip] * x
+            for j from 1 <= j < 64:
+                if i & (1 << j):
+                    break
+                tip -= 1
+                x = sub_prods[tip] * x
+            sub_prods[tip] = x
+
+    while tip > 0:
+        tip -= 1
+        sub_prods[tip] *= sub_prods[tip+1]
+
+    return sub_prods[0]
+
 
 
 class NonAssociative:

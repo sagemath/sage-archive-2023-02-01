@@ -482,6 +482,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialAlgebra):
                 z_elt[ part2 ] = z_elt.get(part2, zero) + BR(c*c2.subs(**subs_dict))
         return self._from_dict(z_elt)
 
+
+
     def _invert_morphism(self, n, base_ring, self_to_other_cache, other_to_self_cache,\
                          to_other_function=None, to_self_function=None, \
                          upper_triangular=False, lower_triangular=False, \

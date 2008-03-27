@@ -350,7 +350,7 @@ class Permutation_class(CombinatorialObject):
         EXAMPLES:
             sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2])
             [[1, 2, 5], [3, 4]]
-            sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2]).to_permutation_by_reading_order()
+            sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2]).to_permutation()
             [3, 4, 1, 2, 5]
         """
         if sum(shape) != len(self):
@@ -2730,7 +2730,11 @@ def from_reduced_word(rw):
         sage: import sage.combinat.permutation as permutation
         sage: permutation.from_reduced_word([3,2,3,1,2,3,1])
         [3, 4, 2, 1]
+        sage: permutation.from_reduced_word([])
+        []
     """
+    if rw == []:
+        return []
 
     p = [i+1 for i in range(max(rw)+1)]
 

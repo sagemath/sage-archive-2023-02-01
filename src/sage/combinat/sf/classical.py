@@ -42,6 +42,7 @@ import llt
 import macdonald
 import jack
 import orthotriang
+import kschur
 
 ZZ = IntegerRing()
 QQ = RationalField()
@@ -170,25 +171,26 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         ###############################
         # Hall-Littlewood Polynomials #
         ###############################
-        #
-        #Qp: Convert to Schur basis and then convert to self
-        #
-        elif isinstance(x, hall_littlewood.HallLittlewoodElement_qp):
-            Qp = x.parent()
-            sx = Qp._s._from_cache(x, Qp._s_cache, Qp._self_to_s_cache, t=Qp.t)
-            return self(sx)
-        #
-        #P: Convert to Schur basis and then convert to self
-        #
-        elif isinstance(x, hall_littlewood.HallLittlewoodElement_p):
-            P = x.parent()
-            sx = P._s._from_cache(x, P._s_cache, P._self_to_s_cache, t=P.t)
-            return self(sx)
-        #
-        #Q: Convert to P basis and then convert to self
-        #
-        elif isinstance(x, hall_littlewood.HallLittlewoodElement_q):
-            return self( x.parent()._P( x ) )
+        elif isinstance(x, hall_littlewood.HallLittlewoodElement_generic):
+            #
+            #Qp: Convert to Schur basis and then convert to self
+            #
+            if isinstance(x, hall_littlewood.HallLittlewoodElement_qp):
+                Qp = x.parent()
+                sx = Qp._s._from_cache(x, Qp._s_cache, Qp._self_to_s_cache, t=Qp.t)
+                return self(sx)
+            #
+            #P: Convert to Schur basis and then convert to self
+            #
+            elif isinstance(x, hall_littlewood.HallLittlewoodElement_p):
+                P = x.parent()
+                sx = P._s._from_cache(x, P._s_cache, P._self_to_s_cache, t=P.t)
+                return self(sx)
+            #
+            #Q: Convert to P basis and then convert to self
+            #
+            elif isinstance(x, hall_littlewood.HallLittlewoodElement_q):
+                    return self( x.parent()._P( x ) )
 
         #######
         # LLT #
@@ -248,6 +250,18 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
                 return self( x.parent()._P(x) )
             else:
                 raise TypeError
+
+        #####################
+        # k-Schur Functions #
+        #####################
+        if isinstance(x, kschur.kSchurFunction_generic):
+            if isinstance(x, kschur.kSchurFunction_t):
+                P = x.parent()
+                sx = P._s._from_cache(x, P._s_cache, P._self_to_s_cache, t=P.t)
+                return self(sx)
+            else:
+                raise TypeError
+
         ####################################################
         # Bases defined by orthogonality and triangularity #
         ####################################################

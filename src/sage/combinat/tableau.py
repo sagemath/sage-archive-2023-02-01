@@ -15,20 +15,13 @@ Tableaux
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-
 from sage.rings.arith import factorial
 from sage.rings.integer import Integer
 import sage.combinat.skew_tableau
 import partition
-from composition import Compositions
 from integer_vector import IntegerVectors
 import word
-import misc
-import partition
 import sage.libs.symmetrica.all as symmetrica
-from sage.misc.all import prod
-import exceptions
 import random
 import copy
 import permutation
@@ -173,16 +166,14 @@ class Tableau_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Tableau([[1,2],[3,4]]).to_word_by_row()
-            [1, 2, 3, 4]
+            [3, 4, 1, 2]
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_row()
-            [1, 4, 6, 2, 5, 3]
+            [3, 2, 5, 1, 4, 6]
         """
-        word = []
-        for row in self:
-            word += row
-
-        return word
-
+        w = []
+        for row in reversed(self):
+            w += row
+        return w
 
     def to_word_by_column(self):
         """
@@ -190,16 +181,15 @@ class Tableau_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Tableau([[1,2],[3,4]]).to_word_by_column()
-            [1, 3, 2, 4]
+            [3, 1, 4, 2]
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_column()
-            [1, 2, 3, 4, 5, 6]
+            [3, 2, 1, 5, 4, 6]
         """
-        word = []
+        w = []
         conj = self.conjugate()
         for row in conj:
-            word += row
-
-        return word
+            w += list(reversed(row))
+        return w
 
     def to_word(self):
         """
@@ -207,36 +197,23 @@ class Tableau_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Tableau([[1,2],[3,4]]).to_word()
-            [1, 2, 3, 4]
+            [3, 4, 1, 2]
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word()
-            [1, 4, 6, 2, 5, 3]
+            [3, 2, 5, 1, 4, 6]
         """
         return self.to_word_by_row()
 
-    def to_word_by_reading_order(self):
-        """
-        Returns a word with the entries of self obtained by
-        reading self in the reading order.
 
-        EXAMPLES:
-            sage: Tableau([[1,2],[3,4]]).to_word_by_reading_order()
-            [3, 4, 1, 2]
-        """
-        word = []
-        for row in self:
-            word = row + word
-        return word
-
-    def to_permutation_by_reading_order(self):
+    def to_permutation(self):
         """
         Returns a permutation with the entries of self obtained by
         reading self in the reading order.
 
         EXAMPLES:
-            sage: Tableau([[1,2],[3,4]]).to_permutation_by_reading_order()
+            sage: Tableau([[1,2],[3,4]]).to_permutation()
             [3, 4, 1, 2]
         """
-        return permutation.Permutation(self.to_word_by_reading_order())
+        return permutation.Permutation(self.to_word())
 
 ##     def descents(self):
 ##         """
@@ -365,6 +342,8 @@ class Tableau_class(CombinatorialObject):
         """
 
         return word.evaluation(self.to_word())
+
+    weight = evaluation
 
     def is_standard(self):
         """
@@ -499,26 +478,31 @@ class Tableau_class(CombinatorialObject):
             [[1, 2], [3]]
             sage: Tableau([[1,2],[3],[4]]).restrict(2)
             [[1, 2]]
+            sage: Tableau([[1,1],[2]]).restrict(1)
+            [[1, 1]]
         """
-        t = self[:]
-        if not self.is_standard():
-            raise ValueError, "the tableau must be standard to perform the restriction"
-
-        return Tableau( filter(lambda z: z != [], map(lambda x: filter(lambda y: y <= n, x), t)) )
+        res = [ [y for y in row if y <=n] for row in self]
+        return Tableau_class([row for row in res if row != []])
 
     def to_chain(self):
         """
-        Returns the chain of partitions corresponding to the standard
-        skew tableau.
+        Returns the chain of partitions corresponding to the
+        (semi)standard tableau.
 
         EXAMPLES:
             sage: Tableau([[1,2],[3],[4]]).to_chain()
             [[], [1], [2], [2, 1], [2, 1, 1]]
+            sage: Tableau([[1,1],[2]]).to_chain()
+            [[], [2], [2, 1]]
+            sage: Tableau([[1,1],[3]]).to_chain()
+            [[], [2], [2], [2, 1]]
+            sage: Tableau([]).to_chain()
+            [[]]
         """
-        if not self.is_standard():
-            raise ValueError, "the tableau must be standard to convert to a chain"
-
-        return map(lambda x: self.restrict(x).shape(), range(self.size()+1))
+        if self == []:
+            return [self.shape()]
+        m = max(self.to_word())
+        return [self.restrict(k).shape() for k in range(m+1)]
 
 
     def anti_restrict(self, n):
@@ -565,7 +549,7 @@ class Tableau_class(CombinatorialObject):
 
         #Go through and add n+1 to the end of each
         #of the rows
-        for (row, col) in outside_corners:
+        for row, _ in outside_corners:
             new_t = map(list, self)
             if row != len(self):
                 new_t[row] += [n+1]
@@ -605,6 +589,17 @@ class Tableau_class(CombinatorialObject):
         """
         return list(self.down())
 
+    def to_list(self):
+        """
+        EXAMPLES:
+            sage: t = Tableau([[1,2],[3,4]])
+            sage: l = t.to_list(); l
+            [[1, 2], [3, 4]]
+            sage: l[0][0] = 2
+            sage: t
+            [[1, 2], [3, 4]]
+        """
+        return [row[:] for row in self]
 
     def bump(self, x):
         """
@@ -627,7 +622,7 @@ class Tableau_class(CombinatorialObject):
             [[1, 2, 2, 2], [2, 3, 3, 5], [4, 4, 5], [5, 6, 6]]
 
         """
-        new_t = copy.deepcopy(self[:])
+        new_t = self.to_list()
         to_insert = x
         row = 0
         done = False
@@ -658,6 +653,124 @@ class Tableau_class(CombinatorialObject):
             row += 1
 
         return Tableau(new_t)
+
+
+
+    def schensted_insert(self, i, left=False):
+        """
+        EXAMPLES:
+            sage: t = Tableau([[3,5],[7]])
+            sage: t.schensted_insert(8)
+            [[3, 5, 8], [7]]
+            sage: t.schensted_insert(8, left=True)
+            [[3, 5], [7], [8]]
+        """
+        if left:
+            return self._left_schensted_insert(i)
+        else:
+            return self._right_schensted_insert(i)
+
+    def _right_schensted_insert(self, letter):
+        """
+        EXAMPLES:
+            sage: t = Tableau([[3,5],[7]])
+            sage: t._right_schensted_insert(8)
+            [[3, 5, 8], [7]]
+            sage: t._right_schensted_insert(2)
+            [[2, 5], [3], [7]]
+            sage: t = Tableau([[3,8],[7]])
+            sage: t._right_schensted_insert(6)
+            [[3, 6], [7, 8]]
+        """
+        h = self.height()
+        if h == 0:
+            return Tableau_class([[letter]])
+        h += 1
+        rep = self.to_list() + [[]]
+
+        for i in range(h):
+            j = len(rep[i]) - 1
+            while j >= 0 and rep[i][j] > letter:
+                j -= 1
+            if j == len(rep[i])-1:
+                rep[i].append(letter)
+                break
+            else:
+                new_letter = rep[i][j+1]
+                rep[i][j+1] = letter
+                letter = new_letter
+
+        return Tableau_class([ row for row in rep if row != []])
+
+    def _left_schensted_insert(self, letter):
+        """
+        EXAMPLES:
+            sage: t = Tableau([[3,5],[7]])
+            sage: t._left_schensted_insert(8)
+            [[3, 5], [7], [8]]
+            sage: t._left_schensted_insert(6)
+            [[3, 5], [6, 7]]
+            sage: t._left_schensted_insert(2)
+            [[2, 3, 5], [7]]
+        """
+        h = len(self)
+        if h == 0:
+            return Tableau_class([[letter]])
+        h1 = h + 1
+        rep = self.to_list()
+        rep.reverse()
+
+        width = len(rep[h-1])
+        heights = self._heights() + [h1]
+
+        for j in range(1, width+2):
+            i = heights[j-1]
+            while i != h1 and rep[i-1][j-1] >= letter:
+                i += 1
+            if i == heights[j-1]: #add on top of column j
+                if j == 1:
+                    rep = [[letter]] + rep
+                else:
+                    rep[i-2].append(letter)
+                break
+            elif i == h1 and j == width: #add on right of line i
+                if rep[i-2][j-1] < letter:
+                    rep[i-2].append(letter)
+                else:
+                    new_letter = rep[i-2][j-1]
+                    rep[i-2][j-1] = letter
+                    rep[i-2].append(new_letter)
+                break
+            else:
+                new_letter = rep[i-2][j-1]
+                rep[i-2][j-1] = letter
+                letter = new_letter
+
+        rep.reverse()
+        return Tableau_class(rep)
+
+
+    def insert_word(self, w, left=False):
+        """
+        EXAMPLES:
+            sage: t0 = Tableau([])
+            sage: w = [1,1,2,3,3,3,3]
+            sage: t0.insert_word(w)
+            [[1, 1, 2, 3, 3, 3, 3]]
+            sage: t0.insert_word(w,left=True)
+            [[1, 1, 2, 3, 3, 3, 3]]
+            sage: w.reverse()
+            sage: t0.insert_word(w)
+            [[1, 1, 3, 3], [2, 3], [3]]
+            sage: t0.insert_word(w,left=True)
+            [[1, 1, 3, 3], [2, 3], [3]]
+        """
+        if left:
+            w = [i for i in reversed(w)]
+        res = self
+        for i in w:
+            res = res.schensted_insert(i,left=left)
+        return res
 
     def bump_multiply(left, right):
         """
@@ -756,6 +869,48 @@ class Tableau_class(CombinatorialObject):
 
         return self.conjugate().row_stabilizer()
 
+    def height(self):
+        """
+        Returns the height of the tableau.
+
+        EXAMPLES:
+            sage: Tableau([[1,2,3],[4,5]]).height()
+            2
+            sage: Tableau([[1,2,3]]).height()
+            1
+            sage: Tableau([]).height()
+            0
+        """
+        return len(self)
+
+    def _heights(self):
+        """
+
+        EXAMPLES:
+            sage: Tableau([[1,2,3,4],[5,6],[7],[8]])._heights()
+            [1, 3, 4, 4]
+            sage: Tableau([])._heights()
+            []
+            sage: Tableau([[1]])._heights()
+            [1]
+            sage: Tableau([[1,2]])._heights()
+            [1, 1]
+            sage: Tableau([[1,2],[3],[4]])._heights()
+            [1, 3]
+
+        """
+        cor = self.corners()
+        ncor = len(cor)
+        if ncor == 0:
+            return []
+        k = len(self)
+        cor = [ [k-i,j+1]  for i,j in reversed(cor)]
+
+        heights = [1]*(cor[0][1])
+        for i in range(1, ncor):
+            heights += [ cor[i][0] ]*(cor[i][1]-cor[i-1][1])
+
+        return heights
 
     def last_letter_lequal(self, tab2):
         """
@@ -804,6 +959,347 @@ class Tableau_class(CombinatorialObject):
             if tab2_j_pos < self_j_pos:
                 return False
 
+    def charge(self):
+        """
+        EXAPMLES:
+            sage: Tableau([[1,1],[2,2],[3]]).charge()
+            0
+            sage: Tableau([[1,1,3],[2,2]]).charge()
+            1
+            sage: Tableau([[1,1,2],[2],[3]]).charge()
+            1
+            sage: Tableau([[1,1,2],[2,3]]).charge()
+            2
+            sage: Tableau([[1,1,2,3],[2]]).charge()
+            2
+            sage: Tableau([[1,1,2,2],[3]]).charge()
+            3
+            sage: Tableau([[1,1,2,2,3]]).charge()
+            4
+
+        """
+        return word.charge([i for i in reversed(self.to_word())])
+
+
+    def cocharge(self):
+        """
+        EXAPMLES:
+            sage: Tableau([[1,1],[2,2],[3]]).cocharge()
+            4
+            sage: Tableau([[1,1,3],[2,2]]).cocharge()
+            3
+            sage: Tableau([[1,1,2],[2],[3]]).cocharge()
+            2
+            sage: Tableau([[1,1,2],[2,3]]).cocharge()
+            2
+            sage: Tableau([[1,1,2,3],[2]]).cocharge()
+            1
+            sage: Tableau([[1,1,2,2],[3]]).cocharge()
+            1
+            sage: Tableau([[1,1,2,2,3]]).cocharge()
+            0
+
+        """
+        return word.charge(self.to_word())
+
+
+    ##############
+    # katabolism #
+    ##############
+
+    def katabolism(self):
+        """
+        EXAMPLES:
+            sage: Tableau([]).katabolism()
+            []
+            sage: Tableau([[1,2,3,4,5]]).katabolism()
+            [[1, 2, 3, 4, 5]]
+            sage: Tableau([[1,1,3,3],[2,3],[3]]).katabolism()
+            [[1, 1, 2, 3, 3, 3], [3]]
+            sage: Tableau([[1, 1, 2, 3, 3, 3], [3]]).katabolism()
+            [[1, 1, 2, 3, 3, 3, 3]]
+        """
+        h = self.height()
+        if h == 0:
+            return self
+        else:
+            #Remove the top row and insert it back in
+            return Tableau_class(self[1:]).insert_word(self[0],left=True)
+
+    def katabolism_sequence(self):
+        """
+        EXAMPLES:
+            sage: t = Tableau([[1,2,3,4,5,6,8],[7,9]])
+            sage: t.katabolism_sequence()
+            [[[1, 2, 3, 4, 5, 6, 8], [7, 9]],
+             [[1, 2, 3, 4, 5, 6, 7, 9], [8]],
+             [[1, 2, 3, 4, 5, 6, 7, 8], [9]],
+             [[1, 2, 3, 4, 5, 6, 7, 8, 9]]]
+        """
+        h = self.height()
+        res = [self]
+        while h != 1:
+            res.append( res[-1].katabolism() )
+            h = res[-1].height()
+        return res
+
+    def lambda_katabolism(self, part):
+        """
+        EXAMPLES:
+            sage: t = Tableau([[1,1,3,3],[2,3],[3]])
+            sage: t.lambda_katabolism([])
+            [[1, 1, 3, 3], [2, 3], [3]]
+            sage: t.lambda_katabolism([1])
+            [[1, 2, 3, 3, 3], [3]]
+            sage: t.lambda_katabolism([1,1])
+            [[1, 3, 3, 3], [3]]
+            sage: t.lambda_katabolism([2,1])
+            [[3, 3, 3, 3]]
+            sage: t.lambda_katabolism([4,2,1])
+            []
+            sage: t.lambda_katabolism([5,1])
+            [[3, 3]]
+            sage: t.lambda_katabolism([4,1])
+            [[3, 3]]
+
+        """
+        #Reduce the partition if it is too big for the tableau
+        part  = [ min(part[i],len(self[i])) for i in range(min(len(self), len(part))) ]
+        if self.shape() == part:
+            return Tableau_class([])
+
+        w1 = Tableau_class( self[len(part):] ).to_word()
+
+        if len(self)-len(part)+11 > 0:
+            t2 = Tableau_class(self[:len(part)])
+        else:
+            t2 = self
+
+        if t2.shape() == part:
+            t2 = Tableau_class([])
+        else:
+            part += [0]*(len(t2)-len(part))
+            t2 = [[t2[i][j] for j in range(part[i], len(t2[i]))]  for i in range(len(t2)) ]
+            t2 = Tableau_class([ row for row in t2 if row != [] ])
+
+        w2 = t2.to_word()
+        return Tableau_class([]).insert_word(w2+w1)
+
+
+    def reduced_lambda_katabolism(self, part):
+        """
+        EXAMPLES:
+            sage: t = Tableau([[1,1,3,3],[2,3],[3]])
+            sage: t.reduced_lambda_katabolism([])
+            [[1, 1, 3, 3], [2, 3], [3]]
+            sage: t.reduced_lambda_katabolism([1])
+            [[1, 2, 3, 3, 3], [3]]
+            sage: t.reduced_lambda_katabolism([1,1])
+            [[1, 3, 3, 3], [3]]
+            sage: t.reduced_lambda_katabolism([2,1])
+            [[3, 3, 3, 3]]
+            sage: t.reduced_lambda_katabolism([4,2,1])
+            []
+            sage: t.reduced_lambda_katabolism([5,1])
+            0
+            sage: t.reduced_lambda_katabolism([4,1])
+            0
+        """
+        part1 = part
+
+        if self == []:
+            return self
+
+        res = self.lambda_katabolism(part)
+
+        if res == []:
+            return res
+
+        if res == 0:
+            return 0
+
+        a = self[0][0]
+
+        part = [ min(part1[i], len(self[i])) for i in range(min(len(part1),len(self)))]
+        tt_part = Tableau_class([ [a+i]*part[i] for i in range(len(part)) ])
+        t_part = Tableau_class([[self[i][j] for j in range(part[i])] for i in range(len(part))])
+
+        if t_part == tt_part:
+            return res
+        else:
+            return 0
+
+    def katabolism_projector(self, parts):
+        """
+        EXAMPLES:
+            sage: t = Tableau([[1,1,3,3],[2,3],[3]])
+            sage: t.katabolism_projector([[4,2,1]])
+            [[1, 1, 3, 3], [2, 3], [3]]
+            sage: t.katabolism_projector([[1]])
+            []
+            sage: t.katabolism_projector([[2,1],[1]])
+            []
+            sage: t.katabolism_projector([[1,1],[4,1]])
+            [[1, 1, 3, 3], [2, 3], [3]]
+        """
+        res = self
+        for p in parts:
+            res = res.reduced_lambda_katabolism(p)
+            if res == 0:
+                return 0
+
+        if res == []:
+            return self
+        else:
+            return Tableau_class([])
+
+
+    def promotion_operator(self, i):
+        """
+        EXAMPLES:
+            sage: t = Tableau([[1,2],[3]])
+            sage: t.promotion_operator(1)
+            [[[1, 2], [3], [4]], [[1, 2], [3, 4]], [[1, 2, 4], [3]]]
+            sage: t.promotion_operator(2)
+            [[[1, 1], [2, 3], [4]],
+             [[1, 1, 2], [3], [4]],
+             [[1, 1, 4], [2, 3]],
+             [[1, 1, 2, 4], [3]]]
+            sage: Tableau([[1]]).promotion_operator(2)
+            [[[1, 1], [2]], [[1, 1, 2]]]
+            sage: Tableau([[1,1],[2]]).promotion_operator(3)
+            [[[1, 1, 1], [2, 2], [3]],
+             [[1, 1, 1, 2], [2], [3]],
+             [[1, 1, 1, 3], [2, 2]],
+             [[1, 1, 1, 2, 3], [2]]]
+
+        TESTS:
+            sage: Tableau([]).promotion_operator(2)
+            [[[1, 1]]]
+            sage: Tableau([]).promotion_operator(1)
+            [[[1]]]
+
+        """
+        chain = self.to_chain()
+        part = self.shape()
+        weight = self.weight()
+        perm = permutation.from_reduced_word(range(1, len(weight)+1))
+        l = part.add_horizontal_border_strip(i)
+        ltab = [ from_chain( chain + [next] ) for next in l ]
+        return [ x.symmetric_group_action_on_values(perm) for x in ltab]
+
+
+    ##################################
+    # actions on tableaux from words #
+    ##################################
+    def raise_action_from_words(self, func):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.word import symmetric_group_action_on_values
+            sage: t = Tableau([[1,1,3,3],[2,3],[3]])
+            sage: f = t.raise_action_from_words(symmetric_group_action_on_values)
+            sage: f([1,2,3])
+            [[1, 1, 3, 3], [2, 3], [3]]
+            sage: f([3,2,1])
+            [[1, 1, 1, 1], [2, 3], [3]]
+            sage: f([1,3,2])
+            [[1, 1, 2, 2], [2, 2], [3]]
+        """
+        def f(*args):
+            w = self.to_word()
+            w = func(w, *args)
+            return from_shape_and_word(self.shape(), w)
+        return f
+
+    def symmetric_group_action_on_values(self, perm):
+        """
+        EXAMPLES:
+            sage: t = Tableau([[1,1,3,3],[2,3],[3]])
+            sage: t.symmetric_group_action_on_values([1,2,3])
+            [[1, 1, 3, 3], [2, 3], [3]]
+            sage: t.symmetric_group_action_on_values([3,2,1])
+            [[1, 1, 1, 1], [2, 3], [3]]
+            sage: t.symmetric_group_action_on_values([1,3,2])
+            [[1, 1, 2, 2], [2, 2], [3]]
+        """
+        f = self.raise_action_from_words( word.symmetric_group_action_on_values )
+        return f(perm)
+
+    #########
+    # atoms #
+    #########
+    def socle(self):
+        """
+        EXAMPLES:
+            sage: Tableau([[1,2],[3,4]]).socle()
+            2
+            sage: Tableau([[1,2,3,4]]).socle()
+            4
+        """
+        h = self.height()
+        if h == 0:
+            return 0
+        w1row = self[0]
+        i = 0
+        while i < len(w1row)-1:
+            if w1row[i+1] != w1row[i] + 1:
+                break
+            i += 1
+        return i+1
+
+    def atom(self):
+        """
+        EXAMPLES:
+            sage: Tableau([[1,2],[3,4]]).atom()
+            [2, 2]
+            sage: Tableau([[1,2,3],[4,5],[6]]).atom()
+            [3, 2, 1]
+
+        """
+        ll = [ t.socle() for t in self.katabolism_sequence() ]
+        lres = ll[:]
+        for i in range(1,len(ll)):
+            lres[i] = ll[i] - ll[i-1]
+        return lres
+
+
+def from_chain(chain):
+    """
+    Returns a semistandard tableau from a chain of partitions.
+
+    EXAMPLES:
+        sage: from sage.combinat.tableau import from_chain
+        sage: from_chain([[], [2], [2, 1], [3, 2, 1]])
+        [[1, 1, 3], [2, 3], [3]]
+    """
+    res = [[0]*chain[-1][i] for i in range(len(chain[-1]))]
+    for i in reversed(range(2, len(chain)+1)):
+        for j in range(len(chain[i-1])):
+            for k in range(chain[i-1][j]):
+                res[j][k] = i -1
+    return Tableau_class(res)
+
+def from_shape_and_word(shape, w):
+    """
+    Returns a tableau from a shape and word.
+
+    EXAMPLES:
+        sage: from sage.combinat.tableau import from_shape_and_word
+        sage: t = Tableau([[1, 3], [2], [4]])
+        sage: shape = t.shape(); shape
+        [2, 1, 1]
+        sage: word  = t.to_word(); word
+        [4, 2, 1, 3]
+        sage: from_shape_and_word(shape, word)
+        [[1, 3], [2], [4]]
+    """
+    res = []
+    j = 0
+    for i in reversed(range(len(shape))):
+        res.append( w[j:j+shape[i]] )
+        j += shape[i]
+    res.reverse()
+    return Tableau_class(res)
 
 def Tableaux(n=None):
     """
@@ -1196,7 +1692,6 @@ class StandardTableaux_partition(CombinatorialClass):
 
         number = factorial(sum(pi))
         hook = pi.hook_lengths()
-        entry = 0
 
         for row in range(len(pi)):
             for col in range(pi[row]):
@@ -1298,11 +1793,9 @@ class StandardTableaux_partition(CombinatorialClass):
             #Convert the tableau vector back to the regular tableau
             #format
             row_count= [0]*len(pi)
-            start_positions = [sum(pi[:n]) for n in range(len(pi))]
             tableau = [[None]*n for n in pi]
 
             for i in range(size):
-                #print tableau_vector, tableau_vector[i], row_count[tableau_vector[i]]
                 tableau[tableau_vector[i]][row_count[tableau_vector[i]]] = i+1
                 row_count[tableau_vector[i]] += 1
 
@@ -1380,8 +1873,6 @@ class StandardTableaux_partition(CombinatorialClass):
             for j in range(p[i]):
                 cells.append([i,j])
 
-
-        done = False
         m = sum(p)
         while m > 0:
 
@@ -1505,7 +1996,7 @@ def SemistandardTableaux(p=None, mu=None):
         else:
             if p != sum(mu):
                 #Error size mismatch
-                raise TypeError, "mu must be of size p (= %s)"%self.p
+                raise TypeError, "mu must be of size p (= %s)"%p
             else:
                 return SemistandardTableaux_nmu(p, mu)
     else:
@@ -1537,7 +2028,6 @@ class SemistandardTableaux_all(CombinatorialClass):
             t = Tableau(x)
 
         #Check to make sure the first position is 1
-        fillings = []
         for row in t:
             for i in row:
                 if not isinstance(i, (int, Integer)):

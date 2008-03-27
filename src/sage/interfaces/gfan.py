@@ -6,12 +6,13 @@ AUTHOR:
       algorithms many of which were invented by Jensen, Komei
       Fukuda, and Rekha Thomas.
    -- William Stein (2006-03-18): wrote gfan interface (first version)
+   -- Marshall Hampton (2008-03-17): modified to use gfan-0.3, subprocess instead of os.popen2
 
-TODO -- not done; this is just the first few minutes of work
-        on an interface!
+TODO -- much functionality of gfan-0.3 is still not exposed
 
    * at most 52 variables:
        use gfan_substitute to make easier (?)
+       MH: I think this is now irrelevant since gfan can accept the original ring variables
 
    * --symmetry is really useful
             - permutations are 0-based *not* cycle notation; a <---> 0
@@ -38,33 +39,32 @@ TODO -- not done; this is just the first few minutes of work
 #*****************************************************************************
 
 import os
+from subprocess import *
 
 class Gfan:
     """
     Interface to Anders Jensen's Groebner Fan program.
     """
-    def __call__(self, I, cmd='', verbose=False, format=True):
+    def __call__(self, I, cmd='',verbose = False, format=True):
         if cmd != '' and cmd.lstrip()[0] != '-':
             cmd = 'gfan_%s'%cmd
         else:
             cmd = 'gfan'
 
+        if len(cmd.split(' ')) > 1:
+            cmd = cmd.split(' ')
+
         if verbose:
             print "gfan command:\n%s"%cmd
             print "gfan input:\n%s"%I
 
-        if not verbose:
-            cmd += ' 2>/dev/null'
-        i, o = os.popen2(cmd)
-        s = '{' + (str(I).replace(' ', '').replace("'",""))[1:-1] + '}'
-        i.write(s)
-        i.close()
-        t = o.read()
-        if format:
-            t = t.replace('\n','').replace(',',' ')
-        return t
+        gfan_processes = Popen(cmd,stdin = PIPE, stdout=PIPE, stderr=PIPE)
+        ans, err = gfan_processes.communicate(input = I)
 
+        if len(err) > 0:
+            raise RuntimeError, err
 
+        return ans
 
 # The instance
 gfan = Gfan()

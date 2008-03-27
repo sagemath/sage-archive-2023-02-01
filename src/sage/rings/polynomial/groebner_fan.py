@@ -24,14 +24,14 @@ AUTHORS:
 
    -- Anders Nedergaard Jensen: Wrote the gfan C++ program, which
       implements algorithms many of which were invented by Jensen,
-      Komei Fukuda, and Rekha Thomas.   All the underlying hard work
-      of the Groebner fans functionality of \sage depends on
-      this C++ program.
+      Komei Fukuda, and Rekha Thomas. All the underlying hard work of
+      the Gr\"obner fans functionality of \sage depends on this C++
+      program.
 
-   -- William Stein (2006-04-20): Wrote first version of the \sage
+   -- William Stein (2006-04-20): Wrote first version of the \SAGE
       code for working with Groebner fans.
 
-   -- Tristram Bogart (bogart@math): the design of the \sage interface
+   -- Tristram Bogart (bogart@math): the design of the \SAGE interface
       to gfan is joint work with Tristram Bogart, who also supplied
       numerous examples.
 
@@ -54,6 +54,10 @@ TESTS:
     sage: g == loads(dumps(g))
     True
 
+REFERENCES:
+     Anders N. Jensen; Gfan, a software system for Gr\"obner fans;
+     available at
+     \url{http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html}
 """
 
 import os
@@ -75,7 +79,8 @@ from sage.plot.plot import *
 
 def prefix_check(str_list):
     """
-    Checks if any strings in a list are prefixes of another string in the list.
+    Checks if any strings in a list are prefixes of another string in
+    the list.
 
     EXAMPLES:
         sage: from sage.rings.polynomial.groebner_fan import prefix_check
@@ -110,7 +115,8 @@ class PolyhedralCone(SageObject):
 
     def __init__(self, gfan_polyhedral_cone, ring = QQ):
         """
-        Converts polymake/gfan data on a polyhedral cone into a sage class.  Currently (18-03-2008) needs a lot of work.
+        Converts polymake/gfan data on a polyhedral cone into a sage
+        class.  Currently (18-03-2008) needs a lot of work.
 
         EXAMPLES:
             sage: R3.<x,y,z> = PolynomialRing(QQ,3)
@@ -142,7 +148,6 @@ class PolyhedralCone(SageObject):
         rel_int_pt_str = self.cone_dict['RELATIVE_INTERIOR_POINT'][0]
         self._relative_interior_point = [int(q) for q in rel_int_pt_str.split(' ')]
 
-
     def _repr_(self):
         """
         Returns a basic description of the polyhedral cone.
@@ -151,8 +156,8 @@ class PolyhedralCone(SageObject):
             sage: R3.<x,y,z> = PolynomialRing(QQ,3)
             sage: gf = R3.ideal([x^8-y^4,y^4-z^2,z^2-2]).groebner_fan()
             sage: a = gf[0].groebner_cone()
-            sage: a._repr_()
-            'Polyhedral cone in 3 dimensions of dimension 3'
+            sage: a # indirect doctests
+            Polyhedral cone in 3 dimensions of dimension 3
         """
         return "Polyhedral cone in %s dimensions of dimension %s"%(str(self.ambient_dim()), str(self.dim()))
 
@@ -197,9 +202,9 @@ class PolyhedralCone(SageObject):
 
     def lineality_dim(self):
         """
-        Returns the lineality dimension of the Groebner cone.
-        This is the just the difference between the ambient dimension
-        and the dimension of the cone.
+        Returns the lineality dimension of the Groebner cone.  This is
+        the just the difference between the ambient dimension and the
+        dimension of the cone.
 
         EXAMPLES:
             sage: R3.<x,y,z> = PolynomialRing(QQ,3)
@@ -224,10 +229,10 @@ class PolyhedralCone(SageObject):
         return self._relative_interior_point
 
 class PolyhedralFan(SageObject):
-
     def __init__(self, gfan_polyhedral_fan):
         """
-        Converts polymake/gfan data on a polyhedral fan into a sage class.  Currently (18-03-2008) needs a lot of work.
+        Converts polymake/gfan data on a polyhedral fan into a sage
+        class.  Currently (18-03-2008) needs a lot of work.
 
         INPUT:
             gfan_polyhedral_fan -- output from gfan of a polyhedral fan.
@@ -240,7 +245,9 @@ class PolyhedralFan(SageObject):
             sage: pf.rays()
             [[1, 0, 0], [-2, -1, 0], [1, 1, 0], [0, -1, 0], [-1, 1, 0]]
         """
-        fan_keys = ['AMBIENT_DIM','DIM','LINEALITY_DIM','RAYS','N_RAYS', 'LINEALITY_SPACE','ORTH_LINEALITY_SPACE','F_VECTOR', 'CONES','MAXIMAL_CONES','PURE']
+        fan_keys = ['AMBIENT_DIM','DIM','LINEALITY_DIM','RAYS','N_RAYS',
+                    'LINEALITY_SPACE','ORTH_LINEALITY_SPACE','F_VECTOR',
+                    'CONES','MAXIMAL_CONES','PURE']
         poly_lines = gfan_polyhedral_fan.split('\n')
         self.fan_dict = {}
         key_ind = 0
@@ -262,7 +269,6 @@ class PolyhedralFan(SageObject):
             self._rays.append(temp_ray)
         self._str = gfan_polyhedral_fan
 
-
     def _repr_(self):
         """
         Returns a basic description of the polyhedral fan.
@@ -271,8 +277,8 @@ class PolyhedralFan(SageObject):
             sage: R3.<x,y,z> = PolynomialRing(QQ,3)
             sage: gf = R3.ideal([x^8-y^4,y^4-z^2,z^2-2]).groebner_fan()
             sage: pf = gf.polyhedralfan()
-            sage: pf._repr_()
-            'Polyhedral fan in 3 dimensions of dimension 3'
+            sage: pf # indirect doctest
+            Polyhedral fan in 3 dimensions of dimension 3
         """
         return "Polyhedral fan in %s dimensions of dimension %s"%(str(self.ambient_dim()), str(self.dim()))
 
@@ -399,8 +405,9 @@ class GroebnerFan(SageObject):
         EXAMPLES:
             sage: R.<q,u> = PolynomialRing(QQ,2)
             sage: gf = R.ideal([q-u,u^2-1]).groebner_fan()
-            sage: gf._repr_()
-            'Groebner fan of the ideal:\nIdeal (q - u, u^2 - 1) of Multivariate Polynomial Ring in q, u over Rational Field'
+            sage: gf # indirect doctest
+            Groebner fan of the ideal:
+            Ideal (q - u, u^2 - 1) of Multivariate Polynomial Ring in q, u over Rational Field
 
         """
         return "Groebner fan of the ideal:\n%s"%self.__ideal
@@ -1006,8 +1013,8 @@ class ReducedGroebnerBasis(SageObject, list):
             sage: R.<z1,zz1> = PolynomialRing(QQ,2)
             sage: gf = R.ideal([z1^2*zz1-1,zz1-2]).groebner_fan()
             sage: rgb1 = gf.reduced_groebner_bases()[0]
-            sage: rgb1._repr_()
-            '[zz1 - 2, z1^2 - 1/2]'
+            sage: rgb1 # indirect doctest
+            [zz1 - 2, z1^2 - 1/2]
         """
         return list.__repr__(self)
 

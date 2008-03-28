@@ -179,6 +179,54 @@ class QuaternionAlgebraElement(FreeAlgebraQuotientElement):
         else:
             return False
 
+    def is_pure(self):
+        """
+        Return True is this element of a quaternion algebra is
+        "pure" (i.e. has no scalar component, or has reduced-trace zero).
+
+        EXAMPLES:
+            sage: A.<i,j,k> = QuaternionAlgebra(QQ,-1,-1)
+            sage: i.is_pure()
+            True
+            sage: (i-5+j*k).is_pure()
+            False
+            sage: A(12).is_pure()
+            False
+        """
+        if self.is_zero():
+            return False
+        if self.reduced_trace() == 0:
+            return True
+        return False
+
+    def scalar_part(self):
+        """
+        Return the part of the quaternion 'self' that lies in the base field/ring.
+        This is given by the reduced trace (note: we assume characteristic not 2).
+        We could cheat, using self.vector(), but we really don't know what basis
+        is in place.  Do we?
+        EXAMPLES:
+            sage: A.<i,j,k> = QuaternionAlgebra(QQ,-1,-1)
+            sage: i.scalar_part()
+            0
+            sage: x = A([1,-3/2,0,2])
+            sage: x.scalar_part()
+             1
+        """
+        return self.reduced_trace()/2
+
+    def pure_part(self):
+        """
+        Return the part of the quaternion 'self' that lies in the vector subspace
+        "<i,j,k>" (figuratively speaking).  We just strip off the scalar part...
+        EXAMPLES:
+            sage: A.<i,j,k> = QuaternionAlgebra(QQ,-1,-1)
+            sage: x = A([1,-3/2,0,2])
+            sage: x.pure_part()
+             -3/2*i + 2*k
+        """
+        return self - self.scalar_part()
+
     def _div_(self, other):
         """
         Right division in the quaternion algebra

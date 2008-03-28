@@ -434,8 +434,9 @@ cdef class MPolynomial(CommutativeRingElement):
         return self._hash_c()
 
     def args(self):
-        """
-        Returns the named of the arguments of self, in the order they are accepted from call.
+        r"""
+        Returns the named of the arguments of \code{self}, in the
+        order they are accepted from call.
 
         EXAMPLES:
             sage: R.<x,y> = ZZ[]
@@ -524,6 +525,26 @@ cdef class MPolynomial(CommutativeRingElement):
                 raise TypeError, "Variable index %d must be < parent(self).ngens()."%var
         else:
             raise TypeError, "Parameter var must be either a variable, a string or an integer."
+
+    def __mod__(self, other):
+        """
+        EXAMPLE:
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = (x^2*y + 2*x - 3)
+            sage: g = (x + 1)*f
+            sage: g % f
+            0
+
+            sage: (g+1) % f
+            1
+
+            sage: M = x*y
+            sage: N = x^2*y^3
+            sage: M.divides(N)
+            True
+        """
+        q,r = self.quo_rem(other)
+        return r
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

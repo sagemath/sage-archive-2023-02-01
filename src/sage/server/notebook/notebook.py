@@ -1170,7 +1170,7 @@ class Notebook(SageObject):
             viewers = '<i>' + ', '.join(viewers) + '</i>'
             v.append(viewers)
 
-        s = ' / '.join(v) + ' ' + share
+        s = ' / '.join([str(w) for w in v]) + ' ' + share
 
         return s
 

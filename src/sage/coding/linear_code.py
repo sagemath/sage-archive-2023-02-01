@@ -129,6 +129,8 @@ and a new function, LinearCodeFromVectorSpace.
                  is_self_dual, is_self_orthogonal, redundancy_matrix, did some
                  alphabetical reorganizing to make the file more readable.
                  Fixed a bug in permutation_automorphism_group which caused it to crash.
+    -- dj (2008-03): fixed bugs in spectrum and zeta_polynomial (which misbehaved over
+                 non-prime base rings.
 
 TESTS:
    sage: MS = MatrixSpace(GF(2),4,7)
@@ -1624,6 +1626,12 @@ class LinearCode(module.Module):
             2/5*T^2 + 2/5*T + 1/5
             sage: P = C2.sd_zeta_polynomial(); P(1)
             1
+            sage: F.<z> = GF(4,"z")
+            sage: MS = MatrixSpace(F, 3, 6)
+            sage: G = MS([[1,0,0,1,z,z],[0,1,0,z,1,z],[0,0,1,z,z,1]])
+            sage: C = LinearCode(G)  # the "hexacode"
+            sage: C.sd_zeta_polynomial(4)
+            1
 
         It is a general fact about Duursma zeta polynomials that P(1) = 1.
 
@@ -1635,10 +1643,11 @@ class LinearCode(module.Module):
         P = C.sd_duursma_q(type,d0)
         PR = P.parent()
         T = FractionField(PR).gen()
-        if type == 1: return P
-        if type == 2: return P/(1-2*T+2*T**2)
-        if type == 3: return P/(1+3*T**2)
-        if type == 4: return P/(1+2*T)
+        if type == 1: P0 = P
+        if type == 2: P0 = P/(1-2*T+2*T**2)
+        if type == 3: P0 = P/(1+3*T**2)
+        if type == 4: P0 = P/(1+2*T)
+        return P0/P0(1)
 
     def shortened(self,L):
         r"""
@@ -1680,13 +1689,17 @@ class LinearCode(module.Module):
             sage: C = LinearCode(G)
             sage: C.spectrum()
             [1, 0, 0, 7, 7, 0, 0, 1]
+            sage: F.<z> = GF(2^2,"z")
+            sage: C = HammingCode(2, F); C
+            Linear code of length 5, dimension 3 over Finite Field in z of size 2^2
+            sage: C.spectrum()
+            [1, 0, 0, 30, 15, 18]
 
         """
         F = self.base_ring()
         q = F.order()
         G = self.gen_mat()
-        Glist = [list(x) for x in G]
-        Gstr = "Z("+str(q)+")*"+str(Glist)
+        Gstr = G._gap_init_()
         spec = wtdist(Gstr,F)
         return spec
 
@@ -1810,6 +1823,12 @@ class LinearCode(module.Module):
             sage: C = HammingCode(4,GF(2))
             sage: C.zeta_polynomial()
             16/429*T^6 + 16/143*T^5 + 80/429*T^4 + 32/143*T^3 + 30/143*T^2 + 2/13*T + 1/13
+            sage: F.<z> = GF(4,"z")
+            sage: MS = MatrixSpace(F, 3, 6)
+            sage: G = MS([[1,0,0,1,z,z],[0,1,0,z,1,z],[0,0,1,z,z,1]])
+            sage: C = LinearCode(G)  # the "hexacode"
+            sage: C.zeta_polynomial()
+            1
 
         REFERENCES:
 
@@ -1818,7 +1837,7 @@ class LinearCode(module.Module):
              pp. 55-73, 2001.
         """
         n = self.length()
-        q = (self.base_ring()).characteristic()
+        q = (self.base_ring()).order()
         d = self.minimum_distance()
         dperp = (self.dual_code()).minimum_distance()
         if d == 1 or dperp == 1:
@@ -1847,7 +1866,7 @@ class LinearCode(module.Module):
               P_coeffs.append(b[i] - (q+1)*b[i-1] + q*b[i-2])
         #print P_coeffs
         P = sum([P_coeffs[i]*T**i for i in range(r+1)])
-        return RT(P)
+        return RT(P)/RT(P)(1)
 
     def zeta_function(self,name = "T"):
         r"""

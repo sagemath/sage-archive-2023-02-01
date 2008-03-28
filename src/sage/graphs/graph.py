@@ -1799,7 +1799,7 @@ class GenericGraph(SageObject):
         if (len(path) != 0): faces.append(path)
         return faces
 
-    ### Connected components
+    ### Connectivity
 
     def is_connected(self):
         """
@@ -1906,6 +1906,102 @@ class GenericGraph(SageObject):
         c = list(self.breadth_first_search(vertex, ignore_direction=True))
         c.sort()
         return c
+
+    def blocks_and_cut_vertices(self):
+        """
+        Computes the blocks and cut vertices of the graph. In the case of a
+        digraph, this computation is done on the underlying graph.
+
+        A cut vertex is one whose deletion increases the number of connected
+        components. A block is a maximal induced subgraph which itself has no
+        cut vertices. Two distinct blocks cannot overlap in more than a single
+        cut vertex.
+
+        OUTPUT:
+        ( B, C ), where B is a list of blocks- each is a list of vertices and
+            the blocks are the corresponding induced subgraphs- and C is a list
+            of cut vertices.
+
+        EXAMPLES:
+            sage: graphs.PetersenGraph().blocks_and_cut_vertices()
+            ([[0, 1, 2, 3, 8, 5, 7, 9, 4, 6]], [])
+            sage: graphs.PathGraph(6).blocks_and_cut_vertices()
+            ([[5, 4], [4, 3], [3, 2], [2, 1], [0, 1]], [4, 3, 2, 1])
+            sage: graphs.CycleGraph(7).blocks_and_cut_vertices()
+            ([[0, 1, 2, 3, 4, 5, 6]], [])
+            sage: graphs.KrackhardtKiteGraph().blocks_and_cut_vertices()
+            ([[9, 8], [8, 7], [0, 1, 3, 2, 5, 6, 4, 7]], [8, 7])
+
+        ALGORITHM:
+        8.3.8 in [1]. Notice the typo - the stack must also be considered as one
+            of the blocks at termination.
+
+        REFERENCE:
+            [1] D. Jungnickel, Graphs, Networks and Algorithms, Springer, 2005.
+        """
+        G = self.to_undirected()
+        map_to_ints = G.relabel(return_map=True)
+        s = G.vertex_iterator().next()
+        nr = [0]*G.num_verts()
+        p = [0]*G.num_verts()
+        L = [0]*G.num_verts()
+        edges = {}
+        for u,v in G.edges(labels=False):
+            edges[(u,v)] = False
+            edges[(v,u)] = False
+        i = 1
+        v = s
+        nr[s] = 1
+        L[s] = 1
+        C = []
+        B = []
+        S = [s]
+        while True:
+            while True:
+                u = -1
+                for u in G.neighbor_iterator(v):
+                    if not edges[(v,u)]: break
+                if u == -1: break
+                if edges[(v,u)]: break
+                edges[(v,u)] = True
+                edges[(u,v)] = True
+                if nr[u] == 0:
+                    p[u] = v
+                    i += 1
+                    nr[u] = i
+                    L[u] = i
+                    S.append(u)
+                    v = u
+                else:
+                    L[v] = min([ L[v], nr[u] ])
+            if p[v] != s:
+                if L[v] < nr[p[v]]:
+                    L[p[v]] = min([ L[p[v]], L[v] ])
+                else:
+                    C.append(p[v])
+                    B_k = []
+                    while True:
+                        u = S.pop(-1)
+                        B_k.append(u)
+                        if u == v: break
+                    B_k.append(p[v])
+                    B.append(B_k)
+            else:
+                if any([ not edges[(s,u)] for u in G.neighbors(s)]):
+                    C.append(s)
+                B_k = []
+                while True:
+                    u = S.pop(-1)
+                    B_k.append(u)
+                    if u == v: break
+                B_k.append(s)
+                B.append(B_k)
+            v = p[v]
+            if p[v] == 0 and all([edges[(v,u)] for u in G.neighbors(v)]):
+                break
+        if len(S) != 0:
+            B.append(S)
+        return B, C
 
     ### Vertex handlers
 

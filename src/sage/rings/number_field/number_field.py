@@ -916,16 +916,38 @@ class NumberField_generic(number_field_base.NumberField):
 
     def is_totally_real(self):
         """
-        Return True if self is totally real, and false otherwise.
+        Return True if self is totally real, and False otherwise.
+
+        Totally reals means that every isomorphic embedding of self into the
+        complex numbers has image contained in the real numbers.
 
         EXAMPLES:
             sage: NumberField(x^2+2, 'alpha').is_totally_real()
             False
             sage: NumberField(x^2-2, 'alpha').is_totally_real()
             True
+            sage: NumberField(x^4-2, 'alpha').is_totally_real()
+            False
         """
-        return ZZ(self.pari_nf()[1][1]) == ZZ(0)
+        return self.signature()[1] == 0
 
+    def is_totally_imaginary(self):
+        """
+        Return True if self is totally imaginary, and False otherwise.
+
+        Totally imaginary means that no isomorphic embedding of self into the
+        complex numbers has image contained in the real numbers.
+
+        EXAMPLES:
+            sage: NumberField(x^2+2, 'alpha').is_totally_imaginary()
+            True
+            sage: NumberField(x^2-2, 'alpha').is_totally_imaginary()
+            False
+            sage: NumberField(x^4-2, 'alpha').is_totally_imaginary()
+            False
+        """
+        return self.signature()[0] == 0
+    is_totally_complex = is_totally_imaginary
     def complex_embeddings(self, prec=53):
         r"""
         Return all homomorphisms of this number field into the

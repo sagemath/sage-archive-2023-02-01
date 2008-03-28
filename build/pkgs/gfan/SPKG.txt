@@ -1,19 +1,42 @@
 = gfan =
 
-A software package written by Anders Nedergaard Jensen
+== Description ==
 
+From http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html: Gfan is a software package for computing Groebner fans and tropical varieties. These are polyhedral fans associated to polynomial ideals. The maximal cones of a Groebner fan are in bijection with the marked reduced Groebner bases of its defining ideal. The software computes all marked reduced Groebner bases of an ideal. Their union is a universal Groebner basis. The tropical variety of a polynomial ideal is a certain subcomplex of the Groebner fan. Gfan contains algorithms for computing this complex for general ideals and specialized algorithms for tropical curves, tropical hypersurfaces and tropical varieties of prime ideals.
 
-MAINTAINER:
-   -- William Stein
+== License ==
+ * GPL
 
-Download the package from
+== SPKG Maintainers ==
+ * Marshall Hampton
+ * William Stein
 
-    http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html
+== Upstream Contact ==
 
-then remove the doc, homepage, and examples subdirectories,
-which take up most of the space.
+Anders Nedergaard Jensen for contact info check out http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html
+
+== Dependencies ==
+ * GMP
+ * CDDLIB
+
+== ToDo ==
+ * clean up Makefile situation, i.e. keep a vanilla Makefile in src
+
+== Special Update/Build Instructions ==
+
+Download the package from http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html then remove the doc, homepage, and examples subdirectories, which take up most of the space.
 
 == Changelog ==
+
+=== gfan-0.3.p3 (Michael Abshoff, March 28th 2008) ===
+ * clean up SPKG.txt
+ * fix repo, readd .hgignore
+
+=== gfan-0.3.p2 (Marshall Hampton 2008) ===
+ * Cleaned up a little from previous version, no real changes.
+
+=== gfan-0.3.p1 (Marshall Hampton 2008) ===
+ * Updated to new version
 
 === gfan-0.2.2.p3 (Tim Abbott, Feb. 17th, 2008)  ===
  * Debianize spkg

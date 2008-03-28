@@ -918,7 +918,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         Return True if self is totally real, and False otherwise.
 
-        Totally reals means that every isomorphic embedding of self into the
+        Totally real means that every isomorphic embedding of self into the
         complex numbers has image contained in the real numbers.
 
         EXAMPLES:
@@ -947,7 +947,7 @@ class NumberField_generic(number_field_base.NumberField):
             False
         """
         return self.signature()[0] == 0
-    is_totally_complex = is_totally_imaginary
+
     def complex_embeddings(self, prec=53):
         r"""
         Return all homomorphisms of this number field into the

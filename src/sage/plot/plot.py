@@ -2016,7 +2016,7 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
             from matplotlib.colors import LinearSegmentedColormap as C
             possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
                                        isinstance(cm.__dict__[x], C)])
-            print "The possible color maps include: %s"%possibilities
+            sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level = 0)
             raise RuntimeError, "Color map %s not known"%cmap
 
         x0,x1 = float(self.xrange[0]), float(self.xrange[1])
@@ -2068,7 +2068,7 @@ class GraphicPrimitive_MatrixPlot(GraphicPrimitive):
             from matplotlib.colors import LinearSegmentedColormap as C
             possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
                                        isinstance(cm.__dict__[x], C)])
-            print "The possible color maps include: %s"%possibilities
+            sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level=0)
             raise RuntimeError, "Color map %s not known"%cmap
 
         subplot.imshow(self.xy_data_array, cmap=cmap, interpolation='nearest', extent=(0,self.xrange[1],0,self.yrange[1]))
@@ -2110,7 +2110,7 @@ class GraphicPrimitive_PlotField(GraphicPrimitive):
             from matplotlib.colors import LinearSegmentedColormap as C
             possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
                                        isinstance(cm.__dict__[x], C)])
-            print "The possible color maps include: %s"%possibilities
+            sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level=0)
             raise RuntimeError, "Color map %s not known"%cmap
         subplot.quiver(self.xpos_array, self.ypos_array, self.xvec_array, self.yvec_array)
 
@@ -3508,8 +3508,13 @@ class PlotFactory(GraphicPrimitiveFactory):
         sage: plot(sin(x), 0, 10, linestyle='-.')
 
     Sage currently ignores points that cannot be evaluated
-        sage: plot(-x*log(x), (x,0,1))
+        sage: plot(-x*log(x), (x,0,1))  # this works fine since the failed endpoint is just skipped.
+
+    This prints out a warning and plots where it can (we turn off the warning by setting
+    the verbose mode temporarily to -1.)
+        sage: set_verbose(-1)
         sage: plot(x^(1/3), (x,-1,1))
+        sage: set_verbose(0)
 
     To plot the negative real cube root, use something like the following.
         sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1) )
@@ -3563,7 +3568,7 @@ class PlotFactory(GraphicPrimitiveFactory):
                 args = args[2:]
                 G = self._call(funcs, (xmin, xmax), *args, **kwds)
             else:
-                print "there were %s extra arguments (besides %s)" % (n, funcs)
+                sage.misc.misc.verbose("there were %s extra arguments (besides %s)" % (n, funcs), level=0)
         if do_show:
             G.show()
         return G
@@ -3654,8 +3659,8 @@ class PlotFactory(GraphicPrimitiveFactory):
                 i += 1
 
         if (len(data) == 0 and exceptions > 0) or exceptions > 10:
-            print "WARNING: When plotting, failed to evaluate function at %s points."%exceptions
-            print "Last error message: '%s'"%msg
+            sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points."%exceptions, level=0)
+            sage.misc.misc.verbose("Last error message: '%s'"%msg, level=0)
         if parametric:
             data = [(fdata, g(x)) for x, fdata in data]
         if polar:

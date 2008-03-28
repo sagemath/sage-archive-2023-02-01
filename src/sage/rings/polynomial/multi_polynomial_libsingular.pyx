@@ -2175,7 +2175,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if(r != currRing): rChangeCurrRing(r)
         return pLDeg(p,&l,r)
 
-    def polynomial_coefficient(self, degrees):
+    def coefficient(self, degrees):
         """
         Return the coefficient of the variables with the degrees
         specified in the python dictionary \code{degrees}.  Mathematically,
@@ -2187,7 +2187,10 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         which returns the coefficient in the base ring of a monomial.
 
         INPUT:
-            degrees -- a dictionary of degree restrictions
+            degrees -- Can be any of:
+                -- a dictionary of degree restrictions
+                -- a list of degree restrictions (with None in the unrestricted variables)
+                -- a monomial (very fast, but not as flexible)
 
         OUTPUT:
             element of the parent of self
@@ -2198,16 +2201,24 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         EXAMPLES:
             sage: R.<x,y> = QQ[]
             sage: f=x*y+y+5
-            sage: f.polynomial_coefficient({x:0,y:1})
+            sage: f.coefficient({x:0,y:1})
             1
-            sage: f.polynomial_coefficient({x:0})
+            sage: f.coefficient({x:0})
             y + 5
             sage: f=(1+y+y^2)*(1+x+x^2)
-            sage: f.polynomial_coefficient({x:0})
+            sage: f.coefficient({x:0})
             y^2 + y + 1
+            sage: f.coefficient([0,None])
+            y^2 + y + 1
+            sage: f.coefficient(x)
+            y^2 + y + 1
+            sage: # Be aware that this may not be what you think!
+            sage: # The physical appearance of the variable x is deceiving -- particularly if the exponent would be a variable.
+            sage: f.coefficient(x^0) # outputs the full polynomial
+            x^2*y^2 + x^2*y + x*y^2 + x^2 + x*y + y^2 + x + y + 1
             sage: R.<x,y> = GF(389)[]
             sage: f=x*y+5
-            sage: c=f.polynomial_coefficient({x:0,y:0}); c
+            sage: c=f.coefficient({x:0,y:0}); c
             5
             sage: parent(c)
             Multivariate Polynomial Ring in x, y over Finite Field of size 389
@@ -2215,6 +2226,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         AUTHOR:
             -- Joel B. Mohler (2007.10.31)
         """
+        cdef poly *_degrees = <poly*>0
         cdef poly *p = self._poly
         cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
         cdef poly *newp = p_ISet(0,r)
@@ -2226,9 +2238,19 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         for i from 0<=i<gens:
             exps[i] = -1
 
-        if type(degrees) is list:
+        if PY_TYPE_CHECK(degrees, MPolynomial_libsingular) and self._parent is (<MPolynomial_libsingular>degrees)._parent:
+            _degrees = (<MPolynomial_libsingular>degrees)._poly
+            if pLength(_degrees) != 1:
+                raise TypeError, "degrees must be a monomial"
             for i from 0<=i<gens:
-                exps[i] = int(degrees[i])
+                if p_GetExp(_degrees,i+1,r)!=0:
+                    exps[i] = p_GetExp(_degrees,i+1,r)
+        elif type(degrees) is list:
+            for i from 0<=i<gens:
+                if degrees[i] is None:
+                    exps[i] = -1
+                else:
+                    exps[i] = int(degrees[i])
         elif type(degrees) is dict:
             # Extract the ordered list of degree specifications from the dictionary
             poly_vars = self.parent().gens()
@@ -2266,7 +2288,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         Return the coefficient in the base ring of the monomial mon in self, where mon
         must have the same parent as self.
 
-        This function contrasts with the function \code{polynomial_coefficient}
+        This function contrasts with the function \code{coefficient}
         which returns the coefficient of a monomial viewing this polynomial in a
         polynomial ring over a base ring having fewer variables.
 
@@ -2277,7 +2299,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             coefficient in base ring
 
         SEE ALSO:
-            For coefficients in a base ring of fewer variables, look at \ref{polynomial_coefficient}.
+            For coefficients in a base ring of fewer variables, look at \ref{coefficient}.
 
         EXAMPLES:
             sage: P.<x,y> = MPolynomialRing(QQ)
@@ -2473,88 +2495,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         p_Delete(&m,r)
         return (<MPolynomialRing_libsingular>self._parent)._base._zero_element
-
-    def coefficient(self, MPolynomial_libsingular mon):
-        """
-        Return the coefficient of mon in self, where mon must have the
-        same parent as self.  The coefficient is defined as follows.
-        If f is this polynomial, then the coefficient is the sum T/mon
-        where the sum is over terms T in f that are exactly divisible
-        by mon.
-
-        A monomial m(x,y) 'exactly divides' f(x,y) if m(x,y)|f(x,y)
-        and neither x*m(x,y) nor y*m(x,y) divides f(x,y).
-
-        INPUT:
-            mon -- a monomial
-
-        OUTPUT:
-            element of the parent of self
-
-        EXAMPLES:
-            sage: P.<x,y> = MPolynomialRing(QQ, 2)
-
-        The coefficient returned is an element of the parent of self; in
-        this case, QQ[x, y].
-
-            sage: f = 2 * x * y
-            sage: c = f.coefficient(x*y); c
-            2
-            sage: c.parent()
-            Multivariate Polynomial Ring in x, y over Rational Field
-            sage: c in P
-            True
-
-            sage: f = y^2 - x^9 - 7*x + 5*x*y
-            sage: f.coefficient(y)
-            5*x
-            sage: f = y - x^9*y - 7*x + 5*x*y
-            sage: f.coefficient(y)
-            -x^9 + 5*x + 1
-
-            sage: f = y^2 - x^9 - 7*x*y^2 + 5*x*y
-            sage: f.coefficient(x*y)
-            5
-            sage: f.coefficient(x*y^2)
-            -7
-            sage: f.coefficient(y)
-            5*x
-            sage: f.coefficient(x)
-            -7*y^2 + 5*y
-
-        The coefficient of 1 is also an element of the multivariate
-        polynomial ring:
-
-            sage: R.<x,y> = MPolynomialRing(GF(389),2)
-            sage: parent(R(x*y+5).coefficient(R(1)))
-            Multivariate Polynomial Ring in x, y over Finite Field of size 389
-        """
-        cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
-        if r != currRing: rChangeCurrRing(r)
-
-        cdef poly *p = self._poly
-        cdef poly *m = mon._poly
-        cdef poly *t
-        cdef int exactly_divisible, i
-        cdef poly *res = p_ISet(0,r)
-
-
-        if not mon._parent is self._parent:
-            raise TypeError, "mon must have same parent as self"
-
-        while p:
-            exactly_divisible = 1
-            for i from 1 <= i <= r.N:
-                if (p_GetExp(m,i,r) != 0) and (p_GetExp(p,i,r) != p_GetExp(m,i,r)):
-                    exactly_divisible = 0
-                    break
-            if exactly_divisible:
-                t = pDivide(p, m)
-                p_SetCoeff(t, n_Div( p_GetCoeff(p, r) , p_GetCoeff(m, r), r), r)
-                res = p_Add_q(res, t , r )
-            p = pNext(p)
-
-        return co.new_MP(self._parent, res)
 
     def exponents(self):
         """

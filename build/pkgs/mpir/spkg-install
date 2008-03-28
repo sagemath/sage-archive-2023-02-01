@@ -8,12 +8,17 @@
 ##    -- David Harvey (2007-09): fast gcd patch
 ###########################################
 
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 CUR=`pwd`
 CC=${CC:- gcc}
 patch()
 {
-    if [ `uname` = "Darwin" -a `uname -r | sed s/9\.[0-9]\.0/9\.0\.0/` = "9.0.0" ]; then
+    if [ `uname` = "Darwin" -a `uname -r | sed s/9\.[0-9]\.[0-9]/9\.0\.0/` = "9.0.0" ]; then
         # It would be much better to not have to do this, since maybe
         # there is a way to change FLINT so this problem doesn't occur.
         echo "Patching GMP on OSX 10.5.x"

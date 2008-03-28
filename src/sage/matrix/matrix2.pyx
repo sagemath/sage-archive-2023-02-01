@@ -3590,8 +3590,6 @@ cdef class Matrix(matrix1.Matrix):
         import sage.matrix.symplectic_basis
         return sage.matrix.symplectic_basis.symplectic_basis_over_field(self)
 
-    alternating_form = symplectic_form
-
     def hadamard_bound(self):
         r"""
         Return an int n such that the absolute value of the

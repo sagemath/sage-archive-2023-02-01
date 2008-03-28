@@ -45,6 +45,15 @@ AUTHOR:
     -- Nick Alexander: initial implementation
 """
 
+######################################################################
+#       Copyright (C) 2008 William Stein
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+######################################################################
+
 from sage.rings.all import ZZ, Infinity
 
 def _inplace_move_to_positive_pivot(G, row, col, B, pivot):

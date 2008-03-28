@@ -29,6 +29,13 @@ script for polymake.
 
 LOG
 
+== Changelog ==
+
+=== gmp-4.2.1.p13 (Michael Abshoff, March 28th, 2008) ===
+ * Fix OSX 10.5 detection code to handle 10.5.2 and higher (#2672)
+ * Make sure SAGE_ROOT is defined (#633)
+ * clean spkg-check
+
 ------------------------
 
 2006-02-19:

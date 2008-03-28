@@ -129,7 +129,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES:
             sage: A = (J0(37) * J1(13))[0]; A
-            Simple abelian subvariety 13a(1,13) of dimension 2 of J0(37) x J1(13)
+            Simple abelian subvariety 13aG1(1,13) of dimension 2 of J0(37) x J1(13)
             sage: A.groups()
             (Congruence Subgroup Gamma0(37), Congruence Subgroup Gamma1(13))
         """
@@ -274,20 +274,28 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             return 0
         c = cmp(self.groups(), other.groups())
         if c: return c
+
         try:
             c = cmp(self.__newform_level, other.__newform_level)
+            if c: return c
         except AttributeError:
             pass
-        if c: return c
         try:
             c = cmp(self.__isogeny_number, other.__isogeny_number)
+            if c: return c
         except AttributeError:
             pass
-        if c: return c
+
         try:
-            return cmp(self.__degen_t, other.__degen_t)
+            c = cmp(self.__degen_t, other.__degen_t)
+            if c: return c
         except AttributeError:
             pass
+
+        # NOTE!! having the same newform level, isogeny class number, and degen_t does
+        # not imply two abelian varieties are equal.  See the docstring for
+        # self.label.
+
         return cmp(self.lattice(), other.lattice())
 
     def __radd__(self,other):
@@ -295,6 +303,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         Return other + self when other is 0.  Otherwise raise a TypeError.
 
         EXAMPLES:
+            sage: int(0) + J0(37)
+            Abelian variety J0(37) of dimension 2
         """
         if other == 0:
             return self
@@ -316,10 +326,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             'Abelian variety J0(11) x J0(33) of dimension 4'
         """
         field = '' if self.base_field() == QQ else ' over %s'%self.base_field()
-        try:
-            label = self.label() + ' '
-        except ValueError:
+        if self.newform_level(none_if_not_known=True) is None:
             label = ''
+        else:
+            label = self.label() + ' '
         simple = self.is_simple(none_if_not_known=True)
         simple = 'Simple a' if simple else 'A'
         if self.is_ambient():
@@ -334,19 +344,107 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
 
     def label(self):
+        r"""
+        Return the label associated to this modular abelian variety.
+
+        The format of the label is
+               [level][isogeny class][group](t, ambient level)
+
+        If this abelian variety $B$ has the above label, this implies
+        only that $B$ is isogenous to the newform abelan variety $A_f$
+        associated to the newform with label [level][isogeny
+        class][group].  The [group] is empty for $\Gamma_0(N)$, is G1
+        for $\Gamma_1(N)$ and is GH[...] for $\Gamma_H(N)$.
+
+        WARNING: The sum of $\delta_s(A_f)$ for all $s\mid t$ contains
+        $A$, but no sum for a proper divisor of $t$ contains $A$.  It
+        need \emph{not} be the case that $B$ is equal to $\delta_t(A_f)$!!!
+
+        OUTPUT:
+            string
+
+        EXAMPLES:
+            sage: J0(11).label()
+            '11a(1,11)'
+            sage: J0(11)[0].label()
+            '11a(1,11)'
+            sage: J0(33)[2].label()
+            '33a(1,33)'
+            sage: J0(22).label()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be simple
+
+        We illustrate that self need not equal $\delta_t(A_f)$:
+            sage: J = J0(11); phi = J.degeneracy_map(33, 1) + J.degeneracy_map(33,3)
+            sage: B = phi.image(); B
+            Abelian subvariety of dimension 1 of J0(33)
+            sage: B.decomposition()
+            [
+            Simple abelian subvariety 11a(3,33) of dimension 1 of J0(33)
+            ]
+            sage: C = J.degeneracy_map(33,3).image(); C
+            Abelian subvariety of dimension 1 of J0(33)
+            sage: C == B
+            False
+        """
         degen = str(self.degen_t()).replace(' ','')
-        return '%s%s%s'%(self.newform_level(), cremona_letter_code(self.isogeny_number()), degen)
+        return '%s%s'%(self.newform_label(), degen)
 
     def newform_label(self):
-        return '%s%s'%(self.newform_level(), cremona_letter_code(self.isogeny_number()))
+        """
+        Return the label [level][isogeny class][group] of the newform $f$ such
+        that this abelian variety is isogenous to the newform abelian variety
+        $A_f$.  If this abelian variety is not simple, raise a ValueError.
+
+        OUTPUT:
+            string
+
+        EXAMPLES:
+            sage: J0(11).newform_label()
+            '11a'
+            sage: J0(33)[2].newform_label()
+            '33a'
+
+        The following fails since $J_0(33)$ is not simple:
+            sage: J0(33).newform_label()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be simple
+        """
+        N, G = self.newform_level()
+        if is_Gamma0(G):
+            group = ''
+        elif is_Gamma1(G):
+            group = 'G1'
+        elif is_GammaH(G):
+            group = 'GH%s'%(str(G._generators_for_H()).replace(' ',''))
+        return '%s%s%s'%(N, cremona_letter_code(self.isogeny_number()), group)
 
     def _isogeny_to_newform_abelian_variety(self):
+        """
+        Return an isogeny from self to an abelian variety $A_f$ attached
+        to a newform.  If self is not simple (so that no such isogeny exists),
+        raise a ValueError.
+
+        EXAMPLES:
+            sage: J0(22)[0]._isogeny_to_newform_abelian_variety()
+            Abelian variety morphism:
+              From: Simple abelian subvariety 11a(1,22) of dimension 1 of J0(22)
+              To:   Newform abelian subvariety 11a of dimension 1 of J0(11)
+            sage: J = J0(11); phi = J.degeneracy_map(33, 1) + J.degeneracy_map(33,3)
+            sage: A = phi.image()
+            sage: A._isogeny_to_newform_abelian_variety().matrix()
+            [-3  3]
+            [ 0 -3]
+
+        """
         D = self.decomposition()
         if len(D) > 1:
             raise ValueError, "self is not simple"
 
         t, N = D[0].degen_t()
-        m = self.degeneracy_map(self.newform_level(),t)
+        m = self.degeneracy_map(self.newform_level()[0],t)
         if isinstance(m, list):
             basis = self.lattice().matrix()
             ix = 0
@@ -367,14 +465,28 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         Given self and other, if both are simple, and correspond to
         the same newform, return an isogeny. Otherwise, raise a
         ValueError.
+
+        INPUT:
+            self, other -- modular abelian varieties
+        OUTPUT:
+            an isogeny
+
+        EXAMPLES:
         """
-        D = self.decomposition()
-        if len(D) > 1:
+        if not is_ModularAbelianVariety(other):
+            raise TypeError, "other must be a modular abelian variety"
+
+        if not self.is_simple():
             raise ValueError, "self is not simple"
 
-        E = other.decomposition()
-        if len(E) > 1:
+        if not E.is_simple():
             raise ValueError, "other is not simple"
+
+        if self.groups() != other.groups():
+            # The issue here is that the stuff below probably won't make any sense at all if we don't know
+            # that the two newform abelian varieties $A_f$ are identical.
+            raise NotImplementedError, "_simple_isogeny only implemented when both abelian variety have the same ambient product Jacobian"
+
 
         if (self.newform_level() != other.newform_level()) or \
            (self.isogeny_number() != other.isogeny_number()):
@@ -832,15 +944,15 @@ class ModularAbelianVariety_abstract(ParentWithBase):
               From: Abelian variety J0(11) x J0(11) of dimension 2
               To:   Simple abelian subvariety 11a(1,11) of dimension 1 of J0(11) x J0(11)
             sage: A.projection(A[0]).matrix()
+            [0 0]
+            [0 0]
             [1 0]
             [0 1]
-            [0 0]
-            [0 0]
             sage: A.projection(A[1]).matrix()
-            [0 0]
-            [0 0]
             [1 0]
             [0 1]
+            [0 0]
+            [0 0]
         """
         if check and not A.is_subvariety(self):
             raise ValueError, "A must be an abelian subvariety of self"
@@ -1150,14 +1262,41 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         """
         Write self as a product (up to isogeny) of newform abelian
         varieties $A_f$.  Then this function return the least common
-        multiple of the levels of the newforms $f$.
+        multiple of the levels of the newforms $f$, along with the
+        corresponding group or list of groups (the groups do not appear
+        with multiplicity).
+
+        INPUT:
+            none_if_not_known -- (default: False) -- if True, return None instead
+                                 of attempting to compute the newform level, if it isn't
+                                 already known.  This None result is not cached.
+
+        OUTPUT:
+            integer
+            group or list of distinct groups
+
+        EXAMPLES:
+            sage: J0(33)[0].newform_level()
+            (11, Congruence Subgroup Gamma0(33))
+            sage: J0(33)[0].newform_level(none_if_not_known=True)
+            (11, Congruence Subgroup Gamma0(33))
+
+        Here there are multiple groups since there are in fact multiple newforms:
+            sage: (J0(11) * J1(13)).newform_level()
+            (143, [Congruence Subgroup Gamma0(11), Congruence Subgroup Gamma1(13)])
         """
         try:
             return self.__newform_level
         except AttributeError:
             if none_if_not_known:
                 return None
-            self.__newform_level = LCM([A.newform_level() for A in self.decomposition()])
+            N = [A.newform_level() for A in self.decomposition()]
+            level = LCM([z[0] for z in N])
+            groups = list(set([z[1] for z in N]))
+            groups.sort()
+            if len(groups) == 1:
+                groups = groups[0]
+            self.__newform_level = level, groups
             return self.__newform_level
 
     def zero_subvariety(self):
@@ -1171,14 +1310,14 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: J.zero_subvariety().level()
             37
             sage: J.zero_subvariety().newform_level()
-            1
+            (1, [])
         """
         try:
             return self.__zero_subvariety
         except AttributeError:
             lattice = (ZZ**(2*self.degree())).zero_submodule()
             A = ModularAbelianVariety(self.groups(), lattice, self.base_field(),
-                                      is_simple=True, newform_level=ZZ(1), check=False)
+                                      is_simple=True, check=False)
             self.__zero_subvariety = A
             return A
 
@@ -1279,7 +1418,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: A._ambient_dimension()
             4
             sage: B = A[0]; B
-            Simple abelian subvariety 13a(1,13) of dimension 2 of J0(37) x J1(13)
+            Simple abelian subvariety 13aG1(1,13) of dimension 2 of J0(37) x J1(13)
             sage: B._ambient_dimension()
             4
 
@@ -1828,7 +1967,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         except AttributeError:
             if none_if_not_known:
                 return None
-            raise ValueError, "factor number not defined"
+            elif self.dimension() > 0 and self.is_simple():
+                self.__degen_t = self.decomposition()[0].degen_t()
+                return self.__degen_t
+            raise ValueError, "self must be simple"
 
     def isogeny_number(self, none_if_not_known=False):
         try:
@@ -1837,9 +1979,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             if none_if_not_known:
                 return None
             elif self.is_simple():
-                return self.decomposition()[0].isogeny_number()
+                self.__isogeny_number = self.decomposition()[0].isogeny_number()
+                return self.__isogeny_number
             else:
-                raise ValueError, "factor isogeny number not defined"
+                raise ValueError, "self must be simple"
 
 
     def is_simple(self, none_if_not_known=False):
@@ -2318,6 +2461,24 @@ class ModularAbelianVariety(ModularAbelianVariety_abstract):
 
 
     def lattice(self):
+        """
+        Return the lattice that defines this abelan variety.
+
+        OUTPUT:
+            lattice -- a lattice embedded in the rational homology of
+                       the ambient product Jacobian
+
+        EXAMPLES:
+            sage: A = (J0(11) * J0(37))[1]; A
+            Simple abelian subvariety 37a(1,37) of dimension 1 of J0(11) x J0(37)
+            sage: type(A)
+            <class 'sage.modular.abvar.abvar.ModularAbelianVariety'>
+            sage: A.lattice()
+            Free module of degree 6 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 0  0  1 -1  1  0]
+            [ 0  0  0  0  2 -1]
+        """
         return self.__lattice
 
 
@@ -2603,6 +2764,26 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
         return self.modular_symbols().is_submodule(other.modular_symbols())
 
     def is_ambient(self):
+        """
+        Return True if this abelian variety attached to a modular
+        symbols space space is attached to the cuspidal subspace of
+        the ambient modular symbols space.
+
+        OUTPUT:
+            bool
+
+        EXAMPLES:
+            sage: A = ModularSymbols(43).cuspidal_subspace().abelian_variety(); A
+            Abelian variety J0(43) of dimension 3
+            sage: A.is_ambient()
+            True
+            sage: type(A)
+            <class 'sage.modular.abvar.abvar.ModularAbelianVariety_modsym'>
+            sage: A = ModularSymbols(43).cuspidal_subspace()[1].abelian_variety(); A
+            Abelian subvariety of dimension 2 of J0(43)
+            sage: A.is_ambient()
+            False
+        """
         return self.degree() == self.dimension()
 
     def dimension(self):
@@ -2712,8 +2893,8 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             ]
             sage: J1(17).decomposition()
             [
-            Simple abelian subvariety 17a(1,17) of dimension 1 of J1(17),
-            Simple abelian subvariety 17b(1,17) of dimension 4 of J1(17)
+            Simple abelian subvariety 17aG1(1,17) of dimension 1 of J1(17),
+            Simple abelian subvariety 17bG1(1,17) of dimension 4 of J1(17)
             ]
         """
         try:
@@ -2727,6 +2908,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
         else:
             A = self.modular_symbols()
             amb = A.ambient_module()
+            G = amb.group()
             S = amb.cuspidal_submodule().integral_structure()
             if simple:
                 M = A.level()
@@ -2737,7 +2919,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
                         for B in amb.modular_symbols_of_level(N).cuspidal_subspace().new_subspace().decomposition(bound=bound):
                             for t in divisors(M//N):
                                 D.append(ModularAbelianVariety_modsym(B.degeneracy_map(M, t).image(),
-                                                                      is_simple=True, newform_level=N,
+                                                                      is_simple=True, newform_level=(N, G),
                                                                       isogeny_number=isogeny_number,
                                                                       number=(t,M)))
                             isogeny_number += 1

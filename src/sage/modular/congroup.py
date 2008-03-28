@@ -294,12 +294,11 @@ class Gamma0(CongruenceSubgroup):
 
     def __cmp__(self, right):
         if not isinstance(right, Gamma0):
-            return -1
-        if self.level() < right.level():
-            return -1
-        elif self.level() > right.level():
-            return 1
-        return 0
+            if isinstance(right, CongruenceSubgroup):
+                c = cmp(self.level(), right.level())
+                if c: return c
+            return cmp(type(self), type(right))
+        return cmp(self.level(), right.level())
 
     def is_even(self):
         """
@@ -474,12 +473,11 @@ class Gamma1(CongruenceSubgroup):
 
     def __cmp__(self, right):
         if not isinstance(right, Gamma1):
-            return -1
-        if self.level() < right.level():
-            return -1
-        elif self.level() > right.level():
-            return 1
-        return 0
+            if isinstance(right, CongruenceSubgroup):
+                c = cmp(self.level(), right.level())
+                if c: return c
+            return cmp(type(self), type(right))
+        return cmp(self.level(), right.level())
 
     def is_even(self):
         """

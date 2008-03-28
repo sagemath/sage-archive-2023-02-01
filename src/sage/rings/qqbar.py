@@ -1224,6 +1224,17 @@ class AlgebraicGenerator(SageObject):
         algebraic_generator_counter += 1
 
     def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = QQbar(sqrt(2)) + QQbar(sqrt(3))
+            sage: t.exactify()
+            sage: type(t._descr._generator)
+            <class 'sage.rings.qqbar.AlgebraicGenerator'>
+            sage: loads(dumps(t)) == t
+            True
+        """
         return (AlgebraicGenerator, (self._field, self._root))
 
     def __hash__(self):
@@ -2405,6 +2416,14 @@ class AlgebraicNumber(AlgebraicNumber_base):
         AlgebraicNumber_base.__init__(self, QQbar, x)
 
     def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = QQbar.zeta(5)
+            sage: loads(dumps(t)) == t
+            True
+        """
         return (AlgebraicNumber, (self._descr, ))
 
     def __cmp__(self, other):
@@ -2832,6 +2851,14 @@ class AlgebraicReal(AlgebraicNumber_base):
         AlgebraicNumber_base.__init__(self, AA, x)
 
     def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = AA(sqrt(2))
+            sage: loads(dumps(t)) == t
+            True
+        """
         return (AlgebraicReal, (self._descr, ))
 
     def __cmp__(self, other):
@@ -3299,6 +3326,15 @@ class ANRational(ANDescr):
             raise TypeError, "Illegal initializer for algebraic number rational"
 
     def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = AA(5/2); type(t._descr)
+            <class 'sage.rings.qqbar.ANRational'>
+            sage: loads(dumps(t)) == t
+            True
+        """
         return (ANRational, (self._value, ))
 
     def _repr_(self):
@@ -3425,6 +3461,15 @@ class ANRootOfUnity(ANDescr):
         self._scale = scale
 
     def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = QQbar.zeta(3) * 5; type(t._descr)
+            <class 'sage.rings.qqbar.ANRootOfUnity'>
+            sage: loads(dumps(t)) == t
+            True
+        """
         return (ANRootOfUnity, (self._angle, self._scale))
 
     def _repr_(self):
@@ -3581,6 +3626,17 @@ class AlgebraicPolynomialTracker(SageObject):
         self._roots_cache = {}
 
     def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: x = polygen(QQ)
+            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]
+            sage: type(v._descr._poly)
+            <class 'sage.rings.qqbar.AlgebraicPolynomialTracker'>
+            sage: loads(dumps(v)) == v
+            True
+        """
         return (AlgebraicPolynomialTracker, (self._poly, ))
 
     def _repr_(self):
@@ -3671,6 +3727,17 @@ class ANRoot(ANDescr):
         self._interval = self.refine_interval(interval, 64)
 
     def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: x = polygen(QQ)
+            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]
+            sage: type(v._descr)
+            <class 'sage.rings.qqbar.ANRoot'>
+            sage: loads(dumps(v)) == v
+            True
+        """
         return (ANRoot, (self._poly, self._interval, self._multiplicity))
 
     def _repr_(self):
@@ -4228,6 +4295,18 @@ class ANExtensionElement(ANDescr):
         self._exactly_real = not generator.is_complex()
 
     def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: x = polygen(QQ)
+            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]
+            sage: v.exactify()
+            sage: type(v._descr)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: loads(dumps(v)) == v
+            True
+        """
         return (ANExtensionElement, (self._generator, self._value))
 
     def _repr_(self):
@@ -4420,6 +4499,15 @@ class ANUnaryExpr(ANDescr):
         self._op = op
 
     def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = ~QQbar(sqrt(2)); type(t._descr)
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            sage: loads(dumps(t)) == 1/QQbar(sqrt(2))
+            True
+        """
         return (ANUnaryExpr, (self._arg, self._op))
 
     def kind(self):
@@ -4529,6 +4617,15 @@ class ANBinaryExpr(ANDescr):
         self._complex = True
 
     def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = QQbar(sqrt(2)) + QQbar(sqrt(3)); type(t._descr)
+            <class 'sage.rings.qqbar.ANBinaryExpr'>
+            sage: loads(dumps(t)) == QQbar(sqrt(2)) + QQbar(sqrt(3))
+            True
+        """
         return (ANBinaryExpr, (self._left, self._right, self._op))
 
     def kind(self):

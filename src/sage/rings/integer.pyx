@@ -320,6 +320,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: ZZ(1==0)
             0
+            sage: ZZ('+10')
+            10
 
             sage: k = GF(2)
             sage: ZZ( (k(0),k(1)), 2)

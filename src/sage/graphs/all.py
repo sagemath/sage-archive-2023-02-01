@@ -1,4 +1,4 @@
-from graph_generators import graphs
+from graph_generators import graphs, digraphs
 from graph_database import GraphDatabase, GenericGraphQuery, GraphQuery
 from graph import Graph, DiGraph
 from bipartite_graph import BipartiteGraph

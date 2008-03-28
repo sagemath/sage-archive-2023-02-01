@@ -1097,7 +1097,7 @@ class GenericGraph(SageObject):
 
         sage: graphs.RandomGNP(20,0.5).antisymmetric()
         False
-        sage: graphs.RandomDirectedGNR(20,0.5).antisymmetric()
+        sage: digraphs.RandomDirectedGNR(20,0.5).antisymmetric()
         True
 
         """
@@ -7640,10 +7640,10 @@ class DiGraph(GenericGraph):
             n = data.find('\n')
             if n == -1:
                 n = len(data)
-            s = data[:n]
-            n, s = graph_fast.N_inverse(s)
+            ss = data[:n]
+            n, s = graph_fast.N_inverse(ss)
             m = graph_fast.D_inverse(s, n)
-            expected = n*(n-1) + (6 - n*(n-1))%6
+            expected = n**2
             if len(m) > expected:
                 raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
             elif len(m) < expected:

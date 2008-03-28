@@ -1434,6 +1434,96 @@ class NumberField_generic(number_field_base.NumberField):
             d[i+1] = [self.ideal([ self(generator) for generator in convert_from_zk_basis(self, hnf_I) ]) for hnf_I in hnf_ideals[i]]
         return d
 
+    def prime_above(self, x, degree=None):
+        r"""
+        Return a prime ideal of self lying over x.
+
+        INPUT:
+            -- x: usually an element or ideal of self.  It should be such that
+               self.ideal(x) is sensible.  This excludes x=0.
+            -- degree (default: None): None or an integer.  If none, find a
+               prime above x of any degree.  If an integer, find a prime above
+               x of such that residue field has exactly this degree.
+
+        OUTPUT:
+            A prime ideal of self lying over x.  If degree is specified and no
+            such ideal exists, returns None.
+
+        WARNING: at this time we factor the ideal x, which may not be
+        supported for relative number fields.
+
+        EXAMPLES:
+            sage: x = ZZ['x'].gen()
+            sage: F.<t> = NumberField(x^3 - 2)
+
+            sage: P2 = F.prime_above(2)
+            sage: P2 # random
+            Fractional ideal (-t)
+            sage: 2 in P2
+            True
+            sage: P2.is_prime()
+            True
+            sage: P2.norm()
+            2
+
+            sage: P3 = F.prime_above(3)
+            sage: P3 # random
+            Fractional ideal (t + 1)
+            sage: 3 in P3
+            True
+            sage: P3.is_prime()
+            True
+            sage: P3.norm()
+            3
+
+            The ideal (3) is totally ramified in F, so there is no degree 2
+            prime above 3:
+
+            sage: F.prime_above(3, degree=2) is None
+            True
+
+            Asking for a specific degree works:
+
+            sage: P5_1 = F.prime_above(5, degree=1)
+            sage: P5_1 # random
+            Fractional ideal (-t^2 - 1)
+            sage: P5_1.residue_class_degree()
+            1
+
+            sage: P5_2 = F.prime_above(5, degree=2)
+            sage: P5_2 # random
+            Fractional ideal (t^2 - 2*t - 1)
+            sage: P5_2.residue_class_degree()
+            2
+
+        TESTS:
+            It doesn't make sense to factor the ideal (0):
+
+            sage: F.prime_above(0)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'NumberFieldIdeal' object has no attribute 'factor'
+
+            Sage can't factor ideals over extension fields yet:
+
+            sage: G = F.extension(x^2 - 11, 'b')
+            sage: G.prime_above(13)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if degree is not None:
+            degree = ZZ(degree)
+        facs = [ (id.residue_class_degree(), id) for id, _ in self.ideal(x).factor() ]
+        facs.sort() # sorts on residue_class_degree(), lowest first
+        if degree is None:
+            d, id = facs[0]
+            return id
+        for d, id in facs:
+            if d == degree:
+                return id
+        return None
+
     def _is_valid_homomorphism_(self, codomain, im_gens):
         """
         Return whether or not there is a homomorphism defined by the

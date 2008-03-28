@@ -546,6 +546,24 @@ cdef class MPolynomial(CommutativeRingElement):
         q,r = self.quo_rem(other)
         return r
 
+    def change_ring(self, R):
+        """
+        Return a copy of this polynomial but with coefficients in R,
+        if at all possible.
+
+        INPUT:
+            R -- a ring
+
+        EXAMPLE:
+            sage: R.<x,y> = QQ[]
+            sage: f = x^3 + 3/5*y + 1
+            sage: f.change_ring(GF(7))
+            x^3 + 2*y + 1
+        """
+        P = self._parent
+        P = P.change_ring(R)
+        return P(self)
+
 cdef remove_from_tuple(e, int ind):
     w = list(e)
     del w[ind]

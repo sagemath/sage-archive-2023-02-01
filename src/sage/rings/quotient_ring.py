@@ -389,9 +389,6 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
         return sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
 
-    def _can_convert_to_singular(self):
-        return self.__R._can_convert_to_singular()
-
     def __call__(self, x, coerce=True):
         if isinstance(x, quotient_ring_element.QuotientRingElement):
             if x.parent() is self:

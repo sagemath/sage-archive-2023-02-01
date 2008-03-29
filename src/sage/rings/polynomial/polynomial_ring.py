@@ -915,8 +915,9 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                            principal_ideal_domain.PrincipalIdealDomain,
                            ):
     def __init__(self, base_ring, name="x", sparse=False):
+        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         PolynomialRing_commutative.__init__(self, base_ring, name, sparse)
-        self._has_singular = self._can_convert_to_singular()
+        self._has_singular = can_convert_to_singular(self)
 
     def lagrange_polynomial(self, points):
         """
@@ -1019,9 +1020,10 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                                  PolynomialRing_singular_repr,
                                  principal_ideal_domain.PrincipalIdealDomain):
     def __init__(self, base_ring, name="x"):
+        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         self.__modulus = base_ring.order()
         PolynomialRing_dense_mod_n.__init__(self, base_ring, name)
-        self._has_singular = self._can_convert_to_singular()
+        self._has_singular = can_convert_to_singular(self)
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
         if is_SingularElement(x) and self._has_singular:

@@ -38,7 +38,7 @@ from sage.matrix.matrix2 cimport Matrix
 
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
-
+from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
 
 cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
     """
@@ -262,7 +262,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             id_Delete(&ii, _ring)
             delete(iv)
 
-        elif self.base_ring()._can_convert_to_singular():
+        elif can_convert_to_singular(self.base_ring()):
 
             self.check_mutability()
             self.clear_cache()

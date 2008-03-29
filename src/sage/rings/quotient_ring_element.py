@@ -229,7 +229,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: Q(xbar._singular_()) # a round-trip
             xbar
         """
-        return self.__rep._singular_(singular=singular)
+        return self.__rep._singular_(singular)
 
     def reduce(self, G):
         r"""

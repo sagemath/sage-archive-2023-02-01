@@ -996,6 +996,7 @@ class SingularElement(ExpectElement):
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.polynomial.polydict import PolyDict,ETuple
+        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         from sage.rings.quotient_ring import QuotientRing_generic
         from sage.rings.quotient_ring_element import QuotientRingElement
 
@@ -1028,7 +1029,7 @@ class SingularElement(ExpectElement):
 
         coeff_start = int(len(singular_poly_list)/2)
 
-        if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and R._can_convert_to_singular():
+        if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and can_convert_to_singular(R):
             # we need to lookup the index of a given variable represented
             # through a string
             var_dict = dict(zip(R.variable_names(),range(R.ngens())))
@@ -1063,7 +1064,7 @@ class SingularElement(ExpectElement):
             else:
                 return QuotientRingElement(R,p,reduce=False)
 
-        elif is_PolynomialRing(R) and R._can_convert_to_singular():
+        elif is_PolynomialRing(R) and can_convert_to_singular(R):
 
             sage_repr = [0]*int(self.deg()+1)
 

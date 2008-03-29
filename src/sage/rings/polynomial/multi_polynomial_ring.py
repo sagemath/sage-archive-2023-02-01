@@ -438,9 +438,10 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
                                       PolynomialRing_singular_repr,
                                       MPolynomialRing_macaulay2_repr):
     def __init__(self, base_ring, n, names, order):
+        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         order = TermOrder(order, n)
         MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)
-        self._has_singular = self._can_convert_to_singular()
+        self._has_singular = can_convert_to_singular(self)
 
     def is_integral_domain(self):
         return True

@@ -19,15 +19,23 @@ def functions_without_doctests(file):
         i = file.find('def ')
         if i == -1:
             break
+
         j = file[i:].find(':')
         if j == -1:
             break
         j += i
 
-        # Skip line if it is commented out.
         z = file[:i].rfind('\n')
         if z != -1:
-            if file[z:i].lstrip().startswith('#'):
+            prev = file[z:i]
+
+            # Skip line if it is commented out.
+            if prev.lstrip().startswith('#'):
+                file = file[j:]
+                continue
+
+            #Skip functions which are defined in doctests
+            if 'sage:' in prev or '...' in prev:
                 file = file[j:]
                 continue
 

@@ -155,14 +155,14 @@ def extract_doc(file_name, module):
     j = 0
     while j < len(F):
         L = F[j].rstrip()
-        while j < len(F) and L.endswith('\\') and not L.endswith('\\\\'):
-            j += 1
-            i += 1
-            L = L[:-1] + F[j].lstrip().lstrip('...').rstrip()
-        j += 1
         if L.lstrip()[:5] == 'sage:':
+            while j < len(F) and L.endswith('\\') and not L.endswith('\\\\'):
+                j += 1
+                i += 1
+                L = L[:-1] + F[j].lstrip().lstrip('...').rstrip()
             #L += '\t\t#<--- "LINE %s of %s"'%(i, file_name)
             L += '###_sage"line %s:_sage_    %s_sage"'%(i, L[4:].strip())
+        j += 1
         i += 1
         v.append(L)
 

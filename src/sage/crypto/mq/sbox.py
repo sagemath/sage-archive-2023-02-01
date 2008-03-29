@@ -628,8 +628,8 @@ class SBox(SageObject):
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: f = S.interpolation_polynomial()
             sage: f
-            x^6 + a*x^5 + (a + 1)*x^4 + (a^2 + a + 1)*x^3 \
-            + (a^2 + 1)*x^2 + (a + 1)*x + a^2 + a + 1
+            x^6 + a*x^5 + (a + 1)*x^4 + (a^2 + a + 1)*x^3
+              + (a^2 + 1)*x^2 + (a + 1)*x + a^2 + a + 1
 
             sage: a = f.base_ring().gen()
 

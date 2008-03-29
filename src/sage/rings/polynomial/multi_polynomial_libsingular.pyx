@@ -2304,7 +2304,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         EXAMPLES:
             sage: P.<x,y> = MPolynomialRing(QQ)
 
-            # The parent of the return is a member of the base ring.
+            The parent of the return is a member of the base ring.
             sage: f = 2 * x * y
             sage: c = f.monomial_coefficient(x*y); c
             2

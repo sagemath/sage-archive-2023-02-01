@@ -1,5 +1,5 @@
 r"""
-Jacobian ``morphism'' as a class in the Picard group.
+Jacobian `morphism' as a class in the Picard group.
 
 This module implements the group operation in the Picard group of a
 hyperelliptic curve, represented as divisors in Mumford representation, using
@@ -366,7 +366,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
 
     def _latex_(self):
         r"""
-        Return a $\LaTeX$ string representing this Mumford divisor.
+        Return a \LaTeX string representing this Mumford divisor.
 
         EXAMPLES:
             sage: F.<alpha> = GF(7^2)

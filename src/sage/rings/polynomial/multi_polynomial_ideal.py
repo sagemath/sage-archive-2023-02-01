@@ -1046,7 +1046,7 @@ class MPolynomialIdeal_singular_repr:
 
         NOTE: From the \Singular manual: A combination of the
         algorithms of Krick/Logar and Kemper is used.  Works also in
-        positive characteristic (Kempers algorithm).}
+        positive characteristic (Kempers algorithm).
 
             sage: R.<x,y,z> = PolynomialRing(GF(37), 3)
             sage: p = z^2 + 1; q = z^3 + 2

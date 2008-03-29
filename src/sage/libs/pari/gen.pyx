@@ -1013,10 +1013,10 @@ cdef class gen(sage.structure.element.RingElement):
         return t
 
     def qfbhclassno(gen n):
-        """
+        r"""
         Computes the Hurwitz-Kronecker class number of n.
 
-        If n is large (more than 5*10^5), the result is conditional upon
+        If n is large (more than $5*10^5$), the result is conditional upon
         GRH.
 
         EXAMPLES:

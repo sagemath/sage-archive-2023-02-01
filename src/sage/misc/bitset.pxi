@@ -59,10 +59,10 @@ cdef inline void bitset_clear(bitset_t bits):
     sage_free(bits.bits)
 
 cdef inline void bitset_zero(bitset_t bits):
-    memset(bits.bits, 0, (bits.size+7) >> 3)
+    memset(bits.bits, 0, bits.limbs * sizeof(unsigned long))
 
 cdef inline void bitset_copy(bitset_t dst, bitset_t src):
-    memcpy(dst.bits, src.bits, (dst.size+7) >> 3)
+    memcpy(dst.bits, src.bits, dst.limbs * sizeof(unsigned long))
 
 #############################################################################
 # Bitset Comparison
@@ -76,7 +76,7 @@ cdef inline bint bitset_is_zero(bitset_t bits):
     return True
 
 cdef inline bint bitset_eq(bitset_t a, bitset_t b):
-    return memcmp(a.bits, b.bits, (a.size+7) >> 3) == 0
+    return memcmp(a.bits, b.bits, a.limbs * sizeof(unsigned long)) == 0
 
 cdef inline int bitset_cmp(bitset_t a, bitset_t b):
     cdef long i

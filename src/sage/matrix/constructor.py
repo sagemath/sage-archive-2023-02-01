@@ -40,15 +40,16 @@ def matrix(*args, **kwds):
         preceded by a ring and the dimensions of the matrix, and returns
         a matrix.
 
-        The entries of a matrix can be specified as a flat list, a
-        list of rows, a list of vectors (considered as row vectors),
-        or a dictionary.  You can create a zero matrix by passing an
-        empty list or the integer zero.  You can create a multiple of
-        the identity matrix by specifying square dimensions and
-        passing in a single element.  Additionally, calling matrix()
-        with a sage object may return something that makes sense and
-        calling matrix() with a numpy array will convert the array to
-        a matrix.
+        The entries of a matrix can be specified as a flat list of
+        elements, a list of lists (i.e., a list of rows), a list of
+        Sage vectors, or a dictionary having positions as keys and
+        matrix entries as values (see the examples).  You can create a
+        matrix of zeros by passing an empty list or the integer zero
+        for the entries.  To construct a multiple of the identity
+        ($cI$), you can specify square dimensions and pass in $c$.
+        Calling matrix() with a Sage object may return something that
+        makes sense.  Calling matrix() with a numpy array will convert
+        the array to a matrix.
 
         The ring, number of rows, and number of columns of the matrix
         can be specified by setting the ring, nrows, or ncols
@@ -130,6 +131,20 @@ def matrix(*args, **kwds):
         sage: m=matrix(GF(7), v); m; m.parent()
         [1 3 2]
         Full MatrixSpace of 1 by 3 dense matrices over Finite Field of size 7
+
+        sage: g = graphs.PetersenGraph()
+        sage: m = matrix(g); m; m.parent()
+        [0 1 0 0 1 1 0 0 0 0]
+        [1 0 1 0 0 0 1 0 0 0]
+        [0 1 0 1 0 0 0 1 0 0]
+        [0 0 1 0 1 0 0 0 1 0]
+        [1 0 0 1 0 0 0 0 0 1]
+        [1 0 0 0 0 0 0 1 1 0]
+        [0 1 0 0 0 0 0 0 1 1]
+        [0 0 1 0 0 1 0 0 0 1]
+        [0 0 0 1 0 1 1 0 0 0]
+        [0 0 0 0 1 0 1 1 0 0]
+        Full MatrixSpace of 10 by 10 sparse matrices over Integer Ring
 
         sage: matrix(ZZ, 10, 10, range(100), sparse=True).parent()
         Full MatrixSpace of 10 by 10 sparse matrices over Integer Ring
@@ -235,10 +250,10 @@ def matrix(*args, **kwds):
         [0 2]
         Full MatrixSpace of 2 by 2 sparse matrices over Rational Field
         sage: m=matrix(QQ,3,{(1,1): 2}); m; m.parent()
-        [0 0]
-        [0 2]
-        [0 0]
-        Full MatrixSpace of 3 by 2 sparse matrices over Rational Field
+        [0 0 0]
+        [0 2 0]
+        [0 0 0]
+        Full MatrixSpace of 3 by 3 sparse matrices over Rational Field
         sage: m=matrix(QQ,3,4,{(1,1): 2}); m; m.parent()
         [0 0 0 0]
         [0 2 0 0]
@@ -510,8 +525,9 @@ def matrix(*args, **kwds):
                 entries, entry_ring = prepare_dict(args[0])
                 if nrows is None:
                     nrows = nrows_from_dict(entries)
-                if ncols is None:
                     ncols = ncols_from_dict(entries)
+                # note that ncols can still be None if nrows is set --
+                # it will be assigned nrows down below.
 
             # See the construction after the numpy case below.
         else:

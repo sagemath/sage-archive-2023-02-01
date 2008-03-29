@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-# the default timeout for doctests: 3 minutes
-TIMEOUT = 180
+# the default timeout for doctests: 6 minutes
+TIMEOUT = 360
 # the timeout value for long doctests: 30 minutes
 TIMEOUT_LONG = 1800
 # the timeout for doctests running under valgrind tools: unreasonably long

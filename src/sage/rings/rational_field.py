@@ -591,8 +591,10 @@ class RationalField(_uniq, number_field_base.NumberField):
             import integer_ring
             ZZ = integer_ring.ZZ
         if num_bound == None:
-            return self((ZZ.random_element(distribution=distribution),
-                         ZZ.random_element(distribution=distribution)))
+            num = ZZ.random_element(distribution=distribution)
+            den = ZZ.random_element(distribution=distribution)
+            while den == 0: den = ZZ.random_element(distribution=distribution)
+            return self((num, den))
         else:
             if num_bound == 0:
                 num_bound = 2

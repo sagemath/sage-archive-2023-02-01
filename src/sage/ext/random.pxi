@@ -32,10 +32,14 @@ cdef void mpq_randomize_entry_as_int(mpq_t x, mpz_t bound):
         mpz_mul_si(mpq_numref(x), mpq_numref(x), -1)
 
 cdef inline void mpq_randomize_entry_recip_uniform(mpq_t x):
-    # Distributes top and bottom according to mpz_randomize_entry_recip_uniform.
+    # Numerator is selected the same way as ZZ.random_element();
+    # denominator is selected in a similar way, but
+    # modified to give only positive integers.  (The corresponding
+    # probability distribution is $X = \mbox{trunc}(1/R)$, where R
+    # varies uniformly between 0 and 1.)
     cdef int den = random() - RAND_MAX/2
     if den == 0: den = 1
-    mpz_set_si(mpq_numref(x), (RAND_MAX/2) / den)
+    mpz_set_si(mpq_numref(x), (RAND_MAX/5*2) / den)
     den = random()
     if den == 0: den = 1
     mpz_set_si(mpq_denref(x), RAND_MAX / den)

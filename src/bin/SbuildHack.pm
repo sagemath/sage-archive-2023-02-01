@@ -1,5 +1,5 @@
 # sbuildhack module originally from Debathena.
-package sage-SbuildHack;
+package SbuildHack;
 
 use Sbuild qw(binNMU_version);
 use Sbuild::Chroot qw(begin_session);

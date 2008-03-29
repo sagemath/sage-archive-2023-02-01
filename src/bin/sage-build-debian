@@ -1,8 +1,20 @@
-#!/bin/sh -x
+#!/bin/sh -xe
+if [ ! -e dist/debian ]; then
+    echo "This spkg does not build a Debian package."
+    exit 0
+fi
 echo "Starting Debian build"
+unset LD_LIBRARY_PATH
+unset LIBRARY_PATH
 mv dist/debian src/
-sage-dasource src/
-sage-sbuildhack "$DEBIAN_RELEASE" *.dsc || exit 1
-mkdir -p $SAGE_ROOT/deb
-mv *.dsc *.changes *.build *.deb *.tar.gz *.diff.gz $SAGE_ROOT/deb
+sage-debsource src/
+sage-sbuildhack "$DEBIAN_RELEASE" *.dsc
+DISTRO=$(echo "$DEBIAN_RELEASE" | cut -f1 -d-)
+ARCHITECTURE=$(echo "$DEBIAN_RELEASE" | cut -f2 -d-)
+if [ -n "$SAGE_REPO" ]; then
+    reprepro --ignore=wrongdistribution -b "$SAGE_REPO" include "$DISTRO" *_source.changes
+    reprepro --ignore=wrongdistribution -b "$SAGE_REPO" include "$DISTRO" *_"$ARCHITECTURE.changes"
+fi
+#mkdir -p $SAGE_ROOT/..
+mv *.dsc *.changes *.build *.deb *.tar.gz *.diff.gz "$SAGE_ROOT/.."
 echo "Debian Build complete"

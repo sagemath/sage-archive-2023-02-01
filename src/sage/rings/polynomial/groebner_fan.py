@@ -283,7 +283,7 @@ class PolyhedralFan(SageObject):
         return "Polyhedral fan in %s dimensions of dimension %s"%(str(self.ambient_dim()), str(self.dim()))
 
     def _str_(self):
-        """
+        r"""
         Returns the raw output of gfan as a string.  This should only
         be needed internally as all relevant output is converted to
         sage objects.
@@ -292,8 +292,8 @@ class PolyhedralFan(SageObject):
             sage: R3.<x,y,z> = PolynomialRing(QQ,3)
             sage: gf = R3.ideal([x^8-y^4,y^4-z^2,z^2-2]).groebner_fan()
             sage: pf = gf.polyhedralfan()
-            sage: len(pf._str_())
-            369
+            sage: pf._str_()
+            '_application PolyhedralFan\n_version 2.2\n_type PolyhedralFan\n\nAMBIENT_DIM\n3\n\nDIM\n3\n\nLINEALITY_DIM\n0\n\nRAYS\n1 0 0\t# 0\n0 1 0\t# 1\n0 0 1\t# 2\n\nN_RAYS\n3\n\nLINEALITY_SPACE\n\nORTH_LINEALITY_SPACE\n0 0 1\n0 1 0\n1 0 0\n\nF_VECTOR\n1 3 3 1\n\nCONES\n{}\t# Dimension 0\n{0}\t# Dimension 1\n{1}\n{2}\n{0 1}\t# Dimension 2\n{0 2}\n{1 2}\n{0 1 2}\t# Dimension 3\n\nMAXIMAL_CONES\n{0 1 2}\t# Dimension 3\n\nPURE\n1\n'
         """
         return self._str
 

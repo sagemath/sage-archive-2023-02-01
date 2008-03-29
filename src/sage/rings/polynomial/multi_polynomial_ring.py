@@ -146,7 +146,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
     Multivariable polynomial ring.
 
     EXAMPLES:
-        sage: R = MPolynomialRing(Integers(12), 'x', 5); R
+        sage: R = PolynomialRing(Integers(12), 'x', 5); R
         Multivariate Polynomial Ring in x0, x1, x2, x3, x4 over Ring of integers modulo 12
         sage: loads(R.dumps()) == R
         True

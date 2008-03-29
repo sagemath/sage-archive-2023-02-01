@@ -87,14 +87,14 @@ class MPolynomial_element(MPolynomial):
         with the ith variable replaced by $a_i$.
 
         EXAMPLES:
-            sage: R.<x, y> = MPolynomialRing(RationalField(),2)
+            sage: R.<x,y> = QQ[]
             sage: f = x^2 + y^2
             sage: f(1,2)
             5
             sage: f((1,2))
             5
 
-            sage: x = MPolynomialRing(RationalField(),'x',3).gens()
+            sage: x = PolynomialRing(QQ,3,'x').gens()
             sage: f = x[0] + x[1] - 2*x[1]*x[2]
             sage: f
             -2*x1*x2 + x0 + x1
@@ -195,7 +195,7 @@ class MPolynomial_element(MPolynomial):
             Note that it is not really possible to do a meaningful
             example since sage mpoly rings refuse to have
             non-commutative bases.
-            sage: x,y = ZZ['x,y'].gens()
+            sage: R.<x,y> = ZZ[]
             sage: f = (x + y)
             sage: 3*f
             3*x + 3*y
@@ -210,7 +210,7 @@ class MPolynomial_element(MPolynomial):
             Note that it is not really possible to do a meaningful
             example since sage mpoly rings refuse to have
             non-commutative bases.
-            sage: x,y = ZZ['x,y'].gens()
+            sage: R.<x,y> = ZZ[]
             sage: f = (x + y)
             sage: f*3
             3*x + 3*y
@@ -228,7 +228,7 @@ class MPolynomial_element(MPolynomial):
         If we do the same over $\ZZ$ the result is the same as
         multiplying by 1/3 (i.e. base extension).
 
-            sage: x,y = ZZ['x,y'].gens()
+            sage: R.<x,y> = ZZ[]
             sage: f = (x + y)/3
             sage: f.parent()
             Multivariate Polynomial Ring in x, y over Rational Field
@@ -296,7 +296,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def __init__(self, parent, x):
         """
         EXAMPLES:
-            sage: R, x = MPolynomialRing(QQ, 'x', 10).objgens()
+            sage: R, x = PolynomialRing(QQ, 10, 'x').objgens()
             sage: x
             (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             sage: loads(dumps(x)) == x
@@ -351,7 +351,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             integer
 
         EXAMPLE:
-            sage: R.<x, y> = MPolynomialRing(QQ, 2)
+            sage: R.<x,y> = QQ[]
             sage: f = y^2 - x^9 - x
             sage: f.degree(x)
             9
@@ -401,7 +401,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         maximum degree of any monomial in self.
 
         EXAMPLES:
-            sage: R.<x,y,z> = MPolynomialRing(QQ, 3)
+            sage: R.<x,y,z> = QQ[]
             sage: f=2*x*y^3*z^2
             sage: f.total_degree()
             6
@@ -643,7 +643,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Return True if self is a unit.
 
         EXAMPLES:
-            sage: R = PolynomialRing(IntegerRing(), 2, ['x','y']); x,y = R.gens()
+            sage: R.<x,y> = ZZ[]
             sage: (x+y).is_unit()
             False
             sage: R(0).is_unit()
@@ -679,7 +679,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Return True if self is a homogeneous polynomial.
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(RationalField(), 2, names=['x', 'y']).gens()
+            sage: R.<x,y> = QQ[]
             sage: (x+y).is_homogeneous()
             True
             sage: (x.parent()(0)).is_homogeneous()
@@ -709,7 +709,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             a multivariate polynomial
 
         EXAMPLES:
-            sage: P.<x,y> = MPolynomialRing(ZZ,2)
+            sage: P.<x,y> = ZZ[]
             sage: f = x^2 + y + 1 + 5*x*y^1
             sage: g = f.homogenize('z'); g # indirect doctest
             x^2 + 5*x*y + y*z + z^2
@@ -745,7 +745,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             new MPolynomial
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: R.<x,y> = ZZ[]
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
             25*y^2 + y + 30
@@ -769,7 +769,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             list of MPolynomials representing Monomials
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: R.<x,y> = ZZ[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.monomials()
             [x^2*y^2, x^2, y, 1]
@@ -802,7 +802,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Return the constant coefficient of this multivariate polynomial.
 
         EXAMPLES:
-            sage: x, y = ZZ['x,y'].gens()
+            sage: R.<x,y> = ZZ[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.constant_coefficient()
             5
@@ -822,7 +822,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Returns True if this multivariate polynomial is univariate and False otherwise.
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: R.<x,y> = QQ[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.is_univariate()
             False
@@ -865,7 +865,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         no ring 'ring' is provided.
 
         EXAMPLES:
-            sage: R.<x, y> = MPolynomialRing(ZZ,2,'xy')
+            sage: R.<x,y> = ZZ[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.univariate_polynomial()
             Traceback (most recent call last):
@@ -921,7 +921,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Returns the list of variables occuring in this polynomial.
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: R.<x,y> = ZZ[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.variables()
             [x, y]
@@ -938,7 +938,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Returns $i$-th variable occuring in this polynomial.
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: R.<x,y> = ZZ[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.variable(0)
             x
@@ -952,7 +952,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Number of variables in this polynomial
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ, 2,'xy').gens()
+            sage: R.<x,y> = ZZ[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.nvariables ()
             2
@@ -968,7 +968,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         True if polynomial is constant, and False otherwise.
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: R.<x,y> = ZZ[]
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.is_constant()
             False
@@ -1265,7 +1265,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         ALGORITHM: Use Singular.
 
         EXAMPLES:
-            sage: x, y = QQ['x,y'].gens()
+            sage: R.<x,y> = QQ[]
             sage: f = (x^3 + 2*y^2*x)^2
             sage: g = x^2*y^2
             sage: f.gcd(g)
@@ -1365,7 +1365,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             I -- a list of polynomials or an ideal
 
         EXAMPLE:
-            sage: P.<x,y,z> = MPolynomialRing(ZZ,3)
+            sage: P.<x,y,z> = ZZ[]
             sage: f1 = -2 * x^2 + x^3
             sage: f2 = -2 * y + x* y
             sage: f3 = -x^2 + y^2
@@ -1460,7 +1460,7 @@ def degree_lowest_rational_function(r,x):
         made a method of the FractionFieldElement class and rewritten.
 
     EXAMPLES:
-        sage: R1 = MPolynomialRing(FiniteField(5), 3, names = ["a","b","c"])
+        sage: R1 = PolynomialRing(FiniteField(5), 3, names = ["a","b","c"])
         sage: F = FractionField(R1)
         sage: a,b,c = R1.gens()
         sage: f = 3*a*b^2*c^3+4*a*b*c

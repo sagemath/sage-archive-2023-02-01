@@ -52,7 +52,7 @@ def _triangulate(g, comb_emb):
         sage: from sage.graphs.schnyder import _triangulate
         sage: g = graphs.CycleGraph(4)
         sage: g.is_planar(set_embedding=True)
-        True
+        (True, None)
         sage: _triangulate(g, g._embedding)
         [(2, 0), (1, 3)]
 
@@ -145,7 +145,7 @@ def _normal_label(g, comb_emb, external_face):
         sage: from sage.graphs.schnyder import _triangulate, _normal_label, _realizer
         sage: g = graphs.CycleGraph(7)
         sage: g.is_planar(set_embedding=True)
-        True
+        (True, None)
         sage: faces = g.trace_faces(g._embedding)
         sage: _triangulate(g, g._embedding)
         [(2, 0), (4, 2), (6, 4), (5, 0), (3, 5), (1, 3), (4, 0), (3, 0)]
@@ -342,7 +342,7 @@ def _realizer(g, x, example=False):
         sage: from sage.graphs.schnyder import _triangulate, _normal_label, _realizer
         sage: g = graphs.CycleGraph(7)
         sage: g.is_planar(set_embedding=True)
-        True
+        (True, None)
         sage: faces = g.trace_faces(g._embedding)
         sage: _triangulate(g, g._embedding)
         [(2, 0), (4, 2), (6, 4), (5, 0), (3, 5), (1, 3), (4, 0), (3, 0)]
@@ -422,7 +422,7 @@ def _compute_coordinates(g, x):
         sage: from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
         sage: g = graphs.CycleGraph(7)
         sage: g.is_planar(set_embedding=True)
-        True
+        (True, None)
         sage: faces = g.trace_faces(g._embedding)
         sage: _triangulate(g, g._embedding)
         [(2, 0), (4, 2), (6, 4), (5, 0), (3, 5), (1, 3), (4, 0), (3, 0)]

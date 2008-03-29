@@ -28,6 +28,7 @@ from crystals                  import Crystal, CrystalElement, ClassicalCrystal
 from letters                   import CrystalOfLetters
 from sage.misc.flatten         import flatten
 from sage.rings.integer        import Integer
+from sage.misc.mrange          import xmrange_iter
 
 ##############################################################################
 # Support classes
@@ -93,7 +94,7 @@ class ImmutableListWithParent(CombinatorialObject, Element):
 # FIXME: should be, or not, in ClassicalCrystal depending on the input
 class TensorProductOfCrystals(ClassicalCrystal):
     r"""
-    Tensor product of crystals
+    Tensor product of crystals.
 
     EXAMPLES:
 
@@ -114,6 +115,18 @@ class TensorProductOfCrystals(ClassicalCrystal):
         [3, 1, 1],
         [3, 1, 2],
         [3, 2, 2]]
+
+        sage: C = CrystalOfTableaux(['A',3], shape=[1,1,0])
+        sage: D = CrystalOfTableaux(['A',3], shape=[1,0,0])
+        sage: T = TensorProductOfCrystals(C,D,generators="all")
+        sage: T.count()
+        24
+        sage: T.check()
+        True
+        sage: T.module_generators
+        [[[[1], [2]], [[1]]], [[[2], [3]], [[1]]]]
+        sage: [x.weight() for x in T.module_generators]
+        [(2, 1, 0, 0), (1, 1, 1, 0)]
 
     TESTS:
         sage: C = CrystalOfLetters(['A',5])
@@ -158,7 +171,14 @@ class TensorProductOfCrystals(ClassicalCrystal):
 		self.cartanType = crystals[0].cartanType
         self.index_set = self.cartanType.index_set()
         if options.has_key('generators'):
-            self.module_generators = [ self(*x) for x in options['generators']]
+            if options['generators'] == "all":
+                self.module_generators = []
+                for c in list(xmrange_iter([D.list() for D in crystals])):
+                    candidate = self(*c)
+                    if all(candidate.e(k) == None for k in self.index_set):
+                        self.module_generators.append(candidate)
+            else:
+                self.module_generators = [ self(*x) for x in options['generators']]
 
     def __call__(self, *args):
         return TensorProductOfCrystalsElement(self,

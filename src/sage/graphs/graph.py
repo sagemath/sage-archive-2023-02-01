@@ -1693,7 +1693,7 @@ class GenericGraph(SageObject):
             sage: cube.genus()
             0
             sage: cube.is_circular_planar()
-            False
+            (False, Graph on 9 vertices)
             sage: cube.genus(circular=True) #long time
             1
         """

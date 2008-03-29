@@ -725,7 +725,7 @@ class LinearCode(module.Module):
             (2*sqrt(2)*t^3/5 + 2*sqrt(2)*t^2/5 + 2*t^2/5 + sqrt(2)*t/5 + 2*t/5 + 1/5)/(sqrt(2) + 1)
             sage: C = TernaryGolayCode()
             sage: C.chinen_polynomial()       # long time
-            (6*sqrt(3)*t^3/7 + 6*sqrt(3)*t^2/7 + 6*t^2/7 + 2*sqrt(3)*t/7 + 6*t/7 + 2/7)/(2*sqrt(3) + 2)
+            (3*sqrt(3)*t^3/7 + 3*sqrt(3)*t^2/7 + 3*t^2/7 + sqrt(3)*t/7 + 3*t/7 + 1/7)/(sqrt(3) + 1)
 
         This last output agrees with the corresponding example given in Chinen's paper below.
 

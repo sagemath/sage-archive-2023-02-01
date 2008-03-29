@@ -303,11 +303,10 @@ class LiE(Expect):
     using LiE (and get the result back as a string).
 
     """
-    def __init__(self, stacksize=10000000,   # 10MB
+    def __init__(self,
                  maxread=100000, script_subdirectory=None,
                  logfile=None,
-                 server=None,
-                 init_list_length=1024):
+                 server=None):
         Expect.__init__(self,
 
                         # The capitalized versionof this is used for printing.
@@ -341,8 +340,6 @@ class LiE(Expect):
                         eval_using_file_cutoff=1024)
 
         self.__seq = 0
-        self.__var_store_len = 0
-        self.__init_list_length = init_list_length
 
         self.__trait_names_dict = None
         self.__trait_names_list = None

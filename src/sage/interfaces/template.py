@@ -38,11 +38,11 @@ class MySystem(Expect):
     [[Some basic help about your system.  This is what
       will be displayed when somebody write mysystem?.]]
     """
-    def __init__(self, stacksize=10000000,   # 10MB
+    def __init__(self,
                  maxread=100000, script_subdirectory=None,
                  logfile=None,
                  server=None,
-                 init_list_length=1024):
+                 server_tmpdir=None):
         Expect.__init__(self,
 
                         # The capitalized version of this is used for printing.
@@ -79,8 +79,6 @@ class MySystem(Expect):
                         eval_using_file_cutoff=1024)
 
         self.__seq = 0
-        self.__var_store_len = 0
-        self.__init_list_length = init_list_length
 
     def _repr_(self):
         return 'MySystem Interpreter'

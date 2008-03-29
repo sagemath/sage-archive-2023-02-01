@@ -14,6 +14,7 @@ AUTHORS:
                         ETuples
     -- Robert Bradshaw (2007-08-14): added support for coercion of polynomials in a subset
                         of variables (including multi-level univariate rings)
+    -- Joel B. Mohler (2008-03):  Refactored interactions with ETuples.
 
 EXAMPLES:
 We verify Lagrange's four squares identity:
@@ -42,7 +43,7 @@ We verify Lagrange's four squares identity:
 
 import operator
 
-import sage.rings.arith
+from sage.rings.arith import gcd
 
 from sage.structure.element import CommutativeRingElement, Element, is_Element, canonical_coercion
 
@@ -307,9 +308,27 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         MPolynomial_element.__init__(self, parent, x)
 
     def __neg__(self):
+        """
+        EXAMPLES:
+            sage: R.<x,y>=ZZ[]
+            sage: -x
+            -x
+            sage: -(y-1)
+            -y + 1
+        """
         return self*(-1)
 
     def _repr_(self):
+        """
+        EXAMPLES:
+            sage: R.<x,y>=ZZ[]
+            sage: repr(-x^2-y+1)  # indirect doc-test
+            '-x^2 - y + 1'
+            sage: K.<I>=QuadraticField(-1)
+            sage: R.<x,y>=K[]
+            sage: repr(-I*y-x^2)  # indirect doc-test
+            '-x^2 + (-I)*y'
+        """
         try:
             cmpfn = self.parent().term_order().compare_tuples
         except AttributeError:
@@ -319,6 +338,16 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                                         atomic_coefficients=self.parent().base_ring().is_atomic_repr(),cmpfn=cmpfn )
 
     def _latex_(self):
+        """
+        EXAMPLES:
+            sage: R.<x,y>=ZZ[]
+            sage: latex(-x^2-y+1)
+            -x^{2} - y + 1
+            sage: K.<I>=QuadraticField(-1)
+            sage: R.<x,y>=K[]
+            sage: latex(-I*y+I*x^2)
+            I x^{2} + (-I) y
+        """
         try:
             cmpfn = self.parent().term_order().compare_tuples
         except AttributeError:
@@ -328,6 +357,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                                     atomic_coefficients=self.parent().base_ring().is_atomic_repr(), cmpfn=cmpfn)
 
     def _repr_with_changed_varnames(self, varnames):
+        """
+        EXAMPLES:
+            sage: R.<x,y>=ZZ[]
+            sage: f=-x^2-y+1
+            sage: f._repr_with_changed_varnames(['jack','jill'])
+            '-jack^2 - jill + 1'
+        """
         try:
             cmpfn = self.parent().term_order().compare_tuples
         except AttributeError:
@@ -336,6 +372,48 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         return self.element().poly_repr(varnames,
                                         atomic_coefficients=self.parent().base_ring().is_atomic_repr(), cmpfn=cmpfn)
 
+    def content(self):
+        """
+        Returns the content of this polynomial.  Here, we define content as
+        the gcd of the coefficients in the base ring.
+
+        EXAMPLES:
+            sage: R.<x,y>=ZZ[]
+            sage: f=4*x+6*y
+            sage: f.content()
+            2
+            sage: f.content().parent()
+            Integer Ring
+        """
+        return gcd(self.coefficients(),integer=self.parent() is ZZ)
+
+    def degrees(self):
+        """
+        Returns a list (precisely -- an \code{ETuple}) with the degree of
+        each variable in this polynomial.  The list of degrees is, of course,
+        ordered by the order of the generators.
+
+        EXAMPLES:
+            sage: R.<x,y,z>=PolynomialRing(ZZ)
+            sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
+            sage: f.degrees()
+            (2, 2, 0)
+            sage: f = x^2+z^2
+            sage: f.degrees()
+            (2, 0, 2)
+            sage: f.total_degree()  # this simply illustrates that total degree is not the sum of the degrees
+            2
+            sage: R.<x,y,z,u>=PolynomialRing(ZZ)
+            sage: f=(1-x)*(1+y+z+x^3)^5
+            sage: f.degrees()
+            (16, 5, 5, 0)
+            sage: R(0).degrees()
+            (0, 0, 0, 0)
+        """
+        if self.is_zero():
+            return polydict.ETuple({},self.parent().ngens())
+        else:
+            return self._MPolynomial_element__element.max_exp()
 
     def degree(self, x=None):
         """
@@ -364,7 +442,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         """
         if x is None:
             return self.element().degree(None)
-        if not (isinstance(x, MPolynomial) and x.parent() == self.parent() and x.is_monomial()):
+        if not (isinstance(x, MPolynomial) and x.parent() is self.parent() and x.is_generator()):
             raise TypeError, "x must be one of the generators of the parent."
         return self.element().degree(x.element())
 
@@ -466,7 +544,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: K.<a> = NumberField(a^2+a+1)
             sage: P.<x,y> = K[]
             sage: f=(a*x-1)*((a+1)*y-1); f
-            (-1)*x*y + (-a)*x + (-a - 1)*y + 1
+            -x*y + (-a)*x + (-a - 1)*y + 1
             sage: f.monomial_coefficient(x)
             -a
         """
@@ -724,7 +802,40 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         R = self.parent()
         return R(X)
 
+    def is_generator(self):
+        """
+        Returns True if self is a generator of it's parent.
+
+        EXAMPLES:
+            sage: R.<x,y>=ZZ[]
+            sage: x.is_generator()
+            True
+            sage: (x+y-y).is_generator()
+            True
+            sage: (x*y).is_generator()
+            False
+        """
+        d = self.element().dict()
+        if len(d) == 1:
+            e,c = d.items()[0]
+            if c.is_one() and len(e.nonzero_positions()) == 1 and e.nonzero_values()[0] == 1:
+                return True
+        return False
+
     def is_monomial(self):
+        """
+        Returns True if self is a monomial.  Here, we define a monomial as a
+        product of variables with a coefficient (possibly not equal to 1).
+
+        EXAMPLES:
+            sage: R.<x,y>=ZZ[]
+            sage: x.is_monomial()
+            True
+            sage: (x+2*y).is_monomial()
+            False
+            sage: (2*x).is_monomial()
+            True
+        """
         return len(self.element().dict().keys()) == 1
 
     def subs(self, fixed=None, **kw):
@@ -888,7 +999,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         monomial_coefficients = self._MPolynomial_element__element.dict()
 
         if( not self.is_constant() ):
-            var_idx = self._variable_indices_()[0] #variable
+            var_idx = self.degrees().nonzero_positions()[0] #variable
         else:
             var_idx = 0; #constant
             if( len(monomial_coefficients.keys())==0 ):
@@ -907,15 +1018,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         #construct polynomial
         return R(coefficients)
 
-    def _variable_indices_(self):
-
-        ETuples = self._MPolynomial_element__element.dict().keys()
-
-        idx = set()
-        for e in ETuples:
-            idx = idx.union(e.nonzero_positions())
-        return sorted(idx)
-
     def variables(self):
         """
         Returns the list of variables occuring in this polynomial.
@@ -930,8 +1032,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: g.variables()
             [y]
         """
-        return [self.parent().gen(index) for index in self._variable_indices_() ]
-
+        return [self.parent().gen(index) for index in self.degrees().nonzero_positions()]
 
     def variable(self,i):
         """
@@ -961,7 +1062,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: g.nvariables ()
             1
         """
-        return len(self._variable_indices_())
+        return len(self.degrees().nonzero_positions())
 
     def is_constant(self):
         """
@@ -976,7 +1077,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: g.is_constant()
             True
         """
-        if( len(self._variable_indices_()) == 0 ):
+        if len(self.dict()) <= 1 and len(self.degrees().nonzero_positions()) == 0:
             return True
         else:
             return False
@@ -1021,6 +1122,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         """
         Returns the leading coefficent of self i.e.,
         self.coefficient(self.lm())
+
+        EXAMPLES:
+            sage: R.<x,y,z>=ZZ[]
+            sage: f=3*x^2-y^2-x*y
+            sage: f.lc()
+            3
         """
         try:
             return self.__lc
@@ -1034,7 +1141,19 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
     def lt(self):
         """
-        Returns the leading term of self i.e., self.lc()*self.lm()
+        Returns the leading term of self i.e., self.lc()*self.lm().  The
+        notion of "leading term" depends on the ordering defined in the
+        parent ring.
+
+        EXAMPLES:
+            sage: R.<x,y,z>=PolynomialRing(ZZ)
+            sage: f=3*x^2-y^2-x*y
+            sage: f.lt()
+            3*x^2
+            sage: R.<x,y,z>=PolynomialRing(ZZ,order="invlex")
+            sage: f=3*x^2-y^2-x*y
+            sage: f.lt()
+            -y^2
         """
         try:
             return self.__lt
@@ -1160,6 +1279,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             index = gens.index(var)
         except ValueError:
             # var is not a generator; do term-by-term differentiation recursively
+            # var may be, for example, a generator of the base ring
             d = dict([(e, x._derivative(var)) for (e, x) in self.dict().iteritems()])
             d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
             return MPolynomial_polydict(self.parent(), d)
@@ -1172,7 +1292,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                 d[exp.esub(v)] = coeff * exp[index]
         d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
         return MPolynomial_polydict(self.parent(), d)
-
 
     def factor(self):
         r"""
@@ -1310,7 +1429,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         P = self.parent()
         if P.base_ring() == ZZ:
             res = self.parent()(self._singular_(force=True).gcd(f._singular_(force=True)))
-            coef = sage.rings.arith.gcd(self.element().dict().values() + f.element().dict().values(),True)
+            coef = gcd(self.element().dict().values() + f.element().dict().values(),True)
             return coef*res
 
         P._singular_().set_ring()

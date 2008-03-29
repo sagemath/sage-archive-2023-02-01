@@ -183,9 +183,9 @@ class PHC:
 	sage: sols                             # optional
         [[-1.00000000000000*I, 1.00000000000000*I], [1.00000000000000*I, -1.00000000000000*I]]
 	sage: sol_dict = v.solution_dicts()    # optional
-        sage: x_sols_from_dict = [d[x] for d in sol_dict]    # optional
-        sage: x_sols_from_dict.sort(); x_sols_from_dict
-        [-1.00000000000000*I, 1.00000000000000*I]
+        sage: sols_from_dict = [sorted(d.items()) for d in sol_dict] # optional
+        sage: sorted(sols_from_dict)           # optional
+        [[(y, -1.00000000000000*I), (x, 1.00000000000000*I)], [(y, 1.00000000000000*I), (x, -1.00000000000000*I)]]
 	sage: residuals = [[test_equation.change_ring(CDF).subs(sol) for test_equation in testsys] for sol in v.solution_dicts()]      # optional
 	sage: residuals                             # optional
 	[[0, 0], [0, 0]]
@@ -250,6 +250,14 @@ class PHC:
 
         OUTPUT:
             The mixed volume.
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import phc
+            sage: R.<x,y> = PolynomialRing(CDF,2)
+            sage: testsys = [x^2 + 1, x*y - 1]
+            sage: phc.mixed_volume(testsys)        # optional -- you must have phc install
+            2
+
         """
         # Get three temporary file names (these will be in SAGE_HOME/.sage/tmp/pid)
         input_filename = sage.misc.misc.tmp_filename()

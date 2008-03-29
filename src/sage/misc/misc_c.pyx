@@ -228,7 +228,7 @@ def test_bitset(py_a, py_b, long n):
         a.set_to(n)  00101
         a.flip(n)    00100
         a.is_zero()  False
-        a.is_equal(b) False
+        a.eq(b)      False
         a.cmp(b)     1
         a.copy()     00101
         r.zero()     00000
@@ -257,7 +257,7 @@ def test_bitset(py_a, py_b, long n):
         a.set_to(n)  111001111001111001111001111001111001111001111001111001111001111001111101111001111001111001111001111001111001111001111001111001111001111001111001111001
         a.flip(n)    111001111001111001111001111001111001111001111001111001111001111001111101111001111001111001111001111001111001111001111001111001111001111001111001111001
         a.is_zero()  False
-        a.is_equal(b) False
+        a.eq(b)      False
         a.cmp(b)     -1
         a.copy()     111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
         r.zero()     000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -266,19 +266,32 @@ def test_bitset(py_a, py_b, long n):
         a or b       111101111001111111111101111001111101111011111001111001111111111111111001111011111101111101111111111001111011111001111001111001111101111001111101111111
         a xor b      111101011000000111001100101000111101110010101000011000111111011111110000011010110101101101101110111001100010011001000000010001011100110001111101011110
         a.rshift(n)  001111001111001111001111001111001111001111001111001111001111001111001111001111001000000000000000000000000000000000000000000000000000000000000000000000
-        a.lshift(n)  000000000000000000000000000000000000000000000000000000000000000000000111001111001111001111001111111101001111001111001111001111001100101111001111001111
+        a.lshift(n)  000000000000000000000000000000000000000000000000000000000000000000000111001111001111001111001111001111001111001111001111001111001111001111001111001111
         a.first()           0
         a.next(n)           71
         a.first_diff(b)     0
         a.next_diff(b, n)   73
         a.hamming_weight()  100
         a.hamming_weight_sparse()  100
+        rshifts add  True
+        lshifts add  True
+        and commutes True
+        or commutes  True
+        not not = id True
+        flipped bit  69
+        set bit      69
+        unset bit    69
+        lshift set unset ok True
+        rshift set unset ok True
     """
     cdef bint bit = True
     cdef bitset_t a, b, r
 
     bitset_from_str(a, py_a)
     bitset_from_str(b, py_b)
+
+    if a.size != b.size:
+        raise ValueError, "inputs must have same size"
 
     print "a", bitset_string(a)
     print "a.size", a.size
@@ -300,7 +313,7 @@ def test_bitset(py_a, py_b, long n):
     bitset_from_str(a, py_a)
     bitset_from_str(b, py_b)
     print "a.is_zero() ", bitset_is_zero(a)
-    print "a.is_equal(b)", bitset_is_equal(a, b)
+    print "a.eq(b)     ", bitset_eq(a, b)
     print "a.cmp(b)    ", bitset_cmp(a, b)
 
     bitset_from_str(a, py_a)
@@ -334,7 +347,60 @@ def test_bitset(py_a, py_b, long n):
     print "a.hamming_weight() ", bitset_hamming_weight(a)
     print "a.hamming_weight_sparse() ", bitset_hamming_weight_sparse(a)
 
+    cdef bitset_t s
+    bitset_init(s, a.size)
+
+    if a.size > 100:
+        bitset_rshift(r, b, 3)
+        bitset_rshift(r, r, 77)
+        bitset_rshift(s, b, 80)
+        print "rshifts add ", bitset_eq(s, r)
+
+        bitset_lshift(r, b, 69)
+        bitset_lshift(r, r, 6)
+        bitset_lshift(s, b, 75)
+        print "lshifts add ", bitset_eq(s, r)
+
+        bitset_and(r, a, b)
+        bitset_and(s, b, a)
+        print "and commutes", bitset_eq(s, r)
+
+        bitset_or(r, a, b)
+        bitset_or(s, b, a)
+        print "or commutes ", bitset_eq(s, r)
+
+        bitset_not(r, b)
+        bitset_not(s, r)
+        print "not not = id", bitset_eq(s, b)
+
+        bitset_copy(r, b)
+        bitset_flip(r, n)
+        print "flipped bit ", bitset_first_diff(b, r)
+
+        bitset_zero(r)
+        bitset_set(r, n)
+        print "set bit     ", bitset_first(r)
+
+        bitset_zero(r)
+        bitset_not(r, r)
+        bitset_unset(r, n)
+        bitset_not(r, r)
+        print "unset bit   ", bitset_first(r)
+
+        bitset_zero(r)
+        bitset_set(r, 10)
+        bitset_lshift(r, r, 68)
+        bitset_flip(r, 78)
+        print "lshift set unset ok", bitset_is_zero(r)
+
+        bitset_zero(r)
+        bitset_set(r, 19)
+        bitset_rshift(r, r, 8)
+        bitset_unset(r, 11)
+        print "rshift set unset ok", bitset_is_zero(r)
+
     bitset_clear(a)
     bitset_clear(b)
     bitset_clear(r)
+    bitset_clear(s)
 

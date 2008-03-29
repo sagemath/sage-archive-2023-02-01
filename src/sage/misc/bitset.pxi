@@ -75,7 +75,7 @@ cdef inline bint bitset_is_zero(bitset_t bits):
             return False
     return True
 
-cdef inline bint bitset_is_equal(bitset_t a, bitset_t b):
+cdef inline bint bitset_eq(bitset_t a, bitset_t b):
     return memcmp(a.bits, b.bits, (a.size+7) >> 3) == 0
 
 cdef inline int bitset_cmp(bitset_t a, bitset_t b):
@@ -193,6 +193,8 @@ cdef void bitset_rshift(bitset_t r, bitset_t a, long n):
     if n <= 0:
         if n != 0:
             bitset_lshift(r, a, -n)
+        else:
+            bitset_copy(r, a)
         return
     elif n >= a.size:
         bitset_zero(r)
@@ -217,6 +219,8 @@ cdef void bitset_lshift(bitset_t r, bitset_t  a, long n):
     if n <= 0:
         if n != 0:
             bitset_rshift(r, a, -n)
+        else:
+            bitset_copy(r, a)
         return
     elif n >= a.size:
         bitset_zero(r)
@@ -231,7 +235,7 @@ cdef void bitset_lshift(bitset_t r, bitset_t  a, long n):
 
     else:
         for i from r.limbs - off > i >= 1:
-            r.bits[i+off] = (a.bits[i] << shift) | (a.bits[i] >> shift2)
+            r.bits[i+off] = (a.bits[i] << shift) | (a.bits[i-1] >> shift2)
         r.bits[off] = a.bits[0] << shift
 
     if off > 0:

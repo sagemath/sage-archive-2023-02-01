@@ -57,7 +57,8 @@ if not os.path.exists(SITE_PACKAGES):
     if not os.path.exists(SITE_PACKAGES):
         SITE_PACKAGES = '%s/lib/python2.4/site-packages/'%SAGE_LOCAL
         if not os.path.exists(SITE_PACKAGES) and os.environ.has_key('SAGE_DEBIAN'):
-            SITE_PACKAGES = '/usr/lib/python2.5/site-packages/'
+            SITE_PACKAGES = '%s/lib/python2.5/site-packages/'%SAGE_LOCAL
+            os.system('mkdir -p "%s"'%SITE_PACKAGES)
         if not os.path.exists(SITE_PACKAGES):
             raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
 
@@ -1085,7 +1086,7 @@ def process_cython_file(deps, f, m):
 
     if need_to_cython(deps, f, outfile):
         # Insert the -o parameter to specify the output file (particularly for c++)
-        cmd = "cython --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
+        cmd = "python2.5 `which cython` --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:

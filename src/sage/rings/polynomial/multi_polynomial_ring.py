@@ -532,7 +532,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
         if not coeff:
           coeff= self.base_ring()(1)
         else:
-          coeff = f.dict().values()[0] /  g.dict().values()[0]
+          coeff = self.base_ring()(f.dict().values()[0] /  g.dict().values()[0])
 
         f = f.dict().keys()[0]
         g = g.dict().keys()[0]

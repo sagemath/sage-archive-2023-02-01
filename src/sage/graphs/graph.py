@@ -5314,7 +5314,7 @@ class GenericGraph(SageObject):
         """
         if engine == 'jmol':
             from sage.plot.plot3d.all import sphere, line3d, arrow3d
-
+            kwds.setdefault('aspect_ratio', [1,1,1])
             verts = self.vertices()
 
             if vertex_colors is None:

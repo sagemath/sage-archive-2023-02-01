@@ -198,13 +198,14 @@ class EndomorphismSubring(Homspace, Ring):
         """
         self._J = A.ambient_variety()
         self._A = A
+        Homspace.__init__(self, A, A, A.category())
+        Ring.__init__(self, A.base_ring())
+
         if gens is None:
             self._gens = None
         else:
             self._gens = tuple([ self._get_matrix(g) for g in gens ])
         self._is_full_ring = gens is None
-        Homspace.__init__(self, A, A, A.category())
-        Ring.__init__(self, A.base_ring())
 
     def _repr_(self):
         if self._is_full_ring:
@@ -252,7 +253,8 @@ class EndomorphismSubring(Homspace, Ring):
 
         d = A.dimension()
         EndVecZ = ZZ**(4*d**2)
-        T_matrices = [ A.hecke_operator(n).matrix().list() for n in range(1,M.sturm_bound()+1) ]
+        T_matrices = [ A.hecke_operator(n).matrix().list() for n in
+                       range(1,M.sturm_bound()+1) ]
         W = EndVecZ.submodule(T_matrices)
 
         T = EndomorphismSubring(A, W.basis())

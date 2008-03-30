@@ -17,6 +17,8 @@ from sage.modular.dims import dimension_cusp_forms
 from sage.modular.modsym.modsym import ModularSymbols
 import morphism
 
+import constructor
+
 _cache = {}
 
 def ModAbVar_ambient_jacobian(group):
@@ -181,6 +183,34 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
             (Congruence Subgroup Gamma0(37),)
         """
         return (self.__group,)
+
+    def _calculate_endomorphism_generators(self):
+        D = self.decomposition()
+        phi = self._isogeny_to_product_of_simples()
+        psi = phi.complementary_isogeny()
+
+        m1 = phi.matrix()
+        m2 = psi.matrix()
+
+        H = self.Hom(self)
+        M = H.matrix_space()
+
+        ls = []
+        ind = 0
+        for d in D:
+            to_newform = d._isogeny_to_newform_abelian_variety()[1]
+            n1 = to_newform.matrix()
+            n2 = to_newform.complementary_isogeny().matrix()
+            f_gens = to_newform.codomain()._calculate_endomorphism_generators()
+            small_space = to_newform.parent().matrix_space()
+            f_gens = [ small_space(x.list()) for x in f_gens ]
+            for m in f_gens:
+                mat = H.matrix_space()(0)
+                mat.set_block(ind, ind, n1 * m * n2 )
+                ls.append((m1 * mat * m2).list())
+            ind += 2*d.dimension()
+
+        return [ H( morphism.Morphism(H, M(x)) ) for x in ls ]
 
     def degeneracy_map(self, level, t=1, check=True):
         """

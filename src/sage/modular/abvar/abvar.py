@@ -415,7 +415,10 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 # TODO -- improve this
                 raise ValueError, "please specify a category"
             cat = ModularAbelianVarieties(F)
-        return homspace.Homspace(self, B, cat)
+        if self == B:
+            return self.endomorphism_ring()
+        else:
+            return homspace.Homspace(self, B, cat)
 
     def in_same_ambient_variety(self, other):
         """
@@ -842,8 +845,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def projection(self, A, check=True):
         """
         Given an abelian subvariety A of self, return a projection
-        morphism from self to A.  Note that this morphism need is not
-        unique.
+        morphism from self to A.  Note that this morphism need not
+        be unique.
 
         INPUT:
             A -- an abelian variety
@@ -1164,12 +1167,15 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         L = self.lattice()
         M = other.lattice()
         # self is an abelian subvariety of other if and only if
-        #   1. L is a subset of M (so the abelian subvarieties of the ambient J are equal), and
-        #   2. L is relatively saturated in M, i.e., M/L is torsion free.
+        #   1. L is a subset of M (so the abelian subvarieties of
+        #      the ambient J are equal), and
+        #   2. L is relatively saturated in M, i.e., M/L is
+        #      torsion free.
         if not L.is_submodule(M):
             return False
-        # To determine if L is relatively staturated we compute the intersection
-        # of M with (L tensor Q) and see if that equals L.
+        # To determine if L is relatively staturated we compute the
+        # intersection of M with (L tensor Q) and see if that equals
+        # L.
         return L.change_ring(QQ).intersection(M) == L
 
     def change_ring(self, R):
@@ -2087,15 +2093,19 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
     def _classify_ambient_factors(self, simple=True, bound=None):
         r"""
-        This function implements the following algorithm, which produces data useful
-        in finding a decomposition or complement of self.
+        This function implements the following algorithm, which
+        produces data useful in finding a decomposition or complement
+        of self.
 
         \begin{enumerate}
-            \item Suppose $A_1 + \cdots + A_n$ is a simple decomposition of the ambient space.
+            \item Suppose $A_1 + \cdots + A_n$ is a simple decomposition of
+                  the ambient space.
             \item For each $i$, let $B_i = A_1 + \cdots + A_i$.
-            \item For each $i$, compute the intersectin $C_i$ of $B_i$ and self.
-            \item For each $i$, if the dimension of $C_i$ is bigger than $C_{i-1}$
-            put $i$ in the ``in'' list; otherwise put $i$ in the ``out'' list.
+            \item For each $i$, compute the intersection $C_i$ of $B_i$
+                  and self.
+            \item For each $i$, if the dimension of $C_i$ is bigger than
+                  $C_{i-1}$ put $i$ in the ``in'' list; otherwise put $i$
+                  in the ``out'' list.
         \end{enumerate}
 
         Then one can show that self is isogenous to the sum of the
@@ -2120,6 +2130,34 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             else:
                 OUT.append(j)
         return IN, OUT, X
+
+    def _isogeny_to_product_of_simples(self):
+        r"""
+        Given an abelian variety $A$, return an isogeny
+        $\phi: A \rightarrow B_1 \times \cdots \times \B_n$,
+        where each $B_i$ is simple.
+        """
+
+        D = self.decomposition()
+        dest = prod(D)
+        A = self.ambient_variety()
+        dim = sum([d.dimension() for d in D])
+
+        proj_ls = [ A.projection(factor) for factor in D ]
+
+        #MS = MatrixSpace(ZZ, self.dimension(), dim)
+        mat = matrix(ZZ, 2*self.dimension(), 2*dim)
+        ind = 0
+
+        for i in range(len(D)):
+            factor = D[i]
+            proj = proj_ls[i]
+            mat.set_block(0, ind, proj.restrict_domain(self).matrix())
+            ind += 2*factor.dimension()
+
+        H = self.Hom(dest)
+        return H(Morphism(H, mat))
+
 
     def complement(self, A=None):
         """
@@ -2176,12 +2214,12 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         complement of self in the ambient product Jacobian share no
         common factors.  A more general implementation will require
         implementing computation of the intersection pairing on
-        integral homology and resulting Weil pairing on torsion.
+        integral homology and the resulting Weil pairing on torsion.
 
         EXAMPLES:
-        We compute the dual of the elliptic curve newform abelian variety of
-        level $33$, and find the kernel of the modular map, which has structure
-        $(\ZZ/3)^2$.
+        We compute the dual of the elliptic curve newform abelian
+        variety of level $33$, and find the kernel of the modular map,
+        which has structure $(\ZZ/3)^2$.
 
             sage: A,B,C = J0(33)
             sage: C

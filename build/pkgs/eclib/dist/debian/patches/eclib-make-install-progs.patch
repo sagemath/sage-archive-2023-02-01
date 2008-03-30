@@ -1,0 +1,18 @@
+Index: eclib-0.0.20080127/Makefile
+===================================================================
+--- eclib-0.0.20080127.orig/Makefile	2008-03-29 19:54:25.000000000 -0400
++++ eclib-0.0.20080127/Makefile	2008-03-29 19:54:01.000000000 -0400
+@@ -50,6 +50,13 @@
+ 	cd qrank && make lib install
+ 	cd g0n && make lib install
+ 
++install_all: so
++	mkdir -p $(PROGSDIR) $(FTP_DIR) $(FTP_SUBDIR)
++	cd procs && make install_so
++	cd qcurves && make install_progs install_so
++	cd qrank && make install_progs install_so
++	cd g0n && make install_so
++
+ dirs: 
+ 	mkdir -p include
+ 	mkdir -p lib

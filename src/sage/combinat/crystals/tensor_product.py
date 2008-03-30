@@ -166,7 +166,7 @@ class TensorProductOfCrystals(ClassicalCrystal):
 	    self.cartanType = CartanType(options['cartan_type'])
 	else:
 	    if len(crystals) == 0:
-		raise RuntimeError, "you need to specify the Cartan type if the tensor product list is empty"
+		raise ValueError, "you need to specify the Cartan type if the tensor product list is empty"
 	    else:
 		self.cartanType = crystals[0].cartanType
         self.index_set = self.cartanType.index_set()
@@ -260,12 +260,22 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
 
 class CrystalOfTableaux(TensorProductOfCrystals):
     r"""
-    Crystals of tableaux
+    Crystals of tableaux. Input: a Cartan Type type and "shape",
+    a partition of length <= type[1]. Produces a classical crystal with
+    the given Cartan Type and highest weight corresponding to the
+    given shape.
+
+    If the type is ['D',r] then the shape is permitted to have
+    a negative value in the r-th position. Thus if shape=$[s_1,s_2,...,s_r]$
+    then s_r may be negative but in any case
+    $s1 \ge s2 \ge ... s_{r-1} \ge |s_r|$. This crystal is
+    related to $[s_1,\cdots,|s_r|]$ by the outer automorphism
+    of SO(2r).
 
     EXAMPLES:
 
         We create the crystal of tableaux for type $A_2$, with highest
-        weight given by the partition [2,1,1]
+        weight given by the partition [2,1,1].
 
         sage: Tab = CrystalOfTableaux(['A',3], shape = [2,1,1])
 
@@ -340,13 +350,35 @@ class CrystalOfTableaux(TensorProductOfCrystals):
         True
         sage: Tab(3,1,4,2)._list                 == [C(3),C(1),C(4),C(2)]
         True
+
+        Type D, illustrating that the last parameter in the shape can
+        be negative:
+
+        sage: C = CrystalOfTableaux(['D',4],shape=[1,1,1,-1])
+        sage: C.count()
+        35
+        sage: C.check()
+        True
+
     """
     def __init__(self, type, shape):
 	self.letters = CrystalOfLetters(type)
+        if type[0] == 'D' and len(shape) == type[1] and shape[type[1]-1] < 0:
+            invert = True
+            shape[type[1]-1]=-shape[type[1]-1]
+        else:
+            invert = False
         shape = Partition(shape)
+        if not all(shape[i] <= shape[i-1] for i in range(1,len(shape))):
+            raise ValueError, "shape must be a partition"
 	p = shape.conjugate()
         # The column canonical tableau, read by columns
-	module_generator = flatten([[self.letters(p[j]-i) for i in range(p[j])] for j in range(len(p))])
+	module_generator = flatten([[p[j]-i for i in range(p[j])] for j in range(len(p))])
+        if invert:
+            for i in range(type[1]):
+                if module_generator[i] == type[1]:
+                    module_generator[i] = -type[1]
+        module_generator=[self.letters(x) for x in module_generator]
 	TensorProductOfCrystals.__init__(self, *[self.letters]*shape.size(), **{'generators':[module_generator],'cartan_type':type})
 	self._name = "The crystal of tableaux of type %s and shape %s"%(type, str(shape))
 	self.shape = shape
@@ -360,7 +392,7 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
             if args[0].parent() == parent:
                 return args[0];
             else:
-                raise RuntimeError("Inconsistent parent")
+                raise ValueError, "Inconsistent parent"
 	if options.has_key('list'):
 	    list = options['list']
 	elif options.has_key('rows'):

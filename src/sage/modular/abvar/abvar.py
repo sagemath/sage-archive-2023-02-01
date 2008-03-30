@@ -3103,14 +3103,16 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             M = self.modular_symbols()
             S = M.ambient_module().cuspidal_submodule()
             if M.dimension() == S.dimension():
-                s = 1 if M.sign() == 0 else 2
-                L = ZZ**(s*M.dimension())
+                L = ZZ**(2*M.dimension())
             else:
                 K0 = M.integral_structure()
                 K1 = S.integral_structure()
                 L = K1.coordinate_module(K0)
             self.__lattice = L
             return self.__lattice
+
+    def _set_lattice(self, lattice):
+        self.__lattice = lattice
 
     def modular_symbols(self, sign=0):
         """
@@ -3186,37 +3188,6 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
         """
         return sqrt_poly(self.modular_symbols().hecke_polynomial(n, var))
 
-    def __cmp__(self, other):
-        """
-        Compare two modular abelian varieties associated to spaces of
-        cuspidal modular symbols if possible; otherwise, fallback to
-        generic comparison.
-
-        If other is a modular abelian variety attached to modular
-        symbols, then this function compares the underlying +1 modular
-        symbols spaces.  Otherwise it just compares the underlying
-        types.
-
-        EXAMPLES:
-            sage: A = J0(37)
-            sage: cmp(A,A)
-            0
-            sage: cmp(A,J0(43))
-            -1
-            sage: cmp(J0(43),A)
-            1
-
-        cmp also works when other is not a modular abelian variety.
-            sage: cmp(A,17) #random (meaningless since it depends on memory layout)
-            1
-            sage: cmp(17,A) #random (meaningless since it depends on memory layout)
-            -1
-        """
-        if isinstance(other, ModularAbelianVariety_modsym):
-            return cmp(self.modular_symbols(), other.modular_symbols())
-        else:
-            return ModularAbelianVariety_abstract.__cmp__(self, other)
-
     def _integral_hecke_matrix(self, n, sign=0):
         """
         Return the action of the Hecke operator $T_n$ on the
@@ -3263,7 +3234,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             [-1 -2  2]
             [-2  0  2]
         """
-        return self.modular_symbols(sign).hecke_matrix(n)
+        return self._integral_hecke_matrix(n, sign=sign).change_ring(QQ)
 
     def group(self):
         """
@@ -3507,7 +3478,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
 
 class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
 
-    def __init__(self, modsym, newform_level=None,
+    def __init__(self, modsym, lattice=None, newform_level=None,
                  is_simple=None, isogeny_number=None, number=None, check=True):
         """
         Modular abelian variety that corresponds to a Hecke stable
@@ -3530,6 +3501,8 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
         ModularAbelianVariety_abstract.__init__(self, (modsym.group(), ), modsym.base_ring(),
                              newform_level=newform_level, is_simple=is_simple,
                              isogeny_number=isogeny_number, number=number, check=check)
+        if lattice is not None:
+            self._set_lattice(lattice)
         self.__modsym = modsym
 
     def _modular_symbols(self):
@@ -3598,7 +3571,6 @@ def factor_new_space(M):
        for _, e in f.factor():
           if e > 2:
               cube_free = False
-              print "fail"
               break
        if cube_free:
             return t.decomposition()
@@ -3643,3 +3615,30 @@ def simple_factorization_of_modsym_space(M):
                 j += d
     return Sequence(D, cr=True)
 
+def modsym_lattices(M, factors):
+    """
+    Append lattice information to the output of simple_factorization_of_modsym_space.
+    """
+    # 1. Change basis of everything to the ambient integral modular symbols space
+    # 2. Clear denominator.
+    # 3. Echelonize/saturate each factor
+    if len(factors) == 0:
+        return factors
+
+    D = []
+    I = M.integral_structure().basis_matrix()
+    A = factors[0][-1].basis_matrix()
+    rows = [range(A.nrows())]
+    for F in factors[1:]:
+        mat = F[-1].basis_matrix()
+        i = rows[-1][-1]+1
+        rows.append(range(i, i + mat.nrows()))
+        A = A.stack(mat)
+    X = I.solve_left(A)
+    X, _ = X._clear_denom()
+    for i, R in enumerate(rows):
+        A = X.matrix_from_rows(R)
+        A = A.saturation()
+        A.echelonize()
+        D.append(tuple(list(factors[i]) + [A.row_module()]))
+    return Sequence(D, cr=True)

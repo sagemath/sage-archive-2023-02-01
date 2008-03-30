@@ -409,7 +409,7 @@ class RationalHomology(Homology_abvar):
             sage: f.base_ring()
             Rational Field
             sage: factor(f)
-            (x + 2)^2 * (x^2 - 2)^2
+            (x + 2) * (x^2 - 2)
         """
         f = self.hecke_operator(n).matrix().characteristic_polynomial(var)
         return abvar.sqrt_poly(f)

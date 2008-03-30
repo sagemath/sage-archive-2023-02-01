@@ -17,13 +17,13 @@ EXAMPLES:
     sage: t5 = A.hecke_operator(5); t5
     Hecke operator T_5 on Abelian variety J0(54) of dimension 4
     sage: t5.charpoly().factor()
-    (x - 3)^2 * (x + 3)^2 * x^4
+    (x - 3) * (x + 3) * x^2
     sage: B = A.new_subvariety(); B
     Abelian subvariety of dimension 2 of J0(54)
     sage: t5 = B.hecke_operator(5); t5
     Hecke operator T_5 on Abelian subvariety of dimension 2 of J0(54)
     sage: t5.charpoly().factor()
-    (x - 3)^2 * (x + 3)^2
+    (x - 3) * (x + 3)
     sage: t5.action_on_homology().matrix()
     [ 0  3  3 -3]
     [-3  3  3  0]
@@ -271,7 +271,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
 
         We compute the image of a Hecke operator:
             sage: t2 = J0(33).hecke_operator(2); t2.fcp()
-            (x - 1)^2 * (x + 2)^4
+            (x - 1) * (x + 2)^2
             sage: phi = t2 + 2
             sage: phi.image()
             Abelian subvariety of dimension 1 of J0(33)
@@ -315,7 +315,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             sage: t2(G)
             Finite subgroup with invariants [2, 2] over QQ of Abelian variety J0(33) of dimension 3
             sage: t2.fcp()
-            (x - 1)^2 * (x + 2)^4
+            (x - 1) * (x + 2)^2
 
         We apply morphisms to abelian subvarieties:
             sage: E11a0, E11a1, B = J0(33)
@@ -342,7 +342,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             sage: C = J0(33).cuspidal_subgroup(); C
             Finite subgroup with invariants [10, 10] over QQ of Abelian variety J0(33) of dimension 3
             sage: t2 = J0(33).hecke_operator(2); t2.fcp()
-            (x - 1)^2 * (x + 2)^4
+            (x - 1) * (x + 2)^2
             sage: (t2 - 1)(C)
             Finite subgroup with invariants [5, 5] over QQ of Abelian variety J0(33) of dimension 3
             sage: (t2 + 2)(C)
@@ -352,7 +352,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             sage: C = J0(33)[2].cuspidal_subgroup(); C
             Finite subgroup with invariants [2, 2] over QQ of Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
             sage: t2 = J0(33)[2].hecke_operator(2); t2.fcp()
-            (x - 1)^2
+            x - 1
             sage: t2(C)
             Finite subgroup with invariants [2, 2] over QQ of Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
         """
@@ -538,13 +538,13 @@ class HeckeOperator(Morphism):
             sage: t2 = A.hecke_operator(2); t2
             Hecke operator T_2 on Simple abelian subvariety 43b(1,43) of dimension 2 of J0(43)
             sage: f = t2.characteristic_polynomial(); f
-            x^4 - 4*x^2 + 4
+            x^2 - 2
             sage: f.parent()
             Univariate Polynomial Ring in x over Integer Ring
             sage: f.factor()
-            (x^2 - 2)^2
+            x^2 - 2
             sage: t2.characteristic_polynomial('y')
-            y^4 - 4*y^2 + 4
+            y^2 - 2
         """
         return self.__abvar.rational_homology().hecke_polynomial(self.__n, var).change_ring(ZZ)
 
@@ -560,11 +560,11 @@ class HeckeOperator(Morphism):
             sage: t2 = A.hecke_operator(2); t2
             Hecke operator T_2 on Abelian variety J1(13) of dimension 2
             sage: f = t2.charpoly(); f
-            x^4 + 6*x^3 + 15*x^2 + 18*x + 9
+            x^2 + 3*x + 3
             sage: f.factor()
-            (x^2 + 3*x + 3)^2
+            x^2 + 3*x + 3
             sage: t2.charpoly('y')
-            y^4 + 6*y^3 + 15*y^2 + 18*y + 9
+            y^2 + 3*y + 3
         """
         return self.characteristic_polynomial(var)
 

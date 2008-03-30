@@ -67,8 +67,8 @@ build()
     $MKDIR $INSTALL_DIR
     $CP -r * $INSTALL_DIR
 
-    # building Leon's code
-    cd pkg/guava3.1
+    # building CJ's + Leon's code
+    cd pkg/guava3.3
     ./configure ../../ --enable-libsuffix=64
     if [ $? -ne 0 ]; then
        echo "Error configuring Guava"

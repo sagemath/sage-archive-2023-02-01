@@ -1,5 +1,8 @@
 = gap =
 
+=== gap-4.4.10.p3 (David Joyner, March 30th, 2008) ===
+ * replace guava 3.1 by guava 3.3
+
 === gap-4.4.10.p2 (Michael Abshoff, Jan. 31st, 2008) ===
  * remove src/pkg/guava3.1/src/leonconv (#2006)
 

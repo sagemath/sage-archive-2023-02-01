@@ -432,6 +432,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         cdef int i
         for i from 0 <= i < self.degree():
             v[i] = self[i].additive_order()
+            if v[i] == +Infinity:
+               return +Infinity
         return sage.rings.arith.LCM(v)
 
     def iteritems(self):

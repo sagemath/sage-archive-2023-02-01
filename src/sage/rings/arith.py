@@ -1100,12 +1100,62 @@ def lcm(a, b=None, integer=False):
 LCM = lcm
 
 def __LCM_list(v):
+    """
+    EXAMPLES:
+        sage: l = ()
+        sage: lcm(l)
+        1
+
+        This is because lcm(0,x)=0 for all x (by convention)
+        sage: lcm(range(100))
+        0
+
+        So for the lcm of all integers up to 10 you must do this:
+        sage: lcm(range(1,100))
+        69720375229712477164533808935312303556800
+
+        Note that the following example does not work in QQ[] as of 2.11:
+        sage: R.<X>=ZZ[]
+        sage: lcm((2*X+4,2*X^2,2))
+        2*X^3 + 4*X^2
+    """
     if len(v) == 0:
-        return 1
-    x = v[0]
-    for i in range(1,len(v)):
-        x = LCM(x, v[i])
-    return x
+        return integer_ring.ZZ(1)
+    try:
+        l = v[0].parent()(1)
+    except AttributeError:
+        l = integer_ring.ZZ(1)
+    for vi in v:
+        l = LCM(vi,l)
+        if l==0:
+            return l
+    return l
+
+def xlcm(m,n):
+    """
+    Extended lcm function: given two positive integers m,n, returns a
+    triple (l,m1,n1) such that l=lcm(m,n)=m1*n1 where m1|m, n1|n and
+    gcd(m1,n1)=1.  All with no factorization.
+
+    Used to construct an element of order l from elements of orders
+    m,n in any group: see sage/groups/generic.py for examples.
+
+    EXAMPLES:
+        sage: xlcm(120,36)
+        (360, 40, 9)
+    """
+    m0=m; n0=n
+    g=gcd(m,n,integer=True)
+    l=m*n//g      # = lcm(m,n)
+    g=gcd(m,n//g) # divisible by those primes which divide n to a
+                  # higher power than m
+
+    while not g==1:
+        m//=g
+        g=gcd(m,g,integer=True)
+
+    n=l//m;
+    return (l,m,n)
 
 ## def GCD_python(a, b=0):
 ##     """This function should behave exactly the same as GCD,
@@ -1126,15 +1176,30 @@ def __LCM_list(v):
 ##     return a
 
 def __GCD_list(v):
+    """
+    EXAMPLES:
+        sage: l = ()
+        sage: gcd(l)
+        0
+        sage: gcd(range(10))
+        1
+        sage: X=polygen(QQ)
+        sage: gcd((2*X+4,2*X^2,2))
+        1
+        sage: X=polygen(ZZ)
+        sage: gcd((2*X+4,2*X^2,2))
+        2
+    """
     if len(v) == 0:
-        return 1
-    if len(v) == 1:
-        return v[0]
-    g = v[0]
-    for i in range(1,len(v)):
-        g = GCD(g, v[i])
+        return integer_ring.ZZ(0)
+    try:
+        g = v[0].parent()(0)
+    except AttributeError:
+        g = integer_ring.ZZ(0)
+    for vi in v:
+        g = GCD(g, vi)
+        if g == 1: return g
     return g
-
 
 def xgcd(a, b):
     """

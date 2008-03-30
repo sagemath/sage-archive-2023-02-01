@@ -413,7 +413,11 @@ cdef class Sphere(ParametricSurface):
             cen = transform.transform_point((0,0,0))
             radv = transform.transform_vector((self.radius,0,0))
             rad = sqrt(sum([x*x for x in radv]))
-        return ["isosurface %s center {%s %s %s} sphere %s\n%s" % (name, cen[0], cen[1], cen[2], rad, self.texture.jmol_str("isosurface"))]
+        if rad < 0.5:
+            res = "resolution %s" % min(int(7/rad), 100)
+        else:
+            res = ""
+        return ["isosurface %s %s center {%s %s %s} sphere %s\n%s" % (name, res, cen[0], cen[1], cen[2], rad, self.texture.jmol_str("isosurface"))]
 
     def get_grid(self, ds):
         pi = RDF.pi()

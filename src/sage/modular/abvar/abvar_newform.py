@@ -56,7 +56,7 @@ class ModularAbelianVariety_newform(ModularAbelianVariety_modsym_abstract):
         if not internal_name:
             self.__named_newforms[None] = self.__f
         ModularAbelianVariety_modsym_abstract.__init__(self, (f.group(),), QQ,
-                  is_simple=True, newform_level = f.level(),
+                  is_simple=True, newform_level = (f.level(), f.group()),
                   isogeny_number=f.number(), number=0)
 
     def _modular_symbols(self,sign=0):

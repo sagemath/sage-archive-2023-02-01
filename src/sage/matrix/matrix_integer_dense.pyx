@@ -1386,6 +1386,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         H_m.cache('rank', rank)
         self.cache('rank',rank)
 
+        H_m.cache('in_echelon_form', True)
+
         if transformation:
             return H_m, U
         else:

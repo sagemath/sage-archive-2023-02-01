@@ -144,6 +144,7 @@ import sage.rings.finite_field as finite_field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.ring as ring
 import sage.rings.integer_ring
+import sage.rings.rational_field
 import sage.rings.integer_mod_ring
 import sage.rings.infinity
 import sage.rings.integer

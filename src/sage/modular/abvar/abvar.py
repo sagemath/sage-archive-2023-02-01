@@ -3483,7 +3483,12 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
                 for N in reversed(divisors(M)):
                     if N > 1:
                         isogeny_number = 0
-                        for B in amb.modular_symbols_of_level(N).cuspidal_subspace().new_subspace().decomposition(bound=bound):
+                        A = amb.modular_symbols_of_level(N).cuspidal_subspace().new_subspace()
+                        if bound is None:
+                            X = factor_new_space(A)
+                        else:
+                            X = A.decomposition(bound = bound)
+                        for B in X:
                             for t in divisors(M//N):
                                 D.append(ModularAbelianVariety_modsym(B.degeneracy_map(M, t).image(),
                                                                       is_simple=True, newform_level=(N, G),
@@ -3573,3 +3578,68 @@ def sqrt_poly(f):
         return prod([g**Integer(e/Integer(2)) for g,e in f.factor()])
     except TypeError:
         raise ValueError, "f must be a perfect square"
+
+
+####################################################################################################
+# Useful for decomposing exactly the sort of modular symbols spaces that come up here.
+from random import choice
+from sage.rings.arith import next_prime
+
+def random_hecke_operator(M, t=None, p=2):
+    t = (0 if t is None else t) + choice([-2,-1,1,2]) * M.hecke_operator(p)
+    return t, next_prime(p)
+
+def factor_new_space(M):
+    t = None; p = 2
+    for i in range(200):
+       t, p = random_hecke_operator(M, t, p)
+       f = t.charpoly()
+       cube_free = True
+       for _, e in f.factor():
+          if e > 2:
+              cube_free = False
+              print "fail"
+              break
+       if cube_free:
+            return t.decomposition()
+       t, p = random_hecke_operator(M, t, p)
+    raise RuntimeError, "unable to factor new space -- this should not happen" # should never happen
+
+def factor_modsym_space_new_factors(M):
+    eps = M.character()
+    K = eps.conductor() if eps is not None else 1
+    N = [M.modular_symbols_of_level(d).cuspidal_subspace().new_subspace() \
+           for d in M.level().divisors() if d%K == 0]
+    return [factor_new_space(A) for A in N]
+
+def simple_factorization_of_modsym_space(M):
+    D = []
+    N = M.level()
+    for G in factor_modsym_space_new_factors(M):
+        if len(G) > 0:
+            # Compute the matrices of the degeneracy maps up.
+            T = divisors(N//G[0].level())
+            degen = [G[0].ambient_module().degeneracy_map(N, t).matrix() for t in T]
+            # Construct a matrix with rows the basis for all the factors
+            # stacked on top of each other.  We just multiply this by each
+            # degeneracy matrix to get the basis for the images of the
+            # factors at higher level.  By doing matrix multiplies, we
+            # save time over taking images of individual factors.
+            matrix = G[0].basis_matrix()
+            for A in G[1:]:
+                matrix = matrix.stack(A.basis_matrix())
+
+            # Compute the actual images
+            ims = [matrix * z for z in degen]
+
+            # Construct the corresponding subspaces at higher level.
+            j = 0
+            for (isog,A) in enumerate(G):
+                d = A.dimension()
+                for i in range(len(T)):
+                    V = ims[i].matrix_from_rows(range(j, j+d)).row_module()
+                    W = M.submodule(V, check=False)
+                    D.append( (A.level(), isog, T[i], W) )
+                j += d
+    return Sequence(D, cr=True)
+

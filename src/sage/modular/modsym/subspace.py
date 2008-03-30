@@ -147,10 +147,22 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             False
             sage: S.cuspidal_submodule() == S
             True
+
+        An example where we abuse the _set_is_cuspidal function:
+            sage: M = ModularSymbols(389)
+            sage: S = M.eisenstein_submodule()
+            sage: S._set_is_cuspidal(True)
+            sage: S.cuspidal_submodule()
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 65 for Gamma_0(389) of weight 2 with sign 0 over Rational Field
         """
         try:
             return self.__cuspidal_submodule
         except AttributeError:
+            try:
+                if self.__is_cuspidal:
+                    return self
+            except AttributeError:
+                pass
             S = self.ambient_hecke_module().cuspidal_submodule()
             self.__cuspidal_submodule = S.intersection(self)
             return self.__cuspidal_submodule
@@ -318,6 +330,20 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             C = self.ambient_hecke_module().cuspidal_submodule()
             self.__is_cuspidal = self.is_submodule(C)
             return self.__is_cuspidal
+
+    def _set_is_cuspidal(self, t):
+        """
+        Used internally to declare that a given submodule is cuspidal.
+
+        EXAMPLES:
+        We abuse this command:
+            sage: M = ModularSymbols(389)
+            sage: S = M.eisenstein_submodule()
+            sage: S._set_is_cuspidal(True)
+            sage: S.is_cuspidal()
+            True
+        """
+        self.__is_cuspidal = t
 
     def is_eisenstein(self):
         """

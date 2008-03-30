@@ -9,13 +9,17 @@ TESTS:
 """
 
 import weakref
+from sage.structure.sequence import Sequence
 
-from abvar             import ModularAbelianVariety_modsym_abstract, ModularAbelianVariety
+from abvar             import (ModularAbelianVariety_modsym_abstract, ModularAbelianVariety,
+                               simple_factorization_of_modsym_space,
+                               ModularAbelianVariety_modsym)
 from sage.rings.all    import QQ
 from sage.modular.dims import dimension_cusp_forms
 
 from sage.modular.modsym.modsym import ModularSymbols
 import morphism
+
 
 _cache = {}
 
@@ -258,5 +262,27 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
             d = dimension_cusp_forms(self.group(), k=2)
             self._dimension = d
             return d
+
+    def decomposition(self, simple=True, bound=None):
+        try:
+            return self.__decomposition[simple]
+        except KeyError:
+            pass
+        except AttributeError:
+            pass
+
+        M = self.modular_symbols().ambient_module()
+        group = M.group()
+        factors = simple_factorization_of_modsym_space(M)
+
+        D = []
+        for newform_level, isogeny_number, number, modsym in factors:
+            A = ModularAbelianVariety_modsym(modsym, (newform_level, group), is_simple=True,
+                               isogeny_number=isogeny_number, number=number, check=False)
+            D.append(A)
+
+        D.sort()
+        self.__decomposition = Sequence(D, immutable=True, cr=True, universe=self.category())
+        return D
 
 

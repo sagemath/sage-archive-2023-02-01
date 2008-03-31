@@ -268,7 +268,7 @@ def pythonify(F):
     F = F.replace("\\end{verbatim}",'"""')
     return F
 
-def post_process(s, file):
+def post_process(s, file, tmpname):
     s = s.replace('.doctest_','')
     if file[-3:] == 'pyx':
         s = s.replace('"%s", line'%file[:-1], '"%s", line'%file)
@@ -288,7 +288,7 @@ def post_process(s, file):
     r = re.compile(c)
     s = r.sub('\n',s)
     if cnt > 0:
-        s += "For whitespace errors, see the file .doctest_%s"%file
+        s += "For whitespace errors, see the file %s"%tmpname
     return s
 
 __alarm_time=0
@@ -316,9 +316,12 @@ def test_file(file):
         name = os.path.basename(file)
         name = name[:name.find(".")]
         s = extract_doc(file, name)
-        f = ".doctest_%s.py"%name
-        if not os.path.exists(".doctest"):
-            os.makedirs(".doctest")
+        if 'SAGE_TESTDIR' not in os.environ:
+            os.environ['SAGE_TESTDIR'] = os.environ['SAGE_ROOT']+"/tmp"
+        f = "%s/.doctest_%s.py"%(os.environ['SAGE_TESTDIR'],name)
+        d = "%s/.doctest"%os.environ['SAGE_TESTDIR']
+        if not os.path.exists(d):
+            os.makedirs(d)
         open(f,"w").write(s)
         cmd = "%s %s"%(PYTHON, f)
         if gdb:
@@ -365,7 +368,7 @@ def test_file(file):
             err += "*** *** Error: TIMED OUT! *** ***"
             print err
 
-        s = post_process(out, file)  + err
+        s = post_process(out, file, f)  + err
         print s
         numfail = s.count('Failed') + s.count('Error')
         if numfail > 0:

@@ -42,10 +42,16 @@ def strip_automount_prefix(filename):
             filename = new
     return filename
 
-CUR = abspath(os.curdir)
+
+SAGE_ROOT=os.environ['SAGE_ROOT']
+if 'SAGE_TESTDIR' not in os.environ:
+    os.environ['SAGE_TESTDIR'] = SAVE_ROOT + "/tmp"
+TMP=os.environ['SAGE_TESTDIR'] + "/tmp"
+if not os.path.exists(TMP):
+    os.makedirs(TMP)
 
 def abs(f):
-    return "sage -t %s %s"%(opts, abspath(f)[len(CUR)+1:])
+    return "sage -t %s %s"%(opts, abspath(f)[len(SAGE_ROOT)+1:])
 
 def skip(F):
     G = abspath(F)
@@ -64,11 +70,6 @@ def skip(F):
     return False
 
 failed = []
-
-SAGE_ROOT=os.environ['SAGE_ROOT']
-TMP=SAGE_ROOT + "/tmp/test/"
-if not os.path.exists(TMP):
-    os.makedirs(TMP)
 
 def test(F, cmd):
     t = time.time()
@@ -89,18 +90,11 @@ def test(F, cmd):
 
 
 def test_file(F):
-    global CUR
-    os.chdir(CUR)
     if not os.path.exists(F):
         if F[:6] != "__test" and not F.endswith('.png'):
             print "ERROR: File %s/%s is missing"%(os.curdir,F)
             failed.append('%s/%s'%(os.curdir,F))
         return 1
-    if os.path.isfile(F):
-        dir, file = os.path.split(F)
-        if dir != '':
-            os.chdir(dir)
-            F = file
 
     base, ext = os.path.splitext(F)
     if use_sage_only or ext == '.sage':

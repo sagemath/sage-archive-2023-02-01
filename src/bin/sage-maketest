@@ -1,42 +1,44 @@
 #!/bin/bash
 
+if [ -z "$SAGE_TESTDIR" ]; then
+    SAGE_TESTDIR="$SAGE_ROOT"/tmp
+fi
+mkdir -p "$SAGE_TESTDIR"
+SAGE_TEST_LOG="$SAGE_TESTDIR/test.log"
+DSAGE_TEST_LOG="$SAGE_TESTDIR/test-dsage.log"
+cd "$SAGE_TESTDIR"
 
-echo "---------------------" > "$SAGE_ROOT"/tmp/test.log
-echo `date` >> "$SAGE_ROOT"/tmp/test.log
+echo "---------------------" > "$SAGE_TEST_LOG"
+echo `date` >> "$SAGE_TEST_LOG"
 
 # Run DSAGE unit tests
-#sage-dsage-trial 2>&1 | tee .test-dsage.log | tee -a "$SAGE_ROOT"/tmp/test.log
+#sage-dsage-trial 2>&1 | tee "$DSAGE_TEST_LOG" | tee -a "$SAGE_TEST_LOG"
 
 if [ -d $SAGE_ROOT/examples ]; then
-   cd "$SAGE_ROOT"/examples
-   ./test_all | tee -a "$SAGE_ROOT"/tmp/test.log
+
+   "$SAGE_ROOT"/examples/test_all | tee -a "$SAGE_TEST_LOG"
 fi
 
 echo "Testing SAGE documentation"
 
 echo "Testing SAGE tutorial"
-cd "$SAGE_ROOT"/devel/doc/tut
-sage -t "$@" tut.tex 2>&1 | tee -a "$SAGE_ROOT"/tmp/test.log
+sage -t "$@" "$SAGE_ROOT"/devel/doc/tut/tut.tex 2>&1 | tee -a "$SAGE_TEST_LOG"
 
 echo "Testing SAGE programming guide"
-cd "$SAGE_ROOT"/devel/doc/prog
-sage -t "$@" prog.tex 2>&1 | tee -a "$SAGE_ROOT"/tmp/test.log
+sage -t "$@" "$SAGE_ROOT"/devel/doc/prog/prog.tex 2>&1 | tee -a "$SAGE_TEST_LOG"
 
 echo "Testing SAGE constructions guide"
-cd "$SAGE_ROOT"/devel/doc/const
-sage -t "$@" const.tex 2>&1 | tee -a "$SAGE_ROOT"/tmp/test.log
-
+sage -t "$@" "$SAGE_ROOT"/devel/doc/const/const.tex 2>&1 | tee -a "$SAGE_TEST_LOG"
 
 # Run SAGE library doctests, which end with a summary report.
-cd "$SAGE_ROOT"
-sage -t "$@" devel/sage/sage 2>&1 | tee -a "$SAGE_ROOT"/tmp/test.log
+sage -t "$@" "$SAGE_ROOT"/devel/sage/sage 2>&1 | tee -a "$SAGE_TEST_LOG"
 
 # Print the small summary report for dsage unit tests, if necessary.
 # TODO -- skip this for now.
-grep "ERROR occurred" .test-dsage.log | tee -a "$SAGE_ROOT"/tmp/test.log
+grep "ERROR occurred" "$DSAGE_TEST_LOG" | tee -a "$SAGE_TEST_LOG"
 
-cat "$SAGE_ROOT"/tmp/test.log >> "$SAGE_ROOT"/test.log
+cat "$SAGE_TEST_LOG" >> "$SAGE_ROOT"/test.log
 
-echo "Please see $SAGE_ROOT/tmp/test.log for the complete log from this test."
+echo "Please see $SAGE_TEST_LOG for the complete log from this test."
 
 exit 0

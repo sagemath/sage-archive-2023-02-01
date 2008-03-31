@@ -2916,9 +2916,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: B = matrix(ZZ, 2, 1, [100,200])
             sage: A.set_block(0, 1, B)
             sage: A
-            [  0 100   2]
-            [  3 200   5]
-            [  6   7   8]
+            [  0 100   1]
+            [3/2 200 5/2]
+            [  3 7/2   4]
         """
         self.check_mutability()
         if block.base_ring() is not self.base_ring():

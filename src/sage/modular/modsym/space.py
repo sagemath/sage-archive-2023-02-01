@@ -66,12 +66,14 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         When spaces are in a common ambient space, we order
         lexicographically by the sequence of traces of Hecke operators
-        $T_p$, for all primes $p$.
+        $T_p$, for all primes $p$.  In general we order first by the
+        group, then the weight, then the character, then the sign then
+        the base ring, then the dimension.
 
         EXAMPLES:
             sage: M = ModularSymbols(21,4) ; N = ModularSymbols(Gamma1(5),6)
             sage: M.cuspidal_submodule().__cmp__(N)
-            -1
+            1
             sage: M.cuspidal_submodule() == N
             False
         """
@@ -318,7 +320,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
                 self._is_simple = False
             return self._is_simple
 
-    def multiplicity(self, S):
+    def multiplicity(self, S, check_simple=True):
         """
         Return the multiplicity of the simple modular symbols space S
         in self.  S must be a simple anemic Hecke module.
@@ -338,7 +340,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         """
         if self.level() % S.level() != 0 or S.weight() != self.weight():
             return 0
-        if not S.is_simple():
+        if check_simple and not S.is_simple():
             raise ArithmeticError, "S must be simple"
         A = self.ambient_hecke_module()
         B = A.submodule_generated_by_images(S)
@@ -1431,11 +1433,11 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         EXAMPLES:
             sage: ModularSymbols(Gamma0(11)).cuspidal_submodule().abelian_variety()
-            Abelian variety J0(11)
+            Abelian variety J0(11) of dimension 1
             sage: ModularSymbols(Gamma1(11)).cuspidal_submodule().abelian_variety()
-            Abelian variety J1(11)
+            Abelian variety J1(11) of dimension 1
             sage: ModularSymbols(GammaH(11,[3])).cuspidal_submodule().abelian_variety()
-            Abelian variety JH(11,[3])
+            Abelian variety JH(11,[3]) of dimension 1
 
         The abelian variety command only works on cuspidal modular symbols spaces:
             sage: M = ModularSymbols(37)
@@ -1444,9 +1446,9 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             ...
             ValueError: self must be cuspidal
             sage: M[1].abelian_variety()
-            Abelian variety factor of dimension 1 of J0(37)
+            Abelian subvariety of dimension 1 of J0(37)
             sage: M[2].abelian_variety()
-            Abelian variety factor of dimension 1 of J0(37)
+            Abelian subvariety of dimension 1 of J0(37)
         """
         try:
             return self.__modular_abelian_variety

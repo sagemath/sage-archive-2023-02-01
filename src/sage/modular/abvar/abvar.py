@@ -560,10 +560,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Newform abelian subvariety 33a of dimension 1 of J0(33)
             sage: A.modular_kernel()
             Finite subgroup with invariants [3, 3] over QQ of Newform abelian subvariety 33a of dimension 1 of J0(33)
-            sage: A = AbelianVariety('71a'); A
-            Newform abelian subvariety 71a of dimension 3 of J0(71)
-            sage: A.modular_kernel()
-            Finite subgroup with invariants [9, 9] over QQ of Newform abelian subvariety 71a of dimension 3 of J0(71)
         """
         try:
             return self.__modular_kernel
@@ -582,14 +578,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: A = AbelianVariety('37a')
             sage: A.modular_degree()
             2
-            sage: A = AbelianVariety('43b'); A
-            Newform abelian subvariety 43b of dimension 2 of J0(43)
-            sage: A.modular_degree()
-            2
-            sage: A = AbelianVariety('71a'); A
-            Newform abelian subvariety 71a of dimension 3 of J0(71)
-            sage: A.modular_degree()
-            9
         """
         n = self.modular_kernel().order()
         return ZZ(n.sqrt())
@@ -2510,7 +2498,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                     simple=simple, bound=bound)
             else:
                 # Decompose each ambient modular symbols factor.
-                X = [ModularAbelianVariety_modsym(ModularSymbols(G,sign=0).cuspidal_submodule()) for G in self.groups()]
+                #X = [ModularAbelianVariety_modsym(ModularSymbols(G,sign=0).cuspidal_submodule()) for G in self.groups()]
+                from abvar_ambient_jacobian import ModAbVar_ambient_jacobian_class
+                X = [ModAbVar_ambient_jacobian_class(G) for G in self.groups()]
                 E = [A.decomposition(simple=simple, bound=bound) for A in X]
                 i = 0
                 n = 2*self.dimension()
@@ -2970,7 +2960,7 @@ class ModularAbelianVariety(ModularAbelianVariety_abstract):
             if lattice.base_ring() != ZZ:
                 raise TypeError, "lattice must be over ZZ"
             if lattice.degree() != 2*n:
-                raise ValueError, "lattice must have degree n (=%s)"%n
+                raise ValueError, "lattice must have degree 2*n (=%s)"%(2*n)
             if not lattice.saturation().is_submodule(lattice):  # potentially expensive
                 raise ValueError, "lattice must be full"
         self.__lattice = lattice
@@ -3031,11 +3021,11 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
         EXAMPLES:
             sage: A = J0(42); D = A.decomposition(); D
             [
-            Simple abelian subvariety 21a(2,42) of dimension 1 of J0(42),
             Simple abelian subvariety 14a(1,42) of dimension 1 of J0(42),
             Simple abelian subvariety 14a(3,42) of dimension 1 of J0(42),
-            Simple abelian subvariety 42a(1,42) of dimension 1 of J0(42),
-            Simple abelian subvariety 21a(1,42) of dimension 1 of J0(42)
+            Simple abelian subvariety 21a(1,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 21a(2,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 42a(1,42) of dimension 1 of J0(42)
             ]
             sage: D[0] + D[1]
             Abelian subvariety of dimension 2 of J0(42)
@@ -3103,7 +3093,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             M = self.modular_symbols()
             S = M.ambient_module().cuspidal_submodule()
             if M.dimension() == S.dimension():
-                L = ZZ**(2*M.dimension())
+                L = ZZ**M.dimension()
             else:
                 K0 = M.integral_structure()
                 K1 = S.integral_structure()
@@ -3282,11 +3272,11 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
         More examples:
             sage: A = J0(42); D = A.decomposition(); D
             [
-            Simple abelian subvariety 21a(2,42) of dimension 1 of J0(42),
             Simple abelian subvariety 14a(1,42) of dimension 1 of J0(42),
             Simple abelian subvariety 14a(3,42) of dimension 1 of J0(42),
-            Simple abelian subvariety 42a(1,42) of dimension 1 of J0(42),
-            Simple abelian subvariety 21a(1,42) of dimension 1 of J0(42)
+            Simple abelian subvariety 21a(1,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 21a(2,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 42a(1,42) of dimension 1 of J0(42)
             ]
             sage: D[0].is_subvariety(A)
             True
@@ -3555,36 +3545,39 @@ def sqrt_poly(f):
 
 ####################################################################################################
 # Useful for decomposing exactly the sort of modular symbols spaces that come up here.
-from random import choice
+from random import choice, randrange
 from sage.rings.arith import next_prime
 
 def random_hecke_operator(M, t=None, p=2):
-    t = (0 if t is None else t) + choice([-2,-1,1,2]) * M.hecke_operator(p)
+    r = 0
+    while r == 0:
+        r = randrange(1,p//2+1) * ZZ.random_element()
+    t = (0 if t is None else t) + r*M.hecke_operator(p)
     return t, next_prime(p)
 
 def factor_new_space(M):
     t = None; p = 2
     for i in range(200):
-       t, p = random_hecke_operator(M, t, p)
-       f = t.charpoly()
-       cube_free = True
-       for _, e in f.factor():
-          if e > 2:
-              cube_free = False
-              break
-       if cube_free:
-            return t.decomposition()
-       t, p = random_hecke_operator(M, t, p)
+        t, p = random_hecke_operator(M, t, p)
+        f = t.charpoly()
+        cube_free = True
+        for _, e in f.factor():
+            if e > 2:
+                cube_free = False
+                break
+        if cube_free:
+            return hecke_operator_decomposition(t)
+        t, p = random_hecke_operator(M, t, p)
     raise RuntimeError, "unable to factor new space -- this should not happen" # should never happen
 
 def factor_modsym_space_new_factors(M):
     eps = M.character()
     K = eps.conductor() if eps is not None else 1
     N = [M.modular_symbols_of_level(d).cuspidal_subspace().new_subspace() \
-           for d in M.level().divisors() if d%K == 0]
+           for d in M.level().divisors() if d%K == 0 and (d == 11 or d >= 13)]
     return [factor_new_space(A) for A in N]
 
-def simple_factorization_of_modsym_space(M):
+def simple_factorization_of_modsym_space(M, simple=True):
     D = []
     N = M.level()
     for G in factor_modsym_space_new_factors(M):
@@ -3608,10 +3601,15 @@ def simple_factorization_of_modsym_space(M):
             j = 0
             for (isog,A) in enumerate(G):
                 d = A.dimension()
-                for i in range(len(T)):
-                    V = ims[i].matrix_from_rows(range(j, j+d)).row_module()
+                if simple:
+                    for i in range(len(T)):
+                        V = ims[i].matrix_from_rows(range(j, j+d)).row_module()
+                        W = M.submodule(V, check=False)
+                        D.append( (A.level(), isog, T[i], W) )
+                else:
+                    V = sum(ims[i].matrix_from_rows(range(j, j+d)).row_module() for i in range(len(T)))
                     W = M.submodule(V, check=False)
-                    D.append( (A.level(), isog, T[i], W) )
+                    D.append( (A.level(), isog, None, W))
                 j += d
     return Sequence(D, cr=True)
 
@@ -3626,7 +3624,7 @@ def modsym_lattices(M, factors):
         return factors
 
     D = []
-    I = M.integral_structure().basis_matrix()
+    I = M.cuspidal_submodule().integral_structure().basis_matrix()
     A = factors[0][-1].basis_matrix()
     rows = [range(A.nrows())]
     for F in factors[1:]:
@@ -3642,3 +3640,7 @@ def modsym_lattices(M, factors):
         A.echelonize()
         D.append(tuple(list(factors[i]) + [A.row_module()]))
     return Sequence(D, cr=True)
+
+def hecke_operator_decomposition(t):
+    D = t.decomposition()
+    return D

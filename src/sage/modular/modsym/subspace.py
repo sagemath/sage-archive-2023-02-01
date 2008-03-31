@@ -143,8 +143,10 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             True
             sage: S.cuspidal_submodule()
             Modular Symbols subspace of dimension 40 of Modular Symbols space of dimension 48 for Gamma_0(42) of weight 4 with sign 0 over Rational Field
+
+        The cuspidal submodule of the cuspidal submodule is just itself:
             sage: S.cuspidal_submodule() is S
-            False
+            True
             sage: S.cuspidal_submodule() == S
             True
 
@@ -218,6 +220,9 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         the $S^e$ as a module over the \emph{anemic} Hecke algebra
         adjoin the star involution.
 
+        The cuspidal $S$ are all simple, but the Eisenstein factors
+        need not be simple.
+
         The factors are sorted by dimension -- don't depend on much more for now.
 
         ASSUMPTION: self is a module over the anemic Hecke algebra.
@@ -240,13 +245,10 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             sage: S.factorization()
             (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field)^2
 
-        The following example exposes a not-implemented issue:
-             sage: M = ModularSymbols(Gamma0(22), 2, sign=1)
-             sage: M1 = M.decomposition()[1]
-             sage: M1.factorization()
-             Traceback (most recent call last):
-             ...
-             NotImplementedError: modular symbols factorization not fully implemented yet --  self has dimension 3, but sum of dimensions of factors is 2
+         sage: M = ModularSymbols(Gamma0(22), 2, sign=1)
+         sage: M1 = M.decomposition()[1]
+         sage: M1.factorization()
+         Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 5 for Gamma_0(22) of weight 2 with sign 1 over Rational Field
         """
         try:
             return self._factorization
@@ -257,7 +259,7 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
                 return [(self, 1)]
         except AttributeError:
             pass
-        if self.is_new():
+        if self.is_new() and self.is_cuspidal():
             D = []
             N = self.decomposition()
             if self.sign() == 0:
@@ -281,7 +283,7 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             # of each factor in this space.
             D = []
             for S in self.ambient_hecke_module().simple_factors():
-                n = self.multiplicity(S)
+                n = self.multiplicity(S, check_simple=False)
                 if n > 0:
                     D.append((S,n))
         # endif

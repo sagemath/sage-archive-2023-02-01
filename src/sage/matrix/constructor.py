@@ -483,8 +483,7 @@ def matrix(*args, **kwds):
 		first_len = len(args[0][0])
 		if not all( (isinstance(v, (list, tuple)) or is_Vector(v)) and len(v) == first_len for v in args[0]):
 		    raise ValueError, "List of rows is not valid (rows are wrong types or lengths)"
-                # We have a list of rows or vectors (the vector
-                # functionality is undocumented, but is doctested)
+                # We have a list of rows or vectors
                 if nrows is None:
                     nrows = len(args[0])
                 elif nrows != len(args[0]):

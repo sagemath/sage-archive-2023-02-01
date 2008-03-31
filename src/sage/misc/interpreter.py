@@ -343,6 +343,82 @@ def load_cython(name):
     sys.path.append(dir)
     return 'from %s import *'%mod
 
+def handle_encoding_declaration(contents, out):
+    """Find a Python encoding declaration in the first line
+    of contents. If found, output it to out and return contents without first line,
+    else output a default utf-8 declaration and return contents.
+
+    EXAMPLE:
+        sage: import sys
+        sage: c1='# -*- coding: latin-1 -*-\nimport os, sys\n...'
+        sage: c2='# -*- coding: iso-8859-15 -*-\nimport os, sys\n...'
+        sage: c3='# -*- coding: ascii -*-\nimport os, sys\n...'
+        sage: c4='import os, sys\n...'
+        handle_encoding_declaration(c1, sys.stdout)
+        # -*- coding: latin-1 -*-
+        'import os, sys\n..'
+        sage: handle_encoding_declaration(c2, sys.stdout)
+        # -*- coding: iso-8859-15 -*-
+        'import os, sys\n..'
+        sage: handle_encoding_declaration(c3, sys.stdout)
+        # -*- coding: ascii -*-
+        'import os, sys\n..'
+        sage: handle_encoding_declaration(c4, sys.stdout)
+        # -*- coding: utf-8 -*-
+        'import os, sys\n...'
+
+    NOTE:
+        Python also looks for encoding hints in the second line as a the first line
+        could contain a shebang.
+
+        Better implementation possible after importing re, and then matching
+        the regular expression
+          coding[=:]\s*([-\w.]+)
+        The encoding is in the first group.
+        See http://docs.python.org/ref/encodings.html
+    """
+    # shebangs could also be dealt with
+    #if (contents[0:2] == '#!'):
+    #    pos= contents.find('\n')
+    #    out.write(contents[0:pos]+ '\n')
+    #    contents =  contents[pos+1:-1]
+
+    hint="coding"
+
+    pos=contents.find('\n')
+    if pos > -1:
+        first_line = contents[0:pos]
+    else:
+        first_line = contents[0:]
+
+    stripped_line = first_line.lstrip()
+    if stripped_line[0] == '#':
+        pos=stripped_line.find(hint)
+        if (pos > -1) and (stripped_line[pos+len(hint)] in ['=', ':']) :
+            # we found a comment with an encoding hint
+            # we can place it in front of the file: the line is a comment
+            # so it does not harm
+
+            out.write(first_line+'\n') # use the encoding hint specified by the user
+
+            return contents[len(first_line)+1:-1]
+
+    # use default encoding
+    out.write("# -*- coding: utf-8 -*-\n")
+
+    #out.write("# -*- coding: ascii -*-\n")
+    # or ascii? Python used ascii and from 2.3 on you could specify a different
+    # encodings.
+    # but imho utf-8 is the better default
+    # also read the Future compatibility note
+    # in http://docs.python.org/ref/lexical.html
+
+    # we could also write a hint for the user:
+    #out.write("# you can specify a different encoding by a line starting with '# -*- coding:'\n")
+    #
+    return contents
+
+
 def preparse_file_named_to_stream(name, out):
     r"""
     Preparse file named \code{name} (presumably a .sage file), outputting to
@@ -353,6 +429,7 @@ def preparse_file_named_to_stream(name, out):
     cur = os.path.abspath(os.curdir)
     os.chdir(dir)
     contents = open(name).read()
+    contents = handle_encoding_declaration(contents, out)
     parsed = preparse_file(contents, attached, do_time=True)
     os.chdir(cur)
     out.write("# -*- encoding: utf-8 -*-\n")

@@ -68,7 +68,7 @@ build()
     $CP -r * $INSTALL_DIR
 
     # building CJ's + Leon's code
-    cd pkg/guava3.3
+    cd pkg/guava3.4
     ./configure ../../ --enable-libsuffix=64
     if [ $? -ne 0 ]; then
        echo "Error configuring Guava"
@@ -80,7 +80,7 @@ build()
         exit 1
     fi
 
-    cp -r ./bin/* $INSTALL_DIR/pkg/guava3.3/bin
+    cp -r ./bin/* $INSTALL_DIR/pkg/guava3.4/bin
 
     cd "$SAGE_LOCAL/bin"
     $RM -f gap

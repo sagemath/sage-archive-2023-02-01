@@ -60,6 +60,18 @@ class Tableau_class(CombinatorialObject):
         """
         CombinatorialObject.__init__(self,t)
 
+    def _latex_(self):
+        return self._tex_from_array()
+
+    def _tex_from_array(self):
+        import output
+        m = max(len(self), len(self[0]))
+        array = [[None for _ in range(m)] for _ in range(m)]
+        for i in range(len(self)):
+            for j in range(len(self[i])):
+                array[i][j] = self[i][j]
+        return output.tex_from_array(array)
+
     def __div__(self, t):
         """
         Returns the skew partition self/t.

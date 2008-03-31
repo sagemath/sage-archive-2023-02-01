@@ -80,6 +80,8 @@ build()
         exit 1
     fi
 
+    cp -r ./bin/* $INSTALL_DIR/pkg/guava3.3/bin
+
     cd "$SAGE_LOCAL/bin"
     $RM -f gap
     if [ ! -f $SAGE_LOCAL/lib/$TARGET/bin/gap.sh ]; then

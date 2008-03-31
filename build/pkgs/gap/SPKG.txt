@@ -1,5 +1,8 @@
 = gap =
 
+=== gap-4.4.10.p4 (Robert Miller, March 31st, 2008) ===
+ * Leon's code is now fully compiled and copied over to $SAGE_LOCAL
+
 === gap-4.4.10.p3 (David Joyner, March 30th, 2008) ===
  * replace guava 3.1 by guava 3.3
 

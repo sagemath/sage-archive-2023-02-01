@@ -260,14 +260,18 @@ def dynkin_diagram(t):
     """
     Returns a DiGraph corresponding to the Dynkin diagram of
     type t.
-
+    What?
     EXAMPLES:
+    sage: dynkin_diagram(['E', 6])
+    Multi-digraph on 6 vertices
 
     """
+    import cartan_type
     f = "type_"
     letter = t[0].lower()
     affine = ""
-    if len(t) == 3:
+    ct = cartan_type.CartanType(t)
+    if ct.is_affine():
         affine = "_affine"
 
     function = eval(f+letter+affine)

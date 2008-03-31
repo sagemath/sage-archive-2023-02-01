@@ -97,13 +97,13 @@ inspiration.
 # library is heavily inspired from MuPAD-Combinat.
 #****************************************************************************
 
-from sage.misc.latex           import latex
-from sage.structure.parent     import Parent
-from sage.structure.element    import Element
-from sage.combinat.combinat    import CombinatorialClass
-from sage.combinat.cartan_type import CartanType
-from sage.graphs.graph         import DiGraph
-from sage.combinat             import ranker
+from sage.misc.latex import latex
+from sage.structure.parent import Parent
+from sage.structure.element import Element
+from sage.combinat.combinat import CombinatorialClass
+from sage.graphs.graph import DiGraph
+from sage.combinat import ranker
+from sage.combinat.tools import transitive_ideal
 
 ## MuPAD-Combinat's Cat::Crystal
 # FIXME: crystals, like most parent should have unique data representation
@@ -123,10 +123,33 @@ class Crystal(CombinatorialClass, Parent):
     """
 
     def weight_lattice_realization(self):
-	return self.cartanType.root_system().ambient_lattice()
+        """
+        Returns the weight lattice realization for the root system
+        associated to self.
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: C.weight_lattice_realization()
+            Ambient lattice of the root system of type ['A', 5]
+        """
+        return self.cartan_type.root_system().ambient_lattice()
 
     def Lambda(self):
-	return self.weight_lattice_realization().fundamental_weights()
+        """
+        Returns the fundamentals weights in the weight lattice
+        realization for the root system associated to self.
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: C.Lambda()
+            [(1, 0, 0, 0, 0, 0),
+             (1, 1, 0, 0, 0, 0),
+             (1, 1, 1, 0, 0, 0),
+             (1, 1, 1, 1, 0, 0),
+             (1, 1, 1, 1, 1, 0)]
+
+        """
+        return self.weight_lattice_realization().fundamental_weights()
 
     def check(self):
         r"""
@@ -139,19 +162,39 @@ class Crystal(CombinatorialClass, Parent):
         dimension formula.
         \item Should check Stembridge's rules, etc.
         \end{itemize}
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: C.check()
+            True
         """
         # Those tests could be lifted up to CombinatorialClass
-        list1 = self.list();        set1 = set(list1)
-        list2 = [ c for c in self]; set2 = set(list2)
-        list3 = Crystal.list(self); set3 = set(list3)
-        return len(set1) == len(list1)   and \
-               len(set2) == len(list2)   and \
-               len(set3) == len(list3)   and \
-               len(set1) == self.count() and \
-               set1 == set2              and \
-               set2 == set3
+        list1 = self.list()
+        set1 = set(list1)
+        list2 = [c for c in self]
+        set2 = set(list2)
+        list3 = Crystal.list(self)
+        set3 = set(list3)
+        return len(set1) == len(list1) \
+               and len(set2) == len(list2) \
+               and len(set3) == len(list3) \
+               and len(set1) == self.count() \
+               and set1 == set2 \
+               and set2 == set3
 
     def list(self):
+        """
+        Returns a list of the elements of self obtained by continually
+        apply the $f_i$ operators to the module generators of self.
+
+        EXAMPLES:
+            sage: from sage.combinat.crystals.crystals import Crystal
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: l = Crystal.list(C)
+            sage: l.sort(); l
+            [1, 2, 3, 4, 5, 6]
+
+        """
         # To be generalized to some transitiveIdeal
         # To be moved in a super category CombinatorialModule
         result = set(self.module_generators)
@@ -167,22 +210,34 @@ class Crystal(CombinatorialClass, Parent):
         return list(result)
 
     def digraph(self):
-        dict = {}
+        """
+        Returns the DiGraph associated to self.
+
+        EXAMPLES:
+            sage: from sage.combinat.crystals.crystals import Crystal
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: Crystal.digraph(C)
+            Digraph on 6 vertices
+        """
+        d = {}
         for x in self:
-            dict[x] = {}
+            d[x] = {}
             for i in self.index_set:
                 child = x.f(i)
                 if child is None:
                     continue
-                dict[x][child]=i
-        return DiGraph(dict)
+                d[x][child]=i
+        return DiGraph(d)
 
-    def latex_file(self,filename):
+    def latex_file(self, filename):
         r"""
         Exports a file, suitable for pdflatex, to 'filename'.  This requires a proper installation
         of dot2tex in sage-python.  For more information see the documentation for self.latex().
-        """
 
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: C.latex_file('/tmp/test.tex') #optional requires dot2tex
+        """
         header = r"""\documentclass{article}
         \usepackage[x11names, rgb]{xcolor}
         \usepackage[utf8]{inputenc}
@@ -199,7 +254,7 @@ class Crystal(CombinatorialClass, Parent):
         footer = r"""\end{bla}
         \end{document}"""
 
-        f = open(filename, 'w');
+        f = open(filename, 'w')
         f.write(header + self.latex() + footer)
         f.close()
 
@@ -241,13 +296,17 @@ class Crystal(CombinatorialClass, Parent):
             $sagedir//local/bin/dot2tex balls.dot > balls.tex
                 pdflatex balls.tex
                 open balls.pdf # your favorite viewer here
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: C.latex() #optional requires dot2tex
         """
 
         try:
             from dot2tex.dot2tex import Dot2TikZConv
         except ImportError:
             print "dot2tex not available.  Install after running \'sage -sh\'"
-            return "Game over, man!"
+            return
 
         # In MuPAD, 'autosize' is an option, but this doesn't seem to work here.
         options = {'format':'tikz', 'crop':True, 'usepdflatex':True, 'figonly':True}
@@ -292,12 +351,23 @@ class Crystal(CombinatorialClass, Parent):
         where applying e(1) a1 times, e(2) a2 times then e(3) a1 times
         returns to the highest weight. These data determine the vertex
         and may be translated into a Gelfand-Tsetlin pattern or tableau.
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A', 2])
+            sage: C.metapost('/tmp/test.mp') #optional
+
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: C.metapost('/tmp/test.mp')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
         """
-        if self.cartanType[0] == 'B' and self.cartanType[1] == 2:
+        if self.cartan_type[0] == 'B' and self.cartan_type[1] == 2:
             word = [2,1,2,1]
-        elif self.cartanType[0] == 'C' and self.cartanType[1] == 2:
+        elif self.cartan_type[0] == 'C' and self.cartan_type[1] == 2:
             word = [2,1,2,1]
-        elif self.cartanType[0] == 'A' and self.cartanType[1] == 2:
+        elif self.cartan_type[0] == 'A' and self.cartan_type[1] == 2:
             word = [1,2,1]
         else:
             raise NotImplementedError
@@ -314,7 +384,7 @@ class Crystal(CombinatorialClass, Parent):
                 string_datum.append(turtlewalk)
             string_data.append(string_datum)
 
-        if self.cartanType[0] == 'A':
+        if self.cartan_type[0] == 'A':
             if labels:
                 c0 = int(55*scaling_factor)
                 c1 = int(-25*scaling_factor)
@@ -334,13 +404,13 @@ class Crystal(CombinatorialClass, Parent):
             else:
                 outstring = "beginfig(-1);\n\nsx := %d;\nsy := %d;\n\nz1000=(2*sx,0);\nz1001=(-sx,sy);\nz1002=(-5,-5);\n\nz1003=(10,10);\n\n"%(int(scaling_factor*35),int(tallness*scaling_factor*35))
         for i in range(size):
-            if self.cartanType[0] == 'A':
+            if self.cartan_type[0] == 'A':
                 [a1,a2,a3] = string_data[i]
             else:
                 [a1,a2,a3,a4] = string_data[i]
             shift = 0
             for j in range(i):
-                if self.cartanType[0] == 'A':
+                if self.cartan_type[0] == 'A':
                     [b1,b2,b3] = string_data[j]
                     if b1+b3 == a1+a3 and b2 == a2:
                         shift += 1
@@ -348,7 +418,7 @@ class Crystal(CombinatorialClass, Parent):
                     [b1,b2,b3,b4] = string_data[j]
                     if b1+b3 == a1+a3 and b2+b4 == a2+a4:
                         shift += 1
-            if self.cartanType[0] == 'A':
+            if self.cartan_type[0] == 'A':
                 outstring = outstring +"z%d=%d*z1000+%d*z1001+%d*z1002;\n"%(i,a1+a3,a2,shift)
             else:
                 outstring = outstring +"z%d=%d*z1000+%d*z1001+%d*z1002;\n"%(i,a1+a3,a2+a4,shift)
@@ -364,7 +434,7 @@ class Crystal(CombinatorialClass, Parent):
                         col = "red;"
                     else:
                         col = "green;  "
-                    if self.cartanType[0] == 'A':
+                    if self.cartan_type[0] == 'A':
                         [a1,a2,a3] = string_data[i] # included to facilitate hand editing of the .mp file
                         outstring = outstring+"draw z%d--z%d withcolor %s   %% %d %d %d\n"%(i,dest,col,a1,a2,a3)
                     else:
@@ -373,7 +443,7 @@ class Crystal(CombinatorialClass, Parent):
         outstring += "\npickup pencircle scaled 3;\n\n"
         for i in range(self.count()):
             if labels:
-                if self.cartanType[0] == 'A':
+                if self.cartan_type[0] == 'A':
                     outstring = outstring+"pickup pencircle scaled 15;\nfill z%d+z2004..z%d+z2006..z%d+z2006..z%d+z2007..cycle withcolor white;\nlabel(btex %d etex, z%d+z2001);\nlabel(btex %d etex, z%d+z2002);\nlabel(btex %d etex, z%d+z2003);\npickup pencircle scaled .5;\ndraw z%d+z2004..z%d+z2006..z%d+z2006..z%d+z2007..cycle;\n"%(i,i,i,i,string_data[i][2],i,string_data[i][1],i,string_data[i][0],i,i,i,i,i)
                 else:
                     outstring = outstring+"%%%d %d %d %d\npickup pencircle scaled 1;\nfill z%d+z2005..z%d+z2006..z%d+z2007..z%d+z2008..cycle withcolor white;\nlabel(btex %d etex, z%d+z2001);\nlabel(btex %d etex, z%d+z2002);\nlabel(btex %d etex, z%d+z2003);\nlabel(btex %d etex, z%d+z2004);\npickup pencircle scaled .5;\ndraw z%d+z2005..z%d+z2006..z%d+z2007..z%d+z2008..cycle;\n\n"%(string_data[i][0],string_data[i][1],string_data[i][2],string_data[i][3],i,i,i,i,string_data[i][0],i,string_data[i][1],i,string_data[i][2],i,string_data[i][3],i,i,i,i,i)
@@ -386,14 +456,23 @@ class Crystal(CombinatorialClass, Parent):
         f.close()
 
     def dot_tex(self):
+        """
+        Returns a dot_tex version of self.
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A',2])
+            sage: C.dot_tex()
+            'digraph G { \n  node [ shape=plaintext ];\n  N_0 [ label = " ", texlbl = "$\\text{1}$" ];\n  N_1 [ label = " ", texlbl = "$\\text{2}$" ];\n  N_2 [ label = " ", texlbl = "$\\text{3}$" ];\n  N_0 -> N_1 [ label = " ", texlbl = "1" ];\n  N_1 -> N_2 [ label = " ", texlbl = "2" ];\n}'
+
+        """
+        import re
         rank = ranker.from_list(self.list())[0]
-        def vertex_key(x):
-            return "N_"+str(rank(x))
-        def quoted_latex(x):
-            import re
-            # To do: check the regular expression
-            # Removing %-style comments, newlines, quotes
-            return re.sub("\"|\r|(%[^\n]*)?\n","", latex(x))
+        vertex_key = lambda x: "N_"+str(rank(x))
+
+        # To do: check the regular expression
+        # Removing %-style comments, newlines, quotes
+        # This should probably be moved to sage.misc.latex
+        quoted_latex = lambda x: re.sub("\"|\r|(%[^\n]*)?\n","", latex(x))
 
         result = "digraph G { \n  node [ shape=plaintext ];\n"
 
@@ -409,6 +488,16 @@ class Crystal(CombinatorialClass, Parent):
         return result
 
     def plot(self, **options):
+        """
+        Returns the plot of self as a directed graph.
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: show_default(False) #do not show the plot by default
+            sage: C.plot()
+            Graphics object consisting of 11 graphics primitives
+
+        """
         return self.digraph().plot(edge_labels=True,vertex_size=0,**options)
 
 class CrystalElement(Element):
@@ -424,27 +513,57 @@ class CrystalElement(Element):
     """
 
     def index_set(self):
+        """
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A',5])
+            sage: C(1).index_set()
+            [1, 2, 3, 4, 5]
+        """
         return self._parent.index_set
 
     def weight(self):
+        """
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A',5])
+            sage: C(1).weight()
+            (1, 0, 0, 0, 0, 0)
+        """
 	return self.Phi() - self.Epsilon()
 
     def e(self, i):
         r"""
-        Returns $e_i(x)$ if it exists or None otherwise
+        Returns $e_i(x)$ if it exists or None otherwise.  This is to be
+        implemented by subclasses of CrystalElement.
+
+        TESTS:
+            sage: from sage.combinat.crystals.crystals import CrystalElement
+            sage: C = CrystalOfLetters(['A',5])
+            sage: CrystalElement.e(C(1), 1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 
     def f(self, i):
         r"""
-        Returns $f_i(x)$ if it exists or None otherwise
+        Returns $f_i(x)$ if it exists or None otherwise.  This is to be
+        implemented by subclasses of CrystalElement.
+
+        TESTS:
+            sage: from sage.combinat.crystals.crystals import CrystalElement
+            sage: C = CrystalOfLetters(['A',5])
+            sage: CrystalElement.f(C(1), 1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
         """
         raise NotImplementedError
 
     def epsilon(self, i):
         r"""
-        TESTS:
-            # rather minimal tests
+        EXAMPLES:
             sage: C = CrystalOfLetters(['A',5])
             sage: C(1).epsilon(1)
             0
@@ -463,8 +582,7 @@ class CrystalElement(Element):
 
     def phi(self, i):
         r"""
-        TESTS:
-            # rather minimal tests
+        EXAMPLES:
             sage: C = CrystalOfLetters(['A',5])
             sage: C(1).phi(1)
             1
@@ -482,14 +600,37 @@ class CrystalElement(Element):
         return phi
 
     def Epsilon(self):
+        """
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A',5])
+            sage: C(0).Epsilon()
+            (0, 0, 0, 0, 0, 0)
+            sage: C(1).Epsilon()
+            (0, 0, 0, 0, 0, 0)
+            sage: C(2).Epsilon()
+            (1, 0, 0, 0, 0, 0)
+        """
 	return sum(self.epsilon(i) * self._parent.Lambda()[i-1] for i in self.index_set())
 
     def Phi(self):
+        """
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A',5])
+            sage: C(0).Phi()
+            (0, 0, 0, 0, 0, 0)
+            sage: C(1).Phi()
+            (1, 0, 0, 0, 0, 0)
+            sage: C(2).Phi()
+            (1, 1, 0, 0, 0, 0)
+
+        """
 	return sum(self.phi(i) * self._parent.Lambda()[i-1] for i in self.index_set())
 
     def is_highest_weight(self):
 	r"""
-        TEST:
+        Returns True if self is a highest weight.
+
+        EXAMPLES:
 	    sage: C = CrystalOfLetters(['A',5])
 	    sage: C(1).is_highest_weight()
 	    True
@@ -502,7 +643,6 @@ class ClassicalCrystal(Crystal):
     r"""
     The abstract class of classical crystals
     """
-
     list  = CombinatorialClass.list#__list_from_iterator
     def __iter__(self):
         r"""
@@ -553,7 +693,7 @@ class ClassicalCrystal(Crystal):
             sage: E = CrystalOfSpinsMinus(['D',4])
             sage: T=TensorProductOfCrystals(D,E,generators=[[D.list()[0],E.list()[0]]])
             sage: U=TensorProductOfCrystals(C,E,generators=[[C(1),E.list()[0]]])
-            sage: len(T)    # triggered bug reported by Daniel Bump Sun, 24 Feb 2008 17:06:37 -0800
+            sage: len(T)
             56
             sage: T.check()
             True
@@ -562,26 +702,20 @@ class ClassicalCrystal(Crystal):
 
             Bump's systematic tests:
 
-            sage: def fa3(a,b,c):\
-                 return CrystalOfTableaux(['A',3],shape=[a+b+c,b+c,c])
-            sage: def fb3(a,b,c):\
-                 return CrystalOfTableaux(['B',3],shape=[a+b+c,b+c,c])
-            sage: def fb3spin(a,b,c):\
-                 C = CrystalOfTableaux(['B',3],shape=[a+b+c,b+c,c]);\
-                 D = CrystalOfSpins(['B',3]);\
-                 return TensorProductOfCrystals(C,D,generators=[[C.list()[0],D.list()[0]]])
-            sage: def fb4(a,b,c,d):\
-                 return CrystalOfTableaux(['B',4],shape=[a+b+c+d,b+c+d,c+d,d])
-            sage: def fc3(a,b,c):\
-                 return CrystalOfTableaux(['C',3],shape=[a+b+c,b+c,c])
-            sage: def fd4(a,b,c,d):\
-                 return CrystalOfTableaux(['D',4],shape=[a+b+c+d,b+c+d,c+d,d])
+            sage: fa3 = lambda a,b,c: CrystalOfTableaux(['A',3],shape=[a+b+c,b+c,c])
+            sage: fb3 = lambda a,b,c: CrystalOfTableaux(['B',3],shape=[a+b+c,b+c,c])
+            sage: fc3 = lambda a,b,c: CrystalOfTableaux(['C',3],shape=[a+b+c,b+c,c])
+            sage: fb4 = lambda a,b,c,d: CrystalOfTableaux(['B',4],shape=[a+b+c+d,b+c+d,c+d,d])
+            sage: fd4 = lambda a,b,c,d: CrystalOfTableaux(['D',4],shape=[a+b+c+d,b+c+d,c+d,d])
+            sage: fd5 = lambda a,b,c,d,e: CrystalOfTableaux(['D',5],shape=[a+b+c+d+e,b+c+d+e,c+d+e,d+e,e])
             sage: def fd4spinplus(a,b,c,d):\
                  C = CrystalOfTableaux(['D',4],shape=[a+b+c+d,b+c+d,c+d,d]);\
                  D = CrystalOfSpinsPlus(['D',4]);\
-                 return TensorProductOfCrystals(C,D,generators=[[C.list()[0],D.list()[0]]])
-            sage: def fd5(a,b,c,d,e):\
-                 return CrystalOfTableaux(['D',5],shape=[a+b+c+d+e,b+c+d+e,c+d+e,d+e,e])
+                 return TensorProductOfCrystals(C,D,generators=[[C[0],D[0]]])
+            sage: def fb3spin(a,b,c):\
+                 C = CrystalOfTableaux(['B',3],shape=[a+b+c,b+c,c]);\
+                 D = CrystalOfSpins(['B',3]);\
+                 return TensorProductOfCrystals(C,D,generators=[[C[0],D[0]]])
 
 
             TODO: choose a good panel of values for a,b,c ... both for
@@ -596,50 +730,76 @@ class ClassicalCrystal(Crystal):
 
 
         """
-        def rec(x):
-            for i in self.index_set: # Run through the children y of x
-                y = x.f(i)
-                if y is None:
-                    continue
-                # Ignore those which can be reached by an arrow with smaller label
-                hasParent = False
-                for j in x.index_set():
-                    if j == i:
-                        break
-                    if not y.e(j) == None:
-                        hasParent = True
-                        break
-                if hasParent:
-                    continue
-                # yield y and all elements further below
-                yield y
-                for z in rec(y):
-                    yield z
-
         for generator in self.highest_weight_vectors():
             yield generator
-            for x in rec(generator):
+            for x in self._rec(generator):
                 yield x
+
+    def _rec(self, x):
+        """
+        Returns an generator for the children of x.
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: list(C._rec(C(1)))
+            [2, 3, 4, 5, 6]
+        """
+        for i in self.index_set: # Run through the children y of x
+            y = x.f(i)
+            if y is None:
+                continue
+            # Ignore those which can be reached by an arrow with smaller label
+            hasParent = False
+            for j in x.index_set():
+                if j == i:
+                    break
+                if not y.e(j) == None:
+                    hasParent = True
+                    break
+            if hasParent:
+                continue
+
+            # yield y and all elements further below
+            yield y
+            for z in self._rec(y):
+                yield z
 
     iterator = __iter__
 
     def highest_weight_vectors(self):
         r"""
-        Returns the highest weight vectors
+        Returns a list of the highest weight vectors of self.
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A',5])
+            sage: C.highest_weight_vectors()
+            [1]
+
+            sage: C = CrystalOfLetters(['A',2])
+            sage: T = TensorProductOfCrystals(C,C,C,generators=[[C(2),C(1),C(1)],[C(1),C(2),C(1)]])
+            sage: T.highest_weight_vectors()
+            [[2, 1, 1], [1, 2, 1]]
+
         """
-        # Implementation: selects among the module generators those that are highest weight
-        # and cache the result
-        if not self.__dict__.has_key('_highest_weight_vectors'): # What's the right idiom for testing the existence of an attribute
-            self._highest_weight_vectors = []
-            for x in self.module_generators: # What's the right idiom for 'select'
-                if x.is_highest_weight():
-                    self._highest_weight_vectors.append(x)
+        # Implementation: selects among the module generators those that are
+        # highest weight and cache the result
+        try:
+            return self._highest_weight_vectors
+        except AttributeError:
+            pass
+
+        self._highest_weight_vectors = [g for g in self.module_generators if g.is_highest_weight()]
         return self._highest_weight_vectors
 
     def highest_weight_vector(self):
         r"""
-        Returns the higest weight vector if there is a single one
-        Raise an error otherwise
+        Returns the higest weight vector if there is a single one; otherwise,
+        raise an error.
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A',5])
+            sage: C.highest_weight_vector()
+            1
         """
         hw = self.highest_weight_vectors();
         if len(hw) == 1:
@@ -649,11 +809,18 @@ class ClassicalCrystal(Crystal):
 
     def count(self):
         r"""
-        Returns the number of elements of the crystal, using Weyl's dimension formula on each
-        connected component
+        Returns the number of elements of the crystal, using Weyl's dimension
+        formula on each connected component
+
+        EXAMPLES:
+            sage: from sage.combinat.crystals.crystals import ClassicalCrystal
+            sage: C = CrystalOfLetters(['A', 5])
+            sage: ClassicalCrystal.count(C)
+            6
         """
         return sum(self.weight_lattice_realization().weyl_dimension(x.weight())
                    for x in self.highest_weight_vectors())
+
 
 class AffineCrystal(Crystal):
     r"""

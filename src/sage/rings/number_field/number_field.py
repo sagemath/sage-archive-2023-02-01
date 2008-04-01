@@ -2380,6 +2380,32 @@ class NumberField_generic(number_field_base.NumberField):
             v = [v]
         return tuple([ZZ(x) for x in v])
 
+    def power_basis(self):
+        r"""
+        Return a power basis for this number field over its base field.
+
+        If this number field is represented as $k[t]/f(t)$, then the basis
+        returned is $1, t, t^2, \ldots, t^{d-1}$ where $d$ is the degree of
+        this number field over its base field.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^5 + 10*x + 1)
+            sage: K.power_basis()
+            [1, a, a^2, a^3, a^4]
+
+            sage: L.<b> = K.extension(x^2 - 2)
+            sage: L.power_basis()
+            [1, b]
+            sage: L.absolute_field('c').power_basis()
+            [1, c, c^2, c^3, c^4, c^5, c^6, c^7, c^8, c^9]
+
+            sage: M = CyclotomicField(15)
+            sage: M.power_basis()
+            [1, zeta15, zeta15^2, zeta15^3, zeta15^4, zeta15^5, zeta15^6, zeta15^7]
+        """
+        g = self.gen()
+        return [ g**i for i in range(self.degree()) ]
+
     def integral_basis(self, v=None):
         """
         Return a list of elements of this number field that are a basis
@@ -2870,7 +2896,26 @@ class NumberField_generic(number_field_base.NumberField):
             sage: P = K.ideal(61).factor()[0][0]
             sage: K.residue_field(P)
             Residue field in abar of Fractional ideal (-2*a^2 + 1)
+
+        TESTS:
+            sage: L.<b> = NumberField(x^2 + 5)
+            sage: L.residue_field(P)
+            Traceback (most recent call last):
+            ...
+            ValueError: prime must be a prime ideal of self
+            sage: L.residue_field(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: prime must be a prime ideal of self
+
+            sage: L.residue_field(L.prime_above(5)^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: p must be prime
         """
+        from sage.rings.number_field.number_field_ideal import is_NumberFieldIdeal
+        if not is_NumberFieldIdeal(prime) or prime.number_field() is not self:
+            raise ValueError, "prime must be a prime ideal of self"
         import sage.rings.residue_field
         return sage.rings.residue_field.ResidueField(prime, names = names)
 

@@ -25,6 +25,9 @@ Eric Dietz (GPL) http://www.wrongway.org/?rubiksource
 
 == Changelog ==
 
+=== rubiks-20070912.p4 (Michael Abshoff, April 1st, 2008) ===
+ * Debian amd64 fixes for rubiks (Tim Abbott, #2763)
+
 === rubiks-20070912.p3 (Michael Abshoff, March 21st, 2008) ===
  * SAGE_LOCAL check (#633)
  * remove binary crap

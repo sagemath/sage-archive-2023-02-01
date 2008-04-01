@@ -1057,8 +1057,8 @@ GCD = gcd
 
 def lcm(a, b=None, integer=False):
     """
-    The least common multiple of a and b, or if a is a list and b is
-    omitted the least common multiple of all elements of v.
+    The least common multiple of a and b, or, if a is a list and b is
+    omitted, the least common multiple of all elements of a.
 
     NOTE: Use integer=True to make this vastly faster if you are
     working with lists of integers.
@@ -1068,7 +1068,7 @@ def lcm(a, b=None, integer=False):
         b -- number (optional)
         integer -- (default: False); if True, do an integer LCM
     or
-        v -- vector
+        a -- vector
         integer -- (default: False); if True, do an integer LCM
             NOTE -- this is *vastly* faster than doing the generic LCM
 
@@ -1079,7 +1079,7 @@ def lcm(a, b=None, integer=False):
         0
         sage: LCM(-3,-5)
         15
-        sage: LCM([1,2,3,4,5/3])
+        sage: LCM([1,2,3,4,5])
         60
         sage: v = LCM(range(1,10000),integer=True)   # *very* fast!
         sage: len(str(v))

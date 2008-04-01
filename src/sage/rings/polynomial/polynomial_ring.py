@@ -578,10 +578,21 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: S = PolynomialRing(FiniteField(7), 'x')
             sage: S.cyclotomic_polynomial(12)
             x^4 + 6*x^2 + 1
+            sage: S.cyclotomic_polynomial(1)
+
+        TESTS:
+          Make sure it agrees with other systems for the trivial case:
+            sage: ZZ['x'].cyclotomic_polynomial(1)
+            x - 1
+            sage: gp('polcyclo(1)')
+            x - 1
         """
         if n <= 0:
             raise ArithmeticError, "n=%s must be positive"%n
-        return self(cyclotomic.cyclotomic_coeffs(n), check=True)
+        elif n == 1:
+            return self.gen() - 1
+        else:
+            return self(cyclotomic.cyclotomic_coeffs(n), check=True)
 
     def gen(self, n=0):
         """

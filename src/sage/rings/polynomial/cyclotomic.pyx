@@ -94,9 +94,11 @@ def cyclotomic_coeffs(nn):
             d = prod(s)
             max_deg += n / d
 
+    if (<object>max_deg)*sizeof(long) > sys.maxint:
+        raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
     cdef long* coeffs = <long*>sage_malloc(sizeof(long) * (max_deg+1))
     if coeffs == NULL:
-        raise MemoryError, "Not enough space to calculate cyclotomic polynomial %s" % n
+        raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
     memset(coeffs, 0, sizeof(long) * (max_deg+1))
     coeffs[0] = 1
 

@@ -331,6 +331,14 @@ def arrow3d(start, end, thickness=1, radius=None, head_radius=None, head_len=Non
 
     Many arrow arranged in a circle (flying spears?):
         sage: sum([arrow3d((cos(t),sin(t),0),(cos(t),sin(t),1)) for t in [0,0.3,..,2*pi]])
+
+    TESTS:
+    If the arrow is too long, the shaft and part of the head is cut off.
+        sage: a = arrow3d((0,0,0), (0,0,0.5), head_len=1)
+        sage: len(a.all)
+        1
+        sage: type(a.all[0])
+        <type 'sage.plot.plot3d.shapes.Cone'>
     """
     if radius is None:
         radius = thickness/50.0
@@ -342,14 +350,17 @@ def arrow3d(start, end, thickness=1, radius=None, head_radius=None, head_len=Non
     end = vector(RDF, end, sparse=False)
     zaxis = vector(RDF, (0,0,1), sparse=False)
     diff = end - start
-    height = sqrt(diff.dot_product(diff))
-    arrow = Cylinder(radius, height-head_len, **kwds) \
-          + Cone(head_radius, head_len, **kwds).translate(0, 0, height-head_len)
+    length = sqrt(diff.dot_product(diff))
+    if length <= head_len:
+        arrow = Cone(head_radius*length/head_len, length, **kwds)
+    else:
+        arrow = Cylinder(radius, length-head_len, **kwds) \
+                + Cone(head_radius, head_len, **kwds).translate(0, 0, length-head_len)
     axis = zaxis.cross_product(diff)
     if axis == 0:
         return arrow.translate(start)
     else:
-        theta = -acos(diff[2]/height)
+        theta = -acos(diff[2]/length)
         return arrow.rotate(axis, theta).translate(start)
 
 

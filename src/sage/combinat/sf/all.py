@@ -9,3 +9,7 @@ from kfpoly import KostkaFoulkesPolynomial
 from llt import LLT, LLTHSpin, LLTHCospin
 
 from macdonald import MacdonaldPolynomialsP, MacdonaldPolynomialsQ, MacdonaldPolynomialsJ, MacdonaldPolynomialsH, MacdonaldPolynomialsHt, MacdonaldPolynomialsS
+
+from kschur import kSchurFunctions
+
+from ns_macdonald import NonattackingFillings, AugmentedLatticeDiagramFilling, LatticeDiagram

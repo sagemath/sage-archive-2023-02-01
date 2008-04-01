@@ -1356,9 +1356,16 @@ cdef class NumberFieldElement(FieldElement):
             132/7
             sage: (a+1).trace() == a.trace() + 3
             True
+
+        If we are in an order, the trace is an integer:
+            sage: K.<zeta> = CyclotomicField(17)
+            sage: R = K.ring_of_integers()
+            sage: R(zeta).trace().parent()
+            Integer Ring
         """
         if K is None:
-            return QQ(self._pari_('x').trace())
+            trace = self._pari_('x').trace()
+            return QQ(trace) if self._parent.is_field() else ZZ(trace)
         return self.matrix(K).trace()
 
     def norm(self, K=None):
@@ -1401,9 +1408,18 @@ cdef class NumberFieldElement(FieldElement):
         We illustrate that norm is compatible with towers:
             sage: z = (a+b+c).norm(L); z.norm(M)
             -11
+
+        If we are in an order, the norm is an integer:
+            sage: K.<a> = NumberField(x^3-2)
+            sage: a.norm().parent()
+            Rational Field
+            sage: R = K.ring_of_integers()
+            sage: R(a).norm().parent()
+            Integer Ring
         """
         if K is None:
-            return QQ(self._pari_('x').norm())
+            norm = self._pari_('x').norm()
+            return QQ(norm) if self._parent.is_field() else ZZ(norm)
         return self.matrix(K).determinant()
 
     def vector(self):
@@ -1781,7 +1797,9 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
     def charpoly(self, var='x'):
         r"""
-        The characteristic polynomial of this element over $\QQ$.
+        The characteristic polynomial of this element, over $\QQ$ if
+        self is an element of a field, and over $\ZZ$ is self is an
+        element of an order.
 
         This is the same as \code{self.absolute_charpoly} since this
         is an element of an absolute extension.
@@ -1795,8 +1813,14 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
             sage: a.charpoly('x')
             x^3 - 2
 
+        TESTS:
+            sage: R = K.ring_of_integers()
+            sage: R(a).charpoly()
+            x^3 - 2
+            sage: R(a).charpoly().parent()
+            Univariate Polynomial Ring in x over Integer Ring
         """
-        R = self.number_field().base_ring()[var]
+        R = self._parent.base_ring()[var]
         return R(self._pari_('x').charpoly())
 
     def list(self):

@@ -21,6 +21,7 @@ TODO:
     a root-counting function that could do mixed volumes and
     structured Bezout counts.  Another nice feature to have would be a
     graphical output of the path-tracking, as has been done for Maple.
+    Currently Marshall Hampton and Alex Jokela are working on this, please contact us if you are interested.
 """
 
 ########################################################################
@@ -40,6 +41,9 @@ import copy, os
 import sage.misc.misc
 from sage.rings.complex_field import ComplexField
 from sage.rings.all import CC
+from sage.rings.integer import Integer
+
+import pexpect
 
 def get_solution_dicts(output_file_contents, input_ring, get_failures = True):
     '''
@@ -171,11 +175,17 @@ class PHC:
         sage: from sage.interfaces.phc import phc
         sage: R.<x,y> = PolynomialRing(CDF,2)
 	sage: testsys = [x^2 + 1, x*y - 1]
-        sage: v = phc.blackbox(testsys, R)     # optional -- you must have phc install
-	sage: v.solutions()                    # optional
+        sage: phc.mixed_volume(testsys)        # optional -- you must have phc install
+        2
+        sage: v = phc.blackbox(testsys, R)     # optional
+        sage: sols = v.solutions()             # optional
+        sage: sols.sort()                      # optional
+	sage: sols                             # optional
         [[-1.00000000000000*I, 1.00000000000000*I], [1.00000000000000*I, -1.00000000000000*I]]
-	sage: v.solution_dicts()               # optional
-        [{x: -1.00000000000000*I, y: 1.00000000000000*I}, {x: 1.00000000000000*I, y: -1.00000000000000*I}]
+	sage: sol_dict = v.solution_dicts()    # optional
+        sage: sols_from_dict = [sorted(d.items()) for d in sol_dict] # optional
+        sage: sorted(sols_from_dict)           # optional
+        [[(y, -1.00000000000000*I), (x, 1.00000000000000*I)], [(y, 1.00000000000000*I), (x, -1.00000000000000*I)]]
 	sage: residuals = [[test_equation.change_ring(CDF).subs(sol) for test_equation in testsys] for sol in v.solution_dicts()]      # optional
 	sage: residuals                             # optional
 	[[0, 0], [0, 0]]
@@ -228,6 +238,81 @@ class PHC:
         # Current just return "none" for the mapping.
         return s, None
 
+
+    def mixed_volume(self, polys, verbose=False):
+        """
+        Computes the mixed volume of the polynomial system given by the input polys.
+
+        INPUT:
+            polys -- a list of multivariate polynomials (elements of a multivariate
+                     polynomial ring).
+            verbose -- print lots of verbose information about what this function does.
+
+        OUTPUT:
+            The mixed volume.
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import phc
+            sage: R.<x,y> = PolynomialRing(CDF,2)
+            sage: testsys = [x^2 + 1, x*y - 1]
+            sage: phc.mixed_volume(testsys)        # optional -- you must have phc install
+            2
+
+        """
+        # Get three temporary file names (these will be in SAGE_HOME/.sage/tmp/pid)
+        input_filename = sage.misc.misc.tmp_filename()
+        output_filename = sage.misc.misc.tmp_filename()
+        log_filename = sage.misc.misc.tmp_filename()
+
+        # Get the input polynomial text
+        input, mapping = self._input_file(polys)
+        if verbose:
+            print "Writing the input file to %s"%input_filename
+        open(input_filename,'w').write(input)
+
+        if verbose:
+            print "The following file will be the input polynomial file to phc."
+            print input
+
+        # Create a phc process
+        child_phc = pexpect.spawn('phc -m')
+        child_phc.sendline('y')
+        child_phc.sendline(input_filename)
+        child_phc.sendline(output_filename)
+        child_phc.sendline('4')
+        child_phc.sendline('n')
+        child_phc.sendline('n')
+        child_phc.sendline('n')
+        child_phc.expect('results')
+        dots = child_phc.read()
+        if verbose:
+            print "should be ... : " + dots
+        child_phc.close()
+        if not os.path.exists(output_filename):
+            raise RuntimeError, "The output file does not exist; something went wrong running phc."
+
+        # Read the output produced by PHC
+        out = open(output_filename).read()
+
+        # Delete the temporary files
+        os.unlink(input_filename)
+        os.unlink(output_filename)
+
+        # All done
+        out_lines = out.split('\n')
+        for a_line in out_lines:
+            # the two conditions below are necessary because of changes in output format
+            if a_line.find('The mixed volume equals :') == 0 or a_line.find('common mixed volume :') == 0:
+                if verbose: print 'found line: ' +  a_line
+                mixed_vol = Integer(a_line.split(':')[1])
+                break
+
+        try:
+            return mixed_vol
+        except NameError:
+            raise RuntimeError, "Mixed volume not found in output; something went wrong running phc."
+
+
     def blackbox(self, polys, input_ring, verbose=False):
         """
         Returns as a string the result of running PHC with the given polynomials
@@ -240,7 +325,7 @@ class PHC:
             verbose -- print lots of verbose information about what this function does.
 
         OUTPUT:
-            a string.
+            a PHC_Object object containing the phcpack output string.
         """
 
         # Get three temporary file names (these will be in SAGE_HOME/.sage/tmp/pid)

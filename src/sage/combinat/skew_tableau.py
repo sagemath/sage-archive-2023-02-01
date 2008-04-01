@@ -1062,11 +1062,11 @@ def from_shape_and_word(shape, word):
 
     EXAMPLES:
         sage: import sage.combinat.skew_tableau as skew_tableau
-        sage: t = SkewTableau([[None, 2, 4], [None, 3], [1]])
+        sage: t = SkewTableau([[None, 1, 3], [None, 2], [4]])
         sage: shape = t.shape()
         sage: word  = t.to_word()
         sage: skew_tableau.from_shape_and_word(shape, word)
-        [[None, 2, 4], [None, 3], [1]]
+        [[None, 1, 3], [None, 2], [4]]
     """
     st = [ [None]*row_length for row_length in shape[0] ]
     w_count = 0

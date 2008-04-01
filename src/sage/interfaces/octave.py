@@ -272,7 +272,17 @@ class Octave(Expect):
         octave_console()
 
     def version(self):
-        return octave_version()[1:]
+        """
+        Return the version of Octave.
+
+        OUTPUT:
+            string
+
+        EXAMPLES:
+            sage: octave.version()   # optional and random output depending on version
+            '2.1.73'
+        """
+        return octave_version()
 
     def solve_linear_system(self, A, b):
         """

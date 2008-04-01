@@ -3,7 +3,7 @@ PARI C-library interface
 
 AUTHORS:
     -- William Stein (2006-03-01): updated to work with PARI 2.2.12-beta
-             (this involved changing almost every doc strings, among other
+             (this involved changing almost every doc string, among other
              things; the precision behavior of PARI seems to change
              from any version to the next...).
     -- William Stein (2006-03-06): added newtonpoly
@@ -187,10 +187,11 @@ cdef class gen(sage.structure.element.RingElement):
         VERY FAST addition of self and right on stack (and leave on
         stack) without any type checking.
 
-        Basically, this is often about 10 times faster than just typing "self + right".
-        The drawback is that (1) if self + right would give an error in PARI, it will
-        totally crash SAGE, and (2) the memory used by self + right is *never*
-        returned -- it gets allocated on the PARI stack and will never be freed.
+        Basically, this is often about 10 times faster than just typing
+        "self + right".  The drawback is that (1) if self + right would
+        give an error in PARI, it will totally crash SAGE, and (2) the
+        memory used by self + right is *never* returned -- it gets allocated
+        on the PARI stack and will never be freed.
 
         EXAMPLES:
             sage: pari(2)._add_unsafe(pari(3))
@@ -214,10 +215,11 @@ cdef class gen(sage.structure.element.RingElement):
         VERY FAST subtraction of self and right on stack (and leave on
         stack) without any type checking.
 
-        Basically, this is often about 10 times faster than just typing "self - right".
-        The drawback is that (1) if self - right would give an error in PARI, it will
-        totally crash SAGE, and (2) the memory used by self + right is *never*
-        returned -- it gets allocated on the PARI stack and will never be freed.
+        Basically, this is often about 10 times faster than just typing
+        "self - right".  The drawback is that (1) if self - right would
+        give an error in PARI, it will totally crash SAGE, and (2) the memory
+        used by self - right is *never* returned -- it gets allocated on
+        the PARI stack and will never be freed.
 
         EXAMPLES:
             sage: pari(2)._sub_unsafe(pari(3))
@@ -241,10 +243,11 @@ cdef class gen(sage.structure.element.RingElement):
         VERY FAST multiplication of self and right on stack (and leave on
         stack) without any type checking.
 
-        Basically, this is often about 10 times faster than just typing "self * right".
-        The drawback is that (1) if self - right would give an error in PARI, it will
-        totally crash SAGE, and (2) the memory used by self + right is *never*
-        returned -- it gets allocated on the PARI stack and will never be freed.
+        Basically, this is often about 10 times faster than just typing
+        "self * right".  The drawback is that (1) if self * right would
+        give an error in PARI, it will totally crash SAGE, and (2) the memory
+        used by self * right is *never* returned -- it gets allocated on
+        the PARI stack and will never be freed.
 
         EXAMPLES:
             sage: pari(2)._mul_unsafe(pari(3))
@@ -268,10 +271,11 @@ cdef class gen(sage.structure.element.RingElement):
         VERY FAST division of self and right on stack (and leave on
         stack) without any type checking.
 
-        Basically, this is often about 10 times faster than just typing "self / right".
-        The drawback is that (1) if self - right would give an error in PARI, it will
-        totally crash SAGE, and (2) the memory used by self + right is *never*
-        returned -- it gets allocated on the PARI stack and will never be freed.
+        Basically, this is often about 10 times faster than just typing
+        "self / right".  The drawback is that (1) if self / right would
+        give an error in PARI, it will totally crash SAGE, and (2) the memory
+        used by self / right is *never* returned -- it gets allocated on
+        the PARI stack and will never be freed.
 
         EXAMPLES:
             sage: pari(2)._div_unsafe(pari(3))
@@ -1008,15 +1012,18 @@ cdef class gen(sage.structure.element.RingElement):
         _sig_off
         return t
 
-    def hclassno(gen n):
-        """
+    def qfbhclassno(gen n):
+        r"""
         Computes the Hurwitz-Kronecker class number of n.
 
-	EXAMPLES:
-            sage: pari(-10007).hclassno()
+        If n is large (more than $5*10^5$), the result is conditional upon
+        GRH.
+
+        EXAMPLES:
+            sage: pari(-10007).qfbhclassno()
             77
-            sage: pari(-3).hclassno()
-	    1/3
+            sage: pari(-3).qfbhclassno()
+            1/3
         """
         _sig_on
         return P.new_gen(hclassno(n.g))
@@ -1028,8 +1035,15 @@ cdef class gen(sage.structure.element.RingElement):
 
         INPUT:
             flag -- int
-                    0 (default): checks whether x is a Baillie-Pomerance-Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo prime for base 2, followed by strong Lucas test for the sequence (P,-1), P smallest positive integer such that $P^2 - 4$ is not a square mod x).
-                    > 0: checks whether x is a strong Miller-Rabin pseudo prime for flag randomly chosen bases (with end-matching to catch square roots of -1).
+                    0 (default): checks whether x is a
+                    Baillie-Pomerance-Selfridge-Wagstaff pseudo prime
+                    (strong Rabin-Miller pseudo prime for base 2, followed
+                    by strong Lucas test for the sequence (P,-1), P smallest
+                    positive integer such that $P^2 - 4$ is not a square mod
+                    x).
+                    > 0: checks whether x is a strong Miller-Rabin pseudo
+                    prime for flag randomly chosen bases (with end-matching
+                    to catch square roots of -1).
 
         OUTPUT:
             bool -- True or False
@@ -1122,10 +1136,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def lex(gen x, y):
         """
-
         lex(x,y): Compare x and y lexicographically (1 if x>y, 0 if
             x==y, -1 if x<y)
-
         """
         t0GEN(y)
         _sig_on
@@ -1177,7 +1189,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def vecmax(gen x):
         """
-        vecmax(x): Return the maximum of the elements of the vector/matrix x,
+        vecmax(x): Return the maximum of the elements of the vector/matrix x.
         """
         _sig_on
         return P.new_gen(vecmax(x.g))
@@ -1185,7 +1197,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def vecmin(gen x):
         """
-        vecmin(x): Return the maximum of the elements of the vector/matrix x,
+        vecmin(x): Return the maximum of the elements of the vector/matrix x.
         """
         _sig_on
         return P.new_gen(vecmin(x.g))
@@ -1449,7 +1461,7 @@ cdef class gen(sage.structure.element.RingElement):
         distance if $b^2 - 4ac > 0$.
 
         NOTE: Negative definite forms are not implemented, so use their
-        positive definitine counterparts instead.  (I.e., if f is a
+        positive definite counterparts instead.  (I.e., if f is a
         negative definite quadratic form, then -f is positive
         definite.)
 
@@ -1888,8 +1900,9 @@ cdef class gen(sage.structure.element.RingElement):
 
     def bittest(gen x, long n):
         """
-        bittest(x, long n): Returns bit number n (coefficient of $2^n$ in binary)
-        of the integer x. Negative numbers behave as if modulo a big power of 2.
+        bittest(x, long n): Returns bit number n (coefficient of $2^n$
+        in binary) of the integer x. Negative numbers behave as if modulo a
+        big power of 2.
 
         INPUT:
            x -- gen (pari integer)
@@ -2020,7 +2033,7 @@ cdef class gen(sage.structure.element.RingElement):
     def component(gen x, long n):
         """
         component(x, long n): Return n'th component of the internal
-        representation of x.  This this function is 1-based
+        representation of x.  This function is 1-based
         instead of 0-based.
 
         NOTE: For vectors or matrices, it is simpler to use x[n-1]. For
@@ -2499,7 +2512,6 @@ cdef class gen(sage.structure.element.RingElement):
 
     def sizedigit(gen x):
         """
-
         sizedigit(x): Return a quick estimate for the maximal number of
         decimal digits before the decimal point of any component of x.
 
@@ -2596,11 +2608,11 @@ cdef class gen(sage.structure.element.RingElement):
            * If p is an integer, x must be an integer, an intmod whose
              modulus is divisible by p, a rational number, a p-adic
              number, or a polynomial or power series in which case the
-             valuation is the minimal of the valuations of the
+             valuation is the minimum of the valuations of the
              coefficients.
 
            * If p is a polynomial, x must be a polynomial or a
-             rational fucntion.  If p is a monomial then x may also be
+             rational function.  If p is a monomial then x may also be
              a power series.
 
            * If x is a vector, complex or quadratic number, then the
@@ -2802,8 +2814,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def asinh(gen x):
         r"""
-        The principal branch of $\sinh^{-1}(x)$, so that $\Im(\asinh(x))$ belongs
-        to $[-\pi/2,\pi/2]$.
+        The principal branch of $\sinh^{-1}(x)$, so that $\Im(\asinh(x))$
+        belongs to $[-\pi/2,\pi/2]$.
 
         EXAMPLES:
             sage: pari(2).asinh()
@@ -2818,8 +2830,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def atan(gen x):
         r"""
-        The principal branch of $\tan^{-1}(x)$, so that $\Re(\atan(x))$ belongs
-        to $]-\pi/2, \pi/2[$.
+        The principal branch of $\tan^{-1}(x)$, so that $\Re(\atan(x))$
+        belongs to $]-\pi/2, \pi/2[$.
 
         EXAMPLES:
             sage: pari(1).atan()
@@ -2866,13 +2878,13 @@ cdef class gen(sage.structure.element.RingElement):
 
     def fibonacci(gen x):
         r"""
-        Return the fibonacci number of index x.
+        Return the Fibonacci number of index x.
 
         EXAMPLES:
-            sage: pari(18).bernfrac()
-            43867/798
-            sage: [pari(n).bernfrac() for n in range(10)]
-            [1, -1/2, 1/6, 0, -1/30, 0, 1/42, 0, -1/30, 0]
+            sage: pari(18).fibonacci()
+            2584
+            sage: [pari(n).fibonacci() for n in range(10)]
+            [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
         """
         _sig_on
         return P.new_gen(fibo(long(x)))
@@ -3160,7 +3172,7 @@ cdef class gen(sage.structure.element.RingElement):
         $x$ is a complex number with positive imaginary part, the
         result is $\prod_{n=1}^{\infty} (q-1^n)$, where $q=e^{2 i \pi
         x}$.  If $x$ is a power series (or can be converted to a power
-        series) with positive valuation, the result it
+        series) with positive valuation, the result is
         $\prod_{n=1}^{\infty} (1-x^n)$.
 
         EXAMPLES:
@@ -3240,7 +3252,7 @@ cdef class gen(sage.structure.element.RingElement):
         r"""
         a.hyperu(b,x): U-confluent hypergeometric function.
 
-	WARNING/TODO: This function is \emph{extremely slow} as
+        WARNING/TODO: This function is \emph{extremely slow} as
         implemented when used from the C library.  If you use the GP
         interpreter inteface it is vastly faster, so clearly this
         issue could be fixed with a better understanding of GP/PARI.
@@ -3327,7 +3339,7 @@ cdef class gen(sage.structure.element.RingElement):
         Note that $p$-adic arguments can also be given as input,
         with the convention that $\log(p)=0$.  Hence, in
         particular, $\exp(\log(x))/x$ is not in general
-        equal to $1$ but instead to a $(p-1)th$ root of
+        equal to $1$ but instead to a $(p-1)$-st root of
         unity (or $\pm 1$ if $p=2$) times a power of $p$.
 
         EXAMPLES:
@@ -3436,14 +3448,23 @@ cdef class gen(sage.structure.element.RingElement):
 
     def sqr(gen x):
         """
-        x.sqr(): square of x. NOT identical to x*x.
-
-        TODO: copy extensive notes about this function
-        from PARI manual.  Put examples below.
+        x.sqr(): square of x.  Faster than, and most of the time (but not
+        always -- see the examples) identical to x*x.
 
         EXAMPLES:
             sage: pari(2).sqr()
             4
+
+            For $2$-adic numbers, x.sqr() may not be identical to x*x
+            (squaring a $2$-adic number increases its precision):
+            sage: pari("1+O(2^5)").sqr()
+            1 + O(2^6)
+            sage: pari("1+O(2^5)")*pari("1+O(2^5)")
+            1 + O(2^5)
+
+            However:
+            sage: x = pari("1+O(2^5)"); x*x
+            1 + O(2^6)
         """
         _sig_on
         return P.new_gen(gsqr(x.g))
@@ -3539,7 +3560,7 @@ cdef class gen(sage.structure.element.RingElement):
         r"""
         teichmuller(x): teichmuller character of p-adic number x.
 
-        This is the unique $(p-1)$th root of unity congruent to
+        This is the unique $(p-1)$-st root of unity congruent to
         $x/p^{v_p(x)}$ modulo $p$.
 
         EXAMPLES:
@@ -3564,7 +3585,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def thetanullk(gen q, long k):
         """
-        q.thetanullk(k): return the k-th derivative at z=0 of theta(q,z)
+        q.thetanullk(k): return the k-th derivative at z=0 of theta(q,z).
+
         EXAMPLES:
             sage: pari('0.5').thetanullk(1)
             0.5489785325603405618549383537             # 32-bit
@@ -3575,7 +3597,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def weber(gen x, flag=0):
         r"""
-        x.weber({flag=0}): One of Weber's f function of x.
+        x.weber({flag=0}): One of Weber's f functions of x.
         flag is optional, and can be
            0: default, function f(x)=exp(-i*Pi/24)*eta((x+1)/2)/eta(x)
               such that $j=(f^{24}-16)^3/f^{24}$,
@@ -3603,13 +3625,23 @@ cdef class gen(sage.structure.element.RingElement):
 
     def zeta(gen s, precision=0):
         """
-        zeta(s): Riemann zeta function at s with s a complex
-                 or a p-adic number.
+        zeta(s): zeta function at s with s a complex or a p-adic number.
 
-        TODO: Add extensive explanation from PARI user's manual.
+        If $s$ is a complex number, this is the Riemann zeta function
+        $\zeta(s)=\sum_{n\geq 1} n^{-s}$, computed either using the
+        Euler-Maclaurin summation formula (if $s$ is not an integer),
+        or using Bernoulli numbers (if $s$ is a negative integer or an
+        even nonnegative integer), or using modular forms (if $s$ is
+        an odd nonnegative integer).
+
+        If $s$ is a $p$-adic number, this is the Kubota-Leopoldt zeta
+        function, i.e. the unique continuous $p$-adic function on the
+        $p$-adic integers that interpolates the values of
+        $(1-p^{-k})\zeta(k)$ at negative integers $k$ such that
+        $k\equiv 1\pmod{p-1}$ if $p$ is odd, and at odd $k$ if $p=2$.
 
         INPUT:
-            s -- gen (real or complex number)
+            s -- gen (real, complex, or p-adic number)
 
         OUTPUT:
             gen -- value of zeta at s.
@@ -3624,6 +3656,8 @@ cdef class gen(sage.structure.element.RingElement):
             sage: pari(3).zeta()
             1.202056903159594285399738162             # 32-bit
             1.2020569031595942853997381615114499908   # 64-bit
+            sage: pari('1+5*7+2*7^2+O(7^3)').zeta()
+            4*7^-2 + 5*7^-1 + O(7^0)
         """
         if not precision: precision = prec
         _sig_on
@@ -3646,6 +3680,21 @@ cdef class gen(sage.structure.element.RingElement):
         return g, u, v
 
     def binomial(gen x, long k):
+        """
+        binomial(x, k): return the binomial coefficient "x choose k".
+
+        INPUT:
+            x -- any PARI object (gen)
+            k -- integer
+
+        EXAMPLES:
+            sage: pari(6).binomial(2)
+            15
+            sage: pari('x+1').binomial(3)
+            1/6*x^3 - 1/6*x
+            sage: pari('2+x+O(x^2)').binomial(3)
+            1/3*x + O(x^2)
+        """
         _sig_on
         return P.new_gen(binome(x.g, k))
 
@@ -3663,8 +3712,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def contfracpnqn(gen x, b=0, long lmax=0):
         """
-        contfracpnqn(x): [p_n,p_{n-1}; q_n,q_{n-1}] corresponding to the continued
-        fraction x.
+        contfracpnqn(x): [p_n,p_{n-1}; q_n,q_{n-1}] corresponding to the
+        continued fraction x.
         """
         _sig_on
         return P.new_gen(pnqn(x.g))
@@ -3809,17 +3858,37 @@ cdef class gen(sage.structure.element.RingElement):
         return P.new_gen(ellinit0(self.g, flag, precision))
 
     def ellglobalred(self):
+        """
+        e.ellglobalred(): return information related to the global
+        minimal model of the elliptic curve e.
+
+        INPUT:
+            e -- elliptic curve (returned by ellinit)
+
+        OUTPUT:
+            gen -- the (arithmetic) conductor of e
+            gen -- a vector giving the coordinate change over Q from e to
+                   its minimal integral model (see also ellminimalmodel)
+            gen -- the product of the local Tamagawa numbers of e
+
+        EXAMPLES:
+            sage: e = pari([0, 5, 2, -1, 1]).ellinit()
+            sage: e.ellglobalred()
+            [20144, [1, -2, 0, -1], 1]
+            sage: e = pari(EllipticCurve('17a').a_invariants()).ellinit()
+            sage: e.ellglobalred()
+            [17, [1, 0, 0, 0], 4]
+        """
         _sig_on
         return self.new_gen(globalreduction(self.g))
 
     def elladd(self, z0, z1):
         """
-        elladd(self, z0, z1)
-
-        Sum of the points z0 and z1 on this elliptic curve.
+        e.elladd(z0, z1): return the sum of the points z0 and z1 on this
+        elliptic curve.
 
         INPUT:
-            self -- elliptic curve E
+            e -- elliptic curve E
             z0 -- point on E
             z1 -- point on E
 
@@ -3837,7 +3906,7 @@ cdef class gen(sage.structure.element.RingElement):
         the Python lists are automatically converted to PARI objects so
         you don't have to do that explicitly in your code.
 
-            sage: e.elladd([1,0,1], [-1,1,1])
+            sage: e.elladd([1,0], [-1,1])
             [-3/4, -15/8]
         """
         t0GEN(z0); t1GEN(z1)
@@ -3847,8 +3916,8 @@ cdef class gen(sage.structure.element.RingElement):
     def ellak(self, n):
         r"""
         e.ellak(n): Returns the coefficient $a_n$ of the $L$-function of
-        the elliptic curve e, i.e. the coefficient of a newform of
-        weight 2 newform.
+        the elliptic curve e, i.e. the $n$-th Fourier coefficient of the
+        weight 2 newform associated to e (according to Shimura-Taniyama).
 
         \begin{notice}
         The curve $e$ \emph{must} be a medium or long vector of the type given
@@ -3861,7 +3930,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         INPUT:
             e -- a PARI elliptic curve.
-            n -- integer ..
+            n -- integer.
 
         EXAMPLES:
             sage: e = pari([0, -1, 1, -10, -20]).ellinit()
@@ -3881,8 +3950,8 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellan(self, long n, python_ints=False):
         """
-        Return the Fourier coefficients of the modular form attached
-        to this elliptic curve.
+        Return the first $n$ Fourier coefficients of the modular form
+        attached to this elliptic curve.  See ellak for more details.
 
         INPUT:
             n -- a long integer
@@ -3918,8 +3987,12 @@ cdef class gen(sage.structure.element.RingElement):
     def ellap(self, p):
         r"""
         e.ellap(p): Returns the prime-indexed coefficient $a_p$ of the
-        $L$-function of the elliptic curve $e$, i.e. the coefficient of a
-        newform of weight 2 newform.
+        $L$-function of the elliptic curve $e$, i.e. the $p$-th Fourier
+        coefficient of the newform attached to e.
+
+        The computation uses the baby-step giant-step method and a trick
+        due to Mestre, and requires $O(p^{1/4})$ time and $O(p^{1/4})$
+        storage.
 
         \begin{notice}
         If p is not prime, this function will return an {\bf incorrect}
@@ -3935,7 +4008,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         INPUT:
             e -- a PARI elliptic curve.
-            p -- prime integer ..
+            p -- prime integer
 
         EXAMPLES:
             sage: e = pari([0, -1, 1, -10, -20]).ellinit()
@@ -3954,8 +4027,9 @@ cdef class gen(sage.structure.element.RingElement):
     def ellaplist(self, long n, python_ints=False):
         r"""
         e.ellaplist(n): Returns a PARI list of all the prime-indexed
-        coefficient $a_p$ of the $L$-function of the elliptic curve
-        $e$, i.e. the coefficient of a newform of weight 2 newform.
+        coefficients $a_p$ (up to n) of the $L$-function of the elliptic
+        curve $e$, i.e. the Fourier coefficients of the newform attached
+        to $e$.
 
         INPUT:
             n -- a long integer
@@ -3968,7 +4042,7 @@ cdef class gen(sage.structure.element.RingElement):
         by ellinit. For this function to work for every n and not just
         those prime to the conductor, e must be a minimal Weierstrass
         equation. If this is not the case, use the function
-        ellminimalmodel first before using ellanlist (or you will get
+        ellminimalmodel first before using ellaplist (or you will get
         INCORRECT RESULTS!)
         \end{notice}
 
@@ -4018,23 +4092,31 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellbil(self, z0, z1):
         """
+        e.ellbil(z0, z1): return the value of the canonical bilinear
+        form on z0 and z1.
+
+        INPUT:
+            e -- elliptic curve (assumed integral given by a minimal
+                 model, as returned by ellminimalmodel)
+            z0, z1 -- rational points on e
+
         EXAMPLES:
-            sage: e = pari([0,1,1,-2,0]).ellinit()
-            sage: e.ellbil([1, 0, 1], [-1, 1, 1])
+            sage: e = pari([0,1,1,-2,0]).ellinit().ellminimalmodel()[0]
+            sage: e.ellbil([1, 0], [-1, 1])
             0.4181889844988605856298894582              # 32-bit
-             0.41818898449886058562988945821587638238   # 64-bit
+            0.41818898449886058562988945821587638238    # 64-bit
         """
 ##         Increasing the precision does not increase the precision
 ##         result, since quantities related to the elliptic curve were
 ##         computed to low precision.
 ##             sage: set_real_precision(10)
-##             sage: e.ellbil([1, 0, 1], [-1, 1, 1])
+##             sage: e.ellbil([1, 0], [-1, 1])
 ##             0.4181889844988605856298894585
 ##         However, if we recompute the elliptic curve after increasing
 ##         the precision, then the bilinear pairing will be computed to
 ##         higher precision as well.
 ##             sage: e = pari([0,1,1,-2,0]).ellinit()
-##             sage: e.ellbil([1, 0, 1], [-1, 1, 1])
+##             sage: e.ellbil([1, 0], [-1, 1])
 ##             0.4181889844988605856298894582
 ##             sage: set_real_precision(5)
         t0GEN(z0); t1GEN(z1)
@@ -4043,6 +4125,17 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ellchangecurve(self, ch):
         """
+        e.ellchangecurve(ch): return the new model (equation) for the
+        elliptic curve e given by the change of coordinates ch.
+
+        The change of coordinates is specified by a vector
+        ch=[u,r,s,t]; if $x'$ and $y'$ are the new coordinates, then
+        $x = u^2 x' + r$ and $y = u^3 y' + su^2 x' + t$.
+
+        INPUT:
+            e -- elliptic curve
+            ch -- change of coordinates vector with 4 entries
+
         EXAMPLES:
             sage: e = pari([1,2,3,4,5]).ellinit()
             sage: e.ellglobalred()
@@ -4056,26 +4149,97 @@ cdef class gen(sage.structure.element.RingElement):
         return self.new_gen(coordch(self.g, t0))
 
     def elleta(self):
+        """
+        e.elleta(): return the vector [eta1,eta2] of quasi-periods
+        associated with the period lattice e.omega() of the elliptic
+        curve e.
+
+        EXAMPLES:
+            sage: e = pari([0,0,0,-82,0]).ellinit()
+            sage: e.elleta()
+            [3.605463601432652085915820564, 10.81639080429795625774746169*I] # 32-bit
+            [3.6054636014326520859158205642077267748, 10.816390804297956257747461692623180324*I] # 64-bit
+        """
         _sig_on
         return self.new_gen(elleta(self.g, prec))
 
-    def ellheight(self, a, flag=0):
+    def ellheight(self, a, flag=2):
+        """
+        e.ellheight(a, {flag=2}): return the global N\'eron-Tate height
+        of the point a on the elliptic curve e.
+
+        INPUT:
+            e -- elliptic curve over $\Q$, assumed to be in a standard
+                 minimal integral model (as given by ellminimalmodel)
+            a -- rational point on e
+            flag (optional) -- specifies which algorithm to be used for
+                 computing the archimedean local height:
+                 0 -- uses sigma- and theta-functions and a trick due to
+                      J. Silverman
+                 1 -- uses Tate's $4^n$ algorithm
+                 2 -- uses Mestre's AGM algorithm (this is the default,
+                      being faster than the other two)
+
+        EXAMPLES:
+            sage: e = pari([0,1,1,-2,0]).ellinit().ellminimalmodel()[0]
+            sage: e.ellheight([1,0])
+            0.4767116593437395373794860589 # 32-bit
+            0.47671165934373953737948605888465305946 # 64-bit
+            sage: e.ellheight([1,0], flag=0)
+            0.4767116593437395373794860589 # 32-bit
+            0.47671165934373953737948605888465305946 # 64-bit
+            sage: e.ellheight([1,0], flag=1)
+            0.4767116593437395373794860589 # 32-bit
+            0.47671165934373953737948605888465305946 # 64-bit
+        """
         t0GEN(a)
         _sig_on
         return self.new_gen(ellheight0(self.g, t0, flag, prec))
 
     def ellheightmatrix(self, x):
         """
-        ellheightmatrix(e,x)
+        e.ellheightmatrix(x): return the height matrix for the vector x of
+        points on the elliptic curve e.
 
-        Returns the height matrix for vector of points x on elliptic curve e using
-        theta functions.
+        In other words, it returns the Gram matrix of x with respect to the
+        height bilinear form on e (see ellbil).
+
+        INPUT:
+            e -- elliptic curve over $\Q$, assumed to be in a standard
+                 minimal integral model (as given by ellminimalmodel)
+            x -- vector of rational points on e
+
+        EXAMPLES:
+            sage: e = pari([0,1,1,-2,0]).ellinit().ellminimalmodel()[0]
+            sage: e.ellheightmatrix([[1,0], [-1,1]])
+            [0.4767116593437395373794860589, 0.4181889844988605856298894582; 0.4181889844988605856298894582, 0.6866670833055865857235521030] # 32-bit
+            [0.47671165934373953737948605888465305946, 0.41818898449886058562988945821587638238; 0.41818898449886058562988945821587638238, 0.68666708330558658572355210295409678906] # 64-bit
         """
         t0GEN(x)
         _sig_on
         return self.new_gen(mathell(self.g, t0, prec))
 
     def ellisoncurve(self, x):
+        """
+        e.ellisoncurve(x): return True if the point x is on the elliptic
+        curve e, False otherwise.
+
+        If the point or the curve have inexact coefficients, an attempt is
+        made to take this into account.
+
+        EXAMPLES:
+            sage: e = pari([0,1,1,-2,0]).ellinit()
+            sage: e.ellisoncurve([1,0])
+            True
+            sage: e.ellisoncurve([1,1])
+            False
+            sage: e.ellisoncurve([1,0.00000000000000001])
+            False
+            sage: e.ellisoncurve([1,0.000000000000000001])
+            True
+            sage: e.ellisoncurve([0])
+            True
+        """
         t0GEN(x)
         _sig_on
         t = bool(oncurve(self.g, t0) == 1)
@@ -4083,11 +4247,148 @@ cdef class gen(sage.structure.element.RingElement):
         return t
 
     def elllocalred(self, p):
+        r"""
+        e.elllocalred(p): computes the data of local reduction at the prime
+        p on the elliptic curve e
+
+        For more details on local reduction and Kodaira types, see IV.8 and
+        IV.9 in J. Silverman's book "Advanced topics in the arithmetic of
+        elliptic curves".
+
+        INPUT:
+            e -- elliptic curve with coefficients in $\Z$
+            p -- prime number
+
+        OUTPUT:
+            gen -- the exponent of p in the arithmetic conductor of e
+            gen -- the Kodaira type of e at p, encoded as an integer:
+                 1 -- type $I_0$: good reduction, nonsingular curve of
+                      genus 1
+                 2 -- type $II$: rational curve with a cusp
+                 3 -- type $III$: two nonsingular rational cuves intersecting
+                      tangentially at one point
+                 4 -- type $IV$: three nonsingular rational curves
+                      intersecting at one point
+                 5 -- type $I_1$: rational curve with a node
+                 6 or larger -- think of it as $4+v$, then it is type $I_v$:
+                      $v$ nonsingular rational curves arranged as a $v$-gon
+                -1 -- type $I_0^*$: nonsingular rational curve of multiplicity
+                      two with four nonsingular rational curves of
+                      multiplicity one attached
+                -2 -- type $II^*$: nine nonsingular rational curves in a
+                      special configuration
+                -3 -- type $III^*$: eight nonsingular rational curves in a
+                      special configuration
+                -4 -- type $IV^*$: seven nonsingular rational curves in a
+                      special configuration
+                -5 or smaller -- think of it as $-4-v$, then it is type
+                      $I_v^*$: chain of $v+1$ nonsingular rational curves of
+                      multiplicity two, with two nonsingular rational curves
+                      of multiplicity one attached at either end
+            gen -- a vector with 4 components, giving the coordinate
+                changes done during the local reduction; if the first
+                component is 1, then the equation for e was already minimal
+                at p
+            gen -- the local Tamagawa number $c_p$
+
+        EXAMPLES:
+
+            Type $I_0$:
+                sage: e = pari([0,0,0,0,1]).ellinit()
+                sage: e.elllocalred(7)
+                [0, 1, [1, 0, 0, 0], 1]
+
+            Type $II$:
+                sage: e = pari(EllipticCurve('27a3').a_invariants()).ellinit()
+                sage: e.elllocalred(3)
+                [3, 2, [1, -1, 0, 1], 1]
+
+            Type $III$:
+                sage: e = pari(EllipticCurve('24a4').a_invariants()).ellinit()
+                sage: e.elllocalred(2)
+                [3, 3, [1, 1, 0, 1], 2]
+
+            Type $IV$:
+                sage: e = pari(EllipticCurve('20a2').a_invariants()).ellinit()
+                sage: e.elllocalred(2)
+                [2, 4, [1, 1, 0, 1], 3]
+
+            Type $I_1$:
+                sage: e = pari(EllipticCurve('11a2').a_invariants()).ellinit()
+                sage: e.elllocalred(11)
+                [1, 5, [1, 0, 0, 0], 1]
+
+            Type $I_2$:
+                sage: e = pari(EllipticCurve('14a4').a_invariants()).ellinit()
+                sage: e.elllocalred(2)
+                [1, 6, [1, 0, 0, 0], 2]
+
+            Type $I_6$:
+                sage: e = pari(EllipticCurve('14a1').a_invariants()).ellinit()
+                sage: e.elllocalred(2)
+                [1, 10, [1, 0, 0, 0], 2]
+
+            Type $I_0^*$:
+                sage: e = pari(EllipticCurve('32a3').a_invariants()).ellinit()
+                sage: e.elllocalred(2)
+                [5, -1, [1, 1, 1, 0], 1]
+
+            Type $II^*$:
+                sage: e = pari(EllipticCurve('24a5').a_invariants()).ellinit()
+                sage: e.elllocalred(2)
+                [3, -2, [1, 2, 1, 4], 1]
+
+            Type $III^*$:
+                sage: e = pari(EllipticCurve('24a2').a_invariants()).ellinit()
+                sage: e.elllocalred(2)
+                [3, -3, [1, 2, 1, 4], 2]
+
+            Type $IV^*$:
+                sage: e = pari(EllipticCurve('20a1').a_invariants()).ellinit()
+                sage: e.elllocalred(2)
+                [2, -4, [1, 0, 1, 2], 3]
+
+            Type $I_1^*$:
+                sage: e = pari(EllipticCurve('24a1').a_invariants()).ellinit()
+                sage: e.elllocalred(2)
+                [3, -5, [1, 0, 1, 2], 4]
+
+            Type $I_6^*$:
+                sage: e = pari(EllipticCurve('90c2').a_invariants()).ellinit()
+                sage: e.elllocalred(3)
+                [2, -10, [1, 96, 1, 316], 4]
+        """
         t0GEN(p)
         _sig_on
         return self.new_gen(elllocalred(self.g, t0))
 
     def elllseries(self, s, A=1):
+        """
+        e.elllseries(s, {A=1}): return the value of the $L$-series of the
+        elliptic curve e at the complex number s.
+
+        This uses an $O(N^{1/2})$ algorithm in the conductor N of e, so
+        it is impractical for large conductors (say greater than $10^{12}$).
+
+        INPUT:
+            e -- elliptic curve defined over $\Q$
+            s -- complex number
+            A (optional) -- cutoff point for the integral, which must be
+                 chosen close to 1 for best speed.
+
+        EXAMPLES:
+            sage: e = pari([0,1,1,-2,0]).ellinit()
+            sage: e.elllseries(2.1)
+            0.4028380479566455155
+            sage: e.elllseries(1)   # random, close to 0
+            -3.241361318972148540775276458 E-29
+            sage: e.elllseries(-2)
+            0
+
+        The following example differs for the last digit on 32 vs. 64 bit systems
+            sage: e.elllseries(2.1, A=1.1)
+            0.402838047956645515...
+        """
         t0GEN(s); t1GEN(A)
         _sig_on
         return self.new_gen(lseriesell(self.g, t0, t1, prec))
@@ -4122,37 +4423,165 @@ cdef class gen(sage.structure.element.RingElement):
         return model, change
 
     def ellorder(self, x):
+        """
+        e.ellorder(x): return the order of the point x on the elliptic
+        curve e (return 0 if x is not a torsion point)
+
+        INPUT:
+            e -- elliptic curve defined over $\Q$
+            x -- point on e
+
+        EXAMPLES:
+            sage: e = pari(EllipticCurve('65a1').a_invariants()).ellinit()
+
+            A point of order two:
+            sage: e.ellorder([0,0])
+            2
+
+            And a point of infinite order:
+            sage: e.ellorder([1,0])
+            0
+        """
         t0GEN(x)
         _sig_on
         return self.new_gen(orderell(self.g, t0))
 
     def ellordinate(self, x):
+        """
+        e.ellordinate(x): return the $y$-coordinates of the points on the
+        elliptic curve e having x as $x$-coordinate.
+
+        INPUT:
+            e -- elliptic curve
+            x -- x-coordinate (can be a complex or p-adic number, or a
+            more complicated object like a power series)
+
+        EXAMPLES:
+            sage: e = pari([0,1,1,-2,0]).ellinit()
+            sage: e.ellordinate(0)
+            [0, -1]
+            sage: e.ellordinate(I)
+            [0.5822035897217411772333894787 - 1.386060824641769718531183421*I, -1.582203589721741177233389479 + 1.386060824641769718531183421*I] # 32-bit
+            [0.58220358972174117723338947874993600727 - 1.3860608246417697185311834209833653345*I, -1.5822035897217411772333894787499360073 + 1.3860608246417697185311834209833653345*I] # 64-bit
+            sage: e.ellordinate(1+3*5^1+O(5^3))
+            [4*5 + 5^2 + O(5^3), 4 + 3*5^2 + O(5^3)]
+            sage: e.ellordinate('z+2*z^2+O(z^4)')
+            [-2*z - 7*z^2 - 23*z^3 + O(z^4), -1 + 2*z + 7*z^2 + 23*z^3 + O(z^4)]
+        """
         t0GEN(x)
         _sig_on
         return self.new_gen(ordell(self.g, t0, prec))
 
     def ellpointtoz(self, P):
+        """
+        e.ellpointtoz(P): return the complex number (in the fundamental
+        parallelogram) corresponding to the point P on the elliptic curve e,
+        under the complex uniformization of e given by the Weierstrass
+        p-function.
+
+        The complex number z returned by this function lies in the
+        parallelogram formed by the real and complex periods of e, as
+        given by e.omega().
+
+        EXAMPLES:
+            sage: e = pari([0,0,0,1,0]).ellinit()
+            sage: e.ellpointtoz([0,0])
+            1.854074677301371918433850347 # 32-bit
+            1.8540746773013719184338503471952600462 # 64-bit
+
+            The point at infinity is sent to the complex number 0:
+            sage: e.ellpointtoz([0])
+            0
+        """
         t0GEN(P)
         _sig_on
         return self.new_gen(zell(self.g, t0, prec))
 
     def ellpow(self, z, n):
+        """
+        e.ellpow(z, n): return n times the point z on the elliptic curve e.
+
+        INPUT:
+            e -- elliptic curve
+            z -- point on e
+            n -- integer, or a complex quadratic integer of complex
+                 multiplication for e (CM case is currently broken in pari)
+
+        EXAMPLES:
+            We consider a CM curve:
+            sage: e = pari([0,0,0,1,0]).ellinit()
+
+            Multiplication by two:
+            sage: e.ellpow([0,0], 2)
+            [0]
+
+            Complex multiplication (this is broken at the moment):
+            sage: e.ellpow([0,0], I+1) # optional
+        """
         t0GEN(z); t1GEN(n)
         _sig_on
         return self.new_gen(powell(self.g, t0, t1))
 
     def ellrootno(self, p=1):
+        """
+        e.ellrootno(p): return the (local or global) root number of the
+        $L$-series of the elliptic curve e
+
+        If p is a prime number, the local root number at p is returned.
+        If p is 1, the global root number is returned.  Note that the
+        global root number is the sign of the functional equation of the
+        $L$-series, and therefore conjecturally equal to the parity of the
+        rank of e.
+
+        INPUT:
+            e -- elliptic curve over $\Q$
+            p (default = 1) -- 1 or a prime number
+
+        OUTPUT:
+            1 or -1
+
+        EXAMPLES:
+            Here is a curve of rank 3:
+            sage: e = pari([0,0,0,-82,0]).ellinit()
+            sage: e.ellrootno()
+            -1
+            sage: e.ellrootno(2)
+            1
+            sage: e.ellrootno(1009)
+            1
+        """
         t0GEN(p)
         _sig_on
         return ellrootno(self.g, t0)
 
     def ellsigma(self, z, flag=0):
+        """
+        e.ellsigma(z, {flag=0}): return the value at the complex point z
+        of the Weierstrass $\sigma$ function associated to the elliptic
+        curve e.
+        """
         t0GEN(z)
         _sig_on
         return self.new_gen(ellsigma(self.g, t0, flag, prec))
 
-    def ellsub(self, z1, z2):
-        t0GEN(z1); t1GEN(z2)
+    def ellsub(self, z0, z1):
+        """
+        e.ellsub(z0, z1): return z0-z1 on this elliptic curve.
+
+        INPUT:
+            e -- elliptic curve E
+            z0 -- point on E
+            z1 -- point on E
+
+        OUTPUT:
+            point on E
+
+        EXAMPLES:
+            sage: e = pari([0, 1, 1, -2, 0]).ellinit()
+            sage: e.ellsub([1,0], [-1,1])
+            [0, 0]
+        """
+        t0GEN(z0); t1GEN(z1)
         _sig_on
         return self.new_gen(subell(self.g, t0, t1))
 
@@ -4161,16 +4590,85 @@ cdef class gen(sage.structure.element.RingElement):
         return self.new_gen(taniyama(self.g))
 
     def elltors(self, flag=0):
+        """
+        e.elltors({flag = 0}): return information about the torsion subgroup
+        of the elliptic curve e
+
+        INPUT:
+            e -- elliptic curve over $\Q$
+            flag (optional) -- specify which algorithm to use:
+                0 (default) -- use Doud's algorithm: bound torsion by
+                    computing the cardinality of e(GF(p)) for small primes
+                    of good reduction, then look for torsion points using
+                    Weierstrass parametrization and Mazur's classification
+                1 -- use algorithm given by the Nagell-Lutz theorem (this
+                    is much slower)
+
+        OUTPUT:
+            gen -- the order of the torsion subgroup, a.k.a. the number of
+                points of finite order
+            gen -- vector giving the structure of the torsion subgroup as
+                a product of cyclic groups, sorted in non-increasing order
+            gen -- vector giving points on e generating these cyclic groups
+
+        EXAMPLES:
+            sage: e = pari([1,0,1,-19,26]).ellinit()
+            sage: e.elltors()
+            [12, [6, 2], [[-2, 8], [3, -2]]]
+        """
         _sig_on
         return self.new_gen(elltors0(self.g, flag))
 
-
     def ellzeta(self, z):
+        """
+        e.ellzeta(z): return the value at the complex point z of the
+        Weierstrass $\zeta$ function associated with the elliptic curve e.
+
+        NOTE: this function has infinitely many poles (one of which is
+        at z=0); attempting to evaluate it too close to one of the poles
+        will result in a PariError.
+
+        INPUT:
+            e -- elliptic curve
+            z -- complex number
+
+        EXAMPLES:
+            sage: e = pari([0,0,0,1,0]).ellinit()
+            sage: e.ellzeta(1)
+            1.064798412958827927449913418 + 3.491753745 E-251*I # 32-bit
+            1.0647984129588279274499134181598985072 - 8.016988209895862073 E-694*I # 64-bit
+            sage: e.ellzeta(I-1)
+            -0.3501226585230491632779704180 - 0.3501226585230491632779704180*I # 32-bit
+            -0.35012265852304916327797041802108326818 - 0.35012265852304916327797041802108326818*I # 64-bit
+        """
         t0GEN(z)
         _sig_on
         return self.new_gen(ellzeta(self.g, t0, prec))
 
     def ellztopoint(self, z):
+        """
+        e.ellztopoint(z): return the point on the elliptic curve e
+        corresponding to the complex number z, under the usual complex
+        uniformization of e by the Weierstrass p-function.
+
+        INPUT:
+            e -- elliptic curve
+            z -- complex number
+
+        OUTPUT
+            point on e
+
+        EXAMPLES:
+            sage: e = pari([0,0,0,1,0]).ellinit()
+            sage: e.ellztopoint(1+I)
+            [0.E-251 - 1.021522867956699099826892460*I, -0.1490728137010962128964506933 - 0.1490728137010962128964506933*I] # 32-bit
+            [0.E-694 - 1.0215228679566990998268924596833713669*I, -0.14907281370109621289645069325289375075 - 0.14907281370109621289645069325289375075*I] # 64-bit
+
+            Complex numbers belonging to the period lattice of e are of
+            course sent to the point at infinity on e:
+            sage: e.ellztopoint(0)
+            [0]
+        """
         t0GEN(z)
         _sig_on
         return self.new_gen(pointell(self.g, t0, prec))
@@ -4641,8 +5139,13 @@ cdef class gen(sage.structure.element.RingElement):
 
     def newtonpoly(self, p):
         """
-        self.newtonpoly(p): Newton polygon of polynomial x with respect
+        x.newtonpoly(p): Newton polygon of polynomial x with respect
         to the prime p.
+
+        EXAMPLES:
+            sage: x = pari('y^8+6*y^6-27*y^5+1/9*y^2-y+1')
+            sage: x.newtonpoly(3)
+            [1, 1, -1/3, -1/3, -1/3, -1/3, -1/3, -1/3]
         """
         t0GEN(p)
         _sig_on
@@ -4863,7 +5366,7 @@ cdef class gen(sage.structure.element.RingElement):
 
     def ncols(self):
         """
-        Return the number of rows of self.
+        Return the number of columns of self.
 
         EXAMPLES:
             sage: pari('matrix(19,8)').ncols()
@@ -5286,6 +5789,28 @@ cdef class gen(sage.structure.element.RingElement):
         return P.new_gen(order(self.g))
 
     def znprimroot(self):
+        """
+        Return a primitive root modulo self, whenever it exists.
+
+        This is a generator of the group $(\Z/n\Z)^*$, whenever this
+        group is cyclic, i.e. if $n=4$ or $n=p^k$ or $n=2p^k$, where
+        $p$ is an odd prime and $k$ is a natural number.
+
+        INPUT:
+            self -- positive integer equal to 4, or a power of an odd
+                prime, or twice a power of an odd prime
+
+        OUTPUT:
+            gen
+
+        EXAMPLES:
+            sage: pari(4).znprimroot()
+            Mod(3, 4)
+            sage: pari(10007^3).znprimroot()
+            Mod(5, 1002101470343)
+            sage: pari(2*109^10).znprimroot()
+            Mod(236736367459211723407, 473472734918423446802)
+        """
         _sig_on
         return P.new_gen(ggener(self.g))
 
@@ -5299,6 +5824,12 @@ cdef class gen(sage.structure.element.RingElement):
     def nextprime(gen self):
         """
         nextprime(x): smallest pseudoprime >= x
+
+        EXAMPLES:
+            sage: pari(1).nextprime()
+            2
+            sage: pari(2^100).nextprime()
+            1267650600228229401496703205653
         """
         #NOTE: This is much faster than MAGMA's NextPrime with Proof := False.
         _sig_on
@@ -5541,8 +6072,8 @@ cdef class gen(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: e = pari([0,1,1,-2,0]).ellinit()
-            sage: x = pari([1,0,1])
-            sage: e.ellisoncurve([1,4,4])
+            sage: x = pari([1,0])
+            sage: e.ellisoncurve([1,4])
             False
             sage: e.ellisoncurve(x)
             True
@@ -6171,6 +6702,12 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     def primes_up_to_n(self, long n):
         """
         Return the primes <= n as a pari list.
+
+        EXAMPLES:
+            sage: pari.primes_up_to_n(1)
+            []
+            sage: pari.primes_up_to_n(20)
+            [2, 3, 5, 7, 11, 13, 17, 19]
         """
         if n <= 1:
             return pari([])
@@ -6274,36 +6811,104 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     def pollegendre(self, long n, v=-1):
         """
-        pollegendre(n,{v=x}): legendre polynomial of degree n (n
-        C-integer), in variable v
+        pollegendre(n, {v=x}): Legendre polynomial of degree n (n
+        C-integer), in variable v.
+
+        EXAMPLES:
+            sage: pari.pollegendre(7)
+            429/16*x^7 - 693/16*x^5 + 315/16*x^3 - 35/16*x
+            sage: pari.pollegendre(7, 'z')
+            429/16*z^7 - 693/16*z^5 + 315/16*z^3 - 35/16*z
+            sage: pari.pollegendre(0)
+            1
         """
         _sig_on
         return self.new_gen(legendre(n, self.get_var(v)))
 
     def poltchebi(self, long n, v=-1):
+        """
+        poltchebi(n, {v=x}): Chebyshev polynomial of the first kind
+        of degree n, in variable v.
+
+        EXAMPLES:
+            sage: pari.poltchebi(7)
+            64*x^7 - 112*x^5 + 56*x^3 - 7*x
+            sage: pari.poltchebi(7, 'z')
+            64*z^7 - 112*z^5 + 56*z^3 - 7*z
+            sage: pari.poltchebi(0)
+            1
+        """
         _sig_on
         return self.new_gen(tchebi(n, self.get_var(v)))
 
     def factorial(self, long n):
         """
         Return the factorial of the integer n as a PARI gen.
+
+        EXAMPLES:
+            sage: pari.factorial(0)
+            1
+            sage: pari.factorial(1)
+            1
+            sage: pari.factorial(5)
+            120
+            sage: pari.factorial(25)
+            15511210043330985984000000
         """
         _sig_on
         return self.new_gen(mpfact(n))
 
     def polcyclo(self, long n, v=-1):
+        """
+        polcyclo(n, {v=x}): cyclotomic polynomial of degree n, in variable v.
+
+        EXAMPLES:
+            sage: pari.polcyclo(8)
+            x^4 + 1
+            sage: pari.polcyclo(7, 'z')
+            z^6 + z^5 + z^4 + z^3 + z^2 + z + 1
+            sage: pari.polcyclo(1)
+            x - 1
+        """
         _sig_on
         return self.new_gen(cyclo(n, self.get_var(v)))
 
     def polsubcyclo(self, long n, long d, v=-1):
+        """
+        polsubcyclo(n, d, {v=x}): return the pari list of polynomial(s)
+        defining the sub-abelian extensions of degree $d$ of the cyclotomic
+        field $\Q(\zeta_n)$, where $d$ divides $\phi(n)$.
+
+        EXAMPLES:
+            sage: pari.polsubcyclo(8, 4)
+            [x^4 + 1]
+            sage: pari.polsubcyclo(8, 2, 'z')
+            [z^2 - 2, z^2 + 1, z^2 + 2]
+            sage: pari.polsubcyclo(8, 1)
+            [x - 1]
+            sage: pari.polsubcyclo(8, 3)
+            []
+        """
         _sig_on
-        return self.new_gen(polsubcyclo(n, d, self.get_var(v)))
+        plist = self.new_gen(polsubcyclo(n, d, self.get_var(v)))
+        if plist.type() != 't_VEC':
+            return pari.vector(1, [plist])
+        else:
+            return plist
+        #return self.new_gen(polsubcyclo(n, d, self.get_var(v)))
 
     def polzagier(self, long n, long m):
         _sig_on
         return self.new_gen(polzag(n, m))
 
     def listcreate(self, long n):
+        """
+        listcreate(n): return an empty pari list of maximal length n.
+
+        EXAMPLES:
+            sage: pari.listcreate(20)
+            List([])
+        """
         _sig_on
         return self.new_gen(listcreate(n))
 
@@ -6311,6 +6916,16 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         vector(long n, entries=None):
         Create and return the length n PARI vector with given list of entries.
+
+        EXAMPLES:
+            sage: pari.vector(5, [1, 2, 5, 4, 3])
+            [1, 2, 5, 4, 3]
+            sage: pari.vector(2, [x, 1])
+            [x, 1]
+            sage: pari.vector(2, [x, 1, 5])
+            Traceback (most recent call last):
+            ...
+            IndexError: length of entries (=3) must equal n (=2)
         """
         cdef gen v = self._empty_vector(n)
         if entries is not None:

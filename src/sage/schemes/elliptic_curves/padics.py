@@ -35,7 +35,7 @@ import sage.matrix.all as matrix
 sqrt = math.sqrt
 import padic_height as pheight
 import monsky_washnitzer
-import sage.schemes.hyperelliptic_curves.frobenius
+import sage.schemes.hyperelliptic_curves.hypellfrob
 from constructor import EllipticCurve
 
 def __check_padic_hypotheses(self, p):
@@ -1280,7 +1280,7 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
         p_to_prec = p**prec
         R = rings.PolynomialRing(Integers(), "x")
         Q = R([X.a6() % p_to_prec, X.a4() % p_to_prec, 0, 1])
-        frob_p = sage.schemes.hyperelliptic_curves.frobenius.frobenius(p, prec, Q)
+        frob_p = sage.schemes.hyperelliptic_curves.hypellfrob.hypellfrob(p, prec, Q)
 
         # let's force a trace-check since this algorithm is fairly new
         # and we don't want to get caught with our pants down...

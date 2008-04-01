@@ -325,6 +325,7 @@ def redSB(func):
         """
         with RedSBContext():
             return func(*args, **kwds)
+    wrapper.__doc__=func.__doc__
     return wrapper
 
 class MPolynomialIdeal_singular_repr:
@@ -373,10 +374,18 @@ class MPolynomialIdeal_singular_repr:
             return I
         except (AttributeError, ValueError):
             self.ring()._singular_(singular).set_ring()
-            gens = [str(x) for x in self.gens()]
-            if len(gens) == 0:
-                gens = ['0']
-            self.__singular = singular.ideal(gens)
+            try:
+                # this may fail for quotient ring elements, but is
+                # faster
+                gens = [str(x) for x in self.gens()]
+                if len(gens) == 0:
+                    gens = ['0']
+                self.__singular = singular.ideal(gens)
+            except TypeError:
+                gens = [str(x.lift()) for x in self.gens()]
+                if len(gens) == 0:
+                    gens = ['0']
+                self.__singular = singular.ideal(gens)
         return self.__singular
 
     def _contains_(self, f):
@@ -1037,7 +1046,7 @@ class MPolynomialIdeal_singular_repr:
 
         NOTE: From the \Singular manual: A combination of the
         algorithms of Krick/Logar and Kemper is used.  Works also in
-        positive characteristic (Kempers algorithm).}
+        positive characteristic (Kempers algorithm).
 
             sage: R.<x,y,z> = PolynomialRing(GF(37), 3)
             sage: p = z^2 + 1; q = z^3 + 2

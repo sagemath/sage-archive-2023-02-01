@@ -148,7 +148,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         1/2
         sage: Rational(("2", "10"), 16)
         1/8
-
+        sage: Rational(QQbar(125/8).nth_root(3))
+        5/2
+        sage: Rational(AA(209735/343 - 17910/49*golden_ratio).nth_root(3) + 3*golden_ratio)
+        53/7
     """
     def __new__(self, x=None, int base=0):
         global the_rational_ring
@@ -1376,6 +1379,43 @@ cdef class Rational(sage.structure.element.FieldElement):
     def factor(self):
         return sage.rings.rational_field.factor(self)
 
+    def gamma(self, prec=None):
+        """
+        Return the gamma function evaluated at self. This value is exact for
+        integers and half-integers, otherwise a numerical approximation is
+        returned.
+
+        EXAMPLES:
+            sage: gamma(1/2)
+            sqrt(pi)
+            sage: gamma(7/2)
+            15*sqrt(pi)/8
+            sage: gamma(-3/2)
+            4*sqrt(pi)/3
+            sage: gamma(6/1)
+            120
+            sage: gamma(1/3)
+            2.67893853470775
+
+        This function accepts an optional precision argument:
+            sage: (1/3).gamma(prec=100)
+            2.6789385347077476336556929410
+            sage: (1/2).gamma(prec=100)
+            1.7724538509055160272981674833
+        """
+        if prec is None:
+            if mpz_cmp_ui(mpq_denref(self.value), 1) == 0:
+                return integer.Integer(self).gamma()
+            elif mpz_cmp_ui(mpq_denref(self.value), 2) == 0:
+                numer = self.numer()
+                rat_part = Rational((numer-2).multifactorial(2)) >> ((numer-1)//2)
+                from sage.functions.constants import pi
+                from sage.calculus.calculus import sqrt
+                return sqrt(pi) * rat_part
+            else:
+                prec = 53
+        return self.n(prec).gamma()
+
     def floor(self):
         """
         self.floor(): Return the floor of this rational number as an integer.
@@ -1614,7 +1654,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         return x
 
     def __lshift__(x,y):
-        if isinstance(x, Rational) and isinstance(y, (int, long, integer.Integer)):
+        if isinstance(x, Rational) and isinstance(y, (int, long, integer.Integer, Rational)):
             return (<Rational>x)._lshift(y)
         return bin_op(x, y, operator.lshift)
 
@@ -1633,7 +1673,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         return x
 
     def __rshift__(x,y):
-        if isinstance(x, Rational) and isinstance(y, (int, long, integer.Integer)):
+        if isinstance(x, Rational) and isinstance(y, (int, long, integer.Integer, Rational)):
             return (<Rational>x)._rshift(y)
         return bin_op(x, y, operator.rshift)
 

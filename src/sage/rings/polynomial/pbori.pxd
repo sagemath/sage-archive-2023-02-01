@@ -9,6 +9,7 @@ from sage.structure.element cimport MonoidElement
 
 cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     cdef PBRing _pbring
+    cdef Py_ssize_t* pbind
     cdef public _monom_monoid
 
 cdef class BooleanPolynomial(MPolynomial):

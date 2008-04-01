@@ -108,9 +108,9 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES:
             sage: K.<a> = NumberField(x^2 + 23)
             sage: K.ideal([2, 1/2*a - 1/2])._latex_()
-            '\\left(2, \\frac{1}{2}a - \\frac{1}{2}\\right)'
+            '\\left(2, \\frac{1}{2} a - \\frac{1}{2}\\right)'
             sage: latex(K.ideal([2, 1/2*a - 1/2]))
-            \left(2, \frac{1}{2}a - \frac{1}{2}\right)
+            \left(2, \frac{1}{2} a - \frac{1}{2}\right)
         """
         return '\\left(%s\\right)'%(", ".join([latex.latex(g) for g in \
                                                  self.gens_reduced()]))

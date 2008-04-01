@@ -25,6 +25,7 @@ from combinat import CombinatorialClass, CombinatorialObject
 from sage.rings.all import binomial, Integer, infinity
 from sage.combinat.integer_vector import IntegerVectors
 import copy
+import partition
 from subset import Subsets
 
 def Words(*args):
@@ -335,6 +336,55 @@ def standard(w, alphabet = None, ordering = None):
 
     return sage.combinat.permutation.Permutation(result)
 
+
+def charge(word, check=True):
+    """
+
+    EXAMPLES:
+        sage: from sage.combinat.word import charge
+
+        sage: charge([1,1,2,2,3])
+        0
+        sage: charge([3,1,1,2,2])
+        1
+        sage: charge([2,1,1,2,3])
+        1
+        sage: charge([2,1,1,3,2])
+        2
+        sage: charge([3,2,1,1,2])
+        2
+        sage: charge([2,2,1,1,3])
+        3
+        sage: charge([3,2,2,1,1])
+        4
+
+        sage: charge([3,3,2,1,1])
+        Traceback (most recent call last):
+        ...
+        ValueError: the evaluation of w must be a partition
+    """
+    if check:
+        if evaluation(word) not in partition.Partitions():
+            raise ValueError, "the evaluation of w must be a partition"
+    w = word[:]
+    charge = 0
+    while len(w) != 0:
+        i = 0
+        l = 1
+        index = 0
+        while len(w) != 0 and l <= max(w):
+            while w[i] != l:
+                i += 1
+                if i >= len(w):
+                    i = 0
+                    index += 1
+            charge += index
+            l += 1
+            w.pop(i)
+            if i >= len(w):
+                i = 0
+                index += 1
+    return charge
 
 def evaluation_dict(w):
     """
@@ -939,4 +989,83 @@ class ShuffleProduct_overlapping(CombinatorialClass):
             for w in ShuffleProduct_overlapping_r(self.w1, self.w2, r):
                 yield w
 
+
+
+
+##########################
+# Symmetric group action #
+##########################
+def unmatched_places(w, open, close):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.word import unmatched_places
+        sage: unmatched_places([2,2,2,1,1,1],2,1)
+        ([], [])
+        sage: unmatched_places([1,1,1,2,2,2],2,1)
+        ([0, 1, 2], [3, 4, 5])
+        sage: unmatched_places([], 2, 1)
+        ([], [])
+        sage: unmatched_places([1,2,4,6,2,1,5,3],2,1)
+        ([0], [1])
+        sage: unmatched_places([2,2,1,2,4,6,2,1,5,3], 2, 1)
+        ([], [0, 3])
+        sage: unmatched_places([3,1,1,1,2,1,2], 2, 1)
+        ([1, 2, 3], [6])
+    """
+    lw = len(w)
+    places_open = []
+    places_close = []
+    for i in range(lw):
+        letter = w[i]
+        if letter == open:
+            places_open.append(i)
+        elif letter == close:
+            if places_open == []:
+                places_close.append(i)
+            else:
+                places_open.pop()
+    return places_close, places_open
+
+
+def symmetric_group_action_on_values(w, perm):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.word import symmetric_group_action_on_values
+        sage: symmetric_group_action_on_values([1,1,1],[1,3,2])
+        [1, 1, 1]
+        sage: symmetric_group_action_on_values([1,1,1],[2,1,3])
+        [2, 2, 2]
+        sage: symmetric_group_action_on_values([1,2,1],[2,1,3])
+        [2, 2, 1]
+        sage: symmetric_group_action_on_values([2,2,2],[2,1,3])
+        [1, 1, 1]
+        sage: symmetric_group_action_on_values([2,1,2],[2,1,3])
+        [2, 1, 1]
+        sage: symmetric_group_action_on_values([2,2,3,1,1,2,2,3],[1,3,2])
+        [2, 3, 3, 1, 1, 2, 3, 3]
+        sage: symmetric_group_action_on_values([2,1,1],[2,1])
+        [2, 1, 2]
+        sage: symmetric_group_action_on_values([2,2,1],[2,1])
+        [1, 2, 1]
+        sage: symmetric_group_action_on_values([1,2,1],[2,1])
+        [2, 2, 1]
+    """
+    ts = sage.combinat.permutation.Permutation(perm).reduced_word()
+    for j in reversed(range(len(ts))):
+        r = ts[j]
+        l = r + 1
+        places_r, places_l = unmatched_places(w, l, r)
+
+        #Now change the number of l's and r's in the new word
+        nbl = len(places_l)
+        nbr = len(places_r)
+        ma = max(nbl, nbr)
+        dif = ma - min(nbl, nbr)
+        if ma == nbl:
+            for i in range(dif):
+                w[places_l[i]] = r
+        else:
+            for i in range(nbr-dif,ma):
+                w[places_r[i]] = l
+    return w
 

@@ -260,15 +260,6 @@ class SBox(SageObject):
         for i in xrange(2**self.m):
             yield self(i)
 
-    def __list__(self):
-        """
-        EXAMPLE:
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
-            sage: list(S)
-            [7, 6, 0, 4, 2, 5, 1, 3]
-        """
-        return [self(i) for i in range(2**self.m)]
-
     def difference_distribution_matrix(self):
         """
         Return difference distribition matrix $A$ for this S-box.

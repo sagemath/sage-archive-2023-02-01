@@ -145,6 +145,11 @@ def is_IntegerMod(x):
     return PY_TYPE_CHECK(x, IntegerMod_abstract)
 
 def makeNativeIntStruct(sage.rings.integer.Integer z):
+    """
+    Function to convert a Sage Integer into class NativeIntStruct.
+
+    NOTE: This function seems completely redundant, and is not used anywhere.
+    """
     return NativeIntStruct(z)
 
 cdef class NativeIntStruct:
@@ -169,6 +174,12 @@ cdef class NativeIntStruct:
         return sage.rings.integer_mod.makeNativeIntStruct, (self.sageInteger, )
 
     def precompute_table(NativeIntStruct self, parent, inverses=True):
+        """
+        Function to compute and cache all elements of this class.
+
+        If inverses==True, also computes and caches the inverses of
+        the invertible elments
+        """
         self.table = PyList_New(self.int64)
         cdef Py_ssize_t i
         if self.int32 != -1:
@@ -763,8 +774,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
                 v.sort()
                 return v
 
-    def square_root(self, extend = True, all = False):
-        return self.sqrt(extend = extend, all = all)
+    square_root = sqrt
 
     def nth_root(self, int n, extend = False, all = False):
         r"""
@@ -1074,6 +1084,9 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         return mpz_cmp_si(self.value, 0) != 0
 
     def is_unit(self):
+        """
+        Return True iff this element is a unit
+        """
         return self.lift().gcd(self.modulus()) == 1
 
     def __crt(IntegerMod_gmp self, IntegerMod_gmp other):
@@ -1101,6 +1114,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         cdef IntegerMod_gmp x
         x = self._new_c()
         mpz_set(x.value, self.value)
+        return x
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
@@ -1454,6 +1468,17 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return self.ivalue != 0
 
     def is_unit(IntegerMod_int self):
+        """
+        Return True iff this element is a unit
+
+        EXAMPLES:
+        sage: a=Mod(23,100)
+        sage: a.is_unit()
+        True
+        sage: a=Mod(24,100)
+        sage: a.is_unit()
+        False
+        """
         return gcd_int(self.ivalue, self.__modulus.int32) == 1
 
     def __crt(IntegerMod_int self, IntegerMod_int other):
@@ -1755,6 +1780,93 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             return 1
 
     def sqrt(self, extend=True, all=False):
+        r"""
+        Returns square root or square roots of \code{self} modulo $n$.
+
+        INPUT:
+            extend -- bool (default: \code{True}); if \code{True}, return a square
+                 root in an extension ring, if necessary. Otherwise,
+                 raise a \class{ValueError} if the square root is not
+                 in the base ring.
+            all -- bool (default: \code{False}); if \code{True}, return \strong{all} square
+                   roots of self, instead of just one.
+
+        ALGORITHM: Calculates the square roots mod $p$ for each of the
+        primes $p$ dividing the order of the ring, then lifts them
+        $p$-adically and uses the CRT to find a square root mod $n$.
+
+        See also \code{square_root_mod_prime_power} and
+        \code{square_root_mod_prime} (in this module) for more
+        algorithmic details.
+
+        EXAMPLES:
+            sage: mod(-1, 17).sqrt()
+            4
+            sage: mod(5, 389).sqrt()
+            86
+            sage: mod(7, 18).sqrt()
+            5
+            sage: a = mod(14, 5^60).sqrt()
+            sage: a*a
+            14
+            sage: mod(15, 389).sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be a square
+            sage: Mod(1/9, next_prime(2^40)).sqrt()^(-2)
+            9
+            sage: Mod(1/25, next_prime(2^90)).sqrt()^(-2)
+            25
+
+            sage: a = Mod(3,5); a
+            3
+            sage: x = Mod(-1, 360)
+            sage: x.sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be a square
+            sage: y = x.sqrt(); y
+            sqrt359
+            sage: y.parent()
+            Univariate Quotient Polynomial Ring in sqrt359 over Ring of integers modulo 360 with modulus x^2 + 1
+            sage: y^2
+            359
+
+        We compute all square roots in several cases:
+            sage: R = Integers(5*2^3*3^2); R
+            Ring of integers modulo 360
+            sage: R(40).sqrt(all=True)
+            [20, 160, 200, 340]
+            sage: [x for x in R if x^2 == 40]  # Brute force verification
+            [20, 160, 200, 340]
+            sage: R(1).sqrt(all=True)
+            [1, 19, 71, 89, 91, 109, 161, 179, 181, 199, 251, 269, 271, 289, 341, 359]
+            sage: R(0).sqrt(all=True)
+            [0, 60, 120, 180, 240, 300]
+
+            sage: R = Integers(5*13^3*37); R
+            Ring of integers modulo 406445
+            sage: v = R(-1).sqrt(all=True); v
+            [78853, 111808, 160142, 193097, 213348, 246303, 294637, 327592]
+            sage: [x^2 for x in v]
+            [406444, 406444, 406444, 406444, 406444, 406444, 406444, 406444]
+            sage: v = R(169).sqrt(all=True); min(v), -max(v), len(v)
+            (13, 13, 104)
+            sage: all([x^2==169 for x in v])
+            True
+
+        Modulo a power of 2:
+            sage: R = Integers(2^7); R
+            Ring of integers modulo 128
+            sage: a = R(17)
+            sage: a.sqrt()
+            23
+            sage: a.sqrt(all=True)
+            [23, 41, 87, 105]
+            sage: [x for x in R if x^2==17]
+            [23, 41, 87, 105]
+
+        """
         cdef int_fast32_t i, n = self.__modulus.int32
         if n > 100:
             moduli = self._parent.factored_order()
@@ -1930,14 +2042,15 @@ cdef int jacobi_int(int_fast32_t a, int_fast32_t m) except -2:
             jacobi = -jacobi
         a = m % b
         m = b
-
-
-def test_gcd(a, b):
-    return gcd_int(int(a), int(b))
-
-def test_mod_inverse(a, b):
-    return mod_inverse_int(int(a), int(b))
-
+#
+# These two functions are never used:
+#
+#def test_gcd(a, b):
+#    return gcd_int(int(a), int(b))
+#
+#def test_mod_inverse(a, b):
+#    return mod_inverse_int(int(a), int(b))
+#
 
 
 ######################################################################
@@ -2059,6 +2172,9 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         return self.ivalue != 0
 
     def is_unit(IntegerMod_int64 self):
+        """
+        Return True iff this element is a unit
+        """
         return gcd_int64(self.ivalue, self.__modulus.int64) == 1
 
     def __crt(IntegerMod_int64 self, IntegerMod_int64 other):
@@ -2480,6 +2596,18 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
 
     AUTHOR:
         -- Robert Bradshaw
+
+    EXAMPLES:
+        sage: from sage.rings.integer_mod import square_root_mod_prime_power
+        sage: a=Mod(17,2^20)
+        sage: b=square_root_mod_prime_power(a,2,20)
+        sage: b^2 == a
+        True
+
+        sage: a=Mod(72,97^10)
+        sage: b=square_root_mod_prime_power(a,97,10)
+        sage: b^2 == a
+        True
     """
     if a.is_zero() or a.is_one():
         return a
@@ -2505,7 +2633,7 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
     x = unit.parent()(square_root_mod_prime(mod(unit, p), p))
 
     # lift p-adically using Newton iteration
-    # this is done to higher precision than neccesary except at the last step
+    # this is done to higher precision than necessary except at the last step
     one_half = ~(a._new_c_from_long(2))
     for i from 0 <= i <  ceil(log(e)/log(2)) - val/2:
         x = (x+unit/x) * one_half

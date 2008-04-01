@@ -36,6 +36,7 @@ import tableau
 import sage.combinat.partition
 from permutation_nk import PermutationsNK
 import sage.rings.integer
+from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from random import randint, sample
 from sage.interfaces.all import gap
@@ -349,7 +350,7 @@ class Permutation_class(CombinatorialObject):
         EXAMPLES:
             sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2])
             [[1, 2, 5], [3, 4]]
-            sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2]).to_permutation_by_reading_order()
+            sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2]).to_permutation()
             [3, 4, 1, 2, 5]
         """
         if sum(shape) != len(self):
@@ -431,13 +432,17 @@ class Permutation_class(CombinatorialObject):
         Returns a PermutationGroupElement equal to self.
 
         EXAMPLES:
-            sage: p = Permutation([2,1,4,3])
-            sage: pge = p.to_permutation_group_element()
-            sage: pge
+            sage: Permutation([2,1,4,3]).to_permutation_group_element()
             (1,2)(3,4)
+            sage: Permutation([1,2,3]).to_permutation_group_element()
+            ()
         """
-
-        return PermutationGroupElement(self.to_cycles(singletons=False))
+        cycles = self.to_cycles(singletons=False)
+        grp = SymmetricGroup(len(self))
+        if cycles == []:
+            return PermutationGroupElement( '()', parent=grp )
+        else:
+            return PermutationGroupElement( cycles , parent=grp)
 
     def signature(p):
         r"""
@@ -2725,7 +2730,11 @@ def from_reduced_word(rw):
         sage: import sage.combinat.permutation as permutation
         sage: permutation.from_reduced_word([3,2,3,1,2,3,1])
         [3, 4, 2, 1]
+        sage: permutation.from_reduced_word([])
+        []
     """
+    if rw == []:
+        return []
 
     p = [i+1 for i in range(max(rw)+1)]
 

@@ -361,14 +361,13 @@ def _multi_variate(base_ring, names, n, sparse, order):
 
     from multi_polynomial_libsingular import MPolynomialRing_libsingular
     if m.integral_domain.is_IntegralDomain(base_ring):
-        if base_ring is QQ:
-            R = MPolynomialRing_libsingular(base_ring, n, names, order)
-        elif is_FiniteField(base_ring) and base_ring.is_prime_field() and base_ring.characteristic() <= 2147483629:
-            R = MPolynomialRing_libsingular(base_ring, n, names, order)
-        elif is_FiniteField(base_ring) and not base_ring.is_prime_field(): # extension fields
-            R = MPolynomialRing_libsingular(base_ring, n, names, order)
-        else:
+        if n < 1:
             R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
+        else:
+            try:
+                R = MPolynomialRing_libsingular(base_ring, n, names, order)
+            except ( TypeError, NotImplementedError ):
+                R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
     else:
         R = m.MPolynomialRing_polydict(base_ring, n, names, order)
 

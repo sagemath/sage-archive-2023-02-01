@@ -1,10 +1,12 @@
 r"""
-Frobenius on Monsky-Washnitzer cohomology, for largish p
+Frobenius on Monsky-Washnitzer cohomology of a hyperelliptic curve over GF(p),
+for largish p
 
-This is a wrapper for the frobenius() function in frobenius_cpp.cpp.
+This is a wrapper for the matrix() function in hypellfrob.cpp.
 
 AUTHOR:
     -- David Harvey (2007-05)
+    -- David Harvey (2007-12): rewrote for hypellfrob version 2.0
 """
 
 #################################################################################
@@ -29,11 +31,11 @@ include "sage/libs/ntl/decl.pxi"
 include "sage/ext/interrupt.pxi"
 
 
-cdef extern from "frobenius_cpp.h":
-     int frobenius_cpp "frobenius" (mat_ZZ_c output, ZZ_c p, int N, ZZX_c Q)
+cdef extern from "hypellfrob.h":
+     int hypellfrob_matrix "hypellfrob::matrix" (mat_ZZ_c output, ZZ_c p, int N, ZZX_c Q)
 
 
-def frobenius(p, N, Q):
+def hypellfrob(p, N, Q):
    r"""
    Computes the matrix of Frobenius acting on the Monsky-Washnitzer cohomology
    of a hyperelliptic curve $y^2 = Q(x)$, with respect to the basis $x^i dx/y$,
@@ -58,10 +60,10 @@ def frobenius(p, N, Q):
       which eventually needs a fast C++/NTL implementation.
 
    EXAMPLES:
-      sage: from sage.schemes.hyperelliptic_curves.frobenius import frobenius
+      sage: from sage.schemes.hyperelliptic_curves.hypellfrob import hypellfrob
       sage: R.<x> = PolynomialRing(ZZ)
       sage: f = x^5 + 2*x^2 + x + 1; p = 101
-      sage: M = frobenius(p, 4, f); M
+      sage: M = hypellfrob(p, 4, f); M
        [ 91844754 + O(101^4)  38295665 + O(101^4)  44498269 + O(101^4)  11854028 + O(101^4)]
        [ 93514789 + O(101^4)  48987424 + O(101^4)  53287857 + O(101^4)  61431148 + O(101^4)]
        [ 77916046 + O(101^4)  60656459 + O(101^4) 101244586 + O(101^4)  56237448 + O(101^4)]
@@ -72,7 +74,7 @@ def frobenius(p, N, Q):
        7
       sage: ZZ(M.det())
        10201
-      sage: M = frobenius(p, 1, f); M
+      sage: M = hypellfrob(p, 1, f); M
        [ 0 + O(101)  0 + O(101) 93 + O(101) 62 + O(101)]
        [ 0 + O(101)  0 + O(101) 55 + O(101) 19 + O(101)]
        [ 0 + O(101)  0 + O(101) 65 + O(101) 42 + O(101)]
@@ -80,6 +82,7 @@ def frobenius(p, N, Q):
 
    AUTHORS:
       -- David Harvey (2007-05)
+      -- David Harvey (2007-12): updated for hypellfrob version 2.0
 
    """
 
@@ -116,7 +119,7 @@ def frobenius(p, N, Q):
 
    cdef int result
    _sig_on
-   result = frobenius_cpp(mm.x, pp.x, N, QQ.x)
+   result = hypellfrob_matrix(mm.x, pp.x, N, QQ.x)
    _sig_off
 
    if not result:

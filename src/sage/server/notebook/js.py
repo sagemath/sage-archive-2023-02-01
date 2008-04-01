@@ -1264,7 +1264,7 @@ function send_cell_input(id) {
     cell = get_cell(id)
     if(cell == null) return;
 
-    async_request(worksheet_command('eval'), generic_callback, "save_only=1&id="+id+"&input="+cell.value);
+    async_request(worksheet_command('eval'), generic_callback, "save_only=1&id="+id+"&input="+escape0(cell.value));
 }
 
 function debug_focus() {

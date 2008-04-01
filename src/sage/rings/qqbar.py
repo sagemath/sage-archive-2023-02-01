@@ -295,6 +295,42 @@ verify it.
     0
     sage: lhs._exact_value()
     -242494609856316402264822833062350847769474540*a^9 + 862295472068289472491654837785947906234680703*a^8 - 829559238431038252116584538075753012193290520*a^7 - 125882239615006638366472766103700441555126185*a^6 + 1399067970863104691667276008776398309383579345*a^5 - 1561176687069361567616835847286958553574223422*a^4 + 761706318888840943058230840550737823821027895*a^3 + 580740464974951394762758666210754821723780266*a^2 - 954587496403409756503464154898858512440951323*a + 546081123623099782018260884934770383777092602 where a^10 - 4*a^9 + 5*a^8 - a^7 - 6*a^6 + 9*a^5 - 6*a^4 - a^3 + 5*a^2 - 4*a + 1 = 0 and a in [0.44406334400909258 .. 0.44406334400909265]
+
+We can pickle and unpickle algebraic fields (and they are globally unique):
+
+    sage: loads(dumps(AlgebraicField())) is AlgebraicField()
+    True
+    sage: loads(dumps(AlgebraicRealField())) is AlgebraicRealField()
+    True
+
+We can pickle and unpickle algebraic numbers:
+
+    sage: loads(dumps(QQbar(10))) == QQbar(10)
+    True
+    sage: loads(dumps(QQbar(5/2))) == QQbar(5/2)
+    True
+    sage: loads(dumps(QQbar.zeta(5))) == QQbar.zeta(5)
+    True
+
+    sage: t = QQbar(sqrt(2)); type(t._descr)
+    <class 'sage.rings.qqbar.ANRoot'>
+    sage: loads(dumps(t)) == QQbar(sqrt(2))
+    True
+
+    sage: t.exactify(); type(t._descr)
+    <class 'sage.rings.qqbar.ANExtensionElement'>
+    sage: loads(dumps(t)) == QQbar(sqrt(2))
+    True
+
+    sage: t = ~QQbar(sqrt(2)); type(t._descr)
+    <class 'sage.rings.qqbar.ANUnaryExpr'>
+    sage: loads(dumps(t)) == 1/QQbar(sqrt(2))
+    True
+
+    sage: t = QQbar(sqrt(2)) + QQbar(sqrt(3)); type(t._descr)
+    <class 'sage.rings.qqbar.ANBinaryExpr'>
+    sage: loads(dumps(t)) == QQbar(sqrt(2)) + QQbar(sqrt(3))
+    True
 """
 
 import sage.rings.ring
@@ -1186,6 +1222,20 @@ class AlgebraicGenerator(SageObject):
         global algebraic_generator_counter
         self._index = algebraic_generator_counter
         algebraic_generator_counter += 1
+
+    def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = QQbar(sqrt(2)) + QQbar(sqrt(3))
+            sage: t.exactify()
+            sage: type(t._descr._generator)
+            <class 'sage.rings.qqbar.AlgebraicGenerator'>
+            sage: loads(dumps(t)) == t
+            True
+        """
+        return (AlgebraicGenerator, (self._field, self._root))
 
     def __hash__(self):
         return self._index
@@ -2365,6 +2415,17 @@ class AlgebraicNumber(AlgebraicNumber_base):
     def __init__(self, x):
         AlgebraicNumber_base.__init__(self, QQbar, x)
 
+    def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = QQbar.zeta(5)
+            sage: loads(dumps(t)) == t
+            True
+        """
+        return (AlgebraicNumber, (self._descr, ))
+
     def __cmp__(self, other):
         """
         Compare two algebraic numbers, lexicographically.  (That is,
@@ -2565,6 +2626,58 @@ class AlgebraicNumber(AlgebraicNumber_base):
     def _interval_fast(self, prec):
         return self.interval_fast(ComplexIntervalField(prec))
 
+    def _integer_(self):
+        """
+        Return \code{self} as an Integer.
+
+        EXAMPLES:
+            sage: QQbar(0)._integer_()
+            0
+            sage: QQbar(0)._integer_().parent()
+            Integer Ring
+            sage: QQbar.zeta(6)._integer_()
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            sage: QQbar(sqrt(17))._integer_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce non-integral Algebraic Real [4.1231056256176596 .. 4.1231056256176606] to Integer
+            sage: QQbar(sqrt(16))._integer_()
+            4
+            sage: v = QQbar(1 + I*sqrt(3))^5 + QQbar(16*sqrt(3)*I); v
+            [15.999999999999998 .. 16.000000000000004] + [-6.9388939039072284e-18 .. 8.6736173798840355e-18]*I
+            sage: v._integer_()
+            16
+        """
+        return AA(self)._integer_()
+
+    def _rational_(self):
+        """
+        Return \code{self} as a Rational.
+
+        EXAMPLES:
+            sage: QQbar(-22/7)._rational_()
+            -22/7
+            sage: QQbar(3)._rational_().parent()
+            Rational Field
+            sage: (QQbar.zeta(7)^3)._rational_()
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot coerce algebraic number with non-zero imaginary part to algebraic real
+            sage: QQbar(sqrt(2))._rational_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce irrational Algebraic Real [1.4142135623730949 .. 1.4142135623730952] to Rational
+            sage: v1 = QQbar(1/3 + I*sqrt(5))^7
+            sage: v2 = QQbar(100336/729*golden_ratio - 50168/729)*I
+            sage: v = v1 + v2; v
+            [-259.69090077732057 .. -259.69090077732050] + [-2.6367796834847468e-16 .. 3.8857805861880479e-16]*I
+            sage: v._rational_()
+            -567944/2187
+        """
+        return AA(self)._rational_()
+
     def real(self):
         return AlgebraicReal(self._descr.real(self))
 
@@ -2737,6 +2850,17 @@ class AlgebraicReal(AlgebraicNumber_base):
     def __init__(self, x):
         AlgebraicNumber_base.__init__(self, AA, x)
 
+    def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = AA(sqrt(2))
+            sage: loads(dumps(t)) == t
+            True
+        """
+        return (AlgebraicReal, (self._descr, ))
+
     def __cmp__(self, other):
         """
         Compare two algebraic reals.
@@ -2838,6 +2962,88 @@ class AlgebraicReal(AlgebraicNumber_base):
             result_min = min(range.lower(), -1)
         result_max = max(range.upper(), 1)
         return AlgebraicReal(ANRoot(poly, RIF(result_min, result_max)))
+
+    def _integer_(self):
+        """
+        Return \code{self} as an Integer.
+
+        EXAMPLES:
+            sage: AA(42)._integer_()
+            42
+            sage: AA(42)._integer_().parent()
+            Integer Ring
+            sage: AA(golden_ratio)._integer_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce non-integral Algebraic Real [1.6180339887498946 .. 1.6180339887498950] to Integer
+            sage: (AA(golden_ratio)^10 + AA(1-golden_ratio)^10)._integer_()
+            123
+            sage: AA(-22/7)._integer_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce non-integral Algebraic Real -22/7 to Integer
+        """
+        if self._value.lower().ceiling() > self._value.upper().floor():
+            # The value is known to be non-integral.
+            raise ValueError, "Cannot coerce non-integral Algebraic Real %s to Integer" % self
+
+        self.exactify()
+        if not self._descr.is_rational():
+            raise ValueError, "Cannot coerce irrational Algebraic Real %s to Integer" % self
+
+        return ZZ(self._descr.rational_value())
+
+    def _rational_(self):
+        """
+        Return \code{self} as a Rational.
+
+        EXAMPLES:
+            sage: AA(42)._rational_().parent()
+            Rational Field
+            sage: AA(-22/7)._rational_()
+            -22/7
+            sage: AA(sqrt(7))._rational_()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce irrational Algebraic Real [2.6457513110645902 .. 2.6457513110645908] to Rational
+            sage: v = AA(1/2 + sqrt(2))^3 - AA(11/4*sqrt(2)); v
+            [3.1249999999999995 .. 3.1250000000000005]
+            sage: v._rational_()
+            25/8
+        """
+        self.exactify()
+        if not self._descr.is_rational():
+            raise ValueError, "Cannot coerce irrational Algebraic Real %s to Rational" % self
+
+        return QQ(self._descr.rational_value())
+
+    def real(self):
+        """
+        Returns the real part of this algebraic real (so it always returns
+        \code{self}).
+
+        EXAMPLES:
+            sage: a = AA(sqrt(2) + sqrt(3))
+            sage: a.real()
+            [3.1462643699419721 .. 3.1462643699419726]
+            sage: a.real() is a
+            True
+        """
+        return self
+
+    def imag(self):
+        """
+        Returns the imaginary part of this algebraic real (so it always
+        returns 0).
+
+        EXAMPLES:
+            sage: a = AA(sqrt(2) + sqrt(3))
+            sage: a.imag()
+            0
+            sage: parent(a.imag())
+            Algebraic Real Field
+        """
+        return AA_0
 
     def sign(self):
         """
@@ -3119,6 +3325,18 @@ class ANRational(ANDescr):
         else:
             raise TypeError, "Illegal initializer for algebraic number rational"
 
+    def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = AA(5/2); type(t._descr)
+            <class 'sage.rings.qqbar.ANRational'>
+            sage: loads(dumps(t)) == t
+            True
+        """
+        return (ANRational, (self._value, ))
+
     def _repr_(self):
         return repr(self._value)
 
@@ -3241,6 +3459,18 @@ class ANRootOfUnity(ANDescr):
             scale = -scale
         self._angle = angle
         self._scale = scale
+
+    def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = QQbar.zeta(3) * 5; type(t._descr)
+            <class 'sage.rings.qqbar.ANRootOfUnity'>
+            sage: loads(dumps(t)) == t
+            True
+        """
+        return (ANRootOfUnity, (self._angle, self._scale))
 
     def _repr_(self):
         return "%s*e^(2*pi*I*%s)"%(self._scale, self._angle)
@@ -3395,6 +3625,20 @@ class AlgebraicPolynomialTracker(SageObject):
         self._exact = False
         self._roots_cache = {}
 
+    def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: x = polygen(QQ)
+            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]
+            sage: type(v._descr._poly)
+            <class 'sage.rings.qqbar.AlgebraicPolynomialTracker'>
+            sage: loads(dumps(v)) == v
+            True
+        """
+        return (AlgebraicPolynomialTracker, (self._poly, ))
+
     def _repr_(self):
         return repr(self._poly)
 
@@ -3481,6 +3725,20 @@ class ANRoot(ANDescr):
         self._complex = is_ComplexIntervalFieldElement(interval)
         self._complex_poly = poly.is_complex()
         self._interval = self.refine_interval(interval, 64)
+
+    def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: x = polygen(QQ)
+            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]
+            sage: type(v._descr)
+            <class 'sage.rings.qqbar.ANRoot'>
+            sage: loads(dumps(v)) == v
+            True
+        """
+        return (ANRoot, (self._poly, self._interval, self._multiplicity))
 
     def _repr_(self):
         return 'Root %s of %s'%(self._interval, self._poly)
@@ -4036,6 +4294,21 @@ class ANExtensionElement(ANDescr):
         self._value = value
         self._exactly_real = not generator.is_complex()
 
+    def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: x = polygen(QQ)
+            sage: v = (x^2 - x - 1).roots(ring=AA, multiplicities=False)[1]
+            sage: v.exactify()
+            sage: type(v._descr)
+            <class 'sage.rings.qqbar.ANExtensionElement'>
+            sage: loads(dumps(v)) == v
+            True
+        """
+        return (ANExtensionElement, (self._generator, self._value))
+
     def _repr_(self):
         return '%s where %s = 0 and a in %s'%(self._value,
                                               self._generator.field().polynomial()._repr(name='a'),
@@ -4225,6 +4498,18 @@ class ANUnaryExpr(ANDescr):
         self._arg = arg
         self._op = op
 
+    def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = ~QQbar(sqrt(2)); type(t._descr)
+            <class 'sage.rings.qqbar.ANUnaryExpr'>
+            sage: loads(dumps(t)) == 1/QQbar(sqrt(2))
+            True
+        """
+        return (ANUnaryExpr, (self._arg, self._op))
+
     def kind(self):
         return 'other'
 
@@ -4330,6 +4615,18 @@ class ANBinaryExpr(ANDescr):
         self._right = right
         self._op = op
         self._complex = True
+
+    def __reduce__(self):
+        """
+        Add customized pickling support.
+
+        EXAMPLES:
+            sage: t = QQbar(sqrt(2)) + QQbar(sqrt(3)); type(t._descr)
+            <class 'sage.rings.qqbar.ANBinaryExpr'>
+            sage: loads(dumps(t)) == QQbar(sqrt(2)) + QQbar(sqrt(3))
+            True
+        """
+        return (ANBinaryExpr, (self._left, self._right, self._op))
 
     def kind(self):
         return 'other'
@@ -4441,6 +4738,8 @@ QQ_0 = QQ(0)
 QQ_1 = QQ(1)
 QQ_1_2 = QQ(1)/2
 QQ_1_4 = QQ(1)/4
+
+AA_0 = AA(0)
 
 QQbar_I_nf = QuadraticField(-1, 'I')
 # XXX change ANRoot to ANRootOfUnity below

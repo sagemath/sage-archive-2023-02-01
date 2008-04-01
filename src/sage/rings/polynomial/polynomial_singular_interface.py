@@ -177,7 +177,7 @@ class PolynomialRing_singular_repr:
         """
         Return a newly created Singular ring matching this ring.
         """
-        if not self._can_convert_to_singular() and not force:
+        if not can_convert_to_singular(self) and not force:
             raise TypeError, "no conversion of this ring to a Singular ring defined"
 
         if self.ngens()==1:
@@ -246,25 +246,25 @@ class PolynomialRing_singular_repr:
 
         return self.__singular
 
-    def _can_convert_to_singular(self):
-        """
-        Returns True if this ring's base field or ring can be
-        represented in Singular.  If this is True then this polynomial
-        ring can be represented in Singular.
+def can_convert_to_singular(R):
+    """
+    Returns True if this ring's base field or ring can be
+    represented in Singular.  If this is True then this polynomial
+    ring can be represented in Singular.
 
-        The following base rings are supported: $GF(p)$, $GF(p^n)$,
-        rationals, number fields, and real and complex fields.
-        """
-        base_ring = self.base_ring()
-        return ( sage.rings.ring.is_FiniteField(base_ring)
-                 or is_RationalField(base_ring)
-                 or (base_ring.is_prime_field() and base_ring.characteristic() <= 2147483647)
-                 or is_RealField(base_ring)
-                 or is_ComplexField(base_ring)
-                 or is_RealDoubleField(base_ring)
-                 or is_ComplexDoubleField(base_ring)
-                 or number_field.all.is_NumberField(base_ring)
-                 or base_ring is ZZ )
+    The following base rings are supported: $GF(p)$, $GF(p^n)$,
+    rationals, number fields, and real and complex fields.
+    """
+    base_ring = R.base_ring()
+    return ( sage.rings.ring.is_FiniteField(base_ring)
+             or is_RationalField(base_ring)
+             or (base_ring.is_prime_field() and base_ring.characteristic() <= 2147483647)
+             or is_RealField(base_ring)
+             or is_ComplexField(base_ring)
+             or is_RealDoubleField(base_ring)
+             or is_ComplexDoubleField(base_ring)
+             or number_field.all.is_NumberField(base_ring)
+             or base_ring is ZZ )
 
 
 class Polynomial_singular_repr:

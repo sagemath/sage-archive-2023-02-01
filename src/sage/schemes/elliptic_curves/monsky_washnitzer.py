@@ -382,7 +382,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             sage: x, T = R.gens()
             sage: f = x + T*x - 2*T^2
             sage: latex(f)
-            (123T^{2}) + (T + 1)x + (0)x^2
+            (123 T^{2}) + (T + 1)x + (0)x^2
         """
         return "(%s) + (%s)x + (%s)x^2" % \
                tuple([column._latex_() for column in self._triple])

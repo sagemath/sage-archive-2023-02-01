@@ -52,7 +52,7 @@ def spawn(cmd, verbose=True, stdout=None, stdin=None):
     if verbose:
         print 'Spawned %s (pid = %s)\n' % (' '.join(cmdl), process.pid)
 
-    return process.pid
+    return process
 
 
 class DistributedSage(object):
@@ -174,17 +174,19 @@ class DistributedSage(object):
         self.kill_worker()
         self.kill_server()
 
-
     def kill_worker(self):
         try:
-            os.kill(self.worker_pid, 9)
+            os.kill(self.worker_proc.pid, 9)
+            self.worker_proc.wait()
+            del self.worker_proc
         except OSError, msg:
             print 'Error killing worker: %s' % msg
 
-
     def kill_server(self):
         try:
-            os.kill(self.server_pid, 9)
+            os.kill(self.server_proc.pid, 9)
+            self.server_proc.wait()
+            del self.server_proc
         except OSError, msg:
             print 'Error killing server: %s' % msg
 
@@ -248,7 +250,7 @@ class DistributedSage(object):
             except:
                 pass
             cmd += '--logfile=%s -y dsage_server.tac' % (log_file)
-            server_pid = spawn(cmd, verbose=verbose)
+            self.server_proc = spawn(cmd, verbose=verbose)
             # Need the following hack since subprocess.Popen reports the wrong
             # pid when launching an application with twistd
             while True:
@@ -288,7 +290,7 @@ class DistributedSage(object):
         if not blocking:
             cmd += ' --noblock'
             cmd = 'python ' + SAGE_ROOT + '/local/bin/' + cmd
-            self.worker_pid = spawn(cmd, verbose=verbose)
+            self.worker_proc = spawn(cmd, verbose=verbose)
         else:
             cmd = 'python ' + SAGE_ROOT + '/local/bin/' + cmd
             os.system(cmd)

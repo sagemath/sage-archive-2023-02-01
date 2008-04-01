@@ -93,6 +93,16 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.coefficients()
             [6, 23, 1]
 
+            # Test the same stuff with ZZ -- different implementation
+            sage: R.<x,y,z> = MPolynomialRing(ZZ,3,order='degrevlex')
+            sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: f.coefficients()
+            [23, 6, 1]
+            sage: R.<x,y,z> = MPolynomialRing(ZZ,3,order='lex')
+            sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: f.coefficients()
+            [6, 23, 1]
+
         AUTHOR:
             -- didier deshommes
         """
@@ -144,7 +154,7 @@ cdef class MPolynomial(CommutativeRingElement):
         monomial at a time, with no sharing of repeated computations and
         with useless additions of 0 and multiplications by 1:
             sage: list(ff)
-            ['push 0.0', 'push 4.0', 'load 1', 'dup', 'mul', 'mul', 'add', 'push 6.0', 'load 0', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 9.0', 'load 2', 'dup', 'mul', 'dup', 'mul', 'mul', 'add', 'push 4.0', 'load 0', 'load 1', 'mul', 'mul', 'add', 'push 12.0', 'load 1', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 1.0', 'load 0', 'dup', 'mul', 'mul', 'add', 'push 42.0', 'add']
+            ['push 0.0', 'push 12.0', 'load 1', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 0', 'load 1', 'mul', 'mul', 'add', 'push 42.0', 'add', 'push 1.0', 'load 0', 'dup', 'mul', 'mul', 'add', 'push 9.0', 'load 2', 'dup', 'mul', 'dup', 'mul', 'mul', 'add', 'push 6.0', 'load 0', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 1', 'dup', 'mul', 'mul', 'add']
 
         TESTS:
             sage: from sage.ext.fast_eval import fast_float
@@ -424,8 +434,9 @@ cdef class MPolynomial(CommutativeRingElement):
         return self._hash_c()
 
     def args(self):
-        """
-        Returns the named of the arguments of self, in the order they are accepted from call.
+        r"""
+        Returns the named of the arguments of \code{self}, in the
+        order they are accepted from call.
 
         EXAMPLES:
             sage: R.<x,y> = ZZ[]
@@ -514,6 +525,26 @@ cdef class MPolynomial(CommutativeRingElement):
                 raise TypeError, "Variable index %d must be < parent(self).ngens()."%var
         else:
             raise TypeError, "Parameter var must be either a variable, a string or an integer."
+
+    def __mod__(self, other):
+        """
+        EXAMPLE:
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = (x^2*y + 2*x - 3)
+            sage: g = (x + 1)*f
+            sage: g % f
+            0
+
+            sage: (g+1) % f
+            1
+
+            sage: M = x*y
+            sage: N = x^2*y^3
+            sage: M.divides(N)
+            True
+        """
+        q,r = self.quo_rem(other)
+        return r
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

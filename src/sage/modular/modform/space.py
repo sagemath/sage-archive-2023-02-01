@@ -563,7 +563,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         prec = self.sturm_bound()
         C = self.q_expansion_basis(prec)
-##        prec = C[0].prec() if (len(C) > 0) else 0
         V = self.base_ring()**prec
         W = V.span_of_basis([f.padded_list(prec) for f in C])
         self.__q_expansion_module = W
@@ -701,8 +700,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         S = Sequence(S, immutable=True, cr=True)
         self.__q_echelon_basis = (prec, S)
         return S
-
-
 
     def q_integral_basis(self, prec=None):
         r"""
@@ -891,6 +888,55 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             f = right.character()
             return f.parent()(e) == f
         raise NotImplementedError
+
+    def has_coerce_map_from_impl(self, from_par):
+        """
+        Code to make ModularFormsSpace work well with coercion
+        framework.
+
+        EXAMPLES:
+            sage: M = ModularForms(22,2)
+            sage: M.has_coerce_map_from_impl(M.cuspidal_subspace())
+            True
+            sage: M.has_coerce_map_from(ModularForms(22,4))
+            False
+        """
+        if isinstance(from_par, ModularFormsSpace):
+            if from_par.ambient() == self:
+                return True
+            elif self.is_ambient() and self.group().is_subgroup(from_par.group()) and self.weight() == from_par.weight():
+                return True
+
+        return False
+
+    def _coerce_impl(self, x):
+        """
+        Code to coerce an element into self.
+
+        EXAMPLES:
+            sage: M = ModularForms(22,2) ; S = CuspForms(22,2)
+            sage: sum(S.basis())
+            q + q^2 - q^3 - 4*q^4 + q^5 + O(q^6)
+            sage: sum(S.basis() + M.basis())
+            1 + 3*q + 3*q^2 + 2*q^3 - 7*q^4 + 8*q^5 + O(q^6)
+            sage: M._coerce_impl(S.basis()[0])
+            q - q^3 - 2*q^4 + q^5 + O(q^6)
+
+            sage: M = ModularForms(Gamma0(22)) ; N = ModularForms(Gamma0(44))
+            sage: M.basis()[0]
+            q - q^3 - 2*q^4 + q^5 + O(q^6)
+            sage: N(M.basis()[0])
+            q - q^3 - 2*q^4 + q^5 + O(q^6)
+        """
+        if isinstance(x, element.ModularFormElement):
+            if x.parent().ambient() == self:
+                return self(x.element())
+            elif self.group().is_subgroup(x.parent().group()):
+                ## This is a coercion M_k(Gamma) --> M_k(Gamma'),
+                ## where Gamma' is contained in Gamma.
+                return self(x.q_expansion(self._q_expansion_module().degree()))
+
+        raise TypeError, "no known coercion to modular form"
 
     def __call__(self, x, check=True):
         """

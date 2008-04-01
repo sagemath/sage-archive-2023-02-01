@@ -16,6 +16,7 @@ AUTHORS:
     -- Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol (with Kronecker extension)
                                      Convert some methods to use GMP directly rather than pari, Integer() -> PY_NEW(Integer)
     -- David Roe (2007-03-21): sped up valuation and is_square, added val_unit, is_power, is_power_of and divide_knowing_divisible_by
+    -- Robert Bradshaw (2008-03-26): gamma function, multifactorials
 
 EXAMPLES:
    Add 2 integers:
@@ -113,6 +114,13 @@ cdef extern from "mpz_pylong.h":
 
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
+
+cdef extern from *:
+    cdef void mpz_swap(mpz_t a, mpz_t b)
+
+cdef extern from "math.h":
+    cdef double log_c "log" (double)
+    cdef double ceil_c "ceil" (double)
 
 from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
 
@@ -285,6 +293,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             -901824309821093821093812093810928309183091832091
             sage: ZZ(RR(2.0)^80)
             1208925819614629174706176
+            sage: ZZ(QQbar(sqrt(28-10*sqrt(3)) + sqrt(3)))
+            5
+            sage: ZZ(AA(32).nth_root(5))
+            2
             sage: ZZ(pari('Mod(-3,7)'))
             4
             sage: ZZ('sage')
@@ -308,7 +320,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: ZZ(1==0)
             0
+            sage: ZZ('+10')
+            10
 
+            sage: k = GF(2)
+            sage: ZZ( (k(0),k(1)), 2)
+            2
         """
 
         # TODO: All the code below should somehow be in an external
@@ -322,6 +339,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         #     mpz_init_set_sage(self.value, x)
 
         cdef Integer tmp
+        cdef char* xs
 
         if x is None:
             if mpz_sgn(self.value) != 0:
@@ -333,7 +351,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if PY_TYPE_CHECK(x, Integer):
                 set_from_Integer(self, <Integer>x)
 
-            elif PY_TYPE_CHECK(x,bool):
+            elif PY_TYPE_CHECK(x, bool):
                 mpz_set_si(self.value, PyInt_AS_LONG(x))
 
             elif PyInt_CheckExact(x):
@@ -363,7 +381,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             elif PyString_Check(x):
                 if base < 0 or base > 36:
                     raise ValueError, "base (=%s) must be between 2 and 36"%base
-                if mpz_set_str(self.value, x, base) != 0:
+
+                xs = x
+                if xs[0] == c'+':
+                    xs += 1
+                if mpz_set_str(self.value, xs, base) != 0:
                     raise TypeError, "unable to convert x (=%s) to an integer"%x
 
             elif PyObject_HasAttrString(x, "_integer_"):
@@ -377,11 +399,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 # then how do we make Pyrex handle the reference counting?
                 set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))())
 
-            elif PY_TYPE_CHECK(x, list) and base > 1:
+            elif (PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple)) and base > 1:
                 b = the_integer_ring(base)
                 tmp = the_integer_ring(0)
                 for i in range(len(x)):
-                    tmp += x[i]*b**i
+                    tmp += the_integer_ring(x[i])*b**i
                 mpz_set(self.value, tmp.value)
 
             else:
@@ -1545,6 +1567,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             q   -- the quotient of self/other
 
         EXAMPLES:
+            sage: z = Integer(-231)
+            sage: z.div(2)
+            -116
             sage: z = Integer(231)
             sage: z.div(2)
             115
@@ -1555,20 +1580,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             ZeroDivisionError: other (=0) must be nonzero
         """
-        cdef Integer _other, _self
-        _other = integer(other)
-        if not _other:
-            raise ZeroDivisionError, "other (=%s) must be nonzero"%other
-        _self = integer(self)
-
-        cdef Integer q, r
-        q = PY_NEW(Integer)
-        r = PY_NEW(Integer)
-
-        _sig_on
-        mpz_tdiv_qr(q.value, r.value, _self.value, _other.value)
-        _sig_off
-
+        q,_=self.quo_rem(other)
         return q
 
 
@@ -2103,25 +2115,132 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) < 0:
             raise ValueError, "factorial -- self = (%s) must be nonnegative"%self
 
-        if mpz_cmp_ui(self.value,4294967295) > 0:
+        if not mpz_fits_uint_p(self.value):
             raise ValueError, "factorial not implemented for n >= 2^32.\nThis is probably OK, since the answer would have billions of digits."
 
-        cdef unsigned int n
-        n = self
-
-        cdef mpz_t x
-        cdef Integer z
-
-        mpz_init(x)
+        cdef Integer z = PY_NEW(Integer)
 
         _sig_on
-        mpz_fac_ui(x, n)
+        mpz_fac_ui(z.value, mpz_get_ui(self.value))
         _sig_off
 
-        z = PY_NEW(Integer)
-        set_mpz(z, x)
-        mpz_clear(x)
         return z
+
+    def multifactorial(self, int k):
+        r"""
+        Computes the k-th factorial $n!^{(k)}$ of self. For k=1 this is the
+        standard factorial, and for k greater than one it is the product of
+        every k-th terms down from self to k. The recursive definition is used
+        to extend this function to the negative integers.
+
+        EXAMPLES:
+            sage: 5.multifactorial(1)
+            120
+            sage: 5.multifactorial(2)
+            15
+            sage: 23.multifactorial(2)
+            316234143225
+            sage: prod([1..23, step=2])
+            316234143225
+            sage: (-29).multifactorial(7)
+            1/2640
+        """
+        if k <= 0:
+            raise ValueError, "multifactorial only defined for positive values of k"
+
+        if not mpz_fits_sint_p(self.value):
+            raise ValueError, "multifactorial not implemented for n >= 2^32.\nThis is probably OK, since the answer would have billions of digits."
+
+        cdef int n = mpz_get_si(self.value)
+
+        # base case
+        if 0 < n < k:
+            return ONE
+
+        # easy to calculate
+        elif n % k == 0:
+            factorial = Integer(n/k).factorial()
+            if k == 2:
+                return factorial << (n/k)
+            else:
+                return factorial * Integer(k)**(n/k)
+
+        # negative base case
+        elif -k < n < 0:
+            return ONE / (self+k)
+
+        # reflection case
+        elif n < -k:
+            if (n/k) % 2:
+                sign = -ONE
+            else:
+                sign = ONE
+            return sign / Integer(-k-n).multifactorial(k)
+
+        # compute the actual product, optimizing the number of large multiplications
+        cdef int i,j
+
+        # we need (at most) log_2(#factors) concurrent sub-products
+        cdef int prod_count = <int>ceil_c(log_c(n/k+1)/log_c(2))
+        cdef mpz_t* sub_prods = <mpz_t*>malloc(prod_count * sizeof(mpz_t))
+        if sub_prods == NULL:
+            raise MemoryError
+        for i from 0 <= i < prod_count:
+            mpz_init(sub_prods[i])
+
+        _sig_on
+
+        cdef residue = n % k
+        cdef int tip = 0
+        for i from 1 <= i <= n//k:
+            mpz_set_ui(sub_prods[tip], k*i + residue)
+            # for the i-th terms we use the bits of i to calculate how many
+            # times we need to multiply "up" the stack of sub-products
+            for j from 0 <= j < 32:
+                if i & (1 << j):
+                    break
+                tip -= 1
+                mpz_mul(sub_prods[tip], sub_prods[tip], sub_prods[tip+1])
+            tip += 1
+        cdef int last = tip-1
+        for tip from last > tip >= 0:
+            mpz_mul(sub_prods[tip], sub_prods[tip], sub_prods[tip+1])
+
+        _sig_off
+
+        cdef Integer z = PY_NEW(Integer)
+        mpz_swap(z.value, sub_prods[0])
+
+        for i from 0 <= i < prod_count:
+            mpz_clear(sub_prods[i])
+        free(sub_prods)
+
+        return z
+
+
+    def gamma(self):
+        r"""
+        The gamma function on integers is the factorial function (shifted by
+        one) on positive integers, and $\pm \infty$ on non-positive integers.
+
+        EXAMPLES:
+            sage: gamma(5)
+            24
+            sage: gamma(0)
+            -Infinity
+            sage: gamma(-1)
+            +Infinity
+            sage: gamma(-2^150)
+            -Infinity
+        """
+        if mpz_sgn(self.value) > 0:
+            return (self-ONE).factorial()
+        else:
+            from sage.rings.infinity import infinity
+            if mpz_even_p(self.value):
+                return -infinity
+            else:
+                return infinity
 
     def floor(self):
         """
@@ -3734,7 +3853,7 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
         #
         # The clean version of the following line is:
         #
-        #  mpz_init(( <mpz_t>(<char *>new + mpz_t_offset) )
+        #  mpz_init( <mpz_t>(<char *>new + mpz_t_offset) )
         #
         # We save time both by avoiding an extra function call and
         # because the rest of the mpz struct was already initalized

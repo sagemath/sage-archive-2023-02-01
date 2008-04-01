@@ -3,6 +3,8 @@ Quotient Ring Elements
 
 AUTHOR:
     -- William Stein
+
+TODO: This implementation is very basic.
 """
 
 #*****************************************************************************
@@ -33,39 +35,39 @@ import quotient_ring
 from sage.interfaces.singular import singular as singular_default
 
 class QuotientRingElement(ring_element.RingElement):
-    """
-    An element of a quotient ring $R/I$.
-
-    EXAMPLES:
-        sage: R.<x> = PolynomialRing(ZZ)
-        sage: S.<xbar> = R.quo((4 + 3*x + x^2, 1 + x^2)); S
-        Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 3*x + 4, x^2 + 1)
-        sage: v = S.gens(); v
-        (xbar,)
-
-        sage: loads(v[0].dumps()) == v[0]
-        True
-
-        sage: R.<x,y> = PolynomialRing(QQ, 2)
-        sage: S = R.quo(x^2 + y^2); S
-        Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
-        sage: S.gens()
-        (xbar, ybar)
-
-    We name each of the generators.
-        sage: S.<a,b> = R.quotient(x^2 + y^2)
-        sage: a
-        a
-        sage: b
-        b
-        sage: a^2 + b^2 == 0
-        True
-        sage: b.lift()
-        y
-        sage: (a^3 + b^2).lift()
-        -x*y^2 + y^2
-    """
     def __init__(self, parent, rep, reduce=True):
+        """
+        An element of a quotient ring $R/I$.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: S.<xbar> = R.quo((4 + 3*x + x^2, 1 + x^2)); S
+            Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 3*x + 4, x^2 + 1)
+            sage: v = S.gens(); v
+            (xbar,)
+
+            sage: loads(v[0].dumps()) == v[0]
+            True
+
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: S = R.quo(x^2 + y^2); S
+            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+            sage: S.gens()
+            (xbar, ybar)
+
+        We name each of the generators.
+            sage: S.<a,b> = R.quotient(x^2 + y^2)
+            sage: a
+            a
+            sage: b
+            b
+            sage: a^2 + b^2 == 0
+            True
+            sage: b.lift()
+            y
+            sage: (a^3 + b^2).lift()
+            -x*y^2 + y^2
+        """
         ring_element.RingElement.__init__(self, parent)
         self.__rep = rep
         if reduce:
@@ -153,13 +155,46 @@ class QuotientRingElement(ring_element.RingElement):
         return -1
 
     def lt(self):
+        """
+        Return the leading term of this quotient ring element.
+
+        EXAMPLE:
+            sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
+            sage: I = sage.rings.ideal.FieldIdeal(R)
+            sage: Q = R.quo( I )
+            sage: f = Q( z*y + 2*x )
+            sage: f.lt()
+            2*xbar
+        """
         return QuotientRingElement(self.parent(),self.__rep.lt())
 
     def lm(self):
+        """
+        Return the leading monomial of this quotient ring element.
+
+        EXAMPLE:
+            sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
+            sage: I = sage.rings.ideal.FieldIdeal(R)
+            sage: Q = R.quo( I )
+            sage: f = Q( z*y + 2*x )
+            sage: f.lm()
+            xbar
+        """
         return QuotientRingElement(self.parent(),self.__rep.lm())
 
     def lc(self):
-        return QuotientRingElement(self.parent(),self.__rep.lc())
+        """
+        Return the leading coefficent of this quotient ring element.
+
+        EXAMPLE:
+            sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
+            sage: I = sage.rings.ideal.FieldIdeal(R)
+            sage: Q = R.quo( I )
+            sage: f = Q( z*y + 2*x )
+            sage: f.lc()
+            2
+        """
+        return self.__rep.lc()
 
     def variables(self):
         return [QuotientRingElement(self.parent(),v) for v in self.__rep.variables()]
@@ -194,4 +229,29 @@ class QuotientRingElement(ring_element.RingElement):
             sage: Q(xbar._singular_()) # a round-trip
             xbar
         """
-        return self.__rep._singular_(singular=singular)
+        return self.__rep._singular_(singular)
+
+    def reduce(self, G):
+        r"""
+        Reduce this quotient ring element by a set of quotient ring
+        elements \var{G}.
+
+        INPUT:
+            G -- a list of quotient ring elements
+
+        EXAMPLE:
+            sage: P.<a,b,c,d,e> = PolynomialRing(GF(2), 5, order='lex')
+            sage: I1 = ideal([a*b + c*d + 1, a*c*e + d*e, a*b*e + c*e, b*c + c*d*e + 1])
+            sage: Q = P.quotient( sage.rings.ideal.FieldIdeal(P) )
+            sage: I2 = ideal([Q(f) for f in I1.gens()])
+            sage: f = Q((a*b + c*d + 1)^2  + e)
+            sage: f.reduce(I2.gens())
+            ebar
+        """
+        try:
+            G = [f.lift() for f in G]
+        except TypeError:
+            pass
+        # reduction w.r.t. the defining ideal is performed in the
+        # constructor
+        return QuotientRingElement(self.parent(), self.__rep.reduce(G))

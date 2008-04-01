@@ -952,6 +952,7 @@ class CombinatorialAlgebra(Algebra):
 
         return self._from_dict(z_elt)
 
+
     def multiply(self,left,right):
         """
         Returns left*right where left and right are elements of self.

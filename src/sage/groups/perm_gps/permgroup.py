@@ -1704,9 +1704,8 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
 
         G = ambient
         if check:
-            for i in range(len(gens)):
-                x = gens[i]
-                if not (G.has_element(x)):
+            for g in gens:
+                if g not in G:
                     raise TypeError, "each generator must be in the ambient group"
         self.__ambient_group = G
 

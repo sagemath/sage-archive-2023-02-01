@@ -74,6 +74,8 @@ env.Append( CFLAGS="-O2 -g" )
 # SCons doesn't automatically pull in system environment variables
 # However, we only need SAGE_LOCAL, so that's easy.
 env['SAGE_LOCAL'] = os.environ['SAGE_LOCAL']
+if os.environ.has_key('SAGE_DEBIAN'):
+    env['SAGE_LOCAL'] = '/usr'
 
 # The SCons convenience function Split is the only strange thing
 # to python programmers. It just makes a list by splitting on

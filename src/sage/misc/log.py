@@ -6,7 +6,7 @@ a known bug.
 
 You can create a log of your SAGE session as a web page and/or as a
 latex document.  Just type \code{log_html()} to create an HTML log, or
-\code{log_dvi()} to create a dvi (latex) log.  Your complete session
+\code{log_dvi()} to create a dvi (LaTeX) log.  Your complete session
 so far up until when you type the above command will be logged, along
 with any future input.  Thus you can view the log system as a way to
 print or view your entire session so far, along with a way to see
@@ -19,11 +19,11 @@ The environment variables \code{BROWSER} and \code{DVI\_VIEWER}
 determine which web browser or dvi viewer is used to display your
 running log.
 
-For both log systems you must have a tex system installed on your
+For both log systems you must have a TeX system installed on your
 computer.  For HTML logging, you must have the convert command, which
 comes with the free ImageMagick tools.
 
-\note{The HTML output is done via Latex and png images right now,
+\note{The HTML output is done via LaTeX and png images right now,
 sort of like how latex2html works.  Obviously it would be interesting
 to do something using MathML in the long run.}
 
@@ -33,6 +33,11 @@ AUTHOR:
                                    is relocatable (no hardcoded paths).
     -- William Stein (2006-03-04): changed environment variable to BROWSER.
     -- Didier Deshommes (dfdeshom@gmail.com) (2006-05-06): added MathML support; refactored code.
+    -- Dan Drake (ddrake@member.ams.org) (2008-03-27): fix bit rotting
+ so that optional directories work, dvi logging works, viewer() command
+ works, remove no-longer-working MathML logger; fix off-by-one
+ problems with IPython history; add text logger; improve documentation
+ about viewers.
 """
 
 # Note: there is a webbrowser module standard with Python.
@@ -73,15 +78,15 @@ class Log:
     """
     def __init__(self, dir=None, debug=False, viewer=None):
         if dir is None:
-            dir = misc.DOT_SAGE + 'log/log'
+            dir = misc.DOT_SAGE + 'log'
         self._time = time.strftime('%Y-%m-%d-%H%M%S')
-        dir = os.path.abspath(dir) + '-' + self._time
+        dir = os.path.join(os.path.abspath(dir), 'log-' + self._time)
         if not os.path.exists(dir):
             os.makedirs(dir)
         self._debug = debug
         self._n = 0
         self._dir = dir
-        self._filename = '%s/%s'%(dir, self._filename())
+        self._filename = os.path.join(dir, self._filename())
         self._output = __IPYTHON__.output_hist
         self._input  = __IPYTHON__.input_hist_raw
         self._text = ''
@@ -91,6 +96,7 @@ class Log:
         self._stopped = False
         self._viewer = viewer
         loggers.append(self)
+        print('Now logging to ' + self._filename)
         self._update()
         self.view()
 
@@ -121,13 +127,15 @@ class Log:
     def _update(self):
         if self._stopped:
             return
+        # see note at end of this function for info about output and
+        # input
         (O, I) = (self._output, self._input)
         #print "O:", O
         #print "I:", I
         K = O.keys()
         while self._n < max(len(I), max(K + [-1])):
             n = self._n
-            followed_by_output = (n in K)
+            followed_by_output = (n+1 in K)
             if n < len(I):
                 L = I[n]
             else:
@@ -136,17 +144,36 @@ class Log:
             if len(Lstrip) > 0 and Lstrip[0] != '%':
                 self._write(self._get_input(n, followed_by_output))
                 self._input_text += L
-            #m = n - offset
+            #m = n + offset
             m = n
-            if m in K:
-                self._write(self._get_output(m))
-                s = '# ' + '\n# '.join(str(O[m]).split('\n')) + '\n\n'
+            if m+1 in K:
+                self._write(self._get_output(m+1))
+                # what does the following line do? Nothing is done with
+                # this s. Commenting out for now.
+                #s = '# ' + '\n# '.join(str(O[m]).split('\n')) + '\n\n'
             self._n += 1
         A = open(self._filename,'w')
         A.write(self._header() + '\n' + self._text + '\n' + self._footer())
         A.close()
         self._update_plain()
         self._build()
+
+    """
+    There is an off-by-one issue with IPython's input and output
+    history; __IPYTHON__.input_hist_raw is a *list* containing the
+    un-preparsed Sage commands. However, __IPYTHON__.output_hist is a
+    dictionary whose keys are integers and whose values are outputs.
+    This is good because not every input has an output.
+
+    **BUT** the output from
+                     __IPYTHON__.input_hist_raw[n]
+    is stored in
+                     __IPYTHON__.output_hist[n+1] !
+
+    This is annoying and it may be a bug. Right now the loggers correct
+    for this, but if modifying or extending this code, consider yourself
+    warned.
+    """
 
     def _write(self, lines):
         self._text += lines
@@ -155,7 +182,7 @@ class Log:
         return self._input_text
 
     def _input_log_name(self):
-        return '%s/input-%s.sage'%(self._dir, self._time)
+        return os.path.join(self._dir, 'input-' + self._time)
 
     def _update_plain(self):
         open(self._input_log_name(),'w').write(self._input_text)
@@ -181,15 +208,17 @@ class log_html(Log):
     stop and start logging.
 
     The environment variable \code{WEB\_BROWSER} determines which web
-    browser or dvi viewer is used to display your running log.
+    browser or dvi viewer is used to display your running log. You can
+    also specify a viewer when you start the logger with something like
+    \code{log_html([opt. dir], viewer='firefox')}.
 
-    You must have a tex system installed on your computer, and you
+    You must have a TeX system installed on your computer, and you
     must have the convert command, which comes with the free
     ImageMagick tools.
     """
 
     def _init(self):
-        self._images = '%s/images/'%self._dir
+        self._images = os.path.join(self._dir, 'images')
         if not os.path.exists(self._images):
             os.makedirs(self._images)
 
@@ -199,7 +228,7 @@ class log_html(Log):
             viewer = self._viewer
         else:
             viewer = browser()
-        os.system('"%s" "%s"&'%(viewer, self._filename))
+        os.system('%s "%s"&'%(viewer, self._filename))
 
     def _build(self):
         return
@@ -218,13 +247,13 @@ class log_html(Log):
         try:
             L = latex.latex(x)
         except:
-            L = "\\mbox{error texing object}"
-        single_png = '%s/%s.png'%(self._images, n)
+            L = "\\mbox{error TeXing object}"
+        single_png = os.path.join(self._images, '%s.png' % n)
         try:
             x.png(single_png)
         except AttributeError:
             latex.png(x, single_png, debug=self._debug)
-        oi = '%s/images/o%s.html'%(self._dir, n)
+        oi = os.path.join(self._dir, 'images', 'o' + '%s.html' % n)
         open(oi,'w').write('<pre>OUTPUT:\n%s\n\n\nLATEX:\n%s</pre><img src="%s">'%(
             x, L, single_png))
         extra_img_opts = ''
@@ -277,14 +306,20 @@ class log_dvi(Log):
     \code{L.start()} to stop and start logging.
 
     The environment variable \code{DVI\_VIEWER} determines which web
-    browser or dvi viewer is used to display your running log.
+    browser or dvi viewer is used to display your running log. You can
+    also specify a viewer when you start the logger with something like
+    \code{log_dvi([opt. dir], viewer='xdvi')}.
 
-    You must have a latex system installed on your computer and a dvi
+    You must have a LaTeX system installed on your computer and a dvi
     viewer.
     """
     def _init(self):
         SAGE_ROOT = os.environ['SAGE_ROOT']
-        os.system('ln -sf %s/devel/doc/commontex/macros.tex %s/macros.tex'%(SAGE_ROOT, self._dir))
+        # the file we try to symlink to below doesn't exist, and the
+        # generated LaTeX log file seems to build without it, so let's
+        # comment this out. If this is a problem, we can hunt down
+        # macros.tex and rework this.
+        #os.system('ln -sf %s/devel/doc/commontex/macros.tex %s/macros.tex'%(SAGE_ROOT, self._dir))
         self._in_verbatim = False
 
     def __repr__(self):
@@ -318,6 +353,7 @@ class log_dvi(Log):
             s += '\\begin{verbatim}'
             self._in_verbatim = True
         I = self._input[n]
+        #print('input: %s' % I)
         s += "%s %s: %s"%(n,  interpreter._prompt, I)
         s += '\\end{verbatim}'
         if followed_by_output:
@@ -335,9 +371,9 @@ class log_dvi(Log):
             self._in_verbatim = False
 
         L = latex.latex(self._output[n])
-        # If we explitcitly ask for LaTeX output,
+        # If we explicitly ask for LaTeX output,
         # no need to format L
-        if "latex" in self._input[n]:
+        if "latex" in self._input[n-1]:
             s+= "\\begin{verbatim}%s\\end{verbatim}" %L
         else:
             s += '\n\\begin{center}$\\displaystyle %s $\\end{center}\n'%L
@@ -349,7 +385,6 @@ class log_dvi(Log):
     def _header(self):
         return """
 \\documentclass{article}
-\\input{macros}
 \\title{%s}\\author{}
 \\begin{document}
 \\maketitle
@@ -366,71 +401,63 @@ class log_dvi(Log):
         return '\\SAGE Log %s'%self._time
 
 
-#
-# Coarse MathML logger
-class log_html_mathml(log_dvi):
-    r"""
-    Create a running log of your SAGE session as a mathml web page.
+class log_text(Log):
+    """
+    Create a running log of your SAGE session as a plain text file.
 
-    Easy usage: \code{log_html_mathml()}
+    Easy usage: \code{log_text()}
 
     TODO: Pressing "control-D" can mess up the I/O sequence because of
     a known bug.
+
+    Use \code{L=log\_text([optional directory])} to create a text log.
+    Your complete session so far up until when you type the above
+    command will be logged, along with any future input.  Thus you can
+    view the log system as a way to print or view your entire session so
+    far, along with a way to see incremental updates as you work.
+
+    Unlike the html and dvi loggers, this one does not automatically
+    start a viewer unless you specify one; you can do that when you
+    start the logger with something like \code{log_text([opt. dir],
+    viewer='xterm -e tail -f')}.
+
+    If L is a logger, you can type \code{L.stop()} and \code{L.start()}
+    to stop and start logging.
     """
     def _init(self):
-        SAGE_ROOT = os.environ['SAGE_ROOT']
-        os.system('ln -sf %s/devel/doc/commontex/macros.tex %s/macros.tex'%(SAGE_ROOT, self._dir))
-        os.system('ln -sf $SAGE_ROOT/data/hermes/dlt.tex %s/dlt.tex'% self._dir)
-        os.system('ln -sf $SAGE_ROOT/data/hermes/*.xsl %s/'% self._dir)
-        self._in_verbatim = False
+        return
 
     def __repr__(self):
-        return "mathml Logger"
+        return "Text Logger"
 
     def _build(self):
-        import re
-
-        seed = self._filename[:-4]+'.s.tex'
-        dvi = self._filename[:-4]+'.s.dvi'
-        lib = self._filename[:-4]+'.lib.xml'
-        pub = self._filename[:-4]+'.pub.xml'
-
-        # execute this first to generate seed file
-        cmd = 'cd %s; seed %s >/dev/null'%(self._dir,self._filename)
-        os.system(cmd)
-
-        # Remove \mbox occurences in seed file
-        mboxstr = open(seed,'r').read()
-        mboxrepl = re.sub('\\\mbox','',mboxstr)
-        open(seed,'w').write(mboxrepl)
-
-        cmd = "cd %s ; latex \\\\nonstopmode \\\\input %s  2>/dev/null 1>/dev/null"% \
-               (self._dir,seed)
-
-        # turn to xml
-        cmd += '; hermes %s > %s' %(dvi, lib)
-        os.system(cmd)
-        pubfile = '$SAGE_ROOT/data/hermes/pub.xslt'
-        cmd += '; xsltproc %s %s > %s '%(pubfile, lib, pub)
-        os.system(cmd)
-
-        # Bug in XSLT generation forces us to do this
-        pubstr = open(pub,'r').read()
-
-        repl= re.sub("<math xmlns=\"http://www.w3.org/1998/Math/MathML\">",
-               "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\">",
-               pubstr)
-
-        open(pub,'w').write(repl)
+        return
 
     def view(self):
         if not self._viewer is None:
             viewer = self._viewer
         else:
-            viewer = browser()
-        self._build()
+            return
+        cmd = 'cd %s; %s %s ' % (self._dir, viewer, self._filename)
+        os.system(cmd + " 2>/dev/null 1>/dev/null &")
 
-        os.system('%s  %s &' %(BROWSER, self._filename[:-4]+'.pub.xml'))
+    def _get_input(self, n, followed_by_output):
+        if n >= len(self._input):
+            return
+        else:
+            return "%s %s: %s"%(n, interpreter._prompt, self._input[n])
+
+    def _get_output(self, n):
+        return '\n  ' + str(self._output[n]) + '\n\n'
 
     def _filename(self):
-        return 'sagelog.tex'
+        return 'sagelog.txt'
+
+    def _header(self):
+        return self._title()
+
+    def _footer(self):
+        return ''
+
+    def _title(self):
+        return 'Sage Log %s' % self._time

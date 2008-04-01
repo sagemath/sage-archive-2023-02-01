@@ -230,7 +230,7 @@ class CubexSolver:
 
 class DikSolver:
 
-    __cmd = "cube"
+    __cmd = "dikcube"
 
     def __call__(self, facets):
         return self.solve(facets)

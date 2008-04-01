@@ -348,18 +348,6 @@ class MPolynomialRoundSystem_generic(SageObject):
         """
         return (element in self._gens)
 
-    def __list__(self):
-        """
-        Return a list of generators for self.
-
-        EXAMPLE:
-            sage: P.<x,y,z> = MPolynomialRing(GF(2),3)
-            sage: F = mq.MPolynomialRoundSystem(P,[x*y +1, z + 1])
-            sage: list(F) # indirect doctest
-            [x*y + 1, z + 1]
-        """
-        return list(self._gens)
-
     def __len__(self):
         """
         Return self.ngens().
@@ -861,10 +849,10 @@ class MPolynomialSystem_generic(SageObject):
                 return True
         return False
 
-    def __list__(self):
-        """
-        Return a list of self where all polynomials in self are
-        presented in order as they appear in self.
+    def __iter__(self):
+        r"""
+        Return an iterator for \code{self} where all polynomials in
+        \code{self} are yielded in order as they appear in \code{self}.
 
         EXAMPLE:
             sage: P.<x0,x1,x2,x3> = PolynomialRing(GF(37))
@@ -879,8 +867,7 @@ class MPolynomialSystem_generic(SageObject):
         L = []
         for r in self._rounds:
             for f in r:
-              L.append(f)
-        return L
+                yield f
 
 class MPolynomialSystem_gf2(MPolynomialSystem_generic):
     """

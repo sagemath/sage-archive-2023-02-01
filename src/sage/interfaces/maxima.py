@@ -603,10 +603,11 @@ class Maxima(Expect):
             sage: maxima('2+2')
             4
         """
+        marker = '__SAGE_SYNCHRO_MARKER_'
         if self._expect is None: return
         r = randrange(2147483647)
-        s = str(r+1)
-        cmd = "1+%s;\n"%r
+        s = marker + str(r+1)
+        cmd = '''sconc("%s",(%s+1));\n'''%(marker,r)
         self._sendstr(cmd)
         try:
             self._expect_expr(timeout=0.5)

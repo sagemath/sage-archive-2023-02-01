@@ -146,7 +146,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
     Multivariable polynomial ring.
 
     EXAMPLES:
-        sage: R = MPolynomialRing(Integers(12), 'x', 5); R
+        sage: R = PolynomialRing(Integers(12), 'x', 5); R
         Multivariate Polynomial Ring in x0, x1, x2, x3, x4 over Ring of integers modulo 12
         sage: loads(R.dumps()) == R
         True
@@ -438,9 +438,10 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
                                       PolynomialRing_singular_repr,
                                       MPolynomialRing_macaulay2_repr):
     def __init__(self, base_ring, n, names, order):
+        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         order = TermOrder(order, n)
         MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)
-        self._has_singular = self._can_convert_to_singular()
+        self._has_singular = can_convert_to_singular(self)
 
     def is_integral_domain(self):
         return True
@@ -532,7 +533,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
         if not coeff:
           coeff= self.base_ring()(1)
         else:
-          coeff = f.dict().values()[0] /  g.dict().values()[0]
+          coeff = self.base_ring()(f.dict().values()[0] /  g.dict().values()[0])
 
         f = f.dict().keys()[0]
         g = g.dict().keys()[0]

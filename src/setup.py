@@ -57,7 +57,8 @@ if not os.path.exists(SITE_PACKAGES):
     if not os.path.exists(SITE_PACKAGES):
         SITE_PACKAGES = '%s/lib/python2.4/site-packages/'%SAGE_LOCAL
         if not os.path.exists(SITE_PACKAGES) and os.environ.has_key('SAGE_DEBIAN'):
-            SITE_PACKAGES = '/usr/lib/python2.5/site-packages/'
+            SITE_PACKAGES = '%s/lib/python2.5/site-packages/'%SAGE_LOCAL
+            os.system('mkdir -p "%s"'%SITE_PACKAGES)
         if not os.path.exists(SITE_PACKAGES):
             raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
 
@@ -783,12 +784,15 @@ ext_modules = [ \
               language = 'c++',
               include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
 
-    Extension('sage.schemes.hyperelliptic_curves.frobenius',
-                 sources = ['sage/schemes/hyperelliptic_curves/frobenius.pyx',
-                            'sage/schemes/hyperelliptic_curves/frobenius_cpp.cpp'],
-                 libraries = ['ntl', 'stdc++', 'gmp'],
+    Extension('sage.schemes.hyperelliptic_curves.hypellfrob',
+                 sources = ['sage/schemes/hyperelliptic_curves/hypellfrob.pyx',
+                            'sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp',
+                            'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_ntl.cpp',
+                            'sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_zn_poly.cpp'],
+                 libraries = ['ntl', 'stdc++', 'gmp', 'zn_poly'],
                  language = 'c++',
-                 include_dirs=debian_include_dirs + ['sage/libs/ntl/']), \
+                 include_dirs=debian_include_dirs + ['sage/libs/ntl/',
+                 'sage/schemes/hyperelliptic_curves/hypellfrob/']), \
 
     Extension('sage.rings.polynomial.polynomial_compiled',
                sources = ['sage/rings/polynomial/polynomial_compiled.pyx']), \
@@ -927,6 +931,12 @@ ext_modules = [ \
               ['sage/combinat/partitions.pyx',
                'sage/combinat/partitions_c.cc'],
               libraries = ['qd', 'gmp', 'mpfr'],
+              language='c++'
+              ), \
+
+    Extension('sage.combinat.matrices.dancing_links',
+              ['sage/combinat/matrices/dancing_links.pyx'],
+              libraries = ["stdc++"],
               language='c++'
               ), \
 
@@ -1076,7 +1086,7 @@ def process_cython_file(deps, f, m):
 
     if need_to_cython(deps, f, outfile):
         # Insert the -o parameter to specify the output file (particularly for c++)
-        cmd = "cython --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
+        cmd = "python2.5 `which cython` --embed-positions --incref-local-binop -I%s -o %s %s"%(os.getcwd(), outfile, f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:
@@ -1283,6 +1293,8 @@ code = setup(name        = 'sage',
 
                      'sage.combinat.sf',
 
+                     'sage.combinat.matrices',
+
                      'sage.crypto',
 
              'sage.crypto.mq',
@@ -1405,14 +1417,6 @@ code = setup(name        = 'sage',
       scripts = ['sage/dsage/scripts/dsage_worker.py',
                  'sage/dsage/scripts/dsage_setup.py',
                  'spkg-debian-maybe',
-                 'debian/changelog',
-                 'debian/check-use-debian.pl',
-                 'debian/compat',
-                 'debian/control',
-                 'debian/control.in',
-                 'debian/rules',
-                 'debian/sage',
-                 'debian/sagemath.install'
                 ],
 
       data_files = [('dsage/web/static',

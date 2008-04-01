@@ -794,8 +794,8 @@ class Slider(InteractControl):
             'Slider Interact Control: alpha [1--|3|---5]'
         """
         return "Slider Interact Control: %s [%s--|%s|---%s]"%(
-            self.label(), min(self.__values),
-            self.default_value(), max(self.__values))
+            self.label(), self.__values[0],
+            self.default_value(), self.__values[-1])
 
     def default_position(self):
         """
@@ -1417,8 +1417,8 @@ class slider(control):
             Slider: alpha [1--|3|---10]
 
         The elements of the list can be anything:
-            sage: slider([1, 'x', 'abc', 2/3], None, None, 3, 'alpha')
-            Slider: alpha [abc--|1|---1]
+            sage: slider([1, 'x', 'abc', 2/3], None, None, 'x', 'alpha')
+            Slider: alpha [1--|x|---2/3]
         """
         control.__init__(self, label=label)
         if isinstance(vmin, list):
@@ -1473,8 +1473,8 @@ class slider(control):
             'Slider: alpha [2--|3|---5]'
         """
         return "Slider: %s [%s--|%s|---%s]"%(self.label(),
-                  min(self.__values),
-             self.__values[self.default_index()], max(self.__values))
+                  self.__values[0],
+             self.__values[self.default_index()], self.__values[-1])
 
     def values(self):
         """

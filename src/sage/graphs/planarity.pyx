@@ -24,7 +24,11 @@ cdef extern from "planarity/graph.h":
 
 def is_planar(g, set_pos=False, set_embedding=False, circular=False):
     """
-    Calls Boyer's planarity algorithm to determine whether g is planar.
+    Calls Boyer's planarity algorithm to determine whether g is planar.  Returns
+    a tuple, first entry is a boolean (whether or not the graph is planar) and
+    second entry is either a Kuratowski subgraph/minor (if False) or None (if True).
+    Also, will set an _embedding attribute for the graph g if set_embedding is set
+    to True.
 
     INPUT:
         set_pos -- if True, uses Schnyder's algorithm to determine positions
@@ -36,7 +40,7 @@ def is_planar(g, set_pos=False, set_embedding=False, circular=False):
         sage: G = graphs.DodecahedralGraph()
         sage: from sage.graphs.planarity import is_planar
         sage: is_planar(G)
-        True
+        (True, None)
 
     """
     # create to and from mappings to relabel vertices to the set {0,...,n-1}
@@ -67,9 +71,20 @@ def is_planar(g, set_pos=False, set_embedding=False, circular=False):
     if status == NOTOK:
         raise RuntimeError("not ok.")
     elif status == NONPLANAR:
-        # TODO: Kuratowski subgraph isolator
+        # Kuratowski subgraph isolator
+        g_dict = {}
+        from sage.graphs.graph import Graph
+        for i from 0 <= i < theGraph.N:
+            linked_list = []
+            j = theGraph.G[i].link[1]
+            while j >= theGraph.N:
+                linked_list.append(to[theGraph.G[j].v])
+                j = theGraph.G[j].link[1]
+            if len(linked_list) > 0:
+                g_dict[to[i]] = linked_list
+        G = Graph(g_dict)
         gp_Free(&theGraph)
-        return False
+        return (False, G)
     else:
         if not circular:
             if set_embedding:
@@ -108,4 +123,4 @@ def is_planar(g, set_pos=False, set_embedding=False, circular=False):
                     emb_dict[to[i]] = linked_list
                 g._embedding = emb_dict
         gp_Free(&theGraph)
-        return True
+        return (True,None)

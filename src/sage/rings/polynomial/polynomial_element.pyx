@@ -1090,7 +1090,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         A fairly simple example over $\QQ$.
             sage: x = polygen(QQ)
             sage: latex(x^3+2/3*x^2 - 5/3)
-            x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
+            x^{3} + \frac{2}{3} x^{2} - \frac{5}{3}
 
         A $p$-adic example where the coefficients are $0$ to some precision.
             sage: K = Qp(3,20)
@@ -1099,7 +1099,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f
             (O(3^-2))*x + (O(3^-1))
             sage: latex(f)
-            \left(O(3^{-2})\right)x + O(3^{-1})
+            \left(O(3^{-2})\right) x + O(3^{-1})
+
+        The following illustrates the fix of trac \#2586:
+            sage: latex(ZZ['alpha']['b']([0, ZZ['alpha'].0]))
+            \alpha b
         """
         s = " "
         coeffs = self.list()
@@ -1122,15 +1126,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     var = "|%s"%name
                 else:
                     var = ""
-                s += "%s%s"%(x,var)
+                s += "%s %s"%(x,var)
         #if atomic_repr:
         s = s.replace(" + -", " - ")
-        s = s.replace(" 1|"," ")
-        s = s.replace(" -1|", " -")
+        s = s.replace(" 1 |"," ")
+        s = s.replace(" -1 |", " -")
         s = s.replace("|","")
         if s==" ":
             return "0"
-        return s[1:]
+        return s[1:].lstrip().rstrip()
 
 
     def __setitem__(self, n, value):
@@ -1451,7 +1455,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             {}
             sage: f = 7*x^5 + x^2 - 2*x - 3
             sage: f._mpoly_dict_recursive()
-            {(0,): -3, (1,): -2, (2,): 1, (5,): 7}
+            {(0,): -3, (1,): -2, (5,): 7, (2,): 1}
         """
         if not self:
             return {}
@@ -1667,8 +1671,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f._derivative(x)
             3*x^2
 
+            sage: R = ZZ['x']
+            sage: S = R.fraction_field(); x = S.gen()
+            sage: R(1).derivative(R(x))
+            0
         """
-        if var is not None and var is not self._parent.gen():
+        if var is not None and var != self._parent.gen():
             # call _derivative() recursively on coefficients
             return self.polynomial([coeff._derivative(var) for coeff in self.list()])
 
@@ -1745,7 +1753,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def factor(self):
         r"""
-        Return the factorization of self over the base field of this polynomial.
+        Return the factorization of self over the base ring of this polynomial.
+        Factoring polynomials over $\Z/n\Z$ for $n$ composite is at the moment
+        not implemented.
 
         INPUT:
             a polynomial
@@ -1898,6 +1908,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x^8 + x^6 + a*x^5 + x^4 + zeta3*x^3 + x^2 + (a + zeta3)*x + zeta3*a
             sage: f.factor()
             (x^3 + x + a) * (x^5 + x + zeta3)
+
+        Factoring polynomials over $\Z/n\Z$ for composite $n$ is not
+        implemented:
+            sage: R.<x> = PolynomialRing(Integers(35))
+            sage: f = (x^2+2*x+2)*(x^2+3*x+9)
+            sage: f.factor()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: factorization of polynomials over rings with composite characteristic is not implemented
         """
 
         # PERFORMANCE NOTE:
@@ -1939,14 +1958,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             raise ValueError, "factorization of 0 not defined"
         G = None
 
+        ch = R.characteristic()
+        if not (ch == 0 or sage.rings.arith.is_prime(ch)):
+            raise NotImplementedError, "factorization of polynomials over rings with composite characteristic is not implemented"
+
         from sage.rings.number_field.all import is_NumberField, \
              is_RelativeNumberField, NumberField
         from sage.rings.finite_field import is_FiniteField
+        from sage.rings.integer_mod_ring import is_IntegerModRing
+        from sage.rings.integer_ring import is_IntegerRing
+        from sage.rings.rational_field import is_RationalField
 
         n = None
-        if sage.rings.integer_mod_ring.is_IntegerModRing(R) or \
-              sage.rings.integer_ring.is_IntegerRing(R) or \
-              sage.rings.rational_field.is_RationalField(R):
+        if is_IntegerModRing(R) or is_IntegerRing(R) or is_RationalField(R):
 
             try:
                 G = list(self._pari_with_name('x').factor())
@@ -2797,7 +2821,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
 
         We can also compute resultants over univariate and
-        multivariate polynomial rings, providing that PARI's variable
+        multivariate polynomial rings, provided that PARI's variable
         ordering requirements are respected.  Usually, your resultants
         will work if you always ask for them in the variable \code{x}:
 
@@ -2848,7 +2872,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         NOTES:
             Uses the identity $R_n(f) := (-1)^(n (n-1)/2) R(f, f') a_n^(n-k-2)$,
             where $n$ is the degree of self, $a_n$ is the leading coefficient
-            of self, $f'$ is the derivitive of $f$, and $k$ is the degree of $f'$.
+            of self, $f'$ is the derivative of $f$, and $k$ is the degree of $f'$.
             Calls \code{self.resultant}.
 
         EXAMPLES:
@@ -2871,15 +2895,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -116
 
         We can also compute discriminants over univariate and
-        multivariate polynomial rings, providing that PARI's variable
+        multivariate polynomial rings, provided that PARI's variable
         ordering requirements are respected.  Usually, your discriminants
         will work if you always ask for them in the variable \code{x}:
 
             sage: R.<a> = QQ[]
             sage: S.<x> = R[]
-            sage: f = x^2 + a
+            sage: f = a*x + x + a + 1
             sage: d = f.discriminant(); d
-            -4*a
+            1
             sage: d.parent() is R
             True
 
@@ -2911,7 +2935,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if r == 0 or r == 1:
             u = 1
         an = self[n]**(n - k - 2)
-        return u * self.resultant(d) * an
+        return self.base_ring()(u * self.resultant(d) * an)
 
     def reverse(self):
         """
@@ -3698,7 +3722,9 @@ sage: rts[0][0] == rt2
 
     def is_irreducible(self):
         """
-        Return True precisely if this polynomial is irreducible.
+        Return True precisely if this polynomial is irreducible over
+        its base ring.  Testing irreducibility over $\Z/n\Z$ for
+        composite $n$ is not implemented.
 
         EXAMPLES:
             sage: R.<x> = ZZ[]

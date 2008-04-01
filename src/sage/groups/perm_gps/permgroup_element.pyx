@@ -224,6 +224,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             (1,2)(3,5,6)
             sage: k._gap_().parent()
             Gap
+
+        List notation:
+            sage: PermutationGroupElement([1,2,4,3,5])
+            (3,4)
+
         """
         import sage.groups.perm_gps.permgroup_named
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -242,7 +247,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         if parent is None:
             import sage.interfaces.gap
             G = sage.interfaces.gap.gap
-            parent = sage.groups.perm_gps.permgroup_named.SymmetricGroup(G(self.__gap).LargestMovedPoint())
+            if isinstance(g, list) and not isinstance(g[0], tuple):
+                n = len(g)
+            else:
+                n = G(self.__gap).LargestMovedPoint()
+            parent = sage.groups.perm_gps.permgroup_named.SymmetricGroup(n)
 
         Element.__init__(self, parent)
 

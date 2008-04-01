@@ -50,7 +50,7 @@ from reset import reset, restore
 
 from getusage import top, get_memory_usage
 
-from log import log_html, log_dvi, log_html_mathml
+from log import log_html, log_dvi, log_text
 
 from mathml import mathml
 

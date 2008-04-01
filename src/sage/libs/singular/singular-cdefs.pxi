@@ -499,6 +499,10 @@ cdef extern from "libsingular.h":
 
     int n_IsZero(number *a, ring *r)
 
+    # TRUE if a == 1
+
+    int n_IsOne(number *a, ring *r)
+
     # general number subtraction
 
     number *n_Sub(number *a, number *b, ring *r)

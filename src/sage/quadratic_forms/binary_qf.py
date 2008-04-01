@@ -160,7 +160,7 @@ class BinaryQF(SageObject):
             sage: P = BinaryQF([2,2,3]); P
             2*x^2 + 2*x*y + 3*y^2
             sage: Q = BinaryQF([-1,2,2]); Q
-            -1*x^2 + 2*x*y + 2*y^2
+            -x^2 + 2*x*y + 2*y^2
             sage: P + Q
             x^2 + 4*x*y + 5*y^2
             sage: P + Q == BinaryQF([1,4,5]) # indirect doctest
@@ -184,7 +184,7 @@ class BinaryQF(SageObject):
             sage: P = BinaryQF([2,2,3]); P
             2*x^2 + 2*x*y + 3*y^2
             sage: Q = BinaryQF([-1,2,2]); Q
-            -1*x^2 + 2*x*y + 2*y^2
+            -x^2 + 2*x*y + 2*y^2
             sage: P - Q
             3*x^2 + y^2
             sage: P - Q == BinaryQF([3,0,1]) # indirect doctest
@@ -207,7 +207,7 @@ class BinaryQF(SageObject):
             x^2 + 2*x*y + 3*y^2
 
             sage: Q = BinaryQF([-1,2,3]); Q
-            -1*x^2 + 2*x*y + 3*y^2
+            -x^2 + 2*x*y + 3*y^2
 
             sage: Q = BinaryQF([0,0,0]); Q
             0
@@ -226,7 +226,7 @@ class BinaryQF(SageObject):
 
             sage: Q = BinaryQF([-1,-2,3])
             sage: Q.polynomial()
-            -1*x^2 - 2*x*y + 3*y^2
+            -x^2 - 2*x*y + 3*y^2
 
             sage: Q = BinaryQF([0,0,0])
             sage: Q.polynomial()

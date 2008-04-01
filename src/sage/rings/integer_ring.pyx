@@ -460,11 +460,29 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         Return a random integer.
 
-            ZZ.random_element() -- return an integer over the natrual distribution $Pr(n) = 1/2|n|(|n|+1)$.
-                                   This has infinite expected value, but in practice these will always
-                                   be single machine words, heavily concentrated around $\pm 1$.
-            ZZ.random_element(n) -- return an integer uniformly distributed between 0 and n-1, inclusive.
-            ZZ.random_element(min, max) -- return an integer uniformly destributed between min and max-1, inclusive.
+            ZZ.random_element() -- return an integer using the default
+              distribution described below
+            ZZ.random_element(n) -- return an integer uniformly
+              distributed between 0 and n-1, inclusive.
+            ZZ.random_element(min, max) -- return an integer uniformly
+              destributed between min and max-1, inclusive.
+
+        The default distribution for ZZ.random_element() is based on
+        $X = \mbox{trunc}(4/(5R))$, where $R$ is a random variable
+        uniformly distributed between -1 and 1.  This gives
+        $\mbox{Pr}(X = 0) = 1/5$, and $\mbox{Pr}(X = n) =
+        2/(5|n|(|n|+1))$ for $n \neq 0$.  Most of the samples will be
+        small; -1, 0, and 1 occur with probability 1/5 each.  But we
+        also have a small but non-negligible proportion of
+        ``outliers''; $\mbox{Pr}(|X| \geq n) = 4/(5n)$, so for
+        instance, we expect that $|X| \geq 1000$ on one in 1250
+        samples.
+
+        We actually use an easy-to-compute truncation of the above
+        distribution; the probabilities given above hold fairly well
+        up to about $|n| = 10000$, but around $|n| = 30000$ some
+        values will never be returned at all, and we will never return
+        anything greater than $2^{30}$.
 
         EXAMPLES:
         The default distribution is on average 50% $\pm 1$:
@@ -490,6 +508,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: [ZZ.random_element(-2,2) for _ in range(10)] # random output
             [1, 0, -1, 1, 0, -2, 0, -1, 1, 0]
 
+        We compute a histogram over 1000 samples of the default distribution:
+            sage: from collections import defaultdict
+            sage: d = defaultdict(lambda: 0)
+            sage: for _ in range(1000):
+            ...       samp = ZZ.random_element()
+            ...       d[samp] = d[samp] + 1
+            sage: sorted(d.items()) # random output
+            [(-283, 1), (-131, 1), (-130, 1), (-112, 1), (-93, 1), (-74, 1), (-72, 2), (-59, 1), (-55, 1), (-44, 1), (-36, 1), (-20, 2), (-18, 2), (-17, 1), (-16, 2), (-15, 1), (-13, 4), (-12, 2), (-11, 2), (-10, 6), (-9, 6), (-8, 7), (-7, 9), (-6, 11), (-5, 25), (-4, 18), (-3, 35), (-2, 65), (-1, 192), (0, 195), (1, 198), (2, 66), (3, 38), (4, 24), (5, 11), (6, 7), (7, 11), (8, 4), (9, 2), (10, 3), (11, 4), (12, 2), (13, 2), (14, 5), (15, 3), (17, 1), (18, 2), (19, 1), (21, 1), (22, 1), (25, 1), (28, 1), (29, 1), (30, 1), (32, 1), (43, 1), (58, 1), (61, 1), (63, 1), (64, 1), (73, 1), (75, 1), (119, 1), (151, 1), (203, 1), (352, 1), (662, 1)]
         """
         cdef integer.Integer z
         z = <integer.Integer>PY_NEW(integer.Integer)
@@ -505,7 +531,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         cdef int den = random()-RAND_MAX/2
         if den == 0: den = 1
         if (distribution is None and x is None) or distribution == "1/n":
-            mpz_set_si(value, (RAND_MAX/2) / den)
+            mpz_set_si(value, (RAND_MAX/5*2) / den)
         elif distribution is None or distribution == "uniform":
             if y is None:
                 if x is None:

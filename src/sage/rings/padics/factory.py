@@ -49,7 +49,9 @@ import weakref
 #######################################################################################################
 
 padic_field_cache = {}
-def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, names = None, check = True):
+twenty = Integer(20)
+forty = Integer(40)
+def Qp(p, prec = twenty, type = 'capped-rel', print_mode = None, halt = forty, names = None, check = True):
     """
     A creation function for p-adic fields.
 
@@ -58,17 +60,16 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, names = 
         prec -- integer (default: 20) the precision cap of the field.  Individual elements keep track of their own precision.
         type -- string (default: 'capped-rel') see Notes
         print_mode -- string (default: None) the print mode
+        halt -- currently irrelevant
+        check -- bool (default True) whether to check if p is prime.  Non-prime input may cause seg-faults (but can also be useful for base n expansions for example)
     OUTPUT:
         the corresponding p-adic field
 
     EXAMPLES:
         sage: K = Qp(5); a = K(4); a
         4 + O(5^20)
-
-        #sage: L = Qp(5, 10, type = 'lazy'); b = L(2); b
-        #2 + O(5^10)
-        #sage: a + b
-        #1 + 5 + O(5^20)
+        sage: K = Qp(15, check=False); a = K(999); a
+        9 + 6*15 + 4*15^2 + O(15^20)
 
     NOTES:
         values of type:
@@ -85,17 +86,14 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, names = 
         For more details and more control, see sage.rings.padics.padic_printing or look at padic_printing.<tab> from the command line.
     """
     if check:
-        p = Integer(p)
+        if not isinstance(p, Integer):
+            p = Integer(p)
+        if not isinstance(prec, Integer):
+            prec = Integer(prec)
+        if not isinstance(halt, Integer):
+            halt = Integer(halt)
         if not p.is_prime():
             raise ValueError, "p must be prime"
-        if not isinstance(prec, (int, long, Integer)):
-            raise TypeError, "prec must be an integer"
-        elif isinstance(prec, (int, long)):
-            prec = Integer(prec)
-        if not isinstance(halt, (int, long, Integer)):
-            raise TypeError, "prec must be an integer"
-        elif isinstance(halt, (int, long)):
-            halt = Integer(halt)
     if names is None:
         name = str(p)
     elif isinstance(names, tuple):
@@ -124,7 +122,7 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, names = 
 # Qq -- unramified extensions
 ######################################################
 
-def Qq(q, prec = 20, type = 'capped-rel', modulus = None, names=None, print_mode=None, halt=40, qp_name = None, check=True):
+def Qq(q, prec = twenty, type = 'capped-rel', modulus = None, names=None, print_mode=None, halt=forty, qp_name = None, check=True):
     r"""
     Given a prime power q = p^n, return the unique unramified extension
     of Qp of degree n.
@@ -144,22 +142,20 @@ def Qq(q, prec = 20, type = 'capped-rel', modulus = None, names=None, print_mode
 
     from sage.rings.integer import Integer
     if check:
+        if not isinstance(q, Integer):
+            p = Integer(q)
+        if not isinstance(prec, Integer):
+            prec = Integer(prec)
+        if not isinstance(halt, Integer):
+            halt = Integer(halt)
         if names is None:
             raise TypeError, "You must specify the name of the generator."
         if isinstance(names, (list, tuple)):
             names = names[0]
-        if not isinstance(prec, (int, long, Integer)):
-            raise TypeError, "prec must be an integer"
-        elif isinstance(prec, (int, long)):
-            prec = Integer(prec)
         if not (modulus is None or isinstance(modulus, Polynomial)):
             raise TypeError, "modulus must be a polynomial"
         if not isinstance(names, str):
             raise TypeError, "names must be a string"
-        if not isinstance(halt, (int, long, Integer)):
-            raise TypeError, "halt must be an integer"
-        elif isinstance(halt, (int, long)):
-            halt = Integer(halt)
 
     q = Integer(q)
     F = q.factor()
@@ -181,20 +177,20 @@ def Qq(q, prec = 20, type = 'capped-rel', modulus = None, names=None, print_mode
 # Short constructor names for different types
 ######################################################
 
-def QpCR(p, prec = 20, print_mode = None, halt = 40, check=True):
+def QpCR(p, prec = twenty, print_mode = None, halt = forty, check=True):
     return Qp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-rel')
 
-def QpL(p, prec = 20, print_mode = None, halt = 40, check=True):
+def QpL(p, prec = twenty, print_mode = None, halt = forty, check=True):
     return Qp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'lazy')
 
 
-def QqCR(p, prec = 20, print_mode = None, halt = 40, check=True):
+def QqCR(p, prec = twenty, print_mode = None, halt = forty, check=True):
     return Qq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-rel')
 
-def QqL(p, prec = 20, print_mode = None, halt = 40, check=True):
+def QqL(p, prec = twenty, print_mode = None, halt = forty, check=True):
     return Qq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'lazy')
 
@@ -208,7 +204,7 @@ def QqL(p, prec = 20, print_mode = None, halt = 40, check=True):
 #######################################################################################################
 
 padic_ring_cache = {}
-def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, names = None, check=True):
+def Zp(p, prec = twenty, type = 'capped-rel', print_mode = None, halt = forty, names = None, check=True):
     """
     Return a model of the $p$-adic integer $\Z_p$.
 
@@ -222,6 +218,7 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, names = 
                 below for options.
         halt -- integer (default: 40): only applicable for type='lazy'
         check -- bool (default: True): wether to verify that the input is valid.
+                 Non-prime p may cause seg-faults (but can also be useful for base n expansions for example)
 
     OUTPUT:
         the corresponding p-adic ring
@@ -289,6 +286,10 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, names = 
         sage: a + b
         1 + 5 + O(5^10)
 
+    We allow non-prime p, but only if check = False.  Note that some features will not work.
+        sage: K = Qp(15, check=False); a = K(999); a
+        9 + 6*15 + 4*15^2 + O(15^20)
+
     NOTES:
        type -- string (default: 'capped-rel'), the type of p-adic ring.
 
@@ -320,17 +321,14 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, names = 
         For more details and more control, see sage.rings.padics.padic_printing or look at padic_printing.<tab> from the command line.
     """
     if check:
-        p = Integer(p)
+        if not isinstance(p, Integer):
+            p = Integer(p)
+        if not isinstance(prec, Integer):
+            prec = Integer(prec)
+        if not isinstance(halt, Integer):
+            halt = Integer(halt)
         if not p.is_prime():
             raise ValueError, "p must be prime"
-        if not isinstance(prec, (int, long, Integer)):
-            raise TypeError, "prec must be an integer"
-        elif isinstance(prec, (int, long)):
-            prec = Integer(prec)
-        if not isinstance(halt, (int, long, Integer)):
-            raise TypeError, "prec must be an integer"
-        elif isinstance(halt, (int, long)):
-            halt = Integer(halt)
     if names is None:
         name = str(p)
     elif isinstance(names, tuple):
@@ -363,8 +361,8 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, names = 
 # Zq -- unramified extensions
 ######################################################
 
-def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
-          print_mode=None, halt = 40, zp_name = None, check = True):
+def Zq(q, prec = twenty, type = 'capped-abs', modulus = None, names=None,
+          print_mode=None, halt = forty, zp_name = None, check = True):
     r"""
     Return an unramified extension of $\Z_p$.
 
@@ -392,23 +390,21 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
         (2 + O(3^20))*x^4 + (1 + O(3^20))*x + (2 + O(3^20))
     """
     if check:
+        if not isinstance(q, Integer):
+            q = Integer(q)
+        if not isinstance(prec, Integer):
+            prec = Integer(prec)
+        if not isinstance(halt, Integer):
+            halt = Integer(halt)
         if names is None:
             raise TypeError, "You must specify the name of the generator."
         if isinstance(names, (list, tuple)):
             names = names[0]
-        if not isinstance(prec, (int, long, Integer)):
-            raise TypeError, "prec must be an integer"
-        elif isinstance(prec, (int, long)):
-            prec = Integer(prec)
         if not (modulus is None or isinstance(modulus, Polynomial)):
             raise TypeError, "modulus must be a polynomial"
         if not isinstance(names, str):
             names = str(names)
             #raise TypeError, "names must be a string"
-        if not isinstance(halt, (int, long, Integer)):
-            raise TypeError, "halt must be an integer"
-        elif isinstance(halt, (int, long)):
-            halt = Integer(halt)
     q = Integer(q)
     F = q.factor()
     if len(F) != 1:
@@ -427,36 +423,36 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
 # Short constructor names for different types
 ######################################################
 
-def ZpCR(p, prec = 20, print_mode = None, halt = 40, check=True):
+def ZpCR(p, prec = twenty, print_mode = None, halt = forty, check=True):
     return Zp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-rel')
 
-def ZpCA(p, prec = 20, print_mode = None, halt = 40, check=True):
+def ZpCA(p, prec = twenty, print_mode = None, halt = forty, check=True):
     return Zp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-abs')
 
-def ZpFM(p, prec = 20, print_mode = None, halt = 40, check=True):
+def ZpFM(p, prec = twenty, print_mode = None, halt = forty, check=True):
     return Zp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'fixed-mod')
 
-def ZpL(p, prec = 20, print_mode = None, halt = 40, check=True):
+def ZpL(p, prec = twenty, print_mode = None, halt = forty, check=True):
     return Zp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
               type = 'lazy')
 
 
-def ZqCR(q, prec = 20, modulus = None, names = None, print_mode = 'series', halt = 40, zp_name = None, check=True):
+def ZqCR(q, prec = twenty, modulus = None, names = None, print_mode = 'series', halt = forty, zp_name = None, check=True):
     return Zq(q=q, prec=prec, modulus = modulus, names = names, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-rel')
 
-def ZqCA(q, prec = 20, modulus = None, names = None, print_mode = 'series', halt = 40, zp_name = None, check=True):
+def ZqCA(q, prec = twenty, modulus = None, names = None, print_mode = 'series', halt = forty, zp_name = None, check=True):
     return Zq(q=q, prec=prec, modulus = modulus, names = names, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-abs')
 
-def ZqFM(q, prec = 20, modulus = None, names = None, print_mode = 'series', halt = 40, zp_name = None, check=True):
+def ZqFM(q, prec = twenty, modulus = None, names = None, print_mode = 'series', halt = forty, zp_name = None, check=True):
     return Zq(q=q, prec=prec, modulus = modulus, names = names, print_mode=print_mode, halt=halt, check=check,
               type = 'fixed-mod')
 
-def ZqL(q, prec = 20, modulus = None, names = None, print_mode = 'series', halt = 40, zp_name = None, check=True):
+def ZqL(q, prec = twenty, modulus = None, names = None, print_mode = 'series', halt = forty, zp_name = None, check=True):
     return Zq(q=q, prec=prec, modulus = modulus, names = names, print_mode=print_mode, halt=halt, check=check,
               type = 'lazy')
 

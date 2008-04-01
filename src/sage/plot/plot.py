@@ -2016,7 +2016,7 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
             from matplotlib.colors import LinearSegmentedColormap as C
             possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
                                        isinstance(cm.__dict__[x], C)])
-            print "The possible color maps include: %s"%possibilities
+            sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level = 0)
             raise RuntimeError, "Color map %s not known"%cmap
 
         x0,x1 = float(self.xrange[0]), float(self.xrange[1])
@@ -2068,7 +2068,7 @@ class GraphicPrimitive_MatrixPlot(GraphicPrimitive):
             from matplotlib.colors import LinearSegmentedColormap as C
             possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
                                        isinstance(cm.__dict__[x], C)])
-            print "The possible color maps include: %s"%possibilities
+            sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level=0)
             raise RuntimeError, "Color map %s not known"%cmap
 
         subplot.imshow(self.xy_data_array, cmap=cmap, interpolation='nearest', extent=(0,self.xrange[1],0,self.yrange[1]))
@@ -2110,7 +2110,7 @@ class GraphicPrimitive_PlotField(GraphicPrimitive):
             from matplotlib.colors import LinearSegmentedColormap as C
             possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
                                        isinstance(cm.__dict__[x], C)])
-            print "The possible color maps include: %s"%possibilities
+            sage.misc.misc.verbose("The possible color maps include: %s"%possibilities, level=0)
             raise RuntimeError, "Color map %s not known"%cmap
         subplot.quiver(self.xpos_array, self.ypos_array, self.xvec_array, self.yvec_array)
 
@@ -3177,21 +3177,22 @@ class PlotFieldFactory(GraphicPrimitiveFactory_plot_field):
     and plots vector arrows of the function over the specified
     xrange and yrange as demonstrated below.
 
-    plot_vector_field((f, g), (xmin, xmax), (ymin, ymax))
+    plot_vector_field((f, g), (xvar, xmin, xmax), (yvar, ymin, ymax))
 
     EXAMPLES:
+    Plot the vector fields involving sin and cos
         sage: x,y = var('x y')
-
-    Plot the vector field of sin and cos:
-        sage: plot_vector_field((lambda x,y:sin(x), lambda x,y:cos(y)), (-3,3), (-3,3))
-
-        sage: x,y = var('x y')
-        sage: plot_vector_field((lambda x,y: y, lambda x,y: (cos(x)-2)*sin(x)),(-pi,pi),(-pi,pi))
+        sage: plot_vector_field((sin(x), cos(y)), (x,-3,3), (y,-3,3))
+        sage: plot_vector_field(( y, (cos(x)-2)*sin(x)), (x,-pi,pi), (y,-pi,pi))
 
     Plot a gradient field
-        sage: f(x,y) = exp(-(x^2+y^2))
-        sage: grad_f = [diff(f,var) for var in (x,y)]
-        sage: plot_vector_field(grad_f, (-2,2), (-2,2))
+        sage: u,v = var('u v')
+        sage: f = exp(-(u^2+v^2))
+        sage: plot_vector_field(f.gradient(), (u,-2,2), (v,-2,2))
+
+
+    TESTS:
+        sage: plot_vector_field((lambda x,y: .01*x,x+y), (-10,10), (-10,10))
 
     """
     def _reset(self):
@@ -3201,6 +3202,9 @@ class PlotFieldFactory(GraphicPrimitiveFactory_plot_field):
         return "type plot_vector_field? for help and examples"
 
     def _from_xdata_ydata(self, xpos_array, ypos_array, xvec_array, yvec_array, xrange, yrange, options):
+        import numpy
+        xvec_array = numpy.array(xvec_array, dtype=float)
+        yvec_array = numpy.array(yvec_array, dtype=float)
         g = Graphics()
         g._plot_field(xpos_array, ypos_array, xvec_array, yvec_array, xrange, yrange, options)
         return g
@@ -3471,7 +3475,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         sage: plot([sin(n*x) for n in [1..4]], (0, pi))
 
 
-    The function $\sin(1/x)$ wiggles wildtly near $0$, so the
+    The function $\sin(1/x)$ wiggles wildly near $0$, so the
     first plot below won't look perfect.  Sage adapts to this
     and plots extra points near the origin.
         sage: plot(sin(1/x), (x, -1, 1))
@@ -3502,6 +3506,18 @@ class PlotFactory(GraphicPrimitiveFactory):
     We can change the line style to one of '--' (dashed), '-.' (dash dot),
     '-' (solid), 'steps', ':' (dotted):
         sage: plot(sin(x), 0, 10, linestyle='-.')
+
+    Sage currently ignores points that cannot be evaluated
+        sage: plot(-x*log(x), (x,0,1))  # this works fine since the failed endpoint is just skipped.
+
+    This prints out a warning and plots where it can (we turn off the warning by setting
+    the verbose mode temporarily to -1.)
+        sage: set_verbose(-1)
+        sage: plot(x^(1/3), (x,-1,1))
+        sage: set_verbose(0)
+
+    To plot the negative real cube root, use something like the following.
+        sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1) )
 
     TESTS:
     We do not randomize the endpoints:
@@ -3546,13 +3562,13 @@ class PlotFactory(GraphicPrimitiveFactory):
             elif n == 1:
                 G = self._call(funcs, *args, **kwds)
             elif n == 2:
-            # if ther eare two extra args, then pull them out and pass them as a tuple
+            # if there are two extra args, then pull them out and pass them as a tuple
                 xmin = args[0]
                 xmax = args[1]
                 args = args[2:]
                 G = self._call(funcs, (xmin, xmax), *args, **kwds)
             else:
-                print "there were %s extra arguments (besides %s)" % (n, funcs)
+                sage.misc.misc.verbose("there were %s extra arguments (besides %s)" % (n, funcs), level=0)
         if do_show:
             G.show()
         return G
@@ -3600,6 +3616,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         dd = delta
 
         exceptions = 0; msg=''
+        exception_indices = []
         for i in range(plot_points):
             xi = xmin + i*delta
             # Slightly randomize the interior sample points if
@@ -3613,11 +3630,12 @@ class PlotFactory(GraphicPrimitiveFactory):
                 xi = xmax  # guarantee that we get the last point.
 
             try:
-                y = f(xi)
-                data[i] = (float (xi), float(y))
-            except (ZeroDivisionError, TypeError, ValueError), msg:
+                data[i] = (float(xi), float(f(xi)))
+            except (ZeroDivisionError, TypeError, ValueError,OverflowError), msg:
                 sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                 exceptions += 1
+                exception_indices.append(i)
+        data = [data[i] for i in range(len(data)) if i not in exception_indices]
 
         # adaptive refinement
         i, j = 0, 0
@@ -3641,8 +3659,8 @@ class PlotFactory(GraphicPrimitiveFactory):
                 i += 1
 
         if (len(data) == 0 and exceptions > 0) or exceptions > 10:
-            print "WARNING: When plotting, failed to evaluate function at %s points."%exceptions
-            print "Last error message: '%s'"%msg
+            sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points."%exceptions, level=0)
+            sage.misc.misc.verbose("Last error message: '%s'"%msg, level=0)
         if parametric:
             data = [(fdata, g(x)) for x, fdata in data]
         if polar:
@@ -3857,7 +3875,8 @@ def networkx_plot(graph, pos=None, vertex_labels=True, vertex_size=300, vertex_c
         ...    for i in range(5):
         ...        if u[i] != v[i]:
         ...            edge_colors[R[i]].append((u,v,l))
-        sage: networkx_plot(C._nxg, pos=C.get_pos(), edge_colors=edge_colors, vertex_labels=False, vertex_size=0)
+        sage: networkx_plot(C.networkx_graph(), pos=C.get_pos(), edge_colors=edge_colors, vertex_labels=False, vertex_size=0)
+
     """
     g = Graphics()
     NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, \

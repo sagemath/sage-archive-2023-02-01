@@ -68,6 +68,7 @@ ORGANIZATION:
             - FlowerSnark
             - FruchtGraph
             - HeawoodGraph
+            - HoffmanSingletonGraph
             - MoebiusKantorGraph
             - Pappus Graph
             - PetersenGraph
@@ -176,6 +177,7 @@ class GraphGenerators():
             - FlowerSnark
             - FruchtGraph
             - HeawoodGraph
+            - HoffmanSingletonGraph
             - MoebiusKantorGraph
             - PappusGraph
             - PetersenGraph
@@ -1517,6 +1519,89 @@ class GraphGenerators():
         import networkx
         G = networkx.heawood_graph()
         return graph.Graph(G, pos=pos_dict, name="Heawood graph")
+
+    def HoffmanSingletonGraph(self):
+        r"""
+        Returns the Hoffman-Singleton graph.
+
+        The Hoffman-Singleton graph is the Moore graph of degree 7, diameter 2
+        and girth 5. The Hoffman-Singleton theorem states that any Moore graph
+        with girth 5 must have degree 2, 3, 7 or 57. The first three respectively
+        are the pentagon, the Petersen graph, and the Hoffman-Singleton graph.
+        The existence of a Moore graph with girth 5 and degree 57 is still open.
+
+        A Moore graph is a graph with diameter $d$ and girth $2d + 1$. This
+        implies that the graph is regular, and distance regular.
+
+        PLOTTING:
+        Upon construction, the position dictionary is filled to override the
+        spring-layout algorithm.  A novel algorithm written by Tom Boothby gives
+        a random layout which is pleasing to the eye.
+
+        REFERENCES:
+            [1] Godsil, C. and Royle, G. Algebraic Graph Theory. Springer, 2001.
+
+        EXAMPLES:
+            sage: HS = graphs.HoffmanSingletonGraph()
+            sage: Set(HS.degree())
+            {7}
+            sage: HS.girth()
+            5
+            sage: HS.diameter()
+            2
+            sage: HS.num_verts()
+            50
+
+        """
+        H = graph.Graph({ \
+        'q00':['q01'], 'q01':['q02'], 'q02':['q03'], 'q03':['q04'], 'q04':['q00'], \
+        'q10':['q11'], 'q11':['q12'], 'q12':['q13'], 'q13':['q14'], 'q14':['q10'], \
+        'q20':['q21'], 'q21':['q22'], 'q22':['q23'], 'q23':['q24'], 'q24':['q20'], \
+        'q30':['q31'], 'q31':['q32'], 'q32':['q33'], 'q33':['q34'], 'q34':['q30'], \
+        'q40':['q41'], 'q41':['q42'], 'q42':['q43'], 'q43':['q44'], 'q44':['q40'], \
+        'p00':['p02'], 'p02':['p04'], 'p04':['p01'], 'p01':['p03'], 'p03':['p00'], \
+        'p10':['p12'], 'p12':['p14'], 'p14':['p11'], 'p11':['p13'], 'p13':['p10'], \
+        'p20':['p22'], 'p22':['p24'], 'p24':['p21'], 'p21':['p23'], 'p23':['p20'], \
+        'p30':['p32'], 'p32':['p34'], 'p34':['p31'], 'p31':['p33'], 'p33':['p30'], \
+        'p40':['p42'], 'p42':['p44'], 'p44':['p41'], 'p41':['p43'], 'p43':['p40']} )
+        for j in range(5):
+            for i in range(5):
+                for k in range(5):
+                    con = (i+j*k)%5
+                    H.add_edge(('q%d%d'%(k,con),'p%d%d'%(j,i)))
+        H.name('Hoffman-Singleton graph')
+        from sage.combinat.combinat import permutations
+        from random import randint
+        P = permutations([1,2,3,4])
+        qpp = [0]+P[randint(0,23)]
+        ppp = [0]+P[randint(0,23)]
+        def qcycle(i,s):
+            return ['q%s%s'%(i,(j+s)%5) for j in qpp]
+        def pcycle(i,s):
+            return ['p%s%s'%(i,(j+s)%5) for j in ppp]
+        l = 0
+        s = 0
+        D = []
+        while l < 5:
+            for q in qcycle(l,s):
+                D.append(q)
+            vv = 'p%s'%q[1]
+            s = int([v[-1] for v in H.neighbors(q) if v[:2] == vv][0])
+            for p in pcycle(l,s):
+                D.append(p)
+            vv = 'q%s'%(int(p[1])+1)
+            v = [v[-1] for v in H.neighbors(p) if v[:2] == vv]
+            if len(v):
+                s = int(v[0])
+            l+=1
+        map = H.relabel(return_map=True)
+        pos_dict = {}
+        for i in range(50):
+            x = float(cos((pi/2) + ((2*pi)/50)*i))
+            y = float(sin((pi/2) + ((2*pi)/50)*i))
+            pos_dict[map[D[i]]] = [x,y]
+        H.set_pos(pos_dict)
+        return H
 
     def MoebiusKantorGraph(self):
         """

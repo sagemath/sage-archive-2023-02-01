@@ -1767,19 +1767,19 @@ cdef class PartitionStack:
             sage: B = BinaryCode(M)
             sage: P = PartitionStack(4, 8)
             sage: P._refine(1, [[0,0],[1,0]], B)
-            177
+            181
             sage: P._split_vertex(0, 2)
             0
             sage: P._refine(2, [[0,0]], B)
-            289
+            290
             sage: P._split_vertex(1, 3)
             1
             sage: P._refine(3, [[0,1]], B)
-            462
+            463
             sage: P._split_vertex(2, 4)
             2
             sage: P._refine(4, [[0,2]], B)
-            1498
+            1500
             sage: P._split_vertex(3, 5)
             3
             sage: P._refine(5, [[0,3]], B)
@@ -1787,7 +1787,7 @@ cdef class PartitionStack:
             sage: P._split_vertex(4, 6)
             4
             sage: P._refine(6, [[0,4]], B)
-            1218
+            1224
             sage: P._is_discrete(5)
             0
             sage: P._is_discrete(6)
@@ -1848,7 +1848,7 @@ cdef class PartitionStack:
 #                        print 's'
                         invariant += 8
                         t = self.sort_cols(j, k)
-                        invariant += t + self_col_degs[i-j-1]
+                        invariant += t
                         q = m
                         while q < alpha_length:
                             if alpha[q] == j:
@@ -1863,6 +1863,7 @@ cdef class PartitionStack:
                                     alpha_length += 1
                             r += 1
                             if r >= i: break
+                        invariant += self.col_degree(CG, self_col_ents[i-1], alpha[m]^flag, k)
                         invariant += (i-j)
                     j = i
             else:
@@ -1882,7 +1883,7 @@ cdef class PartitionStack:
                     if s:
                         invariant += 64
                         t_w = self.sort_wds(j, k)
-                        invariant += t_w + self_wd_degs[i-j-1]
+                        invariant += t_w
                         q = m
                         j ^= flag
                         while q < alpha_length:
@@ -1899,6 +1900,7 @@ cdef class PartitionStack:
                                     alpha_length += 1
                             r += 1
                             if r >= i: break
+                        invariant += self.wd_degree(CG, self_wd_ents[i-1], alpha[m], k, ham_wts)
                         invariant += (i-j)
                     j = i
             m += 1
@@ -1956,23 +1958,23 @@ cdef class PartitionStack:
             sage: B = BinaryCode(M)
             sage: P = PartitionStack(4, 8)
             sage: P._refine(0, [[0,0],[1,0]], B)
-            177
+            181
             sage: P._split_vertex(0, 1)
             0
             sage: P._refine(1, [[0,0]], B)
-            289
+            290
             sage: P._split_vertex(1, 2)
             1
             sage: P._refine(2, [[0,1]], B)
-            462
+            463
             sage: P._split_vertex(2, 3)
             2
             sage: P._refine(3, [[0,2]], B)
-            1498
+            1500
             sage: P._split_vertex(4, 4)
             4
             sage: P._refine(4, [[0,4]], B)
-            1218
+            1224
             sage: P._is_discrete(4)
             1
             sage: Q = PartitionStack(P)
@@ -1980,7 +1982,7 @@ cdef class PartitionStack:
             sage: Q._split_vertex(5, 4)
             4
             sage: Q._refine(4, [[0,4]], B)
-            1219
+            1224
             sage: Q._is_discrete(4)
             1
             sage: Q._cmp(P, B)
@@ -2091,23 +2093,23 @@ cdef class PartitionStack:
             sage: B = BinaryCode(M)
             sage: P = PartitionStack(4, 8)
             sage: P._refine(0, [[0,0],[1,0]], B)
-            177
+            181
             sage: P._split_vertex(0, 1)
             0
             sage: P._refine(1, [[0,0]], B)
-            289
+            290
             sage: P._split_vertex(1, 2)
             1
             sage: P._refine(2, [[0,1]], B)
-            462
+            463
             sage: P._split_vertex(2, 3)
             2
             sage: P._refine(3, [[0,2]], B)
-            1498
+            1500
             sage: P._split_vertex(4, 4)
             4
             sage: P._refine(4, [[0,4]], B)
-            1218
+            1224
             sage: P._is_discrete(4)
             1
             sage: Q = PartitionStack(P)
@@ -2115,7 +2117,7 @@ cdef class PartitionStack:
             sage: Q._split_vertex(5, 4)
             4
             sage: Q._refine(4, [[0,4]], B)
-            1219
+            1224
             sage: Q._is_discrete(4)
             1
             sage: P._get_permutation(Q)

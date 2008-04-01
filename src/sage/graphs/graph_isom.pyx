@@ -53,7 +53,7 @@ NOTE:
 
 from sage.graphs.graph import GenericGraph, Graph, DiGraph
 from sage.misc.misc import cputime
-from sage.rings.integer import Integer
+from sage.rings.integer cimport Integer
 
 cdef class OrbitPartition:
     """
@@ -630,7 +630,7 @@ cdef class PartitionStack:
                     invariant += 10
                     t = self._sort_by_function(j, degrees, n)
                     # t now points to the first largest subcell
-                    invariant += t + degrees[i - j - 1]
+                    invariant += t
                     s = m
                     while alpha[s] != -1:
                         if alpha[s] == j:
@@ -647,6 +647,7 @@ cdef class PartitionStack:
                         r += 1
                         if r >= i: break
                     alpha[s] = -1
+                    invariant += self._degree(G, i-1, alpha[m])
                     invariant += (i - j)
                     j = i
                 else: j = i
@@ -675,7 +676,7 @@ cdef class PartitionStack:
                     invariant += 7
                     t = self._sort_by_function(j, degrees, n)
                     # t now points to the first largest subcell
-                    invariant += t + degrees[i - j - 1]
+                    invariant += t
                     s = m
                     while alpha[s] != -1:
                         if alpha[s] == j:
@@ -692,6 +693,7 @@ cdef class PartitionStack:
                         r += 1
                         if r >= i: break
                     alpha[s] = -1
+                    invariant += self._degree(G, i-1, alpha[m])
                     invariant += (i - j)
                     j = i
                 else: j = i
@@ -869,6 +871,17 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
     function (states 1 and 2).
 
     EXAMPLES:
+    The following example is due to Chris Godsil:
+        sage: HS = graphs.HoffmanSingletonGraph()
+        sage: clqs = (HS.complement()).cliques()
+        sage: alqs = [Set(c) for c in clqs if len(c) == 15]
+        sage: Y = Graph([alqs, lambda s,t: len(s.intersection(t))==0])
+        sage: Y0,Y1 = Y.connected_components_subgraphs()
+        sage: Y0.is_isomorphic(Y1)
+        True
+        sage: Y0.is_isomorphic(HS)
+        True
+
         sage: import sage.graphs.graph_isom
         sage: from sage.graphs.graph_isom import search_tree
         sage: from sage.graphs.base.sparse_graph import SparseGraph
@@ -1311,7 +1324,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
                     # rho[hb] == nu[hb], rho[hb+1] != nu[hb+1]
     cdef int hh = 1 # the height of the oldest ancestor of nu
                     # satisfying Lemma 2.25 in [1]
-    cdef int ht # smallest such that all descendants of zeta[ht] are equivalent
+    cdef int ht # smallest such that all descendants of zeta[ht]
+                # are known to be equivalent
 
     cdef mpz_t *Lambda_mpz, *zf_mpz, *zb_mpz # for tracking indicator values
     # zf and zb are indicator vectors remembering Lambda[k] for zeta and rho,
@@ -1466,6 +1480,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
             print '-----'
             print 'k: ' + str(nu.k)
             print 'k_rho: ' + str(k_rho)
+            print 'hh', hh
             print 'nu:'
             print nu
             if verbosity >= 2:
@@ -1517,7 +1532,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
                         ST_vis_heights[nu.k].append(nu.repr_at_k(nu.k))
                     else:
                         ST_vis_heights[nu.k] = [nu.repr_at_k(nu.k)]
-                    ST_vis.add_edge(ST_vis_current_vertex, nu.repr_at_k(nu.k), ST_vis_invariant)
+                    ST_vis.add_edge(ST_vis_current_vertex, nu.repr_at_k(nu.k), '%d,%d'%(ST_vis_splitvert, ST_vis_invariant))
                     ST_vis_current_vertex = nu.repr_at_k(nu.k)
                     ST_vis_current_level += 1
                 if state == 13 and nu.k == -1:
@@ -1563,6 +1578,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
             i = nu._refine(alpha, n, M, _dig, uif)
             if verbosity >= 5:
                 ST_vis_invariant = int(i)
+                ST_vis_splitvert = int(v[nu.k-1])
 
             mpz_set_si(Lambda_mpz[nu.k], i)
 
@@ -1769,32 +1785,38 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
             # record the automorphism
             output.append([ Integer(gamma[i]) for i from 0 <= i < n ])
 
-            # The variable tvh was set to be the minimum element of W[k]
-            # the last time we were at state 13 and at a node descending to
-            # zeta. If this is a minimal cell representative of Theta and
-            # we are searching for a canonical label, goto state 11, i.e.
-            # backtrack to the common ancestor of rho and nu, then goto state
-            # 12, i.e. consider whether we still need to search downward from
-            # there. TODO: explain why
-            if Theta.elements[tvh] == -1 and lab: ## added "and lab"
+            # The variable tvh represents the minimum element of W[k],
+            # the last time we were at state 13 and backtracking up
+            # zeta. If this is not still a minimal cell representative of Theta,
+            # then we need to immediately backtrack to the place where it was
+            # defined on a part of zeta, since the rest of the tree is now
+            # equivalent. Otherwise, proceed to 11 and 12 before moving back to
+            # the hub state.
+            if Theta.elements[tvh] == -1:
                 state = 11
                 continue
             nu.k = h
             state = 13
 
-        elif state == 11: # if we are searching for a label, backtrack to the
-                          # common ancestor of nu and rho
-            nu.k = hb
+        elif state == 11: # we have just discovered an automorphism,
+                          # but tvh is still a minimal representative for its
+                          # orbit in Theta. Therefore we cannot backtrack all
+                          # the way to where zeta meets nu. Instead we just use
+                          # indicator values to determine where to backtrack.
+            if lab:
+                nu.k = hb
+            else:
+                nu.k = h
             state = 12
 
-        elif state == 12: # we are looking at a branch we may have to continue
-                          # to search downward on
-            # e keeps track of the motion through the search tree. It is set to
-            # 1 when you have just finished coming up the search tree, and are
-            # at a node in the tree for which there may be more branches left
-            # to explore. In this case, intersect W[k] with Omega[l], since
-            # there may be an automorphism mapping one element of W[k] to
-            # another, hence only one must be investigated.
+        elif state == 12:
+            # e keeps track of the whether W[k] has been thinned out by Omega
+            # and Phi. It is set to 1 when you have just finished coming up the
+            # search tree, and have intersected W[k] with Omega[i], for the
+            # appropriate i < l, but since there may be an automorphism mapping
+            # one element of W[k] to another still, we thin out W[k] again.
+            # (see state 17) Coming from 11, this is an explicit automorphism.
+            # Coming from 6, this is an implicit automorphism.
             if e[nu.k] == 1:
                 for j from 0 <= j < n:
                     if W[nu.k][j] and not Omega[l][j]:
@@ -1809,8 +1831,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
                 # if we are not at a node of zeta
                 state = 17; continue
             if nu.k == h:
-                # if we are at a node of zeta, then state 14 can rule out
-                # vertices to consider
+                # if we are at a node of zeta, then we have not yet backtracked
+                # UP zeta, so skip the rest of 13
                 state = 14; continue
 
             # thus, it must be that k < h, and this means we are done
@@ -1827,9 +1849,11 @@ def search_tree(G, Pi, lab=True, dig=False, dict_rep=False, certify=False,
             state = 14
 
         elif state == 14: # iterate v[k] through W[k] until a minimum cell rep
-                          # of Theta is found
+                          # of Theta is found:
+                          # this state gets hit only when we are looking for a
+                          # new split off of zeta
             # The variable tvh was set to be the minimum element of W[k]
-            # the last time we were at state 13 and at a node descending to
+            # the last time we were at state 13 and backtracking up
             # zeta. If this is in the same cell of Theta as v[k], increment
             # index (see Theorem 2.33 in [1])
             if Theta._find(v[nu.k]) == Theta._find(tvh):

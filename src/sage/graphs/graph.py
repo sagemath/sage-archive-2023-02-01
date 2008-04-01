@@ -5270,6 +5270,7 @@ class GenericGraph(SageObject):
             sage: G.show()
 
         """
+        kwds.setdefault('figsize', [4,4])
         self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels,
                   edge_labels=edge_labels, vertex_size=vertex_size,
                   vertex_colors=vertex_colors, edge_colors=edge_colors,

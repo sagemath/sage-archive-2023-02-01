@@ -6,6 +6,8 @@ fi
 echo "Starting Debian build"
 unset LD_LIBRARY_PATH
 unset LIBRARY_PATH
+unset PYTHONPATH
+unset PYTHONHOME
 mv dist/debian src/
 sage-debsource src/
 sage-sbuildhack "$DEBIAN_RELEASE" *.dsc
@@ -15,6 +17,5 @@ if [ -n "$SAGE_REPO" ]; then
     reprepro --ignore=wrongdistribution -b "$SAGE_REPO" include "$DISTRO" *_source.changes
     reprepro --ignore=wrongdistribution -b "$SAGE_REPO" include "$DISTRO" *_"$ARCHITECTURE.changes"
 fi
-#mkdir -p $SAGE_ROOT/..
 mv *.dsc *.changes *.build *.deb *.tar.gz *.diff.gz "$SAGE_ROOT/.."
 echo "Debian Build complete"

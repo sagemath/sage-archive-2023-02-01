@@ -199,6 +199,7 @@ cdef extern from "ntl_wrap.h":
     ZZ_c ZZX_ConstTerm "ConstTerm"(ZZX_c x)
     ZZ_c ZZX_coeff "coeff"(ZZX_c a, long i)
     void ZZX_SetCoeff "SetCoeff"(ZZX_c x, long i, ZZ_c a)
+    void ZZX_SetCoeff_long "SetCoeff"(ZZX_c x, long i, long a)
     long IsZero_ZZX "IsZero"(ZZX_c a)
     # f must be monic!
     void ZZX_MulMod "MulMod"(ZZX_c x, ZZX_c a, ZZX_c b, ZZX_c f)

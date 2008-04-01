@@ -130,6 +130,10 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
 
+        cdef Py_ssize_t degree
+        cdef Py_ssize_t i
+        cdef ZZ_c y
+
         if x is None:
             return         # leave initialized to 0 polynomial.
 
@@ -144,7 +148,25 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
                 check = False
 
         elif isinstance(x, dict):
-            x = self._dict_to_list(x, ZZ(0))
+            x = x.items()
+            degree = 0
+            # find max degree to allocate only once
+            for i, a in x:
+                if i < 0:
+                    raise ValueError, "Negative monomial degrees not allowed: %s" % i
+                elif i > degree:
+                    degree = i
+            ZZX_SetCoeff_long(self.__poly, degree, 1)
+            # now fill them in
+            for i, a in x:
+                if PY_TYPE_CHECK_EXACT(a, int):
+                    ZZX_SetCoeff_long(self.__poly, i, a)
+                else:
+                    if not PY_TYPE_CHECK(a, Integer):
+                        a = ZZ(a)
+                    mpz_to_ZZ(&y, &(<Integer>a).value)
+                    ZZX_SetCoeff(self.__poly, i, y)
+            return
 
         elif isinstance(x, pari_gen):
             x = [Integer(w) for w in x.Vecrev()]
@@ -165,15 +187,15 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         elif not isinstance(x, list):
             x = [x]   # constant polynomials
 
-        if check:
-            x = [Integer(z) for z in x]
-
-        cdef Py_ssize_t i
-        cdef ZZ_c y
-
         for i from 0 <= i < len(x):
-            mpz_to_ZZ(&y, &(<Integer>x[i]).value)
-            ZZX_SetCoeff(self.__poly, i, y)
+            a = x[i]
+            if PY_TYPE_CHECK_EXACT(a, int):
+                ZZX_SetCoeff_long(self.__poly, i, a)
+            else:
+                if not PY_TYPE_CHECK(a, Integer):
+                    a = ZZ(a)
+                mpz_to_ZZ(&y, &(<Integer>a).value)
+                ZZX_SetCoeff(self.__poly, i, y)
 
 
     def content(self):

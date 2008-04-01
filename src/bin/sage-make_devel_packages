@@ -171,6 +171,7 @@ cp -pr $SAGE_ROOT/ipython $SCRIPTS/
 cp -pr $SAGE_ROOT/matplotlibrc $SCRIPTS/
 cp -p $SAGE_ROOT/spkg/install $SCRIPTS/
 cp -p $SAGE_ROOT/local/bin/sage-spkg-install $SCRIPTS/spkg-install
+cp -p $SAGE_ROOT/local/bin/SbuildHack.pm $SCRIPTS/
 
 chmod +x $SCRIPTS/spkg-install
 tar -jcvf $SCRIPTS.spkg $SCRIPTS

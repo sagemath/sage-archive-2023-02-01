@@ -3929,12 +3929,33 @@ class GenericGraph(SageObject):
             sage: ug.all_paths(0,3)
             [[0, 1, 3], [0, 2, 3], [0, 3]]
         """
-        all_paths = []
         if self.is_directed():
-          paths_helper(start, end, self, all_paths, directed=True)
+            iterator=self.successor_iterator
         else:
-          paths_helper(start, end, self, all_paths, directed=False)
+            iterator=self.neighbor_iterator
+        all_paths = []      # list of
+        act_path = []       # the current path
+        act_path_iter = []  # the neighbor/successor-iterators of the current path
+        done = False
+        s=start
+        while not done:
+            if s==end:      # if path completes, add to list
+                all_paths.append(act_path+[s])
+            else:
+                if s not in act_path:   # we want vertices just once in a path
+                    act_path.append(s)  # extend current path
+                    act_path_iter.append(iterator(s))  # save the state of the neighbor/successor-iterator of the current vertex
+            s=None
+            while (s is None) and not done:
+                try:
+                    s=act_path_iter[-1].next()  # try to get the next neighbor/successor, ...
+                except (StopIteration):         # ... if there is none ...
+                    act_path.pop()              # ... go one step back
+                    act_path_iter.pop()
+                if len(act_path)==0:            # there is no other vertex ...
+                    done = True                 # ... so we are done
         return all_paths
+
 
     def shortest_path(self, u, v, by_weight=False, bidirectional=True):
         """
@@ -8317,46 +8338,6 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
             TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), vertex_size, 'node_color_%d'%i)
 
     return TT, pos3d
-
-def paths_helper(start, end, G, all_paths, directed=False, p=None):
-    """
-    The recursive helper for path finding calls.  (i.e.: all_paths
-    and interior_paths).  Spawns a potential path for each unvisited
-    neighbor of current vertex and appends all succesful paths to
-    one list.  (Note that paths themselves are lists of vertices).
-
-    INPUT:
-        start -- the vertex to start path search at
-        end -- the vertex to find a path to
-        all_paths -- the list (should initially be empty) to append
-                     all successful paths to
-        directed -- if True the paths move along successors of vertices,
-                    if False the paths consider all neighbors
-        p -- the current path to update (via appending a vertex)
-    """
-
-    if p is None:
-        # ONLY ONCE
-        p = [start]
-
-    plist = []
-    # At each vertex, fill list of spawning paths (i.e. all neighbors or successors respectively)
-    if directed==True:
-      for s in G.successor_iterator(p[-1]):
-          if s not in p:
-              plist.append(p + [s])
-    else:
-      for s in G.neighbor_iterator(p[-1]):
-          if s not in p:
-              plist.append(p + [s])
-
-    # If path completes, add to list
-    if (p[-1] == end):
-        all_paths.append(p)
-
-    # Recursion: (look at all neighbors of all neighbors)
-    for p in plist:
-        paths_helper(start, end, G, all_paths, directed, p)
 
 
 def graph_isom_equivalent_non_multi_graph(g, partition):

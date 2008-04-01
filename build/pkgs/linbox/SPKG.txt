@@ -24,6 +24,10 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.5rc2.p7 (Michael Abshoff, April 1st, 2008) ===
+ * Copyright files for Debian packages (Tim Abbott, #2199)
+ * linbox updates for Debian gfortran transition (Tim Abbott, #2758)
+
 === linbox-1.1.5rc2.p6 (Michael Abshoff, March 22nd, 2008) ===
  * integrate Debian build infrastructure (Tim Abbott, #2647)
  * clean up SPKG.txt

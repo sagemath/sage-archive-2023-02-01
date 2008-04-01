@@ -56,7 +56,7 @@ def det_from_modp_and_divisor(A, d, p, z_mod, moduli):
         sage: factor(a.det())
         -1 * 13 * 29
         sage: d = 13
-        sage: import matrix_integer_dense_hnf
+        sage: import sage.matrix.matrix_integer_dense_hnf as matrix_integer_dense_hnf
         sage: matrix_integer_dense_hnf.det_from_modp_and_divisor(a, d, 97, [], [])
         -377
         sage: a.det()
@@ -262,7 +262,7 @@ def add_column_fallback(B, a, proof):
     EXAMPLES:
         sage: B = matrix(ZZ,3, [-1, -1, 1, -3, 8, -2, -1, -1, -1])
         sage: a = matrix(ZZ,3,1, [1,2,3])
-        sage: import matrix_integer_dense_hnf
+        sage: import sage.matrix.matrix_integer_dense_hnf as matrix_integer_dense_hnf
         sage: matrix_integer_dense_hnf.add_column_fallback(B, a, True)
         [-3]
         [-7]
@@ -607,7 +607,7 @@ def probable_pivot_rows(A):
         a list of integers
 
     EXAMPLES:
-        sage: import matrix_integer_dense_hnf
+        sage: import sage.matrix.matrix_integer_dense_hnf as matrix_integer_dense_hnf
         sage: a = matrix(ZZ,3,[0, -1, -1, 0, -20, 1, 0, 1, 2])
         sage: a
         [  0  -1  -1]
@@ -626,7 +626,7 @@ def probable_pivot_columns(A):
         a list of integers
 
     EXAMPLES:
-        sage: import matrix_integer_dense_hnf
+        sage: import sage.matrix.matrix_integer_dense_hnf as matrix_integer_dense_hnf
         sage: a = matrix(ZZ,3,[0, -1, -1, 0, -20, 1, 0, 1, 2])
         sage: a
         [  0  -1  -1]

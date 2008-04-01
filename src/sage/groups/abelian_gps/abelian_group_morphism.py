@@ -66,7 +66,7 @@ class AbelianGroupMorphism:
         Multiplicative Abelian Group isomorphic to C2 x C3
         sage: x,y = H.gens()
 
-        sage: from abelian_group_morphism import AbelianGroupMorphism
+        sage: from sage.groups.abelian_gps.abelian_group_morphism import AbelianGroupMorphism
         sage: phi = AbelianGroupMorphism(H,G,[x,y],[a,b])
 
     AUTHOR: David Joyner (2-2006)

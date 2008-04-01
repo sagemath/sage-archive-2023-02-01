@@ -86,7 +86,7 @@ class DLXMatrix:
             0001
 
         EXAMPLES:
-            sage: from dlx import *
+            sage: from sage.combinat.dlx import *
             sage: ones = [[1,[1,2,3]]]
             sage: ones+= [[2,[1,3]]]
             sage: ones+= [[3,[2]]]
@@ -115,7 +115,7 @@ class DLXMatrix:
         Returns self.
 
         TESTS:
-            sage: from dlx import *
+            sage: from sage.combinat.dlx import *
             sage: M = DLXMatrix([[1,[1]]])
             sage: print M.__iter__() is M
             True
@@ -129,7 +129,7 @@ class DLXMatrix:
         (not including firstnode).
 
         TESTS:
-            sage: from dlx import *
+            sage: from sage.combinat.dlx import *
             sage: ones = [[1,[1,2,3]]]
             sage: ones+= [[2,[1,3]]]
             sage: ones+= [[3,[2]]]
@@ -163,7 +163,7 @@ class DLXMatrix:
         for the root node and column heads.
 
         TESTS:
-            sage: from dlx import *
+            sage: from sage.combinat.dlx import *
             sage: ones = [[1,[1,2,3]]]
             sage: ones+= [[2,[1,3]]]
             sage: ones+= [[3,[2]]]
@@ -254,7 +254,7 @@ class DLXMatrix:
         This is undone by the uncover operation.
 
         TESTS:
-            sage: from dlx import *
+            sage: from sage.combinat.dlx import *
             sage: M = DLXMatrix([[1,[1,3]],[2,[1,2]],[3,[2]]])
             sage: one = M._nodes[ROOTNODE][RIGHT]
             sage: M._covercolumn(one)
@@ -296,7 +296,7 @@ class DLXMatrix:
         in the reverse order.
 
         TESTS:
-            sage: from dlx import *
+            sage: from sage.combinat.dlx import *
             sage: M = DLXMatrix([[1,[1,3]],[2,[1,2]],[3,[2]]])
             sage: one = M._nodes[ROOTNODE][RIGHT]
             sage: M._covercolumn(one)
@@ -360,7 +360,7 @@ class DLXMatrix:
                 level <- level - 1
 
         TESTS:
-            sage: from dlx import *
+            sage: from sage.combinat.dlx import *
             sage: M = DLXMatrix([[1,[1,2]],[2,[2,3]],[3,[1,3]]])
             sage: while 1:
             ...     try:

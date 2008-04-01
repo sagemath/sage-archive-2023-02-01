@@ -217,6 +217,8 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         else:
             # TODO: There are other weaker hypotheses that imply diagonalizability.
             D = self.hecke_module_morphism().decomposition()
+        D.sort()
+        D.set_immutable()
         self.__decomposition = D
         return D
 

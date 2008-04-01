@@ -40,6 +40,7 @@ AUTHOR:
     - William Stein: initial versions
     - David Joyner (2005-12-17): added examples
     - William Stein (2005-01-07): added __reduce__
+    - Craig Citro (2008-03-18): refactored MatrixMorphism class
 """
 
 
@@ -51,10 +52,10 @@ import sage.modules.free_module as free_module
 from   sage.structure.all import Sequence
 
 def is_MatrixMorphism(x):
-    return isinstance(x, MatrixMorphism)
+    return isinstance(x, MatrixMorphism_abstract)
 
-class MatrixMorphism(sage.categories.all.Morphism):
-    def __init__(self, parent, A):
+class MatrixMorphism_abstract(sage.categories.all.Morphism):
+    def __init__(self, parent):
         """
         INPUT:
             parent -- a homspace
@@ -71,27 +72,10 @@ class MatrixMorphism(sage.categories.all.Morphism):
         """
         if not sage.categories.homset.is_Homset(parent):
             raise TypeError, "parent must be a Hom space"
-        if not matrix.is_Matrix(A):
-            A = matrix.MatrixSpace(parent.category().base_ring(), parent.domain().rank(), parent.codomain().rank())(A)
-        R = A.base_ring()
-        if A.nrows() != parent.domain().rank():
-            raise ArithmeticError, "number of rows of matrix (=%s) must equal rank of domain (=%s)"%(
-                A.nrows(), parent.domain().rank())
-        if A.ncols() != parent.codomain().rank():
-                raise ArithmeticError, "number of columns of matrix (=%s) must equal rank of codomain (=%s)"%(
-                    A.ncols(), parent.codomain().rank())
-        self.__matrix = A
         sage.categories.all.Morphism.__init__(self, parent)
 
-    def _repr_(self):
-        if max(self.__matrix.nrows(),self.__matrix.ncols()) > 5:
-            mat = "(not printing %s x %s matrix)"%(self.__matrix.nrows(), self.__matrix.ncols())
-        else:
-            mat = str(self.__matrix)
-        return "Morphism defined by the matrix\n%s"%mat
-
     def __cmp__(self, other):
-        return cmp(self.__matrix, other.__matrix)
+        return cmp(self.matrix(), other.matrix())
 
     def __call__(self, x):
         """
@@ -141,49 +125,150 @@ class MatrixMorphism(sage.categories.all.Morphism):
         if self.nrows() != self.ncols():
             raise ZeroDivisionError, "Inverse of morphism not defined."%self
         try:
-            B = ~self.__matrix
+            B = ~(self.matrix())
         except ZeroDivisionError:
             raise ZeroDivisionError, "Inverse does not exist."
         return self.parent().reversed()(B)
 
-    def _mul_function(self, other):
-        return other.__matrix * self.__matrix
-
-    def _add_function(self, other):
-        return self.__matrix + other.__matrix
-
-    def _sub_function(self, other):
-        return self.__matrix - other.__matrix
-
     def __rmul__(self, left):
         R = self.base_ring()
-        return self.parent()(R(left) * self.__matrix)
+        return self.parent()(R(left) * self.matrix())
 
     def __mul__(self, right):
+        """
+        Composition of morphisms, denoted by *.
+
+        EXAMPLES:
+            sage: V = QQ**3
+            sage: E = V.endomorphism_ring()
+            sage: phi = E(Matrix(QQ,3,range(9))) ; phi
+            Free module morphism defined by the matrix
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            Domain: Vector space of dimension 3 over Rational Field
+            Codomain: Vector space of dimension 3 over Rational Field
+            sage: phi*phi
+            Free module morphism defined by the matrix
+            [ 15  18  21]
+            [ 42  54  66]
+            [ 69  90 111]
+            Domain: Vector space of dimension 3 over Rational Field
+            Codomain: Vector space of dimension 3 over Rational Field
+            sage: phi.matrix()**2
+            [ 15  18  21]
+            [ 42  54  66]
+            [ 69  90 111]
+
+            sage: W = QQ**4
+            sage: E_VW = V.Hom(W)
+            sage: psi = E_VW(Matrix(QQ,3,4,range(12))) ; psi
+            Free module morphism defined by the matrix
+            [ 0  1  2  3]
+            [ 4  5  6  7]
+            [ 8  9 10 11]
+            Domain: Vector space of dimension 3 over Rational Field
+            Codomain: Vector space of dimension 4 over Rational Field
+            sage: psi*phi
+            Free module morphism defined by the matrix
+            [ 20  23  26  29]
+            [ 56  68  80  92]
+            [ 92 113 134 155]
+            Domain: Vector space of dimension 3 over Rational Field
+            Codomain: Vector space of dimension 4 over Rational Field
+            sage: phi*psi
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 3 by 4 dense matrices over Rational Field' and 'Full MatrixSpace of 3 by 3 dense matrices over Rational Field'
+            sage: phi.matrix()*psi.matrix()
+            [ 20  23  26  29]
+            [ 56  68  80  92]
+            [ 92 113 134 155]
+
+        """
         if not isinstance(right, MatrixMorphism):
             R = self.base_ring()
-            return self.parent()(self.__matrix * R(right))
-        return sage.categories.all.Morphism.__mul__(self, right)
+            return self.parent()(self.matrix() * R(right))
+        M = right.matrix() * self.matrix()
+        return right.domain().Hom(self.codomain())(M)
+
+    def __add__(self, right):
+        """
+        Sum of morphisms, denoted by +.
+
+        EXAMPLES:
+            sage: phi = (ZZ**2).endomorphism_ring()(Matrix(ZZ,2,[2..5])) ; phi
+            Free module morphism defined by the matrix
+            [2 3]
+            [4 5]
+            Domain: Ambient free module of rank 2 over the principal ideal domain ...
+            Codomain: Ambient free module of rank 2 over the principal ideal domain ...
+            sage: phi + 3
+            Free module morphism defined by the matrix
+            [5 3]
+            [4 8]
+            Domain: Ambient free module of rank 2 over the principal ideal domain ...
+            Codomain: Ambient free module of rank 2 over the principal ideal domain ...
+            sage: phi + phi
+            Free module morphism defined by the matrix
+            [ 4  6]
+            [ 8 10]
+            Domain: Ambient free module of rank 2 over the principal ideal domain ...
+            Codomain: Ambient free module of rank 2 over the principal ideal domain ...
+            sage: psi = (ZZ**3).endomorphism_ring()(Matrix(ZZ,3,[22..30])) ; psi
+            Free module morphism defined by the matrix
+            [22 23 24]
+            [25 26 27]
+            [28 29 30]
+            Domain: Ambient free module of rank 3 over the principal ideal domain ...
+            Codomain: Ambient free module of rank 3 over the principal ideal domain ...
+            sage: phi + psi
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '+': 'Full MatrixSpace of 2 by 2 dense matrices over Integer Ring' and 'Full MatrixSpace of 3 by 3 dense matrices over Integer Ring'
+        """
+
+        if not isinstance(right, MatrixMorphism):
+            R = self.base_ring()
+            return self.parent()(self.matrix() + R(right))
+        M = self.matrix() + right.matrix()
+        return self.domain().Hom(right.codomain())(M)
+
+    def __neg__(self):
+        return self.parent()(-self.matrix())
+
+    def __sub__(self, other):
+        return self + (-other)
 
     def base_ring(self):
+        """
+        Return the base ring of self, that is, the ring over which
+        self is given by a matrix.
+
+        EXAMPLES:
+            sage: sage.modules.matrix_morphism.MatrixMorphism((ZZ**2).endomorphism_ring(), Matrix(ZZ,2,[3..6])).base_ring()
+            Integer Ring
+        """
         return self.domain().base_ring()
 
     def charpoly(self, var):
         if not self.is_endomorphism():
             raise ArithmeticError, "charpoly only defined for endomorphisms " +\
                     "(i.e., domain = range)"
-        return self.__matrix.charpoly(var)
+        return self.matrix().charpoly(var)
 
     def decomposition(self, is_diagonalizable=False):
         if not self.is_endomorphism():
             raise ArithmeticError, "Matrix morphism must be an endomorphism."
         D = self.domain()
-        E = self.__matrix.decomposition(is_diagonalizable=is_diagonalizable)
+        E = self.matrix().decomposition(is_diagonalizable=is_diagonalizable)
         if D.is_ambient():
-            return Sequence([D.submodule(V, check=False) for V, _ in E], cr=True, check=False)
+            return Sequence([D.submodule(V, check=False) for V, _ in E],
+                            cr=True, check=False)
         else:
             B = D.basis_matrix()
-            return Sequence([D.submodule((V.basis_matrix() * B).row_space(), check=False) for V, _ in E],
+            return Sequence([D.submodule((V.basis_matrix() * B).row_space(),
+                                         check=False) for V, _ in E],
                             cr=True, check=False)
 
     def det(self):
@@ -240,10 +325,13 @@ class MatrixMorphism(sage.categories.all.Morphism):
         return self.codomain().submodule(V, check=False)
 
     def matrix(self):
-        return self.__matrix
+        raise NotImplementedError, "this method must be overridden in the extension class"
 
     def rank(self):
-        return self.__matrix.rank()
+        return self.matrix().rank()
+
+    def _repr_(self):
+        "Morphism from %s to %s defined by a matrix"%(self.domain(), self.codomain())
 
     def restrict_domain(self, sub):
         """
@@ -253,8 +341,6 @@ class MatrixMorphism(sage.categories.all.Morphism):
 
         The resulting morphism has the same codomain as before, but
         a new domain.
-
-
         """
         D  = self.domain()
         B  = sub.basis()
@@ -270,6 +356,17 @@ class MatrixMorphism(sage.categories.all.Morphism):
 	#Mr = M.restrict_domain(sub)
 	#return sub.Hom(C)(Mr)
 
+    def restrict_codomain(self, sub):
+        """
+        Restrict this matrix morphism to a subspace sub of the codomain.
+
+        The resulting morphism has the same domain as before, but
+        a new codomain.
+	"""
+	A = self.matrix().restrict_codomain(sub.free_module())
+        H = sage.categories.homset.Hom(self.domain(), sub, self.domain().category())
+        return H(A)
+
     def restrict(self, sub):
         """
         Restrict this matrix morphism to a subspace sub of the domain.
@@ -283,4 +380,45 @@ class MatrixMorphism(sage.categories.all.Morphism):
         return H(A)
 
     def trace(self):
-        return self.__matrix.trace()
+        return self.matrix().trace()
+
+class MatrixMorphism(MatrixMorphism_abstract):
+
+    def __init__(self, parent, A):
+        """
+        INPUT:
+            parent -- a homspace
+            A -- matrix
+
+        EXAMPLES:
+            sage: from sage.modules.matrix_morphism import MatrixMorphism
+            sage: T = End(QQ^3)
+            sage: M = MatrixSpace(QQ,3)
+            sage: I = M.identity_matrix()
+            sage: A = MatrixMorphism(T, I)
+            sage: loads(A.dumps()) == A
+            True
+        """
+        if not matrix.is_Matrix(A):
+            A = matrix.MatrixSpace(parent.category().base_ring(),
+                                   parent.domain().rank(),
+                                   parent.codomain().rank())(A)
+        R = A.base_ring()
+        if A.nrows() != parent.domain().rank():
+            raise ArithmeticError, "number of rows of matrix (=%s) must equal rank of domain (=%s)"%(A.nrows(), parent.domain().rank())
+        if A.ncols() != parent.codomain().rank():
+                raise ArithmeticError, "number of columns of matrix (=%s) must equal rank of codomain (=%s)"%(A.ncols(), parent.codomain().rank())
+        self._matrix = A
+        MatrixMorphism_abstract.__init__(self, parent)
+
+    def matrix(self):
+        return self._matrix
+
+    def _repr_(self):
+        if max(self.matrix().nrows(),self.matrix().ncols()) > 5:
+            mat = "(not printing %s x %s matrix)"%(self.matrix().nrows(),
+                                                   self.matrix().ncols())
+        else:
+            mat = str(self.matrix())
+        return "Morphism defined by the matrix\n%s"%mat
+

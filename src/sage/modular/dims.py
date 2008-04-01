@@ -1525,10 +1525,14 @@ def dimension_modular_forms(X, k=2):
         return dimension_modular_forms_H(X, k)
     return dimension_cusp_forms(X, k) + dimension_eis(X, k)
 
-def sturm_bound(level, weight):
+def sturm_bound(level, weight=2):
     r"""
     Returns the Sturm bound for modules forms with given level and
     weight.
+
+    INPUT:
+        level -- an integer or a congruence subgroup
+        weight -- an integer $\geq 2$ (default: 2)
 
     EXAMPLES:
         sage: sturm_bound(11,2)
@@ -1581,6 +1585,23 @@ def sturm_bound(level, weight):
 
     AUTHOR:
         -- William Stein
+
+    EXAMPLES:
+        sage: sturm_bound(11)
+        2
+        sage: sturm_bound(Gamma0(11))
+        2
+        sage: sturm_bound(Gamma0(13))
+        3
+        sage: sturm_bound(Gamma1(13))
+        36
+        sage: sturm_bound(Gamma1(13),5)
+        72
     """
+    if congroup.is_Gamma0(level) or congroup.is_GammaH(level):
+        level = level.level()
+    elif congroup.is_Gamma1(level):
+        N = level.level()
+        return sturm_bound(N, weight=weight) * euler_phi(N)
     return Integer(int(math.ceil((weight * idxG0(level) / ZZ(12)))))
 

@@ -15,7 +15,7 @@ EXAMPLES:
     sage: J = J0(43)
     sage: H = J.integral_homology()
     sage: H
-    Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+    Integral Homology of Abelian variety J0(43) of dimension 3
     sage: H.hecke_matrix(19)
     [ 0  0 -2  0  2  0]
     [ 2 -4 -2  0  2  0]
@@ -27,15 +27,15 @@ EXAMPLES:
     Integer Ring
     sage: d = H.decomposition(); d
     [
-    Submodule of rank 2 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43),
-    Submodule of rank 4 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+    Submodule of rank 2 of Integral Homology of Abelian variety J0(43) of dimension 3,
+    Submodule of rank 4 of Integral Homology of Abelian variety J0(43) of dimension 3
     ]
     sage: a = d[0]
     sage: a.hecke_matrix(5)
     [-4  0]
     [ 0 -4]
     sage: a.T(7)
-    Hecke operator T_7 on Submodule of rank 2 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+    Hecke operator T_7 on Submodule of rank 2 of Integral Homology of Abelian variety J0(43) of dimension 3
 """
 
 ###########################################################################
@@ -47,6 +47,7 @@ EXAMPLES:
 
 from sage.modular.hecke.all import HeckeModule_free_module
 from sage.rings.all import Integer, ZZ, QQ, is_CommutativeRing
+import abvar
 
 # TODO: we will probably also need homology that is *not* a Hecke module.
 
@@ -68,7 +69,7 @@ class Homology(HeckeModule_free_module):
 
         EXAMPLES:
             sage: H = J0(43).integral_homology(); H
-            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+            Integral Homology of Abelian variety J0(43) of dimension 3
             sage: f = H.hecke_polynomial(3); f
             x^6 + 4*x^5 - 16*x^3 - 12*x^2 + 16*x + 16
             sage: parent(f)
@@ -156,7 +157,7 @@ class Homology_abvar(Homology):
         EXAMPLES:
             sage: H = J0(48).homology()
             sage: H.abelian_variety()
-            Jacobian of the modular curve associated to the congruence subgroup Gamma0(48)
+            Abelian variety J0(48) of dimension 3
         """
         return self.__abvar
 
@@ -167,9 +168,9 @@ class Homology_abvar(Homology):
 
         EXAMPLES:
             sage: H = J0(48).homology(); H
-            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(48)
+            Integral Homology of Abelian variety J0(48) of dimension 3
             sage: H.ambient_hecke_module()
-            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(48)
+            Integral Homology of Abelian variety J0(48) of dimension 3
         """
         return self
 
@@ -236,7 +237,7 @@ class Homology_abvar(Homology):
 
         EXAMPLES:
             sage: H = J0(5077).homology(); H
-            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(5077)
+            Integral Homology of Abelian variety J0(5077) of dimension 422
             sage: H.rank()
             844
         """
@@ -256,11 +257,11 @@ class Homology_abvar(Homology):
 
         EXAMPLES:
             sage: H = J0(23).homology(); H
-            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+            Integral Homology of Abelian variety J0(23) of dimension 2
             sage: F = H.free_module()
             sage: U = F.span([[1,2,3,4]])
             sage: M = H.submodule(U); M
-            Submodule of rank 1 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+            Submodule of rank 1 of Integral Homology of Abelian variety J0(23) of dimension 2
 
         Note that the submodule command doesn't actually check that the object
         defined is a homology group or is invariant under the Hecke operators.
@@ -288,7 +289,7 @@ class IntegralHomology(Homology_abvar):
 
         EXAMPLES:
             sage: H = J0(23).integral_homology(); H
-            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+            Integral Homology of Abelian variety J0(23) of dimension 2
             sage: type(H)
             <class 'sage.modular.abvar.homology.IntegralHomology'>
 
@@ -304,7 +305,7 @@ class IntegralHomology(Homology_abvar):
 
         EXAMPLES:
             sage: J0(23).integral_homology()._repr_()
-            'Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)'
+            'Integral Homology of Abelian variety J0(23) of dimension 2'
         """
         return "Integral Homology of %s"%self.abelian_variety()
 
@@ -356,7 +357,7 @@ class RationalHomology(Homology_abvar):
 
         EXAMPLES:
             sage: H = J0(23).rational_homology(); H
-            Rational Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+            Rational Homology of Abelian variety J0(23) of dimension 2
 
         TESTS:
             sage: loads(dumps(H)) == H
@@ -370,7 +371,7 @@ class RationalHomology(Homology_abvar):
 
         EXAMPLES:
             sage: J0(23).rational_homology()._repr_()
-            'Rational Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)'
+            'Rational Homology of Abelian variety J0(23) of dimension 2'
         """
         return "Rational Homology of %s"%self.abelian_variety()
 
@@ -408,12 +409,15 @@ class RationalHomology(Homology_abvar):
             sage: f.base_ring()
             Rational Field
             sage: factor(f)
-            (x + 2)^2 * (x^2 - 2)^2
+            (x + 2) * (x^2 - 2)
         """
-        n = Integer(n)
-        M = self.abelian_variety().modular_symbols(sign=1)
-        f = M.hecke_polynomial(n, var)**2
-        return f
+        f = self.hecke_operator(n).matrix().characteristic_polynomial(var)
+        return abvar.sqrt_poly(f)
+
+        #n = Integer(n)
+        #M = self.abelian_variety().modular_symbols(sign=1)
+        #f = M.hecke_polynomial(n, var)**2
+        #return f
 
 
 class Homology_over_base(Homology_abvar):
@@ -431,7 +435,7 @@ class Homology_over_base(Homology_abvar):
 
         EXAMPLES:
             sage: H = J0(23).homology(GF(5)); H
-            Homology with coefficients in Finite Field of size 5 of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)
+            Homology with coefficients in Finite Field of size 5 of Abelian variety J0(23) of dimension 2
             sage: type(H)
             <class 'sage.modular.abvar.homology.Homology_over_base'>
 
@@ -448,7 +452,7 @@ class Homology_over_base(Homology_abvar):
         EXAMPLES:
             sage: H = J0(23).homology(GF(5))
             sage: H._repr_()
-            'Homology with coefficients in Finite Field of size 5 of Jacobian of the modular curve associated to the congruence subgroup Gamma0(23)'
+            'Homology with coefficients in Finite Field of size 5 of Abelian variety J0(23) of dimension 2'
         """
         return "Homology with coefficients in %s of %s"%(self.base_ring(), self.abelian_variety())
 
@@ -485,7 +489,7 @@ class Homology_submodule(Homology):
         EXAMPLES:
             sage: H = J0(37).homology()
             sage: H.submodule([[1,0,0,0]])
-            Submodule of rank 1 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+            Submodule of rank 1 of Integral Homology of Abelian variety J0(37) of dimension 2
 
         TESTS:
             sage: loads(dumps(H)) == H
@@ -511,7 +515,7 @@ class Homology_submodule(Homology):
             sage: H = J0(37).homology()
             sage: G = H.submodule([[1, 2, 3, 4]])
             sage: G._repr_()
-            'Submodule of rank 1 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)'
+            'Submodule of rank 1 of Integral Homology of Abelian variety J0(37) of dimension 2'
         """
         return "Submodule of rank %s of %s"%(self.rank(), self.__ambient)
 
@@ -522,14 +526,14 @@ class Homology_submodule(Homology):
 
         EXAMPLES:
             sage: H = J0(48).homology(); H
-            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(48)
+            Integral Homology of Abelian variety J0(48) of dimension 3
             sage: d = H.decomposition(); d
             [
-            Submodule of rank 2 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(48),
-            Submodule of rank 4 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(48)
+            Submodule of rank 2 of Integral Homology of Abelian variety J0(48) of dimension 3,
+            Submodule of rank 4 of Integral Homology of Abelian variety J0(48) of dimension 3
             ]
             sage: d[0].ambient_hecke_module()
-            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(48)
+            Integral Homology of Abelian variety J0(48) of dimension 3
         """
         return self.__ambient
 
@@ -540,7 +544,7 @@ class Homology_submodule(Homology):
         EXAMPLES:
             sage: H = J0(48).homology()
             sage: K = H.decomposition()[1]; K
-            Submodule of rank 4 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(48)
+            Submodule of rank 4 of Integral Homology of Abelian variety J0(48) of dimension 3
             sage: K.free_module()
             Free module of degree 6 and rank 4 over Integer Ring
             Echelon basis matrix:
@@ -559,8 +563,8 @@ class Homology_submodule(Homology):
         EXAMPLES:
             sage: d = J0(43).homology().decomposition(2); d
             [
-            Submodule of rank 2 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43),
-            Submodule of rank 4 of Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+            Submodule of rank 2 of Integral Homology of Abelian variety J0(43) of dimension 3,
+            Submodule of rank 4 of Integral Homology of Abelian variety J0(43) of dimension 3
             ]
 
         Because the first factor has dimension 2 it corresponds to an
@@ -583,9 +587,9 @@ class Homology_submodule(Homology):
         EXAMPLES:
             sage: d = J0(125).homology(GF(17)).decomposition(2); d
             [
-            Submodule of rank 4 of Homology with coefficients in Finite Field of size 17 of Jacobian of the modular curve associated to the congruence subgroup Gamma0(125),
-            Submodule of rank 4 of Homology with coefficients in Finite Field of size 17 of Jacobian of the modular curve associated to the congruence subgroup Gamma0(125),
-            Submodule of rank 8 of Homology with coefficients in Finite Field of size 17 of Jacobian of the modular curve associated to the congruence subgroup Gamma0(125)
+            Submodule of rank 4 of Homology with coefficients in Finite Field of size 17 of Abelian variety J0(125) of dimension 8,
+            Submodule of rank 4 of Homology with coefficients in Finite Field of size 17 of Abelian variety J0(125) of dimension 8,
+            Submodule of rank 8 of Homology with coefficients in Finite Field of size 17 of Abelian variety J0(125) of dimension 8
             ]
             sage: t = d[0].hecke_matrix(17); t
             [16 15 15  0]

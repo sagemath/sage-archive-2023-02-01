@@ -4,5 +4,5 @@
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
-from constructor import J0, J1, JH
+from constructor import J0, J1, JH, AbelianVariety
 from abvar import is_ModularAbelianVariety

@@ -136,6 +136,28 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             return 0
         return -1
 
+    def new_submodule(self, p=None):
+        """
+        Returns the new or p-new submodule of self.
+
+        INPUT:
+            p -- (default: None); if not None, return only the p-new submodule.
+
+        OUTPUT:
+            the new or p-new submodule of self
+
+        EXAMPLES:
+            sage: ModularSymbols(100).new_submodule()
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 31 for Gamma_0(100) of weight 2 with sign 0 over Rational Field
+            sage: ModularSymbols(389).new_submodule()
+            Modular Symbols space of dimension 65 for Gamma_0(389) of weight 2 with sign 0 over Rational Field
+        """
+        # Check for special cases where the answer is easy.
+        # If not in one of those cases, use the generic code.
+        if self.level().is_prime() and self.weight() == 2:
+            return self
+        return hecke.AmbientHeckeModule.new_submodule(self, p=p)
+
     def manin_symbols(self):
         raise NotImplementedError
 
@@ -804,11 +826,23 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             Modular Symbols subspace of dimension 0 of Modular Symbols space of dimension 5 for Gamma_0(12) of weight 2 with sign 0 over Finite Field of size 5
             sage: ModularSymbols(1,24,-1).cuspidal_submodule()
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 2 for Gamma_0(1) of weight 24 with sign -1 over Rational Field
+
+        The cuspidal submodule of the cuspidal submodule is itself:
+            sage: M = ModularSymbols(389)
+            sage: S = M.cuspidal_submodule()
+            sage: S.cuspidal_submodule() is S
+            True
         """
         try:
             return self.__cuspidal_submodule
         except AttributeError:
+            try:
+                if self.__is_cuspidal:
+                    return self
+            except AttributeError:
+                pass
             S = self.boundary_map().kernel()
+            S._set_is_cuspidal(True)
             S._is_full_hecke_module = True
             ## We know the cuspidal subspace is stable, so
             ## if it's one-dimensional, it must be simple
@@ -926,20 +960,26 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
     def factorization(self):
         r"""
-        Returns a list of pairs $(S,e)$ where $S$ is simple spaces of
-        modular symbols and self is isomorphic to the direct sum of
-        the $S^e$ as a module over the \emph{anemic} Hecke algebra
-        adjoin the star involution.
+        Returns a list of pairs $(S,e)$ where $S$ is spaces of modular
+        symbols and self is isomorphic to the direct sum of the $S^e$
+        as a module over the \emph{anemic} Hecke algebra adjoin the
+        star involution.  The cuspidal $S$ are all simple, but the
+        Eisenstein factors need not be simple.
 
         EXAMPLES:
             sage: ModularSymbols(Gamma0(22), 2).factorization()
-            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 1 for Gamma_0(2) of weight 2 with sign 0 over Rational Field)^3 *
             (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field)^2 *
-            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field)^2
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field)^2 *
+            (Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 7 for Gamma_0(22) of weight 2 with sign 0 over Rational Field)
 
             sage: ModularSymbols(1,6,0,GF(2)).factorization()
             (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(1) of weight 6 with sign 0 over Finite Field of size 2) *
             (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(1) of weight 6 with sign 0 over Finite Field of size 2)
+
+            sage: ModularSymbols(18,2).factorization()
+            (Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 7 for Gamma_0(18) of weight 2 with sign 0 over Rational Field) *
+            (Modular Symbols subspace of dimension 5 of Modular Symbols space of dimension 7 for Gamma_0(18) of weight 2 with sign 0 over Rational Field)
+
         """
 
 ##         EXAMPLES:
@@ -1010,22 +1050,11 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         # 1. Cuspidal part -- compute the factors and their multiplicities
         #                     using Atkin-Lehner-Li.
 
-        # 2. Eisenstein part:
-        #      (a) Compute the Eisenstein subspace.
-        #      (b) Decompose it using anemic Hecke operators
-        #      (c)
-
+        # 2. Eisenstein part -- just call normal decomposition.
 
         # In the special case of weight 2 we have to do a bunch of
         # annoying extra work below to deal with the Eisenstein series E_2.
         k = self.weight()
-        if k == 2:
-            have_e2 = False
-            G = self.group()
-            is_g0 = congroup.is_Gamma0(G)
-            e2_factor = None
-            P = [p for p in arith.prime_range(2, self.hecke_bound() + 1) if self.level() % p != 0]
-        # The above was all for dealing with e2 in the weight 2 case.
 
         ## If the characteristic of the base ring is 2,
         ## the star involution is the identity, so we
@@ -1036,70 +1065,33 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         else:
             skip_minus = False
 
-
+        # The cuspidal part
         for d in reversed(arith.divisors(self.level())):
             n = arith.number_of_divisors(self.level() // d)
             M = self.modular_symbols_of_level(d)
-            N = M.new_submodule().decomposition()
+            N = M.new_submodule().cuspidal_submodule().decomposition()
             for A in N:
-                if A.is_cuspidal():
-                    if self.sign() == 0:
-                        V = A.plus_submodule()
-                        V._is_simple = True
-                        D.append((V,n))
-                        if skip_minus:
-                            continue
-                        V = A.minus_submodule()
-                        V._is_simple = True
-                        D.append((V,n))
-                    else:
-                        A._is_simple = True
-                        D.append((A,n))
+                if self.sign() == 0:
+                    V = A.plus_submodule()
+                    V._is_simple = True
+                    D.append((V,n))
+                    if skip_minus:
+                        continue
+                    V = A.minus_submodule()
+                    V._is_simple = True
+                    D.append((V,n))
                 else:
-                    # Eisenstein case
-                    if k == 2:
-                        # Determine whether or not this factor corresponds to E_2
-                        # This is the case if:
-                        #  (1) the factor has dimension 1
-                        #  (2) T_p acts as p+1 for all p coprime to the level
-                        #      up to the Hecke bound.
-                        if A.dimension() > 1:
-                            is_e2 = False
-
-                        is_e2 = True
-                        for p in P:
-                            if A.hecke_operator(p)[0,0] != p + 1:
-                                is_e2 = False
-                                break
-
-                        if is_e2:
-                            if e2_factor is None:
-                                e2_factor = A
-                            elif e2_factor.level() > A.level():
-                                e2_factor = A
-                            A = None
-                        else:
-                            # If it is not e2, it might be a twist
-                            # of e2, and we have to count those twists
-                            # once, so we make sure this faster isn't
-                            # isomorphic to any factor found before.
-                            pass
-
-
-                    if not A is None:
-                        A._is_simple = True
-                        D.append((A,n))
-
-        if k == 2 and not e2_factor is None:
-            n = len(arith.divisors(self.level())) - 1
-            D.append((e2_factor, n))
+                    A._is_simple = True
+                    D.append((A,n))
+        # The eisenstein part
+        for E in self.eisenstein_submodule().decomposition(anemic=True):
+            D.append((E,1))
 
         r = self.dimension()
         s = sum([A.rank()*mult for A, mult in D])
         D = sage.structure.all.Factorization(D, cr=True, sort=False)
         D.sort(_cmp = cmp)
-        assert r == s, "bug in factorization --  self has dimension %s, but sum of dimensions of factors is %s\n%s"%(
-            r, s, D)
+        assert r == s, "bug in factorization --  self has dimension %s, but sum of dimensions of factors is %s\n%s"%(r, s, D)
         self._factorization = D
         return self._factorization
 
@@ -1223,7 +1215,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
     def submodule(self, M, dual_free_module=None, check=True):
         """
-        Return the submdoule of M with given generators or free module.
+        Return the submdoule of self with given generators or free module M.
 
         INPUT:
             M -- a submodule of the ambient free module or generators for a submodule
@@ -1288,10 +1280,15 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
     ######################################################################
     # Z-module of integral modular symbols.
     #######################################################################
-    def integral_structure(self):
+    def integral_structure(self, algorithm='default'):
         r"""
         Return the $\Z$-structure of this modular symbols spaces
         generated by all integral modular symbols.
+
+        INPUT:
+            algorithm -- string (default: 'default' -- choose heuristically)
+                        'pari' -- use pari for the HNF computation
+                        'padic' -- use p-adic algorithm (only good for dense case)
 
         ALGORITHM:
         It suffices to consider lattice generated by the free
@@ -1356,14 +1353,33 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         # structure.  We next obtain the corresponding list of elements
         # by passing to the quotient by the remaining relations
         # via the _manin_gens_to_basis attribute.
-        X = [self._manin_gens_to_basis.row(i) for i in G]
 
         # Next we take each element of X, which gives a linear combination
         # of the basis of the underlying vector space of self, and compute
         # the Z-module they span.
-        Z = integer_ring.IntegerRing()
-        A = Z**self.dimension()  # free Z module of rank the dimension of self.
-        self.__integral_structure = A.span(X)
+
+        G = list(G)
+        G.sort()
+        B = self._manin_gens_to_basis.matrix_from_rows(list(G)).dense_matrix()
+        B, d = B._clear_denom()
+        if algorithm == 'default':
+            # pari is much better in the weight 2 case when the input
+            # matrix is extremely sparse; the p-adic algorithm is
+            # terrible in the sparse case.
+            if self.weight() == 2:
+                algorithm = 'pari'
+            else:
+                algorithm = 'padic'
+        if algorithm == 'pari':
+            B = B.echelon_form(algorithm='pari', include_zero_rows=False)
+        elif algorithm == 'padic':
+            B = B.echelon_form(algorithm='padic', include_zero_rows=False)
+        else:
+            raise ValueError, "unknown algorithm '%s'"%algorithm
+        W = B.row_module()
+        if d != 1:
+            W = W.scale(1/d)
+        self.__integral_structure = W
         return self.__integral_structure
 
 

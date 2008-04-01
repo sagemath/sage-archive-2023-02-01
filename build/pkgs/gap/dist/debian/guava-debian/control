@@ -1,0 +1,21 @@
+Source: guava
+Section: libs
+Priority: extra
+Maintainer: Tim Abbott <tabbott@mit.edu>
+Build-Depends: cdbs (>= 0.4.27-1), debhelper (>= 5), gap-dev, patchutils (>= 0.2.25), quilt
+Standards-Version: 3.7.2
+
+Package: gap-guava
+Section: math
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Provides: gap-pkg-guava
+Description: Coding theory library for GAP
+ GUAVA is a package that implements coding theory algorithms in
+ GAP. Codes can be created and manipulated and information about codes
+ can be calculated.
+ .
+ GUAVA consists of various files written in the GAP language, and an
+ external program from J.S. Leon for dealing with automorphism groups
+ of codes and isomorphism testing functions.  Several algorithms that
+ need the speed are integrated in the GAP kernel.

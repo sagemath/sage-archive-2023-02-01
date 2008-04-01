@@ -1,0 +1,6 @@
+lib /usr/share/gap/pkg/guava
+doc /usr/share/gap/pkg/guava
+tbl /usr/share/gap/pkg/guava
+bin /usr/share/gap/pkg/guava
+*.g /usr/share/gap/pkg/guava
+

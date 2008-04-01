@@ -2,7 +2,7 @@ Source: linbox-wrap
 Section: libs
 Priority: extra
 Maintainer: Tim Abbott <tabbott@mit.edu>
-Build-Depends: @cdbs@, atlas3-base-dev, liblinbox-dev, libgmp3-dev, libntl-dev, libgivaro-dev
+Build-Depends: @cdbs@, libatlas-base-dev, liblinbox-dev, libgmp3-dev, libntl-dev, libgivaro-dev
 Standards-Version: 3.7.2
 
 Package: liblinbox-wrap-dev

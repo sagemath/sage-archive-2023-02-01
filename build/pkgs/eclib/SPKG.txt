@@ -39,7 +39,12 @@ over 25 years of hard work.
 
 == Changelog ==
 
-=== eclib-20080319 (Michael Abshoff, March 19th, 2008) ===
+=== eclib-20080310.p1 (Michael Abshoff, April 1st, 2008) ===
+ * minor eclib build system improvements (Tim Abbott, #2735)
+ * Fix Debian Sections (Tim Abbott, #2643)
+ * Copyright files for Debian packages (Tim Abbott, #2199)
+
+=== eclib-20080310.p0 (Michael Abshoff, March 19th, 2008) ===
  * fix directory name
  * update SPKG.txt
  * fix permissions

@@ -1,0 +1,11 @@
+#!/bin/sh -xe
+echo "Building the GAP Guava package"
+mv dist/debian dist/debian-tmp
+mv src gap
+mv gap/pkg/guava* src
+
+echo "Building Guava for GAP"
+mv dist/debian-tmp/guava-debian dist/debian
+${SAGE_LOCAL}/bin/sage-build-debian
+
+echo "Done building Guava!"

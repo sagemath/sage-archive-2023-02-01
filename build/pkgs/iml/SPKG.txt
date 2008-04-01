@@ -1,25 +1,53 @@
-AUTHORS:
-   -- William Stein (2007-02-14)
+= IML =
 
-* 1.0.1.p7 - mabshoff - 2007-12-23
+== Description ==
 
-  - apply memleak patch in nullspace.c (which has been send to the IML autors)
-  - add .hgignore
+IML is a free library of C source code which implements algorithms for computing exact solutions to dense systems of linear equations over the integers. IML is designed to be used with the ATLAS/BLAS library and GMP bignum library.
 
-* Earlier:
+Website http://www.cs.uwaterloo.ca/~z4chen/iml.html
 
-Get it from
-  http://www.cs.uwaterloo.ca/~z4chen/iml.html
+== License ==
 
-1. I had to put the built version of src/repl in that directory, since on OS X it won't build.
-   It's basically empty, so this seems safe.
+GPL
 
-2. I had to src/config/install-sh executable.
+== SPKG Maintainers ==
+ * William Stein
+ * Martin Albrecht
+ * Michael Abshoff
 
-3. I had to create src/cblas.h since on many systems it isn't installed anywhere!?
-   I just used gsl_cblas.h for this purpose, which seems to work fine.
+== Upstream Contact ==
 
-4. Modified some of the examples, and made build scripts that work.
+Provide information for upstream contact.
 
-5. *IMPORTANT*: Change lift to iml_lift in padiclift.* and nonsingsolve.*, since otherwise
-   on OSX you'll have horrible weird conflict problems.
+== Dependencies ==
+ * GMP
+ * ATLAS
+
+== Special Update/Build Instructions ==
+
+The following build instructions by William Stein might be incomplete and/or out of date:
+
+ * I had to put the built version of src/repl in that directory, since on OS X it won't build. It's basically empty, so this seems safe.
+ * I had to src/config/install-sh executable.
+ * I had to create src/cblas.h since on many systems it isn't installed anywhere!? I just used gsl_cblas.h for this purpose, which seems to work fine.
+ * Modified some of the examples, and made build scripts that work.
+ * '''IMPORTANT''': Change lift to iml_lift in padiclift.* and nonsingsolve.*, since otherwise  on OSX you'll have horrible weird conflict problems.
+
+== Changelog ==
+
+Provide a changelog of the spkg here.
+
+=== 1.0.1.p10 (Michael Abshoff, April 1st, 2008) ===
+ * Update SPKG.txt
+ * Tim Abbott: Update iml with Debian's gfortran transition. (#2758)
+
+=== 1.0.1.p9 (Tim Abbott, February 7th, 2008) ===
+ * Add Debian build support.
+
+=== 1.0.1.p7 (Michael Abshoff, December 23rd, 2007) ===
+ * apply memleak patch in nullspace.c (which has been send to the IML autors)
+ *  add .hgignore
+
+=== William Stein (2007-02-14) ===
+ * initial version
+

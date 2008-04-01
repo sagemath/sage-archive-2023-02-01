@@ -3102,6 +3102,24 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             return self.__lattice
 
     def _set_lattice(self, lattice):
+        """
+        Set the lattice of this modular symbols abelian variety.
+
+        WARNING: This is only for internal use.  Do not use this
+        unless you really really know what you're doing.  That's why
+        there is an underscore in this method name.
+
+        INPUT:
+            lattice -- a lattice
+
+        EXAMPLES:
+        We do something evil -- there's no type checking since this
+        function is for internal use only:
+            sage: A = ModularSymbols(33).cuspidal_submodule().abelian_variety()
+            sage: A._set_lattice(5)
+            sage: A.lattice()
+            5
+        """
         self.__lattice = lattice
 
     def modular_symbols(self, sign=0):
@@ -3549,6 +3567,28 @@ from random import choice, randrange
 from sage.rings.arith import next_prime
 
 def random_hecke_operator(M, t=None, p=2):
+    """
+    Return a random Hecke operator acting on $M$, got by adding to $t$
+    a random multiple of $T_p$
+
+    INPUT:
+        M -- modular symbols space
+        t -- None or a Hecke operator
+        p -- a prime
+
+    OUTPUT:
+        Hecke operator
+        prime
+
+    EXAMPLES:
+        sage: M = ModularSymbols(11).cuspidal_subspace()
+        sage: t, p = sage.modular.abvar.abvar.random_hecke_operator(M)
+        sage: p
+        3
+        sage: t, p = sage.modular.abvar.abvar.random_hecke_operator(M, t, p)
+        sage: p
+        5
+    """
     r = 0
     while r == 0:
         r = randrange(1,p//2+1) * ZZ.random_element()
@@ -3556,6 +3596,24 @@ def random_hecke_operator(M, t=None, p=2):
     return t, next_prime(p)
 
 def factor_new_space(M):
+    """
+    Given a new space $M$ of modular symbols, return the decomposition
+    into simple of $M$ under the Hecke operators.
+
+    INPUT:
+        M -- modular symbols space
+
+    OUTPUT:
+        list of factors
+
+    EXAMPLES:
+        sage: M = ModularSymbols(37).cuspidal_subspace()
+        sage: sage.modular.abvar.abvar.factor_new_space(M)
+        [
+        Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field,
+        Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
+        ]
+    """
     t = None; p = 2
     for i in range(200):
         t, p = random_hecke_operator(M, t, p)
@@ -3566,11 +3624,30 @@ def factor_new_space(M):
                 cube_free = False
                 break
         if cube_free:
-            return hecke_operator_decomposition(t)
+            return t.decomposition()
         t, p = random_hecke_operator(M, t, p)
     raise RuntimeError, "unable to factor new space -- this should not happen" # should never happen
 
 def factor_modsym_space_new_factors(M):
+    """
+    Given an ambient modular symbols space, return complete
+    factorization of it.
+
+    INPUT:
+        M -- modular symbols space
+    OUTPUT:
+        list of decompositions corresponding to each new space.
+
+    EXAMPLES:
+        sage: M = ModularSymbols(33)
+        sage: sage.modular.abvar.abvar.factor_modsym_space_new_factors(M)
+        [[
+        Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
+        ],
+         [
+        Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
+        ]]
+    """
     eps = M.character()
     K = eps.conductor() if eps is not None else 1
     N = [M.modular_symbols_of_level(d).cuspidal_subspace().new_subspace() \
@@ -3578,6 +3655,30 @@ def factor_modsym_space_new_factors(M):
     return [factor_new_space(A) for A in N]
 
 def simple_factorization_of_modsym_space(M, simple=True):
+    """
+    Return factorization of $M$.  If simple is False, return powers of
+    simples.
+
+    INPUT:
+        M -- modular symbols space
+        simple -- bool (default: True)
+    OUTPUT:
+        sequence
+
+    EXAMPLES:
+        sage: M = ModularSymbols(33)
+        sage: sage.modular.abvar.abvar.simple_factorization_of_modsym_space(M)
+        [
+        (11, 0, 1, Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field),
+        (11, 0, 3, Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field),
+        (33, 0, 1, Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field)
+        ]
+        sage: sage.modular.abvar.abvar.simple_factorization_of_modsym_space(M, simple=False)
+        [
+        (11, 0, None, Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field),
+        (33, 0, None, Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field)
+        ]
+    """
     D = []
     N = M.level()
     for G in factor_modsym_space_new_factors(M):
@@ -3616,6 +3717,30 @@ def simple_factorization_of_modsym_space(M, simple=True):
 def modsym_lattices(M, factors):
     """
     Append lattice information to the output of simple_factorization_of_modsym_space.
+
+    INPUT:
+        M -- modular symbols spaces
+        factors -- Sequence (simple_factorization_of_modsym_space)
+
+    OUTPUT:
+        sequence with more information for each factor (the lattice)
+
+    EXAMPLES:
+        sage: M = ModularSymbols(33)
+        sage: factors = sage.modular.abvar.abvar.simple_factorization_of_modsym_space(M, simple=False)
+        sage: sage.modular.abvar.abvar.modsym_lattices(M, factors)
+        [
+        (11, 0, None, Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field, Free module of degree 6 and rank 4 over Integer Ring
+        Echelon basis matrix:
+        [ 1  0  0  0 -1  2]
+        [ 0  1  0  0 -1  1]
+        [ 0  0  1  0 -2  2]
+        [ 0  0  0  1 -1 -1]),
+        (33, 0, None, Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field, Free module of degree 6 and rank 2 over Integer Ring
+        Echelon basis matrix:
+        [ 1  0  0 -1  0  0]
+        [ 0  0  1  0  1 -1])
+        ]
     """
     # 1. Change basis of everything to the ambient integral modular symbols space
     # 2. Clear denominator.
@@ -3641,6 +3766,3 @@ def modsym_lattices(M, factors):
         D.append(tuple(list(factors[i]) + [A.row_module()]))
     return Sequence(D, cr=True)
 
-def hecke_operator_decomposition(t):
-    D = t.decomposition()
-    return D

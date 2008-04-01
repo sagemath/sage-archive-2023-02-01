@@ -15,7 +15,7 @@ endif
 ifeq ($(DEB_ARCH),ia64)
 DEB_MAKE_BUILD_TARGET=linux-ia64-thr
 endif
-ifeq ($(DEB_ARCH),ia64)
+ifeq ($(DEB_ARCH),amd64)
 DEB_MAKE_BUILD_TARGET=linux-64-thr
 endif
 

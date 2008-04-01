@@ -6,6 +6,7 @@ include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/autotools.mk
 include /usr/share/cdbs/1/rules/patchsys-quilt.mk
 
+CFLAGS += -fPIC
 DEB_CONFIGURE_EXTRA_FLAGS +=
 DEB_CONFIGURE_INVOKE = cd src && $(DEB_CONFIGURE_SCRIPT_ENV) ./configure NTL_GMP_LIP=on NTL_STD_CXX=on PREFIX="/usr" CFLAGS="$$CFLAGS $$SHAREDFLAGS" CXXFLAGS="$$CXXFLAGS $$SHAREDFLAGS" LDFLAGS="$$LDFLAGS" GMP_PREFIX="/usr"
 DEB_CONFIGURE_SCRIPT = ./src/configure

@@ -218,6 +218,8 @@ def extract_doc(file_name, module):
             doc = doc_preparse(F[i:j+3])
         except SyntaxError:
             doc = F[i:j+3]
+        if len(doc):
+            doc = '""">>> set_random_seed(0L)\n\n' + doc[3:]
         s += "\tr"+ doc + "\n\n"
         F = F[j+3:]
 

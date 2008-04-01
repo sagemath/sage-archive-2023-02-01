@@ -7,8 +7,7 @@ include /usr/share/cdbs/1/rules/patchsys-quilt.mk
 
 DEB_MAKE_BUILD_TARGET = libflint.so
 
-FLINT_TUNE = -fPIC -funroll-loops # tuning
-DEB_MAKE_INVOKE += FLINT_TUNE="$(FLINT_TUNE)"
+CFLAGS += -fPIC -funroll-loops # FLINT tuning
 
 clean::
 	rm -f *.o libflint.so

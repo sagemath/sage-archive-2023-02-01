@@ -45,7 +45,7 @@ def strip_automount_prefix(filename):
 
 SAGE_ROOT=os.environ['SAGE_ROOT']
 if 'SAGE_TESTDIR' not in os.environ:
-    os.environ['SAGE_TESTDIR'] = SAVE_ROOT + "/tmp"
+    os.environ['SAGE_TESTDIR'] = SAGE_ROOT + "/tmp"
 TMP=os.environ['SAGE_TESTDIR'] + "/tmp"
 if not os.path.exists(TMP):
     os.makedirs(TMP)

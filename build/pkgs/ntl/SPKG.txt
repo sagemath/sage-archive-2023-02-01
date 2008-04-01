@@ -26,6 +26,10 @@ GPL
 
 == Changelog ==
 
+=== ntl-5.4.2.p0 (Michael Abshoff, April 1st, 2008) ===
+ * Debian amd64 fixes for NTL (Tim Abbott, #2760)
+ * Copyright files for Debian packages (Tim Abbott, #2199)
+
 === ntl-5.4.2 (Michael Abshoff, March 24th, 2008) ===
  * update to the 5.4.2 upstream release
  * clean up SPKG.txt

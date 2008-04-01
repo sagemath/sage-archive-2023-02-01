@@ -1,5 +1,8 @@
 = gap =
 
+=== gap-4.4.10.p5 (Michael Abshoff, April 1st, 2008) ===
+ * Debianize GAP spkg (Tim Abbott, #2756)
+
 === gap-4.4.10.p4 (Robert Miller, March 31st, 2008) ===
  * Leon's code is now fully compiled and copied over to $SAGE_LOCAL
 

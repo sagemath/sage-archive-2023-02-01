@@ -1,4 +1,7 @@
 #!/bin/sh
-cd /usr/share/sagemath
-./sage
+export PATH=/usr/lib/sagemath/local/bin:$PATH
+export SINGULAR_DEFAULT_DIR=/usr/lib/singular
+export MATPLOTLIBDATA=/usr/share/matplotlib/mpl-data/
+cd /usr/lib/sagemath
+exec ./sage "$@"
 

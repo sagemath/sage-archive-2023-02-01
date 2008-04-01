@@ -198,7 +198,7 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         ls = []
         ind = 0
         for d in D:
-            to_newform = d._isogeny_to_newform_abelian_variety()[1]
+            to_newform = d._isogeny_to_newform_abelian_variety()
             n1 = to_newform.matrix()
             n2 = to_newform.complementary_isogeny().matrix()
             f_gens = to_newform.codomain()._calculate_endomorphism_generators()
@@ -228,9 +228,7 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
 
         EXAMPLES:
             sage: J0(11).degeneracy_map(33)
-            Abelian variety morphism:
-              From: Abelian variety J0(11) of dimension 1
-              To:   Abelian variety J0(33) of dimension 3
+            Degeneracy map from Abelian variety J0(11) of dimension 1 to Abelian variety J0(33) of dimension 3 defined by [1]
             sage: J0(11).degeneracy_map(33).matrix()
             [ 0 -3  2  1 -2  0]
             [ 1 -2  0  1  0 -1]
@@ -262,7 +260,7 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         symbol_map = Mself.degeneracy_map(level, t).restrict_codomain(Mdest)
         H = self.Hom(Jdest)
 
-        return H(morphism.Morphism(H,symbol_map.matrix()))
+        return H(morphism.DegeneracyMap(H, symbol_map.matrix(), [t]))
 
     def dimension(self):
         """

@@ -721,13 +721,29 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Randomize density proportion of the entries of this matrix,
         leaving the rest unchanged.
 
-        NOTE: The random() function doesn't seem to be as random as
-        expected. The lower-order bits seem to have a strong bias
-        towards zero. Even stranger, if you create two 1000x1000
-        matrices over GF(2) they always appear to have the same
-        reduced row echelon form, i.e. they span the same space. The
-        higher-order bits seem to be much more random and thus we
-        shift first and mod p then.
+        EXAMPLES:
+            sage: A = matrix(GF(2), 5, 5, 0)
+            sage: A.randomize(0.5); A
+            [0 0 0 1 1]
+            [0 1 0 0 1]
+            [1 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 0 1 0]
+            sage: A.randomize(); A
+            [0 1 1 1 0]
+            [1 0 1 0 0]
+            [1 0 0 0 1]
+            [1 1 0 1 1]
+            [0 0 1 0 0]
+
+        TESTS:
+        With the libc random number generator random(), we had problems
+        where the ranks of all of these matrices would be the same
+        (and they would all be far too low).  This verifies that the
+        problem is gone, with Mersenne Twister.
+            sage: MS2 = MatrixSpace(GF(2), 1000)
+            sage: [MS2.random_element().rank() for i in range(5)]
+            [999, 1000, 1000, 999, 1000]
         """
 
         density = float(density)
@@ -737,18 +753,35 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self.check_mutability()
         self.clear_cache()
 
+        cdef randstate rstate = current_randstate()
+
+        cdef int i, j, k
         cdef int nc
         if density == 1:
-            fillRandomlyPacked(self._entries)
+            # This used to be a call to fillRandomlyPacked, like this:
+            # fillRandomlyPacked(self._entries)
+            # I replaced it with this explicit loop, because
+            # fillRandomlyPacked calls rand(), which may give different
+            # results on different operating systems, and is probably
+            # less random than the Mersenne Twister.
+            # Note that fillRandomlyPacked does not set multiple
+            # bits at once, or anything like that... it uses
+            # writePackedCell just like this loop, so this should still
+            # be about the same speed.
+            # It could probably be sped up a lot by using writePackedBlock
+            # and writing 64 bits at a time (and only getting 1/32 as
+            # many random numbers from the Mersenne Twister).
+            for i from 0 <= i < self._nrows:
+                for j from 0 <= j < self._ncols:
+                    writePackedCell(self._entries, i, j, rstate.c_random() % 2)
         else:
             nc = self._ncols
             num_per_row = int(density * nc)
             _sig_on
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < num_per_row:
-                    k = ((random()>>16)+random())%nc # is this safe?
-                    # 16-bit seems safe
-                    writePackedCell(self._entries, i, k, (random()>>16) % 2)
+                    k = rstate.c_random()%nc
+                    writePackedCell(self._entries, i, k, rstate.c_random() % 2)
             _sig_off
 
 

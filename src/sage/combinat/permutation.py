@@ -38,7 +38,7 @@ from permutation_nk import PermutationsNK
 import sage.rings.integer
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from random import randint, sample
+from sage.misc.prandom import randint, sample
 from sage.interfaces.all import gap
 from sage.graphs.graph import DiGraph
 import itertools
@@ -2141,8 +2141,8 @@ class Permutations_nk(CombinatorialClass):
     def random(self):
         """
         EXAMPLES:
-            sage: Permutations(3,2).random() #random
-            [1, 3]
+            sage: Permutations(3,2).random()
+            [0, 1]
         """
         return sample(range(self.n), self.k)
 
@@ -2331,8 +2331,8 @@ class Permutations_set(CombinatorialClass):
     def random(self):
         """
         EXAMPLES:
-        sage: Permutations([1,2,3]).random() #random
-        [2, 3]
+        sage: Permutations([1,2,3]).random()
+        [1, 2, 3]
         """
         return sample(self.set, len(self.set))
 
@@ -2405,8 +2405,8 @@ class Permutations_setk(CombinatorialClass):
     def random(self):
         """
         EXAMPLES:
-            sage: Permutations([1,2,3],2).random() #random
-            [1, 3]
+            sage: Permutations([1,2,3],2).random()
+            [1, 2]
         """
         return sample(self.set, self.k)
 
@@ -2584,8 +2584,8 @@ class StandardPermutations_n(CombinatorialClass):
     def random(self):
         """
         EXAMPLES:
-            sage: Permutations(4).random() #random
-            [3, 4, 1, 2]
+            sage: Permutations(4).random()
+            [1, 3, 2, 4]
         """
         r = randint(0, int(factorial(self.n)-1))
         return self.unrank(r)
@@ -4054,8 +4054,8 @@ def Permutations(n=None,k=None, **kwargs):
         Standard permutations of 5 avoiding [[3, 4, 1, 2], [4, 2, 3, 1]]
         sage: p.count()
         88
-        sage: p.random() # random output
-        [1, 4, 2, 5, 3]
+        sage: p.random()
+        [1, 3, 4, 5, 2]
 
     """
 

@@ -55,6 +55,8 @@ AUTHOR:
 
 import operator
 
+from sage.misc.randstate cimport randstate, current_randstate
+
 include '../ext/interrupt.pxi'
 include '../ext/stdsage.pxi'
 
@@ -97,8 +99,6 @@ from real_double import RealDoubleElement, RDF
 # can be questionable -- it varies from version to version, so...
 cdef int PREC
 PREC = 28
-
-from random import random
 
 from sage.structure.parent_gens import ParentWithGens
 from sage.categories.morphism cimport Morphism
@@ -176,17 +176,18 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         and imaginary part bounded by xmin, xmax, ymin, ymax.
 
         EXAMPLES:
-            sage: CDF.random_element() # random output
-            0.209449195154 + 0.358283042908*I
-            sage: CDF.random_element(-10,10,-10,10) # random output
-            -8.95410163615 + 8.72241592407*I
-            sage: CDF.random_element(-10^20,10^20,-2,2) # random output
-            2.60705696501e+19 - 1.3642168045*I
+            sage: CDF.random_element()
+            -0.436810529675 + 0.736945423566*I
+            sage: CDF.random_element(-10,10,-10,10)
+            -7.08874026302 - 9.54135400334*I
+            sage: CDF.random_element(-10^20,10^20,-2,2)
+            -7.58765473764e+19 + 0.925549022839*I
         """
+        cdef randstate rstate = current_randstate()
         global _CDF
         cdef ComplexDoubleElement z
         z = PY_NEW(ComplexDoubleElement)
-        z._complex = gsl_complex_rect( (xmax-xmin)*random() + xmin, (ymax-ymin)*random() + ymin)
+        z._complex = gsl_complex_rect( (xmax-xmin)*rstate.c_rand_double() + xmin, (ymax-ymin)*rstate.c_rand_double() + ymin)
         return z
 
     def __repr__(self):

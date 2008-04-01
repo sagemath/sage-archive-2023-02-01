@@ -93,8 +93,8 @@ def OrderedSetPartitions(s, c=None):
         [{1}, {2}, {3}, {4}]
         sage: OS.last()
         [{1, 2, 3, 4}]
-        sage: OS.random() #random
-        [{1}, {3}, {2, 4}]
+        sage: OS.random()
+        [{3}, {1}, {2}, {4}]
 
         sage: OS = OrderedSetPartitions([1,2,3,4], [2,2]); OS
         Ordered set partitions of {1, 2, 3, 4} into parts of size [2, 2]

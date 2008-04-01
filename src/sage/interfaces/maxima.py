@@ -350,7 +350,6 @@ cygwin = os.uname()[0][:6]=="CYGWIN"
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, gc_disabled
 from pexpect import EOF
 
-#import random
 from random import randrange
 
 ##import sage.rings.all

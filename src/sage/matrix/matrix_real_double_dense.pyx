@@ -549,6 +549,10 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         EXAMPLES:
             sage: m = Matrix(RDF, 3, range(9))
             sage: m.right_eigenvectors()           # random-ish platform-dependent output (low order digits)
+            ([13.3484692283, -1.34846922835, -6.43352295265e-16],
+            [ 0.164763817282  0.799699663112  0.408248290464]
+            [ 0.505774475901  0.104205787719 -0.816496580928]
+            [ 0.846785134519 -0.591288087674  0.408248290464])
 
         IMPLEMENTATION:
             Uses numpy.

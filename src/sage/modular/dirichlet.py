@@ -45,7 +45,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-import random
+import sage.misc.prandom as random
 import weakref
 
 import sage.rings.arith as arith
@@ -1682,12 +1682,12 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         of the generator minus 1, inclusive.
 
         EXAMPLES:
-            sage: DirichletGroup(37).random_element() # random output
-            [-zeta36^6]
-            sage: DirichletGroup(20).random_element() # random output
-            [-1, -zeta4]
-            sage: DirichletGroup(60).random_element() # random output
-            [1, 1, zeta4]
+            sage: DirichletGroup(37).random_element()
+            [zeta36^4]
+            sage: DirichletGroup(20).random_element()
+            [-1, 1]
+            sage: DirichletGroup(60).random_element()
+            [1, -1, 1]
         """
         e = self(1)
         for i in range(self.ngens()):

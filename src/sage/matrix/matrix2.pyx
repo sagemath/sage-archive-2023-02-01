@@ -21,6 +21,7 @@ TESTS:
 include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
+from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sequence import Sequence
 from sage.combinat.combinat import combinations_iterator
 from sage.structure.element import is_Vector
@@ -34,8 +35,6 @@ import sage.modules.free_module
 import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
-
-from random import randint
 
 cdef class Matrix(matrix1.Matrix):
     def _backslash_(self, B):
@@ -3160,17 +3159,17 @@ cdef class Matrix(matrix1.Matrix):
 
         We then randomize roughly half the entries:
             sage: a.randomize(0.5)
-            sage: a     # random output
-            [-1/3*x^2 + 1/2*x + 1  1/5*x^2 + 2*x - 2/3                    0]
-            [                   0                    0                    0]
-            [     x^2 + 1/3*x + 1                    0                    0]
+            sage: a
+            [      1/2*x^2 - x - 12 1/2*x^2 - 1/95*x - 1/2                      0]
+            [-5/2*x^2 + 2/3*x - 1/4                      0                      0]
+            [          -x^2 + 2/3*x                      0                      0]
 
         Now we randomize all the entries of the resulting matrix:
             sage: a.randomize()
-            sage: a  # random output
-            [        x^2 + 3*x + 2    -2/3*x^2 - 4*x - 6        x^2 + 11*x + 1]
-            [   -x^2 + 1/4*x - 1/4         -x^2 - x - 22    -x^2 + 1/6*x - 1/2]
-            [ -6*x^2 - 1/3*x - 2/3 2*x^2 - 1/12*x + 1/20       2*x^2 + x - 3/2]
+            sage: a
+            [     1/3*x^2 - x + 1             -x^2 + 1              x^2 - x]
+            [ -1/14*x^2 - x - 1/4           -4*x - 1/5 -1/4*x^2 - 1/2*x + 4]
+            [ 1/9*x^2 + 5/2*x - 3     -x^2 + 3/2*x + 1   -2/7*x^2 - x - 1/2]
 
         We create the zero matrix over the integers:
             sage: a = matrix(ZZ, 2); a
@@ -3181,10 +3180,12 @@ cdef class Matrix(matrix1.Matrix):
         the size of the random elements, are passed onto the ZZ
         random_element method.
             sage: a.randomize(x=-2^64, y=2^64)
-            sage: a           # random output
-            [  4478398010554264318  -1173319677607058552]
-            [ 11400122422515230170 -18056143553837283799]
+            sage: a
+            [-12401200298100116246   1709403521783430739]
+            [ -4417091203680573707  17094769731745295000]
         """
+        randint = current_randstate().python_random().randint
+
         density = float(density)
         if density == 0:
             return
@@ -3370,8 +3371,8 @@ cdef class Matrix(matrix1.Matrix):
             the density of a matrix, it is only an upper bound.
 
             sage: A = random_matrix(GF(127),200,200,density=0.3)
-            sage: A.density() # somewhat random
-            643/2500
+            sage: A.density()
+            5159/20000
 
             sage: A = matrix(QQ,3,3,[0,1,2,3,0,0,6,7,8])
             sage: A.density()

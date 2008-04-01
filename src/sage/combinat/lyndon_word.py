@@ -43,7 +43,7 @@ def LyndonWords(e, k=None):
         [1, 1, 2]
         sage: LW.last()
         [2, 3, 3]
-        sage: LW.random() # random output
+        sage: LW.random()
         [1, 1, 2]
         sage: LW.count()
         8
@@ -276,8 +276,8 @@ def StandardBracketedLyndonWords(n, k):
         [[2, 3], 3]
         sage: SBLW33.count()
         8
-        sage: SBLW33.random() #random
-        [2, [2, 3]]
+        sage: SBLW33.random()
+        [1, [1, 2]]
     """
     return StandardBracketedLyndonWords_nk(n,k)
 

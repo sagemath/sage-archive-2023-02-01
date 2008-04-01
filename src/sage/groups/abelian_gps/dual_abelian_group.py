@@ -212,20 +212,21 @@ class DualAbelianGroup_class(group.AbelianGroup):
         EXAMPLES:
             sage: G = AbelianGroup([2,3,9])
             sage: Gd = DualAbelianGroup(G)
-            sage: Gd.random() ## random
-            X1^2*X2^8
+            sage: Gd.random()
+            X0*X1^2*X2
             sage: N = 43^2-1
             sage: G = AbelianGroup([N],names="a")
             sage: Gd = DualAbelianGroup(G,names="A")
             sage: a, = G.gens()
             sage: A, = Gd.gens()
             sage: x = a^(N/4); y = a^(N/3); z = a^(N/14)
-            sage: X = Gd.random()
-            sage: len([a for a in [x,y,z] if abs(X(a)-1)>10^(-8)]) ## random
-            3
+            sage: X = Gd.random(); X
+            A^615
+            sage: len([a for a in [x,y,z] if abs(X(a)-1)>10^(-8)])
+            2
 
         """
-        from random import randint
+        from sage.misc.prandom import randint
         gens = self.gens()
         g = gens[0]**0
         for i in range(len(gens)):

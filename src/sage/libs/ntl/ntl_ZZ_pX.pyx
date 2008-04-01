@@ -15,6 +15,7 @@
 
 include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
+include "../../ext/random.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -873,11 +874,14 @@ cdef class ntl_ZZ_pX:
         NOTE: The roots are returned in a random order.
 
         EXAMPLES:
+        These computations use pseudo-random numbers, so we set the
+        seed for reproducible testing.
+            sage: set_random_seed(0)
             sage: ntl.ZZ_pX([-1,0,0,0,0,1],5).factor()
             [([4 1], 5)]
             sage: ls = ntl.ZZ_pX([-1,0,0,0,1],5).factor()
-            sage: ls # random
-            [([1 1], 1), ([4 1], 1), ([3 1], 1), ([2 1], 1)]
+            sage: ls
+            [([4 1], 1), ([2 1], 1), ([1 1], 1), ([3 1], 1)]
             sage: prod( [ x[0] for x in ls ] )
             [4 0 0 0 1]
             sage: ntl.ZZ_pX([3,7,0,1], 31).factor()
@@ -887,6 +891,8 @@ cdef class ntl_ZZ_pX:
             ...
             ValueError: self must be monic.
         """
+        current_randstate().set_seed_ntl(False)
+
         self.c.restore_c()
         cdef ZZ_pX_c** v
         cdef ntl_ZZ_pX r
@@ -930,6 +936,8 @@ cdef class ntl_ZZ_pX:
             ...
             ValueError: self must be monic.
         """
+        current_randstate().set_seed_ntl(False)
+
         self.c.restore_c()
         cdef ZZ_p_c** v
         cdef ntl_ZZ_p r

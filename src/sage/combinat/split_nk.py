@@ -14,7 +14,7 @@
 #*****************************************************************************
 
 from sage.rings.arith import binomial
-import random as rnd
+import sage.misc.prandom as rnd
 import sage.combinat.choose_nk as choose_nk
 from combinat import CombinatorialClass
 
@@ -113,8 +113,8 @@ class SplitNK_nk(CombinatorialClass):
 
         EXAMPLES:
             sage: from sage.combinat.split_nk import SplitNK
-            sage: SplitNK(5,2).random() #random
-            [[1, 3], [0, 2, 4]]
+            sage: SplitNK(5,2).random()
+            [[0, 2], [1, 3, 4]]
         """
         r = rnd.sample(xrange(self._n),self._n)
         r0 = r[:self._k]

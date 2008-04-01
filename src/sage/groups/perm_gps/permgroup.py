@@ -84,6 +84,7 @@ NOTE:
 
 import random
 
+from sage.misc.randstate import current_randstate
 import sage.structure.element as element
 import sage.groups.group as group
 
@@ -169,8 +170,10 @@ def PermutationGroup(x, from_group=False, check=True):
         sage: gap(G) is G._gap_()
         True
         sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
-        sage: G._gap_().DerivedSeries()   # output somewhat random
-        [ Group([ (1,2,3)(4,5), (3,4) ]), Group([ (1,5)(3,4), (1,5)(2,4), (1,4,5) ]) ]
+        sage: current_randstate().set_seed_gap()
+        sage: G._gap_().DerivedSeries()
+        [ Group( [ (1,2,3)(4,5), (3,4) ] ),
+          Group( [ (1,5)(3,4), (1,5)(2,4), (1,3,5) ] ) ]
     """
     if not is_ExpectElement(x) and hasattr(x, '_permgroup_'):
         return x._permgroup_()
@@ -703,9 +706,11 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLES:
             sage: G = PermutationGroup([[(1,2,3),(4,5)], [(1,2)]])
-            sage: G.random_element()         ## random output
-            (1, 3)(4, 5)
+            sage: G.random_element()
+            (1,2)(4,5)
         """
+        current_randstate().set_seed_gap()
+
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
         return PermutationGroupElement(self._gap_().Random(),
                                        self, check=False)
@@ -1262,9 +1267,10 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLES:
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4)]])
-            sage: g = G.random_element()
-            sage: G.normalizer(g)  ## random output
-            Group([ (2,4), (1,3) ])
+            sage: g = G.random_element(); g
+            (1,3)
+            sage: G.normalizer(g)
+            Group( [ (1,3), (2,4) ] )
             sage: g = G([(1,2,3,4)])
             sage: G.normalizer(g)
             Group( [ (1,2,3,4), (1,3)(2,4), (2,4) ] )
@@ -1370,9 +1376,11 @@ class PermutationGroup_generic(group.FiniteGroup):
             True
             sage: G = PermutationGroup([(1,2,3), (2,3)])
             sage: H = PermutationGroup([(1,2,4), (1,4)])
-            sage: G.isomorphism_to(H) # random
+            sage: G.isomorphism_to(H)
             Homomorphism : Permutation Group with generators [(1,2,3), (2,3)] --> Permutation Group with generators [(1,2,4), (1,4)]
         """
+        current_randstate().set_seed_gap()
+
         if not isinstance(right, PermutationGroup_generic):
             raise TypeError, "right must be a permutation group"
         G = self._gap_init_()
@@ -1568,13 +1576,17 @@ class PermutationGroup_generic(group.FiniteGroup):
         permutation groups.
 
         EXAMPLES:
+        These computations use pseudo-random numbers, so we set the
+        seed for reproducible testing.
+            sage: set_random_seed(0)
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
-            sage: G.composition_series()        # somewhat random output
+            sage: G.composition_series()
             [Permutation Group with generators [(1,2,3)(4,5), (3,4)],
-             Permutation Group with generators [(1,5)(3,4), (1,5)(2,4), (1,3,5)],
+             Permutation Group with generators [(1,5)(3,4), (1,5)(2,3), (1,5,4)],
              Permutation Group with generators [()]]
 
         """
+        current_randstate().set_seed_gap()
         ans = []
         DS = self._gap_().CompositionSeries()
         n = DS.Length()
@@ -1588,11 +1600,15 @@ class PermutationGroup_generic(group.FiniteGroup):
         permutation groups.
 
         EXAMPLES:
+        These computations use pseudo-random numbers, so we set the
+        seed for reproducible testing.
+            sage: set_random_seed(0)
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
-            sage: G.derived_series()        # somewhat random output
+            sage: G.derived_series()
             [Permutation Group with generators [(1,2,3)(4,5), (3,4)],
              Permutation Group with generators [(1,5)(3,4), (1,5)(2,4), (2,4)(3,5)]]
         """
+        current_randstate().set_seed_gap()
         ans = []
         DS = self._gap_().DerivedSeries()
         n = DS.Length()
@@ -1606,12 +1622,16 @@ class PermutationGroup_generic(group.FiniteGroup):
         permutation groups.
 
         EXAMPLES:
+        These computations use pseudo-random numbers, so we set the
+        seed for reproducible testing.
+            sage: set_random_seed(0)
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
-            sage: G.lower_central_series()        # somewhat random output
+            sage: G.lower_central_series()
             [Permutation Group with generators [(1,2,3)(4,5), (3,4)],
-             Permutation Group with generators [(1,5)(3,4), (1,5)(2,4), (1,3,5)]]
+             Permutation Group with generators [(1,5)(3,4), (1,5)(2,3), (1,3)(2,4)]]
 
         """
+        current_randstate().set_seed_gap()
         ans = []
         DS = self._gap_().LowerCentralSeriesOfGroup()
         n = DS.Length()
@@ -1625,10 +1645,14 @@ class PermutationGroup_generic(group.FiniteGroup):
         permutation groups.
 
         EXAMPLES:
+        These computations use pseudo-random numbers, so we set the
+        seed for reproducible testing.
+            sage: set_random_seed(0)
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
-            sage: G.upper_central_series()        # somewhat random output
+            sage: G.upper_central_series()
             [Permutation Group with generators [()]]
         """
+        current_randstate().set_seed_gap()
         ans = []
         DS = self._gap_().UpperCentralSeriesOfGroup()
         n = DS.Length()

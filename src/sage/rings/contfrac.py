@@ -34,14 +34,14 @@ We create some example elements of the continued fraction field.
 We can also create matrices, polynomials, vectors, etc., over the continued
 fraction field.
     sage: a = random_matrix(CFF, 4)
-    sage: a                            # random entries
-    [   [-2]  [0, 2] [-1, 2]    [-1]]
-    [   [-1]     [1]    [-1]     [1]]
-    [    [0]     [1]     [2] [-1, 2]]
-    [    [1]     [0]     [2]     [1]]
+    sage: a
+    [[0, 2]    [1]    [1] [0, 2]]
+    [  [-1]    [1]   [-1]   [-2]]
+    [   [2]    [1]   [-1]    [1]]
+    [  [-1]    [1]   [-2] [0, 2]]
     sage: f = a.charpoly()
-    sage: f                     # random -- depends on a
-    [1]*x^4 + ([-2])*x^3 + [0, 2]*x^2 + [2, 4]*x + [-8, 2]
+    sage: f
+    [1]*x^4 + ([-1])*x^3 + [3, 1, 3]*x^2 + [3]*x + [-18]
     sage: f(a)
     [[0] [0] [0] [0]]
     [[0] [0] [0] [0]]
@@ -292,8 +292,8 @@ class ContinuedFractionField_class(Field):
     def random_element(self, num_bound=2, den_bound=2):
         """
         EXAMPLES:
-           sage: CFF.random_element(10,10) # random output
-           [0, 1, 1, 4]
+           sage: CFF.random_element(10,10)
+           [0, 4]
         """
         return self(QQ.random_element(num_bound = num_bound, den_bound = den_bound))
 

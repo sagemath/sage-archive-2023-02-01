@@ -150,6 +150,10 @@ from cachefunc import CachedFunction
 
 from sagex_ds import BinaryTree
 
+from randstate import seed, set_random_seed, initial_seed, current_randstate
+
+from prandom import *
+
 ##########################################################################
 def benchmark(n=-1):
     """

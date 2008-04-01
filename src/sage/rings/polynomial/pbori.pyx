@@ -139,6 +139,8 @@ include "../../ext/stdsage.pxi"
 include "../../ext/cdefs.pxi"
 include '../../libs/polybori/decl.pxi'
 
+from sage.misc.randstate import current_randstate
+
 from sage.rings.integer import Integer
 from sage.rings.finite_field import FiniteField as GF
 
@@ -802,8 +804,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2) # random
-            y + 1
+            sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)
+            x + y
+            sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)
+            0
         """
         from sage.rings.integer import Integer
         from sage.rings.integer_ring import ZZ
@@ -833,8 +837,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: P._random_monomial_uniform([1, 3, 4], (0,1)) # random output
-            x
+            sage: [P._random_monomial_uniform([1, 3, 4], (0,1)) for _ in range(10)]
+            [x*y, x*y, x, x, x, x*y, x, y, x*y, 1]
         """
         from sage.rings.integer_ring import ZZ
         from sage.combinat.choose_nk import from_rank
@@ -867,11 +871,11 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: P._random_monomial_dfirst(3, (0,1,2)) # random output
-            x*y
+            sage: [P._random_monomial_dfirst(3, (0,1,2)) for _ in range(10)]
+            [x*y*z, x*y*z, x*y*z, y*z, x*z, z, z, y*z, x*y*z, 1]
         """
         from sage.rings.integer_ring import ZZ
-        from random import sample
+        sample = current_randstate().python_random().sample
         d = ZZ.random_element(0,degree+1)
         vars = sample(vars_set, d)
         M = self._monom_monoid

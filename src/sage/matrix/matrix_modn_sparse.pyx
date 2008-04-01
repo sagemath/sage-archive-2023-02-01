@@ -458,8 +458,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             the density of a matrix, it is only an upper bound.
 
             sage: A = random_matrix(GF(127),200,200,density=0.3, sparse=True)
-            sage: A.density() # somewhat random
-            643/2500
+            sage: A.density()
+            257/1000
 
             sage: A = matrix(QQ,3,3,[0,1,2,3,0,0,6,7,8],sparse=True)
             sage: A.density()
@@ -620,6 +620,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             sage: r3 = A.rank(gauss='native')
             sage: r1 == r2 == r3
             True
+            sage: r1
+            155
 
         ALGORITHM: Uses LinBox or native implementation.
 

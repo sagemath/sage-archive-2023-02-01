@@ -2354,16 +2354,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [1 2 3]
             [4 5 6]
             sage: A.randomize()
-            sage: A   # random output
-            [ 1 -5 -1]
-            [-2  4 -2]
+            sage: A
+            [-8  2  0]
+            [ 0  1 -1]
             sage: A.randomize(x=-30,y=30)
-            sage: A   # random output
-            [-28 -12 -16]
-            [ 24   2  21]
+            sage: A
+            [  5 -19  24]
+            [ 24  23  -9]
         """
         self.check_mutability()
         self.clear_cache()
+
+        cdef randstate rstate = current_randstate()
 
         density = float(density)
 
@@ -2382,7 +2384,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             num_per_row = int(density * nc)
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < num_per_row:
-                    k = random()%nc
+                    k = rstate.c_random()%nc
                     the_integer_ring._randomize_mpz(self._matrix[i][k], x, y, distribution)
 
         _sig_off
@@ -2957,6 +2959,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         r = A.rank()
         verbose('done computing rank', level=2, t=t, caller_name='p-adic echelon')
 
+        cdef randstate rstate = current_randstate()
+
         if r == self._nrows:
             # The input matrix already has full rank.
             B = A
@@ -2964,7 +2968,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             # Steps 2 and 3: Extract out a submatrix of full rank.
             i = 0
             while True:
-                p = previous_prime(random() % (MAX_MODULUS-15000) + 10000)
+                p = previous_prime(rstate.c_random() % (MAX_MODULUS-15000) + 10000)
                 P = A._mod_int(p).transpose().pivots()
                 if len(P) == r:
                     B = A.matrix_from_rows(P)
@@ -2983,7 +2987,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             # Step 4: Now we instead worry about computing the reduced row echelon form of B.
             i = 0
             while True:
-                p = previous_prime(random() % (MAX_MODULUS-15000) + 10000)
+                p = previous_prime(rstate.c_random() % (MAX_MODULUS-15000) + 10000)
                 pivots = B._mod_int(p).pivots()
                 if len(pivots) == r:
                     break

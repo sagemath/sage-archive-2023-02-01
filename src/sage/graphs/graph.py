@@ -256,7 +256,7 @@ AUTHORS:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from random import random
+from sage.misc.prandom import random
 from sage.structure.sage_object import SageObject
 import sage.graphs.graph_fast as graph_fast
 from sage.graphs.base.all import SparseGraph, DenseGraph
@@ -308,7 +308,7 @@ class GenericGraph(SageObject):
             True
             sage: G = graphs.RandomGNP(8,.9999)
             sage: H = graphs.CompleteGraph(8)
-            sage: G == H # (quasi-) random output (most often true)
+            sage: G == H # most often true
             True
             sage: G = Graph( {0:[1,2,3,4,5,6,7]} )
             sage: H = Graph( {1:[0], 2:[0], 3:[0], 4:[0], 5:[0], 6:[0], 7:[0]} )
@@ -319,7 +319,7 @@ class GenericGraph(SageObject):
             False
             sage: G = graphs.RandomGNP(9,.3).to_directed()
             sage: H = graphs.RandomGNP(9,.3).to_directed()
-            sage: G == H # random output (most often false)
+            sage: G == H # most often false
             False
             sage: G = Graph(multiedges=True)
             sage: G.add_edge(0,1)
@@ -3297,8 +3297,8 @@ class GenericGraph(SageObject):
 
         EXAMPLE:
             sage: P = graphs.PetersenGraph()
-            sage: P.random_subgraph(.25) # random
-            Subgraph of (Petersen graph): Graph on 3 vertices
+            sage: P.random_subgraph(.25)
+            Subgraph of (Petersen graph): Graph on 4 vertices
 
         """
         vertices = []

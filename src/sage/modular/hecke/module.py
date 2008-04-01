@@ -27,7 +27,7 @@ from sage.structure.all import Sequence
 import sage.matrix.matrix_space as matrix_space
 from sage.structure.parent_gens import ParentWithGens
 
-import random
+import sage.misc.prandom as random
 
 import algebra
 import element
@@ -990,12 +990,19 @@ class HeckeModule_free_module(HeckeModule_generic):
              alpha -- name of generate for eigenvalue field
 
         EXAMPLES:
+        These computations use pseudo-random numbers, so we set the
+        seed for reproducible testing.
+            sage: set_random_seed(0)
+
+        The computations also use cached results from other computations,
+        so we clear the caches for reproducible testing.
+            sage: ModularSymbols_clear_cache()
+
         We compute eigenvalues for newforms of level 62.
             sage: M = ModularSymbols(62,2,sign=-1)
             sage: S = M.cuspidal_submodule().new_submodule()
-            sage: [A.system_of_eigenvalues(3) for A in S.decomposition()]  # random output
-
-            [[1, 1, 0], [1, -1, -alpha - 1]]
+            sage: [A.system_of_eigenvalues(3) for A in S.decomposition()]
+            [[1, 1, 0], [1, -1, -1/2*alpha - 1/2]]
 
         Next we define a function that does the above:
             sage: def b(N,k=2):

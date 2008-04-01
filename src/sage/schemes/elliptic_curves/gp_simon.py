@@ -24,6 +24,7 @@ from sage.structure.parent_gens import localvars
 
 from sage.interfaces.gp import Gp
 from sage.misc.sage_eval import sage_eval
+from sage.misc.randstate import current_randstate
 from sage.rings.all import PolynomialRing, ZZ, QQ
 
 gp = None
@@ -56,6 +57,9 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
         (2, 2, [(1 : 0 : 1), (-11/9 : -55/27 : 1)])
     """
     init()
+
+    current_randstate().set_seed_gp(gp)
+
     K = E.base_ring()
     F, transform = E.integral_model()
 

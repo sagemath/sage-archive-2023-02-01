@@ -1070,10 +1070,10 @@ def RandomLinearCode(n,k,F):
 
     EXAMPLES:
         sage: C = RandomLinearCode(30,15,GF(2))
-        sage: C                                        # random output
+        sage: C
         Linear code of length 30, dimension 15 over Finite Field of size 2
         sage: C = RandomLinearCode(10,5,GF(4,'a'))
-        sage: C                                       # random output
+        sage: C
         Linear code of length 10, dimension 5 over Finite Field in a of size 2^2
 
     AUTHOR: David Joyner (2007-05)

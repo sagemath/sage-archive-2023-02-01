@@ -15,8 +15,8 @@ Alternating sign matrices
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import sage.misc.prandom as rnd
 from sage.rings.arith import binomial
-import random as rnd
 from combinat import CombinatorialClass
 
 class ChooseNK(CombinatorialClass):
@@ -106,8 +106,8 @@ class ChooseNK(CombinatorialClass):
 
         EXAMPLES:
             sage: from sage.combinat.choose_nk import ChooseNK
-            sage: ChooseNK(5,2).random() #random
-            [0,3]
+            sage: ChooseNK(5,2).random()
+            [0, 2]
         """
         r = rnd.sample(xrange(self._n),self._k)
         r.sort()

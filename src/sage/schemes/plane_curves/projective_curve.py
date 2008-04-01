@@ -236,8 +236,8 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: C._points_via_singular()
             [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
             sage: v = C._points_via_singular(sort=True)
-            sage: v                                       # output is in random order
-            [(0 : 1 : 0), (3 : 4 : 1), (2 : 2 : 1), (3 : 1 : 1), (0 : 0 : 1), (2 : 3 : 1)]
+            sage: v
+            [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
 
         \note{The Brill-Noether package does not always work (i.e., the 'bn'
         algorithm.  When it fails a RuntimeError exception is raised.}

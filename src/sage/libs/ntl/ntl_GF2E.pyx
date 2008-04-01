@@ -16,6 +16,7 @@
 
 include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
+include "../../ext/random.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -48,9 +49,11 @@ def ntl_GF2E_random(ntl_GF2EContext_class ctx):
 
     EXAMPLES:
         sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
-        sage: ntl.GF2E_random(ctx) # random
-        [0 0 0 0 1 1 1]
+        sage: ntl.GF2E_random(ctx)
+        [1 0 1 0 1 0 0 1]
     """
+    current_randstate().set_seed_ntl(False)
+
     cdef ntl_GF2E r
     ctx.restore_c()
     r = PY_NEW(ntl_GF2E)

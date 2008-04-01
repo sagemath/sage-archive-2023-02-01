@@ -129,6 +129,7 @@ AUTHORS:
 
 import graph
 from   math import sin, cos, pi
+from sage.misc.randstate import current_randstate
 
 class GraphGenerators():
     r"""
@@ -2246,6 +2247,11 @@ class GraphGenerators():
         algorithm, unless a position dictionary is specified.
 
         EXAMPLES:
+        We show the edge list of a random graph on 6 nodes with probability
+        $p = .4$:
+            sage: graphs.RandomGNP(6, .4).edges(labels=False)
+            [(0, 1), (0, 3), (0, 4), (0, 5), (1, 2), (1, 3), (1, 4), (1, 5)]
+
         We plot a random graph on 12 nodes with probability $p = .71$:
             sage: gnp = graphs.RandomGNP(12,.71)
             sage: gnp.show()
@@ -2287,6 +2293,8 @@ class GraphGenerators():
             0.90005700000000033
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         if fast:
             G = networkx.fast_gnp_random_graph(n, p, seed)
@@ -2309,6 +2317,10 @@ class GraphGenerators():
             seed -- for random number generator
 
         EXAMPLES:
+        We show the edge list of a random graph on 6 nodes with m = 2.
+            sage: graphs.RandomBarabasiAlbert(6,2).edges(labels=False)
+            [(0, 2), (0, 3), (0, 4), (1, 2), (1, 3), (2, 4), (2, 5), (3, 5)]
+
         We plot a random graph on 12 nodes with m = 3.
             sage: ba = graphs.RandomBarabasiAlbert(12,3)
             sage: ba.plot().show()  # or ba.show()
@@ -2330,6 +2342,8 @@ class GraphGenerators():
             sage: G.show()  # or G.show()
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.barabasi_albert_graph(n,m,seed))
 
@@ -2345,6 +2359,10 @@ class GraphGenerators():
         gnm_random_graph
 
         EXAMPLES:
+        We show the edge list of a random graph on 5 nodes with 10 edges.
+            sage: graphs.RandomGNM(5, 10).edges(labels=False)
+            [(0, 1), (0, 2), (0, 3), (0, 4), (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]
+
         We plot a random graph on 12 nodes with m = 12.
             sage: gnm = graphs.RandomGNM(12, 12)
             sage: gnm.plot().show()  # or gnm.show()
@@ -2366,6 +2384,8 @@ class GraphGenerators():
             sage: G.show()  # or G.show()
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         if dense:
             return graph.Graph(networkx.dense_gnm_random_graph(n, m, seed))
@@ -2391,6 +2411,11 @@ class GraphGenerators():
             seed -- for the random number generator
 
         EXAMPLE:
+        We show the edge list of a random graph on 7 nodes with
+        2 "nearest neighbors" and probability $p = 0.2$:
+            sage: graphs.RandomNewmanWattsStrogatz(7, 2, 0.2).edges(labels=False)
+            [(0, 1), (0, 2), (0, 3), (0, 6), (1, 2), (2, 3), (2, 4), (3, 4), (3, 6), (4, 5), (5, 6)]
+
             sage: G = graphs.RandomNewmanWattsStrogatz(12, 2, .3)
             sage: G.plot().show()  # or G.show()
 
@@ -2399,6 +2424,8 @@ class GraphGenerators():
                 models of social networks. Proc. Nat. Acad. Sci. USA 99, 2566-2572.
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.newman_watts_strogatz_graph(n, k, p, seed))
 
@@ -2428,6 +2455,12 @@ class GraphGenerators():
         the BA model.
 
         EXAMPLE:
+        We show the edge list of a random graph on 8 nodes with 2
+        random edges per node and a probability $p = 0.5$ of forming
+        triangles.
+            sage: graphs.RandomHolmeKim(8, 2, 0.5).edges(labels=False)
+            [(0, 2), (0, 4), (1, 2), (1, 3), (2, 3), (3, 4), (3, 5), (3, 6), (3, 7), (4, 5), (4, 6)]
+
             sage: G = graphs.RandomHolmeKim(12, 3, .3)
             sage: G.plot().show()  # or G.show()
 
@@ -2435,6 +2468,8 @@ class GraphGenerators():
             [1] Holme, P. and Kim, B.J. Growing scale-free networks with
                 tunable clustering, Phys. Rev. E (2002). vol 65, no 2, 026107.
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.powerlaw_cluster_graph(n, m, p, seed))
 
@@ -2453,10 +2488,17 @@ class GraphGenerators():
             seed -- for the random number generator
 
         EXAMPLE:
+        We show the edge list of a random graph with 3 backbone nodes
+        and probabilities $p = 0.7$ and $q = 0.3$:
+            sage: graphs.RandomLobster(3, 0.7, 0.3).edges(labels=False)
+            [(0, 1), (1, 2)]
+
             sage: G = graphs.RandomLobster(9, .6, .3)
             sage: G.plot().show()  # or G.show()
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.random_lobster(n, p, q, seed))
 
@@ -2477,11 +2519,18 @@ class GraphGenerators():
             seed -- for the random number generator
 
         EXAMPLE:
-            sage: G = graphs.RandomTreePowerlaw(15, 2)  # VERY random output
+        We show the edge list of a random graph with 10 nodes and
+        a power law exponent of 2.
+            sage: graphs.RandomTreePowerlaw(10, 2).edges(labels=False)
+            [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (6, 8), (6, 9)]
+
+            sage: G = graphs.RandomTreePowerlaw(15, 2)
             sage: if G:
             ...    G.plot().show()  # or G.show() (random output)
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         try:
             return graph.Graph(networkx.random_powerlaw_tree(n, gamma, seed, tries))
@@ -2501,7 +2550,16 @@ class GraphGenerators():
             seed -- for the random number generator
 
         EXAMPLE:
-            sage: G = graphs.RandomRegular(3, 20)  # VERY random output
+        We show the edge list of a random graph with 8 nodes each of
+        degree 3.
+            sage: graphs.RandomRegular(3, 8)
+            False
+            sage: graphs.RandomRegular(3, 8)
+            False
+            sage: graphs.RandomRegular(3, 8).edges(labels=False)
+            [(0, 1), (0, 4), (0, 5), (1, 6), (1, 7), (2, 3), (2, 4), (2, 7), (3, 4), (3, 5), (5, 6), (6, 7)]
+
+            sage: G = graphs.RandomRegular(3, 20)
             sage: if G:
             ...    G.plot().show()  # or G.show() (random output)
 
@@ -2513,6 +2571,8 @@ class GraphGenerators():
             [2] Steger, A. and Wormald, N. Generating random regular graphs
                 quickly. Prob. and Comp. 8 (1999), pp 377-396.
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         try:
             return graph.Graph(networkx.random_regular_graph(d, n, seed))
@@ -2532,9 +2592,13 @@ class GraphGenerators():
 
         EXAMPLE:
             sage: G = graphs.RandomShell([(10,20,0.8),(20,40,0.8)])
+            sage: G.edges(labels=False)
+            [(0, 3), (0, 7), (0, 8), (1, 2), (1, 5), (1, 8), (1, 9), (3, 6), (3, 11), (4, 6), (4, 7), (4, 8), (4, 21), (5, 8), (5, 9), (6, 9), (6, 10), (7, 8), (7, 9), (8, 18), (10, 11), (10, 13), (10, 19), (10, 22), (10, 26), (11, 18), (11, 26), (11, 28), (12, 13), (12, 14), (12, 28), (12, 29), (13, 16), (13, 21), (13, 29), (14, 18), (16, 20), (17, 18), (17, 26), (17, 28), (18, 19), (18, 22), (18, 27), (18, 28), (19, 23), (19, 25), (19, 28), (20, 22), (24, 26), (24, 27), (25, 27), (25, 29)]
             sage: G.plot().show()  # or G.show()
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.random_shell_graph(constructor, seed))
 
@@ -2558,6 +2622,8 @@ class GraphGenerators():
 
         EXAMPLES:
             sage: G = graphs.DegreeSequence([3,3,3,3])
+            sage: G.edges(labels=False)
+            [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
             sage: G.plot().show()  # or G.show()
 
             sage: G = graphs.DegreeSequence([3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3])
@@ -2600,12 +2666,16 @@ class GraphGenerators():
         Note: as of this writing, plotting of loops and multiple edges is not
         supported, and the output is allowed to contain both types of edges.
             sage: G = graphs.DegreeSequenceConfigurationModel([3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3])
+            sage: G.edges(labels=False)
+            [(0, 2), (0, 10), (0, 15), (1, 6), (1, 16), (1, 17), (2, 5), (2, 19), (3, 7), (3, 14), (3, 14), (4, 9), (4, 13), (4, 19), (5, 6), (5, 15), (6, 11), (7, 11), (7, 17), (8, 11), (8, 18), (8, 19), (9, 12), (9, 13), (10, 15), (10, 18), (12, 13), (12, 16), (14, 17), (16, 18)]
             sage: G.plot().show()  # or G.show()
 
         REFERENCE:
             [1] Newman, M.E.J. The Structure and function of complex networks,
                 SIAM Review vol. 45, no. 2 (2003), pp. 167-256.
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed), loops=True, multiedges=True)
 
@@ -2645,6 +2715,8 @@ class GraphGenerators():
 
         EXAMPLE:
             sage: G = graphs.DegreeSequenceExpected([1,2,3,2,3])
+            sage: G.edges(labels=False)
+            [(1, 3), (2, 2), (3, 3)]
             sage: G.plot().show()  # or G.show()
 
         REFERENCE:
@@ -2850,12 +2922,16 @@ class DiGraphGenerators():
 
         EXAMPLE:
             sage: D = digraphs.RandomDirectedGN(25)
+            sage: D.edges(labels=False)
+            [(1, 0), (2, 0), (3, 1), (4, 0), (5, 0), (6, 1), (7, 0), (8, 3), (9, 0), (10, 8), (11, 3), (12, 9), (13, 8), (14, 0), (15, 11), (16, 11), (17, 5), (18, 11), (19, 6), (20, 5), (21, 14), (22, 5), (23, 18), (24, 11)]
             sage: D.plot().show()  # or D.show()
 
         REFERENCE:
             [1] Krapivsky, P.L. and Redner, S. Organization of Growing Random
                 Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.DiGraph(networkx.gn_graph(n, kernel, seed))
 
@@ -2876,12 +2952,16 @@ class DiGraphGenerators():
 
         EXAMPLE:
             sage: D = digraphs.RandomDirectedGNC(25)
+            sage: D.edges(labels=False)
+            [(1, 0), (2, 0), (2, 1), (3, 0), (4, 0), (4, 1), (5, 0), (5, 1), (5, 2), (6, 0), (6, 1), (7, 0), (7, 1), (7, 4), (8, 0), (9, 0), (9, 8), (10, 0), (10, 1), (10, 2), (10, 5), (11, 0), (11, 8), (11, 9), (12, 0), (12, 8), (12, 9), (13, 0), (13, 1), (14, 0), (14, 8), (14, 9), (14, 12), (15, 0), (15, 8), (15, 9), (15, 12), (16, 0), (16, 1), (16, 4), (16, 7), (17, 0), (17, 8), (17, 9), (17, 12), (18, 0), (18, 8), (19, 0), (19, 1), (19, 4), (19, 7), (20, 0), (20, 1), (20, 4), (20, 7), (20, 16), (21, 0), (21, 8), (22, 0), (22, 1), (22, 4), (22, 7), (22, 19), (23, 0), (23, 8), (23, 9), (23, 12), (23, 14), (24, 0), (24, 8), (24, 9), (24, 12), (24, 15)]
             sage: D.plot().show()  # or D.show()
 
         REFERENCE:
             [1] Krapivsky, P.L. and Redner, S. Network Growth by Copying,
                 Phys. Rev. E vol. 71 (2005), p. 036118.
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.DiGraph(networkx.gnc_graph(n, seed))
 
@@ -2902,12 +2982,16 @@ class DiGraphGenerators():
 
         EXAMPLE:
             sage: D = digraphs.RandomDirectedGNR(25, .2)
+            sage: D.edges(labels=False)
+            [(1, 0), (2, 0), (2, 1), (3, 0), (4, 0), (4, 1), (5, 0), (5, 1), (5, 2), (6, 0), (6, 1), (7, 0), (7, 1), (7, 4), (8, 0), (9, 0), (9, 8), (10, 0), (10, 1), (10, 2), (10, 5), (11, 0), (11, 8), (11, 9), (12, 0), (12, 8), (12, 9), (13, 0), (13, 1), (14, 0), (14, 8), (14, 9), (14, 12), (15, 0), (15, 8), (15, 9), (15, 12), (16, 0), (16, 1), (16, 4), (16, 7), (17, 0), (17, 8), (17, 9), (17, 12), (18, 0), (18, 8), (19, 0), (19, 1), (19, 4), (19, 7), (20, 0), (20, 1), (20, 4), (20, 7), (20, 16), (21, 0), (21, 8), (22, 0), (22, 1), (22, 4), (22, 7), (22, 19), (23, 0), (23, 8), (23, 9), (23, 12), (23, 14), (24, 0), (24, 8), (24, 9), (24, 12), (24, 15)]
             sage: D.plot().show()  # or D.show()
 
         REFERENCE:
             [1] Krapivsky, P.L. and Redner, S. Organization of Growing Random
                 Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.DiGraph(networkx.gnc_graph(n, seed))
 

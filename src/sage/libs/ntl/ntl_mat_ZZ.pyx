@@ -353,8 +353,8 @@ cdef class ntl_mat_ZZ:
             TypeError: cannot take determinant of non-square matrix.
             sage: ntl.mat_ZZ(4,4,[next_prime(2**i) for i in range(16)]).determinant()
             -10248
-            sage: ntl.mat_ZZ(4,4,[ ZZ.random_element() for _ in range(16) ]).determinant() # random
-            -4211
+            sage: ntl.mat_ZZ(4,4,[ ZZ.random_element() for _ in range(16) ]).determinant()
+            678
         """
         if self.__nrows != self.__ncols:
             raise TypeError, "cannot take determinant of non-square matrix."

@@ -1051,19 +1051,26 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                          \url{http://www.math.unicaen.fr/~simon/}
 
         EXAMPLES:
+        These computations use pseudo-random numbers, so we set the
+        seed for reproducible testing.
+
         We compute the ranks of the curves of lowest known conductor up to rank $8$.
         Amazingly, each of these computations finishes almost instantly!
 
             sage: E = EllipticCurve('11a1')
+            sage: set_random_seed(0)
             sage: E.simon_two_descent()
             (0, 0, [])
             sage: E = EllipticCurve('37a1')
+            sage: set_random_seed(0)
             sage: E.simon_two_descent()
             (1, 1, [(0 : 0 : 1)])
             sage: E = EllipticCurve('389a1')
+            sage: set_random_seed(0)
             sage: E.simon_two_descent()
             (2, 2, [(1 : 0 : 1), (-11/9 : -55/27 : 1)])
             sage: E = EllipticCurve('5077a1')
+            sage: set_random_seed(0)
             sage: E.simon_two_descent()
             (3, 3, [(1 : 0 : 1), (2 : -1 : 1), (0 : 2 : 1)])
 
@@ -1071,6 +1078,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         In this example Simon's program does not find any points, though
         it does correctly compute the rank of the 2-Selmer group.
             sage: E = EllipticCurve([1, -1, 0, -751055859, -7922219731979])     # long (0.6 seconds)
+            sage: set_random_seed(0)
             sage: E.simon_two_descent ()
             (1, 1, [])
 
@@ -1078,18 +1086,23 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         \url{http://tom.womack.net/maths/conductors.htm}
 
             sage: E = EllipticCurve([1, -1, 0, -79, 289])
-            sage: E.simon_two_descent()        # random points in output
-            (4, 4, [(935/49 : 400/343 : 1), (-1 : 136 : 1), (23 : 16 : 1), (-41 : 16 : 1)])
+            sage: set_random_seed(0)
+            sage: E.simon_two_descent()
+            (4, 4, [(6 : -5 : 1), (4 : 3 : 1), (5 : -3 : 1), (8 : -15 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
-            sage: E.simon_two_descent()        # random points in output
-            (5, 5, [(0 : 3996 : 1), (-380 : 44 : 1), (52 : 3284 : 1), (110628/289 : 28166508/4913 : 1), (23364/25 : 3392388/125 : 1)])
+            sage: set_random_seed(0)
+            sage: E.simon_two_descent()
+            (5, 5, [(5 : 8 : 1), (10 : 23 : 1), (3 : 11 : 1), (4 : -10 : 1), (0 : 18 : 1)])
             sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
+            sage: set_random_seed(0)
             sage: r, s, G = E.simon_two_descent(); r,s
             (6, 6)
             sage: E = EllipticCurve([0, 0, 0, -10012, 346900])
+            sage: set_random_seed(0)
             sage: r, s, G = E.simon_two_descent(); r,s
             (7, 7)
             sage: E = EllipticCurve([0, 0, 1, -23737, 960366])
+            sage: set_random_seed(0)
             sage: r, s, G = E.simon_two_descent(); r,s
             (8, 8)
         """

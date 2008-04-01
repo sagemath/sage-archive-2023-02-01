@@ -16,6 +16,7 @@
 include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
 include "../../ext/cdefs.pxi"
+include "../../ext/random.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -402,10 +403,24 @@ def unpickle_class_args(cls, x):
 
 # Random-number generation
 def ntl_setSeed(x=None):
-    """
+    r"""
     Seed the NTL random number generator.
 
+    This is automatically called when you set the main \sage random
+    number seed, then call any NTL routine requiring random numbers;
+    so you should never need to call this directly.
+
+    If for some reason you do need to call this directly, then
+    you need to get a random number from NTL (so that \sage will
+    seed NTL), then call this function and \sage will not notice.
+
     EXAMPLE:
+    This is automatically seeded from the main \sage random number seed.
+        sage: ntl.ZZ_random(1000)
+        341
+
+    Now you can call this function, and it will not be overridden until
+    the next time the main \sage random number seed is changed.
         sage: ntl.ntl_setSeed(10)
         sage: ntl.ZZ_random(1000)
         776
@@ -425,15 +440,20 @@ ntl_setSeed()
 
 def randomBnd(q):
     r"""
-    Returns cryptographically-secure random number in the range [0,n)
+    Returns random number in the range [0,n) .
+    According to the NTL documentation, these numbers are
+    "cryptographically strong"; of course, that depends in part on
+    how they are seeded.
 
     EXAMPLES:
-        sage: [ntl.ZZ_random(99999) for i in range(5)] # random output
-        [53357, 19674, 69528, 87029, 28752]
+        sage: [ntl.ZZ_random(99999) for i in range(5)]
+        [82123, 14857, 53872, 13159, 83337]
 
     AUTHOR:
         -- Didier Deshommes <dfdeshom@gmail.com>
     """
+    current_randstate().set_seed_ntl(False)
+
     cdef ntl_ZZ w
 
     if not PY_TYPE_CHECK(q, ntl_ZZ):
@@ -451,12 +471,14 @@ def randomBits(long n):
     Return a pseudo-random number between 0 and $2^n-1$
 
     EXAMPLES:
-        sage: [ntl.ZZ_random_bits(20) for i in range(3)] # random output
-        [1025619, 177635, 766262]
+        sage: [ntl.ZZ_random_bits(20) for i in range(3)]
+        [564629, 843071, 972038]
 
     AUTHOR:
         -- Didier Deshommes <dfdeshom@gmail.com>
     """
+    current_randstate().set_seed_ntl(False)
+
     cdef ntl_ZZ ans
     ans = PY_NEW(ntl_ZZ)
     _sig_on

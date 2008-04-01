@@ -124,7 +124,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random
 import weakref
 
 from ring import is_FiniteField

@@ -197,7 +197,7 @@ from sage.rings.arith import binomial
 from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari
 from sage.rings.arith import factorial
-from random import randint
+from sage.misc.prandom import randint
 from sage.misc.misc import prod
 from sage.structure.sage_object import SageObject
 import __builtin__

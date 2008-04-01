@@ -871,10 +871,12 @@ def random_prime(n, proof=None):
                 (see sage.structure.proof)
 
     EXAMPLES:
-        sage: random_prime(100000) # random output
-        54601
+        sage: random_prime(100000)
+        88237
         sage: random_prime(2)
         2
+
+    TESTS:
         sage: type(random_prime(2))
         <type 'sage.rings.integer.Integer'>
         sage: type(random_prime(100))
@@ -884,8 +886,9 @@ def random_prime(n, proof=None):
         -- Jon Hanke: 2006-08-08  (with standard Stein cleanup)
         -- Jonathan Bober: 2007-03-17
     """
-    import random    # since we don't want random to get
-                     # pulled when you say "from sage.arith import *".
+    # since we don't want current_randstate to get
+    # pulled when you say "from sage.arith import *".
+    from sage.misc.randstate import current_randstate
     from sage.structure.proof.proof import get_flag
     proof = get_flag(proof, "arithmetic")
     n = integer_ring.ZZ(n)
@@ -898,6 +901,7 @@ def random_prime(n, proof=None):
             prime_test = is_pseudoprime
         else:
             prime_test = is_prime
+        randint = current_randstate().python_random().randint
         while(1):
             # In order to ensure that the returned prime is chosen
             # uniformly from the set of primes it is necessary to
@@ -905,7 +909,7 @@ def random_prime(n, proof=None):
             # The method of choosing a random number and then returning
             # the closest prime smaller than it would typically not,
             # for example, return the first of a pair of twin primes.
-            p = random.randint(2,n)
+            p = randint(2,n)
             if prime_test(p):
                 return integer_ring.ZZ(p)
 

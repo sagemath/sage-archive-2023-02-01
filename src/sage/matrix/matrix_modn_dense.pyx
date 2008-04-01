@@ -1040,13 +1040,20 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         Randomize density proportion of the entries of this matrix,
         leaving the rest unchanged.
 
-        NOTE: The random() function doesn't seem to be as random as
-        expected. The lower-order bits seem to have a strong bias
-        towards zero. Even stranger, if you create two 1000x1000
-        matrices over GF(2) they always appear to have the same
-        reduced row echelon form, i.e. they span the same space. The
-        higher-order bits seem to be much more random and thus we
-        shift first and mod p then.
+        EXAMPLES:
+            sage: A = matrix(GF(5), 5, 5, 0)
+            sage: A.randomize(0.5); A
+            [0 0 0 2 0]
+            [0 3 0 0 2]
+            [4 0 0 0 0]
+            [4 0 0 0 0]
+            [0 1 0 0 0]
+            sage: A.randomize(); A
+            [3 3 2 1 2]
+            [4 3 3 2 2]
+            [0 3 3 3 3]
+            [3 3 2 2 4]
+            [2 2 2 1 4]
         """
 
         density = float(density)
@@ -1056,11 +1063,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         self.check_mutability()
         self.clear_cache()
 
+        cdef randstate rstate = current_randstate()
+
         cdef int nc
         if density == 1:
             for i from 0 <= i < self._nrows*self._ncols:
-                # 16-bit seems safe
-                self._entries[i] =  (random()>>16) % self.p
+                self._entries[i] = rstate.c_random() % self.p
         else:
             density = float(density)
             nc = self._ncols
@@ -1068,9 +1076,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             _sig_on
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < num_per_row:
-                    k = ((random()>>16)+random())%nc # is this safe?
-                    # 16-bit seems safe
-                    self._matrix[i][k] = (random()>>16) % self.p
+                    k = rstate.c_random()%nc
+                    self._matrix[i][k] = rstate.c_random() % self.p
             _sig_off
 
     cdef int _strassen_default_cutoff(self, matrix0.Matrix right) except -2:

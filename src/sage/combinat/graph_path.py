@@ -34,8 +34,8 @@ def GraphPaths(g, source=None, target=None):
         Paths in Multi-digraph on 5 vertices
         sage: p.count()
         37
-        sage: p.random() #random
-        [3, 4, 5]
+        sage: p.random()
+        [1, 2, 3, 4, 5]
 
 
       If the source is specified, then the returned class contains all of the paths

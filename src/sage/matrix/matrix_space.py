@@ -24,7 +24,6 @@ TESTS:
 
 # System imports
 import types
-import random
 import weakref
 import operator
 
@@ -1055,26 +1054,24 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                    of the base ring at all in general.)
 
         EXAMPLES:
-            sage: Mat(ZZ,2,5).random_element()                # random output
-            [-1 -1  0 -2  0]
-            [ 0 -1  2 -1 -1]
-            sage: Mat(QQ,2,5).random_element(density=0.5)        # random output
-            [-1/2    0 -1/2  1/2    0]
-            [   0    0   -1    0    0]
-            sage: Mat(QQ,3,sparse=True).random_element()      # random output
-            [  1   2   1]
-            [  0   1  -3]
-            [1/2  -1   0]
-            sage: Mat(GF(9,'a'),3,sparse=True).random_element()   # random output
-            [      a   a + 1       0]
-            [    2*a 2*a + 1   a + 2]
-            [      1       0       1]
+            sage: Mat(ZZ,2,5).random_element()
+            [ -8   2   0   0   1]
+            [ -1   2   1 -95  -1]
+            sage: Mat(QQ,2,5).random_element(density=0.5)
+            [  2   0   0   0   1]
+            [  0   0   0 1/2   0]
+            sage: Mat(QQ,3,sparse=True).random_element()
+            [  -1  1/3    1]
+            [   0   -1    0]
+            [  -1    1 -1/4]
+            sage: Mat(GF(9,'a'),3,sparse=True).random_element()
+            [      1       2       1]
+            [2*a + 1       a       2]
+            [      2 2*a + 2       1]
         """
         Z = self.zero_matrix()
         Z.randomize(density, *args, **kwds)
         return Z
-
-_random = 1
 
 def dict_to_list(entries, nrows, ncols):
     """

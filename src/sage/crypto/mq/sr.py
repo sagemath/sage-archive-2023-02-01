@@ -604,9 +604,9 @@ class SR_generic(MPolynomialSystemGenerator):
 
         EXAMPLE:
             sage: sr = mq.SR(2,2,2,4)
-            sage: sr.random_state_array() # random output
-            [a^3 + a + 1           0]
-            [          a         a^2]
+            sage: sr.random_state_array()
+            [a^3 + a + 1       a + 1]
+            [      a + 1         a^2]
         """
         return random_matrix(self.base_ring(),self._r,self._c)
 
@@ -617,23 +617,23 @@ class SR_generic(MPolynomialSystemGenerator):
 
         EXAMPLE:
             sage: sr = mq.SR(2,2,2,4)
-            sage: sr.random_vector() # random output
-            [a^3 + a^2 + a + 1]
-            [          a^3 + a]
-            [              a^3]
-            [        a^3 + a^2]
-            [                1]
-            [                1]
-            [                1]
-            [                1]
-            [          a^3 + 1]
-            [    a^3 + a^2 + 1]
-            [    a^3 + a^2 + a]
-            [      a^3 + a + 1]
-            [          a^2 + 1]
-            [                a]
-            [              a^2]
-            [            a + 1]
+            sage: sr.random_vector()
+            [  a^3 + a + 1]
+            [      a^3 + 1]
+            [a^3 + a^2 + 1]
+            [a^3 + a^2 + a]
+            [        a + 1]
+            [      a^2 + 1]
+            [            a]
+            [          a^2]
+            [        a + 1]
+            [      a^2 + 1]
+            [            a]
+            [          a^2]
+            [          a^2]
+            [        a + 1]
+            [      a^2 + 1]
+            [            a]
 
         NOTE: Phi was already applied to the result.
         """
@@ -648,13 +648,13 @@ class SR_generic(MPolynomialSystemGenerator):
 
         EXAMPLE:
             sage: sr = mq.SR()
-            sage: sr.random_element() # random output
-            [      a]
-            [    a^2]
-            [  a + 1]
-            [a^2 + 1]
-            sage: sr.random_element('state_array') # random output
-            [a^3 + a + 1]
+            sage: sr.random_element()
+            [  a^3 + a + 1]
+            [      a^3 + 1]
+            [a^3 + a^2 + 1]
+            [a^3 + a^2 + a]
+            sage: sr.random_element('state_array')
+            [a + 1]
         """
         if type == "vector":
             return self.random_vector()
@@ -1190,8 +1190,8 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: sr = mq.SR(1,1,1,4)
             sage: k = sr.base_ring()
             sage: p = [k.random_element() for _ in range(sr.r*sr.c)]
-            sage: sr.round_polynomials(0,plaintext=p) # random
-            [w100 + k000 + (a^2), w101 + k001 + (a + 1), w102 + k002 + (a^2 + 1), w103 + k003 + (a)]
+            sage: sr.round_polynomials(0,plaintext=p)
+            [w100 + k000 + (a^2 + 1), w101 + k001 + (a), w102 + k002 + (a^2), w103 + k003 + (a + 1)]
         """
         r = self._r
         c = self._c
@@ -1498,8 +1498,8 @@ class SR_gf2n(SR_generic):
         EXAMPLE:
             sage: sr = mq.SR()
             sage: A = sr.random_state_array()
-            sage: A # random result
-            [a^3]
+            sage: A
+            [a^3 + a + 1]
             sage: sr.antiphi(sr.phi(A)) == A
             True
         """
@@ -1873,8 +1873,8 @@ class SR_gf2(SR_generic):
         EXAMPLE:
             sage: sr = mq.SR(gf2=True)
             sage: A = sr.random_state_array()
-            sage: A # random result
-            [a^2 + a]
+            sage: A
+            [a^3 + a + 1]
             sage: sr.antiphi(sr.phi(A)) == A
             True
         """

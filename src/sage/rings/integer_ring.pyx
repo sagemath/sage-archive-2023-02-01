@@ -486,27 +486,28 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         EXAMPLES:
         The default distribution is on average 50% $\pm 1$:
-            sage: [ZZ.random_element() for _ in range(10)] # random output
-            [-1, -4, 1, -1, -1, 3, 8, 100, -2, -4]
+            sage: [ZZ.random_element() for _ in range(10)]
+            [-8, 2, 0, 0, 1, -1, 2, 1, -95, -1]
 
         The default uniform distribution is integers between -2 and 2 inclusive:
             sage: [ZZ.random_element(distribution="uniform") \
-                    for _ in range(10)]   # random output
-            [-2, -2, 1, 1, 0, 1, 2, -2, 1, -2]
+                    for _ in range(10)]
+            [2, -2, 2, -2, -1, 1, -1, 2, 1, 0]
+
 
         If a range is given, the distribution is uniform in that range:
-            sage: ZZ.random_element(-10,10) # random output
-            -6
-            sage: ZZ.random_element(10) # random output
-            6
-            sage: ZZ.random_element(10^50) # random output
-            46451269108731711203254579547654565878787536081836
-            sage: [ZZ.random_element(5) for _ in range(10)] # random output
-            [3, 3, 2, 1, 0, 4, 2, 1, 1, 0]
+            sage: ZZ.random_element(-10,10)
+            -5
+            sage: ZZ.random_element(10)
+            7
+            sage: ZZ.random_element(10^50)
+            62498971546782665598023036522931234266801185891699
+            sage: [ZZ.random_element(5) for _ in range(10)]
+            [1, 3, 4, 0, 3, 4, 0, 3, 0, 1]
 
         Notice that the right endpoint is not included:
-            sage: [ZZ.random_element(-2,2) for _ in range(10)] # random output
-            [1, 0, -1, 1, 0, -2, 0, -1, 1, 0]
+            sage: [ZZ.random_element(-2,2) for _ in range(10)]
+            [-1, -2, 0, -2, 1, -1, -1, -2, -2, 1]
 
         We compute a histogram over 1000 samples of the default distribution:
             sage: from collections import defaultdict
@@ -514,8 +515,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: for _ in range(1000):
             ...       samp = ZZ.random_element()
             ...       d[samp] = d[samp] + 1
-            sage: sorted(d.items()) # random output
-            [(-283, 1), (-131, 1), (-130, 1), (-112, 1), (-93, 1), (-74, 1), (-72, 2), (-59, 1), (-55, 1), (-44, 1), (-36, 1), (-20, 2), (-18, 2), (-17, 1), (-16, 2), (-15, 1), (-13, 4), (-12, 2), (-11, 2), (-10, 6), (-9, 6), (-8, 7), (-7, 9), (-6, 11), (-5, 25), (-4, 18), (-3, 35), (-2, 65), (-1, 192), (0, 195), (1, 198), (2, 66), (3, 38), (4, 24), (5, 11), (6, 7), (7, 11), (8, 4), (9, 2), (10, 3), (11, 4), (12, 2), (13, 2), (14, 5), (15, 3), (17, 1), (18, 2), (19, 1), (21, 1), (22, 1), (25, 1), (28, 1), (29, 1), (30, 1), (32, 1), (43, 1), (58, 1), (61, 1), (63, 1), (64, 1), (73, 1), (75, 1), (119, 1), (151, 1), (203, 1), (352, 1), (662, 1)]
+            sage: sorted(d.items())
+            [(-1026, 1), (-248, 1), (-145, 1), (-81, 1), (-80, 1), (-79, 1), (-75, 1), (-69, 1), (-68, 1), (-63, 2), (-61, 1), (-57, 1), (-50, 1), (-37, 1), (-35, 1), (-33, 1), (-29, 2), (-27, 2), (-25, 1), (-23, 2), (-22, 2), (-20, 1), (-19, 1), (-18, 1), (-16, 4), (-15, 3), (-14, 1), (-13, 2), (-12, 2), (-11, 2), (-10, 7), (-9, 3), (-8, 3), (-7, 7), (-6, 8), (-5, 13), (-4, 24), (-3, 34), (-2, 75), (-1, 207), (0, 209), (1, 189), (2, 64), (3, 35), (4, 13), (5, 11), (6, 10), (7, 4), (8, 4), (10, 1), (11, 1), (12, 1), (13, 1), (14, 1), (16, 3), (18, 1), (19, 1), (26, 2), (27, 1), (28, 1), (29, 1), (30, 1), (32, 1), (33, 2), (35, 1), (37, 1), (39, 1), (41, 1), (42, 1), (52, 1), (91, 1), (94, 1), (106, 1), (111, 1), (113, 2), (132, 1), (134, 1), (232, 1), (240, 1), (2133, 1), (3636, 1)]
         """
         cdef integer.Integer z
         z = <integer.Integer>PY_NEW(integer.Integer)
@@ -528,17 +529,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     cdef int _randomize_mpz(self, mpz_t value, x, y, distribution) except -1:
         cdef integer.Integer n_max, n_min, n_width
-        cdef int den = random()-RAND_MAX/2
+        cdef randstate rstate = current_randstate()
+        cdef int den = rstate.c_random()-RAND_MAX/2
         if den == 0: den = 1
         if (distribution is None and x is None) or distribution == "1/n":
             mpz_set_si(value, (RAND_MAX/5*2) / den)
         elif distribution is None or distribution == "uniform":
             if y is None:
                 if x is None:
-                    mpz_set_si(value, random()%5 - 2)
+                    mpz_set_si(value, rstate.c_random()%5 - 2)
                 else:
                     n_max = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
-                    mpz_urandomm(value, state, n_max.value)
+                    mpz_urandomm(value, rstate.gmp_state, n_max.value)
             else:
                 n_min = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
                 n_max = y if PY_TYPE_CHECK(y, integer.Integer) else self(y)
@@ -546,10 +548,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 if mpz_sgn(n_width.value) <= 0:
                     n_min = self(-2)
                     n_width = self(5)
-                mpz_urandomm(value, state, n_width.value)
+                mpz_urandomm(value, rstate.gmp_state, n_width.value)
                 mpz_add(value, value, n_min.value)
         elif distribution == "mpz_rrandomb":
-            mpz_rrandomb(value, state, int(x))
+            mpz_rrandomb(value, rstate.gmp_state, int(x))
         else:
             raise ValueError, "Unknown distribution for the integers: %s"%distribution
 

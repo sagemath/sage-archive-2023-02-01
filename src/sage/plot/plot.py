@@ -257,7 +257,7 @@ def show_default(default=None):
 
 do_verify = True
 
-import random #for plot adaptive refinement
+from sage.misc.randstate import current_randstate #for plot adaptive refinement
 import os #for viewing and writing images
 from colorsys import hsv_to_rgb #for the hue function
 from math import sin, cos, modf, pi #for hue and polar_plot
@@ -2445,7 +2445,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
             dy = ymax - ymin
 
             if not pos is None:
-                from random import random
+                random = current_randstate().python_random().random
                 missing = []
                 for v in nodelist:
                     if not v in self.__pos:
@@ -3495,8 +3495,7 @@ class PlotFactory(GraphicPrimitiveFactory):
     of graphs of 2 functions.
         sage: def h1(x): return abs(sqrt(x^3  - 1))
         sage: def h2(x): return -abs(sqrt(x^3  - 1))
-        sage: P = plot([h1, h2], 1,4)    # slightly random output because of random sampling
-        Graphics object consisting of 2 graphics primitives
+        sage: P = plot([h1, h2], 1,4)
         sage: P          # show the result
 
     We can also directly plot the elliptic curve:
@@ -3615,6 +3614,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         delta = (xmax - xmin) / plot_points
         dd = delta
 
+        random = current_randstate().python_random().random
         exceptions = 0; msg=''
         exception_indices = []
         for i in range(plot_points):
@@ -3623,7 +3623,7 @@ class PlotFactory(GraphicPrimitiveFactory):
             # randomize is true
             if i > 0 and i < plot_points-1:
                 if randomize:
-                    xi += delta*random.random()
+                    xi += delta*random()
                 if xi > xmax:
                     xi = xmax
             elif i == plot_points-1:

@@ -686,6 +686,9 @@ ext_modules = [ \
     Extension('sage.misc.refcount',
               sources = ['sage/misc/refcount.pyx']), \
 
+    Extension('sage.misc.randstate',
+              sources = ['sage/misc/randstate.pyx']), \
+
     Extension('sage.rings.real_mpfr',
               sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],
               libraries = ['mpfr', 'pari', 'gmp']), \

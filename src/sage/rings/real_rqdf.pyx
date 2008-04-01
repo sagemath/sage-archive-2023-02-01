@@ -60,7 +60,6 @@ include '../ext/interrupt.pxi'
 include 'mpfr.pxi'
 
 import operator
-from random import random
 
 cdef extern from "solaris_fix.h": pass
 
@@ -390,26 +389,33 @@ cdef class RealQuadDoubleField_class(Field):
         RQDF.random_element(min, max) -- return a real number between min and max-1, inclusive.
 
         EXAMPLES:
-            sage: RQDF.random_element(-10,10) # random output
-            -9.209632774772854987051276623390256588416142859212155465978529901
+            sage: RQDF.random_element(-10,10)
+            2.070062766573917070526967401926937175104037963758214054970605794
 
-            sage: RQDF.random_element(10) # random output
-            6.930095034109401944886360558592890441129375345858722509513142274
+            sage: RQDF.random_element(10)
+            1.876986321449735379165332456424771674656237391205272916375069342
 
-            sage: [RQDF.random_element(10) for _ in range(5)] # random output
-            [1.070088577397235633479391067676924075710322235504950140678090698,
-            1.593383098411245301526647147481406756307992796331404894981051621,
-            9.622324671355391154671389092701091581790555025762598685473110481,
-            7.178420426683587329962645943163703400873127930924977251920876037,
-            5.040773046254255199226666919381507779287599656743516255726454067]
+            sage: [RQDF.random_element(10) for _ in range(5)]
+            [8.084281420673943787229609237458327203934426138730686265930328254,
+            8.806298363947585826181224013949012875074955779827726577990392512,
+            9.475217302151261462676501400096032242004946644547518035714857940,
+            2.629993393648438854368552598518628332583301315453134053887857396,
+            1.946435375426485270381085392826467583700841913266187372985425003]
 
         """
-        cdef QuadDoubleElement res, upper, lower
-        res = QuadDoubleElement(0)
-        upper = self(x)
-        lower = self(y)
-        c_qd_rand(res.initptr.x)
-        return (upper-lower)*res + lower
+        # Switch to generating random numbers through MPFR (to make
+        # the numbers work with Sage's global random number seeds).
+        # Unfortunately, this takes about 3 times as long
+        # as the c_qd_rand() code that's commented out below, but
+        # I think it's worth it.  (15 microseconds vs. 5 microseconds,
+        # on my laptop.)
+        return RQDF(RR().random_element(y, x))
+#         cdef QuadDoubleElement res, upper, lower
+#         res = QuadDoubleElement(0)
+#         upper = self(x)
+#         lower = self(y)
+#         c_qd_rand(res.initptr.x)
+#         return (upper-lower)*res + lower
 
 cdef class QuadDoubleElement(FieldElement):
     """

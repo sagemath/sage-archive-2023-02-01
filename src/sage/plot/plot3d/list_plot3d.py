@@ -94,10 +94,9 @@ def list_plot3d(v, interpolation_type='default', texture="automatic", point_list
         Note that the points do not have to be regularly sampled. For example
 
         sage: l=[]
-        sage: T=Random()
         sage: for i in range(-5,5):
         ...    for j in range(-5,5):
-        ...      l.append((T.normalvariate(0,1),T.normalvariate(0,1),T.normalvariate(0,1)))
+        ...      l.append((normalvariate(0,1),normalvariate(0,1),normalvariate(0,1)))
         sage: list_plot3d(l,interpolation_type='nn',texture='yellow',num_points=100)
 
 

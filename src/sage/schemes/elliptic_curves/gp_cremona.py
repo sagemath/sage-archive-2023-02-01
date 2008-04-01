@@ -21,6 +21,7 @@ Access to Cremona's PARI scripts via SAGE.
 
 from sage.interfaces.gp import Gp
 from sage.rings.all import Integer, RealField
+from sage.misc.randstate import current_randstate
 R = RealField()
 
 gp = None
@@ -130,6 +131,7 @@ def ellinit(e, p):
         <class 'sage.interfaces.gp.GpElement'>
     """
     init()
+    current_randstate().set_seed_gp(gp)
     return gp("e=ellzpinit(%s,%s);"%(e,p))
 
 

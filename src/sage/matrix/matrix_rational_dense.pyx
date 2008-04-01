@@ -1620,8 +1620,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         Randomize density proportion of the entries of this matrix,
         leaving the rest unchanged.
 
-        If x and y are given, randomized entries of this matrix have numerators and denominators
-        bounded by x and y and have density 1.
+        If x and y are given, randomized entries of this matrix have
+        numerators and denominators bounded by x and y and have
+        density 1.
         """
         density = float(density)
         if density == 0:
@@ -1641,6 +1642,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef int r, s
         r = self._nrows * self._ncols
 
+        cdef randstate rstate = current_randstate()
+
         _sig_on
         if density == 1:
             if distribution == "1/n":
@@ -1658,17 +1661,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             if distribution == "1/n":
                 for i from 0 <= i < self._nrows:
                     for j from 0 <= j < num_per_row:
-                        k = random()%nc
+                        k = rstate.c_random()%nc
                         mpq_randomize_entry_recip_uniform(self._matrix[i][k])
             elif mpz_cmp_si(C.value, 2):   # denom is > 1
                 for i from 0 <= i < self._nrows:
                     for j from 0 <= j < num_per_row:
-                        k = random()%nc
+                        k = rstate.c_random()%nc
                         mpq_randomize_entry(self._matrix[i][k], B.value, C.value)
             else:
                 for i from 0 <= i < self._nrows:
                     for j from 0 <= j < num_per_row:
-                        k = random()%nc
+                        k = rstate.c_random()%nc
                         mpq_randomize_entry_as_int(self._matrix[i][k], B.value)
         _sig_off
 

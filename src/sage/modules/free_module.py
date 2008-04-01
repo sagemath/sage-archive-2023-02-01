@@ -124,7 +124,6 @@ Basis vectors are immutable:
 ####################################################################################
 
 # python imports
-import random
 import weakref
 
 
@@ -150,6 +149,7 @@ import sage.rings.integer
 import sage.structure.parent_gens as gens
 import sage.modules.real_double_vector
 import sage.modules.complex_double_vector
+from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
 
 from sage.structure.parent_gens import ParentWithGens
@@ -1247,18 +1247,19 @@ class FreeModule_generic(module.Module):
 
         EXAMPLES:
             sage: M = FreeModule(ZZ, 2).span([[1,1]])
-            sage: M.random_element() # random output
-            (1, 1)
-            sage: M.random_element() # random output
-            (-2, -2)
-            sage: M.random_element() # random output
+            sage: M.random_element()
             (-1, -1)
+            sage: M.random_element()
+            (2, 2)
+            sage: M.random_element()
+            (1, 1)
         """
+        rand = current_randstate().python_random().random
         R = self.base_ring()
         v = self(0)
         prob = float(prob)
         for i in range(self.rank()):
-            if random.random() <= prob:
+            if rand() <= prob:
                 v += self.gen(i) * R.random_element(**kwds)
         return v
 

@@ -28,7 +28,7 @@ import re
 
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.parent cimport Parent
-from random import randint, randrange
+from sage.misc.prandom import randint, randrange
 
 cdef class Ring(ParentWithGens):
     """
@@ -648,7 +648,7 @@ cdef class Ring(ParentWithGens):
             bound -- integer (default: 2)
 
         ALGORITHM:
-             -- uses numpy's randint.
+             -- uses Python's randint.
 
         TESTS:
         The following example returns a NotImplementedError since the generic

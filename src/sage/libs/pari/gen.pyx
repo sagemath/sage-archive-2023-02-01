@@ -37,6 +37,7 @@ import operator
 import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.parent cimport Parent
+from sage.misc.randstate cimport randstate, current_randstate
 
 #include '../../ext/interrupt.pxi'
 include 'pari_err.pxi'
@@ -6912,6 +6913,46 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         _sig_on
         return self.new_gen(listcreate(n))
 
+    def getrand(self):
+        """
+        Returns Pari's current random number seed.
+
+        EXAMPLES:
+            sage: pari.setrand(50)
+            sage: pari.getrand()
+            50
+            sage: pari.pari_rand31()
+            621715893
+            sage: pari.getrand()
+            621715893
+        """
+        return getrand()
+
+    def setrand(self, long seed):
+        """
+        Sets Pari's current random number seed.
+
+        This should not be called directly; instead, use \sage's global
+        random number seed handling in \class{sage.misc.randstate}
+        and call \code{current_randstate().set_seed_pari()}.
+
+        EXAMPLES:
+            sage: pari.setrand(12345)
+            sage: pari.getrand()
+            12345
+        """
+        setrand(seed)
+
+    def pari_rand31(self):
+        """
+        Returns a random number from Pari's random number generator.
+
+        WARNING: You probably don't want to use this; it's a very
+        poor random number generator.  \sage exposes it only as a way
+        to test \function{getrand} and \function{setrand}.
+        """
+        return pari_rand31()
+
     def vector(self, long n, entries=None):
         """
         vector(long n, entries=None):
@@ -6978,13 +7019,20 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
             sage: pari.finitefield_init(97,1)
             Mod(1, 97)*x + Mod(92, 97)
 
-        The last entry in each of the following two lines is
-        determined by a random algorithm.
-            sage: pari.finitefield_init(7,2)       # random
-            Mod(1, 7)*x^2 + Mod(6, 7)*x + Mod(3, 7)
-            sage: pari.finitefield_init(2,3)       # random
-            Mod(1, 2)*x^3 + Mod(1, 2)*x^2 + Mod(1, 2)
+        These computations use pseudo-random numbers, so we set the
+        seed for reproducible testing.
+            sage: set_random_seed(0)
+
+            sage: pari.finitefield_init(7,2)
+            Mod(1, 7)*x^2 + Mod(5, 7)*x + Mod(3, 7)
+
+            sage: pari.finitefield_init(2,3)
+            Mod(1, 2)*x^3 + Mod(1, 2)*x^2 + Mod(1, 2)   # 32-bit
+            Mod(1, 2)*x^3 + Mod(1, 2)*x + Mod(1, 2)     # 64-bit
         """
+        cdef randstate rstate = current_randstate()
+        rstate.set_seed_pari()
+
         cdef gen _p, _f2, s
         cdef int err
         cdef long x

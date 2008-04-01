@@ -56,6 +56,7 @@ Loading and saving work:
 ##############################################################################
 
 
+from sage.misc.randstate import current_randstate
 from matrix_group_element import MatrixGroupElement
 from sage.groups.group import Group
 from sage.rings.all import IntegerRing, is_Ring, infinity
@@ -444,25 +445,26 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
 
         EXAMPLES:
             sage: G = Sp(4,GF(3))
-            sage: G.random()        ## random output
-            [0 2 1 1]
-            [1 1 1 2]
-            [2 2 2 2]
-            [0 2 0 2]
+            sage: G.random()
+            [2 1 1 1]
+            [1 0 2 1]
+            [0 1 1 0]
+            [1 0 0 1]
 
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
-            sage: G.random() # random output
-            [2 4]
-            [0 1]
-            sage: G.random() # random output
-            [3 1]
+            sage: G.random()
+            [1 3]
+            [0 3]
+            sage: G.random()
             [2 2]
-            sage: G.random() # random output
-            [3 2]
-            [4 2]
+            [1 0]
+            sage: G.random()
+            [4 0]
+            [1 4]
         """
+        current_randstate().set_seed_gap()
         from matrix_group_element import MatrixGroupElement
         F = self.field_of_definition()
         return MatrixGroupElement(gap(self).Random()._matrix_(F), self, check=False)

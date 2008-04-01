@@ -68,6 +68,7 @@ cdef extern from "stdsage.h":
     void init_csage()
 #init_csage()
 
+from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.ring cimport FiniteField
 from sage.rings.ring cimport Ring
 from sage.structure.element cimport FiniteFieldElement, Element, RingElement, ModuleElement
@@ -367,8 +368,9 @@ cdef class FiniteField_givaro(FiniteField):
             sage: type(e)
             <type 'sage.rings.finite_field_givaro.FiniteField_givaroElement'>
         """
+        cdef int seed = current_randstate().c_random()
         cdef int res
-        cdef GivRandom generator
+        cdef GivRandom generator = GivRandomSeeded(seed)
         res = self.objectptr.random(generator,res)
         return make_FiniteField_givaroElement(self,res)
 

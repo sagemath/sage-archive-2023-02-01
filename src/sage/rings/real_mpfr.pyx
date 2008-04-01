@@ -549,13 +549,49 @@ cdef class RealField(sage.rings.ring.Field):
         min and max (default -1 to 1).
 
         EXAMPLES:
-            sage: RealField(100).random_element(-5, 10) # random output
-            4.2682457657074627882421620493
-            sage: RealField(10).random_element() # random output
-            .27
+            sage: RealField(100).random_element(-5, 10)
+            1.9305310520925994224072377281
+            sage: RealField(10).random_element()
+            -0.84
+
+        TESTS:
+            sage: RealField(31).random_element()
+            -0.207006278
+            sage: RealField(32).random_element()
+            -0.757827933
+            sage: RealField(33).random_element()
+            -0.530834221
+            sage: RealField(63).random_element()
+            0.918013195263849341
+            sage: RealField(64).random_element()
+            -0.805114150788947694
+            sage: RealField(65).random_element()
+            0.2035927570696802284
+            sage: RealField(10).random_element()
+            -0.59
+            sage: RealField(10).random_element()
+            0.57
+            sage: RR.random_element()
+            0.931242676441124
+            sage: RR.random_element()
+            0.979095507956490
         """
         cdef RealNumber x = self._new()
-        mpfr_urandomb(x.value, state)
+        cdef randstate rstate = current_randstate()
+        if sizeof(long) == 4:
+            # This is a gross hack that depends on the internals of
+            # MPFR... but that's OK, because if MPFR changes it will
+            # be instantly caught by the doctests above.
+            # MPFR rounds up the precision to a multiple of the
+            # current word size, then requests that many bits from
+            # .gmp_state .  So if (1 <= precision mod 64 <= 32),
+            # a 64-bit machine will request 32 more bits than a 32-bit
+            # machine, and the random numbers will get out of sync.
+            # We work around this problem by requesting an extra
+            # 32 bits on a 32-bit machine.
+            if 1 <= self.__prec % 64 <= 32:
+                rstate.c_random()
+        mpfr_urandomb(x.value, rstate.gmp_state)
         if min == 0 and max == 1:
             return x
         else:

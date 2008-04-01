@@ -17,7 +17,7 @@ from sage.modular.congroup      import is_CongruenceSubgroup, Gamma0
 from sage.modules.all           import vector
 from sage.misc.misc             import verbose
 from sage.rings.all             import CDF, Integer, QQ, next_prime, prime_range
-from random                     import randint
+from sage.misc.prandom          import randint
 
 class NumericalEigenforms(SageObject):
     """

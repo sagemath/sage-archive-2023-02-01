@@ -26,6 +26,7 @@ import sage.modules.free_module as fm
 import sage.modules.module as module
 import sage.modules.free_module_element as fme
 from sage.interfaces.all import gap
+from sage.misc.randstate import current_randstate
 from sage.misc.preparser import *
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.finite_field import FiniteField as GF
@@ -138,14 +139,16 @@ def RandomLinearCodeGuava(n,k,F):
 
     EXAMPLES:
         sage: C = RandomLinearCode(30,15,GF(2))
-        sage: C                                        # random output
+        sage: C
         Linear code of length 30, dimension 15 over Finite Field of size 2
         sage: C = RandomLinearCode(10,5,GF(4,'a'))
-        sage: C                                       # random output
-        Linear code of length 10, dimension 5 over Finite Field in x of size 2^2
+        sage: C
+        Linear code of length 10, dimension 5 over Finite Field in a of size 2^2
 
     AUTHOR: David Joyner (11-2005)
     """
+    current_randstate().set_seed_gap()
+
     q = F.order()
     gap.eval("C:=RandomLinearCode("+str(n)+","+str(k)+", GF("+str(q)+"))")
     gap.eval("G:=GeneratorMat(C)")

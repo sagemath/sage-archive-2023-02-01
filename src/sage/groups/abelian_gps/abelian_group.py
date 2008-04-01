@@ -697,11 +697,11 @@ class AbelianGroup_class(group.AbelianGroup):
 
         EXAMPLES:
             sage: G = AbelianGroup([2,3,9])
-            sage: G.random_element()   ## random
-            f2^8
+            sage: G.random_element()
+            f0*f1^2*f2
 
         """
-        from random import randint
+        from sage.misc.prandom import randint
         if self.order() is infinity:
             NotImplementedError, "The group must be finite"
         gens = self.gens()

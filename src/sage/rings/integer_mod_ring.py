@@ -53,7 +53,7 @@ AUTHORS
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random
+import sage.misc.prandom as random
 import weakref
 
 from sage.rings.arith import is_prime, factor, CRT_basis, LCM, prime_divisors, euler_phi
@@ -833,8 +833,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
         EXAMPLES:
             sage: R = IntegerModRing(18)
-            sage: R.random_element() # random output
-            15
+            sage: R.random_element()
+            2
         """
         if not (bound is None):
             return commutative_ring.CommutativeRing.random_element(self, bound)

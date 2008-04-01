@@ -39,7 +39,6 @@ if sys.version_info[:2] < (2, 5):
 
 ###################################################################
 
-from random              import *
 from time                import sleep
 
 from sage.rings.memory import pmem_malloc
@@ -322,4 +321,9 @@ from sage.ext.interactive_constructors_c import inject_on, inject_off
 
 #from catalogue.all import new
 
+# Set a new random number seed as the very last thing
+# (so that printing initial_seed() and using that seed
+# in set_random_seed() will result in the same sequence you got at
+# Sage startup).
 
+set_random_seed()

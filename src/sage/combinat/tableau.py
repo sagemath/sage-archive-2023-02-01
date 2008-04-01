@@ -22,7 +22,7 @@ import partition
 from integer_vector import IntegerVectors
 import word
 import sage.libs.symmetrica.all as symmetrica
-import random
+import sage.misc.prandom as random
 import copy
 import permutation
 from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -1870,7 +1870,7 @@ class StandardTableaux_partition(CombinatorialClass):
 
 
         EXAMPLES:
-            sage: StandardTableaux([2,2]).random() #random
+            sage: StandardTableaux([2,2]).random()
             [[1, 2], [3, 4]]
         """
 

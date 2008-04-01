@@ -33,8 +33,8 @@ def WeightedIntegerVectors(n, weight):
         [8, 0, 0]
         sage: WeightedIntegerVectors(8, [1,1,2]).count()
         25
-        sage: WeightedIntegerVectors(8, [1,1,2]).random() #random
-        [2, 0, 3]
+        sage: WeightedIntegerVectors(8, [1,1,2]).random()
+        [1, 1, 3]
     """
     return WeightedIntegerVectors_nweight(n, weight)
 

@@ -16,7 +16,7 @@ Cartesian Products
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random as rnd
+import sage.misc.prandom as rnd
 import __builtin__
 from combinat import CombinatorialClass, CombinatorialObject
 
@@ -150,8 +150,7 @@ class CartesianProduct_iters(CombinatorialClass):
         of *iters.
 
         EXAMPLES:
-            sage: CartesianProduct('dog', 'cat').random() #random
-            ['d', 'c']
+            sage: CartesianProduct('dog', 'cat').random()
+            ['d', 'a']
         """
-
         return list(map(rnd.choice, self.iters))

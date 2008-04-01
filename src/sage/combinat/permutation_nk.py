@@ -14,7 +14,7 @@
 #*****************************************************************************
 from combinat import CombinatorialClass
 from sage.rings.arith import factorial
-import random as rnd
+import sage.misc.prandom as rnd
 from sage.combinat.misc import DoublyLinkedList
 
 
@@ -104,8 +104,8 @@ class PermutationsNK(CombinatorialClass):
 
         EXAMPLES:
             sage: from sage.combinat.permutation_nk import PermutationsNK
-            sage: PermutationsNK(3,2).random() #random
-            [2, 1]
+            sage: PermutationsNK(3,2).random()
+            [0, 1]
         """
         n, k = self._n, self._k
         rng = range(n)

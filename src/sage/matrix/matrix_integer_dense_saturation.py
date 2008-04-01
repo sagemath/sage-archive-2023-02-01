@@ -5,6 +5,7 @@ Saturation over ZZ
 from sage.rings.all import ZZ, gcd, binomial, GF
 from sage.matrix.constructor import identity_matrix, random_matrix
 from sage.misc.misc import verbose
+from sage.misc.randstate import current_randstate
 import matrix_integer_dense_hnf
 from copy import copy
 
@@ -61,7 +62,6 @@ def p_saturation(A, p, proof=True):
         H = H.stack(C).hermite_form(include_zero_rows=False, proof=proof)
     verbose("done saturating", tm)
 
-import random
 def random_sublist_of_size(k, n):
     """
     INPUT:
@@ -73,10 +73,10 @@ def random_sublist_of_size(k, n):
 
     EXAMPLES:
         sage: import sage.matrix.matrix_integer_dense_saturation as s
-        sage: s.random_sublist_of_size(10,3)            # random output
-        [1, 5, 6]
-        sage: s.random_sublist_of_size(10,7)            # random output
-        [0, 1, 2, 3, 4, 6, 9]
+        sage: s.random_sublist_of_size(10,3)
+        [0, 1, 5]
+        sage: s.random_sublist_of_size(10,7)
+        [0, 1, 3, 4, 5, 7, 8]
     """
     if n > k:
         raise ValueError, "n must be <= len(v)"
@@ -90,9 +90,11 @@ def random_sublist_of_size(k, n):
         assert(len(w)) == n
         return w
 
+    randrange = current_randstate().python_random().randrange
+
     w = set([])
     while len(w) < n:
-        z = random.randrange(k)
+        z = randrange(k)
         if not z in w:
             w.add(z)
     w = list(w)

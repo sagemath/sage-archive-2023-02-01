@@ -14,7 +14,7 @@
 #*****************************************************************************
 from combinat import CombinatorialClass
 from sage.rings.arith import binomial
-import random as rnd
+import sage.misc.prandom as rnd
 
 class MultichooseNK(CombinatorialClass):
     def __init__(self, n, k):
@@ -87,10 +87,10 @@ class MultichooseNK(CombinatorialClass):
         Returns a random multichoice of k things from range(n).
 
         EXAMPLES:
-            sage: MultichooseNK(5,2).random() #random
-            [0,3]
-            sage: MultichooseNK(5,2).random() #random
-            [2,2]
+            sage: MultichooseNK(5,2).random()
+            [0, 2]
+            sage: MultichooseNK(5,2).random()
+            [0, 1]
         """
         n,k = self._n, self._k
         rng = range(n)

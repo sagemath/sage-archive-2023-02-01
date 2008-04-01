@@ -23,8 +23,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random
 from sage.misc.misc import cputime
+from sage.misc.randstate import current_randstate
 import sys
 from math import ceil, floor, sqrt
 
@@ -232,7 +232,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         EXAMPLES:
             sage: k = GF(next_prime(7^5))
             sage: E = EllipticCurve(k,[2,4])
-            sage: P = E.random_element()
+            sage: P = E.random_element(); P
+            (751 : 6230 : 1)
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
             sage: P in E
@@ -240,7 +241,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
             sage: k.<a> = GF(7^5)
             sage: E = EllipticCurve(k,[2,4])
-            sage: P = E.random_element()
+            sage: P = E.random_element(); P
+            (a^4 + a + 5 : 6*a^4 + 3*a^3 + 2*a^2 + 4 : 1)
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
             sage: P in E
@@ -248,15 +250,17 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
             sage: k.<a> = GF(2^5)
             sage: E = EllipticCurve(k,[a^2,a,1,a+1,1])
-            sage: P = E.random_element()
+            sage: P = E.random_element(); P
+            (a^4 : 0 : 1)
             sage: type(P)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_finite_field'>
             sage: P in E
             True
         """
+        random = current_randstate().python_random().random
         k = self.base_field()
         # The following allows the origin self(0) to be picked
-        if random.random() <= 1/float(k.order()+1):
+        if random() <= 1/float(k.order()+1):
             return self(0)
 
         while True:
@@ -701,9 +705,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         EXAMPLES:
             sage: E=EllipticCurve(GF(11),[2,5])
-            sage: E.gens()                           # random
-            sage: EllipticCurve(GF(41),[2,5]).gens() # random
-            ...
+            sage: E.gens()
+            ((0 : 4 : 1),)
+            sage: EllipticCurve(GF(41),[2,5]).gens()
+            ((21 : 1 : 1), (8 : 0 : 1))
             sage: F.<a>=GF(3^6,'a')
             sage: E=EllipticCurve([a,a+1])
             sage: pts=E.gens()
@@ -726,10 +731,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         EXAMPLE:
             sage: E=EllipticCurve(GF(97),[2,3])
             sage: S=E.points()
-            sage: E[10]           # random
-            (29 : 43 : 1)
-            sage: E[15]          # random
-            (56 : 8 : 1)
+            sage: E[10]
+            (10 : 76 : 1)
+            sage: E[15]
+            (17 : 10 : 1)
             sage: for P in E: print P.order()
             1
             50

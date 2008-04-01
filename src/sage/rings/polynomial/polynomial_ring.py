@@ -68,7 +68,6 @@ TESTS:
 #*****************************************************************************
 
 from sage.structure.element import is_Element
-import random
 import sage.algebras.algebra
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.commutative_algebra as commutative_algebra
@@ -714,14 +713,14 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
         EXAMPLES:
             sage: R.<x> = ZZ[]
-            sage: R.random_element(10, 5,10) # random output
-            6*x^10 + 7*x^9 + 8*x^8 + 9*x^7 + 8*x^6 + 9*x^5 + 6*x^4 + 9*x^3 + 5*x^2 + 8*x + 6
-            sage: R.random_element(6) # random output
-            2*x^5 - 2*x^4 - x^3 + 1
-            sage: R.random_element(6) # random output
-            2*x^5 + 2*x^3 + x - 1
-            sage: R.random_element(6) # random output
-            -2*x^6 - x^5 - 2*x^3 - x^2 + 2*x + 1
+            sage: R.random_element(10, 5,10)
+            9*x^10 + 8*x^9 + 6*x^8 + 8*x^7 + 8*x^6 + 9*x^5 + 8*x^4 + 8*x^3 + 6*x^2 + 8*x + 8
+            sage: R.random_element(6)
+            x^6 - 3*x^5 - x^4 + x^3 - x^2 + x + 1
+            sage: R.random_element(6)
+            -2*x^5 + 2*x^4 - 3*x^3 + 1
+            sage: R.random_element(6)
+            x^4 - x^3 + x - 2
         """
         R = self.base_ring()
         return self([R.random_element(*args, **kwds) for _ in xrange(degree+1)])

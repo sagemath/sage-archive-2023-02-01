@@ -18,10 +18,10 @@ EXAMPLES:
     Special Unitary Group of degree 3 over Finite Field of size 5
     sage: G._gap_init_()
     'SU(3, 5)'
-    sage: G.random() # random output
-    [      3 2*a + 1   a + 1]
-    [2*a + 2       4       a]
-    [4*a + 2   a + 4       1]
+    sage: G.random()
+    [    3*a     2*a 4*a + 3]
+    [      3 2*a + 4     3*a]
+    [4*a + 1 4*a + 1 3*a + 2]
     sage: G.base_ring()
     Finite Field of size 5
     sage: G.field_of_definition()

@@ -21,7 +21,8 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "typecheck", "prop", "strunc",
                "assert_attribute", "LOGFILE"]
 
-import operator, os, stat, socket, sys, signal, time, weakref, random, resource, math
+import operator, os, stat, socket, sys, signal, time, weakref, resource, math
+import sage.misc.prandom as random
 
 from banner import version, banner
 
@@ -420,16 +421,16 @@ def union(x, y=None):
         list
 
     EXAMPLES:
-        sage: union([1,2,3,4], [5,6])        # random order
-        [1, 3, 2, 5, 4, 6]
-        sage: union([1,2,3,4,5,6], [5,6])    # random order
-        [1, 3, 2, 5, 4, 6]
-        sage: union((1,2,3,4,5,6), [5,6])    # random order
-        [1, 3, 2, 5, 4, 6]
-        sage: union((1,2,3,4,5,6), set([5,6]))   # random order
-        [1, 3, 2, 5, 4, 6]
+        sage: answer = union([1,2,3,4], [5,6]); answer
+        [1, 2, 3, 4, 5, 6]
+        sage: union([1,2,3,4,5,6], [5,6]) == answer
+        True
+        sage: union((1,2,3,4,5,6), [5,6]) == answer
+        True
+        sage: union((1,2,3,4,5,6), set([5,6])) == answer
+        True
     """
-    if y == None:
+    if y is None:
         return list(set(x))
     return list(set(x).union(y))
 
@@ -1106,12 +1107,13 @@ def random_sublist(X, s):
 
     EXAMPLES:
         sage: S = [1,7,3,4,18]
-        sage: random_sublist(S, 0.5) # random output
-        [7]
-        sage: random_sublist(S, 0.5) # random output
-        [1, 7, 3]
+        sage: random_sublist(S, 0.5)
+        [1, 3, 4]
+        sage: random_sublist(S, 0.5)
+        [1, 3]
     """
     return [a for a in X if random.random() <= s]
+
 
 
 

@@ -16,6 +16,7 @@
 include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
 include "../../ext/cdefs.pxi"
+include "../../ext/random.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -38,9 +39,11 @@ def ntl_ZZ_p_random_element(v):
     Return a random number modulo p.
 
     EXAMPLES:
-        sage: sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p_random_element(2) # random
-        1
+        sage: sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p_random_element(17)
+        8
     """
+    current_randstate().set_seed_ntl(False)
+
     cdef ntl_ZZ_p y
     v = ntl_ZZ_pContext(v)
     y = ntl_ZZ_p(0,v)

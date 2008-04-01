@@ -323,9 +323,10 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             NameError: name 'b' is not defined
 
             sage: V = k.vector_space()
-            sage: v = V.random_element()
-            sage: k(v) # result depends on random input
-            a^19 + a^18 + a^13 + a^11 + a^10 + a^9 + a^8 + a^6 + a^5 + a + 1
+            sage: v = V.random_element(); v
+            (1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1)
+            sage: k(v)
+            a^19 + a^15 + a^14 + a^13 + a^11 + a^10 + a^9 + a^6 + a^5 + a^4 + 1
             sage: k(v).vector() == v
             True
 
@@ -786,12 +787,12 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         EXAMPLE:
             sage: k.<a> = GF(2^18)
             sage: e = k.random_element()
-            sage: e # random element
-            a^16 + a^13 + a^12 + a^8 + a^7 + a^6 + a^4 + a^3 + a + 1
+            sage: e
+            a^15 + a^14 + a^13 + a^11 + a^10 + a^9 + a^6 + a^5 + a^4 + 1
             sage: e.is_square()
             True
-            sage: e.sqrt() # depends on random variable
-            a^16 + a^15 + a^14 + a^13 + a^12 + a^7 + a^5 + a^2
+            sage: e.sqrt()
+            a^16 + a^15 + a^14 + a^11 + a^9 + a^8 + a^7 + a^6 + a^4 + a^3 + 1
             sage: e.sqrt()^2 == e
             True
         """

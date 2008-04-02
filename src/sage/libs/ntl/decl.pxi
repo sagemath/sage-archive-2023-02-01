@@ -5,6 +5,9 @@ cdef extern from "stdlib.h":
 
 cdef extern from "ntl_wrap.h":
 
+    long NTL_OVFBND
+    bint NTL_OVERFLOW(long, long, long)
+
     # really, this is from NTL/ZZ.h
     #### ZZ_c
     ctypedef struct ZZ_c "struct ZZ":

@@ -127,6 +127,13 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: g = R(f); g
             x^2 + x + 1
 
+        NTL polynomials are limited in size to slightly under the word length:
+            sage: ZZ['x']({2^3: 1})
+            x^8
+            sage: ZZ['x']({2^30: 1})               # 32-bit
+            Traceback (most recent call last):
+            ...
+            OverflowError: Dense NTL integer polynomials have a maximum degree of 268435455
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
 
@@ -157,6 +164,8 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
                     raise ValueError, "Negative monomial degrees not allowed: %s" % i
                 elif i > degree:
                     degree = i
+            if degree >= NTL_OVFBND:
+                raise OverflowError, "Dense NTL integer polynomials have a maximum degree of %s" % (NTL_OVFBND-1)
             ZZX_SetCoeff_long(self.__poly, degree, 1)
             # now fill them in
             for ii, a in x:
@@ -188,6 +197,9 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
 
         elif not isinstance(x, list):
             x = [x]   # constant polynomials
+
+        if len(x) >= NTL_OVFBND:
+            raise OverflowError, "Dense NTL integer polynomials have a maximum degree of %s" % (NTL_OVFBND-1)
 
         for i from 0 <= i < len(x):
             a = x[i]
@@ -287,6 +299,65 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         P = self.parent()
         return P([0] * int(i) + v)
 
+    def _repr(self, name=None, bint latex=False):
+        """
+        Return string representatin of this polynomial.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ['x']
+            sage: (-x+1)^5
+            -x^5 + 5*x^4 - 10*x^3 + 10*x^2 - 5*x + 1
+        """
+        if name is None:
+            name = self.parent().variable_name()
+        cdef long i
+        all = []
+        for i from ZZX_deg(self.__poly) >= i >= 0:
+            sign = ZZ_sign(ZZX_coeff(self.__poly, i))
+            if sign:
+                if sign > 0:
+                    sign_str = '+'
+                    coeff_str = ZZ_to_PyString(&self.__poly.rep.elts()[i])
+                else:
+                    sign_str = '-'
+                    coeff_str = ZZ_to_PyString(&self.__poly.rep.elts()[i])[1:]
+                if i > 0:
+                    if coeff_str == '1':
+                        coeff_str = ''
+                    elif not latex:
+                        coeff_str = coeff_str + '*'
+                if i > 1:
+                    if latex:
+                        PyList_Append(all, " %s %s%s^{%s}" % (sign_str, coeff_str, name, i))
+                    else:
+                        PyList_Append(all, " %s %s%s^%s" % (sign_str, coeff_str, name, i))
+                elif i == 1:
+                    PyList_Append(all, " %s %s%s" % (sign_str, coeff_str, name))
+                else:
+                    PyList_Append(all, " %s %s" % (sign_str, coeff_str))
+        if len(all) == 0:
+            return '0'
+        leading = all[0]
+        if leading[1] == '+':
+            all[0] = leading[3:]
+        else:
+            all[0] = '-' + leading[3:]
+        return ''.join(all)
+
+    def _latex_(self, name=None):
+        """
+        Return the latex representation of this polynomial.
+
+        EXAMPLES:
+            sage: R.<t> = ZZ['t']
+            sage: latex(t^10-t^2-5*t+1)
+            t^{10} - t^{2} - 5t + 1
+            sage: latex(cyclotomic_polynomial(10^5))
+            x^{40000} - x^{30000} + x^{20000} - x^{10000} + 1
+        """
+        if name is None:
+            name = self.parent().latex_variable_names()[0]
+        return self._repr(name, latex=True)
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         r"""

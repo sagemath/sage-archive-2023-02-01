@@ -1028,7 +1028,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
              name -- None or a string; used for printing the variable.
 
         EXAMPLES:
-            sage: R.<x> = ZZ[]
+            sage: R.<x> = QQ[]
             sage: f = x^3 + x + 1
             sage: f._repr()
             'x^3 + x + 1'
@@ -1046,7 +1046,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         coeffs = self.list()
         for n in reversed(xrange(m)):
             x = coeffs[n]
-            if x != 0:
+            if x:
                 if n != m-1:
                     s += " + "
                 x = repr(x)

@@ -577,10 +577,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             Newform abelian subvariety 33a of dimension 1 of J0(33)
             sage: A.modular_kernel()
             Finite subgroup with invariants [3, 3] over QQ of Newform abelian subvariety 33a of dimension 1 of J0(33)
-            sage: A = AbelianVariety('71a'); A
-            Newform abelian subvariety 71a of dimension 3 of J0(71)
-            sage: A.modular_kernel()
-            Finite subgroup with invariants [9, 9] over QQ of Newform abelian subvariety 71a of dimension 3 of J0(71)
         """
         try:
             return self.__modular_kernel
@@ -599,14 +595,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             sage: A = AbelianVariety('37a')
             sage: A.modular_degree()
             2
-            sage: A = AbelianVariety('43b'); A
-            Newform abelian subvariety 43b of dimension 2 of J0(43)
-            sage: A.modular_degree()
-            2
-            sage: A = AbelianVariety('71a'); A
-            Newform abelian subvariety 71a of dimension 3 of J0(71)
-            sage: A.modular_degree()
-            9
         """
         n = self.modular_kernel().order()
         return ZZ(n.sqrt())
@@ -2576,7 +2564,9 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                     simple=simple, bound=bound)
             else:
                 # Decompose each ambient modular symbols factor.
-                X = [ModularAbelianVariety_modsym(ModularSymbols(G,sign=0).cuspidal_submodule()) for G in self.groups()]
+                #X = [ModularAbelianVariety_modsym(ModularSymbols(G,sign=0).cuspidal_submodule()) for G in self.groups()]
+                from abvar_ambient_jacobian import ModAbVar_ambient_jacobian_class
+                X = [ModAbVar_ambient_jacobian_class(G) for G in self.groups()]
                 E = [A.decomposition(simple=simple, bound=bound) for A in X]
                 i = 0
                 n = 2*self.dimension()
@@ -3097,7 +3087,7 @@ class ModularAbelianVariety(ModularAbelianVariety_abstract):
             if lattice.base_ring() != ZZ:
                 raise TypeError, "lattice must be over ZZ"
             if lattice.degree() != 2*n:
-                raise ValueError, "lattice must have degree n (=%s)"%n
+                raise ValueError, "lattice must have degree 2*n (=%s)"%(2*n)
             if not lattice.saturation().is_submodule(lattice):  # potentially expensive
                 raise ValueError, "lattice must be full"
         self.__lattice = lattice
@@ -3159,11 +3149,11 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
         EXAMPLES:
             sage: A = J0(42); D = A.decomposition(); D
             [
-            Simple abelian subvariety 21a(2,42) of dimension 1 of J0(42),
             Simple abelian subvariety 14a(1,42) of dimension 1 of J0(42),
             Simple abelian subvariety 14a(3,42) of dimension 1 of J0(42),
-            Simple abelian subvariety 42a(1,42) of dimension 1 of J0(42),
-            Simple abelian subvariety 21a(1,42) of dimension 1 of J0(42)
+            Simple abelian subvariety 21a(1,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 21a(2,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 42a(1,42) of dimension 1 of J0(42)
             ]
             sage: D[0] + D[1]
             Abelian subvariety of dimension 2 of J0(42)
@@ -3233,14 +3223,34 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             M = self.modular_symbols()
             S = M.ambient_module().cuspidal_submodule()
             if M.dimension() == S.dimension():
-                s = 1 if M.sign() == 0 else 2
-                L = ZZ**(s*M.dimension())
+                L = ZZ**M.dimension()
             else:
                 K0 = M.integral_structure()
                 K1 = S.integral_structure()
                 L = K1.coordinate_module(K0)
             self.__lattice = L
             return self.__lattice
+
+    def _set_lattice(self, lattice):
+        """
+        Set the lattice of this modular symbols abelian variety.
+
+        WARNING: This is only for internal use.  Do not use this
+        unless you really really know what you're doing.  That's why
+        there is an underscore in this method name.
+
+        INPUT:
+            lattice -- a lattice
+
+        EXAMPLES:
+        We do something evil -- there's no type checking since this
+        function is for internal use only:
+            sage: A = ModularSymbols(33).cuspidal_submodule().abelian_variety()
+            sage: A._set_lattice(5)
+            sage: A.lattice()
+            5
+        """
+        self.__lattice = lattice
 
     def modular_symbols(self, sign=0):
         """
@@ -3316,37 +3326,6 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
         """
         return sqrt_poly(self.modular_symbols().hecke_polynomial(n, var))
 
-    def __cmp__(self, other):
-        """
-        Compare two modular abelian varieties associated to spaces of
-        cuspidal modular symbols if possible; otherwise, fallback to
-        generic comparison.
-
-        If other is a modular abelian variety attached to modular
-        symbols, then this function compares the underlying +1 modular
-        symbols spaces.  Otherwise it just compares the underlying
-        types.
-
-        EXAMPLES:
-            sage: A = J0(37)
-            sage: cmp(A,A)
-            0
-            sage: cmp(A,J0(43))
-            -1
-            sage: cmp(J0(43),A)
-            1
-
-        cmp also works when other is not a modular abelian variety.
-            sage: cmp(A,17) #random (meaningless since it depends on memory layout)
-            1
-            sage: cmp(17,A) #random (meaningless since it depends on memory layout)
-            -1
-        """
-        if isinstance(other, ModularAbelianVariety_modsym):
-            return cmp(self.modular_symbols(), other.modular_symbols())
-        else:
-            return ModularAbelianVariety_abstract.__cmp__(self, other)
-
     def _integral_hecke_matrix(self, n, sign=0):
         """
         Return the action of the Hecke operator $T_n$ on the integral
@@ -3393,7 +3372,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
             [-1 -2  2]
             [-2  0  2]
         """
-        return self.modular_symbols(sign).hecke_matrix(n)
+        return self._integral_hecke_matrix(n, sign=sign).change_ring(QQ)
 
     def group(self):
         """
@@ -3441,11 +3420,11 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
         More examples:
             sage: A = J0(42); D = A.decomposition(); D
             [
-            Simple abelian subvariety 21a(2,42) of dimension 1 of J0(42),
             Simple abelian subvariety 14a(1,42) of dimension 1 of J0(42),
             Simple abelian subvariety 14a(3,42) of dimension 1 of J0(42),
-            Simple abelian subvariety 42a(1,42) of dimension 1 of J0(42),
-            Simple abelian subvariety 21a(1,42) of dimension 1 of J0(42)
+            Simple abelian subvariety 21a(1,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 21a(2,42) of dimension 1 of J0(42),
+            Simple abelian subvariety 42a(1,42) of dimension 1 of J0(42)
             ]
             sage: D[0].is_subvariety(A)
             True
@@ -3613,7 +3592,12 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
                 for N in reversed(divisors(M)):
                     if N > 1:
                         isogeny_number = 0
-                        for B in amb.modular_symbols_of_level(N).cuspidal_subspace().new_subspace().decomposition(bound=bound):
+                        A = amb.modular_symbols_of_level(N).cuspidal_subspace().new_subspace()
+                        if bound is None:
+                            X = factor_new_space(A)
+                        else:
+                            X = A.decomposition(bound = bound)
+                        for B in X:
                             for t in divisors(M//N):
                                 D.append(ModularAbelianVariety_modsym(B.degeneracy_map(M, t).image(),
                                                                       is_simple=True, newform_level=(N, G),
@@ -3632,7 +3616,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
 
 class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
 
-    def __init__(self, modsym, newform_level=None,
+    def __init__(self, modsym, lattice=None, newform_level=None,
                  is_simple=None, isogeny_number=None, number=None, check=True):
         """
         Modular abelian variety that corresponds to a Hecke stable
@@ -3655,6 +3639,8 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
         ModularAbelianVariety_abstract.__init__(self, (modsym.group(), ), modsym.base_ring(),
                              newform_level=newform_level, is_simple=is_simple,
                              isogeny_number=isogeny_number, number=number, check=check)
+        if lattice is not None:
+            self._set_lattice(lattice)
         self.__modsym = modsym
 
     def _modular_symbols(self):
@@ -3703,3 +3689,210 @@ def sqrt_poly(f):
         return prod([g**Integer(e/Integer(2)) for g,e in f.factor()])
     except TypeError:
         raise ValueError, "f must be a perfect square"
+
+
+####################################################################################################
+# Useful for decomposing exactly the sort of modular symbols spaces that come up here.
+from random import choice, randrange
+from sage.rings.arith import next_prime
+
+def random_hecke_operator(M, t=None, p=2):
+    """
+    Return a random Hecke operator acting on $M$, got by adding to $t$
+    a random multiple of $T_p$
+
+    INPUT:
+        M -- modular symbols space
+        t -- None or a Hecke operator
+        p -- a prime
+
+    OUTPUT:
+        Hecke operator
+        prime
+
+    EXAMPLES:
+        sage: M = ModularSymbols(11).cuspidal_subspace()
+        sage: t, p = sage.modular.abvar.abvar.random_hecke_operator(M)
+        sage: p
+        3
+        sage: t, p = sage.modular.abvar.abvar.random_hecke_operator(M, t, p)
+        sage: p
+        5
+    """
+    r = 0
+    while r == 0:
+        r = randrange(1,p//2+1) * ZZ.random_element()
+    t = (0 if t is None else t) + r*M.hecke_operator(p)
+    return t, next_prime(p)
+
+def factor_new_space(M):
+    """
+    Given a new space $M$ of modular symbols, return the decomposition
+    into simple of $M$ under the Hecke operators.
+
+    INPUT:
+        M -- modular symbols space
+
+    OUTPUT:
+        list of factors
+
+    EXAMPLES:
+        sage: M = ModularSymbols(37).cuspidal_subspace()
+        sage: sage.modular.abvar.abvar.factor_new_space(M)
+        [
+        Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field,
+        Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
+        ]
+    """
+    t = None; p = 2
+    for i in range(200):
+        t, p = random_hecke_operator(M, t, p)
+        f = t.charpoly()
+        cube_free = True
+        for _, e in f.factor():
+            if e > 2:
+                cube_free = False
+                break
+        if cube_free:
+            return t.decomposition()
+        t, p = random_hecke_operator(M, t, p)
+    raise RuntimeError, "unable to factor new space -- this should not happen" # should never happen
+
+def factor_modsym_space_new_factors(M):
+    """
+    Given an ambient modular symbols space, return complete
+    factorization of it.
+
+    INPUT:
+        M -- modular symbols space
+    OUTPUT:
+        list of decompositions corresponding to each new space.
+
+    EXAMPLES:
+        sage: M = ModularSymbols(33)
+        sage: sage.modular.abvar.abvar.factor_modsym_space_new_factors(M)
+        [[
+        Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
+        ],
+         [
+        Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
+        ]]
+    """
+    eps = M.character()
+    K = eps.conductor() if eps is not None else 1
+    N = [M.modular_symbols_of_level(d).cuspidal_subspace().new_subspace() \
+           for d in M.level().divisors() if d%K == 0 and (d == 11 or d >= 13)]
+    return [factor_new_space(A) for A in N]
+
+def simple_factorization_of_modsym_space(M, simple=True):
+    """
+    Return factorization of $M$.  If simple is False, return powers of
+    simples.
+
+    INPUT:
+        M -- modular symbols space
+        simple -- bool (default: True)
+    OUTPUT:
+        sequence
+
+    EXAMPLES:
+        sage: M = ModularSymbols(33)
+        sage: sage.modular.abvar.abvar.simple_factorization_of_modsym_space(M)
+        [
+        (11, 0, 1, Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field),
+        (11, 0, 3, Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field),
+        (33, 0, 1, Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field)
+        ]
+        sage: sage.modular.abvar.abvar.simple_factorization_of_modsym_space(M, simple=False)
+        [
+        (11, 0, None, Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field),
+        (33, 0, None, Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field)
+        ]
+    """
+    D = []
+    N = M.level()
+    for G in factor_modsym_space_new_factors(M):
+        if len(G) > 0:
+            # Compute the matrices of the degeneracy maps up.
+            T = divisors(N//G[0].level())
+            degen = [G[0].ambient_module().degeneracy_map(N, t).matrix() for t in T]
+            # Construct a matrix with rows the basis for all the factors
+            # stacked on top of each other.  We just multiply this by each
+            # degeneracy matrix to get the basis for the images of the
+            # factors at higher level.  By doing matrix multiplies, we
+            # save time over taking images of individual factors.
+            matrix = G[0].basis_matrix()
+            for A in G[1:]:
+                matrix = matrix.stack(A.basis_matrix())
+
+            # Compute the actual images
+            ims = [matrix * z for z in degen]
+
+            # Construct the corresponding subspaces at higher level.
+            j = 0
+            for (isog,A) in enumerate(G):
+                d = A.dimension()
+                if simple:
+                    for i in range(len(T)):
+                        V = ims[i].matrix_from_rows(range(j, j+d)).row_module()
+                        W = M.submodule(V, check=False)
+                        D.append( (A.level(), isog, T[i], W) )
+                else:
+                    V = sum(ims[i].matrix_from_rows(range(j, j+d)).row_module() for i in range(len(T)))
+                    W = M.submodule(V, check=False)
+                    D.append( (A.level(), isog, None, W))
+                j += d
+    return Sequence(D, cr=True)
+
+def modsym_lattices(M, factors):
+    """
+    Append lattice information to the output of simple_factorization_of_modsym_space.
+
+    INPUT:
+        M -- modular symbols spaces
+        factors -- Sequence (simple_factorization_of_modsym_space)
+
+    OUTPUT:
+        sequence with more information for each factor (the lattice)
+
+    EXAMPLES:
+        sage: M = ModularSymbols(33)
+        sage: factors = sage.modular.abvar.abvar.simple_factorization_of_modsym_space(M, simple=False)
+        sage: sage.modular.abvar.abvar.modsym_lattices(M, factors)
+        [
+        (11, 0, None, Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field, Free module of degree 6 and rank 4 over Integer Ring
+        Echelon basis matrix:
+        [ 1  0  0  0 -1  2]
+        [ 0  1  0  0 -1  1]
+        [ 0  0  1  0 -2  2]
+        [ 0  0  0  1 -1 -1]),
+        (33, 0, None, Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field, Free module of degree 6 and rank 2 over Integer Ring
+        Echelon basis matrix:
+        [ 1  0  0 -1  0  0]
+        [ 0  0  1  0  1 -1])
+        ]
+    """
+    # 1. Change basis of everything to the ambient integral modular symbols space
+    # 2. Clear denominator.
+    # 3. Echelonize/saturate each factor
+    if len(factors) == 0:
+        return factors
+
+    D = []
+    I = M.cuspidal_submodule().integral_structure().basis_matrix()
+    A = factors[0][-1].basis_matrix()
+    rows = [range(A.nrows())]
+    for F in factors[1:]:
+        mat = F[-1].basis_matrix()
+        i = rows[-1][-1]+1
+        rows.append(range(i, i + mat.nrows()))
+        A = A.stack(mat)
+    X = I.solve_left(A)
+    X, _ = X._clear_denom()
+    for i, R in enumerate(rows):
+        A = X.matrix_from_rows(R)
+        A = A.saturation()
+        A.echelonize()
+        D.append(tuple(list(factors[i]) + [A.row_module()]))
+    return Sequence(D, cr=True)
+

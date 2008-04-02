@@ -170,16 +170,16 @@ class MatrixMorphism_abstract(sage.categories.all.Morphism):
             Domain: Vector space of dimension 3 over Rational Field
             Codomain: Vector space of dimension 4 over Rational Field
             sage: psi*phi
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 3 by 4 dense matrices over Rational Field' and 'Full MatrixSpace of 3 by 3 dense matrices over Rational Field'
-            sage: phi*psi
             Free module morphism defined by the matrix
             [ 20  23  26  29]
             [ 56  68  80  92]
             [ 92 113 134 155]
             Domain: Vector space of dimension 3 over Rational Field
             Codomain: Vector space of dimension 4 over Rational Field
+            sage: phi*psi
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 3 by 4 dense matrices over Rational Field' and 'Full MatrixSpace of 3 by 3 dense matrices over Rational Field'
             sage: phi.matrix()*psi.matrix()
             [ 20  23  26  29]
             [ 56  68  80  92]

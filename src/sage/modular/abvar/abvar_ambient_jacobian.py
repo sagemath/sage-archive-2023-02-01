@@ -9,15 +9,17 @@ TESTS:
 """
 
 import weakref
+from sage.structure.sequence import Sequence
 
-from abvar             import ModularAbelianVariety_modsym_abstract, ModularAbelianVariety
+from abvar             import (ModularAbelianVariety_modsym_abstract, ModularAbelianVariety,
+                               simple_factorization_of_modsym_space, modsym_lattices,
+                               ModularAbelianVariety_modsym)
 from sage.rings.all    import QQ
 from sage.modular.dims import dimension_cusp_forms
 
 from sage.modular.modsym.modsym import ModularSymbols
 import morphism
 
-import constructor
 
 _cache = {}
 
@@ -286,5 +288,57 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
             d = dimension_cusp_forms(self.group(), k=2)
             self._dimension = d
             return d
+
+    def decomposition(self, simple=True, bound=None):
+        """
+        Decompose this ambient Jacobian as a product of abelian
+        subvarieties, up to isogeny.
+
+        EXAMPLES:
+            sage: J0(33).decomposition(simple=False)
+            [
+            Simple abelian subvariety 11a(None,33) of dimension 2 of J0(33),
+            Simple abelian subvariety 33a(None,33) of dimension 1 of J0(33)
+            ]
+            sage: J0(33).decomposition(simple=True)
+            [
+            Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33),
+            Simple abelian subvariety 11a(3,33) of dimension 1 of J0(33),
+            Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
+            ]
+        """
+        try:
+            return self.__decomposition[simple]
+        except KeyError:
+            pass
+        except AttributeError:
+            self.__decomposition = {}
+
+        M = self.modular_symbols().ambient_module()
+        level = M.level()
+        group = M.group()
+        factors = simple_factorization_of_modsym_space(M, simple=simple)
+        factors = modsym_lattices(M, factors)
+
+        D = []
+        for newform_level, isogeny_number, number, modsym, lattice in factors:
+            A = ModularAbelianVariety_modsym(modsym, lattice=lattice,
+                               newform_level = (newform_level, group), is_simple=True,
+                               isogeny_number=isogeny_number, number=(number, level), check=False)
+            D.append(A)
+
+            # This line below could be safely deleted.  It basically creates a circular
+            # reference so that say J0(389)[0] + J0(389)[1] doesn't do two separate
+            # decompositions.  Memory will be freed though, at least if you do
+            # import gc; gc.collect().
+            A._ambient = self
+
+
+        D.sort()
+        D = Sequence(D, immutable=True, cr=True, universe=self.category())
+        self.__decomposition[simple] = D
+        return D
+
+
 
 

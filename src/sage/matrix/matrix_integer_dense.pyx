@@ -1440,12 +1440,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         H_m.cache('rank', rank)
         self.cache('rank',rank)
 
+        H_m.cache('in_echelon_form', True)
+
         if transformation:
             return H_m, U
         else:
             return H_m
 
-    def saturation(self, p=0, proof=None, max_dets=0):
+    def saturation(self, p=0, proof=None, max_dets=5):
         r"""
         Return a saturation matrix of self, which is a matrix whose
         rows span the saturation of the row span of self.  This
@@ -1465,7 +1467,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                  $p$ is None, return full saturation of self.
             proof -- (default: use proof.linear_algebra()); if False, the
                  determinant calculations are done with proof=False.
-            max_dets -- (default: 10); technical parameter -- max
+            max_dets -- (default: 5); technical parameter -- max
                  number of determinant to compute when bounding prime
                  divisor of self in its saturation.
 
@@ -3455,6 +3457,69 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         res._initialized = True
         return res
+
+    def _delete_zero_columns(self):
+        """
+        Return matrix obtained from self by deleting all zero columns
+        along with the positions of those columns.
+
+        OUTPUT:
+            matrix
+            list of integers
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 2,3, [1,0,3,-1,0,5]); a
+            [ 1  0  3]
+            [-1  0  5]
+            sage: a._delete_zero_columns()
+            ([ 1  3]
+             [-1  5], [1])
+        """
+        C = self.columns()
+        zero_cols = [i for i,v in enumerate(self.columns()) if v.is_zero()]
+        s = set(zero_cols)
+        nonzero_cols = [i for i in range(self.ncols()) if not (i in s)]
+        return self.matrix_from_columns(nonzero_cols), zero_cols
+
+    def _insert_zero_columns(self, cols):
+        """
+        Return matrix obtained by self by inserting zero columns so that
+        the columns with positions specified in cols are all 0.
+
+        INPUT:
+            cols -- list of nonnegative integers
+
+        OUTPUT:
+            matrix
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 2,3, [1,0,3,-1,0,5]); a
+            [ 1  0  3]
+            [-1  0  5]
+            sage: b, cols = a._delete_zero_columns()
+            sage: b
+            [ 1  3]
+            [-1  5]
+            sage: cols
+            [1]
+            sage: b._insert_zero_columns(cols)
+            [ 1  0  3]
+            [-1  0  5]
+        """
+        if len(cols) == 0:
+            return self
+        cdef Py_ssize_t i, c, r, nc = max(self._ncols + len(cols), max(cols)+1)
+        cdef Matrix_integer_dense A = self.new_matrix(self._nrows, nc)
+        # Now fill in the entries of A that come from self.
+        cols_set = set(cols)
+        cols_ins = [j for j in range(nc) if j not in cols_set]
+        for r from 0 <= r < self._nrows:
+            i = 0
+            for c in cols_ins:
+                # The following does this quickly: A[r,c] = self[r,i]
+                mpz_set(A._matrix[r][c], self._matrix[r][i])
+                i += 1
+        return A
 
     def _factor_out_common_factors_from_each_row(self):
         """

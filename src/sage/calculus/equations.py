@@ -186,6 +186,9 @@ class SymbolicEquation(SageObject):
         """
         Substitute both sides of this equation
 
+        This is very slow currently since we piggy-back off of the
+        symbolic matrix functionality.
+
         EXAMPLES:
            sage: var('theta')
            theta
@@ -194,8 +197,23 @@ class SymbolicEquation(SageObject):
            theta + 125 < sin(5*theta)
            sage: eqn(theta=x, x=0)
            x < 0
+           sage: var('y')
+           y
+           sage: eqn = x^3 < sin(y)
+           sage: eqn(2)
+           8 < sin(y)
+           sage: eqn(2,3)
+           8 < sin(3)
+           sage: eqn = x^3 < 2
+           sage: eqn(2)
+           8 < 2
         """
-        return self._op(self._left(*args, **argv), self._right(*args,**argv))
+        from sage.matrix.all import matrix
+        from sage.calculus.all import SR
+        m = matrix(SR, 1, 2, [self._left, self._right])
+        left,right = m(*args, **argv)[0]
+        return self._op(left, right)
+
 
     def __getitem__(self, i):
         """

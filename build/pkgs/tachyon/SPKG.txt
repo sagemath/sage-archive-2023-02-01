@@ -6,8 +6,11 @@ see below
 
 == Changelog ==
 
+=== tachyon-0.98beta.p5 (Michael Abshoff, April 1st, 2008) ===
+ * Debian amd64 fixes (Tim Abbott, #2761)
+
 === tachyon-0.98beta.p4 (Tim Abbott, Jan. 15th, 2008) ===
- * Debianize spkg (TIm Abbott)
+ * Debianize spkg (Tim Abbott)
  * add .hgignore, update SPKG.txt (Michael Abshoff)
 
 === tachyon-0.98beta.p3 ===

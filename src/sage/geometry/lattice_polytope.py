@@ -2591,9 +2591,10 @@ def convex_hull(points):
     Compute the convex hull of the given points.
 
     NOTE: points might not span the space.
+    NOTE: fails for large numbers of vertices in dimensions 4 or greater
 
     INPUT:
-        points -- a list of objects that can be converted into vectors of the same dimension.
+        points -- a list that can be converted into vectors of the same dimension over ZZ.
 
     OUTPUT:
         list of vertices of the convex hull of the given points (as vectors).
@@ -2607,7 +2608,7 @@ def convex_hull(points):
         return []
     vpoints = []
     for p in points:
-        v = vector(p)
+        v = vector(ZZ,p)
         if not v in vpoints:
             vpoints.append(v)
     p0 = vpoints[0]

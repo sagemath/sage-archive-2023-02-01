@@ -147,9 +147,9 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
             abelian variety
 
         EXAMPLES:
-            sage: A = J0(11)
+            sage: A = J0(17)
             sage: A.ambient_variety()
-            Abelian variety J0(11) of dimension 1
+            Abelian variety J0(17) of dimension 1
             sage: A is A.ambient_variety()
             True
         """
@@ -187,6 +187,22 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         return (self.__group,)
 
     def _calculate_endomorphism_generators(self):
+        """
+        Calculate generators for the endomorphism ring of
+        self.
+
+        EXAMPLES:
+            sage: J0(11)._calculate_endomorphism_generators()
+            [Abelian variety endomorphism of Abelian variety J0(11) of dimension 1]
+            sage: ls = J0(46)._calculate_endomorphism_generators() ; ls
+            [Abelian variety endomorphism of Abelian variety J0(46) of dimension 5,
+             Abelian variety endomorphism of Abelian variety J0(46) of dimension 5,
+             Abelian variety endomorphism of Abelian variety J0(46) of dimension 5,
+             Abelian variety endomorphism of Abelian variety J0(46) of dimension 5,
+             Abelian variety endomorphism of Abelian variety J0(46) of dimension 5]
+            sage: len(ls) == J0(46).dimension()
+            True
+        """
         D = self.decomposition()
         phi = self._isogeny_to_product_of_simples()
         psi = phi.complementary_isogeny()

@@ -18,10 +18,11 @@ import abvar as abelian_variety
 import morphism
 
 import sage.rings.integer_ring
+import sage.rings.all
 
 from sage.rings.ring import Ring
 from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.constructor import Matrix
+from sage.matrix.constructor import Matrix, identity_matrix
 from sage.structure.element import is_Matrix
 
 ZZ = sage.rings.integer_ring.ZZ
@@ -148,7 +149,7 @@ class Homspace(HomsetWithBase):
         EXAMPLES:
             sage: J = J0(11)
             sage: End(J)._repr_()
-            'Space of homomorphisms from Abelian variety J0(11) of dimension 1 to Abelian variety J0(11) of dimension 1'
+            'Endomorphism ring of Abelian variety J0(11) of dimension 1'
         """
         return "Space of homomorphisms from %s to %s"%\
                (self.domain(), self.codomain())
@@ -244,10 +245,11 @@ class Homspace(HomsetWithBase):
         EXAMPLES:
             sage: E = End(J0(22))
             sage: E.gen(0).matrix()
-            [3 0 0 0]
-            [0 3 0 0]
-            [0 0 0 0]
-            [0 0 0 0]
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+
         """
         self.calculate_generators()
         if i > self.ngens():
@@ -313,8 +315,8 @@ class Homspace(HomsetWithBase):
         if self._gens is not None:
             return
 
-        phi = self.domain()._isogeny_to_product_of_simples()
-        psi = self.codomain()._isogeny_to_product_of_simples()
+        phi = self.domain()._isogeny_to_product_of_powers()
+        psi = self.codomain()._isogeny_to_product_of_powers()
 
         H_simple = phi.codomain().Hom(psi.codomain())
         im_gens = H_simple._calculate_product_gens()
@@ -328,12 +330,34 @@ class Homspace(HomsetWithBase):
 
     def _calculate_product_gens(self):
         """
-        If generators haven't already been computed, calculate generators
-        for this homspace.   If they have been computed, do nothing.
+        For internal use.
+
+        Calculate generators for self, assuming that self is
+        a product of simple factors.
 
         EXAMPLES:
-            sage: E = End(J0(11))
-            sage: E.calculate_generators()
+            sage: E = End(J0(37))
+            sage: E.gens()
+            (Abelian variety endomorphism of Abelian variety J0(37) of dimension 2,
+             Abelian variety endomorphism of Abelian variety J0(37) of dimension 2)
+            sage: [ x.matrix() for x in E.gens() ]
+            [[1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1],
+             [ 0  1  1 -1]
+            [ 1  0  1  0]
+            [ 0  0 -1  1]
+            [ 0  0  0  1]]
+            sage: E._calculate_product_gens()
+            [[1 0 0 0]
+            [0 1 0 0]
+            [0 0 0 0]
+            [0 0 0 0],
+             [0 0 0 0]
+            [0 0 0 0]
+            [0 0 1 0]
+            [0 0 0 1]]
         """
 
         Afactors = self.domain().decomposition(simple=False)
@@ -349,6 +373,8 @@ class Homspace(HomsetWithBase):
             else:
                 # Handle the case of A, B simple powers
                 gens = []
+                phi_matrix = Afactors[0]._isogeny_to_product_of_simples().matrix()
+                psi_t_matrix = Bfactors[0]._isogeny_to_product_of_simples().complementary_isogeny().matrix()
                 for i in range(len(Asimples)):
                     for j in range(len(Bsimples)):
                         hom_gens = Asimples[i].Hom(Bsimples[j]).gens()
@@ -356,7 +382,7 @@ class Homspace(HomsetWithBase):
                             sub_mat = sub_gen.matrix()
                             M = self.matrix_space()(0)
                             M.set_block(sub_mat.nrows()*i, sub_mat.ncols()*j, sub_mat)
-                            gens.append(M)
+                            gens.append(phi_matrix * M * psi_t_matrix)
 
         else:
             # Handle the case of A, B generic
@@ -379,11 +405,6 @@ class Homspace(HomsetWithBase):
                             gens.append(M)
 
         return gens
-
-        # set the gens
-        #R = ZZ**(4*self.domain().dimension()*self.codomain().dimension())
-        #gens = R.submodule([ self._get_matrix(g).list() for g in gens ]).saturation().basis()
-        #self._gens = tuple([ self._get_matrix(g) for g in gens ])
 
     def _calculate_simple_gens(self):
         """
@@ -445,7 +466,6 @@ class Homspace(HomsetWithBase):
         A = self.domain()
         B = self.codomain()
 
-        # TODO: POSSIBLE BUG ALERT!!! If the groups() are different this can be wrong, e.g., J0(11) and J1(11)
         if A.newform_label() != B.newform_label():
             return []
 
@@ -519,22 +539,6 @@ class EndomorphismSubring(Homspace, Ring):
         """
         return self._A
 
-
-#     def calculate_generators(self):
-#         """
-#         Calculate a set of generators for self.
-#
-#         EXAMPLES:
-#             sage: J0(11).endomorphism_ring().calculate_generators()
-#             BOOM! This is broken .  TODO -- fix me.
-#         """
-#         if self._gens is None:
-#             gens = self._A._calculate_endomorphism_generators()
-#             M = ZZ**(4*self._A.dimension()**2)
-#             gens = M.submodule([ x.matrix().list() for x in gens ]).saturation().basis()
-#             self._gens = tuple([ self._get_matrix(g) for g in gens ])
-
-
     def index_in(self, other, check=True):
         """
         Return the index of self in other.
@@ -546,9 +550,13 @@ class EndomorphismSubring(Homspace, Ring):
         EXAMPLES:
             sage: R = J0(33).endomorphism_ring()
             sage: R.index_in(R)
-            boom.
-
-            AND I would like to do an example with the Hecke algebra.
+            1
+            sage: J = J0(37) ; E = J.endomorphism_ring() ; T = E.image_of_hecke_algebra()
+            sage: T.index_in(E)
+            1
+            sage: J = J0(22) ; E = J.endomorphism_ring() ; T = E.image_of_hecke_algebra()
+            sage: T.index_in(E)
+            +Infinity
         """
         if check:
             if not isinstance(other, EndomorphismSubring):
@@ -558,7 +566,26 @@ class EndomorphismSubring(Homspace, Ring):
 
         M = self.free_module()
         N = other.free_module()
+        if M.rank() < N.rank():
+            return sage.rings.all.Infinity
         return M.index_in(N)
+
+    def index_in_saturation(self):
+        """
+        Given a Hecke algebra T, compute its index in its saturation.
+
+        EXAMPLES:
+            sage: T = End(J0(23)).image_of_hecke_algebra().index_in_saturation()
+            1
+            sage: T = End(J0(44)).image_of_hecke_algebra().index_in_saturation()
+            2
+        """
+        A = self.abelian_variety()
+        d = A.dimension()
+        M = ZZ**(4*d**2)
+        gens = [ x.matrix().list() for x in self.gens() ]
+        R = M.submodule(gens)
+        return R.index_in_saturation()
 
     def discriminant(self):
         """
@@ -567,22 +594,61 @@ class EndomorphismSubring(Homspace, Ring):
 
         EXAMPLES:
              sage: J0(33).endomorphism_ring().discriminant()
-             boom!
+             -64800
         """
         g = self.gens()
         M = Matrix(ZZ,len(g), [ (g[i]*g[j]).trace()
                                 for i in range(len(g)) for j in range(len(g)) ])
+        print M
         return M.determinant()
 
-    def image_of_hecke_algebra(self):
+    def image_of_hecke_algebra(self, check_every=1):
         """
         Compute the image of the Hecke algebra inside this endomorphism
         subring.
 
+        We simply calculate Hecke operators up to the Sturm bound, and
+        look at the submodule spanned by them. While computing, we can
+        check to see if the submodule spanned so far is saturated and
+        of maximal dimension, in which case we may be done. The optional
+        argument check_every determines how many Hecke operators we add in
+        before checking to see if this condition is met.
+
         EXAMPLES:
             sage: E = J0(33).endomorphism_ring()
             sage: E.image_of_hecke_algebra()
-            boom!! it's broken.
+            sage: E.image_of_hecke_algebra()
+            Subring of endomorphism ring of Abelian variety J0(33) of dimension 3
+            sage: E.image_of_hecke_algebra().gens()
+            (Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
+             Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
+             Abelian variety endomorphism of Abelian variety J0(33) of dimension 3)
+            sage: [ x.matrix() for x in E.image_of_hecke_algebra().gens() ]
+            [[1 0 0 0 0 0]
+            [0 1 0 0 0 0]
+            [0 0 1 0 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 0 1 0]
+            [0 0 0 0 0 1],
+             [ 0  2  0 -1  1 -1]
+            [-1 -2  2 -1  2 -1]
+            [ 0  0  1 -1  3 -1]
+            [-2  2  0  1  1 -1]
+            [-1  1  0  2  0 -3]
+            [-1  1 -1  1  1 -2],
+             [ 0  0  1 -1  1 -1]
+            [ 0 -1  1  0  1 -1]
+            [ 0  0  1  0  2 -2]
+            [-2  0  1  1  1 -1]
+            [-1  0  1  1  0 -1]
+            [-1  0  0  1  0 -1]]
+            sage: J0(33).hecke_operator(2).matrix()
+            [-1  0  1 -1  1 -1]
+            [ 0 -2  1  0  1 -1]
+            [ 0  0  0  0  2 -2]
+            [-2  0  1  0  1 -1]
+            [-1  0  1  1 -1 -1]
+            [-1  0  0  1  0 -2]
         """
         try:
             return self.__hecke_algebra_image
@@ -597,12 +663,17 @@ class EndomorphismSubring(Homspace, Ring):
 
         d = A.dimension()
         EndVecZ = ZZ**(4*d**2)
-        T_matrices = [ A.hecke_operator(n).matrix().list() for n in
-                       range(1,M.sturm_bound()+1) ]
-        W = EndVecZ.submodule(T_matrices)
 
-        T = EndomorphismSubring(A, W.basis())
-        self.__hecke_algebra_image = T
+        if d == 1:
+            self.__hecke_algebra_image = EndomorphismSubring(A, [[1,0,0,1]])
+            return self.__hecke_algebra_image
+
+        V = EndVecZ.submodule([A.hecke_operator(1).matrix().list()])
+
+        for n in range(2,M.sturm_bound()+1):
+            V += EndVecZ.submodule([ A.hecke_operator(n).matrix().list() ])
+
+        self.__hecke_algebra_image = EndomorphismSubring(A, V.basis())
         return self.__hecke_algebra_image
 
 

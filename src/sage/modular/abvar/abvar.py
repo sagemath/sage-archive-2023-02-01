@@ -450,6 +450,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             [-3  3]
             [ 0 -3]
         """
+        try:
+            return self._newform_isogeny
+        except AttributeError:
+            pass
+
         if not self.is_simple():
             raise ValueError, "self is not simple"
 
@@ -471,8 +476,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         Af = AbelianVariety(self.newform_label())
         H = A.Hom(Af.ambient_variety())
         m = H(Morphism(H, mat))
-        foo = m.restrict_domain(self).restrict_codomain(Af)
-        return m.restrict_domain(self).restrict_codomain(Af)
+        self._newform_isogeny = m.restrict_domain(self).restrict_codomain(Af)
+        return self._newform_isogeny
 
     def _simple_isogeny(self, other):
         """
@@ -2771,10 +2776,13 @@ class ModularAbelianVariety_abstract(ParentWithBase):
               From: Abelian variety J0(22) x J0(37) of dimension 4
               To:   Abelian subvariety of dimension 4 of J0(11) x J0(11) x J0(37) x J0(37)
         """
+        try:
+            return self._simple_product_isogeny
+        except AttributeError:
+            pass
 
         D = self.decomposition()
         dest = prod([d._isogeny_to_newform_abelian_variety().image() for d in D])
-        #dest = prod(D)
         A = self.ambient_variety()
         dim = sum([d.dimension() for d in D])
 
@@ -2790,7 +2798,33 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             ind += 2*factor.dimension()
 
         H = self.Hom(dest)
-        return H(Morphism(H, mat))
+        self._simple_product_isogeny = H(Morphism(H, mat))
+        return self._simple_product_isogeny
+
+    def _isogeny_to_product_of_powers(self):
+        try:
+            return self._simple_power_product_isogeny
+        except AttributeError:
+            pass
+
+        D = self.decomposition(simple=False)
+        A = self.ambient_variety()
+        proj_ls = [ A.projection(factor) for factor in D ]
+        dest = prod([phi.image() for phi in proj_ls])
+        dim = sum([d.dimension() for d in D])
+
+        mat = matrix(ZZ, 2*self.dimension(), 2*dim)
+        ind = 0
+
+        for i in range(len(D)):
+            factor = D[i]
+            proj = proj_ls[i]
+            mat.set_block(0, ind, proj.restrict_domain(self).matrix())
+            ind += 2*factor.dimension()
+
+        H = self.Hom(dest)
+        self._simple_power_product_isogeny = H(Morphism(H, mat))
+        return self._simple_power_product_isogeny
 
 
     def complement(self, A=None):

@@ -144,7 +144,7 @@ def matrix(*args, **kwds):
         [0 0 1 0 0 1 0 0 0 1]
         [0 0 0 1 0 1 1 0 0 0]
         [0 0 0 0 1 0 1 1 0 0]
-        Full MatrixSpace of 10 by 10 sparse matrices over Integer Ring
+        Full MatrixSpace of 10 by 10 dense matrices over Integer Ring
 
         sage: matrix(ZZ, 10, 10, range(100), sparse=True).parent()
         Full MatrixSpace of 10 by 10 sparse matrices over Integer Ring

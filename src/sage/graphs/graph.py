@@ -503,7 +503,7 @@ class GenericGraph(SageObject):
         EXAMPLES:
             sage: G = graphs.CompleteBipartiteGraph(2,3)
             sage: m = matrix(G); m.parent()
-            Full MatrixSpace of 5 by 5 sparse matrices over Integer Ring
+            Full MatrixSpace of 5 by 5 dense matrices over Integer Ring
             sage: m
             [0 0 1 1 1]
             [0 0 1 1 1]

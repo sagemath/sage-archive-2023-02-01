@@ -173,28 +173,28 @@ class Homspace(HomsetWithBase):
             [-2  0]
             [ 0 -2]
 
-sage: H = Hom(J0(11) * J0(17), J0(22))
+            sage: H = Hom(J0(11) * J0(17), J0(22))
 
-sage: H._get_matrix(tuple([8..23]))
+            sage: H._get_matrix(tuple([8..23]))
 
-[ 8  9 10 11]
-[12 13 14 15]
-[16 17 18 19]
-[20 21 22 23]
+            [ 8  9 10 11]
+            [12 13 14 15]
+            [16 17 18 19]
+            [20 21 22 23]
 
-sage: H._get_matrix(tuple([8..23]))
+            sage: H._get_matrix(tuple([8..23]))
 
-[ 8  9 10 11]
-[12 13 14 15]
-[16 17 18 19]
-[20 21 22 23]
+            [ 8  9 10 11]
+            [12 13 14 15]
+            [16 17 18 19]
+            [20 21 22 23]
 
-sage: H._get_matrix([8..23])
+            sage: H._get_matrix([8..23])
 
-[ 8  9 10 11]
-[12 13 14 15]
-[16 17 18 19]
-[20 21 22 23]
+            [ 8  9 10 11]
+            [12 13 14 15]
+            [16 17 18 19]
+            [20 21 22 23]
 
         """
         try:
@@ -309,8 +309,32 @@ sage: H._get_matrix([8..23])
             sage: E = End(J0(11))
             sage: E.calculate_generators()
         """
+
         if self._gens is not None:
             return
+
+        phi = self.domain()._isogeny_to_product_of_simples()
+        psi = self.codomain()._isogeny_to_product_of_simples()
+
+        H_simple = phi.codomain().Hom(psi.codomain())
+        im_gens = H_simple._calculate_product_gens()
+
+        M = phi.matrix()
+        Mt = psi.complementary_isogeny().matrix()
+
+        R = ZZ**(4*self.domain().dimension()*self.codomain().dimension())
+        gens = R.submodule([ (M*self._get_matrix(g)*Mt).list() for g in im_gens ]).saturation().basis()
+        self._gens = tuple([ self._get_matrix(g) for g in gens ])
+
+    def _calculate_product_gens(self):
+        """
+        If generators haven't already been computed, calculate generators
+        for this homspace.   If they have been computed, do nothing.
+
+        EXAMPLES:
+            sage: E = End(J0(11))
+            sage: E.calculate_generators()
+        """
 
         Afactors = self.domain().decomposition(simple=False)
         Bfactors = self.codomain().decomposition(simple=False)
@@ -339,13 +363,29 @@ sage: H._get_matrix([8..23])
             gens = []
             cur_row = 0
             for Afactor in Afactors:
-
+                cur_row += Afactor.dimension() * 2
+                cur_col = 0
                 for Bfactor in Bfactors:
                     cur_col += Bfactor.dimension() * 2
                     Asimple = Afactor[0]
                     Bsimple = Bfactor[0]
                     if Asimple.newform_label() == Bsimple.newform_label():
                         for sub_gen in Afactor.Hom(Bfactor).gens():
+                            sub_mat = sub_gen.matrix()
+                            M = self.matrix_space()(0)
+                            M.set_block(cur_row - sub_mat.nrows(),
+                                        cur_col - sub_mat.ncols(),
+                                        sub_mat)
+                            gens.append(M)
+
+        return gens
+
+        # set the gens
+        #R = ZZ**(4*self.domain().dimension()*self.codomain().dimension())
+        #gens = R.submodule([ self._get_matrix(g).list() for g in gens ]).saturation().basis()
+        #self._gens = tuple([ self._get_matrix(g) for g in gens ])
+
+    def _calculate_simple_gens(self):
         """
         Calculate generators for self, where both the domain and
         codomain for self are assumed to be simple abelian varieties.
@@ -396,16 +436,7 @@ sage: H._get_matrix([8..23])
             [ 0  1 -1  1]
             [-1  2 -2  1]
             [-1  1  0 -1]
-        """
-        gens = R.submodule([ self._get_matrix(g).list() for g in gens ]).saturation().basis()
-        self._gens = tuple([ self._get_matrix(g) for g in gens ])
 
-    def _calculate_simple_gens(self):
-        """
-        Used internally when calculating generators for this homspace in the case
-        when the domain and codomain are both simple.
-
-        EXAMPLES:
             sage: H = Hom(J0(11), J0(22)[0])
             sage: H._calculate_simple_gens()
             [[1 0]
@@ -464,15 +495,15 @@ class EndomorphismSubring(Homspace, Ring):
 
     def _repr_(self):
         """
-#     def calculate_generators(self):
-#         """
-#         Calculate a set of generators for self.
-#         """
-#         if self._gens is None:
-#             gens = self._A._calculate_endomorphism_generators()
-#             M = ZZ**(4*self._A.dimension()**2)
-#             gens = M.submodule([ x.matrix().list() for x in gens ]).saturation().basis()
-#             self._gens = tuple([ self._get_matrix(g) for g in gens ])
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: J0(31).endomorphism_ring()._repr_()
+            'Endomorphism ring of Abelian variety J0(31) of dimension 2'
+            sage: J0(31).endomorphism_ring().image_of_hecke_algebra()._repr_()
+            'Subring of endomorphism ring of Abelian variety J0(31) of dimension 2'
+        """
+        if self._is_full_ring:
             return "Endomorphism ring of %s" % self._A
         else:
             return "Subring of endomorphism ring of %s" % self._A
@@ -488,17 +519,21 @@ class EndomorphismSubring(Homspace, Ring):
         """
         return self._A
 
-    def calculate_generators(self):
-        """
-        Calculate generators for this endomorphism ring.
 
-        EXAMPLES:
-            sage: J0(11).endomorphism_ring().calculate_generators()
-            BOOM! This is broken .  TODO -- fix me.
-        """
-        if self._gens is None:
-            gens = self._A._calculate_endomorphism_generators()
-            self._gens = tuple([ self._get_matrix(g) for g in gens ])
+#     def calculate_generators(self):
+#         """
+#         Calculate a set of generators for self.
+#
+#         EXAMPLES:
+#             sage: J0(11).endomorphism_ring().calculate_generators()
+#             BOOM! This is broken .  TODO -- fix me.
+#         """
+#         if self._gens is None:
+#             gens = self._A._calculate_endomorphism_generators()
+#             M = ZZ**(4*self._A.dimension()**2)
+#             gens = M.submodule([ x.matrix().list() for x in gens ]).saturation().basis()
+#             self._gens = tuple([ self._get_matrix(g) for g in gens ])
+
 
     def index_in(self, other, check=True):
         """

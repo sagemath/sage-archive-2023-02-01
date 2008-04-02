@@ -155,8 +155,6 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             sage: AbelianVariety('37b').newform().q_expansion(5)
             q + q^3 - 2*q^4 + O(q^5)
         """
-              To:   Abelian subvariety of dimension 1 of J0(33))
-        """
         try:
             return self.__cokernel
         except AttributeError:
@@ -568,23 +566,21 @@ class Morphism(Morphism_abstract, sage.modules.matrix_morphism.MatrixMorphism):
             [ 0  0  2 -1]
             sage: B.lattice().matrix()
             [1 1 1 0]
-        """
-        Create the degeneracy map of index t in parent defined
-        by the matrix A.
-
-        INPUT:
-            parent -- a space of homomorphisms of abelian varieties
-            A -- a matrix defining self
-            t -- a list of indices defining the degeneracy map
-
-        EXAMPLES:
-            sage: J0(44).degeneracy_map(11,2)
-            Degeneracy map from Abelian variety J0(44) of dimension 4 to Abelian variety J0(11) of dimension 1 defined by [2]
-            sage: J0(44)[0].degeneracy_map(88,2)
-            Degeneracy map from Simple abelian subvariety 11a(2,44) of dimension 1 of J0(44) to Abelian variety J0(88) of dimension 9 defined by [2]
-        """
-        if not isinstance(t, list):
-            t = [t]
+            [0 0 0 1]
+            sage: T = J.hecke_operator(2) ; T.matrix()
+            [-1  1  1 -1]
+            [ 1 -1  1  0]
+            [ 0  0 -2  1]
+            [ 0  0  0  0]
+            sage: T.restrict_domain(A)
+            Abelian variety morphism:
+              From: Simple abelian subvariety 37a(1,37) of dimension 1 of J0(37)
+              To:   Abelian variety J0(37) of dimension 2
+            sage: T.restrict_domain(A).matrix()
+            [-2  2 -2  0]
+            [ 0  0 -4  2]
+            sage: T.restrict_domain(B)
+            Abelian variety morphism:
               From: Simple abelian subvariety 37b(1,37) of dimension 1 of J0(37)
               To:   Abelian variety J0(37) of dimension 2
             sage: T.restrict_domain(B).matrix()
@@ -614,20 +610,22 @@ class Morphism(Morphism_abstract, sage.modules.matrix_morphism.MatrixMorphism):
 class DegeneracyMap(Morphism):
     def __init__(self, parent, A, t):
         """
-        The degeneracy map defined by the given value of $t$ with
-        codomain $A$.
+        Create the degeneracy map of index t in parent defined
+        by the matrix A.
 
         INPUT:
-            parent -- a homspace
-            A -- an abelian variety
-            t -- signature of the map.
+            parent -- a space of homomorphisms of abelian varieties
+            A -- a matrix defining self
+            t -- a list of indices defining the degeneracy map
 
         EXAMPLES:
-            sage: J0(11).degeneracy_map(33)
-            Abelian variety morphism:
-              From: Abelian variety J0(11) of dimension 1
-              To:   Abelian variety J0(33) of dimension 3
+            sage: J0(44).degeneracy_map(11,2)
+            Degeneracy map from Abelian variety J0(44) of dimension 4 to Abelian variety J0(11) of dimension 1 defined by [2]
+            sage: J0(44)[0].degeneracy_map(88,2)
+            Degeneracy map from Simple abelian subvariety 11a(2,44) of dimension 1 of J0(44) to Abelian variety J0(88) of dimension 9 defined by [2]
         """
+        if not isinstance(t, list):
+            t = [t]
         self._t = t
         Morphism.__init__(self, parent, A)
 
@@ -775,34 +773,20 @@ class HeckeOperator(Morphism):
             var -- string (default: 'x')
 
         EXAMPLES:
-        r"""
-        Return the matrix of self acting on the homology $H_1(A, ZZ)$
-        of this abelian variety with coefficients in $\mathbb{Z}$.
-
-        EXAMPLES:
-            sage: J0(47).hecke_operator(3).matrix()
-            [ 0  0  1 -2  1  0 -1  0]
-            [ 0  0  1  0 -1  0  0  0]
-            [-1  2  0  0  2 -2  1 -1]
-            [-2  1  1 -1  3 -1 -1  0]
-            [-1 -1  1  0  1  0 -1  1]
-            [-1  0  0 -1  2  0 -1  0]
-            [-1 -1  2 -2  2  0 -1  0]
-            [ 0 -1  0  0  1  0 -1  1]
-
-            sage: J0(11).hecke_operator(7).matrix()
-            [-2  0]
-            [ 0 -2]
-            sage: (J0(11) * J0(33)).hecke_operator(7).matrix()
-            [-2  0  0  0  0  0  0  0]
-            [ 0 -2  0  0  0  0  0  0]
-            [ 0  0  0  0  2 -2  2 -2]
-            [ 0  0  0 -2  2  0  2 -2]
-            [ 0  0  0  0  2  0  4 -4]
-            [ 0  0 -4  0  2  2  2 -2]
-            [ 0  0 -2  0  2  2  0 -2]
-            [ 0  0 -2  0  0  2  0 -2]
+            sage: A = J1(13)
+            sage: t2 = A.hecke_operator(2); t2
+            Hecke operator T_2 on Abelian variety J1(13) of dimension 2
+            sage: f = t2.charpoly(); f
+            x^2 + 3*x + 3
+            sage: f.factor()
+            x^2 + 3*x + 3
+            sage: t2.charpoly('y')
+            y^2 + 3*y + 3
         """
+        return self.characteristic_polynomial(var)
+
+    def action_on_homology(self, R=ZZ):
+        r"""
         Return the action of this Hecke operator on the homology
         $H_1(A; R)$ of this abelian variety with coefficients in $R$.
 
@@ -833,13 +817,33 @@ class HeckeOperator(Morphism):
 
     def matrix(self):
         """
-        Return the matrix of this Hecke operator acting on the
-        homology.
-
-        OUTPUT:
-            matrix
+        Return the matrix of self acting on the homology $H_1(A, ZZ)$
+        of this abelian variety with coefficients in $\mathbb{Z}$.
 
         EXAMPLES:
+            sage: J0(47).hecke_operator(3).matrix()
+            [ 0  0  1 -2  1  0 -1  0]
+            [ 0  0  1  0 -1  0  0  0]
+            [-1  2  0  0  2 -2  1 -1]
+            [-2  1  1 -1  3 -1 -1  0]
+            [-1 -1  1  0  1  0 -1  1]
+            [-1  0  0 -1  2  0 -1  0]
+            [-1 -1  2 -2  2  0 -1  0]
+            [ 0 -1  0  0  1  0 -1  1]
+
+            sage: J0(11).hecke_operator(7).matrix()
+            [-2  0]
+            [ 0 -2]
+            sage: (J0(11) * J0(33)).hecke_operator(7).matrix()
+            [-2  0  0  0  0  0  0  0]
+            [ 0 -2  0  0  0  0  0  0]
+            [ 0  0  0  0  2 -2  2 -2]
+            [ 0  0  0 -2  2  0  2 -2]
+            [ 0  0  0  0  2  0  4 -4]
+            [ 0  0 -4  0  2  2  2 -2]
+            [ 0  0 -2  0  2  2  0 -2]
+            [ 0  0 -2  0  0  2  0 -2]
+
             sage: J0(23).hecke_operator(2).matrix()
             [ 0  1 -1  0]
             [ 0  1 -1  1]

@@ -579,9 +579,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: S.cyclotomic_polynomial(12)
             x^4 + 6*x^2 + 1
             sage: S.cyclotomic_polynomial(1)
+            x + 6
 
         TESTS:
-          Make sure it agrees with other systems for the trivial case:
+
+        Make sure it agrees with other systems for the trivial case:
             sage: ZZ['x'].cyclotomic_polynomial(1)
             x - 1
             sage: gp('polcyclo(1)')

@@ -151,14 +151,16 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             x = x.items()
             degree = 0
             # find max degree to allocate only once
-            for i, a in x:
+            for ii, a in x:
+                i = ii[0] if PY_TYPE_CHECK_EXACT(ii, tuple) else ii # mpoly dict style has tuple keys
                 if i < 0:
                     raise ValueError, "Negative monomial degrees not allowed: %s" % i
                 elif i > degree:
                     degree = i
             ZZX_SetCoeff_long(self.__poly, degree, 1)
             # now fill them in
-            for i, a in x:
+            for ii, a in x:
+                i = ii[0] if PY_TYPE_CHECK_EXACT(ii, tuple) else ii
                 if PY_TYPE_CHECK_EXACT(a, int):
                     ZZX_SetCoeff_long(self.__poly, i, a)
                 else:

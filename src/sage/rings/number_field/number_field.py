@@ -4138,6 +4138,19 @@ class NumberField_relative(NumberField_generic):
             a
             sage: L(b+a)
             2*a
+            sage: K.<a> = NumberField(ZZ['x'].0^5 + 2, 'a')
+            sage: L.<b> = K.extension(ZZ['x'].0 - a, 'b')
+            sage: L(a)
+            a
+            sage: L(a**3)
+            a^3
+            sage: L(a**2+b)
+            a^2 + a
+            sage: L.<b> = K.extension(ZZ['x'].0 + a/2, 'b')
+            sage: L(a)
+            a
+            sage: L(b)
+            -1/2*a
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             P = x.parent()

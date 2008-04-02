@@ -157,6 +157,9 @@ from sage.structure.sequence import Sequence
 
 from sage.monoids.monoid import Monoid_class
 
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.interfaces.all import singular as singular_default
+
 order_dict= {"lp":      lp,
              "dlex":    dlex,
              "dp_asc":  dp_asc,
@@ -285,6 +288,8 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         global cur_ring
         cur_ring = self
+
+        self.__interface = {}
 
     def __dealloc__(self):
         sage_free(self.pbind)
@@ -883,6 +888,60 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         for j in vars:
             m*=M.gen(j)
         return self(m)
+
+    def cover_ring(self):
+        r"""
+        Return $R = \F_2[vars]$ if $vars$ is the ordered list of
+        variable names of this ring. $R$ also has the same term
+        ordering as this ring.
+
+        EXAMPLE:
+            sage: B.<x,y> = BooleanPolynomialRing(2)
+            sage: R = B.cover_ring(); R
+            Multivariate Polynomial Ring in x, y over Finite Field of size 2
+
+            sage: B.term_order() == R.term_order()
+            True
+        """
+        return PolynomialRing(GF(2),self.ngens(),self.variable_names(),order=self.term_order())
+
+    def defining_ideal(self):
+        r"""
+        Return $I = <x_i^2 + x_i> \subset R$ where $R = \F_2[vars]$,
+        $vars$ the ordered list of variables/variable names of this
+        ring and $x_i$ any element in $vars$.
+
+        EXAMPLE:
+            sage: B.<x,y> = BooleanPolynomialRing(2)
+            sage: I = B.defining_ideal(); I
+            Ideal (x^2 + x, y^2 + y) of Multivariate Polynomial Ring
+            in x, y over Finite Field of size 2
+        """
+        R = self.cover_ring()
+        G = R.gens()
+        return R.ideal([x**2 + x for x in G])
+
+    def _singular_init_(self, singular=singular_default):
+        r"""
+        Return a newly created \Singular quotient ring matching this
+        boolean polynomial ring.
+
+        NOTE \& TODO: This method does not only return a string but
+        actually calls \Singular.
+
+        EXAMPLE:
+            sage: B.<x,y> = BooleanPolynomialRing(2)
+            sage: B._singular_()
+            //   characteristic : 2
+            //   number of vars : 2
+            //        block   1 : ordering lp
+            //                  : names    x y
+            //        block   2 : ordering C
+            // quotient ring from ideal
+            _[1]=x2+x
+            _[2]=y2+y
+        """
+        return self.cover_ring().quo( self.defining_ideal() )._singular_init_()
 
 ###
 #

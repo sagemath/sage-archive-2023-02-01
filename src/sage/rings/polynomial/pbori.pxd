@@ -11,6 +11,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     cdef PBRing _pbring
     cdef Py_ssize_t* pbind
     cdef public _monom_monoid
+    cdef public object __interface
 
 cdef class BooleanPolynomial(MPolynomial):
     cdef PBPoly _pbpoly

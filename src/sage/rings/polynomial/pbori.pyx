@@ -169,7 +169,7 @@ order_mapping = {'lp':   lp,
 cdef BooleanPolynomialRing cur_ring
 
 cdef class BooleanPolynomialRing(MPolynomialRing_generic):
-    def __init__(self, n, names, order='lex'):
+    def __init__(self, n=None, names=None, order='lex'):
         """
         Construct a boolean polynomial ring with the following
         parameters:
@@ -181,7 +181,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             order -- term order (default: lex)
 
         EXAMPLES:
-            sage: R.<x, y, z> = BooleanPolynomialRing(3)
+            sage: R.<x, y, z> = BooleanPolynomialRing()
             sage: R
             Boolean PolynomialRing in x, y, z
 
@@ -212,6 +212,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             True
         """
         cdef Py_ssize_t i, j, bstart, bsize
+
+        if n is None and names is not None:
+            if PY_TYPE_CHECK(names, tuple) or PY_TYPE_CHECK(names, list):
+                n = len(names)
         try:
             n = int(n)
         except TypeError, msg:

@@ -623,7 +623,7 @@ class GenericGraph(SageObject):
             N.add_edges_from(self.edges())
             return N
 
-    def adjacency_matrix(self, sparse=True, boundary_first=False):
+    def adjacency_matrix(self, sparse=None, boundary_first=False):
         """
         Returns the adjacency matrix of the (di)graph. Each vertex is
         represented by its position in the list returned by the vertices()
@@ -685,8 +685,21 @@ class GenericGraph(SageObject):
             [1 0 0 0 0 1]
             [0 1 0 0 0 0]
 
+        TESTS:
+            sage: graphs.CubeGraph(8).adjacency_matrix().parent()
+            Full MatrixSpace of 256 by 256 dense matrices over Integer Ring
+            sage: graphs.CubeGraph(9).adjacency_matrix().parent()
+            Full MatrixSpace of 512 by 512 sparse matrices over Integer Ring
+
+
         """
         n = self.order()
+        if sparse is None:
+            if n <= 256 or self.density() > 0.05:
+                sparse=False
+            else:
+                sparse=True
+
         verts = self.vertices(boundary_first=boundary_first)
         D = {}
         directed = self._directed

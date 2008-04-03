@@ -846,8 +846,14 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             except AttributeError:
                 pass
 
-        k=self.base_field()
-        q=k.order()
+        k = self.base_field()
+        q = k.order()
+        p = k.characteristic()
+        d = k.degree()
+        j = self.j_invariant()
+        if d>1:
+            d = j.minimal_polynomial().degree()
+
         lower, upper = Hasse_bounds(q)
         if debug:
             print "Lower and upper bounds on group order: [",lower,",",upper,"]"
@@ -871,7 +877,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 lower=N
                 upper=N
                 self._order=N
-            elif k.is_prime_field() and q>10**18:
+            elif d==1 and not j==k(0) and not j==k(1728):
                 if debug:
                     print "Computing group order using SEA"
                 N=self.cardinality(algorithm='sea')
@@ -982,9 +988,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     print "Generator P2 = ",P2," has order ",P2.order()
                     print " and not ",n2
                     raise ValueError
-                if P1.linear_relation(P2)[0]!=n2:
-                    print "Generators not independent!"
-                    raise ValueError
+                if n2>1:
+                    if P1.linear_relation(P2)[0]!=n2:
+                        print "Generators not independent!"
+                        raise ValueError
                 print "Generators: P1 = ",P1," of order ",n1,
                 print ", P2 = ",P2," of order ",n2
                 print "Group order now ",n1*n2,"=",n1,"*",n2

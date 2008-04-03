@@ -1,19 +1,54 @@
-MAINTAINER:
-   Mike Hansen
+= symmetrica =
 
+== Description ==
+Symmetrica is a program developed by Lehrstuhl Mathematik II of the University of Bayreuth. It has routines to handle the following topics
 
-SOURCE:
-   http://www.mathe2.uni-bayreuth.de/axel/symneu_engl.html
+ * ordinary representation theory of the symmetric group and related groups (2/11/04)
+ * ordinary representation theory of the classical groups
+ * modular representation theory of the symmetric group
+ * projective representation theory of the symmetric group
+ * combinatorics of tableaux
+ * symmetric functions and polynomials (7/22/04)
+ * commutative and non commutative Schubert polynomials
+ * operations of finite groups.
+ * ordinary representation theory of Hecke algebras of type A_n
 
+For more details check http://www.mathe2.uni-bayreuth.de/axel/symneu_engl.html
 
-we include index.html, which is the above web site, which officially states
-that Symmetrica is PUBLIC DOMAIN.
+== License ==
+We include index.html, which is the above web site, which officially states that Symmetrica is PUBLIC DOMAIN.
 
-Release History:
+== SPKG Maintainers ==
+ * Mike Hansen
+ * Michael Abshoff
 
- * 2.0.p0: Change compile flags to "-O1" to reduce compile time by 2/3.
+== Upstream Contact ==
+ * Axel Kohnert - see http://www.mathe2.uni-bayreuth.de/axel/
 
- * 2.0 (Mike Hansen): update to latest release
+== Dependencies ==
+ * None
 
- * 0.3.3 (Mike Hansen): ancient release
+== Special Update/Build Instructions ==
+
+Slight modifications, see patches directory
+
+== Changelog ==
+
+=== symmetrica-2.0.p2 (Michael Abshoff, April 3rd, 2008) ===
+ * OS 64 bit build support
+ * make sure SAGE_ROOT is defined
+ * Fix FreeBSD build issue
+ * Build symmetrica with -fPIC on Debian (Tim Abbott, #2791)
+
+=== symmetrica-2.0.p1 (Tim Abbott) ===
+ * Add Debian build support
+
+=== symmetrica-2.0.p0 (Mike Hansen) ===
+ * Change compile flags to "-O1" to reduce compile time by 2/3.
+
+=== symmetrica-2.0 (Mike Hansen) ===
+ * update to latest release
+
+=== symmetrica-0.3.3 (Mike Hansen) ===
+ * package ancient release
 

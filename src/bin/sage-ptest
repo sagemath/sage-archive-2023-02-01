@@ -168,14 +168,14 @@ for gr in range(0,numglobaliteration):
                     printmutex.acquire()
                     if ret == -4:
                         numfail = ol.count('Expected:') + ol.count('Expected nothing') + ol.count('Exception raised:')
-                        failed.append(abs(F)+(": %s doctests failed" % numfail))
+                        failed.append(abs(F)+(" # %s doctests failed" % numfail))
                         ret = numfail
                     elif ret == -3:
-                        failed.append(abs(F)+": Segfault")
+                        failed.append(abs(F)+" # Segfault")
                     elif ret == -2:
-                        failed.append(abs(F)+": KeyboardInterrupt")
+                        failed.append(abs(F)+" # KeyboardInterrupt")
                     elif ret == -1:
-                        failed.append(abs(F)+": File not found")
+                        failed.append(abs(F)+" # File not found")
                     else:
                         failed.append(abs(F))
                     printmutex.release()

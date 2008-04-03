@@ -2,9 +2,9 @@
 
    recurrences_zn_poly.cpp:  recurrences solved via zn_poly arithmetic
 
-   This file is part of hypellfrob (version 2.0).
+   This file is part of hypellfrob (version 2.1).
 
-   Copyright (C) 2007, David Harvey
+   Copyright (C) 2007, 2008, David Harvey
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ namespace hypellfrob {
 
 Shifter::~Shifter()
 {
+   zn_array_midmul_precomp1_clear(kernel_precomp);
    free(input_twist);
 }
 
@@ -43,10 +44,9 @@ Shifter::Shifter(ulong d, ulong a, ulong b, const zn_mod_t mod)
    this->d = d;
    this->mod = mod;
 
-   input_twist = (ulong*) malloc(sizeof(ulong) * (5*d + 4));
+   input_twist = (ulong*) malloc(sizeof(ulong) * (3*d + 3));
    output_twist = input_twist + d + 1;
-   kernel = output_twist + d + 1;
-   scratch = kernel + 2*d + 1;
+   scratch = output_twist + d + 1;
 
    ZZ modulus;
    modulus = mod->n;
@@ -83,6 +83,7 @@ Shifter::Shifter(ulong d, ulong a, ulong b, const zn_mod_t mod)
    ulong* c = (ulong*) malloc(sizeof(ulong) * (6*d+3));
    ulong* accum = c + 2*d + 1;
    ulong* accum_inv = accum + 2*d + 1;
+   ulong* kernel = c;   // overwrites c
 
    // c[i] = c_i = a + (i-d)*b     for 0 <= i <= 2d
    c[0] = zn_mod_sub(a, zn_mod_mul(zn_mod_reduce(d, mod), b, mod), mod);
@@ -100,11 +101,6 @@ Shifter::Shifter(ulong d, ulong a, ulong b, const zn_mod_t mod)
    for (long i = 2*d - 1; i >= 0; i--)
       accum_inv[i] = zn_mod_mul(accum_inv[i+1], c[i+1], mod);
 
-   // kernel[i] = (c_i)^(-1)    for 0 <= i <= 2d
-   kernel[0] = accum_inv[0];
-   for (ulong i = 1; i <= 2*d; i++)
-      kernel[i] = zn_mod_mul(accum_inv[i], accum[i-1], mod);
-
    // output_twist[i] = b^{-d} * c_i * c_{i+1} * ... * c_{i+d}
    // for 0 <= i <= d
    ulong factor = to_long(PowerMod(to_ZZ(b), -((long)d), modulus));
@@ -112,6 +108,14 @@ Shifter::Shifter(ulong d, ulong a, ulong b, const zn_mod_t mod)
    for (ulong i = 1; i <= d; i++)
       output_twist[i] = zn_mod_mul(zn_mod_mul(factor, accum[i+d], mod),
                                    accum_inv[i-1], mod);
+
+   // kernel[i] = (c_i)^(-1)    for 0 <= i <= 2d
+   kernel[0] = accum_inv[0];
+   for (ulong i = 1; i <= 2*d; i++)
+      kernel[i] = zn_mod_mul(accum_inv[i], accum[i-1], mod);
+
+   // precompute FFT of kernel
+   zn_array_midmul_precomp1_init(kernel_precomp, kernel, 2*d+1, d+1, mod);
 
    free(c);
 }
@@ -124,7 +128,7 @@ void Shifter::shift(ulong* output, const ulong* input)
       scratch[i] = zn_mod_mul(input[i], input_twist[i], mod);
 
    // do middle product
-   zn_array_midmul(output, kernel, 2*d+1, scratch, d+1, mod);
+   zn_array_midmul_precomp1_execute(output, scratch, kernel_precomp);
 
    // multiply outputs pointwise by output_twist
    for (ulong i = 0; i <= d; i++)
@@ -174,6 +178,7 @@ int check_params(ulong k, ulong u, const zn_mod_t mod)
 }
 
 
+
 /*
    Let M0 and M1 be square matrices of size r*r. Let M(x) = M0 + x*M1; this
    is a matrix of linear polys in x. The matrices M0 and M1 are passed in
@@ -182,11 +187,25 @@ int check_params(ulong k, ulong u, const zn_mod_t mod)
    Let P(x) = M(x+1) M(x+2) ... M(x+k); this is a matrix of polynomials of
    degree k.
 
-   This function attempts to compute the matrices
+   This class attempts to compute the matrices
        P(0), P(u), P(2u), ..., P(ku).
-   The (i,j) entry of P(mu) is stored in output[i*r+j][m]. Note that
-   output[i*r+j] must be preallocated to length k+1. (This data format is
-   optimised for the case that k is much larger than r.)
+
+   Usage:
+
+   * Call the constructor.
+
+   * Call evaluate() with half == 0. This computes the first half of the
+   outputs, specifically P(mu) for 0 <= m <= k2, where k2 = floor(k/2).
+   The (i, j) entry of P(mu) is stored in output[i*r+j][m+offset]. Each array
+   output[i*r+j] must be preallocated to length k2 + 3. (The extra two matrices
+   at the end are used for scratch space.)
+
+   * Call evaluate() with half == 1. This computes the second half, namely
+   P(mu) for k2 + 1 <= m <= k. The (i, j) entry of P(mu) is stored in
+   output[i*r+j][m-(k2+1)+offset]. Each array output[i*r+j] must be
+   preallocated to length k2 + 3. It's okay for this second half to overwrite
+   the first half generated earlier (in fact this property is used by
+   zn_poly_interval_products to conserve memory).
 
    The computation may fail for certain bad choices of k and u. Let p = residue
    characteristic (i.e. assume mod is p^m for some m). Typically this function
@@ -201,17 +220,35 @@ int check_params(ulong k, ulong u, const zn_mod_t mod)
    Must have 0 <= k < n and 0 < u < n.
 
 */
-void large_evaluate(int r, ulong k, ulong u,
-                    vector<ulong_array>& output,
-                    const vector<vector<ulong> >& M0,
-                    const vector<vector<ulong> >& M1,
-                    const zn_mod_t mod)
+LargeEvaluator::LargeEvaluator(int r, ulong k, ulong u,
+                               const vector<vector<ulong> >& M0,
+                               const vector<vector<ulong> >& M1,
+                               const zn_mod_t& mod) : M0(M0), M1(M1), mod(mod)
 {
    assert(k < mod->n);
    assert(u < mod->n);
    assert(r >= 1);
    assert(k >= 1);
 
+   this->r = r;
+   this->k = k;
+   this->k2 = k / 2;
+   this->odd = k & 1;
+   this->u = u;
+   this->shifter = NULL;
+}
+
+
+LargeEvaluator::~LargeEvaluator()
+{
+   if (this->shifter)
+      delete shifter;
+}
+
+
+void LargeEvaluator::evaluate(int half, vector<ulong_array>& output,
+                              ulong offset)
+{
    // base cases
 
    if (k == 0)
@@ -219,20 +256,19 @@ void large_evaluate(int r, ulong k, ulong u,
       // identity matrix
       for (int x = 0; x < r; x++)
       for (int y = 0; y < r; y++)
-         output[y*r + x].data[0] = (x == y);
+         output[y*r + x].data[offset] = (x == y);
       return;
    }
 
    if (k == 1)
    {
-      // evaluate M(1) and M(u+1)
+      // evaluate M(1) (for half == 0) or M(u+1) (for half == 1)
       for (int x = 0; x < r; x++)
       for (int y = 0; y < r; y++)
       {
          ulong temp = zn_mod_add(M0[y][x], M1[y][x], mod);
-         output[y*r + x].data[0] = temp;
-         output[y*r + x].data[1] = zn_mod_add(temp,
-                                   zn_mod_mul(u, M1[y][x], mod), mod);
+         output[y*r + x].data[offset] = half ?
+               zn_mod_add(temp, zn_mod_mul(u, M1[y][x], mod), mod) : temp;
       }
       return;
    }
@@ -243,95 +279,107 @@ void large_evaluate(int r, ulong k, ulong u,
    // Then we have either
    //    P(x) = Q(x) Q(x+k2)           if k is even
    //    P(x) = Q(x) Q(x+k2) M(x+k)    if k is odd
-   ulong k2 = k / 2;
-   ulong odd = k & 1;
 
-   vector<ulong_array> temp1(r*r);
-   for (int i = 0; i < r*r; i++)
-      temp1[i].resize(k2 + 2);
-
-   // Recursively compute Q(0), Q(u), ..., Q(k2*u)
-   large_evaluate(r, k2, u, temp1, M0, M1, mod);
-
-   // Precomputations for value-shifting
-   Shifter shift1(k2, k2, u, mod);
-   Shifter shift2(k2, zn_mod_mul(k2+1, u, mod), u, mod);
-
-   vector<ulong_array> temp2(r*r);
-   for (int i = 0; i < r*r; i++)
-      temp2[i].resize(k2 + 2);
-
-   // h = 0 means we're working on first half of output, 1 means second half
-   for (int h = 0; h < 2; h++)
+   if (half == 0)
    {
-      if (h == 1)
-      {
-         // Shift original sequence by (k2+1)*u to obtain
-         // Q((k2+1)*u), Q((k2+2)*u), ..., Q((2*k2+1)*u)
-         for (int i = 0; i < r*r; i++)
-            shift2.shift(temp1[i].data, temp1[i].data);
-      }
-
-      // Let H = (k2+1)*u*h, so now temp1 contains
-      // Q(H), Q(H + u), ..., Q(H + k2*u).
-
-      // Shift by k2 to obtain Q(H + k2), Q(H + u + k2), ..., Q(H + k2*u + k2)
+      // This is the first time through this function.
+      // Allocate scratch space.
+      scratch.resize(r*r);
       for (int i = 0; i < r*r; i++)
-         shift1.shift(temp2[i].data + odd, temp1[i].data);
+         scratch[i].resize(k2 + 3);
 
-      // If k is odd, right-multiply each Q(H + i*u + k2) by M(H + i*u + k)
-      // (results are stored in same array, shifted one entry to the left)
-      if (odd)
       {
-         ulong_array cruft(r*r);    // for storing M(H + i*u + k)
-         ulong point = k;           // evaluation point
-         if (h)
-            point = zn_mod_add(point, zn_mod_mul(k2 + 1, u, mod), mod);
-
-         for (ulong i = 0; i <= k2; i++, point = zn_mod_add(point, u, mod))
-         {
-            // compute M(H + i*u + k) = M0 + M1*point
-            for (int x = 0; x < r; x++)
-            for (int y = 0; y < r; y++)
-               cruft.data[y*r + x] = zn_mod_add(M0[y][x],
-                                     zn_mod_mul(M1[y][x], point, mod), mod);
-
-            // multiply
-            for (int x = 0; x < r; x++)
-            for (int y = 0; y < r; y++)
-            {
-               ulong accum = 0;
-               for (int z = 0; z < r; z++)
-                  accum = zn_mod_add(accum,
-                          zn_mod_mul(temp2[y*r + z].data[i+1],
-                                     cruft.data[z*r + x], mod), mod);
-               temp2[y*r + x].data[i] = accum;
-            }
-         }
+         // Recursively compute Q(0), Q(u), ..., Q(k2*u).
+         // These are stored in scratch.
+         LargeEvaluator recurse(r, k2, u, M0, M1, mod);
+         recurse.evaluate_all(scratch);
       }
 
-      // Multiply to obtain P(H), P(H + u), ..., P(H + k2*u)
-      // (except for the last one, in the second half, if k is even)
-      ulong offset = h ? (k2 + 1) : 0;
+      // Precomputations for value-shifting
+      shifter = new Shifter(k2, k2, u, mod);
+   }
+   else   // half == 1
+   {
+      // Shift original sequence by (k2+1)*u to obtain
+      // Q((k2+1)*u), Q((k2+2)*u), ..., Q((2*k2+1)*u)
+      Shifter big_shifter(k2, zn_mod_mul(k2+1, u, mod), u, mod);
+      for (int i = 0; i < r*r; i++)
+         big_shifter.shift(scratch[i].data, scratch[i].data);
+   }
 
-      for (ulong i = 0; i + (h && !odd) <= k2; i++)
-      for (int x = 0; x < r; x++)
-      for (int y = 0; y < r; y++)
+   // Let H = (k2+1)*u*half, so now scratch contains
+   // Q(H), Q(H + u), ..., Q(H + k2*u).
+
+   // Shift by k2 to obtain Q(H + k2), Q(H + u + k2), ..., Q(H + k2*u + k2).
+   // Results are stored directly in output array. We put them one slot
+   // to the right, to make room for inplace matrix multiplies later on.
+   // (If k is odd, they're shifted right by yet another slot, to make room
+   // for another round of multiplies.)
+   for (int i = 0; i < r*r; i++)
+      shifter->shift(output[i].data + offset + odd + 1, scratch[i].data);
+
+   // If k is odd, right-multiply each Q(H + i*u + k2) by M(H + i*u + k)
+   // (results are stored in output array, shifted one entry to the left)
+   if (odd)
+   {
+      ulong_array cruft(r*r);    // for storing M(H + i*u + k)
+      ulong point = k;           // evaluation point
+      if (half)
+         point = zn_mod_add(point, zn_mod_mul(k2 + 1, u, mod), mod);
+
+      for (ulong i = 0; i <= k2; i++, point = zn_mod_add(point, u, mod))
       {
-         ulong sum_hi = 0;
-         ulong sum_lo = 0;
-         for (int z = 0; z < r; z++)
+         // compute M(H + i*u + k) = M0 + M1*point
+         for (int x = 0; x < r; x++)
+         for (int y = 0; y < r; y++)
+            cruft.data[y*r + x] = zn_mod_add(M0[y][x],
+                                  zn_mod_mul(M1[y][x], point, mod), mod);
+
+         // multiply
+         for (int x = 0; x < r; x++)
+         for (int y = 0; y < r; y++)
          {
-            ulong hi, lo;
-            MUL_WIDE(hi, lo, temp1[y*r + z].data[i], temp2[z*r + x].data[i]);
-            ADD_WIDE(sum_hi, sum_lo, sum_hi, sum_lo, hi, lo);
-            if (sum_hi >= mod->n)
-               sum_hi -= mod->n;
+            ulong accum = 0;
+            for (int z = 0; z < r; z++)
+               accum = zn_mod_add(accum,
+                       zn_mod_mul(output[y*r + z].data[offset + i + 2],
+                                  cruft.data[z*r + x], mod), mod);
+            output[y*r + x].data[offset + i + 1] = accum;
          }
-         output[y*r + x].data[offset + i] =
-                              zn_mod_reduce_wide(sum_hi, sum_lo, mod);
       }
    }
+
+   // Multiply to obtain P(H), P(H + u), ..., P(H + k2*u)
+   // (except for the last one, in the second half, if k is even)
+   // Store results directly in output array.
+   for (ulong i = 0; i + (half && !odd) <= k2; i++)
+   for (int x = 0; x < r; x++)
+   for (int y = 0; y < r; y++)
+   {
+      ulong sum_hi = 0;
+      ulong sum_lo = 0;
+      for (int z = 0; z < r; z++)
+      {
+         ulong hi, lo;
+         ZNP_MUL_WIDE(hi, lo, scratch[y*r + z].data[i],
+                              output[z*r + x].data[offset + i + 1]);
+         ZNP_ADD_WIDE(sum_hi, sum_lo, sum_hi, sum_lo, hi, lo);
+         if (sum_hi >= mod->n)
+            sum_hi -= mod->n;
+      }
+      output[y*r + x].data[offset + i] =
+                           zn_mod_reduce_wide(sum_hi, sum_lo, mod);
+   }
+}
+
+
+/*
+   Evaluates both halves, storing results in output array.
+*/
+void LargeEvaluator::evaluate_all(vector<ulong_array>& output)
+{
+   evaluate(0, output, 0);
+   evaluate(1, output, k/2 + 1);
 }
 
 
@@ -358,7 +406,7 @@ NOTE 2:
 int zn_poly_interval_products(vector<vector<vector<ulong> > >& output,
                               const vector<vector<ulong> >& M0,
                               const vector<vector<ulong> >& M1,
-                              const vector<ZZ>& target, const zn_mod_t mod)
+                              const vector<ZZ>& target, const zn_mod_t& mod)
 {
    output.resize(target.size() / 2);
 
@@ -392,13 +440,18 @@ int zn_poly_interval_products(vector<vector<vector<ulong> > >& output,
       M0_shifted[y][x] = zn_mod_add(M0[y][x],
                             zn_mod_mul(shift, M1[y][x], mod), mod);
 
-   // evaluate products over the big intervals
+   // prepare for evaluating products over the big intervals
    // [0, k), [u, u+k), ..., [ku, ku+k)
+   LargeEvaluator evaluator(r, k, u, M0_shifted, M1, mod);
+
    vector<ulong_array> big(r*r);
    for (int i = 0; i < r*r; i++)
-      big[i].resize(k + 1);
+      big[i].resize(k/2 + 3);    // space for half the products, plus two more
 
-   large_evaluate(r, k, u, big, M0_shifted, M1, mod);
+   // evaluate the first half of the products
+   evaluator.evaluate(0, big, 0);
+   // flag indicating which half we currently have stored in the "big" array
+   int half = 0;
 
    vector<vector<ulong> > accum(r, vector<ulong>(r));
    vector<vector<ulong> > temp1(r, vector<ulong>(r));
@@ -424,7 +477,21 @@ int zn_poly_interval_products(vector<vector<vector<ulong> > >& output,
          // big interval fits inside the target interval, then roll it in
          if ((t1 - target[0]) % u == 0  &&  t1 + k <= s1)
          {
+            // compute which "big" interval we are rolling in
             int index = to_ulong((t1 - target[0]) / u);
+
+            if (index >= k/2 + 1)
+            {
+               // if the "big" interval is in the second half, and we haven't
+               // computed the second half of the intervals yet, then go and
+               // compute them (overwriting the first half)
+               if (half == 0)
+               {
+                  evaluator.evaluate(1, big, 0);
+                  half = 1;
+               }
+               index -= (k/2 + 1);
+            }
 
             for (int x = 0; x < r; x++)
             for (int y = 0; y < r; y++)
@@ -454,8 +521,8 @@ int zn_poly_interval_products(vector<vector<vector<ulong> > >& output,
             for (int z = 0; z < r; z++)
             {
                ulong hi, lo;
-               MUL_WIDE(hi, lo, accum[y][z], temp1[z][x]);
-               ADD_WIDE(sum_hi, sum_lo, sum_hi, sum_lo, hi, lo);
+               ZNP_MUL_WIDE(hi, lo, accum[y][z], temp1[z][x]);
+               ZNP_ADD_WIDE(sum_hi, sum_lo, sum_hi, sum_lo, hi, lo);
                if (sum_hi >= mod->n)
                   sum_hi -= mod->n;
             }

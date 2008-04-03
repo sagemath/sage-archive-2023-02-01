@@ -2,9 +2,9 @@
 
    hypellfrob.h:  header for hypellfrob.cpp
 
-   This file is part of hypellfrob (version 2.0).
+   This file is part of hypellfrob (version 2.1).
 
-   Copyright (C) 2007, David Harvey
+   Copyright (C) 2007, 2008, David Harvey
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

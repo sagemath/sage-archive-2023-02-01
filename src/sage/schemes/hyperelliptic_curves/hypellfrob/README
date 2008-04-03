@@ -1,5 +1,5 @@
 This directory contains the main source files for hypellfrob
-version 2.0, by David Harvey.
+version 2.1, by David Harvey.
 
 hypellfrob is also maintained as a separate project, see
 http://math.harvard.edu/~dmharvey/hypellfrob/
@@ -7,5 +7,5 @@ http://math.harvard.edu/~dmharvey/hypellfrob/
 At that web site you'll find a standalone demo program and
 a test suite.
 
-hypellfrob is Copyright (C) 2007 David Harvey and is licensed
-under the GPL (version 2 or later).
+hypellfrob 2.1 is Copyright (C) 2007, 2008 David Harvey and is
+licensed under the GPL (version 2 or later).

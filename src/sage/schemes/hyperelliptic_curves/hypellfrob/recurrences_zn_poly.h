@@ -2,9 +2,9 @@
 
    recurrences_zn_poly.h:  header for recurrences_zn_poly.cpp
 
-   This file is part of hypellfrob (version 2.0).
+   This file is part of hypellfrob (version 2.1).
 
-   Copyright (C) 2007, David Harvey
+   Copyright (C) 2007, 2008, David Harvey
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,12 +22,15 @@
 
 ============================================================================ */
 
+
 #include <vector>
 #include <NTL/ZZ.h>
 #include <zn_poly/zn_poly.h>
 
 
+
 namespace hypellfrob {
+
 
 /*
 This struct stores precomputed information that can then be used to shift
@@ -58,9 +61,10 @@ struct Shifter
    // The i-th entry is b^(-d) \prod_{0 <= j <= d} (a + (i-j)*b).
    ulong* output_twist;
 
-   // kernel is a polynomial of degree 2d.
-   // The coefficients are (a + k*b)^(-1) for -d <= k <= d.
-   ulong* kernel;
+   // precomputed info for performing middle product against a "kernel"
+   // polynomial of degree 2d. The coefficients of "kernel" are
+   // (a + k*b)^(-1) for -d <= k <= d.
+   zn_array_midmul_precomp1_t kernel_precomp;
 
    // Scratch space for shift(), length d + 1
    ulong* scratch;
@@ -118,18 +122,35 @@ struct ulong_array
 int check_params(ulong k, ulong u, const zn_mod_t mod);
 
 
-void large_evaluate(int r, ulong k, ulong u,
-                    std::vector<ulong_array>& output,
-                    const std::vector<std::vector<ulong> >& M0,
-                    const std::vector<std::vector<ulong> >& M1,
-                    const zn_mod_t mod);
+
+struct LargeEvaluator
+{
+   int r;
+   ulong k, u, k2, odd;
+   const std::vector<std::vector<ulong> >& M0;
+   const std::vector<std::vector<ulong> >& M1;
+   const zn_mod_t& mod;
+   Shifter* shifter;
+   std::vector<ulong_array> scratch;
+
+   LargeEvaluator(int r, ulong k, ulong u,
+                  const std::vector<std::vector<ulong> >& M0,
+                  const std::vector<std::vector<ulong> >& M1,
+                  const zn_mod_t& mod);
+
+   ~LargeEvaluator();
+
+   void evaluate(int half, std::vector<ulong_array>& output, ulong offset);
+   void evaluate_all(std::vector<ulong_array>& output);
+};
+
 
 
 int zn_poly_interval_products(
          std::vector<std::vector<std::vector<ulong> > >& output,
          const std::vector<std::vector<ulong> >& M0,
          const std::vector<std::vector<ulong> >& M1,
-         const std::vector<NTL::ZZ>& target, const zn_mod_t mod);
+         const std::vector<NTL::ZZ>& target, const zn_mod_t& mod);
 
 
 };

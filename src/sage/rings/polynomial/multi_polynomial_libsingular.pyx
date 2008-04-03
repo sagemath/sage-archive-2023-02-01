@@ -111,6 +111,8 @@ cdef init_singular():
     context these symbols are not known globally. The work around so
     far is to load the library again and to specifiy RTLD_GLOBAL.
     """
+    global singular_options
+
     cdef void *handle = NULL
 
 
@@ -132,7 +134,9 @@ cdef init_singular():
 
     dlclose(handle)
 
-    singular_options[0] = singular_options[0] | Sy_bit(OPT_REDSB)
+
+
+    singular_options = singular_options | Sy_bit(OPT_REDSB)
 
  # call it
 init_singular()

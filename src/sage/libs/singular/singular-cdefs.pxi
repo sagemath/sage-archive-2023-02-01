@@ -34,11 +34,7 @@ cdef extern from "libsingular.h":
     # OPTIONS
     #
 
-    # We are working around a bug in Cython here. If you want to write
-    # to an external int Cython creates a local Python it to write
-    # to. We can however happyly work with pointers.
-
-    cdef int *singular_options "(&test)"
+    cdef int singular_options "test"
 
     # actual options
     cdef int OPT_PROT

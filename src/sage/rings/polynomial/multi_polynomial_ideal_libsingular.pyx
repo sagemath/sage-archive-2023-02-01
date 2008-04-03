@@ -123,12 +123,14 @@ def std_libsingular(I):
     INPUT:
         I -- a SAGE ideal
     """
+    global singular_options
+
     cdef ideal *i = sage_ideal_to_singular_ideal(I)
     cdef ring *r = currRing
     cdef tHomog hom = testHomog
     cdef ideal *result
 
-    singular_options[0] = singular_options[0] | Sy_bit(OPT_REDSB)
+    singular_options = singular_options | Sy_bit(OPT_REDSB)
 
     _sig_on
     result =kStd(i,NULL,hom,NULL)
@@ -152,6 +154,7 @@ def slimgb_libsingular(I):
     INPUT:
         I -- a SAGE ideal
     """
+    global singular_options
 
     cdef tHomog hom=testHomog
     cdef ideal *i
@@ -169,7 +172,7 @@ def slimgb_libsingular(I):
         id_Delete(&i, r)
         raise TypeError
 
-    singular_options[0] = singular_options[0] | Sy_bit(OPT_REDSB)
+    singular_options = singular_options | Sy_bit(OPT_REDSB)
 
     _sig_on
     result = t_rep_gb(r, i, i.rank, 0)
@@ -189,6 +192,8 @@ def interred_libsingular(I):
     INPUT:
         I -- a SAGE ideal
     """
+    global singular_options
+
     cdef ideal *i
     cdef ideal *result
     cdef ring *r
@@ -203,12 +208,12 @@ def interred_libsingular(I):
     i = sage_ideal_to_singular_ideal(I)
     r = currRing
 
-    bck = singular_options[0]
-    singular_options[0] = singular_options[0] | Sy_bit(OPT_REDTAIL)|Sy_bit(OPT_REDSB)
+    bck = singular_options
+    singular_options = singular_options | Sy_bit(OPT_REDTAIL)|Sy_bit(OPT_REDSB)
     _sig_on
     result = kInterRed(i,NULL)
     _sig_off
-    singular_options[0] = bck
+    singular_options = bck
 
 
     # divide head by coefficents

@@ -30,6 +30,7 @@ from sage.rings.number_field.all import is_NumberField
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
+from sage.rings.integer_mod_ring import IntegerModRing
 
 import sage.modules.free_module
 import matrix_space
@@ -3666,7 +3667,79 @@ cdef class Matrix(matrix1.Matrix):
             m2 = misc.hadamard_row_bound_mpfr(A)
             return min(m1, m2)
 
+    def find(self,f, indices=False):
+        r"""
+        Find elements in this matrix satisfying the constraints
+        in the function $f$. The function is evaluated on each element of
+        the matrix .
 
+        INPUT:
+           f       -- a function that is evaluated on each element of this matrix.
+           indices -- whether or not to return the indices and elements of this matrix
+                      that satisfy  the function.
+        OUTPUT:
+           If \code{indices} is not specified, return a matrix with 1 where $f$ is satisfied
+           and 0 where it is not.
+           If \code{indices} is specified, return a dictionary with containing the
+           elements of this matrix satisfying $f$.
+
+        EXAMPLES:
+            sage: M = matrix(4,3,[1, -1/2, -1, 1, -1, -1/2, -1, 0, 0, 2, 0, 1])
+            sage: M.find(lambda entry:entry==0)
+            [0 0 0]
+            [0 0 0]
+            [0 1 1]
+            [0 1 0]
+
+            sage: M.find(lambda u:u<0)
+            [0 1 1]
+            [0 1 1]
+            [1 0 0]
+            [0 0 0]
+
+            sage: M = matrix(4,3,[1, -1/2, -1, 1, -1, -1/2, -1, 0, 0, 2, 0, 1])
+            sage: len(M.find(lambda u:u<1 and u>-1,indices=True))
+            5
+
+            sage: M.find(lambda u:u!=1/2)
+            [1 1 1]
+            [1 1 1]
+            [1 1 1]
+            [1 1 1]
+
+            sage: M.find(lambda u:u>1.2)
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [1 0 0]
+
+            sage: sorted(M.find(lambda u:u!=0,indices=True).keys()) == M.nonzero_positions()
+            True
+        """
+
+        cdef Py_ssize_t size,i,j
+        cdef object M
+
+        if indices is False:
+            L = self._list()
+            size = PyList_GET_SIZE(L)
+            M = PyList_New(0)
+
+            for i from 0 <= i < size:
+                PyList_Append(M,<object>f(<object>PyList_GET_ITEM(L,i)))
+
+            return matrix_space.MatrixSpace(IntegerModRing(2),
+                                            nrows=self._nrows,ncols=self._ncols).matrix(M)
+
+        else:
+            # return matrix along with indices in a dictionary
+            d = {}
+            for i from 0 <= i < self._nrows:
+                for j from 0 <= j < self._ncols:
+                    if f(self.get_unsafe(i,j)):
+                        d[(i,j)] = self.get_unsafe(i,j)
+
+            return d
 
 def _dim_cmp(x,y):
     """

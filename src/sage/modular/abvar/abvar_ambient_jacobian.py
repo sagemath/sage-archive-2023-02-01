@@ -313,7 +313,16 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
         EXAMPLES:
             sage: J0(33).decomposition(simple=False)
             [
-            Simple abelian subvariety 11a(None,33) of dimension 2 of J0(33),
+            Abelian subvariety of dimension 2 of J0(33),
+            Abelian subvariety of dimension 1 of J0(33)
+            ]
+            sage: J0(33).decomposition(simple=False)[1].is_simple()
+            True
+            sage: J0(33).decomposition(simple=False)[0].is_simple()
+            False
+            sage: J0(33).decomposition(simple=False)
+            [
+            Abelian subvariety of dimension 2 of J0(33),
             Simple abelian subvariety 33a(None,33) of dimension 1 of J0(33)
             ]
             sage: J0(33).decomposition(simple=True)
@@ -338,8 +347,12 @@ class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym_abstract):
 
         D = []
         for newform_level, isogeny_number, number, modsym, lattice in factors:
+            if simple:
+                is_simple = True
+            else:
+                is_simple = None
             A = ModularAbelianVariety_modsym(modsym, lattice=lattice,
-                               newform_level = (newform_level, group), is_simple=True,
+                               newform_level = (newform_level, group), is_simple=is_simple,
                                isogeny_number=isogeny_number, number=(number, level), check=False)
             D.append(A)
 

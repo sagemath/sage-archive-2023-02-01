@@ -287,13 +287,18 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             [92645296242160800, 7275, 291, 97]
             sage: [G.multiple_of_order(p) for p in prime_range(3,19)]
             [92645296242160800, 7275, 291, 97, 97, 97]
+
+            sage: J = J0(33) * J0(11) ; J.rational_torsion_subgroup().order()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: torsion multiple only implemented for Gamma0
         """
         bnd = ZZ(0)
         A = self.abelian_variety()
         if A.dimension() == 0:
             return ZZ(1)
         N = A.level()
-        if not is_Gamma0(A.group()):
+        if not (len(A.groups()) == 1 and is_Gamma0(A.groups()[0])):
             # to generalize to this case, you'll need to
             # (1) define a charpoly_of_frob function:
             #       this is tricky because I don't know a simple

@@ -336,11 +336,12 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             'Abelian variety J0(11) x J0(33) of dimension 4'
         """
         field = '' if self.base_field() == QQ else ' over %s'%self.base_field()
-        if self.newform_level(none_if_not_known=True) is None:
-            label = ''
-        else:
-            label = self.label() + ' '
+        #if self.newform_level(none_if_not_known=True) is None:
         simple = self.is_simple(none_if_not_known=True)
+        if simple and self.dimension() > 0:
+            label = self.label() + ' '
+        else:
+            label = ''
         simple = 'Simple a' if simple else 'A'
         if self.is_ambient():
             return '%sbelian variety %s%s of dimension %s'%(simple, self._ambient_repr(), field, self.dimension())
@@ -2565,8 +2566,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             if len(self.groups()) == 0:
                 D = []
             elif len(self.groups()) == 1:
-                D = ModularAbelianVariety_modsym(ModularSymbols(self.groups()[0], sign=0).cuspidal_submodule()).decomposition(
-                    simple=simple, bound=bound)
+                D = ModularAbelianVariety_modsym(ModularSymbols(self.groups()[0], sign=0).cuspidal_submodule()).decomposition(simple=simple, bound=bound)
             else:
                 # Decompose each ambient modular symbols factor.
                 #X = [ModularAbelianVariety_modsym(ModularSymbols(G,sign=0).cuspidal_submodule()) for G in self.groups()]
@@ -2582,8 +2582,12 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                 for C in E:
                     for B in C:
                         L = B.lattice().basis_matrix()
+                        if simple:
+                            is_simple = True
+                        else:
+                            is_simple = None
                         lattice = matrix(QQ,L.nrows(),i).augment(L).augment(matrix(QQ,L.nrows(),n-i-L.ncols())).row_module(ZZ)
-                        D.append(ModularAbelianVariety(G, lattice, K, is_simple=True, newform_level=B.newform_level(),
+                        D.append(ModularAbelianVariety(G, lattice, K, is_simple=is_simple, newform_level=B.newform_level(),
                                                        isogeny_number=B.isogeny_number(none_if_not_known=True),
                                                        number=B.degen_t(none_if_not_known=True)))
                     if len(C) > 0:
@@ -2600,7 +2604,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             for X in self.ambient_variety().decomposition(simple=False):
                 lattice = L.intersection(X.vector_space())
                 if lattice.rank() > 0:
-                    the_factor = ModularAbelianVariety(groups, lattice, K)
+                    the_factor = ModularAbelianVariety(groups, lattice, K, is_simple=X.is_simple(none_if_not_known=True), newform_level=X.newform_level(), isogeny_number=X.isogeny_number(none_if_not_known=True), number=X.degen_t(none_if_not_known=True))
                     D.append(the_factor)
 
         else:
@@ -2802,6 +2806,28 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         return self._simple_product_isogeny
 
     def _isogeny_to_product_of_powers(self):
+        r"""
+        Given an abelian variety $A$, return an isogeny
+        $\phi: A \rightarrow B_1 \times \cdots \times \B_n$, where
+        each $B_i$ is a power of a simple abelian variety.  These
+        factors will be exactly those returned by
+        self.decomposition(simple=False).Note that this isogeny is not
+        unique.
+
+        EXAMPLES:
+            sage: J = J0(33) ; D = J.decomposition(simple=False) ; len(D)
+            2
+            sage: phi = J._isogeny_to_product_of_powers() ; phi
+            Abelian variety morphism:
+              From: Abelian variety J0(33) of dimension 3
+              To:   Abelian subvariety of dimension 3 of J0(33) x J0(33)
+
+            sage: J = J0(22) * J0(37)
+            sage: J._isogeny_to_product_of_powers()
+            Abelian variety morphism:
+              From: Abelian variety J0(22) x J0(37) of dimension 4
+              To:   Abelian subvariety of dimension 4 of J0(22) x J0(37) x J0(22) x J0(37) x J0(22) x J0(37)
+        """
         try:
             return self._simple_power_product_isogeny
         except AttributeError:
@@ -2865,9 +2891,12 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             _, factors, X = self._classify_ambient_factors()
             D = [X[i] for i in factors]
             C = sum(D)
-            self.__complement = C
-            if A is not None:
-                C = C.intersection(A)[1]
+            if C:
+                self.__complement = C
+                if A is not None:
+                    C = C.intersection(A)[1]
+            else:
+                C = self.zero_subvariety()
         return C
 
     def dual(self):

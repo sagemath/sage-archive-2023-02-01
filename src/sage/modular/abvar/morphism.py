@@ -65,7 +65,7 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
             sage: sage.modular.abvar.morphism.Morphism_abstract._repr_(t)
             'Abelian variety endomorphism of Abelian variety J0(11) of dimension 1'
             sage: J0(42).projection(J0(42)[0])._repr_()
-            'Abelian variety morphism:\n  From: Abelian variety J0(42) of dimension 5\n  To:   Simple abelian subvariety 21a(2,42) of dimension 1 of J0(42)'
+            'Abelian variety morphism:\n  From: Abelian variety J0(42) of dimension 5\n  To:   Simple abelian subvariety 14a(1,42) of dimension 1 of J0(42)'
         """
         return base_Morphism._repr_(self)
 
@@ -122,6 +122,8 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
         """
         M = self.matrix()
         return M.nrows() == M.ncols() == M.rank()
+
+    def cokernel(self):
         """
         Return the cokernel of self.
 
@@ -475,25 +477,24 @@ class Morphism_abstract(sage.modules.matrix_morphism.MatrixMorphism_abstract):
 
         EXAMPLES:
             sage: J = J0(33); A = J[0]; B = J[1]
-            sage: C = A.intersection(B)[0]
+            sage: C = A.intersection(B)[0] ; C
+            Finite subgroup with invariants [5] over QQ of Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
             sage: t = J.hecke_operator(3)
-
-        BUG: This should work but doesn't -- this is a bug
             sage: D = t(C); D
-
+            Finite subgroup with invariants [5] over QQ of Abelian variety J0(33) of dimension 3
             sage: D == C
-            ?
+            True
 
-        Or we directly test this function
+        Or we directly test this function:
             sage: D = t._image_of_finite_subgroup(C); D
-
+            Finite subgroup with invariants [5] over QQ of Abelian variety J0(33) of dimension 3
             sage: phi = J0(11).degeneracy_map(22,2)
             sage: J0(11).rational_torsion_subgroup().order()
             5
             sage: phi._image_of_finite_subgroup(J0(11).rational_torsion_subgroup())
             Finite subgroup with invariants [5] over QQ of Abelian variety J0(22) of dimension 2
         """
-        B = G._relative_basis_matrix() * self.matrix() * self.codomain().lattice().basis_matrix()
+        B = G._relative_basis_matrix() * self.restrict_domain(G.abelian_variety()).matrix() * self.codomain().lattice().basis_matrix()
         lattice = B.row_module(ZZ)
         return self.codomain().finite_subgroup(lattice,
                              field_of_definition = G.field_of_definition())
@@ -590,22 +591,15 @@ class Morphism(Morphism_abstract, sage.modules.matrix_morphism.MatrixMorphism):
         if not sub.is_subvariety(self.domain()):
             raise ValueError, "sub must be a subvariety of self.domain()"
 
+        if sub == self.domain():
+            return self
+
         L = self.domain().lattice()
         B = sub.lattice().basis()
         ims = sum([ (L(b)*self.matrix()).list() for b in B], [])
         MS = matrix_space.MatrixSpace(self.base_ring(), len(B), self.codomain().rank())
         H = sub.Hom(self.codomain(), self.category())
         return H(MS(ims))
-
-#     def restrict_codomain(self, sub):
-#         if not sub.is_subvariety(self.codomain()):
-#             raise ValueError, "sub must be a subvariety of self.codomain()"
-
-#         if not self.image().is_subvariety(sub):
-#             raise ValueError, "self.image() must be a subvariety of sub"
-
-#         A = self.matrix().restrict_codomain(sub.free_module())
-#         return self.domain().Hom(sub, self.category())(A)
 
 class DegeneracyMap(Morphism):
     def __init__(self, parent, A, t):
@@ -622,7 +616,7 @@ class DegeneracyMap(Morphism):
             sage: J0(44).degeneracy_map(11,2)
             Degeneracy map from Abelian variety J0(44) of dimension 4 to Abelian variety J0(11) of dimension 1 defined by [2]
             sage: J0(44)[0].degeneracy_map(88,2)
-            Degeneracy map from Simple abelian subvariety 11a(2,44) of dimension 1 of J0(44) to Abelian variety J0(88) of dimension 9 defined by [2]
+            Degeneracy map from Simple abelian subvariety 11a(1,44) of dimension 1 of J0(44) to Abelian variety J0(88) of dimension 9 defined by [2]
         """
         if not isinstance(t, list):
             t = [t]

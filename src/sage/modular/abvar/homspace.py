@@ -175,28 +175,21 @@ class Homspace(HomsetWithBase):
             [ 0 -2]
 
             sage: H = Hom(J0(11) * J0(17), J0(22))
-
             sage: H._get_matrix(tuple([8..23]))
-
             [ 8  9 10 11]
             [12 13 14 15]
             [16 17 18 19]
             [20 21 22 23]
-
             sage: H._get_matrix(tuple([8..23]))
-
             [ 8  9 10 11]
             [12 13 14 15]
             [16 17 18 19]
             [20 21 22 23]
-
             sage: H._get_matrix([8..23])
-
             [ 8  9 10 11]
             [12 13 14 15]
             [16 17 18 19]
             [20 21 22 23]
-
         """
         try:
             if g.parent() is self.matrix_space():
@@ -225,8 +218,8 @@ class Homspace(HomsetWithBase):
             sage: E.free_module()
             Free module of degree 8 and rank 2 over Integer Ring
             Echelon basis matrix:
-            [1 0 0 0 1 1 0 0]
-            [0 0 0 1 0 0 1 1]
+            [ 1  0 -3  1  1  1 -1 -1]
+            [ 0  1 -3  1  1  1 -1  0]
         """
         self.calculate_generators()
         V = ZZ**(4*self.domain().dimension() * self.codomain().dimension())
@@ -325,7 +318,8 @@ class Homspace(HomsetWithBase):
         Mt = psi.complementary_isogeny().matrix()
 
         R = ZZ**(4*self.domain().dimension()*self.codomain().dimension())
-        gens = R.submodule([ (M*self._get_matrix(g)*Mt).list() for g in im_gens ]).saturation().basis()
+        gens = R.submodule([ (M*self._get_matrix(g)*Mt).list()
+                             for g in im_gens ]).saturation().basis()
         self._gens = tuple([ self._get_matrix(g) for g in gens ])
 
     def _calculate_product_gens(self):
@@ -575,9 +569,9 @@ class EndomorphismSubring(Homspace, Ring):
         Given a Hecke algebra T, compute its index in its saturation.
 
         EXAMPLES:
-            sage: T = End(J0(23)).image_of_hecke_algebra().index_in_saturation()
+            sage: End(J0(23)).image_of_hecke_algebra().index_in_saturation()
             1
-            sage: T = End(J0(44)).image_of_hecke_algebra().index_in_saturation()
+            sage: End(J0(44)).image_of_hecke_algebra().index_in_saturation()
             2
         """
         A = self.abelian_variety()
@@ -595,11 +589,12 @@ class EndomorphismSubring(Homspace, Ring):
         EXAMPLES:
              sage: J0(33).endomorphism_ring().discriminant()
              -64800
+             sage: J0(46).endomorphism_ring().discriminant()
+             24200000000
         """
         g = self.gens()
         M = Matrix(ZZ,len(g), [ (g[i]*g[j]).trace()
                                 for i in range(len(g)) for j in range(len(g)) ])
-        print M
         return M.determinant()
 
     def image_of_hecke_algebra(self, check_every=1):
@@ -616,7 +611,6 @@ class EndomorphismSubring(Homspace, Ring):
 
         EXAMPLES:
             sage: E = J0(33).endomorphism_ring()
-            sage: E.image_of_hecke_algebra()
             sage: E.image_of_hecke_algebra()
             Subring of endomorphism ring of Abelian variety J0(33) of dimension 3
             sage: E.image_of_hecke_algebra().gens()

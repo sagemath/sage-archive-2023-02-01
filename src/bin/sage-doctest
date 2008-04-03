@@ -316,7 +316,7 @@ def test_file(file):
         name = os.path.basename(file)
         name = name[:name.find(".")]
         s = extract_doc(file, name)
-        if 'SAGE_TESTDIR' not in os.environ:
+        if 'SAGE_TESTDIR' not in os.environ or os.environ['SAGE_TESTDIR'] is "":
             os.environ['SAGE_TESTDIR'] = os.environ['SAGE_ROOT']+"/tmp"
         f = "%s/.doctest_%s.py"%(os.environ['SAGE_TESTDIR'],name)
         d = "%s/.doctest"%os.environ['SAGE_TESTDIR']

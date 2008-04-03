@@ -3,17 +3,6 @@
 CUR=`pwd`
 
 
-# !!!  a temporary patches that so far I'm only sure we
-# need on OS X Powerpc.  That said, the algorithm used
-# for det without this patch seems very flaky.
-$CP patches/det.h linbox/linbox/solutions/
-
-
-#$CP patches/configure linbox/
-#$CP patches/install-sh linbox/
-#$CP patches/mkinstalldirs linbox/
-#$CP patches/fflas_bounds.inl linbox/linbox/fflas/
-
 cd linbox/
 
 CFLAGS="$CFLAGS -g -fPIC -I\"$SAGE_LOCAL/include\" -I\"$SAGE_LOCAL/include/linbox\"-L\"$SAGE_LOCAL/lib\""

@@ -1,9 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 #Patch
 cp patches/makefile src/
 cp patches/de.c src/
 cp patches/macro.h src/
+
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+    CFLAGS="-01 -m64 -fPIC -g -DFAST -DALLTRUE" && export CFLAGS
+else
+    CFLAGS="-O1 -fPIC -g -DFAST -DALLTRUE"; export CFLAGS
+fi
 
 cd src
 make -f makefile

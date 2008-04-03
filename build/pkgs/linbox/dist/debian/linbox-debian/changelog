@@ -1,3 +1,8 @@
+linbox (1.1.5-sage-3) unstable; urgency=low
+  * Remove the patches related to gmp-integers.h and HACKING files
+
+ -- Clement Pernet <clement.pernet@gmail.com> Thur, 03 Apr 2008
+
 linbox (1.1.5-sage-2) unstable; urgency=low
 
   * Initial release.

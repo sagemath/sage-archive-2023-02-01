@@ -21,7 +21,6 @@ common-install-arch:: remove-gmp
 
 remove-gmp: common-install-impl
 	rm -rf debian/liblinbox-dev/usr/include/gmp++
-	rm -f debian/liblinbox-dev/usr/include/HACKING
 
 clean::
 	rm -f configure

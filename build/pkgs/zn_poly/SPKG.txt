@@ -24,6 +24,11 @@ GPL V2 or V3. Some of the code has been copied from other projects - see src/COP
 
 == Changelog ==
 
+=== zn_poly-0.8 (David Harvey, April 2nd, 2008) ===
+ * updated to zn_poly-0.8
+ * updated SPKG.txt
+ * changed spkg-install to run tuning program, test suite
+
 === zn_poly-0.4.1.p0 (Michael Abshoff, March 19th, 2008) ===
  * updated SPKG.txt
  * add hg repo, hg ignore

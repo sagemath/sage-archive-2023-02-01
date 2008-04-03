@@ -27,6 +27,7 @@ LGPL V2 or later
 === linbox-1.1.5 (Clement Pernet, April 2nd, 2008) ===
  * Remove every patch
  * Put upstream final 1.1.5 release of LinBox
+ * Remove useless patches in dist/debian/linbox-debian
 
 === linbox-1.1.5rc2.p7 (Michael Abshoff, April 1st, 2008) ===
  * Copyright files for Debian packages (Tim Abbott, #2199)

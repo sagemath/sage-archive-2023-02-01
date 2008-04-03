@@ -10,6 +10,7 @@ try:
     numthreads = int(os.environ['SAGE_BUILD_THREADS'])
 except:
     pass
+print 'Building with %s threads.' % numthreads
 verbose=1
 OM = optionmanager.OM
 taskmanager.TM = taskmanager.taskmanager(numthreads)
@@ -101,6 +102,8 @@ def init():
     env = create_env()
     if verbose > 10:
         env.put()
+    #Change to SAGE_ROOT
+    os.chdir(env.options['SAGE_ROOT'])
     put_header(env, argv)
     OM.execute_options(argv, env)
     global opt_sage_build, opt_sage_clib, opt_sage_all, opt_TM_go

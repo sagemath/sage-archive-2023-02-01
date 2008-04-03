@@ -317,6 +317,8 @@ def test_file(file):
         name = name[:name.find(".")]
         s = extract_doc(file, name)
         f = ".doctest_%s.py"%name
+        if not os.path.exists(".doctest"):
+            os.makedirs(".doctest")
         open(f,"w").write(s)
         cmd = "%s %s"%(PYTHON, f)
         if gdb:

@@ -648,7 +648,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             sage: f+g ## indirect doctest
             1 + q + (-14/73*zeta8^3 - 16/73*zeta8^2 + 13/73*zeta8 + 140/73)*q^2 + (-90/73*zeta8^3 + 64/73*zeta8^2 + 21/73*zeta8 + 243/73)*q^3 + (-81/73*zeta8^3 + 43/73*zeta8^2 - 3/73*zeta8 + 372/73)*q^4 + (72/73*zeta8^3 + 124/73*zeta8^2 + 27/73*zeta8 + 521/73)*q^5 + O(q^6)
         """
-        return ModularFormElement(self.element(), self.element() + other.element())
+        return ModularFormElement(self.parent(), self.element() + other.element())
 
     def cuspform_lseries(self, prec=53,
                          max_imaginary_part=0,

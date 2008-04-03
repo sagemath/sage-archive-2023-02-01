@@ -40,8 +40,6 @@ class sage_env(enviroment):
             self.options['SAGE_LOCAL'] = SAGE_LOCAL
             SAGE_DEVEL = self.options['SAGE_ROOT'] + '/devel/'
             self.options['SAGE_DEVEL'] = SAGE_DEVEL
-        #Change to SAGE_ROOT
-        os.chdir(SAGE_ROOT)
         if not os.environ.has_key('SAGE_VERSION'):
             self.options['SAGE_VERSION']=0
         else:

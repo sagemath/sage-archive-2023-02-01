@@ -527,23 +527,27 @@ cdef class MPolynomial(CommutativeRingElement):
             raise TypeError, "Parameter var must be either a variable, a string or an integer."
 
     def is_homogeneous(self):
-        """
-        Return True if self is a homogeneous polynomial.
+        r"""
+        Return \code{True} if self is a homogeneous polynomial.
 
-        EXAMPLES:
-            sage: x, y = MPolynomialRing(RationalField(), 2, names=['x', 'y']).gens()
-            sage: (x+y).is_homogeneous()
+        TESTS:
+            sage: from sage.rings.polynomial.multi_polynomial import MPolynomial
+            sage: P.<x, y> = MPolynomialRing(QQ, 2)
+            sage: MPolynomial.is_homogeneous(x+y)
             True
-            sage: (x.parent()(0)).is_homogeneous()
+            sage: MPolynomial.is_homogeneous(P(0))
             True
-            sage: (x+y^2).is_homogeneous()
+            sage: MPolynomial.is_homogeneous(x+y^2)
             False
-            sage: (x^2 + y^2).is_homogeneous()
+            sage: MPolynomial.is_homogeneous(x^2 + y^2)
             True
-            sage: (x^2 + y^2*x).is_homogeneous()
+            sage: MPolynomial.is_homogeneous(x^2 + y^2*x)
             False
-            sage: (x^2*y + y^2*x).is_homogeneous()
+            sage: MPolynomial.is_homogeneous(x^2*y + y^2*x)
             True
+
+        NOTE: This is a generic implementation which is likely
+        overridden by subclasses.
         """
         M = self.monomials()
         d = M.pop().degree()

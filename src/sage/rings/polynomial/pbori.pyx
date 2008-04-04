@@ -1432,7 +1432,7 @@ cdef class BooleanMonomial(MonoidElement):
 
     def deg(BooleanMonomial self):
         """
-        Return total degree of this monomial.
+        Return degree of this monomial.
 
         EXAMPLES:
             sage: from polybori import BooleanMonomialMonoid
@@ -1443,6 +1443,19 @@ cdef class BooleanMonomial(MonoidElement):
 
             sage: M(x*x*y*z).deg()
             3
+        """
+        return self._pbmonom.deg()
+
+    def degree(BooleanMonomial self):
+        """
+        Return degree of this monomial.
+
+        EXAMPLES:
+            sage: from polybori import BooleanMonomialMonoid
+            sage: P.<x,y,z> = BooleanPolynomialRing(3)
+            sage: M = BooleanMonomialMonoid(P)
+            sage: M(x*y).degree()
+            2
         """
         return self._pbmonom.deg()
 
@@ -2456,6 +2469,30 @@ cdef class BooleanPolynomial(MPolynomial):
             True
         """
         return unpickle_BooleanPolynomial, (self._parent, PBPoly_to_str(&self._pbpoly))
+
+    def is_homogeneous(self):
+        """
+        Return \code{True} if this element is a homogeneous
+        polynomial.
+
+        EXAMPLES:
+            sage: P.<x, y> = BooleanPolynomialRing()
+            sage: (x+y).is_homogeneous()
+            True
+            sage: P(0).is_homogeneous()
+            True
+            sage: (x+1).is_homogeneous()
+            False
+        """
+        M = self.set()
+        try: # 0
+            d = iter(M).next().degree()
+        except:
+            return True
+        for m in M:
+            if m.degree() != d:
+                return False
+        return True
 
     def set(self):
         r"""

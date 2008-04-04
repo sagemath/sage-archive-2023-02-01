@@ -37,6 +37,12 @@ PREPARSE:
     sage: preparse('2e3x + 3exp(y)')
     "RealNumber('2e3')*x + Integer(3)*exp(y)"
 
+A string with escaped quotes in it (the point here is that the
+preparser doesn't get confused by the internal quotes):
+    sage: "\"Yes,\" he said."
+    '"Yes," he said.'
+
+
 A hex literal:
     sage: preparse('0x2a3')
     'Integer(0x2a3)'
@@ -647,33 +653,34 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
     while i < len(line):
         # Update quote parsing
-        if line[i] == "'":
-            if not in_quote():
-                in_single_quote = True
-                i += 1
-                continue
-            elif in_single_quote:
-                in_single_quote = False
-                i += 1
-                continue
-        elif line[i:i+3] == '"""':
-            if not in_quote():
-                in_triple_quote = True
-                i += 3
-                continue
-            elif in_triple_quote:
-                in_triple_quote = False
-                i += 3
-                continue
-        elif line[i] == '"':
-            if not in_quote():
-                in_double_quote = True
-                i += 1
-                continue
-            elif in_double_quote:
-                in_double_quote = False
-                i += 1
-                continue
+        if i == 0 or line[i-1] != "\\":
+            if line[i] == "'":
+                if not in_quote():
+                    in_single_quote = True
+                    i += 1
+                    continue
+                elif in_single_quote:
+                    in_single_quote = False
+                    i += 1
+                    continue
+            elif line[i:i+3] == '"""':
+                if not in_quote():
+                    in_triple_quote = True
+                    i += 3
+                    continue
+                elif in_triple_quote:
+                    in_triple_quote = False
+                    i += 3
+                    continue
+            elif line[i] == '"':
+                if not in_quote():
+                    in_double_quote = True
+                    i += 1
+                    continue
+                elif in_double_quote:
+                    in_double_quote = False
+                    i += 1
+                    continue
 
         # Decide if we should wrap a particular integer or real literal
         if in_number:

@@ -131,9 +131,11 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: ZZ['x']({2^3: 1})
             x^8
             sage: ZZ['x']({2^30: 1})               # 32-bit
+            sage: ZZ['x']({2^62: 1})               # 64-bit
             Traceback (most recent call last):
             ...
-            OverflowError: Dense NTL integer polynomials have a maximum degree of 268435455
+            OverflowError: Dense NTL integer polynomials have a maximum degree of 268435455    # 32-bit
+            OverflowError: Dense NTL integer polynomials have a maximum degree of 1152921504606846975    # 64-bit
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
 

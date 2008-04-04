@@ -787,14 +787,16 @@ class Singular(Expect):
         Purpose:
             restores the state of all options from an intvec (produced by option(get)).
         """
-        if cmd == None:
+        if cmd is None:
             return SingularFunction(self,"option")()
-        elif cmd=="get":
-            return SingularFunction(self,"option")("\"get\"")
-        elif cmd=="set":
+        elif cmd == "get":
+            #return SingularFunction(self,"option")("\"get\"")
+            return self(self.eval("option(get)"),"intvec")
+        elif cmd == "set":
             if not isinstance(val,SingularElement):
                 raise TypeError, "singular.option('set') needs SingularElement as second parameter"
-            SingularFunction(self,"option")("\"set\"",val)
+            #SingularFunction(self,"option")("\"set\"",val)
+            self.eval("option(set,%s)"%val.name())
         else:
             SingularFunction(self,"option")("\""+str(cmd)+"\"")
 

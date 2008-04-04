@@ -231,6 +231,26 @@ class QuotientRingElement(ring_element.RingElement):
         """
         return self.__rep._singular_(singular)
 
+    def _magma_(self, magma=None):
+        r"""
+        Returns the \Magma representation of this quotient ring
+        element.
+
+        EXAMPLES:
+            sage: P.<x,y> = PolynomialRing(GF(2))
+            sage: Q = P.quotient(sage.rings.ideal.FieldIdeal(P))
+            sage: xbar, ybar = Q.gens()
+            sage: xbar._magma_() # optional requires magma
+            x
+        """
+        if magma is None:
+            import sage.interfaces.magma
+            magma = sage.interfaces.magma.magma
+
+        magma_gens = [e.name() for e in self.parent()._magma_().gens()]
+        f = self.__rep._repr_with_changed_varnames(magma_gens)
+        return magma(f)
+
     def reduce(self, G):
         r"""
         Reduce this quotient ring element by a set of quotient ring

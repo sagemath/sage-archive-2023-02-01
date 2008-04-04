@@ -531,3 +531,33 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         self.__singular = singular("%s"%self.__I._singular_().name(),"qring")
         return self.__singular
 
+    def _magma_init_(self, magma=None):
+        r"""
+        Return a a string which when evaluated with \Magma returns a \Magma
+        representaion of this quotient ring.
+
+        INPUT:
+            magma -- a magma instance (default: default instance)
+
+        EXAMPLE:
+            sage: P.<x,y> = PolynomialRing(GF(2))
+            sage: Q = P.quotient(sage.rings.ideal.FieldIdeal(P))
+            sage: Q._magma_() # optional requires Magma
+            Affine Algebra of rank 2 over GF(2)
+            Graded Reverse Lexicographical Order
+            Variables: x, y
+            Quotient relations:
+            [
+            x^2 + x,
+            y^2 + y
+            ]
+
+        NOTE: This method actually calls \Magma.
+        """
+        if magma is None:
+            from sage.interfaces.magma import magma as magma_default
+            magma = magma_default
+
+        R = self.__R._magma_()
+        vn = [x._magma_().name() for x in self.__R.gens()]
+        return "quo<%s | %s>"%(R.name(), ",".join([f._repr_with_changed_varnames(vn) for f in self.__I.gens()]))

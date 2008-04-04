@@ -861,8 +861,8 @@ class Factorization(SageObject):
             sage: F**2
             x^3 * y^2 * x^4 * y^2 * x
         """
-        from sage.rings.arith import generic_power
-        return generic_power(self, n, Factorization([]))
+        from sage.groups.generic import power
+        return power(self, n, Factorization([]))
 
     def __invert__(self):
         r"""

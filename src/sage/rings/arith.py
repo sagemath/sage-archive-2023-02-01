@@ -1061,8 +1061,8 @@ GCD = gcd
 
 def lcm(a, b=None, integer=False):
     """
-    The least common multiple of a and b, or, if a is a list and b is
-    omitted, the least common multiple of all elements of a.
+    The least common multiple of a and b, or if a is a list and b is
+    omitted the least common multiple of all elements of a.
 
     NOTE: Use integer=True to make this vastly faster if you are
     working with lists of integers.
@@ -1205,6 +1205,7 @@ def __GCD_list(v):
         if g == 1: return g
     return g
 
+
 def xgcd(a, b):
     """
     Returns triple (g,s,t) such that g = s*a+t*b = gcd(a,b).
@@ -1339,27 +1340,6 @@ def power_mod(a,n,m):
         n = n >> 1
 
     return power
-
-def generic_power(a, m, one=1):
-    """
-    The m-th power of a, where m is a non-negative
-    integer and a is a Python object on which
-    multiplication is defined.  The exponentiation
-    is done using the standard binary powering algorithm.
-
-    EXAMPLES:
-        sage: generic_power(2,5)
-        32
-        sage: generic_power(RealField()('2.5'),4)
-        39.0625000000000
-        sage: generic_power(0,0)
-        Traceback (most recent call last):
-        ...
-        ArithmeticError: 0^0 is undefined.
-        sage: generic_power(2,-3)
-        1/8
-    """
-    return sage.structure.element.generic_power(a,m,one)
 
 
 def rational_reconstruction(a, m, algorithm='fast'):
@@ -2159,165 +2139,6 @@ def nth_prime(n):
     if n <= 0:
         raise ValueError
     return integer_ring.ZZ(pari('prime(%s)'%int(n)))
-
-def discrete_log_generic(a, base, ord=None, operation='multiplication',
-                         identity=None, inverse=None, op=None):
-    r"""
-    Totally generic discrete log function.
-
-    a and base must be elements of some group with identity given by
-    identity, inverse of x by inverse(x), and group operation on x,y
-    by op(x,y).
-
-    If operation is 'multiplication' or 'addition' then the other
-    arguments are provided automatically; otherwise they must be
-    provided by the caller.
-
-    WARNING: If x has a log method, it is likely to be vastly faster
-    than using this function.  E.g., if x is an integer modulo n, use
-    its log method instead!
-
-    INPUT:
-        a    -- group element
-        base -- group element (the base)
-        ord  -- integer (multiple of order of base, or None)
-        operation -- string: 'multiplication', 'addition', 'other'
-        identity -- the group's identity
-        inverse()  -- function of 1 argument x returning inverse of x
-        op() -- function of 2 arguments x,y returning x*y in group
-
-    OUTPUT:
-        Returns an integer $n$ such that $b^n = a$ (or $n*b = a$),
-        assuming that ord is a multiple of the order of the base $b$.
-        If ord is not specified an attempt is made to compute it.
-
-        If no such $n$ exists, this function raises a ValueError exception.
-
-    ALGORITHM: Baby step giant step.
-
-    EXAMPLES:
-        sage: b = Mod(2,37);  a = b^20
-        sage: discrete_log_generic(a, b)
-        20
-        sage: b = Mod(2,997);  a = b^20
-        sage: discrete_log_generic(a, b)
-        20
-
-        sage: K = GF(3^6,'b')
-        sage: b = K.gen()
-        sage: a = b^210
-        sage: discrete_log_generic(a, b, K.order()-1)
-        210
-
-        sage: b = Mod(1,37);  x = Mod(2,37)
-        sage: discrete_log_generic(x, b)
-        Traceback (most recent call last):
-        ...
-        ValueError: Log of 2 to the base 1 does not exist.
-        sage: b = Mod(1,997);  x = Mod(2,997)
-        sage: discrete_log_generic(x, b)
-        Traceback (most recent call last):
-        ...
-        ValueError: Log of 2 to the base 1 does not exist.
-
-        See trac\#2356:
-        sage: F.<w> = GF(121)
-        sage: v = w^120
-        sage: v.log(w)
-        0
-
-        sage: K.<z>=CyclotomicField(230)
-        sage: w=z^50
-        sage: discrete_log_generic(w,z)
-        50
-
-        An example where the order is infinite: note that we must give
-        an upper bound here:
-        sage: K.<a> = QuadraticField(23)
-        sage: eps = K.units()[0]
-        sage: eps.multiplicative_order()
-        +Infinity
-        sage: eta = eps^100
-        sage: discrete_log_generic(eta,eps,1000)
-        100
-
-        In this cases we cannot detect negative powers:
-        sage: eta = eps^(-3)
-        sage: discrete_log_generic(eta,eps,100)
-        Traceback (most recent call last):
-        ...
-        ValueError: Log of -11515*a - 55224 to the base 5*a - 24 does not exist.
-
-        But we can invert the base instead:
-        sage: -discrete_log_generic(eta^-1,eps,100)
-        -3
-
-        An additive example: elliptic curve DLOG:
-        sage: F=GF(37^2,'a')
-        sage: E=EllipticCurve(F,[1,1])
-        sage: F.<a>=GF(37^2,'a')
-        sage: E=EllipticCurve(F,[1,1])
-        sage: P=E(25*a + 16 , 15*a + 7 )
-        sage: P.order()
-        672
-        sage: Q=39*P; Q
-        (36*a + 32 : 5*a + 12 : 1)
-        sage: discrete_log_generic(Q,P,P.order(),'addition')
-        39
-
-    AUTHOR:
-        -- William Stein and David Joyner (2005-01-05)
-        -- John Cremona (2008-02-29) rewrite using dict()
-    """
-    Z = integer_ring.ZZ
-    b = base
-
-    from operator import inv, mul, neg, add
-
-    if operation=='multiplication':
-        identity = b.parent()(1)
-        inverse  = inv
-        op = mul
-        if ord==None:
-            ord = b.multiplicative_order()
-    elif operation=='addition':
-        identity = b.parent()(0)
-        inverse  = neg
-        op = add
-        if ord==None:
-            ord = b.order()
-    else:
-        if ord==None or identity==None or inverse==None or op==None:
-            raise ValueError, "order, identity, inverse and operation must all be spcified"
-
-    ord = Z(ord)
-    if ord < 100:
-        c = identity
-        for i in range(ord):
-            if c == a:        # is b^i
-                return Z(i)
-            c = op(c,b)
-        raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
-    m = ord.isqrt()+1  # we need sqrt(ord) rounded up
-    table = dict()     # will hold pairs (b^j,j) for j in range(m)
-    g = identity       # will run through b**j
-    for j in range(m):
-        if a==g:
-            return Z(j)
-        table[g] = j
-        g = op(g,b)
-
-    g = inverse(g)     # this is now b**(-m)
-    h = op(a,g)        # will run through a*g**i = a*b**(-i*m)
-    for i in range(1,m):
-        j = table.get(h)
-        if not j==None:  # then a*b**(-i*m) == b**j
-            return Z(i*m + j)
-        if i < m-1:
-            h = op(h,g)
-
-    raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
-
 
 def quadratic_residues(n):
     r"""

@@ -491,8 +491,8 @@ cdef class ntl_ZZ_pEX:
         self.c.restore_c()
         if n < 0:
             raise NotImplementedError
-        import sage.rings.arith
-        return sage.rings.arith.generic_power(self, n, ntl_ZZ_pEX([[1]],self.c))
+        import sage.groups.generic as generic
+        return generic.power(self, n, ntl_ZZ_pEX([[1]],self.c))
 
     def __cmp__(ntl_ZZ_pEX self, ntl_ZZ_pEX other):
         """

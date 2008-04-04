@@ -7,4 +7,4 @@ from abelian_gps.all import *
 
 from perm_gps.all import *
 
-
+from generic import *

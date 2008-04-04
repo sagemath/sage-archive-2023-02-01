@@ -400,15 +400,14 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
         Things that can go wrong.  E.g., if the base is not a
         generator for the multiplicative group, or not even a unit.
-        You can sometimes use the function \code{discrete_log_generic}
-        in general, but don't expect it to be very fast.
+        You can also use the generic function \code{discrete_log}.
 
             sage: a = Mod(9, 100); b = Mod(3,100)
             sage: a.log(b)
             Traceback (most recent call last):
             ...
             ValueError: base (=3) for discrete log must generate multiplicative group
-            sage: discrete_log_generic(b^2,b)
+            sage: sage.groups.generic.discrete_log(b^2,b)
             2
             sage: a = Mod(16, 100); b = Mod(4,100)
             sage: a.log(b)
@@ -416,10 +415,10 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             ...
             ValueError:  (8)
             PARI failed to compute discrete log (perhaps base is not a generator or is too large)
-            sage: discrete_log_generic(a,b)
+            sage: sage.groups.generic.discrete_log(a,b)
             Traceback (most recent call last):
             ...
-            ArithmeticError: multiplicative order of 4 not defined since it is not a unit modulo 100
+	    ZeroDivisionError: Inverse does not exist.
 
         AUTHOR:
             -- David Joyner and William Stein (2005-11)

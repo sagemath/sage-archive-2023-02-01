@@ -504,8 +504,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
     def frobenius_polynomial(self):
         r"""
-        Return the characteristic polynomial of the Frobenius
-        endomorphism of the elliptic curve
+        Return the characteristic polynomial of Frobenius.
+
+        The Frobenius endomorphism of the elliptic curve has quadratic
+        characteristic polynomial.  In most cases this is irreducible
+        and defines an imaginary quadratic order; for some
+        supersingular curves, Frobenius is an integer a and the
+        polynomial is $(x-a)^2$.
 
         NOTE:
             This computes the curve cardinality, which may be time-consuming.
@@ -514,6 +519,12 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E=EllipticCurve(GF(11),[3,3])
             sage: E.frobenius_polynomial()
             x^2 - 4*x + 11
+
+        For some supersingular curves, Frobenius is in Z and the
+        polynomial is a square:
+            sage: E=EllipticCurve(GF(25,'a'),[0,0,0,0,1])
+            sage: E.frobenius_polynomial().factor()
+            (x + 5)^2
         """
         x=polygen(ZZ)
         return x**2-self.trace_of_frobenius()*x+self.base_field().cardinality()
@@ -530,6 +541,17 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E=EllipticCurve(GF(11),[3,3])
             sage: E.frobenius_order()
             Order in Number Field in phi with defining polynomial x^2 - 4*x + 11
+
+
+        For some supersingular curves, Frobenius is in Z and the
+        Frobenius order is Z:
+            sage: E=EllipticCurve(GF(25,'a'),[0,0,0,0,1])
+            sage: R=E.frobenius_order()
+            sage: R
+            Order in Number Field in phi with defining polynomial x + 5
+            sage: R.degree()
+            1
+
         """
         f = self.frobenius_polynomial().factor()[0][0]
         return ZZ.extension(f,names='phi')
@@ -549,8 +571,17 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             phi
             sage: E.frobenius().minpoly()
             x^2 - 4*x + 11
+
+        For some supersingular curves, Frobenius is in Z:
+            sage: E=EllipticCurve(GF(25,'a'),[0,0,0,0,1])
+            sage: E.frobenius()
+            -5
         """
-        return self.frobenius_order().fraction_field().gen()
+        R = self.frobenius_order()
+        if R.degree()==1:
+            return self.frobenius_polynomial().roots(multiplicities=False)[0]
+        else:
+            return R.gen(1)
 
     def cardinality_exhaustive(self):
         r"""

@@ -997,8 +997,8 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
             return r
         except OverflowError:
             # we could try to factor out the order first
-            from  sage.rings.arith import generic_power
-            return generic_power(self,exp)
+            from sage.groups.generic import power
+            return power(self,exp)
 
     def __richcmp__(left, right, int op):
         """
@@ -1301,12 +1301,11 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
 
         AUTHOR: David Joyner and William Stein (2005-11)
         """
-        from  sage.rings.arith import discrete_log_generic
+        from  sage.groups.generic import discrete_log
 
-        q = (self.parent()).order() - 1
+        q = Integer((self.parent()).order())
         b = self.parent()(base)
-        # TODO: This function is TERRIBLE!
-        return discrete_log_generic(self, b, q)
+        return discrete_log(self, b, q-1)
 
 def unpickleFiniteField_ntl_gf2eElement(parent, elem):
     """

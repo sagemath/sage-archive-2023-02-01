@@ -280,7 +280,7 @@ cdef class ntl_zz_p:
             else:
                 return self
         else:
-            from sage.rings.arith import generic_power
+            from sage.groups.generic import power
 
             self.c.restore_c()
 
@@ -290,9 +290,9 @@ cdef class ntl_zz_p:
                 y = PY_NEW(ntl_zz_p)
                 y.c = self.c
                 zz_p_inv(y.x, self.x)
-                return generic_power(y, -n, ntl_zz_p(1,self.c))
+                return power(y, -n, ntl_zz_p(1,self.c))
             else:
-                return generic_power(self, n, ntl_zz_p(1,self.c))
+                return power(self, n, ntl_zz_p(1,self.c))
 
     def __neg__(self):
         """

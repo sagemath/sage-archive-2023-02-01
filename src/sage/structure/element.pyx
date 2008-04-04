@@ -2967,6 +2967,7 @@ def generic_power(a, n, one=None):
     If this is not supplied, int(1) is returned.
 
     EXAMPLES:
+	sage: from sage.structure.element import generic_power
         sage: generic_power(int(12),int(0))
         1
         sage: generic_power(int(0),int(100))

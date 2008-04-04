@@ -1665,9 +1665,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: a.log(b)
             7
         """
-        q = (<FiniteField_givaro> self.parent()).order_c() - 1
+        q = (<FiniteField_givaro> self.parent()).order()
         b = self.parent()(base)
-        return sage.rings.arith.discrete_log_generic(self, b, q)
+        return sage.groups.generic.discrete_log(self, b, q-1)
 
     def int_repr(FiniteField_givaroElement self):
         r"""

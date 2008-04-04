@@ -71,6 +71,8 @@ for gr in range(0,numglobaliteration):
                             e = test(F, 'doctest_tex ' + opts)
                         elif ext in ['.py', '.pyx', '.tex', '.pxi']:
                             e = test(F, 'doctest '+opts)
+                        else:
+                            raise TypeError, "Unknown File %s" % F
                         if e==-2:
                             raise KeyboardInterrupt
                     else:

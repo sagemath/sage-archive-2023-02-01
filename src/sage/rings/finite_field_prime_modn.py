@@ -27,6 +27,8 @@ TESTS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import sys
+
 from ring import FiniteField as FiniteField_generic
 from sage.structure.parent_gens import normalize_names, ParentWithGens
 
@@ -58,6 +60,8 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
         integer_mod_ring.IntegerModRing_generic.__init__(self, p)
+        import sage.structure.factorization as factorization
+        self._IntegerModRing_generic__factored_order = factorization.Factorization([(p,1)], integer.Integer(1))
         self._kwargs = {}
         self.__char = p
         self.__gen = self(1)  # self(int(pari.pari(p).znprimroot().lift()))
@@ -211,17 +215,26 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 
     def __iter__(self):
         """
-        EXAMPLE:
-            sage: for a in GF(5):
-            ...    print a
+        EXAMPLES:
+            sage: list(GF(7))
+            [0, 1, 2, 3, 4, 5, 6]
+
+        We can even start iterating over something that would be too big
+        to actually enumerate:
+            sage: K = GF(next_prime(2^256))
+            sage: all = iter(K)
+            sage: all.next()
             0
+            sage: all.next()
             1
+            sage: all.next()
             2
-            3
-            4
         """
-        for i in xrange(self.order()):
-            yield self(i)
+        yield self(0)
+        i = one = self(1)
+        while i:
+            yield i
+            i += one
 
     def degree(self):
         """

@@ -49,6 +49,7 @@ TESTS:
 
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/stdsage.pxi"
+include "../ext/python_int.pxi"
 
 cdef extern from "math.h":
     double log(double)
@@ -77,6 +78,8 @@ from sage.structure.element cimport RingElement, ModuleElement, Element
 from sage.categories.morphism cimport Morphism
 
 #from sage.structure.parent cimport Parent
+
+cdef Integer one_Z = Integer(1)
 
 
 def Mod(n, m, parent=None):
@@ -514,6 +517,11 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         """
         return self
 
+    cpdef bint is_one(self):
+        raise NotImplementedError
+
+    cpdef bint is_unit(self):
+        raise NotImplementedError
 
     def is_square(self):
         r"""
@@ -1059,7 +1067,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         return (<Element>left)._richcmp(right, op)
 
 
-    def is_one(IntegerMod_gmp self):
+    cpdef bint is_one(IntegerMod_gmp self):
         """
         Returns \code{True} if this is $1$, otherwise \code{False}.
 
@@ -1083,9 +1091,15 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         """
         return mpz_cmp_si(self.value, 0) != 0
 
-    def is_unit(self):
+    cpdef bint is_unit(self):
         """
-        Return True iff this element is a unit
+        Return True iff this element is a unit.
+
+        EXAMPLES:
+            sage: mod(13, 5^23).is_unit()
+            True
+            sage: mod(25, 5^23).is_unit()
+            False
         """
         return self.lift().gcd(self.modulus()) == 1
 
@@ -1238,7 +1252,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             raise ZeroDivisionError, "reduction modulo right not defined."
         return IntegerMod(integer_mod_ring.IntegerModRing(right), self)
 
-    def __pow__(IntegerMod_gmp self, right, m): # NOTE: m ignored, always use modulus of parent ring
+    def __pow__(IntegerMod_gmp self, exp, m): # NOTE: m ignored, always use modulus of parent ring
         """
         EXAMPLES:
             sage: R = Integers(10^10)
@@ -1253,15 +1267,20 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             ...
             ArithmeticError: 0^0 is undefined.
         """
-        cdef sage.rings.integer.Integer exp
-        exp = sage.rings.integer_ring.Z(right)
         cdef IntegerMod_gmp x
-        if not (mpz_sgn(exp.value) or mpz_sgn(self.value)):
+        if not (exp or mpz_sgn(self.value)):
             raise ArithmeticError, "0^0 is undefined."
         x = self._new_c()
-        _sig_on
-        mpz_powm(x.value, self.value, exp.value, self.__modulus.sageInteger.value)
-        _sig_off
+        if PyInt_CheckExact(exp) and PyInt_AS_LONG(exp) >= 0:
+            _sig_on
+            mpz_powm_ui(x.value, self.value, PyInt_AS_LONG(exp), self.__modulus.sageInteger.value)
+            _sig_off
+        else:
+            if not PY_TYPE_CHECK_EXACT(exp, Integer):
+                exp = Integer(exp)
+            _sig_on
+            mpz_powm(x.value, self.value, (<Integer>exp).value, self.__modulus.sageInteger.value)
+            _sig_off
         return x
 
     def __rshift__(IntegerMod_gmp self, int right):
@@ -1443,7 +1462,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return (<Element>left)._richcmp(right, op)
 
 
-    def is_one(IntegerMod_int self):
+    cpdef bint is_one(IntegerMod_int self):
         """
         Returns \code{True} if this is $1$, otherwise \code{False}.
 
@@ -1467,17 +1486,17 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         return self.ivalue != 0
 
-    def is_unit(IntegerMod_int self):
+    cpdef bint is_unit(IntegerMod_int self):
         """
         Return True iff this element is a unit
 
         EXAMPLES:
-        sage: a=Mod(23,100)
-        sage: a.is_unit()
-        True
-        sage: a=Mod(24,100)
-        sage: a.is_unit()
-        False
+            sage: a=Mod(23,100)
+            sage: a.is_unit()
+            True
+            sage: a=Mod(24,100)
+            sage: a.is_unit()
+            False
         """
         return gcd_int(self.ivalue, self.__modulus.int32) == 1
 
@@ -2147,7 +2166,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         return (<Element>left)._richcmp(right, op)
 
 
-    def is_one(IntegerMod_int64 self):
+    cpdef bint is_one(IntegerMod_int64 self):
         """
         Returns \code{True} if this is $1$, otherwise \code{False}.
 
@@ -2171,9 +2190,15 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         """
         return self.ivalue != 0
 
-    def is_unit(IntegerMod_int64 self):
+    cpdef bint is_unit(IntegerMod_int64 self):
         """
-        Return True iff this element is a unit
+        Return True iff this element is a unit.
+
+        EXAMPLES:
+            sage: mod(13, 5^10).is_unit()
+            True
+            sage: mod(25, 5^10).is_unit()
+            False
         """
         return gcd_int64(self.ivalue, self.__modulus.int64) == 1
 
@@ -2643,7 +2668,7 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
         x *= p**(val // 2)
     return x
 
-def square_root_mod_prime(IntegerMod_abstract a, p=None):
+cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
     r"""
     Calculates the square root of $a$, where $a$ is an integer mod $p$;
     if $a$ is not a perfect square, this returns an (incorrect) answer
@@ -2656,8 +2681,9 @@ def square_root_mod_prime(IntegerMod_abstract a, p=None):
     \item $p \bmod 2 = 0$: $p = 2$ so $\sqrt{a} = a$.
     \item $p \bmod 4 = 3$: $\sqrt{a} = a^{(p+1)/4}$.
     \item $p \bmod 8 = 5$: $\sqrt{a} = \zeta i a$ where $\zeta = (2a)^{(p-5)/8}$, $i=\sqrt{-1}$.
-    \item $p \bmod 16 = 9$: Similar, work in a bi-quadratic extension of $\FF_p$.
-    \item $p \bmod 16 = 1$: Variant of Cipolla-Lehmer, using Lucas functions.
+    \item $p \bmod 16 = 9$: Similar, work in a bi-quadratic extension of $\FF_p$ for
+                            small $p$, Tonelli and Shanks for large $p$.
+    \item $p \bmod 16 = 1$: Tonelli and Shanks.
     \end{itemize}
 
     REFERENCES:
@@ -2683,15 +2709,20 @@ def square_root_mod_prime(IntegerMod_abstract a, p=None):
         ...        for a in Integers(p)])
         True
     """
-    if a.is_zero() or a.is_one():
+    if not a or a.is_one():
         return a
 
     if p is None:
-        p = a.parent().order()
+        p = a._parent.order()
     if p < PyInt_GetMax():
         p = int(p)
 
     cdef int p_mod_16 = p % 16
+    cdef double bits = log(float(p))/log(2)
+    cdef long r, m
+
+    cdef Integer resZ
+
 
     if p_mod_16 % 2 == 0:  # p == 2
         return a
@@ -2702,40 +2733,42 @@ def square_root_mod_prime(IntegerMod_abstract a, p=None):
     elif p_mod_16 % 8 == 5:
         two_a = a+a
         zeta = two_a ** ((p-5)//8)
-        i = two_a ** ((p-1)//4)
+        i = zeta**2 * two_a # = two_a ** ((p-1)//4)
         return zeta*a*(i-1)
 
-    elif p_mod_16 == 9:
-        s = (a+a) ** ((p-1)//4)
+    elif p_mod_16 == 9 and bits < 500:
+        two_a = a+a
+        s = two_a ** ((p-1)//4)
         if s.is_one():
             d = a._parent.quadratic_nonresidue()
             d2 = d*d
-            z = (2 * d2 * a) ** ((p-9)//16)
-            i = 2 * d2 * z*z * a
+            z = (two_a * d2) ** ((p-9)//16)
+            i = two_a * d2 * z*z
             return z*d*a*(i-1)
         else:
-            z = (a+a) ** ((p-9)//16)
-            i = 2 * z*z * a
+            z = two_a ** ((p-9)//16)
+            i = two_a * z*z
             return z*a*(i-1)
 
-    else: # p_mod_16 == 1
+    else:
+        one = a._new_c_from_long(1)
+        r, q = (p-one_Z).val_unit(2)
+        v = a._parent.quadratic_nonresidue()**q
 
-        four = a._new_c_from_long(4)
+        x = a ** ((q-1)//2)
+        b = a*x*x # a ^ q
+        res = a*x # a ^ ((q-1)/2)
 
-        if a == four:
-            return a._new_c_from_long(2)
-
-        if not (<IntegerMod_abstract>(a - four)).is_square_c():
-            t = 1
-            P = a - 2
-            return fast_lucas((p-1) // 4, P)
-
-        else:
-            t = a._new_c_from_long(2)
-            while (<IntegerMod_abstract>(a*t*t - four)).is_square_c():
-                t += 1
-            P = a*t*t - 2
-            return fast_lucas((p-1)//4, P)/t
+        while b != one:
+            m = 1
+            bpow = b*b
+            while bpow != one:
+                bpow *= bpow
+                m += 1
+            g = v**(one_Z << (r-m-1)) # v^(2^(r-m-1))
+            res *= g
+            b *= g*g
+        return res
 
 
 def fast_lucas(mm, IntegerMod_abstract P):

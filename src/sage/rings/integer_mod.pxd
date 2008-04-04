@@ -26,6 +26,8 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
     cdef void set_from_mpz(self, mpz_t value)
     cdef void set_from_long(self, long value)
     cdef bint is_square_c(self) except -2
+    cpdef bint is_one(self)
+    cpdef bint is_unit(self)
 
 cdef class IntegerMod_gmp(IntegerMod_abstract):
     cdef mpz_t value

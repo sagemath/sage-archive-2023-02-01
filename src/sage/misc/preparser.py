@@ -41,6 +41,8 @@ A string with escaped quotes in it (the point here is that the
 preparser doesn't get confused by the internal quotes):
     sage: "\"Yes,\" he said."
     '"Yes," he said.'
+    sage: s = "\\"; s
+    '\\'
 
 
 A hex literal:
@@ -653,7 +655,11 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
     while i < len(line):
         # Update quote parsing
-        if i == 0 or line[i-1] != "\\":
+        # We only do this if this quote isn't backquoted itself,
+        # which is the case if the previous character isn't
+        # a backslash, or it is but both previous characters
+        # are backslashes.
+        if line[i-1:i] != '\\' or line[i-2:i] == '\\\\':
             if line[i] == "'":
                 if not in_quote():
                     in_single_quote = True

@@ -724,7 +724,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return l
 
-    def digits(self, base=2, digits=None):
+    def digits(self, base=2, digits=None, padto=0):
         r"""
         Return a list of digits for self in the given base in little
         endian order.
@@ -734,6 +734,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         INPUT:
             base -- integer (default: 2)
             digits -- optional indexable object as source for the digits
+            padto -- the minimal length of the returned list, sufficient number of
+                     zeros are added to make the list minimum that length  (default: 0)
 
         EXAMPLE:
             sage: 5.digits()
@@ -748,6 +750,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             []
             sage: 10.digits(16,'0123456789abcdef')
             ['a']
+            sage: 0.digits(16,'0123456789abcdef')  # here we have a symbol for 0, so we use it
+            ['0']
+            sage: 123.digits(base=10,padto=5)
+            [3, 2, 1, 0, 0]
+            sage: 123.digits(base=2,padto=3)       # padto is the minimal length
+            [1, 1, 0, 1, 1, 1, 1]
+            sage: 123.digits(base=2,padto=10,digits=(1,-1))
+            [-1, -1, 1, -1, -1, -1, -1, 1, 1, 1]
             sage: a=9939082340; a.digits(10)
             [0, 4, 3, 2, 8, 0, 9, 3, 9, 9]
             sage: a.digits(512)
@@ -802,7 +812,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             self_abs = -self
 
         if mpz_sgn(self.value) == 0:
-            l = []
+            if digits is None:
+                l = []
+            else:
+                l = [digits[0]]
         elif base == 2:
             s = mpz_sizeinbase(self.value, 2)
             if digits:
@@ -876,7 +889,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if s > 256:
                 _sig_off
 
-        return l # should we return a tuple?
+        if digits is None:
+            zero = 0           # value for padding
+        else:
+            zero = digits[0]   # value for padding
+
+        return l+[zero]*(padto-len(l))   # padding with zero
 
     def ndigits(self, base=10):
         """

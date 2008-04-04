@@ -64,6 +64,12 @@ cdef class MatrixWindow:
     ############################
     # Getting and setting entries
     ############################
+
+    def set(MatrixWindow self, MatrixWindow src):
+        if self._matrix._parent.base_ring() is not src._matrix._parent.base_ring():
+            raise TypeError, "Parents must be equal."
+        self.set_to(src)
+
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, x):
         self._matrix.set_unsafe(i + self._row, j + self._col, x)
 

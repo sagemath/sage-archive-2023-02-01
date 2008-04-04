@@ -1719,8 +1719,12 @@ cdef class Matrix(matrix1.Matrix):
             [0 2]
         """
         M = self._row_ambient_module(base_ring = base_ring)
-        if self.fetch('in_echelon_form') and self.rank() == self.nrows():
-            return M.span(self.rows(), already_echelonized=True)
+        if (base_ring is None or base_ring == self.base_ring()) and self.fetch('in_echelon_form'):
+            if self.rank() != self.nrows():
+                rows = self.matrix_from_rows(range(self.rank())).rows()
+            else:
+                rows = self.rows()
+            return M.span(rows, already_echelonized=True)
         else:
             return M.span(self.rows(), already_echelonized=False)
 
@@ -2578,16 +2582,20 @@ cdef class Matrix(matrix1.Matrix):
         """
         self.check_mutability()
         cdef Matrix d
+        cdef Py_ssize_t r, c
         if self._base_ring == ZZ:
+            if kwds.has_key('include_zero_rows') and not kwds['include_zero_rows']:
+                raise ValueError, "cannot echelonize in place and delete zero rows"
             d = self.dense_matrix().echelon_form(**kwds)
             for c from 0 <= c < self.ncols():
                 for r from 0 <= r < self.nrows():
                     self.set_unsafe(r, c, d.get_unsafe(r,c))
             self.clear_cache()
             self.cache('pivots', d.pivots())
+            self.cache('in_echelon_form', True)
             return
         else:
-            raise NotImplementedError, "echelon form over %s not yet implementd"%self.base_ring()
+            raise NotImplementedError, "echelon form over %s not yet implemented"%self.base_ring()
 
     def echelonize(self, algorithm="default", cutoff=0, **kwds):
         r"""
@@ -2682,7 +2690,9 @@ cdef class Matrix(matrix1.Matrix):
                 else:
                     raise ValueError, "Unknown algorithm '%s'"%algorithm
             else:
-                self._echelonize_ring()
+                if not (algorithm in ['classical', 'strassen']):
+                    kwds['algorithm'] = algorithm
+                self._echelonize_ring(**kwds)
         except ArithmeticError, msg:
             raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
 
@@ -2894,6 +2904,26 @@ cdef class Matrix(matrix1.Matrix):
         if ncols == -1:
             ncols = self._ncols - col
         return matrix_window.MatrixWindow(self, row, col, nrows, ncols)
+
+    def set_block(self, row, col, block):
+        """
+        Sets the sub-matrix of self, with upper left corner given by row, col
+        to block.
+
+        EXAMPLES:
+            sage: A = matrix(QQ, 3, 3, range(9))/2
+            sage: B = matrix(ZZ, 2, 1, [100,200])
+            sage: A.set_block(0, 1, B)
+            sage: A
+            [  0 100   1]
+            [3/2 200 5/2]
+            [  3 7/2   4]
+        """
+        self.check_mutability()
+        if block.base_ring() is not self.base_ring():
+            block = block.change_ring(self.base_ring())
+        window = self.matrix_window(row, col, block.nrows(), block.ncols())
+        window.set(block.matrix_window())
 
     def subdivide(self, row_lines=None, col_lines=None):
         """

@@ -220,6 +220,8 @@ def saturation(A, proof=True, p=0, max_dets=5):
     if A.nrows() <= 1:
         return A
 
+    A, zero_cols = A._delete_zero_columns()
+
     if max_dets > 0:
         # Take the GCD of at most num_dets randomly chosen determinants.
         nr = A.nrows(); nc = A.ncols()
@@ -232,12 +234,12 @@ def saturation(A, proof=True, p=0, max_dets=5):
             d = gcd(d, A.matrix_from_columns(v).determinant(proof=proof))
             verbose('saturation -- got det down to %s'%d, tm)
             if gcd(d, p) == 1:
-                return A
+                return A._insert_zero_columns(zero_cols)
             already_tried.append(v)
 
         if gcd(d, p) == 1:
             # already p-saturated
-            return A
+            return A._insert_zero_columns(zero_cols)
 
         # Factor and p-saturate at each p.
         # This is not a good algorithm, because all the HNF's in it are really slow!
@@ -261,7 +263,7 @@ def saturation(A, proof=True, p=0, max_dets=5):
 
     # Now compute B^(-1) * A
     C = solve_system_with_difficult_last_row(B, A)
-    return C.change_ring(ZZ)
+    return C.change_ring(ZZ)._insert_zero_columns(zero_cols)
 
 def index_in_saturation(A, proof=True):
     """

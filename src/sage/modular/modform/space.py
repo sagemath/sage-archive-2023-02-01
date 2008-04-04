@@ -56,9 +56,25 @@ import submodule
 
 import sage.modular.dims as dims
 
+import sage.modular.modform.constructor
+
 from math import ceil
 
 WARN=False
+
+def is_ModularFormsSpace(x):
+    r"""
+    Return True if x is a $\code{ModularFormsSpace}$.
+
+    EXAMPLES:
+        sage: is_ModularFormsSpace(ModularForms(11,2))
+        True
+        sage: is_ModularFormsSpace(CuspForms(11,2))
+        True
+        sage: is_ModularFormsSpace(3)
+        False
+    """
+    return isinstance(x, ModularFormsSpace)
 
 class ModularFormsSpace(hecke.HeckeModule_generic):
     """
@@ -316,6 +332,14 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if prec < 0:
             raise ValueError, "prec (=%s) must be at least 0"%prec
         return prec
+
+    def base_extend(self, base_ring):
+        """
+        Return the base extension of self to base_ring.
+
+        EXAMPLES:
+        """
+        return sage.modular.modform.constructor.ModularForms(self.group(), self.weight(), base_ring, prec=self.prec())
 
     def echelon_form(self):
         r"""
@@ -1539,6 +1563,21 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return [self.__create_newspace(basis=B,level=M,t=t,is_cuspidal=is_cuspidal) \
                 for M, t, is_cuspidal, B in self.ambient_module().__newspace_bases() \
                 if contains_each(V, B)]
+
+
+    def newforms(self, names=None):
+        """
+        Return all cusp forms in the cuspidal subspace of self.
+        """
+        M = self.modular_symbols(sign=1)
+        factors = M.cuspidal_subspace().new_subspace().decomposition()
+        large_dims = [ X.dimension() for X in factors if X.dimension() != 1 ]
+        if len(large_dims) > 0 and names is None:
+            raise ValueError, "Please specify a name to be used when generating names for generators of Hecke eigenvalue fields corresponding to the newforms."
+        else:
+            names = 'a'
+        return [ element.Newform(self, factors[i], names=(names+str(i)) )
+                 for i in range(len(factors)) ]
 
 
     def eisenstein_submodule(self):

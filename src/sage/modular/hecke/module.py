@@ -359,7 +359,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             raise TypeError, "x must be a Hecke module element."
         if not x in self.ambient_hecke_module():
             raise ArithmeticError, "x must be in the ambient Hecke module."
-        v = self.dual_eigenvector(name=name)
+        v = self.dual_eigenvector(names=name)
         return v.dot_product(x.element())
 
     def _is_hecke_equivariant_free_module(self, submodule):
@@ -614,7 +614,7 @@ class HeckeModule_free_module(HeckeModule_generic):
     def degree(self):
         return self.free_module().degree()
 
-    def dual_eigenvector(self, name='alpha'):
+    def dual_eigenvector(self, names='alpha'):
         """
         Return an eigenvector for the Hecke operators acting on the
         linear dual of this space.  This eigenvector will have entries
@@ -646,7 +646,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             functionals.
         """
         try:
-            return self.__dual_eigenvector[name]
+            return self.__dual_eigenvector[names]
         except KeyError:
             pass
         except AttributeError:
@@ -671,8 +671,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         n = f.degree()
         if n > 1:
             R = f.parent()
-            K = R.quotient(f, name)    # Let K be the quotient R/(f),
-                                       # with generator printed name
+            K = R.base_ring().extension(f, names=names)
             alpha = K.gen()
             beta = ~alpha   # multiplicative inverse of alpha
             c = [-f[0]*beta]
@@ -710,7 +709,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         alpha = w_lift.dot_product(self._eigen_nonzero_element().element())
         w_lift = w_lift * (~alpha)
 
-        self.__dual_eigenvector[name] = w_lift
+        self.__dual_eigenvector[names] = w_lift
         return w_lift
 
     def dual_hecke_matrix(self, n):
@@ -1022,7 +1021,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             sage: v = M.system_of_eigenvalues(10); v
             [1, alpha, -2*alpha - 1, -alpha - 1, 2*alpha, alpha - 2, 2*alpha + 2, -2*alpha - 1, 2, -2*alpha + 2]
             sage: v[0].parent()
-            Univariate Quotient Polynomial Ring in alpha over Rational Field with modulus x^2 + x - 1
+            Number Field in alpha with defining polynomial x^2 + x - 1
 
         This example illustrates setting the print name of the eigenvalue field.
             sage: A = ModularSymbols(125,sign=1).new_subspace()[0]

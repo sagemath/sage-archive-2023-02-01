@@ -3,7 +3,7 @@ Elements of modular forms spaces.
 """
 
 #########################################################################
-#       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2004--2008 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -13,7 +13,9 @@ Elements of modular forms spaces.
 import space
 import sage.modular.hecke.element as element
 import sage.rings.all as rings
+from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
+from sage.modules.module_element import ModuleElement
 
 def is_ModularFormElement(x):
     """
@@ -64,30 +66,50 @@ def delta_lseries(prec=53,
     L.rename('L-series associated to the modular form Delta')
     return L
 
-class ModularFormElement(element.HeckeModuleElement):
+class ModularForm_abstract(ModuleElement):
     """
-    An element of a space of modular forms.
+    Constructor for generic class of a modular form. This
+    should never be called directly; instead one should
+    instantiate one of the derived classes of this
+    class.
     """
-    def __init__(self, parent, x):
-        """
-        INPUT:
-            parent -- ModularForms (an ambient space of modular forms)
-            x -- a vector on the basis for parent
+    def group(self):
+        return self.parent().group()
 
-        OUTPUT:
-            ModularFormElement -- a modular form
+    def weight(self):
+        """
+        Return the weight of self.
 
         EXAMPLES:
-            sage: M = ModularForms(Gamma0(11),2)
-            sage: f = M.0
-            sage: f.parent()
-            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
+            sage: (ModularForms(Gamma1(9),2).6).weight()
+            2
         """
-        if not isinstance(parent, space.ModularFormsSpace):
-            raise TypeError, "First argument must be an ambient space of modular forms."
-        element.HeckeModuleElement.__init__(self, parent, x)
+        return self.parent().weight()
 
-    def __ensure_is_compatible(self, other):
+    def level(self):
+        """
+        Return the level of self.
+
+        EXAMPLES:
+            sage: ModularForms(25,4).0.level()
+            25
+        """
+        return self.parent().level()
+
+    def _repr_(self):
+        """
+        Return the string representation of self.
+
+        EXAMPLES:
+            sage: ModularForms(25,4).0._repr_()
+            'q + O(q^6)'
+
+            sage: ModularForms(25,4).3._repr_()
+            'q^4 + O(q^6)'
+        """
+        return str(self.q_expansion())
+
+    def _ensure_is_compatible(self, other):
         """
         Make sure self and other are compatible for arithmetic or
         comparison operations. Raise an error if incompatible,
@@ -98,9 +120,9 @@ class ModularFormElement(element.HeckeModuleElement):
             sage: g = ModularForms(DirichletGroup(17).0^2,2).1
             sage: h = ModularForms(17,4).0
 
-            sage: f._ModularFormElement__ensure_is_compatible(g)
+            sage: f._ensure_is_compatible(g)
 
-            sage: f._ModularFormElement__ensure_is_compatible(h)
+            sage: f._ensure_is_compatible(h)
             Traceback (most recent call last):
             ...
             ArithmeticError: Modular forms must be in the same ambient space.
@@ -125,23 +147,42 @@ class ModularFormElement(element.HeckeModuleElement):
         """
         return self.q_expansion(prec)(x)
 
-    def _add_(self, other):
+    def valuation(self):
         """
-        Add self to other.
+        Return the valuation of self (i.e. as an element of the power
+        series ring in q).
 
         EXAMPLES:
-            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
-            sage: g = ModularForms(DirichletGroup(17).0^2,2).1
-            sage: f
-            q + (-zeta8^2 + 2)*q^2 + (zeta8 + 3)*q^3 + (-2*zeta8^2 + 3)*q^4 + (-zeta8 + 5)*q^5 + O(q^6)
-
-            sage: g
-            1 + (-14/73*zeta8^3 + 57/73*zeta8^2 + 13/73*zeta8 - 6/73)*q^2 + (-90/73*zeta8^3 + 64/73*zeta8^2 - 52/73*zeta8 + 24/73)*q^3 + (-81/73*zeta8^3 + 189/73*zeta8^2 - 3/73*zeta8 + 153/73)*q^4 + (72/73*zeta8^3 + 124/73*zeta8^2 + 100/73*zeta8 + 156/73)*q^5 + O(q^6)
-
-            sage: f+g ## indirect doctest
-            1 + q + (-14/73*zeta8^3 - 16/73*zeta8^2 + 13/73*zeta8 + 140/73)*q^2 + (-90/73*zeta8^3 + 64/73*zeta8^2 + 21/73*zeta8 + 243/73)*q^3 + (-81/73*zeta8^3 + 43/73*zeta8^2 - 3/73*zeta8 + 372/73)*q^4 + (72/73*zeta8^3 + 124/73*zeta8^2 + 27/73*zeta8 + 521/73)*q^5 + O(q^6)
+            sage: ModularForms(11,2).0.valuation()
+            1
+            sage: ModularForms(11,2).1.valuation()
+            0
+            sage: ModularForms(25,6).1.valuation()
+            2
+            sage: ModularForms(25,6).6.valuation()
+            7
         """
-        return ModularFormElement(self.parent(), self.element() + other.element())
+        try:
+            return self.__valuation
+        except AttributeError:
+            v = self.qexp().valuation()
+            if not (v is rings.infinity):
+                self.__valuation = v
+                return v
+            v = self.qexp(self.parent().sturm_bound()).valuation()
+            self.__valuation = v
+            return v
+
+    def qexp(self, prec=None):
+        """
+        Same as self.q_expansion(prec).
+
+        EXAMPLES:
+            sage: CuspForms(1,12).0.qexp()
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+        """
+        return self.q_expansion(prec)
+
 
     def __eq__(self, other):
         """
@@ -176,15 +217,30 @@ class ModularFormElement(element.HeckeModuleElement):
             sage: f == f
             True
         """
-        self.__ensure_is_compatible(other)
+        try:
+            self._ensure_is_compatible(other)
+        except:
+            return self.parent().__cmp__(other.parent())
         if self.element() == other.element():
             return 0
         else:
             return -1
 
+    def _compute(self, X):
+        """
+        Compute the coefficients of $q^n$ of the power series of self,
+        for $n$ in the list $X$.  The results are not cached.  (Use
+        coefficients for cached results).
+        """
+        bound = max(X)
+        q_exp = self.q_expansion(bound+1)
+        return [q_exp[i] for i in X]
+
     def coefficients(self, X):
         """
-        The coefficients a_n of self, for integers n>=0 in the list X.
+        The coefficients a_n of self, for integers n>=0 in the list
+        X. If X is an Integer, return coefficients for indices from 1
+        to X.
 
         This function caches the results of the compute function.
 
@@ -202,30 +258,18 @@ class ModularFormElement(element.HeckeModuleElement):
             sage: f.coefficients([2,3])
             [4*zeta10 + 1,
             -9*zeta10^3 + 1]
-
         """
         try:
             self.__coefficients
         except AttributeError:
             self.__coefficients = {}
+        if isinstance(X, rings.Integer):
+            X = range(1,X+1)
         Y = [n for n in X   if  not (n in self.__coefficients.keys())]
         v = self._compute(Y)
-###        v = self._compute_q_expansion(max(Y)+1).list()
         for i in range(len(v)):
-###            self.__coefficients[X[i]] = v[i]
             self.__coefficients[Y[i]] = v[i]
-###        return v
         return [ self.__coefficients[x] for x in X ]
-
-###    def _compute(self, prec):
-###         r"""
-###         Compute the coefficients $a_n$ of self, for integers $n \geq
-###         0$ in the list $X$.
-###
-###         NOTES: The results need not be cached; use the coefficients
-###         method instead for cached results.
-###         """
-###         return self.parent()._compute_coefficients(self.element(), X)
 
     def __getitem__(self, n):
         """
@@ -273,19 +317,6 @@ class ModularFormElement(element.HeckeModuleElement):
         """
         return self.q_expansion(n).padded_list(n)
 
-
-    def _repr_(self):
-        """
-        Return the string representation of self.
-
-        EXAMPLES:
-            sage: ModularForms(25,4).0._repr_()
-            'q + O(q^6)'
-
-            sage: ModularForms(25,4).3._repr_()
-            'q^4 + O(q^6)'
-        """
-        return str(self.q_expansion())
 
     def _latex_(self):
         """
@@ -335,16 +366,6 @@ class ModularFormElement(element.HeckeModuleElement):
             True
         """
         return not self.element().is_zero()
-
-    def level(self):
-        """
-        Return the level of self.
-
-        EXAMPLES:
-            sage: ModularForms(25,4).0.level()
-            25
-        """
-        return self.parent().level()
 
     def prec(self):
         """
@@ -413,6 +434,190 @@ class ModularFormElement(element.HeckeModuleElement):
             self.__q_expansion = (prec, f)
             return f
 
+
+
+class Newform(ModularForm_abstract):
+    def __init__(self, parent, component, names, check=True):
+        r"""
+        TODO
+
+        INPUT:
+            parent -- An ambient cuspidal space of modular forms for
+                      which self is a newform.
+            component -- A simple component of a cuspidal modular
+                         symbols space of any sign corresponding to
+                         this newform.
+            check -- If check is $\code{True}$, check that parent
+                     and component have the same weight, level, and
+                     character, that component has sign 1 and is
+                     simple, and that the types are correct on all
+                     inputs.
+
+        EXAMPLES:
+        """
+        if check:
+            if not space.is_ModularFormsSpace(parent):
+                raise TypeError, "parent must be a space of modular forms"
+            if not is_ModularSymbolsSpace(component):
+                raise TypeError, "component must be a space of modular symbols"
+            if parent.group() != component.group():
+                raise ValueError, "parent and component must be defined by the same congruence subgroup"
+            if parent.weight() != component.weight():
+                raise ValueError, "parent and component must have the same weight"
+            if not component.is_cuspidal():
+                raise ValueError, "component must be cuspidal"
+            if not component.is_simple():
+                raise ValueError, "component must be simple"
+        extension_field = component.eigenvalue(1).parent()
+        if extension_field.degree() != 1 and rings.is_NumberField(extension_field):
+            extension_field = extension_field.change_names(names)
+        self.__name = names
+        ModuleElement.__init__(self, parent.base_extend(extension_field))
+        self.__modsym_space = component
+        self.__hecke_eigenvalue_field = extension_field
+
+    def _name(self):
+        return self.__name
+
+    def _compute_q_expansion(self, prec):
+        """
+        Return the q-expansion of self.
+        """
+        return self.modular_symbols(1).q_eigenform(prec, names=self._name())
+
+    def __eq__(self, other):
+        try:
+            self._ensure_is_compatible(other)
+        except:
+            return False
+        if isinstance(other, Newform):
+            if self.q_expansion(self.parent().sturm_bound()) == other.q_expansion(other.parent().sturm_bound()):
+                return True
+            else:
+                return False
+        if is_ModularFormElement(other):
+            if self.element() == other.element():
+                return True
+            else:
+                return False
+
+    def __cmp__(self, other):
+        try:
+            self._ensure_is_compatible(other)
+        except:
+            return self.parent().__cmp__(other.parent())
+        if isinstance(other, Newform):
+            if self.q_expansion(self.parent().sturm_bound()) == other.q_expansion(other.parent().sturm_bound()):
+                return 0
+            else:
+                return -1
+        if is_ModularFormElement(other):
+            if self.element() == other.element():
+                return 0
+            else:
+                return -1
+
+    def abelian_variety(self):
+        try:
+            return self.__abelian_variety
+        except AttributeError:
+            from sage.modular.abvar.abvar_newform import ModularAbelianVariety_newform
+            self.__abelian_variety = ModularAbelianVariety_newform(self)
+            return self.__abelian_variety
+
+    def hecke_eigenvalue_field(self):
+        r"""
+        Return the field generated over the rationals by the
+        coefficients of this newform.
+        """
+        return self.__hecke_eigenvalue_field
+
+    def _compute(self, X):
+        """
+        Compute the coefficients of $q^n$ of the power series of self,
+        for $n$ in the list $X$.  The results are not cached.  (Use
+        coefficients for cached results).
+        """
+        M = self.modular_symbols(1)
+        return [M.eigenvalue(x) for x in X]
+
+    def element(self):
+        """
+        Find an element of the ambient space of modular forms
+        which represents this newform.
+
+        NOTE: This can be quite expensive.
+        """
+        B = self.parent().basis()
+        prec = self.parent().sturm_bound()
+        terms = self.modular_symbols(1).q_eigenform(prec)
+        R = rings.PowerSeriesRing(rings.QQ, 'q')
+
+        number_field = self.base_field()
+        degree = number_field.degree()
+
+        if degree == 1:
+            return self.parent()(terms)
+        else:
+            S = terms.parent()
+            res = S.zero_element()
+            alpha = S.base_ring().gen(0)
+
+            ls = [0] * degree
+
+            for i in range(degree):
+                ls[i] = self.parent()(R([0] + [ rings.QQ(terms[d][i]) for d in range(1,prec) ]).add_bigoh(prec))
+
+            return sum([ ls[i] * alpha**i for i in range(degree) ])
+
+
+    def modular_symbols(self, sign=0):
+        """
+        Return the subspace with the specified sign of the space of
+        modular symbols corresponding to this newform.
+        """
+        return self.__modsym_space.modular_symbols_of_sign(sign)
+
+    def _defining_modular_symbols(self):
+        return self.__modsym_space
+
+    def number(self):
+        return self._defining_modular_symbols().ambient().cuspidal_subspace().new_subspace().decomposition().index(self._defining_modular_symbols())
+
+    def __nonzero__(self):
+        """
+        Return True, as newforms are never zero.
+
+        EXAMPLES:
+        """
+        return True
+
+
+
+class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
+    def __init__(self, parent, x, check=True):
+        r"""
+        An element of a space of modular forms.
+
+        INPUT:
+            parent -- ModularForms (an ambient space of modular forms)
+            x -- a vector on the basis for parent
+            check -- if check is $\code{True}$, check the types of the
+                     inputs.
+
+        OUTPUT:
+            ModularFormElement -- a modular form
+
+        EXAMPLES:
+            sage: M = ModularForms(Gamma0(11),2)
+            sage: f = M.0
+            sage: f.parent()
+            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
+        """
+        if not isinstance(parent, space.ModularFormsSpace):
+            raise TypeError, "First argument must be an ambient space of modular forms."
+        element.HeckeModuleElement.__init__(self, parent, x)
+
     def _compute_q_expansion(self, prec):
         """
         Computes the q-expansion of self to precision prec.
@@ -427,15 +632,23 @@ class ModularFormElement(element.HeckeModuleElement):
         """
         return self.parent()._q_expansion(element = self.element(), prec=prec)
 
-    def qexp(self, prec=None):
+    def _add_(self, other):
         """
-        Same as self.q_expansion(prec).
+        Add self to other.
 
         EXAMPLES:
-            sage: CuspForms(1,12).0.qexp()
-            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
+            sage: g = ModularForms(DirichletGroup(17).0^2,2).1
+            sage: f
+            q + (-zeta8^2 + 2)*q^2 + (zeta8 + 3)*q^3 + (-2*zeta8^2 + 3)*q^4 + (-zeta8 + 5)*q^5 + O(q^6)
+
+            sage: g
+            1 + (-14/73*zeta8^3 + 57/73*zeta8^2 + 13/73*zeta8 - 6/73)*q^2 + (-90/73*zeta8^3 + 64/73*zeta8^2 - 52/73*zeta8 + 24/73)*q^3 + (-81/73*zeta8^3 + 189/73*zeta8^2 - 3/73*zeta8 + 153/73)*q^4 + (72/73*zeta8^3 + 124/73*zeta8^2 + 100/73*zeta8 + 156/73)*q^5 + O(q^6)
+
+            sage: f+g ## indirect doctest
+            1 + q + (-14/73*zeta8^3 - 16/73*zeta8^2 + 13/73*zeta8 + 140/73)*q^2 + (-90/73*zeta8^3 + 64/73*zeta8^2 + 21/73*zeta8 + 243/73)*q^3 + (-81/73*zeta8^3 + 43/73*zeta8^2 - 3/73*zeta8 + 372/73)*q^4 + (72/73*zeta8^3 + 124/73*zeta8^2 + 27/73*zeta8 + 521/73)*q^5 + O(q^6)
         """
-        return self.q_expansion(prec)
+        return ModularFormElement(self.parent(), self.element() + other.element())
 
     def cuspform_lseries(self, prec=53,
                          max_imaginary_part=0,
@@ -547,41 +760,8 @@ class ModularFormElement(element.HeckeModuleElement):
         L.rename('L-series associated to the weight %s modular form on SL_2(Z)'%l)
         return L
 
-    def weight(self):
-        """
-        Return the weight of self.
 
-        EXAMPLES:
-            sage: (ModularForms(Gamma1(9),2).6).weight()
-            2
-        """
-        return self.parent().weight()
 
-    def valuation(self):
-        """
-        Return the valuation of self (i.e. as an element of the power
-        series ring in q).
-
-        EXAMPLES:
-            sage: ModularForms(11,2).0.valuation()
-            1
-            sage: ModularForms(11,2).1.valuation()
-            0
-            sage: ModularForms(25,6).1.valuation()
-            2
-            sage: ModularForms(25,6).6.valuation()
-            7
-        """
-        try:
-            return self.__valuation
-        except AttributeError:
-            v = self.qexp().valuation()
-            if not (v is rings.infinity):
-                self.__valuation = v
-                return v
-            v = self.qexp(self.parent().sturm_bound()).valuation()
-            self.__valuation = v
-            return v
 
 class ModularFormElement_elliptic_curve(ModularFormElement):
     """

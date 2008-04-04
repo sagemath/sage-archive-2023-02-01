@@ -943,6 +943,71 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         """
         return self.cover_ring().quo( self.defining_ideal() )._singular_init_()
 
+    def _magma_(self, magma=None):
+        r"""
+        Return a \Magma representation of this boolean polynomial ring.
+
+        INPUT:
+            magma -- a magma instance (default: default instance)
+
+        EXAMPLE:
+            sage: B.<x,y,z> = BooleanPolynomialRing(3)
+            sage: B._magma_() # optional requires magma
+            Affine Algebra of rank 3 over GF(2)
+            Lexicographical Order
+            Variables: x, y, z
+            Quotient relations:
+            [
+            x^2 + x,
+            y^2 + y,
+            z^2 + z
+            ]
+        """
+
+        if magma is None:
+            import sage.interfaces.magma
+            magma = sage.interfaces.magma.magma
+
+        try:
+            m = self.__interface['magma']
+            m._check_valid()
+            if not m.parent() is magma:
+                raise ValueError
+            return m
+        except (KeyError, ValueError):
+            self.__interface['magma'] = magma(self._magma_init_(magma=magma))
+            return self.__interface['magma']
+
+    def _magma_init_(self, magma=None):
+        r"""
+        Return a a string which when evaluated with \Magma returns a
+        \Magma representaion of this boolean polynomial ring.
+
+        INPUT:
+            magma -- a magma instance (default: default instance)
+
+        EXAMPLE:
+            sage: B.<x,y,z> = BooleanPolynomialRing(3)
+            sage: B._magma_() # optional requires magma, indirect doctest
+            Affine Algebra of rank 3 over GF(2)
+            Lexicographical Order
+            Variables: x, y, z
+            Quotient relations:
+            [
+            x^2 + x,
+            y^2 + y,
+            z^2 + z
+            ]
+
+        NOTE: This method actually calls \Magma.
+        """
+        if magma is None:
+            import sage.interfaces.magma
+            magma = sage.interfaces.magma.magma
+
+        R = self.cover_ring()._magma_(magma=magma)
+        vn = [x._magma_(magma=magma).name() for x in self.cover_ring().gens()]
+        return "quo<%s | %s>"%(R.name(), ",".join([f._repr_with_changed_varnames(vn) for f in self.defining_ideal().gens()]))
 ###
 #
 # Methods for compatibility with PolyBoRi
@@ -1862,6 +1927,45 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return PBPoly_to_str(&self._pbpoly)
 
+    def _repr_with_changed_varnames(self, varnames):
+        r"""
+        Return string representing this boolean polynomial but change the
+        variable names to \var{varnames}.
+
+        EXAMPLE:
+            sage: B.<a,b,z> = BooleanPolynomialRing(3)
+            sage: a._repr_with_changed_varnames(['x','y','z'])
+            'x'
+
+        TESTS:
+            sage: a._repr_with_changed_varnames([1,'y','z'])
+            Traceback (most recent call last):
+            ...
+            TypeError: varnames has entries with wrong type.
+
+            sage: a
+            a
+        """
+        cdef int i
+        cdef BooleanPolynomialRing P = self._parent
+        cdef int N = P._pbring.nVariables()
+
+        if len(varnames) != N:
+            raise TypeError, "len(varnames) doesn't equal self.parent().ngens()"
+
+        orig_varnames = P.variable_names()
+        try:
+            for i from 0 <= i < N:
+                P._set_variable_name(i, varnames[i])
+        except TypeError:
+            for i from 0 <= i < N:
+                P._set_variable_name(i, orig_varnames[i])
+            raise TypeError, "varnames has entries with wrong type."
+        s = PBPoly_to_str(&self._pbpoly)
+        for i from 0 <= i < N:
+            P._set_variable_name(i, orig_varnames[i])
+        return s
+
     cdef ModuleElement _add_c_impl(left, ModuleElement right):
         """
         EXAMPLE:
@@ -2528,6 +2632,24 @@ cdef class BooleanPolynomial(MPolynomial):
             True
         """
         return unpickle_BooleanPolynomial, (self._parent, PBPoly_to_str(&self._pbpoly))
+
+    def _magma_(self, magma=None):
+        """
+        Returns the MAGMA representation of self.
+
+        EXAMPLES:
+            sage: R.<x,y> = BooleanPolynomialRing()
+            sage: f = y*x + x +1
+            sage: f._magma_() #optional
+            x*y + x + 1
+        """
+        if magma is None:
+            import sage.interfaces.magma
+            magma = sage.interfaces.magma.magma
+
+        magma_gens = [e.name() for e in self.parent()._magma_().gens()]
+        f = self._repr_with_changed_varnames(magma_gens)
+        return magma(f)
 
     def is_homogeneous(self):
         """

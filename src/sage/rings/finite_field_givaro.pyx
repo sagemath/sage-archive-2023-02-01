@@ -421,9 +421,46 @@ cdef class FiniteField_givaro(FiniteField):
             sage: k('a^2+1')
             a^2 + 1
 
+        Univariate polynomials coerce into finite fields by evaluating
+        the polynomial at the field's generator:
+            sage: from sage.rings.finite_field_givaro import FiniteField_givaro
+            sage: R.<x> = QQ[]
+            sage: k, a = FiniteField_givaro(5^2, 'a').objgen()
+            sage: k(R(2/3))
+            4
+	    sage: k(x^2)
+	    a + 3
+            sage: R.<x> = GF(5)[]
+            sage: k(x^3-2*x+1)
+            2*a + 4
+
+            sage: x = polygen(QQ)
+            sage: k(x^25)
+            a
+
+            sage: Q, q = FiniteField_givaro(5^3,'q').objgen()
+            sage: L = GF(5)
+            sage: LL.<xx> = L[]
+            sage: Q(xx^2 + 2*xx + 4)
+            q^2 + 2*q + 4
+
+
+        Multivariate polynomials only coerce if constant:
+            sage: R = k['x,y,z']; R
+            Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 5^2
+            sage: k(R(2))
+            2
+            sage: R = QQ['x,y,z']
+            sage: k(R(1/5))
+            Traceback (most recent call last):
+            ...
+	    ZeroDivisionError: division by zero in finite field.
+
+
             PARI elements are interpreted as finite field elements; this PARI flexibility
             is (absurdly!) liberal:
 
+            sage: k = GF(2**8, 'a')
             sage: k(pari('Mod(1,2)'))
             1
             sage: k(pari('Mod(2,3)'))
@@ -499,11 +536,17 @@ cdef class FiniteField_givaro(FiniteField):
                 ret = ret + self(int(e[i]))*self.gen()**i
             return ret
 
-        elif PY_TYPE_CHECK(e, MPolynomial) or PY_TYPE_CHECK(e, Polynomial):
+        elif PY_TYPE_CHECK(e, MPolynomial):
             if e.is_constant():
                 return self(e.constant_coefficient())
             else:
                 raise TypeError, "no coercion defined"
+
+        elif PY_TYPE_CHECK(e, Polynomial):
+            if e.is_constant():
+                return self(e.constant_coefficient())
+            else:
+                return e(self.gen())
 
         elif PY_TYPE_CHECK(e, Rational):
             num = e.numer()

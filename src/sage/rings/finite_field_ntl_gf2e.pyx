@@ -322,6 +322,10 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             ...
             NameError: name 'b' is not defined
 
+	    sage: R.<x>=GF(2)[]
+	    sage: k(1+x+x^10+x^55)
+	    a^19 + a^17 + a^16 + a^15 + a^12 + a^11 + a^8 + a^6 + a^4 + a^2 + 1
+
             sage: V = k.vector_space()
             sage: v = V.random_element(); v
             (1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1)
@@ -368,11 +372,17 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
                 ret = ret + self(int(e[i]))*self.gen()**i
             return ret
 
-        elif PY_TYPE_CHECK(e, MPolynomial) or PY_TYPE_CHECK(e, Polynomial):
+        elif PY_TYPE_CHECK(e, MPolynomial):
             if e.is_constant():
                 return self(e.constant_coefficient())
             else:
                 raise TypeError, "no coercion defined"
+
+        elif PY_TYPE_CHECK(e, Polynomial):
+            if e.is_constant():
+                return self(e.constant_coefficient())
+            else:
+                return e(self.gen())
 
         elif PY_TYPE_CHECK(e, Rational):
             num = e.numer()

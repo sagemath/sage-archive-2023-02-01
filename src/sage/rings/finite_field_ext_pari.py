@@ -369,26 +369,31 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k(a + 2)
             a + 2
 
-        Constant polynomials coerce into finite fields:
+        Univariate polynomials coerce into finite fields by evaluating
+        the polynomial at the field's generator:
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: R = QQ['x']
+            sage: R.<x> = QQ[]
             sage: k, a = FiniteField_ext_pari(5^2, 'a').objgen()
             sage: k(R(2/3))
             4
-            sage: R = k['x']
-            sage: k(R(3))
-            3
+	    sage: k(x^2)
+	    a + 3
+            sage: R.<x> = GF(5)[]
+            sage: k(x^3-2*x+1)
+            2*a + 4
 
-        Nonconstant polynomials do not coerce:
             sage: x = polygen(QQ)
-            sage: k(x)
-            Traceback (most recent call last):
-            ...
-            TypeError: no coercion defined
-            sage: k(R(a))
+            sage: k(x^25)
             a
 
-        Multivariate polynomials also coerce:
+            sage: Q, q = FiniteField_ext_pari(5^7, 'q').objgen()
+            sage: L = GF(5)
+            sage: LL.<xx> = L[]
+            sage: Q(xx^2 + 2*xx + 4)
+            q^2 + 2*q + 4
+
+
+        Multivariate polynomials only coerce if constant:
             sage: R = k['x,y,z']; R
             Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 5^2
             sage: k(R(2))
@@ -467,11 +472,17 @@ class FiniteField_ext_pari(FiniteField_generic):
 
             return finite_field_element.FiniteField_ext_pariElement(self, x)
 
-        elif isinstance(x, (multi_polynomial_element.MPolynomial, polynomial_element.Polynomial)):
+        elif isinstance(x, multi_polynomial_element.MPolynomial):
             if x.is_constant():
                 return self(x.constant_coefficient())
             else:
                 raise TypeError, "no coercion defined"
+
+        elif isinstance(x, polynomial_element.Polynomial):
+            if x.is_constant():
+                return self(x.constant_coefficient())
+            else:
+                return x(self.gen())
 
         elif isinstance(x, str):
             x = x.replace(self.variable_name(),'a')

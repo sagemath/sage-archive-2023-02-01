@@ -750,7 +750,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             []
             sage: 10.digits(16,'0123456789abcdef')
             ['a']
-            sage: 0.digits(16,'0123456789abcdef')  # here we have a symbol for 0, so we use it
+            sage: 0.digits(16,'0123456789abcdef')
+            []
+            sage: 0.digits(16,'0123456789abcdef',padto=1)
             ['0']
             sage: 123.digits(base=10,padto=5)
             [3, 2, 1, 0, 0]
@@ -812,10 +814,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             self_abs = -self
 
         if mpz_sgn(self.value) == 0:
-            if digits is None:
                 l = []
-            else:
-                l = [digits[0]]
         elif base == 2:
             s = mpz_sizeinbase(self.value, 2)
             if digits:
@@ -890,11 +889,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 _sig_off
 
         if digits is None:
-            zero = 0           # value for padding
+            zero = the_integer_ring._zero_element     # value for padding
         else:
-            zero = digits[0]   # value for padding
+            zero = digits[0]                          # value for padding
 
-        return l+[zero]*(padto-len(l))   # padding with zero
+        return l+[zero]*(padto-len(l))                # padding with zero
 
     def ndigits(self, base=10):
         """
@@ -924,7 +923,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             10000000
         """
         if self == 0:
-            return 1
+            return 0
         return self.abs().exact_log(base) + 1
 
     def set_si(self, signed long int n):

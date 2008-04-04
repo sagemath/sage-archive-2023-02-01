@@ -1,5 +1,10 @@
 #!/bin/bash
 
+cp patches/setup.py src/
+cp patches/modulus.basis.cpp src/modules/basis.cpp
+cp patches/modulus.poly.cpp src/modules/poly.cpp
+cp patches/modulus.monom.cpp src/modules/monom.cpp
+
 cd src/
 python setup.py build
 python setup.py install

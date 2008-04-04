@@ -3204,3 +3204,4 @@ def differences(lis, n=1):
     if n == 1:
         return lis
     return differences(lis, n - 1)
+

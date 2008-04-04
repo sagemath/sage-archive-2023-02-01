@@ -720,7 +720,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         return BooleanPolynomialIdeal(self, gens, coerce)
 
     def random_element(self, degree=2, terms=5, choose_degree=True,
-                       vars_set=None, seed=None):
+                       vars_set=None):
         """
         Return a random boolean polynomial. Generated polynomial has
         the given number of terms, and at most given degree.
@@ -735,11 +735,11 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         EXAMPLES:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: P.random_element(degree=3, terms=4) # random output
-            x*y + x*z + z + 1
+            sage: P.random_element(degree=3, terms=4)
+            x*y*z + x*z + y*z + z
 
-            sage: P.random_element(degree=1, terms=2) # random output
-            x + 1
+            sage: P.random_element(degree=1, terms=2)
+            z + 1
 
         TESTS:
             sage: P.random_element(degree=4)

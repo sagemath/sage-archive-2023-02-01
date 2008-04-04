@@ -707,16 +707,12 @@ class HeckeOperator(Morphism):
             sage: t.index()
             54
 
-        TODO
-        This is an EXTREMELY long doctest in the current model, but
-        instant in the previous model.
-            J = J1(12345)
-            t = J.hecke_operator(997)
-            t
-            Hecke operator T_997 on Jacobian of the modular curve associated to the congruence subgroup Gamma1(12345)
-            t.index()
+            sage: J = J1(12345)
+            sage: t = J.hecke_operator(997) ; t
+            Hecke operator T_997 on Abelian variety J1(12345) of dimension 5405473
+            sage: t.index()
             997
-            type(t.index())
+            sage: type(t.index())
             <type 'sage.rings.integer.Integer'>
         """
         return self.__n

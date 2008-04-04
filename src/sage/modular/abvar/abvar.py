@@ -928,10 +928,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
     def degeneracy_map(self, M_ls, t_ls):
         """
-        TODO
-        Return the degeneracy map from self to the right thing.
-
-        Return the degeneracy map with domain self and given level/paramaeter.
+        Return the degeneracy map with domain self and given
+        level/parameter. If self.ambient_variety() is a product of
+        Jacobians (as opposed to a single Jacobian), then one can
+        provide a list of new levels and parameters, corresponding to
+        the ambient Jacobians in order. (See the examples below.)
 
         INPUT:
             M, t --  integers level and $t$, or
@@ -1560,16 +1561,19 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
     def level(self):
         """
-        TODO: Rewrite
-        Return the level of this modular abelian variety, which is an integer
-        N (usually minimal) such that this modular abelian variety is a quotient
-        of $J_1(N)$.
+        Return the level of this modular abelian variety, which is an
+        integer N (usually minimal) such that this modular abelian
+        variety is a quotient of $J_1(N)$. In the case that the
+        ambient variety of self is a product of Jacobians, return the
+        LCM of their levels.
 
         EXAMPLES:
             sage: J1(5077).level()
             5077
             sage: JH(389,[4]).level()
             389
+            sage: (J0(11)*J0(17)).level()
+            187
         """
         try:
             return self.__level
@@ -1586,9 +1590,11 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         appear with multiplicity).
 
         INPUT:
-            none_if_not_known -- (default: False) -- if True, return None instead
-                                 of attempting to compute the newform level, if it isn't
-                                 already known.  This None result is not cached.
+
+            none_if_not_known -- (default: False) if True, return None
+                instead of attempting to compute the newform level, if
+                it isn't already known.  This None result is not
+                cached.
 
         OUTPUT:
             integer
@@ -2291,6 +2297,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
                  a rational vector space); also X could be
                  a finite subgroup itself that is contained
                  in this abelian variety.
+
             field_of_definition -- (default: None) field over which
                  this group is defined.  If None try to figure out the
                  best base field.

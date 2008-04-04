@@ -245,8 +245,9 @@ class Homology_abvar(Homology):
 
     def submodule(self, U, check=True):
         r"""
-        Return the submodule of this homology group given by $U$, which should
-        be a submodule of the free module associated to this homology group.
+        Return the submodule of this homology group given by $U$,
+        which should be a submodule of the free module associated to
+        this homology group.
 
         INPUT:
             U -- submodule of ambient free module (or something that defines one)
@@ -263,11 +264,11 @@ class Homology_abvar(Homology):
             sage: M = H.submodule(U); M
             Submodule of rank 1 of Integral Homology of Abelian variety J0(23) of dimension 2
 
-        Note that the submodule command doesn't actually check that the object
-        defined is a homology group or is invariant under the Hecke operators.
-        For example, the fairly random $M$ that we just defined is not invariant
-        under the Hecke operators, so it is not a Hecke submodule -- it is only
-        a $\ZZ$-submodule.
+        Note that the submodule command doesn't actually check that
+        the object defined is a homology group or is invariant under
+        the Hecke operators.  For example, the fairly random $M$ that
+        we just defined is not invariant under the Hecke operators, so
+        it is not a Hecke submodule -- it is only a $\ZZ$-submodule.
             sage: M.hecke_matrix(3)
             Traceback (most recent call last):
             ...

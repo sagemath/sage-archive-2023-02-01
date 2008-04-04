@@ -1,8 +1,153 @@
 """
 Spaces of homomorphisms between modular abelian varieties.
 
+EXAMPLES:
+
+First, we consider J0(37). This jacobian has two simple
+factors, corresponding to distinct newforms. These two intersect
+nontrivially in J0(37).
+    sage: J = J0(37)
+    sage: D = J.decomposition() ; D
+    [
+    Simple abelian subvariety 37a(1,37) of dimension 1 of J0(37),
+    Simple abelian subvariety 37b(1,37) of dimension 1 of J0(37)
+    ]
+    sage: D[0].intersection(D[1])
+    (Finite subgroup with invariants [2, 2] over QQ of Simple abelian subvariety 37a(1,37) of dimension 1 of J0(37),
+     Simple abelian subvariety of dimension 0 of J0(37))
+
+As an abstract product, since these newforms are distinct, the
+corresponding simple abelian varieties are not isogenous, and so there
+are no maps between them. The endomorphism ring of the corresponding
+product is thus isomorphic to the direct sum of the endomorphism rings
+for each factor. Since the factors correspond to abelian varieties of
+dimension 1, these endomorphism rings are each isomorphic to ZZ.
+    sage: Hom(D[0],D[1]).gens()
+    ()
+    sage: A = D[0] * D[1] ; A
+    Abelian subvariety of dimension 2 of J0(37) x J0(37)
+    sage: A.endomorphism_ring().gens()
+    (Abelian variety endomorphism of Abelian subvariety of dimension 2 of J0(37) x J0(37),
+     Abelian variety endomorphism of Abelian subvariety of dimension 2 of J0(37) x J0(37))
+    sage: [ x.matrix() for x in A.endomorphism_ring().gens() ]
+    [[1 0 0 0]
+    [0 1 0 0]
+    [0 0 0 0]
+    [0 0 0 0],
+     [0 0 0 0]
+    [0 0 0 0]
+    [0 0 1 0]
+    [0 0 0 1]]
+
+However, these two newforms have a congruence between them modulo 2,
+which gives rise to interesting endomorphisms of J0(37).
+    sage: E = J.endomorphism_ring()
+    sage: E.gens()
+    (Abelian variety endomorphism of Abelian variety J0(37) of dimension 2,
+     Abelian variety endomorphism of Abelian variety J0(37) of dimension 2)
+    sage: [ x.matrix() for x in E.gens() ]
+    [[1 0 0 0]
+    [0 1 0 0]
+    [0 0 1 0]
+    [0 0 0 1],
+     [ 0  1  1 -1]
+    [ 1  0  1  0]
+    [ 0  0 -1  1]
+    [ 0  0  0  1]]
+    sage: (-1*E.gens()[0] + E.gens()[1]).matrix()
+    [-1  1  1 -1]
+    [ 1 -1  1  0]
+    [ 0  0 -2  1]
+    [ 0  0  0  0]
+
+Of course, these endomorphisms will be reflected in the Hecke algebra,
+which is in fact the full endomorphism ring of J0(37) in this case:
+    sage: J.hecke_operator(2).matrix()
+    [-1  1  1 -1]
+    [ 1 -1  1  0]
+    [ 0  0 -2  1]
+    [ 0  0  0  0]
+    sage: T = E.image_of_hecke_algebra()
+    sage: T.gens()
+    (Abelian variety endomorphism of Abelian variety J0(37) of dimension 2,
+     Abelian variety endomorphism of Abelian variety J0(37) of dimension 2)
+    sage: [ x.matrix() for x in T.gens() ]
+    [[1 0 0 0]
+    [0 1 0 0]
+    [0 0 1 0]
+    [0 0 0 1],
+     [ 0  1  1 -1]
+    [ 1  0  1  0]
+    [ 0  0 -1  1]
+    [ 0  0  0  1]]
+    sage: T.index_in(E)
+    1
+
+
+Next, we consider J0(33). In this case, we have both oldforms and
+newforms. There are two copies of J0(11), one for each degeneracy
+map from J0(11) to J0(33). There is also one newform at level 33.
+The images of the two degeneracy maps are, of course, isogenous.
+    sage: J = J0(33)
+    sage: D = J.decomposition()
+    sage: D
+    [
+    Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33),
+    Simple abelian subvariety 11a(3,33) of dimension 1 of J0(33),
+    Simple abelian subvariety 33a(1,33) of dimension 1 of J0(33)
+    ]
+    sage: Hom(D[0],D[1]).gens()
+    (Abelian variety morphism:
+      From: Simple abelian subvariety 11a(1,33) of dimension 1 of J0(33)
+      To:   Simple abelian subvariety 11a(3,33) of dimension 1 of J0(33),)
+    sage: Hom(D[0],D[1]).gens()[0].matrix()
+    [ 0  1]
+    [-1  0]
+
+Then this gives that the component corresponding to the sum of the
+oldforms will have a rank 4 endomorphism ring. We also have a rank one
+endomorphism ring for the newform 33a (since it is again
+1-dimensional), which gives a rank 5 endomorphism ring for J0(33).
+    sage: DD = J.decomposition(simple=False) ; DD
+    [
+    Abelian subvariety of dimension 2 of J0(33),
+    Abelian subvariety of dimension 1 of J0(33)
+    ]
+    sage: A, B = DD
+    sage: A == D[0] + D[1]
+    True
+    sage: A.endomorphism_ring().gens()
+    (Abelian variety endomorphism of Abelian subvariety of dimension 2 of J0(33),
+     Abelian variety endomorphism of Abelian subvariety of dimension 2 of J0(33),
+     Abelian variety endomorphism of Abelian subvariety of dimension 2 of J0(33),
+     Abelian variety endomorphism of Abelian subvariety of dimension 2 of J0(33))
+    sage: B.endomorphism_ring().gens()
+    (Abelian variety endomorphism of Abelian subvariety of dimension 1 of J0(33),)
+    sage: E = J.endomorphism_ring() ; E.gens()
+    (Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
+     Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
+     Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
+     Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
+     Abelian variety endomorphism of Abelian variety J0(33) of dimension 3)
+
+In this case, the image of the Hecke algebra will only have rank 3, so
+that it is of infinite index in the full endomorphism ring. However,
+if we call this image T, we can still ask about the index of T in its
+saturation, which is 1 in this case.
+    sage: T = E.image_of_hecke_algebra()
+    sage: T.gens()
+    (Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
+     Abelian variety endomorphism of Abelian variety J0(33) of dimension 3,
+     Abelian variety endomorphism of Abelian variety J0(33) of dimension 3)
+    sage: T.index_in(E)
+    +Infinity
+    sage: T.index_in_saturation()
+    1
+
 AUTHOR:
     -- William Stein (2007-03)
+    -- Craig Citro, Robert Bradshaw (2008-03): Rewrote with modabvar
+         overhaul
 """
 
 ###########################################################################

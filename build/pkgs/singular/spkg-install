@@ -29,23 +29,34 @@ fi
 
 if [ "$DEBUG" = "1" ]; then
   ENABLE_DEBUG="--enable-debug"
+  CXXFLAGS="$CXXFLAGS -O0 -g"
+  CFLAGS="$CFLAGS -O0 -g"
 else
   ENABLE_DEBUG="--disable-debug"
+  CXXFLAGS="$CXXFLAGS -O3 -g"
+  CFLAGS="$CFLAGS -O3 -g"
 fi
+
+CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 
 # we are building everything fPIC, this might impose a slight
 # performance hit, need to evaluate:
 
-CXXFLAGS="$CXXFLAGS -fPIC -O3 -g"; export CXXFLAGS
-CFLAGS="$CFLAGS -fPIC -O3 -g"; export CFLAGS
+CXXFLAGS="$CXXFLAGS -fPIC"
+CFLAGS="$CFLAGS -fPIC"
+
+
+export CXXFLAGS
+export CFLAGS
+export CPPFLAGS
 
 patch()
 {
     # work-around patches
     cp patches/assert.h src/factory/
     cp patches/kernel.Makefile.in src/kernel/Makefile.in
-    cp patches/cntrlc.cc src/Singular/cntrlc.cc
-    cp patches/longrat.cc src/kernel/longrat.cc
+    cp patches/libfac.factor.Factor.cc src/libfac/factor/Factor.cc
+    cp patches/libfac.factor.SqrFree.cc src/libfac/factor/SqrFree.cc
 }
 
 distclean()
@@ -189,7 +200,17 @@ build_factory()
 
     make distclean
 
-    config
+    ./configure --prefix="$SAGE_LOCAL" \
+                --exec-prefix="$SAGE_LOCAL" \
+                --bindir="$SAGE_LOCAL"/bin \
+                --libdir="$SAGE_LOCAL"/lib \
+                --libexecdir="$SAGE_LOCAL"/lib \
+                --with-apint=gmp \
+                --with-gmp="$SAGE_LOCAL" \
+                --with-ntl="$SAGE_LOCAL" \
+	        --with-NTL \
+                --enable-gmp="$SAGE_LOCAL" \
+		"$ENABLE_DEBUG"
 
     if [ $? -ne 0 ]; then
         echo "Error configuring the standalone factory."
@@ -220,7 +241,20 @@ build_libfac()
 
     make distclean
 
-    config
+    ./configure --prefix="$SAGE_LOCAL" \
+                --exec-prefix="$SAGE_LOCAL" \
+                --bindir="$SAGE_LOCAL"/bin \
+                --libdir="$SAGE_LOCAL"/lib \
+                --libexecdir="$SAGE_LOCAL"/lib \
+                --with-apint=gmp \
+                --with-gmp="$SAGE_LOCAL" \
+                --with-ntl="$SAGE_LOCAL" \
+	        --with-NTL \
+		--enable-factory \
+		--enable-libfac \
+                --enable-omalloc \
+                --enable-gmp="$SAGE_LOCAL" \
+		"$ENABLE_DEBUG"
 
     if [ $? -ne 0 ]; then
         echo "Error configuring libfac."

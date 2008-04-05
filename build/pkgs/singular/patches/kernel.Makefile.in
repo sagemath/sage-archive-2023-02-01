@@ -244,34 +244,10 @@ ifeq ($(DL_KERNEL),1)
 OBJG := $(OBJG) $(DL_KERNEL_SOURCES:.cc=.og)
 DL_LIBSG := $(P_PROCS_MODULES:%=p_Procs_%.sog)
 
-OBJP := $(OBJP) $(DL_KERNEL_SOURCES:.cc=.op)
-DL_LIBSP := $(P_PROCS_MODULES:%=p_Procs_%.sop)
-
-OBJB := $(OBJB) $(DL_KERNEL_SOURCES:.cc=.ob)
-DL_LIBSB := $(P_PROCS_MODULES:%=p_Procs_%.sob)
-
-OBJT := $(OBJT) $(DL_KERNEL_SOURCES:.cc=.ot)
-DL_LIBST := $(P_PROCS_MODULES:%=p_Procs_%.sot)
-
-OBJA := $(OBJA) $(DL_KERNEL_SOURCES:.cc=.oa)
-DL_LIBSA := $(P_PROCS_MODULES:%=p_Procs_%.soa)
-
 else
 
 OBJG := $(OBJG) $(STATIC_SOURCES:.cc=.og)
 DL_LIBSG=
-
-OBJP := $(OBJP) $(STATIC_SOURCES:.cc=.op)
-DL_LIBSP=
-
-OBJB := $(OBJB) $(STATIC_SOURCES:.cc=.ob)
-DL_LIBSB=
-
-OBJT := $(OBJT) $(STATIC_SOURCES:.cc=.ot)
-DL_LIBST=
-
-OBJA := $(OBJA) $(STATIC_SOURCES:.cc=.oa)
-DL_LIBST=
 
 endif
 
@@ -317,8 +293,8 @@ install-nolns: install
 install-libsingular:
 	${MKINSTALLDIRS} ${includedir}/singular
 	-for file in *.h; do \
-	  ${INSTALL} $$file ${includedir}/singular; \
-	done
+          ${INSTALL} $$file ${includedir}/singular; \
+        done
 
 install: all installbin
 
@@ -398,24 +374,7 @@ echoLIBS:
 OBJG1 := $(CXXSOURCES:.cc=.og)
 OBJG2 := $(CSOURCES:.c=.og)
 
-OBJP1 := $(CXXSOURCES:.cc=.op)
-OBJP2 := $(CSOURCES:.c=.op)
-
-OBJB1 := $(CXXSOURCES:.cc=.ob)
-OBJB2 := $(CSOURCES:.c=.ob)
-
-OBJT1 := $(CXXSOURCES:.cc=.ot)
-OBJT2 := $(CSOURCES:.c=.ot)
-
-OBJA1 := $(CXXSOURCES:.cc=.oa)
-OBJA2 := $(CSOURCES:.c=.oa)
-
-
 OBJG=$(OBJG1) $(OBJG2)
-OBJP=$(OBJP1) $(OBJP2)
-OBJB=$(OBJB1) $(OBJB2)
-OBJT=$(OBJT1) $(OBJT2)
-OBJA=$(OBJA1) $(OBJA2)
 
 ifeq ($(DL_KERNEL),1)
 OBJG 	:= $(OBJG) $(DL_KERNEL_SOURCES:.cc=.og)
@@ -460,124 +419,6 @@ libkernel-g.a: ${OBJG}
 	-rm -f libkernel-g.a
 	ar cr $@ $^
 
-##
-## compiler and linker options for profile version
-##
-
-CCP		= gcc
-CXXP		= gcc
-
-CFLAGSP		= -pg -O3 ${PIPE}
-CXXFLAGSP	= -pg -O3 ${PIPE}
-CXXTEMPLFLAGSP	= -fno-implicit-templates
-DEFSP		= -DNDEBUG -DOM_NDEBUG -DDO_PROFILE -D@SING_UNAME@ @DEFS@ -DDL_TAIL=$(DL_TAILP)
-LDFLAGSP	= -static @LDFLAGS@
-
-CFLAGSB		= -g -O3 ${PIPE}
-CXXFLAGSB	= -g -O3 ${PIPE}
-CXXTEMPLFLAGSB	= -fno-implicit-templates
-DEFSB		= -D@SING_UNAME@ -DOM_NDEBUG -DNDEBUG @DEFS@ -DDL_TAIL=$(DL_TAILB)
-LDFLAGSB	= -static @LDFLAGS@
-
-# bprof object  file to link with
-BPROFOBJ	= /usr/local/lib/bmon.o
-
-DEFST           = -DNO_INLINE -DNDEBUG -D@SING_UNAME@ -DOM_TRACK=2 -DOM_CHECK=0 @DEFS@ -DDL_TAIL=$(DL_TAILT)
-LDFLAGST        = @LDFLAGS@
-CFLAGST		= -g  -O2 -w ${PIPE}
-CXXFLAGST	= -g  -O2 -w ${PIPE}
-
-##
-## op and ob files for gprof and bprof, ot for mtrack, oc for OMCHECK=1
-##
-
-
-##
-## profile targets
-##
-
-## for gprof
-p_Procs_%.sop: p_Procs_Lib_%.dl_op
-	${CXXP} ${CXXFLAGSP} ${SFLAGS} ${SLDFLAGS} $< -o $@
-
-p_Procs_Lib_%.dl_op : p_Procs_Lib.cc p_Procs_Dynamic.op
-	${CXXP} ${CXXFLAGS} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFS} ${SFLAGS} -Dp_Procs_$* -c $< -o $@
-
-%.dl_op: %.cc
-	${CXXP} ${CXXFLAGSP} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFSP} ${SFLAGS} -c $< -o $@
-
-
-%.op: %.cc
-	$(CXXP) ${CXXFLAGSP} ${CXXTEMPLFLAGSP} ${CPPFLAGS} ${DEFSP} -c $< -o $@
-
-$(OBJP2) : %.op: %.c
-	$(CCP)  ${CFLAGSP} ${CPPFLAGS} ${DEFSP} -c $< -o $@
-
-## for bprof
-p_Procs_%.sob: p_Procs_Lib_%.dl_ob
-	${CXXP} ${CXXFLAGSB} ${SFLAGS} ${SLDFLAGS} $< -o $@
-
-p_Procs_Lib_%.dl_ob : p_Procs_Lib.cc  p_Procs_Dynamic.ob
-	${CXXP} ${CXXFLAGS} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFS} ${SFLAGS} -Dp_Procs_$* -c $< -o $@
-
-%.dl_ob: %.cc
-	${CXXP} ${CXXFLAGSB} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFSB} ${SFLAGS} -c $< -o $@
-
-%.ob: %.cc
-	$(CXXP) ${CXXFLAGSP} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFSB} -c $< -o $@
-
-$(OBJB2) : %.ob: %.c
-	$(CCP)  ${CFLAGSP} ${CPPFLAGS} ${DEFSB} -c $< -o $@
-
-iparith.ob: iparith.inc iparith.cc
-	$(CXXP)  ${CXXFLAGSP} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFSB} -c iparith.cc -o iparith.ob
-
-#
-# for mtrack
-#
-p_Procs_%.sot: p_Procs_Lib_%.dl_ot
-	${CXXP} ${CXXFLAGST} ${SFLAGS} ${SLDFLAGS} $< -o $@
-
-p_Procs_Lib_%.dl_ot : p_Procs_Lib.cc p_Procs_Dynamic.ot
-	${CXXP} ${CXXFLAGS} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFS} ${SFLAGS} -Dp_Procs_$* -c $< -o $@
-
-%.dl_ot: %.cc
-	${CXXP} ${CXXFLAGST} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFST} ${SFLAGS} -c $< -o $@
-
-%.ot: %.cc
-	$(CXXP) ${CXXFLAGST} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFST} -c $< -o $@
-
-$(OBJT2) : %.ot: %.c
-	$(CCP)  ${CFLAGST} ${CPPFLAGS} ${DEFST} -c $< -o $@
-
-iparith.ot: iparith.inc iparith.cc
-	$(CXXP)  ${CXXFLAGST} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFST} -c iparith.cc -o iparith.ot
-
-#
-# for Singulara
-#
-DEFSA = -DOM_CHECK=1 -DHAVE_ASSUME -DNDEBUG -D@SING_UNAME@ @DEFS@ -DDL_TAIL=$(DL_TAILA)
-CFLAGSA		= -g  -O -Wall -Wno-unused ${PIPE}
-CXXFLAGSA	= -g  -O -Wall -Wno-unused ${PIPE}
-
-p_Procs_%.soa: p_Procs_Lib_%.dl_oa
-	${CXX} ${CXXFLAGSA} ${SFLAGS} ${SLDFLAGS} $< -o $@
-
-p_Procs_Lib_%.dl_oa : p_Procs_Lib.cc p_Procs_Dynamic.oa
-	${CXX} ${CXXFLAGS} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFS} ${SFLAGS} -Dp_Procs_$* -c $< -o $@
-
-%.dl_oa: %.cc
-	${CXX} ${CXXFLAGSA} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFSA} ${SFLAGS} -c $< -o $@
-
-%.oa: %.cc
-	$(CXX) ${CXXFLAGSA} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFSA} -c $< -o $@
-
-$(OBJA2) : %.oa: %.c
-	$(CC)  ${CFLAGSA} ${CPPFLAGS} ${DEFSA} -c $< -o $@
-
-iparith.oa: iparith.inc iparith.cc
-	$(CXX)  ${CXXFLAGSA} ${CXXTEMPLFLAGS} ${CPPFLAGS} ${DEFSA} -c iparith.cc -o iparith.oa
-
 #
 # for Macro expansion
 #
@@ -601,20 +442,15 @@ OBJD2 := $(CSOURCESD:.c=.od)
 	$(CXXG) ${CXXFLAGSG} ${CXXTEMPLFLAGSG} ${CPPFLAGS} ${DEFSG} -c $< -o $@
 
 ##
-## check_aso
-##
-check_aso:
-	${PERL} check_aso.pl $(SOURCES)
-##
 ## dependencies
 ##
 
 %.dd: %.cc mod2.h
-	echo $(@:.dd=.og) $(@:.dd=.op) $(@:.dd=_d.cc) $(@:.dd=.od) $(@:.dd=.ob) $(@:.dd=.ot) $(@:.dd=.oa) $(@:.dd=.dl_o) $(@:.dd=.dl_og) $(@:.dd=.dl_op) $(@:.dd=.dl_od) $(@:.dd=.dl_ob) $(@:.dd=.dl_ot) $(@:.dd=.dl_oa)" " \\ > $@
+	echo $(@:.dd=.og) $(@:.dd=_d.cc) $(@:.dd=.od) $(@:.dd=.dl_o) $(@:.dd=.dl_og) $(@:.dd=.dl_od)" " \\ > $@
 	$(CXXM) -DGENTABLE ${CPPFLAGS} ${DEFSG} $< >> $@
 
 %.d: %.c mod2.h
-	echo $(@:.d=.og) $(@:.d=.od) $(@:.dd=_d.c) $(@:.d=.op) $(@:.d=.ob) $(@:.d=.ot) $(@:.d=.oa)" " \\ > $@
+	echo $(@:.d=.og) $(@:.d=.od) $(@:.dd=_d.c)" " \\ > $@
 	$(CCM) ${CPPFLAGS} ${DEFSG} $< >> $@
 
 depend:   $(CXXSOURCES:.cc=.dd) $(ESOURCES:.cc=.dd) $(CSOURCES:.c=.d) mod2.h

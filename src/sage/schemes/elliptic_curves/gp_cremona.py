@@ -92,8 +92,6 @@ def ellzp(e, p):
         sage: import sage.schemes.elliptic_curves.gp_cremona
         sage: sage.schemes.elliptic_curves.gp_cremona.ellzp([0,0,1,-7,6],97) #random
         '[[46, 2], [[58, 45], [45, 48]]]
-        sage: EllipticCurve(GF(97),[0,0,1,-7,6])._cremona_abgrp_data() #random
-        [[46, 2], [[32, 63], [45, 48]]]
         sage: EllipticCurve(GF(97),[0,0,1,-7,6]).abelian_group() #random
         (Multiplicative Abelian Group isomorphic to C46 x C2,
         ((52 : 13 : 1), (45 : 48 : 1)))

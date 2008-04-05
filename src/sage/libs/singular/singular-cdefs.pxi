@@ -27,6 +27,10 @@ cdef extern from "factory.h":
 
     cdef int SW_USE_CHINREM_GCD
     cdef int SW_USE_EZGCD
+    cdef int SW_USE_NTL
+    cdef int SW_USE_NTL_GCD_0
+    cdef int SW_USE_NTL_GCD_P
+    cdef int SW_USE_NTL_SORT
 
 cdef extern from "libsingular.h":
 
@@ -104,6 +108,7 @@ cdef extern from "libsingular.h":
         short N # number of variables
         short P # number of parameters
         int ch # charactersitic (0:QQ, p:GF(p),-p:GF(q), 1:NF)
+        int pCompIndex # index of components
 
     # available ring orders
 
@@ -260,7 +265,9 @@ cdef extern from "libsingular.h":
 
     void rChangeCurrRing(ring *r)
 
+    # return True if ring has components
 
+    int rRing_has_Comp(ring *r)
 
 
     # return new empty monomial
@@ -585,6 +592,10 @@ cdef extern from "libsingular.h":
     # loop through algebraic number
 
     napoly *napIter(napoly *)
+
+    # normalize a number
+
+    void naNormalize(number *)
 
 
 

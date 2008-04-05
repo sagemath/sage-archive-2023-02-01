@@ -283,7 +283,7 @@ def vonmisesvariate(mu, kappa):
 
     EXAMPLES:
         sage: [vonmisesvariate(1.0r, 3.0r) for i in range(1, 5)]
-        [0.89832863935542584, 0.67180300070412846, 2.0308777524813397, 1.7143252537251459]
+        [0.89832863935542584, 0.67180300070412846, 2.0308777524813397, 1.714325253725145...]
     """
     return _pyrand().vonmisesvariate(mu, kappa)
 

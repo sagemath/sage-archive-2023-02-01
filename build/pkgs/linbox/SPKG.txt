@@ -24,6 +24,10 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.5p1 (Clement Pernet), April 4th, 2008 ===
+ * Revert charpoly method to LUK, waiting to investigate further the bug in
+ ArithProg method (ticket #2804)
+
 === linbox-1.1.5 (Clement Pernet, April 2nd, 2008) ===
  * Remove every patch
  * Put upstream final 1.1.5 release of LinBox

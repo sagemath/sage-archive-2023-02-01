@@ -1467,7 +1467,13 @@ function cell_input_key_event(id, e) {
     e = new key_event(e);
     if (e==null) return;
 
-    if (key_delete_cell(e) && is_whitespace(cell_input.value)) {
+    if (key_split_cell(e)) {
+        split_cell(id);
+        return false;
+    } else if (key_join_cell(e)) {
+        join_cell(id);
+        return false;
+    } else if (key_delete_cell(e) && is_whitespace(cell_input.value)) {
         cell_delete(id);
         return false;
     }
@@ -1674,7 +1680,30 @@ function uncomment_cell(input) {
     set_selection_range(input, a.length, a.length+b.length);
 }
 
+function join_cell(id) {
+    var v = id_of_cell_delta(id, -1);
+    if(v == id) return;
 
+    var cell = get_cell(id);
+    var up = get_cell(v);
+    var n = up.value.length;
+    if(up.value[n-1] != '\n') {
+        up.value += '\n';
+        n += 1;
+    }
+    cell.value = up.value + cell.value;
+    set_selection_range(cell, n,n);
+    cell_input_resize(cell);
+    cell_delete(v)
+}
+
+function split_cell(id) {
+    var cell = get_cell(id);
+    var txt = text_cursor_split(cell)
+    cell.value = txt[0];
+    cell_input_resize(cell);
+    insert_new_cell_after(id,txt[1]);
+}
 
 
 function worksheet_command(cmd) {
@@ -2265,8 +2294,9 @@ function do_insert_new_cell_before(id, new_id, new_html) {
     cell_id_list = insert_into_array(cell_id_list, i, eval(new_id));
 }
 
-function insert_new_cell_after(id) {
-    async_request(worksheet_command('new_cell_after'), insert_new_cell_after_callback, 'id='+id);
+function insert_new_cell_after(id, input) {
+    if(input == null) input = "";
+    async_request(worksheet_command('new_cell_after'), insert_new_cell_after_callback, 'id='+id+'&input='+escape0(input));
 }
 
 function insert_new_cell_after_callback(status, response_text) {
@@ -2303,8 +2333,9 @@ function do_insert_new_cell_after(id, new_id, new_html) {
 
 
 
-function insert_new_cell_before(id) {
-    async_request(worksheet_command('new_cell_before'), insert_new_cell_before_callback, 'id='+id);
+function insert_new_cell_before(id, input) {
+    if(input == null) input = "";
+    async_request(worksheet_command('new_cell_before'), insert_new_cell_before_callback, 'id='+id+'&input='+escape0(input));
 }
 
 function insert_new_cell_before_callback(status, response_text) {

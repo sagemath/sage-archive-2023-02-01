@@ -42,6 +42,10 @@ js.keyhandler.add('uncomment',              key = "KEY_COMMA", ctrl=True)
 js.keyhandler.add('comment',                key = "KEY_3",     ctrl=True)
 js.keyhandler.add('uncomment',              key = "KEY_4",     ctrl=True)
 
+js.keyhandler.add('split_cell',             key = "KEY_ENTER", ctrl=True)
+js.keyhandler.add('split_cell',             key = "KEY_RETURN",ctrl=True)
+js.keyhandler.add('join_cell',              key = "KEY_BKSPC", ctrl=True)
+
 js.keyhandler.add('menu_left',           key = "KEY_LEFT")
 js.keyhandler.add('menu_up',             key = "KEY_UP")
 js.keyhandler.add('menu_right',          key = "KEY_RIGHT")

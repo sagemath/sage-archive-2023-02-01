@@ -1088,7 +1088,7 @@ class Worksheet:
         self.__cells.append(C)
         return C
 
-    def new_cell_before(self, id):
+    def new_cell_before(self, id, input=""):
         """
         Insert a new cell into the cell list before the cell
         with the given integer id.  If the id is not the
@@ -1097,32 +1097,42 @@ class Worksheet:
 
         INPUT:
             id -- integer
+            input -- string
 
         OUTPUT:
-            an empty cell
+            new cell with the given input text (empty by default).
+
         """
         cells = self.__cells
         for i in range(len(cells)):
             if cells[i].id() == id:
-                C = self._new_cell()
+                C = self._new_cell(input=input)
                 cells.insert(i, C)
                 return C
-        C = self._new_cell()
+        C = self._new_cell(input=input)
         cells.append(C)
         return C
 
-    def new_cell_after(self, id):
+    def new_cell_after(self, id, input=""):
         """
         Insert a new cell into the cell list after the cell
         with the given integer id.
+
+        INPUT:
+            id -- integer
+            input -- string
+
+        OUTPUT:
+            new cell with the given input text (empty by default).
+
         """
         cells = self.__cells
         for i in range(len(cells)):
             if cells[i].id() == id:
-                C = self._new_cell()
+                C = self._new_cell(input=input)
                 cells.insert(i+1, C)
                 return C
-        C = self._new_cell()
+        C = self._new_cell(input=input)
         cells.append(C)
         return C
 
@@ -1607,14 +1617,14 @@ class Worksheet:
             self.__next_hidden_id = -2
         return i
 
-    def _new_cell(self, id=None, hidden=False):
+    def _new_cell(self, id=None, hidden=False, input=''):
         if id is None:
             if hidden:
                 id = self.next_hidden_id()
             else:
                 id = self.__next_id
                 self.__next_id += 1
-        return Cell(id, '', '', self)
+        return Cell(id, input, '', self)
 
     def append(self, L):
         self.__cells.append(L)

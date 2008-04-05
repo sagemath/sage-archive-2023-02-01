@@ -116,6 +116,30 @@ class Notebook(SageObject):
     # Users
     ##########################################################
     def create_default_users(self, passwd):
+        """
+        Create the default users for a notebook.
+
+        INPUT:
+            passwd -- a string
+
+        EXAMPLES:
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.create_default_users('password')
+            Creating default users.
+            sage: list(sorted(n.users().iteritems()))
+            [('_sage_', _sage_), ('admin', admin), ('guest', guest), ('pub', pub)]
+            sage: list(sorted(n.passwords().iteritems()))
+            [('_sage_', 'aaQSqAReePlq6'), ('admin', 'aajfMKNH1hTm2'), ('guest', 'aaQSqAReePlq6'), ('pub', 'aaQSqAReePlq6')]
+            sage: n.create_default_users('newpassword')
+            Creating default users.
+            WARNING: User 'pub' already exists -- and is now being replaced.
+            WARNING: User '_sage_' already exists -- and is now being replaced.
+            WARNING: User 'guest' already exists -- and is now being replaced.
+            WARNING: User 'admin' already exists -- and is now being replaced.
+            sage: list(sorted(n.passwords().iteritems()))
+            [('_sage_', 'aaQSqAReePlq6'), ('admin', 'aajH86zjeUSDY'), ('guest', 'aaQSqAReePlq6'), ('pub', 'aaQSqAReePlq6')]
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
         print "Creating default users."
         self.add_user('pub', '', '', account_type='user', force=True)
         self.add_user('_sage_', '', '', account_type='user', force=True)
@@ -123,9 +147,37 @@ class Notebook(SageObject):
         self.add_user('admin', passwd, '', account_type='admin', force=True)
 
     def user_exists(self, username):
+        """
+        Return whether or not a user exists given a username.
+
+        EXAMPLES:
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.create_default_users('password')
+            Creating default users.
+            sage: n.user_exists('admin')
+            True
+            sage: n.user_exists('pub')
+            True
+            sage: n.user_exists('mark')
+            False
+            sage: n.user_exists('guest')
+            True
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
         return username in self.users()
 
     def users(self):
+        """
+        Returns dictionary of users in a notebook.
+
+        EXAMPLES:
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.create_default_users('password')
+            Creating default users.
+            sage: list(sorted(n.users().iteritems()))
+            [('_sage_', _sage_), ('admin', admin), ('guest', guest), ('pub', pub)]
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
         try:
             return self.__users
         except AttributeError:
@@ -133,6 +185,22 @@ class Notebook(SageObject):
             return self.__users
 
     def user(self, username):
+        """
+        Returns an instance of the User class given the username of a user in
+        a notebook.
+
+        EXAMPLES:
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.create_default_users('password')
+            Creating default users.
+            sage: n.user('admin')
+            admin
+            sage: n.user('admin')._User__email
+            ''
+            sage: n.user('admin')._User__password
+            'aajfMKNH1hTm2'
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
         if '/' in username:
             raise ValueError
         try:

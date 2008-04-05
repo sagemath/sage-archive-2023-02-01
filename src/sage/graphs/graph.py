@@ -1659,7 +1659,7 @@ class GenericGraph(SageObject):
                         return False
         return True
 
-    def genus(self, set_embedding=True, on_embedding=None, minimal=True, circular=False, ordered=True):
+    def genus(self, set_embedding=True, on_embedding=None, minimal=True, maximal=False, circular=False, ordered=True):
         """
         Returns the minimal genus of the graph.  The genus of a compact
         surface is the number of handles it has.  The genus of a graph
@@ -1679,18 +1679,34 @@ class GenericGraph(SageObject):
                                        ordered list of each vertex's neighbors as values.  on_embedding
                                        takes precedence over a stored _embedding attribute if minimal is
                                        set to False.
+                                       Note that as a shortcut, the user can enter on_embedding=True to
+                                       compute the genus on the current _embedding attribute.  (see eg's.)
             minimal (boolean) -- whether or not to compute the minimal genus of the graph (i.e., testing
-                                       all embeddings).  If minimal is False, then either the graph must
-                                       have an _embedding attribute or the on_embedding parameter must not
-                                       be None.
+                                       all embeddings).  If minimal is False, then either maximal must be
+                                       True or on_embedding must not be None.  If on_embedding is not None,
+                                       it will take priority over minimal.  Similarly, if maximal is True,
+                                       it will take priority over minimal.
+            maximal (boolean) -- whether or not to compute the maximal genus of the graph (i.e., testin
+                                       all embeddings).  If maximal is False, then either minimal must be
+                                       True or on_embedding must not be None.  If on_embedding is not None,
+                                       it will take priority over maximal.  However, maximal takes priority
+                                       over the default minimal.
             circular (boolean) -- whether or not to compute the genus preserving a planar embedding of the
-                                       boundary.  (Default is False).
+                                       boundary.  (Default is False).  If circular is True, on_embedding is
+                                       not a valid option.
             ordered (boolean) -- if circular is True, then whether or not the boundary order may be permuted.
                                        (Default is True, which means the boundary order is preserved.)
 
         EXAMPLES:
-            sage: (graphs.PetersenGraph()).genus()
+            sage: g = graphs.PetersenGraph()
+            sage: g.genus() # tests for minimal genus by default
             1
+            sage: g.genus(on_embedding=True, maximal=True) # on_embedding overrides minimal and maximal arguments
+            1
+            sage: g.genus(maximal=True) # setting maximal to True overrides default minimal=True
+            3
+            sage: g.genus(on_embedding=g.get_embedding()) # can also send a valid combinatorial embedding dict
+            3
             sage: (graphs.CubeGraph(3)).genus()
             0
             sage: K23 = graphs.CompleteBipartiteGraph(2,3)
@@ -1709,6 +1725,10 @@ class GenericGraph(SageObject):
             (False, Graph on 9 vertices)
             sage: cube.genus(circular=True) #long time
             1
+            sage: cube.genus(circular=True, maximal=True) #long time
+            3
+            sage: cube.genus(circular=True, on_embedding=True) #long time
+            3
         """
         if not self.is_connected():
             raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
@@ -1745,22 +1765,27 @@ class GenericGraph(SageObject):
 
             edges = G.size()
 
-        if not minimal:
-            if on_embedding is not None:
+        if on_embedding is not None:
+            if on_embedding: #i.e., if on_embedding True (returns False if on_embedding is of type dict)
                 if not hasattr(self,'_embedding'):
                     raise Exception("Graph must have attribute _embedding set to compute current (embedded) genus.")
-                max_faces = len(self.trace_faces(self._embedding))
-            else:
-                max_faces = len(self.trace_faces(on_embedding))
-        else:
+                faces = len(self.trace_faces(self._embedding))
+                return (2-verts+edges-faces)/2
+            else: # compute genus on the provided dict
+                faces = len(self.trace_faces(on_embedding))
+                return (2-verts+edges-faces)/2
+        else: # then compute either maximal or minimal genus of all embeddings
             # Construct an intitial combinatorial embedding for graph
             part = []
             for vertex in G.vertices():
                 part.append(G.neighbors(vertex))
 
             # Iterate through all embeddings
+            from sage.rings.infinity import infinity
             max_faces = -1
+            min_faces = infinity
             min_embedding = []
+            max_embedding = []
             labels = G.vertices()
             for p in CyclicPermutationsOfPartition(part):
                 # Make dict of node labels embedding
@@ -1772,21 +1797,31 @@ class GenericGraph(SageObject):
                 if faces > max_faces:
                     max_faces = faces
                     min_embedding = comb_emb
+                if faces < min_faces:
+                    min_faces = faces
+                    max_embedding = comb_emb
+
+            if maximal:
+                faces = min_faces
+                emb = max_embedding
+            else:
+                faces = max_faces
+                emb = min_embedding
 
             if set_embedding:
                 if not circular:
                     # Make dict of node labels embedding
-                    self._embedding = min_embedding
+                    self._embedding = emb
                 else: # for circular, we must strip extra vertices and edges from embedding
-                    min_embedding.pop(extra)
+                    emb.pop(extra)
                     for u,v in extra_edges:
-                        min_embedding[u].pop(min_embedding[u].index(v))
-                        min_embedding[v].pop(min_embedding[v].index(u))
+                        emb[u].pop(emb[u].index(v))
+                        emb[v].pop(emb[v].index(u))
                     for w in boundary:
-                        min_embedding[w].pop(min_embedding[w].index(extra))
-                    self._embedding = min_embedding
+                        emb[w].pop(emb[w].index(extra))
+                    self._embedding = emb
 
-        return (2-verts+edges-max_faces)/2
+        return (2-verts+edges-faces)/2
 
     def trace_faces(self, comb_emb):
         """

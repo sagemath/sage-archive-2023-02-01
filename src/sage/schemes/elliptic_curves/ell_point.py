@@ -66,6 +66,7 @@ import sage.rings.all as rings
 import sage.rings.arith as arith
 import sage.misc.misc as misc
 from sage.groups.all import AbelianGroup
+import sage.groups.generic as generic
 
 from sage.structure.sequence  import Sequence
 from sage.schemes.generic.morphism import (SchemeMorphism_projective_coordinates_ring,
@@ -545,112 +546,6 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         x,y = map(lambda x: x._magma_().name(), self.xy())
         return "%s![%s,%s]"%(E,x,y)
 
-    def _bsgs(self, Q, lower, upper):
-        """
-        Implementation of baby-step-giant-step algorithm
-
-        returns n with lower<=n<=upper such that n*self==Q, raising an
-        error if non exists
-
-        Mainly for internal use:  users should use discrete_log()
-
-        AUTHOR: John Cremona, following his C++ implementation which
-        in turn is closely based on LiDIA code
-
-        EXAMPLE:
-        sage: F=GF(3^6,'a')
-        sage: a=F.gen()
-        sage: E= EllipticCurve([0,1,1,a,a])
-        sage: E.cardinality()
-        762
-        sage: A,G=E.abelian_group() ## set since this E is cyclic
-        sage: P=G[0]
-        sage: Q=400*P
-        sage: P._bsgs(Q,1,E.cardinality())
-        400
-        """
-        if not self.curve() == Q.curve():
-            raise ValueError, "ecdlog requires points to be on the same curve"
-
-        if lower<0 or upper<lower:
-            raise ValueError, "_bsgs() requires 0<=lower<=upper"
-
-        if self.is_zero() and not Q.is_zero():
-            raise ValueError, "No solution in _bsgs()"
-
-        if lower==0 and Q.is_zero():
-            return rings.Integer(0)
-
-#        print "In bsgs"
-        ran = upper - lower
-        if (ran < 30):    # for very small intervals
-#            print "interval length=",ran," so using naive method"
-            h=lower
-            H=lower*self
-            if H == Q: return rings.Integer(h);
-            while h <= upper:
-                h+=1
-                H+=self
-                if H == Q:  return rings.Integer(h)
-            raise ValueError, "No solution in _bsgs()"
-
-        # now we use the Babystep Giantstep algorithm
-
-        # compute number of babysteps
-        number_baby = 1+ran.isqrt()
-        if number_baby > 3000000:  number_baby = 3000000
-#        print "In bsgs: number_baby=",number_baby
-
-        HT = dict()  # will store table of pairs (i*self,i)
-
-        H2 = Q-lower*self
-        H = self.curve()(0)
-
-        # do the babysteps
-
-        for i in range(1,number_baby+1):
-            H+=self          # so H = i*self and H2 = Q-lower*self
-            if H == H2:   # if i*self = Q-lower*self then solution = lower+i
-                return rings.Integer(lower + i)
-            if not H.is_zero(): # store [H,i] in table
-                HT[H]=i
-#        print "In bsgs: finished baby steps"
-
-        # Now we have a table of pairs [i*self,i] for i in (1..number_baby)
-        # and H  =  number_baby*self
-        assert H==number_baby*self
-        # and H2 =  Q-lower*self
-
-        # We will subtract H from H2 repeatedly, so
-        # H2=Q-lower*self-j*H in the loop
-
-        # Giantsteps
-
-        number_giant = 1+((upper - lower)//(number_baby)) # rounded!
-#        print "In bsgs: number_giant=",number_giant
-
-        step_size = number_baby;
-
-        for j in range(number_giant+1):
-            # Here H2=Q-(lower+j*step_size)*self
-            if H2.is_zero(): # on the nail, no need to check table
-                h = lower + j * step_size;
-                if h <= upper:
-                    return rings.Integer(h)
-                else:
-                    raise ValueError, "No solution in _bsgs()"
-
-            # look in table to see if H2= i*self for a suitable i
-            i = HT.get(H2)
-            if not i==None:
-                h = lower + i + j * step_size;
-                if h <= upper:
-                    return rings.Integer(h)
-                else:
-                    raise ValueError, "No solution in _bsgs()"
-            H2-=H
-        raise ValueError, "No solution in _bsgs()"
-
     def discrete_log(self, Q, ord=None):
         """
         Returns discrete log of Q with respect to self, i.e. an
@@ -658,8 +553,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         exists; otherwise raise an error.  The order of self is
         computed if not supplied
 
-        AUTHOR: John Cremona, following his C++ implementation which
-        in turn is closely based on LiDIA code
+        AUTHOR: John Cremona. Adapted to use generic functions 2008-04-05
 
         EXAMPLE:
         sage: F=GF(3^6,'a')
@@ -675,7 +569,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         """
         if ord==None: ord=self.order()
         try:
-            return self._bsgs(Q,0,ord-1)
+            return generic.discrete_log(Q,self,ord,operation='+')
         except:
             raise ValueError, "ECDLog problem has no solution"
 
@@ -683,7 +577,6 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
     def order(self):
         """
         Return the order of this point on the elliptic curve.
-        If the point has infinite order, returns 0.
 
         EXAMPLES:
             sage: k.<a> = GF(5^5)
@@ -708,16 +601,19 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             True
 
 
-        ALGORITHM: first finds a multiple of the order: either the
-        group order, if this is known, or uses baby-step-giant-step
-        algorithm.  If the group order is known, its factorization is
-        cached.  From a multiple of the order and its factorization it
-        is then easy to determine the exact order.  We must not cause
-        the group order to be calculated when not known since this
-        function is used in determining the group order via
-        computation of several random points and their orders.
+        ALGORITHM: Use generic functions.  If the group order is
+        known, use order_from_multiple(), otherwise use
+        order_from_bounds() with the Hasse bounds.  In the latter case
+        we might find that we have a generator, in which case it is
+        cached.
 
-        AUTHOR: John Cremona, 2008-02-10.
+        We do not cause the group order to be calculated when not
+        known, since this function is used in determining the group
+        order via computation of several random points and their
+        orders.
+
+        AUTHOR: John Cremona, 2008-02-10, adapted 2008-04-05 to use
+        generic functions
 
         """
         try:
@@ -728,7 +624,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             return rings.Integer(1)
         E = self.curve()
         K = E.base_ring()
-        lb,ub = ell_generic.Hasse_bounds(K.order())
+        bounds = ell_generic.Hasse_bounds(K.order())
 
         try:
             M = E._order
@@ -737,31 +633,17 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             except:
                 plist = M.prime_divisors()
                 E._prime_factors_of_order = plist
+            N = generic.order_from_multiple(self,M,plist,operation='+')
         except:
             if K.is_prime_field():
                 M = E.cardinality() # computed and cached
                 plist = M.prime_divisors()
                 E._prime_factors_of_order = plist
+                N = generic.order_from_multiple(self,M,plist,operation='+')
             else:
-                M = self._bsgs(E(0),lb,ub)
-                plist = M.prime_divisors()
+                N = generic.order_from_bounds(self,bounds,operation='+')
 
-        # Now M is a multiple of the order and plist is a list of
-        # its prime factors
-
-        # For each p in plist we determine the power of p dividing
-        # the order, accumulating the order in N
-
-        N=rings.Integer(1)
-        for p in plist:
-            Q=M.prime_to_m_part(p)*self   # so Q has p-power order
-            while not Q.is_zero():
-                Q=p*Q
-                N*=p
-
-        # now N is the exact order of self
-
-        if 2*N>ub: # then we have a generator, so cache this
+        if 2*N>bounds[1]: # then we have a generator, so cache this
             try:
                 dummy = E._order
             except:
@@ -774,170 +656,4 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         self._order = N
         return self._order
 
-    # returns (m,a) where m>0 is minimal s.t. m*Q is in <P> with m*Q=a*P.
-    # Special case: if <Q> and <P> are disjoint, then returns m=order(Q)
-    # and a=0.
-
-    def linear_relation(self, Q):
-        """
-        Function which solves the equation m*Q=a*self form (m,a) with
-        minimal m>0.  Special case: if <self> and <Q> intersect only
-        in {0} then (m,a)=(Q.order(),0).
-
-        Used in determining group structure.  Applicable in general
-        finite abelian groups: just uses the bsgs() function.
-
-        EXAMPLE:
-        sage: F.<a>=GF(3^6,'a')
-        sage: E=EllipticCurve([a^5 + 2*a^3 + 2*a^2 + 2*a, a^4 + a^3 + 2*a + 1])
-        sage: P=E(a^5 + a^4 + a^3 + a^2 + a + 2 , 0)
-        sage: Q=E(2*a^3 + 2*a^2 + 2*a , a^3 + 2*a^2 + 1)
-        sage: P.linear_relation(Q)
-        (2, 1)
-        sage: 2*Q == P
-        True
-        """
-        P = self
-        n = P.order()
-        m = Q.order()
-        g=arith.gcd(n,m)
-        if g==1: return (m,rings.Integer(0))
-        n1=n//g
-        m1=m//g
-        P1=n1*P  # both of exact order g
-        Q1=m1*Q  #
-        # now see if Q1 is a multiple of P1; the only multiples we
-        # need check are h*Q1 where h|g
-        for h in g.divisors(): # positive divisors!
-            try:
-                a = P1._bsgs(h*Q1,0,g-1)
-                a = a*n1
-                m = h*m1
-                assert m*Q==a*P        # debugging:
-                return (m,a)
-            except:
-                pass # to next h
-        raise ValueError, "No solution found in linear_relation!"
-
-    # old version of order function
-
-    def order_old(self):
-        """
-        Return the order of this point on the elliptic curve.
-        If the point has infinite order, returns 0.
-
-        EXAMPLE:
-            sage: k.<a> = GF(5^5)
-            sage: E = EllipticCurve(k,[2,4]); E
-            Elliptic Curve defined by y^2  = x^3 + 2*x + 4 over Finite Field in a of size 5^5
-            sage: P = E(3*a^4 + 3*a , 2*a + 1 )
-            sage: P.order_old()
-            3227
-            sage: Q = E(0,2)
-            sage: Q.order_old()
-            7
-
-
-        ALGORITHM: uses PARI's \code{ellzppointorder} if base ring is
-        prime or baby-step-giant-step algorithm as presented in
-
-        Washington, Lawrence C.; 'Elliptic Curves: Number Theory and
-        Cryptography', Boca Raton 2003
-
-        REMARKS (John Cremona, 2008-02-10): if we know the group order
-        already then there is no need to use BSGS to compute a
-        multiple of the order.  It would also be good to cache the
-        factorization of the order.  But we don't want to rely on this
-        since this function is used in the group order computation!
-
-        """
-        try:
-            return self._order
-        except AttributeError:
-            pass
-        if self.is_zero():
-            return rings.Integer(1)
-        E = self.curve()
-        K = E.base_ring()
-        if K.is_prime_field():
-            e = E._gp()
-            self._order = rings.Integer(e.ellzppointorder(list(self.xy())))
-            return self._order
-        else:
-            P = self
-            E = P.curve()
-            k = E.base_ring()
-            q = k.order()
-
-            if q < 256: # TODO: check this heuristc
-                n = 1
-                while not P.is_zero():
-                    n += 1
-                    P += self
-                self._order = rings.Integer(n)
-                return self._order
-
-            try:
-                M=E._order
-                try:
-                    plist=E._prime_factors_of_order
-                except:
-                    plist = M.prime_divisors()
-                    E._prime_factors_of_order=plist
-            except:
-
-                # 1. Compute Q = (q+1)P
-                Q = (q+1) * P
-
-                # 2. Choose an integer m with m > q^{1/4}. Compute and
-                # store the points jP for j = 0,1,2,...,m
-
-                m = rings.Integer((q**rings.RR(0.25)).floor() + 1) #
-
-                l = dict()
-                X = E(0)
-                for j in range(0,m+1):
-                    l[X] = j
-                    X = P + X
-
-                    # 3. Compute the points Q + k(2mP) for k = -m,
-                    # -(m+1), ..., m until there is a match Q + k(2mP)
-                    # = +- jP with a point or its negative on the list
-
-                    twomP = (2*m*P)
-                    for k in range(-m,m+1):
-                        W =  Q + k*twomP
-                        if W in l:
-                            # 4a. Conclude that (q + 1 + 2mk - j)P =
-                            # oo. Let M = q + 1 + 2mk - j
-                            M = q + 1 + 2*m*k - l[W]
-                            break
-                        elif -W in l:
-                            # 4b. Conclude that (q + 1 + 2mk + j)P =
-                            # oo. Let M = q + 1 + 2mk + j
-                            M = q + 1 + 2*m*k + l[-W]
-                            break
-
-                # 5. Now M is a multiple of the point's order and
-                # plist is a list of the distinct prime factors of M.
-
-                # Change by John Cremona 2008-02-10: avoid repeated
-                # factorization of M
-
-                plist = M.prime_divisors()
-
-            # 6. Compute (M/p)P for p in plist. If (M/p)P = 0 for some
-            # p, replace M with M/p and repeat. If (M/pi)P != 0 for
-            # all p then M is the order of the point P.
-
-            while True:
-                N = M
-                plist = filter(lambda p: p.divides(M), plist)
-                for p in plist:
-                    if (int(M/p) * P).is_zero():
-                        M = M/p
-                        break
-                if N == M:
-                    self._order = rings.Integer(M)
-                    return self._order
 

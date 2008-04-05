@@ -23,7 +23,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.misc import cputime
 from sage.misc.randstate import current_randstate
 import sys
 from math import ceil, floor, sqrt
@@ -37,6 +36,7 @@ from sage.rings.all import Integer, ZZ, PolynomialRing, ComplexField, FiniteFiel
 import gp_cremona
 import sea
 from sage.groups.all import AbelianGroup
+import sage.groups.generic as generic
 import ell_point
 from sage.calculus.calculus import log
 from sage.rings.arith import integer_ceil, integer_floor, gcd
@@ -601,34 +601,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         self._order = Integer(1+sum([len(self.lift_x(x,all=True)) for x in self.base_field()]))
         return self._order
 
-    def _merge_points(self,P1,n1,P2):
-        """
-        Given a point P1 of order n1 and another point P2, returns
-        (Q,m) where Q is a point Q of order m=lcm(n1,n2) where n2 is
-        the order of P2
-
-        EXAMPLES:
-            sage: F.<a>=GF(3^6,'a')
-            sage: E=EllipticCurve([a^5 + 2*a^3 + 2*a^2 + 2*a, a^4 + a^3 + 2*a + 1])
-            sage: P=E(2*a^5 + 2*a^4 + a^3 + 2 , a^4 + a^3 + a^2 + 2*a + 2)
-            sage: P.order()
-            7
-            sage: Q=E(2*a^5 + 2*a^4 + 1 , a^5 + 2*a^3 + 2*a + 2 )
-            sage: Q.order()
-            4
-            sage: E._merge_points(P,7,Q)
-            ((2*a^2 + 2*a + 1 : a^5 + 2*a^4 + a^3 + 2*a^2 + a + 1 : 1), 28)
-        """
-        if n1*P2==self(0):
-            return (P1,n1)
-        n2=P2.order()
-        if n1.divides(n2):
-            return (P2,n2)
-        m,k1,k2 = tidy_lcm(n1,n2);
-        m1=n1//k1
-        m2=n2//k2
-        return (m1*P1+m2*P2, m)
-
     def cardinality_from_group(self):
         r"""
         Return the cardinality of self over the base field.  Will be
@@ -651,76 +623,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         A, gens = self.abelian_group()
         return self._order
-
-
-    def _cremona_abgrp_data(self):
-        """
-        Interface with Cremona's gp program for finding the group
-        structure over finite prime fields
-
-        Returns a list whose first element is the list of structure
-        constants ([n] or [n1,n2] with n2|n1) and the second is the
-        corresponding list of generators
-
-        Users are recommended to use abelian_group() instead.
-
-        EXAMPLES:
-            sage: E=EllipticCurve(GF(11),[2,5])
-            sage: E._cremona_abgrp_data()                       # generators random
-            [[10], [[0, 7]]]
-            sage: EllipticCurve(GF(41),[2,5])._cremona_abgrp_data() # generators random
-            [[22, 2], [[35, 8], [23, 0]]]
-        """
-        E = self._gp()
-        gp = E.parent()
-        return eval(gp.eval('[%s.isotype, lift(%s.generators)]'%(E.name(), E.name())))
-
-    def abelian_group_prime_field(self):
-        """
-        Returns the abelian group structure of the group of points on
-        this elliptic curve.  Only for prime fields, since is uses an
-        underlying gp program which has this restriction.  This is now
-        essentially obsolete, replaced by the Sage function
-        abelian_group() for arbitrary finite fields.
-
-        WARNING:
-            The underlying algorithm is definitely *not* intended for use with
-            *large* finite fields!  The factorization of order of elements
-            must be feasible.
-
-        NOTE:
-            The algorithm uses random points on the curve and hence the
-            generators are likely to differ from one run to another; but the
-            group is cached so the generators will not change in any one run
-            of Sage.
-
-        OUTPUT:
-            -- an abelian group
-            -- tuple of images of each of the generators of the
-               abelian group as points on this curve
-
-        AUTHOR: John Cremona
-
-        EXAMPLES:
-            sage: E=EllipticCurve(GF(11),[2,5])
-            sage: E.abelian_group_prime_field()
-            (Multiplicative Abelian Group isomorphic to C10, ...
-            sage: EllipticCurve(GF(41),[2,5]).abelian_group_prime_field()
-            (Multiplicative Abelian Group isomorphic to C22 x C2, ...
-        """
-        try:
-            return self.__abelian_group
-        except AttributeError:
-            pass
-
-        if self.base_ring().degree() == 1:
-            I, G = self._cremona_abgrp_data()
-            A = AbelianGroup(I)
-            G = tuple([self(P) for P in G])
-        else:
-            raise NotImplementedError
-        self.__abelian_group = A, G
-        return A, G
 
     def gens(self):
         """
@@ -854,9 +756,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         if d>1:
             d = j.minimal_polynomial().degree()
 
-        lower, upper = Hasse_bounds(q)
+        bounds = Hasse_bounds(q)
+        lower, upper = bounds
         if debug:
-            print "Lower and upper bounds on group order: [",lower,",",upper,"]"
+            print "Lower and upper bounds on group order: ",bounds
 
         group_order_known = False
         try:
@@ -911,22 +814,17 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             if debug:
                 "Getting a new random point"
                 sys.stdout.flush()
-            t=cputime()
             Q = self.random_point()
             npts += 1
             if debug:
                 print "Q = ",Q,":",
-                t=cputime()
                 print " Order(Q) = ", Q.order()
-                sys.stdout.flush()
 
-            t=cputime()
             Q1=n1*Q;
-            sys.stdout.flush()
 
             if Q1.is_zero() and npts>=10: # then P1,n1 will not change but we may increase n2
                 if debug: print "Case 2: n2 may increase"
-                m,a = P1.linear_relation(Q)
+                a,m = generic.linear_relation(P1,Q,operation='+')
                 if debug: print "linear relation gives m=",m,", a=",a
                 if m>1: # else Q is in <P1>
                     Q=Q-(a//m)*P1; # has order m and is disjoint from P1
@@ -939,7 +837,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                             print "Group order now ",n1*n2,"=",n1,"*",n2
                     else:     # we must merge P2 and Q:
                         oldn2=n2 # holds old value
-                        P2,n2=self._merge_points(P2,n2,Q);
+                        P2,n2=generic.merge_points((P2,n2),(Q,m),operation='+');
                         P2._order=n2
                         if debug:
                             if n2>oldn2:
@@ -953,7 +851,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     P3=(n1//n2)*P1  # so P2,P3 are a basis for n2-torsion
                     P3._order=n2
                     if debug: print "storing generator ",P3," of ",n2,"-torsion"
-                P1,n1=self._merge_points(P1,n1,Q)
+                m = generic.order_from_bounds(Q,bounds,n1,operation='+')
+                P1,n1=generic.merge_points((P1,n1),(Q,m))
                 P1._order=n1
                 if debug:
                     print "Replacing first  generator by ",P1," of order ",
@@ -962,7 +861,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 # Now replace P2 by a point of order n2 s.t. it and
                 # (n1//n2)*P1 are still a basis for n2-torsion:
                 if n2>1:
-                    m,a = P1.linear_relation(P3)
+                    a,m = generic.linear_relation(P1,P3,operation='+')
                     if debug: print "linear relation gives m=",m,", a=",a
                     P3=P3-(a//m)*P1
                     P3._order=m
@@ -970,12 +869,12 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     if m==n2:
                         P2=P3
                     else:
-                        m,a = P1.linear_relation(P2)
+                        a,m = generic.linear_relation(P1,P2,operation='+')
                         if debug: print "linear relation gives m=",m,", a=",a
                         P2=P2-(a//m)*P1;
                         P2._order=m
                         if debug: print "Second  P2 component =",P2
-                        P2,n2=self._merge_points(P2,n2,P3)
+                        P2,n2=generic.merge_points((P2,n2),(P3,m))
                         P2._order=n2
                         if debug: print "Combined P2 component =",P2
 
@@ -989,7 +888,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     print " and not ",n2
                     raise ValueError
                 if n2>1:
-                    if P1.linear_relation(P2)[0]!=n2:
+                    if generic.linear_relation(P1,P2,operation='+')[1]!=n2:
                         print "Generators not independent!"
                         raise ValueError
                 print "Generators: P1 = ",P1," of order ",n1,
@@ -1007,36 +906,3 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             else:
                 self.__abelian_group = AbelianGroup([n1,n2]), (P1,P2)
         return self.__abelian_group
-
-
-# utility function
-def tidy_lcm(m,n):
-    """
-    Utility function: given two positive integers m,n, returns a
-    triple (l,m1,n1 such that l=lcm(m,n)=m1*n1 where m1|m, n1|n and
-    gcd(m1,n1)=1.  All with no factorization.
-
-    Used to construct an element of order l from elements of orders
-    m,n in any group.
-
-    EXAMPLES:
-        sage: from sage.schemes.elliptic_curves.ell_finite_field import tidy_lcm
-        sage: tidy_lcm(120,36)
-        (360, 40, 9)
-    """
-    m0=m; n0=n
-    g=gcd(m,n)
-    l=m*n//g      # = lcm(m,n)
-    g=gcd(m,n//g) # divisible by those primes which divide n to a
-                  # higher power than m
-
-    while not g==1:
-        m//=g
-        g=gcd(m,g)
-
-    n=l//m;
-    assert l==m*n
-    assert gcd(m,n)==1
-    assert m.divides(m0)
-    assert n.divides(n0)
-    return (l,m,n)

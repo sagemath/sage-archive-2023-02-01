@@ -3261,6 +3261,17 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             Traceback (most recent call last):
             ...
             NotImplementedError: factorization of multivariate polynomials over non-prime fields explicitly disabled due to bugs in Singular
+
+        Also, factorization for finite prime fields with
+        characteristic $> 2^{29}$ is not supported either.
+
+            sage: q = 1073741789
+            sage: T.<aa, bb> = PolynomialRing(GF(q))
+            sage: f = aa^2 + 12124343*bb*aa + 32434598*bb^2
+            sage: f.factor()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.
         """
         cdef ring *_ring
         cdef poly *ptemp
@@ -3272,6 +3283,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         if self.base_ring().is_finite() and not self.base_ring().is_prime_field():
             raise NotImplementedError, "factorization of multivariate polynomials over non-prime fields explicitly disabled due to bugs in Singular"
+
+        if self.base_ring().is_finite() and self.base_ring().characteristic() > 1<<29:
+            raise NotImplementedError, "Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented."
 
         parent = self._parent
         _ring = parent._ring

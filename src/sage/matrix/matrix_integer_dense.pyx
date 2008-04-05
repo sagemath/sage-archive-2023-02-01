@@ -2801,8 +2801,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self.nrows() == 1:
             return B, self[0,0]
 
-        mpz_init(mp_D)
-
 
         if right:
             if self._ncols != B._nrows:
@@ -2817,6 +2815,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if m == 0 or n == 0:
                 return self.new_matrix(nrows = n, ncols = m), Integer(1)
 
+            mpz_init(mp_D)
             mp_N = <mpz_t *> sage_malloc( n * m * sizeof(mpz_t) )
             for i from 0 <= i < n * m:
                 mpz_init( mp_N[i] )
@@ -2837,6 +2836,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if m == 0 or n == 0:
                 return self.new_matrix(nrows = m, ncols = n), Integer(1)
 
+            mpz_init(mp_D)
             mp_N = <mpz_t *> sage_malloc( n * m * sizeof(mpz_t) )
             for i from 0 <= i < n * m:
                 mpz_init( mp_N[i] )

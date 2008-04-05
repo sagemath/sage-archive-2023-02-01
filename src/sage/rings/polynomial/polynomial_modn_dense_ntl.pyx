@@ -842,6 +842,12 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             x + 1
             sage: g * x^4 + r
             x^7 + x + 1
+
+            sage: f = x^3 + 1
+            sage: f % 3
+            Traceback (most recent call last):
+            ...
+            RuntimeError
         """
         if PY_TYPE(self) != PY_TYPE(right) or (<Element>self)._parent is not (<Element>right)._parent:
             self, right = canonical_coercion(self, right)
@@ -849,11 +855,10 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         cdef Polynomial_dense_modn_ntl_zz numer = <Polynomial_dense_modn_ntl_zz>self
         cdef Polynomial_dense_modn_ntl_zz denom = <Polynomial_dense_modn_ntl_zz>right
         cdef Polynomial_dense_modn_ntl_zz r = numer._new()
-        cdef bint do_sig = zz_pX_deg(numer.x) + zz_pX_deg(denom.x) > 1000
-        if do_sig: _sig_on
+        _sig_on
         numer.c.restore_c()
         zz_pX_mod(r.x, numer.x, denom.x)
-        if do_sig: _sig_off
+        _sig_off
         return r
 
     def shift(self, n):

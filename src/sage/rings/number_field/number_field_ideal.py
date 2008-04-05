@@ -70,7 +70,7 @@ def convert_from_zk_basis(field, hnf):
     EXAMPLES:
         sage: from sage.rings.number_field.number_field_ideal import convert_from_zk_basis
         sage: k.<a> = NumberField(x^2 + 23)
-        sage: I = k.factor_integer(3)[0][0]; I
+        sage: I = k.factor(3)[0][0]; I
         Fractional ideal (3, -1/2*a + 1/2)
         sage: hnf = I.pari_hnf(); hnf
         [3, 0; 0, 1]
@@ -122,7 +122,7 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES:
             sage: K.<a> = NumberField(x^2 + 3); K
             Number Field in a with defining polynomial x^2 + 3
-            sage: f = K.factor_integer(15); f
+            sage: f = K.factor(15); f
             (Fractional ideal (1/2*a - 3/2))^2 * (Fractional ideal (5))
             sage: cmp(f[0][0], f[1][0])
             -1
@@ -149,7 +149,7 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES:
             sage: K.<a> = NumberField(x^2 + 23); K
             Number Field in a with defining polynomial x^2 + 23
-            sage: I = K.factor_integer(13)[0][0]; I
+            sage: I = K.factor(13)[0][0]; I
             Fractional ideal (13, a - 4)
             sage: I._contains_(a)
             False
@@ -164,7 +164,7 @@ class NumberFieldIdeal(Ideal_generic):
 
             sage: K.<a> = NumberField(x^4 + 3); K
             Number Field in a with defining polynomial x^4 + 3
-            sage: I = K.factor_integer(13)[0][0]
+            sage: I = K.factor(13)[0][0]
             sage: I  # random sign in output
             Fractional ideal (-2*a^2 - 1)
             sage: 2/3 in I
@@ -191,7 +191,7 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 + 389); K
             Number Field in a with defining polynomial x^3 + 389
-            sage: I = K.factor_integer(17)[0][0]
+            sage: I = K.factor(17)[0][0]
             sage: I       # random sign in generator
             Fractional ideal (-100*a^2 + 730*a - 5329)
             sage: hnf = I.pari_hnf(); hnf
@@ -216,7 +216,7 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES:
             sage: K.<a> = NumberField(x^4 + 389); K
             Number Field in a with defining polynomial x^4 + 389
-            sage: I = K.factor_integer(17)[0][0]; I
+            sage: I = K.factor(17)[0][0]; I
             Fractional ideal (17, a^2 - 6)
             sage: I._repr_short()
             '(17, a^2 - 6)'
@@ -285,7 +285,7 @@ class NumberFieldIdeal(Ideal_generic):
 
         EXAMPLES:
             sage: K.<z> = CyclotomicField(7)
-            sage: I = K.factor_integer(11)[0][0]
+            sage: I = K.factor(11)[0][0]
             sage: I.basis()           # warning -- choice of basis can be somewhat random
             [11, 11*z, 11*z^2, z^3 + 5*z^2 + 4*z + 10, z^4 + z^2 + z + 5, z^5 + z^4 + z^3 + 2*z^2 + 6*z + 5]
 
@@ -314,7 +314,7 @@ class NumberFieldIdeal(Ideal_generic):
 
         EXAMPLES:
             sage: K.<z> = CyclotomicField(7)
-            sage: I = K.factor_integer(11)[0][0]; I
+            sage: I = K.factor(11)[0][0]; I
             Fractional ideal (-2*z^4 - 2*z^2 - 2*z + 1)
             sage: A = I.free_module()
             sage: A              # warning -- choice of basis can be somewhat random
@@ -367,7 +367,7 @@ class NumberFieldIdeal(Ideal_generic):
 
         An example of intersecting ideals by intersecting free modules.
             sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8)
-            sage: I = K.factor_integer(2)
+            sage: I = K.factor(2)
             sage: p1 = I[0][0]; p2 = I[1][0]
             sage: N = p1.free_module().intersection(p2.free_module()); N
             Free module of degree 3 and rank 3 over Integer Ring
@@ -710,11 +710,11 @@ class NumberFieldIdeal(Ideal_generic):
             Number Field in a with defining polynomial x^5 + 2
             sage: i = K.ideal(38); i
             Fractional ideal (38)
-            sage: i.valuation(K.factor_integer(19)[0][0])
+            sage: i.valuation(K.factor(19)[0][0])
             1
-            sage: i.valuation(K.factor_integer(2)[0][0])
+            sage: i.valuation(K.factor(2)[0][0])
             5
-            sage: i.valuation(K.factor_integer(3)[0][0])
+            sage: i.valuation(K.factor(3)[0][0])
             0
             sage: i.valuation(0)
             Traceback (most recent call last):
@@ -807,7 +807,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         EXAMPLES:
             sage: K.<a> = CyclotomicField(11); K
             Cyclotomic Field of order 11 and degree 10
-            sage: I = K.factor_integer(31)[0][0]; I
+            sage: I = K.factor(31)[0][0]; I
             Fractional ideal (-3*a^7 - 4*a^5 - 3*a^4 - 3*a^2 - 3*a - 3)
             sage: I.divides(I)
             True
@@ -971,7 +971,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         EXAMPLES:
             sage: K.<a> = NumberField(x^2 + 2); K
             Number Field in a with defining polynomial x^2 + 2
-            sage: f = K.factor_integer(2); f
+            sage: f = K.factor(2); f
             (Fractional ideal (-a))^2
             sage: f[0][0].ramification_index()
             2
@@ -1002,7 +1002,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
 
         EXAMPLES:
             sage: K.<i> = NumberField(x^2 + 1); O = K.maximal_order()
-            sage: I = K.factor_integer(3)[0][0]
+            sage: I = K.factor(3)[0][0]
             sage: Q, quo, lift = I._p_quotient(3); Q
             Vector space quotient V/W of dimension 2 over Finite Field of size 3 where
             V: Vector space of dimension 2 over Finite Field of size 3
@@ -1012,7 +1012,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
 
         We do an example with a split prime and show byother the quo and lift maps:
             sage: K.<i> = NumberField(x^2 + 1); O = K.maximal_order()
-            sage: I = K.factor_integer(5)[0][0]
+            sage: I = K.factor(5)[0][0]
             sage: Q,quo,lift = I._p_quotient(5)
             sage: lift(quo(i))
             3
@@ -1081,7 +1081,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         EXAMPLES:
             sage: K.<a> = NumberField(x^5 + 2); K
             Number Field in a with defining polynomial x^5 + 2
-            sage: f = K.factor_integer(19); f
+            sage: f = K.factor(19); f
             (Fractional ideal (a^2 + a - 3)) * (Fractional ideal (-2*a^4 - a^2 + 2*a - 1)) * (Fractional ideal (a^2 + a - 1))
             sage: [i.residue_class_degree() for i, _ in f]
             [2, 2, 1]
@@ -1171,7 +1171,7 @@ def quotient_char_p(I, p):
         Basis matrix:
         []
 
-        sage: I = K.factor_integer(13)[0][0]; I
+        sage: I = K.factor(13)[0][0]; I
         Fractional ideal (-3*i - 2)
         sage: I.residue_class_degree()
         1

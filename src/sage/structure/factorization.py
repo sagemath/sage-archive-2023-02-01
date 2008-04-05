@@ -445,7 +445,7 @@ class Factorization(SageObject):
             sage: F.is_commutative()
             True
             sage: K = QuadraticField(23, 'a')
-            sage: F = K.factor_integer(13)
+            sage: F = K.factor(13)
             sage: F.is_commutative()
             True
             sage: R.<x,y,z> = FreeAlgebra(QQ, 3)

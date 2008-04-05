@@ -182,7 +182,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: K.<i>=NumberField(x^2+1)
-            sage: P1,P2 =(K.factor_integer(5)[j][0] for j in (0,1))
+            sage: P1,P2 =(K.factor(5)[j][0] for j in (0,1))
             sage: E=EllipticCurve([i/5,i/5,i/5,i/5,i/5])
             sage: E.is_local_integral_model(P1,P2)
             False
@@ -202,7 +202,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: K.<i>=NumberField(x^2+1)
-            sage: P1,P2 =(K.factor_integer(5)[j][0] for j in (0,1))
+            sage: P1,P2 =(K.factor(5)[j][0] for j in (0,1))
             sage: E=EllipticCurve([i/5,i/5,i/5,i/5,i/5])
             sage: E.local_integral_model((P1,P2))
             Elliptic Curve defined by y^2 + (-i)*x*y + (-25*i)*y = x^3 + 5*i*x^2 + 125*i*x + 3125*i over Number Field in i with defining polynomial x^2 + 1
@@ -224,7 +224,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         EXAMPLES:
             sage: K.<i>=NumberField(x^2+1)
             sage: E=EllipticCurve([i/5,i/5,i/5,i/5,i/5])
-            sage: P1,P2 = (K.factor_integer(5)[j][0] for j in (0,1))
+            sage: P1,P2 = (K.factor(5)[j][0] for j in (0,1))
             sage: Emin=E.global_integral_model()
             sage: Emin.is_global_integral_model()
             True
@@ -238,7 +238,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         EXAMPLES:
             sage: K.<i>=NumberField(x^2+1)
             sage: E=EllipticCurve([i/5,i/5,i/5,i/5,i/5])
-            sage: P1,P2 = (K.factor_integer(5)[j][0] for j in (0,1))
+            sage: P1,P2 = (K.factor(5)[j][0] for j in (0,1))
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 + (-i)*x*y + (-25*i)*y = x^3 + 5*i*x^2 + 125*i*x + 3125*i over Number Field in i with defining polynomial x^2 + 1
 

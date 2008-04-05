@@ -15,7 +15,7 @@ EXAMPLES:
 We reduce mod a prime for which the ring of integers is not
 monogenic (i.e., 2 is an essential discriminant divisor):
     sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8)
-    sage: F = K.factor_integer(2); F
+    sage: F = K.factor(2); F
     (Fractional ideal (1/2*a^2 - 1/2*a + 1)) * (Fractional ideal (a^2 - 2*a + 3)) * (Fractional ideal (3/2*a^2 - 5/2*a + 4))
     sage: F[0][0].residue_field()
     Residue field of Fractional ideal (1/2*a^2 - 1/2*a + 1)
@@ -30,7 +30,7 @@ AUTHORS:
 
 TESTS:
     sage: K.<z> = CyclotomicField(7)
-    sage: P = K.factor_integer(17)[0][0]
+    sage: P = K.factor(17)[0][0]
     sage: ff = K.residue_field(P)
     sage: a = ff(z)
     sage: parent(a*a)
@@ -40,7 +40,7 @@ Reducing a curve modulo a prime:
     sage: K.<s> = NumberField(x^2+23)
     sage: OK = K.ring_of_integers()
     sage: E = EllipticCurve([0,0,0,K(1),K(5)])
-    sage: pp = K.factor_integer(13)[0][0]
+    sage: pp = K.factor(13)[0][0]
     sage: Fpp = OK.residue_field(pp)
     sage: E.base_extend(Fpp)
     Elliptic Curve defined by y^2  = x^3 + x + 5 over Residue field of Fractional ideal (13, s - 4)
@@ -220,7 +220,7 @@ class ResidueField_generic(Field):
     The class representing a generic residue field.
 
     EXAMPLES:
-        sage: I = QQ[i].factor_integer(2)[0][0]; I
+        sage: I = QQ[i].factor(2)[0][0]; I
         Fractional ideal (I + 1)
         sage: k = I.residue_field(); k
         Residue field of Fractional ideal (I + 1)
@@ -285,7 +285,7 @@ class ResidueField_generic(Field):
         field to this residue class field.
 
         EXAMPLES:
-            sage: I = QQ[2^(1/3)].factor_integer(2)[0][0]; I
+            sage: I = QQ[2^(1/3)].factor(2)[0][0]; I
             Fractional ideal (-a)
             sage: k = I.residue_field(); k
             Residue field of Fractional ideal (-a)
@@ -301,7 +301,7 @@ class ResidueField_generic(Field):
     def lift_map(self):
         """
         EXAMPLES:
-            sage: I = QQ[3^(1/3)].factor_integer(5)[1][0]; I
+            sage: I = QQ[3^(1/3)].factor(5)[1][0]; I
             Fractional ideal (-a + 2)
             sage: k = I.residue_field(); k
             Residue field of Fractional ideal (-a + 2)
@@ -343,7 +343,7 @@ class ReductionMap:
     class field.
 
     EXAMPLES:
-        sage: I = QQ[sqrt(17)].factor_integer(5)[0][0]; I
+        sage: I = QQ[sqrt(17)].factor(5)[0][0]; I
         Fractional ideal (5)
         sage: k = I.residue_field(); k
         Residue field in sqrt17bar of Fractional ideal (5)
@@ -356,7 +356,7 @@ class ReductionMap:
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8)
-            sage: F = K.factor_integer(2)[0][0].residue_field()
+            sage: F = K.factor(2)[0][0].residue_field()
             sage: F.reduction_map()
             Partially defined reduction map from Number Field in a with defining polynomial x^3 + x^2 - 2*x + 8 to Residue field of Fractional ideal (1/2*a^2 - 1/2*a + 1)
         """
@@ -371,7 +371,7 @@ class ReductionMap:
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 32)
-            sage: F = K.factor_integer(2)[0][0].residue_field()
+            sage: F = K.factor(2)[0][0].residue_field()
             sage: F.reduction_map().domain()
             Number Field in a with defining polynomial x^3 + x^2 - 2*x + 32
         """
@@ -383,7 +383,7 @@ class ReductionMap:
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 + 128)
-            sage: F = K.factor_integer(2)[0][0].residue_field()
+            sage: F = K.factor(2)[0][0].residue_field()
             sage: F.reduction_map().codomain()
             Residue field of Fractional ideal (-1/4*a)
         """
@@ -398,7 +398,7 @@ class ReductionMap:
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^2 + 1)
-            sage: F = K.factor_integer(2)[0][0].residue_field()
+            sage: F = K.factor(2)[0][0].residue_field()
             sage: r = F.reduction_map(); r
             Partially defined reduction map from Number Field in a with defining polynomial x^2 + 1 to Residue field of Fractional ideal (a + 1)
             sage: r(2 + a)
@@ -416,7 +416,7 @@ class ReductionMap:
         """
         EXAMPLES:
             sage: K.<theta_5> = CyclotomicField(5)
-            sage: F = K.factor_integer(7)[0][0].residue_field()
+            sage: F = K.factor(7)[0][0].residue_field()
             sage: F.reduction_map().__repr__()
             'Partially defined reduction map from Cyclotomic Field of order 5 and degree 4 to Residue field in theta_5bar of Fractional ideal (7)'
         """
@@ -428,7 +428,7 @@ class LiftingMap:
 
     EXAMPLES:
         sage: K.<a> = NumberField(x^3 + 2)
-        sage: F = K.factor_integer(5)[0][0].residue_field()
+        sage: F = K.factor(5)[0][0].residue_field()
         sage: F.degree()
         2
         sage: L = F.lift_map(); L
@@ -444,7 +444,7 @@ class LiftingMap:
 
         EXAMPLES:
             sage: K.<theta_5> = CyclotomicField(5)
-            sage: F = K.factor_integer(7)[0][0].residue_field()
+            sage: F = K.factor(7)[0][0].residue_field()
             sage: F.lift_map()
             Lifting map from Residue field in theta_5bar of Fractional ideal (7) to Cyclotomic Field of order 5 and degree 4
         """
@@ -459,7 +459,7 @@ class LiftingMap:
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^5 + 2)
-            sage: F = K.factor_integer(7)[0][0].residue_field()
+            sage: F = K.factor(7)[0][0].residue_field()
             sage: L = F.lift_map(); L
             Lifting map from Residue field in abar of Fractional ideal (-2*a^4 + a^3 - 4*a^2 + 2*a - 1) to Number Field in a with defining polynomial x^5 + 2
             sage: L.domain()
@@ -473,7 +473,7 @@ class LiftingMap:
 
         EXAMPLES:
             sage: K.<a> = CyclotomicField(7)
-            sage: F = K.factor_integer(5)[0][0].residue_field()
+            sage: F = K.factor(5)[0][0].residue_field()
             sage: L = F.lift_map(); L
             Lifting map from Residue field in abar of Fractional ideal (5) to Cyclotomic Field of order 7 and degree 6
             sage: L.codomain()
@@ -487,7 +487,7 @@ class LiftingMap:
 
         EXAMPLES:
             sage: K.<a> = CyclotomicField(7)
-            sage: F = K.factor_integer(5)[0][0].residue_field()
+            sage: F = K.factor(5)[0][0].residue_field()
             sage: L = F.lift_map(); L
             Lifting map from Residue field in abar of Fractional ideal (5) to Cyclotomic Field of order 7 and degree 6
             sage: L(F.0)
@@ -504,7 +504,7 @@ class LiftingMap:
         """
         EXAMPLES:
             sage: K.<theta_12> = CyclotomicField(12)
-            sage: F.<tmod> = K.factor_integer(7)[0][0].residue_field()
+            sage: F.<tmod> = K.factor(7)[0][0].residue_field()
             sage: F.lift_map().__repr__()
             'Lifting map from Residue field in tmod of Fractional ideal (-3*theta_12^2 + 1) to Cyclotomic Field of order 12 and degree 4'
         """
@@ -539,7 +539,7 @@ cdef class NFResidueFieldHomomorphism(ResidueFieldHomomorphism):
         EXAMPLES:
         We create a residue field homomorphism:
             sage: K.<theta> = CyclotomicField(5)
-            sage: P = K.factor_integer(7)[0][0]
+            sage: P = K.factor(7)[0][0]
             sage: P.residue_class_degree()
             4
             sage: kk.<a> = P.residue_field(); kk
@@ -634,7 +634,7 @@ class ResidueFiniteField_prime_modn(ResidueField_generic, FiniteField_prime_modn
 
         EXAMPLES:
             sage: K.<i> = QuadraticField(-1)
-            sage: kk = ResidueField(K.factor_integer(5)[0][0])
+            sage: kk = ResidueField(K.factor(5)[0][0])
             sage: type(kk)
             <class 'sage.rings.residue_field.ResidueFiniteField_prime_modn'>
         """
@@ -713,7 +713,7 @@ class ResidueFiniteField_ext_pari(ResidueField_generic, FiniteField_ext_pari):
 
         EXAMPLES:
             sage: K.<aa> = NumberField(x^3 - 2)
-            sage: P = K.factor_integer(10007)[0][0]
+            sage: P = K.factor(10007)[0][0]
             sage: P.residue_class_degree()
             2
             sage: ff.<alpha> = P.residue_field(); ff

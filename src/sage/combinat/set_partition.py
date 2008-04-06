@@ -220,7 +220,7 @@ class SetPartitions_setparts(CombinatorialClass):
         set = self.set
 
         nonzero = []
-        expo = part.to_exp()
+        expo = [0]+part.to_exp()
 
         for i in range(len(expo)):
             if expo[i] != 0:

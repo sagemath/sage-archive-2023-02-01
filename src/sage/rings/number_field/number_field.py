@@ -1612,6 +1612,75 @@ class NumberField_generic(number_field_base.NumberField):
             raise ValueError, "No prime of degree %s above %s" % (degree, self.ideal(x))
         return ids[0]
 
+    def primes_of_degree_one_iter(self, num_integer_primes=10000, max_iterations=100):
+        r"""
+        Return an iterator yielding prime ideals of absolute degree one and small norm.
+
+        WARNING:
+            It is possible that there are no primes of $K$ of absolute degree
+            one of small prime norm, and it possible that this algorithm will
+            not find any primes of small norm.
+
+            See module sage.rings.number_field.small_primes_of_degree_one for details.
+
+        INPUT:
+            num_integer_primes (default: 10000) -- an integer.  We try
+                to find primes of absolute norm no greater than the
+                num_integer_primes-th prime number.  For example, if
+                num_integer_primes is 2, the largest norm found will
+                be 3, since the second prime is 3.
+            max_iterations (default: 100) -- an integer.  We test
+                max_iterations integers to find small primes before
+                raising StopIteration.
+
+        EXAMPLES:
+            sage: K.<z> = CyclotomicField(10)
+            sage: it = K.primes_of_degree_one_iter()
+            sage: Ps = [ it.next() for i in range(3) ]
+            sage: Ps # random
+            [Fractional ideal (z^3 + z + 1), Fractional ideal (3*z^3 - z^2 + z - 1), Fractional ideal (2*z^3 - 3*z^2 + z - 2)]
+            sage: [ P.norm() for P in Ps ] # random
+            [11, 31, 41]
+            sage: [ P.residue_class_degree() for P in Ps ]
+            [1, 1, 1]
+        """
+        from sage.rings.number_field.small_primes_of_degree_one import Small_primes_of_degree_one_iter
+        return Small_primes_of_degree_one_iter(self, num_integer_primes, max_iterations)
+
+    def primes_of_degree_one_list(self, n, num_integer_primes=10000, max_iterations=100):
+        r"""
+        Return a list of n prime ideals of absolute degree one and small norm.
+
+        WARNING:
+            It is possible that there are no primes of $K$ of absolute degree
+            one of small prime norm, and it possible that this algorithm will
+            not find any primes of small norm.
+
+            See module sage.rings.number_field.small_primes_of_degree_one for details.
+
+        INPUT:
+            num_integer_primes (default: 10000) -- an integer.  We try
+                to find primes of absolute norm no greater than the
+                num_integer_primes-th prime number.  For example, if
+                num_integer_primes is 2, the largest norm found will
+                be 3, since the second prime is 3.
+            max_iterations (default: 100) -- an integer.  We test
+                max_iterations integers to find small primes before
+                raising StopIteration.
+
+        EXAMPLES:
+            sage: K.<z> = CyclotomicField(10)
+            sage: Ps = K.primes_of_degree_one_list(3)
+            sage: Ps
+            [Fractional ideal (z^3 + z + 1), Fractional ideal (3*z^3 - z^2 + z - 1), Fractional ideal (2*z^3 - 3*z^2 + z - 2)]
+            sage: [ P.norm() for P in Ps ]
+            [11, 31, 41]
+            sage: [ P.residue_class_degree() for P in Ps ]
+            [1, 1, 1]
+        """
+        it = self.primes_of_degree_one_iter()
+        return [ it.next() for i in range(n) ]
+
     def _is_valid_homomorphism_(self, codomain, im_gens):
         """
         Return whether or not there is a homomorphism defined by the

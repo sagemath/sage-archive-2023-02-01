@@ -1545,6 +1545,24 @@ def sturm_bound(level, weight=2):
         30
         sage: sturm_bound(1,36)
         3
+        sage: sturm_bound(11)
+        2
+        sage: sturm_bound(Gamma0(11))
+        2
+        sage: sturm_bound(Gamma0(13))
+        3
+        sage: sturm_bound(Gamma0(16))
+        4
+        sage: sturm_bound(GammaH(16,[13]))
+        8
+        sage: sturm_bound(GammaH(16,[15]))
+        16
+        sage: sturm_bound(Gamma1(16))
+        32
+        sage: sturm_bound(Gamma1(13))
+        36
+        sage: sturm_bound(Gamma1(13),5)
+        72
 
     FURTHER DETAILS: This function returns a positive integer~$n$ such
     that the Hecke operators $T_1,\ldots, T_n$ acting on \emph{cusp
@@ -1585,21 +1603,13 @@ def sturm_bound(level, weight=2):
 
     AUTHOR:
         -- William Stein
-
-    EXAMPLES:
-        sage: sturm_bound(11)
-        2
-        sage: sturm_bound(Gamma0(11))
-        2
-        sage: sturm_bound(Gamma0(13))
-        3
-        sage: sturm_bound(Gamma1(13))
-        36
-        sage: sturm_bound(Gamma1(13),5)
-        72
     """
-    if congroup.is_Gamma0(level) or congroup.is_GammaH(level):
+    if congroup.is_Gamma0(level):
         level = level.level()
+    elif congroup.is_GammaH(level):
+        N = level.level()
+        index = euler_phi(N) // len(level._list_of_elements_in_H())
+        return sturm_bound(N, weight=weight) * index
     elif congroup.is_Gamma1(level):
         N = level.level()
         return sturm_bound(N, weight=weight) * euler_phi(N)

@@ -55,6 +55,7 @@ js.keyhandler.add('menu_up',             key = "KEY_UP")
 js.keyhandler.add('menu_right',          key = "KEY_RIGHT")
 js.keyhandler.add('menu_down',           key = "KEY_DOWN")
 js.keyhandler.add('menu_pick',           key = "KEY_ENTER")
+js.keyhandler.add('menu_pick',           key = "KEY_RETURN")
 
 
 """

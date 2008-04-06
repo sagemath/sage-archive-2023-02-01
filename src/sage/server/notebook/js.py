@@ -170,6 +170,24 @@ function async_release(id) {
 def notebook_lib():
     s= r"""
 
+/* DOCSTRINGS:
+
+All functions below must be documented using the following format,
+with the docstring in C-style comments.
+
+Short description.
+
+Longer description.
+
+INPUT:
+    each input variable name -- description of it.
+GLOBAL INPUT:
+    each global variable that significantly impacts
+    the behavior of this function and how
+OUTPUT:
+    decription of output or side effects.
+*/
+
 ///////////////////////////////////////////////////////////////////
 //
 // GLOBAL VARIABLES
@@ -272,6 +290,14 @@ var debug_keypress; //this gets set to a function when we set up the keyboards
 var in_debug_input = false;
 var in_slide_mode = false; //whether or not we're in slideshow mode
 var slide_hidden = false; //whether the current slide has the hidden input class
+
+
+/* If this flag is set, then the next call to jump_to_cell is ignored and
+   this flag is cleared.  We use this in some places to avoid changing the
+   focus. */
+var ignore_next_jump = false;
+
+
 
 var worksheet_locked;
 
@@ -482,6 +508,28 @@ function set_selection_range(input, start, end) {
     }
 }
 
+function get_cursor_position(cell) {
+    /* Return an integer that gives the position of the text cursor
+       in the cells input field.
+    INPUT:
+        cell -- an input cell (not the id but the actual DOM element)
+    OUTPUT:
+        a single integer
+    */
+    return get_selection_range(cell)[1];
+}
+
+function set_cursor_position(cell, n) {
+    /* Move the cursor position in the cell to position n.
+    INPUT:
+        cell -- an actual cell in the DOM, returned by get_cell
+        n -- a non-negative integer
+    */
+
+    // TODO: note for explorer:  may need to focus cell first.
+    set_selection_range(cell, n, n);
+}
+
 ///////////////////////////////////////////////////////////////////
 //
 // Misc page functions -- for making the page work nicely
@@ -676,8 +724,7 @@ function do_replacement(id, word,do_trim) {
 
     var pos = before_replacing_word.length + word.length;
 
-    //note for explorer:  may need to focus cell first.
-    set_selection_range(cell_input,pos,pos);
+    set_cursor_position(cell_input,pos);
 
     halt_introspection();
 }
@@ -1084,38 +1131,6 @@ function process_delete_worksheet_menu_submit() {
 
 
 
-function unlock_worksheet() {
-    lock = get_element("worksheet_lock");
-    lock.innerHTML = 'Enter Passcode: <input onKeyPress="return unlock_worksheet_submit(event,value);" id="lock_input" type="password">';
-    lock.innerHTML+= '<span id="unlock_error" class="red"></span>';
-    lock_input = get_element("lock_input");
-    lock_input.focus();
-}
-
-function unlock_worksheet_submit(e,passcode) {
-    if(is_submit(e)) {
-        document.cookie = "ws_"+worksheet_filename+"_passcode="+passcode;
-        async_request('/unlock_worksheet', unlock_worksheet_callback, 'worksheet_id='+worksheet_id);
-        return false;
-    }
-    return true;
-}
-
-function unlock_worksheet_callback(status, response_text) {
-    if(status == 'success' && response_text == 'ok') {
-        lock = get_element("worksheet_lock");
-        lock.parentNode.removeChild(lock);
-        worksheet_locked = false;
-    } else {
-        lock_input = get_element("lock_input");
-        lock_input.value = "";
-        lock_input.focus();
-        txt = get_element('unlock_error');
-        if(txt)
-            txt.innerHTML = 'incorrect';
-    }
-}
-
 function sync_active_cell_list() {
     async_request('/get_queue', sync_active_cell_list_callback, 'worksheet_id='+worksheet_id);
 }
@@ -1234,33 +1249,44 @@ function server_up() {
 ///////////////////////////////////////////////////////////////////
 
 function get_cell(id) {
+    /* Return the input cell as a DOM element with the given integer id.
+    INPUT:
+        id -- integer
+    OUTPUT:
+        a DOM element
+    */
     return get_element('cell_input_'+ id);
 }
 
 function cell_blur(id) {
+    /* This function is called when the cell with the given
+       id is blurred.  It removes whitespace around the input,
+       and if the cell has changed sends the changed input
+       back to the server.
+    INPUT:
+        id -- integer
+    OUTPUT:
+       true -- to avoid infinite recursion.
+    */
     var cell = get_cell(id);
-    if(cell == null) return;
-
-    /* Disable coloring and change to div for now */
-    cell.className="cell_input";
+    if(cell == null) { return true; }
     cell_input_minimize_size(cell);
-
     if(cell_has_changed)
         send_cell_input(id);
 
-    return true;  /* disable for now */
-
-    cell.className="hidden";
-
-   /* if(!in_slide_mode)
-        current_cell = -1; */
-
-    var t = cell.value.replaceAll("<","&lt;");
-
+    /* It is very important to return true here, or one gets an
+       infinite javascript recursion. */
     return true;
 }
 
 function send_cell_input(id) {
+    /* Send the input text of the current cell back to the server.  This is
+       typically called when the cursor leaves the current cell.
+    INPUT:
+       id -- an integer, id of the current cell
+    OUTPUT:
+       makes an async call back to the server sending the input text.
+    */
     cell = get_cell(id)
     if(cell == null) return;
 
@@ -1288,10 +1314,10 @@ function refocus_cell() {
     cell_focus(c);
 }
 
-//set and_delay to true if you want to refocus the browser in a keyevent
-//which expects a tab -- Opera apparently resists canceling the tab key
-//event -- so we can subvert that by breaking out of the call stack with
-//a little timeout.  Safari also has this problem.
+// Set and_delay to true if you want to refocus the browser in a keyeven
+// which expects a tab -- Opera apparently resists canceling the tab key
+// event -- so we can subvert that by breaking out of the call stack with
+// a little timeout.  Safari also has this problem.
 function cell_focus(id, bottom) {
     var cell = get_cell(id);
     if (cell) {
@@ -1319,7 +1345,11 @@ function cell_focused(cell, id) {
 }
 
 function move_cursor_to_top_of_cell(cell) {
-    set_selection_range(cell, 0,0);
+    /* Move the cursor to the first position in the given input cell.
+    INPUT:
+        cell -- an input cell as a DOM element
+    */
+    set_cursor_position(cell, 0);
 }
 
 function focus_delay(id,bottom) {
@@ -1411,12 +1441,6 @@ function cell_input_minimize_all() {
 
 function cell_delete_callback(status, response_text) {
     if (status == "failure") {
-     // cell = get_element('cell_outer_' + id_to_delete);
-     // var worksheet = get_element('worksheet_cell_list');
-     // worksheet.removeChild(cell);
-     // jump_to_cell(id_to_delete,-1);
-     // cell_id_list = delete_from_array(cell_id_list, id_to_delete);
-     // id_to_delete = -1;
         return;
     }
     var X = response_text.split(SEP);
@@ -1426,7 +1450,6 @@ function cell_delete_callback(status, response_text) {
     var cell = get_element('cell_outer_' + X[1]);
     var worksheet = get_element('worksheet_cell_list');
     worksheet.removeChild(cell);
-    jump_to_cell(X[1],-1);
     cell_id_list = delete_from_array(cell_id_list, X[1]);
 }
 
@@ -1473,10 +1496,20 @@ function cell_input_key_event(id, e) {
     } else if (key_join_cell(e)) {
         join_cell(id);
         return false;
-    } else if (key_delete_cell(e) && is_whitespace(cell_input.value)) {
+    } else if (key_delete_cell(e)) {
+        /* If we press backspace at the beginning of a cell,
+           join with the previous cell. */
+        if (get_cursor_position(cell_input) == 0) {
+            join_cell(id);
+            return false;
+        }
+    }
+/*    } else if (key_delete_cell(e) && is_whitespace(cell_input.value)) {
+        jump_to_cell(id,-1);
         cell_delete(id);
         return false;
     }
+    */
 
     if((introspect_id == id) && introspection_loaded && replacing) {
         if(!handle_replacement_controls(cell_input, e)) {
@@ -1517,10 +1550,10 @@ function cell_input_key_event(id, e) {
         }
     } else if (key_send_input(e)) {
        // User pressed shift-enter (or whatever the submit key is)
-       evaluate_cell(id, 0);
+       evaluate_cell(id, false);
        return false;
     } else if (key_send_input_newcell(e)) {
-       evaluate_cell(id, 1);
+       evaluate_cell(id, true);
        return false;
     } else if (key_comment(e) && !selection_is_empty) {
        return comment_cell(cell_input);
@@ -1531,7 +1564,7 @@ function cell_input_key_event(id, e) {
        return false;
     } else if (key_request_introspections(e) && selection_is_empty) {
        // command introspection (tab completion, ?, ??)
-       evaluate_cell(id, 2);
+       evaluate_cell_introspection(id,null,null);
        focus_delay(id,true);
        return false;
     } else if (key_indent(e) && !selection_is_empty) {
@@ -1597,6 +1630,35 @@ function debug_append(txt) {
 }
 
 function jump_to_cell(id, delta, bottom) {
+     /* Put the focus and cursor in the cell that is positioned delta
+     spots above or below the cell with given id.  If bottom is true
+     the cursor is positioned at the bottom of the cell that is put
+     in focus.
+
+     INPUT:
+         id -- an integer
+         delta -- an integer (default or 0: just focus on the cell
+                  with the given id).
+         bottom -- if true, puts the cursor at the end of the cell
+                   rather than the beginnning
+     GLOBAL INPUT:
+         ignore_next_jump -- if this variable
+            is set globally to true, then this function immediately
+            returns after setting it to false.  This is used because
+            several functions create new cells with unknown id's then
+            jump to them (example, when inserting a new cell after the
+            current one).  In some cases, e.g., when splitting or
+            joining cells, it is necessary to temporarily disable this
+            behavior, even though we do call those functions.   This
+            is done by simply setting ignore_next_jump to true.
+     OUTPUT:
+         Changes the focused cell.  Does not send any information
+         back to the server.
+     */
+     if (ignore_next_jump) {
+          ignore_next_jump = false;
+          return;
+     }
      if(delta != 0)
         id = id_of_cell_delta(id, delta)
     if(in_slide_mode) {
@@ -1681,63 +1743,174 @@ function uncomment_cell(input) {
 }
 
 function join_cell(id) {
-    var v = id_of_cell_delta(id, -1);
-    if(v == id) return;
+    /* Join the cell with given id to the cell before it.
+
+       The output of the resulting joined cells is the output of the
+       second cell, *unless* the input of the second cell is only
+       whitespace, in which case the output is the output of the first
+       cell.  We do this since a common way to delete a cell is to
+       empty its input, then hit backspace.   It would be very confusing
+       if the output of the second cell were retained.
+
+       INPUT:
+          id -- integer cell id.
+       OUTPUT:
+          change the state of the worksheet in the DOM, global variables,
+          etc., and updates the server on this change.
+    */
+
+
+    var id_prev = id_of_cell_delta(id, -1);
+    if(id_prev == id) return;
 
     var cell = get_cell(id);
-    var up = get_cell(v);
-    var n = up.value.length;
-    if(up.value[n-1] != '\n') {
-        up.value += '\n';
+    var cell_prev = get_cell(id_prev);
+
+    // We delete the cell above the cell with given id except in the
+    // one case when the cell with id has empty input, in which case
+    // we just delete that cell.
+    if (is_whitespace(cell.value)) {
+        cell_delete(id);
+        cell_prev.focus();
+        return;
+    }
+
+
+    // The lower cell in the join is now not empty.  So we
+    // delete the previous cell and put its contents in the
+    // bottom cell.
+    var val_prev = cell_prev.value;
+
+    cell_delete(id_prev);
+    cell.focus();
+
+    // The following is so that joining two cells keeps a newline
+    // between the input contents.
+    var n = val_prev.length;
+    if(val_prev[n-1] != '\n') {
+        val_prev += '\n';
         n += 1;
     }
-    cell.value = up.value + cell.value;
-    set_selection_range(cell, n,n);
+    cell.value = val_prev + cell.value;
+
+    // Send a message back to the server reporting that the cell
+    // has changed (as a result of joining).
+    send_cell_input(id);
+
+    // Set the cursor position in the joined cell to about
+    // where it was before the join.
+    set_cursor_position(cell, n);
+
+    // Finally resize the joined cell to account for its new text.
     cell_input_resize(cell);
-    cell_delete(v)
 }
 
 function split_cell(id) {
+    /*
+    Split the cell with the given id into two cells, inserting a new
+    cell after the current one and placing the cursor at the beginning
+    of the new cell.
+
+    INPUT:
+        id -- an integer
+
+    OUTPUT:
+        changes the state of the worksheet, DOM, and sends a message
+        back to the server.
+    */
     var cell = get_cell(id);
     var txt = text_cursor_split(cell)
-    cell.value = txt[0];
+    if (txt[1].length > 0 && txt[1][0] == '\n') {
+        txt[1] = txt[1].slice(1);
+    }
+
+    cell.value = txt[1];
     cell_input_resize(cell);
-    insert_new_cell_after(id,txt[1]);
+    send_cell_input(id);  /* tell the server about how the input just got split in half. */
+    set_cursor_position(cell,0);
+
+    /* Make sure that the cursor doesn't move to the new cell. */
+    ignore_next_jump = true;
+    insert_new_cell_before(id,txt[0]);
 }
 
 
 function worksheet_command(cmd) {
-   return ('/home/' + worksheet_filename + '/' + cmd);
+    /* Create a string formatted as a URL to send back to the server
+       and execute the given cmd on the current worksheet.
+
+    INPUT:
+        cmd -- string
+    OUTPUT:
+        a string
+    */
+    return ('/home/' + worksheet_filename + '/' + cmd);
 }
 
-function evaluate_cell(id, action) {
+function evaluate_cell(id, newcell) {
+    /*
+    Evaluate the given cell, and if newcell is true (the default),
+    insert a new cell after the current one.
+
+    INPUT:
+        id -- an integer that identifies a cell
+        newcell -- false -- do not insert a new cell after the current one
+                     1 -- do insert a new cell
+    GLOBAL INPUT:
+        worksheet_locked -- if true, pop up an alert and return immediately
+    OUTPUT:
+        a message is sent to the server and the "check for updates"
+        loop is started if it isn't already going; typically this
+        will result in output being generated that we get later
+    */
     if(worksheet_locked) {
         alert("This worksheet is read only.  Please make a copy or contact the owner to change it.")
         return;
     }
 
+    // append that cell id is currently having some sort of computation
+    // possibly occuring.  Note that active_cell_list is a global variable.
     active_cell_list = active_cell_list.concat([id]);
 
-    if(action == 2) { // Introspection
-       evaluate_cell_introspection(id,null,null);
-       return;
-    }
+    // Stop from sending the input again to the server when we leave focus and the
+    // send_cell_input function is called.
+    cell_has_changed = false;
 
-    cell_has_changed = false; //stop from sending the input twice.
+    // We only advance to the next cell if the worksheet is not in
+    // single cell mode.
     if(!in_slide_mode) {
        jump_to_cell(id,1);
     }
+
+    // Clear the output text and set the css to indicate that this
+    // is a running cell.
     cell_set_running(id);
 
+    // Finally make the request back to the server to do the actual calculation.
     var cell_input = get_cell(id);
     var I = cell_input.value;
     var input = escape0(I);
+    if (newcell) { newcell = 1; } else { newcell = 0; }
     async_request(worksheet_command('eval'), evaluate_cell_callback,
-            'newcell=' + action + '&id=' + id + '&input='+input);
+            'newcell=' + newcell + '&id=' + id + '&input='+input);
 }
 
 function evaluate_cell_introspection(id, before, after) {
+    /*
+    Do an introspection in the cell with given id.
+
+    INPUT:
+        id -- integer; the id a cell
+        before -- null, or if given all the text before the cursor
+        after -- null, or if given, all the text after the cursor
+    OUTPUT:
+        sends a message back to the server to do an introspection on
+        this cell; also set the cell running.
+    */
     var cell_input = get_cell(id);
+
+    active_cell_list = active_cell_list.concat([id]);
+    cell_set_running(id);
 
     replacing = false;
     if(before == null) {
@@ -1996,7 +2169,7 @@ function set_input_text(id, text) {
     jump_to_cell(id,0)
 
     pos = text.length - after_cursor.length;
-    set_selection_range(cell_input, pos, pos);
+    set_cursor_position(cell_input, pos);
 
     return false;
 }
@@ -2289,6 +2462,7 @@ function do_insert_new_cell_before(id, new_id, new_html) {
     var new_cell = make_new_cell(new_id, new_html);
     var cell = get_element('cell_outer_' + id);
     var worksheet = get_element('worksheet_cell_list');
+
     worksheet.insertBefore(new_cell, cell);
     var i = cell_id_list.indexOf(eval(id));
     cell_id_list = insert_into_array(cell_id_list, i, eval(new_id));
@@ -2752,21 +2926,17 @@ function font_warning() { /* alert(jsmath_font_msg); */
     s = s.replace('SAGE_URL',SAGE_URL)
 
     s += r"""
+
 ///////////////////////////////////////////////////////////////////
 //
 // KeyCodes (auto-generated from config.py and user's sage config
 //
 ///////////////////////////////////////////////////////////////////
 
-//this one isn't auto-generated.  its only purpose is to make //onKeyPress stuff simpler for text inputs and the whatlike.
-function is_submit(e) {
-  e = new key_event(e);
-  return key_generic_submit(e);
-}
-
 %s
+
 """%keyhandler.all_tests()
-    s += keyboards.get_keyboard('')
+
     return s
 
 

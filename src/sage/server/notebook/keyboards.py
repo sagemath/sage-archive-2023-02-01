@@ -1,4 +1,9 @@
-"""nodoctest
+"""
+Keyboard maps for the Sage Notebook
+
+AUTHORS:
+    -- Tom Boothby
+    -- William Stein
 """
 
 #############################################################################
@@ -29,37 +34,38 @@ IE mac
 LYNX / other commandline browsers (SAGE has a commandline interface!)
 the browser your cousin wrote for your sister's birthday
 
-If you think that your browser deserves support, go to the following
-page:
-http://www.modular.math.washington.edu/boothby/keys_capture.html
+If you think that your browser deserves support, go to the following page:
+
+http://sage.math.washington.edu/home/boothby/modular.old/www/keys_capture.html
+
 and follow the directions you see there.  Copy the output, and email
 it to boothby@u.washington.edu
 """
 
-def get_keyboard(s):
-    if s == 'mw':
-        return keyboard_moz_win()
-    if s == 'ml':
-        return keyboard_moz_lin()
-    if s == 'mm':
-        return keyboard_moz_mac()
-    if s == 'ow':
-        return keyboard_op_win()
-    if s == 'ol':
-        return keyboard_op_lin()
-    if s == 'om':
-        return keyboard_op_mac()
-    if s == 'sm':
-        return keyboard_saf()
-    if s == 'kl':
-        return keyboard_konq()
-    if s == 'iw':
-        return keyboard_ie()
 
-    #your browser is on the wrong list.  this would ideally prevent script
-    #errors, but your browser probably can't even handle AJAX, so what
-    #does it matter anyway?
-    return keyboard_moz_mac()
+def get_keyboard(s):
+    # keyboard_map is a dictionary defined at the bottom of this
+    # file that maps os/browser codes to functions that give the
+    # corresponding keymaps.
+    if keyboard_map.has_key(s):
+        codes = keyboard_map[s]()
+    else:
+        # Default in case something goes wrong.  This should
+        # never get called.
+        codes = keyboard_map['mm']()
+
+
+    defaults = {'KEY_CTRLENTER':'KEY_ENTER'}
+
+    # We now add in each default keycode if it isn't already present.
+    # The point of this is that it allows us to easily alias keys to
+    # predefined keys, but doesn't overwrite anything.
+    for key, val in defaults.iteritems():
+        if '%s ='%key not in codes:
+            codes += '\n%s = %s'%(key,val)
+
+    return codes
+
 
 
 
@@ -312,6 +318,7 @@ KEY_BKSPC = "8,8"
 KEY_SPC = "0,32"
 KEY_ENTER = "13,13"
 KEY_RETURN = "13,13"
+KEY_CTRLENTER = "77,0"
 KEY_TAB = "9,0"
 KEY_Q = "0,113"
 KEY_W = "0,119"
@@ -1107,3 +1114,16 @@ KEY_UP = "38,undefined"
 KEY_RIGHT = "39,undefined"
 KEY_DOWN = "40,undefined"
     """
+
+# Define mapping from 2-letter OS/Browser codes to the
+# functions defined above.
+
+keyboard_map = {'mw':keyboard_moz_win,
+                'ml':keyboard_moz_lin,
+                'mm':keyboard_moz_mac,
+                'ow':keyboard_op_win,
+                'ol':keyboard_op_lin,
+                'om':keyboard_op_mac,
+                'sm':keyboard_saf,
+                'kl':keyboard_konq,
+                'iw':keyboard_ie}

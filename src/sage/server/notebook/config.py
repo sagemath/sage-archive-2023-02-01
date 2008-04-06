@@ -44,6 +44,7 @@ js.keyhandler.add('uncomment',              key = "KEY_4",     ctrl=True)
 
 js.keyhandler.add('split_cell',             key = "KEY_ENTER", ctrl=True)
 js.keyhandler.add('split_cell',             key = "KEY_RETURN",ctrl=True)
+js.keyhandler.add('split_cell',             key = "KEY_CTRLENTER", ctrl=True)  # needed on OS X Firefox
 js.keyhandler.add('join_cell',              key = "KEY_BKSPC", ctrl=True)
 
 js.keyhandler.add('menu_left',           key = "KEY_LEFT")

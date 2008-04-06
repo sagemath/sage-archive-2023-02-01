@@ -1527,7 +1527,7 @@ def dimension_modular_forms(X, k=2):
 
 def sturm_bound(level, weight=2):
     r"""
-    Returns the Sturm bound for modules forms with given level and
+    Returns the Sturm bound for modular forms with given level and
     weight.
 
     INPUT:

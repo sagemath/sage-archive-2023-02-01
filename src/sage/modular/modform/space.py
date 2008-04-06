@@ -1355,6 +1355,8 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: M = ModularForms(11,2)
             sage: M.sturm_bound()
             3
+            sage: ModularForms(Gamma1(15),2).sturm_bound()
+            33
 
         NOTES:
         Reference for the Sturm bound that we use in the definition of
@@ -1392,7 +1394,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             raise NotImplementedError
         if self.__sturm_bound is None:
             # the +1 below is because O(q^prec) has precision prec.
-            self.__sturm_bound = dims.sturm_bound(self.level(), self.weight())+1
+            self.__sturm_bound = dims.sturm_bound(self.group(), self.weight())+1
         return self.__sturm_bound
 
     def character(self):

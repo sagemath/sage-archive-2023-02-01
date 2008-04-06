@@ -42,6 +42,7 @@ usage_advanced() {
     echo "  -clone [new branch] -- clone and run a new branch of the SAGE library from current branch"
     echo "  -coverage <files>  -- give info about doctest coverage of files"
     echo "  -coverageall  -- give summary info about doctest coverage of all files in the Sage library"
+    echo "  -crap <tarfile> -- detect suspicious garbage in a tar file"
     echo "  -experimental -- list all experimental packages that can be downloaded"
     echo "  -gap <..>     -- run SAGE's Gap with given arguments"
     echo "  -gdb          -- run SAGE under the control of gdb"
@@ -457,6 +458,16 @@ fi
 if [ $1 = "-dsage" -o $1 = "--dsage" ]; then
    shift
    sage-dsage-server & sage-dsage-worker
+   exit $?
+fi
+
+#####################################################################
+# Crap
+#####################################################################
+
+if [ $1 = "-crap" -o $1 = "--crap" ]; then
+   shift
+   sage-crap $@
    exit $?
 fi
 

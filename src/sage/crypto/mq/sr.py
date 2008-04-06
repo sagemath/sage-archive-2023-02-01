@@ -599,15 +599,15 @@ class SR_generic(MPolynomialSystemGenerator):
     def random_state_array(self):
         r"""
         Return a random element in
-        \code{MatrixSpace(self.base_ring(),self.r,self.c)}.
+        \code{MatrixSpace(self.base_ring(), self.r, self.c)}.
 
         EXAMPLE:
-            sage: sr = mq.SR(2,2,2,4)
+            sage: sr = mq.SR(2, 2, 2, 4)
             sage: sr.random_state_array()
             [a^3 + a + 1       a + 1]
             [      a + 1         a^2]
         """
-        return random_matrix(self.base_ring(),self._r,self._c)
+        return random_matrix(self.base_ring(), self._r, self._c)
 
     def random_vector(self):
         """
@@ -615,7 +615,7 @@ class SR_generic(MPolynomialSystemGenerator):
         expression of self.
 
         EXAMPLE:
-            sage: sr = mq.SR(2,2,2,4)
+            sage: sr = mq.SR(2, 2, 2, 4)
             sage: sr.random_vector()
             [  a^3 + a + 1]
             [      a^3 + 1]
@@ -1191,10 +1191,10 @@ class SR_generic(MPolynomialSystemGenerator):
             MPolynomialRoundSystem
 
         EXAMPLE:
-            sage: sr = mq.SR(1,1,1,4)
+            sage: sr = mq.SR(1, 1, 1, 4)
             sage: k = sr.base_ring()
             sage: p = [k.random_element() for _ in range(sr.r*sr.c)]
-            sage: sr.round_polynomials(0,plaintext=p)
+            sage: sr.round_polynomials(0, plaintext=p)
             [w100 + k000 + (a^2 + 1), w101 + k001 + (a), w102 + k002 + (a^2), w103 + k003 + (a + 1)]
         """
         r = self._r
@@ -1776,11 +1776,11 @@ class SR_gf2(SR_generic):
             return Matrix(k, r*c*e, 1)
         elif is_Matrix(d) and d.ncols() == c and d.nrows() == r and d.base_ring() == self.k:
             l = flatten([self.phi(x) for x in d.transpose().list()], (Vector_modn_dense,list,tuple))
-            return Matrix(k, r*c*e, 1,l)
-        elif isinstance(d,(list,tuple)):
+            return Matrix(k, r*c*e, 1, l)
+        elif isinstance(d, (list, tuple)):
             if len(d) == self.r*self.c:
                 l = flatten([self.phi(x) for x in d], (Vector_modn_dense,list,tuple))
-                return Matrix(k, r*c*e, 1,l)
+                return Matrix(k, r*c*e, 1, l)
             elif len(d) == self.r*self.c*self.e:
                 return Matrix(k, r*c*e, 1, d)
             else:

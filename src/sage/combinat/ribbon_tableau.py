@@ -17,12 +17,10 @@ Ribbon Tableaux
 #*****************************************************************************
 
 from combinat import CombinatorialObject, CombinatorialClass
-import skew_tableau, tableau, word, permutation, partition
+import skew_tableau, word, permutation, partition, skew_partition
 from sage.rings.all import QQ, ZZ
-import skew_partition
 import sage.calculus.calculus
-import __builtin__
-
+import functools
 
 def RibbonTableau(rt=None, expr=None):
     """
@@ -366,7 +364,7 @@ def list_rec(nexts, current, part, weight, length):
 #############################
 #Spin and Cospin Polynomials#
 #############################
-def spin_rec(nexts, current, part, weight, length, t):
+def spin_rec(t, nexts, current, part, weight, length):
     """
     Routine used for constructing the spin polynomial.
 
@@ -379,15 +377,15 @@ def spin_rec(nexts, current, part, weight, length, t):
         sage: from sage.combinat.ribbon_tableau import spin_rec
         sage: sp = SkewPartition
         sage: t = ZZ['t'].gen()
-        sage: spin_rec([], [[[], [3, 3]]], sp([[2, 2, 2], []]), [2], 3, t)
+        sage: spin_rec(t, [], [[[], [3, 3]]], sp([[2, 2, 2], []]), [2], 3)
         [t^4]
-        sage: spin_rec([[0], [t^4]], [[[2, 1, 1, 1, 1], [0, 3]], [[2, 2, 2], [3, 0]]], sp([[2, 2, 2, 2, 1], []]), [2, 1], 3, t)
+        sage: spin_rec(t, [[0], [t^4]], [[[2, 1, 1, 1, 1], [0, 3]], [[2, 2, 2], [3, 0]]], sp([[2, 2, 2, 2, 1], []]), [2, 1], 3)
         [t^5]
-        sage: spin_rec([], [[[], [3, 3, 0]]], sp([[3, 3], []]), [2], 3, t)
+        sage: spin_rec(t, [], [[[], [3, 3, 0]]], sp([[3, 3], []]), [2], 3)
         [t^2]
-        sage: spin_rec([[t^4], [t^3], [t^2]], [[[2, 2, 2], [0, 0, 3]], [[3, 2, 1], [0, 3, 0]], [[3, 3], [3, 0, 0]]], sp([[3, 3, 3], []]), [2, 1], 3, t)
+        sage: spin_rec(t, [[t^4], [t^3], [t^2]], [[[2, 2, 2], [0, 0, 3]], [[3, 2, 1], [0, 3, 0]], [[3, 3], [3, 0, 0]]], sp([[3, 3, 3], []]), [2, 1], 3)
         [t^6 + t^4 + t^2]
-        sage: spin_rec([[t^5], [t^4], [t^6 + t^4 + t^2]], [[[2, 2, 2, 2, 1], [0, 0, 3]], [[3, 3, 1, 1, 1], [0, 3, 0]], [[3, 3, 3], [3, 0, 0]]], sp([[3, 3, 3, 2, 1], []]), [2, 1, 1], 3, t)
+        sage: spin_rec(t, [[t^5], [t^4], [t^6 + t^4 + t^2]], [[[2, 2, 2, 2, 1], [0, 0, 3]], [[3, 3, 1, 1, 1], [0, 3, 0]], [[3, 3, 3], [3, 0, 0]]], sp([[3, 3, 3, 2, 1], []]), [2, 1, 1], 3)
         [2*t^7 + 2*t^5 + t^3]
 
     """
@@ -395,7 +393,6 @@ def spin_rec(nexts, current, part, weight, length, t):
     if current == []:
         return [R(0)]
 
-    res = R(0)
     tmp = []
     partp = part[0].conjugate()
 
@@ -446,10 +443,7 @@ def spin_polynomial_square(part, weight, length):
     if part == [[],[]] and weight == []:
         return t.parent()(1)
 
-    def f(*args):
-        return spin_rec(*(args+(t,)))
-
-    return R(graph_implementation_rec(part, weight, length, f)[0])
+    return R(graph_implementation_rec(part, weight, length, functools.partial(spin_rec,t))[0])
 
 def spin_polynomial(part,weight,length):
     """

@@ -158,78 +158,28 @@ class DoublyLinkedList():
 
 
 
-def check_integer_list_constraints(l, **kwargs):
-    if 'singleton' in kwargs and kwargs['singleton']:
-        singleton = True
-        result = [ l ]
-        n = sum(l)
-        del kwargs['singleton']
-    else:
-        singleton = False
-        if len(l) > 0:
-            n = sum(l[0])
-            result = l
-        else:
-            return []
-
-
-    min_part = kwargs.get('min_part', None)
-    max_part = kwargs.get('max_part', None)
-
-    min_length = kwargs.get('min_length', None)
-    max_length = kwargs.get('max_length', None)
-
-    min_slope = kwargs.get('min_slope', None)
-    max_slope = kwargs.get('max_slope', None)
-
-    length = kwargs.get('length', None)
-
-    inner = kwargs.get('inner', None)
-    outer = kwargs.get('outer', None)
-
-    #Preprocess the constraints
-    if outer is not None:
-        max_length = len(outer)
-        for i in range(max_length):
-            if outer[i] == "inf":
-                outer[i] = n+1
-    if inner is not None:
-        min_length = len(inner)
-
-    if length is not None:
-        max_length = length
-        min_length = length
-
-    filters = {}
-    filters['length'] = lambda x: len(x) == length
-    filters['min_part'] = lambda x: min(x) >= min_part
-    filters['max_part'] = lambda x: max(x) <= max_part
-    filters['min_length'] = lambda x: len(x) >= min_length
-    filters['max_length'] = lambda x: len(x) <= max_length
-    filters['min_slope'] = lambda x: min([x[i+1]-x[i] for i in
-                                       range(len(x)-1)]+[min_slope+1]) >= min_slope
-    filters['max_slope'] = lambda x: max([x[i+1]-x[i] for i in
-                                       range(len(x)-1)]+[max_slope-1]) <= max_slope
-    filters['outer'] = lambda x: len(outer) >= len(x) and min([outer[i]-x[i] for i in range(len(x))]) >= 0
-    filters['inner'] = lambda x: len(x) >= len(inner) and min([inner[i]-x[i] for i in range(len(inner))]) <= 0
-
-    for key in kwargs:
-        result = filter( filters[key], result )
-
-    if singleton:
-        try:
-            return result[0]
-        except IndexError:
-            return None
-    else:
-        return result
-
-
 def _monomial_exponent_to_lower_factorial(me, x):
     r"""
     Converts a tuple of exponents to the monomial
     obtained by replacing each me[i] with
     $x_i*(x_i - 1)*\cdots*(x_i - a_i + 1)$
+
+    EXAMPLES:
+        sage: from sage.combinat.misc import _monomial_exponent_to_lower_factorial
+        sage: R.<x,y,z> = QQ[]
+        sage: a = R.gens()
+        sage: _monomial_exponent_to_lower_factorial(([1,0,0]),a)
+        x
+        sage: _monomial_exponent_to_lower_factorial(([2,0,0]),a)
+        x^2 - x
+        sage: _monomial_exponent_to_lower_factorial(([0,2,0]),a)
+        y^2 - y
+        sage: _monomial_exponent_to_lower_factorial(([1,1,0]),a)
+        x*y
+        sage: _monomial_exponent_to_lower_factorial(([1,1,2]),a)
+        x*y*z^2 - x*y*z
+        sage: _monomial_exponent_to_lower_factorial(([2,2,2]),a)
+        x^2*y^2*z^2 - x^2*y^2*z - x^2*y*z^2 - x*y^2*z^2 + x^2*y*z + x*y^2*z + x*y*z^2 - x*y*z
     """
     terms = []
     for i in range(len(me)):
@@ -317,3 +267,102 @@ class IterableFunctionCall:
 
         """
         return "Iterable function call %s with args=%s and kwargs=%s"%(self.f, self.args, self.kwargs)
+
+
+
+
+
+def check_integer_list_constraints(l, **kwargs):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.misc import check_integer_list_constraints
+        sage: cilc = check_integer_list_constraints
+        sage: l = [[2,1,3],[1,2],[3,3],[4,1,1]]
+        sage: cilc(l, min_part=2)
+        [[3, 3]]
+        sage: cilc(l, max_part=2)
+        [[1, 2]]
+        sage: cilc(l, length=2)
+        [[1, 2], [3, 3]]
+        sage: cilc(l, max_length=2)
+        [[1, 2], [3, 3]]
+        sage: cilc(l, min_length=3)
+        [[2, 1, 3], [4, 1, 1]]
+        sage: cilc(l, max_slope=0)
+        [[3, 3], [4, 1, 1]]
+        sage: cilc(l, min_slope=1)
+        [[1, 2]]
+        sage: cilc(l, outer=[2,2])
+        [[1, 2]]
+        sage: cilc(l, inner=[2,2])
+        [[3, 3]]
+
+        sage: cilc([1,2,3], length=3, singleton=True)
+        [1, 2, 3]
+        sage: cilc([1,2,3], length=2, singleton=True) is None
+        True
+
+    """
+    if 'singleton' in kwargs and kwargs['singleton']:
+        singleton = True
+        result = [ l ]
+        n = sum(l)
+        del kwargs['singleton']
+    else:
+        singleton = False
+        if len(l) > 0:
+            n = sum(l[0])
+            result = l
+        else:
+            return []
+
+
+    min_part = kwargs.get('min_part', None)
+    max_part = kwargs.get('max_part', None)
+
+    min_length = kwargs.get('min_length', None)
+    max_length = kwargs.get('max_length', None)
+
+    min_slope = kwargs.get('min_slope', None)
+    max_slope = kwargs.get('max_slope', None)
+
+    length = kwargs.get('length', None)
+
+    inner = kwargs.get('inner', None)
+    outer = kwargs.get('outer', None)
+
+    #Preprocess the constraints
+    if outer is not None:
+        max_length = len(outer)
+        for i in range(max_length):
+            if outer[i] == "inf":
+                outer[i] = n+1
+    if inner is not None:
+        min_length = len(inner)
+
+    if length is not None:
+        max_length = length
+        min_length = length
+
+    filters = {}
+    filters['length'] = lambda x: len(x) == length
+    filters['min_part'] = lambda x: min(x) >= min_part
+    filters['max_part'] = lambda x: max(x) <= max_part
+    filters['min_length'] = lambda x: len(x) >= min_length
+    filters['max_length'] = lambda x: len(x) <= max_length
+    filters['min_slope'] = lambda x: min([x[i+1]-x[i] for i in range(len(x)-1)]+[min_slope+1]) >= min_slope
+    filters['max_slope'] = lambda x: max([x[i+1]-x[i] for i in range(len(x)-1)]+[max_slope-1]) <= max_slope
+    filters['outer'] = lambda x: len(outer) >= len(x) and min([outer[i]-x[i] for i in range(len(x))]) >= 0
+    filters['inner'] = lambda x: len(x) >= len(inner) and max([inner[i]-x[i] for i in range(len(inner))]) <= 0
+
+    for key in kwargs:
+        result = filter( filters[key], result )
+
+    if singleton:
+        try:
+            return result[0]
+        except IndexError:
+            return None
+    else:
+        return result
+

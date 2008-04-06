@@ -16,14 +16,13 @@ Macdonald Polynomials -- under development.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.combinat.combinat import CombinatorialClass
-from sage.combinat.combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
+from sage.combinat.combinatorial_algebra import CombinatorialAlgebra
 import sfa
 import sage.combinat.partition
-from sage.matrix.all import matrix, MatrixSpace
-from sage.rings.all import ZZ, QQ
+from sage.matrix.all import MatrixSpace
+from sage.rings.all import QQ
 from sage.misc.misc import prod
-import weakref
+import functools
 QQqt = QQ['q,t'].fraction_field()
 
 def MacdonaldPolynomialsP(R, q=None, t=None):
@@ -1000,6 +999,42 @@ class MacdonaldPolynomial_s(MacdonaldPolynomial_generic):
         S = self.parent()
         return S( self._omega_qt_in_schurs() )
 
+    def _creation_by_determinant_helper(self, k, part):
+        """
+        EXAMPLES:
+            sage: S = MacdonaldPolynomialsS(QQ)
+            sage: a = S([2,1])
+            sage: a._creation_by_determinant_helper(2,[1])
+            (q^3*t-q^2*t-q+1)*McdS[2, 1] + (q^3-q^2*t-q+t)*McdS[3]
+
+        """
+        S = self.parent()
+        q,t = S.q, S.t
+
+        part += [0]*(k-len(part))
+
+        if len(part) > k:
+            raise ValueError, "the column to add is too small"
+
+        #Create the matrix over the homogeneous symmetric
+        #functions and take its determinant
+        MS = MatrixSpace(sfa.SFAHomogeneous(S.base_ring()), k, k)
+        h  = MS.base_ring()
+        m = []
+        for i in range(k):
+            row = [0]*max(0, (i+1)-2-part[i])
+            for j in range(max(0, (i+1)-2-part[i]),k):
+                value = part[i]+j-i+1
+                p = [value] if value > 0 else []
+                row.append( (1-q**(part[i]+j-i+1)*t**(k-(j+1)))*h(p) )
+            m.append(row)
+        M = MS(m)
+        res = M.det()
+
+        #Convert to the Schurs
+        res = S._s( res )
+        return S._from_element(res)
+
     def _creation_by_determinant(self, k):
         """
         EXAMPLES:
@@ -1011,34 +1046,9 @@ class MacdonaldPolynomial_s(MacdonaldPolynomial_generic):
             (q^2*t-q*t-q+1)*McdS[1, 1] + (q^2-q*t-q+t)*McdS[2]
         """
         S = self.parent()
-        q,t = S.q, S.t
-        def f(part):
-            part += [0]*(k-len(part))
-
-            if len(part) > k:
-                raise ValueError, "the column to add is too small"
-
-            #Create the matrix over the homogeneous symmetric
-            #functions and take its determinant
-            MS = MatrixSpace(sfa.SFAHomogeneous(S.base_ring()), k, k)
-            h  = MS.base_ring()
-            m = []
-            for i in range(k):
-                row = [0]*max(0, (i+1)-2-part[i])
-                for j in range(max(0, (i+1)-2-part[i]),k):
-                    value = part[i]+j-i+1
-                    p = [value] if value > 0 else []
-                    row.append( (1-q**(part[i]+j-i+1)*t**(k-(j+1)))*h(p) )
-                m.append(row)
-            M = MS(m)
-            res = M.det()
-
-            #Convert to the Schurs
-            res = S._s( res )
-
-            return S._from_element(res)
-
+        f = functools.partial(self._creation_by_determinant_helper,k)
         return S._apply_module_morphism(self, f)
+
 
 
     def _omega_qt_in_schurs(self):
@@ -1115,7 +1125,6 @@ def qt_kostka(lam, mu):
 
     H = MacdonaldPolynomialsH(QQ)
     s = sfa.SFASchur(H.base_ring())
-    q,t = H.base_ring().gens()
 
     parts = sage.combinat.partition.Partitions(mu.size())
 

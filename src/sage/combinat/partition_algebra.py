@@ -16,7 +16,7 @@ Partition/Diagram Algebras
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialClass, CombinatorialObject, catalan_number
+from combinat import CombinatorialClass, catalan_number
 from combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
 import set_partition
 from sage.sets.set import Set
@@ -26,28 +26,29 @@ from permutation import Permutations
 from sage.rings.all import Integer, is_RealNumber
 from sage.calculus.all import floor, ceil
 from subset import Subsets
+import functools
 
-def create_set_partitions_function(letter):
+def create_set_partition_function(letter, k):
     """
+    EXAMPLES:
+        sage: from sage.combinat.partition_algebra import create_set_partition_function
+        sage: create_set_partition_function('A', 3)
+        Set partitions of {1, ..., 3, -1, ..., -3}
     """
-    def function(k):
-        """
-        """
-        if isinstance(k, (int, Integer)):
-            if k > 0:
-                return eval('SetPartitions' + letter + 'k_k(k)')
-        elif is_RealNumber(k):
-            if k - floor(k) == 0.5:
-                return eval('SetPartitions' + letter + 'khalf_k(floor(k))')
+    if isinstance(k, (int, Integer)):
+        if k > 0:
+            return eval('SetPartitions' + letter + 'k_k(k)')
+    elif is_RealNumber(k):
+        if k - floor(k) == 0.5:
+            return eval('SetPartitions' + letter + 'khalf_k(floor(k))')
 
-        raise ValueError, "k must be an integer or an integer + 1/2"
+    raise ValueError, "k must be an integer or an integer + 1/2"
 
-    return function
 
 #####
 #A_k#
 #####
-SetPartitionsAk = create_set_partitions_function("A")
+SetPartitionsAk = functools.partial(create_set_partition_function,"A")
 SetPartitionsAk.__doc__ = """
 Returns the combinatorial class of set partitions of type A_k.
 
@@ -181,7 +182,7 @@ class SetPartitionsAkhalf_k(CombinatorialClass):
 #####
 #S_k#
 #####
-SetPartitionsSk = create_set_partitions_function("S")
+SetPartitionsSk = functools.partial(create_set_partition_function,"S")
 SetPartitionsSk.__doc__ = """
 Returns the combinatorial class of set partitions of type S_k.  There
 is a bijection between these set partitions and the permutations
@@ -361,7 +362,7 @@ class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
 #####
 #I_k#
 #####
-SetPartitionsIk = create_set_partitions_function("I")
+SetPartitionsIk = functools.partial(create_set_partition_function,"I")
 SetPartitionsIk.__doc__ = """
 Returns the combinatorial class of set partitions of type I_k.  These
 are set partitions with a propagating number of less than k.  Note
@@ -506,7 +507,7 @@ class SetPartitionsIkhalf_k(SetPartitionsAkhalf_k):
 #####
 #B_k#
 #####
-SetPartitionsBk = create_set_partitions_function("B")
+SetPartitionsBk = functools.partial(create_set_partition_function,"B")
 SetPartitionsBk.__doc__ = """
 Returns the combinatorial class of set partitions of type B_k.
 These are the set partitions where every block has size 2.
@@ -694,7 +695,7 @@ class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
 #####
 #P_k#
 #####
-SetPartitionsPk = create_set_partitions_function("P")
+SetPartitionsPk = functools.partial(create_set_partition_function,"P")
 SetPartitionsPk.__doc__ = """
 Returns the combinatorial class of set partitions of type P_k.
 These are the planar set partitions.
@@ -847,7 +848,7 @@ class SetPartitionsPkhalf_k(SetPartitionsAkhalf_k):
 #####
 #T_k#
 #####
-SetPartitionsTk = create_set_partitions_function("T")
+SetPartitionsTk = functools.partial(create_set_partition_function,"T")
 SetPartitionsTk.__doc__ = """
 Returns the combinatorial class of set partitions of type T_k.
 These are planar set partitions where every block is of size 2.
@@ -988,7 +989,7 @@ class SetPartitionsTkhalf_k(SetPartitionsBkhalf_k):
 
 
 
-SetPartitionsRk = create_set_partitions_function("R")
+SetPartitionsRk = functools.partial(create_set_partition_function,"R")
 SetPartitionsRk.__doc__ = """
 """
 class SetPartitionsRk_k(SetPartitionsAk_k):
@@ -1160,7 +1161,7 @@ class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
                         yield to_set_partition(l, k=self.k+1)
 
 
-SetPartitionsPRk = create_set_partitions_function("PR")
+SetPartitionsPRk = functools.partial(create_set_partition_function,"PR")
 SetPartitionsPRk.__doc__ = """
 """
 class SetPartitionsPRk_k(SetPartitionsRk_k):
@@ -1311,6 +1312,13 @@ class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
 
 class PartitionAlgebra_generic(CombinatorialAlgebra):
     def __init__(self, R, cclass, n, k, name=None, prefix=None):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.partition_algebra import *
+            sage: s = PartitionAlgebra_sk(QQ, 3, 1)
+            sage: s == loads(dumps(s))
+            True
+        """
         self.k = k
         self.n = n
         self._combinatorial_class = cclass

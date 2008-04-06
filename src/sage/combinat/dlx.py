@@ -48,7 +48,7 @@ COUNT  = 5
 
 
 class DLXMatrix:
-    def __init__(self, ones, initialsolution=[]):
+    def __init__(self, ones, initialsolution=None):
         """
         Solves the Exact Cover problem by using the Dancing Links
         algorithm described by Knuth.
@@ -104,6 +104,7 @@ class DLXMatrix:
             this causes.  Blame the original author, or fix it
             yourself.
         """
+        if initialsolution is None: initialsolution = []
         self._cursolution = []
         self._nodes = [[0, 0, None, None, None, None]]
         self._constructmatrix(ones, initialsolution)
@@ -149,7 +150,7 @@ class DLXMatrix:
             yield n
             n = nodetable[n][direction]
 
-    def _constructmatrix(self, ones, initialsolution=[]):
+    def _constructmatrix(self, ones, initialsolution=None):
         """
         Construct the (sparse) DLX matrix based on list 'ones'. The
         first component in the list elements is row index (which will
@@ -187,6 +188,7 @@ class DLXMatrix:
             sage: print fullcount
             6
         """
+        if initialsolution is None: initialsolution = []
         self._cursolution = []
         # LEFT, RIGHT, UP, DOWN, COLUMN, INDEX/COUNT
         self._nodes = [[ROOTNODE, ROOTNODE, None, None, None, None]]

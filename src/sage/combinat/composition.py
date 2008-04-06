@@ -198,7 +198,7 @@ def Composition(co=None, descents=None, code=None):
         if isinstance(co, Composition_class):
             return co
         elif co in Compositions():
-           return Composition_class(co)
+            return Composition_class(co)
         else:
             raise ValueError, "invalid composition"
 
@@ -223,7 +223,7 @@ class Composition_class(CombinatorialObject):
 
         cocjg = []
         for i in range(n-1):
-            cocjg += [i+1 for k in range(0, (coofcp[n-i-1]-coofcp[n-i-2]))]
+            cocjg += [i+1 for _ in range(0, (coofcp[n-i-1]-coofcp[n-i-2]))]
         cocjg += [n for j in range(coofcp[0])]
 
         return Composition([cocjg[0]] + [cocjg[i]-cocjg[i-1]+1 for i in range(1,len(cocjg)) ])
@@ -378,7 +378,6 @@ class Composition_class(CombinatorialObject):
             [2, 4]
 
         """
-        n = sum(self)
         p = []
         for i in range(1,len(self)-1):
             if self[i-1] < self[i] and self[i] > self[i+1]:
@@ -399,7 +398,6 @@ class Composition_class(CombinatorialObject):
             [[8, 7, 3], [7, 3]]
 
         """
-        co = self
         outer = []
         inner = []
         sum_outer = -1*overlap

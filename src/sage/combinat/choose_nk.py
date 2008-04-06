@@ -17,6 +17,7 @@ Alternating sign matrices
 #*****************************************************************************
 import sage.misc.prandom as rnd
 from sage.rings.arith import binomial
+from sage.misc.misc import uniq
 from combinat import CombinatorialClass
 
 class ChooseNK(CombinatorialClass):
@@ -30,6 +31,26 @@ class ChooseNK(CombinatorialClass):
         """
         self._n = n
         self._k = k
+
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.choose_nk import ChooseNK
+            sage: c52 = ChooseNK(5,2)
+            sage: [0,1] in c52
+            True
+            sage: [1,1] in c52
+            False
+            sage: [0,1,3] in c52
+            False
+        """
+        try:
+            x = list(x)
+        except TypeError:
+            return False
+
+        r = range(len(x))
+        return all(i in r for i in x) and len(uniq(x)) == self._k
 
 
     def count(self):
@@ -114,7 +135,7 @@ class ChooseNK(CombinatorialClass):
         return r
 
 
-    def unrank(self, rank):
+    def unrank(self, r):
         """
         EXAMPLES:
             sage: from sage.combinat.choose_nk import ChooseNK
@@ -122,9 +143,9 @@ class ChooseNK(CombinatorialClass):
             sage: c52.list() == map(c52.unrank, range(c52.count()))
             True
         """
-        if rank < 0 or rank >= self.count():
+        if r < 0 or r >= self.count():
             raise ValueError, "rank must be between 0 and %s (inclusive)"%(self.count()-1)
-        return from_rank(rank, self._n, self._k)
+        return from_rank(r, self._n, self._k)
 
     def rank(self, x):
         """

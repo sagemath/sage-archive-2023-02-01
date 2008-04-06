@@ -13,7 +13,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialClass, CombinatorialObject
+from combinat import CombinatorialClass
 from __builtin__ import list as builtinlist
 from sage.rings.integer import Integer
 import word
@@ -97,6 +97,28 @@ class WeightedIntegerVectors_nweight(CombinatorialClass):
 
         return True
 
+    def _recfun(self, n, l):
+        """
+        EXAMPLES:
+            sage: w = WeightedIntegerVectors(3, [2,1,1])
+            sage: w._recfun(3, [1,1,2])
+            [[0, 1, 1], [1, 0, 1], [0, 3, 0], [1, 2, 0], [2, 1, 0], [3, 0, 0]]
+        """
+        result = []
+        w = l[-1]
+        l = l[:-1]
+        if l == []:
+            d = int(n) / int(w)
+            if n%w == 0:
+                return [[d]]
+            else:
+                return [] #bad branch...
+
+        for d in range(int(n)/int(w), -1, -1):
+            result += [ x + [d] for x in self._recfun(n-d*w, l) ]
+
+        return result
+
     def list(self):
         """
         TESTS:
@@ -114,31 +136,13 @@ class WeightedIntegerVectors_nweight(CombinatorialClass):
             sage: all( [ i.count() == len(i.list()) for i in ivw] )
             True
         """
-
         if len(self.weight) == 0:
-            if n == 0:
+            if self.n == 0:
                 return [[]]
             else:
                 return []
 
         perm = word.standard(self.weight)
         l = [x for x in sorted(self.weight)]
-
-        def recfun(n, l):
-            result = []
-            w = l[-1]
-            l = l[:-1]
-            if l == []:
-                d = int(n) / int(w)
-                if n%w == 0:
-                    return [[d]]
-                else:
-                    return [] #bad branch...
-
-            for d in range(int(n)/int(w), -1, -1):
-                result += [ x + [d] for x in recfun(n-d*w, l) ]
-
-            return result
-
-        return [perm._left_to_right_multiply_on_right(Permutation_class(x)) for x in recfun(self.n,l)]
+        return [perm._left_to_right_multiply_on_right(Permutation_class(x)) for x in self._recfun(self.n,l)]
 

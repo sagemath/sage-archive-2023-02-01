@@ -302,14 +302,7 @@ class HallLittlewood_p(HallLittlewood_generic):
         """
         BR = self.base_ring()
         if isinstance(x, HallLittlewoodElement_q):
-            t = self.t
-            def f(m):
-                coeff = (1-t)**len(m)
-                for i in m.to_exp():
-                    for j in range(1,i+1):
-                        coeff *= (1-t**j)/(1-t)
-                return coeff
-            return self._change_by_proportionality(x, f)
+            return self._change_by_proportionality(x, self._q_to_self)
         elif isinstance(x, HallLittlewoodElement_qp):
             return self( self._s(x) )
         elif isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
@@ -319,6 +312,24 @@ class HallLittlewood_p(HallLittlewood_generic):
         else:
             raise TypeError
 
+    def _q_to_self(self, m):
+        """
+        Returns the scalar coefficient on self(m) when converting from the
+        Q basis to the P basis.  Note that this assumes that m is a
+        Partition object.
+
+        EXAMPLES:
+            sage: HLP  = HallLittlewoodP(QQ)
+            sage: HLP._q_to_self(Partition([2,1]))
+            t^2 - 2*t + 1
+
+        """
+        t = self.t
+        coeff = (1-t)**len(m)
+        for i in m.to_exp():
+            for j in range(1,i+1):
+                coeff *= (1-t**j)/(1-t)
+        return coeff
 
     def _s_to_self(self, part):
         """
@@ -420,14 +431,7 @@ class HallLittlewood_q(HallLittlewood_generic):
             (-1/(-t^2+1))*Q[1, 1] + (1/(-t+1))*Q[2]
         """
         if isinstance(x, HallLittlewoodElement_p):
-            t = self.t
-            def f(m):
-                coeff = 1/(1-t)**len(m)
-                for i in m.to_exp():
-                    for j in range(1,i+1):
-                        coeff *= (1-t)/(1-t**j)
-                return coeff
-            return self._change_by_proportionality(x, f)
+            return self._change_by_proportionality(x, self._p_to_self)
         elif isinstance(x, HallLittlewoodElement_qp):
             return self( self._P(x) )
         elif isinstance(x, sfa.SymmetricFunctionAlgebraElement_generic):
@@ -435,6 +439,24 @@ class HallLittlewood_q(HallLittlewood_generic):
         else:
             raise TypeError
 
+    def _p_to_self(self, m):
+        """
+        Returns the scalar coefficient on self(m) when converting from the
+        Q basis to the P basis.  Note that this assumes that m is a
+        Partition object.
+
+        EXAMPLES:
+            sage: HLQ  = HallLittlewoodQ(QQ)
+            sage: HLQ._p_to_self(Partition([2,1]))
+            1/(t^2 - 2*t + 1)
+
+        """
+        t = self.t
+        coeff = 1/(1-t)**len(m)
+        for i in m.to_exp():
+            for j in range(1,i+1):
+                coeff *= (1-t)/(1-t**j)
+        return coeff
 
 ############
 # Qp basis #

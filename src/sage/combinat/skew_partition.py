@@ -758,12 +758,22 @@ class SkewPartitions_n(CombinatorialClass):
 
     def _count_slide(self, co, overlap=0):
         """
-        // auxiliary function for count
-        // count_slide(compo, overlap) counts all the skew partitions related to
-        // the composition co by 'sliding'. (co has is the list of rowLengths).
-        // See fromRowLengths_aux function and note that if connected, skew partitions
-        // are nn = min(ck_1, ck)-1 but the for loop begins in step 0.
-        // The skew partitions are unconnected if overlap = 0 (default case).
+        Returns the number of skew partitions related to the composition
+        co by 'sliding'.  The composition co is the list of row lengths
+        of the skew partition.
+
+        EXAMPLES:
+            sage: s = SkewPartitions(3)
+            sage: s._count_slide([2,1])
+            2
+            sage: [ sp for sp in s if sp.row_lengths() == [2,1] ]
+            [[[2, 1], []], [[3, 1], [1]]]
+            sage: s = SkewPartitions(3, overlap=1)
+            sage: s._count_slide([2,1], overlap=1)
+            1
+            sage: [ sp for sp in s if sp.row_lengths() == [2,1] ]
+            [[[2, 1], []]]
+
         """
         nn = len(co)
         result = 1
@@ -907,13 +917,18 @@ class SkewPartitions_rowlengths(CombinatorialClass):
 
     def _from_row_lengths_aux(self, sskp, ck_1, ck, overlap=0):
         """
-        // auxiliary function for fromRowLengths
-        // fromRowLengths_aux(skp, ck_1, ck, overlap) is a step in the computation of
-        // the skew partitions related to the composition [c1,c2,..ck-1,ck].
-        // skp corresponds to a skew partition related to [c1,c2,..ck-1],
-        // and fromRowLengths_aux computes all the possibilities when sliding part
-        // 'ck' added to the top of skp. (old 'slide function')
-        // The skew partitions are unconnected if overlap = 0 (default case).
+        EXAMPLES:
+            sage: s = SkewPartitions(row_lengths=[2,1])
+            sage: s._from_row_lengths_aux([[1], []], 1, 1, overlap=0)
+            [[[1, 1], []], [[2, 1], [1]]]
+            sage: s._from_row_lengths_aux([[1, 1], []], 1, 1, overlap=0)
+            [[[1, 1, 1], []], [[2, 2, 1], [1, 1]]]
+            sage: s._from_row_lengths_aux([[2, 1], [1]], 1, 1, overlap=0)
+            [[[2, 1, 1], [1]], [[3, 2, 1], [2, 1]]]
+            sage: s._from_row_lengths_aux([[1], []], 1, 2, overlap=0)
+            [[[2, 2], [1]], [[3, 2], [2]]]
+            sage: s._from_row_lengths_aux([[2], []], 2, 1, overlap=0)
+            [[[2, 1], []], [[3, 1], [1]]]
 
         """
         lskp = []
@@ -931,6 +946,7 @@ class SkewPartitions_rowlengths(CombinatorialClass):
             skp2 = map(lambda x: x + i + mm, skp2)
             skp2 = filter(lambda x: x != 0, skp2)
             lskp += [ SkewPartition([skp1, skp2]) ]
+
         return lskp
 
 

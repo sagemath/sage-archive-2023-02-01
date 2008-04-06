@@ -14,27 +14,42 @@ cdef extern from 'symmetrica/def.h':
 
 
 
+cdef object _check_schubert(object a, OP ca):
+    if a in Permutations():
+        if isinstance(a, builtinlist):
+            a = Permutation_class(a)
+        _op_schubert_perm(a, ca)
+        return max(a.reduced_word()+[0])
+    elif isinstance(a, SchubertPolynomial_class):
+        br = a.parent().base_ring()
+        if (br == QQ or br == ZZ):
+            _op_schubert_sp(a, ca)
+            return min([max(i.reduced_word()+[0]) for i in a.monomials()])
+        else:
+            raise ValueError, "a must be a Schubert polynomial over ZZ or QQ"
+    else:
+        raise TypeError, "a must be a permutation or a Schubert polynomial"
 
 
 def mult_schubert_schubert_symmetrica(a, b):
     """
     Multiplies the Schubert polynomials a and b.
+
+    EXAMPLES:
+        sage: symmetrica.mult_schubert_schubert([3,2,1], [3,2,1])
+        X[5, 3, 1, 2, 4]
     """
     late_import()
 
     cdef OP ca = callocobject(), cb = callocobject(), cres = callocobject()
 
-    if isinstance(a, (Permutation_class, builtinlist)) and isinstance(b, (Permutation_class, builtinlist)):
-        _op_schubert_perm(a, ca)
-        _op_schubert_perm(b, cb)
-    else:
-        ab = a.parent().base_ring()
-        bb = b.parent().base_ring()
-        if ab == bb and (ab == QQ or ab == ZZ):
-            _op_schubert_sp(a, ca)
-            _op_schubert_sp(b, cb)
-        else:
-            raise ValueError, "a and b must be Schubert polynomials over ZZ or QQ"
+    try:
+        max_a = _check_schubert(a, ca)
+        max_b = _check_schubert(b, cb)
+    except (ValueError, TypeError), err:
+        freeall(ca); freeall(cb); freeall(cres)
+        raise err
+
 
     _sig_on
     mult_schubert_schubert(ca, cb, cres)
@@ -49,19 +64,23 @@ def mult_schubert_schubert_symmetrica(a, b):
     return res
 
 def t_SCHUBERT_POLYNOM_symmetrica(a):
+    """
+    Converts a Schubert polynomial to a 'regular' multivariate
+    polynomial.
+
+    EXAMPLES:
+        sage: symmetrica.t_SCHUBERT_POLYNOM([3,2,1])
+        x0^2*x1
+    """
     late_import()
 
     cdef OP ca = callocobject(), cres = callocobject()
 
-    if isinstance(a, (Permutation_class, builtinlist)):
-        _op_schubert_perm(a, ca)
-    else:
-        ab = a.parent().base_ring()
-        if (ab == QQ or ab == ZZ):
-            _op_schubert_sp(a, ca)
-        else:
-            raise ValueError, "a and b must be Schubert polynomials over ZZ or QQ"
-
+    try:
+        max_a = _check_schubert(a, ca)
+    except (ValueError, TypeError), err:
+        freeall(ca); freeall(cres)
+        raise err
 
     _sig_on
     t_SCHUBERT_POLYNOM(ca, cres)
@@ -75,9 +94,29 @@ def t_SCHUBERT_POLYNOM_symmetrica(a):
     return res
 
 def t_POLYNOM_SCHUBERT_symmetrica(a):
+    """
+    Converts a multivariate polynomial a to a Schubert polynomial.
+
+    EXAMPLES:
+        sage: R.<x1,x2,x3> = QQ[]
+        sage: w0 = x1^2*x2
+        sage: symmetrica.t_POLYNOM_SCHUBERT(w0)
+        X[3, 2, 1]
+    """
+    late_import()
+
     cdef OP ca = callocobject(), cres = callocobject()
 
-    _op_polynom(a, ca)
+    if not is_MPolynomial(a):
+        freeall(ca); freeall(cres)
+        raise TypeError, "a (= %s) must be a multivariate polynomial"
+    else:
+        br = a.parent().base_ring()
+        if br != QQ and br != ZZ:
+            freeall(ca); freeall(cres)
+            raise ValueError, "a's base ring must be either ZZ or QQ"
+        else:
+            _op_polynom(a, ca)
 
     _sig_on
     t_POLYNOM_SCHUBERT(ca, cres)
@@ -91,18 +130,26 @@ def t_POLYNOM_SCHUBERT_symmetrica(a):
     return res
 
 def mult_schubert_variable_symmetrica(a, i):
+    """
+    Returns the product of a and x_i.  Note that indexing with i
+    starts at 1.
+
+    EXAMPLES:
+        sage: symmetrica.mult_schubert_variable([3,2,1], 2)
+        X[3, 2, 4, 1]
+        sage: symmetrica.mult_schubert_variable([3,2,1], 4)
+        X[3, 2, 1, 4, 6, 5] - X[3, 2, 1, 5, 4]
+    """
     late_import()
 
     cdef OP ca = callocobject(), ci = callocobject(),  cres = callocobject()
 
-    if isinstance(a, (Permutation_class, builtinlist)):
-        _op_schubert_perm(a, ca)
-    else:
-        ab = a.parent().base_ring()
-        if (ab == QQ or ab == ZZ):
-            _op_schubert_sp(a, ca)
-        else:
-            raise ValueError, "a and b must be Schubert polynomials over ZZ or QQ"
+    try:
+        max_a = _check_schubert(a, ca)
+    except (ValueError, TypeError), err:
+        freeall(ca); freeall(ci); freeall(cres)
+        raise err
+
     _op_integer(i, ci)
 
     _sig_on
@@ -111,27 +158,49 @@ def mult_schubert_variable_symmetrica(a, i):
 
     res = _py(cres)
 
-    freeall(ca)
-    freeall(ci)
-    freeall(cres)
+    freeall(ca); freeall(ci); freeall(cres)
 
     return res
 
 
 def divdiff_perm_schubert_symmetrica(perm, a):
+    r"""
+    Returns the result of applying the divided difference operator
+    $\delta_i$ to $a$ where $a$ is either a permutation or a
+    Schubert polynomial over QQ.
+
+    EXAMPLES:
+       sage: symmetrica.divdiff_perm_schubert([2,3,1], [3,2,1])
+       X[2, 1]
+       sage: symmetrica.divdiff_perm_schubert([3,1,2], [3,2,1])
+       X[1, 3, 2]
+       sage: symmetrica.divdiff_perm_schubert([3,2,4,1], [3,2,1])
+       Traceback (most recent call last):
+       ...
+       ValueError: cannot apply \delta_{[3, 2, 4, 1]} to a (= [3, 2, 1])
+    """
     late_import()
 
     cdef OP ca = callocobject(), cperm = callocobject(),  cres = callocobject()
 
-    if isinstance(a, (Permutation_class, builtinlist)):
-        _op_schubert_perm(a, ca)
+    try:
+        max_a = _check_schubert(a, ca)
+    except (ValueError, TypeError), err:
+        freeall(ca); freeall(cperm); freeall(cres)
+        raise err
+
+    if perm not in Permutations():
+        freeall(ca); freeall(cperm); freeall(cres)
+        raise TypeError, "perm must be a permutation"
     else:
-        ab = a.parent().base_ring()
-        if (ab == QQ or ab == ZZ):
-            _op_schubert_sp(a, ca)
-        else:
-            raise ValueError, "a and b must be Schubert polynomials over ZZ or QQ"
-    _op_permutation(perm, cperm)
+        perm = Permutation_class(perm)
+        rw = perm.reduced_word()
+        max_perm = max(rw)
+        _op_permutation(perm, cperm)
+
+    if max_perm > max_a:
+        freeall(ca); freeall(cperm); freeall(cres)
+        raise ValueError, r"cannot apply \delta_{%s} to a (= %s)"%(perm, a)
 
     _sig_on
     divdiff_perm_schubert(cperm, ca, cres)
@@ -139,64 +208,78 @@ def divdiff_perm_schubert_symmetrica(perm, a):
 
     res = _py(cres)
 
-    freeall(ca)
-    freeall(cperm)
-    freeall(cres)
+    freeall(ca); freeall(cperm); freeall(cres)
 
     return res
 
 
 def scalarproduct_schubert_symmetrica(a, b):
+    """
+    EXAMPLES:
+        sage: symmetrica.scalarproduct_schubert([3,2,1], [3,2,1])
+        X[1, 3, 5, 2, 4]
+        sage: symmetrica.scalarproduct_schubert([3,2,1], [2,1,3])
+        X[1, 2, 4, 3]
+    """
     late_import()
 
     cdef OP ca = callocobject(), cb = callocobject(), cres = callocobject()
 
-    if isinstance(a, (Permutation_class, builtinlist)) and isinstance(b, (Permutation_class, builtinlist)):
-        _op_schubert_perm(a, ca)
-        _op_schubert_perm(b, cb)
-    else:
-        ab = a.parent().base_ring()
-        bb = b.parent().base_ring()
-        if ab == bb and (ab == QQ or ab == ZZ):
-            _op_schubert_sp(a, ca)
-            _op_schubert_sp(b, cb)
-        else:
-            raise ValueError, "a and b must be Schubert polynomials over ZZ or QQ"
-
+    try:
+        max_a = _check_schubert(a, ca)
+        max_b = _check_schubert(b, cb)
+    except (ValueError, TypeError), err:
+        freeall(ca); freeall(cb); freeall(cres)
+        raise err
 
     _sig_on
     scalarproduct_schubert(ca, cb, cres)
     _sig_off
 
-
     if empty_listp(cres):
-        freeall(ca)
-        freeall(cb)
-        freeall(cres)
-        return Integer(0)
+        res = Integer(0)
+    else:
+        res = _py(cres)
 
-    res = _py(cres)
-
-    freeall(ca)
-    freeall(cb)
-    freeall(cres)
+    freeall(ca); freeall(cb); freeall(cres)
 
     return res
 
 def divdiff_schubert_symmetrica(i, a):
+    r"""
+    Returns the result of applying the divided difference operator
+    $\delta_i$ to $a$ where $a$ is either a permutation or a
+    Schubert polynomial over QQ.
+
+    EXAMPLES:
+       sage: symmetrica.divdiff_schubert(1, [3,2,1])
+       X[2, 3, 1]
+       sage: symmetrica.divdiff_schubert(2, [3,2,1])
+       X[3, 1, 2]
+       sage: symmetrica.divdiff_schubert(3, [3,2,1])
+       Traceback (most recent call last):
+       ...
+       ValueError: cannot apply \delta_{3} to a (= [3, 2, 1])
+    """
     late_import()
 
     cdef OP ca = callocobject(), ci = callocobject(),  cres = callocobject()
 
-    if isinstance(a, (Permutation_class, builtinlist)):
-        _op_schubert_perm(a, ca)
+    try:
+        max_a = _check_schubert(a, ca)
+    except (ValueError, TypeError), err:
+        freeall(ca); freeall(ci); freeall(cres)
+        raise err
+
+    if not isinstance(i, (int, Integer)):
+        freeall(ca); freeall(ci); freeall(cres)
+        raise TypeError, "i must be an integer"
     else:
-        ab = a.parent().base_ring()
-        if (ab == QQ or ab == ZZ):
-            _op_schubert_sp(a, ca)
-        else:
-            raise ValueError, "a and b must be Schubert polynomials over ZZ or QQ"
-    _op_integer(i, ci)
+        _op_integer(i, ci)
+
+    if i > max_a:
+        freeall(ca); freeall(ci); freeall(cres)
+        raise ValueError, r"cannot apply \delta_{%s} to a (= %s)"%(i, a)
 
     _sig_on
     divdiff_schubert(ci, ca, cres)
@@ -204,8 +287,6 @@ def divdiff_schubert_symmetrica(i, a):
 
     res = _py(cres)
 
-    freeall(ca)
-    freeall(ci)
-    freeall(cres)
+    freeall(ca); freeall(ci); freeall(cres)
 
     return res

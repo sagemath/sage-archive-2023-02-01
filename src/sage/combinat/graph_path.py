@@ -143,7 +143,6 @@ class GraphPaths_common:
              [2, 4, 5],
              [2, 4, 5]]
         """
-        source = v
         source_paths = [ [v] ]
         for e in self.outgoing_edges(v):
             target = e[1]
@@ -165,7 +164,6 @@ class GraphPaths_common:
             sage: gp.incoming_paths(2)
             [[2], [1, 2], [1, 2]]
         """
-        target = v
         target_paths = [ [v] ]
         for e in self.incoming_edges(v):
             source = e[0]

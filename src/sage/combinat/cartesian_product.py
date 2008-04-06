@@ -18,7 +18,7 @@ Cartesian Products
 
 import sage.misc.prandom as rnd
 import __builtin__
-from combinat import CombinatorialClass, CombinatorialObject
+from combinat import CombinatorialClass
 
 
 def CartesianProduct(*iters):
@@ -57,6 +57,22 @@ class CartesianProduct_iters(CombinatorialClass):
             True
         """
         self.iters = iters
+
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: cp = CartesianProduct([1,2],[3,4])
+            sage: [1,3] in cp
+            True
+            sage: [1,2] in cp
+            False
+            sage: [1, 3, 1] in cp
+            False
+        """
+        try:
+            return len(x) == len(self.iters) and all(x[i] in self.iters[i] for i in range(len(self.iters)))
+        except (TypeError, IndexError):
+            return False
 
     def __repr__(self):
         """

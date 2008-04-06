@@ -15,16 +15,51 @@ Dyck Words
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-import sage.combinat.misc as misc
-from combinat import catalan_number
-import __builtin__
-from sage.sets.set import Set
-from combinat import CombinatorialClass, CombinatorialObject
-import tableau
+from combinat import CombinatorialClass, CombinatorialObject, catalan_number
 
 open_symbol = 1
 close_symbol = 0
+
+def replace_parens(x):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.dyck_word import replace_parens
+        sage: replace_parens('(')
+        1
+        sage: replace_parens(')')
+        0
+        sage: replace_parens(1)
+        Traceback (most recent call last):
+        ...
+        ValueError
+    """
+    if x == '(':
+        return open_symbol
+    elif x == ')':
+        return close_symbol
+    else:
+        raise ValueError
+
+
+def replace_symbols(x):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.dyck_word import replace_symbols
+        sage: replace_symbols(1)
+        '('
+        sage: replace_symbols(0)
+        ')'
+        sage: replace_symbols(3)
+        Traceback (most recent call last):
+        ...
+        ValueError
+    """
+    if x == open_symbol:
+        return '('
+    elif x == close_symbol:
+        return ')'
+    else:
+        raise ValueError
 
 
 def DyckWord(dw=None, noncrossing_partition=None):
@@ -47,20 +82,11 @@ def DyckWord(dw=None, noncrossing_partition=None):
         sage: DyckWord(noncrossing_partition=[[1],[2]])
         [1, 0, 1, 0]
     """
-    global open_symbol, close_symbol
-
     if noncrossing_partition is not None:
         return from_noncrossing_partition(noncrossing_partition)
 
     elif isinstance(dw, str):
-        def replace(x):
-            if x == '(':
-                return open_symbol
-            elif x == ')':
-                return close_symbol
-            else:
-                raise ValueError, "we should only have open and close symbols, not %s"%x
-        l = map(replace, dw)
+        l = map(replace_parens, dw)
     else:
         l = dw
 
@@ -83,16 +109,7 @@ class DyckWord_class(CombinatorialObject):
             sage: print DyckWord([1, 1, 0, 0])
             (())
         """
-        global open_symbol, close_symbol
-        def replace(x):
-            if x == open_symbol:
-                return '('
-            elif x == close_symbol:
-                return ')'
-            else:
-                raise ValueError, "we should only have open and close symbols, not %s"%x
-
-        return "".join(map(replace, [x for x in self]))
+        return "".join(map(replace_symbols, [x for x in self]))
 
 
     def size(self):
@@ -106,7 +123,6 @@ class DyckWord_class(CombinatorialObject):
             sage: DyckWord([1, 0, 1, 1, 0]).size()
             3
         """
-        global open_symbol
         return len(filter(lambda x: x == open_symbol, self))
 
     def height(self):
@@ -129,8 +145,6 @@ class DyckWord_class(CombinatorialObject):
             sage: DyckWord([1, 1, 0, 0, 1, 1, 1, 0, 0, 0]).height()
             3
         """
-        global open_symbol, close_symbol
-
         height = 0
         height_max = 0
         for letter in self:
@@ -158,7 +172,6 @@ class DyckWord_class(CombinatorialObject):
             2
             sage: DyckWord([1, 1]).associated_parenthesis(0)
         """
-        global open_symbol, close_symbol
         d = 0
         height = 0
         if pos >= len(self):
@@ -201,8 +214,6 @@ class DyckWord_class(CombinatorialObject):
             sage: DyckWord([1, 1, 0, 1, 0, 0]).to_noncrossing_partition()
             [[2], [1, 3]]
         """
-        global open_symbol, close_symbol
-
         partition = []
         stack = []
         i = 0
@@ -265,8 +276,7 @@ class DyckWord_class(CombinatorialObject):
             sage: DyckWord([1, 1, 0, 0]).peaks()
             [1]
         """
-        global open_symbol, close_symbol
-        return filter(lambda i: self[i] == open_symbol and self[i+1] == close_symbol, range(len(self)-1))
+        return [i for i in range(len(self)-1) if self[i] == open_symbol and self[i+1] == close_symbol]
 
     def to_tableau(self):
         """
@@ -284,7 +294,6 @@ class DyckWord_class(CombinatorialObject):
             sage: DyckWord([1, 0, 1]).to_tableau()
             [[2], [1, 3]]
         """
-        global open_symbol, close_symbol
         open_positions = []
         close_positions = []
 
@@ -501,11 +510,10 @@ class DyckWords_all(CombinatorialClass):
             sage: [1, 0] in DyckWords()
             True
         """
-        global open_symbol, close_symbol
         if isinstance(x, DyckWord_class):
             return True
 
-        if not isinstance(x, __builtin__.list):
+        if not isinstance(x, list):
             return False
 
         if len(x) % 2 != 0:
@@ -600,14 +608,13 @@ class DyckWords_size(CombinatorialClass):
             sage: DyckWords(2).list()
             [[1, 1, 0, 0], [1, 0, 1, 0]]
         """
-        global open_symbol, close_symbol
         k1 = self.k1
         k2 = self.k2
 
         if k1 == 0:
             return [ DyckWord_class([]) ]
         if k2 == 0:
-            return [ DyckWord_class([ open_symbol for x in range(k1) ]) ]
+            return [ DyckWord_class([ open_symbol for _ in range(k1) ]) ]
         if k1 == 1:
             return [ DyckWord_class([ open_symbol, close_symbol ]) ]
 
@@ -630,16 +637,21 @@ class DyckWords_size(CombinatorialClass):
 
 def is_a_prefix(obj, k1 = None, k2 = None):
     """
-
     If k1 is specificied, then the object must have exactly k1 open
     symbols.  If k2 is also specified, then obj must have exactly
     k2 close symbols.
 
     EXAMPLES:
-
+        sage: from sage.combinat.dyck_word import is_a_prefix
+        sage: is_a_prefix([1,1,0])
+        True
+        sage: is_a_prefix([0,1,0])
+        False
+        sage: is_a_prefix([1,1,0],2,1)
+        True
+        sage: is_a_prefix([1,1,0],1,1)
+        False
     """
-    global open_symbol, close_symbol
-
     if k1 is not None and k2 is None:
         k2 = k1
     if k1 is not None and k1 < k2:
@@ -660,19 +672,31 @@ def is_a_prefix(obj, k1 = None, k2 = None):
         if n_opens < n_closes:
             return False
 
-        if k1 is None and k2 is None:
-            return True
-        elif k2 is None:
-            return n_opens == k1
-        else:
-            return n_opens == k1 and n_closes == k2
+    if k1 is None and k2 is None:
+        return True
+    elif k2 is None:
+        return n_opens == k1
+    else:
+        return n_opens == k1 and n_closes == k2
 
 
 def is_a(obj, k1 = None, k2 = None):
     """
-    """
-    global open_symbol, close_symbol
+    If k1 is specificied, then the object must have exactly k1 open
+    symbols.  If k2 is also specified, then obj must have exactly
+    k2 close symbols.
 
+    EXAMPLES:
+        sage: from sage.combinat.dyck_word import is_a
+        sage: is_a([1,1,0,0])
+        True
+        sage: is_a([1,0,1,0])
+        True
+        sage: is_a([1,1,0,0],2)
+        True
+        sage: is_a([1,1,0,0],3)
+        False
+    """
     if k1 is not None and k2 is None:
         k2 = k1
     if k1 is not None and k1 < k2:
@@ -714,8 +738,6 @@ def from_noncrossing_partition(ncp):
         sage: dws == dws2
         True
     """
-    global open_symbol, close_symbol
-
     l = [ 0 ] * int( sum( [ len(v) for v in ncp ] ) )
     for v in ncp:
         l[v[-1]-1] = len(v)

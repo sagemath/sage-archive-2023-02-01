@@ -20,6 +20,14 @@ include "../ext/interrupt.pxi"
 from sage.rings.integer cimport Integer
 
 def number_of_partitions(n):
+    """
+    Returns the number of partitions of the integer n.
+
+    EXAMPLES:
+        sage: from sage.combinat.partitions import number_of_partitions
+        sage: number_of_partitions(10)
+        42
+    """
     n = Integer(n)
     if n <= 0:
         return Integer(0)

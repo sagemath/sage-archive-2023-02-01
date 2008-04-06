@@ -1,4 +1,4 @@
-r"""
+"""
 Tableaux
 """
 #*****************************************************************************
@@ -26,6 +26,7 @@ import sage.misc.prandom as random
 import copy
 import permutation
 from sage.groups.perm_gps.permgroup import PermutationGroup
+from sage.misc.misc import uniq
 from combinat import CombinatorialClass, CombinatorialObject
 import __builtin__
 
@@ -61,9 +62,37 @@ class Tableau_class(CombinatorialObject):
         CombinatorialObject.__init__(self,t)
 
     def _latex_(self):
+        """
+        Returns a LaTeX version of self.
+
+        EXAMPLES:
+            sage: latex(Tableau([[1,2],[3,4]]))
+            {\def\lr#1#2#3{\multicolumn{1}{#1@{\hspace{.6ex}}c@{\hspace{.6ex}}#2}{\raisebox{-.3ex}{$#3$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{cc}
+            \cline{1-1}\cline{2-2}%
+            \lr{|}{|}{1}&\lr{|}{|}{2}\\ %
+            \cline{1-1}\cline{2-2}%
+            \lr{|}{|}{3}&\lr{|}{|}{4}\\ %
+            \cline{1-1}\cline{2-2}%
+            \end{array}$}
+            }
+        """
         return self._tex_from_array()
 
     def _tex_from_array(self):
+        """
+        EXAMPLES:
+            sage: print Tableau([[1,2],[3,4]])._tex_from_array()
+            {\def\lr#1#2#3{\multicolumn{1}{#1@{\hspace{.6ex}}c@{\hspace{.6ex}}#2}{\raisebox{-.3ex}{$#3$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{cc}
+            \cline{1-1}\cline{2-2}%
+            \lr{|}{|}{1}&\lr{|}{|}{2}\\ %
+            \cline{1-1}\cline{2-2}%
+            \lr{|}{|}{3}&\lr{|}{|}{4}\\ %
+            \cline{1-1}\cline{2-2}%
+            \end{array}$}
+            }
+        """
         import output
         m = max(len(self), len(self[0]))
         array = [[None for _ in range(m)] for _ in range(m)]
@@ -100,7 +129,6 @@ class Tableau_class(CombinatorialObject):
                 st[i][j] = None
 
         return sage.combinat.skew_tableau.SkewTableau(st)
-
 
 
     def shape(self):
@@ -227,21 +255,6 @@ class Tableau_class(CombinatorialObject):
         """
         return permutation.Permutation(self.to_word())
 
-##     def descents(self):
-##         """
-##         Returns the i such that i+1 is SW of i in self.
-
-##         EXAMPLES:
-
-##             sage: p = Permutations(10).random()
-##             sage: l,r = p.robinson_schensted()
-##             sage: r.descents() == p.descents()
-##             True
-##             sage: l.descents() == p.idescents()
-##             True
-##         """
-##         return self.to_permutation_by_reading_order().idescents()
-
     def descents(self):
         """
         Returns a list of the boxes (i,j) such that
@@ -282,11 +295,19 @@ class Tableau_class(CombinatorialObject):
         Returns a list of the attacking pairs of self.  An pair of boxes
         (c, d) is said to be attacking if one of the following
         conditions hold:
+
             1) c and d lie in the same row with c to the west of d
             2) c is in the row immediately to the south of d and c
                lies strictly east of d.
 
         EXAMPLES:
+            sage: t = Tableau([[1,2,3],[2,5]])
+            sage: t.attacking_pairs()
+            [((0, 0), (0, 1)),
+             ((0, 0), (0, 2)),
+             ((0, 1), (0, 2)),
+             ((1, 0), (1, 1)),
+             ((1, 1), (0, 0))]
         """
         attacking_pairs = []
         for i in range(len(self)):
@@ -298,7 +319,7 @@ class Tableau_class(CombinatorialObject):
 
                 #Find the d that satisfy condition 2
                 if i == 0:
-                    break
+                    continue
                 for k in range(j):
                     attacking_pairs.append( ((i,j),(i-1,k)) )
 
@@ -311,6 +332,9 @@ class Tableau_class(CombinatorialObject):
         than the entry of d.
 
         EXAMPLES:
+            sage: t = Tableau([[1,2,3],[2,5]])
+            sage: t.inversions()
+            [((1, 1), (0, 0))]
         """
         inversions = []
         for (c,d) in self.attacking_pairs():
@@ -325,6 +349,10 @@ class Tableau_class(CombinatorialObject):
         The inversion number is defined to be the number of inversion of self
         minus the sum of the arm lengths of the descents of self.
 
+        EXAMPLES:
+            sage: t = Tableau([[1,2,3],[2,5]])
+            sage: t.inversion_number()
+            0
         """
         p = self.shape()
         return len(self.inversions()) - sum([ p.arm(*box) for box in self.descents() ])
@@ -442,41 +470,53 @@ class Tableau_class(CombinatorialObject):
 
         return Tableau([ [l for l in reversed(row)] for row in reversed(self) ])
 
+    def boxes(self):
+        """
+        Returns a list of the coordinates of the boxes of self.
+
+        EXAMPLES:
+            sage: Tableau([[1,2],[3,4]]).boxes()
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
+        """
+        s = []
+        for i in range(len(self)):
+            s += [ (i,j) for j in range(len(self[i])) ]
+        return s
 
     def k_weight(self, k):
         """
-        Returns the k-weight of the tableau t.
-
-        The i-th entry of the list is the number of different
-        diagonals in which lie boxes labelled by i.
+        Returns the k-weight of self.
 
         EXAMPLES:
-
+           sage: Tableau([[1,2],[2,3]]).k_weight(1)
+           [1, 1, 1]
+           sage: Tableau([[1,2],[2,3]]).k_weight(2)
+           [1, 2, 1]
+           sage: t = Tableau([[1,1,1,2,5],[2,3,6],[3],[4]])
+           sage: t.k_weight(1)
+           [2, 1, 1, 1, 1, 1]
+           sage: t.k_weight(2)
+           [3, 2, 2, 1, 1, 1]
+           sage: t.k_weight(3)
+           [3, 1, 2, 1, 1, 1]
+           sage: t.k_weight(4)
+           [3, 2, 2, 1, 1, 1]
+           sage: t.k_weight(5)
+           [3, 2, 2, 1, 1, 1]
         """
-        t = self
         res = []
-        e = t.evaluation()
+        w = self.weight()
+        s = self.boxes()
 
-        s = []
-        for i in range(len(t)):
-            s += [ [i,j] for j in range(len(t[-i])) ]
+        for l in range(1,len(w)+1):
+            new_s = [(i,j) for i,j in s if self[i][j] == l]
 
-        for l in range(1,len(e)+1):
-            new_s = filter(lambda x: t[len(t)-1-x[0]][x[1]] == l, s)
-
-            #If there are no elements that mee the condition
-            if new_s == [[]]:
-                res += [0]
+            #If there are no elements that meet the condition
+            if new_s == []:
+                res .append(0)
                 continue
-
-            x = filter(lambda x: (x[0]-x[1])% k+1, new_s)
-
-            #Remove duplicates from x
-            u = {}
-            for element in x:
-                u[str(element)] = 1
-
-            res += [len(u.keys())]
+            x = uniq([ (i-j)%(k+1) for i,j in new_s ])
+            res.append(len(x))
 
         return res
 
@@ -1204,12 +1244,13 @@ class Tableau_class(CombinatorialObject):
     ##################################
     # actions on tableaux from words #
     ##################################
-    def raise_action_from_words(self, func):
+    def raise_action_from_words(self, f, *args):
         """
         EXAMPLES:
             sage: from sage.combinat.word import symmetric_group_action_on_values
+            sage: import functools
             sage: t = Tableau([[1,1,3,3],[2,3],[3]])
-            sage: f = t.raise_action_from_words(symmetric_group_action_on_values)
+            sage: f = functools.partial(t.raise_action_from_words, symmetric_group_action_on_values)
             sage: f([1,2,3])
             [[1, 1, 3, 3], [2, 3], [3]]
             sage: f([3,2,1])
@@ -1217,11 +1258,9 @@ class Tableau_class(CombinatorialObject):
             sage: f([1,3,2])
             [[1, 1, 2, 2], [2, 2], [3]]
         """
-        def f(*args):
-            w = self.to_word()
-            w = func(w, *args)
-            return from_shape_and_word(self.shape(), w)
-        return f
+        w = self.to_word()
+        w = f(w, *args)
+        return from_shape_and_word(self.shape(), w)
 
     def symmetric_group_action_on_values(self, perm):
         """
@@ -1234,8 +1273,7 @@ class Tableau_class(CombinatorialObject):
             sage: t.symmetric_group_action_on_values([1,3,2])
             [[1, 1, 2, 2], [2, 2], [3]]
         """
-        f = self.raise_action_from_words( word.symmetric_group_action_on_values )
-        return f(perm)
+        return self.raise_action_from_words(word.symmetric_group_action_on_values, perm)
 
     #########
     # atoms #

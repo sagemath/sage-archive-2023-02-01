@@ -19,19 +19,12 @@ combinatorial class of permutations.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-
-from sage.interfaces.all import gap, maxima
-from sage.rings.all import QQ, RR, ZZ, polygen, Integer, PolynomialRing, factorial
-from sage.rings.arith import binomial
-from sage.misc.sage_eval import sage_eval
-from sage.libs.all import pari
+from sage.interfaces.all import gap
+from sage.rings.all import ZZ, Integer, PolynomialRing, factorial
 from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
-import sage.combinat.misc as misc
 import sage.combinat.subword as subword
-import sage.combinat.composition as composition
-from sage.combinat.composition import Composition, Compositions, Composition_class
+from sage.combinat.composition import Composition, Composition_class
 import tableau
 import sage.combinat.partition
 from permutation_nk import PermutationsNK
@@ -39,14 +32,13 @@ import sage.rings.integer
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.misc.prandom import randint, sample
-from sage.interfaces.all import gap
 from sage.graphs.graph import DiGraph
 import itertools
 import __builtin__
 from combinat import CombinatorialClass, CombinatorialObject, catalan_number
 import copy
 from necklace import Necklaces
-import tableau
+from sage.misc.misc import uniq
 
 permutation_options = {'display':'list', 'mult':'l2r'}
 
@@ -1451,7 +1443,6 @@ class Permutation_class(CombinatorialObject):
         """
         p1 = self
         n1 = len(p1)
-        n2 = len(p2)
 
         if n1 == 0:
             return True
@@ -1609,7 +1600,6 @@ class Permutation_class(CombinatorialObject):
 
         """
         p = self
-        n = len(p)
         for z in p.bruhat_inversions_iterator():
             pp = p[:]
             pp[z[0]] = p[z[1]]
@@ -1675,9 +1665,6 @@ class Permutation_class(CombinatorialObject):
             True
         """
         p1 = self
-        n1 = len(p1)
-        n2 = len(p2)
-
         l1 = p1.number_of_inversions()
         l2 = p2.number_of_inversions()
 
@@ -1713,14 +1700,14 @@ class Permutation_class(CombinatorialObject):
         n = len(p)
         succ = []
         if side == "right":
-            rise = lambda perm: filter(lambda i: perm[i] < perm[i+1], range(0,n-1))
+            rise = lambda perm: [i for i in range(0,n-1) if perm[i] < perm[i+1]]
             for i in rise(p):
                 pp = p[:]
                 pp[i] = p[i+1]
                 pp[i+1] = p[i]
                 succ.append(Permutation(pp))
         else:
-            advance = lambda perm: filter(lambda i: perm.index(i) < perm.index(i+1), range(1,n))
+            advance = lambda perm: [i for i in range(1,n) if  perm.index(i) < perm.index(i+1)]
             for i in advance(p):
                 pp = p[:]
                 pp[p.index(i)] = i+1
@@ -1759,7 +1746,7 @@ class Permutation_class(CombinatorialObject):
                 pp[d+1] = p[d]
                 pred.append(Permutation(pp))
         else:
-            recoil = lambda perm: filter(lambda j: perm.index(j) > perm.index(j+1), range(1,n))
+            recoil = lambda perm: [i for i in range(1,n) if perm.index(i) > perm.index(i+1)]
             for i in recoil(p):
                 pp = p[:]
                 pp[p.index(i)] = i+1
@@ -2091,12 +2078,36 @@ class Permutations_nk(CombinatorialClass):
     def __init__(self, n, k):
         """
         TESTS:
-            sage: P = Permutations([3,2])
+            sage: P = Permutations(3,2)
             sage: P == loads(dumps(P))
             True
         """
         self.n = n
         self.k = k
+
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: [1,2] in Permutations(3,2)
+            True
+            sage: [1,1] in Permutations(3,2)
+            False
+            sage: [3,2,1] in Permutations(3,2)
+            False
+            sage: [3,1] in Permutations(3,2)
+            True
+        """
+        if len(x) != self.k: return False
+
+        r = range(1, self.n+1)
+        for i in x:
+            if i in r:
+                r.remove(i)
+            else:
+                return False
+
+        return True
+
 
     def __repr__(self):
         """
@@ -2221,34 +2232,33 @@ class Permutations_mset(CombinatorialClass):
             #Yield the permutation
             yield [lmset[x] for x in  mset_list]
 
-        def count(self):
-            """
-            EXAMPLES:
-                sage: Permutations([1,2,2]).count()
-                3
-            """
-            lmset = __builtin__.list(mset)
-            mset_list = map(lambda x: lmset.index(x), lmset)
-            d = {}
-            for i in mset_list:
-                d[i] = d.get(i, 0) + 1
+    def count(self):
+        """
+        EXAMPLES:
+            sage: Permutations([1,2,2]).count()
+            3
+        """
+        lmset = list(self.mset)
+        mset_list = [lmset.index(x) for x in lmset]
+        d = {}
+        for i in mset_list:
+            d[i] = d.get(i, 0) + 1
 
-            c = factorial(len(lmset))
-            for i in d:
-                if i != 1:
-                    c /= factorial(i)
-
-            return c
+        c = factorial(len(lmset))
+        for i in d:
+            if d[i] != 1:
+                c /= factorial(d[i])
+        return c
 
 class Permutations_set(CombinatorialClass):
-    def __init__(self, set):
+    def __init__(self, s):
         """
         TESTS:
             sage: S = Permutations(['c','a','t'])
             sage: S == loads(dumps(S))
             True
         """
-        self.set = set
+        self._set = s
 
     def __repr__(self):
         """
@@ -2256,7 +2266,7 @@ class Permutations_set(CombinatorialClass):
             sage: repr(Permutations(['c','a','t']))
             "Permutations of the set ['c', 'a', 't']"
         """
-        return "Permutations of the set %s"%self.set
+        return "Permutations of the set %s"%self._set
 
     def iterator(self):
         """
@@ -2272,9 +2282,9 @@ class Permutations_set(CombinatorialClass):
              ['t', 'c', 'a'],
              ['t', 'a', 'c']]
         """
-        set = self.set
-        n = len(self.set)
-        lset = __builtin__.list(set)
+        s = self._set
+        n = len(s)
+        lset = __builtin__.list(s)
         set_list = map(lambda x: lset.index(x), lset)
         set_list.sort()
 
@@ -2326,7 +2336,7 @@ class Permutations_set(CombinatorialClass):
         sage: Permutations([1,2,3]).count()
         6
         """
-        return factorial(len(self.set))
+        return factorial(len(self._set))
 
     def random(self):
         """
@@ -2334,7 +2344,7 @@ class Permutations_set(CombinatorialClass):
         sage: Permutations([1,2,3]).random()
         [1, 2, 3]
         """
-        return sample(self.set, len(self.set))
+        return sample(self._set, len(self._set))
 
 class Permutations_msetk(CombinatorialClass):
     def __init__(self, mset, k):
@@ -2347,6 +2357,28 @@ class Permutations_msetk(CombinatorialClass):
         self.mset = mset
         self.k = k
 
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: p = Permutations([1,2,2],2)
+            sage: [1,2,2] in p
+            False
+            sage: [2,2] in p
+            True
+            sage: [1,1] in p
+            False
+            sage: [2,1] in p
+            True
+        """
+        if len(x) != self.k: return False
+        s = list(self.mset)
+        for i in x:
+            if i in s:
+                s.remove(i)
+            else:
+                return False
+        return True
+
     def __repr__(self):
         """
         TESTS:
@@ -2358,32 +2390,45 @@ class Permutations_msetk(CombinatorialClass):
     def list(self):
         """
         EXAMPLES:
-            sage: Permutations([1,2,3],2).list()
-            [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
             sage: Permutations([1,2,2],2).list()
             [[1, 2], [2, 1], [2, 2]]
         """
 
         mset = self.mset
-        n = len(self.mset)
-        lmset = __builtin__.list(mset)
+        lmset = list(mset)
         mset_list = map(lambda x: lmset.index(x), lmset)
-
-
         indices = eval(gap.eval('Arrangements(%s,%s)'%(mset_list, self.k)))
         return [[lmset[x] for x in ktuple] for ktuple in indices]
 
 
 class Permutations_setk(CombinatorialClass):
-    def __init__(self, set, k):
+    def __init__(self, s, k):
         """
         TESTS:
-            sage: P = Permutations([1,2,2],2)
+            sage: P = Permutations([1,2,3],2)
             sage: P == loads(dumps(P))
             True
         """
-        self.set = set
+        self._set = s
         self.k = k
+
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: p = Permutations([1,2,3],2)
+            sage: [1,2,3] in p
+            False
+            sage: [2,2] in p
+            False
+            sage: [1,3] in p
+            True
+            sage: [2,1] in p
+            True
+        """
+        if len(x) != self.k: return False
+        s = list(self._set)
+        return all(i in s for i in x) and len(uniq(x)) == len(x)
+
 
     def __repr__(self):
         """
@@ -2391,7 +2436,7 @@ class Permutations_setk(CombinatorialClass):
             sage: repr(Permutations([1,2,3],2))
             'Permutations of the set [1, 2, 3] of length 2'
         """
-        return "Permutations of the set %s of length %s"%(self.set,self.k)
+        return "Permutations of the set %s of length %s"%(self._set,self.k)
 
     def iterator(self):
         """
@@ -2399,8 +2444,8 @@ class Permutations_setk(CombinatorialClass):
             sage: [i for i in Permutations([1,2,3],2)]
             [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
         """
-        for perm in PermutationsNK(len(self.set), self.k):
-            yield [self.set[x] for x in perm]
+        for perm in PermutationsNK(len(self._set), self.k):
+            yield [self._set[x] for x in perm]
 
     def random(self):
         """
@@ -2408,7 +2453,7 @@ class Permutations_setk(CombinatorialClass):
             sage: Permutations([1,2,3],2).random()
             [1, 2]
         """
-        return sample(self.set, self.k)
+        return sample(self._set, self.k)
 
 
 class Arrangements_msetk(Permutations_msetk):
@@ -2427,7 +2472,7 @@ class Arrangements_setk(Permutations_setk):
             sage: repr(Arrangements([1,2,3],2))
             'Arrangements of the set [1, 2, 3] of length 2'
         """
-        return "Arrangements of the set %s of length %s"%(self.set,self.k)
+        return "Arrangements of the set %s of length %s"%(self._set,self.k)
 
 
 class StandardPermutations_all(CombinatorialClass):
@@ -2473,9 +2518,9 @@ class StandardPermutations_all(CombinatorialClass):
         elif isinstance(x, __builtin__.list):
             if len(x) == 0:
                 return False
-            copy = x[:]
-            copy.sort()
-            if copy != range(1, len(x)+1):
+            s = x[:]
+            s.sort()
+            if s != range(1, len(x)+1):
                 return False
             return True
         else:
@@ -2763,7 +2808,7 @@ class StandardPermutations_descents(CombinatorialClass):
         """
         return "Standard permutations of %s with descents %s"%(self.n, self.d)
 
-    __object_class = Permutation_class
+    object_class = Permutation_class
 
     def first(self):
         """
@@ -2912,7 +2957,7 @@ class StandardPermutations_recoilsfiner(CombinatorialClass):
         """
         return "Standard permutations whose recoils composition is finer than %s"%self.recoils
 
-    __object_class = Permutation_class
+    object_class = Permutation_class
 
     def list(self):
         """
@@ -2967,7 +3012,7 @@ class StandardPermutations_recoilsfatter(CombinatorialClass):
         """
         return "Standard permutations whose recoils composition is fatter than %s"%self.recoils
 
-    __object_class = Permutation_class
+    object_class = Permutation_class
 
     def list(self):
         """
@@ -3027,7 +3072,7 @@ class StandardPermutations_recoils(CombinatorialClass):
         """
         return "Standard permutations whose recoils composition is %s"%self.recoils
 
-    __object_class = Permutation_class
+    object_class = Permutation_class
 
 
     def list(self):
@@ -3097,26 +3142,18 @@ def from_major_code(mc, final_descent=False):
         #Lemma 2.2 in Skandera
 
         #Get the descents of w and place them in reverse order
-        d = Permutation(w).descents()
+        d = Permutation(w).descents(final_descent=final_descent)
         d.reverse()
 
         #a is the list of all positions which are not descents
         a = filter(lambda x: x not in d, range(len(w)))
 
-        #k is the number of desecents
-        k = len(d)
-
         #d_k = -1    -- 0 in the lemma, but -1 due to 0-based indexing
         d.append(-1)
-
-
         l = mc[i-1]
-
-
         indices = d + a
         w.insert(indices[l]+1, i)
 
-    #pi =
     return Permutation(w)
 
 
@@ -3210,7 +3247,6 @@ def bruhat_lequal(p1, p2):
     """
 
     n1 = len(p1)
-    n2 = len(p2)
 
     if n1 == 0:
         return True
@@ -3254,15 +3290,11 @@ def permutohedron_lequal(p1, p2, side="right"):
 
 
     """
-
-    n1 = len(p1)
-    n2 = len(p2)
-
     l1 = p1.number_of_inversions()
     l2 = p2.number_of_inversions()
 
     if l1 > l2:
-        return Fal
+        return False
 
     if side == "right":
         prod = p1._left_to_right_multiply_on_right(p2.inverse())
@@ -3293,7 +3325,7 @@ def to_standard(p):
     s = p[:]
     biggest = max(p) + 1
     i = 1
-    for j in range(len(p)):
+    for _ in range(len(p)):
         smallest = min(p)
         smallest_index = p.index(smallest)
         s[smallest_index] = i

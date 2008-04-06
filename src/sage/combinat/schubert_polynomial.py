@@ -95,6 +95,15 @@ class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement
         return p
 
     def divided_difference(self, i):
+        """
+        EXAMPLES:
+            sage: X = SchubertPolynomialRing(ZZ)
+            sage: a = X([3,2,1])
+            sage: a.divided_difference(1)
+            X[2, 3, 1]
+            sage: a.divided_difference([3,2,1])
+            X[1]
+        """
         if isinstance(i, Integer):
             return symmetrica.divdiff_schubert(i, self)
         elif i in permutation.Permutations():
@@ -156,6 +165,12 @@ class SchubertPolynomial_class(combinatorial_algebra.CombinatorialAlgebraElement
 
 class SchubertPolynomialRing_xbasis(combinatorial_algebra.CombinatorialAlgebra):
     def __init__(self, R):
+        """
+        EXAMPLES:
+            sage: X = SchubertPolynomialRing(QQ)
+            sage: X == loads(dumps(X))
+            True
+        """
         self._name = "Schubert polynomial ring with X basis"
         self._prefix = "X"
         self._combinatorial_class = permutation.Permutations()
@@ -164,18 +179,38 @@ class SchubertPolynomialRing_xbasis(combinatorial_algebra.CombinatorialAlgebra):
         combinatorial_algebra.CombinatorialAlgebra.__init__(self, R)
 
     def _coerce_start(self, x):
+        """
+        Coerce x into self.
+
+        EXAMPLES:
+            sage: X = SchubertPolynomialRing(QQ)
+            sage: X._coerce_start([2,1,3])
+            X[2, 1]
+            sage: X._coerce_start(Permutation([2,1,3]))
+            X[2, 1]
+
+            sage: R.<x1, x2, x3> = QQ[]
+            sage: X(x1^2*x2)
+            X[3, 2, 1]
+        """
         if isinstance(x, list):
             perm = permutation.Permutation_class(x).remove_extra_fixed_points()
-            res = self(0)
-            res._monomial_coefficients = { perm: self.base_ring()(1) }
-            return res
+            return self._from_dict({ perm: self.base_ring()(1) })
         elif isinstance(x, permutation.Permutation_class):
             perm = x.remove_extra_fixed_points()
-            res = self(0)
-            res._monomial_coefficients = { perm: self.base_ring()(1) }
-            return res
+            return self._from_dict({ perm: self.base_ring()(1) })
+        elif is_MPolynomial(x):
+            return symmetrica.t_POLYNOM_SCHUBERT(x)
         else:
             raise TypeError
 
     def _multiply_basis(self, left, right):
+        """
+        EXAMPLES:
+            sage: p1 = Permutation([3,2,1])
+            sage: p2 = Permutation([2,1,3])
+            sage: X = SchubertPolynomialRing(QQ)
+            sage: X._multiply_basis(p1,p2)
+            {[4, 2, 1, 3]: 1}
+        """
         return symmetrica.mult_schubert_schubert(left, right).monomial_coefficients()

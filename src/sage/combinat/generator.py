@@ -78,9 +78,7 @@ def successor(initial, succ):
     the successor function yields None.
 
     EXAMPLES:
-        sage: def f(x):
-        ...       if x < 10:
-        ...           return x+1
+        sage: f = lambda x: x+1 if x < 10 else None
         sage: list(sage.combinat.generator.successor(0,f))
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     """

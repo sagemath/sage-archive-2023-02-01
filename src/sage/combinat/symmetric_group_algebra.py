@@ -15,8 +15,7 @@ Symmetric Group Algebra
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from combinatorial_algebra import CombinatorialAlgebra
+from combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
 import permutation
 import partition
 from tableau import Tableau, StandardTableaux_n, StandardTableaux_partition, StandardTableaux
@@ -24,6 +23,8 @@ from sage.interfaces.all import gap
 from sage.rings.all import factorial, QQ, PolynomialRing
 from sage.matrix.all import matrix
 from sage.modules.all import vector
+
+permutation_options = permutation.permutation_options
 
 def SymmetricGroupAlgebra(R,n):
     """
@@ -53,25 +54,52 @@ def SymmetricGroupAlgebra(R,n):
     """
     return SymmetricGroupAlgebra_n(R,n)
 
+class SymmetricGroupAlgebraElement_n(CombinatorialAlgebraElement):
+    pass
+
 class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
     def __init__(self, R, n):
         """
         TESTS:
-            #sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-            #sage: QS3 == loads(dumps(QS3))
-            #True
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: QS3 == loads(dumps(QS3))
+            True
         """
         self.n = n
         self._combinatorial_class = permutation.Permutations(n)
         self._name = "Symmetric group algebra of order %s"%self.n
         self._one = permutation.Permutation(range(1,n+1))
         self._prefix = ""
+        self._element_class = SymmetricGroupAlgebraElement_n
         CombinatorialAlgebra.__init__(self, R)
 
     def _multiply_basis(self, left, right):
+        """
+        Returns the product of the basis elements indexed by left
+        and right.
+
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: p1 = Permutation([1,2,3])
+            sage: p2 = Permutation([2,1,3])
+            sage: QS3._multiply_basis(p1,p2)
+            [2, 1, 3]
+        """
         return left * right
 
     def _coerce_start(self, x):
+        """
+        Coerce things into the symmetric group algebra.
+
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: QS3._coerce_start([])
+            [1, 2, 3]
+            sage: QS3._coerce_start([2,1])
+            [2, 1, 3]
+            sage: _.parent()
+            Symmetric group algebra of order 3 over Rational Field
+        """
         if x == []:
             return self( self._one )
         if len(x) < self.n and x in permutation.Permutations():
@@ -130,17 +158,25 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
     def jucys_murphy(self, k):
         """
         Returns the Jucys-Murphy element J_k for the symmetric group algebra.
+
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: QS3.jucys_murphy(2)
+            [2, 1, 3]
+            sage: QS3.jucys_murphy(3)
+            [1, 3, 2] + [2, 1, 3]
+
         """
         res = self(0)
 
         if k < 2 or k > self.n:
             raise ValueError, "k must between 2 and n (inclusive)"
 
-	for i in range(1, k):
-		p = range(1, self.n+1)
-		p[i-1] = i+1
-		p[i] = i
-                res += self(p)
+        for i in range(1, k):
+            p = range(1, self.n+1)
+            p[i-1] = i+1
+            p[i] = i
+            res += self(p)
         return res
 
 
@@ -149,25 +185,61 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
         """
         Returns a list of the seminormal basis elements of self.
 
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ,3)
+            sage: QS3.seminormal_basis()
+            [1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1],
+            1/3*[1, 2, 3] + 1/6*[1, 3, 2] - 1/3*[2, 1, 3] - 1/6*[2, 3, 1] - 1/6*[3, 1, 2] + 1/6*[3, 2, 1],
+            1/3*[1, 3, 2] + 1/3*[2, 3, 1] - 1/3*[3, 1, 2] - 1/3*[3, 2, 1],
+            1/4*[1, 3, 2] - 1/4*[2, 3, 1] + 1/4*[3, 1, 2] - 1/4*[3, 2, 1],
+            1/3*[1, 2, 3] - 1/6*[1, 3, 2] + 1/3*[2, 1, 3] - 1/6*[2, 3, 1] - 1/6*[3, 1, 2] - 1/6*[3, 2, 1],
+            1/6*[1, 2, 3] - 1/6*[1, 3, 2] - 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] - 1/6*[3, 2, 1]]
         """
-	basis = []
-	for part in partition.Partitions_n(self.n):
+        basis = []
+        for part in partition.Partitions_n(self.n):
             stp = StandardTableaux_partition(part)
             for t1 in stp:
                 for t2 in stp:
                     basis.append(self.epsilon_ik(t1,t2))
-	return basis
+        return basis
 
 
     def dft(self, form="seminormal"):
+        """
+        Returns the discrete Fourier transform for self.
+
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: QS3.dft()
+            [   1    1    1    1    1    1]
+            [   1  1/2   -1 -1/2 -1/2  1/2]
+            [   0  3/4    0  3/4 -3/4 -3/4]
+            [   0    1    0   -1    1   -1]
+            [   1 -1/2    1 -1/2 -1/2 -1/2]
+            [   1   -1   -1    1    1   -1]
+        """
         if form == "seminormal":
             return self._dft_seminormal()
         else:
             raise ValueError, "invalid form (= %s)"%form
 
     def _dft_seminormal(self):
+        """
+        Returns the seminormal form of the discrete Fourier for
+        self.
+
+        EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: QS3._dft_seminormal()
+            [   1    1    1    1    1    1]
+            [   1  1/2   -1 -1/2 -1/2  1/2]
+            [   0  3/4    0  3/4 -3/4 -3/4]
+            [   0    1    0   -1    1   -1]
+            [   1 -1/2    1 -1/2 -1/2 -1/2]
+            [   1   -1   -1    1    1   -1]
+        """
         snb = self.seminormal_basis()
-        return matrix( [vector(b) for b in snb] )
+        return matrix( [vector(b) for b in snb] ).inverse().transpose()
 
 
     def epsilon_ik(self, itab, ktab, star=0):
@@ -176,9 +248,17 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
         to the pair of tableaux itab and ktab.
 
         EXAMPLES:
+            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: a = QS3.epsilon_ik([[1,2,3]], [[1,2,3]]); a
+            1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
+            sage: QS3.dft()*vector(a)
+            (1, 0, 0, 0, 0, 0)
+            sage: a = QS3.epsilon_ik([[1,2],[3]], [[1,2],[3]]); a
+            1/3*[1, 2, 3] - 1/6*[1, 3, 2] + 1/3*[2, 1, 3] - 1/6*[2, 3, 1] - 1/6*[3, 1, 2] - 1/6*[3, 2, 1]
+            sage: QS3.dft()*vector(a)
+            (0, 0, 0, 0, 1, 0)
 
         """
-
         it = Tableau(itab)
         kt = Tableau(ktab)
 
@@ -190,18 +270,20 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
         if kt not in stn:
             raise TypeError, "kt must be a standard tableaux of size %s"%self.n
 
+        if it.shape() != kt.shape():
+            raise ValueError, "it and kt must be of the same shape"
+
         BR = self.base_ring()
-        z = self(0)
         z_elts = {}
-
         epik = epsilon_ik(it, kt, star=star)
-
         for m,c in epik._monomial_coefficients.iteritems():
             z_elts[m] = BR(c)
+        z = self._from_dict(z_elts)
 
-        z._monomial_coefficients = z_elts
-
-        return z
+        if permutation.PermutationOptions()['mult'] == 'l2r':
+            return z
+        else:
+            return z.map_basis(lambda x: x.inverse())
 
 
 
@@ -209,6 +291,16 @@ class SymmetricGroupAlgebra_n(CombinatorialAlgebra):
 
 epsilon_ik_cache = {}
 def epsilon_ik(itab, ktab, star=0):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.symmetric_group_algebra import epsilon_ik
+        sage: epsilon_ik([[1,2],[3]], [[1,3],[2]])
+        1/4*[1, 3, 2] - 1/4*[2, 3, 1] + 1/4*[3, 1, 2] - 1/4*[3, 2, 1]
+        sage: epsilon_ik([[1,2],[3]], [[1,3],[2]], star=1)
+        Traceback (most recent call last):
+        ...
+        ValueError: the two tableaux must be of the same shape
+    """
     it = Tableau(itab)
     kt = Tableau(ktab)
     if star:
@@ -217,83 +309,115 @@ def epsilon_ik(itab, ktab, star=0):
 
     if it.shape() != kt.shape():
         raise ValueError, "the two tableaux must be of the same shape"
-    elif kt == it:
-        return epsilon(itab)
+
+    mult = permutation_options['mult']
+    permutation_options['mult'] = 'l2r'
+    if kt == it:
+        res = epsilon(itab)
     elif (it, kt) in epsilon_ik_cache:
-        return epsilon_ik_cache[(it,kt)]
+        res =  epsilon_ik_cache[(it,kt)]
     else:
         epsilon_ik_cache[(it,kt)] = epsilon(it, star+1)*e_ik(it,kt,star)*epsilon(kt, star+1) * (1/kappa(it.shape()))
-        return epsilon_ik_cache[(it,kt)]
+        res =  epsilon_ik_cache[(it,kt)]
 
-
+    permutation_options['mult'] = mult
+    return res
 
 
 epsilon_cache = {}
 def epsilon(tab, star=0):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.symmetric_group_algebra import epsilon
+        sage: epsilon([[1,2]])
+        1/2*[1, 2] + 1/2*[2, 1]
+        sage: epsilon([[1],[2]])
+        1/2*[1, 2] - 1/2*[2, 1]
+    """
+    t = Tableau(tab)
+
     if star:
-        t2 = Tableau(tab)
-        t = t2.restrict(t2.size() - star)
-    else:
-        t = Tableau(tab)
+        t = t.restrict(t.size() - star)
+
+    mult = permutation_options['mult']
+    permutation_options['mult'] = 'l2r'
 
     if t in epsilon_cache:
-        return epsilon_cache[t]
+        res = epsilon_cache[t]
     else:
         if t.size() == 2:
             epsilon_cache[t] = e(t)*(1/kappa(t.shape()))
-            return epsilon_cache[t]
-        #elif t == Tableau([]):
-        #	epsilon_cache[t] = SymmetricGroupAlgebraElement(1, [1])
-        #	return epsilon_cache[t]
+            res =  epsilon_cache[t]
         elif t == Tableau([[1]]):
             epsilon_cache[t] = e(t)
-            return epsilon_cache[t]
+            res =  epsilon_cache[t]
         else:
             epsilon_cache[t] =  epsilon(t, 1)*e(t)*epsilon(t,1)*( 1 / kappa(t.shape()))
-            return epsilon_cache[t]
+            res = epsilon_cache[t]
+
+    permutation_options['mult'] = mult
+    return res
 
 
-
-
-def pi_ik(itab, ktab, csn=False):
+def pi_ik(itab, ktab):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.symmetric_group_algebra import pi_ik
+        sage: pi_ik([[1,3],[2]], [[1,2],[3]])
+        [1, 3, 2]
+    """
     it = Tableau(itab)
     kt = Tableau(ktab)
 
-    po = permutation.PermutationOptions()
-
-    if po['mult'] == 'r2l':
-        p = [None]*it.size()
-        for i in range(len(it)):
-            for j in range(len(it[i])):
-                p[ kt[i][j] -1 ] = it[i][j]
-    else:
-        p = [None]*kt.size()
-        for i in range(len(kt)):
-            for j in range(len(kt[i])):
-                p[ it[i][j] -1 ] = kt[i][j]
+    p = [None]*kt.size()
+    for i in range(len(kt)):
+        for j in range(len(kt[i])):
+            p[ it[i][j] -1 ] = kt[i][j]
 
     QSn = SymmetricGroupAlgebra(QQ, it.size())
     p = permutation.Permutation(p)
-
     return QSn(p)
 
 
 def kappa(alpha):
+    r"""
+    Returns $\kappa_\alpha$ which is n! divided by the number
+    of standard tableaux of shape $\alpha$.
+
+    EXAMPLES:
+        sage: from sage.combinat.symmetric_group_algebra import kappa
+        sage: kappa(Partition([2,1]))
+        3
+        sage: kappa([2,1])
+        3
+    """
     try:
         n = alpha.size()
-    except:
+    except AttributeError:
         n = sum(alpha)
     return factorial(n)/StandardTableaux(alpha).count()
 
 
 e_cache = {}
 def e(tableau, star=0):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.symmetric_group_algebra import e
+        sage: e([[1,2]])
+        [1, 2] + [2, 1]
+        sage: e([[1],[2]])
+        [1, 2] - [2, 1]
+
+    """
     t = Tableau(tableau)
     if star:
         t = t.restrict(t.size()-star)
 
+    mult = permutation_options['mult']
+    permutation_options['mult'] = 'l2r'
+
     if t in e_cache:
-        return e_cache[t]
+        res =  e_cache[t]
     else:
         rs = t.row_stabilizer()
         cs = t.column_stabilizer()
@@ -302,33 +426,43 @@ def e(tableau, star=0):
         QSn = SymmetricGroupAlgebra(QQ, n)
 
         res = 0
-        po = permutation.PermutationOptions()
-
-        #Note that since v and h are GAP permutation group
-        #elements, their multiplication is always done l2r.
-        if po['mult'] == 'l2r':
-            for h in rs:
-                for v in cs:
-                    res += v.sign() * QSn( (h*v).list() )
-        else:
-            for h in rs:
-                for v in cs:
-                    res += v.sign() * QSn( (v*h).list() )
+        for h in rs:
+            for v in cs:
+                res += v.sign() * QSn( (h*v).list() )
         e_cache[t] = res
-        return res
+
+    permutation_options['mult'] = mult
+    return res
 
 ehat_cache = {}
 def e_hat(tab, star=0):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.symmetric_group_algebra import e_hat
+        sage: e_hat([[1,2,3]])
+        1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
+        sage: e_hat([[1],[2]])
+        1/2*[1, 2] - 1/2*[2, 1]
+    """
     t = Tableau(tab)
     if star:
         t = t.restrict(t.size()-star)
     if t in ehat_cache:
-        return ehat_cache[t]
+        res = ehat_cache[t]
     else:
-        return (1/kappa(t.shape()))*e(t)
+        res = (1/kappa(t.shape()))*e(t)
+    return res
 
 e_ik_cache = {}
 def e_ik(itab, ktab, star=0):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.symmetric_group_algebra import e_ik
+        sage: e_ik([[1,2,3]], [[1,2,3]])
+        [1, 2, 3] + [1, 3, 2] + [2, 1, 3] + [2, 3, 1] + [3, 1, 2] + [3, 2, 1]
+        sage: e_ik([[1,2,3]], [[1,2,3]], star=1)
+        [1, 2] + [2, 1]
+    """
     it = Tableau(itab)
     kt = Tableau(ktab)
     if star:
@@ -337,17 +471,34 @@ def e_ik(itab, ktab, star=0):
 
     if it.shape() != kt.shape():
         raise ValueError, "the two tableaux must be of the same shape"
-    elif kt == it:
-        return e(itab)
+
+    mult = permutation_options['mult']
+    permutation_options['mult'] = 'l2r'
+
+    if kt == it:
+        res =  e(it)
     elif (it, kt) in e_ik_cache:
-        return e_ik_cache[(it,kt)]
+        res = e_ik_cache[(it,kt)]
     else:
         pi = pi_ik(it,kt)
         e_ik_cache[(it,kt)] = e(it)*pi
-        return e_ik_cache[(it,kt)]
+        res = e_ik_cache[(it,kt)]
+
+    permutation_options['mult'] = mult
+    return res
 
 
 def seminormal_test(n):
+    """
+    Runs a variety of tests to verify that the construction of the seminormal
+    basis works as desired.  The numbers appearing are Theorems in James and
+    Kerber's 'Representation Theory of the Symmetric Group'.
+
+    EXAMPLES:
+        sage: from sage.combinat.symmetric_group_algebra import seminormal_test
+        sage: seminormal_test(3)
+        True
+    """
     for part in partition.Partitions_n(n):
         for tab in StandardTableaux(part):
             #3.1.10
@@ -378,7 +529,7 @@ def seminormal_test(n):
                         raise ValueError, "3.1.20 - %s, %s"%(tab, tab2)
                     if e_hat(tab2)*e_hat(tab) != 0:
                         raise ValueError, "3.1.20 - %s, %s"%(tab, tab2)
-
+    return True
 
 #######################
 
@@ -392,7 +543,7 @@ def HeckeAlgebraSymmetricGroupT(R, n, q=None):
         Hecke algebra of the symmetric group of order 3 on the T basis over Univariate Polynomial Ring in q over Rational Field
 
         sage: HeckeAlgebraSymmetricGroupT(QQ, 3, 2)
-        Hecke algebra of the symmetric group of order 3 on the T basis over Rational Field
+        Hecke algebra of the symmetric group of order 3 with q=2 on the T basis over Rational Field
 
     """
 
@@ -400,11 +551,19 @@ def HeckeAlgebraSymmetricGroupT(R, n, q=None):
 
 class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
     def __init__(self, R, n, q=None):
+        """
+        TESTS:
+            sage: HeckeAlgebraSymmetricGroupT(QQ, 3)
+            Hecke algebra of the symmetric group of order 3 on the T basis over Univariate Polynomial Ring in q over Rational Field
+
+            sage: HeckeAlgebraSymmetricGroupT(QQ, 3, q=1)
+            Hecke algebra of the symmetric group of order 3 with q=1 on the T basis over Rational Field
+
+        """
         self.n = n
         self._combinatorial_class = permutation.Permutations(n)
         self._name = "Hecke algebra of the symmetric group of order %s"%self.n
         self._one = permutation.Permutation(range(1,n+1))
-        self._prefix = ""
 
         if q is None:
             q = PolynomialRing(R, 'q').gen()
@@ -412,7 +571,7 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
         else:
             if q not in R:
                 raise ValueError, "q must be in R (= %s)"%R
-
+            self._name += " with q=%s"%q
 
         self._q = q
 
@@ -446,12 +605,20 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
             return self( list(x) + range(len(x)+1, self.n+1) )
         raise TypeError
 
-
+class HeckeAlgebraSymmetricGroupElement_t(CombinatorialAlgebraElement):
+    pass
 
 class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
     def __init__(self, R, n, q=None):
-        HeckeAlgebraSymmetricGroup_generic.__init__(self, R, n, q)
+        """
+        TESTS:
+            sage: H3 = HeckeAlgebraSymmetricGroupT(QQ, 3)
+            sage: H3 == loads(dumps(H3))
+            True
+        """
         self._prefix = "T"
+        self._element_class = HeckeAlgebraSymmetricGroupElement_t
+        HeckeAlgebraSymmetricGroup_generic.__init__(self, R, n, q)
         self._name += " on the T basis"
 
     def t_action_on_basis(self, perm, i):

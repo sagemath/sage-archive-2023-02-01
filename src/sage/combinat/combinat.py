@@ -188,23 +188,13 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-import os
-
 from sage.interfaces.all import gap, maxima
 from sage.rings.all import QQ, ZZ
-from sage.rings.arith import binomial
 from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari
-from sage.rings.arith import factorial
 from sage.misc.prandom import randint
 from sage.misc.misc import prod
 from sage.structure.sage_object import SageObject
-import __builtin__
-from sage.algebras.algebra import Algebra
-from sage.algebras.algebra_element import AlgebraElement
-import sage.structure.parent_base
-
 
 ######### combinatorial sequences
 
@@ -309,6 +299,7 @@ def catalan_number(n):
     \end{itemize}
 
     """
+    from sage.rings.arith import binomial
     n = ZZ(n)
     return binomial(2*n,n)/(n+1)
 
@@ -526,22 +517,6 @@ def stirling_number2(n,k):
         <type 'sage.rings.integer.Integer'>
     """
     return ZZ(gap.eval("Stirling2(%s,%s)"%(ZZ(n),ZZ(k))))
-
-def mod_stirling(q,n,k):
-    """
-    """
-    if k>n or k<0 or n<0:
-        raise ValueError, "n (= %s) and k (= %s) must greater than or equal to 0, and n must be greater than or equal to k"
-
-    if k == 0:
-        return 1
-    elif k == 1:
-        return (n**2+(2*q+1)*n)/2
-    elif k == n:
-        return prod( [ q+i for i in range(1, n+1) ] )
-    else:
-        return mod_stirling(q,n-1,k)+(q+n)*mod_stirling(q, n-1, k-1)
-
 
 
 class CombinatorialObject(SageObject):
@@ -831,7 +806,7 @@ class CombinatorialClass(SageObject):
 
     def __contains__(self, x):
         """
-        Tests whether or not the combinatorial class contains the
+        Tests whether or not the coxmbinatorial class contains the
         object x.  This raises a NotImplementedError as a default
         since _all_ subclasses of CombinatorialClass should
         override this.
@@ -890,7 +865,7 @@ class CombinatorialClass(SageObject):
             3
         """
         c = 0
-        for x in self.iterator():
+        for _ in self.iterator():
             c += 1
         return c
     count = __count_from_iterator
@@ -955,7 +930,7 @@ class CombinatorialClass(SageObject):
         while True:
             try:
                 f = self.next(f)
-            except:
+            except (TypeError, ValueError ):
                 break
 
             if f is None or f is False :
@@ -989,7 +964,7 @@ class CombinatorialClass(SageObject):
         while True:
             try:
                 l = self.previous(l)
-            except:
+            except (TypeError, ValueError):
                 break
 
             if l == None:
@@ -1016,7 +991,7 @@ class CombinatorialClass(SageObject):
             r += 1
             try:
                 u = self.unrank(r)
-            except:
+            except (TypeError, ValueError, IndexError):
                 break
 
             if u == None:
@@ -1275,7 +1250,7 @@ class FilteredCombinatorialClass(CombinatorialClass):
             1
         """
         c = 0
-        for x in self.iterator():
+        for _ in self.iterator():
             c += 1
         return c
 
@@ -1407,7 +1382,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         try:
             return self.left_cc.rank(x)
-        except:
+        except (TypeError, ValueError):
             return self.left_cc.count() + self.right_cc.rank(x)
 
     def unrank(self, x):
@@ -1421,7 +1396,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         try:
             return self.left_cc.unrank(x)
-        except:
+        except (TypeError, ValueError):
             return self.right_cc.unrank(x - self.left_cc.count())
 
 
@@ -1881,14 +1856,14 @@ def number_of_permutations(mset):
         10
 
     """
-    from sage.rings.arith import factorial, prod
+    from sage.rings.arith import factorial
     m = len(mset)
     n = []
     seen = []
     for element in mset:
         try:
             n[seen.index(element)] += 1
-        except:
+        except (IndexError, ValueError):
             n.append(1)
             seen.append(element)
     return factorial(m)/prod([factorial(k) for k in n])
@@ -1969,7 +1944,6 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
     AUTHOR:
         Bobby Moretti
     """
-    from sage.rings.integer_ring import ZZ
     if stop is None:
         stop = ZZ(start)
         start = ZZ(0)
@@ -2012,7 +1986,6 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
     AUTHOR:
         Bobby Moretti
     """
-    from sage.rings.integer_ring import ZZ
     if stop is None:
         stop = ZZ(start)
         start = ZZ(0)

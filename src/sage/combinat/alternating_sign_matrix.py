@@ -16,9 +16,9 @@ Alternating Sign Matrices
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialClass, CombinatorialObject
+from combinat import CombinatorialClass
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.all import ZZ, Integer, factorial
+from sage.rings.all import ZZ, factorial
 from sage.sets.set import Set
 from sage.misc.misc import prod
 import copy
@@ -40,19 +40,19 @@ def from_contre_tableau(comps):
     """
     n = len(comps)
     MS = MatrixSpace(ZZ, n)
-    M = [ [0 for i in range(n)] for j in range(n) ]
+    M = [ [0 for _ in range(n)] for _ in range(n) ]
 
     previous_set = Set([])
 
     for col in range(n-1, -1, -1):
-        set = Set( comps[col] )
-        for x in set - previous_set:
+        s = Set( comps[col] )
+        for x in s - previous_set:
             M[x-1][col] = 1
 
-        for x in previous_set - set:
+        for x in previous_set - s:
             M[x-1][col] = -1
 
-        previous_set = set
+        previous_set = s
 
     return MS(M)
 
@@ -219,8 +219,7 @@ class ContreTableaux_n(CombinatorialClass):
 
 
 
-
-def _next_column_iterator(previous_column, height):
+def _next_column_iterator(previous_column, height, i = None):
     """
     Returns a generator for all columbs of height height
     properly filled from row 1 to i
@@ -235,22 +234,19 @@ def _next_column_iterator(previous_column, height):
         [[1, 4], [1, 5], [2, 4], [2, 5], [3, 4], [3, 5], [4, 5]]
 
     """
-    assert height <= len(previous_column)-1
-    def proc(i):
-        if i == 0:
-            yield [-1]*height
-        else:
-            for column in proc(i-1):
-                min_value = previous_column[i-1]
-                if i > 1:
-                    min_value = max(min_value, column[i-2]+1)
-                for value in range(min_value, previous_column[i]+1):
-                    c = copy.copy(column)
-                    c[i-1] = value
-                    yield c
-
-    for z in proc(height):
-        yield z
+    if i is None:
+        i = height
+    if i == 0:
+        yield [-1]*height
+    else:
+        for column in _next_column_iterator(previous_column, height, i-1):
+            min_value = previous_column[i-1]
+            if i > 1:
+                min_value = max(min_value, column[i-2]+1)
+            for value in range(min_value, previous_column[i]+1):
+                c = copy.copy(column)
+                c[i-1] = value
+                yield c
 
 def _previous_column_iterator(column, height, max_value):
     """

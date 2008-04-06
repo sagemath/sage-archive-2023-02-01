@@ -16,10 +16,6 @@ Publisher
 Elsevier Science Publishers Ltd.   Essex, UK
 
 """
-
-
-
-
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -34,18 +30,12 @@ Elsevier Science Publishers Ltd.   Essex, UK
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-
 from sage.combinat.composition import Composition, Composition_class
-from combinat import CombinatorialClass, CombinatorialObject
+from combinat import CombinatorialClass
 from sage.rings.arith import euler_phi,factorial, divisors, gcd
 from sage.rings.integer import Integer
 from sage.misc.misc import prod
 from sage.combinat.misc import DoublyLinkedList
-import __builtin__
-import itertools
-
-
 
 def Necklaces(e):
     """
@@ -153,11 +143,11 @@ class Necklaces_evaluation(CombinatorialClass):
             True
         """
         evaluation = self.e
-        le = __builtin__.list(evaluation)
-        if len(evaluation) == 0:
+        le = list(evaluation)
+        if len(le) == 0:
             return 0
 
-        n = sum(evaluation)
+        n = sum(le)
 
         return sum([euler_phi(j)*factorial(n/j) / prod([factorial(ni/j) for ni in evaluation]) for j in divisors(gcd(le))])/n
 
@@ -203,13 +193,23 @@ class Necklaces_evaluation(CombinatorialClass):
 #Fast Fixed Content Algorithm#
 ##############################
 def _ffc(content, equality=False):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.necklace import _ffc
+        sage: list(_ffc([3,3])) #necklaces
+        [[0, 1, 0, 1, 0, 1],
+         [0, 0, 1, 1, 0, 1],
+         [0, 0, 1, 0, 1, 1],
+         [0, 0, 0, 1, 1, 1]]
+        sage: list(_ffc([3,3], equality=True)) #Lyndon words
+        [[0, 0, 1, 1, 0, 1], [0, 0, 1, 0, 1, 1], [0, 0, 0, 1, 1, 1]]
+    """
     e = list(content)
     a = [len(e)-1]*sum(e)
     r = [0] * sum(e)
     a[0] = 0
     e[0] -= 1
     k = len(e)
-    l = range(k)
 
     rng_k = range(k)
     rng_k.reverse()
@@ -217,11 +217,30 @@ def _ffc(content, equality=False):
     if e[0] == 0:
         dll.hide(0)
 
-    j = dll.head()
     for x in _fast_fixed_content(a, e, 2, 1, k, r, 2, dll, equality=equality):
         yield x
 
 def _fast_fixed_content(a, content, t, p, k, r, s, dll, equality=False):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.necklace import _fast_fixed_content
+        sage: from sage.combinat.misc import DoublyLinkedList
+        sage: e = [3,3]
+        sage: a = [len(e)-1]*sum(e)
+        sage: r = [0]*sum(e)
+        sage: a[0] = 0
+        sage: e[0] -= 1
+        sage: k = len(e)
+        sage: dll = DoublyLinkedList(list(reversed(range(k))))
+        sage: if e[0] == 0: dll.hide(0)
+        sage: list(_fast_fixed_content(a,e,2,1,k,r,2,dll))
+        [[0, 1, 0, 1, 0, 1],
+         [0, 0, 1, 1, 0, 1],
+         [0, 0, 1, 0, 1, 1],
+         [0, 0, 0, 1, 1, 1]]
+        sage: list(_fast_fixed_content(a,e,2,1,k,r,2,dll,True))
+        [[0, 0, 1, 1, 0, 1], [0, 0, 1, 0, 1, 1], [0, 0, 0, 1, 1, 1]]
+    """
     n = len(a)
     if content[k-1] == n - t + 1:
         if content[k-1] == r[t-p-1]:
@@ -268,11 +287,21 @@ def _fast_fixed_content(a, content, t, p, k, r, s, dll, equality=False):
 # List Fixed Content Algorithm #
 ################################
 def _lfc(content, equality=False):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.necklace import _lfc
+        sage: list(_lfc([3,3])) #necklaces
+        [[0, 1, 0, 1, 0, 1],
+         [0, 0, 1, 1, 0, 1],
+         [0, 0, 1, 0, 1, 1],
+         [0, 0, 0, 1, 1, 1]]
+        sage: list(_lfc([3,3], equality=True)) #Lyndon words
+        [[0, 0, 1, 1, 0, 1], [0, 0, 1, 0, 1, 1], [0, 0, 0, 1, 1, 1]]
+    """
     content = list(content)
     a = [0]*sum(content)
     content[0] -= 1
     k = len(content)
-    l = range(k)
 
     rng_k = range(k)
     rng_k.reverse()
@@ -281,11 +310,28 @@ def _lfc(content, equality=False):
     if content[0] == 0:
         dll.hide(0)
 
-    j = dll.head()
     for z in _list_fixed_content(a, content, 2, 1, k, dll, equality=equality):
         yield z
 
 def _list_fixed_content(a, content, t, p, k, dll, equality=False):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.necklace import _list_fixed_content
+        sage: from sage.combinat.misc import DoublyLinkedList
+        sage: e = [3,3]
+        sage: a = [0]*sum(e)
+        sage: e[0] -= 1
+        sage: k = len(e)
+        sage: dll = DoublyLinkedList(list(reversed(range(k))))
+        sage: if e[0] == 0: dll.hide(0)
+        sage: list(_list_fixed_content(a,e,2,1,k,dll))
+        [[0, 1, 0, 1, 0, 1],
+         [0, 0, 1, 1, 0, 1],
+         [0, 0, 1, 0, 1, 1],
+         [0, 0, 0, 1, 1, 1]]
+        sage: list(_list_fixed_content(a,e,2,1,k,dll,True))
+        [[0, 0, 1, 1, 0, 1], [0, 0, 1, 0, 1, 1], [0, 0, 0, 1, 1, 1]]
+    """
     n = len(a)
     if t > n:
         if equality:
@@ -323,13 +369,17 @@ def _list_fixed_content(a, content, t, p, k, dll, equality=False):
 ################################
 def _sfc(content, equality=False):
     """
-    TESTS:
-        sage: import sage.combinat.necklace as necklace
-        sage: list(necklace._sfc([3,3]))
+    This function sets things up and calls _simple_fixed_content.
+
+    EXAMPLES:
+        sage: from sage.combinat.necklace import _sfc
+        sage: list(_sfc([3,3])) #necklaces
         [[0, 0, 0, 1, 1, 1],
          [0, 0, 1, 0, 1, 1],
          [0, 0, 1, 1, 0, 1],
          [0, 1, 0, 1, 0, 1]]
+        sage: list(_sfc([3,3], equality=True)) #Lyndon words
+        [[0, 0, 0, 1, 1, 1], [0, 0, 1, 0, 1, 1], [0, 0, 1, 1, 0, 1]]
     """
     content = list(content)
     a = [0]*sum(content)
@@ -338,6 +388,22 @@ def _sfc(content, equality=False):
     return _simple_fixed_content(a, content, 2, 1, k, equality=equality)
 
 def _simple_fixed_content(a, content, t, p, k, equality=False):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.necklace import _simple_fixed_content
+        sage: content = [3,3]
+        sage: a = [0]*sum(content)
+        sage: content[0] -= 1
+        sage: k = len(content); k
+        2
+        sage: list(_simple_fixed_content(a, content, 2, 1, k))
+        [[0, 0, 0, 1, 1, 1],
+         [0, 0, 1, 0, 1, 1],
+         [0, 0, 1, 1, 0, 1],
+         [0, 1, 0, 1, 0, 1]]
+        sage: list(_simple_fixed_content(a, content, 2, 1, k, True))
+        [[0, 0, 0, 1, 1, 1], [0, 0, 1, 0, 1, 1], [0, 0, 1, 1, 0, 1]]
+    """
     n = len(a)
     if t > n:
         if equality:
@@ -366,8 +432,6 @@ def _lyn(w):
     Returns the length of the longest prefix of w that
     is a Lyndon word.
 
-    From Theorem 1.
-
     EXAMPLES:
         sage: import sage.combinat.necklace as necklace
         sage: necklace._lyn([0,1,1,0,0,1,2])
@@ -383,7 +447,6 @@ def _lyn(w):
     for i in range(1, len(w)):
         b = w[i]
         a = w[:i]
-        #print "a, b, a[i-p]:", a, b, a[i-p]
         if b < a[i-p] or b > k-1:
             return p
         elif b == a[i-p]:

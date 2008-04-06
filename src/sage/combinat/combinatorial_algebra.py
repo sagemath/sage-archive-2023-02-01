@@ -56,22 +56,14 @@ that defines the multiplication in the algebra.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.interfaces.all import gap, maxima
-from sage.rings.all import QQ, RR, ZZ
-from sage.rings.arith import binomial
-from sage.misc.sage_eval import sage_eval
-from sage.libs.all import pari
-from sage.rings.all import Ring, factorial, Integer
-from random import randint
-from sage.misc.misc import prod, repr_lincomb
-from sage.structure.sage_object import SageObject
-import __builtin__
+from sage.rings.all import Ring, Integer
+from sage.misc.misc import repr_lincomb
 from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
 import sage.structure.parent_base
 import sage.combinat.partition
 from sage.modules.free_module_element import vector
-from sage.matrix.all import matrix, MatrixSpace
+from sage.matrix.all import MatrixSpace
 
 class CombinatorialAlgebraElement(AlgebraElement):
     def __init__(self, A, x):
@@ -344,7 +336,7 @@ class CombinatorialAlgebraElement(AlgebraElement):
             raise TypeError, "n must be an integer"
         A = self.parent()
         z = A(Integer(1))
-        for i in range(n):
+        for _ in range(n):
             z *= self
         return z
 
@@ -687,7 +679,7 @@ class CombinatorialAlgebra(Algebra):
         #Set the dimension
         try:
             self._dim = self._combinatorial_class.count()
-        except:
+        except (ValueError, NotImplementedError):
             self._dim = None
 
         self._order = None
@@ -708,7 +700,7 @@ class CombinatorialAlgebra(Algebra):
             [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
 
         """
-        return map(self, self._combinatorial_class.list())
+        return [self(x) for x in self._combinatorial_class]
 
     def __call__(self, x):
         """

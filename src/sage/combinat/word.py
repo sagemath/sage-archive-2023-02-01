@@ -15,13 +15,10 @@ Words
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-import sage.combinat.generator as generator
 from sage.misc.mrange import xmrange
 import sage.combinat.permutation
 import itertools
-import __builtin__
-from combinat import CombinatorialClass, CombinatorialObject
+from combinat import CombinatorialClass
 from sage.rings.all import binomial, Integer, infinity
 from sage.combinat.integer_vector import IntegerVectors
 import copy
@@ -195,14 +192,26 @@ class Words_alphabetk(CombinatorialClass):
     def __init__(self, alphabet, k):
         """
         TESTS:
-            sage: import sage.combinat.word as word
-            sage: w = word.Words_alphabetk([1,2,3], 2); w
+            sage: w = Words([1,2,3], 2); w
             Words from [1, 2, 3] of length 2
             sage: w.count()
             9
         """
         self.alphabet = alphabet
         self.k = k
+
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: w = Words([1,2,3], 2)
+            sage: [1,2,3] in w
+            False
+            sage: [1,2] in w
+            True
+            sage: [3,4] in w
+            False
+        """
+        return len(x) == self.k and all(i in self.alphabet for i in x)
 
     def __repr__(self):
         """
@@ -367,7 +376,7 @@ def charge(word, check=True):
         if evaluation(word) not in partition.Partitions():
             raise ValueError, "the evaluation of w must be a partition"
     w = word[:]
-    charge = 0
+    res = 0
     while len(w) != 0:
         i = 0
         l = 1
@@ -378,13 +387,13 @@ def charge(word, check=True):
                 if i >= len(w):
                     i = 0
                     index += 1
-            charge += index
+            res += index
             l += 1
             w.pop(i)
             if i >= len(w):
                 i = 0
                 index += 1
-    return charge
+    return res
 
 def evaluation_dict(w):
     """
@@ -518,22 +527,22 @@ def from_standard_and_evaluation(sp, e, alphabet=None):
     return word
 
 def swap(w,i,j=None):
-   """
-   Returns the word w with entries at positions i and
-   j swapped.  By default, j = i+1.
+    """
+    Returns the word w with entries at positions i and
+    j swapped.  By default, j = i+1.
 
-   EXAMPLES:
-       sage: import sage.combinat.word as word
-       sage: word.swap([1,2,3],0,2)
-       [3, 2, 1]
-       sage: word.swap([1,2,3],1)
-       [1, 3, 2]
-   """
-   if j == None:
-       j = i+1
-   new = w[:]
-   (new[i], new[j]) = (new[j], new[i])
-   return new
+    EXAMPLES:
+        sage: import sage.combinat.word as word
+        sage: word.swap([1,2,3],0,2)
+        [3, 2, 1]
+        sage: word.swap([1,2,3],1)
+        [1, 3, 2]
+    """
+    if j == None:
+        j = i+1
+    new = w[:]
+    (new[i], new[j]) = (new[j], new[i])
+    return new
 
 def swap_increase(w, i):
     """
@@ -817,6 +826,37 @@ class ShuffleProduct_w1w2(CombinatorialClass):
         """
         return "Shuffle product of %s and %s"%(self.w1, self.w2)
 
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: s = ShuffleProduct([1,2],[3,4])
+            sage: all(i in s for i in s)
+            True
+            sage: [2, 1, 3, 4] in s
+            False
+        """
+        w1 = self.w1[:]
+        w2 = self.w2[:]
+
+        try:
+            x = list(x)
+        except TypeError:
+            return False
+
+        for _ in range(len(x)):
+            try:
+                letter = x.pop(0)
+            except IndexError:
+                return False
+            if len(w1) > 0 and letter == w1[0]:
+                w1.pop(0)
+            elif len(w2) > 0 and letter == w2[0]:
+                w2.pop(0)
+            else:
+                return False
+
+        return len(x) == 0
+
     def count(self):
         """
         Returns the number of words in the shuffle product
@@ -829,6 +869,27 @@ class ShuffleProduct_w1w2(CombinatorialClass):
             6
          """
         return binomial(len(self.w1)+len(self.w2), len(self.w1))
+
+    def _proc(self, vect):
+        """
+        EXAMPLES:
+            sage: s = ShuffleProduct([1,2],[3,4])
+            sage: s._proc([0,1,0,1])
+            [3, 1, 4, 2]
+            sage: s._proc([1,1,0,0])
+            [1, 2, 3, 4]
+        """
+        i1 = -1
+        i2 = -1
+        res = []
+        for v in vect:
+            if v == 1:
+                i1 += 1
+                res.append(self.w1[i1])
+            else:
+                i2 += 1
+                res.append(self.w2[i2])
+        return res
 
 
     def iterator(self):
@@ -848,21 +909,8 @@ class ShuffleProduct_w1w2(CombinatorialClass):
 
         n1 = len(self.w1)
         n2 = len(self.w2)
-
-        def proc(vect):
-            i1 = -1
-            i2 = -1
-            res = []
-            for v in vect:
-                if v == 1:
-                    i1 += 1
-                    res.append(self.w1[i1])
-                else:
-                    i2 += 1
-                    res.append(self.w2[i2])
-            return res
-
-        return itertools.imap(proc, IntegerVectors(n1, n1+n2, max_part=1))
+        for iv in IntegerVectors(n1, n1+n2, max_part=1):
+            yield self._proc(iv)
 
 
 
@@ -874,8 +922,7 @@ class ShuffleProduct_shifted(ShuffleProduct_w1w2):
             sage: s == loads(dumps(s))
             True
         """
-        self.w1 = w1
-        self.w2 = [x+len(w1) for x in w2]
+        ShuffleProduct_w1w2.__init__(self, w1, [x+len(w1) for x in w2])
 
     def __repr__(self):
         """

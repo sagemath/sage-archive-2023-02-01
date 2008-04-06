@@ -12,9 +12,9 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from dynkin_diagram import dynkin_diagram, dynkin_diagram_as_function
+from dynkin_diagram import dynkin_diagram_as_function
 import cartan_type
-from sage.matrix.all import matrix, MatrixSpace
+from sage.matrix.all import MatrixSpace
 from sage.rings.all import ZZ
 
 def cartan_matrix_as_function(t):
@@ -23,18 +23,17 @@ def cartan_matrix_as_function(t):
     of type t.
 
     EXAMPLES:
-
+        sage: from sage.combinat.cartan_matrix import cartan_matrix_as_function
+        sage: f = cartan_matrix_as_function(['A',4])
+        sage: matrix([[f(i,j) for j in range(1,5)] for i in range(1,5)])
+        [ 2 -1  0  0]
+        [-1  2 -1  0]
+        [ 0 -1  2 -1]
+        [ 0  0 -1  2]
     """
     ct = cartan_type.CartanType(t)
     f = dynkin_diagram_as_function(ct)
-    s = ct.index_set()
-
-    def cmf(i, j):
-        if i == j:
-            return 2
-        else:
-            return -f(j,i)
-
+    cmf = lambda i,j: 2 if i == j else -f(j,i)
     return cmf
 
 def cartan_matrix(t):

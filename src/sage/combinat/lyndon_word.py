@@ -18,13 +18,11 @@ Lyndon words
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialClass, CombinatorialObject
+from combinat import CombinatorialClass
 from sage.combinat.composition import Composition, Compositions
-from sage.rings.all import euler_phi,factorial, divisors, gcd, moebius, Integer
+from sage.rings.all import factorial, divisors, gcd, moebius, Integer
 from sage.misc.misc import prod
-from sage.combinat.misc import DoublyLinkedList
 import __builtin__
-import itertools
 import necklace
 from integer_vector import IntegerVectors
 import word
@@ -176,11 +174,9 @@ class LyndonWords_evaluation(CombinatorialClass):
             return
 
         for z in necklace._sfc(self.e, equality=True):
-            yield map(_add_one, z)
+            yield [i+1 for i in z]
 
 
-def _add_one(x):
-    return x+1
 
 class LyndonWords_nk(CombinatorialClass):
     def __init__(self, n, k):

@@ -14,22 +14,29 @@
 #*****************************************************************************
 from cartan_type import CartanType
 from dynkin_diagram import dynkin_diagram_as_function
-from sage.matrix.all import matrix, MatrixSpace
+from sage.matrix.all import MatrixSpace
 from sage.rings.all import ZZ
 
 def coxeter_matrix_as_function(t):
+    """
+    Returns the coxeter matrix associated to the Cartan type t.
+
+    EXAMPLES:
+        sage: from sage.combinat.coxeter_matrix import coxeter_matrix_as_function
+        sage: f = coxeter_matrix_as_function(['A',4])
+        sage: matrix([[f(i,j) for j in range(1,5)] for i in range(1,5)])
+        [1 3 2 2]
+        [3 1 3 2]
+        [2 3 1 3]
+        [2 2 3 1]
+    """
     ct = CartanType(t)
     f = dynkin_diagram_as_function(ct)
-    index_set = ct.index_set()
 
-    def coxeter(i,j):
-        if i == j:
-            return 1
-        else:
-            if ct.letter == "G":
-                return max(f(j,i), f(i,j))+4
-            else:
-                return max(f(j,i), f(i,j))+2
+    if ct.letter == "G":
+        coxeter = lambda i,j: 1 if i == j else max(f(j,i), f(i,j))+4
+    else:
+        coxeter = lambda i,j: 1 if i == j else max(f(j,i), f(i,j))+2
 
     return coxeter
 
@@ -80,7 +87,6 @@ def coxeter_matrix(t):
 
     """
     ct = CartanType(t)
-    n = ct.rank()
     cf = coxeter_matrix_as_function(ct)
     index_set = ct.index_set()
     MS = MatrixSpace(ZZ, len(index_set))

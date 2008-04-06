@@ -20,23 +20,23 @@ def CartanType(t):
     """
     Returns an object corresponding to the Cartan type t.
 
-    If t is an integer, then it returns the Cartan type ['A', t].
-
     EXAMPLES:
-
+        sage: CartanType(['A',4])
+        ['A', 4]
     """
     if isinstance(t, CartanType_simple):
         return t;
-    if isinstance(t, (int, Integer)):
-        if t > 0:
-            return CartanType_simple(['A', t])
-        else:
-            raise ValueError, "t must be >= 1"
     else:
         return CartanType_simple(t)
 
 class CartanType_simple:
     def __init__(self, t):
+        """
+        EXAMPLES:
+            sage: ct = CartanType(['A',4])
+            sage: ct == loads(dumps(ct))
+            True
+        """
         self.t = t
 
         self.letter = t[0]
@@ -76,13 +76,53 @@ class CartanType_simple:
         """
         return self.t[x]
 
+    def __cmp__(self, other):
+        """
+        EXAMPLES:
+            sage: ct1 = CartanType(['A',4])
+            sage: ct2 = CartanType(['A',4])
+            sage: ct3 = CartanType(['A',5])
+            sage: ct1 == ct2
+            True
+            sage: ct1 != ct3
+            True
+        """
+        if other.__class__ != self.__class__:
+            return cmp(self.__class__, other.__class__)
+
+        if other.letter != self.letter:
+            return cmp(self.letter, other.letter)
+        if other.affine != self.affine:
+            return cmp(self.affine, other.affine)
+        if other.n != self.n:
+            return cmp(self.n, other.n)
+
+        return 0
+
+
     def __len__(self):
+        """
+        EXAMPLES:
+            sage: len(CartanType(['A',4]))
+            2
+            sage: len(CartanType(['A',4,1]))
+            3
+        """
         if self.affine:
             return 3
         else:
             return 2
 
     def is_finite(self):
+        """
+        Returns True if self is finite.
+
+        EXAMPLES:
+            sage: CartanType(['A',4]).is_finite()
+            True
+            sage: CartanType(['A',4,1]).is_finite()
+            False
+        """
         if self.affine is not None:
             return False
 
@@ -100,6 +140,8 @@ class CartanType_simple:
 
     def is_affine(self):
         """
+        Returns True if self is affine.
+
         EXAMPLES:
             sage: CartanType(['A', 3]).is_affine()
             False
@@ -111,6 +153,7 @@ class CartanType_simple:
 
     def rank(self):
         """
+        Returns the rank of self.
         EXAMPLES:
             sage: CartanType(['A', 4]).rank()
             4
@@ -123,7 +166,7 @@ class CartanType_simple:
             if self.affine == 3 and self.letter == 'D':
                 return self.n-1
             elif self.affine == 2 and self.letter == 'A':
-                ## FIXME: check in the litterature what should be the
+                ## FIXME: check in the literature what should be the
 		## appropriate definition for rank
                 return int(self.n+1)/2
             else:
@@ -136,6 +179,8 @@ class CartanType_simple:
 
     def index_set(self):
         """
+        Returns the index set for self.
+
         EXAMPLES:
             sage: CartanType(['A', 3, 1]).index_set()
             [0, 1, 2, 3]
@@ -149,10 +194,35 @@ class CartanType_simple:
             return range(1, n+1)
 
     def root_system(self):
+        """
+        Returns the root system associated to self.
+
+        EXAMPLES:
+            sage: CartanType(['A',4]).root_system()
+            Root system of type ['A', 4]
+        """
         return root_system.RootSystem(self)
 
     def cartan_matrix(self):
+        """
+        Returns the Cartan matrix associated with self.
+
+        EXAMPLES:
+            sage: CartanType(['A',4]).cartan_matrix()
+            [ 2 -1  0  0]
+            [-1  2 -1  0]
+            [ 0 -1  2 -1]
+            [ 0  0 -1  2]
+
+        """
         return cartan_matrix(self)
 
     def type(self):
+        """
+        Returns the type of self.
+
+        EXAMPLES:
+            sage: CartanType(['A', 4]).type()
+            'A'
+        """
         return self.letter

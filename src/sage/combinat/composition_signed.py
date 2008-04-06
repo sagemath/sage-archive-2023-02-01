@@ -16,10 +16,9 @@ Signed Compositions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialObject, CombinatorialClass
+from combinat import CombinatorialClass
 import composition
 import cartesian_product
-import itertools
 from sage.rings.all import binomial, Integer
 import __builtin__
 

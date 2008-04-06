@@ -17,8 +17,8 @@ Combinations
 #*****************************************************************************
 
 from sage.interfaces.all import gap
-from sage.rings.all import QQ, RR, ZZ, Integer, binomial
-from combinat import CombinatorialObject, CombinatorialClass
+from sage.rings.all import ZZ, Integer, binomial
+from combinat import CombinatorialClass
 from choose_nk import rank, from_rank
 from integer_vector import IntegerVectors
 from sage.misc.misc import uniq
@@ -110,6 +110,26 @@ class Combinations_mset(CombinatorialClass):
         """
         self.mset = mset
 
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: c = Combinations(range(4))
+            sage: all( i in c for i in c )
+            True
+            sage: [3,4] in c
+            False
+            sage: [0,0] in c
+            False
+        """
+        try:
+            x = list(x)
+        except TypeError:
+            return False
+
+        return all(i in self.mset for i in x) and \
+               len(uniq(x)) == len(x)
+
+
     def __repr__(self):
         """
         TESTS:
@@ -197,6 +217,28 @@ class Combinations_msetk(CombinatorialClass):
         self.mset = mset
         self.k = k
 
+    def __contains__(self, x):
+        """
+        EXAMPLES:
+            sage: c = Combinations(range(4),2)
+            sage: all( i in c for i in c )
+            True
+            sage: [0,1] in c
+            True
+            sage: [0,1,2] in c
+            False
+            sage: [3,4] in c
+            False
+            sage: [0,0] in c
+            False
+        """
+        try:
+            x = list(x)
+        except TypeError:
+            return False
+        return x in Combinations_mset(self.mset) and len(x) == self.k
+
+
     def __repr__(self):
         """
         TESTS:
@@ -211,7 +253,6 @@ class Combinations_msetk(CombinatorialClass):
             sage: Combinations(['a','a','b'],2).list()
             [['a', 'a'], ['a', 'b']]
         """
-        d = {}
         items = map(self.mset.index, self.mset)
         indices = uniq(sorted(items))
         counts = [0]*len(indices)

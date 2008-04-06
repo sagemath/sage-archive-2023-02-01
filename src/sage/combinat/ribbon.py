@@ -79,6 +79,11 @@ class Ribbon_class(CombinatorialObject):
 
     def spin(self):
         """
+        Returns the spin of self.
+
+        EXAMPLES:
+            sage: Ribbon([[2,3],[1,4,5]]).spin()
+            1/2
         """
         return Integer(self.height()-1)/2
 

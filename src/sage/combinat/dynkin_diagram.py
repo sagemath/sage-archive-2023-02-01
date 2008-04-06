@@ -12,10 +12,35 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from sage.graphs.all import DiGraph, Graph
+from sage.graphs.all import DiGraph
 
 def precheck(t, letter=None, length=None, affine=None, n_ge=None, n=None):
+    """
+    EXAMPLES:
+        sage: from sage.combinat.dynkin_diagram import precheck
+        sage: ct = CartanType(['A',4])
+        sage: precheck(ct, letter='C')
+        Traceback (most recent call last):
+        ...
+        ValueError: t[0] must be = 'C'
+        sage: precheck(ct, affine=1)
+        Traceback (most recent call last):
+        ...
+        ValueError: t[2] must be = 1
+        sage: precheck(ct, length=3)
+        Traceback (most recent call last):
+        ...
+        ValueError: len(t) must be = 3
+        sage: precheck(ct, n=3)
+        Traceback (most recent call last):
+        ...
+        ValueError: t[1] must be = 3
+        sage: precheck(ct, n_ge=5)
+        Traceback (most recent call last):
+        ...
+        ValueError: t[1] must be >= 5
+
+    """
     if letter is not None:
         if t[0] != letter:
             raise ValueError, "t[0] must be = '%s'"%letter
@@ -26,9 +51,11 @@ def precheck(t, letter=None, length=None, affine=None, n_ge=None, n=None):
 
 
     if affine is not None:
-        if t[2] != affine:
+        try:
+            if t[2] != affine:
+                raise ValueError, "t[2] must be = %s"%affine
+        except IndexError:
             raise ValueError, "t[2] must be = %s"%affine
-
 
     if n_ge is not None:
         if t[1] < n_ge:
@@ -43,6 +70,13 @@ def type_a(t):
     Returns the graph corresponding to the Dynkin diagram
     of type A.
 
+    EXAMPLES:
+        sage: from sage.combinat.dynkin_diagram import type_a
+        sage: ct = CartanType(['A',3])
+        sage: a = type_a(ct);a
+        Multi-digraph on 3 vertices
+        sage: e = a.edges(); e.sort(); e
+        [(1, 2, None), (2, 1, None), (2, 3, None), (3, 2, None)]
 
     """
     precheck(t, letter="A", length=2)
@@ -60,16 +94,19 @@ def type_a_affine(t):
     of affine type A.
 
     EXAMPLES:
-        sage: T = ['A', 1, 1]
-        sage: cartan_matrix(T)
-        [ 2 -2]
-        [-2  2]
-
-        sage: T = ['A', 2, 1]
-        sage: cartan_matrix(T)
-        [ 2 -1 -1]
-        [-1  2 -1]
-        [-1 -1  2]
+        sage: from sage.combinat.dynkin_diagram import type_a_affine
+        sage: ct = CartanType(['A',3,1])
+        sage: a = type_a_affine(ct); a
+        Multi-digraph on 4 vertices
+        sage: e = a.edges(); e.sort(); e
+        [(0, 1, None),
+         (0, 3, None),
+         (1, 0, None),
+         (1, 2, None),
+         (2, 1, None),
+         (2, 3, None),
+         (3, 0, None),
+         (3, 2, None)]
     """
     precheck(t, letter="A", length=3, affine=1)
     n = t[1]
@@ -87,12 +124,13 @@ def type_b(t):
     Returns the DiGraph corresponding to the Dynkin diagram
     of type B.
 
-    TESTS:
-        sage: T = ['B', 3]
-        sage: cartan_matrix(T)
-        [ 2 -1  0]
-        [-1  2 -2]
-        [ 0 -1  2]
+    EXAMPLES:
+        sage: from sage.combinat.dynkin_diagram import type_b
+        sage: ct = CartanType(['B',3])
+        sage: b = type_b(ct);b
+        Multi-digraph on 3 vertices
+        sage: e = b.edges(); e.sort(); e
+        [(1, 2, None), (2, 1, None), (2, 3, None), (3, 2, None), (3, 2, None)]
 
 
     """
@@ -108,12 +146,14 @@ def type_c(t):
     Returns the DiGraph corresponding to the Dynkin diagram
     of type C.
 
-    TESTS:
-        sage: T = ['C', 3]
-        sage: cartan_matrix(T)
-        [ 2 -1  0]
-        [-1  2 -1]
-        [ 0 -2  2]
+    EXAMPLES:
+        sage: from sage.combinat.dynkin_diagram import type_c
+        sage: ct = CartanType(['C',3])
+        sage: c = type_c(ct);c
+        Multi-digraph on 3 vertices
+        sage: e = c.edges(); e.sort(); e
+        [(1, 2, None), (2, 1, None), (2, 3, None), (2, 3, None), (3, 2, None)]
+
     """
     precheck(t, letter='C', length=2, n_ge=2)
     n = t[1]
@@ -126,13 +166,21 @@ def type_c_affine(t):
     Returns the DiGraph corresponding to the Dynkin diagram
     of affine type C.
 
-    TESTS:
-        sage: T = ['C', 3, 1]
-        sage: cartan_matrix(T)
-        [ 2 -1  0  0]
-        [-2  2 -1  0]
-        [ 0 -1  2 -1]
-        [ 0  0 -2  2]
+    EXAMPLES:
+        sage: from sage.combinat.dynkin_diagram import type_c_affine
+        sage: ct = CartanType(['C',3,1])
+        sage: c = type_c_affine(ct);c
+        Multi-digraph on 4 vertices
+        sage: e = c.edges(); e.sort(); e
+        [(0, 1, None),
+         (0, 1, None),
+         (1, 0, None),
+         (1, 2, None),
+         (2, 1, None),
+         (2, 3, None),
+         (2, 3, None),
+         (3, 2, None)]
+
     """
     precheck(t, letter='C', length=3, affine=1)
     n = t[1]
@@ -147,16 +195,13 @@ def type_d(t):
     Returns the DiGraph corresponding to the Dynkin diagram
     of type D.
 
-    TESTS:
-        sage: cartan_matrix(['D', 3])
-        [ 2 -1 -1]
-        [-1  2  0]
-        [-1  0  2]
-        sage: cartan_matrix(['D', 4])
-        [ 2 -1  0  0]
-        [-1  2 -1 -1]
-        [ 0 -1  2  0]
-        [ 0 -1  0  2]
+    EXAMPLES:
+        sage: from sage.combinat.dynkin_diagram import type_d
+        sage: ct = CartanType(['D',3])
+        sage: d = type_d(ct);d
+        Multi-digraph on 3 vertices
+        sage: e = d.edges(); e.sort(); e
+        [(1, 2, None), (1, 3, None), (2, 1, None), (3, 1, None)]
 
     """
     precheck(t, letter="D", length=2, n_ge=3)
@@ -171,19 +216,19 @@ def type_d_affine(t):
     Returns the DiGraph corresponding to the Dynkin diagram
     of type D.
 
-    TESTS:
-        sage: cartan_matrix(['D',3,1])
-        [ 2  0 -1  0]
-        [ 0  2 -1 -1]
-        [-1 -1  2  0]
-        [ 0 -1  0  2]
+    EXAMPLES:
+        sage: from sage.combinat.dynkin_diagram import type_d_affine
+        sage: ct = CartanType(['D',3,1])
+        sage: d = type_d_affine(ct);d
+        Multi-digraph on 4 vertices
+        sage: e = d.edges(); e.sort(); e
+        [(0, 2, None),
+         (1, 2, None),
+         (1, 3, None),
+         (2, 0, None),
+         (2, 1, None),
+         (3, 1, None)]
 
-        sage: cartan_matrix(['D',4,1])
-        [ 2  0 -1  0  0]
-        [ 0  2 -1  0  0]
-        [-1 -1  2 -1 -1]
-        [ 0  0 -1  2  0]
-        [ 0  0 -1  0  2]
     """
     precheck(t, letter="D", length=3, affine=1)
     n = t[1]
@@ -197,14 +242,23 @@ def type_e(t):
     Returns the DiGraph corresponding to the Dynkin diagram
     of type E.
 
-    TESTS:
-        sage: cartan_matrix(['E',6])
-        [ 2  0 -1  0  0  0]
-        [ 0  2  0 -1  0  0]
-        [-1  0  2 -1  0  0]
-        [ 0 -1 -1  2 -1  0]
-        [ 0  0  0 -1  2 -1]
-        [ 0  0  0  0 -1  2]
+    EXAMPLES:
+        sage: from sage.combinat.dynkin_diagram import type_e
+        sage: ct = CartanType(['E',6])
+        sage: e = type_e(ct);e
+        Multi-digraph on 6 vertices
+        sage: edges = e.edges(); edges.sort(); edges
+        [(1, 3, None),
+         (2, 4, None),
+         (3, 1, None),
+         (3, 4, None),
+         (4, 2, None),
+         (4, 3, None),
+         (4, 5, None),
+         (5, 4, None),
+         (5, 6, None),
+         (6, 5, None)]
+
     """
     precheck(t, letter="E", length=2, n_ge=3)
     n = t[1]
@@ -223,12 +277,19 @@ def type_f(t):
     Returns the DiGraph corresponding to the Dynkin diagram
     of type F.
 
-    TESTS:
-        sage: cartan_matrix(['F',4])
-        [ 2 -1  0  0]
-        [-1  2 -2  0]
-        [ 0 -1  2 -1]
-        [ 0  0 -1  2]
+    EXAMPLES:
+        sage: from sage.combinat.dynkin_diagram import type_f
+        sage: ct = CartanType(['F',4])
+        sage: f = type_f(ct);f
+        Multi-digraph on 4 vertices
+        sage: e = f.edges(); e.sort(); e
+        [(1, 2, None),
+         (2, 1, None),
+         (2, 3, None),
+         (3, 2, None),
+         (3, 2, None),
+         (3, 4, None),
+         (4, 3, None)]
 
     """
     precheck(t, letter='F', length=2, n=4)
@@ -244,14 +305,18 @@ def type_g(t):
     Returns the DiGraph corresponding to the Dynkin diagram
     of type G.
 
-    TESTS:
-        sage: cartan_matrix(['G',2])
-        [ 2 -1]
-        [-3  2]
+    EXAMPLES:
+        sage: from sage.combinat.dynkin_diagram import type_g
+        sage: ct = CartanType(['G',2])
+        sage: g = type_g(ct);g
+        Multi-digraph on 2 vertices
+        sage: e = g.edges(); e.sort(); e
+        [(1, 2, None), (1, 2, None), (1, 2, None), (2, 1, None)]
+
     """
     precheck(t, letter='G', length=2, n=2)
     g = DiGraph(multiedges=True)
-    for i in range(3):
+    for _ in range(3):
         g.add_edge(1,2)
     g.add_edge(2,1)
     return g
@@ -260,10 +325,11 @@ def dynkin_diagram(t):
     """
     Returns a DiGraph corresponding to the Dynkin diagram of
     type t.
-    What?
+
     EXAMPLES:
-    sage: dynkin_diagram(['E', 6])
-    Multi-digraph on 6 vertices
+        sage: from sage.combinat.dynkin_diagram import dynkin_diagram
+        sage: dynkin_diagram(['A', 4])
+        Multi-digraph on 4 vertices
 
     """
     import cartan_type
@@ -288,15 +354,12 @@ def dynkin_diagram_as_function(t):
     type t.
 
     EXAMPLES:
-
+        sage: from sage.combinat.dynkin_diagram import dynkin_diagram_as_function
+        sage: f = dynkin_diagram_as_function(['A',4])
+        sage: f(1,1)
+        -2
     """
     d = dynkin_diagram(t)
-    def f(i, j):
-        if i == j:
-            return -2
-        elif d.has_edge(i,j):
-            return len(filter(lambda x: x[1] == j, d.outgoing_edges(i)))
-        else:
-            return 0
+    f = lambda i,j: -2 if i == j else ( len(filter(lambda x: x[1] == j, d.outgoing_edges(i))) if d.has_edge(i,j) else 0)
 
     return f

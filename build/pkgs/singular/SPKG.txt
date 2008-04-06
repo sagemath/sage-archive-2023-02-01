@@ -1,5 +1,3 @@
-deprecated, use 'hg log' instead
-
 === singular-3-0-4-1-20071209.p3 (Michael Abshoff) ===
  * fix memleak in kernel/longrat.cc
 

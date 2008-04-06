@@ -159,10 +159,10 @@ def test_notebook(admin_passwd, directory=None, port=8050, address='localhost'):
     This function is used to test notebook server functions.
 
     EXAMPLE:
-        sage: import urllib
         sage: from sage.server.notebook.notebook_object import test_notebook
         sage: passwd = str(randint(1,1<<128))
         sage: nb = test_notebook(passwd, address='localhost', port=8060)
+        sage: import urllib
         sage: h = urllib.urlopen('https://localhost:8060')
         sage: homepage = h.read()
         sage: h.close()
@@ -170,6 +170,14 @@ def test_notebook(admin_passwd, directory=None, port=8050, address='localhost'):
         True
         sage: nb.dispose()
         """
+    import socket
+    if not hasattr(socket, 'ssl'):
+        import sage.server.notebook.gnutls_socket_ssl
+        socket.ssl = sage.server.notebook.gnutls_socket_ssl.GnuTLSSocketSSL
+        import urllib
+        if not hasattr(urllib, 'open_https'):
+            raise RuntimeError, "urllib imported before test_notebook called, can't be fixed now..."
+
     if directory is None:
         directory = tmp_dir = tempfile.mkdtemp()
     else:

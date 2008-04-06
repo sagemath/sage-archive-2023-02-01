@@ -34,3 +34,10 @@ class GnuTLSSocketSSL:
         self.session.shutdown()
         self.session.close()
 
+def require_SSL():
+    """
+    If ssl does not already exist in the socket module, supply our gnutls
+    version.
+    """
+    if not hasattr(socket, "ssl"):
+        socket.ssl = GnuTLSSocketSSL

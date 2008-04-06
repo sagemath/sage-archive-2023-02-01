@@ -171,12 +171,6 @@ def test_notebook(admin_passwd, directory=None, port=8050, address='localhost'):
         sage: nb.dispose()
         """
     import socket
-    if not hasattr(socket, 'ssl'):
-        import sage.server.notebook.gnutls_socket_ssl
-        socket.ssl = sage.server.notebook.gnutls_socket_ssl.GnuTLSSocketSSL
-        import urllib
-        if not hasattr(urllib, 'open_https'):
-            raise RuntimeError, "urllib imported before test_notebook called, can't be fixed now..."
 
     if directory is None:
         directory = tmp_dir = tempfile.mkdtemp()

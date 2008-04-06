@@ -39,6 +39,12 @@ if sys.version_info[:2] < (2, 5):
 
 ###################################################################
 
+# We have to set this here so urllib, etc. can detect it.
+import sage.server.notebook.gnutls_socket_ssl
+sage.server.notebook.gnutls_socket_ssl.require_SSL()
+
+###################################################################
+
 from time                import sleep
 
 from sage.rings.memory import pmem_malloc

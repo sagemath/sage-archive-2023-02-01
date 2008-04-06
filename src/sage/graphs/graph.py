@@ -5002,7 +5002,7 @@ class GenericGraph(SageObject):
             edge_labels=False, vertex_size=200, graph_border=False,
             vertex_colors=None, partition=None, edge_colors=None,
             scaling_term=0.05, iterations=50, loop_size=.1, talk=False,
-            color_by_label=False, heights=None):
+            color_by_label=False, heights=None, edge_style=None):
         """
         Returns a graphics object representing the (di)graph.
 
@@ -5038,6 +5038,10 @@ class GenericGraph(SageObject):
             color_by_label -- if True, color edges by their labels
             heights -- if specified, this is a dictionary from a set of
                 floating point heights to a set of vertices
+            edge_style -- keyword arguments passed into the
+                edge-drawing routine.  This currently only works for
+                directed graphs, since we pass off the undirected graph to
+                networkx
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -5098,7 +5102,7 @@ class GenericGraph(SageObject):
 
             sage: from sage.graphs.bruhat_sn import *
             sage: S = BruhatSn(5)
-            sage: S.to_directed().show(heights = S.lengths, vertex_labels=False, vertex_size=0, figsize=[10,10])
+            sage: S.to_directed().show(heights = S.lengths, vertex_labels=False, vertex_size=0, figsize=[10,10], edge_style={'width': 0.1, 'rgbcolor': (0,1,0)})
 
             sage: pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8], 3:[0.6, -0.8], 4:[0.8, 0.3]}
             sage: g = Graph({0:[1], 1:[2], 2:[3], 3:[4], 4:[0]})
@@ -5114,6 +5118,9 @@ class GenericGraph(SageObject):
             False
 
         """
+        if edge_style is None:
+            edge_style={}
+        edge_style.setdefault('width', 0.02) # pretty default
         if talk:
             vertex_size = 500
             if partition is None:
@@ -5179,14 +5186,17 @@ class GenericGraph(SageObject):
             from sage.plot.plot import arrow
             P = Graphics()
             if edge_colors is None:
+                edge_style.setdefault('rgbcolor', (0,0,0))
                 for u,v,_ in self.edge_iterator():
                     if u != v:
-                        P += arrow((pos[u][0],pos[u][1]),(pos[v][0],pos[v][1]),rgbcolor=(0,0,0))
+                        P += arrow((pos[u][0],pos[u][1]),(pos[v][0],pos[v][1]), **edge_style)
             else:
                 for color in edge_colors:
                     for u,v,_ in edge_colors[color]:
                         if u != v:
-                            P += arrow((pos[u][0],pos[u][1]),(pos[v][0],pos[v][1]),rgbcolor=color)
+                            this_edge=edge_style.copy()
+                            this_edge['rgbcolor']=color
+                            P += arrow((pos[u][0],pos[u][1]),(pos[v][0],pos[v][1]), **this_edge)
             limits = (G.xmin(), G.xmax(), G.ymin(), G.ymax())
             G = P + G
             G.xmin(limits[0])
@@ -5214,7 +5224,7 @@ class GenericGraph(SageObject):
              edge_labels=False, vertex_size=200, graph_border=False,
              vertex_colors=None, edge_colors=None, partition=None,
              scaling_term=0.05, talk=False, iterations=50, loop_size=.1,
-             color_by_label=False, heights=None, **kwds):
+             color_by_label=False, heights=None, edge_style=None, **kwds):
         """
         Shows the (di)graph.
 
@@ -5250,6 +5260,7 @@ class GenericGraph(SageObject):
             color_by_label -- if True, color edges by their labels
             heights -- if specified, this is a dictionary from a set of
                 floating point heights to a set of vertices
+            edge_style -- options for the arrows of directed graphs
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -5312,7 +5323,7 @@ class GenericGraph(SageObject):
                   graph_border=graph_border, partition=partition, talk=talk,
                   scaling_term=scaling_term, iterations=iterations,
                   color_by_label=color_by_label, loop_size=loop_size,
-                  heights=heights).show(**kwds)
+                  heights=heights, edge_style=edge_style).show(**kwds)
 
     def plot3d(self, bgcolor=(1,1,1), vertex_colors=None, vertex_size=0.06,
                      edge_colors=None, edge_size=0.02, edge_size2=0.0325,

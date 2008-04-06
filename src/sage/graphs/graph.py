@@ -31,6 +31,7 @@ AUTHORS:
        general enhancements
     -- Robert L. Miller (Sage Days 7): Edge labeled graph isomorphism
     -- Tom Boothby (Sage Days 7): Miscellaneous awesomeness
+    -- Tom Boothby (2008-01-09): Added graphviz output
 
 \subsection{Graph Format}
 
@@ -5530,6 +5531,66 @@ class GenericGraph(SageObject):
                     edge_size=edge_size, iterations=iterations, edge_size2=edge_size2,
                     color_by_label=color_by_label, **kwds).show()
 
+    def _graphviz_string_helper(self, graph_string, edge_string):
+        r"""
+        Returns a representation in the DOT language, ready to render in graphviz.
+
+        Use \code{graphviz_string} instead.
+
+        INPUT:
+            -- graph_string: a string, "graph" for undirected graphs or
+               "digraph" for directed graphs.
+            -- edge_string: a string, "--" for undirected graphs or "->" for
+               directed graphs.
+
+        WARNING:
+            Internal function, not for external use!
+
+        REFERENCES:
+            http://www.graphviz.org/doc/info/lang.html
+
+        EXAMPLE:
+            sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}})
+            sage: s = G.graphviz_string() # indirect doctest
+            sage: s
+            'graph {\n"0";"1";"2";"3";\n"0"--"1";"0"--"2";"1"--"2";"2"--"3"[label="foo"];\n}'
+        """
+        s = '%s {\n' % graph_string
+        for v in self.vertex_iterator():
+            s+= '"%s";'%v
+        s+= '\n'
+        for u, v, label in self.edge_iterator():
+            if label is None:
+                s+= '"%s"%s"%s";' % (u, edge_string, v)
+            else:
+                s+= '"%s"%s"%s"[label="%s"];' % (u, edge_string, v, label)
+        s+= "\n}"
+        return s
+
+    def graphviz_string(self):
+        r"""
+        Returns a representation in the DOT language, ready to render in graphviz.
+
+        EXAMPLES:
+            sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}})
+            sage: s = G.graphviz_string()
+            sage: s
+            'graph {\n"0";"1";"2";"3";\n"0"--"1";"0"--"2";"1"--"2";"2"--"3"[label="foo"];\n}'
+        """
+        raise NotImplementedError, "GenericGraph subclasses must override graphviz_string()"
+
+    def graphviz_to_file_named(self, filename):
+        r"""
+        Write a representation in the DOT language to the named file, ready to
+        render in graphviz.
+
+        EXAMPLES:
+            sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}})
+            sage: G.graphviz_to_file_named('temp_graphviz')
+            sage: open('temp_graphviz').read()
+            'graph {\n"0";"1";"2";"3";\n"0"--"1";"0"--"2";"1"--"2";"2"--"3"[label="foo"];\n}'
+        """
+        return open(filename, 'wt').write(self.graphviz_string())
 
     ### Spectrum
 
@@ -7227,6 +7288,21 @@ class Graph(GenericGraph):
         f.write( print_graph_eps(self.vertices(), self.edge_iterator(), pos) )
         f.close()
 
+    def graphviz_string(self):
+       r"""
+       Returns a representation in the DOT language, ready to render in graphviz.
+
+       REFERENCES:
+           http://www.graphviz.org/doc/info/lang.html
+
+       EXAMPLE:
+           sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}})
+           sage: s = G.graphviz_string()
+           sage: s
+           'graph {\n"0";"1";"2";"3";\n"0"--"1";"0"--"2";"1"--"2";"2"--"3"[label="foo"];\n}'
+       """
+       return self._graphviz_string_helper("graph", "--") # edge_string is "--" for undirected graphs
+
     ### Cliques
 
     def cliques(self):
@@ -8339,6 +8415,22 @@ class DiGraph(GenericGraph):
             return linearExtensions(self)
         except:
             raise TypeError('Digraph is not acyclic-- there is no topological sort (or there was an error in sage/graphs/linearextensions.py).')
+
+    ### Visualization
+
+    def graphviz_string(self):
+       r"""
+       Returns a representation in the DOT language, ready to render in graphviz.
+
+       REFERENCES:
+           http://www.graphviz.org/doc/info/lang.html
+
+       EXAMPLE:
+           sage: G = DiGraph({0:{1:None,2:None}, 1:{2:None}, 2:{3:'foo'}, 3:{}})
+           sage: s = G.graphviz_string(); s
+           'digraph {\n"0";"1";"2";"3";\n"0"->"1";"0"->"2";"1"->"2";"2"->"3"[label="foo"];\n}'
+       """
+       return self._graphviz_string_helper("digraph", "->") # edge_string is "->" for directed graphs
 
 
 

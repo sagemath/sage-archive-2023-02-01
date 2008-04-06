@@ -6,8 +6,8 @@ def class_graph(top_module, depth=5, name_filter=None, classes=None):
     names as values. The values represent direct superclasses of the
     keys.
 
-    This object is understood by e.g. the Graph constructor and can
-    thus be used to create an inheritance graph for the given module.
+    This object is understood by e.g. the Graph and DiGraph constructors and
+    can thus be used to create an inheritance graph for the given module.
 
     INPUT:
         top_module -- the module to start in (e.g. sage)
@@ -22,6 +22,8 @@ def class_graph(top_module, depth=5, name_filter=None, classes=None):
         'Polynomial_padic_flat': ['Polynomial_generic_dense']}
         sage: Graph(C)
         Graph on 4 vertices
+        sage: DiGraph(C)
+        DiGraph on 4 vertices
     """
     # termination
     if depth == 0: return

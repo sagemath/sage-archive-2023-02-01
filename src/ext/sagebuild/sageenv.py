@@ -57,7 +57,7 @@ class sage_env(enviroment):
             self.options['SAGE_DEBIAN'] = False
         self.options['SITE_PACKAGES_REL'] = self.options['SITE_PACKAGES'][len(self.options['SAGE_LOCAL']):]
         try:
-            self.options['PLATFORM'] = os.environ['PLATFORM']
+            self.options['UNAME'] = os.environ['UNAME']
         except:
             pass
     def setup_defaults(self):

@@ -124,13 +124,13 @@ class GCC_extension(Extension):
             cmd = 'g++'
         else:
             raise TypeError
-        for src in self.sources:
-            cmd = cmd + ' '  + src
         for x in self.options.iteritems():
             if x[1]==None:
                 cmd+=' '+x[0]
             else:
                 cmd+=' '+x[0]+'='+x[1]
+        for src in self.sources:
+            cmd = cmd + ' '  + src
         cmd +=self._get_gcc_flags(self.env)
         if self.outfile != None:
             cmd+= ' -o %s' %self.outfile
@@ -201,7 +201,10 @@ class GCC_extension_object(GCC_extension):
 class GCC_extension_shared_object(GCC_extension):
     def __init__(self, compiler, env, sources, outdir, language='C', define_macros = list(), libraries=list(), include_dirs = list(), library_dirs = list(), options = { }, prop_options = { }, outfile = None):
         newoptions = dict(options)
-        newoptions["-shared"] = None
+        if env.options['UNAME']=='Darwin':
+            newoptions["-dynamiclib"] = None
+        else:
+            newoptions["-shared"] = None
         options = dict(options)
         libraries = list(libraries)
         library_dirs = list(library_dirs)
@@ -225,17 +228,17 @@ class GCC_extension_shared_object(GCC_extension):
             libraries = env.get_default('prelibraries') + libraries + env.get_default('postlibraries')
         except:
             pass
-        try:
-            if env.options['PLATFORM']=="darwin":
-                options.update({"-single_module":None,  "-flat_namespace":None,  "-undefined dynamic_lookup":None })
-        except:
-            pass
+        if env.options['UNAME']=="Darwin":
+            newoptions.update({"-single_module":None,  "-flat_namespace":None,  "-undefined dynamic_lookup":None })
         if outfile==None:
             if outdir[len(outdir)-1]!='/':
                 outdir = outdir+'/'
             self.outdir = str(outdir)
             outfile = outdir+relfile
-            outfile = outfile.replace(os.path.splitext(relfile)[1],".so")
+            if env.options['UNAME']=="Darwin":
+                outfile = outfile.replace(os.path.splitext(relfile)[1],".dylib")
+            else:
+                outfile = outfile.replace(os.path.splitext(relfile)[1],".so")
         GCC_extension.__init__(self,compiler,env,sources,outfile,language,define_macros,libraries,include_dirs,library_dirs, newoptions, prop_options)
     def _get_gcc_flags(self,env):
         ret = ""

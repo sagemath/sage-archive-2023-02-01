@@ -904,7 +904,10 @@ class SymbolicExpression(RingElement):
                     raise ValueError, "function has no input arguments"
                 else:
                     param = A[0]
-                f = F._fast_float_(param)
+                try:
+                    f = F._fast_float_(param)
+                except NotImplementedError:
+                    f = lambda x: F(x)
             else:
                 A = F.variables()
                 if len(A) == 0:
@@ -912,9 +915,15 @@ class SymbolicExpression(RingElement):
                     f = lambda x: y
                 else:
                     param = A[0]
-                    f = F._fast_float_(param)
+                    try:
+                        f = F._fast_float_(param)
+                    except NotImplementedError:
+                        return self.function(param)
         else:
-            f = F._fast_float_(param)
+            try:
+                f = F._fast_float_(param)
+            except NotImplementedError:
+                return self.function(param)
         return plot(f, *args, **kwds)
 
     def __lt__(self, right):

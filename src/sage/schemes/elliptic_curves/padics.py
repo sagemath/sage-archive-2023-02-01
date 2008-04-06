@@ -271,15 +271,14 @@ def padic_height_pairing_matrix(self, p, prec=20, height=None, check_hypotheses=
 
     # Use <P, Q> =1/2*( h(P + Q) - h(P) - h(Q) )
 
-    point_height = [height(P) for P in basis]
+    for i in range(rank):
+        M[i,i] = height(basis[i])
     for i in range(rank):
         for j in range(i+1, rank):
-            M[i, j] = M[j, i] = ( height(basis[i] + basis[j]) - point_height[i] - point_height[j] ) / 2
-    for i in range(rank):
-        M[i,i] = point_height[i]
+            M[i, j] = ( height(basis[i] + basis[j]) - M[i,i] - M[j,j] ) / 2
+            M[j, i] = M[i, j]
+
     return M
-
-
 
 def _multiply_point(E, R, P, m):
     r"""

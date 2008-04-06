@@ -286,11 +286,13 @@ cdef class RealDoubleField_class(Field):
 
         EXAMPLES:
             sage: RDF.random_element()
-            -0.657233364114
+            0.736945423566
             sage: RDF.random_element(min=100, max=110)
-            106.592535785
+            102.815947352
         """
-        return self._new_c((max-min)*(<double>random())/RAND_MAX + min)
+        cdef randstate rstate = current_randstate()
+
+        return self._new_c((max-min)*rstate.c_rand_double() + min)
 
     def name(self):
         return "RealDoubleField"
@@ -472,6 +474,22 @@ cdef class RealDoubleElement(FieldElement):
             Real Double Field
         """
         return self._parent
+
+    def _interface_init_(self):
+        """
+        Returns self formatted as a string, suitable as input to another
+        computer algebra system.  (This is the default function used for
+        exporting to other computer algebra systems.)
+
+        EXAMPLES:
+            sage: s1 = RDF(sin(1)); s1
+            0.841470984808
+            sage: s1._interface_init_()
+            '0.8414709848078965'
+            sage: s1 == RDF(gp(s1))
+            True
+        """
+        return repr(self._value)
 
     def __repr__(self):
         """

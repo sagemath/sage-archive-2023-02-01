@@ -35,7 +35,8 @@ Type "!sage -optional" to see the latest package names.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import gzip, os, random
+import gzip, os
+import sage.misc.prandom as random
 
 import sage.schemes.elliptic_curves.constructor as elliptic
 import sage.databases.db   # very important that this be fully qualified
@@ -654,6 +655,10 @@ class LargeCremonaDatabase(sage.databases.db.Database):
     def random(self):
         """
         Returns a random curve from the database.
+
+        EXAMPLES:
+            sage: CremonaDatabase().random() # random -- depends on database installed
+            Elliptic Curve defined by y^2 + x*y  = x^3 - x^2 - 224*x + 3072 over Rational Field
         """
         N = random.randint(11, self.largest_conductor())
         A = self.allcurves(N)

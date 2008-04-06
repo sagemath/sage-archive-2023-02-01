@@ -12,89 +12,91 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from combinat import CombinatorialClass
 from sage.rings.arith import binomial
-import random as rnd
+import sage.misc.prandom as rnd
 
-def count(n,k):
-    """
-    Returns the number of multichoices of k things from a list
-    of n things.
+class MultichooseNK(CombinatorialClass):
+    def __init__(self, n, k):
+        """
+        TESTS:
+            sage: a = MultichooseNK(3,2)
+            sage: a == loads(dumps(a))
+            True
+        """
+        self._n = n
+        self._k = k
 
-    EXAMPLES:
-        sage: multichoose_nk.count(3,2)
-        6
-    """
-    return binomial(n+k-1,k)
+    def count(self):
+        """
+        Returns the number of multichoices of k things from a list
+        of n things.
 
-def iterator(n,k):
-    """
-    An iterator for all multichoies of k thinkgs from range(n).
+        EXAMPLES:
+            sage: MultichooseNK(3,2).count()
+            6
+        """
+        n,k = self._n, self._k
+        return binomial(n+k-1,k)
 
-    EXAMPLES:
-        sage: [c for c in multichoose_nk.iterator(3,2)]
-        [[0, 0], [0, 1], [0, 2], [1, 1], [1, 2], [2, 2]]
+    def iterator(self):
+        """
+        An iterator for all multichoies of k thinkgs from range(n).
 
-    """
-    dif = 0
-    if k == 0:
-        yield []
-        return
+        EXAMPLES:
+            sage: [c for c in MultichooseNK(3,2)]
+            [[0, 0], [0, 1], [0, 2], [1, 1], [1, 2], [2, 2]]
 
-    if n < 1+(k-1)*dif:
-        return
-    else:
-        subword = [ i*dif for i in range(k) ]
+        """
+        n,k = self._n, self._k
+        dif = 0
+        if k == 0:
+            yield []
+            return
 
-    yield subword[:]
-    finished = False
+        if n < 1+(k-1)*dif:
+            return
+        else:
+            subword = [ i*dif for i in range(k) ]
 
-    while not finished:
-        #Find the biggest element that can be increased
-        if subword[-1] < n-1:
-            subword[-1] += 1
-            yield subword[:]
-            continue
+        yield subword[:]
+        finished = False
 
-        finished = True
-        for i in reversed(range(k-1)):
-            if subword[i]+dif < subword[i+1]:
-                subword[i] += 1
-                #Reset the bigger elements
-                for j in range(1,k-i):
-                    subword[i+j] = subword[i]+j*dif
+        while not finished:
+            #Find the biggest element that can be increased
+            if subword[-1] < n-1:
+                subword[-1] += 1
                 yield subword[:]
-                finished = False
-                break
+                continue
 
-    return
+            finished = True
+            for i in reversed(range(k-1)):
+                if subword[i]+dif < subword[i+1]:
+                    subword[i] += 1
+                    #Reset the bigger elements
+                    for j in range(1,k-i):
+                        subword[i+j] = subword[i]+j*dif
+                    yield subword[:]
+                    finished = False
+                    break
 
-def list(n,k,repitition=False):
-    """
-    Returns a list of all the multichoices of k things from range(n).
+        return
 
-    EXAMPLES:
-        sage: multichoose_nk.list(3,2)
-        [[0, 0], [0, 1], [0, 2], [1, 1], [1, 2], [2, 2]]
+    def random(self):
+        """
+        Returns a random multichoice of k things from range(n).
 
-    """
+        EXAMPLES:
+            sage: MultichooseNK(5,2).random()
+            [0, 2]
+            sage: MultichooseNK(5,2).random()
+            [0, 1]
+        """
+        n,k = self._n, self._k
+        rng = range(n)
+        r = []
+        for i in range(k):
+            r.append( rnd.choice(rng))
 
-    return [c for c in iterator(n,k)]
-
-def random(n,k):
-    """
-    Returns a random multichoice of k things from range(n).
-
-    EXAMPLES:
-        sage: multichoose_nk.random(5,2) #random
-        [0,3]
-        sage: multichoose_nk.random(5,2) #random
-        [2,2]
-    """
-    rng = range(n)
-    r = []
-    for i in range(k):
-        r.append( rnd.choice(rng))
-
-    r.sort()
-    return r
+        r.sort()
+        return r

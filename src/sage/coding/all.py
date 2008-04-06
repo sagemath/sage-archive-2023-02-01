@@ -1,28 +1,32 @@
-from linear_code import (LinearCode,
-                         LinearCode_from_vectorspace,
-                         hamming_weight,
-                         #minimum_distance_lower_bound,
-                         #minimum_distance_upper_bound,
-                         #minimum_distance_why,
-                         best_known_linear_code,
-                         bounds_minimum_distance)
-
-from guava import (HammingCode,
-                   QuadraticResidueCode,
-                   ExtendedQuadraticResidueCode,
-                   QuasiQuadraticResidueCode,
-                   BinaryReedMullerCode,
-                   CyclicCode, RandomLinearCodeGuava)
-
-from code_constructions import (BinaryGolayCode,
-                   ExtendedBinaryGolayCode,
-                   TernaryGolayCode,
-                   ExtendedTernaryGolayCode,
-                   RandomLinearCode,
-                   ToricCode,
-                   TrivialCode)
-
 from ag_code import ag_code
+
+from code_constructions import (permutation_action,
+                   walsh_matrix,cyclotomic_cosets,
+                   BinaryGolayCode,
+                   BCHCode,
+                   CyclicCode,
+                   CyclicCodeFromGeneratingPolynomial,
+                   CyclicCodeFromCheckPolynomial,
+                   DuadicCodeEvenPair,
+                   DuadicCodeOddPair,
+                   ExtendedBinaryGolayCode,
+                   ExtendedQuadraticResidueCode,
+                   ExtendedTernaryGolayCode,
+                   HammingCode,
+                   LinearCodeFromCheckMatrix,
+                   QuadraticResidueCode,
+                   QuadraticResidueCodeEvenPair,
+                   QuadraticResidueCodeOddPair,
+                   RandomLinearCode,
+                   ReedSolomonCode,
+                   TernaryGolayCode,
+                   ToricCode,
+                   TrivialCode,
+                   WalshCode)
+
+from guava import (BinaryReedMullerCode,
+                   QuasiQuadraticResidueCode,
+                   RandomLinearCodeGuava)
 
 from code_bounds import (codesize_upper_bound,
                          dimension_upper_bound,
@@ -41,3 +45,12 @@ from code_bounds import (codesize_upper_bound,
                          plotkin_bound_asymp,
                          elias_bound_asymp,
                          mrrw1_bound_asymp)
+
+from linear_code import (LinearCode, LinearCodeFromVectorSpace,
+                         hamming_weight,
+                         best_known_linear_code,
+                         best_known_linear_code_www,
+                         bounds_minimum_distance)
+
+from sd_codes import self_dual_codes_binary
+

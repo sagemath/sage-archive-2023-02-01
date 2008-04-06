@@ -65,18 +65,20 @@ Integers = IntegerModRing
 
 # Finite fields
 from finite_field import (FiniteField, is_FiniteField, is_PrimeFiniteField,
-                          GF, conway_polynomial, exists_conway_polynomial)
+                          conway_polynomial, exists_conway_polynomial)
+GF = FiniteField
+
 from finite_field_element import FiniteFieldElement, is_FiniteFieldElement
 
 # Number field
 from number_field.all import *
 
 # p-adic field
-
 from padics.all import *
+from padics.padic_printing import _printer_defaults as padic_printing
 
 # Real numbers
-from real_mpfr import (RealField, is_RealField, is_RealNumber, RR,
+from real_mpfr import (RealField_constructor as RealField, is_RealField, is_RealNumber, RR,
                        create_RealNumber as RealNumber)   # this is used by the preparser to wrap real literals -- very important.
 Reals = RealField
 
@@ -92,7 +94,8 @@ from polynomial.all import *
 from qqbar import (AlgebraicRealField, is_AlgebraicRealField, AA,
                    AlgebraicReal, is_AlgebraicReal,
                    AlgebraicField, is_AlgebraicField, QQbar,
-                   AlgebraicNumber, is_AlgebraicNumber)
+                   AlgebraicNumber, is_AlgebraicNumber,
+                   number_field_elements_from_algebraics)
 
 # Intervals
 from real_mpfi import (RealIntervalField, is_RealIntervalField,
@@ -152,3 +155,6 @@ CIF = ComplexIntervalField()
 I = CC.gen()
 
 from residue_field import ResidueField
+
+
+from misc import composite_field

@@ -121,7 +121,7 @@ cdef class Graphics3d(SageObject):
         return TransformGroup([self], **kwds)
 
     def translate(self, *x):
-        if isinstance(x[0], (tuple, list)):
+        if len(x)==1:
             x = x[0]
         return self.transform(trans=x)
 

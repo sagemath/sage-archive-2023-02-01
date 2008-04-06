@@ -20,8 +20,10 @@ import keyboards
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                     2006 Tom Boothby <boothby@u.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#   Released under the *modified* BSD license.
+#     Tom wrote in email to me at wstein@gmail.com on March 2, 2008: "You have my permission
+#     to change the license on anything I've contributed to the notebook, to whatever suits you."
+#
 ###########################################################################
 
 
@@ -116,7 +118,12 @@ function async_callback(id) {
     } catch(e) {
         if(async_oblist[id] != null) //release immediately
             async_release(id);
-        callback("failure", e);
+        try {
+            callback("failure", e);
+        } catch(e) {
+            /* In some cases the failure report can't be done as above because
+               callback itself is not a function. */
+        }
     }
 }
 
@@ -187,13 +194,17 @@ var active_cell_list = [];
 var browser_op, browser_saf, browser_konq, browser_moz, browser_ie, browser_ie5;
 var os_mac, os_lin, os_win;
 
+var update_count = 0;
+var update_falloff_threshold = 20;
+var update_falloff_level = 0;
+var update_falloff_deltas = [250, 500, 1000, 5000];
+
 var update_error_count = 0;
 var update_error_threshold = 30;
 
 // in milliseconds
 var update_error_delta = 1024;
-//var update_normal_delta = 256;
-var update_normal_delta = 512;
+var update_normal_delta = update_falloff_deltas[0];
 var cell_output_delta = update_normal_delta;
 
 var server_ping_time = 30000;  /* Is once very 30 seconds way too fast?  Is it just right?  */
@@ -283,12 +294,9 @@ var title_spinner_i = 0;
 //
 ///////////////////////////////////////////////////////////////////
 
+original_title = document.title;
 
 function initialize_the_notebook(){
-    try{
-        original_title = document.title;
-    } catch(e) {}
-
     try{
       [].indexOf || (Array.prototype.indexOf = function(v,n){
         n = (n==null)?0:n; m = this.length;
@@ -880,11 +888,11 @@ function close_callback(status, response_text) {
 }
 
 function save_worksheet_and_close() {
-    async_request(worksheet_command('save_snapshot'), close_callback, null);
+    async_request(worksheet_command('save_and_quit'), close_callback, null);
 }
 
 function worksheet_discard() {
-    async_request(worksheet_command('revert_to_last_saved_state'), close_callback, null);
+    async_request(worksheet_command('discard_and_quit'), close_callback, null);
 }
 
 function rename_worksheet() {
@@ -899,6 +907,8 @@ function rename_worksheet() {
    }
    T.innerHTML = set_name;
    worksheet_name = new_worksheet_name;
+   original_title = worksheet_name + ' (Sage)';
+   document.title = original_title;
    async_request(worksheet_command('rename'), null, 'name='+escape0(new_worksheet_name));
 }
 
@@ -1231,11 +1241,13 @@ function cell_blur(id) {
     var cell = get_cell(id);
     if(cell == null) return;
 
-    setTimeout("set_class('eval_button"+id+"','eval_button')", 100); //this is unclickable if we don't add a little delay.
-
     /* Disable coloring and change to div for now */
     cell.className="cell_input";
     cell_input_minimize_size(cell);
+
+    if(cell_has_changed)
+        send_cell_input(id);
+
     return true;  /* disable for now */
 
     cell.className="hidden";
@@ -1245,8 +1257,6 @@ function cell_blur(id) {
 
     var t = cell.value.replaceAll("<","&lt;");
 
-    if(cell_has_changed)
-        send_cell_input(id);
     return true;
 }
 
@@ -1254,7 +1264,7 @@ function send_cell_input(id) {
     cell = get_cell(id)
     if(cell == null) return;
 
-    async_request("/set_cell_input", generic_callback, "cell_id="+id+"&input="+cell.value);
+    async_request(worksheet_command('eval'), generic_callback, "save_only=1&id="+id+"&input="+escape0(cell.value));
 }
 
 function debug_focus() {
@@ -1290,13 +1300,22 @@ function cell_focus(id, bottom) {
         cell_input_resize(cell);
         if (!bottom)
             move_cursor_to_top_of_cell(cell);
-        current_cell = id;
         cell.focus();
     }
-    current_cell = id;
     cell_has_changed = false;
 
     return true;
+}
+
+//this gets called when the cell object has gotten focus
+function cell_focused(cell, id) {
+    cell.className = "cell_input_active";
+    if(current_cell == id) return;
+    if (current_cell != -1) {
+        set_class("eval_button"+current_cell,"eval_button");
+    }
+    current_cell = id;
+    set_class("eval_button"+id,"eval_button_active");
 }
 
 function move_cursor_to_top_of_cell(cell) {
@@ -1755,6 +1774,18 @@ function evaluate_cell_callback(status, response_text) {
 }
 
 function cell_output_set_type(id, typ, do_async) {
+    /* We do this specifically because interact cells do not work at all when
+       displayed in nowrap mode, which is VERY BAD.  So instead for interacts
+       one gets a toggle to and from hidden.
+    */
+    if (typ=="nowrap" && get_element("cell-interact-" + id)) {
+        /* if the type is nowrap and the cell-interact-[id] div exists (i.e., we are interacting)
+           then just make the thing hidden. */
+        typ = "hidden";
+    }
+
+    /* OK, now set the sell output type.  */
+
     set_class('cell_div_output_' + id,    'cell_div_output_' + typ)
     set_class('cell_output_' + id,        'cell_output_' + typ)
     set_class('cell_output_nowrap_' + id, 'cell_output_nowrap_' + typ)
@@ -1792,7 +1823,7 @@ function cell_set_not_evaluated(id) {
 }
 
 function cell_set_running(id) {
-    set_output_text(id, '', '', '', '', '');
+    set_output_text(id, '', '', '', '', '', 1);   // the 1 means no interact dynamics
     cell_output_set_type(id, 'wrap');
     var cell_div = get_element('cell_div_output_' + id);
     cell_div.className = 'cell_output_running';
@@ -1826,6 +1857,9 @@ function check_for_cell_update() {
 function start_update_check() {
     if(updating) return;
     updating = true;
+    update_count = 0;
+    update_falloff_level = 0;
+    cell_output_delta = update_falloff_deltas[0];
     check_for_cell_update();
     set_class('interrupt', 'interrupt')
 }
@@ -1837,20 +1871,69 @@ function cancel_update_check() {
     document.title = original_title;
 }
 
-function set_output_text(id, text, wrapped_text, output_html, status, introspect_html) {
-    /* fill in output text got so far */
-    var cell_output = get_element('cell_output_' + id);
-    var cell_output_nowrap = get_element('cell_output_nowrap_' + id);
-    var cell_output_html = get_element('cell_output_html_' + id);
+function contains_jsmath(text) {
+    // TODO: should make this not case sensitive!!  how to .lower() in javascript?
+    return (text.indexOf('class="math"') != -1 || text.indexOf("class='math'") != -1);
+}
 
-    cell_output.innerHTML = wrapped_text;
-    cell_output_nowrap.innerHTML = text;
-    cell_output_html.innerHTML = output_html;
+function set_output_text(id, text, wrapped_text, output_html, status, introspect_html, no_interact) {
+    if (id < 0) {
+        /* negative id's come up for special internal usage. */
+        return;
+    }
+    var cell_interact = get_element("cell-interact-" + id);
+    if (!no_interact && cell_interact) {
+        if (status  != 'd') return;
+        var i = wrapped_text.indexOf('<?__SAGE__START>');
+        var j = wrapped_text.indexOf('<?__SAGE__END>');
+        if (i == -1 || j == -1) {
+            alert("Bug in notebook -- interact wrapped text is invalid" + wrapped_text);
+            return;
+        }
+        var new_interact_output = wrapped_text.slice(i+16,j);
+
+        /* An error occured accessing the data for this cell.  Just force reload
+           of the cell, which will certainly define that data. */
+        if (new_interact_output.indexOf('__SAGE_INTERACT_RESTART__') != -1) {
+            evaluate_cell(id, 0);
+        } else {
+            cell_interact.innerHTML = new_interact_output;
+            if (contains_jsmath(new_interact_output)) {
+               jsMath.ProcessBeforeShowing(cell_interact);
+            }
+        }
+    } else {
+        /* fill in output text got so far */
+        var cell_output = get_element('cell_output_' + id);
+        if (!cell_output) {
+            alert("Bug in notebook -- missing output for cell with id "+id);
+            return;
+        }
+        var cell_output_nowrap = get_element('cell_output_nowrap_' + id);
+        var cell_output_html = get_element('cell_output_html_' + id);
+
+        cell_output.innerHTML = wrapped_text;
+        cell_output_nowrap.innerHTML = text;
+        cell_output_html.innerHTML = output_html;
+
+        if (status == 'd' && introspect_html=="") {
+            /* Did we just create or evaluate a new interact cell? */
+            var cell_interact = get_element("cell-interact-" + id);
+            /* If so, trigger it so that we see the evaluated version
+               of the interact cell. */
+            if (cell_interact) {
+                /*****************************************************************
+                  This is the first time that the underlying Python interact function is
+                   actually called!
+                 *****************************************************************/
+                interact(id, 'sage.server.notebook.interact.state[' + id + ']["function"]()');
+            }
+        }
+    }
 
     if (status == 'd') {
          cell_set_done(id);
-         // TODO: should make this not case sensitive!!  how to .lower() in javascript?
-         if (text.indexOf('class="math"') != -1 || text.indexOf("class='math'") != -1) {
+         if (contains_jsmath(text)) {
              try {
                  /* jsMath.Process(cell_output); */
                  /* jsMath.ProcessBeforeShowing(cell_output_nowrap); */
@@ -1949,8 +2032,12 @@ function check_for_cell_update_callback(status, response_text) {
         continue_update_check();
         return;
     } else {
-        update_error_count = 0;
-        cell_output_delta = update_normal_delta;
+        if(update_error_count > 0) {
+            update_error_count = 0;
+            update_count = 0;
+            update_falloff_level = 1;
+            cell_output_delta = update_falloff_deltas[1];
+        }
     }
 
     var i = response_text.indexOf(' ');
@@ -2010,8 +2097,18 @@ function check_for_cell_update_callback(status, response_text) {
             set_input_text(id, new_cell_input);
         }
 
-        set_object_list(object_list);
-        set_attached_files_list(attached_files_list);
+        update_count = 0;
+        update_falloff_level = 0;
+        cell_output_delta = update_falloff_deltas[0];
+    } else {
+        if(  update_count > update_falloff_threshold &&
+             update_falloff_level+1 < update_falloff_deltas.length) {
+            update_falloff_level+= 1;
+            update_count = 0;
+            cell_output_delta = update_falloff_deltas[update_falloff_level];
+        } else {
+            update_count += 1;
+        }
     }
 
     continue_update_check();
@@ -2043,6 +2140,7 @@ function slide_mode() {
     }
     slide_show();
 }
+
 
 function cell_mode() {
     in_slide_mode = false;
@@ -2496,8 +2594,114 @@ function show_help_window(worksheet) {
 }
 
 
-/********************* js math ***************************/
+///////////////////////////////////////////////////////////////////
+// Interact
+///////////////////////////////////////////////////////////////////
 
+function interact(id, input) {
+    active_cell_list = active_cell_list.concat([id]);
+    /* the __sage_interact__ string appears also in cell.py */
+    async_request(worksheet_command('eval'), evaluate_cell_callback,
+            'newcell=0' + '&id=' + id + '&input='+escape0('%__sage_interact__\n' + input));
+}
+
+///////////////////////////////////////////////////////////////////
+// Base 64 encoding and decoding (mainly used for manipulate).
+///////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////
+// The following header applies to the encode64 and decode64 functions
+// This code was written by Tyler Akins and has been placed in the
+// public domain.  It would be nice if you left this header intact.
+// Base64 code from Tyler Akins -- http://rumkin.com
+
+var keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+function encode64(input) {
+   /* I had to add this, since otherwise when input is numeric there are
+      errors below. */
+   try {
+       input = input.toString();
+   } catch(e) {
+       return input;
+   }
+   var output = "";
+   var chr1, chr2, chr3;
+   var enc1, enc2, enc3, enc4;
+   var i = 0;
+
+   do {
+      chr1 = input.charCodeAt(i++);
+      chr2 = input.charCodeAt(i++);
+      chr3 = input.charCodeAt(i++);
+
+      enc1 = chr1 >> 2;
+      enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+      enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+      enc4 = chr3 & 63;
+
+      if (isNaN(chr2)) {
+         enc3 = enc4 = 64;
+      } else if (isNaN(chr3)) {
+         enc4 = 64;
+      }
+
+      output = output + keyStr.charAt(enc1) + keyStr.charAt(enc2) +
+         keyStr.charAt(enc3) + keyStr.charAt(enc4);
+   } while (i < input.length);
+
+   return output;
+}
+
+function decode64(input) {
+   var output = "";
+   var chr1, chr2, chr3;
+   var enc1, enc2, enc3, enc4;
+   var i = 0;
+
+   // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
+   input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+
+   do {
+      enc1 = keyStr.indexOf(input.charAt(i++));
+      enc2 = keyStr.indexOf(input.charAt(i++));
+      enc3 = keyStr.indexOf(input.charAt(i++));
+      enc4 = keyStr.indexOf(input.charAt(i++));
+
+      chr1 = (enc1 << 2) | (enc2 >> 4);
+      chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+      chr3 = ((enc3 & 3) << 6) | enc4;
+
+      output = output + String.fromCharCode(chr1);
+
+      if (enc3 != 64) {
+         output = output + String.fromCharCode(chr2);
+      }
+      if (enc4 != 64) {
+         output = output + String.fromCharCode(chr3);
+      }
+   } while (i < input.length);
+
+   return output;
+}
+
+///////////////////////////////////////////////////////////////////
+// Trash
+///////////////////////////////////////////////////////////////////
+
+function empty_trash() {
+    /* This asks for confirmation from the user then sends a request back to the
+       server asking that the trash be emptied for this user. The request to the
+       server goes by accessing the url /emptytrash.  After that finishes, the
+       empty trash folder is displayed.  */
+    if(confirm('Emptying the trash will permanently delete all items in the trash. Continue?')) {
+        window.location.replace("/emptytrash");
+        window.location.replace("/?typ=trash");
+    }
+}
+
+
+/********************* js math ***************************/
 
 function jsmath_init() {
     try {

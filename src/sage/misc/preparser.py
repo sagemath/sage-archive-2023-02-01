@@ -37,6 +37,29 @@ PREPARSE:
     sage: preparse('2e3x + 3exp(y)')
     "RealNumber('2e3')*x + Integer(3)*exp(y)"
 
+A string with escaped quotes in it (the point here is that the
+preparser doesn't get confused by the internal quotes):
+    sage: "\"Yes,\" he said."
+    '"Yes," he said.'
+    sage: s = "\\"; s
+    '\\'
+
+
+A hex literal:
+    sage: preparse('0x2a3')
+    'Integer(0x2a3)'
+    sage: 0xA
+    10
+
+Raw and hex works correctly:
+    sage: type(0xa1)
+    <type 'sage.rings.integer.Integer'>
+    sage: type(0xa1r)
+    <type 'int'>
+    sage: type(0Xa1R)
+    <type 'int'>
+
+
 In SAGE methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error).
     sage: 16.sqrt()
@@ -615,6 +638,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     num_start = -1
     in_number = False
     is_real = False
+    is_hex = False
 
     in_args = False
 
@@ -631,44 +655,55 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
     while i < len(line):
         # Update quote parsing
-        if line[i] == "'":
-            if not in_quote():
-                in_single_quote = True
-                i += 1
-                continue
-            elif in_single_quote:
-                in_single_quote = False
-                i += 1
-                continue
-        elif line[i:i+3] == '"""':
-            if not in_quote():
-                in_triple_quote = True
-                i += 3
-                continue
-            elif in_triple_quote:
-                in_triple_quote = False
-                i += 3
-                continue
-        elif line[i] == '"':
-            if not in_quote():
-                in_double_quote = True
-                i += 1
-                continue
-            elif in_double_quote:
-                in_double_quote = False
-                i += 1
-                continue
+        # We only do this if this quote isn't backquoted itself,
+        # which is the case if the previous character isn't
+        # a backslash, or it is but both previous characters
+        # are backslashes.
+        if line[i-1:i] != '\\' or line[i-2:i] == '\\\\':
+            if line[i] == "'":
+                if not in_quote():
+                    in_single_quote = True
+                    i += 1
+                    continue
+                elif in_single_quote:
+                    in_single_quote = False
+                    i += 1
+                    continue
+            elif line[i:i+3] == '"""':
+                if not in_quote():
+                    in_triple_quote = True
+                    i += 3
+                    continue
+                elif in_triple_quote:
+                    in_triple_quote = False
+                    i += 3
+                    continue
+            elif line[i] == '"':
+                if not in_quote():
+                    in_double_quote = True
+                    i += 1
+                    continue
+                elif in_double_quote:
+                    in_double_quote = False
+                    i += 1
+                    continue
 
         # Decide if we should wrap a particular integer or real literal
         if in_number:
             if line[i] == ".":
                 is_real = True
-            elif not line[i].isdigit():
+            elif not is_real and i == num_start+1 and line[num_start:i+1].lower() == '0x':
+                is_hex = True
+            elif not (line[i].isdigit() or (is_hex and line[i].lower() in 'abcdef')):
                 # end of a number
                 # Do we wrap?
                 if in_quote():
                     # do not wrap
                     pass
+                elif i < len(line) and line[i] == 'x' and line[i-1] == '0' and num_start==i-1:
+                    # Yes, hex constant.
+                    i += 1
+                    continue
                 elif i < len(line) and line[i] in 'eE':
                     # Yes, in scientific notation, so will wrap later
                     is_real = True
@@ -885,7 +920,7 @@ def preparse_file(contents, attached={}, magic=True,
     while i < len(A):
         L = A[i].rstrip()
         if magic and L[:7] == "attach ":
-            name = os.path.abspath(eval(L[7:]))
+            name = os.path.abspath(_strip_quotes(L[7:]))
             try:
                 if not attached.has_key(name):
                     t = os.path.getmtime(name)
@@ -896,7 +931,7 @@ def preparse_file(contents, attached={}, magic=True,
 
         if magic and L[:5] == "load ":
             try:
-                name_load = str(eval(L[5:]))
+                name_load = _strip_quotes(L[5:])
             except:
                 name_load = L[5:].strip()
             if name_load in loaded_files:
@@ -968,6 +1003,7 @@ def implicit_mul(code, level=5):
     code, literals = strip_string_literals(code)
     if level >= 1:
         no_mul_token = " '''_no_mult_token_''' "
+        code = re.sub(r'\b0x', r'0%sx' % no_mul_token, code)  # hex digits
         code = re.sub(r'( *)time ', r'\1time %s' % no_mul_token, code)  # first word may be magic 'time'
         code = re.sub(r'\b(\d+(?:\.\d+)?(?:e\d+)?)([rR]\b)', r'\1%s\2' % no_mul_token, code)  # exclude such things as 10r
         code = re.sub(r'\b(\d+(?:\.\d+)?)e([-\d])', r'\1%se%s\2' % (no_mul_token, no_mul_token), code)  # exclude such things as 1e5
@@ -981,3 +1017,36 @@ def implicit_mul(code, level=5):
         code = re.sub(r'\) *\(', ')*(', code)
     code = code.replace(no_mul_token, '')
     return code % literals
+
+
+
+def _strip_quotes(s):
+    """
+    Strips one set of outer quotes.
+
+    INPUT:
+        a string s
+
+    OUTPUT:
+        a string with the single and double quotes on either side of s
+        removed, if there are any
+
+    EXAMPLES:
+    Both types of quotes work.
+        sage: import sage.misc.preparser
+        sage: sage.misc.preparser._strip_quotes('"foo.sage"')
+        'foo.sage'
+        sage: sage.misc.preparser._strip_quotes("'foo.sage'")
+        'foo.sage'
+
+    The only thing that is stripped is at most one set of outer quotes:
+        sage: sage.misc.preparser._strip_quotes('""foo".sage""')
+        '"foo".sage"'
+    """
+    if len(s) == 0:
+        return s
+    if s[0] in ["'", '"']:
+        s = s[1:]
+    if s[-1] in ["'", '"']:
+        s = s[:-1]
+    return s

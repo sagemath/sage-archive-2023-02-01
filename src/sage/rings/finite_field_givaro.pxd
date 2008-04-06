@@ -12,6 +12,8 @@ cdef extern from "givaro/givrandom.h":
     ctypedef struct GivRandom "GivRandom":
         pass
 
+    GivRandom GivRandomSeeded  "GivRandom"(unsigned long seed)
+
 cdef extern from "givaro/givgfq.h":
     ctypedef struct intvec "std::vector<unsigned int>":
         void (* push_back)(int elem)

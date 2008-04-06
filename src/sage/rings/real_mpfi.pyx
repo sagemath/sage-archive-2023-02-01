@@ -1070,6 +1070,44 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         mpfi_diam(<mpfr_t> x.value, self.value)
         return x
 
+    def fp_rank_diameter(self):
+        r"""
+        Computes the diameter of this interval in terms of the
+        ``floating-point rank''.  That is, it gives the number of
+        floating-point numbers (of the current precision) contained in
+        the given interval, minus one.  An \code{fp_rank_diameter} of 0
+        means that the interval is exact; an \code{fp_rank_diameter}
+        of 1 means that the interval is as tight as possible, unless the
+        number you're trying to represent is actually exactly representable
+        as a floating-point number.
+
+        EXAMPLES:
+            sage: RIF(pi).fp_rank_diameter()
+            1
+            sage: RIF(12345).fp_rank_diameter()
+            0
+            sage: RIF(-sqrt(2)).fp_rank_diameter()
+            1
+            sage: RIF(5/8).fp_rank_diameter()
+            0
+            sage: RIF(5/7).fp_rank_diameter()
+            1
+            sage: a = RIF(pi)^12345; a
+            [2.0662287925976398e6137 .. 2.0662287926061436e6137]
+            sage: a.fp_rank_diameter()
+            30524
+            sage: (RIF(sqrt(2)) - RIF(sqrt(2))).fp_rank_diameter()
+            9671406088542672151117826
+
+        Just because we have the best possible interval, doesn't mean the
+        interval is actually small:
+            sage: a = RIF(pi)^1234567890; a
+            [2.0985787164673874e323228496 .. +infinity]
+            sage: a.fp_rank_diameter()
+            1
+        """
+        return self.lower().fp_rank_delta(self.upper())
+
     def is_exact(self):
         return mpfr_equal_p(&self.value.left, &self.value.right)
 

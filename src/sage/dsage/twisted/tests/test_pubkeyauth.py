@@ -33,11 +33,12 @@ base.DelayedCall.debug = True
 from sage.dsage.twisted.pb import Realm
 from sage.dsage.server.server import DSageServer
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
-from sage.dsage.twisted.pb import PBClientFactory
+from sage.dsage.twisted.pb import ClientFactory
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
-from sage.dsage.database.jobdb import JobDatabaseSQLite
-from sage.dsage.database.monitordb import MonitorDatabase
-from sage.dsage.database.clientdb import ClientDatabase
+from sage.dsage.database.jobdb import JobDatabaseSA as JobDatabase
+from sage.dsage.database.workerdb import WorkerDatabaseSA as WorkerDatabase
+from sage.dsage.database.clientdb import ClientDatabaseSA as ClientDatabase
+from sage.dsage.database.db_config import init_db_sa as init_db
 from sage.dsage.errors.exceptions import AuthenticationError
 
 TEST_PUB_KEY = """ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAusOUk3wZof9orc7YuKZP/wxog2uAU5BsagK4lkHgdfBc+ZR3s+Rk+k6prvuNuUXIfn2A+UkPa0xmjtQnMlqClrZXXMHhDV8iXto/vM1BopF+Ja1Y+pCK2vRRZVsZsdzL7XqyVc+kstsgKWrrguNCMIuEyc37wcsgdd1PxPmuB8Mwm3YZmNRV6yEq8Qq3IprZHfBl5S6htmwTXt4VEzvJgX1PJBLg4BauJtLxeEzYgMLY4VG3buJ2VDwlqwVPO/oVZwK3uXifXtxVx6VJO4pKUBdDSyjudPQTHxogos+8scaClx0XMh0eM7xw92j4SpA+mtzXnAKM4CqCSFH3w+/LbQ== yqiang@six
@@ -76,107 +77,78 @@ RANDOM_DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
                 range(500)]])
 
 class PublicKeyCredentialsCheckerTest(unittest.TestCase):
-    def setUp(self):
-        self.jobdb = JobDatabaseSQLite(test=True)
-        self.monitordb = MonitorDatabase(test=True)
-        self.clientdb = ClientDatabase(test=True)
-        self.dsage_server = DSageServer(self.jobdb,
-                                        self.monitordb,
-                                        self.clientdb,
-                                        log_level=5)
-        self.realm = Realm(self.dsage_server)
-        self.p = _SSHKeyPortalRoot(portal.Portal(Realm(self.dsage_server)))
-        self.clientdb = ClientDatabase(test=True)
-        self.p.portal.registerChecker(PublicKeyCredentialsCheckerDB(
-                                      self.clientdb))
-        self.client_factory = pb.PBServerFactory(self.p)
-        self.hostname = '127.0.0.1'
-        self.r = reactor.listenTCP(0, self.client_factory)
-        self.port = self.r.getHost().port
+    username = 'tester'
 
-        # public key authentication information
-        self.username = 'unit_test'
-        self.pubkey_file = TEST_PUB_KEY
-        self.privkey_file = TEST_PRIV_KEY
-        self.data = RANDOM_DATA
-        self.public_key_str = keys.getPublicKeyString(data=TEST_PUB_KEY)
-        self.private_key = keys.getPrivateKeyObject(
-                            data=TEST_PRIV_KEY)
-        self.public_key = keys.getPublicKeyObject(self.public_key_str)
-        self.algorithm = 'rsa'
-        self.blob = keys.makePublicKeyBlob(self.public_key)
-        self.signature = keys.signData(self.private_key, self.data)
-        self.creds = credentials.SSHPrivateKey(self.username,
-                                               self.algorithm,
-                                               self.blob,
-                                               self.data,
-                                               self.signature)
-        pubkey = base64.encodestring(self.public_key_str).strip()
-        try:
-            self.clientdb.del_user(self.username)
-            self.clientdb.add_user(self.username, pubkey)
-        except:
-            self.clientdb.add_user(self.username, pubkey)
+    def setUp(self):
+        Session = init_db('test.db')
+        self.clientdb = ClientDatabase(Session)
+        self.checker = PublicKeyCredentialsCheckerDB(self.clientdb)
+        self._algorithm = 'rsa'
+        pubkey_str = keys.getPublicKeyString(data=TEST_PUB_KEY)
+        pubkey = keys.getPublicKeyObject(pubkey_str)
+        self._blob = keys.makePublicKeyBlob(pubkey)
+        self._data = RANDOM_DATA
+        privkey = keys.getPrivateKeyObject(data=TEST_PRIV_KEY)
+        self._signature = keys.signData(privkey, self._data)
+        self.creds = credentials.SSHPrivateKey(self.username, self._algorithm,
+                                               self._blob, self._data,
+                                               self._signature)
+        enc_pubkey = base64.encodestring(pubkey_str).strip()
+        self.clientdb.add_client(self.username, enc_pubkey)
 
     def tearDown(self):
-        self.connection.disconnect()
-        self.jobdb._shutdown()
+        from sqlalchemy.orm import clear_mappers
+        self.clientdb.sess.close()
+        clear_mappers()
         files = glob('*.db*')
         for file in files:
-            os.remove(file)
-        return self.r.stopListening()
+           os.remove(file)
 
-    def testLogin(self):
-        factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port,
-                                             factory)
-        d = factory.login(self.creds, None)
-        d.addCallback(self._LoginConnected)
+    def _bad_login(self, failure):
+        self.assertEquals(failure.check(AuthenticationError),
+        AuthenticationError)
 
-        return d
+    def _good_login(self, result):
+        self.assertEquals(result, self.username)
 
-    def _LoginConnected(self, remoteobj):
-        self.assert_(isinstance(remoteobj, pb.RemoteReference))
+    def testrequestAvatarId(self):
+        username = self.checker.requestAvatarId(self.creds)
+        self.assertEquals(username, self.username)
 
-    #def testBadLogin(self):
-    #    factory = PBClientFactory()
-    #    self.connection = reactor.connectTCP(self.hostname,
-    #                                         self.port,
-    #                                         factory)
-    #    self.assertRaises(TypeError, factory.login, None, None)
+        # test for bad pubkey blob
+        bad_cred = credentials.SSHPrivateKey(self.username, self._algorithm,
+                                             '', self._data, self._signature)
+        f = self.checker.requestAvatarId(bad_cred)
+        f.addErrback(self._bad_login)
 
-   # def testBadLogin2(self):
-    #    factory = PBClientFactory()
-    #    self.connection = reactor.connectTCP(self.hostname,
-    #                                         self.port,
-    #                                        factory)
-    #    bad_creds = credentials.SSHPrivateKey('bad username',
-    #                                           self.algorithm,
-    #                                           self.blob,
-    #                                           self.data,
-    #                                           self.signature)
-    #    d = factory.login(bad_creds, None)
-    #    d.addErrback(self._BadLoginFailure)
-    #
-    #    return d
+        # test for bad username
+        bad_cred2 = credentials.SSHPrivateKey('nonexistantuser',
+                                              self._algorithm,
+                                              '', self._data, '')
+        f = self.checker.requestAvatarId(bad_cred2)
+        f.addErrback(self._bad_login)
 
-    def _BadLoginFailure(self, failure):
-        self.assertEquals(failure.type, str(AuthenticationError))
+        # Test for a bad signature
+        bad_cred3 = credentials.SSHPrivateKey(self.username, self._algorithm,
+                                              self._blob, self._data, '')
+        f = self.checker.requestAvatarId(bad_cred3)
+        f.addErrback(self._bad_login)
 
-    def testBadLogin3(self):
-        factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname,
-                                             self.port,
-                                             factory)
-        bad_creds = credentials.SSHPrivateKey(self.username,
-                                              self.algorithm,
-                                              None,
-                                              self.data,
-                                              self.signature)
-        d = factory.login(bad_creds, None)
-        d.addErrback(self._BadLoginFailure)
+        return f
 
-        return d
+    def testanonymous_login(self):
+        cred = credentials.Anonymous()
+        avatar_id = self.checker.requestAvatarId(cred)
+        self.assertEquals(avatar_id, 'Anonymous')
+
+    def testget_pubkey_string(self):
+        from sage.dsage.twisted.pubkeyauth import get_pubkey_string
+        kind, key = TEST_PUB_KEY.split()[:2]
+        f = open('temp_file', 'w+b')
+        f.write(TEST_PUB_KEY)
+        f.close()
+        self.assertEquals(key, get_pubkey_string('temp_file'))
+        os.remove('temp_file')
 
 if __name__ == 'main':
     unittest.main()

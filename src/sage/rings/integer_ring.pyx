@@ -82,6 +82,20 @@ cimport rational
 import ring
 
 def is_IntegerRing(x):
+    """
+    Internal funtion: returns true iff x is the ring ZZ of integers
+
+    EXAMPLES:
+    sage: from sage.rings.integer_ring import  is_IntegerRing
+    sage: is_IntegerRing(ZZ)
+    True
+    sage: is_IntegerRing(QQ)
+    False
+    sage: is_IntegerRing(parent(3))
+    True
+    sage: is_IntegerRing(parent(1/3))
+    False
+    """
     return PY_TYPE_CHECK(x, IntegerRing_class)
 
 import integer_ring_python
@@ -195,8 +209,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def __getitem__(self, x):
         """
-        Return the ring ZZ[...] got by adjoing to the integers
-        an element of several elements.
+        Return the ring ZZ[...] obtained by adjoing to the integers
+        a list x of several elements.
 
         EXAMPLES:
             sage: ZZ[ sqrt(2), sqrt(3) ]
@@ -419,6 +433,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         if S is int:
             return sage.rings.integer.int_to_Z()
+        elif S is long:
+            return sage.rings.integer.long_to_Z()
         else:
             return PrincipalIdealDomain.coerce_map_from_c_impl(self, S)
 
@@ -444,35 +460,63 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         Return a random integer.
 
-            ZZ.random_element() -- return an integer over the natrual distribution $Pr(n) = 1/2|n|(|n|+1)$.
-                                   This has infinite expected value, but in practice these will always
-                                   be single machine words, heavily concentrated around $\pm 1$.
-            ZZ.random_element(n) -- return an integer uniformly distributed between 0 and n-1, inclusive.
-            ZZ.random_element(min, max) -- return an integer uniformly destributed between min and max-1, inclusive.
+            ZZ.random_element() -- return an integer using the default
+              distribution described below
+            ZZ.random_element(n) -- return an integer uniformly
+              distributed between 0 and n-1, inclusive.
+            ZZ.random_element(min, max) -- return an integer uniformly
+              destributed between min and max-1, inclusive.
+
+        The default distribution for ZZ.random_element() is based on
+        $X = \mbox{trunc}(4/(5R))$, where $R$ is a random variable
+        uniformly distributed between -1 and 1.  This gives
+        $\mbox{Pr}(X = 0) = 1/5$, and $\mbox{Pr}(X = n) =
+        2/(5|n|(|n|+1))$ for $n \neq 0$.  Most of the samples will be
+        small; -1, 0, and 1 occur with probability 1/5 each.  But we
+        also have a small but non-negligible proportion of
+        ``outliers''; $\mbox{Pr}(|X| \geq n) = 4/(5n)$, so for
+        instance, we expect that $|X| \geq 1000$ on one in 1250
+        samples.
+
+        We actually use an easy-to-compute truncation of the above
+        distribution; the probabilities given above hold fairly well
+        up to about $|n| = 10000$, but around $|n| = 30000$ some
+        values will never be returned at all, and we will never return
+        anything greater than $2^{30}$.
 
         EXAMPLES:
         The default distribution is on average 50% $\pm 1$:
             sage: [ZZ.random_element() for _ in range(10)]
-            [-1, -4, 1, -1, -1, 3, 8, 100, -2, -4]
+            [-8, 2, 0, 0, 1, -1, 2, 1, -95, -1]
 
         The default uniform distribution is integers between -2 and 2 inclusive:
-            sage: [ZZ.random_element(distribution="uniform") for _ in range(10)]
-            [-2, -2, 1, 1, 0, 1, 2, -2, 1, -2]
+            sage: [ZZ.random_element(distribution="uniform") \
+                    for _ in range(10)]
+            [2, -2, 2, -2, -1, 1, -1, 2, 1, 0]
+
 
         If a range is given, the distribution is uniform in that range:
             sage: ZZ.random_element(-10,10)
-            -6
+            -5
             sage: ZZ.random_element(10)
-            6
+            7
             sage: ZZ.random_element(10^50)
-            46451269108731711203254579547654565878787536081836
+            62498971546782665598023036522931234266801185891699
             sage: [ZZ.random_element(5) for _ in range(10)]
-            [3, 3, 2, 1, 0, 4, 2, 1, 1, 0]
+            [1, 3, 4, 0, 3, 4, 0, 3, 0, 1]
 
         Notice that the right endpoint is not included:
             sage: [ZZ.random_element(-2,2) for _ in range(10)]
-            [1, 0, -1, 1, 0, -2, 0, -1, 1, 0]
+            [-1, -2, 0, -2, 1, -1, -1, -2, -2, 1]
 
+        We compute a histogram over 1000 samples of the default distribution:
+            sage: from collections import defaultdict
+            sage: d = defaultdict(lambda: 0)
+            sage: for _ in range(1000):
+            ...       samp = ZZ.random_element()
+            ...       d[samp] = d[samp] + 1
+            sage: sorted(d.items())
+            [(-1026, 1), (-248, 1), (-145, 1), (-81, 1), (-80, 1), (-79, 1), (-75, 1), (-69, 1), (-68, 1), (-63, 2), (-61, 1), (-57, 1), (-50, 1), (-37, 1), (-35, 1), (-33, 1), (-29, 2), (-27, 2), (-25, 1), (-23, 2), (-22, 2), (-20, 1), (-19, 1), (-18, 1), (-16, 4), (-15, 3), (-14, 1), (-13, 2), (-12, 2), (-11, 2), (-10, 7), (-9, 3), (-8, 3), (-7, 7), (-6, 8), (-5, 13), (-4, 24), (-3, 34), (-2, 75), (-1, 207), (0, 209), (1, 189), (2, 64), (3, 35), (4, 13), (5, 11), (6, 10), (7, 4), (8, 4), (10, 1), (11, 1), (12, 1), (13, 1), (14, 1), (16, 3), (18, 1), (19, 1), (26, 2), (27, 1), (28, 1), (29, 1), (30, 1), (32, 1), (33, 2), (35, 1), (37, 1), (39, 1), (41, 1), (42, 1), (52, 1), (91, 1), (94, 1), (106, 1), (111, 1), (113, 2), (132, 1), (134, 1), (232, 1), (240, 1), (2133, 1), (3636, 1)]
         """
         cdef integer.Integer z
         z = <integer.Integer>PY_NEW(integer.Integer)
@@ -485,15 +529,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     cdef int _randomize_mpz(self, mpz_t value, x, y, distribution) except -1:
         cdef integer.Integer n_max, n_min, n_width
+        cdef randstate rstate = current_randstate()
+        cdef int den = rstate.c_random()-RAND_MAX/2
+        if den == 0: den = 1
         if (distribution is None and x is None) or distribution == "1/n":
-            mpz_set_si(value, (RAND_MAX/2) / (random()-RAND_MAX/2))
+            mpz_set_si(value, (RAND_MAX/5*2) / den)
         elif distribution is None or distribution == "uniform":
             if y is None:
                 if x is None:
-                    mpz_set_si(value, random()%5 - 2)
+                    mpz_set_si(value, rstate.c_random()%5 - 2)
                 else:
                     n_max = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
-                    mpz_urandomm(value, state, n_max.value)
+                    mpz_urandomm(value, rstate.gmp_state, n_max.value)
             else:
                 n_min = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
                 n_max = y if PY_TYPE_CHECK(y, integer.Integer) else self(y)
@@ -501,10 +548,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 if mpz_sgn(n_width.value) <= 0:
                     n_min = self(-2)
                     n_width = self(5)
-                mpz_urandomm(value, state, n_width.value)
+                mpz_urandomm(value, rstate.gmp_state, n_width.value)
                 mpz_add(value, value, n_min.value)
         elif distribution == "mpz_rrandomb":
-            mpz_rrandomb(value, state, int(x))
+            mpz_rrandomb(value, rstate.gmp_state, int(x))
         else:
             raise ValueError, "Unknown distribution for the integers: %s"%distribution
 
@@ -515,26 +562,58 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return False
 
     def is_noetherian(self):
+        """
+        Return True - the integers are a Noetherian ring.
+
+        EXAMPLES:
+            sage: ZZ.is_noetherian()
+            True
+        """
         return True
 
     def is_atomic_repr(self):
         """
         Return True, since elements of the integers do not have
-        to be printed with paranethesis around them, when they
+        to be printed with parentheses around them, when they
         are coefficients, e.g., in a polynomial.
+
+        EXAMPLE:
+            sage: ZZ.is_atomic_repr()
+            True
         """
         return True
 
     def is_field(self):
         """
-        Return False.
+        Return False - the integers are not a field.
+
+        EXAMPLES:
+            sage: ZZ.is_field()
+            False
         """
         return False
 
     def is_finite(self):
+        """
+        Return False - the integers are an infinite ring.
+
+        EXAMPLES:
+            sage: ZZ.is_finite()
+            False
+        """
         return False
 
     def fraction_field(self):
+        """
+        Returns the field of rational numbers - the fraction field of the
+        integers.
+
+        EXAMPLES:
+            sage: ZZ.fraction_field()
+            Rational Field
+            sage: ZZ.fraction_field() == QQ
+            True
+        """
         return sage.rings.rational_field.Q
 
     def extension(self, poly, names=None):
@@ -580,45 +659,142 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         return sage.rings.integer_mod_ring.IntegerModRing(n)
 
     def gens(self):
+        """
+
+        Returns the tuple (1,) containing a single element, the
+        additive generator of the integers, which is 1.
+
+        EXAMPLES:
+            sage: ZZ.gens(); ZZ.gens()[0]
+            (1,)
+            1
+            sage: type(ZZ.gens()[0])
+            <type 'sage.rings.integer.Integer'>
+        """
         return (self(1), )
 
     def gen(self, n=0):
+        """
+        Returns the additive generator of the integers, which is 1.
+
+        EXAMPLES:
+            sage: ZZ.gen()
+            1
+            sage: type(ZZ.gen())
+            <type 'sage.rings.integer.Integer'>
+        """
         if n == 0:
             return self(1)
         else:
             raise IndexError, "n must be 0"
 
     def ngens(self):
+        """
+        Returns the number of additive generators of the ring, which is 1.
+
+        EXAMPLES:
+            sage: ZZ.ngens()
+            1
+            sage: len(ZZ.gens())
+            1
+        """
         return 1
 
     def degree(self):
+        """
+        Return the degree of the integers, which is 1
+
+        EXAMPLE:
+            sage: ZZ.degree()
+            1
+        """
         return 1
 
     def absolute_degree(self):
+        """
+        Return the absolute degree of the integers, which is 1
+
+        EXAMPLE:
+            sage: ZZ.absolute_degree()
+            1
+        """
         return 1
 
     def characteristic(self):
         """
-        Return 0 as a Python int.
+        Return the characteristic of the integers, which is 0
+
+        EXAMPLE:
+            sage: ZZ.characteristic()
+            0
         """
         return 0
 
     def krull_dimension(self):
         """
         Return the Krull dimension of the integers, which is 1.
+
+        EXAMPLE:
+            sage: ZZ.krull_dimension()
+            1
         """
         return 1
 
     def order(self):
+        """
+        Return the order (cardinality) of the integers, which is +Infinity.
+
+        EXAMPLE:
+            sage: ZZ.order()
+            +Infinity
+        """
         return sage.rings.infinity.infinity
 
     def zeta(self, n=2):
+        """
+        Return a primitive n'th root of unity in the integers, or
+        raise an error if none exists
+
+        INPUT:
+            n -- a positive integer (default 2)
+        OUTPUT:
+            an n'th root of unity in ZZ
+
+        EXAMPLE:
+            sage: ZZ.zeta()
+            -1
+            sage: ZZ.zeta(1)
+            1
+            sage: ZZ.zeta(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: no nth root of unity in integer ring
+            sage: ZZ.zeta(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be positive in zeta()
+        """
         if n == 1:
             return sage.rings.integer.Integer(1)
         elif n == 2:
             return sage.rings.integer.Integer(-1)
+        elif n < 1:
+            raise ValueError, "n must be positive in zeta()"
         else:
             raise ValueError, "no nth root of unity in integer ring"
+
+    def parameter(self):
+        """
+        Returns an integer of degree 1 for the Euclidean property of
+        ZZ, namely 1.
+
+        EXAMPLES:
+            sage: ZZ.parameter()
+            1
+        """
+        return self(1)
+
+
 
 
     #################################
@@ -644,12 +820,27 @@ ZZ = IntegerRing_class()
 Z = ZZ
 
 def IntegerRing():
+    """
+    Return the integer ring
+
+    EXAMPLE:
+        sage: IntegerRing()
+        Integer Ring
+        sage: ZZ==IntegerRing()
+        True
+    """
     return ZZ
 
 def factor(n, algorithm='pari', proof=True):
     """
-    Return the factorization of the positive integer $n$ as a list of
-    tuples $(p_i,e_i)$ such that $n=\prod p_i^{e_i}$.
+    Return the factorization of the positive integer $n$ as a sorted
+    list of tuples $(p_i,e_i)$ such that $n=\prod p_i^{e_i}$.
+
+    For further documentation see sage.rings.arith.factor()
+
+    EXAMPLE:
+        sage: sage.rings.integer_ring.factor(420)
+        2^2 * 3 * 5 * 7
     """
     import sage.rings.arith
     return sage.rings.arith.factor(n, algorithm=algorithm, proof=proof)

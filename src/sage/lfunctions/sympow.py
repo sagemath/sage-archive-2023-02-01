@@ -61,9 +61,15 @@ class Sympow(SageObject):
     how to call them.
     """
     def _repr_(self):
+        """
+        Returns a string describing ths calculator module
+        """
         return "Watkins Symmetric Power L-function Calculator"
 
     def __call__(self, args):
+        """
+        Used to call sympow with given args
+        """
         cmd = 'sympow %s'%args
         v = os.popen(cmd).read().strip()
         verbose(v, level=2)

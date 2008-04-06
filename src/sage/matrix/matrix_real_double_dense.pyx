@@ -31,10 +31,13 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+import math
+
 include '../ext/interrupt.pxi'
 include '../ext/stdsage.pxi'
 include '../ext/cdefs.pxi'
 include '../ext/python.pxi'
+
 from sage.rings.real_double cimport RealDoubleElement
 import sage.rings.real_double
 import sage.rings.complex_double
@@ -146,9 +149,34 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         return self._richcmp(right, op)
 
     def __hash__(self):
+        """
+        Hash this matrix, if it's immutable.
+
+        EXAMPLES:
+            sage: A = matrix(RDF,3,range(1,10))
+            sage: hash(A)
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
+            sage: A.set_immutable()
+            sage: hash(A)
+            88
+
+        """
         return self._hash()
 
     def LU_valid(self):
+        r"""
+        Returns \code{True} if the LU form of this matrix has
+        already been computed.
+
+        EXAMPLES:
+            sage: A= random_matrix(RDF,3) ; A.LU_valid()
+            False
+            sage: L,U,P = A.LU()
+            sage: A.LU_valid()
+            True
+        """
         return self.fetch('LU_valid') == True
 
     def __init__(self, parent, entries, copy, coerce):
@@ -220,7 +248,13 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         return M
 
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right): #matrix.Matrix right):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+        """
+        EXAMPLES:
+            sage: A = matrix(RDF,3,range(1,10))
+            sage: (A-A).is_zero()
+            True
+        """
         if self._nrows == 0 or self._ncols == 0: return self
 
         cdef Matrix_real_double_dense M,_right,_left
@@ -233,12 +267,23 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         M=Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
         # todo -- check error code
         result_copy = gsl_matrix_memcpy(M._matrix,_left._matrix)
-        result_add = gsl_matrix_sub(M._matrix,_right._matrix)
+        result_sub = gsl_matrix_sub(M._matrix,_right._matrix)
         if result_copy!=GSL_SUCCESS or result_sub !=GSL_SUCCESS:
             raise ValueError, "GSL routine had an error"
         return M
 
     def __neg__(self):
+        """
+        Negate this matrix
+        EXAMPLES:
+            sage: A = matrix(RDF,3,range(1,10))
+            sage: -A
+            [-1.0 -2.0 -3.0]
+            [-4.0 -5.0 -6.0]
+            [-7.0 -8.0 -9.0]
+            sage: B = -A ; (A+B).is_zero()
+            True
+        """
         if self._nrows == 0 or self._ncols == 0: return self
 
         cdef Matrix_real_double_dense M
@@ -279,6 +324,41 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
     # cdef int _cmp_c_impl(self, Matrix right) except -2:
     def __invert__(self):
+        """
+        Invert this matrix.
+        EXAMPLES:
+            sage: A = Matrix(RDF, [[10, 0], [0, 100]])
+            sage: (~A).det()
+            0.001
+
+            sage: A = matrix(RDF,3,[2,3,5,7,8,9,11,13,17]);A
+            [ 2.0  3.0  5.0]
+            [ 7.0  8.0  9.0]
+            [11.0 13.0 17.0]
+            sage: ~A
+            [ -2.71428571429            -2.0   1.85714285714]
+            [  2.85714285714             3.0  -2.42857142857]
+            [-0.428571428571            -1.0  0.714285714286]
+
+            Note that if this matrix is (nearly) singular, finding
+            its inverse will not help much and will give slightly different
+            answers on similar platforms depending on the hardware
+            and tuning options given to ATLAS:
+            sage: A = Matrix(RDF, [[1, 0], [0, 0]])
+            sage: A.inverse().det()
+            nan
+            sage: A = matrix(RDF,3,range(1,10));A
+            [1.0 2.0 3.0]
+            [4.0 5.0 6.0]
+            [7.0 8.0 9.0]
+
+            sage: A.determinant() < 10e-12
+            True
+            sage: ~A              # slightly random
+            [-4.50359962737e+15  9.00719925474e+15 -4.50359962737e+15]
+            [ 9.00719925474e+15 -1.80143985095e+16  9.00719925474e+15]
+            [-4.50359962737e+15  9.00719925474e+15 -4.50359962737e+15]
+        """
         if self._nrows == 0 or self._ncols == 0: return self
 
         cdef int result_LU, result_invert
@@ -383,26 +463,42 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         r"""
         Return a list of pairs (e, V) where e runs through all complex
         eigenvalues of this matrix, and V is the corresponding
-        eigenspace (always a 1-dimensional complex vector space).
-
-        OUTPUT:
-            list -- of eigenvalues
-            list -- of 1-dimensional CDF vector spaces
+        left eigenspace (always a 1-dimensional complex vector space).
 
         EXAMPLES:
             sage: m = matrix(RDF, 3, range(9)); m
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             [6.0 7.0 8.0]
-            sage: e, v = m.eigenspaces()
-            sage: e      # random low order bits
-            [13.3484692283, -1.34846922835, -9.96461975961e-16]
-            sage: a = (v[0].0) * m; b = e[0] * v[0].0
-            sage: a.change_ring(CDF) - b         # random -- very small numbers
+            sage: es = m.eigenspaces()
+            sage: es # random
+            [(13.3484692283, Vector space of degree 3 and dimension 1 over Real Double Field
+            User basis matrix:
+            [-0.440242867236 -0.567868371314 -0.695493875393]),
+            (-1.34846922835, Vector space of degree 3 and dimension 1 over Real Double Field
+            User basis matrix:
+            [-0.897878732262 -0.278434036822  0.341010658618]),
+            (-9.10854412047e-16, Vector space of degree 3 and dimension 1 over Real Double Field
+            User basis matrix:
+            [ 0.408248290464 -0.816496580928  0.408248290464])]
+
+            sage: e, v = es[0]
+            sage: v = v.basis()[0]
+            sage: a = v * m
+            sage: b = e * v
+            sage: diff = a.change_ring(CDF) - b
+            sage: abs(abs(diff)) < 1e-10
+            True
+            sage: diff # random -- very small numbers
             (-2.6645352591e-15, -7.1054273576e-15, -3.5527136788e-15)
         """
         e, v = self.left_eigenvectors()
-        return e, [c.parent().span_of_basis([c], check=False) for c in v.columns()]
+        v = v.rows()
+        pairs = []
+        for l from 0<=l<len(e):
+            c = v[l]
+            pairs.append((e[l], c.parent().span_of_basis([c], check=False)))
+        return pairs
 
     def left_eigenvectors(self):
         """
@@ -417,8 +513,15 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
         EXAMPLES:
             sage: m = Matrix(RDF, 3, range(9))
-            sage: m.left_eigenvectors()           # random-ish platform-dependent output (low order digits)
-
+            sage: es = m.left_eigenvectors()
+            sage: es # random-ish platform-dependent output (low order digits)
+            ([13.3484692283, -1.34846922835, -9.10854412047e-16],
+            [-0.440242867236 -0.567868371314 -0.695493875393]
+            [-0.897878732262 -0.278434036822  0.341010658618]
+            [ 0.408248290464 -0.816496580928  0.408248290464])
+            sage: e, v = es; e = e[0]; v = v[0]
+            sage: abs(abs(e*v - v*m)) < 1e-10
+            True
 
         IMPLEMENTATION:
             Uses numpy.
@@ -446,6 +549,10 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         EXAMPLES:
             sage: m = Matrix(RDF, 3, range(9))
             sage: m.right_eigenvectors()           # random-ish platform-dependent output (low order digits)
+            ([13.3484692283, -1.34846922835, -6.43352295265e-16],
+            [ 0.164763817282  0.799699663112  0.408248290464]
+            [ 0.505774475901  0.104205787719 -0.816496580928]
+            [ 0.846785134519 -0.591288087674  0.408248290464])
 
         IMPLEMENTATION:
             Uses numpy.
@@ -587,7 +694,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             0.69314718056
             sage: m.log_determinant()
             0.69314718056
-            sage: m = matrix(RDF,0,0,range(4)); m
+            sage: m = matrix(RDF,0,0,[]); m
             []
             sage: m.log_determinant()
             0.0
@@ -626,6 +733,9 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         result_copy = gsl_matrix_transpose_memcpy(trans._matrix,self._matrix)
         if result_copy !=GSL_SUCCESS:
             raise ValueError, "Error copy matrix"
+        if self.subdivisions is not None:
+            row_divs, col_divs = self.get_subdivisions()
+            trans.subdivide(col_divs, row_divs)
         return trans
 
     def SVD(self, algorithm='gsl'):
@@ -1035,7 +1145,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         memcpy(data,_M._matrix.data,sizeof(double)*dims[0]*dims[1])
         temp = PyArray_FromDimsAndData(2, dims, 12,data)
         _n = temp
-        _n.flags = _n.flags|(NPY_OWNDATA) # this sets the ownership bug
+        _n.flags = _n.flags|(NPY_OWNDATA) # this sets the ownership bit
         return _n
 
     def _replace_self_with_numpy(self,numpy_matrix):
@@ -1084,3 +1194,26 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
 
+    def _hadamard_row_bound(self):
+        r"""
+        Return an integer n such that the absolute value of the
+        determinant of this matrix is at most $10^n$.
+
+        EXAMPLES:
+            sage: a = matrix(RDF, 3, [1,2,5,7,-3,4,2,1,123])
+            sage: a._hadamard_row_bound()
+            4
+            sage: a.det()
+            -2014.0
+            sage: 10^4
+            10000
+        """
+        cdef double d = 0, s
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < self._nrows:
+            s = 0
+            for j from 0 <= j < self._ncols:
+                s += gsl_matrix_get(self._matrix,i,j) * gsl_matrix_get(self._matrix,i,j)
+            d += gsl_sf_log(s)
+        d /= 2
+        return int(math.ceil(d / gsl_sf_log(10)))

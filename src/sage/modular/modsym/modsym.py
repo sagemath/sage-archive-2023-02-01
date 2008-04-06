@@ -69,6 +69,22 @@ import sage.rings.all as rings
 import element
 
 def canonical_parameters(group, weight, sign, base_ring):
+    """
+    Return the canonically normalized parameters associated
+    to a choice of group, weight, sign, and base_ring. That is,
+    normalize each of these to be of the correct type, perform
+    all appropriate type checking, etc.
+
+    EXAMPLES:
+        sage: p1 = sage.modular.modsym.modsym.canonical_parameters(5,int(2),1,QQ) ; p1
+        (Congruence Subgroup Gamma0(5), 2, 1, Rational Field)
+        sage: p2 = sage.modular.modsym.modsym.canonical_parameters(Gamma0(5),2,1,QQ) ; p2
+        (Congruence Subgroup Gamma0(5), 2, 1, Rational Field)
+        sage: p1 == p2
+        True
+        sage: type(p1[1])
+        <type 'sage.rings.integer.Integer'>
+    """
     sign = rings.Integer(sign)
     if not (sign in [-1,0,1]):
         raise ValueError, "sign must be -1, 0, or 1"
@@ -83,7 +99,8 @@ def canonical_parameters(group, weight, sign, base_ring):
     elif isinstance(group, dirichlet.DirichletCharacter):
         try:
             eps = group.minimize_base_ring()
-        except NotImplementedError:  # todo -- implement minimize_base_ring over finite fields
+        except NotImplementedError:
+        # TODO -- implement minimize_base_ring over finite fields
             eps = group
         G = eps.parent()
         group = (eps, G)
@@ -99,6 +116,20 @@ def canonical_parameters(group, weight, sign, base_ring):
 _cache = {}
 
 def ModularSymbols_clear_cache():
+    """
+    Clear the global cache of modular symbols spaces.
+
+    EXAMPLES:
+        sage: sage.modular.modsym.modsym.ModularSymbols_clear_cache()
+        sage: sage.modular.modsym.modsym._cache.keys()
+        []
+        sage: M = ModularSymbols(6,2)
+        sage: sage.modular.modsym.modsym._cache.keys()
+        [(Congruence Subgroup Gamma0(6), 2, 0, Rational Field)]
+        sage: sage.modular.modsym.modsym.ModularSymbols_clear_cache()
+        sage: sage.modular.modsym.modsym._cache.keys()
+        []
+    """
     global _cache
     _cache = {}
 

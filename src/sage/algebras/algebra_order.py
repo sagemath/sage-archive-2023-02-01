@@ -81,9 +81,15 @@ class AlgebraOrder_generic(Algebra):
             return False
 
     def ambient_algebra(self):
+        """
+        Return the ambient algebra of this algebra order
+        """
         return self.__ambient_algebra
 
     def base_ring(self):
+        """
+        Return the base ring of this algebra order
+        """
         return self.__base_ring
 
     def __compute_order_basis(self):
@@ -116,6 +122,9 @@ class AlgebraOrder_generic(Algebra):
         self.__algebra_basis_elements = basis
 
     def basis(self):
+        """
+        Return the basis of this algebra order
+        """
         try:
             return tuple([ self(x, check=False) for x in self.__algebra_basis_elements ])
         except AttributeError:
@@ -123,9 +132,17 @@ class AlgebraOrder_generic(Algebra):
         return tuple([ self(x, check=False) for x in self.__algebra_basis_elements ])
 
     def algebra_basis_elements(self):
+        """
+        Return the basis of this algebra order as a tuple
+        """
         return tuple(self.__algebra_basis_elements)
 
     def embedding_matrix(self):
+        r"""
+        Return the $n\times n$ matrix whose rows are the vectors
+        expressing the basis elements of this algebra order in terms
+        of the ambient algebra's basis.
+        """
         try:
             return self.__embedding_martix
         except AttributeError:
@@ -136,6 +153,11 @@ class AlgebraOrder_generic(Algebra):
         return self.__embedding_matrix
 
     def inverse_embedding_matrix(self):
+        r"""
+        Return the inverse of the $n\times n$ matrix whose rows are
+        the vectors expressing the basis elements of this algebra
+        order in terms of the ambient algebra's basis.
+        """
         try:
             return self.__inverse_embedding_matrix
         except AttributeError:
@@ -148,6 +170,9 @@ class AlgebraOrder_generic(Algebra):
             raise AttributeError, "Basis for quaternion order is not of full rank."
 
     def module(self):
+        r"""
+        Convert this algebra order into a module over the base ring.
+        """
         try:
             return self.__module
         except AttributeError:
@@ -158,6 +183,9 @@ class AlgebraOrder_generic(Algebra):
         return self.__module
 
     def gen(self,i):
+        r"""
+        Return the i'th generator of this algebra order
+        """
         n = len(self.__gens)
         if i < 0 or not i < n:
             raise IndexError, \
@@ -165,11 +193,20 @@ class AlgebraOrder_generic(Algebra):
         return self(self.__gens[int(i)])
 
     def gens(self):
+        r"""
+        Return the generators of this algebra order as a tuple
+        """
         return tuple([ self(x) for x in self.__gens ])
 
     def ngens(self):
+        r"""
+        Return the number of generators of this algebra order
+        """
         return len(self.__gens)
 
     def rank(self):
+        r"""
+        Return the rank of this algebra order
+        """
         return self.__rank
 

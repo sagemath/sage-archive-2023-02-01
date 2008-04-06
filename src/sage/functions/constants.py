@@ -140,7 +140,7 @@ EXAMPLES: Arithmetic with constants
 AUTHORS:
     -- Alex Clemesha  <aclemesh@ucsd.edu>, 2006-01-15
     -- William Stein
-    -- Alex Clemesha \& William Stein (2006-02-20): added new constants; removed todos
+    -- Alex Clemesha & William Stein (2006-02-20): added new constants; removed todos
     -- didier deshommes <dfdeshom@gmail.com> (2007-03-27): added constants from RQDF
 
 TESTS:

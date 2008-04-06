@@ -39,8 +39,8 @@ def SignedCompositions(n):
         [1, 1, 1]
         sage: SC3.last()
         [-3]
-        sage: SC3.random() #random
-        [-1, -2]
+        sage: SC3.random()
+        [1, -1, 1]
         sage: SC3.list()
         [[1, 1, 1],
          [1, 1, -1],

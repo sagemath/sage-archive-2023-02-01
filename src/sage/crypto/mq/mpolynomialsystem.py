@@ -32,7 +32,7 @@ TEST:
 from sage.structure.sage_object import SageObject
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.finite_field import GF
+from sage.rings.finite_field import FiniteField as GF
 
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
@@ -348,18 +348,6 @@ class MPolynomialRoundSystem_generic(SageObject):
         """
         return (element in self._gens)
 
-    def __list__(self):
-        """
-        Return a list of generators for self.
-
-        EXAMPLE:
-            sage: P.<x,y,z> = MPolynomialRing(GF(2),3)
-            sage: F = mq.MPolynomialRoundSystem(P,[x*y +1, z + 1])
-            sage: list(F) # indirect doctest
-            [x*y + 1, z + 1]
-        """
-        return list(self._gens)
-
     def __len__(self):
         """
         Return self.ngens().
@@ -621,23 +609,24 @@ class MPolynomialSystem_generic(SageObject):
         Return SAGE ideal spanned by self.gens()
 
         EXAMPLE:
+        These computations use pseudo-random numbers, so we set the
+        seed for reproducible testing.
+            sage: set_random_seed(0)
+
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
             sage: P = F.ring()
             sage: I = F.ideal()
-            sage: I.elimination_ideal(P('s000*s001*s002*s003*w100*w101*w102*w103*x100*x101*x102*x103')) # random result
-            Ideal (k002 + (a)*k003 + (a^3 + 1), k001 + (a^2 + 1)*k002
-            + (a^3 + a + 1), k000 + (a^3 + a^2 + 1)*k003 + (a^3 + a^2
-            + a), k103 + (a^2 + 1)*k000 + (a + 1)*k001 + (a^3 +
-            a^2)*k002 + (a^2 + 1)*k003 + 1, k102 + (a^3 + a)*k103 +
-            (a^2 + 1)*k001 + (a)*k002 + (a^2 + a + 1)*k003 + (a^3 + a
-            + 1), k101 + (a^2 + 1)*k102 + (a^2 + a)*k103 + (a^2 +
-            1)*k002 + (a), k100 + (a^2 + a)*k102 + (a^3 + a^2)*k103 +
-            (a^3 + a^2)*k003 + (a^3 + a + 1), k003^2 + k000) of
-            Multivariate Polynomial Ring in k100, k101, k102, k103,
-            x100, x101, x102, x103, w100, w101, w102, w103, s000,
-            s001, s002, s003, k000, k001, k002, k003 over Finite Field
-            in a of size 2^4
+            sage: I.elimination_ideal(P('s000*s001*s002*s003*w100*w101*w102*w103*x100*x101*x102*x103'))
+            Ideal (k002 + (a^2)*k003 + 1, (a^3)*k001 + (a^3 + a^2)*k003 +
+            (a^3 + a + 1), k000 + (a^3 + a^2 + a)*k003 + (a^3 + a^2 + a),
+            (a^2)*k103 + (a^2 + a)*k003 + (a^2 + a + 1), (a^3)*k102 +
+            (a^3 + 1)*k003 + (a^2), (a^3)*k101 + (a^3)*k003 + (a^2 + 1),
+            (a^3)*k100 + (a^2 + a)*k003 + (a^2 + 1), k003^2 +
+            (a^3 + a^2 + a)*k003 + (a^3 + a^2 + a)) of Multivariate
+            Polynomial Ring in k100, k101, k102, k103, x100, x101, x102,
+            x103, w100, w101, w102, w103, s000, s001, s002, s003,
+            k000, k001, k002, k003 over Finite Field in a of size 2^4
         """
         return self._ring.ideal(self.gens())
 
@@ -861,10 +850,10 @@ class MPolynomialSystem_generic(SageObject):
                 return True
         return False
 
-    def __list__(self):
-        """
-        Return a list of self where all polynomials in self are
-        presented in order as they appear in self.
+    def __iter__(self):
+        r"""
+        Return an iterator for \code{self} where all polynomials in
+        \code{self} are yielded in order as they appear in \code{self}.
 
         EXAMPLE:
             sage: P.<x0,x1,x2,x3> = PolynomialRing(GF(37))
@@ -879,8 +868,7 @@ class MPolynomialSystem_generic(SageObject):
         L = []
         for r in self._rounds:
             for f in r:
-              L.append(f)
-        return L
+                yield f
 
 class MPolynomialSystem_gf2(MPolynomialSystem_generic):
     """

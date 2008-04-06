@@ -21,6 +21,7 @@ TESTS:
 include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
+from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sequence import Sequence
 from sage.combinat.combinat import combinations_iterator
 from sage.structure.element import is_Vector
@@ -29,14 +30,12 @@ from sage.rings.number_field.all import is_NumberField
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
+from sage.rings.integer_mod_ring import IntegerModRing
 
 import sage.modules.free_module
 import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
-
-
-from random import randint
 
 cdef class Matrix(matrix1.Matrix):
     def _backslash_(self, B):
@@ -75,7 +74,28 @@ cdef class Matrix(matrix1.Matrix):
         v = [a.subs(in_dict, **kwds) for a in self.list()]
         return self.new_matrix(self.nrows(), self.ncols(), v)
 
-    def solve_right(self, B):
+    def solve_left(self, B, check=True):
+        """
+        If self is a matrix $A$, then this function returns a vector
+        or matrix $X$ such that $X A = B$.  If $B$ is a vector then
+        $X$ is a vector and if $B$ is a matrix, then $X$ is a matrix.
+
+        INPUT:
+            B -- a matrix
+            check -- bool (default: True) -- if False and self is nonsquare,
+                     may not raise an error message even if there is no solution.
+                     This is faster but more dangerous.
+
+        EXAMPLES:
+            sage: A = matrix(QQ,4,2, [0, -1, 1, 0, -2, 2, 1, 0])
+            sage: B = matrix(QQ,2,2, [1, 0, 1, -1])
+            sage: X = A.solve_left(B)
+            sage: X*A == B
+            True
+        """
+        return self.transpose().solve_right(B.transpose(), check=check).transpose()
+
+    def solve_right(self, B, check=True):
         r"""
         If self is a matrix $A$, then this function returns a vector
         or matrix $X$ such that $A X = B$.  If $B$ is a vector then
@@ -87,9 +107,14 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
             B -- a matrix or vector
+            check -- bool (default: True) -- if False and self is nonsquare,
+                     may not raise an error message even if there is no solution.
+                     This is faster but more dangerous.
 
         OUTPUT:
             a matrix or vector
+
+        SEE ALSO: solve_left
 
         EXAMPLES:
             sage: A = matrix(QQ, 3, [1,2,3,-1,2,5,2,3,1])
@@ -98,6 +123,53 @@ cdef class Matrix(matrix1.Matrix):
             (-13/12, 23/12, -7/12)
             sage: A * x
             (1, 2, 3)
+
+        We solve with A nonsquare:
+            sage: A = matrix(QQ,2,4, [0, -1, 1, 0, -2, 2, 1, 0]); B = matrix(QQ,2,2, [1, 0, 1, -1])
+            sage: X = A.solve_right(B); X
+            [-3/2  1/2]
+            [  -1    0]
+            [   0    0]
+            [   0    0]
+            sage: A*X == B
+            True
+
+        Another nonsingular example:
+            sage: A = matrix(QQ,2,3, [1,2,3,2,4,6]); v = vector([-1/2,-1])
+            sage: x = A \ v; x
+            (-1/2, 0, 0)
+            sage: A*x == v
+            True
+
+        Same example but over $\ZZ$:
+            sage: A = matrix(ZZ,2,3, [1,2,3,2,4,6]); v = vector([-1,-2])
+            sage: A \ v
+            (-1, 0, 0)
+
+        An example in which there is no solution:
+            sage: A = matrix(QQ,2,3, [1,2,3,2,4,6]); v = vector([1,1])
+            sage: A \ v
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+        A ValueError is raised if the input is invalid:
+            sage: A = matrix(QQ,4,2, [0, -1, 1, 0, -2, 2, 1, 0])
+            sage: B = matrix(QQ,2,2, [1, 0, 1, -1])
+            sage: X = A.solve_right(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of rows of self must equal number of rows of B
+
+
+        We solve with A singular:
+            sage: A = matrix(QQ,2,3, [1,2,3,2,4,6]); B = matrix(QQ,2,2, [6, -6, 12, -12])
+            sage: X = A.solve_right(B); X
+            [ 6 -6]
+            [ 0  0]
+            [ 0  0]
+            sage: A*X == B
+            True
 
         We illustrate left associativity, etc., of the backslash operator.
             sage: A = matrix(QQ, 2, [1,2,3,4])
@@ -142,8 +214,13 @@ cdef class Matrix(matrix1.Matrix):
             sage: a * x == v
             True
         """
-        if not self.is_square():
-            raise NotImplementedError, "input matrix must be square"
+
+        if is_Vector(B):
+            if self.nrows() != B.degree():
+                raise ValueError, "number of rows of self must equal degree of B"
+        else:
+            if self.nrows() != B.nrows():
+                raise ValueError, "number of rows of self must equal number of rows of B"
 
         K = self.base_ring()
         if not K.is_integral_domain():
@@ -152,9 +229,6 @@ cdef class Matrix(matrix1.Matrix):
             K = K.fraction_field()
             self = self.change_ring(K)
 
-        if self.rank() != self.nrows():
-            raise ValueError, "input matrix must have full rank but it doesn't"
-
         matrix = True
         if is_Vector(B):
             matrix = False
@@ -162,15 +236,123 @@ cdef class Matrix(matrix1.Matrix):
         else:
             C = B
 
-        D = self.augment(C).echelon_form()
-        X = D.matrix_from_columns(range(self.ncols(),D.ncols()))
+        if not self.is_square():
+            X = self._solve_right_general(C, check=check)
+            if not matrix:
+                # Convert back to a vector
+                return (X.base_ring() ** X.nrows())(X.list())
+            else:
+                return X
+
+        if self.rank() != self.nrows():
+            X = self._solve_right_general(C, check=check)
+        else:
+            X = self._solve_right_nonsingular_square(C, check_rank=False)
+
         if not matrix:
             # Convert back to a vector
-            return (X.base_ring() ** X.nrows())(X.list())
+            return X.column(0)
         else:
             return X
 
+    def _solve_right_nonsingular_square(self, B, check_rank=True):
+        r"""
+        If self is a matrix $A$ of full rank, then this function
+        returns a matrix $X$ such that $A X = B$.
 
+        SEE ALSO: \code{self.solve_right} and \code{self.solve_left}
+
+        INPUT:
+            B -- a matrix
+            check_rank -- bool (default: True)
+
+        OUTPUT:
+            matrix
+
+        EXAMPLES:
+            sage: A = matrix(QQ,3,[1,2,4,5,3,1,1,2,-1])
+            sage: B = matrix(QQ,3,2,[1,5,1,2,1,5])
+            sage: A._solve_right_nonsingular_square(B)
+            [ -1/7 -11/7]
+            [  4/7  23/7]
+            [    0     0]
+            sage: A._solve_right_nonsingular_square(B, check_rank=False)
+            [ -1/7 -11/7]
+            [  4/7  23/7]
+            [    0     0]
+            sage: X = A._solve_right_nonsingular_square(B, check_rank=False)
+            sage: A*X == B
+            True
+        """
+        D = self.augment(B).echelon_form()
+        return D.matrix_from_columns(range(self.ncols(),D.ncols()))
+
+
+    def pivot_rows(self):
+        """
+        Return the pivot row positions for this matrix, which are a
+        topmost subset of the rows that span the row space and are
+        linearly independent.
+
+        OUTPUT:
+            list -- a list of integers
+
+        EXAMPLES:
+            sage: A = matrix(QQ,3,3, [0,0,0,1,2,3,2,4,6]); A
+            [0 0 0]
+            [1 2 3]
+            [2 4 6]
+            sage: A.pivot_rows()
+            [1]
+        """
+        v = self.fetch('pivot_rows')
+        if v is not None:
+            return list(v)
+        v = self.transpose().pivots()
+        self.cache('pivot_rows', v)
+        return v
+
+    def _solve_right_general(self, B, check=True):
+        r"""
+        This is used internally by the \code{solve_right} command to
+        solve for self*X = B when self is not square or not of full
+        rank.  It does some linear algebra, then solves a full-rank
+        square system.
+
+        INPUT:
+            B -- a matrix
+            check -- bool (default: True); if False, if there is no
+                     solution this function will not detect that fact.
+
+        OUTPUT:
+            matrix
+
+        EXAMPLES:
+            sage: A = matrix(QQ,2,3, [1,2,3,2,4,6]); B = matrix(QQ,2,2, [6, -6, 12, -12])
+            sage: A._solve_right_general(B)
+            [ 6 -6]
+            [ 0  0]
+            [ 0  0]
+        """
+        pivot_cols = self.pivots()
+        A = self.matrix_from_columns(pivot_cols)
+        pivot_rows = A.pivot_rows()
+        A = A.matrix_from_rows(pivot_rows)
+        X = A.solve_right(B.matrix_from_rows(pivot_rows), check=False)
+        if len(pivot_cols) < self.ncols():
+            # Now we have to put in zeros for the non-pivot ROWS, i.e.,
+            # make a matrix from X with the ROWS of X interspersed with
+            # 0 ROWS.
+            Y = X.new_matrix(self.ncols(), X.ncols())
+            # Put the columns of X into the matrix Y at the pivot_cols positions
+            for i, c in enumerate(pivot_cols):
+                Y.set_row(c, X.row(i))
+            X = Y
+        if check:
+            # Have to check that we actually solved the equation.
+            if self*X != B:
+                raise ValueError, "matrix equation has no solutions"
+        return X
 
     def prod_of_row_sums(self, cols):
         r"""
@@ -314,7 +496,7 @@ cdef class Matrix(matrix1.Matrix):
         Calculates the permanental $k$-minor of a $m \times n$ matrix.
 
         This is the sum of the permanents of all possible $k$ by $k$
-        submatices of $A$.
+        submatrices of $A$.
 
         See Brualdi and Ryser: Combinatorial Matrix Theory, p. 203.
         Note the typo $p_0(A) = 0$ in that reference!  For
@@ -488,7 +670,7 @@ cdef class Matrix(matrix1.Matrix):
 
         ALGORITHM: For small matrices (n<4), this is computed using the naive formula
         For integral domains, the charpoly is computed (using hessenberg form)
-        Otherwise his is computed using the very stupid expansion by
+        Otherwise this is computed using the very stupid expansion by
         minors stupid \emph{naive generic algorithm}.  For matrices
         over more most rings more sophisticated algorithms can be
         used.  (Type \code{A.determinant?} to see what is done for a
@@ -518,7 +700,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<x,y> = MPolynomialRing(IntegerRing(),2)
             sage: A = MatrixSpace(R,2)([x, y, x**2, y**2])
             sage: A.determinant()
-            -1*x^2*y + x*y^2
+            -x^2*y + x*y^2
 
         TEST:
             sage: A = matrix(5, 5, [next_prime(i^2) for i in range(25)])
@@ -584,7 +766,7 @@ cdef class Matrix(matrix1.Matrix):
 
     cdef _det_by_minors(self, Py_ssize_t level):
         """
-        Compute the determinent of the upper-left level x level submatrix of self.
+        Compute the determinant of the upper-left level x level submatrix of self.
         Does not handle degenerate cases, level MUST be >= 2
         """
         cdef Py_ssize_t n, i
@@ -764,16 +946,23 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<x,y> = MPolynomialRing(ZZ,2)
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
             sage: f = A.charpoly('x'); f
-            x^2 + (-1*y^2 - x)*x - x^2*y + x*y^2
+            x^2 + (-y^2 - x)*x - x^2*y + x*y^2
 
         It's a little difficult to distinguish the variables.  To fix this,
         we temporarily view the indeterminate as $Z$:
             sage: with localvars(f.parent(), 'Z'): print f
-            Z^2 + (-1*y^2 - x)*Z - x^2*y + x*y^2
+            Z^2 + (-y^2 - x)*Z - x^2*y + x*y^2
 
         We could also compute f in terms of Z from the start:
             sage: A.charpoly('Z')
-            Z^2 + (-1*y^2 - x)*Z - x^2*y + x*y^2
+            Z^2 + (-y^2 - x)*Z - x^2*y + x*y^2
+
+        TESTS:
+            sage: P.<a,b,c> = PolynomialRing(Rationals())
+            sage: u = MatrixSpace(P,3)([[0,0,a],[1,0,b],[0,1,c]])
+            sage: Q.<x> = PolynomialRing(P)
+            sage: u.charpoly('x')
+            x^3 + (-c)*x^2 + (-b)*x - a
         """
         D = self.fetch('charpoly')
         if not D is None:
@@ -959,7 +1148,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def hessenbergize(self):
         """
-        Tranform self to Hessenberg form.
+        Transform self to Hessenberg form.
 
         The hessenberg form of a matrix $A$ is a matrix that is
         similar to $A$, so has the same characteristic polynomial as
@@ -1121,26 +1310,61 @@ cdef class Matrix(matrix1.Matrix):
     #####################################################################################
     # Decomposition: kernel, image, decomposition
     #####################################################################################
-    def nullity(self):
+    nullity = left_nullity
+
+    def left_nullity(self):
         """
-        Return the nullity of this matrix, which is the dimension
-        of the kernel.
+        Return the (left) nullity of this matrix, which is the dimension
+        of the (left) kernel of this matrix acting from the right on
+        row vectors.
 
         EXAMPLES:
-            sage: A = matrix(QQ,3,range(9))
+            sage: M = Matrix(QQ,[[1,0,0,1],[0,1,1,0],[1,1,1,0]])
+            sage: M.nullity()
+            0
+            sage: M.left_nullity()
+            0
+
+            sage: A = M.transpose()
             sage: A.nullity()
             1
+            sage: A.left_nullity()
+            1
 
-            sage: A = matrix(ZZ,3,range(9))
+            sage: M = M.change_ring(ZZ)
+            sage: M.nullity()
+            0
+            sage: A = M.transpose()
             sage: A.nullity()
             1
         """
-        # Use that rank + nullity = number of columns
-        return self.ncols() - self.rank()
+        # Use that rank + nullity = number of rows, since matrices act
+        # from the right on row vectors.
+        return self.nrows() - self.rank()
 
-    def kernel(self, *args, **kwds):
+    def right_nullity(self):
+        """
+        Return the right nullity of this matrix, which is the dimension
+        of the right kernel.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(QQ,3,2)(range(6))
+            sage: A.right_nullity()
+            0
+
+            sage: A = matrix(ZZ,3,range(9))
+            sage: A.right_nullity()
+            1
+        """
+        return self.transpose().nullity()
+
+    kernel = left_kernel
+
+    def left_kernel(self, *args, **kwds):
         r"""
-        Return the kernel of this matrix, as a vector space.
+        Return the (left) kernel of this matrix, as a vector space.
+        This is the space of vectors x such that x*self=0.
+        Use self.right_kernel() for the right kernel.
 
         INPUT:
             -- all additional arguments to the kernel function
@@ -1219,7 +1443,7 @@ cdef class Matrix(matrix1.Matrix):
             Basis matrix:
             [ 1 -1]
         """
-        K = self.fetch('kernel')
+        K = self.fetch('left_kernel')
         if not K is None:
             return K
         R = self._base_ring
@@ -1227,12 +1451,12 @@ cdef class Matrix(matrix1.Matrix):
         if self._nrows == 0:    # from a degree-0 space
             V = sage.modules.free_module.VectorSpace(R, self._nrows)
             Z = V.zero_subspace()
-            self.cache('kernel', Z)
+            self.cache('left_kernel', Z)
             return Z
 
         elif self._ncols == 0:  # to a degree-0 space
             Z = sage.modules.free_module.VectorSpace(R, self._nrows)
-            self.cache('kernel', Z)
+            self.cache('left_kernel', Z)
             return Z
 
         if is_NumberField(R):
@@ -1242,7 +1466,7 @@ cdef class Matrix(matrix1.Matrix):
             V = sage.modules.free_module.VectorSpace(R, n)
             basis = [V([R(x) for x in b]) for b in B]
             Z = V.subspace(basis)
-            self.cache('kernel', Z)
+            self.cache('left_kernel', Z)
             return Z
 
         E = self.transpose().echelon_form(*args, **kwds)
@@ -1261,9 +1485,84 @@ cdef class Matrix(matrix1.Matrix):
                 basis.append(v)
         W = V.subspace(basis)
         if W.dimension() != len(basis):
-            raise RuntimeError, "bug in kernel function in matrix.pyx -- basis got from echelon form not a basis."
-        self.cache('kernel', W)
+            raise RuntimeError, "bug in kernel function in matrix2.pyx -- basis got from echelon form not a basis."
+        self.cache('left_kernel', W)
         return W
+
+    def right_kernel(self, *args, **kwds):
+        r"""
+        Return the right kernel of this matrix, as a vector space.
+        This is the space of vectors x such that self*x=0.
+
+        INPUT:
+            -- all additional arguments to the kernel function
+               are passed directly onto the echelon call.
+
+        By convention if self has 0 columns, the kernel is of dimension
+        0, whereas the kernel is whole domain if self has 0 rows.
+
+        EXAMPLES:
+
+        A kernel of dimension one over $\Q$:
+            sage: A = MatrixSpace(QQ, 3)(range(9))
+            sage: A.right_kernel()
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -2  1]
+
+        A trivial kernel:
+            sage: A = MatrixSpace(QQ, 2)([1,2,3,4])
+            sage: A.right_kernel()
+            Vector space of degree 2 and dimension 0 over Rational Field
+            Basis matrix:
+            []
+
+        Kernel of a zero matrix:
+            sage: A = MatrixSpace(QQ, 2)(0)
+            sage: A.right_kernel()
+            Vector space of degree 2 and dimension 2 over Rational Field
+            Basis matrix:
+            [1 0]
+            [0 1]
+
+        Kernel of a non-square matrix:
+            sage: A = MatrixSpace(QQ,2,3)(range(6))
+            sage: A.right_kernel()
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -2  1]
+
+        The 2-dimensional kernel of a matrix over a cyclotomic field:
+            sage: K = CyclotomicField(12); a=K.0
+            sage: M = MatrixSpace(K,2,4)([1,-1, 0,-2, 0,-a**2-1, 0,a**2-1])
+            sage: M
+            [            1            -1             0            -2]
+            [            0 -zeta12^2 - 1             0  zeta12^2 - 1]
+            sage: M.right_kernel()
+            Vector space of degree 4 and dimension 2 over Cyclotomic Field of order 12 and degree 4
+            Basis matrix:
+            [      1  4/13*zeta12^2 - 1/13      0 -2/13*zeta12^2 + 7/13]
+            [      0                     0      1                     0]
+
+        A nontrivial kernel over a complicated base field.
+            sage: K = FractionField(MPolynomialRing(QQ, 2, 'x'))
+            sage: M = MatrixSpace(K, 2)([[K.1, K.0], [K.1, K.0]])
+            sage: M
+            [x1 x0]
+            [x1 x0]
+            sage: M.right_kernel()
+            Vector space of degree 2 and dimension 1 over Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
+            Basis matrix:
+            [ 1 x1/(-x0)]
+        """
+        K = self.fetch('right_kernel')
+        if not K is None:
+            return K
+
+        K = self.transpose().kernel(*args, **kwds)
+        self.cache('right_kernel', K)
+        return K
+
 
     def kernel_on(self, V, poly=None, check=True):
         """
@@ -1274,7 +1573,7 @@ cdef class Matrix(matrix1.Matrix):
         INPUT:
             V -- vector subspace
             check -- (optional) default: True; whether to check that
-                     V is invariante under the action of self.
+                     V is invariant under the action of self.
             poly -- (optional) default: None; if not None, compute instead
                     the kernel of poly(self) on V.
 
@@ -1364,13 +1663,15 @@ cdef class Matrix(matrix1.Matrix):
             Echelon basis matrix:
             [0 1]
         """
-        d = self.denominator()
-        A = self*d
-        R = d.parent()
-        M = matrix_space.MatrixSpace(R, self.nrows(), self.ncols())(A)
-        return M.kernel()
-
-
+        try:
+            A, _ = self._clear_denom()
+            return A.kernel()
+        except AttributeError:
+            d = self.denominator()
+            A = self*d
+            R = d.parent()
+            M = matrix_space.MatrixSpace(R, self.nrows(), self.ncols())(A)
+            return M.kernel()
 
     def image(self):
         """
@@ -1419,8 +1720,12 @@ cdef class Matrix(matrix1.Matrix):
             [0 2]
         """
         M = self._row_ambient_module(base_ring = base_ring)
-        if self.fetch('in_echelon_form') and self.rank() == self.nrows():
-            return M.span(self.rows(), already_echelonized=True)
+        if (base_ring is None or base_ring == self.base_ring()) and self.fetch('in_echelon_form'):
+            if self.rank() != self.nrows():
+                rows = self.matrix_from_rows(range(self.rank())).rows()
+            else:
+                rows = self.rows()
+            return M.span(rows, already_echelonized=True)
         else:
             return M.span(self.rows(), already_echelonized=False)
 
@@ -1904,9 +2209,8 @@ cdef class Matrix(matrix1.Matrix):
         SEE ALSO: restrict()
 
         EXAMPLES:
-            sage: V = VectorSpace(QQ, 3)
-            sage: M = MatrixSpace(QQ, 3)
-            sage: A = M([1,2,0, 3,4,0, 0,0,0])
+            sage: V = QQ^3
+            sage: A = matrix(QQ,3,[1,2,0, 3,4,0, 0,0,0])
             sage: W = V.subspace([[1,0,0], [1,2,3]])
             sage: A.restrict_domain(W)
             [1 2 0]
@@ -1916,8 +2220,44 @@ cdef class Matrix(matrix1.Matrix):
             [ 1  2  0]
             [ 7 10  0]
         """
-        e = [b*self for b in V.basis()]
-        return self.new_matrix(V.dimension(), self.ncols(), e)
+        return V.basis_matrix() * self
+
+    def restrict_codomain(self, V):
+        r"""
+        Suppose that self defines a linear map from some domain to a
+        codomain that contains $V$ and that the image of self is
+        contained in $V$.  This function returns a new matrix $A$ that
+        represents this linear map but as a map to $V$, in the sense
+        that if $x$ is in the domain, then $xA$ is the linear
+        combination of the elements of the basis of $V$ that equals
+        v*self.
+
+        INPUT:
+            V -- vector space (space of degree \code{self.ncols()})
+                 that contains the image of self.
+
+        SEE ALSO: \code{restrict()}, \code{restrict_domain()}
+
+        EXAMPLES:
+            sage: A = matrix(QQ,3,[1..9])
+            sage: V = (QQ^3).span([[1,2,3], [7,8,9]]); V
+            Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1]
+            [ 0  1  2]
+            sage: z = vector(QQ,[1,2,5])
+            sage: B = A.restrict_codomain(V); B
+            [1 2]
+            [4 5]
+            [7 8]
+            sage: z*B
+            (44, 52)
+            sage: z*A
+            (44, 52, 60)
+            sage: 44*V.0 + 52*V.1
+            (44, 52, 60)
+        """
+        return V.basis_matrix().solve_left(self)
 
     def maxspin(self, v):
         """
@@ -2024,7 +2364,7 @@ cdef class Matrix(matrix1.Matrix):
         return f
 
 
-    def eigenspaces(self, var='a'):
+    def eigenspaces(self, var='a', even_if_inexact=False):
         r"""
         Return a list of pairs
              (e, V)
@@ -2034,6 +2374,12 @@ cdef class Matrix(matrix1.Matrix):
         The eigenspaces are returned sorted by the corresponding characteristic
         polynomials, where polynomials are sorted in dictionary order starting
         with constant terms.
+
+        NOTE:
+            Calling this method of a matrix over an inexact base ring will
+            raise a NotImplementedError.  If you want to force this anyway,
+            pass the option even_if_inexact=True.
+
 
         INPUT:
             var -- variable name used to represent elements of
@@ -2049,19 +2395,23 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES:
         We compute the eigenspaces of a $3\times 3$ rational matrix.
-            sage: A = Matrix(QQ,3,3,range(9)); A
+            sage: A = matrix(QQ,3,3,range(9)); A
             [0 1 2]
             [3 4 5]
             [6 7 8]
-            sage: A.eigenspaces()
+            sage: es = A.eigenspaces(); es
             [
-            (0, [
-            (1, -2, 1)
-            ]),
-            (a1, [
-            (1, 1/15*a1 + 2/5, 2/15*a1 - 1/5)
-            ])
+            (0, Vector space of degree 3 and dimension 1 over Rational Field
+            User basis matrix:
+            [ 1 -2  1]),
+            (a1, Vector space of degree 3 and dimension 1 over Number Field in a1 with defining polynomial x^2 - 12*x - 18
+            User basis matrix:
+            [            1 1/15*a1 + 2/5 2/15*a1 - 1/5])
             ]
+            sage: e, v = es[0]; v = v.basis()[0]
+            sage: delta = e*v - v*A
+            sage: abs(abs(delta)) < 1e-10
+            True
 
         The same computation, but with implicit base change to a field:
             sage: A = matrix(ZZ,3,range(9)); A
@@ -2070,14 +2420,13 @@ cdef class Matrix(matrix1.Matrix):
             [6 7 8]
             sage: A.eigenspaces()
             [
-            (0, [
-            (1, -2, 1)
-            ]),
-            (a1, [
-            (1, 1/15*a1 + 2/5, 2/15*a1 - 1/5)
-            ])
+            (0, Vector space of degree 3 and dimension 1 over Rational Field
+            User basis matrix:
+            [ 1 -2  1]),
+            (a1, Vector space of degree 3 and dimension 1 over Number Field in a1 with defining polynomial x^2 - 12*x - 18
+            User basis matrix:
+            [            1 1/15*a1 + 2/5 2/15*a1 - 1/5])
             ]
-
 
         We compute the eigenspaces of the matrix of the Hecke operator
         $T_2$ on level 43 modular symbols.
@@ -2097,17 +2446,17 @@ cdef class Matrix(matrix1.Matrix):
             (x - 3) * (x + 2)^2 * (x^2 - 2)^2
             sage: A.eigenspaces()
             [
-            (3, [
-            (1, 0, 1/7, 0, -1/7, 0, -2/7)
-            ]),
-            (-2, [
-            (0, 1, 0, 1, -1, 1, -1),
-            (0, 0, 1, 0, -1, 2, -1)
-            ]),
-            (a2, [
-            (0, 1, 0, -1, -a2 - 1, 1, -1),
-            (0, 0, 1, 0, -1, 0, -a2 + 1)
-            ])
+            (3, Vector space of degree 7 and dimension 1 over Rational Field
+            User basis matrix:
+            [   1    0  1/7    0 -1/7    0 -2/7]),
+            (-2, Vector space of degree 7 and dimension 2 over Rational Field
+            User basis matrix:
+            [ 0  1  0  1 -1  1 -1]
+            [ 0  0  1  0 -1  2 -1]),
+            (a2, Vector space of degree 7 and dimension 2 over Number Field in a2 with defining polynomial x^2 - 2
+            User basis matrix:
+            [      0       1       0      -1 -a2 - 1       1      -1]
+            [      0       0       1       0      -1       0 -a2 + 1])
             ]
 
         Next we compute the eigenspaces over the finite field
@@ -2123,21 +2472,61 @@ cdef class Matrix(matrix1.Matrix):
             x^4 + 10*x^3 + 3*x^2 + 2*x + 1
             sage: A.eigenspaces(var = 'beta')
             [
-            (9, [
-            (0, 0, 1, 5)
-            ]),
-            (3, [
-            (1, 6, 0, 6)
-            ]),
-            (beta2, [
-            (0, 1, 0, 5*beta2 + 10)
-            ])
+            (9, Vector space of degree 4 and dimension 1 over Finite Field of size 11
+            User basis matrix:
+            [0 0 1 5]),
+            (3, Vector space of degree 4 and dimension 1 over Finite Field of size 11
+            User basis matrix:
+            [1 6 0 6]),
+            (beta2, Vector space of degree 4 and dimension 1 over Univariate Quotient Polynomial Ring in beta2 over Finite Field of size 11 with modulus x^2 + 9
+            User basis matrix:
+            [           0            1            0 5*beta2 + 10])
             ]
+
+        TESTS:
+           sage: R=RealField(30)
+           sage: M=matrix(R,2,[2,1,1,1])
+           sage: M.eigenspaces()
+           Traceback (most recent call last):
+           ...
+           NotImplementedError: won't use generic algorithm for inexact base rings, pass the option even_if_inexact=True if you really want this.
+
+           sage: R=ComplexField(30)
+           sage: N=matrix(R,2,[2,1,1,1])
+           sage: N.eigenspaces()
+           Traceback (most recent call last):
+           ...
+           NotImplementedError: won't use generic algorithm for inexact base rings, pass the option even_if_inexact=True if you really want this.
+
+        But you can ask for (and receive!) garbage:
+            sage: M.eigenspaces(even_if_inexact=True) #random
+            [
+            (2.6180340, Vector space of degree 2 and dimension 0 over Real Field with 30 bits of precision
+            User basis matrix:
+            []),
+            (0.38196601, Vector space of degree 2 and dimension 0 over Real Field with 30 bits of precision
+            User basis matrix:
+            [])
+            ]
+
+            sage: N.eigenspaces(even_if_inexact=True) #random
+            [
+            (2.6180340, Vector space of degree 2 and dimension 0 over Complex Field with 30 bits of precision
+            User basis matrix:
+            []),
+            (0.38196601, Vector space of degree 2 and dimension 0 over Complex Field with 30 bits of precision
+            User basis matrix:
+            [])
+            ]
+
 
         """
         x = self.fetch('eigenspaces')
         if not x is None:
             return x
+
+        if not self.base_ring().is_exact() and not even_if_inexact:
+            raise NotImplementedError, "won't use generic algorithm for inexact base rings, pass the option even_if_inexact=True if you really want this."
 
         # minpoly is rarely implemented and is unreliable (leading to hangs) via linbox when implemented
         # as of 2007-03-25.
@@ -2160,7 +2549,7 @@ cdef class Matrix(matrix1.Matrix):
                 A = self.change_ring(F) - alpha
             W = A.kernel()
             i = i + 1
-            V.append((alpha, W.basis()))
+            V.append((alpha, W.ambient_module().span_of_basis(W.basis())))
         V = Sequence(V, cr=True)
         self.cache('eigenspaces', V)
         return V
@@ -2169,6 +2558,46 @@ cdef class Matrix(matrix1.Matrix):
     #####################################################################################
     # Generic Echelon Form
     ###################################################################################
+
+    def _echelonize_ring(self, **kwds):
+        r"""
+        Echelonize self in place, where the base ring of self is assumed
+        to be a ring (not a field).
+
+        Right now this *only* works over ZZ; otherwise a
+        \code{NotImplementedError} is raised.  In the special case of sparse
+        matrices over ZZ it makes them dense, gets the echelon form of
+        the dense matrix, then sets self equal to the result.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 3, 4, [1..12], sparse=True); a
+            [ 1  2  3  4]
+            [ 5  6  7  8]
+            [ 9 10 11 12]
+            sage: a._echelonize_ring()
+            sage: a
+            [ 1  2  3  4]
+            [ 0  4  8 12]
+            [ 0  0  0  0]
+
+        """
+        self.check_mutability()
+        cdef Matrix d
+        cdef Py_ssize_t r, c
+        if self._base_ring == ZZ:
+            if kwds.has_key('include_zero_rows') and not kwds['include_zero_rows']:
+                raise ValueError, "cannot echelonize in place and delete zero rows"
+            d = self.dense_matrix().echelon_form(**kwds)
+            for c from 0 <= c < self.ncols():
+                for r from 0 <= r < self.nrows():
+                    self.set_unsafe(r, c, d.get_unsafe(r,c))
+            self.clear_cache()
+            self.cache('pivots', d.pivots())
+            self.cache('in_echelon_form', True)
+            return
+        else:
+            raise NotImplementedError, "echelon form over %s not yet implemented"%self.base_ring()
+
     def echelonize(self, algorithm="default", cutoff=0, **kwds):
         r"""
         Transform self into a matrix in echelon form over the same
@@ -2180,7 +2609,7 @@ cdef class Matrix(matrix1.Matrix):
                    'strassen' -- use a Strassen divide and conquer algorithm (if available)
             cutoff -- integer; only used if the Strassen algorithm is selected.
 
-        EXAMPLES:
+       EXAMPLES:
             sage: a = matrix(QQ,3,range(9)); a
             [0 1 2]
             [3 4 5]
@@ -2212,17 +2641,16 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  1  2]
             [ 0  0  0]
 
-        As the echelon form is not defined for any integral domain, we
-        compute it over the fraction field instead.
+        We compute an echelon form both over a domain and fraction field:
 
             sage: R.<x,y> = QQ[]
             sage: a = matrix(R, 2, [x,y,x,y])
-            sage: a.echelon_form()
-            [  1 y/x]
-            [  0   0]
+            sage: a.echelon_form()               # not very useful? -- why two copies of the same row?
+            [x y]
+            [x y]
 
             sage: b = a.change_ring(R.fraction_field())
-            sage: b.echelon_form()
+            sage: b.echelon_form()               # potentially useful
             [  1 y/x]
             [  0   0]
 
@@ -2248,18 +2676,24 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  0  0]
         """
         self.check_mutability()
+
         if algorithm == 'default':
             if self._will_use_strassen_echelon():
                 algorithm = 'strassen'
             else:
                 algorithm = 'classical'
         try:
-            if algorithm == 'classical':
-                self._echelon_in_place_classical()
-            elif algorithm == 'strassen':
-                self._echelon_strassen(cutoff)
+            if self.base_ring().is_field():
+                if algorithm == 'classical':
+                    self._echelon_in_place_classical()
+                elif algorithm == 'strassen':
+                    self._echelon_strassen(cutoff)
+                else:
+                    raise ValueError, "Unknown algorithm '%s'"%algorithm
             else:
-                raise ValueError, "Unknown algorithm '%s'"%algorithm
+                if not (algorithm in ['classical', 'strassen']):
+                    kwds['algorithm'] = algorithm
+                self._echelonize_ring(**kwds)
         except ArithmeticError, msg:
             raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
 
@@ -2281,7 +2715,7 @@ cdef class Matrix(matrix1.Matrix):
            sage: C.rank()
            2
            sage: C.nullity()
-           1
+           0
            sage: C.echelon_form()
            [ 1  0 18]
            [ 0  1  2]
@@ -2289,14 +2723,7 @@ cdef class Matrix(matrix1.Matrix):
         x = self.fetch('echelon_form')
         if not x is None:
             return x
-        R = self.base_ring()
-        if not (R == ZZ or R.is_field()):
-            try:
-                E = self.matrix_over_field()
-            except TypeError:
-                raise NotImplementedError, "Echelon form not implemented over '%s'."%R
-        else:
-            E = self.copy()
+        E = self.copy()
         if algorithm == 'default':
             E.echelonize(cutoff=cutoff)
         else:
@@ -2342,20 +2769,7 @@ cdef class Matrix(matrix1.Matrix):
 
         nr = self._nrows
         nc = self._ncols
-
-        if not self._base_ring.is_field():
-            if self._base_ring == ZZ:
-                d = self.dense_matrix().echelon_form()
-                for c from 0 <= c < nc:
-                    for r from 0 <= r < nr:
-                        self.set_unsafe(r, c, d.get_unsafe(r,c))
-                self.clear_cache()
-                self.cache('pivots', d.pivots())
-                return
-            else:
-                A = self.matrix_over_field()
-        else:
-            A = self
+        A = self
 
         start_row = 0
         pivots = []
@@ -2491,6 +2905,26 @@ cdef class Matrix(matrix1.Matrix):
         if ncols == -1:
             ncols = self._ncols - col
         return matrix_window.MatrixWindow(self, row, col, nrows, ncols)
+
+    def set_block(self, row, col, block):
+        """
+        Sets the sub-matrix of self, with upper left corner given by row, col
+        to block.
+
+        EXAMPLES:
+            sage: A = matrix(QQ, 3, 3, range(9))/2
+            sage: B = matrix(ZZ, 2, 1, [100,200])
+            sage: A.set_block(0, 1, B)
+            sage: A
+            [  0 100   1]
+            [3/2 200 5/2]
+            [  3 7/2   4]
+        """
+        self.check_mutability()
+        if block.base_ring() is not self.base_ring():
+            block = block.change_ring(self.base_ring())
+        window = self.matrix_window(row, col, block.nrows(), block.ncols())
+        window.set(block.matrix_window())
 
     def subdivide(self, row_lines=None, col_lines=None):
         """
@@ -2706,13 +3140,36 @@ cdef class Matrix(matrix1.Matrix):
         else:
             return (self.subdivisions[0][1:-1], self.subdivisions[1][1:-1])
 
+    def tensor_product(self,Y):
+        """
+        Returns the tensor product of two matrices.
+
+        EXAMPLES:
+            sage: M1=Matrix(QQ,[[-1,0],[-1/2,-1]])
+            sage: M2=Matrix(ZZ,[[1,-1,2],[-2,4,8]])
+            sage: M1.tensor_product(M2)
+            [  -1    1   -2|   0    0    0]
+            [   2   -4   -8|   0    0    0]
+            [--------------+--------------]
+            [-1/2  1/2   -1|  -1    1   -2]
+            [   1   -2   -4|   2   -4   -8]
+            sage: M2.tensor_product(M1)
+            [  -1    0|   1    0|  -2    0]
+            [-1/2   -1| 1/2    1|  -1   -2]
+            [---------+---------+---------]
+            [   2    0|  -4    0|  -8    0]
+            [   1    2|  -2   -4|  -4   -8]
+        """
+        if not isinstance(Y,Matrix):
+            raise TypeError, "second argument must be a matrix"
+        return sage.matrix.constructor.block_matrix([x*Y for x in self.list()],self.nrows(),self.ncols())
 
     def randomize(self, density=1, *args, **kwds):
         """
         Randomize density proportion of the entries of this matrix,
         leaving the rest unchanged.
 
-        NOTE: We actually choos at random density proportion of
+        NOTE: We actually choose at random density proportion of
         entries of the matrix and set them to random elements.  It's
         possible that the same position can be chosen multiple times,
         especially for a very small matrix.
@@ -2733,17 +3190,17 @@ cdef class Matrix(matrix1.Matrix):
 
         We then randomize roughly half the entries:
             sage: a.randomize(0.5)
-            sage: a     # random output
-            [-1/3*x^2 + 1/2*x + 1  1/5*x^2 + 2*x - 2/3                    0]
-            [                   0                    0                    0]
-            [     x^2 + 1/3*x + 1                    0                    0]
+            sage: a
+            [      1/2*x^2 - x - 12 1/2*x^2 - 1/95*x - 1/2                      0]
+            [-5/2*x^2 + 2/3*x - 1/4                      0                      0]
+            [          -x^2 + 2/3*x                      0                      0]
 
         Now we randomize all the entries of the resulting matrix:
             sage: a.randomize()
-            sage: a  # random output
-            [        x^2 + 3*x + 2    -2/3*x^2 - 4*x - 6        x^2 + 11*x + 1]
-            [   -x^2 + 1/4*x - 1/4         -x^2 - x - 22    -x^2 + 1/6*x - 1/2]
-            [ -6*x^2 - 1/3*x - 2/3 2*x^2 - 1/12*x + 1/20       2*x^2 + x - 3/2]
+            sage: a
+            [     1/3*x^2 - x + 1             -x^2 + 1              x^2 - x]
+            [ -1/14*x^2 - x - 1/4           -4*x - 1/5 -1/4*x^2 - 1/2*x + 4]
+            [ 1/9*x^2 + 5/2*x - 3     -x^2 + 3/2*x + 1   -2/7*x^2 - x - 1/2]
 
         We create the zero matrix over the integers:
             sage: a = matrix(ZZ, 2); a
@@ -2754,10 +3211,12 @@ cdef class Matrix(matrix1.Matrix):
         the size of the random elements, are passed onto the ZZ
         random_element method.
             sage: a.randomize(x=-2^64, y=2^64)
-            sage: a           # random output
-            [  4478398010554264318  -1173319677607058552]
-            [ 11400122422515230170 -18056143553837283799]
+            sage: a
+            [-12401200298100116246   1709403521783430739]
+            [ -4417091203680573707  17094769731745295000]
         """
+        randint = current_randstate().python_random().randint
+
         density = float(density)
         if density == 0:
             return
@@ -2943,8 +3402,8 @@ cdef class Matrix(matrix1.Matrix):
             the density of a matrix, it is only an upper bound.
 
             sage: A = random_matrix(GF(127),200,200,density=0.3)
-            sage: A.density() # somewhat random
-            643/2500
+            sage: A.density()
+            5159/20000
 
             sage: A = matrix(QQ,3,3,[0,1,2,3,0,0,6,7,8])
             sage: A.density()
@@ -3036,6 +3495,251 @@ cdef class Matrix(matrix1.Matrix):
         Bstar, mu = gram_schmidt(self.rows())
         return matrix(Bstar), mu
 
+    def jordan_form(self, base_ring=None, sparse=False, subdivide=True):
+        r"""
+        Compute the Jordan canonical form of the matrix, if it exists.
+
+	This computation is performed in a naive way using the ranks
+        of powers of A-xI, where x is an eigenvalue of the matrix A.
+
+        INPUT:
+            base_ring -- ring in which to compute the Jordan form.
+            sparse -- (default False) If sparse=True, return a sparse matrix.
+            subdivide -- (default True) If subdivide=True, the subdivisions
+                         for the Jordan blocks in the matrix are shown.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ,4,[1, 0, 0, 0, 0, 1, 0, 0, 1, \
+            -1, 1, 0, 1, -1, 1, 2]); a
+            [ 1  0  0  0]
+            [ 0  1  0  0]
+            [ 1 -1  1  0]
+            [ 1 -1  1  2]
+            sage: a.jordan_form()
+            [2|0 0|0]
+            [-+---+-]
+            [0|1 1|0]
+            [0|0 1|0]
+            [-+---+-]
+            [0|0 0|1]
+            sage: a.jordan_form(subdivide=False)
+            [2 0 0 0]
+            [0 1 1 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            sage: b = matrix(ZZ,3,range(9)); b
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: b.jordan_form()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Some eigenvalue does not exist in Integer Ring.
+            sage: b.jordan_form(RealField(15))
+            [-1.348|0.0000|0.0000]
+            [------+------+------]
+            [0.0000|0.0000|0.0000]
+            [------+------+------]
+            [0.0000|0.0000| 13.35]
+
+        """
+        from sage.matrix.constructor import block_diagonal_matrix, jordan_block, diagonal_matrix
+        from sage.combinat.partition import Partition
+
+        size=self.nrows()
+
+        if base_ring is None:
+            mat = self
+        else:
+            mat = self.change_ring(base_ring)
+
+        evals=mat.charpoly().roots()
+        if sum([mult for (_,mult) in evals]) < size:
+            raise RuntimeError("Some eigenvalue does not exist in %s."%(mat.base_ring()))
+        blocks=[]
+        for (eval, mult) in evals:
+            if mult == 1:
+                blocks.append((eval,1))
+            else:
+                b=mat - diagonal_matrix([eval]*size, sparse=sparse)
+                c=b
+                ranks=[mat.rank(), c.rank()]
+                i=0
+                while (ranks[i]-ranks[i+1]>0) and ranks[i+1] > size-mult:
+                    c=b*c
+                    ranks.append(c.rank())
+                    i=i+1
+                diagram = [ranks[i]-ranks[i+1] for i in xrange(len(ranks)-1)]
+                blocks.extend([(eval,i) for i in Partition(diagram).conjugate()])
+        return block_diagonal_matrix([jordan_block(eval,size, sparse=sparse) for (eval,size) in blocks],subdivide=subdivide)
+
+    def symplectic_form(self):
+        r"""
+        Find a symplectic form for self if self is an anti-symmetric,
+        alternating matrix defined over a field.
+
+        Returns a pair (F, C) such that the rows of C form a symplectic
+        basis for self and F = C * self * C.transpose().
+
+        Raises a ValueError if not over a field, or self is not
+        anti-symmetric, or self is not alternating.
+
+        Anti-symmetric means that $M = -M^t$.  Alternating means that the
+        diagonal of $M$ is identically zero.
+
+        A symplectic basis is a basis of the form $z_1, \ldots, z_i, e_1,
+        \ldots, e_j, f_1, \ldots f_j$ such that
+            * $z_i M v^t$ = 0 for all vectors $v$;
+            * $e_i M {e_j}^t = 0$ for all $i, j$;
+            * $f_i M {f_j}^t = 0$ for all $i, j$;
+            * $e_i M {f_i}^t = 1$ for all $i$;
+            * $e_i M {f_j}^t = 0$ for all $i$ not equal $j$.
+
+        See the example for a pictorial description of such a basis.
+
+        EXAMPLES:
+            sage: E = matrix(QQ, 8, 8, [0, -1/2, -2, 1/2, 2, 0, -2, 1, 1/2, 0, -1, -3, 0, 2, 5/2, -3, 2, 1, 0, 3/2, -1, 0, -1, -2, -1/2, 3, -3/2, 0, 1, 3/2, -1/2, -1/2, -2, 0, 1, -1, 0, 0, 1, -1, 0, -2, 0, -3/2, 0, 0, 1/2, -2, 2, -5/2, 1, 1/2, -1, -1/2, 0, -1, -1, 3, 2, 1/2, 1, 2, 1, 0]); E
+            [   0 -1/2   -2  1/2    2    0   -2    1]
+            [ 1/2    0   -1   -3    0    2  5/2   -3]
+            [   2    1    0  3/2   -1    0   -1   -2]
+            [-1/2    3 -3/2    0    1  3/2 -1/2 -1/2]
+            [  -2    0    1   -1    0    0    1   -1]
+            [   0   -2    0 -3/2    0    0  1/2   -2]
+            [   2 -5/2    1  1/2   -1 -1/2    0   -1]
+            [  -1    3    2  1/2    1    2    1    0]
+            sage: F, C = E.symplectic_form(); F
+            [ 0  0  0  0  1  0  0  0]
+            [ 0  0  0  0  0  1  0  0]
+            [ 0  0  0  0  0  0  1  0]
+            [ 0  0  0  0  0  0  0  1]
+            [-1  0  0  0  0  0  0  0]
+            [ 0 -1  0  0  0  0  0  0]
+            [ 0  0 -1  0  0  0  0  0]
+            [ 0  0  0 -1  0  0  0  0]
+            sage: F == C * E * C.transpose()
+            True
+            """
+        import sage.matrix.symplectic_basis
+        return sage.matrix.symplectic_basis.symplectic_basis_over_field(self)
+
+    def hadamard_bound(self):
+        r"""
+        Return an int n such that the absolute value of the
+        determinant of this matrix is at most $10^n$.
+
+        This is got using both the row norms and the column norms.
+
+        This function only makes sense when the base field can be
+        coerced to the real double field RDF or the MPFR Real Field
+        with 53-bits precision.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 3, [1,2,5,7,-3,4,2,1,123])
+            sage: a.hadamard_bound()
+            4
+            sage: a.det()
+            -2014
+            sage: 10^4
+            10000
+
+        In this example the Hadamard bound has to be computed (automatically)
+        using mpfr instead of doubles, since doubles overflow:
+            sage: a = matrix(ZZ, 2, [2^10000,3^10000,2^50,3^19292])
+            sage: a.hadamard_bound()
+            12215
+            sage: len(str(a.det()))
+            12215
+        """
+        from sage.rings.all import RDF, RealField
+        try:
+            A = self.change_ring(RDF)
+            m1 = A._hadamard_row_bound()
+            A = A.transpose()
+            m2 = A._hadamard_row_bound()
+            return min(m1, m2)
+        except (OverflowError, TypeError):
+            # Try using MPFR, which handles large numbers much better, but is slower.
+            import misc
+            R = RealField(53, rnd='RNDU')
+            A = self.change_ring(R)
+            m1 = misc.hadamard_row_bound_mpfr(A)
+            A = A.transpose()
+            m2 = misc.hadamard_row_bound_mpfr(A)
+            return min(m1, m2)
+
+    def find(self,f, indices=False):
+        r"""
+        Find elements in this matrix satisfying the constraints
+        in the function $f$. The function is evaluated on each element of
+        the matrix .
+
+        INPUT:
+           f       -- a function that is evaluated on each element of this matrix.
+           indices -- whether or not to return the indices and elements of this matrix
+                      that satisfy  the function.
+        OUTPUT:
+           If \code{indices} is not specified, return a matrix with 1 where $f$ is satisfied
+           and 0 where it is not.
+           If \code{indices} is specified, return a dictionary with containing the
+           elements of this matrix satisfying $f$.
+
+        EXAMPLES:
+            sage: M = matrix(4,3,[1, -1/2, -1, 1, -1, -1/2, -1, 0, 0, 2, 0, 1])
+            sage: M.find(lambda entry:entry==0)
+            [0 0 0]
+            [0 0 0]
+            [0 1 1]
+            [0 1 0]
+
+            sage: M.find(lambda u:u<0)
+            [0 1 1]
+            [0 1 1]
+            [1 0 0]
+            [0 0 0]
+
+            sage: M = matrix(4,3,[1, -1/2, -1, 1, -1, -1/2, -1, 0, 0, 2, 0, 1])
+            sage: len(M.find(lambda u:u<1 and u>-1,indices=True))
+            5
+
+            sage: M.find(lambda u:u!=1/2)
+            [1 1 1]
+            [1 1 1]
+            [1 1 1]
+            [1 1 1]
+
+            sage: M.find(lambda u:u>1.2)
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [1 0 0]
+
+            sage: sorted(M.find(lambda u:u!=0,indices=True).keys()) == M.nonzero_positions()
+            True
+        """
+
+        cdef Py_ssize_t size,i,j
+        cdef object M
+
+        if indices is False:
+            L = self._list()
+            size = PyList_GET_SIZE(L)
+            M = PyList_New(0)
+
+            for i from 0 <= i < size:
+                PyList_Append(M,<object>f(<object>PyList_GET_ITEM(L,i)))
+
+            return matrix_space.MatrixSpace(IntegerModRing(2),
+                                            nrows=self._nrows,ncols=self._ncols).matrix(M)
+
+        else:
+            # return matrix along with indices in a dictionary
+            d = {}
+            for i from 0 <= i < self._nrows:
+                for j from 0 <= j < self._ncols:
+                    if f(self.get_unsafe(i,j)):
+                        d[(i,j)] = self.get_unsafe(i,j)
+
+            return d
 
 def _dim_cmp(x,y):
     """
@@ -3072,7 +3776,7 @@ def decomp_seq(v):
 def cmp_pivots(x,y):
     """
     Compare two sequences of pivot columns.
-    If x is short than y, return -1, i.e., x < y, "not as good".
+    If x is shorter than y, return -1, i.e., x < y, "not as good".
     If x is longer than y, x > y, "better"
     If the length is the same then x is better, i.e., x > y
         if the entries of x are correspondingly >= those of y with
@@ -3095,7 +3799,7 @@ def _choose(Py_ssize_t n, Py_ssize_t t):
     Returns all possible sublists of length t from range(n)
 
     Based on algoritm T from Knuth's taocp part 4: 7.2.1.3 p.5
-    This fuction replaces the one base on algorithm L because it is faster.
+    This function replaces the one based on algorithm L because it is faster.
 
     EXAMPLES:
         sage: from sage.matrix.matrix2 import _choose

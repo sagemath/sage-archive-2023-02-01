@@ -403,15 +403,15 @@ sage: # Find the eigenvalues of a 3x3 integer matrix.
 sage: m = matrix(QQ, 3, [5,-3,-7, -2,1,2, 2,-3,-4])
 sage: m.eigenspaces()
 [
-(3, [
-(1, 0, -1)
-]),
-(1, [
-(1, 1, -1)
-]),
-(-2, [
-(0, 1, 1)
-])
+(3, Vector space of degree 3 and dimension 1 over Rational Field
+User basis matrix:
+[ 1  0 -1]),
+(1, Vector space of degree 3 and dimension 1 over Rational Field
+User basis matrix:
+[ 1  1 -1]),
+(-2, Vector space of degree 3 and dimension 1 over Rational Field
+User basis matrix:
+[0 1 1])
 ]
 
 sage: # OK Verify some standard limits found by L'Hopital's rule:
@@ -492,9 +492,7 @@ sage: # [OK] Compute Legendre polynomials directly from Rodrigues's formula, P[n
 sage: #      P(n,x) := Simplify( 1/(2*n)!! *
 sage: #        Deriv(x,n) (x^2-1)^n );
 sage: #      TestYacas(P(4,x), (35*x^4)/8+(-15*x^2)/4+3/8);
-sage: def P(n,x):
-...    return   simplify(diff((x^2-1)^n,x,n) / (2^n * factorial(n)))
-...
+sage: P = lambda n, x: simplify(diff((x^2-1)^n,x,n) / (2^n * factorial(n)))
 sage: print P(4,x).expand()
                                    4	   2
                                35 x    15 x    3

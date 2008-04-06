@@ -94,6 +94,7 @@ import sage.rings.arith
 
 import sage.rings.complex_field
 import sage.rings.real_mpfr
+import sage.rings.real_mpfi
 import sage.rings.complex_double
 import sage.rings.real_double
 
@@ -111,6 +112,9 @@ import sage.structure.parent_gens
 
 from sage.structure.proof.proof import get_flag
 import maps
+
+import math, numpy
+from sage.rings.integer_ring import IntegerRing
 
 def proof_flag(t):
     """
@@ -153,18 +157,19 @@ import sage.rings.polynomial.polynomial_element as polynomial_element
 import sage.rings.ideal as ideal
 import sage.rings.complex_field
 import sage.groups.abelian_gps.abelian_group
+import sage.rings.complex_interval_field
 
 from sage.structure.parent_gens import ParentWithGens
 import number_field_element
 import number_field_element_quadratic
-from number_field_ideal import convert_from_zk_basis, is_NumberFieldIdeal
-
-import sage.rings.number_field.number_field_ideal_rel
-
+from number_field_ideal import convert_from_zk_basis, NumberFieldIdeal, is_NumberFieldIdeal, NumberFieldFractionalIdeal
+from sage.rings.number_field.number_field_ideal_rel import NumberFieldFractionalIdeal_rel
 from sage.libs.all import pari, pari_gen
 
 QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
+RIF = sage.rings.real_mpfi.RealIntervalField()
+CIF = sage.rings.complex_interval_field.ComplexIntervalField()
 
 _nf_cache = {}
 def NumberField(polynomial, name=None, check=True, names=None, cache=True):
@@ -546,6 +551,27 @@ def CyclotomicField(n, names=None):
     The special case $n=1$ does \emph{not} return the rational numbers:
         sage: CyclotomicField(1)
         Cyclotomic Field of order 1 and degree 1
+
+        sage: cf6 = CyclotomicField(6) ; z6 = cf6.0
+        sage: cf3 = CyclotomicField(3) ; z3 = cf3.0
+        sage: cf3(z6)
+        zeta3 + 1
+        sage: cf6(z3)
+        zeta6 - 1
+        sage: cf9 = CyclotomicField(9) ; z9 = cf9.0
+        sage: cf18 = CyclotomicField(18) ; z18 = cf18.0
+        sage: cf18(z9)
+        zeta18^2
+        sage: cf9(z18)
+        -zeta9^5
+        sage: cf18(z3)
+        zeta18^3 - 1
+        sage: cf18(z6)
+        zeta18^3
+        sage: cf18(z6)**2
+        zeta18^3 - 1
+        sage: cf9(z3)
+        zeta9^3
     """
     n = ZZ(n)
     if n <= 0:
@@ -582,8 +608,6 @@ def is_CyclotomicField(x):
         False
     """
     return isinstance(x, NumberField_cyclotomic)
-
-
 
 import number_field_base
 
@@ -748,6 +772,13 @@ class NumberField_generic(number_field_base.NumberField):
               To:   Number Field in a with defining polynomial x^4 - 3
               Defn: b |--> a^2
 
+            sage: K.<z> = CyclotomicField(5)
+            sage: K.subfield(z-z^2-z^3+z^4)
+            (Number Field in z0 with defining polynomial x^2 - 5,
+            Ring morphism:
+            From: Number Field in z0 with defining polynomial x^2 - 5
+            To:   Cyclotomic Field of order 5 and degree 4
+            Defn: z0 |--> -2*z^3 - 2*z^2 - 1)
 
         You can also view a number field as having a different
         generator by just chosing the input to generate the
@@ -883,6 +914,40 @@ class NumberField_generic(number_field_base.NumberField):
         t = self.pari_polynomial().nfisisom(other.pari_polynomial())
         return t != 0
 
+    def is_totally_real(self):
+        """
+        Return True if self is totally real, and False otherwise.
+
+        Totally real means that every isomorphic embedding of self into the
+        complex numbers has image contained in the real numbers.
+
+        EXAMPLES:
+            sage: NumberField(x^2+2, 'alpha').is_totally_real()
+            False
+            sage: NumberField(x^2-2, 'alpha').is_totally_real()
+            True
+            sage: NumberField(x^4-2, 'alpha').is_totally_real()
+            False
+        """
+        return self.signature()[1] == 0
+
+    def is_totally_imaginary(self):
+        """
+        Return True if self is totally imaginary, and False otherwise.
+
+        Totally imaginary means that no isomorphic embedding of self into the
+        complex numbers has image contained in the real numbers.
+
+        EXAMPLES:
+            sage: NumberField(x^2+2, 'alpha').is_totally_imaginary()
+            True
+            sage: NumberField(x^2-2, 'alpha').is_totally_imaginary()
+            False
+            sage: NumberField(x^4-2, 'alpha').is_totally_imaginary()
+            False
+        """
+        return self.signature()[0] == 0
+
     def complex_embeddings(self, prec=53):
         r"""
         Return all homomorphisms of this number field into the
@@ -989,9 +1054,9 @@ class NumberField_generic(number_field_base.NumberField):
         EXAMPLES:
             sage: k.<a> = NumberField(x^13 - (2/3)*x + 3)
             sage: k._latex_()
-            '\\mathbf{Q}[a]/(a^{13} - \\frac{2}{3}a + 3)'
+            '\\mathbf{Q}[a]/(a^{13} - \\frac{2}{3} a + 3)'
             sage: latex(k)
-            \mathbf{Q}[a]/(a^{13} - \frac{2}{3}a + 3)
+            \mathbf{Q}[a]/(a^{13} - \frac{2}{3} a + 3)
 
         Numbered variables are often correctly typeset:
             sage: k.<theta25> = NumberField(x^25+x+1)
@@ -1032,6 +1097,11 @@ class NumberField_generic(number_field_base.NumberField):
             return self._coerce_from_other_number_field(x)
         elif isinstance(x,str):
             return self._coerce_from_str(x)
+        elif isinstance(x, (sage.modules.vector_integer_dense.Vector_integer_dense,
+                            sage.modules.vector_rational_dense.Vector_rational_dense)):
+            if len(x) != self.degree():
+                raise ValueError, "vector must be of length equal to the degree of this number field"
+            return sum([ x[i]*self.gen(0)**i for i in range(self.degree()) ])
         return self._coerce_non_number_field_element_in(x)
 
     def _coerce_from_str(self, x):
@@ -1223,10 +1293,12 @@ class NumberField_generic(number_field_base.NumberField):
 
     def _ideal_class_(self):
         """
-        Return the Python class used in defining ideals of the ring of
-        integes of this number field.
+        Return the Python class used in defining the zero ideal of the
+        ring of integers of this number field.
 
         This function is required by the general ring/ideal machinery.
+        The value defined here is the default value for all number
+        fields.
 
         EXAMPLES:
             sage: NumberField(x^2 + 2, 'c')._ideal_class_()
@@ -1234,8 +1306,41 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return sage.rings.number_field.number_field_ideal.NumberFieldIdeal
 
+    def _fractional_ideal_class_(self):
+        """
+        Return the Python class used in defining fractional ideals of
+        the ring of integers of this number field.
+
+        This function is required by the general ring/ideal machinery.
+        The value defined here is the default value for all number
+        fields *except* relative number fields; this function is
+        overridden by one of the same name on class
+        NumberField_relative.
+
+        EXAMPLES:
+            sage: NumberField(x^2 + 2, 'c')._fractional_ideal_class_()
+            <class 'sage.rings.number_field.number_field_ideal.NumberFieldFractionalIdeal'>
+        """
+        return sage.rings.number_field.number_field_ideal.NumberFieldFractionalIdeal
+
     def ideal(self, *gens, **kwds):
-        return self.fractional_ideal(*gens, **kwds)
+        """
+        K.ideal() returns a fractional ideal of the field, except for the
+        zero ideal which is not a fractional ideal.
+
+        EXAMPLES:
+            sage: K.<i>=NumberField(x^2+1)
+            sage: K.ideal(2)
+            Fractional ideal (2)
+            sage: K.ideal(2+i)
+            Fractional ideal (i + 2)
+            sage: K.ideal(0)
+            Ideal (0) of Number Field in i with defining polynomial x^2 + 1
+        """
+        try:
+            return self.fractional_ideal(*gens, **kwds)
+        except ValueError:
+            return sage.rings.ring.Ring.ideal(self, gens, **kwds)
 
     def fractional_ideal(self, *gens, **kwds):
         r"""
@@ -1249,22 +1354,29 @@ class NumberField_generic(number_field_base.NumberField):
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3-2)
-            sage: K.ideal([a])
-            Fractional ideal (a)
+            sage: K.fractional_ideal([1/a])
+            Fractional ideal (1/2*a^2)
 
         One can also input in a number field ideal itself.
-            sage: K.ideal(K.ideal(a))
+            sage: K.fractional_ideal(K.ideal(a))
             Fractional ideal (a)
+
+        The zero ideal is not a fractional ideal!
+            sage: K.fractional_ideal(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: gens must have a nonzero element (zero ideal is not a fractional ideal)
+
         """
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
-        if len(gens) == 1 and is_NumberFieldIdeal(gens[0]):
+        if len(gens) == 1 and isinstance(gens[0],self._fractional_ideal_class_()):
             I = gens[0]
-            if I.number_field() == self:
+            if I.number_field() is self:
                 return I
             else:
                 gens = I.gens()
-        return sage.rings.ring.Ring.ideal(self, gens, **kwds)
+        return self._fractional_ideal_class_()(self, gens, **kwds)
 
     def ideals_of_bdd_norm(self, bound):
         """
@@ -1321,6 +1433,184 @@ class NumberField_generic(number_field_base.NumberField):
         for i in xrange(bound):
             d[i+1] = [self.ideal([ self(generator) for generator in convert_from_zk_basis(self, hnf_I) ]) for hnf_I in hnf_ideals[i]]
         return d
+
+    def primes_above(self, x, degree=None):
+        r"""
+        Return prime ideals of self lying over x.
+
+        INPUT:
+            -- x: usually an element or ideal of self.  It should be such that
+               self.ideal(x) is sensible.  This excludes x=0.
+            -- degree (default: None): None or an integer.  If None, find all
+               primes above x of any degree.  If an integer, find all primes
+               above x such that the resulting residue field has exactly this
+               degree.
+
+        OUTPUT:
+            A list of prime ideals of self lying over x.  If degree is
+            specified and no such ideal exists, returns the empty list.
+
+        WARNING: at this time we factor the ideal x, which may not be
+        supported for relative number fields.
+
+        EXAMPLES:
+            sage: x = ZZ['x'].gen()
+            sage: F.<t> = NumberField(x^3 - 2)
+
+            sage: P2s = F.primes_above(2)
+            sage: P2s # random
+            [Fractional ideal (-t)]
+            sage: all(2 in P2 for P2 in P2s)
+            True
+            sage: all(P2.is_prime() for P2 in P2s)
+            True
+            sage: [ P2.norm() for P2 in P2s ]
+            [2]
+
+            sage: P3s = F.primes_above(3)
+            sage: P3s # random
+            [Fractional ideal (t + 1)]
+            sage: all(3 in P3 for P3 in P3s)
+            True
+            sage: all(P3.is_prime() for P3 in P3s)
+            True
+            sage: [ P3.norm() for P3 in P3s ]
+            [3]
+
+            The ideal (3) is totally ramified in F, so there is no degree 2
+            prime above 3:
+
+            sage: F.primes_above(3, degree=2)
+            []
+            sage: [ id.residue_class_degree() for id, _ in F.ideal(3).factor() ]
+            [1]
+
+            Asking for a specific degree works:
+
+            sage: P5_1s = F.primes_above(5, degree=1)
+            sage: P5_1s # random
+            [Fractional ideal (-t^2 - 1)]
+            sage: P5_1 = P5_1s[0]; P5_1.residue_class_degree()
+            1
+
+            sage: P5_2s = F.primes_above(5, degree=2)
+            sage: P5_2s # random
+            [Fractional ideal (t^2 - 2*t - 1)]
+            sage: P5_2 = P5_2s[0]; P5_2.residue_class_degree()
+            2
+
+        TESTS:
+            It doesn't make sense to factor the ideal (0):
+
+            sage: F.primes_above(0)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'NumberFieldIdeal' object has no attribute 'factor'
+
+            Sage can't factor ideals over extension fields yet:
+
+            sage: G = F.extension(x^2 - 11, 'b')
+            sage: G.primes_above(13)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if degree is not None:
+            degree = ZZ(degree)
+        ideal = self.ideal(x)
+        facs = [ (id.residue_class_degree(), id) for id, _ in ideal.factor() ]
+        facs.sort() # sorts on residue_class_degree(), lowest first
+        if degree is None:
+            return [ id for d, id in facs ]
+        else:
+            return [ id for d, id in facs if d == degree ]
+
+    def prime_above(self, x, degree=None):
+        r"""
+        Return a prime ideal of self lying over x.
+
+        INPUT:
+            -- x: usually an element or ideal of self.  It should be such that
+               self.ideal(x) is sensible.  This excludes x=0.
+            -- degree (default: None): None or an integer.  If one, find a
+               prime above x of any degree.  If an integer, find a prime above
+               x such that the resulting residue field has exactly this degree.
+
+        OUTPUT:
+            A prime ideal of self lying over x.  If degree is specified and no
+            such ideal exists, raises a ValueError.
+
+        WARNING: at this time we factor the ideal x, which may not be
+        supported for relative number fields.
+
+        EXAMPLES:
+            sage: x = ZZ['x'].gen()
+            sage: F.<t> = NumberField(x^3 - 2)
+
+            sage: P2 = F.prime_above(2)
+            sage: P2 # random
+            Fractional ideal (-t)
+            sage: 2 in P2
+            True
+            sage: P2.is_prime()
+            True
+            sage: P2.norm()
+            2
+
+            sage: P3 = F.prime_above(3)
+            sage: P3 # random
+            Fractional ideal (t + 1)
+            sage: 3 in P3
+            True
+            sage: P3.is_prime()
+            True
+            sage: P3.norm()
+            3
+
+            The ideal (3) is totally ramified in F, so there is no degree 2
+            prime above 3:
+
+            sage: F.prime_above(3, degree=2)
+            Traceback (most recent call last):
+            ...
+            ValueError: No prime of degree 2 above Fractional ideal (3)
+            sage: [ id.residue_class_degree() for id, _ in F.ideal(3).factor() ]
+            [1]
+
+            Asking for a specific degree works:
+
+            sage: P5_1 = F.prime_above(5, degree=1)
+            sage: P5_1 # random
+            Fractional ideal (-t^2 - 1)
+            sage: P5_1.residue_class_degree()
+            1
+
+            sage: P5_2 = F.prime_above(5, degree=2)
+            sage: P5_2 # random
+            Fractional ideal (t^2 - 2*t - 1)
+            sage: P5_2.residue_class_degree()
+            2
+
+        TESTS:
+            It doesn't make sense to factor the ideal (0):
+
+            sage: F.prime_above(0)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'NumberFieldIdeal' object has no attribute 'factor'
+
+            Sage can't factor ideals over extension fields yet:
+
+            sage: G = F.extension(x^2 - 11, 'b')
+            sage: G.prime_above(13)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        ids = self.primes_above(x, degree)
+        if not ids:
+            raise ValueError, "No prime of degree %s above %s" % (degree, self.ideal(x))
+        return ids[0]
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         """
@@ -1499,6 +1789,27 @@ class NumberField_generic(number_field_base.NumberField):
             self.__pari_bnf_certified = True
         return self.__pari_bnf_certified
 
+    def _gap_init_(self):
+        """
+        Create a gap object representing self and return its name
+
+        EXAMPLE:
+            sage: F=CyclotomicField(8)
+            sage: F.gen()
+            zeta8
+            sage: F._gap_init_() # the following variable name $sage1 represents the F.base_ring() in gap and is somehow random
+            'CallFuncList(function() local x,E; x:=Indeterminate($sage1,"x"); E:=AlgebraicExtension($sage1,x^4 + 1,"zeta8"); return E; end,[])'
+            sage: f=gap(F)
+            sage: f
+            <algebraic extension over the Rationals of degree 4>
+            sage: f.GeneratorsOfDivisionRing()
+            [ (zeta8) ]
+        """
+        if not self.is_absolute():
+            raise NotImplementedError, "Currently, only simple algebraic extensions are implemented in gap"
+        G = sage.interfaces.gap.gap
+        return 'CallFuncList(function() local x,E; x:=Indeterminate(%s,"x"); E:=AlgebraicExtension(%s,%s,"%s"); return E; end,[])'%(G(self.base_ring()).name(),G(self.base_ring()).name(),self.polynomial().__repr__(),str(self.gen()))
+
     def characteristic(self):
         """
         Return the characteristic of this number field, which is
@@ -1650,6 +1961,17 @@ class NumberField_generic(number_field_base.NumberField):
             return [NumberField(C[i], name + str(i)) for i in range(len(C))]
 
     def absolute_degree(self):
+        """
+        Return the degree of self over $\QQ$.
+
+        EXAMPLES:
+            sage: NumberField(x^3 + x^2 + 997*x + 1, 'a').absolute_degree()
+            3
+            sage: NumberField(x + 1, 'a').absolute_degree()
+            1
+            sage: NumberField(x^997 + 17*x + 3, 'a', check=False).absolute_degree()
+            997
+        """
         return self.polynomial().degree()
 
     def degree(self):
@@ -1935,7 +2257,7 @@ class NumberField_generic(number_field_base.NumberField):
         automorphisms of the Galois closure of a field.
 
             sage: K.<a> = NumberField(x^3 - 2)
-            sage: L.<b> = K.galois_closure(); L
+            sage: L.<b1> = K.galois_closure(); L
             Number Field in b1 with defining polynomial x^6 + 40*x^3 + 1372
             sage: G = End(L); G
             Automorphism group of Number Field in b1 with defining polynomial x^6 + 40*x^3 + 1372
@@ -1947,7 +2269,7 @@ class NumberField_generic(number_field_base.NumberField):
             Ring endomorphism of Number Field in b1 with defining polynomial x^6 + 40*x^3 + 1372
               Defn: b1 |--> -2/63*b1^4 - 31/63*b1
             ]
-            sage: G[1](b)
+            sage: G[1](b1)
             1/36*b1^4 + 1/18*b1
         """
         try:
@@ -2016,6 +2338,222 @@ class NumberField_generic(number_field_base.NumberField):
         self.__integral_basis[v] = basis
         return basis
 
+    def reduced_basis(self, prec=None):
+        r"""
+        This function returns an LLL-reduced basis for the
+        Minkowski-embedding of the maximal order of a number field.
+
+        INPUT:
+            self -- number field, the base field
+            prec (default: None) -- the precision with which
+              to compute the Minkowski embedding. (See NOTE below.)
+
+        OUTPUT:
+            An LLL-reduced basis for the Minkowski-embedding of the
+            maximal order of a number field, given by a sequence of
+            (integral) elements from the field.
+
+        NOTE: In the non-totally-real case, the LLL routine we call is
+            currently Pari's qflll(), which works with floating point
+            approximations, and so the result is only as good as the
+            precision promised by Pari. The matrix returned will
+            always be integral; however, it may only be only "almost"
+            LLL-reduced when the precision is not sufficiently high.
+
+        EXAMPLES:
+            sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1)
+            sage: F.maximal_order().basis()
+            [1/2*t^5 + 1/2*t^4 + 1/2*t^2 + 1/2, t, t^2, t^3, t^4, t^5]
+            sage: F.reduced_basis()
+            [1,
+            1/2*t^5 - 1/2*t^4 - 3*t^3 + 3/2*t^2 + 4*t - 1/2,
+            t,
+            1/2*t^5 + 1/2*t^4 - 4*t^3 - 5/2*t^2 + 7*t + 1/2,
+            1/2*t^5 - 1/2*t^4 - 2*t^3 + 3/2*t^2 - 1/2,
+            1/2*t^5 - 1/2*t^4 - 3*t^3 + 5/2*t^2 + 4*t - 5/2]
+
+            sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
+            sage: F.integral_basis()
+            [1, alpha, alpha^2, 1/2*alpha^3 + 1/2*alpha^2]
+            sage: F.reduced_basis(prec=10)
+            [1, alpha, alpha^2 - 15*alpha + 8, alpha^3 - 16*alpha^2 + 471*alpha + 266719]
+            sage: F.reduced_basis(prec=300)
+            [1, alpha, alpha^2 - 15*alpha, alpha^3 - 16*alpha^2 + 469*alpha + 267109]
+        """
+        if self.is_totally_real():
+            try:
+                return self.__reduced_basis
+            except AttributeError:
+                pass
+        else:
+            try:
+                if self.__reduced_basis_precision >= prec:
+                    return self.__reduced_basis
+            except AttributeError:
+                pass
+
+        from sage.matrix.constructor import matrix
+
+        d = self.degree()
+        Z_basis = self.integral_basis()
+
+        ## If self is totally real, then we can use (x*y).trace() as
+        ## the inner product on the Minkowski embedding, which is
+        ## faster than computing all the conjugates, etc ...
+        if self.is_totally_real():
+            T = pari(matrix(ZZ, d, d, [[(x*y).trace() for x in Z_basis]
+                                       for y in Z_basis])).qflllgram()
+            self.__reduced_basis = [ sum([ ZZ(T[i][j]) * Z_basis[j]
+                                           for j in range(d)])
+                                     for i in range(d)]
+        else:
+            M = self.Minkowski_embedding(self.integral_basis(), prec=prec)
+            T = sage.matrix.all.Matrix(d, pari(M).qflll()._sage_())
+            self.__reduced_basis = [ self(v) for v in T.columns() ]
+            if prec is None:
+                ## this is the default choice for Minkowski_embedding
+                self.__reduced_basis_prec = 53
+            else:
+                self.__reduced_basis_prec = prec
+
+        return self.__reduced_basis
+
+
+    def reduced_gram_matrix(self, prec=None):
+        r"""
+        This function returns the Gram matrix of an LLL-reduced basis
+        for the Minkowski embedding of the maximal order of a number
+        field.
+
+        INPUT:
+            self -- number field, the base field
+            prec (default: None) -- the precision with which to
+              calculate the Minkowski embedding. (See NOTE below.)
+
+        OUTPUT:
+            The Gram matrix $[<x_i,x_j>]$ of an LLL reduced basis for
+            the maximal order of self, where the integral basis for
+            self is given by $\{x_0, \dots, x_{n-1}\}$. Here < , > is
+            the usual inner product on $\RR^n$, and self is
+            embedded in $\RR^n$ by the Minkowski embedding. See
+            the docstring for self.Minkowski_embedding for more
+            information.
+
+        NOTE: In the non-totally-real case, the LLL routine we call is
+            currently Pari's qflll(), which works with floating point
+            approximations, and so the result is only as good as the
+            precision promised by Pari.  In particular, in this case,
+            the returned matrix will *not* be integral, and may not
+            have enough precision to recover the correct gram matrix
+            (which is known to be integral for theoretical reasons).
+            Thus the need for the prec flag above.
+
+        EXAMPLES:
+            sage: F.<t> = NumberField(x^6-7*x^4-x^3+11*x^2+x-1)
+            sage: F.reduced_gram_matrix()
+            [ 6 -3  0 -2  0 -1]
+            [-3  9  0  1  0  3]
+            [ 0  0 14  6 -2  3]
+            [-2  1  6 16 -3  3]
+            [ 0  0 -2 -3 16  6]
+            [-1  3  3  3  6 19]
+            sage: Matrix(6, [(x*y).trace() for x in F.integral_basis() for y in F.integral_basis()])
+            [   6    0   14    3   54   52]
+            [   0   14    3   54   30  133]
+            [  14    3   54   30  233  259]
+            [   3   54   30  233  217  664]
+            [  54   30  233  217 1078 1368]
+            [  52  133  259  664 1368 2550]
+
+            sage: var('x')
+            x
+            sage: F.<alpha> = NumberField(x^4+x^2+712312*x+131001238)
+            sage: F.reduced_gram_matrix() # random low-order bits
+            [   3.99999999998249   0.000000000000000    1.99999999997817 -1.06846799999532e6]
+            [  0.000000000000000    46721.5393313587    11488.9100265019 -1.12285582008158e7]
+            [   1.99999999997817    11488.9100265019  5.56589153102570e8  8.06191790906345e9]
+            [-1.06846799999532e6 -1.12285582008158e7  8.06191790906345e9 5.87118790062408e12]
+
+        """
+        if self.is_totally_real():
+            try:
+                return self.__reduced_gram_matrix
+            except AttributeError:
+                pass
+        else:
+            try:
+                if self.__reduced_gram_matrix_prec >= prec:
+                    return self.__reduced_gram_matrix
+            except AttributeError:
+                pass
+
+        from sage.matrix.constructor import matrix
+        from sage.misc.flatten import flatten
+        d = self.degree()
+
+        if self.is_totally_real():
+            B = self.reduced_basis()
+            self.__reduced_gram_matrix = matrix(ZZ, d, d,
+                                                [[(x*y).trace() for x in B]
+                                                 for y in B])
+        else:
+            M = self.Minkowski_embedding()
+            T = matrix(d, flatten([ a.vector().list()
+                                    for a in self.reduced_basis() ]))
+            A = M*(T.transpose())
+            self.__reduced_gram_matrix = A.transpose()*A
+            if prec is None:
+                ## this is the default choice for Minkowski_embedding
+                self.__reduced_gram_matrix_prec = 53
+            else:
+                self.__reduced_gram_matrix_prec = prec
+
+        return self.__reduced_gram_matrix
+
+
+    #******************************************************
+    # Supplementary algorithm to enumerate lattice points
+    #******************************************************
+
+    def integral_elements_with_trace(self, C):
+        r"""
+        Find all integral elements in self with trace in the
+        interval C.
+
+        NOTE: This is currently only implemented in the case
+        that self is totally real, since it requires exact
+        computation of self.reduced_gram_matrix().
+
+        EXAMPLES:
+            sage: K.<alpha> = NumberField(ZZ['x'].0^2-2)
+            sage: K.integral_elements_with_trace([0,5])
+            [alpha + 2, 2, 1]
+            sage: L.<beta> = NumberField(ZZ['x'].0^2+1)
+            sage: L.integral_elements_with_trace([5,11])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: exact computation of LLL reduction only implemented in the totally real case
+        """
+        if not self.is_totally_real():
+            raise NotImplementedError, "exact computation of LLL reduction only implemented in the totally real case"
+
+        Z_F = self.maximal_order()
+        B = self.reduced_basis()
+        T = self.reduced_gram_matrix()
+        P = pari(T).qfminim((C[1]**2)*(1./2), 10**6)[2]
+
+        S = []
+        for p in P:
+            theta = sum([ p.list()[i]*B[i] for i in range(self.degree())])
+            if theta.trace() >= C[0] and theta.trace() <= C[1]:
+                inbounds = True
+                for v in self.real_embeddings():
+                    inbounds = inbounds and v(theta) > 0
+                if inbounds:
+                    S.append(self(theta))
+        return S
+
+
     def zeta_function(self, prec=53,
                       max_imaginary_part=0,
                       max_asymp_coeffs=40):
@@ -2035,7 +2573,7 @@ class NumberField_generic(number_field_base.NumberField):
             The zeta function of this number field.
 
         EXAMPLES:
-            sage: K.<a> = NumberField(x^2+x-1)
+            sage: K.<a> = NumberField(ZZ['x'].0^2+ZZ['x'].0-1)
             sage: Z = K.zeta_function()
             sage: Z
             Zeta function associated to Number Field in a with defining polynomial x^2 + x - 1
@@ -2238,11 +2776,11 @@ class NumberField_generic(number_field_base.NumberField):
             The residue field at this prime.
 
         EXAMPLES:
-        sage: R.<x> = QQ[]
-        sage: K.<a> = NumberField(x^4+3*x^2-17)
-        sage: P = K.ideal(61).factor()[0][0]
-        sage: K.residue_field(P)
-        Residue field in abar of Fractional ideal (-2*a^2 + 1)
+            sage: R.<x> = QQ[]
+            sage: K.<a> = NumberField(x^4+3*x^2-17)
+            sage: P = K.ideal(61).factor()[0][0]
+            sage: K.residue_field(P)
+            Residue field in abar of Fractional ideal (-2*a^2 + 1)
         """
         import sage.rings.residue_field
         return sage.rings.residue_field.ResidueField(prime, names = names)
@@ -2285,20 +2823,48 @@ class NumberField_generic(number_field_base.NumberField):
 
     def uniformizer(self, P, others = "positive"):
         """
-        Returns an element of self with valuation 1 at P.
+        Returns an element of self with valuation 1 at the prime ideal P.
 
         INPUT:
-        self -- a number field
-        P -- a prime ideal of self
-        others -- either "positive" (default), in which case the element will have
-                  non-negative valuation at all other primes of self,
-                  or "negative", in which case the element will have non-positive
-                  valuation at all other primes of self.
+            self -- a number field
+            P -- a prime ideal of self
+            others -- either "positive" (default), in which case the element will have
+                      non-negative valuation at all other primes of self,
+                      or "negative", in which case the element will have non-positive
+                      valuation at all other primes of self.
+
+        NOTE: When P is principal (e.g. always when self has class number
+        one) the result may or may not be a generator of P!
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 5); K
+            Number Field in a with defining polynomial x^2 + 5
+            sage: P,Q = K.ideal(3).prime_factors()
+            sage: P
+            Fractional ideal (3, a + 1)
+            sage: pi=K.uniformizer(P); pi
+            a + 1
+            sage: K.ideal(pi).factor()
+            (Fractional ideal (2, a + 1)) * (Fractional ideal (3, a + 1))
+            sage: pi=K.uniformizer(P,'negative'); pi
+            1/2*a + 1/2
+            sage: K.ideal(pi).factor()
+            (Fractional ideal (2, a + 1))^-1 * (Fractional ideal (3, a + 1))
+
+            sage: K = CyclotomicField(9)
+            sage: Plist=K.ideal(17).prime_factors()
+            sage: pilist = [K.uniformizer(P) for P in Plist]
+            sage: [pi.is_integral() for pi in pilist]
+            [True, True, True]
+            sage: [pi.valuation(P) for pi,P in zip(pilist,Plist)]
+            [1, 1, 1]
+            sage: [ pilist[i] in Plist[i] for i in range(len(Plist)) ]
+            [True, True, True]
         """
         if not is_NumberFieldIdeal(P):
             P = self.ideal(P)
-        if not P.is_prime():
-            raise ValueError, "P must be prime"
+        if not P.is_maximal():
+            raise ValueError, "P must be a nonzero prime"
         if others == "negative":
             P = ~P
         elif others != "positive":
@@ -2336,16 +2902,18 @@ class NumberField_generic(number_field_base.NumberField):
 
     def zeta(self, n=2, all=False):
         """
-        Return an n-th root of unity in this field.  If all is True,
-        return all of them.
+        If all is False, return a primitive n-th root of unity in this
+        field, or raise an ArithmeticError exception if there are none.
+
+        If all is True, return a list of all primitive n-th roots of
+        unity in this field (possibly empty).
+
+        Note that if one wants to know the maximal root of unity
+        in this field, one can use self.zeta_order().
 
         INPUT:
             n -- positive integer
-            all -- bool, default: False.  If True, return a list
-                   of all n-th roots of 1)
-
-        If there are no n-th roots of unity in self (and all is
-        False), this function raises an ArithmeticError exception.
+            all -- bool, default: False.
 
         EXAMPLES:
             sage: K.<z> = NumberField(x^2 + 3)
@@ -2362,7 +2930,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
-            ArithmeticError: There are no 4-th roots of unity self.
+            ArithmeticError: There are no 4-th roots of unity in self.
 
             sage: r.<x> = QQ[]
             sage: K.<b> = NumberField(x^2+1)
@@ -2373,7 +2941,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.zeta(3)
             Traceback (most recent call last):
             ...
-            ArithmeticError: There are no 3-rd roots of unity self.
+            ArithmeticError: There are no 3-rd roots of unity in self.
             sage: K.zeta(3,all=True)
             []
         """
@@ -2408,22 +2976,37 @@ class NumberField_generic(number_field_base.NumberField):
                         th = 'rd'
                     else:
                         th = 'th'
-                    raise ArithmeticError, "There are no %s-%s roots of unity self."%(n,th)
+                    raise ArithmeticError, "There are no %s-%s roots of unity in self."%(n,th)
             if all:
                 return [from_field(r[0]) for r in R]
             else:
                 return from_field(R[0][0])
 
+    def zeta_order(self):
+        r"""
+        Return the number of roots of unity in this field.
+
+        EXAMPLES:
+            sage: F.<alpha> = NumberField(x**22+3)
+            sage: F.zeta_order()
+            6
+            sage: F.<alpha> = NumberField(x**2-7)
+            sage: F.zeta_order()
+            2
+        """
+        return ZZ(self.pari_nf().nfrootsof1()[0])
+
     def number_of_roots_of_unity(self):
         """
         Return number of roots of unity in this field.
 
-        sage: K.<b> = NumberField(x^2+1)
-        sage: K.number_of_roots_of_unity()
-        4
-        sage: K.<a> = CyclotomicField(3)
-        sage: K.number_of_roots_of_unity()
-        6
+        EXAMPLES:
+            sage: K.<b> = NumberField(x^2+1)
+            sage: K.number_of_roots_of_unity()
+            4
+            sage: K.<a> = CyclotomicField(3)
+            sage: K.number_of_roots_of_unity()
+            6
         """
         return ZZ(self.pari_nf().nfrootsof1()[0])
 
@@ -2469,10 +3052,20 @@ class NumberField_absolute(NumberField_generic):
         self._element_class = number_field_element.NumberFieldElement_absolute
 
     def base_field(self):
+        """
+        Returns the base field of self, which is always QQ
+
+        EXAMPLES:
+            sage: K = CyclotomicField(5)
+            sage: K.base_field()
+            Rational Field
+        """
         return QQ
 
     def is_absolute(self):
         """
+        Returns True since self is an absolute field.
+
         EXAMPLES:
             sage: K = CyclotomicField(5)
             sage: K.is_absolute()
@@ -2838,13 +3431,14 @@ class NumberField_absolute(NumberField_generic):
         i.e., is generated by all roots of the defining polynomial of
         self
 
-
         INPUT:
             names -- variable name for Galois closure
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^4 - 2)
-            sage: L = K.galois_closure(); L
+            sage: M = K.galois_closure('b'); M
+            Number Field in b with defining polynomial x^8 + 28*x^4 + 2500
+            sage: L.<a2> = K.galois_closure(); L
             Number Field in a2 with defining polynomial x^8 + 28*x^4 + 2500
             sage: K.galois_group().order()
             8
@@ -2856,14 +3450,14 @@ class NumberField_absolute(NumberField_generic):
             x^4 - 2
         """
         try:
-            return self.__galois_closure
+            return self.__galois_closure.change_names(names)
         except AttributeError:
             pass
         G = self.galois_group()
         K = self
         while K.degree() < G.order():
             K = K.composite_fields(self, names=names)[-1]
-        self.__galois_closure = K
+        self.__galois_closure = K.change_names(names)
         return self.__galois_closure
 
     def embeddings(self, K):
@@ -2881,7 +3475,7 @@ class NumberField_absolute(NumberField_generic):
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 - 2)
-            sage: L = K.galois_closure(); L
+            sage: L.<a1> = K.galois_closure(); L
             Number Field in a1 with defining polynomial x^6 + 40*x^3 + 1372
             sage: K.embeddings(L)[0]
             Ring morphism:
@@ -2929,8 +3523,203 @@ class NumberField_absolute(NumberField_generic):
         # then it is most natural, so we put it first.
         put_natural_embedding_first(v)
 
-        self.__embeddings[K] = Sequence(v, cr=True, immutable=True, check=False, universe=self.Hom(K))
+        self.__embeddings[K] = Sequence(v, cr=True, immutable=True,
+                                        check=False, universe=self.Hom(K))
         return v
+
+    def Minkowski_embedding(self, B=None, prec=None):
+        r"""
+        Return an nxn matrix over RDF whose columns are the images of
+        the basis $\{1, \alpha, \dots, \alpha^{n-1}\}$ of self over
+        $\QQ$ (as vector spaces), where here $\alpha$ is the
+        generator of self over $\QQ$, i.e.  self.gen(0).  If B
+        is not None, return the images of the vectors in B as the
+        columns instead. If prec is not None, use RealField(prec)
+        instead of RDF.
+
+        This embedding is the so-called "Minkowski embedding" of a
+        number field in $\RR^n$: given the $n$ embeddings
+        $\sigma_1, \dots, \sigma_n$ of self in $\CC$, write
+        $\sigma_1, \dots, \sigma_r$ for the real embeddings, and
+        $\sigma_{r+1}, \dots, \sigma_{r+s}$ for choices of one of each
+        pair of complex conjugate embeddings (in our case, we simply
+        choose the one where the image of $\alpha$ has positive real
+        part). Here $(r,s)$ is the signature of self.  Then the
+        Minkowski embedding is given by:
+
+          x |--> ( $\sigma_1(x)$, $\dots$, $\sigma_r(x)$,
+                   $\sqrt{2}\Re(\sigma_{r+1}(x))$,
+                   $\sqrt{2}\Im(\sigma_{r+1}(x))$,
+                   $\dots$,
+                   $\sqrt{2}\Re(\sigma_{r+s}(x))$,
+                   $\sqrt{2}\Im(\sigma_{r+s}(x))$)
+
+        Equivalently, this is an embedding of self in $\RR^n$
+        so that the usual norm on $\RR^n$ coincides with
+          $\|x\| = \sum_i |\sigma_i(x)|^2$
+        on self.
+
+        TODO: This could be much improved by implementing
+        homomorphisms over VectorSpaces.
+
+        EXAMPLES:
+            sage: F.<alpha> = NumberField(x^3+2)
+            sage: F.Minkowski_embedding() # random low-order bits
+            [ 1.00000000000000 -1.25992104989487  1.58740105196820]
+            [ 1.41421356237000 0.890898718138390 -1.12246204830692]
+            [0.000000000000000  1.54308184421368  1.94416129723541]
+            sage: F.Minkowski_embedding([1, alpha+2, alpha^2-alpha]) # random low-order bits
+            [ 1.00000000000000 0.740078950105127  2.84732210186307]
+            [ 1.41421356237000  3.71932584287839 -2.01336076644531]
+            [0.000000000000000  1.54308184421368 0.401079453021736]
+            sage: F.Minkowski_embedding() * (alpha + 2).vector().transpose() # random low-order bits
+            [0.740078950105127]
+            [ 3.71932584287839]
+            [ 1.54308184421368]
+        """
+        n = self.degree()
+        if prec is None:
+            R = sage.rings.real_double.RDF
+        else:
+            R = sage.rings.real_mpfr.RealField(prec)
+        r,s = self.signature()
+        places = self.places(prec=prec)
+
+        if B is None:
+            B = [ (self.gen(0))**i for i in range(n) ]
+
+        A = polynomial_ring.PolynomialRing(ZZ, 'x')
+        f = A.gen(0)**2-2
+        sqrt2 = f.roots(R)[1][0]
+
+        d = {}
+
+        for col in range(n):
+
+            for row in range(r):
+                d[(row,col)] = places[row](B[col])
+
+            for i in range(s):
+                z = places[r+i](B[col])
+                d[(r+2*i,col)] = z.real()*sqrt2
+                d[(r+2*i+1,col)] = z.imag()*sqrt2
+
+
+        M = sage.matrix.all.matrix(d)
+
+        return M
+
+
+    def places(self, all_complex=False, prec=None):
+        """
+        Return the collection of all places of self. By default, this
+        returns the set of real places as homomorphisms into RIF
+        first, followed by a choice of one of each pair of complex
+        conjugate homomorphisms into CIF.
+
+        On the other hand, if prec is not None, we simply return
+        places into RealField(prec) and ComplexField(prec) (or RDF,
+        CDF if prec=53).
+
+        There is an optional flag all_complex, which defaults to
+        False. If all_complex is True, then the real embeddings are
+        returned as embeddings into CIF instead of RIF.
+
+        EXAMPLES:
+            sage: F.<alpha> = NumberField(x^3-100*x+1) ; F.places()
+            [Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
+            To:   Real Field with 106 bits of precision
+            Defn: alpha |--> -10.00499625499181184573367219280,
+            Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
+            To:   Real Field with 106 bits of precision
+            Defn: alpha |--> 0.01000001000003000012000055000273,
+            Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 - 100*x + 1
+            To:   Real Field with 106 bits of precision
+            Defn: alpha |--> 9.994996244991781845613530439509]
+
+            sage: F.<alpha> = NumberField(x^3+7) ; F.places()
+            [Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 + 7
+            To:   Real Field with 106 bits of precision
+            Defn: alpha |--> -1.912931182772389101199116839549,
+            Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 + 7
+            To:   Complex Field with 53 bits of precision
+            Defn: alpha |--> 0.956465591386195 + 1.65664699997230*I]
+
+            sage: F.<alpha> = NumberField(x^3+7) ; F.places(all_complex=True)
+            [Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 + 7
+            To:   Complex Field with 53 bits of precision
+            Defn: alpha |--> -1.91293118277239,
+            Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 + 7
+            To:   Complex Field with 53 bits of precision
+            Defn: alpha |--> 0.956465591386195 + 1.65664699997230*I]
+            sage: F.places(prec=10)
+            [Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 + 7
+            To:   Real Field with 10 bits of precision
+            Defn: alpha |--> -1.9,
+            Ring morphism:
+            From: Number Field in alpha with defining polynomial x^3 + 7
+            To:   Complex Field with 10 bits of precision
+            Defn: alpha |--> 0.96 + 1.7*I]
+        """
+        if prec is None:
+            R = RIF
+            C = CIF
+        elif prec == 53:
+            R = sage.rings.real_double.RDF
+            C = sage.rings.complex_double.CDF
+        else:
+            R = sage.rings.real_mpfr.RealField(prec)
+            C = sage.rings.complex_field.ComplexField(prec)
+
+        ## first, find the intervals with roots, and see how much
+        ## precision we need to approximate the roots
+        ##
+        all_intervals = [ x[0] for x in self.defining_polynomial().roots(C) ]
+
+        ## first, set up the real places
+        if all_complex:
+            real_intervals = [ x for x in all_intervals if x.imag().is_zero() ]
+        else:
+            real_intervals = [ x[0] for x in self.defining_polynomial().roots(R) ]
+
+        if prec is None:
+            real_places = [ self.hom([i.center()], check=False) for i in real_intervals ]
+
+            complex_places = [ self.hom([i.center()], check=False) for i in
+                               all_intervals if i.imag() > 0 ]
+        else:
+            real_places = [ self.hom([i], check=False) for i in real_intervals ]
+
+            complex_places = [ self.hom([i], check=False) for i in
+                               all_intervals if i.imag() > 0 ]
+
+        return real_places + complex_places
+
+    def real_places(self, prec=None):
+        """
+        Return all real places of self as homomorphisms into RIF.
+
+        EXAMPLES:
+            sage: F.<alpha> = NumberField(x^4-7) ; F.real_places()
+            [Ring morphism:
+            From: Number Field in alpha with defining polynomial x^4 - 7
+            To:   Real Field with 106 bits of precision
+            Defn: alpha |--> -1.626576561697785743211232345494,
+            Ring morphism:
+            From: Number Field in alpha with defining polynomial x^4 - 7
+            To:   Real Field with 106 bits of precision
+            Defn: alpha |--> 1.626576561697785743211232345494]
+        """
+        return self.places(prec=prec)[0:self.signature()[0]]
+
 
     def relativize(self, alpha, names):
         r"""
@@ -3006,7 +3795,6 @@ class NumberField_absolute(NumberField_generic):
                     return M
 
         assert False, "bug in relativize"
-
 
 
 
@@ -3102,6 +3890,7 @@ class NumberField_relative(NumberField_generic):
         # the generator of the base field.
         # NOTE: This should be rewritten if there is a way to extend
         #       homomorphisms K -> K' to homomorphisms K[x] -> K'[x].
+
         base_field_y = NumberField(abs_base.polynomial(), 'y')
         Kx = base_field_y['x']
         i = abs_base.hom([base_field_y.gen()]) # inclusion K -> K' with a -> y
@@ -3174,7 +3963,6 @@ class NumberField_relative(NumberField_generic):
             Number Field in n with defining polynomial x^2 + x + 1 over its base field
             sage: L.base_field().base_field()
             Number Field in r with defining polynomial x^3 - 2
-
         """
         if len(names) == 0:
             names = self.variable_names()
@@ -3214,10 +4002,7 @@ class NumberField_relative(NumberField_generic):
 
         EXAMPLES:
         """
-        K = self.absolute_field('a').galois_closure(names=names)
-        if K.degree() == self.absolute_degree():
-            return self
-        return K
+        return self.absolute_field('a').galois_closure(names=names)
 
     def absolute_degree(self):
         """
@@ -3304,7 +4089,7 @@ class NumberField_relative(NumberField_generic):
         The cat option is currently ignored.   The result is not cached.
 
         EXAMPLES:
-        This function is implicitly caled by the Hom method or function.
+        This function is implicitly called by the Hom method or function.
             sage: K.<a,b> = NumberField([x^3 - 2, x^2+1])
             sage: K.Hom(K)
             Automorphism group of Number Field in a with defining polynomial x^3 - 2 over its base field
@@ -3353,6 +4138,19 @@ class NumberField_relative(NumberField_generic):
             a
             sage: L(b+a)
             2*a
+            sage: K.<a> = NumberField(ZZ['x'].0^5 + 2, 'a')
+            sage: L.<b> = K.extension(ZZ['x'].0 - a, 'b')
+            sage: L(a)
+            a
+            sage: L(a**3)
+            a^3
+            sage: L(a**2+b)
+            a^2 + a
+            sage: L.<b> = K.extension(ZZ['x'].0 + a/2, 'b')
+            sage: L(a)
+            a
+            sage: L(b)
+            -1/2*a
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             P = x.parent()
@@ -3439,17 +4237,17 @@ class NumberField_relative(NumberField_generic):
         R = self.polynomial_ring()
         return self(R(expr_x))
 
-    def _ideal_class_(self):
+    def _fractional_ideal_class_(self):
         """
         Return the Python class used to represent ideals of a relative
         number field.
 
         EXAMPLES:
             sage: k.<a> = NumberField([x^5 + 2, x^7 + 3])
-            sage: k._ideal_class_ ()
-            <class 'sage.rings.number_field.number_field_ideal_rel.NumberFieldIdeal_rel'>
+            sage: k._fractional_ideal_class_ ()
+            <class 'sage.rings.number_field.number_field_ideal_rel.NumberFieldFractionalIdeal_rel'>
         """
-        return sage.rings.number_field.number_field_ideal_rel.NumberFieldIdeal_rel
+        return sage.rings.number_field.number_field_ideal_rel.NumberFieldFractionalIdeal_rel
 
     def _pari_base_bnf(self, proof=None):
         """
@@ -4095,9 +4893,8 @@ class NumberField_cyclotomic(NumberField_absolute):
     """
     Create a cyclotomic extension of the rational field.
 
-    The command CyclotomicField(n) creates the n-th cyclotomic
-    field, got by adjoing an n-th root of unity to the rational
-    field.
+    The command CyclotomicField(n) creates the n-th cyclotomic field,
+    obtained by adjoining an n-th root of unity to the rational field.
 
     EXAMPLES:
         sage: CyclotomicField(3)
@@ -4125,6 +4922,20 @@ class NumberField_cyclotomic(NumberField_absolute):
         sage: x = FF.0
         sage: print z6*x^3/(z6 + x)
         zeta12^2*x^3/(x + zeta12^2)
+
+        sage: cf6 = CyclotomicField(6) ; z6 = cf6.gen(0)
+        sage: cf3 = CyclotomicField(3) ; z3 = cf3.gen(0)
+        sage: cf3(z6)
+        zeta3 + 1
+        sage: cf6(z3)
+        zeta6 - 1
+        sage: type(cf6(z3))
+        <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+        sage: cf1 = CyclotomicField(1) ; z1 = cf1.0
+        sage: cf3(z1)
+        1
+        sage: type(cf3(z1))
+        <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
     """
     def __init__(self, n, names):
         """
@@ -4142,14 +4953,31 @@ class NumberField_cyclotomic(NumberField_absolute):
         else:
             latex_name = None
         NumberField_absolute.__init__(self, f,
-                                     name= names,
-                                     latex_name=latex_name,
-                                     check=False)
-#        self._element_class = NumberFieldElement_cyclotomic
+                                      name= names,
+                                      latex_name=latex_name,
+                                      check=False)
         n = integer.Integer(n)
+        self.__n = n
+        if n%2:
+            self.__zeta_order = 2*n
+        else:
+            self.__zeta_order = n
+        ## quadratic number fields require this:
+        if f.degree() == 2:
+            self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
+            if n == 4:
+                self._D = ZZ(-1)
+                self._NumberField_generic__gen = self._element_class(self, (QQ(0), QQ(1)))
+            else:
+                ## n is 3 or 6
+                self._D = ZZ(-3)
+                one_half = ZZ(1)/ZZ(2)
+                if n == 3:
+                    self._NumberField_generic__gen = self._element_class(self, (one_half-1, one_half))
+                else:
+                    self._NumberField_generic__gen = self._element_class(self, (one_half, one_half))
         zeta = self.gen()
         zeta._set_multiplicative_order(n)
-        self.__zeta_order = n
 
     def __reduce__(self):
         """
@@ -4161,7 +4989,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: print L == K
             True
         """
-        return NumberField_cyclotomic_v1, (self.__zeta_order, self.variable_name())
+        return NumberField_cyclotomic_v1, (self.__n, self.variable_name())
 
     def _repr_(self):
         r"""
@@ -4179,7 +5007,19 @@ class NumberField_cyclotomic(NumberField_absolute):
             'Cyclotomic Field of order 400 and degree 160'
         """
         return "Cyclotomic Field of order %s and degree %s"%(
-                self.zeta_order(), self.degree())
+                self.__n, self.degree())
+
+    def _n(self):
+        """
+        Return the n used to create this cyclotomic field.
+
+        EXAMPLES:
+            sage: CyclotomicField(3).zeta_order()
+            6
+            sage: CyclotomicField(3)._n()
+            3
+        """
+        return self.__n
 
     def _latex_(self):
         """
@@ -4297,7 +5137,8 @@ class NumberField_cyclotomic(NumberField_absolute):
 
 ##         if m % n == 0:   # easy case
 ##             # pass this off to a method in the element class
-##             # it can be done very quickly and easily by the pyrex<->NTL interface there
+##             # it can be done very quickly and easily by the cython<->NTL
+##             # interface there
 ##             return x._lift_cyclotomic_element(self)
 
 ##         # Whatever happens below, it has to be consistent with
@@ -4349,22 +5190,31 @@ class NumberField_cyclotomic(NumberField_absolute):
             only_canonical -- bool (default: False); Attempt to work, even in some
                    cases when x is not in a subfield of the cyclotomics (as long as x is
                    a root of unity).
+
+        EXAMPLES:
+            sage: K = CyclotomicField(24) ; L = CyclotomicField(48)
+            sage: L._coerce_from_other_cyclotomic_field(K.0+1)
+            zeta48^2 + 1
+            sage: K(L.0**2)
+            zeta24
         """
         K = x.parent()
         if K is self:
             return x
         elif K == self:
             return self._element_class(self, x.polynomial())
-        n = K.zeta_order()
-        m = self.zeta_order()
+        n = K._n()
+        m = self._n()
         if m % n == 0:   # easy case
             # pass this off to a method in the element class
-            # it can be done very quickly and easily by the pyrex<->NTL interface there
+            # it can be done very quickly and easily by the
+            # Cython<->NTL interface there
             return x._lift_cyclotomic_element(self)
         else:
             if only_canonical:
                 raise TypeError
             n = x.multiplicative_order()
+            m = self.zeta_order()
             if m % n == 0:
                 # Harder case.  E.g., x = (zeta_42)^7 and
                 # self.__zeta = zeta_6, so it is possible to
@@ -4375,11 +5225,11 @@ class NumberField_cyclotomic(NumberField_absolute):
                 #    2. Write x as a power r of y.
                 #       TODO: we do step two STUPIDLY.
                 #    3. Return self.__zeta to the power r.
-                y = K(self.zeta())
+                y = K(self.zeta(m))
                 z = y
                 for r in xrange(y.multiplicative_order()):
                     if z == x:
-                        return self.zeta()**(r+1)
+                        return self.zeta(m)**(r+1)
                     z *= y
             raise TypeError, "Cannot coerce %s into %s"%(x,self)
         return self._element_class(self, g)
@@ -4467,7 +5317,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         number after the decimal point are valid.
 
             sage: K = CyclotomicField(3)
-            sage: phi = K.complex_embedding (10)
+            sage: phi = K.complex_embedding(10)
             sage: phi(K.0)
             -0.50 + 0.87*I
             sage: phi(K.0^3)
@@ -4478,7 +5328,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             8.0
         """
         CC = sage.rings.complex_field.ComplexField(prec)
-        return self.hom([CC.zeta(self.zeta_order())], check=False)
+        return self.hom([CC.zeta(self._n())], check=False)
 
     def complex_embeddings(self, prec=53):
         r"""
@@ -4497,8 +5347,8 @@ class NumberField_cyclotomic(NumberField_absolute):
              Defn: zeta4 |--> -1.83697019872103e-16 - 1.00000000000000*I]
         """
         CC = sage.rings.complex_field.ComplexField(prec)
-        n = self.zeta_order()
-        z = CC.zeta(self.zeta_order())
+        n = self._n()
+        z = CC.zeta(n)
         X = [m for m in range(n) if sage.rings.arith.gcd(m,n) == 1]
         return [self.hom([z**n], check=False) for n in X]
 
@@ -4512,7 +5362,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: K.next_split_prime(7)
             13
         """
-        n = self.zeta_order()
+        n = self._n()
         while True:
             p = sage.rings.arith.next_prime(p)
             if p % n == 1:
@@ -4546,18 +5396,20 @@ class NumberField_cyclotomic(NumberField_absolute):
 
     def zeta_order(self):
         """
-        Return the order of the root of unity that generates this
-        cyclotomic field.
+        Return the order of the maximal root of unity contained in
+        this cyclotomic field.
 
         EXAMPLES:
             sage: CyclotomicField(1).zeta_order()
-            1
+            2
             sage: CyclotomicField(4).zeta_order()
             4
             sage: CyclotomicField(5).zeta_order()
+            10
+            sage: CyclotomicField(5)._n()
             5
             sage: CyclotomicField(389).zeta_order()
-            389
+            778
         """
         return self.__zeta_order
 
@@ -4579,7 +5431,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             x = self(1)
             n = self.zeta_order()
             m = 0
-            zeta = self.zeta()
+            zeta = self.zeta(n)
             # todo: this desperately needs to be optimized!!!
             for i in range(n):
                 t[x.polynomial()] = n//arith.GCD(m,n)   # multiplicative_order of (zeta_n)**m
@@ -4591,8 +5443,8 @@ class NumberField_cyclotomic(NumberField_absolute):
     def zeta(self, n=None, all=False):
         """
         Returns an element of multiplicative order $n$ in this this
-        number field, if there is one.  Raises a ValueError if there
-        is not.
+        cyclotomic field, if there is one.  Raises a ValueError if
+        there is not.
 
         INPUT:
             n -- integer (default: None, returns element of maximal order)
@@ -4620,7 +5472,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
             sage: K.<a> = CyclotomicField(7)
             sage: K.zeta(14, all=True)
-            [-a, -a^3, -a^5, -a^2, -a^4, a^5 + a^4 + a^3 + a^2 + a + 1]
+            [-a^4, -a^5, a^5 + a^4 + a^3 + a^2 + a + 1, -a, -a^2, -a^3]
             sage: K.<a> = CyclotomicField(10)
             sage: K.zeta(20, all=True)
             Traceback (most recent call last):
@@ -4644,9 +5496,9 @@ class NumberField_cyclotomic(NumberField_absolute):
             z = self.gen()
             m = z.multiplicative_order()
             if n % 2 == 0 and m % 2 == 1:
-                # In the p-th cyclotomic field, p odd, there are actually
-                # 2*p-th roots of unity, so we include them.
-                z = -z
+                # In the n-th cyclotomic field, n odd, there are
+                # actually 2*n-th roots of unity, so we include them.
+                z = -z**((m+1)//2) # -z
                 m = 2*m
             if m % n != 0:
                 raise ValueError, "n (=%s) does not divide order of generator"%n
@@ -4695,7 +5547,7 @@ class NumberField_quadratic(NumberField_absolute):
         # set the generator
         Dpoly = b*b - 4*a*c
         D = Dpoly.numer() * Dpoly.denom()
-        # this could be done extreemly in pyrex
+        # this could be done extremely quickly in cython
         for p in sage.rings.arith.primes(100):
             p2 = p*p
             while D % p2 == 0:

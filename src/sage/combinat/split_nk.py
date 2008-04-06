@@ -14,7 +14,7 @@
 #*****************************************************************************
 
 from sage.rings.arith import binomial
-import random as rnd
+import sage.misc.prandom as rnd
 import sage.combinat.choose_nk as choose_nk
 from combinat import CombinatorialClass
 
@@ -22,10 +22,11 @@ def SplitNK(n, k):
     """
     Returns the combinatorial class of splits of
     a the set range(n) into a set of size k and a
-    set of size k.
+    set of size n-k.
 
     EXAMPLES:
-        sage: S = sage.combinat.split_nk.SplitNK(5,2); S
+        sage: from sage.combinat.split_nk import SplitNK
+        sage: S = SplitNK(5,2); S
         Splits of {0, ..., 4} into a set of size 2 and one of size 3
         sage: S.first()
         [[0, 1], [2, 3, 4]]
@@ -49,20 +50,22 @@ class SplitNK_nk(CombinatorialClass):
     def __init__(self, n, k):
         """
         TESTS:
-            sage: S = sage.combinat.split_nk.SplitNK(5,2)
+            sage: from sage.combinat.split_nk import SplitNK
+            sage: S = SplitNK(5,2)
             sage: S == loads(dumps(S))
             True
         """
-        self.n = n
-        self.k = k
+        self._n = n
+        self._k = k
 
     def __repr__(self):
         """
         TESTS:
-            sage: repr(sage.combinat.split_nk.SplitNK(5,2))
+            sage: from sage.combinat.split_nk import SplitNK
+            sage: repr(SplitNK(5,2))
             'Splits of {0, ..., 4} into a set of size 2 and one of size 3'
         """
-        return "Splits of {0, ..., %s} into a set of size %s and one of size %s"%(self.n-1, self.k, self.n-self.k)
+        return "Splits of {0, ..., %s} into a set of size %s and one of size %s"%(self._n-1, self._k, self._n-self._k)
 
     def count(self):
         """
@@ -71,10 +74,11 @@ class SplitNK_nk(CombinatorialClass):
         n-k.
 
         EXAMPLES:
-            sage: sage.combinat.split_nk.SplitNK(5,2).count()
+            sage: from sage.combinat.split_nk import SplitNK
+            sage: SplitNK(5,2).count()
             10
         """
-        return binomial(self.n,self.k)
+        return binomial(self._n,self._k)
 
     def iterator(self):
         """
@@ -83,7 +87,8 @@ class SplitNK_nk(CombinatorialClass):
         n-k in lexicographic order.
 
         EXAMPLES:
-            sage: [c for c in sage.combinat.split_nk.SplitNK(5,2)]
+            sage: from sage.combinat.split_nk import SplitNK
+            sage: [c for c in SplitNK(5,2)]
             [[[0, 1], [2, 3, 4]],
              [[0, 2], [1, 3, 4]],
              [[0, 3], [1, 2, 4]],
@@ -95,8 +100,8 @@ class SplitNK_nk(CombinatorialClass):
              [[2, 4], [0, 1, 3]],
              [[3, 4], [0, 1, 2]]]
         """
-        range_n = range(self.n)
-        for kset in choose_nk.ChooseNK(self.n,self.k):
+        range_n = range(self._n)
+        for kset in choose_nk.ChooseNK(self._n,self._k):
             yield [ kset, filter(lambda x: x not in kset, range_n) ]
 
 
@@ -107,12 +112,13 @@ class SplitNK_nk(CombinatorialClass):
         n-k.
 
         EXAMPLES:
-            sage: sage.combinat.split_nk.SplitNK(5,2).random() #random
-            [[1, 3], [0, 2, 4]]
+            sage: from sage.combinat.split_nk import SplitNK
+            sage: SplitNK(5,2).random()
+            [[0, 2], [1, 3, 4]]
         """
-        r = rnd.sample(xrange(self.n),self.n)
-        r0 = r[:self.k]
-        r1 = r[self.k:]
+        r = rnd.sample(xrange(self._n),self._n)
+        r0 = r[:self._k]
+        r1 = r[self._k:]
         r0.sort()
         r1.sort()
         return [ r0, r1 ]

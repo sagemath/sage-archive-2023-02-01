@@ -96,6 +96,15 @@ and verify that the element types are correct:
     [    0 1.0*I     0]
     sage: type(W.0)
     <type 'sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement'>
+
+Basis vectors are immutable:
+    sage: A = span(ZZ, [[1,2,3], [4,5,6]])
+    sage: A.0
+    (1, 2, 3)
+    sage: A.0[0] = 5
+    Traceback (most recent call last):
+    ...
+    ValueError: vector is immutable; please change a copy instead (use self.copy())
 """
 
 ####################################################################################
@@ -115,7 +124,6 @@ and verify that the element types are correct:
 ####################################################################################
 
 # python imports
-import random
 import weakref
 
 
@@ -135,12 +143,14 @@ import sage.rings.finite_field as finite_field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.ring as ring
 import sage.rings.integer_ring
+import sage.rings.rational_field
 import sage.rings.integer_mod_ring
 import sage.rings.infinity
 import sage.rings.integer
 import sage.structure.parent_gens as gens
 import sage.modules.real_double_vector
 import sage.modules.complex_double_vector
+from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
 
 from sage.structure.parent_gens import ParentWithGens
@@ -386,6 +396,9 @@ class FreeModule_generic(module.Module):
         self._inner_product_matrix = inner_product_matrix
         self._gram_matrix = None
         self.element_class()
+
+    def __hash__(self):
+        raise NotImplementedError
 
     def construction(self):
         from sage.categories.pushout import VectorFunctor
@@ -774,6 +787,33 @@ class FreeModule_generic(module.Module):
         """
         return self.basis_matrix()
 
+    def direct_sum(self, other):
+        """
+        Return the direct sum of self and other as a free module.
+
+        EXAMPLES:
+            sage: V = (ZZ^3).span([[1/2,3,5], [0,1,-3]]); V
+            Free module of degree 3 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1/2   0  14]
+            [  0   1  -3]
+            sage: W = (ZZ^3).span([[1/2,4,2]]); W
+            Free module of degree 3 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [1/2   4   2]
+            sage: V.direct_sum(W)
+            Free module of degree 6 and rank 3 over Integer Ring
+            Echelon basis matrix:
+            [1/2   0  14   0   0   0]
+            [  0   1  -3   0   0   0]
+            [  0   0   0 1/2   4   2]
+        """
+        if not is_FreeModule(other):
+            raise TypeError, "other must be a free module"
+        if other.base_ring() != self.base_ring():
+            raise TypeError, "base rins of self and other must be the same"
+        return self.basis_matrix().block_sum(other.basis_matrix()).row_module(self.base_ring())
+
     def coordinates(self, v, check=True):
         """
         Write $v$ in terms of the basis for self.
@@ -816,6 +856,70 @@ class FreeModule_generic(module.Module):
             (2, -1)
         """
         raise NotImplementedError
+
+    def coordinate_module(self, V):
+        r"""
+        Suppose V is a submodule of self (or a module comeasurable
+        with self), and that self is a free module over $R$ of rank
+        $n$.  Let $\phi$ be the map from self to $R^n$ that sends the
+        basis vectors of self in order to the standard basis of $R^n$.
+        This function returns the image $\phi(V)$.
+
+        WARNING: If there is no integer $d$ such that $dV$ is a submodule
+        of self, then this function will give total nonsense.
+
+        EXAMPLES:
+        We illustrate this function with some $\ZZ$-submodules of $\QQ^3$.
+            sage: V = (ZZ^3).span([[1/2,3,5], [0,1,-3]])
+            sage: W = (ZZ^3).span([[1/2,4,2]])
+            sage: V.coordinate_module(W)
+            Free module of degree 2 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [1 4]
+            sage: V.0 + 4*V.1
+            (1/2, 4, 2)
+
+        In this example, the coordinate module isn't even in $\ZZ^3$.
+            sage: W = (ZZ^3).span([[1/4,2,1]])
+            sage: V.coordinate_module(W)
+            Free module of degree 2 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [1/2   2]
+
+        The following more elaborate example illustrates using this function
+        to write a submodule in terms of integral cuspidal modular symbols:
+            sage: M = ModularSymbols(54)
+            sage: S = M.cuspidal_subspace()
+            sage: K = S.integral_structure(); K
+            Free module of degree 19 and rank 8 over Integer Ring
+            Echelon basis matrix:
+            [ 0  1  0  0 -1  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+            ...
+            sage: L = M[0].integral_structure(); L
+            Free module of degree 19 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 0  1  1  0 -2  1 -1  1 -1 -2  2  0  0  0  0  0  0  0  0]
+            [ 0  0  3  0 -3  2 -1  2 -1 -4  2 -1 -2  1  2  0  0 -1  1]
+            sage: K.coordinate_module(L)
+            Free module of degree 8 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 1  1  1 -1  1 -1  0  0]
+            [ 0  3  2 -1  2 -1 -1 -2]
+            sage: K.coordinate_module(L).basis_matrix() * K.basis_matrix()
+            [ 0  1  1  0 -2  1 -1  1 -1 -2  2  0  0  0  0  0  0  0  0]
+            [ 0  0  3  0 -3  2 -1  2 -1 -4  2 -1 -2  1  2  0  0 -1  1]
+        """
+        if not is_FreeModule(V):
+            raise ValueError, "V must be a free module"
+        #if self.base_ring() != V.base_ring():
+        #    raise ValueError, "self and V must have the same base ring"
+        A = self.basis_matrix()
+        A = A.matrix_from_columns(A.pivots()).transpose()
+        B = V.basis_matrix()
+        B = B.matrix_from_columns(self.basis_matrix().pivots()).transpose()
+        S = A.solve_right(B).transpose()
+        return S.row_module(self.base_ring())
+
 
     def degree(self):
         """
@@ -874,6 +978,15 @@ class FreeModule_generic(module.Module):
         return self
 
     def gen(self, i=0):
+        """
+        Return ith generator for self, where i is between 0 and rank-1, inclusive.
+
+        INPUT:
+            i -- an integer
+
+        OUTPUT:
+            i-th basis vector for self.
+        """
         if i < 0 or i >= self.rank():
             raise ValueError, "Generator %s not defined."%i
         return self.basis()[int(i)]
@@ -1227,17 +1340,18 @@ class FreeModule_generic(module.Module):
         EXAMPLES:
             sage: M = FreeModule(ZZ, 2).span([[1,1]])
             sage: M.random_element()
-            (1, 1)
-            sage: M.random_element()
-            (-2, -2)
-            sage: M.random_element()
             (-1, -1)
+            sage: M.random_element()
+            (2, 2)
+            sage: M.random_element()
+            (1, 1)
         """
+        rand = current_randstate().python_random().random
         R = self.base_ring()
         v = self(0)
         prob = float(prob)
         for i in range(self.rank()):
-            if random.random() <= prob:
+            if rand() <= prob:
                 v += self.gen(i) * R.random_element(**kwds)
         return v
 
@@ -1338,6 +1452,23 @@ class FreeModule_generic_pid(FreeModule_generic):
             return self
         return self.span([v*other for v in self.basis()])
 
+    def __radd__(self, other):
+        """
+        EXAMPLES:
+            sage: int(0) + QQ^3
+            Vector space of dimension 3 over Rational Field
+            sage: sum([QQ^3, QQ^3])
+            Vector space of degree 3 and dimension 3 over Rational Field
+            Basis matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        if other == 0:
+            return self
+        else:
+            raise TypeError
+
     def __add__(self, other):
         r"""
         Return the sum of self and other, where both self and other
@@ -1391,8 +1522,14 @@ class FreeModule_generic_pid(FreeModule_generic):
             [5 0 0]
             [0 1 0]
             [0 0 1]
+
+        We add a module to 0:
+            sage: ZZ^3 + 0
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
         if not isinstance(other, FreeModule_generic):
+            if other == 0:
+                return self
             raise TypeError, "other (=%s) must be a free module"%other
         if not (self.ambient_vector_space() == other.ambient_vector_space()):
             raise TypeError, "ambient vector spaces must be equal"
@@ -1633,6 +1770,9 @@ class FreeModule_generic_pid(FreeModule_generic):
         """
         return FreeModule_submodule_pid(self.ambient_module(),[], check=False)
 
+    def denominator(self):
+        return self.basis_matrix().denominator()
+
     def index_in_saturation(self):
         r"""
         Return the index of this module in its saturation, i.e., its
@@ -1693,9 +1833,15 @@ class FreeModule_generic_pid(FreeModule_generic):
         R = self.base_ring()
         if R.is_field():
             return self
-        V = self.vector_space()
-        A = self.ambient_module()
-        return V.intersection(A)
+        try:
+            A, _ = self.basis_matrix()._clear_denom()
+            S = A.saturation()
+            return S.row_space()
+        except AttributeError:
+            # fallback in case _clear_denom isn't written
+            V = self.vector_space()
+            A = self.ambient_module()
+            return V.intersection(A)
 
     def span(self, gens, check=True, already_echelonized=False):
         """
@@ -1999,8 +2145,12 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Basis matrix:
             [1 0 0]
             [0 0 1]
+            sage: QQ^3 + 0
+            Vector space of dimension 3 over Rational Field
         """
         if not isinstance(other, FreeModule_generic_field):
+            if other == 0:
+                return self
             raise TypeError, "other must be a Vector Space"
         V = self.ambient_vector_space()
         if V != other.ambient_vector_space():
@@ -2564,6 +2714,15 @@ class FreeModule_ambient(FreeModule_generic):
         FreeModule_generic.__init__(self, base_ring, rank,
                                     rank, sparse, inner_product_matrix)
 
+    def __hash__(self):
+        try:
+            return hash((self.rank(), self.base_ring()))
+        except AttributeError:
+            # This is a fallback because sometimes hash is called during object
+            # reconstruction (unpickle), and the above fields haven't been
+            # filled in yet.
+            return 0
+
     def _dense_module(self):
         return FreeModule(base_ring=self.base_ring(),
                           rank = self.rank(), sparse=False,
@@ -3067,7 +3226,6 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             C = element_class(R.fraction_field(), self.is_sparse())
             w = [C(self, x.list(),
                           coerce=False, copy=True) for x in basis]
-
         self.__basis = basis_seq(self, w)
 
         if echelonized_basis != None:
@@ -3084,6 +3242,9 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         if check and len(basis) != len(self.__echelonized_basis):
             raise ValueError, "basis vectors must be linearly independent."
+
+    def __hash__(self):
+        return hash(self.__basis)
 
     def construction(self):
         """
@@ -3205,7 +3366,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
     def _denominator(self, B):  # for internal use only!
         if len(B) == 0:
             return 1
-        d = B[0].denominator()
+        d = sage.rings.integer.Integer(B[0].denominator())
         for x in B[1:]:
             d = d.lcm(x.denominator())
         return d
@@ -3642,7 +3803,6 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
         [ 4  5 19]
 
     We can save and load submodules and elements.
-
         sage: loads(W.dumps()) == W
         True
         sage: v = W.0 + W.1
@@ -3942,6 +4102,8 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
 
 def basis_seq(V, w):
+    for z in w:
+        z.set_immutable()
     return Sequence(w, universe=V, check = False, immutable=True, cr=True)
 
 

@@ -8,6 +8,7 @@ of several classes, and we want to avoid circular cimports.
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
+include "../rings/mpfr.pxi"
 
 include '../modules/binary_search.pxi'
 include '../modules/vector_integer_sparse_h.pxi'
@@ -38,8 +39,12 @@ import matrix_modn_sparse
 
 from sage.rings.integer_ring   import ZZ
 from sage.rings.rational_field import QQ
+
 from sage.rings.integer cimport Integer
 from sage.rings.arith import previous_prime, CRT_basis
+
+from sage.rings.real_mpfr import  is_RealField
+from sage.rings.real_mpfr cimport RealNumber
 
 
 from sage.misc.misc import verbose, get_verbose
@@ -491,4 +496,66 @@ def matrix_rational_sparse__dense_matrix(Matrix_rational_sparse self):
         for j from 0 <= j < v.num_nonzero:
             mpq_set(B._matrix[i][v.positions[j]], v.entries[j])
     return B
+
+
+#######################################
+def hadamard_row_bound_mpfr(Matrix A):
+    """
+    Given a matrix A with entries that coerce to RR, compute the row
+    Hadamard bound on the determinant.
+
+    INPUT:
+        A -- a matrix over RR
+
+    OUTPUT:
+        integer -- an integer n such that the absolute value of the
+                   determinant of this matrix is at most $10^n$.
+
+    EXAMPLES:
+    We create a very large matrix, compute the row Hadamard bound,
+    and also compute the row Hadamard bound of the transpose, which
+    happens to be sharp.
+        sage: a = matrix(ZZ, 2, [2^10000,3^10000,2^50,3^19292])
+        sage: import sage.matrix.misc
+        sage: sage.matrix.misc.hadamard_row_bound_mpfr(a.change_ring(RR))
+        13976
+        sage: len(str(a.det()))
+        12215
+        sage: sage.matrix.misc.hadamard_row_bound_mpfr(a.transpose().change_ring(RR))
+        12215
+
+    Note that in the above example using RDF would overflow:
+        sage: b = a.change_ring(RDF)
+        sage: b._hadamard_row_bound()
+        Traceback (most recent call last):
+        ...
+        OverflowError: math range error
+    """
+    if not is_RealField(A.base_ring()):
+        raise TypeError, "A must have base field an mpfr real field."
+
+    cdef RealNumber a, b
+    cdef mpfr_t s, d, pr
+    cdef Py_ssize_t i, j
+
+    mpfr_init(s)
+    mpfr_init(d)
+    mpfr_init(pr)
+    mpfr_set_si(d, 0, GMP_RNDU)
+
+    for i from 0 <= i < A._nrows:
+        mpfr_set_si(s, 0, GMP_RNDU)
+        for j from 0 <= j < A._ncols:
+            a = A.get_unsafe(i, j)
+            mpfr_mul(pr, a.value, a.value, GMP_RNDU)
+            mpfr_add(s, s, pr, GMP_RNDU)
+        mpfr_log10(s, s, GMP_RNDU)
+        mpfr_add(d, d, s, GMP_RNDU)
+    b = a._new()
+    mpfr_set(b.value, d, GMP_RNDU)
+    b /= 2
+    mpfr_clear(s)
+    mpfr_clear(d)
+    mpfr_clear(pr)
+    return b.ceil()
 

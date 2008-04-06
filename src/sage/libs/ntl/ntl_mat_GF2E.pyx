@@ -454,8 +454,8 @@ cdef class ntl_mat_GF2E:
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 2,2,[ntl.GF2E_random(ctx) for x in xrange(2*2)])
             sage: ntl.GF2XHexOutput(0)
-            sage: m.list() # random output
-            [[1 0 1 0 1 0 1 1], [0 1 0 0 0 0 1], [0 0 0 1 0 0 1], [1 1 1 0 0 0 0 1]]
+            sage: m.list()
+            [[1 0 1 0 1 0 0 1], [1 0 1 1 1 0 0 1], [0 0 0 1 1 1 1], [1 1 1 1 1 1]]
         """
         return [self[i,j] for i in range(self.NumRows()) for j in range(self.x.NumCols())]
 

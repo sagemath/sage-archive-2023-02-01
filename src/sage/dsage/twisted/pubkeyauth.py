@@ -18,7 +18,6 @@
 
 import base64
 
-from twisted.conch import error
 from twisted.conch.ssh import keys
 from twisted.cred import checkers, credentials
 from twisted.cred.credentials import IAnonymous
@@ -31,105 +30,52 @@ from sage.dsage.errors.exceptions import AuthenticationError
 def get_pubkey_string(filename=None):
     try:
         f = open(filename)
-        type_, key = f.readlines()[0].split()[:2]
+        kind, key = f.readlines()[0].split()[:2]
         f.close()
-        if not type_ == 'ssh-rsa':
+        if not kind == 'ssh-rsa':
             raise TypeError('Invalid key type.')
     except IOError, msg:
         key = filename
 
     return key
 
-class PublicKeyCredentialsChecker(object):
-    """
-    This class provides authentication checking using ssh public keys.
-
-    """
-
-    implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.ISSHPrivateKey,
-                            credentials.IAnonymous)
-
-    def __init__(self, pubkeydb):
-        self.authorizedKeys = self.getAuthorizedKeys(pubkeydb)
-
-    def requestAvatarId(self, credentials):
-        if IAnonymous.providedBy(credentials):
-            return 'Anonymous'
-
-        # read the authentication table to make sure we have a fresh copy
-        self.authorizedKeys = self.getAuthorizedKeys(self.file_name)
-
-        if self.authorizedKeys.has_key(credentials.username):
-            userKey = self.authorizedKeys[credentials.username]
-            if not credentials.blob == base64.decodestring(userKey):
-                return defer.fail(error.ConchError("Invalid key."))
-            if not credentials.signature:
-                return defer.fail(error.ValidPublicKey())
-
-            pubKey = keys.getPublicKeyObject(data=credentials.blob)
-            if keys.verifySignature(pubKey, credentials.signature,
-                                    credentials.sigData):
-                return credentials.username
-            else:
-                return defer.fail(error.ConchError("Invalid signature."))
-        else:
-            return defer.fail(error.ConchError("Invalid username."))
-
-    def getAuthorizedKeys(self, file_name):
-        self.file_name = file_name
-        authorized_keys = {}
-        try:
-            f = open(file_name)
-            for l in f:
-                line = l.split(':')
-                username = line[0]
-                key = line[1].strip()
-                authorized_keys[username] = key
-        except:
-            raise
-
-        return authorized_keys
 
 class PublicKeyCredentialsCheckerDB(object):
+    """
+    Uses PKI to authenticate a user.
+    """
+
     implements(checkers.ICredentialsChecker)
     credentialInterfaces = (credentials.ISSHPrivateKey,
                             credentials.IAnonymous)
 
     def __init__(self, clientdb):
-        from sage.dsage.database.clientdb import ClientDatabase
-        if not isinstance(clientdb, ClientDatabase):
-            raise TypeError
         self.clientdb = clientdb
 
     def requestAvatarId(self, credentials):
         if IAnonymous.providedBy(credentials):
             return 'Anonymous'
-        try:
-            user, key = self.get_user(credentials.username)
-        except TypeError:
+        client = self.clientdb.get_client(credentials.username)
+        if client == None:
             log.msg("Invalid username: '%s'" % credentials.username)
             return defer.fail(AuthenticationError('Login failed.'))
-        if user:
-            if not credentials.blob == base64.decodestring(key):
-                log.msg('Invalid key for user %s' % (credentials.username))
-                return defer.fail(AuthenticationError('Login failed.'))
-            if not credentials.signature:
-                log.msg('No signature for user %s ' % (credentials.username))
-                return defer.fail(AuthenticationError('Login failed.'))
-            pub_key = keys.getPublicKeyObject(data=credentials.blob)
-            if keys.verifySignature(pub_key, credentials.signature,
-                                    credentials.sigData):
-                # If we get to this stage, it means the user is already
-                # logged in
-                self.clientdb.update_login_time(credentials.username)
-                return credentials.username
-            else:
-                log.msg('Invalid signature.')
-                return defer.fail(AuthenticationError('Login failed.'))
-        else:
-            log.msg('Invalid username.')
+        try:
+            blob = base64.decodestring(client.public_key)
+        except:
+            log.msg('Invalid key for user %s' % (credentials.username))
             return defer.fail(AuthenticationError('Login failed.'))
-
-    def get_user(self, username):
-        return self.clientdb.get_user_and_key(username)
+        if not credentials.blob == blob:
+            log.msg('Invalid key for user %s' % (credentials.username))
+            return defer.fail(AuthenticationError('Login failed.'))
+        if not credentials.signature:
+            log.msg('No signature for user %s ' % (credentials.username))
+            return defer.fail(AuthenticationError('Login failed.'))
+        pub_key = keys.getPublicKeyObject(data=credentials.blob)
+        if keys.verifySignature(pub_key, credentials.signature,
+                                credentials.sigData):
+            # User is logged in at this stage
+            self.clientdb.update_login_time(credentials.username)
+            return credentials.username
+        else:
+            log.msg('Invalid signature for user %s' % (credentials.username))
+            return defer.fail(AuthenticationError('Login failed.'))

@@ -72,7 +72,7 @@ def file_and_line(obj):
       Nils Bruin (2007-10-03)
 
    EXAMPLE:
-      sage: import edit_module
+      sage: import sage.misc.edit_module as edit_module
       sage: edit_module.file_and_line(sage)     # random output
       ('/usr/local/sage/default/devel/sage/sage/__init__.py', 1)
    """

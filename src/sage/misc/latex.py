@@ -51,14 +51,35 @@ def have_dvipng():
     return _have_dvipng
 
 def list_function(x):
+    """
+    Returns the latex for a list x.
+
+    EXAMPLES:
+        sage: latex([1,2,3])
+        \left[1,
+        2,
+        3\right]
+
+        sage: latex([Matrix(ZZ,3,range(9)), Matrix(ZZ,3,range(9))])
+        \left[\left(\begin{array}{rrr}
+        0 & 1 & 2 \\
+        3 & 4 & 5 \\
+        6 & 7 & 8
+        \end{array}\right),
+        \\\left(\begin{array}{rrr}
+        0 & 1 & 2 \\
+        3 & 4 & 5 \\
+        6 & 7 & 8
+        \end{array}\right)\right]
+
+    """
     K = [latex(v) for v in x]
     if len(K) > 0 and sum([len(r) for r in K]) > 80:
         if EMBEDDED_MODE:
             s = '\\begin{array}{l}'
             K[0] = '[' + K[0]
             K[-1] = K[-1] + ']'
-            for w in K:
-                s += w + ',\\\\\n'
+            s += ',\\\\\n'.join(K)
             s += '\\end{array}'
             return s
         else:

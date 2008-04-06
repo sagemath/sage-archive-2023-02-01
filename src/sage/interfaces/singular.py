@@ -787,14 +787,16 @@ class Singular(Expect):
         Purpose:
             restores the state of all options from an intvec (produced by option(get)).
         """
-        if cmd == None:
+        if cmd is None:
             return SingularFunction(self,"option")()
-        elif cmd=="get":
-            return SingularFunction(self,"option")("\"get\"")
-        elif cmd=="set":
+        elif cmd == "get":
+            #return SingularFunction(self,"option")("\"get\"")
+            return self(self.eval("option(get)"),"intvec")
+        elif cmd == "set":
             if not isinstance(val,SingularElement):
                 raise TypeError, "singular.option('set') needs SingularElement as second parameter"
-            SingularFunction(self,"option")("\"set\"",val)
+            #SingularFunction(self,"option")("\"set\"",val)
+            self.eval("option(set,%s)"%val.name())
         else:
             SingularFunction(self,"option")("\""+str(cmd)+"\"")
 
@@ -825,6 +827,56 @@ class SingularElement(ExpectElement):
         if attrname[:1] == "_":
             raise AttributeError
         return SingularFunctionElement(self, attrname)
+
+    def __copy__(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLES:
+            sage: R=singular.ring(0,'(x,y)','dp')
+            sage: M=singular.matrix(3,3,'0,0,-x, 0,y,0, x*y,0,0')
+            sage: N=copy(M)
+            sage: N[1,1]=singular('x+y')
+            sage: N
+            x+y,0,-x,
+            0,  y,0,
+            x*y,0,0
+            sage: M
+            0,  0,-x,
+            0,  y,0,
+            x*y,0,0
+            sage: L=R.ringlist()
+            sage: L[4]=singular.ideal('x**2-5')
+            sage: Q=L.ring()
+            sage: otherR=singular.ring(5,'(x)','dp')
+            sage: cpQ=copy(Q)
+            sage: cpQ.set_ring()
+            sage: cpQ
+            //   characteristic : 0
+            //   number of vars : 2
+            //        block   1 : ordering dp
+            //                  : names    x y
+            //        block   2 : ordering C
+            // quotient ring from ideal
+            _[1]=x^2-5
+            sage: R.fetch(M)
+            0,  0,-x,
+            0,  y,0,
+            x*y,0,0
+        """
+        if (self.type()=='ring') or (self.type()=='qring'):
+            # Problem: singular has no clean method to produce
+            # a copy of a ring/qring. We use ringlist, but this
+            # is only possible if we make self the active ring,
+            # use ringlist, and switch back to the previous
+            # basering.
+            br=self.parent().current_ring()
+            self.set_ring()
+            OUT = (self.ringlist()).ring()
+            br.set_ring()
+            return OUT
+        else:
+            return self.parent()(self.name())
 
     def __len__(self):
         return int(self.size())
@@ -946,6 +998,7 @@ class SingularElement(ExpectElement):
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.polynomial.polydict import PolyDict,ETuple
+        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         from sage.rings.quotient_ring import QuotientRing_generic
         from sage.rings.quotient_ring_element import QuotientRingElement
 
@@ -978,7 +1031,7 @@ class SingularElement(ExpectElement):
 
         coeff_start = int(len(singular_poly_list)/2)
 
-        if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and R._can_convert_to_singular():
+        if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and can_convert_to_singular(R):
             # we need to lookup the index of a given variable represented
             # through a string
             var_dict = dict(zip(R.variable_names(),range(R.ngens())))
@@ -1013,7 +1066,7 @@ class SingularElement(ExpectElement):
             else:
                 return QuotientRingElement(R,p,reduce=False)
 
-        elif is_PolynomialRing(R) and R._can_convert_to_singular():
+        elif is_PolynomialRing(R) and can_convert_to_singular(R):
 
             sage_repr = [0]*int(self.deg()+1)
 
@@ -1089,20 +1142,37 @@ class SingularElement(ExpectElement):
         """
         If self is a Singular list of lists of Singular elements,
         returns corresponding SAGE list of lists of strings.
+
+        EXAMPLES:
+            sage: R=singular.ring(0,'(x,y)','dp')
+            sage: RL=R.ringlist()
+            sage: RL
+            [1]:
+               0
+            [2]:
+               [1]:
+                  x
+               [2]:
+                  y
+            [3]:
+               [1]:
+                  [1]:
+                     dp
+                  [2]:
+                     1,1
+               [2]:
+                  [1]:
+                     C
+                  [2]:
+                     0
+            [4]:
+               _[1]=0
+            sage: RL.sage_structured_str_list()
+            ['0', ['x', 'y'], [['dp', '1,\n1 '], ['C', '0 ']], '0']
         """
-        s = str(self)
-        c = '\[[0-9]*\]:'
-        r = re.compile(c)
-        s = r.sub('xxx__SAGE__xxx',s)
-        v = s.split('xxx__SAGE__xxx')[1:]
-        c = '_\[[0-9]*\]='
-        r = re.compile(c)
-        ans = []
-        for w in v:
-            t = r.sub('xxx__SAGE__xxx', w)
-            z = [m.strip() for m in t.split('xxx__SAGE__xxx')[1:]]
-            ans.append(z)
-        return ans
+        if not (self.type()=='list'):
+            return str(self)
+        return [X.sage_structured_str_list() for X in self]
 
     def trait_names(self):
         return self.parent().trait_names()

@@ -1,4 +1,4 @@
-"""
+r"""
 Field of Arbitrary Precision Real Numbers
 
 AUTHORS:
@@ -11,11 +11,51 @@ AUTHORS:
    -- didier deshommes <dfdeshom@gmail.com>: special constructor for QD numbers
    -- Paul Zimmermann (2008-01): added new functions from mpfr-2.3.0, replaced
       some, e.g., sech = 1/cosh, by their original mpfr version.
+   -- Carl Witty (2008-02): define floating-point rank and associated
+      functions; add some documentation
+
+This is a binding for the MPFR arbitrary-precision floating point
+library.
+
+We define a class \class{RealField}, where each instance of \class{RealField}
+specifies a field of floating-point numbers with a specified precision
+and rounding mode.  Individual floating-point numbers are of class
+\class{RealNumber}.
+
+In \sage (as in MPFR), floating-point numbers of precision $p$ are of
+the form $s m 2^{e-p}$, where $s \in \{-1, 1\}$, $2^{p-1} \leq m < 2^p$, and
+$-2^{30} + 1 \leq e \leq 2^{30} - 1$; plus the special values
+\code{+0}, \code{-0}, \code{+infinity}, \code{-infinity}, and \code{NaN}
+(which stands for Not-a-Number).
+
+Operations in this module which are direct wrappers of MPFR functions
+are ``correctly rounded''; we briefly describe what this means.
+Assume that you could perform the operation exactly, on real nunbers,
+to get a result $r$.  If this result can be represented as a
+floating-point number, then we return that number.
+
+Otherwise, the result $r$ is between two floating-point numbers.  For
+the directed rounding modes (round to plus infinity, round to minus
+infinity, round to zero), we return the floating-point number in the
+indicated direction from $r$.  For round to nearest, we return the
+floating-point number which is nearest to $r$.
+
+This leaves one case unspecified: in round to nearest mode, what
+happens if $r$ is exactly halfway between the two nearest
+floating-point numbers?  In that case, we round to the number with an
+even mantissa (the mantissa is the number $m$ in the representation
+above).
+
+Consider the ordered set of floating-point numbers of precision $p$.
+(Here we identify \code{+0} and \code{-0}, and ignore \code{NaN}.)  We
+can give a bijection between these floating-point numbers and a
+segment of the integers, where 0 maps to 0 and adjacent floating-point
+numbers map to adjacent integers.  We call the integer
+corresponding to a given floating-point number the "floating-point
+rank" of the number.  (This is not standard terminology; I just made
+it up.)
 
 EXAMPLES:
-
-
-
 A difficult conversion:
 
     sage: RR(sys.maxint)
@@ -25,6 +65,15 @@ A difficult conversion:
 TESTS:
     sage: -1e30
     -1.00000000000000e30
+
+Make sure we don't have a new field for every new literal:
+    sage: parent(2.0) is parent(2.0)
+    True
+    sage: RealField(100, rnd='RNDZ') is RealField(100, rnd='RNDD')
+    False
+    sage: RealField(100, rnd='RNDZ') is RealField(100, rnd='RNDZ')
+    True
+
 """
 
 #*****************************************************************************
@@ -47,6 +96,7 @@ TESTS:
 
 import math # for log
 import sys
+import weakref
 
 include '../ext/interrupt.pxi'
 include "../ext/stdsage.pxi"
@@ -82,14 +132,6 @@ import sage.rings.rational_field
 import sage.rings.infinity
 
 from sage.structure.parent_gens cimport ParentWithGens
-
-#*****************************************************************************
-# Headers.  When you past things in here from mpfr, be sure
-# to remove const's, since those aren't allowed in pyrex.  Also, it can be
-# challenging figuring out how to modify things from mpfr.h to be valid pyrex
-# code.    Note that what is here is only used for generating the C code.
-# The C compiler doesn't see any of this -- it only sees mpfr.h and stdlib.h
-#*****************************************************************************
 
 cdef class RealNumber(sage.structure.element.RingElement)
 
@@ -127,7 +169,9 @@ def mpfr_prec_max():
 
 _rounding_modes = ['RNDN', 'RNDZ', 'RNDU', 'RNDD']
 
-cdef class RealField(sage.rings.ring.Field):
+cdef object RealField_cache = weakref.WeakValueDictionary()
+
+def RealField_constructor(int prec=53, int sci_not=0, rnd="RNDN"):
     """
     RealField(prec, sci_not, rnd):
 
@@ -167,7 +211,13 @@ cdef class RealField(sage.rings.ring.Field):
        range is much wider and subnormal numbers are not
        implemented.'
     """
+    try:
+        return RealField_cache[prec, sci_not, rnd]
+    except KeyError:
+        RealField_cache[prec, sci_not, rnd] = R = RealField(prec=prec, sci_not=sci_not, rnd=rnd)
+        return R
 
+cdef class RealField(sage.rings.ring.Field):
     def __init__(self, int prec=53, int sci_not=0, rnd="RNDN"):
         cdef RealNumber rn
         if prec < MPFR_PREC_MIN or prec > MY_MPFR_PREC_MAX:
@@ -500,12 +550,48 @@ cdef class RealField(sage.rings.ring.Field):
 
         EXAMPLES:
             sage: RealField(100).random_element(-5, 10)
-            4.2682457657074627882421620493
+            1.9305310520925994224072377281
             sage: RealField(10).random_element()
-            .27
+            -0.84
+
+        TESTS:
+            sage: RealField(31).random_element()
+            -0.207006278
+            sage: RealField(32).random_element()
+            -0.757827933
+            sage: RealField(33).random_element()
+            -0.530834221
+            sage: RealField(63).random_element()
+            0.918013195263849341
+            sage: RealField(64).random_element()
+            -0.805114150788947694
+            sage: RealField(65).random_element()
+            0.2035927570696802284
+            sage: RealField(10).random_element()
+            -0.59
+            sage: RealField(10).random_element()
+            0.57
+            sage: RR.random_element()
+            0.931242676441124
+            sage: RR.random_element()
+            0.979095507956490
         """
         cdef RealNumber x = self._new()
-        mpfr_urandomb(x.value, state)
+        cdef randstate rstate = current_randstate()
+        if sizeof(long) == 4:
+            # This is a gross hack that depends on the internals of
+            # MPFR... but that's OK, because if MPFR changes it will
+            # be instantly caught by the doctests above.
+            # MPFR rounds up the precision to a multiple of the
+            # current word size, then requests that many bits from
+            # .gmp_state .  So if (1 <= precision mod 64 <= 32),
+            # a 64-bit machine will request 32 more bits than a 32-bit
+            # machine, and the random numbers will get out of sync.
+            # We work around this problem by requesting an extra
+            # 32 bits on a 32-bit machine.
+            if 1 <= self.__prec % 64 <= 32:
+                rstate.c_random()
+        mpfr_urandomb(x.value, rstate.gmp_state)
         if min == 0 and max == 1:
             return x
         else:
@@ -817,9 +903,15 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: n = 1.3939494594
             sage: n._interface_init_()
-            '1.39394945940000'
+            '1.3939494593999999'
+            sage: s1 = RR(sin(1)); s1
+            0.841470984807897
+            sage: s1._interface_init_()
+            '0.84147098480789650'
+            sage: s1 == RR(gp(s1))
+            True
         """
-        return self.str(10, no_sci=True)
+        return self.str(10, no_sci=True, truncate=False)
 
     def __hash__(self):
         """
@@ -1055,6 +1147,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a = 119.41212
             sage: a.integer_part()
             119
+            sage: a = -123.4567
+            sage: a.integer_part()
+            -123
 
         A big number with no decimal point:
             sage: a = RR(10^17); a
@@ -1068,6 +1163,111 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef Integer z = Integer()
         mpfr_get_z(z.value, self.value, GMP_RNDZ)
         return z
+
+    def fp_rank(self):
+        r"""
+        Returns the floating-point rank of this number.  That is,
+        if you list the floating-point numbers of this precision
+        in order, and number them starting with 0.0 $\rightarrow$ 0
+        and extending the list to positive and negative infinity,
+        returns the number corresponding to this floating-point number.
+
+        EXAMPLES:
+            sage: RR(0).fp_rank()
+            0
+            sage: RR(0).nextabove().fp_rank()
+            1
+            sage: RR(0).nextbelow().nextbelow().fp_rank()
+            -2
+            sage: RR(1).fp_rank()
+            4835703278458516698824705
+            sage: RR(-1).fp_rank()
+            -4835703278458516698824705
+            sage: RR(1).fp_rank() - RR(1).nextbelow().fp_rank()
+            1
+            sage: RR(-infinity).fp_rank()
+            -9671406552413433770278913
+            sage: RR(-infinity).fp_rank() - RR(-infinity).nextabove().fp_rank()
+            -1
+        """
+        if mpfr_nan_p(self.value):
+            raise ValueError, "Cannot compute fp_rank of NaN"
+
+        cdef Integer z = PY_NEW(Integer)
+
+        cdef mp_exp_t EXP_MIN = -(1<<30) + 1
+        cdef mp_exp_t EXP_MAX = (1<<30) - 1
+        # fp_rank(0.0) = 0
+        # fp_rank(m*2^e-p) = (m-2^{p-1})+(e-EXP_MIN)*2^{p-1}+1
+        #                  = m+(e-EXP_MIN-1)*2^{p-1}+1
+        # fp_rank(infinity) = (EXP_MAX+1-EXP_MIN)*2^{p-1}+1
+        # fp_rank(-x) = -fp_rank(x)
+
+        cdef int sgn = mpfr_sgn(self.value)
+
+        if sgn == 0:
+            return z
+
+        cdef int prec = (<RealField>self._parent).__prec
+
+        if mpfr_inf_p(self.value):
+            mpz_set_ui(z.value, EXP_MAX+1-EXP_MIN)
+            mpz_mul_2exp(z.value, z.value, prec-1)
+            mpz_add_ui(z.value, z.value, 1)
+            if sgn < 0:
+                mpz_neg(z.value, z.value)
+            return z
+
+        cdef mpz_t mantissa
+        mpz_init(mantissa)
+        cdef mp_exp_t exponent = mpfr_get_z_exp(mantissa, self.value)
+        mpz_set_si(z.value, exponent+prec-EXP_MIN-1)
+        mpz_mul_2exp(z.value, z.value, prec-1)
+        mpz_add_ui(z.value, z.value, 1)
+        if sgn > 0:
+            mpz_add(z.value, z.value, mantissa)
+        else:
+            mpz_sub(z.value, z.value, mantissa)
+            mpz_neg(z.value, z.value)
+        mpz_clear(mantissa)
+        return z
+
+    def fp_rank_delta(self, RealNumber other):
+        r"""
+        Return the floating-point rank delta between \code{self} and
+        \var{other}.  That is, if the return value is positive, this
+        is the number of times you have to call \code{.nextabove()}
+        to get from \code{self} to \var{other}.
+
+        EXAMPLES:
+            sage: [x.fp_rank_delta(x.nextabove()) for x in
+            ...      (RR(-infinity), -1.0, 0.0, 1.0, RR(pi), RR(infinity))]
+            [1, 1, 1, 1, 1, 0]
+
+        In the 2-bit floating-point field, one subsegment of the
+        floating-point numbers is:
+        1, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32
+            sage: R2 = RealField(2)
+            sage: R2(1).fp_rank_delta(R2(2))
+            2
+            sage: R2(2).fp_rank_delta(R2(1))
+            -2
+            sage: R2(1).fp_rank_delta(R2(1048576))
+            40
+            sage: R2(24).fp_rank_delta(R2(4))
+            -5
+            sage: R2(-4).fp_rank_delta(R2(-24))
+            -5
+
+        There are lots of floating-point numbers around 0:
+            sage: R2(-1).fp_rank_delta(R2(1))
+            4294967298
+        """
+
+        # We create the API for forward compatibility, because it can have
+        # a (somewhat) more efficient implementation than this; but for now,
+        # we just go with the stupid implementation.
+        return other.fp_rank() - self.fp_rank()
 
     ########################
     #   Basic Arithmetic
@@ -1250,18 +1450,18 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: RR(0.49).round()
-            0.000000000000000
+            0
             sage: RR(0.5).round()
-            1.00000000000000
+            1
             sage: RR(-0.49).round()
-            -0.000000000000000
+            0
             sage: RR(-0.5).round()
-            -1.00000000000000
+            -1
          """
         cdef RealNumber x
         x = self._new()
         mpfr_round(x.value, self.value)
-        return x
+        return x.integer_part()
 
     def floor(self):
         """
@@ -1327,16 +1527,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: (2.99).trunc()
-            2.00000000000000
+            2
             sage: (-0.00).trunc()
-            -0.000000000000000
+            0
             sage: (0.00).trunc()
-            0.000000000000000
+            0
         """
         cdef RealNumber x
         x = self._new()
         mpfr_trunc(x.value, self.value)
-        return x
+        return x.integer_part()
 
     def frac(self):
         """
@@ -1593,7 +1793,20 @@ cdef class RealNumber(sage.structure.element.RingElement):
             6125652559
             sage: RealField(5)(-pi).exact_rational()
             -25/8
+
+        TESTS:
+            sage: RR('nan').exact_rational()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
+            sage: RR('-infinity').exact_rational()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
         """
+        if not mpfr_number_p(self.value):
+            raise ValueError, 'Cannot convert NaN or infinity to rational number'
+
         cdef Integer mantissa = Integer()
         cdef mp_exp_t exponent
 
@@ -1721,7 +1934,20 @@ cdef class RealNumber(sage.structure.element.RingElement):
             -21
             sage: check(RRu2(-24))
             -24
+
+        TESTS:
+            sage: RR('nan').simplest_rational()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
+            sage: RR('-infinity').simplest_rational()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
         """
+        if not mpfr_number_p(self.value):
+            raise ValueError, 'Cannot convert NaN or infinity to rational number'
+
         if mpfr_zero_p(self.value):
             return Rational(0)
 
@@ -1804,7 +2030,29 @@ cdef class RealNumber(sage.structure.element.RingElement):
             3
             sage: RR(-3.5).nearby_rational(max_denominator=1)
             -3
+
+        TESTS:
+            sage: RR('nan').nearby_rational(max_denominator=1000)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
+            sage: RR('nan').nearby_rational(max_error=0.01)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
+            sage: RR('infinity').nearby_rational(max_denominator=1000)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
+            sage: RR('infinity').nearby_rational(max_error=0.01)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert NaN or infinity to rational number
         """
+
+        if not mpfr_number_p(self.value):
+            raise ValueError, 'Cannot convert NaN or infinity to rational number'
+
         if ((max_error is None and max_denominator is None) or
             (max_error is not None and max_denominator is not None)):
             raise ValueError, 'Must specify exactly one of max_error or max_denominator in nearby_rational()'
@@ -3300,7 +3548,7 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
         else:
             bits = int(math.log(base,2)*sigfigs)+1
 
-    R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
+    R = RealField_constructor(prec=max(bits+pad, min_prec), rnd=rnd)
     return RealNumber(R, s, base)
 
 
@@ -3314,7 +3562,7 @@ def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
         from real_mpfi import RealIntervalField
         return RealIntervalField(prec, sci_not)
     else:
-        return RealField(prec, sci_not, rnd)
+        return RealField_constructor(prec, sci_not, rnd)
 
 
 def is_RealField(x):

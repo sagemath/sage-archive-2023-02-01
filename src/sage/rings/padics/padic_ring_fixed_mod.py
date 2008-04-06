@@ -36,8 +36,9 @@ The fixed modulus type is the leanest of the p-adic rings: it is basically just 
 p-Adic rings should be created using the creation function Zp as above.  This will ensure that there is only one instance of $\Z_p$ of a given type, p and precision.  It also saves typing very long class names.
     sage: Zp(17,10,'capped-rel')
     17-adic Ring with capped relative precision 10
-    sage: Zp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
-    Lazy 7-adic Ring
+
+    #sage: Zp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
+    #Lazy 7-adic Ring
     sage: R = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); R is S
     True
     sage: Zp(2)
@@ -79,26 +80,13 @@ In addition, there are arrows within each type from higher precision_cap to lowe
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.rings.integer
-import sage.rings.integer_mod_ring
-import sage.rings.padics.padic_ring_base_generic
-#import sage.rings.padics.padic_field_generic
-#import padic_fixed_mod_ring_generic
-import sage.rings.padics.padic_fixed_mod_element
-#import sage.rings.padics.padic_ring_capped_absolute_element
-#import sage.rings.integer_mod
+from sage.rings.integer import Integer
+from sage.rings.integer_mod_ring import Integers
+from sage.rings.padics.padic_ring_base_generic import pAdicRingBaseGeneric
+from sage.rings.padics.padic_fixed_mod_element import pAdicFixedModElement
+from sage.rings.padics.padic_fixed_mod_ring_generic import pAdicFixedModRingGeneric
 
-Integer = sage.rings.integer.Integer
-Integers = sage.rings.integer_mod_ring.IntegerModRing
-#infinity = sage.rings.infinity.infinity
-#pAdicFixedModRingGeneric = padic_fixed_mod_ring_generic.pAdicFixedModRingGeneric
-pAdicRingBaseGeneric = sage.rings.padics.padic_ring_base_generic.pAdicRingBaseGeneric
-#pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
-pAdicFixedModElement = sage.rings.padics.padic_fixed_mod_element.pAdicFixedModElement
-#pAdicCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicCappedAbsoluteElement
-#Mod = sage.rings.integer_mod.Mod
-
-class pAdicRingFixedMod(pAdicRingBaseGeneric):
+class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
     r"""
     An implementation of the p-adic integers using fixed modulus.
     """

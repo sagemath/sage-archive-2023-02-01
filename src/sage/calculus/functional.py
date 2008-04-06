@@ -1,12 +1,55 @@
 """
 Functional notation support for common calculus methods.
+
+EXAMPLES:
+We illustrate each of the calculus functional functions.
+    sage: simplify(x - x)
+    0
+    sage: a = var('a')
+    sage: derivative(x^a + sin(x), x)
+    cos(x) + a*x^(a - 1)
+    sage: diff(x^a + sin(x), x)
+    cos(x) + a*x^(a - 1)
+    sage: derivative(x^a + sin(x), x)
+    cos(x) + a*x^(a - 1)
+    sage: integral(a*x*sin(x), x)
+    a*(sin(x) - x*cos(x))
+    sage: integrate(a*x*sin(x), x)
+    a*(sin(x) - x*cos(x))
+    sage: limit(a*sin(x)/x, x=0)
+    a
+    sage: taylor(a*sin(x)/x, x, 0, 4)
+    a - a*x^2/6 + a*x^4/120
+    sage: expand( (x-a)^3 )
+    x^3 - 3*a*x^2 + 3*a^2*x - a^3
+    sage: laplace( e^(x+a), x, a)
+    e^a/(a - 1)
+    sage: inverse_laplace( e^a/(a-1), x, a)
+    ilt(e^a/(a - 1), x, a)
 """
 
 from calculus import SR, SymbolicExpression, CallableSymbolicExpression
 
 def simplify(f):
-    """
+    r"""
     Simplify the expression $f$.
+
+    EXAMPLES:
+    We simplify the expression $i + x - x$.
+        sage: f = I + x - x; simplify(f)
+        I
+
+    In fact, printing $f$ yields the same thing -- i.e., the simplified form.
+        sage: f
+        I
+
+    Nonetheless $f$ and \code{simplify(f)} have a different type; one remembers
+    that it is constructed as a sum, and the other is really just the
+    simplified expression:
+        sage: type(f)
+        <class 'sage.calculus.calculus.SymbolicArithmetic'>
+        sage: type(simplify(f))
+        <class 'sage.calculus.calculus.SymbolicConstant'>
     """
     try:
         return f.simplify()
@@ -16,6 +59,12 @@ def simplify(f):
 def derivative(f, *args, **kwds):
     """
     The derivative of $f$.
+
+    Repeated differentation is supported by the syntax given in the
+    examples below.
+
+    ALIASES:
+        diff, differentiate
 
     EXAMPLES:
     We differentiate a callable symbolic function:
@@ -33,15 +82,48 @@ def derivative(f, *args, **kwds):
         -t^5 + 5*t^4 - 10*t^3 + 10*t^2 - 5*t + 1
         sage: derivative(f)
         -5*t^4 + 20*t^3 - 30*t^2 + 20*t - 5
+        sage: derivative(f, t)
+        -5*t^4 + 20*t^3 - 30*t^2 + 20*t - 5
+        sage: derivative(f, t, t)
+        -20*t^3 + 60*t^2 - 60*t + 20
+        sage: derivative(f, t, 2)
+        -20*t^3 + 60*t^2 - 60*t + 20
+        sage: derivative(f, 2)
+        -20*t^3 + 60*t^2 - 60*t + 20
 
     We differentiate a symbolic expression:
         sage: var('a x')
         (a, x)
         sage: f = exp(sin(a - x^2))/x
-        sage: diff(f, x)
+        sage: derivative(f, x)
         -2*cos(x^2 - a)*e^(-sin(x^2 - a)) - e^(-sin(x^2 - a))/x^2
-        sage: diff(f, a)
+        sage: derivative(f, a)
         cos(x^2 - a)*e^(-sin(x^2 - a))/x
+
+    Syntax for repeated differentiation:
+        sage: R.<u, v> = PolynomialRing(QQ)
+        sage: f = u^4*v^5
+        sage: derivative(f, u)
+        4*u^3*v^5
+        sage: f.derivative(u)   # can always use method notation too
+        4*u^3*v^5
+
+        sage: derivative(f, u, u)
+        12*u^2*v^5
+        sage: derivative(f, u, u, u)
+        24*u*v^5
+        sage: derivative(f, u, 3)
+        24*u*v^5
+
+        sage: derivative(f, u, v)
+        20*u^3*v^4
+        sage: derivative(f, u, 2, v)
+        60*u^2*v^4
+        sage: derivative(f, u, v, 2)
+        80*u^3*v^3
+        sage: derivative(f, [u, v, v])
+        80*u^3*v^3
+
     """
     try:
         return f.derivative(*args, **kwds)
@@ -222,7 +304,7 @@ def limit(f, dir=None, taylor=False, **argv):
     \sage does not know how to do this limit (which is 0),
     so it returns it unevaluated:
         sage: lim(exp(x^2)*(1-erf(x)), x=infinity)
-        limit(e^x^2 - e^x^2*erf(x), x=+Infinity)
+        limit(e^x^2 - e^x^2*erf(x), x, +Infinity)
     """
     if not isinstance(f, SymbolicExpression):
         f = SR(f)

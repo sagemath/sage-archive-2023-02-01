@@ -6,6 +6,8 @@ from category_types import(
                         Objects,
                         Sets,
                         GSets,
+                        PointedSets,
+                        SetsWithPartialMaps,
                         Semigroups,
                         Monoids,
                         Groupoid,

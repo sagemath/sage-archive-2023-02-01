@@ -1,9 +1,9 @@
 r"""
 Ideals
 
-SAGE provides functionality for computing with ideals.  One can create
-an ideal in any commutative ring $R$ by giving a list of generators,
-using the notation \code{R.ideal([a,b,...])}.
+\SAGE provides functionality for computing with ideals.  One can
+create an ideal in any commutative ring $R$ by giving a list of
+generators, using the notation \code{R.ideal([a,b,...])}.
 """
 
 #*****************************************************************************
@@ -21,6 +21,8 @@ using the notation \code{R.ideal([a,b,...])}.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from types import GeneratorType
+
 import sage.misc.latex as latex
 import sage.rings.ring
 import sage.rings.principal_ideal_domain
@@ -31,12 +33,15 @@ from sage.interfaces.singular import singular as singular_default, is_SingularEl
 import sage.rings.infinity
 from sage.structure.sequence import Sequence
 
+
+
 def Ideal(R, gens=[], coerce=True):
     r"""
     Create the ideal in ring with given generators.
 
-    There are some shorthand notations for creating an ideal, in addition
-    to use the Ideal function:
+    There are some shorthand notations for creating an ideal, in
+    addition to use the Ideal function:
+
     \begin{verbatim}
         --  R.ideal(gens, coerce=True)
         --  gens*R
@@ -69,10 +74,14 @@ def Ideal(R, gens=[], coerce=True):
         Ideal (x^2 - 1, x^2 - 2*x + 1) of Univariate Polynomial Ring in x over Integer Ring
         sage: ideal([x^2-2*x+1, x^2-1])
         Ideal (x^2 - 1, x^2 - 2*x + 1) of Univariate Polynomial Ring in x over Integer Ring
+        sage: l = [x^2-2*x+1, x^2-1]
+        sage: ideal(f^2 for f in l)
+        Ideal (x^4 - 4*x^3 + 6*x^2 - 4*x + 1, x^4 - 2*x^2 + 1) of
+        Univariate Polynomial Ring in x over Integer Ring
 
+    This example illustrates how \SAGE finds a common ambient ring for
+    the ideal, even though 1 is in the integers (in this case).
 
-    This example illustrates how SAGE finds a common ambient ring for the ideal, even though
-    1 is in the integers (in this case).
         sage: R.<t> = ZZ['t']
         sage: i = ideal(1,t,t^2)
         sage: i
@@ -98,7 +107,13 @@ def Ideal(R, gens=[], coerce=True):
     if isinstance(R, Ideal_generic):
         return Ideal(R.ring(), R.gens())
 
-    if isinstance(R, (list, tuple)) and len(R) > 0:
+    if isinstance(R, tuple) and len(R) == 1 and isinstance(R[0], GeneratorType):
+        R = Sequence(R[0])
+        if not isinstance(R.universe(), sage.rings.ring.Ring):
+            raise TypeError, "unable to find common ring into which all ideal generators map"
+        return R[0].parent().ideal(R)
+
+    if isinstance(R, (list, tuple, GeneratorType)) and len(R) > 0:
         R = Sequence(R)
         if not isinstance(R.universe(), sage.rings.ring.Ring):
             raise TypeError, "unable to find common ring into which all ideal generators map"
@@ -145,6 +160,33 @@ def Ideal(R, gens=[], coerce=True):
     return Ideal_generic(R, gens, coerce=False)
 
 def is_Ideal(x):
+    r"""
+    Returns True if object is an ideal of a ring.
+
+    EXAMPLES:
+    A simple example involving the ring of integers. Note that SAGE does
+    not interpret rings objects themselves as ideals. However, one can
+    still explicitly construct these ideals:
+        sage: R = ZZ
+        sage: is_Ideal(R)
+        False
+        sage: 1*R; is_Ideal(1*R)
+        Principal ideal (1) of Integer Ring
+        True
+        sage: 0*R; is_Ideal(0*R)
+        Principal ideal (0) of Integer Ring
+        True
+
+    Sage recognizes ideals of polynomial rings as well:
+        sage: R = PolynomialRing(QQ, 'x'); x = R.gen()
+        sage: I = R.ideal(x^2 + 1); I
+        Principal ideal (x^2 + 1) of Univariate Polynomial Ring in x over Rational Field
+        sage: is_Ideal(I)
+        True
+        sage: is_Ideal((x^2 + 1)*R)
+        True
+
+    """
     return isinstance(x, Ideal_generic)
 
 
@@ -159,7 +201,9 @@ class Ideal_generic(MonoidElement):
         if coerce:
             gens = [ring(x) for x in gens]
 
-        self.__gens = tuple(gens)
+        gens = tuple(gens)
+        if len(gens)==0: gens=(ring.zero_element(),)
+        self.__gens = gens
         MonoidElement.__init__(self, ring.ideal_monoid())
 
     def _repr_short(self):
@@ -212,6 +256,33 @@ class Ideal_generic(MonoidElement):
         return False
 
     def base_ring(self):
+        r"""
+        Returns the base ring of this ideal.
+
+        EXAMPLES:
+            sage: R = ZZ
+            sage: I = 3*R; I
+            Principal ideal (3) of Integer Ring
+            sage: J = 2*I; J
+            Principal ideal (6) of Integer Ring
+            sage: I.base_ring(); J.base_ring()
+            Integer Ring
+            Integer Ring
+
+        We construct an example of an ideal of a quotient ring:
+            sage: R = PolynomialRing(QQ, 'x'); x = R.gen()
+            sage: I = R.ideal(x^2 - 2)
+            sage: I.base_ring()
+            Rational Field
+
+        And p-adic numbers:
+            sage: R = Zp(7, prec=10); R
+            7-adic Ring with capped relative precision 10
+            sage: I = 7*R; I
+            Principal ideal (7 + O(7^11)) of 7-adic Ring with capped relative precision 10
+            sage: I.base_ring()
+            7-adic Ring with capped relative precision 10
+        """
         return self.ring().base_ring()
 
     def _latex_(self):
@@ -221,7 +292,37 @@ class Ideal_generic(MonoidElement):
 
     def ring(self):
         """
-        Return the ring in which this ideal is contained.
+        Returns the ring containing this ideal.
+
+        EXAMPLES:
+            sage: R = ZZ
+            sage: I = 3*R; I
+            Principal ideal (3) of Integer Ring
+            sage: J = 2*I; J
+            Principal ideal (6) of Integer Ring
+            sage: I.ring(); J.ring()
+            Integer Ring
+            Integer Ring
+
+        Note that \code{self.ring()} is different from \code{self.ring()}
+            sage: R = PolynomialRing(QQ, 'x'); x = R.gen()
+            sage: I = R.ideal(x^2 - 2)
+            sage: I.base_ring()
+            Rational Field
+            sage: I.ring()
+            Univariate Polynomial Ring in x over Rational Field
+
+        Another example using polynomial rings:
+            sage: R = PolynomialRing(QQ, 'x'); x = R.gen()
+            sage: I = R.ideal(x^2 - 3)
+            sage: I.ring()
+            Univariate Polynomial Ring in x over Rational Field
+            sage: Rbar = R.quotient(I, names='a')
+            sage: S = PolynomialRing(Rbar, 'y'); y = Rbar.gen(); S
+            Univariate Polynomial Ring in y over Univariate Quotient Polynomial Ring in a over Rational Field with modulus x^2 - 3
+            sage: J = S.ideal(y^2 + 1)
+            sage: J.ring()
+            Univariate Polynomial Ring in y over Univariate Quotient Polynomial Ring in a over Rational Field with modulus x^2 - 3
         """
         return self.__ring
 
@@ -271,12 +372,57 @@ class Ideal_generic(MonoidElement):
         return self.gens()
 
     def is_maximal(self):
+        r"""
+        Returns True if the ideal is maximal in the ring containing the ideal.
+
+        TODO: Make self.is_maximal() work! Write this code!
+
+        EXAMPLES:
+            sage: R = ZZ
+            sage: I = R.ideal(7)
+            sage: I.is_maximal()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def is_prime(self):
+        r"""
+        Returns True if the ideal is prime in the ring containing the ideal.
+
+        TODO: Make self.is_prime() work! Write this code!
+
+        EXAMPLES:
+            sage: R = ZZ[x]
+            sage: I = R.ideal(7)
+            sage: I.is_prime()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def is_principal(self):
+        r"""
+        Returns True if the ideal is principal in the ring containing the
+        ideal.
+
+        TODO: Code is naive. Only keeps track of ideal generators as set
+        during intiialization of the ideal. (Can the base ring change? See
+        example below.)
+
+        EXAMPLES:
+            sage: R = ZZ[x]
+            sage: I = R.ideal(2,x)
+            sage: I.is_principal()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: J = R.base_extend(QQ).ideal(2,x)
+            sage: J.is_principal()
+            True
+        """
         if len(self.gens()) <= 1:
             return True
         raise NotImplementedError
@@ -321,6 +467,19 @@ class Ideal_generic(MonoidElement):
         """
         Return the category of this ideal.
 
+        EXAMPLES:
+        Note that category is dependent on the ring of the ideal.
+            sage: I = ZZ.ideal(7)
+            sage: J = ZZ[x].ideal(7,x)
+            sage: K = ZZ[x].ideal(7)
+            sage: I.category()
+            Category of ring ideals in Integer Ring
+            sage: J.category()
+            Category of ring ideals in Univariate Polynomial Ring in x
+            over Integer Ring
+            sage: K.category()
+            Category of ring ideals in Univariate Polynomial Ring in x
+            over Integer Ring
 
         """
         import sage.categories.all
@@ -358,9 +517,61 @@ class Ideal_principal(Ideal_generic):
         return "Principal ideal (%s) of %s"%(self.gen(), self.ring())
 
     def is_principal(self):
+        r"""
+        Returns True if the ideal is principal in the ring containing the
+        ideal. When the ideal construction is explicitly principal (i.e.
+        when we define an ideal with one element) this is always the case.
+
+        EXAMPLES:
+        Note that SAGE automatically coerces ideals into principals ideals
+        during initialization:
+            sage: R = ZZ[x]
+            sage: I = R.ideal(x)
+            sage: J = R.ideal(2,x)
+            sage: K = R.base_extend(QQ).ideal(2,x)
+            sage: I
+            Principal ideal (x) of Univariate Polynomial Ring in x
+            over Integer Ring
+            sage: J
+            Ideal (2, x) of Univariate Polynomial Ring in x over Integer Ring
+            sage: K
+            Principal ideal (1) of Univariate Polynomial Ring in x
+            over Rational Field
+            sage: I.is_principal()
+            True
+            sage: K.is_principal()
+            True
+        """
         return True
 
     def gen(self):
+        r"""
+        Returns the generator of the principal ideal. The generators are
+        elements of the ring containing the ideal.
+
+        EXAMPLES:
+        A simple example in the integers:
+            sage: R = ZZ
+            sage: I = R.ideal(7)
+            sage: J = R.ideal(7, 14)
+            sage: I.gen(); J.gen()
+            7
+            7
+
+        Note that the generator belongs to the ring from which the
+        ideal was initialized:
+            sage: R = ZZ[x]
+            sage: I = R.ideal(x)
+            sage: J = R.base_extend(QQ).ideal(2,x)
+            sage: a = I.gen(); a
+            x
+            sage: b = J.gen(); b
+            1
+            sage: a.base_ring()
+            Integer Ring
+            sage: b.base_ring()
+            Rational Field
+        """
         return self.gens()[0]
 
     def __contains__(self, x):
@@ -447,6 +658,46 @@ class Ideal_pid(Ideal_principal):
         return r
 
     def gcd(self, other):
+        r"""
+        Returns the greatest common divisor of the principal ideal with the
+        ideal \code{other}; that is, the largest principal ideal contained in
+        both the ideal and \code{other}
+
+        TODO: This is not implemented in the case when \code{other} is
+        neither principal nor when the generator of \code{self} is contained
+        in \code{other}. Also, it seems that this class is used only in
+        PIDs---is this redundant? Note: second example is broken.
+
+        EXAMPLES:
+        An example in the principal ideal domain ZZ:
+            sage: R = ZZ
+            sage: I = R.ideal(42)
+            sage: J = R.ideal(70)
+            sage: I.gcd(J)
+            Principal ideal (14) of Integer Ring
+            sage: J.gcd(I)
+            Principal ideal (14) of Integer Ring
+
+        TESTS:
+        We cannot take the gcd of a principal ideal with a non-principal
+        ideal as well: ( gcd(I,J) should be (7) )
+            sage: I = ZZ.ideal(7)
+            sage: J = ZZ[x].ideal(7,x)
+            sage: I.gcd(J)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: J.gcd(I)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'Ideal_generic' object has no attribute 'gcd'
+
+        Note:
+            sage: type(I)
+            <class 'sage.rings.ideal.Ideal_pid'>
+            sage: type(J)
+            <class 'sage.rings.ideal.Ideal_generic'>
+        """
         if isinstance(other, Ideal_principal):
             return self.ring().ideal(self.gen().gcd(other.gen()))
         elif self.gen() in other:
@@ -454,9 +705,38 @@ class Ideal_pid(Ideal_principal):
         else:
             raise NotImplementedError
 
+    def is_prime(self):
+        """
+        Returns True if the ideal is prime.  This relies on the ring
+        elements having a method is_irreducible() implemented, since
+        an ideal (a) is prime iff a is irreducible (or 0)
+
+        EXAMPLES:
+            sage: ZZ.ideal(2).is_prime()
+            True
+            sage: ZZ.ideal(-2).is_prime()
+            True
+            sage: ZZ.ideal(4).is_prime()
+            False
+            sage: ZZ.ideal(0).is_prime()
+            True
+            sage: R.<x>=QQ[]
+            sage: P=R.ideal(x^2+1); P
+            Principal ideal (x^2 + 1) of Univariate Polynomial Ring in x over Rational Field
+            sage: P.is_prime()
+            True
+
+        """
+        if self.is_zero(): # PIDs are integral domains by definition
+            return True
+        g = self.gen()
+        if hasattr(g, 'is_irreducible'):
+            return g.is_irreducible()
+
+        raise NotImplementedError
+
+
 class Ideal_fractional(Ideal_generic):
-    def __init__(self, ring, gen):
-        Ideal_generic.__init__(self, ring, [gen])
     def __repr__(self):
         return "Fractional ideal %s of %s"%(self._repr_short(), self.ring())
 
@@ -467,7 +747,7 @@ class Ideal_fractional(Ideal_generic):
 
 def Cyclic(R, n=None, homog=False, singular=singular_default):
     """
-    ideal of cyclic n-roots from 1-st n variables of R if R is
+    Ideal of cyclic n-roots from 1-st n variables of R if R is
     coercable to Singular. If n==None n is set to R.ngens()
 
     INPUT:
@@ -478,7 +758,27 @@ def Cyclic(R, n=None, homog=False, singular=singular_default):
         singular -- singular instance to use
 
     \note{R will be set as the active ring in Singular}
+
+    EXAMPLES:
+    An example from a multivariate polynomial ring over the rationals:
+        sage: P.<x,y,z> = PolynomialRing(QQ,3,order='lex')
+        sage: I = sage.rings.ideal.Cyclic(P)
+        sage: I
+        Ideal (x + y + z, x*y + x*z + y*z, x*y*z - 1) of Multivariate Polynomial
+        Ring in x, y, z over Rational Field
+        sage: I.groebner_basis()
+        [z^3 - 1, y^2 + y*z + z^2, x + y + z]
+
+    We compute a Groebner basis for cyclic 6, which is a standard
+    benchmark and test ideal:
+        sage: R.<x,y,z,t,u,v> = QQ['x,y,z,t,u,v']
+        sage: I = sage.rings.ideal.Cyclic(R,6)
+        sage: B = I.groebner_basis()
+        sage: len(B)
+        45
     """
+    from rational_field import RationalField
+
     if n:
         if n > R.ngens():
             raise ArithmeticError, "n must be <= R.ngens()"
@@ -486,13 +786,14 @@ def Cyclic(R, n=None, homog=False, singular=singular_default):
         n = R.ngens()
 
     singular.lib("poly")
-    R._singular_().set_ring()
+    R2 = R.change_ring(RationalField())
+    R2._singular_().set_ring()
+
     if not homog:
         I = singular.cyclic(n)
     else:
-        I = singular.cyclic(n).homog(R.gen(n-1))
-    return R.ideal(I)
-
+        I = singular.cyclic(n).homog(R2.gen(n-1))
+    return R2.ideal(I).change_ring(R)
 
 def Katsura(R, n=None, homog=False, singular=singular_default):
     """
@@ -505,29 +806,57 @@ def Katsura(R, n=None, homog=False, singular=singular_default):
         homog -- if True a homogenous ideal is returned using the last
                  variable in the ideal (default: False)
         singular -- singular instance to use
+
+    EXAMPLES:
+        sage: P.<x,y,z> = PolynomialRing(QQ,3)
+        sage: I = sage.rings.ideal.Katsura(P,3); I
+        Ideal (x + 2*y + 2*z - 1, x^2 + 2*y^2 + 2*z^2 - x, 2*x*y + 2*y*z - y)
+        of Multivariate Polynomial Ring in x, y, z over Rational Field
+
+        sage: Q.<x> = PolynomialRing(QQ,1)
+        sage: J = sage.rings.ideal.Katsura(Q,1); J
+        Ideal (x - 1) of Multivariate Polynomial Ring in x over Rational Field
     """
+    from rational_field import RationalField
     if n:
         if n > R.ngens():
-            raise ArithmeticError, "n must be <= R.ngens()"
+            raise ArithmeticError, "n must be <= R.ngens()."
     else:
         n = R.ngens()
     singular.lib("poly")
-    R._singular_().set_ring()
+    R2 = R.change_ring(RationalField())
+    R2._singular_().set_ring()
+
     if not homog:
         I = singular.katsura(n)
     else:
-        I = singular.katsura(n).homog(R.gen(n-1))
-    return R.ideal(I)
+        I = singular.katsura(n).homog(R2.gen(n-1))
+    return R2.ideal(I).change_ring(R)
 
 def FieldIdeal(R):
     """
     Let q = R.base_ring().order() and (x0,...,x_n) = R.gens() then if
     q is finite this constructor returns
 
-    $\langle x_0^q - x_0, \dots , x_n^q - x_n \rangle.$
+    $< x_0^q - x_0, ... , x_n^q - x_n >.$
 
     We call this ideal the field ideal and the generators the field
     equations.
+
+    EXAMPLES:
+    The Field Ideal generated from the polynomial ring over two variables
+    in the finite field of size 2:
+        sage: P.<x,y> = PolynomialRing(GF(2),2)
+        sage: I = sage.rings.ideal.FieldIdeal(P); I
+        Ideal (x^2 + x, y^2 + y) of Multivariate Polynomial Ring in x, y over
+        Finite Field of size 2
+
+    Antoher, similar example:
+        sage: Q.<x1,x2,x3,x4> = PolynomialRing(GF(2^4,name='alpha'), 4)
+        sage: J = sage.rings.ideal.FieldIdeal(Q); J
+        Ideal (x1^16 + x1, x2^16 + x2, x3^16 + x3, x4^16 + x4) of
+        Multivariate Polynomial Ring in x1, x2, x3, x4 over Finite
+        Field in alpha of size 2^4
     """
 
     q = R.base_ring().order()

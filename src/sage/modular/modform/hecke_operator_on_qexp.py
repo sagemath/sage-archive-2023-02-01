@@ -86,6 +86,13 @@ def _hecke_operator_on_basis(B, V, n, k, eps):
         sage: hecke_operator_on_basis(ModularForms(1,16).q_expansion_basis(30), 3, 16) # indirect doctest
         [   -3348        0]
         [       0 14348908]
+
+    The following used to cause a segfault due to acidentally transposed second and third argument (#2107):
+        sage: B = victor_miller_basis(100,30)
+        sage: t2 = hecke_operator_on_basis(B, 100, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: basis vectors must be linearly independent.
     """
     prec = V.degree()
     TB = [hecke_operator_on_qexp(f, n, k, eps, prec, check=False, _return_list=True)

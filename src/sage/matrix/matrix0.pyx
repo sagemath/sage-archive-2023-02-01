@@ -21,6 +21,8 @@ EXAMPLES:
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
 include "../ext/python.pxi"
+include "../ext/python_object.pxi"
+include "../ext/python_slice.pxi"
 
 import sage.modules.free_module
 import sage.misc.latex
@@ -40,7 +42,9 @@ import sage.modules.free_module
 
 import matrix_misc
 
-
+cdef extern from "Python.h":
+    bint PyList_CheckExact(PyObject* p)
+    bint PySlice_Check(PyObject* ob)
 
 cdef class Matrix(sage.structure.element.Matrix):
     r"""
@@ -488,8 +492,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         Return element, row, or slice of self.
 
         INPUT:
-            key -- tuple (i,j) with i, j integers
-         or key -- slice object, created via [i:j]
+            key -- tuple (i,j) where i, j can be integers, slices or lists
 
         USAGE:
             A[i, j] -- the i,j of A, or
@@ -526,6 +529,177 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             IndexError: matrix index out of range
 
+            sage: a[2.7]
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.rings.real_mpfr.RealNumber' object cannot be interpreted as an index
+
+            sage: m=[(1, -2, -1, -1,9), (1, 8, 6, 2,2), (1, 1, -1, 1,4), (-1, 2, -2, -1,4)];M= matrix(m)
+            sage: M
+            [ 1 -2 -1 -1  9]
+            [ 1  8  6  2  2]
+            [ 1  1 -1  1  4]
+            [-1  2 -2 -1  4]
+
+            Get The 2 x 2 submatrix of M, starting at row index and column
+            index 1
+            sage: M[1:3,1:3]
+            [ 8  6]
+            [ 1 -1]
+
+            Get the 2 x 3 submatrix of M starting at row index and column
+            index 1:
+            sage: M[1:3,[1..3]]
+            [ 8  6  2]
+            [ 1 -1  1]
+
+            Get the second column of M:
+            sage: M[1:,0]
+            [ 1]
+            [ 1]
+            [-1]
+
+            Get the first row of M:
+            sage: M[0,:]
+            [ 1 -2 -1 -1  9]
+
+            More examples:
+            sage: M[range(2),:]
+            [ 1 -2 -1 -1  9]
+            [ 1  8  6  2  2]
+            sage: M[range(2),4]
+            [9]
+            [2]
+            sage: M[range(3),range(5)]
+            [ 1 -2 -1 -1  9]
+            [ 1  8  6  2  2]
+            [ 1  1 -1  1  4]
+
+            sage: M[3,range(5)]
+            [-1  2 -2 -1  4]
+            sage: M[3,:]
+            [-1  2 -2 -1  4]
+            sage: M[3,4]
+            4
+
+            sage: A = matrix(ZZ,3,4, [3, 2, -5, 0, 1, -1, 1, -4, 1, 0, 1, -3]); A
+            [ 3  2 -5  0]
+            [ 1 -1  1 -4]
+            [ 1  0  1 -3]
+
+            sage: A[:,0:4:2]
+            [ 3 -5]
+            [ 1  1]
+            [ 1  1]
+
+            sage: A[1:,0:4:2]
+            [1 1]
+            [1 1]
+
+            sage: A[2:-1:-1,:]
+            [ 1  0  1 -3]
+            [ 1 -1  1 -4]
+            [ 3  2 -5  0]
+
+            sage: A[1:,3:-1:-1]
+            [-4  1 -1  1]
+            [-3  1  0  1]
+
+            sage: A[1:,3:-1:-2]
+            [-4 -1]
+            [-3  0]
+
+            sage: A[2:-1:-1,3:1:-1]
+            [-3  1]
+            [-4  1]
+            [ 0 -5]
+
+        """
+        cdef PyObject* ts1
+        cdef PyObject* ts2
+        cdef object s1, s2
+        cdef Py_ssize_t ss1, ss2
+        cdef int stop
+
+        if PyTuple_CheckExact(key):
+            if PyTuple_GET_SIZE(key) != 2:
+                raise IndexError, "index must be an integer or pair of integers"
+
+            ts1 = PyTuple_GET_ITEM(key, 0)
+            ts2 = PyTuple_GET_ITEM(key, 1)
+
+            if not (PyList_CheckExact(ts1) | PySlice_Check(ts1) ) and \
+                    not (PyList_CheckExact(ts2) | PySlice_Check(ts2)):
+                    ss1 = <object>ts1
+                    ss2 = <object>ts2
+                    if ss1<0 or ss1 >= self._nrows or ss2<0 or ss2 >= self._ncols:
+                        raise IndexError, "matrix index out of range"
+                    return self.get_unsafe(ss1, ss2)
+            s1 = <object>ts1
+            s2 = <object>ts2
+
+            if PyList_CheckExact(ts1):
+                row_range = list(set(s1))
+
+            elif PySlice_Check(ts1):
+                stop = self._nrows
+                if s1.stop is not None:
+                    stop = s1.stop
+
+                row_range = range( s1.start or 0, min(stop ,self._nrows) , s1.step or 1 )
+
+            else:
+                row_range = [s1]
+
+            if PyList_CheckExact(ts2):
+                col_range = list(set(s2))
+
+            elif PySlice_Check(ts2):
+                stop = self._ncols
+                if s2.stop is not None:
+                    stop = s2.stop
+
+                col_range = range(s2.start or 0,min(stop , self._ncols), s2.step or 1 )
+
+            else:
+                col_range = [s2]
+
+            if max(row_range) >= self._nrows or max(col_range)>= self._ncols:
+                raise IndexError, "Row or column out of range"
+
+            return self.matrix_from_rows_and_columns(row_range,col_range)
+
+        # Else, just return this row
+        r = self.row(key)
+        r.set_immutable()
+        return r
+
+    def __getslice__(self,i,j):
+        """
+        Get a slice of this matrix
+        USAGE:
+           A[i:j]  -- the i-th through (j-1)-st rows of A.
+
+        EXAMPLES:
+            sage: m=[(1, -2, -1, -1), (1, 8, 6, 2), (1, 1, -1, 1), (-1, 2, -2, -1)]
+            sage: M= matrix(m);M
+            [ 1 -2 -1 -1]
+            [ 1  8  6  2]
+            [ 1  1 -1  1]
+            [-1  2 -2 -1]
+
+            sage: M[:2]
+            [ 1 -2 -1 -1]
+            [ 1  8  6  2]
+            sage: M[:]
+            [ 1 -2 -1 -1]
+            [ 1  8  6  2]
+            [ 1  1 -1  1]
+            [-1  2 -2 -1]
+            sage: M[1:3]
+            [ 1  8  6  2]
+            [ 1  1 -1  1]
+
             sage: n=10;a=matrix(QQ,n,range(n^2))
             sage: a[0:3]
             [ 0  1  2  3  4  5  6  7  8  9]
@@ -538,36 +712,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             [80 81 82 83 84 85 86 87 88 89]
             [90 91 92 93 94 95 96 97 98 99]
 
-            sage: a[-1]
-            (90, 91, 92, 93, 94, 95, 96, 97, 98, 99)
-
-            sage: a[2.7]
-            Traceback (most recent call last):
-            ...
-            TypeError: 'sage.rings.real_mpfr.RealNumber' object cannot be interpreted as an index
         """
-        cdef Py_ssize_t i, j
-        cdef object x
-
-        if PyTuple_Check(key):
-            # key is a tuple, so we get i and j efficiently, construct corresponding integer entry.
-            if PyTuple_Size(key) != 2:
-                raise IndexError, "index must be an integer or pair of integers"
-            i = <object> PyTuple_GET_ITEM(key, 0)
-            j = <object> PyTuple_GET_ITEM(key, 1)
-            self.check_bounds(i, j)
-            return self.get_unsafe(i, j)
-
-        elif isinstance(key, slice):
-            # Slice interpretation is passed to the sequence constructed by range
-            return self.matrix_from_rows(range(0, self._nrows).__getitem__(key))
-
-        else:
-            # If key is not a tuple, coerce to an integer and get the row.
-            r = self.row(key)
-            r.set_immutable()
-            return r
-
+        #self.check_bounds(i,j)
+        return self.matrix_from_rows(range(min(i,self._nrows),min(j,self._nrows)))
 
     def __setitem__(self, ij, x):
         """
@@ -700,8 +847,11 @@ cdef class Matrix(sage.structure.element.Matrix):
                 return self
             return self.copy()
 
-        M = sage.matrix.matrix_space.MatrixSpace(ring, self._nrows, self._ncols, sparse=self.is_sparse())
-        return M(self.list(), coerce=True, copy=False)
+        try:
+            return self._change_ring(ring)
+        except (AttributeError, NotImplementedError):
+            M = sage.matrix.matrix_space.MatrixSpace(ring, self._nrows, self._ncols, sparse=self.is_sparse())
+            return M(self.list(), coerce=True, copy=False)
 
     def _matrix_(self, R):
         """
@@ -836,8 +986,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: b = a*a
             sage: latex(b)
             \left(\begin{array}{rr}
-            z_{0}^{2} + z_{1}z_{2} & z_{0}z_{1} + z_{1}z_{3} \\
-            z_{0}z_{2} + z_{2}z_{3} & z_{1}z_{2} + z_{3}^{2}
+            z_{0}^{2} + z_{1} z_{2} & z_{0} z_{1} + z_{1} z_{3} \\
+            z_{0} z_{2} + z_{2} z_{3} & z_{1} z_{2} + z_{3}^{2}
             \end{array}\right)
         """
         cdef Py_ssize_t nr, nc, r, c

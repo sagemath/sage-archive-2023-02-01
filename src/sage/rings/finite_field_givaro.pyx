@@ -1,5 +1,5 @@
 r"""
-Finite Non-prime Fields of cardinality up to $2^{16}$
+Finite Extension Fields of cardinality up to $2^{16}$
 
 SAGE includes the Givaro finite field library, for highly optimized
 arithmetic in finite fields.
@@ -14,7 +14,7 @@ using the PARI implementation.
 
 EXAMPLES:
     sage: k = GF(5); type(k)
-    <class 'sage.rings.finite_field.FiniteField_prime_modn'>
+    <class 'sage.rings.finite_field_prime_modn.FiniteField_prime_modn'>
     sage: k = GF(5^2,'c'); type(k)
     <type 'sage.rings.finite_field_givaro.FiniteField_givaro'>
     sage: k = GF(2^16,'c'); type(k)
@@ -68,6 +68,7 @@ cdef extern from "stdsage.h":
     void init_csage()
 #init_csage()
 
+from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.ring cimport FiniteField
 from sage.rings.ring cimport Ring
 from sage.structure.element cimport FiniteFieldElement, Element, RingElement, ModuleElement
@@ -367,8 +368,9 @@ cdef class FiniteField_givaro(FiniteField):
             sage: type(e)
             <type 'sage.rings.finite_field_givaro.FiniteField_givaroElement'>
         """
+        cdef int seed = current_randstate().c_random()
         cdef int res
-        cdef GivRandom generator
+        cdef GivRandom generator = GivRandomSeeded(seed)
         res = self.objectptr.random(generator,res)
         return make_FiniteField_givaroElement(self,res)
 
@@ -419,9 +421,46 @@ cdef class FiniteField_givaro(FiniteField):
             sage: k('a^2+1')
             a^2 + 1
 
+        Univariate polynomials coerce into finite fields by evaluating
+        the polynomial at the field's generator:
+            sage: from sage.rings.finite_field_givaro import FiniteField_givaro
+            sage: R.<x> = QQ[]
+            sage: k, a = FiniteField_givaro(5^2, 'a').objgen()
+            sage: k(R(2/3))
+            4
+	    sage: k(x^2)
+	    a + 3
+            sage: R.<x> = GF(5)[]
+            sage: k(x^3-2*x+1)
+            2*a + 4
+
+            sage: x = polygen(QQ)
+            sage: k(x^25)
+            a
+
+            sage: Q, q = FiniteField_givaro(5^3,'q').objgen()
+            sage: L = GF(5)
+            sage: LL.<xx> = L[]
+            sage: Q(xx^2 + 2*xx + 4)
+            q^2 + 2*q + 4
+
+
+        Multivariate polynomials only coerce if constant:
+            sage: R = k['x,y,z']; R
+            Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 5^2
+            sage: k(R(2))
+            2
+            sage: R = QQ['x,y,z']
+            sage: k(R(1/5))
+            Traceback (most recent call last):
+            ...
+	    ZeroDivisionError: division by zero in finite field.
+
+
             PARI elements are interpreted as finite field elements; this PARI flexibility
             is (absurdly!) liberal:
 
+            sage: k = GF(2**8, 'a')
             sage: k(pari('Mod(1,2)'))
             1
             sage: k(pari('Mod(2,3)'))
@@ -497,11 +536,17 @@ cdef class FiniteField_givaro(FiniteField):
                 ret = ret + self(int(e[i]))*self.gen()**i
             return ret
 
-        elif PY_TYPE_CHECK(e, MPolynomial) or PY_TYPE_CHECK(e, Polynomial):
+        elif PY_TYPE_CHECK(e, MPolynomial):
             if e.is_constant():
                 return self(e.constant_coefficient())
             else:
                 raise TypeError, "no coercion defined"
+
+        elif PY_TYPE_CHECK(e, Polynomial):
+            if e.is_constant():
+                return self(e.constant_coefficient())
+            else:
+                return e(self.gen())
 
         elif PY_TYPE_CHECK(e, Rational):
             num = e.numer()
@@ -516,8 +561,8 @@ cdef class FiniteField_givaro(FiniteField):
             e = e._pari_()
 
         elif sage.interfaces.gap.is_GapElement(e):
-            from sage.rings.finite_field import gap_to_sage
-            return gap_to_sage(e, self)
+            from sage.interfaces.gap import gfq_gap_to_sage
+            return gfq_gap_to_sage(e, self)
 
         else:
             raise TypeError, "unable to coerce"
@@ -570,7 +615,8 @@ cdef class FiniteField_givaro(FiniteField):
         r"""
         Return a generator of self. All elements x of self are
         expressed as $\log_{self.gen()}(p)$ internally. If self is
-        a prime field this method returns 1.
+        a prime field this method returns a generator of the
+        multiplicative group (i.e., a  primitive root).
 
         EXAMPLES:
             sage: k = GF(3^4, 'b'); k.gen()
@@ -579,6 +625,11 @@ cdef class FiniteField_givaro(FiniteField):
             Traceback (most recent call last):
             ...
             IndexError: only one generator
+	    sage: F=sage.rings.finite_field_givaro.FiniteField_givaro(31)
+	    sage: F.gen()
+	    3
+	    sage: F.gen().multiplicative_order()
+	    30
         """
         if n > 0:
             raise IndexError, "only one generator"
@@ -608,7 +659,7 @@ cdef class FiniteField_givaro(FiniteField):
             sage: S.prime_subfield()
             Finite Field of size 5
             sage: type(S.prime_subfield())
-            <class 'sage.rings.finite_field.FiniteField_prime_modn'>
+            <class 'sage.rings.finite_field_prime_modn.FiniteField_prime_modn'>
         """
         return self.prime_subfield_C()
 
@@ -1657,9 +1708,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: a.log(b)
             7
         """
-        q = (<FiniteField_givaro> self.parent()).order_c() - 1
+        q = (<FiniteField_givaro> self.parent()).order()
         b = self.parent()(base)
-        return sage.rings.arith.discrete_log_generic(self, b, q)
+        return sage.groups.generic.discrete_log(self, b, q-1)
 
     def int_repr(FiniteField_givaroElement self):
         r"""

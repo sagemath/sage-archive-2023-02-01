@@ -22,6 +22,7 @@ This system should all be mostly usable from the SAGE notebook.
 
 ########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#                     2007 Jonathan Hanke <jonhanke@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -34,6 +35,9 @@ from   viewer import browser
 from   misc   import tmp_filename, branch_current_hg
 from   remote_file import get_remote_file as get_remote_file0
 from   sage.server.misc import print_open_msg
+import re
+
+sage_trac_re = re.compile('http[s]?://(sagetrac\.org|trac\.sagemath\.org)/sage_trac/attachment/ticket/[0-9]+/.*\.(patch|hg)')
 
 def get_remote_file(f, **kwds):
     """
@@ -83,20 +87,23 @@ class HG:
             cd <SAGE_ROOT>/devel/sage/ && hg command line arguments
     \end{verbatim}
     """
-    def __init__(self, dir, name, url, target=None, cloneable=False, obj_name=''):
+    def __init__(self, dir, name, pull_url, push_url, target=None, cloneable=False, obj_name=''):
         """
         INPUT:
             dir -- directory that will contain the repository
             name -- a friendly name for the repository (only used for printing)
-            url -- a default URL to pull or record sends against (e.g.,
+            pull_url -- a default URL to pull or record sends against (e.g.,
                    this could be a master repository on modular.math.washington.edu)
+            push_url -- a default URL to push or record outgoing changes against (e.g.,
+                   this could be a local repository on your favorite computer)
             target -- if the last part of dir is, e.g., sage-hg,
                       create a symlink from sage-hg to target.
                       If target=None, this symlink will not be created.
         """
         self.__dir = os.path.abspath(dir)
         self.__name = name
-        self.__url = url
+        self.__pull_url = pull_url
+        self.__push_url = push_url
         self.__initialized = False
         self.__target = target
         self.__cloneable = cloneable
@@ -104,6 +111,34 @@ class HG:
 
     def __repr__(self):
         return "Hg repository '%s' in directory %s"%(self.__name, self.__dir)
+
+
+    def current_branch(self, print_flag=True):
+        """
+        Lists the current branch.
+        """
+        branch_name = branch_current_hg()
+        if print_flag:
+            print "The current branch is: " + branch_name
+        else:
+            return branch_name
+
+    def list_branches(self, print_flag=True):
+        """
+        Print all branches in the current SAGE installation.
+        """
+        try:
+            tmp_branch_list = [s[5:]  for s in os.listdir(SAGE_ROOT + "/devel")  if s.startswith("sage-")]
+        except:
+            raise RuntimeError, "Oops!  We had trouble...  Check that SAGE_ROOT gives the correct directory."
+
+        if print_flag:
+            print "Branches found:"
+            for s in tmp_branch_list:
+                print "    " + s
+        else:
+            return tmp_branch_list
+
 
     def status(self):
         print("Getting status of modified or unknown files:")
@@ -218,6 +253,8 @@ class HG:
              update -- if True (the default), update the working directory after unbundling.
         """
         if bundle.startswith("http://") or bundle.startswith("https://"):
+            if sage_trac_re.match(bundle) and not bundle.endswith('?format=raw'):
+                bundle += '?format=raw'
             bundle = get_remote_file(bundle, verbose=True)
         if bundle[-6:] == '.patch':
             self.import_patch(bundle, options)
@@ -578,11 +615,17 @@ class HG:
         """
         return self.__dir
 
-    def url(self):
+    def pull_url(self):
         """
         Return the default 'master url' for this repository.
         """
-        return self.__url
+        return self.__pull_url
+
+    def push_url(self):
+        """
+        Return the default url for uploading this repository.
+        """
+        return self.__push_url
 
 
     def help(self, cmd=''):
@@ -600,17 +643,17 @@ class HG:
         """
         Use this to find changsets that are in your branch, but not in the
         specified destination repository. If no destination is specified, the
-        official repository is used.
+        official repository is used.  By default, push_url() is used.
 
         From the Mercurial documentation:
             Show changesets not found in the specified destination repository or the
             default push location. These are the changesets that would be pushed if
             a push was requested.
 
-            See pull() for valid destination format details.
+            See push() for valid destination format details.
 
         INPUT:
-            url:  default: self.url() -- the official repository
+            url:  default: self.push_url() -- the official repository
                    * http://[user@]host[:port]/[path]
                    * https://[user@]host[:port]/[path]
                    * ssh://[user@]host[:port]/[path]
@@ -628,7 +671,7 @@ class HG:
                     --remotecmd     specify hg command to run on the remote side
         """
         if url is None:
-            url = self.__url
+            url = self.__push_url
 
         if not '/' in url:
             url = '%s/devel/sage-%s'%(SAGE_ROOT, url)
@@ -642,7 +685,7 @@ class HG:
         specified.
 
         INPUT:
-            url:  default: self.url() -- the official repository
+            url:  default: self.pull_url() -- the official repository
                    * http://[user@]host[:port]/[path]
                    * https://[user@]host[:port]/[path]
                    * ssh://[user@]host[:port]/[path]
@@ -673,7 +716,7 @@ class HG:
         self._ensure_safe()
 
         if url is None:
-            url = self.__url
+            url = self.__pull_url
         if not '/' in url:
             url = '%s/devel/sage-%s'%(SAGE_ROOT, url)
 
@@ -686,6 +729,48 @@ class HG:
 
         print "If it says use 'hg merge' above, then you should"
         print "type hg_%s.merge()."%self.__obj_name
+
+    def push(self, url=None, options=''):
+        """
+        Push all new patches from the repository to the given destination.
+
+        INPUT:
+            url:  default: self.push_url() -- the official repository
+                   * http://[user@]host[:port]/[path]
+                   * https://[user@]host[:port]/[path]
+                   * ssh://[user@]host[:port]/[path]
+                   * local directory (starting with a /)
+                   * name of a branch (for hg_sage); no /'s
+            options: (default: '')
+                 -e --ssh        specify ssh command to use
+                 -f --force      run even when remote repository is unrelated
+                 -r --rev        a specific revision you would like to pull
+                 --remotecmd  specify hg command to run on the remote side
+
+        Some notes about using SSH with Mercurial:
+        - SSH requires an accessible shell account on the destination machine
+          and a copy of hg in the remote path or specified with as remotecmd.
+        - path is relative to the remote user's home directory by default.
+          Use an extra slash at the start of a path to specify an absolute path:
+            ssh://example.com//tmp/repository
+        - Mercurial doesn't use its own compression via SSH; the right thing
+          to do is to configure it in your ~/.ssh/ssh_config, e.g.:
+            Host *.mylocalnetwork.example.com
+              Compression off
+            Host *
+              Compression on
+          Alternatively specify "ssh -C" as your ssh command in your hgrc or
+          with the --ssh command line option.
+        """
+        self._ensure_safe()
+
+        if url is None:
+            url = self.__push_url
+        if not '/' in url:
+            url = '%s/devel/sage-%s'%(SAGE_ROOT, url)
+
+        self('push %s %s'%(options, url))
+
 
     def merge(self, options=''):
         """
@@ -875,8 +960,8 @@ class HG:
     def bundle(self, filename, options='', url=None, base=None, to=None):
         r"""
         Create an hg changeset bundle with the given filename against the
-        repository at the given url (which is by default the
-        'official' SAGE repository).
+        repository at the given url (which is by default the 'official'
+        SAGE repository, unless push_url() is changed in a setup file).
 
         If you have internet access, it's best to just do
         \code{hg_sage.bundle(filename)}.  If you don't
@@ -893,7 +978,7 @@ class HG:
         INPUT:
             filename -- output file in which to put bundle
             options -- pass to hg
-            url -- url to bundle against (default: SAGE_SERVER)
+            url -- url to bundle against (default: SAGE_SERVER, or push_url())
             base -- a base changeset revision number to bundle
                     against (doesn't require internet access)
         """
@@ -902,7 +987,7 @@ class HG:
             options = '--base=%s %s'%(int(base), options)
 
         if url is None:
-            url = self.__url
+            url = self.__push_url
 
         # make sure that we don't accidentally create a file ending in '.hg.hg'
         if filename[-3:] == '.hg':
@@ -937,33 +1022,65 @@ class HG:
 import misc
 
 SAGE_ROOT = misc.SAGE_ROOT
-try:
-    SAGE_SERVER = os.environ['SAGE_HG_SERVER'].strip('/') + '/hg'
-except KeyError:
+DEFAULT_SERVER = "http://www.sagemath.org/hg"
+
+SAGE_INCOMING_SERVER = os.getenv("SAGE_INCOMING_SERVER")
+if SAGE_INCOMING_SERVER == None:
     try:
-        SAGE_SERVER = os.environ['SAGE_SERVER'].strip('/') + '/hg'
+	SAGE_INCOMING_SERVER = os.environ['SAGE_HG_SERVER'].strip('/') + '/hg'
     except KeyError:
-        print "Falling back to a hard coded sage server in misc/hg.py"
-        SAGE_SERVER = "http://sage.math.washington.edu/sage/hg/"
+	try:
+	    SAGE_INCOMING_SERVER = os.environ['SAGE_SERVER'].strip('/') + '/hg'
+	except KeyError:
+	    print "Falling back to a hard coded sage server in misc/hg.py"
+	    SAGE_INCOMING_SERVER = DEFAULT_SERVER
+
+SAGE_OUTGOING_SERVER = os.getenv("SAGE_OUTGOING_SERVER")
+if SAGE_OUTGOING_SERVER == None:
+    SAGE_OUTGOING_SERVER = SAGE_INCOMING_SERVER
+
+if (SAGE_INCOMING_SERVER == DEFAULT_SERVER):      ## Always uses the "main" branch on the default server.
+    temp_in_branch_name = "main"
+else:
+    temp_in_branch_name = branch_current_hg()
+
+if (SAGE_OUTGOING_SERVER == DEFAULT_SERVER):      ## Always uses the "main" branch on the default server.
+    temp_out_branch_name = "main"
+else:
+    temp_out_branch_name = branch_current_hg()
+
+
+if (SAGE_INCOMING_SERVER != DEFAULT_SERVER) or (SAGE_OUTGOING_SERVER != DEFAULT_SERVER):
+    print "Non-default server settings detected:"
+    print "    Incoming Server = " + SAGE_INCOMING_SERVER + ''.join(["  (default)"  \
+                for i in range(1)  if (SAGE_INCOMING_SERVER == DEFAULT_SERVER)])
+    print "    Outgoing Server = " + SAGE_OUTGOING_SERVER + ''.join(["  (default)"  \
+                for i in range(1)  if (SAGE_OUTGOING_SERVER == DEFAULT_SERVER)])
+    print
+
 
 hg_sage    = HG('%s/devel/sage'%SAGE_ROOT,
                 'SAGE Library Source Code',
-                url='%s/sage-main'%SAGE_SERVER,
+                    pull_url='%s/sage-%s'%(SAGE_INCOMING_SERVER, temp_in_branch_name),
+                    push_url='%s/sage-%s'%(SAGE_OUTGOING_SERVER, temp_out_branch_name),
                 cloneable=True,
                 obj_name='sage')
 
 hg_doc     = HG('%s/devel/doc'%SAGE_ROOT,
                 'SAGE Documentation',
-                url='%s/doc-main'%SAGE_SERVER,
+                pull_url='%s/doc-main'%SAGE_INCOMING_SERVER,
+                push_url='%s/doc-main'%SAGE_OUTGOING_SERVER,
                 obj_name='doc')
 
 hg_scripts = HG('%s/local/bin/'%SAGE_ROOT,
                 'SAGE Scripts',
-                url='%s/scripts-main'%SAGE_SERVER,
+                pull_url='%s/scripts-main'%SAGE_INCOMING_SERVER,
+                push_url='%s/scripts-main'%SAGE_OUTGOING_SERVER,
                 obj_name='scripts')
 
 hg_extcode = HG('%s/data/extcode'%SAGE_ROOT,
                 'SAGE External System Code (e.g., PARI, MAGMA, etc.)',
-                url='%s/extcode-main'%SAGE_SERVER,
+                pull_url='%s/extcode-main'%SAGE_INCOMING_SERVER,
+                push_url='%s/extcode-main'%SAGE_OUTGOING_SERVER,
                 obj_name='extcode')
 

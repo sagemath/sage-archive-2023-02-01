@@ -14,5 +14,4 @@ def ref_count(o):
       sage: ref_count(L[0])
       6
     """
-    # Exclude the reference on this call stack...
-    return (<PyObject *>o).ob_refcnt - 1
+    return (<PyObject *>o).ob_refcnt

@@ -149,6 +149,8 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
         mpz_set(x.b, self.b)
         mpz_set(x.c ,self.c)
         mpz_set(x.d, self.d)
+        if self.subdivisions is not None:
+            x.subdivide(*self.get_subdivisions())
         return x
 
     cdef ModuleElement _add_c_impl(left, ModuleElement right):
@@ -199,6 +201,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
 
         else:
             raise ZeroDivisionError, "Not a unit!"
+    _invert_unit = __invert__unit
 
     def _multiply_classical(left, matrix.Matrix _right):
         """

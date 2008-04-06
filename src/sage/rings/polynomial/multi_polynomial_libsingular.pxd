@@ -6,12 +6,10 @@ from sage.rings.polynomial.multi_polynomial_ring_generic cimport MPolynomialRing
 from sage.structure.parent cimport Parent
 
 cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolynomial):
-    cdef object __singular
-    cdef object __macaulay2
     cdef poly *_poly
-    cdef _repr_short_c(self)
-    cdef _singular_init_c(self,singular, have_ring)
-    cdef int is_constant_c(self)
+    cpdef _repr_short_(self)
+    cpdef is_constant(self)
+    cpdef _homogenize(self, int var)
 
 cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
     cdef object __weakref__

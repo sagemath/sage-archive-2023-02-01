@@ -19,10 +19,6 @@ include 'misc.pxi'
 include 'decl.pxi'
 import weakref
 
-ZZ_pContextDict = {}
-
-from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
-
 from sage.rings.integer_ring import IntegerRing
 
 ZZ_sage = IntegerRing()
@@ -116,6 +112,28 @@ cdef class ntl_ZZ_pContext_class:
     cdef void restore_c(self):
         self.x.restore()
 
+cdef class ntl_ZZ_pContext_factory:
+    def __init__(self):
+        self.context_dict = {}
+
+    cdef ntl_ZZ_pContext_class make_c(self, ntl_ZZ v):
+        """
+        Creates a new ZZ_pContext.
+
+        INPUT:
+        v -- an ntl_ZZ
+        """
+        cdef ntl_ZZ_pContext_class context
+        if self.context_dict.has_key(v):
+            context = <ntl_ZZ_pContext_class> self.context_dict[v]()
+            if context is not None:
+                return context
+        context = ntl_ZZ_pContext_class(v)
+        self.context_dict[v] = weakref.ref(context)
+        return context
+
+ZZ_pContext_factory = ntl_ZZ_pContext_factory()
+
 def ntl_ZZ_pContext( v ):
     """
     Create a new ZZ_pContext.
@@ -128,10 +146,4 @@ def ntl_ZZ_pContext( v ):
     v = ntl_ZZ(v)
     if (v < ntl_ZZ(2)):
         raise ValueError, "%s is not a valid modulus."%v
-    if ZZ_pContextDict.has_key(v):
-        context = ZZ_pContextDict[v]()
-        if context is not None:
-            return context
-    context = ntl_ZZ_pContext_class(v)
-    ZZ_pContextDict[v] = weakref.ref(context)
-    return context
+    return (<ntl_ZZ_pContext_factory>ZZ_pContext_factory).make_c(v)

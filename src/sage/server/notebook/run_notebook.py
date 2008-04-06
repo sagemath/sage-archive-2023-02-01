@@ -139,9 +139,9 @@ def notebook_twisted(self,
                 notebook_setup()
             if not os.path.exists(private_pem) or not os.path.exists(public_pem):
                 print "Failed to setup notebook.  Please try notebook.setup() again manually."
-            strport = 'tls:%s:privateKey=%s:certKey=%s'%(port, private_pem, public_pem)
+            strport = 'tls:%s:interface=%s:privateKey=%s:certKey=%s'%(port, address, private_pem, public_pem)
         else:
-            strport = 'tcp:%s'%port
+            strport = 'tcp:%s:interface=%s'%(port, address)
 
         notebook_opts = '"%s",address="%s",port=%s,secure=%s' % (os.path.abspath(directory),
                 address, port, secure)

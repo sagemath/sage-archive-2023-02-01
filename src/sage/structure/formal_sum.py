@@ -83,20 +83,48 @@ class FormalSums_generic(Module):
             return FormalSum([(self.base_ring()(1), x)], check=False, reduce=False, parent=self)
 
     def base_extend(self, R):
-        if R.has_coerce_map_from(self.base_ring()):
+        if self.base_ring().has_coerce_map_from(R):
+            return self
+        elif R.has_coerce_map_from(self.base_ring()):
             return FormalSums(R)
 
     def base_extend_canonical_sym(self, R):
         return FormalSum(self.base_ring().base_extend_canonical_sym(R))
 
+    def __cmp__(left, right):
+        c = cmp(type(left), type(right))
+        if c:
+            return c
+        return cmp(left.base_ring(), right.base_ring())
+
     def get_action_impl(self, other, op, self_is_left):
+        """
+        EXAMPLES:
+            sage: A = FormalSums(RR).get_action(RR); A
+            Right scalar multiplication by Real Field with 53 bits of precision on Abelian Group of all Formal Finite Sums over Real Field with 53 bits of precision
+
+            sage: A = FormalSums(ZZ).get_action(QQ); A
+            Right scalar multiplication by Rational Field on Abelian Group of all Formal Finite Sums over Rational Field
+            with precomposition on left by Coercion morphism:
+              From: Abelian Group of all Formal Finite Sums over Integer Ring
+              To:   Abelian Group of all Formal Finite Sums over Rational Field
+            sage: A = FormalSums(QQ).get_action(ZZ); A
+            Right scalar multiplication by Integer Ring on Abelian Group of all Formal Finite Sums over Rational Field
+        """
         import operator
         from sage.structure.coerce import LeftModuleAction, RightModuleAction
+        from sage.categories.action import PrecomposedAction
         if op is operator.mul and isinstance(other, Parent):
+            extended = self.base_extend(other)
             if self_is_left:
-                return RightModuleAction(other, self.base_extend(other))
+                action = RightModuleAction(other, extended)
+                if extended is not self:
+                    action = PrecomposedAction(action, extended.coerce_map_from(self), None)
             else:
-                return LeftModuleAction(other, self.base_extend(other))
+                action = LeftModuleAction(other, extended)
+                if extended is not self:
+                    action = PrecomposedAction(action, None, extended.coerce_map_from(self))
+            return action
 
     def _an_element_impl(self):
         return FormalSum([(self.base_ring()._an_element(), 1)], check=False, reduce=False, parent=self)

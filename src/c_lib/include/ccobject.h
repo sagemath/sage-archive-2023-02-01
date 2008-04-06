@@ -45,15 +45,21 @@ T* Construct_p(void* mem, const P &d){
 }
 
 /* Construct with two parameters */
-template <class T, class P, class R>
-T* Construct_pp(void* mem, const P &d, const R &e){
+template <class T, class P, class Q>
+T* Construct_pp(void* mem, const P &d, const Q &e){
   return new(mem) T(d, e);
 }
 
 /* Construct with three parameters */
-template <class T, class P, class R, class Q>
-T* Construct_ppp(void* mem, const P &d, const R &e, const Q &f){
+template <class T, class P, class Q, class R>
+T* Construct_ppp(void* mem, const P &d, const Q &e, const R &f){
   return new(mem) T(d, e, f);
+}
+
+/* Construct with four parameters */
+template <class T, class P, class Q, class R, class S>
+T* Construct_pppp(void* mem, const P &d, const Q &e, const R &f, const S &g){
+  return new(mem) T(d, e, f, g);
 }
 
 /* Destruct */

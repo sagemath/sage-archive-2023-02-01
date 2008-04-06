@@ -24,10 +24,14 @@ from sage.structure.parent_gens import localvars
 
 from sage.interfaces.gp import Gp
 from sage.misc.sage_eval import sage_eval
+from sage.misc.randstate import current_randstate
 from sage.rings.all import PolynomialRing, ZZ, QQ
 
 gp = None
 def init():
+    """
+    Function to initialize the gp process
+    """
     global gp
     if gp is None:
         gp = Gp(script_subdirectory='simon')
@@ -38,8 +42,24 @@ def init():
 
 
 def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+    """
+    Interface to Simon's gp script for two-descent.
 
+    NOTE:
+       Users should instead run E.simon_two_descent()
+
+    EXAMPLES:
+        sage: import sage.schemes.elliptic_curves.gp_simon
+        sage: E=EllipticCurve('389a1')
+        sage: sage.schemes.elliptic_curves.gp_simon.simon_two_descent(E)
+        [2, 2, [(1 : 0 : 1), (-11/9 : -55/27 : 1)]]
+        sage: E.simon_two_descent()
+        (2, 2, [(1 : 0 : 1), (-11/9 : -55/27 : 1)])
+    """
     init()
+
+    current_randstate().set_seed_gp(gp)
+
     K = E.base_ring()
     F, transform = E.integral_model()
 
@@ -73,9 +93,9 @@ def simon_two_descent(E, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, lim
         print "v = ", v
     # pari represents field elements as Mod(poly, defining-poly)
     # so this function will return the respective elements of K
-    def gp_mod(*args):
+    def _gp_mod(*args):
         return args[0]
-    ans = sage_eval(v, {'Mod': gp_mod, 'y': K.gen(0)})
+    ans = sage_eval(v, {'Mod': _gp_mod, 'y': K.gen(0)})
     inv_transform = ~transform
     ans[2] = [inv_transform(F(P)) for P in ans[2]]
     return ans

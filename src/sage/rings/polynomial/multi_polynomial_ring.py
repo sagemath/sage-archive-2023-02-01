@@ -140,16 +140,13 @@ class MPolynomialRing_macaulay2_repr:
     def is_exact(self):
         return self.base_ring().is_exact()
 
-    def change_ring(self, R):
-        from polynomial_ring_constructor import PolynomialRing
-        return PolynomialRing(R, self.variable_names(), order=self.term_order())
 
 class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_generic):
     """
     Multivariable polynomial ring.
 
     EXAMPLES:
-        sage: R = MPolynomialRing(Integers(12), 'x', 5); R
+        sage: R = PolynomialRing(Integers(12), 'x', 5); R
         Multivariate Polynomial Ring in x0, x1, x2, x3, x4 over Ring of integers modulo 12
         sage: loads(R.dumps()) == R
         True
@@ -424,7 +421,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
                 # empty.  Otherwise pickling won't work after calls to this eval!!!
                 # This took a while to figure out!
                 return self(eval(s, {}, self.gens_dict()))
-            except (AttributeError, TypeError, NameError):
+            except (AttributeError, TypeError, NameError, SyntaxError):
                 raise TypeError, "Unable to coerce macaulay2 object"
             return multi_polynomial_element.MPolynomial_polydict(self, x)
 
@@ -441,9 +438,10 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
                                       PolynomialRing_singular_repr,
                                       MPolynomialRing_macaulay2_repr):
     def __init__(self, base_ring, n, names, order):
+        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         order = TermOrder(order, n)
         MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)
-        self._has_singular = self._can_convert_to_singular()
+        self._has_singular = can_convert_to_singular(self)
 
     def is_integral_domain(self):
         return True
@@ -535,7 +533,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
         if not coeff:
           coeff= self.base_ring()(1)
         else:
-          coeff = f.dict().values()[0] /  g.dict().values()[0]
+          coeff = self.base_ring()(f.dict().values()[0] /  g.dict().values()[0])
 
         f = f.dict().keys()[0]
         g = g.dict().keys()[0]
@@ -630,49 +628,50 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             return 0,0
         for g in G:
             t = g.lm()
-            if self.monomial_is_divisible_by(f,t):
-                return self.monomial_quotient(f,t),g
+            try:
+                if self.monomial_divides(t,f):
+                    return self.monomial_quotient(f,t),g
+            except ZeroDivisionError:
+                return 0,0
         return 0,0
 
 
-    def monomial_is_divisible_by(self, a, b):
+    def monomial_divides(self, a, b):
         """
-        Return False if b does not divide a and True otherwise.
+        Return False if a does not divide b and True otherwise.
 
         INPUT:
             a -- monomial
             b -- monomial
 
         EXAMPLES:
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: P.monomial_is_divisible_by(x^3*y^2*z^4, x*y*z)
+            sage: P.<x,y,z>=MPolynomialRing(ZZ,3, order='degrevlex')
+            sage: P.monomial_divides(x*y*z, x^3*y^2*z^4)
             True
-            sage: P.monomial_is_divisible_by(x*y*z, x^3*y^2*z^4)
+            sage: P.monomial_divides(x^3*y^2*z^4, x*y*z)
             False
 
         TESTS:
-            sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
-            sage: P.monomial_is_divisible_by(P(0),P(1))
+            sage: P.<x,y,z>=MPolynomialRing(ZZ,3, order='degrevlex')
+            sage: P.monomial_divides(P(1), P(0))
             True
-            sage: P.monomial_is_divisible_by(x,P(1))
+            sage: P.monomial_divides(P(1), x)
             True
 
         """
 
-        if not a:
-            return True
         if not b:
-            return False
+            return True
+        if not a:
+            raise ZeroDivisionError
 
         one = self.base_ring()(1)
 
         a=a.dict().keys()[0]
         b=b.dict().keys()[0]
 
-        for i in a.common_nonzero_positions(b):
-          if a[i] - b[i] < 0:
+        for i in b.common_nonzero_positions(a):
+          if b[i] - a[i] < 0:
             return False
         return True
 

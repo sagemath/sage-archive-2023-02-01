@@ -133,7 +133,13 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         return s
 
     def __call__(self, x, n=0):
-        """
+        r"""
+        Coerces the element x into this Laurent series ring.
+
+        INPUT:
+            x -- the element to coerce
+            n -- the result of the coercion will be multiplied by $t^n$ (default: 0)
+
         EXAMPLES:
             sage: R.<u> = LaurentSeriesRing(Qp(5, 10))
             sage: S.<t> = LaurentSeriesRing(RationalField())
@@ -142,12 +148,40 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
         Note that coercing an element into its own parent just produces
         that element again (since Laurent series are immutable):
+
             sage: u is R(u)
             True
+
+        Rational functions are accepted:
+
+            sage: I = sqrt(-1)
+            sage: K.<I> = QQ[I]
+            sage: P.<t> = PolynomialRing(K)
+            sage: L.<u> = LaurentSeriesRing(QQ[I])
+            sage: L((t*I)/(t^3+I*2*t))
+            1/2 + 1/4*I*u^2 - 1/8*u^4 - 1/16*I*u^6 + 1/32*u^8 +
+            1/64*I*u^10 - 1/128*u^12 - 1/256*I*u^14 + 1/512*u^16 +
+            1/1024*I*u^18 + O(u^20)
+
+            sage: L(t*I) / L(t^3+I*2*t)
+            1/2 + 1/4*I*u^2 - 1/8*u^4 - 1/16*I*u^6 + 1/32*u^8 +
+            1/64*I*u^10 - 1/128*u^12 - 1/256*I*u^14 + 1/512*u^16 +
+            1/1024*I*u^18 + O(u^20)
+
         """
+        from sage.rings.fraction_field_element import is_FractionFieldElement
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
+        from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
+
         if isinstance(x, laurent_series_ring_element.LaurentSeries) and n==0 and self is x.parent():
             return x  # ok, since Laurent series are immutable (no need to make a copy)
-        return laurent_series_ring_element.LaurentSeries(self, x, n)
+        elif is_FractionFieldElement(x) and \
+             (x.base_ring() is self.base_ring() or x.base_ring() == self.base_ring()) and \
+             (is_Polynomial(x.numerator()) or is_MPolynomial(x.numerator())):
+            x = self(x.numerator())/self(x.denominator())
+            return self.gen()**n * x
+        else:
+            return laurent_series_ring_element.LaurentSeries(self, x, n)
 
     def _coerce_impl(self, x):
         """

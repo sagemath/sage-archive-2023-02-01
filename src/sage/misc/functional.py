@@ -198,7 +198,7 @@ def cyclotomic_polynomial(n, var='x'):
         x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
     """
     return sage.rings.all.PolynomialRing(\
-                  sage.rings.all.QQ, name=var).cyclotomic_polynomial(n)
+                  sage.rings.all.ZZ, name=var).cyclotomic_polynomial(n)
 
 def decomposition(x):
     """
@@ -222,21 +222,6 @@ def denominator(x):
     if isinstance(x, (int, long)):
         return 1
     return x.denominator()
-
-def derivative(x):
-    """
-    Return the derivative of a polynomial x.
-
-    EXAMPLES:
-        sage: f = cyclotomic_polynomial(10)
-        sage: derivative(f)
-        4*x^3 - 3*x^2 + 2*x - 1
-        sage: R.<x> = PolynomialRing(GF(7))
-        sage: f = x^7 + x
-        sage: derivative(f)
-        1
-    """
-    return x.derivative()
 
 def det(x):
     """
@@ -729,7 +714,7 @@ def numerical_approx(x, prec=None, digits=None):
         return x.numerical_approx(prec)
     except AttributeError:
         try:
-            return sage.rings.real_mpfr.RealField(prec)(x)
+            return sage.rings.real_mpfr.RealField_constructor(prec)(x)
         except TypeError:
             return sage.rings.complex_field.ComplexField(prec)(x)
 
@@ -861,7 +846,7 @@ def round(x, ndigits=0):
         3.0
         sage: b = 5.4999999999999999
         sage: round(b)
-        5.0000000000000000
+        5
 
 
     IMPLEMENTATION: If ndigits is specified, it calls Python's builtin round function,
@@ -935,6 +920,8 @@ def _do_show(x):
     if sage.server.support.EMBEDDED_MODE:
         print '<html><div class="math">%s</div></html>'%sage.misc.latex.latex(x)
         return sage.misc.latex.LatexExpr('') # so no visible output
+    if sage.plot.plot.DOCTEST_MODE:
+        return sage.misc.latex.latex(x)
     from latex import view
     view(x)
     #raise AttributeError, "object %s does not support show."%(x, )

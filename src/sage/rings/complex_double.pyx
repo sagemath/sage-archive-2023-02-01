@@ -55,6 +55,8 @@ AUTHOR:
 
 import operator
 
+from sage.misc.randstate cimport randstate, current_randstate
+
 include '../ext/interrupt.pxi'
 include '../ext/stdsage.pxi'
 
@@ -97,8 +99,6 @@ from real_double import RealDoubleElement, RDF
 # can be questionable -- it varies from version to version, so...
 cdef int PREC
 PREC = 28
-
-from random import random
 
 from sage.structure.parent_gens import ParentWithGens
 from sage.categories.morphism cimport Morphism
@@ -177,16 +177,17 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
         EXAMPLES:
             sage: CDF.random_element()
-            0.209449195154 + 0.358283042908*I
+            -0.436810529675 + 0.736945423566*I
             sage: CDF.random_element(-10,10,-10,10)
-            -8.95410163615 + 8.72241592407*I
+            -7.08874026302 - 9.54135400334*I
             sage: CDF.random_element(-10^20,10^20,-2,2)
-            2.60705696501e+19 - 1.3642168045*I
+            -7.58765473764e+19 + 0.925549022839*I
         """
+        cdef randstate rstate = current_randstate()
         global _CDF
         cdef ComplexDoubleElement z
         z = PY_NEW(ComplexDoubleElement)
-        z._complex = gsl_complex_rect( (xmax-xmin)*random() + xmin, (ymax-ymin)*random() + ymin)
+        z._complex = gsl_complex_rect( (xmax-xmin)*rstate.c_rand_double() + xmin, (ymax-ymin)*rstate.c_rand_double() + ymin)
         return z
 
     def __repr__(self):
@@ -253,6 +254,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: b == CC(a)
             True
         """
+        cdef pari_sp sp
         if im is None:
             if isinstance(x, ComplexDoubleElement):
                 return x
@@ -261,6 +263,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             elif isinstance(x, complex):
                 return ComplexDoubleElement(x.real, x.imag)
             elif isinstance(x, complex_number.ComplexNumber):
+                return ComplexDoubleElement(x.real(), x.imag())
+            elif isinstance(x, sage.libs.pari.gen.gen):
+                # It seems we should get a speed increase by
+                # using _new_from_gen_c instead; I wasn't
+                # able to get this to work.
                 return ComplexDoubleElement(x.real(), x.imag())
             elif isinstance(x, tuple):
                 return ComplexDoubleElement(x[0], x[1])
@@ -602,6 +609,23 @@ cdef class ComplexDoubleElement(FieldElement):
             (2303-3939j)
         """
         return complex(self._complex.dat[0], self._complex.dat[1])
+
+    def _interface_init_(self):
+        """
+        Returns self formatted as a string, suitable as input to another
+        computer algebra system.  (This is the default function used for
+        exporting to other computer algebra systems.)
+
+        EXAMPLES:
+            sage: s1 = CDF(exp(I)); s1
+            0.540302305868 + 0.841470984808*I
+            sage: s1._interface_init_()
+            '0.54030230586813977 + 0.84147098480789650*I'
+            sage: s1 == CDF(gp(s1))
+            True
+        """
+        # Sending to another computer algebra system is slow anyway, right?
+        return CC(self)._interface_init_()
 
     def __repr__(self):
         """
@@ -1724,7 +1748,7 @@ cdef GEN complex_gen(x):
 cdef ComplexDoubleField_class _CDF
 _CDF = ComplexDoubleField_class()
 CDF = _CDF  # external interface
-I = ComplexDoubleElement(0,1)
+cdef ComplexDoubleElement I = ComplexDoubleElement(0,1)
 
 def ComplexDoubleField():
     """

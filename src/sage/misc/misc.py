@@ -21,7 +21,8 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "typecheck", "prop", "strunc",
                "assert_attribute", "LOGFILE"]
 
-import operator, os, stat, socket, sys, signal, time, weakref, random, resource, math
+import operator, os, stat, socket, sys, signal, time, weakref, resource, math
+import sage.misc.prandom as random
 
 from banner import version, banner
 
@@ -420,16 +421,16 @@ def union(x, y=None):
         list
 
     EXAMPLES:
-        sage: union([1,2,3,4], [5,6])        # random order
-        [1, 3, 2, 5, 4, 6]
-        sage: union([1,2,3,4,5,6], [5,6])    # random order
-        [1, 3, 2, 5, 4, 6]
-        sage: union((1,2,3,4,5,6), [5,6])    # random order
-        [1, 3, 2, 5, 4, 6]
-        sage: union((1,2,3,4,5,6), set([5,6]))   # random order
-        [1, 3, 2, 5, 4, 6]
+        sage: answer = union([1,2,3,4], [5,6]); answer
+        [1, 2, 3, 4, 5, 6]
+        sage: union([1,2,3,4,5,6], [5,6]) == answer
+        True
+        sage: union((1,2,3,4,5,6), [5,6]) == answer
+        True
+        sage: union((1,2,3,4,5,6), set([5,6])) == answer
+        True
     """
-    if y == None:
+    if y is None:
         return list(set(x))
     return list(set(x).union(y))
 
@@ -1107,11 +1108,12 @@ def random_sublist(X, s):
     EXAMPLES:
         sage: S = [1,7,3,4,18]
         sage: random_sublist(S, 0.5)
-        [7]
+        [1, 3, 4]
         sage: random_sublist(S, 0.5)
-        [1, 7, 3]
+        [1, 3]
     """
     return [a for a in X if random.random() <= s]
+
 
 
 
@@ -1245,6 +1247,12 @@ def exists(S, P):
     function returns True and the element x.  Otherwise it
     returns False and None.
 
+    Note that this function is NOT suitable to be used in an
+    if-statement or in any place where a boolean expression
+    is expected. For those situations, use the Python built-in
+
+    any(P(x) for x in S)
+
     INPUT:
         S -- object (that supports enumeration)
         P -- function that returns True or False
@@ -1279,6 +1287,13 @@ def forall(S, P):
     If P(x) is true every x in S, return True and None.
     If there is some element x in S such that P is not True,
     return False and x.
+
+    Note that this function is NOT suitable to be used in an
+    if-statement or in any place where a boolean expression
+    is expected. For those situations, use the Python built-in
+
+    all(P(x) for x in S)
+
 
     INPUT:
         S -- object (that supports enumeration)
@@ -1487,7 +1502,11 @@ def branch_current_hg():
     Return the current hg Mercurial branch name.  If the branch
     is 'main', which is the default branch, then just '' is returned.
     """
-    s = os.popen('ls -l %s/devel/sage'%os.environ['SAGE_ROOT']).read()
+    try:
+        s = os.popen('ls -l %s/devel/sage'%os.environ['SAGE_ROOT']).read()
+    except IOError:
+        # this happens when running sage under gdb on macs
+        s = 'gdb'
     if 'No such file or directory' in s:
         raise RuntimeError, "unable to determine branch?!"
     # do ls -l and look for a symlink, which `ls` represents by a '->'

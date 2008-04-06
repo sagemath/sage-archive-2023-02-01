@@ -410,7 +410,7 @@ def __internal_tests():
 
     A cython function with default arguments:
         sage: sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
-        "factor(algorithm='pari', proof='True')"
+        "factor(algorithm='pari', proof='True', limit='None')"
 
     A cython method without an embedded position can lead to surprising errors:
         sage: sage_getsource(sage.rings.integer.Integer.__init__, is_binary=True)

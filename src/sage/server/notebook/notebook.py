@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 The \sage Notebook object
 """
 
@@ -21,7 +21,7 @@ import bz2
 from   sage.structure.sage_object import SageObject, load
 from   sage.misc.misc       import (alarm, cancel_alarm,
                                     tmp_dir, pad_zeros)
-
+from   sage.misc.package   import is_package_installed
 # Sage Notebook
 import css          # style
 import js           # javascript
@@ -36,6 +36,13 @@ import user         # users
 SYSTEMS = ['sage', 'axiom', 'gap', 'gp', 'jsmath', 'kash', 'latex', 'lisp', 'macaulay2', 'magma', 'maple', 'mathematica', 'matlab', 'maxima', 'mupad', 'mwrank', 'octave', 'python', 'sage', 'sh', 'singular']
 
 JSMATH = True
+
+JQUERY = True
+
+if is_package_installed("jsmath-image-fonts"):
+    JSMATH_IMAGE_FONTS = True
+else:
+    JSMATH_IMAGE_FONTS = False
 
 vbar = '<span class="vbar"></span>'
 
@@ -109,6 +116,30 @@ class Notebook(SageObject):
     # Users
     ##########################################################
     def create_default_users(self, passwd):
+        """
+        Create the default users for a notebook.
+
+        INPUT:
+            passwd -- a string
+
+        EXAMPLES:
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.create_default_users('password')
+            Creating default users.
+            sage: list(sorted(n.users().iteritems()))
+            [('_sage_', _sage_), ('admin', admin), ('guest', guest), ('pub', pub)]
+            sage: list(sorted(n.passwords().iteritems()))
+            [('_sage_', 'aaQSqAReePlq6'), ('admin', 'aajfMKNH1hTm2'), ('guest', 'aaQSqAReePlq6'), ('pub', 'aaQSqAReePlq6')]
+            sage: n.create_default_users('newpassword')
+            Creating default users.
+            WARNING: User 'pub' already exists -- and is now being replaced.
+            WARNING: User '_sage_' already exists -- and is now being replaced.
+            WARNING: User 'guest' already exists -- and is now being replaced.
+            WARNING: User 'admin' already exists -- and is now being replaced.
+            sage: list(sorted(n.passwords().iteritems()))
+            [('_sage_', 'aaQSqAReePlq6'), ('admin', 'aajH86zjeUSDY'), ('guest', 'aaQSqAReePlq6'), ('pub', 'aaQSqAReePlq6')]
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
         print "Creating default users."
         self.add_user('pub', '', '', account_type='user', force=True)
         self.add_user('_sage_', '', '', account_type='user', force=True)
@@ -116,9 +147,37 @@ class Notebook(SageObject):
         self.add_user('admin', passwd, '', account_type='admin', force=True)
 
     def user_exists(self, username):
+        """
+        Return whether or not a user exists given a username.
+
+        EXAMPLES:
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.create_default_users('password')
+            Creating default users.
+            sage: n.user_exists('admin')
+            True
+            sage: n.user_exists('pub')
+            True
+            sage: n.user_exists('mark')
+            False
+            sage: n.user_exists('guest')
+            True
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
         return username in self.users()
 
     def users(self):
+        """
+        Returns dictionary of users in a notebook.
+
+        EXAMPLES:
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.create_default_users('password')
+            Creating default users.
+            sage: list(sorted(n.users().iteritems()))
+            [('_sage_', _sage_), ('admin', admin), ('guest', guest), ('pub', pub)]
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
         try:
             return self.__users
         except AttributeError:
@@ -126,6 +185,22 @@ class Notebook(SageObject):
             return self.__users
 
     def user(self, username):
+        """
+        Returns an instance of the User class given the username of a user in
+        a notebook.
+
+        EXAMPLES:
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.create_default_users('password')
+            Creating default users.
+            sage: n.user('admin')
+            admin
+            sage: n.user('admin')._User__email
+            ''
+            sage: n.user('admin')._User__password
+            'aajfMKNH1hTm2'
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
         if '/' in username:
             raise ValueError
         try:
@@ -324,10 +399,7 @@ class Notebook(SageObject):
             raise KeyError, "Attempt to delete missing worksheet '%s'"%filename
         W = self.__worksheets[filename]
         W.quit()
-        cmd = 'rm -rf "%s"'%(W.directory())
-        #print cmd
-        os.system(cmd)
-
+        shutil.rmtree(W.directory())
         self.deleted_worksheets()[filename] = W
         del self.__worksheets[filename]
 
@@ -338,7 +410,53 @@ class Notebook(SageObject):
             self.__deleted_worksheets = {}
             return self.__deleted_worksheets
 
+    def empty_trash(self, username):
+        """
+        Empty the trash for the given user.
+
+        INPUT:
+            username -- a string
+
+        This empties the trash for the given user and cleans up all
+        files associated with the worksheets that are in the trash.
+
+        EXAMPLES:
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
+            sage: W.move_to_trash('sage')
+            sage: n.worksheet_names()
+            ['sage/0']
+            sage: n.empty_trash('sage')
+            sage: n.worksheet_names()
+            []
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
+        X = self.get_worksheets_with_viewer(username)
+        X = [W for W in X if W.is_trashed(username)]
+        for W in X:
+            W.delete_user(username)
+            if W.owner() is None:
+                self.delete_worksheet(W.filename())
+
     def worksheet_names(self):
+        """
+        Return a list of all the names of worksheets in this notebook.
+
+        OUTPUT:
+            list of strings.
+
+        EXAMPLES:
+        We make a new notebook with two users and two worksheets, then list their names:
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
+            sage: n.add_user('wstein','sage','wstein@sagemath.org',force=True)
+            sage: W2 = n.new_worksheet_with_title_from_text('Elliptic Curves', owner='wstein')
+            sage: n.worksheet_names()
+            ['sage/0', 'wstein/0']
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
         W = self.__worksheets.keys()
         W.sort()
         return W
@@ -991,6 +1109,8 @@ class Notebook(SageObject):
             s += '&nbsp;<a class="%susercontrol" href=".">Active</a>'%('bold' if typ=='active' else '')
             s += '&nbsp;<a class="%susercontrol" href=".?typ=archive">Archived</a>'%('bold' if typ=='archive' else '')
             s += '&nbsp;<a class="%susercontrol" href=".?typ=trash">Trash</a>&nbsp;&nbsp;'%('bold' if typ=='trash' else '')
+            if typ == 'trash':
+                s += '&nbsp;<a class="boldusercontrol" onClick="empty_trash();return false;" href="">(Empty Trash)</a>'
             s += '</span>'
         return s
 
@@ -1118,7 +1238,7 @@ class Notebook(SageObject):
             viewers = '<i>' + ', '.join(viewers) + '</i>'
             v.append(viewers)
 
-        s = ' / '.join(v) + ' ' + share
+        s = ' / '.join([str(w) for w in v]) + ' ' + share
 
         return s
 
@@ -1427,16 +1547,40 @@ class Notebook(SageObject):
 
         if JSMATH:
             head += '<script type="text/javascript">jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
-            head +=' <script type="text/javascript" src="/javascript/jsmath/plugins/noImageFonts.js"></script>\n'
+            if not JSMATH_IMAGE_FONTS:
+                head +=' <script type="text/javascript" src="/javascript/jsmath/plugins/noImageFonts.js"></script>\n'
             head += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
             head += "<script type='text/javascript'>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
 
+        if JQUERY:
+            # Load the jquery and ui-jquery javascript library.
+            # This is used for interact functionality in the notebook, and will be used
+            # to enable drag and drop, image zoom, etc.
+            head += '''
+<script type="text/javascript" src="/javascript/jquery/jquery.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/jquery.dimensions.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/ui.mouse.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/ui.slider.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/ui.draggable.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/ui.draggable.ext.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/ui.resizable.js"></script>
+<script type="text/javascript" src="/javascript/jqueryui/ui.dialog.js"></script>
+<link rel="stylesheet" href="/javascript/jqueryui/themes/flora/flora.all.css">
+
+<script type="text/javascript" src="/javascript/farbtastic/farbtastic.js"></script>
+<link rel="stylesheet" href="/javascript/farbtastic/farbtastic.css" type="text/css" />
+         '''
+
+        # This was for syntax hilighting
 #        head +=' <script type="text/javascript" src="/javascript/highlight/prettify.js"></script>\n'
 #        head += '<link rel=stylesheet href="/css/highlight/prettify.css" type="text/css">\n'
 
         head +=' <script type="text/javascript" src="/javascript/sage3d.js"></script>\n'
+
+        # Jmol -- embedded 3d graphics.
         head +=' <script type="text/javascript" src="/java/jmol/appletweb/Jmol.js"></script>\n'
-        head +=' <script>jmolInitialize("/java/jmol");</script>\n' # this must stay in the <body>
+
+        head +=' <script>jmolInitialize("/java/jmol");</script>\n' # this must stay in the <head>
         return head
 
     def html_worksheet_topbar(self, worksheet, select=None, username='guest'):
@@ -1551,6 +1695,7 @@ class Notebook(SageObject):
             body += '    cell_set_running(active_cell_list[i]); \n'
             body += 'start_update_check();\n'
             body +=' </script>\n'
+
         return body
 
     def html_plain_text_window(self, worksheet, username):
@@ -1854,7 +1999,7 @@ function save_worksheet_and_close() {
             check=''
         s = """<input type="checkbox" title="Enable/disable pretty_printing"
         onchange="go_pretty_print_check(this);"
-        class="worksheet" value="pretty_print" %s> Typeset output"""%(check)
+        class="worksheet" value="pretty_print" %s>&nbsp;Typeset"""%(check)
         return s
 
 

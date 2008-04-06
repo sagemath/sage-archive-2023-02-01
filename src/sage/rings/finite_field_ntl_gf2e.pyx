@@ -68,6 +68,9 @@ cdef object GF
 
 cdef void late_import():
     """
+    Import a bunch of objects to the module name space late,
+    i.e. after the module was loaded. This is needed to avoid circular
+    imports.
     """
     global is_IntegerMod, \
            IntegerModRing_generic, \
@@ -115,7 +118,7 @@ cdef void late_import():
     FreeModuleElement = sage.modules.free_module_element.FreeModuleElement
 
     import sage.rings.finite_field
-    GF = sage.rings.finite_field.GF
+    GF = sage.rings.finite_field.FiniteField
 
 cdef extern from "arpa/inet.h":
     unsigned int htonl(unsigned int)
@@ -131,11 +134,30 @@ cdef unsigned int switch_endianess(unsigned int i):
     return ret
 
 cdef class FiniteField_ntl_gf2e(FiniteField):
-    """
-    Fnite Field for characteristic 2 and order >= 2.
-    """
-
     def __init__(FiniteField_ntl_gf2e self, q, names="a",  modulus=None, repr="poly"):
+        """
+        Fnite Field for characteristic 2 and order >= 2.
+
+        INPUT:
+            q     -- 2^n (must be 2 power)
+            names  -- variable used for poly_repr (default: 'a')
+            modulus -- you may provide a minimal polynomial to use for
+                     reduction or 'random' to force a random
+                     irreducible polynomial. (default: None, a conway
+                     polynomial is used if found. Otherwise a random
+                     polynomial is used)
+            repr  -- controls the way elements are printed to the user:
+                     (default: 'poly')
+                     'poly': polynomial representation
+
+        OUTPUT:
+            Finite field with characteristic 2 and cardinality 2^n.
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^16)
+            sage: type(k)
+            <type 'sage.rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e'>
+        """
         self._zero_element = self._new()
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._zero_element).x,0)
 
@@ -300,10 +322,15 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             ...
             NameError: name 'b' is not defined
 
+	    sage: R.<x>=GF(2)[]
+	    sage: k(1+x+x^10+x^55)
+	    a^19 + a^17 + a^16 + a^15 + a^12 + a^11 + a^8 + a^6 + a^4 + a^2 + 1
+
             sage: V = k.vector_space()
-            sage: v = V.random_element()
-            sage: k(v) # result depends on random input
-            a^19 + a^18 + a^13 + a^11 + a^10 + a^9 + a^8 + a^6 + a^5 + a + 1
+            sage: v = V.random_element(); v
+            (1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1)
+            sage: k(v)
+            a^19 + a^15 + a^14 + a^13 + a^11 + a^10 + a^9 + a^6 + a^5 + a^4 + 1
             sage: k(v).vector() == v
             True
 
@@ -345,11 +372,17 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
                 ret = ret + self(int(e[i]))*self.gen()**i
             return ret
 
-        elif PY_TYPE_CHECK(e, MPolynomial) or PY_TYPE_CHECK(e, Polynomial):
+        elif PY_TYPE_CHECK(e, MPolynomial):
             if e.is_constant():
                 return self(e.constant_coefficient())
             else:
                 raise TypeError, "no coercion defined"
+
+        elif PY_TYPE_CHECK(e, Polynomial):
+            if e.is_constant():
+                return self(e.constant_coefficient())
+            else:
+                return e(self.gen())
 
         elif PY_TYPE_CHECK(e, Rational):
             num = e.numer()
@@ -364,8 +397,8 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             e = e._pari_()
 
         elif is_GapElement(e):
-            from finite_field import gap_to_sage
-            return gap_to_sage(e, self)
+            from sage.interfaces.gap import gfq_gap_to_sage
+            return gfq_gap_to_sage(e, self)
         else:
             raise TypeError, "unable to coerce"
 
@@ -665,6 +698,9 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
             sage: k.<a> = GF(2^16)
             sage: str(a^16) # indirect doctest
             'a^5 + a^3 + a^2 + 1'
+            sage: k.<u> = GF(2^16)
+            sage: u
+            u
         """
         (<FiniteField_ntl_gf2e>self._parent).F.restore()
         cdef GF2X_c rep = GF2E_rep(self.x)
@@ -683,7 +719,7 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
 
         c = GF2X_coeff(rep, 1)
         if not GF2_IsZero(c):
-            _repr.append("a")
+            _repr.append(name)
 
         for i from 1 < i <= GF2X_deg(rep):
             c = GF2X_coeff(rep, i)
@@ -761,12 +797,12 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         EXAMPLE:
             sage: k.<a> = GF(2^18)
             sage: e = k.random_element()
-            sage: e # random element
-            a^16 + a^13 + a^12 + a^8 + a^7 + a^6 + a^4 + a^3 + a + 1
+            sage: e
+            a^15 + a^14 + a^13 + a^11 + a^10 + a^9 + a^6 + a^5 + a^4 + 1
             sage: e.is_square()
             True
-            sage: e.sqrt() # depends on random variable
-            a^16 + a^15 + a^14 + a^13 + a^12 + a^7 + a^5 + a^2
+            sage: e.sqrt()
+            a^16 + a^15 + a^14 + a^11 + a^9 + a^8 + a^7 + a^6 + a^4 + a^3 + 1
             sage: e.sqrt()^2 == e
             True
         """
@@ -921,7 +957,12 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
 
     def __neg__(FiniteField_ntl_gf2eElement self):
         """
-        Negative of an element.
+        Return this element.
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^16)
+            sage: -a
+            a
         """
         cdef FiniteField_ntl_gf2eElement r = (<FiniteField_ntl_gf2eElement>self)._new()
         r.x = (<FiniteField_ntl_gf2eElement>self).x
@@ -930,6 +971,13 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
     def __invert__(FiniteField_ntl_gf2eElement self):
         """
         Return the multiplicative inverse of an element.
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^16)
+            sage: ~a
+            a^15 + a^4 + a^2 + a
+            sage: a * ~a
+            1
         """
         cdef FiniteField_ntl_gf2eElement r = (<FiniteField_ntl_gf2eElement>self)._new()
         cdef FiniteField_ntl_gf2eElement o = (<FiniteField_ntl_gf2eElement>self)._parent._one_element
@@ -959,10 +1007,30 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
             return r
         except OverflowError:
             # we could try to factor out the order first
-            from  sage.rings.arith import generic_power
-            return generic_power(self,exp)
+            from sage.groups.generic import power
+            return power(self,exp)
 
     def __richcmp__(left, right, int op):
+        """
+        Comparison of finite field elements.
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^20)
+            sage: e = k.random_element()
+            sage: f = loads(dumps(e))
+            sage: e is f
+            False
+            sage: e == f
+            True
+            sage: e != (e + 1)
+            True
+
+        NOTE: that in finite fields $<$ and $>$ don't make sense and
+        that the result of these operators has no mathematical meaning
+        and may vary across different finite field implementations.
+
+        EXAMPLE:
+        """
         return (<Element>left)._richcmp(right, op)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
@@ -1024,8 +1092,24 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         return int(ret)
 
     def polynomial(FiniteField_ntl_gf2eElement self, name=None):
-        """
-        Return self viewed as a polynomial over self.parent().prime_subfield().
+        r"""
+        Return self viewed as a polynomial over
+        \code{self.parent().prime_subfield()}.
+
+        INPUT:
+            name -- (optional) variable name
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^17)
+            sage: e = a^15 + a^13 + a^11 + a^10 + a^9 + a^8 + a^7 + a^6 + a^4 + a + 1
+            sage: e.polynomial()
+            a^15 + a^13 + a^11 + a^10 + a^9 + a^8 + a^7 + a^6 + a^4 + a + 1
+
+            sage: is_Polynomial(e.polynomial())
+            True
+
+            sage: e.polynomial('x')
+            x^15 + x^13 + x^11 + x^10 + x^9 + x^8 + x^7 + x^6 + x^4 + x + 1
         """
         cdef GF2X_c r = GF2E_rep(self.x)
         cdef int i
@@ -1036,9 +1120,10 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         return self._parent.polynomial_ring(name)(C)
 
     def _finite_field_ext_pari_element(FiniteField_ntl_gf2eElement self, k=None):
-        """
-        Return an element of k supposed to match this element.  No
-        checks if k equals self.parent() are performed.
+        r"""
+        Return an element of \var{k} supposed to match this
+        element. No checks if \var{k} equals \code{self.parent()} are
+        performed.
 
         INPUT:
             k -- (optional) FiniteField_ext_pari
@@ -1046,6 +1131,10 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         OUTPUT:
             equivalent of self in k
 
+        EXAMPLE:
+            sage: k.<a> = GF(2^17)
+            sage: a._finite_field_ext_pari_element()
+            a
         """
         if k is None:
             k = (<FiniteField_ntl_gf2e>self._parent)._finite_field_ext_pari_()
@@ -1063,10 +1152,16 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         return ret
 
     def _magma_init_(self):
-        """
-        Return a string representation of self that MAGMA can
+        r"""
+        Return a string representation of self that \MAGMA can
         understand.
 
+        EXAMPLE:
+            sage: k.<a> = GF(2^16)
+            sage: a._magma_init_() #random and optional requires MAGMA
+            '_sage_[2]'
+
+        NOTE: This method calls \MAGMA to setup the parent.
         """
         km = self.parent()._magma_()
         vn_m = km.gen(1).name()
@@ -1077,21 +1172,42 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         """
         Return a copy of this element.  Actually just returns self, since
         finite field elements are immutable.
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^16)
+            sage: copy(a) is a
+            True
         """
         return self
 
     def _pari_(self, var=None):
+        r"""
+        Return a \PARI representation of this element.
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^17)
+            sage: e = a^3 + a + 1
+            sage: e._pari_()
+            Mod(a^3 + a + 1, Mod(1, 2)*a^17 + Mod(1, 2)*a^3 + Mod(1, 2))
+
+            sage: e._pari_('w')
+            Mod(w^3 + w + 1, Mod(1, 2)*w^17 + Mod(1, 2)*w^3 + Mod(1, 2))
+        """
         return pari(self._pari_init_(var))
 
     def _gap_init_(self):
-        """
-        Return a string that evaluates to the GAP representation of
+        r"""
+        Return a string that evaluates to the \GAP representation of
         this element.
 
-        A NotImplementedError is raised if self.parent().modulus() is
-        not a Conway polynomial, as the isomorphism of finite fields is
-        not implemented yet.
+        A \code{NotImplementedError} is raised if
+        \code{self.parent().modulus()} is not a Conway polynomial, as
+        the isomorphism of finite fields is not implemented yet.
 
+        EXAMPLE:
+            sage: k.<b> = GF(2^16)
+            sage: b._gap_init_()
+            'Z(65536)^1'
         """
         cdef FiniteField_ntl_gf2e F
         F = self._parent
@@ -1110,18 +1226,32 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
         """
         Return the hash of this finite field element.  We hash the parent
         and the underlying integer representation of this element.
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^18)
+            sage: {a:1,a:0} # indirect doctest
+            {a: 0}
         """
         return hash(int(self)) # todo, come up with a faster version
 
     def vector(FiniteField_ntl_gf2eElement self, reverse=False):
-        """
-        Return a vector in self.parent().vector_space() matching
-        self. The most significant bit is to the right.
+        r"""
+        Return a vector in \code{self.parent().vector_space()}
+        matching \code{self}. The most significant bit is to the
+        right.
 
         INPUT:
             reverse -- reverse the order of the bits
                        from little endian to big endian.
 
+        EXAMPLE:
+            sage: k.<a> = GF(2^16)
+            sage: e = a^14 + a^13 + 1
+            sage: e.vector() # little endian
+            (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0)
+
+            sage: e.vector(reverse=True) # big endian
+            (0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
         """
         cdef GF2X_c r = GF2E_rep(self.x)
         cdef int i
@@ -1138,6 +1268,11 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
     def __reduce__(FiniteField_ntl_gf2eElement self):
         """
         Used for supporting pickling of finite field elements.
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^16)
+            sage: loads(dumps(a)) == a
+            True
         """
         return unpickleFiniteField_ntl_gf2eElement, (self._parent, str(self))
 
@@ -1176,14 +1311,21 @@ cdef class FiniteField_ntl_gf2eElement(FiniteFieldElement):
 
         AUTHOR: David Joyner and William Stein (2005-11)
         """
-        from  sage.rings.arith import discrete_log_generic
+        from  sage.groups.generic import discrete_log
 
-        q = (self.parent()).order() - 1
+        q = Integer((self.parent()).order())
         b = self.parent()(base)
-        # TODO: This function is TERRIBLE!
-        return discrete_log_generic(self, b, q)
+        return discrete_log(self, b, q-1)
 
 def unpickleFiniteField_ntl_gf2eElement(parent, elem):
+    """
+    EXAMPLE:
+        sage: k.<a> = GF(2^20)
+        sage: e = k.random_element()
+        sage: f = loads(dumps(e)) # indirect doctest
+        sage: e == f
+        True
+    """
     return parent(elem)
 
 

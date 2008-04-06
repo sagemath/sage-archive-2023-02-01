@@ -12,6 +12,7 @@ cdef class Integer(EuclideanDomainElement):
     cdef void _to_ZZ(self, ZZ_c *z)
     cdef void set_from_mpz(self, mpz_t value)
     cdef mpz_t* get_value(self)
+    cdef hash_c(self)
 
     cdef _pari_c(self)
 
@@ -22,6 +23,7 @@ cdef class Integer(EuclideanDomainElement):
     cdef _xor(Integer self, Integer other)
     cdef _floordiv(Integer self, Integer other)
 
+    cdef _digits_naive(self,Integer base,digits)
     cdef RingElement _valuation(Integer self, Integer p)
     cdef object _val_unit(Integer self, Integer p)
     cdef Integer _divide_knowing_divisible_by(Integer self, Integer right)

@@ -186,8 +186,31 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     def __getitem__(self, Py_ssize_t i):
         """
         Return the ith entry of self.
+
+        EXAMPLES:
+            sage: R = Integers(7)
+            sage: v = vector(R, [1,2,3]); v
+            (1, 2, 3)
+            sage: v[0]
+            1
+            sage: v[2]
+            3
+            sage: v[-2]
+            2
+            sage: v[5]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+            sage: v[-5]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+
         """
         cdef IntegerMod_int n
+
+        if i < 0:
+            i += self._degree
 
         if i < 0 or i >= self._degree:
             raise IndexError, 'index out of range'
@@ -198,7 +221,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             return n
 
     def __reduce__(self):
-        return (unpickle_v0, (self._parent, self.list(), self._degree, self._p))
+        return unpickle_v1, (self._parent, self.list(), self._degree, self._p, self._is_mutable)
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         cdef Vector_modn_dense z, r
@@ -302,4 +325,13 @@ def unpickle_v0(parent, entries, degree, p):
     v._init(degree, parent, p)
     for i from 0 <= i < degree:
         v._entries[i] = entries[i]
+    return v
+
+def unpickle_v1(parent, entries, degree, p, is_mutable):
+    cdef Vector_modn_dense v
+    v = PY_NEW(Vector_modn_dense)
+    v._init(degree, parent, p)
+    for i from 0 <= i < degree:
+        v._entries[i] = entries[i]
+    v._is_mutable = is_mutable
     return v

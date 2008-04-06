@@ -16,6 +16,7 @@
 include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
 include "../../ext/cdefs.pxi"
+include "../../ext/random.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -23,7 +24,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
-from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
 from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
@@ -38,9 +39,11 @@ def ntl_ZZ_p_random_element(v):
     Return a random number modulo p.
 
     EXAMPLES:
-        sage: sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p_random_element(2) # random
-        1
+        sage: sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p_random_element(17)
+        8
     """
+    current_randstate().set_seed_ntl(False)
+
     cdef ntl_ZZ_p y
     v = ntl_ZZ_pContext(v)
     y = ntl_ZZ_p(0,v)
@@ -94,7 +97,8 @@ cdef class ntl_ZZ_p:
 
         #self.c.restore_c()  ## The context was restored in __new__
 
-        cdef ZZ_c temp
+        cdef ZZ_c temp, num, den
+        cdef long failed
         if v is not None:
             _sig_on
             if PY_TYPE_CHECK(v, ntl_ZZ_p):
@@ -107,6 +111,10 @@ cdef class ntl_ZZ_p:
             elif isinstance(v, Integer):
                 (<Integer>v)._to_ZZ(&temp)
                 self.x = ZZ_to_ZZ_p(temp)
+            elif isinstance(v, Rational):
+                (<Integer>v.numerator())._to_ZZ(&num)
+                (<Integer>v.denominator())._to_ZZ(&den)
+                ZZ_p_div(self.x, ZZ_to_ZZ_p(num), ZZ_to_ZZ_p(den))
             else:
                 v = str(v)
                 ZZ_p_from_str(&self.x, v)

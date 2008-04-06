@@ -155,6 +155,12 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         prime_pow = self.base_ring().prime_pow
         self._poly = self._poly.parent()([Integer(0) if (e is infinity) else (c % prime_pow(e)) for (c, e) in zip(selflist, self._relprecs)], check=False)
 
+    def __reduce__(self):
+        """
+        For pickling.  This function is here because the relative precisions were getting screwed up for some reason.
+        """
+        return make_padic_poly, (self.parent(), (self._poly, self._valbase, self._relprecs, self._normalized, self._valaddeds, self._list), 0)
+
     def _comp_list(self):
         if self.degree() == -1 and self._valbase == infinity:
             self._list = []
@@ -163,12 +169,14 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         polylen = len(polylist)
         self._list = [self.base_ring()(polylist[i], absprec = self._relprecs[i]) << self._valbase for i in range(polylen)] \
                      + [self.base_ring()(0, absprec = self._relprecs[i] + self._valbase) for i in range(polylen, len(self._relprecs))]
+        while self._list[-1]._is_exact_zero():
+            self._list.pop()
 
     def _comp_valaddeds(self):
         self._valaddeds = []
         for i in range(self._poly.degree() + 1):
             tmp = self._poly.list()[i].valuation(self.parent().base_ring().prime())
-            if tmp is infinity:
+            if tmp is infinity or tmp > self._relprecs[i]:
                 self._valaddeds.append(self._relprecs[i])
             else:
                 self._valaddeds.append(tmp)
@@ -359,9 +367,20 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         sage: a[1:2]
         (13^2 + O(13^4))*t
         """
+        if i < 0:
+            i = len(self._relprecs) + i
+            if i < 0:
+                raise IndexError, "list index out of range"
         if j > len(self._relprecs):
             j = len(self._relprecs)
-        return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly[i:j], self._valbase, [infinity]*i + self._relprecs[i:j], False, None if self._valaddeds is None else [infinity]*i + self._valaddeds[i:j], None if self._list is None else [self.base_ring()(0)] * i + self._list[i:j]), construct = True)
+        elif j < 0:
+            j = len(self._relprecs) + j
+            if j < 0:
+                raise IndexError, "list index out of range"
+        if i >= j:
+            return Polynomial_padic_capped_relative_dense(self.parent(), [])
+        else:
+            return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly[i:j], self._valbase, [infinity]*i + self._relprecs[i:j], False, None if self._valaddeds is None else [infinity]*i + self._valaddeds[i:j], None if self._list is None else [self.base_ring()(0)] * i + self._list[i:j]), construct = True)
 
     def _add_(self, right):
         """
@@ -520,7 +539,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         sage: K(13,7) * a
         (13 + O(13^7))*t^4 + (13^2 + O(13^6))*t^2 + (13^2 + O(13^8))
         """
-        self._comp_valaddeds()
+        if self._valaddeds is None:
+            self._comp_valaddeds()
         if left != 0:
             val, unit = left._val_unit()
             left_rprec = left.precision_relative()
@@ -579,9 +599,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         sage: b.list()
         [13 + O(13^5), 1 + O(13^2), O(13^3)]
         sage: b = a.rshift_coeffs(2); b
-        (O(13^2))*t^2 + (O(13^1))*t + (1 + O(13^4))
+        (O(13^2))*t^2 + (O(13))*t + (1 + O(13^4))
         sage: b.list()
-        [1 + O(13^4), O(13^1), O(13^2)]
+        [1 + O(13^4), O(13), O(13^2)]
         """
         if shift < 0:
             return self.lshift_coeffs(-shift, no_list) # We can't just absorb this into the next if statement because we allow rshift to preserve _normalized
@@ -693,7 +713,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             -1
         """
         self._normalize()
-        return self._poly.degree()
+        return Integer(self._poly.degree())
 
     def prec_degree(self):
         """
@@ -943,7 +963,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         for x in range(len(self._relprecs)):
             if not self._relprecs[x] is infinity:
                 break
-        self._comp_valaddeds()
+        if self._valaddeds is None:
+            self._comp_valaddeds()
         if self._poly[x] == 0:
             raise PrecisionError, "first term with non-infinite valuation must have determined valuation"
         yrel = self._valaddeds[x]
@@ -997,3 +1018,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
 def _extend_by_infinity(L, n):
     return L + [infinity] * (n - len(L))
+
+def make_padic_poly(parent, x, version):
+    if version == 0:
+        return parent(x, construct = True)
+    else:
+        raise ValueError, "unknown pickling version"

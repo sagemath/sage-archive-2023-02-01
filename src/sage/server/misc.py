@@ -51,12 +51,5 @@ def open_page(address, port, secure, path=""):
     else:
         rsrc = 'http'
 
-    orig = os.environ['LD_LIBRARY_PATH']
-    try:
-        os.environ['LD_LIBRARY_PATH'] = ''
-        cmd = 'echo `%s %s://%s:%s%s 1>&2 >/dev/null` &'%(browser(), rsrc, address, port, path)
-        os.system(cmd)
-    finally:
-        # it is critically that this line is executed no matter what.
-        os.environ['LD_LIBRARY_PATH'] = orig
+    os.system('%s %s://%s:%s%s 1>&2 > /dev/null &'%(browser(), rsrc, address, port, path))
 

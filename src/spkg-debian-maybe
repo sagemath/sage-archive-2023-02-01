@@ -1,0 +1,9 @@
+#!/bin/sh -x
+BUILD_ROOT=../../../
+mv dist/debian $BUILD_ROOT
+cd $BUILD_ROOT/..
+echo "Starting Debian build"
+dasource ./sage-2.10.1
+sbuildhack "$DEBIAN_RELEASE" *.dsc
+echo "Debian Build complete"
+

@@ -88,12 +88,11 @@ We compute a space of modular forms with character.
     sage: eps = magma.KroneckerCharacter(eps_top, RationalField())
     sage: M2 = magma.ModularForms(eps)
     sage: print M2
-    Space of modular forms on Gamma_1(5) with character all conjugates
-    of [$.1], weight 2, and dimension 2 over Integer Ring.
-    sage: print M2.Basis()
+    Space of modular forms on Gamma_1(5) with character $.1, weight 2, and dimension 2 over Integer Ring.
+    sage: print M2.Basis()   # note -- this has been changed to be *wrong* as below in Magma 2.14!!
     [
-    1 + 10*q^2 + 20*q^3 + 20*q^5 + 60*q^7 + O(q^8),
-    q + q^2 + 2*q^3 + 3*q^4 + 5*q^5 + 2*q^6 + 6*q^7 + O(q^8)
+    1 + 10*q^2 + 20*q^3 + 20*q^5 + 60*q^7 + 50*q^8 + 30*q^10 + O(q^12),
+    q + q^2 + 2*q^3 + 3*q^4 + 5*q^5 + 2*q^6 + 6*q^7 + 5*q^8 + 7*q^9 + 5*q^10 + 12*q^11 + O(q^12)
     ]
 
 In SAGE/Python (and sort of C++) coercion of an element x into a
@@ -169,6 +168,7 @@ from expect import console, Expect, ExpectElement, ExpectFunction, FunctionEleme
 PROMPT = ">>>"
 
 import sage.misc.misc
+import sage.misc.sage_eval
 
 INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj'%sage.misc.misc.DOT_SAGE
 MAGMA_SPEC = '%s/magma/spec'%sage.misc.misc.SAGE_EXTCODE
@@ -668,6 +668,61 @@ class MagmaElement(ExpectElement):
         if attrname[:1] == "_":
             raise AttributeError
         return MagmaFunctionElement(self, attrname)
+
+    def _sage_(self):
+        """
+        Return Sage version of this object.
+
+        Use the sage_eval method to call this.
+
+        EXAMPLES:
+        Enumerated Sets:
+            sage: a = magma('{1,2/3,-5/9}')       # optional
+            sage: sage_eval(a)                    # optional
+            {1, -5/9, 2/3}
+            sage: type(sage_eval(a))              # optional
+            <class 'sage.sets.set.Set_object_enumerated'>
+            sage: a = magma('{1,2/3,-5/9}'); a    # optional
+            { -5/9, 2/3, 1 }
+            sage: a.Type()                        # optional
+            SetEnum
+            sage: b = sage_eval(a); b             # optional
+            {1, -5/9, 2/3}
+            sage: type(b)                         # optional
+            <class 'sage.sets.set.Set_object_enumerated'>
+            sage: c = magma(b); c                 # optional
+            { -5/9, 2/3, 1 }
+            sage: c.Type()                        # optional
+            SetEnum
+
+        Multisets are converted to lists:
+            sage: m = magma('{* 1,2,2,2,4^^2,3 *}')    # optional
+            sage: z = m.sage(); z                      # optional
+            [1, 2, 2, 2, 3, 4, 4]
+            sage: type(z)                              # optional
+            <type 'list'>
+
+        Matrices:
+            sage: a = matrix(ZZ,3,3,[1..9])
+            sage: m = magma(a)                        # optional
+            sage: b = m.sage(); b                     # optional
+            [1 2 3]
+            [4 5 6]
+            [7 8 9]
+            sage: b == a                             # optional
+            True
+
+        A nonsquare matrix:
+            sage: a = matrix(ZZ,2,3,[1..6])
+            sage: m = magma(a)                       # optional
+            sage: m.sage()                           # optional
+            [1 2 3]
+            [4 5 6]
+        """
+        P = self._check_valid()
+        cmd = "Sage(%s)"%self.name()
+        s = str(P.eval(cmd))
+        return sage.misc.sage_eval.sage_eval(s)
 
     def AssignNames(self, names):
         """

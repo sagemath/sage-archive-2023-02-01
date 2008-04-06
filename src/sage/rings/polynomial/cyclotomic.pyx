@@ -25,7 +25,7 @@ from sage.rings.arith import factor
 from sage.rings.infinity import infinity
 from sage.misc.misc import prod, subsets
 
-def cyclotomic_coeffs(nn):
+def cyclotomic_coeffs(nn, sparse=None):
     """
     This calculates the coefficients of the n-th cyclotomic polynomial
     by using the formula
@@ -39,12 +39,15 @@ def cyclotomic_coeffs(nn):
     Multiplications and divisions by polynomials of the
     form $1-x^n$ can be done very quickly in a single pass.
 
-    The result is returned as a list of python ints.
+    If sparse is True, the result is returned as a dictionary of the non-zero
+    entries, otherwise the result is returned as a list of python ints.
 
     EXAMPLES:
         sage: from sage.rings.polynomial.cyclotomic import cyclotomic_coeffs
         sage: cyclotomic_coeffs(30)
         [1, 1, 0, -1, -1, -1, 0, 1, 1]
+        sage: cyclotomic_coeffs(10^5)
+        {0: 1, 10000: -1, 40000: 1, 30000: -1, 20000: 1}
         sage: R = QQ['x']
         sage: R(cyclotomic_coeffs(30))
         x^8 + x^7 - x^5 - x^4 - x^3 + x + 1
@@ -67,8 +70,8 @@ def cyclotomic_coeffs(nn):
 
     The polynomial is a palindrome for any n:
         sage: n = ZZ.random_element(50000)
-        sage: factor(n)                     # random
-        2^2 * 7 * 11 * 59
+        sage: factor(n)
+        3 * 10009
         sage: v = cyclotomic_coeffs(n)
         sage: v == list(reversed(v))
         True
@@ -94,9 +97,11 @@ def cyclotomic_coeffs(nn):
             d = prod(s)
             max_deg += n / d
 
+    if (<object>max_deg)*sizeof(long) > sys.maxint:
+        raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
     cdef long* coeffs = <long*>sage_malloc(sizeof(long) * (max_deg+1))
     if coeffs == NULL:
-        raise MemoryError, "Not enough space to calculate cyclotomic polynomial %s" % n
+        raise MemoryError, "Not enough memory to calculate cyclotomic polynomial of %s" % n
     memset(coeffs, 0, sizeof(long) * (max_deg+1))
     coeffs[0] = 1
 
@@ -126,7 +131,20 @@ def cyclotomic_coeffs(nn):
             offset += dd
             _sig_off
 
-    L = [coeffs[k] for k from offset <= k <= deg]
+    cdef long non_zero = 0
+    if sparse is None:
+        for k from offset <= k <= deg:
+            non_zero += coeffs[k] != 0
+        sparse = non_zero < 0.25*(deg-offset)
+
+    if sparse:
+        L = {}
+        for k from offset <= k <= deg:
+            if coeffs[k]:
+                L[k-offset] = coeffs[k]
+    else:
+        L = [coeffs[k] for k from offset <= k <= deg]
+
     sage_free(coeffs)
     return L
 

@@ -116,10 +116,12 @@ cdef class Parent(sage_object.SageObject):
             True
             sage: I in RR
             False
+            sage: SR(2) in ZZ
+            True
         """
         try:
             x2 = self(x)
-            return x2 == x
+            return bool(x2 == x)
         except TypeError:
             return False
 
@@ -421,15 +423,15 @@ cdef class Parent(sage_object.SageObject):
         Return True if there is a natural map from S to self.
         Otherwise, return False.
         """
-        try:
-            if self._has_coerce_map_from.has_key(S):
-                return self._has_coerce_map_from[S]
-        #try:
-        #    return self._has_coerce_map_from[S]
-        #except KeyError:
-        #    pass
-        except AttributeError:
+        if self == S:
+            return True
+        if self._has_coerce_map_from is None:
             self._has_coerce_map_from = {}
+        else:
+            try:
+                return self._has_coerce_map_from[S]
+            except KeyError:
+                pass
         if HAS_DICTIONARY(self):
             x = self.has_coerce_map_from_impl(S)
         else:

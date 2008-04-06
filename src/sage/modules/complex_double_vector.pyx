@@ -100,7 +100,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         return self._new_c(self.gsl_vector_complex_copy())
 
     def __reduce__(self):
-        return (unpickle_v0, (self._parent, self.list(), self._degree))
+        return (unpickle_v1, (self._parent, self.list(), self._degree, self._is_mutable))
 
     def __init__(self, parent, x, coerce = True, copy = True):
         """
@@ -169,7 +169,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             z_temp =<gsl_complex> (<ComplexDoubleElement> CDF(x))._complex
             gsl_vector_complex_set(self.v,i,z_temp)
 
-    def __getitem__(self,size_t i):
+    def __getitem__(self, Py_ssize_t i):
         """
         Return the ith entry of self.
 
@@ -178,6 +178,8 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             (1.0, 3.0 + 2.0*I, -1.0)
             sage: v[1]
             3.0 + 2.0*I
+            sage: v[-1]
+            -1.0
             sage: v[5]
             Traceback (most recent call last):
             ...
@@ -185,12 +187,14 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         """
         cdef gsl_complex z_temp
         cdef ComplexDoubleElement x
+        if i < 0:
+            i += self._degree
         if i < 0 or i >= self._degree:
             raise IndexError, 'index out of range'
-        else:
-            x = new_ComplexDoubleElement()
-            x._complex = gsl_vector_complex_get(self.v, i)
-            return x
+
+        x = new_ComplexDoubleElement()
+        x._complex = gsl_vector_complex_get(self.v, i)
+        return x
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         if self._degree == 0:
@@ -397,3 +401,8 @@ def unpickle_v0(parent, entries, degree):
     #    make_FreeModuleElement_generic_dense_v1
     # and changed the reduce method below.
     return parent(entries)
+
+def unpickle_v1(parent, entries, degree, is_mutable):
+    cdef ComplexDoubleVectorSpaceElement v = parent(entries)
+    v._is_mutable = is_mutable
+    return v

@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 A Worksheet.
 
 A worksheet is embedded in a webpage that is served by the \sage server.
@@ -38,6 +38,7 @@ import pexpect
 from sage.structure.sage_object  import load, save
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
+import sage.misc.interpreter
 from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE, walltime
 import sage.server.support as support
 
@@ -278,8 +279,7 @@ class Worksheet:
         else:
             check=True
         self.__pretty_print = check
-        S=self.sage()
-        S.eval("pretty_print_default(%r)"%(check))
+        self.eval_asap_no_output("pretty_print_default(%r)"%(check))
 
     ##########################################################
     # Publication
@@ -473,6 +473,58 @@ class Worksheet:
         except AttributeError:
             return True
 
+    def delete_user(self, user):
+        """
+        Delete a user from having any view or ownership of this worksheet.
+
+        INPUT:
+            user -- string; the name of a user
+
+        EXAMPLES:
+        We create a notebook with 2 users and 1 worksheet that both view.
+            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n.add_user('wstein','sage','wstein@sagemath.org',force=True)
+            sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
+            sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
+            sage: W.add_viewer('wstein')
+            sage: W.owner()
+            'sage'
+            sage: W.viewers()
+            ['wstein']
+
+        We delete the sage user from the worksheet W.   This makes wstein the
+        new owner.
+            sage: W.delete_user('sage')
+            sage: W.viewers()
+            ['wstein']
+            sage: W.owner()
+            'wstein'
+
+        Then we delete wstein from W, which makes the owner None:
+            sage: W.delete_user('wstein')
+            sage: W.owner() is None
+            True
+            sage: W.viewers()
+            []
+
+        Finally, we clean up.
+            sage: import shutil; shutil.rmtree('notebook-test')
+        """
+        if user in self.__collaborators:
+            self.__collaborators.remove(user)
+        if user in self.__viewers:
+            self.__viewers.remove(user)
+        if self.__owner == user:
+            if len(self.__collaborators) > 0:
+                self.__owner = self.__collaborators[0]
+            elif len(self.__viewers) > 0:
+                self.__owner = self.__viewers[0]
+            else:
+                # Now there is nobody to take over ownership.  We
+                # assign the owner None, which means nobody owns it.
+                # It will get purged elsewhere.
+                self.__owner = None
+
 
     def add_viewer(self, user):
         try:
@@ -487,6 +539,7 @@ class Worksheet:
                 self.__collaborators.append(user)
         except AttributeError:
             self.__collaborators = [user]
+
 
     ##########################################################
     # Searching
@@ -655,12 +708,29 @@ class Worksheet:
                 s += '\n\n' + t
         return s
 
+    def reset_interact_state(self):
+        """
+        Reset the interact state of this worksheet.
+        """
+        try:
+            S = self.__sage
+        except AttributeError:
+            return
+        try:
+            S._send('sage.server.notebook.interact.reset_state()')
+        except OSError:
+            # Dosn't matter, since if S is not running, no need
+            # to zero out the state dictionary.
+            return
+
     def edit_save(self, text, ignore_ids=False):
         # Clear any caching.
         try:
             del self.__html
         except AttributeError:
             pass
+
+        self.reset_interact_state()
 
         text.replace('\r\n','\n')
         name, i = extract_name(text)
@@ -727,6 +797,12 @@ class Worksheet:
             cells.append(self._new_cell())
 
         self.__cells = cells
+
+        if not self.is_published():
+            for c in self.__cells:
+                if c.is_interactive_cell():
+                    if not c in self.__queue:
+                        self.enqueue(c)
 
         # This *depends* on self.__cells being set!!
         self.set_cell_counter()
@@ -795,7 +871,7 @@ class Worksheet:
         if self.is_doc_worksheet():
             return ''
         return """
-        <button name="button_save" title="Save changes" onClick="save_worksheet();">Save</button><button title="Save changes and close window" onClick="save_worksheet_and_close();" name="button_save">Save & close</button><button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard changes</button>
+        <button name="button_save" title="Save changes" onClick="save_worksheet();">Save</button><button title="Save changes and close window" onClick="save_worksheet_and_close();" name="button_save">Save & quit</button><button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard & quit</button>
         """
 
     def html_share_publish_buttons(self, select=None):
@@ -1075,6 +1151,10 @@ class Worksheet:
             self.append_new_cell()
 
     def computing(self):
+        """
+        Return whether or not a cell is currently being run in the
+        worksheet Sage process.
+        """
         try:
             return self.__comp_is_running
         except AttributeError:
@@ -1138,11 +1218,9 @@ class Worksheet:
         return True
 
     def initialize_sage(self):
-        #print "Starting Sage server for worksheet %s..."%self.name()
         self.delete_cell_input_files()
         object_directory = os.path.abspath(self.notebook().object_directory())
         S = self.__sage
-        self._enqueue_auto_cells()
         try:
             cmd = '__DIR__="%s/"; DIR=__DIR__; DATA="%s/"; '%(self.DIR(), os.path.abspath(self.data_directory()))
             #cmd += '_support_.init("%s", globals()); '%object_directory
@@ -1156,23 +1234,40 @@ class Worksheet:
         A = self.attached_files()
         for F in A.iterkeys():
             A[F] = 0  # expire all
+        self._enqueue_auto_cells()
         return S
 
     def sage(self):
+        """
+        Return a started up copy of Sage initialized for computations.
+
+        If this is a published worksheet, just return None, since published
+        worksheets must not have any compute functionality.
+
+        OUTPUT:
+            a Sage interface
+        """
         if self.is_published():
             return None
         try:
             S = self.__sage
-            if not S._expect is None:
+            if S._expect is not None:
                 return S
         except AttributeError:
             pass
         self.__sage = one_prestarted_sage(server = self.notebook().get_server(),
                                           ulimit = self.notebook().get_ulimit())
-        os.environ['PAGER'] = 'cat'
         self.__next_block_id = 0
         self.initialize_sage()
         return self.__sage
+
+    def eval_asap_no_output(self, cmd, username=None):
+        C = self._new_cell(hidden=True)
+        C.set_asap(True)
+        C.set_no_output(True)
+        C.set_input_text(cmd)
+        self.enqueue(C, username=username)
+
 
     def start_next_comp(self):
         if len(self.__queue) == 0:
@@ -1183,38 +1278,46 @@ class Worksheet:
             return
 
         C = self.__queue[0]
+
         if C.interrupted():
             # don't actually compute
             return
 
         D = C.directory()
         if not C.introspect():
-            I = C.input_text().strip()
+            if hasattr(C, 'interact'):
+                I = C.interact
+            else:
+                I = C.input_text().strip()
             if I in ['restart', 'quit', 'exit']:
                 self.restart_sage()
                 S = self.system()
                 if S is None: S = 'sage'
                 C.set_output_text('Exited %s process'%S,'')
                 return
-            if I.startswith('%time'):
-                C.do_time()
-                I = after_first_word(I).lstrip()
-            elif first_word(I) == 'time':
-                C.do_time()
-                I = after_first_word(I).lstrip()
+            if not I.startswith('%timeit'):
+                if I.startswith('%time'):
+                    C.do_time()
+                    I = after_first_word(I).lstrip()
+                elif first_word(I) == 'time':
+                    C.do_time()
+                    I = after_first_word(I).lstrip()
         else:
             I = C.introspect()[0]
 
         S = self.sage()
 
         id = self.next_block_id()
+        C.code_id = id
 
         # prevent directory disappear problems
         dir = self.directory()
-        if not os.path.exists('%s/code'%dir):
-            os.makedirs('%s/code'%dir)
-        if not os.path.exists('%s/cells'%dir):
-            os.makedirs('%s/cells'%dir)
+        code_dir = '%s/code'%dir
+        if not os.path.exists(code_dir):
+            os.makedirs(code_dir)
+        cell_dir = '%s/cells'%dir
+        if not os.path.exists(cell_dir):
+            os.makedirs(cell_dir)
         tmp = '%s/code/%s.py'%(dir, id)
 
         absD = os.path.abspath(D)
@@ -1222,6 +1325,10 @@ class Worksheet:
 
         # TODOss
         os.system('chmod -R a+rw "%s"'%absD)
+
+        # This is useful mainly for interact -- it allows
+        # a cell to know it's ID.
+        input += 'sage.server.notebook.interact.SAGE_CELL_ID=%s\n'%(C.id())
 
         print "timing"
         if C.time():
@@ -1266,6 +1373,9 @@ class Worksheet:
         # in order to support use of the with statement in the notebook.  Very annoying.
         input = 'from __future__ import with_statement\n' + input
 
+        # This magic comment at the very start of the file allows utf8
+        # characters in the file
+        input = '# -*- coding: utf_8 -*-\n' + input
 
         open(tmp,'w').write(input)
 
@@ -1309,6 +1419,20 @@ class Worksheet:
         # Finished a computation.
         self.__comp_is_running = False
         del self.__queue[0]
+
+        if C.is_no_output():
+            # Clean up the temp directories associated to C, and do not set any output
+            # text that C might have got.
+            dir = self.directory()
+            code_file = '%s/code/%s.py'%(dir, C.code_id)
+            # NOTE -- this deletes the input file, which in the rare case when
+            # the input defines a function and the user asks for the source of
+            # that function, they wouldn't get it.
+            os.unlink(code_file)
+            cell_dir = '%s/cells/%s'%(dir, C.id())
+            shutil.rmtree(cell_dir)
+            return 'd', C
+
         out = self._process_output(out)
         if C.introspect():
             before_prompt, after_prompt = C.introspect()
@@ -1426,7 +1550,21 @@ class Worksheet:
                 self.__queue.append(c)
 
 
-    def enqueue(self, C, username=None):
+    def enqueue(self, C, username=None, next=False):
+        r"""
+        Queue up the cell C for evaluation in this worksheet.
+
+        INPUT:
+            C -- a Cell
+            username -- the name of the user that is evaluating this
+                        cell (mainly used for loging)
+
+        NOTE: If \code{C.is_asap()} is True, then we put C as close to
+        the beginning of the queue as possible, but after all asap cells.
+        Otherwise, C goes at the end of the queue.
+        """
+        if self.is_published():
+            return
         self._record_that_we_are_computing(username)
         if not isinstance(C, Cell):
             raise TypeError
@@ -1435,7 +1573,16 @@ class Worksheet:
 
         # Now enqueue the requested cell.
         if not (C in self.__queue):
-            self.__queue.append(C)
+            if C.is_asap():
+                if self.computing():
+                    i = 1
+                else:
+                    i = 0
+                while i < len(self.__queue) and self.__queue[i].is_asap():
+                    i += 1
+                self.__queue.insert(i, C)
+            else:
+                self.__queue.append(C)
         self.start_next_comp()
 
     def _enqueue_auto_cells(self):
@@ -1452,10 +1599,22 @@ class Worksheet:
             self.__next_id += 1
         return TextCell(id, plain_text, self)
 
-    def _new_cell(self, id=None):
+    def next_hidden_id(self):
+        try:
+            i = self.__next_hidden_id
+            self.__next_hidden_id -= 1
+        except AttributeError:
+            i = -1
+            self.__next_hidden_id = -2
+        return i
+
+    def _new_cell(self, id=None, hidden=False):
         if id is None:
-            id = self.__next_id
-            self.__next_id += 1
+            if hidden:
+                id = self.next_hidden_id()
+            else:
+                id = self.__next_id
+                self.__next_id += 1
         return Cell(id, '', '', self)
 
     def append(self, L):
@@ -1718,8 +1877,9 @@ class Worksheet:
         return t
 
     def preparse(self, s):
-        s = preparse_file(s, magic=False, do_time=True,
-                          ignore_prompts=False)
+        if sage.misc.interpreter.do_preparse:
+            s = preparse_file(s, magic=False, do_time=True,
+                              ignore_prompts=False)
         return s
 
     ##########################################################

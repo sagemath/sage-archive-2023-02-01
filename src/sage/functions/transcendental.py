@@ -20,7 +20,6 @@ Transcendental Functions
 import  sage.libs.pari.all
 from sage.libs.pari.all import pari, PariError
 import sage.rings.complex_field as complex_field
-import sage.rings.real_mpfr as real_field
 import sage.rings.real_double as real_double
 import sage.rings.complex_number
 from sage.gsl.integration import numerical_integral
@@ -101,7 +100,7 @@ def gamma(s):
         sage: gamma(I)
         -0.154949828301811 - 0.498015668118356*I
         sage: gamma(6)
-        120.000000000000
+        120
     """
     try:
         return s.gamma()

@@ -86,6 +86,11 @@ def EllipticCurve(x, y=None):
         sage: EllipticCurve(R, [1,1])
         Elliptic Curve defined by y^2  = x^3 + x +1 over Multivariate Polynomial Ring in u, v
         over Integer Ring
+
+    We create a curve and a point over QQbar:
+        sage: E = EllipticCurve(QQbar,[0,1])
+        sage: E(0)
+        (0 : 1 : 0)
     """
     # TODO - - implement
         #sage: E = EllipticCurve(ZZ, [0, 0,1,-1,0])

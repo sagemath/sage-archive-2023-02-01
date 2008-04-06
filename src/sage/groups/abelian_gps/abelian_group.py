@@ -7,6 +7,8 @@ AUTHOR:
     -- David Joyner (2006-08) trivial changes to docs, added random,
                               fixed bug in how invariants are recorded
     -- David Joyner (2006-10) added dual_group method
+    -- David Joyner (2008-02) fixed serious bug in word_problem
+    -- David Joyner (2008-03) fixed bug in trivial group case
 
 TODO:
    * additive abelian groups should also be supported
@@ -108,6 +110,8 @@ REFERENCES:
     [C2] ------, {\bf A course in computational algebraic number theory}, Springer, 1996.
     [R]  J. Rotman, {\bf An introduction to the theory of groups}, 4th ed, Springer, 1995.
 
+ WARNINGS: Many basic properties for infinite abelian groups are not implemented.
+
 """
 
 ##########################################################################
@@ -135,6 +139,7 @@ import sage.groups.group as group
 
 # TODO: this uses perm groups - the AbelianGroupElement instance method
 # uses a different implementation.
+
 
 def word_problem(words, g, verbose = False):
     r"""
@@ -169,9 +174,11 @@ def word_problem(words, g, verbose = False):
         Multiplicative Abelian Group isomorphic to C2 x C3 x C4
         sage: word_problem([a*b,a*c], b*c)
         [[a*b, 1], [a*c, 1]]
-        sage: word_problem([a*b,a*c],b*c)
-        [[a*b, 1], [a*c, 1]]
-
+        sage: word_problem([a*c,c],a)
+        [[a*c, 1], [c, -1]]
+        sage: word_problem([a*c,c],a,verbose=True)
+        a = (a*c)^1*(c)^-1
+        [[a*c, 1], [c, -1]]
 
         sage: A.<a,b,c,d,e> = AbelianGroup(5,[4, 5, 5, 7, 8])
         sage: b1 = a^3*b*c*d^2*e^5
@@ -181,9 +188,13 @@ def word_problem(words, g, verbose = False):
         sage: b5 = a^2*b^4*c^2*d^4*e^5
         sage: word_problem([b1,b2,b3,b4,b5],e)
         [[a^3*b*c*d^2*e^5, 1],
-        [a^2*b*c^2*d^3*e^3, 1],
-        [a^3*b^3*d^4*e^4, 3],
-        [a^3*b^2*c^2*d^3*e^5, 1]]
+         [a^2*b*c^2*d^3*e^3, 1],
+         [a^3*b^3*d^4*e^4, 3],
+         [a^2*b^4*c^2*d^4*e^5, 1]]
+        sage: word_problem([a,b,c,d,e],e)
+        [[e, 1]]
+        sage: word_problem([a,b,c,d,e],b)
+        [[b, 1]]
 
 
     WARNINGS: (1) Might have unpleasant effect when the word problem
@@ -222,13 +233,14 @@ def word_problem(words, g, verbose = False):
     s5 = 'H:=Group(gensH)'
     gap.eval(s5)
     gap.eval("x:=Factorization(H,g)")
-    l3 = gap.eval("L3:=ExtRepOfObj(x)")
+    l3 = eval(gap.eval("L3:=ExtRepOfObj(x)"))
     nn = gap.eval("n:=Int(Length(L3)/2)")
     LL = eval(gap.eval("L4:=List([l..n],i->L3[2*i])"))
     if verbose:
-        v = '*'.join(['(%s)^%s'%(words[i], LL[i]) for i in range(len(LL))])
+        #print gap.eval("x"), l3, nn, LL
+        v = '*'.join(['(%s)^%s'%(words[l3[2*i]-1], LL[i]) for i in range(len(LL))])
         print '%s = %s'%(g, v)
-    return [[words[i],LL[i]] for i in range(len(LL))]
+    return [[words[l3[2*i]-1],LL[i]] for i in range(len(LL))]
 
 
 def AbelianGroup(n, invfac=None, names="f"):
@@ -338,49 +350,101 @@ class AbelianGroup_class(group.AbelianGroup):
         2
         sage: (F.1).order()
         3
+        sage: AbelianGroup(1, [1], names='e')
+        Multiplicative Abelian Group isomorphic to C1
+        sage: AbelianGroup(1, [1], names='e').gens()
+        (e,)
+        sage: AbelianGroup(1, [1], names='e').list()
+        [1]
+        sage: AbelianGroup(3, [2, 1, 2], names=list('abc')).list()
+        [1, b, a, a*b]
 
     """
     def __init__(self, n, invfac, names="f"):
         #invfac.sort()
         n = Integer(n)
+        # if necessary, remove 1 from invfac first
+        if n != 1:
+            while True:
+                try:
+                    i = invfac.index(1)
+                except ValueError:
+                    break
+                else:
+                    del invfac[i]
+                    n = n-1
+
         if n < 0:
             raise ValueError, "n (=%s) must be nonnegative."%n
-
-        # if necessary, remove 1 from invfac first
-        while True:
-            try:
-                i = invfac.index(1)
-            except ValueError:
-                break
-            else:
-                del invfac[i]
 
         self.__invariants = invfac
 
         # *now* define ngens
         self.__ngens = len(self.__invariants)
-        self._assign_names(names)
+        self._assign_names(names[:n])
 
-
-    def invariants(self):
+    def __call__(self, x):
         """
-        Return a copy of the list of invariants of this group.
-
-        It is safe to modify the returned list.
+        Create an element of this abelian group from $x$.
 
         EXAMPLES:
-            sage: J = AbelianGroup([2,3])
-            sage: J.invariants()
-            [2, 3]
-            sage: v = J.invariants(); v
-            [2, 3]
-            sage: v[0] = 5
-            sage: J.invariants()
-            [2, 3]
-            sage: J.invariants() is J.invariants()
-            False
+            sage: F = AbelianGroup(10, [2]*10)
+            sage: F(F.2)
+            f2
+            sage: F(1)
+            1
         """
-        return list(self.__invariants)
+        if isinstance(x, AbelianGroupElement) and x.parent() is self:
+            return x
+        return AbelianGroupElement(self, x)
+
+    def __contains__(self, x):
+        """
+        Return True if $x$ is an element of this abelian group.
+
+        EXAMPLES:
+            sage: F = AbelianGroup(10,[2]*10)
+            sage: F.2 * F.3 in F
+            True
+
+        """
+        return isinstance(x, AbelianGroupElement) and x.parent() == self
+
+    def __cmp__(self, right):
+       """
+       Compare self and right.
+
+       The ordering is the ordering induced by that on the invariant factors lists.
+
+       EXAMPLES:
+           sage: G1 = AbelianGroup([2,3,4,5])
+           sage: G2 = AbelianGroup([2,3,4,5,1])
+           sage: G1 < G2
+           False
+           sage: G1 > G2
+           False
+           sage: G1 == G2
+           True
+       """
+       if not is_AbelianGroup(right):
+           return -1
+       self_invs = self.invariants()
+       right_invs = right.invariants()
+       for i in range(self_invs.count(1)):
+           self_invs.remove(1)
+       for i in range(right_invs.count(1)):
+           right_invs.remove(1)
+       return cmp(self_invs, right_invs)
+
+    def dual_group(self):
+        """
+        Returns the dual group.
+
+        EXAMPLES:
+
+        """
+        from sage.groups.abelian_gps.dual_abelian_group import DualAbelianGroup
+        return DualAbelianGroup(self)
 
     def elementary_divisors(self):
         """
@@ -433,6 +497,21 @@ class AbelianGroup_class(group.AbelianGroup):
 ##                 return False
 ##         return True
 
+
+##     def __str__(self):
+##         """
+##         Print method.
+
+##         EXAMPLES:
+##             sage: F = AbelianGroup(5,[5,64,729],names = list("abcde")); print F
+##             AbelianGroup( 5, [0, 0, 5, 64, 729])
+## 	    sage: F = AbelianGroup(5,[1,1,5,64,729],names = list("abcde")); print F
+##             AbelianGroup( 3, [5, 64, 729])
+
+##         """
+##         s = "AbelianGroup( %s, %s)"%(len(self.invariants()), self.invariants())
+##         return s
+
     def exponent(self):
         """
         Return the exponent of this abelian group.
@@ -450,27 +529,6 @@ class AbelianGroup_class(group.AbelianGroup):
             e = Integer(gap(self).Exponent())
             self.__exponent = e
             return e
-
-##     def __str__(self):
-##         """
-##         Print method.
-
-##         EXAMPLES:
-##             sage: F = AbelianGroup(5,[5,64,729],names = list("abcde")); print F
-##             AbelianGroup( 5, [0, 0, 5, 64, 729])
-## 	    sage: F = AbelianGroup(5,[1,1,5,64,729],names = list("abcde")); print F
-##             AbelianGroup( 3, [5, 64, 729])
-
-##         """
-##         s = "AbelianGroup( %s, %s)"%(len(self.invariants()), self.invariants())
-##         return s
-
-    def _repr_(self):
-        eldv = self.invariants()
-        if len(eldv) == 0:
-            return "Trivial Abelian Group"
-        g = self._group_notation(eldv)
-        return "Multiplicative Abelian Group isomorphic to " + g
 
     def _group_notation(self, eldv):
         v = []
@@ -492,52 +550,6 @@ class AbelianGroup_class(group.AbelianGroup):
         """
         s = "${\rm AbelianGroup}( %s, %s )$"%(len(self.invariants()), self.invariants())
         return s
-
-    def __call__(self, x):
-        """
-        Create an element of this abelian group from $x$.
-
-        EXAMPLES:
-            sage: F = AbelianGroup(10, [2]*10)
-            sage: F(F.2)
-            f2
-            sage: F(1)
-            1
-        """
-        if isinstance(x, AbelianGroupElement) and x.parent() is self:
-            return x
-        return AbelianGroupElement(self, x)
-
-    def __contains__(self, x):
-        """
-        Return True if $x$ is an element of this abelian group.
-
-        EXAMPLES:
-            sage: F = AbelianGroup(10,[2]*10)
-            sage: F.2 * F.3 in F
-            True
-
-        """
-        return isinstance(x, AbelianGroupElement) and x.parent() == self
-
-    def random(self):
-        """
-        Return a random element of this group.
-
-        EXAMPLES:
-            sage: G = AbelianGroup([2,3,9])
-            sage: G.random()   ## random
-            f2^8
-
-        """
-        from random import randint
-        if self.order() is infinity:
-            NotImplementedError, "The group must be finite"
-        gens = self.gens()
-        g = gens[0]**0
-        for i in range(len(gens)):
-            g = g*gens[i]**(randint(1,gens[i].order()))
-        return g
 
     def _gap_init_(self):
         r"""
@@ -586,6 +598,27 @@ class AbelianGroup_class(group.AbelianGroup):
         x = [0]*int(n)
         x[int(i)] = 1
         return AbelianGroupElement(self, x)
+
+    def invariants(self):
+        """
+        Return a copy of the list of invariants of this group.
+
+        It is safe to modify the returned list.
+
+        EXAMPLES:
+            sage: J = AbelianGroup([2,3])
+            sage: J.invariants()
+            [2, 3]
+            sage: v = J.invariants(); v
+            [2, 3]
+            sage: v[0] = 5
+            sage: J.invariants()
+            [2, 3]
+            sage: J.invariants() is J.invariants()
+            False
+        """
+        return list(self.__invariants)
+
 
     def ngens(self):
         """
@@ -657,6 +690,35 @@ class AbelianGroup_class(group.AbelianGroup):
         """
         return True
 
+    def random_element(self):
+        """
+        Return a random element of this group. (Renamed random to
+        random_element.)
+
+        EXAMPLES:
+            sage: G = AbelianGroup([2,3,9])
+            sage: G.random_element()
+            f0*f1^2*f2
+
+        """
+        from sage.misc.prandom import randint
+        if self.order() is infinity:
+            NotImplementedError, "The group must be finite"
+        gens = self.gens()
+        g = gens[0]**0
+        for i in range(len(gens)):
+            g = g*gens[i]**(randint(1,gens[i].order()))
+        return g
+
+
+    def _repr_(self):
+        eldv = self.invariants()
+        if len(eldv) == 0:
+            return "Trivial Abelian Group"
+        g = self._group_notation(eldv)
+        return "Multiplicative Abelian Group isomorphic to " + g
+
+
     def subgroup(self, gensH, names="f"):
         """
         Create a subgroup of this group. The "big" group must be defined
@@ -702,32 +764,6 @@ class AbelianGroup_class(group.AbelianGroup):
                 raise TypeError, "Subgroup generators must belong to the given group."
         return AbelianGroup_subgroup(self, gensH, names)
 
-    def __cmp__(self, right):
-       """
-       Compare self and right.
-
-       The ordering is the ordering induced by that on the invariant factors lists.
-
-       EXAMPLES:
-           sage: G1 = AbelianGroup([2,3,4,5])
-           sage: G2 = AbelianGroup([2,3,4,5,1])
-           sage: G1 < G2
-           False
-           sage: G1 > G2
-           False
-           sage: G1 == G2
-           True
-       """
-       if not is_AbelianGroup(right):
-           return -1
-       self_invs = self.invariants()
-       right_invs = right.invariants()
-       for i in range(self_invs.count(1)):
-           self_invs.remove(1)
-       for i in range(right_invs.count(1)):
-           right_invs.remove(1)
-       return cmp(self_invs, right_invs)
-
     def list(self):
         """
         Return list of all elements of this group.
@@ -742,8 +778,7 @@ class AbelianGroup_class(group.AbelianGroup):
         invs = self.invariants()
         T = mrange(invs)
         n = self.order()
-        return [AbelianGroupElement(self, t)
-                            for t in T]
+        return [AbelianGroupElement(self, t) for t in T]
 
     def __iter__(self):
         """
@@ -757,15 +792,6 @@ class AbelianGroup_class(group.AbelianGroup):
         for g in self.list():
             yield g
 
-    def dual_group(self):
-        """
-        Returns the dual group.
-
-        EXAMPLES:
-
-        """
-        from sage.groups.abelian_gps.dual_abelian_group import DualAbelianGroup
-        return DualAbelianGroup(self)
 
 class AbelianGroup_subgroup(AbelianGroup_class):
     """
@@ -941,6 +967,13 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         #print Hgensf, invs, invs0
         AbelianGroup_class.__init__(self, len(invs), invs, names)
 
+    def ambient_group(self):
+        """
+        Return the ambient group related to self.
+
+        """
+        return self.__ambient_group
+
     def __cmp__(self, right):
         r"""
         Compare self and other.  If self and other are in a common ambient group,
@@ -972,6 +1005,7 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         #else:
         #    return 1
 
+
     #def __repr__(self):
     #    s = "AbelianGroup( %s, %s)"%(len(self.invariants()), self.invariants())
     #    return s
@@ -989,13 +1023,6 @@ class AbelianGroup_subgroup(AbelianGroup_class):
     #    """
     #    s = "${\rm AbelianGroup}( %s, %s )$"%(len(self.invariants()), self.invariants())
     #    return s
-
-    def ambient_group(self):
-        """
-        Return the ambient group related to self.
-
-        """
-        return self.__ambient_group
 
     def invs(self):
         """

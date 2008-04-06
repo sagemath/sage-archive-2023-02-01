@@ -51,10 +51,19 @@ cdef class Matrix(matrix0.Matrix):
 
     def _gap_init_(self):
         """
+        Returns a string defining a gap representation of self
+
         EXAMPLES:
-            sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
-            sage: g = gap(A); g
-            [ [ 1, 2, 3 ], [ 4/3, 5/3, 3/2 ], [ 7, 8, 9 ] ]
+            sage: A = MatrixSpace(QQ,3,3)([0,1,2,3,4,5,6,7,8])
+            sage: g=gap(A)
+            sage: g
+            [ [ 0, 1, 2 ], [ 3, 4, 5 ], [ 6, 7, 8 ] ]
+            sage: g.CharacteristicPolynomial()
+            x_1^3-12*x_1^2-18*x_1
+            sage: A = MatrixSpace(CyclotomicField(4),2,2)([0,1,2,3])
+            sage: g=gap(A)
+            sage: g
+            [ [ !0, !1 ], [ !2, !3 ] ]
             sage: g.IsMatrix()
             true
         """
@@ -65,7 +74,9 @@ cdef class Matrix(matrix0.Matrix):
             for j from 0 <= j < self._ncols:
                 tmp.append(self.get_unsafe(i,j)._gap_init_())
             v.append( '[%s]'%(','.join(tmp)) )
-        return '[%s]'%(','.join(v))
+        # It is needed to multiply with 'One(...)', because
+        # otherwise the result would not be a gap matrix
+        return '[%s]*One(%s)'%(','.join(v),sage.interfaces.gap.gap(self.base_ring()).name())
 
     def _maxima_init_(self):
         """
@@ -96,19 +107,26 @@ cdef class Matrix(matrix0.Matrix):
 
     def _mathematica_init_(self):
        """
+       Return Mathematica string representation of this matrix.
+
        EXAMPLES:
            sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
-           sage: g = mathematica(A); g                                   # optional
-           {{1}, {2}, {3}, {4/3}, {5/3}, {3/2}, {7}, {8}, {9}}
+           sage: g = mathematica(A); g                  # optional
+           {{1, 2, 3}, {4/3, 5/3, 3/2}, {7, 8, 9}}
+           sage: A._mathematica_init_()
+           '{{1/1, 2/1, 3/1}, {4/3, 5/3, 3/2}, {7/1, 8/1, 9/1}}'
+
+           sage: A = matrix([[1,2],[3,4]])
+           sage: g = mathematica(A); g                  # optional
+           {{1, 2}, {3, 4}}
+
+           sage: a = matrix([[pi, sin(x)], [cos(x), 1/e]]); a
+           [    pi sin(x)]
+           [cos(x)   e^-1]
+           sage: a._mathematica_init_()
+           '{{Pi, Sin[x]}, {Cos[x], (E) ^ (-1)}}'
        """
-       cdef Py_ssize_t i, j
-       v = []
-       for i from 0 <= i < self._nrows:
-           w = []
-           for j from 0 <= j < self._ncols:
-               w.append('{%s}'%self.get_unsafe(i, j))
-           v.append(','.join(w))
-       return '{%s}'%(','.join(v))
+       return '{' + ', '.join([v._mathematica_init_() for v in self.rows()]) + '}'
 
     def _magma_init_(self):
         r"""
@@ -549,9 +567,24 @@ cdef class Matrix(matrix0.Matrix):
         indexing, e.g., -1 gives the right-most column:
             sage: a.column(-1)
             (2, 5)
+
+        TESTS:
+            sage: a = matrix(2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.column(3)
+            Traceback (most recent call last):
+            ...
+            IndexError: column index out of range
+            sage: a.column(-4)
+            Traceback (most recent call last):
+            ...
+            IndexError: column index out of range
         """
         if self._ncols == 0:
             raise IndexError, "matrix has no columns"
+        if i >= self._ncols or i < -self._ncols:
+            raise IndexError, "column index out of range"
         i = i % self._ncols
         if i < 0:
             i = i + self._ncols
@@ -590,9 +623,24 @@ cdef class Matrix(matrix0.Matrix):
             (3, 4, 5)
             sage: a.row(-1)  # last row
             (3, 4, 5)
+
+        TESTS:
+            sage: a = matrix(2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.row(2)
+            Traceback (most recent call last):
+            ...
+            IndexError: row index out of range
+            sage: a.row(-3)
+            Traceback (most recent call last):
+            ...
+            IndexError: row index out of range
         """
         if self._nrows == 0:
             raise IndexError, "matrix has no rows"
+        if i >= self._nrows or i < -self._nrows:
+            raise IndexError, "row index out of range"
         i = i % self._nrows
         if i < 0:
             i = i + self._nrows
@@ -629,10 +677,10 @@ cdef class Matrix(matrix0.Matrix):
         if not isinstance(other, Matrix):
             raise TypeError, "other must be a matrix"
 
-        if not (self._base_ring is other.base_ring()):
-            other = other.change_ring(self._base_ring)
         if self._ncols != other.ncols():
             raise TypeError, "number of columns must be the same"
+        if not (self._base_ring is other.base_ring()):
+            other = other.change_ring(self._base_ring)
 
         v = self.list() + other.list()
         Z = self.new_matrix(nrows = self._nrows + other.nrows(), entries=v, coerce=False, copy=False)
@@ -655,17 +703,19 @@ cdef class Matrix(matrix0.Matrix):
             [5 4]
             [0 7]
         """
-        if not isinstance(columns, (list, tuple)):
+        if not (PY_TYPE_CHECK(columns, list) or PY_TYPE_CHECK(columns, tuple)):
             raise TypeError, "columns (=%s) must be a list of integers"%columns
         cdef Matrix A
-        A = self.new_matrix(ncols = len(columns))
+        cdef Py_ssize_t ncols,k,r
+
+        ncols = PyList_GET_SIZE(columns)
+        A = self.new_matrix(ncols = ncols)
         k = 0
-        for i in columns:
-            i = int(i)
-            if i < 0 or i >= self.ncols():
-                raise IndexError, "column %s out of range"%i
-            for r in xrange(self.nrows()):
-                A.set_unsafe(r,k, self.get_unsafe(r,i))
+        for i from 0 <= i < ncols:
+            if columns[i] < 0 or columns[i] >= self._ncols:
+                raise IndexError, "column %s out of range"%columns[i]
+            for r from 0 <= r < self._nrows:
+                A.set_unsafe(r,k, self.get_unsafe(r,columns[i]))
             k = k + 1
         return A
 
@@ -684,25 +734,26 @@ cdef class Matrix(matrix0.Matrix):
             [6 7 0]
             [3 4 5]
         """
-        if not isinstance(rows, (list, tuple)):
+        if not (PY_TYPE_CHECK(rows, list) or PY_TYPE_CHECK(rows, tuple)):
             raise TypeError, "rows must be a list of integers"
         cdef Matrix A
-        A = self.new_matrix(nrows = len(rows))
+        cdef Py_ssize_t nrows,k,c
+
+        nrows = PyList_GET_SIZE(rows)
+        A = self.new_matrix(nrows = nrows)
         k = 0
-        for i in rows:
-            i = int(i)
-            if i < 0 or i >= self.nrows():
-                raise IndexError, "row %s out of range"%i
-            for c in xrange(self.ncols()):
-                A.set_unsafe(k,c, self.get_unsafe(i,c))
-            k = k + 1
+        for i from 0 <= i < nrows:
+            if rows[i] < 0 or rows[i] >= self._nrows:
+                raise IndexError, "row %s out of range"%rows[i]
+            for c from 0 <= c < self._ncols:
+                A.set_unsafe(k,c, self.get_unsafe(rows[i],c))
+            k += 1
         return A
 
     def matrix_from_rows_and_columns(self, rows, columns):
         """
         Return the matrix constructed from self from the given
         rows and columns.
-
         EXAMPLES:
             sage: M = MatrixSpace(Integers(8),3,3)
             sage: A = M(range(9)); A
@@ -729,31 +780,34 @@ cdef class Matrix(matrix0.Matrix):
 
         AUTHOR:
             -- Jaap Spies (2006-02-18)
+            -- didier deshommes: some pyrex speedups implemented
         """
-        if not isinstance(rows, list):
+        if not PY_TYPE_CHECK(rows, list):
             raise TypeError, "rows must be a list of integers"
-        if not isinstance(columns, list):
+        if not PY_TYPE_CHECK(columns, list):
             raise TypeError, "columns must be a list of integers"
+
         cdef Matrix A
-        A = self.new_matrix(nrows = len(rows), ncols = len(columns))
+        cdef Py_ssize_t nrows, ncols,k,r,i,j
+
         r = 0
-        c = len(columns)
-        tmp = []
-        for j in columns:
-            if j >= 0 and j < self.ncols():
-                tmp.append(int(j))
+        ncols = PyList_GET_SIZE(columns)
+        nrows = PyList_GET_SIZE(rows)
+        A = self.new_matrix(nrows = nrows, ncols = ncols)
+
+        tmp = [el for el in columns if el >= 0 and el < self._ncols]
         columns = tmp
-        if c != len(columns):
+        if ncols != PyList_GET_SIZE(columns):
             raise IndexError, "column index out of range"
-        for i in rows:
-            i = int(i)
-            if i < 0 or i >= self.nrows():
+
+        for i from 0 <= i < nrows:
+            if rows[i] < 0 or rows[i] >= self._nrows:
                 raise IndexError, "row %s out of range"%i
             k = 0
-            for j in columns:
-                A.set_unsafe(r,k, self.get_unsafe(i,j))
-                k = k + 1
-            r = r + 1
+            for j from 0 <= j < ncols:
+                A.set_unsafe(r,k, self.get_unsafe(rows[i],columns[j]))
+                k += 1
+            r += 1
         return A
 
     def submatrix(self, Py_ssize_t row=0, Py_ssize_t col=0,
@@ -982,10 +1036,10 @@ cdef class Matrix(matrix0.Matrix):
         AUTHORS:
             -- Naqi Jaffery (2006-01-24): examples
         """
-        if not (self._base_ring is other.base_ring()):
-            raise TypeError, "base rings must be the same"
         if self._nrows != other._nrows:
             raise TypeError, "number of rows must be the same"
+        if not (self._base_ring is other.base_ring()):
+            other = other.change_ring(self._base_ring)
 
         cdef Matrix Z
         Z = self.new_matrix(ncols = self._ncols + other._ncols)

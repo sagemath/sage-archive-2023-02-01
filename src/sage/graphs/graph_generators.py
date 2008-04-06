@@ -68,6 +68,7 @@ ORGANIZATION:
             - FlowerSnark
             - FruchtGraph
             - HeawoodGraph
+            - HoffmanSingletonGraph
             - MoebiusKantorGraph
             - Pappus Graph
             - PetersenGraph
@@ -128,6 +129,7 @@ AUTHORS:
 
 import graph
 from   math import sin, cos, pi
+from sage.misc.randstate import current_randstate
 
 class GraphGenerators():
     r"""
@@ -176,8 +178,9 @@ class GraphGenerators():
             - FlowerSnark
             - FruchtGraph
             - HeawoodGraph
+            - HoffmanSingletonGraph
             - MoebiusKantorGraph
-            - Pappus Graph
+            - PappusGraph
             - PetersenGraph
             - ThomsenGraph
         Families of Graphs:
@@ -199,10 +202,6 @@ class GraphGenerators():
             - RandomTreePowerlaw
             - RandomRegular
             - RandomShell
-        Random Directed Graphs:
-            - RandomDirectedGN
-            - RandomDirectedGNC
-            - RandomDirectedGNR
         Graphs with a given degree sequence:
             - DegreeSequence
             - DegreeSequenceConfigurationModel
@@ -1522,6 +1521,89 @@ class GraphGenerators():
         G = networkx.heawood_graph()
         return graph.Graph(G, pos=pos_dict, name="Heawood graph")
 
+    def HoffmanSingletonGraph(self):
+        r"""
+        Returns the Hoffman-Singleton graph.
+
+        The Hoffman-Singleton graph is the Moore graph of degree 7, diameter 2
+        and girth 5. The Hoffman-Singleton theorem states that any Moore graph
+        with girth 5 must have degree 2, 3, 7 or 57. The first three respectively
+        are the pentagon, the Petersen graph, and the Hoffman-Singleton graph.
+        The existence of a Moore graph with girth 5 and degree 57 is still open.
+
+        A Moore graph is a graph with diameter $d$ and girth $2d + 1$. This
+        implies that the graph is regular, and distance regular.
+
+        PLOTTING:
+        Upon construction, the position dictionary is filled to override the
+        spring-layout algorithm.  A novel algorithm written by Tom Boothby gives
+        a random layout which is pleasing to the eye.
+
+        REFERENCES:
+            [1] Godsil, C. and Royle, G. Algebraic Graph Theory. Springer, 2001.
+
+        EXAMPLES:
+            sage: HS = graphs.HoffmanSingletonGraph()
+            sage: Set(HS.degree())
+            {7}
+            sage: HS.girth()
+            5
+            sage: HS.diameter()
+            2
+            sage: HS.num_verts()
+            50
+
+        """
+        H = graph.Graph({ \
+        'q00':['q01'], 'q01':['q02'], 'q02':['q03'], 'q03':['q04'], 'q04':['q00'], \
+        'q10':['q11'], 'q11':['q12'], 'q12':['q13'], 'q13':['q14'], 'q14':['q10'], \
+        'q20':['q21'], 'q21':['q22'], 'q22':['q23'], 'q23':['q24'], 'q24':['q20'], \
+        'q30':['q31'], 'q31':['q32'], 'q32':['q33'], 'q33':['q34'], 'q34':['q30'], \
+        'q40':['q41'], 'q41':['q42'], 'q42':['q43'], 'q43':['q44'], 'q44':['q40'], \
+        'p00':['p02'], 'p02':['p04'], 'p04':['p01'], 'p01':['p03'], 'p03':['p00'], \
+        'p10':['p12'], 'p12':['p14'], 'p14':['p11'], 'p11':['p13'], 'p13':['p10'], \
+        'p20':['p22'], 'p22':['p24'], 'p24':['p21'], 'p21':['p23'], 'p23':['p20'], \
+        'p30':['p32'], 'p32':['p34'], 'p34':['p31'], 'p31':['p33'], 'p33':['p30'], \
+        'p40':['p42'], 'p42':['p44'], 'p44':['p41'], 'p41':['p43'], 'p43':['p40']} )
+        for j in range(5):
+            for i in range(5):
+                for k in range(5):
+                    con = (i+j*k)%5
+                    H.add_edge(('q%d%d'%(k,con),'p%d%d'%(j,i)))
+        H.name('Hoffman-Singleton graph')
+        from sage.combinat.combinat import permutations
+        from random import randint
+        P = permutations([1,2,3,4])
+        qpp = [0]+P[randint(0,23)]
+        ppp = [0]+P[randint(0,23)]
+        def qcycle(i,s):
+            return ['q%s%s'%(i,(j+s)%5) for j in qpp]
+        def pcycle(i,s):
+            return ['p%s%s'%(i,(j+s)%5) for j in ppp]
+        l = 0
+        s = 0
+        D = []
+        while l < 5:
+            for q in qcycle(l,s):
+                D.append(q)
+            vv = 'p%s'%q[1]
+            s = int([v[-1] for v in H.neighbors(q) if v[:2] == vv][0])
+            for p in pcycle(l,s):
+                D.append(p)
+            vv = 'q%s'%(int(p[1])+1)
+            v = [v[-1] for v in H.neighbors(p) if v[:2] == vv]
+            if len(v):
+                s = int(v[0])
+            l+=1
+        map = H.relabel(return_map=True)
+        pos_dict = {}
+        for i in range(50):
+            x = float(cos((pi/2) + ((2*pi)/50)*i))
+            y = float(sin((pi/2) + ((2*pi)/50)*i))
+            pos_dict[map[D[i]]] = [x,y]
+        H.set_pos(pos_dict)
+        return H
+
     def MoebiusKantorGraph(self):
         """
         Returns a Moebius-Kantor Graph.
@@ -1599,7 +1681,7 @@ class GraphGenerators():
     def PetersenGraph(self):
         """
         The Petersen Graph is a named graph that consists of 10 vertices
-        and 14 edges, usually drawn as a five-point star embedded in a
+        and 15 edges, usually drawn as a five-point star embedded in a
         pentagon.
 
         The Petersen Graph is a common counterexample.  For example, it is
@@ -1609,8 +1691,7 @@ class GraphGenerators():
         When plotting the Petersen graph with the spring-layout algorithm,
         we see that this graph is not very symmetric and thus the display
         may not be very meaningful. Efficiency of construction and plotting
-        is not an issue, as the Petersen graph only has 10 vertices and 14
-        edges.
+        is not an issue, as the Petersen graph only has 10 vertices.
 
         Our labeling convention here is to start on the outer pentagon from
         the top, moving counterclockwise. Then the nodes on the inner star,
@@ -2166,6 +2247,11 @@ class GraphGenerators():
         algorithm, unless a position dictionary is specified.
 
         EXAMPLES:
+        We show the edge list of a random graph on 6 nodes with probability
+        $p = .4$:
+            sage: graphs.RandomGNP(6, .4).edges(labels=False)
+            [(0, 1), (0, 3), (0, 4), (0, 5), (1, 2), (1, 3), (1, 4), (1, 5)]
+
         We plot a random graph on 12 nodes with probability $p = .71$:
             sage: gnp = graphs.RandomGNP(12,.71)
             sage: gnp.show()
@@ -2207,6 +2293,8 @@ class GraphGenerators():
             0.90005700000000033
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         if fast:
             G = networkx.fast_gnp_random_graph(n, p, seed)
@@ -2229,6 +2317,10 @@ class GraphGenerators():
             seed -- for random number generator
 
         EXAMPLES:
+        We show the edge list of a random graph on 6 nodes with m = 2.
+            sage: graphs.RandomBarabasiAlbert(6,2).edges(labels=False)
+            [(0, 2), (0, 3), (0, 4), (1, 2), (1, 3), (2, 4), (2, 5), (3, 5)]
+
         We plot a random graph on 12 nodes with m = 3.
             sage: ba = graphs.RandomBarabasiAlbert(12,3)
             sage: ba.plot().show()  # or ba.show()
@@ -2250,6 +2342,8 @@ class GraphGenerators():
             sage: G.show()  # or G.show()
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.barabasi_albert_graph(n,m,seed))
 
@@ -2265,6 +2359,10 @@ class GraphGenerators():
         gnm_random_graph
 
         EXAMPLES:
+        We show the edge list of a random graph on 5 nodes with 10 edges.
+            sage: graphs.RandomGNM(5, 10).edges(labels=False)
+            [(0, 1), (0, 2), (0, 3), (0, 4), (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]
+
         We plot a random graph on 12 nodes with m = 12.
             sage: gnm = graphs.RandomGNM(12, 12)
             sage: gnm.plot().show()  # or gnm.show()
@@ -2286,6 +2384,8 @@ class GraphGenerators():
             sage: G.show()  # or G.show()
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         if dense:
             return graph.Graph(networkx.dense_gnm_random_graph(n, m, seed))
@@ -2311,6 +2411,11 @@ class GraphGenerators():
             seed -- for the random number generator
 
         EXAMPLE:
+        We show the edge list of a random graph on 7 nodes with
+        2 "nearest neighbors" and probability $p = 0.2$:
+            sage: graphs.RandomNewmanWattsStrogatz(7, 2, 0.2).edges(labels=False)
+            [(0, 1), (0, 2), (0, 3), (0, 6), (1, 2), (2, 3), (2, 4), (3, 4), (3, 6), (4, 5), (5, 6)]
+
             sage: G = graphs.RandomNewmanWattsStrogatz(12, 2, .3)
             sage: G.plot().show()  # or G.show()
 
@@ -2319,6 +2424,8 @@ class GraphGenerators():
                 models of social networks. Proc. Nat. Acad. Sci. USA 99, 2566-2572.
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.newman_watts_strogatz_graph(n, k, p, seed))
 
@@ -2348,6 +2455,12 @@ class GraphGenerators():
         the BA model.
 
         EXAMPLE:
+        We show the edge list of a random graph on 8 nodes with 2
+        random edges per node and a probability $p = 0.5$ of forming
+        triangles.
+            sage: graphs.RandomHolmeKim(8, 2, 0.5).edges(labels=False)
+            [(0, 2), (0, 4), (1, 2), (1, 3), (2, 3), (3, 4), (3, 5), (3, 6), (3, 7), (4, 5), (4, 6)]
+
             sage: G = graphs.RandomHolmeKim(12, 3, .3)
             sage: G.plot().show()  # or G.show()
 
@@ -2355,6 +2468,8 @@ class GraphGenerators():
             [1] Holme, P. and Kim, B.J. Growing scale-free networks with
                 tunable clustering, Phys. Rev. E (2002). vol 65, no 2, 026107.
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.powerlaw_cluster_graph(n, m, p, seed))
 
@@ -2373,10 +2488,17 @@ class GraphGenerators():
             seed -- for the random number generator
 
         EXAMPLE:
+        We show the edge list of a random graph with 3 backbone nodes
+        and probabilities $p = 0.7$ and $q = 0.3$:
+            sage: graphs.RandomLobster(3, 0.7, 0.3).edges(labels=False)
+            [(0, 1), (1, 2)]
+
             sage: G = graphs.RandomLobster(9, .6, .3)
             sage: G.plot().show()  # or G.show()
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.random_lobster(n, p, q, seed))
 
@@ -2397,11 +2519,18 @@ class GraphGenerators():
             seed -- for the random number generator
 
         EXAMPLE:
-            sage: G = graphs.RandomTreePowerlaw(15, 2)  # VERY random output
+        We show the edge list of a random graph with 10 nodes and
+        a power law exponent of 2.
+            sage: graphs.RandomTreePowerlaw(10, 2).edges(labels=False)
+            [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (6, 8), (6, 9)]
+
+            sage: G = graphs.RandomTreePowerlaw(15, 2)
             sage: if G:
             ...    G.plot().show()  # or G.show() (random output)
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         try:
             return graph.Graph(networkx.random_powerlaw_tree(n, gamma, seed, tries))
@@ -2421,7 +2550,16 @@ class GraphGenerators():
             seed -- for the random number generator
 
         EXAMPLE:
-            sage: G = graphs.RandomRegular(3, 20)  # VERY random output
+        We show the edge list of a random graph with 8 nodes each of
+        degree 3.
+            sage: graphs.RandomRegular(3, 8)
+            False
+            sage: graphs.RandomRegular(3, 8)
+            False
+            sage: graphs.RandomRegular(3, 8).edges(labels=False)
+            [(0, 1), (0, 4), (0, 5), (1, 6), (1, 7), (2, 3), (2, 4), (2, 7), (3, 4), (3, 5), (5, 6), (6, 7)]
+
+            sage: G = graphs.RandomRegular(3, 20)
             sage: if G:
             ...    G.plot().show()  # or G.show() (random output)
 
@@ -2433,6 +2571,8 @@ class GraphGenerators():
             [2] Steger, A. and Wormald, N. Generating random regular graphs
                 quickly. Prob. and Comp. 8 (1999), pp 377-396.
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         try:
             return graph.Graph(networkx.random_regular_graph(d, n, seed))
@@ -2452,113 +2592,38 @@ class GraphGenerators():
 
         EXAMPLE:
             sage: G = graphs.RandomShell([(10,20,0.8),(20,40,0.8)])
+            sage: G.edges(labels=False)
+            [(0, 3), (0, 7), (0, 8), (1, 2), (1, 5), (1, 8), (1, 9), (3, 6), (3, 11), (4, 6), (4, 7), (4, 8), (4, 21), (5, 8), (5, 9), (6, 9), (6, 10), (7, 8), (7, 9), (8, 18), (10, 11), (10, 13), (10, 19), (10, 22), (10, 26), (11, 18), (11, 26), (11, 28), (12, 13), (12, 14), (12, 28), (12, 29), (13, 16), (13, 21), (13, 29), (14, 18), (16, 20), (17, 18), (17, 26), (17, 28), (18, 19), (18, 22), (18, 27), (18, 28), (19, 23), (19, 25), (19, 28), (20, 22), (24, 26), (24, 27), (25, 27), (25, 29)]
             sage: G.plot().show()  # or G.show()
 
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.random_shell_graph(constructor, seed))
-
-    def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
-        """
-        Returns a random GN (growing network) digraph with n vertices.
-
-        The digraph is constructed by adding vertices with a link to one
-        previously added vertex. The vertex to link to is chosen with a
-        preferential attachment model, i.e. probability is proportional to
-        degree. The default attachment kernel is a linear function of degree.
-        The digraph is always a tree, so in particular it is a directed
-        acyclic graph.
-
-        INPUT:
-            n -- number of vertices.
-            kernel -- the attachment kernel
-            seed -- for the random number generator
-
-        EXAMPLE:
-            sage: D = graphs.RandomDirectedGN(25)
-            sage: D.plot().show()  # or D.show()
-
-        REFERENCE:
-            [1] Krapivsky, P.L. and Redner, S. Organization of Growing Random
-                Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
-        """
-        import networkx
-        return graph.DiGraph(networkx.gn_graph(n, kernel, seed))
-
-    def RandomDirectedGNC(self, n, seed=None):
-        """
-        Returns a random GNC (growing network with copying) digraph with n
-        vertices.
-
-        The digraph is constructed by adding vertices with a link to one
-        previously added vertex. The vertex to link to is chosen with a
-        preferential attachment model, i.e. probability is proportional to
-        degree. The new vertex is also linked to all of the previously added
-        vertex's successors.
-
-        INPUT:
-            n -- number of vertices.
-            seed -- for the random number generator
-
-        EXAMPLE:
-            sage: D = graphs.RandomDirectedGNC(25)
-            sage: D.plot().show()  # or D.show()
-
-        REFERENCE:
-            [1] Krapivsky, P.L. and Redner, S. Network Growth by Copying,
-                Phys. Rev. E vol. 71 (2005), p. 036118.
-        """
-        import networkx
-        return graph.DiGraph(networkx.gnc_graph(n, seed))
-
-    def RandomDirectedGNR(self, n, p, seed=None):
-        """
-        Returns a random GNR (growing network with redirection) digraph with n
-        vertices and redirection probability p.
-
-        The digraph is constructed by adding vertices with a link to one
-        previously added vertex. The vertex to link to is chosen uniformly.
-        With probability p, the arc is instead redirected to the successor
-        vertex. The digraph is always a tree.
-
-        INPUT:
-            n -- number of vertices.
-            p -- redirection probability
-            seed -- for the random number generator.
-
-        EXAMPLE:
-            sage: D = graphs.RandomDirectedGNR(25, .2)
-            sage: D.plot().show()  # or D.show()
-
-        REFERENCE:
-            [1] Krapivsky, P.L. and Redner, S. Organization of Growing Random
-                Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
-        """
-        import networkx
-        return graph.DiGraph(networkx.gnc_graph(n, seed))
 
 ################################################################################
 #   Graphs with a given degree sequence
 ################################################################################
 
-    def DegreeSequence(self, deg_sequence, seed=None):
+    def DegreeSequence(self, deg_sequence):
         """
-        Returns a random graph with expected given degree sequence. Raises a
-        NetworkX error if the proposed degree sequence cannot be that of a
-        graph.
+        Returns a graph with the given degree sequence. Raises a NetworkX
+        error if the proposed degree sequence cannot be that of a graph.
 
-        Uses the Havel-Hakimi algorithm, which constructs a simple graph by
-        connecting vertices of highest to other vertices of highest degree,
-        resorting the remaining vertices by degree and repeating the process.
-        See Theorem 1.4 in [1].
+        Graph returned is the one returned by the Havel-Hakimi algorithm,
+        which constructs a simple graph by connecting vertices of highest
+        degree to other vertices of highest degree, resorting the remaining
+        vertices by degree and repeating the process.  See Theorem 1.4 in [1].
 
         INPUT:
             deg_sequence -- a list of integers with each entry corresponding
         to the degree of a different vertex.
-            seed -- for the random number generator.
 
         EXAMPLES:
             sage: G = graphs.DegreeSequence([3,3,3,3])
+            sage: G.edges(labels=False)
+            [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
             sage: G.plot().show()  # or G.show()
 
             sage: G = graphs.DegreeSequence([3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3])
@@ -2576,7 +2641,7 @@ class GraphGenerators():
 
         """
         import networkx
-        return graph.Graph(networkx.havel_hakimi_graph([int(i) for i in deg_sequence], seed))
+        return graph.Graph(networkx.havel_hakimi_graph([int(i) for i in deg_sequence]))
 
     def DegreeSequenceConfigurationModel(self, deg_sequence, seed=None):
         """
@@ -2585,8 +2650,7 @@ class GraphGenerators():
         graph with multiple edges and loops.
 
         One requirement is that the sum of the degrees must be even, since
-        every edge must be incident with two vertices. (The notion of quantum
-        graphs allows for edges incident to only one vertex.)
+        every edge must be incident with two vertices.
 
         INPUT:
             deg_sequence -- a list of integers with each entry corresponding
@@ -2602,29 +2666,30 @@ class GraphGenerators():
         Note: as of this writing, plotting of loops and multiple edges is not
         supported, and the output is allowed to contain both types of edges.
             sage: G = graphs.DegreeSequenceConfigurationModel([3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3])
+            sage: G.edges(labels=False)
+            [(0, 2), (0, 10), (0, 15), (1, 6), (1, 16), (1, 17), (2, 5), (2, 19), (3, 7), (3, 14), (3, 14), (4, 9), (4, 13), (4, 19), (5, 6), (5, 15), (6, 11), (7, 11), (7, 17), (8, 11), (8, 18), (8, 19), (9, 12), (9, 13), (10, 15), (10, 18), (12, 13), (12, 16), (14, 17), (16, 18)]
             sage: G.plot().show()  # or G.show()
 
         REFERENCE:
             [1] Newman, M.E.J. The Structure and function of complex networks,
                 SIAM Review vol. 45, no. 2 (2003), pp. 167-256.
         """
+        if seed is None:
+            seed = current_randstate().long_seed()
         import networkx
         return graph.Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed), loops=True, multiedges=True)
 
     def DegreeSequenceTree(self, deg_sequence):
         """
-        Returns a random tree with the given degree sequence. Raises a
-        NetworkX error if the proposed degree sequence cannot be that of a
-        tree.
+        Returns a tree with the given degree sequence. Raises a NetworkX error
+        if the proposed degree sequence cannot be that of a tree.
 
-        One requirement is that the sum of the degrees must be even, since
-        every edge must be incident with two vertices. (The notion of quantum
-        graphs allows for edges incident to only one vertex.)
+        Since every tree has one more vertex than edge, the degree sequence
+        must satisfy len(deg_sequence) - sum(deg_sequence)/2 == 1.
 
         INPUT:
             deg_sequence -- a list of integers with each entry corresponding
         to the expected degree of a different vertex.
-            seed -- for the random number generator.
 
         EXAMPLE:
             sage: G = graphs.DegreeSequenceTree([3,1,3,3,1,1,1,2,1])
@@ -2638,10 +2703,10 @@ class GraphGenerators():
         """
         Returns a random graph with expected given degree sequence. Raises a
         NetworkX error if the proposed degree sequence cannot be that of a
-        tree.
+        graph.
 
-        Since every tree has one more vertex than edge, the degree sequence
-        must satisfy len(deg_sequence) - sum(deg_sequence)/2 == 1.
+        One requirement is that the sum of the degrees must be even, since
+        every edge must be incident with two vertices.
 
         INPUT:
             deg_sequence -- a list of integers with each entry corresponding
@@ -2650,6 +2715,8 @@ class GraphGenerators():
 
         EXAMPLE:
             sage: G = graphs.DegreeSequenceExpected([1,2,3,2,3])
+            sage: G.edges(labels=False)
+            [(1, 3), (2, 2), (3, 3)]
             sage: G.plot().show()  # or G.show()
 
         REFERENCE:
@@ -2659,7 +2726,7 @@ class GraphGenerators():
 
         """
         import networkx
-        return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence]))
+        return graph.Graph(networkx.expected_degree_graph([int(i) for i in deg_sequence], seed))
 
 ################################################################################
 #   Graph Iterators
@@ -2812,15 +2879,232 @@ class GraphGenerators():
             47
 
         """
-        is_tree = lambda g: g.transitive_reduction() == g
-        for g in self(vertices=vertices, property=is_tree, augment=augment):
+        is_forest = lambda g: g.is_forest()
+        for g in self(vertices=vertices, property=is_forest, augment=augment):
             if g.is_connected():
                 yield g
 
-def canaug_traverse_vert(g, aut_gens, max_verts, property):
+class DiGraphGenerators():
+    r"""
+    A class consisting of constructors for several common digraphs.
+
+    A list of all graphs and graph structures in this database is available
+    via tab completion. Type "digraphs." and then hit tab to see which graphs
+    are available.
+
+    The docstrings include educational information about each named digraph
+    with the hopes that this class can be used as a reference.
+
+    The constructors currently in this class include:
+    \begin{verbatim}
+        Random Directed Graphs:
+            - RandomDirectedGN
+            - RandomDirectedGNC
+            - RandomDirectedGNR
+    \end{verbatim}
+    """
+
+    def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
+        """
+        Returns a random GN (growing network) digraph with n vertices.
+
+        The digraph is constructed by adding vertices with a link to one
+        previously added vertex. The vertex to link to is chosen with a
+        preferential attachment model, i.e. probability is proportional to
+        degree. The default attachment kernel is a linear function of degree.
+        The digraph is always a tree, so in particular it is a directed
+        acyclic graph.
+
+        INPUT:
+            n -- number of vertices.
+            kernel -- the attachment kernel
+            seed -- for the random number generator
+
+        EXAMPLE:
+            sage: D = digraphs.RandomDirectedGN(25)
+            sage: D.edges(labels=False)
+            [(1, 0), (2, 0), (3, 1), (4, 0), (5, 0), (6, 1), (7, 0), (8, 3), (9, 0), (10, 8), (11, 3), (12, 9), (13, 8), (14, 0), (15, 11), (16, 11), (17, 5), (18, 11), (19, 6), (20, 5), (21, 14), (22, 5), (23, 18), (24, 11)]
+            sage: D.plot().show()  # or D.show()
+
+        REFERENCE:
+            [1] Krapivsky, P.L. and Redner, S. Organization of Growing Random
+                Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
+        """
+        if seed is None:
+            seed = current_randstate().long_seed()
+        import networkx
+        return graph.DiGraph(networkx.gn_graph(n, kernel, seed))
+
+    def RandomDirectedGNC(self, n, seed=None):
+        """
+        Returns a random GNC (growing network with copying) digraph with n
+        vertices.
+
+        The digraph is constructed by adding vertices with a link to one
+        previously added vertex. The vertex to link to is chosen with a
+        preferential attachment model, i.e. probability is proportional to
+        degree. The new vertex is also linked to all of the previously added
+        vertex's successors.
+
+        INPUT:
+            n -- number of vertices.
+            seed -- for the random number generator
+
+        EXAMPLE:
+            sage: D = digraphs.RandomDirectedGNC(25)
+            sage: D.edges(labels=False)
+            [(1, 0), (2, 0), (2, 1), (3, 0), (4, 0), (4, 1), (5, 0), (5, 1), (5, 2), (6, 0), (6, 1), (7, 0), (7, 1), (7, 4), (8, 0), (9, 0), (9, 8), (10, 0), (10, 1), (10, 2), (10, 5), (11, 0), (11, 8), (11, 9), (12, 0), (12, 8), (12, 9), (13, 0), (13, 1), (14, 0), (14, 8), (14, 9), (14, 12), (15, 0), (15, 8), (15, 9), (15, 12), (16, 0), (16, 1), (16, 4), (16, 7), (17, 0), (17, 8), (17, 9), (17, 12), (18, 0), (18, 8), (19, 0), (19, 1), (19, 4), (19, 7), (20, 0), (20, 1), (20, 4), (20, 7), (20, 16), (21, 0), (21, 8), (22, 0), (22, 1), (22, 4), (22, 7), (22, 19), (23, 0), (23, 8), (23, 9), (23, 12), (23, 14), (24, 0), (24, 8), (24, 9), (24, 12), (24, 15)]
+            sage: D.plot().show()  # or D.show()
+
+        REFERENCE:
+            [1] Krapivsky, P.L. and Redner, S. Network Growth by Copying,
+                Phys. Rev. E vol. 71 (2005), p. 036118.
+        """
+        if seed is None:
+            seed = current_randstate().long_seed()
+        import networkx
+        return graph.DiGraph(networkx.gnc_graph(n, seed))
+
+    def RandomDirectedGNR(self, n, p, seed=None):
+        """
+        Returns a random GNR (growing network with redirection) digraph with n
+        vertices and redirection probability p.
+
+        The digraph is constructed by adding vertices with a link to one
+        previously added vertex. The vertex to link to is chosen uniformly.
+        With probability p, the arc is instead redirected to the successor
+        vertex. The digraph is always a tree.
+
+        INPUT:
+            n -- number of vertices.
+            p -- redirection probability
+            seed -- for the random number generator.
+
+        EXAMPLE:
+            sage: D = digraphs.RandomDirectedGNR(25, .2)
+            sage: D.edges(labels=False)
+            [(1, 0), (2, 0), (2, 1), (3, 0), (4, 0), (4, 1), (5, 0), (5, 1), (5, 2), (6, 0), (6, 1), (7, 0), (7, 1), (7, 4), (8, 0), (9, 0), (9, 8), (10, 0), (10, 1), (10, 2), (10, 5), (11, 0), (11, 8), (11, 9), (12, 0), (12, 8), (12, 9), (13, 0), (13, 1), (14, 0), (14, 8), (14, 9), (14, 12), (15, 0), (15, 8), (15, 9), (15, 12), (16, 0), (16, 1), (16, 4), (16, 7), (17, 0), (17, 8), (17, 9), (17, 12), (18, 0), (18, 8), (19, 0), (19, 1), (19, 4), (19, 7), (20, 0), (20, 1), (20, 4), (20, 7), (20, 16), (21, 0), (21, 8), (22, 0), (22, 1), (22, 4), (22, 7), (22, 19), (23, 0), (23, 8), (23, 9), (23, 12), (23, 14), (24, 0), (24, 8), (24, 9), (24, 12), (24, 15)]
+            sage: D.plot().show()  # or D.show()
+
+        REFERENCE:
+            [1] Krapivsky, P.L. and Redner, S. Organization of Growing Random
+                Networks, Phys. Rev. E vol. 63 (2001), p. 066123.
+        """
+        if seed is None:
+            seed = current_randstate().long_seed()
+        import networkx
+        return graph.DiGraph(networkx.gnc_graph(n, seed))
+
+################################################################################
+#   DiGraph Iterators
+################################################################################
+
+    def __call__(self, vertices, property=lambda x: True, augment='edges', size=None):
+        """
+        Accesses the generator of isomorphism class representatives. Iterates
+        over distinct, exhaustive representatives.
+
+        INPUT:
+            vertices -- natural number
+            property -- any property to be tested on digraphs before generation.
+            augment -- choices:
+                'vertices' -- augments by adding a vertex, and edges incident
+                    to that vertex.
+                    In this case, all digraphs on up to n=vertices are generated.
+                    If for any digraph G satisfying the property, every subgraph,
+                    obtained from G by deleting one vertex and only edges incident
+                    to that vertex, satisfies the property, then this will generate
+                    all digraphs with that property. If this does not hold, then all
+                    the digraphs generated will satisfy the property, but there will
+                    be some missing.
+                'edges' -- augments a fixed number of vertices by adding one edge
+                    In this case, all digraphs on exactly n=vertices are generated.
+                    If for any graph G satisfying the property, every subgraph,
+                    obtained from G by deleting one edge but not the vertices
+                    incident to that edge, satisfies the property, then this will
+                    generate all digraphs with that property. If this does not hold,
+                    then all the digraphs generated will satisfy the property, but
+                    there will be some missing.
+
+        EXAMPLES:
+        Print digraphs on 2 or less vertices.
+            sage: for D in digraphs(2, augment='vertices'):
+            ...    print D
+            ...
+            Digraph on 0 vertices
+            Digraph on 1 vertex
+            Digraph on 2 vertices
+            Digraph on 2 vertices
+            Digraph on 2 vertices
+
+        Print digraphs on 3 vertices.
+            sage: for D in digraphs(3):
+            ...    print D
+            Digraph on 3 vertices
+            Digraph on 3 vertices
+            ...
+            Digraph on 3 vertices
+            Digraph on 3 vertices
+
+        Generate all digraphs with 4 vertices and 3 edges.
+            sage: L = digraphs(4, size=3)
+            sage: len(list(L))
+            13
+
+        Generate all digraphs with 4 vertices and up to 3 edges.
+            sage: L = list(digraphs(4, lambda G: G.size() <= 3))
+            sage: len(L)
+            20
+            sage: graphs_list.show_graphs(L)    # long time
+
+        Generate all digraphs with degree at most 2, up to 5 vertices.
+            sage: property = lambda G: ( max([G.degree(v) for v in G] + [0]) <= 2 )
+            sage: L = list(digraphs(5, property, augment='vertices'))
+            sage: len(L)
+            75
+
+        Generate digraphs on the fly:
+        (see http://www.research.att.com/~njas/sequences/A000273)
+            sage: for i in range(0, 5):
+            ...    print len(list(digraphs(i)))
+            1
+            1
+            3
+            16
+            218
+
+        REFERENCE:
+            Brendan D. McKay, Isomorph-Free Exhaustive generation. Journal of
+            Algorithms Volume 26, Issue 2, February 1998, pages 306-324.
+        """
+        from sage.graphs.graph import DiGraph
+        g = DiGraph()
+        if size is not None:
+            extra_property = lambda x: x.size() == size
+        else:
+            extra_property = lambda x: True
+        if augment == 'vertices':
+            for gg in canaug_traverse_vert(g, [], vertices, property, dig=True):
+                if extra_property(gg):
+                    yield gg
+        elif augment == 'edges':
+            g.add_vertices(range(vertices))
+            gens = []
+            for i in range(vertices-1):
+                gen = range(i)
+                gen.append(i+1); gen.append(i)
+                gen += range(i+2, vertices)
+                gens.append(gen)
+            for gg in canaug_traverse_edge(g, gens, property, dig=True):
+                if extra_property(gg):
+                    yield gg
+        else:
+            raise NotImplementedError()
+
+def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False):
     """
     Main function for exhaustive generation. Recursive traversal of a
-    canonically generated tree of isomorph free graphs satisfying a given
+    canonically generated tree of isomorph free (di)graphs satisfying a given
     property.
 
     INPUT:
@@ -2849,6 +3133,16 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property):
         Graph on 2 vertices
         Graph on 3 vertices
 
+    Print digraphs on 2 or less vertices.
+        sage: for D in digraphs(2, augment='vertices'):
+        ...    print D
+        ...
+        Digraph on 0 vertices
+        Digraph on 1 vertex
+        Digraph on 2 vertices
+        Digraph on 2 vertices
+        Digraph on 2 vertices
+
     Generate all graphs with up to 5 vertices and up to 4 edges.
         sage: L = list(graphs(5, lambda G: G.size() <= 4, augment='vertices'))
         sage: len(L)
@@ -2857,8 +3151,8 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property):
 
     Generate all bipartite graphs on up to 7 vertices:
         sage: L = list( graphs(7, lambda G: G.is_bipartite(), augment='vertices') )
-        sage: len(L)        #   random, due to NetworkX bug: see https://networkx.lanl.gov/ticket/132
-        133
+        sage: len(L)
+        150
 
     """
     from sage.graphs.graph_fast import binary
@@ -2870,8 +3164,14 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property):
     if n < max_verts:
 
         # build a list representing C(g) - the vertex to be added
-        # is at the end, so only specify which of n edges...
-        num_roots = 2**n
+        # is at the end, so only specify which edges...
+        # in the case of graphs, there are n possibilities,
+        # and in the case of digraphs, there are 2*n.
+        if dig:
+            possibilities = 2*n
+        else:
+            possibilities = n
+        num_roots = 2**possibilities
         children = [-1]*num_roots
 
         # union-find C(g) under Aut(g)
@@ -2879,9 +3179,12 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property):
             for i in xrange(len(children)):
                 if children[i] == -1:
                     k = 0
-                    for j in xrange(n):
+                    for j in xrange(possibilities):
                         if (1 << j)&i:
-                            k += (1 << gen[j])
+                            if dig and j >= n:
+                                k += (1 << (gen[j-n]+n))
+                            else:
+                                k += (1 << gen[j])
                     while children[k] != -1:
                         k = children[k]
                     if i != k:
@@ -2906,13 +3209,25 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property):
             z.add_vertex(n)
             if not property(z):
                 continue
-            index = 0
-            while (1 << index) <= i:
-                if (1 << index)&i:
-                    z.add_edge((index,n))
-                index += 1
 
-            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True)
+            if dig:
+                index = 0
+                while index < n:
+                    if (1 << index)&i:
+                        z.add_edge((index,n))
+                    index += 1
+                while index < 2*n:
+                    if (1 << index)&i:
+                        z.add_edge((n,index-n))
+                    index += 1
+            else:
+                index = 0
+                while (1 << index) <= i:
+                    if (1 << index)&i:
+                        z.add_edge((index,n))
+                    index += 1
+
+            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True, dig=dig)
             cut_vert = 0
             while canonical_relabeling[cut_vert] != n:
                 cut_vert += 1
@@ -2920,12 +3235,12 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property):
             m_z = z.subgraph(sub_verts)
 
             if m_z == g:
-                for a in canaug_traverse_vert(z, z_aut_gens, max_verts, property):
+                for a in canaug_traverse_vert(z, z_aut_gens, max_verts, property, dig=dig):
                     yield a
             else:
                 for possibility in check_aut(z_aut_gens, cut_vert, n):
                     if m_z.relabel(possibility, inplace=False) == g:
-                        for a in canaug_traverse_vert(z, z_aut_gens, max_verts, property):
+                        for a in canaug_traverse_vert(z, z_aut_gens, max_verts, property, dig=dig):
                             yield a
                         break
 
@@ -2963,7 +3278,7 @@ def check_aut(aut_gens, cut_vert, n):
                 if new_perm[cut_vert] == n:
                     yield new_perm
 
-def canaug_traverse_edge(g, aut_gens, property):
+def canaug_traverse_edge(g, aut_gens, property, dig=False):
     """
     Main function for exhaustive generation. Recursive traversal of a
     canonically generated tree of isomorph free graphs satisfying a given
@@ -2991,6 +3306,16 @@ def canaug_traverse_edge(g, aut_gens, property):
         Graph on 3 vertices
         Graph on 3 vertices
 
+    Print digraphs on 3 or less vertices.
+        sage: for G in digraphs(3):
+        ...    print G
+        ...
+        Digraph on 3 vertices
+        Digraph on 3 vertices
+        ...
+        Digraph on 3 vertices
+        Digraph on 3 vertices
+
     Generate all graphs with 5 vertices and up to 4 edges.
         sage: L = list(graphs(5, lambda G: G.size() <= 4))
         sage: len(L)
@@ -2999,8 +3324,8 @@ def canaug_traverse_edge(g, aut_gens, property):
 
     Generate all bipartite graphs on 7 vertices:
         sage: L = list( graphs(7, lambda G: G.is_bipartite()) )
-        sage: len(L)        #   random, due to NetworkX bug: see https://networkx.lanl.gov/ticket/132
-        29
+        sage: len(L)
+        88
 
     """
     from sage.graphs.graph_fast import binary
@@ -3009,26 +3334,45 @@ def canaug_traverse_edge(g, aut_gens, property):
         return
     yield g
     n = g.order()
-    n_choose_2 = (n*(n-1))>>1 # >> 1 is just / 2
-    if g.size() < n_choose_2:
+    if dig:
+        max_size = n*(n-1)
+    else:
+        max_size = (n*(n-1))>>1 # >> 1 is just / 2 (this is n choose 2)
+    if g.size() < max_size:
         # build a list representing C(g) - the edge to be added
-        # is one of n*(n-1)/2 choices
-        num_roots = n_choose_2
-        children = [[(j-1,i) for i in range(j-1)] for j in range(1,n+1)]
-
+        # is one of max_size choices
+        num_roots = max_size
+        if dig:
+            children = [[(j,i) for i in range(n)] for j in range(n)]
+            # note - loops are ignored (they are there for indexing)
+        else:
+            children = [[(j-1,i) for i in range(j-1)] for j in range(1,n+1)]
         # union-find C(g) under Aut(g)
         for gen in aut_gens:
             for iii in xrange(n):
-                for jjj in xrange(iii): # iii > jjj
+                if dig:
+                    jjj_range = range(iii) + range(iii+1, n)
+                else:
+                    jjj_range = xrange(iii) # iii > jjj
+                for jjj in jjj_range:
                     i, j = iii, jjj
-                    y, x = sorted([gen[i], gen[j]])
+                    if dig:
+                        x, y = gen[i], gen[j]
+                    else:
+                        y, x = sorted([gen[i], gen[j]])
                     if children[i][j] != children[x][y]:
                         x_val, y_val = x, y
                         i_val, j_val = i, j
-                        while (x_val, y_val) != children[x_val][y_val]:
-                            y_val, x_val = sorted(children[x_val][y_val])
-                        while (i_val, j_val) != children[i_val][j_val]:
-                            j_val, i_val = sorted(children[i_val][j_val])
+                        if dig:
+                            while (x_val, y_val) != children[x_val][y_val]:
+                                x_val, y_val = children[x_val][y_val]
+                            while (i_val, j_val) != children[i_val][j_val]:
+                                i_val, j_val = children[i_val][j_val]
+                        else:
+                            while (x_val, y_val) != children[x_val][y_val]:
+                                y_val, x_val = sorted(children[x_val][y_val])
+                            while (i_val, j_val) != children[i_val][j_val]:
+                                j_val, i_val = sorted(children[i_val][j_val])
                         while (x, y) != (x_val, y_val):
                             xx, yy = x, y
                             x, y = children[x][y]
@@ -3048,11 +3392,14 @@ def canaug_traverse_edge(g, aut_gens, property):
                         else:
                             continue
                         num_roots -= 1
-
         # find representatives of orbits of C(g)
         roots = []
         for i in range(n):
-            for j in range(i):
+            if dig:
+                j_range = range(i) + range(i+1, n)
+            else:
+                j_range = range(i)
+            for j in j_range:
                 if children[i][j] == (i, j):
                     roots.append((i,j))
         for i, j in roots:
@@ -3063,28 +3410,31 @@ def canaug_traverse_edge(g, aut_gens, property):
             z.add_edge(i, j)
             if not property(z):
                 continue
-            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True)
+            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices()], certify=True, dig=dig)
             relabel_inverse = [0]*n
             for ii in xrange(n):
                 relabel_inverse[canonical_relabeling[ii]] = ii
             z_can = z.relabel(canonical_relabeling, inplace=False)
             cut_edge_can = z_can.edges(labels=False, sort=True)[-1]
             cut_edge = [relabel_inverse[cut_edge_can[0]], relabel_inverse[cut_edge_can[1]]]
-            cut_edge = tuple(sorted(cut_edge))
+            if dig:
+                cut_edge = tuple(cut_edge)
+            else:
+                cut_edge = tuple(sorted(cut_edge))
 
             m_z = z.copy()
             m_z.delete_edge(cut_edge)
             if m_z == g:
-                for a in canaug_traverse_edge(z, z_aut_gens, property):
+                for a in canaug_traverse_edge(z, z_aut_gens, property, dig=dig):
                     yield a
             else:
-                for possibility in check_aut_edge(z_aut_gens, cut_edge, i, j, n):
+                for possibility in check_aut_edge(z_aut_gens, cut_edge, i, j, n, dig=dig):
                     if m_z.relabel(possibility, inplace=False) == g:
-                        for a in canaug_traverse_edge(z, z_aut_gens, property):
+                        for a in canaug_traverse_edge(z, z_aut_gens, property, dig=dig):
                             yield a
                         break
 
-def check_aut_edge(aut_gens, cut_edge, i, j, n):
+def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
     """
     Helper function for exhaustive generation.
 
@@ -3117,12 +3467,12 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n):
                 unchecked_perms.append(new_perm)
                 if new_perm[cut_edge[0]] == i and new_perm[cut_edge[1]] == j:
                     yield new_perm
-                if new_perm[cut_edge[0]] == j and new_perm[cut_edge[1]] == i:
+                if not dig and new_perm[cut_edge[0]] == j and new_perm[cut_edge[1]] == i:
                     yield new_perm
 
 # Easy access to the graph generators from the command line:
 graphs = GraphGenerators()
-
+digraphs = DiGraphGenerators()
 
 
 

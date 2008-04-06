@@ -21,7 +21,7 @@ from constructor import (EllipticCurve, EllipticCurve_from_c4c6,
                          EllipticCurve_from_cubic)
 
 
-from ell_generic import is_EllipticCurve
+from ell_generic import is_EllipticCurve, Hasse_bounds
 
 from ell_rational_field import cremona_curves, cremona_optimal_curves
 

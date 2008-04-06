@@ -88,7 +88,7 @@ def gap_format(x):
     if isinstance(x, list) and not isinstance(x[0], tuple):
         return gap.eval('PermList(%s)' % x)
     x = str(x).replace(' ','').replace('\n','')
-    return x.replace('),(',')(').replace('[','').replace(']','')
+    return x.replace('),(',')(').replace('[','').replace(']','').replace(',)',')')
 
 cdef class PermutationGroupElement(MultiplicativeGroupElement):
     """
@@ -224,6 +224,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             (1,2)(3,5,6)
             sage: k._gap_().parent()
             Gap
+
+        List notation:
+            sage: PermutationGroupElement([1,2,4,3,5])
+            (3,4)
+
         """
         import sage.groups.perm_gps.permgroup_named
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -242,7 +247,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         if parent is None:
             import sage.interfaces.gap
             G = sage.interfaces.gap.gap
-            parent = sage.groups.perm_gps.permgroup_named.SymmetricGroup(G(self.__gap).LargestMovedPoint())
+            if isinstance(g, list) and not isinstance(g[0], tuple):
+                n = len(g)
+            else:
+                n = G(self.__gap).LargestMovedPoint()
+            parent = sage.groups.perm_gps.permgroup_named.SymmetricGroup(n)
 
         Element.__init__(self, parent)
 
@@ -257,13 +266,19 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         else:
             v = eval(gap.eval('ListPerm(%s)' % self.__gap))
 
-        cdef int i
-        assert(len(v) <= self.n)
-        for i from 0 <= i < len(v):
+        cdef int i, vn = len(v)
+        assert(vn <= self.n)
+        for i from 0 <= i < vn:
             self.perm[i] = v[i] - 1
-        for i from len(v) <= i < self.n:
+        for i from vn <= i < self.n:
             self.perm[i] = i
 
+        # We do this check even if check=False because it's fast
+        # (relative to other things in this function) and the
+        # rest of the code is assumes that self.perm specifies
+        # a valid permutation (else segfaults, infinte loops may occur).
+        if not is_valid_permutation(self.perm, vn):
+            raise ValueError, "Invalid permutation vector: %s" % v
 
     def __cinit__(self, g = None, parent = None, check = True):
         self.perm = NULL
@@ -800,3 +815,46 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             print "         ",l1
             print "         ",l5
         return l1,l2
+
+
+cdef bint is_valid_permutation(int* perm, int n):
+    """
+    This is used in the __init__ method.
+
+    Returns True iff the first n elements of perm are literally
+    a permutation of [0, ..., n-1].
+
+    TESTS:
+        sage: S = SymmetricGroup(10)
+        sage: PermutationGroupElement([2,1],S,check=False)
+        (1,2)
+        sage: PermutationGroupElement([1,1],S,check=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: Invalid permutation vector: [1, 1]
+        sage: PermutationGroupElement([1,-1],S,check=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: Invalid permutation vector: [1, -1]
+        sage: PermutationGroupElement([1,2,3,10],S,check=False)
+        Traceback (most recent call last):
+        ...
+        ValueError: Invalid permutation vector: [1, 2, 3, 10]
+    """
+    cdef int i, ix
+    # make everything is in bounds
+    for i from 0 <= i < n:
+        if not 0 <= perm[i] < n:
+            return False
+    # mark hit points by sign
+    for i from 0 <= i < n:
+        ix = -1-perm[i] if perm[i] < 0 else perm[i]
+        perm[ix] = -1-perm[ix]
+    # make sure everything is hit once, and reset signs
+    for i from 0 <= i < n:
+        if perm[i] >= 0:
+            return False
+        perm[i] = -1-perm[i]
+
+    return True
+

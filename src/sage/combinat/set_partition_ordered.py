@@ -93,8 +93,8 @@ def OrderedSetPartitions(s, c=None):
         [{1}, {2}, {3}, {4}]
         sage: OS.last()
         [{1, 2, 3, 4}]
-        sage: OS.random() #random
-        [{1}, {3}, {2, 4}]
+        sage: OS.random()
+        [{3}, {1}, {2}, {4}]
 
         sage: OS = OrderedSetPartitions([1,2,3,4], [2,2]); OS
         Ordered set partitions of {1, 2, 3, 4} into parts of size [2, 2]
@@ -383,17 +383,15 @@ class OrderedSetPartitions_scomp(CombinatorialClass):
         l = len(self.c)
         dcomp = [-1] + comp.descents(final_descent=True)
 
-        def f(perm):
-            res = permutation.Permutation(range(1,len(lset)))*word.standard(perm).inverse()
-            res = map(lambda x: lset[x-1], res)
-            return [ Set( res[dcomp[i]+1:dcomp[i+1]+1] ) for i in range(l)]
-
         p = []
         for j in range(l):
             p += [j+1]*comp[j]
 
         for x in permutation.Permutations(p):
-            yield f(x)
+            res = permutation.Permutation_class(range(1,len(lset)))*word.standard(x).inverse()
+            res =[lset[x-1] for x in res]
+            yield [ Set( res[dcomp[i]+1:dcomp[i+1]+1] ) for i in range(l)]
+
 
 
 

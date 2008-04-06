@@ -212,35 +212,35 @@ Oren Patashnik in their book Concrete Mathematics.
 Methods implemented:
     * chebyshev_T (n, x) - the Chebyshev polynomial of the first kind
       for integers n > -1.
-      REFERENCE: A\&S 22.5.31 page 778 and A\&S 6.1.22 page 256.
+      REFERENCE: A&S 22.5.31 page 778 and A&S 6.1.22 page 256.
     * chebyshev_U (n, x) - the Chebyshev polynomial of the second kind
       for integers n > -1.
-      REFERENCE: A\&S, 22.8.3 page 783  and A\&S 6.1.22 page 256.
+      REFERENCE: A&S, 22.8.3 page 783  and A&S 6.1.22 page 256.
     * gen_laguerre (n, a, x) - the generalized Laguerre polynomial
       for integers n > -1.
-      REFERENCE: table on page 789 in A\&S.
+      REFERENCE: table on page 789 in A&S.
     * gen_legendre_P (n, x) - the associated (or generalized) Legendre
       function of the first kind for integers n > -1.
     * gen_legendre_Q (n, x) - the associated (or generalized) Legendre
       function of the second kind for integers n > -1.
       REFERENCE: Gradshteyn and Ryzhik 8.706 page 1000.
     * hermite (n,x) - the Hermite polynomial for integers n > -1.
-      REFERENCE: A\&S 22.5.40 and 22.5.41, page 779.
+      REFERENCE: A&S 22.5.40 and 22.5.41, page 779.
     * jacobi_P (n, a, b, x) - the Jacobi polynomial for integers n > -1
       and a and b symbolic or a > -1 and b > -1.
-      REFERENCE: table on page 789 in A\&S.
+      REFERENCE: table on page 789 in A&S.
     * laguerre (n, x) - the generalized Laguerre polynomial
       for integers n > -1.
-      REFERENCE: A\&S 22.5.16, page 778 and A\&S page 789.
+      REFERENCE: A&S 22.5.16, page 778 and A&S page 789.
     * legendre_P (n, x) - the Legendre polynomial of the first
       kind for integers n > -1.
-      REFERENCE: A\&S 22.5.35 page 779.
+      REFERENCE: A&S 22.5.35 page 779.
     * legendre_Q (n, x) - the Legendre function of the second
       kind for integers n > -1.
     * ultraspherical (n,a,x) - the ultraspherical polynomials for
       integers n > -1. The ultraspherical polynomials are also
       known as Gegenbauer polynomials.
-      REFERENCE: A\&S 22.5.27
+      REFERENCE: A&S 22.5.27
 
 NOTE:
    The first call of any of these will usually cost a bit extra
@@ -440,15 +440,19 @@ def hermite (n,x):
         sage: hermite(3,x)
         8*x^3 - 12*x
         sage: hermite(3,2)
-        40.0
+        40
+        sage: S.<y> = PolynomialRing(RR)
+        sage: hermite(3,y)
+        8.00000000000000*y^3 - 12.0000000000000*y
+        sage: R.<x,y> = QQ[]
+        sage: hermite(3,y^2)
+        8*y^6 - 12*y^2
+        sage: w = var('w')
+        sage: hermite(3,2*w)
+        -24*w*(1 - 8*w^2/3)
     """
     _init()
-    n0 = ZZ(n) # n must be an integer
-    if not(is_Polynomial(x)):
-        return RDF(maxima.eval("hermite(%s,%s)"%(n0,RDF(x))))
-    R = x.parent()
-    y = R.gen()
-    return sage_eval(maxima.eval("hermite(%s,%s)"%(n0,y)),locals={str(y):y})
+    return sage_eval(maxima.eval('hermite(%s,x)'%ZZ(n)), locals={'x':x})
 
 def jacobi_P(n,a,b,x):
     r"""

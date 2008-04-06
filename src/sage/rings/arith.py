@@ -872,17 +872,23 @@ def random_prime(n, proof=None):
 
     EXAMPLES:
         sage: random_prime(100000)
-        54601
+        88237
         sage: random_prime(2)
         2
 
+    TESTS:
+        sage: type(random_prime(2))
+        <type 'sage.rings.integer.Integer'>
+        sage: type(random_prime(100))
+        <type 'sage.rings.integer.Integer'>
 
     AUTHOR:
         -- Jon Hanke: 2006-08-08  (with standard Stein cleanup)
         -- Jonathan Bober: 2007-03-17
     """
-    import random    # since we don't want random to get
-                     # pulled when you say "from sage.arith import *".
+    # since we don't want current_randstate to get
+    # pulled when you say "from sage.arith import *".
+    from sage.misc.randstate import current_randstate
     from sage.structure.proof.proof import get_flag
     proof = get_flag(proof, "arithmetic")
     n = integer_ring.ZZ(n)
@@ -895,6 +901,7 @@ def random_prime(n, proof=None):
             prime_test = is_pseudoprime
         else:
             prime_test = is_prime
+        randint = current_randstate().python_random().randint
         while(1):
             # In order to ensure that the returned prime is chosen
             # uniformly from the set of primes it is necessary to
@@ -902,9 +909,9 @@ def random_prime(n, proof=None):
             # The method of choosing a random number and then returning
             # the closest prime smaller than it would typically not,
             # for example, return the first of a pair of twin primes.
-            p = random.randint(2,n)
+            p = randint(2,n)
             if prime_test(p):
-                return p
+                return integer_ring.ZZ(p)
 
 
 def divisors(n):
@@ -1055,7 +1062,7 @@ GCD = gcd
 def lcm(a, b=None, integer=False):
     """
     The least common multiple of a and b, or if a is a list and b is
-    omitted the least common multiple of all elements of v.
+    omitted the least common multiple of all elements of a.
 
     NOTE: Use integer=True to make this vastly faster if you are
     working with lists of integers.
@@ -1065,7 +1072,7 @@ def lcm(a, b=None, integer=False):
         b -- number (optional)
         integer -- (default: False); if True, do an integer LCM
     or
-        v -- vector
+        a -- vector
         integer -- (default: False); if True, do an integer LCM
             NOTE -- this is *vastly* faster than doing the generic LCM
 
@@ -1076,7 +1083,7 @@ def lcm(a, b=None, integer=False):
         0
         sage: LCM(-3,-5)
         15
-        sage: LCM([1,2,3,4,5/3])
+        sage: LCM([1,2,3,4,5])
         60
         sage: v = LCM(range(1,10000),integer=True)   # *very* fast!
         sage: len(str(v))
@@ -1097,12 +1104,62 @@ def lcm(a, b=None, integer=False):
 LCM = lcm
 
 def __LCM_list(v):
+    """
+    EXAMPLES:
+        sage: l = ()
+        sage: lcm(l)
+        1
+
+        This is because lcm(0,x)=0 for all x (by convention)
+        sage: lcm(range(100))
+        0
+
+        So for the lcm of all integers up to 10 you must do this:
+        sage: lcm(range(1,100))
+        69720375229712477164533808935312303556800
+
+        Note that the following example does not work in QQ[] as of 2.11:
+        sage: R.<X>=ZZ[]
+        sage: lcm((2*X+4,2*X^2,2))
+        2*X^3 + 4*X^2
+    """
     if len(v) == 0:
-        return 1
-    x = v[0]
-    for i in range(1,len(v)):
-        x = LCM(x, v[i])
-    return x
+        return integer_ring.ZZ(1)
+    try:
+        l = v[0].parent()(1)
+    except AttributeError:
+        l = integer_ring.ZZ(1)
+    for vi in v:
+        l = LCM(vi,l)
+        if l==0:
+            return l
+    return l
+
+def xlcm(m,n):
+    """
+    Extended lcm function: given two positive integers m,n, returns a
+    triple (l,m1,n1) such that l=lcm(m,n)=m1*n1 where m1|m, n1|n and
+    gcd(m1,n1)=1.  All with no factorization.
+
+    Used to construct an element of order l from elements of orders
+    m,n in any group: see sage/groups/generic.py for examples.
+
+    EXAMPLES:
+        sage: xlcm(120,36)
+        (360, 40, 9)
+    """
+    m0=m; n0=n
+    g=gcd(m,n,integer=True)
+    l=m*n//g      # = lcm(m,n)
+    g=gcd(m,n//g) # divisible by those primes which divide n to a
+                  # higher power than m
+
+    while not g==1:
+        m//=g
+        g=gcd(m,g,integer=True)
+
+    n=l//m;
+    return (l,m,n)
 
 ## def GCD_python(a, b=0):
 ##     """This function should behave exactly the same as GCD,
@@ -1123,13 +1180,29 @@ def __LCM_list(v):
 ##     return a
 
 def __GCD_list(v):
+    """
+    EXAMPLES:
+        sage: l = ()
+        sage: gcd(l)
+        0
+        sage: gcd(range(10))
+        1
+        sage: X=polygen(QQ)
+        sage: gcd((2*X+4,2*X^2,2))
+        1
+        sage: X=polygen(ZZ)
+        sage: gcd((2*X+4,2*X^2,2))
+        2
+    """
     if len(v) == 0:
-        return 1
-    if len(v) == 1:
-        return v[0]
-    g = v[0]
-    for i in range(1,len(v)):
-        g = GCD(g, v[i])
+        return integer_ring.ZZ(0)
+    try:
+        g = v[0].parent()(0)
+    except AttributeError:
+        g = integer_ring.ZZ(0)
+    for vi in v:
+        g = GCD(g, vi)
+        if g == 1: return g
     return g
 
 
@@ -1267,27 +1340,6 @@ def power_mod(a,n,m):
         n = n >> 1
 
     return power
-
-def generic_power(a, m, one=1):
-    """
-    The m-th power of a, where m is a non-negative
-    integer and a is a Python object on which
-    multiplication is defined.  The exponentiation
-    is done using the standard binary powering algorithm.
-
-    EXAMPLES:
-        sage: generic_power(2,5)
-        32
-        sage: generic_power(RealField()('2.5'),4)
-        39.0625000000000
-        sage: generic_power(0,0)
-        Traceback (most recent call last):
-        ...
-        ArithmeticError: 0^0 is undefined.
-        sage: generic_power(2,-3)
-        1/8
-    """
-    return sage.structure.element.generic_power(a,m,one)
 
 
 def rational_reconstruction(a, m, algorithm='fast'):
@@ -1552,6 +1604,9 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         they aren't as optimized).  Thus you might consider using them
         instead for certain numbers.
 
+        The factorization prints in user-friendly format but the (p,e)
+        pairs can easily be accessed -- see examples
+
     EXAMPLES:
         sage: factor(500)
         2^2 * 5^3
@@ -1583,6 +1638,19 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(2^197 + 1)       # takes a long time (e.g., 3 seconds!)
         3 * 197002597249 * 1348959352853811313 * 251951573867253012259144010843
 
+
+    To access the data in a factorization:
+
+        sage: factor(420)
+        2^2 * 3 * 5 * 7
+        sage: [x for x in factor(420)]
+        [(2, 2), (3, 1), (5, 1), (7, 1)]
+        sage: [p for p,e in factor(420)]
+        [2, 3, 5, 7]
+        sage: [e for p,e in factor(420)]
+        [2, 1, 1, 1]
+        sage: [p^e for p,e in factor(420)]
+        [4, 3, 5, 7]
     """
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):
@@ -1782,6 +1850,8 @@ def euler_phi(n):
         0
         sage: euler_phi(0)
         0
+        sage: type(euler_phi(0))
+        <type 'sage.rings.integer.Integer'>
 
     We verify directly that the phi function is correct for 21.
 
@@ -1801,9 +1871,9 @@ def euler_phi(n):
         - Alex Clemesha (2006-01-10): some examples
     """
     if n<=0:
-        return 0
+        return integer_ring.ZZ(0)
     if n<=2:
-        return 1
+        return integer_ring.ZZ(1)
     return integer_ring.ZZ(pari(n).phi())
     #return misc.mul([(p-1)*p**(r-1) for p, r in factor(n)])
 
@@ -2069,98 +2139,6 @@ def nth_prime(n):
     if n <= 0:
         raise ValueError
     return integer_ring.ZZ(pari('prime(%s)'%int(n)))
-
-def discrete_log_generic(x, base, ord=None):
-    r"""
-    Return an integer $n$ such that $b^n = x$, assuming that ord is a
-    multiple of the multiplicative order of $a$ and $b$ is the base.
-    If ord is not specified an attempt is made to compute it.
-
-    WARNING: If x has a log method, it is likely to be vastly faster
-    than using this function.  E.g., if x is an integer modulo n, use
-    its log method instead!
-
-    INPUT:
-        x -- number
-        base -- number (base of log)
-        ord -- integer (multiple of order of base).
-
-    The elements a and b must support exponentiation to a negative
-    power.
-
-    If no such $x$ exits, this function raises a ValueError exception.
-
-    ALGORITHM: Baby step giant step.
-
-    EXAMPLES:
-        sage: b = Mod(2,37);  a = b^20
-        sage: discrete_log_generic(a, b)
-        20
-        sage: b = Mod(2,997);  a = b^20
-        sage: discrete_log_generic(a, b)
-        20
-
-        sage: K = GF(3^6,'b')
-        sage: b = K.gen()
-        sage: a = b^210
-        sage: discrete_log_generic(a, b, K.order()-1)
-        210
-
-        sage: b = Mod(1,37);  x = Mod(2,37)
-        sage: discrete_log_generic(x, b)
-        Traceback (most recent call last):
-        ...
-        ValueError: Log of 2 to the base 1 does not exist.
-        sage: b = Mod(1,997);  x = Mod(2,997)
-        sage: discrete_log_generic(x, b)
-        Traceback (most recent call last):
-        ...
-        ValueError: Log of 2 to the base 1 does not exist.
-
-    AUTHOR:
-        -- William Stein and David Joyner (2005-01-05)
-    """
-    Z = integer_ring.ZZ
-    b = base; a = x
-
-    if b == 0:
-        if a == 0:
-            return Integer(1)
-        else:
-            raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
-    elif a == 0:
-        if b == 0:
-            return Integer(1)
-        else:
-            raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
-
-    if ord is None:
-        ord = b.multiplicative_order()
-    ord = Z(ord)
-    if ord < 100:
-        c = 1
-        for i in range(ord):
-            if c == a:        # is b^i
-                return Z(i)
-            c *= b
-        raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
-
-    m = ord.isqrt()
-    g = [a]
-    c = b**(-m)
-    S2 = [1]
-    for i in range(m):
-        g.append(g[i]*c)
-        if i < m-1:
-            S2.append(S2[i]*b)
-    for y in g:
-        if y in S2:
-            x = S2.index(y)
-            return Z(m*(g.index(y)) + x)
-
-    raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
-
-
 
 def quadratic_residues(n):
     r"""
@@ -3020,4 +2998,31 @@ def is_power_of_two(n):
     while n > 0 and n%2 == 0:
         n = n >> 1
     return n == 1
+
+def differences(lis, n=1):
+    """
+    Returns the $n$ successive differences of the elements in $lis$.
+
+    EXAMPLES:
+        sage: differences(prime_range(50))
+        [1, 2, 2, 4, 2, 4, 2, 4, 6, 2, 6, 4, 2, 4]
+        sage: differences([i^2 for i in range(1,11)])
+        [3, 5, 7, 9, 11, 13, 15, 17, 19]
+        sage: differences([i^3 + 3*i for i in range(1,21)])
+        [10, 22, 40, 64, 94, 130, 172, 220, 274, 334, 400, 472, 550, 634, 724, 820, 922, 1030, 1144]
+        sage: differences([i^3 - i^2 for i in range(1,21)], 2)
+        [10, 16, 22, 28, 34, 40, 46, 52, 58, 64, 70, 76, 82, 88, 94, 100, 106, 112]
+        sage: differences([p - i^2 for i, p in enumerate(prime_range(50))], 3)
+        [-1, 2, -4, 4, -4, 4, 0, -6, 8, -6, 0, 4]
+
+    AUTHOR:
+        -- Timothy Clemans (2008-03-09)
+    """
+    n = integer_ring.ZZ(n)
+    if n < 1:
+        raise ValueError, 'n must be greater than 0'
+    lis = [lis[i + 1] - num for i, num in enumerate(lis[:-1])]
+    if n == 1:
+        return lis
+    return differences(lis, n - 1)
 

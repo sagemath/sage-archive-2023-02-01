@@ -670,9 +670,9 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
         AUTHOR: David Joyner and William Stein (2005-11)
         """
-        from  sage.rings.arith import discrete_log_generic
+        from  sage.groups.generic import discrete_log
 
-        q = (self.parent()).order() - 1
+        q = (self.parent()).order()
         b = self.parent()(base)
         # TODO: This function is TERRIBLE!
-        return discrete_log_generic(self, b, q)
+        return discrete_log(self, b, q-1)

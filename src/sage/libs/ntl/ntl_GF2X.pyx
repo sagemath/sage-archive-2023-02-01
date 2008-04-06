@@ -112,6 +112,11 @@ cdef class ntl_GF2X:
             [0 1]
             sage: ntl.GF2X(ntl.GF2(1))
             [1]
+
+            sage: R.<x> = GF(2)[]
+            sage: f = x^5+x^2+1
+            sage: ntl.GF2X(f)
+            [1 0 1 0 0 1]
         """
 
         from sage.rings.finite_field_element import FiniteField_ext_pariElement
@@ -137,8 +142,7 @@ cdef class ntl_GF2X:
             #binary repr, reversed, and "["..."]" added
             x="["+x.binary()[::-1].replace(""," ")+"]"
         elif PY_TYPE_CHECK(x, Polynomial_dense_mod_p):
-            if x.base_ring().characteristic():
-                x=x._Polynomial_dense_mod_n__poly
+                x=x.ntl_ZZ_pX()
         elif PY_TYPE_CHECK(x, FiniteField):
             if x.characteristic() == 2:
                 x= list(x.modulus())

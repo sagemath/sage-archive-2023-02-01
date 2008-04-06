@@ -28,7 +28,7 @@ import re
 
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.parent cimport Parent
-from random import randint, randrange
+from sage.misc.prandom import randint, randrange
 
 cdef class Ring(ParentWithGens):
     """
@@ -629,7 +629,7 @@ cdef class Ring(ParentWithGens):
 
         EXAMPLES:
             sage: CyclotomicField(19).zeta_order()
-            19
+            38
             sage: GF(19).zeta_order()
             18
             sage: GF(5^3,'a').zeta_order()
@@ -647,9 +647,20 @@ cdef class Ring(ParentWithGens):
         INPUT:
             bound -- integer (default: 2)
 
-
         ALGORITHM:
-             -- uses numpy's randint.
+             -- uses Python's randint.
+
+        TESTS:
+        The following example returns a NotImplementedError since the generic
+        ring class \code(__call__) function ruturns a NotImplementedError.
+        Note that \code(sage.rings.ring.Ring.random_element) performs a
+        call in the generic ring class by a random integer.
+            sage: R = sage.rings.ring.Ring(ZZ); R
+            <type 'sage.rings.ring.Ring'>
+            sage: R.random_element()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         return self(randint(-bound,bound))
 
@@ -717,7 +728,23 @@ cdef class CommutativeRing(Ring):
         The Krull dimension is the length of the longest ascending chain
         of prime ideals.
 
-        EXAMPLES:
+        TESTS:
+        \code{krull_dimension} is not implemented for generic commutative
+        rings. Fields and PIDs, with Krull dimension equal to 0 and 1,
+        respectively, have naive implementations of \code{krull_dimension}
+            sage: R = CommutativeRing(ZZ)
+            sage: R.krull_dimension()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: QQ.krull_dimension()
+            0
+            sage: ZZ.krull_dimension()
+            1
+            sage: type(R); type(QQ); type(ZZ)
+            <type 'sage.rings.ring.CommutativeRing'>
+            <class 'sage.rings.rational_field.RationalField'>
+            <type 'sage.rings.integer_ring.IntegerRing_class'>
         """
         raise NotImplementedError
 
@@ -726,6 +753,10 @@ cdef class CommutativeRing(Ring):
         Return the monoid of ideals of this ring.
 
         EXAMPLES:
+            sage: ZZ.ideal_monoid()
+            Monoid of ideals of Integer Ring
+            sage: R.<x>=QQ[]; R.ideal_monoid()
+            Monoid of ideals of Univariate Polynomial Ring in x over Rational Field
         """
         if self.__ideal_monoid is not None:
             return self.__ideal_monoid
@@ -790,7 +821,7 @@ cdef class CommutativeRing(Ring):
         """
         return self.quotient(I, names=names)
 
-    def extension(self, poly, name=None):
+    def extension(self, poly, name=None, names=None):
         """
         Algebraically extends self by taking the quotient self[x] / (f(x)).
 
@@ -804,7 +835,9 @@ cdef class CommutativeRing(Ring):
             sage: R.extension(y^2-5, 'a')
             Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in x over Rational Field with modulus a^2 - 5
         """
-        if name is None:
+        if name is None and names is not None:
+            name = names
+        elif name is None:
             name = str(poly.parent().gen(0))
         R = self[str(name)]
         I = R.ideal(R(poly.list()))
@@ -825,7 +858,31 @@ cdef class CommutativeRing(Ring):
         Return the quotient of self by the ideal I of self.
         (Synonym for self.quotient(I).)
 
+        INPUT:
+            I     -- an ideal of R
+            names -- (optional) names of the generators of the quotient (if
+                     there are multiple generators, you can specify a single
+                     character string and the generators are named in sequence
+                     starting with 0).
+
+        OUTPUT:
+            R/I   -- the quotient ring of R by the ideal I
+
         EXAMPLES:
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
+            sage: S = R.quotient_ring(I, 'a')
+            sage: S.gens()
+            (a,)
+
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: S.<a,b> = R.quotient_ring((x^2, y))
+            sage: S
+            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2, y)
+            sage: S.gens()
+            (a, 0)
+            sage: a == b
+            False
         """
         return self.quotient(I, names)
 
@@ -838,12 +895,21 @@ cdef class IntegralDomain(CommutativeRing):
         """
         Return True, since this ring is an integral domain.
 
+        (This is a naive implementation for objects with type
+        \code{IntegralDomain})
+
         EXAMPLES:
+            sage: ZZ.is_integral_domain(); QQ.is_integral_domain(); ZZ[x].is_integral_domain()
+            True
+            True
+            True
+            sage: R = ZZ.quotient(ZZ.ideal(10)); R.is_integral_domain()
+            False
         """
         return True
 
     def is_integrally_closed(self):
-        """
+        r"""
         Return True if this ring is integrally closed in its field of
         fractions; otherwise return False.
 
@@ -851,15 +917,41 @@ cdef class IntegralDomain(CommutativeRing):
         function raise a NotImplementedError.
 
         EXAMPLES:
-
+        Note that \code{is_integrally_closed} has a naive implementation
+        in fields. For every field $F$, $F$ is its own field of fractions,
+        hence every element of $F$ is integral over $F$.
+            sage: ZZ.is_integrally_closed()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: QQ.is_integrally_closed()
+            True
+            sage: QQbar.is_integrally_closed()
+            True
         """
         raise NotImplementedError
 
     def is_field(self):
-        """
+        r"""
         Return True if this ring is a field.
 
         EXAMPLES:
+            sage: GF(7).is_field()
+            True
+
+        The following examples have their own \code(is_field) implementations:
+            sage: ZZ.is_field(); QQ.is_field()
+            False
+            True
+            sage: R.<x> = PolynomialRing(QQ); R.is_field()
+            False
+
+        An example where we raise a NotImplementedError:
+            sage: R = IntegralDomain(ZZ)
+            sage: R.is_field()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         if self.is_finite():
             return True
@@ -877,6 +969,13 @@ cdef class NoetherianRing(CommutativeRing):
         Return True since this ring is Noetherian.
 
         EXAMPLES:
+            sage: ZZ.is_noetherian()
+            True
+            sage: QQ.is_noetherian()
+            True
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: R.is_noetherian()
+            True
         """
         return True
 
@@ -892,6 +991,30 @@ cdef class DedekindDomain(IntegralDomain):
         Return 1 since Dedekind domains have Krull dimension 1.
 
         EXAMPLES:
+        The following are examples of Dedekind domains (noetherian integral
+        domains of Krull dimension one that are integrally closed over its
+        field of fractions):
+            sage: ZZ.krull_dimension()
+            1
+            sage: K = NumberField(x^2 + 1, 's')
+            sage: OK = K.ring_of_integers()
+            sage: OK.krull_dimension()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        The following are not Dedekind domains but have
+        a \code{krull_dimension} function.
+            sage: QQ.krull_dimension()
+            0
+            sage: T.<x,y> = PolynomialRing(QQ,2); T
+            Multivariate Polynomial Ring in x, y over Rational Field
+            sage: T.krull_dimension()
+            2
+            sage: U.<x,y,z> = PolynomialRing(ZZ,3); U
+            Multivariate Polynomial Ring in x, y, z over Integer Ring
+            sage: U.krull_dimension()
+            4
         """
         return 1
 
@@ -900,22 +1023,66 @@ cdef class DedekindDomain(IntegralDomain):
         Return True since Dedekind domains are integrally closed.
 
         EXAMPLES:
+        The following are examples of Dedekind domains (noetherian integral
+        domains of Krull dimension one that are integrally closed over its
+        field of fractions): (Note that the ring of integers does not have
+        an implemented \code{is_integrally_closed} function.)
+            sage: ZZ.is_integrally_closed()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: K = NumberField(x^2 + 1, 's')
+            sage: OK = K.ring_of_integers()
+            sage: OK.is_integrally_closed()
+            True
+
+        These, however, are not Dedekind domains:
+            sage: QQ.is_integrally_closed()
+            True
+            sage: S = ZZ[sqrt(5)]; S.is_integrally_closed()
+            False
+            sage: T.<x,y> = PolynomialRing(QQ,2); T
+            Multivariate Polynomial Ring in x, y over Rational Field
+            sage: T.is_integral_domain()
+            True
         """
         return True
 
     def integral_closure(self):
-        """
+        r"""
         Return self since Dedekind domains are integrally closed.
 
         EXAMPLES:
+            sage: K = NumberField(x^2 + 1, 's')
+            sage: OK = K.ring_of_integers()
+            sage: OK.integral_closure()
+            Maximal Order in Number Field in s with defining polynomial x^2 + 1
+            sage: OK.integral_closure() == OK
+            True
+
+            sage: QQ.integral_closure() == QQ
+            True
         """
         return self
 
     def is_noetherian(self):
-        """
+        r"""
         Return True since Dedekind domains are noetherian.
 
         EXAMPLES:
+        The integers, $\mathbb{Z}$, and rings of integers of number
+        fields are Dedekind domains:
+            sage: ZZ.is_noetherian()
+            True
+            sage: K = NumberField(x^2 + 1, 's')
+            sage: OK = K.ring_of_integers()
+            sage: OK.is_noetherian()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+            sage: QQ.is_noetherian()
+            True
         """
         return True
 
@@ -936,11 +1103,104 @@ cdef class PrincipalIdealDomain(IntegralDomain):
         return AbelianGroup([])
 
     def gcd(self, x, y, coerce=True):
-        """
+        r"""
         Return the greatest common divisor of x and y, as elements
         of self.
 
+        TODO: Perhaps the gcd of elements in a field (particularly in QQ, see
+        below) should be named something else.
+
         EXAMPLES:
+        The integers are a principal ideal domain and hence a GCD domain:
+            sage: ZZ.gcd(42, 48)
+            6
+            sage: 42.factor(); 48.factor()
+            2 * 3 * 7
+            2^4 * 3
+            sage: ZZ.gcd(2^4*7^2*11, 2^3*11*13)
+            88
+            sage: 88.factor()
+            2^3 * 11
+
+        We can also calculate gcd's in certain fields, though, they are not
+        greatest common divisors in a ring-theoretic sense. Since every element
+        in a field is a unit, there are formally no primes in any field.
+        However, we can formulate a notion of least common multiple in the
+        rationals by looking at certain Z-modules.
+        (See rings.rational.Rational.gcd)
+
+        Note that each rational number can be written as a product of (integer)
+        primes with integer (positive or negative) powers. We define the gcd of
+        two rational numbers x and y to be the product of primes occuring in
+        both x and y with the exponent of each prime equal to the min of the
+        exponents of that prime in the factorization of both x and y. Thus,
+        the gcd of x and y is actually a generator for the Z-module generated
+        by x and y:
+
+            If M = (x,y) as a Z-module, then M = (QQ.gcd(x,y)) as a Z-module.
+
+        Alternative definitions are:
+
+            z = gcd(x,y) iff z is the unique (positive) rational such
+            that x/z and y/z are coprime integers.
+
+            z = gcd(x,y) iff z=gcd(d*x,d*y)/d where d is any positive
+            integer such that d*x, d*y are integral.
+
+        Some examples below: (note that QQ.gcd is coerced to a rational)
+            sage: QQ.gcd(ZZ(42), ZZ(48)); type(QQ.gcd(ZZ(42), ZZ(48)))
+            6
+            <type 'sage.rings.rational.Rational'>
+            sage: QQ.gcd(1/2, 1/3)
+            1/6
+            sage: factor(1/2); factor(1/3); factor(1/6)
+            2^-1
+            3^-1
+            2^-1 * 3^-1
+            sage: a = (2*3)/(7*11); b = (13*17)/(19*23)
+            sage: factor(a); factor(b); factor(QQ.gcd(a,b))
+            2 * 3 * 7^-1 * 11^-1
+            13 * 17 * 19^-1 * 23^-1
+            7^-1 * 11^-1 * 19^-1 * 23^-1
+
+        Note the changes to the second entry
+
+            sage: c = (2*3)/(7*11); d = (13*17)/(7*19*23)
+            sage: factor(c); factor(d); factor(QQ.gcd(c,d))
+            2 * 3 * 7^-1 * 11^-1
+            7^-1 * 13 * 17 * 19^-1 * 23^-1
+            7^-1 * 11^-1 * 19^-1 * 23^-1
+            sage: e = (2*3)/(7*11); f = (13*17)/(7^3*19*23)
+            sage: factor(e); factor(f); factor(QQ.gcd(e,f))
+            2 * 3 * 7^-1 * 11^-1
+            7^-3 * 13 * 17 * 19^-1 * 23^-1
+            7^-3 * 11^-1 * 19^-1 * 23^-1
+
+        You can always multiply QQ.gcd(a,b) by some integer to get either
+        x or y back.
+
+        Polynomial rings over fields are GCD domains as well. Here is a simple
+        example over the ring of polynomials over the rationals as well as
+        over an extension ring. Note that \code(gcd) requires x and y to be
+        coercable:
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: S.<a> = NumberField(x^2 - 2, 'a')
+            sage: f = (x - a)*(x + a); g = (x - a)*(x^2 - 2)
+            sage: print f; print g
+            x^2 - 2
+            x^3 + (-a)*x^2 + (-2)*x + 2*a
+            sage: f in R
+            True
+            sage: g in R
+            False
+            sage: R.gcd(f,g)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce 2*a to a rational
+            sage: R.base_extend(S).gcd(f,g)
+            x^2 - 2
+            sage: R.base_extend(S).gcd(f, (x - a)*(x^2 - 3))
+            x - a
         """
         if coerce:
             x = self(x)
@@ -957,7 +1217,10 @@ cdef class EuclideanDomain(PrincipalIdealDomain):
         Return an element of degree 1.
 
         EXAMPLES:
-        """
+            sage: R.<x>=QQ[]
+            sage: R.parameter()
+            x
+       """
         raise NotImplementedError
 
 def is_Field(x):
@@ -986,6 +1249,23 @@ cdef class Field(PrincipalIdealDomain):
         of fields.
 
         EXAMPLES:
+        Examples with fields:
+            sage: QQ.category()
+            Category of fields
+            sage: RR.category()
+            Category of fields
+            sage: CC.category()
+            Category of fields
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: Q = R.fraction_field()
+            sage: Q.category()
+            Category of fields
+
+        Although fields themselves, number fields belong to the category
+        of 'number fields':
+            sage: F = NumberField(x^2 + 1, 'i')
+            sage: F.category()
+            Category of number fields
         """
         from sage.categories.all import Fields
         return Fields()
@@ -995,6 +1275,18 @@ cdef class Field(PrincipalIdealDomain):
         Return the fraction field of self.
 
         EXAMPLES:
+        Since fields are their own field of fractions, we simply get the
+        original field in return:
+            sage: QQ.fraction_field()
+            Rational Field
+            sage: RR.fraction_field()
+            Real Field with 53 bits of precision
+            sage: CC.fraction_field()
+            Complex Field with 53 bits of precision
+
+            sage: F = NumberField(x^2 + 1, 'i')
+            sage: F.fraction_field()
+            Number Field in i with defining polynomial x^2 + 1
         """
         return self
 
@@ -1120,9 +1412,6 @@ cdef class FiniteFieldIterator:
         return self.parent(self.iter.next())
 
 cdef class FiniteField(Field):
-    """
-    """
-
     def __init__(self):
         """
         EXAMPLES:
@@ -1164,9 +1453,21 @@ cdef class FiniteField(Field):
 
     def _latex_(self):
         r"""
+        Returns a string denoting the name of the field in LaTeX. Finite fields
+        are typically typeset in the blackboard bold font given by the LaTeX
+        command \code{\mathbb}.
+
+        The \code(misc.latex.latex) funciton calls the \code{_latex_} attribute
+        when available.
+
         EXAMPLES:
+        The \code(latex) command parses the string
+            sage: GF(81, 'a')._latex_()
+            '\\mathbf{F}_{3^{4}}'
             sage: latex(GF(81, 'a'))
             \mathbf{F}_{3^{4}}
+            sage: GF(3)._latex_()
+            '\\mathbf{F}_{3}'
             sage: latex(GF(3))
             \mathbf{F}_{3}
         """
@@ -1456,6 +1757,38 @@ cdef class FiniteField(Field):
         Return the minimal polynomial of the generator of self in
         \code{self.polynomial_ring('x')}.
 
+        EXAMPLES:
+        The minimal polynomial of an element $a$ in a field is the unique
+        irreducible polynomial of smallest degree with coefficients in the
+        base field that has $a$ as a root. In finite field extensions,
+        $\mathbb{F}_{p^n}$, the base field is $\mathbb{F}_p$. Here are several
+        examples:
+            sage: F.<a> = GF(7^2, 'a'); F
+            Finite Field in a of size 7^2
+            sage: F.polynomial_ring()
+            Univariate Polynomial Ring in a over Finite Field of size 7
+            sage: f = F.modulus(); f
+            x^2 + 6*x + 3
+            sage: f(a)
+            0
+
+        Although $f$ is irreducible over the base field, we can double-check
+        whether or not $f$ factors in $F$ as follows. The command
+        \code{F[x](f)} coerces $f$ as a polynomial with coefficients in $F$.
+        (Instead of a polynomial with coefficeints over the base field.)
+            sage: f.factor()
+            x^2 + 6*x + 3
+            sage: F[x](f).factor()
+            (x + a + 6) * (x + 6*a)
+
+        Here is an example with a degree 3 extension:
+            sage: G.<b> = GF(7^3, 'b'); G
+            Finite Field in b of size 7^3
+            sage: g = G.modulus(); g
+            x^3 + 6*x^2 + 4
+            sage: g.degree(); G.degree()
+            3
+            3
         """
         return self.polynomial_ring("x")(self.polynomial().list())
 
@@ -1483,7 +1816,7 @@ cdef class FiniteField(Field):
 
         EXAMPLES:
             sage: k = GF(2^10, 'a')
-            sage: k.random_element()
+            sage: k.random_element() # random output
             a^9 + a
         """
         if self.degree() == 1:
@@ -1514,7 +1847,7 @@ cdef class FiniteField(Field):
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.rings.finite_field import GF
+        from sage.rings.finite_field import FiniteField as GF
 
         if variable_name is None and self.__polynomial_ring is not None:
             return self.__polynomial_ring
@@ -1599,6 +1932,16 @@ cdef class Algebra(Ring):
         as the characteristic of its base ring.
 
         EXAMPLES:
+        See objects with the \code{base_ring} attribute for additional
+        examples. Here are some examples that explicitly use the \code{Algebra}
+        class:
+            sage: A = Algebra(ZZ); A
+            <type 'sage.rings.ring.Algebra'>
+            sage: A.characteristic()
+            0
+            sage: A = Algebra(GF(7^3, 'a'))
+            sage: A.characteristic()
+            7
         """
         return self.base_ring().characteristic()
 
@@ -1617,6 +1960,15 @@ cdef class CommutativeAlgebra(CommutativeRing):
         Return True since this algebra is commutative.
 
         EXAMPLES:
+        Any commutative ring is a commutative algebra over itself:
+            sage: A = sage.rings.ring.CommutativeAlgebra
+            sage: A(ZZ).is_commutative()
+            True
+            sage: A(QQ).is_commutative()
+            True
+
+        Trying to create a commutative algebra over a non-commutative ring
+        will result in a \code{TypeError}
         """
         return True
 

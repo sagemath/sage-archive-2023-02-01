@@ -19,7 +19,7 @@ import sage.categories.all
 
 from sage.structure.parent_base import ParentWithBase
 from sage.misc.functional import sqrt, log
-from sage.rings.all import RealField, RationalField
+from sage.rings.all import RealField, RationalField, is_RealField, is_RationalField
 from sage.sets.set import Set
 
 ################################################################################
@@ -324,11 +324,11 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
 	"""
         if codomain is None:
 	    codomain = RealField()
-	if not isinstance(codomain,(RationalField,RealField)):
+	if not is_RealField(codomain) and not is_RationalField(codomain):
 	    raise TypeError, "Argument codomain (= %s) must be the reals or rationals" % codomain
 	if check:
 	    one = sum([ P[x] for x in P.keys() ])
-	    if isinstance(codomain,RationalField):
+	    if is_RationalField(codomain):
 	    	if not one == 1:
    	            raise TypeError, "Argument P (= %s) does not define a probability function"
 	    else:

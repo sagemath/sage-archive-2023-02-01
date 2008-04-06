@@ -21,7 +21,7 @@ from sage.rings.arith import binomial
 import sage.rings.integer
 import sage.combinat.subword as subword
 import sage.combinat.choose_nk as choose_nk
-import random as rnd
+import sage.misc.prandom as rnd
 import __builtin__
 import itertools
 from combinat import CombinatorialClass, CombinatorialObject
@@ -47,8 +47,8 @@ def Subsets(s, k=None):
         {}
         sage: S.last()
         {1, 2, 3}
-        sage: S.random() #random
-        {2, 3}
+        sage: S.random()
+        {2}
         sage: S.list()
         [{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
 
@@ -167,10 +167,10 @@ class Subsets_s(CombinatorialClass):
         Returns a random subset of s.
 
         EXAMPLES:
-            sage: Subsets(3).random() #random
-            {1}
-            sage: Subsets([4,5,6]).random() #random
-            {4, 5, 6}
+            sage: Subsets(3).random()
+            {2}
+            sage: Subsets([4,5,6]).random()
+            {5}
         """
         lset = __builtin__.list(self.s)
         n = len(self.s)
@@ -348,10 +348,10 @@ class Subsets_sk(CombinatorialClass):
         Returns a random subset of s of size k.
 
         EXAMPLES:
-            sage: Subsets(3, 2).random() #random
+            sage: Subsets(3, 2).random()
             {1, 2}
-            sage: Subsets(3,4).random()
-            None
+            sage: Subsets(3,4).random() is None
+            True
         """
         lset = __builtin__.list(self.s)
         n = len(self.s)

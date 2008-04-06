@@ -192,9 +192,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         N = Integer(self.n)
         e = N.exact_log(2)
         if N==2**e:
-            print 1
             gsl_fft_complex_inverse(self.data, self.stride, self.n, wt, mem)
-            print 2
         if N!=2**e:
             mem = gsl_fft_complex_workspace_alloc(self.n)
             wt = gsl_fft_complex_wavetable_alloc(self.n)

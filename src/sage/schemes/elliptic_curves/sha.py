@@ -62,7 +62,7 @@ class Sha(SageObject):
         except AttributeError:
             pass
         r = Integer(self.E.rank(use_database=use_database, proof=proof))
-        L = self.E.Lseries().dokchitser(prec=prec)
+        L = self.E.lseries().dokchitser(prec=prec)
         Lr= L.derivative(1,r)
         Om = self.E.period_lattice().omega()
         Reg = self.E.regulator(use_database=use_database, proof=proof)
@@ -156,7 +156,7 @@ class Sha(SageObject):
         E = self.E.minimal_model()
         eps = E.root_number()
         if eps == 1:
-            L1_over_omega = E.Lseries().L_ratio()
+            L1_over_omega = E.lseries().L_ratio()
             if L1_over_omega == 0:
                 return self.an_numerical(use_database=use_database)
             T = E.torsion_subgroup().order()
@@ -174,7 +174,7 @@ class Sha(SageObject):
             return Sha
 
         else:  # rank > 0  (Not provably correct)
-            L1, error_bound = E.Lseries().deriv_at1(10*sqrt(E.conductor()) + 10)
+            L1, error_bound = E.lseries().deriv_at1(10*sqrt(E.conductor()) + 10)
             if abs(L1) < error_bound:
                 s = self.an_numerical()
                 E.__an = s
@@ -526,7 +526,7 @@ class Sha(SageObject):
         if D == -3 or D == -4:
             raise ArithmeticError, "Discriminant (=%s) must not be -3 or -4."%D
         eps = E.root_number()
-        L1_vanishes = E.Lseries().L1_vanishes()
+        L1_vanishes = E.lseries().L1_vanishes()
         if eps == 1 and L1_vanishes:
             return 0, 0        # rank even hence >= 2, so Kolyvagin gives nothing.
         alpha = sqrt(abs(D))/(2*E.period_lattice().complex_area())
@@ -545,8 +545,8 @@ class Sha(SageObject):
                 raise RuntimeError, "Too many precision increases in bound_kolyvagin"
             if eps == 1:   # E has even rank
                 verbose("Conductor of twist = %s"%F.conductor())
-                LF1, err_F = F.Lseries().deriv_at1(k_F)
-                LE1, err_E = E.Lseries().at1(k_E)
+                LF1, err_F = F.lseries().deriv_at1(k_F)
+                LE1, err_E = E.lseries().at1(k_E)
                 err_F = max(err_F, MIN_ERR)
                 err_E = max(err_E, MIN_ERR)
                 if regulator != None:
@@ -563,8 +563,8 @@ class Sha(SageObject):
                     hZ = regulator/2
                 else:
                     hZ = E.regulator(use_database=True)/2
-                LE1, err_E = E.Lseries().deriv_at1(k_E)
-                LF1, err_F = F.Lseries().at1(k_F)
+                LE1, err_E = E.lseries().deriv_at1(k_E)
+                LF1, err_F = F.lseries().at1(k_F)
                 err_F = max(err_F, MIN_ERR)
                 err_E = max(err_E, MIN_ERR)
                 #I = alpha * LE1 * LF1 / hZ
@@ -645,7 +645,7 @@ class Sha(SageObject):
         """
         if self.E.has_cm():
             return False
-        if self.E.Lseries().L1_vanishes():
+        if self.E.lseries().L1_vanishes():
             return False
         B = [2,3]
         for p, _ in self.E.non_surjective():   # for p >= 5, mod-p surj => p-adic surj

@@ -103,6 +103,8 @@ from sage.rings.arith import integer_ceil as ceil
 
 from sage.rings.ring import is_Field
 
+from sage.misc.derivative import multi_derivative
+
 Polynomial = sage.rings.polynomial.polynomial_element.Polynomial_generic_dense
 
 from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, Element
@@ -290,6 +292,36 @@ cdef class PowerSeries(AlgebraElement):
 
     def __call__(self, x):   # you *MUST* overrride this in the derived class
         raise NotImplementedError
+
+
+    def coefficients(self):
+        """
+        Return the nonzero coefficients of self.
+
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: f = t + t^2 - 10/3*t^3
+            sage: f.coefficients()
+            [1, 1, -10/3]
+
+        """
+        zero = self.parent().base_ring().zero_element()
+        return [c for c in self.list() if c != zero]
+
+    def exponents(self):
+        """
+        Return the exponents appearing in self with nonzero
+        coefficients.
+
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: f = t + t^2 - 10/3*t^3
+            sage: f.exponents()
+            [1, 2, 3]
+        """
+        zero = self.parent().base_ring().zero_element()
+        l = self.list()
+        return [i for i in range(len(l)) if l[i] != zero]
 
     def list(self):          # you *MUST* overrride this in the derived class
         raise NotImplementedError
@@ -1401,8 +1433,31 @@ cdef class PowerSeries(AlgebraElement):
         """
         return self.polynomial().degree()
 
-    def derivative(self):
-        raise NotImplementedError
+    def derivative(self, *args):
+        r"""
+        The formal derivative of this power series, with respect to
+        variables supplied in args.
+
+        Multiple variables and iteration counts may be supplied; see
+        documentation for the global derivative() function for more details.
+
+        SEE ALSO:
+            self._derivative()
+
+        EXAMPLES:
+            sage: R.<x> = PowerSeriesRing(QQ)
+            sage: g = -x + x^2/2 - x^4 + O(x^6)
+            sage: g.derivative()
+            -1 + x - 4*x^3 + O(x^5)
+            sage: g.derivative(x)
+            -1 + x - 4*x^3 + O(x^5)
+            sage: g.derivative(x, x)
+            1 - 12*x^2 + O(x^4)
+            sage: g.derivative(x, 2)
+            1 - 12*x^2 + O(x^4)
+        """
+        return multi_derivative(self, args)
+
 
     def __setitem__(self, n, value):
         """

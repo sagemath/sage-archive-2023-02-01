@@ -265,6 +265,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         self._degree = parent.degree()
         self._is_mutable = 1
 
+    def __hash__(self):
+        if self._is_mutable:
+            raise TypeError, "mutable vectors are unhasheable"
+        return hash(tuple(self))
+
     def _vector_(self, R):
         r"""Return self as a vector.
 
@@ -427,6 +432,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         cdef int i
         for i from 0 <= i < self.degree():
             v[i] = self[i].additive_order()
+            if v[i] == +Infinity:
+               return +Infinity
         return sage.rings.arith.LCM(v)
 
     def iteritems(self):
@@ -444,22 +451,30 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         return sum([x**2 for x in self.list()]).sqrt()
 
-    def norm(self, p):
+    def norm(self, p=sage.rings.integer.Integer(2)):
         """
         Return the p-norm of this vector, where p can be a real
         number >= 1, Infinity, or a symbolic expression.
-        If p=2, this is the usual Euclidean norm; if p=Infinity,
-        this is the maximum norm; if p=1, this is the taxicab
-        (Manhattan) norm.
+        If p=2 (default), this is the usual Euclidean norm;
+        if p=Infinity, this is the maximum norm; if p=1, this is
+        the taxicab (Manhattan) norm.
 
         EXAMPLES:
-            sage: v = vector([1,2,3])
+            sage: v = vector([1,2,-3])
             sage: v.norm(5)
             276^(1/5)
+
+        The default is the usual Euclidean norm:
+            sage: v.norm()
+            sqrt(14)
             sage: v.norm(2)
             sqrt(14)
+
+        The infinity norm is the maximum size of any entry:
             sage: v.norm(Infinity)
             3
+
+        Any real or symbolic value works:
             sage: v=vector(RDF,[1,2,3])
             sage: v.norm(5)
             3.07738488539
@@ -469,10 +484,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             (a, b, c, d, p)
             sage: v=vector([a, b, c, d])
             sage: v.norm(p)
-            (d^p + c^p + b^p + a^p)^(1/p)
+            (abs(d)^p + abs(c)^p + abs(b)^p + abs(a)^p)^(1/p)
         """
+        abs_self = [abs(x) for x in self]
         if p == Infinity:
-            return max(self)
+            return max(abs_self)
         try:
             pr = RDF(p)
             if pr < 1:
@@ -480,7 +496,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         except TypeError:
             pass
 
-        s = sum([a**p for a in self])
+        s = sum([a**p for a in abs_self])
         return s**(1/p)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
@@ -1081,6 +1097,22 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def is_vector(self):
         return True
 
+    def _mathematica_init_(self):
+        """
+        Returns string representation of this vector as a Mathematica list.
+
+        EXAMPLES:
+            sage: vector((1,2,3), QQ)._mathematica_init_()
+            '{1/1, 2/1, 3/1}'
+            sage: mathematica(vector((1,2,3), QQ))  #optional -- requires mathematica
+            {1, 2, 3}
+            sage: a = vector(SR, 5, [1, x, x^2, sin(x), pi]); a
+            (1, x, x^2, sin(x), pi)
+            sage: a._mathematica_init_()
+            '{1, x, (x) ^ (2), Sin[x], Pi}'
+        """
+        return '{' + ', '.join([x._mathematica_init_() for x in self.list()]) + '}'
+
 ##     def zero_out_positions(self, P):
 ##         """
 ##         Set the positions of self in the list P equal to 0.
@@ -1145,6 +1177,19 @@ def make_FreeModuleElement_generic_dense(parent, entries, degree):
     v._entries = entries
     v._parent = parent
     v._degree = degree
+    return v
+
+def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_mutable):
+    # If you think you want to change this function, don't.
+    # Instead make a new version with a name like
+    #    make_FreeModuleElement_generic_dense_v2
+    # and changed the reduce method below.
+    cdef FreeModuleElement_generic_dense v
+    v = FreeModuleElement_generic_dense.__new__(FreeModuleElement_generic_dense)
+    v._entries = entries
+    v._parent = parent
+    v._degree = degree
+    v._is_mutable = is_mutable
     return v
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
@@ -1297,19 +1342,35 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         return left._new_c(v)
 
     def __reduce__(self):
-        return (make_FreeModuleElement_generic_dense, (self._parent, self._entries, self._degree))
+        return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
     def __getitem__(self, Py_ssize_t i):
         """
+        EXAMPLES:
+            sage: v = vector([RR(1), RR(2)]); v
+            (1.00000000000000, 2.00000000000000)
+            sage: v[0]
+            1.00000000000000
+            sage: v[-1]
+            2.00000000000000
+            sage: v[4]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between -2 and 1
+            sage: v[-4]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between -2 and 1
+
         """
         if isinstance(i, slice):
             return list(self)[i]
+        degree = self.degree()
         i = int(i)
-        #if not isinstance(i, int):
-        #    raise TypeError, "index must an integer"
+        if i < 0:
+            i += degree
         if i < 0 or i >= self.degree():
-            raise IndexError, "index (i=%s) must be between 0 and %s"%(i,
-                            self.degree()-1)
+            raise IndexError, "index must be between -%s and %s"%(degree, degree-1)
         return self._entries[i]
 
     def __setitem__(self, Py_ssize_t i, value):
@@ -1405,6 +1466,15 @@ def make_FreeModuleElement_generic_sparse(parent, entries, degree):
     v._entries = entries
     v._parent = parent
     v._degree = degree
+    return v
+
+def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable):
+    cdef FreeModuleElement_generic_sparse v
+    v = FreeModuleElement_generic_sparse.__new__(FreeModuleElement_generic_sparse)
+    v._entries = entries
+    v._parent = parent
+    v._degree = degree
+    v._is_mutable = is_mutable
     return v
 
 cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
@@ -1567,15 +1637,33 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return self._entries.iteritems()
 
     def __reduce__(self):
-        return (make_FreeModuleElement_generic_sparse, (self._parent, self._entries, self._degree))
+        return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries, self._degree, self._is_mutable))
 
     def __getitem__(self, i):
-        #if not isinstance(i, int):
+        """
+        EXAMPLES:
+            sage: v = vector([RR(1), RR(2)], sparse=True); v
+            (1.00000000000000, 2.00000000000000)
+            sage: v[0]
+            1.00000000000000
+            sage: v[-1]
+            2.00000000000000
+            sage: v[5]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between -2 and 1
+            sage: v[-3]
+            Traceback (most recent call last):
+            ...
+            IndexError: index must be between -2 and 1
+        """
         i = int(i)
-            #raise TypeError, "index must an integer"
-        if i < 0 or i >= self.degree():
-            raise IndexError, "index (i=%s) must be between 0 and %s"%(i,
-                            self.degree()-1)
+        degree = self.degree()
+        if i < 0:
+            i += degree
+        if i < 0 or i >= degree:
+            raise IndexError, "index must be between %s and %s"%(-degree,
+                            degree-1)
         if self._entries.has_key(i):
             return self._entries[i]
         return self.base_ring()(0)  # optimize this somehow

@@ -319,8 +319,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             raise ValueError, "Generator not defined."
         return self._gens[int(n)]
 
-    def gens(self):
-        return self._gens
+    #def gens(self):
+        #return self._gens
 
     def variable_names_recursive(self, depth=sage.rings.infinity.infinity):
         r"""
@@ -482,6 +482,11 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             degree -- degree of monomials
             counts -- ignored
             total -- ignored
+
+        EXAMPLES:
+            sage: K.<x,y,z,w> = QQ[]
+            sage: K._random_monomial_upto_degree_class(5, 7)
+            (0, 0, 0, 3, 0)
             """
         # bug: doesn't handle n=1
         from sage.rings.arith import binomial
@@ -507,8 +512,13 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             degree -- degree of monomials
             counts -- ignored
             total -- ignored
+
+        EXAMPLES:
+            sage: K.<x,y,z,w> = QQ[]
+            sage: K._random_monomial_upto_degree_uniform(4, 3)
+            (1, 0, 0, 1)
             """
-        if counts is not None or total is not None:
+        if counts is None or total is None:
             counts, total = self._precomp_counts(n, degree)
 
         #Select a random one
@@ -547,12 +557,12 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         EXAMPLES:
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: P.random_element(2, 5)
-            1/2*y^2 + x*z - x + 2*y + 19/2*z
+            -6/5*x^2 + 2/3*z^2 - 1
 
             sage: P.random_element(2, 5, choose_degree=True)
-            28*x*z + y*z - z^2 - 1/2*x - 44/39
+            -1/4*x*y - x - 1/14*z - 1
             sage: P.random_element(0, 1)
-            1
+            (0, 0, 0)
 
             sage: P.random_element(2, 0)
             0
@@ -562,18 +572,20 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R = QQ['x,y']
             sage: S = R['t,u']
             sage: S.random_element(degree=2, terms=1)
-            (3*x^2 - x*y - 17*y^2 + y - 2/3)*u
+            -1/2*x^2 - 1/4*x*y - 3*y^2 + 4*y
+            sage: S.random_element(degree=2, terms=1)
+            (-x^2 - 2*y^2 - 1/3*x + 2*y + 9)*u^2
 
             default values apply if no degree and/or number of terms
             is provided:
 
             sage: random_matrix(QQ['x,y,z'], 2, 2)
-            [   4*x^2 + 4*x*y + 1/10*y*z + 1/2*z^2 - 15 4/3*x^2 + 5/2*x*z + 134/3*y*z + 20*z^2 - y]
-            [      -1/2*x^2 - 1/6*x*y - 2*z^2 - 2*z - 1          -x*y - x*z - y*z + 1/15*z^2 - 5*z]
+            [357*x^2 + 1/4*y^2 + 2*y*z + 2*z^2 + 28*x      2*x*y + 3/2*y^2 + 2*y*z - 2*z^2 - z]
+            [                       x*y - y*z + 2*z^2         -x^2 - 4/3*x*z + 2*z^2 - x + 4*y]
 
             sage: random_matrix(QQ['x,y,z'], 2, 2, terms=1, degree=1)
-            [-1/2*z   -7/5]
-            [    -y 1/11*z]
+            [-13*z     0]
+            [   -z    -3]
 
         """
         d,t = degree,terms
@@ -637,24 +649,27 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         return self(dict(zip(M,C)))
 
-    def new_ring(self, names=None, order=None):
+    def change_ring(self, base_ring=None, names=None, order=None):
         """
         Return a new multivariate polynomial ring which isomorphic to
         self, but has a different ordering given by the parameter
         'order' or names given by the parameter 'names'.
 
         INPUT:
+            base_ring -- a base ring
+            names -- variable names
             order -- a term order
 
         EXAMPLE:
             sage: P.<x,y,z> = PolynomialRing(GF(127),3,order='lex')
             sage: x > y^2
             True
-            sage: Q.<x,y,z> = P.new_ring(order='degrevlex')
+            sage: Q.<x,y,z> = P.change_ring(order='degrevlex')
             sage: x > y^2
             False
         """
-        base_ring = self.base_ring()
+        if base_ring is None:
+            base_ring = self.base_ring()
         if names is None:
             names = self.variable_names()
         if order is None:
@@ -662,6 +677,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         from polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(base_ring, self.ngens(), names, order=order)
+
 
 ####################
 # Leave *all* old versions!

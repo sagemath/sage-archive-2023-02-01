@@ -1,4 +1,4 @@
-"""
+r"""
 Group, ring, etc. actions on objects.
 
 The terminology and notation used is suggestive of groups
@@ -126,23 +126,30 @@ cdef class Action(Functor):
 
 cdef class InverseAction(Action):
     """
-    An action whose acts as the inverse of the given action.
+    An action that acts as the inverse of the given action.
+
+    TESTS:
+    This illustrates a shortcoming in the current coercion model.
+    See the comments in _call_c below.
+
+        sage: x = polygen(QQ,'x')
+        sage: a = 2*x^2+2; a
+        2*x^2 + 2
+        sage: a / 2
+        x^2 + 1
+        sage: a /= 2
+        sage: a
+        x^2 + 1
     """
     def __init__(self, Action action):
         G = action.G
         try:
             from sage.groups.group import Group
+            # We must be in the case that parent(~a) == parent(a)
+            # so we can invert in call_c code below.
             if (PY_TYPE_CHECK(G, Group) and G.is_multiplicative()) or G.is_field():
                 Action.__init__(self, G, action.S, action._is_left)
                 self._action = action
-                return
-            elif G.is_ring() and action.S.base_ring() is not action.S:
-                G = G.fraction_field()
-                S = action.S.base_extend(G)
-                Action.__init__(self, G, S, action._is_left)
-                self._action = action
-                if S is not action.S:
-                    self.S_precomposition = S.coerce_map_from(action.S)
                 return
         except (AttributeError, NotImplementedError):
             pass
@@ -161,6 +168,8 @@ cdef class InverseAction(Action):
     def __invert__(self):
         return self._action
 
+    def _repr_name_(self):
+        return "inverse action"
 
 cdef class PrecomposedAction(Action):
 
@@ -176,9 +185,9 @@ cdef class PrecomposedAction(Action):
               right_precomposition = homset.Hom(right_precomposition._codomain, right).natural_map() * right_precomposition
             right = right_precomposition._domain
         if action._is_left:
-            Action.__init__(left, action.S, 1)
+            Action.__init__(self, left, action.S, 1)
         else:
-            Action.__init__(right, action.S, 0)
+            Action.__init__(self, right, action.S, 0)
         self._action = action
         self.left_precomposition = left_precomposition
         self.right_precomposition = right_precomposition
@@ -197,6 +206,17 @@ cdef class PrecomposedAction(Action):
             return self.left_precomposition.domain()
         else:
             return self.codomain()
+
+    def __invert__(self):
+        return PrecomposedAction(~self._action, self.left_precomposition, self.right_precomposition)
+
+    def __repr__(self):
+        s = repr(self._action)
+        if self.left_precomposition is not None:
+            s += "\nwith precomposition on left by %r" % self.left_precomposition
+        if self.right_precomposition is not None:
+            s += "\nwith precomposition on right by %r" % self.right_precomposition
+        return s
 
 
 cdef class ActionEndomorphism(Morphism):

@@ -23,7 +23,7 @@ void sage_signal_handler(int sig) {
   _signals.s = NULL;
 
   //we override the default handler
-  if ( _signals.mpio && 1 ) {
+  if ( _signals.mpio & 1 ) {
 
     //what to do?
 

@@ -5,7 +5,7 @@ Following
 
     [BW93] Thomas Becker and Volker Weispfenning. Groebner Bases - A
            Computational Approach To Commutative Algebra. Springer,
-           1993.
+           New York 1993.
 
 the original Buchberger algorithm (c.f. algorithm GROEBNER in [BW93])
 and an improved version of Buchberger's algorithm (c.g. algorithm
@@ -14,10 +14,7 @@ GROEBNERNEW2 in [BW93]) are presented.
 No attempt was made to optimize either algorithm as the emphasis of
 these implementations is a clean and easy presentation. To compute a
 Groebner basis in \SAGE efficently use the \code{groebner_basis}
-method on multivariate polynomial objects. Also, these functions
-require a $\Q$ or $\F_p$ as base fields as they rely on a method
-\code{MPolynomial.reduce} which is only implemented for those two base
-rings yet.
+method on multivariate polynomial objects.
 
 NOTE: the notion of 'term' and 'monomial' in [BW93] is swapped
 from the notion of those words in \SAGE (or the other way around,
@@ -126,36 +123,24 @@ EXAMPLES:
     The 'improved' Buchberger algorithm in constrast only performs 3 reductions to zero:
 
     sage: buchberger_improved(I)
-    (a^2 + 2*b^2 + 2*c^2 - a, a + 2*b + 2*c - 1) => 2*b^2 + 6*b*c + 6*c^2 - b - 2*c
-    G: set([a + 2*b + 2*c - 1, 2*a*b + 2*b*c - b, 2*b^2 + 6*b*c + 6*c^2 - b - 2*c, a^2 + 2*b^2 + 2*c^2 - a])
+    (b^2 - 26*c^2 - 51*b + 51*c, b*c + 52*c^2 + 38*b + 25*c) => 11*c^3 - 12*c^2 + 30*b + 31*c
+    G: set([a + 2*b + 2*c - 1, b^2 - 26*c^2 - 51*b + 51*c, 11*c^3 - 12*c^2 + 30*b + 31*c, b*c + 52*c^2 + 38*b + 25*c])
     <BLANKLINE>
-    (2*a*b + 2*b*c - b, a + 2*b + 2*c - 1) => 5*b*c + 6*c^2 + 63*b - 2*c
-    G: set([a + 2*b + 2*c - 1, 2*a*b + 2*b*c - b, 2*b^2 + 6*b*c + 6*c^2 - b - 2*c, a^2 + 2*b^2 + 2*c^2 - a, 5*b*c + 6*c^2 + 63*b - 2*c])
+    (11*c^3 - 12*c^2 + 30*b + 31*c, b*c + 52*c^2 + 38*b + 25*c) => 0
+    G: set([a + 2*b + 2*c - 1, b^2 - 26*c^2 - 51*b + 51*c, 11*c^3 - 12*c^2 + 30*b + 31*c, b*c + 52*c^2 + 38*b + 25*c])
     <BLANKLINE>
-    (5*b*c + 6*c^2 + 63*b - 2*c, 2*a*b + 2*b*c - b) => 22*c^3 - 24*c^2 + 60*b + 62*c
-    G: set([a + 2*b + 2*c - 1, 2*b^2 + 6*b*c + 6*c^2 - b - 2*c, 5*b*c + 6*c^2 + 63*b - 2*c, 2*a*b + 2*b*c - b, a^2 + 2*b^2 + 2*c^2 - a, 22*c^3 - 24*c^2 + 60*b + 62*c])
-    <BLANKLINE>
-    (2*b^2 + 6*b*c + 6*c^2 - b - 2*c, 2*a*b + 2*b*c - b) => 0
-    G: set([a + 2*b + 2*c - 1, 2*b^2 + 6*b*c + 6*c^2 - b - 2*c, 5*b*c + 6*c^2 + 63*b - 2*c, 2*a*b + 2*b*c - b, a^2 + 2*b^2 + 2*c^2 - a, 22*c^3 - 24*c^2 + 60*b + 62*c])
-    <BLANKLINE>
-    (5*b*c + 6*c^2 + 63*b - 2*c, 2*b^2 + 6*b*c + 6*c^2 - b - 2*c) => 0
-    G: set([a + 2*b + 2*c - 1, 2*b^2 + 6*b*c + 6*c^2 - b - 2*c, 5*b*c + 6*c^2 + 63*b - 2*c, 2*a*b + 2*b*c - b, a^2 + 2*b^2 + 2*c^2 - a, 22*c^3 - 24*c^2 + 60*b + 62*c])
-    <BLANKLINE>
-    (22*c^3 - 24*c^2 + 60*b + 62*c, 5*b*c + 6*c^2 + 63*b - 2*c) => 0
-    G: set([a + 2*b + 2*c - 1, 2*b^2 + 6*b*c + 6*c^2 - b - 2*c, 5*b*c + 6*c^2 + 63*b - 2*c, 2*a*b + 2*b*c - b, a^2 + 2*b^2 + 2*c^2 - a, 22*c^3 - 24*c^2 + 60*b + 62*c])
-    <BLANKLINE>
-    3 reductions to zero.
-    [a + 2*b + 2*c - 1, 2*b^2 + 6*b*c + 6*c^2 - b - 2*c, 5*b*c + 6*c^2 + 63*b - 2*c, 2*a*b + 2*b*c - b, a^2 + 2*b^2 + 2*c^2 - a, 22*c^3 - 24*c^2 + 60*b + 62*c]
+    1 reductions to zero.
+    [a + 2*b + 2*c - 1, b^2 - 26*c^2 - 51*b + 51*c, c^3 + 22*c^2 - 55*b + 49*c, b*c + 52*c^2 + 38*b + 25*c]
 
 AUTHOR:
     -- Martin Albrecht (2007-05-24): initial version
 """
 
 from sage.misc.misc import get_verbose
-from sage.misc.misc import exists
 from sage.rings.arith import LCM
 from sage.structure.sequence import Sequence
 
+LCM = lambda f,g: f.parent().monomial_lcm(f,g)
 LM = lambda f: f.lm()
 LT = lambda f: f.lt()
 spol = lambda f,g: LCM(LM(f),LM(g)) // LT(f) * f - LCM(LM(f),LM(g)) // LT(g) * g
@@ -173,7 +158,7 @@ def buchberger(F):
 
     NOTE: The verbosity of this function may be controlled with a
     \code{set_verbose()} call. Any value >=1 will result in this
-    function printing intermediate Groebner bases.
+    function printing intermediate bases.
 
     """
     G = set(F.gens())
@@ -217,7 +202,7 @@ def buchberger_improved(F):
     \code{set_verbose()} call. Any value >=1 will result in this
     function printing intermediate Groebner bases.
     """
-    F = set(F.gens())
+    F = inter_reduction(F.gens())
 
     G = set()
     B = set()
@@ -231,6 +216,7 @@ def buchberger_improved(F):
         G,B = update(G,B,f)
 
     while B != set():
+
         g1,g2 = select(B)
         B.remove((g1,g2))
         h = spol(g1,g2).reduce(G)
@@ -245,8 +231,7 @@ def buchberger_improved(F):
     if get_verbose() >= 1:
         print "%d reductions to zero."%(reductions_to_zero)
 
-    return Sequence(G)
-
+    return Sequence(inter_reduction(G))
 
 def update(G,B,h):
     """
@@ -272,13 +257,13 @@ def update(G,B,h):
     while C != set():
         (h,g1) = C.pop()
 
-        lcm_divides = lambda rhs: R.monomial_is_divisible_by( LCM(LM(h),LM(g1)), LCM(LM(h),LM(rhs[1])) )
+        lcm_divides = lambda rhs: R.monomial_divides( LCM(LM(h),LM(rhs[1])), LCM(LM(h),LM(g1)))
 
         if R.monomial_pairwise_prime(LM(h),LM(g)) or \
            (\
-               not exists(C, lcm_divides )[0] \
-               and \
-               not exists(D, lcm_divides )[0] \
+               not any( lcm_divides(f) for f in C ) \
+               and
+               not any( lcm_divides(f) for f in D ) \
             ):
             D.add( (h,g1) )
 
@@ -293,7 +278,7 @@ def update(G,B,h):
 
     while B != set():
         g1,g2 = B.pop()
-        if not R.monomial_is_divisible_by( LCM(LM(g1),LM(g2)), LM(h) ) or \
+        if not R.monomial_divides( LM(h),  LCM(LM(g1),LM(g2)) ) or \
                R.monomial_lcm(LM(g1),LM( h)) == LCM(LM(g1),LM(g2)) or \
                R.monomial_lcm(LM( h),LM(g2)) == LCM(LM(g1),LM(g2)) :
             B_new.add( (g1,g2) )
@@ -304,7 +289,7 @@ def update(G,B,h):
 
     while G != set():
         g = G.pop()
-        if not R.monomial_is_divisible_by(LM(g),LM(h)):
+        if not R.monomial_divides(LM(h), LM(g)):
             G_new.add(g)
 
     G_new.add(h)
@@ -323,3 +308,31 @@ def select(P):
     """
     return min(P,key = lambda (fi,fj): LCM(LM(fi),LM(fj)).total_degree())
 
+
+def inter_reduction(Q):
+    """
+    If $Q$ is the set $(f_1, ..., f_n)$ this method
+    returns $(g_1, ..., g_s)$ such that:
+
+    * $(f_1,...,f_n) = (g_1,...,g_s)$
+    * $LT(g_i) != LT(g_j)$ for all $i != j$
+    * $LT(g_i)$ does not divide $m$ for all monomials m of
+      $\{g_1,...,g_{i-1},g_{i+1},...,g_s\}$
+    * $LC(g_i) == 1$ for all $i$.
+
+    INPUT:
+        Q -- a set of polynomials
+    """
+    base_ring = iter(Q).next().base_ring()
+    Q = set(Q)
+    while True:
+        Qbar = set(Q)
+        for p in Qbar:
+            p = Q.pop()
+            h = p.reduce(Q)
+            if h!=0:
+                Q.add(h)
+        if Qbar == Q:
+            if base_ring.is_field():
+                return set([f.lc()**(-1) * f for f in Qbar])
+            else: return Qbar

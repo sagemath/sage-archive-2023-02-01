@@ -185,7 +185,7 @@ class LCalc(SageObject):
 
         Sometimes warnings are printed (by lcalc) when this command is run:
             sage: E = EllipticCurve('389a')
-            sage: E.Lseries().values_along_line(0.5, 3, 5)
+            sage: E.lseries().values_along_line(0.5, 3, 5)
             lcalc:  1.5 0 WARNING- we don't have enough Dirichlet coefficients.
             lcalc:  Will use the maximum possible, though the output will not necessarily be accurate.
             lcalc:  nan nan

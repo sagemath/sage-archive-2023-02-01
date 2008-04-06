@@ -205,3 +205,203 @@ class NonAssociative:
             (a*(b*c))
         """
         return NonAssociative(self, other)
+
+
+#############################################################################
+# Bitset Testing
+#############################################################################
+
+include "bitset.pxi"
+
+def test_bitset(py_a, py_b, long n):
+    """
+    TESTS:
+        sage: from sage.misc.misc_c import test_bitset
+        sage: test_bitset('00101', '01110', 4)
+        a 00101
+        a.size 5
+        a.limbs 1
+        b 01110
+        a.check(n)   True
+        a.set(n)     00101
+        a.unset(n)   00100
+        a.set_to(n)  00101
+        a.flip(n)    00100
+        a.is_zero()  False
+        a.eq(b)      False
+        a.cmp(b)     1
+        a.copy()     00101
+        r.zero()     00000
+        not a        11010
+        a and b      00100
+        a or b       01111
+        a xor b      01011
+        a.rshift(n)  10000
+        a.lshift(n)  00000
+        a.first()           2
+        a.next(n)           4
+        a.first_diff(b)     1
+        a.next_diff(b, n)   4
+        a.hamming_weight()  2
+        a.hamming_weight_sparse()  2
+
+    Large enough to span multiple limbs:
+        sage: test_bitset('111001'*25, RealField(151)(pi).str(2)[2:], 69)
+        a 111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
+        a.size 150
+        a.limbs 5 # 32-bit
+        a.limbs 3 # 64-bit
+        b 000100100001111110110101010001000100001011010001100001000110100110001001100011001100010100010111000000011011100000111001101000100101001000000100100111
+        a.check(n)   False
+        a.set(n)     111001111001111001111001111001111001111001111001111001111001111001111101111001111001111001111001111001111001111001111001111001111001111001111001111001
+        a.unset(n)   111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
+        a.set_to(n)  111001111001111001111001111001111001111001111001111001111001111001111101111001111001111001111001111001111001111001111001111001111001111001111001111001
+        a.flip(n)    111001111001111001111001111001111001111001111001111001111001111001111101111001111001111001111001111001111001111001111001111001111001111001111001111001
+        a.is_zero()  False
+        a.eq(b)      False
+        a.cmp(b)     -1
+        a.copy()     111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
+        r.zero()     000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+        not a        000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110000110
+        a and b      000000100001111000110001010001000000001001010001100001000000100000001001100001001000010000010001000000011001100000111001101000100001001000000000100001
+        a or b       111101111001111111111101111001111101111011111001111001111111111111111001111011111101111101111111111001111011111001111001111001111101111001111101111111
+        a xor b      111101011000000111001100101000111101110010101000011000111111011111110000011010110101101101101110111001100010011001000000010001011100110001111101011110
+        a.rshift(n)  001111001111001111001111001111001111001111001111001111001111001111001111001111001000000000000000000000000000000000000000000000000000000000000000000000
+        a.lshift(n)  000000000000000000000000000000000000000000000000000000000000000000000111001111001111001111001111001111001111001111001111001111001111001111001111001111
+        a.first()           0
+        a.next(n)           71
+        a.first_diff(b)     0
+        a.next_diff(b, n)   73
+        a.hamming_weight()  100
+        a.hamming_weight_sparse()  100
+        rshifts add  True
+        lshifts add  True
+        and commutes True
+        or commutes  True
+        not not = id True
+        flipped bit  69
+        set bit      69
+        unset bit    69
+        lshift set unset ok True
+        rshift set unset ok True
+    """
+    cdef bint bit = True
+    cdef bitset_t a, b, r
+
+    bitset_from_str(a, py_a)
+    bitset_from_str(b, py_b)
+
+    if a.size != b.size:
+        raise ValueError, "inputs must have same size"
+
+    print "a", bitset_string(a)
+    print "a.size", a.size
+    print "a.limbs", a.limbs
+    print "b", bitset_string(b)
+    print "a.check(n)  ", bitset_check(a, n)
+    bitset_set(a, n)
+    print "a.set(n)    ", bitset_string(a)
+    bitset_from_str(a, py_a)
+    bitset_unset(a, n)
+    print "a.unset(n)  ", bitset_string(a)
+    bitset_from_str(a, py_a)
+    bitset_set_to(a, n, bit)
+    print "a.set_to(n) ", bitset_string(a)
+    bitset_from_str(a, py_a)
+    bitset_flip(a, n)
+    print "a.flip(n)   ", bitset_string(a)
+
+    bitset_from_str(a, py_a)
+    bitset_from_str(b, py_b)
+    print "a.is_zero() ", bitset_is_zero(a)
+    print "a.eq(b)     ", bitset_eq(a, b)
+    print "a.cmp(b)    ", bitset_cmp(a, b)
+
+    bitset_from_str(a, py_a)
+    bitset_from_str(b, py_b)
+
+    bitset_init(r, a.size)
+    bitset_copy(r, a)
+    print "a.copy()    ", bitset_string(r)
+    bitset_zero(r)
+    print "r.zero()    ", bitset_string(r)
+    bitset_not(r, a)
+    print "not a       ", bitset_string(r)
+    bitset_and(r, a, b)
+    print "a and b     ", bitset_string(r)
+    bitset_or(r, a, b)
+    print "a or b      ", bitset_string(r)
+    bitset_xor(r, a, b)
+    print "a xor b     ", bitset_string(r)
+
+    bitset_rshift(r, a, n)
+    print "a.rshift(n) ", bitset_string(r)
+
+    bitset_lshift(r, a, n)
+    print "a.lshift(n) ", bitset_string(r)
+
+    print "a.first()          ", bitset_first(a)
+    print "a.next(n)          ", bitset_next(a, n)
+    print "a.first_diff(b)    ", bitset_first_diff(a, b)
+    print "a.next_diff(b, n)  ", bitset_next_diff(a, b, n)
+
+    print "a.hamming_weight() ", bitset_hamming_weight(a)
+    print "a.hamming_weight_sparse() ", bitset_hamming_weight_sparse(a)
+
+    cdef bitset_t s
+    bitset_init(s, a.size)
+
+    if a.size > 100:
+        bitset_rshift(r, b, 3)
+        bitset_rshift(r, r, 77)
+        bitset_rshift(s, b, 80)
+        print "rshifts add ", bitset_eq(s, r)
+
+        bitset_lshift(r, b, 69)
+        bitset_lshift(r, r, 6)
+        bitset_lshift(s, b, 75)
+        print "lshifts add ", bitset_eq(s, r)
+
+        bitset_and(r, a, b)
+        bitset_and(s, b, a)
+        print "and commutes", bitset_eq(s, r)
+
+        bitset_or(r, a, b)
+        bitset_or(s, b, a)
+        print "or commutes ", bitset_eq(s, r)
+
+        bitset_not(r, b)
+        bitset_not(s, r)
+        print "not not = id", bitset_eq(s, b)
+
+        bitset_copy(r, b)
+        bitset_flip(r, n)
+        print "flipped bit ", bitset_first_diff(b, r)
+
+        bitset_zero(r)
+        bitset_set(r, n)
+        print "set bit     ", bitset_first(r)
+
+        bitset_zero(r)
+        bitset_not(r, r)
+        bitset_unset(r, n)
+        bitset_not(r, r)
+        print "unset bit   ", bitset_first(r)
+
+        bitset_zero(r)
+        bitset_set(r, 10)
+        bitset_lshift(r, r, 68)
+        bitset_flip(r, 78)
+        print "lshift set unset ok", bitset_is_zero(r)
+
+        bitset_zero(r)
+        bitset_set(r, 19)
+        bitset_rshift(r, r, 8)
+        bitset_unset(r, 11)
+        print "rshift set unset ok", bitset_is_zero(r)
+
+    bitset_clear(a)
+    bitset_clear(b)
+    bitset_clear(r)
+    bitset_clear(s)
+

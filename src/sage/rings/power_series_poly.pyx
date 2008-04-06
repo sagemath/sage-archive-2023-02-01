@@ -362,19 +362,47 @@ cdef class PowerSeries_poly(PowerSeries):
     def dict(self):
         return self.__f.dict()
 
-    def derivative(self):
+    def _derivative(self, var=None):
         """
-        Return the derivative of this power series.
+        Return the derivative of this power series with respect
+        to the variable var.
+
+        If var is None or is the generator of this ring, we take the derivative
+        with respect to the generator.
+
+        Otherwise, we call _derivative(var) on each coefficient of
+        the series.
+
+        SEE ALSO:
+            self.derivative()
 
         EXAMPLES:
             sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
             sage: f = 2 + 3*t^2 + t^100000 + O(t^10000000); f
             2 + 3*t^2 + t^100000 + O(t^10000000)
-            sage: f.derivative()
+            sage: f._derivative()
             6*t + 100000*t^99999 + O(t^9999999)
+            sage: f._derivative(t)
+            6*t + 100000*t^99999 + O(t^9999999)
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: S.<y> = PowerSeriesRing(R, sparse=True)
+            sage: f = x^3*y^4 + O(y^5)
+            sage: f._derivative()
+            4*x^3*y^3 + O(y^4)
+            sage: f._derivative(y)
+            4*x^3*y^3 + O(y^4)
+            sage: f._derivative(x)
+            3*x^2*y^4 + O(y^5)
         """
-        return PowerSeries_poly(self._parent, self.__f.derivative(),
-                                         self.prec()-1, check=False)
+        if var is not None and var is not self._parent.gen():
+            # call _derivative() recursively on coefficients
+            return PowerSeries_poly(self._parent, self.__f._derivative(var),
+                                    self.prec(), check=False)
+
+        # compute formal derivative with respect to generator
+        return PowerSeries_poly(self._parent, self.__f._derivative(),
+                                self.prec()-1, check=False)
 
     def integral(self):
         """

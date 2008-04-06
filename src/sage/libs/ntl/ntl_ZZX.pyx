@@ -423,8 +423,8 @@ cdef class ntl_ZZX:
         """
         if n < 0:
             raise NotImplementedError
-        import sage.rings.arith
-        return sage.rings.arith.generic_power(self, n, one_ZZX.copy())
+        import sage.groups.generic as generic
+        return generic.power(self, n, one_ZZX.copy())
 
     def __cmp__(ntl_ZZX self, ntl_ZZX other):
         """

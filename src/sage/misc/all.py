@@ -10,6 +10,10 @@ from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange
                   is_32_bit, is_64_bit, newton_method_sizes,
                   running_total)
 
+from html import html
+
+from sage_timeit_class import timeit
+
 from edit_module import edit
 
 from flatten import flatten
@@ -34,11 +38,11 @@ from dist import install_scripts
 
 from hg import hg_sage, hg_doc, hg_scripts, hg_extcode
 
-from package import install_package, standard_packages, optional_packages, experimental_packages, upgrade
+from package import install_package, is_package_installed, standard_packages, optional_packages, experimental_packages, upgrade
 
 from pager import pager
 
-from sagedoc import search_src, search_doc
+from sagedoc import search_src, search_def, search_doc
 
 from classgraph import class_graph
 
@@ -46,7 +50,7 @@ from reset import reset, restore
 
 from getusage import top, get_memory_usage
 
-from log import log_html, log_dvi, log_html_mathml
+from log import log_html, log_dvi, log_text
 
 from mathml import mathml
 
@@ -80,7 +84,6 @@ from functional import (additive_order,
                         cyclotomic_polynomial,
                         decomposition,
                         denominator,
-                        derivative,
                         det,
                         dimension,
                         dim,
@@ -146,6 +149,10 @@ from trace import trace
 from cachefunc import CachedFunction
 
 from sagex_ds import BinaryTree
+
+from randstate import seed, set_random_seed, initial_seed, current_randstate
+
+from prandom import *
 
 ##########################################################################
 def benchmark(n=-1):

@@ -24,6 +24,7 @@ import sage.rings.arith as arith
 from sage.rings.all import (
     Qp,
     Integers,
+    Integer,
     O,
     PowerSeriesRing,
     LaurentSeriesRing,
@@ -34,8 +35,8 @@ import sage.matrix.all as matrix
 sqrt = math.sqrt
 import padic_height as pheight
 import monsky_washnitzer
-import sage.schemes.hyperelliptic_curves.frobenius
-
+import sage.schemes.hyperelliptic_curves.hypellfrob
+from constructor import EllipticCurve
 
 def __check_padic_hypotheses(self, p):
     p = rings.Integer(p)
@@ -87,7 +88,7 @@ def padic_lseries(self, p, normalize=True):
         sage: f = x^2 - e.ap(3)*x + 3
         sage: f(alpha)
         O(3^9)
-        sage: r = e.Lseries().L_ratio(); r
+        sage: r = e.lseries().L_ratio(); r
         1/5
         sage: (1 - alpha^(-1))^2 * r
         2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + 3^7 + O(3^9)
@@ -100,7 +101,7 @@ def padic_lseries(self, p, normalize=True):
         sage: P = L.series(5)
         sage: alpha = L.alpha(9); alpha
         1 + 2*3 + 3^2 + 2*3^5 + 2*3^7 + 3^8 + O(3^9)
-        sage: r = e.Lseries().L_ratio(); r
+        sage: r = e.lseries().L_ratio(); r
         1/3
         sage: (1 - alpha^(-1))^2 * r
         3 + 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + O(3^9)
@@ -580,6 +581,124 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
 
 
 
+def padic_height_via_multiply(self, p, prec=20, check_hypotheses=True):
+    r"""
+    Computes the cyclotomic p-adic height.
+
+    The equation of the curve must be minimal at $p$.
+
+    INPUT:
+        p -- prime >= 5 for which the curve has good ordinary reduction
+        prec -- integer >= 2, desired precision of result
+        check_hypotheses -- boolean, whether to check that this is a
+             curve for which the p-adic height makes sense
+
+    OUTPUT:
+        A function that accepts two parameters:
+          * a Q-rational point on the curve whose height should be computed
+          * optional boolean flag "check": if False, it skips some
+            input checking,
+        and returns the p-adic height of that point to the desired
+        precision.
+
+    AUTHORS:
+        -- David Harvey (2008-01): based on the padic_height() function,
+        using the algorithm of ``Computing p-adic heights via point
+        multiplication''
+
+    EXAMPLES:
+        sage: E = EllipticCurve("37a")
+        sage: P = E.gens()[0]
+        sage: h = E.padic_height_via_multiply(5, 10)
+        sage: h(P)
+        4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + O(5^10)
+
+    An anomalous case:
+        sage: h = E.padic_height_via_multiply(53, 10)
+        sage: h(P)
+        27*53^-1 + 22 + 32*53 + 5*53^2 + 42*53^3 + 20*53^4 + 43*53^5 + 30*53^6 + 17*53^7 + 22*53^8 + 35*53^9 + O(53^10)
+
+    Boundary case:
+        sage: E.padic_height_via_multiply(5, 3)(P)
+        4*5 + 3*5^2 + O(5^3)
+
+    Check that answers agree over a range of precisions:
+        sage: max_prec = 30    # make sure we get past p^2    # long time
+        sage: full = E.padic_height(5, max_prec)(P)           # long time
+        sage: for prec in range(2, max_prec):                 # long time
+        ...       assert E.padic_height_via_multiply(5, prec)(P) == full   # long time
+
+    """
+    if check_hypotheses:
+        if not p.is_prime():
+            raise ValueError, "p = (%s) must be prime"%p
+        if p == 2:
+            raise ValueError, "p must be odd"   # todo
+        if self.conductor() % p == 0:
+            raise ArithmeticError, "must have good reduction at p"
+        if self.ap(p) % p == 0:
+            raise ArithmeticError, "must be ordinary at p"
+
+    prec = int(prec)
+    if prec < 1:
+        raise ValueError, "prec (=%s) must be at least 1" % prec
+
+    # For notation and definitions, see ``Computing p-adic heights via point
+    # multiplication'' (David Harvey, still in draft form)
+
+    n1 = self.change_ring(rings.GF(p)).cardinality()
+    n2 = arith.LCM(self.tamagawa_numbers())
+    n = arith.LCM(n1, n2)
+    m = int(n / n2)
+
+    lamb = int(math.floor(math.sqrt(prec)))
+
+    adjusted_prec = prec + 2 * arith.valuation(n, p)   # this is M'
+    R = rings.Integers(p ** (adjusted_prec + 2*lamb))
+
+    sigma = self.padic_sigma_truncated(p, N=adjusted_prec, lamb=lamb)
+
+    # K is the field for the final result
+    K = Qp(p, prec=adjusted_prec-1)
+    E = self
+
+    def height(P, check=True):
+        if P.is_finite_order():
+            return K(0)
+
+        if check:
+            assert P.curve() == E, "the point P must lie on the curve " \
+                   "from which the height function was created"
+
+        Q = n2 * P
+        alpha, beta, d = _multiply_point(E, R, Q, m * p**lamb)
+
+        assert beta.lift() % p != 0, "beta should be a unit!"
+        assert d.lift() % p == 0, "d should not be a unit!"
+
+        t = -d * alpha / beta
+
+        total = R(1)
+        t_power = t
+        for k in range(2, sigma.prec()):
+            total = total + t_power * sigma[k].lift()
+            t_power = t_power * t
+        total = (-alpha / beta) * total
+
+        L = Qp(p, prec=adjusted_prec + 2*lamb)
+        total = L(total.lift(), adjusted_prec + 2*lamb)
+        answer = total.log() * 2 / (n * p**lamb)**2
+
+        if check:
+            assert answer.precision_absolute() >= prec, "we should have got an " \
+                   "answer with precision at least prec, but we didn't."
+        return K(answer)
+
+
+    # (man... I love python's local function definitions...)
+    return height
+
+
 def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     r"""
     Computes the p-adic sigma function with respect to the standard
@@ -632,7 +751,7 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
 
     EXAMPLES:
         sage: EllipticCurve([-1, 1/4]).padic_sigma(5, 10)
-        O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + O(5^7)*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + O(5^5)*t^6 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + O(5^3)*t^8 + (1 + 2*5 + O(5^2))*t^9 + O(5^1)*t^10 + O(t^11)
+        O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + O(5^7)*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + O(5^5)*t^6 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + O(5^3)*t^8 + (1 + 2*5 + O(5^2))*t^9 + O(5)*t^10 + O(t^11)
 
       Run it with a consistency check:
         sage: EllipticCurve("37a").padic_sigma(5, 10, check=True)
@@ -656,9 +775,9 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
         sage: g = EllipticCurve([-1*(2**4), 3*(2**6)]).padic_sigma(5, 10)
         sage: t = f.parent().gen()
         sage: f(2*t)/2
-        (1 + O(5^10))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + O(5^6))*t^5 + (4 + 5 + 3*5^3 + O(5^4))*t^7 + (4 + 2*5 + O(5^2))*t^9 + O(5^1)*t^10 + O(t^11)
+        (1 + O(5^10))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + O(5^6))*t^5 + (4 + 5 + 3*5^3 + O(5^4))*t^7 + (4 + 2*5 + O(5^2))*t^9 + O(5)*t^10 + O(t^11)
         sage: g
-        O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + O(5^7)*t^4 + (3 + 3*5^2 + 5^4 + 2*5^5 + O(5^6))*t^5 + O(5^5)*t^6 + (4 + 5 + 3*5^3 + O(5^4))*t^7 + O(5^3)*t^8 + (4 + 2*5 + O(5^2))*t^9 + O(5^1)*t^10 + O(t^11)
+        O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + O(5^7)*t^4 + (3 + 3*5^2 + 5^4 + 2*5^5 + O(5^6))*t^5 + O(5^5)*t^6 + (4 + 5 + 3*5^3 + O(5^4))*t^7 + O(5^3)*t^8 + (4 + 2*5 + O(5^2))*t^9 + O(5)*t^10 + O(t^11)
         sage: f(2*t)/2 -g
         O(t^11)
 
@@ -779,6 +898,156 @@ def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
     return sigma
 
 
+
+
+def padic_sigma_truncated(self, p, N=20, lamb=0, E2=None, check_hypotheses=True):
+    r"""
+    Computes the p-adic sigma function with respect to the standard
+    invariant differential $dx/(2y + a_1 x + a_3)$, as defined by
+    Mazur and Tate, as a power series in the usual uniformiser $t$ at the
+    origin.
+
+    The equation of the curve must be minimal at $p$.
+
+    This function differs from padic_sigma() in the precision profile of
+    the returned power series; see OUTPUT below.
+
+    INPUT:
+        p -- prime >= 5 for which the curve has good ordinary reduction
+        N -- integer >= 2, indicates precision of result; see OUTPUT
+             section for description
+        lamb -- integer >= 0, see OUTPUT section for description
+        E2 -- precomputed value of E2. If not supplied, this function will
+             call padic_E2 to compute it. The value supplied must be
+             correct mod $p^{N-2}$.
+        check_hypotheses -- boolean, whether to check that this is a
+             curve for which the p-adic sigma function makes sense
+
+    OUTPUT:
+        A power series $t + \cdots$ with coefficients in $\Z_p$.
+
+        The coefficient of $t^j$ for $j \geq 1$ will be correct to
+        precision $O(p^{N - 2 + (3 - j)(lamb + 1)})$.
+
+    ALGORITHM:
+       Described in ``Efficient Computation of p-adic Heights''
+       (David Harvey, to appear in LMS JCM), which is basically an optimised
+       version of the algorithm from ``p-adic Heights and Log Convergence''
+       (Mazur, Stein, Tate), and ``Computing p-adic heights via point
+       multiplication'' (David Harvey, still draft form).
+
+       Running time is soft-$O(N^2 \lambda^{-1} \log p)$, plus whatever time is
+       necessary to compute $E_2$.
+
+    AUTHOR:
+        -- David Harvey (2008-01): wrote based on previous padic_sigma function
+
+    EXAMPLES:
+        sage: E = EllipticCurve([-1, 1/4])
+        sage: E.padic_sigma_truncated(5, 10)
+        O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + O(5^7)*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + O(5^5)*t^6 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + O(5^3)*t^8 + (1 + 2*5 + O(5^2))*t^9 + O(5)*t^10 + O(t^11)
+
+    Note the precision of the $t^3$ coefficient depends only on $N$, not on lamb:
+        sage: E.padic_sigma_truncated(5, 10, lamb=2)
+        O(5^17) + (1 + O(5^14))*t + O(5^11)*t^2 + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + O(5^5)*t^4 + (2 + O(5^2))*t^5 + O(t^6)
+
+    Compare against plain padic_sigma() function over a dense range of N and lamb
+        sage: E = EllipticCurve([1, 2, 3, 4, 7])                            # long time
+        sage: E2 = E.padic_E2(5, 50)                                        # long time
+        sage: for N in range(2, 10):                                        # long time
+        ...      for lamb in range(10):                                     # long time
+        ...         correct = E.padic_sigma(5, N + 3*lamb, E2=E2)           # long time
+        ...         compare = E.padic_sigma_truncated(5, N=N, lamb=lamb, E2=E2)    # long time
+        ...         assert compare == correct                               # long time
+
+    """
+    if check_hypotheses:
+        p = __check_padic_hypotheses(self, p)
+
+    # todo: implement the p == 3 case
+    # NOTE: If we ever implement p == 3, it's necessary to check over
+    # the precision loss estimates (below) vey carefully; I think it
+    # may become necessary to compute E2 to an even higher precision.
+    if p < 5:
+        raise NotImplementedError, "p (=%s) must be at least 5" % p
+
+    N = int(N)
+    lamb = int(lamb)
+
+    if lamb < 0:
+        raise ValueError, "lamb (=%s) must be at least 0" % lamb
+
+    # a few special cases for small N
+    if N <= 1:
+        raise ValueError, "N (=%s) must be at least 2" % N
+
+    if N == 2:
+        # return t + a_1/2 t^2 + O(t^3)
+        K = Qp(p, 3*(lamb+1))
+        return PowerSeriesRing(K, "t")([K(0), K(1, 2*(lamb+1)),
+                                        K(self.a1()/2, lamb+1)], prec=3)
+
+    if self.discriminant().valuation(p) != 0:
+        raise NotImplementedError, "equation of curve must be minimal at p"
+
+    if E2 is None:
+        E2 = self.padic_E2(p, N-2, check_hypotheses=False)
+    elif E2.precision_absolute() < N-2:
+        raise ValueError, "supplied E2 has insufficient precision"
+
+    # The main part of the algorithm is exactly the same as
+    # for padic_sigma(), but we truncate all the series earlier.
+    # Want the answer O(t^(trunc+1)) instead of O(t^(N+1)) like in padic_sigma().
+    trunc = (Integer(N-2) / (lamb + 1)).ceil() + 2
+
+    QQt = LaurentSeriesRing(RationalField(), "x")
+
+    R = rings.Integers(p**(N-2))
+    X = self.change_ring(R)
+    c = (X.a1()**2 + 4*X.a2() - R(E2)) / 12
+
+    f = X.formal_group().differential(trunc+2)   # f = 1 + ... + O(t^{trunc+2})
+    x = X.formal_group().x(trunc)                # x = t^{-2} + ... + O(t^trunc)
+
+    Rt = x.parent()
+
+    A  = (x + c) * f
+    # do integral over QQ, to avoid divisions by p
+    A = Rt(QQt(A).integral())
+    A = (-X.a1()/2 - A) * f
+
+    # Convert to a power series and remove the -1/x term.
+    # Also we artifically bump up the accuracy from N-2 to N-1+lamb digits;
+    # the constant term needs to be known to N-1+lamb digits, so we compute
+    # it directly
+    assert A.valuation() == -1 and A[-1] == 1
+    A = A - A.parent().gen() ** (-1)
+    A = A.power_series().list()
+    R = rings.Integers(p**(N-1+lamb))
+    A = [R(u) for u in A]
+    A[0] = self.change_ring(R).a1()/2     # fix constant term
+    A = PowerSeriesRing(R, "x")(A, len(A))
+
+    theta = _brent(A, p, trunc)
+    sigma = theta * theta.parent().gen()
+
+    # Convert the answer to power series over p-adics; drop the precision
+    # of the $t^j$ coefficient to $p^{N - 2 + (3 - j)(lamb + 1)})$.
+    K = rings.pAdicField(p, N - 2 + 3*(lamb+1))
+
+    sigma = sigma.padded_list(trunc+1)
+
+    sigma[0] = K(0, N - 2 + 3*(lamb+1))
+    sigma[1] = K(1, N - 2 + 2*(lamb+1))
+    for j in range(2, trunc+1):
+        sigma[j] = K(sigma[j].lift(), N - 2 + (3 - j)*(lamb+1))
+
+    S = rings.PowerSeriesRing(K, "t", trunc + 1)
+    sigma = S(sigma, trunc+1)
+
+    return sigma
+
+
 def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="auto"):
     r"""
     Returns the value of the $p$-adic modular form $E2$ for $(E, \omega)$
@@ -852,7 +1121,7 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
     with the newer p-adics we get relative precision 0 and
     absolute precision 1.
         sage: EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
-        O(5^1)
+        O(5)
 
     Check it works for different models of the same curve (37a),
     even when the discriminant changes by a power of p (note that
@@ -926,9 +1195,8 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
               + O(p**prec)
 
     # Take into account the coordinate change.
-    X = self.weierstrass_model()
+    X = self.minimal_model().short_weierstrass_model()
     fudge_factor = (X.discriminant() / self.discriminant()).nth_root(6)
-
     # todo: here I should be able to write:
     #  return E2_of_X / fudge_factor
     # However, there is a bug in SAGE (#51 on trac) which makes this
@@ -976,17 +1244,13 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
     # then the differentials differ by u. There's a sign ambiguity here,
     # but it doesn't matter because E2 changes by u^2 :-)
 
-    # todo: the weierstrass_model() function is overkill here, because
-    # it finds a *minimal* model. I imagine it has to do some factoring
-    # to do this. We only need a model that's minimal at p.
-
     # todo: In fact, there should be available a function that returns
     # exactly *which* coordinate change was used. If I had that I could
     # avoid the discriminant circus at the end.
 
     # todo: The following strategy won't work at all for p = 2, 3.
 
-    X = self.weierstrass_model()
+    X=self.minimal_model().short_weierstrass_model()
 
     assert X.discriminant().valuation(p) == 0, "Something's gone wrong. " \
            "The discriminant of the weierstrass model should be a unit " \
@@ -1016,7 +1280,7 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
         p_to_prec = p**prec
         R = rings.PolynomialRing(Integers(), "x")
         Q = R([X.a6() % p_to_prec, X.a4() % p_to_prec, 0, 1])
-        frob_p = sage.schemes.hyperelliptic_curves.frobenius.frobenius(p, prec, Q)
+        frob_p = sage.schemes.hyperelliptic_curves.hypellfrob.hypellfrob(p, prec, Q)
 
         # let's force a trace-check since this algorithm is fairly new
         # and we don't want to get caught with our pants down...

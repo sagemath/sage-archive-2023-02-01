@@ -181,7 +181,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             raise ArithmeticError, "q must be a prime power"
 
         if F[0][1] > 1:
-            from finite_field import GF
+            from finite_field import FiniteField as GF
             base_ring = GF(F[0][0])
         else:
             raise ValueError, "The size of the finite field must not be prime."
@@ -207,7 +207,7 @@ class FiniteField_ext_pari(FiniteField_generic):
                 #     self.__pari_modulus = pari.pari.finitefield_init(self.__char, self.__degree, self.variable_name())
                 # So instead we iterate through random polys until we find an irreducible one.
 
-                from finite_field import GF
+                from finite_field import FiniteField as GF
                 R = polynomial_ring.PolynomialRing(GF(self.__char), 'x')
                 while True:
                     modulus = R.random_element(self.__degree)
@@ -226,14 +226,25 @@ class FiniteField_ext_pari(FiniteField_generic):
         self._one_element = self(1)
 
     def __cmp__(self, other):
+        """
+        EXAMPLE:
+            sage: k = GF(7^20,'a')
+            sage: k == loads(dumps(k))
+            True
+        """
         if not isinstance(other, FiniteField_ext_pari):
             return cmp(type(self), type(other))
         return cmp((self.__order, self.variable_name()), (other.__order, other.variable_name()))
 
     def _pari_one(self):
-        """
-        The PARI object Mod(1,p).  This is implementation specific
+        r"""
+        The \PARI object Mod(1,p).  This is implementation specific
         and should be ignored by users.
+
+        EXAMPLE:
+            sage: k = GF(7^20,'a')
+            sage: k._pari_one()
+            Mod(1, 7)
         """
         return self.__pari_one
 
@@ -265,17 +276,16 @@ class FiniteField_ext_pari(FiniteField_generic):
         """
         return self.__pari_modulus
 
-    def is_prime_field(self):
-        return False
-
-    def is_prime(self):
-        return False
-
     def gen(self, n=0):
         """
         Return chosen generator of the finite field.  This generator
-        is a root of the defining polynomial of the finite field, and
-        is guaranteed to be a generator for the multiplicative group.
+        is a root of the defining polynomial of the finite field.
+
+        WARNING: The generator is not guaranteed to be a generator for
+            the multiplicative group.  To obtain the latter, use
+            multiplicative_generator().  Both gen() and
+            multiplicative_generator() are random: the elements
+            returned will in general differ between runs.
 
         INPUT:
             nothing
@@ -293,6 +303,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             alpha
             sage: a^4
             alpha^3 + 1
+
         """
         return self.__gen
 
@@ -310,6 +321,18 @@ class FiniteField_ext_pari(FiniteField_generic):
         return self.__char
 
     def modulus(self):
+        r"""
+        Return the minimal polynomial of the generator of self in
+        \code{self.polynomial_ring('x')}.
+
+        EXAMPLES:
+            sage: F.<a> = GF(7^20, 'a')
+            sage: f = F.modulus(); f
+            x^20 + x^12 + 6*x^11 + 2*x^10 + 5*x^9 + 2*x^8 + 3*x^7 + x^6 + 3*x^5 + 3*x^3 + x + 3
+
+            sage: f(a)
+            0
+        """
         return self.__modulus
 
     def degree(self):
@@ -346,26 +369,31 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k(a + 2)
             a + 2
 
-        Constant polynomials coerce into finite fields:
+        Univariate polynomials coerce into finite fields by evaluating
+        the polynomial at the field's generator:
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: R = QQ['x']
+            sage: R.<x> = QQ[]
             sage: k, a = FiniteField_ext_pari(5^2, 'a').objgen()
             sage: k(R(2/3))
             4
-            sage: R = k['x']
-            sage: k(R(3))
-            3
+	    sage: k(x^2)
+	    a + 3
+            sage: R.<x> = GF(5)[]
+            sage: k(x^3-2*x+1)
+            2*a + 4
 
-        Nonconstant polynomials do not coerce:
             sage: x = polygen(QQ)
-            sage: k(x)
-            Traceback (most recent call last):
-            ...
-            TypeError: no coercion defined
-            sage: k(R(a))
+            sage: k(x^25)
             a
 
-        Multivariate polynomials also coerce:
+            sage: Q, q = FiniteField_ext_pari(5^7, 'q').objgen()
+            sage: L = GF(5)
+            sage: LL.<xx> = L[]
+            sage: Q(xx^2 + 2*xx + 4)
+            q^2 + 2*q + 4
+
+
+        Multivariate polynomials only coerce if constant:
             sage: R = k['x,y,z']; R
             Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 5^2
             sage: k(R(2))
@@ -433,9 +461,9 @@ class FiniteField_ext_pari(FiniteField_generic):
                 raise TypeError, "no coercion defined"
 
         elif sage.interfaces.gap.is_GapElement(x):
-            from finite_field import gap_to_sage
+            from sage.interfaces.gap import gfq_gap_to_sage
             try:
-                return gap_to_sage(x, self)
+                return gfq_gap_to_sage(x, self)
             except (ValueError, IndexError, TypeError):
                 raise TypeError, "no coercion defined"
 
@@ -444,11 +472,17 @@ class FiniteField_ext_pari(FiniteField_generic):
 
             return finite_field_element.FiniteField_ext_pariElement(self, x)
 
-        elif isinstance(x, (multi_polynomial_element.MPolynomial, polynomial_element.Polynomial)):
+        elif isinstance(x, multi_polynomial_element.MPolynomial):
             if x.is_constant():
                 return self(x.constant_coefficient())
             else:
                 raise TypeError, "no coercion defined"
+
+        elif isinstance(x, polynomial_element.Polynomial):
+            if x.is_constant():
+                return self(x.constant_coefficient())
+            else:
+                return x(self.gen())
 
         elif isinstance(x, str):
             x = x.replace(self.variable_name(),'a')
@@ -474,12 +508,12 @@ class FiniteField_ext_pari(FiniteField_generic):
             raise TypeError, "%s\nno coercion defined"%msg
 
     def _coerce_impl(self, x):
-        """
-        Canonical coercion to self.
+        r"""
+        Canonical coercion to \code{self}.
 
         EXAMPLES:
             sage: from sage.rings.finite_field_ext_pari import FiniteField_ext_pari
-            sage: FiniteField_ext_pari(4,'a')._coerce_(GF(2)(1))
+            sage: FiniteField_ext_pari(4,'a')._coerce_(GF(2)(1)) # indirect doctest
             1
             sage: k = FiniteField_ext_pari(4,'a')
             sage: k._coerce_(k.0)
@@ -569,7 +603,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         try:
             return self.__polynomial[name]
         except (AttributeError, KeyError):
-            from finite_field import GF
+            from finite_field import FiniteField as GF
             R = polynomial_ring.PolynomialRing(GF(self.characteristic()), name)
             f = R(self._pari_modulus())
             try:

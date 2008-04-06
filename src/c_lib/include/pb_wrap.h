@@ -1,6 +1,7 @@
 #include "polybori.h"
 #include "groebner_alg.h"
 #include "nf.h"
+#include "interpolate.h"
 #include "ccobject.h"
 
 // M4RI
@@ -33,6 +34,40 @@ static std::vector<BoolePolynomial> someNextDegreeSpolys(GroebnerStrategy& strat
 
     while((!(strat.pairs.pairSetEmpty())) && \
                 (strat.pairs.queue.top().sugar<=deg) && (res.size()<n)){
+        assert(strat.pairs.queue.top().sugar==deg);
+        res.push_back(strat.nextSpoly());
+        strat.pairs.cleanTopByChainCriterion();
+    }
+    return res;
+}
+
+static std::vector<Polynomial> nextDegreeSpolys(GroebnerStrategy& strat){
+    std::vector<Polynomial> res;
+    assert(!(strat.pairs.pairSetEmpty()));
+    strat.pairs.cleanTopByChainCriterion();
+    deg_type deg=strat.pairs.queue.top().sugar;
+
+    while((!(strat.pairs.pairSetEmpty())) &&
+            (strat.pairs.queue.top().sugar<=deg)){
+
+        assert(strat.pairs.queue.top().sugar==deg);
+        res.push_back(strat.nextSpoly());
+        strat.pairs.cleanTopByChainCriterion();
+    }
+    return res;
+}
+
+static std::vector<Polynomial> small_next_degree_spolys(GroebnerStrategy& strat,
+        double f, int n){
+    std::vector<Polynomial> res;
+    assert(!(strat.pairs.pairSetEmpty()));
+    strat.pairs.cleanTopByChainCriterion();
+    deg_type deg=strat.pairs.queue.top().sugar;
+    wlen_type wlen=strat.pairs.queue.top().wlen;
+    while((!(strat.pairs.pairSetEmpty())) &&
+            (strat.pairs.queue.top().sugar<=deg) &&
+            (strat.pairs.queue.top().wlen<=wlen*f+2)&& (res.size()<n)){
+
         assert(strat.pairs.queue.top().sugar==deg);
         res.push_back(strat.nextSpoly());
         strat.pairs.cleanTopByChainCriterion();

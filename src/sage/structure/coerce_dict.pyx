@@ -229,7 +229,7 @@ cdef class TripleDict:
         return self.get(k1, k2, k3)
 
     cdef get(self, k1, k2, k3):
-        cdef Py_ssize_t h = (<Py_ssize_t>k1 + 13*<Py_ssize_t>k2 + 503*<Py_ssize_t>k3)
+        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 + 503*<Py_ssize_t><void *>k3)
         if h < 0: h = -h
         cdef Py_ssize_t i
         bucket = <object>PyList_GET_ITEM(self.buckets, h % PyList_GET_SIZE(self.buckets))
@@ -257,7 +257,7 @@ cdef class TripleDict:
         self.set(k1, k2, k3, value)
 
     cdef set(self, k1, k2, k3, value):
-        cdef Py_ssize_t h = (<Py_ssize_t>k1 + 13*<Py_ssize_t>k2 + 503*<Py_ssize_t>k3)
+        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 + 503*<Py_ssize_t><void *>k3)
         if h < 0: h = -h
         cdef Py_ssize_t i
         bucket = <object>PyList_GET_ITEM(self.buckets, h % PyList_GET_SIZE(self.buckets))
@@ -284,7 +284,7 @@ cdef class TripleDict:
             k1, k2, k3 = k
         except (TypeError,ValueError):
             raise KeyError, k
-        cdef Py_ssize_t h = (<Py_ssize_t>k1 + 13*<Py_ssize_t>k2 + 503*<Py_ssize_t>k3)
+        cdef Py_ssize_t h = (<Py_ssize_t><void *>k1 + 13*<Py_ssize_t><void *>k2 + 503*<Py_ssize_t><void *>k3)
         if h < 0: h = -h
         cdef Py_ssize_t i
         bucket = <object>PyList_GET_ITEM(self.buckets, h % PyList_GET_SIZE(self.buckets))

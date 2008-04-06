@@ -39,7 +39,6 @@ if sys.version_info[:2] < (2, 5):
 
 ###################################################################
 
-from random              import *
 from time                import sleep
 
 from sage.rings.memory import pmem_malloc
@@ -107,7 +106,7 @@ from sage.logic.all      import *
 
 from sage.numerical.all  import *
 
-from copy import copy
+from copy import copy, deepcopy
 
 
 ###########################################################
@@ -167,12 +166,16 @@ copyright = license
 
 def save_session(state, name='sage_session', verbose=False):
     r"""
-    Save all variables that can be saved wto the given filename.  The
+    Save all variables that can be saved to the given filename.  The
     variables will be saved to a dictionary, which can be loaded using
     load(name) or load_session.
 
     From the interpreter use \code{save_session(name)} (i.e., you may
     ignore that state argument).
+
+    EXAMPLES:
+        sage: save_session('test')   # not tested
+        sage: load_session('test')   # not tested
     """
     import cPickle
     S = set(show_identifiers(state))
@@ -318,4 +321,9 @@ from sage.ext.interactive_constructors_c import inject_on, inject_off
 
 #from catalogue.all import new
 
+# Set a new random number seed as the very last thing
+# (so that printing initial_seed() and using that seed
+# in set_random_seed() will result in the same sequence you got at
+# Sage startup).
 
+set_random_seed()

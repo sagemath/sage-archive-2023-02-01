@@ -27,6 +27,10 @@ cdef extern from "factory.h":
 
     cdef int SW_USE_CHINREM_GCD
     cdef int SW_USE_EZGCD
+    cdef int SW_USE_NTL
+    cdef int SW_USE_NTL_GCD_0
+    cdef int SW_USE_NTL_GCD_P
+    cdef int SW_USE_NTL_SORT
 
 cdef extern from "libsingular.h":
 
@@ -34,11 +38,7 @@ cdef extern from "libsingular.h":
     # OPTIONS
     #
 
-    # We are working around a bug in Cython here. If you want to write
-    # to an external int Cython creates a local Python it to write
-    # to. We can however happyly work with pointers.
-
-    cdef int *singular_options "(&test)"
+    cdef int singular_options "test"
 
     # actual options
     cdef int OPT_PROT
@@ -108,6 +108,7 @@ cdef extern from "libsingular.h":
         short N # number of variables
         short P # number of parameters
         int ch # charactersitic (0:QQ, p:GF(p),-p:GF(q), 1:NF)
+        int pCompIndex # index of components
 
     # available ring orders
 
@@ -264,12 +265,17 @@ cdef extern from "libsingular.h":
 
     void rChangeCurrRing(ring *r)
 
+    # return True if ring has components
 
+    int rRing_has_Comp(ring *r)
 
 
     # return new empty monomial
 
     poly *p_Init(ring *r)
+
+    # Returns new monomial with exp vector copied from Lm(p)
+    poly *p_LmInit(poly *p, ring *r)
 
     # return constant polynomial from int
 
@@ -391,6 +397,9 @@ cdef extern from "libsingular.h":
 
     poly *pNext(poly *p)
 
+    # Returns the number of monomials in the poly
+    int pLength(poly *a)
+
     # compare l and r
 
     int p_Cmp(poly *l, poly *r, ring *r)
@@ -474,6 +483,9 @@ cdef extern from "libsingular.h":
 
     void n_Delete(number **n, ring *r)
 
+    # Copy this number
+    number *n_Copy(number *n, ring* r)
+
     # return int representation of number n
 
     int nInt(number *n)
@@ -489,6 +501,10 @@ cdef extern from "libsingular.h":
     # TRUE if a == 0
 
     int n_IsZero(number *a, ring *r)
+
+    # TRUE if a == 1
+
+    int n_IsOne(number *a, ring *r)
 
     # general number subtraction
 
@@ -576,6 +592,10 @@ cdef extern from "libsingular.h":
     # loop through algebraic number
 
     napoly *napIter(napoly *)
+
+    # normalize a number
+
+    void naNormalize(number *)
 
 
 

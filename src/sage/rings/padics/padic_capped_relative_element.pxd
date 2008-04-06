@@ -1,5 +1,4 @@
 include "../../ext/cdefs.pxi"
-include "../../libs/pari/decl.pxi"
 
 cimport sage.rings.padics.padic_base_generic_element
 from sage.rings.padics.padic_base_generic_element cimport pAdicBaseGenericElement
@@ -16,7 +15,7 @@ from sage.rings.rational cimport Rational
 cimport sage.rings.padics.pow_computer
 from sage.rings.padics.pow_computer cimport PowComputer_class
 
-import sage.libs.pari.gen
+#import sage.libs.pari.gen
 cimport sage.libs.pari.gen
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.gen cimport PariInstance
@@ -26,25 +25,27 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef long ordp
     cdef long relprec
     cdef bint _normalized
-    cdef void set_exact_zero(pAdicCappedRelativeElement self)
-    cdef void set_inexact_zero(pAdicCappedRelativeElement self, long absprec)
-    cdef void set_zero(pAdicCappedRelativeElement self, absprec)
-    cdef void set_precs(pAdicCappedRelativeElement self, long relprec)
-    cdef void set(pAdicCappedRelativeElement self, long ordp, Integer unit, long relprec)
+
+    cdef int _set_zero(pAdicCappedRelativeElement self, absprec) except -1
+    cdef int _set_prec(pAdicCappedRelativeElement self, long relprec) except -1
+    cdef int _set(pAdicCappedRelativeElement self, long ordp, mpz_t unit, long relprec) except -1
+    cdef int _set_from_CR(pAdicCappedRelativeElement self, pAdicCappedRelativeElement other) except -1
+
     cdef pAdicCappedRelativeElement _new_c(pAdicCappedRelativeElement self)
-    cdef void _normalize(pAdicCappedRelativeElement self)
-    cdef int _set_from_Integer( pAdicCappedRelativeElement self, parent, mpz_t x, absprec, relprec) except -1
-    cdef int _set_from_Rational( pAdicCappedRelativeElement self, parent, Rational x, absprec, relprec) except -1
-    cdef void set_from_Integers(pAdicCappedRelativeElement self, Integer ordp, Integer unit, Integer relprec)
+    cdef int _normalize(pAdicCappedRelativeElement self) except -1
+
+    cdef int _set_from_Integer( pAdicCappedRelativeElement self, Integer x, absprec, relprec) except -1
+    cdef int _set_from_Rational( pAdicCappedRelativeElement self, Rational x, absprec, relprec) except -1
+
     cdef ModuleElement _neg_c_impl(self)
     cdef RingElement _floordiv_c_impl(self, RingElement right)
     cdef pAdicCappedRelativeElement _lshift_c(pAdicCappedRelativeElement self, long shift)
     cdef pAdicCappedRelativeElement _rshift_c(pAdicCappedRelativeElement self, long shift)
     cdef pAdicCappedRelativeElement lift_to_precision_c(pAdicCappedRelativeElement self, long absprec)
     cdef pari_gen _to_gen(pAdicCappedRelativeElement self)
+    cdef lift_c(self)
     cdef teichmuller_list(pAdicCappedRelativeElement self)
     cdef val_unit_c(self)
     cdef pAdicCappedRelativeElement unit_part_c(self)
-    cdef valuation_c(self)
-    cdef lift_c(self)
+    cdef long valuation_c(self)
 

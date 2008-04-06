@@ -33,8 +33,8 @@ def WeightedIntegerVectors(n, weight):
         [8, 0, 0]
         sage: WeightedIntegerVectors(8, [1,1,2]).count()
         25
-        sage: WeightedIntegerVectors(8, [1,1,2]).random() #random
-        [2, 0, 3]
+        sage: WeightedIntegerVectors(8, [1,1,2]).random()
+        [1, 1, 3]
     """
     return WeightedIntegerVectors_nweight(n, weight)
 
@@ -136,9 +136,9 @@ class WeightedIntegerVectors_nweight(CombinatorialClass):
                     return [] #bad branch...
 
             for d in range(int(n)/int(w), -1, -1):
-                result += map( lambda x: x + [d], recfun(n-d*w, l) )
+                result += [ x + [d] for x in recfun(n-d*w, l) ]
 
             return result
 
-        return map( lambda x: Permutation_class(perm)._left_to_right_multiply_on_right(Permutation_class(x)), recfun(self.n,l) )
+        return [perm._left_to_right_multiply_on_right(Permutation_class(x)) for x in recfun(self.n,l)]
 

@@ -1134,7 +1134,17 @@ class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
     def iterator(self):
         """
         TESTS:
-
+            sage: R2p5 = SetPartitionsRk(2.5)
+            sage: list(R2p5.iterator()) #random due to sets
+            [{{-2}, {-1}, {3, -3}, {2}, {1}},
+             {{-2}, {3, -3}, {2}, {1, -1}},
+             {{-1}, {3, -3}, {2}, {1, -2}},
+             {{-2}, {2, -1}, {3, -3}, {1}},
+             {{-1}, {2, -2}, {3, -3}, {1}},
+             {{2, -2}, {3, -3}, {1, -1}},
+             {{2, -1}, {3, -3}, {1, -2}}]
+            sage: len(_)
+            7
         """
         positives = Set(range(1, self.k+1))
         negatives = Set( [ -i for i in positives ] )
@@ -1272,7 +1282,15 @@ class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
     def iterator(self):
         """
         TESTS:
-
+            sage: list(SetPartitionsPRk(2.5).iterator())
+            [{{-2}, {-1}, {3, -3}, {2}, {1}},
+             {{-2}, {3, -3}, {2}, {1, -1}},
+             {{-1}, {3, -3}, {2}, {1, -2}},
+             {{-2}, {2, -1}, {3, -3}, {1}},
+             {{-1}, {2, -2}, {3, -3}, {1}},
+             {{2, -2}, {3, -3}, {1, -1}}]
+            sage: len(_)
+            6
         """
         positives = Set(range(1, self.k+1))
         negatives = Set( [ -i for i in positives ] )
@@ -1295,75 +1313,143 @@ class PartitionAlgebra_generic(CombinatorialAlgebra):
     def __init__(self, R, cclass, n, k, name=None, prefix=None):
         self.k = k
         self.n = n
-
         self._combinatorial_class = cclass
-
-        if name is None:
-            self._name = "Generic partition algebra with k = %s and n = %s and basis %s"%( self.k, self.n, cclass)
-        else:
-            self._name = name
-
+        self._name = "Generic partition algebra with k = %s and n = %s and basis %s"%( self.k, self.n, cclass) if name is None else name
         self._one = identity(ceil(self.k))
-
-        if prefix is None:
-            self._prefix = ""
-        else:
-            self._prefix = prefix
-
+        self._prefix = "" if prefix is None else prefix
         CombinatorialAlgebra.__init__(self, R)
 
     def _multiply_basis(self, left, right):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.partition_algebra import *
+            sage: s = PartitionAlgebra_sk(QQ, 3, 1)
+            sage: t12 = s(Set([Set([1,-2]),Set([2,-1]),Set([3,-3])]))
+            sage: t12^2 == s(1) #indirect doctest
+            True
+        """
         (sp, l) = set_partition_composition(left, right)
         return {sp: self.n**l}
+class PartitionAlgebraElement_generic(CombinatorialAlgebraElement):
+    pass
 
-
+class PartitionAlgebraElement_ak(PartitionAlgebraElement_generic):
+    pass
 class PartitionAlgebra_ak(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.partition_algebra import *
+            sage: p = PartitionAlgebra_ak(QQ, 3, 1)
+            sage: p == loads(dumps(p))
+            True
+        """
         if name is None:
             name = "Partition algebra A_%s(%s)"%(k, n)
         cclass = SetPartitionsAk(k)
+        self._element_class = PartitionAlgebraElement_ak
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="A")
 
+class PartitionAlgebraElement_bk(PartitionAlgebraElement_generic):
+    pass
 class PartitionAlgebra_bk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.partition_algebra import *
+            sage: p = PartitionAlgebra_bk(QQ, 3, 1)
+            sage: p == loads(dumps(p))
+            True
+        """
         if name is None:
             name = "Partition algebra B_%s(%s)"%(k, n)
         cclass = SetPartitionsBk(k)
+        self._element_class = PartitionAlgebraElement_bk
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="B")
 
+class PartitionAlgebraElement_sk(PartitionAlgebraElement_generic):
+    pass
 class PartitionAlgebra_sk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.partition_algebra import *
+            sage: p = PartitionAlgebra_sk(QQ, 3, 1)
+            sage: p == loads(dumps(p))
+            True
+        """
         if name is None:
             name = "Partition algebra S_%s(%s)"%(k, n)
         cclass = SetPartitionsSk(k)
+        self._element_class = PartitionAlgebraElement_sk
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="S")
 
+class PartitionAlgebraElement_pk(PartitionAlgebraElement_generic):
+    pass
 class PartitionAlgebra_pk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.partition_algebra import *
+            sage: p = PartitionAlgebra_pk(QQ, 3, 1)
+            sage: p == loads(dumps(p))
+            True
+        """
         if name is None:
             name = "Partition algebra P_%s(%s)"%(k, n)
         cclass = SetPartitionsPk(k)
+        self._element_class = PartitionAlgebraElement_pk
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="P")
 
+class PartitionAlgebraElement_tk(PartitionAlgebraElement_generic):
+    pass
 class PartitionAlgebra_tk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.partition_algebra import *
+            sage: p = PartitionAlgebra_tk(QQ, 3, 1)
+            sage: p == loads(dumps(p))
+            True
+        """
         if name is None:
             name = "Partition algebra T_%s(%s)"%(k, n)
         cclass = SetPartitionsTk(k)
+        self._element_class = PartitionAlgebraElement_tk
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="T")
 
+class PartitionAlgebraElement_rk(PartitionAlgebraElement_generic):
+    pass
 class PartitionAlgebra_rk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.partition_algebra import *
+            sage: p = PartitionAlgebra_rk(QQ, 3, 1)
+            sage: p == loads(dumps(p))
+            True
+        """
         if name is None:
             name = "Partition algebra R_%s(%s)"%(k, n)
         cclass = SetPartitionsRk(k)
+        self._element_class = PartitionAlgebraElement_rk
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="R")
 
+class PartitionAlgebraElement_prk(PartitionAlgebraElement_generic):
+    pass
 class PartitionAlgebra_prk(PartitionAlgebra_generic):
     def __init__(self, R, k, n, name=None):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.partition_algebra import *
+            sage: p = PartitionAlgebra_prk(QQ, 3, 1)
+            sage: p == loads(dumps(p))
+            True
+        """
         if name is None:
             name = "Partition algebra PR_%s(%s)"%(k, n)
         cclass = SetPartitionsPRk(k)
+        self._element_class = PartitionAlgebraElement_prk
         PartitionAlgebra_generic.__init__(self, R, cclass, n, k, name=name, prefix="PR")
 
 ##########################################################

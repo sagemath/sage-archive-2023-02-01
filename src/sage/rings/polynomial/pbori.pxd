@@ -9,12 +9,15 @@ from sage.structure.element cimport MonoidElement
 
 cdef class BooleanPolynomialRing(MPolynomialRing_generic):
     cdef PBRing _pbring
+    cdef Py_ssize_t* pbind
     cdef public _monom_monoid
+    cdef public object __interface
 
 cdef class BooleanPolynomial(MPolynomial):
     cdef PBPoly _pbpoly
 
 cdef class BooleSet:
+    cdef BooleanPolynomialRing _ring
     cdef PBSet _pbset
 
 cdef class CCuddNavigator:
@@ -25,6 +28,13 @@ cdef class DD:
 
 cdef class BooleanMonomial(MonoidElement):
     cdef PBMonom _pbmonom
+    cdef BooleanPolynomialRing _ring
+
+cdef class BooleanMonomialVariableIterator:
+    cdef object parent
+    cdef BooleanPolynomialRing _ring
+    cdef PBMonom obj
+    cdef PBMonomVarIter iter
 
 cdef class BooleanMonomialIterator:
     cdef PBMonom _obj
@@ -35,9 +45,10 @@ cdef class BooleanPolynomialIterator:
     cdef PBPolyIter _iter
 
 cdef class BooleSetIterator:
-    cdef PBSetIter _iter
-    cdef BooleSet _obj
+    cdef object _parent
     cdef BooleanPolynomialRing _ring
+    cdef PBSetIter _iter
+    cdef PBSet _obj
 
 cdef class GroebnerStrategy:
     cdef GBStrategy _strat
@@ -53,6 +64,7 @@ cdef class BooleanPolynomialVectorIterator:
     cdef PBPolyVector _obj
 
 cdef class VariableBlock_base:
+    cdef BooleanPolynomialRing _ring
     cdef int size
     cdef int start_index
     cdef int offset

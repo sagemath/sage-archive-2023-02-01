@@ -32,6 +32,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.categories.morphism cimport Morphism
 
+import number_field
 
 # TODO: this doesn't belong here, but robert thinks it would be nice
 # to have globally available....
@@ -55,14 +56,15 @@ def __make_NumberFieldElement_quadratic0(parent, a, b, denom):
 
 
 cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
+
     def __init__(self, parent, f):
         """
-        Construct a NumberFieldElement_quadratic object as an efficiently
-        represented member of an absolute quadratic field.
+        Construct a NumberFieldElement_quadratic object as an
+        efficiently represented member of an absolute quadratic field.
 
-        Elements are represented internally as triples (a, b, denom) of integers,
-        where gcd(a, b, denom) == 1 and denom > 0, representing the element
-        (a + b*sqrt(disc)) / denom.
+        Elements are represented internally as triples (a, b, denom)
+        of integers, where gcd(a, b, denom) == 1 and denom > 0,
+        representing the element (a + b*sqrt(disc)) / denom.
 
         TESTS:
             sage: from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
@@ -154,6 +156,17 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             else:
                 mpz_set_ui(self.denom, 1)
 
+    cdef _new(self):
+        """
+        Quickly creates a new initialized NumberFieldElement with the
+        same parent as self.
+        """
+        cdef NumberFieldElement_quadratic x
+        x = <NumberFieldElement_quadratic>PY_NEW_SAME_TYPE(self)
+        x._parent = self._parent
+        x.D = self.D
+        return x
+
     cdef number_field(self):
         return self._parent
 
@@ -178,7 +191,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_set(x.a, self.a)
         mpz_set(x.b, self.b)
         mpz_set(x.denom, self.denom)
-        x.D = self.D
         return x
 
 
@@ -211,6 +223,136 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_set(denom.value, self.denom)
         return __make_NumberFieldElement_quadratic0, (self._parent, a, b, denom)
 
+    def _lift_cyclotomic_element(self, new_parent):
+        """
+        Creates an element of the passed field from this field.  This
+        is specific to creating elements in a cyclotomic field from
+        elements in another cyclotomic field, in the case that
+        self.number_field()._n() divides new_parent()._n().  This
+        function aims to make this common coercion extremely fast!
+
+        More general coercion (i.e. of zeta6 into CyclotomicField(3))
+        is implemented in the _coerce_from_other_cyclotomic_field
+        method of a CyclotomicField.
+
+        EXAMPLES:
+            sage: C.<zeta4>=CyclotomicField(4)
+            sage: CyclotomicField(20)(zeta4+1)  # The function _lift_cyclotomic_element does the heavy lifting in the background
+            zeta20^5 + 1
+            sage: (zeta4+1)._lift_cyclotomic_element(CyclotomicField(40))  # There is rarely a purpose to call this function directly
+            zeta40^10 + 1
+
+            sage: cf3 = CyclotomicField(3) ; z3 = cf3.0
+            sage: cf6 = CyclotomicField(6) ; z6 = cf6.0
+            sage: z6._lift_cyclotomic_element(cf3)
+            Traceback (most recent call last):
+            ...
+            TypeError: The zeta_order of the new field must be a multiple of the zeta_order of the original.
+            sage: cf3(z6)
+            zeta3 + 1
+            sage: z3._lift_cyclotomic_element(cf6)
+            zeta6 - 1
+
+        AUTHOR:
+            -- Joel B. Mohler (original version)
+            -- Craig Citro (reworked for quadratic elements)
+        """
+        if not isinstance(self.number_field(), number_field.NumberField_cyclotomic) \
+               or not isinstance(new_parent, number_field.NumberField_cyclotomic):
+            raise TypeError, "The field and the new parent field must both be cyclotomic fields."
+
+        small_order = self.number_field()._n()
+        large_order = new_parent._n()
+
+        try:
+            _rel = ZZ(large_order / small_order)
+        except TypeError:
+            raise TypeError, "The zeta_order of the new field must be a multiple of the zeta_order of the original."
+
+        cdef NumberFieldElement_quadratic x2
+        cdef int n = int(self.parent()._n())
+
+        if new_parent.degree() == 2:
+            ## since self is a *quadratic* element, we can only get
+            ## here if self.parent() and new_parent are:
+            ## - CyclotomicField(3) and CyclotomicField(6)
+            ## - CyclotomicField(3) and CyclotomicField(3)
+            ## - CyclotomicField(6) and CyclotomicField(6)
+            ## - CyclotomicField(4) and CyclotomicField(4)
+            ## In all cases, conversion of elements is trivial!
+            x2 = <NumberFieldElement_quadratic>(self._new())
+            x2._parent = new_parent
+            mpz_set(x2.a, self.a)
+            mpz_set(x2.b, self.b)
+            mpz_set(x2.denom, self.denom)
+            x2.D = self.D
+            return x2
+
+        cdef NumberFieldElement x
+        cdef ZZX_c elt_num
+        cdef ZZ_c elt_den, tmp_coeff
+        cdef mpz_t tmp_mpz
+        cdef long tmp_const
+
+        x = <NumberFieldElement_absolute>PY_NEW(NumberFieldElement_absolute)
+
+        mpz_to_ZZ(&elt_den, &(self.denom))
+
+        mpz_init(tmp_mpz)
+
+        ## set the two terms in the polynomial
+        if n == 4:
+            mpz_to_ZZ(&tmp_coeff, &(self.a))
+            ZZX_SetCoeff(elt_num, 0, tmp_coeff)
+            mpz_to_ZZ(&tmp_coeff, &(self.b))
+            ZZX_SetCoeff(elt_num, 1, tmp_coeff)
+
+        elif n == 3:
+            ## num[0] = a + b
+            mpz_add(tmp_mpz, tmp_mpz, self.a)
+            mpz_add(tmp_mpz, tmp_mpz, self.b)
+            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            ZZX_SetCoeff(elt_num, 0, tmp_coeff)
+
+            ## num[1] = 2*b
+            mpz_sub(tmp_mpz, tmp_mpz, self.a)
+            tmp_const = 2
+            mpz_mul_si(tmp_mpz, tmp_mpz, tmp_const)
+            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            ZZX_SetCoeff(elt_num, 1, tmp_coeff)
+
+        elif n == 6:
+            ## num[0] = a - b
+            mpz_add(tmp_mpz, tmp_mpz, self.a)
+            mpz_sub(tmp_mpz, tmp_mpz, self.b)
+            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            ZZX_SetCoeff(elt_num, 0, tmp_coeff)
+
+            ## num[1] = 2*b
+            mpz_sub(tmp_mpz, tmp_mpz, self.a)
+            tmp_const = -2
+            mpz_mul_si(tmp_mpz, tmp_mpz, tmp_const)
+            mpz_to_ZZ(&tmp_coeff, &tmp_mpz)
+            ZZX_SetCoeff(elt_num, 1, tmp_coeff)
+
+        mpz_clear(tmp_mpz)
+
+        x._parent = <ParentWithBase>new_parent
+        x.__fld_numerator, x.__fld_denominator = new_parent.polynomial_ntl()
+        x.__denominator = elt_den
+        cdef ZZX_c result
+        cdef ZZ_c tmp
+        cdef int i
+        cdef int rel = _rel
+        cdef ntl_ZZX _num
+        cdef ntl_ZZ _den
+        _num, _den = new_parent.polynomial_ntl()
+        for i from 0 <= i <= ZZX_deg(elt_num):
+            tmp = ZZX_coeff(elt_num, i)
+            ZZX_SetCoeff(result, i*rel, tmp)
+        ZZX_rem(x.__numerator, result, _num.x)
+        (<NumberFieldElement_absolute>x)._reduce_c_()
+        return x
 
     def parts(self):
         """
@@ -318,7 +460,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
         cdef mpz_t gcd, tmp
-        res.D = self.D
         if mpz_cmp(self.denom, other.denom) == 0:
             mpz_add(res.a, self.a, other.a)
             mpz_add(res.b, self.b, other.b)
@@ -365,7 +506,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
         cdef mpz_t gcd, tmp
-        res.D = self.D
         if mpz_cmp(self.denom, other.denom) == 0:
             mpz_sub(res.a, self.a, other.a)
             mpz_sub(res.b, self.b, other.b)
@@ -407,7 +547,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             -1/2*a + 3/2
         """
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         mpz_neg(res.a, self.a)
         mpz_neg(res.b, self.b)
         mpz_set(res.denom, self.denom)
@@ -438,7 +577,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         cdef NumberFieldElement_quadratic other = <NumberFieldElement_quadratic>other_m
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         cdef mpz_t tmp
 
         if mpz_size(self.a) + mpz_size(self.b) < 8: # could I use a macro instead?
@@ -481,7 +619,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         cdef Rational c =  <Rational>_c
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         mpz_mul(res.a, self.a, mpq_numref(c.value))
         mpz_mul(res.b, self.b, mpq_numref(c.value))
         mpz_mul(res.denom, self.denom, mpq_denref(c.value))
@@ -498,7 +635,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         cdef Rational c =  <Rational>_c
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         mpz_mul(res.a, self.a, mpq_numref(c.value))
         mpz_mul(res.b, self.b, mpq_numref(c.value))
         mpz_mul(res.denom, self.denom, mpq_denref(c.value))
@@ -542,7 +678,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             1
         """
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         cdef mpz_t tmp, gcd
         mpz_init(tmp)
         mpz_init(gcd)
@@ -576,7 +711,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     cdef NumberFieldElement conjugate_c(self):
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         mpz_set(res.a, self.a)
         mpz_neg(res.b, self.b)
         mpz_set(res.denom, self.denom)
@@ -849,7 +983,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         R = QQ[var]
         return R([self.norm(), -self.trace(), 1])
 
-
     def minpoly(self, var='x'):
         r"""
         The minimal polynomial of this element over $\Q$.
@@ -885,6 +1018,76 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         NumberFieldElement_quadratic.__init__(self, K, f)
         (<Element>self)._parent = order
 
+    def norm(self):
+        """
+        The norm of an element of the ring of integers is an Integer.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 3)
+            sage: O2 = K.order(2*a)
+            sage: w = O2.gen(1); w
+            2*a
+            sage: w.norm()
+            12
+            sage: parent(w.norm())
+            Integer Ring
+        """
+        return ZZ(NumberFieldElement_quadratic.norm(self))
+
+    def trace(self):
+        """
+        The trace of an element of the ring of integers is an Integer.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 - 5)
+            sage: R = K.ring_of_integers()
+            sage: b = R((1+a)/2)
+            sage: b.trace()
+            1
+            sage: parent(b.trace())
+            Integer Ring
+        """
+        return ZZ(NumberFieldElement_quadratic.trace(self))
+
+    def charpoly(self, var='x'):
+        r"""
+        The characteristic polynomial of this element, which is over $\Z$
+        because this element is an algebraic integer.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 - 5)
+            sage: R = K.ring_of_integers()
+            sage: b = R((5+a)/2)
+            sage: f = b.charpoly('x'); f
+            x^2 - 5*x + 5
+            sage: f.parent()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: f(b)
+            0
+        """
+        R = ZZ[var]
+        return R([self.norm(), -self.trace(), 1])
+
+    def minpoly(self, var='x'):
+        r"""
+        The minimal polynomial of this element over $\Z$.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 163)
+            sage: R = K.ring_of_integers()
+            sage: f = R(a).minpoly('x'); f
+            x^2 + 163
+            sage: f.parent()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: R(5).minpoly()
+            x - 5
+        """
+        if self.is_rational_c():
+            R = ZZ[var]
+            return R([-self._rational_(), 1])
+        else:
+            return self.charpoly()
+
     cdef number_field(self):
         # So few functions actually use self.number_field() for quadratic elements, so
         # it is better *not* to return a cached value (since the call to _parent.number_field())
@@ -904,7 +1107,6 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         """
         cdef Integer c = <Integer>_c
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         mpz_mul(res.a, self.a, c.value)
         mpz_mul(res.b, self.b, c.value)
         mpz_set(res.denom, self.denom)
@@ -924,7 +1126,6 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
         """
         cdef Integer c = <Integer>_c
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
-        res.D = self.D
         mpz_mul(res.a, self.a, c.value)
         mpz_mul(res.b, self.b, c.value)
         mpz_set(res.denom, self.denom)

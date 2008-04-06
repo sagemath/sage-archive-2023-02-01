@@ -16,7 +16,7 @@ Cartesian Products
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random as rnd
+import sage.misc.prandom as rnd
 import __builtin__
 from combinat import CombinatorialClass, CombinatorialObject
 
@@ -31,6 +31,18 @@ def CartesianProduct(*iters):
         Cartesian product of [1, 2], [3, 4]
         sage: cp.list()
         [[1, 3], [1, 4], [2, 3], [2, 4]]
+
+      Note that if you have a generator-type object that is returned
+      by a function, then you should use IterableFunctionCall class
+      defined in sage.combinat.misc.
+
+        sage: def a(): yield 1; yield 2
+        sage: def b(): yield 'a'; yield 'b'
+        sage: CartesianProduct(a(), b()).list()
+        [[1, 'a'], [1, 'b']]
+        sage: from sage.combinat.misc import IterableFunctionCall
+        sage: CartesianProduct(IterableFunctionCall(a), IterableFunctionCall(b)).list()
+        [[1, 'a'], [1, 'b'], [2, 'a'], [2, 'b']]
     """
     return CartesianProduct_iters(*iters)
 
@@ -138,8 +150,7 @@ class CartesianProduct_iters(CombinatorialClass):
         of *iters.
 
         EXAMPLES:
-            sage: CartesianProduct('dog', 'cat').random() #random
-            ['d', 'c']
+            sage: CartesianProduct('dog', 'cat').random()
+            ['d', 'a']
         """
-
         return list(map(rnd.choice, self.iters))

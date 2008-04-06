@@ -78,7 +78,7 @@ from sage.modules.all import vector
 from sage.interfaces.all import maxima
 from sage.plot.tachyon import Tachyon
 from sage.plot.plot import hue
-import random
+import sage.misc.prandom as random
 
 import copy_reg
 import os

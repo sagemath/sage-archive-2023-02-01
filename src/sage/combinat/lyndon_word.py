@@ -1,15 +1,6 @@
 """
+Lyndon words
 
-A fast algorithm to generate necklaces with fixed content
-Source 	Theoretical Computer Science archive
-Volume 301 ,  Issue 1-3  (May 2003) table of contents
-Pages: 477 - 489
-Year of Publication: 2003
-ISSN:0304-3975
-Author
-Joe Sawada 	 Department of Computer Science, University of Toronto, 10 King's College Road, Toronto, Ont. Canada M5S 1A4
-Publisher
-Elsevier Science Publishers Ltd.   Essex, UK
 
 """
 #*****************************************************************************
@@ -52,7 +43,7 @@ def LyndonWords(e, k=None):
         [1, 1, 2]
         sage: LW.last()
         [2, 3, 3]
-        sage: LW.random() #
+        sage: LW.random()
         [1, 1, 2]
         sage: LW.count()
         8
@@ -285,8 +276,8 @@ def StandardBracketedLyndonWords(n, k):
         [[2, 3], 3]
         sage: SBLW33.count()
         8
-        sage: SBLW33.random() #random
-        [2, [2, 3]]
+        sage: SBLW33.random()
+        [1, [1, 2]]
     """
     return StandardBracketedLyndonWords_nk(n,k)
 

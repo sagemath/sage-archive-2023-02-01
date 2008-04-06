@@ -68,7 +68,6 @@ TESTS:
 #*****************************************************************************
 
 from sage.structure.element import is_Element
-import random
 import sage.algebras.algebra
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.commutative_algebra as commutative_algebra
@@ -262,6 +261,28 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return PolynomialFunctor(self.variable_name()), self.base_ring()
 
     def completion(self, p, prec=20, extras=None):
+        """
+        Return the completion of self with respect to the irreducible
+        polynomial p.  Currently only implemented for p=self.gen(),
+        i.e. you can only cimplete R[x] with respect to x, the result
+        being a rings of power series in x. The prec variable controls
+        the precision used in the power series ring.
+
+        EXAMPLES:
+            sage: P.<x>=PolynomialRing(QQ)
+            sage: P
+            Univariate Polynomial Ring in x over Rational Field
+            sage: PP=P.completion(x)
+            sage: PP
+            Power Series Ring in x over Rational Field
+            sage: f=1-x
+            sage: PP(f)
+            1 - x
+            sage: 1/f
+            1/(-x + 1)
+            sage: 1/PP(f)
+            1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + x^7 + x^8 + x^9 + x^10 + x^11 + x^12 + x^13 + x^14 + x^15 + x^16 + x^17 + x^18 + x^19 + O(x^20)
+        """
         if str(p) == self._names[0]:
             from sage.rings.power_series_ring import PowerSeriesRing
             return PowerSeriesRing(self.base_ring(), self._names[0], prec)
@@ -557,10 +578,23 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: S = PolynomialRing(FiniteField(7), 'x')
             sage: S.cyclotomic_polynomial(12)
             x^4 + 6*x^2 + 1
+            sage: S.cyclotomic_polynomial(1)
+            x + 6
+
+        TESTS:
+
+        Make sure it agrees with other systems for the trivial case:
+            sage: ZZ['x'].cyclotomic_polynomial(1)
+            x - 1
+            sage: gp('polcyclo(1)')
+            x - 1
         """
         if n <= 0:
             raise ArithmeticError, "n=%s must be positive"%n
-        return self(cyclotomic.cyclotomic_coeffs(n), check=True)
+        elif n == 1:
+            return self.gen() - 1
+        else:
+            return self(cyclotomic.cyclotomic_coeffs(n), check=True)
 
     def gen(self, n=0):
         """
@@ -693,13 +727,13 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         EXAMPLES:
             sage: R.<x> = ZZ[]
             sage: R.random_element(10, 5,10)
-            6*x^10 + 7*x^9 + 8*x^8 + 9*x^7 + 8*x^6 + 9*x^5 + 6*x^4 + 9*x^3 + 5*x^2 + 8*x + 6
+            9*x^10 + 8*x^9 + 6*x^8 + 8*x^7 + 8*x^6 + 9*x^5 + 8*x^4 + 8*x^3 + 6*x^2 + 8*x + 8
             sage: R.random_element(6)
-            2*x^5 - 2*x^4 - x^3 + 1
+            x^6 - 3*x^5 - x^4 + x^3 - x^2 + x + 1
             sage: R.random_element(6)
-            2*x^5 + 2*x^3 + x - 1
+            -2*x^5 + 2*x^4 - 3*x^3 + 1
             sage: R.random_element(6)
-            -2*x^6 - x^5 - 2*x^3 - x^2 + 2*x + 1
+            x^4 - x^3 + x - 2
         """
         R = self.base_ring()
         return self([R.random_element(*args, **kwds) for _ in xrange(degree+1)])
@@ -893,8 +927,9 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                            principal_ideal_domain.PrincipalIdealDomain,
                            ):
     def __init__(self, base_ring, name="x", sparse=False):
+        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         PolynomialRing_commutative.__init__(self, base_ring, name, sparse)
-        self._has_singular = self._can_convert_to_singular()
+        self._has_singular = can_convert_to_singular(self)
 
     def lagrange_polynomial(self, points):
         """
@@ -997,9 +1032,10 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                                  PolynomialRing_singular_repr,
                                  principal_ideal_domain.PrincipalIdealDomain):
     def __init__(self, base_ring, name="x"):
+        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         self.__modulus = base_ring.order()
         PolynomialRing_dense_mod_n.__init__(self, base_ring, name)
-        self._has_singular = self._can_convert_to_singular()
+        self._has_singular = can_convert_to_singular(self)
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
         if is_SingularElement(x) and self._has_singular:

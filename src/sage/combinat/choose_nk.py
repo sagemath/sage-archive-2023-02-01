@@ -15,17 +15,21 @@ Alternating sign matrices
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import sage.misc.prandom as rnd
 from sage.rings.arith import binomial
-import random as rnd
 from combinat import CombinatorialClass
 
-def ChooseNK(n, k):
-    return ChooseNK_nk(n,k)
-
-class ChooseNK_nk(CombinatorialClass):
+class ChooseNK(CombinatorialClass):
     def __init__(self, n, k):
-        self.n = n
-        self.k = k
+        """
+        TESTS:
+            sage: from sage.combinat.choose_nk import ChooseNK
+            sage: c52 = ChooseNK(5,2)
+            sage: c52 == loads(dumps(c52))
+            True
+        """
+        self._n = n
+        self._k = k
 
 
     def count(self):
@@ -40,7 +44,7 @@ class ChooseNK_nk(CombinatorialClass):
             sage: ChooseNK(5,2).count()
             10
         """
-        return binomial(self.n, self.k)
+        return binomial(self._n, self._k)
 
     def iterator(self):
         """
@@ -60,8 +64,8 @@ class ChooseNK_nk(CombinatorialClass):
              [2, 4],
              [3, 4]]
         """
-        k = self.k
-        n = self.n
+        k = self._k
+        n = self._n
         dif = 1
         if k == 0:
             yield []
@@ -102,10 +106,10 @@ class ChooseNK_nk(CombinatorialClass):
 
         EXAMPLES:
             sage: from sage.combinat.choose_nk import ChooseNK
-            sage: ChooseNK(5,2).random() #random
-            [0,3]
+            sage: ChooseNK(5,2).random()
+            [0, 2]
         """
-        r = rnd.sample(xrange(self.n),self.k)
+        r = rnd.sample(xrange(self._n),self._k)
         r.sort()
         return r
 
@@ -120,7 +124,7 @@ class ChooseNK_nk(CombinatorialClass):
         """
         if rank < 0 or rank >= self.count():
             raise ValueError, "rank must be between 0 and %s (inclusive)"%(self.count()-1)
-        return from_rank(rank, self.n, self.k)
+        return from_rank(rank, self._n, self._k)
 
     def rank(self, x):
         """
@@ -130,10 +134,10 @@ class ChooseNK_nk(CombinatorialClass):
             sage: range(c52.count()) == map(c52.rank, c52)
             True
         """
-        if len(x) != self.k:
+        if len(x) != self._k:
             return
 
-        return rank(x, self.n)
+        return rank(x, self._n)
 
 
 def rank(comb, n):
@@ -189,7 +193,14 @@ def rank(comb, n):
 
 def _comb_largest(a,b,x):
     """
-    Helper function for from_rank.
+    Returns the largest w < a such that binomial(w,b) <= x.
+
+    EXAMPLES:
+        sage: from sage.combinat.choose_nk import _comb_largest
+        sage: _comb_largest(6,3,10)
+        5
+        sage: _comb_largest(6,3,5)
+        4
     """
     w = a - 1
 

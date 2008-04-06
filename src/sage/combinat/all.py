@@ -1,22 +1,21 @@
 from combinat import *
 from expnums import expnums
 
-
+from sage.combinat.crystals.all import *
+from sage.combinat.dlx import * #??
 
 #Combinatorial Algebra
 from combinatorial_algebra import CombinatorialAlgebra
 
 
 from schubert_polynomial import SchubertPolynomialRing, is_SchubertPolynomial
-from symmetric_group_algebra import SymmetricGroupAlgebra
+from symmetric_group_algebra import SymmetricGroupAlgebra, HeckeAlgebraSymmetricGroupT
 #from hall_littlewood import HallLittlewood_qp, HallLittlewood_q, HallLittlewood_p
 
 from permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition
-import permutation
 
 #Compositions
 from composition import Composition, Compositions
-import composition
 from composition_signed import SignedCompositions
 
 #Partitions
@@ -32,25 +31,19 @@ from partition import Partition, Partitions, PartitionsInBox,\
     number_of_partitions_restricted, partitions_tuples, \
     number_of_partitions_tuples, partition_power, partition_sign, \
     partition_associated, partitions_list
-import skew_partition
 from skew_partition import SkewPartition, SkewPartitions
 from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsRk, SetPartitionsPRk
 
 #Tableaux
 from tableau import Tableau, Tableaux, StandardTableaux, SemistandardTableaux
-import tableau
-from skew_tableau import SkewTableau, StandardSkewTableaux #, SemistandardSkewTableaux
-import skew_tableau
-from ribbon import Ribbon, StandardRibbonTableaux
-import ribbon
+from skew_tableau import SkewTableau, StandardSkewTableaux, SemistandardSkewTableaux
+from ribbon import Ribbon, StandardRibbons
+from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableau, SemistandardMultiSkewTableaux
 
 #Words
 from word import Words, ShuffleProduct
-import word
 from subword import Subwords
-import subword
 
-import ranker
 from graph_path import GraphPaths
 
 #Tuples
@@ -60,40 +53,23 @@ from alternating_sign_matrix import AlternatingSignMatrices, ContreTableaux, Tru
 
 
 from combination import Combinations
-import combination
-
-
-import choose_nk
-import multichoose_nk
-import permutation_nk
-import split_nk
 from cartesian_product import CartesianProduct
 
 from set_partition import SetPartitions
-import set_partition
 from set_partition_ordered import OrderedSetPartitions
-import set_partition_ordered
-
-import subset
 from subset import Subsets
-
-import q_analogues
-
-import necklace
 from necklace import Necklaces
 from lyndon_word import LyndonWords, StandardBracketedLyndonWords
-import lyndon_word
-
 from dyck_word import DyckWords, DyckWord
-
 from sloane_functions import sloane
 
 
 from sf.all import *
+from matrices.all import *
 
 #import lrcalc
 
-import integer_list
+
 from integer_vector import IntegerVectors
 from integer_vector_weighted import WeightedIntegerVectors
 
@@ -105,4 +81,8 @@ from cartan_type import CartanType
 from dynkin_diagram import dynkin_diagram
 from cartan_matrix import cartan_matrix
 from coxeter_matrix import coxeter_matrix
-from root_system import RootSystem
+from root_system import RootSystem, WeylDim
+
+from dlx import AllExactCovers, OneExactCover, DLXMatrix
+
+from multichoose_nk import MultichooseNK

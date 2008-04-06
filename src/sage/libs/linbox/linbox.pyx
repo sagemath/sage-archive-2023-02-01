@@ -28,8 +28,19 @@ cdef extern from "linbox_wrap.h":
     int linbox_modn_dense_rank(unsigned long modulus,
                                mod_int** matrix, size_t nrows, size_t ncols)
 
+    mod_int linbox_modn_dense_det(mod_int modulus, mod_int** matrix, size_t nrows, size_t ncols)
+
 
 cdef class Linbox_modn_dense:
+    def __init__(self):
+        self.matrix = <mod_int**> 0
+
+    def __dealloc__(self):
+        if self.matrix:
+            for i from 0 <= i < self.nrows:
+                sage_free(self.matrix[i])
+            sage_free(self.matrix)
+
     cdef set(self, mod_int n, mod_int** matrix,
              size_t nrows, size_t ncols):
         self.n = n
@@ -86,6 +97,11 @@ cdef class Linbox_modn_dense:
         cdef unsigned long r
         r = linbox_modn_dense_rank(self.n,   self.matrix, self.nrows, self.ncols)
         return r
+
+    cpdef mod_int det(self) except -1:
+        cdef mod_int d
+        d = linbox_modn_dense_det(self.n,   self.matrix, self.nrows, self.ncols)
+        return d
 
 ##########################################################################
 ## Sparse matices modulo p.

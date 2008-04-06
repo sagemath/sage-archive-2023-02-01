@@ -9,7 +9,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     cdef mod_int *_entries
     cdef mod_int p
     cdef mod_int gather
-
+    cdef xgcd_eliminate (self, mod_int * row1, mod_int* row2, Py_ssize_t start_col)
     #cdef set_matrix(Matrix_modn_dense self, mod_int **m)
     #cdef mod_int **get_matrix(Matrix_modn_dense self)
     #cdef mod_int entry(self, mod_int i, mod_int j)

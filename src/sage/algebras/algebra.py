@@ -20,4 +20,12 @@ Abstract base class for algebras
 from sage.rings.ring import Algebra
 
 def is_Algebra(x):
+    r"""
+    Return true if x is an Algebra
+
+    EXAMPLES:
+    sage: R.<x,y> = FreeAlgebra(QQ,2)
+    sage: is_Algebra(R)
+    True
+    """
     return isinstance(x, Algebra)

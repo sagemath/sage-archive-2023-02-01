@@ -451,7 +451,7 @@ connection to a server running Maple; for hints, type
 
     def _source(self, s):
         """
-        Trys to return the source code of a Maple function str
+        Tries to return the source code of a Maple function str
         as a string.
 
         EXAMPLES:

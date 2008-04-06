@@ -24,7 +24,7 @@ import time
 
 from sage_object cimport SageObject
 import sage.categories.morphism
-from sage.categories.action import InverseAction
+from sage.categories.action import InverseAction, PrecomposedAction
 
 from element import py_scalar_to_element
 
@@ -219,6 +219,24 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         sage: ZZ['x,y,z'].0 + ZZ['w,x,z,a'].1
         2*x
 
+    If a class is not part of the coercion system, we should call the
+    __rmul__ method when it makes sense.
+
+        sage: class Foo:
+        ...      def __rmul__(self, left):
+        ...          return 'hello'
+        ...
+        sage: H = Foo()
+        sage: print int(3)*H
+        hello
+        sage: print Integer(3)*H
+        hello
+        sage: print H*3
+        Traceback (most recent call last):
+        ...
+        TypeError: unsupported operand parent(s) for '*': '<type 'instance'>' and 'Integer Ring'
+
+
     AUTHOR:
         -- Robert Bradshaw
     """
@@ -268,6 +286,11 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
                 return y._r_action(x)
             except (AttributeError, TypeError):
                 pass
+            if not isinstance(y, Element):
+                try:
+                    return y.__rmul__(x)
+                except (AttributeError, TypeError):
+                    pass
 
         raise TypeError, arith_error_message(x,y,op)
 
@@ -396,6 +419,33 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
 
 
     def get_action(self, R, S, op):
+        """
+        Get the action of R on S or S on R associated to the operation op.
+
+        EXAMPLES:
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.get_action(ZZ['x'], ZZ, operator.mul)
+            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
+            sage: cm.get_action(ZZ['x'], ZZ, operator.imul)
+            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Integer Ring
+            sage: cm.get_action(ZZ['x'], QQ, operator.mul)
+            Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring
+            sage: cm.get_action(QQ['x'], int, operator.mul)
+            Right scalar multiplication by Integer Ring on Univariate Polynomial Ring in x over Rational Field
+            with precomposition on right by Native morphism:
+              From: Set of Python objects of type 'int'
+              To:   Integer Ring
+
+            sage: R.<x> = QQ['x']
+            sage: A = cm.get_action(R, ZZ, operator.div); A
+            Right inverse action by Rational Field on Univariate Polynomial Ring in x over Rational Field
+            with precomposition on right by Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+            sage: A(x+10, 5)
+            1/5*x + 2
+
+        """
         return self.get_action_c(R, S, op)
 
     cdef get_action_c(self, R, S, op):
@@ -403,11 +453,59 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             return self._action_maps.get(R, S, op)
         except KeyError:
             action = self.discover_action_c(R, S, op)
+            self.verify_action(action, R, S, op)
             self._action_maps.set(R, S, op, action)
             return action
 
+    def verify_action(self, action, R, S, op):
+        r"""
+        Verify that \code{action} takes an element of R on the left and S
+        on the right, raising an error if not.
+
+        This is used for consistancy checking in the coercion model.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ['x']
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.verify_action(R.get_action(QQ), R, QQ, operator.mul)
+            True
+            sage: cm.verify_action(R.get_action(QQ), RDF, R, operator.mul)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: There is a BUG in the coercion model:
+                Action found for R <built-in function mul> S does not have the correct domains
+                R = Real Double Field
+                S = Univariate Polynomial Ring in x over Integer Ring
+                (should be Univariate Polynomial Ring in x over Integer Ring, Rational Field)
+                action = Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring (<type 'sage.structure.coerce.RightModuleAction'>)
+        """
+        if action is None:
+            return True
+        elif PY_TYPE_CHECK(action, IntegerMulAction):
+            return True
+        cdef bint ok = True
+        try:
+            if action.left_domain() is not R:
+                ok &= PY_TYPE_CHECK(R, type) and action.left_domain()._type is R
+            if action.right_domain() is not S:
+                ok &= PY_TYPE_CHECK(S, type) and action.right_domain()._type is S
+        except AttributeError:
+            ok = False
+        if not ok:
+            if action.left_domain() == R and action.right_domain() == S:
+                # Non-unique parents
+                return True
+            raise RuntimeError, """There is a BUG in the coercion model:
+            Action found for R %s S does not have the correct domains
+            R = %s
+            S = %s
+            (should be %s, %s)
+            action = %s (%s)
+            """ % (op, R, S, action.left_domain(), action.right_domain(), action, type(action))
+        return ok
+
     cdef discover_action_c(self, R, S, op):
-#        print "looking", R, <int>R, op, S, <int>S
+#        print "looking", R, <int><void *>R, op, S, <int><void *>S
 
         if PY_TYPE_CHECK(S, Parent):
             action = (<Parent>S).get_action_c(R, op, False)
@@ -421,53 +519,22 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
 #                print "found", action
                 return action
 
-        if op is div:
-            # Division on right is the same acting on right by inverse, if it is so defined.
-            # To return such an action, we need to verify that it would be an action for the mul
-            # operator, but the action must be over a parent containing inverse elements.
-            from sage.rings.ring import is_Ring
-            if is_Ring(S):
-                try:
-                    K = S.fraction_field()
-                except TypeError:
-                    K = None
-            else:
-                K = S
-
-            if K is not None:
-                if PY_TYPE_CHECK(S, Parent) and (<Parent>S).get_action_c(R, mul, False) is not None:
-                    action = (<Parent>K).get_action_c(R, mul, False)
-                    if action is not None and action.actor() is K:
-                        try:
-                            return ~action
-                        except TypeError:
-                            pass
-
-                if PY_TYPE_CHECK(R, Parent) and (<Parent>R).get_action_c(S, mul, True) is not None:
-                    action = (<Parent>R).get_action_c(K, mul, True)
-                    if action is not None and action.actor() is K:
-                        try:
-                            return ~action
-                        except TypeError:
-                            pass
-
-
         if PY_TYPE(R) == <void *>type:
             sageR = py_scalar_parent(R)
             if sageR is not None:
                 action = self.discover_action_c(sageR, S, op)
-                if action:
+                if action is not None:
                     if not PY_TYPE_CHECK(action, IntegerMulAction):
-                        action = PyScalarAction(action)
+                        action = PrecomposedAction(action, sageR.coerce_map_from(R), None)
                     return action
 
         if PY_TYPE(S) == <void *>type:
             sageS = py_scalar_parent(S)
             if sageS is not None:
                 action = self.discover_action_c(R, sageS, op)
-                if action:
+                if action is not None:
                     if not PY_TYPE_CHECK(action, IntegerMulAction):
-                        action = PyScalarAction(action)
+                        action = PrecomposedAction(action, None, sageS.coerce_map_from(S))
                     return action
 
         if op.__name__[0] == 'i':
@@ -484,6 +551,33 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                 return a
             except KeyError:
                 pass
+
+        if op is div:
+            # Division on right is the same acting on right by inverse, if it is so defined.
+            # To return such an action, we need to verify that it would be an action for the mul
+            # operator, but the action must be over a parent containing inverse elements.
+            from sage.rings.ring import is_Ring
+            if is_Ring(S):
+                try:
+                    K = S.fraction_field()
+                except TypeError:
+                    K = None
+            elif PY_TYPE_CHECK(S, Parent):
+                K = S
+            else:
+                # python scalar case handled recursively above
+                K = None
+
+            if K is not None:
+                action = self.get_action_c(R, K, mul)
+                if action is not None and action.actor() is K:
+                    try:
+                        action = ~action
+                        if K is not S:
+                            action = PrecomposedAction(action, None, K.coerce_map_from(S))
+                        return action
+                    except TypeError: # action may not be invertible
+                        pass
 
 #        if op is operator.mul:
 #            from sage.rings.integer_ring import ZZ
@@ -814,6 +908,9 @@ cdef class LeftModuleAction(Action):
     def _repr_name_(self):
         return "scalar multiplication"
 
+    def domain(self):
+        return self.S
+
     def codomain(self):
         if self.extended_base is not None:
             return self.extended_base
@@ -886,30 +983,34 @@ cdef class RightModuleAction(Action):
     def _repr_name_(self):
         return "scalar multiplication"
 
+    def domain(self):
+        return self.S
+
     def codomain(self):
         if self.extended_base is not None:
             return self.extended_base
         return self.S
 
+    def connecting_map(self):
+        """
+        Return the connecting map.
 
-
-cdef class PyScalarAction(Action):
-
-    def __init__(self, Action action):
-        Action.__init__(self, action.G, action.S, action._is_left, action.op)
-        self._action = action
-
-    cdef Element _call_c(self, a, b):
-        # Override this (BAD) because signature of _call_c_impl requires elements
-        if self._is_left:
-            a = self.G(a)
-            return self._action._call_c(a,b)
-        else:
-            b = self.G(b)
-            return self._action._call_c(a,b)
-
-    def __inverse__(self):
-        return PyScalarAction(~self._action)
+        EXAMPLES:
+            sage: R.<x> = QQ[]; a = 2*x^2+2
+            sage: import sage.structure.element as e
+            sage: cm = e.get_coercion_model()
+            sage: act = cm.get_action(parent(a), parent(2), operator.mul)
+            sage: type(act)
+            <type 'sage.structure.coerce.RightModuleAction'>
+            sage: h = act.connecting_map()
+            sage: h
+            Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+            sage: type(h)
+            <type 'sage.rings.rational.Z_to_Q'>
+        """
+        return self.connecting
 
 
 cdef class IntegerMulAction(Action):

@@ -170,6 +170,16 @@ class FreeAlgebraElement(AlgebraElement):
         return cmp(v, w)
 
     def _add_(self, y):
+        """
+        Return sum of self and y (another free algebra element with
+        the same parents)
+
+        EXAMPLES:
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: x + y
+            x + y
+
+        """
         A = self.parent()
 ##         if isinstance(y, (int, long, Integer)):
 ##             z_elt = dict(self.__monomial_coefficients)
@@ -198,6 +208,14 @@ class FreeAlgebraElement(AlgebraElement):
         return z
 
     def _neg_(self):
+        """
+        Return negation of self
+
+        EXAMPLES:
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: -(x+y)
+            -x - y
+        """
         y = self.parent()(0)
         y_elt = {}
         for m, c in self.__monomial_coefficients.iteritems():
@@ -206,6 +224,16 @@ class FreeAlgebraElement(AlgebraElement):
         return y
 
     def _sub_(self, y):
+        """
+        Return self minus y (another free algebra element with the
+        same parents)
+
+        EXAMPLES:
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: x - y
+            x - y
+
+        """
         A = self.parent()
 ##         if isinstance(y, (int, long, Integer)):
 ##             z_elt = dict(self.__monomial_coefficients)
@@ -235,6 +263,9 @@ class FreeAlgebraElement(AlgebraElement):
 
     def _mul_(self, y):
         """
+        Return product of self and y (another free algebra element with
+        the same parents)
+
         EXAMPLES:
             sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
             sage: (x+y+x*y)*(x+y+1)

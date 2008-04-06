@@ -53,7 +53,7 @@ AUTHORS
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random
+import sage.misc.prandom as random
 import weakref
 
 from sage.rings.arith import is_prime, factor, CRT_basis, LCM, prime_divisors, euler_phi
@@ -80,13 +80,15 @@ def IntegerModRing(order=0):
     Return the quotient ring $\ZZ / n\ZZ$.
 
     INPUT:
-        order -- integer (default: 0)
+        order -- integer (default: 0), positive or negative
 
     EXAMPLES:
         sage: IntegerModRing(15)
         Ring of integers modulo 15
         sage: IntegerModRing(7)
         Ring of integers modulo 7
+        sage: IntegerModRing(-100)
+        Ring of integers modulo 100
 
     Note that you can also use \code{Integers}, which is a synonym
     for \code{IntegerModRing}.
@@ -95,13 +97,12 @@ def IntegerModRing(order=0):
     """
     if order == 0:
         return integer_ring.IntegerRing()
+    if order < 0:
+        order = -order
     global _objsIntegerModRing
     if _objsIntegerModRing.has_key(order):
         x = _objsIntegerModRing[order]()
         if not x is None: return x
-    #if check_prime and arith.is_prime(order):
-    #    R = sage.rings.finite_field.FiniteField_prime_modn(order)
-    #else:
     R = IntegerModRing_generic(order)
     _objsIntegerModRing[order] = weakref.ref(R)
     return R
@@ -580,9 +581,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             return TypeError, "error coercing to finite field"
         except TypeError:
             if sage.interfaces.all.is_GapElement(x):
-                import finite_field
+                from sage.interfaces.gap import gfq_gap_to_sage
                 try:
-                    return finite_field.gap_to_sage(x, self)
+                    return gfq_gap_to_sage(x, self)
                 except (ValueError, IndexError, TypeError), msg:
                     raise TypeError, "%s\nerror coercing to finite field"%msg
             else:
@@ -833,7 +834,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         EXAMPLES:
             sage: R = IntegerModRing(18)
             sage: R.random_element()
-            15
+            2
         """
         if not (bound is None):
             return commutative_ring.CommutativeRing.random_element(self, bound)

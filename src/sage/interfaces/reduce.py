@@ -42,12 +42,11 @@ class Reduce(Expect):
     [[Some basic help about your system.  This is what
       will be displayed when somebody write reduce?.]]
     """
-    def __init__(self, stacksize=10000000,   # 10MB
+    def __init__(self,
                  maxread=100000, script_subdirectory=None,
                  logfile='/home/was/a',
                  server=None,
-                 server_tmpdir=None,
-                 init_list_length=1024):
+                 server_tmpdir=None):
         Expect.__init__(self,
 
                         # The capitalized versionof this is used for printing.
@@ -84,8 +83,6 @@ class Reduce(Expect):
                         eval_using_file_cutoff=1024)
 
         self.__seq = 0
-        self.__var_store_len = 0
-        self.__init_list_length = init_list_length
 
     def eval(self, code, strip=True):
         code += ';\n'

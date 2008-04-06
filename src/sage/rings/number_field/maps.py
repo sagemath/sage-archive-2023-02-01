@@ -1,9 +1,4 @@
 """
-
-
-
-
-
 TESTS:
    sage: L.<cuberoot2, zeta3> = CyclotomicField(3).extension(x^3 - 2); K = L.absolute_field('a'); from_K,to_K = K.structure()
 
@@ -120,7 +115,17 @@ class MapRelativeNumberFieldToRelativeVectorSpace(SageObject):
         f = alpha.polynomial('x')
         # f is the absolute polynomial that defines this number field element
         if self.__K.degree() == 1:
-            g = -1*self.__rnf[0][0]*f[1] + f[0]
+            # Pari doesn't return a valid relative polynomial from an
+            # absolute one in the case of relative degree one. (Bug
+            # submitted to Pari, fixed in svn unstable as of 1/22/08
+            # according to Karim Belabas. Trac #1891 is a reminder to
+            # remove this workaround once we update Pari in Sage.)
+            # However, in this case, the polynomial we want for g is
+            # just the polynomial we have for f, but as a polynomial
+            # in the generator of the base field of this relative
+            # extension. That generator is just -self.__rnf[0][0], so
+            # we can plug it in and it works.
+            g = f(-1*self.__rnf[0][0])
         else:
             g = self.__rnf.rnfeltabstorel(pari(f))
         # Now g is a relative polynomial that defines this element.

@@ -66,7 +66,7 @@ class AbelianGroupMorphism:
         Multiplicative Abelian Group isomorphic to C2 x C3
         sage: x,y = H.gens()
 
-        sage: from abelian_group_morphism import AbelianGroupMorphism
+        sage: from sage.groups.abelian_gps.abelian_group_morphism import AbelianGroupMorphism
         sage: phi = AbelianGroupMorphism(H,G,[x,y],[a,b])
 
     AUTHOR: David Joyner (2-2006)
@@ -229,7 +229,7 @@ class AbelianGroupMorphism:
 
     	"""
         G = g.parent()
-        w = g.word_problem(self.domaingens,display=False)
+        w = g.word_problem(self.domaingens)
         n = len(w)
         #print w,g.word_problem(self.domaingens)
         # g.word_problem is faster in general than word_problem(g)

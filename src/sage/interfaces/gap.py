@@ -736,7 +736,55 @@ class GapFunction(ExpectFunction):
 def is_GapElement(x):
     return isinstance(x, GapElement)
 
-###########
+def gfq_gap_to_sage(x, F):
+    """
+    INPUT:
+        x -- gap finite field element
+        F -- SAGE finite field
+    OUTPUT:
+        element of F
+
+    EXAMPLES:
+        sage: x = gap('Z(13)')
+        sage: F = GF(13, 'a')
+        sage: F(x)
+        2
+        sage: F(gap('0*Z(13)'))
+        0
+        sage: F = GF(13^2, 'a')
+        sage: x = gap('Z(13)')
+        sage: F(x)
+        2
+        sage: x = gap('Z(13^2)^3')
+        sage: F(x)
+        12*a + 11
+        sage: F.multiplicative_generator()^3
+        12*a + 11
+
+    AUTHOR:
+        -- David Joyner and William Stein
+    """
+    from sage.rings.finite_field import FiniteField
+
+    s = str(x)
+    if s[:2] == '0*':
+        return F(0)
+    i1 = s.index("(")
+    i2 = s.index(")")
+    q  = eval(s[i1+1:i2].replace('^','**'))
+    if q == F.order():
+        K = F
+    else:
+        K = FiniteField(q, F.variable_name())
+    if s.find(')^') == -1:
+        e = 1
+    else:
+        e = int(s[i2+2:])
+    if F.degree() == 1:
+        g = int(gap.eval('Int(Z(%s))'%q))
+    else:
+        g = K.multiplicative_generator()
+    return F(K(g**e))
 
 #############
 

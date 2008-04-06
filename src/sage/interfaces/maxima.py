@@ -350,7 +350,6 @@ cygwin = os.uname()[0][:6]=="CYGWIN"
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, gc_disabled
 from pexpect import EOF
 
-#import random
 from random import randrange
 
 ##import sage.rings.all
@@ -390,7 +389,9 @@ class Maxima(Expect):
         if not os.path.exists(STARTUP):
             raise RuntimeError, 'You must get the file local/bin/sage-maxima.lisp'
         if init_code is None:
-            init_code = ['display2d : false'] # no ascii art output
+            # display2d -- no ascii art output
+            # keepfloat -- don't automatically convert floats to rationals
+            init_code = ['display2d : false', 'keepfloat : true']
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',
@@ -601,10 +602,11 @@ class Maxima(Expect):
             sage: maxima('2+2')
             4
         """
+        marker = '__SAGE_SYNCHRO_MARKER_'
         if self._expect is None: return
         r = randrange(2147483647)
-        s = str(r+1)
-        cmd = "1+%s;\n"%r
+        s = marker + str(r+1)
+        cmd = '''sconc("%s",(%s+1));\n'''%(marker,r)
         self._sendstr(cmd)
         try:
             self._expect_expr(timeout=0.5)

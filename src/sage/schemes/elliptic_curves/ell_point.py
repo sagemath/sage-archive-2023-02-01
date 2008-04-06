@@ -31,6 +31,12 @@ Arithmetic with a point over an extension of a finite field:
     sage: n = sys.maxint
     sage: P*(n+1)-P*n == P
     True
+
+AUTHORS:
+   * William Stein (2005) -- Initial version
+   * Robert Bradshaw et al....
+   * John Cremona (Feb 2008) -- Point counting and group structure for
+     non-prime fields, Frobenius endomorphism and order, elliptic logs
 """
 
 #*****************************************************************************
@@ -48,6 +54,7 @@ Arithmetic with a point over an extension of a finite field:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from math import ceil, floor, sqrt
 from sage.structure.element import AdditiveGroupElement, RingElement
 
 import sage.plot.all as plot
@@ -58,6 +65,8 @@ import ell_generic
 import sage.rings.all as rings
 import sage.rings.arith as arith
 import sage.misc.misc as misc
+from sage.groups.all import AbelianGroup
+import sage.groups.generic as generic
 
 from sage.structure.sequence  import Sequence
 from sage.schemes.generic.morphism import (SchemeMorphism_projective_coordinates_ring,
@@ -73,6 +82,21 @@ class EllipticCurvePoint(SchemeMorphism_projective_coordinates_ring):
     A point on an elliptic curve.
     """
     def __cmp__(self, other):
+        """
+        Standard comparison function for points on elliptic curves, to
+        allow sorting and equality testing.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: P=E(0,1)
+            sage: P.order()
+            +Infinity
+            sage: Q=P+P
+            sage: P==Q
+            False
+            sage: Q+Q == 4*P
+            True
+        """
         if isinstance(other, (int, long, rings.Integer)) and other == 0:
             if self.is_zero():
                 return 0
@@ -123,6 +147,15 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         True
     """
     def __init__(self, curve, v, check=True):
+        """
+        Constructor for a point on an elliptic curve
+
+        INPUT:
+            curve -- an elliptic curve
+            v -- data determining a point (another point, the integer
+                 0, or a tuple of coordinates)
+
+        """
         point_homset = curve.point_homset()
         AdditiveGroupElement.__init__(self, point_homset)
         if check:
@@ -161,21 +194,44 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
 
 
     def _repr_(self):
+        """
+        Return a string representation of this point
+        """
         return self.codomain().ambient_space()._repr_generic_point(self._coords)
 
     def _latex_(self):
+        """
+        Return a latex representation of this point
+        """
         return self.codomain().ambient_space()._latex_generic_point(self._coords)
 
     def __getitem__(self, n):
+        """
+        Return the n'th coordinate of this point
+        """
         return self._coords[n]
 
-    def __list__(self):
-        return list(self._coords)
+    def __iter__(self):
+        """
+        Return the coordinates of this point as a list
+
+        EXAMPLE:
+            sage: E = EllipticCurve('37a')
+            sage: list(E([0,0]))
+            [0, 0, 1]
+        """
+        return iter(self._coords)
 
     def __tuple__(self):
+        """
+        Return the coordinates of this point as a tuple
+        """
         return self._coords
 
     def __cmp__(self, other):
+        """
+        Comparison function for points to allow sorting and equality testing
+        """
         if not isinstance(other, EllipticCurvePoint_field):
             try:
                 other = self.codomain().ambient_space()(other)
@@ -184,18 +240,71 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         return cmp(self._coords, other._coords)
 
     def scheme(self):
+        """
+        Return the scheme of this point, i.e. the curve it is on.
+        This is synonmous with curve() which is perhaps more
+        intuituve.
+
+        Technically, points on curves in Sage are scheme maps from the
+        domain Spec(F) where F is the base field of the curve to the
+        codomain which is the curve.  See also domain() and codomain().
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: P=E(0,1)
+            sage: P.scheme()
+            Elliptic Curve defined by y^2  = x^3 + x +1 over Rational Field
+            sage: P.scheme() == P.curve()
+            True
+            sage: K.<a>=NumberField(x^2-3,'a')
+            sage: P=E.base_extend(K)(1,a)
+            sage: P.scheme()
+            Elliptic Curve defined by y^2  = x^3 + x +1 over Number Field in a with defining polynomial x^2 - 3
+       """
         return self.codomain()
 
     def domain(self):
+        """
+        Return the domain of this point, which is Spec(F) where F is
+        the field of definition.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: P=E(0,1)
+            sage: P.domain()
+            Spectrum of Rational Field
+            sage: K.<a>=NumberField(x^2-3,'a')
+            sage: P=E.base_extend(K)(1,a)
+            sage: P.domain()
+            Spectrum of Number Field in a with defining polynomial x^2 - 3
+       """
         return self.parent().domain()
 
     def codomain(self):
+        """
+        Return the codomain of this point, which is the curve it is
+        on.  Synonymous with curve() which is perhaps more intuituve.
+
+        EXAMPLES:
+            sage: E=EllipticCurve(QQ,[1,1])
+            sage: P=E(0,1)
+            sage: P.domain()
+            Spectrum of Rational Field
+            sage: K.<a>=NumberField(x^2-3,'a')
+            sage: P=E.base_extend(K)(1,a)
+            sage: P.codomain()
+            Elliptic Curve defined by y^2  = x^3 + x +1 over Number Field in a with defining polynomial x^2 - 3
+            sage: P.codomain() == P.curve()
+            True
+       """
         return self.parent().codomain()
 
     def order(self):
         """
-        Return the order of this point on the elliptic curve.
-        If the point has infinite order, returns 0.
+        Return the order of this point on the elliptic curve.  If the
+        point has infinite order, returns 0.  This is only implemented
+        here for curves defined over Q, by calling pari.  For curves
+        over finite fields, see below.
 
         EXAMPLE:
             sage: E = EllipticCurve([0,0,1,-1,0])
@@ -427,110 +536,7 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         else:
             return self[0]/self[2], self[1]/self[2]
 
-
-
 class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
-    def order(self, disable_warning=False):
-        """
-        Return the order of this point on the elliptic curve.
-        If the point has infinite order, returns 0.
-
-        EXAMPLE:
-            sage: E = EllipticCurve([0,0,1,-1,0])
-            sage: P = E([0,0]); P
-            (0 : 0 : 1)
-            sage: P.order()
-            +Infinity
-
-            sage: E = EllipticCurve([0,1])
-            sage: P = E([-1,0])
-            sage: P.order()
-            2
-            sage: k.<a> = GF(5^5)
-            sage: E = EllipticCurve(k,[2,4]); E
-            Elliptic Curve defined by y^2  = x^3 + 2*x + 4 over Finite Field in a of size 5^5
-            sage: P = E(3*a^4 + 3*a , 2*a + 1 )
-            sage: P.order()
-            3227
-
-        ALGORITHM: uses PARI's \code{ellzppointorder} if base ring is prime
-        or baby-step-giant-step algorithm as presented in
-
-          Washington, Lawrence C.; 'Elliptic Curves: Number Theory and
-          Cryptography', Boca Raton 2003
-        """
-        try:
-            return self.__order
-        except AttributeError:
-            pass
-        if self.is_zero():
-            return rings.Integer(1)
-        E = self.curve()
-        K = E.base_ring()
-        if K.is_prime_field():
-            e = E._gp()
-            self.__order = rings.Integer(e.ellzppointorder(list(self.xy())))
-            return self.__order
-        else:
-            P = self
-            E = P.curve()
-            k = E.base_ring()
-            q = k.order()
-
-            if q < 256: # TODO: check this heuristc
-                n = 1
-                while not P.is_zero():
-                    n += 1
-                    P += self
-                self.__order = rings.Integer(n)
-                return self.__order
-
-            # 1. Compute Q = (q+1)P
-            Q = (q+1) * P
-
-            # 2. Choos an integer m with m > q^{1/4}. Compute and store the
-            # points jP for j = 0,1,2,...,m
-
-            m = rings.Integer((q**rings.RR(0.25)).floor() + 1) #
-
-            l = dict()
-            X = E(0)
-            for j in range(0,m+1):
-                l[X] = j
-                X = P + X
-
-            # 3. Compute the points Q + k(2mP) for k = -m, -(m+1), ..., m
-            # until there is a match Q + k(2mP) = +- jP with a point or its
-            # negative on the list
-
-            twomP = (2*m*P)
-            for k in range(-m,m+1):
-                W =  Q + k*twomP
-                if W in l:
-                    # 4a. Conclude that (q + 1 + 2mk - j)P = oo. Let M = q + 1 + 2mk - j
-                    M = q + 1 + 2*m*k - l[W]
-                    break
-                elif -W in l:
-                    # 4b. Conclude that (q + 1 + 2mk + j)P = oo. Let M = q + 1 + 2mk + j
-                    M = q + 1 + 2*m*k + l[-W]
-                    break
-
-            # 5. Factor M. let p1,...,pr be the distinct prime factors of M.
-            while True:
-                N = M
-                plist = [ p for p,n in M.factor()]
-                for p in plist:
-                    # 6. Compute (M/pi)P for i = 1...r. If (M/pi)P =
-                    # oo for some i, replace M with M/pi and go back
-                    # to step (4). If (M/pi)P != oo for all i then M
-                    # is the order of the point P.
-                    if (int(M/p) * P).is_zero():
-                        M = M/p
-                        break
-                if N == M:
-                    self.__order = rings.Integer(M)
-                    return self.__order
-
     def _magma_init_(self):
         """
         Return a string representation of self that MAGMA can
@@ -539,4 +545,115 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         E = self.curve()._magma_().name()
         x,y = map(lambda x: x._magma_().name(), self.xy())
         return "%s![%s,%s]"%(E,x,y)
+
+    def discrete_log(self, Q, ord=None):
+        """
+        Returns discrete log of Q with respect to self, i.e. an
+        integer m with 0<=m<order(self) such that m*self==Q, if one
+        exists; otherwise raise an error.  The order of self is
+        computed if not supplied
+
+        AUTHOR: John Cremona. Adapted to use generic functions 2008-04-05
+
+        EXAMPLE:
+        sage: F=GF(3^6,'a')
+        sage: a=F.gen()
+        sage: E= EllipticCurve([0,1,1,a,a])
+        sage: E.cardinality()
+        762
+        sage: A,G=E.abelian_group() ## set since this E is cyclic
+        sage: P=G[0]
+        sage: Q=400*P
+        sage: P.discrete_log(Q)
+        400
+        """
+        if ord==None: ord=self.order()
+        try:
+            return generic.discrete_log(Q,self,ord,operation='+')
+        except:
+            raise ValueError, "ECDLog problem has no solution"
+
+
+    def order(self):
+        """
+        Return the order of this point on the elliptic curve.
+
+        EXAMPLES:
+            sage: k.<a> = GF(5^5)
+            sage: E = EllipticCurve(k,[2,4]); E
+            Elliptic Curve defined by y^2  = x^3 + 2*x + 4 over Finite Field in a of size 5^5
+            sage: P = E(3*a^4 + 3*a , 2*a + 1 )
+            sage: P.order()
+            3227
+            sage: Q = E(0,2)
+            sage: Q.order()
+            7
+
+            In the next example, the cardinality of E will be computed
+            (using SEA) and cached:
+
+            sage: p=next_prime(2^150)
+            sage: E=EllipticCurve(GF(p),[1,1])
+            sage: P=E(831623307675610677632782670796608848711856078, 42295786042873366706573292533588638217232964)
+            sage: P.order()
+            1427247692705959881058262545272474300628281448
+            sage: P.order()==E.cardinality()
+            True
+
+
+        ALGORITHM: Use generic functions.  If the group order is
+        known, use order_from_multiple(), otherwise use
+        order_from_bounds() with the Hasse bounds.  In the latter case
+        we might find that we have a generator, in which case it is
+        cached.
+
+        We do not cause the group order to be calculated when not
+        known, since this function is used in determining the group
+        order via computation of several random points and their
+        orders.
+
+        AUTHOR: John Cremona, 2008-02-10, adapted 2008-04-05 to use
+        generic functions
+
+        """
+        try:
+            return self._order
+        except AttributeError:
+            pass
+        if self.is_zero():
+            return rings.Integer(1)
+        E = self.curve()
+        K = E.base_ring()
+        bounds = ell_generic.Hasse_bounds(K.order())
+
+        try:
+            M = E._order
+            try:
+                plist = E._prime_factors_of_order
+            except:
+                plist = M.prime_divisors()
+                E._prime_factors_of_order = plist
+            N = generic.order_from_multiple(self,M,plist,operation='+')
+        except:
+            if K.is_prime_field():
+                M = E.cardinality() # computed and cached
+                plist = M.prime_divisors()
+                E._prime_factors_of_order = plist
+                N = generic.order_from_multiple(self,M,plist,operation='+')
+            else:
+                N = generic.order_from_bounds(self,bounds,operation='+')
+
+        if 2*N>bounds[1]: # then we have a generator, so cache this
+            try:
+                dummy = E._order
+            except:
+                E._order = N
+            try:
+                dummy = E.__abelian_group
+            except:
+                E.__abelian_group = AbelianGroup([N]), (self,)
+
+        self._order = N
+        return self._order
+
 

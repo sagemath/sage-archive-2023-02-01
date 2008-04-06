@@ -64,7 +64,9 @@ def DyckWord(dw=None, noncrossing_partition=None):
     else:
         l = dw
 
-    if l in DyckWords() or is_a_prefix(l):
+    if isinstance(l, DyckWord_class):
+        return l
+    elif l in DyckWords() or is_a_prefix(l):
         return DyckWord_class(l)
     else:
         raise ValueError, "invalid Dyck word"
@@ -390,7 +392,7 @@ class DyckWord_class(CombinatorialObject):
 
         mode = "left"
         makeup_steps = 0
-        l = self.list[:]
+        l = self._list[:]
         l.reverse()
 
         for move in l:
@@ -486,6 +488,7 @@ class DyckWords_all(CombinatorialClass):
             'Dyck words'
         """
         return "Dyck words"
+
     def __contains__(self, x):
         """
         TESTS:
@@ -610,12 +613,12 @@ class DyckWords_size(CombinatorialClass):
 
         dycks = []
         if k1 > k2:
-            dycks +=  map( lambda x: [open_symbol] + x.list, DyckWords_size(k1-1, k2).list() )
+            dycks +=  map( lambda x: [open_symbol] + x._list, DyckWords_size(k1-1, k2).list() )
 
         for i in range(k2):
             for d1 in DyckWords_size(i,i).list():
                 for d2 in DyckWords_size(k1-i-1, k2-i-1).list():
-                    dycks.append( [open_symbol] + d1.list + [close_symbol] + d2.list)
+                    dycks.append( [open_symbol] + d1._list + [close_symbol] + d2._list)
 
         dycks.sort()
         dycks.reverse()

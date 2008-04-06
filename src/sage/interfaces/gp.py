@@ -403,6 +403,19 @@ class GpElement(ExpectElement):
         GP.set_real_precision(orig)
         return sage.rings.complex_number.ComplexNumber(CC, real, imag )
 
+    def _complex_double_(self, CDF):
+        """
+        Returns this value as a CDF element.
+
+        EXAMPLES:
+            sage: CDF(gp(pi+I*e))
+            3.14159265359 + 2.71828182846*I
+        """
+        # Retrieving values from another computer algebra system is
+        # slow anyway, right?
+        cc_val = self._complex_mpfr_field_(sage.rings.complex_field.ComplexField())
+        return CDF(cc_val)
+
     def __len__(self):
         return int(self.length())
 

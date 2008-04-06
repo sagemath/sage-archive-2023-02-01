@@ -13,7 +13,7 @@ EXAMPLES:
     sage: SetPartitions(3).count()
     5
 
-  Here is the list of them:
+  Here is the list of them
 
     sage: SetPartitions(3).list() #random due to the sets
     [{{1, 2, 3}}, {{2, 3}, {1}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{2}, {3}, {1}}]
@@ -49,7 +49,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.sets.set import Set, EnumeratedSet, is_Set
+from sage.sets.set import Set, EnumeratedSet, is_Set, Set_object_enumerated
 import sage.combinat.partition as partition
 import sage.rings.integer
 import __builtin__
@@ -60,6 +60,7 @@ import sage.combinat.set_partition_ordered as set_partition_ordered
 import copy
 from combinat import CombinatorialClass, CombinatorialObject, bell_number, stirling_number2
 from subword import Subwords
+from misc import IterableFunctionCall
 
 
 def SetPartitions(s, part=None):
@@ -68,9 +69,17 @@ def SetPartitions(s, part=None):
     nonempty subsets with union $S$ and is represented by a sorted
     list of such subsets.
 
-    partitions_set returns the set of all unordered partitions of the
-    list $S$ of increasing positive integers into k pairwise disjoint
-    nonempty sets. If k is omitted then all partitions are returned.
+    SetPartitions(s) returns the class of all set partitions of the set
+    s, which can be a set or a string; if a string, each character is
+    considered an element.
+
+    SetPartitions(n), where n is an integer, returns the class of all
+    set partitions of the set [1, 2,..., n].
+
+    You may specify a second argument k. If k is an integer,
+    SetPartitions returns the class of set partitions into k parts; if
+    it is an integer partition, SetPartitions returns the class of set
+    partitions whose block sizes correspond to that integer partition.
 
     The Bell number $B_n$, named in honor of Eric Temple Bell, is
     the number of different partitions of a set with n elements.
@@ -79,6 +88,17 @@ def SetPartitions(s, part=None):
         sage: S = [1,2,3,4]
         sage: SetPartitions(S,2)
         Set partitions of [1, 2, 3, 4] with 2 parts
+        sage: SetPartitions([1,2,3,4], [3,1]).list()
+        [{{2, 3, 4}, {1}}, {{1, 3, 4}, {2}}, {{3}, {1, 2, 4}}, {{4}, {1, 2, 3}}]
+        sage: SetPartitions(7, [3,3,1]).count()
+        70
+
+      In strings, repeated letters are considered distinct:
+
+        sage: SetPartitions('aabcd').count()
+        52
+        sage: SetPartitions('abcde').count()
+        52
 
 
     REFERENCES:
@@ -109,6 +129,7 @@ def SetPartitions(s, part=None):
 
 
 class SetPartitions_setparts(CombinatorialClass):
+    object_class = Set_object_enumerated
     def __init__(self, set, parts):
         """
         TESTS:
@@ -179,12 +200,27 @@ class SetPartitions_setparts(CombinatorialClass):
         return len(self.list())
 
 
-    def __iterator_part(self, part):
+    def _iterator_part(self, part):
+        """
+        Returns an iterator for the set partitions with block sizes
+        corresponding to the partition part.
+
+        INPUT:
+            part -- a Partition object
+
+        EXAMPLES:
+            sage: S = SetPartitions(3)
+            sage: it = S._iterator_part(Partition([1,1,1]))
+            sage: list(sorted(map(list, it.next())))
+            [[1], [2], [3]]
+            sage: S21 = SetPartitions(3,Partition([2,1]))
+            sage: len(list(S._iterator_part(Partition([2,1])))) == S21.count()
+            True
+        """
         set = self.set
 
         nonzero = []
-        p = partition.Partition(part)
-        expo = p.to_exp()
+        expo = part.to_exp()
 
         for i in range(len(expo)):
             if expo[i] != 0:
@@ -195,7 +231,7 @@ class SetPartitions_setparts(CombinatorialClass):
         blocs = set_partition_ordered.OrderedSetPartitions(copy.copy(set), taillesblocs).list()
 
         for b in blocs:
-            lb = [ _listbloc(nonzero[i][0], nonzero[i][1], b[i]) for i in range(len(nonzero)) ]
+            lb = [ IterableFunctionCall(_listbloc, nonzero[i][0], nonzero[i][1], b[i]) for i in range(len(nonzero)) ]
             for x in itertools.imap(lambda x: _union(x), CartesianProduct( *lb )):
                 yield x
 
@@ -210,7 +246,7 @@ class SetPartitions_setparts(CombinatorialClass):
             [{{1, 2, 3}}, {{2, 3}, {1}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{2}, {3}, {1}}]
         """
         for p in self.parts:
-            for sp in self.__iterator_part(p):
+            for sp in self._iterator_part(p):
                 yield sp
 
 
@@ -286,10 +322,10 @@ def _listbloc(n, nbrepets, listint=None):
     Not to be called by the user.
 
     EXAMPLES:
-        sage: sage.combinat.set_partition._listbloc(2,1)
+        sage: list(sage.combinat.set_partition._listbloc(2,1))
         [{{1, 2}}]
         sage: l = [Set([Set([3, 4]), Set([1, 2])]), Set([Set([2, 4]), Set([1, 3])]), Set([Set([2, 3]), Set([1, 4])])]
-        sage: sage.combinat.set_partition._listbloc(2,2,[1,2,3,4]) == l
+        sage: list(sage.combinat.set_partition._listbloc(2,2,[1,2,3,4])) == l
         True
 
 
@@ -299,7 +335,8 @@ def _listbloc(n, nbrepets, listint=None):
 
 
     if nbrepets == 1:
-        return [Set([listint])]
+        yield Set([listint])
+        return
 
     l = __builtin__.list(listint)
     l.sort()
@@ -307,13 +344,12 @@ def _listbloc(n, nbrepets, listint=None):
     new_listint = Set(l[1:])
 
     f = lambda u, v: u.union(_set_union([smallest,v]))
-    res = []
 
     for ssens in subset.Subsets(new_listint, n-1):
         for z in _listbloc(n, nbrepets-1, new_listint-ssens):
-            res.append(f(z,ssens))
+            yield f(z,ssens)
 
-    return res
+
 
 def _union(s):
     """

@@ -33,6 +33,8 @@ def init(object_directory=None, globs={}):
     global sage_globals, globals_at_init, global_names_at_init
     global EMBEDDED_MODE
 
+    os.environ['PAGER'] = 'cat'
+
     sage_globals = globs
     #globals_at_init = set(globs.keys())
     globals_at_init = globs.values()
@@ -252,7 +254,7 @@ def syseval(system, cmd, dir=None):
         except (AttributeError, TypeError):
             pass
     try:
-        return system.eval(cmd, globals=sage_globals, locals = sage_globals)
+        return system.eval(cmd, sage_globals, locals = sage_globals)
     except TypeError:
         return system.eval(cmd)
 

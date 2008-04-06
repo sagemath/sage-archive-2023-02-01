@@ -127,8 +127,21 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: g = R(f); g
             x^2 + x + 1
 
+        NTL polynomials are limited in size to slightly under the word length:
+            sage: ZZ['x']({2^3: 1})
+            x^8
+            sage: ZZ['x']({2^30: 1})               # 32-bit
+            sage: ZZ['x']({2^62: 1})               # 64-bit
+            Traceback (most recent call last):
+            ...
+            OverflowError: Dense NTL integer polynomials have a maximum degree of 268435455    # 32-bit
+            OverflowError: Dense NTL integer polynomials have a maximum degree of 1152921504606846975    # 64-bit
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
+
+        cdef Py_ssize_t degree
+        cdef Py_ssize_t i
+        cdef ZZ_c y
 
         if x is None:
             return         # leave initialized to 0 polynomial.
@@ -144,7 +157,29 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
                 check = False
 
         elif isinstance(x, dict):
-            x = self._dict_to_list(x, ZZ(0))
+            x = x.items()
+            degree = 0
+            # find max degree to allocate only once
+            for ii, a in x:
+                i = ii[0] if PY_TYPE_CHECK_EXACT(ii, tuple) else ii # mpoly dict style has tuple keys
+                if i < 0:
+                    raise ValueError, "Negative monomial degrees not allowed: %s" % i
+                elif i > degree:
+                    degree = i
+            if degree >= NTL_OVFBND:
+                raise OverflowError, "Dense NTL integer polynomials have a maximum degree of %s" % (NTL_OVFBND-1)
+            ZZX_SetCoeff_long(self.__poly, degree, 1)
+            # now fill them in
+            for ii, a in x:
+                i = ii[0] if PY_TYPE_CHECK_EXACT(ii, tuple) else ii
+                if PY_TYPE_CHECK_EXACT(a, int):
+                    ZZX_SetCoeff_long(self.__poly, i, a)
+                else:
+                    if not PY_TYPE_CHECK(a, Integer):
+                        a = ZZ(a)
+                    mpz_to_ZZ(&y, &(<Integer>a).value)
+                    ZZX_SetCoeff(self.__poly, i, y)
+            return
 
         elif isinstance(x, pari_gen):
             x = [Integer(w) for w in x.Vecrev()]
@@ -165,15 +200,18 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         elif not isinstance(x, list):
             x = [x]   # constant polynomials
 
-        if check:
-            x = [Integer(z) for z in x]
-
-        cdef Py_ssize_t i
-        cdef ZZ_c y
+        if len(x) >= NTL_OVFBND:
+            raise OverflowError, "Dense NTL integer polynomials have a maximum degree of %s" % (NTL_OVFBND-1)
 
         for i from 0 <= i < len(x):
-            mpz_to_ZZ(&y, &(<Integer>x[i]).value)
-            ZZX_SetCoeff(self.__poly, i, y)
+            a = x[i]
+            if PY_TYPE_CHECK_EXACT(a, int):
+                ZZX_SetCoeff_long(self.__poly, i, a)
+            else:
+                if not PY_TYPE_CHECK(a, Integer):
+                    a = ZZ(a)
+                mpz_to_ZZ(&y, &(<Integer>a).value)
+                ZZX_SetCoeff(self.__poly, i, y)
 
 
     def content(self):
@@ -263,6 +301,65 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         P = self.parent()
         return P([0] * int(i) + v)
 
+    def _repr(self, name=None, bint latex=False):
+        """
+        Return string representatin of this polynomial.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ['x']
+            sage: (-x+1)^5
+            -x^5 + 5*x^4 - 10*x^3 + 10*x^2 - 5*x + 1
+        """
+        if name is None:
+            name = self.parent().variable_name()
+        cdef long i
+        all = []
+        for i from ZZX_deg(self.__poly) >= i >= 0:
+            sign = ZZ_sign(ZZX_coeff(self.__poly, i))
+            if sign:
+                if sign > 0:
+                    sign_str = '+'
+                    coeff_str = ZZ_to_PyString(&self.__poly.rep.elts()[i])
+                else:
+                    sign_str = '-'
+                    coeff_str = ZZ_to_PyString(&self.__poly.rep.elts()[i])[1:]
+                if i > 0:
+                    if coeff_str == '1':
+                        coeff_str = ''
+                    elif not latex:
+                        coeff_str = coeff_str + '*'
+                if i > 1:
+                    if latex:
+                        PyList_Append(all, " %s %s%s^{%s}" % (sign_str, coeff_str, name, i))
+                    else:
+                        PyList_Append(all, " %s %s%s^%s" % (sign_str, coeff_str, name, i))
+                elif i == 1:
+                    PyList_Append(all, " %s %s%s" % (sign_str, coeff_str, name))
+                else:
+                    PyList_Append(all, " %s %s" % (sign_str, coeff_str))
+        if len(all) == 0:
+            return '0'
+        leading = all[0]
+        if leading[1] == '+':
+            all[0] = leading[3:]
+        else:
+            all[0] = '-' + leading[3:]
+        return ''.join(all)
+
+    def _latex_(self, name=None):
+        """
+        Return the latex representation of this polynomial.
+
+        EXAMPLES:
+            sage: R.<t> = ZZ['t']
+            sage: latex(t^10-t^2-5*t+1)
+            t^{10} - t^{2} - 5t + 1
+            sage: latex(cyclotomic_polynomial(10^5))
+            x^{40000} - x^{30000} + x^{20000} - x^{10000} + 1
+        """
+        if name is None:
+            name = self.parent().latex_variable_names()[0]
+        return self._repr(name, latex=True)
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         r"""
@@ -452,7 +549,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: u*F + v*G
             27*x^2 + 54
             sage: x.xgcd(P(0))
-            (1, 0, x)
+            (x, 1, 0)
             sage: f = P(0)
             sage: f.xgcd(x)
             (x, 0, 1)

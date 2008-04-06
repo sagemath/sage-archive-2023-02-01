@@ -115,18 +115,20 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
 
     def _gap_init_(self):
         """
-        Return a string that when evaluated in GAP defines this matrix group element.
+        Return a string representation of a Gap object corresponding to this matrix group element.
 
         EXAMPLES:
             sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])]); g = G.1
-            sage: g._gap_init_()
-            '[[Z(7)^0,0*Z(7)],[0*Z(7),Z(7)^2]]'
+            sage: g._gap_init_() # The variable $sage27 belongs to gap(k) and is somehow random
+            '[[Z(7)^0,0*Z(7)],[0*Z(7),Z(7)^2]]*One($sage27)'
             sage: gap(g._gap_init_())
             [ [ Z(7)^0, 0*Z(7) ], [ 0*Z(7), Z(7)^2 ] ]
 
         It may be better to use gap(the matrix), since the result is cached.
             sage: gap(G.1)
             [ [ Z(7)^0, 0*Z(7) ], [ 0*Z(7), Z(7)^2 ] ]
+            sage: gap(G.1).IsMatrix()
+            true
         """
         return self.__mat._gap_init_()
 

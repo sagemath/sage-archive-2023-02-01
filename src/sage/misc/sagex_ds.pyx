@@ -453,7 +453,7 @@ class Test:
             values: number of possible values to use
             cycles: number of operations to perform
         """
-        from random import randint
+        from sage.misc.prandom import randint
         t = BinaryTree()
         for i in xrange(cycles):
             r = randint(0,8)

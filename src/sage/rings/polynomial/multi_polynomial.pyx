@@ -1,4 +1,9 @@
+import sage.misc.misc as misc
 
+include "sage/ext/stdsage.pxi"
+from sage.rings.integer cimport Integer
+
+from sage.misc.derivative import multi_derivative
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -88,6 +93,16 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.coefficients()
             [6, 23, 1]
 
+            # Test the same stuff with ZZ -- different implementation
+            sage: R.<x,y,z> = MPolynomialRing(ZZ,3,order='degrevlex')
+            sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: f.coefficients()
+            [23, 6, 1]
+            sage: R.<x,y,z> = MPolynomialRing(ZZ,3,order='lex')
+            sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
+            sage: f.coefficients()
+            [6, 23, 1]
+
         AUTHOR:
             -- didier deshommes
         """
@@ -111,6 +126,117 @@ cdef class MPolynomial(CommutativeRingElement):
             raise ValueError, "var must be one of the generators of the parent polynomial ring."
         d = self.dict()
         return R(dict([(k, c) for k, c in d.iteritems() if k[ind] < n]))
+
+    def _fast_float_(self, *vars):
+        """
+        Returns a quickly-evaluating function on floats.
+
+        EXAMPLE:
+            sage: K.<x,y,z> = QQ[]
+            sage: f = (x+2*y+3*z^2)^2 + 42
+            sage: f(1, 10, 100)
+            901260483
+            sage: ff = f._fast_float_()
+            sage: ff(0, 0, 1)
+            51.0
+            sage: ff(0, 1, 0)
+            46.0
+            sage: ff(1, 10, 100)
+            901260483.0
+            sage: ff_swapped = f._fast_float_('z', 'y', 'x')
+            sage: ff_swapped(100, 10, 1)
+            901260483.0
+            sage: ff_extra = f._fast_float_('x', 'A', 'y', 'B', 'z', 'C')
+            sage: ff_extra(1, 7, 10, 13, 100, 19)
+            901260483.0
+
+        Currently, we use a fairly unoptimized method that evaluates one
+        monomial at a time, with no sharing of repeated computations and
+        with useless additions of 0 and multiplications by 1:
+            sage: list(ff)
+            ['push 0.0', 'push 12.0', 'load 1', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 0', 'load 1', 'mul', 'mul', 'add', 'push 42.0', 'add', 'push 1.0', 'load 0', 'dup', 'mul', 'mul', 'add', 'push 9.0', 'load 2', 'dup', 'mul', 'dup', 'mul', 'mul', 'add', 'push 6.0', 'load 0', 'load 2', 'dup', 'mul', 'mul', 'mul', 'add', 'push 4.0', 'load 1', 'dup', 'mul', 'mul', 'add']
+
+        TESTS:
+            sage: from sage.ext.fast_eval import fast_float
+            sage: list(fast_float(K(0)))
+            ['push 0.0']
+            sage: list(fast_float(K(17)))
+            ['push 0.0', 'push 17.0', 'add']
+            sage: list(fast_float(y))
+            ['push 0.0', 'push 1.0', 'load 1', 'mul', 'add']
+        """
+        from sage.ext.fast_eval import fast_float_arg, fast_float_constant
+        my_vars = self.parent().variable_names()
+        vars = list(vars)
+        if len(vars) == 0:
+            indices = range(len(my_vars))
+        else:
+            indices = [vars.index(v) for v in my_vars]
+        x = [fast_float_arg(i) for i in indices]
+
+        n = len(x)
+        expr = fast_float_constant(0)
+        for (m,c) in self.dict().iteritems():
+            monom = misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
+            expr = expr + monom
+        return expr
+
+
+    def derivative(self, *args):
+        r"""
+        The formal derivative of this polynomial, with respect to
+        variables supplied in args.
+
+        Multiple variables and iteration counts may be supplied; see
+        documentation for the global derivative() function for more details.
+
+        SEE ALSO:
+            self._derivative()
+
+        EXAMPLES:
+
+        Polynomials implemented via Singular:
+            sage: R.<x, y> = PolynomialRing(FiniteField(5))
+            sage: f = x^3*y^5 + x^7*y
+            sage: type(f)
+            <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
+            sage: f.derivative(x)
+            2*x^6*y - 2*x^2*y^5
+            sage: f.derivative(y)
+            x^7
+
+        Generic multivariate polynomials:
+            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: S.<x, y> = PolynomialRing(R)
+            sage: f = (t^2 + O(t^3))*x^2*y^3 + (37*t^4 + O(t^5))*x^3
+            sage: type(f)
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            sage: f.derivative(x)   # with respect to x
+            (2*t^2 + O(t^3))*x*y^3 + (111*t^4 + O(t^5))*x^2
+            sage: f.derivative(y)   # with respect to y
+            (3*t^2 + O(t^3))*x^2*y^2
+            sage: f.derivative(t)   # with respect to t (recurses into base ring)
+            (2*t + O(t^2))*x^2*y^3 + (148*t^3 + O(t^4))*x^3
+            sage: f.derivative(x, y) # with respect to x and then y
+            (6*t^2 + O(t^3))*x*y^2
+            sage: f.derivative(y, 3) # with respect to y three times
+            (6*t^2 + O(t^3))*x^2
+            sage: f.derivative()    # can't figure out the variable
+            Traceback (most recent call last):
+            ...
+            ValueError: must specify which variable to differentiate with respect to
+
+        Polynomials over the symbolic ring (just for fun....):
+            sage: x = var("x")
+            sage: S.<u, v> = PolynomialRing(SR)
+            sage: f = u*v*x
+            sage: f.derivative(x) == u*v
+            True
+            sage: f.derivative(u) == v*x
+            True
+        """
+        return multi_derivative(self, args)
+
 
     def polynomial(self, var):
         """
@@ -200,9 +326,7 @@ cdef class MPolynomial(CommutativeRingElement):
             z + p
             sage: R = Qp(7)['x,y,z,p']; S = ZZ['x']['y,z,t']['p'] # shouldn't work, but should throw a better error
             sage: R(S.0)
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot create a p-adic out of <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            p
         """
         from polydict import ETuple
         if not self:
@@ -310,8 +434,9 @@ cdef class MPolynomial(CommutativeRingElement):
         return self._hash_c()
 
     def args(self):
-        """
-        Returns the named of the arguments of self, in the order they are accepted from call.
+        r"""
+        Returns the named of the arguments of \code{self}, in the
+        order they are accepted from call.
 
         EXAMPLES:
             sage: R.<x,y> = ZZ[]
@@ -319,6 +444,156 @@ cdef class MPolynomial(CommutativeRingElement):
             (x, y)
         """
         return self._parent.gens()
+
+    def homogenize(self, var='h'):
+        r"""
+        Return \code{self} if \code{self} is homogeneous.  Otherwise
+        return a homogenized polynomial for \code{self}. If a string
+        is given, return a polynomial in one more variable named after
+        the strig such that setting that variable equal to 1 yields
+        self. This variable is added to the end of the variables. If a
+        variable in \code{self.parent()} is given, this variable is
+        used to homogenize the polynomial. If an integer is given, the
+        variable with this index is used for homogenization.
+
+        INPUT:
+            var -- either a variable name, variable index or a
+                   variable (default: 'h').
+
+        OUTPUT:
+            a multivariate polynomial
+
+        EXAMPLES:
+            sage: P.<x,y> = PolynomialRing(QQ,2)
+            sage: f = x^2 + y + 1 + 5*x*y^10
+            sage: g = f.homogenize('z'); g
+            5*x*y^10 + x^2*z^9 + y*z^10 + z^11
+            sage: g.parent()
+            Multivariate Polynomial Ring in x, y, z over Rational Field
+
+            sage: f.homogenize(x)
+            2*x^11 + x^10*y + 5*x*y^10
+
+            sage: f.homogenize(0)
+            2*x^11 + x^10*y + 5*x*y^10
+
+            sage: x, y = Zmod(3)['x', 'y'].gens()
+            sage: (x + x^2).homogenize(y)
+            x^2 + x*y
+
+            sage: x, y = Zmod(3)['x', 'y'].gens()
+            sage: (x + x^2).homogenize(y).parent()
+            Multivariate Polynomial Ring in x, y over Ring of integers modulo 3
+
+            sage: x, y = GF(3)['x', 'y'].gens()
+            sage: (x + x^2).homogenize(y)
+            x^2 + x*y
+
+            sage: x, y = GF(3)['x', 'y'].gens()
+            sage: (x + x^2).homogenize(y).parent()
+            Multivariate Polynomial Ring in x, y over Finite Field of size 3
+
+        """
+        P = self.parent()
+
+        if self.is_homogeneous():
+            return self
+
+        if PY_TYPE_CHECK(var, basestring):
+            V = list(P.variable_names())
+            try:
+                i = V.index(var)
+                return self._homogenize(i)
+            except ValueError:
+                P = P.__class__(P.base_ring(), len(V)+1, V + [var], order=P.term_order())
+                return P(self)._homogenize(len(V))
+
+        elif PY_TYPE_CHECK(var, MPolynomial) and \
+             ((<MPolynomial>var)._parent is P or (<MPolynomial>var)._parent == P):
+            V = list(P.gens())
+            try:
+                i = V.index(var)
+                return self._homogenize(i)
+            except ValueError:
+                P = P.change_ring(names=P.variable_names() + [str(var)])
+                return P(self)._homogenize(len(V))
+
+        elif PY_TYPE_CHECK(var, int) or PY_TYPE_CHECK(var, Integer):
+            if 0 <= var < P.ngens():
+                return self._homogenize(var)
+            else:
+                raise TypeError, "Variable index %d must be < parent(self).ngens()."%var
+        else:
+            raise TypeError, "Parameter var must be either a variable, a string or an integer."
+
+    def is_homogeneous(self):
+        r"""
+        Return \code{True} if self is a homogeneous polynomial.
+
+        TESTS:
+            sage: from sage.rings.polynomial.multi_polynomial import MPolynomial
+            sage: P.<x, y> = MPolynomialRing(QQ, 2)
+            sage: MPolynomial.is_homogeneous(x+y)
+            True
+            sage: MPolynomial.is_homogeneous(P(0))
+            True
+            sage: MPolynomial.is_homogeneous(x+y^2)
+            False
+            sage: MPolynomial.is_homogeneous(x^2 + y^2)
+            True
+            sage: MPolynomial.is_homogeneous(x^2 + y^2*x)
+            False
+            sage: MPolynomial.is_homogeneous(x^2*y + y^2*x)
+            True
+
+        NOTE: This is a generic implementation which is likely
+        overridden by subclasses.
+        """
+        M = self.monomials()
+        d = M.pop().degree()
+        for m in M:
+            if m.degree() != d:
+                return False
+        else:
+            return True
+
+    def __mod__(self, other):
+        """
+        EXAMPLE:
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = (x^2*y + 2*x - 3)
+            sage: g = (x + 1)*f
+            sage: g % f
+            0
+
+            sage: (g+1) % f
+            1
+
+            sage: M = x*y
+            sage: N = x^2*y^3
+            sage: M.divides(N)
+            True
+        """
+        q,r = self.quo_rem(other)
+        return r
+
+    def change_ring(self, R):
+        """
+        Return a copy of this polynomial but with coefficients in R,
+        if at all possible.
+
+        INPUT:
+            R -- a ring
+
+        EXAMPLE:
+            sage: R.<x,y> = QQ[]
+            sage: f = x^3 + 3/5*y + 1
+            sage: f.change_ring(GF(7))
+            x^3 + 2*y + 1
+        """
+        P = self._parent
+        P = P.change_ring(R)
+        return P(self)
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

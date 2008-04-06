@@ -7,6 +7,7 @@ import sage.structure.element
 ParentWithGens = sage.structure.parent_gens.ParentWithGens
 Rational = sage.rings.rational.Rational
 Integer = sage.rings.integer.Integer
+IntegerWrapper = sage.rings.integer.IntegerWrapper
 IntegerRing_class = sage.rings.integer_ring.IntegerRing_class
 InfinityElement = sage.structure.element.InfinityElement
 PlusInfinityElement = sage.structure.element.PlusInfinityElement
@@ -50,6 +51,17 @@ class ExtendedIntegerRing_class(_uniq0, IntegerRing_class):
 
     def _latex_(self):
         return "\\mathbf{Z}\\cup\\{\\pm\\infty\\}"
+
+    def __cmp__(self, other):
+        """
+        EXAMPLES:
+            sage: cmp(ExtendedIntegerRing, ExtendedRationalField) #random due to architecture dependence
+            1
+            sage: cmp(ExtendedIntegerRing, ExtendedIntegerRing)
+            0
+        """
+        return cmp(other.__class__, ExtendedIntegerRing_class)
+
 
     def __call__(self, x, base = 0):
         if isinstance(x, sage.rings.infinity.MinusInfinity):
@@ -151,9 +163,9 @@ class ExtendedIntegerRing_class(_uniq0, IntegerRing_class):
 
 ExtendedIntegerRing = ExtendedIntegerRing_class()
 
-class ExtendedInteger(Integer):
+class ExtendedInteger(IntegerWrapper):
     def __init__(self, x = None, base = 0):
-        Integer.__init__(self, x, base)
+        IntegerWrapper.__init__(self, x, base)
         self._set_parent(ExtendedIntegerRing)
 
     def __cmp__(self, other):
@@ -184,8 +196,12 @@ class ExtendedInteger(Integer):
     def square_root(self):
         return self.parent()(Integer.square_root(self))
 
-    def nth_root(self):
-        return self.parent()(Integer.nth_root(self))
+    def nth_root(self, n, report_exact=0):
+        x, exact = Integer.nth_root(self, n, report_exact)
+        if report_exact:
+            return self.parent()(x), exact
+        else:
+            return self.parent()(x)
 
     def _add_(self, right):
         if isinstance(right, InfinityElement):

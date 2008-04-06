@@ -29,7 +29,10 @@ cdef class Matrix_dense(matrix.Matrix):
         Return a copy of this matrix.  Changing the entries of the
         copy will not change the entries of this matrix.
         """
-        return self.new_matrix(entries=self.list(), coerce=False, copy=False)
+        A = self.new_matrix(entries=self.list(), coerce=False, copy=False)
+        if self.subdivisions is not None:
+            A.subdivide(*self.get_subdivisions())
+        return A
 
     def __hash__(self):
         """
@@ -159,6 +162,14 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: print A
             [1 2]
             [3 4]
+
+            sage: A.subdivide(None, 1); A
+            [1|2]
+            [3|4]
+            sage: A.transpose()
+            [1 3]
+            [---]
+            [2 4]
         """
         f = []
         e = self.list()
@@ -166,20 +177,51 @@ cdef class Matrix_dense(matrix.Matrix):
         for j in xrange(nc):
             for i in xrange(nr):
                 f.append(e[i*nc + j])
-        return self.new_matrix(nrows = nc, ncols = nr,
-                               entries = f, copy=False,
-                               coerce=False)
+        trans = self.new_matrix(nrows = nc, ncols = nr,
+                                entries = f, copy=False,
+                                coerce=False)
+        if self.subdivisions is not None:
+            row_divs, col_divs = self.get_subdivisions()
+            trans.subdivide(col_divs, row_divs)
+        return trans
 
 
     def antitranspose(self):
+        """
+        Returns the anittranspose of self, without changing self.
+
+        EXAMPLES:
+            sage: A = matrix(2,3,range(6)); A
+            [0 1 2]
+            [3 4 5]
+            sage: A.antitranspose()
+            [5 2]
+            [4 1]
+            [3 0]
+
+            sage: A.subdivide(1,2); A
+            [0 1|2]
+            [---+-]
+            [3 4|5]
+            sage: A.antitranspose()
+            [5|2]
+            [-+-]
+            [4|1]
+            [3|0]
+        """
         f = []
         e = self.list()
         (nc, nr) = (self.ncols(), self.nrows())
         for j in reversed(xrange(nc)):
             for i in reversed(xrange(nr)):
                 f.append(e[i*nc + j])
-        return self.new_matrix(nrows = nc, ncols = nr,
-                               entries = f, copy=False, coerce=False)
+        trans = self.new_matrix(nrows = nc, ncols = nr,
+                                entries = f, copy=False, coerce=False)
+        if self.subdivisions is not None:
+            row_divs, col_divs = self.get_subdivisions()
+            trans.subdivide(list(reversed([nc - t for t in col_divs])),
+                            list(reversed([nr - t for t in row_divs])))
+        return trans
 
     def apply_morphism(self, phi):
         """
@@ -220,7 +262,10 @@ cdef class Matrix_dense(matrix.Matrix):
         R = phi.codomain()
         M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
                    self._ncols, sparse=False)
-        return M([phi(z) for z in self.list()])
+        image = M([phi(z) for z in self.list()])
+        if self.subdivisions is not None:
+            image.subdivide(*self.get_subdivisions())
+        return image
 
     def apply_map(self, phi, R=None):
         """
@@ -263,4 +308,7 @@ cdef class Matrix_dense(matrix.Matrix):
             R = v.universe()
         M = sage.matrix.matrix_space.MatrixSpace(R, self._nrows,
                    self._ncols, sparse=False)
-        return M(v)
+        image = M(v)
+        if self.subdivisions is not None:
+            image.subdivide(*self.get_subdivisions())
+        return image

@@ -155,6 +155,18 @@ class FreeAlgebra_generic(Algebra):
         sage.structure.parent_gens.ParentWithGens.__init__(self, R, names)
 
     def is_field(self):
+        """
+        Return True if this Free Algebra is a field, which is only if
+        the base ring is a field and there are no generators
+
+        EXAMPLES:
+        sage: A=FreeAlgebra(QQ,0,'')
+        sage: A.is_field()
+        True
+        sage: A=FreeAlgebra(QQ,1,'x')
+        sage: A.is_field()
+        False
+        """
         if self.__ngens == 0:
             return self.base_ring().is_field()
         return False
@@ -164,7 +176,12 @@ class FreeAlgebra_generic(Algebra):
         Return True if this free algebra is commutative.
 
         EXAMPLES:
-
+            sage: R.<x> = FreeAlgebra(QQ,1)
+            sage: R.is_commutative()
+            True
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: R.is_commutative()
+            False
         """
         return self.__ngens <= 1 and self.base_ring().is_commutative()
 
@@ -214,7 +231,12 @@ class FreeAlgebra_generic(Algebra):
     def __call__(self, x):
         """
         Coerce x into self.
-        """
+
+        EXAMPLES:
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: R(3)
+            3
+       """
         if isinstance(x, FreeAlgebraElement):
             P = x.parent()
             if P is self:
@@ -338,11 +360,12 @@ class FreeAlgebra_generic(Algebra):
 
     def quotient(self, mons, mats, names):
         """
-        Returns a quotient algebra defined via the action of a free algebra A
-        on a (finitely generated) free module.  The input for the quotient algebra
-        is a list of monomials (in the underlying monoid for A) which form a free
-        basis for the module of A, and a list of matrices, which give the action
-        of the free generators of A on this monomial basis.
+        Returns a quotient algebra defined via the action of a free
+        algebra A on a (finitely generated) free module.  The input
+        for the quotient algebra is a list of monomials (in the
+        underlying monoid for A) which form a free basis for the
+        module of A, and a list of matrices, which give the action of
+        the free generators of A on this monomial basis.
         """
         import free_algebra_quotient
         return free_algebra_quotient.FreeAlgebraQuotient(self, mons, mats, names)

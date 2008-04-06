@@ -103,7 +103,6 @@ def is_Polynomial(f):
 
 from polynomial_compiled cimport CompiledPolynomialFunction
 
-#from polynomial_ring_constructor import PolynomialRing
 from polydict import ETuple
 
 cdef object is_AlgebraicRealField
@@ -2020,7 +2019,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
                 Rpari, Rdiff = new_Rpoly._pari_().nfinit(3)
 
-                AZ = polynomial_ring.PolynomialRing(QQ,'z')
+                AZ = QQ['z']
                 Raux = NumberField(AZ(Rpari[0]),'alpha')
 
                 S, gSRaux, fRauxS = Raux.change_generator(Raux(Rdiff))
@@ -2235,8 +2234,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if check_irreducible and not self.is_irreducible():
             raise ValueError, "polynomial must be irreducible"
 
-        return polynomial_ring.PolynomialRing(R.fraction_field(),
-                              self.parent().variable_name()).quotient(self, names)
+        return R.fraction_field()[self.parent().variable_name()].quotient(self, names)
 
 
     def constant_coefficient(self):

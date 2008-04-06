@@ -535,7 +535,7 @@ cdef class ntl_GF2X:
             y^5 + y^3 + y^2 + 1
         """
         if R==None:
-            from sage.rings.polynomial.polynomial_ring import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             from sage.rings.finite_field import FiniteField
             R = PolynomialRing(FiniteField(2), 'x')
 

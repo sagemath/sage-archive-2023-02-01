@@ -573,7 +573,7 @@ def supersingular_j(FF):
     else:
         D = supersingular_D(prime)
         DBCP = HilbertClassPolynomialDatabase()
-        hc_poly = rings.PolynomialRing(FF, 'x')(DBCP[D])
+        hc_poly = FF['x'](DBCP[D])
         root_hc_poly_list = list(hc_poly.roots())
 
         j_invss = root_hc_poly_list[0][0]
@@ -741,7 +741,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         Fp2 = self.__finite_field
         level = self.__level
         prime = Fp2.characteristic()
-        X = rings.PolynomialRing(Fp2, 'x').gen()
+        X = Fp2['x'].gen()
         jinv = supersingular_j(Fp2)
 
         dim = dimension_supersingular_module(prime, level)
@@ -888,7 +888,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         h = len(SS)
         R = self.base_ring()
         T_L = MatrixSpace(R,h)(0)
-        S, X = rings.PolynomialRing(Fp2, 'x').objgen()
+        S, X = Fp2['x'].objgen()
 
         if L in [3,5,7,11]:
             for i in range(len(SS)):
@@ -900,7 +900,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         else:
             DBMP = ClassicalModularPolynomialDatabase()
             phi_L = DBMP[L]
-            M, (x,y) = rings.PolynomialRing(Fp2,2, 'x,y').objgens()
+            M, (x,y) =Fp2['x,y'].objgens()
             phi_L = phi_L(x,y)
 
             # As an optimization, we compute the coefficients of y and evaluate

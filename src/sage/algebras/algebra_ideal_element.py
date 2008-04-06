@@ -19,7 +19,7 @@ AUTHOR: David Kohel, 2005-09
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.algebras.algebra_element import AlgebraElement
 
 class AlgebraIdealElement(AlgebraElement):

@@ -2,10 +2,10 @@
 Big O for various types (power series, p-adics, etc.)
 """
 
-import arith
+import sage.rings.arith as arith
 import laurent_series_ring_element
-import padics.factory
-import padics.padic_generic_element
+import sage.rings.padics.factory as padics_factory
+import sage.rings.padics.padic_generic_element as padic_generic_element
 import power_series_ring_element
 import integer
 import rational
@@ -26,9 +26,9 @@ def O(x):
         if len(F) != 1:
             raise ArithmeticError, "x must be prime power"
         p, r = F[0]
-        return padics.factory.Zp(p, prec = r, type = 'capped-rel')(0, absprec = r)
+        return padics_factory.Zp(p, prec = r, type = 'capped-rel')(0, absprec = r)
 
-    elif isinstance(x, padics.padic_generic_element.pAdicGenericElement):
+    elif isinstance(x, padic_generic_element.pAdicGenericElement):
          return x.parent()(0, absprec = x.valuation())
     raise ArithmeticError, "O(x) not defined"
 

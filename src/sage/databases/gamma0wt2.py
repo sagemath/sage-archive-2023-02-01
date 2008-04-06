@@ -22,7 +22,7 @@ weight 2 on Gamma_0(N) for N <= 10000.
 
 import os
 
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.arith import GCD
 import sage.databases.db

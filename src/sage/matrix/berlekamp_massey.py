@@ -64,7 +64,7 @@ def berlekamp_massey(a):
         K = a[0].parent().fraction_field()
     except AttributeError:
         K = sage.rings.rational_field.RationalField()
-    R = polynomial_ring.PolynomialRing(K, name='x')
+    R = K['x']
     x = R.gen()
 
     f = {}
@@ -87,5 +87,4 @@ def berlekamp_massey(a):
     t = s[j].reverse()
     f = ~(t[t.degree()]) * t  # make monic  (~ is inverse in python)
     return f
-    return polynomial_ring.PolynomialRing(a[0].parent(),name='x')(f)
 

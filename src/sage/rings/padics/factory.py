@@ -1,6 +1,6 @@
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.padics.padic_ring_capped_relative import pAdicRingCappedRelative
 from sage.rings.padics.padic_ring_capped_absolute import pAdicRingCappedAbsolute
 from sage.rings.padics.padic_ring_fixed_mod import pAdicRingFixedMod
@@ -167,7 +167,7 @@ def Qq(q, prec = twenty, type = 'capped-rel', modulus = None, names=None, print_
     if modulus is None:
         from sage.rings.finite_field import FiniteField as GF
         from sage.rings.integer_ring import ZZ
-	from sage.rings.polynomial.polynomial_ring import PolynomialRing
+	from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         if qp_name is None:
             qp_name = (str(F[0][0]),)
         modulus = PolynomialRing(base, 'x')(GF(q, names).modulus().change_ring(ZZ))

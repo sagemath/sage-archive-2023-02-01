@@ -132,7 +132,6 @@ from sage.structure.parent_gens import normalize_names
 import arith
 import integer
 
-import polynomial.polynomial_ring as polynomial_ring
 import polynomial.polynomial_element as polynomial_element
 import polynomial.multi_polynomial_element as multi_polynomial_element
 
@@ -322,7 +321,7 @@ def conway_polynomial(p, n):
         RuntimeError: requested conway polynomial not in database.
     """
     (p,n)=(int(p),int(n))
-    R = polynomial_ring.PolynomialRing(FiniteField(p), 'x')
+    R = FiniteField(p)['x']
     try:
         return R(sage.databases.conway.ConwayPolynomials()[p][n])
     except KeyError:

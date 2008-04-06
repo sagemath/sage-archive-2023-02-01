@@ -61,7 +61,6 @@ from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singu
 from sage.structure.sequence import Sequence
 
 import multi_polynomial_ring
-import polynomial_ring
 
 from sage.rings.integer_ring import ZZ
 
@@ -995,7 +994,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         #construct ring if none
         if R == None:
-            R =  polynomial_ring.PolynomialRing(self.base_ring(),'x')
+            R =  self.base_ring()['x']
 
         monomial_coefficients = self._MPolynomial_element__element.dict()
 

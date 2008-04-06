@@ -287,7 +287,7 @@ AUTHOR: David Joyner (2006-06)
 import copy
 import sage.plot.plot
 import sage.interfaces.all
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.real_mpfr import RealField
 from sage.misc.sage_eval import sage_eval

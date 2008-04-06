@@ -79,7 +79,7 @@ REFERENCES:
 
 from sage.rings.finite_field import FiniteField as GF
 from sage.rings.integer_ring import ZZ
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.constructor import Matrix, random_matrix

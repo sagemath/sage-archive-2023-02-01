@@ -33,7 +33,7 @@ include "../../ext/stdsage.pxi"
 from sage.rings.arith import binomial, gcd
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.real_mpfi import RealIntervalField
 
 # RIF = RealIntervalField()

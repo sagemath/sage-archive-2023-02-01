@@ -17,7 +17,6 @@ Finite Extension Fields implemented via PARI.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import polynomial.polynomial_ring as polynomial_ring
 import polynomial.polynomial_element as polynomial_element
 import polynomial.multi_polynomial_element as multi_polynomial_element
 
@@ -173,6 +172,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: GF(19^2, 'a')
             Finite Field in a of size 19^2
         """
+        from finite_field import FiniteField as GF
         q = integer.Integer(q)
         if q < 2:
             raise ArithmeticError, "q must be a prime power"
@@ -181,7 +181,6 @@ class FiniteField_ext_pari(FiniteField_generic):
             raise ArithmeticError, "q must be a prime power"
 
         if F[0][1] > 1:
-            from finite_field import FiniteField as GF
             base_ring = GF(F[0][0])
         else:
             raise ValueError, "The size of the finite field must not be prime."
@@ -207,8 +206,7 @@ class FiniteField_ext_pari(FiniteField_generic):
                 #     self.__pari_modulus = pari.pari.finitefield_init(self.__char, self.__degree, self.variable_name())
                 # So instead we iterate through random polys until we find an irreducible one.
 
-                from finite_field import FiniteField as GF
-                R = polynomial_ring.PolynomialRing(GF(self.__char), 'x')
+                R = GF(self.__char)['x']
                 while True:
                     modulus = R.random_element(self.__degree)
                     modulus = modulus.monic()
@@ -216,7 +214,7 @@ class FiniteField_ext_pari(FiniteField_generic):
                         break
         assert not (modulus is None)
         if isinstance(modulus, (list, tuple)):
-            modulus = polynomial_ring.PolynomialRing(GF(self.__char), 'x')(modulus)
+            modulus = GF(self.__char)['x'](modulus)
         self.__modulus = modulus
         f = pari.pari(str(modulus))
         self.__pari_modulus = f.subst(modulus.parent().variable_name(), 'a') * self.__pari_one
@@ -604,7 +602,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             return self.__polynomial[name]
         except (AttributeError, KeyError):
             from finite_field import FiniteField as GF
-            R = polynomial_ring.PolynomialRing(GF(self.characteristic()), name)
+            R = GF(self.characteristic())[name]
             f = R(self._pari_modulus())
             try:
                 self.__polynomial[name] = f

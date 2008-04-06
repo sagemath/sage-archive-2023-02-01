@@ -12,7 +12,7 @@ Stream Cryptosystems.
 
 from sage.monoids.string_monoid import BinaryStrings
 from sage.rings.finite_field import FiniteField
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from stream_cipher import LFSRCipher, ShrinkingGeneratorCipher
 

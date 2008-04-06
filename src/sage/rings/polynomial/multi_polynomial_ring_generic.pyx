@@ -67,7 +67,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             False
 
         """
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.categories.pushout import PolynomialFunctor
         vars = self.variable_names()
         if len(vars) == 1:
@@ -85,7 +85,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def remove_var(self, var):
         vars = list(self.variable_names())
         vars.remove(str(var))
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(self.base_ring(), vars)
 
     cdef _coerce_c_impl(self, x):

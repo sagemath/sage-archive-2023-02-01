@@ -62,7 +62,7 @@ REFERENCES:
 
 import os
 
-import string
+from string import ascii_letters
 
 import pexpect
 
@@ -71,11 +71,11 @@ from sage.misc.misc import forall, tmp_filename
 
 from sage.structure.sage_object import SageObject
 from sage.interfaces.gfan import gfan
-from multi_polynomial_ideal import is_MPolynomialIdeal
-from multi_polynomial_ring import is_MPolynomialRing, MPolynomialRing
+from sage.rings.polynomial.multi_polynomial_ideal import is_MPolynomialIdeal
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing, MPolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from sage.plot.plot import *
+from sage.plot.plot import Graphics, line, polygon
 
 def prefix_check(str_list):
     """
@@ -471,7 +471,7 @@ class GroebnerFan(SageObject):
             # Define a polynomial ring in n variables
             # that are named a,b,c,d, ..., z, A, B, C, ...
             R = S.base_ring()
-            T = MPolynomialRing(R, n, string.ascii_letters[:n])
+            T = MPolynomialRing(R, n, ascii_letters[:n])
 
             # Define the homomorphism that sends the
             # generators of S to the generators of T.

@@ -32,7 +32,6 @@ import sys
 from ring import FiniteField as FiniteField_generic
 from sage.structure.parent_gens import normalize_names, ParentWithGens
 
-import polynomial.polynomial_ring as polynomial_ring
 import integer_mod_ring
 import integer
 import rational
@@ -142,7 +141,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         try:
             return self.__modulus
         except AttributeError:
-            x = polynomial_ring.PolynomialRing(self, 'x').gen()
+            x = self['x'].gen()
             self.__modulus = x - 1
         return self.__modulus
 
@@ -176,8 +175,8 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             return self.__polynomial[name]
         except  AttributeError:
             from sage.rings.finite_field import FiniteField
-            R = polynomial_ring.PolynomialRing(FiniteField(self.characteristic()), name)
-            f = polynomial_ring.PolynomialRing(self, name)([0,1])
+            R = FiniteField(self.characteristic())[name]
+            f = self[name]([0,1])
             try:
                 self.__polynomial[name] = f
             except (KeyError, AttributeError):

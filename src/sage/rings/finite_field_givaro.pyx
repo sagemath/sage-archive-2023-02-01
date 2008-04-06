@@ -1776,7 +1776,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             ret.append(coeff)
             quo = quo/b
         if not name is None and F.variable_name() != name:
-            from sage.rings.polynomial.polynomial_ring import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             return PolynomialRing(F.prime_subfield_C(), name)(ret)
         else:
             return F.polynomial_ring()(ret)

@@ -49,7 +49,6 @@ co = Conversion()
 
 # polynomial imports
 from sage.rings.polynomial.term_order import TermOrder
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
 from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
@@ -2937,7 +2936,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         #construct ring if none
         if R == None:
-            R =  PolynomialRing(k,'x')
+            R =  k['x']
 
         zero = k(0)
         coefficients = [zero] * (self.degree() + 1)

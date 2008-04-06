@@ -197,8 +197,7 @@ def cyclotomic_polynomial(n, var='x'):
         sage: cyclotomic_polynomial(11)
         x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
     """
-    return sage.rings.all.PolynomialRing(\
-                  sage.rings.all.ZZ, name=var).cyclotomic_polynomial(n)
+    return sage.rings.all.ZZ[var].cyclotomic_polynomial(n)
 
 def decomposition(x):
     """

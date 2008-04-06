@@ -67,7 +67,7 @@ from sage.rings.real_double import RDF
 from sage.rings.integer_ring import ZZ, IntegerRing_class
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.integer_mod_ring import IntegerModRing
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
@@ -84,7 +84,7 @@ from matrix cimport Matrix
 
 cimport sage.structure.element
 
-import matrix_space
+import sage.matrix.matrix_space as matrix_space
 
 ################
 # Used for modular HNF

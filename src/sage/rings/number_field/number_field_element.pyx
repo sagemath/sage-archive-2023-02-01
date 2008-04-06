@@ -43,7 +43,6 @@ include "../../ext/stdsage.pxi"
 import sage.rings.field_element
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
-import sage.rings.polynomial.polynomial_ring
 import sage.rings.rational_field
 import sage.rings.rational
 import sage.rings.integer_ring
@@ -731,7 +730,7 @@ cdef class NumberFieldElement(FieldElement):
 
         """
         # For now, use pari's factoring abilities
-        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(self.number_field(), 't')
+        R = self.number_field()['t']
         f = R([-self, 0, 1])
         roots = f.roots()
         if all:
@@ -755,7 +754,7 @@ cdef class NumberFieldElement(FieldElement):
         ALGORITHM:
             Use Pari to factor $x^n$ - \code{self} in K.
         """
-        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(self.number_field(), 't')
+        R = self.number_field()['t']
         if not self:
             return [self] if all else self
         f = (R.gen(0) << (n-1)) - self

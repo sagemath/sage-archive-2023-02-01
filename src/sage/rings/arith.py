@@ -98,8 +98,8 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
     """
 
     # TODO -- change to use PARI C library???
-    import sage.rings.polynomial.polynomial_ring
-    x = sage.rings.polynomial.polynomial_ring.PolynomialRing(
+    import sage.rings.polynomial.polynomial_ring_constructor
+    x = sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing(
         integer_ring.IntegerRing(), 'x').gen()
 
     if isinstance(z, (int, long, integer.Integer)):
@@ -1560,7 +1560,6 @@ def __factor_using_pari(n, int_=False, debug_level=0, proof=None):
     if int_:
         Z = int
     else:
-        import integer_ring
         Z = integer_ring.IntegerRing()
     prev = pari.get_debug_level()
     pari.set_debug_level(debug_level)

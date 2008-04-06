@@ -165,7 +165,7 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
 	    sage: R = Zp(3, 3, 'fixed-mod'); R.defining_polynomial('foo')
 	    (1 + O(3^3))*foo
         """
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(self, var).gen()
 
     def ground_ring(self):

@@ -213,7 +213,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: (w0 + 2*w8 + w13)^2
         w0^2 - 3*w0*w8 - 3*w8^2 + 2*w0*w13 - 3*w8*w13 + w13^2
     """
-    import polynomial_ring as m
+    import sage.rings.polynomial.polynomial_ring as m
 
     if is_Element(arg1) and not isinstance(arg1, (int, long, m.integer.Integer)):
         arg1 = repr(arg1)
@@ -292,7 +292,7 @@ def _save_in_cache(key, R):
 
 
 def _single_variate(base_ring, name, sparse):
-    import polynomial_ring as m
+    import sage.rings.polynomial.polynomial_ring as m
     name = normalize_names(1, name)
     key = (base_ring, name, sparse)
     R = _get_from_cache(key)
@@ -342,8 +342,8 @@ def _single_variate(base_ring, name, sparse):
 def _multi_variate(base_ring, names, n, sparse, order):
     names = normalize_names(n, names)
 
-    import multi_polynomial_ring as m
-    from term_order import TermOrder
+    import sage.rings.polynomial.multi_polynomial_ring as m
+    from sage.rings.polynomial.term_order import TermOrder
 
     order = TermOrder(order, n)
 
@@ -359,7 +359,7 @@ def _multi_variate(base_ring, names, n, sparse, order):
     if not R is None:
         return R
 
-    from multi_polynomial_libsingular import MPolynomialRing_libsingular
+    from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
     if m.integral_domain.is_IntegralDomain(base_ring):
         if n < 1:
             R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)

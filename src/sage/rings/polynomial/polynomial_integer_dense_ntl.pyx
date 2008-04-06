@@ -887,7 +887,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             raise ValueError, "factorization of 0 not defined"
         G = f.factormod(p)
         k = FiniteField(p)
-        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(k, names=self.parent().variable_name())
+        R = k[self.parent().variable_name()]
         return R(1)._factor_pari_helper(G, unit=R(self).leading_coefficient())
 
 
@@ -917,7 +917,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         if prec <= 0:
             raise ValueError, "prec must be positive"
         K = Zp(p, prec, type='capped-abs')
-        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
+        R = K[self.parent().variable_name()]
         return R(self).factor()
 
 

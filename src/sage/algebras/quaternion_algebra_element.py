@@ -21,7 +21,7 @@ import operator
 from sage.misc.misc import repr_lincomb
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import RationalField
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.algebras.free_algebra_quotient_element import FreeAlgebraQuotientElement
 from sage.rings.infinity import Infinity
 

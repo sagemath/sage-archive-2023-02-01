@@ -76,21 +76,22 @@ import sage.rings.ring_element as ring_element
 import sage.rings.field as field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.principal_ideal_domain as principal_ideal_domain
-import polynomial_element_generic
-import polynomial_element
+import sage.rings.polynomial.polynomial_element_generic as polynomial_element_generic
 import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing, IntegerRing
 import sage.rings.integer as integer
 import sage.rings.integer_mod_ring as integer_mod_ring
-from sage.libs.all import pari, pari_gen
+from sage.libs.pari.all import pari, pari_gen
 import sage.misc.defaults
 import sage.misc.latex as latex
-import multi_polynomial_element
-import padics.polynomial_padic_capped_relative_dense as polynomial_padic_capped_relative_dense
+import sage.rings.polynomial.multi_polynomial_element as multi_polynomial_element
+import sage.rings.polynomial.padics.polynomial_padic_capped_relative_dense as polynomial_padic_capped_relative_dense
 import sage.rings.polynomial.polynomial_integer_dense_ntl as polynomial_integer_dense_ntl
 import sage.rings.polynomial.polynomial_modn_dense_ntl as polynomial_modn_dense_ntl
 import sage.rings.polynomial.padics.polynomial_padic_flat
+from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.fraction_field_element import FractionFieldElement
+
 import cyclotomic
 
 ZZ_sage = IntegerRing()
@@ -99,7 +100,6 @@ from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_pContext as ntl_ZZ_pContext
 
 from sage.interfaces.all import singular as singular_default, is_SingularElement, is_MagmaElement
 
-from polynomial_singular_interface import PolynomialRing_singular_repr
 
 def is_PolynomialRing(x):
     """
@@ -134,7 +134,6 @@ def is_PolynomialRing(x):
     """
     return isinstance(x, PolynomialRing_general)
 
-from polynomial_ring_constructor import PolynomialRing
 
 #########################################################################################
 
@@ -414,6 +413,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         from sage.rings.padics.padic_field_lazy import pAdicFieldLazy
         from sage.rings.padics.padic_ring_capped_absolute import pAdicRingCappedAbsolute
         from sage.rings.padics.padic_ring_fixed_mod import pAdicRingFixedMod
+        import sage.rings.polynomial.polynomial_element as polynomial_element
 
         if not (cls is None):
             self.__polynomial_class = cls
@@ -461,6 +461,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.change_ring(QQ)
             Univariate Polynomial Ring in x over Rational Field
         """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
         if R.has_coerce_map_from(self.base_ring()):
             return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
         else:
@@ -476,6 +478,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.change_ring(GF(19^2,'b'))
             Univariate Polynomial Ring in ZZZ over Finite Field in b of size 19^2
         """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
         return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
 
     def change_var(self, var):
@@ -488,6 +492,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.change_var('y')
             Univariate Polynomial Ring in y over Integer Ring
         """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
         return PolynomialRing(self.base_ring(), names = var, sparse=self.is_sparse())
 
     def extend_variables(self, added_names, order = 'degrevlex'):
@@ -502,6 +508,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.extend_variables(('y', 'z'))
             Multivariate Polynomial Ring in x, y, z over Integer Ring
         """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
         if isinstance(added_names, str):
             added_names = added_names.split(',')
         return PolynomialRing(self.base_ring(), names = self.variable_names() + tuple(added_names), order = order)
@@ -912,8 +920,8 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
 
         EXAMPLES:
         """
-        import polynomial_quotient_ring
-        return polynomial_quotient_ring.PolynomialQuotientRing(self, f, names)
+        import sage.rings.polynomial.polynomial_quotient_ring
+        return sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing(self, f, names)
 
 
 
@@ -1083,6 +1091,8 @@ def polygen(ring_or_element, name="x"):
         base_ring = ring_or_element
     else:
         raise TypeError, "input must be a ring or ring element"
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
     t = PolynomialRing(base_ring, name)
     if t.ngens() > 1:
         return t.gens()
@@ -1102,4 +1112,5 @@ def polygens(base_ring, names="x"):
         sage: t
         (x, yz, abc)
     """
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
     return PolynomialRing(base_ring, names).gens()

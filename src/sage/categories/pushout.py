@@ -76,7 +76,8 @@ class PolynomialFunctor(ConstructionFunctor):
         self.multi_variate = multi_variate
         self.rank = 9
     def __call__(self, R):
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing, is_PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
         if self.multi_variate and (is_MPolynomialRing(R) or is_PolynomialRing(R)):
             return PolynomialRing(R.base_ring(), (list(R.variable_names()) + [self.var]))

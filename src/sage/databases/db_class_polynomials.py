@@ -20,7 +20,7 @@ import bz2, os
 import sage.misc.misc
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 DB_HOME = '%s/kohel'%sage.misc.misc.SAGE_DATA
 

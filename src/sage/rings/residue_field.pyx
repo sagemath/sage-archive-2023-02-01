@@ -73,7 +73,7 @@ from sage.structure.parent_base import ParentWithBase
 
 from sage.modules.free_module_element import FreeModuleElement
 
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 residue_field_cache = {}
 

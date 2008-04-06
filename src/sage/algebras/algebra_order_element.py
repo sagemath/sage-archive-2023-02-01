@@ -24,7 +24,7 @@ from sage.structure.element import bin_op
 from sage.rings.ring import Ring
 from sage.rings.integer import Integer
 from sage.rings.ring_element import RingElement
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.modules.free_module_element import FreeModuleElement
 from sage.algebras.algebra_element import AlgebraElement
 from sage.algebras.free_algebra_quotient_element import FreeAlgebraQuotientElement

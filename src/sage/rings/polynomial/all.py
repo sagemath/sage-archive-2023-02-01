@@ -18,17 +18,18 @@ Polynomials
 #*****************************************************************************
 
 # Quotient of polynomial ring
-from polynomial_quotient_ring import PolynomialQuotientRing, is_PolynomialQuotientRing
-from polynomial_quotient_ring_element import PolynomialQuotientRingElement
+from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing, is_PolynomialQuotientRing
+from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
 
 # Univariate Polynomial Rings
-from polynomial_ring import PolynomialRing, polygen, polygens, is_PolynomialRing
-from polynomial_element import is_Polynomial
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.polynomial_ring import polygen, polygens, is_PolynomialRing
+from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 # Multivariate Polynomial Rings
-from multi_polynomial_ring import MPolynomialRing, is_MPolynomialRing
-from term_order import TermOrder
-from multi_polynomial_element import degree_lowest_rational_function, is_MPolynomial
+from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing, is_MPolynomialRing
+from sage.rings.polynomial.term_order import TermOrder
+from sage.rings.polynomial.multi_polynomial_element import degree_lowest_rational_function, is_MPolynomial
 
 # Generic convolution
 from sage.rings.polynomial.convolution import convolution

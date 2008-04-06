@@ -895,7 +895,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             raise ValueError, "p must be prime"
         G = self._pari_().factormod(p)
         K = finite_field.FiniteField(p)
-        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
+        R = K[self.parent().variable_name()]
         return R(1)._factor_pari_helper(G, unit=R(self).leading_coefficient())
 
     def factor_padic(self, p, prec=10):
@@ -927,7 +927,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         if prec <= 0:
             raise ValueError, "prec must be positive"
         K = Qp(p, prec, type='capped-rel')
-        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
+        R = K[self.parent().variable_name()]
         return R(self).factor() # absprec = prec)
 
     def list(self):
@@ -992,7 +992,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             y.append(g)
         H = self._pari_().polhensellift(y, p, e)
         R = integer_mod_ring.IntegerModRing(p**e)
-        S = sage.rings.polynomial.polynomial_ring.PolynomialRing(R, self.parent().variable_name())
+        S = R[self.parent().variable_name()]
         return [S(eval(str(m.Vec().Polrev().Vec()))) for m in H]
 
 class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generic_domain):

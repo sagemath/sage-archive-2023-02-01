@@ -463,8 +463,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         AUTHOR:
          -- Craig Citro
         """
-        from polynomial.polynomial_ring import PolynomialRing
-        R = PolynomialRing(self.parent(), var)
+        R = self.parent()[var]
         return R([-self,1])
 
     def polynomial(self, var='x'):
@@ -480,8 +479,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             sage: type(a.polynomial())
             <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_mod_p'>
         """
-        from polynomial.polynomial_ring import PolynomialRing
-        R = PolynomialRing(self.parent(), var)
+        R = self.parent()[var]
         return R(self)
 
     def norm(self):

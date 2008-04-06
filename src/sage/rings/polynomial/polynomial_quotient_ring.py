@@ -23,7 +23,6 @@ EXAMPLES:
 
 import sage.rings.number_field.all
 import polynomial_element
-import polynomial_ring
 import sage.rings.rational_field
 import sage.rings.complex_field
 
@@ -31,7 +30,9 @@ import sage.rings.commutative_ring
 import sage.rings.field as field
 import sage.rings.integral_domain
 
-import polynomial_quotient_ring_element
+from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
+from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
+
 
 from sage.structure.parent_gens import ParentWithGens
 
@@ -123,7 +124,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
         sage: R.quotient(f)
         Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
     """
-    if not isinstance(ring, polynomial_ring.PolynomialRing_commutative):
+    if not isinstance(ring, PolynomialRing_commutative):
         raise TypeError, "ring must be a polynomial ring"
     if not isinstance(polynomial, polynomial_element.Polynomial):
         raise TypeError, "must be a polynomial"
@@ -182,7 +183,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         4
     """
     def __init__(self, ring, polynomial, name=None):
-        if not isinstance(ring, polynomial_ring.PolynomialRing_commutative):
+        if not isinstance(ring, PolynomialRing_commutative):
             raise TypeError, "R must be a univariate polynomial ring."
 
         if not isinstance(polynomial, polynomial_element.Polynomial):
@@ -226,13 +227,13 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: S(S.gen()^10+1)
             90*alpha^2 - 109*alpha + 28
         """
-        if isinstance(x, polynomial_quotient_ring_element.PolynomialQuotientRingElement):
+        if isinstance(x, PolynomialQuotientRingElement):
             P = x.parent()
             if P is self:
                 return x
             elif P == self:
-                return polynomial_quotient_ring_element.PolynomialQuotientRingElement(self, self.__ring(x.lift()), check=False)
-        return polynomial_quotient_ring_element.PolynomialQuotientRingElement(
+                return PolynomialQuotientRingElement(self, self.__ring(x.lift()), check=False)
+        return PolynomialQuotientRingElement(
                         self, self.__ring(x) , check=True)
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
@@ -259,9 +260,9 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
            * anything that coerces into the ring of which this is the quotient
 
         """
-        if isinstance(x, polynomial_quotient_ring_element.PolynomialQuotientRingElement):
+        if isinstance(x, PolynomialQuotientRingElement):
             if x.parent() == self:
-                return polynomial_quotient_ring_element.PolynomialQuotientRingElement(self, self.__ring(x.lift()), check=False)
+                return PolynomialQuotientRingElement(self, self.__ring(x.lift()), check=False)
         # any ring that coerces to the base ring of this polynomial ring.
         return self._coerce_try(x, [self.polynomial_ring()])
 

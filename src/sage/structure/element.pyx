@@ -2487,7 +2487,7 @@ cdef class FiniteFieldElement(FieldElement):
             sage: a^2 + 18*a + 2
             0
         """
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         R = PolynomialRing(self.parent().prime_subfield(), var)
         return R(self._pari_().charpoly('x').lift())
 

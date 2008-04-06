@@ -345,7 +345,7 @@ accurate than the Maxima and Pari versions.
 import copy
 from sage.plot.plot import plot
 import sage.interfaces.all
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.real_mpfr import RealField
 from sage.rings.complex_field import ComplexField

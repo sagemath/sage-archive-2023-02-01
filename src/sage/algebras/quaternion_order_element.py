@@ -21,7 +21,7 @@ AUTHOR: David Kohel, 2005-09
 
 from sage.modules.free_module import FreeModule
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.algebras.algebra_order_element import AlgebraOrderElement
 
 class QuaternionOrderElement(AlgebraOrderElement):

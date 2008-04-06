@@ -139,7 +139,8 @@ from sage.rings.all import ZZ, QQ, RR, AA, RealField, RealIntervalField, RIF, RD
 from sage.rings.arith import binomial, factorial
 from sage.modules.all import vector, FreeModule
 from sage.matrix.all import MatrixSpace
-from sage.rings.polynomial.polynomial_ring import PolynomialRing, polygen
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.polynomial_ring import polygen
 from sage.misc.all import numerator, denominator, prod
 
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense

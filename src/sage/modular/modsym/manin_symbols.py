@@ -35,7 +35,7 @@ import sage.rings.all as rings
 
 from sage.structure.sage_object import SageObject
 
-R = polynomial_ring.PolynomialRing(rings.QQ, 'X')
+R = rings.QQ['X']
 
 X = R([0,1])
 

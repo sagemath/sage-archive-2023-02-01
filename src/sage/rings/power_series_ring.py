@@ -84,7 +84,7 @@ import power_series_ring_element
 
 from polynomial.all import (is_MPolynomialRing, is_PolynomialRing,
                             MPolynomialRing)
-import polynomial.polynomial_ring as polynomial_ring
+from polynomial.polynomial_ring_constructor import PolynomialRing
 import laurent_series_ring
 import commutative_ring
 import integral_domain
@@ -213,7 +213,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         """
         ParentWithGens.__init__(self, base_ring, name)
         Nonexact.__init__(self, default_prec)
-        R = polynomial_ring.PolynomialRing(base_ring, name, sparse=sparse)
+        R = PolynomialRing(base_ring, name, sparse=sparse)
         self.__poly_ring = R
         self.__power_series_class = power_series_poly.PowerSeries_poly
         self.__generator = self.__power_series_class(self, R.gen(), check=True, is_gen=True)

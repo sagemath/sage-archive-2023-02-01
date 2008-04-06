@@ -453,7 +453,7 @@ def QuadraticField(D, names, check=True):
     if check:
         if D.is_square():
             raise ValueError, "D must not be a perfect square."
-    R = polynomial_ring.PolynomialRing(QQ, 'x')
+    R = QQ['x']
     f = R([-D, 0, 1])
     return NumberField(f, names, check=False)
 
@@ -3588,7 +3588,7 @@ class NumberField_absolute(NumberField_generic):
         if B is None:
             B = [ (self.gen(0))**i for i in range(n) ]
 
-        A = polynomial_ring.PolynomialRing(ZZ, 'x')
+        A = ZZ['x']
         f = A.gen(0)**2-2
         sqrt2 = f.roots(R)[1][0]
 

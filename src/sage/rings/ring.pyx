@@ -142,7 +142,7 @@ cdef class Ring(ParentWithGens):
                 return R
 
         if not isinstance(x, list):
-            from sage.rings.polynomial.polynomial_ring import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             P = PolynomialRing(self, x)
             return P
 
@@ -157,7 +157,7 @@ cdef class Ring(ParentWithGens):
         # TODO: is this code ever used? Should it be?
 
         elif isinstance(x, (tuple, str)):
-            from sage.rings.polynomial.polynomial_ring import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             P = PolynomialRing
             if isinstance(x, tuple):
                 y = []
@@ -166,7 +166,7 @@ cdef class Ring(ParentWithGens):
                 x = tuple(y)
 
         else:
-            from sage.rings.polynomial.polynomial_ring import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             P = PolynomialRing
             x = (str(x),)
 

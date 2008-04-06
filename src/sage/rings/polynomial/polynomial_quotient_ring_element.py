@@ -61,13 +61,9 @@ AUTHOR:
 
 import operator
 import sage.structure.element as element
+
 import sage.rings.commutative_ring_element as commutative_ring_element
-
-import polynomial_element
-import polynomial_quotient_ring
-
 import sage.rings.number_field.number_field as number_field
-
 
 
 class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElement):
@@ -85,12 +81,15 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
                      that x is a valid element of the polynomial
                      ring and reduced (mod the modulus).
         """
+        from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_generic
+        from sage.rings.polynomial.polynomial_element import Polynomial
+
         commutative_ring_element.CommutativeRingElement.__init__(self, parent)
         if check:
-            if not isinstance(parent, polynomial_quotient_ring.PolynomialQuotientRing_generic):
+            if not isinstance(parent, PolynomialQuotientRing_generic):
                 raise TypeError, "parent must be a polynomial quotient ring"
 
-            if not isinstance(polynomial, polynomial_element.Polynomial):
+            if not isinstance(polynomial, Polynomial):
                 raise TypeError, "polynomial must be a polynomial"
 
             if not polynomial in parent.polynomial_ring():

@@ -52,7 +52,7 @@ from sage.interfaces.gap import is_GapElement
 from finite_field_ext_pari import FiniteField_ext_pari
 from finite_field_element import FiniteField_ext_pariElement
 
-from polynomial.polynomial_ring import PolynomialRing
+from polynomial.polynomial_ring_constructor import PolynomialRing
 
 cdef object is_IntegerMod
 cdef object IntegerModRing_generic

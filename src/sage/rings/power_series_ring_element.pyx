@@ -86,7 +86,7 @@ include "../ext/stdsage.pxi"
 import operator
 
 from infinity import infinity, is_Infinite
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.rings.polynomial.polynomial_element
 import power_series_ring
 import sage.misc.misc

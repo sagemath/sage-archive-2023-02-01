@@ -48,7 +48,7 @@ import os
 from xml.dom.minidom import parse
 from sage.rings.rational_field import QQ
 from sage.rings.ideal import Ideal
-from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 
 class SymbolicData:

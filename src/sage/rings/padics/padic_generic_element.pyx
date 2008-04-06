@@ -600,8 +600,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         OUTPUT:
             polynomial -- a minimal polynomial of this p-adic element, i.e., x - self
         """
-        import sage.rings.polynomial.polynomial_ring
-        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(self.parent(), name)
+        R = self.parent()[name]
         return R.gen() - R(self)
 
     def multiplicative_order(self, prec = None): #needs to be rewritten for lazy elements

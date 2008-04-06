@@ -734,7 +734,7 @@ class LinearCode(module.Module):
             satisfying the Riemann hypothesis", April 2007 preprint.
 
         """
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing, polygen
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing, polygen
         #from sage.calculus.functional import expand
         from sage.calculus.calculus import sqrt, SymbolicExpressionRing, var
         C = self
@@ -1799,7 +1799,7 @@ class LinearCode(module.Module):
         """
         spec = self.spectrum()
         n = self.length()
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         R = PolynomialRing(QQ,2,names)
         x,y = R.gens()
         we = sum([spec[i]*x**(n-i)*y**i for i in range(n+1)])
@@ -1843,7 +1843,7 @@ class LinearCode(module.Module):
         if d == 1 or dperp == 1:
             print "\n WARNING: There is no guarantee this function works when the minimum distance"
             print "            of the code or of the dual code equals 1.\n"
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.fraction_field import FractionField
         from sage.rings.power_series_ring import PowerSeriesRing
         RT = PolynomialRing(QQ,"%s"%name)

@@ -3,7 +3,7 @@ p-adic Capped Relative Dense Polynomials
 """
 
 import sage.rings.polynomial.polynomial_element_generic
-import sage.rings.polynomial.polynomial_element
+from sage.rings.polynomial.polynomial_element import Polynomial, is_Polynomial
 import sage.rings.polynomial.polynomial_integer_dense_ntl
 import sage.rings.integer
 import sage.rings.integer_ring
@@ -21,8 +21,6 @@ min = misc.min
 ZZ = sage.rings.integer_ring.ZZ
 PrecisionError = precision_error.PrecisionError
 Integer = sage.rings.integer.Integer
-Polynomial = sage.rings.polynomial.polynomial_element.Polynomial
-is_Polynomial = sage.rings.polynomial.polynomial_element.is_Polynomial
 Polynomial_generic_domain = sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_domain
 Polynomial_integer_dense = sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl
 

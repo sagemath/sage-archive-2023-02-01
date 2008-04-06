@@ -686,9 +686,14 @@ function set_cursor_position(cell, n) {
 
 String.prototype.replaceAll = function(strTarget, strSubString ) {
     /*
-    Replace all instances of the given substring.
+    Replace all instances of the given substring by another string>
 
     From http://www.bennadel.com/blog/142-Ask-Ben-Javascript-String-Replace-Method.htm
+
+    INPUT:
+        this -- the string having part of itself replaced
+        strTarget -- the string that will be replaced
+        strSubString -- the string that replaces strTarget
     */
     var strText = this;
     var intIndexOfMatch = strText.indexOf( strTarget );
@@ -779,33 +784,46 @@ function handle_replacement_controls(cell_input, event) {
         cell_input -- the input textarea where the completion is happening.
         event -- the keypress event
     */
+
+    // First change the currently selected element so it isn't highlighted.
     deselect_replacement_element();
-    if(key_menu_up(event)) {
-        if(replacement_row <= 0) {
-            halt_introspection();
-        } else {
+
+
+
+    if(key_menu_up(event)) {            // Press the up arrow
+        replacement_row--;
+        // Wrap around vertically.
+        // Ugly code since we don't know the size.
+        if(!replacement_element_exists()) {
+            replacement_row = 1;
+            while(replacement_element_exists())
+                replacement_row++;
             replacement_row--;
         }
-    } else if(key_menu_down(event)) {
+    } else if(key_menu_down(event)) {  // press the down key
         replacement_row++;
-        if(!replacement_element_exists())
+        if(!replacement_element_exists())   // going down past the
             replacement_row = 0;
-    } else if(key_menu_right(event)) {
+    } else if(key_menu_right(event)) { // press the right arrow key
         replacement_col++;
         if(!replacement_element_exists())
             replacement_col = 0;
-    } else if(key_menu_left(event)) {
+    } else if(key_menu_left(event)) {   // left arrow key
         replacement_col--;
+        // Check if we have to wrap around horizontally.
+        // Ugly code since we don't know the size.
         if(!replacement_element_exists()) {
             replacement_col = 1;
             while(replacement_element_exists())
                 replacement_col++;
             replacement_col--;
         }
-    } else if(key_menu_pick(event)) {
+    } else if(key_menu_pick(event)) {  // press the enter key, so we do the replacement.
         do_replacement(introspect_id, replacement_word, true);
         return false;
     } else if(key_request_introspections(event)) {
+        // instead of browsing through a list of options, here we are viewing
+        // the docstring on a funtion.
         if(sub_introspecting) {
             introspection_text = replacement_text;
             introspection_loaded = true;
@@ -820,9 +838,11 @@ function handle_replacement_controls(cell_input, event) {
        halt_introspection();
        return true;
     }
+
+    // highlight the correct word.
     select_replacement_element();
 
-    if(sub_introspecting) {
+    if(sub_introspecting) { // do the actual replacement.
         active_cell_list = active_cell_list.concat([introspect_id]);
         evaluate_cell_introspection(introspect_id, before_replacing_word+replacement_word+'?', after_cursor);
     }
@@ -831,32 +851,67 @@ function handle_replacement_controls(cell_input, event) {
 }
 
 function do_replacement(id, word, do_trim) {
+    /*
+
+    INPUT:
+        id -- an integer, the id of an input cell
+        word -- a string
+        do_trim -- true or false
+    */
+
+    // Get the input cell and focus on it.
     var cell_input = get_cell(id);
     cell_focus(id, false);
 
-    // Only do the trim sometimes, since Opera has a slow regexp engine
+    // If necessary get only the first word out of the input word string.
     if(do_trim) {
          word = first_variable_name_in_string(word);
     }
 
+    // Do the actual completion
     cell_input.value = before_replacing_word + word + after_cursor;
 
+    // Put the cursor right after the word we just put in.
     var pos = before_replacing_word.length + word.length;
-
     set_cursor_position(cell_input,pos);
 
+    // Done completing, so get rid of the completions menu.
     halt_introspection();
 }
 
 function get_replacement_element() {
+    /*
+    Return the DOM element that is currently highlighted in the tab
+    completion popup window.
+
+    GLOBAL INPUT:
+        introspect_id -- integer; id of the input cell in which we're doing the introspection
+        replacement_row -- integer; the row position of the cell we are currently selected
+        replacement_col -- integer; the column position of the cell we are currently selected
+    OUTPUT:
+        DOM element -- that is currently highlighted
+    */
     return get_element("completion"+introspect_id + "_" + replacement_row + "_" + replacement_col);
 }
 
 function replacement_element_exists() {
+    /*
+    Return whether or not the global variables that define the current
+    row/column of the tab completion menu actually define an entry
+    in the menu.  This is used to implement, e.g., wrapping around
+    the sides.
+    */
     return get_replacement_element() != null;
 }
 
 function select_replacement(row, col) {
+    /*
+    INPUT:
+        row, col -- integers
+    OUTPUT:
+        -- move the popup highlighted menu item in the completions menu to position (row,col)
+        -- set the global variables replacement_row and replacement_col.
+    */
     deselect_replacement_element();
     replacement_row = row;
     replacement_col = col;
@@ -864,12 +919,27 @@ function select_replacement(row, col) {
 }
 
 function deselect_replacement_element() {
+    /*
+    Change the currently selected highlighted word in the
+    tab-completion popup menu so that it is no longer selected.
+
+    This is done simply by setting the CSS className of the currently
+    selected element.
+    */
     e = get_replacement_element();
     if(e==null) return;
     e.className = 'completion_menu_two';
 }
 
 function select_replacement_element() {
+    /*
+    Highlight the currently selected completions item, and set the global
+    variable replacement_word equal to this item (so it can be used if
+    a selection is actually mode).
+
+    OUTPUT:
+        modifies the DOM and global variable replacement_word
+    */
     var e = get_replacement_element();
     if (e==null) return;
     e.className = 'completion_menu_two completion_menu_selected';
@@ -884,31 +954,65 @@ function select_replacement_element() {
     }
 }
 
-function update_introspection_text(preserve_cursor) {
-  close_introspection_text();
-  d = get_element("introspect_div_"+introspect_id);
-  if(!d) return;
+function update_introspection_text() {
+    /*
+    Set the contexts of the introspection (tab completion or help)
+    window, or display "loading..." if we are waiting for data from
+    the server.
 
-  if(introspection_loaded) {
-    if(introspection_text == "") {
-        halt_introspection();
-        return;
+    GLOBAL INPUTS:
+        introspection_text -- string; this is what gets put in the
+                              introspection window
+        introspect_id -- integer; id of the input cell where we
+                         are doing introspection.
+    */
+
+    // Delete the current introspection text window contexts.
+    close_introspection_text();
+
+    // Get the DOM object corresponding to this introspection window.
+    d = get_element("introspect_div_"+introspect_id);
+    if(!d) return;
+
+    // Set the new introspection text.
+    if(introspection_loaded) {
+        if(introspection_text == "") {
+            halt_introspection();
+            return;
+        }
+        d.innerHTML = introspection_text;
+        if(replacing)
+            select_replacement_element();
+    } else {
+        d.innerHTML = "loading..."
     }
-    d.innerHTML = introspection_text;
-    if(replacing)
-      select_replacement_element();
-  } else {
-    d.innerHTML = "loading..."
-  }
 }
 
 function close_introspection_text() {
-  d = get_element("introspect_div_"+introspect_id);
-  if(d!=null)
-    d.innerHTML = "";
+    /*
+    Delete the text in the introspect window.
+
+    GLOBAL INPUT:
+        introspect_id -- integer; id of the input cell where we
+                         are doing introspection.
+    */
+    d = get_element("introspect_div_"+introspect_id);
+    if(d!=null) {
+        d.innerHTML = "";
+    }
 }
 
 function halt_introspection() {
+    /*
+    We are done doing the introspection, so we close the completions
+    or documentation popup window, and set several global variables to
+    indicate the state of this window is closed.
+
+    OUTPUT:
+    Each of these global variables is changed:
+        introspect_id, replacing, sub_introspecting, introspection_loaded,
+        replacement_row, replacement_col
+    */
     close_introspection_text();
     introspect_id = null;
     replacing = false;
@@ -919,27 +1023,30 @@ function halt_introspection() {
 
 ///////////////////////////////////////////////////////////////////
 //
-// OBJECT functions -- for managing saved objects
-//
-///////////////////////////////////////////////////////////////////
-
-function click_on_object(name) {
-   // o = document.open("/" + name + ".sobj");
-}
-
-
-///////////////////////////////////////////////////////////////////
-//
 // WORKSHEET functions -- for switching between and managing worksheets
 //
 ///////////////////////////////////////////////////////////////////
 
 function new_worksheet() {
+    /*
+    Ask the server to create a new worksheet, which is then opened
+    replacing the current worksheet.
+    */
     open("/new_worksheet")
 }
 
 function set_worksheet_list_checks() {
-    /* Go through and set all check boxes the same as they are in the control box */
+    /*
+    Go through and set all check boxes the same as they are in the
+    control box.
+
+    This is called when the user clicks the checkbox in the top left
+    of the list of worksheets, which toggles all the checkboxes below
+    it to be either on or off (select all or none).
+
+    GLOBAL INPUT:
+        worksheet_filenames -- list of strings
+    */
     var C, i, id, X;
     C = get_element("controlbox");
     for(i=0; i<worksheet_filenames.length; i++) {
@@ -949,13 +1056,27 @@ function set_worksheet_list_checks() {
     }
 }
 
-function worksheet_list_button(action, desc) {
-    /* For each filename listed in worksheet_filenames, look up the corresponding
-       input check box, see if it is checked, and if so, do the corresponding
-       action.
-     */
+function worksheet_list_button(action) {
+    /*
+    For each filename listed in worksheet_filenames, look up the
+    corresponding input check box, see if it is checked, and if so, do
+    the corresponding action.
+
+    INPUT:
+        action -- url that defines a message to send to the server
+    GLOBAL INPUT:
+        worksheet_filenames -- list of strings
+        SEP -- separator string used when encoding tuples of data to send
+               back to the server.
+    OUTPUT:
+        calls the server and requests an action be performened on all the
+        listed worksheets
+    */
     var i, id, X, filenames;
     filenames = "";
+
+    // Concatenate the list of all worksheet filenames that are checked
+    // togethers separated by the separator string.
     for(i=0; i<worksheet_filenames.length; i++) {
         id = worksheet_filenames[i];
         X  = get_element(id);
@@ -964,125 +1085,220 @@ function worksheet_list_button(action, desc) {
             X.checked = 0;
         }
     }
-    async_request(action, worksheet_list_button_callback, 'filenames='+filenames + '&sep='+SEP);
+    // Send the list of worksheet names and requested action back to
+    // the server.
+    async_request(action, worksheet_list_button_callback,
+                  'filenames='+filenames + '&sep='+SEP);
 }
 
 function worksheet_list_button_callback(status, response_text) {
-   if (status == 'success') {
-      if (response_text != '') {
-          alert(response_text);
-      }
-   } else {
-      alert("Failure deleting worksheet." + response_text);
-   }
-  window.location.reload(true);
+    /*
+    Handle result of performing some action on a list of worksheets.
+
+    INPUT:
+        status, response_text -- standard AJAX return values
+    OUTPUT:
+        display an alert if something goes wrong; refresh this
+        browser window no matter what.
+    */
+    if (status == 'success') {
+        if (response_text != '') {
+            alert(response_text);
+        }
+    } else {
+        alert("Failure deleting worksheet." + response_text);
+    }
+    window.location.reload(true);
 }
 
 function delete_button() {
-    worksheet_list_button("/send_to_trash", "--> trash");
+    /*
+    This javascript function is called when the worksheet list delete
+    button is pressed.  Each worksheet whose box is checked gets sent
+    to the trash.
+    */
+    worksheet_list_button("/send_to_trash");
 }
 
 function make_active_button() {
-    worksheet_list_button("/send_to_active", "(--> active");
+    /*
+    Sends each checked worksheet to the active worksheets folder.
+    */
+    worksheet_list_button("/send_to_active");
 }
 
 function archive_button() {
-    worksheet_list_button("/send_to_archive", "--> archived");
+    /*
+    Sends each checked worksheet to the archived worksheets folder.
+    */
+    worksheet_list_button("/send_to_archive");
 }
 
 
 function history_window() {
+    /*
+    Display the history popup window, which displays the last few hundred
+    commands typed into any worksheet.
+    */
     window.open ("/history",
       "", "menubar=1,scrollbars=1,width=800,height=600, toolbar=1,resizable=1");
 }
 
 function upload_worksheet_button() {
+    /*
+    Replace the current display window with the upload entry box.
+    */
     window.location.replace("/upload");
 }
 
 function copy_worksheet() {
+    /*
+    Make a copy of the current worksheet then load the copy into the
+    current frame.
+    */
     window.location.replace(worksheet_command("copy"));
 }
 
 function rate_worksheet(rating) {
+    /*
+    Save the comment and rating that the uses chooses for a public worksheet.
+
+    INPUT:
+        rating -- integer
+    */
     comment = get_element("rating_comment").value;
     window.location.replace(worksheet_command("rate?rating="+rating + "&comment="+escape0(comment)));
 }
 
 function download_worksheet(base_filename) {
+    /*
+    Download the current worksheet to the file with given name.
+
+    INPUT:
+        base_filename
+    */
     open(worksheet_command("download/" + base_filename + '.sws'));
 }
 
 function worksheet_settings() {
+    /*
+    Bring up the worksheet settings menu.
+    */
     window.location.replace(worksheet_command("settings"));
 }
 
 function share_worksheet() {
+    /*
+    Display the worksheet sharing window.
+    */
     window.location.replace(worksheet_command("share"));
 }
 
 function publish_worksheet() {
+    /*
+    Public the current worksheet.
+    */
     window.open(worksheet_command("publish"), "",
       "menubar=1,location=1,scrollbars=1,width=800,height=600,toolbar=1,  resizable=1");
 }
 
 function save_as(typ) {
+    /*
+    Save the current worksheet to a file.
+    */
     open(worksheet_command('save_as') + '?typ=' +typ);
 }
 
 function edit_worksheet() {
+    /*
+    Edit the current worksheet as a plain text file.
+    */
     window.location.replace(worksheet_command(""));
 }
 
 function save_worksheet() {
+    /*
+    Save a snapshot of the current worksheet.
+    */
     async_request(worksheet_command('save_snapshot'), save_worksheet_callback, null);
 }
 
 function save_worksheet_callback(status, response_text) {
-   if (status != 'success') {
-       alert("Failed to save worksheet.");
-       return;
-   }
+    /*
+    Verify that saving the current worksheet worked.
+    */
+    if (status != 'success') {
+        alert("Failed to save worksheet.");
+        return;
+    }
 }
 
 function close_callback(status, response_text) {
-   if (status != 'success') {
-       alert(response_text);
-       return;
-   }
+    /*
+    Called when we successfully close the current worksheet and
+    want to display the user home screen (i.e., worksheet list).
+    */
+    if (status != 'success') {
+        alert(response_text);
+        return;
+    }
     window.location.replace('/');
 }
 
 function save_worksheet_and_close() {
+    /*
+    Send message back to the server saving the current
+    worksheet and quitting the Sage process, then
+    close the current window returning to the home screen.
+    */
     async_request(worksheet_command('save_and_quit'), close_callback, null);
 }
 
 function worksheet_discard() {
+    /*
+    Discard the current worksheet and quit the currently
+    running Sage process, then close the current window and
+    replace it by the home screen .
+    */
     async_request(worksheet_command('discard_and_quit'), close_callback, null);
 }
 
 function rename_worksheet() {
-   var new_worksheet_name = prompt('Enter new worksheet name:',worksheet_name);
-   if (new_worksheet_name == null) return;
-   var T = get_element("worksheet_title");
-   var set_name;
-   if (new_worksheet_name.length >= 30) {
-       set_name = new_worksheet_name.slice(0,30) + ' ...';
-   } else {
-       set_name = new_worksheet_name;
-   }
-   T.innerHTML = set_name;
-   worksheet_name = new_worksheet_name;
-   original_title = worksheet_name + ' (Sage)';
-   document.title = original_title;
-   async_request(worksheet_command('rename'), null, 'name='+escape0(new_worksheet_name));
+    /*
+    Rename the current worksheet.  This pops up a dialog that asks for
+    the new worksheet name, then sets it in the browser, and finally
+    sends a message back to the server stating that the worksheet has
+    been renamed.
+    */
+    var new_worksheet_name = prompt('Enter new worksheet name:',worksheet_name);
+    if (new_worksheet_name == null) return;
+    var T = get_element("worksheet_title");
+    var set_name;
+    if (new_worksheet_name.length >= 30) {
+        set_name = new_worksheet_name.slice(0,30) + ' ...';
+    } else {
+        set_name = new_worksheet_name;
+    }
+    T.innerHTML = set_name;
+    worksheet_name = new_worksheet_name;
+    original_title = worksheet_name + ' (Sage)';
+    document.title = original_title;
+    async_request(worksheet_command('rename'), null, 'name='+escape0(new_worksheet_name));
 }
 
 function entsub_ws(event, typ) {
-  if (event && event.which == 13)
-     search_worksheets(typ);
-  else
-     return true;
+    /*
+    Full text search through the worksheets after pressing return in
+    the search input box.
+
+    INPUT:
+        event -- keyboard event; checked if it is return
+        typ -- the type of worksheets to search through (active, archived, etc.)
+    */
+    if (event && event.which == 13)
+        search_worksheets(typ);
+    else
+        return true;
 }
 
 

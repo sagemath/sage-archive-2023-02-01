@@ -322,7 +322,17 @@ var title_spinner_i = 0;
 
 original_title = document.title;
 
-function initialize_the_notebook(){
+function initialize_the_notebook() {
+    /*
+    Do the following:
+        1. Make sure that arrays have an indexOf method, since we use that a lot.
+           We do this since not all browsers support this method, so we insert
+           it in.
+        2. Determine the browser OS, type e.g., opera, safari, etc.; we set global
+           variables for each type.
+        3. Figure out which keyboard the user has.
+        4. Initialize jsmath.
+    */
     try{
       [].indexOf || (Array.prototype.indexOf = function(v,n){
         n = (n==null)?0:n; m = this.length;
@@ -334,7 +344,8 @@ function initialize_the_notebook(){
     } catch(e){}
 
 
-    try{
+    // Determine the browser, OS and set global variables.
+    try {
       var n=navigator;
       var nav=n.appVersion;
       var nap=n.appName;
@@ -348,21 +359,31 @@ function initialize_the_notebook(){
       os_mac=(nav.indexOf('Mac')!=-1);
       os_win=( ( (nav.indexOf('Win')!=-1) || (nav.indexOf('NT')!=-1) ) && !os_mac)?true:false;
       os_lin=(nua.indexOf('Linux')!=-1);
-//      show_exception(n);
     } catch(e){
-      show_exception(e);
+      alert(e);
     }
 
+    // Get the keyboard codes for our browser/os combination
     get_keyboard();
 
+    // Attempt to render any jsmath in this page.
     jsmath_init();
 }
 
 
-function true_function() {return true;}
+// The function that always returns true.
+function true_function() { return true; }
 input_keypress = true_function;
 
 function get_keyboard() {
+  /*
+  Determine which keycodes we want, then make a request back to the
+  server for those keycodes.  When the server returns the javascript
+  with exactly those keycodes, we eval that javascript.
+
+  OUTPUT:
+      set some global variables that record platform specific key codes
+  */
   var b,o,warn=false;
 
   input_keypress = cell_input_key_event;
@@ -402,68 +423,160 @@ function get_keyboard() {
 
 
 function get_keyboard_callback(status, response_text) {
-  if(status == 'success') {
-    eval(response_text);
-  }
+    /*
+    This is called right after we get the list of keycodes for our
+    browser back from the server. We eval them hence setting a bunch of
+    (global) variables that define platform-specific keycodes.
+    */
+    if(status == 'success') {
+        eval(response_text);
+    }
 }
 
 
 function get_element(id) {
-  if(document.getElementById)
-    return document.getElementById(id);
-  if(document.all)
-    return document.all[id];
-  if(document.layers)
-    return document.layers[id];
+    /*
+    Return the DOM element with the given id.
+
+    INPUT:
+        id -- a string
+    OUTPUT:
+        a DOM element.
+    */
+    if(document.getElementById)
+        return document.getElementById(id);
+    if(document.all)
+        return document.all[id];
+    if(document.layers)
+        return document.layers[id];
 }
 
 function set_class(id, cname) {
-  e = get_element(id);
-  if(e!=null) {
-      e.className = cname;
-  }
+    /*
+    Set the class of the DOM element with given id to cname.
+
+    INPUT:
+        id -- a string
+        cname -- a string
+    OUTPUT:
+        Sets the class of the DOM element with the
+        given id to be class.
+    */
+    e = get_element(id);
+
+    if(e!=null) {
+        e.className = cname;
+    }
 }
 
+
 function get_class(id) {
-  e = get_element(id);
-  if(e!=null) {
-      return e.className;
-  }
-  return null
+    /*
+    Get the clas of the DOM element with the given id.
+
+    INPUT:
+        id -- a string
+    OUTPUT:
+        string, or null if there is no such DOM element.
+    */
+    e = get_element(id);
+    if(e!=null) {
+        return e.className;
+    }
+    return null
 }
 
 function set_html(id, html) {
-  e = get_element(id);
-  if(e!=null) {
-      e.innerHTML = html;
-  }
+    /*
+    Set the inner HTML of the DOM element with given id, if there is
+    such an element.
+
+    INPUT:
+        id -- an integer
+        html -- string
+    OUTPUT:
+        changes the DOM
+    */
+    e = get_element(id);
+    if(e!=null) {
+        e.innerHTML = html;
+    }
 }
 
 function get_event(e) {
-   return (e==null)?window.event:e;
+    /*
+    Just returns e unless the browser is IE (or maybe some old
+    Netscape browser), in which case we have get what should be e but
+    from window.event.
+
+    INPUT:
+        e -- a javascript event.
+    OUTPUT:
+        either e or window.event
+    */
+    return (e==null)?window.event:e;
 }
 
 function key_event(e) {
-   if(e==null) e = window.event;
-   if(e.modifiers) {
-     this.a = e.modifiers | 1;
-     this.c = e.modifiers | 2;
-     this.s = e.modifiers | 4;
-   } else {
-     this.a = e.altKey;
-     this.c = e.ctrlKey;
-     this.s = e.shiftKey;
-   }
-   this.k = e.keyCode + "," + e.which;
-   this.m = this.k + (this.s?'!':'');
-   return this;
+    /*
+    Normalizes the different possible keyboard even structures for different browsers.
+
+    INPUT:
+        e -- a javascript event
+    OUTPUT:
+        Sets properties of the DOM object in a uniform way.
+        The properties set are a, c, s, k, m.
+
+    NOTE: We use key_event as an object.  Also, we use only 1-letter variables
+    names here specifically to decrease file size.
+   */
+
+    // This is exactly as in the get_event function; see the docs there.
+    if(e==null) { e = window.event; }
+
+    // Here we set a, c, s, which tell whether the alt, control, or shift
+    // keys have been pressed.
+    if(e.modifiers) {
+        this.a = e.modifiers | 1;
+        this.c = e.modifiers | 2;
+        this.s = e.modifiers | 4;
+    } else {
+        this.a = e.altKey;
+        this.c = e.ctrlKey;
+        this.s = e.shiftKey;
+    }
+
+    // we set the specific key that was pressed (no modifier), which is
+    // string as a string pair n,m
+    this.k = e.keyCode + "," + e.which;
+
+    // Finally we set m, which the key but with '!' at the end if shift is pressed.
+    // We do this because that's how we differentiate certain keys for browsers.
+    // Look in keycodes.py for more.
+    this.m = this.k + (this.s?'!':'');
+    return this;
 }
 
 function time_now() {
-  return (new Date()).getTime();
+    /*
+    Return the time right now as an integer since Unix epoch in
+    milliseconds.
+
+    OUTPUT:
+        an integer
+    */
+    return (new Date()).getTime();
 }
 
 function current_selection(input) {
+    /*
+    Return the text that is currently selected in a given text area.
+
+    INPUT:
+        input -- a DOM object (a textarea)
+    OUTPUT:
+        a string
+    */
     if(browser_ie) {
         var range = document.selection.createRange();
         return range.text;
@@ -473,6 +586,16 @@ function current_selection(input) {
 }
 
 function get_selection_range(input) {
+    /*
+    Return the start and end positions of the currently selected text
+    in the input text area (a DOM object).
+
+    INPUT:
+        input -- a DOM object (a textarea)
+
+    OUTPUT:
+        an array of two nonnegative integers
+    */
     if(browser_ie) {
         var start, end;
         var range = document.selection.createRange();
@@ -494,6 +617,15 @@ function get_selection_range(input) {
 }
 
 function set_selection_range(input, start, end) {
+    /*
+    Select a range of text in a given textarea.
+    INPUT:
+        input -- a DOM input text area
+        start -- an integer
+        end -- an integer
+    OUTPUT:
+        changes the state of the input textarea.
+    */
     if(browser_ie) {
         input.value = input.value.replaceAll("\r\n", "\n");
         var range = document.selection.createRange();
@@ -520,10 +652,16 @@ function get_cursor_position(cell) {
 }
 
 function set_cursor_position(cell, n) {
-    /* Move the cursor position in the cell to position n.
+    /*
+    Move the cursor position in the cell to position n.
+
+    WARNING: Does nothing when n is 0 on Opera at present.
+
     INPUT:
         cell -- an actual cell in the DOM, returned by get_cell
         n -- a non-negative integer
+    OUTPUT:
+        changes the position of the cursor.
     */
     if (browser_op && !n) {
         // program around a "bug" in opera where using this
@@ -536,128 +674,87 @@ function set_cursor_position(cell, n) {
     set_selection_range(cell, n, n);
 }
 
+
 ///////////////////////////////////////////////////////////////////
 //
 // Misc page functions -- for making the page work nicely
-// (this is a crappy descriptor)
+//
 ///////////////////////////////////////////////////////////////////
 
-
-// Replaces all instances of the given substring.
-// From http://www.bennadel.com/blog/142-Ask-Ben-Javascript-String-Replace-Method.htm
-
 String.prototype.replaceAll = function(strTarget, strSubString ) {
-	var strText = this;
-	var intIndexOfMatch = strText.indexOf( strTarget );
-	// Keep looping while an instance of the target string
-	// still exists in the string.
-	while (intIndexOfMatch != -1) {
-		// Replace out the current instance.
-		strText = strText.replace( strTarget, strSubString )
-		// Get the index of any next matching substring.
-		intIndexOfMatch = strText.indexOf( strTarget );
-	}
-	return( strText );
+    /*
+    Replace all instances of the given substring.
+
+    From http://www.bennadel.com/blog/142-Ask-Ben-Javascript-String-Replace-Method.htm
+    */
+    var strText = this;
+    var intIndexOfMatch = strText.indexOf( strTarget );
+    // Keep looping while an instance of the target string
+    // still exists in the string.
+    while (intIndexOfMatch != -1) {
+        // Replace out the current instance.
+        strText = strText.replace( strTarget, strSubString )
+        // Get the index of any next matching substring.
+        intIndexOfMatch = strText.indexOf( strTarget );
+    }
+    return(strText);
 }
 
 function is_whitespace(s) {
+    /*
+    Return true precisely if the input string s consists only of whitespace,
+    e.g., spaces, tabs, etc.
+
+    INPUT:
+        s -- a string
+    OUTPUT:
+        true or false
+    */
+
+    // We check using the whitespace_pat regular expression defined at the top of
+    // this file.
     m = whitespace_pat.exec(s);
     return (m[1] == s);
 }
 
-function trim(s) {
+function first_variable_name_in_string(s) {
+    /*
+    This function returns the first valid variable name in a string.
+
+    INPUT:
+        s -- a string
+    OUTPUT:
+        a string
+    */
     m = one_word_pat.exec(s);
     if(m == null)
         return s;
     return m[1];
 }
 
-function body_load() {
-// init_menus();
-}
-
-function init_menus() {
-  for( i = 1; i <= 3; i++) {
-    menu = get_element("menu"+i);
-    menu.style.display="none";
-  }
-}
-
-function toggle_menu(name) {
-  if(get_class(name) == "hidden") {
-    set_class(name, name);
-    set_html(name+'_hider', '[-]');
-  } else {
-    set_class(name, 'hidden');
-    set_html(name+'_hider', '[+]');
-  }
-}
-
 function toggle_top() {
-  toggle('topbar')
+    /*
+    Called when one clicks to toggle the top control bar in the worksheet view.
+    */
+    toggle_displayed('topbar');
 }
 
-function toggle(el) {
-  var el = get_element(el)
-  if ( el.style.display != 'none' ) {
-    el.style.display = 'none';
-  } else {
-    el.style.display = '';
-  }
-}
+function toggle_displayed(id) {
+    /*
+    Toggle whether or not the DOM element with the given
+    id is displayed.
 
-function toggle_top() {
-  toggle('topbar')
-}
-
-function toggle(el) {
-  var el = get_element(el)
-  if ( el.style.display != 'none' ) {
-    el.style.display = 'none';
-  } else {
-    el.style.display = '';
-  }
-}
-
-function toggle_left_pane() {
-  if(get_class('left_pane') == "hidden") {
-    set_class('left_pane', 'pane');
-    set_class('worksheet', 'worksheet');
-  } else {
-    set_class('left_pane', 'hidden');
-  }
-}
-
-
-
-
-
-function show_exception(e) {
-/*    var mess = "";
-    for(var i = 0; i < e.length; i++) {
-        mess+= i+"\t"+e[i]+"\n";
+    INPUT:
+        id -- a string DOM identifier
+    OUTPUT:
+        changes the given element's display style to/from none.
+    */
+    var el = get_element(id)
+    if ( el.style.display != 'none' ) {
+        el.style.display = 'none';
+    } else {
+        el.style.display = '';
     }
-    for(var i in e) {
-        mess+= i+"\t"+e[i]+"\n";
-    }
-    alert(mess);
-/*/
-    var h = "<table>\n";
-    for(var i = 0; i < e.length; i++) {
-        h+= "<tr><td>"+i+"</td><td>"+e[i]+"</td></tr>\n";
-    }
-    for(var i in e) {
-        h+= "<tr><td>"+i+"</td><td>"+e[i]+"</td></tr>\n";
-    }
-    h+="</table>";
-    var d = document.createElement("div");
-    var n = Math.floor(Math.random()*32000);
-    d.setAttribute("id", "exception_div_"+n);
-    d.setAttribute("onClick", "this.parentNode.removeChild(this);");
-    d.innerHTML = h;
-    d.setAttribute("style", "position:absolute; display:block; z-index:1000; top:0px; left:0px;");
-    document.body.insertBefore(d, document.body.childNodes[0]);
-// */
 }
 
 
@@ -668,6 +765,17 @@ function show_exception(e) {
 ///////////////////////////////////////////////////////////////////
 
 function handle_replacement_controls(cell_input, event) {
+    /*
+    This function handles the keyboard controls for the tab-completion
+    pop-up menu.
+
+    It's really just a not-so-good attempt to modularize the keyboard
+    handling code somewhat.
+
+    INPUT:
+        cell_input -- the input textarea where the completion is happening.
+        event -- the keypress event
+    */
     deselect_replacement_element();
     if(key_menu_up(event)) {
         if(replacement_row <= 0) {
@@ -719,12 +827,14 @@ function handle_replacement_controls(cell_input, event) {
     return false;
 }
 
-function do_replacement(id, word,do_trim) {
+function do_replacement(id, word, do_trim) {
     var cell_input = get_cell(id);
     cell_focus(id, false);
 
-    if(do_trim) //optimization 'cause Opera has a slow regexp engine
-        word = trim(word);
+    // Only do the trim sometimes, since Opera has a slow regexp engine
+    if(do_trim) {
+         word = first_variable_name_in_string(word);
+    }
 
     cell_input.value = before_replacing_word + word + after_cursor;
 
@@ -2616,7 +2726,7 @@ function evaluate_all() {
     for(i=0; i<n; i++) {
         var cell_input = get_cell(v[i]);
         var I = cell_input.value;
-        if (trim(I).length > 0) {
+        if (first_variable_name_in_string(I).length > 0) {
             evaluate_cell(v[i],0);
         }
     }
@@ -2944,15 +3054,10 @@ function empty_trash() {
 
 function jsmath_init() {
     try {
-    jsMath.Process();
-    /*   jsMath.ProcessBeforeShowing(); */
+         jsMath.Process();
     } catch(e) {
-/*        font_warning(); */
     }
 
-}
-
-function font_warning() { /* alert(jsmath_font_msg); */
 }
 
 """

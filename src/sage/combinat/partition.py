@@ -1,6 +1,6 @@
 r"""
 Partitions
-P
+
 A partition $p$ of a nonnegative integer $n$ is a non-increasing list of
 positive integers (the \emph{parts} of the partition) with total sum $n$.
 
@@ -11,6 +11,147 @@ part of the partition.
 The coordinate system related to a partition applies from the top to
 the bottom and from left to right.  So, the corners of the partition
 are [[0,4], [1,2], [2,0]].
+
+EXAMPLES:
+  There are 5 partitions of the integer 4.
+    sage: Partitions(4).count()
+    5
+    sage: Partitions(4).list()
+    [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
+
+  We can use the method .first() to get the 'first' partition
+  of a number.
+    sage: Partitions(4).first()
+    [4]
+
+  Using the method .next(), we can calculute the 'next' partition.
+  When we are at the last partition, None will be returned.
+    sage: Partitions(4).next([4])
+    [3, 1]
+    sage: Partitions(4).next([1,1,1,1]) is None
+    True
+
+  We can use the .iterator() method to get an object which iterates over
+  the partitions one by one to save memory.  Note that when we do something
+  like 'for part in Partitions(4)' an iterator is used in the background.
+    sage: g = Partitions(4).iterator()
+    sage: g.next()
+    [4]
+    sage: g.next()
+    [3, 1]
+    sage: g.next()
+    [2, 2]
+    sage: for p in Partitions(4): print p
+    [4]
+    [3, 1]
+    [2, 2]
+    [2, 1, 1]
+    [1, 1, 1, 1]
+
+
+  We can add constraints to to the type of partitions we want.
+  For example, to get all of the partitions of 4 of length 2, we'd
+  do the following:
+    sage: Partitions(4, length=2).list()
+    [[3, 1], [2, 2]]
+
+  Here is the list of partitions of length at least 2 and the list of
+  ones with length at most 2:
+    sage: Partitions(4, min_length=2).list()
+    [[3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
+    sage: Partitions(4, max_length=2).list()
+    [[4], [3, 1], [2, 2]]
+
+  The options min_part and max_part can be used to set constraints on the
+  sizes of all parts.  Using max_part, we can select partitions having only
+  'small' entries.  The following is the list of the partitions of 4 with parts
+  at most 2:
+    sage: Partitions(4, max_part=2).list()
+    [[2, 2], [2, 1, 1], [1, 1, 1, 1]]
+
+  The min_part options is complementary to max_part and selects partitions
+  having only 'large' parts.  Here is the list of all partitions of 4
+  with each part at least 2.
+    sage: Partitions(4, min_part=2).list()
+    [[4], [2, 2]]
+
+  The options inner and outer can be used to set part-by-part constraints.
+  This is the list of partitions of 4 with [3, 1, 1] as an outer bound:
+    sage: Partitions(4, outer=[3,1,1]).list()
+    [[3, 1], [2, 1, 1]]
+
+  Outer sets max_length to the length of its argument.  Moreover, the parts
+  of outer may be infinite to clear constraints on specific parts.  Here
+  is the list of the partitions of 4 of length at most 3 such that the second
+  and third part are 1 when they exist:
+    sage: Partitions(4, outer=[oo,1,1]).list()
+    [[4], [3, 1], [2, 1, 1]]
+
+  Finally, here are the partitions of 4 with [1,1,1] as an inner bound. Note
+  that inner sets min_length to the length of its argument.
+    sage: Partitions(4, inner=[1,1,1]).list()
+    [[2, 1, 1], [1, 1, 1, 1]]
+
+  The options min_slope and max_slope can be used to set constraints on
+  the slope, that is on the difference p[i+1]-p[i] of two consecutive
+  parts.  Here is the list of the strictly decreasing partitions of 4:
+    sage: Partitions(4, max_slope=-1).list()
+    [[4], [3, 1]]
+
+  The constraints can be combined together in all reasonable ways.  Here
+  are all the partitions of 11 of length between 2 and 4 such that
+  the difference between two consecutive parts is between -3 and -1:
+    sage: Partitions(11,min_slope=-3,max_slope=-1,min_length=2,max_length=4).list()
+    [[7, 4], [6, 5], [6, 4, 1], [6, 3, 2], [5, 4, 2], [5, 3, 2, 1]]
+
+
+  Partition objects can also be created individually with the Partition
+  function.
+    sage: Partition([2,1])
+    [2, 1]
+
+  Once we have a partition object, then there are a variety of methods that
+  we can use.  For example, we can get the conjugate of a partition.
+  Geometrically, the conjugate of a partition is the reflection of that
+  partition through its main diagonal.  Of course, this operation
+  is an involution.
+    sage: Partition([4,1]).conjugate()
+    [2, 1, 1, 1]
+    sage: Partition([4,1]).conjugate().conjugate()
+    [4, 1]
+
+  We can go back and forth between the exponential notations of a
+  partition.  The exponential notation can be padded with extra zeros.
+    sage: Partition([6,4,4,2,1]).to_exp()
+    [1, 1, 0, 2, 0, 1]
+    sage: Partition(exp=[1,1,0,2,0,1])
+    [6, 4, 4, 2, 1]
+    sage: Partition([6,4,4,2,1]).to_exp(5)
+    [1, 1, 0, 2, 0, 1]
+    sage: Partition([6,4,4,2,1]).to_exp(7)
+    [1, 1, 0, 2, 0, 1, 0]
+    sage: Partition([6,4,4,2,1]).to_exp(10)
+    [1, 1, 0, 2, 0, 1, 0, 0, 0, 0]
+
+  We can get the coordinates of the corners of a partition.
+    sage: Partition([4,3,1]).corners()
+    [[0, 3], [1, 2], [2, 0]]
+
+  We can compute the r-core and r-quotient of a partition and build
+  the partition back up from them.
+    sage: Partition([6,3,2,2]).r_core(3)
+    [2, 1, 1]
+    sage: Partition([7,7,5,3,3,3,1]).r_quotient(3)
+    [[2], [1], [2, 2, 2]]
+    sage: p = Partition([11,5,5,3,2,2,2])
+    sage: p.r_core(3)
+    []
+    sage: p.r_quotient(3)
+    [[2, 1], [4], [1, 1, 1]]
+    sage: Partition(core_and_quotient=([],[[2, 1], [4], [1, 1, 1]]))
+    [11, 5, 5, 3, 2, 2, 2]
+
+
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -905,14 +1046,14 @@ class Partition_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Partition([3,2,2,1]).to_exp()
-            [0, 1, 2, 1]
+            [1, 2, 1]
         """
         p = self
         if len(p) > 0:
             k = max(k, p[0])
-        a = [ 0 ] * (k+1)
+        a = [ 0 ] * (k)
         for i in p:
-            a[i] += 1
+            a[i-1] += 1
         return a
 
     def evaluation(self):
@@ -921,7 +1062,7 @@ class Partition_class(CombinatorialObject):
 
         EXAMPLES:
             sage: Partition([4,3,1,1]).evaluation()
-            [0, 2, 0, 1, 1]
+            [2, 0, 1, 1]
         """
         return self.to_exp()
 
@@ -940,7 +1081,7 @@ class Partition_class(CombinatorialObject):
         """
         p = self
         a = p.to_exp()
-        size = prod([i**a[i]*factorial(a[i]) for i in range(1, len(a))])
+        size = prod([(i+1)**a[i]*factorial(a[i]) for i in range(len(a))])
         size *= prod( [ (1-q**p[i])/(1-t**p[i]) for i in range(len(p)) ] )
 
         return size

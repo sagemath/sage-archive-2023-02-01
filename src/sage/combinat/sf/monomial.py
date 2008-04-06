@@ -59,7 +59,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             sage: QQx.<x> = QQ['x']
             sage: m = SFAMonomial(QQx)
             sage: a = m([2,1])+x
-            sage: 2*a
+            sage: 2*a # indirect doctest
             2*x*m[] + 2*m[2, 1]
             sage: a^2
             x^2*m[] + 2*x*m[2, 1] + 4*m[2, 2, 1, 1] + 6*m[2, 2, 2] + 2*m[3, 2, 1] + 2*m[3, 3] + 2*m[4, 1, 1] + m[4, 2]

@@ -1,3 +1,6 @@
+"""
+Exact Cover Problem via Dancing Links
+"""
 # dlx.py
 # Copyright (c) 2006,2008 Antti Ajanki <antti.ajanki@iki.fi>
 
@@ -91,11 +94,11 @@ class DLXMatrix:
             sage: ones+= [[2,[1,3]]]
             sage: ones+= [[3,[2]]]
             sage: ones+= [[4,[4]]]
-            sage: for C in DLXMatrix(ones,[4]):
+            sage: DLXM = DLXMatrix(ones,[4])
+            sage: for C in DLXM:
             ...      print C
             [4, 1]
             [4, 2, 3]
-
 
         NOTE:
             The 0 entry is reserved internally for headers in the
@@ -110,6 +113,24 @@ class DLXMatrix:
         self._constructmatrix(ones, initialsolution)
         self._level = 0
         self._stack = [(None,None)]
+
+    def __eq__(self, other):
+        r"""
+        Return \code{True} if every attribute of \var{other} matches the attribute
+        of \code{self}.
+
+        INPUT:
+            other -- a DLX matrix
+
+        EXAMPLE:
+            sage: from sage.combinat.dlx import *
+            sage: M = DLXMatrix([[1,[1]]])
+            sage: M == loads(dumps(M))
+            True
+        """
+        if not isinstance(other, DLXMatrix):
+            return False
+        return self.__dict__ == other.__dict__
 
     def __iter__(self):
         """

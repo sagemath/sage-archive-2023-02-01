@@ -270,7 +270,7 @@ class HallLittlewood_p(HallLittlewood_generic):
 
         EXAMPLES:
             sage: HLP = HallLittlewoodP(QQ)
-            sage: HLP([2])^2
+            sage: HLP([2])^2 # indirect doctest
             (t+1)*P[2, 2] + (-t+1)*P[3, 1] + P[4]
 
         """
@@ -290,7 +290,7 @@ class HallLittlewood_p(HallLittlewood_generic):
             sage: HLQ  = HallLittlewoodQ(QQ)
             sage: HLQp = HallLittlewoodQp(QQ)
             sage: s = SFASchur(HLP.base_ring()); p = SFAPower(HLP.base_ring())
-            sage: HLP(HLQ([2]))
+            sage: HLP(HLQ([2])) # indirect doctest
             (-t+1)*P[2]
             sage: HLP(HLQp([2]))
             t*P[1, 1] + P[2]
@@ -407,7 +407,7 @@ class HallLittlewood_q(HallLittlewood_generic):
 
         EXAMPLES:
             sage: HLQ = HallLittlewoodQ(QQ)
-            sage: HLQ([2])^2
+            sage: HLQ([2])^2 # indirect doctest
             Q[2, 2] + (-t+1)*Q[3, 1] + (-t+1)*Q[4]
 
         """
@@ -423,7 +423,7 @@ class HallLittlewood_q(HallLittlewood_generic):
             sage: s = SFASchur(HLP.base_ring()); p = SFAPower(HLP.base_ring())
             sage: HLQ( HLP([2,1]) + HLP([3]) )
             (1/(t^2-2*t+1))*Q[2, 1] + (1/(-t+1))*Q[3]
-            sage: HLQ(HLQp([2]))
+            sage: HLQ(HLQp([2])) # indirect doctest
             (-t/(-t^3+t^2+t-1))*Q[1, 1] + (1/(-t+1))*Q[2]
             sage: HLQ(s([2]))
             (-t/(-t^3+t^2+t-1))*Q[1, 1] + (1/(-t+1))*Q[2]
@@ -501,7 +501,7 @@ class HallLittlewood_qp(HallLittlewood_generic):
             sage: HLQ  = HallLittlewoodQ(QQ)
             sage: HLQp = HallLittlewoodQp(QQ)
             sage: s = SFASchur(HLP.base_ring()); p = SFAPower(HLP.base_ring())
-            sage: HLQp(HLP([2]))
+            sage: HLQp(HLP([2])) # indirect doctest
             -t*Qp[1, 1] + (t^2+1)*Qp[2]
             sage: HLQp(HLQ([2]))
             (t^2-t)*Qp[1, 1] + (-t^3+t^2-t+1)*Qp[2]
@@ -528,7 +528,7 @@ class HallLittlewood_qp(HallLittlewood_generic):
 
         EXAMPLES:
             sage: HLQp = HallLittlewoodQp(QQ)
-            sage: HLQp([2])^2
+            sage: HLQp([2])^2 # indirect doctest
             Qp[2, 2] + (-t+1)*Qp[3, 1] + (-t+1)*Qp[4]
 
         """

@@ -35,7 +35,7 @@ class SymmetricFunctionAlgebra_multiplicative(classical.SymmetricFunctionAlgebra
             p[2, 2, 1, 1]
 
             sage: QQx.<x> = QQ[]
-            sage: p = SFAPower(QQx)
+            sage: p = SFAPower(QQx) # indirect doctest
             sage: (x*p([2]))^2
             x^2*p[2, 2]
         """

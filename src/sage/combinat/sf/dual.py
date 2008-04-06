@@ -255,7 +255,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(scalar=zee)
             sage: a = h([2])
-            sage: b = a*a; b
+            sage: b = a*a; b # indirect doctest
             d_m[2, 2]
             sage: b.dual()
             6*m[1, 1, 1, 1] + 4*m[2, 1, 1] + 3*m[2, 2] + 2*m[3, 1] + m[4]
@@ -426,7 +426,7 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
             sage: m = SFAMonomial(QQ)
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(zee)
-            sage: a = h([2,1])+h([3]); a
+            sage: a = h([2,1])+h([3]); a # indirect doctest
             d_m[2, 1] + d_m[3]
             sage: a.dual()
             4*m[1, 1, 1] + 3*m[2, 1] + 2*m[3]
@@ -442,7 +442,7 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(zee)
             sage: a = h([2,1])+h([3])
-            sage: -h([2,1])
+            sage: -h([2,1]) # indirect doctest
             -d_m[2, 1]
         """
         eclass = self.__class__
@@ -455,7 +455,7 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(zee)
             sage: a = h([2,1])+h([3])
-            sage: h([2,1])-h([3])
+            sage: h([2,1])-h([3]) # indirect doctest
             d_m[2, 1] - d_m[3]
         """
         eclass = self.__class__
@@ -468,7 +468,7 @@ class SymmetricFunctionAlgebraElement_dual(classical.SymmetricFunctionAlgebraEle
             sage: zee = sage.combinat.sf.sfa.zee
             sage: h = m.dual_basis(zee)
             sage: a = h([2,1])+h([3])
-            sage: a/2
+            sage: a/2 # indirect doctest
             1/2*d_m[2, 1] + 1/2*d_m[3]
 
         """

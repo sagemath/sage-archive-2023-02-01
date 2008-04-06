@@ -251,7 +251,7 @@ class DyckWord_class(CombinatorialObject):
     def to_ordered_tree(self):
         """
         TESTS:
-            sage: DyckWord([1, 1, 0, 0]).to_triangulation()
+            sage: DyckWord([1, 1, 0, 0]).to_ordered_tree()
             Traceback (most recent call last):
             ...
             NotImplementedError: TODO
@@ -727,7 +727,7 @@ def is_a(obj, k1 = None, k2 = None):
 def from_noncrossing_partition(ncp):
     """
     TESTS:
-        sage: DyckWord(noncrossing_partition=[[1,2]])
+        sage: DyckWord(noncrossing_partition=[[1,2]]) # indirect doctest
         [1, 1, 0, 0]
         sage: DyckWord(noncrossing_partition=[[1],[2]])
         [1, 0, 1, 0]

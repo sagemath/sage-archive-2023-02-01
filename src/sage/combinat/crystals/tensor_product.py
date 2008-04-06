@@ -577,7 +577,7 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
         EXAMPLES:
             sage: T = CrystalOfTableaux(['A',3], shape = [2,2])
             sage: t = T(rows=[[1,2],[3,4]])
-            sage: latex(t)
+            sage: latex(t) # indirect doctest
             {\def\lr#1#2#3{\multicolumn{1}{#1@{\hspace{.6ex}}c@{\hspace{.6ex}}#2}{\raisebox{-.3ex}{$#3$}}}
             \raisebox{-.6ex}{$\begin{array}[b]{cc}
             \cline{1-1}\cline{2-2}%

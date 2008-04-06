@@ -134,7 +134,7 @@ class kSchurFunctions_t(kSchurFunctions_generic):
         EXAMPLES:
             sage: ks3 = kSchurFunctions(QQ, 3)
             sage: s = SFASchur(QQ)
-            sage: ks3([4,3,2,1])
+            sage: ks3([4,3,2,1]) # indirect doctest
             0
             sage: ks3(s([2,1]))
             ks3[2, 1]
@@ -200,7 +200,7 @@ class kSchurFunctions_t(kSchurFunctions_generic):
 
         EXAMPLES:
             sage: ks3 = kSchurFunctions(QQ, 3)
-            sage: ks3([1])^2
+            sage: ks3([1])^2 # indirect doctest
             ks3[1, 1] + ks3[2]
             sage: ks3([2,1])^2
             ks3[2, 2, 1, 1] + ks3[2, 2, 2] + ks3[3, 1, 1, 1] + (-2*t+2)*ks3[3, 2, 1] + (-t^2+1)*ks3[3, 3]

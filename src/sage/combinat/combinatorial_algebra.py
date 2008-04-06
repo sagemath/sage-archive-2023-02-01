@@ -191,7 +191,7 @@ class CombinatorialAlgebraElement(AlgebraElement):
         """
         EXAMPLES:
             sage: s = SFASchur(QQ)
-            sage: s([2,1]) + s([5,4])
+            sage: s([2,1]) + s([5,4]) # indirect doctest
             s[2, 1] + s[5, 4]
             sage: a = s([2,1]) + 0
             sage: len(a.monomial_coefficients())
@@ -227,7 +227,7 @@ class CombinatorialAlgebraElement(AlgebraElement):
         """
         EXAMPLES:
             sage: s = SFASchur(QQ)
-            sage: -s([2,1])
+            sage: -s([2,1]) # indirect doctest
             -s[2, 1]
         """
         return self.map_coefficients(lambda c: -c)
@@ -237,7 +237,7 @@ class CombinatorialAlgebraElement(AlgebraElement):
         """
         EXAMPLES:
             sage: s = SFASchur(QQ)
-            sage: s([2,1]) - s([5,4])
+            sage: s([2,1]) - s([5,4]) # indirect doctest
             s[2, 1] - s[5, 4]
         """
         A = self.parent()
@@ -564,7 +564,7 @@ class CombinatorialAlgebraElement(AlgebraElement):
         EXAMPLES:
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: a = QS3([2,1,3])
-            sage: a._matrix_()
+            sage: a._matrix_() # indirect doctest
             [0 0 1 0 0 0]
             [0 0 0 0 1 0]
             [1 0 0 0 0 0]

@@ -121,11 +121,11 @@ class SignedCompositions_n(CombinatorialClass):
     def iterator(self):
         """
         TESTS:
-            sage: SignedCompositions(0).list()   #indirect test
+            sage: SignedCompositions(0).list()   #indirect doctest
             [[]]
-            sage: SignedCompositions(1).list()   #indirect test
+            sage: SignedCompositions(1).list()   #indirect doctest
             [[1], [-1]]
-            sage: SignedCompositions(2).list()   #indirect test
+            sage: SignedCompositions(2).list()   #indirect doctest
             [[1, 1], [1, -1], [-1, 1], [-1, -1], [2], [-2]]
         """
         for comp in composition.Compositions(self.n):

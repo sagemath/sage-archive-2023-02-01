@@ -348,7 +348,7 @@ class JackPolynomials_p(JackPolynomials_generic):
             sage: P = JackPolynomialsP(QQ)
             sage: J = JackPolynomialsJ(QQ)
 
-            sage: P(Q([2,1]))
+            sage: P(Q([2,1])) # indirect doctest
             ((t+2)/(2*t^3+t^2))*JackP[2, 1]
             sage: P(Q([3]))
             ((2*t^2+3*t+1)/(6*t^3))*JackP[3]
@@ -447,7 +447,7 @@ class JackPolynomials_p(JackPolynomials_generic):
         """
         EXAMPLES:
             sage: P = JackPolynomialsP(QQ)
-            sage: P([1])^2
+            sage: P([1])^2 # indirect doctest
             (2*t/(t+1))*JackP[1, 1] + JackP[2]
             sage: P._m(_)
             2*m[1, 1] + m[2]
@@ -491,7 +491,7 @@ class JackPolynomials_j(JackPolynomials_generic):
             1/6*JackJ[1, 1, 1] + (1/(t+2))*JackJ[2, 1] + (1/(2*t^2+3*t+1))*JackJ[3]
 
             sage: s = SFASchur(J.base_ring())
-            sage: J(s([3]))
+            sage: J(s([3])) # indirect doctest
             ((t^2-3*t+2)/(6*t^2+18*t+12))*JackJ[1, 1, 1] + ((2*t-2)/(2*t^2+5*t+2))*JackJ[2, 1] + (1/(2*t^2+3*t+1))*JackJ[3]
             sage: J(s([2,1]))
             ((t-1)/(3*t+6))*JackJ[1, 1, 1] + (1/(t+2))*JackJ[2, 1]
@@ -511,7 +511,7 @@ class JackPolynomials_j(JackPolynomials_generic):
         """
         EXAMPLES:
             sage: J = JackPolynomialsJ(QQ)
-            sage: J([1])^2
+            sage: J([1])^2 #indirect doctest
             (t/(t+1))*JackJ[1, 1] + (1/(t+1))*JackJ[2]
             sage: J([2])^2
             (2*t^2/(2*t^2+3*t+1))*JackJ[2, 2] + (4*t/(3*t^2+4*t+1))*JackJ[3, 1] + ((t+1)/(6*t^2+5*t+1))*JackJ[4]
@@ -548,7 +548,7 @@ class JackPolynomials_q(JackPolynomials_generic):
             (1/6*t^3+1/2*t^2+1/3*t)*JackQ[1, 1, 1] + ((2*t^3+t^2)/(t+2))*JackQ[2, 1] + (6*t^3/(2*t^2+3*t+1))*JackQ[3]
 
             sage: s = SFASchur(Q.base_ring())
-            sage: Q(s([3]))
+            sage: Q(s([3])) # indirect doctest
             (1/6*t^3-1/2*t^2+1/3*t)*JackQ[1, 1, 1] + ((2*t^3-2*t^2)/(t+2))*JackQ[2, 1] + (6*t^3/(2*t^2+3*t+1))*JackQ[3]
             sage: Q(s([2,1]))
             (1/3*t^3-1/3*t)*JackQ[1, 1, 1] + ((2*t^3+t^2)/(t+2))*JackQ[2, 1]
@@ -568,7 +568,7 @@ class JackPolynomials_q(JackPolynomials_generic):
         """
         EXAMPLES:
             sage: Q = JackPolynomialsQ(QQ)
-            sage: Q([1])^2
+            sage: Q([1])^2 # indirect doctest
             JackQ[1, 1] + (2/(t+1))*JackQ[2]
             sage: Q([2])^2
             JackQ[2, 2] + (2/(t+1))*JackQ[3, 1] + ((6*t+6)/(6*t^2+5*t+1))*JackQ[4]

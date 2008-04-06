@@ -62,7 +62,7 @@ class Tableau_class(CombinatorialObject):
         CombinatorialObject.__init__(self,t)
 
     def _latex_(self):
-        """
+        r"""
         Returns a LaTeX version of self.
 
         EXAMPLES:
@@ -80,7 +80,7 @@ class Tableau_class(CombinatorialObject):
         return self._tex_from_array()
 
     def _tex_from_array(self):
-        """
+        r"""
         EXAMPLES:
             sage: print Tableau([[1,2],[3,4]])._tex_from_array()
             {\def\lr#1#2#3{\multicolumn{1}{#1@{\hspace{.6ex}}c@{\hspace{.6ex}}#2}{\raisebox{-.3ex}{$#3$}}}

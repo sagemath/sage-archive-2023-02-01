@@ -62,7 +62,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: s = SFASchur(QQ)
             sage: a = s([2,1]) + 1; a
             s[] + s[2, 1]
-            sage: a^2
+            sage: a^2   # indirect doctest
             s[] + 2*s[2, 1] + s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 2*s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
 
             sage: QQx.<x> = QQ[]

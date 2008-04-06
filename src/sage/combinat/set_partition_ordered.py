@@ -224,7 +224,7 @@ class OrderedSetPartitions_s(CombinatorialClass):
     def iterator(self):
         """
         EXAMPLES:
-            sage: OrderedSetPartitions([1,2,3]).list()
+            sage: OrderedSetPartitions([1,2,3]).list() # indirect doctest
             [[{1}, {2}, {3}],
              [{1}, {3}, {2}],
              [{2}, {1}, {3}],
@@ -293,7 +293,7 @@ class OrderedSetPartitions_sn(CombinatorialClass):
     def iterator(self):
         """
         EXAMPLES:
-            sage: OrderedSetPartitions([1,2,3,4], 2).list()
+            sage: OrderedSetPartitions([1,2,3,4], 2).list() # indirect doctest
             [[{1}, {2, 3, 4}],
              [{2}, {1, 3, 4}],
              [{3}, {1, 2, 4}],
@@ -364,7 +364,7 @@ class OrderedSetPartitions_scomp(CombinatorialClass):
     def iterator(self):
         """
         TESTS:
-            sage: OrderedSetPartitions([1,2,3,4], [2,1,1]).list()
+            sage: OrderedSetPartitions([1,2,3,4], [2,1,1]).list() # indirect doctest
             [[{1, 2}, {3}, {4}],
              [{1, 2}, {4}, {3}],
              [{1, 3}, {2}, {4}],

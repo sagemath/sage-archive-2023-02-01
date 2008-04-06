@@ -806,7 +806,7 @@ class CombinatorialClass(SageObject):
 
     def __contains__(self, x):
         """
-        Tests whether or not the coxmbinatorial class contains the
+        Tests whether or not the combinatorial class contains the
         object x.  This raises a NotImplementedError as a default
         since _all_ subclasses of CombinatorialClass should
         override this.
@@ -921,7 +921,7 @@ class CombinatorialClass(SageObject):
             sage: C = CombinatorialClass()
             sage: C.first = lambda: 0
             sage: C.next  = lambda c: c+1
-            sage: it = C.iterator()
+            sage: it = C.iterator() # indirect doctest
             sage: [it.next() for _ in range(4)]
             [0, 1, 2, 3]
         """
@@ -955,7 +955,7 @@ class CombinatorialClass(SageObject):
             ...           return c-1
             ...
             sage: C.previous  = prev
-            sage: it = C.iterator()
+            sage: it = C.iterator() # indirect doctest
             sage: [it.next() for _ in range(4)]
             [1, 2, 3, 4]
         """
@@ -981,7 +981,7 @@ class CombinatorialClass(SageObject):
             sage: C = CombinatorialClass()
             sage: l = [1,2,3]
             sage: C.unrank = lambda c: l[c]
-            sage: list(C.iterator())
+            sage: list(C.iterator()) # indirect doctest
             [1, 2, 3]
         """
         r = 0
@@ -1006,7 +1006,7 @@ class CombinatorialClass(SageObject):
         EXAMPLES:
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1, 2, 3]
-            sage: list(C.iterator())
+            sage: list(C.iterator()) # indirect doctest
             [1, 2, 3]
         """
         for x in self.list():
@@ -1047,7 +1047,7 @@ class CombinatorialClass(SageObject):
         EXAMPLES:
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1,2,3]
-            sage: C.unrank(1)
+            sage: C.unrank(1) # indirect doctest
             2
         """
         counter = 0
@@ -1068,7 +1068,7 @@ class CombinatorialClass(SageObject):
         EXAMPLES:
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1,2,3]
-            sage: C.random() #random
+            sage: C.random() #random, indirect doctest
             2
         """
         c = self.count()
@@ -1087,7 +1087,7 @@ class CombinatorialClass(SageObject):
         EXAMPLES:
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1,2,3]
-            sage: C.rank(3)
+            sage: C.rank(3) # indirect doctest
             2
         """
         r = 0
@@ -1106,7 +1106,7 @@ class CombinatorialClass(SageObject):
         EXAMPLES:
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1,2,3]
-            sage: C.first()
+            sage: C.first() # indirect doctest
             1
         """
         for i in self.iterator():
@@ -1121,7 +1121,7 @@ class CombinatorialClass(SageObject):
         EXAMPLES:
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1,2,3]
-            sage: C.last()
+            sage: C.last() # indirect doctest
             3
         """
         for i in self.iterator():
@@ -1137,7 +1137,7 @@ class CombinatorialClass(SageObject):
         EXAMPLES:
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1,2,3]
-            sage: C.next(2)
+            sage: C.next(2) # indirect doctest
             3
         """
         found = False
@@ -1157,7 +1157,7 @@ class CombinatorialClass(SageObject):
         EXAMPLES:
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1,2,3]
-            sage: C.previous(2)
+            sage: C.previous(2) # indirect doctest
             1
         """
         prev = None

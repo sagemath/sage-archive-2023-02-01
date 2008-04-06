@@ -145,7 +145,7 @@ class FastCrystal(ClassicalCrystal):
         """
         EXAMPLES:
             sage: C = FastCrystal(['A',2],shape=[1,1])
-            sage: C.delpat
+            sage: C.delpat # indirect doctest
             [[0, 0, 0], [0, 1, 0], [1, 1, 0]]
             sage: C.gampat
             [[0, 0, 0], [1, 0, 0], [0, 1, 1]]
@@ -166,7 +166,7 @@ class FastCrystal(ClassicalCrystal):
         """
         EXAMPLES:
             sage: C = FastCrystal(['B',2],shape=[1])
-            sage: len(C.delpat)
+            sage: len(C.delpat) # indirect doctest
             5
             sage: len(C.gampat)
             5

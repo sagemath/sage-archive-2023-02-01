@@ -141,7 +141,7 @@ class Combinations_mset(CombinatorialClass):
     def iterator(self):
         """
         TESTS:
-            sage: Combinations(['a','a','b']).list() #indirect test
+            sage: Combinations(['a','a','b']).list() #indirect doctest
             [[], ['a'], ['b'], ['a', 'a'], ['a', 'b'], ['a', 'a', 'b']]
         """
         for k in range(len(self.mset)+1):
@@ -165,7 +165,7 @@ class Combinations_set(Combinations_mset):
     def iterator(self):
         """
         EXAMPLES:
-            sage: Combinations([1,2,3]).list() #indirect test
+            sage: Combinations([1,2,3]).list() #indirect doctest
             [[], [1], [2], [3], [1, 2], [1, 3], [2, 3], [1, 2, 3]]
         """
         for k in range(len(self.mset)+1):
@@ -250,7 +250,7 @@ class Combinations_msetk(CombinatorialClass):
     def iterator(self):
         """
         EXAMPLES:
-            sage: Combinations(['a','a','b'],2).list()
+            sage: Combinations(['a','a','b'],2).list() # indirect doctest
             [['a', 'a'], ['a', 'b']]
         """
         items = map(self.mset.index, self.mset)
@@ -307,12 +307,12 @@ class Combinations_setk(Combinations_msetk):
         yield []
 
     def iterator(self):
-        """
+        r"""
         Posted by Raymond Hettinger, 2006/03/23, to the Python Cookbook:
-        http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/474124
+        \url{http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/474124}
 
         EXAMPLES:
-            sage: Combinations([1,2,3,4,5],3).list()
+            sage: Combinations([1,2,3,4,5],3).list() # indirect doctest
             [[1, 2, 3],
              [1, 2, 4],
              [1, 2, 5],

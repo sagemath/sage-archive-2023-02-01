@@ -148,21 +148,21 @@ class LyndonWords_evaluation(CombinatorialClass):
         An iterator for the Lyndon words with evaluation e.
 
         EXAMPLES:
-            sage: LyndonWords([1]).list()    #indirect test
+            sage: LyndonWords([1]).list()    #indirect doctest
             [[1]]
-            sage: LyndonWords([2]).list()    #indirect test
+            sage: LyndonWords([2]).list()    #indirect doctest
             []
-            sage: LyndonWords([3]).list()    #indirect test
+            sage: LyndonWords([3]).list()    #indirect doctest
             []
-            sage: LyndonWords([3,1]).list()  #indirect test
+            sage: LyndonWords([3,1]).list()  #indirect doctest
             [[1, 1, 1, 2]]
-            sage: LyndonWords([2,2]).list()  #indirect test
+            sage: LyndonWords([2,2]).list()  #indirect doctest
             [[1, 1, 2, 2]]
-            sage: LyndonWords([1,3]).list()  #indirect test
+            sage: LyndonWords([1,3]).list()  #indirect doctest
             [[1, 2, 2, 2]]
-            sage: LyndonWords([3,3]).list()  #indirect test
+            sage: LyndonWords([3,3]).list()  #indirect doctest
             [[1, 1, 1, 2, 2, 2], [1, 1, 2, 1, 2, 2], [1, 1, 2, 2, 1, 2]]
-            sage: LyndonWords([4,3]).list()  #indirect test
+            sage: LyndonWords([4,3]).list()  #indirect doctest
             [[1, 1, 1, 1, 2, 2, 2],
              [1, 1, 1, 2, 1, 2, 2],
              [1, 1, 1, 2, 2, 1, 2],
@@ -236,7 +236,7 @@ class LyndonWords_nk(CombinatorialClass):
     def iterator(self):
         """
         TESTS:
-           sage: LyndonWords(3,3).list()
+           sage: LyndonWords(3,3).list() # indirect doctest
            [[1, 1, 2],
             [1, 1, 3],
             [1, 2, 2],

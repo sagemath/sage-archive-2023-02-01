@@ -42,6 +42,9 @@ js.keyhandler.add('uncomment',              key = "KEY_COMMA", ctrl=True)
 js.keyhandler.add('comment',                key = "KEY_3",     ctrl=True)
 js.keyhandler.add('uncomment',              key = "KEY_4",     ctrl=True)
 
+js.keyhandler.add('control',                key = "KEY_CTRL")
+js.keyhandler.add('enter',                  key = "KEY_ENTER")
+js.keyhandler.add('enter',                  key = "KEY_RETURN")
 js.keyhandler.add('split_cell',             key = "KEY_ENTER", ctrl=True)
 js.keyhandler.add('split_cell',             key = "KEY_RETURN",ctrl=True)
 js.keyhandler.add('split_cell',             key = "KEY_CTRLENTER", ctrl=True)  # needed on OS X Firefox

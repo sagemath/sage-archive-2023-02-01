@@ -653,10 +653,11 @@ KEY_RIGHT = "39,0"
 KEY_DOWN = "40,0"
     """
 
+# You had KEY_CTRL = "20,20", but it's "0,0"
 def keyboard_op_mac():
     return """
 KEY_SHIFT = "16,16"
-KEY_CTRL = "20,20"
+KEY_CTRL = "0,0"
 KEY_ALT = "18,18"
 KEY_ESC = "27,27"
 KEY_HOME = "36,36"

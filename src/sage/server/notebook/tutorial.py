@@ -150,7 +150,7 @@ cell, the whole cell will be typeset using jsmath.  Also, you can type
 \subsubsection{Adding and Removing Cells}
 To add a new cell, click on a little black line that appears when you
 hover between any two cells, or above the top one.  To delete a cell
-delete all its contents, then hit backspace one more time.  The cell
+delete all its contents, then press ctrl-backspace one more time.  The cell
 vanishes forever.
 
 You can also move back and forth between cells using the up and down
@@ -370,7 +370,7 @@ notebook_help = [
                 ('Insert New Cell',
                  'Put the mouse between an output and input until the horizontal line appears and click.  If you press Alt-Enter in a cell, the cell is evaluated and a new cell is inserted after it.'),
                 ('Delete Cell',
-                 'Delete all cell contents, then the press backspace.'),
+                 'Delete all cell contents, then the press ctrl-backspace. This is a special case of joining cells.'),
                 ('History', 'Click <a href="/history">log</a> commands you have entered in any worksheet of this notebook.'),
                 ('Hide/Show Output', 'Click on the left side of output to toggle between hidden, shown with word wrap, and shown without word wrap.'),
                 ('Loading and Saving Sessions', 'Use "save_session name" to save all variables to an object with given name (if no name is given, defaults to name of worksheet).  Use "load_session name" to <i>merge</i> in all variables from a saved session.'),
@@ -382,7 +382,7 @@ notebook_help = [
                 ('Working Directory', 'Each block of code is run from its own directory.  If any images are created as a side effect, they will automatically be displayed.'),
             ('DIR variable', 'The variable DIR contains the directory from which you started the SAGE notebook.  For example, to open a file in that directory, do "open(DIR+\'filename\')".'),
             ('DATA variable', 'The variable DATA contains the directory with data files that you upload into the worksheet.  For example, to open a file in that directory, do "open(DIR+\'filename\')".'),
-            ('Splitting cells', 'Press ctrl-enter in a cell to split it into two cells.  (This does not work in Opera.)'),
+            ('Split and join cells', 'Press ctrl-enter in a cell to split it into two cells, and ctrl-backspace to join them.'),
 #                ('Emacs Keybindings', 'If you are using GNU/Linux, you can change (or create) a <tt>.gtkrc-2.0</tt> file.  Add the line <tt>gtk-key-theme-name = "Emacs"</tt> to it.  See <a target="_blank" href="http://kb.mozillazine.org/Emacs_Keybindings_(Firefox)">this page</a> [mozillazine.org] for more details.'),
  #               ('More Help', 'Type "help(sage.server.notebook.notebook)" for a detailed discussion of the architecture of the SAGE notebook and a tutorial (or see the SAGE reference manual).'),
 #                ('Javascript Debugger', 'Type ?debug at the end of a worksheet url to enable the javascript debugger.  A pair of textareas will appear at the top of the worksheet -- the upper of which is for output, the lower is a direct interface to the page\'s javascript environment.  Type any eval()-able javascript into the input box and press shift+enter to execute it.  Type debug_append(str) to print to, and debug_clear() to clear the debug output window.'),

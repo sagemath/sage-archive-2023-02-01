@@ -525,7 +525,13 @@ function set_cursor_position(cell, n) {
         cell -- an actual cell in the DOM, returned by get_cell
         n -- a non-negative integer
     */
-
+    if (browser_op && !n) {
+        // program around a "bug" in opera where using this
+        // hack to position the cursor selects the entire
+        // text area (which is very painful, since then the
+        // user accidently deletes all their code).
+        return;
+    }
     // TODO: note for explorer:  may need to focus cell first.
     set_selection_range(cell, n, n);
 }
@@ -1485,31 +1491,66 @@ function debug_input_key_event(e) {
     }
 }
 
+var control_key_pressed = 0;
+
 function cell_input_key_event(id, e) {
+    /*
+    This function is called each time a key is pressed when the cursor is inside
+    an input cell.
+
+    INPUT:
+        id -- the id of the input cell
+        e -- determines the keyboard event, i.e., the key press
+    GLOBAL_INPUT:
+        control_key_pressed -- used to detect if the control key was pressed; this is
+                  really only relevant to handling Opera's quirky even model.
+    OUTPUT:
+        All kinds of interesting things can happen:
+            - introspection
+            - cell join
+            - cell split
+            - cell delete
+            - a cell may be evaluated
+    */
     cell_input = get_cell(id);
     e = new key_event(e);
     if (e==null) return;
 
-    if (key_split_cell(e)) {
+    /*********** SPLIT AND JOIN HANDLING ********/
+
+    /* Record that just the control key was pressed.  We do this since on Opera
+       it is the only way to catch control + key. */
+    if (key_control(e)) {
+        control_key_pressed = 1;
+        return;
+    }
+    /* Check for the split and join keystrokes. */
+    if (key_split_cell(e) || (key_enter(e) && control_key_pressed)) {
         split_cell(id);
         return false;
-    } else if (key_join_cell(e)) {
+    } else if (key_join_cell(e) || (key_delete_cell(e) && control_key_pressed)) {
+        conrol_key = 0;
         join_cell(id);
         return false;
-    } else if (key_delete_cell(e)) {
-        /* If we press backspace at the beginning of a cell,
-           join with the previous cell. */
-        if (get_cursor_position(cell_input) == 0) {
-            join_cell(id);
-            return false;
-        }
     }
-/*    } else if (key_delete_cell(e) && is_whitespace(cell_input.value)) {
-        jump_to_cell(id,-1);
-        cell_delete(id);
-        return false;
-    }
-    */
+
+// IT IS SAFE TO DELETE THIS...
+// Deleting an empty cell (a special case of join).
+//    if ((key_join_cell(e)&& is_whitespace(cell_input.value) ) {
+        // If we press backspace at the beginning of a cell,
+        // join with the previous cell.
+//        if (get_cursor_position(cell_input) == 0) {
+//            join_cell(id);
+//            return false;
+//        }
+//    }
+
+    /* Turn off recording that the control key may have pressed last, since
+       we *only* would use that in the above if statement.  NOTE: This
+       is only needed on Opera.  */
+    control_key_pressed = 0;
+
+    /*********** END of SPLIT AND JOIN HANDLING ********/
 
     if((introspect_id == id) && introspection_loaded && replacing) {
         if(!handle_replacement_controls(cell_input, e)) {
@@ -1518,13 +1559,6 @@ function cell_input_key_event(id, e) {
         }
         halt_introspection();
     }
-
-//    cell_input_resize_(cell_input); // nix this for now, onInput *should* do the trick
-//    cell_input.focus();  //why is this here?  cell shouldn't lose focus unless we've gotten a tab, and that gets checked later
-/*    if (browser_saf)   {
-        cell_input.scrollIntoView();
-    }
-    */
 
     var selection_range = get_selection_range(cell_input);
     var selection_is_empty = (selection_range[0] == selection_range[1]);
@@ -1827,6 +1861,7 @@ function split_cell(id) {
     cell.value = txt[1];
     cell_input_resize(cell);
     send_cell_input(id);  /* tell the server about how the input just got split in half. */
+
     set_cursor_position(cell,0);
 
     /* Make sure that the cursor doesn't move to the new cell. */

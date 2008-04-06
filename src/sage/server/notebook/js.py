@@ -399,6 +399,9 @@ function get_keyboard() {
     debug_keypress = true_function;
   } else if(browser_saf) {
     b = "s";
+    input_keypress = true_function;
+    input_keydown = cell_input_key_event;
+    debug_keypress = true_function;
   } else if(browser_konq) {
     b = "k";
     warn = true;
@@ -1663,7 +1666,7 @@ function cell_input_key_event(id, e) {
 
     if((introspect_id == id) && introspection_loaded && replacing) {
         if(!handle_replacement_controls(cell_input, e)) {
-            if(browser_op) focus_delay(id,true);
+            if(browser_op) { focus_delay(id,true); }
             return false; //otherwise, keep going
         }
         halt_introspection();
@@ -1708,7 +1711,7 @@ function cell_input_key_event(id, e) {
     } else if (key_request_introspections(e) && selection_is_empty) {
        // command introspection (tab completion, ?, ??)
        evaluate_cell_introspection(id,null,null);
-       focus_delay(id,true);
+       if (browser_op) { focus_delay(id,true); }
        return false;
     } else if (key_indent(e) && !selection_is_empty) {
        indent_cell(cell_input);
@@ -2085,7 +2088,7 @@ function evaluate_cell_introspection(id, before, after) {
     } else {
         sub_introspecting = true;
     }
-    if(!replacing && (browser_op || browser_saf))
+    if(!replacing && browser_op)
         focus_delay(id);
 
     update_introspection_text();

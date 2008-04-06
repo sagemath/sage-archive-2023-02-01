@@ -872,6 +872,9 @@ class SymbolicExpression(RingElement):
         A more complicated family:
             sage: G = sum([plot(sin(n*x), (x,-2*pi, 2*pi)).plot3d(z=n) for n in [0,0.1,..1]])
             sage: G.show(frame_aspect_ratio=[1,1,1/2])
+
+        A plot involving the floor function:
+            sage: plot(1.0 - x * floor(1/x), (x,0.00001,1.0))
         """
         from sage.plot.plot import plot
 
@@ -895,23 +898,23 @@ class SymbolicExpression(RingElement):
                 f = lambda x: y
 
         elif param is None:
-            if isinstance(self, CallableSymbolicExpression):
-                A = self.arguments()
+            if isinstance(F, CallableSymbolicExpression):
+                A = F.arguments()
                 if len(A) == 0:
                     raise ValueError, "function has no input arguments"
                 else:
                     param = A[0]
-                f = lambda x: self(x)
+                f = F._fast_float_(param)
             else:
-                A = self.variables()
+                A = F.variables()
                 if len(A) == 0:
-                    y = float(self)
+                    y = float(F)
                     f = lambda x: y
                 else:
                     param = A[0]
-                    f = self.function(param)
+                    f = F._fast_float_(param)
         else:
-            f = self.function(param)
+            f = F._fast_float_(param)
         return plot(f, *args, **kwds)
 
     def __lt__(self, right):

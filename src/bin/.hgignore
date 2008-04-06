@@ -121,6 +121,7 @@ projection
 projection_gmp
 pycolor
 pydoc
+pyhtmlizer
 pyrexc
 pyrexembed
 python

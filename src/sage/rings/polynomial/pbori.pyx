@@ -2335,6 +2335,8 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: P(0).lm_degree()
             0
         """
+        if self._pbpoly.isZero():
+            return 0
         return self._pbpoly.lmDeg()
 
     def vars(self):

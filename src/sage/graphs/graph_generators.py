@@ -2884,6 +2884,28 @@ class GraphGenerators():
             if g.is_connected():
                 yield g
 
+    def nauty_geng(self, options=""):
+        r"""
+        Calls the geng program in the optional nauty spkg to generate
+        graphs.  The options argument is passed straight to nauty.
+
+        INPUT:
+            options -- a string passed to the command line of geng.
+            You *must* pass the number of vertices you desire.
+
+        EXAMPLES:
+            sage: graph_list = graphs.nauty_geng("-q 3") # requires the optional nauty package
+            sage: len(graph_list) # requires the optional nauty package
+            4
+
+        """
+        from sage.misc.package import is_package_installed
+        if not is_package_installed("nauty"):
+            raise TypeError, "the optional nauty package is not installed"
+        return [Graph(g) for g in os.popen("nauty-geng %s"%(options) ).read().split()]
+
+
+
 class DiGraphGenerators():
     r"""
     A class consisting of constructors for several common digraphs.

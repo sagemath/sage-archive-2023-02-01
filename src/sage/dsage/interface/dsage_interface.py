@@ -27,9 +27,10 @@ import time
 from getpass import getuser
 
 from twisted.cred.credentials import Anonymous
+from twisted.internet.threads import blockingCallFromThread
+from twisted.internet import reactor
 
 from sage.dsage.database.job import Job, expand_job
-from sage.dsage.twisted.misc import blockingCallFromThread
 from sage.dsage.misc.misc import random_str
 from sage.dsage.misc.constants import DSAGE_DIR
 
@@ -40,7 +41,6 @@ class DSageThread(threading.Thread):
     """
 
     def run(self):
-        from twisted.internet import reactor
         if not reactor.running:
             try:
                 reactor.run(installSignalHandlers=0)
@@ -370,7 +370,6 @@ class BlockingDSage(DSage):
         self._dsage_thread = DSageThread()
         self._dsage_thread.setDaemon(False)
         self._dsage_thread.start()
-
         DSage.__init__(self, server=server, port=port, username=username,
                        pubkey_file=pubkey_file, privkey_file=privkey_file,
                        log_level=log_level, ssl=ssl, testing=testing)
@@ -391,10 +390,10 @@ class BlockingDSage(DSage):
         if self.ssl:
             from gnutls.interfaces.twisted import X509Credentials
             cred = X509Credentials()
-            blockingCallFromThread(reactor.connectTLS, self.server,
+            blockingCallFromThread(reactor, reactor.connectTLS, self.server,
                                    self.port, self.factory, cred)
         else:
-            blockingCallFromThread(reactor.connectTCP, self.server, self.port,
+            blockingCallFromThread(reactor, reactor.connectTCP, self.server, self.port,
                                    self.factory)
 
     def _login(self, *args, **kwargs):
@@ -478,7 +477,7 @@ class BlockingDSage(DSage):
         """
 
         self.is_connected()
-        jdicts = blockingCallFromThread(self._remoteobj.callRemote,
+        jdicts = blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                         'get_jobs_by_username',
                                         self.username, status)
 
@@ -504,7 +503,7 @@ class BlockingDSage(DSage):
 
         self.is_connected()
 
-        return blockingCallFromThread(self._remoteobj.callRemote,
+        return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                          'get_cluster_speed')
 
     def get_workers_list(self):
@@ -514,7 +513,7 @@ class BlockingDSage(DSage):
 
         self.is_connected()
 
-        return blockingCallFromThread(self._remoteobj.callRemote,
+        return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                          'get_worker_list')
 
     def get_client_list(self):
@@ -524,7 +523,7 @@ class BlockingDSage(DSage):
 
         self.is_connected()
 
-        return blockingCallFromThread(self._remoteobj.callRemote,
+        return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                          'get_client_list')
 
     def get_worker_count(self):
@@ -535,7 +534,7 @@ class BlockingDSage(DSage):
 
         self.is_connected()
 
-        return blockingCallFromThread(self._remoteobj.callRemote,
+        return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                          'get_worker_count')
 
     def web_server_url(self):
@@ -545,7 +544,7 @@ class BlockingDSage(DSage):
 
         self.is_connected()
 
-        return blockingCallFromThread(self._remoteobj.callRemote,
+        return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                       'web_server_url')
 
     def web_view(self):
@@ -561,11 +560,11 @@ class BlockingDSage(DSage):
         open_page(address, port, False)
 
     def server_log(self, n=50):
-        return blockingCallFromThread(self._remoteobj.callRemote,
+        return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                       'read_log', n, 'server')
 
     def worker_log(self, n=50):
-        return blockingCallFromThread(self._remoteobj.callRemote,
+        return blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                       'read_log', n, 'worker')
 
 
@@ -772,7 +771,7 @@ class BlockingJobWrapper(JobWrapper):
     def __init__(self, remoteobj, job):
         self._update_job(job._reduce())
         self._remoteobj = remoteobj
-        self.job_id = blockingCallFromThread(self._remoteobj.callRemote,
+        self.job_id = blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                            'submit_job', job._reduce())
 
     def __repr__(self):
@@ -795,7 +794,7 @@ class BlockingJobWrapper(JobWrapper):
         if self.status == 'completed':
             return
 
-        jdict = blockingCallFromThread(self._remoteobj.callRemote,
+        jdict = blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                         'get_job_by_id', self.job_id)
 
         self._update_job(jdict)
@@ -808,7 +807,7 @@ class BlockingJobWrapper(JobWrapper):
         Resubmits the current job.
 
         """
-        self.job_id = blockingCallFromThread(self._remoteobj.callRemote,
+        self.job_id = blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                              'submit_job', self._jdict)
     def kill(self):
         """
@@ -816,7 +815,7 @@ class BlockingJobWrapper(JobWrapper):
 
         """
 
-        job_id = blockingCallFromThread(self._remoteobj.callRemote,
+        job_id = blockingCallFromThread(reactor, self._remoteobj.callRemote,
                                            'kill_job', self.job_id)
         self.job_id = job_id
         self.killed = True

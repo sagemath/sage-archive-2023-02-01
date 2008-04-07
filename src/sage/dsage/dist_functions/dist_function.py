@@ -24,7 +24,9 @@ import zlib
 from sage.dsage.database.job import Job
 from sage.dsage.interface.dsage_interface import (JobWrapper,
                                                   BlockingJobWrapper)
-from sage.dsage.twisted.misc import blockingCallFromThread
+
+from twisted.internet import reactor
+from twisted.internet.threads import blockingCallFromThread
 
 class DistributedFunction(object):
     """
@@ -113,10 +115,10 @@ class DistributedFunction(object):
 
         """
 
-        from twisted.internet import reactor, task
+        from twisted.internet import task
         if dsage.remoteobj is None:
             # XXX This is a hack because dsage.remoteobj is not set yet
-            reactor.callLater(0.5, self.restore, dsage)
+            self.reactor.callLater(0.5, self.restore, dsage)
             return
         self._dsage = dsage
         for job in self.waiting_jobs:
@@ -125,7 +127,7 @@ class DistributedFunction(object):
             self.submit_jobs(self.name)
 
         self.checker_task = task.LoopingCall(self.check_waiting_jobs)
-        reactor.callFromThread(self.checker_task.start, 5.0, now=True)
+        self.reactor.callFromThread(self.checker_task.start, 5.0, now=True)
 
 
     def submit_job(self, job, job_name='job', async=True):
@@ -192,14 +194,16 @@ class DistributedFunction(object):
         """
 
         from twisted.internet import reactor, task
+        self.reactor = reactor
         if self._dsage is None:
             print 'Error: Not connected to a DSage server.'
             return
         self.start_time = datetime.datetime.now()
-        reactor.callFromThread(self.submit_jobs, self.name, async=True)
-        self.checker_task = blockingCallFromThread(task.LoopingCall,
-                                                      self.check_waiting_jobs)
-        reactor.callFromThread(self.checker_task.start, 5.0, now=True)
+        self.reactor.callFromThread(self.submit_jobs, self.name, async=True)
+        self.checker_task = blockingCallFromThread(self.reactor,
+                                                   task.LoopingCall,
+                                                   self.check_waiting_jobs)
+        self.reactor.callFromThread(self.checker_task.start, 5.0, now=True)
 
 
     def process_result(self):
@@ -229,7 +233,7 @@ class DistributedFunction(object):
                     wrapped_job.get_job()
                 except pb.DeadReferenceError, msg:
                     if self.checker_task.running:
-                        reactor.callFromThread(self.checker_task.stop)
+                        self.reactor.callFromThread(self.checker_task.stop)
                     break
             elif isinstance(wrapped_job, BlockingJobWrapper):
                 wrapped_job.async_get_job()
@@ -245,7 +249,7 @@ class DistributedFunction(object):
                     wrapped_job.async_kill()
             self.waiting_jobs = []
             if self.checker_task.running:
-                reactor.callFromThread(self.checker_task.stop)
+                self.reactor.callFromThread(self.checker_task.stop)
 
 
 class DistributedFunctionTest(DistributedFunction):

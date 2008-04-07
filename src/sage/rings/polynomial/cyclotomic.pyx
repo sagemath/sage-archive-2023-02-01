@@ -80,7 +80,13 @@ def cyclotomic_coeffs(nn, sparse=None):
         -- Robert Bradshaw 2007-10-27: initial version
                (Inspired by work of Andrew Arnold and Michael Monagan)
     """
-    if nn > 8000000 and bateman_bound(nn) > sys.maxint:
+    # The following bounds are from Michael Monagan:
+    #    For all n < 169,828,113, the height of Phi_n(x) is less than 60 bits.
+    #    At n = 169828113, we get a height of 31484567640915734951 which is 65 bits
+    #    For n=10163195, the height of Phi_n(x) is 1376877780831,  40.32 bits.
+    #    For n<10163195, the height of Phi_n(x) is <= 74989473, 26.16 bits.
+    cdef long fits_long_limit = 169828113 if sizeof(long) >= 8 else 10163195
+    if nn >= fits_long_limit and bateman_bound(nn) > sys.maxint:
         # Do this to avoid overflow.
         print "Warning: using PARI (slow!)"
         from sage.interfaces.gp import pari

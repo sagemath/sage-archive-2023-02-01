@@ -76,6 +76,7 @@ from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing, MPol
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.plot.plot import Graphics, line, polygon
+from sage.geometry.polyhedra import ieq_to_vert
 
 def prefix_check(str_list):
     """
@@ -737,7 +738,7 @@ class GroebnerFan(SageObject):
             self.__homogeneity_space = h
             return h
 
-    def render(self, file = None, larger=False, shift=0, rgbcolor = (0,0,0), polyfill = max_degree):
+    def render(self, file = None, larger=False, shift=0, rgbcolor = (0,0,0), polyfill = max_degree, scale_colors = True):
         """
         Render a Groebner fan as sage graphics or save as an xfig
         file.
@@ -764,6 +765,7 @@ class GroebnerFan(SageObject):
             rgbcolor -- This will not affect the saved xfig file, only the sage graphics
                      produced.
             polyfill -- Whether or not to fill the cones with a color determined by the highest degree in each reduced Groebner basis for that cone.
+            scale_colors -- if True, this will normalize color values to try to maximize the range
 
 
         EXAMPLES:
@@ -804,12 +806,129 @@ class GroebnerFan(SageObject):
             r_lines = r_lines + line(x, rgbcolor = rgbcolor)
         if polyfill:
             vals = [polyfill(q) for q in self.reduced_groebner_bases()]
-            vmin = min(vals)
-            vmax = max(vals)
-            for index in range(len(sp3)):
-                r_lines = r_lines + polygon(sp3[index], hue = .3 + .4*(vals[index]-vmin)/(vmax-vmin))
+            if type(vals[0]) == list or type(vals[0]) == tuple:
+                if scale_colors:
+                    vmins = [min([q[i] for q in vals]) for i in (0,1,2)]
+                    vmaxs = [max([q[i] for q in vals]) for i in (0,1,2)]
+                    for i in (0,1,2):
+                        if vmaxs[i] == vmins[i]:
+                            vmaxs[i] = vmins[i] + .01
+                    for index in range(len(sp3)):
+                        col = [1-(vals[index][i]-vmins[i])/(vmaxs[i]-vmins[i]) for i in (0,1,2)]
+                        r_lines = r_lines + polygon(sp3[index], rgbcolor = col)
+                else:
+                    for index in range(len(sp3)):
+                        r_lines = r_lines + polygon(sp3[index], rgbcolor = vals[i])
+            else:
+                if scale_colors:
+                    vmin = min(vals)
+                    vmax = max(vals)
+                    if vmin == vmax:
+                        vmax = vmin + .01
+                    for index in range(len(sp3)):
+                        r_lines = r_lines + polygon(sp3[index], hue = .1 + .6*(vals[index]-vmin)/(vmax-vmin))
+                else:
+                    for index in range(len(sp3)):
+                        r_lines = r_lines + polygon(sp3[index], hue = vals[i])
         return r_lines
 
+    def _cone_to_ieq(self, facet_list):
+        """
+        A simple utility function for converting a facet normal to an
+        inequality form.
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ,2) # dummy stuff to get a gfan object
+            sage: gf = R.ideal([x^2+y,y^2]).groebner_fan()
+            sage: gf._cone_to_ieq([[1,2,3,4]])
+            [[0, 1, 2, 3, 4]]
+        """
+        ieq_list = []
+        for q in facet_list:
+            ieq_list.append([0] + q)
+        return ieq_list
+
+    def _embed_tetra(self, fpoint):
+        """
+        Takes a 4-d vector and projects it onto the plane perpendicular
+        to (1,1,1,1).  Stretches by a factor of 2 as well, since this is
+        only for graphical display purposes.
+
+        INPUT:
+            fpoint -- a list of four numbers
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(QQ,1) # dummy stuff to get a gfan object
+            sage: gf = R.ideal([x^2]).groebner_fan()
+            sage: gf._embed_tetra([1/2,1/2,1/2,1/2])
+            [0, 0, 0]
+        """
+        v1 = [1,1,-1,-1]
+        v2 = [1,-1,1,-1]
+        v3 = [-1,1,1,-1]
+        x1 = sum([fpoint[ind]*v1[ind] for ind in range(4)])
+        x2 = sum([fpoint[ind]*v2[ind] for ind in range(4)])
+        x3 = sum([fpoint[ind]*v3[ind] for ind in range(4)])
+        return [x1,x2,x3]
+
+    def _4d_to_3d(self, polyhedral_data):
+        """
+        A utility function that takes a list of 4d polytopes, projects
+        them to 3d, and returns a list of edges.
+
+        INPUT:
+            polyhedral_data -- an object with 4d vertex and adjacency information
+
+        OUTPUT:
+            edges -- a list of edges in 3d - each list item is a pair of points
+
+        EXAMPLES:
+            sage: R4.<w,x,y,z> = PolynomialRing(QQ,4)
+            sage: gf = R4.ideal([w^2-x,x^2-y,y^2-z,z^2-1]).groebner_fan()
+            sage: g_cone = gf[0].groebner_cone()
+            sage: g_cone_facets = g_cone.facets()
+            sage: g_cone_ieqs = gf._cone_to_ieq(g_cone_facets)
+            sage: cone_data = ieq_to_vert(g_cone_ieqs,linearities=[[1,-1,-1,-1,-1]])
+            sage: cone_lines = gf._4d_to_3d(cone_data)
+            sage: cone_lines
+            [[[-3/5, -1/3, -1/5], [-1/7, 3/7, 5/7]], [[-3/5, -1/3, -1/5], [1, -1/3,
+            1/3]], [[-3/5, -1/3, -1/5], [1, 1, -1]], [[-1/7, 3/7, 5/7], [1, -1/3,
+            1/3]], [[-1/7, 3/7, 5/7], [1, 1, -1]], [[1, -1/3, 1/3], [1, 1, -1]]]
+        """
+        fpoints = polyhedral_data.vertices()
+        tpoints = [self._embed_tetra(q) for q in fpoints]
+        adj_data = polyhedral_data.vertex_adjacencies()
+        edges = []
+        for adj in adj_data:
+            for vert in adj[1]:
+                if vert > adj[0]:
+                    edges.append([tpoints[adj[0]],tpoints[vert]])
+        return edges
+
+    def render3d(self):
+        """
+        For a Groebner fan of an ideal in a ring with four variables,
+        this function intersects the fan with the standard simplex
+        perpendicular to (1,1,1,1), creating a 3d polytope, which is
+        then projected into 3 dimensions.  The edges of this projected
+        polytope are returned as lines.
+
+        EXAMPLES:
+            sage: R4.<w,x,y,z> = PolynomialRing(QQ,4)
+            sage: gf = R4.ideal([w^2-x,x^2-y,y^2-z,z^2-x]).groebner_fan()
+            sage: three_d = gf.render3d()
+        """
+        g_cones = [q.groebner_cone() for q in self.reduced_groebner_bases()]
+        g_cones_facets = [q.facets() for q in g_cones]
+        g_cones_ieqs = [self._cone_to_ieq(q) for q in g_cones_facets]
+        # Now the cones are intersected with a plane:
+        cone_info = [ieq_to_vert(q,linearities=[[1,-1,-1,-1,-1]]) for q in g_cones_ieqs]
+        all_lines = []
+        for cone_data in cone_info:
+            cone_lines = self._4d_to_3d(cone_data)
+            for a_line in cone_lines:
+                all_lines.append(a_line)
+        return sum([line(a_line) for a_line in all_lines])
 
     def _gfan_stats(self):
         """

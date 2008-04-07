@@ -164,8 +164,11 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
             except AttributeError:
                 raise TypeError, "do not know how to convert from %s to %s"%(xP.basis_name(), self.basis_name())
 
-            f = lambda part: self._from_dict(t( {part:Integer(1)} )._monomial_coefficients)
-            return self._apply_module_endomorphism(x, f)
+            if R == QQ and xP.base_ring() == QQ:
+                return self._from_dict(t(xm)._monomial_coefficients, coerce=True)
+            else:
+                f = lambda part: self._from_dict(t( {part:Integer(1)} )._monomial_coefficients)
+                return self._apply_module_endomorphism(x, f)
 
 
         ###############################

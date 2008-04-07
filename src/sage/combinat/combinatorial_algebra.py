@@ -1007,7 +1007,7 @@ class CombinatorialAlgebra(Algebra):
 
         return self._from_dict(z_elt)
 
-    def _from_dict(self, d):
+    def _from_dict(self, d, coerce=False):
         """
         Given a monomial coefficient dictionary d, return the element
         of self with the dictionary.
@@ -1020,5 +1020,16 @@ class CombinatorialAlgebra(Algebra):
             sage: s._from_dict(a.monomial_coefficients())
             s[1, 1, 1] + s[2, 1]
 
+            sage: part = Partition([2,1])
+            sage: d = {part:1}
+            sage: a = s._from_dict(d,coerce=True); a
+            s[2, 1]
+            sage: a.coefficient(part).parent()
+            Rational Field
         """
+        if coerce:
+            R = self.base_ring()
+            d = [ (m,R(c)) for m,c in d.iteritems() ]
+            d = dict(d)
+
         return self._element_class(self, d)

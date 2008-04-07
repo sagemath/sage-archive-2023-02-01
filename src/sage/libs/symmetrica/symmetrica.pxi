@@ -530,10 +530,31 @@ cdef int _op(object a, OP result) except -1:
     else:
         raise TypeError, "cannot convert a (= %s) to OP"%a
 
-def test(object x):
+def test_integer(object x):
+    """
+    Tests functionality for converting between Sage's integers
+    and symmetrica's integers.
+
+    EXAMPLES:
+        sage: from sage.libs.symmetrica.symmetrica import test_integer
+        sage: test_integer(1)
+        1
+        sage: test_integer(-1)
+        -1
+        sage: test_integer(2^33)
+        8589934592
+        sage: test_integer(-2^33)
+        -8589934592
+        sage: test_integer(2^100)
+        1267650600228229401496703205376
+        sage: test_integer(-2^100)
+        -1267650600228229401496703205376
+    """
     cdef OP a = callocobject()
-    _op_longint(x, a)
-    return None
+    _op_integer(x, a)
+    res = _py(a)
+    freeall(a)
+    return res
 
 ##########
 #Integers#
@@ -583,6 +604,7 @@ cdef object _py_longint(OP a):
     late_import()
     cdef longint *x = S_O_S(a).ob_longint
     cdef loc *l = x.floc
+    cdef int sign = x.signum
     res = zero
     n = zero
     while l != NULL:
@@ -591,6 +613,8 @@ cdef object _py_longint(OP a):
         res += Integer( l.w2 ) * two**(n+thirty)
         n += thirty + fifteen
         l = l.nloc
+    if sign < 0:
+        res *= Integer(-1)
 
     return res
 

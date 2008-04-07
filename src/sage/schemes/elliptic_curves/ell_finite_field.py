@@ -327,10 +327,12 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         j = self.j_invariant()
         k = self.base_ring()
         q = k.cardinality()
+        p = k.characteristic()
+
         # j=0, 1728 cases not properly implemented yet
 
         # Two easy cases:
-        if j==k(1728) and q%4==3:
+        if p>3 and j==k(1728) and q%4==3:
             self._order=Integer(q+1)
             return self._order
         if j==k(0) and q%6==5:

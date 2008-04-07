@@ -143,6 +143,10 @@ if [ -z "${SAGE_ORIG_LD_LIBRARY_PATH_SET}" ]; then
     SAGE_ORIG_LD_LIBRARY_PATH_SET=True && export SAGE_ORIG_LD_LIBRARY_PATH_SET
 fi
 
+if [ -n $SAGE_TESTDIR ]; then
+    SAGE_TESTDIR="$SAGE_ROOT"/tmp && export SAGE_TESTDIR
+fi
+
 LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
 # This following is needed for openmpi:
 LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/openmpi:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH

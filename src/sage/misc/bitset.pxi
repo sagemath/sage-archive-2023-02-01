@@ -25,23 +25,16 @@ cdef extern from *:
     int memcmp(void *, void *, size_t)
     size_t strlen(char *)
 
-# This should hopefully be doable in a future release
-# of Cython. Basically, I need to be able to do
-#
-#   ctypedef bitset_s bitset_t[1]
-#
-# to have stack-allocated pass-by-reference.
-
-cdef extern from "bitset.h":
-    struct bitset_s:
-        long size
-        long limbs
-        unsigned long *bits
-
-    ctypedef bitset_s* bitset_t
-
+    # constant literals
     int index_shift "(sizeof(unsigned long)==8 ? 6 : 5)"
     unsigned long offset_mask "(sizeof(unsigned long)==8 ? 0x3F : 0x1F)"
+
+cdef struct bitset_s:
+    long size
+    long limbs
+    unsigned long *bits
+
+ctypedef bitset_s bitset_t[1]
 
 #############################################################################
 # Bitset Initalization

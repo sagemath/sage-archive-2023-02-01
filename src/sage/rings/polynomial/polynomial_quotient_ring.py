@@ -246,7 +246,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             # We also need that the polynomial modulus maps to 0.
             f = self.modulus()
             return codomain(f(im_gens[0])) == 0
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             return False
 
     def _coerce_impl(self, x):

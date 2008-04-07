@@ -33,8 +33,8 @@ import sage.rings.padics.padic_field_lazy as padic_field_lazy
 import sage.rings.padics.padic_ring_capped_absolute as padic_ring_capped_absolute
 import sage.rings.padics.padic_ring_fixed_mod as padic_ring_fixed_mod
 
-from sage.rings.rational_field import QQ
-from sage.rings.ring import is_FiniteField
+from sage.rings.integer import Integer
+from sage.rings.integer_mod_ring import is_IntegerModRing
 
 _cache = {}
 
@@ -215,12 +215,12 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     """
     import sage.rings.polynomial.polynomial_ring as m
 
-    if is_Element(arg1) and not isinstance(arg1, (int, long, m.integer.Integer)):
+    if is_Element(arg1) and not isinstance(arg1, (int, long, Integer)):
         arg1 = repr(arg1)
-    if is_Element(arg2) and not isinstance(arg2, (int, long, m.integer.Integer)):
+    if is_Element(arg2) and not isinstance(arg2, (int, long, Integer)):
         arg2 = repr(arg2)
 
-    if isinstance(arg1, (int, long, m.integer.Integer)):
+    if isinstance(arg1, (int, long, Integer)):
         arg1, arg2 = arg2, arg1
 
     if not names is None:
@@ -239,7 +239,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         arg1 = [str(x) for x in arg1]
     if isinstance(arg2, (list, tuple)):
         arg2 = [str(x) for x in arg2]
-    if isinstance(arg2, (int, long, m.integer.Integer)):
+    if isinstance(arg2, (int, long, Integer)):
         # 3. PolynomialRing(base_ring, names, n, order='degrevlex'):
         if not isinstance(arg1, (list, tuple, str)):
             raise TypeError, "You *must* specify the names of the variables."
@@ -299,7 +299,7 @@ def _single_variate(base_ring, name, sparse):
     if not R is None: return R
 
     if isinstance(base_ring, ring.CommutativeRing):
-        if m.integer_mod_ring.is_IntegerModRing(base_ring) and not sparse:
+        if is_IntegerModRing(base_ring) and not sparse:
             n = base_ring.order()
             if n.is_prime():
                 R = m.PolynomialRing_dense_mod_p(base_ring, name)

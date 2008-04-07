@@ -22,7 +22,7 @@ import sage.misc.misc
 import sage.rings.polynomial.polydict as polydict # internal representation may change!!!
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
-from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing as MPolynomialRing
 
 DB_HOME = '%s/kohel'%sage.misc.misc.SAGE_DATA
 

@@ -79,12 +79,9 @@ import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.polynomial.polynomial_element_generic as polynomial_element_generic
 import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing, IntegerRing
-import sage.rings.integer as integer
-import sage.rings.integer_mod_ring as integer_mod_ring
-from sage.libs.pari.all import pari, pari_gen
+from sage.libs.pari.all import pari_gen
 import sage.misc.defaults
 import sage.misc.latex as latex
-import sage.rings.polynomial.multi_polynomial_element as multi_polynomial_element
 import sage.rings.polynomial.padics.polynomial_padic_capped_relative_dense as polynomial_padic_capped_relative_dense
 import sage.rings.polynomial.polynomial_integer_dense_ntl as polynomial_integer_dense_ntl
 import sage.rings.polynomial.polynomial_modn_dense_ntl as polynomial_modn_dense_ntl
@@ -96,9 +93,7 @@ import cyclotomic
 
 ZZ_sage = IntegerRing()
 
-from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_pContext as ntl_ZZ_pContext
-
-from sage.interfaces.all import singular as singular_default, is_SingularElement, is_MagmaElement
+from sage.interfaces.singular import is_SingularElement
 
 
 def is_PolynomialRing(x):
@@ -538,20 +533,20 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             except AttributeError:
                 return my_vars
 
-    def _mpoly_base_ring(self, vars=None):
-        """
-        Returns the basering if this is viewed as a polynomial ring over vars.
+    def _mpoly_base_ring(self, variables=None):
+        r"""
+        Returns the basering if this is viewed as a polynomial ring over \var{variables}.
         See also Polynomial._mpoly_dict_recursive
         """
-        if vars is None:
-            vars = self.variable_names_recursive()
-        vars = list(vars)
+        if variables is None:
+            variables = self.variable_names_recursive()
+        variables = list(variables)
         var = self.variable_name()
-        if not var in vars:
+        if not var in variables:
             return self
         else:
             try:
-                return self.base_ring()._mpoly_base_ring(vars[:vars.index(var)])
+                return self.base_ring()._mpoly_base_ring(variables[:variables.index(var)])
             except AttributeError:
                 return self.base_ring()
 

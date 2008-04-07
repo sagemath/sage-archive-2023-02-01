@@ -126,11 +126,11 @@ def refine_root(ip, ipd, irt, fld):
             # If we don't find a root after a while, try (approximately)
             # tripling the size of the region.
             if i >= 6:
-                rd = irt.real().absolute_diameter()
-                id = irt.imag().absolute_diameter()
-                md = max(rd, id)
-                md_intv = RealIntervalField(rd.prec())(-md, md)
-                md_cintv = ComplexIntervalField(rd.prec())(md_intv, md_intv)
+                rD = irt.real().absolute_diameter()
+                iD = irt.imag().absolute_diameter()
+                md = max(rD, iD)
+                md_intv = RealIntervalField(rD.prec())(-md, md)
+                md_cintv = ComplexIntervalField(rD.prec())(md_intv, md_intv)
                 irt = irt + md_cintv
 
         if not smashed_real and irt.real().contains_zero():

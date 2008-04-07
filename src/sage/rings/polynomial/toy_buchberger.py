@@ -255,9 +255,9 @@ def update(G,B,h):
     D = set()
 
     while C != set():
-        (h,g1) = C.pop()
+        (h,g) = C.pop()
 
-        lcm_divides = lambda rhs: R.monomial_divides( LCM(LM(h),LM(rhs[1])), LCM(LM(h),LM(g1)))
+        lcm_divides = lambda rhs: R.monomial_divides( LCM(LM(h),LM(rhs[1])), LCM(LM(h),LM(g)))
 
         if R.monomial_pairwise_prime(LM(h),LM(g)) or \
            (\
@@ -265,7 +265,7 @@ def update(G,B,h):
                and
                not any( lcm_divides(f) for f in D ) \
             ):
-            D.add( (h,g1) )
+            D.add( (h,g) )
 
     E = set()
 

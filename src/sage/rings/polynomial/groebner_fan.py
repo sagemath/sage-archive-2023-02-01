@@ -59,20 +59,16 @@ REFERENCES:
      available at
      \url{http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html}
 """
-
-import os
-
 from string import ascii_letters
 
 import pexpect
 
-from sage.misc.multireplace import multiple_replace
-from sage.misc.misc import forall, tmp_filename
+from sage.misc.misc import forall
 
 from sage.structure.sage_object import SageObject
 from sage.interfaces.gfan import gfan
 from sage.rings.polynomial.multi_polynomial_ideal import is_MPolynomialIdeal
-from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing, MPolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing as MPolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.plot.plot import Graphics, line, polygon
@@ -92,7 +88,6 @@ def prefix_check(str_list):
     """
     for index1 in range(len(str_list)):
         for index2 in range(len(str_list)):
-            string1 = str_list[index1]
             string2 = str_list[index2]
             if index1 != index2 and str_list[index1][0:len(string2)].find(string2) != -1:
                 return False
@@ -129,7 +124,6 @@ class PolyhedralCone(SageObject):
         cone_keys = ['AMBIENT_DIM','DIM','IMPLIED_EQUATIONS', 'LINEALITY_DIM', 'LINEALITY_SPACE','FACETS', 'RELATIVE_INTERIOR_POINT']
         poly_lines = gfan_polyhedral_cone.split('\n')
         self.cone_dict = {}
-        key_ind = 0
         cur_key = None
         for ting in poly_lines:
             if cone_keys.count(ting) > 0:
@@ -251,7 +245,6 @@ class PolyhedralFan(SageObject):
                     'CONES','MAXIMAL_CONES','PURE']
         poly_lines = gfan_polyhedral_fan.split('\n')
         self.fan_dict = {}
-        key_ind = 0
         cur_key = None
         for ting in poly_lines:
             if fan_keys.count(ting) > 0:
@@ -738,7 +731,7 @@ class GroebnerFan(SageObject):
             self.__homogeneity_space = h
             return h
 
-    def render(self, file = None, larger=False, shift=0, rgbcolor = (0,0,0), polyfill = max_degree, scale_colors = True):
+    def render(self, filename = None, larger=False, shift=0, rgbcolor = (0,0,0), polyfill = max_degree, scale_colors = True):
         """
         Render a Groebner fan as sage graphics or save as an xfig
         file.
@@ -750,8 +743,8 @@ class GroebnerFan(SageObject):
         extend these coordinates with zeros.
 
         INPUT:
-	    file  -- a filename if you prefer the output saved to a file.
-	             This will be in xfig format.
+	    filename  -- a filename if you prefer the output saved to a file.
+	                 This will be in xfig format.
             shift -- shift the positions of the variables in
                      the drawing.  For example, with shift=1,
                      the corners will be b (right), c (left),
@@ -783,8 +776,8 @@ class GroebnerFan(SageObject):
         if larger:
             cmd += ' -L'
         s = self.gfan(cmd, I=self._gfan_reduced_groebner_bases().replace(' ',','), format=False)
-        if file != None:
-            open(file,'w').write(s)
+        if filename != None:
+            open(filename,'w').write(s)
         sp = s.split('\n')
         sp2 = []
         for x in sp[9:]:

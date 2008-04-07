@@ -37,7 +37,7 @@ TESTS:
 import sage.rings.finite_field
 import sage.rings.number_field as number_field
 
-from sage.interfaces.all import singular as singular_default, is_SingularElement
+from sage.interfaces.all import singular as singular_default
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_double import is_ComplexDoubleField

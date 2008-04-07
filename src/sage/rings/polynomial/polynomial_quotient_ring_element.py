@@ -59,9 +59,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 ####################################################################################
 
-import operator
-import sage.structure.element as element
-
 import sage.rings.commutative_ring_element as commutative_ring_element
 import sage.rings.number_field.number_field as number_field
 
@@ -480,7 +477,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             x = R.gen()
             a = R(1)
             d = R.degree()
-            for n in range(d):
+            for _ in xrange(d):
                 v += (a*self).list()
                 a *= x
             S = R.base_ring()

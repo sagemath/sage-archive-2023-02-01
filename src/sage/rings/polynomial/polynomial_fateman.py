@@ -13,8 +13,6 @@ from sage.rings.arith import gcd
 # Faster than SAGE's
 from math import log as pylog
 from math import ceil as pyceil
-from math import floor as pyfloor
-
 
 def _mul_fateman_to_int2(f_list,g_list):
     """

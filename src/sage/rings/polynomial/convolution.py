@@ -43,7 +43,6 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.misc.misc import cputime
 from sage.misc.functional import parent
 from math import log, ceil
 
@@ -321,7 +320,6 @@ def _negaconvolution_fft(L1, L2, n):
    m = (n + 1) >> 1
    k = n + 1 - m
 
-   N = 1 << n
    M = 1 << m
    K = 1 << k
 

@@ -62,33 +62,23 @@ two variables:
 # Changed:
 # Kiran Kedlaya (2006-02-12): added Macaulay2 names to TermOrder
 
-import weakref
-import re
-
-import sage.rings.commutative_ring as commutative_ring
 import sage.rings.integral_domain as integral_domain
-import sage.rings.fraction_field as fraction_field
 import sage.rings.fraction_field_element as fraction_field_element
 
 from sage.rings.integer_ring import is_IntegerRing
-from sage.rings.integer import Integer
 
 import sage.rings.polynomial.multi_polynomial_ideal as multi_polynomial_ideal
 
 
 from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic, is_MPolynomialRing
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing as MPolynomialRing
 from sage.rings.polynomial.polydict import PolyDict, ETuple
 from sage.rings.polynomial.term_order import TermOrder
 
-import sage.misc.latex as latex
-
-from sage.interfaces.all import singular as singular_default, is_SingularElement
+from sage.interfaces.all import is_SingularElement
 from sage.interfaces.all import macaulay2 as macaulay2_default
 from sage.interfaces.macaulay2 import is_Macaulay2Element
 
-from sage.structure.parent_gens import ParentWithGens
 from sage.structure.element import Element
 
 class MPolynomialRing_macaulay2_repr:
@@ -445,6 +435,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
         """
         Create an ideal in this polynomial ring.
         """
+        do_coerce = False
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
         if not self._has_singular:
@@ -452,13 +443,13 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             MPolynomialRing_generic.ideal(self,gens,**kwds)
         if is_SingularElement(gens):
             gens = list(gens)
-            coerce = True
+            do_coerce = True
         if is_Macaulay2Element(gens):
             gens = list(gens)
-            coerce = True
+            do_coerce = True
         elif not isinstance(gens, (list, tuple)):
             gens = [gens]
-        if kwds.has_key('coerce') and kwds['coerce']:
+        if (kwds.has_key('coerce') and kwds['coerce']) or do_coerce:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
         return multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
 
@@ -573,8 +564,6 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         res = {}
 
-        nonzero = []
-
         for i in f.common_nonzero_positions(g):
             res[i] = max([f[i],g[i]])
 
@@ -655,8 +644,6 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             return True
         if not a:
             raise ZeroDivisionError
-
-        one = self.base_ring()(1)
 
         a=a.dict().keys()[0]
         b=b.dict().keys()[0]

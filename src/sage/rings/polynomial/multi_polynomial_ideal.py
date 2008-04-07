@@ -1267,7 +1267,8 @@ class MPolynomialIdeal_singular_repr:
 
         ALGORITHM: Uses \Singular
         """
-        from sage.rings.polynomial.multi_polynomial_ring import TermOrder,MPolynomialRing
+        from sage.rings.polynomial.multi_polynomial_ring import TermOrder
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.quotient_ring import is_QuotientRing
 
         if self.basis_is_groebner():
@@ -1286,7 +1287,7 @@ class MPolynomialIdeal_singular_repr:
 
             # new ring
             if other_ring is None:
-                nR = MPolynomialRing(R.base_ring(),R.ngens(), names=R.variable_names(), order="lex")
+                nR = PolynomialRing(R.base_ring(),R.ngens(), names=R.variable_names(), order="lex")
             else:
                 nR = other_ring
             nR._singular_().set_ring()

@@ -27,24 +27,18 @@ We test coercion in a particularly complicated situation:
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-import copy
-
-from sage.rings.polynomial.polynomial_element import Polynomial, is_Polynomial, Polynomial_generic_dense
-from sage.structure.element import (IntegralDomainElement, EuclideanDomainElement,
-                                    PrincipalIdealDomainElement)
+from sage.rings.polynomial.polynomial_element import Polynomial, Polynomial_generic_dense
+from sage.structure.element import IntegralDomainElement, EuclideanDomainElement
 
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
 
-from sage.libs.all import pari, pari_gen
-from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, zero_ZZX
+from sage.libs.pari.all import pari, pari_gen
 from sage.structure.factorization import Factorization
 
 from sage.rings.infinity import infinity
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 import sage.rings.integer as integer
-import sage.rings.complex_field as complex_field
-import sage.rings.arith as arith
 
 import sage.rings.fraction_field_element as fraction_field_element
 import sage.rings.polynomial.polynomial_ring
@@ -263,7 +257,6 @@ class Polynomial_generic_sparse(Polynomial):
 
     def __normalize(self):
         x = self.__coeffs
-        zero = self.base_ring()(0)
         D = [n for n, z in x.iteritems() if not z]
         for n in D:
             del x[n]
@@ -991,7 +984,8 @@ class Polynomial_rational_dense(Polynomial_generic_field):
                 raise ArithmeticError, "The polynomial must be square free modulo p."
             y.append(g)
         H = self._pari_().polhensellift(y, p, e)
-        R = integer_mod_ring.IntegerModRing(p**e)
+        from sage.rings.integer_mod_ring import IntegerModRing
+        R = IntegerModRing(p**e)
         S = R[self.parent().variable_name()]
         return [S(eval(str(m.Vec().Polrev().Vec()))) for m in H]
 
@@ -1034,7 +1028,6 @@ class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generi
         n = m = self.degree()
         if name is None:
             name = self.parent().variable_name()
-        atomic_repr = self.parent().base_ring().is_atomic_repr()
         coeffs = self.list()
         for x in reversed(coeffs):
             if x.valuation() != infinity:

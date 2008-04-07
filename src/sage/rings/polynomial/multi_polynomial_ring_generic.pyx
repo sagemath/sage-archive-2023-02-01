@@ -683,11 +683,11 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 # Leave *all* old versions!
 
 def unpickle_MPolynomialRing_generic_v1(base_ring, n, names, order):
-    from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing
-    return MPolynomialRing(base_ring, n, names=names, order=order)
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+    return PolynomialRing(base_ring, n, names=names, order=order)
 
 
 def unpickle_MPolynomialRing_generic(base_ring, n, names, order):
-    from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-    return MPolynomialRing(base_ring, n, names=names, order=order)
+    return PolynomialRing(base_ring, n, names=names, order=order)

@@ -4,6 +4,11 @@ Permutations
 The Permutations module. Use Permutation? to get information about the
 Permutation class, and Permutations? to get information about the
 combinatorial class of permutations.
+
+AUTHORS:
+    -- Mike Hansen
+    -- Dan Drake (2008-04-07): allow Permutation() to take lists of
+       tuples
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -111,9 +116,11 @@ def PermutationOptions(**kwargs):
 
 def Permutation(l):
     """
-    Convert l to a Permutation, where l is a list, tuple of integers,
-    tuple of tuples of integers, or a string in cycle notation. Returns
-    a member of the Permutation class, printed in one-line notation.
+    Convert l to a Permutation, where l is a list of integers, tuple of
+    integers, tuple of tuples of integers, list of tuples of integers,
+    or a string in cycle notation. Tuples are interpreted as cycles;
+    lists of integers as one-line permutation notation. Returns a member
+    of the Permutation class.
 
     EXAMPLES:
         sage: Permutation([2,1])
@@ -125,6 +132,8 @@ def Permutation(l):
         sage: Permutation('(1,2)(3,4,5)')
         [2, 1, 4, 5, 3]
         sage: Permutation( ((1,2),(3,4,5)) )
+        [2, 1, 4, 5, 3]
+        sage: Permutation( [(1,2),(3,4,5)] )
         [2, 1, 4, 5, 3]
         sage: Permutation( ((1,2)) )
         [2, 1]
@@ -150,7 +159,11 @@ def Permutation(l):
         for c in cycles:
             cycle_list.append(map(int, c.split(",")))
         return from_cycles(sum([len(c) for c in cycle_list]), cycle_list)
-    elif isinstance(l, tuple):
+    # if it's a tuple or nonempty list of tuples, also assume cycle
+    # notation
+    elif isinstance(l, tuple) or \
+         (isinstance(l, list) and len(l) > 0 and
+         all(map(lambda x: isinstance(x, tuple), l))):
         if len(l) >= 1:
             if isinstance(l[0], tuple):
                 n = max( map(max, l) )
@@ -161,6 +174,7 @@ def Permutation(l):
                 return from_cycles(n, l)
         else:
             raise ValueError, "cannot convert l (= %s) to a Permutation"%l
+    # otherwise, it gets processed by CombinatorialObject's __init__.
     else:
         return Permutation_class(l)
 

@@ -89,22 +89,16 @@ class DSage(object):
         self._testing = testing
 
         if not self._testing:
-            self._pubkey_str = keys.getPublicKeyString(
-                                    filename=self._pubkey_file)
-
+            self._pubkey = keys.Key.fromFile(self._pubkey_file)
             try:
-                self._privkey = keys.getPrivateKeyObject(
-                                filename=self._privkey_file)
+                self._privkey = keys.Key.fromFile(self._privkey_file)
             except keys.BadKeyError, msg:
                 passphrase = self._getpassphrase()
-                self._privkey = keys.getPrivateKeyObject(
-                                filename=self._privkey_file,
-                                passphrase=passphrase)
-
-            self._pub_key = keys.getPublicKeyObject(self._pubkey_str)
+                self._privkey = keys.Key.fromFile(self._privkey_file,
+                                                  passphrase=passphrase)
             self._algorithm = 'rsa'
-            self._blob = keys.makePublicKeyBlob(self._pub_key)
-            self._signature = keys.signData(self._privkey, self._data)
+            self._blob = self._pubkey.blob()
+            self._signature = self._privkey.sign(self._data)
             self._creds = credentials.SSHPrivateKey(self.username,
                                                    self._algorithm,
                                                    self._blob,

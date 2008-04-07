@@ -18,7 +18,6 @@
 
 import os
 import random
-import base64
 from glob import glob
 
 from twisted.trial import unittest
@@ -84,16 +83,15 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         self.clientdb = ClientDatabase(Session)
         self.checker = PublicKeyCredentialsCheckerDB(self.clientdb)
         self._algorithm = 'rsa'
-        pubkey_str = keys.getPublicKeyString(data=TEST_PUB_KEY)
-        pubkey = keys.getPublicKeyObject(pubkey_str)
-        self._blob = keys.makePublicKeyBlob(pubkey)
+        pubkey = keys.Key.fromString(data=TEST_PUB_KEY)
+        self._blob = keys.Key.blob(pubkey)
         self._data = RANDOM_DATA
-        privkey = keys.getPrivateKeyObject(data=TEST_PRIV_KEY)
-        self._signature = keys.signData(privkey, self._data)
+        privkey = keys.Key.fromString(data=TEST_PRIV_KEY)
+        self._signature = privkey.sign(self._data)
         self.creds = credentials.SSHPrivateKey(self.username, self._algorithm,
                                                self._blob, self._data,
                                                self._signature)
-        enc_pubkey = base64.encodestring(pubkey_str).strip()
+        enc_pubkey = pubkey.toString('openssh')
         self.clientdb.add_client(self.username, enc_pubkey)
 
     def tearDown(self):

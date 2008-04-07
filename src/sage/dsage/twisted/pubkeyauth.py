@@ -16,8 +16,6 @@
 #                  http://www.gnu.org/licenses/
 ############################################################################
 
-import base64
-
 from twisted.conch.ssh import keys
 from twisted.cred import checkers, credentials
 from twisted.cred.credentials import IAnonymous
@@ -60,19 +58,18 @@ class PublicKeyCredentialsCheckerDB(object):
             log.msg("Invalid username: '%s'" % credentials.username)
             return defer.fail(AuthenticationError('Login failed.'))
         try:
-            blob = base64.decodestring(client.public_key)
+            pubkey = keys.Key.fromString(credentials.blob, type='blob')
         except:
-            log.msg('Invalid key for user %s' % (credentials.username))
+            log.msg('Invalid blob for user %s' % (credentials.username))
             return defer.fail(AuthenticationError('Login failed.'))
-        if not credentials.blob == blob:
+        client_pubkey = keys.Key.fromString(client.public_key)
+        if not pubkey.toString(type='openssh') == client_pubkey.toString(type='openssh'):
             log.msg('Invalid key for user %s' % (credentials.username))
             return defer.fail(AuthenticationError('Login failed.'))
         if not credentials.signature:
             log.msg('No signature for user %s ' % (credentials.username))
             return defer.fail(AuthenticationError('Login failed.'))
-        pub_key = keys.getPublicKeyObject(data=credentials.blob)
-        if keys.verifySignature(pub_key, credentials.signature,
-                                credentials.sigData):
+        if pubkey.verify(credentials.signature, credentials.sigData):
             # User is logged in at this stage
             self.clientdb.update_login_time(credentials.username)
             return credentials.username

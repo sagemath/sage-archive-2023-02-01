@@ -731,19 +731,18 @@ class Monitor(pb.Referenceable):
             from twisted.conch.ssh import keys
             self.DATA =  random_str(500)
             # public key authentication information
-            self.pubkey_str = keys.getPublicKeyString(self.pubkey_file)
+            self.pubkey = keys.Key.fromFile(self.pubkey_file)
             # try getting the private key object without a passphrase first
             try:
-                self.priv_key = keys.getPrivateKeyObject(self.privkey_file)
+                self.privkey = keys.Key.fromFile(self.privkey_file)
             except keys.BadKeyError:
                 pphrase = self._getpassphrase()
-                self.priv_key = keys.getPrivateKeyObject(self.privkey_file,
-                                                         pphrase)
-            self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
+                self.privkey = keys.Key.fromFile(self.privkey_file,
+                                                  passphrase=pphrase)
             self.algorithm = 'rsa'
-            self.blob = keys.makePublicKeyBlob(self.pub_key)
+            self.blob = self.pubkey.blob()
             self.data = self.DATA
-            self.signature = keys.signData(self.priv_key, self.data)
+            self.signature = self.privkey.sign(self.data)
             self.creds = credentials.SSHPrivateKey(self.username,
                                                    self.algorithm,
                                                    self.blob,

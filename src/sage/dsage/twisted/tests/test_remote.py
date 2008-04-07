@@ -18,7 +18,6 @@
 import os
 import random
 from glob import glob
-import base64
 
 from twisted.trial import unittest
 from twisted.spread import pb
@@ -79,24 +78,22 @@ class ClientRemoteCallsTest(unittest.TestCase):
         self.pubkey_file = TEST_PUB_KEY
         self.privkey_file = TEST_PRIV_KEY
         self.data = RANDOM_DATA
-        self.public_key_str = keys.getPublicKeyString(data=TEST_PUB_KEY)
-        self.private_key = keys.getPrivateKeyObject(
-                            data=TEST_PRIV_KEY)
-        self.public_key = keys.getPublicKeyObject(self.public_key_str)
+        self.public_key = keys.Key.fromString(data=TEST_PUB_KEY)
+        self.private_key = keys.Key.fromString(data=TEST_PRIV_KEY)
         self.algorithm = 'rsa'
-        self.blob = keys.makePublicKeyBlob(self.public_key)
-        self.signature = keys.signData(self.private_key, self.data)
+        self.blob = self.public_key.blob()
+        self.signature = self.private_key.sign(self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
                                                self.algorithm,
                                                self.blob,
                                                self.data,
                                                self.signature)
-        pubkey = base64.encodestring(self.public_key_str).strip()
+        pubkey_str = self.public_key.toString('openssh')
         try:
             self.clientdb.del_client(self.username)
-            self.clientdb.add_client(self.username, pubkey)
+            self.clientdb.add_client(self.username, pubkey_str)
         except:
-            self.clientdb.add_client(self.username, pubkey)
+            self.clientdb.add_client(self.username, pubkey_str)
 
     def tearDown(self):
         from sqlalchemy.orm import clear_mappers
@@ -197,24 +194,22 @@ class WorkerRemoteCallsTest(unittest.TestCase):
         self.pubkey_file = TEST_PUB_KEY
         self.privkey_file = TEST_PRIV_KEY
         self.data = RANDOM_DATA
-        self.public_key_str = keys.getPublicKeyString(data=TEST_PUB_KEY)
-        self.private_key = keys.getPrivateKeyObject(
-                            data=TEST_PRIV_KEY)
-        self.public_key = keys.getPublicKeyObject(self.public_key_str)
+        self.private_key = keys.Key.fromString(data=self.privkey_file)
+        self.public_key = keys.Key.fromString(data=self.pubkey_file)
         self.algorithm = 'rsa'
-        self.blob = keys.makePublicKeyBlob(self.public_key)
-        self.signature = keys.signData(self.private_key, self.data)
+        self.blob = self.public_key.blob()
+        self.signature = self.private_key.sign(self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
                                                self.algorithm,
                                                self.blob,
                                                self.data,
                                                self.signature)
-        pubkey = base64.encodestring(self.public_key_str).strip()
+        enc_pubkey = self.public_key.toString('openssh')
         try:
             self.clientdb.del_client(self.username)
-            self.clientdb.add_client(self.username, pubkey)
+            self.clientdb.add_client(self.username, enc_pubkey)
         except:
-            self.clientdb.add_client(self.username, pubkey)
+            self.clientdb.add_client(self.username, enc_pubkey)
 
     def tearDown(self):
         from sqlalchemy.orm import clear_mappers

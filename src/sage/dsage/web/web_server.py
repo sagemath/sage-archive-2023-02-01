@@ -20,11 +20,10 @@ import os
 import sqlite3
 from cStringIO import StringIO
 import socket
-from base64 import encodestring as es
 
 from twisted.web2 import http, resource
 from twisted.web2 import static
-from twisted.conch.ssh.keys import getPublicKeyString as get_pubkey_str
+from twisted.conch.ssh.keys import Key
 from twisted.conch.ssh.keys import BadKeyError
 
 from sage.dsage.misc.constants import TMP_WORKER_FILES
@@ -464,11 +463,12 @@ class UserManagement(resource.PostableResource):
         if 'username' in request.args.keys():
             username = request.args['username'][0]
             try:
-                pubkey = es(get_pubkey_str(data=request.args['pubkey'][0]))
+                pubkey = Key.fromString(request.args['pubkey'][0])
             except BadKeyError:
                 return http.Response(stream="Invalid public key!")
             try:
-                self.clientdb.add_client(username, pubkey)
+                pubkey_str = pubkey.toString(type='openssh')
+                self.clientdb.add_client(username, pubkey_str)
             except sqlite3.IntegrityError, msg:
                 return http.Response(stream=msg)
         elif 'del_clientname' in request.args.keys():

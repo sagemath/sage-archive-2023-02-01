@@ -63,17 +63,15 @@ def add_default_client(Session):
     """
 
     from twisted.conch.ssh import keys
-    import base64
     from getpass import getuser
 
     clientdb = ClientDatabase(Session)
 
     username = getuser()
     pubkey_file = os.path.join(DSAGE_DIR, 'dsage_key.pub')
-    pubkey = base64.encodestring(
-                    keys.getPublicKeyString(filename=pubkey_file).strip())
+    pubkey = keys.Key.fromFile(pubkey_file)
     if clientdb.get_client(username) is None:
-        clientdb.add_client(username, pubkey)
+        clientdb.add_client(username, pubkey.toString(type='openssh'))
         print 'Added user %s.\n' % (username)
     else:
         client = clientdb.get_client(username)

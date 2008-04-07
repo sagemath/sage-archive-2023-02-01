@@ -286,13 +286,19 @@ def quit_sage(verbose=True):
     #from sage.misc.misc import delete_tmpfiles
     #delete_tmpfiles()
 
+    # stop the twisted reactor
     try:
-       # stop the twisted reactor
        from twisted.internet import reactor
        if reactor.running:
           reactor.callFromThread(reactor.stop)
     except ImportError:
        pass
+
+    # kill dsage server/worker which were started during the session
+    try:
+        dsage.kill_all()
+    except:
+        pass
 
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()

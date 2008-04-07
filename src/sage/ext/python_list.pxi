@@ -59,6 +59,8 @@ cdef extern from "Python.h":
     # successful; return -1 and set an exception if
     # unsuccessful. Analogous to list.append(item).
 
+    object _PyList_Extend(object list, object item)
+
     object PyList_GetSlice(object list, Py_ssize_t low, Py_ssize_t high)
     # Return value: New reference.
     # Return a list of the objects in list containing the objects

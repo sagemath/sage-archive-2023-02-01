@@ -48,7 +48,7 @@ import twist
 
 from cell import Cell, TextCell
 
-INTERRUPT_TRIES = 1
+INTERRUPT_TRIES = 3
 INITIAL_NUM_CELLS = 1
 
 WARN_THRESHOLD = 100
@@ -875,9 +875,6 @@ class Worksheet:
         """
 
     def html_share_publish_buttons(self, select=None):
-        #<a  title="Email this worksheet" class="usercontrol" href="email"><img border=0 src="/images/icon_email.gif"> Email</a>
-        #<a  title="Preview this worksheet" class="usercontrol" href="preview_"><img border=0 src="/images/icon_preview.gif"> Preview</a>
-
         if self.is_doc_worksheet():
             return ''
         def cls(x):
@@ -944,7 +941,7 @@ class Worksheet:
  <option title="Switch to multi-cell mode" value="cell_mode();">Multi Cell Mode</option>
  </select>
 
-<select class="worksheet" onchange="go_data(this);" >
+<select class="worksheet" onchange="handle_data_menu(this);" >
  <option title="Select an attached file" value="" selected>Data...</option>
  <option title="Upload or create a data file in a wide range of formats" value="__upload_data_file__">Upload or create file...</option>
  <option value="">--------------------</option>

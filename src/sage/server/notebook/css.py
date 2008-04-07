@@ -921,6 +921,7 @@ td.cell_number {
    font-family:arial, monospace;
    color:#bbbbbb;
    text-align:left;
+   border-left:4px solid #ffffff;
 }
 
 td.cell_number:hover {
@@ -963,11 +964,11 @@ textarea.cell_input {
   border-right: 1px solid  #a8a8a8;
   font-family: monospace;
   font-size:12pt;
-  overflow:auto;
+  overflow:hidden;
   padding-left:5px;
   padding-top:3px;
   padding-bottom:0px;
-  width: 95%;
+  width: 97%;
   margin-bottom:0px;
   margin-top:0px;
   line-height:1.2em;
@@ -985,7 +986,7 @@ pre.cell_input {
   padding-left:5px;
   padding-top:3px;
   padding-bottom:0px;
-  width: 95%;
+  width: 97%;
   margin-bottom:0px;
   margin-top:0px;
 
@@ -1029,20 +1030,20 @@ pre.cell_input_hide:hover {
 
 textarea.cell_input_active {
   background-color: white;
-  border-left: 1px solid  #8888fe;
-  border-bottom: 1px solid  #8888fe;
-  border-top: 1px solid  #8888fe;
-  border-right: 1px solid  #8888fe;
+  border-left: 2px solid  #8888fe;
+  border-bottom: 2px solid  #8888fe;
+  border-top: 2px solid  #8888fe;
+  border-right: 2px solid  #8888fe;
   font-family: monospace;
   font-size:12pt;
-  overflow:auto;
+  overflow:hidden;
   padding-left:5px;
   padding-top:3px;
   padding-bottom:0px;
   margin-top:0px;
   margin-bottom:0px;
   line-height:1.2em;
-  width: 95%;
+  width: 97%;
 }
 
 textarea.cell_input:hover{

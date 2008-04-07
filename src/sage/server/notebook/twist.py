@@ -161,7 +161,11 @@ class WorksheetFile(resource.Resource):
         directory = os.path.split(self.docpath)[0]
         doc_page, css_href = DocHTMLProcessor().process_doc_html(DOC,
                                directory, doc_page_html)
-        doc_page = extract_title(doc_page_html) + '\n\n' + doc_page
+        # The empty hideall cell below is specifically because for some mysterious
+        # reason if we don't put it there, then the first cell -- when evaluated,
+        # causes a jump to the bottom of the worksheet.  With the hideall there,
+        # verything works perfectly.
+        doc_page = extract_title(doc_page_html) + '\nsystem:sage\n{{{%hideall\n}}}\n' + doc_page
         if css_href:
             css_href = DOC + directory + css_href
         W = doc_worksheet()
@@ -607,15 +611,6 @@ class Worksheet_text(WorksheetResource, resource.Resource):
     def render(self, ctx):
         s = notebook.html_plain_text_window(self.worksheet, self.username)
         return http.Response(stream = s)
-
-########################################################
-# Preview what the worksheet will look like when published.
-########################################################
-class Worksheet_preview(WorksheetResource, resource.PostableResource):
-    def render(self, ctx):
-        s = notebook.html(worksheet_filename = self.name,  username='pub')
-        return http.Response(stream=s)
-
 
 ########################################################
 # Copy a worksheet
@@ -1118,6 +1113,16 @@ class Worksheet_plain(WorksheetResource, resource.Resource):
     def render(self, ctx):
         s = notebook.plain_text_worksheet_html(self.name)
         return http.Response(stream=s)
+
+class Worksheet_hide_all(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        self.worksheet.hide_all()
+        return http.Response(stream='success')
+
+class Worksheet_show_all(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        self.worksheet.show_all()
+        return http.Response(stream='success')
 
 class Worksheet_print(WorksheetResource, resource.Resource):
     def render(self, ctx):

@@ -1060,7 +1060,7 @@ class Notebook(SageObject):
     def html_search(self, search, typ):
         s = """
         <span class="flush-right">
-        <input id="search_worksheets" size=20 onkeypress="return entsub_ws(event, '%s');" value="%s"></input>
+        <input id="search_worksheets" size=20 onkeypress="return search_worksheets_enter_pressed(event, '%s');" value="%s"></input>
         <button class="add_new_worksheet_menu" onClick="search_worksheets('%s');">Search Worksheets</button>
         &nbsp;&nbsp;&nbsp;
         </span>
@@ -1186,7 +1186,6 @@ class Notebook(SageObject):
             <option value="list_revisions_of_worksheet('%s');" title="See all revisions of this worksheet">Revisions</option>
             </select>
             """%(name, worksheet.name(), name, name,name,name,name)
-            #<option value="list_preview_worksheet('%s');" title="Preview this worksheet">Preview</option>
 
         k = ''
         if not pub:
@@ -1808,6 +1807,9 @@ function save_worksheet_and_close() {
         &nbsp;&nbsp;
         <a class="control" title="How do I construct ... in Sage?" href="/doc/live/const/const.html">Constructions</a>
         <br><br>
+        <center>
+        <a class="control" title="Static version..." href="/doc/static/">Fast Static Versions of the Documentation</a>
+        </center>
         <hr class="usercontrol">
         <br>
 
@@ -1998,7 +2000,7 @@ function save_worksheet_and_close() {
         else:
             check=''
         s = """<input type="checkbox" title="Enable/disable pretty_printing"
-        onchange="go_pretty_print_check(this);"
+        onchange="pretty_print_check(this.checked);"
         class="worksheet" value="pretty_print" %s>&nbsp;Typeset"""%(check)
         return s
 
@@ -2040,7 +2042,8 @@ function save_worksheet_and_close() {
         <hr class="usercontrol">
         <br><br>
         <font size=+2>
-        <a href="/doc/live/">Documentation</a><br><br>
+        <a href="/doc/live/">Live Documentation</a><br><br>
+        <a href="/doc/static/">Static Documentation</a><br><br>
         <a href="/help/">Sage Notebook Howto</a><br><br>
         <br><br>
         <br>

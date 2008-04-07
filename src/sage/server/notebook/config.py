@@ -43,12 +43,15 @@ js.keyhandler.add('comment',                key = "KEY_3",     ctrl=True)
 js.keyhandler.add('uncomment',              key = "KEY_4",     ctrl=True)
 
 js.keyhandler.add('control',                key = "KEY_CTRL")
+js.keyhandler.add('backspace',              key = "KEY_BKSPC")
 js.keyhandler.add('enter',                  key = "KEY_ENTER")
 js.keyhandler.add('enter',                  key = "KEY_RETURN")
-js.keyhandler.add('split_cell',             key = "KEY_ENTER", ctrl=True)
-js.keyhandler.add('split_cell',             key = "KEY_RETURN",ctrl=True)
-js.keyhandler.add('split_cell',             key = "KEY_CTRLENTER", ctrl=True)  # needed on OS X Firefox
+js.keyhandler.add('spliteval_cell',         key = "KEY_ENTER", ctrl=True)
+js.keyhandler.add('spliteval_cell',         key = "KEY_RETURN",ctrl=True)
+js.keyhandler.add('spliteval_cell',         key = "KEY_CTRLENTER", ctrl=True)  # needed on OS X Firefox
 js.keyhandler.add('join_cell',              key = "KEY_BKSPC", ctrl=True)
+js.keyhandler.add('split_cell',             key = "KEY_SEMI", ctrl=True)
+js.keyhandler.add('split_cell_noctrl',      key = "KEY_SEMI")
 
 js.keyhandler.add('menu_left',           key = "KEY_LEFT")
 js.keyhandler.add('menu_up',             key = "KEY_UP")

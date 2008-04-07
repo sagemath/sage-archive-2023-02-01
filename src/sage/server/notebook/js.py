@@ -294,6 +294,7 @@ var in_debug_input = false;
 var in_slide_mode = false; //whether or not we're in slideshow mode
 var slide_hidden = false; //whether the current slide has the hidden input class
 
+var doing_split_eval = false; // whether or not we're splitting a cell and evaluating it.
 
 /* If this flag is set, then the next call to jump_to_cell is ignored and
    this flag is cleared.  We use this in some places to avoid changing the
@@ -1894,14 +1895,21 @@ function cell_input_key_event(id, e) {
 
     /*********** SPLIT AND JOIN HANDLING ********/
 
-    /* Record that just the control key was pressed.  We do this since on Opera
-       it is the only way to catch control + key. */
+    // Record that just the control key was pressed.  We do this since on Opera
+    // it is the only way to catch control + key.
     if (key_control(e)) {
         control_key_pressed = 1;
         return;
     }
-    /* Check for the split and join keystrokes. */
-    if (key_split_cell(e) || (key_enter(e) && control_key_pressed)) {
+    // Check for the split and join keystrokes.
+    // The extra control_key_pressed cases are needed for Safari.
+    if (key_split_cell(e) || (key_split_cell_noctrl(e) && control_key_pressed)) {
+        doing_split_eval = false;
+        split_cell(id);
+        return false;
+    } else if (key_spliteval_cell(e) || (key_enter(e) && control_key_pressed)) {
+        doing_split_eval = true;
+        jump_to_cell(id, 1);
         control_key_pressed = 0;
         split_cell(id);
         return false;

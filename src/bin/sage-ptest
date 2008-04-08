@@ -77,7 +77,7 @@ for gr in range(0,numglobaliteration):
                             raise KeyboardInterrupt
                     else:
                        filemutex.release()
-                       return
+                       sys.exit(0)
             except KeyboardInterrupt:
                 abort = True
                 return

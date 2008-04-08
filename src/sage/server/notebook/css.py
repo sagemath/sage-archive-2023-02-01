@@ -1046,6 +1046,23 @@ textarea.cell_input_active {
   width: 97%;
 }
 
+div.cell_input_active {
+  background-color: white;
+  border-left: 2px solid  #ff0000;
+  border-bottom: 2px solid  #ff0000;
+  border-top: 2px solid  #ff0000;
+  border-right: 2px solid  #8888fe;
+  font-family: monospace;
+  font-size:12pt;
+  padding-left:5px;
+  padding-top:3px;
+  padding-bottom:0px;
+  margin-top:0px;
+  margin-bottom:0px;
+  line-height:1.2em;
+  width: 97%;
+}
+
 textarea.cell_input:hover{
   cursor:text;
 }

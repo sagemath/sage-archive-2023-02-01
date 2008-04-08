@@ -585,7 +585,7 @@ class Worksheet_introspect(WorksheetResource, resource.PostableResource):
             after_cursor = ''
         C = self.worksheet.get_cell_with_id(id)
         C.evaluate(introspect=[before_cursor, after_cursor])
-        return http.Response(stream = encode_list([C.next_id(),'no_new_cell',id]))
+        return http.Response(stream = encode_list([C.next_id(),'introspect',id]))
 
 ########################################################
 # Edit the entire worksheet

@@ -26,11 +26,19 @@ import keyboards
 ###########################################################################
 
 
+_cache_javascript = None
 def javascript():
+    """
+    Return javascript library for the Sage Notebook.
+    """
+    global _cache_javascript
+    if _cache_javascript is not None:
+        return _cache_javascript
     s = async_lib()
     s += notebook_lib()
     s += jmol_lib()
-
+    s = JavaScriptCompressor().getPacked(s)
+    _cache_javascript = s
     return s
 
 
@@ -281,8 +289,6 @@ var updating = false
 var update_time = -1;
 
 var jsmath_font_msg = '<a href="SAGE_URL/jsmath">Click to download and install tex fonts.</a><br>';
-
-jsMath = {Font: {Message: function () {}}}
 
 var cell_id_list; // this gets set in worksheet.py
 
@@ -541,7 +547,7 @@ function key_event(e) {
     // This is exactly as in the get_event function; see the docs there.
     if(e==null) { e = window.event; }
 
-    // Here we set a, c, s, which tell whether the alt, control, or shift
+    // Here we set this.v which tell whether the alt, control, or shift
     // keys have been pressed.
     if(e.modifiers) {
         this.v = e.modifiers;
@@ -1683,9 +1689,10 @@ function cell_focus(id, leave_cursor) {
     */
     var cell = get_cell(id);
     if (cell) {
+
         // focus on the cell with the given id and resize it
-        cell.focus();
         cell_input_resize(cell);
+        cell.focus();
 
         // Possibly also move the cursor to the top left in this cell.
         if (!leave_cursor)
@@ -1741,38 +1748,6 @@ function focus_delay(id, leave_cursor) {
     setTimeout('cell_focus('+id+','+leave_cursor+')', 10);
 }
 
-function number_of_rows(txt, ncols) {
-    /*
-    Return the number of rows of the txt, when formatted with word wrap.
-
-    INPUT:
-        txt -- string formatted so it is displayed with at most
-               ncols (so autoscroll at ncols cols)
-        ncols -- positive integer
-    OUTPUT:
-        integer -- the number of rows when the text is displayed
-                   with word wrapping
-
-    WARNING: The algorithm we use below will overestimate in case of a really
-    long word.      Overestimates are fine for our application.
-    */
-
-    // Compute the number of rows separated by newlines.
-    var r = txt.split('\n');
-    var e, i, k, nrows = r.length;
-
-    // Now for each line, add to nrows based on possible word wrapping.
-    // For speed purposes we just fairly naively possibly overestimate
-    // how many lines there will be due to word wrapping.  It's critical
-    // that we overstimate rather than understimate given our application
-    // to resizing the input textarea.
-    for(i=0; i < nrows; i++) {
-        try {
-            nrows += Math.floor(r[i].length/ncols);
-        } catch(e) { };
-    }
-    return (nrows);
-}
 
 function cell_input_resize(cell_input) {
     /*
@@ -1784,22 +1759,28 @@ function cell_input_resize(cell_input) {
         cell_input -- a DOM object.
     OUTPUT:
         changes the number of rows of the DOM object (its height)
+
+    ALGORITHM:
+    Create a hidden div with the same style as the textarea, then copy
+    all the text into it, set the height of the textarea in pixels
+    based on the height of the div, then delete the div.
     */
-    var rows = number_of_rows(cell_input.value, cell_input.cols);
-    if (rows <= 1) {
-      rows = 1;
-    }
-    try {
-        cell_input.style.height = 0.5 + rows*line_height + 'em';
-    } catch(e) {}
-    try{
-        cell_input.rows = rows;
-    } catch(e) {}
+
+    var element = document.createElement('div');
+    element.className = 'cell_input_active';
+    element.style.zIndex=-1;
+    element.style.position='absolute';
+    element.style.visibility='hidden';
+    cell_input.parentNode.insertBefore(element, cell_input);
+    element.innerHTML = cell_input.value.replace(/\n/g,'<br />') + '&nbsp;';
+    cell_input.style.height = element.offsetHeight + 'px';
+    cell_input.parentNode.removeChild(element);
 
     if(slide_hidden) {
         cell_input.className="cell_input_active";
         slide_hidden = false;
     }
+    return;
 }
 
 function cell_delete(id) {
@@ -1912,7 +1893,8 @@ function cell_input_key_event(id, e) {
         control_key_pressed = 0;
         split_cell(id);
         return false;
-    } else if (key_join_cell(e) || (key_delete_cell(e) && control_key_pressed)) {
+    } else if (key_join_cell(e) || (key_delete_cell(e) && control_key_pressed) ||
+                                   (key_delete_cell(e) && is_whitespace(get_cell(id).value))) {
         control_key_pressed = 0;
         join_cell(id);
         return false;
@@ -2376,9 +2358,6 @@ function evaluate_cell_introspection(id, before, after) {
     */
     var cell_input = get_cell(id);
 
-    active_cell_list = active_cell_list.concat([id]);
-    cell_set_running(id);
-
     replacing = false;
     if(before == null) {
         var in_text = text_cursor_split(cell_input);
@@ -2414,6 +2393,7 @@ function evaluate_cell_introspection(id, before, after) {
     update_introspection_text();
     var before_cursor_e = escape0(before);
     var after_cursor_e = escape0(after);
+    active_cell_list = active_cell_list.concat([id]);
     cell_set_running(id);
     async_request(worksheet_command('introspect'), evaluate_cell_callback,
           'id=' + id + '&before_cursor='+before_cursor_e + '&after_cursor='+after_cursor_e);
@@ -2427,9 +2407,10 @@ function evaluate_cell_callback(status, response_text) {
         response_text -- string that is of the form
              [id][command][new_html][new_cell_id]
              id -- string (integer) current cell
-             command -- string 'append_new_cell' or 'insert_cell'
+             command -- string 'append_new_cell' or 'insert_cell' or 'no_new_cell' or 'introspect'
              new_html -- string
-             new_cell_id -- string (integer); id of new cell to create
+             new_cell_id -- optional (if command is 'insert_cell')
+                            string (integer); id of new cell to create
     */
     if (status == "failure") {
         // Failure evaluating a cell.
@@ -2448,7 +2429,7 @@ function evaluate_cell_callback(status, response_text) {
         // insert a new cell after the one with id X[3]
         do_insert_new_cell_after(X[3], X[0], X[2]);
         jump_to_cell(X[0],0);
-    } else if (!in_slide_mode && !doing_split_eval) {
+    } else if (X[1] != 'introspect' && !in_slide_mode && !doing_split_eval) {
         // move to the next cell after the one that we just evaluated.
         if (is_interacting_cell(current_cell)) {
             jump_to_cell(current_cell);
@@ -2601,11 +2582,11 @@ function check_for_cell_update() {
         return;
     }
 
-    // check on the cell currently computing to see what's up.
-    var cell_id = active_cell_list[0];
-
     // record in a global variable when the last update occured.
     update_time = time_now();
+
+    // check on the cell currently computing to see what's up.
+    var cell_id = active_cell_list[0];
     async_request(worksheet_command('cell_update'),
                     check_for_cell_update_callback,
                     'id=' + cell_id);
@@ -2698,6 +2679,7 @@ function check_for_cell_update_callback(status, response_text) {
     output_text_wrapped = eval_script_tags(output_text_wrapped);
     output_html = eval_script_tags(output_html);
 
+    // Set the latest output text got from the server.
     set_output_text(id, output_text, output_text_wrapped,
                     output_html, stat, introspect_html);
 
@@ -2907,7 +2889,7 @@ function set_input_text(id, text) {
     cell_input.value = text;
 
     jump_to_cell(id,0)
-    pos = text.length - after_cursor.length;a
+    pos = text.length - after_cursor.length;
     set_cursor_position(cell_input, pos);
 
     return false;
@@ -3642,7 +3624,6 @@ function jsmath_init() {
          jsMath.Process();
     } catch(e) {
     }
-
 }
 
 """

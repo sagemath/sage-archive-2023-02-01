@@ -33,7 +33,7 @@ import user_conf    # user configuration
 import user         # users
 
 
-SYSTEMS = ['sage', 'axiom', 'gap', 'gp', 'jsmath', 'kash', 'latex', 'lisp', 'macaulay2', 'magma', 'maple', 'mathematica', 'matlab', 'maxima', 'mupad', 'mwrank', 'octave', 'python', 'sage', 'sh', 'singular']
+SYSTEMS = ['sage', 'axiom', 'gap', 'gp', 'jsmath', 'kash', 'latex', 'macaulay2', 'magma', 'maple', 'mathematica', 'matlab', 'maxima', 'mupad', 'octave', 'python', 'sage', 'sh', 'singular']
 
 JSMATH = True
 
@@ -1541,10 +1541,14 @@ class Notebook(SageObject):
             head = '\n<title>%s (Sage)</title>'%(worksheet.name())
         else:
             head = '\n<title>Sage Notebook | Welcome</title>'
+
+        # Load the Sage javascript libray.
         head += '\n<script type="text/javascript" src="/javascript/main.js"></script>\n'
         head += '\n<link rel=stylesheet href="/css/main.css" type="text/css">\n'
 
         if JSMATH:
+            # turn off the ugly scary font warning.
+            head += '\n <STYLE> #jsMath_Warning {display: none} </STYLE>\n'
             head += '<script type="text/javascript">jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
             if not JSMATH_IMAGE_FONTS:
                 head +=' <script type="text/javascript" src="/javascript/jsmath/plugins/noImageFonts.js"></script>\n'

@@ -23,7 +23,7 @@ def class_graph(top_module, depth=5, name_filter=None, classes=None):
         sage: Graph(C)
         Graph on 4 vertices
         sage: DiGraph(C)
-        DiGraph on 4 vertices
+        Digraph on 4 vertices
     """
     # termination
     if depth == 0: return

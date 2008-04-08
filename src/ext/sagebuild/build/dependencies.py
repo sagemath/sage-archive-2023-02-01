@@ -73,12 +73,17 @@ def commit_new_dep_pickle(modfiles, deps, moddict, hashdict, filenm):
     hashdict.update(get_files_hash(modfiles))
     pickle_dicts(moddict, hashdict, deps, filenm)
 
-def create_dep_dict(flist, funcdict, includedict):
+def create_dep_dict(flist, funcdict, includedict, cwd):
     dict = { }
     for x in flist:
         ext = os.path.splitext(x)[1]
         try:
-            newlist = (funcdict[ext])(x,includedict[ext])+[x]
+            files = (funcdict[ext])(x,includedict[ext])
+            newfiles = [ ]
+            for r in files:
+                newfilename = os.path.normpath(r)
+                newfiles.append(newfilename)
+            newlist = newfiles
         except:
             newlist = [x]
         dict[x] = newlist
@@ -94,9 +99,9 @@ def recurse_files(flist, depdict):
     else:
         return recurse_files(outset, depdict).union(fset)
 
-def get_dep_dictionary(flist, funcdict, includedict, depdict = None):
+def get_dep_dictionary(flist, funcdict, includedict, depdict, cwd):
     if depdict == None:
-        depdict = create_dep_dict(flist, funcdict, includedict)
+        depdict = create_dep_dict(flist, funcdict, includedict, cwd)
     fdict = { }
     for x in flist:
         fdict[x] = recurse_files([x], depdict)
@@ -141,8 +146,8 @@ def detect_modified_list(files, moddict, hashdict, invdict):
         print "--------------EndModlist------------"
     return list(modlist)
 
-def get_compile_list(files, funcdict, includedict, cachefile):
-    newdict = get_dep_dictionary(files, funcdict , includedict)
+def get_compile_list(files, funcdict, includedict, cachefile, cwd):
+    newdict = get_dep_dictionary(files, funcdict , includedict, None, cwd)
     if verbose>100:
         for (x,y) in newdict.iteritems():
             print "-------------Dependencies for-------------"

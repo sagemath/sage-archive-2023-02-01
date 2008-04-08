@@ -54,27 +54,27 @@ def _parse_file(filenm, includelist):
             continue
         elif splitline[0] == "cimport":
             for i in range(1,len(splitline)):
-                deps.append(os.path.abspath(_get_cython_file(filenm,splitline[i],includelist)))
+                deps.append(_get_cython_file(filenm,splitline[i],includelist))
         elif len(splitline)==2 and splitline[0]=="include":
             splitline[1] = splitline[1].replace('"','')
             if splitline[1].endswith(".pxi")  or splitline[1].endswith(".pxd"):
                 curdir = os.path.dirname(filenm)
                 curdirfile = curdir+'/'+splitline[1]
                 if os.path.exists(curdirfile):
-                    deps.append(os.path.abspath(curdirfile))
+                    deps.append(curdirfile)
                 else:
                     found = False
                     for incdir in includelist:
                         curdirfile = incdir+'/'+splitline[1]
                         if os.path.exists(curdirfile):
-                            deps.append(os.path.abspath(curdirfile))
+                            deps.append(curdirfile)
                             found = True
                             break
                     if found == False:
-                        print splitline[1] + " not fonud"
+                        print splitline[1] + " not found"
                         raise Exception
         elif len(splitline)>3 and splitline[0]=="from" and splitline[2]=="cimport":
-            deps.append(os.path.abspath(_get_cython_file(filenm,splitline[1],includelist)))
+            deps.append(_get_cython_file(filenm,splitline[1],includelist))
     f.close()
     return deps
 

@@ -45,13 +45,17 @@ class filewalker:
         else:
             walkdir = os.path.join(os.getcwd(),path)
         for root, dirs, lfiles in os.walk(walkdir):
+            root = root[len(os.getcwd())+1:]
             for F in lfiles:
-                appendstr = os.path.realpath(os.path.join(root,F))
+                appendstr = os.path.join(root,F)
                 if(self._test(appendstr)):
                     curlist.append(appendstr)
             for D in dirs:
-                appendstr = os.path.realpath(os.path.join(root,appendstr))
+                appendstr = os.path.join(root,D)
                 if(self._test(appendstr)):
+                    #right now this should never happen, so lets catch it
+                    print D
+                    raise TypeError
                     curlist.append(appendstr)
         return curlist
 

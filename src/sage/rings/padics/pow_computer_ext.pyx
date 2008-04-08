@@ -254,7 +254,7 @@ cdef int ZZ_pX_eis_shift(PowComputer_ZZ_pX self, ZZ_pX_c* x, ZZ_pX_c* a, long n,
     cdef ZZ_pX_c highshift
     cdef ZZ_pX_c working, working2
     cdef ntl_ZZ_pContext_class c
-    cdef ZZ_pX_Modulus_c m
+    cdef ZZ_pX_Modulus_c* m
     cdef long pshift = n / self.e
     cdef long eis_part = n % self.e
     cdef long two_shift = 1
@@ -287,17 +287,17 @@ cdef int ZZ_pX_eis_shift(PowComputer_ZZ_pX self, ZZ_pX_c* x, ZZ_pX_c* a, long n,
     if n < 0:
         if fm:
             c = self.get_top_context()
-            m = self.get_top_modulus()[0]
+            m = self.get_top_modulus()
         else:
             c = self.get_context(finalprec)
-            m = self.get_modulus(finalprec)[0]
+            m = self.get_modulus(finalprec)
         c.restore_c()
         ##printer = ntl_ZZ_pX([],c)
-        ZZ_pX_PowerXMod_long_pre(powerx, -n, m)
+        ZZ_pX_PowerXMod_long_pre(powerx, -n, m[0])
         ##printer.x = powerx
         ##print printer
         ZZ_pX_conv_modulus(x[0], a[0], c.x)
-        ZZ_pX_MulMod_pre(x[0], powerx, a[0], m)
+        ZZ_pX_MulMod_pre(x[0], powerx, a[0], m[0])
         ##printer.x = x[0]
         ##print printer
         return 0
@@ -356,7 +356,7 @@ cdef int ZZ_pX_eis_shift(PowComputer_ZZ_pX self, ZZ_pX_c* x, ZZ_pX_c* a, long n,
 #            pshift = pshift >> 1
     if fm:
         c = self.get_top_context()
-        m = self.get_top_modulus()[0]
+        m = self.get_top_modulus()
     else:
         c = self.get_context(finalprec + pshift + 1)
     c.restore_c()
@@ -366,15 +366,15 @@ cdef int ZZ_pX_eis_shift(PowComputer_ZZ_pX self, ZZ_pX_c* x, ZZ_pX_c* a, long n,
             pshift -= 1
             if fm:
                 ZZ_pX_right_pshift(working, working, self.pow_ZZ_tmp(1)[0],c.x)
-                ZZ_pX_MulMod_premul(working, working, high_shifter_fm[0], m)
+                ZZ_pX_MulMod_premul(working, working, high_shifter_fm[0], m[0])
             else:
                 c = self.get_context(finalprec + pshift + 1)
-                m = self.get_modulus(finalprec + pshift + 1)[0]
+                m = self.get_modulus(finalprec + pshift + 1)
                 ZZ_pX_right_pshift(working, working, self.pow_ZZ_tmp(1)[0],c.x)
                 ZZ_pX_conv_modulus(highshift, high_shifter[0], c.x)
-                ZZ_pX_MulMod_pre(working, working, highshift, m)
+                ZZ_pX_MulMod_pre(working, working, highshift, m[0])
     elif not fm:
-        m = self.get_modulus(finalprec + 1)[0]
+        m = self.get_modulus(finalprec + 1)
     ZZ_pX_conv_modulus(working2, working, c.x)
     i = 0
     two_shift = 1
@@ -396,10 +396,10 @@ cdef int ZZ_pX_eis_shift(PowComputer_ZZ_pX self, ZZ_pX_c* x, ZZ_pX_c* a, long n,
             ##printer.x = low_part
             ##print "low_part = %s"%(printer)
             if fm:
-                ZZ_pX_MulMod_premul(low_part, low_part, low_shifter_fm[i], m)
+                ZZ_pX_MulMod_premul(low_part, low_part, low_shifter_fm[i], m[0])
             else:
                 ZZ_pX_conv_modulus(lowshift, low_shifter[i], c.x)
-                ZZ_pX_MulMod_pre(low_part, low_part, lowshift, m)
+                ZZ_pX_MulMod_pre(low_part, low_part, lowshift, m[0])
             ##printer.x = low_part
             ##print "low_part = %s"%(printer)
             ZZ_pX_add(working2, low_part, shifted_high_part)

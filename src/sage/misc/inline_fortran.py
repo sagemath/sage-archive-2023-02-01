@@ -23,6 +23,7 @@ class InlineFortran:
         """
         EXAMPLES:
             sage: from sage.misc.inline_fortran import InlineFortran
+            sage: import os
             sage: s = open(os.environ['SAGE_ROOT'] + '/examples/fortran/FIB1.F').read()
             sage: test_fortran = InlineFortran(globals())   #-- requires fortran
             sage: test_fortran(s)           # -- requires fortran
@@ -42,6 +43,10 @@ class InlineFortran:
         # On OSX it should be a script that runs gfortran -bundle -undefined dynamic_lookup
         path = os.environ['SAGE_LOCAL']+'/bin/sage-g77_shared'
         from numpy import f2py
+        old_import_path=os.sys.path
+        cwd=os.getcwd()
+        os.sys.path.append(cwd)
+
         #name = tmp_dir() + '/fortran_module_%d'%count
         name = 'fortran_module_%d'%count
         if os.path.exists(name):
@@ -77,12 +82,13 @@ class InlineFortran:
 
         count += 1
         try:
-            m=__builtin__.__import__(name,level=1)
+            m=__builtin__.__import__(name)
         except ImportError:
             if not self.verbose:
                 print log_string
             return
         finally:
+            os.sys.path=old_import_path
             os.unlink(name + '.so')
 
         for k, x in m.__dict__.iteritems():

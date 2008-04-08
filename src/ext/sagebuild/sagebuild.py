@@ -377,7 +377,7 @@ def buildsage(env, gccc):
         gcceso_dict[tempdir+"/devel/sage/build/temp/sage/combinat/partitions.o"].generate_action(env).dep_register(mwrankcc.generate_action(env))
     except KeyError:
         pass
-    if pyx_ext_dict.has_key(abs_sage_path(env,'/devel/sage/graphs/planarity.pyx')):
+    if pyx_ext_dict.has_key('devel/sage/sage/graphs/planarity.pyx'):
         for x in planarity_ext:
             dict_insert_src(gcceso_dict, tempdir+"/devel/sage/build/temp/sage/graphs/planarity.o",x.outfile)
 

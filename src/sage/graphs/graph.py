@@ -5586,8 +5586,8 @@ class GenericGraph(SageObject):
 
         EXAMPLES:
             sage: G = Graph({0:{1:None,2:None}, 1:{0:None,2:None}, 2:{0:None,1:None,3:'foo'}, 3:{2:'foo'}})
-            sage: G.graphviz_to_file_named('temp_graphviz')
-            sage: open('temp_graphviz').read()
+            sage: G.graphviz_to_file_named(os.environ['SAGE_TESTDIR']+'/temp_graphviz')
+            sage: open(os.environ['SAGE_TESTDIR']+'/temp_graphviz').read()
             'graph {\n"0";"1";"2";"3";\n"0"--"1";"0"--"2";"1"--"2";"2"--"3"[label="foo"];\n}'
         """
         return open(filename, 'wt').write(self.graphviz_string())

@@ -35,12 +35,12 @@ TM = None
 class taskthread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
+        self._cwd = os.getcwd()
     def run(self):
         try:
-            cwd = os.getcwd()
             wasexecuting = False
             while True:
-                os.chdir(cwd)
+                os.chdir(self._cwd)
                 act = TM._get_action(wasexecuting)
                 if act == None:
                     wasexecuting=False
@@ -97,7 +97,8 @@ class taskmanager:
         for i in range(0,self.numthreads):
             newthread = taskthread()
             self._threads.append(newthread)
-            newthread.start()
+        for t in self._threads:
+            t.start()
 
     def put(self, x):
         self.printmutex.acquire()

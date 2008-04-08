@@ -544,13 +544,12 @@ function key_event(e) {
     // Here we set a, c, s, which tell whether the alt, control, or shift
     // keys have been pressed.
     if(e.modifiers) {
-        this.a = e.modifiers | 1;
-        this.c = e.modifiers | 2;
-        this.s = e.modifiers | 4;
+        this.v = e.modifiers;
     } else {
-        this.a = e.altKey;
-        this.c = e.ctrlKey;
-        this.s = e.shiftKey;
+        this.v = 0;
+        if(e.altKey) this.v+=1
+        if(e.ctrlKey) this.v+=2
+        if(e.shiftKey) this.v+=4
     }
 
     // we set the specific key that was pressed (no modifier), which is
@@ -3697,7 +3696,7 @@ functions."""
         for name, keys in self.key_codes.items():
             tests += """ function key_%s(e) {
   return %s;
-}"""%(name, "\n || ".join([k.js_test() for k in keys]))
+}"""%(name, "\n||".join([k.js_test() for k in keys]))
 
         return tests;
 
@@ -3711,15 +3710,18 @@ class JSKeyCode:
         self.shift = shift
 
     def js_test(self):
-        t = "(((e.k == %s) || (e.m == %s))"%(self.key, self.key)
+        v = 0
         if self.alt:
-            t += " && e.a"
+            v+=1
         if self.ctrl:
-            t += " && e.c"
+            v+=2
         if self.shift:
-            t += " && e.s"
-        t+= ")"
+            v+=4
+        t = "((e.m==%s)&&(e.v==%s))"%(self.key,v)
         return t
+
+
+
 
 
 keyhandler = JSKeyHandler()

@@ -574,7 +574,7 @@ fi
 if [ $1 = '-t' ]; then
    cd "$CUR"
    shift
-   sage-test "$@"
+   sage-ptest 1 "$@"
    exit $?
 fi
 

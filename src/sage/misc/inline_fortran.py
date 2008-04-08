@@ -77,7 +77,7 @@ class InlineFortran:
 
         count += 1
         try:
-            m=__builtin__.__import__(name)
+            m=__builtin__.__import__(name,level=1)
         except ImportError:
             if not self.verbose:
                 print log_string

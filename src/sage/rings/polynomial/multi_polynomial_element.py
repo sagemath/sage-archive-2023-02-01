@@ -41,13 +41,11 @@ We verify Lagrange's four squares identity:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import operator
-
 from sage.rings.arith import gcd
 
-from sage.structure.element import CommutativeRingElement, Element, is_Element, canonical_coercion
+from sage.structure.element import CommutativeRingElement, canonical_coercion
 
-from sage.interfaces.all import singular, macaulay2
+from sage.interfaces.all import macaulay2
 
 import sage.misc.misc as misc
 import sage.rings.integer
@@ -59,8 +57,6 @@ from sage.structure.factorization import Factorization
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
 
 from sage.structure.sequence import Sequence
-
-import multi_polynomial_ring
 
 from sage.rings.integer_ring import ZZ
 
@@ -947,7 +943,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         """
         mons = self.element().dict().keys()
         try:
-            ngens = len(mons[0]) # number of generators
+            len(mons[0]) # number of generators
         except:
             return True # zero
 
@@ -1520,7 +1516,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         lI = len(I)
         I = list(I)
-        a = [0]*lI
         r = 0
         p = self
 

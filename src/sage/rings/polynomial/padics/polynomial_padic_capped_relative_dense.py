@@ -37,11 +37,11 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             (1 + O(13^7))*t + (2 + O(13^7))
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         if construct:
             (self._poly, self._valbase, self._relprecs, self._normalized, self._valaddeds, self._list) = x #the last two of these may be None
             return
 	elif is_gen:
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             self._poly = PolynomialRing(ZZ, parent.variable_name()).gen()
             self._valbase = 0
             self._valaddeds = [infinity, 0]
@@ -52,7 +52,6 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
         #First we list the types that are turned into Polynomials
         if isinstance(x, ZZX):
-            from polynomial_ring_constructor import PolynomialRing
             x = Polynomial_integer_dense(PolynomialRing(ZZ, parent.variable_name()), x, construct = True)
         elif isinstance(x, fraction_field_element.FractionFieldElement) and \
                x.denominator() == 1:
@@ -103,8 +102,6 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
         if check:
             x = [parent.base_ring()(z) for z in x]
-
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
         # Remove this -- for p-adics this is terrible, since it kills any non exact zero.
         #if len(x) == 1 and not x[0]:

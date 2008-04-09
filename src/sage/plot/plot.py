@@ -2676,8 +2676,9 @@ class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
             options[k] = v
 
         if not isinstance(points, (list,tuple)) or \
-           (isinstance(points,(list,tuple)) and len(points) <= 3 and not
-            isinstance(points[0], (list,tuple))):
+           (isinstance(points,(list,tuple)) and len(points) <= 3 \
+            and len(points) > 0 \
+            and not isinstance(points[0], (list,tuple))):
             try:
                 points = [[float(z) for z in points]]
             except TypeError:
@@ -3087,6 +3088,10 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
         sage: P = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,0))
         sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
         sage: G + P + Q   # show the plot
+
+    A line with no points or one point:
+        sage: line([])
+        sage: line([(1,1)])
     """
     def _reset(self):
         self.options = {'alpha':1,'rgbcolor':(0,0,1),'thickness':1}
@@ -3403,8 +3408,8 @@ class PlotFactory(GraphicPrimitiveFactory):
     The plot options are
         plot_points -- the number of points to initially plot before
                        doing adaptive refinement
-        plot_division -- the maximum number of points including those
-                       computed during adaptive refinement
+        plot_division -- the maximum number of subdivisions to
+                         introduce in adaptive refinement.
         max_bend      -- parameter that affects adaptive refinement
         xmin -- starting x value
         xmax -- ending x value
@@ -3460,10 +3465,10 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     We plot with randomize=False, which makes the initial sample
     points evenly spaced (hence always the same).  Adaptive plotting
-    might insert other points, however.
-        sage: p = plot(sin,-1,1,plot_points=3,plot_division=0,randomize=False)
-        sage: p[0][1][0]
-        -0.66666666666666...
+    might insert other points, however, unless plot_division=0.
+        sage: p=plot(lambda x: 1, (x,0,3), plot_points=4, randomize=False, plot_division=0)
+        sage: list(p[0])
+        [(0.0, 1.0), (1.0, 1.0), (2.0, 1.0), (3.0, 1.0)]
 
     Some colored functions:
 
@@ -3611,14 +3616,16 @@ class PlotFactory(GraphicPrimitiveFactory):
                 G += plot(funcs[i], (xmin, xmax), polar=polar, **kwds)
             return G
 
-        delta = (xmax - xmin) / plot_points
-        dd = delta
+	if len(data) >= 2:
+	    delta = data[1]-data[0]
+	else:
+	    delta = 0
 
         random = current_randstate().python_random().random
         exceptions = 0; msg=''
         exception_indices = []
-        for i in range(plot_points):
-            xi = xmin + i*delta
+        for i in range(len(data)):
+            xi = data[i]
             # Slightly randomize the interior sample points if
             # randomize is true
             if i > 0 and i < plot_points-1:

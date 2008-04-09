@@ -1,0 +1,9 @@
+--- linbox-1.1.5p1/linbox/linbox/util/commentator.C	2008-04-09 17:31:36.000000000 +0200
++++ linbox-1.1.5p2/linbox/linbox/util/commentator.C	2008-04-09 17:31:02.000000000 +0200
+@@ -721,5 +721,5 @@
+ 	}
+ 
+ 	// Default global commentator
+-	Commentator commentator;
++	//Commentator commentator;
+ }

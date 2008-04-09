@@ -69,6 +69,8 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         Univariate Polynomial Ring in x over Ring of integers modulo 100
         sage: p + q
         10*x
+        sage: R({10:-1})
+        7*x^10
 
     """
     def __init__(self, parent, x=None, check=True,
@@ -98,6 +100,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
                 check = False
 
         elif isinstance(x, dict):
+            R = parent.base_ring()
             x = self._dict_to_list(x, R(0))
 
 

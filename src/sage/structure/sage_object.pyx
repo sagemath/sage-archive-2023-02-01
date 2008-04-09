@@ -363,6 +363,9 @@ cdef class SageObject:
     def _octave_init_(self):
         return self._interface_init_()
 
+    def _r_init_(self):
+        return self._interface_init_()
+
     def _singular_(self, G=None, have_ring=False):
         if G is None:
             import sage.interfaces.singular

@@ -72,7 +72,7 @@ def cyclotomic_coeffs(nn, sparse=None):
         sage: n = ZZ.random_element(50000)
         sage: factor(n)
         3 * 10009
-        sage: v = cyclotomic_coeffs(n)
+        sage: v = cyclotomic_coeffs(n, sparse=False)
         sage: v == list(reversed(v))
         True
 
@@ -80,6 +80,26 @@ def cyclotomic_coeffs(nn, sparse=None):
         -- Robert Bradshaw 2007-10-27: initial version
                (Inspired by work of Andrew Arnold and Michael Monagan)
     """
+    factors = factor(nn)
+    if any([e != 1 for p, e in factors]):
+        # If there are primes that occur in the factorization with multiplicity
+        # greater than one we use the fact that Phi_ar(x) = Phi_r(x^a) when all
+        # primes dividing a divide r.
+        rad = prod([p for p, e in factors])
+        rad_coeffs = cyclotomic_coeffs(rad, sparse=True)
+        pow = int(nn // rad)
+        if sparse is None or sparse:
+            L = {}
+        else:
+            L = [0] * (1 + pow * prod([p-1 for p, e in factors]))
+        for mon, c in rad_coeffs.items():
+            L[mon*pow] = c
+        return L
+
+    elif len(factors) == 1 and not sparse:
+        # \Phi_p is easy to calculate for p prime.
+        return [1] * factors[0][0]
+
     # The following bounds are from Michael Monagan:
     #    For all n < 169,828,113, the height of Phi_n(x) is less than 60 bits.
     #    At n = 169828113, we get a height of 31484567640915734951 which is 65 bits
@@ -93,7 +113,7 @@ def cyclotomic_coeffs(nn, sparse=None):
         return [int(a) for a in pari.polcyclo(nn).Vecrev()]
 
     cdef long d, max_deg = 0, n = nn
-    primes = [int(p) for p, _ in factor(n)]
+    primes = [int(p) for p, e in factors]
     prime_subsets = list(subsets(primes))
     if n > 5000:
         prime_subsets.sort(my_cmp)

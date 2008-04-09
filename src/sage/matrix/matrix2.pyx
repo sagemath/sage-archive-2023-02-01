@@ -30,6 +30,8 @@ from sage.rings.number_field.all import is_NumberField
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
+from sage.rings.real_double import RDF
+from sage.rings.complex_double import CDF
 from sage.rings.integer_mod_ring import IntegerModRing
 
 import sage.modules.free_module
@@ -3739,6 +3741,87 @@ cdef class Matrix(matrix1.Matrix):
                         d[(i,j)] = self.get_unsafe(i,j)
 
             return d
+
+    def conjugate(self):
+        r"""
+        Return the conjugate of self, i.e. the matrix whose entries are
+        the conjugates of the entries of self.
+
+        The entries of self must be complex numbers.
+
+        EXAMPLES:
+            sage: A = matrix(CDF, [[1+I,1],[0,2*I]])
+            sage: A.conjugate()
+            [1.0 - 1.0*I         1.0]
+            [          0      -2.0*I]
+        """
+        return self.new_matrix(self.nrows(), self.ncols(), [z.conjugate() for z in self.list()])
+
+    def norm(self, p=2):
+        r"""
+        Return the p-norm of this matrix, where $p$ can be 1, 2, $\inf$, or
+        the Frobenius norm.
+
+        INPUT:
+            self -- a matrix whose entries are coercible into CDF
+            p -- one of the following options:
+                 1 -- the largest column-sum norm
+                 2 (default) -- the Euclidean norm
+                 Infinity -- the largest row-sum norm
+                 'frob' -- the Frobenius (sum of squares) norm
+
+        OUTPUT:
+            RDF number
+
+        EXAMPLES:
+            sage: A = matrix(ZZ, [[1,2,4,3],[-1,0,3,-10]])
+            sage: A.norm(1)
+            13.0
+            sage: A.norm(Infinity)
+            14.0
+            sage: B = random_matrix(QQ, 20, 21)
+            sage: B.norm(Infinity) == (B.transpose()).norm(1)
+            True
+
+            sage: Id = identity_matrix(12)
+            sage: Id.norm(2)
+            1.0
+            sage: A = matrix(RR, 2, 2, [13,-4,-4,7])
+            sage: A.norm()
+            15.0
+
+            sage: A = matrix(CDF, 2, 3, [3*I,4,1-I,1,2,0])
+            sage: A.norm('frob')
+            5.65685424949
+            sage: A.norm(2)
+            5.47068444321
+            sage: A.norm(1)
+            6.0
+            sage: A.norm(Infinity)
+            8.41421356237
+        """
+
+        # 2-norm:
+        if p == 2:
+            A = self.change_ring(CDF)
+            A = A.conjugate().transpose() * A
+            U, S, V = A.SVD()
+            return max(S.list()).real().sqrt()
+
+        A = self.apply_map(abs).change_ring(RDF)
+
+        # 1-norm: largest column-sum
+        if p == 1:
+            A = A.transpose()
+            return max([sum(i) for i in list(A)])
+
+        # Infinity norm: largest row-sum
+        if p == sage.rings.infinity.Infinity:
+            return max([sum(i) for i in list(A)])
+
+        # Frobenius norm: square root of sum of squares of entries of self
+        if p == 'frob':
+            return sum([i**2 for i in A.list()]).sqrt()
 
 def _dim_cmp(x,y):
     """

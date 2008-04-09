@@ -235,7 +235,6 @@ class TensorProductOfCrystals(ClassicalCrystal):
             else:
                 self.module_generators = [ self(*x) for x in options['generators']]
 
-
     def __call__(self, *args):
         """
         EXAMPLES:
@@ -271,6 +270,18 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent, CrystalElement):
             return None
         k = position[0]
         return self.set_index(k, self[k].e(i))
+
+    def weight(self):
+        """
+        Returns the weight of self.
+
+        EXAMPLES:
+            sage: C = CrystalOfLetters(['A',3])
+            sage: T = TensorProductOfCrystals(C,C)
+            sage: T(C(1),C(2)).weight()
+            (1, 1, 0, 0)
+        """
+        return sum(self[j].weight() for j in range(len(self)))
 
     def f(self, i):
         """

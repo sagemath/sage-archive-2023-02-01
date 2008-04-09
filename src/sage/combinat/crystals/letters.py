@@ -142,7 +142,6 @@ class ClassicalCrystalOfLetters(ClassicalCrystal):
         """
         return self._digraph
 
-
     def __contains__(self, x):
         """
         EXAMPLES:
@@ -287,7 +286,19 @@ class Crystal_of_letters_type_A_element(Letter, CrystalElement):
 
         sage: C.check()
         True
+
     """
+
+    def weight(self):
+        """
+        Returns the weight of self.
+
+        EXAMPLES:
+            sage: [v.weight() for v in CrystalOfLetters(['A',3])]
+            [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
+        """
+        return self._parent.weight_lattice_realization()._term(self.value-1)
+
     def e(self, i):
         r"""
         Returns the action of $e_i$ on self.
@@ -331,6 +342,28 @@ class Crystal_of_letters_type_B_element(Letter, CrystalElement):
         sage: C.check()
         True
     """
+
+    def weight(self):
+        """
+        Returns the weight of self.
+
+        EXAMPLES:
+            sage: [v.weight() for v in CrystalOfLetters(['B',3])]
+            [(1, 0, 0),
+             (0, 1, 0),
+             (0, 0, 1),
+             (0, 0, 0),
+             (0, 0, -1),
+             (0, -1, 0),
+             (-1, 0, 0)]
+        """
+        if self.value > 0:
+            return self._parent.weight_lattice_realization()._term(self.value-1)
+        elif self.value < 0:
+            return -self._parent.weight_lattice_realization()._term(-self.value-1)
+        else:
+            return self._parent.weight_lattice_realization()._free_module(0)
+
     def e(self, i):
         r"""
         Returns the action of $e_i$ on self.
@@ -410,8 +443,24 @@ class Crystal_of_letters_type_C_element(Letter, CrystalElement):
          [False, False, False, False, False, False]]
         sage: C.check()
         True
-
     """
+
+    def weight(self):
+        """
+        Returns the weight of self.
+
+        EXAMPLES:
+            sage: [v.weight() for v in CrystalOfLetters(['C',3])]
+            [(1, 0, 0), (0, 1, 0), (0, 0, 1), (0, 0, -1), (0, -1, 0), (-1, 0, 0)]
+
+        """
+        if self.value > 0:
+            return self._parent.weight_lattice_realization()._term(self.value-1)
+        elif self.value < 0:
+            return -self._parent.weight_lattice_realization()._term(-self.value-1)
+        else:
+            return self._parent.weight_lattice_realization()._free_module(0)
+
     def e(self, i):
         r"""
         Returns the action of $e_i$ on self.
@@ -472,7 +521,31 @@ class Crystal_of_letters_type_D_element(Letter, CrystalElement):
         [1, 2, 3, 4, -4, -3, -2, -1]
         sage: C.check()
         True
+
     """
+
+    def weight(self):
+        """
+        Returns the weight of self.
+
+        EXAMPLES:
+            sage: [v.weight() for v in CrystalOfLetters(['D',4])]
+            [(1, 0, 0, 0),
+             (0, 1, 0, 0),
+             (0, 0, 1, 0),
+             (0, 0, 0, 1),
+             (0, 0, 0, -1),
+             (0, 0, -1, 0),
+             (0, -1, 0, 0),
+             (-1, 0, 0, 0)]
+        """
+        if self.value > 0:
+            return self._parent.weight_lattice_realization()._term(self.value-1)
+        elif self.value < 0:
+            return -self._parent.weight_lattice_realization()._term(-self.value-1)
+        else:
+            return self._parent.weight_lattice_realization()._free_module(0)
+
     def e(self, i):
         r"""
         Returns the action of $e_i$ on self.
@@ -552,6 +625,32 @@ class Crystal_of_letters_type_G_element(Letter, CrystalElement):
         sage: C.check()
         True
     """
+
+    def weight(self):
+        """
+        Returns the weight of self.
+
+        EXAMPLES:
+            sage: [v.weight() for v in CrystalOfLetters(['G',2])]
+            [(1, 0, -1), (1, -1, 0), (0, 1, -1), (0, 0, 0), (0, -1, 1), (-1, 1, 0), (-1, 0, 1)]
+        """
+        if self.value == 1:
+            return self._parent.weight_lattice_realization()._free_module((1, 0, -1))
+        elif self.value == 2:
+            return self._parent.weight_lattice_realization()._free_module((1, -1, 0))
+        elif self.value == 3:
+            return self._parent.weight_lattice_realization()._free_module((0, 1, -1))
+        elif self.value == 0:
+            return self._parent.weight_lattice_realization()._free_module((0, 0, 0))
+        elif self.value == -3:
+            return self._parent.weight_lattice_realization()._free_module((0, -1, 1))
+        elif self.value == -2:
+            return self._parent.weight_lattice_realization()._free_module((-1, 1, 0))
+        elif self.value == -1:
+            return self._parent.weight_lattice_realization()._free_module((-1, 0, 1))
+        else:
+            raise RuntimeError, "G2 crystal of letters element %d not valid"%self.value
+
     def e(self, i):
         r"""
         Returns the action of $e_i$ on self.

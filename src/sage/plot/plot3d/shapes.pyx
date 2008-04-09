@@ -339,6 +339,19 @@ def arrow3d(start, end, thickness=1, radius=None, head_radius=None, head_len=Non
         1
         sage: type(a.all[0])
         <type 'sage.plot.plot3d.shapes.Cone'>
+
+    Arrows are always constructed pointing up in the z direction from
+    the origin, and then rotated/translated into place. This works for
+    every arrow direction except the -z direction.  We take care of the
+    anomoly by testing to see if the arrow should point in the -z
+    direction, and if it should, just scaling the constructed arrow by
+    -1 (i.e., every point is sent to its negative). The scaled arrow
+    then points downwards. The doctest just tests that the scale of -1
+    is applied to the arrow.
+
+        sage: a = arrow3d((0,0,0), (0,0,-1))
+        sage: a.all[0].get_transformation().transform_point((0,0,1))
+        (0.0, 0.0, -1.0)
     """
     if radius is None:
         radius = thickness/50.0
@@ -358,7 +371,10 @@ def arrow3d(start, end, thickness=1, radius=None, head_radius=None, head_len=Non
                 + Cone(head_radius, head_len, **kwds).translate(0, 0, length-head_len)
     axis = zaxis.cross_product(diff)
     if axis == 0:
-        return arrow.translate(start)
+        if diff[2] >= 0:
+            return arrow.translate(start)
+        else:
+            return arrow.scale(-1).translate(start)
     else:
         theta = -acos(diff[2]/length)
         return arrow.rotate(axis, theta).translate(start)

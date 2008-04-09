@@ -755,7 +755,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         INPUT:
 
             plot_type -- (default: 'arrow' if v has 3 or fewer components,
-            otherwise 'step') type of plot.  Options are 'arrow' to an
+            otherwise 'step') type of plot.  Options are 'arrow' to draw an
             arrow; 'point' to draw a point at the coordinates
             specified by the vector; 'step' to draw a step function
             representing the coordinates of the vector.  Both 'arrow'

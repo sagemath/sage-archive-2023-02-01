@@ -613,7 +613,7 @@ class Cell(Cell_generic):
         if self.__in.lstrip()[:8] == '%hideall':
             s = html_out
         else:
-            s = html_in  + introspect + html_out
+            s = html_in + introspect + html_out
 
         if div_wrap:
             s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'

@@ -973,7 +973,7 @@ class Worksheet:
         n = len(self.__cells)
         published = self.is_published() or publish
 
-        s = ''
+        s = '<div class="cell_input_active" id="cell_resizer"></div>'
         D = self.notebook().conf()
         ncols = D['word_wrap_cols']
         if not published:

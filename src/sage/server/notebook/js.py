@@ -1738,7 +1738,7 @@ function cell_focus(id, leave_cursor) {
     if (cell) {
 
         // focus on the cell with the given id and resize it
-        cell_input_resize(cell);
+        cell_input_resize(id);
         cell.focus();
 
         // Possibly also move the cursor to the top left in this cell.
@@ -1796,16 +1796,16 @@ function focus_delay(id, leave_cursor) {
 }
 
 
-function cell_input_resize(cell_input) {
+function cell_input_resize(id) {
     /*
     Resize the given input cell so that it has the right
     number of rows for the number of rows currently typed into
     the input cell.
 
     INPUT:
-        cell_input -- a DOM object.
+        id -- a cell id
     OUTPUT:
-        changes the number of rows of the DOM object (its height)
+        changes the height of the corresponding DOM object to fit the input
 
     ALGORITHM:
     Create a hidden div with the same style as the textarea, then copy
@@ -1813,15 +1813,11 @@ function cell_input_resize(cell_input) {
     based on the height of the div, then delete the div.
     */
 
-    var element = document.createElement('div');
-    element.className = 'cell_input_active';
-    element.style.zIndex=-1;
-    element.style.position='absolute';
-    element.style.visibility='hidden';
-    cell_input.parentNode.insertBefore(element, cell_input);
-    element.innerHTML = cell_input.value.replace(/\n/g,'<br />') + '&nbsp;';
-    cell_input.style.height = element.offsetHeight + 'px';
-    cell_input.parentNode.removeChild(element);
+    var resizer = get_element('cell_resizer');
+    var cell_input = get_cell(id);
+    resizer.style.width = cell_input.offsetWidth + 'px';
+    resizer.innerHTML = cell_input.value.replace(/</g,'&lt;').replace(/\r?\n/g,'<br>').replace(/\s\s/g,' &nbsp;') + '&nbsp;';
+    cell_input.style.height = resizer.offsetHeight + 'px';
 
     if(slide_hidden) {
         cell_input.className="cell_input_active";
@@ -2307,7 +2303,7 @@ function join_cell(id) {
     set_cursor_position(cell, n);
 
     // Finally resize the joined cell to account for its new text.
-    cell_input_resize(cell);
+    cell_input_resize(id);
 }
 
 function split_cell(id) {
@@ -2330,7 +2326,7 @@ function split_cell(id) {
     }
 
     cell.value = txt[1];
-    cell_input_resize(cell);
+    cell_input_resize(id);
     send_cell_input(id);  /* tell the server about how the input just got split in half. */
 
     set_cursor_position(cell,0);

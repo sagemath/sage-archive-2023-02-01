@@ -225,7 +225,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def _set_multiplicative_order(self, n):
         r"""
         Function for setting the \code{ComplexNumber} class attribute
-        \code{multiplicative_order) of self.
+        \code{multiplicative_order} of self.
 
         INPUTS:
             n -- an integer which will define the multiplicative order of self
@@ -364,7 +364,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         r"""
         Returns the norm of self.
 
-            norm(a + bi) = a^2 + b^2
+            $norm(a + bi) = a^2 + b^2$
 
         EXAMPLES:
         This indeed acts as the square function when the imaginary
@@ -584,7 +584,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         r"""
         Method for computing the absolute value or modulus of self
 
-            |a + bi| = sqrt(a^2 + b^2)
+            $|a + bi| = sqrt(a^2 + b^2)$
 
         EXAMPLES:
         Note that the absolute value of a complex number with imaginary
@@ -1049,13 +1049,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         Returns the complex dilogarithm of self. The complex dilogarithm, or
         Spence's function, is defined by
 
-                                 log |1 - zeta|
-            Li_2(z) = - \int_0^z -------------- d(zeta)
-                                      zeta
+            $Li_2(z) = - \int_0^z \frac{\log|1-\zeta|}{\zeta} d(\zeta)$
 
-                                         z^k
-                    = \sum_{k=1}^\infty -----
-                                          k
+                    $= \sum_{k=1}^\infty \frac{z^k}{k}$
 
         Note that the series definition can only be used for $|z| < 1$
         EXAMPLES:

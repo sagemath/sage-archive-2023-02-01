@@ -808,7 +808,7 @@ class HeckeOperator(Morphism):
     def matrix(self):
         """
         Return the matrix of self acting on the homology $H_1(A, ZZ)$
-        of this abelian variety with coefficients in $\mathbb{Z}$.
+        of this abelian variety with coefficients in $\ZZ$.
 
         EXAMPLES:
             sage: J0(47).hecke_operator(3).matrix()

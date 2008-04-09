@@ -144,7 +144,7 @@ def cyclotomic_cosets(q, n, t = None):
     the q-cyclotomic coset mod n containing t)
 
     Let q, n be relatively print positive integers and let
-    A = q^{ZZ}. The group A acts on ZZ/nZZ by multiplication.
+    $A = q^{ZZ}$. The group A acts on ZZ/nZZ by multiplication.
     The orbits of this action are "cyclotomic cosets",
     or more precisely "q-cyclotomic cosets mod n". Sometimes the
     smallest element of the coset is called the "coset leader".
@@ -224,7 +224,7 @@ def is_a_splitting(S1,S2,n):
     (if a = True) or 0 (if a = False)
 
     Splittings are useful for computing idempotents in the
-    quotient ring Q = GF(q)[x]/(x^n-1). For
+    quotient ring $Q = GF(q)[x]/(x^n-1)$. For
 
     EXAMPLES:
         sage: from sage.coding.code_constructions import is_a_splitting
@@ -586,7 +586,7 @@ def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
         [0 0 1 1]
 
     On the other hand, CyclicCodeFromPolynomial(4,x) will produce
-    a ValueError including a traceback error message: "x must divide x^4 - 1".
+    a ValueError including a traceback error message: "$x$ must divide $x^4 - 1$".
     You will also get a ValueError if you type
         sage: P.<x> = PolynomialRing(GF(4,"a"),"x")
         sage: g = x^2+1
@@ -599,7 +599,7 @@ def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
         Linear code of length 5, dimension 4 over Finite Field of size 3
 
     followed by C = CyclicCodeFromGeneratingPolynomial(5,g,False), with
-    a traceback message including "x^2 + 2 must divide x^5 - 1".
+    a traceback message including "$x^2 + 2$ must divide $x^5 - 1$".
 
     """
     P = g.parent()
@@ -866,7 +866,7 @@ def HammingCode(r,F):
         sage: C.minimum_distance()
         3
         sage: C = HammingCode(3,GF(4,'a')); C
-        Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
+        Linear code of length 21, dimension 18 over Finite Field in a of size $2^2$
 
     """
     q = F.order()
@@ -886,7 +886,7 @@ def LinearCodeFromCheckMatrix(H):
     matrix G and check matrix H. We have the following short
     exact sequence
 
-    \[
+    \begin{equation}
     0 \rightarrow
     {\mathbf{F}}^k \stackrel{G}{\rightarrow}
     {\mathbf{F}}^n \stackrel{H}{\rightarrow}

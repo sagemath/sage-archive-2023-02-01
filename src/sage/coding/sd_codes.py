@@ -36,7 +36,7 @@ case-by-case list of entries, each represented by a Python dictionary.
          C = self_dual_codes_binary(n); m = len(C["%s"%n].keys())
          for i in range(m):
              C0 = C["%s"%n]["%s"%i]["code"]
-             #print n,i,C0
+             \#print n,i,C0
              if C0.minimum_distance()>2:
                  f = R(C0.sd_zeta_polynomial())
                  print n,i,[z[0].abs() for z in f.roots()]
@@ -142,11 +142,11 @@ def self_dual_codes_binary(n):
     The number of inequiv "diagonal" sd binary codes in the database of length n
     is ("diagonal" is defined by the conjecture above) is the same as
     the restricted partition number of n, where only integers from
-    the set {1,4,6,8,...} are allowed. This is the coeff of x^n in the
-    series expansion $(1-x)^{-1}\prod_{2^\infty (1-x^{2j})^{-1}$. Typing
+    the set {1,4,6,8,...} are allowed. This is the coeff of $x^n$ in the
+    series expansion $(1-x)^{-1}\prod_{2^\infty (1-x^{2j})^{-1}}$. Typing
     the command
-    f = (1-x)^(-1)*prod([(1-x^(2*j))^(-1) for j in range(2,18)])
-    into SAGE, we obtain for the coeffs of x^4, x^6, ...
+    f = (1-x)\^(-1)*prod([(1-x\^(2*j))\^(-1) for j in range(2,18)])
+    into SAGE, we obtain for the coeffs of $x^4$, $x^6$, ...
     [1, 1, 2, 2, 3, 3, 5, 5, 7, 7, 11, 11, 15, 15, 22, 22, 30, 30,
      42, 42, 56, 56, 77, 77, 101, 101, 135, 135, 176, 176, 231]
     These numbers grow too slowly to account for all the sd codes (see

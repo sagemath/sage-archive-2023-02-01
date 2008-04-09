@@ -926,7 +926,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         Return a newly created \Singular quotient ring matching this
         boolean polynomial ring.
 
-        NOTE \& TODO: This method does not only return a string but
+        NOTE & TODO: This method does not only return a string but
         actually calls \Singular.
 
         EXAMPLE:
@@ -1042,7 +1042,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         WARNING: Do not use this method. It is provided for
         compatibility reasons with \PolyBoRi but parents are supposed
-        to be immutable in \Sage.
+        to be immutable in \sage.
         """
         if order < 0 or order > 4:
             raise ValueError, "order value %s is not supported"%(order)
@@ -1070,7 +1070,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         WARNING: Do not use this method. It is provided for
         compatibility reasons with \PolyBoRi but parents are supposed
-        to be immutable in \Sage.
+        to be immutable in \sage.
         """
         self._pbring.activate()
         pb_set_variable_name(i, s)
@@ -1079,9 +1079,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         self._names = tuple(t)
 
 def get_var_mapping(ring, other):
-    """
+    r"""
     Return a variable mapping between variables of \var{other} and
-    \var{ring]. When other is a parent object, the mapping defines
+    \var{ring}. When other is a parent object, the mapping defines
     images for all variables of other. If it is an element, only
     variables occuring in other are mapped.
 

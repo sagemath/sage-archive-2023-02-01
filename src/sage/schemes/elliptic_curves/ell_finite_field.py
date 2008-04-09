@@ -273,7 +273,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
 
     def trace_of_frobenius(self):
-        """
+        r"""
         Return the trace of Frobenius acting on this elliptic curve.
 
         NOTE:
@@ -287,7 +287,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.trace_of_frobenius()
             802
 
-        The following shows that the issue from trac #2849 is fixed:
+        The following shows that the issue from trac \#2849 is fixed:
             sage: E=EllipticCurve(GF(3^5,'a'),[-1,-1])
             sage: E.trace_of_frobenius()
             -27

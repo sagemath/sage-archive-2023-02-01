@@ -2,6 +2,13 @@
 
 CUR=`pwd`
 
+echo "Copying commentator patch"
+cp patches/commentator.C linbox/linbox/util/
+
+if [ $? -ne 0 ]; then
+    echo "Error copying commentator OSX 10.4 fix"
+    exit 1
+fi
 
 cd linbox/
 
@@ -81,17 +88,6 @@ if [ $? -ne 0 ]; then
     echo "Error installing linbox"
     exit 1
 fi
-
-cd "$CUR"/patches
-cp -r gmp++/* "$SAGE_LOCAL"/include/gmp++/
-if [ $? -ne 0 ]; then
-    echo "Error overwriting linbox's gmp++"
-    exit 1
-fi
-
-
-# For some stupid reason gmp-integers.h was removed.
-cp "$CUR"/patches/gmp-integers.h "$SAGE_LOCAL"/include/linbox/field/
 
 #
 # Build the C Wrapper

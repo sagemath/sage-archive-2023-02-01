@@ -866,7 +866,7 @@ def HammingCode(r,F):
         sage: C.minimum_distance()
         3
         sage: C = HammingCode(3,GF(4,'a')); C
-        Linear code of length 21, dimension 18 over Finite Field in a of size $2^2$
+        Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
 
     """
     q = F.order()

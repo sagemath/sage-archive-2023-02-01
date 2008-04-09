@@ -244,10 +244,26 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     integers.  It derives from the \class{Element} class, so
     integers can be used as ring elements anywhere in SAGE.
 
+    Integer() interprets numbers and strings that begin with 0 as octal
+    numbers, and numbers and strings that begin with 0x as hexadecimal
+    numbers.
+
     \begin{notice}
     The class \class{Integer} is implemented in Pyrex, as a wrapper
     of the GMP \code{mpz_t} integer type.
     \end{notice}
+
+    EXAMPLES:
+        sage: Integer(010)
+        8
+        sage: Integer(0x10)
+        16
+        sage: Integer(10)
+        10
+        sage: Integer('0x12')
+        18
+        sage: Integer('012')
+        10
     """
 
     # todo: It would be really nice if we could avoid the __new__ call.

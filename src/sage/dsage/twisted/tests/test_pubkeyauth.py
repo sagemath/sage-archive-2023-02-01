@@ -18,6 +18,7 @@
 
 import os
 import random
+import tempfile
 from glob import glob
 
 from twisted.trial import unittest
@@ -77,9 +78,10 @@ RANDOM_DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
 
 class PublicKeyCredentialsCheckerTest(unittest.TestCase):
     username = 'tester'
+    test_db = tempfile.NamedTemporaryFile()
 
     def setUp(self):
-        Session = init_db('test.db')
+        Session = init_db(self.test_db.name)
         self.clientdb = ClientDatabase(Session)
         self.checker = PublicKeyCredentialsCheckerDB(self.clientdb)
         self._algorithm = 'rsa'
@@ -98,9 +100,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         from sqlalchemy.orm import clear_mappers
         self.clientdb.sess.close()
         clear_mappers()
-        files = glob('*.db*')
-        for file in files:
-           os.remove(file)
+        os.remove(self.test_db.name)
 
     def _bad_login(self, failure):
         self.assertEquals(failure.check(AuthenticationError),

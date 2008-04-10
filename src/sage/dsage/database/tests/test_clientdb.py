@@ -19,6 +19,7 @@
 import unittest
 import datetime
 import os
+import tempfile
 
 from sage.dsage.database.clientdb import ClientDatabaseSQLite
 from sage.dsage.database.db_config import init_db
@@ -33,9 +34,10 @@ class ClientDatabaseSQLiteTestCase(unittest.TestCase):
     TEST_EMAILS = ['foo@bar.com', 'bar@foo.com', '1@2.com', '2@4.com',
                    '5@6.com', '6@7.com' ]
     TEST_KEYS = ['1', '2', '3', '4', '5', '6']
+    test_db = tempfile.NamedTemporaryFile()
 
     def setUp(self):
-        db_conn = init_db('test.db')
+        db_conn = init_db(self.test_db.name)
         self.clientdb = ClientDatabaseSQLite(db_conn)
 
     def tearDown(self):
@@ -44,7 +46,7 @@ class ClientDatabaseSQLiteTestCase(unittest.TestCase):
         cur.execute(query)
         self.clientdb.con.commit()
         self.clientdb._shutdown()
-        os.remove('test.db')
+        os.remove(self.test_db.name)
 
     def testadd_client(self):
         for user, key in zip(self.TEST_USERNAMES, self.TEST_KEYS):

@@ -19,21 +19,24 @@
 
 import unittest
 import os
+import tempfile
 
 from sage.dsage.database.jobdb import JobDatabaseSQLite, JobDatabaseSA
 from sage.dsage.database.job import Job
 from sage.dsage.database.db_config import create_schema, init_db, init_db_sa
 
 class JobDatabaseSATestCase(unittest.TestCase):
+    test_db = tempfile.NamedTemporaryFile()
+
     def setUp(self):
-        Session = init_db_sa('test.db')
+        Session = init_db_sa(self.test_db.name)
         self.jobdb = JobDatabaseSA(Session)
 
     def tearDown(self):
         from sqlalchemy.orm import clear_mappers
         self.jobdb.sess.close()
         clear_mappers()
-        os.remove('test.db')
+        os.remove(self.test_db.name)
 
     def testget_job(self):
         job = Job()
@@ -53,8 +56,10 @@ class JobDatabaseSQLiteTestCase(unittest.TestCase):
 
     """
 
+    test_db = tempfile.NamedTemporaryFile()
+
     def setUp(self):
-        db_conn = init_db('test.db')
+        db_conn = init_db(self.test_db.name)
         create_schema(db_conn)
         self.jobdb = JobDatabaseSQLite(db_conn)
 
@@ -63,7 +68,7 @@ class JobDatabaseSQLiteTestCase(unittest.TestCase):
         cur = self.jobdb.con.cursor()
         cur.execute(query)
         self.jobdb._shutdown()
-        os.remove('test.db')
+        os.remove(self.test_db.name)
 
     def testget_job(self):
         job = Job()

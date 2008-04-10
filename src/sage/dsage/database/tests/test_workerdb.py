@@ -1,14 +1,17 @@
 import unittest
 import uuid
 import os
+import tempfile
 
 from sage.dsage.database.workerdb import WorkerDatabaseSA
 from sage.dsage.database.db_config import init_db_sa as init_db
 from sage.dsage.misc.hostinfo import HostInfo
 
 class WorkerDatabaseSATestCase(unittest.TestCase):
+    test_db = tempfile.NamedTemporaryFile()
+
     def setUp(self):
-        Session = init_db('test.db')
+        Session = init_db(self.test_db.name)
         self.workerdb = WorkerDatabaseSA(Session)
         self.host_info = HostInfo().host_info
         self.uuid = str(uuid.uuid1())
@@ -20,7 +23,7 @@ class WorkerDatabaseSATestCase(unittest.TestCase):
         from sqlalchemy.orm import clear_mappers
         self.workerdb.sess.close()
         clear_mappers()
-        os.remove('test.db')
+        os.remove(self.test_db.name)
 
     def testget_worker(self):
         worker = self.workerdb.get_worker(self.uuid)

@@ -27,6 +27,7 @@ import os
 import subprocess
 from getpass import getuser
 import time
+import tempfile
 
 import sage.interfaces.cleaner
 from sage.misc.all import SAGE_ROOT
@@ -107,6 +108,7 @@ class DistributedSage(object):
             port = find_open_port().next()
 
         if testing or sage.plot.plot.DOCTEST_MODE:
+            test_db = tempfile.NamedTemporaryFile()
             testing = True
             self.server(port=port,
                         log_level=5,
@@ -215,6 +217,7 @@ class DistributedSage(object):
             f.close()
 
         if testing or sage.plot.plot.DOCTEST_MODE:
+            test_db = tempfile.NamedTemporaryFile()
             testing = True
             print 'Going into testing mode...'
             # remove the old db to start from a clean slate
@@ -223,7 +226,7 @@ class DistributedSage(object):
                 os.remove('testing.db')
             except:
                 pass
-            db_file = 'db/testing.db'
+            db_file = test_db.name
 
         if port != None:
             server_port = port

@@ -981,11 +981,11 @@ class AmbientLattice_g(AmbientLattice_generic):
         """
         EXAMPLES:
             sage: CartanType(['G',2]).root_system().ambient_lattice().fundamental_weights()
-            [(-1, 0, 1), (-2, 1, 1)]
+            [(1, 0, -1), (2, -1, -1)]
         """
         return [ c0*self._term(0)+c1*self._term(1)+c2*self._term(2) \
                  for [c0,c1,c2] in
-                 [[-1,0,1],[-2,1,1]]]
+                 [[1,0,-1],[2,-1,-1]]]
 
 
 def WeylDim(ct, coeffs):

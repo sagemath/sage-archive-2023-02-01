@@ -44,7 +44,11 @@ def WeylGroup(ct):
         sage: G = L.weyl_group()
 
       Either produces a weight lattice, with access to its
-      roots and weights.
+      roots and weights. If you want the character table, or
+      other group-theoretic information, you may use GAP, thus:
+
+      # sage: gap.eval("SizeScreen([120,40])")
+      # sage: print gap.eval("Display(%s)"%gap(WeylGroup(['F',4])).CharacterTable().name())
 
         sage: G = WeylGroup(['F',4])
         sage: G.order()

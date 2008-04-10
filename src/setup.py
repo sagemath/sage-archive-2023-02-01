@@ -874,6 +874,9 @@ ext_modules = [ \
     Extension('sage.calculus.var',
               ['sage/calculus/var.pyx']), \
 
+    Extension('sage.calculus.parser',
+              ['sage/calculus/parser.pyx']), \
+
     Extension('sage.modular.modsym.heilbronn',
               ['sage/modular/modsym/heilbronn.pyx',
                'sage/modular/modsym/p1list.pyx',

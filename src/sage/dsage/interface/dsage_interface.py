@@ -118,12 +118,14 @@ class DSage(object):
         else:
             return 'Not connected.'
 
-    def __call__(self, cmd, user_vars=None, job_name=None):
+    def __call__(self, cmd, user_vars=None, load_files=None, job_name=None):
         cmd = ['ans = %s\n' % (cmd),
                'print ans\n',
                "DSAGE_RESULT = ans\n"]
 
-        return self.eval(''.join(cmd), user_vars=user_vars, job_name=job_name)
+        return self.eval(''.join(cmd), user_vars=user_vars,
+                                       load_files=load_files,
+                                       job_name=job_name)
 
     def __getstate__(self):
         d = copy.copy(self.__dict__)

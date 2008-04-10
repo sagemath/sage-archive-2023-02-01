@@ -1,12 +1,12 @@
 import os
 
-CCFLAGS=["-O3 -ansi -Wno-long-long -Wreturn-type"]
-CXXFLAGS=CCFLAGS+["-ftemplate-depth-100"]
+CCFLAGS=["-O3 -ansi -Wno-long-long -Wreturn-type -g"]
+CXXFLAGS=CCFLAGS+["-ftemplate-depth-100 -g"]
 
 if os.environ.has_key('SAGE_DEBUG'):
     CPPDEFINES=[]
-    CCFLAGS=[" -g -pg"] + CCFLAGS
-    CXXFLAGS=[" -g -pg"] + CXXFLAGS
+    CCFLAGS=[" -pg"] + CCFLAGS
+    CXXFLAGS=[" -pg"] + CXXFLAGS
     LINKFLAGS=[" -pg"]
 
 

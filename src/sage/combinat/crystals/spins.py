@@ -41,7 +41,7 @@ by +1 and - by -1.
 ## TODO: proper latex'ing of spins
 
 from sage.structure.element import Element
-from sage.combinat.cartan_type import CartanType
+from sage.combinat.root_system.cartan_type import CartanType
 from crystals import ClassicalCrystal, CrystalElement
 
 

@@ -63,7 +63,7 @@ from lyndon_word import LyndonWords, StandardBracketedLyndonWords
 from dyck_word import DyckWords, DyckWord
 from sloane_functions import sloane
 
-
+from root_system.all import *
 from sf.all import *
 from matrices.all import *
 
@@ -76,12 +76,6 @@ from integer_vector_weighted import WeightedIntegerVectors
 
 from finite_class import FiniteCombinatorialClass
 
-#Cartan types, root systems, etc.
-from cartan_type import CartanType
-from dynkin_diagram import dynkin_diagram
-from cartan_matrix import cartan_matrix
-from coxeter_matrix import coxeter_matrix
-from root_system import RootSystem, WeylDim
 
 from dlx import AllExactCovers, OneExactCover, DLXMatrix
 

@@ -17,7 +17,7 @@ from sage.graphs.all import DiGraph
 def precheck(t, letter=None, length=None, affine=None, n_ge=None, n=None):
     """
     EXAMPLES:
-        sage: from sage.combinat.dynkin_diagram import precheck
+        sage: from sage.combinat.root_system.dynkin_diagram import precheck
         sage: ct = CartanType(['A',4])
         sage: precheck(ct, letter='C')
         Traceback (most recent call last):
@@ -71,7 +71,7 @@ def type_a(t):
     of type A.
 
     EXAMPLES:
-        sage: from sage.combinat.dynkin_diagram import type_a
+        sage: from sage.combinat.root_system.dynkin_diagram import type_a
         sage: ct = CartanType(['A',3])
         sage: a = type_a(ct);a
         Multi-digraph on 3 vertices
@@ -94,7 +94,7 @@ def type_a_affine(t):
     of affine type A.
 
     EXAMPLES:
-        sage: from sage.combinat.dynkin_diagram import type_a_affine
+        sage: from sage.combinat.root_system.dynkin_diagram import type_a_affine
         sage: ct = CartanType(['A',3,1])
         sage: a = type_a_affine(ct); a
         Multi-digraph on 4 vertices
@@ -125,7 +125,7 @@ def type_b(t):
     of type B.
 
     EXAMPLES:
-        sage: from sage.combinat.dynkin_diagram import type_b
+        sage: from sage.combinat.root_system.dynkin_diagram import type_b
         sage: ct = CartanType(['B',3])
         sage: b = type_b(ct);b
         Multi-digraph on 3 vertices
@@ -147,7 +147,7 @@ def type_c(t):
     of type C.
 
     EXAMPLES:
-        sage: from sage.combinat.dynkin_diagram import type_c
+        sage: from sage.combinat.root_system.dynkin_diagram import type_c
         sage: ct = CartanType(['C',3])
         sage: c = type_c(ct);c
         Multi-digraph on 3 vertices
@@ -167,7 +167,7 @@ def type_c_affine(t):
     of affine type C.
 
     EXAMPLES:
-        sage: from sage.combinat.dynkin_diagram import type_c_affine
+        sage: from sage.combinat.root_system.dynkin_diagram import type_c_affine
         sage: ct = CartanType(['C',3,1])
         sage: c = type_c_affine(ct);c
         Multi-digraph on 4 vertices
@@ -196,7 +196,7 @@ def type_d(t):
     of type D.
 
     EXAMPLES:
-        sage: from sage.combinat.dynkin_diagram import type_d
+        sage: from sage.combinat.root_system.dynkin_diagram import type_d
         sage: ct = CartanType(['D',3])
         sage: d = type_d(ct);d
         Multi-digraph on 3 vertices
@@ -217,7 +217,7 @@ def type_d_affine(t):
     of type D.
 
     EXAMPLES:
-        sage: from sage.combinat.dynkin_diagram import type_d_affine
+        sage: from sage.combinat.root_system.dynkin_diagram import type_d_affine
         sage: ct = CartanType(['D',3,1])
         sage: d = type_d_affine(ct);d
         Multi-digraph on 4 vertices
@@ -243,7 +243,7 @@ def type_e(t):
     of type E.
 
     EXAMPLES:
-        sage: from sage.combinat.dynkin_diagram import type_e
+        sage: from sage.combinat.root_system.dynkin_diagram import type_e
         sage: ct = CartanType(['E',6])
         sage: e = type_e(ct);e
         Multi-digraph on 6 vertices
@@ -278,7 +278,7 @@ def type_f(t):
     of type F.
 
     EXAMPLES:
-        sage: from sage.combinat.dynkin_diagram import type_f
+        sage: from sage.combinat.root_system.dynkin_diagram import type_f
         sage: ct = CartanType(['F',4])
         sage: f = type_f(ct);f
         Multi-digraph on 4 vertices
@@ -306,7 +306,7 @@ def type_g(t):
     of type G.
 
     EXAMPLES:
-        sage: from sage.combinat.dynkin_diagram import type_g
+        sage: from sage.combinat.root_system.dynkin_diagram import type_g
         sage: ct = CartanType(['G',2])
         sage: g = type_g(ct);g
         Multi-digraph on 2 vertices
@@ -327,7 +327,7 @@ def dynkin_diagram(t):
     type t.
 
     EXAMPLES:
-        sage: from sage.combinat.dynkin_diagram import dynkin_diagram
+        sage: from sage.combinat.root_system.dynkin_diagram import dynkin_diagram
         sage: dynkin_diagram(['A', 4])
         Multi-digraph on 4 vertices
 
@@ -354,7 +354,7 @@ def dynkin_diagram_as_function(t):
     type t.
 
     EXAMPLES:
-        sage: from sage.combinat.dynkin_diagram import dynkin_diagram_as_function
+        sage: from sage.combinat.root_system.dynkin_diagram import dynkin_diagram_as_function
         sage: f = dynkin_diagram_as_function(['A',4])
         sage: f(1,1)
         -2

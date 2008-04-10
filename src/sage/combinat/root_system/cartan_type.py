@@ -12,8 +12,7 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.rings.all import Integer
-import root_system
+import sage.combinat.root_system.root_system as root_system
 from cartan_matrix import cartan_matrix
 
 def CartanType(t):
@@ -25,7 +24,7 @@ def CartanType(t):
         ['A', 4]
     """
     if isinstance(t, CartanType_simple):
-        return t;
+        return t
     else:
         return CartanType_simple(t)
 
@@ -46,6 +45,16 @@ class CartanType_simple:
             self.affine = t[2]
         else:
             self.affine = None
+
+    def __hash__(self):
+        """
+        EXAMPLES:
+            sage: ct = CartanType(['A',2])
+            sage: hash(ct) #random
+            -5684143898951441983
+        """
+        return hash( (self.letter,self.n,self.affine) )
+
 
     def __repr__(self):
         """

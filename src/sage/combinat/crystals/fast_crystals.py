@@ -20,7 +20,7 @@ Fast Rank Two Crystals
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 from sage.rings.all import Integer
-from sage.combinat.cartan_type import CartanType
+from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.crystals import ClassicalCrystal, CrystalElement
 
 

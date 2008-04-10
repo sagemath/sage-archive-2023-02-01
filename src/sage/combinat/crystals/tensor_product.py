@@ -20,7 +20,7 @@ Tensor products of crystals
 
 from sage.misc.latex import latex
 from sage.structure.element import Element
-from sage.combinat.cartan_type import CartanType
+from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.partition import Partition

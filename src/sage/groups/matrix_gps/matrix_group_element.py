@@ -80,6 +80,14 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             g -- a Matrix
             parent -- defines parent group (g must be in parent or a TypeError is raised).
             check -- bool (default: True), if true does some type checking.
+
+        TESTS:
+            sage: F = GF(3); MS = MatrixSpace(F,2,2)
+            sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
+            sage: G = MatrixGroup(gens)
+            sage: g = G.random()
+            sage: g == loads(dumps(g))
+            True
         """
         if check:
             if not isinstance(g, Matrix):
@@ -211,6 +219,16 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
         return MatrixGroupElement(~self.__mat, self.parent(), check=False)
 
     def __cmp__(self, other):
+        """
+        EXAMPLES:
+            sage: F = GF(3); MS = MatrixSpace(F,2)
+            sage: gens = [MS([1,0, 0,1]), MS([1,1, 0,1])]
+            sage: G = MatrixGroup(gens)
+            sage: g = G([1,1, 0,1])
+            sage: h = G([1,1, 0,1])
+            sage: g == h
+            True
+        """
         return cmp(self.__mat, other.__mat)
 
     def order(self):

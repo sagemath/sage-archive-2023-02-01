@@ -20,7 +20,7 @@ Crystals of letters
 #****************************************************************************
 
 from sage.structure.element import Element
-from sage.combinat.cartan_type import CartanType
+from sage.combinat.root_system.cartan_type import CartanType
 from crystals import ClassicalCrystal, CrystalElement
 
 def CrystalOfLetters(cartan_type):

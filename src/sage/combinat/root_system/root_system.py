@@ -1,3 +1,6 @@
+"""
+Root systems
+"""
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -12,9 +15,7 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 import cartan_type
-from sage.combinat.combinatorial_algebra import CombinatorialAlgebra
 from sage.modules.free_module import FreeModule
 from sage.rings.all import ZZ
 from sage.misc.misc import prod
@@ -199,6 +200,55 @@ class WeightLatticeRealization_class:
         n = prod([(rho+highest_weight).dot_product(x) for x in self.positive_roots()])
         d = prod([ rho.dot_product(x) for x in self.positive_roots()])
         return n/d
+
+    def simple_reflection(self, i, v):
+        """
+        Returns the $i^{th}$ simple reflection applied to v, an element
+        of the lattice.
+
+        INPUT:
+            i -- i is in self's index set
+            v -- an element of the lattice
+
+        EXAMPLES:
+            sage: e = RootSystem(['A',2]).ambient_lattice()
+            sage: v = e.simple_roots()[0]
+            sage: e.simple_reflection(1, v)
+            (-1, 1, 0)
+        """
+        alpha = self.simple_roots()[i-1]
+        return v-2*alpha.inner_product(v)/alpha.inner_product(alpha)*alpha
+
+    def weyl_group(self):
+        """
+        Returns the Weyl group associated to self.
+
+        EXAMPLES:
+            sage: e = RootSystem(['F',4]).ambient_lattice()
+            sage: e.weyl_group()
+            The Weyl Group of type ['F', 4]
+        """
+        from sage.combinat.root_system.weyl_group import WeylGroup
+        return WeylGroup(self.ct)
+
+
+    def is_dominant(self, v):
+        """
+        Returns True if v is dominant.
+
+        INPUT:
+            v -- an element of the lattice
+
+        EXAMPLES:
+            sage: L = RootSystem(['A',2]).ambient_lattice()
+            sage: [L.is_dominant(x) for x in L.roots()]
+            [False, True, False, False, False, False]
+        """
+        for alph in self.positive_roots():
+            if v.inner_product(alph) < 0:
+                return False
+        return True
+
 
 class AmbientLattice_generic(WeightLatticeRealization_class):
     def __init__(self, ct):
@@ -931,24 +981,29 @@ class AmbientLattice_g(AmbientLattice_generic):
         """
         EXAMPLES:
             sage: CartanType(['G',2]).root_system().ambient_lattice().fundamental_weights()
-            [(1, 0, -1), (2, -1, -1)]
+            [(-1, 0, 1), (-2, 1, 1)]
         """
         return [ c0*self._term(0)+c1*self._term(1)+c2*self._term(2) \
                  for [c0,c1,c2] in
-                 [[1,0,-1],[2,-1,-1]]]
+                 [[-1,0,1],[-2,1,1]]]
 
 
 def WeylDim(ct, coeffs):
     """
-    The Weyl Dimension Formula. Here type is a Cartan type and coeffs
-    are a list of nonnegative integers of length equal to the rank
-    type[1]. A dominant weight hwv is constructed by summing the
-    fundamental weights with coefficients from this list. The
-    dimension of the irreducible representation of the semisimple
-    complex Lie algebra with highest weight vector hwv is returned.
+    The Weyl Dimension Formula.
+
+    INPUT:
+        type -- a Cartan type
+        coeffs -- a list of nonnegative integers
+
+    The length of the list must equal the rank type[1]. A dominant
+    weight hwv is constructed by summing the fundamental weights
+    with coefficients from this list. The dimension of the
+    irreducible representation of the semisimple complex Lie
+    algebra with highest weight vector hwv is returned.
 
     EXAMPLES:
-    For SO(7), the Cartan type is B3, so:
+      For SO(7), the Cartan type is B3, so:
         sage: WeylDim(['B',3],[1,0,0]) # standard representation of SO(7)
         7
         sage: WeylDim(['B',3],[0,1,0]) # exterior square

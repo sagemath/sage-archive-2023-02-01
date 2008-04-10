@@ -23,7 +23,7 @@ def cartan_matrix_as_function(t):
     of type t.
 
     EXAMPLES:
-        sage: from sage.combinat.cartan_matrix import cartan_matrix_as_function
+        sage: from sage.combinat.root_system.cartan_matrix import cartan_matrix_as_function
         sage: f = cartan_matrix_as_function(['A',4])
         sage: matrix([[f(i,j) for j in range(1,5)] for i in range(1,5)])
         [ 2 -1  0  0]

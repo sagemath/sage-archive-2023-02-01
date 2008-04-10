@@ -80,9 +80,7 @@ from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.plot.plot import PolygonFactory, TextFactory
 polygon = PolygonFactory()
 text = TextFactory()
-from sage.calculus.calculus import Function_sin, Function_cos
-sin = Function_sin()
-cos = Function_cos()
+from sage.calculus.calculus import sin, cos
 pi = RDF.pi()
 
 

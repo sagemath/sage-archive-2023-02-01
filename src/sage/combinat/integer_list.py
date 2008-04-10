@@ -17,12 +17,11 @@ Tools for generating lists of integers in lexicographic order.
 #*****************************************************************************
 
 import generator
-from sage.calculus.calculus import Function_floor
+from sage.calculus.calculus import floor as flr
 from sage.rings.arith import binomial
 from sage.rings.infinity import PlusInfinity
 import __builtin__
 
-flr = Function_floor()
 infinity = PlusInfinity()
 
 def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):

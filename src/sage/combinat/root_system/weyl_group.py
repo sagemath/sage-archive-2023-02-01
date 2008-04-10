@@ -282,7 +282,6 @@ class WeylGroupElement(MatrixGroupElement):
     def __cmp__(self, other):
         """
         EXAMPLES:
-
         """
         if self.__class__ != other.__class__:
             return cmp(self.__class__, other.__class__)

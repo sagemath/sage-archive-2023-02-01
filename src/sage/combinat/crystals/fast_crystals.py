@@ -94,8 +94,15 @@ class FastCrystal(ClassicalCrystal):
         if ct[1] != 2:
             raise NotImplementedError
 
-        l1 = 0 if len(shape) == 0 else shape[0]
-        l2 = 0 if len(shape) < 2 else shape[1]
+        if len(shape) > 2:
+            raise ValueError, "The shape must have length <=2"
+
+        while len(shape)<2:
+            shape.append(0)
+
+        l1 = shape[0]
+        l2 = shape[1]
+
         self.delpat = []
         self.gampat = []
 
@@ -109,6 +116,7 @@ class FastCrystal(ClassicalCrystal):
         self.format = format
         self.size = len(self.delpat)
         self._rootoperators = []
+        self.shape = shape
 
         for i in range(self.size):
             target = [x for x in self.delpat[i]]
@@ -125,7 +133,6 @@ class FastCrystal(ClassicalCrystal):
             f2 = None if target not in self.gampat else self.gampat.index(target)
 
             self._rootoperators.append([e1,f1,e2,f2])
-
 
         if int(2*l1)%2 == 0:
             l1_str = "%d"%l1
@@ -289,6 +296,29 @@ class FastCrystalElement(CrystalElement):
             The fast crystal for A2 with shape [2,1]
         """
         return self._parent
+
+    def weight(self):
+        """
+        Returns the weight of self.
+
+        EXAMPLES:
+            sage: [v.weight() for v in FastCrystal(['A',2], shape=[2,1])]
+            [(2, 1, 0), (1, 2, 0), (1, 1, 1), (1, 0, 2), (0, 1, 2), (2, 0, 1), (1, 1, 1), (0, 2, 1)]
+            sage: [v.weight() for v in FastCrystal(['B',2], shape=[1,0])]
+            [(1, 0), (0, 1), (0, 0), (0, -1), (-1, 0)]
+            sage: [v.weight() for v in FastCrystal(['B',2], shape=[1/2,1/2])]
+            [(1/2, 1/2), (1/2, -1/2), (-1/2, 1/2), (-1/2, -1/2)]
+            sage: [v.weight() for v in FastCrystal(['C',2], shape=[1,0])]
+            [(1, 0), (0, 1), (0, -1), (-1, 0)]
+            sage: [v.weight() for v in FastCrystal(['C',2], shape=[1,1])]
+            [(1, 1), (1, -1), (0, 0), (-1, 1), (-1, -1)]
+        """
+        delpat = self._parent.delpat[self.value]
+        if self._parent.cartan_type[0] == 'A':
+            delpat.append(0)
+        [alpha1, alpha2] = self._parent.weight_lattice_realization().simple_roots()
+        hwv = sum(self._parent.shape[i]*self._parent.weight_lattice_realization()._term(i) for i in range(2))
+        return hwv - (delpat[0]+delpat[2])*alpha1 - (delpat[1]+delpat[3])*alpha2
 
     def __repr__(self):
         """

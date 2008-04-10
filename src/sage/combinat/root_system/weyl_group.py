@@ -282,6 +282,13 @@ class WeylGroupElement(MatrixGroupElement):
     def __cmp__(self, other):
         """
         EXAMPLES:
+            sage: w = WeylGroup(['A',3])
+            sage: s1 = w.simple_reflection(1)
+            sage: s2 = w.simple_reflection(2)
+            sage: s1 == s1
+            True
+            sage: s1 == s2
+            False
         """
         if self.__class__ != other.__class__:
             return cmp(self.__class__, other.__class__)

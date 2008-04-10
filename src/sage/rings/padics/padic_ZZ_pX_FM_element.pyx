@@ -1166,7 +1166,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         L = []
         cdef ntl_ZZ_pX cur = <ntl_ZZ_pX>self._ntl_rep()
         cur.c.restore_c()
-        cdef ZZ_pX_Modulus_c m = self.prime_pow.get_top_modulus()[0]
+        cdef ZZ_pX_Modulus_c* m = self.prime_pow.get_top_modulus()
         cdef ZZ_pX_c x
         ZZ_pX_SetX(x)
         cdef Py_ssize_t i, j
@@ -1174,7 +1174,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         for i from 0 <= i < n:
             curlist = cur.list()
             L.extend(curlist + [zero]*(n - len(curlist)))
-            ZZ_pX_MulMod_pre(cur.x, cur.x, x, m)
+            ZZ_pX_MulMod_pre(cur.x, cur.x, x, m[0])
         return matrix(R, n, n,  L)
 
     def matrix(self, base = None):

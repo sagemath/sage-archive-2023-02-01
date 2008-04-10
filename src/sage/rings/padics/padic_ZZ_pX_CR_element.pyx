@@ -1002,7 +1002,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
         """
         cdef ZZ_pX_c tmpP
-        cdef ZZ_pX_Modulus_c mod
+        cdef ZZ_pX_Modulus_c* mod
         if self.prime_pow.e == 1:
             if shift > 0:
                 ZZ_pX_left_pshift(self.unit, self.unit, self.prime_pow.pow_ZZ_tmp(shift)[0], self.prime_pow.get_context(self.relprec).x)
@@ -1011,9 +1011,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         else:
             if shift > 0:
                 self.prime_pow.restore_context_capdiv(self.relprec)
-                mod = self.prime_pow.get_modulus_capdiv(self.relprec)[0]
-                ZZ_pX_PowerXMod_long_pre(tmpP, shift, mod)
-                ZZ_pX_MulMod_pre(self.unit, self.unit, tmpP, mod)
+                mod = self.prime_pow.get_modulus_capdiv(self.relprec)
+                ZZ_pX_PowerXMod_long_pre(tmpP, shift, mod[0])
+                ZZ_pX_MulMod_pre(self.unit, self.unit, tmpP, mod[0])
             elif shift < 0:
                 self.prime_pow.eis_shift_capdiv(&self.unit, &self.unit, -shift, self.relprec)
 
@@ -1035,7 +1035,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         3 + O(w^6)
         """
         cdef ZZ_pX_c high_shifter, high_shifter2
-        cdef ZZ_pX_Modulus_c modulus, modulus_up
+        cdef ZZ_pX_Modulus_c *modulus, modulus_up
         cdef ntl_ZZ_pContext_class c
         cdef PowComputer_ZZ_pX_small_Eis sm
         cdef PowComputer_ZZ_pX_big_Eis big
@@ -1050,7 +1050,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 shift = -shift
                 c = self.prime_pow.get_context_capdiv(self.relprec)
                 c.restore_c()
-                modulus = self.prime_pow.get_modulus_capdiv(self.relprec)[0]
+                modulus = self.prime_pow.get_modulus_capdiv(self.relprec)
                 if PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_big_Eis):
                     high_array = (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter
                 elif PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_small_Eis):
@@ -1058,9 +1058,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 else:
                     raise RuntimeError, "unrecognized PowComputer type"
                 ZZ_pX_conv_modulus(high_shifter, high_array[0], c.x)
-                ZZ_pX_InvMod_newton_ram(high_shifter, high_shifter, modulus, c.x)
-                ZZ_pX_PowerMod_long_pre(high_shifter, high_shifter, shift, modulus)
-                ZZ_pX_MulMod_pre(self.unit, self.unit, high_shifter, modulus)
+                ZZ_pX_InvMod_newton_ram(high_shifter, high_shifter, modulus[0], c.x)
+                ZZ_pX_PowerMod_long_pre(high_shifter, high_shifter, shift, modulus[0])
+                ZZ_pX_MulMod_pre(self.unit, self.unit, high_shifter, modulus[0])
 
                 #modulus_up = self.prime_pow.get_modulus_capdiv(self.relprec + self.prime_pow.e)[0]
                 #c = self.prime_pow.get_context_capdiv(self.relprec + self.prime_pow.e)
@@ -1086,7 +1086,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 i = 0
                 c = self.prime_pow.get_context_capdiv(self.relprec)
                 c.restore_c()
-                modulus = self.prime_pow.get_modulus_capdiv(self.relprec)[0]
+                modulus = self.prime_pow.get_modulus_capdiv(self.relprec)
                 if PY_TYPE_CHECK(self.prime_pow, PowComputer_ZZ_pX_big_Eis):
                     high_array = (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_shifter
                     high_length = (<PowComputer_ZZ_pX_big_Eis>self.prime_pow).high_length
@@ -1100,14 +1100,14 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                     ZZ_pX_conv_modulus(high_shifter, high_array[high_length-1], c.x)
                     # if shift = r + s * 2^(high_length - 1)
                     # then high_shifter = p^(s*2^(high_length - 1))/x^(e*s*2^(high_length - 1))
-                    ZZ_pX_PowerMod_long_pre(high_shifter, high_shifter, (shift / (1L << (high_length - 1))), modulus)
-                    ZZ_pX_MulMod_pre(self.unit, self.unit, high_shifter, modulus)
+                    ZZ_pX_PowerMod_long_pre(high_shifter, high_shifter, (shift / (1L << (high_length - 1))), modulus[0])
+                    ZZ_pX_MulMod_pre(self.unit, self.unit, high_shifter, modulus[0])
                     # Now we only need to multiply self.unit by p^r/x^(e*r) where r < 2^(high_length - 1), which is tractible.
                     shift = shift % (1L << (high_length - 1))
                 while shift > 0:
                     if shift & 1:
                         ZZ_pX_conv_modulus(high_shifter, high_array[i], c.x)
-                        ZZ_pX_MulMod_pre(self.unit, self.unit, high_shifter, modulus)
+                        ZZ_pX_MulMod_pre(self.unit, self.unit, high_shifter, modulus[0])
                     shift = shift >> 1
                     i += 1
 
@@ -2725,7 +2725,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         L = []
         cdef ntl_ZZ_pX cur = <ntl_ZZ_pX>self._ntl_rep_abs()[0]
         cur.c.restore_c()
-        cdef ZZ_pX_Modulus_c m = self.prime_pow.get_modulus_capdiv(self.ordp + self.relprec)[0]
+        cdef ZZ_pX_Modulus_c* m = self.prime_pow.get_modulus_capdiv(self.ordp + self.relprec)
         cdef ZZ_pX_c x
         ZZ_pX_SetX(x)
         cdef Py_ssize_t i, j
@@ -2733,7 +2733,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         for i from 0 <= i < n:
             curlist = cur.list()
             L.extend(curlist + [zero]*(n - len(curlist)))
-            ZZ_pX_MulMod_pre(cur.x, cur.x, x, m)
+            ZZ_pX_MulMod_pre(cur.x, cur.x, x, m[0])
         return matrix(R, n, n,  L)
 
     def matrix(self, base = None):

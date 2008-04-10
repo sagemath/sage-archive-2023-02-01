@@ -1,3 +1,8 @@
+
+=== polybori-0.3.1.p0 (Michael Abshoff, April 9th, 2008) ===
+ * add debug info the the default build flags
+ * fix OSX 10.4 specific build issue (#2865)
+
 === polybori-0.3.1 (Burcin Erocal) ===
  * update to PolyBoRi-0.3.1 release
  * remove patches required for the previous version

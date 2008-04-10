@@ -11,6 +11,7 @@ SCONS=scons
 patch()
 {
 cp patches/custom.py src/${PBDIR}
+cp patches/SConstruct src/${PBDIR}
 cp patches/PyPolyBoRi.py src/${PBDIR}/pyroot/polybori
 }
 

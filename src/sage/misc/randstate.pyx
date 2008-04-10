@@ -396,6 +396,7 @@ import binascii
 import os
 import time
 import weakref
+import sys
 
 use_urandom = False
 # Check whether os.urandom() works.
@@ -639,6 +640,23 @@ cdef class randstate:
                  import sage.rings.integer_ring as integer_ring
                  from sage.rings.integer_ring import ZZ
                  seed = ZZ.random_element(long(1)<<128)
+
+                 if sys.byteorder == 'big':
+                     # GAP's random number generator initialization
+                     # (in integer.c, in FuncInitRandomMT) takes its
+                     # seed as a string, then converts this string into
+                     # an array of 32-bit integers just by casting the
+                     # pointer.  Thus, the result depends on the
+                     # endianness of the machine.  As a workaround, we
+                     # swap the bytes in the string ourselves, so that
+                     # GAP always gets the same array of integers.
+
+                     seed = str(seed)
+                     new_seed = ''
+                     while len(seed) >= 4:
+                         new_seed += seed[3::-1]
+                         seed = seed[4:]
+                     seed = '"' + new_seed + '"'
 
              prev_seed = gap.Reset(gap.GlobalMersenneTwister, seed)
 

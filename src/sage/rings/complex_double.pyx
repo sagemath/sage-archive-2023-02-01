@@ -186,8 +186,10 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         cdef randstate rstate = current_randstate()
         global _CDF
         cdef ComplexDoubleElement z
+        cdef double imag = (ymax-ymin)*rstate.c_rand_double() + ymin
+        cdef double real = (xmax-xmin)*rstate.c_rand_double() + xmin
         z = PY_NEW(ComplexDoubleElement)
-        z._complex = gsl_complex_rect( (xmax-xmin)*rstate.c_rand_double() + xmin, (ymax-ymin)*rstate.c_rand_double() + ymin)
+        z._complex = gsl_complex_rect(real, imag)
         return z
 
     def __repr__(self):

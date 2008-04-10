@@ -118,7 +118,7 @@ class DSage(object):
         else:
             return 'Not connected.'
 
-    def __call__(self, cmd, user_vars=None, load_files=None, job_name=None):
+    def __call__(self, cmd, user_vars=None, load_files=[], job_name=None):
         cmd = ['ans = %s\n' % (cmd),
                'print ans\n',
                "DSAGE_RESULT = ans\n"]

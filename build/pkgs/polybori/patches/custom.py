@@ -1,7 +1,7 @@
 import os
 
-CCFLAGS=["-O3 -ansi -Wno-long-long -Wreturn-type -g"]
-CXXFLAGS=CCFLAGS+["-ftemplate-depth-100 -g"]
+CCFLAGS=["-O3 -ansi -Wno-long-long -Wreturn-type -g -fPIC"]
+CXXFLAGS=CCFLAGS+["-ftemplate-depth-100 -g -fPIC"]
 
 if os.environ.has_key('SAGE_DEBUG'):
     CPPDEFINES=[]

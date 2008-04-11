@@ -1,4 +1,9 @@
 
+=== polybori-0.3.1.p1 (Michael Abshoff, April 11th, 2008) ===
+ * Update CCuddCore.h - fixes memory leak (Alexander Dreyer - see #2822)
+ * Fix "Invalid read" cause by linking multiple dynamic libraries (Michael Abshoff, #2822
+ * add -fPIC to the default build flags in custom.py
+
 === polybori-0.3.1.p0 (Michael Abshoff, April 9th, 2008) ===
  * add debug info the the default build flags
  * fix OSX 10.4 specific build issue (#2865)

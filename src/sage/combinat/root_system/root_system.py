@@ -3,6 +3,7 @@ Root systems
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#                          Justin Walker <justin at mac.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -669,16 +670,20 @@ class AmbientLattice_e(AmbientLattice_generic):
             sage: e = RootSystem(['E',6]).ambient_lattice()
             sage: e == loads(dumps(e))
             True
-
-        """
+            sage: [e.weyl_dimension(v) for v in e.fundamental_weights()]
+            [27, 78, 351, 2925, 351, 27]
+            sage: e = RootSystem(['E',7]).ambient_lattice()
+            sage: [e.weyl_dimension(v) for v in e.fundamental_weights()]
+            [133, 912, 8645, 365750, 27664, 1539, 56]
+            sage: e = RootSystem(['E',8]).ambient_lattice()
+            sage: [e.weyl_dimension(v) for v in e.fundamental_weights()]
+            [3875, 147250, 6696000, 6899079264, 146325270, 2450240, 30380, 248]
+           """
         v = ZZ(1)/ZZ(2)
         self.n = 8          # We're always in R^8, but not always the whole space.
+        self.rank = ct.n
         AmbientLattice_generic.__init__(self, ct)
-
-        # Note that the lattices for the root systems E6, E7 have dimensions (ranks) 5, 6;
-        #  while that for E8 has dimension 8.
         if ct.n == 6:
-            self.dim = 5
             self.Base = [v*(self.root(0,7)-self.root(1,2,3,4,5,6)),
                          self.root(0,1),
                          self.root(0,1,p1=1),
@@ -686,7 +691,6 @@ class AmbientLattice_e(AmbientLattice_generic):
                          self.root(2,3,p1=1),
                          self.root(3,4,p1=1)]
         elif ct.n == 7:
-            self.dim = 6
             self.Base = [v*(self.root(0,7)-self.root(1,2,3,4,5,6)),
                          self.root(0,1),
                          self.root(0,1,p1=1),
@@ -695,7 +699,6 @@ class AmbientLattice_e(AmbientLattice_generic):
                          self.root(3,4,p1=1),
                          self.root(4,5,p1=1)]
         elif ct.n == 8:
-            self.dim = 8
             self.Base = [v*(self.root(0,7)-self.root(1,2,3,4,5,6)),
                          self.root(0,1),
                          self.root(0,1,p1=1),
@@ -780,20 +783,20 @@ class AmbientLattice_e(AmbientLattice_generic):
         v = ZZ(1)/ZZ(2)
         # Note that
         if not hasattr(self, 'PosRoots'):
-            if self.dim == 5:
-                self.PosRoots = ( [ self.root(i,j) for i in xrange(self.dim) for j in xrange(i+1,self.dim) ] +
-                                  [ self.root(i,j,p1=1) for i in xrange(self.dim) for j in xrange(i+1,self.dim) ] +
+            if self.rank == 6:
+                self.PosRoots = ( [ self.root(i,j) for i in xrange(self.rank-1) for j in xrange(i+1,self.rank-1) ] +
+                                  [ self.root(i,j,p1=1) for i in xrange(self.rank-1) for j in xrange(i+1,self.rank-1) ] +
                                   [ v*(self.root(7)-self.root(6)-self.root(5)+self.root(0,1,2,3,4,p1=p1,p2=p2,p3=p3,p4=p4,p5=p5))
                                     for p1 in [0,1] for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] for p5 in [0,1] if (p1+p2+p3+p4+p5)%2 == 0 ])
-            elif self.dim == 6:
-                self.PosRoots = ( [ self.root(i,j) for i in xrange(self.dim) for j in xrange(i+1,self.dim) ] +
-                                  [ self.root(i,j,p1=1) for i in xrange(self.dim) for j in xrange(i+1,self.dim) ] +
+            elif self.rank == 7:
+                self.PosRoots = ( [ self.root(i,j) for i in xrange(self.rank-1) for j in xrange(i+1,self.rank-1) ] +
+                                  [ self.root(i,j,p1=1) for i in xrange(self.rank-1) for j in xrange(i+1,self.rank-1) ] +
                                   [ self.root(6,7,p1=1) ] +
                                   [ v*(self.root(7)-self.root(6)+self.root(0,1,2,3,4,5,p1=p1,p2=p2,p3=p3,p4=p4,p5=p5,p6=p6))
                                     for p1 in [0,1] for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] for p5 in [0,1] for p6 in [0,1] if (p1+p2+p3+p4+p5+p6)%2 == 1 ])
-            elif self.dim == 8:
-                self.PosRoots = ( [ self.root(i,j) for i in xrange(self.dim) for j in xrange(i+1,self.dim) ] +
-                                  [ self.root(i,j,p1=1) for i in xrange(self.dim) for j in xrange(i+1,self.dim) ] +
+            elif self.rank == 8:
+                self.PosRoots = ( [ self.root(i,j) for i in xrange(self.rank) for j in xrange(i+1,self.rank) ] +
+                                  [ self.root(i,j,p1=1) for i in xrange(self.rank) for j in xrange(i+1,self.rank) ] +
                                   [ v*(self.root(7)+self.root(0,1,2,3,4,5,6,p1=p1,p2=p2,p3=p3,p4=p4,p5=p5,p6=p6,p7=p7))
                                     for p1 in [0,1] for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] for p5 in [0,1] for p6 in [0,1] for p7 in [0,1] if (p1+p2+p3+p4+p5+p6+p7)%2 == 0 ])
 
@@ -808,14 +811,14 @@ class AmbientLattice_e(AmbientLattice_generic):
         """
         v2 = ZZ(1)/ZZ(2)
         v3 = ZZ(1)/ZZ(3)
-        if self.dim == 5:
+        if self.rank == 6:
             return [ 2*v3*self.root(7,6,5,p2=1,p3=1),
                      v2*self.root(0,1,2,3,4,5,6,7,p6=1,p7=1),
                      5*v2*v3*self.root(7,6,5,p2=1,p3=1)+v2*self.root(0,1,2,3,4,p1=1),
                      self.root(2,3,4,5,6,7,p4=1,p5=1),
                      2*v3*self.root(7,6,5,p2=1,p3=1)+self.root(3,4),
                      v3*self.root(7,6,5,p2=1,p3=1)+self.root(4)]
-        elif self.dim == 6:
+        elif self.rank == 7:
             return [ self.root(7,6,p2=1),
                      v2*self.root(0,1,2,3,4,5)+self.root(6,7,p1=1),
                      v2*(self.root(0,1,2,3,4,5,p1=1)+3*self.root(6,7,p1=1)),
@@ -823,7 +826,7 @@ class AmbientLattice_e(AmbientLattice_generic):
                      3*v2*self.root(6,7,p1=1)+self.root(3,4,5),
                      self.root(4,5,6,7,p3=1),
                      self.root(5)+v2*self.root(6,7,p1=1)]
-        elif self.dim == 8:
+        elif self.rank == 8:
             return [ 2*self.root(7),
                      v2*(self.root(0,1,2,3,4,5,6)+5*self.root(7)),
                      v2*(self.root(0,1,2,3,4,5,6,p1=1)+7*self.root(7)),

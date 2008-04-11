@@ -2761,7 +2761,7 @@ class NumberField_generic(number_field_base.NumberField):
         except AttributeError:
             k = self.pari_bnf(proof)
             s = str(k.getattr('reg'))
-            self.__regulator = eval(s)
+            self.__regulator = float(s) # sage.rings.real_mpfr.create_RealNumber(s)
         return self.__regulator
 
     def residue_field(self, prime, names = None, check = False):

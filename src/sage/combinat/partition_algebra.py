@@ -35,10 +35,10 @@ def create_set_partitions_function(letter):
         """
         if isinstance(k, (int, Integer)):
             if k > 0:
-                return eval('SetPartitions' + letter + 'k_k(k)')
+                return globals()['SetPartitions' + letter + 'k_k'](k)
         elif is_RealNumber(k):
             if k - floor(k) == 0.5:
-                return eval('SetPartitions' + letter + 'khalf_k(floor(k))')
+                return globals()['SetPartitions' + letter + 'khalf_k'](floor(k))
 
         raise ValueError, "k must be an integer or an integer + 1/2"
 

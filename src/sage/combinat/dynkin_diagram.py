@@ -270,10 +270,10 @@ def dynkin_diagram(t):
     if len(t) == 3:
         affine = "_affine"
 
-    function = eval(f+letter+affine)
+    function = globals()[f+letter+affine]
     try:
         return function(t)
-    except RuntimeError:
+    except KeyError:
         raise TypeError, "Dynkin diagram data not yet hardcoded for type %s"%t
 
 

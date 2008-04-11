@@ -77,8 +77,8 @@ def BinaryReedMullerCode(r,k):
     F = GF(2)
     gap.eval("C:=ReedMullerCode("+str(r)+", "+str(k)+")")
     gap.eval("G:=GeneratorMat(C)")
-    k = eval(gap.eval("Length(G)"))
-    n = eval(gap.eval("Length(G[1])"))
+    k = int(gap.eval("Length(G)"))
+    n = int(gap.eval("Length(G[1])"))
     G = [[gfq_gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
@@ -115,9 +115,9 @@ def QuasiQuadraticResidueCode(p):
     F = GF(2)
     gap.eval("C:=QQRCode("+str(p)+")")
     gap.eval("G:=GeneratorMat(C)")
-    k = eval(gap.eval("Length(G)"))
-    n = eval(gap.eval("Length(G[1])"))
-    G = [[gfq_gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
+    k = int(gap.eval("Length(G)"))
+    n = int(gap.eval("Length(G[1])"))
+    G = [[gfq_gap_to_sage(gap.eval("G[%s][%s]" % (i,j)),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
 
@@ -149,9 +149,9 @@ def RandomLinearCodeGuava(n,k,F):
     q = F.order()
     gap.eval("C:=RandomLinearCode("+str(n)+","+str(k)+", GF("+str(q)+"))")
     gap.eval("G:=GeneratorMat(C)")
-    k = eval(gap.eval("Length(G)"))
-    n = eval(gap.eval("Length(G[1])"))
-    G = [[gfq_gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
+    k = int(gap.eval("Length(G)"))
+    n = int(gap.eval("Length(G[1])"))
+    G = [[gfq_gap_to_sage(gap.eval("G[%s][%s]" % (i,j)),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
 

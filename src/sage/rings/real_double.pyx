@@ -1172,9 +1172,9 @@ cdef class RealDoubleElement(FieldElement):
         Symbolic examples:
             sage: x, y = var('x,y')
             sage: RDF('-2.3')^(x+y^3+sin(x))
-            -2.30000000000000^(y^3 + sin(x) + x)
+            (-2.30000000000000)^(y^3 + sin(x) + x)
             sage: RDF('-2.3')^x
-            -2.30000000000000^x
+            (-2.30000000000000)^x
         """
         cdef RealDoubleElement base, exp
         if PY_TYPE_CHECK(self, RealDoubleElement):

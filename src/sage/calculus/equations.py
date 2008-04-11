@@ -76,7 +76,6 @@ _assumptions = []
 
 from sage.structure.sage_object import SageObject
 from sage.structure.sequence    import Sequence
-from sage.misc.sage_eval        import sage_eval
 
 from calculus                   import maxima
 
@@ -994,7 +993,7 @@ class SymbolicEquation(SageObject):
             if len(X) == 0:
                 return X, []
             else:
-                return X, sage_eval(P.get('multiplicities'))
+                return X, [int(e) for e in str(P.get('multiplicities'))[1:-1].split(',')]
         else:
             return X
 

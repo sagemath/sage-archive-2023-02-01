@@ -266,7 +266,7 @@ import sage.numerical.optimize
 # separate from the default system-wide version.
 maxima = Maxima(init_code = ['display2d:false; domain: complex; keepfloat: true'])
 
-from sage.misc.parser import Parser, LookupNameMaker
+from sage.misc.parser import Parser
 
 from sage.calculus.equations import SymbolicEquation
 from sage.rings.real_mpfr import RealNumber
@@ -8177,31 +8177,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         # evaluation of maxima code are assumed pre-simplified
         is_simplified = True
         return symbolic_expression_from_string(s, syms, accept_sequence=True)
-        last_msg = ''
-        while True:
-            try:
-                w = sage_eval(s, syms)
-            except NameError, msg:
-                if msg == last_msg:
-                    raise NameError, msg
-                msg = str(msg)
-                last_msg = msg
-                i = msg.find("'")
-                j = msg.rfind("'")
-                nm = msg[i+1:j]
-
-                res = re.match('.*' + nm + '\s*\(.*\)', s)
-                if res:
-                    syms[nm] = function(nm)
-                else:
-                    syms[nm] = var(nm)
-            else:
-                break
-        if isinstance(w, (list, tuple)):
-            return w
-        else:
-            x = SR(w)
-        return x
     except SyntaxError:
         raise TypeError, "unable to make sense of Maxima expression '%s' in SAGE"%s
     finally:
@@ -8307,10 +8282,24 @@ def _find_var(name):
     except KeyError:
         return var(name)
 
+def _find_func(name):
+    try:
+        func = (_augmented_syms or _syms)[name]
+        if not isinstance(func, (SymbolicConstant, SymbolicVariable)):
+            return func
+    except KeyError:
+        pass
+    try:
+        func = SR(sage.all.__dict__[name])
+        if not isinstance(func, (SymbolicConstant, SymbolicVariable)):
+            return func
+    except KeyError:
+        return function(name)
+
 SR_parser = Parser(make_int      = lambda x: SymbolicConstant(Integer(x)),
                    make_float    = lambda x: SymbolicConstant(create_RealNumber(x)),
                    make_var      = _find_var,
-                   make_function = LookupNameMaker(_syms, function))
+                   make_function = _find_func)
 
 def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
     parse_func = SR_parser.parse_sequence if accept_sequence else SR_parser.parse_expression

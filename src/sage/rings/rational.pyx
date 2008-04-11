@@ -1003,7 +1003,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (2/3)^(x^n + y^n + z^n)
             3^(-z^n - y^n - x^n)*2^(z^n + y^n + x^n)
             sage: (-7/11)^(tan(x)+exp(x))
-            11^(-tan(x) - e^x)*-7^(tan(x) + e^x)
+            11^(-tan(x) - e^x)*(-7)^(tan(x) + e^x)
             sage: (2/3)^(3/4)
             2^(3/4)/3^(3/4)
             sage: (-1/3)^0

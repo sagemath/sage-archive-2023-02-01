@@ -1293,7 +1293,7 @@ cdef class PowComputer_ZZ_pX_FM_Eis(PowComputer_ZZ_pX_FM):
         sage_free(self.high_shifter)
 
     cdef int eis_shift(self, ZZ_pX_c* x, ZZ_pX_c* a, long n, long finalprec) except -1:
-        return ZZ_pX_eis_shift_a(self, x, a, n, finalprec)
+        return ZZ_pX_eis_shift(self, x, a, n, finalprec)
 
 #         ##print "starting..."
 #         cdef ZZ_pX_c low_part
@@ -1623,7 +1623,7 @@ cdef class PowComputer_ZZ_pX_small_Eis(PowComputer_ZZ_pX_small):
         sage_free(self.high_shifter)
 
     cdef int eis_shift(self, ZZ_pX_c* x, ZZ_pX_c* a, long n, long finalprec) except -1:
-        return ZZ_pX_eis_shift_a(self, x, a, n, finalprec)
+        return ZZ_pX_eis_shift(self, x, a, n, finalprec)
 
 cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
     """
@@ -1921,7 +1921,7 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
         sage_free(self.high_shifter)
 
     cdef int eis_shift(self, ZZ_pX_c* x, ZZ_pX_c* a, long n, long finalprec) except -1:
-        return ZZ_pX_eis_shift_a(self, x, a, n, finalprec)
+        return ZZ_pX_eis_shift(self, x, a, n, finalprec)
 
 def PowComputer_ext_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, prec_type = "small", ext_type = "u", shift_seed = None):
     """

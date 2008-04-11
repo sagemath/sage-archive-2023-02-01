@@ -1322,6 +1322,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: k = (x^3-2*y^3)^5*(x+s*y)^2*(2/3 + s^2)
             sage: k.factor()
             (s^2 + 2/3) * (x + s*y)^2 * (x + (-s)*y)^5 * (x^2 + s*x*y + s^2*y^2)^5
+
+        This shows that ticket #2780 is fixed, i.e. that the unit part of
+        the factorization is set correctly:
+            sage: x = var('x')
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: R.<y, z> = PolynomialRing(K)
+            sage: f = 2*y^2 + 2*z^2
+            sage: F = f.factor(); F.unit_part()
+            2
         """
         # I do not think this applied anymore.  Or at least it's
         # more relevant to optimizing the NTL build.
@@ -1339,11 +1348,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         v = [(R(factors[i+1]), sage.rings.integer.Integer(exponents[i+1])) \
                         for i in range(len(factors))]
         v.sort()
+        unit = R(1)
         for i in range(len(v)):
-            if str(v[i][0]) == '1':
+            if v[i][0].is_unit():
+                unit = unit * v[i][0]
                 del v[i]
                 break
-        F = Factorization(v)
+        F = Factorization(v, unit=unit)
         F.sort()
         return F
 

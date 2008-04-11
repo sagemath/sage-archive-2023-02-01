@@ -13,6 +13,7 @@ patch()
 cp patches/custom.py src/${PBDIR}
 cp patches/SConstruct src/${PBDIR}
 cp patches/PyPolyBoRi.py src/${PBDIR}/pyroot/polybori
+cp patches/CCuddCore.h src/${PBDIR}/polybori/include
 }
 
 install_boost()
@@ -78,4 +79,15 @@ echo "Done installing boost."
 echo "Installing PolyBoRi..."
 install_polybori
 echo "Done installing PolyBoRi."
+
+# linking dynmic libraries causes segfaults at exit (see #2822)
+if [ `uname` = "Darwin" ]; then
+    rm -f $SAGE_LOCAL/lib/libpolybori.dylib
+    rm -f $SAGE_LOCAL/lib/libpboriCudd.dylib
+    rm -f $SAGE_LOCAL/lib/libgroebner.dylib
+else
+    rm -f $SAGE_LOCAL/lib/libpolybori.so
+    rm -f $SAGE_LOCAL/lib/libpboriCudd.so
+    rm -f $SAGE_LOCAL/lib/libgroebner.so
+fi
 

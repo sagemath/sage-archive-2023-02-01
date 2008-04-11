@@ -10,9 +10,12 @@ NOTE:
 
 TESTS:
 Start the notebook:
+    sage: from sage.server.misc import find_next_available_port
+    sage: port = find_next_available_port(9000, verbose=False)
     sage: from sage.server.notebook.notebook_object import test_notebook
     sage: passwd = str(randint(1,1<<128))
-    sage: nb = test_notebook(passwd, address='localhost', port=8095)
+    sage: nb = test_notebook(passwd, secure=False, address='localhost', port=port) #doctest: +ELLIPSIS
+    WARNING...
 
 Import urllib:
     sage: import urllib, re
@@ -20,7 +23,7 @@ Import urllib:
 
 
 Login to a new session:
-    sage: login_page = get_url('https://localhost:8095/simple/login?username=admin&password=%s' % passwd)
+    sage: login_page = get_url('http://localhost:%s/simple/login?username=admin&password=%s' % (port, passwd))
     sage: print login_page # random session id
     {
     "session": "2afee978c09b3d666c88b9b845c69608"
@@ -29,7 +32,7 @@ Login to a new session:
     sage: session = re.match(r'.*"session": "([^"]*)"', login_page, re.DOTALL).groups()[0]
 
 Run a command:
-    sage: print get_url('https://localhost:8095/simple/compute?session=%s&code=2*2' % session)
+    sage: print get_url('http://localhost:%s/simple/compute?session=%s&code=2*2' % (port, session))
     {
     "status": "done",
     "files": [],
@@ -40,7 +43,7 @@ Run a command:
 
 Do a longer-running example:
     sage: n = next_prime(10^25)*next_prime(10^30)
-    sage: print get_url('https://localhost:8095/simple/compute?session=%s&code=factor(%s)&timeout=0.1' % (session, n))
+    sage: print get_url('http://localhost:%s/simple/compute?session=%s&code=factor(%s)&timeout=0.1' % (port, session, n))
     {
     "status": "computing",
     "files": [],
@@ -49,7 +52,7 @@ Do a longer-running example:
     ___S_A_G_E___
 
 Get the status of the computation:
-    sage: print get_url('https://localhost:8095/simple/status?session=%s&cell=2' % session)
+    sage: print get_url('http://localhost:%s/simple/status?session=%s&cell=2' % (port, session))
     {
     "status": "computing",
     "files": [],
@@ -58,11 +61,11 @@ Get the status of the computation:
     ___S_A_G_E___
 
 Interrupt the computation:
-    sage: _ = get_url('https://localhost:8095/simple/interrupt?session=%s' % session)
+    sage: _ = get_url('http://localhost:%s/simple/interrupt?session=%s' % (port, session))
 
 Test out getting files:
     sage: code = "h = open('a.txt', 'w'); h.write('test'); h.close()"
-    sage: print get_url('https://localhost:8095/simple/compute?session=%s&code=%s' % (session, urllib.quote(code)))
+    sage: print get_url('http://localhost:%s/simple/compute?session=%s&code=%s' % (port, session, urllib.quote(code)))
     {
     "status": "done",
     "files": ["a.txt"],
@@ -70,11 +73,11 @@ Test out getting files:
     }
     ___S_A_G_E___
 
-    sage: print get_url('https://localhost:8095/simple/file?session=%s&cell=3&file=a.txt' % session)
+    sage: print get_url('http://localhost:%s/simple/file?session=%s&cell=3&file=a.txt' % (port, session))
     test
 
 Log out:
-    sage: _ = get_url('https://localhost:8095/simple/logout?session=%s' % session)
+    sage: _ = get_url('http://localhost:%s/simple/logout?session=%s' % (port, session))
     sage: nb.dispose()
 """
 

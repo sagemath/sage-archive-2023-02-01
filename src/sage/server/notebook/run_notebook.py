@@ -220,7 +220,7 @@ s = strports.service('%s', factory)
 %s
 s.setServiceParent(application)
 """%(notebook_opts, sagetex_path,
-     not secure, os.path.abspath(directory), strport, open_page))
+     not secure and not accounts, os.path.abspath(directory), strport, open_page))
 
 
         config.close()

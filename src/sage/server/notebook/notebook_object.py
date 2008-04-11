@@ -154,7 +154,7 @@ def inotebook(*args, **kwds):
     notebook(*args, **kwds)
 
 
-def test_notebook(admin_passwd, directory=None, port=8050, address='localhost'):
+def test_notebook(admin_passwd, secure=False, directory=None, port=8050, address='localhost'):
     """
     This function is used to test notebook server functions.
 
@@ -186,7 +186,7 @@ def test_notebook(admin_passwd, directory=None, port=8050, address='localhost'):
     nb.set_accounts(False)
     nb.save()
 
-    p = notebook(directory=directory, port=port, address=address, open_viewer=False, fork=True, quiet=True)
+    p = notebook(directory=directory, accounts=True, secure=secure, port=port, address=address, open_viewer=False, fork=True, quiet=True)
     p.expect("Starting factory")
     def dispose():
         p.send('\x03') # control-C

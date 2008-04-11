@@ -1761,7 +1761,7 @@ def ComplexDoubleField():
     """
     return _CDF
 
-from sage.calculus.parser import Parser
+from sage.misc.parser import Parser
 cdef cdf_parser = Parser(float, float,  {"I" : _CDF.gen(), "i" : _CDF.gen()})
 
 

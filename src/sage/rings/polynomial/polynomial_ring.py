@@ -224,7 +224,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 raise TypeError, "Unable to coerce singular object"
         elif isinstance(x , str):
             try:
-                from sage.calculus.parser import Parser, LookupNameMaker
+                from sage.misc.parser import Parser, LookupNameMaker
                 R = self.base_ring()
                 p = Parser(integer.Integer, R, LookupNameMaker({self.variable_name(): self.gen()}, R))
                 return self(p.parse(x))

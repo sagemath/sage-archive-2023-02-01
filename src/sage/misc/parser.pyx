@@ -39,7 +39,7 @@ def foo(*args, **kwds):
     keywords passed into it.
 
     EXAMPLES:
-        sage: from sage.calculus.parser import foo
+        sage: from sage.misc.parser import foo
         sage: foo(1, 2, a=3)
         ((1, 2), {'a': 3})
     """
@@ -82,7 +82,7 @@ def token_to_str(int token):
     representation of a given token.
 
     EXAMPLES:
-        sage: from sage.calculus.parser import Tokenizer, token_to_str
+        sage: from sage.misc.parser import Tokenizer, token_to_str
         sage: t = Tokenizer("+ 2")
         sage: token_to_str(t.next())
         '+'
@@ -118,7 +118,7 @@ cdef class Tokenizer:
         create a new tokenizer.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Tokenizer
+            sage: from sage.misc.parser import Tokenizer
             sage: Tokenizer("1.5+2*3^4-sin(x)").test()
             ['FLOAT(1.5)', '+', 'INT(2)', '*', 'INT(3)', '^', 'INT(4)', '-', 'NAME(sin)', '(', 'NAME(x)', ')']
 
@@ -169,7 +169,7 @@ cdef class Tokenizer:
         representations of the tokens.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Tokenizer
+            sage: from sage.misc.parser import Tokenizer
             sage: t = Tokenizer("a b 3")
             sage: t.test()
             ['NAME(a)', 'NAME(b)', 'INT(3)']
@@ -191,7 +191,7 @@ cdef class Tokenizer:
         Reset the tokenizer to a given position.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Tokenizer
+            sage: from sage.misc.parser import Tokenizer
             sage: t = Tokenizer("a+b*c")
             sage: t.test()
             ['NAME(a)', '+', 'NAME(b)', '*', 'NAME(c)']
@@ -305,7 +305,7 @@ cdef class Tokenizer:
         Returns the next token in the string.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Tokenizer, token_to_str
+            sage: from sage.misc.parser import Tokenizer, token_to_str
             sage: t = Tokenizer("a+3")
             sage: token_to_str(t.next())
             'NAME'
@@ -327,7 +327,7 @@ cdef class Tokenizer:
         Returns the last token seen.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Tokenizer, token_to_str
+            sage: from sage.misc.parser import Tokenizer, token_to_str
             sage: t = Tokenizer("3a")
             sage: token_to_str(t.next())
             'INT'
@@ -346,7 +346,7 @@ cdef class Tokenizer:
         the state of self.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Tokenizer, token_to_str
+            sage: from sage.misc.parser import Tokenizer, token_to_str
             sage: t = Tokenizer("a+b")
             sage: token_to_str(t.peek())
             'NAME'
@@ -372,7 +372,7 @@ cdef class Tokenizer:
         Currently, one can only backtrack once.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Tokenizer, token_to_str
+            sage: from sage.misc.parser import Tokenizer, token_to_str
             sage: t = Tokenizer("a+b")
             sage: token_to_str(t.next())
             'NAME'
@@ -394,7 +394,7 @@ cdef class Tokenizer:
         Return the actual contents of the last token.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Tokenizer, token_to_str
+            sage: from sage.misc.parser import Tokenizer, token_to_str
             sage: t = Tokenizer("a - 1e5")
             sage: token_to_str(t.next())
             'NAME'
@@ -436,7 +436,7 @@ cdef class Parser:
             functions are used to create the leaves of this tree.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser
+            sage: from sage.misc.parser import Parser
             sage: p = Parser()
             sage: p.parse("1+2")
             3
@@ -475,7 +475,7 @@ cdef class Parser:
         Parse the given string.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser
+            sage: from sage.misc.parser import Parser
             sage: p = Parser(make_var=var)
             sage: p.parse("E = m c^2")
             E == c^2*m
@@ -491,7 +491,7 @@ cdef class Parser:
         Parse an expression.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser
+            sage: from sage.misc.parser import Parser
             sage: p = Parser(make_var=var)
             sage: p.parse_expression('a-3b^2')
             a - 3*b^2
@@ -507,7 +507,7 @@ cdef class Parser:
         Parse a (possibly nested) set of lists and tuples.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser
+            sage: from sage.misc.parser import Parser
             sage: p = Parser(make_var=var)
             sage: p.parse_sequence("1,2,3")
             [1, 2, 3]
@@ -530,7 +530,7 @@ cdef class Parser:
         Parse a (possibly nested) set of lists and tuples.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: from sage.misc.parser import Parser, Tokenizer
             sage: p = Parser(make_var=var)
             sage: p.p_sequence(Tokenizer("[1+2,0]"))
             [[3, 0]]
@@ -571,7 +571,7 @@ cdef class Parser:
         Parse a list of items.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: from sage.misc.parser import Parser, Tokenizer
             sage: p = Parser(make_var=var)
             sage: p.p_list(Tokenizer("[1+2, 1e3]"))
             [3, 1000.0]
@@ -592,7 +592,7 @@ cdef class Parser:
         Parse a tuple of items.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: from sage.misc.parser import Parser, Tokenizer
             sage: p = Parser(make_var=var)
             sage: p.p_tuple(Tokenizer("( (), (1), (1,), (1,2), (1,2,3), )"))
             ((), 1, (1,), (1, 2), (1, 2, 3))
@@ -621,7 +621,7 @@ cdef class Parser:
         This is the top-level node called by the \code{parse} function.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: from sage.misc.parser import Parser, Tokenizer
             sage: p = Parser(make_var=var)
             sage: p.p_eqn(Tokenizer("1+a"))
             a + 1
@@ -664,7 +664,7 @@ cdef class Parser:
         Parse a list of one or more terms.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: from sage.misc.parser import Parser, Tokenizer
             sage: p = Parser(make_var=var)
             sage: p.p_expr(Tokenizer("a+b"))
             b + a
@@ -697,7 +697,7 @@ cdef class Parser:
         Parse a single term (consisting of one or more factors).
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: from sage.misc.parser import Parser, Tokenizer
             sage: p = Parser(make_var=var)
             sage: p.p_term(Tokenizer("a*b"))
             a*b
@@ -737,7 +737,7 @@ cdef class Parser:
         and a power.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: from sage.misc.parser import Parser, Tokenizer
             sage: R.<t> = ZZ[['t']]
             sage: p = Parser(make_var={'t': t})
             sage: p.p_factor(Tokenizer("- -t"))
@@ -762,7 +762,7 @@ cdef class Parser:
         Parses a power. Note that exponentiation groups right to left.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: from sage.misc.parser import Parser, Tokenizer
             sage: R.<t> = ZZ[['t']]
             sage: p = Parser(make_var={'t': t})
             sage: p.p_factor(Tokenizer("-(1+t)^-1"))
@@ -787,7 +787,7 @@ cdef class Parser:
         Parse an atom. This is either a parenthesized expression, a function call, or a literal name/int/float.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: from sage.misc.parser import Parser, Tokenizer
             sage: p = Parser(make_var=var, make_function={'sin': sin})
             sage: p.p_atom(Tokenizer("1"))
             1
@@ -801,7 +801,7 @@ cdef class Parser:
             a + 1
             sage: p.p_atom(Tokenizer("sin(1+a)"))
             sin(a + 1)
-            sage: p = Parser(make_var=var, make_function={'foo': sage.calculus.parser.foo})
+            sage: p = Parser(make_var=var, make_function={'foo': sage.misc.parser.foo})
             sage: p.p_atom(Tokenizer("foo(a, b, key=value)"))
             ((a, b), {'key': value})
             sage: p.p_atom(Tokenizer("foo()"))
@@ -840,7 +840,7 @@ cdef class Parser:
         Returns a list, dict pair.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: from sage.misc.parser import Parser, Tokenizer
             sage: p = Parser()
             sage: p.p_args(Tokenizer("1,2,a=3"))
             ([1, 2], {'a': 3})
@@ -870,7 +870,7 @@ cdef class Parser:
         function call argument.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: from sage.misc.parser import Parser, Tokenizer
             sage: p = Parser(make_var=var)
             sage: p.p_arg(Tokenizer("a+b"))
             b + a
@@ -900,7 +900,7 @@ cdef class LookupNameMaker:
         when the given name is not found in the dictionary.
 
         EXAMPLES:
-            sage: from sage.calculus.parser import LookupNameMaker
+            sage: from sage.misc.parser import LookupNameMaker
             sage: maker = LookupNameMaker({'pi': pi}, var)
             sage: maker('pi')
             pi
@@ -914,7 +914,7 @@ cdef class LookupNameMaker:
     def __call__(self, name):
         """
         TESTS:
-            sage: from sage.calculus.parser import LookupNameMaker
+            sage: from sage.misc.parser import LookupNameMaker
             sage: maker = LookupNameMaker({'a': x}, str)
             sage: maker('a')
             x

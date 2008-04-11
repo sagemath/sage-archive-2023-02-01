@@ -683,6 +683,9 @@ ext_modules = [ \
     Extension('sage.misc.misc_c',
               sources = ['sage/misc/misc_c.pyx']), \
 
+    Extension('sage.misc.parser',
+              ['sage/misc/parser.pyx']), \
+
     Extension('sage.misc.refcount',
               sources = ['sage/misc/refcount.pyx']), \
 
@@ -873,9 +876,6 @@ ext_modules = [ \
 
     Extension('sage.calculus.var',
               ['sage/calculus/var.pyx']), \
-
-    Extension('sage.calculus.parser',
-              ['sage/calculus/parser.pyx']), \
 
     Extension('sage.modular.modsym.heilbronn',
               ['sage/modular/modsym/heilbronn.pyx',

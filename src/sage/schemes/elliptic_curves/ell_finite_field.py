@@ -294,66 +294,317 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
         return 1 + self.base_field().order() - self.cardinality()
 
-    def _cardinality_with_jinvariant_0_or_1728(self):
+    def _cardinality_with_j_invariant_1728(self):
         r"""
-        Helper function to handle cardinality when supersingular.
+        Special function to compute cardinality when j=1728.
 
         EXAMPLES:
-            sage: E = EllipticCurve(GF(101)(1728))
-            sage: E.j_invariant()
-            11
-            sage: E.cardinality() # indirect doctest
-            100
+        An example with q=p=1 (mod 4)
+            sage: F=GF(10009)
+            sage: [EllipticCurve(F,[0,0,0,11^i,0])._cardinality_with_j_invariant_1728() for i in range(4)]
+            [10016, 10210, 10004, 9810]
 
-            sage: E = EllipticCurve(GF(103)(1728))
-            sage: E.j_invariant()
-            80
-            sage: E.cardinality() # indirect doctest
-            104
+        An example with q=p=3 (mod 4)
+            sage: F=GF(10007)
+            sage: [EllipticCurve(F,[0,0,0,5^i,0])._cardinality_with_j_invariant_1728() for i in range(4)]
+            [10008, 10008, 10008, 10008]
 
-            sage: E = EllipticCurve(GF(103^2, 'a')(1728))
-            sage: E.j_invariant()
-            80
-            sage: E.cardinality() # indirect doctest
-            10816
+        An example with q=p^2, p=3 (mod 4)
+            sage: F.<a>=GF(10007^2,'a')
+            sage: [EllipticCurve(F,[0,0,0,a^i,0])._cardinality_with_j_invariant_1728() for i in range(4)]
+            [100160064, 100140050, 100120036, 100140050]
 
-            sage: E = EllipticCurve(GF(101)(0))
-            sage: E.j_invariant()
-            0
-            sage: E.cardinality() # indirect doctest
-            102
+        Examples with q=2^d, d odd (3 isomorphism classes):
+            sage: F.<a> = GF(2**15,'a')
+            sage: ais = [[0,0,1,0,0],[0,0,1,1,0],[0,0,1,1,1]]
+            sage: curves=[EllipticCurve(F,ai) for ai in ais]
+            sage: all([all([e1==e2 or not e1.is_isomorphic(e2) for e1 in curves]) for e2 in curves])
+            True
+            sage: [e._cardinality_with_j_invariant_1728() for e in curves]
+            [32769, 33025, 32513]
 
-            sage: E = EllipticCurve(GF(103^2, 'a')(0))
-            sage: E.j_invariant()
-            0
-            sage: E.cardinality() # indirect doctest
-            10416
+        Examples with q=2^d, d even (7 isomorphism classes):
+            sage: F.<a> = GF(2**16,'a')
+            sage: b = a^11 # trace 1
+            sage: ais = [[0,0,1,0,0],[0,0,1,0,b],[0,0,1,b,0],[0,0,a,0,0],[0,0,a,0,a^2*b],[0,0,a^2,0,0],[0,0,a^2,0,a^4*b]]
+            sage: curves=[EllipticCurve(F,ai) for ai in ais]
+            sage: all([all([e1==e2 or not e1.is_isomorphic(e2) for e1 in curves]) for e2 in curves])
+            True
+            sage: [e._cardinality_with_j_invariant_1728() for e in curves]
+            [65025, 66049, 65537, 65793, 65281, 65793, 65281]
+
+        Examples with q=3^d, d odd (4 isomorphism classes):
+            sage: F.<a> = GF(3**15,'a')
+            sage: b=a^7  # has trace 1
+            sage: ais=[[0,0,0,1,0],[0,0,0,-1,0],[0,0,0,-1,b],[0,0,0,-1,-b]]
+            sage: curves=[EllipticCurve(F,ai) for ai in ais]
+            sage: all([all([e1==e2 or not e1.is_isomorphic(e2) for e1 in curves]) for e2 in curves])
+            True
+            sage: [e._cardinality_with_j_invariant_1728() for e in curves]
+            [14348908, 14348908, 14342347, 14355469]
+
+        Examples with q=3^d, d even (6 isomorphism classes):
+            sage: F.<g>=GF(3^18,'g')
+            sage: i=F(-1).sqrt()
+            sage: a=g^8  # has trace 1
+            sage: ais= [[0,0,0,1,0],[0,0,0,1,i*a],[0,0,0,g,0],[0,0,0,g^3,0],[0,0,0,g^2,0], [0,0,0,g^2,i*a*g^3]]
+            sage: curves=[EllipticCurve(F,ai) for ai in ais]
+            sage: all([all([e1==e2 or not e1.is_isomorphic(e2) for e1 in curves]) for e2 in curves])
+            True
+            sage: [E._cardinality_with_j_invariant_1728() for E in curves]
+            [387459856, 387400807, 387420490, 387420490, 387381124, 387440173]
+
         """
-        j = self.j_invariant()
+        try:
+            return self._order
+        except AttributeError:
+            pass
+
         k = self.base_ring()
+        assert self.j_invariant()==k(1728)
         q = k.cardinality()
         p = k.characteristic()
+        d = k.degree()
+        x=polygen(ZZ)
 
-        # j=0, 1728 cases not properly implemented yet
+# p=2, j=0=1728
+#
+# Number of isomorphism classes is 3 (in odd degree) or 7 (in even degree)
+#
+        if p==2:
+            if d%2==1:
+                # The 3 classes are represented, independently of d,
+                # by [0,0,1,0,0], [0,0,1,1,0], [0,0,1,1,1]
+                E=EllipticCurve(k,[0,0,1,0,0])
+                if self.is_isomorphic(E):
+                    N = q+1
+                else:
+                    n = (d+1)//2
+                    t = 2**n
+                    n = n%4
+                    if n==0 or n==1: t=-t
+                    E=EllipticCurve(k,[0,0,1,1,1])
+                    if self.is_isomorphic(E): t=-t
+                    N = q+1-t
+            else:
+                # The 7 classes are represented by E1=[0,0,1,0,0],
+                # E2=[0,0,1,0,b], E3=[0,0,1,b,0], E4=[0,0,a,0,0],
+                # E4=[0,0,a,0,a^2*b], E6=[0,0,a^2,0,0],
+                # E7=[0,0,a^2,0,a^4*b], where a is a non-cube and b
+                # has trace 1.  E1's Frobenius is pi=(-2)**(d//2); the
+                # Frobeniuses are then pi, -pi, 0; w*pi, -w*pi;
+                # w^2*pi, -w^2*pi where w is either cube root of
+                # unity, so the traces are 2*pi, -2*pi, 0, -pi, +pi;
+                # -pi, +pi.
+                delta = self.discriminant()
+                discube = (delta**((q-1)//3) == k(1))
+                pi = (-2)**(d//2)
+                if discube:
+                    a = k.gen()
+                    b = a
+                    while b.trace()==0: b*=a
+                    if self.is_isomorphic(EllipticCurve(k,[0,0,1,b,0])):
+                        t = 0
+                    else:
+                        t = 2*pi
+                        if not self.is_isomorphic(EllipticCurve(k,[0,0,1,0,0])):
+                            t = -t
 
-        # Two easy cases:
-        if p>3 and j==k(1728) and q%4==3:
-            self._order=Integer(q+1)
+                else:
+                    t = pi
+                    if self.is_isomorphic(EllipticCurve(k,[0,0,delta,0,0])):
+                        t = -t
+                N = q+1-t
+
+
+# p=3, j=0=1728
+#
+# Number of isomorphism classes is 4 (odd degree) or 6 (even degree)
+#
+        elif p==3:
+            if d%2==1:
+                # The 4 classes are represented by [0,0,0,1,0],
+                # [0,0,0,-1,0], [0,0,0,-1,a], [0,0,0,-1,-a] where a
+                # has trace 1
+                delta = self.discriminant()
+                if (-delta).is_square():
+                    t = 0
+                else:
+                    u = delta.sqrt()
+                    if not u.is_square(): u=-u
+                    tr = ((self.a3()**2+self.a6())/u).trace()
+                    if tr==0:
+                        t = 0
+                    else:
+                        d2 = (d+1)//2
+                        t = 3**d2
+                        if d2%2==1: t = -t
+                        if tr==-1:  t = -t
+                N = q+1-t
+            else:
+                # The 6 classes are represented by: [0,0,0,1,0],
+                # [0,0,0,1,i*a]; [0,0,0,g,0], [0,0,0,g^3,0];
+                # [0,0,0,g^2,0], [0,0,0,g^2,i*a*g^3]; where g
+                # generates the multiplicative group modulo 4th
+                # powers, and a has nonzero trace.
+                A4 = self.a4()-self.a1()*self.a3()
+                i = k(-1).sqrt()
+                t = 0
+                if A4.is_square():
+                    u = A4.sqrt()
+                    t = (-3)**(d//2)
+                    if u.is_square():
+                        A6 = (self.a3()**2+self.a6())/u
+                        if (i*A6).trace()==0:
+                            t = 2*t
+                        else:
+                            t = -t
+                    else:
+                        A6 = (self.a3()**2+self.a6())/(u*A4)
+                        if (i*A6).trace()==0:
+                            t = -2*t
+                N = q+1-t
+
+# p>3, j=1728
+#
+# Number of isomorphism classes is 4 if q=1 (mod 4), else 2
+#
+        elif p%4==3:
+            if d%2==1:
+                t = 0
+            else:
+                t  = (-p)**(d//2)
+                w = (self.c4()/k(48))**((q-1)//4)
+                if   w==1:    t =  2*t
+                elif w==-1:   t = -2*t
+                else: t = 0
+
+            N = q+1-t
+
+# p=1 (mod 4).  First find Frobenius pi=a+b*i for [0,0,0,-1,0] over GF(p):
+# N(pi)=p and N(pi-1)=0 (mod 8).
+#
+        else: # p%4==1
+            R = ZZ.extension(x**2+1,'i')
+            i = R.gen(1)
+            pi = R.fraction_field().factor_integer(p)[0][0].gens_reduced()[0]
+            a,b = pi.list()
+            if a%2==0:
+                a,b = -b,a
+            if (a+b+1)%4==0:
+                a,b = -a,-b
+            pi = a+b*i        # Now pi=a+b*i with (a,b)=(1,0),(3,2) mod 4
+
+        # Lift to Frobenius for [0,0,0,-1,0] over GF(p^d):
+
+            if d>1:
+                pi = pi**d
+                a,b = pi.list()
+
+        # Compute appropriate quartic twist:
+
+            w = (self.c4()/k(48))**((q-1)//4)
+            if w==1:
+                t = 2*a
+            elif w==-1:
+                t = -2*a
+            elif k(b)==w*k(a):
+                t = 2*b
+            else:
+                t = -2*b
+            N = q+1-t
+
+        self._order = Integer(N)
+        return self._order
+
+    def _cardinality_with_j_invariant_0(self):
+        r"""
+        Special function to compute cardinality when j=0.
+
+        EXAMPLES:
+        An example with q=p=1 (mod 6)
+            sage: F=GF(1009)
+            sage: [EllipticCurve(F,[0,0,0,0,11^i])._cardinality_with_j_invariant_0() for i in range(6)]
+            [948, 967, 1029, 1072, 1053, 991]
+
+        An example with q=p=5 (mod 6)
+            sage: F=GF(1013)
+            sage: [EllipticCurve(F,[0,0,0,0,3^i])._cardinality_with_j_invariant_0() for i in range(6)]
+            [1014, 1014, 1014, 1014, 1014, 1014]
+
+        An example with q=p^2, p=5 (mod 6)
+            sage: F.<a>=GF(1013^2,'a')
+            sage: [EllipticCurve(F,[0,0,0,0,a^i])._cardinality_with_j_invariant_0() for i in range(6)]
+            [1028196, 1027183, 1025157, 1024144, 1025157, 1027183]
+
+        For examples in characteristic 2 and 3, see the function
+        _cardinality_with_j_invariant_1728()
+        """
+
+        try:
             return self._order
-        if j==k(0) and q%6==5:
-            self._order=Integer(q+1)
-            return self._order
+        except AttributeError:
+            pass
 
-        # A quick test to see if the curve's coefficients are all
-        # in the prime field:
-        if not all(a in k.prime_subfield() for a in self.a_invariants()):
-            # resort to basic algorithm:
-            self._order = self.cardinality_from_group()
-            return self._order
+        k = self.base_ring()
+        assert self.j_invariant()==k(0)
+        p = k.characteristic()
+        if p==2 or p==3:  # then 0==1728
+            return self._cardinality_with_j_invariant_1728()
 
-        # OK, curve's coefficients are in prime field:
-        E = EllipticCurve_finite_field(k.prime_subfield(), self.a_invariants())
-        self._order = E.cardinality(extension_degree=k.degree())
+        q = k.cardinality()
+        d = k.degree()
+        x=polygen(ZZ)
+
+# p>3, j=0
+#
+# Number of isomorphism classes is 4 if q=1 (mod 4), else 2
+#
+        if p%6==5:
+            if d%2==1:
+                t = 0
+            else:
+                t  = (-p)**(d//2)
+                w = (self.c6()/k(-864))**((q-1)//6)
+                if   w==1:    t =  2*t
+                elif w==-1:   t = -2*t
+                elif w**3==1: t = -t
+
+            N = q+1-t
+
+# p=1 (mod 6).  First find Frobenius pi=a+b*w for [0,0,0,0,1] over GF(p):
+# N(pi)=p and N(pi-1)=0 (mod 12).
+#
+        else: # p%6==1
+            R = ZZ.extension(x**2-x+1,'zeta6')
+            zeta6 = R.gen(1)
+            pi = R.fraction_field().factor_integer(p)[0][0].gens_reduced()[0]
+            while (pi-1).norm()%12 !=0:  pi*=zeta6
+            a,b = pi.list()
+            z = k(-b)/k(a)  # a *specific* 6th root of unity in k
+
+# Now pi=a+b*zeta6 with N(pi-1)=0 (mod 12)
+
+# Lift to Frobenius for [0,0,0,0,1] over GF(p^d):
+
+            if d>1:
+                pi = pi**d
+                a,b = pi.list()
+
+# Compute appropriate sextic twist:
+
+            w = (self.c6()/k(-864))**((q-1)//6)
+
+            if   w==1:       t = 2*a+b  # = Trace(pi)
+            elif w==-1:      t = -2*a-b # = Trace(-pi)
+            elif w==z:       t = a-b    # = Trace(pi*zeta6)
+            elif w==z**2:    t = -a-2*b # = Trace(pi*zeta6**2)
+            elif w==z**4:    t = b-a    # = Trace(pi*zeta6**4)
+            elif w==z**5:    t = a+2*b  # = Trace(pi*zeta6**5)
+
+            N = q+1-t
+
+        self._order = Integer(N)
         return self._order
 
     def cardinality(self, algorithm='heuristic', early_abort=False, disable_warning=False, extension_degree=1):
@@ -391,6 +642,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         standard curve with the same j-invariant over the field
         GF(p)(j), then lifted to the base_field, and finally account
         is taken of twists.
+
+        For j=0 and j=1728 special formulas are used instead.
 
         EXAMPLES:
             sage: EllipticCurve(GF(4,'a'),[1,2,3,4,5]).cardinality()
@@ -447,8 +700,16 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         except AttributeError:
             pass
 
-        N = 0
         k = self.base_ring()
+
+        # use special code for j=0, 1728 (for any field)
+        j = self.j_invariant()
+        if j==k(0):
+            return self._cardinality_with_j_invariant_0()
+        if j==k(1728):
+            return self._cardinality_with_j_invariant_1728()
+
+        N = 0
         q = k.cardinality()
         p = k.characteristic()
         d = k.degree()
@@ -475,17 +736,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             self._order = Integer(N)
             return self._order
 
-        # now k is not a prime field
+        # now k is not a prime field and j is not 0, 1728
 
         # we count points on a standard curve with the same
         # j-invariant defined over the field it generates, then
         # lift to the curve's own field, and finally allow for twists
-        j=self.j_invariant()
 
-        if j==k(0) or j==k(1728):
-            return self._cardinality_with_jinvariant_0_or_1728()
-
-        # Now the only twists are quadratic, which is simpler
+        # Since j is not 0, 1728 the only twists are quadratic
 
         j_pol=j.minimal_polynomial()
         j_deg=j_pol.degree()
@@ -501,7 +758,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         # recursive call which will do all the real work:
         Ej = EllipticCurve(jkj)
         N=Ej.cardinality(extension_degree=d//j_deg)
-        # is curve a (quadratic) twist of the "standard" one?
+
+        # if curve ia a (quadratic) twist of the "standard" one:
         if not self.is_isomorphic(EllipticCurve(j)): N=2*(q+1)-N
 
         self._order = N
@@ -630,6 +888,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         A, gens = self.abelian_group()
         return self._order
+
 
     def gens(self):
         """
@@ -766,7 +1025,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         bounds = Hasse_bounds(q)
         lower, upper = bounds
         if debug:
-            print "Lower and upper bounds on group order: ",bounds
+            print "Lower and upper bounds on group order: [",lower,",",upper,"]"
 
         group_order_known = False
         try:
@@ -815,12 +1074,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         if debug:
             "About to start generating random points"
-            sys.stdout.flush()
 
         while n1*n2<lower:
             if debug:
                 "Getting a new random point"
-                sys.stdout.flush()
             Q = self.random_point()
             npts += 1
             if debug:

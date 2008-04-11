@@ -235,6 +235,10 @@ var update_error_delta = 1024;
 var update_normal_delta = update_falloff_deltas[0];
 var cell_output_delta = update_normal_delta;
 
+var keypress_resize_delay = 250; // don't resize the cell too often! without this, typing in Safari is worse than typing on a 286!
+var last_keypress_resize = 0;
+var will_resize_soon = false;
+
 var server_ping_time = 30000;  /* Is once very 30 seconds way too fast?  Is it just right?  */
 
 
@@ -764,7 +768,7 @@ function first_variable_name_in_string(s) {
 
 function lstrip(s) {
     /*
-    Given a string s, strip all whitespace from s and return the resulting string.
+    Given a string s, strip leading whitespace from s and return the resulting string.
 
     INPUT:
         s -- a string
@@ -790,6 +794,29 @@ function resize_all_cells() {
     var i;
     for(i=0;i<cell_id_list.length;i++)
         cell_input_resize(cell_id_list[i]);
+}
+
+function input_keyup(id, event) {
+    /*
+    Resize the cell once and a while.  Not too often.
+    INPUT:
+        id -- an integer
+        event -- a keyup event
+
+    GLOBAL INPUT:
+        keypress_resize_delay -- amount of time to wait between resizes
+        last_keypress_resize -- last time we resized
+        will_resize_soon -- if a keyup event is ignored for the purpose of resizing,
+                            then we queue one up.  Avoid a timeout-flood with this lock.
+    */
+    var t = time_now()
+    if((t - last_keypress_resize) > keypress_resize_delay) {
+        last_keypress_resize = t;
+        cell_input_resize(id);
+    } else if(!will_resize_soon) {
+        will_resize_soon = true;
+        setTimeout("cell_input_resize("+id+"); will_resize_soon=false;", keypress_resize_delay)
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////

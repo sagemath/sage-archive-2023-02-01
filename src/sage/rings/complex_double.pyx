@@ -65,8 +65,6 @@ cdef extern from "math.h":
 cdef extern from "stdsage.h":
     void set_gel(GEN x, long n, GEN z)
 
-from sage.misc.sage_eval import sage_eval
-
 cimport sage.rings.ring
 
 cimport sage.rings.integer

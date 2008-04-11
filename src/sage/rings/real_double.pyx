@@ -33,8 +33,6 @@ import math, operator
 cimport sage.libs.pari.gen
 import sage.libs.pari.gen
 
-from sage.misc.sage_eval import sage_eval
-
 import sage.rings.complex_double
 import sage.rings.complex_field
 

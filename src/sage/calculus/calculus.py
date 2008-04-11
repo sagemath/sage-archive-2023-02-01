@@ -8279,7 +8279,7 @@ def _find_var(name):
         pass
     try:
         return SR(sage.all.__dict__[name])
-    except KeyError:
+    except (KeyError, TypeError):
         return var(name)
 
 def _find_func(name):
@@ -8293,7 +8293,7 @@ def _find_func(name):
         func = SR(sage.all.__dict__[name])
         if not isinstance(func, (SymbolicConstant, SymbolicVariable)):
             return func
-    except KeyError:
+    except (KeyError, TypeError):
         return function(name)
 
 SR_parser = Parser(make_int      = lambda x: SymbolicConstant(Integer(x)),

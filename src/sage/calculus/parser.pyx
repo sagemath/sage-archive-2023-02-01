@@ -29,6 +29,7 @@ cdef extern from "string.h":
 
 cdef extern from "Python.h":
     object PyString_FromStringAndSize(char *v, Py_ssize_t len)
+    int PyList_Append(object list, object item) except -1
 
 import math
 
@@ -122,8 +123,8 @@ cdef class Tokenizer:
             ['FLOAT(1.5)', '+', 'INT(2)', '*', 'INT(3)', '^', 'INT(4)', '-', 'NAME(sin)', '(', 'NAME(x)', ')']
 
         The single character tokens are given by:
-            sage: Tokenizer("+-*/^(),=<>").test()
-            ['+', '-', '*', '/', '^', '(', ')', ',', '=', '<', '>']
+            sage: Tokenizer("+-*/^(),=<>[]{}").test()
+            ['+', '-', '*', '/', '^', '(', ')', ',', '=', '<', '>', '[', ']', '{', '}']
 
         Two-character comparisons accepted are:
             sage: Tokenizer("<= >= != == **").test()
@@ -152,7 +153,7 @@ cdef class Tokenizer:
         No attempt for correctness is made at this stage:
             sage: Tokenizer(") )( 5e5e5").test()
             [')', ')', '(', 'FLOAT(5e5)', 'NAME(e5)']
-            sage: Tokenizer("[$%").test()
+            sage: Tokenizer("?$%").test()
             ['ERROR', 'ERROR', 'ERROR']
         """
         self.pos = 0
@@ -252,7 +253,7 @@ cdef class Tokenizer:
             return '^'
 
         # simple tokens
-        if strchr("+-*/^()=<>,", s[pos]):
+        if strchr("+-*/^()=<>,[]{}", s[pos]):
             type = s[pos]
             self.pos += 1
             return type
@@ -484,6 +485,133 @@ cdef class Parser:
         if tokens.next() != EOS:
             self.parse_error(tokens)
         return expr
+
+    cpdef parse_expression(self, s):
+        """
+        Parse an expression.
+
+        EXAMPLES:
+            sage: from sage.calculus.parser import Parser
+            sage: p = Parser(make_var=var)
+            sage: p.parse_expression('a-3b^2')
+            a - 3*b^2
+        """
+        cdef Tokenizer tokens = Tokenizer(s)
+        expr = self.p_expr(tokens)
+        if tokens.next() != EOS:
+            self.parse_error(tokens)
+        return expr
+
+    cpdef parse_sequence(self, s):
+        """
+        Parse a (possibly nested) set of lists and tuples.
+
+        EXAMPLES:
+            sage: from sage.calculus.parser import Parser
+            sage: p = Parser(make_var=var)
+            sage: p.parse_sequence("1,2,3")
+            [1, 2, 3]
+            sage: p.parse_sequence("[1,2,(a,b,c+d)]")
+            [1, 2, (a, b, d + c)]
+            sage: p.parse_sequence("13")
+            13
+        """
+        cdef Tokenizer tokens = Tokenizer(s)
+        all = self.p_sequence(tokens)
+        if tokens.next() != EOS:
+            self.parse_error(tokens)
+        if len(all) == 1 and type(all) is list:
+            all = all[0]
+        return all
+
+
+    cpdef p_sequence(self, Tokenizer tokens):
+        """
+        Parse a (possibly nested) set of lists and tuples.
+
+        EXAMPLES:
+            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: p = Parser(make_var=var)
+            sage: p.p_sequence(Tokenizer("[1+2,0]"))
+            [[3, 0]]
+            sage: p.p_sequence(Tokenizer("(1,2,3) , [1+a, 2+b, (3+c), (4+d,)]"))
+            [(1, 2, 3), [a + 1, b + 2, c + 3, (d + 4,)]]
+        """
+        all = []
+        cdef int token = ','
+        while token == ',':
+            token = tokens.peek()
+            if token == INT:
+                # we optimize for this rather than going all the way to atom
+                tokens.next()
+                if tokens.peek() == c',':
+                    obj = self.integer_constructor(tokens.last_token_string())
+                else:
+                    tokens.backtrack()
+                    obj = self.p_expr(tokens)
+            elif token == '[':
+                obj = self.p_list(tokens)
+            elif token == '(':
+                obj = self.p_tuple(tokens)
+            elif token == EOS:
+                return all
+            elif token == ']' or token == ')':
+                tokens.token = ','
+                return all
+            else:
+                obj = self.p_expr(tokens)
+            PyList_Append(all, obj)
+            token = tokens.next()
+
+        tokens.backtrack()
+        return all
+
+    cpdef p_list(self, tokens):
+        """
+        Parse a list of items.
+
+        EXAMPLES:
+            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: p = Parser(make_var=var)
+            sage: p.p_list(Tokenizer("[1+2, 1e3]"))
+            [3, 1000.0]
+            sage: p.p_list(Tokenizer("[]"))
+            []
+        """
+        cdef int token = tokens.next()
+        if token != '[':
+            self.parse_error(tokens, "Malformed list")
+        all = self.p_sequence(tokens)
+        token = tokens.next()
+        if token != ']':
+            self.parse_error(tokens, "Malformed list")
+        return all
+
+    cpdef p_tuple(self, tokens):
+        """
+        Parse a tuple of items.
+
+        EXAMPLES:
+            sage: from sage.calculus.parser import Parser, Tokenizer
+            sage: p = Parser(make_var=var)
+            sage: p.p_tuple(Tokenizer("( (), (1), (1,), (1,2), (1,2,3), )"))
+            ((), 1, (1,), (1, 2), (1, 2, 3))
+        """
+        cdef int token = tokens.next()
+        cdef bint real_tuple = True
+        if token != '(':
+            self.parse_error(tokens, "Malformed tuple")
+        all = self.p_sequence(tokens)
+        if len(all) == 1:
+            if tokens.last() != c',':
+                real_tuple = False
+        token = tokens.next()
+        if token != ')':
+            self.parse_error(tokens, "Malformed tuple")
+        if real_tuple:
+            return tuple(all)
+        else:
+            return all[0]
 
 # eqn ::= expr op expr | expr
     cpdef p_eqn(self, Tokenizer tokens):

@@ -244,7 +244,7 @@ cdef int ZZ_pX_Eis_init(PowComputer_ZZ_pX prime_pow, ntl_ZZ_pX shift_seed) excep
             ZZ_pX_construct(&(high_shifter_p[i]))
             high_shifter_p[i] = into_multiplier
 
-cdef int ZZ_pX_eis_shift_a(PowComputer_ZZ_pX self, ZZ_pX_c* x, ZZ_pX_c* a, long n, long finalprec) except -1:
+cdef int ZZ_pX_eis_shift(PowComputer_ZZ_pX self, ZZ_pX_c* x, ZZ_pX_c* a, long n, long finalprec) except -1:
     """
     Eis-shifts a over by n and puts the result into x.
 

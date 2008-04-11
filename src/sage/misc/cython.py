@@ -227,15 +227,23 @@ def pyx_preparse(s):
 sequence_number = {}
 
 def cython(filename, verbose=False, compile_message=False,
-          use_cache=False, create_local_c_file=False, annotate=True, sage_namespace=True):
+           use_cache=False, create_local_c_file=False, annotate=True, sage_namespace=True,
+           create_local_so_file=False):
     if not filename.endswith('pyx'):
         print "File (=%s) should have extension .pyx"%filename
 
-    # base is the name of the .so module that we create.
-    # The main constraint is that it is unique and determined by the file
-    # that we're running Cython on, so that in some cases we can cache
-    # the result (e.g., recompiling the same pyx file during the same session).
-    base = sanitize(os.path.abspath(filename))
+    # base is the name of the .so module that we create.  If we are
+    # creating a local shared object file, we use a more natural
+    # naming convention. If we are not creating a local shared object
+    # file, the main constraint is that it is unique and determined by
+    # the file that we're running Cython on, so that in some cases we
+    # can cache the result (e.g., recompiling the same pyx file during
+    # the same session).
+    if create_local_so_file:
+        base, ext = os.path.splitext(os.path.basename(filename))
+        base = sanitize(base)
+    else:
+        base = sanitize(os.path.abspath(filename))
 
     # This is the *temporary* directory where we build the pyx file.
     # This is deleted when sage exits, which means pyx files must be
@@ -284,13 +292,16 @@ def cython(filename, verbose=False, compile_message=False,
     else:
         extension = "c"
 
-    global sequence_number
-    if not sequence_number.has_key(base):
-        sequence_number[base] = 0
-    name = '%s_%s'%(base, sequence_number[base])
+    if create_local_so_file:
+        name = base
+    else:
+        global sequence_number
+        if not sequence_number.has_key(base):
+            sequence_number[base] = 0
+            name = '%s_%s'%(base, sequence_number[base])
 
-    # increment the sequence number so will use a different one next time.
-    sequence_number[base] += 1
+            # increment the sequence number so will use a different one next time.
+            sequence_number[base] += 1
 
     additional_source_files = ",".join(["'"+os.path.abspath(os.curdir)+"/"+fname+"'" \
                                         for fname in additional_source_files])
@@ -398,6 +409,11 @@ setup(ext_modules = ext_modules,
     if os.system(cmd):
         raise RuntimeError, "Error copying extension module for %s"%filename
 
+    if create_local_so_file:
+        # Copy from lib directory into local directory
+        cmd = 'cp %s/%s.so %s'%(build_dir, name, os.path.abspath(os.curdir))
+        if os.system(cmd):
+            raise RuntimeError, "Error making local copy of shared object library for %s"%filename
 
     return name, build_dir
 
@@ -488,7 +504,48 @@ def f(%s):
                                          create_local_c_file=False)
     return d['f']
 
+def cython_create_local_so(filename):
+    r"""
+    Compile filename and make it available as a loadable shared object file.
 
+    INPUT:
+        filename -- string: a Sagex (.spyx) file
+
+    OUTPUT:
+        None
+
+    EFFECT:
+        A compiled, python "importable" loadable shared object file is created.
+
+    NOTE:
+        Shared object files are {NOT} reloadable. The intent is for
+        imports in other scripts. A possible development cycle might
+        go thus:
+
+            - Attach a .spyx file
+            - Interactively test and edit it to your satisfaction
+            - Use cython_create_local_so to create the shared object file
+            - Import the .so file in other scripts
+
+    EXAMPLE:
+        sage: f = file('hello.spyx', 'w')
+        sage: s = \"""def hello():
+        ....:         print 'hello'
+        ....: \"""
+        sage: f.write(s)
+        sage: f.close()
+        sage: cython_create_local_so('hello.spyx')
+        Compiling hello.spyx...
+        sage: ls hello*
+        hello.so hello.spyx
+        sage: import hello
+        sage: hello.hello()
+        hello
+
+    AUTHORS:
+        -- David Fu (2008-04-09): initial version
+    """
+    cython(filename, compile_message=True, use_cache=False, create_local_so_file=True)
 
 def sanitize(f):
     """

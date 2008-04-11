@@ -69,7 +69,7 @@ from sage_eval import sage_eval, sageobj
 
 from sage_input import sage_input
 
-from cython import cython_lambda
+from cython import cython_lambda, cython_create_local_so
 from cython_c import cython
 pyrex = cython # synonym -- for now
 sagex = cython # synonym -- for now

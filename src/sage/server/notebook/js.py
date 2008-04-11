@@ -378,6 +378,9 @@ function initialize_the_notebook() {
 
     // Attempt to render any jsmath in this page.
     jsmath_init();
+
+    // Trigger cell resize when the notebook resizes
+    window.onresize = resize_all_cells;
 }
 
 
@@ -776,6 +779,18 @@ function lstrip(s) {
     return s.slice(i);
 }
 
+
+function resize_all_cells() {
+    /*
+    Resizes all cells; called whenever the window gets resized.
+
+    GLOBAL INPUT:
+        cell_id_list -- a list of integers
+    */
+    var i;
+    for(i=0;i<cell_id_list.length;i++)
+        cell_input_resize(cell_id_list[i]);
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // Top control bar toggle

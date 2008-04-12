@@ -1,3 +1,13 @@
+"""
+HTML typesetting for the notebok
+"""
+
+########################################################################
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+########################################################################
+
 from sage.misc.latex import latex
 from sage.misc.sage_eval import sage_eval
 
@@ -53,10 +63,45 @@ class HTMLExpr(str):
         return str(self)
 
 class HTML:
-    def __call__(self, *args, **kwds):
-        return HTMLExpr(self.eval(*args, **kwds))
+    def __init__(self):
+        """
+        Display the given html expression in the notebook.
 
-    def eval(self, s, globals={}, locals={}):
+        INPUT:
+            s -- a string
+
+        OUTPUT:
+            prints a code that embeds html in the output.
+
+        By default in the notebook an output cell has two parts, first a plain text
+        preformat part, then second a general html part (not pre).   If you call
+        html(s) at any point then that adds something that will be displayed
+        in the preformated part in html.
+
+        EXAMPLES:
+            sage: html('<a href="http://sagemath.org">sagemath</a>')
+            <html><font color='black'><a href="http://sagemath.org">sagemath</a></font></html>
+        """
+
+    def __call__(self, s, globals=None, locals=None):
+        """
+        EXAMPLES:
+            sage: html('<hr>')
+            <html><font color='black'><hr></font></html>
+        """
+        return HTMLExpr(self.eval(s, globals, locals))
+
+    def eval(self, s, globals=None, locals=None):
+        """
+        EXAMPLES:
+            sage: html.eval('<hr>')
+            <html><font color='black'><hr></font></html>
+            ''
+        """
+        if globals is None:
+            globals = {}
+        if locals is None:
+            locals = {}
         s = str(s)
         s = math_parse(s)
         t = ''

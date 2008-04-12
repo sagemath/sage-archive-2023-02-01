@@ -614,6 +614,23 @@ cdef class Matrix(sage.structure.element.Matrix):
             [-4  1]
             [ 0 -5]
 
+            sage: A= matrix(3,4,[1, 0, -3, -1, 3, 0, -2, 1, -3, -5, -1, -5])
+            sage: A[range(2,-1,-1),:]
+            [-3 -5 -1 -5]
+            [ 3  0 -2  1]
+            [ 1  0 -3 -1]
+
+            sage: A[range(2,-1,-1),range(3,-1,-1)]
+            [-5 -1 -5 -3]
+            [ 1 -2  0  3]
+            [-1 -3  0  1]
+
+            sage: A = matrix(2, [1, 2, 3, 4])
+            sage: A[[0,0],[0,0]]
+            Traceback (most recent call last):
+            ...
+            IndexError: duplicate values in index; use matrix_from_rows_and_columns() instead
+
         """
         cdef PyObject* ts1
         cdef PyObject* ts2
@@ -639,7 +656,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             s2 = <object>ts2
 
             if PyList_CheckExact(ts1):
-                row_range = list(set(s1))
+                row_range = s1
+                if PyList_GET_SIZE(s1) != len(set(s1)):
+                    raise IndexError, "duplicate values in index; use matrix_from_rows_and_columns() instead"
 
             elif PySlice_Check(ts1):
                 stop = self._nrows
@@ -652,7 +671,9 @@ cdef class Matrix(sage.structure.element.Matrix):
                 row_range = [s1]
 
             if PyList_CheckExact(ts2):
-                col_range = list(set(s2))
+                col_range = s2
+                if PyList_GET_SIZE(s2) != len(set(s2)):
+                    raise IndexError, "duplicate values in index; use matrix_from_rows_and_columns() instead"
 
             elif PySlice_Check(ts2):
                 stop = self._ncols

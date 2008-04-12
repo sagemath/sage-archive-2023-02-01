@@ -903,10 +903,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         AUTHOR: John Cremona
 
         EXAMPLES:
-            sage: E=EllipticCurve(GF(11),[2,5])
+            sage: E=EllipticCurve(GF(11),[2,5]) # random output
             sage: E.gens()
             ((0 : 4 : 1),)
-            sage: EllipticCurve(GF(41),[2,5]).gens()
+            sage: EllipticCurve(GF(41),[2,5]).gens() # random output
             ((21 : 1 : 1), (8 : 0 : 1))
             sage: F.<a>=GF(3^6,'a')
             sage: E=EllipticCurve([a,a+1])
@@ -1022,6 +1022,20 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         if d>1:
             d = j.minimal_polynomial().degree()
 
+
+        # Computing the group structure is helped by knowing the
+        # cardinality (partly because that makes computation of orders
+        # of points faster), but we only compute the cardinality first
+        # in certain cases: j=0 or 1728 (special-purpose code), or
+        # prime field (ditto using sea for large primes).
+
+        # j=0,1728
+
+        if j==k(0):
+            N = self._cardinality_with_j_invariant_0()
+        if j==k(1728):
+            N = self._cardinality_with_j_invariant_1728()
+
         bounds = Hasse_bounds(q)
         lower, upper = bounds
         if debug:
@@ -1046,7 +1060,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                 lower=N
                 upper=N
                 self._order=N
-            elif d==1 and not j==k(0) and not j==k(1728):
+            elif d==1:
                 if debug:
                     print "Computing group order using SEA"
                 N=self.cardinality(algorithm='sea')
@@ -1088,7 +1102,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
             if Q1.is_zero() and npts>=10: # then P1,n1 will not change but we may increase n2
                 if debug: print "Case 2: n2 may increase"
-                a,m = generic.linear_relation(P1,Q,operation='+')
+                if group_order_known:
+                    n1a=n1.prime_to_m_part(N//n1)
+                    Q = n1a*Q
+                a,m = generic.linear_relation(n1a*P1,Q,operation='+')
                 if debug: print "linear relation gives m=",m,", a=",a
                 if m>1: # else Q is in <P1>
                     Q=Q-(a//m)*P1; # has order m and is disjoint from P1

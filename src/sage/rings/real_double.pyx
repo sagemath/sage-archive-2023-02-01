@@ -577,6 +577,33 @@ cdef class RealDoubleElement(FieldElement):
         """
         return complex(self._value,0)
 
+    def _integer_(self):
+        """
+        If this floating-point number is actually an integer, return
+        that integer.  Otherwise, raise an exception.
+
+        EXAMPLES:
+            sage: ZZ(RDF(237.0))
+            237
+            sage: ZZ(RDF(0.0/0.0))
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert non-integral float to integer
+            sage: ZZ(RDF(1.0/0.0))
+            Traceback (most recent call last):
+            ...
+            OverflowError: cannot convert float infinity to long
+            sage: ZZ(RDF(-123456789.0))
+            -123456789
+            sage: ZZ(RDF((2.0))^290)
+            1989292945639146568621528992587283360401824603189390869761855907572637988050133502132224
+            sage: ZZ(RDF(-2345.67))
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert non-integral float to integer
+        """
+        return Integer(self._value)
+
     def parent(self):
         """
         Return the real double field, which is the parent of self.
@@ -695,8 +722,16 @@ cdef class RealDoubleElement(FieldElement):
             -1
             sage: type(a)
             <type 'sage.rings.integer.Integer'>
+            sage: r = RDF(0.0/0.0)
+            sage: a = r.integer_part()
+            Traceback (most recent call last):
+            ...
+            TypeError: Attempt to get integer part of NaN
         """
-        return sage.rings.integer.Integer(int(self._value))
+        if gsl_isnan(self._value):
+            raise TypeError, "Attempt to get integer part of NaN"
+        else:
+            return Integer(int(self._value))
 
 
     ########################
@@ -911,11 +946,11 @@ cdef class RealDoubleElement(FieldElement):
         rounds down if fractional part is lesser than .5.
         EXAMPLES:
             sage: RDF(0.49).round()
-            0.0
-            sage: RDF(0.51).round()
-            1.0
+            0
+            sage: a=RDF(0.51).round(); a
+            1
         """
-        return RealDoubleElement(round(self._value))
+        return Integer(round(self._value))
 
     def floor(self):
         """
@@ -929,7 +964,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(-5/2).floor()
             -3
         """
-        return sage.rings.integer.Integer(int(math.floor(self._value)))
+        return Integer(math.floor(self._value))
 
     def ceil(self):
         """
@@ -946,7 +981,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(-5/2).ceil()
             -2
         """
-        return sage.rings.integer.Integer(int(math.ceil(self._value)))
+        return Integer(math.ceil(self._value))
 
     ceiling = ceil
 
@@ -956,13 +991,13 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: RDF(2.99).trunc()
-            2.0
+            2
             sage: RDF(-2.00).trunc()
-            -2.0
+            -2
             sage: RDF(0.00).trunc()
-            0.0
+            0
         """
-        return RealDoubleElement(int(self._value))
+        return Integer(int(self._value))
 
     def frac(self):
         """

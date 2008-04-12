@@ -393,6 +393,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             't_POL'
             sage: ZZ(t)
             3
+
+            sage: ZZ(float(2.0))
+            2
+            sage: ZZ(float(1.0/0.0))
+            Traceback (most recent call last):
+            ...
+            OverflowError: cannot convert float infinity to long
+            sage: ZZ(float(0.0/0.0))
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert non-integral float to integer
         """
 
         # TODO: All the code below should somehow be in an external
@@ -428,6 +439,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             elif PyLong_CheckExact(x):
                 mpz_set_pylong(self.value, x)
+
+            elif PyFloat_CheckExact(x):
+                n = long(x)
+                if n == x:
+                    mpz_set_pylong(self.value, n)
+                else:
+                    raise TypeError, "Cannot convert non-integral float to integer"
 
             elif PY_TYPE_CHECK(x, pari_gen):
 

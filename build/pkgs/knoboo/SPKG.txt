@@ -6,7 +6,7 @@ Programming notebook for the web
 
 == License ==
 
-GPL -- maybe v3; unclear
+GPL V2+
 
 == SPKG Maintainers ==
 
@@ -26,4 +26,5 @@ None
 
 == Changelog ==
 
-
+=== knoboo-20080411 (William Stein, April 11th, 2008 ===
+ * initial version

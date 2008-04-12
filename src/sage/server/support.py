@@ -8,6 +8,7 @@ AUTHOR:
 import inspect
 import os
 import string
+from cPickle import PicklingError
 
 import sage.structure.sage_object
 import sage.misc.latex
@@ -201,8 +202,12 @@ def save_session(filename):
         x = sage_globals[k]
         try:
             _ = sage.structure.sage_object.loads(sage.structure.sage_object.dumps(x))
-        except (IOError, TypeError):
-            print "Unable to save %s"%k
+        except (IOError, TypeError, PicklingError):
+            if k != 'fortran':  # this is a hack to get around the inline fortran object being
+                                # *incredibly* hackish in how it is implemented; the right
+                                # fix is to rewrite the fortran inline to *not* be so incredibly
+                                # hackish.  See trac #2891.
+                print "Unable to save %s"%k
         else:
             D[k] = x
     print "Saving variables to object %s.sobj"%filename

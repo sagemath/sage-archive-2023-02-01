@@ -738,7 +738,7 @@ class Cell(Cell_generic):
                 link_text = str(F)
                 if len(link_text) > 40:
                     link_text = link_text[:10] + '...' + link_text[-20:]
-                files.append('<a href="%s" class="file_link">%s</a>'%(url, link_text))
+                files.append('<a target="_new" href="%s" class="file_link">%s</a>'%(url, link_text))
         if len(images) == 0:
             images = ''
         else:

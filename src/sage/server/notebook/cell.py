@@ -249,8 +249,8 @@ class Cell(Cell_generic):
             s += self.__in
 
         if prompts:
-            msg = 'Traceback (most recent call last):'
-            if self.__out.strip()[:len(msg)] == msg:
+            msg = TRACEBACK
+            if self.__out.strip().startswith(msg):
                 v = self.__out.strip().splitlines()
                 w = [msg, '...']
                 for i in range(1,len(v)):
@@ -482,7 +482,7 @@ class Cell(Cell_generic):
         # if there is an error in the output,
         # specially format it.
         if not self.is_interactive_cell():
-            s = format_exception(s, ncols)
+            s = format_exception(format_html(s), ncols)
 
         # Everything not wrapped in <html> ... </html>
         # should have the <'s replaced by &lt;'s
@@ -801,19 +801,19 @@ class Cell(Cell_generic):
 
 def format_exception(s0, ncols):
     s = s0.lstrip()
-    if s[:len(TRACEBACK)] != TRACEBACK:
+    if TRACEBACK not in s:
         return s0
     if ncols > 0:
         s = s.strip()
-        s = s.replace('Traceback (most recent call last)','Exception (click to the left for traceback)')
         w = s.splitlines()
-        s = w[0] + '\n...\n' + w[-1]
+        for k in range(len(w)):
+            if TRACEBACK in w[k]:
+                break
+        s = '\n'.join(w[:k]) + '\nTraceback (click to the left for traceback)' + '\n...\n' + w[-1]
     else:
         s = s.replace("exec compile(ur'","")
         s = s.replace("' + '\\n', '', 'single')", "")
-    s = s.replace('<', '&lt;');
-    t = '<html><font color="#990099">' + s + '</font></html>'
-    return t
+    return s
 
 ComputeCell=Cell
 

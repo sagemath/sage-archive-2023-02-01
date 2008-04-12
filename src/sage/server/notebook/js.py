@@ -1597,7 +1597,7 @@ function server_up() {
 // CELL functions -- for the individual cells
 //
 ///////////////////////////////////////////////////////////////////
-
+var cell_element_cache = [];
 function get_cell(id) {
     /* Return the input cell as a DOM element with the given integer id.
     INPUT:
@@ -1605,7 +1605,10 @@ function get_cell(id) {
     OUTPUT:
         a DOM element
     */
-    return get_element('cell_input_'+ id);
+   var v = cell_element_cache[id];
+   if(v == undefined)
+       v = cell_element_cache[id] = get_element('cell_input_'+ id);
+   return v;
 }
 
 function cell_blur(id) {

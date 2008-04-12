@@ -1,3 +1,4 @@
+#!/bin/sh
 cd src
 
 python setup.py install

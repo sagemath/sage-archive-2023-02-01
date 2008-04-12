@@ -1,0 +1,14 @@
+cd src
+
+python setup.py install
+
+cd ..
+cp patches/knoboo-start "$SAGE_LOCAL"/bin/knoboo
+cp patches/knoboo.tac "$SAGE_LOCAL"/lib/
+
+echo "*****************************************************************"
+echo "*                                                               *"
+echo "* To use Knoboo with Sage, start Sage, then type                *"
+echo "*  sage: !knoboo                                                *"
+echo "*                                                               *"
+echo "*****************************************************************"

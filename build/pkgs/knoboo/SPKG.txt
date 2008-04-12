@@ -1,0 +1,29 @@
+= Knoboo =
+
+== Description ==
+
+Programming notebook for the web
+
+== License ==
+
+GPL -- maybe v3; unclear
+
+== SPKG Maintainers ==
+
+William Stein
+
+== Upstream Contact ==
+
+Alex Clemesha
+
+== Dependencies ==
+
+Twisted
+
+== Special Update/Build Instructions ==
+
+None
+
+== Changelog ==
+
+

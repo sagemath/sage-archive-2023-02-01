@@ -12,10 +12,10 @@ from IPython.CrashHandler import CrashHandler
 
 sage = IPython.Shell.start()
 
-sageCH = CrashHandler(sage.IP, 'SAGE', 'William Stein', \
-                      'wstein@gmail.com', \
-                      'http://www.sagemath.org:9002/sage_trac', \
-		      'SAGE_crash_report.txt', \
+sageCH = CrashHandler(sage.IP, 'Sage', 'sage-support', \
+                      'sage-support@googlegroups.com', \
+                      'http://trac.sagemath.org/sage_trac', \
+		      'Sage_crash_report.txt', \
                       show_crash_traceback=False)
 
 sage.IP.set_crash_handler(sageCH)

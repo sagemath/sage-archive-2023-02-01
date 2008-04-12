@@ -1,5 +1,8 @@
 = gap =
 
+=== gap-4.4.10.p6 (David Joyner, April 11th, 2008) ===
+ * replace guava 3.4 by guava 3.4 with fixed Makefile.in
+
 === gap-4.4.10.p5 (Michael Abshoff, April 1st, 2008) ===
  * Debianize GAP spkg (Tim Abbott, #2756)
 

@@ -33,7 +33,7 @@ import user_conf    # user configuration
 import user         # users
 
 
-SYSTEMS = ['sage', 'axiom', 'gap', 'gp', 'jsmath', 'kash', 'latex', 'macaulay2', 'magma', 'maple', 'mathematica', 'matlab', 'maxima', 'mupad', 'octave', 'python', 'sage', 'sh', 'singular']
+SYSTEMS = ['sage', 'gap', 'gp', 'jsmath', 'html', 'latex', 'maxima', 'python', 'sage', 'sh', 'singular', 'axiom (optional)', 'kash (optional)', 'macaulay2 (optional)', 'magma (optional)', 'maple (optional)', 'mathematica (optional)', 'matlab (optional)', 'mupad (optional)', 'octave (optional)']
 
 JSMATH = True
 
@@ -1991,7 +1991,8 @@ function save_worksheet_and_close() {
                 selected = "selected"
             else:
                 selected = ''
-            options += '<option title="Evaluate all input cells using %s" %s value="%s">%s</option>\n'%(S, selected, S,S)
+            T = S.split()[0]
+            options += '<option title="Evaluate all input cells using %s" %s value="%s">%s</option>\n'%(T, selected, T,S)
         s = """<select  onchange="go_system_select(this, %s);" class="worksheet">
             %s
             </select>"""%(i, options)

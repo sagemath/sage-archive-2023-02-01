@@ -1619,6 +1619,8 @@ function get_cell(id) {
         id -- integer
     OUTPUT:
         a DOM element
+    GLOBAL INPUT:
+        cell_element_cache -- an associative array that maps ids to elements
     */
    var v = cell_element_cache[id];
    if(v == undefined)

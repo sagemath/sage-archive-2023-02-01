@@ -49,7 +49,7 @@ def __check_padic_hypotheses(self, p):
     return p
 
 
-def padic_lseries(self, p, normalize=True):
+def padic_lseries(self, p, normalize=True, use_eclib=False):
     r"""
     Return the $p$-adic $L$-series of self at $p$, which is an object
     whose approx method computes approximation to the true $p$-adic
@@ -107,6 +107,18 @@ def padic_lseries(self, p, normalize=True):
         3 + 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + O(3^9)
         sage: P(0)
         3 + 3^2 + 2*3^4 + 2*3^5 + O(3^6)
+
+    We can use eclib to compute the $L$-series. (but we don't normalize the result yet)
+        sage: e = EllipticCurve('11a')
+        sage: L = e.padic_lseries(3,normalize=False,use_eclib=True)
+        sage: P1 = L.series(5,10)
+        sage: L = e.padic_lseries(3,normalize=False,use_eclib=False)
+        sage: P2 = L.series(5,10)
+        sage: P2*= P1(0) / P2(0)  #rescale P2 such that the constant term agrees with P1
+        sage: T = P1.parent().gen()
+        sage: Q = sum([O(3^5)*T^i for i in range(9)]) + O(T^9) #essentially zero
+        sage: Q == Q + (P1 - P2)                   #check that every term agrees up to O(3^4)
+        True
     """
     key = (p, normalize)
     try:
@@ -115,12 +127,15 @@ def padic_lseries(self, p, normalize=True):
         self._padic_lseries = {}
     except KeyError:
         pass
+    if use_eclib and normalize:
+        raise NotImplementedError, "Cannot compute normalized l-series for elliptic curves using eclib (yet)."
+
     if self.ap(p) % p != 0:
         Lp = plseries.pAdicLseriesOrdinary(self, p,
-                              normalize = normalize)
+                              normalize = normalize, use_eclib=use_eclib)
     else:
         Lp = plseries.pAdicLseriesSupersingular(self, p,
-                              normalize = normalize)
+                              normalize = normalize, use_eclib=use_eclib)
     self._padic_lseries[key] = Lp
     return Lp
 

@@ -44,6 +44,8 @@ import monsky_washnitzer
 from sage.interfaces.all import gp
 from sage.misc.functional import log
 
+from sage.libs.cremona.newforms import ECModularSymbol
+
 class pAdicLseries(SageObject):
     """
     The p-adic L-series of an elliptic curve.
@@ -72,7 +74,7 @@ class pAdicLseries(SageObject):
         sage: L.series(3)
         5 + 4*5^2 + 4*5^3 + O(5^4) + O(5)*T + O(5)*T^2 + O(5)*T^3 + O(5)*T^4 + O(T^5)
     """
-    def __init__(self, E, p, normalize):
+    def __init__(self, E, p, normalize, use_eclib=False):
         """
         INPUT:
             E -- an elliptic curve
@@ -96,7 +98,10 @@ class pAdicLseries(SageObject):
         q = E0.period_lattice().basis()[0]/E.period_lattice().basis()[0]*E0.real_components()/E.real_components()
         self._quotient_of_periods = QQ(gp.bestappr(q,200))
 
-        self._modular_symbol = E.modular_symbol(sign=1, normalize=normalize)
+        if use_eclib:
+            self._modular_symbol = ECModularSymbol(E)
+        else:
+            self._modular_symbol = E.modular_symbol(sign=1, normalize=normalize)
 
     def elliptic_curve(self):
         """

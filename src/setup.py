@@ -245,6 +245,13 @@ cremona_homspace = Extension('sage.libs.cremona.homspace',
                        define_macros = [("NTL_ALL",None)]
                        )
 
+cremona_newforms = Extension('sage.libs.cremona.newforms',
+                       sources = ["sage/libs/cremona/newforms.pyx"],
+                       libraries = ['g0nntl', 'jcntl', 'gmpxx', 'ntl', 'gmp', 'm', 'stdc++', 'pari', 'curvesntl'],
+                       language='c++',
+                       define_macros = [("NTL_ALL",None)]
+                       )
+
 
 finite_field_givaro = Extension('sage.rings.finite_field_givaro',
                        sources = ["sage/rings/finite_field_givaro.pyx"],
@@ -548,6 +555,7 @@ ext_modules = [ \
 
      cremona_mat, \
      cremona_homspace, \
+     cremona_newforms, \
 
      finite_field_givaro, \
      finite_field_ntl_gf2e, \

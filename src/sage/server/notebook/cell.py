@@ -20,7 +20,8 @@ list of cells.
 # On the other hand, we don't want to loose the output of big matrices
 # and numbers, so don't make this too small.
 
-MAX_OUTPUT = 65536
+MAX_OUTPUT = 32000
+MAX_OUTPUT_LINES = 120
 
 TRACEBACK = 'Traceback (most recent call last):'
 
@@ -370,18 +371,22 @@ class Cell(Cell_generic):
             del self._html_cache
 
         output = output.replace('\r','')
-        if len(output) > MAX_OUTPUT:
+        if len(output) > MAX_OUTPUT or output.count('\n') > MAX_OUTPUT_LINES:
             url = ""
             if not self.computing():
                 file = "%s/full_output.txt"%self.directory()
                 open(file,"w").write(output)
-                url = "<a href='%s/full_output.txt' class='file_link'>full_output.txt</a>"%(
+                url = "<a target='_new' href='%s/full_output.txt' class='file_link'>full_output.txt</a>"%(
                     self.url_to_self())
                 html+="<br>" + url
-            if output.lstrip()[:len(TRACEBACK)] != TRACEBACK:
-                output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
-            else:
-                output = output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
+            lines = output.splitlines()
+            start = '\n'.join(lines[:MAX_OUTPUT_LINES/2])[:MAX_OUTPUT/2]
+            end = '\n'.join(lines[-MAX_OUTPUT_LINES/2:])[-MAX_OUTPUT/2:]
+            warning = 'WARNING: Output truncated!  '
+            if url:
+                # make the link to the full output appear at the top too.
+                warning += '\n<html>%s</html>\n'%url
+            output = warning + '\n\n' + start + '\n\n...\n\n' + end
         self.__out = output
         if not self.is_interactive_cell():
             self.__out_html = html

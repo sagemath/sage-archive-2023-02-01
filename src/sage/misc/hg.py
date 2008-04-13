@@ -32,7 +32,7 @@ This system should all be mostly usable from the SAGE notebook.
 import os, shutil
 
 from   viewer import browser
-from   misc   import tmp_filename, branch_current_hg
+from   misc   import tmp_filename, branch_current_hg, embedded
 from   remote_file import get_remote_file as get_remote_file0
 from   sage.server.misc import print_open_msg
 import re
@@ -51,14 +51,6 @@ def get_remote_file(f, **kwds):
         os.rename(g,h)
         return h
     return g
-
-import sage.server.support
-def embedded():
-    """
-    Return True if this copy of Sage is running embedded in the Sage
-    notebook.
-    """
-    return sage.server.support.EMBEDDED_MODE
 
 def pager():
     """
@@ -905,7 +897,7 @@ class HG:
             os.system('sage -clone %s -r %s'%(name, int(rev)))
 
     def commit(self, files='', comment=None, options='', diff=True):
-        """
+        r"""
         Commit your changes to the repository.
 
         Quit out of the editor without saving to not record your
@@ -935,7 +927,7 @@ class HG:
 
         \note{If you create new files you should first add them with the add method.}
         """
-        if sage.server.support.EMBEDDED_MODE and comment is None:
+        if embedded() and comment is None:
             raise RuntimeError, "You're using the SAGE notebook, so you *must* explicitly specify the comment in the commit command."
         if diff:
             self.diff(files)

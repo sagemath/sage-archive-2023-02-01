@@ -1559,3 +1559,15 @@ def pad_zeros(s, size=3):
     """
     return "0"*(size-len(str(s))) + str(s)
 
+import sage.server.support
+
+def embedded():
+    """
+    Return True if this copy of Sage is running embedded in the Sage
+    notebook.
+
+    EXAMPLES:
+        sage: sage.misc.misc.embedded()    # output True if in the notebook
+        False
+    """
+    return sage.server.support.EMBEDDED_MODE

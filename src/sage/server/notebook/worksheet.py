@@ -1230,7 +1230,6 @@ class Worksheet:
         S = self.__sage
         try:
             cmd = '__DIR__="%s/"; DIR=__DIR__; DATA="%s/"; '%(self.DIR(), os.path.abspath(self.data_directory()))
-            #cmd += '_support_.init("%s", globals()); '%object_directory
             cmd += '_support_.init(None, globals()); '
             S._send(cmd)   # non blocking
         except Exception, msg:

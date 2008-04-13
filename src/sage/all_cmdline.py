@@ -30,3 +30,6 @@ def _init_cmdline(globs):
     fortran = InlineFortran(globs)
     globs['fortran'] = fortran
 
+
+
+sage.misc.session.init()

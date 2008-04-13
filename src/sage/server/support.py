@@ -27,7 +27,7 @@ globals_at_init = None
 global_names_at_init = None
 
 def init(object_directory=None, globs={}):
-    """
+    r"""
     Initialize \sage for use with the web notebook interface.
     """
     global sage_globals, globals_at_init, global_names_at_init
@@ -51,6 +51,7 @@ def init(object_directory=None, globs={}):
     sage.misc.pager.EMBEDDED_MODE = True
 
     setup_systems(globs)
+    sage.misc.session.init(globs)
 
 
 def setup_systems(globs):

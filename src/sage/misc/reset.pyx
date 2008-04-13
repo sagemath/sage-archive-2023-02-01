@@ -1,5 +1,8 @@
 import sys
 
+# Exclude these from the reset command.
+EXCLUDE = set(['sage_mode', '__DIR__', 'DIR', 'DATA'])
+
 def reset(vars=None):
     """
     Delete all user defined variables, reset all globals variables
@@ -8,6 +11,9 @@ def reset(vars=None):
 
     If vars is specified, just restore the value of vars and leave
     all other variables alone (i.e., call restore).
+
+    Note that the variables in the set sage.misc.reset.EXCLUDE are
+    excluded from being reset.
 
     INPUT:
         vars -- (default: None), a list, or space or comma separated
@@ -25,14 +31,13 @@ def reset(vars=None):
     G = globals()  # this is the reason the code must be in SageX.
     T = type(sys)
     for k in G.keys():
-        if k[0] != '_' and type(k) != T and k != 'sage_mode':
+        if k[0] != '_' and type(k) != T and k not in EXCLUDE:
             try:
                 del G[k]
             except KeyError:
                 pass
     restore()
     reset_interfaces()
-
 
 def restore(vars=None):
     """

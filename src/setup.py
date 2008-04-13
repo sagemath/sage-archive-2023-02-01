@@ -691,6 +691,9 @@ ext_modules = [ \
     Extension('sage.misc.misc_c',
               sources = ['sage/misc/misc_c.pyx']), \
 
+    Extension('sage.misc.session',
+              sources = ['sage/misc/session.pyx']), \
+
     Extension('sage.misc.refcount',
               sources = ['sage/misc/refcount.pyx']), \
 

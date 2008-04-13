@@ -230,11 +230,9 @@ Firefox has an excellent undo function for text input cells.
 Just hit control-z to have ``infinite undo'' for the input
 you've entered in that particular cell.
 
-You can save all variables in a current session by typing
-\code{save_session [optional_name]}.  You can then load
-those session variables into another worksheet using
-\code{load_session}, or load into the same worksheet next
-time you use it.
+You can save all variables in a current session using the
+\code{save_session} command, and you can then load those session
+variables using the \code{load_session} command.
 
 \subsubsection{Architecture}
 
@@ -373,7 +371,7 @@ notebook_help = [
                  'Delete all cell contents, then the press ctrl-backspace. This is a special case of joining cells.'),
                 ('History', 'Click <a href="/history">log</a> commands you have entered in any worksheet of this notebook.'),
                 ('Hide/Show Output', 'Click on the left side of output to toggle between hidden, shown with word wrap, and shown without word wrap.'),
-                ('Loading and Saving Sessions', 'Use "save_session name" to save all variables to an object with given name (if no name is given, defaults to name of worksheet).  Use "load_session name" to <i>merge</i> in all variables from a saved session.'),
+                ('Loading and Saving Sessions', 'Use "save_session(\'name\')" to save all variables to an object.  Use "load_session(\'name\')" to <i>merge</i> in all variables from a saved session.'),
                 ('Loading and Saving Objects', 'Use "save obj1 obj2 ..." and "load obj1 obj2 ...".  This allows for easy moving of objects from one worksheet to another, and saving of objects for later use.'),
                 ('Loading SAGE/Python Scripts', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
                 ('Attaching Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),

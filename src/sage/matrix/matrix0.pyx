@@ -631,6 +631,16 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             IndexError: duplicate values in index; use matrix_from_rows_and_columns() instead
 
+            sage: M = matrix(3, 4, range(12))
+            sage: M[0:0, 0:0]
+            []
+            sage: M[0:0, 1:4]
+            []
+            sage: M[2:3, 3:3]
+            []
+            sage: M[range(2,2), :3]
+            []
+
         """
         cdef PyObject* ts1
         cdef PyObject* ts2
@@ -684,6 +694,9 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             else:
                 col_range = [s2]
+
+            if PyList_GET_SIZE(row_range) == 0 or PyList_GET_SIZE(col_range) == 0:
+                return self.new_matrix(nrows=0,ncols=0)
 
             if max(row_range) >= self._nrows or max(col_range)>= self._ncols:
                 raise IndexError, "Row or column out of range"

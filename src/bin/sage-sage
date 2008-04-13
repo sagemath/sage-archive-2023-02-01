@@ -415,7 +415,7 @@ if [ $1 = '-hgmerge'  -o $1 = '--hgmerge' ]; then
 
     cd "$CUR"
     shift
-    hgmerge $*
+    hgmerge "$@"
     exit $?
 fi
 
@@ -494,14 +494,14 @@ fi
 if [ $1 = '-grep' -o $1 = "--grep" ]; then
    sage_setup
    shift
-   sage-grep "$*"
+   sage-grep "$@"
    exit 0
 fi
 
 if [ $1 = '-grepdoc' -o $1 = "--grepdoc" ]; then
    sage_setup
    shift
-   sage-grepdoc "$*"
+   sage-grepdoc "$@"
    exit 0
 fi
 
@@ -601,7 +601,7 @@ fi
 if [ $1 = '-c' ]; then
    cd "$CUR"
    shift
-   sage-eval $*
+   sage-eval "$@"
    exit $?
 fi
 

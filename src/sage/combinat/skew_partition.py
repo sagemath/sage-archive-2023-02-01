@@ -589,7 +589,7 @@ def SkewPartitions(n=None, row_lengths=None, overlap=0):
     """
     number_of_arguments = 0
     for arg in ['n', 'row_lengths']:
-        if eval(arg) is not None:
+        if locals()[arg] is not None:
             number_of_arguments += 1
 
     if number_of_arguments > 1:

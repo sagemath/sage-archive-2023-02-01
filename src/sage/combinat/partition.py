@@ -214,7 +214,7 @@ def Partition(l=None, exp=None, core_and_quotient=None):
     """
     number_of_arguments = 0
     for arg in ['l', 'exp', 'core_and_quotient']:
-        if eval(arg) is not None:
+        if locals()[arg] is not None:
             number_of_arguments += 1
 
     if number_of_arguments != 1:

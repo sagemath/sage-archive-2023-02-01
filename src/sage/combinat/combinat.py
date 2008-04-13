@@ -246,7 +246,7 @@ def bell_number(n):
         TypeError: no coercion of this rational to integer
     """
     ans=gap.eval("Bell(%s)"%ZZ(n))
-    return ZZ(eval(ans))
+    return ZZ(ans)
 
 ## def bernoulli_number(n):
 ##     r"""

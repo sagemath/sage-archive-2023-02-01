@@ -23,8 +23,12 @@ GPL
 == Special Update/Build Instructions ==
  * We need to modfiy new.h to accomodate Singular
  * ntl_makefile adds the needed bits to the makefile to enable the building of dynamic libraries on OSX, Cygwin and Linux
+ * We modify tools.c and tools.h to provide an error callback framework (SetErrorCallbackFunction)
 
 == Changelog ==
+
+=== ntl-5.4.2.p1 (David Harvey, April 12th, 2008) ===
+ * added SetErrorCallbackFunction(), update spkg-install script to copy relevant patch files
 
 === ntl-5.4.2.p0 (Michael Abshoff, April 1st, 2008) ===
  * Debian amd64 fixes for NTL (Tim Abbott, #2760)

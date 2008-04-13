@@ -651,7 +651,7 @@ class Cell(Cell_generic):
               id         = 'cell_input_%s'
               onKeyPress = 'return input_keypress(%s,event);'
               onKeyDown  = 'return input_keydown(%s,event);'
-              onKeyUp    = 'return cell_input_resize(this);'
+              onKeyUp    = 'return input_keyup(%s, event);'
               onBlur     = 'cell_blur(%s); return true;'
               onFocus    = 'cell_focused(this,%s); return true;'
               %s

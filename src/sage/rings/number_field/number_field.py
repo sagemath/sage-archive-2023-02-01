@@ -2234,6 +2234,16 @@ class NumberField_generic(number_field_base.NumberField):
 	    sage: zi*zj
             13
 
+        One can also factor elements of the number field:
+
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: K.factor(1/3)
+            Fractional ideal (3)^-1
+            sage: K.factor(1+a)
+            Fractional ideal (a + 1)
+            sage: K.factor(1+a/5)
+            (Fractional ideal (-3*a - 2)) * (Fractional ideal (a + 1)) * (Fractional ideal (-a - 2))^-1 * (Fractional ideal (2*a + 1))^-1
+
         AUTHOR:
             -- Alex Clemesha (2006-05-20): examples
         """

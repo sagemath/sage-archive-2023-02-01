@@ -2053,18 +2053,6 @@ class Worksheet:
                     self.detach(filename)
                 t = ''
 
-            elif t.startswith('save_session') or t.startswith('load_session'):
-                F = after_first_word(t).strip().strip('(').strip(')').strip("'").strip('"').split(',')[0]
-                if len(F) == 0:
-                    filename = self.__filename
-                else:
-                    filename = F
-                filename = self.hunt_file(filename)
-                if t.startswith('save'):
-                    t = '_support_.save_session("%s")'%filename
-                else:
-                    t = 'load_session(locals(), "%s")'%filename
-
             elif t.startswith('save '):
                 t = self._save_objects(after_first_word(t))
 

@@ -487,7 +487,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         else: # p%4==1
             R = ZZ.extension(x**2+1,'i')
             i = R.gen(1)
-            pi = R.fraction_field().factor_integer(p)[0][0].gens_reduced()[0]
+            pi = R.fraction_field().factor(p)[0][0].gens_reduced()[0]
             a,b = pi.list()
             if a%2==0:
                 a,b = -b,a
@@ -578,7 +578,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         else: # p%6==1
             R = ZZ.extension(x**2-x+1,'zeta6')
             zeta6 = R.gen(1)
-            pi = R.fraction_field().factor_integer(p)[0][0].gens_reduced()[0]
+            pi = R.fraction_field().factor(p)[0][0].gens_reduced()[0]
             while (pi-1).norm()%12 !=0:  pi*=zeta6
             a,b = pi.list()
             z = k(-b)/k(a)  # a *specific* 6th root of unity in k

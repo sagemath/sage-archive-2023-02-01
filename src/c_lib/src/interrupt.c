@@ -13,6 +13,17 @@
 #include "interrupt.h"
 #include <stdio.h>
 
+
+char sage_signal_handler_message[SAGE_SIGNAL_HANDLER_MESSAGE_LEN + 1] = "";
+
+
+void set_sage_signal_handler_message(const char* s)
+{
+   sage_signal_handler_message[SAGE_SIGNAL_HANDLER_MESSAGE_LEN] = 0;
+   strncpy(sage_signal_handler_message, s, SAGE_SIGNAL_HANDLER_MESSAGE_LEN);
+}
+
+
 struct sage_signals _signals;
 
 void msg(char* s);
@@ -21,6 +32,12 @@ void sage_signal_handler(int sig) {
 
   char *s = _signals.s;
   _signals.s = NULL;
+
+  // if sage_signal_handler_message is non-empty, that overrides _signals.s
+  if (sage_signal_handler_message[0])
+  {
+     s = sage_signal_handler_message;
+  }
 
   //we override the default handler
   if ( _signals.mpio & 1 ) {
@@ -52,6 +69,9 @@ void sage_signal_handler(int sig) {
 	PyErr_SetString(PyExc_RuntimeError, "");
       }
     }
+
+    // clear out sage_signal_handler_message for the next time around
+    sage_signal_handler_message[0] = 0;
 
 
     //notify 'calling' function

@@ -31,6 +31,8 @@ using namespace NTL;
 
 EXTERN void del_charstar(char*);
 
+EXTERN void setup_NTL_error_callback(void (*function)(const char*, void*), void* context);
+
 ////////  ZZ //////////
 
 #ifndef __cplusplus

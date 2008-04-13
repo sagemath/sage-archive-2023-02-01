@@ -203,6 +203,19 @@ extern struct sage_signals _signals;
                 } } //else { _signals.s = "Unbalanced _sig_str/_sig_off\n"; fprintf(stderr, _signals.s); sage_signal_handler(SIGABRT); }
 
 
+/*
+  This function may be called by the code that *raises* the signal (before raising
+  the signal) to pass an error message back to the handler (for example to appear as the
+  text accompanying the python RuntimeError exception)
+ */
+void set_sage_signal_handler_message(const char* s);
+
+/*
+  Above error message will get truncated at this length:
+ */
+#define SAGE_SIGNAL_HANDLER_MESSAGE_LEN 256
+
+
 /**
  *
  *

@@ -850,7 +850,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: f % 3
             Traceback (most recent call last):
             ...
-            RuntimeError
+            RuntimeError: InvMod: inverse undefined
         """
         if PY_TYPE(self) != PY_TYPE(right) or (<Element>self)._parent is not (<Element>right)._parent:
             self, right = canonical_coercion(self, right)

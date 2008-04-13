@@ -144,11 +144,12 @@ cdef class Parent(sage_object.SageObject):
             return CallMorphism(Hom(S, self))
         if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce()
-        #try:
-        if self._coerce_from_hash.has_key(S):
-            return self._coerce_from_hash[S]
-        #except KeyError:
-        #    pass
+        cdef object ret
+        try:
+            ret = PyObject_GetItem(self._coerce_from_hash,S)
+            return ret
+        except KeyError:
+            pass
         if HAS_DICTIONARY(self):
             mor = self.coerce_map_from_impl(S)
         else:

@@ -233,8 +233,8 @@ class Homset(ParentWithBase, Set_generic):
         True
     """
     def __init__(self, X, Y, cat=None, check=True):
-        self.__domain = X
-        self.__codomain = Y
+        self._domain = X
+        self._codomain = Y
         if cat is None:
             cat = X.category()
         self.__category = cat
@@ -248,7 +248,7 @@ class Homset(ParentWithBase, Set_generic):
 
     def _repr_(self):
         return "Set of Morphisms from %s to %s in %s"%(
-            self.__domain, self.__codomain, self.__category)
+            self._domain, self._codomain, self.__category)
 
     def homset_category(self):
         """
@@ -318,13 +318,13 @@ class Homset(ParentWithBase, Set_generic):
     def __cmp__(self, other):
         if not isinstance(other, Homset):
             return cmp(type(self), type(other))
-        if self.__domain == other.__domain:
-            if self.__codomain == other.__codomain:
+        if self._domain == other._domain:
+            if self._codomain == other._codomain:
                 if self.__category == other.__category:
                     return 0
                 else: return cmp(self.__category, other.__category)
-            else: return cmp(self.__codomain, other.__codomain)
-        else: return cmp(self.__domain, other.__domain)
+            else: return cmp(self._codomain, other._codomain)
+        else: return cmp(self._domain, other._domain)
 
     def __contains__(self, x):
         try:
@@ -343,24 +343,24 @@ class Homset(ParentWithBase, Set_generic):
             raise TypeError, "Identity map only defined for endomorphisms. Try natural_map() instead."
 
     def domain(self):
-        return self.__domain
+        return self._domain
 
     def codomain(self):
-        return self.__codomain
+        return self._codomain
 
     def is_endomorphism_set(self):
         """
         Return True if the domain and codomain of self are the
         same object.
         """
-        return self.__domain is self.__codomain
+        return self._domain is self._codomain
 
     def reversed(self):
         """
         Return the corresponding homset, but with the domain and codomain
         reversed.
         """
-        return Homset(self.__codomain, self.__domain, self.__category)
+        return Homset(self._codomain, self._domain, self.__category)
 
 # class HomsetWithBase(ParentWithBase, Homset): # redundant, see above
 class HomsetWithBase(Homset):

@@ -90,11 +90,11 @@ cdef class Morphism(Element):
             s += "\n  Defn: %s"%('\n        '.join(self._repr_defn().split('\n')))
         return s
 
-    def domain(self):
+    cpdef domain(self):
         return self._domain
 
-    def codomain(self):
-        return self.parent().codomain()
+    cpdef codomain(self):
+        return self._codomain
 
     def category(self):
         return self.parent().category()

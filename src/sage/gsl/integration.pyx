@@ -62,7 +62,7 @@ def numerical_integral(func, a, b=None,
                        eps_rel=1e-6, rule=6):
    r"""
    Returns the numerical integral of the function on the interval
-   from xmin to xmax and an error bound.
+   from a to b and an error bound.
 
    EXAMPLES:
       To integrate the function $x^2$ from 0 to 1, we do
@@ -79,9 +79,9 @@ def numerical_integral(func, a, b=None,
 
    INPUT:
       -- a, b: The interval of integration, specified as two numbers
-               or a as a tuple/list with the first element the lower bound
+               or as a tuple/list with the first element the lower bound
                and the second element the upper bound.  Use
-               '+inf' and '-inf' for plus or minus infinity.
+               +Infinity and -Infinity for plus or minus infinity.
       -- algorithm: valid choices are
                     'qag' -- for an adaptive integration
                     'qng' -- for a non-adaptive gauss kronrod (samples at a maximum of 87pts)
@@ -131,15 +131,15 @@ def numerical_integral(func, a, b=None,
    Note the parameters are always a tuple even if they have one component.
 
    It is possible to perform on infinite intervals as well by using
-   'inf' or '-inf' in the interval argument. For example,
+   +Infinity or -Infinity in the interval argument. For example,
        sage: f = lambda x: float(exp(RR(-x)))
-       sage: numerical_integral(f, 0, 'inf')       # slightly random output
+       sage: numerical_integral(f, 0, +Infinity)       # slightly random output
        (0.99999999999957279, 1.8429811298996553e-07)
 
    Note the coercion to the real field RR, which prevents underflow.
 
        sage: f = lambda x: float(exp(RR(-x**2)))
-       sage: numerical_integral(f,'-inf', 'inf')           # slightly random output
+       sage: numerical_integral(f, -Infinity, +Infinity)           # slightly random output
        (1.7724538509060035, 3.4295192165889879e-08)
 
    One can integrate any real-valued callable function:
@@ -209,20 +209,21 @@ def numerical_integral(func, a, b=None,
       _sig_off
 
    elif algorithm=="qag":
-      if a=="-inf" and b =="inf":
+      from sage.rings.infinity import Infinity
+      if a is -Infinity and b is +Infinity:
          W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
          _sig_on
          gsl_integration_qagi(&F,eps_abs,eps_rel,n,W,&result,&abs_err)
          _sig_off
 
-      elif a=="-inf":
+      elif a is -Infinity:
          _b=b
          W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
          _sig_on
          gsl_integration_qagil(&F,_b,eps_abs,eps_rel,n,W,&result,&abs_err)
          _sig_off
 
-      elif b=="inf":
+      elif b is +Infinity:
          _a=a
          W=<gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
          _sig_on

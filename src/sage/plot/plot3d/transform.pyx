@@ -54,11 +54,11 @@ cdef class Transformation:
         return self.matrix.copy()
 
     def is_skew(self, eps=1e-5):
-        dx, dy, dz = self.matrix.submatrix(0,0,3,3).columns()
+        dx, dy, dz = self.matrix[0:3, 0:3].columns()
         return abs(dx.dot_product(dy)) + abs(dx.dot_product(dz)) + abs(dy.dot_product(dz)) > eps
 
     def is_uniform(self, eps=1e-5):
-        cols = self.matrix.submatrix(0,0,3,3).columns()
+        cols = self.matrix[0:3, 0:3].columns()
         lens = [col.dot_product(col) for col in cols]
         return abs(lens[0] - lens[1]) + abs(lens[0] - lens[2]) < eps
 
@@ -115,12 +115,12 @@ cdef class Transformation:
 
     def max_scale(self):
         if self._svd is None:
-            self._svd = self.matrix.submatrix(0,0,3,3).SVD()
+            self._svd = self.matrix[0:3, 0:3].SVD()
         return self._svd[1][0,0]
 
     def avg_scale(self):
         if self._svd is None:
-            self._svd = self.matrix.submatrix(0,0,3,3).SVD()
+            self._svd = self.matrix[0:3, 0:3].SVD()
         return (self._svd[1][0,0] * self._svd[1][1,1] * self._svd[1][2,2]) ** (1/3.0)
 
 

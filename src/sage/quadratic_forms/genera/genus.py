@@ -207,7 +207,7 @@ def signature(A):
     e0 = 1
     for i in range(A.nrows()):
         # Argh!...
-	e1 = RealField()(A.submatrix(0,0,i+1,i+1).determinant()).sign()
+	e1 = RealField()(A[0:i+1, 0:i+1].determinant()).sign()
 	if e0*e1 == 1:
 	   r += 1
         else:

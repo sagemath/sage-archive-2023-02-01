@@ -2477,6 +2477,15 @@ class SymbolicExpression(RingElement):
         ALIASES:
             integral() and integrate() are the same.
 
+
+        TESTS:
+            sage: a,b = var('a,b')
+            sage: integrate(1/(x^3 *(a+b*x)^(1/3)), x)
+            Traceback (most recent call last):
+            ...
+            TypeError: Computation failed since Maxima requested additional constraints (use assume):
+            Is  a  positive or negative?
+
         """
 
         if v is None:

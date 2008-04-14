@@ -407,7 +407,8 @@ class Maxima(Expect):
         self._output_prompt_re = re.compile('\(\%o[0-9]+\)')
         self._ask = ['zero or nonzero?', 'an integer?', 'positive, negative, or zero?', 'positive or negative?']
         self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask] + \
-                            ['Break [0-9]+']
+                            ['Break [0-9]+'] #note that you might need to change _expect_expr if you
+                                             #change this
         self._error_re = re.compile('(Principal Value|debugmode|Incorrect syntax|Maxima encountered a Lisp error)')
         self._display2d = False
 
@@ -456,7 +457,10 @@ class Maxima(Expect):
                 i = self._expect.expect(expr)
             if i > 0:
                 v = self._expect.before
-                if i >= len(self._ask):
+
+                #We check to see if there is a "serious" error in Maxima.
+                #Note that this depends on the order of self._prompt_wait
+                if expr is self._prompt_wait and i > len(self._ask):
                     self.quit()
                     raise ValueError, "%s\nComputation failed due to a bug in Maxima -- NOTE: Maxima had to be restarted."%v
 

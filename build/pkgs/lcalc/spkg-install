@@ -5,8 +5,11 @@ cd src
 CFLAGS="$CFLAGS -O2 -g -Wa,-W -fno-exceptions -Wno-deprecated -static-libgcc"
 export CFLAGS
 
+# disable Cygwin build for now
 if [ "$UNAME" = "CYGWIN" ]; then
-    cp patches/Lcommandline_elliptic.cc src/src/
+#    cp patches/Lcommandline_elliptic.cc src/src/
+    echo "Sorry, the lcalc build is currently broken"
+    echo 1
 fi
 
 cd src
@@ -31,19 +34,4 @@ strip lcalc*
 echo "Now copying over binary"
 cp lcalc "$SAGE_LOCAL"/bin
 success 'install'
-
-
-## export DEFINES="-D USE_LONG_DOUBLE"
-## make lcalc
-## success 'long double'
-## strip lcalc
-## mv lcalc "$SAGE_LOCAL"/bin/lcalc_ld
-## success 'install lcalc_ld'
-
-## export DEFINES="-D USE_MPFR"
-## make lcalc
-## success 'lcalc_mpfr'
-## strip lcalc
-## mv lcalc "$SAGE_LOCAL"/bin/lcalc_mpfr
-## success 'install lcalc_mpfr'
 

@@ -79,6 +79,7 @@ import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.polynomial.polynomial_element_generic as polynomial_element_generic
 import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing, IntegerRing
+from sage.rings.integer import Integer
 from sage.libs.pari.all import pari_gen
 import sage.misc.defaults
 import sage.misc.latex as latex
@@ -200,6 +201,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             3/5*x^2 + 2*x + 1
             sage: QQ['x'](pari('(-1/3)*x^10 + (2/3)*x - 1/5'))
             -1/3*x^10 + 2/3*x - 1/5
+
+        Coercing strings:
+            sage: QQ['y']('-y')
+            -y
         """
         if is_Element(x):
             P = x.parent()
@@ -219,7 +224,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             try:
                 from sage.misc.parser import Parser, LookupNameMaker
                 R = self.base_ring()
-                p = Parser(integer.Integer, R, LookupNameMaker({self.variable_name(): self.gen()}, R))
+                p = Parser(Integer, R, LookupNameMaker({self.variable_name(): self.gen()}, R))
                 return self(p.parse(x))
             except NameError:
                 raise TypeError,"Unable to coerce string"

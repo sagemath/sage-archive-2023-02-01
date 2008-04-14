@@ -1,0 +1,11 @@
+--- src/dietz/solver/cubex.h.orig	2008-04-14 13:52:59.000000000 -0700
++++ src/dietz/solver/cubex.h	2008-04-14 13:56:27.000000000 -0700
+@@ -13,6 +13,8 @@
+ 
+ // required includes/namespace
+ #include <string>
++// gcc 4.3 needs cstring to compile
++#include <cstring>
+ using namespace std;
+ 
+ // Class declaration - class members/methods, some encapsulated

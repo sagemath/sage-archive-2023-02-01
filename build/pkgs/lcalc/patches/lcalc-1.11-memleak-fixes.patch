@@ -1,0 +1,29 @@
+diff -urN lcalc-constified/src/Lcommandline_numbertheory.cc lcalc-constified-vg/src/Lcommandline_numbertheory.cc
+--- lcalc-constified/src/Lcommandline_numbertheory.cc	2008-02-03 21:36:36.000000000 -0800
++++ lcalc-constified-vg/src/Lcommandline_numbertheory.cc	2008-03-25 11:41:44.000000000 -0700
+@@ -649,8 +649,8 @@
+ 
+     }while(!is_primitive&&a<p-1);
+ 
+-    for(k=0;k<=29;k++) delete(factors[k]);
+-    delete (factors);
++    for(k=0;k<=29;k++) delete[](factors[k]);
++    delete[] (factors);
+ 
+     if(alpha==1) return a;
+ 
+diff -urN lcalc-constified/src/Lcommandline_twist.cc lcalc-constified-vg/src/Lcommandline_twist.cc
+--- lcalc-constified/src/Lcommandline_twist.cc	2008-03-25 09:54:15.000000000 -0700
++++ lcalc-constified-vg/src/Lcommandline_twist.cc	2008-03-25 11:32:05.000000000 -0700
+@@ -1174,8 +1174,8 @@
+ 
+ 
+     } // for d
+-    for(k=0;k<=29;k++) delete(factors[k]);
+-    delete (factors);
++    for(k=0;k<=29;k++) delete[](factors[k]);
++    delete [] (factors);
+     delete [] tmp_g;
+     delete [] tmp_l;
+     delete [] tmp_cmplx;
+Binary files lcalc-constified/src/Lcommandline_twist.o and lcalc-constified-vg/src/Lcommandline_twist.o differ

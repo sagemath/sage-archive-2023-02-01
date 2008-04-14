@@ -1,0 +1,327 @@
+diff -urN lcalc/include/L.h lcalc-constified/include/L.h
+--- lcalc/include/L.h	2008-02-05 17:26:29.000000000 -0500
++++ lcalc-constified/include/L.h	2008-03-25 11:09:42.718343000 -0500
+@@ -125,7 +125,7 @@
+ 
+ 
+     //-----Constructor: initialize the L-function from given data------------------
+-    L_function (char *NAME, int what_type, int N, ttype *coeff, long long Period,
++    L_function (const char *NAME, int what_type, int N, ttype *coeff, long long Period,
+     Double q,  Complex w, int A, Double *g, Complex *l,
+     int n_poles, Complex *p, Complex *r)
+     {
+@@ -187,7 +187,7 @@
+     }
+ 
+     //-----Constructor: initialize the L-function from given data------------------
+-    L_function (char *NAME, int what_type, int N, ttype *coeff, long long Period,
++    L_function (const char *NAME, int what_type, int N, ttype *coeff, long long Period,
+     Double q,  Complex w, int A, Double *g, Complex *l)
+     {
+         if(my_verbose>1)
+@@ -492,18 +492,18 @@
+ 
+     //#include "Lvalue.h"         //value via Riemann sum, via gamma sum, various options for value
+     Complex find_delta(Complex s,Double g);
+-    Complex value_via_Riemann_sum(Complex s,char *return_type="pure");
+-    Complex value_via_gamma_sum(Complex s, char *return_type="pure");
+-    Complex value(Complex s, int derivative = 0, char *return_type="pure");
++    Complex value_via_Riemann_sum(Complex s, const char *return_type="pure");
++    Complex value_via_gamma_sum(Complex s, const char *return_type="pure");
++    Complex value(Complex s, int derivative = 0, const char *return_type="pure");
+ 
+     //#include "Lfind_zeros.h"    //finding zeros routine
+     Double zeros_zoom_brent(Double L1, Double L2, Double u, Double v);
+-    void find_zeros(Double t1, Double t2, Double step_size, char* filename="cout", char* message_stamp="");
+-    void find_zeros_via_gram(Double t1, Long count=0,Double max_refine=1025,char* filename="cout", char* message_stamp="");
++    void find_zeros(Double t1, Double t2, Double step_size, const char* filename="cout", const char* message_stamp="");
++    void find_zeros_via_gram(Double t1, Long count=0,Double max_refine=1025, const char* filename="cout", const char* message_stamp="");
+     int compute_rank(bool print_rank=false);
+     void verify_rank(int rank);
+-    void find_zeros_via_N(Long count=0,bool do_negative=true,Double max_refine=1025, int rank=-1,char* filename="cout", char* message_stamp="");
+-    void find_zeros_elaborate(Double t1, Long count=0,Double max_refine=1025,char* filename="cout", char* message_stamp="");
++    void find_zeros_via_N(Long count=0,bool do_negative=true,Double max_refine=1025, int rank=-1,const char* filename="cout", const char* message_stamp="");
++    void find_zeros_elaborate(Double t1, Long count=0,Double max_refine=1025, const char* filename="cout", const char* message_stamp="");
+ 
+ 
+ };
+diff -urN lcalc/include/Lcommandline_twist.h lcalc-constified/include/Lcommandline_twist.h
+--- lcalc/include/Lcommandline_twist.h	2005-11-22 01:10:45.000000000 -0500
++++ lcalc-constified/include/Lcommandline_twist.h	2008-03-25 11:35:54.049913000 -0500
+@@ -31,7 +31,7 @@
+ 
+ //===============functions================================================
+ 
+-int quadratic_twists(Long D1, Long D2,Double x,Double y,int count,Double step_size,char *what_to_do,bool do_only_even_twists,int desired_rank=-1);
+-int all_twists(Long D1, Long D2,Double x,Double y,int count,Double step_size,char *what_to_do,int twist_type,int print_character);
++int quadratic_twists(Long D1, Long D2,Double x,Double y,int count,Double step_size, const char *what_to_do,bool do_only_even_twists,int desired_rank=-1);
++int all_twists(Long D1, Long D2,Double x,Double y,int count,Double step_size, const char *what_to_do,int twist_type,int print_character);
+ 
+ #endif
+diff -urN lcalc/include/Lcommandline_values_zeros.h lcalc-constified/include/Lcommandline_values_zeros.h
+--- lcalc/include/Lcommandline_values_zeros.h	2005-06-12 16:34:19.000000000 -0400
++++ lcalc-constified/include/Lcommandline_values_zeros.h	2008-03-25 11:29:04.616058000 -0500
+@@ -30,7 +30,7 @@
+ 
+ 
+ //-----functions--------------------------------------------------------------
+-void compute_values(Double x,Double y,char *file_name="",Double x3=0,Double y3=0,Long count=0);
++void compute_values(Double x,Double y,const char *file_name="",Double x3=0,Double y3=0,Long count=0);
+ void compute_zeros(Double x, Double y,Double step_size, Long count=0,int rank=-1);
+ void L_interpolate(Double x, Double y,Double step_size, int n=1000);
+ 
+diff -urN lcalc/include/Lfind_zeros.h lcalc-constified/include/Lfind_zeros.h
+--- lcalc/include/Lfind_zeros.h	2008-01-31 22:48:25.000000000 -0500
++++ lcalc-constified/include/Lfind_zeros.h	2008-03-25 11:11:16.505127000 -0500
+@@ -95,7 +95,7 @@
+ 
+     template <class ttype>
+     void L_function <ttype>::
+-    find_zeros(Double t1, Double t2, Double step_size, char* filename, char* message_stamp)
++    find_zeros(Double t1, Double t2, Double step_size, const char* filename, const char* message_stamp)
+     {
+         Double t,x,y;
+         Double u,v,tmp2;
+@@ -181,7 +181,7 @@
+     //find zeros using gram points and Rosser's rule. Not used by package.
+     template <class ttype>
+     void L_function <ttype>::
+-    find_zeros_via_gram(Double t1, Long count,Double max_refine,char* filename, char* message_stamp){
++    find_zeros_via_gram(Double t1, Long count,Double max_refine,const char* filename, const char* message_stamp){
+ 
+         //find_zeros_elaborate(t1,count,max_refine);
+  cout <<"GRAM POINT ZERO FINDER"<< endl;
+@@ -407,7 +407,7 @@
+     //Latter must be used if the L-function has complex coefficients.
+     template <class ttype>
+     void L_function <ttype>::
+-    find_zeros_via_N(Long count,bool do_negative,Double max_refine, int rank,char* filename, char* message_stamp)
++    find_zeros_via_N(Long count,bool do_negative,Double max_refine, int rank, const char* filename, const char* message_stamp)
+     {
+ 
+ 
+@@ -811,7 +811,7 @@
+     //if they are detected via N(T) comparison.
+     template <class ttype>
+     void L_function <ttype>::
+-    find_zeros_elaborate(Double t1, Long count,Double max_refine,char* filename, char* message_stamp)
++    find_zeros_elaborate(Double t1, Long count,Double max_refine, const char* filename, const char* message_stamp)
+     {
+         Double t,x,y;
+         Double r;
+diff -urN lcalc/include/Lgamma.h lcalc-constified/include/Lgamma.h
+--- lcalc/include/Lgamma.h	2008-02-05 15:18:27.000000000 -0500
++++ lcalc-constified/include/Lgamma.h	2008-03-25 11:51:43.032795000 -0500
+@@ -43,7 +43,7 @@
+ 
+ //computes G(z,w)
+ template <class ttype>
+-Complex inc_GAMMA (ttype z,ttype w, char *method="temme", ttype exp_w = 0, bool recycle=false);  //computes G(z,w)
++Complex inc_GAMMA (ttype z,ttype w, const char *method="temme", ttype exp_w = 0, bool recycle=false);  //computes G(z,w)
+ 
+ template <class ttype>
+ ttype asympt_GAMMA (ttype z,ttype w, ttype exp_w = 0, bool recycle=false);  //computes G(z,w) via asymptotic series
+@@ -67,7 +67,7 @@
+ Complex erfc2(Complex z);
+ 
+ template <class ttype>
+-Complex gamma_sum(Complex s, int what_type,ttype *coeff, int N, Double g, Complex l, Double Q, Long Period, Complex delta=1, char *method="temme");
++Complex gamma_sum(Complex s, int what_type,ttype *coeff, int N, Double g, Complex l, Double Q, Long Period, Complex delta=1, const char *method="temme");
+ //computes a sum of G(z,w)'s (as in (3.3.20)).
+ 
+ Complex exp_recycle();
+@@ -229,7 +229,7 @@
+ //value exp_w which holds exp(-w)
+ //computes G(z,w), so there's an extra w^(-z) factor.
+ template <class ttype>
+-Complex inc_GAMMA (ttype z,ttype w, char *method="temme", ttype exp_w = 0, bool recycle=false)
++Complex inc_GAMMA (ttype z,ttype w, const char *method="temme", ttype exp_w = 0, bool recycle=false)
+ {
+ 
+     Complex G;
+@@ -603,7 +603,7 @@
+ }
+ 
+ template <class ttype>
+-Complex gamma_sum(Complex s, int what_type, ttype *coeff, int N, Double g, Complex l, Double Q, Long Period, Complex delta=1, char *method="temme")
++Complex gamma_sum(Complex s, int what_type, ttype *coeff, int N, Double g, Complex l, Double Q, Long Period, Complex delta=1, const char *method="temme")
+ {
+     Complex SUM=0;
+ 
+diff -urN lcalc/include/Lriemannsiegel.h lcalc-constified/include/Lriemannsiegel.h
+--- lcalc/include/Lriemannsiegel.h	2005-06-12 16:34:19.000000000 -0400
++++ lcalc-constified/include/Lriemannsiegel.h	2008-03-25 11:15:32.129929000 -0500
+@@ -30,7 +30,7 @@
+ #include "Lgamma.h"           //for global variables
+ #include "Lmisc.h"           //for global variables
+ 
+-Complex Zeta(Complex s,char *return_type="pure");
++Complex Zeta(Complex s, const char *return_type="pure");
+ Double C(int i, Double p);
+ Complex siegel(Complex s, int N=10);
+ 
+diff -urN lcalc/include/Lvalue.h lcalc-constified/include/Lvalue.h
+--- lcalc/include/Lvalue.h	2008-02-04 02:10:39.000000000 -0500
++++ lcalc-constified/include/Lvalue.h	2008-03-25 11:08:24.723885000 -0500
+@@ -62,7 +62,7 @@
+ 
+     template <class ttype>
+     Complex L_function <ttype>::
+-    value_via_Riemann_sum(Complex s,char *return_type)
++    value_via_Riemann_sum(Complex s, const char *return_type)
+     {
+         int j,k,m,n;
+         Complex r,z;
+@@ -479,7 +479,7 @@
+     // we are willing to sacrifice for the sake of
+     template <class ttype>
+     Complex L_function <ttype>::
+-    value_via_gamma_sum(Complex s, char *return_type)
++    value_via_gamma_sum(Complex s, const char *return_type)
+     {
+         Complex L_value=0;
+         Double theta=gamma[1];  // equals gamma_1
+@@ -558,7 +558,7 @@
+ 
+     template <class ttype>
+     Complex L_function <ttype>::
+-    value(Complex s, int derivative, char *return_type)
++    value(Complex s, int derivative, const char *return_type)
+     {
+       Complex L_value;
+ 
+diff -urN lcalc/include/cmdline.h lcalc-constified/include/cmdline.h
+--- lcalc/include/cmdline.h	2008-02-05 17:23:23.000000000 -0500
++++ lcalc-constified/include/cmdline.h	2008-03-25 12:03:44.154902000 -0500
+@@ -149,7 +149,7 @@
+ 
+ int cmdline_parser_required (struct gengetopt_args_info *args_info, const char *prog_name);
+ 
+-extern char *cmdline_parser_output_character_values[] ;	/* Possible values for output-character.  */
++extern const char *cmdline_parser_output_character_values[] ;	/* Possible values for output-character.  */
+ 
+ 
+ #ifdef __cplusplus
+diff -urN lcalc/include/getopt.h lcalc-constified/include/getopt.h
+--- lcalc/include/getopt.h	2005-06-12 16:34:19.000000000 -0400
++++ lcalc-constified/include/getopt.h	2008-03-25 12:29:35.011294000 -0500
+@@ -144,7 +144,9 @@
+    errors, only prototype getopt for the GNU C library.  */
+ extern int getopt (int __argc, char *const *__argv, const char *__shortopts);
+ # else /* not __GNU_LIBRARY__ */
++#if !(defined __sun)
+ extern int getopt ();
++#endif
+ # endif /* __GNU_LIBRARY__ */
+ 
+ # ifndef __need_getopt
+diff -urN lcalc/src/1 lcalc-constified/src/1
+--- lcalc/src/1	2008-03-25 12:15:23.838051000 -0500
++++ lcalc-constified/src/1	1969-12-31 19:00:00.000000000 -0500
+@@ -1 +0,0 @@
+-make: *** No rule to make target `2'.  Stop.
+diff -urN lcalc/src/Lcommandline_twist.cc lcalc-constified/src/Lcommandline_twist.cc
+--- lcalc/src/Lcommandline_twist.cc	2008-02-04 01:14:15.000000000 -0500
++++ lcalc-constified/src/Lcommandline_twist.cc	2008-03-25 11:54:15.590471000 -0500
+@@ -116,7 +116,7 @@
+ //the first count zeros above x.
+ 
+ 
+-int quadratic_twists(Long D1, Long D2,Double x,Double y,int count,Double step_size,char *what_to_do,bool do_only_even_twists,int desired_rank)
++int quadratic_twists(Long D1, Long D2,Double x,Double y,int count,Double step_size,const char *what_to_do,bool do_only_even_twists,int desired_rank)
+ {
+ 
+     int k,n;
+@@ -551,7 +551,7 @@
+ 
+ //twist_type: -1 just one complex primitive twist, -2 all non-real primitive twists, 0 all primitive twists, 1 all twists with
+ //conjugate pairs only appearing once, 2 all twists with conjugate pairs appearing twice
+-int all_twists(Long D1, Long D2,Double x,Double y,int count,Double step_size,char *what_to_do,int twist_type,int print_character)
++int all_twists(Long D1, Long D2,Double x,Double y,int count,Double step_size,const char *what_to_do,int twist_type,int print_character)
+ {
+ 
+     //variables for twisting
+@@ -603,7 +603,7 @@
+     Complex s;
+ 
+     Long d;
+-    char *tmp_name="L_chi";
++    const char *tmp_name="L_chi";
+ 
+     i=0;
+ 
+@@ -759,7 +759,7 @@
+ 
+ 
+         r=d; // a bit redundant since we are using q,r,d for the 
+-             // same value. But this allows me to mouse quadratic_twists
++             // same value. But this allows me to mouse Quadratic_twists
+ 
+ 
+ // xxxxxxxxxxxx trivial character do not compute...
+diff -urN lcalc/src/Lcommandline_values_zeros.cc lcalc-constified/src/Lcommandline_values_zeros.cc
+--- lcalc/src/Lcommandline_values_zeros.cc	2007-10-29 01:16:35.000000000 -0500
++++ lcalc-constified/src/Lcommandline_values_zeros.cc	2008-03-25 10:43:18.488736000 -0500
+@@ -26,7 +26,7 @@
+ 
+ 
+ //-----functions--------------------------------------------------------------
+-void compute_values(Double x,Double y,char *file_name,Double x3,Double y3,Long count)
++void compute_values(Double x,Double y,const char *file_name,Double x3,Double y3,Long count)
+ {
+ 
+     fstream file;
+diff -urN lcalc/src/Lriemannsiegel.cc lcalc-constified/src/Lriemannsiegel.cc
+--- lcalc/src/Lriemannsiegel.cc	2007-10-05 19:12:52.000000000 -0400
++++ lcalc-constified/src/Lriemannsiegel.cc	2008-03-25 11:32:15.043078000 -0500
+@@ -28,7 +28,7 @@
+ //To do: Odlyzko Schonhage algorithm XXX
+ 
+ // ZETA FUNCTION
+-Complex Zeta(Complex s,char *return_type) {
++Complex Zeta(Complex s, const char *return_type) {
+ 
+   Complex L_value;
+ 
+diff -urN lcalc/src/build.log lcalc-constified/src/build.log
+--- lcalc/src/build.log	2008-03-25 12:17:05.031420000 -0500
++++ lcalc-constified/src/build.log	1969-12-31 19:00:00.000000000 -0500
+@@ -1,17 +0,0 @@
+-make libLfunction.a
+-make[1]: Entering directory `/scratch/mabshoff/lcalc/src'
+-g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lglobals.cc
+-g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lgamma.cc
+-g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lriemannsiegel.cc
+-ar ruv libLfunction.a Lglobals.o Lgamma.o Lriemannsiegel.o
+-a - Lglobals.o
+-a - Lgamma.o
+-a - Lriemannsiegel.o
+-ranlib libLfunction.a
+-make[1]: Leaving directory `/scratch/mabshoff/lcalc/src'
+-make lcalc
+-make[1]: Entering directory `/scratch/mabshoff/lcalc/src'
+-g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lcommandline_globals.cc
+-g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lcommandline_misc.cc
+-g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lcommandline_numbertheory.cc
+-g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lcommandline_values_zeros.cc
+diff -urN lcalc/src/cmdline.c lcalc-constified/src/cmdline.c
+--- lcalc/src/cmdline.c	2008-02-05 17:23:23.000000000 -0500
++++ lcalc-constified/src/cmdline.c	2008-03-25 12:04:33.612143000 -0500
+@@ -30,7 +30,7 @@
+ cmdline_parser_internal (int argc, char * const *argv, struct gengetopt_args_info *args_info, int override, int initialize, int check_required, const char *additional_error);
+ 
+ 
+-char *cmdline_parser_output_character_values[] = {"1", "2", 0} ;	/* Possible values for output-character.  */
++const char *cmdline_parser_output_character_values[] = {"1", "2", 0} ;	/* Possible values for output-character.  */
+ 
+ static char *
+ gengetopt_strdup (const char *s);
+@@ -704,7 +704,7 @@
+ }
+ 
+ static int
+-check_possible_values(const char *val, char *values[])
++check_possible_values(const char *val, const char *values[])
+ {
+   int i, found;
+   size_t len;

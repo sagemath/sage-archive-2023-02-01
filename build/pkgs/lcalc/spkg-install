@@ -4,6 +4,12 @@ cd src
 
 CFLAGS="$CFLAGS -O2 -g -Wa,-W -fno-exceptions -Wno-deprecated -static-libgcc"
 export CFLAGS
+if [ "$UNAME" = "SunOS" ]; then
+    LCALC_LIBS="-lpari -lmpfr -lgmpxx -lgmp -liberty"
+else
+    LCALC_LIBS="-lpari -lmpfr -lgmpxx -lgmp"
+fi
+export LCALC_LIBS
 
 # disable Cygwin build for now
 if [ "$UNAME" = "CYGWIN" ]; then
@@ -27,9 +33,6 @@ export DEFINES=""
 cp ../../patches/Makefile.sage Makefile
 make lcalc
 success 'plain'
-
-echo "Now striping"
-strip lcalc*
 
 echo "Now copying over binary"
 cp lcalc "$SAGE_LOCAL"/bin

@@ -7,4 +7,4 @@ lcalc: cmdline.c
       Lcommandline_misc.cc Lcommandline_numbertheory.cc \
       Lcommandline_twist.cc Lcommandline_values_zeros.cc \
       Lgamma.cc Lglobals.cc Lmisc.cc Lriemannsiegel.cc \
-            -o lcalc -lpari -lmpfr -lgmpxx -lgmp
+            -o lcalc $(LCALC_LIBS)

@@ -1,0 +1,15 @@
+diff patces/Lcommandline_elliptic.cc src/src/Lcommandline_elliptic.cc
+94,105d93
+< // SAGE -- used below -- needed for Cygwin.
+< #ifndef llrint
+< inline long long int llrint (double x)
+< {
+<     long long int llrintres;
+<     asm
+<     ("fistpll %0"
+<     : "=m" (llrintres) : "t" (x) : "st");
+<     return llrintres;
+< }
+< #endif
+<
+

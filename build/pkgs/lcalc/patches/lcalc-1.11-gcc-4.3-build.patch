@@ -1,0 +1,12 @@
+diff -urN src-orig/include/Lgamma.h src/include/Lgamma.h
+--- src-orig/include/Lgamma.h	2008-04-14 04:55:17.000000000 -0700
++++ src/include/Lgamma.h	2008-04-14 04:56:50.000000000 -0700
+@@ -29,6 +29,7 @@
+ #include "Lmisc.h"
+ #include <iomanip>          //for manipulating output such as setprecision
+ #include <iostream>         //for ostrstream
++#include <cstring>
+ //using namespace std;
+ 
+ 
+Binary files src-orig/src/lcalc and src/src/lcalc differ

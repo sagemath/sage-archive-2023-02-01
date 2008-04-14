@@ -1,3 +1,10 @@
+= lcalc =
+
+
+=== lcalc-20080205 (Michael Abshoff, April 13th, 2008) ===
+ * update to lcalc 1.11 (2008-Feb-05)
+ * Apply both patches from patches directory
+
 * 20070105 -- modified Lcommandline_elliptic.cc to work with Cygwin
   by defining a certain macro.   *** carry this change over when
   updating the package *** and of course backport it upstream.

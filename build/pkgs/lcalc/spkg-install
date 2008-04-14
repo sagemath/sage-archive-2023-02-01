@@ -24,7 +24,7 @@ success() {
 }
 
 export DEFINES=""
-cp Makefile.sage Makefile
+cp ../../patches/Makefile.sage Makefile
 make lcalc
 success 'plain'
 

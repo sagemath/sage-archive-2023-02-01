@@ -1127,6 +1127,9 @@ class SymbolicExpression(RingElement):
     ##################################################################
     # The maxima one is special:
     def _maxima_(self, session=None):
+        r"""
+        Method for coercing self as a Maxima \code{RingElement}.
+        """
         if session is None:
             return RingElement._maxima_(self, maxima)
         else:
@@ -4453,6 +4456,8 @@ class SymbolicArithmetic(SymbolicOperation):
 
     def __call__(self, *args, **kwargs):
         """
+        Method for handling a function call.
+
         EXAMPLES:
             sage: x,y,z=var('x,y,z')
 

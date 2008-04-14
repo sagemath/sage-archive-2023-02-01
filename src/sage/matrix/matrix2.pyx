@@ -3823,6 +3823,70 @@ cdef class Matrix(matrix1.Matrix):
         if p == 'frob':
             return sum([i**2 for i in A.list()]).sqrt()
 
+    def numerical_approx(self,prec=None,digits=None):
+        r"""
+        Return a numerical approximation of \code{self} as either a real or
+        complex number with at least the requested number of bits or
+        digits of precision.
+
+
+        INPUT:
+           prec -- an integer: the number of bits of precision
+           digits -- an integer: digits of precision
+
+        OUTPUT:
+            A matrix coerced to a real or complex field with
+            prec bits of precision.
+
+        EXAMPLES:
+            sage: d = matrix([[3, 0],[0,sqrt(2)]]) ;
+            sage: b = matrix([[1, -1], [2, 2]]) ; e = b * d * b.inverse();e
+            [    1/sqrt(2) + 3/2 3/4 - 1/(2*sqrt(2))]
+            [        3 - sqrt(2)     1/sqrt(2) + 3/2]
+
+            sage: e.numerical_approx(53)
+            [ 2.20710678118655 0.396446609406726]
+            [ 1.58578643762690  2.20710678118655]
+
+            sage: e.numerical_approx(20)
+            [ 2.2071 0.39645]
+            [ 1.5858  2.2071]
+
+            sage: (e-I).numerical_approx(20)
+            [2.2071 - 1.0000*I           0.39645]
+            [           1.5858 2.2071 - 1.0000*I]
+
+            sage: M=matrix(QQ,4,[i/(i+1) for i in range(12)]);M
+            [    0   1/2   2/3]
+            [  3/4   4/5   5/6]
+            [  6/7   7/8   8/9]
+            [ 9/10 10/11 11/12]
+
+            sage: M.numerical_approx()
+            [0.000000000000000 0.500000000000000 0.666666666666667]
+            [0.750000000000000 0.800000000000000 0.833333333333333]
+            [0.857142857142857 0.875000000000000 0.888888888888889]
+            [0.900000000000000 0.909090909090909 0.916666666666667]
+
+            sage: matrix(SR, 2, 2, range(4)).n()
+            [0.000000000000000  1.00000000000000]
+            [ 2.00000000000000  3.00000000000000]
+
+        """
+
+        if prec is None:
+            if digits is None:
+                prec = 53
+            else:
+                prec = int(digits * 3.4) + 2
+
+        try:
+            return self.change_ring(sage.rings.real_mpfr.RealField(prec))
+        except TypeError:
+            # try to return a complex result
+            return self.change_ring(sage.rings.complex_field.ComplexField(prec))
+
+
 def _dim_cmp(x,y):
     """
     Used internally by matrix functions.  Given 2-tuples (x,y),

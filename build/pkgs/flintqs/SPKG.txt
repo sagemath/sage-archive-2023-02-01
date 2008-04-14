@@ -11,4 +11,6 @@ To get a new version:
 
 svn export https://svn.sourceforge.net/svnroot/fastlibnt/trunk/QS/ fastlibnt
 
+=== flintqs-20070817.p3 (Michael Abshoff, April 14th, 2008) ===
+ * apply gcc 4.3 build patch. This has to go upstream
 

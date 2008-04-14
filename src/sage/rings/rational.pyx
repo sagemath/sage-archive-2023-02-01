@@ -882,16 +882,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             return self
         raise IndexError, "index n (=%s) out of range; it must be 0"%n
 
-    def set_si(self, signed long int n):
-        mpq_set_si(self.value, n, 1)
-
-    def set_str(self, s, base=10):
-        valid = mpq_set_str(self.value, s, base)
-        if valid != 0 or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
-            mpq_set_si(self.value, 0, 1)  # so data is valid -- but don't waste time making backup.
-            raise ValueError, "invalid literal (%s); object set to 0"%s
-        mpq_canonicalize(self.value)
-
     ################################################################
     # Optimized arithmetic
     ################################################################

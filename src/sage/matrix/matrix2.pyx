@@ -3069,8 +3069,7 @@ cdef class Matrix(matrix1.Matrix):
         key = "subdivision %s %s"%(i,j)
         sd = self.fetch(key)
         if sd is None:
-            sd = self.submatrix(self.subdivisions[0][i], self.subdivisions[1][j],
-                                self.subdivisions[0][i+1]-self.subdivisions[0][i], self.subdivisions[1][j+1]-self.subdivisions[1][j])
+            sd = self[self.subdivisions[0][i]:self.subdivisions[0][i+1], self.subdivisions[1][j]:self.subdivisions[1][j+1]]
             sd.set_immutable()
             self.cache(key, sd)
         return sd

@@ -2840,7 +2840,7 @@ cdef class IntegerMod_hom(Morphism):
         self.zero = self._codomain(0)
         self.modulus = self._codomain._pyx_order
     cdef Element _call_c_impl(self, Element x):
-        return IntegerMod(self.codomain, x)
+        return IntegerMod(self.codomain(), x)
 
 cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
     """

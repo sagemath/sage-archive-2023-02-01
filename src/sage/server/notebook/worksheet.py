@@ -1140,6 +1140,13 @@ class Worksheet:
         cells = self.__cells
         for i in range(len(cells)):
             if cells[i].id() == id:
+
+                # Delete this cell from the queued up calculation list:
+                C = cells[i]
+                if C in self.__queue and self.__queue[0] != C:
+                    self.__queue.remove(C)
+
+                # Delete this cell from the list of cells in this worksheet:
                 del cells[i]
                 if i > 0:
                     return cells[i-1].id()
@@ -1230,7 +1237,6 @@ class Worksheet:
         S = self.__sage
         try:
             cmd = '__DIR__="%s/"; DIR=__DIR__; DATA="%s/"; '%(self.DIR(), os.path.abspath(self.data_directory()))
-            #cmd += '_support_.init("%s", globals()); '%object_directory
             cmd += '_support_.init(None, globals()); '
             S._send(cmd)   # non blocking
         except Exception, msg:
@@ -2052,18 +2058,6 @@ class Worksheet:
                 for filename in self._normalized_filenames(after_first_word(t)):
                     self.detach(filename)
                 t = ''
-
-            elif t.startswith('save_session') or t.startswith('load_session'):
-                F = after_first_word(t).strip().strip('(').strip(')').strip("'").strip('"').split(',')[0]
-                if len(F) == 0:
-                    filename = self.__filename
-                else:
-                    filename = F
-                filename = self.hunt_file(filename)
-                if t.startswith('save'):
-                    t = '_support_.save_session("%s")'%filename
-                else:
-                    t = 'load_session(locals(), "%s")'%filename
 
             elif t.startswith('save '):
                 t = self._save_objects(after_first_word(t))

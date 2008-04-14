@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 all.py -- much of sage is imported into this module, so you don't
           have to import everything individually.
 """
@@ -161,83 +161,6 @@ from sage.misc.copying import license
 copying = license
 copyright = license
 
-#_copyright = str(copyright)
-#class __Copyright2:
-#    def __repr__(self):
-#        return _copyright + '\n\nCopyright (c) 2004-2006 William Stein.\nAll Rights Reserved.'
-#
-#copyright = __Copyright2()
-
-
-
-def save_session(state, name='sage_session', verbose=False):
-    r"""
-    Save all variables that can be saved to the given filename.  The
-    variables will be saved to a dictionary, which can be loaded using
-    load(name) or load_session.
-
-    From the interpreter use \code{save_session(name)} (i.e., you may
-    ignore that state argument).
-
-    EXAMPLES:
-        sage: save_session('test')   # not tested
-        sage: load_session('test')   # not tested
-    """
-    import cPickle
-    S = set(show_identifiers(state))
-    D = {}
-    for k, x in state.items():
-        try:
-            if k in S:
-                if type(x) == type(save_session):
-                    raise TypeError, '%s is a function'%k
-                _ = cPickle.loads(cPickle.dumps(x, protocol=2))
-                if verbose:
-                    print "Saving %s"%k
-                D[k] = x
-        except Exception, msg:
-            if verbose:
-                print "Not saving %s: %s"%(k, msg)
-            pass
-    save(D, name)
-
-def load_session(state, name='sage_session', verbose=False):
-    r"""
-    Load a saved session.
-
-    From the interpreter use \code{load_session(name)} (i.e., ignore
-    that state argument).
-
-    This merges in all variables from a previously saved session.  It
-    does not clear out the variables in the current sessions, unless
-    they are overwritten.  You can thus merge multiple sessions, and
-    don't necessarily loose all your current work when you use this
-    command.
-    """
-    D = load(name)
-    for k, x in D.items():
-        if verbose:
-            print "Loading %s"%k
-        state[k] = x
-
-def show_identifiers(state):
-    """
-    Returns a list of all variables you have defined during this session.
-
-    In general, call using show_identifiers(locals()).
-
-    If you are typing at the prompt you can type show_identifiers()
-    alone on a line to get a list of identifiers.
-    """
-    return [k for k in state.keys() if not (k in iglob) and k[0] != '_']
-
-iglob = set(['quit_sage', 'InteractiveShell', \
-             'Out', 'In', 'help', 'view_all', \
-             'os', 'iglob', 'variables', '__', '_dh', "_ii", '_i2',
-             '_i1', '_iii', '_i', '_ih', '___', '_oh', '_', '__nonzero__', '__IP'])
-
-#.union(set(globals().keys()))
-
 _cpu_time_ = cputime()
 _wall_time_ = walltime()
 
@@ -339,3 +262,4 @@ from sage.ext.interactive_constructors_c import inject_on, inject_off
 # Sage startup).
 
 set_random_seed()
+

@@ -100,6 +100,7 @@ extern "C" long double sinhl (long double);
 
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 
 #include <iostream>
 #include <iomanip>
@@ -304,52 +305,52 @@ template <class T> static inline T s(unsigned int h, unsigned int k);           
 // they shouldn't even appear in the object code generated.
 
 template <class T> static inline T pi(){ return ld_pi; }
-template <> static inline qd_real pi() { return qd_pi; }
-template <> static inline dd_real pi() { return dd_pi; }
+template <> inline qd_real pi() { return qd_pi; }
+template <> inline dd_real pi() { return dd_pi; }
 
 template <class T> static inline T sqrt2() {return sqrt(2.0L);}
-template <> static inline qd_real sqrt2() {return qd_sqrt2;}
-template <> static inline dd_real sqrt2() {return dd_sqrt2;}
+template <> inline qd_real sqrt2() {return qd_sqrt2;}
+template <> inline dd_real sqrt2() {return dd_sqrt2;}
 
 template <class T> static inline T sqrt3() {return sqrt(3.0L);}
-template <> static inline qd_real sqrt3() {return qd_sqrt3;}
-template <> static inline dd_real sqrt3() {return dd_sqrt3;}
+template <> inline qd_real sqrt3() {return qd_sqrt3;}
+template <> inline dd_real sqrt3() {return dd_sqrt3;}
 
 template <class T> static inline T A() {return 1;}
-template <> static inline double A() {return d_A;}
-template <> static inline long double A() {return ld_A;}
-template <> static inline qd_real A() {return qd_A;}
-template <> static inline dd_real A() {return dd_A;}
+template <> inline double A() {return d_A;}
+template <> inline long double A() {return ld_A;}
+template <> inline qd_real A() {return qd_A;}
+template <> inline dd_real A() {return dd_A;}
 
 template <class T> static inline T B() {return 1;}
-template <> static inline double B() {return d_B;}
-template <> static inline long double B() {return ld_B;}
-template <> static inline qd_real B() {return qd_B;}
-template <> static inline dd_real B() {return dd_B;}
+template <> inline double B() {return d_B;}
+template <> inline long double B() {return ld_B;}
+template <> inline qd_real B() {return qd_B;}
+template <> inline dd_real B() {return dd_B;}
 
 template <class T> static inline T C() {return 1;}
-template <> static inline double C() {return d_C;}
-template <> static inline long double C() {return ld_C;}
-template <> static inline qd_real C() {return qd_C;}
-template <> static inline dd_real C() {return dd_C;}
+template <> inline double C() {return d_C;}
+template <> inline long double C() {return ld_C;}
+template <> inline qd_real C() {return qd_C;}
+template <> inline dd_real C() {return dd_C;}
 
 template <class T> static inline T D() {return 1;}
-template <> static inline double D() {return d_D;}
-template <> static inline long double D() {return ld_D;}
-template <> static inline qd_real D() {return qd_D;}
-template <> static inline dd_real D() {return dd_D;}
+template <> inline double D() {return d_D;}
+template <> inline long double D() {return ld_D;}
+template <> inline qd_real D() {return qd_D;}
+template <> inline dd_real D() {return dd_D;}
 
 template <class T> static inline T pi_sqrt2() {return 1;}
-template <> static inline double pi_sqrt2() {return d_pi * sqrt(2.0);}
-template <> static inline long double pi_sqrt2() {return ld_pi * sqrt(2.0L);}
-template <> static inline qd_real pi_sqrt2() {return qd_pi_sqrt2;}
-template <> static inline dd_real pi_sqrt2() {return dd_pi_sqrt2;}
+template <> inline double pi_sqrt2() {return d_pi * sqrt(2.0);}
+template <> inline long double pi_sqrt2() {return ld_pi * sqrt(2.0L);}
+template <> inline qd_real pi_sqrt2() {return qd_pi_sqrt2;}
+template <> inline dd_real pi_sqrt2() {return dd_pi_sqrt2;}
 
 template <class T> static inline T one_over_12() {return 1;}
-template <> static inline double one_over_12() {return 1.0/12.0;}
-template <> static inline long double one_over_12() {return 1.0L/12.0L;}
-template <> static inline qd_real one_over_12() {return qd_one_over_12;}
-template <> static inline dd_real one_over_12() {return dd_one_over_12;}
+template <> inline double one_over_12() {return 1.0/12.0;}
+template <> inline long double one_over_12() {return 1.0L/12.0L;}
+template <> inline qd_real one_over_12() {return qd_one_over_12;}
+template <> inline dd_real one_over_12() {return dd_one_over_12;}
 
 // A few utility functions...
 

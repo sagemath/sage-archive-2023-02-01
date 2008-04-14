@@ -288,21 +288,6 @@ def do_prefilter_paste(line, continuation):
                 #raise ImportError, "Loading of '%s' not implemented (load .py, .pyx, and .sage files)"%name
                 #line = ''
 
-    elif line[:13] == 'save_session(':
-        line = 'save_session(locals(), %s'%line[13:]
-
-    elif line[:14] == 'save_session (':
-        line = 'save_session (locals(), %s'%line[14:]
-
-    elif line[:13] == 'load_session(':
-        line = 'load_session(locals(), %s'%line[13:]
-
-    elif line[:14] == 'load_session (':
-        line = 'load_session (locals(), %s'%line[14:]
-
-    elif ''.join(line.split()) == 'show_identifiers()':
-        line = 'show_identifiers(locals())'
-
     # This is an attach command like in MAGMA.  The file to attach is
     # any file that could be loaded.  At attach time it is loaded as
     # above.  It is put in a list that is a variable with scope this

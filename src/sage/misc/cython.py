@@ -215,7 +215,7 @@ else:
     SAGE_LOCAL = SAGE_ROOT + '/local/'
 
 extra_link_args =  ['-L' + SAGE_LOCAL + '/lib']
-extra_compile_args = ['-w']
+extra_compile_args = ['-w','-O2']
 
 ext_modules = [Extension('%s', sources=['%s.%s', %s],
                      libraries=%s,

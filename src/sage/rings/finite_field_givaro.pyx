@@ -491,6 +491,15 @@ cdef class FiniteField_givaro(FiniteField):
             sage: k(48771/1225)
             28
 
+            sage: from sage.rings.finite_field_givaro import FiniteField_givaro
+            sage: F9 = FiniteField_givaro(9)
+            sage: F81 = FiniteField_givaro(81)
+            sage: F81(F9.gen())
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to coerce from a finite field other than the prime subfield
+
+
         """
 
         cdef int res
@@ -508,6 +517,9 @@ cdef class FiniteField_givaro(FiniteField):
                 return make_FiniteField_givaroElement(self,(<FiniteField_givaroElement>e).element)
             if e.parent() is self.prime_subfield_C() or e.parent() == self.prime_subfield_C():
                 res = self.int_to_log(int(e))
+            else:
+                raise TypeError, "unable to coerce from a finite field other than the prime subfield"
+
 
         elif PY_TYPE_CHECK(e, int) or \
              PY_TYPE_CHECK(e, Integer) or \

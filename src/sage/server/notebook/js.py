@@ -1838,6 +1838,11 @@ function cell_delete(id) {
     INPUT:
         id -- an integer
     */
+    if (active_cell_list.indexOf(id) != -1) {
+        // Deleting a running cell causes evaluation to be interrupted.
+        // In most cases this avoids potentially tons of confusion.
+        async_request(worksheet_command('interrupt'));
+    }
     async_request(worksheet_command('delete_cell'), cell_delete_callback, 'id='+id)
 }
 
@@ -2874,7 +2879,11 @@ function set_output_text(id, text, wrapped_text, output_html,
         // fill in output text got so far
         var cell_output = get_element('cell_output_' + id);
         if (!cell_output) {
-            alert("Bug in notebook -- missing output for cell with id "+id);
+            // This can happen, e.g., if a cell is deleted from the DOM, but
+            // the server has some output it still wants to put in the cell.
+            // This happens because once a cell is running there is no stopping
+            // it beyond an explicit interrupt (since interrupt may or may not
+            // succeed -- this is the real world with hard to kill C code, etc.).
             return;
         }
         var cell_output_nowrap = get_element('cell_output_nowrap_' + id);

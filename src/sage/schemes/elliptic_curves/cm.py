@@ -58,9 +58,7 @@ def hilbert_class_polynomial(D):
          raise ValueError, "D (=%s) must be a discriminant"%D
     magma.eval("R<x> := PolynomialRing(IntegerRing())")
     f = str(magma.eval("HilbertClassPolynomial(%s)"%D))
-    x = PolynomialRing(IntegerRing(), name='x').gen()
-    f = f.replace('^','**')
-    return eval(f)
+    return IntegerRing()['x'](f)
 
 def cm_j_invariants(K):
     r"""

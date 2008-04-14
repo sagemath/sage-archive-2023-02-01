@@ -215,11 +215,13 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return x.sage_poly(self)
             except:
                 raise TypeError, "Unable to coerce singular object"
-        elif isinstance(x , str) and self._has_singular:
-            self._singular_().set_ring()
+        elif isinstance(x , str):
             try:
-                return self._singular_().parent(x).sage_poly(self)
-            except:
+                from sage.misc.parser import Parser, LookupNameMaker
+                R = self.base_ring()
+                p = Parser(integer.Integer, R, LookupNameMaker({self.variable_name(): self.gen()}, R))
+                return self(p.parse(x))
+            except NameError:
                 raise TypeError,"Unable to coerce string"
         elif isinstance(x, FractionFieldElement):
             if x.denominator().is_unit():

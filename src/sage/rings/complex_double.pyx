@@ -67,8 +67,6 @@ cdef extern from "math.h":
 cdef extern from "stdsage.h":
     void set_gel(GEN x, long n, GEN z)
 
-from sage.misc.sage_eval import sage_eval
-
 cimport sage.rings.ring
 
 cimport sage.rings.integer
@@ -274,7 +272,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             elif isinstance(x, tuple):
                 return ComplexDoubleElement(x[0], x[1])
             elif isinstance(x, str):
-                t = eval(x.replace(' ',''), {"I":self.gen(),"i":self.gen(), 'RealNumber':float})
+                t = cdf_parser.parse_expression(x)
                 if isinstance(t, float):
                     return ComplexDoubleElement(t, 0)
                 else:
@@ -1763,6 +1761,11 @@ def ComplexDoubleField():
         True
     """
     return _CDF
+
+from sage.misc.parser import Parser
+cdef cdf_parser = Parser(float, float,  {"I" : _CDF.gen(), "i" : _CDF.gen()})
+
+
 
 #####
 #(fset 'wrap

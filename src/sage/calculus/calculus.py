@@ -266,7 +266,7 @@ import sage.numerical.optimize
 # separate from the default system-wide version.
 maxima = Maxima(init_code = ['display2d:false; domain: complex; keepfloat: true'])
 
-from sage.misc.sage_eval import sage_eval
+from sage.misc.parser import Parser
 
 from sage.calculus.equations import SymbolicEquation
 from sage.rings.real_mpfr import RealNumber
@@ -439,6 +439,12 @@ class SymbolicExpressionRing_class(uniq, CommutativeRing):
             return x
         elif hasattr(x, '_symbolic_'):
             return x._symbolic_(self)
+        elif isinstance(x, str):
+            try:
+                return symbolic_expression_from_string(x)
+            except SyntaxError, err:
+                msg, s, pos = err.args
+                raise TypeError, "%s: %s !!! %s" % (msg, s[:pos], s[pos:])
         return self._coerce_impl(x)
 
     def _coerce_impl(self, x):
@@ -3384,7 +3390,7 @@ class SymbolicExpression(RingElement):
             try:
                 f = self.polynomial(QQ)
                 w = repr(f.factor())
-                return sage_eval(w, _vars)
+                return symbolic_expression_from_string(w, _vars)
             except TypeError:
                 pass
             return self.parent()(self._maxima_().factor())
@@ -4166,7 +4172,8 @@ class SymbolicConstant(Symbolic_object):
 
         return SymbolicArithmetic([self, right], operator.div)
 
-
+    def __neg__(self):
+        return SymbolicConstant(-self._obj)
 
     def __pow__(self, right):
         """
@@ -4859,7 +4866,15 @@ class SymbolicArithmetic(SymbolicOperation):
         for o in ops:
             try:
                 obj = o._obj
-                if isinstance(obj, Rational):
+                # negative numbers are not handled correctly because _is_atomic has no sense of precedence
+                if o is ops[0] and str(obj)[0] == '-':
+                    temp = SymbolicConstant(obj)
+                    temp._operator = operator.neg
+                    temp._binary = False
+                    temp._unary = True
+                    temp._precedence = 2000
+                    li.append(temp)
+                elif isinstance(obj, Rational):
                     temp = SymbolicConstant(obj)
                     if not temp._obj.is_integral():
                         temp._operator = operator.div
@@ -7397,6 +7412,9 @@ def log(x, base=None):
         except AttributeError:
             return function_log(x) / function_log(base)
 
+_syms['log'] = log
+_syms['ln'] = log
+
 #####################
 # The polylogarithm
 #####################
@@ -8170,31 +8188,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         # use a global flag so all expressions obtained via
         # evaluation of maxima code are assumed pre-simplified
         is_simplified = True
-        last_msg = ''
-        while True:
-            try:
-                w = sage_eval(s, syms)
-            except NameError, msg:
-                if msg == last_msg:
-                    raise NameError, msg
-                msg = str(msg)
-                last_msg = msg
-                i = msg.find("'")
-                j = msg.rfind("'")
-                nm = msg[i+1:j]
-
-                res = re.match('.*' + nm + '\s*\(.*\)', s)
-                if res:
-                    syms[nm] = function(nm)
-                else:
-                    syms[nm] = var(nm)
-            else:
-                break
-        if isinstance(w, (list, tuple)):
-            return w
-        else:
-            x = SR(w)
-        return x
+        return symbolic_expression_from_string(s, syms, accept_sequence=True)
     except SyntaxError:
         raise TypeError, "unable to make sense of Maxima expression '%s' in SAGE"%s
     finally:
@@ -8286,3 +8280,47 @@ def maxima_options(**kwds):
     return ','.join(['%s=%s'%(key,mapped_opts(val)) for key, val in kwds.iteritems()])
 
 
+# Parser for symbolic ring elements
+
+_augmented_syms = {}
+
+def _find_var(name):
+    try:
+        return (_augmented_syms or _syms)[name]
+    except KeyError:
+        pass
+    try:
+        return SR(sage.all.__dict__[name])
+    except (KeyError, TypeError):
+        return var(name)
+
+def _find_func(name):
+    try:
+        func = (_augmented_syms or _syms)[name]
+        if not isinstance(func, (SymbolicConstant, SymbolicVariable)):
+            return func
+    except KeyError:
+        pass
+    try:
+        func = SR(sage.all.__dict__[name])
+        if not isinstance(func, (SymbolicConstant, SymbolicVariable)):
+            return func
+    except (KeyError, TypeError):
+        return function(name)
+
+SR_parser = Parser(make_int      = lambda x: SymbolicConstant(Integer(x)),
+                   make_float    = lambda x: SymbolicConstant(create_RealNumber(x)),
+                   make_var      = _find_var,
+                   make_function = _find_func)
+
+def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
+    parse_func = SR_parser.parse_sequence if accept_sequence else SR_parser.parse_expression
+    if syms is None:
+        return parse_func(s)
+    else:
+        try:
+            global _augmented_syms
+            _augmented_syms = syms
+            return parse_func(s)
+        finally:
+            _augmented_syms = {}

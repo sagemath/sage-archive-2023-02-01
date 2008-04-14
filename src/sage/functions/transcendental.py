@@ -39,8 +39,6 @@ def __prep_num(x):
 
 CC = complex_field.ComplexField()
 I = CC.gen(0)
-def __eval(x):
-    return eval(x)
 
 def exponential_integral_1(x, n=0):
     r"""

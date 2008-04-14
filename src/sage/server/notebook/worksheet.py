@@ -1140,6 +1140,13 @@ class Worksheet:
         cells = self.__cells
         for i in range(len(cells)):
             if cells[i].id() == id:
+
+                # Delete this cell from the queued up calculation list:
+                C = cells[i]
+                if C in self.__queue and self.__queue[0] != C:
+                    self.__queue.remove(C)
+
+                # Delete this cell from the list of cells in this worksheet:
                 del cells[i]
                 if i > 0:
                     return cells[i-1].id()

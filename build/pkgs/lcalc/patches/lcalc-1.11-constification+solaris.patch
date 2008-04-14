@@ -215,11 +215,6 @@ diff -urN lcalc/include/getopt.h lcalc-constified/include/getopt.h
  # endif /* __GNU_LIBRARY__ */
  
  # ifndef __need_getopt
-diff -urN lcalc/src/1 lcalc-constified/src/1
---- lcalc/src/1	2008-03-25 12:15:23.838051000 -0500
-+++ lcalc-constified/src/1	1969-12-31 19:00:00.000000000 -0500
-@@ -1 +0,0 @@
--make: *** No rule to make target `2'.  Stop.
 diff -urN lcalc/src/Lcommandline_twist.cc lcalc-constified/src/Lcommandline_twist.cc
 --- lcalc/src/Lcommandline_twist.cc	2008-02-04 01:14:15.000000000 -0500
 +++ lcalc-constified/src/Lcommandline_twist.cc	2008-03-25 11:54:15.590471000 -0500
@@ -283,27 +278,6 @@ diff -urN lcalc/src/Lriemannsiegel.cc lcalc-constified/src/Lriemannsiegel.cc
  
    Complex L_value;
  
-diff -urN lcalc/src/build.log lcalc-constified/src/build.log
---- lcalc/src/build.log	2008-03-25 12:17:05.031420000 -0500
-+++ lcalc-constified/src/build.log	1969-12-31 19:00:00.000000000 -0500
-@@ -1,17 +0,0 @@
--make libLfunction.a
--make[1]: Entering directory `/scratch/mabshoff/lcalc/src'
--g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lglobals.cc
--g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lgamma.cc
--g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lriemannsiegel.cc
--ar ruv libLfunction.a Lglobals.o Lgamma.o Lriemannsiegel.o
--a - Lglobals.o
--a - Lgamma.o
--a - Lriemannsiegel.o
--ranlib libLfunction.a
--make[1]: Leaving directory `/scratch/mabshoff/lcalc/src'
--make lcalc
--make[1]: Entering directory `/scratch/mabshoff/lcalc/src'
--g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lcommandline_globals.cc
--g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lcommandline_misc.cc
--g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lcommandline_numbertheory.cc
--g++ -Wa,-W -O2 -Wno-deprecated  -ffast-math  -I../include -c Lcommandline_values_zeros.cc
 diff -urN lcalc/src/cmdline.c lcalc-constified/src/cmdline.c
 --- lcalc/src/cmdline.c	2008-02-05 17:23:23.000000000 -0500
 +++ lcalc-constified/src/cmdline.c	2008-03-25 12:04:33.612143000 -0500

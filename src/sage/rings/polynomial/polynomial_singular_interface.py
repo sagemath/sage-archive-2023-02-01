@@ -383,7 +383,20 @@ def lcm_func(self, right, have_ring=False):
         sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
         sage: f.lcm(x^4)
         (a^2 + a)*x^6*y + (a^3 + a - 1)*x^4*y + (-a)*x^4
+
+    TESTS:
+        sage: R.<X>=QQ[]
+        sage: a=R(1)
+	sage: b=X
+	sage: lcm(b,a)
+	X
+	sage: lcm(a,b)
+	X
     """
+    # Singular doesn't like constant polynomials as the first argument
+    # and nonconstant as the second
+    if self.is_constant() and not right.is_constant():
+	self, right = right, self
     lcm = self._singular_(have_ring=have_ring).lcm(right._singular_(have_ring=have_ring))
     return lcm.sage_poly(self.parent())
 

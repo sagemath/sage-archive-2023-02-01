@@ -291,11 +291,14 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         else:
             T.incr(f_out,phc=phc)
 
-    # In the application of Smyth's theorem above, we exclude finitely
-    # many possibilities which we must now throw back in.
+    # In the application of Smyth's theorem above (and easy
+    # irreducibility test), we exclude finitely many possibilities
+    # which we must now throw back in.
     if n == 2 and B >= 5 and (type(t_2) == bool and (not t_2 or 5 >= t_2val)) or \
         (type(t_2) == Integer and 5 >= t_2):
         S = [[5,pari('x^2-x-1')]] + S
+        if B >= 8 and B < 32:
+            S.insert(1, [8,  pari('x^2-2')])
     elif n == 3 and B >= 49 and (type(t_2) == bool and (not t_2 or 5 >= t_2val)) or \
         (type(t_2) == Integer and 5 >= t_2):
         S = [[49,pari('x^3-x^2-2*x+1')]] + S

@@ -628,13 +628,13 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
     sage: F.<t> = NumberField(x^2-5)
     sage: ls = enumerate_totallyreal_fields_rel(F, 2, 10^4)
     sage: ls # random (the second factor is platform-dependent)
-    [[725, x^4 - x^3 - 3*x^2 + x + 1, xF^2 + (-1/2*t + 1/2)*xF - t - 2],
-     [1125, x^4 - x^3 - 4*x^2 + 4*x + 1, xF^2 + (-1/2*t + 1/2)*xF - 1/2*t - 3/2],
-     [1600, x^4 - 6*x^2 + 4, xF^2 - t - 3],
+    [[725, x^4 - x^3 - 3*x^2 + x + 1, xF^2 + (-1/2*t - 7/2)*xF + 1],
+     [1125, x^4 - x^3 - 4*x^2 + 4*x + 1, xF^2 + (-1/2*t - 7/2)*xF + 1/2*t + 3/2],
+     [1600, x^4 - 6*x^2 + 4, xF^2 - 2],
      [2000, x^4 - 5*x^2 + 5, xF^2 - 1/2*t - 5/2],
      [2225, x^4 - x^3 - 5*x^2 + 2*x + 4, xF^2 + (-1/2*t + 1/2)*xF - 3/2*t - 7/2],
      [2525, x^4 - 2*x^3 - 4*x^2 + 5*x + 5, xF^2 + (-1/2*t - 1/2)*xF - 1/2*t - 5/2],
-     [3600, x^4 - 2*x^3 - 7*x^2 + 8*x + 1, xF^2 - 3/2*t - 9/2],
+     [3600, x^4 - 2*x^3 - 7*x^2 + 8*x + 1, xF^2 - 3],
      [4225, x^4 - 9*x^2 + 4, xF^2 + (-1/2*t - 1/2)*xF - 3/2*t - 9/2],
      [4400, x^4 - 7*x^2 + 11, xF^2 - 1/2*t - 7/2],
      [4525, x^4 - x^3 - 7*x^2 + 3*x + 9, xF^2 + (-1/2*t - 1/2)*xF - 3],
@@ -642,19 +642,20 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
      [5225, x^4 - x^3 - 8*x^2 + x + 11, xF^2 + (-1/2*t - 1/2)*xF - 1/2*t - 7/2],
      [5725, x^4 - x^3 - 8*x^2 + 6*x + 11, xF^2 + (-1/2*t + 1/2)*xF - 1/2*t - 7/2],
      [6125, x^4 - x^3 - 9*x^2 + 9*x + 11, xF^2 + (-1/2*t + 1/2)*xF - t - 4],
+     [7225, x^4 - 11*x^2 + 9, xF^2 + (-1)*xF - 4],
      [7600, x^4 - 9*x^2 + 19, xF^2 - 1/2*t - 9/2],
      [7625, x^4 - x^3 - 9*x^2 + 4*x + 16, xF^2 + (-1/2*t - 1/2)*xF - 4],
      [8000, x^4 - 10*x^2 + 20, xF^2 - t - 5],
-     [8525, x^4 - 2*x^3 - 8*x^2 + 9*x + 19, xF^2 + xF - 1/2*t - 9/2],
+     [8525, x^4 - 2*x^3 - 8*x^2 + 9*x + 19, xF^2 + (-1)*xF - 1/2*t - 9/2],
      [8725, x^4 - x^3 - 10*x^2 + 2*x + 19, xF^2 + (-1/2*t - 1/2)*xF - 1/2*t - 9/2],
      [9225, x^4 - x^3 - 10*x^2 + 7*x + 19, xF^2 + (-1/2*t + 1/2)*xF - 1/2*t - 9/2]]
     sage: [ f[0] for f in ls ]
-    [725, 1125, 1600, 2000, 2225, 2525, 3600, 4225, 4400, 4525, 5125, 5225, 5725, 6125, 7600, 7625, 8000, 8525, 8725, 9225]
+    [725, 1125, 1600, 2000, 2225, 2525, 3600, 4225, 4400, 4525, 5125, 5225, 5725, 6125, 7225, 7600, 7625, 8000, 8525, 8725, 9225]
 
     sage: [NumberField(ZZx(x[1]), 't').is_galois() for x in ls]
-    [False, True, True, True, False, False, True, True, False, False, False, False, False, True, False, False, True, False, False, False]
+    [False, True, True, True, False, False, True, True, False, False, False, False, False, True, True, False, False, True, False, False, False]
 
-    Seven out of 18 such fields are Galois (with Galois group Z/4Z
+    Eight out of 21 such fields are Galois (with Galois group Z/4Z
     or Z/2Z + Z/2Z); the others have have Galois closure of degree 8
     (with Galois group D_8).
 
@@ -736,7 +737,10 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
             f_str += '(' + str(f_out[i]) + ')*x^' + str(i)
             if i < len(f_out)-1:
                 f_str += '+'
-        nf = pari(f_str).polresultant(nfF, parit)
+        nf = pari(f_str)
+        if nf.poldegree('t') == 0:
+            nf = nf.subst('x', 'x-t')
+        nf = nf.polresultant(nfF, parit)
         d = nf.poldisc()
         counts[0] += 1
         if d > 0 and nf.polsturm_full() == n:
@@ -803,7 +807,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0, return_seqs=Fal
                 ind = bisect.bisect_left(S, [d,ng])
                 S.insert(ind, [d,ng])
                 Srel.insert(ind, Fx([-1,1,1]))
-        elif d == 2:
+        elif F.degree() == 2:
             for ff in [[1,-7,13,-7,1],[1,-8,14,-7,1]]:
                 f = Fx(ff).factor()[0][0]
                 K = F.extension(f, 'tK')
@@ -878,6 +882,7 @@ def enumerate_totallyreal_fields_all(n, B, verbose=0, return_seqs=False):
                     for EF in F.composite_fields(NumberField(ZZx(E[1]), 'u')):
                         if EF.degree() == n and EF.disc() <= B:
                             S.append([EF.disc(), pari(EF.absolute_polynomial())])
+    S += enumerate_totallyreal_fields_prim(n, B, verbose=verbose)
     S.sort()
     weed_fields(S)
 

@@ -2969,15 +2969,62 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K = NumberField(A, 'a')
             sage: K.units()
             [8/275*a^3 - 12/55*a^2 + 15/11*a - 2]
+
+        Sage might not be able to provably compute the unit group:
+
+            sage: K = NumberField(x^17 + 3, 'a')
+            sage: K.units(proof=True) # default
+            Traceback (most recent call last):
+            ...
+            PariError: not enough precomputed primes, need primelimit ~  (35)
+
+        In this case, one can ask for the conjectural unit group (correct if
+        the Generalized Riemann Hypothesis is true):
+
+            sage: K.units(proof=False)
+            [a^9 + a - 1,
+            a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1,
+            2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4,
+            2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4,
+            a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2,
+            a^16 - a^15 - 3*a^14 - 4*a^13 - 4*a^12 - 3*a^11 - a^10 + 2*a^9 + 4*a^8 + 5*a^7 + 4*a^6 + 2*a^5 - 2*a^4 - 6*a^3 - 9*a^2 - 9*a - 7,
+            a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1,
+            3*a^16 + 3*a^15 + 3*a^14 + 3*a^13 + 3*a^12 + 2*a^11 + 2*a^10 + 2*a^9 + a^8 - a^7 - 2*a^6 - 3*a^5 - 3*a^4 - 4*a^3 - 6*a^2 - 8*a - 8]
+
+        The provable and the conjectural results are cached separately (this
+        fixes trac #2504):
+
+            sage: K.units(proof=True)
+            Traceback (most recent call last):
+            ...
+            PariError: not enough precomputed primes, need primelimit ~  (35)
         """
         proof = proof_flag(proof)
+
+        # if we have cached provable results, return them immediately
         try:
             return self.__units
         except AttributeError:
-            B = self.pari_bnf(proof).bnfunit()
-            R = self.polynomial().parent()
+            pass
+
+        # if proof==False and we have cached results, return them immediately
+        if not proof:
+            try:
+                return self.__units_no_proof
+            except AttributeError:
+                pass
+
+        # get Pari to compute the units
+        B = self.pari_bnf(proof).bnfunit()
+        R = self.polynomial().parent()
+        if proof:
+            # cache the provable results and return them
             self.__units = [self(R(g)) for g in B]
             return self.__units
+        else:
+            # cache the conjectural results and return them
+            self.__units_no_proof = [self(R(g)) for g in B]
+            return self.__units_no_proof
 
     def zeta(self, n=2, all=False):
         """

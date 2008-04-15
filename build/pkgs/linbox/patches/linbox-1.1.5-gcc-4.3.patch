@@ -1,0 +1,91 @@
+diff -urN linbox-1.1.5p1/linbox/linbox/algorithms/matrix-hom.h linbox-1.1.5p1-4.3/linbox/linbox/algorithms/matrix-hom.h
+--- linbox-1.1.5p1/linbox/linbox/algorithms/matrix-hom.h	2008-02-20 11:56:10.000000000 -0800
++++ linbox-1.1.5p1-4.3/linbox/linbox/algorithms/matrix-hom.h	2008-04-11 02:20:37.000000000 -0700
+@@ -35,10 +35,10 @@
+ 	};
+ 	*/
+ 
+-	template <class Ring, class Field>
+-	struct MatrixHomTrait<DenseMatrixBase<typename Ring::Element>, Field> {
+-		typedef DenseMatrixBase<typename Field::Element> value_type;
+-	};
++	//template <class Ring, class Field>
++	//struct MatrixHomTrait<DenseMatrixBase<typename Ring::Element>, Field> {
++	//	typedef DenseMatrixBase<typename Field::Element> value_type;
++	//};
+ 	template <class Ring, class Field>
+ 	struct MatrixHomTrait<SparseMatrix<Ring, typename Vector<Ring>::SparseSeq>, Field> {
+ 		typedef SparseMatrix<Field, typename Vector<Field>::SparseSeq> value_type;
+diff -urN linbox-1.1.5p1/linbox/linbox/matrix/blas-matrix.h linbox-1.1.5p1-4.3/linbox/linbox/matrix/blas-matrix.h
+--- linbox-1.1.5p1/linbox/linbox/matrix/blas-matrix.h	2008-03-01 10:11:02.000000000 -0800
++++ linbox-1.1.5p1-4.3/linbox/linbox/matrix/blas-matrix.h	2008-04-11 02:22:44.000000000 -0700
+@@ -36,17 +36,17 @@
+ 	template<class Element>
+ 	class BlasMatrix;
+ 	
+-	template <class Field>
+-	class MatrixContainerTrait<BlasMatrix<typename Field::Element> > {
+-	public:
+-		typedef MatrixContainerCategory::BlasContainer Type;
+-	};
++	//template <class Field>
++	//class MatrixContainerTrait<BlasMatrix<typename Field::Element> > {
++	//public:
++	//	typedef MatrixContainerCategory::BlasContainer Type;
++	//};
+ 	
+-	template <class Field>
+-	class MatrixContainerTrait<const BlasMatrix<typename Field::Element> > {
+-	public:
+-		typedef MatrixContainerCategory::BlasContainer Type;
+-	};
++	//template <class Field>
++	//class MatrixContainerTrait<const BlasMatrix<typename Field::Element> > {
++	//public:
++	//	typedef MatrixContainerCategory::BlasContainer Type;
++	//};
+ 
+ 
+ 	// @brief Limited docs so far.
+diff -urN linbox-1.1.5p1/linbox/linbox/matrix/matrix-category.h linbox-1.1.5p1-4.3/linbox/linbox/matrix/matrix-category.h
+--- linbox-1.1.5p1/linbox/linbox/matrix/matrix-category.h	2008-02-20 11:56:03.000000000 -0800
++++ linbox-1.1.5p1-4.3/linbox/linbox/matrix/matrix-category.h	2008-04-11 02:24:10.000000000 -0700
+@@ -46,17 +46,17 @@
+ 	};
+ 	
+ 
+-	template <class Field>
+-	class MatrixContainerTrait<DenseMatrixBase<typename Field::Element> > {
+-	public:
+-		typedef MatrixContainerCategory::Container Type;
+-	};
++	//template <class Field>
++	//class MatrixContainerTrait<DenseMatrixBase<typename LinBox::Field::Element> > {
++	//public:
++	//	typedef MatrixContainerCategory::Container Type;
++	//};
+ 	
+-	template <class Field>
+-	class MatrixContainerTrait<SparseMatrixBase<typename Field::Element> > {
+-	public:
+-		typedef MatrixContainerCategory::Container Type;
+-	};
++	//template <class Field>
++	//class MatrixContainerTrait<SparseMatrixBase<typename Field::Element> > {
++	//public:
++	//	typedef MatrixContainerCategory::Container Type;
++	//};
+ 
+ 	
+ 	template <class Field>
+diff -urN linbox-1.1.5p1/linbox/linbox/util/error.h linbox-1.1.5p1-4.3/linbox/linbox/util/error.h
+--- linbox-1.1.5p1/linbox/linbox/util/error.h	2008-03-01 10:54:52.000000000 -0800
++++ linbox-1.1.5p1-4.3/linbox/linbox/util/error.h	2008-04-11 01:36:22.000000000 -0700
+@@ -25,6 +25,7 @@
+ #define __UTIL_ERROR_H
+ 
+ #include <iostream>
++#include <cstring>
+ 
+ namespace LinBox
+ {

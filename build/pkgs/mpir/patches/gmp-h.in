@@ -23,6 +23,7 @@ MA 02110-1301, USA. */
 #ifndef __GMP_H__
 
 #if defined (__cplusplus)
+#include <iostream> /* for std::FILE */
 #include <iosfwd>   /* for std::istream, std::ostream, std::string */
 #endif
 

@@ -24,11 +24,14 @@ LGPL V2 or later
 
 == Changelog ==
 
-=== linbox-1.1.5p2 (Michael Abshoff, April 9th, 2008) ===
+=== linbox-1.1.5.p3 (Michael Abshoff, April 15th, 2008) ===
+ * apply gcc 4.3 build patch
+
+=== linbox-1.1.5.p2 (Michael Abshoff, April 9th, 2008) ===
  * Apply Clement Pernet's commentator fix (#2833)
  * clean up spkg-install some more and remove unneeded and faulty gmp++ copying
 
-=== linbox-1.1.5p1 (Clement Pernet, April 4th, 2008) ===
+=== linbox-1.1.5.p1 (Clement Pernet, April 4th, 2008) ===
  * Revert charpoly method to LUK, waiting to investigate further the bug in ArithProg method (ticket #2804)
 
 === linbox-1.1.5 (Clement Pernet, April 2nd, 2008) ===

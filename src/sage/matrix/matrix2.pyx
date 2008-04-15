@@ -899,8 +899,12 @@ cdef class Matrix(matrix1.Matrix):
         over the base ring.
 
         ALGORITHM: Compute the Hessenberg form of the matrix and read
-        off the characteristic polynomial from that.  The result is
-        cached.
+        off the characteristic polynomial from that.
+
+        If the base ring of the matrix is a number field, use PARI's charpoly
+        instead.
+
+        The result is cached.
 
         INPUT:
             var -- a variable name (default: 'x')
@@ -959,6 +963,15 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.charpoly('Z')
             Z^2 + (-y^2 - x)*Z - x^2*y + x*y^2
 
+        Here is an example over a number field:
+            sage: x = QQ['x'].gen()
+            sage: K.<a> = NumberField(x^2 - 2)
+            sage: m = matrix(K, [[a-1, 2], [a, a+1]])
+            sage: m.charpoly('Z')
+            Z^2 + (-2*a)*Z - 2*a + 1
+            sage: m.charpoly('a')(m) == 0
+            True
+
         TESTS:
             sage: P.<a,b,c> = PolynomialRing(Rationals())
             sage: u = MatrixSpace(P,3)([[0,0,a],[1,0,b],[0,1,c]])
@@ -974,10 +987,56 @@ cdef class Matrix(matrix1.Matrix):
             D = {}
             self.cache('charpoly',D)
 
-        f = self._charpoly_hessenberg(var)
+        if is_NumberField(self.base_ring()):
+            f = self._charpoly_over_number_field(var)
+        else:
+            f = self._charpoly_hessenberg(var)
         D[var] = f   # this caches it.
         return f
 
+    def _charpoly_over_number_field(self, var='x'):
+        r"""
+        Use PARI to compute the characteristic polynomial of self as a
+        polynomial over the base ring.
+
+        EXAMPLES:
+            sage: x = QQ['x'].gen()
+            sage: K.<a> = NumberField(x^2 - 2)
+            sage: m = matrix(K, [[a-1, 2], [a, a+1]])
+            sage: m._charpoly_over_number_field('Z')
+            Z^2 + (-2*a)*Z - 2*a + 1
+            sage: m._charpoly_over_number_field('a')(m) == 0
+            True
+            sage: m = matrix(K, [[0, a, 0], [-a, 0, 0], [0, 0, 0]])
+            sage: m._charpoly_over_number_field('Z')
+            Z^3 + 2*Z
+
+            The remaining tests are indirect:
+
+            sage: L.<b> = K.extension(x^3 - a)
+            sage: m = matrix(L, [[b+a, 1], [a, b^2-2]])
+            sage: m.charpoly('Z')
+            Z^2 + ((-1)*b^2 + (-1)*b - a + 2)*Z + a*b^2 + (-2)*b - 2*a
+            sage: m.charpoly('a')
+            a^2 + ((-1)*b^2 + (-1)*b - a + 2)*a + a*b^2 + (-2)*b - 2*a
+            sage: m.charpoly('a')(m) == 0
+            True
+
+            sage: M.<c> = L.extension(x^2 - a*x + b)
+            sage: m = matrix(M, [[a+b+c, 0, b], [0, c, 1], [a-1, b^2+1, 2]])
+            sage: f = m.charpoly('Z'); f
+            Z^3 + ((-2)*c + (-1)*b - a - 2)*Z^2 + ((b + 2*a + 4)*c + (-1)*b^2 + (-a + 2)*b + 2*a - 1)*Z + (b^2 + (a - 3)*b - 4*a + 1)*c + a*b^2 + 3*b + 2*a
+            sage: f(m) == 0
+            True
+            sage: f.base_ring() is M
+            True
+        """
+        K = self.base_ring()
+        if not is_NumberField(K):
+            raise ValueError, "_charpoly_over_number_field called with base ring (%s) not a number field" % K
+
+        paripoly = self._pari_().charpoly()
+        return K[var](paripoly)
 
     def fcp(self, var='x'):
         """

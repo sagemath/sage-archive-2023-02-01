@@ -1,0 +1,10 @@
+--- src/factory/readcf.y.orig	2008-04-14 21:56:28.000000000 -0700
++++ src/factory/readcf.y	2008-04-14 21:56:37.000000000 -0700
+@@ -9,6 +9,7 @@
+ #define alloca _alloca
+ #endif
+ 
++#include <cstring> // we need this fot gcc 4.3
+ #include <config.h>
+ 
+ #include <ctype.h>

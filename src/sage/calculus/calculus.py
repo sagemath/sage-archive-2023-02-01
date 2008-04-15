@@ -3585,6 +3585,18 @@ class SymbolicExpression(RingElement):
             sage: f(x=pi)
             2*pi^2
 
+            sage: function('f',x)
+            f(x)
+            sage: (f(x)).substitute(f=log)
+            log(x)
+            sage: (f(x)).substitute({f:log})
+            log(x)
+            sage: (x^3 + 1).substitute(x=5)
+            126
+            sage: (x^3 + 1).substitute({x:5})
+            126
+
+
         AUTHORS:
             -- Bobby Moretti: Initial version
         """
@@ -3603,6 +3615,16 @@ class SymbolicExpression(RingElement):
         raise NotImplementedError, "implement _recursive_sub_over_ring for type '%s'!"%(type(self))
 
     def __parse_in_dict(self, in_dict, kwds):
+        """
+        EXAMPLES:
+             sage: function('f',x)
+             f(x)
+             sage: f._SymbolicExpression__parse_in_dict({f:log},{})
+             {f: <function log at 0x...>}
+             sage: f._SymbolicExpression__parse_in_dict({},{'f':log})
+             {'f': <function log at 0x...>}
+
+        """
         if in_dict is None:
             return kwds
 
@@ -3623,7 +3645,19 @@ class SymbolicExpression(RingElement):
         return kwds
 
     def __varify_kwds(self, kwds):
-        return dict([(var(k),w) for k,w in kwds.iteritems()])
+        """
+        EXAMPLES:
+            sage: function('f',x)
+            f(x)
+            sage: a = f._SymbolicExpression__parse_in_dict({f:log},{})
+            sage: f._SymbolicExpression__varify_kwds(a)
+            {f: <function log at 0x...>}
+            sage: b = f._SymbolicExpression__parse_in_dict({},{'f':log})
+            sage: f._SymbolicExpression__varify_kwds(b)
+            {f: <function log at 0x...>}
+
+        """
+        return dict([(var(k) if isinstance(k,str) else k, w) for k,w in kwds.iteritems()])
 
     def substitute_over_ring(self, in_dict=None, ring=None, **kwds):
         X = self.simplify()

@@ -844,6 +844,53 @@ class NotebookSettings(resource.Resource):
             s = notebook.html_notebook_settings()
         return http.Response(stream = s)
 
+class ChangePasswordPage(resource.PostableResource):
+    def __init__(self, username):
+        self.username = username
+
+    def render(self, request):
+        error = None
+        if 'Oldpass' in request.args or 'Newpass' in request.args or 'RetypePass' in request.args:
+            if not 'Oldpass' in request.args:
+                error = 'Old password not given'
+            elif not notebook.user(self.username).password_is(request.args['Oldpass'][0]):
+                error = 'Incorrect password given'
+            elif not 'Newpass' in request.args:
+                error = 'New password not given'
+            elif not 'RetypePass' in request.args:
+                error = 'Please type in new password again.'
+            elif request.args['Newpass'][0] != request.args['RetypePass'][0]:
+                error = 'The passwords you entered do not match.'
+
+            if error:
+                return http.Response(stream=message(error, '/passwd'))
+
+            notebook.change_password(self.username, request.args['Newpass'][0])
+            return http.RedirectResponse('/logout')
+        else:
+            s = """<html><h1 align=center>Change Password.</h1>
+            <br>
+            <hr>
+            <br>
+            <form method="POST" action="/passwd">
+            <br><br>
+            <table align=center><tr>
+            <td align=right>Old password:</td><td><input type="password" name="Oldpass" size="15" /></td></tr>
+            <tr><td align=right>New password:</td><td>
+                <input type="password" name="Newpass" size="15" />
+                </td></tr>
+            <tr><td align=right>Retype new password:</td><td>
+                <input type="password" name="RetypePass" size="15" />
+                </td></tr>
+          <tr><td></td><td></td></tr>
+            <tr><td></td><td align=left><input type="submit" value="Change password" /></td></tr>
+            </table> </form>
+            <br><br>
+            <div align=center><a href="../">Cancel</a></div>
+            <br>
+
+            </html>"""
+        return http.Response(stream=s)
 
 ########################################################
 # Set output type of a cell
@@ -1838,6 +1885,7 @@ class UserToplevel(Toplevel):
     userchild_live_history = LiveHistory
     userchild_new_worksheet = NewWorksheet
     userchild_notebook_settings = NotebookSettings
+    userchild_passwd = ChangePasswordPage
     userchild_pub = PublicWorksheets
 
     userchild_send_to_trash = SendWorksheetToTrash

@@ -3555,7 +3555,7 @@ cdef class Matrix(matrix1.Matrix):
         Bstar, mu = gram_schmidt(self.rows())
         return matrix(Bstar), mu
 
-    def jordan_form(self, base_ring=None, sparse=False, subdivide=True):
+    def jordan_form(self, base_ring=None, sparse=False, subdivide=True, transformation=False):
         r"""
         Compute the Jordan canonical form of the matrix, if it exists.
 
@@ -3602,36 +3602,119 @@ cdef class Matrix(matrix1.Matrix):
             [------+------+------]
             [0.0000|0.0000| 13.35]
 
+
+          If you need the transformation matrix as well as the Jordan form
+          of self, then pass the option transformation=True.
+
+            sage: m = matrix([[5,4,2,1],[0,1,-1,-1],[-1,-1,3,0],[1,1,-1,2]]); m
+            [ 5  4  2  1]
+            [ 0  1 -1 -1]
+            [-1 -1  3  0]
+            [ 1  1 -1  2]
+            sage: jf, p = m.jordan_form(transformation=True)
+            sage: jf
+            [2|0|0 0]
+            [-+-+---]
+            [0|1|0 0]
+            [-+-+---]
+            [0|0|4 1]
+            [0|0|0 4]
+            sage: ~p * m * p
+            [2 0 0 0]
+            [0 1 0 0]
+            [0 0 4 1]
+            [0 0 0 4]
+
+          Note that for matrices over inexact rings, there can be problems
+          computing the transformation matrix due to numerical stability
+          issues in computing a basis for a kernel.
+
+            sage: b = matrix(ZZ,3,3,range(9))
+            sage: jf, p = b.jordan_form(RealField(15), transformation=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot compute the transformation matrix due to lack of precision
+
+
+
+        TESTS:
+            sage: evals = [(i,i) for i in range(1,6)]
+            sage: n = sum(range(1,6))
+            sage: jf = block_diagonal_matrix([jordan_block(ev,size) for ev,size in evals])
+            sage: p = random_matrix(ZZ,n,n)
+            sage: while p.rank() != n: p = random_matrix(ZZ,n,n)
+            sage: m = p * jf * ~p
+            sage: mjf, mp = m.jordan_form(transformation=True)
+            sage: mjf == jf
+            True
+
         """
         from sage.matrix.constructor import block_diagonal_matrix, jordan_block, diagonal_matrix
         from sage.combinat.partition import Partition
 
-        size=self.nrows()
+        size = self.nrows()
 
         if base_ring is None:
             mat = self
         else:
             mat = self.change_ring(base_ring)
 
-        evals=mat.charpoly().roots()
+        evals = mat.charpoly().roots()
         if sum([mult for (_,mult) in evals]) < size:
             raise RuntimeError("Some eigenvalue does not exist in %s."%(mat.base_ring()))
-        blocks=[]
-        for (eval, mult) in evals:
+        blocks = []
+        for eval, mult in evals:
             if mult == 1:
                 blocks.append((eval,1))
             else:
-                b=mat - diagonal_matrix([eval]*size, sparse=sparse)
-                c=b
-                ranks=[mat.rank(), c.rank()]
-                i=0
-                while (ranks[i]-ranks[i+1]>0) and ranks[i+1] > size-mult:
-                    c=b*c
+                b = mat - diagonal_matrix([eval]*size, sparse=sparse)
+                c = b
+                ranks = [mat.rank(), c.rank()]
+                i = 0
+                while (ranks[i] - ranks[i+1] > 0) and ranks[i+1] > size-mult:
+                    c = b*c
                     ranks.append(c.rank())
-                    i=i+1
+                    i = i+1
                 diagram = [ranks[i]-ranks[i+1] for i in xrange(len(ranks)-1)]
-                blocks.extend([(eval,i) for i in Partition(diagram).conjugate()])
-        return block_diagonal_matrix([jordan_block(eval,size, sparse=sparse) for (eval,size) in blocks],subdivide=subdivide)
+                blocks.extend([(eval, i) for i in Partition(diagram).conjugate()])
+
+        jf = block_diagonal_matrix([jordan_block(eval, size, sparse=sparse) for (eval, size) in blocks], subdivide=subdivide)
+
+        if transformation:
+            #Compute the transformation matrix
+            jordan_basis = []
+
+            for eval, size in blocks:
+                se = self - eval
+                block_basis = (se**size).right_kernel().basis()
+
+                if len(block_basis) != size:
+                    if base_ring.is_exact() is False:
+                        raise ValueError, "cannot compute the transformation matrix due to lack of precision"
+                    else:
+                        #I don't think we should ever get here since we are
+                        #working with exact base rings.
+                        raise ValueError, "cannot compute the basis of the Jordan block of size %s with eigenvalue %s"%(size, eval)
+
+                if size == 1:
+                    jordan_basis.append(block_basis[0])
+                    continue
+
+                for b in block_basis:
+                    if se*b != 0:
+                        chain = []
+                        chain.append(b)
+                        for i in range(1, size):
+                            chain.append( se*chain[-1] )
+
+                        chain.reverse()
+                        jordan_basis.extend(chain)
+                        break
+
+            return jf, (self.parent()(jordan_basis)).transpose()
+
+        else:
+            return jf
 
     def symplectic_form(self):
         r"""

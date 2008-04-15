@@ -1,12 +1,12 @@
 #!/bin/sh
 
-cp patches/*.c src/src/
-
 cd src
+
+$MAKE clean
 
 INCLUDES="-I$SAGE_LOCAL/include/"
 
-CFLAGS="$CFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib -O3"
+CFLAGS="$CFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib -O3 -g"
 CPPFLAGS="$INCLUDES"
 export CFLAGS
 export CPPFLAGS

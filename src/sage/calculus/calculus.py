@@ -5082,19 +5082,17 @@ class SymbolicArithmetic(SymbolicOperation):
     def _sympy_(self):
         """Converts any expression to SymPy."""
 
-        # Current implementation is fragile - it first converts the expression
-        # to string, then preparses it, then gets rid of "Integer" and then
-        # sympifies this string.
+        # Current implementation is a little fragile - it first converts the
+        # expression to string, then preparses it, then gets rid of "Integer"
+        # and then sympifies this string.
 
-        # In order to make this robust, one would have to implement _sympy_
-        # recursively in all expressions. But we want something now, instead of
-        # tomorrow, so the following one-liner does the job for now.
-        # Also all ugly things are concentrated in this line, everything else
-        # (sympy.sympify, sage.all.SR, ...) is clean and robust.
-        import sympy
+        # In order to make this more robust, one would have to implement
+        # _sympy_ recursively in all expressions, but that would pollute Sage
+        # quite a lot, and currently this oneliner does the job and it's easy
+        # to understand.
+        from sympy import sympify
         from sage.all import preparse
-        s = sympy.sympify(preparse(repr(self)).replace("Integer",""))
-        return s
+        return sympify(preparse(repr(self)).replace("Integer",""))
 
     def _sys_init_(self, system):
         ops = self._operands

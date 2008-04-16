@@ -39,10 +39,9 @@ Implemented methods:
     unextend
 
 TODO:
-   [] Implement (a) functions defined on infinite intervals,
-   [] (b) max/min location and values,
-   [] (c) left multiplication by a scalar.
-   [] (d) Extend the implementation of the trick to pass \sage's pi back
+   [] Implement (a) max/min location and values,
+   [] (b) multiplication by a scalar.
+   [] (c) Extend the implementation of the trick to pass \sage's pi back
       and forth with Maxima's %pi to other constants (e, for example)
       [[Passing the constants to maxima is already implemented; maybe
        need passing them back?]]
@@ -65,6 +64,8 @@ AUTHOR: David Joyner (2006-04) -- initial version
 	                (eg, specifying rgb values arenow allowed). Fixed bug in
                         documentation reported by Pablo De Napoli.
 	DJ (2007-09) - bug fixes due to behaviour of SymbolicArithmetic
+	DJ (2008-04) - fixed docstring bugs reported by J Morrow; added support for
+                       laplace transform of functions with infinite support.
 
 """
 
@@ -765,7 +766,8 @@ class PiecewisePolynomial:
             sage: tf = f.tangent_line(0.9) ## tangent line at x=0.9
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: Q = tf.plot(rgbcolor=(0.7,0.2,0.2), plot_points=40)
-            sage: ## Type show(P+Q) to view the graph of the function and the tangent line.
+
+        Type show(P+Q) to view the graph of the function and the tangent line.
         """
         pt = QQ(pt)
         R = PolynomialRing(QQ,'x')
@@ -820,7 +822,7 @@ class PiecewisePolynomial:
             1.0
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
-            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_cosine_coefficient(5,pi)
             -3/(5*pi)
         """
@@ -886,9 +888,9 @@ class PiecewisePolynomial:
             cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
-            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum(3,pi)
-            -3*sin(2*x)/pi + sin(x)/pi - 3*cos(x)/pi + 1/4
+            -3*sin(2*x)/pi + 3*sin(x)/pi - 3*cos(x)/pi - 1/4
         """
         a0 = self.fourier_series_cosine_coefficient(0,L)
         A = [repr(self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
@@ -915,9 +917,9 @@ class PiecewisePolynomial:
             cos(2*pi*x)/(3*pi^2) - 8*cos(pi*x)/(3*pi^2) + 1/3
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
-            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_cesaro(3,pi)
-            -sin(2*x)/pi + 2*sin(x)/(3*pi) - 2*cos(x)/pi + 1/4
+            -sin(2*x)/pi + 2*sin(x)/pi - 2*cos(x)/pi - 1/4
 
         """
         a0 = self.fourier_series_cosine_coefficient(0,L)
@@ -945,9 +947,10 @@ class PiecewisePolynomial:
             0.500000000000000*(cos(2*pi/3) + 1)*cos(2*pi*x)/pi^2 - 2.00000000000000*(cos(pi/3) + 1)*cos(pi*x)/pi^2 + 1/3
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
-            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_hann(3,pi)
-            -1.50000000000000*(cos(2*pi/3) + 1)*sin(2*x)/pi + 0.500000000000000*(cos(pi/3) + 1)*sin(x)/pi - 1.50000000000000*(cos(pi/3) + 1)*cos(x)/pi + 1/4
+            -1.50000000000000*(cos(2*pi/3) + 1)*sin(2*x)/pi + 1.50000000000000*(cos(pi/3) + 1)*sin(x)/pi - 1.50000000000000*(cos(pi/3) + 1)*cos(x)/pi - 1/4
+
         """
         a0 = self.fourier_series_cosine_coefficient(0,L)
         A = ["(1+cos(pi*%s/%s))*"%(n,N)+repr((0.5)*self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
@@ -975,9 +978,9 @@ class PiecewisePolynomial:
             cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
-            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_filtered(3,pi,[1,1,1])
-            -3*sin(2*x)/pi + sin(x)/pi - 3*cos(x)/pi + 1/4
+            -3*sin(2*x)/pi + 3*sin(x)/pi - 3*cos(x)/pi - 1/4
         """
         a0 = self.fourier_series_cosine_coefficient(0,L)
         A = [repr((F[n])*self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
@@ -1006,7 +1009,7 @@ class PiecewisePolynomial:
             sage: P = f.plot_fourier_series_partial_sum(3,pi,-5,5)    # long time
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
-            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: P = f.plot_fourier_series_partial_sum(15,pi,-5,5)   # long time
 
 	Remember, to view this type show(P) or P.save("<path>/myplot.png") and then
@@ -1043,7 +1046,7 @@ class PiecewisePolynomial:
             sage: P = f.plot_fourier_series_partial_sum_cesaro(3,pi,-5,5)    # long time
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
-            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: P = f.plot_fourier_series_partial_sum_cesaro(15,pi,-5,5)   # long time
 
 	Remember, to view this type show(P) or P.save("<path>/myplot.png") and then
@@ -1080,7 +1083,7 @@ class PiecewisePolynomial:
             sage: P = f.plot_fourier_series_partial_sum_hann(3,pi,-5,5)    # long time
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
-            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: P = f.plot_fourier_series_partial_sum_hann(15,pi,-5,5)   # long time
 
 	Remember, to view this type show(P) or P.save("<path>/myplot.png") and then
@@ -1304,9 +1307,19 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(1,2), 1-y]])
             sage: f.laplace(y, t)
             (t + 1)*e^(-(2*t))/t^2 - e^(-t)/t^2
+
+            sage: s = var('s')
+            sage: t = var('t')
+            sage: f1(t) = -t
+            sage: f2(t) = 2
+            sage: f = Piecewise([[(0,1),f1],[(1,infinity),f2]])
+            sage: f.laplace(t,s)
+            (s + 1)*e^(-s)/s^2 + 2*e^(-s)/s - 1/s^2
         """
+        from sage.calculus.equations import assume
         x = var(x)
         s = var(s)
+        assume(s>0)
         ints = []
         for p in self.list():
             g = SR(p[1])

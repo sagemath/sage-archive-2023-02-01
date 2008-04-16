@@ -595,7 +595,7 @@ def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
 
 
 
-def padic_height_via_multiply(self, p, prec=20, check_hypotheses=True):
+def padic_height_via_multiply(self, p, prec=20, E2=None, check_hypotheses=True):
     r"""
     Computes the cyclotomic p-adic height.
 
@@ -604,6 +604,10 @@ def padic_height_via_multiply(self, p, prec=20, check_hypotheses=True):
     INPUT:
         p -- prime >= 5 for which the curve has good ordinary reduction
         prec -- integer >= 2, desired precision of result
+        E2 -- precomputed value of E2. If not supplied, this function will
+              call padic_E2 to compute it. The value supplied must be correct
+              mod p^(prec-2) (or slightly higher in the anomalous case; see
+              the code for details).
         check_hypotheses -- boolean, whether to check that this is a
              curve for which the p-adic height makes sense
 
@@ -631,6 +635,14 @@ def padic_height_via_multiply(self, p, prec=20, check_hypotheses=True):
         sage: h = E.padic_height_via_multiply(53, 10)
         sage: h(P)
         27*53^-1 + 22 + 32*53 + 5*53^2 + 42*53^3 + 20*53^4 + 43*53^5 + 30*53^6 + 17*53^7 + 22*53^8 + 35*53^9 + O(53^10)
+
+    Supply the value of E2 manually:
+        sage: E2 = E.padic_E2(5, 8)
+        sage: E2
+        2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + O(5^8)
+        sage: h = E.padic_height_via_multiply(5, 10, E2=E2)
+        sage: h(P)
+        4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + O(5^10)
 
     Boundary case:
         sage: E.padic_height_via_multiply(5, 3)(P)
@@ -670,7 +682,7 @@ def padic_height_via_multiply(self, p, prec=20, check_hypotheses=True):
     adjusted_prec = prec + 2 * arith.valuation(n, p)   # this is M'
     R = rings.Integers(p ** (adjusted_prec + 2*lamb))
 
-    sigma = self.padic_sigma_truncated(p, N=adjusted_prec, lamb=lamb)
+    sigma = self.padic_sigma_truncated(p, N=adjusted_prec, E2=E2, lamb=lamb)
 
     # K is the field for the final result
     K = Qp(p, prec=adjusted_prec-1)

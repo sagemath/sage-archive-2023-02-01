@@ -1,3 +1,5 @@
+* upgraded to sympy-0.5.13
+* added a README file
 * upgraded to sympy-0.5.11
 * upgraded to sympy-0.5.7
 * added a script for getting a hg version

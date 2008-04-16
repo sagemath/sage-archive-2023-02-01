@@ -2,7 +2,7 @@
 # execute this script from the same directory, where spkg-install is.
 # it will remove the src dir (!) and create a new one instead from the
 # Mercurial sources of SymPy, located in ~/sympy
-ver=0.5.6-hg
+ver=0.5.13-hg
 dir=`pwd`
 cd ~/sympy
 ./setup.py sdist

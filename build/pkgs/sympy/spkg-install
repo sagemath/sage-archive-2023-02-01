@@ -1,5 +1,15 @@
 #!/bin/sh
 
+# We need to delete the old path, so that there are no leftovers from the
+# previous installation, otherwise sympy could get broken (for example by
+# importing some local files instead of the standard library ones...)
+if [ "$SAGE_ROOT" = "" ]; then
+    echo "Please set the SAGE_ROOT variable"
+    exit 1
+fi
+echo "Deleting $SAGE_ROOT/local/lib/python2.5/site-packages/sympy*"
+rm -rf $SAGE_ROOT/local/lib/python2.5/site-packages/sympy*
+
 cd src/
 
 python setup.py install

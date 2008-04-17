@@ -1,0 +1,15 @@
+--- include/NTL/tools.h	2008-03-04 15:35:02.000000000 -0800
++++ include/NTL/tools.h.modified	2008-04-17 12:24:41.000000000 -0700
+@@ -249,6 +249,12 @@
+ char IntValToChar(long a);
+ 
+ 
++/*
++  This function is not present in vanilla NTL 5.4.2.
++  See tools.c for documentation.
++ */
++void SetErrorCallbackFunction(void (*func)(const char *s, void *context), void *context);
++
+ 
+ void Error(const char *s);
+ 

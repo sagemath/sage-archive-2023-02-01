@@ -1323,7 +1323,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: k.factor()
             (s^2 + 2/3) * (x + s*y)^2 * (x + (-s)*y)^5 * (x^2 + s*x*y + s^2*y^2)^5
 
-        This shows that ticket #2780 is fixed, i.e. that the unit part of
+        This shows that ticket \#2780 is fixed, i.e. that the unit part of
         the factorization is set correctly:
             sage: x = var('x')
             sage: K.<a> = NumberField(x^2 + 1)

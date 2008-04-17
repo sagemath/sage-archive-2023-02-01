@@ -309,12 +309,12 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: [EllipticCurve(F,[0,0,0,5^i,0])._cardinality_with_j_invariant_1728() for i in range(4)]
             [10008, 10008, 10008, 10008]
 
-        An example with q=p^2, p=3 (mod 4)
+        An example with $q=p^2$, p=3 (mod 4)
             sage: F.<a>=GF(10007^2,'a')
             sage: [EllipticCurve(F,[0,0,0,a^i,0])._cardinality_with_j_invariant_1728() for i in range(4)]
             [100160064, 100140050, 100120036, 100140050]
 
-        Examples with q=2^d, d odd (3 isomorphism classes):
+        Examples with $q=2^d$, d odd (3 isomorphism classes):
             sage: F.<a> = GF(2**15,'a')
             sage: ais = [[0,0,1,0,0],[0,0,1,1,0],[0,0,1,1,1]]
             sage: curves=[EllipticCurve(F,ai) for ai in ais]
@@ -323,7 +323,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: [e._cardinality_with_j_invariant_1728() for e in curves]
             [32769, 33025, 32513]
 
-        Examples with q=2^d, d even (7 isomorphism classes):
+        Examples with $q=2^d$, d even (7 isomorphism classes):
             sage: F.<a> = GF(2**16,'a')
             sage: b = a^11 # trace 1
             sage: ais = [[0,0,1,0,0],[0,0,1,0,b],[0,0,1,b,0],[0,0,a,0,0],[0,0,a,0,a^2*b],[0,0,a^2,0,0],[0,0,a^2,0,a^4*b]]
@@ -333,7 +333,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: [e._cardinality_with_j_invariant_1728() for e in curves]
             [65025, 66049, 65537, 65793, 65281, 65793, 65281]
 
-        Examples with q=3^d, d odd (4 isomorphism classes):
+        Examples with $q=3^d$, d odd (4 isomorphism classes):
             sage: F.<a> = GF(3**15,'a')
             sage: b=a^7  # has trace 1
             sage: ais=[[0,0,0,1,0],[0,0,0,-1,0],[0,0,0,-1,b],[0,0,0,-1,-b]]
@@ -343,7 +343,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: [e._cardinality_with_j_invariant_1728() for e in curves]
             [14348908, 14348908, 14342347, 14355469]
 
-        Examples with q=3^d, d even (6 isomorphism classes):
+        Examples with $q=3^d$, d even (6 isomorphism classes):
             sage: F.<g>=GF(3^18,'g')
             sage: i=F(-1).sqrt()
             sage: a=g^8  # has trace 1
@@ -532,7 +532,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: [EllipticCurve(F,[0,0,0,0,3^i])._cardinality_with_j_invariant_0() for i in range(6)]
             [1014, 1014, 1014, 1014, 1014, 1014]
 
-        An example with q=p^2, p=5 (mod 6)
+        An example with $q=p^2$, p=5 (mod 6)
             sage: F.<a>=GF(1013^2,'a')
             sage: [EllipticCurve(F,[0,0,0,0,a^i])._cardinality_with_j_invariant_0() for i in range(6)]
             [1028196, 1027183, 1025157, 1024144, 1025157, 1027183]

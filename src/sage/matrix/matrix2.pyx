@@ -3638,6 +3638,16 @@ cdef class Matrix(matrix1.Matrix):
 
 
         TESTS:
+            sage: c = matrix(ZZ, 3, [1]*9); c
+            [1 1 1]
+            [1 1 1]
+            [1 1 1]
+            sage: c.jordan_form(subdivide=False)
+            [3 0 0]
+            [0 0 0]
+            [0 0 0]
+
+
             sage: evals = [(i,i) for i in range(1,6)]
             sage: n = sum(range(1,6))
             sage: jf = block_diagonal_matrix([jordan_block(ev,size) for ev,size in evals])
@@ -3669,7 +3679,7 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 b = mat - diagonal_matrix([eval]*size, sparse=sparse)
                 c = b
-                ranks = [mat.rank(), c.rank()]
+                ranks = [size, c.rank()]
                 i = 0
                 while (ranks[i] - ranks[i+1] > 0) and ranks[i+1] > size-mult:
                     c = b*c

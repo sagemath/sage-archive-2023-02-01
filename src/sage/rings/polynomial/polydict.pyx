@@ -60,9 +60,6 @@ AUTHORS:  William Stein and Martin Albrecht (ETuples)
 import sage.rings.ring_element as ring_element
 
 cdef class PolyDict:
-    cdef object __repn
-    cdef object __zero
-
     def __init__(PolyDict self, pdict, zero=0, remove_zero=False, force_int_exponents=True, force_etuples=True):
         """
         INPUT:
@@ -253,6 +250,41 @@ cdef class PolyDict:
         for v in self.__repn.keys():
             _max.append(v[i])
         return max(_max)
+
+    def valuation(PolyDict self, PolyDict x = None):
+        L = x.__repn.keys()
+        if x is None:
+            _min = []
+            negative = False
+            for k in self.__repn.keys():
+                _sum = 0
+                for m in self.__repn[k].nonzero_values(sort=False):
+                    if m < 0:
+                        negative = True
+                        break
+                    _sum += m
+                if negative:
+                    break
+                _min.append(_sum)
+            else:
+                return min(_min)
+            for k in self.__repn.keys():
+                _min.append(sum([m for m in self.__repn[k].nonzero_values(sort=False) if m < 0]))
+            return min(_min)
+        L = x.__repn.keys()
+        if len(L) != 1:
+            raise TypeError, "x must be one of the generators of the parent."
+        L = L[0]
+        nonzero_positions = L.nonzero_positions()
+        if len(nonzero_positions) != 1:
+            raise TypeError, "x must be one of the generators of the parent."
+        i = nonzero_positions[0]
+        if L[i] != 1:
+            raise TypeError, "x must be one of the generators of the parent."
+        _min = []
+        for v in self.__repn.keys():
+            _min.append(v[i])
+        return min(_min)
 
     def total_degree(PolyDict self):
         return max([-1] + map(sum,self.__repn.keys()))
@@ -1181,6 +1213,55 @@ cdef class ETuple:
                 result._nonzero += 1
         return result
 
+    cpdef ETuple eadd_p(ETuple self, int other, int pos):
+        """
+        Adds other to self at position pos.
+
+        EXAMPLES:
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: e = ETuple([1,0,2])
+            sage: e.eadd_p(5, 1)
+            (1, 5, 2)
+            sage: e = ETuple([0]*7)
+            sage: e.eadd_p(5,4)
+            (0, 0, 0, 0, 5, 0, 0)
+        """
+        cdef size_t index = 0
+        cdef size_t rindex = 0
+        cdef int new_value
+        cdef int need_to_add = 1
+        if pos < 0 or pos >= self._length:
+            raise ValueError, "pos must be between 0 and %s"%self._length
+
+        cdef size_t alloc_len = self._nonzero + 1
+
+        cdef ETuple result = <ETuple>self._new()
+        result._nonzero = self._nonzero
+        result._data = <int*>sage_malloc(sizeof(int)*alloc_len*2)
+
+        for index from 0 <= index < self._nonzero:
+            if self._data[2*index] == pos:
+                new_value = self._data[2*index+1] + other
+                if new_value != 0:
+                    result._data[2*rindex] = pos
+                    result._data[2*rindex+1] = new_value
+                else:
+                    result._nonzero -= 1
+                    rindex -= 1
+                need_to_add = 0
+            else:
+                result._data[2*rindex] = self._data[2*index]
+                result._data[2*rindex+1] = self._data[2*index+1]
+
+            rindex += 1
+
+        if need_to_add:
+            result._data[2*rindex] = pos
+            result._data[2*rindex+1] = other
+            result._nonzero += 1
+
+        return result
+
     cpdef ETuple esub(ETuple self,ETuple other):
         """
         Vector subtraction of self with other.
@@ -1217,7 +1298,7 @@ cdef class ETuple:
         """
         Scalar Vector multiplication of self.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.rings.polynomial.polydict import ETuple
             sage: e = ETuple([1,0,2])
             sage: e.emul(2)
@@ -1415,6 +1496,20 @@ cdef class ETuple:
         cdef size_t ind
         d = dict([(self._data[2*ind],self._data[2*ind+1]) for ind from 0<=ind<self._nonzero])
         return d.iteritems()
+
+    def combine_to_positives(ETuple self, ETuple other):
+        """
+        Given a pair of ETuples (self, other), returns a triple of ETuples (a, b, c) so that self = a + b,other = a + c and b and c have all positive entries.
+
+        EXAMPLES:
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: e = ETuple([-2,1,-5, 3, 1,0])
+            sage: f = ETuple([1,-3,-3,4,0,2])
+            sage: e.combine_to_positives(f)
+            ((-2, -3, -5, 3, 0, 0), (0, 4, 0, 0, 1, 0), (3, 0, 2, 1, 0, 2))
+        """
+        m = self.emin(other)
+        return m, self.esub(m), other.esub(m)
 
 def make_PolyDict(data):
     return PolyDict(data,remove_zero=False, force_int_exponents=False, force_etuples=False)

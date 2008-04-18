@@ -858,6 +858,10 @@ ext_modules = [ \
               sources = ['sage/rings/polynomial/real_roots.pyx'],
               libraries=['mpfr', 'qd']), \
 
+    Extension('sage.rings.polynomial.laurent_polynomial',
+              sources = ['sage/rings/polynomial/laurent_polynomial.pyx']), \
+
+
     Extension('sage.rings.number_field.number_field_element',
               sources = ['sage/rings/number_field/number_field_element.pyx'],
               libraries=['ntl','gmp'],

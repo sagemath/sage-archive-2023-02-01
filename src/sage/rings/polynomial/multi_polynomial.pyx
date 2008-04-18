@@ -4,6 +4,7 @@ include "sage/ext/stdsage.pxi"
 from sage.rings.integer cimport Integer
 
 from sage.misc.derivative import multi_derivative
+from sage.rings.infinity import infinity
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -594,6 +595,8 @@ cdef class MPolynomial(CommutativeRingElement):
         P = self._parent
         P = P.change_ring(R)
         return P(self)
+
+
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

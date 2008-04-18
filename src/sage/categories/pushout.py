@@ -91,6 +91,9 @@ class PolynomialFunctor(ConstructionFunctor):
     def merge(self, other):
         if self == other:
             return PolynomialFunctor(self.var, (self.multi_variate or other.multi_variate))
+        elif isinstance(other, LaurentPolynomialFunctor) and self.var == other.var:
+            return LaurentPolynomialFunctor(self.var, (self.multi_variate or other.multi_variate))
+
         else:
             return None
 #    def __str__(self):
@@ -120,6 +123,30 @@ class MatrixFunctor(ConstructionFunctor):
             return None
         else:
             return MatrixFunctor(self.nrows, self.ncols, self.is_sparse and other.is_sparse)
+
+class LaurentPolynomialFunctor(ConstructionFunctor):
+    def __init__(self, var, multi_variate=False):
+        Functor.__init__(self, Rings(), Rings())
+        self.var = var
+        self.multi_variate = multi_variate
+        self.rank = 9
+    def __call__(self, R):
+        from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, is_LaurentPolynomialRing
+        if self.multi_variate and is_LaurentPolynomialRing(R):
+            return LaurentPolynomialRing(R.base_ring(), (list(R.variable_names()) + [self.var]))
+        else:
+            return PolynomialRing(R, self.var)
+    def __cmp__(self, other):
+        c = cmp(type(self), type(other))
+        if c == 0:
+            c = cmp(self.var, other.var)
+        return c
+    def merge(self, other):
+        if self == other or isinstance(other, PolynomialFunctor) and self.var == other.var:
+            return LaurentPolynomialFunctor(self.var, (self.multi_variate or other.multi_variate))
+        else:
+            return None
+
 
 class VectorFunctor(ConstructionFunctor):
     def __init__(self, n, is_sparse=False, inner_product_matrix=None):

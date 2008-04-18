@@ -40,3 +40,6 @@ from sage.rings.polynomial.convolution import convolution
 from sage.rings.polynomial.pbori import BooleanPolynomialRing
 
 from sage.rings.polynomial.multi_polynomial_ideal import is_MPolynomialIdeal
+
+# Laurent Polynomial Rings
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, is_LaurentPolynomialRing

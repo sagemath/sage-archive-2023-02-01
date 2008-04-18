@@ -441,6 +441,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             raise TypeError, "x must be one of the generators of the parent."
         return self.element().degree(x.element())
 
+
     def newton_polytope(self):
         """
         Return the Newton polytope of this polynomial.
@@ -1564,6 +1565,43 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                     r += plt
                     p -= plt
         return r
+
+    def valuation(self, x=None):
+        """
+        Returns the largest power of the ideal x in which this element lies.
+
+        INPUT:
+            x -- multivariate polynomial or an ideal in the parent of self.
+                 If x is not specified (or is None), returns the valuation
+                 with respect to the maximal ideal (x_1,x_2,...,x_n)
+
+        OUTPUT:
+            integer
+
+        EXAMPLES:
+            sage: S = PolynomialRing(QQ,'z').fraction_field()
+            sage: R.<x,y> = S[]
+            sage: f = (y^2*x + x^4)^3
+            sage: f.valuation()
+            9
+            sage: f.valuation(x)
+            3
+            sage: f.valuation(y^2 + x^3)
+            3
+            sage: f.valuation(y-1)
+            0
+        """
+        if self.is_zero():
+            return infinity
+        if x is None:
+            return self.element().valuation(None)
+        if isinstance(x, MPolynomial) and x.parent() == self.parent() and x.is_monomial():
+            return self.element().valuation(x.element())
+        x = self.parent().ideal(x)
+        self_ideal = self.parent().ideal(self)
+        return self_ideal.valuation(x)
+
+
 
 ###############################################################
 # Useful for some geometry code.

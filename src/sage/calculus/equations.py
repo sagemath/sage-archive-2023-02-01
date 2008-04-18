@@ -1063,8 +1063,7 @@ def assume(*args):
 
     An integer constraint (todo: this needs to be made possible with
     just the assume command!):
-        sage: from sage.calculus.calculus import maxima as calcmaxima
-        sage: calcmaxima.eval('declare(n,integer)')
+        sage: sage.calculus.calculus.maxima.eval('declare(n,integer)')
         'done'
         sage: var('n, P, r, r2')
         (n, P, r, r2)

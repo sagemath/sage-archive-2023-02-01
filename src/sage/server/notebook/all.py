@@ -14,4 +14,4 @@ from notebook_object import notebook, inotebook
 
 from sagetex import sagetex
 
-from interact import interact, input_box, slider, selector
+from interact import interact, input_box, slider, selector, checkbox

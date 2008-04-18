@@ -1154,7 +1154,20 @@ def interact(f):
         ...       show(plot(sin, -5,5), axes=axes, aspect_ratio = (1 if square else None))
         <html>...
 
-    You can rotate and zoom into three graphics while
+    An example generating a random walk that uses a checkbox control to determine
+    whether points are placed at each step:
+        sage: @interact
+        ... def foo(pts = checkbox(True, "points"), n = (50,(10..100))):
+        ...       s = 0; v = [(0,0)]
+        ...       for i in range(n):
+        ...            s += random() - 0.5
+        ...            v.append((i, s))
+        ...       L = line(v, rgbcolor='#4a8de2')
+        ...       if pts: L += points(v, pointsize=20, rgbcolor='black')
+        ...       show(L)
+        <html>...
+
+    You can rotate and zoom into 3D graphics while
     interacting with a variable.
         sage: @interact
         ... def _(a=(0,1)):
@@ -1257,7 +1270,7 @@ def interact(f):
 
     state[SAGE_CELL_ID]['function'] = _
 
-    return _
+    return f
 
 
 ######################################################
@@ -1352,6 +1365,20 @@ class input_box(control):
         """
         return "Interact input box labeled %r with default value %r"%(self.label(), self.__default)
 
+    def default(self):
+        """
+        Return the default value of this input box.
+
+        EXAMPLES:
+            sage: input_box('2+2', 'Expression').default()
+            '2+2'
+            sage: input_box(x^2 + 1, 'Expression').default()
+            x^2 + 1
+            sage: checkbox(True, "Points").default()
+            True
+        """
+        return self.__default
+
     def type(self):
         """
         Return the type that elements of this input box are coerced to
@@ -1386,6 +1413,38 @@ class input_box(control):
             return ColorInput(var, default_value=self.__default, label=self.label(), type=self.__type)
         else:
             return InputBox(var, default_value=self.__default, label=self.label(), type=self.__type)
+
+class checkbox(input_box):
+    def __init__(self, default=True, label=None):
+        """
+        A checkbox interactive control.  Use this in conjecture
+        with the interact command.
+
+        INPUT:
+            default -- bool (default: True); whether box should be checked or not
+            label -- str or None (default: None) text label rendered to the left of the box
+
+        EXAMPLES:
+            sage: checkbox(False, "Points")
+            Interact checkbox labeled 'Points' with default value False
+            sage: checkbox(True, "Points")
+            Interact checkbox labeled 'Points' with default value True
+            sage: checkbox(True)
+            Interact checkbox labeled None with default value True
+            sage: checkbox()
+            Interact checkbox labeled None with default value True
+        """
+        input_box.__init__(self, bool(default), label=label, type=bool)
+
+    def __repr__(self):
+        """
+        Print representation of this checkbox.
+
+        EXAMPLES:
+            sage: checkbox(True, "Points").__repr__()
+            "Interact checkbox labeled 'Points' with default value True"
+        """
+        return "Interact checkbox labeled %r with default value %r"%(self.label(), self.default())
 
 
 class slider(control):

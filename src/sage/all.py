@@ -112,6 +112,8 @@ from sage.logic.all      import *
 
 from sage.numerical.all  import *
 
+from sage.stats.all      import *
+
 from copy import copy, deepcopy
 
 

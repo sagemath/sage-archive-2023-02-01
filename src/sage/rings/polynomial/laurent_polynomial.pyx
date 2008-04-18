@@ -584,7 +584,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
         return ans
 
-    def subs(self, **kwds):
+    def subs(self, in_dict=None, **kwds):
         """
         Note that this is a very unsophisticated implementation.
 
@@ -603,6 +603,14 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             sage: f = x^-1
             sage: f.subs(x=2)
             1/2
+            sage: f.subs({x:2})
+            1/2
+
+            sage: f = x + 2*y + 3*z
+            sage: f.subs({x:1,y:1,z:1})
+            6
+            sage: f.substitute(x=1,y=1,z=1)
+            6
 
         TESTS:
             sage: f = x + 2*y + 3*z
@@ -610,12 +618,23 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             x + 2*y + 3*z
 
         """
+        if in_dict is not None and kwds:
+            raise ValueError, "you cannot specify both a dictionary and keyword arguments"
+
         g = self.parent().gens()
         repr_g = [repr(i) for i in g]
         vars = []
-        for i in range(len(g)):
-            if repr_g[i] in kwds.keys():
-                vars.append(i)
+
+        if in_dict is None:
+            for i in range(len(g)):
+                if repr_g[i] in kwds:
+                    vars.append(i)
+        else:
+            kwds = {}
+            for i in range(len(g)):
+                if g[i] in in_dict:
+                    kwds[ repr(g[i]) ] = in_dict[ g[i] ]
+                    vars.append(i)
 
         d = self._dict()
         out = 0

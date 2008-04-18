@@ -7,152 +7,12 @@ from sage.misc.latex import latex
 from sage.misc.misc import union
 from sage.structure.factorization import Factorization
 
-cdef class LaurentPolynomial_quotient(QuotientRingElement):
-    def __init__(self, parent, x, reduce=True):
-        """
-        One can create a laurent polynomial out of:
-          an element of parent._RR,
-          something that can be cast into parent._RR
-          or a dictionary with keys tuples of integers with length parent.ngens()
-                           and values elements of the base ring.
-        """
-        if isinstance(x, dict):
-            D = {}
-            for k in x.keys():
-                if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
-                    break
-                D[parent._to_long_exp(k)] = x[k]
-            else:
-                x = parent._RR(D)
-                QuotientRingElement.__init__(self, parent, x, reduce)
-                return
-        if not (is_Element(x) and x.parent() is parent._RR):
-            x = parent._RR(x)
-        QuotientRingElement.__init__(self, parent, x, reduce)
-
-    cdef _new_c(self):
-        cdef LaurentPolynomial_quotient ans
-        ans = PY_NEW(LaurentPolynomial_quotient)
-        ans._parent = self._parent
-        ans._I = self._I
-        return ans
-
-    def _repr_(self):
-        s = repr((<QuotientRingElement>self)._rep)
-        prepend = self.parent()._prepend_string
-        for m in self.parent().variable_names():
-            s = s.replace(prepend + m + "^", m + "^-")
-            s = s.replace(prepend + m, m + "^-1")
-        return s
-
-    def _latex_(self):
-        s = latex((<QuotientRingElement>self)._rep)
-        prepend = self.parent()._prepend_string
-        for m in self.parent().variable_names():
-            L = latex(m)
-            s = s.replace("\mbox{" + prepend + m + "}^{", L + "^{-")
-            s = s.replace("\mbox{" + prepend + m + "}", L + "^{-1}")
-        return s
-
-    def __pow__(self, n, m):
-        if n < 0:
-            E = (<QuotientRingElement>self)._rep.exponents()
-            if len(E) == 0:
-                raise ZeroDivisionError
-            elif len(E) > 1:
-                return self.parent()._R.fraction_field(self)**n
-            else:
-                if self.parent().ngens() == 1:
-                    return LaurentPolynomial_quotient(self.parent().change_ring(self.parent().base_ring().fraction_field()), {self.parent()._to_short_exp(E[0]) * n: (<QuotientRingElement>self)._rep.coefficients()[0]**n})
-                return LaurentPolynomial_quotient(self.parent().change_ring(self.parent().base_ring().fraction_field()), {self.parent()._to_short_exp(E[0]).emul(n): (<QuotientRingElement>self)._rep.coefficients()[0]**n})
-        else:
-            return LaurentPolynomial_quotient(self.parent(), (<QuotientRingElement>self)._rep**n)
-
-
-    def coefficient(self, mon):
-        return (<QuotientRingElement>self)._rep.coefficient(mon)
-
-    def coefficients(self):
-        return (<QuotientRingElement>self)._rep.coefficients()
-
-    def dict(self):
-        D = (<QuotientRingElement>self)._rep.dict()
-        ans = {}
-        for k, v in D.iteritems():
-            ans[self.parent()._to_short_exp(k)] = v
-        return ans
-
-    def exponents(self):
-        return [self.parent()._to_short_exp(a) for a in (<QuotientRingElement>self)._rep.exponents()]
-
-    def has_inverse_of(self, mon):
-        """
-        Returns True if self contains a monomial including the inverse of mon.
-
-        INPUT:
-        mon -- A monomial in self.parent()
-        OUTPUT:
-        whether self contains a monomial m with mon
-        """
-        n = self.parent().ngens()
-        if mon.parent() is not self.parent():
-            mon = self.parent()(mon)
-        E = mon.exponents()[0]
-        for e in (<QuotientRingElement>self)._rep.exponents():
-            e = self.parent()._to_short_exp(e)
-            for m in range(n):
-                if e[m] <= -E[m]:
-                    return True
-        return False
-
-    def has_any_inverse(self):
-        n = self.parent().ngens()
-        for e in (<QuotientRingElement>self)._rep.exponents():
-            for m in range(n, 2*n):
-                if e[m] != 0:
-                    return True
-        return False
-
-    def __call__(self, *x, **kwds):
-        n = self.parent().ngens()
-        if len(kwds) > 0:
-            f = self.subs(**kwds)
-            if len(x) > 0:
-                return f(*x)
-            else:
-                return f
-
-        cdef int l = len(x)
-        if l == 1 and (PY_TYPE_CHECK(x, tuple) or PY_TYPE_CHECK(x, list)):
-            x = x[0]
-            l = len(x)
-        if l != n:
-            raise TypeError, "number of arguments does not match the number of generators in parent."
-        y = x
-        for m in range(n):
-            if x[m] == 0:
-                if self.has_inverse_of(self.parent().gen(m)):
-                    raise ZeroDivisionError
-                else:
-                    y.append(0)
-            else:
-                y.append(~x[m])
-        return (<QuotientRingElement>self)._rep(y)
-
-    def subs(self, fixed=None, **kwds):
-        raise NotImplementedError
-
 
 cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
     def __init__(self, parent, x, reduce=True):
         """
-        One can create a laurent polynomial out of:
-          an element of parent._RR,
-          something that can be cast into parent._RR
-          or a dictionary with keys tuples of integers with length parent.ngens()
-                           and values elements of the base ring.
-
-        Currently, only dictionary's and elements of the base ring work.
+        Currently, one can only create LaurentPolynomials out of dictionaries
+        and elements of the base ring.
 
         EXAMPLES:
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
@@ -162,6 +22,8 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             w*z
             sage: f =  L({(-1,-1):1, (1,3):4}); f
             4*w*z^3 + w^-1*z^-1
+            sage: L(1/2)
+            1/2
         """
         if isinstance(x, PolyDict):
             x = x.dict()
@@ -188,6 +50,15 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         CommutativeAlgebraElement.__init__(self, parent)
 
     cdef _new_c(self):
+        """
+        Returns a new Laurent polynomial
+
+        EXAMPLES:
+          This will be a (very) indirect doctest.
+            sage: L.<x,y> = LaurentPolynomialRing(QQ)
+            sage: x*y
+            x*y
+        """
         cdef LaurentPolynomial_mpair ans
         ans = PY_NEW(LaurentPolynomial_mpair)
         ans._parent = self._parent
@@ -195,7 +66,17 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
     def _normalize(self, i = None):
         """
-        i should be an integer
+        Removes the common monomaials from self._poly and stores them in self._mon
+
+        INPUT:
+            i -- an integer
+
+        EXAMPLES:
+            sage: L.<x,y> = LaurentPolynomialRing(QQ)
+            sage: f = x*y + 2*y*x^2 + y
+            sage: f.factor() #Notice the y has been factored out.
+            (y) * (2*x^2 + x + 1)
+
         """
         D = self._poly._mpoly_dict_recursive(self.parent().variable_names(), self.parent().base_ring())
         if i is None:
@@ -219,6 +100,20 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
 
     def _dict(self):
+        """
+        EXAMPLES:
+            sage: L.<w,z> = LaurentPolynomialRing(QQ)
+            sage: a = w^2*z^-1+3; a
+            w^2*z^-1 + 3
+            sage: d = a._dict()
+            sage: keys = list(sorted(d.keys())); keys
+            [(0, 0), (2, -1)]
+            sage: d[keys[0]]
+            3
+            sage: d[keys[1]]
+            1
+
+        """
         D = self._poly._mpoly_dict_recursive(self.parent().variable_names(), self.parent().base_ring())
         if len(self._mon.nonzero_positions()) > 0:
             DD = {}
@@ -229,9 +124,22 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             return D
 
     def _compute_polydict(self):
+        """
+        EXAMPLES:
+            sage: L.<w,z> = LaurentPolynomialRing(QQ)
+            sage: a = w^2*z^-1+3
+            sage: a._compute_polydict()
+        """
         self._prod = PolyDict(self._dict(), force_etuples = False)
 
-    def _repr_(self):
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: L.<x,y> = LaurentPolynomialRing(QQ)
+            sage: f = x^2 + x*y/2 + 2*y^-1
+            sage: f.__repr__()
+            'x^2 + 1/2*x*y + 2*y^-1'
+        """
         if self._prod is None:
             self._compute_polydict()
         try:
@@ -241,6 +149,15 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         return self._prod.poly_repr(self.parent().variable_names(), atomic_coefficients = self.parent().base_ring().is_atomic_repr(), cmpfn = cmpfn)
 
     def _latex_(self):
+        """
+        EXAMPLES:
+            sage: L.<w,z> = LaurentPolynomialRing(QQ)
+            sage: a = w^2*z^-1+3; a
+            w^2*z^-1 + 3
+            sage: latex(a)
+            w^{2}z^{-1} + 3
+
+        """
         if self._prod is None:
             self._compute_polydict()
         try:
@@ -250,6 +167,13 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         return self._prod.latex(self.parent().variable_names(), atomic_coefficients = self.parent().base_ring().is_atomic_repr(), cmpfn = cmpfn)
 
     def __pow__(LaurentPolynomial_mpair self, n, m):
+        """
+        EXAMPLES:
+            sage: L.<x,y> = LaurentPolynomialRing(QQ)
+            sage: f = x + y
+            sage: f^2
+            x^2 + 2*x*y + y^2
+        """
         cdef LaurentPolynomial_mpair ans
         if n < 0:
             E = self._poly.exponents()
@@ -298,7 +222,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
             sage: P.<x,y> = LaurentPolynomialRing(QQ)
             sage: f = (y^2 - x^9 - 7*x*y^2 + 5*x*y)*x^-3; f
-            -1*x^6 - 7*x^-2*y^2 + 5*x^-2*y + x^-3*y^2
+            -x^6 - 7*x^-2*y^2 + 5*x^-2*y + x^-3*y^2
             sage: f.coefficient(y)
             5*x^-2
             sage: f.coefficient(y^2)
@@ -310,7 +234,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             sage: f.coefficient(x^-2*y^2)
             -7
             sage: f.coefficient(1)
-            -1*x^6 - 7*x^-2*y^2 + 5*x^-2*y + x^-3*y^2
+            -x^6 - 7*x^-2*y^2 + 5*x^-2*y + x^-3*y^2
         """
         if mon.parent() is not self.parent():
             mon = self.parent()(mon)
@@ -338,7 +262,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         return self._poly.coefficients()
 
-    def variables(self, sort = True):
+    def variables(self, sort=True):
         """
         Return a list of all variables occuring in self.
 
@@ -350,7 +274,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
             sage: f.variables()
             [z, y, x]
-            sage: f.variables(sort=False)
+            sage: f.variables(sort=False) #random
             [y, z, x]
         """
         d = self.dict();
@@ -367,11 +291,28 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         return v
 
     def dict(self):
+        """
+        EXAMPLES:
+            sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
+            sage: list(sorted(f.dict().iteritems()))
+            [((3, 1, 0), 3), ((4, 0, -2), 2), ((6, -7, 0), 1), ((7, 0, -1), 4)]
+        """
         if self._prod is None:
             self._compute_polydict()
         return self._prod.dict()
 
     cdef ModuleElement _add_c_impl(self, ModuleElement _right):
+        """
+        Returns the Laurent polynomial self + right.
+
+        EXAMPLES:
+            sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: f = x + y^-1
+            sage: g = y + z
+            sage: f + g
+            x + y + z + y^-1
+        """
         cdef LaurentPolynomial_mpair ans = self._new_c()
         cdef LaurentPolynomial_mpair right = <LaurentPolynomial_mpair>_right
         ans._mon, a, b = self._mon.combine_to_positives(right._mon)
@@ -386,6 +327,17 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         return ans
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement _right):
+        """
+        Returns the Laurent polynomial self - right.
+
+        EXAMPLES:
+            sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: f = x + y^-1
+            sage: g = y + z + x
+            sage: f - g
+            -y - z + y^-1
+
+        """
         cdef LaurentPolynomial_mpair ans = self._new_c()
         cdef LaurentPolynomial_mpair right = <LaurentPolynomial_mpair>_right
         cdef ETuple a, b
@@ -401,33 +353,82 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         return ans
 
     cdef ModuleElement _neg_c_impl(self):
+        """
+        Returns -self.
+
+        EXAMPLES:
+            sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: f = x + y^-1
+            sage: -f
+            -x - y^-1
+
+        """
         cdef LaurentPolynomial_mpair ans = self._new_c()
         ans._mon = self._mon
         ans._poly = -self._poly
         return ans
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        """
+        Returns self * right where right is in self's base ring.
+
+        EXAMPLES:
+            sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: f = x + y^-1
+            sage: f*(1/2)
+            1/2*x + 1/2*y^-1
+
+        """
         cdef LaurentPolynomial_mpair ans = self._new_c()
         ans._mon = self._mon
         ans._poly = self._poly * right
         return ans
 
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        """
+        Returns left*self where left is in self's base ring.
+
+        EXAMPLES:
+            sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: f = x + y^-1
+            sage: (1/2)*f
+            1/2*x + 1/2*y^-1
+
+        """
         cdef LaurentPolynomial_mpair ans = self._new_c()
         ans._mon = self._mon
         ans._poly = left * self._poly
         return ans
 
     cdef RingElement _mul_c_impl(self, RingElement right):
+        """
+        Return self*right.
+
+        EXAMPLES:
+            sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: f = x + y^-1
+            sage: g = y + z
+            sage: f*g
+            x*y + x*z + 1 + y^-1*z
+        """
         cdef LaurentPolynomial_mpair ans = self._new_c()
         ans._mon = self._mon.eadd((<LaurentPolynomial_mpair>right)._mon)
         ans._poly = self._poly * (<LaurentPolynomial_mpair>right)._poly
         return ans
 
-    cdef RingElement _div_c_impl(self, RingElement right):
-        return self * (~right)
-
     cdef int _cmp_c_impl(self, Element right) except -2:
+        """
+        EXAMPLES:
+            sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: f = x + y^-1
+            sage: g = y + z
+            sage: f == f
+            True
+            sage: f == g
+            False
+            sage: f == 2
+            False
+        """
         if self._prod is None:
             self._compute_polydict()
         if (<LaurentPolynomial_mpair>right)._prod is None:
@@ -435,6 +436,18 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         return cmp(self._prod, (<LaurentPolynomial_mpair>right)._prod)
 
     def exponents(self):
+        """
+        Returns a list of the exponents of self.
+
+        EXAMPLES:
+            sage: L.<w,z> = LaurentPolynomialRing(QQ)
+            sage: a = w^2*z^-1+3; a
+            w^2*z^-1 + 3
+            sage: e = a.exponents()
+            sage: e.sort(); e
+            [(0, 0), (2, -1)]
+
+        """
         return [a.eadd(self._mon) for a in self._poly.exponents()]
 
     def degree(self,x=None):
@@ -471,6 +484,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         """
         INPUT:
             i -- The index of a generator of self.parent()
+
         OUTPUT:
             Returns True if self contains a monomial including the inverse of self.parent().gen(i),
             False otherwise.
@@ -485,7 +499,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             sage: f.has_inverse_of(2)
             True
         """
-        if (type(i) is not Integer) or (i < 0) or (i >= self.parent().ngens()):
+        if (not isinstance(i, (int, Integer))) or (i < 0) or (i >= self.parent().ngens()):
             raise TypeError, "argument is not the index of a generator"
         if self._mon[i] < 0:
             self._normalize(i)
@@ -513,7 +527,34 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         return False
 
     def __call__(self, *x, **kwds):
+        """
+
+        EXAMPLES:
+            sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: f = x + 2*y + 3*z
+            sage: f(1,1,1)
+            6
+            sage: f = x^-1 + y + z
+            sage: f(0,1,1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError
+
+        TESTS:
+            sage: f = x + 2*y + 3*z
+            sage: f(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of arguments does not match the number of generators in parent.
+            sage: f(2,0)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of arguments does not match the number of generators in parent.
+            sage: f( (1,1,1) )
+            6
+        """
         n = self.parent().ngens()
+
         if len(kwds) > 0:
             f = self.subs(**kwds)
             if len(x) > 0:
@@ -522,28 +563,58 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
                 return f
 
         cdef int l = len(x)
-        if l == 1 and (PY_TYPE_CHECK(x, tuple) or PY_TYPE_CHECK(x, list)):
+
+        if l == 1 and (PY_TYPE_CHECK(x[0], tuple) or PY_TYPE_CHECK(x[0], list)):
             x = x[0]
             l = len(x)
+
         if l != n:
             raise TypeError, "number of arguments does not match the number of generators in parent."
-        y = x
+
+        #Check to make sure that we aren't dividing by zero
         for m in range(n):
             if x[m] == 0:
                 if self.has_inverse_of(m):
                     raise ZeroDivisionError
+
         ans = self._poly(*x)
         if ans != 0:
             for m in self._mon.nonzero_positions():
                 ans *= x[m]**self._mon[m]
+
         return ans
 
-    def subs(self, kwds):
-        """ Very unsophisticated implementation """
+    def subs(self, **kwds):
+        """
+        Note that this is a very unsophisticated implementation.
+
+        EXAMPLES:
+            sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: f = x + 2*y + 3*z
+            sage: f.subs(x=1)
+            2*y + 3*z + 1
+            sage: f.subs(y=1)
+            x + 3*z + 2
+            sage: f.subs(z=1)
+            x + 2*y + 3
+            sage: f.subs(x=1,y=1,z=1)
+            6
+
+            sage: f = x^-1
+            sage: f.subs(x=2)
+            1/2
+
+        TESTS:
+            sage: f = x + 2*y + 3*z
+            sage: f(q=10)
+            x + 2*y + 3*z
+
+        """
         g = self.parent().gens()
+        repr_g = [repr(i) for i in g]
         vars = []
         for i in range(len(g)):
-            if g[i] in kwds.keys():
+            if repr_g[i] in kwds.keys():
                 vars.append(i)
 
         d = self._dict()
@@ -552,16 +623,13 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             term = d[mon]
             for i in range(len(mon)):
                 if i in vars:
-                    term *= kwds[g[i]]**mon[i]
+                    term *= kwds[repr_g[i]]**mon[i]
                 else:
                     term *= g[i]**mon[i]
             out += term
 
         return out
 
-
-        d = self.dict()
-        raise NotImplementedError
 
     def factor(self):
         """

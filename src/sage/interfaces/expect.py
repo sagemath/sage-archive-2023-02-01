@@ -690,7 +690,7 @@ If this all works, you can then make calls like:
             self.quit()
         return success
 
-    def eval(self, code, strip=True, **kwds):
+    def eval(self, code, strip=True, synchronize=False, **kwds):
         """
         INPUT:
             code -- text to evaluate
@@ -699,9 +699,24 @@ If this all works, you can then make calls like:
             **kwds -- All other arguments are passed onto the _eval_line method.
                      An often useful example is reformat=False.
         """
+        if synchronize:
+            try:
+                self._synchronize()
+            except AttributeError:
+                pass
+
+        if strip:
+            try:
+                code = self._strip_prompt(code)
+            except AttributeError:
+                pass
+
         if not isinstance(code, basestring):
             raise TypeError, 'input code must be a string.'
+
+        #Remove extra whitespace
         code = code.strip()
+
         try:
             with gc_disabled():
                 return '\n'.join([self._eval_line(L, **kwds) for L in code.split('\n') if L != ''])

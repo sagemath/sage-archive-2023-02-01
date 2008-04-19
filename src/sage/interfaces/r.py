@@ -6,7 +6,7 @@ be found at http://cran.r-project.org/doc/manuals/R-intro.html .
 
 EXAMPLES:
 
-2 Simple manipulations; numbers and vectors
+Simple manipulations; numbers and vectors
 
 The simplest data structure in R is the numeric vector which
 consists of an ordered collection of numbers.  To create a
@@ -83,11 +83,6 @@ R will recognize it as the correct thing.
     [1] 10.4  5.6  3.1  6.4 21.7 10.4  5.6  3.1  6.4 21.7
     sage: x.rep(each=2)
     [1] 10.4 10.4  5.6  5.6  3.1  3.1  6.4  6.4 21.7 21.7
-
-
-Logical Vectors
-
-[[ not yet written ]]
 
 Missing Values
     sage: na = r('NA')
@@ -168,10 +163,7 @@ Distributions
     [57] 0.013582969 0.010420935 0.007915452 0.005952532
     [61] 0.004431848
 
-Convert R datastructures to Python/Sage
-
-If possible native objects like lists, and then work directly
-on them.
+Convert R Data Structures to Python/Sage
 
     sage: rr = r.dnorm(r.seq(-3,3,0.1))
     sage: sum(rr._sage_())
@@ -183,13 +175,19 @@ Or you get a dictionary to be able to access all the information.
     sage: rs
        Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
       1.000   1.750   3.000   2.875   4.000   5.000
-    sage: rs._sage_() == {'DATA': [1, 1.75, 3, 2.875, 4, 5], '_Names': ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.'], '_r_class': 'table'}
-    True
+      sage: d = rs._sage_()
+      sage: d['DATA']
+      [1, 1.75, 3, 2.875, 4, 5]
+      sage: d['_Names']
+      ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.']
+      sage: d['_r_class']
+      'table'
 
 AUTHORS:
     -- Mike Hansen (2007-11-01)
-    -- William Stein (2008-04)
+    -- William Stein (2008-04-19)
     -- Harald Schilly (2008-03-20)
+    -- Mike Hansen (2008-04-19)
 """
 
 ##########################################################################
@@ -210,9 +208,11 @@ from sage.misc.misc import DOT_SAGE
 import pexpect
 from random import randrange
 import re
+import sage.rings.integer
 
 COMMANDS_CACHE = '%s/r_commandlist.sobj'%DOT_SAGE
 PROMPT = 'ObFuSc4t3dpR0mp7> '
+prompt_re = re.compile("^>", re.M)
 
 #there is a mirror network, but lets take #1 for now
 RRepositoryURL = "http://cran.r-project.org/"
@@ -221,11 +221,6 @@ RFilteredPackages = ['.GlobalEnv']
 # crosscheck with https://svn.r-project.org/R/trunk/src/main/names.c
 # but package:base should cover this. i think.
 RBaseCommands = ['c', "NULL", "NA", "True", "False", "Inf", "NaN"]
-
-# patterns for _sage_()
-rel_re_param = re.compile('\s([\w\.]+)\s=')
-rel_re_xrange = re.compile('([\d]+):([\d]+)')
-rel_re_integer = re.compile('([^\d])([\d]+)L')
 
 class R(Expect):
     """
@@ -296,13 +291,6 @@ class R(Expect):
         self.__init_list_length = init_list_length
         self._prompt_wait = [self._prompt]
 
-        #only raw output, easier to read an R users are used to it
-        #in general the output is just some sort of "rendering" and this
-        #could mess up things
-        #for standard view use the _sage_ object tranlation
-        #self._remove_indices_re = re.compile(r"^\s*\[\d*\]", re.M)
-
-
     def _start(self):
         """
         Start up the R interpreter and sets the initial prompt and options.
@@ -313,7 +301,7 @@ class R(Expect):
         # pager needed to replace help view from less to printout
         # option device= is for plotting, is set to x11, NULL would be better?
         self._change_prompt(PROMPT)
-        self.eval('options(prompt=\"%s\",width=100,pager="cat",device="png")'%PROMPT)
+        self.eval('options(prompt=\"%s\",continue=\"%s\", width=100,pager="cat",device="png")'%(PROMPT, PROMPT))
         self.expect().expect(PROMPT)
         self.eval('options(repos="%s")'%RRepositoryURL)
         self.eval('options(CRAN="%s")'%RRepositoryURL)
@@ -322,6 +310,33 @@ class R(Expect):
         # necessary for non-interactive execution
         self.eval('options(error = expression(NULL))')
 
+    def png(self, *args, **kwargs):
+        """
+        Creates an R PNG device.
+
+        Note that when using the R pexpect interface in the notebook, you need
+        to call r.dev_off() in the same cell as you opened the device on in order
+        to get the plot to appear.
+
+
+        EXAMPLES:
+            sage: filename = tmp_filename() + '.png'
+            sage: r.png(file='"%s"'%filename)
+            NULL
+            sage: x = r([1,2,3])
+            sage: y = r([4,5,6])
+            sage: r.plot(x,y)
+            NULL
+            sage: r.dev_off()
+                null device
+                          1
+            sage: import os; os.unlink(filename)
+
+        """
+        from sage.server.support import EMBEDDED_MODE
+        if EMBEDDED_MODE:
+            self.setwd('"%s"'%os.path.abspath('.'))
+        return RFunction(self, 'png')(*args, **kwargs)
 
     def convert_r_list(self, l):
         """
@@ -389,6 +404,7 @@ class R(Expect):
             raise AttributeError
         return RFunction(self, attrname)
 
+
     def _quit_string(self):
         """
         EXMAPLES:
@@ -412,6 +428,15 @@ class R(Expect):
         """
         Reads filename into the R interpreter by calling R's source function on a
         read-only file connection.
+
+        EXAMPLES:
+            sage: filename = tmp_filename()
+            sage: f = open(filename, 'w')
+            sage: f.write('a <- 2+2\n')
+            sage: f.close()
+            sage: r.read(filename)
+            sage: r.get('a')
+            '[1] 4'
         """
         self.eval( self._read_in_file_command(filename) )
 
@@ -479,6 +504,11 @@ class R(Expect):
     def library(self,l):
         """
         Loads a library into the R interpreter.
+
+        EXAMPLES:
+            sage: r.library('grid')
+            sage: 'grid' in r.eval('(.packages())')
+            True
         """
         success = self.eval('require("%s")'%l)
         if not success:
@@ -489,8 +519,7 @@ class R(Expect):
                 del self.__trait_names
             except AttributeError:
                 pass
-            self.trait_names()
-            return success
+            self.trait_names(verbose=False)
 
     require = library #overwrites require
 
@@ -704,10 +733,10 @@ class R(Expect):
 
         EXAMPLES:
             sage: l = r._commands()
-            sage: l[:5]
-            ['AIC', 'ARMAacf', 'ARMAtoMA', 'AirPassengers', 'Arg']
-            sage: len(l)
-            2065
+            sage: 'AIC' in l
+            True
+            sage: len(l) > 200
+            True
         """
         v = RBaseCommands
 
@@ -744,8 +773,7 @@ class R(Expect):
     def trait_names(self, verbose=True, use_disk_cache=True):
         """
         EXAMPLES:
-            sage: set_verbose(0)
-            sage: t = r.trait_names()
+            sage: t = r.trait_names(verbose=False)
             sage: len(t) > 200
             True
         """
@@ -791,10 +819,11 @@ class R(Expect):
         This way, even if you somehow left R in a busy state
         computing, calling _synchronize gets everything fixed.
         """
-        if self._expect is None: return
+        if self._expect is None:
+            return
         rnd = randrange(2147483647)
         s = str(rnd+1)
-        cmd = "1+%s;\n"%r
+        cmd = "1+%s;\n"%rnd
         self._sendstr(cmd)
         try:
             self._expect_expr(timeout=0.5)
@@ -839,12 +868,38 @@ class R(Expect):
                     break
             raise KeyboardInterrupt, msg
 
-
     def plot(self, *args, **kwargs):
-        #return self.function_call('plot', args=args, kwargs=kwargs)
-        rp = RPlot()
-        return rp.plot(self, *args, **kwargs)
+        """
+        R's plot function.
 
+        We have to define this to override the plot function defined in the
+        superclass.
+
+        EXAMPLES:
+            sage: filename = tmp_filename() + '.png'
+            sage: r.png(file='"%s"'%filename)
+            NULL
+            sage: x = r([1,2,3])
+            sage: y = r([4,5,6])
+            sage: r.plot(x,y)
+            NULL
+            sage: r.dev_off()
+                null device
+                          1
+            sage: import os; os.unlink(filename)
+        """
+        return RFunction(self, 'plot')(*args, **kwargs)
+
+    def _strip_prompt(self, code):
+        """
+        Remove the standard R prompt from the beginning of lines in code.
+
+        EXAMPLES:
+            sage: s = '> a <- 2\n> b <- 3'
+            sage: r._strip_prompt(s)
+            ' a <- 2\n b <- 3'
+        """
+        return prompt_re.sub("", code)
 
     def eval(self, *args, **kwargs):
         """
@@ -861,7 +916,7 @@ class R(Expect):
             return "You called R with no arguments! e.g. try eval('1+1') or eval('matrix(seq(1,9),3)')."
         else:
             code = args[0]
-            ret = Expect.eval(self, code, *args,**kwargs)
+            ret = Expect.eval(self, code, synchronize=True, *args,**kwargs)
             return ret
 
 
@@ -922,55 +977,16 @@ class R(Expect):
         return RFunction(self, s, r_name=True)
 
 
-from sage.structure.sage_object import SageObject
-class RPlot(SageObject):
-    r = None
-    plotcmd = 'plot' #there is much more, ggplot2 package, lattice, mosaicplot, ...
-    args = ""
-    kwargs = ""
-
-    #def __init__(self,Rint):
-    #    self.r = Rint
-
-    def save(self, filename=None, device = 'png', verbose=0, block=True, extra_opts=''):
-        """
-        save R plot
-
-        format must be a suitable R engine, use png!
-        """
-        self.r.execute('%s(file="%s", bg="transparent"'%(device,filename))
-        #TODO it must be possible to issue multiple plot commands onto the same image
-        self.r.execute('%s(%s, %s)'%(self.plotcmd, self.args, self.kwargs))
-        self.r.execute('dev.off()')
-
-    def show(self, verbose=0, extra_opts=''):
-        import sage.plot.plot
-        if sage.plot.plot.DOCTEST_MODE:
-            filename = sage.misc.misc.graphics_filename()
-            self.save(SAGE_TMP + '/test.png', verbose=verbose, extra_opts=extra_opts)
-            return
-        if sage.plot.plot.EMBEDDED_MODE:
-            filename = sage.misc.misc.graphics_filename()
-            self.save(filename, verbose=verbose, extra_opts=extra_opts)
-            return
-        filename = sage.misc.misc.tmp_filename() + '.png'
-        self.save(filename, verbose=verbose, extra_opts=extra_opts)
-        os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
-
-    def plot(self, rint, plotcmd = 'plot', *args, **kwargs):
-        self.r         = rint
-        self.plotcmd   = plotcmd
-        self.args      = ", ".join(args)
-        self.kwargs    = ", ".join(kwargs)
-        return self
-
+# patterns for _sage_()
+rel_re_param = re.compile('\s([\w\.]+)\s=')
+rel_re_xrange = re.compile('([\d]+):([\d]+)')
+rel_re_integer = re.compile('([^\d])([\d]+)L')
+rel_re_terms = re.compile('terms\s*=\s*(.*?),')
+rel_re_call = re.compile('call\s*=\s*(.*?)\),')
 
 
 
 class RElement(ExpectElement):
-    """
-    Describe elements of your system here.
-    """
     def trait_names(self):
         """
         EXAMPLES:
@@ -981,6 +997,22 @@ class RElement(ExpectElement):
         """
         # TODO: rewrite it, just take methods(class=class(self))
         return self.parent().trait_names()
+
+    def tilde(self, x):
+        """
+        EXAMPLES:
+            sage: x = r([1,2,3,4,5])
+            sage: y = r([3,5,7,9,11])
+            sage: a = r.lm( y.tilde(x) ) # lm( y ~ x )
+            sage: d = a._sage_()
+            sage: d['DATA']['coefficients']['DATA'][1]
+            2
+        """
+        parent = self.parent()
+        rx = parent(x)
+        return parent.new("%s ~ %s"%(self.name(), rx.name()))
+
+    stat_model = tilde
 
     def __len__(self):
         """
@@ -1270,8 +1302,9 @@ class RElement(ExpectElement):
         """
         EXAMPLES:
             sage: a = r([1,2,3])
-            sage: a._r_structure('data', a=1, b=2)
-            {'DATA': 'data', 'a': 1, 'b': 2}
+            sage: d = a._r_structure('data', a=1, b=2)
+            sage: list(sorted(d.items()))
+            [('DATA', 'data'), ('a', 1), ('b', 2)]
             sage: a._r_structure([1,2,3,4], _Dim=(2,2))
             [1 3]
             [2 4]
@@ -1375,13 +1408,13 @@ class RElement(ExpectElement):
         #Change 'dL' to 'Integer(d)'
         exp = rel_re_integer.sub(self._subs_integer, exp)
 
-        # speciality, the call = <function name>
-        # this is really bad
-        # hack: replace the function name by the r.function name
-        #       and wrap into quotes. (last one is TODO ?)
-        exp = re.sub(', call = ', ' , call = r.', exp)
-        exp = re.sub(' (sage\d+)', r' r.\1', exp)
-        #callexp = re.match(', _r_call = "([^,]+),', exp)
+        #Wrap the right hand side of terms = ... in quotes since it
+        #has a ~ in it.
+        exp = rel_re_terms.sub(r'terms = "\1",', exp)
+
+
+        #Change call = ..., to call = "...",
+        exp = rel_re_call.sub(r'call = "\1",', exp)
 
         # seems to work for
         # rr = r.summary(r.princomp(r.matrix(r.c(1,2,3,4,3,4,1,2,2),4)))
@@ -1401,9 +1434,11 @@ class RElement(ExpectElement):
 
         #Set up the globals
         globs = {'NA':None, 'NULL':None, 'FALSE':False, 'TRUE':True,
-                 '_r_list':self._r_list, '_r_structure':self._r_structure}
+                 '_r_list':self._r_list, '_r_structure':self._r_structure,
+                 'Integer':sage.rings.integer.Integer,
+                 'character':str}
 
-        return eval(exp, globs)
+        return eval(exp, globs, globs)
 
 
     def _latex_(self):

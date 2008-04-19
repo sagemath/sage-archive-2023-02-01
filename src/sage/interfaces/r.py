@@ -10,7 +10,7 @@ EXAMPLES:
 
 The simplest data structure in R is the numeric vector which
 consists of an ordered collection of numbers.  To create a
-vector named x using the R interface in SAGE, you pass the
+vector named $x$ using the R interface in SAGE, you pass the
 R interpreter object a list or tuple of numbers.
     sage: x = r([10.4,5.6,3.1,6.4,21.7]); x
     [1] 10.4  5.6  3.1  6.4 21.7
@@ -22,15 +22,15 @@ invert operator or by doing 1/x.
     sage: 1/x
     [1] 0.09615385 0.17857143 0.32258065 0.15625000 0.04608295
 
-The following assignemnt creates a vector y with 11 entries which
-consists of two copies of x with a 0 in between.
+The following assignment creates a vector $y$ with 11 entries which
+consists of two copies of $x$ with a 0 in between.
     sage: y = r([x,0,x]); y
     [1] 10.4  5.6  3.1  6.4 21.7  0.0 10.4  5.6  3.1  6.4 21.7
 
-=Vector Arithmetic=
+Vector Arithmetic
 
-The following command generates a new vector v of length 11 constructed
-by adding together (element by element) 2*x repeated 2.2 times, y
+The following command generates a new vector $v$ of length 11 constructed
+by adding together (element by element) $2x$ repeated 2.2 times, $y$
 repeated just once, and 1 repeated 11 times.
     sage: v = 2*x+y+1; v
     [1] 32.2 17.8 10.3 20.2 66.1 21.8 22.6 12.8 16.9 50.8 43.5
@@ -65,7 +65,7 @@ One can calculate the sample variance of a list of numbers:
     sage: r('-17+0i').sqrt()
     [1] 0+4.123106i
 
-=Generating Regular Sequences=
+Generating Regular Sequences
 
     sage: r('1:10')
     [1] 1  2  3  4  5  6  7  8  9 10
@@ -85,10 +85,11 @@ R will recognize it as the correct thing.
     [1] 10.4 10.4  5.6  5.6  3.1  3.1  6.4  6.4 21.7 21.7
 
 
-=Logical Vectors=
+Logical Vectors
 
+[[ not yet written ]]
 
-=Missing Values=
+Missing Values
     sage: na = r('NA')
     sage: z = r([1,2,3,na])
     sage: z
@@ -118,13 +119,13 @@ R will recognize it as the correct thing.
     [1] FALSE
 
 
-=Character Vectors=
+Character Vectors
 
     sage: labs = r.paste('c("X","Y")', '1:10', sep='""'); labs
     [1] "X1"  "Y2"  "X3"  "Y4"  "X5"  "Y6"  "X7"  "Y8"  "X9"  "Y10"
 
 
-=Index vectors; selecting and modifying subsets of a data set=
+Index vectors; selecting and modifying subsets of a data set
 
     sage: na = r('NA')
     sage: x = r([10.4,5.6,3.1,6.4,21.7,na]); x
@@ -142,52 +143,52 @@ R will recognize it as the correct thing.
     sage: (x+1)['(!is.na(self)) & self>0']
     [1] 11.4  4.1  0.5 22.7
 
-=Distributions=
+Distributions
 
-sage: r.options(width="60");
-$width
-[1] 100
+    sage: r.options(width="60");
+    $width
+    [1] 100
 
-sage: rr = r.dnorm(r.seq(-3,3,0.1))
-sage: rr
- [1] 0.004431848 0.005952532 0.007915452 0.010420935
- [5] 0.013582969 0.017528300 0.022394530 0.028327038
- [9] 0.035474593 0.043983596 0.053990967 0.065615815
-[13] 0.078950158 0.094049077 0.110920835 0.129517596
-[17] 0.149727466 0.171368592 0.194186055 0.217852177
-[21] 0.241970725 0.266085250 0.289691553 0.312253933
-[25] 0.333224603 0.352065327 0.368270140 0.381387815
-[29] 0.391042694 0.396952547 0.398942280 0.396952547
-[33] 0.391042694 0.381387815 0.368270140 0.352065327
-[37] 0.333224603 0.312253933 0.289691553 0.266085250
-[41] 0.241970725 0.217852177 0.194186055 0.171368592
-[45] 0.149727466 0.129517596 0.110920835 0.094049077
-[49] 0.078950158 0.065615815 0.053990967 0.043983596
-[53] 0.035474593 0.028327038 0.022394530 0.017528300
-[57] 0.013582969 0.010420935 0.007915452 0.005952532
-[61] 0.004431848
+    sage: rr = r.dnorm(r.seq(-3,3,0.1))
+    sage: rr
+     [1] 0.004431848 0.005952532 0.007915452 0.010420935
+     [5] 0.013582969 0.017528300 0.022394530 0.028327038
+     [9] 0.035474593 0.043983596 0.053990967 0.065615815
+    [13] 0.078950158 0.094049077 0.110920835 0.129517596
+    [17] 0.149727466 0.171368592 0.194186055 0.217852177
+    [21] 0.241970725 0.266085250 0.289691553 0.312253933
+    [25] 0.333224603 0.352065327 0.368270140 0.381387815
+    [29] 0.391042694 0.396952547 0.398942280 0.396952547
+    [33] 0.391042694 0.381387815 0.368270140 0.352065327
+    [37] 0.333224603 0.312253933 0.289691553 0.266085250
+    [41] 0.241970725 0.217852177 0.194186055 0.171368592
+    [45] 0.149727466 0.129517596 0.110920835 0.094049077
+    [49] 0.078950158 0.065615815 0.053990967 0.043983596
+    [53] 0.035474593 0.028327038 0.022394530 0.017528300
+    [57] 0.013582969 0.010420935 0.007915452 0.005952532
+    [61] 0.004431848
 
-=Convert R datastructures to Python/Sage=
+Convert R datastructures to Python/Sage
 
 If possible native objects like lists, and then work directly
 on them.
 
-sage: rr = r.dnorm(r.seq(-3,3,0.1))
-sage: sum(rr._sage_())
-9.9772125168981081
+    sage: rr = r.dnorm(r.seq(-3,3,0.1))
+    sage: sum(rr._sage_())
+    9.9772125168981081
 
 Or you get a dictionary to be able to access all the information.
 
-sage: rs = r.summary(r.c(1,4,3,4,3,2,5,1))
-sage: rs
-   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
-  1.000   1.750   3.000   2.875   4.000   5.000
-sage: rs._sage_() == {'DATA': [1, 1.75, 3, 2.875, 4, 5], '_Names': ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.'], '_r_class': 'table'}
-True
+    sage: rs = r.summary(r.c(1,4,3,4,3,2,5,1))
+    sage: rs
+       Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+      1.000   1.750   3.000   2.875   4.000   5.000
+    sage: rs._sage_() == {'DATA': [1, 1.75, 3, 2.875, 4, 5], '_Names': ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.'], '_r_class': 'table'}
+    True
 
 AUTHORS:
     -- Mike Hansen (2007-11-01)
-    -- William Stein
+    -- William Stein (2008-04)
     -- Harald Schilly (2008-03-20)
 """
 
@@ -694,7 +695,6 @@ class R(Expect):
         EXAMPLES:
             sage: r.completions('tes')
             ['testPlatformEquivalence', 'testVirtual']
-
         """
         return [name for name in self.trait_names() if name[:len(s)] == s]
 
@@ -708,7 +708,6 @@ class R(Expect):
             ['AIC', 'ARMAacf', 'ARMAtoMA', 'AirPassengers', 'Arg']
             sage: len(l)
             2065
-
         """
         v = RBaseCommands
 
@@ -749,7 +748,6 @@ class R(Expect):
             sage: t = r.trait_names()
             sage: len(t) > 200
             True
-
         """
         try:
             return self.__trait_names
@@ -938,7 +936,7 @@ class RPlot(SageObject):
         """
         save R plot
 
-        format must be a suiteable R engine, use png!
+        format must be a suitable R engine, use png!
         """
         self.r.execute('%s(file="%s", bg="transparent"'%(device,filename))
         #TODO it must be possible to issue multiple plot commands onto the same image

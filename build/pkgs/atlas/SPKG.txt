@@ -19,7 +19,20 @@ Atlas devel mainling list.
 == Dependencies ==
  * None
 
+== Build Instructions/Notes ==
+
+ * patches/ATLAS-3.8.1-Itanium2-detect-fix.patch - already applied to archinfo_linux.c [fixes Itanium 2 detection]
+ * patches/ATLAS-3.8.1-Itanium-RHEL5-m64-workaround.patch - updates probe_comp.c - copyied over only on Itanium
+ * patches/ATLAS-3.8.1-ppc-g4-7447-detect-fix.patch - already applied to  archinfo_linux.c [fixes G4 detection from latest iBook]
+ * patches/ATLAS_arch_p4d.patch - adds a IntP4D arch
+ * patches/ATLAS-copy-dynamic-lib.patch - adds make file targets for dynamic libs
+
+
 == ChangeLog ==
+
+=== atlas-3.8.p0 (Michael Abshoff, March 19th, 2008) ===
+ * update patch description
+ * Fix Itanium2 detection and work around "-m64" issue on RHEL 64 bit
 
 === atlas-3.8 (Michael Abshoff, March 19th, 2008) ===
  * update to 3.8.1 release

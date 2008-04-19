@@ -1412,7 +1412,6 @@ code = setup(name        = 'sage',
 
                      'sage.server',
                      'sage.server.simple',
-                     'sage.server.server1',
                      'sage.server.notebook',
                      'sage.server.notebook.compress',
                      'sage.server.wiki',

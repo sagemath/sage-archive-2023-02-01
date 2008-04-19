@@ -6,6 +6,9 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+echo "Copying updated gmp++.h"
+cp patches/gmp++.h src/src/kernel/gmp++/
+
 cd src
 
 if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then

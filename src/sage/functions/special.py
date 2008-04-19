@@ -1046,15 +1046,16 @@ def elliptic_pi (n, phi, m):
 ##     except AttributeError:
 ##         return 1/sinh(t)
 
-def dilog(t):
-    """
-    Te dilogarithm of t is the analytic continuation of the
-    power series $\sum_{n \geq 1} t^n/n^2$.
-    """
-    try:
-        return t.dilog()
-    except AttributeError:
-        raise NotImplementedError
+## Now implemented using polylog in calculus.py:
+## def dilog(t):
+##    """
+##    Te dilogarithm of t is the analytic continuation of the
+##    power series $\sum_{n \geq 1} t^n/n^2$.
+##    """
+##    try:
+##        return t.dilog()
+##    except AttributeError:
+##        raise NotImplementedError
 
 def lngamma(t):
     """

@@ -19,7 +19,7 @@ from calculus import (SymbolicExpressionRing,
                       arcsinh, arccosh, arctanh, arccoth, arcsech, arccsch,
                       arccot, arccsc, arcsec,
                       ceil, floor,
-                      polylog,
+                      polylog, dilog,
                       abs_symbolic, exp,
                       is_SymbolicExpression,
                       is_SymbolicExpressionRing)

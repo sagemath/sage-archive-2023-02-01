@@ -7588,7 +7588,7 @@ class Function_polylog(PrimitiveFunction):
 
 def polylog(n, z):
     r"""
-    The polylog function $\text{Li}_n(z) = \sum_{k=1}^{\infty} z^k / k^n$.
+    The polylogarithm function $\text{Li}_n(z) = \sum_{k=1}^{\infty} z^k / k^n$.
 
     EXAMPLES:
         sage: polylog(2,1)
@@ -7606,6 +7606,31 @@ def polylog(n, z):
         -(6*log(2)^2 - pi^2)/12 + 2*log(2)*(z - 1/2) + (-2*log(2) + 2)*(z - 1/2)^2 + (8*log(2) - 4)*(z - 1/2)^3/3
     """
     return Function_polylog(n)(z)
+
+def dilog(z):
+    r"""
+    The dilogarithm function $\text{Li}_2(z) = \sum_{k=1}^{\infty} z^k / k^2$.
+
+    This is simply an alias for polylog(2, z).
+
+    EXAMPLES:
+        sage: dilog(1)
+        pi^2/6
+	sage: dilog(1/2)
+	pi^2/12 - log(2)^2/2
+	sage: dilog(x^2+1)
+        polylog(2, x^2 + 1)
+        sage: float(dilog(1))
+	1.6449340668482264
+	sage: var('z')
+        z
+	sage: dilog(z).diff(z, 2)
+	1/((1 - z)*z) + log(1 - z)/z^2
+	sage: dilog(z).taylor(z, 1/2, 3)
+        -(6*log(2)^2 - pi^2)/12 + 2*log(2)*(z - 1/2) + (-2*log(2) + 2)*(z - 1/2)^2 + (8*log(2) - 4)*(z - 1/2)^3/3
+    """
+    return polylog(2, z)
+
 
 _syms['polylog2'] = Function_polylog(2)
 _syms['polylog3'] = Function_polylog(3)

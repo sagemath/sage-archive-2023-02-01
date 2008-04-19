@@ -20,6 +20,9 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
   * Clement Pernet
   * Martin Albrecht <malb@informatik.uni-bremen.de>
 
+=== givaro-3.2.10.rc3.p1 (Michael Abshoff, April 17th, 2008) ===
+ * Fix Itanium specific gcc 4.3 build problem
+
 === givaro-3.2.10.rc3.p0 (Michael Abshoff, April 15th, 2008) ===
  * fix gcc 4.3 build - patch send upstream
 

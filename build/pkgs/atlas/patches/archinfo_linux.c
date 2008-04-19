@@ -96,12 +96,12 @@ enum MACHTYPE ProbeArch()
       break;
    case AFIA64:
       res[0] = '\0';
-      ierr = CmndOneLine(NULL, "fgrep 'Itanium' /proc/cpuinfo", res);
+      ierr = CmndOneLine(NULL, "fgrep 'IA-64' /proc/cpuinfo", res);
       if (ierr || res[0] == '\0')
          ierr = CmndOneLine(NULL, "fgrep model /proc/cpuinfo", res);
       if (!ierr && res[0] != '\0')
       {
-         if (strstr(res, "Itanium 2")) mach = IA64Itan2;
+         if (strstr(res, "IA-64")) mach = IA64Itan2;
          else if (strstr(res, "Itanium")) mach = IA64Itan;
       }
       break;

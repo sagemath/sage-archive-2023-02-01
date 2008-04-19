@@ -62,8 +62,10 @@ fi
 
 CUR=`pwd`
 echo $CUR
-echo Updating archinfo_linux.c
-cp patches/archinfo_linux.c src/ATLAS/CONFIG/src/backend/
+if [ `uname -m` = "ia64" ]; then
+    echo Updating CONFIG/src/probe_comp.c for Itanium
+    cp patches/probe_comp.c src/ATLAS/CONFIG/src/
+fi
 echo Updating atlconf.h
 cp patches/atlconf.h  src/ATLAS/CONFIG/include/
 echo Updating atlcomp.txt

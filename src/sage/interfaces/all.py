@@ -29,11 +29,12 @@ from psage import PSage
 from ecm import ECM, ecm
 from povray import povray
 from lie import lie, lie_console, LiE
+from r import r, r_console, R, r_version, is_RElement
 
 # signal handling
 from get_sigs import *
 
 interfaces = ['gap', 'gp', 'mathematica', 'gnuplot', \
               'kash', 'magma', 'macaulay2', 'maple', 'maxima', \
-              'mathematica', 'mwrank', 'octave', \
+              'mathematica', 'mwrank', 'octave', 'r', \
               'singular', 'sage0', 'sage']

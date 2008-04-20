@@ -73,7 +73,7 @@ import socket
 def find_next_available_port(start, max_tries=100, verbose=True):
     """
     Find the next port that is available to be used, where available means that
-    currently trying to connect to it gives a (111, 'Connection refused')
+    currently trying to connect to it gives a 'Connection refused'
     error message.
 
     INPUT:
@@ -93,7 +93,7 @@ def find_next_available_port(start, max_tries=100, verbose=True):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect(('', port))
         except socket.error, msg:
-            if int(msg[0]) == 111:
+            if msg[1] == 'Connection refused':
                 return port
         if verbose:
             print "Port %s is already in use."%port

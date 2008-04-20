@@ -1,3 +1,10 @@
+
+=== singular-3-0-4-2-20080405.p1 (Michael Abshoff, April 19th, 2008) ===
+ * import Tim Abbott's Debian build fix (#2966)
+
+=== singular-3-0-4-2-20080405.p0 (Martin Albrecht) ===
+ * Update Singular to the latest snapshot
+
 === singular-3-0-4-1-20071209.p3 (Michael Abshoff) ===
  * fix memleak in kernel/longrat.cc
 

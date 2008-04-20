@@ -6,5 +6,5 @@ include /usr/share/cdbs/1/class/makefile.mk
 include /usr/share/cdbs/1/rules/patchsys-quilt.mk
 
 CFLAGS += -fno-exceptions -Wno-deprecated -static-libgcc
-DEB_MAKE_INVOKE += -C src/ LOCATION_PARI_H=/usr/include/pari LOCATION_PARI_LIBRARY=/usr/lib GMP_FLAGS="-L/usr/lib -lmpfr -lgmpxx -lgmp"
-
+DEB_MAKE_INVOKE += -C src/ -f Makefile.sage
+DEB_MAKE_CLEAN_TARGET += -f Makefile

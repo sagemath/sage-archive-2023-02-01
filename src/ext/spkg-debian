@@ -1,0 +1,2 @@
+#!/bin/sh -xe
+echo "Don't build Debian package for extcode"

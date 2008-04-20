@@ -1,16 +1,3 @@
-Index: src/Singular/cntrlc.cc
-===================================================================
---- src.orig/Singular/cntrlc.cc	2008-02-08 17:13:35.000000000 -0800
-+++ src/Singular/cntrlc.cc	2008-02-08 17:13:44.000000000 -0800
-@@ -124,7 +124,7 @@
- /*---------------------------------------------------------------------*/
- #if defined(ix86_Linux)
-   #if defined(HAVE_SIGCONTEXT) || defined(HAVE_ASM_SIGCONTEXT_H)
--  #include <asm/sigcontext.h>
-+  #include <signal.h>
-   #else
- struct sigcontext_struct {
-         unsigned short gs, __gsh;
 Index: src/kernel/Makefile.in
 ===================================================================
 --- src.orig/kernel/Makefile.in	2008-02-08 17:15:37.000000000 -0800
@@ -26,15 +13,3 @@ Index: src/kernel/Makefile.in
  
  install: all installbin
  
-Index: src/kernel/longrat.cc
-===================================================================
---- src.orig/kernel/longrat.cc	2008-02-08 17:15:42.000000000 -0800
-+++ src/kernel/longrat.cc	2008-02-08 17:15:58.000000000 -0800
-@@ -1171,6 +1171,7 @@
- #endif
-               omFreeBin((ADDRESS)x, rnumber_bin);
-               x=INT_TO_SR(ui);
-+              mpz_clear(&gcd);
-               return;
-             }
-           }

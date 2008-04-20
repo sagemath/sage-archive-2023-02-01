@@ -202,6 +202,16 @@ class WeightLatticeRealization_class:
         d = prod([ rho.dot_product(x) for x in self.positive_roots()])
         return n/d
 
+    def highest_root(self):
+        """
+        EXAMPLE:
+            RootSystem(['E',6]).ambient_lattice().highest_root()
+            (1/2, 1/2, 1/2, 1/2, 1/2, -1/2, -1/2, 1/2)
+        """
+        for alp in self.positive_roots():
+            if all(not(alp+bet in self.positive_roots()) for bet in self.positive_roots()):
+                return alp
+
     def simple_reflection(self, i, v):
         """
         Returns the $i^{th}$ simple reflection applied to v, an element
@@ -231,7 +241,6 @@ class WeightLatticeRealization_class:
         """
         from sage.combinat.root_system.weyl_group import WeylGroup
         return WeylGroup(self.ct)
-
 
     def is_dominant(self, v):
         """
@@ -388,6 +397,15 @@ class AmbientLattice_a(AmbientLattice_generic):
             for i in range(j):
                 res.append(  self.root(i,j) )
         return res
+
+    def highest_root(self):
+        """
+        EXAMPLE:
+           sage: e = CartanType(['A',3]).root_system().ambient_lattice()
+           sage: e.highest_root()
+           (1, 0, 0, -1)
+        """
+        return self.root(0,self.n-1)
 
     def fundamental_weights(self):
         """

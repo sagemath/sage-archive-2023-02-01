@@ -19,10 +19,11 @@ Weyl Groups
 from sage.misc.functional import transpose
 from sage.groups.matrix_gps.matrix_group import MatrixGroup_gens
 from sage.groups.matrix_gps.matrix_group_element import MatrixGroupElement
-from sage.rings.all import QQ
+from sage.rings.all import ZZ, QQ
+from sage.interfaces.gap import gap
 from sage.misc.cache import Cache
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.matrix.constructor import matrix
+from sage.matrix.constructor import matrix, diagonal_matrix
 
 def WeylGroup(ct):
     """
@@ -116,6 +117,7 @@ class WeylGroup_gens(MatrixGroup_gens):
         MatrixGroup_gens.__init__(self, gens)
         self.ambient_lattice = L
         self.reflections = [WeylGroupElement(g, self) for g in gens]
+        self.n = L.n
 
     def __repr__(self):
         """
@@ -124,6 +126,15 @@ class WeylGroup_gens(MatrixGroup_gens):
             "The Weyl Group of type ['A', 1]"
         """
         return "The Weyl Group of type %s"%repr(self.ambient_lattice.ct)
+
+    def __call__(self, x):
+        if isinstance(x, WeylGroupElement) and x.parent() is self:
+            return x
+        M = self.matrix_space()(x)
+        g = WeylGroupElement(M, self)
+        if not gap(g) in gap(self):
+            raise TypeError, "no way to coerce element to self."
+        return g
 
     def list(self):
         """
@@ -138,6 +149,28 @@ class WeylGroup_gens(MatrixGroup_gens):
 
         """
         return [WeylGroupElement(a._matrix_(QQ),self) for a in self._gap_().Elements()]
+
+    def character_table(self):
+        """Returns the GAP character table as a string. For larger tables
+        you may preface this with a command such as
+        # sage: gap.eval("SizeScreen([120,40])")
+        in order to widen the screen. Then try
+        # print WeylGroup(['F',4]).character_table()
+        """
+        return gap.eval("Display(CharacterTable(%s))"%gap(self).name())
+
+    def unit(self):
+        """Returns the unit element of the Weyl group
+        EXAMPLE:
+          sage: e = WeylGroup(['A',3]).unit(); e
+          [1 0 0 0]
+          [0 1 0 0]
+          [0 0 1 0]
+          [0 0 0 1]
+          sage: type(e)
+          <class 'sage.combinat.root_system.weyl_group.WeylGroupElement'>
+        """
+        return WeylGroupElement(matrix(QQ,self.n,self.n,1),self)
 
     def lattice(self):
         """
@@ -162,6 +195,8 @@ class WeylGroup_gens(MatrixGroup_gens):
             [-1/2  1/2  1/2 -1/2]
             [ 1/2  1/2 -1/2 -1/2]
             [ 1/2 -1/2  1/2 -1/2]
+            sage: s4^2==G.unit()
+            True
             sage: type(w)
             <class 'sage.combinat.root_system.weyl_group.WeylGroupElement'>
         """
@@ -182,6 +217,48 @@ class WeylGroup_gens(MatrixGroup_gens):
         if i not in self.ambient_lattice.ct.index_set():
             raise ValueError, "i must be in the index set"
         return self.reflections[i-1]
+
+    def long_element(self):
+        """
+        Returns the long Weyl group element.
+        EXAMPLES:
+           sage: for
+        """
+        type = self.ambient_lattice.ct
+        if type[0] == 'D' and type[1]%2 == 1:
+            l = [-1 for i in range(self.n-1)]
+            l.append(1)
+            m = diagonal_matrix(QQ,l)
+        elif type[0] == 'A':
+            l = [0 for k in range((self.n)**2)]
+            for k in range(self.n-1, (self.n)**2-1, self.n-1):
+                l[k] = 1
+            m = matrix(QQ, self.n, l)
+        elif type[0] == 'E':
+            if type[1] == 6:
+                half = ZZ(1)/ZZ(2)
+                l = [[-half, -half, -half, half, 0, 0, 0, 0], \
+                     [-half, -half, half, -half, 0, 0, 0, 0], \
+                     [-half, half, -half, -half, 0, 0, 0, 0], \
+                     [half, -half, -half, -half, 0, 0, 0, 0], \
+                     [0, 0, 0, 0, half, half, half, -half],   \
+                     [0, 0, 0, 0, half, half, -half, half],   \
+                     [0, 0, 0, 0, half, -half, half, half],   \
+                     [0, 0, 0, 0, -half, half, half, half]]
+                m = matrix(QQ, 8, l)
+            else:
+                raise NotImplementedError, "Not implemented yet for this type"
+        elif type[0] == 'G':
+            third = ZZ(1)/ZZ(3)
+            twothirds = ZZ(2)/ZZ(3)
+            l = [[-third, twothirds, twothirds], \
+                 [twothirds, -third, twothirds], \
+                 [twothirds, twothirds, -third]]
+            m = matrix(QQ, 3, l)
+        else:
+            m = diagonal_matrix([-1 for i in range(self.n)])
+        print m
+        return self.__call__(m)
 
     def cartan_type(self):
         """

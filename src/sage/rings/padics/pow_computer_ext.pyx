@@ -1431,6 +1431,13 @@ cdef class PowComputer_ZZ_pX_small(PowComputer_ZZ_pX):
             self.c.append(None)
             for i from 1 <= i <= cache_limit:
                 self.c.append(PowComputer_ZZ_pX.get_context(self,i))
+
+            # create a temporary polynomial with the highest modulus to
+            # ensure all mod[i]'s will fit into it
+            (<ntl_ZZ_pContext_class>self.c[cache_limit]).restore_c()
+            tmp = (<ntl_ZZ_pX>poly).x
+
+            for i from 1 <= i <= cache_limit:
                 (<ntl_ZZ_pContext_class>self.c[i]).restore_c()
                 ZZ_pX_Modulus_construct(&(self.mod[i]))
                 ZZ_pX_conv_modulus(tmp, pol, (<ntl_ZZ_pContext_class>self.c[i]).x)
@@ -1669,10 +1676,19 @@ cdef class PowComputer_ZZ_pX_big(PowComputer_ZZ_pX):
             self.context_list.append(None)
             for i from 1 <= i <= cache_limit:
                 self.context_list.append(PowComputer_ZZ_pX.get_context(self,i))
+
+            # create a temporary polynomial with the highest modulus to
+            # ensure all mod[i]'s will fit into it
+            self.top_context = PowComputer_ZZ_pX.get_context(self, prec_cap)
+            (<ntl_ZZ_pContext_class>self.top_context).restore_c()
+            tmp = (<ntl_ZZ_pX>poly).x
+
+            for i from 1 <= i <= cache_limit:
+                (<ntl_ZZ_pContext_class>self.context_list[i]).restore_c()
                 ZZ_pX_Modulus_construct(&(self.modulus_list[i]))
                 ZZ_pX_conv_modulus(tmp, pol, (<ntl_ZZ_pContext_class>self.context_list[i]).x)
                 ZZ_pX_Modulus_build(self.modulus_list[i], tmp)
-            self.top_context = PowComputer_ZZ_pX.get_context(self, prec_cap)
+            (<ntl_ZZ_pContext_class>self.top_context).restore_c()
             ZZ_pX_Modulus_construct(&(self.top_mod))
             ZZ_pX_conv_modulus(tmp, pol, self.top_context.x)
             ZZ_pX_Modulus_build(self.top_mod, tmp)

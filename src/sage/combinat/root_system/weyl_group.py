@@ -218,7 +218,8 @@ class WeylGroup_gens(MatrixGroup_gens):
         """
         Returns the long Weyl group element.
         EXAMPLES:
-           sage: for
+          sage: [WeylGroup(t).long_element().length() for t in ['A',5],['B',3],['C',3],['D',4],['G',2],['F',4],['E',6]]
+          [15, 9, 9, 12, 6, 24, 36]
         """
         type = self.ambient_lattice.ct
         if type[0] == 'D' and type[1]%2 == 1:
@@ -253,7 +254,6 @@ class WeylGroup_gens(MatrixGroup_gens):
             m = matrix(QQ, 3, l)
         else:
             m = diagonal_matrix([-1 for i in range(self.n)])
-        print m
         return self.__call__(m)
 
     def cartan_type(self):

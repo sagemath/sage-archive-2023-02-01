@@ -1,6 +1,18 @@
+##########################################################################
+#
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#                     2007 Mike Hansen   <mhansen@gmail.com>
+#                     2008 Harald Schilly <harald.schilly@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#
+##########################################################################
+
 from sage.interfaces.r import R, RElement
 
-#my own copy
+# my own copy of an R interface
 myR = R()
 
 def ttest(x,y,conf_level = 0.95, **kw):

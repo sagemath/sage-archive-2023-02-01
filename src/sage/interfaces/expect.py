@@ -32,6 +32,7 @@ import os
 import weakref
 import time
 import gc
+from random import randrange
 
 ########################################################
 # Important note: We use Pexpect 2.0 *not* Pexpect 2.1.
@@ -689,6 +690,201 @@ If this all works, you can then make calls like:
         elif quit_on_fail:
             self.quit()
         return success
+
+    ###########################################################################
+    # BEGIN Synchronization code.
+    ###########################################################################
+
+    def _before(self):
+        """
+        Return the previous string that was send through the interface.
+
+        EXAMPLES:
+            sage: singular(2+3)
+            5
+            sage: singular._before()
+            'print(sage...);\r\n5\r\n'
+        """
+        return self._expect.before
+
+    def _interrupt(self):
+        for i in range(15):
+            try:
+                self._sendstr('quit;\n'+chr(3))
+                self._expect_expr(timeout=2)
+            except pexpect.TIMEOUT:
+                pass
+            except pexpect.EOF:
+                self._crash_msg()
+                self.quit()
+            else:
+                return
+
+    def _expect_expr(self, expr=None, timeout=None):
+        r"""
+        Wait for a given expression expr (which could be a regular
+        expression or list of regular expressions) to appear in the
+        output for at most timeout seconds.
+
+        Use \code{r._expect.before} to see what was put in the output
+        stream before the expression.
+
+        INPUT:
+            expr -- None or a string or list of strings (default: None)
+            timeout -- None or a number (default: None)
+
+        EXAMPLES:
+        We test all of this using the R interface.  First we put 10 + 15 in
+        the input stream:
+            sage: r._sendstr('abc <- 10 +15;\n')
+
+        Here an exception is raised because 25 hasn't appeared yet in the
+        output stream.  The key thing is that this doesn't lock, but instead
+        quickly raises an exception.
+            sage: t = walltime()
+            sage: try: r._expect_expr('25', timeout=0.5)
+            ... except: print 'Did not get expression'
+            Did not get expression
+
+        A quick consistency check on the time that the above took:
+            sage: w = walltime(t); w > 0.4 and w < 10
+            True
+
+        We tell R to print abc, which equals 25.
+            sage: r._sendstr('abc;\n')
+
+        Now 25 is in the output stream, so we can wait for it.
+            sage: r._expect_expr('25')
+
+        This gives us everything before the 25.
+            sage: r._expect.before
+            'abc;\r\n[1] '
+        """
+        if expr is None:
+            expr = self._prompt_wait
+        if self._expect is None:
+            self._start()
+        try:
+            if timeout:
+                i = self._expect.expect(expr,timeout=timeout)
+            else:
+                i = self._expect.expect(expr)
+            if i > 0:
+                v = self._expect.before
+                self.quit()
+                raise ValueError, "%s\nComputation failed due to a bug in %s -- NOTE: Had to restart."%(v, self)
+        except KeyboardInterrupt, msg:
+            i = 0
+            while True:
+                try:
+                    print "Control-C pressed.  Interrupting R. Please wait a few seconds..."
+                    self._sendstr('quit;\n'+chr(3))
+                    self._sendstr('quit;\n'+chr(3))
+                    self.interrupt()
+                    self.interrupt()
+                except KeyboardInterrupt:
+                    i += 1
+                    if i > 10:
+                        break
+                    pass
+                else:
+                    break
+            raise KeyboardInterrupt, msg
+
+    def _sendstr(self, str):
+        """
+        Send a string to the pexpect interface, autorestarting the
+        expect interface if anything goes wrong.
+
+        INPUT:
+           str -- a string
+
+        EXAMPLES:
+        We illustrate this function using the R interface:
+            sage: r._sendstr('a <- 10;\n')
+            sage: r.eval('a')
+            '[1] 10'
+
+        We illustrate using the singular interface:
+            sage: singular._sendstr('int i = 5;')
+            sage: singular('i')
+            5
+        """
+        if self._expect is None:
+            self._start()
+        try:
+            os.write(self._expect.child_fd, str)
+        except OSError:
+            self._crash_msg()
+            self.quit()
+            self._sendstr(str)
+
+    def _crash_msg(self):
+        """
+        Show a message if the interface crashed.
+
+        EXAMPLE:
+            sage: singular._crash_msg()
+            Singular crashed -- automatically restarting.
+
+            sage: singular('2+3')
+            5
+            sage: import os
+            sage: os.kill(singular.pid(), 9)
+            sage: sleep(0.5)    # for testing; give the signal a chance.
+            sage: singular('2+3')
+            Singular crashed -- automatically restarting.
+            5
+        """
+        print "%s crashed -- automatically restarting."%self
+
+    def _synchronize(self):
+        """
+        Synchronize pexpect interface.
+
+        This put a random integer (plus one!) into the output stream,
+        then waits for it, thus resynchronizing the stream.  If the
+        random integer doesn't appear within 1 second, the interface
+        is sent interrupt signals.
+
+        This way, even if you somehow left the interface in a busy state
+        computing, calling _synchronize gets everything fixed.
+
+        EXAMPLES:
+        We observe nothing, just as it should be:
+            sage: r._synchronize()
+
+        TESTS:
+        This illustrates a synchronization bug being fixed (thanks to Simon King and David Joyner
+        for tracking this down):
+            sage: R.<x> = QQ[]; f = x^3 + x + 1;  g = x^3 - x - 1; r = f.resultant(g); gap(ZZ); singular(R)
+            Integers
+            //   characteristic : 0
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    x
+            //        block   2 : ordering C
+        """
+        if self._expect is None:
+            return
+        rnd = randrange(2147483647)
+        s = str(rnd+1)
+        cmd = "1+%s;\n"%rnd
+        self._sendstr(cmd)
+        try:
+            self._expect_expr(timeout=0.5)
+            if not s in self._expect.before:
+                self._expect_expr(s,timeout=0.5)
+                self._expect_expr(timeout=0.5)
+        except pexpect.TIMEOUT:
+            self._interrupt()
+        except pexpect.EOF:
+            self._crash_msg()
+            self.quit()
+
+    ###########################################################################
+    # END Synchronization code.
+    ###########################################################################
 
     def eval(self, code, strip=True, synchronize=False, **kwds):
         """

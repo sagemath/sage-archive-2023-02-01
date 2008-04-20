@@ -299,9 +299,10 @@ class Singular(Expect):
     """
     def __init__(self, maxread=1000, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None):
+        prompt = '> '
         Expect.__init__(self,
                         name = 'singular',
-                        prompt = '> ',
+                        prompt = prompt,
                         command = "Singular -t --ticks-per-sec 1000", #no tty and fine grained cputime()
                         maxread = maxread,
                         server = server,
@@ -312,6 +313,7 @@ class Singular(Expect):
                         logfile = logfile,
                         eval_using_file_cutoff=1000)
         self.__libs  = []
+        self._prompt_wait = prompt
 
     def _start(self, alt_message=None):
         self.__libs = []
@@ -336,159 +338,6 @@ class Singular(Expect):
 
     def _read_in_file_command(self, filename):
         return '< "%s";'%filename
-
-    ###########################################################################
-    # BEGIN Synchronization code.
-    # Everything below will be factored out into a base class
-    # (expect.py) once it is well tested.  There is similar
-    # code in maxima.py that also needs to be factored out.
-    # Also the code below still has things in it that only
-    # make sense in Maxima.
-    ###########################################################################
-
-    def _synchronize(self):
-        """
-        Synchronize pexpect interface.
-
-        This put a random integer (plus one!) into the output stream,
-        then waits for it, thus resynchronizing the stream.  If the
-        random integer doesn't appear within 1 second, Singular is sent
-        interrupt signals.
-
-        EXAMPLES:
-
-        TESTS:
-        This illustrates a synchronization bug being fixed (thanks to Simon King and David Joyner
-        for tracking this down):
-            sage: R.<x> = QQ[]; f = x^3 + x + 1;  g = x^3 - x - 1; r = f.resultant(g); gap(ZZ); singular(R)
-            Integers
-            //   characteristic : 0
-            //   number of vars : 1
-            //        block   1 : ordering lp
-            //                  : names    x
-            //        block   2 : ordering C
-
-        """
-        if self._expect is None: return
-        from random import randrange
-        import pexpect
-        r = randrange(2147483647)
-        s = str(r+1)
-        cmd = "1+%s;\n"%r
-        self._sendstr(cmd)
-        try:
-            self._expect_expr(timeout=0.5)
-            if not s in self._before():
-                self._expect_expr(s,timeout=0.5)
-                self._expect_expr(timeout=0.5)
-        except pexpect.TIMEOUT, msg:
-            self._interrupt()
-        except pexpect.EOF:
-            self._crash_msg()
-            self.quit()
-
-    def _before(self):
-        """
-        Return the previous string that was send through the interface.
-
-        EXAMPLES:
-            sage: singular(2+3)
-            5
-            sage: singular._before() # The variable name sage167 is somehow random
-            'print(sage167);\r\n5\r\n'
-        """
-        return self._expect.before
-
-    def _sendstr(self, str):
-        """
-        Send a string through the interface.
-
-        EXAMPLES:
-            sage: singular._sendstr('int i = 5;')
-            sage: singular('i')
-            5
-        """
-        if self._expect is None:
-            self._start()
-        try:
-            os.write(self._expect.child_fd, str)
-        except OSError:
-            self._crash_msg()
-            self.quit()
-            self._sendstr(str)
-
-    def _crash_msg(self):
-        """
-        Show a message if the singular interface crashed.
-
-        EXAMPLE:
-            sage: import os
-            sage: singular(2+3)
-            5
-            sage: os.kill(singular.pid(),9)
-            sage: singular(2+3)
-            Singular crashed -- automatically restarting.
-            5
-        """
-        print "Singular crashed -- automatically restarting."
-
-    def _expect_expr(self, expr=None, timeout=None):
-        if expr is None:
-            expr = self._prompt
-        if self._expect is None:
-            self._start()
-        try:
-            if timeout:
-                i = self._expect.expect(expr,timeout=timeout)
-            else:
-                i = self._expect.expect(expr)
-            if i > 0:
-                v = self._expect.before
-                if i >= len(self._ask):
-                    self.quit()
-                    raise ValueError, "%s\nComputation failed due to a bug in Singualr -- NOTE: Singular had to be restarted."%v
-
-                j = v.find('Is ')
-                v = v[j:]
-                msg = "Computation failed since Singular requested additional constraints (use assume):\n" + v + self._ask[i-1]
-                self._sendstr(chr(3))
-                self._sendstr(chr(3))
-                self._expect_expr()
-                raise ValueError, msg
-        except KeyboardInterrupt, msg:
-            i = 0
-            while True:
-                try:
-                    print "Control-C pressed.  Interrupting Singular. Please wait a few seconds..."
-                    self._sendstr('quit;\n'+chr(3))
-                    self._sendstr('quit;\n'+chr(3))
-                    self.interrupt()
-                    self.interrupt()
-                except KeyboardInterrupt:
-                    i += 1
-                    if i > 10:
-                        break
-                    pass
-                else:
-                    break
-            raise KeyboardInterrupt, msg
-
-    def _interrupt(self):
-        for i in range(15):
-            try:
-                self._sendstr('quit;\n'+chr(3))
-                self._expect_expr(timeout=2)
-            except pexpect.TIMEOUT:
-                pass
-            except pexpect.EOF:
-                self._crash_msg()
-                self.quit()
-            else:
-                return
-
-    ###########################################################################
-    # END Synchronization code.
-    ###########################################################################
 
 
     def eval(self, x, allow_semicolon=True, strip=True):

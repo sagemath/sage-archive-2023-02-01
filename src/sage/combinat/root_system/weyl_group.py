@@ -124,12 +124,26 @@ class WeylGroup_gens(MatrixGroup_gens):
         return "The Weyl Group of type %s"%repr(self.ambient_lattice.ct)
 
     def __call__(self, x):
+        """
+        EXAMPLES:
+            sage: W = WeylGroup(['A',2])
+            sage: W(1)
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+
+            sage: W(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: no way to coerce element into self.
+
+        """
         if isinstance(x, WeylGroupElement) and x.parent() is self:
             return x
         M = self.matrix_space()(x)
         g = WeylGroupElement(M, self)
         if not gap(g) in gap(self):
-            raise TypeError, "no way to coerce element to self."
+            raise TypeError, "no way to coerce element into self."
         return g
 
     def list(self):

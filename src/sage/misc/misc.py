@@ -1353,6 +1353,11 @@ def alarm(seconds):
 
     INPUT:
         seconds -- integer
+
+    TESTS:
+        sage: try: alarm(1); sleep(2)
+        ... except KeyboardInterrupt: print "Alarm went off"
+        Alarm went off
     """
     seconds = int(seconds)
     # Set our alarm signal handler.

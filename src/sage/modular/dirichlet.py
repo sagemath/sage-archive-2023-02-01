@@ -993,12 +993,18 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e = DirichletGroup(20)(1)
             sage: e.values()
             [0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1]
-            sage: e = DirichletGroup(20).0
+            sage: e = DirichletGroup(20).gen(0)
             sage: print e.values()
             [0, 1, 0, -1, 0, 0, 0, -1, 0, 1, 0, -1, 0, 1, 0, 0, 0, 1, 0, -1]
-            sage: e = DirichletGroup(20).1
+            sage: e = DirichletGroup(20).gen(1)
             sage: e.values()
             [0, 1, 0, -zeta4, 0, 0, 0, zeta4, 0, -1, 0, 1, 0, -zeta4, 0, 0, 0, zeta4, 0, -1]
+            sage: e = DirichletGroup(21).gen(0) ; e.values()
+            [0, 1, -1, 0, 1, -1, 0, 0, -1, 0, 1, -1, 0, 1, 0, 0, 1, -1, 0, 1, -1]
+            sage: e = DirichletGroup(21, base_ring=GF(37)).gen(0) ; e.values()
+            [0, 1, 36, 0, 1, 36, 0, 0, 36, 0, 1, 36, 0, 1, 0, 0, 1, 36, 0, 1, 36]
+            sage: e = DirichletGroup(21, base_ring=GF(3)).gen(0) ; e.values()
+            [0, 1, 2, 0, 1, 2, 0, 0, 2, 0, 1, 2, 0, 1, 0, 0, 1, 2, 0, 1, 2]
         """
         try:
             return self.__values
@@ -1027,8 +1033,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         result_list = [zero] * mod
 
-        zeta_order = R.zeta_order()
-        zeta = R.zeta()
+        zeta_order = G.zeta_order()
+        zeta = R.zeta(zeta_order)
         A = rings.Integers(zeta_order)
         A_zero = A.zero_element()
         A_one = A.one_element()
@@ -1039,12 +1045,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
         R_values = G._zeta_powers
 
         gens = G.unit_gens()
-        ## gens = [ S(z) for z in self._parent.unit_gens() ]
         last = [ x.multiplicative_order()-1 for x in G.unit_gens() ]
 
         ngens = len(gens)
         exponents = [0] * ngens
-        n = S(1) ## rings.ZZ(1)
+        n = S(1)
 
         value = A_zero
         val_on_gen = [ A(R_values.index(x)) for x in self.values_on_gens() ]

@@ -8,8 +8,10 @@ unset LD_LIBRARY_PATH
 unset LIBRARY_PATH
 unset PYTHONPATH
 unset PYTHONHOME
-mv dist/debian src/
-sage-debsource src/
+DIRECTORY=$(basename `pwd`)
+mv src "$DIRECTORY"
+mv dist/debian "$DIRECTORY/"
+sage-debsource "$DIRECTORY"
 sage-sbuildhack "$DEBIAN_RELEASE" *.dsc
 DISTRO=$(echo "$DEBIAN_RELEASE" | cut -f1 -d-)
 ARCHITECTURE=$(echo "$DEBIAN_RELEASE" | cut -f2 -d-)

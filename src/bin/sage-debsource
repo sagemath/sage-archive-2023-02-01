@@ -25,11 +25,21 @@ die() {
 do_package() {
   dir=$1
 
+  version=$(echo $dir | sed 's/[^-]*-//')
+  upver=$(echo $version | sed 's/\(.*\)-\([^-]*\)/\1/')
+  if dpkg --compare-versions "$upver" '>>' "20000000"; then
+      # send to 0.0.x
+      upver="0.0.$upver"
+  fi
+  if [ "$upver" = "$version" ]; then
+      dver=1
+  else
+      dver=$(echo $version | sed 's/\(.*\)-\([^-]*\)/\2/')
+  fi
+  sver="$upver-$dver"
+
   # Extract the changelog version and strip off the epoch and Debian component.
   pkgname=$(cd $dir && dpkg-parsechangelog | sed -n 's/Source: //p')
-  changever=$(cd $dir && dpkg-parsechangelog | sed -n 's/Version: //p')
-  sver=$(echo $changever | sed -re 's/^[0-9]+://p')
-  upver=$(echo $sver | sed -re 's/-[^-]*$//')
 
   # Rename the source checkout if necessary.
   correctdir=${pkgname}-$upver
@@ -48,6 +58,9 @@ do_package() {
          $tarfile ${pkgname}-$upver)
     fi
   fi
+
+  # Add a changelog entry updating to the current version number.
+  (cd $dir && dch -v "$sver" "Build with new SAGE spkg $dir.spkg")
 
   # Build an unsigned package, ignoring version control subdirs in the source.
   echo "Creating source package"

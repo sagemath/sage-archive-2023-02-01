@@ -27,6 +27,9 @@ GPL
 
 == Changelog ==
 
+=== ntl-5.4.2.p2 (Michael Abshoff, April 19th, 2008) ===
+ * import Tim Abbott's Debian build fix (#2968)
+
 === ntl-5.4.2.p1 (David Harvey, April 12th, 2008) ===
  * added SetErrorCallbackFunction(), update spkg-install script to copy relevant patch files
 

@@ -517,6 +517,11 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             sage: R.<x> = k[]
             sage: l.<w> = k.extension(x^2-5); l
             Eisenstein Extension of 5-adic Field with capped relative precision 20 in w defined by (1 + O(5^20))*x^2 + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + 4*5^12 + 4*5^13 + 4*5^14 + 4*5^15 + 4*5^16 + 4*5^17 + 4*5^18 + 4*5^19 + 4*5^20 + O(5^21))
+
+            sage: F = list(Qp(19)['x'](cyclotomic_polynomial(5)).factor())[0][0]
+            sage: L = Qp(19).extension(F, names='a')
+            sage: L
+            Unramified Extension of 19-adic Field with capped relative precision 20 in a defined by (1 + O(19^20))*x^2 + (5 + 2*19 + 10*19^2 + 14*19^3 + 7*19^4 + 13*19^5 + 5*19^6 + 12*19^7 + 8*19^8 + 4*19^9 + 14*19^10 + 6*19^11 + 5*19^12 + 13*19^13 + 16*19^14 + 4*19^15 + 17*19^16 + 8*19^18 + 4*19^19 + O(19^20))*x + (1 + O(19^20))
         """
         from sage.rings.padics.factory import ExtensionFactory
         return ExtensionFactory(self, modulus, prec, print_mode, halt, names, check = True)

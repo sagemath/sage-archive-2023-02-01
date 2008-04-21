@@ -830,8 +830,7 @@ If this all works, you can then make calls like:
             sage: singular('2+3')
             5
             sage: import os
-            sage: os.kill(singular.pid(), 9)
-            sage: sleep(0.5)    # for testing; give the signal a chance.
+            sage: singular._sendstr('quit;\n')   # make it so that singular appears to die.
             sage: singular('2+3')
             Singular crashed -- automatically restarting.
             5

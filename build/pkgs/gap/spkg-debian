@@ -1,8 +1,10 @@
 #!/bin/sh -xe
 echo "Building the GAP Guava package"
-mv dist/debian dist/debian-tmp
-mv src gap
-mv gap/pkg/guava* src
+GUAVA=$(echo $(basename `ls -d src/pkg/guava*`) | sed 's/guava\([0-9.]*\)/guava-\1/' )
+mkdir -p "$GUAVA/dist"
+mv dist/debian "$GUAVA/dist/debian-tmp"
+mv src/pkg/guava* "$GUAVA"/src
+cd "$GUAVA"
 
 echo "Building Guava for GAP"
 mv dist/debian-tmp/guava-debian dist/debian

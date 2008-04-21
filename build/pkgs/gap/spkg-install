@@ -6,7 +6,6 @@
 
 TARGET="gap-4.4.10"  #NOTE: Be sure to also update patches/gap*
 
-
 # Indicate that Gap has somehow been updated, which invalidates all workspaces.
 touch "$SAGE_LOCAL/bin/gap_stamp"
 
@@ -21,7 +20,10 @@ if [ `uname` = "Linux" ]; then
    uname -a |grep ia64
    if [ $? = 0 -o `uname -p` = "ia64" ]; then
        cp patches/ia64-configure.out src/cnf/configure.out
-       echo "The file configure.out was patched for SAGE!" > cnf/configure.out.README
+       echo "The file configure.out was patched for SAGE!" > src/cnf/configure.out.README
+
+       # This gets used below later as patches/gap.
+       cp patches/ia64-gap patches/gap
    fi
 fi
 

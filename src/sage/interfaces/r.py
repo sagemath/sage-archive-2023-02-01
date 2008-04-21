@@ -326,17 +326,22 @@ class R(Expect):
 
         EXAMPLES:
             sage: filename = tmp_filename() + '.png'
-            sage: r.png(file='"%s"'%filename)
+            sage: r.png(file='"%s"'%filename)  #optional requires R png support
             NULL
-            sage: x = r([1,2,3])
-            sage: y = r([4,5,6])
-            sage: r.plot(x,y)
+            sage: x = r([1,2,3]) #optional
+            sage: y = r([4,5,6]) #optional
+            sage: r.plot(x,y)    #optional
             NULL
-            sage: r.dev_off()
+            sage: r.dev_off()    #optional
                 null device
                           1
-            sage: import os; os.unlink(filename)
+            sage: import os; os.unlink(filename) #optional
         """
+        #Check to see if R has PNG support
+        s = self.eval('capabilities("png")')
+        if "TRUE" not in s:
+            raise RuntimeError, "R was not compiled with PNG support"
+
         from sage.server.support import EMBEDDED_MODE
         if EMBEDDED_MODE:
             self.setwd('"%s"'%os.path.abspath('.'))
@@ -371,7 +376,7 @@ class R(Expect):
         Install an R package into Sage's R installation.
 
         EXAMPLES:
-            sage: r.install_package('Hmisc')       # optional requires internet
+            sage: r.install_package('Hmisc')       #optional requires internet
             [1] 4 5 6
         """
         if UNAME == "Darwin":
@@ -573,19 +578,19 @@ class R(Expect):
             that is checked is defined at the top of sage/interfaces/r.py.
 
         EXAMPLES:
-            sage: ap = r.available_packages()   # optional requires internet connection
-            sage: ap[:3]                        # optional
-            ['aaMI', 'abind', 'AcceptanceSampling']
+            sage: ap = r.available_packages()   #optional requires internet connection
+            sage: len(ap) > 20                  #optional
+            True
         """
         p = self.new('available.packages("%s/src/contrib")'%RRepositoryURL)
         s = str(p).splitlines()[1:]
         v = [x.split()[0].strip("'") for x in s]
         return v
-        # The following was more structural, but breaks on my machine.  (stein)
-##         p = p._sage_()
-##         s = p['_Dim'][0]
-##         l = [[p['DATA'][i],p['DATA'][s+1+i]] for i in xrange(0,s)]
-##         return l
+        #The following was more structural, but breaks on my machine.  (stein)
+        #p = p._sage_()
+        #s = p['_Dim'][0]
+        #l = [[p['DATA'][i],p['DATA'][s+1+i]] for i in xrange(0,s)]
+        #return l
 
     def _object_class(self):
         """
@@ -936,17 +941,17 @@ class R(Expect):
         to use it to write output to a FILE.
 
         EXAMPLES:
-            sage: filename = tmp_filename() + '.png'
-            sage: r.png(file='"%s"'%filename)
+            sage: filename = tmp_filename() + '.png' #optional requires PNG support
+            sage: r.png(file='"%s"'%filename) #optional
             NULL
-            sage: x = r([1,2,3])
-            sage: y = r([4,5,6])
-            sage: r.plot(x,y)
+            sage: x = r([1,2,3]) #optional
+            sage: y = r([4,5,6]) #optional
+            sage: r.plot(x,y)    #optional
             NULL
-            sage: r.dev_off()
+            sage: r.dev_off()    #optional
                 null device
                           1
-            sage: import os; os.unlink(filename)
+            sage: import os; os.unlink(filename) #optional
         """
         # We have to define this to override the plot function defined in the
         # superclass.
@@ -1665,7 +1670,7 @@ class RElement(ExpectElement):
            a latex expression (basically a string)
 
         EXAMPLES:
-            sage: latex(r(2))  # optional requires the Hmisc R package
+            sage: latex(r(2))  #optional requires the Hmisc R package
             2
         """
         self._check_valid()

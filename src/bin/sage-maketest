@@ -12,7 +12,7 @@ echo "---------------------" > "$SAGE_TEST_LOG"
 echo `date` >> "$SAGE_TEST_LOG"
 
 # Run DSAGE unit tests
-#sage-dsage-trial 2>&1 | tee "$DSAGE_TEST_LOG" | tee -a "$SAGE_TEST_LOG"
+sage-dsage-trial 2>&1 | tee "$DSAGE_TEST_LOG" | tee -a "$SAGE_TEST_LOG"
 
 if [ -d $SAGE_ROOT/examples ]; then
 

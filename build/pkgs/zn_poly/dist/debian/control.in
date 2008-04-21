@@ -2,7 +2,7 @@ Source: libzn-poly
 Section: math
 Priority: extra
 Maintainer: Tim Abbott <tabbott@mit.edu>
-Build-Depends: @cdbs@, libgmp3-dev, libntl-dev
+Build-Depends: @cdbs@, libgmp3-dev, libntl-dev, python
 Standards-Version: 3.7.2
 
 Package: libzn-poly0

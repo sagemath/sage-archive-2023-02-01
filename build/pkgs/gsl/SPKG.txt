@@ -32,6 +32,9 @@ GSL mailing lists:
 
 == Changelog ==
 
+=== gsl-1.10.p1 (Michael Abshoff, April 20th, 2008) ===
+ * always use GSL's isinf (fixes #2973)
+
 === gsl-1.10-p0 (Michael Abshoff, Jan. 26, 2008) ===
  * fix 64 OSX build
  * fix spkg-check target

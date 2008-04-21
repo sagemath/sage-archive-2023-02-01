@@ -4,11 +4,12 @@ Calculus functions.
 
 from sage.matrix.all import matrix
 from calculus import SymbolicVariable
+from functional import diff
 
 def wronskian(*args):
     """Returns the Wronskian of the provided functions, differentiating with
     respect to the given variable. If no variable is provided,
-    f.derivative is called for each function f.
+    diff(f) is called for each function f.
 
     wronskian(f1,...,fn, x) returns the Wronskian of f1,...,fn, with
     derivatives taken with respect to x.
@@ -57,6 +58,10 @@ def wronskian(*args):
         sage: wronskian(x, sin(x), e^x)
         x*(e^x*sin(x) + e^x*cos(x)) - 2*e^x*sin(x)
 
+      Example where one of the functions is constant:
+        sage: wronskian(1, e^(-x), e^(2*x))
+        -6*e^x
+
     NOTES:
         http://en.wikipedia.org/wiki/Wronskian
         http://planetmath.org/encyclopedia/WronskianDeterminant.html
@@ -75,10 +80,10 @@ def wronskian(*args):
             # differentiate the other args
             v = args[-1]
             fs = args[0:-1]
-            row = lambda n: map(lambda f: f.derivative(v, n), fs)
+            row = lambda n: map(lambda f: diff(f, v, n), fs)
         else:
             # if the last argument isn't a variable, just run
             # .derivative on everything
             fs = args
-            row = lambda n: map(lambda f: f.derivative(n), fs)
+            row = lambda n: map(lambda f: diff(f, n), fs)
         return matrix(map(row, range(len(fs)))).determinant()

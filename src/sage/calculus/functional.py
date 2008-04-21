@@ -63,8 +63,8 @@ def derivative(f, *args, **kwds):
     Repeated differentation is supported by the syntax given in the
     examples below.
 
-    ALIASES:
-        diff, differentiate
+    ALIAS:
+        diff
 
     EXAMPLES:
     We differentiate a callable symbolic function:
@@ -134,7 +134,6 @@ def derivative(f, *args, **kwds):
     return f.derivative(*args, **kwds)
 
 diff = derivative
-differentiate = derivative
 
 def integral(f, *args, **kwds):
     r"""

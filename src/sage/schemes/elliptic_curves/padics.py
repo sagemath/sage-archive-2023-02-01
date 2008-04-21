@@ -606,7 +606,7 @@ def padic_height_via_multiply(self, p, prec=20, E2=None, check_hypotheses=True):
         prec -- integer >= 2, desired precision of result
         E2 -- precomputed value of E2. If not supplied, this function will
               call padic_E2 to compute it. The value supplied must be correct
-              mod p^(prec-2) (or slightly higher in the anomalous case; see
+              mod $p^(prec-2)$ (or slightly higher in the anomalous case; see
               the code for details).
         check_hypotheses -- boolean, whether to check that this is a
              curve for which the p-adic height makes sense

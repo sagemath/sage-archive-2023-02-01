@@ -30,6 +30,9 @@ Atlas devel mainling list.
 
 == ChangeLog ==
 
+=== atlas-3.8.p1 (Michael Abshoff, March 21st, 2008) ==
+ * add Pentium D 64 bit tuning info (#2986)
+
 === atlas-3.8.p0 (Michael Abshoff, March 19th, 2008) ===
  * update patch description
  * Fix Itanium2 detection and work around "-m64" issue on RHEL 64 bit

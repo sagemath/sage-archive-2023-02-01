@@ -646,17 +646,20 @@ class Cell(Cell_generic):
 
         r = max(1, number_of_rows(t.strip(), ncols))
 
-        s += """
-           <textarea class="%s" rows=%s cols=%s
-              id         = 'cell_input_%s'
-              onKeyPress = 'return input_keypress(%s,event);'
-              onKeyDown  = 'return input_keydown(%s,event);'
-              onKeyUp    = 'return input_keyup(%s, event);'
-              onBlur     = 'cell_blur(%s); return true;'
-              onFocus    = 'cell_focused(this,%s); return true;'
-              %s
-           >%s</textarea>
-        """%(cls, r, ncols, id, id, id, id, id, id, 'readonly=1' if do_print else '', t)
+        if do_print:
+            tt = t.replace('<','&lt;').replace('\n','<br>').replace('  ',' &nbsp;') + '&nbsp;'
+            s += '<div class="cell_input_print">%s</div>'%tt
+        else:
+            s += """
+               <textarea class="%s" rows=%s cols=%s
+                  id         = 'cell_input_%s'
+                  onKeyPress = 'return input_keypress(%s,event);'
+                  onKeyDown  = 'return input_keydown(%s,event);'
+                  onKeyUp    = 'return input_keyup(%s, event);'
+                  onBlur     = 'cell_blur(%s); return true;'
+                  onFocus    = 'cell_focused(this,%s); return true;'
+               >%s</textarea>
+            """%(cls, r, ncols, id, id, id, id, id, id, t)
 
         if not do_print:
            s+= '<a href="javascript:evaluate_cell(%s,0)" class="eval_button" id="eval_button%s" alt="Click here or press shift-return to evaluate">evaluate</a>'%(id,id)
@@ -750,6 +753,9 @@ class Cell(Cell_generic):
         return images + files
 
     def html_out(self, ncols=0, do_print=False):
+        if do_print and self.cell_output_type() == 'hidden':
+            return '<pre>\n</pre>'
+
         out_nowrap = self.output_text(0, html=True)
 
         out_html = self.output_html()

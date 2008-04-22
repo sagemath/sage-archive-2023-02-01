@@ -986,7 +986,7 @@ pre.cell_input {
   padding-left:5px;
   padding-top:3px;
   padding-bottom:0px;
-  width: 97%;
+  width: 100%;
   margin-bottom:0px;
   margin-top:0px;
 
@@ -1046,6 +1046,7 @@ textarea.cell_input_active {
   width: 97%;
 }
 
+/* used for resize only */
 div.cell_input_active {
   background-color: white;
   border-left: 2px solid  #ff0000;
@@ -1064,6 +1065,24 @@ div.cell_input_active {
   zIndex: -100;
   visibility: hidden;
   position: absolute;
+}
+
+/* used for printing */
+div.cell_input_print {
+  background-color: white;
+  border-left: 1px solid  #a8a8a8;
+  border-bottom: 1px solid  #a8a8a8;
+  border-top: 1px solid  #a8a8a8;
+  border-right: 1px solid  #a8a8a8;
+  font-family: monospace;
+  font-size:12pt;
+  padding-left:5px;
+  padding-top:3px;
+  padding-bottom:0px;
+  margin-top:0px;
+  margin-bottom:0px;
+  line-height:1.2em;
+  width: 97%;
 }
 
 textarea.cell_input:hover{

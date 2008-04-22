@@ -44,7 +44,7 @@ def notebook_setup(self=None):
 def notebook_twisted(self,
              directory   = None,
              port        = 8000,
-             address     = '',
+             address     = 'localhost',
              port_tries  = 50,
              secure      = True,
              reset       = False,
@@ -146,6 +146,7 @@ def notebook_twisted(self,
         notebook_opts = '"%s",address="%s",port=%s,secure=%s' % (os.path.abspath(directory),
                 address, port, secure)
 
+        print notebook_opts
         if open_viewer:
             if secure:
                 start_path = "'/?startup_token=%s' % startup_token"

@@ -486,7 +486,7 @@ function set_class(id, cname) {
 
     if(e!=null) {
         e.className = cname;
-    } else { alert("Error in set_class: no element " + id); }
+    } else { /* alert("Error in set_class: no element " + id); */ }
 }
 
 
@@ -2050,7 +2050,7 @@ function id_of_cell_delta(id, delta) {
         delta -- integer
     */
     if (cell_id_list.length == 0) {
-        alert("bug -- no cells.");
+        /* alert("bug -- no cells."); */
         return;
     }
     var i = cell_id_list.indexOf(eval(id));
@@ -2679,7 +2679,7 @@ function check_for_cell_update_callback(status, response_text) {
             var elapsed_time = update_error_count*update_error_delta/1000;
             var msg = "Error updating cell output after " + elapsed_time + "s";
             msg += "(canceling further update checks).";
-            alert(msg);
+            /* alert(msg); */
             return;
         }
         cell_output_delta = update_error_delta;
@@ -2856,7 +2856,7 @@ function set_output_text(id, text, wrapped_text, output_html,
         var i = wrapped_text.indexOf('<?__SAGE__START>');
         var j = wrapped_text.indexOf('<?__SAGE__END>');
         if (i == -1 || j == -1) {
-            alert("Bug in notebook -- interact wrapped text is invalid" + wrapped_text);
+            /* alert("Bug in notebook -- interact wrapped text is invalid" + wrapped_text); */
             return;
         }
         var new_interact_output = wrapped_text.slice(i+16,j);

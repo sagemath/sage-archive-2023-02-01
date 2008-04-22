@@ -43,7 +43,7 @@ Set timeout to 30 seconds so it will not hang the doctests indefinitely.
 
     sage: dsage.kill_all()
     sage: from twisted.internet import reactor
-    sage: reactor.callFromThread(reactor.stop)
-    sage: d._dsage_thread.join()
+    sage: reactor.callFromThread(reactor.stop); sleep(1)
     [DSage] Closed connection to localhost
+    sage: d._dsage_thread.join()
 """

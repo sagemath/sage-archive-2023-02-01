@@ -86,4 +86,10 @@ def wronskian(*args):
             # .derivative on everything
             fs = args
             row = lambda n: map(lambda f: diff(f, n), fs)
-        return matrix(map(row, range(len(fs)))).determinant()
+        # NOTE: I rewrote the below as two lines to avoid a possible subtle
+        # memory management problem on some platforms (only vmware as far
+        # as we know?).  See trac #2990.
+        # There may still be a real problem that this is just hiding for now.
+        A = matrix(map(row, range(len(fs))))
+        return A.determinant()
+        #return matrix(map(row, range(len(fs)))).determinant()

@@ -131,6 +131,13 @@ def notebook_twisted(self,
     del nb
 
     def run(port):
+        if address:
+            interface = ':interface=%s'%address
+        else:
+            if secure:
+                interface = ''   # listen on all interfaces
+            else:
+                interface = ':interface=localhost'
         ## Create the config file
         if secure:
             if not os.path.exists(private_pem) or not os.path.exists(public_pem):
@@ -139,9 +146,9 @@ def notebook_twisted(self,
                 notebook_setup()
             if not os.path.exists(private_pem) or not os.path.exists(public_pem):
                 print "Failed to setup notebook.  Please try notebook.setup() again manually."
-            strport = 'tls:%s:interface=%s:privateKey=%s:certKey=%s'%(port, address, private_pem, public_pem)
+            strport = 'tls:%s%s:privateKey=%s:certKey=%s'%(port, interface, private_pem, public_pem)
         else:
-            strport = 'tcp:%s:interface=%s'%(port, address)
+            strport = 'tcp:%s%s'%(port, interface)
 
         notebook_opts = '"%s",address="%s",port=%s,secure=%s' % (os.path.abspath(directory),
                 address, port, secure)
@@ -231,7 +238,7 @@ s.setServiceParent(application)
         if secure and not quiet:
             print "There is an admin account.  If you do not remember the password,"
             print "quit the notebook and type notebook(reset=True)."
-        cmd = 'sage -twistd --pidfile="%s"/twistd.pd -ny "%s"/twistedconf.tac'%(directory, directory)
+        cmd = 'cd "%s" && sage -twistd --pidfile=twistd.pid -ny twistedconf.tac'%directory
         if fork:
             return pexpect.spawn(cmd)
         else:

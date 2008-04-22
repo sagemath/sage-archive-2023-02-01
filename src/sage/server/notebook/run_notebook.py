@@ -44,7 +44,7 @@ def notebook_setup(self=None):
 def notebook_twisted(self,
              directory   = None,
              port        = 8000,
-             address     = 'localhost',
+             address     = '',
              port_tries  = 50,
              secure      = True,
              reset       = False,
@@ -227,7 +227,7 @@ s.setServiceParent(application)
 
         ## Start up twisted
         if not quiet:
-            print_open_msg(address, port, secure=secure)
+            print_open_msg('localhost' if not address else address, port, secure=secure)
         if secure and not quiet:
             print "There is an admin account.  If you do not remember the password,"
             print "quit the notebook and type notebook(reset=True)."

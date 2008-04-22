@@ -28,10 +28,7 @@ class NotebookObject:
         directory  -- directory that contains the SAGE notebook files;
                       The default is .sage/sage_notebook, in your home directory.
         port       -- (default: 8000), port to serve the notebook on
-        address    -- string (default: ''), ip address of interface to listen on;
-                      the default depends on whether secure is True or False:
-                          True  -- listens on all interfaces
-                          False -- listens only on localhost
+        address    -- (default: 'localhost'), address to listen on
         port_tries -- (default: 0), number of additional ports to try if the
                       first one doesn't work (*not* implemented)
         secure     -- (default: True) if True use https so all

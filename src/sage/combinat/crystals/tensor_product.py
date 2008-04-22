@@ -612,6 +612,9 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
             [[1, 2], [3, 4]]
             sage: type(t)
             <class 'sage.combinat.tableau.Tableau_class'>
+            sage: type(t[0][0])
+            <type 'sage.rings.integer.Integer'>
+
         """
         try:
             return self._tableau
@@ -622,7 +625,7 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
         tab = []
         s = 0
         for i in range(len(shape)):
-            col = [ self[s+k] for k in range(shape[i]) ]
+            col = [ self[s+k].value for k in range(shape[i]) ]
             col.reverse()
             s += shape[i]
             tab.append(col)

@@ -6,6 +6,7 @@ AUTHORS:
    --          "   (2006-30-10), bug fixes to pari wrappers of Bessel
                                  functions, hypergeometric_U
    -- William Stein (2008-02): Impose some sanity checks.
+   -- David Joyner (2008-04-23), addition of elliptic integrals
 
 This module provides easy access to many of Maxima and PARI's
 special functions.
@@ -846,7 +847,7 @@ def spherical_hankel2(n,x):
 def spherical_harmonic(m,n,x,y):
     r"""
     Returns the spherical Harmonic function of the second
-    kind for integers $n > -1$, $|m|\leq n$, written as a string.
+    kind for integers $n > -1$, $|m|\leq n$.
     Reference: Merzbacher 9.64.
 
     EXAMPLES:
@@ -910,6 +911,105 @@ def inverse_jacobi(sym,x,m):
     return meval("inverse_jacobi_%s(%s,%s)"%(sym, x,m))
 
 #### elliptic integrals
+
+def elliptic_e (phi, m):
+    """
+    This returns the value of the incomplete elliptic integral of the
+    second kind,  $\int_0^\phi \sqrt(1 - m\sin(x)^2)\, dx$, ie,
+    \code{integrate(sqrt(1 - m*sin(x)^2), x, 0, phi)}. Taking
+    $\phi = \pi/2$ gives \code{elliptic_ec}.
+
+    EXAMPLES:
+        sage: z = var("z")
+        sage: elliptic_e (z, 1)
+        sin(z)
+        sage: elliptic_e (z, 0)
+        z
+        sage: elliptic_e (0.5, 0.1)
+        0.498011394498832
+
+    """
+    _init()
+    return meval("elliptic_e(%s,%s)"%(phi,m))
+
+def elliptic_ec (m):
+    """
+    This returns the value of the complete elliptic integral of the
+    second kind,  $\int_0^{\pi/2} \sqrt(1 - m\sin(x)^2)\, dx$.
+
+    EXAMPLES:
+        sage: elliptic_ec (0.1)
+        1.530757636897763
+        sage: elliptic_ec (x).diff()
+        (elliptic_ec(x) - elliptic_kc(x))/(2*x)
+
+    """
+    _init()
+    return meval("elliptic_ec(%s)"%m)
+
+
+def elliptic_eu (u, m):
+    """
+    This returns the value of the incomplete elliptic integral of the
+    second kind defined by $\int_0^u jacobi_dn(x,m)^2)\, dx$.
+
+    EXAMPLES:
+        sage: elliptic_eu (0.5, 0.1)
+        0.496054551286597
+
+    """
+    _init()
+    return meval("elliptic_eu(%s,%s)"%(u,m))
+
+
+def elliptic_f (phi, m):
+    """
+    This returns the value of the "incomplete elliptic integral
+    of the first kind", $\int_0^\phi \frac{dx}{\sqrt{1 - m\sin(x)^2}}$,
+    ie, \code{integrate(1/sqrt(1 - m*sin(x)^2), x, 0, phi)}.
+    Taking $\phi = \pi/2$ gives \code{elliptic_kc}.
+
+    EXAMPLES:
+        sage: z = var("z")
+        sage: elliptic_f (z, 0)
+        z
+        sage: elliptic_f (z, 1)
+        log(tan(z/2 + pi/4))
+        sage: elliptic_f (0.2, 0.1)
+        0.200132506747543
+
+    """
+    _init()
+    return meval("elliptic_f(%s,%s)"%(phi,m))
+
+def elliptic_kc (m):
+    """
+    This returns the value of the "complete elliptic integral
+    of the first kind", $\int_0^{\pi/2} \frac{dx}{\sqrt{1 - m\sin(x)^2}}$.
+
+    EXAMPLES:
+        sage: elliptic_kc (0.5)
+        1.854074677301372
+        sage: elliptic_f (RR(pi/2), 0.5)
+        1.854074677301378
+
+    """
+    _init()
+    return meval("elliptic_kc(%s)"%m)
+
+def elliptic_pi (n, phi, m):
+    """
+    This returns the value of the "incomplete elliptic integral
+    of the third kind",
+    $$\int_0^\phi \frac{dx}{\sqrt{(1 - m\sin(x)^2)(1 - n\sin(x)^2)}}$$.
+
+    EXAMPLES:
+        sage: elliptic_pi(0.1, 0.2, 0.3)
+        0.200665068220979
+
+    """
+    _init()
+    return meval("elliptic_pi(%s,%s,%s)"%(n,phi,m))
 
 #### hyperboic trig functions (which are special cases
 #### of Jacobi elliptic functions but faster to evaluate directly)

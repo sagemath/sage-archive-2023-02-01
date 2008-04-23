@@ -9,10 +9,6 @@ AUTHOR:
 """
 
 
-#TODO:
-#    -- added "gens" functions for each subgroup (since this is such a
-#       frequently requested features).
-
 ################################################################################
 #
 #       Copyright (C) 2004, 2006 William Stein <wstein@gmail.com>
@@ -67,6 +63,21 @@ def get_inverse_mod(order):
 
 
 def is_CongruenceSubgroup(x):
+    """
+    Return True if x is of type CongruenceSubgroup.
+
+    EXAMPLES:
+        sage: is_CongruenceSubgroup(SL2Z())
+        True
+        sage: is_CongruenceSubgroup(Gamma0(13))
+        True
+        sage: is_CongruenceSubgroup(Gamma1(6))
+        True
+        sage: is_CongruenceSubgroup(GammaH(11, [3]))
+        True
+        sage: is_CongruenceSubgroup(SymmetricGroup(3))
+        False
+    """
     return isinstance(x, CongruenceSubgroup)
 
 class CongruenceSubgroup(Group):
@@ -84,6 +95,9 @@ class CongruenceSubgroup(Group):
 
     def modular_symbols(self, sign=0, weight=2, base_ring=QQ):
         """
+        Return the space of modular symbols of the specified weight and sign
+        on the congruence subgroup self.
+
         EXAMPLES:
             sage: G = Gamma0(23)
             sage: G.modular_symbols()
@@ -100,7 +114,8 @@ class CongruenceSubgroup(Group):
 
     def modular_abelian_variety(self):
         """
-        Return the corresponding modular abelian variety.
+        Return the modular abelian variety corresponding to the congruence
+        subgroup self.
 
         EXAMPLES:
             sage: Gamma0(11).modular_abelian_variety()
@@ -122,16 +137,151 @@ class CongruenceSubgroup(Group):
     def generators(self):
         raise NotImplementedError
 
+    def gens(self):
+        """
+        Return tuple of generators for this congruence subgroup.
+
+        The generators need not be minimal.
+
+        EXAMPLES:
+            sage: SL2Z().gens()
+            ([ 0 -1]
+            [ 1  0], [1 1]
+            [0 1])
+            sage: Gamma0(3).gens()
+            ([1 1]
+            [0 1],
+            [-1  0]
+            [ 0 -1],
+            [ 1 -1]
+            [ 0  1],
+            [ 1 -1]
+            [ 3 -2],
+            [ 2 -1]
+            [ 3 -1],
+            [-2  1]
+            [-3  1])
+            sage: Gamma1(2).gens()
+            ([1 1]
+            [0 1],
+            [-1  0]
+            [ 0 -1],
+            [ 1 -1]
+            [ 0  1],
+            [ 1 -1]
+            [ 2 -1],
+            [-1  1]
+            [-2  1])
+            sage: GammaH(3, [2]).gens()
+            ([1 1]
+            [0 1],
+            [-1  0]
+            [ 0 -1],
+            [ 1 -1]
+            [ 0  1],
+            [ 1 -1]
+            [ 3 -2],
+            [ 2 -1]
+            [ 3 -1],
+            [-2  1]
+            [-3  1])
+        """
+        return tuple(self.generators())
+
+    def gen(self, i):
+        """
+        Return the i-th generator of self, i.e. the i-th element of the
+        tuple self.gens().
+
+        EXAMPLES:
+            sage: SL2Z().gen(1)
+            [1 1]
+            [0 1]
+            sage: Gamma0(20).gen(7)
+            [17 11]
+            [20 13]
+            sage: Gamma1(16).gen(5)
+            [ 1329  -758]
+            [ 3056 -1743]
+            sage: GammaH(13, [8]).gen(3)
+            [ 885 -218]
+            [1157 -285]
+        """
+        return self.generators()[i]
+
+    def ngens(self):
+        r"""
+        Return the number of generators for this congruence subgroup.
+
+        This need not be the minimal number of generators of self.
+
+        EXAMPLES:
+            sage: Gamma0(22).ngens()
+            42
+            sage: Gamma1(14).ngens()
+            250
+            sage: GammaH(11, [3]).ngens()
+            31
+            sage: SL2Z().ngens()
+            2
+        """
+        return len(self.generators())
+
     def level(self):
+        """
+        Return the level of this congruence subgroup.
+
+        EXAMPLES:
+            sage: SL2Z().level()
+            1
+            sage: Gamma0(20).level()
+            20
+            sage: Gamma1(11).level()
+            11
+            sage: GammaH(14, [2]).level()
+            14
+        """
         return self.__level
 
     def __cmp__(self, right):
         raise NotImplementedError
 
     def is_abelian(self):
+        """
+        Return True if this congruence subgroup is abelian.
+
+        Since congruence subgroups are always nonabelian, this always
+        returns False.
+
+        EXAMPLES:
+            sage: SL2Z().is_abelian()
+            False
+            sage: Gamma0(3).is_abelian()
+            False
+            sage: Gamma1(12).is_abelian()
+            False
+            sage: GammaH(4, [2]).is_abelian()
+            False
+        """
         return False
 
     def is_finite(self):
+        """
+        Return True if this congruence subgroup is finite.
+
+        Since congruence subgroups are always infinite, this always
+        returns False.
+
+        EXAMPLES:
+            sage: SL2Z().is_finite()
+            False
+            sage: Gamma0(3).is_finite()
+            False
+            sage: Gamma1(12).is_finite()
+            False
+            sage: GammaH(4, [2]).is_finite()
+            False
+        """
         return False
 
     def is_subgroup(self, right):
@@ -141,20 +291,40 @@ class CongruenceSubgroup(Group):
         """
         Return True precisely if this subgroup does not contain the
         matrix -1.
+
+        EXAMPLES:
+            sage: SL2Z().is_odd()
+            False
+            sage: Gamma0(20).is_odd()
+            False
+            sage: Gamma1(5).is_odd()
+            True
+            sage: GammaH(11, [3]).is_odd()
+            True
         """
         return not self.is_even()
 
     def is_even(self):
         """
         Return True precisely if this subgroup contains the matrix -1.
+
+        EXAMPLES:
+            sage: SL2Z().is_even()
+            True
+            sage: Gamma0(20).is_even()
+            True
+            sage: Gamma1(5).is_even()
+            False
+            sage: GammaH(11, [3]).is_even()
+            False
         """
-        raise NotImplementedError
+        return [-1, 0, 0, -1] in self
 
     def _new_group_from_level(self, level):
         """
         Return a new group of the same type (Gamma0, Gamma1, or GammaH)
         as self of the given level. In the case that self is of type
-        GammaH, we take the largest H inside $(Z/\text{level}*Z)^\times$
+        GammaH, we take the largest H inside $(Z/\text{level}Z)^\times$
         which maps to H, namely its inverse image under the natural map.
 
         EXAMPLES:
@@ -195,6 +365,22 @@ class CongruenceSubgroup(Group):
                 return GammaH(level, [ h%level for h in H ])
 
     def order(self):
+        """
+        Return the number of elements in this congruence subgroup.
+
+        Since congruence subgroups are always infinite, this always returns
+        infinity.
+
+        EXAMPLES:
+            sage: SL2Z().order()
+            +Infinity
+            sage: Gamma0(5).order()
+            +Infinity
+            sage: Gamma1(2).order()
+            +Infinity
+            sage: GammaH(12, [5]).order()
+            +Infinity
+        """
         return infinity
 
     def __call__(self, x, check=True):
@@ -202,13 +388,22 @@ class CongruenceSubgroup(Group):
             return x
         raise NotImplementedError
 
-
 def lift_to_sl2z(c, d, N):
     """
     If this Manin symbol is (c,d) viewed modulo N, this function
-    computes and returns a list [a,b, c',d'] that defines a 2x2
+    computes and returns a list [a, b, c', d'] that defines a 2x2
     matrix with determinant 1 and integer entries, such that
     c=c'(mod N) and d=d'(mod N).
+
+    EXAMPLES:
+        sage: lift_to_sl2z(1, 0, 12)
+        [0, -1, 1, 0]
+        sage: lift_to_sl2z(29, 100, 7)
+        [9, 31, 29, 100]
+        sage: lift_to_sl2z(5, 10, 3)
+        [2, 5, 5, 13]
+        sage: lift_to_sl2z(1000, 10000, 10000)
+        [0, -1, 1000, 20000]
     """
     if N == 1:
         return [1,0,0,1]
@@ -247,6 +442,17 @@ def lift_to_sl2z(c, d, N):
 
 
 def is_Gamma0(x):
+    """
+    Return True if x is a congruence subgroup of type Gamma0.
+
+    EXAMPLES:
+        sage: is_Gamma0(SL2Z())
+        True
+        sage: is_Gamma0(Gamma0(13))
+        True
+        sage: is_Gamma0(Gamma1(6))
+        False
+    """
     return isinstance(x, Gamma0)
 
 class Gamma0(CongruenceSubgroup):
@@ -266,6 +472,13 @@ class Gamma0(CongruenceSubgroup):
         return "Congruence Subgroup Gamma0(%s)"%self.level()
 
     def _latex_(self):
+        """
+        EXAMPLES:
+            sage: Gamma0(20)._latex_()
+            '\\Gamma_0(20)'
+            sage: latex(Gamma0(20))
+            \Gamma_0(20)
+        """
         return "\\Gamma_0(%s)"%self.level()
 
     def _generators_for_H(self):
@@ -303,12 +516,34 @@ class Gamma0(CongruenceSubgroup):
     def is_even(self):
         """
         Return True precisely if this subgroup contains the matrix -1.
+
+        Since Gamma0(N) always, contains the matrix -1, this always returns
+        True.
+
+        EXAMPLES:
+            sage: Gamma0(12).is_even()
+            True
+            sage: SL2Z().is_even()
+            True
         """
         return True
 
     def is_subgroup(self, right):
         """
         Return True if self is a subgroup of right.
+
+        EXAMPLES:
+            sage: G = Gamma0(20)
+            sage: G.is_subgroup(SL2Z())
+            True
+            sage: G.is_subgroup(Gamma0(4))
+            True
+            sage: G.is_subgroup(Gamma0(20))
+            True
+            sage: G.is_subgroup(Gamma0(7))
+            False
+            sage: Gamma0(2).is_subgroup(Gamma1(2))
+            True
         """
         if right.level() == 1:
             return True
@@ -329,6 +564,24 @@ class Gamma0(CongruenceSubgroup):
 
         Use \code{list(self.coset_reps())} to obtain coset reps as a
         list.
+
+        EXAMPLES:
+            sage: list(Gamma0(5).coset_reps())
+            [[1, 0, 0, 1],
+            [0, -1, 1, 0],
+            [1, 0, 1, 1],
+            [1, 1, 1, 2],
+            [1, 2, 1, 3],
+            [1, 3, 1, 4]]
+            sage: list(Gamma0(4).coset_reps())
+            [[1, 0, 0, 1],
+            [0, -1, 1, 0],
+            [1, 0, 1, 1],
+            [1, 1, 1, 2],
+            [1, 2, 1, 3],
+            [-1, -1, 2, 1]]
+            sage: list(Gamma0(1).coset_reps())
+            [[1, 0, 0, 1]]
         """
         N = self.level()
         for z in sage.modular.modsym.p1list.P1List(N):
@@ -337,6 +590,8 @@ class Gamma0(CongruenceSubgroup):
     def generators(self):
         r"""
         Return generators for this congruence subgroup.
+
+        The result is cached.
 
         EXAMPLE:
             sage: for g in Gamma0(3).generators():
@@ -355,14 +610,19 @@ class Gamma0(CongruenceSubgroup):
             ---
 
         """
-        from sage.modular.modsym.p1list import P1List
-        from congroup_pyx import generators_helper
-        level = self.level()
-        return generators_helper(P1List(level), level, Mat2Z)
+        try:
+            return self.__gens
+        except AttributeError:
+            from sage.modular.modsym.p1list import P1List
+            from congroup_pyx import generators_helper
+            level = self.level()
+            gen_list = generators_helper(P1List(level), level, Mat2Z)
+            self.__gens = [self(g, check=False) for g in gen_list]
+            return self.__gens
 
     def gamma_h_subgroups(self):
         r"""
-        Return the subgrops of the form $\Gamma_H(N)$ contained
+        Return the subgroups of the form $\Gamma_H(N)$ contained
         in self, where $N$ is the level of self.
 
         EXAMPLES:
@@ -377,8 +637,49 @@ class Gamma0(CongruenceSubgroup):
         R = IntegerModRing(N)
         return [GammaH(N, H) for H in R.multiplicative_subgroups()]
 
+    def __call__(self, x, check=True):
+        r"""
+        Create an element of this congruence subgroup from x.
+
+        If the optional flag check is True (default), check whether
+        x actually gives an element of self.
+
+        EXAMPLES:
+            sage: G = Gamma0(12)
+            sage: G([1, 0, 24, 1])
+            [ 1  0]
+            [24  1]
+            sage: G(matrix(ZZ, 2, [1, 1, -12, -11]))
+            [  1   1]
+            [-12 -11]
+            sage: G([1, 0, 23, 1])
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix must have lower left entry (=23) divisible by 12
+        """
+        if isinstance(x, CongruenceSubgroupElement) and x.parent() == self:
+            return x
+        x = CongruenceSubgroupElement(self, x, check=check)
+        if not check:
+            return x
+
+        c = x.c()
+        N = self.level()
+        if c%N == 0:
+            return x
+        else:
+            raise TypeError, "matrix must have lower left entry (=%s) divisible by %s" %(c, N)
 
 def is_SL2Z(x):
+    """
+    Return True if x is the modular group ${\rm SL}_2(\Z)$.
+
+    EXAMPLES:
+        sage: is_SL2Z(SL2Z())
+        True
+        sage: is_SL2Z(Gamma0(6))
+        False
+    """
     return isinstance(x, SL2Z)
 
 class SL2Z(Gamma0):
@@ -413,41 +714,42 @@ class SL2Z(Gamma0):
         return "Modular Group SL(2,Z)"
 
     def _latex_(self):
+        """
+        EXAMPLES:
+            sage: SL2Z()._latex_()
+            '\\mbox{\\rm SL}_2(\\mathbf{Z})'
+            sage: latex(SL2Z())
+            \mbox{\rm SL}_2(\mathbf{Z})
+        """
         return "\\mbox{\\rm SL}_2(%s)"%(IntegerRing()._latex_())
-
-    def is_even(self):
-        """
-        Return True precisely if this subgroup contains the matrix -1.
-        """
-        return True
 
     def is_subgroup(self, right):
         """
         Return True if self is a subgroup of right.
+
+        EXAMPLES:
+            sage: SL2Z().is_subgroup(SL2Z())
+            True
+            sage: SL2Z().is_subgroup(Gamma1(1))
+            True
+            sage: SL2Z().is_subgroup(Gamma0(6))
+            False
         """
         return right.level() == 1
 
-    def gens(self):
-        try:
-            return self.__gens
-        except AttributeError:
-            self.__gens = (self([0, -1, 1, 0]), self([1, 1, 0, 1]))
-            return self.__gens
-
-    def gen(self, n):
-        return self.gens()[n]
-
-    def ngens(self):
-        return 2
-
-    def __call__(self, x, check=True):
-        if isinstance(x, CongruenceSubgroupElement) and x.parent() == self:
-            return x
-        return CongruenceSubgroupElement(self, x, check=check)
-
-
 def is_Gamma1(x):
-    return isinstance(x, Gamma1)
+    """
+    Return True if x is a congruence subgroup of type Gamma1.
+
+    EXAMPLES:
+        sage: is_Gamma1(SL2Z())
+        True
+        sage: is_Gamma1(Gamma1(13))
+        True
+        sage: is_Gamma1(Gamma0(6))
+        False
+    """
+    return (isinstance(x, Gamma1) or isinstance(x, SL2Z))
 
 class Gamma1(CongruenceSubgroup):
     r"""
@@ -466,6 +768,13 @@ class Gamma1(CongruenceSubgroup):
         return "Congruence Subgroup Gamma1(%s)"%self.level()
 
     def _latex_(self):
+        """
+        EXAMPLES:
+            sage: Gamma1(3)._latex_()
+            '\\Gamma_1(3)'
+            sage: latex(Gamma1(3))
+            \Gamma_1(3)
+        """
         return "\\Gamma_1(%s)"%self.level()
 
     def __cmp__(self, right):
@@ -479,6 +788,14 @@ class Gamma1(CongruenceSubgroup):
     def is_even(self):
         """
         Return True precisely if this subgroup contains the matrix -1.
+
+        EXAMPLES:
+            sage: Gamma1(1).is_even()
+            True
+            sage: Gamma1(2).is_even()
+            True
+            sage: Gamma1(15).is_even()
+            False
         """
         return self.level() in [1,2]
 
@@ -495,7 +812,8 @@ class Gamma1(CongruenceSubgroup):
             False
             sage: Gamma1(6).is_subgroup(Gamma1(3))
             True
-
+            sage: Gamma1(6).is_subgroup(Gamma0(2))
+            True
         """
         if right.level() == 1:
             return True
@@ -506,6 +824,8 @@ class Gamma1(CongruenceSubgroup):
     def generators(self):
         r"""
         Return generators for this congruence subgroup.
+
+        The result is cached.
 
         EXAMPLE:
             sage: for g in Gamma1(3).generators():
@@ -530,10 +850,50 @@ class Gamma1(CongruenceSubgroup):
             ---
 
         """
-        from sage.modular.modsym.g1list import G1list
-        from congroup_pyx import generators_helper
-        level = self.level()
-        return generators_helper(G1list(level), level, Mat2Z)
+        try:
+            return self.__gens
+        except AttributeError:
+            from sage.modular.modsym.g1list import G1list
+            from congroup_pyx import generators_helper
+            level = self.level()
+            gen_list = generators_helper(G1list(level), level, Mat2Z)
+            self.__gens = [self(g, check=False) for g in gen_list]
+            return self.__gens
+
+    def __call__(self, x, check=True):
+        r"""
+        Create an element of this congruence subgroup from x.
+
+        If the optional flag check is True (default), check whether
+        x actually gives an element of self.
+
+        EXAMPLES:
+            sage: G = Gamma1(5)
+            sage: G([1, 0, -10, 1])
+            [ 1   0]
+            [-10  1]
+            sage: G(matrix(ZZ, 2, [6, 1, 5, 1]))
+            [6  1]
+            [5  1]
+            sage: G([1, 1, 6, 7])
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix must have diagonal entries (=1, 7) congruent to 1 modulo 5, and lower left entry (=6) divisible by 5
+        """
+        if isinstance(x, CongruenceSubgroupElement) and x.parent() == self:
+            return x
+        x = CongruenceSubgroupElement(self, x, check=check)
+        if not check:
+            return x
+
+        a = x.a()
+        c = x.c()
+        d = x.d()
+        N = self.level()
+        if (a%N == 1) and (c%N == 0) and (d%N == 1):
+            return x
+        else:
+            raise TypeError, "matrix must have diagonal entries (=%s, %s) congruent to 1 modulo %s, and lower left entry (=%s) divisible by %s" %(a, d, N, c, N)
 
 def GammaH(level, H):
     r"""
@@ -565,6 +925,15 @@ def GammaH(level, H):
     return GammaH_class(level, H)
 
 def is_GammaH(x):
+    """
+    Return True if x is a congruence subgroup of type GammaH.
+
+    EXAMPLES:
+        sage: is_GammaH(GammaH(13, [2]))
+        True
+        sage: is_GammaH(Gamma0(6))
+        False
+    """
     return isinstance(x, GammaH_class)
 
 class GammaH_class(CongruenceSubgroup):
@@ -652,7 +1021,7 @@ class GammaH_class(CongruenceSubgroup):
     def _list_of_elements_in_H(self):
         """
         Returns a sorted list of Python ints that are representatives
-        between 0 and N-1 of the elements of H.
+        between 1 and N-1 of the elements of H.
 
         WARNING: Do not change this returned list.
 
@@ -691,6 +1060,12 @@ class GammaH_class(CongruenceSubgroup):
     def is_even(self):
         """
         Return True precisely if this subgroup contains the matrix -1.
+
+        EXAMPLES:
+            sage: GammaH(10, [3]).is_even()
+            True
+            sage: GammaH(14, [1]).is_even()
+            False
         """
         if self.level() == 1:
             return True
@@ -700,6 +1075,8 @@ class GammaH_class(CongruenceSubgroup):
     def generators(self):
         r"""
         Return generators for this congruence subgroup.
+
+        The result is cached.
 
         EXAMPLE:
             sage: for g in GammaH(3, [2]).generators():
@@ -725,10 +1102,15 @@ class GammaH_class(CongruenceSubgroup):
             ---
 
         """
-        from sage.modular.modsym.ghlist import GHlist
-        from congroup_pyx import generators_helper
-        level = self.level()
-        return generators_helper(GHlist(self), level, Mat2Z)
+        try:
+            return self.__gens
+        except AttributeError:
+            from sage.modular.modsym.ghlist import GHlist
+            from congroup_pyx import generators_helper
+            level = self.level()
+            gen_list = generators_helper(GHlist(self), level, Mat2Z)
+            self.__gens = [self(g, check=False) for g in gen_list]
+            return self.__gens
 
     def _coset_reduction_data_first_coord(G):
         """
@@ -989,6 +1371,43 @@ class GammaH_class(CongruenceSubgroup):
 
         return Cusps((u,v)), t
 
+
+
+    def __call__(self, x, check=True):
+        r"""
+        Create an element of this congruence subgroup from x.
+
+        If the optional flag check is True (default), check whether
+        x actually gives an element of self.
+
+        EXAMPLES:
+            sage: G = GammaH(10, [3])
+            sage: G([1, 0, -10, 1])
+            [ 1   0]
+            [-10  1]
+            sage: G(matrix(ZZ, 2, [7, 1, 20, 3]))
+            [ 7  1]
+            [20  3]
+            sage: GammaH(10, [9])([7, 1, 20, 3])
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix must have lower right entry (=3) congruent modulo 10 to some element of H
+        """
+        if isinstance(x, CongruenceSubgroupElement) and x.parent() == self:
+            return x
+        x = CongruenceSubgroupElement(self, x, check=check)
+        if not check:
+            return x
+
+        c = x.c()
+        d = x.d()
+        N = self.level()
+        if c%N != 0:
+            raise TypeError, "matrix must have lower left entry (=%s) divisible by %s" %(c, N)
+        elif d%N in self._list_of_elements_in_H():
+            return x
+        else:
+            raise TypeError, "matrix must have lower right entry (=%s) congruent modulo %s to some element of H" %(d, N)
 
 
 import congroup_pyx

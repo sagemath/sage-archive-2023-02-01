@@ -5,7 +5,7 @@ TESTS:
 
 Standard test of pickleability:
     sage: G = NumberField(x^3 + 2, 'alpha').galois_group(); G
-    Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the number field Number Field in alpha with defining polynomial x^3 + 2
+    Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the Number Field in alpha with defining polynomial x^3 + 2
     sage: G == loads(dumps(G))
     True
 """
@@ -26,7 +26,7 @@ class GaloisGroup(SageObject):
     EXAMPLES:
         sage: K = QQ[2^(1/3)]
         sage: G = K.galois_group(); G
-        Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the number field Number Field in a with defining polynomial x^3 - 2
+        Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the Number Field in a with defining polynomial x^3 - 2
         sage: G.order()
         6
         sage: G.group()
@@ -40,7 +40,7 @@ class GaloisGroup(SageObject):
 
         EXAMPLES:
             sage: NumberField([x^2 + 1, x^2 + 2],'a').galois_group()
-            Galois group PARI group [4, 1, 2, "E(4) = 2[x]2"] of degree 4 of the number field Number Field in a0 with defining polynomial x^2 + 1 over its base field
+            Galois group PARI group [4, 1, 2, "E(4) = 2[x]2"] of degree 4 of the Number Field in a0 with defining polynomial x^2 + 1 over its base field
         """
         self.__group = group
         self.__number_field = number_field
@@ -74,9 +74,9 @@ class GaloisGroup(SageObject):
         EXAMPLES:
             sage: G = NumberField(x^4 + 2*x + 2, 'a').galois_group()
             sage: G.__repr__()
-            'Galois group PARI group [24, -1, 5, "S4"] of degree 4 of the number field Number Field in a with defining polynomial x^4 + 2*x + 2'
+            'Galois group PARI group [24, -1, 5, "S4"] of degree 4 of the Number Field in a with defining polynomial x^4 + 2*x + 2'
         """
-        return "Galois group %s of the number field %s"%(
+        return "Galois group %s of the %s"%(
             self.__group, self.__number_field)
 
     def group(self):
@@ -100,7 +100,7 @@ class GaloisGroup(SageObject):
 
         EXAMPLES:
             sage: G = NumberField(x^5 + 2, 'theta_1').galois_group(); G
-            Galois group PARI group [20, -1, 3, "F(5) = 5:4"] of degree 5 of the number field Number Field in theta_1 with defining polynomial x^5 + 2
+            Galois group PARI group [20, -1, 3, "F(5) = 5:4"] of degree 5 of the Number Field in theta_1 with defining polynomial x^5 + 2
             sage: G.order()
             20
         """
@@ -112,7 +112,7 @@ class GaloisGroup(SageObject):
 
         EXAMPLES:
             sage: G = NumberField(x^6 + 2, 't').galois_group(); G
-            Galois group PARI group [12, -1, 3, "D(6) = S(3)[x]2"] of degree 6 of the number field Number Field in t with defining polynomial x^6 + 2
+            Galois group PARI group [12, -1, 3, "D(6) = S(3)[x]2"] of degree 6 of the Number Field in t with defining polynomial x^6 + 2
             sage: G.number_field()
             Number Field in t with defining polynomial x^6 + 2
         """

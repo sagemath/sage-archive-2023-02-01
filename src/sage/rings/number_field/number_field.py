@@ -321,7 +321,7 @@ def NumberFieldTower(v, names, check=True):
 
     The Galois group is a product of 3 groups of order 2:
         sage: k.galois_group()
-        Galois group PARI group [8, 1, 3, "E(8)=2[x]2[x]2"] of degree 8 of the number field Number Field in a with defining polynomial x^2 + 1 over its base field
+        Galois group PARI group [8, 1, 3, "E(8)=2[x]2[x]2"] of degree 8 of the Number Field in a with defining polynomial x^2 + 1 over its base field
 
 
     Repeatedly calling base_field allows us to descend the internally
@@ -333,8 +333,8 @@ def NumberFieldTower(v, names, check=True):
         sage: k.base_field().base_field().base_field()
         Rational Field
 
-    In the following examle the second polynomial reducible over the first, so
-    we get an error:
+    In the following example the second polynomial is reducible over the
+    first, so we get an error:
         sage: v = NumberField([x^3 - 2, x^3 - 2], names='a')
         Traceback (most recent call last):
         ...
@@ -2319,17 +2319,17 @@ class NumberField_generic(number_field_base.NumberField):
         EXAMPLES:
             sage: k.<b> = NumberField(x^2 - 14)
             sage: k.galois_group ()
-            Galois group PARI group [2, -1, 1, "S2"] of degree 2 of the number field Number Field in b with defining polynomial x^2 - 14
+            Galois group PARI group [2, -1, 1, "S2"] of degree 2 of the Number Field in b with defining polynomial x^2 - 14
 
             sage: NumberField(x^3-2, 'a').galois_group(pari_group=True)
-            Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the number field Number Field in a with defining polynomial x^3 - 2
+            Galois group PARI group [6, -1, 2, "S3"] of degree 3 of the Number Field in a with defining polynomial x^3 - 2
 
             sage: NumberField(x-1, 'a').galois_group(pari_group=False)    # optional database_gap package
-            Galois group Transitive group number 1 of degree 1 of the number field Number Field in a with defining polynomial x - 1
+            Galois group Transitive group number 1 of degree 1 of the Number Field in a with defining polynomial x - 1
             sage: NumberField(x^2+2, 'a').galois_group(pari_group=False)  # optional database_gap package
-            Galois group Transitive group number 1 of degree 2 of the number field Number Field in a with defining polynomial x^2 + 2
+            Galois group Transitive group number 1 of degree 2 of the Number Field in a with defining polynomial x^2 + 2
             sage: NumberField(x^3-2, 'a').galois_group(pari_group=False)  # optional database_gap package
-            Galois group Transitive group number 2 of degree 3 of the number field Number Field in a with defining polynomial x^3 - 2
+            Galois group Transitive group number 2 of degree 3 of the Number Field in a with defining polynomial x^3 - 2
 
         EXPLICIT GALOIS GROUP:
         We compute the Galois group as an explicit group of
@@ -4874,7 +4874,7 @@ class NumberField_relative(NumberField_generic):
             sage: R.<t> = PolynomialRing(K)
             sage: L = K.extension(t^5-t+a, 'b')
             sage: L.galois_group()
-            Galois group PARI group [240, -1, 22, "S(5)[x]2"] of degree 10 of the number field Number Field in b with defining polynomial t^5 + (-1)*t + a over its base field
+            Galois group PARI group [240, -1, 22, "S(5)[x]2"] of degree 10 of the Number Field in b with defining polynomial t^5 + (-1)*t + a over its base field
         """
         try:
             return self.__galois_group[pari_group, use_kash]

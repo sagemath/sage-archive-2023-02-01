@@ -151,7 +151,6 @@ def PermutationGroup(x, from_group=False, check=True):
         sage: H.gens()                            # requires optional database_gap
         ((1,2,3,4), (1,3))
 
-
     We can also create permutation groups whose generators are
     Gap permutation objects.
         sage: p = gap('(1,2)(3,7)(4,6)(5,8)'); p
@@ -201,7 +200,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         Initializes instance of self, a \code{PermutationGroup_generic} object.
         The flag from_group determines whether or not self should be
         initialized as a Gap \code{Group} object and sent to the Gap
-        interpreter. If gens are Gap objects, then self is intialized as a Gap
+        interpreter. If gens are Gap objects, then self is initialized as a Gap
         \code{Group}.
 
         EXAMPLES:
@@ -976,7 +975,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             return PermutationGroup([()])
 
     def cohomology(self, n, p = 0):
-        """
+        r"""
         Computes the group cohomology H_n(G, F), where F = Z if p=0
         and F = Z/pZ if p >0 is a prime. Wraps HAP's GroupHomology
         function, written by Graham Ellis.
@@ -1351,7 +1350,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         n = Integer(cl.Length())
         L = gap("List([1..Length(%s)], i->Representative(%s[i]))"%(
             cl.name(),  cl.name()))
-        return [PermutationGroup(L[i], self, check=False) \
+        return [PermutationGroup(L[i], from_group=True, check=False) \
                 for i in range(1,n+1)]
 
     def normalizer(self,g):
@@ -1659,6 +1658,22 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         """
         ans = self._gap_().IsSupersolvableGroup()
+        return ans.bool()
+
+    def is_transitive(self):
+        """
+        Return True if self is a transitive group, i.e. if the action of
+        self on self.set() is transitive.
+
+        EXAMPLES:
+            sage: G = SymmetricGroup(5)
+            sage: G.is_transitive()
+            True
+            sage: G = PermutationGroup(['(1,2)(3,4)(5,6)'])
+            sage: G.is_transitive()
+            False
+        """
+        ans = self._gap_().IsTransitive()
         return ans.bool()
 
     ############## Series ######################

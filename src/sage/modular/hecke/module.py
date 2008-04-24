@@ -749,6 +749,12 @@ class HeckeModule_free_module(HeckeModule_generic):
             sage: A.hecke_polynomial(3)
             x^2 + 3*x + 1
 
+            sage: M = ModularSymbols(Gamma1(17)).decomposition()[8].plus_submodule()
+            sage: M.eigenvalue(2,'a')
+            a
+            sage: M.eigenvalue(4,'a')
+            4/3*a^3 + 17/3*a^2 + 28/3*a + 8/3
+
         NOTES:
         (1) In fact there are $d$ systems of eigenvalues associated to
         self, where $d$ is the rank of self.  Each of the systems of
@@ -793,12 +799,13 @@ class HeckeModule_free_module(HeckeModule_generic):
             (p, r) = (int(p), int(r))
             pow = p**r
             if not (ev.has_key(pow) and ev[pow].has_key(name)):
-                # TODO: Optimization -- do something much more intelligent in case character is not defined.
-                # For example, compute it using diamond operators <d>
+                # TODO: Optimization -- do something much more
+                # intelligent in case character is not defined.  For
+                # example, compute it using the diamond operators <d>
                 eps = self.character()
                 if eps is None:
                     Tn_e = self._eigen_nonzero_element(pow)
-                    dict_set(ev, pow, name, self._element_eigenvalue(Tn_e))
+                    dict_set(ev, pow, name, self._element_eigenvalue(Tn_e, name=name))
                 else:
                     # a_{p^r} := a_p * a_{p^{r-1}} - eps(p)p^{k-1} a_{p^{r-2}}
                     apr1 = self.eigenvalue(pow//p, name=name)

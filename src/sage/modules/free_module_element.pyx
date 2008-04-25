@@ -1694,6 +1694,20 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     def __setitem__(self, i, value):
         """
+        Set the ith entry of self to value.
+
+        EXAMPLES:
+            sage: V = VectorSpace(GF(17), 10000000, sparse=True)
+            sage: w = V(0)
+            sage: w[39893] = 20
+            sage: w[39893]
+            3
+            sage: parent(w[39893])
+            Finite Field of size 17
+            sage: w[39893] = sqrt(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x (=sqrt(2)) to an integer
         """
         if not self._is_mutable:
             raise ValueError, "vector is immutable; please change a copy instead (use self.copy())"
@@ -1703,7 +1717,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         if i < 0 or i >= self.degree():
             raise IndexError, "index (i=%s) must be between 0 and %s"%(i,
                             self.degree()-1)
-        self.set(i, value)
+        self.set(i, self._parent.base_ring()(value))
 
     def denominator(self):
         R = self.base_ring()

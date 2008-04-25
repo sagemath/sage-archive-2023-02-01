@@ -457,7 +457,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return False
 
     def random_element(self, x=None, y=None, distribution=None):
-        """
+        r"""
         Return a random integer.
 
             ZZ.random_element() -- return an integer using the default
@@ -470,13 +470,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         The default distribution for ZZ.random_element() is based on
         $X = \mbox{trunc}(4/(5R))$, where $R$ is a random variable
         uniformly distributed between -1 and 1.  This gives
-        $\mbox{Pr}(X = 0) = 1/5$, and $\mbox{Pr}(X = n) =
-        2/(5|n|(|n|+1))$ for $n \neq 0$.  Most of the samples will be
-        small; -1, 0, and 1 occur with probability 1/5 each.  But we
-        also have a small but non-negligible proportion of
-        ``outliers''; $\mbox{Pr}(|X| \geq n) = 4/(5n)$, so for
-        instance, we expect that $|X| \geq 1000$ on one in 1250
-        samples.
+        $\mbox{Pr}(X = 0) = 1/5$, and $\mbox{Pr}(X = n) = 2/(5|n|(|n|+1))$ for $n \neq 0$.
+        Most of the samples will be small; -1, 0, and 1 occur with
+        probability 1/5 each.  But we also have a small but
+        non-negligible proportion of ``outliers''; $\mbox{Pr}(|X| \geq n) = 4/(5n)$,
+        so for instance, we expect that $|X| \geq 1000$ on one in
+        1250 samples.
 
         We actually use an easy-to-compute truncation of the above
         distribution; the probabilities given above hold fairly well

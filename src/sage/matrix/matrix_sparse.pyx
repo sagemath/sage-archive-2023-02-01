@@ -412,7 +412,14 @@ cdef class Matrix_sparse(matrix.Matrix):
             Full MatrixSpace of 10000 by 10000 sparse matrices over Integer Ring
             sage: n[1,2]
             2
+
+        TESTS:
+            sage: m = matrix([])
+            sage: m.apply_map(lambda x: x*x) == m
+            True
         """
+        if self._nrows==0 or self._ncols==0:
+            return self.copy()
         v = [(ij, phi(z)) for ij,z in self.dict().iteritems()]
         if R is None:
             w = [x for _, x in v]

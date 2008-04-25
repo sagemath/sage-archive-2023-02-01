@@ -301,7 +301,14 @@ cdef class Matrix_dense(matrix.Matrix):
             [0 1 2]
             sage: n.parent()
             Full MatrixSpace of 3 by 3 dense matrices over Finite Field in a of size 3^2
+
+        TESTS:
+            sage: m = matrix([])
+            sage: m.apply_map(lambda x: x*x) == m
+            True
         """
+        if self._nrows==0 or self._ncols==0:
+            return self.copy()
         v = [phi(z) for z in self.list()]
         if R is None:
             v = sage.structure.sequence.Sequence(v)

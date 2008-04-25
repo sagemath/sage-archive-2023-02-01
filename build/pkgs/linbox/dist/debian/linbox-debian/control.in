@@ -6,6 +6,7 @@ Build-Depends: @cdbs@, libgivaro-dev, libntl-dev, libgmp3-dev, libatlas-base-dev
 Standards-Version: 3.7.2
 
 Package: liblinbox-dev
+Section: libdevel
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Library for exact linear algebra

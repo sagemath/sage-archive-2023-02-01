@@ -6,6 +6,7 @@ Build-Depends: @cdbs@, libatlas-base-dev, liblinbox-dev, libgmp3-dev, libntl-dev
 Standards-Version: 3.7.2
 
 Package: liblinbox-wrap-dev
+Section: libdevel
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, liblinbox-wrap0
 Description: C wrapper for Linbox, development files
@@ -19,6 +20,7 @@ Description: C wrapper for Linbox, development files
             http://www.sagemath.org
 
 Package: liblinbox-wrap0
+Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: C wrapper for Linbox, shared library

@@ -27,6 +27,7 @@ Description: Parallel/Multiprocessor Ray Tracing Software
  emphasis on rendering performance.
 
 Package: libtachyon-dev
+Section: libdevel
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Parallel/Multiprocessor Ray Tracing Software

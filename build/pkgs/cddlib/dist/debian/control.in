@@ -6,7 +6,7 @@ Build-Depends: @cdbs@, libgmp3-dev
 Standards-Version: 3.7.2
 
 Package: libcdd-dev
-Section: devel
+Section: libdevel
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libgmp3-dev
 Description: Library for finding vertices of convex polytopes
@@ -30,7 +30,7 @@ Description: Library for finding vertices of convex polytopes
  Homepage: http://www.ifor.math.ethz.ch/~fukuda/cdd_home/
 
 Package: libcdd-test
-Section: devel
+Section: math
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Test programs for libcdd-dev

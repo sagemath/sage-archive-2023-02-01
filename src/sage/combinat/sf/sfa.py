@@ -137,16 +137,16 @@ sage: z.degree()
 #*****************************************************************************
 from sage.rings.all import Ring, Integer, PolynomialRing, is_Polynomial, is_MPolynomial, ZZ, QQ
 from sage.algebras.algebra import Algebra
-
 import sage.combinat.partition
 import sage.combinat.skew_partition
 import sage.structure.parent_gens
 import sage.libs.symmetrica.all as symmetrica
 from sage.combinat.combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
 from sage.matrix.constructor import matrix
-from sage.misc.misc import repr_lincomb, prod
+from sage.misc.misc import repr_lincomb, prod, uniq
 from sage.algebras.algebra_element import AlgebraElement
 import operator
+from functools import partial
 
 
 def SymmetricFunctionAlgebra(R, basis="schur"):
@@ -1038,12 +1038,19 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         else:
             return x
 
-    def __call__(self, x):
+    def plethysm(self, x, include=None, exclude=None):
         """
-        Plethysm.
+        Returns the outer plethysm of self with x.
 
-        This is inefficient right now as it not only does it term by term, it also converts both arguments
-        into the schur basis before computing the plethysm.
+        By default, the degree one elements are the generators for the self's
+        base ring.
+
+        INPUT:
+            x -- a symmetric function
+            include -- a list of variables to be treated as degree one elements
+                       instead of the default degree one elements
+            exclude -- a list of variables to be excluded from the default
+                       degree one elements
 
         EXAMPLES:
             sage: s = SFASchur(QQ)
@@ -1072,15 +1079,32 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
             raise TypeError, "only know how to compute plethysms between symmetric functions"
         parent = self.parent()
         R = parent.base_ring()
-        gens = R.gens()
         p = SFAPower(R)
         p_x = p(x)
+
+        #Handle degree one elements
+        if include is not None and exclude is not None:
+            raise RuntimeError, "include and exclude cannot both be specified"
+
+        try:
+            degree_one = [R(g) for g in R.variable_names_recursive()]
+        except AttributeError:
+            try:
+                degree_one = R.gens()
+            except NotImplementedError:
+                degree_one= []
+
+        if include:
+            degree_one = [R(g) for g in include]
+        if exclude:
+            degree_one = [g for g in degree_one if g not in exclude]
+
 
         #Takes in n, and returns a function which takes in a partition and
         #scales all of the parts of that partition by n
         scale_part = lambda n: lambda m: m.__class__([i*n for i in m])
 
-        raise_c = lambda n: lambda c: c.subs(**dict((str(g),g**n) for g in gens if g != 1))
+        raise_c = lambda n: lambda c: c.subs(**dict((str(g),g**n) for g in degree_one if g != 1))
 
         #Takes n an symmetric function f, and an n and returns the
         #symmetric function with all of its basis partitions scaled
@@ -1090,6 +1114,138 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         #Takes in a partition and applies
         f = lambda part: prod( pn_pleth(p_x.map_coefficients(raise_c(i)), i) for i in part )
         return parent(p._apply_module_morphism(p(self),f))
+
+    __call__ = plethysm
+
+
+    def _inner_plethysm_pk_g(self, k, g, cache):
+        r"""
+        Returns the inner plethysm between $p_k$ and $g$.
+
+        INPUT:
+            k -- a positive integer
+            g -- a symmetric function in the power sum basis
+            cache -- a dictionary whose keys are (k, g) pairs and values
+                     are the cached output of this function
+
+        EXAMPLES:
+            sage: p = SFAPower(QQ)
+            sage: _inner_plethysm_pk_g = p(0)._inner_plethysm_pk_g
+            sage: _inner_plethysm_pk_g(2, p([1,1,1]), {})
+            p[1, 1, 1] + 3*p[2, 1]
+            sage: _inner_plethysm_pk_g(5, p([2,2,1,1,1]), {})
+            p[2, 2, 1, 1, 1]
+        """
+        try:
+            return cache[(k,g)]
+        except KeyError:
+            pass
+
+        p = SFAPower(QQ)
+        res = 0
+        degrees = uniq([ sum(m) for m in g.monomials() ])
+        for d in degrees:
+            for mu in sage.combinat.partition.Partitions(d):
+                mu_k = mu.power(k)
+                if mu_k in g:
+                    res += g.coefficient(mu_k)*mu_k.centralizer_size()/mu.centralizer_size()*p(mu)
+
+        cache[(k,g)] = res
+        return res
+
+    def _inner_plethysm_pnu_g(self, p_x, cache, nu):
+        """
+        Returns the inner plethysm of p(nu) with another symmetric
+        function p_x in the power-sum basis.
+
+        Note that the order of the arguments is somewhat strange
+        in order to facilitate partial function application.
+
+        EXAMPLES:
+            sage: p = SFAPower(QQ)
+            sage: s = SFASchur(QQ)
+            sage: _inner_plethysm_pnu_g = p(0)._inner_plethysm_pnu_g
+            sage: _inner_plethysm_pnu_g( p([1,1,1]), {}, Partition([2,1]))
+            6*p[1, 1, 1]
+            sage: _inner_plethysm_pnu_g( p([1,1,1]), {}, Partition([]))
+            1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]
+            sage: s(_)
+            s[3]
+
+        """
+        #We handle the constant term case separately.  It should be
+        #the case that p([]).inner_tensor(s(mu)) = s([ mu.size() ]).
+        #Here, we get the degrees of the homogeneous pieces of
+        if len(nu) == 0:
+            s = SFASchur(self.base_ring())
+            p = SFAPower(self.base_ring())
+            degrees = [ part.size() for part in p_x.monomials() ]
+            degrees = uniq(degrees)
+            return p(sum([s([n]) for n in degrees]))
+
+        #For each k in nu, we compute the inner plethysm of
+        #p_k with p_x
+        res = [self._inner_plethysm_pk_g(k, p_x, cache) for k in nu]
+
+        #To get the final answer, we compute the inner tensor product
+        #of all the symmetric functions in res
+        return reduce(lambda x, y: x.itensor(y), res)
+
+    def inner_plethysm(self, x):
+        r"""
+        Retuns the inenr plethysm of self with x.
+
+        The result of f.inner_plethysm(g) is linear in f and linear
+        in 'homogeneous pieces' of g. So, to describe this function, we
+        assume without loss that f is some Schur function s(la) and g is
+        a homogeneous symmetric function of degree n. The function g can
+        be thought of as the character of an irreducible representation, rho,
+        of the symmetric group $S_n$. Let N be the dimension of this representation.
+        If the number of parts of la is greater then N, then
+        f.inner_plethysm(g) = 0 by definition. Otherwise, we can interpret f
+        as the character of an irreducible $GL_N$ representation, call it $\sigma$.
+        Now $\sigma \circ \rho$ is an $S_n$ representation and, by definition, the
+        character of this representation is f.inner_plethysm(g).
+
+
+        REFERENCES:
+            King, R. 'Branching rules for $GL_m \supset \Sigma_n $ and the evaluation
+                      of inner plethysms.' J. Math. Phys. 15, 258 (1974)
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: p = SFAPower(QQ)
+            sage: h = SFAHomogeneous(QQ)
+            sage: s([2,1]).inner_plethysm(s([1,1,1]))
+            0
+            sage: h([2]).inner_plethysm(s([2,1]))
+            h[2, 1]
+            sage: s(_)
+            s[2, 1] + s[3]
+
+            sage: f = s([2,1]) + 2*s([3,1])
+            sage: f.itensor(f)
+            s[1, 1, 1] + s[2, 1] + 4*s[2, 1, 1] + 4*s[2, 2] + s[3] + 4*s[3, 1] + 4*s[4]
+            sage: s( h([1,1]).inner_plethysm(f) )
+            s[1, 1, 1] + s[2, 1] + 4*s[2, 1, 1] + 4*s[2, 2] + s[3] + 4*s[3, 1] + 4*s[4]
+
+            sage: s([]).inner_plethysm(s([1,1]) + 2*s([2,1])+s([3]))
+            s[2] + s[3]
+            sage: [s([]).inner_plethysm(s(p)) for p in Partitions(4)]
+            [s[4], s[4], s[4], s[4], s[4]]
+
+
+        """
+        parent = self.parent()
+        base_ring = parent.base_ring()
+        p = SFAPower(base_ring)
+
+        p_x = p(x)
+
+        cache = {}
+        f = partial(self._inner_plethysm_pnu_g, p_x, cache)
+
+        return parent(parent._apply_module_morphism(p(self), f))
 
 
     def omega(self):

@@ -169,7 +169,7 @@ EXAMPLES:
 #*****************************************************************************
 
 from sage.interfaces.all import gap, gp
-from sage.rings.all import QQ, ZZ, infinity, factorial
+from sage.rings.all import QQ, ZZ, infinity, factorial, gcd
 from sage.misc.all import prod, sage_eval
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.calculus.all import ceil
@@ -347,6 +347,8 @@ class Partition_class(CombinatorialObject):
             [5, 1, 1, 1]
             sage: p.power(4)
             [5, 3]
+            sage: Partition([3,2,1]).power(3)
+            [2, 1, 1, 1, 1]
 
          Now let us compare this to the power map on $S_8$:
 
@@ -362,8 +364,13 @@ class Partition_class(CombinatorialObject):
             (1,5,4,3,2)(6,7,8)
 
         """
-        ans=gap.eval("PowerPartition(%s,%s)"%(self,ZZ(k)))
-        return Partition_class(eval(ans))
+        res = []
+        for i in self:
+            g = gcd(i, k)
+            res.extend( [ZZ(i/g)]*g )
+        res.sort(reverse=True)
+        return Partition_class( res )
+
 
     def next(self):
         """

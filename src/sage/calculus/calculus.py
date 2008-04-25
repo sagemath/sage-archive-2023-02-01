@@ -1694,7 +1694,7 @@ class SymbolicExpression(RingElement):
         Polynomials can be useful for getting the coefficients
         of an expression:
             sage: g = 6*x^2 - 5
-            sage: g.coeffs()
+            sage: g.coefficients()
             [[-5, 0], [6, 2]]
             sage: g.polynomial(QQ).list()
             [-5, 0, 6]
@@ -2631,7 +2631,7 @@ class SymbolicExpression(RingElement):
     ###################################################################
     # Manipulating epxressions
     ###################################################################
-    def coeff(self, x, n=1):
+    def coefficient(self, x, n=1):
         """
         Returns the coefficient of $x^n$ in self.
 
@@ -2646,20 +2646,21 @@ class SymbolicExpression(RingElement):
             sage: var('a, x, y, z')
             (a, x, y, z)
             sage: f = (a*sqrt(2))*x^2 + sin(y)*x^(1/2) + z^z
-            sage: f.coeff(sin(y))
+            sage: f.coefficient(sin(y))
             sqrt(x)
-            sage: f.coeff(x^2)
+            sage: f.coefficient(x^2)
             sqrt(2)*a
-            sage: f.coeff(x^(1/2))
+            sage: f.coefficient(x^(1/2))
             sin(y)
-            sage: f.coeff(1)
+            sage: f.coefficient(1)
             0
-            sage: f.coeff(x, 0)
+            sage: f.coefficient(x, 0)
             z^z
         """
         return self.parent()(self._maxima_().coeff(x, n))
+    coeff = coefficient
 
-    def coeffs(self, x=None):
+    def coefficients(self, x=None):
         r"""
         Coefficients of \code{self} as a polynomial in x.
 
@@ -2673,18 +2674,18 @@ class SymbolicExpression(RingElement):
             sage: var('x, y, a')
             (x, y, a)
             sage: p = x^3 - (x-3)*(x^2+x) + 1
-            sage: p.coeffs()
+            sage: p.coefficients()
             [[1, 0], [3, 1], [2, 2]]
             sage: p = expand((x-a*sqrt(2))^2 + x + 1); p
             x^2 - 2*sqrt(2)*a*x + x + 2*a^2 + 1
-            sage: p.coeffs(a)
+            sage: p.coefficients(a)
             [[x^2 + x + 1, 0], [-2*sqrt(2)*x, 1], [2, 2]]
-            sage: p.coeffs(x)
+            sage: p.coefficients(x)
             [[2*a^2 + 1, 0], [1 - 2*sqrt(2)*a, 1], [1, 2]]
 
         A polynomial with wacky exponents:
             sage: p = (17/3*a)*x^(3/2) + x*y + 1/x + x^x
-            sage: p.coeffs(x)
+            sage: p.coefficients(x)
             [[1, -1], [x^x, 0], [y, 1], [17*a/3, 3/2]]
         """
         f = self._maxima_()
@@ -2696,6 +2697,8 @@ class SymbolicExpression(RingElement):
         G = f.coeffs(x)
         S = symbolic_expression_from_maxima_string(repr(G))
         return S[1:]
+
+    coeffs = coefficients
 
     def poly(self, x=None):
         r"""

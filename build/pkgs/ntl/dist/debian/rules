@@ -14,3 +14,6 @@ DEB_MAKE_INVOKE = cd src && $(DEB_MAKE_ENVVARS) $(MAKE) -C $(DEB_BUILDDIR)
 DEB_MAKE_INSTALL_TARGET = install PREFIX=../debian/libntl-dev/usr
 
 DEB_MAKE_CLEAN_TARGET = clobber
+
+binary-fixup/libntl-dev:
+	rm -f debian/libntl-dev/usr/share/doc/NTL/copying.txt.gz

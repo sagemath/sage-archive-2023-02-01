@@ -1,0 +1,2 @@
+debian/tmp/usr/lib/*.so usr/
+debian/tmp/usr/share usr/

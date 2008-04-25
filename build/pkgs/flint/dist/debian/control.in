@@ -23,7 +23,7 @@ Description: C library for number theory
  Homepage: http://www.flintlib.org/
 
 Package: libflint-dev
-Section: devel
+Section: libdevel
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libflint0
 Description: C library for number theory

@@ -57,7 +57,7 @@ do_package() {
     tarfile=${pkgname}_$upver.orig.tar.gz
     if [ ! -e $pkgname/$tarfile ]; then
         echo "Creating original source archive"
-        (tar --exclude=.svn --exclude=debian $correctname -czf \
+        (tar --exclude=.svn --exclude=CVS --exclude=debian $correctname -czf \
          $tarfile ${pkgname}-$upver)
     fi
   fi

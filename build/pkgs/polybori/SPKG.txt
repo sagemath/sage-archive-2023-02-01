@@ -1,4 +1,7 @@
 
+=== polybori-0.3.1.p2 (Michael Abshoff, April 26th, 2008) ===
+ * remove dead link (fixes #3017)
+
 === polybori-0.3.1.p1 (Michael Abshoff, April 11th, 2008) ===
  * Update CCuddCore.h - fixes memory leak (Alexander Dreyer - see #2822)
  * Fix "Invalid read" cause by linking multiple dynamic libraries (Michael Abshoff, #2822

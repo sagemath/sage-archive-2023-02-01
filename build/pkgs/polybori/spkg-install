@@ -48,8 +48,10 @@ install_polybori()
     if [ -e ${SAGE_LOCAL}/lib/python/site-packages/polybori ] ; then
         rm  ${SAGE_LOCAL}/lib/python/site-packages/polybori
     fi
+    # we used to link polybor into ../../../share/polybori/pyroot/polybori
+    # but that file is no longer there, so delete it for the people who update
     cd ${SAGE_LOCAL}/lib/python/site-packages/
-    ln -s ../../../share/polybori/pyroot/polybori polybori
+    rm -f polybori
     cd ${WORKDIR}
 }
 

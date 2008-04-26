@@ -27,6 +27,7 @@ import sage.rings.arith as arith
 
 from sage.groups.group import Group
 
+from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.integer_mod_ring import IntegerModRing
 from sage.matrix.matrix_space import MatrixSpace
@@ -1115,9 +1116,9 @@ class GammaH_class(CongruenceSubgroup):
     def _coset_reduction_data_first_coord(G):
         """
         Compute data used for determining the canonical coset
-        representative of an element of SL_2(Z) modulo G.  This function
-        specfically returns data needed for the first part of the
-        reduction step (the first coordinate).
+        representative of an element of SL_2(Z) modulo G.  This
+        function specfically returns data needed for the first part of
+        the reduction step (the first coordinate).
 
         INPUT:
             G -- a congruence subgroup Gamma_0(N), Gamma_1(N), or Gamma_H(N).
@@ -1135,73 +1136,86 @@ class GammaH_class(CongruenceSubgroup):
             [(0, 12, 0), (1, 1, 1), (2, 2, 1), (3, 3, 1), (4, 4, 1), (1, 1, 5), (6, 6, 1),
             (1, 1, 7), (4, 4, 5), (3, 3, 7), (2, 2, 5), (1, 1, 11)]
         """
-        H = G._list_of_elements_in_H()
+        H = [ int(x) for x in G._list_of_elements_in_H() ]
         N = int(G.level())
-        SQN = int(sqrt(N))
 
         # Get some useful fast functions for inverse and gcd
         inverse_mod = get_inverse_mod(N)   # optimal gcd function
         gcd = get_gcd(N)   # optimal gcd function
 
-        # We will be adding to this list below.
-        reduct_data = [(0,0,N,0)] + [ (u, 1, 1, inverse_mod(u, N)) for u in H ]
-        not_yet_done = list(set(range(1,N)).difference(set(H)))
-        not_yet_done.sort()
+        # We will be filling this list in below.
+        reduct_data = [0] * N
 
-        # Make a table of the reduction of H (mod N/d),
-        # one for each divisor d <= sqrt(N).
+        # We can fill in 0 and all elements of H immediately
+        reduct_data[0] = (0,N,0)
+        for u in H:
+            reduct_data[u] = (1, 1, inverse_mod(u, N))
+
+        # Make a table of the reduction of H (mod N/d), one for each
+        # divisor d.
         repr_H_mod_N_over_d = {}
         for d in divisors(N):
+            # We special-case N == d because in this case,
+            # 1 % N_over_d is 0
+            if N == d:
+                repr_H_mod_N_over_d[d] = [1]
+                break
             N_over_d = N//d
-            w = [1]
+            # For each element of H, we look at its image mod
+            # N_over_d. If we haven't yet seen it, add it on to
+            # the end of z.
+            w = [0] * N_over_d
             z = [1]
             for x in H:
-                if not (x % N_over_d  in  w):
-                    w.append(x % N_over_d)
+                val = x%N_over_d
+                if not w[val]:
+                    w[val] = 1
                     z.append(x)
             repr_H_mod_N_over_d[d] = z
 
-        # Compute the rest of the tuples
-        while len(not_yet_done) > 0:
-            u = not_yet_done[0]
+        # Compute the rest of the tuples. The values left to process
+        # are those where reduct_data has a 0. Note that several of
+        # these values are processed on each loop below, so re-index
+        # each time.
+        while True:
+            try:
+                u = reduct_data.index(0)
+            except ValueError:
+                break
             d = gcd(u, N)
-            z = repr_H_mod_N_over_d[d]
-            v = [((u*x) % N,  u, d, inverse_mod(x, N)) for x in z]
-            reduct_data += v
-            not_yet_done = list(set(not_yet_done).difference(set([a[0] for a in v])))
-            not_yet_done.sort()
+            for x in repr_H_mod_N_over_d[d]:
+                reduct_data[(u*x)%N] = (u, d, inverse_mod(x,N))
 
-        # delete first entry.
-        reduct_data.sort()
-        reduct_data = [(a,b,c) for _,a,b,c in reduct_data]
         return reduct_data
 
     def _coset_reduction_data_second_coord(G):
         """
         Compute data used for determining the canonical coset
-        representative of an element of SL_2(Z) modulo G.  This function
-        specfically returns data needed for the first part of the
-        reduction step (the first coordinate).
+        representative of an element of SL_2(Z) modulo G. This
+        function specfically returns data needed for the second part
+        of the reduction step (the second coordinate).
 
         INPUT:
-            G -- a congruence subgroup Gamma_0(N), Gamma_1(N), or Gamma_H(N).
+            self
 
         OUTPUT:
-            dictionary v with keys the divisors of N that are < sqrt(N)
-            such that v[d] is the subgroup {h in H : h = 1 (mod N/d)}.
+            a dictionary v with keys the divisors of N such that v[d]
+            is the subgroup {h in H : h = 1 (mod N/d)}.
 
         EXAMPLES:
+            sage: G = GammaH(240,[7,239])
+            sage: print G._coset_reduction_data_second_coord()
+            {1: [1], 2: [1], 3: [1], 4: [1], 5: [1, 49], 6: [1], 48: [1, 191], 8: [1], 80: [1, 7, 49, 103], 10: [1, 49], 12: [1], 15: [1, 49], 240: [1, 7, 49, 103, 137, 191, 233, 239], 40: [1, 7, 49, 103], 20: [1, 49], 24: [1, 191], 120: [1, 7, 49, 103, 137, 191, 233, 239], 60: [1, 49, 137, 233], 30: [1, 49, 137, 233], 16: [1]}
             sage: G = GammaH(1200,[-1,7]); G
             Congruence Subgroup Gamma_H(1200) with H generated by [-1, 7]
-            sage: G._coset_reduction_data_second_coord()
-            {1: [1], 2: [1], 3: [1], 4: [1], 5: [1], 6: [1], 8: [1], 10: [1], 12: [1],
-            15: [1], 16: [1], 20: [1], 24: [1, 1151], 25: [1, 49], 30: [1]}
+            sage: K = G._coset_reduction_data_second_coord().keys() ; K.sort()
+            sage: K == divisors(1200)
+            True
         """
         H = G._list_of_elements_in_H()
-        N = int(G.level())
-        SQN = int(sqrt(N))
-        v = { 1: [1] }
-        for d in [x for x in divisors(N) if x > 1 and x <= SQN]:
+        N = G.level()
+        v = { 1: [1] , N: H }
+        for d in [x for x in divisors(N) if x > 1 and x < N ]:
             N_over_d = N // d
             v[d] = [x for x in H if x % N_over_d == 1]
         return v
@@ -1215,9 +1229,8 @@ class GammaH_class(CongruenceSubgroup):
             sage: G = GammaH(12,[-1,7]); G
             Congruence Subgroup Gamma_H(12) with H generated by [-1, 7]
             sage: G._coset_reduction_data()
-            ([(0, 12, 0), (1, 1, 1), (2, 2, 1), (3, 3, 1), (4, 4, 1), (1, 1, 5), (6, 6, 1),
-              (1, 1, 7), (4, 4, 5), (3, 3, 7), (2, 2, 5), (1, 1, 11)],
-              {1: [1], 2: [1, 7], 3: [1, 5]})
+            ([(0, 12, 0), (1, 1, 1), (2, 2, 1), (3, 3, 1), (4, 4, 1), (1, 1, 5), (6, 6, 1), (1, 1, 7), (4, 4, 5), (3, 3, 7), (2, 2, 5), (1, 1, 11)],
+            {1: [1], 2: [1, 7], 3: [1, 5],  4: [1, 7], 6: [1, 5, 7, 11], 12: [1, 5, 7, 11]})
         """
         try:
             return self.__coset_reduction_data
@@ -1305,50 +1318,52 @@ class GammaH_class(CongruenceSubgroup):
 
 
     def _reduce_cusp(self, c):
+        r"""
+        Compute a canonical form for the given cusp c.  Returns a pair
+        (c', t), where c' is the canonical form for the given cusp,
+        and t is either 1 or -1, as explained below.
+
+        Two cusps $u1/v1$ and $u2/v2$ are equivalent modulo Gamma_H(N)
+        if and only if
+            $v1 =  h*v2 (mod N)$ and $u1 =  h^(-1)*u2 (mod gcd(v1,N))$
+        or
+            $v1 = -h*v2 (mod N)$ and $u1 = -h^(-1)*u2 (mod gcd(v1,N))$
+        for some $h \in H$. Then t is 1 or -1 as c and c' fall into
+        the first or second case, respectively.
+
+        EXAMPLES:
+            sage: G = GammaH(6,[5])
+            sage: G._reduce_cusp(Cusp(5,3))
+            (1/3, 1)
+            sage: G = GammaH(12,[5])
+            sage: G._reduce_cusp(Cusp(8,9))
+            (1/9, 1)
+            sage: G = GammaH(12,[])
+            sage: G._reduce_cusp(Cusp(8,9))
+            (2/9, 1)
         """
-        Compute a canonical form for the cusp $uu/vv$.
-
-        INPUT:
-            cusp
-        OUTPUT:
-            cusp
-
-
-        OUTPUT:
-            bool -- True if self and other are equivalent
-            int -- $1$, $0$, or $-1$,
-                   If the two cusps are $u1/v1$ and $u2/v2$, then they are
-                   equivalent modulo Gamma_H(N) if and only if
-                        $v1 =  h*v2 (mod N)$ and $u1 =  h^(-1)*u2 (mod gcd(v1,N))$
-                   or
-                        $v1 = -h*v2 (mod N)$ and $u1 = -h^(-1)*u2 (mod gcd(v1,N))$
-                   where $h \in H$.   In the first case we return $1$, and in
-                   the second we return $-1$.   We return $0$ if the two
-                   cusps are not equivalent.
-
-        EXAMPLE:
-        """
-        from sage.rings.integer import Integer
         N = int(self.level())
         Cusps = c.parent()
         u = int(c.numerator() % N)
         v = int(c.denominator() % N)
-        first, second = self._coset_reduction_data()
-        gcd_u_N = first[u][1]
-        gcd_v_N = first[v][1]
-
         if u == 0:
             return Cusps(0), 1
         if v == 0:
             return Cusps((1,0)), 1
 
-        def f(u,v):
+        first, second = self._coset_reduction_data()
+        gcd_u_N = first[u][1]
+        gcd_v_N = first[v][1]
+
+        d = first[v][1]   # d = gcd(v,N)
+
+        # If gcd(v,N) == 1, then we know we can reduce the cusp to 0.
+        if d == 1:
+            return Cusps((0,1)), 1
+        else:
             h = first[v][2]
             v = first[v][0]
-            hinv = int(Integer(h).inverse_mod(gcd_v_N))     # optimize
-            d = first[v][1]   # d = gcd(v,N)
-            if d == 1:
-                return 0, 1, h
+            hinv = get_inverse_mod(gcd_v_N)(h,gcd_v_N)
             u = (hinv * u) % d
             H_cong1_mod_N_over_d = second[d]
             if len(H_cong1_mod_N_over_d) > 1:
@@ -1358,9 +1373,7 @@ class GammaH_class(CongruenceSubgroup):
                     if u1 < umin:
                         umin = u1
                     u = umin
-            return u,v, h
 
-        u, v, h = f(u,v)
         N_over_2 = N//2
         if u > N_over_2:
             u = N_over_2 - u

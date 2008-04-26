@@ -4,9 +4,11 @@ Schemes
 AUTHORS:
    -- William Stein
    -- David Kohel
+   -- Kiran Kedlaya: added zeta_function (2008)
 """
 
 #*******************************************************************************
+#  Copyright (C) 2008 Kiran Kedlaya <kedlaya@mit.edu>
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu.au>
 #  Copyright (C) 2005 William Stein
 #
@@ -20,7 +22,8 @@ AUTHORS:
 from sage.structure.parent_base import ParentWithBase
 from sage.categories.all import Schemes
 from sage.rings.all import (IntegerRing, is_CommutativeRing, is_Field,
-                            ZZ, is_RingHomomorphism)
+                            ZZ, is_RingHomomorphism, GF, PowerSeriesRing,
+                            Rationals)
 
 SCH = Schemes()
 
@@ -268,6 +271,55 @@ class Scheme(ParentWithBase):
         Return the set of S-valued points of this scheme.
         """
         return self.point_homset(S)
+
+    def count_points(self, n):
+        """
+        Count points over F_q, ..., F_{q^n} on a scheme over a finite field F_q.
+
+        EXAMPLES:
+            sage: P.<x> = PolynomialRing(GF(3))
+            sage: C = HyperellipticCurve(x^3+x^2+1)
+            sage: R.<t> = PowerSeriesRing(Integers())
+            sage: C.count_points(4)
+            [6, 12, 18, 96]
+        """
+
+        F = self.base_ring()
+        if not F.is_finite():
+            return TypeError, "Point counting only defined for schemes over finite fields"
+        q = F.cardinality()
+        if not q.is_prime():
+            return NotImplementedError, "Point counting only implemented for schemes over prime fields"
+        a = []
+        for i in range(1, n+1):
+            F1 = GF(q**i, name='z')
+            S1 = self.base_extend(F1)
+            a.append(len(S1.rational_points()))
+        return(a)
+
+    def zeta_function(self, n, t):
+        """
+        Compute the zeta function of a scheme over a finite field.
+
+        EXAMPLES:
+            sage: P.<x> = PolynomialRing(GF(3))
+            sage: C = HyperellipticCurve(x^3+x^2+1)
+            sage: R.<t> = PowerSeriesRing(Integers())
+            sage: C.zeta_function(4,t)
+            1 + 6*t + 24*t^2 + 78*t^3 + 240*t^4 + O(t^5)
+            sage: (1+2*t+3*t^2)/(1-t)/(1-3*t) + O(t^5)
+            1 + 6*t + 24*t^2 + 78*t^3 + 240*t^4 + O(t^5)
+        """
+
+        F = self.base_ring()
+        if not F.is_finite():
+            return TypeError, "Zeta functions only defined for schemes over finite fields"
+        a = self.count_points(n)
+        R = PowerSeriesRing(Rationals(), 'u')
+        u = R.gen()
+        temp = sum(a[i-1]*(u.O(n+1))**i/i for i in range(1,n+1))
+        temp2 = temp.exp()
+        return(temp2(t).O(n+1))
 
 def is_AffineScheme(x):
     """

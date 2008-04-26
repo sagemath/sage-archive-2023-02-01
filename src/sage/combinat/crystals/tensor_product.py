@@ -196,15 +196,6 @@ class TensorProductOfCrystals(ClassicalCrystal):
         [[[[1], [2]], [[1]]], [[[2], [3]], [[1]]]]
         sage: [x.weight() for x in T.module_generators]
         [(2, 1, 0, 0), (1, 1, 1, 0)]
-
-    TESTS:
-
-
-
-
-
-        sage: T.check()   # module generators not implemented
-        True
     """
     def __init__(self, *crystals, **options):
         """

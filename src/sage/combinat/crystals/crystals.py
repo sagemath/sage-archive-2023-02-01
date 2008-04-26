@@ -32,7 +32,7 @@ It has a single highest weight element:
 
 A crystal is a CombinatorialClass; and we can count and list its elements
 in the usual way:
-    sage: C.count()    # todo: not implemented
+    sage: C.count()
     6
     sage: C.list()
     [1, 2, 3, 4, 5, 6]

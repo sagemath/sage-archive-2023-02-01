@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 CUR=`pwd`
 
@@ -18,7 +18,7 @@ if [ -d "$TARGET"/.hg ]; then
 else
 
     # Initial install.  Just copy all the files over.
-    cp -r sage-* .hg* "$TARGET"
+    cp -r sage-* SbuildHack.pm .hg* "$TARGET"
 
 fi
 

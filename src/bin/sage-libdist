@@ -32,7 +32,7 @@ sage_scripts = 'sage_scripts-%s'%version
 if os.system('tar -jxvf spkg/standard/%s.spkg'%sage_scripts):
     raise RuntimeError, "Error extract %s.spkg"%sage_scripts
 F = open('%s/sage-make_relative'%sage_scripts,'w')
-F.write('#!/bin/bash\n')
+F.write('#!/usr/bin/env bash\n')
 F.write('echo "Skipping making Python scripts relative."\n')
 F.close()
 if os.system('tar -jcvf spkg/standard/%s.spkg %s'%(sage_scripts, sage_scripts)):
@@ -184,7 +184,7 @@ if e:
 # create sage script
 sage = open('sage','w')
 sage.write(\"""
-#!/bin/bash
+#!/usr/bin/env bash
 # Change this if you move this directory.
 SAGE_ROOT=%s
 export SAGE_ROOT

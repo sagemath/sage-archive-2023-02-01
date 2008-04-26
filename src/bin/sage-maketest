@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ -z "$SAGE_TESTDIR" -a -n $SAGE_TESTDIR ]; then
     SAGE_TESTDIR="$SAGE_ROOT"/tmp

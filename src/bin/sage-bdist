@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 ########################################################
 # Build SAGE *binary* distribution
 # This script should be called by the sage-sage script

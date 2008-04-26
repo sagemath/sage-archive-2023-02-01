@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 ########################################################
 # Rebuild SAGE packages related to development, e.g.,
 #    sage_scripts, sage, doc, extcode

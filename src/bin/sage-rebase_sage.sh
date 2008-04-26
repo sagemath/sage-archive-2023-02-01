@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 
 # Author: Gary Zablackis <gzabl@yahoo.com>
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 PYTHONSTARTUP=$SAGE_ROOT/local/bin/sage-ipython
 export PYTHONSTARTUP

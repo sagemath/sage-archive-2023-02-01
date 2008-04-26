@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # We reuse the gdb pythonstartup script.
 PYTHONSTARTUP=$SAGE_ROOT/local/bin/sage-gdb-pythonstartup

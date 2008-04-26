@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 ########################################################
 # Build SAGE source distribution
 # This script should be called by the SAGE script

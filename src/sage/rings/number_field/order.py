@@ -1391,8 +1391,8 @@ def absolute_order_from_module_generators(gens,
         sage: absolute_order_from_module_generators(g)
         Order in Number Field in a with defining polynomial x^4 - 5
 
-    We illustrate each check flag -- the output is the same but in case the function would
-    run ever so slightly faster:
+    We illustrate each check flag -- the output is the same but in case
+    the function would run ever so slightly faster:
         sage: absolute_order_from_module_generators(g,  check_is_ring=False)
         Order in Number Field in a with defining polynomial x^4 - 5
         sage: absolute_order_from_module_generators(g,  check_rank=False)
@@ -1400,7 +1400,8 @@ def absolute_order_from_module_generators(gens,
         sage: absolute_order_from_module_generators(g,  check_integral=False)
         Order in Number Field in a with defining polynomial x^4 - 5
 
-    Next we illustrate constructing "fake" to illustrate turning off various check flags:
+    Next we illustrate constructing "fake" orders to illustrate turning
+    off various check flags:
         sage: k.<i> = NumberField(x^2 + 1)
         sage: R = absolute_order_from_module_generators([2, 2*i],  check_is_ring=False); R
         Order in Number Field in i with defining polynomial x^2 + 1
@@ -1411,8 +1412,9 @@ def absolute_order_from_module_generators(gens,
         sage: R.basis()
         [1]
 
-    If the order contains a non-integral element, even if we don't check that, we'll
-    find that the rank is wrong or that the order isn't closed under multiplication:
+    If the order contains a non-integral element, even if we don't check
+    that, we'll find that the rank is wrong or that the order isn't closed
+    under multiplication:
         sage: absolute_order_from_module_generators([1/2, i],  check_integral=False)
         Traceback (most recent call last):
         ...
@@ -1427,6 +1429,11 @@ def absolute_order_from_module_generators(gens,
         Order in Number Field in i with defining polynomial x^2 + 1
         sage: R.basis()
         [1/2, i]
+
+    An order that lives in a subfield:
+        sage: F.<alpha> = NumberField(x**4+3)
+        sage: F.order([alpha**2], allow_subfield=True)
+        Order in Number Field in alpha with defining polynomial x^4 + 3
     """
     if len(gens) == 0:
         raise ValueError, "gens must span an order over ZZ"
@@ -1453,7 +1460,7 @@ def absolute_order_from_module_generators(gens,
             while True:
                 z = W.random_element()
                 alpha = from_V(z)
-                if alpha.minpoly() == W.rank():
+                if alpha.minpoly().degree() == W.rank():
                     break
             # Now alpha generates a subfield there W is an order
             # (with the right rank).

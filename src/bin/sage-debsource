@@ -49,6 +49,9 @@ do_package() {
     dir=$correctdir
   fi
 
+  # make sure we're running with a clean upstream
+  (cd $dir && debuild clean)
+
   # If the version has a debian component then we need an orig archive.
   if [ $sver != $upver ]; then
     tarfile=${pkgname}_$upver.orig.tar.gz

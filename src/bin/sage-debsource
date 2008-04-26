@@ -67,7 +67,7 @@ do_package() {
 
   # Build an unsigned package, ignoring version control subdirs in the source.
   echo "Creating source package"
-  (cd $dir && debuild -S -i -I -sa -us -uc)
+  (cd $dir && DEB_AUTO_UPDATE_DEBIAN_CONTROL=yes debuild -S -i -I -sa -us -uc)
 }
 
 if [ $# -gt 0 ]; then

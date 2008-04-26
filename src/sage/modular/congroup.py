@@ -1116,9 +1116,9 @@ class GammaH_class(CongruenceSubgroup):
     def _coset_reduction_data_first_coord(G):
         """
         Compute data used for determining the canonical coset
-        representative of an element of SL_2(Z) modulo G.  This
-        function specfically returns data needed for the first part of
-        the reduction step (the first coordinate).
+        representative of an element of SL_2(Z) modulo G. This
+        function specifically returns data needed for the first part
+        of the reduction step (the first coordinate).
 
         INPUT:
             G -- a congruence subgroup Gamma_0(N), Gamma_1(N), or Gamma_H(N).
@@ -1192,7 +1192,7 @@ class GammaH_class(CongruenceSubgroup):
         """
         Compute data used for determining the canonical coset
         representative of an element of SL_2(Z) modulo G. This
-        function specfically returns data needed for the second part
+        function specifically returns data needed for the second part
         of the reduction step (the second coordinate).
 
         INPUT:

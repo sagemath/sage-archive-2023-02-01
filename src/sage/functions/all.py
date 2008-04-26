@@ -16,7 +16,7 @@ from special    import (bessel_I, bessel_J, bessel_K, bessel_Y,
                         spherical_bessel_J, spherical_bessel_Y,
                         spherical_hankel1, spherical_hankel2,
                         spherical_harmonic, jacobi,
-                        inverse_jacobi, dilog,
+                        inverse_jacobi,
                         lngamma, exp_int, error_fcn, elliptic_e,
                         elliptic_f, elliptic_ec, elliptic_eu,
                         elliptic_kc, elliptic_pi)

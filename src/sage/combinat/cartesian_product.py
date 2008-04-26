@@ -160,13 +160,13 @@ class CartesianProduct_iters(CombinatorialClass):
             else:
                 break
 
-    def random(self):
+    def random_element(self):
         """
         Returns a random element from the cartesian product
         of *iters.
 
         EXAMPLES:
-            sage: CartesianProduct('dog', 'cat').random()
+            sage: CartesianProduct('dog', 'cat').random_element()
             ['d', 'a']
         """
         return list(map(rnd.choice, self.iters))

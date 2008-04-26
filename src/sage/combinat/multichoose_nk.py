@@ -82,14 +82,14 @@ class MultichooseNK(CombinatorialClass):
 
         return
 
-    def random(self):
+    def random_element(self):
         """
         Returns a random multichoice of k things from range(n).
 
         EXAMPLES:
-            sage: MultichooseNK(5,2).random()
+            sage: MultichooseNK(5,2).random_element()
             [0, 2]
-            sage: MultichooseNK(5,2).random()
+            sage: MultichooseNK(5,2).random_element()
             [0, 1]
         """
         n,k = self._n, self._k

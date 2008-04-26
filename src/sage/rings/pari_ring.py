@@ -55,8 +55,14 @@ class PariRing(ring.Ring, _uniq):
         raise RuntimeError, "Not defined."
         #return 0
 
-    def random(self, bound=0):
+    def random_element(self, bound=0):
         return Pari(0)
+
+    def random(self, bound=0):
+        """
+        Deprecated.  Use self.random_element() instead.
+        """
+        raise NotImplementedError, "Deprecated: use random_element() instead"
 
     def __cmp__(self, other):
         return cmp(type(self),type(other))

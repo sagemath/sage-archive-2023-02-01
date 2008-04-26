@@ -98,13 +98,13 @@ class PermutationsNK(CombinatorialClass):
 
         return
 
-    def random(self):
+    def random_element(self):
         """
         Returns a random permutation of k things from range(n).
 
         EXAMPLES:
             sage: from sage.combinat.permutation_nk import PermutationsNK
-            sage: PermutationsNK(3,2).random()
+            sage: PermutationsNK(3,2).random_element()
             [0, 1]
         """
         n, k = self._n, self._k

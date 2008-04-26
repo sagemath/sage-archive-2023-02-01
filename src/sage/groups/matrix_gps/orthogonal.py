@@ -117,7 +117,7 @@ class SpecialOrthogonalGroup_generic(OrthogonalGroup):
         Special Orthogonal Group of degree 4, form parameter 1, over the Finite Field of size 7
         sage: G._gap_init_()
         'SO(1, 4, 7)'
-        sage: G.random()
+        sage: G.random_element()
         [2 5 1 1]
         [3 0 0 0]
         [0 0 3 5]
@@ -209,7 +209,7 @@ class GeneralOrthogonalGroup_generic(OrthogonalGroup):
         General Orthogonal Group of degree 3, form parameter 0, over the Finite Field of size 7
         sage: GO( 3, GF(7), 0).order()
         672
-        sage: GO( 3, GF(7), 0).random()
+        sage: GO( 3, GF(7), 0).random_element()
         [3 2 1]
         [4 0 0]
         [6 0 1]

@@ -136,8 +136,8 @@ def IntegerVectors(n=None, k=None, **kwargs):
         [5, 0, 0]
         sage: IV53.last()
         [0, 0, 5]
-        sage: IV53.random() #random
-        [0, 1, 4]
+        sage: IV53.random_element()
+        [4, 0, 1]
 
     """
     if n is None:

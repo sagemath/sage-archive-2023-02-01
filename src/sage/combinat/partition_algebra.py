@@ -60,7 +60,7 @@ EXAMPLES:
     {{1, 2, 3, -1, -3, -2}}
     sage: A3.last() #random
     {{-1}, {-2}, {3}, {1}, {-3}, {2}}
-    sage: A3.random()  #random
+    sage: A3.random_element()  #random
     {{1, 3, -3, -1}, {2, -2}}
 
     sage: A3.count()
@@ -75,7 +75,7 @@ EXAMPLES:
     {{1, 2, 3, -1, -3, -2}}
     sage: A2p5.last() #random
     {{-1}, {-2}, {2}, {3, -3}, {1}}
-    sage: A2p5.random() #random
+    sage: A2p5.random_element() #random
     {{-1}, {-2}, {3, -3}, {1, 2}}
 
 """
@@ -205,7 +205,7 @@ EXAMPLES:
     {{2, -2}, {3, -3}, {1, -1}}
     sage: S3.last() #random
     {{1, -3}, {2, -2}, {3, -1}}
-    sage: S3.random() #random
+    sage: S3.random_element() #random
     {{1, -3}, {2, -1}, {3, -2}}
 
     sage: S3p5 = SetPartitionsSk(3.5); S3p5
@@ -224,7 +224,7 @@ EXAMPLES:
     {{2, -2}, {3, -3}, {1, -1}, {4, -4}}
     sage: S3p5.last() #random
     {{1, -3}, {2, -2}, {4, -4}, {3, -1}}
-    sage: S3p5.random() #random
+    sage: S3p5.random_element() #random
     {{1, -3}, {2, -2}, {4, -4}, {3, -1}}
 """
 class SetPartitionsSk_k(SetPartitionsAk_k):
@@ -379,7 +379,7 @@ EXAMPLES:
     {{1, 2, 3, -1, -3, -2}}
     sage: I3.last() #random
     {{-1}, {-2}, {3}, {1}, {-3}, {2}}
-    sage: I3.random() #random
+    sage: I3.random_element() #random
     {{-1}, {-3, -2}, {2, 3}, {1}}
 
     sage: I2p5 = SetPartitionsIk(2.5); I2p5
@@ -391,7 +391,7 @@ EXAMPLES:
     {{1, 2, 3, -1, -3, -2}}
     sage: I2p5.last() #random
     {{-1}, {-2}, {2}, {3, -3}, {1}}
-    sage: I2p5.random() #random
+    sage: I2p5.random_element() #random
     {{-1}, {-2}, {1, 3, -3}, {2}}
 
 """
@@ -520,7 +520,7 @@ EXAMPLES:
     {{2, -2}, {1, -3}, {3, -1}}
     sage: B3.last() #random
     {{1, 2}, {3, -2}, {-3, -1}}
-    sage: B3.random() #random
+    sage: B3.random_element() #random
     {{2, -1}, {1, -3}, {3, -2}}
 
     sage: B3.count()
@@ -533,7 +533,7 @@ EXAMPLES:
     {{2, -1}, {3, -3}, {1, -2}}
     sage: B2p5.last() #random
     {{1, 2}, {3, -3}, {-1, -2}}
-    sage: B2p5.random() #random
+    sage: B2p5.random_element() #random
     {{2, -2}, {3, -3}, {1, -1}}
 
     sage: B2p5.count()
@@ -710,7 +710,7 @@ sage: P3.first() #random
 {{1, 2, 3, -1, -3, -2}}
 sage: P3.last() #random
 {{-1}, {-2}, {3}, {1}, {-3}, {2}}
-sage: P3.random() #random
+sage: P3.random_element() #random
 {{1, 2, -1}, {-3}, {3, -2}}
 
 sage: P2p5 = SetPartitionsPk(2.5); P2p5
@@ -722,7 +722,7 @@ sage: P2p5.first() #random
 {{1, 2, 3, -1, -3, -2}}
 sage: P2p5.last() #random
 {{-1}, {-2}, {2}, {3, -3}, {1}}
-sage: P2p5.random() #random
+sage: P2p5.random_element() #random
 {{1, 2, 3, -3}, {-1, -2}}
 
 
@@ -862,7 +862,7 @@ sage: T3.first() #random
 {{1, -3}, {2, 3}, {-1, -2}}
 sage: T3.last() #random
 {{1, 2}, {3, -1}, {-3, -2}}
-sage: T3.random() #random
+sage: T3.random_element() #random
 {{1, -3}, {2, 3}, {-1, -2}}
 
 sage: T2p5 = SetPartitionsTk(2.5); T2p5

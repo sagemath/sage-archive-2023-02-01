@@ -105,7 +105,7 @@ class SplitNK_nk(CombinatorialClass):
             yield [ kset, filter(lambda x: x not in kset, range_n) ]
 
 
-    def random(self):
+    def random_element(self):
         """
         Returns a random set partition of
         range(n) into a set of size k and a set of size
@@ -113,7 +113,7 @@ class SplitNK_nk(CombinatorialClass):
 
         EXAMPLES:
             sage: from sage.combinat.split_nk import SplitNK
-            sage: SplitNK(5,2).random()
+            sage: SplitNK(5,2).random_element()
             [[0, 2], [1, 3, 4]]
         """
         r = rnd.sample(xrange(self._n),self._n)

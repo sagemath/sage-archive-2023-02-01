@@ -142,7 +142,7 @@ def ContreTableaux(n):
         [[1, 2, 3, 4], [1, 2, 3], [1, 2], [1]]
         sage: ct4.last()
         [[1, 2, 3, 4], [2, 3, 4], [3, 4], [4]]
-        sage: ct4.random()
+        sage: ct4.random_element()
         [[1, 2, 3, 4], [1, 2, 3], [1, 3], [3]]
     """
     return ContreTableaux_n(n)

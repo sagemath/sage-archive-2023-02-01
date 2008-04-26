@@ -439,13 +439,13 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
         """
         return integer.Integer(gap(self).Size())
 
-    def random(self):
+    def random_element(self):
         """
         Return a random element of this group.
 
         EXAMPLES:
             sage: G = Sp(4,GF(3))
-            sage: G.random()
+            sage: G.random_element()
             [2 1 1 1]
             [1 0 2 1]
             [0 1 1 0]
@@ -454,13 +454,13 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
-            sage: G.random()
+            sage: G.random_element()
             [1 3]
             [0 3]
-            sage: G.random()
+            sage: G.random_element()
             [2 2]
             [1 0]
-            sage: G.random()
+            sage: G.random_element()
             [4 0]
             [1 4]
         """
@@ -468,6 +468,13 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
         from matrix_group_element import MatrixGroupElement
         F = self.field_of_definition()
         return MatrixGroupElement(gap(self).Random()._matrix_(F), self, check=False)
+
+    def random(self):
+        """
+        Deprecated.  Use self.random_element() instead.
+        """
+        raise NotImplementedError, "Deprecated: use random_element() instead"
+
 
     def __contains__(self, x):
         """

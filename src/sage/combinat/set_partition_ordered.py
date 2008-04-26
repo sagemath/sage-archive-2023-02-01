@@ -93,7 +93,7 @@ def OrderedSetPartitions(s, c=None):
         [{1}, {2}, {3}, {4}]
         sage: OS.last()
         [{1, 2, 3, 4}]
-        sage: OS.random()
+        sage: OS.random_element()
         [{3}, {1}, {2}, {4}]
 
         sage: OS = OrderedSetPartitions([1,2,3,4], [2,2]); OS

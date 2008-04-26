@@ -68,7 +68,7 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
 	sage: F = GF(3); MS = MatrixSpace(F,2,2)
         sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
 	sage: G = MatrixGroup(gens)
-	sage: g = G.random()
+	sage: g = G.random_element()
 	sage: type(g)
 	<class 'sage.groups.matrix_gps.matrix_group_element.MatrixGroupElement'>
     """
@@ -85,7 +85,7 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
             sage: F = GF(3); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
-            sage: g = G.random()
+            sage: g = G.random_element()
             sage: g == loads(dumps(g))
             True
         """

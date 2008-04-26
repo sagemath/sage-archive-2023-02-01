@@ -205,14 +205,14 @@ class DualAbelianGroup_class(group.AbelianGroup):
             return x
         return DualAbelianGroupElement(self, x)
 
-    def random(self):
+    def random_element(self):
         """
         Return a random element of this dual group.
 
         EXAMPLES:
             sage: G = AbelianGroup([2,3,9])
             sage: Gd = DualAbelianGroup(G)
-            sage: Gd.random()
+            sage: Gd.random_element()
             X0*X1^2*X2
             sage: N = 43^2-1
             sage: G = AbelianGroup([N],names="a")
@@ -220,7 +220,7 @@ class DualAbelianGroup_class(group.AbelianGroup):
             sage: a, = G.gens()
             sage: A, = Gd.gens()
             sage: x = a^(N/4); y = a^(N/3); z = a^(N/14)
-            sage: X = Gd.random(); X
+            sage: X = Gd.random_element(); X
             A^615
             sage: len([a for a in [x,y,z] if abs(X(a)-1)>10^(-8)])
             2
@@ -232,6 +232,13 @@ class DualAbelianGroup_class(group.AbelianGroup):
         for i in range(len(gens)):
             g = g*gens[i]**(randint(1,gens[i].order()))
         return g
+
+    def random(self):
+        """
+        Deprecated.  Use self.random_element() instead.
+        """
+        raise NotImplementedError, "Deprecated: use random_element() instead"
+
 
     def gen(self, i=0):
         """

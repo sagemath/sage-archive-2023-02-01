@@ -1061,15 +1061,15 @@ class CombinatorialClass(SageObject):
     unrank = __unrank_from_iterator
 
 
-    def __random_from_unrank(self):
+    def __random_element_from_unrank(self):
         """
         Default implementation of random which uses unrank.
 
         EXAMPLES:
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1,2,3]
-            sage: C.random() #random, indirect doctest
-            2
+            sage: C.random_element()
+            1
         """
         c = self.count()
         r = randint(0, c-1)
@@ -1077,8 +1077,20 @@ class CombinatorialClass(SageObject):
 
 
     #Set the default implementation of random
-    random = __random_from_unrank
+    random_element = __random_element_from_unrank
 
+    def random(self):
+        """
+        Deprecated.  Use self.random_element() instead.
+
+        EXAMPLES:
+            sage: C = CombinatorialClass()
+            sage: C.random()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Deprecated: use random_element() instead
+        """
+        raise NotImplementedError, "Deprecated: use random_element() instead"
 
     def __rank_from_iterator(self, obj):
         """

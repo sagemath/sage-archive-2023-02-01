@@ -121,19 +121,18 @@ class ChooseNK(CombinatorialClass):
         return
 
 
-    def random(self):
+    def random_element(self):
         """
         Returns a random choice of k things from range(n).
 
         EXAMPLES:
             sage: from sage.combinat.choose_nk import ChooseNK
-            sage: ChooseNK(5,2).random()
+            sage: ChooseNK(5,2).random_element()
             [0, 2]
         """
         r = rnd.sample(xrange(self._n),self._k)
         r.sort()
         return r
-
 
     def unrank(self, r):
         """

@@ -27,7 +27,7 @@ def FiniteCombinatorialClass(l):
         [1, 2, 3]
         sage: F.count()
         3
-        sage: F.random()
+        sage: F.random_element()
         1
         sage: F.first()
         1

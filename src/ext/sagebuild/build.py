@@ -108,10 +108,10 @@ def init():
     OM.execute_options(argv, env)
     global opt_sage_build, opt_sage_clib, opt_sage_all, opt_TM_go
     if opt_sage_clib:
-        gccc = GCC_compiler(env, define_macros = [ ("NDEBUG",None) ], libraries = ['pthread'], options = { "-O2":None, "-g":None, "-fno-strict-aliasing":None } )
+        gccc = GCC_compiler(env, define_macros = [ ("NDEBUG",None) ], libraries = ['pthread'], options = { "-O3":None, "-g":None, "-fno-strict-aliasing":None, "-fwrapv":None } )
         buildclib(env, gccc)
     if opt_sage_build:
-        gccc = GCC_compiler(env, define_macros = [ ("NDEBUG",None) ], libraries = ['pthread'], options = { "-O2":None, "-g":None, "-fno-strict-aliasing":None } )
+        gccc = GCC_compiler(env, define_macros = [ ("NDEBUG",None) ], libraries = ['pthread'], options = { "-O3":None, "-g":None, "-fno-strict-aliasing":None, "-fwrapv":None } )
         buildsage(env, gccc)
     if opt_TM_go:
         TM.go()

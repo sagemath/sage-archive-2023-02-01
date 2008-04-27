@@ -33,6 +33,11 @@ import os, signal, sys, time, thread, threading, tempfile
 from build.compiler import Compiler, Extension
 
 def _get_cython_file(curfile, modulename,includelist):
+    """
+        Get the pxd file for a given cimported module name
+        OUTPUT:
+            <string> -- pathname of the pxd
+    """
     splitname = modulename.split(".")
     dirname = os.path.dirname(curfile)
     if len(splitname)==1:
@@ -46,6 +51,14 @@ def _get_cython_file(curfile, modulename,includelist):
     return newpath
 
 def _parse_file(filenm, includelist):
+    """
+        For a given cython file, get a list of all compile time dependencies
+        INPUT:
+            filenm -- <string> pathname for the file to analyze
+            includelist -- <list> a list of directories to look for dependencies in
+        OUTPUT:
+            <list> -- A list of the pathnames of all dependencies
+    """
     f = open(filenm, "r")
     deps = [ ]
     for line in f:
@@ -79,6 +92,14 @@ def _parse_file(filenm, includelist):
     return deps
 
 def get_cython_file_deps(filenm, includelist):
+    """
+        Given a cython file, also get any dependencies for an associated pxd
+        INPUT:
+            filenm -- <string> pathname for the file to analyze
+            includelist -- <list> a list of directories to look for dependencies in
+        OUTPUT:
+            <list> -- A list of the pathnames of all dependencies
+    """
     deps = [ ]
     deps.extend(_parse_file(filenm, includelist))
     try:
@@ -91,7 +112,26 @@ def get_cython_file_deps(filenm, includelist):
 
 
 class CythonExtension(Extension):
+    """
+        This class, modeled after the distutils extension, represents a
+        single Cython compilation
+    """
     def __init__(self, compiler, env, sources=list(), language='C', define_macros = list(), libraries=list(), include_dirs = list(), library_dirs = list(), options = { }, prop_options = { }, cwd = os.getcwd()):
+        """
+            Create a Cython extension class
+            INPUT:
+                compiler -- <Compiler> The compiler for this Extension
+                env -- <Enviroment> The enviroment used for this Extension
+                sources -- <list> A list of source files (either pathnames or other extensions) for this extension
+                language -- <string> (default: 'C') A value of either 'C' or 'C++' dictates what the output of this extension should be.
+                define_macros -- <list> (default: list() ) A list of define macros that should be passed to the C/C++ compiler
+                libraries -- <list> (default: list() ) A list of libraries that should be passed to the C/C++ linker
+                include_dirs -- <list> (default: list() ) A list of include directories that should be passed to the C/C++ compiler
+                library_dirs -- <list> (default: list() ) A list of library directories that should be passed to the C/C++ linker
+                options -- <dict> A dictionary giving a mapping between options and their values for the Extension
+                prop_options -- <dict> A dictionary that is used as a base dictionary for any Extensions that use this Extension as a source file
+                cwd -- <string> (default: os.getcwd()) A path that is used as the working directory for Cython
+        """
 #        outfile = os.path.split(sources[0])[1]
         outfile = sources[0].replace(".pyx",".c")
         Extension.__init__(self, compiler, env, sources, outfile, options, prop_options)
@@ -100,6 +140,7 @@ class CythonExtension(Extension):
         self.include_dirs = list(include_dirs)
         self.library_dirs = list(library_dirs)
         self.cwd = str(cwd)
+
     def _get_cython_flags(self,env):
         self.extmutex.acquire()
         ret = ""
@@ -113,7 +154,9 @@ class CythonExtension(Extension):
         return ret
 
     def generate_command(self):
-        #WE MUST MUST BE IN THE DIRECTORY OF THE FILE AND WE MUST MUST CALL IT WITH A RELATIVE PATH TO AVOID WIERD ERRORS
+        """
+            Create the command to be executed to call Cython
+        """
         self.extmutex.acquire()
         file = (self.sources[0])[len(self.cwd)+1:]
         fileout = (self.outfile)[len(self.cwd)+1:]
@@ -126,24 +169,41 @@ class CythonExtension(Extension):
         if True:
             cmd+= ' -o %s' %fileout
         cmd = cmd + ' '  + file
+        cmd = cmd + ' -w ' + self.cwd
         self.extmutex.release()
         return cmd
     def get_cwd(self):
+        """
+            Get the current working directory of Cython
+        """
         self.extmutex.acquire()
-        #override the CWD because of cython buglets
-        #ret = os.path.split(self.sources[0])[0]
         ret = self.cwd
         self.extmutex.release()
         return ret
 
 
 class Cython_compiler(Compiler):
+    """
+        This class represents the Cython compiler
+    """
     def __init__(self):
         Compiler.__init__(self)
         self.options = { "--embed-positions":None, "--incref-local-binop":None }
+        #self.options = { "--embed-positions":None }
     def get_file_extensions(self):
+        """
+            Get the file extensions that this compiler can handle
+        """
         return '.pyx'
     def get_build_extensions(self,env, filelist, cwd = os.getcwd()):
+        """
+            Given a list of files, return a list of cython extensions for it
+            INPUT:
+                env -- <Enviroment> enviroment for the build extensions
+                filelist -- <list>
+            OUTPUT:
+                <list> - A list of CythonExtensions
+        """
         self.mutex.acquire()
         ret = { }
         for file in filelist:

@@ -32,13 +32,27 @@ import os, signal, sys, time, thread, threading, tempfile, subprocess
 from build.compiler import Compiler, Extension
 
 def config_gcc_file(env, dict, path, language = 'C', define_macros = list(), include_dirs = list(), library_dirs = list(), libraries = list(), prop_options = { }):
-        target = dict[path]
-        target.language = language
-        target.define_macros.extend(define_macros)
-        target.include_dirs.extend(include_dirs)
-        target.library_dirs.extend(library_dirs)
-        target.libraries.extend(libraries)
-        target.prop_options.update(prop_options)
+    """
+        This is a utility function for quickly modifying an existing gcc extension in a dictionary by pathname.
+        It extends existing values (for lists) and updates (for dictionaries)
+        INPUT:
+            env -- <Enviroment> The enviroment used for this Extension
+            dict -- <dict> The dictionary used for pathname lookup
+            path -- <string> The pathname of the file we wish to modify
+            language -- <string> (default: 'C') A value of either 'C' or 'C++' dictates what the output of this extension should be.
+            define_macros -- <list> (default: list() ) A list of define macros that should be passed to the C/C++ compiler
+            libraries -- <list> (default: list() ) A list of libraries that should be passed to the C/C++ linker
+            include_dirs -- <list> (default: list() ) A list of include directories that should be passed to the C/C++ compiler
+            library_dirs -- <list> (default: list() ) A list of library directories that should be passed to the C/C++ linker
+            prop_options -- <dict> A dictionary that is used as a base dictionary for any Extensions that use this Extension as a source file
+    """
+    target = dict[path]
+    target.language = language
+    target.define_macros.extend(define_macros)
+    target.include_dirs.extend(include_dirs)
+    target.library_dirs.extend(library_dirs)
+    target.libraries.extend(libraries)
+    target.prop_options.update(prop_options)
 
 class GCC_compiler(Compiler):
     def __init__(self, env, define_macros = list(), libraries=list(), include_dirs = list(), library_dirs = list(), options = { }):
@@ -75,6 +89,11 @@ class GCC_compiler(Compiler):
         self.mutex.release()
 
     def _try_code(self, code):
+        """
+            This function attempts to compile and run the given code.
+            OUTPUT:
+                <integer> -- 0 on success
+        """
         code = code + '\n'
         outfile = tempfile.NamedTemporaryFile(mode='r')
         infile = tempfile.NamedTemporaryFile(suffix = '.c')
@@ -92,13 +111,31 @@ class GCC_compiler(Compiler):
         return ret
 
     def get_ptr_len(self):
+        """
+            This function returns the length of a pointer on the given platform.
+            It uses sizeof and is guarenteed correct
+            OUTPUT:
+                <integer> -- sizeof a pointer in bytes
+        """
         compiledata = 'int main() { return sizeof(void*); }'
         return self._try_code(compiledata)
 
     def is_64bit(self):
+        """
+            This function returns if the platform is 64 bit
+            It uses sizeof and is guarenteed correct
+            OUTPUT:
+                <bool> -- is the platform 64 bit
+        """
         return self.get_ptr_len()==8
 
     def is_32bit(self):
+        """
+            This functoin returns if the platform is 32 bit
+            It uses sizeof and is guarenteed correct
+            OUTPUT:
+                <bool> -- is the platform 32 bit
+        """
         return self.get_ptr_len()==4
 
 
@@ -116,7 +153,6 @@ class GCC_extension(Extension):
         return ret
 
     def generate_command(self):
-        #WE MUST MUST BE IN THE DIRECTORY OF THE FILE AND WE MUST MUST CALL IT WITH A RELATIVE PATH TO AVOID WIERD ERRORS
         self.extmutex.acquire()
         if self.language == 'C':
             cmd = 'gcc'
@@ -191,6 +227,8 @@ class GCC_extension_object(GCC_extension):
                 ret+= (" -D"+macro[0]+" ")
         for dir in self.include_dirs:
             ret+= (" -I"+dir+" ")
+        if env.options['UNAME']=="Darwin" and sys.maxint == 9223372036854775807:
+            ret+= (" -m64 ")
         return ret
     def get_out_dir(self):
         self.extmutex.acquire()
@@ -230,6 +268,8 @@ class GCC_extension_shared_object(GCC_extension):
             pass
         if env.options['UNAME']=="Darwin":
             newoptions.update({"-single_module":None,  "-flat_namespace":None,  "-undefined dynamic_lookup":None })
+            if sys.maxint == 9223372036854775807:
+                newoptions.update({"-m64":None})
         if outfile==None:
             if outdir[len(outdir)-1]!='/':
                 outdir = outdir+'/'

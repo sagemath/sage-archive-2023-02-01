@@ -36,34 +36,61 @@ verbose=1
 cacheinfo = None
 
 def abs_sage_path(env, path):
+    """
+        A convinent function for making a function relative to devel/sage relative to $SAGE_ROOT
+    """
     return 'devel/sage/' + path
 def real_sage_root(env, path):
+    """
+        Return the real path of $SAGE_ROOT
+    """
     return os.path.realpath(env.options['SAGE_ROOT'] + path)
 def real_sage_local(env, path):
+    """
+        Return the real path of $SAGE_LOCAL
+    """
     return os.path.realpath(env.options['SAGE_LOCAL'] + path)
 def dict_insert_src(dict, dictlookup, src):
+    """
+        A utility function that adds a source file to the sources for a given extension if it exists in a dictionary
+    """
     obj = dict.get(dictlookup, 0)
     if obj == 0:
         return
     obj.sources.insert(0,src)
 
 def build_sage_clean(env):
+    """
+        This function gets called when we want sage to build all
+    """
     try:
         os.remove(env.options['SAGE_ROOT'] + "/sagebuild.chc")
     except:
         pass
 
 def buildsage(env, gccc):
+    """
+        This function actually builds sage
+    """
     TM = taskmanager.TM
+    #acquire a list of all pyx files in the tree
     efw = extfilewalker()
     efw.addcallback('.pyx',lambda x: True)
     pyx_list = efw.walk('devel/sage/sage')
+    #set the absolute devel directory if necessary
     develdir = os.path.realpath('devel/sage/')
     if verbose>100:
         print 'Devel Dir: ' + develdir
+    #Create the cython compiler
     cyc = Cython_compiler()
+    #We want -I. so that it correctly finds include files by default
     cyc.set_option_val('-I'+'.',None)
+    #Create the build extension dict for all cython extensions
     pyx_pextn_dict = cyc.get_build_extensions(env, pyx_list, cwd = 'devel/sage')
+
+    ###################################################################
+    #Configure all extensions
+    ###################################################################
 
     config_gcc_file(env,pyx_pextn_dict,"devel/sage/sage/libs/flint/fmpz_poly.pyx",include_dirs = [real_sage_local(env, 'include/FLINT/')], libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],prop_options={ str(GCC_extension_object): {'-std':'c99' } } )
 
@@ -116,6 +143,8 @@ def buildsage(env, gccc):
     config_gcc_file(env,pyx_pextn_dict,"devel/sage/sage/libs/cremona/mat.pyx",language="C++", define_macros=[("NTL_ALL",None)], libraries=cremonalibs)
 
     config_gcc_file(env,pyx_pextn_dict,"devel/sage/sage/libs/cremona/homspace.pyx",language="C++", define_macros=[("NTL_ALL",None)], libraries=cremonalibs)
+
+    config_gcc_file(env,pyx_pextn_dict,"devel/sage/sage/libs/cremona/newforms.pyx",language="C++", define_macros=[("NTL_ALL",None)], libraries=cremonalibs)
 
     config_gcc_file(env,pyx_pextn_dict,"devel/sage/sage/rings/finite_field_givaro.pyx",language="C++", libraries=['givaro', 'gmpxx', 'gmp', 'm', 'stdc++'])
 
@@ -277,33 +306,49 @@ def buildsage(env, gccc):
 
     config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/rings/polynomial/pbori.pyx',language='C++', include_dirs = [real_sage_local(env,'include/cudd'),real_sage_local(env,'include/polybori'), real_sage_local(env,'include/polybori/groebner')], libraries=['polybori','pboriCudd','groebner'])
 
+    ###################################################################
+    #End standard configurations
+    ###################################################################
+
     tempdir = os.path.realpath(env.options['SAGE_ROOT'])
 
+    #A dictionary of gcc objects extensions
     gcceo_dict = { }
+    #A dictionary of gcc shared object extensions
     gcceso_dict = { }
 
+    #Manually create the mwrank C extension
     mwrankcc = GCC_extension_object(gccc, env, ["devel/sage/sage/libs/mwrank/wrap.cc"], tempdir+"/devel/sage/build/temp/sage/libs/mwrank", define_macros=[("NTL_ALL",None)], options = { '-fPIC':None } )
 
-
+    #Create the Hypellfrob extensions
     hypellfrob_cpp = GCC_extension_object(gccc, env,["devel/sage/sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp"], tempdir+"/devel/sage/build/temp/sage/schemes/hyperelliptic_curves/hypellfrob/", language='C++', include_dirs=[abs_sage_path(env, 'sage/libs/ntl'), abs_sage_path(env,'sage/schemes/hyperelliptic_curves/hypellfrob/') ], options = { '-fPIC':None })
     recurrences_zn_poly = GCC_extension_object(gccc, env,[abs_sage_path(env,"sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_zn_poly.cpp")], tempdir+"/devel/sage/build/temp/sage/schemes/hyperelliptic_curves/hypellfrob/", language='C++', include_dirs=[abs_sage_path(env, 'sage/libs/ntl'), abs_sage_path(env,'sage/schemes/hyperelliptic_curves/hypellfrob/') ], options = { '-fPIC':None } )
     recurrences_ntl = GCC_extension_object(gccc, env,["devel/sage/sage/schemes/hyperelliptic_curves/hypellfrob/recurrences_ntl.cpp"], tempdir+"/devel/sage/build/temp/sage/schemes/hyperelliptic_curves/hypellfrob/", language='C++', include_dirs=[abs_sage_path(env, 'sage/libs/ntl'), abs_sage_path(env,'sage/schemes/hyperelliptic_curves/hypellfrob/') ], options = { '-fPIC':None } )
 
+    #Manually create the C paritions extension
     partitions_c = GCC_extension_object(gccc, env,["devel/sage/sage/combinat/partitions_c.cc"], tempdir+"/devel/sage/build/temp/sage/combinat", language='C++', options = { '-fPIC':None } )
+
+    #If we don't already have a temporary build directory for planarity, make it
     try:
         os.makedirs(tempdir+"/devel/sage/build/temp/sage/graphs/planarity")
     except:
         pass
+
+    #Locate all files that can possibley have
     depfw = extfilewalker()
     depfw.addcallback('.pyx',lambda x: True)
     depfw.addcallback('.pxd',lambda x: True)
     depfw.addcallback('.pxi',lambda x: True)
     depfw.addcallback('.py',lambda x: x.find(".doctest") ==-1 )
     dep_list = depfw.walk('devel/sage/sage')
+    #Set the dependency locater function
     funcdict = { '.pyx':get_cython_file_deps, '.pxd':get_cython_file_deps, 'pxi':get_cython_file_deps }
+    #Set possible include directories for various file extensions
     includedict = { '.pyx':[abs_sage_path(env,'')], '.pxd':[abs_sage_path(env,'')], '.pxi':[abs_sage_path(env,'')] }
+    #Set cacheinfo (used for saving the state at the end of the build)
     global cacheinfo
     cacheinfo = get_compile_list(dep_list, funcdict, includedict, "sagebuild.chc", env.options['SAGE_ROOT'])
+    #Add the task that runs on exit to write out the build cache
     TM.addfinishtask(sagebuild_exit)
     pyx_ext_dict  = { }
     for x in cacheinfo[0]:
@@ -313,19 +358,27 @@ def buildsage(env, gccc):
         print '---------------PYX_EXT_DICT------------'
         print pyx_ext_dict
         print '----------------------------------------'
+
+    #If we are building planarity
     if pyx_ext_dict.has_key('devel/sage/sage/graphs/planarity.pyx'):
+        #Locate all planarity C files
         efwplan = extfilewalker()
         efwplan.addcallback('.c',lambda x: True)
         planarity_list = efwplan.walk('devel/sage/sage/graphs/planarity')
         planarity_ext = list()
         for x in planarity_list:
+            #Create their extensions and enable them
             ext =  GCC_extension_object(gccc, env, [x], tempdir+"/devel/sage/build/temp/sage/graphs/planarity", options = { '-fPIC':None } )
             ext.generate_action(env).enable()
             planarity_ext.append(ext)
+
+    #If we are building mwrank.pyx, build the mwrank c extensions
     if pyx_ext_dict.has_key("devel/sage/sage/libs/mwrank/mwrank.pyx"):
         mwrankcc.generate_action(env).enable()
     else:
         pass
+
+    #If we are building hypellfrob, make sure the temporary directories exist and enable the C extensions
     if pyx_ext_dict.has_key('devel/sage/sage/schemes/hyperelliptic_curves/hypellfrob.pyx'):
         try:
             os.makedirs(hypellfrob_cpp.get_out_dir())
@@ -334,9 +387,12 @@ def buildsage(env, gccc):
         hypellfrob_cpp.generate_action(env).enable()
         recurrences_ntl.generate_action(env).enable()
         recurrences_zn_poly.generate_action(env).enable()
+
+    #If we are building partions.pyx, we should build the partitions C extension
     if pyx_ext_dict.has_key('devel/sage/sage/combinat/partitions.pyx'):
         partitions_c.generate_action(env).enable()
 
+    #For all Cython extensions, create gcc object file extensions
     for x in pyx_ext_dict.values():
         q = x.generate_action(env)
         gcc_temp_dir = tempdir + '/devel/sage/build/temp/sage/' + (os.path.split(x.sources[0])[0])[len('devel/sage/sage/'):]
@@ -345,6 +401,8 @@ def buildsage(env, gccc):
         gccaction = gcceo.generate_action(env)
         gccaction.dep_register(q)
         q.enable()
+
+    #Create temporary directories for all object file extensions and enable them
     for gcceo in gcceo_dict.values():
         try:
             os.makedirs(gcceo.get_out_dir())
@@ -353,35 +411,47 @@ def buildsage(env, gccc):
         gccaction = gcceo.generate_action(env)
         gccaction.enable()
 
+    #For all object file extensions, create shared object file extensions and enable them
     for gcceo in gcceo_dict.values():
         gcc_build_dir = develdir + '/build' + (os.path.split(gcceo.sources[0])[0])[len('devel/sage'):]
         gcceso = GCC_extension_shared_object(gccc,env, [gcceo], gcc_build_dir)
         gcceso_dict[gcceso.sources[0] ] = gcceso
         gcceso.generate_action(env).dep_register(gcceo.generate_action(env))
+
+    #Link mwrank C files if needed
     dict_insert_src(gcceso_dict, env.options['SAGE_ROOT']+"/devel/sage/build/temp/sage/libs/mwrank/mwrank.o", mwrankcc.outfile)
+    #Setup dependencies for mwrank if needed
     try:
         gcceso_dict[env.options['SAGE_ROOT'] + "/devel/sage/build/temp/sage/libs/mwrank/mwrank.o"].generate_action(env).dep_register(mwrankcc.generate_action(env))
     except KeyError:
         pass
+
+    #Link hypellfrob C files if needed
     dict_insert_src(gcceso_dict, tempdir+"/devel/sage/build/temp/sage/schemes/hyperelliptic_curves/hypellfrob.o", hypellfrob_cpp.outfile)
     dict_insert_src(gcceso_dict, tempdir+"/devel/sage/build/temp/sage/schemes/hyperelliptic_curves/hypellfrob.o", recurrences_ntl.outfile)
     dict_insert_src(gcceso_dict, tempdir+"/devel/sage/build/temp/sage/schemes/hyperelliptic_curves/hypellfrob.o", recurrences_zn_poly.outfile)
+    #Setup dependencies for hypellfrob shared object if needed
     try:
         gcceso_dict[tempdir+"/devel/sage/build/temp/sage/schemes/hyperelliptic_curves/hypellfrob.o"].generate_action(env).dep_register(hypellfrob_cpp.generate_action(env))
         gcceso_dict[tempdir+"/devel/sage/build/temp/sage/schemes/hyperelliptic_curves/hypellfrob.o"].generate_action(env).dep_register(recurrences_ntl.generate_action(env))
         gcceso_dict[tempdir+"/devel/sage/build/temp/sage/schemes/hyperelliptic_curves/hypellfrob.o"].generate_action(env).dep_register(recurrences_zn_poly.generate_action(env))
     except KeyError:
         pass
+
+    #Link parition C file if needed
     dict_insert_src(gcceso_dict, tempdir+"/devel/sage/build/temp/sage/combinat/partitions.o", partitions_c.outfile)
+    #Setup dependencies for parition if needed
     try:
         gcceso_dict[tempdir+"/devel/sage/build/temp/sage/combinat/partitions.o"].generate_action(env).dep_register(mwrankcc.generate_action(env))
     except KeyError:
         pass
+
+    #If we are building planarity, then we should link the C extensions into the planarity shared object
     if pyx_ext_dict.has_key('devel/sage/sage/graphs/planarity.pyx'):
         for x in planarity_ext:
             dict_insert_src(gcceso_dict, tempdir+"/devel/sage/build/temp/sage/graphs/planarity.o",x.outfile)
 
-
+    #Make output directorys in site-packages if they don't already exist
     for gcceso in gcceso_dict.values():
         try:
             os.makedirs(gcceso.get_out_dir())
@@ -393,6 +463,7 @@ def buildsage(env, gccc):
 
     if verbose>10:
         print 'Copying *.py files'
+    #Copy all python files to site-packages
     for filenm in cacheinfo[0]:
         if os.path.splitext(filenm)[1]==".py":
             filepart = (os.path.split(filenm)[0])
@@ -410,6 +481,11 @@ def buildsage(env, gccc):
             os.system( cmd )
 
 def sagebuild_exit():
+    """
+        This gets called once the entire build system is finished.
+        Thus we stick the calls to update the cached values in here
+        so they only happen on success
+    """
     os.chdir(os.environ['SAGE_ROOT'])
     global cacheinfo
     if verbose>10:

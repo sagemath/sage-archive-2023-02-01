@@ -35,12 +35,10 @@ TM = None
 class taskthread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self._cwd = os.getcwd()
     def run(self):
         try:
             wasexecuting = False
             while True:
-                os.chdir(self._cwd)
                 act = TM._get_action(wasexecuting)
                 if act == None:
                     wasexecuting=False

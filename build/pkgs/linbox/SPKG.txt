@@ -24,6 +24,9 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.5.p4 (Michael Abshoff, April 15th, 2008) ===
+ * reenable optimization on all platforms because the detection was broken (fixes #3041)
+
 === linbox-1.1.5.p3 (Michael Abshoff, April 15th, 2008) ===
  * apply gcc 4.3 build patch
 

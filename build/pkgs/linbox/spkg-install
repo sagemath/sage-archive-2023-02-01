@@ -64,14 +64,7 @@ echo "*************************************************"
 echo " Using LINBOX_BLAS=$LINBOX_BLAS"
 echo "*************************************************"
 
-if [ $UNAME = "SunOS" ]; then
-   OPT="--enable-optimization=false"
-   echo "Building on SunOS"
-else
-   OPT="--enable-optimization"
-fi
-
-./configure --prefix="$SAGE_LOCAL" --with-givaro="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" --with-ntl="$SAGE_LOCAL" $OPS --with-blas="$LINBOX_BLAS"
+./configure --prefix="$SAGE_LOCAL" --with-givaro="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" --with-ntl="$SAGE_LOCAL" --enable-optimization --with-blas="$LINBOX_BLAS"
 
 if [ $? -ne 0 ]; then
     echo "Error configuring linbox"

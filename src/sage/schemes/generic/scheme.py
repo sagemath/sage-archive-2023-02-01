@@ -273,23 +273,30 @@ class Scheme(ParentWithBase):
         return self.point_homset(S)
 
     def count_points(self, n):
-        """
-        Count points over F_q, ..., F_{q^n} on a scheme over a finite field F_q.
+        r"""
+        Count points over $\mathbb{F}_q, \ldots, \mathbb{F}_{q^n}$ on
+        a scheme over a finite field $\mathbb{F}_q$.
+
+        NOTE: This is currently only implemented for curves over prime
+            order finite fields.
 
         EXAMPLES:
             sage: P.<x> = PolynomialRing(GF(3))
             sage: C = HyperellipticCurve(x^3+x^2+1)
-            sage: R.<t> = PowerSeriesRing(Integers())
             sage: C.count_points(4)
             [6, 12, 18, 96]
+            sage: C.base_extend(GF(9,'a')).count_points(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Point counting only implemented for schemes over prime fields
         """
 
         F = self.base_ring()
         if not F.is_finite():
-            return TypeError, "Point counting only defined for schemes over finite fields"
+            raise TypeError, "Point counting only defined for schemes over finite fields"
         q = F.cardinality()
         if not q.is_prime():
-            return NotImplementedError, "Point counting only implemented for schemes over prime fields"
+            raise NotImplementedError, "Point counting only implemented for schemes over prime fields"
         a = []
         for i in range(1, n+1):
             F1 = GF(q**i, name='z')
@@ -309,11 +316,18 @@ class Scheme(ParentWithBase):
             1 + 6*t + 24*t^2 + 78*t^3 + 240*t^4 + O(t^5)
             sage: (1+2*t+3*t^2)/(1-t)/(1-3*t) + O(t^5)
             1 + 6*t + 24*t^2 + 78*t^3 + 240*t^4 + O(t^5)
+
+        Note that this function depends on count_points, which is only
+        defined for prime order fields:
+            sage: C.base_extend(GF(9,'a')).zeta_function(4,t)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Point counting only implemented for schemes over prime fields
         """
 
         F = self.base_ring()
         if not F.is_finite():
-            return TypeError, "Zeta functions only defined for schemes over finite fields"
+            raise TypeError, "Zeta functions only defined for schemes over finite fields"
         a = self.count_points(n)
         R = PowerSeriesRing(Rationals(), 'u')
         u = R.gen()

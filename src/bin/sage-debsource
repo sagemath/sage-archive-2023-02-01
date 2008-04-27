@@ -25,20 +25,20 @@ die() {
 do_package() {
   dir=$1
 
-  version=$(echo $dir | sed 's/[^-]*-//')
+  version=$(echo $dir | sed 's/[^-]*-//' | sed 's/\.alpha/~alpha/' | sed 's/\.rc/~rc/')
   upver=$(echo $version | sed 's/\(.*\)-\([^-]*\)/\1/')
   if dpkg --compare-versions "$upver" '>>' "20000000"; then
       # send to 0.0.x
       upver="0.0.$upver"
   fi
   if [ "$upver" = "$version" ]; then
-      dver=1
+      dver=0sage1
   else
-      dver=$(echo $version | sed 's/\(.*\)-\([^-]*\)/\2/')
+      dver=0sage$(echo $version | sed 's/\(.*\)-\([^-]*\)/\2/')
   fi
   sver="$upver-$dver"
 
-  # Extract the changelog version and strip off the epoch and Debian component.
+  # Extract the package name from the changelog
   pkgname=$(cd $dir && dpkg-parsechangelog | sed -n 's/Source: //p')
 
   # Rename the source checkout if necessary.

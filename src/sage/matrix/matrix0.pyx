@@ -2106,9 +2106,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
         r"""
-        Return the product of two matrices, a vector*matrix and
-        matrix*vector product, or a scalar*matrix or matrix*scalar
-        product.
+        Return the product of two matrices.
 
         EXAMPLE of matrix times matrix over same base ring:
         We multiply matrices over $\QQ[x,y]$.

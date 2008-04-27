@@ -829,7 +829,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
-    #    * cdef _sub_c_impl
     #    * __deepcopy__
     #    * __invert__
     #    * Matrix windows -- only if you need strassen for that base

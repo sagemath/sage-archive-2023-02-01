@@ -24,7 +24,7 @@ def inject_on(verbose=True):
 
     EXAMPLES:
         sage: inject_on(verbose=True)
-        Redefining: Frac PolynomialRing GF quo FractionField FiniteField NumberField FreeMonoid LaurentSeriesRing quotient
+        Redefining: Frac FreeMonoid GF FractionField FiniteField PolynomialRing quotient NumberField LaurentSeriesRing quo
         sage: GF(9,'b')
         Defining b
         Finite Field in b of size 3^2

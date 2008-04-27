@@ -371,7 +371,6 @@ class Partition_class(CombinatorialObject):
         res.sort(reverse=True)
         return Partition_class( res )
 
-
     def next(self):
         """
         Returns the partition that lexicographically follows
@@ -834,6 +833,21 @@ class Partition_class(CombinatorialObject):
         else:
             return res
 
+    def contains(self, x):
+        """
+        Returns True if p2 is a partition whose Ferrers
+        diagram is contained in the Ferrers diagram of self
+
+        EXAMPLES:
+            sage: p = Partition([3,2,1])
+            sage: p.contains([2,1])
+            True
+            sage: all(p.contains(mu) for mu in Partitions(3))
+            True
+            sage: all(p.contains(mu) for mu in Partitions(4))
+            False
+        """
+        return len(self) >= len(x) and all(self[i] >= x[i] for i in range(len(x)))
 
     def hook_product(self, a):
         """

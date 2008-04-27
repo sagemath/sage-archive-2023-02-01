@@ -1579,6 +1579,71 @@ class SymmetricFunctionAlgebraElement_generic(CombinatorialAlgebraElement):
         condition = lambda part: len(part) > n
         return s(self)._expand(condition, n, alphabet)
 
+    def skew_by(self, x):
+        """
+        Returns the element whose result is the dual to
+        multiplication by x applied to self.
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ)
+            sage: s([3,2]).skew_by(s([2]))
+            s[2, 1] + s[3]
+            sage: s([3,2]).skew_by(s([1,1,1]))
+            0
+            sage: s([3,2,1]).skew_by(s([2,1]))
+            s[1, 1, 1] + 2*s[2, 1] + s[3]
+
+            sage: p = SFAPower(QQ)
+            sage: p([4,3,3,2,2,1]).skew_by(p([2,1]))
+            4*p[4, 3, 3, 2]
+            sage: zee = sage.combinat.sf.sfa.zee
+            sage: zee([4,3,3,2,2,1])/zee([4,3,3,2])
+            4
+        """
+        s = SFASchur(self.parent().base_ring())
+        f = lambda part1, part2: s([part1,part2]) if part1.contains(part2) else 0
+        return self.parent()(s._apply_multi_module_morphism(s(self),s(x),f))
+
+
+
+    def hl_creation_operator(self, nu):
+        """
+        This is the vertex operator that generalizes Jing's operator
+        It is from: Hall-Littlewood Vertex Operators and Kostka Polynomials, Shimizono-Zabrocki, Proposition 5
+        It is a linear operator that rases the degree by sum(nu)
+        This creation operator is a t-analogue of multiplication by s(nu)
+
+        INPUT:
+            nu -- a partition
+
+        EXAMPLES:
+            sage: s = SFASchur(QQ['t'])
+            sage: s([2]).hl_creation_operator([3,2])
+            s[3, 2, 2] + t*s[3, 3, 1] + t*s[4, 2, 1] + t^2*s[4, 3] + t^2*s[5, 2]
+            sage: HLQp = HallLittlewoodQp(QQ)
+            sage: HLQp(s([2]).hl_creation_operator([2]).hl_creation_operator([3]))
+            Qp[3, 2, 2]
+            sage: s([2,2]).hl_creation_operator([2,1])
+            t*s[2, 2, 2, 1] + t^2*s[3, 2, 1, 1] + t^2*s[3, 2, 2] + t^3*s[3, 3, 1] + t^3*s[4, 2, 1] + t^4*s[4, 3]
+            sage: s(1).hl_creation_operator([2,1,1])
+            s[2, 1, 1]
+            sage: s(0).hl_creation_operator([2,1,1])
+            0
+            sage: s([3,2]).hl_creation_operator([2,1,1])
+            (t^2-t)*s[2, 2, 2, 2, 1] + t^3*s[3, 2, 2, 1, 1] + (t^3-t^2)*s[3, 2, 2, 2] + t^3*s[3, 3, 1, 1, 1] + t^4*s[3, 3, 2, 1] + t^3*s[4, 2, 1, 1, 1] + t^4*s[4, 2, 2, 1] + 2*t^4*s[4, 3, 1, 1] + t^5*s[4, 3, 2] + t^5*s[4, 4, 1] + t^4*s[5, 2, 1, 1] + t^5*s[5, 3, 1]
+        """
+        s = SFASchur(self.base_ring())
+
+        t = self.base_ring().gen()
+
+        res = self*s(nu)
+        for d in range(self.degree()):
+            for mu in sage.combinat.partition.Partitions(d+1).filter(lambda p: len(p) <= len(nu)):
+                for lam, c in s(mu)*s(nu):
+                    if len(lam) <= len(nu):
+                        res += c*s(lam)*self.skew_by(s(mu).plethysm((t-1)*s([1])))
+        return res
+
 
 #############
 #   Cache   #

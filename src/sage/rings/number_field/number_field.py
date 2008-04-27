@@ -5117,6 +5117,9 @@ class NumberField_cyclotomic(NumberField_absolute):
         """
         return NumberField_cyclotomic_v1, (self.__n, self.variable_name())
 
+    def _magma_init_(self):
+        return 'CyclotomicField(%s); %s:=CyclotomicField(%s).1;'%(self.__n, self.gen(), self.__n)
+
     def _repr_(self):
         r"""
         Return string representation of this cyclotomic field.

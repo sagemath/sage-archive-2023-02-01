@@ -727,6 +727,9 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 return matrix_integer_dense.Matrix_integer_dense
             elif sage.rings.rational_field.is_RationalField(R):
                 return matrix_rational_dense.Matrix_rational_dense
+            elif sage.rings.number_field.number_field.is_CyclotomicField(R):
+                import matrix_cyclo_dense
+                return matrix_cyclo_dense.Matrix_cyclo_dense
             elif R==sage.rings.real_double.RDF:
                 import matrix_real_double_dense
                 return matrix_real_double_dense.Matrix_real_double_dense

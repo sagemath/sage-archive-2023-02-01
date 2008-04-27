@@ -13,21 +13,13 @@ AUTHOR:
    -- PHC was written by J. Verschelde, R. Cools, and many others (?)
    -- William Stein and Kelly ?? -- first version of interface to PHC
    -- Marshall Hampton -- second version of interface to PHC
+   -- Marshall Hampton and Alex Jokela -- third version, path tracking
 
-TODO:
-    This either needs to be able to handle arbitrary PHCpack command
-    options, or have enough special purpose functions added to get the
-    full functionality.  One important missing special case is having
-    a root-counting function that could do mixed volumes and
-    structured Bezout counts.  Another nice feature to have would be a
-    graphical output of the path-tracking, as has been done for Maple.
-    Currently Marshall Hampton and Alex Jokela are working on this, please contact us if you are interested.
 """
 
 ########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
-#       Copyright (C) 2007 Marshall Hampton <hamptonio@gmail.com>
-#       TODO -- add yourself as copyright holder.
+#       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -40,25 +32,48 @@ import copy, os
 
 import sage.misc.misc
 from sage.rings.complex_field import ComplexField
+from sage.rings.real_mpfr import RR
 from sage.rings.all import CC
 from sage.rings.integer import Integer
+from sage.plot.plot import *
+import re
 
 import pexpect
 
 def get_solution_dicts(output_file_contents, input_ring, get_failures = True):
-    '''
+    """
     Returns a list of dictionaries of variable:value (key:value)
     pairs.  Only used internally; see the solution_dict function in
     the PHC_Object class definition for details.
-    '''
+
+    INPUT:
+        output_file_contents -- phc solution output as a string
+        input_ring -- a PolynomialRing that variable names can be coerced into
+
+    OUTPUT:
+        a list of dictionaries of solutions
+
+    EXAMPLES:
+        sage: from sage.interfaces.phc import *         #optional
+        sage: R2.<x1,x2> = PolynomialRing(QQ,2)         #optional
+        sage: test_sys = [(x1-1)^5-x2, (x2-1)^5-1] #optional
+        sage: sol = phc.blackbox(test_sys, R2)          #optional
+        sage: test = get_solution_dicts(sol.output_file_contents,R2) #optional
+        sage: str(sum([q[x1].real() for q in test]))[0:4] #optional
+        '25.0'
+    """
     output_list = output_file_contents.splitlines()
     test = 'False'
     solution_dicts = []
     for solution_line in range(len(output_list)-1,-1,-1):
         if output_list[solution_line].find('THE SOLUTIONS') == 0:
             break
-    var_number = int(output_list[solution_line+2].split(' ')[1])
-    sol_number = int(output_list[solution_line+2].split(' ')[0])
+    try:
+        var_number = int(output_list[solution_line+2].split(' ')[1])
+        sol_number = int(output_list[solution_line+2].split(' ')[0])
+    except IndexError:
+        var_number = int(output_list[solution_line+1].split(' ')[1])
+        sol_number = int(output_list[solution_line+1].split(' ')[0])
     for i in range(solution_line + 1,len(output_list)):
         if output_list[i].count('the solution for t') == 1:
             if output_list[i-3].count('success') > 0 or get_failures == True:
@@ -72,10 +87,73 @@ def get_solution_dicts(output_file_contents, input_ring, get_failures = True):
                 solution_dicts.append(temp_dict)
     return solution_dicts
 
+def get_classified_solution_dicts(output_file_contents, input_ring, get_failures = True):
+    """
+    Returns a dictionary of lists of dictionaries of variable:value (key:value)
+    pairs.  Only used internally; see the classified_solution_dict function in
+    the PHC_Object class definition for details.
+
+    INPUT:
+        output_file_contents -- phc solution output as a string
+        input_ring -- a PolynomialRing that variable names can be coerced into
+
+    OUTPUT:
+        a dictionary of lists if dictionaries of solutions, classifies by type
+
+    EXAMPLES:
+        sage: from sage.interfaces.phc import *         #optional
+        sage: R2.<x1,x2> = PolynomialRing(QQ,2)         #optional
+        sage: test_sys = [(x1-2)^5-x2, (x2-1)^5-1]      #optional
+        sage: sol = phc.blackbox(test_sys, R2)          #optional
+        sage: sol_classes = get_classified_solution_dicts(sol.output_file_contents,R2)  #optional
+        sage: len(sol_classes['real'])            #optional
+        1
+    """
+    output_list = output_file_contents.splitlines()
+    test = 'False'
+    solution_dicts = {}
+    solution_types = ['complex', 'real','failure']
+    for sol_type in solution_types:
+	solution_dicts[sol_type] = []
+    for solution_line in range(len(output_list)-1,-1,-1):
+        if output_list[solution_line].find('THE SOLUTIONS') == 0:
+            break
+    var_number = int(output_list[solution_line+2].split(' ')[1])
+    sol_number = int(output_list[solution_line+2].split(' ')[0])
+    for i in range(solution_line + 1,len(output_list)):
+        if output_list[i].count('the solution for t') == 1:
+	    phc_type = output_list[i+var_number+1].split(' = ')[-1]
+            if phc_type.find('complex') != -1:
+                phc_type = 'complex'
+            elif phc_type.find('real') != -1:
+                phc_type = 'real'
+            else:
+                phc_type = 'failure'
+            temp_dict = {}
+            for j in range(1,var_number+1):
+                rawsplit = output_list[i+j].split(': ')[1].split(' ')
+                for extras in range(rawsplit.count('')):
+                    rawsplit.remove('')
+                temp_var = output_list[i+j].split(': ')[0].replace(' ','')
+                if phc_type == 'real':
+                    temp_dict[input_ring(temp_var)] = RR(rawsplit[0])
+                else:
+                    temp_dict[input_ring(temp_var)] = CC(rawsplit[0],rawsplit[1])
+            solution_dicts[phc_type].append(temp_dict)
+    return solution_dicts
+
 def get_variable_list(output_file_contents):
-    '''
+    """
     Returns the variables, as strings, in the order in which PHCpack has processed them.
-    '''
+
+    EXAMPLES:
+        sage: from sage.interfaces.phc import *         #optional
+        sage: R2.<x1,x2> = PolynomialRing(QQ,2)         #optional
+        sage: test_sys = [(x1-2)^5-x2, (x2-1)^5-1]      #optional
+        sage: sol = phc.blackbox(test_sys, R2)          #optional
+        sage: get_variable_list(sol.output_file_contents) #optional
+        ['x1', 'x2']
+    """
     output_list = output_file_contents.splitlines()
     for solution_line in range(len(output_list)-1,-1,-1):
         if output_list[solution_line].find('THE SOLUTIONS') == 0:
@@ -88,18 +166,111 @@ def get_variable_list(output_file_contents):
     return varlist
 
 class PHC_Object:
-    """
-    A container for data from the PHCpack program - lists of float
-    solutions, etc.
-    """
+
     def __init__(self, output_file_contents, input_ring):
-	'''
+	"""
+        A container for data from the PHCpack program - lists of float
+        solutions, etc.  Currently the file contents are kept as a string;
+        for really large outputs this would be bad.
+
 	INPUT:
 	    output_file_contents: the string output of PHCpack
 	    input_ring: for coercion of the variables into the desired ring.
-	'''
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import phc #optional
+            sage: R2.<x,y> = PolynomialRing(QQ,2)    #optional
+            sage: start_sys = [(x-1)^2+(y-1)-1, x^2+y^2-1]        #optional
+            sage: sol = phc.blackbox(start_sys, R2)  #optional
+            sage: str(sum([x[0] for x in sol.solutions()]).real())[0:3] #optional
+            '2.0'
+	"""
         self.output_file_contents = output_file_contents
 	self.input_ring = input_ring
+
+
+    def save_as_start(self, start_filename = None, sol_filter = ''):
+        """
+        Saves a solution as a phcpack start file.  The usual output is
+        just as a string, but it can be saved to a file as well.  Even
+        if saved to a file, it still returns the output string.
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import phc #optional
+            sage: R2.<x,y> = PolynomialRing(QQ,2)    #optional
+            sage: start_sys = [x^3-y^2,y^5-1]        #optional
+            sage: sol = phc.blackbox(start_sys, R2)  #optional
+            sage: start_save = sol.save_as_start()   #optional
+            sage: end_sys = [x^7-2,y^5-x^2]          #optional
+            sage: sol = phc.start_from(start_save, end_sys, R2) #optional
+            sage: len(sol.solutions())               #optional
+            15
+        """
+	start_data = ''
+	output_list = self.output_file_contents.splitlines()
+	for a_line in output_list:
+	    if a_line.find('ROOT COUNTS') != -1 or a_line.find('START SOLUTIONS') != -1:
+		break
+	    else:
+		start_data += a_line + '\n'
+	for index in range(len(output_list)-1,0,-1):
+	    a_line = output_list[index]
+	    if a_line.find('THE SOLUTIONS') != -1:
+		found_solutions = index
+		break
+	start_data += output_list[found_solutions] + '\n\n'
+	try:
+            var_number = int(output_list[found_solutions+1].split(' ')[1])
+        except:
+            # bad error handling
+            var_number = int(output_list[found_solutions+2].split(' ')[1])
+	sol_count = 0
+	sol_data = ''
+	for i in range(found_solutions + 2, len(output_list)):
+	    if output_list[i].count('the solution for t') == 1 and output_list[i+1+var_number].find(sol_filter) != -1:
+		phc_type = output_list[i+var_number+1].split(' = ')[-1]
+		if phc_type.find('no solution') == -1:
+		    sol_count += 1
+		    for ind2 in range(i-3,i+var_number+2):
+			sol_data += output_list[ind2] + '\n'
+	jan_bar = '===========================================================================\n'
+	sol_data += jan_bar
+	start_data += str(sol_count) + ' ' + str(var_number) + '\n'
+	start_data += jan_bar + sol_data
+	if start_filename != None:
+	    start_file = file(start_filename,'w')
+	    start_file.write(start_data)
+	    start_file.close()
+	return start_data
+
+    def classified_solution_dicts(self):
+	"""
+	Returns a dictionary of lists of dictionaries of solutions.
+	Its not as crazy as it sounds; the keys are the types of solutions as
+	classified by phcpack: regular vs. singular, complex vs. real
+
+	INPUT:
+	    None
+
+        OUTPUT:
+	    A dictionary of lists of dictionaries of solutions
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import phc #optional
+            sage: R.<x,y> = PolynomialRing(CC,2)      #optional
+            sage: p_sys = [x^10-y,y^2-1]              #optional
+            sage: sol = phc.blackbox(p_sys,R)         #optional
+            sage: classifieds = sol.classified_solution_dicts()          #optional
+            sage: str(sum([q[y] for q in classifieds['real']]))[0:3]          #optional
+            '2.0'
+	"""
+	try:
+	    return self.__classified_sols
+	except AttributeError:
+	    pass
+	classified_sols = get_classified_solution_dicts(self.output_file_contents, self.input_ring)
+        self.__classified_sols = classified_sols
+        return classified_sols
 
     def solution_dicts(self, get_failures = False):
         """
@@ -114,12 +285,20 @@ class PHC_Object:
 	    positive-dimensional components or at infinity.
 
         OUTPUT:
-
 	    solution_dicts: a list of dictionaries.  Each dictionary
 	    element is of the form variable:value, where the variable
 	    is an element of the input_ring, and the value is in
 	    ComplexField.
 
+        EXAMPLES:
+            sage: from sage.interfaces.phc import * #optional
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)  #optional
+            sage: fs = [x^2-1,y^2-x,z^2-y]          #optional
+            sage: sol = phc.blackbox(fs,R)          #optional
+            sage: s_list = sol.solution_dicts()     #optional
+            sage: s_list.sort()                     #optional
+            sage: s_list[0]                         #optional
+            {y: 1.00000000000000, z: -1.00000000000000, x: 1.00000000000000}
         """
         try:
             return self.__solution_dicts
@@ -142,6 +321,14 @@ class PHC_Object:
 
         OUTPUT:
 	    solutions: a list of lists of ComplexField-valued solutions.
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import *         #optional
+            sage: R2.<x1,x2> = PolynomialRing(QQ,2)         #optional
+            sage: test_sys = [x1^5-x1*x2^2-1, x2^5-x1*x2-1] #optional
+            sage: sol = phc.blackbox(test_sys, R2)          #optional
+            sage: len(sol.solutions())                      #optional
+            25
 	"""
 	try:
 	    return self.__solutions
@@ -157,6 +344,14 @@ class PHC_Object:
         """
 	Returns the variables, as strings, in the order in which
 	PHCpack has processed them.
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import *         #optional
+            sage: R2.<x1,x2> = PolynomialRing(QQ,2)         #optional
+            sage: test_sys = [x1^5-x1*x2^2-1, x2^5-x1*x2-1] #optional
+            sage: sol = phc.blackbox(test_sys, R2)          #optional
+            sage: sol.variable_list()                       #optional
+            ['x1', 'x2']
         """
         try:
             return self.__var_list
@@ -172,9 +367,9 @@ class PHC:
     homotopies and root counts.
 
     EXAMPLES:
-        sage: from sage.interfaces.phc import phc
-        sage: R.<x,y> = PolynomialRing(CDF,2)
-	sage: testsys = [x^2 + 1, x*y - 1]
+        sage: from sage.interfaces.phc import phc #optional
+        sage: R.<x,y> = PolynomialRing(CDF,2)     #optional
+	sage: testsys = [x^2 + 1, x*y - 1]        #optional
         sage: phc.mixed_volume(testsys)        # optional -- you must have phc install
         2
         sage: v = phc.blackbox(testsys, R)     # optional
@@ -183,13 +378,73 @@ class PHC:
 	sage: sols                             # optional
         [[-1.00000000000000*I, 1.00000000000000*I], [1.00000000000000*I, -1.00000000000000*I]]
 	sage: sol_dict = v.solution_dicts()    # optional
-        sage: sols_from_dict = [sorted(d.items()) for d in sol_dict] # optional
-        sage: sorted(sols_from_dict)           # optional
-        [[(y, -1.00000000000000*I), (x, 1.00000000000000*I)], [(y, 1.00000000000000*I), (x, -1.00000000000000*I)]]
+        sage: x_sols_from_dict = [d[x] for d in sol_dict]    # optional
+        sage: x_sols_from_dict.sort(); x_sols_from_dict      # optional
+        [-1.00000000000000*I, 1.00000000000000*I]
 	sage: residuals = [[test_equation.change_ring(CDF).subs(sol) for test_equation in testsys] for sol in v.solution_dicts()]      # optional
 	sage: residuals                             # optional
 	[[0, 0], [0, 0]]
     """
+
+    def _output_from_command_list(self, command_list, polys, verbose = False):
+        """
+        A pexpect interface to phcpack, given a command list for
+        interactive dialogs. The input file is supplied from the
+        polynomial list, output file is also supplied.  This is
+        only used as a building block for the interface.
+
+        INPUT:
+            command_list -- a list of commands to phc
+            polys -- a polynomial system as a list of polynomials
+
+        OUTPUT:
+            an output string from phc
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import *  #optional
+            sage: R2.<x,y> = PolynomialRing(QQ,2)    #optional
+            sage: start_sys = [(x-1)^2+(y-1)-1, x^2+y^2-1]  #optional
+            sage: a = phc._output_from_command_list(['phc -m','4','n','n','n'], start_sys)#optional
+            sage: os.unlink(a)#optional
+        """
+        # Get temporary file names (these will be in SAGE_HOME/.sage/tmp/pid)
+        input_filename = sage.misc.misc.tmp_filename()
+        output_filename = sage.misc.misc.tmp_filename()
+
+        # Get the input polynomial text
+        input = self._input_file(polys)
+        if verbose:
+            print "Writing the input file to %s"%input_filename
+        open(input_filename,'w').write(input)
+
+        if verbose:
+            print "The following file will be the input polynomial file to phc."
+            print input
+
+        # Create a phc process
+        child_phc = pexpect.spawn(command_list[0])
+        # feed it the commands
+        child_phc.sendline('y')
+        child_phc.sendline(input_filename)
+        child_phc.sendline(output_filename)
+        for command_string in command_list[1:]:
+            if verbose:
+                print command_string
+            child_phc.sendline(command_string)
+        child_phc.expect('results')
+        read_stuff = child_phc.read()
+        if verbose:
+            print read_stuff
+        child_phc.close()
+        if not os.path.exists(output_filename):
+            raise RuntimeError, "The output file does not exist; something went wrong running phc."
+
+        # Delete the input file
+        os.unlink(input_filename)
+
+        # Return the output filename
+        return output_filename
+
     def _input_file(self, polys):
         """
         This is used internally to implement the PHC interface.
@@ -202,42 +457,240 @@ class PHC:
         OUTPUT:
             -- a PHC input file (as a text string) that
                 describes these polynomials.
-            -- a mapping between variable names.
 
-        PHC has the following constraint on polynomials:
-            An unknown can be denoted by at most 3 characters.  The
-            first character must be a letter and the other two
-            characters must be different from '+', '-', '*', '^', '/',
-            ';', '(' and ')'.  The letter i means sqrt(-1), whence it
-            does not represent an unknown.  The number of unknowns may
-            not exceed the declared dimension.
-
-        Thus just like for the Gfan interface, it is necessary to map
-        the SAGE variables (which can be arbitrarily long) to
-        variables that satisfy the above constraints.
-
-
-        IMPORTANT NOTE -- I just tried a 4-character variable name, and it
-        worked fine -- they must have improved their program.
+        EXAMPLES:
+            sage: from sage.interfaces.phc import *  #optional
+            sage: R2.<x,y> = PolynomialRing(QQ,2)    #optional
+            sage: start_sys = [(x-1)^2+(y-1)-1, x^2+y^2-1]  #optional
+            sage: phc._input_file(start_sys)         #optional
+            '2\nx^2 - 2*x + y - 1;\nx^2 + y^2 - 1;\n'
         """
         if not isinstance(polys, (list, tuple)):
             raise TypeError, 'polys must be a list or tuple'
         s = '%s\n'%len(polys)
-        #if len(polys) == 0:
-        #    ngens = 1
-        #else:
-        #    ngens = polys[0].parent().ngens()
-        #s += '%s\n'%ngens
-
-        # TODO: actually implement the variable mapping (copy code from gfan?)
-        # For now, we'll assume all variables satisfy the restrictive
-        # PHC constraints, i.e., length at most 3.
         for f in polys:
-            s += '%s;\n'%f           # note the semicolon *terminators*
+            s += f._repr_() + ';\n'           # note the semicolon *terminators*
 
-        # Current just return "none" for the mapping.
-        return s, None
+        return s
 
+    def _parse_path_file(self, input_filename, verbose = False):
+        """
+        Takes a phpack output file containing path tracking information
+        and parses it into a list of lists of dictionaries - i.e. a
+        list of solutions paths, where each solution path is a list of
+        dictionaries of variable and homotopy parameter values.
+
+        INPUT:
+            input_filename -- file must have path-tracking information
+
+        OUTPUT:
+            a list of lists of dictionaries, described above
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import *    #optional
+            sage: R2.<x,y> = PolynomialRing(QQ,2)      #optional
+            sage: start_sys = [x^5-y^2,y^5-1]          #optional
+            sage: sol = phc.blackbox(start_sys, R2)    #optional
+            sage: start_save = sol.save_as_start()     #optional
+            sage: end_sys = [x^5-2,y^5-x^2]            #optional
+            sage: path_track_filename = phc._path_track_file(start_save, end_sys, R2, c_skew = .001) #optional
+            sage: sol_paths = phc._parse_path_file(path_track_filename)   #optional
+            sage: len(sol_paths)  #optional
+            25
+        """
+
+        if not os.path.exists(input_filename):
+            raise RuntimeError, "The file containing output from phc (" + input_filename + ") cannot be found"
+
+        fh = open(input_filename)
+        line_idx = 0
+        begin = 0
+        count = 0
+        solutions_dicts = []
+        steps_dicts = []
+
+        # regular expressions for matching certain output types
+        var_cnt_regex = re.compile('^ +([0-9]+)')
+        output_regex  = re.compile('^OUTPUT INFORMATION DURING')
+        t_regex       = re.compile('(^t +: +(-{0,1}[0-9]+\.[0-9]+E[-+][0-9]+) +(-{0,1}[0-9]+\.[0-9]+E[-+][0-9]+)$)', re.IGNORECASE)
+        sols_regex    = re.compile('(^ *(([a-z]|[0-9])+) +: +(-?[0-9]+\.[0-9]+E[-+][0-9]+) +(-?[0-9]+\.[0-9]+E[-+][0-9]+)$)', re.IGNORECASE)
+        complete_regex= re.compile('^TIMING INFORMATION')
+
+        breakfast = False
+        a_line = fh.readline()
+        end_test = ''
+        while a_line:
+            # processing....
+            a_line = a_line.replace("\n", '')
+            if line_idx == 0:
+                m = var_cnt_regex.match(a_line)
+                if m:
+                    count = Integer(m.group(1))
+            if count > 0:
+                m = output_regex.match(a_line)
+                if m:
+                    begin = 1
+                if begin:
+                    m = t_regex.match(a_line)
+                    if m:
+                        # put the t-values into a dict
+                        # m.group(2) contains the real val
+                        # m.group(3) contains the imaginary val
+                        # fh_w.write( "T=> G1(" + m.group(2) + '),G2(' + m.group(3) + ")\n")
+                        # read off two lines - this should be 'm' and 'the solution for t :'
+                        a_line = fh.readline()
+                        end_test = a_line # store this to check for end of solution
+                        a_line = fh.readline()
+                        t_val = CC(m.group(2), m.group(3))
+                        temp_dict = {}
+                        temp_dict["t"] = t_val
+                        for i in range(0, count):
+                            a_line = fh.readline()
+                            m = sols_regex.match(a_line)
+                            if m:
+                                # m.group(2) contains our var name
+                                # m.group(4) contains our real val
+                                # m.group(5) contains our imaginary val
+                                temp_dict[m.group(2)] = CC(m.group(4),m.group(5))
+                        steps_dicts.append(temp_dict)
+                    # check if its the end of a solution
+                    if end_test.find('Length of path') != -1:
+                        if verbose: print "recording sol"
+                        if steps_dicts != []:
+                            solutions_dicts.append(steps_dicts)
+                        steps_dicts = []
+                    m = complete_regex.match(a_line)
+                    if m:
+                        breakfast = True
+            if breakfast:
+                break
+            line_idx += 1
+            a_line = fh.readline()
+        fh.close()
+        return solutions_dicts
+
+    def _path_track_file(self, start_filename_or_string, polys, input_ring, c_skew = 0.001, verbose = False):
+        """
+        Returns the filename which contains path tracking output.
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import *        #optional
+            sage: R2.<x,y> = PolynomialRing(QQ,2)          #optional
+            sage: start_sys = [x^6-y^2,y^5-1]              #optional
+            sage: sol = phc.blackbox(start_sys, R2)        #optional
+            sage: start_save = sol.save_as_start()         #optional
+            sage: end_sys = [x^7-2,y^5-x^2]                #optional
+            sage: path_track_filename = phc._path_track_file(start_save, end_sys, R2, c_skew = .001) #optional
+            sage: sol_paths = phc._parse_path_file(path_track_filename)        #optional
+            sage: len(sol_paths)        #optional
+            30
+        """
+        # Probably unnecessarily redundant from the start_from function
+        if start_filename_or_string.find('THE SOLUTIONS') != -1:
+	    start_filename = sage.misc.misc.tmp_filename()
+	    start_file = file(start_filename,'w')
+	    start_file.write(start_filename_or_string)
+	    start_file.close()
+	elif os.path.exists(start_filename_or_string):
+	    start_filename = start_filename_or_string
+	else:
+	    raise RuntimeError, "There is something wrong with your start string or filename"
+
+        return self._output_from_command_list(['phc','0','0','A',start_filename, 'y','1','0','n','k','2','a','1',str(c_skew),'0','0','2'], polys, verbose = verbose)
+
+    def path_track(self, start_sys, end_sys, input_ring, c_skew = .001, saved_start = None):
+        """
+        This function computes homotopy paths between the solutions of start_sys and end_sys.
+
+        INPUT:
+            start_sys -- a square polynomial system, given as a list of polynomials
+            end_sys -- same type as start_sys
+            input_ring -- for coercion of the variables into the desired ring.
+            c_skew -- optional. the imaginary part of homotopy multiplier; nonzero values
+                are often necessary to avoid intermediate path collisions
+            saved_start -- optional.  A phc output file.  If not given, start system solutions
+                are computed via the phc.blackbox function.
+
+        OUTPUT:
+            a list of paths as dictionaries, with the keys variables and t-values on the path.
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import *        #optional
+            sage: R2.<x,y> = PolynomialRing(QQ,2)          #optional
+            sage: start_sys = [x^6-y^2,y^5-1]              #optional
+            sage: sol = phc.blackbox(start_sys, R2)        #optional
+            sage: start_save = sol.save_as_start()         #optional
+            sage: end_sys = [x^7-2,y^5-x^2]                #optional
+            sage: sol_paths = phc.path_track(start_sys, end_sys, R2, saved_start = start_save) #optional
+            sage: len(sol_paths)        #optional
+            30
+        """
+
+        if not saved_start:
+            sol = phc.blackbox(start_sys, input_ring)
+            saved_start = sol.save_as_start()
+        path_track_filename = phc._path_track_file(saved_start, end_sys, input_ring = input_ring, c_skew = c_skew)
+        sol_paths = phc._parse_path_file(path_track_filename)
+        os.unlink(path_track_filename)
+        return sol_paths
+
+    def plot_paths_2d(self, start_sys, end_sys, input_ring, c_skew = .001, endpoints = True, saved_start = None, rand_colors = False):
+        """
+        This returns a graphics object of solution paths in the complex plane.
+
+        INPUT:
+            start_sys -- a square polynomial system, given as a list of polynomials
+            end_sys -- same type as start_sys
+            input_ring -- for coercion of the variables into the desired ring.
+            c_skew -- optional. the imaginary part of homotopy multiplier; nonzero values
+                are often necessary to avoid intermediate path collisions
+            endpoints -- optional.  Whether to draw in the ends of paths as points.
+            saved_start -- optional.  A phc output file.  If not given, start system solutions
+                are computed via the phc.blackbox function.
+
+        OUTPUT:
+            lines and points of solution paths
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import *    #optional
+            sage: from sage.structure.sage_object import SageObject
+            sage: R2.<x,y> = PolynomialRing(QQ,2)      #optional
+            sage: start_sys = [x^5-y^2,y^5-1]          #optional
+            sage: sol = phc.blackbox(start_sys, R2)    #optional
+            sage: start_save = sol.save_as_start()     #optional
+            sage: end_sys = [x^5-25,y^5-x^2]           #optional
+            sage: testing = phc.plot_paths_2d(start_sys, end_sys, R2)  #optional
+            sage: type(testing)                        #optional (normally use plot here)
+            <class 'sage.plot.plot.Graphics'>
+        """
+        paths = phc.path_track(start_sys, end_sys, input_ring, c_skew = c_skew, saved_start = saved_start)
+        path_lines = []
+        sol_pts = []
+        if rand_colors:
+            r_color = {}
+            for a_var in input_ring.gens():
+                var_name = str(a_var)
+                r_color[var_name] = (random(),random(),random())
+        for a_sol in paths:
+            for a_var in input_ring.gens():
+                var_name = str(a_var)
+                temp_line = []
+                for data in a_sol:
+                    temp_line.append([data[var_name].real(), data[var_name].imag()])
+                if rand_colors:
+                    path_lines.append(line(temp_line, rgbcolor = r_color[var_name]))
+                else:
+                    path_lines.append(line(temp_line))
+        if endpoints:
+            sol_pts = []
+            for a_sol in paths:
+                for a_var in input_ring.gens():
+                    var_name = str(a_var)
+                    sol_pts.append(point([a_sol[0][var_name].real(), a_sol[0][var_name].imag()]))
+                    sol_pts.append(point([a_sol[-1][var_name].real(), a_sol[-1][var_name].imag()]))
+            return sum(sol_pts) + sum(path_lines)
+        else:
+            return  sum(path_lines)
 
     def mixed_volume(self, polys, verbose=False):
         """
@@ -252,52 +705,15 @@ class PHC:
             The mixed volume.
 
         EXAMPLES:
-            sage: from sage.interfaces.phc import phc
-            sage: R.<x,y> = PolynomialRing(CDF,2)
-            sage: testsys = [x^2 + 1, x*y - 1]
-            sage: phc.mixed_volume(testsys)        # optional -- you must have phc install
-            2
-
+            sage: from sage.interfaces.phc import *         #optional
+            sage: R2.<x,y,z> = PolynomialRing(QQ,3)         #optional
+            sage: test_sys = [(x+y+z)^2-1,x^2-x,y^2-1]      #optional
+            sage: phc.mixed_volume(test_sys)                #optional
+            4
         """
-        # Get three temporary file names (these will be in SAGE_HOME/.sage/tmp/pid)
-        input_filename = sage.misc.misc.tmp_filename()
-        output_filename = sage.misc.misc.tmp_filename()
-        log_filename = sage.misc.misc.tmp_filename()
+        output_filename = self._output_from_command_list(['phc -m','4','n','n','n'], polys, verbose = verbose)
 
-        # Get the input polynomial text
-        input, mapping = self._input_file(polys)
-        if verbose:
-            print "Writing the input file to %s"%input_filename
-        open(input_filename,'w').write(input)
-
-        if verbose:
-            print "The following file will be the input polynomial file to phc."
-            print input
-
-        # Create a phc process
-        child_phc = pexpect.spawn('phc -m')
-        child_phc.sendline('y')
-        child_phc.sendline(input_filename)
-        child_phc.sendline(output_filename)
-        child_phc.sendline('4')
-        child_phc.sendline('n')
-        child_phc.sendline('n')
-        child_phc.sendline('n')
-        child_phc.expect('results')
-        dots = child_phc.read()
-        if verbose:
-            print "should be ... : " + dots
-        child_phc.close()
-        if not os.path.exists(output_filename):
-            raise RuntimeError, "The output file does not exist; something went wrong running phc."
-
-        # Read the output produced by PHC
         out = open(output_filename).read()
-
-        # Delete the temporary files
-        os.unlink(input_filename)
-        os.unlink(output_filename)
-
         # All done
         out_lines = out.split('\n')
         for a_line in out_lines:
@@ -313,7 +729,103 @@ class PHC:
             raise RuntimeError, "Mixed volume not found in output; something went wrong running phc."
 
 
-    def blackbox(self, polys, input_ring, verbose=False):
+    def start_from(self, start_filename_or_string, polys, input_ring, path_track_file = None, verbose = False):
+	"""
+	This computes solutions starting from a phcpack solution file.
+
+        INPUT:
+	    start_filename_or_string -- the filename for a phcpack start system, or the contents of such a file as a string.  Variable names must match the inputring variables.  The value of the homotopy variable t should be 1, not 0.
+            polys -- a list of multivariate polynomials (elements of a multivariate
+                     polynomial ring).
+            input_ring: for coercion of the variables into the desired ring.
+            path_track_file: whether to save path-tracking information
+            verbose -- print lots of verbose information about what this function does.
+
+        OUTPUT:
+            A solution in the form of a PHCObject.
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import *        #optional
+            sage: R2.<x,y> = PolynomialRing(QQ,2)          #optional
+            sage: start_sys = [x^6-y^2,y^5-1]              #optional
+            sage: sol = phc.blackbox(start_sys, R2)        #optional
+            sage: start_save = sol.save_as_start()         #optional
+            sage: end_sys = [x^7-2,y^5-x^2]                #optional
+            sage: sol = phc.start_from(start_save, end_sys, R2) #optional
+            sage: len(sol.solutions())
+            30
+	"""
+	input_filename = sage.misc.misc.tmp_filename()
+	output_filename = sage.misc.misc.tmp_filename()
+
+	if start_filename_or_string.find('THE SOLUTIONS') != -1:
+	    start_filename = sage.misc.misc.tmp_filename()
+	    start_file = file(start_filename,'w')
+	    start_file.write(start_filename_or_string)
+	    start_file.close()
+	elif os.path.exists(start_filename_or_string):
+	    start_filename = start_filename_or_string
+	else:
+	    raise RuntimeError, "There is something wrong with your start string or filename"
+
+	# Get the input polynomial text
+        input = self._input_file(polys)
+        if verbose:
+            print "Writing the input file to %s"%input_filename
+        open(input_filename,'w').write(input)
+
+        if verbose:
+            print "The following file will be the input polynomial file to phc."
+            print input
+
+	# Create a phc process
+        child_phc = pexpect.spawn('phc')
+        child_phc.sendline('y')
+        child_phc.sendline(input_filename)
+        child_phc.sendline(output_filename)
+        child_phc.sendline('0')
+        child_phc.sendline('0')
+        child_phc.expect('Nonlinear Reduction')
+        child_phc.sendline('A')
+        child_phc.sendline(start_filename)
+	child_phc.sendline('y')
+	child_phc.sendline('1')
+	child_phc.sendline('0')
+        if verbose:
+            phc_dialog = child_phc.read(size = 40)
+            print phc_dialog
+	child_phc.sendline('n')
+	child_phc.sendline('0')
+        if verbose:
+            child_phc.expect('CURRENT CONTINUATION')
+            phc_dialog = child_phc.read(size = 40)
+            print phc_dialog
+	child_phc.sendline('0')
+	if path_track_file == None:
+	    child_phc.sendline('0')
+	else:
+	    child_phc.sendline('2')
+        child_phc.expect('results')
+	dots = child_phc.read()
+        if verbose:
+            print "should be . : " + dots
+
+	#close down the process:
+	child_phc.close()
+        if not os.path.exists(output_filename):
+            raise RuntimeError, "The output file does not exist; something went wrong running phc."
+
+	# Read the output produced by PHC
+        out = open(output_filename).read()
+
+        # Delete the temporary files
+        os.unlink(output_filename)
+        os.unlink(input_filename)
+
+        # All done
+        return PHC_Object(out, input_ring)
+
+    def blackbox(self, polys, input_ring, verbose = False):
         """
         Returns as a string the result of running PHC with the given polynomials
         under blackbox mode (the '-b' option).
@@ -326,6 +838,14 @@ class PHC:
 
         OUTPUT:
             a PHC_Object object containing the phcpack output string.
+
+        EXAMPLES:
+            sage: from sage.interfaces.phc import *        #optional
+            sage: R2.<x,y> = PolynomialRing(QQ,2)          #optional
+            sage: start_sys = [x^6-y^2,y^5-1]              #optional
+            sage: sol = phc.blackbox(start_sys, R2)        #optional
+            sage: len(sol.solutions())                     #optional
+            30
         """
 
         # Get three temporary file names (these will be in SAGE_HOME/.sage/tmp/pid)
@@ -334,7 +854,7 @@ class PHC:
         log_filename = sage.misc.misc.tmp_filename()
 
         # Get the input polynomial text
-        input, mapping = self._input_file(polys)
+        input = self._input_file(polys)
         if verbose:
             print "Writing the input file to %s"%input_filename
         open(input_filename,'w').write(input)

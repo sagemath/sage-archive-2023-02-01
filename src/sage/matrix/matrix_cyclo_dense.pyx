@@ -12,11 +12,14 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from matrix_space import MatrixSpace
 from constructor import matrix
 from sage.rings.rational_field import QQ, ZZ
-from sage.rings.arith import previous_prime
+from sage.rings.arith import previous_prime, binomial
 from matrix cimport Matrix
 import matrix_dense
 from matrix_integer_dense import _lift_crt
 from sage.misc.misc import verbose
+import math
+
+from sage.ext.multi_modular import MAX_MODULUS
 
 from sage.structure.proof.proof import get_flag as get_proof_flag
 
@@ -51,6 +54,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             K = self._base_ring
             z = K(entries)
             entries = 0
+
         self._matrix = Matrix_rational_dense(MatrixSpace(QQ, self._nrows*self._ncols, self._degree),
                                             entries, copy=False, coerce=False).transpose()
         # This could also be made much faster.
@@ -162,16 +166,140 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         matrix_dense.Matrix_dense.set_immutable(self)
 
     def _rational_matrix(self):
+        """
+        Return the underlying rational matrix corresponding to self.
+
+        EXAMPLES:
+            sage: Matrix(CyclotomicField(7),4,4,range(16))._rational_matrix()
+            [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+            sage: Matrix(CyclotomicField(7),4,4,[CyclotomicField(7).gen(0)**i for i in range(16)])._rational_matrix()
+            [ 1  0  0  0  0  0 -1  1  0  0  0  0  0 -1  1  0]
+            [ 0  1  0  0  0  0 -1  0  1  0  0  0  0 -1  0  1]
+            [ 0  0  1  0  0  0 -1  0  0  1  0  0  0 -1  0  0]
+            [ 0  0  0  1  0  0 -1  0  0  0  1  0  0 -1  0  0]
+            [ 0  0  0  0  1  0 -1  0  0  0  0  1  0 -1  0  0]
+            [ 0  0  0  0  0  1 -1  0  0  0  0  0  1 -1  0  0]
+        """
         return self._matrix
 
     def denominator(self):
         """
-        Return the denominator of the intries of this matrix.
+        Return the denominator of the entries of this matrix.
         """
         return self._matrix.denominator()
 
     def randomize(self, density=1, num_bound=2, den_bound=2, distribution=None):
+        r"""
+        Randomize the entries of self.
+
+        Choose rational numbers according to \code{distribution},
+        whose numerators are bounded by \code{num_bound} and whose
+        denominators are bounded by \code{den_bound}.
+
+        EXAMPLES:
+            sage: A = Matrix(CyclotomicField(5),2,2,range(4)) ; A
+            [0 1]
+            [2 3]
+            sage: A.randomize() ; A
+            [       1/2*zeta5^2 + zeta5                        1/2]
+            [        -zeta5^2 + 2*zeta5 -2*zeta5^3 + 2*zeta5^2 + 2]
+        """
         self._matrix.randomize(density, num_bound, den_bound, distribution)
+
+    def _charpoly_bound(self):
+        """
+        Determine a bound for the coefficients of the characteristic
+        polynomial of self. We use the bound in Lemma 2.1 of:
+
+          Dumas, J-G. "Bounds on the coefficients of characteristic
+          and minimal polynomials." J. Inequal. Pure Appl. Math. 8
+          (2007), no. 2.
+
+        This bound only applies for self._nrows >= 4.
+
+        EXAMPLES:
+            sage: A = Matrix(CyclotomicField(7),3,3,range(9))
+            sage: A._charpoly_bound()
+            147
+            sage: A.charpoly()
+            x^3 + (-12)*x^2 + (-18)*x
+
+        An example from the above paper, where our bound is sharp:
+            sage: B = Matrix(CyclotomicField(7), 5,5, [1,1,1,1,1,1,1,-1,-1,-1,1,-1,1,-1,-1,1,-1,-1,1,-1,1,-1,-1,-1,1])
+            sage: B._charpoly_bound()
+            81
+            sage: B.charpoly()
+            x^5 + (-5)*x^4 + 40*x^2 + (-80)*x + 48
+        """
+        cdef Py_ssize_t i, j
+        cdef float alpha, delta
+
+        # should we even bother with this check, or just say in
+        # the docstring that we assume it's square?
+        if self._nrows != self._ncols:
+            raise ValueError, "self must be square"
+
+        # This is an approximation to 2^(5/6*log_2(5) - 2/3*log_2(6))
+        alpha = 1.15799718800731
+        # This is 2*e^(1-(2(7\gamma-4))/(13(3-2\gamma))), where \gamma is
+        # Euler's constant.
+        delta = 5.418236
+
+        M, denom = self._matrix._clear_denom()
+
+        # compute the maximal height of any element of the matrix.
+        # We just use Cauchy-Schwarz; maybe something is better,
+        # especially given that it's a cyclotomic field?
+        B = 1
+        for i from 0 <= i < self._matrix._ncols:
+
+            n = 0
+            for j from 0 <= j < self._matrix._nrows:
+                n += M[j, i]**2
+            if B < n:
+                B = n
+
+        # this bound is only valid for n >= 4, use naive bounds
+        # in other cases
+        if self._nrows > 3:
+            return ZZ(int(math.ceil((alpha * self._nrows * B)**(self._nrows/2.0))))
+        elif self._nrows == 3:
+            return max(6*B**2, 4*B**3)
+        elif self._nrows == 2:
+            return 2*B**2
+        else:
+            return B
+
+        # This is the code for computing the bound from Lemma 2.2
+        # of the paper. I don't get it: this bound seems to always
+        # be *much* worse than the one from Lemma 2.1 ... why would
+        # you want this bound? Or did I screw something up? I checked
+        # a few examples by hand, and seemed to be correctly computing
+        # the bound in the paper ...
+
+#         D = ZZ(int(math.ceil((math.sqrt(1+2*delta*self._nrows*(B**2))-1)/(delta*B**2))))
+
+#         # TODO: we don't check anything about overflows anywhere here;
+#         # should we?
+
+#         # i = 0 case
+#         i = 0
+#         M = ZZ(int(math.ceil((self._nrows * B**2)**(self._nrows/2.0))))
+#         for i from 1 <= i < D:
+#             val = ZZ(int(math.ceil(binomial(self._nrows, i) *
+#                                    ((self._nrows-i)*B**2)**((n-i)/2.0))))
+#             if val > M:
+#                 M = val
+
+#         other_bound = ZZ(int(math.ceil((alpha * self._nrows * B)**(self._nrows/2.0))))
+#         return min(M, other_bound)
+
+
 
     def charpoly(self, var='x', algorithm="multimodular"):
         r"""
@@ -243,14 +371,16 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         verbose("Finished computing charpoly mod %s."%p, tm)
         return X
 
-    def _charpoly_multimodular(self, var='x', proof=None):
+    # TODO: delete this, it's only here for debugging
+    def xxx_charpoly_multimodular(self, var='x', proof=None):
         """
         Compute the characteristic polynomial of self using a multimodular algorithm.
 
         INPUT:
-            proof -- bool (default: global flag); if False, computes until 3 successive
-                     charpoly mod p computations stabilize; always computes modulo at
-                     least 6 primes.
+            proof -- bool (default: global flag); if False, computes
+                     until 3 successive charpoly mod p computations
+                     stabilize; always computes modulo at least 6
+                     primes.
         """
         proof = get_proof_flag(proof, "linear_algebra")
 
@@ -297,6 +427,60 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             f = f(x * denom) * (1 / (denom**f.degree()))
 
         return f
+
+    def _charpoly_multimodular(self, var='x', proof=None):
+        """
+        Compute the characteristic polynomial of self using a multimodular algorithm.
+
+        INPUT:
+            proof -- bool (default: global flag); if False, computes
+                     until 3 successive charpoly mod p computations
+                     stabilize; always computes modulo at least 6
+                     primes.
+        """
+        proof = get_proof_flag(proof, "linear_algebra")
+
+        # TODO: only proof = False for now.
+        # TODO: Need to figure out how to compute a theoretical bound on the sizes
+        # of the coefficients in the charpoly
+        proof = False
+
+        # TODO: do we want self.zeta_order() or self.n()?
+        # (this only matters for n odd.)
+        n = self._base_ring.zeta_order()
+        p = 45989
+        prod = 1
+        bound = self._charpoly_bound()
+        v = []
+        denom = self.denominator()
+        while prod < bound:
+            while p % n != 1 or denom % p == 0:
+                if p == 2:
+                    raise RuntimeError, "we ran out of primes in multimodular charpoly algorithm."
+                p = previous_prime(p)
+
+            X = self._charpoly_mod(p)
+            v.append(X)
+            prod *= p
+            p -= 2
+
+        M = matrix(ZZ, self._base_ring.degree(), self._nrows+1)
+        L = _lift_crt(M, v)
+
+        # Now each column of L encodes a coefficient of the output polynomial,
+        # with column 0 being the constant coefficient.
+        K = self.base_ring()
+        coeffs = [K(w.list()) for w in L.columns()]
+        R = K[var]
+        f = R(coeffs)
+
+        # Rescale to account for denominator, if necessary
+        if denom != 1:
+            x = R.gen()
+            f = f(x * denom) * (1 / (denom**f.degree()))
+
+        return f
+
 
     def _reductions(self, p):
         """
@@ -347,7 +531,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         OUTPUT:
             -- Matrix over GF(p) whose action from the left
                gives the map from O_K to GF(p) x ... x GF(p)
-               got by reducing modulo all the primes over p.
+               given by reducing modulo all the primes over p.
             -- inverse of this matrix
 
         EXAMPLES:
@@ -393,3 +577,110 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         ans = (T, T**(-1))
         cache[p] = ans
         return ans
+
+    def echelon_form(self, algorithm='multimodular'):
+        """
+        Find the echelon form of self, using the specified
+        algorithm.
+        """
+        E = self.fetch('echelon_form')
+        if E is not None:
+            return E
+
+        if algorithm == 'multimodular':
+            E = self._echelon_form_multimodular()
+        else:
+            raise ValueError, "unknown algorithm '%s'"%algorithm
+
+        # TODO: Caching commented out only for testing.
+        #self.cache('charpoly', f)
+        return E
+
+    def _echelon_form_multimodular(self, num_primes=5):
+        """
+        Use a multimodular algorithm to find the echelon
+        form of self.
+        """
+
+        cdef Matrix_cyclo_dense res
+
+        M, denom = self._matrix._clear_denom()
+        A = denom * self
+
+        # TODO: i basically copied this from matrix_rational_dense
+        # ... we should think about it, at the very least.
+        height_guess = (M.height()+100)*100000
+
+        # generate primes to use
+        # TODO: I stupidly just generate 5 primes and use those.
+        # this obviously needs to change.
+        p = previous_prime(200)#(MAX_MODULUS)
+        found = 0
+        prime_ls = []
+        n = self._base_ring._n()
+        while found < 5:
+            if p%n == 1:
+                prime_ls.append(p)
+                found += 1
+            p = previous_prime(p)
+
+        mod_p_ech_ls = []
+        num_pivots = 0
+        for pp in prime_ls:
+            mod_p_ech, piv = A._echelon_form_one_prime(pp)
+            # if we have the identity, just return it, and
+            # we're done.
+            if mod_p_ech.is_one():
+                return mod_p_ech
+            if piv > num_pivots:
+                mod_p_ech_ls = [mod_p_ech]
+                num_pivots = piv
+            elif piv == num_pivots:
+                mod_p_ech_ls.append(mod_p_ech)
+
+        mat_over_ZZ = matrix(ZZ, self._base_ring.degree(), self._nrows * self._ncols)
+        _lift_crt(mat_over_ZZ, mod_p_ech_ls)
+
+        res = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(),
+                                         None, None, None)
+        res._matrix = <Matrix_rational_dense>matrix(QQ, self._base_ring.degree(),
+                                                    self._nrows * self._ncols,
+                                                    mat_over_ZZ.list())
+
+        return res
+
+    def _echelon_form_one_prime(self, p):
+
+        cdef Matrix_cyclo_dense res
+
+        is_square = self._nrows == self._ncols
+
+        ls, denom = self._reductions(p)
+
+        ech_ls = []
+        most_pivots = 0
+        longest_pivot_ls = []
+        longest_pivot_index_ls = []
+
+        for i in range(len(ls)):
+            ech = ls[i].echelon_form()
+            piv = ech.pivots()
+            if is_square and len(piv) == self._nrows:
+                return (self.parent().identity_matrix(), self._nrows)
+            ech_ls.append(ech)
+            if len(piv) > most_pivots:
+                most_pivots = len(piv)
+
+        #return ech_ls, longest_pivot_ls, longest_pivot_index_ls
+
+        # TODO: coercion going on here
+        reduction = matrix(ZZ, len(ech_ls), self._nrows * self._ncols,
+                           [ [y.lift() for y in E.list()] for E in ech_ls])
+
+        # TODO: more coercion happening here
+        _, Finv = self._reduction_matrix(p)
+
+        lifted_matrix = Finv * reduction
+
+        return (lifted_matrix, most_pivots)
+

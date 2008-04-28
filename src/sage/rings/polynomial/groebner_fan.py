@@ -59,20 +59,25 @@ REFERENCES:
      available at
      \url{http://www.math.tu-berlin.de/~jensen/software/gfan/gfan.html}
 """
-from string import ascii_letters
+
+import os
+
+import string
 
 import pexpect
 
-from sage.misc.misc import forall
+from sage.misc.multireplace import multiple_replace
+from sage.misc.misc import forall, tmp_filename
 
 from sage.structure.sage_object import SageObject
 from sage.interfaces.gfan import gfan
-from sage.rings.polynomial.multi_polynomial_ideal import is_MPolynomialIdeal
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing as MPolynomialRing
+from multi_polynomial_ideal import MPolynomialIdeal, is_MPolynomialIdeal
+from polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
+from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.plot.plot import Graphics, line, polygon
-from sage.geometry.polyhedra import ieq_to_vert
+from sage.plot.plot import line, Graphics, polygon
+from sage.geometry.polyhedra import Polyhedron, ieq_to_vert, vert_to_ieq
 
 def prefix_check(str_list):
     """
@@ -88,6 +93,7 @@ def prefix_check(str_list):
     """
     for index1 in range(len(str_list)):
         for index2 in range(len(str_list)):
+            string1 = str_list[index1]
             string2 = str_list[index2]
             if index1 != index2 and str_list[index1][0:len(string2)].find(string2) != -1:
                 return False
@@ -107,6 +113,40 @@ def max_degree(list_of_polys):
     """
     return max([float(qf.degree()) for qf in list_of_polys])
 
+def _cone_parse(fan_dict_cone):
+    """
+    Utility funtion that parses cone information into a dict indexed
+    by dimension.
+
+    INPUT:
+        fan_dict_cone -- the value of a fan_dict with key 'CONES'
+
+    EXAMPLES:
+        sage: R.<x,y,z,w> = PolynomialRing(QQ,4)
+        sage: ts = R.ideal([x^2+y^2+z^2-1,x^4-y^2-z-1,x+y+z,w+x+y])
+        sage: tsg = ts.groebner_fan()
+        sage: tstr = tsg.tropical_intersection()
+        sage: from sage.rings.polynomial.groebner_fan import _cone_parse
+        sage: _cone_parse(tstr.fan_dict['CONES'])
+        {1: [[0], [1], [3], [2], [4]], 2: [[2, 4]]}
+    """
+    cone_dict = {}
+    cur_dim = 0
+    for item in fan_dict_cone:
+        temp = item.split('{')[-1]
+        if temp.split('}') == '':
+            temp = ['']
+        else:
+            temp = temp.split('}')[0]
+            temp = temp.split(' ')
+        if item.find('Dimension') != -1:
+            cur_dim = Integer(item.split(' ')[-1])
+            if cur_dim > 0:
+                cone_dict[cur_dim] = [[Integer(q) for q in temp if q != '']]
+        else:
+            if cur_dim > 0: cone_dict[cur_dim] += [[Integer(q) for q in temp if q != '']]
+    return cone_dict
+
 class PolyhedralCone(SageObject):
 
     def __init__(self, gfan_polyhedral_cone, ring = QQ):
@@ -124,6 +164,7 @@ class PolyhedralCone(SageObject):
         cone_keys = ['AMBIENT_DIM','DIM','IMPLIED_EQUATIONS', 'LINEALITY_DIM', 'LINEALITY_SPACE','FACETS', 'RELATIVE_INTERIOR_POINT']
         poly_lines = gfan_polyhedral_cone.split('\n')
         self.cone_dict = {}
+        key_ind = 0
         cur_key = None
         for ting in poly_lines:
             if cone_keys.count(ting) > 0:
@@ -245,6 +286,7 @@ class PolyhedralFan(SageObject):
                     'CONES','MAXIMAL_CONES','PURE']
         poly_lines = gfan_polyhedral_fan.split('\n')
         self.fan_dict = {}
+        key_ind = 0
         cur_key = None
         for ting in poly_lines:
             if fan_keys.count(ting) > 0:
@@ -261,6 +303,7 @@ class PolyhedralFan(SageObject):
             temp_ray = temp_ray.split(' ')
             temp_ray = [int(x) for x in temp_ray]
             self._rays.append(temp_ray)
+        self._cone_dict = _cone_parse(self.fan_dict['CONES'])
         self._str = gfan_polyhedral_fan
 
     def _repr_(self):
@@ -465,7 +508,7 @@ class GroebnerFan(SageObject):
             # Define a polynomial ring in n variables
             # that are named a,b,c,d, ..., z, A, B, C, ...
             R = S.base_ring()
-            T = MPolynomialRing(R, n, ascii_letters[:n])
+            T = PolynomialRing(R, n, string.ascii_letters[:n])
 
             # Define the homomorphism that sends the
             # generators of S to the generators of T.
@@ -731,7 +774,7 @@ class GroebnerFan(SageObject):
             self.__homogeneity_space = h
             return h
 
-    def render(self, filename = None, larger=False, shift=0, rgbcolor = (0,0,0), polyfill = max_degree, scale_colors = True):
+    def render(self, file = None, larger=False, shift=0, rgbcolor = (0,0,0), polyfill = max_degree, scale_colors = True):
         """
         Render a Groebner fan as sage graphics or save as an xfig
         file.
@@ -743,8 +786,8 @@ class GroebnerFan(SageObject):
         extend these coordinates with zeros.
 
         INPUT:
-	    filename  -- a filename if you prefer the output saved to a file.
-	                 This will be in xfig format.
+	    file  -- a filename if you prefer the output saved to a file.
+	             This will be in xfig format.
             shift -- shift the positions of the variables in
                      the drawing.  For example, with shift=1,
                      the corners will be b (right), c (left),
@@ -776,8 +819,8 @@ class GroebnerFan(SageObject):
         if larger:
             cmd += ' -L'
         s = self.gfan(cmd, I=self._gfan_reduced_groebner_bases().replace(' ',','), format=False)
-        if filename != None:
-            open(filename,'w').write(s)
+        if file != None:
+            open(file,'w').write(s)
         sp = s.split('\n')
         sp2 = []
         for x in sp[9:]:
@@ -895,10 +938,18 @@ class GroebnerFan(SageObject):
         for adj in adj_data:
             for vert in adj[1]:
                 if vert > adj[0]:
-                    edges.append([tpoints[adj[0]],tpoints[vert]])
+                    try:
+                        edges.append([tpoints[adj[0]],tpoints[vert]])
+                    except:
+                        print adj
+                        print 'tpoints: ' + str(tpoints)
+                        print 'fpoints: ' + str(fpoints)
+                        print vert
+                        print polyhedral_data.ieqs()
+                        raise RuntimeError, adj
         return edges
 
-    def render3d(self):
+    def render3d(self, verbose = False):
         """
         For a Groebner fan of an ideal in a ring with four variables,
         this function intersects the fan with the standard simplex
@@ -916,9 +967,19 @@ class GroebnerFan(SageObject):
         g_cones_ieqs = [self._cone_to_ieq(q) for q in g_cones_facets]
         # Now the cones are intersected with a plane:
         cone_info = [ieq_to_vert(q,linearities=[[1,-1,-1,-1,-1]]) for q in g_cones_ieqs]
+	if verbose:
+	    for x in cone_info:
+		print x.ieqs() + [[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]]
+		print x.linearities()
+		print ""
+        cone_info = [Polyhedron(ieqs = x.ieqs() + [[1,1,0,0,0],[1,0,1,0,0],[1,0,0,1,0],[1,0,0,0,1]], linearities = x.linearities()) for x in cone_info]
         all_lines = []
         for cone_data in cone_info:
-            cone_lines = self._4d_to_3d(cone_data)
+            try:
+                cone_lines = self._4d_to_3d(cone_data)
+            except:
+                print cone_data._rays
+                raise RuntimeError
             for a_line in cone_lines:
                 all_lines.append(a_line)
         return sum([line(a_line) for a_line in all_lines])

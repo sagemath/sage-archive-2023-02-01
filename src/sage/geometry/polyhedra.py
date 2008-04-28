@@ -31,10 +31,12 @@ from sage.rings.all import Integer, QQ
 from sage.structure.sage_object import SageObject
 from sage.rings.rational import Rational
 from sage.rings.real_mpfr import RR
-from sage.plot.plot import *
+from sage.plot.plot import line
+from random import randint
+#from sage.plot.plot3d.platonic import * # needed in future for render_solid
 
 import os
-from subprocess import *
+from subprocess import Popen, PIPE
 
 def mink_sum(polyhedra_list, verbose = False):
     """
@@ -82,6 +84,8 @@ class Polyhedron(SageObject):
         self._ieqs = ieqs
         self._linearities = linearities
         self._rays = rays
+	if self._vertices != []:
+	    self.remove_redundant_vertices()
 
     def _repr_(self):
         """
@@ -210,6 +214,7 @@ class Polyhedron(SageObject):
             temp_poly_object = vert_to_ieq(self._vertices, rays = self._rays)
             self._linearities = temp_poly_object._linearity
             self._ieqs = temp_poly_object._inequalities
+            #temp_verts = temp_poly_object.
             self._facial_incidences = temp_poly_object._facial_incidences
             self._facial_adjacencies = temp_poly_object._facial_adjacencies
             return self._ieqs
@@ -223,16 +228,22 @@ class Polyhedron(SageObject):
         EXAMPLES:
             sage: permuto3 = Polyhedron(vertices = permutations([1,2,3,4]))
             sage: permuto3.vertex_adjacencies()[0:3]
-            [[0, [1, 15, 23]], [1, [0, 4, 22]], [2, [3, 5, 21]]]
+            [[3, [5, 1, 9]], [5, [3, 4, 11]], [16, [22, 10, 17]]]
         """
         try:
             return self._vertex_adjacencies
         except AttributeError:
             if self._ieqs != []:
                 temp_poly_object = ieq_to_vert(self._ieqs, linearities = self._linearities)
-                self._vertices = temp_poly_object._vertices
-                self._vertex_incidences = temp_poly_object._vertex_incidences
-                self._vertex_adjacencies = temp_poly_object._vertex_adjacencies
+                if self._vertices == []:
+                    self._vertices = temp_poly_object._vertices
+                    self._vertex_incidences = temp_poly_object._vertex_incidences
+                    self._vertex_adjacencies = temp_poly_object._vertex_adjacencies
+                    return self._vertex_adjacencies
+                # avoid changing vertex indexing
+                vdict = dict([[temp_poly_object._vertices.index(self._vertices[ind]), ind] for ind in range(len(self._vertices))])
+                self._vertex_incidences = [[vdict[vi[0]],vi[1]] for vi in temp_poly_object._vertex_incidences]
+                self._vertex_adjacencies = [[vdict[vi[0]],[vdict[q] for q in vi[1]]] for vi in temp_poly_object._vertex_adjacencies]
                 return self._vertex_adjacencies
             else:
                 if self._vertices == []:
@@ -292,12 +303,13 @@ class Polyhedron(SageObject):
     def remove_redundant_vertices(self):
         """
         Removes vertices from the description of the polyhedron which
-        do not affect the convex hull.
+        do not affect the convex hull.  Now done automatically when a
+        polyhedron is defined by vertices.
 
         EXAMPLES:
             sage: a_triangle = Polyhedron([[0,0,0],[4,0,0],[0,4,0],[1,1,0]])
             sage: a_triangle.vertices()
-            [[0, 0, 0], [4, 0, 0], [0, 4, 0], [1, 1, 0]]
+            [[0, 0, 0], [4, 0, 0], [0, 4, 0]]
             sage: a_triangle.remove_redundant_vertices()
             sage: a_triangle.vertices()
             [[0, 0, 0], [4, 0, 0], [0, 4, 0]]
@@ -334,17 +346,83 @@ class Polyhedron(SageObject):
             self._checked_rays = True
             return self._rays
 
+    def facial_incidences(self):
+        """
+        Returns the face-vertex incidences in the form [face_index, [v_i_0, v_i_1,,v_i_2]]
+
+        EXAMPLES:
+            sage: p = Polyhedron(vertices = [[5,0,0],[0,5,0],[5,5,0],[0,0,0],[2,2,5]])
+            sage: p.facial_incidences()
+            [[0, [1, 3, 4]],
+            [1, [0, 3, 4]],
+            [2, [0, 2, 4]],
+            [3, [1, 2, 4]],
+            [4, [0, 1, 2, 3]]]
+        """
+        try:
+            return self._facial_incidences
+        except:
+            dummy_ieqs = self.ieqs(force_from_vertices = True) # force computation of facial incidences
+            return self._facial_incidences
+
+    def triangulated_facial_incidences(self):
+        """
+        WARNING: EXPERIMENTAL
+        Returns a list of the form [face_index, [v_i_0, v_i_1,,v_i_2]]
+        where the face_index refers to the original defining inequality.
+        For a given face, the collection of triangles formed by each
+        triple of v_i should triangulate that face.
+        This is computed by randomly lifting each face up a dimension; this does not always work!
+
+        NOTE:
+            The doctest below is very weak, since it does not have to create a triangulation.
+
+        EXAMPLES:
+            sage: p = Polyhedron(vertices = [[5,0,0],[0,5,0],[5,5,0],[2,2,5]])
+            sage: len(p.triangulated_facial_incidences())
+            4
+        """
+        try:
+            return self._triangulated_facial_incidences
+        except AttributeError:
+            t_fac_incs = []
+            for a_face in self.facial_incidences():
+                lifted_verts = []
+                vert_number = len(a_face[1])
+                if vert_number == 3:
+                    t_fac_incs.append(a_face)
+                else:
+                    for vert_index in a_face[1]:
+                        lifted_verts.append(self.vertices()[vert_index] + [randint(0,vert_index + vert_number*2)])
+                    temp_poly = Polyhedron(vertices = lifted_verts)
+                    for t_face in temp_poly.facial_incidences():
+                        if len(t_face[1]) != 3:
+                            print a_face
+                            print t_face
+                            print temp_poly.ieqs()
+                            print temp_poly.vertices()
+                            print temp_poly.facial_incidences()
+                            print temp_poly.linearities()
+                            raise RuntimeError, "triangulation failed"
+                        normal_fdir = temp_poly.ieqs()[t_face[0]][-1]
+                        if normal_fdir >= 0:
+                            t_fac_verts = [temp_poly.vertices()[i] for i in t_face[1]]
+                            proj_verts = [q[0:3] for q in t_fac_verts]
+                            t_fac_incs.append([a_face[0], [self.vertices().index(q) for q in proj_verts]])
+        self._triangulated_facial_incidences = t_fac_incs
+        return t_fac_incs
+
     #def face_lattice(self):
     #    return "Not implemented yet"
 
-    def wireframe(self):
+    def render_wireframe(self):
         """
         For polytopes in 2 or 3 dimensions, returns the edges
         as a list of lines.
 
         EXAMPLES:
             sage: p = Polyhedron([[1,2,],[1,1],[0,0]])
-            sage: p_wireframe = p.wireframe()
+            sage: p_wireframe = p.render_wireframe()
             sage: p_wireframe._Graphics__objects
             [Line defined by 2 points, Line defined by 2 points, Line defined by 2 points]
         """
@@ -357,6 +435,17 @@ class Polyhedron(SageObject):
                     edges.append([verts[adj[0]],verts[vert]])
         return sum([line(an_edge) for an_edge in edges])
 
+    # Work in progress; needs better triangulation code.
+    #def render_solid(self):
+    #    """
+    #    Returns solid 3d rendering of a 3d polytope.
+    #    """
+    #    tri_faces = self.triangulated_facial_incidences()
+    #    try:
+    #        return index_face_set([q[1] for q in tri_faces], self.vertices(), enclosed = True)
+    #    except:
+    #        print tri_faces
+    #        print [q[1] for q in tri_faces], self.vertices()
 
 def cdd_convert(a_str,a_type = Rational):
     """
@@ -454,15 +543,15 @@ def vert_to_ieq(vertices, rays = [], cdd_type = 'rational', verbose = False):
     EXAMPLES:
         sage: a = vert_to_ieq([[1,2,3],[1,2,2],[1,2,4]])
         sage: a._facial_adjacencies
-        [[0, [1, 2, 3]], [1, [0, 2, 3]], [2, [0, 1, 2, 3]], [3, [0, 1, 2, 3]]]
+        [[0, [1, 2, 3]], [1, [0, 2, 3]]]
         sage: a.vertices()
-        [[1, 2, 3], [1, 2, 2], [1, 2, 4]]
+        [[1, 2, 2], [1, 2, 4]]
     """
     # first we create the input for cddlib:
     v_dim = len(vertices[0])
     v_sage = type(vertices[0][0])
     in_str = 'V-representation\nbegin\n'
-    in_str += str(len(vertices)) + ' ' + str(v_dim + 1) + ' ' + cdd_type + '\n'
+    in_str += str(len(vertices)+len(rays)) + ' ' + str(v_dim + 1) + ' ' + cdd_type + '\n'
     for ray in rays:
         in_str += '0 '
         for numb in ray:
@@ -506,6 +595,10 @@ def vert_to_ieq(vertices, rays = [], cdd_type = 'rational', verbose = False):
             inc_index = index
         if a_line.find('adjacency') != -1:
             adj_index = index
+    try:
+        test = hrep_index
+    except:
+        print ans
     # add the inequalities, skipping linearities
     ieq_index = 0
     for index in range(hrep_index+2,len(ans_lines)):
@@ -517,28 +610,34 @@ def vert_to_ieq(vertices, rays = [], cdd_type = 'rational', verbose = False):
                 hieqs.append(cdd_convert(a_line, a_type = cast))
             else:
                 linearities.append(cdd_convert(a_line, a_type = cast))
-    # add incidences
+    # add incidences, skipping linearities
+    ieq_index = 0
     for index in range(inc_index+2,len(ans_lines)):
         a_line = ans_lines[index]
         if a_line.find('end') != -1: break
         if a_line.find(':') != -1:
-            pre = a_line.split(':')[0]
-            pre = cdd_convert(pre,a_type = cast)[0] - 1 # subtract to make indexing pythonic
-            post = a_line.split(':')[1]
-            post = cdd_convert(post,a_type = cast)
-            post = [vert_index - 1 for vert_index in post] # subtract to make indexing pythonic
-            incidences.append([pre,post])
-    # add facial adjacencies
+            ieq_index += 1
+            if linearity_indices.count(ieq_index) == 0:
+                pre = a_line.split(':')[0]
+                pre = cdd_convert(pre,a_type = cast)[0] - 1 # subtract to make indexing pythonic
+                post = a_line.split(':')[1]
+                post = cdd_convert(post,a_type = cast)
+                post = [vert_index - 1 for vert_index in post] # subtract to make indexing pythonic
+                incidences.append([pre,post])
+    # add facial adjacencies, skipping linearities
+    ieq_index = 0
     for index in range(adj_index+2,len(ans_lines)):
         a_line = ans_lines[index]
         if a_line.find('end') != -1: break
         if a_line.find(':') != -1:
-            pre = a_line.split(':')[0]
-            pre = cdd_convert(pre,a_type = cast)[0] - 1 # subtract to make indexing pythonic
-            post = a_line.split(':')[1]
-            post = cdd_convert(post,a_type = cast)
-            post = [face_index - 1 for face_index in post] # subtract to make indexing pythonic
-            adjacencies.append([pre,post])
+            ieq_index += 1
+            if linearity_indices.count(ieq_index) == 0:
+                pre = a_line.split(':')[0]
+                pre = cdd_convert(pre,a_type = cast)[0] - 1 # subtract to make indexing pythonic
+                post = a_line.split(':')[1]
+                post = cdd_convert(post,a_type = cast)
+                post = [face_index - 1 for face_index in post] # subtract to make indexing pythonic
+                adjacencies.append([pre,post])
     poly_obj = Polyhedron(vertices = vertices)
     poly_obj._linearity = linearities
     poly_obj._inequalities = hieqs

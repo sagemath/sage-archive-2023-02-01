@@ -697,7 +697,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 base_elements.append( base_iter.next() )
         else:
             #In the finite case, we do a similar thing except that
-            #the the "weight" of each entry is bounded by the number
+            #the "weight" of each entry is bounded by the number
             #of elements in the base ring
             order = base_ring.order()
             done = False

@@ -2281,13 +2281,12 @@ class Moebius:
 
     def range(self, start, stop=None, step=None):
         """
-        Return the the Moebius function evaluated
-        at the given range of values, i.e., the
-        image of the list range(start, stop, step)
+        Return the Moebius function evaluated at the given range of
+        values, i.e., the image of the list range(start, stop, step)
         under the Mobius function.
 
-        This is much faster than directly computing
-        all these values with a list comprehension.
+        This is much faster than directly computing all these values
+        with a list comprehension.
 
         EXAMPLES:
             sage: v = moebius.range(-10,10); v

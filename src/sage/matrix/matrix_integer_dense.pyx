@@ -800,7 +800,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
              v -- a free module element.
 
         OUTPUT:
-            The the vector times matrix product v*A.
+            The vector times matrix product v*A.
 
         EXAMPLES:
             sage: B = matrix(ZZ,2, [1,2,3,4])

@@ -1600,7 +1600,7 @@ cdef class BooleanMonomial(MonoidElement):
     def multiples(self, BooleanMonomial rhs):
         r"""
         Return a set of boolean monomials with all multiples of this
-        monomial up the the bound \var{rhs}.
+        monomial up the bound \var{rhs}.
 
         INPUT:
             rhs -- a boolean monomial

@@ -898,7 +898,7 @@ cdef class ntl_ZZX:
         """
         Return the trace of this polynomial modulus the modulus.
         The modulus must be monic, and of positive degree degree bigger
-        than the the degree of self.
+        than the degree of self.
 
         EXAMPLES:
             sage: f = ntl.ZZX([1,2,0,3])

@@ -26,7 +26,7 @@ from sage.misc.misc import uniq
 def Combinations(mset, k=None):
     """
     Returns the combinatorial class of combinations of mset. If
-    k is specified, then it returns the the combintorial class
+    k is specified, then it returns the combintorial class
     of combinations of mset of size k.
 
     The combinatorial classes correctly handle the cases where

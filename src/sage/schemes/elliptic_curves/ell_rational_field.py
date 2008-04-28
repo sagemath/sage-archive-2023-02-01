@@ -3356,7 +3356,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Assume self has rank 0.
 
         Return a list v of primes such that if an odd prime p divides
-        the index of the the Heegner point in the group of rational
+        the index of the Heegner point in the group of rational
         points *modulo torsion*, then p is in v.
 
         If 0 is in the interval of the height of the Heegner point

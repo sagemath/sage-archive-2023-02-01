@@ -4,7 +4,7 @@ Schemes
 AUTHORS:
    -- William Stein
    -- David Kohel
-   -- Kiran Kedlaya: added zeta_function (2008)
+   -- Kiran Kedlaya: added zeta_series (2008)
 """
 
 #*******************************************************************************
@@ -304,22 +304,30 @@ class Scheme(ParentWithBase):
             a.append(len(S1.rational_points()))
         return(a)
 
-    def zeta_function(self, n, t):
+    def zeta_series(self, n, t):
         """
-        Compute the zeta function of a scheme over a finite field.
+        Compute a power series approximation to the zeta function of a
+        scheme over a finite field.
+
+        INPUT:
+            n -- the number of terms of the power series to compute
+            t -- the variable which the series should be returned
+
+        OUTPUT:
+            A power series approximating the zeta function of self
 
         EXAMPLES:
             sage: P.<x> = PolynomialRing(GF(3))
             sage: C = HyperellipticCurve(x^3+x^2+1)
             sage: R.<t> = PowerSeriesRing(Integers())
-            sage: C.zeta_function(4,t)
+            sage: C.zeta_series(4,t)
             1 + 6*t + 24*t^2 + 78*t^3 + 240*t^4 + O(t^5)
             sage: (1+2*t+3*t^2)/(1-t)/(1-3*t) + O(t^5)
             1 + 6*t + 24*t^2 + 78*t^3 + 240*t^4 + O(t^5)
 
         Note that this function depends on count_points, which is only
         defined for prime order fields:
-            sage: C.base_extend(GF(9,'a')).zeta_function(4,t)
+            sage: C.base_extend(GF(9,'a')).zeta_series(4,t)
             Traceback (most recent call last):
             ...
             NotImplementedError: Point counting only implemented for schemes over prime fields

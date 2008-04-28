@@ -1831,7 +1831,7 @@ cdef class Matrix(sage.structure.element.Matrix):
              v -- a free module element.
 
         OUTPUT:
-            The the vector times matrix product v*A.
+            The vector times matrix product v*A.
 
         EXAMPLES:
             sage: B = matrix(QQ,2, [1,2,3,4])

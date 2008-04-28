@@ -375,7 +375,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 v -- a free module element.
 
         OUTPUT:
-                The the vector times matrix product v*A.
+                The vector times matrix product v*A.
 
         EXAMPLES:
             sage: B = matrix(QQ,2, [1,2,3,4])

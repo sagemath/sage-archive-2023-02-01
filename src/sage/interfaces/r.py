@@ -387,7 +387,7 @@ class R(Expect):
 
         cmd = """options(repos="%s"); install.packages("%s")"""%(RRepositoryURL, package_name)
         os.system("time echo '%s' | R --vanilla"%cmd)
-        print "Please restart Sage or restart the the R interface (via r.restart()) in order to use '%s'."%package_name
+        print "Please restart Sage or restart the R interface (via r.restart()) in order to use '%s'."%package_name
 
         if warn is not None: print warn
         #s = r.eval('install.packages("%s")'%package_name)

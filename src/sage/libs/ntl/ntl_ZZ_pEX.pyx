@@ -1014,7 +1014,7 @@ cdef class ntl_ZZ_pEX:
         """
         Return the trace of this polynomial modulo the modulus.
         The modulus must be monic, and of positive degree degree bigger
-        than the the degree of self.
+        than the degree of self.
 
         EXAMPLES:
         sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))

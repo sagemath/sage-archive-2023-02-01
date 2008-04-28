@@ -530,7 +530,7 @@ class LinearCode(module.Module):
         non-empty finite multiset of $k$ points. $A$ design without
         repeated blocks is called a {\bf simple} block design. If
         every subset of points of size $t$ is contained in exactly
-        lambda blocks the the block design is called a {\bf
+        lambda blocks the block design is called a {\bf
         $t-(v,k,lambda)$ design} (or simply a $t$-design when the
         parameters are not specfied). When $\lambda=1$ then the block
         design is called a {\bf $S(t,k,v)$ Steiner system}.

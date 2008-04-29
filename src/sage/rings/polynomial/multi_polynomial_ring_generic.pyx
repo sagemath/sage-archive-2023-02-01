@@ -17,8 +17,23 @@ def is_MPolynomialRing(x):
 
 cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def __init__(self, base_ring, n, names, order):
+        """
+        Create a polynomial ring in several variables over a commutative ring.
+
+        EXAMPLES:
+            sage: R.<x,y> = ZZ['x,y']; R
+            Multivariate Polynomial Ring in x, y over Integer Ring
+            sage: class CR(Ring):
+            ...       def is_commutative(self):
+            ...           return True
+            ...       def __call__(self,x):
+            ...           return None
+            sage: cr = CR(None)
+            sage: cr['x,y']
+            Multivariate Polynomial Ring in x, y over ...
+        """
         order = TermOrder(order,n)
-        if not isinstance(base_ring, sage.rings.ring.CommutativeRing):
+        if not base_ring.is_commutative():
             raise TypeError, "Base ring must be a commutative ring."
         n = int(n)
         if n < 0:

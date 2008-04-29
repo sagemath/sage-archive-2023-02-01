@@ -3296,6 +3296,12 @@ class GenericGraph(SageObject):
             sage: S.edges()
             [('00', '01', None), ('11', '10', None)]
 
+        TESTS:
+        We should delete unused _pos dictionary entries
+            sage: g = graphs.PathGraph(10)
+            sage: h = g.subgraph([3..5])
+            sage: h._pos.keys()
+            [3, 4, 5]
         """
         if vertices is None:
             vertices = []
@@ -3312,6 +3318,9 @@ class GenericGraph(SageObject):
         else:
             G = self.copy()
         G.delete_vertices(vertices)
+        if G._pos is not None:
+            for v in vertices:
+                del G._pos[v]
         G.name("Subgraph of (%s)"%self.name())
         if edges is None and edge_property is not None:
             G.delete_edges([e for e in self.edge_iterator() if not edge_property(e)])

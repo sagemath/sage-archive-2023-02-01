@@ -564,13 +564,22 @@ class GenericGraph(SageObject):
             sage: T2.get_vertex(0) is T.get_vertex(0)
             False
 
+        TESTS:
+        We make copies of the _pos and _boundary attributes.
+            sage: g = graphs.PathGraph(3)
+            sage: h = g.copy()
+            sage: h._pos is g._pos
+            False
+            sage: h._boundary is g._boundary
+            False
+
         """
+        from copy import copy
         if self._directed:
-            G = DiGraph(self, name=self.name(), pos=self._pos, boundary=self._boundary)
+            G = DiGraph(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary))
         else:
-            G = Graph(self, name=self.name(), pos=self._pos, boundary=self._boundary)
+            G = Graph(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary))
         if hasattr(self, '_assoc'):
-            from copy import copy
             G._assoc = {}
             for v in self._assoc:
                 try:

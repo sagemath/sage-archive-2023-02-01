@@ -655,11 +655,11 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         s = 'pmesh %s "%s"\n%s' % (name, filename, self.texture.jmol_str("pmesh"))
 
-        # If we wanted to turn on display of the mesh lines or dots
-        # we would uncomment thse.  This should be determined by
-        # render_params, probably.
-        #s += '\npmesh %s mesh\n'%name
-        #s += '\npmesh %s dots\n'%name
+        # Turn on display of the mesh lines or dots?
+        if render_params.mesh:
+             s += '\npmesh %s mesh\n'%name
+        if render_params.dots:
+             s += '\npmesh %s dots\n'%name
         return [s]
 
     def dual(self, **kwds):

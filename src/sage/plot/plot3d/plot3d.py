@@ -81,6 +81,13 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
         vrange -- a 2-tuple (v_min, v_max) or a 3-tuple (v, v_min, v_max)
         adaptive -- (default: False) whether to use adaptive refinement
                     to draw the plot (slower, but may look better)
+        mesh -- bool (default: False) whether to display mesh grid lines
+        dots -- bool (default: False) whether to display dots at mesh
+                grid points
+
+
+    NOTE: mesh and dots are not supported when using the Tachyon
+          raytracer renderer.
 
     EXAMPLES:
     We plot a 3d function defined as a Python function:
@@ -96,6 +103,10 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
         sage: x, y = var('x,y')
         sage: plot3d(x^2 + y^2, (x,-2,2), (y,-2,2))
         sage: plot3d(sin(x*y), (x, -pi, pi), (y, -pi, pi))
+
+    A 3d plot with a mesh:
+        sage: var('x,y')
+        sage: plot3d(sin(x-y)*y*cos(x),(x,-3,3),(y,-3,3), mesh=True)
 
     Two wobby translucent planes:
         sage: x,y = var('x,y')

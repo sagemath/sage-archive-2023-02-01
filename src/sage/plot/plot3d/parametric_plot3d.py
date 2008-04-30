@@ -38,6 +38,9 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
                        [40,40] for surfaces) initial number of sample
                        points in each parameter; an integer for a curve,
                        and a pair of integers for a surface.
+        mesh -- bool (default: False) whether to display mesh grid lines
+        dots -- bool (default: False) whether to display dots at mesh
+                grid points
 
     NOTES:
     \begin{enumerate}
@@ -45,6 +48,8 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
         not evaluate to a real number are skipped.
       \item Currently for a surface $f_x$, $f_y$, and $f_z$ have to be defined
         everywhere. This will change.
+      \item mesh and dots are not supported when using the Tachyon
+        raytracer renderer.
     \end{enumerate}
 
     EXAMPLES:
@@ -64,6 +69,9 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
            lambda):
             sage: f = (lambda u,v: cos(u), lambda u,v: sin(u)+cos(v), lambda u,v: sin(v))
             sage: parametric_plot3d(f, (0, 2*pi), (-pi, pi))
+
+        \item The surface, but with a mesh:
+            sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), mesh=True)
 
         \item The same surface, but where the defining functions are symbolic:
             sage: u, v = var('u,v')

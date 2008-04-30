@@ -219,6 +219,7 @@ end_scene""" % (
 
     def export_jmol(self, filename='jmol_shape.jmol', force_reload=False,
                     zoom=100, spin=False, background=(1,1,1), stereo=False,
+                    mesh = False, dots=False,
                     perspective_depth = True,
                     orientation = (-764,-346,-545,76.39), **ignored_kwds):
                     # orientation chosen to look same as tachyon
@@ -227,6 +228,8 @@ end_scene""" % (
         render_params.force_reload = render_params.randomize_counter = force_reload
         render_params.output_archive = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED, True)
         render_params.atom_list = [] # some things (such as labels) must be attached to atoms
+        render_params.mesh = mesh
+        render_params.dots = dots
 
         # Render the data
         all = flatten_list([self.jmol_repr(render_params), ""])

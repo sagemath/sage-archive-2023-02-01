@@ -250,6 +250,22 @@ class Notebook(SageObject):
     def valid_login_names(self):
         return [x for x in self.usernames() if not x in ['guest', '_sage_', 'pub']]
 
+    def default_user(self):
+        """
+        Return a default login name that the user will see when confronted with the
+        Sage notebook login page.
+
+        OUTPUT:
+            string
+
+        Currently this returns 'admin' if that is the *only* user.  Otherwise it
+        returns the string ''.
+        """
+        if self.valid_login_names() == ['admin']:
+            return 'admin'
+        else:
+            return ''
+
     def set_accounts(self, value):
         self.__accounts = value
 

@@ -46,9 +46,10 @@ def notebook_twisted(self,
              port        = 8000,
              address     = 'localhost',
              port_tries  = 50,
-             secure      = True,
+             secure      = False,
              reset       = False,
              accounts    = False,
+             require_login = True,
 
              server_pool = None,
              ulimit      = None,
@@ -82,9 +83,12 @@ def notebook_twisted(self,
     port = int(port)
     conf = '%s/twistedconf.tac'%directory
 
-    if not secure:
-        print "WARNING: Running the notebook insecurely may be dangerous."
-        print "Make sure you know what you are doing."
+    if not secure and address != 'localhost':
+        print '*'*70
+        print "WARNING: Running the notebook insecurely not on localhost is dangerous"
+        print "because its possible for people to sniff passwords and gain access to"
+        print "your account. Make sure you know what you are doing."
+        print '*'*70
 
     nb = notebook.load_notebook(directory)
 
@@ -148,7 +152,7 @@ def notebook_twisted(self,
 
         print notebook_opts
         if open_viewer:
-            if secure:
+            if require_login:
                 start_path = "'/?startup_token=%s' % startup_token"
             else:
                 start_path = "'/'"
@@ -220,8 +224,8 @@ application = service.Application("SAGE Notebook")
 s = strports.service('%s', factory)
 %s
 s.setServiceParent(application)
-"""%(notebook_opts, sagetex_path,
-     not secure and not accounts, os.path.abspath(directory), strport, open_page))
+"""%(notebook_opts, sagetex_path, not require_login,
+     os.path.abspath(directory), strport, open_page))
 
 
         config.close()

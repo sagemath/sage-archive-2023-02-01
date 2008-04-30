@@ -106,6 +106,7 @@ def plot3d(f, urange, vrange, adaptive=False, **kwds):
 
     A 3d plot with a mesh:
         sage: var('x,y')
+        (x, y)
         sage: plot3d(sin(x-y)*y*cos(x),(x,-3,3),(y,-3,3), mesh=True)
 
     Two wobby translucent planes:

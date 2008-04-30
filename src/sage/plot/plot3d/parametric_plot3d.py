@@ -71,6 +71,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", **kwds):
             sage: parametric_plot3d(f, (0, 2*pi), (-pi, pi))
 
         \item The surface, but with a mesh:
+            sage: u, v = var('u,v')
             sage: parametric_plot3d((cos(u), sin(u) + cos(v), sin(v)), (u, 0, 2*pi), (v, -pi, pi), mesh=True)
 
         \item The same surface, but where the defining functions are symbolic:

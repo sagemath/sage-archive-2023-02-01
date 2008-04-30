@@ -195,20 +195,6 @@ cdef class Matrix(matrix0.Matrix):
 
         return singular.matrix(self.nrows(),self.ncols(),singular(self.list()))
 
-    def numeric_array(self, typecode=None):
-        """
-        Return the Numeric array associated to this matrix (if possible).
-        All entries must be coercible to the given typecode.
-
-        INPUT:
-            typecode -- optional (default: Numeric.Float64)
-        """
-        import Numeric
-        if typecode is None:
-            typecode = Numeric.Float64
-        A = Numeric.array(self.list(), typecode=typecode)
-        return Numeric.resize(A,(self._nrows, self._ncols))
-
     def numpy(self, dtype=None):
         """
         Return the Numpy matrix associated to this matrix.

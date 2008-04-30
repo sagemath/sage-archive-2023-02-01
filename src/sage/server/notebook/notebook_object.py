@@ -25,39 +25,41 @@ class NotebookObject:
     Start the SAGE Notebook server.
 
     INPUT:
-        directory  -- directory that contains the SAGE notebook files;
-                      The default is .sage/sage_notebook, in your home directory.
-        port       -- (default: 8000), port to serve the notebook on
-        address    -- (default: 'localhost'), address of network interface to listen on;
-                      give '' to listen on all interfaces.
-        port_tries -- (default: 0), number of additional ports to try if the
-                      first one doesn't work (*not* implemented)
-        secure     -- (default: True) if True use https so all
-                      communication, e.g., logins and passwords,
-                      between web browsers and the SAGE notebook is
-                      encrypted (via GNU TLS).  *Highly recommended!*
-        reset      -- (default: False) if True allows you to set the
-                      admin password.  Use this if you forget your
-                      admin password.
-        accounts   -- (default: False) if True, any visitor to the website
-                      will be able to create a new account.  If False,
-                      only the admin can create accounts (currently, this
-                      can only be done by running with accounts=True for
-                      a few minutes, or on the command line with, e.g.,
-                          nb = load('sage_notebook/nb.sobj')
-                          nb.set_accounts(True)
-                          nb.add_user("username", "password", "email@place", "user")
-                          nb.save()
-        open_viewer -- (default: True) whether to pop up a web browser.
-                      You can override the default browser by setting
-                      the SAGE_BROWSER environment variable, e.g., by putting
-                         export SAGE_BROWSER="firefox"
-                      in the file .bashrc in your home directory.
-        timeout    -- (default: 0) seconds until idle worksheet sessions
-                      automatically timeout, i.e., the corresponding
-                      Sage session terminates.  0 means 'never timeout'.
-        server_pool -- list;   The server_pool option specifies that worksheet processes run
-                      as a separate user (chosen from the list in the server_pool -- see below).
+        directory     -- directory that contains the SAGE notebook files;
+                         The default is .sage/sage_notebook, in your home directory.
+        port          -- (default: 8000), port to serve the notebook on
+        address       -- (default: 'localhost'), address of network interface to listen on;
+                         give '' to listen on all interfaces.
+        port_tries    -- (default: 0), number of additional ports to try if the
+                         first one doesn't work (*not* implemented)
+        secure        -- (default: False) if True use https so all
+                         communication, e.g., logins and passwords,
+                         between web browsers and the SAGE notebook is
+                         encrypted (via GNU TLS).  *Highly recommended!*
+        require_login -- (default: True) if True login is required else web user is
+                         automatically logged in as user admin
+        reset         -- (default: False) if True allows you to set the
+                         admin password.  Use this if you forget your
+                         admin password.
+        accounts      -- (default: False) if True, any visitor to the website
+                         will be able to create a new account.  If False,
+                         only the admin can create accounts (currently, this
+                         can only be done by running with accounts=True for
+                         a few minutes, or on the command line with, e.g.,
+                             nb = load('./sage/sage_notebook/nb.sobj')
+                             nb.set_accounts(True)
+                             nb.add_user("username", "password", "email@place", "user")
+                             nb.save()
+        open_viewer   -- (default: True) whether to pop up a web browser.
+                         You can override the default browser by setting
+                         the SAGE_BROWSER environment variable, e.g., by putting
+                             export SAGE_BROWSER="firefox"
+                         in the file .bashrc in your home directory.
+        timeout       -- (default: 0) seconds until idle worksheet sessions
+                         automatically timeout, i.e., the corresponding
+                         Sage session terminates.  0 means 'never timeout'.
+        server_pool   -- list;   The server_pool option specifies that worksheet processes run
+                         as a separate user (chosen from the list in the server_pool -- see below).
 
     \begin{verbatim}
 
@@ -73,7 +75,7 @@ class NotebookObject:
     2. I want to run the SAGE notebook server on a remote machine
        and be the only person allowed to log in.  Type
 
-         notebook(address="address.of.remote.machine")
+         notebook(address='', secure=True)
 
        the first time you do this you'll be prompted to set
        an administrator password.  Use this to login.
@@ -81,21 +83,20 @@ class NotebookObject:
        the hostname.
 
     3. I just want to run the server locally on my laptop at a coffee
-       shop with no wifi and do not want to be bothered with SSL,
-       accounts, etc., and I am *absolutely certain* I am the only
+       shop with no wifi and do not want to be bothered with having to log in,
+       and I am *absolutely certain* I am the only
        user logged into my laptop so I do not have to worry about
        somebody else using the notebook on localhost and deleting my
        files.  Use
 
-                  notebook(secure=False)
+                  notebook(require_login=False)
 
     4. I want to create a SAGE notebook server that is open to anybody
        in the world to create new accounts, etc.  To run the SAGE
        notebook publically (1) at a minimu run it from a chroot jail
        (see the SAGE install guide), and (2) use a command like
 
-         notebook(address="address.of.remote.machine",
-            server_pool=['sage1@localhost'], ulimit='-v 500000', accounts=True)
+         notebook(address='', server_pool=['sage1@localhost'], ulimit='-v 500000', accounts=True)
 
        The server_pool option specifies that worksheet processes run
        as a separate user.  The ulimit option restricts the memory
@@ -115,26 +116,26 @@ class NotebookObject:
     last time the notebook command was called.
 
         server_pool -- (default: None), if given, should be a list like
-                      ['sage1@localhost', 'sage2@localhost'], where
-                      you have setup ssh keys so that typing
-                         ssh sage1@localhost
-                      logs in without requiring a password, e.g., by typing
-                      as the notebook server user
-                          cd; ssh-keygen -t rsa
-                      then put ~/.ssh/id_rsa.pub as the file .ssh/authorized_keys2.
-                      Note -- you have to get the permissions of files
-                      and directories just right -- do a web search
-                      for more details.
+                       ['sage1@localhost', 'sage2@localhost'], where
+                       you have setup ssh keys so that typing
+                           ssh sage1@localhost
+                       logs in without requiring a password, e.g., by typing
+                       as the notebook server user
+                           cd; ssh-keygen -t rsa
+                       then put ~/.ssh/id_rsa.pub as the file .ssh/authorized_keys2.
+                       Note -- you have to get the permissions of files
+                       and directories just right -- do a web search
+                       for more details.
 
         ulimit      -- (default: None -- leave as is), if given and server_pool is also given,
-                      the worksheet processes are run with these constraints.
-                      See the ulimit documentation. Common options include:
+                       the worksheet processes are run with these constraints.
+                       See the ulimit documentation. Common options include:
                            -f   The maximum size of files created by the shell
                            -t   The maximum amount of cpu time in seconds.
                            -u   The maximum number of processes available to a single user.
                            -v   The maximum amount of virtual memory available to the process.
-                      Values are in 1024-byte increments, except for `-t', which is in seconds.
-                      Example:  ulimit="-v 400000 -t 30"
+                       Values are in 1024-byte increments, except for `-t', which is in seconds.
+                       Example:  ulimit="-v 400000 -t 30"
 
     \end{verbatim}
     """

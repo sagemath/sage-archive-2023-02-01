@@ -3956,7 +3956,15 @@ cdef class Matrix(matrix1.Matrix):
             6.0
             sage: A.norm(Infinity)
             8.41421356237
+            sage: a = matrix([[],[],[],[]])
+            sage: a.norm()
+            0.0
+            sage: a.norm(Infinity) == a.norm(1)
+            True
         """
+
+        if self._nrows == 0 or self._ncols == 0:
+            return RDF(0)
 
         # 2-norm:
         if p == 2:

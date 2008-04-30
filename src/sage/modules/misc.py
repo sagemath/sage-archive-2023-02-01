@@ -13,6 +13,7 @@ AUTHORS:
 ####################################################################################
 
 from sage.matrix.constructor import matrix
+from sage.rings.integer_ring import ZZ
 
 def gram_schmidt(B):
     """
@@ -38,9 +39,15 @@ def gram_schmidt(B):
         [      0       0       0]
         [   10/9       0       0]
         [-25/126    1/70       0]
+        sage: a = matrix([])
+        sage: a.gram_schmidt()
+        ([], [])
+        sage: a = matrix([[],[],[],[]])
+        sage: a.gram_schmidt()
+         ([], [])
     """
-    if len(B) == 0:
-        return B, matrix(ZZ,0,0,[0])
+    if len(B) == 0 or len(B[0]) == 0:
+        return B, matrix(ZZ,0,0,[])
     n = len(B)
     Bstar = [B[0]]
     K = B[0].base_ring().fraction_field()

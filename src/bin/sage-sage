@@ -514,15 +514,29 @@ if [ $1 = '-q' ]; then
 fi
 
 if [ $1 = '-b' ]; then
-   shift
-   time sage-build "$@"
-   exit $?
+    shift
+    if [ "$SAGE_PBUILD" == "yes" ]; then
+        if [ "$@" ]; then
+            ln -snf "$SAGE_ROOT"/devel/sage-"$@" "$SAGE_ROOT"/devel/sage
+        fi
+        time python "$SAGE_ROOT"/data/extcode/sagebuild/build.py -b
+    else
+        time sage-build "$@"
+    fi
+    exit $?
 fi
 
 if [ $1 = '-br' -o $1 = "--br" ]; then
-   shift
-   sage-build "$@" && sage
-   exit $?
+    shift
+    if [ "$SAGE_PBUILD" == "yes" ]; then
+        if [ "$@" ]; then
+            ln -snf "$SAGE_ROOT"/devel/sage-"$@" "$SAGE_ROOT"/devel/sage
+        fi
+        python "$SAGE_ROOT"/data/extcode/sagebuild/build.py -b && sage
+    else
+        sage-build "$@" && sage
+    fi
+    exit $?
 fi
 
 if [ $1 = '-r' ]; then
@@ -555,13 +569,29 @@ if [ $1 = '-ba' ]; then
    if [ $CHOICE = 'n' ]; then
 	   exit 0
    fi
-   sage-build -b "$@"
+   if [ "$SAGE_PBUILD" == "yes" ]; then
+        if [ "$@" ]; then
+            echo 'foo'
+            ln -snf "$SAGE_ROOT"/devel/sage-"$@" "$SAGE_ROOT"/devel/sage
+        fi
+        python "$SAGE_ROOT"/data/extcode/sagebuild/build.py --all
+   else
+      sage-build -b "$@"
+   fi
    exit $?
 fi
 
 if [ $1 = '-ba-force' ]; then
    shift
-   sage-build -b "$@"
+   if [ "$SAGE_PBUILD" == "yes" ]; then
+        if [ "$@" ]; then
+            echo 'foo'
+            ln -snf "$SAGE_ROOT"/devel/sage-"$@" "$SAGE_ROOT"/devel/sage
+        fi
+        python "$SAGE_ROOT"/data/extcode/sagebuild/build.py --all
+   else
+      sage-build -b "$@"
+   fi
    exit $?
 fi
 

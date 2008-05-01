@@ -56,11 +56,6 @@ cpdir(os.path.abspath('sage/sage'), os.path.abspath(branch + '/sage'))
 print "Copying over build directory."
 cmd = 'cp -r sage/build %s'%branch
 
-# IDEA -- use tar for speed?  Seems to force rebuild though...
-
-# cmd = 'cd sage && rm -f $SAGE_ROOT/tmp/build.tar && tar cf $SAGE_ROOT/tmp/build.tar build && cd $SAGE_ROOT/devel/"%s" && tar xf $SAGE_ROOT/tmp/build.tar && rm $SAGE_ROOT/tmp/build.tar'%branch
-# cmd = cmd.replace('$SAGE_ROOT','"%s"'%os.environ['SAGE_ROOT'])
-
 print cmd
 
 
@@ -71,7 +66,24 @@ if os.system(cmd):
 # Done copying over build cache.
 
 print "Building " + branch
-cmd = 'sage -b %s'%sys.argv[1]
+try:
+    if os.environ["SAGE_PBUILD"] == "yes":
+	print "Copying clibsage"
+	cmd = 'cp -r sage/c_lib/libcsage.so %s/c_lib/'%branch
+
+	print cmd
+	if os.system(cmd):
+    		print "Error copying clibsage"
+    		sys.exit(1)
+        cmd = 'ln -snf "sage-%s" sage' % sys.argv[1]
+        print cmd
+        if os.system(cmd):
+            print "Error building SAGE"
+        cmd = 'sage -b'
+    else:
+	cmd = 'sage -b %s'%sys.argv[1]
+except:
+   cmd = 'sage -b %s'%sys.argv[1]
 print cmd
 if os.system(cmd):
     print "Error building SAGE"

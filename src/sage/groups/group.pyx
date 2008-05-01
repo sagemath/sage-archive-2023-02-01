@@ -143,21 +143,21 @@ cdef class FiniteGroup(Group):
             sage: G.show3d(color_by_label=True, edge_size=0.01, edge_size2=0.02, vertex_size=0.03)
             sage: G.show3d(vertex_size=0.03, edge_size=0.01, edge_size2=0.02, vertex_colors={(1,1,1):G.vertices()}, bgcolor=(0,0,0), color_by_label=True, xres=700, yres=700, iterations=200) # long time (less than a minute)
 
+            sage: s1 = SymmetricGroup(1); s = s1.cayley_graph(); s.vertices()
+            [()]
+
+
         AUTHOR:
             -- (2007-08-10) Bobby Moretti
+            -- (2008-05-01) Robert Miller - editing
         """
         from sage.graphs.graph import DiGraph
         arrows = {}
         for x in self:
-            for g,i in zip(self.gens(), xrange(len(self.gens()))):
-                # cache the multiplication
-                xg = x*g
+            arrows[x] = {}
+            for g in self.gens():
+                xg = x*g # cache the multiplication
                 if not xg == x:
-                    try:
-                        _ = arrows[x]
-                    except KeyError:
-                        arrows[x] = {}
-
                     arrows[x][xg] = g
 
         return DiGraph(arrows)

@@ -846,12 +846,12 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     def height(self):
         """
-        Return the height of this matrix, which is the least common
-        multiple of all numerators and denominators of elements of
-        this matrix.
+        Return the height of this matrix, which is the maximum of the
+        absolute values of all numerators and denominators of entries
+        in this matrix.
 
         OUTPUT:
-            -- SAGE Integer
+            -- Integer
 
         EXAMPLES:
             sage: b = matrix(QQ,2,range(6)); b[0,0]=-5007/293; b

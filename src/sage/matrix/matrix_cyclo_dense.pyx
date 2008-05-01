@@ -19,10 +19,14 @@ from matrix_integer_dense import _lift_crt
 from sage.misc.misc import verbose
 import math
 
+from misc import matrix_integer_dense_rational_reconstruction
+
 from sage.ext.multi_modular import MAX_MODULUS
 
 from sage.structure.proof.proof import get_flag as get_proof_flag
 
+#TODO: only here for debugging
+import time
 
 cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     ########################################################################
@@ -193,6 +197,50 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         """
         return self._matrix.denominator()
 
+    def coefficient_bound(self):
+        r"""
+        Return an upper bound for the (complex) absolute values of all
+        entries of self.
+
+        This is computed using just the Cauchy-Schwarz inequality, i.e.,
+        we use the fact that
+        $$ \left| \sum_i a_i\zeta^i \right| \leq \sum_i |a_i|, $$
+        as $|\zeta| = 1$.
+        """
+        cdef Py_ssize_t i, j
+
+        bound = 0
+        for i from 0 <= i < self._matrix._ncols:
+
+            n = 0
+            for j from 0 <= j < self._matrix._nrows:
+                n += self._matrix[j, i].abs()
+            if bound < n:
+                bound = n
+
+        return bound
+
+    def height(self):
+        r"""
+        Return the height of self. If we let $a_{ij}$ be the $i$,$j$
+        entry of self, then this is defined to be
+        $$ \operatorname{max}_v\ \operatorname{max}_{i, j} |a_{ij}|, $$
+        where $v$ runs over all complex embeddings of
+        \code{self.base_ring()}.
+        """
+        cdef Py_ssize_t i, j
+
+        emb = self._base_ring.complex_embeddings()
+
+        ht = 0
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                t = max([ x.norm().sqrt() for x in [ f(self[i,j]) for f in emb ] ])
+                if t > ht:
+                    ht = t
+
+        return ht
+
     def randomize(self, density=1, num_bound=2, den_bound=2, distribution=None):
         r"""
         Randomize the entries of self.
@@ -250,24 +298,12 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         # Euler's constant.
         delta = 5.418236
 
-        M, denom = self._matrix._clear_denom()
-
-        # compute the maximal height of any element of the matrix.
-        # We just use Cauchy-Schwarz; maybe something is better,
-        # especially given that it's a cyclotomic field?
-        B = 1
-        for i from 0 <= i < self._matrix._ncols:
-
-            n = 0
-            for j from 0 <= j < self._matrix._nrows:
-                n += M[j, i]**2
-            if B < n:
-                B = n
+        B = self.coefficient_bound()
 
         # this bound is only valid for n >= 4, use naive bounds
         # in other cases
         if self._nrows > 3:
-            return ZZ(int(math.ceil((alpha * self._nrows * B)**(self._nrows/2.0))))
+            return ZZ(int(math.ceil((alpha * self._nrows * B**2)**(self._nrows/2.0))))
         elif self._nrows == 3:
             return max(6*B**2, 4*B**3)
         elif self._nrows == 2:
@@ -413,7 +449,6 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                     L0 = L
             p -= 2
 
-
         # Now each column of L encodes a coefficient of the output polynomial,
         # with column 0 being the constant coefficient.
         K = self.base_ring()
@@ -447,22 +482,26 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         # TODO: do we want self.zeta_order() or self.n()?
         # (this only matters for n odd.)
-        n = self._base_ring.zeta_order()
+        n = self._base_ring._n()
         p = 45989
+        #p = previous_prime(MAX_MODULUS)
         prod = 1
-        bound = self._charpoly_bound()
         v = []
         denom = self.denominator()
+        A = self*denom
+        bound = A._charpoly_bound()
+        #bound = self._charpoly_bound()
         while prod < bound:
             while p % n != 1 or denom % p == 0:
                 if p == 2:
                     raise RuntimeError, "we ran out of primes in multimodular charpoly algorithm."
                 p = previous_prime(p)
 
-            X = self._charpoly_mod(p)
+            X = A._charpoly_mod(p)
+            #X = self._charpoly_mod(p)
             v.append(X)
             prod *= p
-            p -= 2
+            p = previous_prime(p)
 
         M = matrix(ZZ, self._base_ring.degree(), self._nrows+1)
         L = _lift_crt(M, v)
@@ -470,8 +509,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         # Now each column of L encodes a coefficient of the output polynomial,
         # with column 0 being the constant coefficient.
         K = self.base_ring()
-        coeffs = [K(w.list()) for w in L.columns()]
         R = K[var]
+        coeffs = [K(w.list()) for w in L.columns()]
         f = R(coeffs)
 
         # Rescale to account for denominator, if necessary
@@ -596,7 +635,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         #self.cache('charpoly', f)
         return E
 
-    def _echelon_form_multimodular(self, num_primes=5):
+    def _echelon_form_multimodular(self, num_primes=5, max_prime=None, height_guess=None):
         """
         Use a multimodular algorithm to find the echelon
         form of self.
@@ -604,24 +643,32 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         cdef Matrix_cyclo_dense res
 
-        M, denom = self._matrix._clear_denom()
+        denom = self.denominator()
         A = denom * self
+
+        # TODO: max_prime is only here for debugging purposes.
+        if max_prime is None:
+            max_prime = MAX_MODULUS
 
         # TODO: i basically copied this from matrix_rational_dense
         # ... we should think about it, at the very least.
-        height_guess = (M.height()+100)*100000
+        if height_guess is None:
+            height_guess = (A.height()+100)*1000000
 
         # generate primes to use
         # TODO: I stupidly just generate 5 primes and use those.
         # this obviously needs to change.
-        p = previous_prime(200)#(MAX_MODULUS)
+        p = previous_prime(max_prime)
         found = 0
         prime_ls = []
+        prod = 1
         n = self._base_ring._n()
-        while found < 5:
+        height_bound = self._ncols * height_guess * A.coefficient_bound() + 1
+        while found < num_primes or prod < height_bound:
             if p%n == 1:
                 prime_ls.append(p)
                 found += 1
+                prod *= p
             p = previous_prime(p)
 
         mod_p_ech_ls = []
@@ -641,11 +688,20 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         mat_over_ZZ = matrix(ZZ, self._base_ring.degree(), self._nrows * self._ncols)
         _lift_crt(mat_over_ZZ, mod_p_ech_ls)
 
-        res = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(),
-                                         None, None, None)
-        res._matrix = <Matrix_rational_dense>matrix(QQ, self._base_ring.degree(),
-                                                    self._nrows * self._ncols,
-                                                    mat_over_ZZ.list())
+        try:
+            res = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(),
+                                             None, None, None)
+            res._matrix = <Matrix_rational_dense>matrix_integer_dense_rational_reconstruction(mat_over_ZZ, prod)
+
+        except ValueError:
+            if num_primes > 100:
+                raise ValueError, "sorry buddy, i'm just tired."
+            self._echelon_form_multimodular(found + 5, max_prime, height_guess)
+
+        if ((res * res.denominator()).coefficient_bound() *
+            self.coefficient_bound()) > prod:
+            print "Probably be worried."
+            print "prod: ", prod
 
         return res
 

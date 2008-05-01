@@ -676,6 +676,41 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self.str(16)
 
+    def __oct__(self):
+        r"""
+        Return the digits of self in base 8.
+
+        \note{'0' is \emph{not} prepended to the result like is done
+        by the corresponding Python function on int or long. This is
+        for efficiency sake---adding and stripping the string wastes
+        time; since this function is used for conversions from
+        integers to other C-library structures, it is important that
+        it be fast.}
+
+        EXAMPLES:
+            sage: print oct(Integer(800))
+            1440
+            sage: print oct(Integer(8))
+            10
+            sage: print oct(Integer(-50))
+            -62
+            sage: print oct(Integer(-899))
+            -1603
+            sage: print oct(Integer(16938402384092843092843098243))
+            15535436162247215217705000570203
+
+            Behavior of Sage integers vs. Python integers:
+            sage: oct(Integer(10))
+            '12'
+            sage: oct(int(10))
+            '012'
+            sage: oct(Integer(-23))
+            '-27'
+            sage: oct(int(-23))
+            '-027'
+        """
+        return self.str(8)
+
     def binary(self):
         """
         Return the binary digits of self as a string.

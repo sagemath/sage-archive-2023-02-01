@@ -446,7 +446,7 @@ class InteractControl:
         return self.__cell_id
 
 class InputBox(InteractControl):
-    def __init__(self, var, default_value, label=None, type=None):
+    def __init__(self, var, default_value, label=None, type=None, width = 80):
         """
         An input box interact control.
 
@@ -460,6 +460,7 @@ class InputBox(InteractControl):
         """
         InteractControl.__init__(self, var, default_value, label)
         self.__type = type
+	self.__width = width
 
     def __repr__(self):
         """
@@ -529,11 +530,11 @@ class InputBox(InteractControl):
             return """<input type='checkbox' %s width=200px onchange='%s'></input>"""%(
                 'checked' if self.default_value() else '',  self.interact())
         elif self.__type is str:
-            return """<input type='text' value='%s' width=250px onchange='%s'></input>"""%(
-                self.default_value(),  self.interact())
+            return """<input type='text' value='%s' size=%s onchange='%s'></input>"""%(
+                self.default_value(), self.__width, self.interact())
         else:
-            return """<input type='text' value='%r' width=200px onchange='%s'></input>"""%(
-                self.default_value(),  self.interact())
+            return """<input type='text' value='%r' size=%s onchange='%s'></input>"""%(
+                self.default_value(), self.__width,  self.interact())
 
 class ColorInput(InputBox):
     def value_js(self, n):
@@ -1467,7 +1468,7 @@ class control:
         self.__label = label
 
 class input_box(control):
-    def __init__(self, default=None, label=None, type=None):
+    def __init__(self, default=None, label=None, type=None, width = 80):
         r"""
         An input box interactive control.  Use this in conjunction
         with the interact command.
@@ -1479,6 +1480,7 @@ class input_box(control):
             label -- the label rendered to the left of the box.
             type -- coerce inputs to this; this doesn't have to be
                     an actual type, since anything callable will do.
+            width -- width of text box in characters
 
         EXAMPLES:
             sage: input_box("2+2", 'expression')
@@ -1489,6 +1491,7 @@ class input_box(control):
         self.__default = default
         self.__type = type
         control.__init__(self, label)
+	self.__width = width
 
     def __repr__(self):
         """
@@ -1547,7 +1550,7 @@ class input_box(control):
         if self.__type is Color:
             return ColorInput(var, default_value=self.__default, label=self.label(), type=self.__type)
         else:
-            return InputBox(var, default_value=self.__default, label=self.label(), type=self.__type)
+            return InputBox(var, default_value=self.__default, label=self.label(), type=self.__type, width = self.__width)
 
 
 class input_grid(control):

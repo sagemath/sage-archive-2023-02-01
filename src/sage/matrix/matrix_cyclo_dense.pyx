@@ -628,6 +628,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         if algorithm == 'multimodular':
             E = self._echelon_form_multimodular()
+        elif algorithm == 'classical':
+            E = (self*self.denominator())._echelon_classical()
         else:
             raise ValueError, "unknown algorithm '%s'"%algorithm
 
@@ -653,7 +655,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         # TODO: i basically copied this from matrix_rational_dense
         # ... we should think about it, at the very least.
         if height_guess is None:
-            height_guess = (A.height()+100)*1000000
+            height_guess = (A.coefficient_bound()+100)*1000000
 
         # generate primes to use
         # TODO: I stupidly just generate 5 primes and use those.
@@ -696,12 +698,13 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         except ValueError:
             if num_primes > 100:
                 raise ValueError, "sorry buddy, i'm just tired."
-            self._echelon_form_multimodular(found + 5, max_prime, height_guess)
+            # TODO: this is just throwing away the info constructed so far
+            return self._echelon_form_multimodular(found + 5, max_prime, height_guess)
 
         if ((res * res.denominator()).coefficient_bound() *
             self.coefficient_bound()) > prod:
-            print "Probably be worried."
-            print "prod: ", prod
+            # TODO: this is just throwing away the info constructed so far
+            return self._echelon_form_multimodular(found + 5, max_prime, height_guess)
 
         return res
 

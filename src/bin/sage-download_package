@@ -21,7 +21,8 @@ if len(sys.argv) < 2:
      print "Usage: %s <package name> <package name> ..."%sys.argv[0]
      sys.exit(1)
 
-
+# use http_error_default from URLopener to raise an IOError on failure
+urllib.FancyURLopener.http_error_default = urllib.URLopener.http_error_default
 
 cur = 0
 def reporthook(block, size, total):
@@ -42,11 +43,12 @@ def download_file(file):
      print "[",
      global cur
      cur = 0
-     urllib.urlretrieve(url, file, reporthook)
+     try:
+         urllib.urlretrieve(url, file, reporthook)
+     except IOError:
+         print "]"
+         return False
      print "]"
-     if os.path.getsize(file) < 1000 and open(file).read().find("404 Not Found") != -1:
-          os.unlink(file)
-          return False
      return True
 
 for F in sys.argv[1:]:

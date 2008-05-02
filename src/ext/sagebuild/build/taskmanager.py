@@ -70,7 +70,7 @@ class taskmanager:
         self.queue.insert(0,act)
         self.queuemutex.release()
     def _get_action(self, wasexecuting):
-        if self.abort == True:
+        if self.abort != 0:
             thread.exit()
         self.queuemutex.acquire()
         if wasexecuting:
@@ -122,9 +122,9 @@ class taskmanager:
         if self.abort == False:
             for x in self._finishtasks:
                 x()
-        sys.exit(0)
+        sys.exit(self.abort)
 
-    def exit(self,x=0):
-        self.abort = True
+    def exit(self,x=1):
+        self.abort = x
         thread.exit()
 

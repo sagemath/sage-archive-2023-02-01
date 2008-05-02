@@ -726,7 +726,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=None):
 
 
 def identity_matrix(ring, n=0, sparse=False):
-    """
+    r"""
     Return the $n \times n$ identity matrix over the given ring.
 
     The default ring is the integers.

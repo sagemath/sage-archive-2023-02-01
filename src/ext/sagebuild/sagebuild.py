@@ -479,6 +479,11 @@ def buildsage(env, gccc):
             if verbose>30:
                 print cmd
             os.system( cmd )
+    #Setup the site-packages symlink if it doesn't already exist
+    try:
+        os.symlink('../../../../devel/sage/build/sage','local/lib/python/site-packages/sage')
+    except:
+        pass
 
 def sagebuild_exit():
     """

@@ -34,13 +34,13 @@ def buildclib(env, gccc):
             language = "C++"
         else:
             language = "C"
-        config_gcc_file(env, c_ext_dict, x, language = language , include_dirs = [abs_sage_local(env, 'include/NTL/'), abs_sage_path(env, 'devel/sage/c_lib/include')], libraries = ['ntl', 'gmp', 'pari','python2.5'], library_dirs=abs_sage_local(env, 'lib/python/config'))
+        config_gcc_file(env, c_ext_dict, x, language = language , include_dirs = [abs_sage_local(env, 'include/NTL/'), abs_sage_path(env, 'devel/sage/c_lib/include')], libraries = ['ntl', 'gmp', 'pari'], library_dirs=abs_sage_local(env, 'lib/python/config'))
     if env.options["UNAME"]=="Darwin":
         outfile = abs_sage_path(env, "c_lib/libcsage.dylib")
     else:
 	outfile = abs_sage_path(env, "c_lib/libcsage.so")
     gcceso = GCC_extension_shared_object(gccc,env, c_ext_dict.values(), fdir, outfile = outfile)
-    gcceso.libraries = ['ntl', 'gmp', 'pari', 'python2.5']
+    gcceso.libraries = ['ntl', 'gmp', 'pari']
     for x in c_ext_dict.values():
         gcceso.generate_action(env).dep_register(x.generate_action(env))
     gcceso.generate_action(env).enable()

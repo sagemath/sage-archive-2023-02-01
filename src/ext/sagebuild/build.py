@@ -53,7 +53,7 @@ def advanced_option(env, args):
 def put_header(env, args):
     outtext = """
 -----------------------------------------------------------
-| SAGE: Software for Algebra and Geometry Experimentation |
+| Sage Parallel Build System                              |
 -----------------------------------------------------------
 """
     print outtext

@@ -15,7 +15,7 @@ Start the notebook:
     sage: from sage.server.notebook.notebook_object import test_notebook
     sage: passwd = str(randint(1,1<<128))
     sage: nb = test_notebook(passwd, secure=False, address='localhost', port=port) #doctest: +ELLIPSIS
-    WARNING...
+    ...
 
 Import urllib:
     sage: import urllib, re

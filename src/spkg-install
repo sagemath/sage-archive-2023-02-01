@@ -106,8 +106,9 @@ if [ -d "$DEVEL/sage-main" ]; then
     "$SAGE_ROOT/sage" -ba-force
     if [ $? -ne 0 ]; then
         echo "Error building new version of SAGE."
+        exit 1
     fi
-    exit $?
+    exit 0
 fi
 
 cd "$CUR"

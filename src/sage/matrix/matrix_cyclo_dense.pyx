@@ -16,6 +16,7 @@ from sage.rings.arith import previous_prime, binomial
 from matrix cimport Matrix
 import matrix_dense
 from matrix_integer_dense import _lift_crt
+from matrix_modn_dense import _matrix_from_rows_of_matrices
 from sage.misc.misc import verbose
 import math
 
@@ -123,7 +124,9 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         elif right == 0:
             return self.parent()(0)
 
-        cdef Matrix_cyclo_dense A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(), None, None, None)
+        # Create a new matrix object but with the _matrix attribute not initialized:
+        cdef Matrix_cyclo_dense A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense,
+                                               self.parent(), None, None, None)
 
         if right.polynomial().degree() == 0:
             # multiplication by a rational number
@@ -136,6 +139,39 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             T = right.matrix().transpose()
             A._matrix = T * self._matrix
         return A
+
+    #cdef ModuleElement _mul_c_impl(self, RingElement right):
+    def mul(self, RingElement right, bound=int(10)**int(10)):
+        A, denom_self = self._matrix._clear_denom()
+        B, denom_right = (<Matrix_cyclo_dense>right)._matrix._clear_denom()
+
+        n = self._base_ring._n()
+        p = previous_prime(MAX_MODULUS)
+        prod = 1
+        v = []
+        while prod < bound:
+            while p % n != 1 or denom_self % p == 0 or denom_right % p == 0:
+                if p == 2:
+                    raise RuntimeError, "we ran out of primes in matrix multiplication."
+                p = previous_prime(p)
+            prod *= p
+            Amodp, _ = self._reductions(p)
+            Bmodp, _ = right._reductions(p)
+            _,     S = self._reduction_matrix(p)
+            X = _matrix_from_rows_of_matrices([Amodp[i] * Bmodp[i] for i in range(len(Amodp))])
+            v.append(S*X)
+            p = previous_prime(p)
+        M = matrix(ZZ, self._base_ring.degree(), self._nrows*right.ncols())
+        _lift_crt(M, v)
+        d = denom_self * denom_right
+        if denom_self * denom_right == 1:
+            M = M.change_ring(QQ)
+        else:
+            M = (1/d)*M
+        cdef Matrix_cyclo_dense C = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense,
+                    MatrixSpace(self._base_ring, self._nrows, right.ncols()), None, None, None)
+        C._matrix = M
+        return C
 
     def __richcmp__(Matrix self, right, int op):
         return self._richcmp(right, op)
@@ -337,7 +373,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
 
 
-    def charpoly(self, var='x', algorithm="multimodular"):
+    def charpoly(self, var='x', algorithm="multimodular", proof=None):
         r"""
         Return the characteristic polynomial of self, as a polynomial
         over the base ring.
@@ -347,6 +383,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                                         compute charpoly mod p, and lift (very fast)
                          'pari': use pari (quite slow; comparable to Magma v2.14 though)
                          'hessenberg': put matrix in Hessenberg form (double dog slow)
+            proof -- bool (default: None)  proof flag determined by global linalg proof.
 
         OUTPUT:
             polynomial
@@ -365,12 +402,13 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: a.charpoly(algorithm='hessenberg')
             x^3 + (z - 3)*x^2 + (-16/3*z^2 - 2*z)*x - 2/3*z^3 + 16/3*z^2 - 5*z + 5/3
         """
-        f = self.fetch('charpoly')
+        key = 'charpoly-%s-%s'%(algorithm,proof)
+        f = self.fetch(key)
         if f is not None:
             return f.change_variable_name(var)
 
         if algorithm == 'multimodular':
-            f = self._charpoly_multimodular(var)
+            f = self._charpoly_multimodular(var, proof=proof)
         elif algorithm == 'pari':
             f = self._charpoly_over_number_field(var)
         elif algorithm == 'hessenberg':
@@ -378,7 +416,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         else:
             raise ValueError, "unknown algorithm '%s'"%algorithm
         # TODO: Caching commented out only for testing.
-        #self.cache('charpoly', f)
+        #self.cache(key, f)
         return f
 
     def _charpoly_mod(self, p):
@@ -407,90 +445,36 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         verbose("Finished computing charpoly mod %s."%p, tm)
         return X
 
-    # TODO: delete this, it's only here for debugging
-    def xxx_charpoly_multimodular(self, var='x', proof=None):
-        """
-        Compute the characteristic polynomial of self using a multimodular algorithm.
-
-        INPUT:
-            proof -- bool (default: global flag); if False, computes
-                     until 3 successive charpoly mod p computations
-                     stabilize; always computes modulo at least 6
-                     primes.
-        """
-        proof = get_proof_flag(proof, "linear_algebra")
-
-        # TODO: only proof = False for now.
-        # TODO: Need to figure out how to compute a theoretical bound on the sizes
-        # of the coefficients in the charpoly
-        proof = False
-
-        n = self._base_ring.zeta_order()
-        p = 45989
-        prod = 1
-        v = []
-        L0 = 0
-        denom = self.denominator()
-        while True:
-            while p % n != 1 or denom % p == 0:
-                if p == 2:
-                    raise RuntimeError, "we ran out of primes in multimodular charpoly algorithm."
-                p = previous_prime(p)
-
-            X = self._charpoly_mod(p)
-            prod *= p
-            v.append(X)
-            if proof == False and len(v) % 3 == 0:
-                M = matrix(ZZ, self._base_ring.degree(), self._nrows+1)
-                L = _lift_crt(M, v)
-                if len(v) > 3 and L == L0:
-                    break
-                else:
-                    L0 = L
-            p -= 2
-
-        # Now each column of L encodes a coefficient of the output polynomial,
-        # with column 0 being the constant coefficient.
-        K = self.base_ring()
-        coeffs = [K(w.list()) for w in L.columns()]
-        R = K[var]
-        f = R(coeffs)
-
-        # Rescale to account for denominator, if necessary
-        if denom != 1:
-            x = R.gen()
-            f = f(x * denom) * (1 / (denom**f.degree()))
-
-        return f
-
     def _charpoly_multimodular(self, var='x', proof=None):
         """
-        Compute the characteristic polynomial of self using a multimodular algorithm.
+        Compute the characteristic polynomial of self using a
+        multimodular algorithm.
 
         INPUT:
-            proof -- bool (default: global flag); if False, computes
-                     until 3 successive charpoly mod p computations
-                     stabilize; always computes modulo at least 6
-                     primes.
+            proof -- bool (default: global flag); if False, compute using
+                     primes $p_i$ until the lift modulo all primes up to $p_i$
+                     is the same as the lift modulo all primes up to $p_{i+3}$
+                     or the bound is reached.
+
+        EXAMPLES:
+            sage: K.<z> = CyclotomicField(3)
+            sage: A = matrix(3, [-z, 2*z + 1, 1/2*z + 2, 1, -1/2, 2*z + 2, -2*z - 2, -2*z - 2, 2*z - 1])
+            sage: A._charpoly_multimodular()
+            x^3 + (-z + 3/2)*x^2 + (17/2*z + 9/2)*x - 9/2*z - 23/2
+            sage: A._charpoly_multimodular('T')
+            T^3 + (-z + 3/2)*T^2 + (17/2*z + 9/2)*T - 9/2*z - 23/2
+            sage: A._charpoly_multimodular('T', proof=False)
+            T^3 + (-z + 3/2)*T^2 + (17/2*z + 9/2)*T - 9/2*z - 23/2
         """
         proof = get_proof_flag(proof, "linear_algebra")
 
-        # TODO: only proof = False for now.
-        # TODO: Need to figure out how to compute a theoretical bound on the sizes
-        # of the coefficients in the charpoly
-        proof = False
-
-        # TODO: do we want self.zeta_order() or self.n()?
-        # (this only matters for n odd.)
         n = self._base_ring._n()
-        p = 45989
-        #p = previous_prime(MAX_MODULUS)
+        p = previous_prime(MAX_MODULUS)
         prod = 1
         v = []
-        denom = self.denominator()
-        A = self*denom
+        A, denom = self._matrix._clear_denom()
         bound = A._charpoly_bound()
-        #bound = self._charpoly_bound()
+        L_last = 0
         while prod < bound:
             while p % n != 1 or denom % p == 0:
                 if p == 2:
@@ -498,13 +482,18 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                 p = previous_prime(p)
 
             X = A._charpoly_mod(p)
-            #X = self._charpoly_mod(p)
             v.append(X)
             prod *= p
             p = previous_prime(p)
 
-        M = matrix(ZZ, self._base_ring.degree(), self._nrows+1)
-        L = _lift_crt(M, v)
+            # if we've used enough primes as determined by bound, or
+            # if we've used 3 primes, we check to see if the result is the same.
+            if prod >= bound or (not proof  and  (len(v) % 3 == 0)):
+                M = matrix(ZZ, self._base_ring.degree(), self._nrows+1)
+                L = _lift_crt(M, v)
+                if not proof and L == L_last:
+                    break
+                L_last = L
 
         # Now each column of L encodes a coefficient of the output polynomial,
         # with column 0 being the constant coefficient.

@@ -1771,6 +1771,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
            [    -1      2     -1]
            [     0  23/15 -14/15]
            [     0  -2/15   1/15])
+           sage: a=matrix([])
+           sage: a.frobenius(2)
+           ([], [])
+           sage: a.frobenius(0)
+           []
+           sage: a.frobenius(1)
+           []
+           sage: B = random_matrix(ZZ,2,3)
+           sage: B.frobenius()
+           Traceback (most recent call last):
+           ...
+           ArithmeticError: frobenius matrix of non-square matrix not defined.
 
         AUTHOR:
            -- 2006-04-02: Martin Albrecht

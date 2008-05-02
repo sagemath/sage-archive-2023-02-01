@@ -96,7 +96,7 @@ def integral_elements_in_box(K, C):
         19
 
         sage: sage.rings.number_field.totallyreal_rel.integral_elements_in_box(K, [[0,5],[0,5]])
-        [0, 5, 3, -alpha + 2, -alpha + 3, 1, 2, 4, alpha + 2, alpha + 3]
+        [0, 5, -alpha + 2, -alpha + 3, 1, 2, 3, 4, alpha + 2, alpha + 3]
     """
     d = K.degree()
     Z_F = K.maximal_order()

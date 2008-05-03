@@ -2,6 +2,9 @@
 export PATH=/usr/lib/sagemath/local/bin:$PATH
 export SINGULAR_DEFAULT_DIR=/usr/lib/singular
 export MATPLOTLIBDATA=/usr/share/matplotlib/mpl-data/
+if [ -z "$SAGE_TESTDIR" ]; then
+    export SAGE_TESTDIR=~/.sage/tests
+fi
 cd /usr/lib/sagemath
 exec ./sage "$@"
 

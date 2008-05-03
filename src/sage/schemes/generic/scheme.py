@@ -274,8 +274,8 @@ class Scheme(ParentWithBase):
 
     def count_points(self, n):
         r"""
-        Count points over $\mathbb{F}_q, \ldots, \mathbb{F}_{q^n}$ on
-        a scheme over a finite field $\mathbb{F}_q$.
+        Count points over $\mathbf{F}_q, \ldots, \mathbf{F}_{q^n}$ on
+        a scheme over a finite field $\mathbf{F}_q$.
 
         NOTE: This is currently only implemented for curves over prime
             order finite fields.

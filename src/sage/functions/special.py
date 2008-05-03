@@ -913,10 +913,10 @@ def inverse_jacobi(sym,x,m):
 #### elliptic integrals
 
 def elliptic_e (phi, m):
-    """
+    r"""
     This returns the value of the incomplete elliptic integral of the
     second kind,  $\int_0^\phi \sqrt(1 - m\sin(x)^2)\, dx$, ie,
-    \code{integrate(sqrt(1 - m*sin(x)^2), x, 0, phi)}. Taking
+    \code{integrate(sqrt(1 - m*sin(x)\^2), x, 0, phi)}. Taking
     $\phi = \pi/2$ gives \code{elliptic_ec}.
 
     EXAMPLES:
@@ -949,7 +949,7 @@ def elliptic_ec (m):
 
 
 def elliptic_eu (u, m):
-    """
+    r"""
     This returns the value of the incomplete elliptic integral of the
     second kind defined by $\int_0^u jacobi_dn(x,m)^2)\, dx$.
 
@@ -963,10 +963,10 @@ def elliptic_eu (u, m):
 
 
 def elliptic_f (phi, m):
-    """
+    r"""
     This returns the value of the "incomplete elliptic integral
     of the first kind", $\int_0^\phi \frac{dx}{\sqrt{1 - m\sin(x)^2}}$,
-    ie, \code{integrate(1/sqrt(1 - m*sin(x)^2), x, 0, phi)}.
+    ie, \code{integrate(1/sqrt(1 - m*sin(x)\^2), x, 0, phi)}.
     Taking $\phi = \pi/2$ gives \code{elliptic_kc}.
 
     EXAMPLES:
@@ -983,7 +983,7 @@ def elliptic_f (phi, m):
     return meval("elliptic_f(%s,%s)"%(phi,m))
 
 def elliptic_kc (m):
-    """
+    r"""
     This returns the value of the "complete elliptic integral
     of the first kind", $\int_0^{\pi/2} \frac{dx}{\sqrt{1 - m\sin(x)^2}}$.
 
@@ -998,7 +998,7 @@ def elliptic_kc (m):
     return meval("elliptic_kc(%s)"%m)
 
 def elliptic_pi (n, phi, m):
-    """
+    r"""
     This returns the value of the "incomplete elliptic integral
     of the third kind",
     $$\int_0^\phi \frac{dx}{\sqrt{(1 - m\sin(x)^2)(1 - n\sin(x)^2)}}$$.

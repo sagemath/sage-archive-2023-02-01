@@ -2992,7 +2992,7 @@ class NumberField_generic(number_field_base.NumberField):
             3*a^16 + 3*a^15 + 3*a^14 + 3*a^13 + 3*a^12 + 2*a^11 + 2*a^10 + 2*a^9 + a^8 - a^7 - 2*a^6 - 3*a^5 - 3*a^4 - 4*a^3 - 6*a^2 - 8*a - 8]
 
         The provable and the conjectural results are cached separately (this
-        fixes trac #2504):
+        fixes trac \#2504):
 
             sage: K.units(proof=True)
             Traceback (most recent call last):

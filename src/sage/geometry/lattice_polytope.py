@@ -968,7 +968,7 @@ class LatticePolytopeClass(SageObject):
             [ 1  0  0 -1]
             [ 0  1 -1  0]
 
-        But they are in the same GL(Z^n) orbit and have the same normal form:
+        But they are in the same $GL(Z^n)$ orbit and have the same normal form:
             sage: o.normal_form()
             [ 1  0  0 -1]
             [ 0  1 -1  0]
@@ -1651,7 +1651,7 @@ class LatticePolytopeClass(SageObject):
             sage: c.skeleton_points(k=0)
             [0, 1, 2, 3, 4, 5, 6, 7]
 
-        2-skeleton lists all points except for the origin (point #17):
+        2-skeleton lists all points except for the origin (point \#17):
             sage: c.skeleton_points(k=2)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 22, 23, 24, 25, 26]
 

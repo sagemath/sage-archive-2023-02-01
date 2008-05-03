@@ -1,5 +1,6 @@
 #!/usr/bin/make -f
 
+DEB_AUTO_UPDATE_DEBIAN_CONTROL = 1
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/makefile.mk
 include /usr/share/cdbs/1/rules/patchsys-quilt.mk
@@ -17,18 +18,20 @@ debian/stamp-sage-build:
 	    echo spkg/installed/$$i; \
 	done
 	touch $@
+	ln -s /usr/bin/python2.5 python
 
 clean:: sage-clean
 sage-clean::
 	rm -f debian/stamp-sage-build
 
-DEB_MAKE_ENVVARS += PYTHONHOME=/usr SAGE_DEBIAN=yes DEBIAN_RELEASE= SAGE_FORTRAN=/usr/bin/gfortran
+DEB_MAKE_ENVVARS += PYTHONHOME=/usr SAGE_DEBIAN=yes DEBIAN_RELEASE= SAGE_FORTRAN=/usr/bin/gfortran PYTHON=`pwd`/python
 DEB_MAKE_CLEAN_TARGET = distclean
 
 common-install-arch common-install-indep:: common-install-sage
 common-install-sage::
 	ln -sf /usr/bin/python2.5 local/bin/python
 	ln -sf /usr/lib/libsingular.so local/lib/
+	mkdir -p local/share
 	ln -sf /usr/share/pari local/share/
 	ln -sf /usr/lib/palp/*.x local/bin
 	rm -f spkg/standard/* # prevent disk shortage

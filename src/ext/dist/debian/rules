@@ -34,6 +34,7 @@ common-install-sage::
 	mkdir -p local/share
 	ln -sf /usr/share/pari local/share/
 	ln -sf /usr/lib/palp/*.x local/bin
+	ln -sf /usr/lib/cdd-test/* local/bin
 	rm -f spkg/standard/* # prevent disk shortage
 	mkdir -p debian/sagemath/usr/lib/sagemath/
 	mv usr/lib/python2.5 $(DEB_DESTDIR)/usr/lib/

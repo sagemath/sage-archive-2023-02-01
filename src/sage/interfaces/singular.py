@@ -451,7 +451,7 @@ class Singular(Expect):
         """
         Clear the variable named var.
         """
-        self._eval_line('if(defined(%s)>0){kill %s;}'%(var,var), wait_for_prompt=False)
+        self._eval_line('if(defined(%s)>0){kill %s;};'%(var,var), wait_for_prompt=False)
 
     def _create(self, value, type='def'):
         name = self._next_var_name()

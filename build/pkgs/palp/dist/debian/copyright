@@ -2,8 +2,8 @@ This package was debianized by Tim Abbott <tabbott@mit.edu> in 2008.
 
 It was downloaded from http://hep.itp.tuwien.ac.at/~kreuzer/CY/
 
-Upstream Author(s): Maximilian Kreuzer
-	 	    Harald Skarke
+Upstream Authors: Maximilian Kreuzer
+	 	  Harald Skarke
 
 Copyright: (C) 2002-2008 Maximilian Kreuzer and Harald Skarke
 
@@ -28,7 +28,3 @@ Public License can be found in `/usr/share/common-licenses/GPL'.
 
 The Debian packaging is (C) 2008, Tim Abbott <tabbott@mit.edu> and is
 licensed under the GPL, see above.
-
-
-# Please also look if there are files or directories which have a
-# different copyright/license attached and list them here.

@@ -28,7 +28,7 @@
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ##########################################################################
-import os, signal, sys, time, thread, threading, tempfile, pprint, shutil
+import os, signal, sys, time, thread, threading, tempfile, shutil
 
 from build.all import *
 verbose=1
@@ -330,10 +330,7 @@ def buildsage(env, gccc):
     partitions_c = GCC_extension_object(gccc, env,["devel/sage/sage/combinat/partitions_c.cc"], tempdir+"/devel/sage/build/temp/sage/combinat", language='C++', options = { '-fPIC':None } )
 
     #If we don't already have a temporary build directory for planarity, make it
-    try:
-        os.makedirs(tempdir+"/devel/sage/build/temp/sage/graphs/planarity")
-    except:
-        pass
+    safemkdirs(tempdir+"/devel/sage/build/temp/sage/graphs/planarity")
 
     #Locate all files that can possibley have
     depfw = extfilewalker()
@@ -472,19 +469,16 @@ def buildsage(env, gccc):
             filename = os.path.split(filenm)[1]
             if filename[0]=='.':
                 continue
-            try:
-                os.makedirs(newdir)
-            except:
-                pass
+            safemkdirs(newdir)
             cmd = 'cp %s %s/%s' % (filenm, newdir, filename)
             if verbose>30:
                 print cmd
             os.system( cmd )
     #Setup the site-packages symlink if it doesn't already exist
-    try:
-        os.symlink('../../../../devel/sage/build/sage','local/lib/python/site-packages/sage')
-    except:
-        pass
+    safesymlink('../../../../devel/sage/build/sage','local/lib/python/site-packages/sage')
+    #Handle DSage
+    safemkdirs('local/dsage')
+    safesymlink('../../devel/sage/sage/dsage/web', 'local/dsage/web')
 
 def sagebuild_exit():
     """

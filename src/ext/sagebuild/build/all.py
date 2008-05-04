@@ -38,3 +38,4 @@ from compilers.all import *
 from config import create_config_file, output_config_file, write_config_cache, read_config_cache
 from dependencies import *
 from compiler import ext_list_to_primary_src
+from filefunctions import safemkdirs, safesymlink

@@ -134,7 +134,7 @@ def buildsage(env, gccc):
 
     config_gcc_file(env,pyx_pextn_dict,"devel/sage/sage/libs/ntl/ntl_GF2EContext.pyx",language="C++", libraries=ntllibs)
 
-    config_gcc_file(env,pyx_pextn_dict,"devel/sage/sage/libs/mwrank/mwrank.pyx",define_macros=[("NTL_ALL",None)], libraries=["curvesntl", "g0nntl", "jcntl", "rankntl", "ntl", "gmp", "gmpxx", "stdc++", "m", "pari"] )
+    config_gcc_file(env,pyx_pextn_dict,"devel/sage/sage/libs/mwrank/mwrank.pyx", language='C++', define_macros=[("NTL_ALL",None)], libraries=["curvesntl", "g0nntl", "jcntl", "rankntl", "ntl", "gmp", "gmpxx", "stdc++", "m", "pari"] )
 
     config_gcc_file(env,pyx_pextn_dict,"devel/sage/sage/libs/pari/gen.pyx",libraries=['pari', 'gmp'])
 
@@ -318,7 +318,7 @@ def buildsage(env, gccc):
     gcceso_dict = { }
 
     #Manually create the mwrank C extension
-    mwrankcc = GCC_extension_object(gccc, env, ["devel/sage/sage/libs/mwrank/wrap.cc"], tempdir+"/devel/sage/build/temp/sage/libs/mwrank", define_macros=[("NTL_ALL",None)], options = { '-fPIC':None } )
+    mwrankcc = GCC_extension_object(gccc, env, ["devel/sage/sage/libs/mwrank/wrap.cc"], tempdir+"/devel/sage/build/temp/sage/libs/mwrank", language='C++', define_macros=[("NTL_ALL",None)], options = { '-fPIC':None } )
 
     #Create the Hypellfrob extensions
     hypellfrob_cpp = GCC_extension_object(gccc, env,["devel/sage/sage/schemes/hyperelliptic_curves/hypellfrob/hypellfrob.cpp"], tempdir+"/devel/sage/build/temp/sage/schemes/hyperelliptic_curves/hypellfrob/", language='C++', include_dirs=[abs_sage_path(env, 'sage/libs/ntl'), abs_sage_path(env,'sage/schemes/hyperelliptic_curves/hypellfrob/') ], options = { '-fPIC':None })

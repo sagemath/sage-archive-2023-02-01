@@ -314,6 +314,7 @@ class Singular(Expect):
                         eval_using_file_cutoff=1000)
         self.__libs  = []
         self._prompt_wait = prompt
+        self.__to_clear = []   # list of variable names that need to be cleared.
 
     def _start(self, alt_message=None):
         self.__libs = []
@@ -404,7 +405,14 @@ class Singular(Expect):
             sage: o = s.hilb()
 
         """
+        # Syncrhonize the interface and clear any variables that are queued up to
+        # be cleared.
         self._synchronize()
+        if len(self.__to_clear) > 0:
+            for var in self.__to_clear:
+                self._eval_line('if(defined(%s)>0){kill %s;};'%(var,var), wait_for_prompt=False)
+            self.__to_clear = []
+            self._synchronize()
 
         # Uncomment the print statements below for low-level debuging of
         # code that involves the singular interfaces.  Everything goes
@@ -451,7 +459,12 @@ class Singular(Expect):
         """
         Clear the variable named var.
         """
-        self._eval_line('if(defined(%s)>0){kill %s;};'%(var,var), wait_for_prompt=False)
+        # We add the variable to the list of vars to clear when we do an eval.
+        # We queue up all the clears and do them at once to avoid synchronizing
+        # the interface at the same time we do garbage collection, which can
+        # lead to subtle problems.    This was Willem Jan's ideas, implemented
+        # by William Stein.
+        self.__to_clear.append(var)
 
     def _create(self, value, type='def'):
         name = self._next_var_name()

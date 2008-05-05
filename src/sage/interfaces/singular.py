@@ -410,9 +410,8 @@ class Singular(Expect):
         self._synchronize()
         if len(self.__to_clear) > 0:
             for var in self.__to_clear:
-                self._eval_line('if(defined(%s)>0){kill %s;};'%(var,var), wait_for_prompt=False)
+                self._eval_line('if(defined(%s)>0){kill %s;};'%(var,var), wait_for_prompt=True)
             self.__to_clear = []
-            self._synchronize()
 
         # Uncomment the print statements below for low-level debuging of
         # code that involves the singular interfaces.  Everything goes

@@ -20,6 +20,10 @@ from matrix_modn_dense import _matrix_from_rows_of_matrices
 from sage.misc.misc import verbose
 import math
 
+from sage.rings.integer cimport Integer
+
+from sage.structure.element cimport Matrix as baseMatrix
+
 from misc import matrix_integer_dense_rational_reconstruction
 
 from sage.ext.multi_modular import MAX_MODULUS
@@ -140,10 +144,13 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             A._matrix = T * self._matrix
         return A
 
-    #cdef ModuleElement _mul_c_impl(self, RingElement right):
-    def mul(self, RingElement right, bound=int(10)**int(10)):
+    cdef baseMatrix _matrix_times_matrix_c_impl(self, baseMatrix right):
+
         A, denom_self = self._matrix._clear_denom()
         B, denom_right = (<Matrix_cyclo_dense>right)._matrix._clear_denom()
+
+        # conservative but correct estimate
+        bound = A.height() * B.height() * self._ncols
 
         n = self._base_ring._n()
         p = previous_prime(MAX_MODULUS)
@@ -158,18 +165,20 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             Amodp, _ = self._reductions(p)
             Bmodp, _ = right._reductions(p)
             _,     S = self._reduction_matrix(p)
-            X = _matrix_from_rows_of_matrices([Amodp[i] * Bmodp[i] for i in range(len(Amodp))])
+            X = _matrix_from_rows_of_matrices([Amodp[i] * Bmodp[i] for i
+                                               in range(len(Amodp))])
             v.append(S*X)
             p = previous_prime(p)
         M = matrix(ZZ, self._base_ring.degree(), self._nrows*right.ncols())
         _lift_crt(M, v)
         d = denom_self * denom_right
-        if denom_self * denom_right == 1:
+        if d == 1:
             M = M.change_ring(QQ)
         else:
             M = (1/d)*M
         cdef Matrix_cyclo_dense C = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense,
-                    MatrixSpace(self._base_ring, self._nrows, right.ncols()), None, None, None)
+                    MatrixSpace(self._base_ring, self._nrows, right.ncols()),
+                                                               None, None, None)
         C._matrix = M
         return C
 
@@ -466,13 +475,20 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: A._charpoly_multimodular('T', proof=False)
             T^3 + (-z + 3/2)*T^2 + (17/2*z + 9/2)*T - 9/2*z - 23/2
         """
+        cdef Matrix_cyclo_dense A
+        A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(),
+                                       None, None, None)
+
         proof = get_proof_flag(proof, "linear_algebra")
 
         n = self._base_ring._n()
         p = previous_prime(MAX_MODULUS)
         prod = 1
         v = []
-        A, denom = self._matrix._clear_denom()
+        #A, denom = self._matrix._clear_denom()
+        # TODO: this might be stupidly slow
+        denom = self._matrix.denominator()
+        A._matrix = <Matrix_rational_dense>(denom*self._matrix)
         bound = A._charpoly_bound()
         L_last = 0
         while prod < bound:
@@ -632,9 +648,10 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         form of self.
         """
 
+        cdef int i
         cdef Matrix_cyclo_dense res
 
-        denom = self.denominator()
+        denom = self._matrix.denominator()
         A = denom * self
 
         # TODO: max_prime is only here for debugging purposes.
@@ -646,56 +663,59 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         if height_guess is None:
             height_guess = (A.coefficient_bound()+100)*1000000
 
-        # generate primes to use
-        # TODO: I stupidly just generate 5 primes and use those.
-        # this obviously needs to change.
         p = previous_prime(max_prime)
         found = 0
         prime_ls = []
+        prime_ls_index = 0
         prod = 1
         n = self._base_ring._n()
         height_bound = self._ncols * height_guess * A.coefficient_bound() + 1
-        while found < num_primes or prod < height_bound:
-            if p%n == 1:
-                prime_ls.append(p)
-                found += 1
-                prod *= p
-            p = previous_prime(p)
-
         mod_p_ech_ls = []
         num_pivots = 0
-        for pp in prime_ls:
-            mod_p_ech, piv = A._echelon_form_one_prime(pp)
-            # if we have the identity, just return it, and
-            # we're done.
-            if mod_p_ech.is_one():
-                return mod_p_ech
-            if piv > num_pivots:
-                mod_p_ech_ls = [mod_p_ech]
-                num_pivots = piv
-            elif piv == num_pivots:
-                mod_p_ech_ls.append(mod_p_ech)
 
-        mat_over_ZZ = matrix(ZZ, self._base_ring.degree(), self._nrows * self._ncols)
-        _lift_crt(mat_over_ZZ, mod_p_ech_ls)
+        while True:
+            # generate primes to use
+            while found < num_primes or prod < height_bound:
+                if p%n == 1:
+                    prime_ls.append(p)
+                    found += 1
+                    prod *= p
+                p = previous_prime(p)
 
-        try:
-            res = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(),
-                                             None, None, None)
-            res._matrix = <Matrix_rational_dense>matrix_integer_dense_rational_reconstruction(mat_over_ZZ, prod)
+            for i from prime_ls_index <= i < num_primes:
+                mod_p_ech, piv = A._echelon_form_one_prime(prime_ls[i])
+                # if we have the identity, just return it, and
+                # we're done.
+                if mod_p_ech.is_one():
+                    return mod_p_ech
+                if piv > num_pivots:
+                    mod_p_ech_ls = [mod_p_ech]
+                    num_pivots = piv
+                elif piv == num_pivots:
+                    mod_p_ech_ls.append(mod_p_ech)
+            prime_ls_index = num_primes
 
-        except ValueError:
-            if num_primes > 100:
-                raise ValueError, "sorry buddy, i'm just tired."
-            # TODO: this is just throwing away the info constructed so far
-            return self._echelon_form_multimodular(found + 5, max_prime, height_guess)
+            mat_over_ZZ = matrix(ZZ, self._base_ring.degree(), self._nrows * self._ncols)
+            _lift_crt(mat_over_ZZ, mod_p_ech_ls)
 
-        if ((res * res.denominator()).coefficient_bound() *
-            self.coefficient_bound()) > prod:
-            # TODO: this is just throwing away the info constructed so far
-            return self._echelon_form_multimodular(found + 5, max_prime, height_guess)
+            try:
+                res = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(),
+                                                 None, None, None)
+                res._matrix = <Matrix_rational_dense>matrix_integer_dense_rational_reconstruction(mat_over_ZZ, prod)
 
-        return res
+            except ValueError:
+                # TODO: can we reuse the _lift_crt computation?
+                num_primes += 15
+                continue
+
+            if ((res * res.denominator()).coefficient_bound() *
+                self.coefficient_bound()) > prod:
+                # TODO: can we reuse the _lift_crt computation?
+                num_primes += 15
+                continue
+
+            return res
+
 
     def _echelon_form_one_prime(self, p):
 

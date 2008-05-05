@@ -2509,9 +2509,9 @@ cdef class BooleanPolynomial(MPolynomial):
 
         Evaluation of polynomials can be used fully symbolic:
 
-            sage: f(x=var('a'),y=var('b'),z=var('c'))
+            sage: f(x=var('a'),y=var('b'),z=var('c'))   # long time -- requires lots of RAM
             c + a*b + 1
-            sage: f(var('a'),var('b'),1)
+            sage: f(var('a'),var('b'),1)                # long time -- requires lots of RAM
             a*b
         """
         P = self._parent
@@ -2582,10 +2582,10 @@ cdef class BooleanPolynomial(MPolynomial):
 
             This method can work fully symbolic:
 
-            sage: f.subs(x=var('a'),y=var('b'),z=var('c'))
+            sage: f.subs(x=var('a'),y=var('b'),z=var('c'))  # long time -- requires lots of RAM
             b*c + c + a*b + 1
 
-            sage: f.subs({'x':var('a'),'y':var('b'),'z':var('c')})
+            sage: f.subs({'x':var('a'),'y':var('b'),'z':var('c')})  # long time -- requires lots of RAM
             b*c + c + a*b + 1
         """
         P = self._parent

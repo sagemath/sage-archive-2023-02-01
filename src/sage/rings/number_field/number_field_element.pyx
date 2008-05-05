@@ -1922,9 +1922,27 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
     def __repr__(self):
         K = self.number_field()
         # Compute representation of self in terms of relative vector space.
-        w = self.vector()
         R = K.base_field()[K.variable_name()]
-        return repr(R(w.list()))
+        return repr(R(self.list()))
+
+    def _latex_(self):
+        """
+        Returns the latex representation for this element.
+
+        EXAMPLES:
+            sage: C.<zeta> = CyclotomicField(12)
+            sage: PC.<x> = PolynomialRing(C)
+            sage: K.<alpha> = NumberField(x^2 - 7)
+            sage: latex((alpha + zeta)^4)
+            \left(4 \zeta_{12}^{3} + 28 \zeta_{12}\right) \alpha + 43 \zeta_{12}^{2} + 48
+            sage: PK.<y> = PolynomialRing(K)
+            sage: L.<beta> = NumberField(y^3 + y + alpha)
+            sage: latex((beta + zeta)^3)
+            3 \zeta_{12} \beta^{2} + \left(3 \zeta_{12}^{2} - 1\right) \beta + \left(-1\right) \alpha + \zeta_{12}^{3}
+        """
+        K = self.number_field()
+        R = K.base_field()[K.variable_name()]
+        return R(self.list())._latex_()
 
     def charpoly(self, var='x'):
         r"""

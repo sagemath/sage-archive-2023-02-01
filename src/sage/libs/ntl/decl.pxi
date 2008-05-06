@@ -817,6 +817,10 @@ cdef extern from "ntl_wrap.h":
     long GF2X_NumBits "NumBits" (GF2X_c a)
     long GF2X_NumBytes "NumBytes"(GF2X_c a)
 
+    #### GF2XFactoring
+    void GF2X_BuildSparseIrred "BuildSparseIrred" (GF2X_c f, long n)
+    void GF2X_BuildRandomIrred "BuildRandomIrred" (GF2X_c f, GF2X_c g)
+
     #### GF2XModulus_c
     ctypedef struct GF2XModulus_c "struct GF2XModulus":
         pass

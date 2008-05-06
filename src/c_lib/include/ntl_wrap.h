@@ -13,6 +13,7 @@
 #include <NTL/mat_poly_ZZ.h>
 #include <NTL/GF2E.h>
 #include <NTL/GF2X.h>
+#include <NTL/GF2XFactoring.h>
 #include <NTL/GF2EX.h>
 #include <NTL/mat_GF2E.h>
 #include <NTL/HNF.h>

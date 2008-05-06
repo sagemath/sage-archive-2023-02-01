@@ -103,8 +103,10 @@ def get_cython_file_deps(filenm, includelist):
     deps = [ ]
     deps.extend(_parse_file(filenm, includelist))
     try:
-        pxdfilenm = filenm.replace(".pxy",".pxd")
-        deps.extend(_parse_file(pxdfilenm, includelist))
+        pxdfilenm = filenm.replace("pyx","pxd")
+        if pxdfilenm != filenm and os.path.exists(pxdfilenm):
+            deps.extend(_parse_file(pxdfilenm, includelist))
+            deps.append(pxdfilenm)
     except:
         pass
     return list(set(deps))

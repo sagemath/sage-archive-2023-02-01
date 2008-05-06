@@ -10,7 +10,6 @@ try:
     numthreads = int(os.environ['SAGE_BUILD_THREADS'])
 except:
     pass
-print 'Building with %s threads.' % numthreads
 verbose=1
 OM = optionmanager.OM
 taskmanager.TM = taskmanager.taskmanager(numthreads)
@@ -43,6 +42,7 @@ def help_option(env,args):
   --upgrade      -- download, build and install latest non-optional SAGE packages
   --advanced     -- list more options
   --command cmd, -c        -- Evaluates cmd as sage code
+  --clean       -- Clean temporary build files
   file.[sage|py|spyx] [options] -- run given .sage, .py or .spyx files"""
     print outtext
 
@@ -51,12 +51,20 @@ def advanced_option(env, args):
 
 
 def put_header(env, args):
-    outtext = """
------------------------------------------------------------
-| Sage Parallel Build System                              |
------------------------------------------------------------
-"""
+    dashes = """-----------------------------------------------------------"""
+    print dashes
+    outthreads = str(numthreads)
+    outthreadslen = len(outthreads)
+    outspaces = str()
+    for i in range(0,11 -outthreadslen):
+        outspaces = outspaces + " "
+    if numthreads==1:
+        outthreadword = "Thread "
+    else:
+        outthreadword = "Threads"
+    outtext = "| Sage Parallel Build System           %s%s %s|""" % (outspaces, outthreads, outthreadword)
     print outtext
+    print dashes
 
 opt_sage_build = False
 opt_sage_clib = False
@@ -78,6 +86,9 @@ def build_clib_option(env, args):
     opt_sage_clib = True
     opt_TM_go = True
 
+def clean_option(env, args):
+        build_sage_clean(env)
+
 def all_option(env, args):
     global opt_sage_build, opt_sage_clib, opt_sage_all, opt_TM_go
     if verbose>10:
@@ -93,6 +104,7 @@ def all_option(env, args):
 def init():
     OM.set_default(default_option)
     OM.add_option(option( "help", [], help_option, "print this help message", "h", help_levels = [0,1]))
+    OM.add_option(option( "clean", [], clean_option, "clean temporary build files", help_levels = [1]))
     OM.add_option(option("build", [], build_option, "switch to and build Sage branch in devel/sage-branch", "b", help_levels = [1]))
     OM.add_option(option("all", [], all_option, "rebuild all Cython code and clib", "a", help_levels = [1]))
     OM.add_option(option("buildclib", [], build_clib_option, "rebuild clib", help_levels = [1]))

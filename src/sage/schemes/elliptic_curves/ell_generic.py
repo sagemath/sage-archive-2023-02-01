@@ -1479,8 +1479,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             Polynomial -- n-th torsion polynomial, which is a polynomial over
                           the base field of the elliptic curve.
 
-        SEE ALSO:
-            pseudo_torsion_polynomial()
+        SEE ALSO: full_division_polynomial
+
+        ALIASES: division_polynomial, torsion_polynomial
 
         EXAMPLES:
             sage: E = EllipticCurve([0,0,1,-1,0])
@@ -1588,6 +1589,111 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                     E.__torsion_polynomial[n] = f; return f
 
     division_polynomial = torsion_polynomial
+
+    def full_division_polynomial(self, m):
+        """
+        Return the m-th bivariate division polynomial in x and y.
+
+        For the usual division polynomial only in x, see the
+        division_polynomial function.
+
+        INPUT:
+            self -- elliptic curve in short Weierstrass form
+            m -- a positive integer
+        OUTPUT:
+            a polynomial in two variables x,y.
+
+        REFERENCE: Exercise III.3.7 of Silverman AEC 1, 1986, page 105.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([2,3])
+            sage: E.full_division_polynomial(1)
+            1
+            sage: E.full_division_polynomial(2)
+            2*y
+            sage: E.division_polynomial(2)
+            4*x^3 + 8*x + 12
+            sage: E.full_division_polynomial(3)
+            3*x^4 + 12*x^2 + 36*x - 4
+            sage: E.division_polynomial(3)
+            3*x^4 + 12*x^2 + 36*x - 4
+            sage: E.full_division_polynomial(4)
+            4*x^6*y + 40*x^4*y + 240*x^3*y - 80*x^2*y - 96*x*y - 320*y
+            sage: E.full_division_polynomial(5)
+            -27*x^12 - 324*x^10 - 972*x^9 - 1060*x^8 - 7392*x^7 - 10960*x^6 - 1440*x^5 - 21712*x^4 - 29760*x^3 - 10240*x^2 - 39360*x - 22976
+            sage: E.full_division_polynomial(6)
+            -186*x^16*y - 3168*x^14*y - 10944*x^13*y - 17248*x^12*y - 135936*x^11*y - 271232*x^10*y - 309504*x^9*y - 1440832*x^8*y - 1297920*x^7*y + 629248*x^6*y - 681984*x^5*y - 510976*x^4*y - 3176448*x^3*y - 4902912*x^2*y - 3059712*x*y + 388608*y
+        """
+        m = rings.Integer(m)
+        try:
+            return self.__divpoly2[m]
+        except AttributeError:
+            self.__divpoly2 = {}
+        except KeyError:
+            pass
+        a0,a1,a2,A,B = self.a_invariants()
+        if a0 or a1 or a2:
+            raise NotImplementedError, "Full division polynomial only implemented for elliptic curves in short Weierstrass form"
+        R = PolynomialRing(self.base_ring(), 2, 'x,y')
+
+        if m <= 1:
+            f = R(1)
+            self.__divpoly2[m] = f
+            return f
+        elif m == 2:
+            f = 2*R.gen(1)
+            self.__divpoly2[m] = f
+            return f
+        elif m == 3:
+            x,y = R.gens()
+            f = 3*x**4 + 6*A*x**2 + 12*B*x - A**2
+            self.__divpoly2[m] = f
+            return f
+        elif m == 4:
+            x,y = R.gens()
+            f = 4*y*(x**6 + 5*A*x**4 + 20*B*x**3 - 5*A**2*x**2 -
+                        4*A*B*x - 8*B**2 - A**3)
+            self.__divpoly2[m] = f
+            return f
+
+        psi = lambda k: self.full_division_polynomial(k)
+        x,y = R.gens()
+        if m % 2 == 1:
+            n = m//2
+            ans = psi(n+2) * psi(n)**3 - \
+                   psi(n-1) * psi(n+1)**3
+        elif m % 2 == 0:
+            n = m//2
+            ans = (psi(n)*(psi(n+2)*psi(n-1)**2 - \
+                      psi(n-2)*psi(n+1)**2))/(2*y)
+
+        # Replace all y^2 terms by polys in x.
+        Q = R.quotient(y**2 - A*x - B)
+        f = Q(ans).lift()
+        self.__divpoly2[m] = f
+        return f
+
+    def multiplication_by_m(self, m, x_only=False):
+        psi = lambda k: self.full_division_polynomial(k)
+        psi_m = psi(m)
+        R, (x,y) = psi_m.parent().objgens()
+
+        a0,a1,a2,A,B = self.a_invariants()
+        if a0 or a1 or a2:
+            raise NotImplementedError, "multiplication_by_m only implemented for elliptic curves in short Weierstrass form"
+        Q = R.quotient(y**2 - A*x - B)
+        def normalize(f):
+            return Q(f.numerator()).lift() / Q(f.denominator()).lift()
+
+        x = psi_m.parent().gen(0)
+        phi_m = x*psi(m)**2 - psi(m+1)*psi(m-1)
+        x_coord = normalize(phi_m / psi_m**2)
+        if x_only:
+            return x_coord
+        omega_m = (psi(m+2)*psi(m-1)**2 - psi(m-2)*psi(m+1)**2)/(4*y)
+        y_coord = normalize(omega_m / psi_m**3)
+        return x_coord, y_coord
+
 
     def isomorphism_to(self, other):
         """
@@ -1746,6 +1852,13 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def short_weierstrass_model(self, complete_cube=True):
         """
+        Return a short Weierstrass model for self.
+
+        INPUT:
+            complete_cube -- bool (default: True); for meaning, see below.
+        OUTPUT:
+            an elliptic curve
+
         If complete_cube=True:
         Return a model of the form $y^2 = x^3 + a*x + b$ for this curve.
         The characteristic must not be 2 or 3.

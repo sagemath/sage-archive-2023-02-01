@@ -28,7 +28,7 @@
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ##########################################################################
-import os, signal, sys, time, thread, threading, tempfile, pprint
+import os, signal, sys, time, thread, threading, tempfile, pprint, shutil
 
 from build.all import *
 verbose=1
@@ -67,6 +67,7 @@ def build_sage_clean(env):
         os.remove(env.options['SAGE_ROOT'] + "/sagebuild.chc")
     except:
         pass
+    shutil.rmtree('devel/sage/build', True)
 
 def buildsage(env, gccc):
     """

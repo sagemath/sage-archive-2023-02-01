@@ -249,12 +249,25 @@ class PolynomialRing_singular_repr:
 def can_convert_to_singular(R):
     """
     Returns True if this ring's base field or ring can be
-    represented in Singular.  If this is True then this polynomial
+    represented in Singular, and the polynomial ring has at
+    least one generator.  If this is True then this polynomial
     ring can be represented in Singular.
 
     The following base rings are supported: $GF(p)$, $GF(p^n)$,
     rationals, number fields, and real and complex fields.
+
+    EXAMPLES:
+        sage: from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
+        sage: can_convert_to_singular(PolynomialRing(QQ, names=['x']))
+        True
+
+        sage: can_convert_to_singular(PolynomialRing(QQ, names=[]))
+        False
+
     """
+    if R.ngens() == 0:
+        return False;
+
     base_ring = R.base_ring()
     return ( sage.rings.ring.is_FiniteField(base_ring)
              or is_RationalField(base_ring)

@@ -493,13 +493,47 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         # and think hard about what you are doing.
         return len(self.division_points(m)) > 0
 
-    def division_points(self, m):
+    def _short_division_polynomial(self, m):
+        r"""
+        Return the m-division polynomial of this point, which is a
+        polynomial in x that captures all the x-coordinates of points
+        Q such that m*Q = self ON THE SHORT WEIERSTRASS MODEL.  Except
+        in rare cases involving cancellation, these are exactly the
+        $x$-coordinates of the m-division points on the short model.
+
+        WARNING: It is highly recommended that you read the source code for
+        \code{self._division_points} before using the division polynomial.
+
+        INPUT:
+            m -- positive integer
+        OUTPUT:
+            a polynomial in a single variable x over the base field.
+
+        EXAMPLES:
+        This function is incredibly useful for, e.g., quickly deciding
+        for numerous primes p whether a point has any m-th roots
+        modulo p.
+            sage: E = EllipticCurve('389a')
+            sage: P = E.0
+            sage: f = P._short_division_polynomial(3)
+            sage: [p for p in primes(100) if len(f.change_ring(GF(p)).roots()) > 0]
+            [2, 3, 7, 11, 13, 23, 31, 37, 43, 47, 61, 67, 71, 89, 97]
+            sage: f = E.gen(1)._short_division_polynomial(3)
+            sage: [p for p in primes(100) if len(f.change_ring(GF(p)).roots()) > 0]
+            [2, 3, 7, 11, 13, 19, 23, 31, 37, 43, 47, 59, 61, 67, 71, 89, 97]
+        """
+        return self._division_points(m, poly_only=True)
+
+    def division_points(self, m, poly_only=False):
         """
         Return *all* points Q in the base field on the elliptic curve
         that contains self such that m*Q == self.
 
         INPUT:
             m -- a positive integer
+            poly_only -- bool (default: False); if True return polynomial
+                         whose roots give all possible x-coordinates of
+                         m-th roots of self.
         OUTPUT:
             a (possibly empty) list
 
@@ -551,6 +585,16 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             sage: P.division_points(5)
             [(1 : 1 : 1)]
         """
+        return self._division_points(m, poly_only=False)
+
+    def _division_points(self, m, poly_only):
+        """
+        Used internally by both division_points and
+        division_polynomial.  Returns either all the m-division points
+        of a point or if poly_only=True, return the polynomial whose
+        roots 'determine' all the x-coordinates of m-division points.
+
+        """
         # Coerce the input m to an integer
         m = rings.Integer(m)
         # Check for trivial case of m = 1.
@@ -587,6 +631,8 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
             g = f.numerator() - W[0]*f.denominator()
         R = E.base_ring()['x']
         h = R(g)
+        if poly_only:
+            return h
         for x,_ in h.roots():
             # We use *no* special tricks or shortcuts here.
             # Every time I thought of one I discovered corner

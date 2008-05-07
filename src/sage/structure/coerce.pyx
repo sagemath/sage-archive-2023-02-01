@@ -24,7 +24,9 @@ import time
 
 from sage_object cimport SageObject
 import sage.categories.morphism
+from sage.categories.morphism import IdentityMorphism
 from sage.categories.action import InverseAction, PrecomposedAction
+from parent import Set_PythonType
 
 from element import py_scalar_to_element
 
@@ -269,7 +271,7 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
         try:
             xy = self.canonical_coercion_c(x,y)
             return PyObject_CallObject(op, xy)
-        except TypeError:
+        except TypeError, msg:
 #            raise
 #            print msg
             pass
@@ -382,10 +384,79 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             return self._coercion_maps.get(R, S, None)
         except KeyError:
             homs = self.discover_coercion_c(R, S)
+            if 0:
+                # This breaks too many things that are going to change in the new coercion model anyways.
+                # COERCE TODO: Enable it then.
+                homs = self.verify_coercion_maps(R, S, homs)
             swap = None if homs is None else (homs[1], homs[0])
             self._coercion_maps.set(R, S, None, homs)
             self._coercion_maps.set(S, R, None, swap)
         return homs
+
+    cpdef verify_coercion_maps(self, R, S, homs, bint fix=False):
+        """
+        Make sure this is a valid pair of homomorphisms from R and S to a common parent.
+        This function is used to protect the user against buggy parents.
+
+        EXAMPLES:
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: homs = QQ.coerce_map_from(ZZ), None
+            sage: cm.verify_coercion_maps(ZZ, QQ, homs) == homs
+            True
+            sage: homs = QQ.coerce_map_from(ZZ), RR.coerce_map_from(QQ)
+            sage: cm.verify_coercion_maps(ZZ, QQ, homs) == homs
+            Traceback (most recent call last):
+            ...
+            RuntimeError: ('BUG in coercion model, codomains must be identical', Natural morphism:
+              From: Integer Ring
+              To:   Rational Field, Coercion morphism:
+              From: Rational Field
+              To:   Real Field with 53 bits of precision)
+        """
+        if homs is None:
+            return None
+        cdef Morphism x_map, y_map
+        R_map, S_map = homs
+        if PY_TYPE_CHECK(R, type):
+            R = Set_PythonType(R)
+        elif PY_TYPE_CHECK(S, type):
+            S = Set_PythonType(S)
+        if R_map is None:
+            R_map = IdentityMorphism(R)
+        elif S_map is None:
+            S_map = IdentityMorphism(S)
+        # Make sure the domains are correct
+        if R_map.domain() is not R:
+            if fix:
+                connecting = R_map.domain().coerce_map_from(R)
+                if connecting is not None:
+                    R_map = R_map * connecting
+            if R_map.domain() is not R:
+                raise RuntimeError, ("BUG in coercion model, left domain must be original parent", R, R_map)
+        if S_map is not None and S_map.domain() is not S:
+            if fix:
+                connecting = S_map.domain().coerce_map_from(S)
+                if connecting is not None:
+                    S_map = S_map * connecting
+            if S_map.domain() is not S:
+                raise RuntimeError, ("BUG in coercion model, right domain must be original parent", S, S_map)
+        # Make sure the codomains are correct
+        if R_map.codomain() is not S_map.codomain():
+            if fix:
+                connecting = R_map.codomain().coerce_map_from(S_map.codomain())
+                if connecting is not None:
+                    S_map = connecting * S_map
+                else:
+                    connecting = S_map.codomain().coerce_map_from(R_map.codomain())
+                    if connecting is not None:
+                        R_map = connecting * R_map
+            if R_map.codomain() is not S_map.codomain():
+                raise RuntimeError, ("BUG in coercion model, codomains must be identical", R_map, S_map)
+        if PY_TYPE_CHECK(R_map, IdentityMorphism):
+            R_map = None
+        elif PY_TYPE_CHECK(S_map, IdentityMorphism):
+            S_map = None
+        return R_map, S_map
 
     cdef discover_coercion_c(self, R, S):
         from sage.categories.homset import Hom
@@ -453,11 +524,11 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             return self._action_maps.get(R, S, op)
         except KeyError:
             action = self.discover_action_c(R, S, op)
-            self.verify_action(action, R, S, op)
+            action = self.verify_action(action, R, S, op)
             self._action_maps.set(R, S, op, action)
             return action
 
-    def verify_action(self, action, R, S, op):
+    cpdef verify_action(self, action, R, S, op, bint fix=True):
         r"""
         Verify that \code{action} takes an element of R on the left and S
         on the right, raising an error if not.
@@ -468,7 +539,7 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
             sage: R.<x> = ZZ['x']
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.verify_action(R.get_action(QQ), R, QQ, operator.mul)
-            True
+            Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring
             sage: cm.verify_action(R.get_action(QQ), RDF, R, operator.mul)
             Traceback (most recent call last):
             ...
@@ -480,9 +551,9 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
                 action = Right scalar multiplication by Rational Field on Univariate Polynomial Ring in x over Integer Ring (<type 'sage.structure.coerce.RightModuleAction'>)
         """
         if action is None:
-            return True
+            return action
         elif PY_TYPE_CHECK(action, IntegerMulAction):
-            return True
+            return action
         cdef bint ok = True
         try:
             if action.left_domain() is not R:
@@ -494,15 +565,20 @@ Original elements %r (parent %s) and %r (parent %s) and morphisms
         if not ok:
             if action.left_domain() == R and action.right_domain() == S:
                 # Non-unique parents
-                return True
-            raise RuntimeError, """There is a BUG in the coercion model:
-            Action found for R %s S does not have the correct domains
-            R = %s
-            S = %s
-            (should be %s, %s)
-            action = %s (%s)
-            """ % (op, R, S, action.left_domain(), action.right_domain(), action, type(action))
-        return ok
+                if fix:
+                    if action.left_domain() is not R:
+                        action = PrecomposedAction(action, action.left_domain().coerce_map_from(R), None)
+                    if action.right_domain() is not S:
+                        action = PrecomposedAction(action, None, action.left_domain().coerce_map_from(S))
+            if action.left_domain() is not R or action.right_domain() is not S:
+                raise RuntimeError, """There is a BUG in the coercion model:
+                Action found for R %s S does not have the correct domains
+                R = %s
+                S = %s
+                (should be %s, %s)
+                action = %s (%s)
+                """ % (op, R, S, action.left_domain(), action.right_domain(), action, type(action))
+        return action
 
     cdef discover_action_c(self, R, S, op):
 #        print "looking", R, <int><void *>R, op, S, <int><void *>S

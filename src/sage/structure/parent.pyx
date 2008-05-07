@@ -142,6 +142,8 @@ cdef class Parent(sage_object.SageObject):
             from sage.categories.homset import Hom
             from sage.categories.morphism import CallMorphism
             return CallMorphism(Hom(S, self))
+        elif isinstance(S, Set_PythonType_class):
+            return self.coerce_map_from_c(S._type)
         if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce()
         cdef object ret
@@ -639,7 +641,25 @@ class Set_generic(Parent): # Cannot use Parent because Element._parent is Parent
         return self
 
 
-class Set_PythonType(Set_generic):
+cdef _set_cache = {}
+def Set_PythonType(t):
+    """
+    The set of all object of a given type. This is primarily used to fit
+    types (such as int, float, list) into the coercion model (as domains
+    and codomains must be Sage Parents).
+
+    EXAMPLES:
+        sage: from sage.structure.parent import Set_PythonType
+        sage: Set_PythonType(int) is Set_PythonType(int)
+        True
+    """
+    try:
+        return _set_cache[t]
+    except KeyError:
+        _set_cache[t] = s = Set_PythonType_class(t)
+        return s
+
+class Set_PythonType_class(Set_generic):
 
     def __init__(self, theType):
         self._type = theType
@@ -651,7 +671,9 @@ class Set_PythonType(Set_generic):
         return hash(self._type)
 
     def __cmp__(self, other):
-        if isinstance(other, Set_PythonType):
+        if self is other:
+            return 0
+        if isinstance(other, Set_PythonType_class):
             return cmp(self._type, other._type)
         else:
             return cmp(self._type, other)

@@ -22,9 +22,11 @@ cdef class CoercionModel_cache_maps(CoercionModel_original):
 
     cdef coercion_maps_c(self, R, S)
     cdef discover_coercion_c(self, R, S)
+    cpdef verify_coercion_maps(self, R, S, homs, bint fix=*)
 
     cdef get_action_c(self, R, S, op)
     cdef discover_action_c(self, R, S, op)
+    cpdef verify_action(self, action, R, S, op, bint fix=*)
 
 cdef class CoercionModel_profile(CoercionModel_cache_maps):
     cdef object profiling_info

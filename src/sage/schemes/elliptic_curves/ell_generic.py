@@ -1841,7 +1841,6 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             y_coord = normalize(omega_m / psi_m**3)
         return x_coord, y_coord
 
-
     def isomorphism_to(self, other):
         """
         Given another weierstrass model \code{other} of self, return a morphism

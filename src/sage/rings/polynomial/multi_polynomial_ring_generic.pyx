@@ -190,7 +190,21 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             return False
 
     def _repr_(self):
-        return "Multivariate Polynomial Ring in %s over %s"%(", ".join(self.variable_names()), self.base_ring())
+        """
+        Return string representation of this object.
+
+        EXAMPLE:
+            sage: PolynomialRing(QQ, names=[])
+            Multivariate Polynomial Ring in no variables over Rational Field
+
+            sage: PolynomialRing(QQ, names=['x', 'y'])
+            Multivariate Polynomial Ring in x, y over Rational Field
+        """
+        if self.ngens() == 0:
+            generators_rep = "no variables"
+        else:
+            generators_rep = ", ".join(self.variable_names())
+        return "Multivariate Polynomial Ring in %s over %s"%(generators_rep, self.base_ring())
 
     def repr_long(self):
         """

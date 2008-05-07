@@ -2191,6 +2191,9 @@ def Hasse_bounds(q, genus=1):
        sage: Hasse_bounds(next_prime(10^30))
        (999999999999998000000000000058, 1000000000000002000000000000058)
     """
-    rq = 2*genus*q.isqrt()
+    if genus==1:
+        rq = (4*q).isqrt()
+    else:
+        rq = (4*(genus**2)*q).isqrt()
     return (q+1-rq,q+1+rq)
 

@@ -340,6 +340,10 @@ class MPolynomialIdeal_singular_repr:
             sage: I == R.ideal()
             True
 
+            sage: R = PolynomialRing(QQ, names=[])
+            sage: R.ideal(0) == R.ideal(0)
+            True
+
             sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
             sage: I = (x^3 + y, y)*R
             sage: J = (x^3 + y, y, y*x^3 + y^2)*R

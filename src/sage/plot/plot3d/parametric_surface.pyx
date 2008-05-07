@@ -115,6 +115,18 @@ cdef class ParametricSurface(IndexFaceSet):
     def default_render_params(self):
         return RenderParams(ds=.075, crease_threshold=.35)
 
+    def x3d_geometry(self):
+        """
+        TESTS:
+            sage: _ = var('x,y')
+            sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
+            sage: s = P.x3d_str()
+            sage: s[:100]
+            "<Shape>\n<IndexedFaceSet coordIndex='0,1,..."
+        """
+        self.triangulate(self.default_render_params())
+        return IndexFaceSet.x3d_geometry(self)
+
     def tachyon_repr(self, render_params):
         self.triangulate(render_params)
         return IndexFaceSet.tachyon_repr(self, render_params)

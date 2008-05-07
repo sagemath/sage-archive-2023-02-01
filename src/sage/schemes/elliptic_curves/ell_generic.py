@@ -1590,27 +1590,38 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     division_polynomial = torsion_polynomial
 
-    def full_division_polynomial(self, m):
+    def full_division_polynomial(self, m, use_divpoly=True):
         """
-        Return the m-th bivariate division polynomial in x and y.
+        Return the $m$-th bivariate division polynomial in $x$ and
+        $y$.  When $m$ is odd this is exactly the same as the usual
+        $m$th division polynomial.
 
-        For the usual division polynomial only in x, see the
+        For the usual division polynomial only in $x$, see the
         division_polynomial function.
 
         INPUT:
             self -- elliptic curve in short Weierstrass form
-            m -- a positive integer
+            m    -- a positive integer
+            use_divpoly -- whether to call the division_polynomial
+                           function directly in case $m$ is odd.
         OUTPUT:
-            a polynomial in two variables x,y.
+            a polynomial in two variables $x$, $y$.
+
+        NOTE: The result is cached.
 
         REFERENCE: Exercise III.3.7 of Silverman AEC 1, 1986, page 105.
 
         EXAMPLES:
+        We create a curve and compute the first two full division
+        polynomials.
             sage: E = EllipticCurve([2,3])
             sage: E.full_division_polynomial(1)
             1
             sage: E.full_division_polynomial(2)
             2*y
+
+        Note that for odd input the full division polynomial is
+        just the usual division polynomial, but not for even input:
             sage: E.division_polynomial(2)
             4*x^3 + 8*x + 12
             sage: E.full_division_polynomial(3)
@@ -1618,80 +1629,216 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.division_polynomial(3)
             3*x^4 + 12*x^2 + 36*x - 4
             sage: E.full_division_polynomial(4)
-            4*x^6*y + 40*x^4*y + 240*x^3*y - 80*x^2*y - 96*x*y - 320*y
+            4*y*x^6 + 40*y*x^4 + 240*y*x^3 - 80*y*x^2 - 96*y*x - 320*y
             sage: E.full_division_polynomial(5)
-            -27*x^12 - 324*x^10 - 972*x^9 - 1060*x^8 - 7392*x^7 - 10960*x^6 - 1440*x^5 - 21712*x^4 - 29760*x^3 - 10240*x^2 - 39360*x - 22976
-            sage: E.full_division_polynomial(6)
-            -186*x^16*y - 3168*x^14*y - 10944*x^13*y - 17248*x^12*y - 135936*x^11*y - 271232*x^10*y - 309504*x^9*y - 1440832*x^8*y - 1297920*x^7*y + 629248*x^6*y - 681984*x^5*y - 510976*x^4*y - 3176448*x^3*y - 4902912*x^2*y - 3059712*x*y + 388608*y
+            5*x^12 + 124*x^10 + 1140*x^9 - 420*x^8 + 1440*x^7 - 4560*x^6 - 8352*x^5 - 36560*x^4 - 45120*x^3 - 10240*x^2 - 39360*x - 22976
+
+        TESTS:
+        We test that the full division polynomial as computed using
+        the recurrence agrees with the norml division polynomial for
+        a certain curve and all odd $n$ up to $23$:
+
+            sage: E = EllipticCurve([23,-105])
+            sage: for n in [1,3,..,23]:
+            ...       assert E.full_division_polynomial(n, use_divpoly=False) == E.division_polynomial(n)
         """
+        # Coerce the input m to be an integer
         m = rings.Integer(m)
+
+        # Check whether the corresponding poly is cached already
         try:
             return self.__divpoly2[m]
         except AttributeError:
             self.__divpoly2 = {}
         except KeyError:
             pass
+
+        # Get the invariants of the curve and make sure that the curve is
+        # in short Weierstrass form.
         a0,a1,a2,A,B = self.a_invariants()
         if a0 or a1 or a2:
             raise NotImplementedError, "Full division polynomial only implemented for elliptic curves in short Weierstrass form"
-        R = PolynomialRing(self.base_ring(), 2, 'x,y')
 
+        # Define the polynomial ring that will contain the full
+        # division polynomial.  The one subtle point here is the
+        # term order use of the variable y first.  This is done
+        # so the natural reduction in the quotient ring mod y^2 - x^3 - A*x - B
+        # replaces all y^2's by polys in x.  WARNING: Be careful
+        # that the gens are in the order y, x!
+        R, (y,x) = PolynomialRing(self.base_ring(), 2, 'y,x', order='revlex').objgens()
+
+        # In case m is odd we can just use the usual division
+        # polynomial code.  Note however that we are careful to coerce
+        # into the multivariate polynomial ring, since the usual div
+        # poly code returns a polynomial in one variable.  If we did
+        # that here it would lead to all kinds of problems later.
+        if use_divpoly and m % 2 == 1:
+            return R(self.division_polynomial(m))
+
+        # Do each case of the recurrence, exactly as in
+        # Silverman's exercise in III.3.7 on page 105.
         if m <= 1:
             f = R(1)
             self.__divpoly2[m] = f
             return f
         elif m == 2:
-            f = 2*R.gen(1)
+            f = 2*y
             self.__divpoly2[m] = f
             return f
         elif m == 3:
-            x,y = R.gens()
             f = 3*x**4 + 6*A*x**2 + 12*B*x - A**2
             self.__divpoly2[m] = f
             return f
         elif m == 4:
-            x,y = R.gens()
             f = 4*y*(x**6 + 5*A*x**4 + 20*B*x**3 - 5*A**2*x**2 -
                         4*A*B*x - 8*B**2 - A**3)
             self.__divpoly2[m] = f
             return f
 
-        psi = lambda k: self.full_division_polynomial(k)
-        x,y = R.gens()
+        # Finally we do the general part of the recurrence which
+        # divides into even and odd cases.
+        # We define psi to just be this full_division_polynomial function
+        # evaluated at a given integer k.  This makes the code below
+        # more readable.
+        psi = lambda k: self.full_division_polynomial(k,use_divpoly=use_divpoly)
         if m % 2 == 1:
             n = m//2
-            ans = psi(n+2) * psi(n)**3 - \
-                   psi(n-1) * psi(n+1)**3
+            ans = psi(n+2) * psi(n)**3 - psi(n-1) * psi(n+1)**3
         elif m % 2 == 0:
             n = m//2
-            ans = (psi(n)*(psi(n+2)*psi(n-1)**2 - \
-                      psi(n-2)*psi(n+1)**2))/(2*y)
+            ans = (psi(n)*(psi(n+2)*psi(n-1)**2 - psi(n-2)*psi(n+1)**2))/(2*y)
 
-        # Replace all y^2 terms by polys in x.
-        Q = R.quotient(y**2 - A*x - B)
+        # Create the affine quotient ring so that we can replace all y^2
+        # terms by polys in x.
+        Q = R.quotient(y**2 - x**3 - A*x - B)
+
+        # Do the actual reduction and lift back to R.
         f = Q(ans).lift()
+
+        # Cache the result and return it.
         self.__divpoly2[m] = f
         return f
 
     def multiplication_by_m(self, m, x_only=False):
+        """
+        Return the multiplication-by-m map from self to self as a rational
+        function.
+
+        INPUT:
+            self -- an elliptic curve in short Weierstrass form
+            m -- a positive integer
+            x_only -- bool (default: False) if True, return only the x
+                      coordinate of the map.
+
+        OUTPUT:
+            2-tuple -- (f(x), g(x,y)) where f and g are rational functions
+                       with the degree of y in g(x,y) at most 1.
+
+        NOTE: The result is not cached.
+
+        EXAMPLES:
+        We create an elliptic curve.
+            sage: E = EllipticCurve([-1,3])
+
+        We verify that multiplication by 1 is just the identity:
+            sage: E.multiplication_by_m(1)
+            (x, y)
+
+        Multiplication by 2 is more complicated.
+            sage: f = E.multiplication_by_m(2)
+            sage: f
+            ((x^4 + 2*x^2 - 24*x + 1)/(4*x^3 - 4*x + 12), (2*x^6 - 10*x^4 + 120*x^3 - 10*x^2 + 24*x - 142)/(16*y*x^3 - 16*y*x + 48*y))
+
+        Grab only the x-coordinate (less work):
+            sage: E.multiplication_by_m(2, x_only=True)
+            (x^4 + 2*x^2 - 24*x + 1)/(4*x^3 - 4*x + 12)
+
+        We check that it works on a point:
+            sage: P = E([2,3])
+            sage: f[0].subs(x=2,y=3)
+            -23/36
+            sage: f[1].subs(x=2,y=3)
+            397/216
+            sage: 2*P
+            (-23/36 : 397/216 : 1)
+
+        We do the same but with multiplication by 3:
+            sage: f = E.multiplication_by_m(3)
+            sage: f[0].subs(x=2,y=3)
+            -10534/9025
+            sage: f[1].subs(x=2,y=3)
+            -1376361/857375
+            sage: 3*P
+            (-10534/9025 : -1376361/857375 : 1)
+
+        And the same with multiplication by 4:
+            sage: f = E.multiplication_by_m(4)
+            sage: f[0].subs(x=2,y=3)
+            29084737/22695696
+            sage: f[1].subs(x=2,y=3)
+            -211407941663/108122295744
+            sage: 4*P
+            (29084737/22695696 : -211407941663/108122295744 : 1)
+
+        TESTS:
+        Verify for this fairly random looking curve and point that
+        multiplication by m returns the right result for the first 10
+        integers.
+            sage: E = EllipticCurve([23,-105])
+            sage: P = E([129/4, 1479/8])
+            sage: for n in [1..10]:
+            ...       f = E.multiplication_by_m(n)
+            ...       Q = n*P
+            ...       assert f[0].subs(x=P[0],y=P[1]) == Q[0] and f[1].subs(x=P[0],y=P[1]) == Q[1]
+        """
+        # Define a function psi that returns the full bivariate division polynomial
+        # psi(k) for this elliptic curve.   We do this for simplicity of notation
+        # below.
         psi = lambda k: self.full_division_polynomial(k)
         psi_m = psi(m)
-        R, (x,y) = psi_m.parent().objgens()
 
+        # Grab the multivariate polynomial ring that contains the full division
+        # polynomial.  NOTE the generators order y,x rather than x,y!
+        R, (y,x) = psi_m.parent().objgens()
+
+        # Special case of multiplication by 1 is easy.
+        if m == 1:
+            return (x, y)
+
+        # Grab curve invariants and make sure the curve is in short Weierstrass form.
+        # (It would be desirable to extend this function to work with
+        # arbitrary models -- not just short ones.)
         a0,a1,a2,A,B = self.a_invariants()
         if a0 or a1 or a2:
             raise NotImplementedError, "multiplication_by_m only implemented for elliptic curves in short Weierstrass form"
-        Q = R.quotient(y**2 - A*x - B)
+
+        # Form the affine coordinate ring, which we'll use only for getting
+        # rid of terms involving y^2.
+        Q = R.quotient(y**2 - x**3 - A*x - B)
         def normalize(f):
             return Q(f.numerator()).lift() / Q(f.denominator()).lift()
 
-        x = psi_m.parent().gen(0)
+        # Write down the x coordinate using the formula in
+        # Silverman AEC Ex III.3.7, page 105.
         phi_m = x*psi(m)**2 - psi(m+1)*psi(m-1)
         x_coord = normalize(phi_m / psi_m**2)
         if x_only:
+            # Return it if the optional parameter x_only is set.
             return x_coord
-        omega_m = (psi(m+2)*psi(m-1)**2 - psi(m-2)*psi(m+1)**2)/(4*y)
-        y_coord = normalize(omega_m / psi_m**3)
+
+        if m == 2:
+            # The formula from Silverman III.3.7 given in the other
+            # case of the else is *wrong*.  I guess he made a mistake
+            # and ignored a special case.  In any case, the following
+            # formula from my elementary number theory book (which
+            # is from Lenstra's ECM paper, actually), is right.
+            lam = (3*x**2 + A)/(2*y)
+            y_coord = normalize(-lam*x_coord - (y - lam*x))
+        else:
+            # Silverman's formula, which works for m > 2 for
+            # the y coordinate.
+            omega_m = (psi(m+2)*psi(m-1)**2 - psi(m-2)*psi(m+1)**2)/(4*y)
+            y_coord = normalize(omega_m / psi_m**3)
         return x_coord, y_coord
 
 

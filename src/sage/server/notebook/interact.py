@@ -13,7 +13,8 @@ notebook.
 
 AUTHORS:
     -- William Stein (2008-03-02): version 1.0 at Sage/Enthought Days 8 in Texas
-    -- Jason Grout (2008-03): discussion, and first few prototypes
+    -- Jason Grout (2008-03): discussion and first few prototypes
+    -- Jason Grout (2008-05): input_grid control
 """
 
 """
@@ -144,6 +145,7 @@ import types
 # Sage libraries
 from sage.misc.all import srange, sage_eval
 from sage.plot.misc import Color
+from sage.structure.element import is_Matrix
 
 # SAGE_CELL_ID is a module scope variable that is always set equal to
 # the current cell id (of the executing cell).  Code that sets this is
@@ -568,6 +570,123 @@ class ColorInput(InputBox):
                      change=self.interact(0), input_change=self.interact(1),
                      default=self.default_value().html_color())
 
+
+
+class InputGrid(InteractControl):
+    def __init__(self, var, rows, columns, default_value=None, label=None, to_value=lambda x: x, width=4):
+        """
+        A grid interact control.
+
+        INPUT
+            var -- the variable
+            rows -- the number of rows
+            columns -- the number of columns
+            default_value -- if this is a scalar, it is put in every
+                cell; if it is a list, it is filled into the cells row by
+                row; if it is a nested list, then it is filled into the
+                cells according to the nesting structure.
+            label -- the label for the control
+            to_value -- a function which is applied to the nested list
+                from user input when assigning the variable
+            width -- the width of the input boxes
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.InputGrid('M', 2,2, default_value = 0, label='M')
+            A 2 x 2 InputGrid interactive control with M=[[0, 0], [0, 0]] and label 'M'
+            sage: sage.server.notebook.interact.InputGrid('M', 2,2, default_value = [[1,2],[3,4]], label='M')
+            A 2 x 2 InputGrid interactive control with M=[[1, 2], [3, 4]] and label 'M'
+            sage: sage.server.notebook.interact.InputGrid('M', 2,2, default_value = [[1,2],[3,4]], label='M', to_value=MatrixSpace(ZZ,2,2))
+            A 2 x 2 InputGrid interactive control with M=[1 2]
+            [3 4] and label 'M'
+            sage: sage.server.notebook.interact.InputGrid('M', 1, 3, default_value=[1,2,3], to_value=lambda x: vector(flatten(x)))
+            A 1 x 3 InputGrid interactive control with M=(1, 2, 3) and label 'M'
+        """
+
+        self.__rows = rows
+        self.__columns = columns
+        self.__to_value = to_value
+        self.__width = width
+
+        if type(default_value) != list:
+            default_value = [[default_value for _ in range(columns)] for _ in range(rows)]
+        elif not all(type(elt)==list for elt in default_value):
+            default_value = [[default_value[i*columns+j] for j in xrange(columns)] for i in xrange(rows)]
+
+        self.__default_value_grid = default_value
+
+        InteractControl.__init__(self, var, self.__to_value(default_value), label)
+
+    def __repr__(self):
+        """
+        String representation of an InputGrid interactive control.
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.InputGrid('M', 2,2).__repr__()
+            "A 2 x 2 InputGrid interactive control with M=[[None, None], [None, None]] and label 'M'"
+        """
+
+        return 'A %r x %r InputGrid interactive control with %s=%r and label %r'%( self.__rows,
+                                self.__columns, self.var(),  self.default_value(), self.label())
+
+
+    def _adaptor(self, value, globs):
+        """
+        Adapt a user input, which is the text they enter, to be an
+        element selected by this control.
+
+        INPUT:
+            value -- text entered by user
+            globs -- the globals interpreter variables (not used here).
+
+        OUTPUT:
+            object
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.InputGrid('M', 1,3, default_value=[[1,2,3]], to_value=lambda x: vector(flatten(x)))._adaptor("[[4,5,6]]", globals())
+            (4, 5, 6)
+        """
+
+        return self.__to_value(sage_eval(value, globs))
+
+    def value_js(self):
+        """
+        Return javascript string that will give the value of this
+        control element.
+
+        OUTPUT:
+             string -- javascript
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.InputGrid('M', 2,2).value_js()
+            ' "[["+jQuery(this).parents("table").eq(0).find("tr").map(function(){return jQuery(this).find("input").map(function() {return jQuery(this).val();}).get().join(",");}).get().join("],[")+"]]" '
+        """
+        # Basically, given an input element in a table, it constructs
+        # a python string representation of a list of lists from the
+        # rows in the table.
+
+        return """ "[["+jQuery(this).parents("table").eq(0).find("tr").map(function(){return jQuery(this).find("input").map(function() {return jQuery(this).val();}).get().join(",");}).get().join("],[")+"]]" """
+
+    def render(self):
+        """
+        Render this control as a string.
+
+        OUTPUT:
+             string -- html format
+
+        EXAMPLES:
+            sage: sage.server.notebook.interact.InputGrid('M', 1,2).render()
+            '<table><tr><td><input type=\'text\' value=\'None\' ...
+
+        """
+        table = "<table>"
+        for i in range(self.__rows):
+            table += "<tr>"
+            for j in range(self.__columns):
+                table += "<td><input type='text' value='%s' size='%s' onchange='%s'></input></td>"%(self.__default_value_grid[i][j], self.__width, self.interact())
+            table += "</tr>"
+        table += "</table>"
+
+        return table
 
 
 
@@ -1093,6 +1212,7 @@ def interact(f):
         \item u = Color('blue') -- a 2d RGB color selector; returns Color object
         \item u = (default, v)  -- v as above, with given default value
         \item u = (label, v)    -- v as above, with given label (a string)
+        \item u = matrix        -- an input_grid with to_value set to matrix.parent() and the default values given by the matrix
     \end{itemize}
 
     WARNING: Suppose you would like to make a interactive with a
@@ -1239,6 +1359,17 @@ def interact(f):
         ...     f = (k^u*(1+cos(v))*cos(u), k^u*(1+cos(v))*sin(u), k^u*sin(v)-a*k_2^u)
         ...     show(parametric_plot3d(f, (u,0,6*pi), (v,0,2*pi), plot_points=[40,40], texture=(0,0.5,0)))
         <html>...
+
+    An input grid:
+        sage: @interact
+        ... def _(A=matrix(QQ,3,3,range(9)), v=matrix(QQ,3,1,range(3))):
+        ...     try:
+        ...         x = A\v
+        ...         html('$$%s %s = %s$$'%(latex(A), latex(x), latex(v)))
+        ...     except:
+        ...         html('There is no solution to $$%s x=%s$$'%(latex(A), latex(v)))
+        <html>...
+
     """
 
     (args, varargs, varkw, defaults) = inspect.getargspec(f)
@@ -1413,6 +1544,98 @@ class input_box(control):
             return ColorInput(var, default_value=self.__default, label=self.label(), type=self.__type)
         else:
             return InputBox(var, default_value=self.__default, label=self.label(), type=self.__type)
+
+
+class input_grid(control):
+    def __init__(self, rows, columns, default=None, label=None, to_value=lambda x: x, width=4):
+        r"""
+        An input grid interactive control.  Use this in conjunction
+        with the interact command.
+
+        INPUT:
+            default -- object; the default put in this input box
+            label -- the label rendered to the left of the box.
+            to_value -- the grid output (list of rows) is sent through
+            this function.  This may reformat the data or coerce the
+            type.
+            width -- size of each input box in characters
+
+        NOTEBOOK EXAMPLE:
+            @interact
+            def _(m = input_grid(2,2, default = [[1,7],[3,4]],
+                                 label='M=', to_value=matrix),
+                  v = input_grid(2,1, default=[1,2],
+                                 label='v=', to_value=matrix)):
+                try:
+                    x = m\v
+                    html('$$%s %s = %s$$'%(latex(m), latex(x), latex(v)))
+                except:
+                    html('There is no solution to $$%s x=%s$$'%(latex(m), latex(v)))
+
+
+        EXAMPLES:
+            sage: input_grid(2,2, default = 0, label='M')
+            Interact 2 x 2 input grid control labeled M with default value 0
+            sage: input_grid(2,2, default = [[1,2],[3,4]], label='M')
+            Interact 2 x 2 input grid control labeled M with default value [[1, 2], [3, 4]]
+            sage: input_grid(2,2, default = [[1,2],[3,4]], label='M', to_value=MatrixSpace(ZZ,2,2))
+            Interact 2 x 2 input grid control labeled M with default value [[1, 2], [3, 4]]
+            sage: input_grid(1, 3, default=[[1,2,3]], to_value=lambda x: vector(flatten(x)))
+            Interact 1 x 3 input grid control labeled None with default value [[1, 2, 3]]
+
+        """
+        self.__default = default
+        self.__rows = rows
+        self.__columns = columns
+        self.__to_value = to_value
+        self.__width = width
+        control.__init__(self, label)
+
+    def __repr__(self):
+        """
+        Return print representation of this input box.
+
+        EXAMPLES:
+            sage: input_grid(2,2, label='M').__repr__()
+            'Interact 2 x 2 input grid control labeled M with default value None'
+
+        """
+
+        return 'Interact %r x %r input grid control labeled %s with default value %s'%( self.__rows,
+                                self.__columns, self.label(),  self.default())
+
+
+    def default(self):
+        """
+        Return the default value of this input grid.
+
+        EXAMPLES:
+            sage: input_grid(2,2, default=1).default()
+            1
+        """
+        return self.__default
+
+
+    def render(self, var):
+        r"""
+        Return rendering of this input grid as an InputGrid to be used
+        for an interact canvas.  Basically this specializes this
+        input to be used for a specific function and variable.
+
+        INPUT:
+            var -- a string (variable; one of the variable names input to f)
+
+        OUTPUT:
+            InputGrid -- an InputGrid object.
+
+        EXAMPLES:
+            sage: input_grid(2,2).render('x')
+            A 2 x 2 InputGrid interactive control with x=[[None, None], [None, None]] and label 'x'
+
+        """
+        return InputGrid(var, rows=self.__rows, columns=self.__columns, default_value=self.__default, label=self.label(), to_value=self.__to_value, width=self.__width)
+
+
 
 class checkbox(input_box):
     def __init__(self, default=True, label=None):
@@ -1766,6 +1989,8 @@ def automatic_control(default):
         Slider: None [1--|1|---100]
         sage: sage.server.notebook.interact.automatic_control((5, (1..100)))
         Slider: None [1--|5|---100]
+        sage: sage.server.notebook.interact.automatic_control(matrix(2,2))
+        Interact 2 x 2 input grid control labeled None with default value [0, 0, 0, 0]
     """
     label = None
     default_value = None
@@ -1799,6 +2024,8 @@ def automatic_control(default):
             C = slider(default[0], default[1], default[2], default=default_value, label=label)
         else:
             C = slider(list(default), default=default_value, label=label)
+    elif is_Matrix(default):
+        C = input_grid(default.nrows(), default.ncols(), default=default.list(), to_value=default.parent())
     else:
         C = input_box(default, label=label)
 

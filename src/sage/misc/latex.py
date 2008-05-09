@@ -426,8 +426,8 @@ def jsmath(x, mode='display'):
 def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
          sep='$$ $$', tiny=False,  center=False, **kwds):
     """
-    Compute a latex representation of each object in objects, compile, and display
-    using xdvi.  (Requires latex and xdvi be installed.)
+    Compute a latex representation of each object in objects, compile, and
+    display using xdvi. (Requires latex and xdvi be installed.)
 
     NOTE: In notebook mode this function simply embeds a png image
     in the output and doesn't do any of the following.
@@ -454,14 +454,19 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
     else:
         s = _latex_file_(objects, title=title, expert=expert,
                      debug=debug, sep=sep, tiny=tiny, center=center)
-
+    from sage.misc.viewer import dvi_viewer
+    viewer = dvi_viewer()
     SAGE_ROOT = os.environ['SAGE_ROOT']
     tmp = tmp_dir('sage_viewer')
     open('%s/sage.tex'%tmp,'w').write(s)
     os.system('ln -sf %s/devel/doc/commontex/macros.tex %s'%(SAGE_ROOT, tmp))
     O = open('%s/go'%tmp,'w')
     #O.write('export TEXINPUTS=%s/doc/commontex:.\n'%SAGE_ROOT)
-    O.write('latex \\\\nonstopmode \\\\input{sage.tex}; xdvi -noscan -offsets 0.3 -paper 100000x100000 -s %s sage.dvi ; rm sage.* macros.* go ; cd .. ; rmdir %s'%(zoom,tmp))
+    # O.write('latex \\\\nonstopmode \\\\input{sage.tex}; xdvi -noscan -offsets 0.3 -paper 100000x100000 -s %s sage.dvi ; rm sage.* macros.* go ; cd .. ; rmdir %s'%(zoom,tmp))
+
+    # Added sleep 1 to allow viewer to open the file before it gets removed
+    # Yi Qiang 2008-05-09
+    O.write('latex \\\\nonstopmode \\\\input{sage.tex}; %s sage.dvi ; sleep 1 rm sage.* macros.* go ; cd .. ; rmdir %s' % (viewer, tmp))
     O.close()
     if not debug:
         direct = '1>/dev/null 2>/dev/null'

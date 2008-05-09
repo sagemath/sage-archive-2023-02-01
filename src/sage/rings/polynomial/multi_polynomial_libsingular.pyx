@@ -635,16 +635,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         _p = p_NSet(co.sa2si(element,_ring), _ring)
         return co.new_MP(self,_p)
 
-    def _repr_(self):
-        """
-        EXAMPLE:
-            sage: P.<x,y> = QQ[]
-            sage: P # indirect doctest
-            Multivariate Polynomial Ring in x, y over Rational Field
-        """
-        varstr = ", ".join([ rRingVar(i,self._ring)  for i in range(self.__ngens) ])
-        return "Multivariate Polynomial Ring in %s over %s"%(varstr,self._base)
-
     def ngens(self):
         """
         Returns the number of variables in self.

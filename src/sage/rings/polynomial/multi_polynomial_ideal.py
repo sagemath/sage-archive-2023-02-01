@@ -1946,10 +1946,17 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.homogenize(y)
             Ideal (x^2*y + y^3 + y^2*z, x*y) of Multivariate
             Polynomial Ring in x, y, z over Finite Field of size 2
+
+
+           sage: I = Ideal([x^2*y + z^3 + y^2*x, x + y^2 + 1])
+	   sage: I.homogenize()
+	   Ideal (x^2*y + x*y^2 + z^3, y^2 + x*h + h^2) of
+	   Multivariate Polynomial Ring in x, y, z, h over Finite
+	   Field of size 2
         """
-        I = ([f.homogenize(var) for f in self.gens()])
-        P = I[0].parent()
-        return P.ideal(I)
+        I = [f.homogenize(var) for f in self.gens()]
+        P = max(I, key=lambda x: x.parent().ngens()).parent()
+        return P.ideal([P(f) for f in I])
 
     def is_homogeneous(self):
         r"""

@@ -2681,19 +2681,24 @@ class bernstein_polynomial_factory_ar(bernstein_polynomial_factory):
             sage: bpf = bernstein_polynomial_factory_ar(p, True)
             sage: str(bpf.bernstein_polynomial(-20))
             '<IBP: ((-2965821, -2181962, -1542880, -1048576) + [0 .. 1)) * 2^-20>'
+            sage: p = x^2 - 1
+            sage: bpf = bernstein_polynomial_factory_ar(p, False)
+            sage: str(bpf.bernstein_polynomial(-10))
+            '<IBP: ((-1024, 0, 1024) + [0 .. 1)) * 2^-10>'
         """
         res = (ZZ ** len(self.coeffs))(0)
         max_err = 0
 
         for i in range(len(self.coeffs)):
-            intv_c = RealIntervalField(max(self.sizes[i] - scale_log2 + 4, 4))(self.coeffs[i])
+            intv_c = RealIntervalField(max(self.sizes[i] - scale_log2 + 6, 6))(self.coeffs[i])
             if scale_log2 < 0:
                 intv_c = intv_c << (-scale_log2)
             else:
                 intv_c = intv_c >> scale_log2
 
+            # Compute lower and upper such that lower <= intv_c < upper
             lower = intv_c.lower().floor()
-            upper = intv_c.upper().ceil()
+            upper = intv_c.upper().floor() + 1
 
             res[i] = lower
             max_err = max(max_err, upper - lower)

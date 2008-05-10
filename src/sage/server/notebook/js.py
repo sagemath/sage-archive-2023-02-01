@@ -1188,6 +1188,8 @@ function worksheet_list_button_callback(status, response_text) {
         if (response_text != '') {
             alert(response_text);
         }
+    } else {
+        alert("Error applying function to worksheet(s)." + response_text);
     }
     window.location.reload(true);
 }

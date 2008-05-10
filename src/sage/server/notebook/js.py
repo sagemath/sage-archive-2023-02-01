@@ -1703,6 +1703,10 @@ function send_cell_input(id) {
     cell = get_cell(id)
     if(cell == null) return;
 
+    // When the input changes we set the CSS to indicate that
+    // the cell with this new text has not been evaluated.
+    cell_set_not_evaluated(id);
+
     async_request(worksheet_command('eval'), generic_callback, "save_only=1&id="+id+"&input="+escape0(cell.value));
 }
 
@@ -2041,7 +2045,9 @@ function cell_input_key_event(id, e) {
     // An actual non-controlling character was sent, which means this cell has changed.
     // When the cursor leaves the cell, we'll use this to know to send the changed
     // version back to the server.
-    cell_has_changed = true;
+    // We do still have to account for the arrow keys which don't change the text.
+    if (! (key_up_arrow(e) || key_down_arrow(e) || key_menu_right(e) || key_menu_left(e)) )
+        cell_has_changed = true;
     return true;
 }
 

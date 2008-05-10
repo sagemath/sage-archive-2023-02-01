@@ -455,6 +455,9 @@ class Cell(Cell_generic):
             except AttributeError:
                 pass
 
+        # We have updated the input text so the cell can't have
+        # been evaluated.
+        self.__evaluated = False
         self.__version = 1+self.version()
         self.__in = input
         if hasattr(self, '_html_cache'):

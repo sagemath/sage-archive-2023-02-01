@@ -2259,7 +2259,8 @@ function join_cell(id) {
     whitespace, in which case the output is the output of the first
     cell.  We do this since a common way to delete a cell is to empty
     its input, then hit backspace.  It would be very confusing if the
-    output of the second cell were retained.
+    output of the second cell were retained.  WARNING: Backspace
+    on the first cell if empty deletes it.
 
     INPUT:
         id -- integer cell id.
@@ -2268,17 +2269,34 @@ function join_cell(id) {
         etc., and updates the server on this change.
     */
     var id_prev = id_of_cell_delta(id, -1);
-    if(id_prev == id) return;
-
     var cell = get_cell(id);
+
+    // The top cell is a special case.  Here we delete the top cell
+    // if it is empty.  Otherwise, we simply return doing nothing.
+    if(id_prev == id) {
+        // yes, top cell
+        if (is_whitespace(cell.value)) {
+            // Special case -- deleting the first cell in a worksheet and its whitespace
+            // get next cell
+            var cell_next = get_cell(id_of_cell_delta(id,1));
+            // put cursor on next one
+            cell_next.focus();
+            // delete this cell
+            cell_delete(id);
+            return;
+        } else {
+            return;
+        }
+    }
+
     var cell_prev = get_cell(id_prev);
 
     // We delete the cell above the cell with given id except in the
     // one case when the cell with id has empty input, in which case
     // we just delete that cell.
     if (is_whitespace(cell.value)) {
-        cell_delete(id);
         cell_prev.focus();
+        cell_delete(id);
         return;
     }
 
@@ -2288,8 +2306,8 @@ function join_cell(id) {
     // bottom cell.
     var val_prev = cell_prev.value;
 
-    cell_delete(id_prev);
     cell.focus();
+    cell_delete(id_prev);
 
     // The following is so that joining two cells keeps a newline
     // between the input contents.

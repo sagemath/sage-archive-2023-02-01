@@ -25,10 +25,10 @@ This is SAGE -- open source mathematical software.
 5) SAGE should pop up in a window.
 6) For the graphical notebook, type
      notebook()
-   and follow the directions, which are to open firefox or safari (your choice)
+   You might have to open Firefox or Safari (your choice)
    to the URL
        http://localhost:8000
-   If you are on a single user machine, using inotebook() is a little easier.
+   to use Sage on your computer.
 7) Email
       http://groups.google.com/group/sage-support
    with any questions.

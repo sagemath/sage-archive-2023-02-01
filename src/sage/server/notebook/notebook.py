@@ -62,6 +62,7 @@ class Notebook(SageObject):
         if isinstance(dir, basestring) and len(dir) > 0 and dir[-1] == "/":
             dir = dir[:-1]
         self.__dir = dir
+        self.__absdir = os.path.abspath(dir)
 
         self.__server_pool = server_pool
         self.set_system(system)
@@ -80,6 +81,12 @@ class Notebook(SageObject):
         self.__admins = []
         self.__conf = server_conf.ServerConfiguration()
 
+        # Install this copy of the notebook in twist.py as *the*
+        # global notebook object used for computations.  This is
+        # mainly to avoid circular references, etc.  This also means
+        # only one notebook can actually be used at any point.
+        import sage.server.notebook.twist
+        sage.server.notebook.twist.notebook = self
 
     def _migrate_worksheets(self):
         v = []
@@ -112,6 +119,34 @@ class Notebook(SageObject):
             print "the objects and worksheets directories in your Sage notebook, as"
             print "they are no longer used.  Do this now or never."
 
+    def delete(self):
+        """
+        Delete all files related to this notebook.
+
+        This is used for doctesting mainly.  This command
+        is obviously *VERY* dangerous to use on a notebook
+        you actually care about.  You could easily lose
+        all data.
+
+        EXAMPLES:
+            sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: os.listdir('notebook-test')
+            ['backups', 'nb.sobj', 'objects', 'worksheets']
+            sage: nb.delete()
+
+        Now the directory is gone.
+            sage: os.listdir('notebook-test')
+            Traceback (most recent call last):
+            ...
+            OSError: [Errno 2] No such file or directory: 'notebook-test'
+        """
+        try:
+            dir = self.__absdir
+        except AttributeErrro:
+            dir = self.__dir
+        import shutil
+        shutil.rmtree(dir)
+
     ##########################################################
     # Users
     ##########################################################
@@ -123,7 +158,7 @@ class Notebook(SageObject):
             passwd -- a string
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: n.create_default_users('password')
             Creating default users.
             sage: list(sorted(n.users().iteritems()))
@@ -138,7 +173,7 @@ class Notebook(SageObject):
             WARNING: User 'admin' already exists -- and is now being replaced.
             sage: list(sorted(n.passwords().iteritems()))
             [('_sage_', 'aaQSqAReePlq6'), ('admin', 'aajH86zjeUSDY'), ('guest', 'aaQSqAReePlq6'), ('pub', 'aaQSqAReePlq6')]
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         print "Creating default users."
         self.add_user('pub', '', '', account_type='user', force=True)
@@ -151,7 +186,7 @@ class Notebook(SageObject):
         Return whether or not a user exists given a username.
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: n.create_default_users('password')
             Creating default users.
             sage: n.user_exists('admin')
@@ -162,7 +197,7 @@ class Notebook(SageObject):
             False
             sage: n.user_exists('guest')
             True
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         return username in self.users()
 
@@ -171,12 +206,12 @@ class Notebook(SageObject):
         Returns dictionary of users in a notebook.
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: n.create_default_users('password')
             Creating default users.
             sage: list(sorted(n.users().iteritems()))
             [('_sage_', _sage_), ('admin', admin), ('guest', guest), ('pub', pub)]
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         try:
             return self.__users
@@ -190,7 +225,7 @@ class Notebook(SageObject):
         a notebook.
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: n.create_default_users('password')
             Creating default users.
             sage: n.user('admin')
@@ -199,7 +234,7 @@ class Notebook(SageObject):
             ''
             sage: n.user('admin')._User__password
             'aajfMKNH1hTm2'
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         if '/' in username:
             raise ValueError
@@ -437,7 +472,7 @@ class Notebook(SageObject):
         files associated with the worksheets that are in the trash.
 
         EXAMPLES:
-            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
             sage: W.move_to_trash('sage')
@@ -446,7 +481,7 @@ class Notebook(SageObject):
             sage: n.empty_trash('sage')
             sage: n.worksheet_names()
             []
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         X = self.get_worksheets_with_viewer(username)
         X = [W for W in X if W.is_trashed(username)]
@@ -464,14 +499,14 @@ class Notebook(SageObject):
 
         EXAMPLES:
         We make a new notebook with two users and two worksheets, then list their names:
-            sage: n = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: n = sage.server.notebook.notebook.Notebook(tmp_dir())
             sage: n.add_user('sage','sage','sage@sagemath.org',force=True)
             sage: W = n.new_worksheet_with_title_from_text('Sage', owner='sage')
             sage: n.add_user('wstein','sage','wstein@sagemath.org',force=True)
             sage: W2 = n.new_worksheet_with_title_from_text('Elliptic Curves', owner='wstein')
             sage: n.worksheet_names()
             ['sage/0', 'wstein/0']
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         W = self.__worksheets.keys()
         W.sort()

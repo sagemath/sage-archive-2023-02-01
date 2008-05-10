@@ -3434,6 +3434,39 @@ function show_all() {
     async_request(worksheet_command('show_all'));
 }
 
+function delete_all_output() {
+    /*
+    Delete the contents of every output cell in the worksheet (in the DOM) then
+    send a message back to the server recording that we deleted all cells, so
+    if we refresh the browser or visit the page with another browser,
+    etc., the cells are still deleted.
+
+    Things that could go wrong:
+         1. Message to server to actually do the delete is not received or fails.
+            Not so bad, since no data is lost; a mild inconvenience.
+         2. User accidently clicks on delete all.  There is no confirm dialog.
+            Not so bad, since we save a revision right before the delete all, so
+            they can easily go back to the previous version.
+    */
+    var v = cell_id_list;
+    var n = v.length;
+    var i, id;
+    /* Iterate over each cell in the worksheet. */
+    for(i=0; i<n; i++) {
+        id = v[i];
+        /* First delete the actual test from the output of each cell. */
+        get_element('cell_output_' + id).innerHTML = "";
+        get_element('cell_output_nowrap_' + id).innerHTML = "";
+        get_element('cell_output_html_' + id).innerHTML = "";
+        /* Then record that the cell hasn't been evaluated and produced that output. */
+        cell_set_not_evaluated(id);
+    }
+    /* Finally tell the server to do the actual delete.
+       We first delete from DOM then contact the server for maximum
+       snappiness of the user interface. */
+    async_request(worksheet_command('delete_all_output'));
+}
+
 function halt_active_cells() {
     /*
     Set all cells so they do not look like they are being evaluates or

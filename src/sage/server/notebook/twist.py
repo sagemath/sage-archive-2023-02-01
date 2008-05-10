@@ -1,5 +1,5 @@
 r"""
-\sage Notebook (Twisted Version)
+The Sage Notebook Twisted Web Server
 """
 
 #############################################################################
@@ -1124,6 +1124,16 @@ class Worksheet_show_all(WorksheetResource, resource.Resource):
         self.worksheet.show_all()
         return http.Response(stream='success')
 
+
+# Delete all the output of cells in a worksheet.
+class Worksheet_delete_all_output(WorksheetResource, resource.Resource):
+    def render(self, ctx):
+        try:
+            self.worksheet.delete_all_output(self.username)
+        except ValueError:
+            return http.Response(stream='fail')
+        return http.Response(stream='success')
+
 class Worksheet_print(WorksheetResource, resource.Resource):
     def render(self, ctx):
         s = notebook.worksheet_html(self.name, do_print=True)
@@ -1274,7 +1284,7 @@ class EmptyTrash(resource.Resource):
         Finally we verify that the trashed worksheet is gone:
             sage: n.worksheet_names()
             []
-            sage: import shutil; shutil.rmtree('notebook-test')
+            sage: n.delete()
         """
         notebook.empty_trash(self.username)
         return http.Response(stream = message("Trash emptied."))

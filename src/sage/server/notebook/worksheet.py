@@ -2187,19 +2187,12 @@ class Worksheet:
         if s.startswith("%cython") or s.startswith("%pyrex") or s.startswith("%sagex"):  # a block of Cython code.
             return True, self.cython_import(after_first_word(s).lstrip(), C)
 
-        i = s.find('\n')
-        if i == -1:
-            # nothing to evaluate
-            return True, ''
-        j = s.find(' ')
-        if j == -1:
-            j = i
-        else:
-            j = min(i,j)
-        sys = s[1:j]
-        s = s[i+1:]
-        cmd = self._eval_cmd(sys, s, os.path.abspath(C.directory()))
-        if sys == 'html':
+        # Determine system = the system doing the computation, e.g., %magma, and
+        #           code_to_eval = the code to feed to the system via .eval.
+        system = first_word(s)[1:]     # get rid of the percent sign.
+        code_to_eval = after_first_word(s)
+        cmd = self._eval_cmd(system, code_to_eval, os.path.abspath(C.directory()))
+        if system == 'html':
             C.set_is_html(True)
         return True, cmd
 

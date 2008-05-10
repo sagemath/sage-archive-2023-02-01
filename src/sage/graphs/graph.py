@@ -5161,8 +5161,10 @@ class GenericGraph(SageObject):
                         bdy_verts.append(v)
                     else:
                         int_verts.append(v)
-                vertex_colors['#ffffff'] = bdy_verts
-                vertex_colors['#999999'] = int_verts
+                vertex_colors['#fec7b8'] = int_verts
+                vertex_colors['#b3e8ff'] = bdy_verts
+            else:
+                vertex_colors={'#fec7b8': self.vertices()}
         if pos is None and layout is None and heights is None:
             if not self._pos is None:
                 pos = self._pos

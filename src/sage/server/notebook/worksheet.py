@@ -963,7 +963,7 @@ class Worksheet:
  <option title="Select a worksheet function" value="" selected>Action...</option>
  <option title="Interrupt currently running calculations, if possible" value="interrupt();">Interrupt</option>
  <option title="Restart the worksheet process" value="restart_sage();">Restart worksheet</option>
- <option title="Quit the worksheet process" value="quit_sage();">Quit worksheet</option>
+ <option title="Quit the worksheet process" value="save_worksheet_and_close();">Save and quit worksheet</option>
  <option value="">---------------------------</option>
  <option title="Evaluate all input cells in the worksheet" value="evaluate_all();">Evaluate All</option>
  <option title="Hide all output" value="hide_all();">Hide All Output</option>

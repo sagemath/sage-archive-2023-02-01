@@ -1159,7 +1159,7 @@ function worksheet_list_button(action) {
     filenames = "";
 
     // Concatenate the list of all worksheet filenames that are checked
-    // togethers separated by the separator string.
+    // together separated by the separator string.
     for(i=0; i<worksheet_filenames.length; i++) {
         id = worksheet_filenames[i];
         X  = get_element(id);
@@ -1188,8 +1188,6 @@ function worksheet_list_button_callback(status, response_text) {
         if (response_text != '') {
             alert(response_text);
         }
-    } else {
-        alert("Failure deleting worksheet." + response_text);
     }
     window.location.reload(true);
 }
@@ -1217,6 +1215,12 @@ function archive_button() {
     worksheet_list_button("/send_to_archive");
 }
 
+function quit_worksheets_button() {
+    /*
+    Saves and then quits sage process for each checked worksheet.
+    */
+    worksheet_list_button("/send_to_quit");
+}
 
 function history_window() {
     /*

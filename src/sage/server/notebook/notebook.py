@@ -1152,6 +1152,8 @@ class Notebook(SageObject):
             else:
                 s += '&nbsp;&nbsp;<button onClick="make_active_button();" title="Move the selected worksheets out of the trash">Undelete</button>'
 
+            s += '&nbsp;&nbsp;<button onClick="quit_worksheets_button();" title="Quit selected worksheets">Quit</button>'
+
             s += '<span>'
             s += '&nbsp;'*10
             #s += '<a class="control" href="/pub" title="Browse everyone\'s published worksheets">Published Worksheets</a>'
@@ -1196,7 +1198,7 @@ class Notebook(SageObject):
             k += '<td class="entry">%s</td>'%self.html_check_col(w, user, pub)
             name = self.html_worksheet_link(w, pub)
             if w.compute_process_has_been_started():
-                name = '(active) %s'%name
+                name = '(running) %s'%name
             if w.is_active(user):
                 k += '<td class="worksheet_link">%s</td>'%name
             else:

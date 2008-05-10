@@ -918,7 +918,7 @@ class Worksheet:
         return """
 
         <a  title="Print this worksheet" class="usercontrol" onClick="print_worksheet()"><img border=0 src="/images/icon_print.gif" alt="Print">Print</a>
-        <a class="%s" title="Interactively use this worksheet" onClick="edit_worksheet();">Use</a>
+        <a class="%s" title="Interactively use this worksheet" onClick="edit_worksheet();">Worksheet</a>
         <a class="%s" title="Edit text version of this worksheet" href="edit">Edit</a>
         <a class="%s" title="View plain text version of this worksheet" href="text">Text</a>
         <a class="%s" href="revisions" title="View changes to this worksheet over time">Undo</a>

@@ -34,9 +34,6 @@ from sage.ext.multi_modular import MAX_MODULUS
 
 from sage.structure.proof.proof import get_flag as get_proof_flag
 
-#TODO: only here for debugging
-import time
-
 cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     ########################################################################
     # LEVEL 1 functionality
@@ -134,7 +131,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         """
         Set the ij-th entry of self to value.
 
-        WARNING: As the name suggests there is no bounds or type
+        WARNING: As the name suggests, there is no bound or type
         checking.  Expect errors, segfaults, etc., if you give bad
         input!!  This is for internal use only.
 
@@ -149,7 +146,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [                 a             -2/3*a -a^3 - a^2 - a - 1]
         """
         # The i,j entry is the (i * self._ncols + j)'th column.
-        # TODO: This could be made way faster via direct access to the underlying matrix
+        # TODO: This could be made way faster via direct access to the
+        # underlying matrix
         cdef Py_ssize_t k, c
         v = value.list()
         c = i * self._ncols + j
@@ -172,13 +170,14 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             9939208341
         """
         # The i,j entry is the (i * self._ncols + j)'th column.
-        # TODO: This could be made way faster via direct access to the underlying matrix
+        # TODO: This could be made way faster via direct access to the
+        # underlying matrix
         return self.base_ring()(self._matrix.column(i*self._ncols + j).list())
 
     def _pickle(self):
         """
-        Used for pickling matrices.  This function returns the underlying
-        data and pickle version.
+        Used for pickling matrices. This function returns the
+        underlying data and pickle version.
 
         OUTPUT:
             data -- output of pickle
@@ -239,7 +238,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         Return the sum of two dense cyclotomic matrices.
 
         INPUT:
-            self, right -- dense cyclotomic matrices with the same parents
+            self, right -- dense cyclotomic matrices with the same
+                           parents
         OUTPUT:
             a dense cyclotomic matrix
 
@@ -264,7 +264,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         Return the difference of two dense cyclotomic matrices.
 
         INPUT:
-            self, right -- dense cyclotomic matrices with the same parents
+            self, right -- dense cyclotomic matrices with the same
+                           parent
         OUTPUT:
             a dense cyclotomic matrix
 
@@ -328,8 +329,10 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         Return the product of two cyclotomic dense matrices.
 
         INPUT:
-            self, right -- cyclotomic dense matrices with compatible parents (same base ring,
-                           and compatible dimensions for matrix multiplication).
+            self, right -- cyclotomic dense matrices with compatible
+                           parents (same base ring, and compatible
+                           dimensions for matrix multiplication).
+
         OUTPUT:
             cyclotomic dense matrix
 
@@ -389,8 +392,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
     def __richcmp__(Matrix self, right, int op):
         """
-        Compare a matrix with something else.
-        This immediately calls a base class _richcmp.
+        Compare a matrix with something else. This immediately calls
+        a base class _richcmp.
 
         EXAMPLES:
             sage: W.<z> = CyclotomicField(5)
@@ -428,7 +431,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
     def __hash__(self):
         """
-        Return hash of an immutable matrix.  Raise a TypeError if input
+        Return hash of an immutable matrix. Raise a TypeError if input
         matrix is mutable.
 
         EXAMPLES:
@@ -449,7 +452,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
     cdef int _cmp_c_impl(self, Element right) except -2:
         """
-        Implements comparison of two cyclotomic matrices with identical parents.
+        Implements comparison of two cyclotomic matrices with
+        identical parents.
 
         INPUT:
             self, right -- matrices with same parent
@@ -545,9 +549,9 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             ...
             ValueError: matrix is immutable; please change a copy instead (use self.copy()).
 
-        Note that there is no function to set a matrix to be mutable again, since such
-        a function would violate the whole point.  Instead make a copy, which is always
-        mutable by default.
+        Note that there is no function to set a matrix to be mutable
+        again, since such a function would violate the whole point.
+        Instead make a copy, which is always mutable by default.
             sage: A.set_mutable()
             Traceback (most recent call last):
             ...
@@ -587,8 +591,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         Return the denominator of the entries of this matrix.
 
         OUTPUT:
-            integer -- the smallest integer d so that d * self has entries
-                       in the ring of integers
+            integer -- the smallest integer d so that d * self has
+                       entries in the ring of integers
 
         EXAMPLES:
             sage: W.<z> = CyclotomicField(5)
@@ -726,14 +730,16 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         # This is an approximation to 2^(5/6*log_2(5) - 2/3*log_2(6))
         alpha = 1.15799718800731
-        # This is 2*e^(1-(2(7\gamma-4))/(13(3-2\gamma))), where \gamma is
-        # Euler's constant.
+        # This is 2*e^(1-(2(7\gamma-4))/(13(3-2\gamma))), where \gamma
+        # is Euler's constant.
         delta = 5.418236
 
         B = self.coefficient_bound()
 
         # this bound is only valid for n >= 4, use naive bounds
-        # in other cases
+        # in other cases.
+        # TODO: should charpoly just hardcode the return value for
+        # self.nrows() < 4?
         if self._nrows > 3:
             return ZZ(int(math.ceil((alpha * self._nrows * B**2)**(self._nrows/2.0))))
         elif self._nrows == 3:
@@ -743,43 +749,21 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         else:
             return B
 
-        # This is the code for computing the bound from Lemma 2.2
-        # of the paper. I don't get it: this bound seems to always
-        # be *much* worse than the one from Lemma 2.1 ... why would
-        # you want this bound? Or did I screw something up? I checked
-        # a few examples by hand, and seemed to be correctly computing
-        # the bound in the paper ...
-
-#         D = ZZ(int(math.ceil((math.sqrt(1+2*delta*self._nrows*(B**2))-1)/(delta*B**2))))
-
-#         # TODO: we don't check anything about overflows anywhere here;
-#         # should we?
-
-#         # i = 0 case
-#         i = 0
-#         M = ZZ(int(math.ceil((self._nrows * B**2)**(self._nrows/2.0))))
-#         for i from 1 <= i < D:
-#             val = ZZ(int(math.ceil(binomial(self._nrows, i) *
-#                                    ((self._nrows-i)*B**2)**((n-i)/2.0))))
-#             if val > M:
-#                 M = val
-
-#         other_bound = ZZ(int(math.ceil((alpha * self._nrows * B)**(self._nrows/2.0))))
-#         return min(M, other_bound)
-
-
-
     def charpoly(self, var='x', algorithm="multimodular", proof=None):
         r"""
         Return the characteristic polynomial of self, as a polynomial
         over the base ring.
 
         INPUT:
-            algorithm -- 'multimodular' (default): reduce modulo primes,
-                                        compute charpoly mod p, and lift (very fast)
-                         'pari': use pari (quite slow; comparable to Magma v2.14 though)
-                         'hessenberg': put matrix in Hessenberg form (double dog slow)
-            proof -- bool (default: None)  proof flag determined by global linalg proof.
+            algorithm -- 'multimodular' (default): reduce modulo
+                                        primes, compute charpoly mod
+                                        p, and lift (very fast)
+                         'pari': use pari (quite slow; comparable to
+                                        Magma v2.14 though)
+                         'hessenberg': put matrix in Hessenberg form
+                                        (double dog slow)
+            proof -- bool (default: None) proof flag determined by
+                                          global linalg proof.
 
         OUTPUT:
             polynomial
@@ -811,8 +795,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             f = self._charpoly_hessenberg(var)
         else:
             raise ValueError, "unknown algorithm '%s'"%algorithm
-        # TODO: Caching commented out only for testing.
-        #self.cache(key, f)
+        self.cache(key, f)
         return f
 
     def _charpoly_mod(self, p):
@@ -863,10 +846,11 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         multimodular algorithm.
 
         INPUT:
-            proof -- bool (default: global flag); if False, compute using
-                     primes $p_i$ until the lift modulo all primes up to $p_i$
-                     is the same as the lift modulo all primes up to $p_{i+3}$
-                     or the bound is reached.
+            proof -- bool (default: global flag); if False, compute
+                     using primes $p_i$ until the lift modulo all
+                     primes up to $p_i$ is the same as the lift modulo
+                     all primes up to $p_{i+3}$ or the bound is
+                     reached.
 
         EXAMPLES:
             sage: K.<z> = CyclotomicField(3)
@@ -906,7 +890,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             p = previous_prime(p)
 
             # if we've used enough primes as determined by bound, or
-            # if we've used 3 primes, we check to see if the result is the same.
+            # if we've used 3 primes, we check to see if the result is
+            # the same.
             if prod >= bound or (not proof  and  (len(v) % 3 == 0)):
                 M = matrix(ZZ, self._base_ring.degree(), self._nrows+1)
                 L = _lift_crt(M, v)
@@ -931,8 +916,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
     def _reductions(self, p):
         """
-        Compute the reductions modulo all primes over p of denom*self, where
-        denom is the denominator of self.
+        Compute the reductions modulo all primes over p of denom*self,
+        where denom is the denominator of self.
 
         INPUT:
             p -- a prime that splits completely in the base cyclotomic field.
@@ -1027,8 +1012,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
     def echelon_form(self, algorithm='multimodular'):
         """
-        Find the echelon form of self, using the specified
-        algorithm.
+        Find the echelon form of self, using the specified algorithm.
 
         The result is cached for each algorithm separately.
 
@@ -1065,15 +1049,14 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         self.cache(key, E)
         return E
 
-    def _echelon_form_multimodular(self, num_primes=5, max_prime=None, height_guess=None):
+    def _echelon_form_multimodular(self, num_primes=5, height_guess=None):
         """
-        Use a multimodular algorithm to find the echelon
-        form of self.
+        Use a multimodular algorithm to find the echelon form of self.
 
         INPUT:
             num_primes -- number of primes to work modulo
-            max_prime -- largest prime to use
-            height_guess -- guess on height of answer.
+            height_guess -- guess for the height of the echelon form
+                            of self
 
         OUTPUT:
             matrix in reduced row echelon form
@@ -1093,16 +1076,13 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         denom = self._matrix.denominator()
         A = denom * self
 
-        # TODO: max_prime is only here for debugging purposes.
-        if max_prime is None:
-            max_prime = MAX_MODULUS
-
-        # TODO: i basically copied this from matrix_rational_dense
-        # ... we should think about it, at the very least.
+        # This bound is chosen somewhat arbitrarily.
         if height_guess is None:
             height_guess = (A.coefficient_bound()+100)*1000000
 
-        p = previous_prime(max_prime)
+        # This is all setup to keep track of various data
+        # in the loop below.
+        p = previous_prime(MAX_MODULUS)
         found = 0
         prime_ls = []
         prime_ls_index = 0
@@ -1111,9 +1091,10 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         height_bound = self._ncols * height_guess * A.coefficient_bound() + 1
         mod_p_ech_ls = []
         num_pivots = 0
+        pivot_ls = []
 
         while True:
-            # generate primes to use
+            # Generate primes to use.
             while found < num_primes or prod < height_bound:
                 if p%n == 1:
                     prime_ls.append(p)
@@ -1121,6 +1102,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                     prod *= p
                 p = previous_prime(p)
 
+            # Now find the echelon form mod those primes.
             for i from prime_ls_index <= i < num_primes:
                 mod_p_ech, piv = A._echelon_form_one_prime(prime_ls[i])
                 # if we have the identity, just return it, and
@@ -1130,29 +1112,42 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                 if piv > num_pivots:
                     mod_p_ech_ls = [mod_p_ech]
                     num_pivots = piv
+                    pivot_ls = mod_p_ech.pivots()
                 elif piv == num_pivots:
                     mod_p_ech_ls.append(mod_p_ech)
             prime_ls_index = num_primes
 
+            # Use CRT to lift back to ZZ
             mat_over_ZZ = matrix(ZZ, self._base_ring.degree(), self._nrows * self._ncols)
             _lift_crt(mat_over_ZZ, mod_p_ech_ls)
 
+            # Attempt to use rational reconstruction to find
+            # our echelon form
             try:
                 res = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(),
                                                  None, None, None)
                 res._matrix = <Matrix_rational_dense>matrix_integer_dense_rational_reconstruction(mat_over_ZZ, prod)
 
             except ValueError:
+                # If a ValueError is raised here, it means that the
+                # rational reconstruction failed. In this case, add
+                # on a few more primes, and try again.
+
                 # TODO: can we reuse the _lift_crt computation?
                 num_primes += 15
                 continue
 
             if ((res * res.denominator()).coefficient_bound() *
                 self.coefficient_bound()) > prod:
+                # In this case, we don't know the result to sufficient
+                # "precision" (here precision is just the modulus, prod)
+                # to guarantee its correctness, so loop.
+
                 # TODO: can we reuse the _lift_crt computation?
                 num_primes += 15
                 continue
 
+            self.cache('pivots', pivot_ls)
             return res
 
 
@@ -1175,18 +1170,18 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             ([1 0 4 0 1 2]
             [0 0 3 0 0 4], 2)
         """
-
         cdef Matrix_cyclo_dense res
 
+        # Initialize variables
         is_square = self._nrows == self._ncols
-
         ls, denom = self._reductions(p)
-
         ech_ls = []
         most_pivots = 0
-        longest_pivot_ls = []
-        longest_pivot_index_ls = []
 
+        # For each reduction of self (i.e. for each prime of
+        # self.base_ring() over p), compute the echelon form, and
+        # keep track of all reductions which have the largest
+        # number of pivots seen so far.
         for i in range(len(ls)):
             ech = ls[i].echelon_form()
             piv = ech.pivots()
@@ -1196,7 +1191,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             if len(piv) > most_pivots:
                 most_pivots = len(piv)
 
-        #return ech_ls, longest_pivot_ls, longest_pivot_index_ls
+
+        # Now, just lift back to ZZ and return it.
 
         # TODO: coercion going on here
         reduction = matrix(ZZ, len(ech_ls), self._nrows * self._ncols,

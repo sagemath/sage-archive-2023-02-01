@@ -132,7 +132,6 @@ from real_double cimport RealDoubleElement
 
 from real_rqdf import QuadDoubleElement, RQDF
 
-import sage.rings.complex_field
 import sage.rings.rational_field
 
 import sage.rings.infinity
@@ -159,8 +158,9 @@ def mpfr_prec_min():
     """
     return MPFR_PREC_MIN
 
-MY_MPFR_PREC_MAX = 16777216
+cdef int MY_MPFR_PREC_MAX = 16777216
 def mpfr_prec_max():
+    global MY_MPFR_PREC_MAX
     # lots of things in mpfr *crash* if we use MPFR_PREC_MAX!
     # So don't.   Using 2**24 seems to work well. (see above)
     return MY_MPFR_PREC_MAX
@@ -237,6 +237,7 @@ cdef class RealField(sage.rings.ring.Field):
     """
 
     def __init__(self, int prec=53, int sci_not=0, rnd="RNDN"):
+        global MY_MPFR_PREC_MAX
         cdef RealNumber rn
         if prec < MPFR_PREC_MIN or prec > MY_MPFR_PREC_MAX:
             raise ValueError, "prec (=%s) must be >= %s and <= %s."%(
@@ -469,6 +470,7 @@ cdef class RealField(sage.rings.ring.Field):
         """
         Return complex field of the same precision.
         """
+        import sage.rings.complex_field
         return sage.rings.complex_field.ComplexField(self.prec())
 
     def algebraic_closure(self):
@@ -1879,6 +1881,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return complex(float(self))
 
     def _complex_number_(self):
+        import sage.rings.complex_field
         return sage.rings.complex_field.ComplexField(self.prec())(self)
 
     def _pari_(self):

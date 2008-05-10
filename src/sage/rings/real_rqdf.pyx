@@ -59,20 +59,23 @@ include '../ext/cdefs.pxi'
 include '../ext/interrupt.pxi'
 include 'mpfr.pxi'
 
+from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
+from sage.rings.real_mpfr cimport RealNumber
+
+from sage.structure.parent_base cimport ParentWithBase
+
 import operator
 
 cdef extern from "solaris_fix.h": pass
 
 from sage.misc.sage_eval import sage_eval
 
-import sage.rings.complex_double
-import sage.rings.complex_field
+# if we don't import anything, cython complains with
+# "undeclared name not builtin: sage"
+import sage.rings
 
-from sage.rings.integer import Integer
-from sage.rings.rational import Rational
-from sage.rings.real_mpfr import RealNumber
 from sage.rings.real_double import RealDoubleElement
-from sage.rings.complex_field import ComplexField
 
 _R = None
 def RR():
@@ -81,13 +84,6 @@ def RR():
         from real_mpfr import RealField
         _R = RealField(212)
     return _R
-
-from sage.rings.integer cimport Integer
-from sage.rings.rational cimport Rational
-from sage.rings.real_mpfr cimport RealNumber
-
-from sage.structure.parent_base cimport ParentWithBase
-from sage.structure.parent_gens cimport ParentWithGens
 
 cdef qd *qd_from_mpz(mpz_t z):
     cdef double d[4]
@@ -1267,6 +1263,7 @@ cdef class QuadDoubleElement(FieldElement):
         if not extend:
             raise ValueError, "negative number %s does not have a square root in the real quad double field"%self
 
+        from sage.rings.complex_field import ComplexField
         return ComplexField(212)(self).sqrt(all=all)
 
 

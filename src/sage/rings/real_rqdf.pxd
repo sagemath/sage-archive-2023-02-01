@@ -1,6 +1,5 @@
 from sage.structure.element cimport RingElement, ModuleElement, Element, FieldElement
 from sage.rings.ring cimport Field
-from sage.structure.parent  cimport Parent
 
 cdef extern from *:
     bint finite(double)

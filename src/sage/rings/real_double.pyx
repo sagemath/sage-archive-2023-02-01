@@ -33,8 +33,6 @@ import math, operator
 cimport sage.libs.pari.gen
 import sage.libs.pari.gen
 
-import sage.rings.complex_double
-import sage.rings.complex_field
 
 import sage.rings.integer
 import sage.rings.rational
@@ -1105,6 +1103,7 @@ cdef class RealDoubleElement(FieldElement):
                 return x
         if not extend:
             raise ValueError, "negative number %s does not have a square root in the real field"%self
+        import sage.rings.complex_double
         return self._complex_double_(sage.rings.complex_double.CDF).sqrt(all=all)
 
     def is_square(self):

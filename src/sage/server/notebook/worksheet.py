@@ -1855,14 +1855,14 @@ class Worksheet:
             i += 1
         if before_prompt.endswith('??'):
             input = self._get_last_identifier(before_prompt[:-2])
-            input = 'print _support_.source_code("%s", globals())'%input
+            input = 'print _support_.source_code("%s", globals(), system="%s")'%(input, self.system())
         elif before_prompt.endswith('?'):
             input = self._get_last_identifier(before_prompt[:-1])
-            input = 'print _support_.docstring("%s", globals())'%input
+            input = 'print _support_.docstring("%s", globals(), system="%s")'%(input, self.system())
         else:
             input = self._get_last_identifier(before_prompt)
             C._word_being_completed = input
-            input = 'print "\\n".join(_support_.completions("%s", globals()))'%(input)
+            input = 'print "\\n".join(_support_.completions("%s", globals(), system="%s"))'%(input, self.system())
         return input
 
     def preparse_nonswitched_input(self, input):
@@ -1954,14 +1954,7 @@ class Worksheet:
         return out
 
     def _get_last_identifier(self, s):
-        t = support.get_rightmost_identifier(s)
-        S = self.system()
-        # If we are tab completing in a worksheet for another
-        # system, e.g., mathematica, this is like typing mathematica.[tab].
-        # However, for Sage and Python, we want regular tab completion.
-        if S and not (S in ['sage', 'python']):
-            t = S + '.' + t
-        return t
+        return support.get_rightmost_identifier(s)
 
     def preparse(self, s):
         if sage.misc.interpreter.do_preparse:

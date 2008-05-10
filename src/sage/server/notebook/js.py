@@ -1417,11 +1417,13 @@ function go_system_select(theform, original_system) {
     */
     with(theform) {
         var system = options[selectedIndex].value;
-        if (confirm("All cells will be evaluated using " + system + " until you change the system back.")) {
+        system_select(system);
+/*        if (confirm("All cells will be evaluated using " + system + " until you change the system back.")) {
             system_select(system);
         } else {
             options[original_system].selected = 1;
         }
+*/
     }
 }
 

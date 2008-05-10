@@ -35,6 +35,10 @@ import user         # users
 
 SYSTEMS = ['sage', 'gap', 'gp', 'jsmath', 'html', 'latex', 'maxima', 'python', 'r', 'sage', 'sh', 'singular', 'axiom (optional)', 'kash (optional)', 'macaulay2 (optional)', 'magma (optional)', 'maple (optional)', 'mathematica (optional)', 'matlab (optional)', 'mupad (optional)', 'octave (optional)']
 
+# We also record the system names without (optional) since they are
+# used in some of the html menus, etc.
+SYSTEM_NAMES = [v.split()[0] for v in SYSTEMS]
+
 JSMATH = True
 
 JQUERY = True
@@ -2039,13 +2043,13 @@ function save_worksheet_and_close() {
     def html_system_select_form_element(self, ws):
         system = ws.system()
         options = ''
-        i = SYSTEMS.index(system)
-        for S in SYSTEMS:
-            if S == system:
+        i = SYSTEM_NAMES.index(system)
+        for j, S in enumerate(SYSTEMS):
+            if i == j:
                 selected = "selected"
             else:
                 selected = ''
-            T = S.split()[0]
+            T = SYSTEM_NAMES[j]
             options += '<option title="Evaluate all input cells using %s" %s value="%s">%s</option>\n'%(T, selected, T,S)
         s = """<select  onchange="go_system_select(this, %s);" class="worksheet">
             %s

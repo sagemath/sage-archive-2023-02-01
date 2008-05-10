@@ -49,6 +49,8 @@ from sage.libs.pari.gen import gen
 
 from sage.interfaces.gap import is_GapElement
 
+from sage.misc.randstate import current_randstate
+
 from finite_field_ext_pari import FiniteField_ext_pari
 from finite_field_element import FiniteField_ext_pariElement
 
@@ -161,8 +163,8 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
             sage: k.modulus()
             x^1024 + x^19 + x^6 + x + 1
             sage: k.<a> = GF(2^17, modulus='random')
-            sage: k.modulus() # output random
-            x^17 + x^16 + x^15 + x^14 + x^12 + x^11 + x^7 + x^5 + 1
+            sage: k.modulus()
+            x^17 + x^16 + x^15 + x^10 + x^8 + x^6 + x^4 + x^3 + x^2 + x + 1
         """
         self._zero_element = self._new()
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._zero_element).x,0)
@@ -200,6 +202,7 @@ cdef class FiniteField_ntl_gf2e(FiniteField):
 
         if modulus is None or modulus == "random":
             if modulus == "random":
+                current_randstate().set_seed_ntl(False)
                 GF2X_BuildSparseIrred(ntl_tmp, k)
                 GF2X_BuildRandomIrred(ntl_m, ntl_tmp)
             elif ConwayPolynomials().has_polynomial(p, k):

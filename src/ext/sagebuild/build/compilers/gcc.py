@@ -292,3 +292,43 @@ class GCC_extension_shared_object(GCC_extension):
         ret = self.outdir
         self.extmutex.release()
         return ret
+
+class GCC_extension_executable(GCC_extension):
+    def __init__(self, compiler, env, sources, outfile, language='C', define_macros = list(), libraries=list(), include_dirs = list(), library_dirs = list(), options = { }, prop_options = { }):
+        newoptions = dict(options)
+        options = dict(options)
+        libraries = list(libraries)
+        library_dirs = list(library_dirs)
+        if isinstance(sources[0], Extension):
+            relfile = os.path.split(sources[0].outfile)[1]
+            try:
+                options.update(sources[0].prop_options[GCC_Extension_Linker])
+            except:
+                pass
+            try:
+                libraries.extend(sources[0].libraries)
+            except:
+                pass
+            try:
+                library_dirs.extend(source[0].library_dirs)
+            except:
+                pass
+        else:
+            relfile = os.path.split(sources[0])[1]
+        try:
+            libraries = env.get_default('prelibraries') + libraries + env.get_default('postlibraries')
+        except:
+            pass
+        GCC_extension.__init__(self,compiler,env,sources,outfile,language,define_macros,libraries,include_dirs,library_dirs, newoptions, prop_options)
+    def _get_gcc_flags(self,env):
+        ret = ""
+        for dir in self.library_dirs:
+            ret+= (" -L"+dir+" ")
+        for lib in self.libraries:
+            ret+= (" -l"+lib+" ")
+        return ret
+    def get_out_dir(self):
+        self.extmutex.acquire()
+        ret = self.outdir
+        self.extmutex.release()
+        return ret

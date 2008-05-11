@@ -1453,6 +1453,7 @@ class Notebook(SageObject):
         body += ' or create a linked copy to the worksheet %s,'%ws_form
         body += ' or <a href="/home/%s/datafile?name=%s&action=delete">delete %s.</a>'%(ws.filename(),filename, filename)
 
+        body += "<br><br>Access %s in this worksheet by typing <tt>DATA+'%s'</tt>.  Here DATA is a special variable that gives the exact path to all data files uploaded to this worksheet.<br><br>"%(filename, filename)
 
         body += '<hr class="usercontrol">'
         ext = os.path.splitext(filename)[1].lower()

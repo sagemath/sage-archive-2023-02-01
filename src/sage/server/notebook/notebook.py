@@ -1152,7 +1152,7 @@ class Notebook(SageObject):
             else:
                 s += '&nbsp;&nbsp;<button onClick="make_active_button();" title="Move the selected worksheets out of the trash">Undelete</button>'
 
-            s += '&nbsp;&nbsp;<button onClick="quit_worksheets_button();" title="Quit selected worksheets">Quit</button>'
+            s += '&nbsp;&nbsp;<button onClick="stop_worksheets_button();" title="Stop selected worksheets">Stop</button>'
 
             s += '<span>'
             s += '&nbsp;'*10

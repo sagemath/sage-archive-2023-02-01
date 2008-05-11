@@ -1217,11 +1217,11 @@ function archive_button() {
     worksheet_list_button("/send_to_archive");
 }
 
-function quit_worksheets_button() {
+function stop_worksheets_button() {
     /*
     Saves and then quits sage process for each checked worksheet.
     */
-    worksheet_list_button("/send_to_quit");
+    worksheet_list_button("/send_to_stop");
 }
 
 function history_window() {

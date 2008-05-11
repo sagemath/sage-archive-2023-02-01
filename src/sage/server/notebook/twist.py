@@ -1335,7 +1335,7 @@ class SendWorksheetToActive(SendWorksheetToFolder):
 # Using SendWorksheet does feel somewhat hackish.  It however is
 # exactly the right thing to actually do, and minimizes code
 # duplication.
-class SendWorksheetToQuit(SendWorksheetToFolder):
+class SendWorksheetToStop(SendWorksheetToFolder):
     """
     Saves and quits each selected worksheet.
     """
@@ -1843,7 +1843,7 @@ class UserToplevel(Toplevel):
     userchild_send_to_trash = SendWorksheetToTrash
     userchild_send_to_archive = SendWorksheetToArchive
     userchild_send_to_active = SendWorksheetToActive
-    userchild_send_to_quit = SendWorksheetToQuit
+    userchild_send_to_stop = SendWorksheetToStop
 
     userchild_settings = UserSettings
 

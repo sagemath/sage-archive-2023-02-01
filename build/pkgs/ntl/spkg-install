@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 ################################################################
 #
@@ -47,6 +47,7 @@ build()
      cp ../../patches/new.h ../include/NTL/new.h
      cp ../../patches/tools.c ../src/tools.c
      cp ../../patches/tools.h ../include/NTL/tools.h
+     cp ../../patches/mfile ../src/mfile
 
      # Run the configure script, setting CC, CXX, CFLAGS etc as need. This
      # ensures that they get written by DoConfig into 'makefile'.
@@ -67,11 +68,6 @@ build()
         exit 1
     fi
 
-
-    # We add some lines to the end of the NTL makefile so we
-    # can create a shared library.
-    cat makefile "$CUR"/patches/ntl_makefile > makefile.1
-    mv makefile.1 makefile
 
     echo "Building and install NTL"
 
@@ -124,12 +120,13 @@ build()
         fi
     else
         # Linux or other .so system.
-        $MAKE lib
+        $MAKE libntl.so
         if [ ! -f libntl.so ]; then
             echo "Error creating ntl shared library."
             exit 1
         fi
-        $CP libntl.so "$SAGE_LOCAL/lib/"
+        $CP libntl-5.4.2.so "$SAGE_LOCAL/lib/"
+        $LN -s "$SAGE_LOCAL/lib/libntl-5.4.2.so" "$SAGE_LOCAL/lib/libntl.so"
     fi
 
     do_make ntl.a

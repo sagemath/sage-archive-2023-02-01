@@ -951,8 +951,27 @@ class Cell(Cell_generic):
 ########
 
 def format_exception(s0, ncols):
+    """
+    Make it so excpetions don't appear expanded by default.
+
+    INPUT:
+        s0 -- string
+        ncols -- integer
+    OUTPUT:
+        string
+
+    If s0 contains "notracebacks" then this function always returns s0
+
+    EXAMPLES:
+        sage: sage.server.notebook.cell.format_exception(sage.server.notebook.cell.TRACEBACK,80)
+        '\nTraceback (click to the left for traceback)\n...\nTraceback (most recent call last):'
+        sage: sage.server.notebook.cell.format_exception(sage.server.notebook.cell.TRACEBACK + "notracebacks",80)
+        'Traceback (most recent call last):notracebacks'
+    """
     s = s0.lstrip()
-    if TRACEBACK not in s:
+    # Add a notracebacks option -- if it is in the string then tracebacks aren't shrunk.
+    # This is currently used by the sage.server.support.help command.
+    if TRACEBACK not in s or 'notracebacks' in s:
         return s0
     if ncols > 0:
         s = s.strip()

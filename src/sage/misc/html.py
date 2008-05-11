@@ -13,6 +13,14 @@ from sage.misc.sage_eval import sage_eval
 
 def math_parse(s):
     r"""
+    Turn the HTML-ish string s that can have $$ and $'s in it into
+    pure HTML.  See below for a precise definition of what this means.
+
+    INPUT:
+        s -- a string
+    OUTPUT:
+        a string.
+
     Do the following:
     \begin{verbatim}
        * Replace all $ text $'s by
@@ -23,19 +31,40 @@ def math_parse(s):
          the above two cases nothing is done if the $
          is preceeded by a backslash.
     \end{verbatim}
+
+    EXAMPLES:
+        sage: sage.misc.html.math_parse('This is $2+2$.')
+        'This is <span class="math">2+2</span>.'
+        sage: sage.misc.html.math_parse('This is $$2+2$$.')
+        'This is <div class="math">2+2</div>.'
+
+    TESTS:
+        sage: sage.misc.html.math_parse(r'This \$\$is $2+2$.')
+        'This $$is <span class="math">2+2</span>.'
     """
+    # Below t always has the "parsed so far" version of s, and s is
+    # just the part of the original input s that hasn't been parsed.
     t = ''
     while True:
         i = s.find('$')
         if i == -1:
+            # No dollar signs -- definitely done.
             return t + s
         elif i > 0 and s[i-1] == '\\':
+            # A dollar sign with a backslash right before it, so
+            # we ignore it by sticking it in the parsed string t
+            # and skip to the next iteration.
             t += s[:i-1] + '$'
             s = s[i+1:]
+            continue
         elif i+1 < len(s) and s[i+1] == '$':
+            # Found a math environment. Double dollar sign so div mode.
             typ = 'div'
         else:
+            # Found math environment. Single dollar sign so span mode.
             typ = 'span'
+
+        # Now find the matching $ sign and form the span or div.
         j = s[i+2:].find('$')
         if j == -1:
             j = len(s)

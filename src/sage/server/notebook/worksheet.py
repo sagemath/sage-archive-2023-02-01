@@ -1305,6 +1305,13 @@ class Worksheet:
                                           ulimit = self.notebook().get_ulimit())
         self.__next_block_id = 0
         self.initialize_sage()
+
+        # Check to see if the typeset/pretty print button is checked.
+        # If so, send code to initialize the worksheet to have the
+        # right pretty printing mode.
+        if self.pretty_print():
+            self.__sage._send('pretty_print_default(True);')
+
         return self.__sage
 
     def eval_asap_no_output(self, cmd, username=None):

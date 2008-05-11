@@ -19,6 +19,8 @@ import sage.misc.sageinspect as sageinspect
 
 from sage.misc.preparser import preparse
 
+import pydoc
+
 ######################################################################
 # Initialization
 ######################################################################
@@ -64,6 +66,33 @@ def setup_systems(globs):
 ######################################################################
 # Introspection
 ######################################################################
+def help(obj):
+    """
+    Display help on s.
+
+    NOTE: This a wrapper around the builtin help.  If formats the
+    output as HTML without word wrap, which looks better in the
+    notebook.
+
+    INPUT:
+        s -- Python object, module, etc.
+
+    OUTPUT:
+        prints out help about s; it's often more more extensive than foo?
+
+    TESTS:
+        sage: import numpy.linalg
+        sage: sage.server.support.help(numpy.linalg.norm)
+        <html><table notruncate bgcolor="#386074" cellpadding=10 cellspacing=10><tr><td bgcolor="#f5f5f5"><font color="#37546d">
+        Help on function norm in module numpy.linalg.linalg:
+        ...
+        For values ord < 0, the result is, strictly speaking, not a
+        mathematical 'norm', but it may still be useful for numerical purposes.
+        </font></tr></td></table></html>
+    """
+    print '<html><table notruncate bgcolor="#386074" cellpadding=10 cellspacing=10><tr><td bgcolor="#f5f5f5"><font color="#37546d">'
+    pydoc.help(obj)
+    print '</font></tr></td></table></html>'
 
 def get_rightmost_identifier(s):
     X = string.ascii_letters + string.digits + '._'

@@ -496,7 +496,11 @@ class Cell(Cell_generic):
             del self._html_cache
 
         output = output.replace('\r','')
-        if len(output) > MAX_OUTPUT or output.count('\n') > MAX_OUTPUT_LINES:
+        # We do not truncate if "notruncate" or "Output truncated!" already
+        # appears in the output.  This notruncate tag is used right now
+        # in sage.server.support.help.
+        if 'notruncate' not in output and 'Output truncated!' not in output and \
+               (len(output) > MAX_OUTPUT or output.count('\n') > MAX_OUTPUT_LINES):
             url = ""
             if not self.computing():
                 file = "%s/full_output.txt"%self.directory()

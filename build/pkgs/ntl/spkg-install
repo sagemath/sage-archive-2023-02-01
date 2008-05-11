@@ -12,6 +12,12 @@
 #
 ################################################################
 
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
 CUR=`pwd`
 
 cd src/

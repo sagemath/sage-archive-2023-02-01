@@ -27,6 +27,9 @@ GPL
 
 == Changelog ==
 
+=== ntl-5.4.2.p3 (Michael Abshoff, May 11th, 2008) ===
+ * integrate patch by Tim Abbott and Francois Bissey for better shared library support (#3159)
+
 === ntl-5.4.2.p2 (Michael Abshoff, April 19th, 2008) ===
  * import Tim Abbott's Debian build fix (#2968)
 

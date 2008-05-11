@@ -1,0 +1,24 @@
+#!/bin/sh
+
+cd src
+
+if [ $# -ne 1 ]; then
+    echo "Give a revision."
+    exit 1
+fi
+REVISION=$1
+rm -rf old
+mkdir -p old
+mv * old
+mv old/spkg-* .
+#svn export -r $REVISION http://ipython.scipy.org/svn/ipython/ipython/trunk ipython-dist
+svn export http://ipython.scipy.org/svn/ipython/ipython/trunk ipython-dist
+if [ $? -ne 0 ]; then
+    echo "Error getting new sources."
+    mv old/* .
+    rm -rf old
+    exit 1
+fi
+mv ipython-dist/* .
+rmdir ipython-dist
+rm -rf old

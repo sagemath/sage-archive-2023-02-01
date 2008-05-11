@@ -1,0 +1,14 @@
+#!/bin/sh
+
+rm -rf "$SAGE_LOCAL/lib/python/site-packages/IPython"
+
+cp patches/iplib.py src/IPython/iplib.py
+
+cd src
+
+"$SAGE_ROOT"/local/bin/python setup.py install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing Ipython"
+    exit 1
+fi

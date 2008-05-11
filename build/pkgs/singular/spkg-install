@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 ###########################################
 ## Singular
@@ -33,8 +33,16 @@ if [ "$DEBUG" = "1" ]; then
   CFLAGS="$CFLAGS -O0 -g"
 else
   ENABLE_DEBUG="--disable-debug"
-  CXXFLAGS="$CXXFLAGS -O3 -g"
-  CFLAGS="$CFLAGS -O3 -g"
+  # singular-3-0-4-2-20080405 miscompiled with RHEL 5/Itanium
+  # when we use "-O3" and the default compiler, so let's use
+  # "-O2" for now.
+  if [ `uname -m` = "ia64" ]; then
+    CXXFLAGS="$CXXFLAGS -O2 -g"
+    CFLAGS="$CFLAGS -O2 -g"
+  else
+    CXXFLAGS="$CXXFLAGS -O3 -g"
+    CFLAGS="$CFLAGS -O3 -g"
+  fi
 fi
 
 CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"

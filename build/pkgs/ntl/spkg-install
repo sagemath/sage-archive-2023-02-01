@@ -134,7 +134,7 @@ build()
         $CP libntl-5.4.2.so "$SAGE_LOCAL/lib/"
         $RM "$SAGE_LOCAL/lib/libntl.so"
 	CUR2=`pwd`
-        cd $SAGE_LOCAL; $LN -s libntl-5.4.2.so libntl.so
+        cd $SAGE_LOCAL/lib; $LN -s libntl-5.4.2.so libntl.so
         cd $CUR2
     fi
 

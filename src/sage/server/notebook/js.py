@@ -786,14 +786,21 @@ function lstrip(s) {
 
 function resize_all_cells() {
     /*
-    Resizes all cells; called whenever the window gets resized.
+    Resizes all cells that do not start with %hide;
+    called whenever the window gets resized.
 
     GLOBAL INPUT:
         cell_id_list -- a list of integers
     */
-    var i;
-    for(i=0;i<cell_id_list.length;i++)
-        cell_input_resize(cell_id_list[i]);
+    var i,id;
+    for(i=0;i<cell_id_list.length;i++) {
+        // Get the id of the cell to resize
+        id = cell_id_list[i];
+        // Make sure it is not hidden, and if not resize it.
+        if (get_cell(id).className != "cell_input_hide") {
+           cell_input_resize(id);
+        }
+    }
 }
 
 function input_keyup(id, event) {
@@ -1775,8 +1782,12 @@ function cell_focused(cell, id) {
         sets the global variable current_cell and update display of the evaluate link.
     */
     cell.className = "cell_input_active";
-    if(current_cell == id) return;
 
+    // This makes sure the input textarea is resized right when it is
+    // clicked on.
+    cell_input_resize(id);
+
+    if(current_cell == id) return;
     if (current_cell != -1) {
         set_class("eval_button"+current_cell,"eval_button");
     }

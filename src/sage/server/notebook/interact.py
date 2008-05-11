@@ -115,7 +115,7 @@ VERSION 2:
           maxlength -- the maximum number of characters allowed in a text field.
           name -- defines a unique name for the input element
           size -- the size of the input element
-          type -- button, checkbox, file, password, radio, slider, text, setter_bar, drop_down
+          type -- button, checkbox, file, password, radio, slider, text, setter_bar
 
 VERSION 3:
    [ ] protocol for objects to have their own interact function; make
@@ -1174,21 +1174,24 @@ def interact(f):
     DEFAULTS:
     Defaults for the variables of the input function determine
     interactive controls.  The standard controls are \code{input_box},
-    \code{slider}, \code{button}, \code{checkbox}.
+    \code{slider}, \code{checkbox}, \code{selector}, and
+    \code{input_grid}.  There is also a color selector (see defaults below).
 
     \begin{itemize}
-        \item u = input_box(default, label, type=None)
+        \item u = input_box(default=None, label=None, type=None)
                          -- input box with given default; use type=str to
                             get input as an arbitrary string
-        \item u = slider(vmin, vmax,step_size,default,label)
+        \item u = slider(vmin, vmax=None,step_size=1,default=None,label=None)
                          -- slider with given list of possible values; vmin an be a list
-        \item u = checkbox(default, label)
+        \item u = checkbox(default=True, label=None)
                          -- a checkbox
         \item u = selector(values, label=None, nrows=None, ncols=None, buttons=False)
                          -- a dropdown menu or buttons (get buttons if nrows,
                             ncols, or buttons is set, otherwise a dropdown menu)
-        \item u = drop_down(list, label)
-                         -- a drop down menu
+        \item u = input_grid(nrows, ncols, default=None, label=None,
+                             to_value=lambda x:x, width=4)
+                         -- an editable grid of objects (a matrix or array)
+
     \end{itemize}
 
     You can create a color selector by setting the default value for a
@@ -1212,7 +1215,8 @@ def interact(f):
         \item u = Color('blue') -- a 2d RGB color selector; returns Color object
         \item u = (default, v)  -- v as above, with given default value
         \item u = (label, v)    -- v as above, with given label (a string)
-        \item u = matrix        -- an input_grid with to_value set to matrix.parent() and the default values given by the matrix
+        \item u = matrix        -- an input_grid with to_value set to matrix.parent()
+                                   and default values given by the matrix
     \end{itemize}
 
     WARNING: Suppose you would like to make a interactive with a
@@ -1547,17 +1551,19 @@ class input_box(control):
 
 
 class input_grid(control):
-    def __init__(self, rows, columns, default=None, label=None, to_value=lambda x: x, width=4):
+    def __init__(self, nrows, ncols, default=None, label=None, to_value=lambda x: x, width=4):
         r"""
         An input grid interactive control.  Use this in conjunction
         with the interact command.
 
         INPUT:
+            nrows -- integer
+            ncols -- integer
             default -- object; the default put in this input box
             label -- the label rendered to the left of the box.
             to_value -- the grid output (list of rows) is sent through
-            this function.  This may reformat the data or coerce the
-            type.
+                        this function.  This may reformat the data or
+                        coerce the type.
             width -- size of each input box in characters
 
         NOTEBOOK EXAMPLE:
@@ -1585,8 +1591,8 @@ class input_grid(control):
 
         """
         self.__default = default
-        self.__rows = rows
-        self.__columns = columns
+        self.__rows = nrows
+        self.__columns = ncols
         self.__to_value = to_value
         self.__width = width
         control.__init__(self, label)

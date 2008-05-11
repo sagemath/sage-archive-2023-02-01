@@ -35,7 +35,7 @@ import notebook as _notebook
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
 
-from sage.misc.misc import SAGE_EXTCODE, SAGE_LOCAL, walltime, tmp_filename
+from sage.misc.misc import SAGE_EXTCODE, SAGE_LOCAL, walltime, tmp_filename, tmp_dir
 from sage.misc.remote_file import get_remote_file
 
 p = os.path.join
@@ -306,30 +306,39 @@ class UploadWorksheet(resource.PostableResource):
 
     def render(self, ctx):
         url = ctx.args['urlField'][0].strip()
+        dir = ''  # we will delete the directory below if it is used
         if url != '':
+            # downloading a file from the internet
             tmp = get_remote_file(url, verbose=True)
         else:
-            tmp = '%s/tmp.sws'%notebook.directory()
-            f = file(tmp,'wb')
-
-            # Blocking issues (?!)
+            # uploading a file from the user's computer
+            dir = tmp_dir()
+            filename = ctx.files['fileField'][0][0]
+            # Make tmp file in SAGE temp directory
+            filename = '%s/%s'%(dir, filename)
+            f = file(filename,'wb')
+            # Then download to that file.
             f.write(ctx.files['fileField'][0][2].read())
+            # TODO: Server blocking issues (?!)
             f.close()
 
         try:
-            W = notebook.import_worksheet(tmp, self.username)
-            os.unlink(tmp)
-            if ctx.args.has_key('nameField'):
-                new_name = ctx.args['nameField'][0].strip()
-                if new_name:
-                    W.set_name(new_name)
+            W = notebook.import_worksheet(filename, self.username)
+            os.unlink(filename)
+            # if a temp directory was created, we delete it now.
+            if dir:
+                shutil.rmtree(dir)
+
         except ValueError, msg:
             s = "Error uploading worksheet '%s'."%msg
             return http.Response(stream = message(s, '/'))
 
-        name = ctx.args['nameField'][0].strip()
-        if len(name) > 0:
-            W.set_name(name)
+        # If the user requested in the form a specific title for
+        # the worksheet set it.
+        if ctx.args.has_key('nameField'):
+            new_name = ctx.args['nameField'][0].strip()
+            if new_name:
+                W.set_name(new_name)
 
         return http.RedirectResponse('/home/'+W.filename())
 

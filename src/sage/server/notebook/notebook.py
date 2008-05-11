@@ -149,7 +149,10 @@ class Notebook(SageObject):
         except AttributeErrro:
             dir = self.__dir
         import shutil
-        shutil.rmtree(dir)
+        # We ignore_errors because in rare parallel doctesting
+        # situations sometimes the directory gets cleaned up too
+        # quickly, etc.
+        shutil.rmtree(dir, ignore_errors=True)
 
     ##########################################################
     # Users
@@ -726,13 +729,27 @@ class Notebook(SageObject):
     ##########################################################
     # Importing and exporting worksheets to files
     ##########################################################
-    def export_worksheet(self, worksheet_filename, output_filename):
+    def export_worksheet(self, worksheet_filename, output_filename, verbose=True):
+        """
+        Export a worksheet with given directory filenmae to output_filename.
+
+        INPUT:
+            worksheet_filename -- string
+            output_filename -- string
+            verbose -- bool (default: True) if True print some the tar
+                       command used to extract the sws file.
+
+        OUTPUT:
+            creates a file on the filesystem
+        """
         W = self.get_worksheet_with_filename(worksheet_filename)
         W.save()
         path = W.filename_without_owner()
         cmd = 'cd "%s/%s/" && tar -jcf "%s" "%s"'%(
             self.__worksheet_dir, W.owner(),
             os.path.abspath(output_filename), path)
+        if verbose:
+            print cmd
         e = os.system(cmd)
         if e:
             print "Failed to execute command to export worksheet:\n'%s'"%cmd
@@ -752,14 +769,110 @@ class Notebook(SageObject):
         r"""
         Upload the worksheet with name \var{filename} and make it have the
         given owner.
+
+        INPUT:
+            filename -- a string
+            owner -- a string
+
+        OUTPUT:
+            worksheet -- a newly created worksheet
+
+        EXAMPLES:
+        We create a notebook and import a plain text worksheet into it.
+            sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: open('a.txt','w').write('foo\n{{{\n2+3\n}}}')
+            sage: W = nb.import_worksheet('a.txt', 'admin')
+
+        W is our newly-created worksheet, with the 2+3 cell in it:
+            sage: W.name()
+            'foo'
+            sage: W.cell_list()
+            [Cell 0; in=2+3, out=]
+            sage: nb.delete()
         """
         if not os.path.exists(filename):
             raise ValueError, "no file %s"%filename
 
+        # Figure out the file extension
+        ext = os.path.splitext(filename)[1]
+        if ext == '.txt':
+            # A plain text file with {{{'s that defines a worksheet (not graphics).
+            return self._import_worksheet_txt(filename, owner)
+        elif ext == '.sws':
+            # An sws file (really a tar.bz2) which defines a worksheet with graphics,
+            # revisions, etc.
+            return self._import_worksheet_sws(filename, owner)
+        else:
+            # We only support txt or sws files.
+            raise ValueError, "unknown extension '%s'"%ext
+
+    def _import_worksheet_txt(self, filename, owner):
+        """
+        Import a plain text file as a new worksheet.
+
+        INPUT:
+            filename -- string; a filename that ends in .txt
+            owner -- string; who will own this worksheet when imported
+
+        OUTPUT:
+            a new worksheet
+
+        EXAMPLES:
+        We create a worksheet, make a file, and import it using this function.
+            sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: open('a.txt','w').write('foo\n{{{\na = 10\n}}}')
+            sage: W = nb._import_worksheet_txt('a.txt', 'admin'); W
+            [Cell 0; in=a = 10, out=]
+            sage: nb.delete()
+        """
+        # Open the worksheet txt file and load it in.
+        worksheet_txt = open(filename).read()
+        # Create a new worksheet with the write title and owner.
+        worksheet = self.new_worksheet_with_title_from_text(worksheet_txt, owner)
+        # Set the new worksheet to have the contents specified by that file.
+        worksheet.edit_save(worksheet_txt)
+        return worksheet
+
+    def _import_worksheet_sws(self, filename, owner, verbose=True):
+        """
+        Import an sws format worksheet into this notebook as a new worksheet.
+
+        INPUT:
+            filename -- string; a filename that ends in .sws; internally
+                        it must be a tar'd bz2'd file.
+            owner -- string
+            verbose -- bool (default: True) if True print some the tar
+                       command used to extract the sws file.
+
+        OUTPUT:
+            a new worksheet
+
+        EXAMPLES:
+        We create a notebook, then make a worksheet from a plain text file first.
+            sage: nb = sage.server.notebook.notebook.Notebook('notebook-test')
+            sage: open('a.txt','w').write('foo\n{{{\n2+3\n}}}')
+            sage: W = nb.import_worksheet('a.txt', 'admin')
+            sage: W.filename()
+            'admin/0'
+
+
+        We then export the worksheet to an sws file.
+            sage: nb.export_worksheet(W.filename(),  'tmp.sws', verbose=False)
+
+        Now we import the sws.
+            sage: nb._import_worksheet_sws('tmp.sws', 'admin', verbose=False)
+            [Cell 0; in=2+3, out=]
+
+        Yep, it's there now (as admin/2):
+            sage: nb.worksheet_names()
+            ['admin/0', 'admin/2']
+            sage: nb.delete()
+        """
         # Decompress the worksheet to a temporary directory.
         tmp = tmp_dir()
         cmd = 'cd "%s"; tar -jxf "%s"'%(tmp, os.path.abspath(filename))
-        print cmd
+        if verbose:
+            print cmd
         e = os.system(cmd)
         if e:
             raise ValueError, "Error decompressing saved worksheet."
@@ -1916,7 +2029,7 @@ function save_worksheet_and_close() {
             <body>
               <div class="upload_worksheet_menu" id="upload_worksheet_menu">
               %s
-              <h1><font size=+1>Upload worksheet from your computer to the Sage Notebook</font></h1>
+              <h1><font size=+1>Upload worksheet (an sws or txt file) to the Sage Notebook</font></h1>
               <hr>
               <form method="POST" action="upload_worksheet"
                     name="upload" enctype="multipart/form-data">

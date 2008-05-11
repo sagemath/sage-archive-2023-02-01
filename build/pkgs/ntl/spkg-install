@@ -132,6 +132,7 @@ build()
             exit 1
         fi
         $CP libntl-5.4.2.so "$SAGE_LOCAL/lib/"
+        $RM "$SAGE_LOCAL/lib/libntl.so"
         $LN -s "$SAGE_LOCAL/lib/libntl-5.4.2.so" "$SAGE_LOCAL/lib/libntl.so"
     fi
 

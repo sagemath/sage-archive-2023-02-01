@@ -85,21 +85,21 @@ cdef class MPolynomial(CommutativeRingElement):
         of monomials returned by self.monomials().
 
         EXAMPLES:
-            sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='degrevlex')
+            sage: R.<x,y,z> = PolynomialRing(QQ,3,order='degrevlex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
             sage: f.coefficients()
             [23, 6, 1]
-            sage: R.<x,y,z> = MPolynomialRing(QQ,3,order='lex')
+            sage: R.<x,y,z> = PolynomialRing(QQ,3,order='lex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
             sage: f.coefficients()
             [6, 23, 1]
 
             # Test the same stuff with ZZ -- different implementation
-            sage: R.<x,y,z> = MPolynomialRing(ZZ,3,order='degrevlex')
+            sage: R.<x,y,z> = PolynomialRing(ZZ,3,order='degrevlex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
             sage: f.coefficients()
             [23, 6, 1]
-            sage: R.<x,y,z> = MPolynomialRing(ZZ,3,order='lex')
+            sage: R.<x,y,z> = PolynomialRing(ZZ,3,order='lex')
             sage: f=23*x^6*y^7 + x^3*y+6*x^7*z
             sage: f.coefficients()
             [6, 23, 1]
@@ -533,7 +533,7 @@ cdef class MPolynomial(CommutativeRingElement):
 
         TESTS:
             sage: from sage.rings.polynomial.multi_polynomial import MPolynomial
-            sage: P.<x, y> = MPolynomialRing(QQ, 2)
+            sage: P.<x, y> = PolynomialRing(QQ, 2)
             sage: MPolynomial.is_homogeneous(x+y)
             True
             sage: MPolynomial.is_homogeneous(P(0))

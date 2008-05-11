@@ -58,7 +58,7 @@ Next we convert the factor $-x^5+y^2$ to a \sage multivariate
 polynomial.  Note that it is important to let $x$ and $y$ be the
 generators of a polynomial ring, so the eval command works.
 
-    sage: R.<x,y> = MPolynomialRing(QQ,2)
+    sage: R.<x,y> = PolynomialRing(QQ,2)
     sage: s = F[1][3].sage_polystring(); s
     '-x**5+y**2'
     sage: g = eval(s); g
@@ -82,7 +82,7 @@ one tricky part.  In the GAP interpreter the object \code{I} has its
     Now $x_0$ and $x_1$ are defined, so we can construct the GAP polynomial $f$
     corresponding to $g$:
 
-        sage: R.<x,y> = MPolynomialRing(QQ,2)
+        sage: R.<x,y> = PolynomialRing(QQ,2)
         sage: f = gap(str(g)); f
         -x_1^5+x_2^2
 

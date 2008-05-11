@@ -19,8 +19,7 @@ AUTHORS:
 
 from sage.interfaces.all import singular
 from sage.misc.all import add, sage_eval
-from sage.rings.all import (MPolynomialRing,
-                            degree_lowest_rational_function, is_PrimeField)
+from sage.rings.all import degree_lowest_rational_function, is_PrimeField
 
 from sage.schemes.generic.projective_space import is_ProjectiveSpace
 
@@ -57,7 +56,7 @@ class ProjectiveCurve_generic(Curve_generic_projective):
         normalize of the curve).
 
         EXAMPLE:
-            sage: x,y,z = MPolynomialRing(GF(5), 3, 'xyz').gens()
+            sage: x,y,z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: C = Curve(y^2*z^7 - x^9 - x*z^8); C
             Projective Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
             sage: C.arithmetic_genus()
@@ -144,7 +143,7 @@ class ProjectiveCurve_generic(Curve_generic_projective):
         y0 = F(pt[1])
         astr = ["a"+str(i) for i in range(1,2*n)]
         x,y = R.gens()
-        R0 = MPolynomialRing(F,2*n+2,names = [str(x),str(y),"t"]+astr)
+        R0 = PolynomialRing(F,2*n+2,names = [str(x),str(y),"t"]+astr)
         vars0 = R0.gens()
         t = vars0[2]
         yt = y0*t**0 + add([vars0[i]*t**(i-2) for i in range(3,2*n+2)])
@@ -229,7 +228,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
                     order computed by Singular.
 
         EXAMPLE:
-            sage: x, y, z = MPolynomialRing(GF(5), 3, 'xyz').gens()
+            sage: x, y, z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8
             sage: C = Curve(f); C
             Projective Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
@@ -346,7 +345,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
                            'bn' -- via Singular's brnoeth package.
 
         EXAMPLE:
-            sage: x, y, z = MPolynomialRing(GF(5), 3, 'xyz').gens()
+            sage: x, y, z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8
             sage: C = Curve(f); C
             Projective Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8

@@ -22,7 +22,7 @@ EXAMPLE:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import PolynomialRing, MPolynomialRing
+from sage.rings.all import PolynomialRing
 from sage.misc.all import latex
 
 import sage.schemes.plane_curves.projective_curve as plane_curve

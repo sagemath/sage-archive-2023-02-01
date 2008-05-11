@@ -723,7 +723,7 @@ N = numerical_approx
 def objgens(x):
     """
     EXAMPLES:
-        sage: R, x = objgens(MPolynomialRing(QQ,3, 'x'))
+        sage: R, x = objgens(PolynomialRing(QQ,3, 'x'))
         sage: R
         Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
         sage: x

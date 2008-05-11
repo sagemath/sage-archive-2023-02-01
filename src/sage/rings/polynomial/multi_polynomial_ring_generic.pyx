@@ -334,10 +334,10 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         Return the characteristic of this polynomial ring.
 
         EXAMPLES:
-            sage: R = MPolynomialRing(QQ, 'x', 3)
+            sage: R = PolynomialRing(QQ, 'x', 3)
             sage: R.characteristic()
             0
-            sage: R = MPolynomialRing(GF(7),'x', 20)
+            sage: R = PolynomialRing(GF(7),'x', 20)
             sage: R.characteristic()
             7
         """

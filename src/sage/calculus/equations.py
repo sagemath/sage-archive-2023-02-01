@@ -1322,7 +1322,7 @@ def solve_mod(eqns, modulus):
         techniques, etc.  But for a lot of toy problems this function
         as is might be useful.  At least it establishes an interface.
     """
-    from sage.rings.all import Integer, Integers, MPolynomialRing
+    from sage.rings.all import Integer, Integers, PolynomialRing
     from calculus import is_SymbolicExpression
     from sage.misc.all import cartesian_product_iterator
 
@@ -1335,7 +1335,7 @@ def solve_mod(eqns, modulus):
     vars.sort()
     n = len(vars)
     R = Integers(modulus)
-    S = MPolynomialRing(R, len(vars), vars)
+    S = PolynomialRing(R, len(vars), vars)
     eqns_mod = [S(eq) if is_SymbolicExpression(eq) else \
                   S(eq.lhs() - eq.rhs()) for eq in eqns]
     ans = []

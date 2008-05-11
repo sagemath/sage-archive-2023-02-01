@@ -22,7 +22,7 @@ import sage.misc.misc
 import sage.rings.polynomial.polydict as polydict # internal representation may change!!!
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing as MPolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 DB_HOME = '%s/kohel'%sage.misc.misc.SAGE_DATA
 
@@ -76,9 +76,9 @@ class ModularPolynomialDatabase:
             raise RuntimeError, \
                   "No database entry for modular polynomial of level %s"%level
         if self.model == "Cls":
-            P = MPolynomialRing(IntegerRing(),2,"j")
+            P = PolynomialRing(IntegerRing(),2,"j")
         else:
-            P = MPolynomialRing(IntegerRing(),2,"x,j")
+            P = PolynomialRing(IntegerRing(),2,"x,j")
         poly = {}
         if self.model == "Cls":
             if level == 1:

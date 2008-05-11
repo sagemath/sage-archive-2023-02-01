@@ -42,7 +42,7 @@ AUTHORS:
 
 import math
 
-from sage.rings.all import MPolynomialRing, PolynomialRing
+from sage.rings.all import PolynomialRing
 
 import sage.plot.all as plot
 

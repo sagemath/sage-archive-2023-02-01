@@ -86,7 +86,7 @@ class Curve_generic(AlgebraicScheme_subscheme):
                   3
 
         Examples of affine curves.
-            sage: x, y = MPolynomialRing(GF(5), 2, 'xy').gens()
+            sage: x, y = PolynomialRing(GF(5), 2, 'xy').gens()
             sage: C = Curve(y^2 - x^3 - 17*x + y)
             sage: C.geometric_genus()
             1

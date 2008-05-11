@@ -54,7 +54,7 @@ We illustrate the exponent notation for creation of free modules.
     Vector space of dimension 3 over Real Field with 53 bits of precision
 
 Base ring:
-    sage: R.<x,y> = MPolynomialRing(QQ,2)
+    sage: R.<x,y> = PolynomialRing(QQ,2)
     sage: M = FreeModule(R,2)
     sage: M.base_ring()
     Multivariate Polynomial Ring in x, y over Rational Field
@@ -2846,7 +2846,7 @@ class FreeModule_ambient(FreeModule_generic):
             sage: A = GF(5)^20; latex(A)
             \mathbf{F}_{5}^{20}
 
-            sage: A = MPolynomialRing(QQ,3,'x') ^ 20; latex(A)
+            sage: A = PolynomialRing(QQ,3,'x') ^ 20; latex(A)
             (\mathbf{Q}[x_{0}, x_{1}, x_{2}])^{20}
         """
         t = "%s"%latex.latex(self.base_ring())

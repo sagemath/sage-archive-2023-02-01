@@ -2595,7 +2595,7 @@ def continuant(v, n=None):
         517656/190435
         sage: convergent([2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10],14)
         517656/190435
-        sage: x = MPolynomialRing(RationalField(),'x',5).gens()
+        sage: x = PolynomialRing(RationalField(),'x',5).gens()
         sage: continuant(x)
         x0*x1*x2*x3*x4 + x0*x1*x2 + x0*x1*x4 + x0*x3*x4 + x2*x3*x4 + x0 + x2 + x4
         sage: continuant(x, 3)

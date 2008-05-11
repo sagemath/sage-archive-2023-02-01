@@ -35,7 +35,7 @@ TESTS:
     sage: F == loads(dumps(F))
     True
 
-    sage: F = FractionField(MPolynomialRing(RationalField(),2,'x'))
+    sage: F = FractionField(PolynomialRing(RationalField(),2,'x'))
     sage: F == loads(dumps(F))
     True
 
@@ -83,7 +83,7 @@ def FractionField(R, names=None):
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
         sage: FractionField(PolynomialRing(IntegerRing(),'x'))
         Fraction Field of Univariate Polynomial Ring in x over Integer Ring
-        sage: FractionField(MPolynomialRing(RationalField(),2,'x'))
+        sage: FractionField(PolynomialRing(RationalField(),2,'x'))
         Fraction Field of Multivariate Polynomial Ring in x0, x1 over Rational Field
 
     Dividing elements often implicitly creates elements of the fraction field.

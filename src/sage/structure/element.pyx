@@ -393,7 +393,7 @@ cdef class Element(sage_object.SageObject):
             new object if substitution is possible, otherwise self.
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: x, y = PolynomialRing(ZZ,2,'xy').gens()
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
             25*y^2 + y + 30
@@ -453,7 +453,7 @@ cdef class Element(sage_object.SageObject):
             new object if substitution is possible, otherwise self.
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: x, y = PolynomialRing(ZZ,2,'xy').gens()
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
             25*y^2 + y + 30

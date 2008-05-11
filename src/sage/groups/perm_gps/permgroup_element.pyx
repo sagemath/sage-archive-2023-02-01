@@ -56,7 +56,7 @@ include "../../ext/stdsage.pxi"
 include "../../ext/interrupt.pxi"
 include "../../ext/python_list.pxi"
 
-from sage.rings.all      import ZZ, Integer, is_MPolynomial, MPolynomialRing, is_Polynomial
+from sage.rings.all      import ZZ, Integer, is_MPolynomial, is_Polynomial
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 
@@ -120,7 +120,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
     This example illustrates how permutations act on multivariate
     polynomials.
 
-        sage: R = MPolynomialRing(RationalField(), 5, ["x","y","z","u","v"])
+        sage: R = PolynomialRing(RationalField(), 5, ["x","y","z","u","v"])
         sage: x, y, z, u, v = R.gens()
         sage: f = x**2 - y**2 + 3*z**2
         sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
@@ -443,7 +443,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         EXAMPLES:
             sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
-            sage: R.<x,y,z,u,v> = MPolynomialRing(QQ,5)
+            sage: R.<x,y,z,u,v> = PolynomialRing(QQ,5)
             sage: f = x^2 + y^2 - z^2 + 2*u^2
             sage: sigma, tau = G.gens()
             sage: f*sigma

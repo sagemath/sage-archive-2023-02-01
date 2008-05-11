@@ -25,7 +25,7 @@ The following examples illustrate these functions in the context of
 multivariate polynomial rings and free modules.
 
 EXAMPLES:
-    sage: R = MPolynomialRing(ZZ, 3, 'x')
+    sage: R = PolynomialRing(ZZ, 3, 'x')
     sage: R.ngens()
     3
     sage: R.gen(0)
@@ -240,7 +240,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             tuple -- self.gens()
 
         EXAMPLES:
-            sage: R, vars = MPolynomialRing(QQ,3, 'x').objgens()
+            sage: R, vars = PolynomialRing(QQ,3, 'x').objgens()
             sage: R
             Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
             sage: vars

@@ -22,7 +22,7 @@ cdef extern from "planarity/graph.h":
     cdef int gp_Embed(graphP theGraph, int embedFlags)
     cdef int gp_SortVertices(graphP theGraph)
 
-def is_planar(g, set_pos=False, set_embedding=False, circular=False):
+def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=False):
     """
     Calls Boyer's planarity algorithm to determine whether g is planar.  Returns
     a tuple, first entry is a boolean (whether or not the graph is planar) and
@@ -84,7 +84,10 @@ def is_planar(g, set_pos=False, set_embedding=False, circular=False):
                 g_dict[to[i]] = linked_list
         G = Graph(g_dict)
         gp_Free(&theGraph)
-        return (False, G)
+        if kuratowski:
+            return (False, G)
+        else:
+            return False
     else:
         if not circular:
             if set_embedding:
@@ -123,4 +126,7 @@ def is_planar(g, set_pos=False, set_embedding=False, circular=False):
                     emb_dict[to[i]] = linked_list
                 g._embedding = emb_dict
         gp_Free(&theGraph)
-        return (True,None)
+        if kuratowski:
+            return (True,None)
+        else:
+            return True

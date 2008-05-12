@@ -1280,12 +1280,9 @@ class GenericGraph(SageObject):
 
     ### Planarity
 
-    def is_planar(self, on_embedding=None, set_embedding=False, set_pos=False):
+    def is_planar(self, on_embedding=None, kuratowski=False, set_embedding=False, set_pos=False):
         """
-        Returns a two-tuple.  If the graph is planar the first tuple entry is
-        True, and otherwise False.  If the graph is planar, the second entry is
-        None.  But if nonplanar, the second entry is the Kuratowski subgraph or
-        minor isolated by the Boyer-Myrvold algorithm.  This wraps the
+        Returns True if the graph is planar, and False otherwise.  This wraps the
         reference implementation provided by John Boyer of the linear time
         planarity algorithm by edge addition due to Boyer Myrvold.  (See reference
         code in graphs.planarity).
@@ -1302,6 +1299,10 @@ class GenericGraph(SageObject):
                 Algorithms and Applications, Vol. 8, No. 3, pp. 241-273, 2004.
 
         INPUT:
+            kuratowski -- returns a tuple with boolean as first entry.  If the
+                       graph is nonplanar, will return the Kuratowski subgraph
+                       or minor as the second tuple entry.  If the graph is
+                       planar, returns None as the second entry.
             on_embedding -- the embedding dictionary to test planarity on.  (i.e.:
                        will return True or False only for the given embedding.)
             set_embedding -- whether or not to set the instance field variable that
@@ -1319,11 +1320,11 @@ class GenericGraph(SageObject):
         EXAMPLES:
             sage: g = graphs.CubeGraph(4)
             sage: g.is_planar()
-            (False, Graph on 16 vertices)
+            False
 
             sage: g = graphs.CircularLadderGraph(4)
             sage: g.is_planar(set_embedding=True)
-            (True, None)
+            True
             sage: g.get_embedding()
             {0: [1, 4, 3],
              1: [2, 5, 0],
@@ -1335,7 +1336,7 @@ class GenericGraph(SageObject):
              7: [4, 6, 3]}
 
             sage: g = graphs.PetersenGraph()
-            sage: (g.is_planar())[1].adjacency_matrix()
+            sage: (g.is_planar(kuratowski=True))[1].adjacency_matrix()
             [0 1 0 0 0 1 0 0 0 0]
             [1 0 1 0 0 0 1 0 0 0]
             [0 1 0 1 0 0 0 0 0 0]
@@ -1348,7 +1349,7 @@ class GenericGraph(SageObject):
             [0 0 0 0 1 0 1 1 0 0]
 
             sage: k43 = graphs.CompleteBipartiteGraph(4,3)
-            sage: result = k43.is_planar(); result
+            sage: result = k43.is_planar(kuratowski=True); result
             (False, Graph on 6 vertices)
             sage: result[1].is_isomorphic(graphs.CompleteBipartiteGraph(3,3))
             True
@@ -1361,27 +1362,30 @@ class GenericGraph(SageObject):
         else:
             from sage.graphs.planarity import is_planar
             G = self.to_undirected()
-            planar = is_planar(G,set_pos=set_pos,set_embedding=set_embedding)
-            if planar[0]:
+            planar = is_planar(G,kuratowski=kuratowski,set_pos=set_pos,set_embedding=set_embedding)
+            if kuratowski:
+                bool_result = planar[0]
+            else:
+                bool_result = planar
+            if bool_result:
                 if set_pos:
                     self._pos = G._pos
                 if set_embedding:
                     self._embedding = G._embedding
             return planar
 
-    def is_circular_planar(self, ordered=True, set_embedding=False, set_pos=False):
+    def is_circular_planar(self, ordered=True, kuratowski=False, set_embedding=False, set_pos=False):
         """
         A graph (with nonempty boundary) is circular planar if it has a
         planar embedding in which all boundary vertices can be drawn in
         order on a disc boundary, with all the interior vertices drawn
         inside the disc.
 
-        Returns a tuple with first entry a boolean value, True if the
-        graph is circular planar and False if it is not.  If the graph
-        is circular planar, the second tuple entry will be None.  However,
-        if the graph is not circular planar then the second tuple entry
-        will be the Kuratowski subgraph or minor isolated by the Boyer-Myrvold
-        algorithm.  Note that this graph might contain a vertex or edges that
+        Returns True if the graph is circular planar, and False if it is
+        not.  If kuratowski is set to True, then this function will return
+        a tuple, with boolean first entry and second entry the Kuratowski
+        subgraph or minor isolated by the Boyer-Myrvold algorithm.
+        Note that this graph might contain a vertex or edges that
         were not in the initial graph.  These would be elements referred to
         below as parts of the wheel and the star, which were added to the
         graph to require that the boundary can be drawn on the boundary of a
@@ -1404,6 +1408,9 @@ class GenericGraph(SageObject):
             ordered -- whether or not to consider the order of the boundary
                        (set ordered=False to see if there is any possible
                        boundary order that will satisfy circular planarity)
+            kuratowski -- if set to True, returns a tuple with boolean first
+                       entry and the Kuratowski subgraph or minor as the second
+                       entry.  See notes above.
             on_embedding -- the embedding dictionary to test planarity on.  (i.e.:
                        will return True or False only for the given embedding.)
             set_embedding -- whether or not to set the instance field variable that
@@ -1423,9 +1430,13 @@ class GenericGraph(SageObject):
             sage: g439.set_boundary([1,2,3,4])
             sage: g439.show(figsize=[2,2], vertex_labels=True, vertex_size=175)
             sage: g439.is_circular_planar()
+            False
+            sage: g439.is_circular_planar(kuratowski=True)
             (False, Graph on 7 vertices)
             sage: g439.set_boundary([1,2,3])
             sage: g439.is_circular_planar(set_embedding=True, set_pos=False)
+            True
+            sage: g439.is_circular_planar(kuratowski=True)
             (True, None)
             sage: g439.get_embedding()
             {1: [7, 5],
@@ -1440,12 +1451,12 @@ class GenericGraph(SageObject):
             sage: K23 = graphs.CompleteBipartiteGraph(2,3)
             sage: K23.set_boundary([0,1,2,3])
             sage: K23.is_circular_planar()
-            (False, Graph on 5 vertices)
+            False
             sage: K23.is_circular_planar(ordered=False)
-            (True, None)
+            True
             sage: K23.set_boundary([0,2,1,3]) # Diff Order!
             sage: K23.is_circular_planar(set_embedding=True)
-            (True, None)
+            True
         """
         from sage.graphs.planarity import is_planar
         graph = self.to_undirected()
@@ -1472,9 +1483,14 @@ class GenericGraph(SageObject):
                 extra_edges.append((boundary[-1],boundary[0]))
         # else STAR (empty list of extra edges)
 
-        result = is_planar(graph,set_embedding=set_embedding,circular=True)
+        result = is_planar(graph,kuratowski=kuratowski,set_embedding=set_embedding,circular=True)
 
-        if result[0]:
+        if kuratowski:
+            bool_result = result[0]
+        else:
+            bool_result = result
+
+        if bool_result:
             graph.delete_vertex(extra)
             graph.delete_edges(extra_edges)
 
@@ -1533,20 +1549,20 @@ class GenericGraph(SageObject):
             pass
         embedding_copy = None
         if set_embedding:
-            if not (G.is_planar(set_embedding=True))[0]:
+            if not (G.is_planar(set_embedding=True)):
                 raise Exception('%s is not a planar graph.'%self)
             embedding_copy = G._embedding
         else:
             if on_embedding is not None:
                 if G.check_embedding_validity(on_embedding):
-                    if not (G.is_planar(on_embedding=on_embedding))[0]:
+                    if not (G.is_planar(on_embedding=on_embedding)):
                         raise Exception( 'Provided embedding is not a planar embedding for %s.'%self )
                 else:
                     raise Exception('Provided embedding is not a valid embedding for %s. Try putting set_embedding=True.'%self)
             else:
                 if hasattr(G,'_embedding'):
                     if G.check_embedding_validity():
-                        if not (G.is_planar(on_embedding=G._embedding))[0]:
+                        if not (G.is_planar(on_embedding=G._embedding)):
                             raise Exception('%s has nonplanar _embedding attribute.  Try putting set_embedding=True.'%self)
                         embedding_copy = G._embedding
                     else:
@@ -1732,7 +1748,7 @@ class GenericGraph(SageObject):
             sage: cube.genus()
             0
             sage: cube.is_circular_planar()
-            (False, Graph on 9 vertices)
+            False
             sage: cube.genus(circular=True) #long time
             1
             sage: cube.genus(circular=True, maximal=True) #long time

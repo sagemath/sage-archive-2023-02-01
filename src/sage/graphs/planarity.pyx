@@ -40,7 +40,7 @@ def is_planar(g, kuratowski=False, set_pos=False, set_embedding=False, circular=
         sage: G = graphs.DodecahedralGraph()
         sage: from sage.graphs.planarity import is_planar
         sage: is_planar(G)
-        (True, None)
+        True
 
     """
     # create to and from mappings to relabel vertices to the set {0,...,n-1}

@@ -1006,6 +1006,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         Of course, there are plenty of points if we extend the field:
             sage: E.cardinality(extension_degree=100)
             1267650600228231653296516890625
+
+        This tests the patch for trac#3111:
+            sage: E = EllipticCurve('389a')
+            sage: for _ in range(10):
+            ...       p=random_prime(10000)
+            ...       if p != 389:
+            ...           G = E.change_ring(GF(p)).abelian_group()
         """
         if not debug:
             # if we're in debug mode, always recalculate
@@ -1191,8 +1198,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
                     print " and not ",n2
                     raise ValueError
                 if n2>1:
-                    print "P1=",P1," of order ",P1.order(),"=",n1
-                    print "P2=",P2," of order ",P2.order(),"=",n2
                     if generic.linear_relation(P1,P2,operation='+')[1]!=n2:
                         print "Generators not independent!"
                         raise ValueError

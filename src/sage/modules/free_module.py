@@ -1406,6 +1406,35 @@ class FreeModule_generic(module.Module):
 
         return self._element_class(self, 0)
 
+    def _magma_init_(self):
+        """
+        EXAMPLES:
+            sage: magma(FreeModule(Integers(8), 2))             # optional
+            Full RSpace of degree 2 over IntegerRing(8)
+
+            sage: magma(FreeModule(QQ, 9))                      # optional
+            Full Vector space of degree 9 over Rational Field
+
+            sage: magma(FreeModule(QQ['x'], 2))                 # optional
+            Full RSpace of degree 2 over Univariate Polynomial Ring over Rational Field
+
+            sage: A = MatrixSpace(ZZ,2)([[1,0],[0,-1]])
+            sage: M = FreeModule(ZZ,2,inner_product_matrix=A)
+            sage: magma(M)                                      # optional
+            Full RSpace of degree 2 over Integer Ring
+            Inner Product Matrix:
+            [ 1  0]
+            [ 0 -1]
+        """
+        K = self.base_ring()._magma_init_()
+        if self._inner_product_matrix:
+            s = "RSpace(%s, %s, %s)"%(K, self.__rank,
+                self._inner_product_matrix._magma_init_())
+        else:
+            s = "RSpace(%s, %s)"%(K, self.__rank)
+
+        return s
+
 class FreeModule_generic_pid(FreeModule_generic):
     """
     Base class for all free modules over a PID.

@@ -1073,6 +1073,23 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         Z.randomize(density, *args, **kwds)
         return Z
 
+    def _magma_init_(self):
+        r"""
+        EXAMPLES:
+        We first coerce a square matrix.
+            sage: magma(MatrixSpace(QQ,3))                      # optional
+            Full Matrix Algebra of degree 3 over Rational Field
+
+            sage: magma(MatrixSpace(Integers(8),2,3))           # optional
+            Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
+        """
+        K = self.base_ring()._magma_init_()
+        if self.__nrows == self.__ncols:
+            s = 'MatrixAlgebra(%s, %s)'%(K, self.__nrows)
+        else:
+            s = 'RMatrixSpace(%s, %s, %s)'%(K, self.__nrows, self.__ncols)
+        return s
+
 def dict_to_list(entries, nrows, ncols):
     """
     Given a dictionary of coordinate tuples, return the

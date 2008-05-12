@@ -1934,6 +1934,31 @@ cdef class Vector(ModuleElement):
                     raise ArithmeticError, "vector is not in free module"
         raise TypeError, arith_error_message(self, right, div)
 
+    def _magma_init_(self):
+        """
+        EXAMPLES:
+            sage: v = vector([1,2,3])
+            sage: mv = magma(v); mv                     # optional
+            (1 2 3)
+            sage: mv.Type()                             # optional
+            ModTupRngElt
+            sage: mv.Parent()                           # optional
+            Full RSpace of degree 3 over Integer Ring
+
+            sage: v = vector(QQ, [1/2, 3/4, 5/6])
+            sage: mv = magma(v); mv                     # optional
+            (1/2 3/4 5/6)
+            sage: mv.Type()                             # optional
+            ModTupFldElt
+            sage: mv.Parent()                           # optional
+            Full Vector space of degree 3 over Rational Field
+        """
+        s = self._parent._magma_init_()
+        v = []
+        for x in self.list():
+            v.append(x._magma_init_())
+        return s + '![%s]'%(','.join(v))
+
 
 
 def is_Vector(x):

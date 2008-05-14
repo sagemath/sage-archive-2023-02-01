@@ -58,6 +58,46 @@ jsMath.Add(jsMath.HTML,{
 
 });
 
+jsMath.Add(jsMath.mList.prototype.Atomize,{
+  /*
+   *  Creates the box HTML
+   */
+  bbox: function (style,size,mitem,prev,mlist) {
+    var box = jsMath.Box.Set(mitem.nuc2,style,size,1).Remeasured();
+    delete mitem.nuc2;
+    /*
+     *  If the box has super- or subscripts, move them
+     *  to the contained item if is in a big operator
+     *  (does anything else need this?)
+     */
+    if (mitem.sup || mitem.sub) {
+      if (mitem.nuc.type == 'mlist' && mitem.nuc.mlist.Length() == 1) {
+        var atom = mitem.nuc.mlist.Last();
+        if (atom.atom && atom.type == 'op' && !atom.sup && !atom.sub) {
+          if (mitem.sup) {atom.sup = mitem.sup; delete mitem.sup}
+          if (mitem.sub) {atom.sub = mitem.sub; delete mitem.sub}
+        }
+      }
+    }
+    jsMath.mList.prototype.Atomize.SupSub(style,size,mitem);
+    var nuc = mitem.nuc; nuc.Styled(); var pad = mitem.pad;
+    if (pad) {box.w += 2*pad; box.h += pad; box.d += pad; nuc.w += pad}
+    if (jsMath.Browser.msieCenterBugFix)
+      {nuc.html = '<span style="position:relative">'+nuc.html+'</span>'}
+    nuc.html =
+      jsMath.HTML.BBox(box.w,box.h,box.d,mitem.color,mitem.style) +
+      jsMath.HTML.Spacer(pad-box.w) +
+      nuc.html;
+    if (pad && nuc.w < box.w) {
+      nuc.html += jsMath.HTML.Spacer(box.w-nuc.w);
+      nuc.w = box.w;
+    }
+    nuc.h  = Math.max(nuc.h,box.h);  nuc.d  = Math.max(nuc.d,box.d);
+    nuc.bh = Math.max(nuc.bh,box.h); nuc.bd = Math.max(nuc.bd,box.d);
+    mitem.type = 'ord';
+  }
+});
+
 jsMath.Package(jsMath.Parser,{
 
   macros: {bbox: 'BBox'},
@@ -67,7 +107,9 @@ jsMath.Package(jsMath.Parser,{
    */
   BBox: function (name) {
     var extra = this.GetBrackets(this.cmd+name); if (this.error) return;
-    var arg = this.ProcessArg(this.cmd+name); if (this.error) return;
+    var arg = this.GetArgument(this.cmd+name); if (this.error) return;
+    var nuc = this.Process(arg); if (this.error) return;
+    var nuc2 = this.Process(arg); // need a second copy since Box.Set changes the list
     var color; var pad = 0; var style = '';
     if (extra != '') {
       var parts = extra.split(/,/);
@@ -78,15 +120,9 @@ jsMath.Package(jsMath.Parser,{
         else {color = parts[i]}
       }
     }
-    var box = jsMath.Box.Set(arg,this.mlist.data.style,this.mlist.data.size,1).Remeasured();
-    var frame = jsMath.HTML.BBox(box.w+2*pad,box.h+pad,box.d+pad,color,style);
-    if (jsMath.Browser.msieCenterBugFix)
-      {box.html = '<span style="position:relative">'+box.html+'</span>'}
-    box.html = frame + jsMath.HTML.Spacer(-box.w-pad) + box.html;
-    if (pad) {box.html += jsMath.HTML.Spacer(pad)}
-    box.w += 2*pad; box.h += pad; box.d += pad;
-    box.bh = Math.max(box.bh,box.h); box.bd = Math.max(box.bd,box.d);
-    this.mlist.Add(jsMath.mItem.Atom('ord',box));
+    this.mlist.Add(new jsMath.mItem('bbox',{
+      nuc: nuc, nuc2: nuc2, atom: 1, pad: pad, color: color, style: style
+    }));
   }
 
 });

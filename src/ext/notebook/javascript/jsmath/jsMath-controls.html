@@ -28,6 +28,8 @@
 
 <script>
 var showWarning = 0;
+var domain = document.domain || "";
+var mustPost = ((domain == "" || domain == "localhost") && window.postMessage);
 while (!window.jsMath && !showWarning) {
   try {
     window.jsMath = window.parent.jsMath;
@@ -58,8 +60,16 @@ function Warning () {
   );
 }
 
-if (showWarning) {setTimeout("Warning()",1)} else {
-var debug = window.parent.debug; var show = window.parent.show;
+if (showWarning) {
+  if (!mustPost) setTimeout("Warning()",1);
+} else {
+  var debug = window.parent.debug;
+  var show = window.parent.show;
+}
+</SCRIPT>
+
+<SCRIPT ID="jsMath_script">
+if (window.jsMath) {
 
 jsMath.Add(jsMath.Controls,{
 
@@ -87,7 +97,7 @@ jsMath.Add(jsMath.Controls,{
 
   Main: function () {
     this.oldCookie = {}; jsMath.Add(this.oldCookie,this.cookie);
-    this.GetPanel("panel");
+    this.GetPanel("main");
 
     jsMath.Element("_version").innerHTML = jsMath.version;
 
@@ -192,13 +202,13 @@ jsMath.Add(jsMath.Controls,{
     }
   },
 
+  HTML: {},  // storage for panels for Firefox3 in local mode
+
   GetPanel: function (name) {
     this.panel.innerHTML = ""; // for MSIE on the Mac
-    if (jsMath.browser == 'Mozilla') {
-      this.panel.appendChild(document.getElementById("jsMath_"+name).cloneNode(true));
-    } else {
-      this.panel.innerHTML = document.getElementById("jsMath_"+name).innerHTML;
-    }
+    var html = this.HTML[name];
+    if (html == null) {html = document.getElementById("jsMath_"+name).innerHTML}
+    this.panel.innerHTML = html;
   },
 
   SaveOptions: function (close) {
@@ -249,12 +259,23 @@ jsMath.Add(jsMath.Controls,{
 
 });
 
+jsMath.Add(jsMath.Post.Commands,{
+  PAN: function (message) {jsMath.Controls.HTML.main = message},
+  OPT: function (message) {jsMath.Controls.HTML.options = message},
+
+  PST: function (message) {
+    jsMath.Controls.Main();
+    jsMath.Script.endLoad();
+    jsMath.Message.doClear();
+  }
+});
+
 }
 </script>
 
 <!------------------------------------------------------------>
 
-<div id="jsMath_panel">
+<div id="jsMath_main">
 <div style="text-align:center">
 <b style="font-size:133%">jsMath v<span ID="jsMath__version"></span></b>
 (<span id="jsMath__fontType">type</span> fonts)
@@ -434,7 +455,19 @@ Use native Unicode fonts</td></tr>
 <!------------------------------------------------------------>
 
 <script>
-  if (!showWarning) {jsMath.Controls.Main()}
+  if (showWarning) {
+    if (mustPost) {
+      var scr = document.getElementById("jsMath_script");
+      window.parent.postMessage("jsMCP:SCR:"+scr.innerHTML);
+      var main = document.getElementById("jsMath_main");
+      window.parent.postMessage("jsMCP:PAN:"+main.innerHTML);
+      var options = document.getElementById("jsMath_options");
+      window.parent.postMessage("jsMCP:OPT:"+options.innerHTML);
+      window.parent.postMessage("jsMCP:PST:");
+    }
+  } else {
+    jsMath.Controls.Main()
+  }
 </script>
 <script>
   if (window.jsMath) {

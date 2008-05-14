@@ -1,19 +1,16 @@
 /*
- *  extensions/boldsymbol.js
+ *  extensions/autobold.js
  *
  *  Part of the jsMath package for mathematics on the web.
  *
- *  This file implements the \boldsymbol macro.  You can activate it
- *  by calling
+ *  This file causes jsMath to use \boldsymbol{...} around mathematics
+ *  that appears within <B>...</B> tags or has font-weight:bold applied
+ *  via CSS rule.  You can activate it by calling
  *
- *    jsMath.Extension.Macro('boldsymbol');
+ *    jsMath.Extension.Require('autobold');
  *
- *  which will cause the extension to be loaded only when it is
- *  needed, or you can force it to be loaded via
- *
- *    jsMath.Extension.Require('boldsymbol');
- *
- *  once jsMath.js has been loaded.
+ *  once jsMath.js has been loaded, or by adding "extensions/autobold.js"
+ *  to the loadFiles array in jsMath/easy/load.js.
  *
  *  Note that you will need to install the cmmib10 and cmbsy10 fonts
  *  that are available from the jsMath extra font page at
@@ -25,7 +22,7 @@
  *
  *  ---------------------------------------------------------------------
  *
- *  Copyright 2006-2007 by Davide P. Cervone
+ *  Copyright 2008 by Davide P. Cervone
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -42,22 +39,13 @@
 
 /********************************************************************/
 
-jsMath.Package(jsMath.Parser,{
+jsMath.Extension.Require("boldsymbol");
 
-  macros: {boldsymbol: 'BoldSymbol'},
-
-  /*
-   *  Implement \boldsymbol{...}
-   */
-  BoldSymbol: function (name) {
-    var fam = jsMath.TeX.fam; var restart = 0;
-    var oldfam = [fam[0],fam[1],fam[2]];
-    fam[0] = "cmbx10"; fam[1] = "cmmib10"; fam[2] = "cmbsy10";
-    try{var box = this.ProcessArg(this.cmd+name)}
-      catch (e) {restart = (e == "restart")}
-    fam[0] = oldfam[0]; fam[1] = oldfam[1]; fam[2] = oldfam[2];
-    if (this.error) return; if (restart) {throw "restart"}
-    this.mlist.Add(jsMath.mItem.Atom('ord',box));
+jsMath.Translate.OldParse = jsMath.Translate.Parse;
+jsMath.Translate.Parse = function (style,text,noCache) {
+  if (jsMath.BBoxFor('</SPAN></SPAN>MMMMMMMMMM<SPAN><SPAN>').w >
+      jsMath.BBoxFor('</SPAN></SPAN><SPAN STYLE="font-weight:normal">MMMMMMMMMM</SPAN><SPAN><SPAN>').w) {
+    text = '\\boldsymbol{' + text + '}';
   }
-
-});
+  return jsMath.Translate.OldParse(style,text,noCache);
+}

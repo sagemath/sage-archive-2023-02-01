@@ -10,7 +10,7 @@
  *
  *  ---------------------------------------------------------------------
  *
- *  Copyright 2004-2006 by Davide P. Cervone
+ *  Copyright 2004-2007 by Davide P. Cervone
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ jsMath.Add(jsMath.tex2math,{
     this.Convert(element,{
       processSingleDollars: 1, processDoubleDollars: 1,
       processSlashParens: 1, processSlashBrackets: 1,
+      processLaTeXenvironments: 0,
       custom: 0, fixEscapedDollars: 1
     });
   },
@@ -52,6 +53,7 @@ jsMath.Add(jsMath.tex2math,{
     this.Convert(element,{
       processSingleDollars: 0, processDoubleDollars: 1,
       processSlashParens: 1, processSlashBrackets: 1,
+      processLaTeXenvironments: 0,
       custom: 0, fixEscapedDollars: 0
     });
   },
@@ -60,6 +62,7 @@ jsMath.Add(jsMath.tex2math,{
     this.Convert(element,{
       processSingleDollars: 0, processDoubleDollars: 0,
       processSlashParens: 1, processSlashBrackets: 1,
+      processLaTeXenvironments: 1,
       custom: 0, fixEscapedDollars: 0
     });
   },
@@ -133,7 +136,7 @@ jsMath.Add(jsMath.tex2math,{
       }
       if (this.processDoubleDollars || this.processSingleDollars ||
           this.processSlashParens   || this.processSlashBrackets ||
-          this.custom) this.ScanElement(element);
+          this.processLaTeXenvironments || this.custom) this.ScanElement(element);
     }
   },
 
@@ -194,8 +197,8 @@ jsMath.Add(jsMath.tex2math,{
   stdProcessMatch: function (match,index,element) {
     if (match == this.search.end) {
       this.search.close = element;
-      this.search.clength = match.length;
       this.search.cpos = this.pattern.lastIndex;
+      this.search.clength = (match.substr(0,4) == '\\end' ? 0 : match.length);
       element = this.EncloseMath(element);
     } else {
       switch (match) {
@@ -233,6 +236,14 @@ jsMath.Add(jsMath.tex2math,{
             element.nodeValue = element.nodeValue.substr(0,index)
                               + element.nodeValue.substr(index+1);
             this.pattern.lastIndex--;
+          }
+          break;
+
+        default:
+          if (match.substr(0,6) == '\\begin' && this.search.end == null &&
+              this.processLaTeXenvironments) {
+            this.ScanMark('div',element,'\\end'+match.substr(6));
+            this.search.olength = 0;
           }
           break;
       }
@@ -357,9 +368,7 @@ jsMath.Add(jsMath.tex2math,{
     if (this.inited || !jsMath.browser) return;
     /*
      *  MSIE can't handle the DIV's properly, so we need to do it by
-     *  hand.  Look up the style for typeset math to see if the user
-     *  has changed it, and get whether it is centered or indented
-     *  so we can mirror that using a SPAN
+     *  hand.  Use an extra SPAN that uses CSS to act like a DIV.
      */
     if (jsMath.browser == 'MSIE' && jsMath.platform == 'pc')
       {this.createMathTag = this.MSIEcreateMathTag}
@@ -384,6 +393,6 @@ jsMath.Add(jsMath.tex2math,{
 if (jsMath.Controls.cookie.tex2math == null) {jsMath.Controls.cookie.tex2math = 1}
 if (jsMath.tex2math.allowDisableTag == null) {jsMath.tex2math.allowDisableTag = 1}
 jsMath.tex2math.TestPatterns();
-jsMath.tex2math.createPattern('stdPattern',/(\\[\(\)\[\]$]|\$\$|\$)/g);
+jsMath.tex2math.createPattern('stdPattern',/(\\[\(\)\[\]$]|\$\$|\$|\\(begin|end)\{[^}]+\})/g);
 
 }

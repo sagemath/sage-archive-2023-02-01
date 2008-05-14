@@ -911,7 +911,7 @@ jsMath.Setup.Styles({
     '.typeset .bigop1':         "font-family: 'Hiragino Mincho Pro'; font-size: 133%; position: relative; top: .85em; margin:-.05em",
     '.typeset .bigop1a':        "font-family: Baskerville; font-size: 100%; position: relative; top: .775em;",
     '.typeset .bigop1b':        "font-family: 'Hiragino Mincho Pro'; font-size: 160%; position: relative; top: .7em; margin:-.1em",
-    '.typeset .bigop1c':        "font-family: Apple Symbols; font-size: 125%; position: relative; top: .75em; margin:-.1em;",
+    '.typeset .bigop1c':        "font-family: 'Apple Symbols'; font-size: 125%; position: relative; top: .75em; margin:-.1em;",
     '.typeset .bigop2':         "font-family: 'Hiragino Mincho Pro'; font-size: 200%; position: relative; top: .8em; margin:-.07em",
     '.typeset .bigop2a':        "font-family: Baskerville; font-size: 175%; position: relative; top: .7em;",
     '.typeset .bigop2b':        "font-family: 'Hiragino Mincho Pro'; font-size: 270%; position: relative; top: .62em; margin:-.1em",
@@ -933,7 +933,7 @@ jsMath.Setup.Styles({
  */
 
 jsMath.noAppleSymbols =  (jsMath.BBoxFor('&#x2223;').w ==
-    jsMath.BBoxFor('<span style="font-family: Apple Symbols">&#x2223;</span>').w);
+    jsMath.BBoxFor('<span style="font-family: \'Apple Symbols\'">&#x2223;</span>').w);
 
 if (jsMath.noAppleSymbols) {
   jsMath.Update.TeXfonts({
@@ -959,7 +959,7 @@ if (jsMath.noAppleSymbols) {
   jsMath.Macro('rightleftharpoons','\\unicode{x21CC}');
 } else {
   jsMath.Setup.Styles({
-    '.typeset .harpoon':   'font-family: Apple Symbols; font-size: 125%'
+    '.typeset .harpoon':   "font-family: 'Apple Symbols'; font-size: 125%"
   });
 
 }

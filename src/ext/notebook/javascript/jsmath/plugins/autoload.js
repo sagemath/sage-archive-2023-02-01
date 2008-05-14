@@ -95,12 +95,34 @@ jsMath.Add(jsMath.Autoload,{
 
     request: null,  // XMLHttpRequest object (if we can get it)
     iframe: null,   // the hidden iframe (if not)
+    operaXMLHttpRequestBug: (window.opera != null), // is Opera browser
 
     /*
      *  Get XMLHttpRequest object, if possible, and look up the URL root
+     *  (MSIE can't use xmlReuest to load local files, so avoid that)
      */
     Init: function () {
-      if (window.XMLHttpRequest) {try {this.request = new XMLHttpRequest} catch (err) {}}
+      this.Root();
+      if (window.XMLHttpRequest) {
+        try {this.request = new XMLHttpRequest} catch (err) {}
+        // MSIE and FireFox3 can't use xmlRequest on local files,
+        // but we don't have jsMath.browser yet to tell, so use this check
+        if (this.request && window.location.protocol == "file:") {
+          try {
+            this.request.open("GET",jsMath.Autoload.root+"plugins/autoload.js",false);
+            this.request.send(null);
+          } catch (err) {
+            this.request = null;
+            //  Firefox3 has window.postMessage for inter-window communication.
+            //  It can be used to handle the new file:// security model,
+            //  so set up the listener.
+            if (window.postMessage) {
+              this.mustPost = 1;
+              window.addEventListener("message",jsMath.Autoload.Post.Listener,false);
+            }
+          }
+        }
+      }
       if (!this.request && window.ActiveXObject) {
         var xml = ["MSXML2.XMLHTTP.5.0","MSXML2.XMLHTTP.4.0","MSXML2.XMLHTTP.3.0",
                    "MSXML2.XMLHTTP","Microsoft.XMLHTTP"];
@@ -108,14 +130,13 @@ jsMath.Add(jsMath.Autoload,{
           try {this.request = new ActiveXObject(xml[i])} catch (err) {}
         }
       }
-      this.Root();
     },
 
     /*
      *  Load an external JavaScript file
      */
     Load: function (url) {
-      if (this.request) {
+      if (this.request && !(this.operaXMLHttpRequestBug && url == 'jsMath.js')) {
         setTimeout(function () {jsMath.Autoload.Script.xmlLoad(url)},1);
       } else {
         this.startLoad(url);
@@ -167,12 +188,16 @@ jsMath.Add(jsMath.Autoload,{
      *  the issue, but that's the only time I see it).
      */
     setURL: function () {
-      var url = jsMath.Autoload.root+"jsMath-autoload.html";
-      var doc = this.iframe.contentDocument;
-      if (!doc && this.iframe.contentWindow) {doc = this.iframe.contentWindow.document}
-      if (navigator.vendor == "Apple Computer, Inc." &&
-          document.location.protocol == 'file:') {doc = null}
-      if (doc) {doc.location.replace(url)} else {this.iframe.src = url}
+      if (this.mustPost) {
+        this.iframe.src = jsMath.Autoload.Post.startLoad(this.url,this.iframe);
+      } else {
+        var url = jsMath.Autoload.root+"jsMath-autoload.html";
+        var doc = this.iframe.contentDocument;
+        if (!doc && this.iframe.contentWindow) {doc = this.iframe.contentWindow.document}
+        if (navigator.vendor == "Apple Computer, Inc." &&
+            document.location.protocol == 'file:') {doc = null}
+        if (doc) {doc.location.replace(url)} else {this.iframe.src = url}
+      }
     },
 
     /*
@@ -202,7 +227,7 @@ jsMath.Add(jsMath.Autoload,{
       if (script) {
         for (var i = 0; i < script.length; i++) {
           var src = script[i].src;
-          if (src && src.match('(^|/)plugins/autoload.js$')) {
+          if (src && src.match('(^|/|\\\\)plugins/autoload.js$')) {
             jsMath.Autoload.root = src.replace(/plugins\/autoload.js$/,'');
             break;
           }
@@ -211,6 +236,44 @@ jsMath.Add(jsMath.Autoload,{
     }
 
   },
+
+  /*
+   *  Handle window.postMessage() events in Firefox3
+   */
+  Post: {
+    window: null,  // iframe we are listening to
+
+    Listener: function (event) {
+      if (event.source != jsMath.Autoload.Post.window) return;
+      var domain = event.origin; var ddomain = document.domain
+      if (domain == null || domain == "") {domain = "localhost"}
+      if (ddomain == null || ddomain == "") {ddomain = "localhost"}
+      if (domain != ddomain || event.data.substr(0,6) != "jsMAL:") return;
+      var type = event.data.substr(6,3).replace(/ /g,'');
+      var message = event.data.substr(10);
+      if (jsMath.Autoload.Post.Commands[type]) (jsMath.Autoload.Post.Commands[type])(message);
+      // cancel event?
+    },
+
+    /*
+     *  Commands that can be performed by the listener
+     */
+    Commands: {
+      SCR: function (message) {window.eval(message)},
+      ERR: function (message) {jsMath.Autoload.Script.endLoad()},
+      END: function (message) {jsMath.Autoload.Script.endLoad()}
+    },
+
+    startLoad: function (url,iframe) {
+      this.window = iframe.contentWindow;
+      return jsMath.Autoload.root+"jsMath-loader-post.html?autoload="+url;
+    },
+
+    endLoad: function () {
+      this.window = null;
+    }
+  },
+
 
   /**************************************************************/
 
@@ -312,8 +375,10 @@ jsMath.Add(jsMath.Autoload,{
    *  and then do any pending commands.
    */
   LoadJsMath: function () {
+    if (this.loading) return;
     if (jsMath.loaded) {this.afterLoad(); return}
     if (this.root) {
+      this.loading = 1;
       this.setMessage('Loading jsMath...');
       this.Script.AfterLoad = this.afterLoad;
       this.Script.Load('jsMath.js');
@@ -322,10 +387,11 @@ jsMath.Add(jsMath.Autoload,{
     }
   },
   afterLoad: function () {
-    if (jsMath.tex2math.window) {jsMath.tex2math.window.jsMath = jsMath}
+    jsMath.Autoload.loading = 0;
     //
     //  Handle MSIE bug where jsMath.window both is and is not the actual window
     //
+    if (jsMath.tex2math.window) {jsMath.tex2math.window.jsMath = jsMath}
     if (jsMath.browser == 'MSIE') {window.onscroll = jsMath.window.onscroll};
     var fonts = jsMath.Autoload.loadFonts;
     if (fonts) {
@@ -391,4 +457,4 @@ if (jsMath.Autoload.findLaTeXstrings == null) {jsMath.Autoload.findLaTeXstrings 
 
 jsMath.Autoload.Script.Init();
 jsMath.Autoload.InitStubs();
-if (document.body) {jsMath.Autoload.Check()}
+if (document.body && !jsMath.Autoload.delayCheck) {jsMath.Autoload.Check()}

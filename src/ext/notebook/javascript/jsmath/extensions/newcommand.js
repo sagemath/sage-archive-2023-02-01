@@ -44,7 +44,7 @@ jsMath.Package(jsMath.Parser,{
     var def = this.GetArgument(this.cmd+name); if (this.error) return;
     if (n == '') {n = null}
     if (cs.charAt(0) == this.cmd) {cs = cs.substr(1)}
-    if (!cs.match(/^(.|[a-z]+)$/)) {this.Error("Illegal control sequence name for "+this.cmd+name); return}
+    if (!cs.match(/^(.|[a-z]+)$/i)) {this.Error("Illegal control sequence name for "+this.cmd+name); return}
     if (n != null && !n.match(/^[0-9]+$/)) {this.Error("Illegal number of parameters specified in "+this.cmd+name); return}
     jsMath.Parser.prototype.macros[cs] = ['Macro',def,n];
   },

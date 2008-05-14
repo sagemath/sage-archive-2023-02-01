@@ -130,12 +130,10 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         TESTS:
             sage: G.<a,b> = AbelianGroup(2)
             sage: a/b
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand type(s) for %: 'int' and 'PlusInfinity'
+            a*b^-1
 
         """
-        return self*y**(-1)
+        return self*y.inverse()
 
     def _mul_(self, y):
         #Same as _mul_ in FreeAbelianMonoidElement except that the
@@ -177,17 +175,37 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         M = self.parent()
         N = M.ngens()
         invs = M.invariants()
-        if n < 0:
-            L =[n*self.list()[i]%M.gen(i).order() for i in range(M.ngens())]
-            return prod([M.gen(i)**L[i] for i in range(M.ngens())], M(1))
-        elif n == 0:
-            return self.parent()(1)
-        elif n == 1:
-            return self
-        elif n == 2:
-            return self * self
-        k = n//2
-        return self**k * self**(n-k)
+        z = M(1)
+        for i in xrange(len(invs)):
+            if invs[i] == 0:
+                z.__element_vector[i] = self.__element_vector[i]*n
+            else:
+                z.__element_vector[i] = (self.__element_vector[i]*n)%invs[i]
+        return z
+
+    def inverse(self):
+        """
+        Returns the inverse element.
+
+        EXAMPLE:
+            sage: G.<a,b> = AbelianGroup(2)
+            sage: a^-1
+            a^-1
+            sage: a.list()
+            [1, 0]
+            sage: a.inverse().list()
+            [-1, 0]
+            sage: a.inverse()
+            a^-1
+
+        """
+        new_list = [-1*n for n in self.list()]
+        par_inv = self.parent().invariants()
+        for i in xrange(len(par_inv)):
+            if par_inv[i] != 0 and new_list[i] < 0:
+                while new_list[i] < 0:
+                    new_list[i] += abs(par_inv[i])
+        return AbelianGroupElement(self.parent(), new_list)
 
     def as_permutation(self):
         r"""

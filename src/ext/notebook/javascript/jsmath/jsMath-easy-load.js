@@ -71,17 +71,19 @@ if (jsMath.Easy.processSingleDollars ||
     jsMath.Easy.fixEscapedDollars) {
 
   jsMath.Easy.findCustomSettings = {
-    processSingleDollars: jsMath.Easy.processSingleDollars,
-    processDoubleDollars: jsMath.Easy.processDoubleDollars,
-    processSlashParens:   jsMath.Easy.processSlashParens,
-    processSlashBrackets: jsMath.Easy.processSlashBrackets,
-    fixEscapedDollars:    jsMath.Easy.fixEscapedDollars,
+    processSingleDollars:     jsMath.Easy.processSingleDollars,
+    processDoubleDollars:     jsMath.Easy.processDoubleDollars,
+    processSlashParens:       jsMath.Easy.processSlashParens,
+    processSlashBrackets:     jsMath.Easy.processSlashBrackets,
+    processLaTeXenvironments: jsMath.Easy.processLaTeXenvironments,
+    fixEscapedDollars:        jsMath.Easy.fixEscapedDollars,
     custom: 0
   }
 }
 
 if (!jsMath.Autoload) {jsMath.Autoload = {}}
 jsMath.Autoload.root = jsMath.Easy.root+'/';
+
 if (jsMath.Easy.autoload) {
   jsMath.Autoload.findTeXstrings = 0;
   jsMath.Autoload.findLaTeXstrings = 0;
@@ -89,9 +91,8 @@ if (jsMath.Easy.autoload) {
   jsMath.Autoload.findCustomSettings = jsMath.Easy.findCustomSettings;
   jsMath.Autoload.loadFiles = jsMath.Easy.loadFiles;
   jsMath.Autoload.loadFonts = jsMath.Easy.loadFonts;
-  jsMath.Autoload.root = jsMath.Easy.root + '/';
-
-  if (!document.body) {jsMath.Easy.autoloadCheck = 1}
+  jsMath.Autoload.delayCheck = 1;
+  jsMath.Easy.autoloadCheck = 1;
   document.write('<script src="'+jsMath.Autoload.root+'plugins/autoload.js"></script>');
 
 } else {
@@ -100,6 +101,7 @@ if (jsMath.Easy.autoload) {
       jsMath.Easy.processDoubleDollars ||
       jsMath.Easy.processSlashParens ||
       jsMath.Easy.processSlashBrackets ||
+      jsMath.Easy.processLaTeXenvironments ||
       jsMath.Easy.fixEscapedDollars ||
       jsMath.Easy.customDelimiters);
 
@@ -117,6 +119,7 @@ if (jsMath.Easy.autoload) {
 }
 
 jsMath.Easy.onload = function () {
+  if (jsMath.Easy.loaded) {return} else {jsMath.Easy.loaded = 1}
   if (jsMath.Easy.autoloadCheck) jsMath.Autoload.Check();
   if (jsMath.Easy.tex2math) {
     jsMath.Synchronize(function () {

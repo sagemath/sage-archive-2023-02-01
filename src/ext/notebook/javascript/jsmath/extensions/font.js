@@ -1,6 +1,7 @@
 jsMath.Package(jsMath.Parser,{
 
   macros: {font: 'Font'},
+  fontCS: {},
 
   /*
    *  Get a CS name or give an error
@@ -23,10 +24,11 @@ jsMath.Package(jsMath.Parser,{
       var font = this.string.slice(this.i).match(/^[a-z]+[0-9]+/i);
       if (font) {
         this.i += (new String(font)).length;
-        if (jsMath.TeX.famName[font]) {
+        if (jsMath.TeX.famName[font] != null) {
           this.macros[cs] = ['HandleFont',jsMath.TeX.famName[font]];
         } else {
-          this.macros[cs] = ['Extension',jsMath.Font.URL(font)];
+          this.macros[cs] = ['Extension',jsMath.Font.URL(font),"fontCS"];
+          this.fontCS[cs] = 1; // so Extension has something to delete
         }
       } else {this.Error("Missing font name")}
     } else {this.Error("Missing font definition")}

@@ -50,13 +50,14 @@ jsMath.Easy = {
   //  to add the <DIV> and <SPAN> tags that jsMath needs.  See the
   //  documentation for the tex2math plugin for more information.
   //
-  processSlashParens: 1,      // process \(...\) in text?
-  processSlashBrackets: 1,    // process \[...\] in text?
-  processDoubleDollars: 1,    // process $$...$$ in text?
-  processSingleDollars: 0,    // process $...$ in text?
-  fixEscapedDollars: 0,       // convert \$ to $ outside of math mode?
-  doubleDollarsAreInLine: 0,  // make $$...$$ be in-line math?
-  allowDisableTag: 1,         // allow ID="tex2math_off" to disable tex2math?
+  processSlashParens: 1,       // process \(...\) in text?
+  processSlashBrackets: 1,     // process \[...\] in text?
+  processDoubleDollars: 1,     // process $$...$$ in text?
+  processSingleDollars: 0,     // process $...$ in text?
+  processLaTeXenvironments: 0, // process \begin{xxx}...\end{xxx} outside math mode?
+  fixEscapedDollars: 0,        // convert \$ to $ outside of math mode?
+  doubleDollarsAreInLine: 0,   // make $$...$$ be in-line math?
+  allowDisableTag: 1,          // allow ID="tex2math_off" to disable tex2math?
   //
   //  If you want to use your own custom delimiters for math instead
   //  of the usual ones, then uncomment the following four lines and
@@ -83,13 +84,12 @@ jsMath.Easy = {
   //
   showFontWarnings: 1,
 
-
   //
   //  Use "Process" or "ProcessBeforeShowing".  See the jsMath
   //  author's documentation for the difference between these
   //  two routines.
   //
-  method:  "Process",
+  method: "Process",
 
   //
   //  List of plug-ins and extensions that you want to be
@@ -106,6 +106,7 @@ jsMath.Easy = {
 
   //
   //  Allow jsMath to enter global mode?
+  //  (Uses frames, so may not always work with complex web sites)
   //
   allowGlobal: 1,
 
@@ -126,9 +127,14 @@ jsMath.Easy = {
 
 if (jsMath.Easy.root == "") {
   jsMath.Easy.root = document.getElementsByTagName("script");
-  jsMath.Easy.root = jsMath.Easy.root[jsMath.Easy.root.length-1].src.
-     replace(/\/(jsMath\/(easy\/)?)?[^\/]*$/,"/jsMath");
+  jsMath.Easy.root = jsMath.Easy.root[jsMath.Easy.root.length-1].src
+  if (jsMath.Easy.root.match(/\/easy\/[^\/]*$/)) {
+    jsMath.Easy.root = jsMath.Easy.root.replace(/\/easy\/[^\/]*$/,"");
+  } else {
+    jsMath.Easy.root = jsMath.Easy.root.replace(/\/(jsMath\/(easy\/)?)?[^\/]*$/,"/jsMath");
+  }
 }
+jsMath.Easy.root = jsMath.Easy.root.replace(/\/$/,""); // trim trailing "/" if any
 
 document.write('<SCRIPT SRC="'+jsMath.Easy.root+'/jsMath-easy-load.js"><'+'/SCRIPT>');
 

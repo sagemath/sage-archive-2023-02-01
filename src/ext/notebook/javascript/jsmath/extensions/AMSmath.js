@@ -63,6 +63,7 @@ jsMath.Package(jsMath.Parser,{
     varprojlim: ['Macro','\\mathop{\\underleftarrow{\\rm lim}}'],
 
     DeclareMathOperator: 'HandleDeclareOp',
+    operatorname: 'HandleOperatorName',
 
     genfrac:    'Genfrac',
     frac:       ['Genfrac',"","","",""],
@@ -81,11 +82,13 @@ jsMath.Package(jsMath.Parser,{
   environments: {
     align:         ['Array',null,null,'rlrlrlrlrlrl',[5/18,2,5/18,2,5/18,2,5/18,2,5/18,2,5/18],1,'D'],
     'align*':      ['Array',null,null,'rlrlrlrlrlrl',[5/18,2,5/18,2,5/18,2,5/18,2,5/18,2,5/18],1,'D'],
+    aligned:       ['Array',null,null,'rlrlrlrlrlrl',[5/18,2,5/18,2,5/18,2,5/18,2,5/18,2,5/18],1,'D'],
     multline:     'Multline',
     'multline*':  'Multline',
     split:         ['Array',null,null,'rl',[5/18],1,'D'],
     gather:        ['Array',null,null,'c',null,1,'D'],
     'gather*':     ['Array',null,null,'c',null,1,'D'],
+    gathered:      ['Array',null,null,'c',null,1,'D'],
     subarray:      ['Array',null,null,null,[0,0,0,0],1,'S',0,.25],
     smallmatrix:   ['Array',null,null,'cccccccccc',[1/3,1/3,1/3,1/3,1/3,1/3,1/3,1/3,1/3,1/3],1,'S',0]
   },
@@ -119,6 +122,18 @@ jsMath.Package(jsMath.Parser,{
     var op = this.GetArgument(this.cmd+name); if (this.error) return;
     op = op.replace(/\*/g,'\\char{cmr10}{0x2A}').replace(/-/g,'\\char{cmr10}{0x2D}');
     jsMath.Parser.prototype.macros[cs] = ['Macro','\\mathop{\\rm '+op+'}'+limits];
+  },
+
+  HandleOperatorName: function (name) {
+    var limits = "";
+    var op = this.trimSpaces(this.GetArgument(this.cmd+name)); if (this.error) return;
+    if (op == "*") {
+      limits = "\\limits";
+      op = this.trimSpaces(this.GetArgument(this.cmd+name)); if (this.error) return;
+    }
+    op = op.replace(/\*/g,'\\char{cmr10}{0x2A}').replace(/-/g,'\\char{cmr10}{0x2D}');
+    this.string = '\\mathop{\\rm '+op+'}'+limits+this.string.slice(this.i);
+    this.i = 0;
   },
 
   /*
@@ -161,7 +176,7 @@ jsMath.Package(jsMath.Parser,{
   },
 
   /*
-   *  Implement AMS generalizes fraction
+   *  Implement AMS generalized fraction
    */
   Genfrac: function (name,data) {
     var left = data[0]; var right = data[1];

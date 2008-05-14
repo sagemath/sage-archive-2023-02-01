@@ -45,7 +45,7 @@ if (window.location.protocol == "mk:") {
    *  to load the controls file, so fake it using XMLHttpRequest.
    *  Load the data into a DIV instead of an IFRAME, and make sure
    *  that the styles are correct for it.  Change the GetPanel()
-   *  call to get the hide the other panel and open the cirrect one.
+   *  call to hide the other panel and open the correct one.
    */
 
   jsMath.Controls.Init = function () {

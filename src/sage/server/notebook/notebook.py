@@ -1727,8 +1727,20 @@ class Notebook(SageObject):
             head += '<script type="text/javascript">jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
             if not JSMATH_IMAGE_FONTS:
                 head +=' <script type="text/javascript" src="/javascript/jsmath/plugins/noImageFonts.js"></script>\n'
+
+            # Move the jsMath button 20 pixels from the right edge
+            # (apparently in some browsers, it covers up the scroll
+            # bar)
+            head += """<script type="text/javascript">
+jsMath = {styles: {
+        '#jsMath_button':   'position:fixed; bottom:1px; right:20px; background-color:white; '
+                                + 'border: solid 1px #959595; margin:0px; padding: 0px 3px 1px 3px; '
+                                + 'z-index:102; color:black; text-decoration:none; font-size:x-small; '
+                                + 'width:auto; cursor:hand;',
+      }};
+    </script>
+"""
             head += '<script type="text/javascript" src="/javascript/jsmath/jsMath.js"></script>\n'
-            head += "<script type='text/javascript'>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
 
         if JQUERY:
             # Load the jquery and ui-jquery javascript library.

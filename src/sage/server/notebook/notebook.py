@@ -382,9 +382,9 @@ class Notebook(SageObject):
                 # 2. copy them over
                 # 3. update worksheet text
                 if os.path.exists(X.data_directory()):
-                    shutil.rmtree(X.data_directory())
+                    shutil.rmtree(X.data_directory(), ignore_errors=True)
                 if os.path.exists(X.cells_directory()):
-                    shutil.rmtree(X.cells_directory())
+                    shutil.rmtree(X.cells_directory(), ignore_errors=True)
                 self._initialize_worksheet(worksheet, X)
                 X.set_worksheet_that_was_published(worksheet)
                 X.move_to_archive(username)
@@ -457,7 +457,7 @@ class Notebook(SageObject):
             raise KeyError, "Attempt to delete missing worksheet '%s'"%filename
         W = self.__worksheets[filename]
         W.quit()
-        shutil.rmtree(W.directory())
+        shutil.rmtree(W.directory(), ignore_errors=True)
         self.deleted_worksheets()[filename] = W
         del self.__worksheets[filename]
 
@@ -795,10 +795,10 @@ class Notebook(SageObject):
 
         # Figure out the file extension
         ext = os.path.splitext(filename)[1]
-        if ext == '.txt':
+        if ext.lower() == '.txt':
             # A plain text file with {{{'s that defines a worksheet (not graphics).
             return self._import_worksheet_txt(filename, owner)
-        elif ext == '.sws':
+        elif ext.lower() == '.sws':
             # An sws file (really a tar.bz2) which defines a worksheet with graphics,
             # revisions, etc.
             return self._import_worksheet_sws(filename, owner)
@@ -923,7 +923,7 @@ class Notebook(SageObject):
 
         worksheet.edit_save(worksheet_txt)
 
-        shutil.rmtree(tmp)
+        shutil.rmtree(tmp, ignore_errors=True)
 
         return worksheet
 

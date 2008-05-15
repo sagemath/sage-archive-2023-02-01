@@ -323,11 +323,17 @@ class UploadWorksheet(resource.PostableResource):
             f.close()
 
         try:
-            W = notebook.import_worksheet(filename, self.username)
-            os.unlink(filename)
-            # if a temp directory was created, we delete it now.
-            if dir:
-                shutil.rmtree(dir)
+            try:
+                W = notebook.import_worksheet(filename, self.username)
+            except IOError, msg:
+                print msg
+                raise ValueError, "Unfortunately, there was an error uploading the worksheet.  It could be an old unsupported format or worse.  If you desparately need its contents contact the Google group sage-support and post a link to your worksheet.  Alternatively, an sws file is just a bzip2'd tarball; take a look inside!"
+            finally:
+                # Clean up the temporarily uploaded filename.
+                os.unlink(filename)
+                # if a temp directory was created, we delete it now.
+                if dir:
+                    shutil.rmtree(dir)
 
         except ValueError, msg:
             s = "Error uploading worksheet '%s'."%msg

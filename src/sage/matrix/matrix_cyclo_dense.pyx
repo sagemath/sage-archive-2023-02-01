@@ -977,6 +977,27 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [6 2]
             [4 3]
 
+        The reduction matrix is used to calculate the reductions mod primes
+        above p.
+            sage: K.<z> = CyclotomicField(5)
+            sage: A = matrix(K, 2, 2, [1, z, z^2+1, 5*z^3]); A
+            [      1       z]
+            [z^2 + 1   5*z^3]
+            sage: T, S = A._reduction_matrix(11)
+            sage: T * A._rational_matrix().change_ring(GF(11))
+            [ 1  9  5  4]
+            [ 1  5  4  9]
+            [ 1  4  6  1]
+            [ 1  3 10  3]
+
+        The rows of this product are the (flattened) matrices mod each prime above p:
+            sage: roots = [r for r, e in K.defining_polynomial().change_ring(GF(11)).roots()]; roots
+            [9, 5, 4, 3]
+            sage: [r^2+1 for r in roots]
+            [5, 4, 6, 10]
+            sage: [5*r^3 for r in roots]
+            [4, 9, 1, 3]
+
         The reduction matrix is cached:
             sage: w._reduction_matrix(7) is w._reduction_matrix(7)
             True

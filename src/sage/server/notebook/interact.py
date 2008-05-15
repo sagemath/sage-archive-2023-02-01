@@ -1120,12 +1120,12 @@ class InteractCanvas:
 
 def interact(f):
     r"""
-    Use interact as a decorate to create interactive Sage notebook
+    Use interact as a decorator to create interactive Sage notebook
     cells with sliders, text boxes, radio buttons, check boxes, and
     color selectors.  Simply put @interact on the line before a
-    function definition, and choose appropriate defaults for the
-    variable names to determine the types of controls (see tables
-    below).
+    function definition in a cell by itself, and choose appropriate
+    defaults for the variable names to determine the types of
+    controls (see tables below).
 
     INPUT:
         f -- a Python function

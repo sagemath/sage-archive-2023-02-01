@@ -309,7 +309,7 @@ class UploadWorksheet(resource.PostableResource):
         dir = ''  # we will delete the directory below if it is used
         if url != '':
             # downloading a file from the internet
-            tmp = get_remote_file(url, verbose=True)
+            filename = get_remote_file(url, verbose=True)
         else:
             # uploading a file from the user's computer
             dir = tmp_dir()

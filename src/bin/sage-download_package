@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 #####################################################
 #
-# Download to the current directory a SAGE package.
+# Download to the current directory a SAGE spkg from
+# the internet.
 #
+# AUTHOR: William Stein
 #####################################################
 
 import os, sys, urllib
+
+if len(sys.argv) < 2:
+     print "Usage: %s <package name> <package name> ..."%sys.argv[0]
+     sys.exit(1)
+
+# Define SAGE_ROOT and PKG_SERVER based on the environment.
 
 if not os.environ.has_key("SAGE_ROOT"):
      print "The environment variable SAGE_ROOT must be set."
@@ -17,13 +25,10 @@ if not os.environ.has_key("SAGE_SERVER"):
      sys.exit(1)
 PKG_SERVER=os.environ['SAGE_SERVER'] + '/packages'
 
-if len(sys.argv) < 2:
-     print "Usage: %s <package name> <package name> ..."%sys.argv[0]
-     sys.exit(1)
-
 # use http_error_default from URLopener to raise an IOError on failure
 urllib.FancyURLopener.http_error_default = urllib.URLopener.http_error_default
 
+# This reporthook is used below to print ...'s as the file downloads.
 cur = 0
 def reporthook(block, size, total):
      global cur
@@ -33,12 +38,43 @@ def reporthook(block, size, total):
           sys.stdout.write('.')
           sys.stdout.flush()
 
-def download_file(file):
-     if file[-5:] != ".spkg":
+def download_file(file, repository='optional'):
+     """
+     Find the spkg with name given by file and download it from the internet.
+
+     If 'http://' is a substring of file, then everything before http://
+     is ignored and the file is downloaded from that url. Otherwise the
+     file is downloaded from the server given by SAGE_SERVER.
+
+     INPUT:
+         file -- string; the name of a file
+         repository -- string (default: 'optional') name of the repository
+
+     OUTPUT:
+         bool -- True if we succeed at download the spkg; otherwise, False.
+
+     NOTE: There are no md5 checks on the downloads.  This function is
+     one place where they could go.
+     """
+     # Add .spkg to the end of the filename
+     if not file.endswith(".spkg"):
           file += ".spkg"
-     url = "%s/%s"%(PKG_SERVER, file)
-     i = url.rfind('/')
-     file = url[i+1:]
+     # Check to see if the file is a url. The reason we use .find
+     # is because the exact PATH gets appended to the front of file,
+     # so one has, for example
+     #     file = /opt/sage/http://sagemath.org/home/was/file.spkg
+     i = file.lower().find('http://')
+     if i != -1:
+          # It's a URL
+          url = file[i:]
+          file = os.path.split(file)[-1]
+     else:
+         # Now grab the actual file using Python's urllib.
+         file = os.path.split(file)[-1]
+         # It's hopefully at the package server somewhere.
+         url = "%s/%s/%s"%(PKG_SERVER, repository, file)
+
+     # Now do the actual download, printing nice ...'s as the download proceeds.
      print url, "-->", file
      print "[",
      global cur
@@ -51,11 +87,21 @@ def download_file(file):
      print "]"
      return True
 
+
+# For each input argument, we download the corresponding spkg.
+# The spkg's are downloaded to the current directory.
+
 for F in sys.argv[1:]:
-     if not download_file("optional/%s"%F):
-          if not download_file("standard/%s"%F):
-               if not download_file("experimental/%s"%F):
-                    if not download_file("archive/%s"%F):
-                         print "Unable to download %s"%F
-                         print "Please see %s for a list of valid packages"%PKG_SERVER
+     if 'http://' in F.lower():
+          # The spkg is given by a URL:
+          download_file(F)
+     else:
+          # The spkg is a file, so get it from the remote repository.
+          for repo in ['optional', 'standard', 'experimental', 'archive']:
+              if download_file(F, repo):
+                    sys.exit(0)
+          print "*"*70
+          print "* Unable to download %s"%os.path.split(F)[-1]
+          print "* Please see %s for a list of valid\n* packages or check the package name."%PKG_SERVER
+          print "*"*70
 

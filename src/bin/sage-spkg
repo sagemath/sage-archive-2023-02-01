@@ -140,7 +140,7 @@ cd "$SAGE_PACKAGES/build"
 if [ $DELETE_TMP -eq 1 ]; then
     echo "Deleting directories from past builds of previous/current versions of $PKG_NAME"
     # Make triply sure that we are in the build directory before doing
-    # a scarry "rm -rf".
+    # a scary "rm -rf".
     cd "$SAGE_PACKAGES/build"
     if [ $? -ne 0 ]; then
          echo "Unable to find build directory."
@@ -154,7 +154,7 @@ fi
 
 if [ ! -f "$PKG_SRC" ]; then
 
-    echo "$0: file $PKG_SRC does not exist"
+    echo "$0: file $PKG_NAME does not exist"
     echo "Attempting to download it."
     CUR=`pwd`
     cd "$SAGE_PACKAGES"
@@ -162,7 +162,7 @@ if [ ! -f "$PKG_SRC" ]; then
         $MKDIR optional
     fi
     cd optional
-    sage-download_package "$PKG_NAME"
+    sage-download_package "$1"
     if [ ! -f "$PKG_NAME.spkg" ]; then
 	echo "sage: Failed to download package $PKG_NAME from $SAGE_SERVER"
 	exit 1

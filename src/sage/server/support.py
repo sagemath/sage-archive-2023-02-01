@@ -90,9 +90,21 @@ def help(obj):
         mathematical 'norm', but it may still be useful for numerical purposes.
         </font></tr></td></table></html>
     """
-    print '<html><table notruncate notracebacks bgcolor="#386074" cellpadding=10 cellspacing=10><tr><td bgcolor="#f5f5f5"><font color="#37546d">'
-    pydoc.help(obj)
-    print '</font></tr></td></table></html>'
+    from pydoc import resolve, html, describe
+    import sage.server.notebook.interact as interact
+
+    print '<html><table notracebacks bgcolor="#386074" cellpadding=10 cellspacing=10><tr><td bgcolor="#f5f5f5"><font color="#37546d">'
+    object, name = resolve(obj)
+    page = html.page(describe(object), html.document(object, name))
+    page = page.replace('<a href','<a ')
+    n = 0
+    while True:
+        filename = 'docs-%s.html'%n
+        if not os.path.exists(filename): break
+        n += 1
+    open(filename, 'w').write(page)
+    print "&nbsp;&nbsp;&nbsp;<a target='_new' href='cell://%s'>Click to open help window</a>&nbsp;&nbsp;&nbsp;"%filename
+    print '<br></font></tr></td></table></html>'
 
 def get_rightmost_identifier(s):
     X = string.ascii_letters + string.digits + '._'

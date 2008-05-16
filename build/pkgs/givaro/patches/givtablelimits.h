@@ -39,7 +39,7 @@
 /* SAGE: Added because for some reason this is
    missing from /usr/include/math.h, even though
    it *should* be there.  -- William Stein*/
-extern double logb _PARAMS((double))
+extern double logb _PARAMS((double));
 
 #include <stddef.h>
 

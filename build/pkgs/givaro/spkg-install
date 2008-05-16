@@ -9,6 +9,11 @@ fi
 echo "Copying updated gmp++.h"
 cp patches/gmp++.h src/src/kernel/gmp++/
 
+if [ $UNAME = "CYGWIN" ]; then
+    echo "Patching givtablelimits.h for Cygwin (because of missing logb)"
+    cp patches/givtablelimits.h src/src/kernel/zpz/givtablelimits.h
+fi
+
 cd src
 
 if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then

@@ -130,12 +130,29 @@ class CongruenceSubgroup(Group):
         return ModAbVar_ambient_jacobian(self)
 
     def are_equivalent(self, x, y):
+        r"""
+        Determine whether $x$ and $y$ are equivalent by an element of
+        self, i.e. whether or not there exists an element $g$ of self
+        such that $g\cdot x = y$.
+
+        NOTE: This function must be overridden by all subclasses.
+        """
         raise NotImplementedError
 
     def coset_reps(self):
+        """
+        Return coset representatives for this congruence subgroup.
+
+        NOTE: This function must be overridden by all subclasses.
+        """
         raise NotImplementedError
 
     def generators(self):
+        """
+        Return generators for this congruence subgroup.
+
+        NOTE: This function must be overridden by all subclasses.
+        """
         raise NotImplementedError
 
     def gens(self):
@@ -1145,7 +1162,7 @@ class GammaH_class(CongruenceSubgroup):
         N = int(G.level())
 
         # Get some useful fast functions for inverse and gcd
-        inverse_mod = get_inverse_mod(N)   # optimal gcd function
+        inverse_mod = get_inverse_mod(N)   # optimal inverse function
         gcd = get_gcd(N)   # optimal gcd function
 
         # We will be filling this list in below.
@@ -1324,9 +1341,15 @@ class GammaH_class(CongruenceSubgroup):
 
     def _reduce_cusp(self, c):
         r"""
-        Compute a canonical form for the given cusp c.  Returns a pair
-        (c', t), where c' is the canonical form for the given cusp,
-        and t is either 1 or -1, as explained below.
+
+        Compute a minimal representative for the given cusp c.
+        Returns a pair (c', t), where c' is the minimal representative
+        for the given cusp, and t is either 1 or -1, as explained
+        below.
+
+        The minimal representative for a cusp is the element in P^1(Q)
+        in lowest terms with minimal denominator, and minimal
+        numerator for that denominator.
 
         Two cusps $u1/v1$ and $u2/v2$ are equivalent modulo Gamma_H(N)
         if and only if
@@ -1337,59 +1360,99 @@ class GammaH_class(CongruenceSubgroup):
         the first or second case, respectively.
 
         EXAMPLES:
-            sage: G = GammaH(6,[5])
-            sage: G._reduce_cusp(Cusp(5,3))
-            (1/3, 1)
-            sage: G = GammaH(12,[5])
-            sage: G._reduce_cusp(Cusp(8,9))
-            (1/9, 1)
-            sage: G = GammaH(12,[])
-            sage: G._reduce_cusp(Cusp(8,9))
-            (2/9, 1)
+            sage: GammaH(6,[5])._reduce_cusp(Cusp(5,3))
+            (1/3, -1)
+            sage: GammaH(12,[5])._reduce_cusp(Cusp(8,9))
+            (1/3, -1)
+            sage: GammaH(12,[5])._reduce_cusp(Cusp(5,12))
+            (Infinity, 1)
+            sage: GammaH(12,[])._reduce_cusp(Cusp(5,12))
+            (5/12, 1)
+            sage: GammaH(21,[5])._reduce_cusp(Cusp(-9/14))
+            (1/7, 1)
         """
         N = int(self.level())
         Cusps = c.parent()
-        u = int(c.numerator() % N)
         v = int(c.denominator() % N)
-        if u == 0:
-            return Cusps(0), 1
-        if v == 0:
-            return Cusps((1,0)), 1
+        H = self._list_of_elements_in_H()
 
-        first, second = self._coset_reduction_data()
-        gcd_u_N = first[u][1]
-        gcd_v_N = first[v][1]
+        # First, if N | v, take care of this case. If u is in \pm H,
+        # then we return Infinity. If not, let u_0 be the minimum
+        # of \{ h*u | h \in \pm H \}. Then return u_0/N.
+        if not v:
+            u = c.numerator() % N
+            if u in H:
+                return Cusps((1,0)), 1
+            if (N-u) in H:
+                return Cusps((1,0)), -1
+            ls = [ (u*h)%N for h in H ]
+            m1 = min(ls)
+            m2 = N-max(ls)
+            if m1 < m2:
+                return Cusps((m1,N)), 1
+            else:
+                return Cusps((m2,N)), -1
 
-        d = first[v][1]   # d = gcd(v,N)
+        u = int(c.numerator() % v)
+        gcd = get_gcd(N)
+        d = gcd(v,N)
 
-        # If gcd(v,N) == 1, then we know we can reduce the cusp to 0.
+        # If (N,v) == 1, let v_0 be the minimal element
+        # in \{ v * h | h \in \pm H \}. Then we either return
+        # Infinity or 1/v_0, as v is or is not in \pm H,
+        # respectively.
         if d == 1:
-            return Cusps((0,1)), 1
-        else:
-            h = first[v][2]
-            v = first[v][0]
-            hinv = get_inverse_mod(gcd_v_N)(h,gcd_v_N)
-            u = (hinv * u) % d
-            H_cong1_mod_N_over_d = second[d]
-            if len(H_cong1_mod_N_over_d) > 1:
-                umin = u
-                for x in H_cong1_mod_N_over_d:
-                    u1 = (u*x) % d
-                    if u1 < umin:
-                        umin = u1
-                    u = umin
+            if v in H:
+                return Cusps((0,1)), 1
+            if (N-v) in H:
+                return Cusps((0,1)), -1
+            ls = [ (v*h)%N for h in H ]
+            m1 = min(ls)
+            m2 = N-max(ls)
+            if m1 < m2:
+                return Cusps((1,m1)), 1
+            else:
+                return Cusps((1,m2)), -1
 
-        N_over_2 = N//2
-        if u > N_over_2:
-            u = N_over_2 - u
-            v = N_over_2 - v
-            t = -1
-        else:
-            t = 1
+        val_min = v
+        inv_mod = get_inverse_mod(N)
 
-        return Cusps((u,v)), t
+        # Now we're in the case (N,v) > 1. So we have to do several
+        # steps: first, compute v_0 as above. While computing this
+        # minimum, keep track of *all* pairs of (h,s) which give this
+        # value of v_0.
+        hs_ls = [(1,1)]
+        for h in H:
+            tmp = (v*h)%N
 
+            if tmp < val_min:
+                val_min = tmp
+                hs_ls = [(inv_mod(h,N), 1)]
+            elif tmp == val_min:
+                hs_ls.append((inv_mod(h,N), 1))
 
+            if (N-tmp) < val_min:
+                val_min = N - tmp
+                hs_ls = [(inv_mod(h,N), -1)]
+            elif (N-tmp) == val_min:
+                hs_ls.append((inv_mod(h,N), -1))
+
+        # Finally, we find our minimal numerator. Let u_1 be the
+        # minimum of s*h^-1*u mod d as (h,s) ranges over the elements
+        # of hs_ls. We must find the smallest integer u_0 which is
+        # smaller than v_0, congruent to u_1 mod d, and coprime to
+        # v_0. Then u_0/v_0 is our minimal representative.
+        u_min = val_min
+        sign = None
+        for h_inv,s in hs_ls:
+            tmp = (h_inv * s * u)%d
+            while gcd(tmp, val_min) > 1 and tmp < u_min:
+                tmp += d
+            if tmp < u_min:
+                u_min = tmp
+                sign = s
+
+        return Cusps((u_min, val_min)), sign
 
     def __call__(self, x, check=True):
         r"""

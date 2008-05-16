@@ -865,7 +865,13 @@ class SettingsPage(resource.PostableResource):
 
     def render(self, request):
         error = None
-        if 'Oldpass' in request.args or 'Newpass' in request.args or 'RetypePass' in request.args:
+        redirect_to_home = None
+        redirect_to_logout  = None
+        if 'autosave' in request.args:
+            notebook.user(self.username)['autosave_interval'] = int(request.args['autosave'][0]) * 60
+            redirect_to_home = True
+
+        if 'Newpass' in request.args or 'RetypePass' in request.args:
             if not 'Oldpass' in request.args:
                 error = 'Old password not given'
             elif not notebook.user(self.username).password_is(request.args['Oldpass'][0]):
@@ -877,47 +883,112 @@ class SettingsPage(resource.PostableResource):
             elif request.args['Newpass'][0] != request.args['RetypePass'][0]:
                 error = 'The passwords you entered do not match.'
 
-            if error:
-                return http.Response(stream=message(error, '/settings'))
-
-            notebook.change_password(self.username, request.args['Newpass'][0])
-            return http.RedirectResponse('/logout')
+            if not error: #webbrowser may auto fill in "old password" even though the user may nto want to change her passwords
+                notebook.change_password(self.username, request.args['Newpass'][0])
+                redirect_to_logout = True
 
         if 'Newemail' in request.args:
             notebook.user(self.username).set_email(request.args['Newemail'][0])
-            return http.RedirectResponse('/settings')
+            redirect_to_home = True
 
-        else:
-            s = """<html><title>Account Settings</title><h1 align=center>Account Settings</h1>
-            <br>
-            <hr>
-            <br>
-            <form method="POST" action="/settings">
-            <br><br>
-            <table align=center><tr>
-            <td colspan=2><h2>Change Password</h2></td></tr><tr>
-            <td align=right>Old password:</td><td><input type="password" name="Oldpass" size="15" /></td></tr>
-            <tr><td align=right>New password:</td><td>
-                <input type="password" name="Newpass" size="15" />
-                </td></tr>
-            <tr><td align=right>Retype new password:</td><td>
-                <input type="password" name="RetypePass" size="15" />
-                </td></tr>
-          <tr><td></td><td></td></tr>
-            <tr><td></td><td align=left><input type="submit" value="Change password" /></td></tr>
-            <tr style="height:20px"><td colspan=2></td></tr>
-            <tr>
-            <td colspan=2><h2>Change E-mail Address</h2></td></tr><tr><tr>
-            <td align=right>Current e-mail:</td><td>%s</td></tr>
-            <tr><td align=right>New e-mail:</td><td>
-                <input type="text" name="Newemail" size="30" />
-                </td></tr><tr><td></td><td align=left><input type="submit" value="Change e-mail" /></td></tr>
-            </table> </form>
-            <br><br>
-            <div align=center><a href="../">Cancel</a></div>
-            <br>
+        if error:
+            return http.Response(stream=message(error, '/settings'))
 
-            </html>""" % notebook.user(self.username)._User__email
+        if redirect_to_logout:
+            return http.RedirectResponse('/logout')
+
+        if redirect_to_home:
+            return http.RedirectResponse('/home/%s' % self.username)
+
+        s = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>Account Settings</title>
+<style type="text/css">
+/*<![CDATA[*/
+  @import url('/css/reset.css');
+
+  html {
+font-size:100.1%
+}
+
+  body {
+    font:100%/1.4 Arial, Helvetica, sans-serif;
+  }
+  h1 {
+    font-size:2em;
+    padding:0 5px;
+    background:#DCDCDC;
+    border-bottom:1px solid #CCC;
+  }
+  #buttons {
+    padding:5px;
+    background:#DCDCDC
+  }
+  h2 {
+    font-size:1.5em
+  }
+  .section {
+    padding:5px;
+    border-bottom:1px solid #CCC;
+  }
+  .section > div {
+    text-align:right;
+    max-width:350px;
+  }
+  td {padding-left:5px}
+/*]]>*/
+</style>
+<style type="text/css">
+/*<![CDATA[*/
+ input.c1 {width:200px}
+/*]]>*/
+</style>
+</head>
+
+<body>
+  <h1>Account Settings</h1>
+
+  <form method="post" action="/settings">
+
+    <div class="section">
+      <h2>Change Auto-Save Interval</h2>
+      <div>
+Minutes: <select name="autosave">
+      """
+        for i in range(1, 10, 2):
+            s += '<option%s>%s</option>' % (' selected' if notebook.user(self.username)['autosave_interval']/60 == i else '', i)
+        s += '</select></div></div>'
+        s += """
+    <div class="section">
+      <h2>Change Password</h2>
+      <div id="passwd">
+        Old password: <input type="password" name="Oldpass" /><br />
+        New password: <input type="password" name="Newpass" /><br />
+        Retype new password: <input type="password" name="RetypePass" />
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Change E-mail Address</h2>
+
+      <div>
+        <table style="float:right"><tr><td>Current e-mail:</td><td>%s</td></tr>
+        <tr><td style="text-align:right">New e-mail:</td><td><input type="text" name="Newemail" class="c1" /></td></tr></table>
+        <div style="clear:both"></div>
+      </div>
+    </div>
+    <div id="buttons">
+    <input type="submit" value="Save">""" % ('None' if notebook.user(self.username)._User__email == '' else notebook.user(self.username)._User__email)
+        s += '<input type="button" value="Cancel" style="margin-left:5px" onClick="parent.location=\'/home/%s\'">' % self.username
+        s += """
+    </div>
+  </form>
+</body>
+</html>
+"""
         return http.Response(stream=s)
 
 ########################################################
@@ -1530,6 +1601,11 @@ class Main_css(resource.Resource):
         s = css.css()
         return http.Response(stream=s)
 
+class Reset_css(resource.Resource):
+    def render(self, ctx):
+        s = css.reset
+        return http.Response(stream=s)
+
 class CSS(resource.Resource):
     addSlash = True
 
@@ -1540,6 +1616,7 @@ class CSS(resource.Resource):
         return static.File(css_path + "/" + name)
 
 setattr(CSS, 'child_main.css', Main_css())
+setattr(CSS, 'child_reset.css', Reset_css())
 
 ############################
 

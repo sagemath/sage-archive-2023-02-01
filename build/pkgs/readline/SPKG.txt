@@ -5,6 +5,9 @@ didn't delete anything else.
 
 FIXME
 
+=== May 16, 2008 (William Stein ===
+ * /usr/bin/env bash;  change == to =; add support for cygwin; improve error messages and checking
+
 === readline-5.2.p1 (Craig Citro) ===
  * add fix for OSX 10.5 from Pari FAQ, where readline wasn't building
  a dynamic library

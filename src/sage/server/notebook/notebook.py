@@ -1175,7 +1175,7 @@ class Notebook(SageObject):
         if not pub:
             entries.insert(2, ('history_window()', 'Log', 'View a log of recent computations'))
         if not self.user_is_guest(user):
-            entries.append(('/passwd', 'Change password', 'Change account password'))
+            entries.append(('/settings', 'Settings', 'Change account settings including password'))
             entries.append(('/logout', 'Sign out', 'Log out of the Sage notebook'))
 
         s += self.html_banner_and_control(user, entries)
@@ -1833,7 +1833,7 @@ class Notebook(SageObject):
                        ('/', 'Home', 'Back to your personal worksheet list'),
                        ('/pub', 'Published', 'Browse the published worksheets'),
                        ('history_window()', 'Log', 'View a log of recent computations'),
-                       #('settings', 'Settings', 'Worksheet settings'),  # TODO -- settings
+                       ('/settings', 'Settings', 'Account Settings'),
                        ('help()', 'Help', 'Documentation')]
 
             if not self.user_is_guest(username):

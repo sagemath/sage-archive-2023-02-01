@@ -832,15 +832,15 @@ class ProcessUserSettings(resource.PostableResource):
     def render(self, ctx):
         pass
 
-class UserSettings(resource.Resource):
-    child_process = ProcessUserSettings()
-
-    def __init__(self, username):
-        self.username = username
-
-    def render(self, ctx):
-        s = notebook.html_user_settings(self.username)
-        return http.Response(stream = s)
+#class UserSettings(resource.Resource):
+#    child_process = ProcessUserSettings()
+#
+#    def __init__(self, username):
+#        self.username = username
+#
+#    def render(self, ctx):
+#        s = notebook.html_user_settings(self.username)
+#        return http.Response(stream = s)
 
 class ProcessNotebookSettings(resource.PostableResource):
     def render(self, ctx):
@@ -859,7 +859,7 @@ class NotebookSettings(resource.Resource):
             s = notebook.html_notebook_settings()
         return http.Response(stream = s)
 
-class ChangePasswordPage(resource.PostableResource):
+class SettingsPage(resource.PostableResource):
     def __init__(self, username):
         self.username = username
 
@@ -878,18 +878,24 @@ class ChangePasswordPage(resource.PostableResource):
                 error = 'The passwords you entered do not match.'
 
             if error:
-                return http.Response(stream=message(error, '/passwd'))
+                return http.Response(stream=message(error, '/settings'))
 
             notebook.change_password(self.username, request.args['Newpass'][0])
             return http.RedirectResponse('/logout')
+
+        if 'Newemail' in request.args:
+            notebook.user(self.username).set_email(request.args['Newemail'][0])
+            return http.RedirectResponse('/settings')
+
         else:
-            s = """<html><h1 align=center>Change Password.</h1>
+            s = """<html><title>Account Settings</title><h1 align=center>Account Settings</h1>
             <br>
             <hr>
             <br>
-            <form method="POST" action="/passwd">
+            <form method="POST" action="/settings">
             <br><br>
             <table align=center><tr>
+            <td colspan=2><h2>Change Password</h2></td></tr><tr>
             <td align=right>Old password:</td><td><input type="password" name="Oldpass" size="15" /></td></tr>
             <tr><td align=right>New password:</td><td>
                 <input type="password" name="Newpass" size="15" />
@@ -899,12 +905,19 @@ class ChangePasswordPage(resource.PostableResource):
                 </td></tr>
           <tr><td></td><td></td></tr>
             <tr><td></td><td align=left><input type="submit" value="Change password" /></td></tr>
+            <tr style="height:20px"><td colspan=2></td></tr>
+            <tr>
+            <td colspan=2><h2>Change E-mail Address</h2></td></tr><tr><tr>
+            <td align=right>Current e-mail:</td><td>%s</td></tr>
+            <tr><td align=right>New e-mail:</td><td>
+                <input type="text" name="Newemail" size="30" />
+                </td></tr><tr><td></td><td align=left><input type="submit" value="Change e-mail" /></td></tr>
             </table> </form>
             <br><br>
             <div align=center><a href="../">Cancel</a></div>
             <br>
 
-            </html>"""
+            </html>""" % notebook.user(self.username)._User__email
         return http.Response(stream=s)
 
 ########################################################
@@ -1900,15 +1913,13 @@ class UserToplevel(Toplevel):
     userchild_live_history = LiveHistory
     userchild_new_worksheet = NewWorksheet
     userchild_notebook_settings = NotebookSettings
-    userchild_passwd = ChangePasswordPage
+    userchild_settings = SettingsPage
     userchild_pub = PublicWorksheets
 
     userchild_send_to_trash = SendWorksheetToTrash
     userchild_send_to_archive = SendWorksheetToArchive
     userchild_send_to_active = SendWorksheetToActive
     userchild_send_to_stop = SendWorksheetToStop
-
-    userchild_settings = UserSettings
 
     userchild_src = SourceBrowser
     userchild_upload_worksheet = UploadWorksheet

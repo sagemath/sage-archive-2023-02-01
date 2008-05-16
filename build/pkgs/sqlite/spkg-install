@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+if [ $UNAME = "CYGWIN" ]; then
+    # Replace the makefile with a new makefile whose install: target
+    # does *not* install the sqlite3 client.  This isn't needed at
+    # all for Sage.
+    cp patches/Makefile.in src/Makefile.in
+fi
+
+cd src
+
+./configure --prefix="$SAGE_LOCAL" --disable-tcl
+
+if [ $? -ne 0 ]; then
+    echo "Error configuring sqlite"
+    exit 1
+fi
+
+make
+
+if [ $? -ne 0 ]; then
+    echo "Error making sqlite"
+    exit 1
+fi
+
+make install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing sqlite"
+    exit 1
+fi
+

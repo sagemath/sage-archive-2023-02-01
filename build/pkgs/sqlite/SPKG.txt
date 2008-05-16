@@ -1,0 +1,7 @@
+SQLite
+
+
+=== 2008-05-16 (William Stein) ==
+
+   * Fix Makefile so it works on Cygwin (simply disable building sqlite client)
+   * Change spkg-install to use bash

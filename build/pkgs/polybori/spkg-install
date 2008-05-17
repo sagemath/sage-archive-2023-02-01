@@ -11,9 +11,18 @@ SCONS=scons
 patch()
 {
 cp patches/custom.py src/${PBDIR}
-cp patches/SConstruct src/${PBDIR}
+
+if [ $UNAME = "CYGWIN" ]; then
+    cp patches/SConstruct.cygwin src/${PBDIR}/SConstruct
+else
+    cp patches/SConstruct src/${PBDIR}/SConstruct
+fi
+
 cp patches/PyPolyBoRi.py src/${PBDIR}/pyroot/polybori
 cp patches/CCuddCore.h src/${PBDIR}/polybori/include
+
+# workaround so will build on cygwin
+cp patches/cpu_stats.c src/${PBDIR}/Cudd/util/cpu_stats.c
 }
 
 install_boost()

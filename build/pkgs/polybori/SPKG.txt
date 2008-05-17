@@ -1,4 +1,8 @@
 
+=== polybori-0.3.1.p3 (Michael Abshoff, William Stein, May 17, 2008) ===
+ * cygwin support by patching cpu_stat.c  (this should be upstreamed)
+ * Cygwin support by modifying SConstruct
+
 === polybori-0.3.1.p2 (Michael Abshoff, April 26th, 2008) ===
  * remove dead link (fixes #3017)
 

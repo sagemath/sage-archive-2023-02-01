@@ -10,6 +10,10 @@ PACKAGE MAINTAINER: Carl Witty (cwitty@newtonlabs.com)
 
 == Changelog==
 
+=== mpfi-1.3.4-cvs20071125.p6 (William Stein, May 16, 2008)  ===
+  * modify configure.ac to work with cygwin.
+  * NOTE: src/ is *not* pristine!  I ran autogen.sh after patching configure.ac.
+
 === mpfi-1.3.4-cvs20071125.p5 (Michael Abshoff, Jan. 31st, 2008)  ===
  * remove  binary files from src/tests (#2011)
 

@@ -109,8 +109,14 @@ cdef extern from "math.h":
 
     double exp(double)
     double log(double)
-    double log2(double)
     double log10(double)
+    double log2_ "log2"(double)
+
+
+# This is only needed on Cygwin since log2 is a macro.
+# If we don't do this the cygwin GCC gets very confused.
+cdef inline double log2(double x):
+    return log2_(x)
 
 cdef extern from *:
     void* memcpy(void* dst, void* src, size_t len)

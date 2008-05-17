@@ -104,6 +104,7 @@ from sage.combinat.combinat import CombinatorialClass
 from sage.graphs.graph import DiGraph
 from sage.combinat import ranker
 from sage.combinat.tools import transitive_ideal
+from sage.combinat.root_system.weyl_characters import WeylCharacterRing, WeylCharacter
 
 ## MuPAD-Combinat's Cat::Crystal
 # FIXME: crystals, like most parent should have unique data representation
@@ -228,6 +229,37 @@ class Crystal(CombinatorialClass, Parent):
                     continue
                 d[x][child]=i
         return DiGraph(d)
+
+    def character(self, R):
+        """
+        INPUT: R, a WeylCharacterRing. Produces the character of the crystal.
+        EXAMPLES:
+           sage: C = CrystalOfLetters(['A',2])
+           sage: T = TensorProductOfCrystals(C, C, generators = "all")
+           sage: A2 = WeylCharacterRing(C.cartan_type); A2
+           The Weyl Character Ring of Type [A,2] with Integer Ring coefficients
+           sage: chi = T.character(A2); chi
+           A2(1,1,0) + A2(2,0,0)
+           sage: chi.check(verbose = true)
+           [9, 9]
+        """
+        if not R.cartan_type == self.cartan_type:
+            raise ValueError, "ring does not have the right Cartan type"
+        hlist = {}
+        mlist = {}
+        for x in self.module_generators:
+            k = tuple(x.weight())
+            if k in hlist:
+                hlist[k] += 1
+            else:
+                hlist[k] = 1
+        for x in self.list():
+            k = tuple(x.weight())
+            if k in mlist:
+                mlist[k] += 1
+            else:
+                mlist[k] = 1
+        return WeylCharacter(R, hlist, mlist)
 
     def latex_file(self, filename):
         r"""

@@ -5786,6 +5786,14 @@ class GenericGraph(SageObject):
             sage: G.relabel(return_map=True) == expecting
             True
 
+        TESTS:
+            sage: P = graphs.PetersenGraph()
+            sage: P.delete_edge([0,1])
+            sage: P.add_edge((4,5))
+            sage: P.add_edge((2,6))
+            sage: P.delete_vertices([0,1])
+            sage: P.relabel()
+
         """
         if perm is None:
             verts = self.vertices() # vertices() returns a sorted list:
@@ -5825,8 +5833,13 @@ class GenericGraph(SageObject):
         self._backend.relabel(perm, self._directed)
         if self._pos:
             new_pos = {}
-            for v in self._pos:
-                new_pos[perm[v]] = self._pos[v]
+            for v in perm.iterkeys():
+                try:
+                    new_pos[perm[v]] = self._pos[v]
+                except KeyError:
+                    pass
+                    # since we allow position dicts to specify
+                    # positions for only some of the vertices...
             self._pos = new_pos
         self._boundary = [perm[v] for v in self._boundary]
         if hasattr(self, '_assoc'):

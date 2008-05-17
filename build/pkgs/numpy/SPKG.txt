@@ -56,6 +56,9 @@ Special Update/Build Instructions:
 
 Changelog:
 
+===numpy-20080104-1.0.4.p3 (May 16, 2008, William Stein)===
+   * (Stupid) patch to numpy/linalg/setup.py to support cygwin
+
 ===numpy-20080104-1.0.4.p2(Josh Kantor)===
  *update gnu.py to fix issue with inline fortran on osx
 

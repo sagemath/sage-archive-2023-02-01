@@ -1926,9 +1926,16 @@ class UserToplevel(Toplevel):
     userchild_emptytrash = EmptyTrash
 
     def render(self, request):
+        # This resource always does a redirect to the user's home directory
+        # so that after login (which is a POST operation), the postdata will not remain
+        # in the browser on return.  This method is sometimes
+        # referred to as the post-redirect-get method.
         response = http.RedirectResponse("/home/%s" % self.username)
+        # This allows a Notebook user to select a "remember me" checkbox and not have to
+        # sign back in when she restarts her web browser
+        # This works by setting an expiration date because without one the browser forgets the cookie.
         if 'remember' in request.args:
-            response.headers.setHeader("set-cookie", [http_headers.Cookie(SID_COOKIE, self.cookie, expires=(time.time() + 60 * 60 * 24 * 100))])
+            response.headers.setHeader("set-cookie", [http_headers.Cookie(SID_COOKIE, self.cookie, expires=(time.time() + 60 * 60 * 24 * 14))])
         else:
             response.headers.setHeader("set-cookie", [http_headers.Cookie(SID_COOKIE, self.cookie)])
         return response

@@ -410,8 +410,6 @@ free_module_element = Extension('sage.modules.free_module_element',
 gsl_probability=Extension('sage.gsl.probability_distribution',['sage/gsl/probability_distribution.pyx'],libraries=['gsl', BLAS, BLAS2],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 gsl_integration=Extension('sage.gsl.integration',['sage/gsl/integration.pyx'],define_macros=[('GSL_DISABLE_DEPRECATED','1')], libraries=['gsl',BLAS, BLAS2])
 
-gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
-
 gsl_fft = Extension('sage.gsl.fft',
                 ['sage/gsl/fft.pyx'],
                 libraries = ['gsl', BLAS, BLAS2],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
@@ -459,8 +457,9 @@ vector_rational_dense = Extension('sage.modules.vector_rational_dense',
 gsl_array = Extension('sage.gsl.gsl_array',['sage/gsl/gsl_array.pyx'],
                 libraries=['gsl', BLAS, BLAS2],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
-gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',BLAS],
-                define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+gsl_ode = Extension('sage.gsl.ode',
+                    ['sage/gsl/ode.pyx'],libraries=['gsl',BLAS, BLAS2],
+                    define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 
 dwt = Extension('sage.gsl.dwt',['sage/gsl/dwt.pyx'],

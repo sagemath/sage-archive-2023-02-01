@@ -1925,11 +1925,17 @@ class UserToplevel(Toplevel):
     userchild_upload_worksheet = UploadWorksheet
     userchild_emptytrash = EmptyTrash
 
-    def render(self, ctx):
-        s = render_worksheet_list(ctx.args, pub=False, username=self.username)
-        return http.Response(responsecode.OK,
-                             {'set-cookie':set_cookie(self.cookie)},
-                             stream=s)
+    def render(self, request):
+        response = http.RedirectResponse("/home/%s" % self.username)
+        if 'remember' in request.args:
+            response.headers.setHeader("set-cookie", [http_headers.Cookie(SID_COOKIE, self.cookie, expires=(time.time() + 60 * 60 * 24 * 100))])
+        else:
+            response.headers.setHeader("set-cookie", [http_headers.Cookie(SID_COOKIE, self.cookie)])
+        return response
+        #s = render_worksheet_list(ctx.args, pub=False, username=self.username)
+        #return http.Response(responsecode.OK,
+        #                     {'set-cookie':set_cookie(self.cookie)},
+        #                     stream=s)
 
 
 class AdminToplevel(UserToplevel):

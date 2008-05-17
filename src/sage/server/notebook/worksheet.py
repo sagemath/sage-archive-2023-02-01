@@ -105,7 +105,7 @@ def worksheet_filename(name, owner):
     return owner + '/' + _notebook.clean_name(name)
 
 class Worksheet:
-    def __init__(self, name, dirname, notebook, system, owner, docbrowser=False, pretty_print=False):
+    def __init__(self, name, dirname, notebook, system, owner, docbrowser=False, pretty_print=False, auto_publish=False):
 
         # Record the basic properties of the worksheet
         self.__system   = system
@@ -114,6 +114,8 @@ class Worksheet:
         self.__viewers       = []
         self.__collaborators = []
         self.__docbrowser = docbrowser
+        self.__autopublish = auto_publish
+        self.__notebook = notebook
 
         # Initialize the cell id counter.
         self.__next_id = 0
@@ -284,6 +286,16 @@ class Worksheet:
     ##########################################################
     # Publication
     ##########################################################
+    def is_auto_publish(self):
+        try:
+            return self.__autopublish
+        except AttributeError:
+            self.__autopublish = False
+            return False
+
+    def set_auto_publish(self):
+        self.__autopublish = False if self.__autopublish else True
+
     def is_published(self):
         return self.owner() == 'pub'
 
@@ -600,6 +612,7 @@ class Worksheet:
     ##########################################################
     # Saving
     ##########################################################
+
     def save(self):
         path = self.__dir
         E = self.edit_text()
@@ -621,6 +634,8 @@ class Worksheet:
             X = {}
             self.__saved_by_info = X
         X[basename] = user
+        if self.is_auto_publish():
+            self.__notebook.publish_worksheet(self, user)
 
     def get_snapshot_text_filename(self, name):
         path = self.snapshot_directory()
@@ -906,7 +921,7 @@ class Worksheet:
         <button name="button_save" title="Save changes" onClick="save_worksheet();">Save</button><button title="Save changes and close window" onClick="save_worksheet_and_close();" name="button_save">Save & quit</button><button title="Discard changes to this worksheet" onClick="worksheet_discard();">Discard & quit</button>
         """
 
-    def html_share_publish_buttons(self, select=None):
+    def html_share_publish_buttons(self, select=None, backwards=False):
         if self.is_doc_worksheet():
             return ''
         def cls(x):
@@ -914,17 +929,17 @@ class Worksheet:
                 return "control-select"
             else:
                 return "control"
-
+        backwards = '../' if backwards else ''
         return """
 
         <a  title="Print this worksheet" class="usercontrol" onClick="print_worksheet()"><img border=0 src="/images/icon_print.gif" alt="Print">Print</a>
         <a class="%s" title="Interactively use this worksheet" onClick="edit_worksheet();">Worksheet</a>
-        <a class="%s" title="Edit text version of this worksheet" href="edit">Edit</a>
-        <a class="%s" title="View plain text version of this worksheet" href="text">Text</a>
-        <a class="%s" href="revisions" title="View changes to this worksheet over time">Undo</a>
-        <a class="%s" href="share" title="Let others edit this worksheet">Share</a>
-        <a class="control" onClick="publish_worksheet();" title="Let others view this worksheet">Publish</a>
-        """%(cls('use'),cls('edit'),cls('text'),cls('revisions'),cls('share'))
+        <a class="%s" title="Edit text version of this worksheet" href="%sedit">Edit</a>
+        <a class="%s" title="View plain text version of this worksheet" href="%stext">Text</a>
+        <a class="%s" href="%srevisions" title="View changes to this worksheet over time">Undo</a>
+        <a class="%s" href="%sshare" title="Let others edit this worksheet">Share</a>
+        <a class="%s" href="%spublish" title="Make this worksheet publicly viewable">Publish</a>
+        """%(cls('use'),cls('edit'),backwards,cls('text'),backwards,cls('revisions'),backwards,cls('share'),backwards,cls('publish'),backwards)
 
     def html_data_options_list(self):
         D = self.attached_data_files()
@@ -1053,6 +1068,14 @@ class Worksheet:
             self.__last_edited = (t, self.owner())
             return t
 
+    def date_edited(self):
+        try:
+            return self.__date_edited[0]
+        except AttributeError:
+            t = time.localtime()
+            self.__date_edited = (t, self.owner())
+            return t
+
     def last_to_edit(self):
         try:
             return self.__last_edited[1]
@@ -1061,6 +1084,7 @@ class Worksheet:
 
     def record_edit(self, user):
         self.__last_edited = (time.time(), user)
+        self.__date_edited = (time.localtime(), user)
         self.autosave(user)
 
     def time_since_last_edited(self):

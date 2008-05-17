@@ -1172,10 +1172,37 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
 ########################################################
 
 class Worksheet_publish(WorksheetResource, resource.Resource):
+    addSlash = True
+
     def render(self, ctx):
-        W = notebook.publish_worksheet(self.worksheet, self.username)
-        addr = '/home/' + W.filename()
-        return http.RedirectResponse(addr)
+        if 'yes' in ctx.args and 'auto' in ctx.args:
+            notebook.publish_worksheet(self.worksheet, self.username)
+            self.worksheet.set_auto_publish()
+            return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        elif 'yes' in ctx.args:
+            notebook.publish_worksheet(self.worksheet, self.username)
+            return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        elif 'stop' in ctx.args:
+            notebook.delete_worksheet(self.worksheet.published_version().filename())
+            return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        elif 're' in ctx.args:
+            W = notebook.publish_worksheet(self.worksheet, self.username)
+            return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        elif 'auto' in ctx.args:
+            self.worksheet.set_auto_publish()
+            return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        elif 'is_auto' in ctx.args:
+            return http.Response(stream=str(self.worksheet.is_auto_publish()))
+        else:
+            if self.worksheet.has_published_version():
+                addr = 'http%s://' % ('' if not notebook.secure else 's')
+                addr += notebook.address
+                addr += ':%s' % notebook.port
+                addr += '/home/' + self.worksheet.published_version().filename()
+                dtime = self.worksheet.published_version().date_edited()
+                return http.Response(stream=notebook.html_afterpublish_window(self.worksheet, self.username, addr, dtime))
+            else:
+                return http.Response(stream=notebook.html_beforepublish_window(self.worksheet, self.username))
 
 
 class Worksheet_rating_info(WorksheetResource, resource.Resource):

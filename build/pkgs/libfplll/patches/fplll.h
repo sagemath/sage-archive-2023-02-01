@@ -26,7 +26,7 @@
 #ifndef FPLLL_H
 #define FPLLL_H
 
-#if defined(__sun)
+#if defined(__sun) || defined(__CYGWIN__)
 #include <ieeefp.h>
 extern "C" long double ldexpl(long double x, int exp);
 #define NAN __builtin_nanf("")

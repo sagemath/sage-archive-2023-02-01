@@ -116,6 +116,41 @@ cdef ideal *sage_ideal_to_singular_ideal(I):
         j+=1
     return i
 
+def kbase_libsingular(I):
+    """
+    Singular's kbase() algorithm.
+
+    INPUT:
+    I -- a groebner basis of an ideal
+
+    OUTPUT:
+    Computes a vector space basis (consisting of monomials) of the quotient
+    ring by the ideal, resp. of a free module by the module, in case it is
+    finite dimensional and if the input is a standard basis with respect to
+    the ring ordering. If the input is not a standard basis, the leading terms
+    of the input are used and the result may have no meaning.
+    """
+
+    global singular_options
+
+    cdef ideal *i = sage_ideal_to_singular_ideal(I)
+    cdef ring *r = currRing
+    cdef ideal *q = currQuotient
+
+    cdef ideal *result
+    singular_options = singular_options | Sy_bit(OPT_REDSB)
+
+    _sig_on
+    result = scKBase(-1, i, q)
+    _sig_off
+
+    id_Delete(&i, r)
+    res = singular_ideal_to_sage_sequence(result,r,I.ring())
+
+    id_Delete(&result, r)
+
+    return res
+
 def std_libsingular(I):
     """
     SINGULAR's std() algorithm.

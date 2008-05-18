@@ -1988,3 +1988,34 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 return False
         return True
 
+    def _libsingular_normal_basis(self):
+        from sage.rings.polynomial.multi_polynomial_ideal_libsingular import kbase_libsingular
+        gb = self._groebner_basis_using_libsingular()
+
+        return kbase_libsingular(self.ring().ideal(gb))
+
+    def normal_basis(self, algorithm='libsingular'):
+        """
+        Returns a vector space basis (consisting of monomials) of the quotient
+        ring by the ideal, resp. of a free module by the module, in case it is
+        finite dimensional and if the input is a standard basis with respect
+        to the ring ordering.
+
+        INPUT:
+            algorithm - defaults to use libsingular, if it is anything else
+                        we will use the kbase() command
+
+        EXAMPLES:
+            sage: R.<x,y,z> = PolynomialRing(QQ)
+            sage: I = R.ideal(x^2+y^2+z^2-4, x^2+2*y^2-5, x*z-1)
+            sage: I.normal_basis()
+            [y*z^2, z^2, y*z, z, x*y, y, x, 1]
+            sage: I.normal_basis(algorithm='singular')
+            [y*z^2, z^2, y*z, z, x*y, y, x, 1]
+        """
+
+        if algorithm == 'libsingular':
+            return self._libsingular_normal_basis()
+        else:
+            gb = self.groebner_basis()
+            return list(singular.kbase(self.ring().ideal(gb)))

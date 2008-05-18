@@ -5,7 +5,7 @@ didn't delete anything else.
 
 FIXME
 
-=== May 16, 2008 (William Stein ===
+=== readline-5.2.p2 (William Stein, May 16, 2008)  ===
  * /usr/bin/env bash;  change == to =; add support for cygwin; improve error messages and checking
 
 === readline-5.2.p1 (Craig Citro) ===

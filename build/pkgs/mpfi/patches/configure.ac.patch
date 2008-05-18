@@ -1,0 +1,30 @@
+--- configure.ac.orig	2008-05-18 10:03:06.000000000 -0700
++++ configure.ac	2008-05-16 20:56:13.000000000 -0700
+@@ -101,7 +101,12 @@
+            then
+              LDADD="$LDADD -L$with_gmp_lib -lmpfr"
+            else
+-             AC_MSG_ERROR([$with_mpfr_lib/libmpfr.so or libmpfr.dylib not found])
++             if test -r "$with_mpfr_lib/libmpfr.dll.a"
++             then
++               LDADD="$LDADD -L$with_gmp_lib -lmpfr"
++             else
++               AC_MSG_ERROR([$with_mpfr_lib/libmpfr.so or libmpfr.dylib not found])
++             fi
+            fi
+         fi
+   AC_MSG_RESULT(yes)
+@@ -121,7 +126,12 @@
+           then
+             LDADD="$LDADD -L$with_gmp_lib -lgmp"
+           else
+-            AC_MSG_ERROR([$with_gmp_lib/libgmp.so or libgmp.dylib not found])
++            if test -r "$with_gmp_lib/libgmp.dll.a"
++            then
++               LDADD="$LDADD -L$with_gmp_lib -lgmp"
++            else
++               AC_MSG_ERROR([$with_gmp_lib/libgmp.so or libgmp.dylib not found])
++            fi
+           fi
+         fi
+   AC_MSG_RESULT(yes)

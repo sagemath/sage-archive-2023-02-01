@@ -1,3 +1,7 @@
+
+=== cddlib-094b.p2 (Michael Abshoff, May 18th, 2008) ===
+ * add 64 bit support on OSX
+
 * 2007-24-11 (Michael Abshoff)
 
   - add -L$SAHE_LOCAL/lib to CFLAGS to force linking against Sage's gmp

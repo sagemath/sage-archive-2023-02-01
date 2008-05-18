@@ -1,10 +1,10 @@
---- src/src/fplll.h	2007-10-21 12:12:15.000000000 -0400
-+++ ../libfplll-2.1.6-20071129_dirt/src/src/fplll.h	2008-01-27 21:17:19.388722000 -0500
+--- src/src/fplll.h	2007-10-21 09:12:15.000000000 -0700
++++ patches/fplll.h	2008-05-17 09:43:35.000000000 -0700
 @@ -26,6 +26,12 @@
  #ifndef FPLLL_H
  #define FPLLL_H
  
-+#if defined(__sun)
++#if defined(__sun) || defined(__CYGWIN__)
 +#include <ieeefp.h>
 +extern "C" long double ldexpl(long double x, int exp);
 +#define NAN __builtin_nanf("")

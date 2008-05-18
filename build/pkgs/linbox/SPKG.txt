@@ -24,6 +24,9 @@ LGPL V2 or later
 
 == Changelog ==
 
+=== linbox-1.1.5.p4 (Michael Abshoff/William Stein, May 16, 2008) ===
+ * add support for cygwin
+
 === linbox-1.1.5.p4 (Michael Abshoff, April 15th, 2008) ===
  * reenable optimization on all platforms because the detection was broken (fixes #3041)
 

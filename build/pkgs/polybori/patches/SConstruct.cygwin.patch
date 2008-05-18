@@ -1,0 +1,13 @@
+--- SConstruct	2008-04-09 18:04:05.000000000 -0700
++++ SConstruct.cygwin	2008-05-17 11:00:31.000000000 -0700
+@@ -90,7 +90,9 @@
+ # Define option handle, may be changed from command line or custom.py
+ opts.Add('CXX', 'C++ Compiler', "g++")
+ opts.Add('CC', 'C Compiler', "gcc")
+-opts.Add('PYTHON', 'Python executable', "python")
++
++# For cygwin we put "python.exe"  WEIRD!
++opts.Add('PYTHON', 'Python executable', "python.exe")
+ 
+ opts.Add('LIBPATH', 'list of library paths (colon or whitespace separated)',
+          [], converter = SplitColonSep)

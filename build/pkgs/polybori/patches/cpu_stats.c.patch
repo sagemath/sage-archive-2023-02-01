@@ -1,0 +1,24 @@
+--- cpu_stats.c.orig	2008-05-18 06:40:56.000000000 -0700
++++ cpu_stats.c	2008-05-17 10:44:15.000000000 -0700
+@@ -1,5 +1,11 @@
+ /* LINTLIBRARY */
+ 
++
++/* SAGE: Workaround cygwin problems.  -- William Stein */
++#ifdef __CYGWIN__
++#undef BSD
++#endif
++
+ #include "util.h"
+ 
+ 
+@@ -14,7 +20,9 @@
+ #define end _end
+ #endif
+ 
++#ifndef __CYGWIN__
+ extern int end, etext, edata;
++#endif
+ 
+ #endif
+ 

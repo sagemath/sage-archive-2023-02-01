@@ -129,6 +129,12 @@ def kbase_libsingular(I):
     finite dimensional and if the input is a standard basis with respect to
     the ring ordering. If the input is not a standard basis, the leading terms
     of the input are used and the result may have no meaning.
+
+    EXAMPLES:
+        sage: R.<x,y> = PolynomialRing(QQ, order='lex')
+        sage: I = R.ideal(x^2-2*y^2, x*y-3)
+        sage: I.normal_basis()
+        [y^3, y^2, y, 1]
     """
 
     global singular_options

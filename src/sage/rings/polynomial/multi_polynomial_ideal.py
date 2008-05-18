@@ -1989,6 +1989,18 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         return True
 
     def _libsingular_normal_basis(self):
+        """
+        Returns the normal basis for a given groebner basis. It will use
+        the Groebner Basis as computed by
+        self._groebner_basis_using_libsingular().
+
+        EXAMPLES:
+            sage: R.<x,y,z> = PolynomialRing(QQ)
+            sage: I = R.ideal(x^2-2*x*z+5, x*y^2+y*z+1, 3*y^2-8*x*z)
+            sage: I.normal_basis()
+            [z^2, y*z, x*z, z, x*y, y, x, 1]
+
+        """
         from sage.rings.polynomial.multi_polynomial_ideal_libsingular import kbase_libsingular
         gb = self._groebner_basis_using_libsingular()
 

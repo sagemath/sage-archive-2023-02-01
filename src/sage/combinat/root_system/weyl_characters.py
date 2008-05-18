@@ -15,27 +15,28 @@ Weyl Characters
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 import cartan_type
 from sage.combinat.root_system.root_system import RootSystem
-from sage.modules.free_module import FreeModule, VectorSpace
+from sage.modules.free_module import VectorSpace
 from sage.structure.element import is_Element
 from sage.rings.all import ZZ, QQ
-from sage.misc.misc import prod, repr_lincomb
-from sage.misc.flatten import flatten
-from sage.misc.sage_eval import sage_eval
+from sage.misc.misc import repr_lincomb
 from sage.algebras.algebra import Algebra
 from sage.algebras.algebra_element import AlgebraElement
+import sage.structure.parent_base
+from sage.misc.cache import Cache
+
 
 class WeylCharacter(AlgebraElement):
-    """A class for Weyl Characters. Let K be a compact Lie group, which we
+    """
+    A class for Weyl Characters. Let K be a compact Lie group, which we
     assume is semisimple and simply-connected. Its complexified Lie algebra
     L is the Lie algebra of a complex analytic Lie group G. The following
     three categories are equivalent: representations of K; representations
     of L; and analytic representations of G. In every case, there is a
     parametrization of the irreducible representations by their highest
     weight vectors. For this theory of Weyl, see (for example) J. F. Adams,
-    Lectures on Lie groups; Bröcker and tom Dieck, Representations of
+    Lectures on Lie groups; Broecker and Tom Dieck, Representations of
     Compact Lie groups; Bump, Lie Groups, Part I; Fulton and Harris,
     Representation Theory, Part IV; Goodman and Wallach, Representations
     and Invariants of the Classical Groups, Chapter 5; Hall, Lie Groups,
@@ -55,11 +56,11 @@ class WeylCharacter(AlgebraElement):
     weight vector.
 
     EXAMPLES:
-       sage: L = RootSystem(['A',2]).ambient_lattice()
-       sage: [fw1,fw2] = L.fundamental_weights()
-       sage: R = WeylCharacterRing(['A',2], prefix="R")
-       sage: [R(1),R(fw1),R(fw2)]
-       [R(0,0,0), R(1,0,0), R(1,1,0)]
+        sage: L = RootSystem(['A',2]).ambient_lattice()
+        sage: [fw1,fw2] = L.fundamental_weights()
+        sage: R = WeylCharacterRing(['A',2], prefix="R")
+        sage: [R(1),R(fw1),R(fw2)]
+        [R(0,0,0), R(1,0,0), R(1,1,0)]
 
     Here R(1), R(fw1) and R(fw2) are irreducible representations with
     highest weight vectors 0, and the first two fundamental weights.
@@ -88,6 +89,12 @@ class WeylCharacter(AlgebraElement):
            A -- the WeylCharacterRing
            hdict -- dictionary of highest weight vector coefficients
            mdict -- dictionary of weight multiplicities
+
+        EXAMPLES:
+            sage: R = WeylCharacterRing(['B',3], prefix = "R")
+            sage: r =  R(1,1,0)
+            sage: r == loads(dumps(r))
+            True
         """
         AlgebraElement.__init__(self, A)
         self._hdict = hdict
@@ -98,33 +105,35 @@ class WeylCharacter(AlgebraElement):
     def __repr__(self):
         """
         EXAMPLES:
-           sage: R = WeylCharacterRing(['B',3], prefix = "R")
-           sage: [R(w) for w in R.lattice().fundamental_weights()]
-           [R(1,0,0), R(1,1,0), R(1/2,1/2,1/2)]
+            sage: R = WeylCharacterRing(['B',3], prefix = "R")
+            sage: [R(w) for w in R.lattice().fundamental_weights()]
+            [R(1,0,0), R(1,1,0), R(1/2,1/2,1/2)]
         """
         if self._hdict == {}:
             return "0"
         v = self._hdict.keys()
         v.sort()
-        ret = ""
         return repr_lincomb([self._parent.irr_repr(k) for k in v], [self._hdict[k] for k in v])
 
-    def __cmp__(left, right):
+    def __cmp__(self, right):
         """
         EXAMPLES:
-           sage: B3 = WeylCharacterRing(['B',3])
-           sage: fw = [B3(w) for w in B3.lattice().fundamental_weights()]
-           sage: sorted(fw)
-           [B3(1/2,1/2,1/2), B3(1,0,0), B3(1,1,0)]
+            sage: B3 = WeylCharacterRing(['B',3])
+            sage: fw = [B3(w) for w in B3.lattice().fundamental_weights()]
+            sage: sorted(fw)
+            [B3(1/2,1/2,1/2), B3(1,0,0), B3(1,1,0)]
+            sage: b = B3(1,0,0)
+            sage: b == b
+            True
         """
-        return left._hdict.__cmp__(right._hdict)
+        return cmp(self._hdict, right._hdict)
 
     def _add_(self, y):
         """
         EXAMPLES:
-        sage: A2 = WeylCharacterRing(['A',2])
-        sage: [A2(0,0,0)+A2(2,1,0), A2(2,1,0)+A2(0,0,0), - A2(0,0,0)+2*A2(0,0,0), -2*A2(0,0,0)+A2(0,0,0), -A2(2,1,0)+2*A2(2,1,0)-A2(2,1,0)]
-        [A2(0,0,0) + A2(2,1,0), A2(0,0,0) + A2(2,1,0), A2(0,0,0), -A2(0,0,0), 0]
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: [A2(0,0,0)+A2(2,1,0), A2(2,1,0)+A2(0,0,0), - A2(0,0,0)+2*A2(0,0,0), -2*A2(0,0,0)+A2(0,0,0), -A2(2,1,0)+2*A2(2,1,0)-A2(2,1,0)]
+            [A2(0,0,0) + A2(2,1,0), A2(0,0,0) + A2(2,1,0), A2(0,0,0), -A2(0,0,0), 0]
         """
         hdict = {}
         mdict = {}
@@ -153,9 +162,9 @@ class WeylCharacter(AlgebraElement):
     def _neg_(self):
         """
         EXAMPLES:
-           sage: A2 = WeylCharacterRing(['A',2])
-           sage: [-x for x in [A2(0,0,0), 2*A2(0,0,0), -A2(0,0,0), -2*A2(0,0,0)]]
-           [-A2(0,0,0), -2*A2(0,0,0), A2(0,0,0), 2*A2(0,0,0)]
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: [-x for x in [A2(0,0,0), 2*A2(0,0,0), -A2(0,0,0), -2*A2(0,0,0)]]
+            [-A2(0,0,0), -2*A2(0,0,0), A2(0,0,0), 2*A2(0,0,0)]
         """
         hdict = self._hdict.copy()
         mdict = self._mdict.copy()
@@ -167,17 +176,18 @@ class WeylCharacter(AlgebraElement):
     def _sub_(self, y):
         """
         EXAMPLES:
-           sage: A2 = WeylCharacterRing(['A',2])
-           sage: chi = A2(0,0,0)+2*A2(1,0,0)+3*A2(2,0,0)
-           sage: mu =  3*A2(0,0,0)+2*A2(1,0,0)+A2(2,0,0)
-           sage: chi - mu
-           -2*A2(0,0,0) + 2*A2(2,0,0)
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: chi = A2(0,0,0)+2*A2(1,0,0)+3*A2(2,0,0)
+            sage: mu =  3*A2(0,0,0)+2*A2(1,0,0)+A2(2,0,0)
+            sage: chi - mu
+            -2*A2(0,0,0) + 2*A2(2,0,0)
         """
         return self._add_(y._neg_())
 
     def degree(self):
         """
-        The degree of the character, that is, the dimension of module
+        The degree of the character, that is, the dimension of module.
+
         EXAMPLES:
             sage: B3 = WeylCharacterRing(['B',3])
             sage: [B3(x).degree() for x in B3.lattice().fundamental_weights()]
@@ -186,14 +196,16 @@ class WeylCharacter(AlgebraElement):
         return sum(self._mdict[k] for k in self._mdict)
 
     def check(self, verbose=False):
-        """To check the correctness of an element, we compare
+        """
+        To check the correctness of an element, we compare
         the theoretical dimension computed Weyl character
         formula with the actual one obtained by adding up
         the multiplicities.
+
         EXAMPLES:
-           sage: F4 = WeylCharacterRing(['F',4])
-           sage: [F4(x).check(verbose = true) for x in F4.lattice().fundamental_weights()]
-           [[52, 52], [1274, 1274], [273, 273], [26, 26]]
+            sage: F4 = WeylCharacterRing(['F',4])
+            sage: [F4(x).check(verbose = true) for x in F4.lattice().fundamental_weights()]
+            [[52, 52], [1274, 1274], [273, 273], [26, 26]]
         """
         theoretical = sum(self._hdict[k]*self._lattice.weyl_dimension(self._parent.VS(k)) for k in self._hdict)
         practical = sum(self._mdict[k] for k in self._mdict)
@@ -205,13 +217,13 @@ class WeylCharacter(AlgebraElement):
     def _mul_(self, y):
         """
         EXAMPLES:
-           sage: D4 = WeylCharacterRing(['D',4])
-           sage: spin_plus = D4(1/2,1/2,1/2,1/2)
-           sage: spin_minus = D4(1/2,1/2,1/2,-1/2)
-           sage: spin_plus*spin_minus
-           D4(1,0,0,0) + D4(1,1,1,0)
-           sage: spin_minus*spin_plus
-           D4(1,0,0,0) + D4(1,1,1,0)
+            sage: D4 = WeylCharacterRing(['D',4])
+            sage: spin_plus = D4(1/2,1/2,1/2,1/2)
+            sage: spin_minus = D4(1/2,1/2,1/2,-1/2)
+            sage: spin_plus*spin_minus
+            D4(1,0,0,0) + D4(1,1,1,0)
+            sage: spin_minus*spin_plus
+            D4(1,0,0,0) + D4(1,1,1,0)
         """
         mdict = {}
         for k in self._mdict:
@@ -230,19 +242,21 @@ class WeylCharacter(AlgebraElement):
 
     def __pow__(self, n):
         """
-        EXAMPLES:
-           sage: A2 = WeylCharacterRing(['A',2])
-           sage: chi = A2(1,0,0)
-           sage: [chi^k for k in range(6)]
-           [A2(0,0,0),
-            A2(1,0,0),
-            A2(1,1,0) + A2(2,0,0),
-            A2(1,1,1) + 2*A2(2,1,0) + A2(3,0,0),
-            3*A2(2,1,1) + 2*A2(2,2,0) + 3*A2(3,1,0) + A2(4,0,0),
-            5*A2(2,2,1) + 6*A2(3,1,1) + 5*A2(3,2,0) + 4*A2(4,1,0) + A2(5,0,0)]
+        Returns self^n.
 
         The coefficients in chi^k are the degrees of those irreducible representations
         of the symmetric group S_k corresponding to partitions of length <=3.
+
+        EXAMPLES:
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: chi = A2(1,0,0)
+            sage: [chi^k for k in range(6)]
+            [A2(0,0,0),
+             A2(1,0,0),
+             A2(1,1,0) + A2(2,0,0),
+             A2(1,1,1) + 2*A2(2,1,0) + A2(3,0,0),
+             3*A2(2,1,1) + 2*A2(2,2,0) + 3*A2(3,1,0) + A2(4,0,0),
+             5*A2(2,2,1) + 6*A2(3,1,1) + 5*A2(3,2,0) + 4*A2(4,1,0) + A2(5,0,0)]
         """
         if not n in ZZ:
             raise TypeError, "exponent must be an integer"
@@ -254,22 +268,34 @@ class WeylCharacter(AlgebraElement):
         return z
 
     def branch(self, S, rule="default"):
-        """INPUT:
-           S, a Weyl character ring for a Lie subgroup or subalgebra
-           RULE - a branching rule.
+        """
         Returns the restriction of the character to the
         subalgebra. If no rule is specified, we will try to
         specify one.
 
+        INPUT:
+           S -- a Weyl character ring for a Lie subgroup or subalgebra
+           rule -- a branching rule.
+
         See branch_weyl_character? for more information about branching
         rules.
+
+        EXAMPLES:
+            sage: B3 = WeylCharacterRing(['B',3])
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: [B3(w).branch(A2,rule="levi") for w in B3.lattice().fundamental_weights()]
+            [A2(0,0,-1) + A2(0,0,0) + A2(1,0,0),
+             A2(0,-1,-1) + A2(0,0,-1) + A2(0,0,0) + A2(1,0,-1) + A2(1,0,0) + A2(1,1,0),
+             A2(-1/2,-1/2,-1/2) + A2(1/2,-1/2,-1/2) + A2(1/2,1/2,-1/2) + A2(1/2,1/2,1/2)]
         """
         return branch_weyl_character(self, self._parent, S, rule)
 
     def hlist(self):
-        """Return a list of highest weight vectors and multiplicities
+        """
+        Returns a list of highest weight vectors and multiplicities
         of the irreducible characters in self.
-        EXAMPLE:
+
+        EXAMPLES:
            sage: B3 = WeylCharacterRing(['B',3])
            sage: B3(1/2,1/2,1/2).hlist()
            [[(1/2, 1/2, 1/2), 1]]
@@ -277,35 +303,43 @@ class WeylCharacter(AlgebraElement):
         return [[self._parent.VS(k),m] for k,m in self._hdict.iteritems()]
 
     def mlist(self):
-        """Return a list of weights in self with their multiplicities.
-        EXAMPLE:
-           sage: B3 = WeylCharacterRing(['B',3])
-           sage: B3(1/2,1/2,1/2).mlist()
-           [[(1/2, 1/2, 1/2), 1],
-            [(-1/2, 1/2, -1/2), 1],
-            [(-1/2, -1/2, -1/2), 1],
-            [(1/2, -1/2, 1/2), 1],
-            [(-1/2, 1/2, 1/2), 1],
-            [(1/2, -1/2, -1/2), 1],
-            [(-1/2, -1/2, 1/2), 1],
-            [(1/2, 1/2, -1/2), 1]]
+        """
+        Returns a list of weights in self with their multiplicities.
+
+        EXAMPLES:
+            sage: B3 = WeylCharacterRing(['B',3])
+            sage: B3(1/2,1/2,1/2).mlist()
+            [[(1/2, 1/2, 1/2), 1],
+             [(-1/2, 1/2, -1/2), 1],
+             [(-1/2, -1/2, -1/2), 1],
+             [(1/2, -1/2, 1/2), 1],
+             [(-1/2, 1/2, 1/2), 1],
+             [(1/2, -1/2, -1/2), 1],
+             [(-1/2, -1/2, 1/2), 1],
+             [(1/2, 1/2, -1/2), 1]]
         """
         return [[self._parent.VS(k),m] for k,m in self._mdict.iteritems()]
 
     def parent(self):
+        """
+        EXAMPLES:
+            sage: B3 = WeylCharacterRing(['B',3])
+            sage: B3(2).parent()
+            The Weyl Character Ring of Type [B,3] with Integer Ring coefficients
+
+        """
         return self._parent
 
 
-
-
-class WeylCharacterRing(Algebra):
-    """A class for rings of Weyl characters. The Weyl character is a
+def WeylCharacterRing(ct, base_ring=ZZ, prefix=None, cache=False):
+    """
+    A class for rings of Weyl characters. The Weyl character is a
     character of a semisimple (or reductive) Lie group or algebra. They
     form a ring, in which the addition and multiplication correspond to
     direct sum and tensor product of representations.
 
     INPUT:
-       cartan_type - The Cartan Type
+       ct - The Cartan Type
 
     OPTIONAL ARGUMENTS:
        base_ring (default ZZ)
@@ -319,26 +353,26 @@ class WeylCharacterRing(Algebra):
     It is good to name the ring after the prefix, since then it
     can parse its own output.
 
-    EXAMPLE:
-       sage: G2 = WeylCharacterRing(['G',2])
-       sage: [fw1,fw2] = G2.lattice().fundamental_weights()
-       sage: 2*G2(2*fw1+fw2)
-       2*G2(4,-1,-3)
-       sage: 2*G2(4,-1,-3)
-       2*G2(4,-1,-3)
-       sage: G2(4,-1,-3).degree()
-       189
+    EXAMPLES:
+        sage: G2 = WeylCharacterRing(['G',2])
+        sage: [fw1,fw2] = G2.lattice().fundamental_weights()
+        sage: 2*G2(2*fw1+fw2)
+        2*G2(4,-1,-3)
+        sage: 2*G2(4,-1,-3)
+        2*G2(4,-1,-3)
+        sage: G2(4,-1,-3).degree()
+        189
 
     Note that since the ring was named G2 after its default
     prefix, it was able to parse its own output. You do not
     have to use the default prefix. Thus:
 
-    EXAMPLE:
-       sage: R = WeylCharacterRing(['B',3], prefix='R')
-       sage: chi = R(R.lattice().fundamental_weights()[2]); chi
-       R(1/2,1/2,1/2)
-       sage: R(1/2,1/2,1/2) == chi
-       True
+    EXAMPLES:
+        sage: R = WeylCharacterRing(['B',3], prefix='R')
+        sage: chi = R(R.lattice().fundamental_weights()[2]); chi
+        R(1/2,1/2,1/2)
+        sage: R(1/2,1/2,1/2) == chi
+        True
 
     The multiplication in R corresponds to the product of
     characters, which you can use to determine the decomposition
@@ -346,13 +380,13 @@ class WeylCharacterRing(Algebra):
     us compute the tensor product of the standard and spin
     representations of Spin(7).
 
-    EXAMPLE:
-       sage: B3 = WeylCharacterRing(['B',3])
-       sage: [fw1,fw2,fw3]=B3.lattice().fundamental_weights()
-       sage: [B3(fw1).degree(),B3(fw3).degree()]
-       [7, 8]
-       sage: B3(fw1)*B3(fw3)
-       B3(1/2,1/2,1/2) + B3(3/2,1/2,1/2)
+    EXAMPLES:
+        sage: B3 = WeylCharacterRing(['B',3])
+        sage: [fw1,fw2,fw3]=B3.lattice().fundamental_weights()
+        sage: [B3(fw1).degree(),B3(fw3).degree()]
+        [7, 8]
+        sage: B3(fw1)*B3(fw3)
+        B3(1/2,1/2,1/2) + B3(3/2,1/2,1/2)
 
     The name of the irreducible representation encodes the
     highest weight vector.
@@ -370,7 +404,7 @@ class WeylCharacterRing(Algebra):
     You can produce a list of the irreducible elements of an irreducible
     character.
 
-    EXAMPLE:
+    EXAMPLES:
         sage: R = WeylCharacterRing(['A',2], prefix = R)
         sage: R([2,1,0]).mlist()
         [[(2, 1, 0), 1],
@@ -380,9 +414,23 @@ class WeylCharacterRing(Algebra):
           [(2, 0, 1), 1],
           [(1, 2, 0), 1],
           [(1, 0, 2), 1]]
+
+
     """
-    def __init__(self, ct, base_ring=ZZ, prefix=None, cache=False):
-        self.cartan_type = cartan_type.CartanType(ct)
+    ct = cartan_type.CartanType(ct)
+    return cache_wcr(ct, base_ring=base_ring, prefix=prefix, cache=cache)
+
+class WeylCharacterRing_class(Algebra):
+    def __init__(self, ct, base_ring, prefix, cache):
+        """
+        EXAMPLES:
+            sage: R = WeylCharacterRing(['A',3])
+            sage: R == loads(dumps(R))
+            True
+        """
+        sage.structure.parent_base.ParentWithBase.__init__(self, base_ring)
+
+        self.cartan_type = ct
         self._base_ring = base_ring
         self._lattice = RootSystem(self.cartan_type).ambient_lattice()
         self._origin = tuple(self._lattice._free_module(0))
@@ -395,6 +443,7 @@ class WeylCharacterRing(Algebra):
         self._cache = cache
         if cache:
             self._irreducibles={}
+
 
     def __call__(self, *args):
         """
@@ -409,38 +458,44 @@ class WeylCharacterRing(Algebra):
            *args -- the components of a vector
 
         EXAMPLES:
-          sage: A2 = WeylCharacterRing(['A',2])
-          sage: [A2(x) for x in [-2,-1,0,1,2]]
-          [-2*A2(0,0,0), -A2(0,0,0), 0, A2(0,0,0), 2*A2(0,0,0)]
-          sage: [A2(2,1,0), A2([2,1,0]), A2(2,1,0)== A2([2,1,0])]
-          [A2(2,1,0), A2(2,1,0), True]
-          sage: A2([2,1,0]) == A2(2,1,0)
-          True
-          sage: l = -2*A2(0,0,0) - A2(1,0,0) + A2(2,0,0) + 2*A2(3,0,0)
-          sage: [l in A2, A2(l) == l]
-          [True, True]
-          sage: P.<q> = QQ[]
-          sage: A2 = WeylCharacterRing(['A',2], base_ring = P)
-          sage: [A2(x) for x in [-2,-1,0,1,2,-2*q,-q,q,2*q,(1-q)]]
-          [-2*A2(0,0,0), -A2(0,0,0), 0, A2(0,0,0), 2*A2(0,0,0), -2*q*A2(0,0,0), -q*A2(0,0,0),
-           q*A2(0,0,0), 2*q*A2(0,0,0), (-q+1)*A2(0,0,0)]
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: [A2(x) for x in [-2,-1,0,1,2]]
+            [-2*A2(0,0,0), -A2(0,0,0), 0, A2(0,0,0), 2*A2(0,0,0)]
+            sage: [A2(2,1,0), A2([2,1,0]), A2(2,1,0)== A2([2,1,0])]
+            [A2(2,1,0), A2(2,1,0), True]
+            sage: A2([2,1,0]) == A2(2,1,0)
+            True
+            sage: l = -2*A2(0,0,0) - A2(1,0,0) + A2(2,0,0) + 2*A2(3,0,0)
+            sage: [l in A2, A2(l) == l]
+            [True, True]
+            sage: P.<q> = QQ[]
+            sage: A2 = WeylCharacterRing(['A',2], base_ring = P)
+            sage: [A2(x) for x in [-2,-1,0,1,2,-2*q,-q,q,2*q,(1-q)]]
+            [-2*A2(0,0,0), -A2(0,0,0), 0, A2(0,0,0), 2*A2(0,0,0), -2*q*A2(0,0,0), -q*A2(0,0,0),
+            q*A2(0,0,0), 2*q*A2(0,0,0), (-q+1)*A2(0,0,0)]
         """
         if len(args) == 1:
             x = args[0]
         else:
             x = args
+
         if x == 0:
             return WeylCharacter(self, {}, {})
+
         if x in ZZ:
-                hdict = {self._origin: x}
-                return WeylCharacter(self, hdict, hdict)
+            hdict = {self._origin: x}
+            return WeylCharacter(self, hdict, hdict)
+
         if is_Element(x):
             P = x.parent()
             if P is self:
                 return x
+            elif P == self:
+                return WeylCharacter(self, x._hdict, x._mdict)
             elif x in self.base_ring():
                 hdict = {self._origin: x}
                 return WeylCharacter(self, hdict, hdict)
+
         x = self.VS(x)
         vp = [QQ(x.inner_product(self._lattice.simple_roots()[i]))/QQ(self._ip[i])
               for i in range(self.cartan_type[1])]
@@ -458,45 +513,72 @@ class WeylCharacterRing(Algebra):
         return ret
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: WeylCharacterRing(['A',3])
+            The Weyl Character Ring of Type [A,3] with Integer Ring coefficients
+        """
         return "The Weyl Character Ring of Type [%s,%d] with %s coefficients"%(self.cartan_type[0], self.cartan_type[1], self._base_ring.__repr__())
+
+    def __cmp__(self, x):
+        """
+        EXAMPLES:
+            sage: A3 = WeylCharacterRing(['A',3])
+            sage: B3 = WeylCharacterRing(['B',3])
+            sage: A3 == A3
+            True
+            sage: A3 == B3
+            False
+        """
+        return cmp(repr(self), repr(x))
 
     def base_ring(self):
         """
         Returns the base ring.
-        EXAMPLE:
+
+        EXAMPLES:
            sage: R = WeylCharacterRing(['A',3], base_ring = CC); R.base_ring()
            Complex Field with 53 bits of precision
         """
         return self._base_ring
 
     def _coerce_impl(self, x):
-        """Coercion from the base ring.
+        """
+        Coercion from the base ring.
+
         EXAMPLES:
            sage: R = WeylCharacterRing(['G',2])
            sage: 2 in R
            True
+           sage: R._coerce_impl(2)
+           2*G2(0,0,0)
         """
         if x in self._base_ring:
             return self.__call__(x)
         raise TypeError, "no canonical coercion of x"
 
     def lattice(self):
-        """The weight lattice.
+        """
+        Returns the weight lattice associated to self.
+
         EXAMPLES:
-           WeylCharacterRing(['E',8]).lattice()
-           Ambient lattice of the root system of type ['E', 8]
+            sage: WeylCharacterRing(['E',8]).lattice()
+            Ambient lattice of the root system of type ['E', 8]
         """
         return self._lattice
 
     def char_from_weights(self, mdict):
-        """Produce the hdict given just a dictionary of weight multiplicities.
+        """
+        Return the hdict given just a dictionary of weight multiplicities.
+
         This will not terminate unless the dictionary of weight multiplicities
         is Weyl group invariant.
+
         EXAMPLES:
-           sage: B3 = WeylCharacterRing(['B',3])
-           sage: m = B3(1,0,0)._mdict
-           sage: B3.char_from_weights(m)
-           {(1, 0, 0): 1}
+            sage: B3 = WeylCharacterRing(['B',3])
+            sage: m = B3(1,0,0)._mdict
+            sage: B3.char_from_weights(m)
+            {(1, 0, 0): 1}
         """
         hdict = {}
         ddict = mdict.copy()
@@ -527,25 +609,26 @@ class WeylCharacterRing(Algebra):
         return hdict
 
     def irr_repr(self, hwv):
-        """Produce a string representing the irreducible character with highest
+        """
+        Return a string representing the irreducible character with highest
         weight vectr hwv.
-        EXAMPLE:
-          sage: A2 = WeylCharacterRing(['A',2])
-          sage: A2.irr_repr([2,1,0])
-          'A2(2,1,0)'
+
+        EXAMPLES:
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: A2.irr_repr([2,1,0])
+            'A2(2,1,0)'
         """
         hstring = str(hwv[0])
         for i in range(1,self._lattice.n):
             hstring=hstring+","+str(hwv[i])
         return self._prefix+"("+hstring+")"
 
+cache_wcr = Cache(WeylCharacterRing_class)
+
 
 def irreducible_character_freudenthal(hwv, L, debug=False):
-    """INPUT:
-        hwv - a dominant weight in a weight lattice.
-        L - the ambient lattice
-
-    Produces the dictionary of multiplicities for the irreducible character
+    """
+    Returns the dictionary of multiplicities for the irreducible character
     with highest weight lamb.  The weight multiplicities are computed by
     the Freudenthal multiplity formula. The algorithm is based on recursion
     relation that is stated, for example, in Humphrey's book on Lie
@@ -554,8 +637,12 @@ def irreducible_character_freudenthal(hwv, L, debug=False):
     the positive Weyl chamber. However after some testing it was found to
     be faster to compute every weight using the recursion, since the use of
     the Weyl group is expensive in its current implementation.
+
+    INPUT:
+        hwv - a dominant weight in a weight lattice.
+        L - the ambient lattice
+
     """
-    rank = L.ct[1]
     VS = VectorSpace(QQ, L.n)
     rho = L.rho()
     mdict = {}
@@ -591,12 +678,14 @@ def irreducible_character_freudenthal(hwv, L, debug=False):
     return mdict
 
 def branch_weyl_character(chi, R, S, rule="default"):
-    """A Branching rule describes the restriction of representations
+    """
+    A Branching rule describes the restriction of representations
     from a Lie group or algebra G to a smaller one. See for example,
     R. C. King, Branching rules for classical Lie groups using tensor
     and spinor methods. J. Phys. A 8 (1975), 429--449 or
     Howe, Tan and Willenbring, Stable branching rules for classical symmetric
     pairs, Trans. Amer. Math. Soc. 357 (2005), no. 4, 1601--1626.
+
     INPUT:
        chi - a character of G
        R - the Weyl Character Ring of G
@@ -797,7 +886,7 @@ def branch_weyl_character(chi, R, S, rule="default"):
     --> T, which is a mapping from the dual space of T, which is the
     weight space of G, to the weight space of H.
 
-    EXAMPLE:
+    EXAMPLES:
         sage: A3 = WeylCharacterRing(['A',3])
         sage: C2 = WeylCharacterRing(['C',2])
         sage: rule = lambda x : [x[0]-x[3],x[1]-x[2]]
@@ -922,6 +1011,12 @@ class WeightRingElement(AlgebraElement):
         INPUT:
            A -- the Weight Ring
            mdict -- dictionary of weight multiplicities
+
+        EXAMPLES:
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: a2 = WeightRing(A2)
+            sage: a2 == loads(dumps(a2))
+            True
         """
         AlgebraElement.__init__(self, A)
         self._mdict = mdict
@@ -930,12 +1025,14 @@ class WeightRingElement(AlgebraElement):
         self._lattice = A._lattice
 
     def _wt_repr(self, k):
-        """The representation of a single weight
+        """
+        Returns the representation of a single weight.
+
         EXAMPLES:
-           sage: A2 = WeylCharacterRing(['A',2])
-           sage: a2 = WeightRing(A2)
-           sage: a2([1,0,0])
-           a2(1,0,0)
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: a2 = WeightRing(A2)
+            sage: a2([1,0,0])
+            a2(1,0,0)
         """
         hstring = str(k[0])
         for i in range(1,self._lattice.n):
@@ -958,7 +1055,6 @@ class WeightRingElement(AlgebraElement):
             return "0"
         v = self._mdict.keys()
         v.sort()
-        ret = ""
         return repr_lincomb([self._wt_repr(k) for k in v], [self._mdict[k] for k in v])
 
     def __cmp__(left, right):
@@ -974,10 +1070,12 @@ class WeightRingElement(AlgebraElement):
 
     def _add_(self, y):
         """
-        sage: A2 = WeylCharacterRing(['A',2])
-        sage: a2 = WeightRing(A2)
-        sage: [a2(0,0,0)+a2(2,1,0), a2(2,1,0)+a2(0,0,0), - a2(0,0,0)+2*a2(0,0,0), -2*a2(0,0,0)+a2(0,0,0), -a2(2,1,0)+2*a2(2,1,0)-a2(2,1,0)]
-        [a2(0,0,0) + a2(2,1,0), a2(0,0,0) + a2(2,1,0), a2(0,0,0), -a2(0,0,0), 0]
+
+        EXAMPLES:
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: a2 = WeightRing(A2)
+            sage: [a2(0,0,0)+a2(2,1,0), a2(2,1,0)+a2(0,0,0), - a2(0,0,0)+2*a2(0,0,0), -2*a2(0,0,0)+a2(0,0,0), -a2(2,1,0)+2*a2(2,1,0)-a2(2,1,0)]
+            [a2(0,0,0) + a2(2,1,0), a2(0,0,0) + a2(2,1,0), a2(0,0,0), -a2(0,0,0), 0]
         """
         mdict = {}
         for k in self._mdict.keys():
@@ -995,10 +1093,10 @@ class WeightRingElement(AlgebraElement):
     def _neg_(self):
         """
         EXAMPLES:
-           sage: A2 = WeylCharacterRing(['A',2])
-           sage: a2 = WeightRing(A2)
-           sage: [-x for x in [a2(0,0,0), 2*a2(0,0,0), -a2(0,0,0), -2*a2(0,0,0)]]
-           [-a2(0,0,0), -2*a2(0,0,0), a2(0,0,0), 2*a2(0,0,0)]
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: a2 = WeightRing(A2)
+            sage: [-x for x in [a2(0,0,0), 2*a2(0,0,0), -a2(0,0,0), -2*a2(0,0,0)]]
+            [-a2(0,0,0), -2*a2(0,0,0), a2(0,0,0), 2*a2(0,0,0)]
         """
         mdict = self._mdict.copy()
         for k in self._mdict:
@@ -1008,26 +1106,27 @@ class WeightRingElement(AlgebraElement):
     def _sub_(self, y):
         """
         EXAMPLES:
-           sage: A2 = WeylCharacterRing(['A',2])
-           sage: a2 = WeightRing(A2)
-           sage: chi = a2(0,0,0)+2*a2(1,0,0)+3*a2(2,0,0)
-           sage: mu =  3*a2(0,0,0)+2*a2(1,0,0)+a2(2,0,0)
-           sage: chi - mu
-           -2*a2(0,0,0) + 2*a2(2,0,0)
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: a2 = WeightRing(A2)
+            sage: chi = a2(0,0,0)+2*a2(1,0,0)+3*a2(2,0,0)
+            sage: mu =  3*a2(0,0,0)+2*a2(1,0,0)+a2(2,0,0)
+            sage: chi - mu
+            -2*a2(0,0,0) + 2*a2(2,0,0)
         """
         return self._add_(y._neg_())
 
     def _mul_(self, y):
         """
-        sage: A2 = WeylCharacterRing(['A',2])
-        sage: a2 = WeightRing(A2)
-        sage: [chi, mu] = [A2(1,0,0), A2(1,1,0)]
-        sage: chi*mu
-        A2(1,1,1) + A2(2,1,0)
-        sage: a2(chi)*a2(mu)
-        a2(0,1,2) + a2(0,2,1) + a2(1,0,2) + 3*a2(1,1,1) + a2(1,2,0) + a2(2,0,1) + a2(2,1,0)
-        sage: (a2(chi)*a2(mu)).character() == chi*mu
-        True
+        EXAMPLES:
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: a2 = WeightRing(A2)
+            sage: [chi, mu] = [A2(1,0,0), A2(1,1,0)]
+            sage: chi*mu
+            A2(1,1,1) + A2(2,1,0)
+            sage: a2(chi)*a2(mu)
+            a2(0,1,2) + a2(0,2,1) + a2(1,0,2) + 3*a2(1,1,1) + a2(1,2,0) + a2(2,0,1) + a2(2,1,0)
+            sage: (a2(chi)*a2(mu)).character() == chi*mu
+            True
         """
         mdict = {}
         for k in self._mdict:
@@ -1045,44 +1144,49 @@ class WeightRingElement(AlgebraElement):
 
     def __pow__(self, n):
         """
-        sage: A2 = WeylCharacterRing(['A',2])
-        sage: a2 = WeightRing(A2)
-        sage: chi = A2([2,1,0])
-        sage: chi^4
-        8*A2(4,4,4) + 32*A2(5,4,3) + 20*A2(5,5,2) + 20*A2(6,3,3) + 33*A2(6,4,2) + 15*A2(6,5,1) + 2*A2(6,6,0) + 15*A2(7,3,2) + 12*A2(7,4,1) + 3*A2(7,5,0) + 2*A2(8,2,2) + 3*A2(8,3,1) + A2(8,4,0)
-        sage: a2(chi)^4
-        a2(0,4,8) + 4*a2(0,5,7) + 6*a2(0,6,6) + 4*a2(0,7,5) + a2(0,8,4) + 4*a2(1,3,8) + 20*a2(1,4,7) + 40*a2(1,5,6) + 40*a2(1,6,5) + 20*a2(1,7,4) + 4*a2(1,8,3) + 6*a2(2,2,8) + 40*a2(2,3,7) + 106*a2(2,4,6) + 144*a2(2,5,5) + 106*a2(2,6,4) + 40*a2(2,7,3) + 6*a2(2,8,2) + 4*a2(3,1,8) + 40*a2(3,2,7) + 144*a2(3,3,6) + 260*a2(3,4,5) + 260*a2(3,5,4) + 144*a2(3,6,3) + 40*a2(3,7,2) + 4*a2(3,8,1) + a2(4,0,8) + 20*a2(4,1,7) + 106*a2(4,2,6) + 260*a2(4,3,5) + 346*a2(4,4,4) + 260*a2(4,5,3) + 106*a2(4,6,2) + 20*a2(4,7,1) + a2(4,8,0) + 4*a2(5,0,7) + 40*a2(5,1,6) + 144*a2(5,2,5) + 260*a2(5,3,4) + 260*a2(5,4,3) + 144*a2(5,5,2) + 40*a2(5,6,1) + 4*a2(5,7,0) + 6*a2(6,0,6) + 40*a2(6,1,5) + 106*a2(6,2,4) + 144*a2(6,3,3) + 106*a2(6,4,2) + 40*a2(6,5,1) + 6*a2(6,6,0) + 4*a2(7,0,5) + 20*a2(7,1,4) + 40*a2(7,2,3) + 40*a2(7,3,2) + 20*a2(7,4,1) + 4*a2(7,5,0) + a2(8,0,4) + 4*a2(8,1,3) + 6*a2(8,2,2) + 4*a2(8,3,1) + a2(8,4,0)
-        sage: (a2(chi)^4).character() == chi^4
-        True
+        EXAMPLES:
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: a2 = WeightRing(A2)
+            sage: chi = A2([2,1,0])
+            sage: chi^4
+            8*A2(4,4,4) + 32*A2(5,4,3) + 20*A2(5,5,2) + 20*A2(6,3,3) + 33*A2(6,4,2) + 15*A2(6,5,1) + 2*A2(6,6,0) + 15*A2(7,3,2) + 12*A2(7,4,1) + 3*A2(7,5,0) + 2*A2(8,2,2) + 3*A2(8,3,1) + A2(8,4,0)
+            sage: a2(chi)^4
+            a2(0,4,8) + 4*a2(0,5,7) + 6*a2(0,6,6) + 4*a2(0,7,5) + a2(0,8,4) + 4*a2(1,3,8) + 20*a2(1,4,7) + 40*a2(1,5,6) + 40*a2(1,6,5) + 20*a2(1,7,4) + 4*a2(1,8,3) + 6*a2(2,2,8) + 40*a2(2,3,7) + 106*a2(2,4,6) + 144*a2(2,5,5) + 106*a2(2,6,4) + 40*a2(2,7,3) + 6*a2(2,8,2) + 4*a2(3,1,8) + 40*a2(3,2,7) + 144*a2(3,3,6) + 260*a2(3,4,5) + 260*a2(3,5,4) + 144*a2(3,6,3) + 40*a2(3,7,2) + 4*a2(3,8,1) + a2(4,0,8) + 20*a2(4,1,7) + 106*a2(4,2,6) + 260*a2(4,3,5) + 346*a2(4,4,4) + 260*a2(4,5,3) + 106*a2(4,6,2) + 20*a2(4,7,1) + a2(4,8,0) + 4*a2(5,0,7) + 40*a2(5,1,6) + 144*a2(5,2,5) + 260*a2(5,3,4) + 260*a2(5,4,3) + 144*a2(5,5,2) + 40*a2(5,6,1) + 4*a2(5,7,0) + 6*a2(6,0,6) + 40*a2(6,1,5) + 106*a2(6,2,4) + 144*a2(6,3,3) + 106*a2(6,4,2) + 40*a2(6,5,1) + 6*a2(6,6,0) + 4*a2(7,0,5) + 20*a2(7,1,4) + 40*a2(7,2,3) + 40*a2(7,3,2) + 20*a2(7,4,1) + 4*a2(7,5,0) + a2(8,0,4) + 4*a2(8,1,3) + 6*a2(8,2,2) + 4*a2(8,3,1) + a2(8,4,0)
+            sage: (a2(chi)^4).character() == chi^4
+            True
         """
         if not n in ZZ:
             raise TypeError, "exponent must be an integer"
         if not n >= 0:
             raise TypeError, "exponent must be nonnegative"
         z = self._parent.__call__(1)
-        for i in range(n):
+        for _ in range(n):
             z *= self
         return z
 
     def mlist(self):
-        """Return a list of weights in self with their multiplicities.
-        EXAMPLE:
-           sage: G2 = WeylCharacterRing(['G',2])
-           sage: g2 = WeightRing(G2)
-           sage: pr = sum(g2(a) for a in g2.lattice().positive_roots())
-           sage: pr.mlist()
-           [[(1, 1, -2), 1],
-            [(1, -1, 0), 1],
-            [(1, 0, -1), 1],
-            [(1, -2, 1), 1],
-            [(2, -1, -1), 1],
-            [(0, 1, -1), 1]]
+        """
+        Returns a list of weights in self with their multiplicities.
+
+        EXAMPLES:
+            sage: G2 = WeylCharacterRing(['G',2])
+            sage: g2 = WeightRing(G2)
+            sage: pr = sum(g2(a) for a in g2.lattice().positive_roots())
+            sage: pr.mlist()
+            [[(1, 1, -2), 1],
+             [(1, -1, 0), 1],
+             [(1, 0, -1), 1],
+             [(1, -2, 1), 1],
+             [(2, -1, -1), 1],
+             [(0, 1, -1), 1]]
         """
         return [[self._parent.VS(k),m] for k,m in self._mdict.iteritems()]
 
     def weyl_group_action(self, w):
-        """Apply the Weyl group element w
-        EXAMPLE:
+        """
+        Returns the actionof the Weyl group element w on self.
+
+        EXAMPLES:
             sage: G2 = WeylCharacterRing(['G',2])
             sage: g2 = WeightRing(G2)
             sage: L = g2.lattice()
@@ -1097,77 +1201,85 @@ class WeightRingElement(AlgebraElement):
         Assuming that self is invariant under the Weyl group, this will
         express it as a linear combination of characters. If self is not Weyl
         group invariant, this method will not terminate.
-        EXAMPLE:
-           sage: A2 = WeylCharacterRing(['A',2])
-           sage: a2 = WeightRing(A2)
-           sage: W = a2.lattice().weyl_group()
-           sage: mu = a2(2,1,0)
-           sage: nu = sum(mu.weyl_group_action(w) for w in W)
-           sage: nu
-           a2(0,1,2) + a2(0,2,1) + a2(1,0,2) + a2(1,2,0) + a2(2,0,1) + a2(2,1,0)
-           sage: nu.character()
-           -2*A2(1,1,1) + A2(2,1,0)
+
+        EXAMPLES:
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: a2 = WeightRing(A2)
+            sage: W = a2.lattice().weyl_group()
+            sage: mu = a2(2,1,0)
+            sage: nu = sum(mu.weyl_group_action(w) for w in W)
+            sage: nu
+            a2(0,1,2) + a2(0,2,1) + a2(1,0,2) + a2(1,2,0) + a2(2,0,1) + a2(2,1,0)
+            sage: nu.character()
+            -2*A2(1,1,1) + A2(2,1,0)
         """
         return WeylCharacter(self._parent._parent, self._parent._parent.char_from_weights(self._mdict), self._mdict)
 
 
 class WeightRing(Algebra):
-    """
-    INPUT:
-       A -- a WeylCharacterRing.
-    Creates an auxiliary ring for the weights of a representation. This ring is
-    associated with a WeylCharacterRing. The weights of a representation of a
-    Lie group G or algebra are the characters of the characters of a Cartan
-    subgroup T or subalgebra that occur when the representation is restricted to
-    that Cartan. If a linear combination of weights is invariant under the Weyl
-    group, then it is a linear combination of characters of G.
-
-    As with the WeylCharacterRing, you may want to make sure that the prefix matches
-    the name that you assign the ring, so that the __call__ method can parse the
-    ring's own output. If you do not assign a prefix, one is automatically generated
-    by changing the case of the prefix to the associated WeylCharacterRing, from
-    upper case to lower case. However you may assign your own prefixes to both
-    rings.
-
-    EXAMPLE:
-       sage: A2 = WeylCharacterRing(['A',2])
-       sage: a2 = WeightRing(A2)
-       sage: wd = prod(a2(x/2)-a2(-x/2) for x in a2.lattice().positive_roots()); wd
-       -a2(-1,0,1) + a2(-1,1,0) + a2(0,-1,1) - a2(0,1,-1) - a2(1,-1,0) + a2(1,0,-1)
-       sage: chi = A2([5,3,0]); chi
-       A2(5,3,0)
-       sage: a2(chi)
-       a2(0,3,5) + a2(0,4,4) + a2(0,5,3) + a2(1,2,5) + 2*a2(1,3,4) + 2*a2(1,4,3) + a2(1,5,2) +
-       a2(2,1,5) + 2*a2(2,2,4) + 3*a2(2,3,3) + 2*a2(2,4,2) + a2(2,5,1) + a2(3,0,5) + 2*a2(3,1,4) +
-       3*a2(3,2,3) + 3*a2(3,3,2) + 2*a2(3,4,1) + a2(3,5,0) + a2(4,0,4) + 2*a2(4,1,3) + 2*a2(4,2,2) +
-       2*a2(4,3,1) + a2(4,4,0) + a2(5,0,3) + a2(5,1,2) + a2(5,2,1) + a2(5,3,0)
-       sage: a2(chi)*wd
-       -a2(-1,3,6) + a2(-1,6,3) + a2(3,-1,6) - a2(3,6,-1) - a2(6,-1,3) + a2(6,3,-1)
-       sage: sum((-1)^w.length()*a2([6,3,-1]).weyl_group_action(w) for w in a2.lattice().weyl_group())
-       -a2(-1,3,6) + a2(-1,6,3) + a2(3,-1,6) - a2(3,6,-1) - a2(6,-1,3) + a2(6,3,-1)
-       sage: a2(chi)*wd == sum((-1)^w.length()*a2([6,3,-1]).weyl_group_action(w) for w in a2.lattice().weyl_group())
-       True
-
-    In the above example, we create a WeylCharacterRing A2 whose objects are
-    the characters. Attached to this is a second WeightRing called a2. The
-    Weyl denominator is created and labeled wd. This is the product of factors
-    a2(alpha/2)-a2(-alpha/2) where alpha runs through the postive roots. Then
-    character chi with highest weight [5,3,0] is created and coerced into
-    a2. It has many terms. It is multiplied by wd and compared with the
-    alternating sum of its images under Weyl group elements. These are equal,
-    illustrating the Weyl character formula.
-
-    EXAMPLE:
-       sage: R = WeylCharacterRing(['G',2], prefix = "R", base_ring = QQ)
-       sage: S = WeightRing(R, prefix = "S")
-       sage: L = S.lattice()
-       sage: vc = [sum(S(1/2)*S(f).weyl_group_action(w) for w in L.weyl_group()) for f in L.fundamental_weights()]; vc
-       [S(-1,0,1) + S(-1,1,0) + S(0,-1,1) + S(0,1,-1) + S(1,-1,0) + S(1,0,-1),
-        S(-2,1,1) + S(-1,-1,2) + S(-1,2,-1) + S(1,-2,1) + S(1,1,-2) + S(2,-1,-1)]
-       sage: [v.character() for v in vc]
-       [-R(0,0,0) + R(1,0,-1), -R(0,0,0) - R(1,0,-1) + R(2,-1,-1)]
-    """
     def __init__(self, A, prefix=None):
+        """
+        Creates an auxiliary ring for the weights of a representation. This ring is
+        associated with a WeylCharacterRing. The weights of a representation of a
+        Lie group G or algebra are the characters of the characters of a Cartan
+        subgroup T or subalgebra that occur when the representation is restricted to
+        that Cartan. If a linear combination of weights is invariant under the Weyl
+        group, then it is a linear combination of characters of G.
+
+        As with the WeylCharacterRing, you may want to make sure that the prefix matches
+        the name that you assign the ring, so that the __call__ method can parse the
+        ring's own output. If you do not assign a prefix, one is automatically generated
+        by changing the case of the prefix to the associated WeylCharacterRing, from
+        upper case to lower case. However you may assign your own prefixes to both
+        rings.
+
+        INPUT:
+           A -- a WeylCharacterRing.
+
+        EXAMPLES:
+            sage: A2 = WeylCharacterRing(['A',2])
+            sage: a2 = WeightRing(A2)
+            sage: wd = prod(a2(x/2)-a2(-x/2) for x in a2.lattice().positive_roots()); wd
+            -a2(-1,0,1) + a2(-1,1,0) + a2(0,-1,1) - a2(0,1,-1) - a2(1,-1,0) + a2(1,0,-1)
+            sage: chi = A2([5,3,0]); chi
+            A2(5,3,0)
+            sage: a2(chi)
+            a2(0,3,5) + a2(0,4,4) + a2(0,5,3) + a2(1,2,5) + 2*a2(1,3,4) + 2*a2(1,4,3) + a2(1,5,2) +
+            a2(2,1,5) + 2*a2(2,2,4) + 3*a2(2,3,3) + 2*a2(2,4,2) + a2(2,5,1) + a2(3,0,5) + 2*a2(3,1,4) +
+            3*a2(3,2,3) + 3*a2(3,3,2) + 2*a2(3,4,1) + a2(3,5,0) + a2(4,0,4) + 2*a2(4,1,3) + 2*a2(4,2,2) +
+            2*a2(4,3,1) + a2(4,4,0) + a2(5,0,3) + a2(5,1,2) + a2(5,2,1) + a2(5,3,0)
+            sage: a2(chi)*wd
+            -a2(-1,3,6) + a2(-1,6,3) + a2(3,-1,6) - a2(3,6,-1) - a2(6,-1,3) + a2(6,3,-1)
+            sage: sum((-1)^w.length()*a2([6,3,-1]).weyl_group_action(w) for w in a2.lattice().weyl_group())
+            -a2(-1,3,6) + a2(-1,6,3) + a2(3,-1,6) - a2(3,6,-1) - a2(6,-1,3) + a2(6,3,-1)
+            sage: a2(chi)*wd == sum((-1)^w.length()*a2([6,3,-1]).weyl_group_action(w) for w in a2.lattice().weyl_group())
+            True
+
+        In the above example, we create a WeylCharacterRing A2 whose objects are
+        the characters. Attached to this is a second WeightRing called a2. The
+        Weyl denominator is created and labeled wd. This is the product of factors
+        a2(alpha/2)-a2(-alpha/2) where alpha runs through the postive roots. Then
+        character chi with highest weight [5,3,0] is created and coerced into
+        a2. It has many terms. It is multiplied by wd and compared with the
+        alternating sum of its images under Weyl group elements. These are equal,
+        illustrating the Weyl character formula.
+
+        EXAMPLES:
+            sage: R = WeylCharacterRing(['G',2], prefix = "R", base_ring = QQ)
+            sage: S = WeightRing(R, prefix = "S")
+            sage: L = S.lattice()
+            sage: vc = [sum(S(1/2)*S(f).weyl_group_action(w) for w in L.weyl_group()) for f in L.fundamental_weights()]; vc
+            [S(-1,0,1) + S(-1,1,0) + S(0,-1,1) + S(0,1,-1) + S(1,-1,0) + S(1,0,-1),
+            S(-2,1,1) + S(-1,-1,2) + S(-1,2,-1) + S(1,-2,1) + S(1,1,-2) + S(2,-1,-1)]
+            sage: [v.character() for v in vc]
+            [-R(0,0,0) + R(1,0,-1), -R(0,0,0) - R(1,0,-1) + R(2,-1,-1)]
+
+        TESTS:
+            sage: R = WeylCharacterRing(['G',2], prefix = "R", base_ring = QQ)
+            sage: S = WeightRing(R, prefix = "S")
+            sage: S == loads(dumps(S))
+            True
+        """
         self._parent = A
         self.cartan_type = self._parent.cartan_type
         if prefix == None:
@@ -1192,9 +1304,9 @@ class WeightRing(Algebra):
            x -- a ring element
 
         EXAMPLES:
-          sage: a2 = WeightRing(WeylCharacterRing(['A',2]))
-          sage: a2(-1)
-          -a2(0,0,0)
+            sage: a2 = WeightRing(WeylCharacterRing(['A',2]))
+            sage: a2(-1)
+            -a2(0,0,0)
         """
         if len(args) == 1:
             x = args[0]
@@ -1223,46 +1335,75 @@ class WeightRing(Algebra):
 
     def __repr__(self):
         """
-        EXAMPLE:
-           sage: P.<q>=QQ[]
-           sage: G2 = WeylCharacterRing(['G',2], base_ring = P)
-           sage: WeightRing(G2)
-           The Weight ring attached to The Weyl Character Ring of Type [G,2] with Univariate Polynomial Ring in q over Rational Field coefficients
+        EXAMPLES:
+            sage: P.<q>=QQ[]
+            sage: G2 = WeylCharacterRing(['G',2], base_ring = P)
+            sage: WeightRing(G2)
+            The Weight ring attached to The Weyl Character Ring of Type [G,2] with Univariate Polynomial Ring in q over Rational Field coefficients
         """
         return "The Weight ring attached to %s"%self._parent.__repr__()
 
     def base_ring(self):
         """
         Returns the base ring.
-        EXAMPLE:
-           sage: R = WeylCharacterRing(['A',3], base_ring = CC); R.base_ring()
-           Complex Field with 53 bits of precision
+
+        EXAMPLES:
+            sage: R = WeylCharacterRing(['A',3], base_ring = CC); R.base_ring()
+            Complex Field with 53 bits of precision
         """
         return self._base_ring
 
     def _coerce_impl(self, x):
-        """Coercion from the base ring.
+        """
+        Coercion from the base ring.
+
         EXAMPLES:
-           sage: G2 = WeylCharacterRing(['G',2])
-           sage: g2 = WeightRing(G2)
-           sage: 2 in g2
-           True
+            sage: G2 = WeylCharacterRing(['G',2])
+            sage: g2 = WeightRing(G2)
+            sage: 2 in g2
+            True
         """
         if x in self._base_ring:
             return self.__call__(x)
         raise TypeError, "no canonical coercion of x"
 
-    def lattice(self):
-        """The weight lattice.
+    def __cmp__(self, x):
+        """
         EXAMPLES:
-           WeylCharacterRing(['E',8]).lattice()
-           Ambient lattice of the root system of type ['E', 8]
+            sage: E8 = WeylCharacterRing(['E',8])
+            sage: e8 = WeightRing(E8)
+            sage: A3 = WeylCharacterRing(['A', 3])
+            sage: a3 = WeightRing(A3)
+            sage: e8 == e8
+            True
+            sage: e8 == a3
+            False
+        """
+        return cmp(repr(self), repr(x))
+
+    def lattice(self):
+        """
+        Returns the weight lattice associated to self.
+        .
+        EXAMPLES:
+            sage: E8 = WeylCharacterRing(['E',8])
+            sage: e8 = WeightRing(E8)
+            sage: e8.lattice()
+            Ambient lattice of the root system of type ['E', 8]
         """
         return self._lattice
 
     def wt_repr(self, wt):
-        """Produce a string representing the irreducible character with highest
-        weight vectr wt."""
+        """
+        Returns a string representing the irreducible character with highest
+        weight vectr wt.
+
+        EXAMPLES:
+            sage: G2 = WeylCharacterRing(['G',2])
+            sage: g2 = WeightRing(G2)
+            sage: g2.wt_repr([1,0,0])
+            'g2(1,0,0)'
+        """
         hstring = str(wt[0])
         for i in range(1,self._lattice.n):
             hstring=hstring+","+str(wt[i])

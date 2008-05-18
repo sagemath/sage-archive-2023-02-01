@@ -1,8 +1,20 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel"
+   CFLAGS="$CFLAGS -m64 "; export CFLAGS
+fi
 
 cd src
 
 CFLAGS="$CFLAGS -O2 -g -Wa,-W -fno-exceptions -Wno-deprecated -static-libgcc"
+
 export CFLAGS
 if [ "$UNAME" = "SunOS" ]; then
     LCALC_LIBS="-lpari -lmpfr -lgmpxx -lgmp -liberty"

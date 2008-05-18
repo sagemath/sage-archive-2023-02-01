@@ -1,6 +1,9 @@
 = lcalc =
 
 
+=== lcalc-20080205.p1 (Michael Abshoff, May 18th, 2008) ===
+ * add 64 bit OSX build support
+
 === lcalc-20080205.p0 (Michael Abshoff, April 19th, 2008) ===
  * Apply Tim Abbott's Debian build fix (#2967)
 

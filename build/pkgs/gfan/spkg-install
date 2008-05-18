@@ -1,4 +1,16 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+# gfan sets its own CFLAGS and so on internally in its makefile,
+# so let's abuse GPROFFLAG since it is unused :)
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   GPROFFLAG="-m64"; export GPROFFLAG
+fi
 
 cd src/
 

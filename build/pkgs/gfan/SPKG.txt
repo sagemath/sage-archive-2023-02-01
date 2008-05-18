@@ -28,6 +28,9 @@ Download the package from http://www.math.tu-berlin.de/~jensen/software/gfan/gfa
 
 == Changelog ==
 
+=== gfan-0.3.p4 (Michael Abshoff, May 18th, 2008) ===
+ * add 64 bit OSX build support
+
 === gfan-0.3.p3 (Michael Abshoff, March 28th 2008) ===
  * clean up SPKG.txt
  * fix repo, readd .hgignore

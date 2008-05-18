@@ -6,6 +6,10 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
+if [ $UNAME = "CYGWIN" ]; then
+    cp patches/makefile.dik.cygwin src/dik/makefile
+fi
+
 # remove the old dik binary since the has a name collision
 # with polynmake - see #2595
 rm -f $SAGE_LOCAL/bin/cube

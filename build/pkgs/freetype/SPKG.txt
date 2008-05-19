@@ -1,2 +1,11 @@
 MAINTAINER:
    * William Stein
+
+== Releases ==
+
+=== freetype-2.3.5.p0 (Michael Abshoff, May 18th, 2008) ===
+ * add OSX 64 bit build support
+
+=== freetype-2.3.5 ===
+ * details lost to history
+

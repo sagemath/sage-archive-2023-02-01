@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   CFLAGS="-O2 -g -m64 " && export CFLAGS
+fi
+
+cd src/
+
+build()
+{
+    CFLAGS="$CFLAGS -fPIC"
+    if [ ! -f Makefile ]; then
+        ./configure --prefix=$SAGE_LOCAL
+        if [ $? -ne 0 ]; then
+            echo "ERROR configuring termcap"
+            exit 1
+        fi
+    fi
+    $MAKE CFLAGS="$CFLAGS" install
+    if [ $? -ne 0 ]; then
+        echo "ERROR building termcap"
+        exit 1
+    fi
+}
+
+build
+
+if [ $? -eq 0 -a $SAGE_LOCAL/lib/libtermcap.a ]; then
+    echo "Success building termcap"
+else
+    echo "ERROR building termcap."
+    exit 1
+fi
+

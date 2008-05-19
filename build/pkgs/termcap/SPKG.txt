@@ -1,0 +1,7 @@
+1) Deleted some lines from Makefile.in to prevent info docs being built
+
+2) In Makefile.in I commented out the line
+
+     oldincludedir = /usr/include
+
+since SAGE install should work as not-root.

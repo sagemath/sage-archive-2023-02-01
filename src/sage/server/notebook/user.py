@@ -1,6 +1,3 @@
-"""nodoctest
-"""
-
 import crypt
 
 SALT = 'aa'
@@ -68,7 +65,7 @@ class User:
         sage: from sage.server.notebook.user import User
         sage: user = User('bob', 'Aisfa!!', 'bob@pizzaisyummy.net', 'admin')
         sage: old = user.password()
-        sage: user.set_password(self, 'Crrc!')
+        sage: user.set_password('Crrc!')
         sage: old != user.password()
         True
         """
@@ -81,7 +78,7 @@ class User:
         """
         sage: from sage.server.notebook.user import User
         sage: user = User('bob', 'Aisfa!!', 'bob@pizzaisyummy.net', 'admin')
-        sage: user.set_hashed_password(self, 'Crrc!')
+        sage: user.set_hashed_password('Crrc!')
         sage: user.password()
         'Crrc!'
         """
@@ -99,7 +96,7 @@ class User:
     def set_email(self, email):
         """
         sage: from sage.server.notebook.user import User
-        sage: user = User('bob', 'Aisfa!!', 'bob@pizzaisyummy.net', 'admin').conf()
+        sage: user = User('bob', 'Aisfa!!', 'bob@pizzaisyummy.net', 'admin')
         sage: user.get_email()
         'bob@pizzaisyummy.net'
         sage: user.set_email('bob@ilovepizza.gov')

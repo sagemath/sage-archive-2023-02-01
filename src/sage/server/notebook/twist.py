@@ -1172,6 +1172,12 @@ class Worksheet_eval(WorksheetResource, resource.PostableResource):
 ########################################################
 
 class Worksheet_publish(WorksheetResource, resource.Resource):
+    """
+    This is a child resource of the Worksheet resource. It provides a frontend to
+    the mangement of worksheet publication. This mangement functionality includes
+    initializational of publication, re-publication, automated publication when
+    a worksheet saved, and ending of publication.
+    """
     addSlash = True
 
     def render(self, ctx):

@@ -55,6 +55,7 @@ anything else.
 <table>
 <tr><td align=right>Username:</td><td><input type="text" name="email" value="$default" size="15"></td></tr>
 <tr><td align=right>Password:</td><td><input type="password" name="password" size="15"></td></tr>
+<tr><td align=right><input type="checkbox" name="remember" /></td><td>Remember me</td></tr>
 <tr><td>&nbsp</td><td><input type="submit" value="Sign In"></td></tr>
 </table>
 <br><br><br>

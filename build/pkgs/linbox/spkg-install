@@ -20,6 +20,15 @@ export CFLAGS
 export CXXFLAGS
 export CPPFLAGS
 
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel"
+   CFLAGS="-m64 $CFLAGS "; export CFLAGS
+   CXXFLAGS="-m64 $CXXFLAGS "; export CXXFLAGS
+   CPPFLAGS="-m64 $CPPFLAGS "; export CPPFLAGS
+   LDFLAGS="-m64"; export LDFLAGS
+fi
+
+
 if [ "$LINBOX_BLAS" != "" ]; then
 
     echo "Using environment variable LINBOX_BLAS "$LINBOX_BLAS""

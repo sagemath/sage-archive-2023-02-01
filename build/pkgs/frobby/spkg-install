@@ -8,6 +8,9 @@ fi
 
 rm -f "$SAGE_LOCAL/bin/frobby"
 
+GMP_INC_DIR="$SAGE_LOCAL/include"; export GMP_INC_DIR
+ldflags="-L$SAGE_LOCAL/lib/ -lgmpxx -lgmp"; export ldflags
+
 cd src
 $MAKE MODE=release
 

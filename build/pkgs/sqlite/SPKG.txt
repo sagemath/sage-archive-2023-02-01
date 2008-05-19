@@ -1,7 +1,8 @@
 SQLite
 
+=== sqlite-3.5.3.p3 (Michael Abshoff, May 19th, 2008) ===
+ * add 64 bit OSX build support
 
-=== 2008-05-16 (William Stein) ==
-
-   * Fix Makefile so it works on Cygwin (simply disable building sqlite client)
-   * Change spkg-install to use bash
+=== sqlite-3.5.3.p2 (William Stein, May 16th, 2008) ===
+ * Fix Makefile so it works on Cygwin (simply disable building sqlite client)
+ * Change spkg-install to use bash

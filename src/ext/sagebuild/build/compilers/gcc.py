@@ -59,17 +59,17 @@ class GCC_compiler(Compiler):
         Compiler.__init__(self)
         self.options = dict(options)
         try:
-            self.include_dirs = env.get_default('include_dirs')
+            self.include_dirs = env.get_default('include_dirs') + include_dirs
         except:
-            self.include_dirs = list()
+            self.include_dirs = list() + include_dirs
         try:
-            self.library_dirs = env.get_default('library_dirs')
+            self.library_dirs = env.get_default('library_dirs') + library_dirs
         except:
-            self.library_dirs = list()
+            self.library_dirs = list() + library_dirs
         try:
-            self.libraries = env.get_default('libraries')
+            self.libraries = env.get_default('libraries') + libraries
         except:
-            self.libraries = list()
+            self.libraries = list() + libraries
 
         self.define_macros = list(define_macros)
 
@@ -82,6 +82,7 @@ class GCC_compiler(Compiler):
         newdict = dict(self.options)
         newdict.update(extension.options)
         extension.options = newdict
+        extension.libraries = self.libraries+extension.libraries
         extension.define_macros=self.define_macros+extension.define_macros
         extension.library_dirs = self.library_dirs + extension.library_dirs
         extension.include_dirs = self.include_dirs + extension.include_dirs

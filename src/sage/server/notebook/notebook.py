@@ -431,7 +431,7 @@ class Notebook(SageObject):
         else:
             dirname = '0'
 
-        W = worksheet.Worksheet(worksheet_name, dirname, self,
+        W = worksheet.Worksheet(worksheet_name, dirname,
                                 system = self.system(username),
                                 owner=username,
                                 docbrowser = docbrowser,
@@ -1946,13 +1946,22 @@ function save_worksheet_and_close() {
         """%(head, body)
 
     def html_beforepublish_window(self, worksheet, username):
+        """
+        Returns the html code for a page dedicated to worksheet publishing prior to the
+        publication of the given worksheet.
+
+        INPUT:
+            worksheet - instance of Worksheet
+            username - string
+        """
         msg = """You can publish your worksheet to the Internet, where anyone will be able to access and view it online.
         Your worksheet will be assigned a unique address (URL) that you can send to your friends and colleagues.<br/><br/>
+        Do you want to publish this worksheet?<br/><br/>
         <form method="get" action=".">
         <input type="hidden" name="yes" value="" />
-        <input type="submit" value="Yes" />
+        <input type="submit" value="Yes" style="margin-left:10px" />
         <input type="button" value="No" style="margin-left:5px" onClick="parent.location=\'../'"><br/><br/>
-        <input type="checkbox" name="auto" /> Automatically re-publish when changes are made
+        <input type="checkbox" name="auto" style="margin-left:13px" /> Automatically re-publish when changes are made
         </form>
         """
         head, body = self.html_worksheet_page_template(worksheet, username, msg, select="publish", backwards=True)
@@ -1965,6 +1974,16 @@ function save_worksheet_and_close() {
         """%(head, body)
 
     def html_afterpublish_window(self, worksheet, username, addr, dtime):
+        """
+        Returns the html code for a page dedicated to worksheet publishing after the
+        publication of the given worksheet.
+
+        INPUT:
+            worksheet - instance of Worksheet
+            username - string
+            addr - string
+            dtime - instance of time.struct_time
+        """
         from time import strftime
         time = strftime("%B %d, %Y %I:%M %p", dtime)
         msg = """Worksheet is publicly viewable at <a href="%s" style="color:#FFF" target="_blank">%s</a><br />

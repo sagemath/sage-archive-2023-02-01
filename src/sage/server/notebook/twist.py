@@ -1175,25 +1175,33 @@ class Worksheet_publish(WorksheetResource, resource.Resource):
     addSlash = True
 
     def render(self, ctx):
+        # Publishes worksheet and also sets worksheet to be published automatically when saved
         if 'yes' in ctx.args and 'auto' in ctx.args:
             notebook.publish_worksheet(self.worksheet, self.username)
             self.worksheet.set_auto_publish()
             return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        # Just publishes worksheet
         elif 'yes' in ctx.args:
             notebook.publish_worksheet(self.worksheet, self.username)
             return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        # Stops publication of worksheet
         elif 'stop' in ctx.args:
             notebook.delete_worksheet(self.worksheet.published_version().filename())
             return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        # Re-publishes worksheet
         elif 're' in ctx.args:
             W = notebook.publish_worksheet(self.worksheet, self.username)
             return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        # Sets worksheet to be published automatically when saved
         elif 'auto' in ctx.args:
             self.worksheet.set_auto_publish()
             return http.RedirectResponse("/home/%s/publish" % (self.worksheet.filename()))
+        # Returns boolean of "Is this worksheet set to be published automatically when saved?"
         elif 'is_auto' in ctx.args:
             return http.Response(stream=str(self.worksheet.is_auto_publish()))
+        # Returns the publication page
         else:
+            # Page for when worksheet already published
             if self.worksheet.has_published_version():
                 addr = 'http%s://' % ('' if not notebook.secure else 's')
                 addr += notebook.address
@@ -1201,6 +1209,7 @@ class Worksheet_publish(WorksheetResource, resource.Resource):
                 addr += '/home/' + self.worksheet.published_version().filename()
                 dtime = self.worksheet.published_version().date_edited()
                 return http.Response(stream=notebook.html_afterpublish_window(self.worksheet, self.username, addr, dtime))
+            # Page for when worksheet is not already published
             else:
                 return http.Response(stream=notebook.html_beforepublish_window(self.worksheet, self.username))
 

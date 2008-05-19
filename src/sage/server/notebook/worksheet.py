@@ -105,7 +105,7 @@ def worksheet_filename(name, owner):
     return owner + '/' + _notebook.clean_name(name)
 
 class Worksheet:
-    def __init__(self, name, dirname, notebook, system, owner, docbrowser=False, pretty_print=False, auto_publish=False):
+    def __init__(self, name, dirname, system, owner, docbrowser=False, pretty_print=False, auto_publish=False):
 
         # Record the basic properties of the worksheet
         self.__system   = system
@@ -115,7 +115,6 @@ class Worksheet:
         self.__collaborators = []
         self.__docbrowser = docbrowser
         self.__autopublish = auto_publish
-        self.__notebook = notebook
 
         # Initialize the cell id counter.
         self.__next_id = 0
@@ -287,6 +286,11 @@ class Worksheet:
     # Publication
     ##########################################################
     def is_auto_publish(self):
+        """
+        Returns boolean of "Is this worksheet set to be published automatically when saved?"
+        if private variable "autopublish" is set otherwise False is returned and the variable
+        is set to False.
+        """
         try:
             return self.__autopublish
         except AttributeError:
@@ -294,7 +298,14 @@ class Worksheet:
             return False
 
     def set_auto_publish(self):
-        self.__autopublish = False if self.__autopublish else True
+        """
+        Sets the worksheet to be published automatically when the worksheet is saved if the worksheet
+        isn't already set to this otherwise it is set not to.
+        """
+        try:
+            self.__autopublish = False if self.__autopublish else True
+        except AttributeError:
+            self.__autopublish = True
 
     def is_published(self):
         return self.owner() == 'pub'
@@ -635,7 +646,7 @@ class Worksheet:
             self.__saved_by_info = X
         X[basename] = user
         if self.is_auto_publish():
-            self.__notebook.publish_worksheet(self, user)
+            self.notebook().publish_worksheet(self, user)
 
     def get_snapshot_text_filename(self, name):
         path = self.snapshot_directory()
@@ -1069,6 +1080,10 @@ class Worksheet:
             return t
 
     def date_edited(self):
+        """
+        Returns the date the worksheet was last edited if already recorded otherwise
+        the current local time is recorded and returned.
+        """
         try:
             return self.__date_edited[0]
         except AttributeError:

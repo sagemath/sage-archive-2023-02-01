@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+if [ "$SAGE_LOCAL" = "" ]; then
+    echo "SAGE_LOCAL undefined ... exiting";
+    echo "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+    echo "64 bit MacIntel"
+    CFLAGS="-O2 -g -m64 "; export CFLAGS
+    CXXFLAGS="-O2 -g -m64 "; export CXXFLAGS
+fi
+
 if [ $UNAME = "CYGWIN" ]; then
     # Replace the makefile with a new makefile whose install: target
     # does *not* install the sqlite3 client.  This isn't needed at

@@ -1,1 +1,4 @@
-src
+syntax: glob
+*~
+src/
+\#*\#

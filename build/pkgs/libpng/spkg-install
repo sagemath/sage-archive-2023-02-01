@@ -5,6 +5,7 @@ cd src
 # Need to detect zlib
 if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
     CFLAGS="-m64 $CFLAGS -fPIC -g -I$SAGE_LOCAL/include"
+    LDFLAGS="-m64"; export LDFLAGS
 else
     CFLAGS="$CFLAGS -fPIC -g -I$SAGE_LOCAL/include"
 fi
@@ -32,7 +33,9 @@ if [ $? -ne 0 ]; then
 fi
 
 
-if [ `uname` = "Darwin" ]; then
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "Keeping 64 bit OSX libpng.dylib around"
+else
     # There is a weird problem on Darwin where most programs
     # will crash if they see the libpng built as part of this
     # package instead of the system-wide apple libpng.  So

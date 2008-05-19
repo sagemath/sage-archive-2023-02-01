@@ -1,4 +1,22 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+CUR=`pwd`
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+# numpy's distutils is buggy and runs a conftest without
+# taking CFLAGS into account. With 64 bit OSX this results
+# in *boom*
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel: copying fake gcc"
+   rm $SAGE_LOCAL/bin/gcc
+   cp gcc_fake $SAGE_LOCAL/bin/gcc
+   chmod 755 $SAGE_LOCAL/bin/gcc
+fi
 
 if [ $UNAME = "CYGWIN" ]; then
     echo "CYGWIN: Patching src/numpy/linalg/setup.py"
@@ -7,14 +25,6 @@ fi
 
 
 cd src
-
-
-################################################
-# If the environment variable SAGE_ATLAS is set
-# we create a site.cfg file, so that numpy will
-# link against the atlas libraries contained in
-# $SAGE_LOCAL/lib and $SAGE_LOCAL/include.
-
 
 echo "[DEFAULT]" > site.cfg
 echo "library_dirs = $SAGE_LOCAL/lib" >> site.cfg
@@ -30,10 +40,7 @@ fi
 
 ################################################
 
-
-
 cp ../patches/gnu.py numpy/distutils/fcompiler/gnu.py
-
 cp ../patches/__init__.py  numpy/distutils/fcompiler/__init__.py
 
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/numpy
@@ -48,29 +55,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-#    ATLAS=None BLAS=None LAPACK=None python setup.py install
-#    if [ $? -ne 0 ]; then
-#        echo "Error building numpy."
-#        echo "Try setting SAGE_ATLAS to the directory that contains lib/libatlas.a ?"
-#        exit 1
-#    fi
-#fi
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel: deleting fake gcc"
+   rm $SAGE_LOCAL/bin/gcc
+fi
 
-# Now we want to be sure that it actually works, since often
-# it doesn't because of having a very old blas that numpy
-# thinks is good but actually isn't.
-
-#cd .. # to avoid running from the src directory
-#echo "import numpy" | python
-#if [ $? -ne 0 ]; then
-#    cd src
-#    echo "The numpy built just doesn't work (usually because of your system having way too old of BLAS)!"
-#    echo "Doing a complete rebuild with no optimized BLAS."
-#    rm -rf build
-#    ATLAS=None BLAS=None LAPACK=None python setup.py install
-#    if [ $? -ne 0 ]; then
-#        echo "Error building numpy."
-#        echo "Try setting SAGE_ATLAS to the directory that contains lib/libatlas.a ?"
-#        exit 1
-#    fi
-#fi

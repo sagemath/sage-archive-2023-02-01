@@ -1,8 +1,15 @@
+= ecm=
+
 MAINTAINER:
     -- William Stein
 
-* 2007-09-24 - Michael Abshoff:
- - update to ecm 6.1.3
+== Releases ===
+
+=== ecm-6.1.3.p0 (Michael Abshoff, May 18th, 2008) ===
+ * add 64 bit OSX support
+
+=== ecm-6.1.3 (Michael Abshoff, Sept. 24th, 2007) ===
+ * update to ecm 6.1.3
 
 * Initial version - date unknown:
 

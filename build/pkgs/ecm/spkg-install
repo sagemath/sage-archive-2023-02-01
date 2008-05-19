@@ -1,7 +1,22 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-CXXFLAGS="$CXXFLAGS -fPIC"; export CXXFLAGS
-CFLAGS="$CFLAGS -fPIC"; export CFLAGS
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel"
+   CFLAGS="-O2 -g -m64 -fPIC"; export CFLAGS
+   CXXFLAGS="-O2 -g -m64 -fPIC"; export CXXFLAGS
+   LDFLAGS="-m64 "; export LDFLAGS
+else
+   CXXFLAGS="$CXXFLAGS -fPIC"; export CXXFLAGS
+   CFLAGS="$CFLAGS -fPIC"; export CFLAGS
+fi
+
 
 cd src
 

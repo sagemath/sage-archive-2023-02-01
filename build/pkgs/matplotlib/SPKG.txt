@@ -2,6 +2,9 @@
 
 == Changelog ==
 
+=== matplotlib-0.91.1.p5 (Michael Abshoff, May 18th, 2008) ===
+ * add 64 bit OSX build support
+
 === matplotlib-0.91.1.p4 (Michael Abshoff, April 14th, 2008) ===
  * apply gcc 4.3 build fix - should go upstream
 

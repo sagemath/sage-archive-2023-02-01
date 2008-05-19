@@ -38,5 +38,3 @@ Frobby source distribution.
 
 === frobby-0.7.5 (Bjarke Hammersholt Roune) ===
  * initial version
-
-

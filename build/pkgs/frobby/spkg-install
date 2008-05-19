@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
@@ -6,7 +6,7 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-rm -f "$SAGE_LOCAL/bin/frobby"
+rm -rf "$SAGE_LOCAL/bin/frobby"
 
 GMP_INC_DIR="$SAGE_LOCAL/include"; export GMP_INC_DIR
 ldflags="-L$SAGE_LOCAL/lib/ -lgmpxx -lgmp"; export ldflags
@@ -30,4 +30,3 @@ if [ ! -f "$SAGE_LOCAL/bin/frobby" ]; then
    echo "Frobby executable not copied."
    exit 1
 fi
-

@@ -42,6 +42,8 @@ export FLINT_NTL_LIB_DIR
 FLINT_LINK_OPTIONS=""
 export FLINT_LINK_OPTIONS
 
+cp patches/DIRNAME src/
+cp patches/makefile src/
 cd src
 
 # UNIX
@@ -51,7 +53,7 @@ if [ $UNAME != "Darwin" ]; then
         echo "Error building flint shared library."
         exit 1
     fi
-    $CP libflint.so "$SAGE_LOCAL/lib/"
+    $CP libflint*.so "$SAGE_LOCAL/lib/"
 fi
 
 # OS X

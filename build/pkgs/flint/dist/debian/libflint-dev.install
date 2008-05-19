@@ -1,1 +1,2 @@
 *.h usr/include/FLINT/
+libflint.so usr/lib

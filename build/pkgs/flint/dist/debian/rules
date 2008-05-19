@@ -4,9 +4,14 @@ include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/makefile.mk
 include /usr/share/cdbs/1/rules/patchsys-quilt.mk
 
-DEB_MAKE_BUILD_TARGET = libflint.so
+DEB_MAKE_BUILD_TARGET = libflint.so MAKECMDGOALS=library
 
-CFLAGS += -fPIC -funroll-loops # FLINT tuning
+DEB_MAKE_INVOKE += FLINT_GMP_LIB_DIR=/usr/lib FLINT_GMP_INCLUDE_DIR=/usr/include
+
+CFLAGS += -funroll-loops # FLINT tuning
+
+common-build-arch::
+	+$(DEB_MAKE_INVOKE) QS
 
 clean::
-	rm -f *.o libflint.so
+	rm -f *.o libflint*.so mpQS tinyQS

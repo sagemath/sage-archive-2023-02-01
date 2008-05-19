@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 SAGE version and banner info
 """
 

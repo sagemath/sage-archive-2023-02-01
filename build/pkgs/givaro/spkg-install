@@ -20,6 +20,7 @@ if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
    echo "64 bit MacIntel"
    CFLAGS="-O2 -g -m64 "; export CFLAGS
    CPPFLAGS="-O2 -g -m64 "; export CPPFLAGS
+   LDFLAGS="-m64"; export LDFLAGS
 fi
 
 CFLAGS="$CFLAGS -fPIC -I\"$SAGE_LOCAL/include\""

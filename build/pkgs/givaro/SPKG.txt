@@ -20,6 +20,11 @@ Website: http://www-lmc.imag.fr/CASYS/LOGICIELS/givaro/
   * Clement Pernet
   * Martin Albrecht <malb@informatik.uni-bremen.de>
 
+== Changelog ==
+
+=== givaro-3.2.10.rc3.p3 (Michael Abshoff, May 18th, 2008) ===
+ * improve 64 bit OSX build support
+
 === givaro-3.2.10.rc3.p2 (William Stein, May 16th, 2008) ===
  * Fix cygwin "missing logb declaration" problem.
 

@@ -3,6 +3,18 @@
 ## Readline 5.2
 ###########################################
 
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "Building 64 bit OSX version of Sage"
+   CFLAGS="-O2 -g -m64 " && export CFLAGS
+   LDFLAGS="-m64"
+fi
+
 cd src/
 
 build()

@@ -5,6 +5,9 @@ didn't delete anything else.
 
 FIXME
 
+=== readline-5.2.p3 (Michael Abshoff, May 18th, 2008) ===
+ * add 64 bit OSX build support
+
 === readline-5.2.p2 (William Stein, May 16, 2008)  ===
  * /usr/bin/env bash;  change == to =; add support for cygwin; improve error messages and checking
 

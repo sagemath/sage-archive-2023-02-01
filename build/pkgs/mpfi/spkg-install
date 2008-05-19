@@ -1,22 +1,23 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-# cp patches/config.* src/
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
-# cp patches/mpfi*.c src/src/
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel"
+   CFLAGS="-O2 -g -m64 -fPIC"; export CFLAGS
+   CXXLAGS="-O2 -g -m64 -fPIC"; export CXXFLAGS
+   LDFLAGS="-m64 "; export LDFLAGS
+else
+   CFLAGS="-O2 -g -fPIC"; export CFLAGS
+fi
 
 cd src
 
-# Added by Jason Martin, to avoid conflict with global libraries.
-CFLAGS="-Z "$CFLAGS
-export CFLAGS
-
-./configure --prefix="$SAGE_LOCAL" --with-mpfr-dir="$SAGE_LOCAL" --with-gmp-dir="$SAGE_LOCAL" CFLAGS="-fPIC"
-
-# Setting these explicitly on the build line breaks the
-# build on OS X.
-
-#    CFLAGS="$CFLAGS $SHAREDFLAGS" CXX="$CXX" \
-#    CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" LDFLAGS="$LDFLAGS"
+./configure --prefix="$SAGE_LOCAL" --with-mpfr-dir="$SAGE_LOCAL" --with-gmp-dir="$SAGE_LOCAL"
 
 if [ $? -ne 0 ]; then
     echo "Error configuring mpfi"

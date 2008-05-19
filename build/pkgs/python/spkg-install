@@ -64,14 +64,14 @@ build()
     # shared extension modules, at least in Python 2.5.
     rm -f "$SAGE_LOCAL"/lib/libpython*
 
-    EXTRAFLAGS="";
-
     if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
         echo "64 bit OSX 10.5 build enabled"
-        EXTRAFLAGS="--with-gmp=\"gcc -m64\""
+        ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4 \
+        --with-gcc="gcc -m64" --enable-toolbox-glue=false
+    else
+        ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4
     fi
 
-    ./configure $EXTRAFLAGS --prefix="$SAGE_LOCAL" --without-libpng --enable-unicode=ucs4
 
     if [ $? -ne 0 ]; then
         echo "Error configuring Python."

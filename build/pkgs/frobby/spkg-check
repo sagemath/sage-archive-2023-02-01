@@ -1,3 +1,11 @@
 #!/usr/bin/env sh
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
 cd src/
-make test
+$MAKE test MODE=debug # run tests with assertions turned on
+$MAKE test MODE=release # test the binaries used by Sage

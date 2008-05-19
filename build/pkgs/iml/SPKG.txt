@@ -37,14 +37,17 @@ The following build instructions by William Stein might be incomplete and/or out
 
 Provide a changelog of the spkg here.
 
-=== 1.0.1.p10 (Michael Abshoff, April 1st, 2008) ===
+=== iml-1.0.1.p11 (Michael Abshoff, May 18th, 2008) ===
+ * add 64 bit OSX build support
+
+=== iml-1.0.1.p10 (Michael Abshoff, April 1st, 2008) ===
  * Update SPKG.txt
  * Tim Abbott: Update iml with Debian's gfortran transition. (#2758)
 
-=== 1.0.1.p9 (Tim Abbott, February 7th, 2008) ===
+=== iml-1.0.1.p9 (Tim Abbott, February 7th, 2008) ===
  * Add Debian build support.
 
-=== 1.0.1.p7 (Michael Abshoff, December 23rd, 2007) ===
+=== iml-1.0.1.p7 (Michael Abshoff, December 23rd, 2007) ===
  * apply memleak patch in nullspace.c (which has been send to the IML autors)
  *  add .hgignore
 

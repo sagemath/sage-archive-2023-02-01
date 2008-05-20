@@ -29,6 +29,9 @@ Frobby source distribution.
 
 == Changelog ==
 
+=== frobby-0.7.6 (Bjarke Hammersholt Roune, May 20th, 2008) ===
+ * Move to Frobby 0.7.6 with Makefile improvements by Michale Abshoff.
+
 === frobby-0.7.5.p1 (Michael Abshoff, May 19th, 2008) ===
  * fix the main Makefile to set include and library directories correctly when some env variables are defined
 

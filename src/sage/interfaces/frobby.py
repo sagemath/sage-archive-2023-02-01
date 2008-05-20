@@ -1,0 +1,267 @@
+r"""
+Interface to Frobby for fast computations on monomial ideals.
+
+The software package Frobby provides a number of computations on
+monomial ideals. The current main feature is the socle of a monomial
+ideal, which is largely equivalent to computing the maximal standard
+monomials, the Alexander dual or the irreducible decomposition.
+
+Operations on monomial ideals are much faster than algorithms designed
+for ideals in general, which is what makes a specialized library for
+these operations on monomial ideals useful.
+
+AUTHORS:
+   -- Bjarke Hammersholt Roune (2008-04-25): Wrote the Frobby C++
+      program and the initial version of the Python interface.
+
+NOTES:
+    The official source for Frobby is \url{http://www.broune.com/frobby},
+    which also has documentation and papers describing the algorithms used.
+"""
+
+import os
+from subprocess import *
+
+class Frobby:
+    def __call__(self, action, input=None, options=[], verbose=False):
+        r"""
+        This function calls Frobby as a command line program using streams
+        for input and output. Strings passed as part of the command get
+        broken up at whitespace. This is not done to the data passed
+        via the streams.
+
+        INPUT:
+            action -- A string telling Frobby what to do.
+            input -- None or a string that is passed to Frobby as standard in.
+            options -- A list of options without the dash in front.
+            verbose -- bool (default: false) Print detailed information.
+        OUTPUT:
+            string -- What Frobby wrote to the standard output stream.
+
+        EXAMPLES:
+            We compute the lcm of an ideal provided in Monos format.
+                sage: frobby("analyze", input="vars x,y,z;[x^2,x*y];", #optional
+                ...       options=["lcm", "iformat monos", "oformat 4ti2"]) #optional
+                'x^2*y\n'
+
+            We get an exception if frobby reports an error.
+                sage: frobby("do_dishes") #optional
+                Traceback (most recent call last):
+                ...
+                RuntimeError: Frobby reported an error:
+                ERROR: Unknown action "do_dishes".
+
+        AUTHOR:
+            - Bjarke Hammersholt Roune (2008-04-27)
+        """
+        command = ['frobby'] + action.split()
+        for option in options:
+            command += ('-' + option.strip()).split()
+
+        if verbose:
+            print "Frobby action: ", action
+            print "Frobby options: ", `options`
+            print "Frobby command: ", `command`
+            print "Frobby input:\n", input
+
+        process = Popen(command, stdin = PIPE, stdout = PIPE, stderr = PIPE)
+        output, err = process.communicate(input = input)
+
+        if verbose:
+            print "Frobby output:\n", output
+            print "Frobby error:\n", err
+        if process.poll() != 0:
+            raise RuntimeError("Frobby reported an error:\n" + err)
+
+        return output
+
+    def irreducible_decomposition(self, monomial_ideal):
+        r"""
+        This function computes the irreducible decomposition of the passed-in
+        monomial ideal. I.e. it computes the unique minimal list of
+        irreducible monomial ideals whose intersection equals monomial_ideal.
+
+        INPUT:
+            monomial_ideal -- The monomial ideal to decompose.
+
+        OUTPUT:
+            A list of the unique irredundant irreducible components of
+            monomial_ideal. These ideals are constructed in the same ring
+            as monomial_ideal is.
+
+        EXAMPLES:
+            This is a simple example of computing irreducible decomposition.
+
+                sage: (x, y, z) = QQ['x,y,z'].gens() #optional
+                sage: id = ideal(x ** 2, y ** 2, x * z, y * z) #optional
+                sage: decom = frobby.irreducible_decomposition(id) #optional
+                sage: true_decom = [ideal(x, y), ideal(x ** 2, y ** 2, z)] #optional
+                sage: set(decom) == set(true_decom) # use sets to ignore order #optional
+                True
+
+            We now try the special case of the zero ideal in different rings.
+
+            We should also try PolynomialRing(QQ, names=[]), but it has a bug
+            which makes that impossible (see trac ticket 3028).
+                sage: rings = [ZZ['x'], CC['x,y']] #optional
+                sage: allOK = True #optional
+                sage: for ring in rings:  #optional
+                ...       id0 = ring.ideal(0) #optional
+                ...       decom0 = frobby.irreducible_decomposition(id0) #optional
+                ...       allOK = allOK and decom0 == [id0] #optional
+                sage: allOK #optional
+                True
+
+            Finally, we try the ideal that is all of the ring in different
+            rings.
+                sage: allOK = True #optional
+                sage: for ring in rings: #optional
+                ...       id1 = ring.ideal(1) #optional
+                ...       decom1 = frobby.irreducible_decomposition(id1) #optional
+                ...       allOK = allOK and decom1 == [id1] #optional
+                sage: allOK #optional
+                True
+        """
+        frobby_input = self._ideal_to_string(monomial_ideal)
+        frobby_output = self('irrdecom', input=frobby_input)
+        return self._parse_ideals(frobby_output, monomial_ideal.ring())
+
+    def _parse_ideals(self, string, ring):
+        r"""
+        This function parses a list of irreducible monomial ideals in 4ti2
+        format and constructs them within the passed-in ring.
+
+        INPUT:
+            string -- The string to be parsed.
+            ring -- The ring within which to construct the irreducible
+                monomial ideals within.
+
+        OUTPUT:
+            A list of the monomial ideals in the order they are listed
+            in the string.
+
+        EXAMPLES:
+            sage: ring = QQ['x,y,z'] #optional
+            sage: (x, y, z) = ring.gens() #optional
+            sage: string = '2 3\n1 2 3\n0 5 0' #optional
+            sage: parsed_ideals = frobby._parse_ideals(string, ring) #optional
+            sage: reference_ideals = [ring.ideal(x, y ** 2, z ** 3), #optional
+            ...       ring.ideal(y ** 5)] #optional #optional
+            sage: parsed_ideals == reference_ideals #optional
+            True
+        """
+        def to_ideal(exps):
+            gens = [v ** e for v, e in zip(ring.gens(), exps) if e != 0]
+            return ring.ideal(gens or ring(1))
+        return map(to_ideal, self._parse_4ti2_matrix(string)) or [ring.ideal()]
+
+    def _parse_4ti2_matrix(self, string):
+        r"""
+        Parses a string of a matrix in 4ti2 format into a nested list
+        representation.
+
+        INPUT:
+            string - The string to be parsed.
+
+        OUTPUT:
+            A list of rows of the matrix, where each row is represented as
+            a list of integers.
+
+        EXAMPLES:
+            The format is straight-forward, as this example shows.
+                sage: string = '2 3\n1 2  3\n  0 5 0' #optional
+                sage: parsed_matrix = frobby._parse_4ti2_matrix(string) #optional
+                sage: reference_matrix = [[1, 2, 3], [0, 5, 0]] #optional
+                sage: parsed_matrix == reference_matrix #optional
+                True
+
+            A number of syntax errors lead to exceptions.
+                sage: string = '1 1\n one' #optional
+                sage: frobby._parse_4ti2_matrix(string) #optional
+                Traceback (most recent call last):
+                ...
+                RuntimeError: Format error: encountered non-number.
+        """
+        try:
+            ints = map(int, string.split())
+        except ValueError:
+            raise RuntimeError("Format error: encountered non-number.")
+        if len(ints) < 2:
+            raise RuntimeError("Format error: " +
+                               "matrix dimensions not specified.")
+
+        term_count = ints[0]
+        var_count = ints[1]
+        ints = ints[2:]
+
+        if term_count * var_count != len(ints):
+            raise RuntimeError("Format error: incorrect matrix dimensions.")
+
+        exponents = []
+        for i in range(term_count):
+            exponents.append(ints[:var_count])
+            ints = ints[var_count:]
+        return exponents;
+
+    def _ideal_to_string(self, monomial_ideal):
+        r"""
+        This function formats the passed-in monomial ideal in 4ti2 format.
+
+        INPUT:
+            monomial_ideal -- The monomial ideal to be formatted as a string.
+
+        OUTPUT:
+            A string in 4ti2 format representing the ideal.
+
+        EXAMPLES:
+            sage: ring = QQ['x,y,z'] #optional
+            sage: (x, y, z) = ring.gens() #optional
+            sage: id = ring.ideal(x ** 2, x * y * z) #optional
+            sage: frobby._ideal_to_string(id) == "2 3\n2 0 0\n1 1 1\n" #optional
+            True
+        """
+        # There is no exponent vector that represents zero as a generator, so
+        # we take care that the zero ideal gets represented correctly in the
+        # 4ti2 format; as an ideal with no generators.
+        if monomial_ideal.is_zero():
+            gens = []
+        else:
+            gens = monomial_ideal.gens();
+        var_count = monomial_ideal.ring().ngens();
+        first_row = str(len(gens)) + ' ' + str(var_count) + '\n'
+        rows = map(self._monomial_to_string, gens);
+        return first_row + "".join(rows)
+
+    def _monomial_to_string(self, monomial):
+        r"""
+        This function formats the exponent vector of a monomial as a string
+        containing a space-delimited list of integers.
+
+        INPUT:
+            monomial -- The monomial whose exponent vector is to be formatted.
+
+        OUTPUT:
+            A string representing the exponent vector of monomial.
+
+        EXAMPLES:
+            sage: ring = QQ['x,y,z'] #optional
+            sage: (x, y, z) = ring.gens() #optional
+            sage: monomial = x * x * z #optional
+            sage: frobby._monomial_to_string(monomial) == '2 0 1\n' #optional
+            True
+        """
+        exponents = monomial.exponents()
+        if len(exponents) != 1:
+            raise RuntimeError(str(monomial) + " is not a monomial.")
+        exponents = exponents[0]
+
+        # for a multivariate ring exponents will be an ETuple, while
+        # for a univariate ring exponents will be just an int. To get
+        # this to work we make the two cases look alike.
+        if isinstance(exponents, int):
+            exponents = [exponents]
+        strings = [str(exponents[var]) for var in range(len(exponents))]
+        return ' '.join(strings) + '\n'
+
+# This singleton instance is what should be used outside this file.
+frobby = Frobby()

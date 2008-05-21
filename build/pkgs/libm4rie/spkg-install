@@ -1,4 +1,10 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 cd src
 
@@ -6,8 +12,15 @@ $MAKE clean
 
 INCLUDES="-I$SAGE_LOCAL/include/"
 
-CFLAGS="$CFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib -O3 -g"
+CFLAGS="$CFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib -O3 -Wall -pedantic -g"
 CPPFLAGS="$INCLUDES"
+
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+    echo "64 bit OSX build"
+    CFLAGS="$CFLAGS -m64"
+    CPPFLAGS="$CPPFLAGS -m64"
+fi
+
 export CFLAGS
 export CPPFLAGS
 

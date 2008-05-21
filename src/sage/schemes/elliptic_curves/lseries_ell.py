@@ -8,7 +8,7 @@ from sage.rings.all import (
     RealField,
     RationalField,
     ComplexField)
-from math import sqrt, exp
+from math import sqrt, exp, ceil
 import sage.functions.transcendental as transcendental
 R = RealField()
 Q = RationalField()
@@ -399,7 +399,7 @@ class Lseries_ell(SageObject):
             return 0
         sqrtN = float(self.__E.conductor().sqrt())
         k = int(k)
-        if k == 0: k = int(math.ceil(sqrtN))
+        if k == 0: k = int(ceil(sqrtN))
         an = self.__E.anlist(k)           # list of SAGE ints
         # Compute z = e^(-2pi/sqrt(N))
         pi = 3.14159265358979323846
@@ -456,13 +456,17 @@ class Lseries_ell(SageObject):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
+            sage: E.lseries().deriv_at1()
+            (0.305986660899342, 0.000800351433106958)
             sage: E.lseries().deriv_at1(100)
             (0.305999773834879, 1.52437502288740e-45)
+            sage: E.lseries().deriv_at1(1000)
+            (0.305999773834879, 0.000000000000000)
         """
         if self.__E.root_number() == 1: return 0
         k = int(k)
         sqrtN = float(self.__E.conductor().sqrt())
-        if k == 0: k = int(math.ceil(sqrtN))
+        if k == 0: k = int(ceil(sqrtN))
         an = self.__E.anlist(k)           # list of C ints
         # Compute z = e^(-2pi/sqrt(N))
         pi = 3.14159265358979323846

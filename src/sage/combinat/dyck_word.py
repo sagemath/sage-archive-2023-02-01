@@ -126,8 +126,15 @@ class DyckWord_class(CombinatorialObject):
         return len(filter(lambda x: x == open_symbol, self))
 
     def height(self):
-        """
+        r"""
         Returns the height of the Dyck word.
+
+        We view the Dyck word as a
+        Dyck path from $(0,0)$ to $(n,0)$ in the first quadrant by letting
+        '1's represent steps in the direction $(1,1)$ and '0's represent
+        steps in the direction $(1,-1)$.
+
+        The height is the maximum $y$-coordinate reached.
 
         EXAMPLES:
             sage: DyckWord([]).height()
@@ -269,12 +276,22 @@ class DyckWord_class(CombinatorialObject):
         raise NotImplementedError, "TODO"
 
     def peaks(self):
-        """
+        r"""
+        Returns a list of the positions of the peaks of a Dyck word.  A
+        peak is 1 followed by a 0.  Note that this does not agree with the
+        definition given by Haglund in: The $q,t$-Catalan Numbers and the
+        Space of Diagonal Harmonics: With an Appendix on the Combinatorics
+        of Macdonald Polynomials - James Haglund, University of
+        Pennsylvania, Philadelphia - AMS, 2008, 167 pp.
+
         EXAMPLES:
             sage: DyckWord([1, 0, 1, 0]).peaks()
             [0, 2]
             sage: DyckWord([1, 1, 0, 0]).peaks()
             [1]
+            sage: DyckWord([1,1,0,1,0,1,0,0]).peaks() # Haglund's def gives 2
+            [1, 3, 5]
+
         """
         return [i for i in range(len(self)-1) if self[i] == open_symbol and self[i+1] == close_symbol]
 
@@ -306,11 +323,25 @@ class DyckWord_class(CombinatorialObject):
 
     def a_statistic(self):
         """
-        Returns the a-statistic for the Dyck word.  When viewed as a lattice
-        path, the Dyck word's a-statistic is the number of boxes
-        above the main diagonal.
+        Returns the a-statistic for the Dyck word.
+
+        One can view a balanced Dyck word as a lattice path from $(0,0)$ to
+        $(n,n)$ in the first quadrant by letting '1's represent steps in
+        the direction $(1,0)$ and '0's represent steps in the direction
+        $(0,1)$.  The resulting path will remain weakly above the diagonal
+        $y = x$.
+
+        The a-statistic, or area statistic, is the number of complete
+        squares in the integer lattice which are below the path and above
+        the line $y = x$. The 'half-squares' directly above the line $y=x$
+        do not contribute to this statistic.
+
 
         EXAMPLES:
+            sage: dw = DyckWord([1,0,1,0])
+            sage: dw.a_statistic() # 2 half-squares, 0 complete squares
+            0
+
             sage: dw = DyckWord([1,1,1,0,1,1,1,0,0,0,1,1,0,0,1,0,0,0])
             sage: dw.a_statistic()
             19
@@ -356,8 +387,25 @@ class DyckWord_class(CombinatorialObject):
         return a
 
     def b_statistic(self):
-        """
+        r"""
         Returns the b-statistic for the Dyck word.
+
+        One can view a balanced Dyck word as a lattice path from $(0,0)$ to
+        $(n,n)$ in the first quadrant by letting '1's represent steps in
+        the direction $(1,0)$ and '0's represent steps in the direction
+        $(0,1)$.  The resulting path will remain weakly above the diagonal
+        $y = x$.
+
+        We describe the b-statistic of such a path in terms of what is
+        known as the "bounce path".  Quoting from [1]:
+
+        We can think of our bounce path as describing the trail of a
+        billiard ball shot North from $(0, 0)$, which “bounces” right
+        whenever it encounters a horizontal step and “bounces” up when it
+        encounters the line $y = x$. The bouncing ball will strike the
+        diagonal at places $(0, 0), (j_1, j_1), (j_2, j_2), ... , (j_r−1,
+        j_r−1), (j_r, j_r) = (n, n)$. We define the b-statistic to be the
+        sum $\sum_{i=1}^{r-1} n - j_i$.
 
         EXAMPLES:
             sage: dw = DyckWord([1,1,1,0,1,1,1,0,0,0,1,1,0,0,1,0,0,0])
@@ -393,6 +441,12 @@ class DyckWord_class(CombinatorialObject):
             sage: DyckWord([1,0,1,0,1,0,1,0]).b_statistic()
             6
 
+
+        REFERENCES:
+            [1] The $q,t$-Catalan Numbers and the Space of Diagonal
+            Harmonics: With an Appendix on the Combinatorics of Macdonald
+            Polynomials - James Haglund, University of Pennsylvania,
+            Philadelphia - AMS, 2008, 167 pp.
         """
         x_pos = len(self)/2
         y_pos = len(self)/2
@@ -430,12 +484,19 @@ class DyckWord_class(CombinatorialObject):
 
 
 def DyckWords(k1=None, k2=None):
-    """
-    Returns the combinatorial class of Dyck words.
+    r"""
+    Returns the combinatorial class of Dyck words.  A Dyck word is a
+    sequence $(w_1, ..., w_n)$ consisting of '1's and '0's, with the
+    property that for any $i$ with $1 \le i \le n$, the sequence
+    $(w_1,...,w_i)$ contains at least as many $1$s as $0$s.
+
+    A Dyck word is balanced if the total number of '1's is equal to the
+    total number of '0's.  The number of balanced Dyck words of length $2k$
+    is given by the Catalan number $C_k$.
 
     EXAMPLES:
-      If neither k1 nor k2 are specified, then it returns
-      the combinatorial class of all Dyck words.
+      If neither k1 nor k2 are specified, then DyckWords returns
+      the combinatorial class of all balanced Dyck words.
 
         sage: DW = DyckWords(); DW
         Dyck words
@@ -447,7 +508,7 @@ def DyckWords(k1=None, k2=None):
         False
 
       If just k1 is specified, then it returns the combinatorial
-      class of Dyck words with k1 opening parentheses and k1
+      class of balanced Dyck words with k1 opening parentheses and k1
       closing parentheses.
         sage: DW2 = DyckWords(2); DW2
         Dyck words with 2 opening parentheses and 2 closing parentheses
@@ -457,6 +518,8 @@ def DyckWords(k1=None, k2=None):
         [1, 0, 1, 0]
         sage: DW2.count()
         2
+        sage: DyckWords(100).count() == catalan_number(100)
+        True
 
       If k2 is specified in addition to k1, then it returns
       the combinatorial class of Dyck words with k1 opening

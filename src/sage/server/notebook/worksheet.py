@@ -1543,8 +1543,7 @@ class Worksheet:
 
         It's running still
             sage: W.check_comp()
-            ('w', Cell 0; in=factor(2^997-1), out=
-            )
+            ('w', Cell 0; in=factor(2^997-1), out=...)
 
         We interrupt it successfully.
             sage: W.interrupt()

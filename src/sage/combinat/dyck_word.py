@@ -400,11 +400,11 @@ class DyckWord_class(CombinatorialObject):
         known as the "bounce path".  Quoting from [1]:
 
         We can think of our bounce path as describing the trail of a
-        billiard ball shot North from $(0, 0)$, which “bounces” right
-        whenever it encounters a horizontal step and “bounces” up when it
+        billiard ball shot North from $(0, 0)$, which "bounces" right
+        whenever it encounters a horizontal step and "bounces" up when it
         encounters the line $y = x$. The bouncing ball will strike the
-        diagonal at places $(0, 0), (j_1, j_1), (j_2, j_2), ... , (j_r−1,
-        j_r−1), (j_r, j_r) = (n, n)$. We define the b-statistic to be the
+        diagonal at places $(0, 0), (j_1, j_1), (j_2, j_2), ... , (j_r-1,
+        j_r-1), (j_r, j_r) = (n, n)$. We define the b-statistic to be the
         sum $\sum_{i=1}^{r-1} n - j_i$.
 
         EXAMPLES:

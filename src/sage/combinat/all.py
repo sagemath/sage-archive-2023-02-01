@@ -66,6 +66,8 @@ from sloane_functions import sloane
 from root_system.all import *
 from sf.all import *
 from matrices.all import *
+# Posets
+from posets.all import *
 
 #import lrcalc
 
@@ -80,3 +82,5 @@ from finite_class import FiniteCombinatorialClass
 from dlx import AllExactCovers, OneExactCover, DLXMatrix
 
 from multichoose_nk import MultichooseNK
+
+

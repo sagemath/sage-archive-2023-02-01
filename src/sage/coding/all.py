@@ -50,7 +50,8 @@ from linear_code import (LinearCode, LinearCodeFromVectorSpace,
                          hamming_weight,
                          best_known_linear_code,
                          best_known_linear_code_www,
-                         bounds_minimum_distance)
+                         bounds_minimum_distance,
+                         self_orthogonal_binary_codes)
 
 from sd_codes import self_dual_codes_binary
 

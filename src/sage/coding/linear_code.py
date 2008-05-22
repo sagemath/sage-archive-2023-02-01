@@ -157,6 +157,7 @@ from sage.interfaces.all import gap
 from sage.rings.finite_field import FiniteField as GF
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.constructor import Matrix
 from sage.rings.arith import GCD, rising_factorial, binomial
 from sage.groups.all import SymmetricGroup
 from sage.misc.misc import prod
@@ -378,6 +379,113 @@ def bounds_minimum_distance(n,k,F):
     Ldata = gap.eval("Display(data)")
     return Ldata
 
+def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
+    in_test=None):
+    """
+    Returns a Python iterator which generates a complete set of representatives
+    of all permutation equivalence classes of self-orthogonal binary linear codes
+    of length in [1..n] and dimension in [1..k].
+
+    INPUT:
+    n -- maximal length
+    k -- maximal dimension
+    b -- require that the generators all have weight divisible by b (if b=2, all
+        self-orthogonal codes are generated, and if b=4, all doubly even codes
+        are generated). Must be an even positive integer.
+    parent -- dafault None, used in recursion
+    BC -- dafault None, used in recursion
+    equal -- default False, if True generates only [n, k] codes
+    in_test -- default None, used in recursion
+
+    EXAMPLES:
+    Generate all self-orthogonal codes of length up to 7 and dimension up to 3:
+        sage: for B in self_orthogonal_binary_codes(7,3):
+        ...    print B
+        ...
+        Linear code of length 2, dimension 1 over Finite Field of size 2
+        Linear code of length 4, dimension 2 over Finite Field of size 2
+        Linear code of length 6, dimension 3 over Finite Field of size 2
+        Linear code of length 4, dimension 1 over Finite Field of size 2
+        Linear code of length 6, dimension 2 over Finite Field of size 2
+        Linear code of length 6, dimension 2 over Finite Field of size 2
+        Linear code of length 7, dimension 3 over Finite Field of size 2
+        Linear code of length 6, dimension 1 over Finite Field of size 2
+
+    Generate all doubly-even codes of length up to 7 and dimension up to 3:
+        sage: for B in self_orthogonal_binary_codes(7,3,4):
+        ...    print B; print B.gen_mat()
+        ...
+        Linear code of length 4, dimension 1 over Finite Field of size 2
+        [1 1 1 1]
+        Linear code of length 6, dimension 2 over Finite Field of size 2
+        [1 1 1 1 0 0]
+        [0 1 0 1 1 1]
+        Linear code of length 7, dimension 3 over Finite Field of size 2
+        [1 0 1 1 0 1 0]
+        [0 1 0 1 1 1 0]
+        [0 0 1 0 1 1 1]
+
+    Generate all doubly-even codes of length up to 7 and dimension up to 2:
+        sage: for B in self_orthogonal_binary_codes(7,2,4):
+        ...    print B; print B.gen_mat()
+        Linear code of length 4, dimension 1 over Finite Field of size 2
+        [1 1 1 1]
+        Linear code of length 6, dimension 2 over Finite Field of size 2
+        [1 1 1 1 0 0]
+        [0 1 0 1 1 1]
+
+    Generate all self-orthogonal codes of length equal to 8 and dimension
+    equal to 4:
+        sage: for B in self_orthogonal_binary_codes(8, 4, equal=True):
+        ...     print B; print B.gen_mat()
+        Linear code of length 8, dimension 4 over Finite Field of size 2
+        [1 0 0 1 0 0 0 0]
+        [0 1 0 0 1 0 0 0]
+        [0 0 1 0 0 1 0 0]
+        [0 0 0 0 0 0 1 1]
+        Linear code of length 8, dimension 4 over Finite Field of size 2
+        [1 0 0 1 1 0 1 0]
+        [0 1 0 1 1 1 0 0]
+        [0 0 1 0 1 1 1 0]
+        [0 0 0 1 0 1 1 1]
+
+    Since all the codes will be self-orthogonal, b must be divisible by 2:
+        sage: list(self_orthogonal_binary_codes(8, 4, 1, equal=True))
+        Traceback (most recent call last):
+        ...
+        ValueError: b (1) must be a positive even integer.
+
+    """
+    d=int(b)
+    if d!=b or d%2==1 or d <= 0:
+        raise ValueError("b (%s) must be a positive even integer."%b)
+    from binary_code import BinaryCode, BinaryCodeClassifier
+    if k < 1 or n < 2:
+        return
+    if equal:
+        in_test = lambda M : (M.ncols() - M.nrows()) <= (n-k)
+        out_test = lambda C : (C.dimension() == k) and (C.length() == n)
+    else:
+        in_test = lambda M : True
+        out_test = lambda C : True
+    if BC is None:
+        BC = BinaryCodeClassifier()
+    if parent is None:
+        for j in xrange(d, n+1, d):
+            M = Matrix(GF(2), [[1]*j])
+            if in_test(M):
+                for N in self_orthogonal_binary_codes(n, k, d, M, BC, in_test=in_test):
+                    if out_test(N): yield N
+    else:
+        C = LinearCode(parent)
+        if out_test(C): yield C
+        if k == parent.nrows():
+            return
+        for nn in xrange(parent.ncols()+1, n+1):
+            if in_test(parent):
+                for child in BC.generate_children(BinaryCode(parent), nn, d):
+                    for N in self_orthogonal_binary_codes(n, k, d, child, BC, in_test=in_test):
+                        if out_test(N): yield N
 
 ########################### linear codes python class #######################
 
@@ -440,8 +548,6 @@ class LinearCode(module.Module):
 
     def automorphism_group_binary_code(self):
         r"""
-        ** Experimental Interface with Robert Miller's program \code{aut_gp_and_can_label}.**
-
         This only applies to linear binary codes and returns its
         (permutation) automorphism group. In other words, if
         the code C has length $n$ then it returns the subgroup of the
@@ -454,14 +560,9 @@ class LinearCode(module.Module):
         EXAMPLES:
             sage: C = HammingCode(3,GF(2))
             sage: G = C.automorphism_group_binary_code(); G
-            Permutation Group with generators [(2,3)(5,7), (2,5)(3,7), (2,3,7,5)(4,6), (2,4)(6,7), (1,2)(3,4)]
+            Permutation Group with generators [(3,4)(5,6), (3,5)(4,6), (2,3)(5,7), (1,2)(5,6)]
             sage: G.order()
             168
-
-        WARNING: This is preliminary - can lock up or return RuntimeError.
-        (This is a bug in the interface, not in \code{aut_gp_and_can_label}.)
-        For example, "C = QuasiQuadraticResidueCode(11); C.automorphism_group_binary_code()"
-        causes a lock-up. Please report other bugs to wdjoyner@gmail.com or sage-support.
 
         """
         C = self
@@ -1390,7 +1491,7 @@ class LinearCode(module.Module):
         EXAMPLES:
             sage: C = HammingCode(3,GF(2))
             sage: G = C.automorphism_group_binary_code(); G
-            Permutation Group with generators [(2,3)(5,7), (2,5)(3,7), (2,3,7,5)(4,6), (2,4)(6,7), (1,2)(3,4)]
+            Permutation Group with generators [(3,4)(5,6), (3,5)(4,6), (2,3)(5,7), (1,2)(5,6)]
             sage: g = G("(2,3)(5,7)")
             sage: Cg = C.permuted_code(g)
             sage: Cg

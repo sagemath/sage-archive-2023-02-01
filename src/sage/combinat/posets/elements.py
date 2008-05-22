@@ -129,7 +129,7 @@ class PosetElement(Element):
         """
         return self == other or self._cmp(other) == 1 or False
 
-class LatticeElement(PosetElement):
+class LatticePosetElement(PosetElement):
     def __add__(self,other):
         return self.parent().join(self,other)
 

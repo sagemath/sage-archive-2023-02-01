@@ -389,10 +389,12 @@ class FinitePoset(ParentWithBase):
         """
         return self.linear_extension()
 
-    def plot(self,label_elements=True,element_labels=None):
+    def plot(self, label_elements=True, element_labels=None,
+            label_font_size=12,label_font_color='black',
+            vertex_size=300, vertex_colors=None):
         """
-        Returns a graphic object corresponding the Hasse diagram of
-        the poset. Optionally, it is labelled.
+	Returns a Graphic object corresponding the Hasse diagram of the poset.
+	Optionally, it is labelled.
 
         INPUT:
             label_elements -- whether to display element labels
@@ -402,16 +404,42 @@ class FinitePoset(ParentWithBase):
             sage: D = Poset({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: D.plot(label_elements=False)
             sage: D.plot()
+            sage: type(D.plot())
+            <class 'sage.plot.plot.Graphics'>
             sage: elm_labs = {0:'a', 1:'b', 2:'c', 3:'d', 4:'e'}
             sage: D.plot(element_labels=elm_labs)
 
         """
         if label_elements and element_labels is None:
             element_labels = self._elements
-        return self.hasse_diagram().plot(label_elements=label_elements,
-                element_labels=element_labels)
+	return self.hasse_diagram().plot(label_elements=label_elements,
+			element_labels=element_labels,
+			label_font_size=label_font_size,
+			label_font_color=label_font_color,
+			vertex_size=vertex_size,vertex_colors=vertex_colors)
 
-    show = plot
+    def show(self, label_elements=True, element_labels=None,
+            label_font_size=12,label_font_color='black',
+            vertex_size=300, vertex_colors=None,**kwds):
+        """
+	Shows the Graphics object corresponding the Hasse diagram of the poset.
+	Optionally, it is labelled.
+
+        INPUT:
+            label_elements -- whether to display element labels
+            element_labels -- a dictionary of element labels
+
+        EXAMPLES:
+            sage: D = Poset({ 0:[1,2], 1:[3], 2:[3,4] })
+            sage: D.plot(label_elements=False)
+            sage: D.show()
+            sage: elm_labs = {0:'a', 1:'b', 2:'c', 3:'d', 4:'e'}
+            sage: D.show(element_labels=elm_labs)
+
+        """
+        self.plot(label_elements=label_elements, element_labels=element_labels,
+            label_font_size=label_font_size,label_font_color=label_font_color,
+            vertex_size=vertex_size, vertex_colors=vertex_colors).show(**kwds)
 
     def level_sets(self):
         """
@@ -460,7 +488,7 @@ class FinitePoset(ParentWithBase):
 
     def is_lequal(self, x, y):
         """
-        Returns True if x is less than y in the poset, and False
+        Returns True if x is less than or equal to y in the poset, and False
         otherwise.
 
         EXAMPLES:
@@ -487,8 +515,8 @@ class FinitePoset(ParentWithBase):
 
     def is_gequal(self, x, y):
         """
-        Returns True if x is greater than y in the poset, and False
-        otherwise.
+	Returns True if x is greater than or equal to y in the poset, and False
+	otherwise.
 
         EXAMPLES:
             sage: Q = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
@@ -944,9 +972,20 @@ class FinitePoset(ParentWithBase):
         return self.hasse_diagram().is_join_semilattice()
 
     def antichains(self):
-        """
-        Returns a list of antichains of the poset.
-        """
+	"""
+        Returns a list of all antichains of the poset.
+
+        An antichain of a poset is a collection of elements of the poset
+        that are pairwise incomparable.
+
+        EXAMPLES:
+            sage: PentagonPoset().antichains()
+            [[], [0], [1], [2], [3], [4], [1, 2], [1, 3]]
+            sage: AntichainPoset(3).antichains()
+            [[], [2], [1], [0], [1, 0], [2, 1], [2, 0], [2, 1, 0]]
+	    sage: ChainPoset(3).antichains()
+	    [[], [0], [1], [2]]
+	"""
         return [map(self._vertex_to_element,antichain) for
                 antichain in self.hasse_diagram().antichains()]
 
@@ -1059,3 +1098,52 @@ class FinitePoset(ParentWithBase):
             [0, 2, 4, 6]
         """
         return self.order_ideal([x])
+
+    def interval(self, x, y):
+        """
+        Returns a list of the elements z such that x <= z <= y. The
+        order is that induced by the ordering in self.linear_extension().
+
+        INPUT:
+            x -- any element of the poset
+            y -- any element of the poset
+
+        EXAMPLES:
+            sage: uc = [[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]]
+            sage: dag = DiGraph(dict(zip(range(len(uc)),uc)))
+            sage: P = Poset(dag)
+            sage: I = set(map(P,[2,5,6,4,7]))
+            sage: I == set(P.interval(2,7))
+            True
+        """
+        return map(self._vertex_to_element,self.hasse_diagram().interval(x,y))
+
+    def closed_interval(self, x, y):
+        """
+        Returns a list of the elements z such that x <= z <= y. The
+        order is that induced by the ordering in self.linear_extension().
+
+        EXAMPLES:
+            sage: uc = [[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]]
+            sage: dag = DiGraph(dict(zip(range(len(uc)),uc)))
+            sage: P = Poset(dag)
+            sage: I = set(map(P,[2,5,6,4,7]))
+            sage: I == set(P.interval(2,7))
+            True
+        """
+        return self.interval(x,y)
+
+    def open_interval(self, x, y):
+        """
+        Returns a list of the elements z such that x < z < y. The
+        order is that induced by the ordering in self.linear_extension().
+
+        EXAMPLES:
+            sage: uc = [[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]]
+            sage: dag = DiGraph(dict(zip(range(len(uc)),uc)))
+            sage: P = Poset(dag)
+            sage: I = set(map(P,[5,6,4]))
+            sage: I == set(P.open_interval(2,7))
+            True
+        """
+        return map(self._vertex_to_element,self.hasse_diagram().open_interval(x,y))

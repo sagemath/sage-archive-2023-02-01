@@ -88,17 +88,20 @@ class HasseDiagram(DiGraph):
         return Levels
 
     def plot(self, label_elements=True, element_labels=None,
-            label_font_size=12,font_color='k',font_family='sans-serif',
-            font_weight='normal',alpha=1.0,ax=None,
+            label_font_size=12,label_font_color='black',
             vertex_size=300, vertex_colors=None):
         """
-        sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
-        sage: elm_lbls = Permutations(3).list()
-        sage: P = Poset(uc,elm_lbls)
-        sage: H = P.hasse_diagram()
-        sage: levels = H.level_sets()
-        sage: heights = dict([[i, levels[i]] for i in range(len(levels))])
-        sage: H.plot(label_elements=True)
+	Returns a Graphics object corresponding to the Hasse diagram.
+
+        EXAMPLES:
+            sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
+            sage: elm_lbls = Permutations(3).list()
+            sage: P = Poset(uc,elm_lbls)
+            sage: H = P.hasse_diagram()
+            sage: levels = H.level_sets()
+            sage: heights = dict([[i, levels[i]] for i in range(len(levels))])
+            sage: type(H.plot(label_elements=True))
+            <class 'sage.plot.plot.Graphics'>
         """
         # If we have no elements: plot an empty poset (blank plot).
         if self.order() == 0:
@@ -161,15 +164,37 @@ class HasseDiagram(DiGraph):
             K = Graphics()
             for v in graph.vertices():
                 K += text(str(element_labels[v]), pos[v],
-                        rgbcolor=(0,0,0), fontsize=label_font_size)
+                        rgbcolor=label_font_color, fontsize=label_font_size)
             K.axes_range(xmin=G.xmin(), xmax=G.xmax(), ymin=G.ymin(), ymax=G.ymax())
             G += K
         G.axes(False)
 
-        # Plot the graph
+        # Return the graph
         return G
 
-    show = plot
+    def show(self, label_elements=True, element_labels=None,
+            label_font_size=12,label_font_color='black',
+            vertex_size=300, vertex_colors=None,**kwds):
+        """
+	Shows the Graphics object corresponding to the Hasse diagram.
+	Optionally, it is labelled.
+
+        INPUT:
+            label_elements -- whether to display element labels
+            element_labels -- a dictionary of element labels
+
+        EXAMPLES:
+            sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
+            sage: elm_lbls = Permutations(3).list()
+            sage: P = Poset(uc,elm_lbls)
+            sage: H = P.hasse_diagram()
+            sage: levels = H.level_sets()
+            sage: heights = dict([[i, levels[i]] for i in range(len(levels))])
+            sage: H.show(label_elements=True)
+        """
+        self.plot(label_elements=label_elements, element_labels=element_labels,
+            label_font_size=label_font_size,label_font_color=label_font_color,
+            vertex_size=vertex_size, vertex_colors=vertex_colors).show(**kwds)
 
     def cover_relations_iterator(self):
         for u,v,l in self.edge_iterator():
@@ -180,7 +205,7 @@ class HasseDiagram(DiGraph):
 
     def is_lequal(self, i, j):
         """
-        Returns True if i is less than j in the poset, and False
+        Returns True if i is less than or equal to j in the poset, and False
         otherwise.
 
         EXAMPLES:
@@ -640,7 +665,7 @@ class HasseDiagram(DiGraph):
         # Redefine self.is_lequal
         def is_lequal(i, j):
             """
-            Returns True if i is less than j in the poset, and False
+            Returns True if i is less than or equal to j in the poset, and False
             otherwise.
 
             EXAMPLES:
@@ -780,7 +805,21 @@ class HasseDiagram(DiGraph):
         return c
 
     def antichains(self): # Freese-Jezek-Nation p226
-        S = []
+	"""
+        Returns a list of all antichains of the poset.
+
+        An antichain of a poset is a collection of elements of the poset
+        that are pairwise incomparable.
+
+        EXAMPLES:
+            sage: PentagonPoset().hasse_diagram().antichains()
+            [[], [0], [1], [2], [3], [4], [1, 2], [1, 3]]
+            sage: AntichainPoset(3).hasse_diagram().antichains()
+	    [[], [0], [1], [2], [1, 2], [0, 1], [0, 2], [0, 1, 2]]
+	    sage: ChainPoset(3).hasse_diagram().antichains()
+	    [[], [0], [1], [2]]
+	"""
+        S = [[]]
         leq = self.lequal_matrix()
         def antichains_rec(A,x,T,S):
             # A is an antichain. Each element of A is incomparable with

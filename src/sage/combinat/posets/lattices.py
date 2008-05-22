@@ -18,20 +18,20 @@ SemiLattices and Lattices
 #*****************************************************************************
 from sage.combinat.posets.posets import Poset, FinitePoset
 
-def Lattice(data):
+def LatticePoset(data):
     # Data type 0: if we have a lattice, then we're happy.
-    if isinstance(data,FiniteLattice):
+    if isinstance(data,FiniteLatticePoset):
         return data
     else:
         P = Poset(data)
         if P.is_meet_semilattice() and P.is_join_semilattice():
-            return FiniteLattice(P)
+            return FiniteLatticePoset(P)
         else:
             raise ValueError, "Not a lattice."
 
-class FiniteLattice(FinitePoset):
+class FiniteLatticePoset(FinitePoset):
     """
-    We assume that the argument passed to FiniteLattice is the poset
+    We assume that the argument passed to FiniteLatticePoset is the poset
     of a lattice (i.e. a poset with greatest lower bound and least
     upper bound for each pair of elements).
     """

@@ -20,7 +20,7 @@ Some examples of posets and lattices.
 from random import random
 from sage.combinat.permutation import Permutations
 from sage.combinat.posets.posets import Poset
-from sage.combinat.posets.lattices import Lattice
+from sage.combinat.posets.lattices import LatticePoset
 from sage.graphs.graph import DiGraph
 
 def BooleanLattice(n):
@@ -31,15 +31,15 @@ def BooleanLattice(n):
         sage: BooleanLattice(5)
         Finite lattice containing 32 elements
     """
-    return Lattice([[x|(1<<y) for y in range(0,n) if x&(1<<y)==0] for
+    return LatticePoset([[x|(1<<y) for y in range(0,n) if x&(1<<y)==0] for
         x in range(0,2**n)])
 
-def Chain(n):
+def ChainPoset(n):
     """
     Returns a chain (a totally ordered poset) containing n elements.
 
     EXAMPLES:
-        sage: C = Chain(6); C
+        sage: C = ChainPoset(6); C
         Finite lattice containing 6 elements
         sage: C.linear_extension()
         [0, 1, 2, 3, 4, 5]
@@ -50,15 +50,15 @@ def Chain(n):
     """
     c = [[x+1] for x in range(n)]
     c[n-1] = []
-    return Lattice(c)
+    return LatticePoset(c)
 
-def Antichain(n):
+def AntichainPoset(n):
     """
     Returns an antichain (a poset with no comparable elements)
     containing n elements.
 
     EXAMPLES:
-        sage: A = Antichain(6); A
+        sage: A = AntichainPoset(6); A
         Finite poset containing 6 elements
         sage: for i in range(5):
         ...       for j in range(5):
@@ -68,31 +68,31 @@ def Antichain(n):
     c = [[] for x in range(n)]
     return Poset(c)
 
-def Pentagon():
+def PentagonPoset():
     """
     Return the ``pentagon''.
 
     EXAMPLES:
-        sage: Pentagon()
+        sage: PentagonPoset()
         Finite lattice containing 5 elements
     """
-    p = Lattice([[1,2],[4],[3],[4],[]])
+    p = LatticePoset([[1,2],[4],[3],[4],[]])
     p.hasse_diagram()._pos = {0:[2,0],1:[0,2],2:[3,1],3:[3,3],4:[2,4]}
     return p
 
-def Diamond(n):
+def DiamondPoset(n):
     """
     Returns the lattice of rank two containing n elements.
 
     EXAMPLES:
-        sage: Diamond(7)
+        sage: DiamondPoset(7)
         Finite lattice containing 7 elements
     """
     c = [[n-1] for x in range(n)]
     c[0] = [x for x in range(1,n-1)]
     c[n-1] = []
     if n > 2:
-        return Lattice(c)
+        return LatticePoset(c)
     else:
         return Poset(c)
 
@@ -201,24 +201,24 @@ def RandomPoset(n,p):
                     D.delete_edge(i,j)
     return Poset(D,cover_relations=False)
 
-def SymmetricGroupBruhatOrder(n):
+def SymmetricGroupBruhatOrderPoset(n):
     """
     The poset of permutations with respect to Bruhat order.
 
     EXAMPLES:
-        sage: SymmetricGroupBruhatOrder(4)
+        sage: SymmetricGroupBruhatOrderPoset(4)
         Finite poset containing 24 elements
     """
     if n < 10:
         element_labels = dict([[s,"".join(map(str,s))] for s in Permutations(n)])
     return Poset(dict([[s,s.bruhat_succ()] for s in Permutations(n)]),element_labels)
 
-def SymmetricGroupWeakOrder(n,labels="permutations"):
+def SymmetricGroupWeakOrderPoset(n,labels="permutations"):
     """
     The poset of permutations with respect to weak order.
 
     EXAMPLES:
-        sage: SymmetricGroupWeakOrder(4)
+        sage: SymmetricGroupWeakOrderPoset(4)
         Finite poset containing 24 elements
     """
     if n < 10 and labels == "permutations":
@@ -230,14 +230,14 @@ def SymmetricGroupWeakOrder(n,labels="permutations"):
         	s.length() + (s.inverse()*v).length() == v.length()]
     return Poset(dict([[s,weak_covers(s)] for s in Permutations(n)]),element_labels)
 
-def PosetExamples(n,uc=None):
-    default_uc = [[[2,3], [], [1], [1], [1], [3,4]],
-        [[1,2,3,4,5],[6],[6],[6],[6],[6],[]]]
-    if uc is None:
-        uc = default_uc[n]
-    Q = Poset(uc)
-    elms = list("abcdefghijklmnopqrstuvwxyz"[0:len(uc)])
-    dag = DiGraph(dict([[i,uc[i]] for i in range(len(uc))]))
-    dag.relabel(elms)
-    P = Poset(dag)
-    return P,Q
+#def PosetExamples(n,uc=None):
+#    default_uc = [[[2,3], [], [1], [1], [1], [3,4]],
+#        [[1,2,3,4,5],[6],[6],[6],[6],[6],[]]]
+#    if uc is None:
+#        uc = default_uc[n]
+#    Q = Poset(uc)
+#    elms = list("abcdefghijklmnopqrstuvwxyz"[0:len(uc)])
+#    dag = DiGraph(dict([[i,uc[i]] for i in range(len(uc))]))
+#    dag.relabel(elms)
+#    P = Poset(dag)
+#    return P,Q

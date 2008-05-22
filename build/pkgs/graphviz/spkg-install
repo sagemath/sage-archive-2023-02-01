@@ -1,0 +1,23 @@
+#!/bin/bash
+
+cd src
+
+./configure --prefix="$SAGE_LOCAL" --enable-shared=yes --with-pnglibdir="$SAGE_LOCAL/lib" --with-pngincludedir="$SAGE_LOCAL/include/libpng12"
+if [ $? -ne 0 ]; then
+    echo "Error configuring libpng"
+    exit 1
+fi
+
+make
+
+if [ $? -ne 0 ]; then
+    echo "Error building libpng"
+    exit 1
+fi
+
+make install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing libpng"
+    exit 1
+fi

@@ -55,6 +55,16 @@ class Polynomial_generic_sparse(Polynomial):
         <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse'>
         sage: loads(f.dumps()) == f
         True
+
+    A more extensive example:
+        sage: A.<T> = PolynomialRing(Integers(5),sparse=True) ; f = T^2+1 ; B = A.quo(f)
+        sage: C.<s> = PolynomialRing(B)
+        sage: C
+        Univariate Polynomial Ring in s over Univariate Quotient Polynomial Ring in Tbar over Ring of integers modulo 5 with modulus T^2 + 1
+        sage: s + T
+        s + Tbar
+        sage: (s + T)**2
+        s^2 + 2*Tbar*s + 4
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
@@ -78,11 +88,14 @@ class Polynomial_generic_sparse(Polynomial):
                 if x[i] != 0:
                     y[i] = x[i]
             x = y
+        elif isinstance(x, pari_gen):
+            y = {}
+            for i in range(len(x)):
+                y[i] = R(x[i])
+            x = y
+            check = True
         elif not isinstance(x, dict):
             x = {0:x}   # constant polynomials
-        elif isinstance(x, pari_gen):
-            x = [R(w) for w in x.Vecrev()]
-            check = True
         if check:
             self.__coeffs = {}
             for i, z in x.iteritems():

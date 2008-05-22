@@ -40,6 +40,8 @@ from sage.misc.misc import cputime
 from math import log, floor
 from sage.rings.integer import Integer
 
+WORD_SIZE = sizeof(codeword) << 3
+
 ## NOTE - Since most of the functions are used from within the module, cdef'd
 ## functions come without an underscore, and the def'd equivalents, which are
 ## essentially only for doctesting and debugging, have underscores.

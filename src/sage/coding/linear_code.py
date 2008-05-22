@@ -1331,11 +1331,20 @@ class LinearCode(module.Module):
             sage: G.is_isomorphic(M11)                    # this should take < 5 seconds
             True
 
-        WARNING: - *Ugly code, which should be replaced by a call to Robert Miller's nice program.*
+        In the binary case, uses sage.coding.binary_code:
+
+            sage: C = ExtendedBinaryGolayCode()
+            sage: G = C.permutation_automorphism_group()
+            sage: G.order()
+            244823040
 
         """
         F = self.base_ring()
         q = F.order()
+        if q == 2 and self.length() <= 64:
+            from sage.coding.binary_code import WORD_SIZE
+            if self.length() <= WORD_SIZE:
+                return self.automorphism_group_binary_code()
         G = self.gen_mat()
         n = len(G.columns())
         Gp = gap("SymmetricGroup(%s)"%n)               # initializing G in gap

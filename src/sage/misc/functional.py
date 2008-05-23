@@ -950,10 +950,15 @@ def isqrt(x):
     EXAMPLES:
         sage: isqrt(10)
         3
+        sage: isqrt(10r)
+        3
     """
-    try: return x.isqrt()
+    try:
+        return x.isqrt()
     except AttributeError:
-        raise NotImplementedError
+        import sage.calculus.calculus
+        n = sage.rings.integer.Integer(sage.calculus.calculus.floor(x))
+        return n.isqrt()
 
 def squarefree_part(x):
     """

@@ -131,7 +131,7 @@ def multiply_forms_to_weight(forms, weight, stop_dim=None):
         [(12, 1 - 1008*q + 220752*q^2 + 16519104*q^3 + 399517776*q^4 + O(q^5)), (12, 1 + 720*q + 179280*q^2 + 16954560*q^3 + 396974160*q^4 + O(q^5))]
         sage: f.multiply_forms_to_weight(forms, 24)
         [(24, 1 - 2016*q + 1457568*q^2 - 411997824*q^3 + 16227967392*q^4 + O(q^5)), (24, 1 - 288*q - 325728*q^2 + 11700864*q^3 + 35176468896*q^4 + O(q^5)), (24, 1 + 1440*q + 876960*q^2 + 292072320*q^3 + 57349833120*q^4 + O(q^5))]
-        sage: dimension_modular_forms(SL2Z(),24)
+        sage: dimension_modular_forms(SL2Z,24)
         3
     """
     verbose('multiplying forms up to weight %s'%weight)
@@ -209,7 +209,7 @@ def modform_generators(group, maxweight=20, prec=None, start_gens=[], start_weig
         [(12, 1 - 1008*q + 220752*q^2 + 16519104*q^3 + 399517776*q^4 + O(q^5)), (12, 1 + 720*q + 179280*q^2 + 16954560*q^3 + 396974160*q^4 + O(q^5))]
         sage: fg.multiply_forms_to_weight(forms, 24)
         [(24, 1 - 2016*q + 1457568*q^2 - 411997824*q^3 + 16227967392*q^4 + O(q^5)), (24, 1 - 288*q - 325728*q^2 + 11700864*q^3 + 35176468896*q^4 + O(q^5)), (24, 1 + 1440*q + 876960*q^2 + 292072320*q^3 + 57349833120*q^4 + O(q^5))]
-        sage: dimension_modular_forms(SL2Z(),24)
+        sage: dimension_modular_forms(SL2Z,24)
         3
 
         sage: modform_generators(1)

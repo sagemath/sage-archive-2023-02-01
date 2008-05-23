@@ -2,7 +2,7 @@
 The Cuspidal Subspace
 
 EXAMPLES:
-    sage: S = CuspForms(SL2Z(),12); S
+    sage: S = CuspForms(SL2Z,12); S
     Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for
     Congruence Subgroup Gamma0(1) of weight 12 over Rational Field
     sage: S.basis()
@@ -52,7 +52,7 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
         The cuspidal submodule of an ambient space of modular forms.
 
         EXAMPLES:
-            sage: S = CuspForms(SL2Z(),12); S
+            sage: S = CuspForms(SL2Z,12); S
             Cuspidal subspace of dimension 1 of Modular Forms space of dimension 2 for
             Congruence Subgroup Gamma0(1) of weight 12 over Rational Field
             sage: S.basis()

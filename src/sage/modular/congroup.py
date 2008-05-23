@@ -68,7 +68,7 @@ def is_CongruenceSubgroup(x):
     Return True if x is of type CongruenceSubgroup.
 
     EXAMPLES:
-        sage: is_CongruenceSubgroup(SL2Z())
+        sage: is_CongruenceSubgroup(SL2Z)
         True
         sage: is_CongruenceSubgroup(Gamma0(13))
         True
@@ -145,7 +145,7 @@ class CongruenceSubgroup(Group):
         The generators need not be minimal.
 
         EXAMPLES:
-            sage: SL2Z().gens()
+            sage: SL2Z.gens()
             ([ 0 -1]
             [ 1  0], [1 1]
             [0 1])
@@ -195,7 +195,7 @@ class CongruenceSubgroup(Group):
         tuple self.gens().
 
         EXAMPLES:
-            sage: SL2Z().gen(1)
+            sage: SL2Z.gen(1)
             [1 1]
             [0 1]
             sage: Gamma0(20).gen(7)
@@ -223,7 +223,7 @@ class CongruenceSubgroup(Group):
             250
             sage: GammaH(11, [3]).ngens()
             31
-            sage: SL2Z().ngens()
+            sage: SL2Z.ngens()
             2
         """
         return len(self.generators())
@@ -233,7 +233,7 @@ class CongruenceSubgroup(Group):
         Return the level of this congruence subgroup.
 
         EXAMPLES:
-            sage: SL2Z().level()
+            sage: SL2Z.level()
             1
             sage: Gamma0(20).level()
             20
@@ -255,7 +255,7 @@ class CongruenceSubgroup(Group):
         returns False.
 
         EXAMPLES:
-            sage: SL2Z().is_abelian()
+            sage: SL2Z.is_abelian()
             False
             sage: Gamma0(3).is_abelian()
             False
@@ -274,7 +274,7 @@ class CongruenceSubgroup(Group):
         returns False.
 
         EXAMPLES:
-            sage: SL2Z().is_finite()
+            sage: SL2Z.is_finite()
             False
             sage: Gamma0(3).is_finite()
             False
@@ -294,7 +294,7 @@ class CongruenceSubgroup(Group):
         matrix -1.
 
         EXAMPLES:
-            sage: SL2Z().is_odd()
+            sage: SL2Z.is_odd()
             False
             sage: Gamma0(20).is_odd()
             False
@@ -310,7 +310,7 @@ class CongruenceSubgroup(Group):
         Return True precisely if this subgroup contains the matrix -1.
 
         EXAMPLES:
-            sage: SL2Z().is_even()
+            sage: SL2Z.is_even()
             True
             sage: Gamma0(20).is_even()
             True
@@ -373,7 +373,7 @@ class CongruenceSubgroup(Group):
         infinity.
 
         EXAMPLES:
-            sage: SL2Z().order()
+            sage: SL2Z.order()
             +Infinity
             sage: Gamma0(5).order()
             +Infinity
@@ -447,7 +447,7 @@ def is_Gamma0(x):
     Return True if x is a congruence subgroup of type Gamma0.
 
     EXAMPLES:
-        sage: is_Gamma0(SL2Z())
+        sage: is_Gamma0(SL2Z)
         True
         sage: is_Gamma0(Gamma0(13))
         True
@@ -524,7 +524,7 @@ class Gamma0(CongruenceSubgroup):
         EXAMPLES:
             sage: Gamma0(12).is_even()
             True
-            sage: SL2Z().is_even()
+            sage: SL2Z.is_even()
             True
         """
         return True
@@ -535,7 +535,7 @@ class Gamma0(CongruenceSubgroup):
 
         EXAMPLES:
             sage: G = Gamma0(20)
-            sage: G.is_subgroup(SL2Z())
+            sage: G.is_subgroup(SL2Z)
             True
             sage: G.is_subgroup(Gamma0(4))
             True
@@ -676,19 +676,19 @@ def is_SL2Z(x):
     Return True if x is the modular group ${\rm SL}_2(\Z)$.
 
     EXAMPLES:
-        sage: is_SL2Z(SL2Z())
+        sage: is_SL2Z(SL2Z)
         True
         sage: is_SL2Z(Gamma0(6))
         False
     """
-    return isinstance(x, SL2Z)
+    return isinstance(x, SL2Z_class)
 
-class SL2Z(Gamma0):
+class SL2Z_class(Gamma0):
     r"""
     The modular group ${\rm SL}_2(\Z)$.
 
     EXAMPLES:
-        sage: G = SL2Z(); G
+        sage: G = SL2Z; G
         Modular Group SL(2,Z)
         sage: G.gens()
         ([ 0 -1]
@@ -707,6 +707,9 @@ class SL2Z(Gamma0):
         [ 0  1]
         sage: loads(G.dumps()) == G
         True
+        sage: SL2Z.0 * SL2Z.1
+        [ 0 -1]
+        [ 1  1]
     """
     def __init__(self):
         Gamma0.__init__(self, 1)
@@ -717,9 +720,9 @@ class SL2Z(Gamma0):
     def _latex_(self):
         """
         EXAMPLES:
-            sage: SL2Z()._latex_()
+            sage: SL2Z._latex_()
             '\\mbox{\\rm SL}_2(\\mathbf{Z})'
-            sage: latex(SL2Z())
+            sage: latex(SL2Z)
             \mbox{\rm SL}_2(\mathbf{Z})
         """
         return "\\mbox{\\rm SL}_2(%s)"%(IntegerRing()._latex_())
@@ -729,28 +732,30 @@ class SL2Z(Gamma0):
         Return True if self is a subgroup of right.
 
         EXAMPLES:
-            sage: SL2Z().is_subgroup(SL2Z())
+            sage: SL2Z.is_subgroup(SL2Z)
             True
-            sage: SL2Z().is_subgroup(Gamma1(1))
+            sage: SL2Z.is_subgroup(Gamma1(1))
             True
-            sage: SL2Z().is_subgroup(Gamma0(6))
+            sage: SL2Z.is_subgroup(Gamma0(6))
             False
         """
         return right.level() == 1
+
+SL2Z = SL2Z_class()
 
 def is_Gamma1(x):
     """
     Return True if x is a congruence subgroup of type Gamma1.
 
     EXAMPLES:
-        sage: is_Gamma1(SL2Z())
+        sage: is_Gamma1(SL2Z)
         True
         sage: is_Gamma1(Gamma1(13))
         True
         sage: is_Gamma1(Gamma0(6))
         False
     """
-    return (isinstance(x, Gamma1) or isinstance(x, SL2Z))
+    return (isinstance(x, Gamma1) or is_SL2Z(x))
 
 class Gamma1(CongruenceSubgroup):
     r"""
@@ -805,7 +810,7 @@ class Gamma1(CongruenceSubgroup):
         Return True if self is a subgroup of right.
 
         EXAMPLES:
-            sage: Gamma1(3).is_subgroup(SL2Z())
+            sage: Gamma1(3).is_subgroup(SL2Z)
             True
             sage: Gamma1(3).is_subgroup(Gamma1(5))
             False

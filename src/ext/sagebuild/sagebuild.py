@@ -242,7 +242,7 @@ def buildsage(env, gccc):
 
     config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/rings/integer_ring.pyx',libraries = ['ntl', 'gmp'])
 
-    config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/interfaces/libecm.pyx',libraries = ['ecm', 'gmp'])
+    config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/libs/libecm.pyx',libraries = ['ecm', 'gmp'])
 
     config_gcc_file(env,pyx_pextn_dict,'devel/sage/sage/rings/padics/pow_computer.pyx',language='C++', libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"])
 

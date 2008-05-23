@@ -417,10 +417,10 @@ def buildsage(env, gccc):
         gcceso.generate_action(env).dep_register(gcceo.generate_action(env))
 
     #Link mwrank C files if needed
-    dict_insert_src(gcceso_dict, env.options['SAGE_ROOT']+"/devel/sage/build/temp/sage/libs/mwrank/mwrank.o", mwrankcc.outfile)
+    dict_insert_src(gcceso_dict, tempdir+"/devel/sage/build/temp/sage/libs/mwrank/mwrank.o", mwrankcc.outfile)
     #Setup dependencies for mwrank if needed
     try:
-        gcceso_dict[env.options['SAGE_ROOT'] + "/devel/sage/build/temp/sage/libs/mwrank/mwrank.o"].generate_action(env).dep_register(mwrankcc.generate_action(env))
+        gcceso_dict[tempdir + "/devel/sage/build/temp/sage/libs/mwrank/mwrank.o"].generate_action(env).dep_register(mwrankcc.generate_action(env))
     except KeyError:
         pass
 

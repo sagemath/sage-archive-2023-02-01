@@ -210,9 +210,6 @@ gap
 gnutls-cli
 gnutls-cli-debug
 gnutls-serv
-dsage_server.py
-dsage_setup.py
-dsage_worker.py
 ipcluster
 ipcontroller
 ipengine

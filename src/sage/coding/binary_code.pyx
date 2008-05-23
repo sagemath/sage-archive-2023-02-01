@@ -187,6 +187,8 @@ def test_word_perms(t_limit=5.0):
             print "ERROR3c"
         dealloc_word_perm(g)
         dealloc_word_perm(h)
+        dealloc_word_perm(i)
+    sage_free(arr)
 
 cdef WordPermutation *create_word_perm(object list_perm):
     r"""
@@ -242,7 +244,7 @@ cdef WordPermutation *create_array_word_perm(int *array, int start, int degree):
     """
     Create a word permutation of a given degree from a C array, starting at start.
     """
-    cdef int i, j, parity, comb, words_per_chunk, num_chunks = 1
+    cdef int i, j, cslim, parity, comb, words_per_chunk, num_chunks = 1
     cdef codeword *images_i, image
     cdef WordPermutation *word_perm = <WordPermutation *> sage_malloc( sizeof(WordPermutation) )
     if word_perm is NULL:
@@ -267,7 +269,8 @@ cdef WordPermutation *create_array_word_perm(int *array, int start, int degree):
             sage_free(word_perm)
             raise RuntimeError("Error allocating memory.")
         word_perm.images[i] = images_i
-        for j from 0 <= j < chunk_size:
+        cslim = min(chunk_size, degree - i*chunk_size)
+        for j from 0 <= j < cslim:
             images_i[1 << j] = (<codeword>1) << array[start + chunk_size*i + j]
         image = <codeword> 0
         parity = 0
@@ -471,6 +474,7 @@ def test_expand_to_ortho_basis(B=None):
         k += 1
     for i from 0 <= i < k:
         print ''.join(reversed(Integer(output[i]).binary().zfill(C.ncols)))
+    sage_free(output)
 
 cdef codeword *expand_to_ortho_basis(BinaryCode B, int n):
     r"""
@@ -489,7 +493,7 @@ cdef codeword *expand_to_ortho_basis(BinaryCode B, int n):
     cdef codeword n_gate = (~<codeword>0) >> ( (sizeof(codeword)<<3) - n)
     cdef int i, j, m, k = B.nrows, dead, d
     cdef WordPermutation *wp
-    basis = <codeword *> sage_malloc( n * sizeof(codeword) )
+    basis = <codeword *> sage_malloc( (n+1) * sizeof(codeword) )
     if basis is NULL:
         raise MemoryError()
     for i from 0 <= i < k:
@@ -3151,6 +3155,8 @@ cdef class BinaryCodeClassifier:
                 if self.Omega is not NULL: sage_free(self.Omega)
                 if self.W is not NULL: sage_free(self.W)
                 raise MemoryError("Memory.")
+        for i from 0 <= i < self.Phi_size * self.L:
+            self.Omega[i] = 0
         word_gamma = self.w_gamma
         alpha = self.alpha # think of alpha as of length exactly nwords + ncols
         Phi   = self.Phi
@@ -4035,6 +4041,8 @@ cdef class BinaryCodeClassifier:
         sage_free(B_can_lab)
         sage_free(parent_generators)
         sage_free(orbit_checks)
+        sage_free(ortho_basis)
+        sage_free(temp_basis)
         return output
 
 

@@ -83,12 +83,10 @@ def help(obj):
     TESTS:
         sage: import numpy.linalg
         sage: sage.server.support.help(numpy.linalg.norm)
-        <html><table notruncate notracebacks bgcolor="#386074" cellpadding=10 cellspacing=10><tr><td bgcolor="#f5f5f5"><font color="#37546d">
-        Help on function norm in module numpy.linalg.linalg:
-        ...
-        For values ord < 0, the result is, strictly speaking, not a
-        mathematical 'norm', but it may still be useful for numerical purposes.
-        </font></tr></td></table></html>
+        <html><table notracebacks bgcolor="#386074" cellpadding=10 cellspacing=10><tr><td bgcolor="#f5f5f5"><font color="#37546d">
+        &nbsp;&nbsp;&nbsp;<a target='_new' href='cell://docs-....html'>Click to open help window</a>&nbsp;&nbsp;&nbsp;
+        <br></font></tr></td></table></html>
+
     """
     from pydoc import resolve, html, describe
     import sage.server.notebook.interact as interact

@@ -163,9 +163,10 @@ fi
 rm -rf $SCRIPTS
 mkdir $SCRIPTS
 chmod +x sage-*
+chmod +x dsage-*
 rm sage-*~
 
-cp -pr sage-* .hg* $SCRIPTS/
+cp -pr dsage-* sage-* .hg* $SCRIPTS/
 cp -p $SAGE_ROOT/sage-python $SCRIPTS/
 cp -p $SAGE_ROOT/*.txt $SCRIPTS/
 cp -pr $SAGE_ROOT/ipython $SCRIPTS/

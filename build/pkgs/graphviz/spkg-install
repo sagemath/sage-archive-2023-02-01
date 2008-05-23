@@ -1,23 +1,39 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
 
 cd src
 
-./configure --prefix="$SAGE_LOCAL" --enable-shared=yes --with-pnglibdir="$SAGE_LOCAL/lib" --with-pngincludedir="$SAGE_LOCAL/include/libpng12"
+LDFLAGS=-L$SAGE_LOCAL/lib; export LDFLAGS
+CPPFLAGS=-I$SAGE_LOCAL/include; export CPPFLAGS
+
+if [ "$UNAME" = Darwin ]; then
+  echo "Building OSX version"
+  ./configure   --with-gdincludedir=$SAGE_LOCAL/lib --with-gdlibdir=$SAGE_LOCAL/include --prefix="$SAGE_LOCAL" --enable-shared=yes
+else
+  echo "Building non-OSX version"
+  ./configure   --with-gdincludedir=$SAGE_LOCAL/lib --with-gdlibdir=$SAGE_LOCAL/include --prefix="$SAGE_LOCAL" --enable-shared=yes --enable-shared=yes --with-pnglibdir="$SAGE_LOCAL/lib" --with-pngincludedir="$SAGE_LOCAL/include/libpng12"
+fi
+
 if [ $? -ne 0 ]; then
-    echo "Error configuring libpng"
+    echo "Error configuring Graphviz"
     exit 1
 fi
 
 make
 
 if [ $? -ne 0 ]; then
-    echo "Error building libpng"
+    echo "Error building Graphviz"
     exit 1
 fi
 
 make install
 
 if [ $? -ne 0 ]; then
-    echo "Error installing libpng"
+    echo "Error installing Graphviz"
     exit 1
 fi

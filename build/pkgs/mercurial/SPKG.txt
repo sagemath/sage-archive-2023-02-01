@@ -1,23 +1,22 @@
-* 20071219 (Michael Abshoff)
-   + put relevant files in newly created hg repo
-   + updated SPKG.txt :)
-   + remove $SAGE_LOCAL/lib/python[2.5] dead links (#1175)
+= mercurial =
 
-* 20071020 (Carl Witty):
-   + Upgraded to mercurial 0.9.5.
-   + Modified mercurial/util.py to skip looking in /etc/mercurial .
 
-* 20070106 (William Stein):
-   + Modified mercurial/util.py to more intelligently choose the encoding,
-     since this was crashing the install on my sage.math chroot jail.
-   + no changes from default repo, except that there's a sage
-     subdirectory with a better .css file that gets copied to
-     templates/static during the install.  And another
-     that gets copied to templates/.
-   + Ran this command in the templates directory:
+== Changelog ==
 
-      replace ">manifest<" ">browse all files<" *.tmpl
+=== mercurial-0.9.5.p1 (Michael Abshoff, May 22nd, 2008) ===
+ * add 64 bit OSX build support
 
-    I mean, it's *incredibly* unclear what the hecke the
-    "manifest" button is supposed to do.
+=== mercurial-0.9.5.p0 (Michael Abshoff, Dev. 19th, 2007) ===
+ * put relevant files in newly created hg repo
+ * updated SPKG.txt :)
+ * remove $SAGE_LOCAL/lib/python[2.5] dead links (#1175)
+
+=== mercurial-0.9.5 (Carl Witty, Oct. 20th, 2007) ===
+ * Upgraded to mercurial 0.9.5.
+ * Modified mercurial/util.py to skip looking in /etc/mercurial .
+
+=== 20070106 (William Stein) ===
+ * Modified mercurial/util.py to more intelligently choose the encoding, since this was crashing the install on my sage.math chroot jail.
+ * no changes from default repo, except that there's a sage subdirectory with a better .css file that gets copied to templates/static during the install.  And another that gets copied to templates/.
+ * Ran this command in the templates directory: "replace ">manifest<" ">browse all files<" *.tmpl". I mean, it's *incredibly* unclear what the hecke the "manifest" button is supposed to do.
 

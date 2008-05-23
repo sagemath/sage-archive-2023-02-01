@@ -361,12 +361,12 @@ def gen_laguerre(n,a,x):
     return sage_eval(maxima.eval('gen_laguerre(%s,%s,x)'%(ZZ(n),a)), locals={'x':x})
 
 def gen_legendre_P(n,m,x):
-    """
+    r"""
     Returns the generalized (or associated) Legendre function of the
-    first kind for integers n > -1, m > -1.
+    first kind for integers $n > -1, m > -1$.
 
     The awkward code for when m is odd and > 1 results from the fact that Maxima is
-    happy with, for example, (1 - t^2)^3/2, but SAGE is not.  For these cases the
+    happy with, for example, $(1 - t^2)^3/2$, but SAGE is not.  For these cases the
     function is computed from the (m-1)-case using one of the recursions satisfied
     by the Legendre functions.
 

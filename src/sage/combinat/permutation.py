@@ -44,6 +44,7 @@ from combinat import CombinatorialClass, CombinatorialObject, catalan_number
 import copy
 from necklace import Necklaces
 from sage.misc.misc import uniq
+from backtrack import GenericBacktracker
 
 permutation_options = {'display':'list', 'mult':'l2r'}
 
@@ -3949,30 +3950,50 @@ class StandardPermutations_avoiding_generic(CombinatorialClass):
 
     def iterator(self):
         """
-        Note that this uses an exteremely inefficient algorithm and should be
-        improved.
-
         EXAMPLES:
             sage: Permutations(3, avoiding=[[2, 1, 3],[1,2,3]]).list()
-            [[1, 3, 2], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+            [[1, 3, 2], [3, 1, 2], [2, 3, 1], [3, 2, 1]]
 
         """
-        for p in StandardPermutations_n(self.n):
-            ls = map(len, self.a)
-            found = False
-            for l in ls:
-                for pos in subword.Subwords(range(self.n),l):
-                    if to_standard(map(lambda z: p[z] , pos)) in self.a:
-                        found = True
-                        break
-                if found:
-                    break
+        return iter(PatternAvoider(self.n, self.a))
 
-            if found:
-                continue
-            else:
-                yield p
 
+class PatternAvoider(GenericBacktracker):
+    def __init__(self, n, patterns):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.permutation import PatternAvoider
+            sage: p = PatternAvoider(4, [[1,2,3]])
+            sage: loads(dumps(p))
+            <sage.combinat.permutation.PatternAvoider object at 0x...>
+
+        """
+        GenericBacktracker.__init__(self, [], 1)
+        self._n = n
+        self._patterns = patterns
+
+    def _rec(self, obj, state):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.permutation import PatternAvoider
+            sage: p = PatternAvoider(4, [[1,2]])
+            sage: list(p._rec([1], 2))
+            [([2, 1], 3, False)]
+
+        """
+        i = state
+
+        if state != self._n:
+            new_state = state + 1
+            yld = False
+        else:
+            new_state = None
+            yld = True
+
+        for pos in reversed(range(len(obj)+1)):
+            new_obj = Permutation(obj[:pos] + [i] + obj[pos:])
+            if all( not new_obj.has_pattern(p) for p in self._patterns):
+                yield new_obj, new_state, yld
 
 
 
@@ -4101,7 +4122,7 @@ def Permutations(n=None,k=None, **kwargs):
         sage: p.count()
         88
         sage: p.random_element()
-        [1, 3, 4, 5, 2]
+        [5, 1, 2, 4, 3]
 
     """
 

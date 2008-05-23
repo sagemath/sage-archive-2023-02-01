@@ -2,7 +2,8 @@ from sage.combinat.combinat import CombinatorialObject, CombinatorialClass
 import sage.combinat.word as word
 from sage.combinat.combination import Combinations
 from sage.rings.all import QQ, PolynomialRing, prod
-
+from sage.combinat.backtrack import GenericBacktracker
+import copy
 
 class LatticeDiagram(CombinatorialObject):
     def boxes(self):
@@ -137,6 +138,37 @@ class LatticeDiagram(CombinatorialObject):
         r = max(self)
         return LatticeDiagram([r-i for i in self])
 
+    def boxes_same_and_lower_right(self, ii, jj):
+        """
+        Returns a list of the boxes that are in the same row as self, and in the
+        row below self (including the basement) that are strictly to the
+        right of self.
+
+        EXAMPLES:
+            sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
+            sage: a = a.shape()
+            sage: a.boxes_same_and_lower_right(1,1)
+            [(2, 1), (3, 1), (6, 1), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0)]
+            sage: a.boxes_same_and_lower_right(1,2)
+            [(3, 2), (6, 2), (2, 1), (3, 1), (6, 1)]
+            sage: a.boxes_same_and_lower_right(3,3)
+            [(6, 2)]
+            sage: a.boxes_same_and_lower_right(2,3)
+            [(3, 3), (3, 2), (6, 2)]
+        """
+        res = []
+        #Add all of the boxes in the same row
+        for i in range(1, len(self)+1):
+            if self[i] >= jj and i != ii:
+                res.append((i, jj))
+
+        for i in range(ii+1, len(self)+1):
+            if self[i] >= jj - 1:
+                res.append((i, jj - 1))
+
+        return res
+
+
 class AugmentedLatticeDiagramFilling(CombinatorialObject):
     def __init__(self, l):
         """
@@ -212,12 +244,18 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             sage: a.are_attacking(1,1,3,2)
             False
         """
+        #If the two boxes are at the same height,
+        #then they are attacking
         if j == jj:
             return True
 
+        #Make it so that the lower boxe is in position i,j
         if jj < j:
             i,j,ii,jj = ii,jj,i,j
 
+        #If the lower box is one row below and
+        #strictly to the right, then they are
+        #attacking.
         if j == jj - 1 and i > ii:
             return True
 
@@ -269,6 +307,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             if self.are_attacking(i,j,ii,jj):
                 res.append( ((i,j),(ii,jj)) )
         return res
+
 
     def is_non_attacking(self):
         """
@@ -554,18 +593,120 @@ class NonattackingFillings_shape(CombinatorialClass):
             sage: len(_)
             12
 
+        TESTS:
+            sage: NonattackingFillings([3,2,1,1]).count()
+            3
+            sage: NonattackingFillings([3,2,1,2]).count()
+            4
+            sage: NonattackingFillings([1,2,3]).count()
+            12
+            sage: NonattackingFillings([2,2,2]).count()
+            1
+            sage: NonattackingFillings([1,2,3,2]).count()
+            24
+
         """
-        k = len(self._shape)
-        n = self._shape.size()
-        for p in word.Words(k,n):
-            c = 0
-            res = []
-            for i in range(1, len(self._shape)+1):
-                res.append(p[c:c+self._shape[i]])
-                c += self._shape[i]
-            x = AugmentedLatticeDiagramFilling(res)
-            if x.is_non_attacking():
-                yield x
+        if sum(self._shape) == 0:
+            yield AugmentedLatticeDiagramFilling([ [] for s in self._shape ])
+            return
+
+        for z in NonattackingBacktracker(self._shape):
+            yield AugmentedLatticeDiagramFilling(z)
+
+
+class NonattackingBacktracker(GenericBacktracker):
+    def __init__(self, shape):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.sf.ns_macdonald import NonattackingBacktracker
+            sage: n = NonattackingBacktracker(LatticeDiagram([0,1,2]))
+            sage: n._ending_position
+            (3, 2)
+            sage: n._initial_state
+            (2, 1)
+        """
+        self._shape = shape
+        self._n = sum(shape)
+        self._initial_data = [ [None]*s for s in shape ]
+
+        #The ending position will be at the highest box
+        #which is farthest right
+        ending_row = max(shape)
+        ending_col = len(shape) - list(reversed(list(shape))).index(ending_row)
+        self._ending_position = (ending_col, ending_row)
+
+        #Get the lowest box that is farthest left
+        starting_row = 1
+        nonzero = [i for i in shape if i != 0]
+        starting_col = list(shape).index(nonzero[0]) + 1
+
+        GenericBacktracker.__init__(self, self._initial_data, (starting_col, starting_row))
+
+    def _rec(self, obj, state):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.sf.ns_macdonald import NonattackingBacktracker
+            sage: n = NonattackingBacktracker(LatticeDiagram([0,1,2]))
+            sage: len(list(n.iterator()))
+            12
+            sage: obj = [ [], [None], [None, None]]
+            sage: state = 2, 1
+            sage: list(n._rec(obj, state))
+            [([[], [1], [None, None]], (3, 1), False),
+             ([[], [2], [None, None]], (3, 1), False)]
+
+        """
+        #We need to set the i,j^th entry.
+        i, j = state
+
+        #Get the next state
+        new_state = self.get_next_pos(i, j)
+        yld = True if new_state is None else False
+
+        for k in range(1, len(self._shape)+1):
+            #We check to make sure that k does not
+            #violate any of the attacking conditions
+            if j == 1 and k > i:
+                continue
+
+            if any( obj[ii-1][jj-1] == k for ii, jj in
+                    self._shape.boxes_same_and_lower_right(i, j) if jj != 0):
+                continue
+
+            #Fill in the in the i,j box with k+1
+            obj[i-1][j-1] = k
+
+            #Yield the object
+            yield copy.deepcopy(obj), new_state, yld
+
+
+    def get_next_pos(self, ii, jj):
+        """
+        EXAMPLES:
+            sage: from sage.combinat.sf.ns_macdonald import NonattackingBacktracker
+            sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
+            sage: n = NonattackingBacktracker(a.shape())
+            sage: n.get_next_pos(1, 1)
+            (2, 1)
+            sage: n.get_next_pos(6, 1)
+            (1, 2)
+            sage: n = NonattackingBacktracker(LatticeDiagram([2,2,2]))
+            sage: n.get_next_pos(3, 1)
+            (1, 2)
+        """
+        if (ii, jj) == self._ending_position:
+            return None
+
+        for i in range(ii+1, len(self._shape)+1):
+            if self._shape[i] >= jj:
+                return i, jj
+
+        for i in range(1, ii+1):
+            if self._shape[i] >= jj + 1:
+                return i, jj + 1
+
+        raise ValueError, "we should never be here"
+
 
 def _check_muqt(mu, q, t):
     """

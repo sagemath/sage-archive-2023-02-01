@@ -54,6 +54,7 @@ fourier
 fourier_gmp
 fplll
 freetype-config
+frobby
 fsdump.py
 fsoids.py
 fsrefs.py

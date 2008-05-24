@@ -397,7 +397,7 @@ class GraphGenerators():
 
         A Circular ladder graph is a ladder graph that is connected at the
         ends, i.e.: a ladder bent around so that top meets bottom.  Thus it
-        can be described as two parrallel cycle graphs connected at each
+        can be described as two parallel cycle graphs connected at each
         corresponding node pair.
 
         This constructor depends on NetworkX numeric labels.

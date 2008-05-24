@@ -3774,7 +3774,7 @@ cdef class BinaryCodeClassifier:
 
         """
         cdef BinaryCode m
-        cdef codeword *ortho_basis, *B_can_lab, *m_can_lab, current, swap
+        cdef codeword *ortho_basis, *B_can_lab, current, swap
         cdef codeword word, temp, gate, nonzero_gate, orbit, bwd, k_gate
         cdef codeword *temp_basis, swap, *orbit_checks, orb_chx_size, orb_chx_shift, radix_gate
         cdef WordPermutation *gwp, *hwp, *can_lab, *can_lab_inv
@@ -3794,7 +3794,7 @@ cdef class BinaryCodeClassifier:
         aut_gp_gens, labeling, size, base = self._aut_gp_and_can_label(B)
         B_can_lab = <codeword *> sage_malloc(B.nrows * sizeof(codeword))
         can_lab = create_word_perm(labeling[:B.ncols])
-        if B_can_lab is NULL or m_can_lab is NULL or can_lab is NULL:
+        if B_can_lab is NULL or can_lab is NULL:
             sage_free(ortho_basis)
             if B_can_lab is not NULL:
                 sage_free(B_can_lab)

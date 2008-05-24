@@ -590,11 +590,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
             sage: P.random_element(2, 5, choose_degree=True)
             -1/4*x*y - x - 1/14*z - 1
-            sage: P.random_element(0, 1)
-            (0, 0, 0)
-
-            sage: P.random_element(2, 0)
-            0
 
             stacked rings:
 
@@ -616,23 +611,36 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             [-13*z     0]
             [   -z    -3]
 
+            sage: P.random_element(0, 1)
+            1
+
+            sage: P.random_element(2, 0)
+            0
+
         """
         d,t = degree,terms
-
-        from sage.combinat.integer_vector import IntegerVectors
-        from sage.rings.arith import binomial
 
         k = self.base_ring()
         n = self.ngens()
 
-        counts, total = self._precomp_counts(n, d)
-
-        #total or d is 0. Just return
-        if total == 0 or d == 0:
-            return tuple([0]*n)
-
         if t < 0:
             raise TypeError, "Cannot compute polynomial with a negative number of terms."
+        elif t == 0:
+            return self._zero_element
+        if d == 0:
+            if t != 1:
+                raise TypeError, "Cannot compute polynomial with more terms than exist."
+            return k.random_element(**kwargs)
+
+
+        from sage.combinat.integer_vector import IntegerVectors
+        from sage.rings.arith import binomial
+
+        counts, total = self._precomp_counts(n, d)
+
+        #total is 0. Just return
+        if total == 0:
+            return self._zero_element
 
         elif t < total/2:
             # we choose random monomials if t < total/2 because then we

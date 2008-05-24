@@ -1457,7 +1457,7 @@ class Worksheet:
             sage: W = nb.create_new_worksheet('Test', 'sage')
             sage: W.edit_save('Sage\n{{{\n3^20\n}}}')
             sage: W.cell_list()[0].evaluate()
-            sage: W.check_comp()
+            sage: W.check_comp()     # random output -- depends on computer speed
             ('d', Cell 0; in=3^20, out=
             3486784401
             )

@@ -3,7 +3,7 @@ Section: math
 Priority: extra
 Maintainer: Tim Abbott <tabbott@mit.edu>
 Build-Depends: @cdbs@, libpng12-dev
-Standards-Version: 3.7.2
+Standards-Version: 3.7.3
 
 Package: tachyon
 Architecture: any
@@ -26,11 +26,32 @@ Description: Parallel/Multiprocessor Ray Tracing Software
  Tachyon will indeed incorporate more features, but with a continued
  emphasis on rendering performance.
 
+Package: libtachyon-0.98
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Parallel/Multiprocessor Ray Tracing Software, shared library
+ Tachyon is a portable, high performance parallel ray tracing system
+ supporting MPI and multithreaded implementations.  Tachyon is built
+ as a C callable library, which can be used with the included demo
+ programs or within your own application.  The distribution also
+ includes a simple scene file parser front-end which reads a few
+ different formats.
+ .
+ Tachyon implements all of the basic geometric primitives such as
+ triangles, planes, spheres, cylinders, etc.  Some of the goals in
+ developing Tachyon were to make it fast and for it to parallelize
+ well.  These are what set it apart from more full-featured programs
+ like POV-Ray, Rayshade, and others.  Tachyon supports enough features
+ to be an excellent alternative to slower programs for demanding
+ animation and scientific visualization tasks.  As time goes on,
+ Tachyon will indeed incorporate more features, but with a continued
+ emphasis on rendering performance.
+
 Package: libtachyon-dev
 Section: libdevel
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Parallel/Multiprocessor Ray Tracing Software
+Description: Parallel/Multiprocessor Ray Tracing Software, development files
  Tachyon is a portable, high performance parallel ray tracing system
  supporting MPI and multithreaded implementations.  Tachyon is built
  as a C callable library, which can be used with the included demo

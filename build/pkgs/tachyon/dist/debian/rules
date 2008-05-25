@@ -6,8 +6,9 @@ include /usr/share/cdbs/1/rules/patchsys-quilt.mk
 
 #DEB_MAKE_INSTALL_TARGET =
 
-DEB_MAKE_INVOKE += -C unix
+DEB_MAKE_INVOKE += -C unix MPIDIR=/usr
 
+DEB_MAKE_BUILD_TARGET=linux-thr
 ifeq ($(DEB_ARCH),i386)
 DEB_MAKE_BUILD_TARGET=linux-thr
 endif
@@ -17,5 +18,3 @@ endif
 ifeq ($(DEB_ARCH),amd64)
 DEB_MAKE_BUILD_TARGET=linux-64-thr
 endif
-
-

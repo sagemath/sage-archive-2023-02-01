@@ -1,1 +1,2 @@
 compile/*/tachyon usr/bin
+debian/tachyon.1 usr/share/man/man1

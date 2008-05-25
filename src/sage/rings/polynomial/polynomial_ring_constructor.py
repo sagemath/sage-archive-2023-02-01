@@ -387,6 +387,79 @@ def _multi_variate(base_ring, names, n, sparse, order):
     _save_in_cache(key, R)
     return R
 
+def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
+    """
+    Construct a boolean polynomial ring with the following
+    parameters:
+
+    INPUT:
+        n -- number of variables (an integer > 1)
+        names -- names of ring variables, may be a string of
+                 list/tuple
+        order -- term order (default: lex)
+
+    EXAMPLES:
+        sage: R.<x, y, z> = BooleanPolynomialRing() # indirect doctest
+        sage: R
+        Boolean PolynomialRing in x, y, z
+
+        sage: p = x*y + x*z + y*z
+        sage: x*p
+        x*y*z + x*y + x*z
+
+        sage: R.term_order()
+        Lexicographic term order
+
+        sage: R = BooleanPolynomialRing(5,'x',order='deglex(3),deglex(2)')
+        sage: R.term_order()
+        deglex(3),deglex(2) term order
+
+        sage: R = BooleanPolynomialRing(3,'x',order='degrevlex')
+        sage: R.term_order()
+        Degree reverse lexicographic term order
+
+    TESTS:
+        sage: P.<x,y> = BooleanPolynomialRing(2,order='degrevlex')
+        sage: x > y
+        True
+
+        sage: P.<x0, x1, x2, x3> = BooleanPolynomialRing(4,order='degrevlex(2),degrevlex(2)')
+        sage: x0 > x1
+        True
+        sage: x2 > x3
+        True
+    """
+
+    if n is None and names is not None:
+        if isinstance(names, (tuple, list)):
+            n = len(names)
+
+    names = normalize_names(n, names)
+
+    from sage.rings.polynomial.term_order import TermOrder
+    from sage.rings.polynomial.pbori import set_cring
+    order = TermOrder(order, n)
+
+    if isinstance(names, list):
+        names = tuple(names)
+
+    elif isinstance(names, str):
+        if ',' in names:
+            names = tuple(names.split(','))
+
+    key = ("pbori", names, n, order)
+    R = _get_from_cache(key)
+    if not R is None:
+        set_cring(R)
+        return R
+
+    from sage.rings.polynomial.pbori import BooleanPolynomialRing
+    R = BooleanPolynomialRing(n, names, order)
+
+    _save_in_cache(key, R)
+    return R
+
+
 #########################################################################################
 # END (Factory function for making polynomial rings)
 #########################################################################################

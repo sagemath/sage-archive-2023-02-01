@@ -35,7 +35,7 @@ from sage.rings.polynomial.multi_polynomial_element import degree_lowest_rationa
 from sage.rings.polynomial.convolution import convolution
 
 # Boolean Polynomial Rings
-from sage.rings.polynomial.pbori import BooleanPolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import BooleanPolynomialRing_constructor as BooleanPolynomialRing
 
 from sage.rings.polynomial.multi_polynomial_ideal import is_MPolynomialIdeal
 

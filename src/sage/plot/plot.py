@@ -1209,6 +1209,9 @@ class Graphics(SageObject):
                             set the aspect ratio of the frame, use
                             figsize.
             axes         -- (default: True)
+            axes_labels  -- (default: None) list (or tuple) of two strings;
+                            the first is used as the label for the horizontal
+                            axis, and the second for the vertical axis.
             fontsize     -- (default: current setting -- 10) positive
                             integer; used for axes labels; if you make
                             this very large, you may have to increase
@@ -1225,11 +1228,15 @@ class Graphics(SageObject):
 
             sage: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
 
-        You can either turn off the drawing of the axes:
+        You can turn off the drawing of the axes:
 
             sage: show(plot(sin,-4,4), axes=False)
 
-        Or you can turn on the drawing of a frame around the plots:
+        You can also label the axes:
+
+            sage: show(plot(sin,-4,4), axes_labels=('x','y'))
+
+        You can turn on the drawing of a frame around the plots:
 
             sage: show(plot(sin,-4,4), frame=True)
 
@@ -1248,6 +1255,7 @@ class Graphics(SageObject):
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
         self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes,
+                  axes_labels=axes_labels,
                   frame=frame, fontsize=fontsize,
                   aspect_ratio=aspect_ratio)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))

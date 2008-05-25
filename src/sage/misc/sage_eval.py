@@ -10,21 +10,15 @@ Evaluating a String in SAGE
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from preparser import preparse
+from copy import copy
+import preparser
 
-def sage_eval(source, locals={}):
+def sage_eval(source, locals=None, cmds='', preparse=True):
     r"""
-    Obtain a \SAGE object from the input string by evaluate it using
-    SAGE.  This means calling eval after preparsing and with
+    Obtain a \SAGE object from the input string by evaluating it using
+    Sage.  This means calling eval after preparsing and with
     globals equal to everything included in the scope of
     \code{from sage.all import *}.).
-
-    If the object has an _sage_ method it is called and the value is
-    returned.  Otherwise str is called on the object, and all
-    preparsing is applied and the resulting expression is evaluated in the
-    context of \code{from sage.all import *}.  To evaluate the
-    expression with certain variables set, use the locals argument,
-    which should be a dictionary.
 
     EXAMPLES:
     This example illustrates that preparsing is applied.
@@ -33,26 +27,17 @@ def sage_eval(source, locals={}):
         sage: sage_eval('2^3')
         8
 
-    Note that you have explicitly define variables and pass
+    However, preparsing can be turned off.
+
+        sage: sage_eval('2^3', preparse=False)
+        1
+
+    Note that you can explicitly define variables and pass
     them as the second option:
 
         sage: x = PolynomialRing(RationalField(),"x").gen()
         sage: sage_eval('x^2+1', locals={'x':x})
         x^2 + 1
-
-    This illustrates interfaces:
-        sage: f = gp('2/3')
-        sage: type(f)
-        <class 'sage.interfaces.gp.GpElement'>
-        sage: f._sage_()
-        2/3
-        sage: type(f._sage_())
-        <type 'sage.rings.rational.Rational'>
-        sage: a = gap(939393/2433)
-        sage: a._sage_()
-        313131/811
-        sage: type(a._sage_())
-        <type 'sage.rings.rational.Rational'>
 
     This example illustrates that evaluation occurs in the context of
     \code{from sage.all import *}.  Even though bernoulli has been
@@ -83,6 +68,31 @@ def sage_eval(source, locals={}):
         sage: sage_eval('4/3 + x',  locals={'x':25})
         79/3
 
+    You can also specify a sequence of commands to be run before the
+    expression is evaluated:
+        sage: sage_eval('p', cmds='K.<x> = QQ[]\np = x^2 + 1')
+        x^2 + 1
+
+    If you give commands to execute and a dictionary of variables, then
+    the dictionary will be modified by assignments in the commands:
+        sage: vars = {}
+        sage: sage_eval('None', cmds='y = 3', locals=vars)
+        sage: vars['y'], parent(vars['y'])
+        (3, Integer Ring)
+
+    You can also specify the object to evaluate as a tuple.  A 2-tuple
+    is assumed to be a pair of a command sequence and an expression;
+    a 3-tuple is assumed to be a triple of a command sequence, an expression,
+    and a dictionary holding local variables.  (In this case, the given
+    dictionary will not be modified by assignments in the commands.)
+        sage: sage_eval(('f(x) = x^2', 'f(3)'))
+        9
+        sage: vars = {'rt2': sqrt(2.0)}
+        sage: sage_eval(('rt2 += 1', 'rt2', vars))
+        2.41421356237309
+        sage: vars['rt2']
+        1.41421356237310
+
     This example illustrates how \code{sage_eval} can be useful
     when evaluating the output of other computer algebra systems.
 
@@ -101,15 +111,34 @@ def sage_eval(source, locals={}):
 
     Here you can see eval simply will not work but \code{sage_eval} will.
     """
+    if isinstance(source, (list, tuple)):
+        cmds = source[0]
+        if len(source) > 2:
+            locals = copy(source[2])
+        source = source[1]
+
     if not isinstance(source, basestring):
         raise TypeError, "source must be a string."
 
+    if locals is None:
+        locals = {}
+
     import sage.all
-    p = preparse(source)
+    if len(cmds):
+        cmd_seq = cmds + '\n_sage_eval_returnval_ = ' + source
+        if preparse:
+            cmd_seq = preparser.preparse_file(cmd_seq)
+    else:
+        if preparse:
+            source = preparser.preparse(source)
     try:
-        return eval(p, sage.all.__dict__, locals)
+        if len(cmds):
+            exec cmd_seq in sage.all.__dict__, locals
+            return locals['_sage_eval_returnval_']
+        else:
+            return eval(source, sage.all.__dict__, locals)
     except SyntaxError, msg:
-        raise SyntaxError, "%s\nError using SAGE to evaluate '%s'"%(msg, p)
+        raise SyntaxError, "%s\nError using SAGE to evaluate '%s'"%(msg, cmd_seq if len(cmds) else source)
 
 
 
@@ -118,7 +147,12 @@ def sageobj(x, vars=None):
     Return a native SAGE object associated to x, if possible
     and implemented.
 
-    If x is a string it is evaluated with SAGE preparsing.
+    If the object has an _sage_ method it is called and the value is
+    returned.  Otherwise str is called on the object, and all
+    preparsing is applied and the resulting expression is evaluated in the
+    context of \code{from sage.all import *}.  To evaluate the
+    expression with certain variables set, use the vars argument,
+    which should be a dictionary.
 
     EXAMPLES:
         sage: type(sageobj(gp('34/56')))
@@ -130,6 +164,20 @@ def sageobj(x, vars=None):
         512
         sage: type(k)
         <type 'sage.rings.integer.Integer'>
+
+    This illustrates interfaces:
+        sage: f = gp('2/3')
+        sage: type(f)
+        <class 'sage.interfaces.gp.GpElement'>
+        sage: f._sage_()
+        2/3
+        sage: type(f._sage_())
+        <type 'sage.rings.rational.Rational'>
+        sage: a = gap(939393/2433)
+        sage: a._sage_()
+        313131/811
+        sage: type(a._sage_())
+        <type 'sage.rings.rational.Rational'>
     """
     try:
        return x._sage_()

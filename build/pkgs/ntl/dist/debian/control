@@ -1,6 +1,6 @@
 Source: ntl
 Section: math
-Priority: extra
+Priority: optional
 Maintainer: Tim Abbott <tabbott@mit.edu>
 Build-Depends: cdbs (>= 0.4.23-1.1), debhelper (>= 5), autoconf, quilt, patchutils (>= 0.2.25), cdbs (>= 0.4.27-1), libgmp3-dev
 Homepage: http://www.shoup.net/ntl/

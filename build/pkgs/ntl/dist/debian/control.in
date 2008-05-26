@@ -1,6 +1,6 @@
 Source: ntl
 Section: math
-Priority: extra
+Priority: optional
 Maintainer: Tim Abbott <tabbott@mit.edu>
 Build-Depends: @cdbs@, libgmp3-dev
 Homepage: http://www.shoup.net/ntl/

@@ -3,7 +3,8 @@ Section: math
 Priority: extra
 Maintainer: Tim Abbott <tabbott@mit.edu>
 Build-Depends: @cdbs@, libpari-dev, libmpfr-dev
-Standards-Version: 3.7.2
+Homepage: http://pmmac03.math.uwaterloo.ca/~mrubinst/L_function_public/CODE/
+Standards-Version: 3.7.3
 
 Package: lcalc
 Architecture: any
@@ -14,7 +15,3 @@ Description: A program for calculating with L-functions
  zeta function, the L-function of the Ramanujan delta
  function, and L-functions of elliptic curves defined
  over the rationals.
- .
- This version of lcalc is heavily modified for SAGE.
- .
- Homepage: http://pmmac03.math.uwaterloo.ca/~mrubinst/L_function_public/CODE/

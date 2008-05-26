@@ -1,5 +1,5 @@
-lcalc (0.0.1-1) unstable; urgency=low
+lcalc (0.0.20080205-1) unstable; urgency=low
 
-  * Initial release.
+  * Initial release (Closes: #480088).
 
- -- Tim Abbott <tabbott@mit.edu>  Thu,  3 Jan 2008 22:18:34 -0500
+ -- Tim Abbott <tabbott@mit.edu>  Sun, 25 May 2008 22:39:29 -0400

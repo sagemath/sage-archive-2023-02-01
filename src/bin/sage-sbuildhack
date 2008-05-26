@@ -19,4 +19,4 @@ EOF
 if [ -z "$dist" ] || [ -z "$arch" ]; then usage; fi
 perl -I"$(dirname "$0")" -MSbuildHack \
 	/usr/bin/sbuild --binNMU=171717 --make-binNMU="Build with sbuild." \
-	-d "$dist" --arch="$arch" -v "$@"
+	-d "$dist" --arch="$arch" --apt-update -v "$@"

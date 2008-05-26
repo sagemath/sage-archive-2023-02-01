@@ -13,11 +13,13 @@ mv src "$DIRECTORY"
 mv dist/debian "$DIRECTORY/"
 sage-debsource "$DIRECTORY"
 sage-sbuildhack "$DEBIAN_RELEASE" *.dsc
+sage-sbuildhack lenny-amd64 *.dsc
 DISTRO=$(echo "$DEBIAN_RELEASE" | cut -f1 -d-)
 ARCHITECTURE=$(echo "$DEBIAN_RELEASE" | cut -f2 -d-)
 if [ -n "$SAGE_REPO" ]; then
     reprepro --ignore=wrongdistribution -b "$SAGE_REPO" include "$DISTRO" *_source.changes
     reprepro --ignore=wrongdistribution -b "$SAGE_REPO" include "$DISTRO" *_"$ARCHITECTURE.changes"
+    reprepro --ignore=wrongdistribution -b "$SAGE_REPO" include "$DISTRO" *_"amd64.changes"
 fi
 mv *.dsc *.changes *.build *.deb *.tar.gz *.diff.gz "$SAGE_ROOT/.."
 echo "Debian Build complete"

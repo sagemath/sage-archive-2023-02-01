@@ -2,8 +2,9 @@ Source: genus2reduction
 Section: math
 Priority: extra
 Maintainer: Tim Abbott <tabbott@mit.edu>
+Homepage: http://www.math.u-bordeaux.fr/~liu/G2R/
 Build-Depends: @cdbs@, libpari-dev, libgmp3-dev
-Standards-Version: 3.7.2
+Standards-Version: 3.7.3
 
 Package: genus2reduction
 Architecture: any
@@ -25,5 +26,3 @@ Description: Conductor and Reduction Types for Genus 2 Curves
  of J(C) at p.
  .
  Unfortunately, this program is not yet complete for p=2.
- .
- Homepage: http://www.math.u-bordeaux.fr/~liu/G2R/

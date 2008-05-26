@@ -11,8 +11,8 @@ Index: src/Makefile
 +	${CC} ${CFLAGS} ${LDFLAGS} -o genus2reduction genus2reduction.c
 +
 +install: genus2reduction
-+	mkdir -p ${DESTDIR}/usr/bin
-+	install -p $< ${DESTDIR}/usr/bin/
++	mkdir -p ${DESTDIR}/usr/lib
++	install -p $< ${DESTDIR}/usr/lib
 +
 +clean:
 +	rm -f genus2reduction

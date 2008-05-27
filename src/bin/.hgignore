@@ -46,6 +46,8 @@ conch
 conductor
 cstest
 darcs
+dsage_setup.py
+dsage_worker.py
 ecm
 easy_install
 easy_install-2.5

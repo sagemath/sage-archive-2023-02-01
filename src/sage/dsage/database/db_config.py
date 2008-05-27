@@ -3,7 +3,7 @@ import sqlite3
 from twisted.python import log
 
 from sqlalchemy import *
-from sqlalchemy.orm import sessionmaker, mapper, deferred
+from sqlalchemy.orm import sessionmaker, mapper, deferred, clear_mappers
 
 from sage.dsage.misc.constants import DELIMITER
 from sage.dsage.database.sql_functions import optimize_sqlite
@@ -31,12 +31,14 @@ def init_db_sa(db_file):
 
         return conn
 
+    # First we clear all predefined mappers
+    clear_mappers()
+
     # engine = create_engine('sqlite:///%s' % (db_file), encoding='latin1',
     #                        echo=True)
     engine = create_engine('sqlite:///', creator=connect, echo=False)
     metadata.create_all(engine)
 
-    # mapper(Job, jobs)
     mapper(Job, jobs, properties={'result': deferred(jobs.c.result),
                                   'data': deferred(jobs.c.data)})
     mapper(Client, clients)

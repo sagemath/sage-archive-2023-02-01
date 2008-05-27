@@ -70,14 +70,15 @@ def add_default_client(Session):
     username = getuser()
     pubkey_file = os.path.join(DSAGE_DIR, 'dsage_key.pub')
     pubkey = keys.Key.fromFile(pubkey_file)
+    pubkey_str = pubkey.toString(type='openssh')
     if clientdb.get_client(username) is None:
-        clientdb.add_client(username, pubkey.toString(type='openssh'))
+        clientdb.add_client(username, pubkey_str)
         print 'Added user %s.\n' % (username)
     else:
         client = clientdb.get_client(username)
-        if client.public_key != pubkey:
+        if client.public_key != pubkey_str:
             clientdb.del_client(username)
-            clientdb.add_client(username, pubkey)
+            clientdb.add_client(username, pubkey_str)
             print "User %s's pubkey changed, setting to new one." % (username)
         else:
             print 'User %s already exists.' % (username)

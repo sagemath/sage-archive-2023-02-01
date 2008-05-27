@@ -465,7 +465,7 @@ def buildsage(env, gccc):
     for filenm in cacheinfo[0]:
         if os.path.splitext(filenm)[1]==".py":
             filepart = (os.path.split(filenm)[0])
-            newdir = env.options['SAGE_ROOT'] + '/devel/sage/build/sage/' + filepart.replace('devel/sage/sage','')
+            newdir = tempdir + '/devel/sage/build/sage/' + filepart.replace('devel/sage/sage','')
             filename = os.path.split(filenm)[1]
             if filename[0]=='.':
                 continue
@@ -476,9 +476,12 @@ def buildsage(env, gccc):
             os.system( cmd )
     #Setup the site-packages symlink if it doesn't already exist
     safesymlink('../../../../devel/sage/build/sage','local/lib/python/site-packages/sage')
+    #Setup DSage
+    os.system('cp %s %s' % (tempdir+'/devel/sage/sage/dsage/scripts/dsage_worker.py',tempdir+'/local/bin'))
+    os.system('cp %s %s' % (tempdir+'/devel/sage/sage/dsage/scripts/dsage_setup.py',tempdir+'/local/bin'))
     #Handle DSage
     safemkdirs('local/dsage')
-    safesymlink('../../devel/sage/sage/dsage/web', 'local/dsage/web')
+    os.system('cp -r %s %s' % (tempdir+'/devel/sage/sage/dsage/web',tempdir+'/local/dsage/'))
 
 def sagebuild_exit():
     """

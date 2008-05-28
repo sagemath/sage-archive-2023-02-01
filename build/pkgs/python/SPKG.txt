@@ -26,8 +26,12 @@ There are a large number of cimmunity resources. For more details see http://www
 == Special Update/Build Instructions ==
 
  * Remove src/Lib/distutils/command/wininst-6.exe and src/Lib/distutils/command/wininst-7.1.exe. Once we support Windows we will likely need to add them back in.
+ * We used to block parallel MAKE, but extensive testing [make -j64] showed that there is no longer any problem. Should it rear its ugly head again we will disable it again.
 
 == Changelog ==
+
+=== python-2.5.2.p2 (Michael Abshoff, May 28th, 2008) ===
+ * reenable parallel make again (Gary Furnish, #3322)
 
 === python-2.5.2.p1 (Michael Abshoff, May 28th, 2008) ===
  * Improve OSX 64 bit support even more (#3318)

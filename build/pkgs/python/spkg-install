@@ -45,11 +45,6 @@ cd src
 
 touch Include/*
 
-# WE do *not* use $MAKE, since e.g., "make -j10" does *not*
-# work for building Python.
-MAKE="make"
-export MAKE
-
 patch()
 {
     # The following patch for fixing broken readline behavior on

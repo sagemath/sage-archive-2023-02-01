@@ -1,6 +1,8 @@
 Upstream maintainer: Bill Heart
 Website: www.flintlib.org
 
+=== flint-1.06.p3 (Michael Abshoff, April 1st, 2008) ===
+ * import shared library versioning for flint (Tim Abbott, #3259)
 
 === flint-1.06.p2 (Michael Abshoff, April 1st, 2008) ===
  * Debian amd64 fixes for FLINT (Tim Abbott, #2762)

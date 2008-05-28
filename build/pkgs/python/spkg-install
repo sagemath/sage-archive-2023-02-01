@@ -3,6 +3,8 @@
 ## Python
 ###########################################
 
+CUR=`pwd`
+
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
@@ -103,8 +105,22 @@ ln -s python2.5 python
 # Make sure sufficient crypto support is available in the built python.  This is critical.
 python -c "import md5"
 
-if [ $? -eq 0 -a -f "$SAGE_LOCAL/bin/python" ];  then
+if [ $? -eq 0 -a -f "$SAGE_LOCAL/bin/python" ]; then
+    echo "md5 module imported"
     exit 0
 else
+    echo "md5 module failed to import"
     exit 1
 fi
+
+
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+    echo "Copying 64 bit OSX specific pymactoolbox.h"
+    cd $CUR
+    cp -i patches/pymactoolbox.h $SAGE_LOCAL/include/python2.5/
+    if [ $? -ne 0 ]; then
+        echo "Error copying patched pymactoolbox.h"
+        exit 1
+    fi
+fi
+

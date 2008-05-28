@@ -1,109 +1,120 @@
 # choose: dense or sparse
 
 cdef extern from "m4ri/m4ri.h":
+    ctypedef unsigned long long word "word"
+
     ctypedef struct packedmatrix:
-        void *values
-        int rows
-        int cols
-        int width # rounded as floor(rows/RADIX)+1
+        word *values
+        int nrows
+        int ncols
+        int width
         int *rowswap
 
-    ctypedef unsigned long mod_int
 
-    ctypedef int bit
+    ctypedef int BIT
 
     cdef int RADIX
 
     ##############
     # Maintainance
     ##############
-
-    cdef void setupPackingMasks()
-
-    cdef void buildAllCodes() # builds all gray codes up to a certain size
-    cdef void destroyAllCodes()
+    cdef void m4ri_build_all_codes() # builds all gray codes up to a certain size
+    cdef void m4ri_destroy_all_codes()
 
     ##############
     # Constructors
     ##############
 
     # create empty matrix
-    cdef packedmatrix *createPackedMatrix(int,int)
+    cdef packedmatrix *mzd_init(int,int)
 
     # free memory
-    cdef void destroyPackedMatrix(packedmatrix *)
+    cdef void mzd_free(packedmatrix *)
 
     # filled uniformly random
-    cdef void fillRandomlyPacked(packedmatrix *)
+    cdef void mzd_randomize(packedmatrix *)
 
-    # identity matrix
-    cdef void makeIdentityPacked(packedmatrix *)
+    # identity matrix if i%2
+    cdef void mzd_set_ui(packedmatrix *, unsigned int i)
 
     # [A],[B] -> [AB]
-    cdef packedmatrix *concatPacked(packedmatrix *A, packedmatrix *B)
+    cdef packedmatrix *mzd_concat(packedmatrix *C, packedmatrix *A, packedmatrix *B)
+
+    # [A],[B] -> | A |
+    #            | B |
+    cdef packedmatrix *mzd_stack(packedmatrix *C, packedmatrix *A, packedmatrix *B)
+
 
     # returns a submatrix from a
-    cdef packedmatrix *copySubMatrixPacked( packedmatrix *A, int lowr, int lowc, int highr, int highc)
+    cdef packedmatrix *mzd_submatrix(packedmatrix *S, packedmatrix *A, int lowr, int lowc, int highr, int highc)
+
+    # return a matrix window to A
+    cdef packedmatrix *mzd_init_window( packedmatrix *A, int lowr, int lowc, int highr, int highc)
+
+    cdef void mzd_free_window(packedmatrix *)
 
     # deep copy
-    cdef packedmatrix *clonePacked(packedmatrix *)
+    cdef packedmatrix *mzd_copy(packedmatrix *, packedmatrix *)
 
     ####
     # IO
     ####
 
-    # print
-    cdef void lazyPrint(packedmatrix *)
+    # set BIT
+    cdef void mzd_write_bit( packedmatrix *m, int row, int col, BIT value)
 
-    # set bit
-    cdef void writePackedCell( packedmatrix *m, int row, int col, bit value)
-
-    # get bit
-    cdef bit readPackedCell( packedmatrix *m, int row, int col )
+    # get BIT
+    cdef BIT mzd_read_bit( packedmatrix *m, int row, int col )
 
     ######################
     # Low-Level Arithmetic
     ######################
 
-    cdef void rowSwapPacked(packedmatrix *, int, int)
+    cdef void mzd_row_swap(packedmatrix *, int, int)
 
-    cdef void rowClearPackedOffset(packedmatrix *m, int, int)
+    cdef void mzd_row_clear_offset(packedmatrix *m, int, int)
 
-    cdef void rowAddPackedOffset(packedmatrix *m, int, int, int)
+    cdef void mzd_row_add_offset(packedmatrix *m, int, int, int)
 
     ############
     # Arithmetic
     ############
 
-    # naiv matrix multiply
-    cdef packedmatrix *matrixTimesMatrixPacked(packedmatrix *, packedmatrix *)
-
-    # M4RM matrix multiply
-    cdef packedmatrix *m4rmPacked(packedmatrix *, packedmatrix *, int k)
-
-    # M4RM matrix multiply
-    cdef packedmatrix *m4rmTransposePacked(packedmatrix *, packedmatrix *, int k)
-
     # matrix addition
-    cdef packedmatrix *addPacked(packedmatrix *, packedmatrix *)
+    cdef packedmatrix *mzd_add(packedmatrix *, packedmatrix *, packedmatrix *)
+
+    # naiv cubic matrix multiply
+    cdef packedmatrix *mzd_mul_naiv(packedmatrix *, packedmatrix *, packedmatrix *)
+
+    # matrix multiply using Gray codes (transposed)
+    cdef packedmatrix *mzd_mul_m4rm(packedmatrix *, packedmatrix *, packedmatrix *, int k)
+
+    # matrix multiply using Gray codes (transposed)
+    cdef packedmatrix *mzd_mul_m4rm_t(packedmatrix *, packedmatrix *, packedmatrix *, int k)
+
+    # matrix multiplication via Strassen's formula
+    cdef packedmatrix *mzd_mul_strassen(packedmatrix *, packedmatrix *, packedmatrix *, int cutoff)
 
     # equality testing
-    cdef int equalPackedMatrix(packedmatrix *, packedmatrix *)
+    cdef int mzd_equal(packedmatrix *, packedmatrix *)
 
     # returns -1,0,1
-    cdef int comparePackedMatrix(packedmatrix *, packedmatrix *)
+    cdef int mzd_cmp(packedmatrix *, packedmatrix *)
 
     # transpose
-    cdef packedmatrix *transposePacked(packedmatrix *)
+    cdef packedmatrix *mzd_transpose(packedmatrix *, packedmatrix *)
 
-    # Gaussian Elimination
-    cdef int gaussianPacked(packedmatrix *, int full)
+    # cubic Gaussian elimination
+    cdef int mzd_reduce_naiv(packedmatrix *, int full)
 
-    # M4RI
-    cdef int simpleFourRussiansPackedFlex(packedmatrix *m, int full, int k)
+    # matrix reduction using Gray codes
+    cdef int mzd_reduce_m4ri(packedmatrix *m, int full, int k, packedmatrix *tablepacked, int *lookuppacked)
 
-    # Matrix Inversion
-    cdef packedmatrix *invertPackedFlexRussian(packedmatrix *m, packedmatrix *identity, int k)
+    # compute reduced row echelon form from upper triangular form
+    cdef void mzd_top_reduce_m4ri(packedmatrix *m, int k, packedmatrix *tablepacked, int *lookuppacked)
+
+    # matrix inversion using Gray codes
+    cdef packedmatrix *mzd_invert_m4ri(packedmatrix *m, packedmatrix *identity, int k)
 
 
 cimport matrix_dense
@@ -114,4 +125,4 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):
     cdef object _zero
 
 
-    cdef Matrix_mod2_dense _multiply_m4rm_c(Matrix_mod2_dense self, Matrix_mod2_dense right, int k, int transpose)
+    cdef Matrix_mod2_dense _multiply_m4rm_c(Matrix_mod2_dense self, Matrix_mod2_dense right, int k)

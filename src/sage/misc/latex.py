@@ -234,7 +234,7 @@ class Latex:
             redirect=''
         lt = 'latex \\\\nonstopmode \\\\input{%s.tex} %s'%(filename, redirect)
         if have_dvipng():
-            dvipng = 'dvipng -q* -T bbox -D %s %s.dvi'%(density, filename)
+            dvipng = 'dvipng -q -T bbox -D %s %s.dvi'%(density, filename)
             cmd = ' ; '.join([lt, dvipng])
 
         else:

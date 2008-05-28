@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
 ./test_gcc_version.pl
 if [ $? -ne 0 ]; then
    echo "GCC version less than 3.4.0"

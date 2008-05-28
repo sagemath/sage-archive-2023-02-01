@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ./test_gcc_version.pl
 if [ $? -ne 0 ]; then
@@ -53,7 +53,11 @@ if [ $UNAME != "Darwin" ]; then
         echo "Error building flint shared library."
         exit 1
     fi
-    $CP libflint*.so "$SAGE_LOCAL/lib/"
+    $RM "$SAGE_LOCAL/lib/libflint*.so"
+    $CP libflint-1.06.so "$SAGE_LOCAL/lib/"
+    CUR=`pwd`
+    cd $SAGE_LOCAL/lib; $LN -s libflint-1.06.so libflint.so
+    cd $CUR
 fi
 
 # OS X

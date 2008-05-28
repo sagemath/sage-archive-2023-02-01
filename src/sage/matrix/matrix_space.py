@@ -651,8 +651,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
           both) are zero, then the single element of the space is returned.
 
             sage: list( MatrixSpace(GF(2), 2, 0) )
-            [[]
-            []]
+            [[]]
             sage: list( MatrixSpace(GF(2), 0, 2) )
             [[]]
             sage: list( MatrixSpace(GF(2), 0, 0) )

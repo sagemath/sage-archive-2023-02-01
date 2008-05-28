@@ -87,6 +87,9 @@ def create_dep_dict(flist, funcdict, includedict, cwd):
         except:
             newlist = [x]
         dict[x] = newlist
+        for file in newlist:
+            if not os.path.exists(file):
+                raise TypeError, "File %s needed by %s does not exist" % (file,x)
     return dict
 
 def recurse_files(flist, depdict):

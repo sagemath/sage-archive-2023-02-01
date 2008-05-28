@@ -117,7 +117,7 @@ fi
 if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
     echo "Copying 64 bit OSX specific pymactoolbox.h"
     cd $CUR
-    cp -i patches/pymactoolbox.h $SAGE_LOCAL/include/python2.5/
+    cp patches/pymactoolbox.h $SAGE_LOCAL/include/python2.5/
     if [ $? -ne 0 ]; then
         echo "Error copying patched pymactoolbox.h"
         exit 1

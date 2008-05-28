@@ -1,4 +1,16 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+if [ `uname` = "Darwin" -a "$SAGE64" = "yes" ]; then
+   echo "64 bit MacIntel"
+   CFLAGS="-O2 -g -m64 "; export CFLAGS
+   LDFLAGS="-m64 "; export LDFLAGS
+fi
 
 CUR=`pwd`
 
@@ -21,6 +33,10 @@ fi
 
 if [ `uname` = "Darwin" ]; then
     OSXFW="--enable-R-framework=no"; export OSXFW
+    if [ "$SAGE64" = "yes" ]; then
+       echo "Disabling iconv and aqua support on 64 bit OSX"
+       OSXFW="--enable-R-framework=no --with-iconv=no --with-aqua=no"; export OSXFW
+    fi
 else
     OSXFW=""; export OSXFW
 fi

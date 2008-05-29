@@ -23,6 +23,9 @@
 
 == Changelog ==
 
+=== r-2.6.1.p17 (Michael Abshoff, May 29th, 2008) ===
+ * Use rpy-1.0.1.p2
+
 === r-2.6.1.p16 (Michael Abshoff, May 28th, 2008) ===
  * add 64 bit OSX build support (#3196)
 

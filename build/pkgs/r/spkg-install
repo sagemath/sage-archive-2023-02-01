@@ -112,7 +112,7 @@ echo "Now install rpy"
 
 cd "$CUR"
 
-RPY_VER=rpy-1.0.1.p1
+RPY_VER=rpy-1.0.1.p2
 
 sage -f "$RPY_VER".spkg
 if [ ! -f "$SAGE_ROOT"/spkg/installed/"$RPY_VER" ]; then

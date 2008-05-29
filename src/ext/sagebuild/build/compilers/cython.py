@@ -190,8 +190,8 @@ class Cython_compiler(Compiler):
     """
     def __init__(self):
         Compiler.__init__(self)
-        self.options = { "--embed-positions":None, "--incref-local-binop":None }
-        #self.options = { "--embed-positions":None }
+        #self.options = { "--embed-positions":None, "--incref-local-binop":None }
+        self.options = { "--embed-positions":None }
     def get_file_extensions(self):
         """
             Get the file extensions that this compiler can handle

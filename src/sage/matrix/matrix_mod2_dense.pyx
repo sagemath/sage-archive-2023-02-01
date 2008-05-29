@@ -908,7 +908,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef int i, j, k
         cdef int nc
         cdef int truerow
-        cdef unsigned int *wp
+        cdef unsigned int low, high
         cdef word mask = 1
 
         if density == 1:
@@ -918,9 +918,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 truerow = self._entries.rowswap[i]
                 for j from 0 <= j < self._entries.width:
                     # for portability we get 32-bit twice rather than 64-bit once
-                    wp = <unsigned int*>&self._entries.values[truerow + j]
-                    wp[0] = gmp_urandomb_ui(rstate.gmp_state, 32)
-                    wp[1] = gmp_urandomb_ui(rstate.gmp_state, 32)
+                    low = gmp_urandomb_ui(rstate.gmp_state, 32)
+                    high = gmp_urandomb_ui(rstate.gmp_state, 32)
+                    self._entries.values[truerow + j] = ((<unsigned long long>high)<<32)| (<unsigned long long>low)
                 j = truerow + self._entries.width - 1
                 self._entries.values[j] &= mask
         else:

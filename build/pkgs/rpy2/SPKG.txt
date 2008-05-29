@@ -1,0 +1,18 @@
+= rpy =
+
+FIXME
+
+== Releases ==
+
+=== rpy-1.0.1.p2 (Michael Abshoff, May 28th, 2008) ===
+ * Set RHOME so that Sage's R is used (Francois Bissey, #3328)
+ * add basic SPKG.txt
+
+=== rpy-1.0.1.p1 ===
+ * FIXME
+
+=== rpy-1.0.1.p0 ===
+ * FIXME
+
+=== rpy-1.0.1 (Craig Citro) ===
+ * initial release

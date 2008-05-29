@@ -5,6 +5,8 @@ cp patches/rpymodule.c src/src/
 
 cd src
 
+RHOMES="$SAGE_LOCAL"/lib/R; export RHOMES
+
 python setup.py install
 
 if [ $? -ne 0 ]; then

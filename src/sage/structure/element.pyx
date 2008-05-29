@@ -2350,6 +2350,28 @@ cdef class FieldElement(CommutativeRingElement):
             right = self.parent()(right)
         return self/right, 0
 
+    def divides(self, FieldElement other):
+        r"""
+        Check whether self divides other, for field elements.
+
+        Since this is a field, all values divide all other values,
+        except that zero does not divide any non-zero values.
+
+        EXAMPLES:
+            sage: K.<rt3> = QQ[sqrt(3)]
+            sage: K(0).divides(rt3)
+            False
+            sage: rt3.divides(K(17))
+            True
+            sage: K(0).divides(K(0))
+            True
+            sage: rt3.divides(K(0))
+            True
+        """
+        if not (other._parent is self._parent):
+            other = self.parent()(other)
+        return bool(self) or other.is_zero()
+
 ## def is_FiniteFieldElement(x):
 ##     """
 ##     Return True if x is of type FiniteFieldElement.

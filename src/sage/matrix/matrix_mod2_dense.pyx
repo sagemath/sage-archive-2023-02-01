@@ -463,7 +463,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
             return ans
+        _sig_on
         ans._entries = mzd_mul_m4rm(ans._entries, self._entries, right._entries, k)
+        _sig_off
         return ans
 
 

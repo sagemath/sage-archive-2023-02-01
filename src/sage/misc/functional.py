@@ -680,8 +680,8 @@ def numerical_approx(x, prec=None, digits=None):
     INPUT:
         x -- an object that has a numerical_approx method, or can
              be coerced into a real or complex field
-        prec -- an integer (bits of precision)
-        digits -- an integer  (digits of precision)
+        prec (optional) -- an integer (bits of precision)
+        digits (optional) -- an integer (digits of precision)
 
     If neither the prec or digits are specified, the default
     is 53 bits of precision.

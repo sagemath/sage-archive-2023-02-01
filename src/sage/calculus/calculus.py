@@ -6249,9 +6249,9 @@ _syms = {}
 class Function_erf(PrimitiveFunction):
     r"""
     The error function, defined as $\text{erf}(x) =
-    \frac{2}{\sqrt{\pi}}\int_0^x e^{-t^2} dt$.
+    \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2} dt$.
 
-    \sage currently \strong{only} implements the error function (via a call to
+    \sage currently only implements the error function (via a call to
     PARI) when the input is real.
     """
 

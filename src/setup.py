@@ -1329,6 +1329,8 @@ code = setup(name        = 'sage',
 
                      'sage.calculus',
 
+                     'sage.finance',
+
                      'sage.functions',
 
                      'sage.geometry',

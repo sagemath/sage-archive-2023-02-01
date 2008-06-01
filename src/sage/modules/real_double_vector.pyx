@@ -419,7 +419,43 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
     def stats_lag1_autocorrelation(self):
         return gsl_stats_lag1_autocorrelation(self.v.data, self.v.stride, self.v.size)
 
+    def prod(self):
+        """
+        Return the product of the entries of self.
 
+        OUTPUT:
+            RealDoubleElement
+
+        EXAMPLES:
+            sage: v = vector(RDF,[1,2,3,-5])
+            sage: v.prod()
+            -30.0
+        """
+        cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
+        cdef Py_ssize_t i
+        x._value = 1
+        for i from 0 <= i < self.v.size:
+            x._value *= gsl_vector_get(self.v, i)
+        return x
+
+    def sum(self):
+        """
+        Return the sum of the entries of self.
+
+        OUTPUT:
+            RealDoubleElement
+
+        EXAMPLES:
+            sage: v = vector(RDF,[1,2,3,-5])
+            sage: v.sum()
+            1.0
+        """
+        cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
+        cdef Py_ssize_t i
+        x._value = 0
+        for i from 0 <= i < self.v.size:
+            x._value += gsl_vector_get(self.v, i)
+        return x
 
 def unpickle_v0(parent, entries, degree):
     # If you think you want to change this function, don't.

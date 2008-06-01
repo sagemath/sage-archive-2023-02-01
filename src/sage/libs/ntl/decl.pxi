@@ -1,4 +1,5 @@
 include "../../ext/cdefs.pxi"
+include "../../ext/stdsage.pxi"
 
 cdef extern from "stdlib.h":
     void free(void *ptr)

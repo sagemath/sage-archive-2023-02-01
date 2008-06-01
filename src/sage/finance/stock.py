@@ -8,6 +8,9 @@ AUTHORS:
 import urllib
 from sage.structure.all import Sequence
 
+from time_series import TimeSeries
+
+
 class Day:
     def __init__(self, date, open, high, low, close, volume):
         self.date = date
@@ -77,3 +80,6 @@ class Stock:
              pass
         self.__historical = Sequence(self.__historical,cr=True,universe=lambda x:x)
         return self.__historical
+
+    def close(self, *args, **kwds):
+        return TimeSeries([x.close for x in self.historical(*args, **kwds)])

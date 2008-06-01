@@ -1,0 +1,38 @@
+= M4RI =
+
+== Description ==
+
+ Library for matrix multiplication, reduction and inversion over
+ GF(2).
+
+== Maintainers ==
+
+ * Martin Albrecht
+
+== Upstream Contact ==
+
+ * Author: Gregory Bard and Martin Albrecht
+ * Email: M.R.Albrecht@rhul.ac.uk
+ * Website: http://m4ri.sagemath.org
+
+== Dependencies ==
+
+ None
+
+
+== Releases ==
+=== libm4ri-20080530 (Martin Albrecht, May 30th, 2008) ===
+
+ * new upstream release
+
+=== libm4ri-20080521 (Martin Albrecht, May 21th, 2008) ===
+
+ *  new upstream release
+
+=== libm4ri-20071224.p3 (Michael Abshoff, May 18th, 2008) ===
+
+ * add 64 bit OSX build support
+
+=== libm4ri-20071224.p2 ===
+
+ * Details lost to history

@@ -1,6 +1,26 @@
 """
 Matrices over Cyclotomic Fields
 
+The underlying matrix for a Matrix_cyclo_dense object is stored as
+follows: given an n x m matrix over a cyclotomic field of degree d, we
+store a d x (nm) matrix over QQ, each column of which corresponds to
+an element of the original matrix. This can be retrieved via the
+_rational_matrix method. Here is an example illustrating this:
+
+EXAMPLES:
+    sage: F.<zeta> = CyclotomicField(5)
+    sage: M = Matrix(F, 2, 3, [zeta, 3, zeta**4+5, (zeta+1)**4, 0, 1])
+    sage: M
+    [                        zeta                            3  -zeta^3 - zeta^2 - zeta + 4]
+    [3*zeta^3 + 5*zeta^2 + 3*zeta                            0                            1]
+
+    sage: M._rational_matrix()
+    [ 0  3  4  0  0  1]
+    [ 1  0 -1  3  0  0]
+    [ 0  0 -1  5  0  0]
+    [ 0  0 -1  3  0  0]
+
+
 AUTHORS:
    * William Stein
    * Craig Citro
@@ -33,6 +53,10 @@ from misc import matrix_integer_dense_rational_reconstruction
 from sage.ext.multi_modular import MAX_MODULUS
 
 from sage.structure.proof.proof import get_flag as get_proof_flag
+
+# parameters for tuning
+echelon_primes_increment = 15
+echelon_verbose_level = 1
 
 cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     ########################################################################
@@ -642,6 +666,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         return bound
 
+
     def height(self):
         r"""
         Return the height of self.
@@ -693,6 +718,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [       1/2*zeta5^2 + zeta5                        1/2]
             [        -zeta5^2 + 2*zeta5 -2*zeta5^3 + 2*zeta5^2 + 2]
         """
+        self._cache = {}
         self._matrix.randomize(density, num_bound, den_bound, distribution)
 
     def _charpoly_bound(self):
@@ -943,15 +969,17 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         # Get matrix that defines the linear reduction maps modulo
         # each prime of the base ring over p.
         T, _ = self._reduction_matrix(p)
-        # Clear denominator and get matrix over the integers suitable for reduction.
+        # Clear denominator and get matrix over the integers suitable
+        # for reduction.
         A, denom = self._matrix._clear_denom()
-        # Actually reduce the matrix over the integers modulo the prime p.
+        # Actually reduce the matrix over the integers modulo the
+        # prime p.
         B = A._mod_int(p)
-        # Now multiply, which computes from B all the reductions of self*denom
-        # modulo each of the primes over p.
+        # Now multiply, which computes from B all the reductions of
+        # self*denom modulo each of the primes over p.
         R = T * B
-        # Finally compute the actual reductions by extract them from R (note that
-        # the rows of R define the reductions).
+        # Finally compute the actual reductions by extracting them
+        # from R (note that the rows of R define the reductions).
         ans = R._matrices_from_rows(self._nrows, self._ncols)
         return ans, denom
 
@@ -1054,6 +1082,15 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             True
             sage: A.echelon_form() is A.echelon_form(algorithm='classical')
             False
+
+        TESTS:
+            sage: W.<z> = CyclotomicField(13)
+            sage: A = Matrix(W, 2,3, [10^30*(1-z)^13, 1, 2, 3, 4, z])
+            sage: B = Matrix(W, 2,3, [(1-z)^13, 1, 2, 3, 4, z])
+            sage: A.echelon_form() == A.echelon_form('classical')
+            True
+            sage: B.echelon_form() == B.echelon_form('classical')
+            True
         """
         key = 'echelon_form-%s'%algorithm
         E = self.fetch(key)
@@ -1070,7 +1107,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         self.cache(key, E)
         return E
 
-    def _echelon_form_multimodular(self, num_primes=5, height_guess=None):
+    def _echelon_form_multimodular(self, num_primes=10, height_guess=None):
         """
         Use a multimodular algorithm to find the echelon form of self.
 
@@ -1094,10 +1131,13 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         cdef int i
         cdef Matrix_cyclo_dense res
 
+        verbose("entering _echelon_form_multimodular", level=echelon_verbose_level)
+
         denom = self._matrix.denominator()
         A = denom * self
 
-        # This bound is chosen somewhat arbitrarily.
+        # This bound is chosen somewhat arbitrarily. Changing it affects the
+        # runtime, not the correctness of the result.
         if height_guess is None:
             height_guess = (A.coefficient_bound()+100)*1000000
 
@@ -1105,38 +1145,47 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         # in the loop below.
         p = previous_prime(MAX_MODULUS)
         found = 0
-        prime_ls = []
-        prime_ls_index = 0
         prod = 1
         n = self._base_ring._n()
         height_bound = self._ncols * height_guess * A.coefficient_bound() + 1
         mod_p_ech_ls = []
-        num_pivots = 0
-        pivot_ls = []
+        max_pivots = []
+
+        verbose("using height bound %s"%height_bound, level=echelon_verbose_level)
 
         while True:
-            # Generate primes to use.
+            # Generate primes to use, and find echelon form
+            # modulo those primes.
             while found < num_primes or prod < height_bound:
                 if p%n == 1:
-                    prime_ls.append(p)
+                    try:
+                        mod_p_ech, piv_ls = A._echelon_form_one_prime(p)
+                    except ValueError:
+                        # This means that we chose a prime which divides
+                        # the denominator of the echelon form of self, so
+                        # just skip it and continue
+                        p = previous_prime(p)
+                        continue
+                    # if we have the identity, just return it, and
+                    # we're done.
+                    if mod_p_ech.is_one():
+                        return mod_p_ech
+                    if piv_ls > max_pivots:
+                        mod_p_ech_ls = [mod_p_ech]
+                        max_pivots = piv_ls
+                    elif piv_ls == max_pivots:
+                        mod_p_ech_ls.append(mod_p_ech)
+
+                    # add this to the list of primes
                     found += 1
                     prod *= p
                 p = previous_prime(p)
 
-            # Now find the echelon form mod those primes.
-            for i from prime_ls_index <= i < num_primes:
-                mod_p_ech, piv = A._echelon_form_one_prime(prime_ls[i])
-                # if we have the identity, just return it, and
-                # we're done.
-                if mod_p_ech.is_one():
-                    return mod_p_ech
-                if piv > num_pivots:
-                    mod_p_ech_ls = [mod_p_ech]
-                    num_pivots = piv
-                    pivot_ls = mod_p_ech.pivots()
-                elif piv == num_pivots:
-                    mod_p_ech_ls.append(mod_p_ech)
-            prime_ls_index = num_primes
+            if found > num_primes:
+                num_primes = found
+
+            verbose("computed echelon form mod %s primes"%num_primes, level=echelon_verbose_level)
+            verbose("current product of primes used: %s"%prod, level=echelon_verbose_level)
 
             # Use CRT to lift back to ZZ
             mat_over_ZZ = matrix(ZZ, self._base_ring.degree(), self._nrows * self._ncols)
@@ -1145,6 +1194,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             # Attempt to use rational reconstruction to find
             # our echelon form
             try:
+                verbose("attempting rational reconstruction ...", level=echelon_verbose_level)
                 res = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(),
                                                  None, None, None)
                 res._matrix = <Matrix_rational_dense>matrix_integer_dense_rational_reconstruction(mat_over_ZZ, prod)
@@ -1155,32 +1205,45 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
                 # on a few more primes, and try again.
 
                 # TODO: can we reuse the _lift_crt computation?
-                num_primes += 15
+                num_primes += echelon_primes_increment
+                verbose("rational reconstruction failed, trying with %s primes"%num_primes, level=echelon_verbose_level)
                 continue
 
+            verbose("rational reconstruction succeeded with %s primes!"%num_primes, level=echelon_verbose_level)
+
             if ((res * res.denominator()).coefficient_bound() *
-                self.coefficient_bound()) > prod:
+                self.coefficient_bound() * self.ncols()) > prod:
                 # In this case, we don't know the result to sufficient
                 # "precision" (here precision is just the modulus, prod)
                 # to guarantee its correctness, so loop.
 
                 # TODO: can we reuse the _lift_crt computation?
-                num_primes += 15
+                num_primes += echelon_primes_increment
+                verbose("height not sufficient to determine echelon form", level=echelon_verbose_level)
                 continue
 
-            self.cache('pivots', pivot_ls)
+            verbose("found echelon form with %s primes, whose product is %s"%(num_primes, prod), level=echelon_verbose_level)
+            self.cache('pivots', max_pivots)
             return res
 
 
     def _echelon_form_one_prime(self, p):
         """
+        Find the echelon form of self mod the primes dividing p. Return
+        the rational matrix representing this lift. If the pivots of the
+        reductions mod the primes over p are different, then no such lift
+        exists, and we raise a ValueError. If this happens, then the
+        denominator of the echelon form of self is divisible by p. (Note
+        that the converse need not be true.)
+
         INPUT:
             p -- a prime that splits completely in the cyclotomic base field.
 
         OUTPUT:
-            matrix -- Lift via CRT of the Echelon forms of self modulo
+            matrix -- Lift via CRT of the echelon forms of self modulo
                       each of the primes over p.
-            integer -- maximum numberof pivots in any echelon form over GF(p)
+            list -- the list of pivots for the echelon form of self mod the
+                    primes dividing p
 
         EXAMPLES:
             sage: W.<z> = CyclotomicField(3)
@@ -1189,28 +1252,43 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             [4*z - 3       z    -7*z]
             sage: A._echelon_form_one_prime(7)
             ([1 0 4 0 1 2]
-            [0 0 3 0 0 4], 2)
+            [0 0 3 0 0 4],
+            [0, 1])
+            sage: Matrix(W,2,3,[2*z+3,0,1,0,1,0])._echelon_form_one_prime(7)
+            Traceback (most recent call last):
+            ...
+            ValueError: echelon form mod 7 not defined
+
         """
         cdef Matrix_cyclo_dense res
+        cdef int i
 
         # Initialize variables
         is_square = self._nrows == self._ncols
         ls, denom = self._reductions(p)
-        ech_ls = []
-        most_pivots = 0
+
+        # Find our first echelon form, and the associated list
+        # of pivots
+        ech_ls = [ls[0].echelon_form()]
+        pivot_ls = ech_ls[0].pivots()
+        # If we've found the identity matrix, we're all done.
+        if self._nrows == self._ncols == len(pivot_ls):
+            return (self.parent().identity_matrix(), self._nrows)
 
         # For each reduction of self (i.e. for each prime of
         # self.base_ring() over p), compute the echelon form, and
         # keep track of all reductions which have the largest
         # number of pivots seen so far.
-        for i in range(len(ls)):
+        for i from 1 <= i < len(ls):
             ech = ls[i].echelon_form()
-            piv = ech.pivots()
-            if is_square and len(piv) == self._nrows:
-                return (self.parent().identity_matrix(), self._nrows)
+
+            # This should only occur when p divides the denominator
+            # of the echelon form of self.
+            if ech.pivots() != pivot_ls:
+                raise ValueError, "echelon form mod %s not defined"%p
+
             ech_ls.append(ech)
-            if len(piv) > most_pivots:
-                most_pivots = len(piv)
+
 
 
         # Now, just lift back to ZZ and return it.
@@ -1224,5 +1302,5 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         lifted_matrix = Finv * reduction
 
-        return (lifted_matrix, most_pivots)
+        return (lifted_matrix, pivot_ls)
 

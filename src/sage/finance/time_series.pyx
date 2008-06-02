@@ -3,7 +3,15 @@ Time Series
 
 This is a module for working with discrete floating point time series.
 It is designed so that every operation is very fast, typically much
-faster than with any other generic code.
+faster than with other generic code, e.g., Python lists of doubles or
+even numpy arrays.  The semantics of time series is more similar to
+Python lists of doubles than Sage real double vectors or numpy 1d
+arrays.   In particular, time series are not endowed with much
+algebraic structure and are always mutable.
+
+NOTES: Numpy arrays are faster at slicing, since slices return
+references, and numpy arrays have strides.  However, this speed at
+slicing makes numpy slower at certain other operations.
 
 EXAMPLES:
     sage: set_random_seed(1)
@@ -26,6 +34,7 @@ AUTHOR:
 
 include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
+include "../ext/python_string.pxi"
 
 cdef extern from "math.h":
     double exp(double)
@@ -37,6 +46,8 @@ cdef extern from "string.h":
     void* memcpy(void* dst, void* src, size_t len)
 
 from sage.rings.integer import Integer
+from sage.rings.real_double import RDF
+from sage.modules.real_double_vector cimport RealDoubleVectorSpaceElement
 
 max_print = 10
 digits = 4
@@ -68,8 +79,18 @@ cdef class TimeSeries:
             sage: finance.TimeSeries([pi, 3, 18.2])
             [3.1416, 3.0000, 18.2000]
         """
+        cdef RealDoubleVectorSpaceElement z
         if isinstance(values, (int, long, Integer)):
             values = [0.0]*values
+        elif PY_TYPE_CHECK(values, RealDoubleVectorSpaceElement):
+            # Fast constructor from real double vector.
+            z = values
+            self._length = z.v.size
+            self._values = <double*> sage_malloc(sizeof(double) * self._length)
+            if self._values == NULL:
+                raise MemoryError
+            memcpy(self._values, z.v.data, sizeof(double)*self._length)
+            return
         else:
             values = [float(x) for x in values]
         self._length = len(values)
@@ -79,6 +100,60 @@ cdef class TimeSeries:
         cdef Py_ssize_t i
         for i from 0 <= i < self._length:
             self._values[i] = values[i]
+
+    def __reduce__(self):
+        """
+        Used in pickling time series.
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,-3.5])
+            sage: v.__reduce__()
+            (<built-in function unpickle_time_series_v1>,
+             ('\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\x0c\xc0', 2))
+            sage: loads(dumps(v)) == v
+            True
+
+        Note that dumping and loading with compress False is much faster, though
+        dumping with compress True can save a lot of space.
+            sage: v = finance.TimeSeries([1..10^5])
+            sage: loads(dumps(v, compress=False),compress=False) == v
+            True
+        """
+        buf = PyString_FromStringAndSize(<char*>self._values, self._length*sizeof(double)/sizeof(char))
+        return unpickle_time_series_v1, (buf, self._length)
+
+    def __cmp__(self, _other):
+        """
+        Compare self and other.  This has the same semantics
+        as list comparison.
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,2,3]); w = finance.TimeSeries([1,2])
+            sage: v < w
+            False
+            sage: w < v
+            True
+            sage: v == v
+            True
+            sage: w == w
+            True
+        """
+        cdef TimeSeries other
+        cdef Py_ssize_t c, i
+        cdef double d
+        if not isinstance(_other, TimeSeries):
+            _other = TimeSeries(_other)
+        other = _other
+        for i from 0 <= i < min(self._length, other._length):
+            d = self._values[i] - other._values[i]
+            if d:
+                return -1 if d < 0 else 1
+        c = self._length - other._length
+        if c < 0:
+            return -1
+        elif c > 0:
+            return 1
+        return 0
 
     def  __dealloc__(self):
         """
@@ -91,6 +166,25 @@ cdef class TimeSeries:
         """
         if self._values:
             sage_free(self._values)
+
+    def vector(self):
+        """
+        Return real double vector whose entries are the values of this
+        time series.  This is useful since vectors have standard
+        algebraic structure and play well with matrices.
+
+        OUTPUT:
+            a real double vector
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1..10])
+            sage: v.vector()
+            (1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0)
+        """
+        V = RDF**self._length
+        cdef RealDoubleVectorSpaceElement x = RealDoubleVectorSpaceElement(V, 0)
+        memcpy(x.v.data, self._values, sizeof(double)*self._length)
+        return x
 
     def __repr__(self):
         """
@@ -291,6 +385,108 @@ cdef class TimeSeries:
         memcpy(t._values, self._values , sizeof(double)*self._length)
         return t
 
+    def __add__(left, right):
+        """
+        Concatenate the time series self and right.
+
+        NOTE: To add a single number to the entries of a time series,
+        use the add_scalar method, and to add componentwise use
+        the add_entries method.
+
+        INPUT:
+            right -- iterable that can be converted to a time series
+        OUTPUT:
+            a time series
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,2,3]); w = finance.TimeSeries([1,2])
+            sage: v + w
+            [1.0000, 2.0000, 3.0000, 1.0000, 2.0000]
+            sage: v + xrange(4)
+            [1.0000, 2.0000, 3.0000, 0.0000, 1.0000, 2.0000, 3.0000]
+            sage: v = finance.TimeSeries([1,2,-5]); v
+            [1.0000, 2.0000, -5.0000]
+            sage: [1,5] + v
+            [1.0000, 5.0000, 1.0000, 2.0000, -5.0000]
+        """
+        if not isinstance(right, TimeSeries):
+            right = TimeSeries(right)
+        if not isinstance(left, TimeSeries):
+            left = TimeSeries(left)
+        cdef TimeSeries R = right
+        cdef TimeSeries L = left
+        cdef TimeSeries t = new_time_series(L._length + R._length)
+        memcpy(t._values, L._values, sizeof(double)*L._length)
+        memcpy(t._values + L._length, R._values, sizeof(double)*R._length)
+        return t
+
+    def __mul__(left, right):
+        """
+        Multiply a time series by an integer n, which (like for lists)
+        results in the time series concatenated with itself n times.
+
+        NOTE: To multiply all the entries of a time series by a single
+        scalar, use the scale method.
+
+        INPUT:
+            left, right -- an integer and a time series
+        OUTPUT:
+            a time series
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,2,-5]); v
+            [1.0000, 2.0000, -5.0000]
+            sage: v*3
+            [1.0000, 2.0000, -5.0000, 1.0000, 2.0000, -5.0000, 1.0000, 2.0000, -5.0000]
+            sage: 3*v
+            [1.0000, 2.0000, -5.0000, 1.0000, 2.0000, -5.0000, 1.0000, 2.0000, -5.0000]
+            sage: v*v
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.finance.time_series.TimeSeries' object cannot be interpreted as an index
+        """
+        cdef Py_ssize_t n, i
+        cdef TimeSeries T
+        if isinstance(left, TimeSeries):
+            T = left
+            n = right
+        else:
+            T = right
+            n = left
+        # Make n copies of T concatenated together
+        cdef TimeSeries v = new_time_series(T._length * n)
+        for i from 0 <= i < n:
+            memcpy(v._values + i*T._length, T._values, sizeof(double)*T._length)
+        return v
+
+    def extend(self, right):
+        """
+        Extend this time series by appending elements from the iterable right.
+
+        INPUT:
+            right -- iterable that can be converted to a time series
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,2,-5]); v
+            [1.0000, 2.0000, -5.0000]
+            sage: v.extend([-3.5, 2])
+            sage: v
+            [1.0000, 2.0000, -5.0000, -3.5000, 2.0000]
+        """
+        if not isinstance(right, TimeSeries):
+            right = TimeSeries(right)
+        if len(right) == 0:
+            return
+        cdef TimeSeries T = right
+        cdef double* z = <double*> sage_malloc(sizeof(double)*(self._length + T._length))
+        if z == NULL:
+            raise MemoryError
+        memcpy(z, self._values, sizeof(double)*self._length)
+        memcpy(z + self._length, T._values, sizeof(double)*T._length)
+        sage_free(self._values)
+        self._values = z
+        self._length = self._length + T._length
+
     def list(self):
         """
         Return list of elements of self.
@@ -468,6 +664,8 @@ cdef class TimeSeries:
         Return new time series obtained by adding a scalar to every
         value in the series.
 
+        NOTE: To add componentwise use the add_entries method.
+
         INPUT:
             s -- float
         OUTPUT:
@@ -483,6 +681,58 @@ cdef class TimeSeries:
         for i from 0 <= i < self._length:
             t._values[i] = self._values[i] + s
         return t
+
+    def add_entries(self, t):
+        """
+        Add corresponding entries of self and t together,
+        extending either self or t by 0's if they do
+        not have the same length.
+
+        NOTE: To add a single number to the entries of a time series,
+        use the add_scalar method.
+
+        INPUT:
+            t -- a time seris
+        OUTPUT:
+            a time series with length the maxima of the lengths of
+            self and t.
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,2,-5]); v
+            [1.0000, 2.0000, -5.0000]
+            sage: v.add_entries([3,4])
+            [4.0000, 6.0000, -5.0000]
+            sage: v.add_entries(v)
+            [2.0000, 4.0000, -10.0000]
+            sage: v.add_entries([3,4,7,18.5])
+            [4.0000, 6.0000, 2.0000, 18.5000]
+        """
+        if not PY_TYPE_CHECK(t, TimeSeries):
+            t = TimeSeries(t)
+        cdef Py_ssize_t i, n
+        cdef TimeSeries T = t, shorter, longer
+        if self._length > T._length:
+            shorter = T
+            longer = self
+        else:
+            shorter = self
+            longer = T
+
+        n = longer._length
+        cdef TimeSeries v = new_time_series(n)
+
+        # Iterate up to the length of the shorter one
+        for i from 0 <= i < shorter._length:
+            v._values[i] = shorter._values[i] + longer._values[i]
+
+        # Copy over the rest of the values
+        if shorter._length != n:
+            memcpy(v._values + shorter._length,
+                   longer._values + shorter._length,
+                   sizeof(double)*(v._length - shorter._length))
+
+        return v
+
 
     def plot(self, points=False, **kwds):
         """
@@ -522,6 +772,7 @@ cdef class TimeSeries:
         Assumes the input time series was constant with its starting value
         for negative time.  The t-th step of the output is the sum of
         the previous k-1 steps of self and the kth step divided by k.
+        Thus k values are avaraged at each point.
 
         INPUT:
             k -- positive integer
@@ -537,11 +788,11 @@ cdef class TimeSeries:
             sage: v.simple_moving_average(1)
             [1.0000, 1.0000, 1.0000, 2.0000, 3.0000]
             sage: v.simple_moving_average(2)
-            [0.5000, 1.0000, 1.0000, 1.5000, 2.5000]
+            [1.0000, 1.0000, 1.0000, 1.5000, 2.5000]
             sage: v.simple_moving_average(3)
-            [0.6667, 0.6667, 1.0000, 1.3333, 2.0000]
+            [1.0000, 1.0000, 1.0000, 1.3333, 2.0000]
         """
-        if k == 0:
+        if k == 0 or k == 1:
             return self.__copy__()
         if k <= 0:
             raise ValueError, "k must be positive"
@@ -550,9 +801,9 @@ cdef class TimeSeries:
         if self._length == 0:
             return t
 
-        cdef double s = self._values[0] * (k-1)
+        cdef double s = self._values[0] * k
         for i from 0 <= i < self._length:
-            if i >= k-1:
+            if i >= k:
                 s -= self._values[i-k]
             else:
                 s -= self._values[0]
@@ -887,5 +1138,29 @@ cdef new_time_series(Py_ssize_t length):
     cdef TimeSeries t = PY_NEW(TimeSeries)
     t._length = length
     t._values = <double*> sage_malloc(sizeof(double)*length)
+    return t
+
+def unpickle_time_series_v1(v, Py_ssize_t n):
+    """
+    Version 0 unpickle method.
+
+    INPUT:
+        v -- a raw char buffer
+
+    EXAMPLES:
+        sage: v = finance.TimeSeries([1,2,3])
+        sage: s = v.__reduce__()[1][0]; s
+        '\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x08@'
+        sage: type(s)
+        <type 'str'>
+        sage: sage.finance.time_series.unpickle_time_series_v1(s,3)
+        [1.0000, 2.0000, 3.0000]
+        sage: sage.finance.time_series.unpickle_time_series_v1(s+s,6)
+        [1.0000, 2.0000, 3.0000, 1.0000, 2.0000, 3.0000]
+        sage: sage.finance.time_series.unpickle_time_series_v1('',0)
+        []
+    """
+    cdef TimeSeries t = new_time_series(n)
+    memcpy(t._values, PyString_AsString(v), n*sizeof(double))
     return t
 

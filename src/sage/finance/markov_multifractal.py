@@ -3,6 +3,14 @@ Markov Switching Multfractal model
 
 REFERENCE: How to Forecast Long-Run Volatility: Regime Switching and
 the Estimation of Multifractal Processes, Calvet and Fisher, 2004.
+
+AUTHOR:
+    -- William Stein, 2008
+
+TESTS:
+    sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
+    sage: loads(dumps(msm)) == msm
+    True
 """
 import math
 import random
@@ -37,18 +45,92 @@ class MarkovSwitchingMultifractal:
         self.__kbar = int(kbar)
         assert self.__kbar > 0, "kbar must be positive"
 
+    def __cmp__(self, other):
+        """
+        Compare self and other.
+
+        Comparision is done on the tuple (m0, sigma, b, gamma_kbar, kbar).
+
+        EXAMPLES:
+            sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
+            sage: msm.__cmp__(3)
+            -1
+            sage: msm.__cmp__(msm)
+            0
+            sage: cad_usd = finance.MarkovSwitchingMultifractal(10,1.278,0.262,0.644,2.11); cad_usd
+            Markov switching multifractal model with m0 = 1.278, sigma = 0.262, b = 2.11, and gamma_10 = 0.644
+            sage: msm.__cmp__(cad_usd)
+            1
+        """
+        if not isinstance(other, MarkovSwitchingMultifractal):
+            return cmp(type(self), type(other))
+        return cmp((self.__m0, self.__sigma, self.__b, self.__gamma_kbar, self.__kbar),
+                   (other.__m0, other.__sigma, other.__b, other.__gamma_kbar, other.__kbar))
+
     def __repr__(self):
+        """
+        Return string representation of Markov switching multifractal model.
+
+        EXAMPLES:
+            sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1,0.95,3)
+            sage: msm.__repr__()
+            'Markov switching multifractal model with m0 = 1.4, sigma = 1.0, b = 3.0, and gamma_8 = 0.95'
+        """
         return "Markov switching multifractal model with m0 = %s, sigma = %s, b = %s, and gamma_%s = %s"%(self.m0(), self.sigma(), self.b(), self.kbar(), self.gamma_kbar())
 
     def m0(self):
+        """
+        Return parameter m0 of Markov switching multifractal model.
+
+        EXAMPLES:
+            sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1,0.95,3)
+            sage: msm.m0()
+            1.3999999999999999
+        """
         return self.__m0
+
     def sigma(self):
+        """
+        Return parameter sigma of Markov switching multifractal model.
+
+        EXAMPLES:
+            sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1,0.95,3)
+            sage: msm.sigma()
+            1.0
+        """
         return self.__sigma
+
     def b(self):
+        """
+        Return parameter b of Markov switching multifractal model.
+
+        EXAMPLES:
+            sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1,0.95,3)
+            sage: msm.b()
+            3.0
+        """
         return self.__b
+
     def gamma_kbar(self):
+        """
+        Return parameter gamma_kbar of Markov switching multifractal model.
+
+        EXAMPLES:
+            sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,0.01,0.95,3)
+            sage: msm.gamma_kbar()
+            0.94999999999999996
+        """
         return self.__gamma_kbar
+
     def kbar(self):
+        """
+        Return parameter kbar of Markov switching multifractal model.
+
+        EXAMPLES:
+            sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,0.01,0.95,3)
+            sage: msm.kbar()
+            8
+        """
         return self.__kbar
 
     def gamma(self):
@@ -59,7 +141,7 @@ class MarkovSwitchingMultifractal:
             gamma -- a tuple of self.kbar() floats
 
         EXAMPLES:
-            sage: msm = finance.MarkovSwitchingMultifractal(1.4,0.5,3,0.95,8)
+            sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
             sage: msm.gamma()
             (0.001368852970712986, 0.0041009402016725094, 0.012252436441829828, 0.036308782091905023, 0.10501923017634662, 0.28312883556311919, 0.63159685013597011, 0.95000000000000351)
         """
@@ -96,24 +178,21 @@ class MarkovSwitchingMultifractal:
         EXAMPLES:
             sage: cad_usd = finance.MarkovSwitchingMultifractal(10,1.278,0.262,0.644,2.11); cad_usd
             Markov switching multifractal model with m0 = 1.278, sigma = 0.262, b = 2.11, and gamma_10 = 0.644
-            sage: v = cad_usd.simulation(100); v
+            sage: v = cad_usd.simulation(100)
+            sage: v    # random -- using seed doesn't work; planned rewrite of this function will work
             [0.0011, -0.0032, 0.0006, 0.0007, 0.0034 ... -0.0023, 0.0008, 0.0015, -0.0003, 0.0027]
-            sage: v
-            [0.0011, -0.0032, 0.0006, 0.0007, 0.0034 ... -0.0023, 0.0008, 0.0015, -0.0003, 0.0027]
-            sage: v.sums()
+            sage: v.sums()  # random
             [0.0011, -0.0021, -0.0015, -0.0008, 0.0026 ... -0.0383, -0.0376, -0.0360, -0.0363, -0.0336]
             sage: v.sums().exp().plot()
         """
         # Two values of the distribution M.
         m0 = self.m0()
         vals = [m0, 2 - m0]
-        def M():
-            return random.choice(vals)
 
         # Initalize the Markov volatility state vector
         from sage.rings.all import RDF
         kbar = self.kbar()
-        m = (RDF**kbar)([M() for _ in xrange(kbar)])
+        m = (RDF**kbar)([random.choice(vals) for _ in xrange(kbar)])
 
         sigma = self.sigma()/100.0
 
@@ -138,7 +217,7 @@ class MarkovSwitchingMultifractal:
             for k in range(kbar):
                 if uniform[j+k] <= gamma[k]:
                     # Draw from the distribution
-                    m[k] = M()
+                    m[k] = random.choice(vals)
 
         return r
 
@@ -146,18 +225,18 @@ class MarkovSwitchingMultifractal:
 
 
 
-def ml_estimation(v, kbar, M):
-    """
-    Compute parameters that model the time series v,
+## def ml_estimation(v, kbar, M):
+##     """
+##     Compute parameters that model the time series v,
 
-    INPUT:
-        v -- series of returns; e.g., sequence of
-             differences of logs of price
-        kbar -- positive integer; model parameter
-        m -- finite list of the values that the multiplier
-             M takes on.
+##     INPUT:
+##         v -- series of returns; e.g., sequence of
+##              differences of logs of price
+##         kbar -- positive integer; model parameter
+##         m -- finite list of the values that the multiplier
+##              M takes on.
 
-    OUTPUT:
-        m0, sigma, gamma_kbar, b
-    """
+##     OUTPUT:
+##         m0, sigma, gamma_kbar, b
+##     """
 

@@ -1,8 +1,33 @@
+"""
+Time Series
+
+This is a module for working with discrete floating point time series.
+It is designed so that every operation is very fast, typically much
+faster than with any other generic code.
+
+EXAMPLES:
+    sage: set_random_seed(1)
+    sage: t = finance.TimeSeries([random()-0.5 for _ in xrange(10)]); t
+    [0.3294, 0.0959, -0.0706, -0.4646, 0.4311, 0.2275, -0.3840, -0.3528, -0.4119, -0.2933]
+    sage: t.sums()
+    [0.3294, 0.4253, 0.3547, -0.1099, 0.3212, 0.5487, 0.1647, -0.1882, -0.6001, -0.8933]
+    sage: t.exponential_moving_average(0.7)
+    [0.0000, 0.3294, 0.1660, 0.0003, -0.3251, 0.2042, 0.2205, -0.2027, -0.3078, -0.3807]
+    sage: t.standard_deviation()
+    0.33729638212891383
+    sage: t.mean()
+    -0.089334255069294391
+    sage: t.variance()
+    0.11376884939725425
+
+AUTHOR:
+    -- William Stein
+"""
+
 include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
 
 cdef extern from "math.h":
-    double abs(double)
     double exp(double)
     double floor(double)
     double log(double)
@@ -14,6 +39,7 @@ cdef extern from "string.h":
 from sage.rings.integer import Integer
 
 max_print = 10
+digits = 4
 
 cdef class TimeSeries:
     cdef double* _values
@@ -24,6 +50,9 @@ cdef class TimeSeries:
         Create new empty uninitialized time series.
 
         EXAMPLES:
+        This implicitly calls new.
+            sage: finance.TimeSeries([1,3,-4,5])
+            [1.0000, 3.0000, -4.0000, 5.0000]
         """
         self._values = NULL
 
@@ -35,6 +64,9 @@ cdef class TimeSeries:
             values -- integer (number of values) or an iterable of floats
 
         EXAMPLES:
+        This implicity calls init.
+            sage: finance.TimeSeries([pi, 3, 18.2])
+            [3.1416, 3.0000, 18.2000]
         """
         if isinstance(values, (int, long, Integer)):
             values = [0.0]*values
@@ -53,19 +85,55 @@ cdef class TimeSeries:
         Free up memory used by a time series.
 
         EXAMPLES:
+        This tests __dealloc__ implicitly:
+            sage: v = finance.TimeSeries([1,3,-4,5])
+            sage: del v
         """
         if self._values:
             sage_free(self._values)
 
     def __repr__(self):
+        """
+        Return string representation of self.
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,3.1908439,-4,5.93932])
+            sage: v.__repr__()
+            '[1.0000, 3.1908, -4.0000, 5.9393]'
+
+        By default 4 digits after the decimal point are displayed.  To
+        change this change self.finance.time_series.digits.
+            sage: sage.finance.time_series.digits = 2
+            sage: v.__repr__()
+            '[1.00, 3.19, -4.00, 5.94]'
+            sage: v
+            [1.00, 3.19, -4.00, 5.94]
+            sage: sage.finance.time_series.digits = 4
+            sage: v
+            [1.0000, 3.1908, -4.0000, 5.9393]
+        """
         return self._repr()
 
-    def _repr(self, prec=4):
+    def _repr(self, prec=None):
         """
         Print representation of a time series.
 
+        INPUT:
+            prec -- number of digits of precision or None; if None
+                    use the default sage.finance.time_series.digits
+        OUTPUT:
+             a string
+
         EXAMPLES:
+            sage: v = finance.TimeSeries([1,3.1908439,-4,5.93932])
+            sage: v._repr()
+            '[1.0000, 3.1908, -4.0000, 5.9393]'
+            sage: v._repr(10)
+            '[1.0000000000, 3.1908439000, -4.0000000000, 5.9393200000]'
+            sage: v._repr(2)
+            '[1.00, 3.19, -4.00, 5.94]'
         """
+        if prec is None: prec = digits
         format = '%.' + str(prec) + 'f'
         v = self.list()
         if len(v) > max_print:
@@ -77,6 +145,19 @@ cdef class TimeSeries:
             return '[' + ', '.join([format%x for x in v]) + ']'
 
     def __len__(self):
+        """
+        Return the number of entries in this time series.
+
+        OUTPUT:
+            Python integer
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,3.1908439,-4,5.93932])
+            sage: v.__len__()
+            4
+            sage: len(v)
+            4
+        """
         return self._length
 
     def __getitem__(self, i):
@@ -111,10 +192,16 @@ cdef class TimeSeries:
             [-2.5000, -4.0000, 3.0000]
             sage: v[3:2]
             []
+
+        Make a copy:
             sage: v[:]
             [1.0000, -4.0000, 3.0000, -2.5000, -4.0000, 3.0000]
+
+        Reverse the time series:
+            sage: v[::-1]
+            [3.0000, -4.0000, -2.5000, 3.0000, -4.0000, 1.0000]
         """
-        cdef Py_ssize_t start, stop, step
+        cdef Py_ssize_t start, stop, step, j
         cdef TimeSeries t
         if PySlice_Check(i):
             start = 0 if (i.start is None) else i.start
@@ -132,12 +219,17 @@ cdef class TimeSeries:
                 stop = self._length
             if start >= stop:
                 return new_time_series(0)
-            t = new_time_series((stop-start)/step)
-            if step > 1:
-                for i from 0 <= i < (stop-start)/step:
-                    t[i] = self._values[i*step+start]
+            if step < 0:
+                step = -step
+                t = new_time_series((stop-start)/step)
+                for j from 0 <= j < (stop-start)/step:
+                    t._values[j] = self._values[stop-1 - j*step]
+            elif step > 1:
+                t = new_time_series((stop-start)/step)
+                for j from 0 <= j < (stop-start)/step:
+                    t._values[j] = self._values[j*step+start]
             else:
-                # do a memcopy
+                t = new_time_series(stop-start)
                 memcpy(t._values, self._values + start, sizeof(double)*t._length)
             return t
         else:
@@ -150,6 +242,35 @@ cdef class TimeSeries:
             return self._values[i]
 
     def __setitem__(self, Py_ssize_t i, double x):
+        """
+        Set the i-th entry of self to x.
+
+        INPUT:
+            i -- a nonnegative integer
+            x -- a float
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,3,-4,5.93932]); v
+            [1.0000, 3.0000, -4.0000, 5.9393]
+            sage: v[0] = -5.5; v
+            [-5.5000, 3.0000, -4.0000, 5.9393]
+            sage: v[-1] = 3.2; v
+            [-5.5000, 3.0000, -4.0000, 3.2000]
+            sage: v[10]
+            Traceback (most recent call last):
+            ...
+            IndexError: TimeSeries index out of range
+            sage: v[-5]
+            Traceback (most recent call last):
+            ...
+            IndexError: TimeSeries index out of range
+        """
+        if i < 0:
+            i += self._length
+            if i < 0:
+                raise IndexError, "TimeSeries index out of range"
+        elif i >= self._length:
+            raise IndexError, "TimeSeries index out of range"
         self._values[i] = x
 
     def __copy__(self):
@@ -242,13 +363,19 @@ cdef class TimeSeries:
 
         OUTPUT:
             a new time series
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,3.1908439,-4,5.93932])
+            sage: v
+            [1.0000, 3.1908, -4.0000, 5.9393]
+            sage: v.abs()
+            [1.0000, 3.1908, 4.0000, 5.9393]
         """
         cdef Py_ssize_t i
         cdef TimeSeries t = new_time_series(self._length)
         for i from 0 <= i < self._length:
-            t._values[i] = abs(self._values[i])
+            t._values[i] = self._values[i] if self._values[i] >= 0 else -self._values[i]
         return t
-
 
     def diffs(self):
         """
@@ -316,7 +443,6 @@ cdef class TimeSeries:
             t._values[i] = self._values[i*k]
         return t
 
-
     def scale(self, double s):
         """
         Return new time series obtained by multiplying every value in the series by s.
@@ -335,6 +461,27 @@ cdef class TimeSeries:
         cdef TimeSeries t = new_time_series(self._length)
         for i from 0 <= i < self._length:
             t._values[i] = self._values[i] * s
+        return t
+
+    def add_scalar(self, double s):
+        """
+        Return new time series obtained by adding a scalar to every
+        value in the series.
+
+        INPUT:
+            s -- float
+        OUTPUT:
+            a new time series with s added to all values.
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([5,4,1.3,2,8,10,3,-5]); v
+            [5.0000, 4.0000, 1.3000, 2.0000, 8.0000, 10.0000, 3.0000, -5.0000]
+            sage: v.add_scalar(0.5)
+            [5.5000, 4.5000, 1.8000, 2.5000, 8.5000, 10.5000, 3.5000, -4.5000]
+        """
+        cdef TimeSeries t = new_time_series(self._length)
+        for i from 0 <= i < self._length:
+            t._values[i] = self._values[i] + s
         return t
 
     def plot(self, points=False, **kwds):
@@ -683,11 +830,17 @@ cdef class TimeSeries:
 
     def plot_histogram(self, bins=50, **kwds):
         """
+        Return histogram plot of this time series with given number of bins.
+
         INPUT:
             bins -- positive integer (default: 50)
             **kwds -- passed to the bar_chart function
         OUTPUT:
             a histogram plot
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1..50])
+            sage: v.plot_histogram(bins=10)
         """
         from sage.plot.all import bar_chart, polygon
         counts, intervals = self.histogram(bins)
@@ -695,25 +848,42 @@ cdef class TimeSeries:
         for i, (x0,x1) in enumerate(intervals):
             s += polygon([(x0,0), (x0,counts[i]), (x1,counts[i]), (x1,0)], **kwds)
         return s
-        #return bar_chart(counts, **kwds)
 
     def numpy(self):
+        """
+        Return numpy 1-d array corresponding to this time series.
+
+        OUTPUT:
+            a numpy 1-d array
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,-3,4.5,-2])
+            sage: v.numpy()
+            array([ 1. , -3. ,  4.5, -2. ])
+        """
         import numpy
         #TODO: make this faster by accessing raw memory?
         return numpy.array(self.list(), dtype=float)
 
 
-def new_time_series(length):
+cdef new_time_series(Py_ssize_t length):
     """
     Return a new uninitialized time series of the given length.
     The entries of the time series are garbage.
 
     INPUT:
         length -- integer
-
     OUTPUT:
         TimeSeries
+
+    EXAMPLES:
+    This uses new_time_series implicitly:
+        sage: v = finance.TimeSeries([1,-3,4.5,-2])
+        sage: v.__copy__()
+        [1.0000, -3.0000, 4.5000, -2.0000]
     """
+    if length < 0:
+        raise ValueError, "length must be nonnegative"
     cdef TimeSeries t = PY_NEW(TimeSeries)
     t._length = length
     t._values = <double*> sage_malloc(sizeof(double)*length)

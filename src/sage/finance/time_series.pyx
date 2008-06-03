@@ -35,6 +35,7 @@ AUTHOR:
 include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/python_string.pxi"
+include "../ext/random.pxi"
 
 cdef extern from "math.h":
     double exp(double)
@@ -44,16 +45,6 @@ cdef extern from "math.h":
 
 cdef extern from "string.h":
     void* memcpy(void* dst, void* src, size_t len)
-
-cdef extern from "stdlib.h":
-    long random()
-    long RAND_MAX
-
-cdef inline float ranf():
-    """
-    Return random number uniformly distributed in 0..1.
-    """
-    return (<float> random())/RAND_MAX
 
 from sage.rings.integer import Integer
 from sage.rings.real_double import RDF
@@ -917,6 +908,27 @@ cdef class TimeSeries:
             s += self._values[i]
         return s
 
+    def prod(self):
+        """
+        Return the prod of all the entries of self.  If self has
+        length 0, returns 1.
+
+        OUTPUT:
+            double
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,1,1,2,3]); v
+            [1.0000, 1.0000, 1.0000, 2.0000, 3.0000]
+            sage: v.prod()
+            6.0
+        """
+        cdef double s = 1
+        cdef Py_ssize_t i
+        for i from 0 <= i < self._length:
+            s *= self._values[i]
+        return s
+
+
     def mean(self):
         """
         Return the mean (average) of the elements of self.
@@ -1051,6 +1063,69 @@ cdef class TimeSeries:
         else:
             return s
 
+    def clip(self, min=None, max=None):
+        """
+        Return new time series obtained from self by removing all values
+        <= a certain maximum value, >= a certain minimum, or both.
+
+        INPUT:
+            min -- None or double
+            max -- None or double
+
+        OUTPUT:
+            time seriessx
+        """
+        cdef Py_ssize_t i, j
+        cdef TimeSeries t
+        cdef double mn, mx
+        cdef double x
+        if min is None and max is None:
+            return self.copy()
+        # This code is ugly but I think as fast as possible.
+        if min is None and max is not None:
+            # Return everything <= max
+            j = 0
+            mx = max
+            for i from 0 <= i < self._length:
+                if self._values[i] <= mx:
+                    j += 1
+
+            t = TimeSeries(j)
+            j = 0
+            for i from 0 <= i < self._length:
+                if self._values[i] <= mx:
+                    t._values[j] = self._values[i]
+                    j += 1
+        elif max is None and min is not None:
+            # Return everything >= min
+            j = 0
+            mn = min
+            for i from 0 <= i < self._length:
+                if self._values[i] >= mn:
+                    j += 1
+            t = TimeSeries(j)
+            j = 0
+            for i from 0 <= i < self._length:
+                if self._values[i] >= mn:
+                    t._values[j] = self._values[i]
+                    j += 1
+        else:
+            # Return everything between min and max
+            j = 0
+            mn = min; mx = max
+            for i from 0 <= i < self._length:
+                x = self._values[i]
+                if x >= mn and x <= mx:
+                    j += 1
+            t = TimeSeries(j)
+            j = 0
+            for i from 0 <= i < self._length:
+                x = self._values[i]
+                if x >= mn and x <= mx:
+                    t._values[j] = x
+                    j += 1
+        return t
+
     def histogram(self, Py_ssize_t bins=50, bint normalize=False):
         """
         Return the frequency histogram of the values in
@@ -1118,8 +1193,8 @@ cdef class TimeSeries:
 
         INPUT:
             bins -- positive integer (default: 50)
-            normalize -- whether to normalize so the total area in the
-                         bars of the histogram is 1.
+            normalize -- (default: True) whether to normalize so the total
+                         area in the bars of the histogram is 1.
             **kwds -- passed to the bar_chart function
         OUTPUT:
             a histogram plot
@@ -1153,10 +1228,20 @@ cdef class TimeSeries:
 
     def randomize(self, distribution='uniform', loc=0, scale=1, **kwds):
         """
+        Randomize the entries in this time series.
+
         INPUT:
-            distribution -- 'uniform'
-                            'normal'
-                            'semicircle'
+            distribution -- 'uniform':    from loc to loc + scale
+                            'normal':     mean loc and standard deviation scale
+                            'semicircle': with center at loc (scale is ignored)
+            loc   -- float (default: 0)
+            scale -- float (default: 1)
+
+        NOTE: All random numbers are generated using the high quality
+        GMP random number function gmp_urandomb_ui.  This respects the
+        Sage set_random_state command.  It's not quite as fast at the
+        C library random number generator, but is better quality, and
+        is platform independent.
         """
         if distribution == 'uniform':
             self._randomize_uniform(loc, scale)
@@ -1170,10 +1255,12 @@ cdef class TimeSeries:
     def _randomize_uniform(self, double left, double right):
         if left >= right:
             raise ValueError, "left must be less than right"
+
+        cdef randstate rstate = current_randstate()
         cdef Py_ssize_t k
         cdef double d = right - left
         for k from 0 <= k < self._length:
-            self._values[k] = ranf() * d - left
+            self._values[k] = rstate.c_rand_double() * d + left
 
     def _randomize_normal(self, double m, double s):
         """
@@ -1185,12 +1272,14 @@ cdef class TimeSeries:
         """
         # Ported from http://users.tkk.fi/~nbeijar/soft/terrain/source_o2/boxmuller.c
         # This the box muller algorithm.
+        cdef randstate rstate = current_randstate()
+
         cdef double x1, x2, w, y1, y2
         cdef Py_ssize_t k
         for k from 0 <= k < self._length:
             while 1:
-                x1 = 2.0 * ranf() - 1.0
-                x2 = 2.0 * ranf() - 1.0
+                x1 = 2.0 * rstate.c_rand_double() - 1.0
+                x2 = 2.0 * rstate.c_rand_double() - 1.0
                 w = x1 * x1 + x2 * x2
                 if w < 1.0: break
             w = sqrt( (-2.0 * log( w ) ) / w )
@@ -1204,12 +1293,13 @@ cdef class TimeSeries:
     def _randomize_semicircle(self, double center):
         cdef Py_ssize_t k
         cdef double x, y, s, d = 2, left = center - 1, z
+        cdef randstate rstate = current_randstate()
         z = d*d
         s = 1.5707963267948966192  # pi/2
         for k from 0 <= k < self._length:
             while 1:
-                x = ranf() * d - 1
-                y = ranf() * s
+                x = rstate.c_rand_double() * d - 1
+                y = rstate.c_rand_double() * s
                 if y*y + x*x < 1:
                     break
             self._values[k] = x + center

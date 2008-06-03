@@ -164,64 +164,17 @@ class MarkovSwitchingMultifractal:
         self.__gamma = gamma
         return gamma
 
-    def simulation(self, T):
+    def simulation(self, n):
         """
-        Retun a time series of the T values taken by simulating the
-        running of this Markov switching multifractal model for T time
-        steps.
+        Same as self.simulations, but run only 1 time, and returns a time series
+        instead of a list of time series.
 
         INPUT:
-            T -- a positive integer
-        OUTPUT:
-            list -- a list of floats, the returns of the
-                    log-prices of a financial asset or
-                    exchange rate.
+            n -- a positive integer
 
         EXAMPLES:
-            sage: cad_usd = finance.MarkovSwitchingMultifractal(10,1.278,0.262,0.644,2.11); cad_usd
-            Markov switching multifractal model with m0 = 1.278, sigma = 0.262, b = 2.11, and gamma_10 = 0.644
-            sage: v = cad_usd.simulation(100)
-            sage: v    # random -- using seed doesn't work; planned rewrite of this function will work
-            [0.0011, -0.0032, 0.0006, 0.0007, 0.0034 ... -0.0023, 0.0008, 0.0015, -0.0003, 0.0027]
-            sage: v.sums()  # random
-            [0.0011, -0.0021, -0.0015, -0.0008, 0.0026 ... -0.0383, -0.0376, -0.0360, -0.0363, -0.0336]
-            sage: v.sums().exp().plot()
         """
-        # Two values of the distribution M.
-        m0 = self.m0()
-        vals = [m0, 2 - m0]
-
-        # Initalize the Markov volatility state vector
-        from sage.rings.all import RDF
-        kbar = self.kbar()
-        m = (RDF**kbar)([random.choice(vals) for _ in xrange(kbar)])
-
-        sigma = self.sigma()/100.0
-
-        # r is the time series of returns
-        r = time_series.TimeSeries(T)
-
-        # Generate T Gaussian random numbers with mean 0
-        # and variance 1.
-        import scipy.stats
-        eps = scipy.stats.norm().rvs(T)
-
-        # Generate uniform distribution around 0 between -1 and 1
-        uniform = scipy.stats.uniform().rvs(kbar*T)
-
-        # The gamma_k
-        gamma = self.gamma()
-
-        for t in range(T):
-            r[t] = sigma * eps[t] * m.prod().sqrt()
-            # Now update the volatility state vector
-            j = t*kbar
-            for k in range(kbar):
-                if uniform[j+k] <= gamma[k]:
-                    # Draw from the distribution
-                    m[k] = random.choice(vals)
-
-        return r
+        return self.simulations(n, 1)[0]
 
     def simulations(self, n, k=1):
         """
@@ -230,7 +183,7 @@ class MarkovSwitchingMultifractal:
 
         INPUT:
             n -- positive integer; number of steps
-            k -- positive integer; number of simulations.
+            k -- positive integer (default: 1); number of simulations.
 
         OUTPUT:
             list -- a list of TimeSeries objects.
@@ -241,7 +194,7 @@ class MarkovSwitchingMultifractal:
         """
         return markov_multifractal_cython.simulation(n, k,
                    self.__m0, self.__sigma, self.__b,
-                   self.__gamma_kbar, self.__kbar)
+                   self.__kbar, self.gamma())
 
 
 

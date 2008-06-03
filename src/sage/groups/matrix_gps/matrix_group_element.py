@@ -96,7 +96,6 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
                 g = parent.matrix_space()(g)
         element.Element.__init__(self, parent)
         self.__mat = g
-        self.__gap = gap(g)
 
     def matrix(self):
         """

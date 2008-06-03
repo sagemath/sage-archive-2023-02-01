@@ -391,6 +391,8 @@ class MatrixGroup_gap(MatrixGroup_generic):
         """
         Return list of all elements of this group.
 
+        Always returns a new list, so it is safe to change the returned list.
+
         EXAMPLES:
             sage: F = GF(3)
             sage: gens = [matrix(F,2, [1,0, -1,1]), matrix(F, 2, [1,1,0,1])]
@@ -412,11 +414,40 @@ class MatrixGroup_gap(MatrixGroup_generic):
             ...
             ValueError: group must be finite
         """
+        # We check the cache for the result
+        try:
+            return list(self.__list)
+        except AttributeError:
+            pass
         if not self.is_finite():
             raise ValueError, "group must be finite"
+
+        # Get basic properties of the field over which we are working
         F = self.field_of_definition()
-        X = list(self._gap_().Elements())
-        return [MatrixGroupElement(a._matrix_(F), self) for a in X]
+        n = F.degree()
+        p = F.characteristic()
+        a = F.prime_subfield().multiplicative_generator()
+        b = F.multiplicative_generator()
+
+        # Get string representation of the list of elements of self.
+        # Since the output is usually big, we use a file, which can
+        # easily give us a hundred-times speedup for at all large output.
+        s = self._gap_().Elements().str(use_file=True)
+
+        # Replace the two types of gap-style 'power of generator' notation
+        s = s.replace('Z(%s^%s)'%(p,n),'b')
+        s = s.replace('Z(%s)'%p,'a')
+        s = s.replace('^','**')
+        # Then eval the string with a and b set to the corresponding
+        # multiplicative generators.
+        v = eval(s, {'a':a, 'b':b})
+
+        # Finally, create the matrix space in which all these matrices live,
+        # and make each element as a MatrixGroupElement.
+        MS = self.matrix_space()
+        v = [MatrixGroupElement(MS(x), self, check=False) for x in v]
+        self.__list = v
+        return list(v)
 
 class MatrixGroup_gap_finite_field(MatrixGroup_gap):
     def order(self):

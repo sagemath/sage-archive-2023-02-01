@@ -766,12 +766,18 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: G.list()
             [1, b, b^2, a, a*b, a*b^2]
         """
+        try:
+            return list(self.__list)
+        except AttributeError:
+            pass
         if not(self.is_finite()):
            raise NotImplementedError, "Group must be finite"
         invs = self.invariants()
         T = mrange(invs)
         n = self.order()
-        return [AbelianGroupElement(self, t) for t in T]
+        L = [AbelianGroupElement(self, t) for t in T]
+        self.__list = L
+        return list(L)
 
     def __iter__(self):
         """

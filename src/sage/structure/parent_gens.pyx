@@ -223,10 +223,10 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         object must define an iterator).
         """
         if self._list != None:
-            return self._list
+            return list(self._list)
         else:
             self._list = list(self.__iter__())
-        return self._list
+        return list(self._list)
 
     def objgens(self):
         """

@@ -411,11 +411,17 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.list()
             [(), (3,4), (2,3), (2,3,4), (2,4,3), (2,4), (1,2), (1,2)(3,4), (1,2,3), (1,2,3,4), (1,2,4,3), (1,2,4), (1,3,2), (1,3,4,2), (1,3), (1,3,4), (1,3)(2,4), (1,3,2,4), (1,4,3,2), (1,4,2), (1,4,3), (1,4), (1,4,2,3), (1,4)(2,3)]
         """
+        try:
+            return list(self.__list)
+        except AttributeError:
+            pass
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
         X = self._gap_().Elements()
         n = X.Length()
-        return [PermutationGroupElement(X[i], self, check = False)
+        L = [PermutationGroupElement(X[i], self, check = False)
                             for i in range(1,n+1)]
+        self.__list = L
+        return list(L)
 
     def __contains__(self, item):
         """

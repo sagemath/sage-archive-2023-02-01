@@ -45,17 +45,25 @@ cdef extern from "math.h":
 cdef extern from "string.h":
     void* memcpy(void* dst, void* src, size_t len)
 
+cdef extern from "stdlib.h":
+    long random()
+    long RAND_MAX
+
+cdef inline float ranf():
+    """
+    Return random number uniformly distributed in 0..1.
+    """
+    return (<float> random())/RAND_MAX
+
 from sage.rings.integer import Integer
 from sage.rings.real_double import RDF
 from sage.modules.real_double_vector cimport RealDoubleVectorSpaceElement
+
 
 max_print = 10
 digits = 4
 
 cdef class TimeSeries:
-    cdef double* _values
-    cdef Py_ssize_t _length
-
     def __new__(self, values=None):
         """
         Create new empty uninitialized time series.
@@ -410,9 +418,9 @@ cdef class TimeSeries:
             [1.0000, 5.0000, 1.0000, 2.0000, -5.0000]
         """
         if not isinstance(right, TimeSeries):
-            right = TimeSeries(right)
+            raise TypeError, "right must be a time series"
         if not isinstance(left, TimeSeries):
-            left = TimeSeries(left)
+            raise TypeError, "right must be a time series"
         cdef TimeSeries R = right
         cdef TimeSeries L = left
         cdef TimeSeries t = new_time_series(L._length + R._length)
@@ -734,13 +742,16 @@ cdef class TimeSeries:
         return v
 
 
-    def plot(self, points=False, **kwds):
+    def plot(self, Py_ssize_t plot_points=1000, points=False, **kwds):
         """
         Return a plot of this time series as a line or points through
         (i,T(i)), where i ranges over nonnegative integers up to the
         length of self.
 
         INPUT:
+            plot_points -- (default: 1000) 0 or positive integer; only
+                           plot the given number of equally spaced
+                           points in the time series; if 0, plot all points
             points -- bool (default: False) -- if True, return just the
                       points of the time series
             **kwds -- passed to the line or point command
@@ -754,8 +765,20 @@ cdef class TimeSeries:
             sage: v.plot() + v.plot(points=True, rgbcolor='red',pointsize=50)
         """
         from sage.plot.all import line, point
-        v = self.list()
-        w = list(enumerate(v))
+        cdef Py_ssize_t s
+
+        if self._length < plot_points:
+            plot_points = 0
+
+        if plot_points > 0:
+            s = self._length/plot_points
+            if plot_points <= 0:
+                raise ValueError, "plot_points must be a positive integer"
+            v = self.scale_time(s).list()
+        else:
+            s = 1
+            v = self.list()
+        w = [(i * s, y) for i,y in enumerate(v)]
         if points:
             L = point(w, **kwds)
         else:
@@ -763,7 +786,7 @@ cdef class TimeSeries:
         L.ymin(min(v))
         L.ymax(max(v))
         L.xmin(0)
-        L.xmax(len(v))
+        L.xmax(len(v)*s)
         return L
 
     def simple_moving_average(self, Py_ssize_t k):
@@ -1028,7 +1051,7 @@ cdef class TimeSeries:
         else:
             return s
 
-    def histogram(self, Py_ssize_t bins=50):
+    def histogram(self, Py_ssize_t bins=50, bint normalize=False):
         """
         Return the frequency histogram of the values in
         this time series divided up into the given
@@ -1056,9 +1079,15 @@ cdef class TimeSeries:
             raise ValueError, "bins must be positive"
 
         cdef double mn = self.min(), mx = self.max()
-        cdef double r = mx - mn + 0.001, step = r/bins
+        cdef double r = mx - mn, step = r/bins
+
+        if r == 0:
+            raise ValueError, "bins have 0 width"
 
         v = [(mn + j*step, mn + (j+1)*step) for j in range(bins)]
+        if self._length == 0:
+            return [], v
+
         if step == 0:
             counts = [0]*bins
             counts[0] = [self._length]
@@ -1074,17 +1103,23 @@ cdef class TimeSeries:
         for i from 0 <= i < self._length:
             cnts[<Py_ssize_t>floor((self._values[i] - mn)/step)] += 1
 
-        counts = [cnts[i] for i in range(bins)]
+        b = 1.0/(self._length * step)
+        if normalize:
+            counts = [cnts[i]*b for i in range(bins)]
+        else:
+            counts = [cnts[i] for i in range(bins)]
         sage_free(cnts)
 
         return counts, v
 
-    def plot_histogram(self, bins=50, **kwds):
+    def plot_histogram(self, bins=50, normalize=True, **kwds):
         """
         Return histogram plot of this time series with given number of bins.
 
         INPUT:
             bins -- positive integer (default: 50)
+            normalize -- whether to normalize so the total area in the
+                         bars of the histogram is 1.
             **kwds -- passed to the bar_chart function
         OUTPUT:
             a histogram plot
@@ -1094,7 +1129,7 @@ cdef class TimeSeries:
             sage: v.plot_histogram(bins=10)
         """
         from sage.plot.all import bar_chart, polygon
-        counts, intervals = self.histogram(bins)
+        counts, intervals = self.histogram(bins, normalize=normalize)
         s = 0
         for i, (x0,x1) in enumerate(intervals):
             s += polygon([(x0,0), (x0,counts[i]), (x1,counts[i]), (x1,0)], **kwds)
@@ -1116,6 +1151,68 @@ cdef class TimeSeries:
         #TODO: make this faster by accessing raw memory?
         return numpy.array(self.list(), dtype=float)
 
+    def randomize(self, distribution='uniform', loc=0, scale=1, **kwds):
+        """
+        INPUT:
+            distribution -- 'uniform'
+                            'normal'
+                            'semicircle'
+        """
+        if distribution == 'uniform':
+            self._randomize_uniform(loc, scale)
+        elif distribution == 'normal':
+            self._randomize_normal(loc, scale)
+        elif distribution == 'semicircle':
+            self._randomize_semicircle(loc)
+        else:
+            raise NotImplementedError
+
+    def _randomize_uniform(self, double left, double right):
+        if left >= right:
+            raise ValueError, "left must be less than right"
+        cdef Py_ssize_t k
+        cdef double d = right - left
+        for k from 0 <= k < self._length:
+            self._values[k] = ranf() * d - left
+
+    def _randomize_normal(self, double m, double s):
+        """
+        INPUT:
+            m -- mean
+            s -- standard deviation
+
+        EXAMPLES:
+        """
+        # Ported from http://users.tkk.fi/~nbeijar/soft/terrain/source_o2/boxmuller.c
+        # This the box muller algorithm.
+        cdef double x1, x2, w, y1, y2
+        cdef Py_ssize_t k
+        for k from 0 <= k < self._length:
+            while 1:
+                x1 = 2.0 * ranf() - 1.0
+                x2 = 2.0 * ranf() - 1.0
+                w = x1 * x1 + x2 * x2
+                if w < 1.0: break
+            w = sqrt( (-2.0 * log( w ) ) / w )
+            y1 = x1 * w
+            y2 = x2 * w
+            self._values[k] = m + y1*s
+            k += 1
+            if k < self._length:
+                self._values[k] = m + y2*s
+
+    def _randomize_semicircle(self, double center):
+        cdef Py_ssize_t k
+        cdef double x, y, s, d = 2, left = center - 1, z
+        z = d*d
+        s = 1.5707963267948966192  # pi/2
+        for k from 0 <= k < self._length:
+            while 1:
+                x = ranf() * d - 1
+                y = ranf() * s
+                if y*y + x*x < 1:
+                    break
+            self._values[k] = x + center
 
 cdef new_time_series(Py_ssize_t length):
     """

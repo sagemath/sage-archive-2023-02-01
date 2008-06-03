@@ -15,7 +15,9 @@ TESTS:
 import math
 import random
 
-from time_series import TimeSeries
+import time_series
+
+import markov_multifractal_cython
 
 class MarkovSwitchingMultifractal:
     def __init__(self, kbar, m0, sigma, gamma_kbar, b):
@@ -197,14 +199,14 @@ class MarkovSwitchingMultifractal:
         sigma = self.sigma()/100.0
 
         # r is the time series of returns
-        r = TimeSeries(T)
+        r = time_series.TimeSeries(T)
 
         # Generate T Gaussian random numbers with mean 0
         # and variance 1.
         import scipy.stats
         eps = scipy.stats.norm().rvs(T)
 
-        # Generate uniform distribution between 0 and 1
+        # Generate uniform distribution around 0 between -1 and 1
         uniform = scipy.stats.uniform().rvs(kbar*T)
 
         # The gamma_k
@@ -221,7 +223,25 @@ class MarkovSwitchingMultifractal:
 
         return r
 
+    def simulations(self, n, k=1):
+        """
+        Return k simulations of length n using this Markov switching
+        multifractal model for n time steps.
 
+        INPUT:
+            n -- positive integer; number of steps
+            k -- positive integer; number of simulations.
+
+        OUTPUT:
+            list -- a list of TimeSeries objects.
+
+        EXAMPLES:
+            sage: cad_usd = finance.MarkovSwitchingMultifractal(10,1.278,0.262,0.644,2.11); cad_usd
+            Markov switching multifractal model with m0 = 1.278, sigma = 0.262, b = 2.11, and gamma_10 = 0.644
+        """
+        return markov_multifractal_cython.simulation(n, k,
+                   self.__m0, self.__sigma, self.__b,
+                   self.__gamma_kbar, self.__kbar)
 
 
 

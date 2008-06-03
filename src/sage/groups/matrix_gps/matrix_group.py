@@ -433,6 +433,7 @@ class MatrixGroup_gap(MatrixGroup_generic):
         # Since the output is usually big, we use a file, which can
         # easily give us a hundred-times speedup for at all large output.
         s = self._gap_().Elements().str(use_file=True)
+        s = ''.join(s.split())
 
         # Replace the two types of gap-style 'power of generator' notation
         s = s.replace('Z(%s^%s)'%(p,n),'b')

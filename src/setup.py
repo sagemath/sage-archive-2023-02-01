@@ -722,6 +722,9 @@ ext_modules = [ \
               sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx'],
               libraries=['ntl', 'gmp']), \
 
+    Extension('sage.misc.allocator',
+              sources = ['sage/misc/allocator.pyx']), \
+
     Extension('sage.rings.integer_ring',
               sources = ['sage/rings/integer_ring.pyx'],
               libraries=['ntl', 'gmp']), \

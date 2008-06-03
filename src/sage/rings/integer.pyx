@@ -3667,50 +3667,6 @@ cdef class long_to_Z(Morphism):
 
 ############### INTEGER CREATION CODE #####################
 
-cdef extern from *:
-
-    ctypedef struct RichPyObject "PyObject"
-
-    # We need a PyTypeObject with elements so we can
-    # get and set tp_new, tp_dealloc, tp_flags, and tp_basicsize
-    ctypedef struct RichPyTypeObject "PyTypeObject":
-
-        # We replace this one
-        PyObject*      (*    tp_new) ( RichPyTypeObject*, PyObject*, PyObject*)
-
-        # Not used, may be useful to determine correct memory management function
-        RichPyObject *(*   tp_alloc) ( RichPyTypeObject*, size_t )
-
-        # We replace this one
-        void           (*tp_dealloc) ( PyObject*)
-
-        # Not used, may be useful to determine correct memory management function
-        void          (*    tp_free) ( PyObject* )
-
-        # sizeof(Object)
-        size_t tp_basicsize
-
-        # We set a flag here to circumvent the memory manager
-        long tp_flags
-
-    cdef long Py_TPFLAGS_HAVE_GC
-
-    # We need a PyObject where we can get/set the refcnt directly
-    # and access the type.
-    ctypedef struct RichPyObject "PyObject":
-        int ob_refcnt
-        RichPyTypeObject* ob_type
-
-    # Allocation
-    RichPyObject* PyObject_MALLOC(int)
-
-    # Useful for debugging, see below
-    void PyObject_INIT(RichPyObject *, RichPyTypeObject *)
-
-    # Free
-    void PyObject_FREE(PyObject*)
-
-
 # We need a couple of internal GMP datatypes.
 
 # This may be potentialy very dangerous as it reaches
@@ -3718,6 +3674,7 @@ cdef extern from *:
 # be consistant across future versions of GMP.
 # See extensive note in the fast_tp_new() function below.
 
+include "../ext/python_rich_object.pxi"
 cdef extern from "gmp.h":
     ctypedef void* mp_ptr #"mp_ptr"
 
@@ -3820,7 +3777,6 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
         # they do not pocess references to other Python
         # objects (Aas indicated by the Py_TPFLAGS_HAVE_GC flag).
         # See below for a more detailed description.
-
         new = PyObject_MALLOC( sizeof_Integer )
 
         # Now set every member as set in z, the global dummy Integer
@@ -3914,7 +3870,7 @@ cdef void fast_tp_dealloc(PyObject* o):
 
 
 hook_fast_tp_functions()
-
+from sage.misc.allocator cimport hook_tp_functions
 cdef hook_fast_tp_functions():
     """
     Initialize the fast integer creation functions.
@@ -3923,25 +3879,8 @@ cdef hook_fast_tp_functions():
 
     integer_pool = <PyObject**>sage_malloc(integer_pool_size * sizeof(PyObject*))
 
-    cdef long flag
-
     cdef RichPyObject* o
     o = <RichPyObject*>global_dummy_Integer
-
-    # Make sure this never, ever gets collected
-    Py_INCREF(global_dummy_Integer)
-
-    # By default every object created in Pyrex is garbage
-    # collected. This means it may have references to other objects
-    # the Garbage collector has to look out for. We remove this flag
-    # as the only reference an Integer has is to the global Integer
-    # ring. As this object is unique we don't need to garbage collect
-    # it as we always have a module level reference to it. If another
-    # attribute is added to the Integer class this flag removal so as
-    # the alloc and free functions may not be used anymore.
-    # This object will still be reference counted.
-    flag = Py_TPFLAGS_HAVE_GC
-    o.ob_type.tp_flags = <long>(o.ob_type.tp_flags & (~flag))
 
     # calculate the offset of the GMP mpz_t to avoid casting to/from
     # an Integer which includes reference counting. Reference counting
@@ -3964,50 +3903,7 @@ cdef hook_fast_tp_functions():
 
     # Finally replace the functions called when an Integer needs
     # to be constructed/destructed.
-    o.ob_type.tp_new = &fast_tp_new
-    o.ob_type.tp_dealloc = &fast_tp_dealloc
-
-def time_alloc_list(n):
-    """
-    Allocate n a list of n SAGE integers using PY_NEW.
-    (Used for timing purposes.)
-
-    EXAMPLES:
-       sage: from sage.rings.integer import time_alloc_list
-       sage: v = time_alloc_list(100)
-    """
-    cdef int i
-    l = []
-    for i from 0 <= i < n:
-        l.append(PY_NEW(Integer))
-
-    return l
-
-def time_alloc(n):
-    """
-    Time allocating n integers using PY_NEW.
-    Used for timing purposes.
-
-    EXAMPLES:
-       sage: from sage.rings.integer import time_alloc
-       sage: time_alloc(100)
-    """
-    cdef int i
-    for i from 0 <= i < n:
-        z = PY_NEW(Integer)
-
-def pool_stats():
-    """
-    Returns information about the Integer object pool.
-
-    EXAMPLES:
-        sage: from sage.rings.integer import pool_stats
-        sage: pool_stats()            # random-ish output
-        Used pool 0 / 0 times
-        Pool contains 3 / 100 items
-    """
-    return ["Used pool %s / %s times" % (use_pool, total_alloc),
-            "Pool contains %s / %s items" % (integer_pool_count, integer_pool_size)]
+    hook_tp_functions(global_dummy_Integer, NULL, <newfunc>&fast_tp_new, NULL, &fast_tp_dealloc, False)
 
 cdef integer(x):
     if PY_TYPE_CHECK(x, Integer):

@@ -41,6 +41,7 @@ cdef extern from "math.h":
     double exp(double)
     double floor(double)
     double log(double)
+    double pow(double, double)
     double sqrt(double)
 
 cdef extern from "string.h":
@@ -393,7 +394,7 @@ cdef class TimeSeries:
         the add_entries method.
 
         INPUT:
-            right -- iterable that can be converted to a time series
+            right -- a time series
         OUTPUT:
             a time series
 
@@ -401,17 +402,23 @@ cdef class TimeSeries:
             sage: v = finance.TimeSeries([1,2,3]); w = finance.TimeSeries([1,2])
             sage: v + w
             [1.0000, 2.0000, 3.0000, 1.0000, 2.0000]
-            sage: v + xrange(4)
-            [1.0000, 2.0000, 3.0000, 0.0000, 1.0000, 2.0000, 3.0000]
             sage: v = finance.TimeSeries([1,2,-5]); v
             [1.0000, 2.0000, -5.0000]
+
+        Note that both summands must be a time series:
+            sage: v + xrange(4)
+            Traceback (most recent call last):
+            ...
+            TypeError: right operand must be a time series
             sage: [1,5] + v
-            [1.0000, 5.0000, 1.0000, 2.0000, -5.0000]
+            Traceback (most recent call last):
+            ...
+            TypeError: left operand must be a time series
         """
         if not isinstance(right, TimeSeries):
-            raise TypeError, "right must be a time series"
+            raise TypeError, "right operand must be a time series"
         if not isinstance(left, TimeSeries):
-            raise TypeError, "right must be a time series"
+            raise TypeError, "left operand must be a time series"
         cdef TimeSeries R = right
         cdef TimeSeries L = left
         cdef TimeSeries t = new_time_series(L._length + R._length)
@@ -943,6 +950,67 @@ cdef class TimeSeries:
             1.6000000000000001
         """
         return self.sum() / self._length
+
+    def power(self, double k):
+        """
+        Return new time series with every elements of self raised to the
+        kth power.
+        """
+        cdef Py_ssize_t i
+        cdef TimeSeries t = new_time_series(self._length)
+        for i from 0 <= i < self._length:
+            t._values[i] = pow(self._values[i], k)
+        return t
+
+    def moment(self, int k):
+        """
+        Return the k-th moment of self, which is just the
+        mean of the k-th powers of the elements of self.
+
+        INPUT:
+            k -- a positive integer
+
+        OUTPUT:
+            double
+
+        EXAMPLES:
+            sage: v = finance.TimeSeries([1,1,1,2,3]); v
+            [1.0000, 1.0000, 1.0000, 2.0000, 3.0000]
+            sage: v.moment(1)
+            1.6000000000000001
+            sage: v.moment(2)
+            ?
+        """
+        if k <= 0:
+            raise ValueError, "k must be positive"
+        if k == 1:
+            return self.mean()
+        cdef double s = 0
+        cdef Py_ssize_t i
+        for i from 0 <= i < self._length:
+            s += pow(self._values[i], k)
+        return s / self._length
+
+    def central_moment(self, int k):
+        """
+        Return the k-th central moment of self, which is just the mean
+        of the k-th powers of the differences self[i]-mu, where mu is
+        the mean of self.
+
+        INPUT:
+            k -- a positive integer
+        OUTPUT:
+            double
+
+        EXAMPLES:
+
+        """
+        if k == 1:
+            return float(0)
+        mu = self.mean()
+        # We could make this slightly faster by doing the add scalar
+        # and moment calculation together.  But that would be nasty.
+        return self.add_scalar(-mu).moment(k)
 
     def variance(self, bias=False):
         """

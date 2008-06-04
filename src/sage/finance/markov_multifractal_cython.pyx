@@ -11,7 +11,7 @@ cdef extern from "math.h":
 
 from time_series cimport TimeSeries
 
-def simulation(Py_ssize_t n, Py_ssize_t k,
+def simulations(Py_ssize_t n, Py_ssize_t k,
                double m0, double sigma, double b,
                int kbar, gamma):
     cdef double m1 = 2 - m0
@@ -29,7 +29,8 @@ def simulation(Py_ssize_t n, Py_ssize_t k,
     for i from 0 <= i < k:
         # Initalize the model
         for j from 0 <= j < kbar:
-            markov_state_vector._values[j] = m0 if (rstate.c_random() & 1) else m1    # n & 1 means "is odd"
+            # n & 1 means "is odd"
+            markov_state_vector._values[j] = m0 if (rstate.c_random() & 1) else m1
         t = TimeSeries(n)
 
         # Generate n normally distributed random numbers with mean 0
@@ -42,10 +43,9 @@ def simulation(Py_ssize_t n, Py_ssize_t k,
             t._values[a] = sigma * eps._values[a] * sqrt(markov_state_vector.prod())
 
             # Now update the volatility state vector
-            j = a * kbar
             for c from 0 <= c < kbar:
                 if rstate.c_rand_double() <= gamma_vals._values[c]:
-                    markov_state_vector._values[k] = m0 if (rstate.c_random() & 1) else m1
+                    markov_state_vector._values[c] = m0 if (rstate.c_random() & 1) else m1
 
         S.append(t)
 

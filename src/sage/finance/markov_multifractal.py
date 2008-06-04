@@ -26,7 +26,7 @@ class MarkovSwitchingMultifractal:
             kbar   -- positive integer
             m0     -- float with 0 <= m0 <= 2
             sigma  -- positive float
-            gamma_kbar -- float with 0 < gamma_kbar < 1
+            gamma_kbar -- float with 0 <= gamma_kbar < 1
             b      -- float > 1
 
         EXAMPLES:
@@ -42,7 +42,7 @@ class MarkovSwitchingMultifractal:
         self.__b = float(b)
         assert self.__b > 1, "b must be bigger than 1"
         self.__gamma_kbar = float(gamma_kbar)
-        assert self.__gamma_kbar > 0 and self.__gamma_kbar < 1, \
+        assert self.__gamma_kbar >= 0 and self.__gamma_kbar < 1, \
                "gamma_kbar must be between 0 and 1"
         self.__kbar = int(kbar)
         assert self.__kbar > 0, "kbar must be positive"
@@ -193,7 +193,7 @@ class MarkovSwitchingMultifractal:
             Markov switching multifractal model with m0 = 1.278, sigma = 0.262, b = 2.11, and gamma_10 = 0.644
         """
         return markov_multifractal_cython.simulations(n, k,
-                   self.__m0, self.__sigma, self.__b,
+                   self.__m0, self.__sigma,
                    self.__kbar, self.gamma())
 
 

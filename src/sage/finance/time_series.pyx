@@ -1065,6 +1065,16 @@ cdef class TimeSeries:
         """
         return sqrt(self.variance(bias=bias))
 
+    def range_statistic(self):
+        sums = self.sums()
+        return (sums.max() - sums.min())/self.standard_deviation()
+
+    def hurst_exponent(self):
+        cdef double r = self.range_statistic()
+        if r == 0:
+            return 0
+        return log(r)/log(self._length)
+
     def min(self, bint index=False):
         """
         Return the smallest value in this time series. If this series
@@ -1243,8 +1253,12 @@ cdef class TimeSeries:
         for i from 0 <= i < bins:
             cnts[i] = 0
 
+        cdef Py_ssize_t j
         for i from 0 <= i < self._length:
-            cnts[<Py_ssize_t>floor((self._values[i] - mn)/step)] += 1
+            j = int((self._values[i] - mn)/step)
+            if j >= bins:
+                j = bins-1
+            cnts[j] += 1
 
         b = 1.0/(self._length * step)
         if normalize:
@@ -1276,6 +1290,11 @@ cdef class TimeSeries:
         s = 0
         for i, (x0,x1) in enumerate(intervals):
             s += polygon([(x0,0), (x0,counts[i]), (x1,counts[i]), (x1,0)], **kwds)
+        if len(intervals) > 0:
+            s.xmin(intervals[0][0])
+            s.xmax(intervals[-1][1])
+            s.ymin(0)
+            s.ymax(max(counts))
         return s
 
     def numpy(self):
@@ -1312,7 +1331,7 @@ cdef class TimeSeries:
         is platform independent.
         """
         if distribution == 'uniform':
-            self._randomize_uniform(loc, scale)
+            self._randomize_uniform(loc, loc + scale)
         elif distribution == 'normal':
             self._randomize_normal(loc, scale)
         elif distribution == 'semicircle':
@@ -1346,11 +1365,11 @@ cdef class TimeSeries:
         cdef Py_ssize_t k
         for k from 0 <= k < self._length:
             while 1:
-                x1 = 2.0 * rstate.c_rand_double() - 1.0
-                x2 = 2.0 * rstate.c_rand_double() - 1.0
-                w = x1 * x1 + x2 * x2
-                if w < 1.0: break
-            w = sqrt( (-2.0 * log( w ) ) / w )
+                x1 = 2*rstate.c_rand_double() - 1
+                x2 = 2*rstate.c_rand_double() - 1
+                w = x1*x1 + x2*x2
+                if w < 1: break
+            w = sqrt( (-2*log(w))/w )
             y1 = x1 * w
             y2 = x2 * w
             self._values[k] = m + y1*s

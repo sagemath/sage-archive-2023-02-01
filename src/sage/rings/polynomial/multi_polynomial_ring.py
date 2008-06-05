@@ -282,6 +282,14 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: S(u + 2*v)
             u + 2*v
 
+        Conversion from strings:
+            sage: R.<x,y> = QQ[]
+            sage: R('x+(1/2)*y^2')
+            1/2*y^2 + x
+            sage: S.<u,v> = ZZ[]
+            sage: S('u^2 + u*v + v^2')
+            u^2 + u*v + v^2
+
         Foreign polynomial rings coerce into the highest ring; the point here
         is that an element of T could coerce to an element of R or an element
         of S; it is anticipated that an element of T is more likely to be "the
@@ -381,15 +389,12 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
         elif hasattr(x, '_polynomial_'):
             return x._polynomial_(self)
 
-        elif isinstance(x, str) and x in self.variable_names():
-            return self.gen(list(self.variable_names()).index(x))
-
-        elif isinstance(x , str) and self._has_singular:
-            self._singular_().set_ring()
+        elif isinstance(x, str):
             try:
-                return self._singular_().parent(x).sage_poly(self)
-            except TypeError:
-                raise TypeError,"unable to coerce string"
+                from sage.misc.sage_eval import sage_eval
+                return sage_eval(x, self.gens_dict())
+            except NameError, e:
+                raise TypeError,"unable to convert string"
 
         elif is_Macaulay2Element(x):
             try:

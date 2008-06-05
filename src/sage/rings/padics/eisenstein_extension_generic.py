@@ -31,7 +31,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
     def ramification_index(self, K = None):
         if K is None or K is self.ground_ring():
             return self.modulus().degree()
-	elif K is self:
+        elif K is self:
             return 1
         else:
             raise NotImplementedError
@@ -106,6 +106,8 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
 
     def uniformizer(self):
         return self.gen()
+
+    uniformiser = uniformizer
 
     def _uniformizer_print(self):
         return self.variable_name()

@@ -79,7 +79,7 @@ echo "*************************************************"
 echo " Using LINBOX_BLAS=$LINBOX_BLAS"
 echo "*************************************************"
 
-./configure --prefix="$SAGE_LOCAL" --with-givaro="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" --with-ntl="$SAGE_LOCAL" --enable-optimization --with-blas="$LINBOX_BLAS"
+./configure --prefix="$SAGE_LOCAL" --with-givaro="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" --with-ntl="$SAGE_LOCAL"  --with-blas="$LINBOX_BLAS" --enable-sage --enable-optimization
 
 if [ $? -ne 0 ]; then
     echo "Error configuring linbox"
@@ -97,27 +97,4 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-#
-# Build the C Wrapper
-#
-
-cd "$CUR"/linbox_wrap
-
-./configure --prefix="$SAGE_LOCAL" --with-blas="$LINBOX_BLAS"
-
-if [ $? -ne 0 ]; then
-    echo "Error configuring linboxwrap"
-    exit 1
-fi
-
-make
-if [ $? -ne 0 ]; then
-    echo "Error building linboxwrap"
-fi
-
-make install
-if [ $? -ne 0 ]; then
-    echo "Error installing linboxwrap"
-    exit 1
-fi
 

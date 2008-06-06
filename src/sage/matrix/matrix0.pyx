@@ -1169,8 +1169,15 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     ###################################################
     # Row and column operations
-    # The _c versions do no bounds checking and all
-    # assume input values have parent that is self._base_ring.
+    # The _c versions do no bounds checking.
+    # The with_ versions do not change the input matrix.
+    # Some of the functions assume that input values
+    # have parent that is self._base_ring.
+    # AUTHORS:
+    #     -- Karl-Dieter Crisman (June 2008):
+    # Improved examples and error messages for methods which could
+    # involve multiplication outside base ring, including
+    # with_ versions of these methods for this situation
     ###################################################
     cdef check_row_bounds_and_mutability(self, Py_ssize_t r1, Py_ssize_t r2):
         if self._mutability._is_immutable:
@@ -1193,12 +1200,16 @@ cdef class Matrix(sage.structure.element.Matrix):
         Swap columns c1 and c2 of self.
 
         EXAMPLES:
+        We create a rational matrix:
             sage: M = MatrixSpace(QQ,3,3)
             sage: A = M([1,9,-7,4/5,4,3,6,4,3])
             sage: A
             [  1   9  -7]
             [4/5   4   3]
             [  6   4   3]
+
+        Since the first column is numbered zero, this swaps
+        the second and third columns:
             sage: A.swap_columns(1,2); A
             [  1  -7   9]
             [4/5   3   4]
@@ -1220,12 +1231,16 @@ cdef class Matrix(sage.structure.element.Matrix):
         Swap rows r1 and r2 of self.
 
         EXAMPLES:
+        We create a rational matrix:
             sage: M = MatrixSpace(QQ,3,3)
             sage: A = M([1,9,-7,4/5,4,3,6,4,3])
             sage: A
             [  1   9  -7]
             [4/5   4   3]
             [  6   4   3]
+
+        Since the first row is numbered zero, this swaps
+        the first and third rows:
             sage: A.swap_rows(0,2); A
             [  6   4   3]
             [4/5   4   3]
@@ -1242,74 +1257,267 @@ cdef class Matrix(sage.structure.element.Matrix):
             self.set_unsafe(r2, c, self.get_unsafe(r1, c))
             self.set_unsafe(r1, c, a)
 
-
-    def add_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t col_start=0):
+    def add_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t start_col=0):
         """
         Add s times row j to row i.
 
         EXAMPLES:
-            sage: a = matrix(2,3,range(6)); a
+        We add -3 times the first row to the second row of an integer
+        matrix, remembering to start numbering rows at zero:
+            sage: a = matrix(ZZ,2,3,range(6)); a
             [0 1 2]
             [3 4 5]
             sage: a.add_multiple_of_row(1,0,-3)
             sage: a
             [ 0  1  2]
             [ 3  1 -1]
+
+        To add a rational multiple, we first need to change the base ring:
+            sage: a = a.change_ring(QQ)
+            sage: a.add_multiple_of_row(1,0,1/3)
+            sage: a
+            [   0    1    2]
+            [   3  4/3 -1/3]
+
+        If not, we get an error message:
+            sage: a.add_multiple_of_row(1,0,i)
+            Traceback (most recent call last):
+            ...
+            TypeError: Multiplying row by Symbolic Ring element cannot be done over Rational Field, use change_ring or with_added_multiple_of_row instead.
         """
         self.check_row_bounds_and_mutability(i,j)
-        s = self._coerce_element(s)
-        self.add_multiple_of_row_c(i, j, s, col_start)
+        try:
+            s = self._coerce_element(s)
+            self.add_multiple_of_row_c(i, j, s, start_col)
+        except TypeError:
+            raise TypeError, 'Multiplying row by %s element cannot be done over %s, use change_ring or with_added_multiple_of_row instead.' % (s.parent(), self.base_ring())
 
-    cdef add_multiple_of_row_c(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t col_start):
+    cdef add_multiple_of_row_c(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t start_col):
         cdef Py_ssize_t c
-        for c from col_start <= c < self._ncols:
+        for c from start_col <= c < self._ncols:
             self.set_unsafe(i, c, self.get_unsafe(i, c) + s*self.get_unsafe(j, c))
 
-    def add_multiple_of_column(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t row_start=0):
+    def with_added_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t start_col=0):
+        """
+        Add s times row j to row i, returning new matrix.
+
+        EXAMPLES:
+        We add -3 times the first row to the second row of an integer
+		matrix, remembering to start numbering rows at zero:
+            sage: a = matrix(ZZ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: b = a.with_added_multiple_of_row(1,0,-3); b
+            [ 0  1  2]
+            [ 3  1 -1]
+
+        The original matrix is unchanged:
+            sage: a
+            [0 1 2]
+            [3 4 5]
+
+        Adding a rational multiple is okay, and reassigning a variable is okay:
+            sage: a = a.with_added_multiple_of_row(0,1,1/3); a
+            [   1  7/3 11/3]
+            [   3    4    5]
+        """
+        cdef Matrix temp
+        self.check_row_bounds_and_mutability(i,j)
+        try:
+            s = self._coerce_element(s)
+            temp = self.copy()
+            temp.add_multiple_of_row_c(i, j, s, start_col)
+            return temp
+        # If scaling factor cannot be coerced, change the base ring to
+        # one acceptable to both the original base ring and the scaling factor.
+        except TypeError:
+            temp = self.change_ring(Sequence([s,self.base_ring()(0)]).universe())
+            s = temp._coerce_element(s)
+            temp.add_multiple_of_row_c(i, j, s, start_col)
+            return temp
+
+    def add_multiple_of_column(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t start_row=0):
         """
         Add s times column j to column i.
 
         EXAMPLES:
-            sage: a = matrix(QQ,2,3,range(6)); a
+        We add -1 times the third column to the second column of an
+        integer matrix, remembering to start numbering cols at zero:
+            sage: a = matrix(ZZ,2,3,range(6)); a
             [0 1 2]
             [3 4 5]
-            sage: a.add_multiple_of_column(1,2,-1/2)
+            sage: a.add_multiple_of_column(1,2,-1)
             sage: a
-            [  0   0   2]
-            [  3 3/2   5]
+            [ 0 -1  2]
+            [ 3 -1  5]
+
+        To add a rational multiple, we first need to change the base ring:
+            sage: a = a.change_ring(QQ)
+            sage: a.add_multiple_of_column(1,0,1/3)
+            sage: a
+            [ 0 -1  2]
+            [ 3  0  5]
+
+        If not, we get an error message:
+            sage: a.add_multiple_of_column(1,0,i)
+            Traceback (most recent call last):
+            ...
+            TypeError: Multiplying column by Symbolic Ring element cannot be done over Rational Field, use change_ring or with_added_multiple_of_column instead.
         """
         self.check_column_bounds_and_mutability(i,j)
-        s = self._coerce_element(s)
-        self.add_multiple_of_column_c(i, j, s, row_start)
+        try:
+            s = self._coerce_element(s)
+            self.add_multiple_of_column_c(i, j, s, start_row)
+        except TypeError:
+            raise TypeError, 'Multiplying column by %s element cannot be done over %s, use change_ring or with_added_multiple_of_column instead.' % (s.parent(), self.base_ring())
 
-    cdef add_multiple_of_column_c(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t row_start):
+    cdef add_multiple_of_column_c(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t start_row):
         cdef Py_ssize_t r
-        for r from row_start <= r < self._nrows:
+        for r from start_row <= r < self._nrows:
             self.set_unsafe(r, i, self.get_unsafe(r, i) + s*self.get_unsafe(r, j))
+
+    def with_added_multiple_of_column(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t start_row=0):
+        """
+        Add s times column j to column i, returning new matrix.
+
+        EXAMPLES:
+        We add -1 times the third column to the second column of an
+        integer matrix, remembering to start numbering cols at zero:
+            sage: a = matrix(ZZ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: b = a.with_added_multiple_of_column(1,2,-1); b
+            [ 0 -1  2]
+            [ 3 -1  5]
+
+        The original matrix is unchanged:
+            sage: a
+            [0 1 2]
+            [3 4 5]
+
+        Adding a rational multiple is okay, and reassigning a variable is okay:
+            sage: a = a.with_added_multiple_of_column(0,1,1/3); a
+            [ 1/3    1    2]
+            [13/3    4    5]
+        """
+        cdef Matrix temp
+        self.check_column_bounds_and_mutability(i,j)
+        try:
+            s = self._coerce_element(s)
+            temp = self.copy()
+            temp.add_multiple_of_column_c(i, j, s, start_row)
+            return temp
+        # If scaling factor cannot be coerced, change the base ring to
+        # one acceptable to both the original base ring and the scaling factor.
+        except TypeError:
+            temp = self.change_ring(Sequence([s,self.base_ring()(0)]).universe())
+            s = temp._coerce_element(s)
+            temp.add_multiple_of_column_c(i, j, s, start_row)
+            return temp
 
     def rescale_row(self, Py_ssize_t i, s, Py_ssize_t start_col=0):
         """
         Replace i-th row of self by s times i-th row of self.
 
-        start_row -- only rescale enries at that column and to the right
+        INPUT:
+            i -- ith row
+            s -- scalar
+            start_col -- only rescale entries at this column and to the right
 
         EXAMPLES:
-            sage: a = matrix(2,3,range(6)); a
+        We rescale the second row of a matrix over the rational numbers:
+
+            sage: a = matrix(QQ,3,range(6)); a
+            [0 1]
+            [2 3]
+            [4 5]
+            sage: a.rescale_row(1,1/2); a
+            [ 0   1]
+            [ 1 3/2]
+            [ 4   5]
+
+        We rescale the second row of a matrix over a polynomial ring:
+            sage: R.<x> = QQ[]
+            sage: a = matrix(R,3,[1,x,x^2,x^3,x^4,x^5]);a
+            [  1   x]
+            [x^2 x^3]
+            [x^4 x^5]
+            sage: a.rescale_row(1,1/2); a
+            [      1       x]
+            [1/2*x^2 1/2*x^3]
+            [    x^4     x^5]
+
+        We try and fail to rescale a matrix over the integers by a non-integer:
+            sage: a = matrix(ZZ,2,3,[0,1,2, 3,4,4]); a
             [0 1 2]
-            [3 4 5]
-            sage: a.add_multiple_of_row(1,0,-3); a
-            [ 0  1  2]
-            [ 3  1 -1]
+            [3 4 4]
+            sage: a.rescale_row(1,1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: Rescaling row by Rational Field element cannot be done over Integer Ring, use change_ring or with_rescaled_row instead.
+
+        To rescale the matrix by 1/2, you must change the base ring to the rationals:
+            sage: a = a.change_ring(QQ); a
+            [0 1 2]
+            [3 4 4]
+            sage: a.rescale_col(1,1/2); a
+            [  0 1/2   2]
+            [  3   2   4]
         """
         self.check_row_bounds_and_mutability(i, i)
-        s = self._coerce_element(s)
-        self.rescale_row_c(i, s, start_col)
+        try:
+            s = self._coerce_element(s)
+            self.rescale_row_c(i, s, start_col)
+        except TypeError:
+            raise TypeError, 'Rescaling row by %s element cannot be done over %s, use change_ring or with_rescaled_row instead.' % (s.parent(), self.base_ring())
 
     cdef rescale_row_c(self, Py_ssize_t i, s, Py_ssize_t start_col):
         cdef Py_ssize_t j
         for j from start_col <= j < self._ncols:
             self.set_unsafe(i, j, self.get_unsafe(i, j)*s)
 
+    def with_rescaled_row(self, Py_ssize_t i, s, Py_ssize_t start_col=0):
+        """
+        Replaces i-th row of self by s times i-th row of self,
+        returning new matrix.
+
+        EXAMPLES:
+        We rescale the second row of a matrix over the integers:
+            sage: a = matrix(ZZ,3,2,range(6)); a
+            [0 1]
+            [2 3]
+            [4 5]
+            sage: b = a.with_rescaled_row(1,-2); b
+            [ 0  1]
+            [-4 -6]
+            [ 4  5]
+
+        The original matrix is unchanged:
+            sage: a
+            [0 1]
+            [2 3]
+            [4 5]
+
+        Adding a rational multiple is okay, and reassigning a variable is okay:
+            sage: a = a.with_rescaled_row(2,1/3); a
+            [  0   1]
+            [  2   3]
+            [4/3 5/3]
+        """
+        cdef Matrix temp
+        self.check_row_bounds_and_mutability(i,i)
+        try:
+            s = self._coerce_element(s)
+            temp = self.copy()
+            temp.rescale_row_c(i, s, start_col)
+            return temp
+        # If scaling factor cannot be coerced, change the base ring to
+        # one acceptable to both the original base ring and the scaling factor.
+        except TypeError:
+            temp = self.change_ring(Sequence([s,self.base_ring()(0)]).universe())
+            s = temp._coerce_element(s)
+            temp.rescale_row_c(i, s, start_col)
+            return temp
 
     def rescale_col(self, Py_ssize_t i, s, Py_ssize_t start_row=0):
         """
@@ -1318,7 +1526,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         INPUT:
             i -- ith column
             s -- scalar
-            start_row -- only rescale enries at this row and lower
+            start_row -- only rescale entries at this row and lower
 
         EXAMPLES:
         We rescale the last column of a matrix over the rational numbers:
@@ -1331,7 +1539,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [  3   4 5/2]
             sage: R.<x> = QQ[]
 
-        We rescale a matrix over a polynomial ring.
+        We rescale the last column of a matrix over a polynomial ring:
             sage: a = matrix(R,2,3,[1,x,x^2,x^3,x^4,x^5]); a
             [  1   x x^2]
             [x^3 x^4 x^5]
@@ -1343,51 +1551,213 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a = matrix(ZZ,2,3,[0,1,2, 3,4,4]); a
             [0 1 2]
             [3 4 4]
-            sage: a.rescale_col(2,1/2); a
+            sage: a.rescale_col(2,1/2)
             Traceback (most recent call last):
             ...
-            TypeError: no coercion of this rational to integer
-
-        We rescale the integer matrix's column 2 column by $-1$, which is an integer.
-            sage: a.rescale_col(2,-1); a
-            [ 0  1 -2]
-            [ 3  4 -4]
+            TypeError: Rescaling column by Rational Field element cannot be done over Integer Ring, use change_ring or with_rescaled_col instead.
 
         To rescale the matrix by 1/2, you must change the base ring to the rationals:
-            sage: b = a.change_ring(QQ); b
-            [ 0  1 -2]
-            [ 3  4 -4]
-            sage: b.rescale_col(2, 1/2); b
-            [ 0  1 -1]
-            [ 3  4 -2]
+            sage: a = a.change_ring(QQ); a
+            [0 1 2]
+            [3 4 4]
+            sage: a.rescale_col(2,1/2); a
+            [0 1 1]
+            [3 4 2]
         """
         self.check_column_bounds_and_mutability(i, i)
-        s = self._coerce_element(s)
-        self.rescale_col_c(i, s, start_row)
+        try:
+            s = self._coerce_element(s)
+            self.rescale_col_c(i, s, start_row)
+        except TypeError:
+            raise TypeError, 'Rescaling column by %s element cannot be done over %s, use change_ring or with_rescaled_col instead.' % (s.parent(), self.base_ring())
 
     cdef rescale_col_c(self, Py_ssize_t i, s, Py_ssize_t start_row):
         cdef Py_ssize_t j
         for j from start_row <= j < self._nrows:
             self.set_unsafe(j, i, self.get_unsafe(j, i)*s)
 
+    def with_rescaled_col(self, Py_ssize_t i, s, Py_ssize_t start_row=0):
+        """
+        Replaces i-th col of self by s times i-th col of self,
+        returning new matrix.
+
+        EXAMPLES:
+        We rescale the last column of a matrix over the integers:
+            sage: a = matrix(ZZ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: b = a.with_rescaled_col(2,-2); b
+            [  0   1  -4]
+            [  3   4 -10]
+
+        The original matrix is unchanged:
+            sage: a
+            [0 1 2]
+            [3 4 5]
+
+        Adding a rational multiple is okay, and reassigning a variable is okay:
+            sage: a = a.with_rescaled_col(1,1/3); a
+            [  0 1/3   2]
+            [  3 4/3   5]
+        """
+        cdef Matrix temp
+        self.check_column_bounds_and_mutability(i,i)
+        try:
+            s = self._coerce_element(s)
+            temp = self.copy()
+            temp.rescale_col_c(i, s, start_row)
+            return temp
+        # If scaling factor cannot be coerced, change the base ring to
+        # one acceptable to both the original base ring and the scaling factor.
+        except TypeError:
+            temp = self.change_ring(Sequence([s,self.base_ring()(0)]).universe())
+            s = temp._coerce_element(s)
+            temp.rescale_col_c(i, s, start_row)
+            return temp
+
     def set_row_to_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j, s):
         """
         Set row i equal to s times row j.
 
         EXAMPLES:
-            sage: a = matrix(QQ,2,3,range(6)); a
+        We change the second row to -3 times the first row:
+            sage: a = matrix(ZZ,2,3,range(6)); a
             [0 1 2]
             [3 4 5]
             sage: a.set_row_to_multiple_of_row(1,0,-3)
             sage: a
             [ 0  1  2]
             [ 0 -3 -6]
+
+        If we try to multiply a row by a rational number,
+        we get an error message:
+            sage: a.set_row_to_multiple_of_row(1,0,1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: Multiplying row by Rational Field element cannot be done over Integer Ring, use change_ring or with_row_set_to_multiple_of_row instead.
         """
         self.check_row_bounds_and_mutability(i,j)
         cdef Py_ssize_t n
-        s = self._base_ring(s)
-        for n from 0 <= n < self._ncols:
-            self.set_unsafe(i, n, s * self.get_unsafe(j, n))  # self[i] = s*self[j]
+        try:
+            s = self._coerce_element(s)
+            for n from 0 <= n < self._ncols:
+                self.set_unsafe(i, n, s * self.get_unsafe(j, n))  # self[i] = s*self[j]
+        except TypeError:
+            raise TypeError, 'Multiplying row by %s element cannot be done over %s, use change_ring or with_row_set_to_multiple_of_row instead.' % (s.parent(), self.base_ring())
+
+    def with_row_set_to_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j, s):
+        """
+        Set row i equal to s times row j, returning a new matrix.
+
+        EXAMPLES:
+        We change the second row to -3 times the first row:
+            sage: a = matrix(ZZ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: b = a.with_row_set_to_multiple_of_row(1,0,-3); b
+            [ 0  1  2]
+            [ 0 -3 -6]
+
+        Note that the original matrix is unchanged:
+            sage: a
+            [0 1 2]
+            [3 4 5]
+
+        Adding a rational multiple is okay, and reassigning a variable is okay:
+            sage: a = a.with_row_set_to_multiple_of_row(1,0,1/2); a
+            [  0   1   2]
+            [  0 1/2   1]
+        """
+        self.check_row_bounds_and_mutability(i,j)
+        cdef Matrix temp
+        cdef Py_ssize_t n
+        try:
+            s = self._coerce_element(s)
+            temp = self.copy()
+            for n from 0 <= n < temp._ncols:
+                temp.set_unsafe(i, n, s * temp.get_unsafe(j, n))  # temp[i] = s*temp[j]
+            return temp
+        # If scaling factor cannot be coerced, change the base ring to
+        # one acceptable to both the original base ring and the scaling factor.
+        except TypeError:
+            temp = self.change_ring(Sequence([s,self.base_ring()(0)]).universe())
+            s = temp._coerce_element(s)
+            for n from 0 <= n < temp._ncols:
+                temp.set_unsafe(i, n, s * temp.get_unsafe(j, n))  # temp[i] = s*temp[j]
+            return temp
+
+    def set_col_to_multiple_of_col(self, Py_ssize_t i, Py_ssize_t j, s):
+        """
+        Set column i equal to s times column j.
+
+        EXAMPLES:
+        We change the second column to -3 times the first column.
+            sage: a = matrix(ZZ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.set_col_to_multiple_of_col(1,0,-3)
+            sage: a
+            [ 0  0  2]
+            [ 3 -9  5]
+
+        If we try to multiply a column by a rational number,
+        we get an error message:
+            sage: a.set_col_to_multiple_of_col(1,0,1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: Multiplying column by Rational Field element cannot be done over Integer Ring, use change_ring or with_col_set_to_multiple_of_col instead.
+        """
+        self.check_column_bounds_and_mutability(i,j)
+        cdef Py_ssize_t n
+        try:
+            s = self._coerce_element(s)
+            for n from 0 <= n < self._nrows:
+                self.set_unsafe(n, i, s * self.get_unsafe(n, j))
+        # If scaling factor cannot be coerced, change the base ring to
+        # one acceptable to both the original base ring and the scaling factor.
+        except TypeError:
+            raise TypeError, 'Multiplying column by %s element cannot be done over %s, use change_ring or with_col_set_to_multiple_of_col instead.' % (s.parent(), self.base_ring())
+
+    def with_col_set_to_multiple_of_col(self, Py_ssize_t i, Py_ssize_t j, s):
+        """
+        Set column i equal to s times column j, returning a new matrix.
+
+        EXAMPLES:
+        We change the second column to -3 times the first column.
+            sage: a = matrix(ZZ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: b = a.with_col_set_to_multiple_of_col(1,0,-3); b
+            [ 0  0  2]
+            [ 3 -9  5]
+
+        Note that the original matrix is unchanged:
+            sage: a
+            [0 1 2]
+            [3 4 5]
+
+        Adding a rational multiple is okay, and reassigning a variable is okay:
+            sage: a = a.with_col_set_to_multiple_of_col(1,0,1/2); a
+            [  0   0   2]
+            [  3 3/2   5]
+        """
+        self.check_column_bounds_and_mutability(i,j)
+        cdef Py_ssize_t n
+        cdef Matrix temp
+        try:
+            s = self._coerce_element(s)
+            temp = self.copy()
+            for n from 0 <= n < temp._nrows:
+                temp.set_unsafe(n, i, s * temp.get_unsafe(n, j))
+            return temp
+        # If scaling factor cannot be coerced, change the base ring to
+        # one acceptable to both the original base ring and the scaling factor.
+        except TypeError:
+            temp = self.change_ring(Sequence([s,self.base_ring()(0)]).universe())
+            s = temp._coerce_element(s)
+            for n from 0 <= n < temp._nrows:
+                temp.set_unsafe(n, i, s * temp.get_unsafe(n, j))
+            return temp
 
     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
                                                                  Py_ssize_t r, cols,

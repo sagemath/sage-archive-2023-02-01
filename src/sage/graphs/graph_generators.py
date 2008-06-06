@@ -2899,10 +2899,11 @@ class GraphGenerators():
             4
 
         """
+        import os
         from sage.misc.package import is_package_installed
         if not is_package_installed("nauty"):
             raise TypeError, "the optional nauty package is not installed"
-        return [Graph(g) for g in os.popen("nauty-geng %s"%(options) ).read().split()]
+        return [graph.Graph(g) for g in os.popen("nauty-geng %s"%(options) ).read().split()]
 
 
 
